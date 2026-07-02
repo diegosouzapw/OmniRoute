@@ -7,9 +7,12 @@ import { getSupervisor, registerSupervisor } from "@/lib/services/registry";
 import { ServiceSupervisor } from "@/lib/services/ServiceSupervisor";
 import { resolveSpawnArgs } from "@/lib/services/installers/ninerouter";
 import { getOrCreateApiKey } from "@/lib/services/apiKey";
+import {
+  buildLoopbackUrl,
+  getRouterBackendServiceMetadata,
+} from "@/lib/services/routerBackendService";
 
-const TOOL = "9router";
-const PORT = 20130;
+const SERVICE = getRouterBackendServiceMetadata("9router");
 
 // Module-level in-flight guard. Without this, two concurrent requests that
 // both observe `getSupervisor() === null` and then await getOrCreateApiKey
@@ -18,7 +21,7 @@ const PORT = 20130;
 let initInFlight: Promise<ServiceSupervisor> | null = null;
 
 export async function getOrInitSupervisor(): Promise<ServiceSupervisor> {
-  const existing = getSupervisor(TOOL);
+  const existing = getSupervisor(SERVICE.tool);
   if (existing) return existing;
 
   if (initInFlight) return initInFlight;
@@ -26,16 +29,16 @@ export async function getOrInitSupervisor(): Promise<ServiceSupervisor> {
   initInFlight = (async () => {
     // Double-check after entering the in-flight branch — a competing caller
     // may have completed initialization while we awaited the lock check.
-    const racy = getSupervisor(TOOL);
+    const racy = getSupervisor(SERVICE.tool);
     if (racy) return racy;
 
-    const apiKey = await getOrCreateApiKey(TOOL);
+    const apiKey = await getOrCreateApiKey(SERVICE.tool);
 
     const sup = new ServiceSupervisor({
-      tool: TOOL,
-      port: PORT,
-      spawnArgs: () => resolveSpawnArgs(apiKey, PORT),
-      healthUrl: () => `http://127.0.0.1:${PORT}/api/health`,
+      tool: SERVICE.tool,
+      port: SERVICE.port,
+      spawnArgs: () => resolveSpawnArgs(apiKey, SERVICE.port),
+      healthUrl: () => buildLoopbackUrl(SERVICE.port, SERVICE.healthPath),
       healthIntervalMs: 2_000,
       stopTimeoutMs: 15_000,
       logsBufferBytes: 5_242_880,

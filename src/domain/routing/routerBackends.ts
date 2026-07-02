@@ -33,6 +33,7 @@ export interface RouterBackendDefinition {
   lifecycle: RouterBackendLifecycle;
   capabilities: readonly RouterBackendCapability[];
   defaultPort?: number;
+  portEnv?: string;
   serviceName?: string;
   envBaseUrl?: string;
   health: RouterBackendHealthConfig;
@@ -81,6 +82,7 @@ export const ROUTER_BACKENDS: readonly RouterBackendDefinition[] = [
     lifecycle: "supervised",
     capabilities: ["chat", "responses", "streaming", "tools", "oauth-backed", "model-sync"],
     defaultPort: 8317,
+    portEnv: "CLIPROXYAPI_PORT",
     serviceName: "cliproxy",
     health: { path: "/v1/models" },
     telemetry: FULL_TELEMETRY,
@@ -91,6 +93,7 @@ export const ROUTER_BACKENDS: readonly RouterBackendDefinition[] = [
     lifecycle: "supervised",
     capabilities: ["chat", "streaming", "dashboard-embed", "model-sync"],
     defaultPort: 20130,
+    portEnv: "NINEROUTER_PORT",
     serviceName: "9router",
     health: { path: "/api/health" },
     telemetry: FULL_TELEMETRY,
@@ -128,4 +131,3 @@ export function listRouterBackendsByCapability(
 ): RouterBackendDefinition[] {
   return ROUTER_BACKENDS.filter((backend) => backendHasCapability(backend, capability));
 }
-

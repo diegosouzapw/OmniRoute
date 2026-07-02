@@ -1,14 +1,12 @@
 import { getSupervisor } from "@/lib/services/registry";
 import { getServiceRow } from "@/lib/db/versionManager";
-import {
-  getInstalledVersion,
-  getLatestVersion,
-  CLIPROXY_DEFAULT_PORT,
-} from "@/lib/services/installers/cliproxy";
+import { getInstalledVersion, getLatestVersion } from "@/lib/services/installers/cliproxy";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { getRouterBackendServiceMetadata } from "@/lib/services/routerBackendService";
 
-const TOOL = "cliproxy";
+const SERVICE = getRouterBackendServiceMetadata("cliproxy");
+const TOOL = SERVICE.tool;
 
 export async function GET(): Promise<Response> {
   try {
@@ -23,7 +21,7 @@ export async function GET(): Promise<Response> {
       tool: TOOL,
       state: liveStatus?.state ?? row?.status ?? "unknown",
       pid: liveStatus?.pid ?? null,
-      port: liveStatus?.port ?? row?.port ?? CLIPROXY_DEFAULT_PORT,
+      port: liveStatus?.port ?? row?.port ?? SERVICE.port,
       health: liveStatus?.health ?? "unknown",
       startedAt: liveStatus?.startedAt ?? null,
       lastError: liveStatus?.lastError ?? row?.errorMessage ?? null,

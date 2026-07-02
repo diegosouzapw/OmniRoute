@@ -5,8 +5,10 @@ import { getOrCreateApiKey, maskApiKey } from "@/lib/services/apiKey";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { logAuditEvent } from "@/lib/compliance/index";
+import { getRouterBackendServiceMetadata } from "@/lib/services/routerBackendService";
 
-const TOOL = "9router";
+const SERVICE = getRouterBackendServiceMetadata("9router");
+const TOOL = SERVICE.tool;
 
 export async function GET(request: Request = new Request("http://localhost/")): Promise<Response> {
   try {
@@ -27,7 +29,7 @@ export async function GET(request: Request = new Request("http://localhost/")): 
       tool: TOOL,
       state: liveStatus?.state ?? row?.status ?? "unknown",
       pid: liveStatus?.pid ?? null,
-      port: liveStatus?.port ?? row?.port ?? 20130,
+      port: liveStatus?.port ?? row?.port ?? SERVICE.port,
       health: liveStatus?.health ?? "unknown",
       startedAt: liveStatus?.startedAt ?? null,
       lastError: liveStatus?.lastError ?? row?.errorMessage ?? null,

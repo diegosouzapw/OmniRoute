@@ -3,16 +3,11 @@ import { markAllUnavailable } from "@/lib/db/serviceModels";
 import { registerSupervisor, getSupervisor } from "./registry";
 import { ServiceSupervisor } from "./ServiceSupervisor";
 import { resolveSpawnArgs as nineRouterSpawnArgs } from "./installers/ninerouter";
-import {
-  resolveSpawnArgs as cliproxySpawnArgs,
-  CLIPROXY_DEFAULT_PORT,
-} from "./installers/cliproxy";
+import { resolveSpawnArgs as cliproxySpawnArgs } from "./installers/cliproxy";
 import { getOrCreateApiKey } from "./apiKey";
 import { scheduleServiceModelSync, stopServiceModelSync } from "./modelSync";
+import { buildLoopbackUrl, getRouterBackendServiceMetadata } from "./routerBackendService";
 import type { ServiceStatus } from "./types";
-
-const NINEROUTER_PORT = parseInt(process.env.NINEROUTER_PORT ?? "20130", 10);
-const CLIPROXY_PORT = parseInt(process.env.CLIPROXYAPI_PORT ?? String(CLIPROXY_DEFAULT_PORT), 10);
 
 type ServiceEntry = {
   tool: string;
@@ -26,18 +21,14 @@ type ServiceEntry = {
 
 const SERVICES: ServiceEntry[] = [
   {
-    tool: "9router",
-    port: NINEROUTER_PORT,
-    healthPath: "/api/health",
+    ...getRouterBackendServiceMetadata("9router"),
     healthIntervalMs: 2_000,
     stopTimeoutMs: 15_000,
     logsBufferBytes: 5_242_880,
     needsApiKey: true,
   },
   {
-    tool: "cliproxy",
-    port: CLIPROXY_PORT,
-    healthPath: "/v1/models",
+    ...getRouterBackendServiceMetadata("cliproxy"),
     healthIntervalMs: 5_000,
     stopTimeoutMs: 15_000,
     logsBufferBytes: 5_242_880,
@@ -70,7 +61,7 @@ export async function bootstrapEmbeddedServices(): Promise<void> {
       tool: cfg.tool,
       port: cfg.port,
       spawnArgs: buildSpawnArgsFactory(cfg, apiKey),
-      healthUrl: () => `http://127.0.0.1:${cfg.port}${cfg.healthPath}`,
+      healthUrl: () => buildLoopbackUrl(cfg.port, cfg.healthPath),
       healthIntervalMs: cfg.healthIntervalMs,
       stopTimeoutMs: cfg.stopTimeoutMs,
       logsBufferBytes: cfg.logsBufferBytes,
@@ -78,7 +69,7 @@ export async function bootstrapEmbeddedServices(): Promise<void> {
 
     registerSupervisor(supervisor);
 
-    const baseUrl = `http://127.0.0.1:${cfg.port}`;
+    const baseUrl = buildLoopbackUrl(cfg.port);
     supervisor.on("stateChange", (status: ServiceStatus) => {
       if (status.state === "running") {
         scheduleServiceModelSync(cfg.tool, baseUrl, apiKey);

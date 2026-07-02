@@ -18,9 +18,13 @@ import { getSupervisor } from "@/lib/services/registry";
 import { getOrCreateApiKey } from "@/lib/services/apiKey";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import {
+  buildLoopbackUrl,
+  getRouterBackendServiceMetadata,
+} from "@/lib/services/routerBackendService";
 
-const TOOL = "9router";
-const DEFAULT_PORT = parseInt(process.env.NINEROUTER_PORT ?? "20130", 10);
+const SERVICE = getRouterBackendServiceMetadata("9router");
+const TOOL = SERVICE.tool;
 
 export async function GET(request: Request): Promise<Response> {
   try {
@@ -31,8 +35,8 @@ export async function GET(request: Request): Promise<Response> {
       // Determine the running port from the supervisor, falling back to default.
       const sup = getSupervisor(TOOL);
       const status = sup?.getStatus();
-      const port = status?.port ?? DEFAULT_PORT;
-      const baseUrl = `http://127.0.0.1:${port}`;
+      const port = status?.port ?? SERVICE.port;
+      const baseUrl = buildLoopbackUrl(port);
 
       let apiKey: string;
       try {
