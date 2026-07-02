@@ -379,28 +379,35 @@ export async function refreshAccessToken(
   }
 
   try {
-    // Cline's /auth/refresh endpoint uses non-standard field names (no underscores):
-    // it rejects `grant_type`/`refresh_token` with a 400 "refreshtoken/granttype
-    // required" validation error. ClinePass shares the api.cline.bot host + flow.
+    // Cline's /auth/refresh expects a JSON body with lowercase fields (granttype/
+    // refreshtoken — no underscore) and returns { data: { accessToken, refreshToken,
+    // expiresAt }, success, error }. Standard OAuth providers use form-urlencoded
+    // grant_type/refresh_token. ClinePass shares the api.cline.bot host + flow.
     const isClineFamily = provider === "cline" || provider === "clinepass";
-    const params = new URLSearchParams(
-      isClineFamily
-        ? { granttype: "refresh_token", refreshtoken: refreshToken }
-        : { grant_type: "refresh_token", refresh_token: refreshToken }
-    );
-    if (config.clientId) params.set("client_id", config.clientId);
-    if (config.clientSecret) params.set("client_secret", config.clientSecret);
-
-    const response = await runWithProxyContext(proxyConfig, () =>
-      fetch(refreshEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Accept: "application/json",
-        },
-        body: params,
-      })
-    );
+    const response = isClineFamily
+      ? await runWithProxyContext(proxyConfig, () =>
+          fetch(refreshEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ granttype: "refresh_token", refreshtoken: refreshToken }),
+          })
+        )
+      : await runWithProxyContext(proxyConfig, () => {
+          const params = new URLSearchParams({
+            grant_type: "refresh_token",
+            refresh_token: refreshToken,
+          });
+          if (config.clientId) params.set("client_id", config.clientId);
+          if (config.clientSecret) params.set("client_secret", config.clientSecret);
+          return fetch(refreshEndpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              Accept: "application/json",
+            },
+            body: params,
+          });
+        });
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -416,17 +423,27 @@ export async function refreshAccessToken(
     }
 
     const tokens = await response.json();
+    // Cline wraps the payload in `data` with camelCase fields (accessToken/
+    // refreshToken/expiresAt); standard OAuth uses top-level snake_case.
+    const tokenData = isClineFamily ? (tokens?.data ?? tokens) : tokens;
+    const newAccessToken = isClineFamily ? tokenData.accessToken : tokenData.access_token;
+    const newRefreshToken = isClineFamily ? tokenData.refreshToken : tokenData.refresh_token;
+    const expiresIn = isClineFamily
+      ? tokenData.expiresAt
+        ? Math.max(0, Math.floor((new Date(tokenData.expiresAt).getTime() - Date.now()) / 1000))
+        : undefined
+      : tokenData.expires_in;
 
     log?.info?.("TOKEN_REFRESH", `Successfully refreshed token for ${provider}`, {
-      hasNewAccessToken: !!tokens.access_token,
-      hasNewRefreshToken: !!tokens.refresh_token,
-      expiresIn: tokens.expires_in,
+      hasNewAccessToken: !!newAccessToken,
+      hasNewRefreshToken: !!newRefreshToken,
+      expiresIn,
     });
 
     return {
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token || refreshToken,
-      expiresIn: tokens.expires_in,
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken || refreshToken,
+      expiresIn,
     };
   } catch (error) {
     log?.error?.("TOKEN_REFRESH", `Error refreshing token for ${provider}`, {
