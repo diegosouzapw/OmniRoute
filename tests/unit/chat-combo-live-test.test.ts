@@ -88,6 +88,22 @@ function makeStreamingRequest(extraHeaders = {}) {
   });
 }
 
+function makeRequestWithoutStreamFlag(extraHeaders = {}) {
+  return new Request("http://localhost/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...extraHeaders,
+    },
+    body: JSON.stringify({
+      model: "openai/gpt-4.1",
+      messages: [{ role: "user", content: "Reply with OMITTED STREAM OK only." }],
+      max_tokens: 16,
+      temperature: 0,
+    }),
+  });
+}
+
 async function readAll(response: Response): Promise<string> {
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
@@ -261,6 +277,37 @@ test("chat completions route emits early keepalive while waiting for stream read
   assert.match(body, /: omniroute-keepalive/);
   assert.match(body, /OK/);
   assert.match(body, /\[DONE\]/);
+});
+
+test("chat completions route does not treat omitted stream as streaming", async () => {
+  await seedHealthyConnection();
+
+  globalThis.fetch = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 2200));
+    return Response.json({
+      id: "chatcmpl-slow-json",
+      choices: [
+        {
+          message: {
+            role: "assistant",
+            content: "OK",
+          },
+        },
+      ],
+    });
+  };
+
+  const response = await chatRoute.POST(
+    makeRequestWithoutStreamFlag({
+      "X-OmniRoute-No-Cache": "true",
+      "X-Request-Id": "chat-route-omitted-stream-json",
+    })
+  );
+  assert.equal(response.status, 200);
+  assert.doesNotMatch(response.headers.get("content-type") || "", /text\/event-stream/);
+
+  const body = (await response.json()) as any;
+  assert.equal(body.choices[0].message.content, "OK");
 });
 
 test("combo live test does not use cooldown-aware request retry on upstream failures", async () => {

@@ -3,6 +3,7 @@ import { callCloudWithMachineId } from "@/shared/utils/cloud";
 import { handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
+import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 import { checkChatAdmission } from "@/shared/middleware/chatBodyAdmission";
@@ -22,6 +23,10 @@ function ensureInitialized() {
     });
   }
   return initPromise;
+}
+
+function isRecord(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 /**
@@ -82,13 +87,24 @@ export async function POST(request) {
     console.error("[SECURITY] Prompt injection guard failed:", error);
   }
 
-  const wantsStreaming = parsedBody?.stream !== false;
+  const parsedBodyIsRecord = isRecord(parsedBody);
+  const hasExplicitStream =
+    parsedBodyIsRecord && Object.prototype.hasOwnProperty.call(parsedBody, "stream");
+  const acceptHeader = request.headers.get("accept") || "";
+  const acceptForcesStream =
+    parsedBodyIsRecord && acceptHeaderForcesStream(acceptHeader, parsedBody.stream);
+  const wantsStreaming = parsedBody?.stream === true || acceptForcesStream;
+  const bodyForChat =
+    parsedBodyIsRecord && !hasExplicitStream && !acceptForcesStream
+      ? { ...parsedBody, stream: false }
+      : parsedBody;
+
   if (wantsStreaming) {
-    return await withEarlyStreamKeepalive(handleChat(request, null, parsedBody), {
+    return await withEarlyStreamKeepalive(handleChat(request, null, bodyForChat), {
       signal: request.signal,
-      thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
+      thresholdMs: resolveKeepaliveThreshold(bodyForChat?.model),
     });
   }
 
-  return await handleChat(request, null, parsedBody);
+  return await handleChat(request, null, bodyForChat);
 }
