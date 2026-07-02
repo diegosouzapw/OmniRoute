@@ -9,6 +9,7 @@ import {
   CLAUDE_SONNET_4_PRICING,
   CLAUDE_OPUS_46_PRICING,
   CLAUDE_SONNET_46_PRICING,
+  CLAUDE_SONNET_5_PRICING,
 } from "./shared-tiers";
 
 export const DEFAULT_PRICING_FRONTIER = {
@@ -205,6 +206,7 @@ export const DEFAULT_PRICING_FRONTIER = {
     // Intentional duplicates of dot-notation variants (e.g. claude-opus-4.6)
     // to cover hyphen-notation IDs (claude-opus-4-6) used by some clients
     "claude-fable-5": CLAUDE_FABLE_5_PRICING,
+    "claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
     "claude-opus-4.8": CLAUDE_OPUS_4_PRICING,
     "claude-opus-4-8": CLAUDE_OPUS_4_PRICING,
     "claude-opus-4-7": CLAUDE_OPUS_4_PRICING,

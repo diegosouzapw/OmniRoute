@@ -16,7 +16,8 @@ export type ServiceKind =
   | "webSearch"
   | "webFetch"
   | "video"
-  | "music";
+  | "music"
+  | "ocr";
 
 export const SERVICE_KIND_VALUES: readonly ServiceKind[] = [
   "llm",
@@ -29,4 +30,5 @@ export const SERVICE_KIND_VALUES: readonly ServiceKind[] = [
   "webFetch",
   "video",
   "music",
+  "ocr",
 ];

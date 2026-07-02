@@ -17,6 +17,28 @@ import {
   normalizeResponsesReasoningEffort,
 } from "./helpers.ts";
 
+// Chat Completions `response_format: { type: "json_schema" }` → Responses API `text.format`.
+// Merges into any existing `result.text` (e.g. verbosity) so structured-output schemas from
+// Chat clients survive the translation to the Responses/Codex upstream (#5933).
+function mapChatResponseFormatToResponsesText(body: JsonRecord, result: JsonRecord): void {
+  const responseFormat = toRecord(body.response_format);
+  if (responseFormat.type !== "json_schema") return;
+
+  const jsonSchema = toRecord(responseFormat.json_schema);
+  if (jsonSchema.schema === undefined) return;
+
+  const existingText = toRecord(result.text);
+  const format: JsonRecord = {
+    type: "json_schema",
+    name: toString(jsonSchema.name, "codex_output_schema"),
+    schema: jsonSchema.schema,
+  };
+  if (jsonSchema.description !== undefined) format.description = jsonSchema.description;
+  if (jsonSchema.strict !== undefined) format.strict = jsonSchema.strict;
+
+  result.text = { ...existingText, format };
+}
+
 export function openaiToOpenAIResponsesRequest(
   model: unknown,
   body: unknown,
@@ -301,6 +323,7 @@ export function openaiToOpenAIResponsesRequest(
     result.max_output_tokens = root.max_tokens;
   }
   if (root.top_p !== undefined) result.top_p = root.top_p;
+  mapChatResponseFormatToResponsesText(root, result);
   // GPT-5 verbosity: Chat Completions `verbosity` → Responses `text.verbosity`.
   const chatVerbosity = normalizeVerbosity(root.verbosity);
   if (chatVerbosity) {

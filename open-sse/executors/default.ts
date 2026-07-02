@@ -737,7 +737,52 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
+    // ClinePass reasoning models burn all of max_tokens on the thinking phase
+    // when the budget is too small, leaving content empty (finish_reason:
+    // "length"). Bump max_tokens to a safe floor when reasoning is enabled and
+    // the budget is undersized. CLINEPASS-GATED — no-op for every other provider.
+    if (typeof withDefaults === "object" && withDefaults !== null) {
+      this.ensureThinkingBudget(withDefaults as Record<string, unknown>, model);
+    }
+
     return withDefaults;
+  }
+
+  // ClinePass / OpenRouter-style thinking models leave content empty when the
+  // reasoning budget consumes all of max_tokens. Bump max_tokens to a safe
+  // minimum only when reasoning is enabled and the budget is undersized.
+  // CLINEPASS-GATED: returns early for every other provider.
+  ensureThinkingBudget(body: Record<string, unknown>, model: string): Record<string, unknown> {
+    if (!body || this.provider !== "clinepass") return body;
+
+    const outboundModel = typeof body.model === "string" ? body.model : model;
+    const entry = getRegistryEntry(this.provider);
+    const modelEntry = entry?.models?.find((m) => m.id === outboundModel);
+    if (!modelEntry?.supportsReasoning) return body;
+
+    const extraBody = body.extra_body as Record<string, unknown> | undefined;
+    const thinking = extraBody?.thinking as Record<string, unknown> | undefined;
+    const effort = body.reasoning_effort;
+    const reasoningEnabled =
+      thinking?.type === "enabled" ||
+      (typeof effort === "string" && effort !== "none" && effort !== "off") ||
+      effort === true;
+    if (!reasoningEnabled) return body;
+
+    const MIN_TOKENS = 4096;
+    const maxOutput =
+      typeof modelEntry.maxOutputTokens === "number" && modelEntry.maxOutputTokens > 0
+        ? modelEntry.maxOutputTokens
+        : MIN_TOKENS;
+    const target = Math.min(MIN_TOKENS, maxOutput);
+    const current = body.max_tokens ?? body.max_completion_tokens;
+
+    if (typeof current !== "number" || current <= 0) {
+      body.max_tokens = target;
+    } else if (current < MIN_TOKENS && current < maxOutput) {
+      body.max_tokens = MIN_TOKENS;
+    }
+    return body;
   }
 
   /**
