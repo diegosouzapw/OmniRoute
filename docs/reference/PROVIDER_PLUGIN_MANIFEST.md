@@ -13,6 +13,9 @@ CLIProxyAPI, or a future Go/Rust router. The TypeScript registry remains the
 source of truth, but sidecars can consume the manifest without importing
 executor code, OAuth defaults, headers, or process environment state.
 
+The same manifest is available over HTTP at
+`GET /api/v1/provider-plugin-manifest` for sidecars that run out-of-process.
+
 ## Goal
 
 Move provider metadata toward a plugin contract so the hot request path can
