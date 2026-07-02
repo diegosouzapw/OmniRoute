@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(proxy):** add Webshare proxy pool import and sync. (thanks @ricatix)
 
 ### 🔧 Bug Fixes
 

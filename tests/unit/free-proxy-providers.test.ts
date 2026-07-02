@@ -29,13 +29,14 @@ test.after(() => {
 
 // ── Registry ─────────────────────────────────────────────────────────────────
 
-test("getAllProviders returns exactly 3 providers", () => {
+test("getAllProviders returns exactly 4 providers", () => {
   const providers = getAllProviders();
-  assert.equal(providers.length, 3);
+  assert.equal(providers.length, 4);
   const ids = providers.map((p) => p.id);
   assert.ok(ids.includes("1proxy"));
   assert.ok(ids.includes("proxifly"));
   assert.ok(ids.includes("iplocate"));
+  assert.ok(ids.includes("webshare"));
 });
 
 test("getProvider returns the correct provider by id", () => {
