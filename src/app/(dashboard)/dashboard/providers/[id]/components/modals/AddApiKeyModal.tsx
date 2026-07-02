@@ -19,6 +19,7 @@ import {
   normalizeAndValidateHttpBaseUrl,
   extractCommandCodeCredentialInput,
   providerText,
+  validationBadgeProps,
   type CommandCodeAuthFlowState,
 } from "../../providerPageHelpers";
 import { getWebSessionCredentialRequirement } from "../../webSessionCredentials";
@@ -202,7 +203,7 @@ export default function AddApiKeyModal({
       });
       const data = await res.json();
       const ok = !!data.valid;
-      setValidationResult(ok ? "success" : "failed");
+      setValidationResult(ok ? "success" : data.unsupported ? "unsupported" : "failed");
       // #5088: surface the detailed reason the backend returns (e.g. a TLS/EACCES
       // environment error for claude-web/chatgpt-web) instead of only a bare
       // "invalid" badge — otherwise the real cause is hidden and users are stuck.
@@ -276,7 +277,7 @@ export default function AddApiKeyModal({
           if (!isValid && data.error) {
             validationError = data.error;
           }
-          setValidationResult(isValid ? "success" : "failed");
+          setValidationResult(isValid ? "success" : isUnsupported ? "unsupported" : "failed");
         } catch {
           setValidationResult("failed");
         } finally {
@@ -674,8 +675,8 @@ export default function AddApiKeyModal({
               />
             )}
             {validationResult && (
-              <Badge variant={validationResult === "success" ? "success" : "error"}>
-                {validationResult === "success" ? t("valid") : t("invalid")}
+              <Badge variant={validationBadgeProps(validationResult).variant}>
+                {t(validationBadgeProps(validationResult).labelKey)}
               </Badge>
             )}
             {saveError && (
