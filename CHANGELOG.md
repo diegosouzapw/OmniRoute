@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **Discovery tool (Phase 2 — reporter):** add the `discoveryResults` DB module (CRUD over the `discovery_results` table, migration 074) and wire the opt-in provider-discovery service to persist and read findings through it. `scanProvider` results can now be stored (`persistDiscoveryResult`) and queried (`getDiscoveryResults`, `getDiscoveryResultById`, `markVerified`, `deleteDiscoveryResult`) with `(provider, method, endpoint)` upsert de-duplication. The service stays **opt-in / default-off**. The `/api/discovery/*` HTTP routes and dashboard UI tab are deferred to Phase 2b (they need the local-only enforcement model decided first).
 
 ### 🔧 Bug Fixes
 
