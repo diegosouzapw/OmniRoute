@@ -46,6 +46,8 @@
 
 ### 🔧 Bug Fixes
 
+- **db (auto backup toggle):** full pre-write SQLite backups now honor the persisted `backup.autoBackupEnabled` dashboard setting — previously only the `DISABLE_SQLITE_AUTO_BACKUP` env var was checked, so disabling auto-backup in the UI had no effect and ~70MB pre-write snapshots kept firing. Manual and pre-restore backups still always run. Regression guard: `tests/unit/db-backup-autobackup-setting-5871.test.ts`. ([#5871](https://github.com/diegosouzapw/OmniRoute/issues/5871))
+
 - **providers (auto/ routing for custom providers):** custom OpenAI-/Anthropic-compatible providers (dynamic `*-compatible-*` connection IDs) are no longer excluded from `auto/` routing — the Auto-Combo virtual factory previously skipped any connection whose provider was absent from the static registry. It now falls back to the connection's `defaultModel`. Regression guard: `tests/unit/auto-custom-provider-5873.test.ts`. ([#5873](https://github.com/diegosouzapw/OmniRoute/issues/5873))
 
 - **middleware (hook sandbox):** operator-authored pre-request hook code now runs inside a hardened Node `vm` sandbox (minimal context, no ambient globals/`process.env`, execution timeout, no `require`) instead of `new Function()` in the main process — closing the Hard Rule #3 / SonarCloud S1523 exposure. Regression guard: `tests/unit/middleware-hook-sandbox-5872.test.ts`. ([#5872](https://github.com/diegosouzapw/OmniRoute/issues/5872))
