@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(providers):** add NVIDIA NIM image generation (FLUX models). (thanks @eng2007)
 
 ### 🔧 Bug Fixes
 

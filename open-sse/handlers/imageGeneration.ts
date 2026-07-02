@@ -60,6 +60,7 @@ import {
   extractMarkdownImageUrls,
   CHATGPT_WEB_IMAGE_ID_RE,
 } from "./imageGeneration/providers/chatgptWeb.ts";
+import { handleNvidiaNimImageGeneration } from "./imageGeneration/providers/nvidiaNim.ts";
 
 
 interface KieImageOptions {
@@ -502,6 +503,17 @@ export async function handleImageGeneration({
   }
   if (providerConfig.format === "ideogram-image") {
     return handleIdeogramImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "nvidia-nim") {
+    return handleNvidiaNimImageGeneration({
       model,
       provider,
       providerConfig,
