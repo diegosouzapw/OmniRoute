@@ -7,25 +7,17 @@ const modalPath =
 const source = readFileSync(modalPath, "utf8");
 
 describe("agy Project ID UI support", () => {
-  it("declares isAgy from provider", () => {
+  it("declares a single Antigravity-family provider gate", () => {
     assert.ok(
-      source.includes('const isAgy = provider === "agy"'),
-      "isAgy must be declared via provider === 'agy'"
+      source.includes(
+        'const isAntigravityFamily = provider === "antigravity" || provider === "agy";'
+      ),
+      "isAntigravityFamily must include antigravity and agy without a separate Google Project ID gate"
     );
   });
 
-  it("declares isAntigravityFamily = isAntigravity || isAgy", () => {
-    assert.ok(
-      source.includes("const isAntigravityFamily = isAntigravity || isAgy;"),
-      "isAntigravityFamily must combine antigravity and agy"
-    );
-  });
-
-  it("uses isAntigravityFamily as the Google Project ID gate", () => {
-    assert.ok(
-      /const supportsGoogleProjectId = isAntigravityFamily;/.test(source),
-      "supportsGoogleProjectId must be gated by isAntigravityFamily"
-    );
+  it("does not keep the old supportsGoogleProjectId alias", () => {
+    assert.equal(source.includes("supportsGoogleProjectId"), false);
   });
 
   it("uses antigravityProjectIdLabel for Antigravity-family providers", () => {
@@ -37,7 +29,8 @@ describe("agy Project ID UI support", () => {
 
   it("uses isAntigravityFamily for antigravityClientProfile UI", () => {
     assert.ok(
-      source.includes("{isAntigravityFamily && (\n              <Select"),
+      source.includes("{isAntigravityFamily && (\n          <div") &&
+        source.includes('label={t("antigravityClientProfileLabel")}'),
       "client profile Select must render for isAntigravityFamily"
     );
   });

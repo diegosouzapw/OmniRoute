@@ -164,10 +164,7 @@ export default function EditConnectionModal({
   const setOpenRouterPreset = openRouterPreset.setValue;
   const isCodex = provider === "codex";
   const isClaude = provider === "claude";
-  const isAntigravity = provider === "antigravity";
-  const isAgy = provider === "agy";
-  const isAntigravityFamily = isAntigravity || isAgy;
-  const supportsGoogleProjectId = isAntigravityFamily;
+  const isAntigravityFamily = provider === "antigravity" || provider === "agy";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
@@ -433,7 +430,7 @@ export default function EditConnectionModal({
         overrides.maxConcurrent = Number(formData.rateLimitMaxConcurrent);
       updates.rateLimitOverrides = Object.keys(overrides).length > 0 ? overrides : null;
 
-      if (supportsGoogleProjectId) {
+      if (isAntigravityFamily) {
         updates.projectId = trimmedCloudCodeProjectId || null;
       }
 
@@ -507,7 +504,7 @@ export default function EditConnectionModal({
           defaultRegion,
           isGlm,
           isCloudflare,
-          supportsGoogleProjectId,
+          isAntigravityFamily,
           trimmedCloudCodeProjectId,
           isGooglePse,
           isCcCompatible,
@@ -532,7 +529,7 @@ export default function EditConnectionModal({
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
         }
-        if (supportsGoogleProjectId) {
+        if (isAntigravityFamily) {
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
       }
@@ -687,22 +684,20 @@ export default function EditConnectionModal({
           t={t}
           editMode
         />
-        {supportsGoogleProjectId && (
+        {isAntigravityFamily && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-            {isAntigravityFamily && (
-              <Select
-                label={t("antigravityClientProfileLabel")}
-                value={formData.antigravityClientProfile}
-                options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
-                  value: option.value,
-                  label: t(option.labelKey),
-                }))}
-                onChange={(e) =>
-                  setFormData({ ...formData, antigravityClientProfile: e.target.value })
-                }
-                hint={t("antigravityClientProfileHint")}
-              />
-            )}
+            <Select
+              label={t("antigravityClientProfileLabel")}
+              value={formData.antigravityClientProfile}
+              options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
+                value: option.value,
+                label: t(option.labelKey),
+              }))}
+              onChange={(e) =>
+                setFormData({ ...formData, antigravityClientProfile: e.target.value })
+              }
+              hint={t("antigravityClientProfileHint")}
+            />
             <Input
               label={t("antigravityProjectIdLabel")}
               value={formData.cloudCodeProjectId}
