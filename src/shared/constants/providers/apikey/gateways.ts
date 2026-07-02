@@ -3,6 +3,20 @@
  * Pure data; merged by apikey/index.ts via spread (god-file decomposition; semantic split).
  */
 export const APIKEY_PROVIDERS_GATEWAYS = {
+  "charm-hyper": {
+    id: "charm-hyper",
+    alias: "charm-hyper",
+    name: "Charm Hyper",
+    icon: "router",
+    color: "#7C3AED",
+    textIcon: "CH",
+    passthroughModels: true,
+    website: "https://hyper.charm.land",
+    hasFree: true,
+    freeNote: "100 free monthly Hypercredits on signup",
+    apiHint:
+      "Create an API key at https://hyper.charm.land, then paste it here as a Bearer token.",
+  },
   agentrouter: {
     id: "agentrouter",
     alias: "agentrouter",

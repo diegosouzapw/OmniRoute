@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(providers):** add Charm Hyper as an OpenAI-compatible (API-key) provider. (thanks @whale9820)
 
 ### 🔧 Bug Fixes
 
