@@ -14,6 +14,8 @@
 
 - **fix(usage):** preserve (bounded) tool definitions in request logs even when the request body is truncated, so the request-details view can still show available tools. (thanks @noir017)
 
+- **fix(db):** remove the stale `modelContextOverrides` entry from the `check:db-rules` intentionally-internal allowlist. Two concurrent fixes collided: [#5827](https://github.com/diegosouzapw/OmniRoute/pull/5827) allowlisted the module while the [#5609](https://github.com/diegosouzapw/OmniRoute/issues/5609) fix re-exported it from `localDb.ts` — with the re-export in place the allowlist entry stopped suppressing any violation and the stale-enforcement (Fase 6A.3) turned the gate red on `release/v3.8.43`. The re-export stays (documented convention); the obsolete entry is removed and the classification guard re-pinned to 33 modules. Regression guard: `tests/unit/check-db-rules-classification.test.ts`. ([#5798](https://github.com/diegosouzapw/OmniRoute/issues/5798))
+
 ---
 
 ## [3.8.43] — TBD
