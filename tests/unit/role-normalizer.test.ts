@@ -84,6 +84,16 @@ test("normalizeSystemRole merges system and developer content into the first use
   ]);
 });
 
+test("normalizeSystemRole preserves system role for glm-5.1 and glm-5.2", () => {
+  const messages = [
+    { role: "system", content: "follow policy" },
+    { role: "user", content: "say hello" },
+  ];
+
+  assert.deepEqual(normalizeSystemRole(messages, "openai", "glm-5.1"), messages);
+  assert.deepEqual(normalizeSystemRole(messages, "openai", "glm-5.2"), messages);
+});
+
 test("normalizeSystemRole inserts a user message when no user exists and drops empty system payloads", () => {
   const messages = [
     { role: "system", content: [{ type: "image_url", image_url: { url: "ignored" } }] },
@@ -99,7 +109,7 @@ test("normalizeSystemRole inserts a user message when no user exists and drops e
   ]);
 });
 
-test("normalizeSystemRole treats ZenMux z-ai/glm models as GLM even with vendor prefix", () => {
+test("normalizeSystemRole preserves system role for ZenMux GLM 5.2-compatible models", () => {
   const messages = [
     { role: "system", content: "[Context compressed: earlier messages removed]" },
     {
@@ -119,9 +129,36 @@ test("normalizeSystemRole treats ZenMux z-ai/glm models as GLM even with vendor 
   const result = normalizeSystemRole(messages, "zenmux", "z-ai/glm-5.2");
 
   assert.deepEqual(result, [
+    { role: "system", content: "[Context compressed: earlier messages removed]" },
+    messages[1],
+    messages[2],
+  ]);
+});
+
+test("normalizeSystemRole converts system role for ZenMux GLM 5.0 models", () => {
+  const messages = [
+    { role: "system", content: "[Context compressed: earlier messages removed]" },
+    {
+      role: "assistant",
+      content: null,
+      tool_calls: [
+        {
+          id: "call_1",
+          type: "function",
+          function: { name: "read", arguments: "{}" },
+        },
+      ],
+    },
+    { role: "tool", tool_call_id: "call_1", content: "ok" },
+  ];
+
+  const result = normalizeSystemRole(messages, "zenmux", "z-ai/glm-5.0");
+
+  assert.deepEqual(result, [
     {
       role: "user",
-      content: "[System Instructions]\n[Context compressed: earlier messages removed]",
+      content:
+        "[System Instructions]\n[Context compressed: earlier messages removed]",
     },
     messages[1],
     messages[2],

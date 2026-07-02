@@ -52,7 +52,6 @@ function defaultPreserveDeveloperForProvider(provider: string): boolean {
  * Uses prefix matching (e.g., "glm-" matches "glm-4.7", "glm-4.5", etc.)
  */
 const MODELS_WITHOUT_SYSTEM_ROLE = [
-  "glm-", // ZhipuAI GLM models (prefix: glm-5.1, glm-4.7, etc.)
   "glm", // Exact match for model id "glm" (e.g., Pollinations)
   "ernie-", // Baidu ERNIE models
 ];
@@ -65,6 +64,20 @@ const PROVIDER_SCOPED_MODELS_WITHOUT_SYSTEM_ROLE: Record<string, RegExp[]> = {
   // GLM so normalizeSystemRole moves system/developer content into a user turn.
   zenmux: [/(?:^|\/)glm(?:-|$)/i],
 };
+
+function isUnsupportedGlmSystemRoleModel(model: string): boolean {
+  // GLM 5.1+ models now support system-role injection. Older GLM generations do not.
+  const glmMatch = model.match(/^glm-(\d+)(?:\.(\d+))?/i);
+  if (!glmMatch) return true;
+
+  const major = Number(glmMatch[1] ?? "0");
+  const minor = Number(glmMatch[2] ?? "0");
+
+  if (Number.isNaN(major) || Number.isNaN(minor)) return true;
+  if (major > 5) return false;
+  if (major < 5) return true;
+  return minor < 1;
+}
 
 interface MessageContentPart {
   type?: string;
@@ -103,11 +116,18 @@ function supportsSystemRole(provider: string, model: string): boolean {
   const modelLower = (model || "").toLowerCase();
 
   for (const pattern of PROVIDER_SCOPED_MODELS_WITHOUT_SYSTEM_ROLE[providerLower] ?? []) {
-    if (pattern.test(modelLower)) return false;
+    if (pattern.test(modelLower)) {
+      return !isUnsupportedGlmSystemRoleModel(modelLower);
+    }
   }
 
   for (const prefix of MODELS_WITHOUT_SYSTEM_ROLE) {
+    if (prefix === "glm" && modelLower === "glm") return false;
     if (modelLower.startsWith(prefix)) return false;
+  }
+
+  if (modelLower.startsWith("glm-") && isUnsupportedGlmSystemRoleModel(modelLower)) {
+    return false;
   }
 
   return true;

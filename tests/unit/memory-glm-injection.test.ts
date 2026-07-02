@@ -122,7 +122,7 @@ describe("injectMemory — GLM providers use user role (#1701)", () => {
 // ── normalizeSystemRole — GLM model names ──────────────────────────────────────
 
 describe("normalizeSystemRole — GLM model names (#1701)", () => {
-  it("should convert system→user for glm-5.1", () => {
+  it("should preserve system role for glm-5.1", () => {
     const messages = [
       { role: "system", content: "Memory context: test" },
       { role: "user", content: "Hello" },
@@ -130,8 +130,20 @@ describe("normalizeSystemRole — GLM model names (#1701)", () => {
     const result = normalizeSystemRole(messages, "glm", "glm-5.1");
     assert.ok(Array.isArray(result));
     const roles = (result as { role: string }[]).map((m) => m.role);
-    assert.ok(!roles.includes("system"), "system role should be converted");
-    assert.ok(roles.includes("user"), "should have user role");
+    assert.ok(roles.includes("system"), "system role should be preserved");
+    assert.ok(roles.includes("user"), "should keep user role");
+  });
+
+  it("should preserve system role for glm-5.2", () => {
+    const messages = [
+      { role: "system", content: "Memory context: test" },
+      { role: "user", content: "Hello" },
+    ];
+    const result = normalizeSystemRole(messages, "glm", "glm-5.2");
+    assert.ok(Array.isArray(result));
+    const roles = (result as { role: string }[]).map((m) => m.role);
+    assert.ok(roles.includes("system"), "system role should be preserved");
+    assert.ok(roles.includes("user"), "should keep user role");
   });
 
   it("should convert system→user for glm-4.7", () => {
