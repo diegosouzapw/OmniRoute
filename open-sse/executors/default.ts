@@ -9,7 +9,10 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+<<<<<<< HEAD
+=======
 import { getModelTargetFormat } from "../config/providerModels.ts";
+>>>>>>> origin/main
 import {
   mergeClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,

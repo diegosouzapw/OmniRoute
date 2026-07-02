@@ -20,21 +20,28 @@ import {
   isSelfHostedChatProvider,
   providerAllowsOptionalApiKey,
 } from "@/shared/constants/providers";
+<<<<<<< HEAD
+import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
+=======
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
   SafeOutboundFetchError,
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
+>>>>>>> origin/main
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { extractCookieValue, normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
 import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
+<<<<<<< HEAD
+=======
 import { validateQwenWebProvider, validateKimiWebProvider } from "@/lib/providers/validation/webProvidersA";
 import { validateClaudeWebProvider, validateGeminiWebProvider, validateCopilotM365WebProvider, validateCopilotWebProvider, validateT3WebProvider } from "@/lib/providers/validation/webProvidersB";
 import { validateHuggingFaceProvider } from "@/lib/providers/validation/openaiFormat";
+>>>>>>> origin/main
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import { generateTraceparent } from "@omniroute/open-sse/observability/traceparent.ts";
 import {
@@ -83,8 +90,89 @@ import {
 import { signAwsRequest } from "@omniroute/open-sse/utils/awsSigV4.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 
+<<<<<<< HEAD
+import {
+  OPENAI_LIKE_FORMATS,
+  GEMINI_LIKE_FORMATS,
+  normalizeBaseUrl,
+  addModelsSuffix,
+  resolveBaseUrl,
+} from "./validation/urlHelpers";
+import { STANDARD_USER_AGENT, directHttpsRequest, buildBearerHeaders } from "./validation/headers";
+import { validationRead, validationWrite, toValidationErrorResult } from "./validation/transport";
+import {
+  validateDeepSeekWebProvider,
+  validateQwenWebProvider,
+  validateGrokWebProvider,
+  validateChatGptWebProvider,
+  validatePerplexityWebProvider,
+  validateBlackboxWebProvider,
+  validateKimiWebProvider,
+} from "./validation/webProvidersA";
+import {
+  validateMuseSparkWebProvider,
+  validateAdaptaWebProvider,
+  validateClaudeWebProvider,
+  validateGeminiWebProvider,
+  validateCopilotM365WebProvider,
+  validateCopilotWebProvider,
+  validateT3WebProvider,
+  validateJulesProvider,
+  validateInnerAiProvider,
+} from "./validation/webProvidersB";
+import {
+  validateHerokuProvider,
+  validateDatabricksProvider,
+  validateDataRobotProvider,
+  validateSnowflakeProvider,
+  validateGigachatProvider,
+  validateAzureOpenAIProvider,
+  validateAzureAiProvider,
+  validateWatsonxProvider,
+  validateOciProvider,
+  validateSapProvider,
+} from "./validation/cloudProviders";
+import {
+  validateDeepgramProvider,
+  validateAssemblyAIProvider,
+  validateElevenLabsProvider,
+  validateInworldProvider,
+  validateKieProvider,
+  validateAwsPollyProvider,
+  validateBailianCodingPlanProvider,
+  validateRekaProvider,
+  validateMaritalkProvider,
+  validateNlpCloudProvider,
+  validateRunwayProvider,
+  validateNousResearchProvider,
+  validatePoeProvider,
+} from "./validation/audioMiscProviders";
+import { validateSearchProvider, SEARCH_VALIDATOR_CONFIGS } from "./validation/searchProviders";
+import {
+  validateClarifaiProvider,
+  validateEmbeddingApiProvider,
+  validateRerankApiProvider,
+} from "./validation/embeddingProviders";
+import {
+  validateBedrockProvider,
+  validateOpenAILikeProvider,
+  validateCommandCodeProvider,
+  validateGeminiLikeProvider,
+  validateHuggingFaceProvider,
+  validateOpenAICompatibleProvider,
+} from "./validation/openaiFormat";
+import {
+  validateAnthropicLikeProvider,
+  validateAnthropicCompatibleProvider,
+  validateClaudeCodeCompatibleProvider,
+} from "./validation/anthropicFormat";
+// validateCommandCodeProvider + validateClaudeCodeCompatibleProvider have external importers
+// (provider-nodes/validate route + tests) — re-export to preserve the historical public surface.
+export { validateCommandCodeProvider, validateClaudeCodeCompatibleProvider };
+=======
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
+>>>>>>> origin/main
 
 function normalizeBaseUrl(baseUrl: string) {
   // Guard against a non-string baseUrl reaching .trim() / .replace() — see #2463
@@ -1287,6 +1375,8 @@ async function validateDataRobotProvider({ apiKey, providerSpecificData = {} }: 
   }
 }
 
+<<<<<<< HEAD
+=======
 async function validateSnowflakeProvider({ apiKey, providerSpecificData = {} }: any) {
   const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl);
   if (!baseUrl) {
@@ -3487,6 +3577,7 @@ async function validateInnerAiProvider({ apiKey, providerSpecificData = {} }: an
   }
 }
 
+>>>>>>> origin/main
 // #5422: Bytez key validation cannot use a chat probe. A Bytez account only serves models
 // that have been added to its catalog, so even Bytez's own documented model ids return 404
 // ("Model does not exist or has yet to be added to the Bytez catalog") for a fresh/free key —

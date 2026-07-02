@@ -75,6 +75,12 @@ test("OpencodeExecutor.buildHeaders: Content-Type always application/json", () =
   assert.equal(headers["Content-Type"], "application/json");
 });
 
+<<<<<<< HEAD
+test("OpencodeExecutor.buildHeaders: defaults User-Agent to opencode/local when no client UA", () => {
+  const executor = new OpencodeExecutor("opencode");
+  const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
+  assert.equal(headers["User-Agent"], "opencode/local");
+=======
 test("OpencodeExecutor.buildHeaders: omits User-Agent when no client UA (forward-only, not fabricated)", () => {
   // Forward-only contract (see opencode-executor.test.ts): opencode client identity headers
   // are opencode-internal — inventing them risks upstream rejection, so we never fabricate a
@@ -83,6 +89,7 @@ test("OpencodeExecutor.buildHeaders: omits User-Agent when no client UA (forward
   const executor = new OpencodeExecutor("opencode");
   const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
   assert.equal(headers["User-Agent"], undefined);
+>>>>>>> origin/main
 });
 
 test("OpencodeExecutor.buildHeaders: preserves client User-Agent when provided", () => {
@@ -93,12 +100,19 @@ test("OpencodeExecutor.buildHeaders: preserves client User-Agent when provided",
   assert.equal(headers["User-Agent"], "opencode/1.17.12");
 });
 
+<<<<<<< HEAD
+test("OpencodeExecutor.buildHeaders: defaults x-opencode-client to cli when absent", () => {
+  const executor = new OpencodeExecutor("opencode");
+  const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
+  assert.equal(headers["x-opencode-client"], "cli");
+=======
 test("OpencodeExecutor.buildHeaders: omits x-opencode-client when absent (forward-only, not fabricated)", () => {
   // x-opencode-client / x-opencode-project valid values are opencode-internal; fabricating a
   // default ("cli") risks upstream rejection, so they stay forward-only (see opencode-executor.test.ts).
   const executor = new OpencodeExecutor("opencode");
   const headers = executor.buildHeaders({ apiKey: "key-1" }, true);
   assert.equal(headers["x-opencode-client"], undefined);
+>>>>>>> origin/main
 });
 
 test("OpencodeExecutor.buildHeaders: preserves x-opencode-client from client headers", () => {

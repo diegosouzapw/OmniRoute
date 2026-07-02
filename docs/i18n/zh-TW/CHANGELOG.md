@@ -6,6 +6,18 @@
 
 ## [3.8.31] — 2026-06-20
 
+<<<<<<< HEAD
+=======
+<<<<<<<< HEAD:docs/i18n/it/CHANGELOG.md
+>>>>>>> origin/main
+## [3.8.43] — TBD
+
+### ✨ New Features
+
+- **providers (CLI profile auto-sync):** opt-in toggles to auto-regenerate CLI tool profiles after a provider model sync. When enabled, a model-catalog change (re)writes that tool's profile files from the live catalog — Codex (`~/.codex/*.config.toml`) and now **Claude Code** (`~/.claude/profiles/<name>/settings.json`, via an extracted `syncClaudeProfilesFromModels` + a new `claudeProfileAutoSync.ts` mirroring the Codex path). Both are **off by default** and never touch the active/default CLI config; they are backed by the `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES` / `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES` feature flags (DB/dashboard override > env > default "false") and additionally gated behind the existing `CLI_ALLOW_CONFIG_WRITES` write-guard. A **"CLI profile auto-sync"** card on the providers dashboard toggles each. Regression guards: `tests/unit/claude-profile-auto-sync-gate.test.ts`, `tests/unit/codex-profile-auto-sync-gate.test.ts`, `tests/unit/cli/setup-claude.test.ts` (follow-up to #5737).
+<<<<<<< HEAD
+=======
+========
 ## [3.8.43] — 2026-07-02
 
 ### ✨ New Features
@@ -15,6 +27,8 @@
 - **dashboard (live WS behind reverse proxy):** the live dashboard WebSocket can now be fronted by a reverse proxy or Cloudflare Tunnel via `NEXT_PUBLIC_LIVE_WS_PUBLIC_URL` (e.g. `wss://ws.my-ai.com/live-ws`). The URL is honored both at build time (env inlined into the bundle) and at **runtime** for prebuilt Docker/npm images: the `/api/v1/ws?handshake=1` handshake now echoes a lazily-read `live.publicUrl` (only `ws://`/`wss://` values are accepted; anything else is rejected to `null`), and `useLiveDashboard` resolves the URL from that handshake before connecting, falling back to the previous `ws(s)://hostname:20129` default. Also documents `LIVE_WS_ALLOWED_HOSTS` and aligns the GitLab Duo OAuth scopes line in `.env.example` with the live config (`ai_features read_user`). Regression guard: `tests/unit/live-ws-public-url.test.ts` (5). ([#5877](https://github.com/diegosouzapw/OmniRoute/pull/5877) by [@ianriizky](https://github.com/ianriizky))
 
 - **providers (CLI profile auto-sync):** opt-in toggles to auto-regenerate CLI tool profiles after a provider model sync. When enabled, a model-catalog change (re)writes that tool's profile files from the live catalog — Codex (`~/.codex/*.config.toml`) and now **Claude Code** (`~/.claude/profiles/<name>/settings.json`, via an extracted `syncClaudeProfilesFromModels` + a new `claudeProfileAutoSync.ts` mirroring the Codex path). Both are **off by default** and never touch the active/default CLI config; they are backed by the `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES` / `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES` feature flags (DB/dashboard override > env > default "false") and additionally gated behind the existing `CLI_ALLOW_CONFIG_WRITES` write-guard. A **"CLI profile auto-sync"** card on the CLI Code dashboard toggles each (moved from the providers dashboard in [#5778](https://github.com/diegosouzapw/OmniRoute/pull/5778) — thanks [@rdself](https://github.com/rdself)). Regression guards: `tests/unit/claude-profile-auto-sync-gate.test.ts`, `tests/unit/codex-profile-auto-sync-gate.test.ts`, `tests/unit/cli/setup-claude.test.ts` (follow-up to #5737).
+>>>>>>>> origin/main:docs/i18n/zh-TW/CHANGELOG.md
+>>>>>>> origin/main
 
 - **cli (startup banner):** the `serve` startup banner now prints the running OmniRoute version (`v3.8.x`) beneath the ASCII logo, so the active version is visible at a glance without a separate `--version` call. Regression guard: `tests/unit/cli-serve-version-banner.test.ts`. Thanks [@chirag127](https://github.com/chirag127) ([#5752](https://github.com/diegosouzapw/OmniRoute/pull/5752)).
 
@@ -36,6 +50,14 @@
 
 - **compression (read-lifecycle):** add a new **opt-in, default-off `read-lifecycle` engine** (H7) that collapses **stale/superseded file-Read tool results**. In agentic conversations the same file is Read repeatedly; an earlier Read becomes stale once the same path is **re-read** (superseded by a newer view) or **modified** by a later Write/Edit. The engine replaces those earlier Read results with a short stub — keeping only the current (last, un-superseded) Read intact — recovering the tokens the model no longer needs. Unlike `session-dedup` (identical-content) or `ccr` (reversible markers), this is semantic + **lossy**, so it is opt-in (`enabled` defaults `false`). Conservative by construction: matches only well-known Read/Write tool names, compares exact paths, collapses a Read only when a strictly-later invocation touches the same path, and **fail-opens** on any unexpected shape. Supports both the **Anthropic** (`tool_use`/`tool_result`) and **OpenAI** (`tool_calls` + `role:"tool"`) shapes. New `open-sse/services/compression/engines/readLifecycle/index.ts`. Regression guard: `tests/unit/compression/read-lifecycle.test.ts` (10). gaps v3.8.42 — T08/H7.
 
+<<<<<<< HEAD
+### 🔧 Bug Fixes
+
+=======
+<<<<<<<< HEAD:docs/i18n/it/CHANGELOG.md
+### 🔧 Bug Fixes
+
+========
 - **observability (correlation IDs):** requests now carry a correlation id threaded through logs so a single request can be traced end-to-end across the pipeline. ([#5834](https://github.com/diegosouzapw/OmniRoute/pull/5834) — thanks @hartmark)
 
 - **cli (startup banner — boot time):** the `serve` ready banner now shows how long startup took, so slow-boot conditions are visible at a glance. ([#5799](https://github.com/diegosouzapw/OmniRoute/pull/5799) — thanks @ishatiwari21)
@@ -130,13 +152,23 @@
 
 - **providers (grok-cli token auto-refresh):** grok-cli OAuth tokens were never proactively refreshed before their real expiry. `mapTokens` hardcoded `expiresIn: 21600` (6 h) regardless of the token's actual lifetime, so the persisted `expiresAt` was always "now + 6 h" and the proactive `tokenHealthCheck` sweep (refresh when `expiresAt - now < 5 min`) fired 6 h after import instead of shortly before the token really expired. `mapTokens` now computes `expiresIn` from the authoritative `expires_at` field in `~/.grok/auth.json` (ISO → epoch-seconds) with a fallback to the JWT `exp` claim (payload-only decode, no signature trust); the hardcoded `21600` is kept only when neither is present. An already-expired token (real `expires_at`/`exp` in the past) is now clamped to a positive `expiresIn` via `Math.max(1, …)`, so the import route stores a near-future `expiresAt` and AutoCombo refreshes the connection instead of reading a past date and excluding it outright. Regression guards: 5 cases in `tests/unit/grok-cli-oauth.test.ts` (JWT `exp`, JSON `expires_at`, the `21600` fallback, and the two expired-token clamps). ([#5775](https://github.com/diegosouzapw/OmniRoute/pull/5775) — thanks [@Chewji9875](https://github.com/Chewji9875))
 
+>>>>>>>> origin/main:docs/i18n/zh-TW/CHANGELOG.md
+>>>>>>> origin/main
 - **compression (CCR retrieve via MCP HTTP):** the `omniroute_ccr_retrieve` MCP tool returned `"CCR block not found"` for blocks stored earlier in the **same** session when called over the MCP HTTP transports (SSE / Streamable HTTP), e.g. from OpenCode in a Docker deployment. Compression stores each block keyed by the API-key principal (`String(apiKeyInfo.id)`), but the tool resolved the caller via `extra.authInfo.clientId` — which the MCP SDK never populates for API-key auth — so it fell back to `"anonymous"` and the compound store-key never matched. The retrieve tool now resolves the caller's API-key id from the MCP HTTP auth context (`httpAuthContext`) using the **same** `getApiKeyMetadata` lookup used at storage time, so retrieval matches storage. Cross-tenant IDOR isolation is preserved: a different key resolves to a different id → miss; no key → the anonymous bucket only. Regression guard: `tests/unit/compression/ccr-mcp-principal-5649.test.ts` (extraction, distinct-principal isolation, fail-closed, end-to-end store→retrieve). ([#5649](https://github.com/diegosouzapw/OmniRoute/issues/5649))
 
 - **compression (context-editing telemetry):** streaming responses now record Context Editing savings. Anthropic surfaces `context_management.applied_edits[]` on the final `message_delta` snapshot of an SSE stream, but the streaming reconstruction (`buildStreamSummaryFromEvents` → Claude branch) dropped `context_management` entirely **and** no telemetry hook was wired into the streaming finalizer — so the delegated server-side context-clear savings (`cleared_input_tokens` / `cleared_tool_uses`) surfaced under engine `context-editing` in compression analytics **only for non-streaming responses**. The collector now preserves `context_management` from the final snapshot (last-writer-wins), and `onStreamComplete` mirrors the non-streaming `recordContextEditingTelemetryHook` (best-effort, Claude-only, HTTP 200 only). Purely additive telemetry — no payload mutation, no new env flag, no behavior change when the stream carries no `context_management`. Regression guard: `tests/unit/context-editing-streaming-telemetry.test.ts` (3). gaps v3.8.42 — T01 (5.1).
 
+<<<<<<< HEAD
+- **proxy (relay test diagnostics):** the Proxy Pool "Test" button showed a bare "failed" with **nothing in the server logs** when a **relay** (Vercel / Deno / Cloudflare) *responded* with a non-200 — e.g. a `401` from an auth-token mismatch after a `STORAGE_ENCRYPTION_KEY` rotation. The relay success-path response set `success: false` but carried no `error` field, so the dashboard had no reason to show and the server logged nothing. The test now returns an actionable `error` (the HTTP status, plus an auth/encryption-key hint on `401`/`403`) and logs the failure server-side; the SOCKS5/HTTP proxy path now logs its failures too. Shaping extracted to `buildRelayTestResult` with a regression guard (`tests/unit/proxy-relay-test-error-5716.test.ts`). Note: this surfaces *why* a relay fails — it does not repair a genuinely broken/misconfigured relay. ([#5716](https://github.com/diegosouzapw/OmniRoute/issues/5716))
+=======
+<<<<<<<< HEAD:docs/i18n/it/CHANGELOG.md
+- **proxy (relay test diagnostics):** the Proxy Pool "Test" button showed a bare "failed" with **nothing in the server logs** when a **relay** (Vercel / Deno / Cloudflare) *responded* with a non-200 — e.g. a `401` from an auth-token mismatch after a `STORAGE_ENCRYPTION_KEY` rotation. The relay success-path response set `success: false` but carried no `error` field, so the dashboard had no reason to show and the server logged nothing. The test now returns an actionable `error` (the HTTP status, plus an auth/encryption-key hint on `401`/`403`) and logs the failure server-side; the SOCKS5/HTTP proxy path now logs its failures too. Shaping extracted to `buildRelayTestResult` with a regression guard (`tests/unit/proxy-relay-test-error-5716.test.ts`). Note: this surfaces *why* a relay fails — it does not repair a genuinely broken/misconfigured relay. ([#5716](https://github.com/diegosouzapw/OmniRoute/issues/5716))
+========
 - **proxy (relay test diagnostics):** the Proxy Pool "Test" button showed a bare "failed" with **nothing in the server logs** when a **relay** (Vercel / Deno / Cloudflare) _responded_ with a non-200 — e.g. a `401` from an auth-token mismatch after a `STORAGE_ENCRYPTION_KEY` rotation. The relay success-path response set `success: false` but carried no `error` field, so the dashboard had no reason to show and the server logged nothing. The test now returns an actionable `error` (the HTTP status, plus an auth/encryption-key hint on `401`/`403`) and logs the failure server-side; the SOCKS5/HTTP proxy path now logs its failures too. Shaping extracted to `buildRelayTestResult` with a regression guard (`tests/unit/proxy-relay-test-error-5716.test.ts`). Note: this surfaces _why_ a relay fails — it does not repair a genuinely broken/misconfigured relay. ([#5716](https://github.com/diegosouzapw/OmniRoute/issues/5716))
 
 - **fix(dashboard):** add error boundaries for the Combos and MITM Proxy pages so a render error shows a recoverable fallback instead of a blank page. (thanks @wahyuzero)
+>>>>>>>> origin/main:docs/i18n/zh-TW/CHANGELOG.md
+>>>>>>> origin/main
 
 - **providers (onboarding wizard — unsupported validation):** adding a provider whose credentials have **no live validator** (LMArena, PiAPI, …) failed silently in the Add-Provider wizard. The `/api/providers/validate` endpoint returns `HTTP 400 + { unsupported: true }` for these (#5565/#5567), but the wizard's `validateOnboardingApiKey` ran it through `expectOk`, which threw on the non-200 — so the flow jumped to the error step and the connection was **never created**. The wizard now treats `unsupported: true` as a non-blocking "can't verify" and proceeds to save, mirroring `AddApiKeyModal`. Regression guard added to `tests/unit/provider-onboarding-wizard.test.ts`. (related to [#5692](https://github.com/diegosouzapw/OmniRoute/issues/5692))
 
@@ -184,6 +216,14 @@
 
 - **Security hardening follow-ups (v3.8.15):** the `auth_token` cookie now sets an explicit 30-day `maxAge` so sessions persist as intended (Seg3); the management bootstrap warns at boot when `INITIAL_PASSWORD` is left at the insecure `CHANGEME` default (Seg2); VS Code path-token endpoints (`/api/v1/vscode/raw/[token]`) emit a once-per-process security warning since the API key travels in the URL and can leak via logs/proxies (Seg4); the system version route resolves the real global install path via `npm root -g` instead of a hardcoded `/app` (Bug3); and auto-update mode detection segment-matches `node_modules` instead of substring-matching, eliminating false "global install" positives (Bug1).
 
+<<<<<<< HEAD
+### 📝 Maintenance
+
+=======
+<<<<<<<< HEAD:docs/i18n/it/CHANGELOG.md
+### 📝 Maintenance
+
+========
 - **fix(cli):** rename the Node process title to `omniroute` so it shows correctly in ps/htop. (thanks @waguriagentic)
 
 - **dashboard (model picker):** guard against null model-alias values so opening Create Combo for a custom provider node no longer crashes. `ModelSelectModal`'s custom-provider branch filtered `modelAliases` entries with a raw `fullModel.startsWith(...)`, which threw a `TypeError` whenever an alias value was `null`/`undefined` (a stale/partial entry persisted to settings). The filter/map logic is extracted into a new `buildNodeAliasModels` helper (mirroring the sibling passthrough-alias guard, #485) that requires `typeof fullModel === "string"` before calling `.startsWith`. Regression guard: `tests/unit/model-select-null-alias-guard-2247.test.ts`. (thanks @wahyuzero)
@@ -336,6 +376,8 @@ Thanks to everyone whose work landed in v3.8.43:
 | [@Witroch4](https://github.com/Witroch4)                     | #5731, #5859, #5863                                                                                                  |
 | [@diegosouzapw](https://github.com/diegosouzapw)             | maintainer — cycle reconciliation, release-close base-red fixes, god-file decomposition, compression/memory features |
 
+>>>>>>>> origin/main:docs/i18n/zh-TW/CHANGELOG.md
+>>>>>>> origin/main
 ---
 
 ## [3.8.42] — 2026-06-30

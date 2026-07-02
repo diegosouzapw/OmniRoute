@@ -252,6 +252,16 @@ export class OpencodeExecutor extends BaseExecutor {
       forwardOpencodeClientHeaders(headers, clientHeaders, {
         synthesizeRequestId: true,
       });
+<<<<<<< HEAD
+    }
+
+    if (!headers["User-Agent"] && !headers["user-agent"]) {
+      headers["User-Agent"] = "opencode/local";
+    }
+    if (!headers["x-opencode-client"]) {
+      headers["x-opencode-client"] = "cli";
+=======
+>>>>>>> origin/main
     }
 
     void model;

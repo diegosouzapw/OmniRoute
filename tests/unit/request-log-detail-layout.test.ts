@@ -175,7 +175,15 @@ test("request log detail compression-summary badge shows positive saved%, never 
   // Original bug repro: totalIn=0, compressed=5286 → previously rendered "(−100%)".
   const fullyCompressed = make(0, 5286);
   assert.match(fullyCompressed, /Compressed: 5,286 → 0 \(100% saved\)/);
+<<<<<<< HEAD
+  assert.equal(
+    fullyCompressed.includes("(-100%)"),
+    false,
+    "literal '(-100%)' must never appear"
+  );
+=======
   assert.equal(fullyCompressed.includes("(-100%)"), false, "literal '(-100%)' must never appear");
+>>>>>>> origin/main
   assert.equal(
     fullyCompressed.includes("\u2212100%"),
     false,
