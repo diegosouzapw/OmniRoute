@@ -1,16 +1,16 @@
 ---
 title: "Provider Reference"
 version: 3.8.42
-lastUpdated: 2026-06-30
+lastUpdated: 2026-07-02
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-06-30
+> **Last generated:** 2026-07-02
 
-Total providers: **236**. See category breakdown below.
+Total providers: **237**. See category breakdown below.
 
 ## Categories
 
@@ -84,7 +84,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `venice-web` | `ven` | Venice Web (Privacy) | Web cookie | [link](https://venice.ai) | Paste your session cookie from venice.ai (DevTools → Application → Cookies) |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. |
 
-## API Key Providers (paid / paid-with-free-credits) (158)
+## API Key Providers (paid / paid-with-free-credits) (159)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -114,6 +114,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `cerebras` | `cerebras` | Cerebras | API key | [link](https://inference.cerebras.ai) | Free Trial: 1M tokens/day, 30K TPM, 5 RPM — no credit card. |
 | `chutes` | `chutes` | Chutes.ai | API key, aggregator | [link](https://chutes.ai) | Bearer API key for the Chutes OpenAI-compatible gateway. |
 | `clarifai` | `clarifai` | Clarifai | API key, enterprise | [link](https://docs.clarifai.com) | Use your Clarifai PAT or app-specific API key. OmniRoute targets the OpenAI-compatible endpoint at https://api.clarifai.com/v2/ext/openai/v1 and authenticates with Authorization: Key <token>. |
+| `clinepass` | `cp` | ClinePass | API key | [link](https://cline.bot/clinepass) | Use your Cline API key (Settings → API Keys in app.cline.bot) as a Bearer token. |
 | `cloudflare-ai` | `cf` | Cloudflare Workers AI | API key | [link](https://developers.cloudflare.com/workers-ai) | Requires API Token AND Account ID (found at dash.cloudflare.com) |
 | `codestral` | `codestral` | Codestral | API key | [link](https://mistral.ai) | — |
 | `cohere` | `cohere` | Cohere | API key | [link](https://cohere.com) | Free Trial: 1,000 API calls/month for testing, no credit card required |

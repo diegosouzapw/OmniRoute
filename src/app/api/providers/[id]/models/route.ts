@@ -169,6 +169,9 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // `<baseUrl>/v1/models` endpoint (200 public or 401/403 = exists + keyed), so live
   // fetch keeps the catalog fresh; the registry seed remains the offline fallback.
   "crof",
+  // ClinePass — Cline's OpenAI-compatible subscription gateway; live /v1/models keeps
+  // the cline-pass/* catalog fresh, seed stays as offline fallback (same class as crof).
+  "clinepass",
   "featherless-ai",
   "ovhcloud",
   "sambanova",

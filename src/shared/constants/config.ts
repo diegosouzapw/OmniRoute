@@ -14,6 +14,7 @@ export const PROVIDER_ENDPOINTS = {
   minimax: "https://api.minimax.io/anthropic/v1/messages",
   "minimax-cn": "https://api.minimaxi.com/anthropic/v1/messages",
   crof: "https://crof.ai/v1/chat/completions",
+  clinepass: "https://api.cline.bot/api/v1/chat/completions",
   zenmux: "https://zenmux.ai/api/v1/chat/completions",
   openadapter: "https://api.openadapter.in/v1/chat/completions",
   dit: "https://api.dit.ai/v1/chat/completions",
