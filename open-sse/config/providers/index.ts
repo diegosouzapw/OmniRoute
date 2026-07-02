@@ -79,6 +79,7 @@ import { leonardoProvider } from "./registry/leonardo/index.ts";
 import { grok_webProvider } from "./registry/grok-web/index.ts";
 import { kieProvider } from "./registry/kie/index.ts";
 import { monsterapiProvider } from "./registry/monsterapi/index.ts";
+import { modelscopeProvider } from "./registry/modelscope/index.ts";
 import { sensenovaProvider } from "./registry/sensenova/index.ts";
 import { hyperbolicProvider } from "./registry/hyperbolic/index.ts";
 import { lambda_aiProvider } from "./registry/lambda-ai/index.ts";
@@ -251,6 +252,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "grok-web": grok_webProvider,
   kie: kieProvider,
   monsterapi: monsterapiProvider,
+  modelscope: modelscopeProvider,
   sensenova: sensenovaProvider,
   hyperbolic: hyperbolicProvider,
   "lambda-ai": lambda_aiProvider,
