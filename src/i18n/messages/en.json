@@ -4987,6 +4987,8 @@
     "modelsDevInfoOrder": "User Override → models.dev → LiteLLM → Hardcoded Default",
     "systemTheme": "System Theme",
     "debugToggle": "Enable Debug Mode",
+    "logToolSourcesToggle": "Log Tool Sources",
+    "logToolSourcesDescription": "Emit a diagnostic log line per request summarizing tool count and MCP/hosted/client source breakdown.",
     "homePinProviderQuotaToHome": "Pin Information to Home Page",
     "homeProviderQuotaLimits": "Provider Quota Limits",
     "homeProviderQuotaLimitsDesc": "Pin the Provider Quota status container (with Refresh All button) to the top of the Home page.",

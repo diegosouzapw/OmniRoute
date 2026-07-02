@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(dashboard):** add a settings toggle for tool-source diagnostics logging. (thanks @DuyPrX)
 
 ### 🔧 Bug Fixes
 
