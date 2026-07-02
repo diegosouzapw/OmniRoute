@@ -33,3 +33,18 @@ test("#5486 plain text with no URL is a single text segment", () => {
   assert.deepEqual(linkifyText(""), []);
   assert.deepEqual(linkifyText(null as unknown as string), []);
 });
+
+test("#5486 (hardening) only ever exposes http(s) hrefs — no javascript:/data: scheme", () => {
+  // The matcher requires an http(s):// prefix AND safeHttpHref validates the scheme, so a
+  // javascript:/data: "URL" embedded in text never becomes a clickable href — it stays
+  // plain text. Regression guard for the CodeQL js/xss + url-redirection sink on the <a href>.
+  const segs = linkifyText(
+    "run javascript:alert(document.cookie) or data:text/html,alert(1) " +
+      "but https://safe.example.com/ok is fine"
+  );
+  const hrefs = segs.filter((s) => s.href).map((s) => s.href as string);
+  assert.deepEqual(hrefs, ["https://safe.example.com/ok"], "only the http(s) URL is a link");
+  for (const h of hrefs) {
+    assert.ok(/^https?:\/\//.test(h), `href must be http(s): ${h}`);
+  }
+});

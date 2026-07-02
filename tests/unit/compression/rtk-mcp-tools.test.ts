@@ -27,8 +27,17 @@ const NOISE = [
 
 function seedSamples() {
   // retention "always" forces a capture even on a successful (non-failure) output.
+  // The two captures MUST differ in content: the raw-output filename is keyed on
+  // Date.now() (ms) + a hash of the content (see rawOutput.ts), so two BYTE-IDENTICAL
+  // captures that land in the same millisecond collapse to the same filename — the 2nd
+  // write overwrites the 1st, leaving only 1 sample. That made this test ~25% flaky on
+  // fast CI runners ("expected 2, got 1"). Distinct content = 2 files regardless of
+  // timing; two real build runs never emit byte-identical output anyway.
   maybePersistRtkRawOutput(NOISE, { retention: "always", command: "gradle build" });
-  maybePersistRtkRawOutput(NOISE, { retention: "always", command: "gradle build" });
+  maybePersistRtkRawOutput(`${NOISE}\n> Task :app:test UP-TO-DATE`, {
+    retention: "always",
+    command: "gradle build",
+  });
 }
 
 beforeEach(() => {

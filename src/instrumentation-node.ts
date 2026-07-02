@@ -20,6 +20,21 @@ function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Rename a Node process title so OmniRoute is identifiable in `ps`/`htop`
+ * instead of the generic Next.js standalone server name.
+ *
+ * Only rewrites titles that start with "next-server", preserving any
+ * trailing suffix (e.g. " (v16.2.9)"). Every other title — including one
+ * that has already been renamed, or one that merely contains
+ * "next-server" elsewhere — passes through unchanged. Empty/undefined-safe.
+ */
+export function renameProcessTitle(currentTitle: string): string {
+  if (!currentTitle) return currentTitle;
+  if (!currentTitle.startsWith("next-server")) return currentTitle;
+  return `omniroute${currentTitle.slice("next-server".length)}`;
+}
+
 function isBackgroundServicesDisabled(): boolean {
   const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
   if (!raw) return false;
@@ -69,6 +84,10 @@ async function ensureSecrets(): Promise<void> {
 }
 
 export async function registerNodejs(): Promise<void> {
+  // Rename the process title so OmniRoute is identifiable in ps/htop instead
+  // of the generic "next-server" standalone server name.
+  process.title = renameProcessTitle(process.title);
+
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
   await import("@omniroute/open-sse/index.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");

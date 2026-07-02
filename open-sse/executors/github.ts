@@ -149,6 +149,18 @@ export class GithubExecutor extends BaseExecutor {
       );
     }
 
+    // GitHub Copilot's /chat/completions endpoint rejects a conversation that ends
+    // with an assistant message: "This model does not support assistant message
+    // prefill. The conversation must end with a user message." (HTTP 400). Anthropic
+    // clients such as newest Claude Desktop send a trailing assistant turn as a
+    // prefill seed — the Anthropic API honors it, but Copilot does not. Drop it here,
+    // scoped to the GitHub executor only (the shared translator/contextManager and
+    // other providers that DO honor prefill are untouched).
+    // Port of 9router#2143 (author: Manuel <baslr@users.noreply.github.com>).
+    if (Array.isArray(modifiedBody.messages)) {
+      modifiedBody.messages = this.dropTrailingAssistantPrefill(modifiedBody.messages);
+    }
+
     // Config-driven strip of params unsupported by the target provider/model.
     // For GitHub Copilot this removes Claude-style `thinking` and
     // `reasoning_effort` for Claude models that reject them upstream
@@ -186,6 +198,19 @@ export class GithubExecutor extends BaseExecutor {
     // If every part stripped to empty (e.g. tool_use with no text), collapse to null so
     // GitHub does not reject an empty-array body. tool_calls ride alongside content.
     return { ...msg, content: cleanContent.length > 0 ? cleanContent : null };
+  }
+
+  // Remove trailing assistant message(s). GitHub Copilot's /chat/completions endpoint
+  // can't honor an assistant prefill and 400s unless the conversation ends with a
+  // non-assistant (user/tool) message. Never empties the array — an assistant-only
+  // conversation keeps its last message. No-op (same array reference) when the
+  // conversation already ends with a non-assistant message.
+  // Port of 9router#2143 (author: Manuel <baslr@users.noreply.github.com>).
+  dropTrailingAssistantPrefill(messages: any): any {
+    if (!Array.isArray(messages) || messages.length === 0) return messages;
+    let end = messages.length;
+    while (end > 1 && messages[end - 1]?.role === "assistant") end--;
+    return end === messages.length ? messages : messages.slice(0, end);
   }
 
   async execute(input: ExecuteInput) {
