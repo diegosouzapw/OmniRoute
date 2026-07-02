@@ -1,4 +1,5 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { mergeAbortSignals } from "./mergeAbortSignals.ts";
 import { mergeClientAnthropicBeta } from "../config/anthropicHeaders.ts";
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
 import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
@@ -172,7 +173,10 @@ export function mergeUpstreamExtraHeaders(
   }
 }
 
-// extracted to ./mergeAbortSignals.ts (Wave 6 resilience leaf)
+// extracted to ./mergeAbortSignals.ts (Wave 6 resilience leaf); re-exported here so
+// existing barrel importers (e.g. ./antigravity) keep resolving it from "./base".
+export { mergeAbortSignals } from "./mergeAbortSignals.ts";
+
 function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
   const thinking = body.thinking as Record<string, unknown> | undefined;
   return thinking?.type === "enabled" || thinking?.type === "adaptive";

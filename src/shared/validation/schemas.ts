@@ -270,7 +270,6 @@ function validateProviderSpecificData(
 // Re-export validation helpers from dedicated module to avoid webpack barrel-file
 // optimization bug that truncates exports from large files.
 export { validateBody, isValidationFailure } from "./helpers";
-export type { ValidationResult } from "./helpers";
 
 // ──── Provider Schemas ────
 

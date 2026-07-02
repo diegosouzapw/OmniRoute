@@ -30,6 +30,8 @@ interface MemoryRow {
   created_at: string;
   updated_at: string;
   expires_at: string | null;
+  access_count?: number | null;
+  last_accessed_at?: string | null;
 }
 
 // Memory cache configuration
@@ -79,6 +81,8 @@ function rowToMemory(row: MemoryRow): Memory {
     createdAt: new Date(String(row.created_at)),
     updatedAt: new Date(String(row.updated_at)),
     expiresAt: row.expires_at ? new Date(String(row.expires_at)) : null,
+    accessCount: typeof row.access_count === "number" ? row.access_count : 0,
+    lastAccessedAt: row.last_accessed_at ? new Date(String(row.last_accessed_at)) : null,
   };
 }
 
@@ -155,7 +159,7 @@ function scheduleVectorUpsert(id: string, content: string): void {
  * Create a new memory entry (UPSERT: updates existing if same apiKeyId + key)
  */
 export async function createMemory(
-  memory: Omit<Memory, "id" | "createdAt" | "updatedAt">
+  memory: Omit<Memory, "id" | "createdAt" | "updatedAt" | "accessCount" | "lastAccessedAt">
 ): Promise<Memory> {
   const db = getDbInstance();
   const now = new Date().toISOString();
@@ -190,6 +194,10 @@ export async function createMemory(
       createdAt: new Date(String(existing.created_at)),
       updatedAt: new Date(now),
       expiresAt: memory.expiresAt ?? null,
+      accessCount: typeof existing.access_count === "number" ? existing.access_count : 0,
+      lastAccessedAt: existing.last_accessed_at
+        ? new Date(String(existing.last_accessed_at))
+        : null,
     };
 
     // Invalidate and update cache
@@ -259,6 +267,8 @@ export async function createMemory(
     createdAt: new Date(now),
     updatedAt: new Date(now),
     expiresAt: memory.expiresAt ?? null,
+    accessCount: 0,
+    lastAccessedAt: null,
   };
 
   // Cache the newly created memory
@@ -542,4 +552,29 @@ export function getMemoryTokensUsed(apiKeyId?: string): number {
   );
   const row = stmt.get(...(apiKeyId ? [apiKeyId] : [])) as { tokensUsed: number } | undefined;
   return row?.tokensUsed ?? 0;
+}
+
+/**
+ * TV6: record that the given memories were injected into a prompt. Increments
+ * `access_count` and stamps `last_accessed_at` so the decay clock re-bases and access
+ * immunity can accrue. Best-effort and non-blocking by contract — callers fire-and-forget;
+ * any error (DB closed in test teardown, missing columns pre-migration) is swallowed so
+ * retrieval is never impacted.
+ */
+export function recordMemoryAccess(ids: string[]): void {
+  if (!Array.isArray(ids) || ids.length === 0) return;
+  const unique = Array.from(new Set(ids.filter((id) => typeof id === "string" && id)));
+  if (unique.length === 0) return;
+  try {
+    const db = getDbInstance();
+    const placeholders = unique.map(() => "?").join(", ");
+    const stmt = db.prepare(
+      `UPDATE memories SET access_count = access_count + 1, last_accessed_at = ? ` +
+        `WHERE id IN (${placeholders})`
+    );
+    stmt.run(new Date().toISOString(), ...unique);
+    for (const id of unique) invalidateMemoryCache(id);
+  } catch {
+    // intentional swallow — access tracking is opportunistic telemetry, never load-bearing
+  }
 }

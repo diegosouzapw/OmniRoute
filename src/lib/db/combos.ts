@@ -64,10 +64,10 @@ function normalizeStoredCombo(
   combo: JsonRecord,
   db: ReturnType<typeof getDbInstance>,
   extraNames: string[] = []
-): JsonRecord {
+) {
   return normalizeComboRecord(combo, {
     allCombos: getComboNameSet(db, extraNames),
-  }) as JsonRecord;
+  });
 }
 
 function parseComboRow(row: unknown): JsonRecord | null {

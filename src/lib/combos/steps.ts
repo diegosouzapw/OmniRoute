@@ -11,6 +11,7 @@ export interface ComboModelStep {
   weight: number;
   label?: string;
   tags?: string[];
+  allowedConnectionIds?: string[];
 }
 
 export interface ComboRefStep {
@@ -277,6 +278,11 @@ export function normalizeComboStep(
   const tags = Array.isArray(value.tags)
     ? value.tags.map((tag) => toTrimmedString(tag)).filter((tag): tag is string => !!tag)
     : undefined;
+  const allowedConnectionIds = Array.isArray(value.allowedConnectionIds)
+    ? value.allowedConnectionIds
+        .map((id) => toTrimmedString(id))
+        .filter((id): id is string => !!id)
+    : undefined;
 
   return {
     id:
@@ -289,6 +295,7 @@ export function normalizeComboStep(
     weight,
     ...(label ? { label } : {}),
     ...(tags && tags.length > 0 ? { tags } : {}),
+    ...(allowedConnectionIds && allowedConnectionIds.length > 0 ? { allowedConnectionIds } : {}),
   };
 }
 
