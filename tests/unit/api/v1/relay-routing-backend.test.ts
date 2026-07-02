@@ -5,6 +5,7 @@ import {
   getRoutingFallbackHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrost,
+  shouldTryBifrostForRequest,
 } from "../../../../src/app/api/v1/relay/chat/completions/routingBackend.ts";
 
 test("relay routing backend defaults to TypeScript without bifrost", () => {
@@ -97,4 +98,57 @@ test("relay routing backend keeps strict bifrost failures out of auto fallback a
   assert.equal(shouldTryBifrost("bifrost", config), true);
   assert.equal(getRoutingFallbackHeader("bifrost", config), undefined);
   assert.equal(resolveRelayRoutingBackend({ OMNIROUTE_RELAY_BACKEND: "bifrost" }), "bifrost");
+});
+
+test("relay routing backend auto mode tries bifrost for manifest-eligible providers", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.deepEqual(
+    shouldTryBifrostForRequest("auto", config, { model: "openai/gpt-4.1" }, () => ({
+      eligible: true,
+      reasons: [],
+    })),
+    { tryBifrost: true }
+  );
+});
+
+test("relay routing backend auto mode skips bifrost for manifest-ineligible providers", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.deepEqual(
+    shouldTryBifrostForRequest("auto", config, { model: "cw/claude-sonnet-4.6" }, () => ({
+      eligible: false,
+      reasons: ["custom executor: claude-web"],
+    })),
+    { tryBifrost: false, fallbackReason: "bifrost-ineligible" }
+  );
+});
+
+test("relay routing backend auto mode keeps unknown providers on TS fallback", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.deepEqual(
+    shouldTryBifrostForRequest("auto", config, { model: "unknown/model" }, () => null),
+    { tryBifrost: false, fallbackReason: "bifrost-provider-unknown" }
+  );
+});
+
+test("relay routing backend strict bifrost bypasses manifest eligibility", () => {
+  const config = getBifrostRoutingConfig({
+    BIFROST_BASE_URL: "http://127.0.0.1:8080",
+  });
+
+  assert.deepEqual(
+    shouldTryBifrostForRequest("bifrost", config, { model: "cw/claude-sonnet-4.6" }, () => ({
+      eligible: false,
+      reasons: ["custom executor: claude-web"],
+    })),
+    { tryBifrost: true }
+  );
 });
