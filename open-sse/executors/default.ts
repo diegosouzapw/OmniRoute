@@ -415,10 +415,12 @@ export class DefaultExecutor extends BaseExecutor {
       case "glm-coding-apikey":
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
+      case "clinepass":
       case "cline":
         // Cline's API requires the bearer token prefixed with `workos:` plus a
         // set of Cline client-identification headers; plain `Bearer <token>`
-        // is rejected upstream. buildClineHeaders() emits both.
+        // is rejected upstream. buildClineHeaders() emits both. ClinePass shares
+        // the api.cline.bot host + token shape and needs the identical headers.
         Object.assign(headers, buildClineHeaders(effectiveKey || credentials.accessToken));
         break;
       default:

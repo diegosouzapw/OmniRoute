@@ -379,10 +379,15 @@ export async function refreshAccessToken(
   }
 
   try {
-    const params = new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-    });
+    // Cline's /auth/refresh endpoint uses non-standard field names (no underscores):
+    // it rejects `grant_type`/`refresh_token` with a 400 "refreshtoken/granttype
+    // required" validation error. ClinePass shares the api.cline.bot host + flow.
+    const isClineFamily = provider === "cline" || provider === "clinepass";
+    const params = new URLSearchParams(
+      isClineFamily
+        ? { granttype: "refresh_token", refreshtoken: refreshToken }
+        : { grant_type: "refresh_token", refresh_token: refreshToken }
+    );
     if (config.clientId) params.set("client_id", config.clientId);
     if (config.clientSecret) params.set("client_secret", config.clientSecret);
 

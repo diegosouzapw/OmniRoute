@@ -780,12 +780,26 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
+        "User-Agent": "OmniRoute/<APP>",
+        "X-CLIENT-TYPE": "omniroute",
+        "X-CLIENT-VERSION": "<APP>",
+        "X-CORE-VERSION": "<APP>",
+        "X-IS-MULTIROOT": "false",
+        "X-PLATFORM": "linux",
+        "X-PLATFORM-VERSION": "<NODE>",
         "X-Title": "Cline"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
+        "User-Agent": "OmniRoute/<APP>",
+        "X-CLIENT-TYPE": "omniroute",
+        "X-CLIENT-VERSION": "<APP>",
+        "X-CORE-VERSION": "<APP>",
+        "X-IS-MULTIROOT": "false",
+        "X-PLATFORM": "linux",
+        "X-PLATFORM-VERSION": "<NODE>",
         "X-Title": "Cline"
       },
       "oauth": {
@@ -793,6 +807,13 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
+        "User-Agent": "OmniRoute/<APP>",
+        "X-CLIENT-TYPE": "omniroute",
+        "X-CLIENT-VERSION": "<APP>",
+        "X-CORE-VERSION": "<APP>",
+        "X-IS-MULTIROOT": "false",
+        "X-PLATFORM": "linux",
+        "X-PLATFORM-VERSION": "<NODE>",
         "X-Title": "Cline"
       }
     },
