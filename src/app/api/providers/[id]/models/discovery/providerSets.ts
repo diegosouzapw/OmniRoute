@@ -56,6 +56,10 @@ export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // DGrid is an OpenAI-compatible gateway whose default seed is the free auto-router;
   // the full model catalog is discovered live from https://api.dgrid.ai/v1/models.
   "dgrid",
+  // Qiniu (七牛云 AI inference) is an OpenAI-compatible gateway with no static seed —
+  // it proxies many upstream models (DeepSeek, Claude, Kimi...) behind one key, so the
+  // full catalog is discovered live from https://api.qnaigc.com/v1/models.
+  "qiniu",
 ]);
 
 export function isNamedOpenAIStyleProvider(provider: string): boolean {
