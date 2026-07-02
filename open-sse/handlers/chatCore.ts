@@ -3517,6 +3517,19 @@ export async function handleChatCore({
     let responseBody = parsed.responseBody;
     let responsePayloadFormat = parsed.responsePayloadFormat;
 
+    // Cline (cline / clinepass) wraps the OpenAI chat-completion body in a
+    // `{ data: {...}, error, success }` envelope on non-streaming calls (streaming
+    // chunks are emitted unwrapped). Unwrap `data` so the standard choices/usage
+    // parsers see the payload — otherwise the response reads as empty choices (502).
+    if (
+      (provider === "cline" || provider === "clinepass") &&
+      responseBody &&
+      typeof responseBody === "object" &&
+      Array.isArray(responseBody.data?.choices)
+    ) {
+      responseBody = responseBody.data;
+    }
+
     // Check for empty content response (fake success) - trigger fallback
     if (isEmptyContentResponse(responseBody)) {
       appendRequestLog({

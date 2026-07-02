@@ -331,6 +331,7 @@ const LOBE_PROVIDER_ALIASES = {
   claude: "ClaudeCode",
   "claude-web": "Claude",
   cline: "Cline",
+  clinepass: "Cline",
   cloudflare: "Cloudflare",
   "cloudflare-ai": "WorkersAI",
   codestral: "Mistral",

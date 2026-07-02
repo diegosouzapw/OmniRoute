@@ -322,7 +322,7 @@ export default function OAuthModal({
       // Claude Code and Cline OAuth flows can finish on provider-hosted pages that
       // show an auth code instead of redirecting back to OmniRoute.
       // Start directly in manual mode so users always have an input to paste code/url.
-      if (provider === "claude" || provider === "cline") {
+      if (provider === "claude" || provider === "cline" || provider === "clinepass") {
         forceManual = true;
       }
 
@@ -898,7 +898,7 @@ export default function OAuthModal({
                       value={callbackUrl}
                       onChange={(e) => setCallbackUrl(e.target.value)}
                       placeholder={
-                        provider === "claude" || provider === "cline"
+                        provider === "claude" || provider === "cline" || provider === "clinepass"
                           ? "code#state or /callback?code=..."
                           : placeholderUrl
                       }

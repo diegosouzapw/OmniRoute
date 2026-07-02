@@ -348,10 +348,12 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
     if (!stream) {
       headers["Accept"] = "application/json";
     }
-  } else if (provider === "cline") {
+  } else if (provider === "cline" || provider === "clinepass") {
     // Cline's API requires the bearer token prefixed with `workos:` plus a set
     // of Cline client-identification headers; plain `Bearer <token>` is rejected
-    // upstream. buildClineHeaders() emits both.
+    // upstream. buildClineHeaders() emits both. ClinePass is served on the same
+    // api.cline.bot host and needs the identical header shape (cline-pass/* models
+    // 401 with "re-authenticate" without the X-CLIENT-VERSION/X-CORE-VERSION set).
     Object.assign(headers, buildClineHeaders(credentials.apiKey || credentials.accessToken));
   } else if (entry) {
     // Registry-driven auth
