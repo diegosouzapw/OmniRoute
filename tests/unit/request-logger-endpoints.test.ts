@@ -16,12 +16,6 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-// Captured stream chunks are prefixed with a per-chunk arrival timestamp
-// ("[HH:MM:SS.mmm] ") by the request logger for streaming-latency observability
-// (added in #5834 / correlation-id observability). Strip it before comparing the
-// raw payload so these assertions verify the chunk content + ordering, not the clock.
-const stripChunkTs = (chunk: string): string => chunk.replace(/^\[\d{2}:\d{2}:\d{2}\.\d{3}\] /, "");
-
 // ─── Active log endpoint removal ─────────────────────────────────────────
 
 test("/api/logs/active route is removed", () => {
@@ -286,7 +280,7 @@ test("GET /api/usage/call-logs includes completed in-memory fallback rows", asyn
   assert.equal(rows[0].duration, completedDetail!.durationMs);
 });
 
-test("GET /api/usage/call-logs rows are ordered by priority then newest-first", async () => {
+test("GET /api/usage/call-logs rows are globally timestamp ordered", async () => {
   const { buildCallLogListRows } = await import("../../src/app/api/usage/call-logs/route.ts");
   const rows = buildCallLogListRows({
     logs: [
@@ -317,13 +311,9 @@ test("GET /api/usage/call-logs rows are ordered by priority then newest-first", 
     now: 4000,
   });
 
-  // Rows sort by priority first (active=0 > completed in-memory=1 > persisted=2),
-  // then newest-first within each priority (#5834 correlation-id observability).
-  // The completed in-memory entry therefore floats above the persisted DB rows,
-  // which are ordered newest-first among themselves.
   assert.deepEqual(
     rows.map((row) => row.id),
-    ["completed-middle", "persisted-newest", "persisted-oldest"]
+    ["persisted-newest", "completed-middle", "persisted-oldest"]
   );
 });
 
@@ -535,8 +525,8 @@ test("createRequestLogger with connectionId/model/provider populates streamChunk
   assert.ok(detail.streamChunks, "streamChunks should be non-null after appendProviderChunk");
   assert.ok(Array.isArray(detail.streamChunks.provider), "provider array should exist");
   assert.equal(detail.streamChunks.provider.length, 2, "should have 2 provider chunks");
-  assert.equal(stripChunkTs(detail.streamChunks.provider[0]), 'data: {"content":"hello"}');
-  assert.equal(stripChunkTs(detail.streamChunks.provider[1]), 'data: {"content":" world"}');
+  assert.equal(detail.streamChunks.provider[0], 'data: {"content":"hello"}');
+  assert.equal(detail.streamChunks.provider[1], 'data: {"content":" world"}');
   assert.deepEqual(detail.streamChunks.openai, []);
   assert.deepEqual(detail.streamChunks.client, []);
 });
@@ -560,7 +550,7 @@ test("createRequestLogger requestId binds streamChunks to the exact pending requ
   const second = usageHistory.getPendingById().get(secondId);
 
   assert.equal(first?.streamChunks, undefined);
-  assert.equal(stripChunkTs(second?.streamChunks?.provider[0]), 'data: {"content":"second"}');
+  assert.equal(second?.streamChunks?.provider[0], 'data: {"content":"second"}');
 });
 
 test("createRequestLogger fallback match does not cross connectionId boundaries", async () => {
@@ -581,7 +571,7 @@ test("createRequestLogger fallback match does not cross connectionId boundaries"
   logger.appendProviderChunk('data: {"content":"conn-b"}');
 
   const second = usageHistory.getPendingById().get(secondId);
-  assert.equal(stripChunkTs(second?.streamChunks?.provider[0]), 'data: {"content":"conn-b"}');
+  assert.equal(second?.streamChunks?.provider[0], 'data: {"content":"conn-b"}');
 });
 
 test("createRequestLogger without connectionId does not populate streamChunks", async () => {
@@ -634,12 +624,9 @@ test("createRequestLogger appendOpenAIChunk and appendConvertedChunk also popula
 
   assert.ok(detail?.streamChunks, "streamChunks should be set");
   assert.equal(detail.streamChunks.openai.length, 1);
-  assert.equal(
-    stripChunkTs(detail.streamChunks.openai[0]),
-    'data: {"role":"assistant","content":"hi"}'
-  );
+  assert.equal(detail.streamChunks.openai[0], 'data: {"role":"assistant","content":"hi"}');
   assert.equal(detail.streamChunks.client.length, 1);
-  assert.equal(stripChunkTs(detail.streamChunks.client[0]), 'data: {"content":"there"}');
+  assert.equal(detail.streamChunks.client[0], 'data: {"content":"there"}');
 });
 
 test("createRequestLogger captures stream chunks even when enabled: false", async () => {
@@ -666,7 +653,7 @@ test("createRequestLogger captures stream chunks even when enabled: false", asyn
 
   assert.ok(detail?.streamChunks, "streamChunks should be set even when logger is disabled");
   assert.equal(detail.streamChunks.provider.length, 1);
-  assert.equal(stripChunkTs(detail.streamChunks.provider[0]), 'data: {"content":"hello"}');
+  assert.equal(detail.streamChunks.provider[0], 'data: {"content":"hello"}');
 
   // But getPipelinePayloads should return null when disabled
   assert.equal(

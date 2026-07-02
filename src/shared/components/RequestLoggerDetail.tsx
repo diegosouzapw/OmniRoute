@@ -433,7 +433,7 @@ export default function RequestLoggerDetail({
               </div>
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Ended At
+                  Completed Time
                 </div>
                 <div className="text-sm font-medium">{formatDate(log.timestamp)}</div>
               </div>

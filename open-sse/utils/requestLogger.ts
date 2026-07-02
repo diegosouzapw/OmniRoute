@@ -270,8 +270,7 @@ function makeStreamChunkMethods(options: RequestLoggerOptions, captureChunks: bo
   const append = (arr: string[], bytes: { value: number; truncated: boolean }, chunk: string) => {
     if (!captureChunks) return;
     push();
-    const ts = new Date().toISOString().slice(11, 23);
-    appendBoundedChunk(arr, bytes, `[${ts}] ${chunk}`, maxBytes, maxItems);
+    appendBoundedChunk(arr, bytes, chunk, maxBytes, maxItems);
   };
 
   return {

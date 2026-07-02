@@ -19,8 +19,7 @@ function rowTimestampMs(row: any): number {
 
 function rowPriority(row: any): number {
   if (row?.active) return 0;
-  if (row?.completed) return 1;
-  return 2;
+  return 1;
 }
 
 export function buildCallLogListRows({
@@ -79,7 +78,7 @@ export function buildCallLogListRows({
         : Math.max(0, (completedAt ?? now) - detail.startedAt);
     completedEntries.push({
       id: detail.id,
-      timestamp: new Date(detail.startedAt).toISOString(),
+      timestamp: new Date(completedAt ?? detail.startedAt).toISOString(),
       method: "",
       path: detail.clientEndpoint || "",
       status: typeof detail.status === "number" ? detail.status : detail.error ? 502 : 200,

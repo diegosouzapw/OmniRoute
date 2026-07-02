@@ -70,23 +70,14 @@ test("resolveChatCoreTargetFormat picks openai-responses for openai pro models",
 
 test("DefaultExecutor routes openai responses-only models to /v1/responses", () => {
   const executor = new DefaultExecutor("openai");
-  assert.equal(
-    executor.buildUrl("gpt-5.5-pro", false),
-    "https://api.openai.com/v1/responses"
-  );
+  assert.equal(executor.buildUrl("gpt-5.5-pro", false), "https://api.openai.com/v1/responses");
   assert.equal(executor.buildUrl("o1-pro", true), "https://api.openai.com/v1/responses");
 });
 
 test("DefaultExecutor keeps openai chat models on /v1/chat/completions", () => {
   const executor = new DefaultExecutor("openai");
-  assert.equal(
-    executor.buildUrl("gpt-4o", false),
-    "https://api.openai.com/v1/chat/completions"
-  );
-  assert.equal(
-    executor.buildUrl("gpt-5.5", true),
-    "https://api.openai.com/v1/chat/completions"
-  );
+  assert.equal(executor.buildUrl("gpt-4o", false), "https://api.openai.com/v1/chat/completions");
+  assert.equal(executor.buildUrl("gpt-5.5", true), "https://api.openai.com/v1/chat/completions");
 });
 
 test("DefaultExecutor honors a custom openai base URL for both endpoints", () => {

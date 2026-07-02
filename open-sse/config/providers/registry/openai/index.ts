@@ -37,7 +37,17 @@ export const openaiProvider: RegistryEntry = {
     { id: "gpt-4o", name: "GPT-4o", contextLength: 128000 },
     { id: "gpt-4o-mini", name: "GPT-4o Mini", contextLength: 128000 },
     { id: "o3", name: "O3", contextLength: 200000, unsupportedParams: REASONING_UNSUPPORTED },
-    { id: "o3-mini", name: "O3 Mini", contextLength: 200000, unsupportedParams: REASONING_UNSUPPORTED },
-    { id: "o4-mini", name: "O4 Mini", contextLength: 200000, unsupportedParams: REASONING_UNSUPPORTED },
+    {
+      id: "o3-mini",
+      name: "O3 Mini",
+      contextLength: 200000,
+      unsupportedParams: REASONING_UNSUPPORTED,
+    },
+    {
+      id: "o4-mini",
+      name: "O4 Mini",
+      contextLength: 200000,
+      unsupportedParams: REASONING_UNSUPPORTED,
+    },
   ],
 };

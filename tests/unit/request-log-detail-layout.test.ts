@@ -98,9 +98,7 @@ test("request log detail splits token badges into input and output groups", () =
   const modelLabelIndex = html.indexOf(">Model<");
   const requestedModelLabelIndex = html.indexOf(">Requested Model<");
 
-  // The completed-request detail grid renders "Started At" / "Ended At" columns
-  // (renamed from the old single "Completed Time" label in #5834).
-  assert.notEqual(html.indexOf(">Ended At<"), -1);
+  assert.notEqual(html.indexOf(">Completed Time<"), -1);
   assert.equal(html.includes(">Time<"), false);
   assert.notEqual(inputLabelIndex, -1);
   assert.notEqual(outputLabelIndex, -1);
