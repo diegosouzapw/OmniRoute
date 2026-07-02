@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-  forwardRef,
-  useImperativeHandle,
-} from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, forwardRef, useImperativeHandle } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Card from "./Card";
@@ -39,6 +31,7 @@ import {
   readSavedRefreshIntervalSec,
   writeSavedRefreshIntervalSec,
 } from "./requestLoggerPreferences";
+import { useIssueAgentActions } from "./useIssueAgentActions";
 import {
   LOG_TABLE_CLASS,
   LOG_TABLE_HEAD_CLASS,
@@ -172,10 +165,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const [detailData, setDetailData] = useState(null);
     const [detailLoggingEnabled, setDetailLoggingEnabled] = useState(false);
     const [detailLoggingLoading, setDetailLoggingLoading] = useState(false);
-    const [issueAgentEnabled, setIssueAgentEnabled] = useState(false);
-    const [issueAgentFixEnabled, setIssueAgentFixEnabled] = useState(false);
-    const [issueAgentRunningMode, setIssueAgentRunningMode] = useState<string | null>(null);
-    const [issueAgentStatus, setIssueAgentStatus] = useState<string | null>(null);
+    const issueAgent = useIssueAgentActions(selectedLog, detailData);
     const [limit, setLimit] = useState(PAGE_SIZE);
     const [hasMore, setHasMore] = useState(false);
     const [refreshIntervalSec, setRefreshIntervalSec] = useState(DEFAULT_REFRESH_INTERVAL_SEC);
@@ -223,29 +213,6 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
       const saved = readSavedRefreshIntervalSec();
       refreshIntervalSecRef.current = saved;
       setRefreshIntervalSec(saved);
-    }, []);
-
-    useEffect(() => {
-      let mounted = true;
-      async function loadIssueAgentSettings() {
-        try {
-          const res = await fetch("/api/settings", { cache: "no-store" });
-          if (!res.ok) return;
-          const data = await res.json();
-          if (!mounted) return;
-          setIssueAgentEnabled(data?.issueAgent?.manualActionsEnabled === true);
-          setIssueAgentFixEnabled(data?.issueAgent?.fixPrCreationEnabled === true);
-        } catch {
-          if (mounted) {
-            setIssueAgentEnabled(false);
-            setIssueAgentFixEnabled(false);
-          }
-        }
-      }
-      void loadIssueAgentSettings();
-      return () => {
-        mounted = false;
-      };
     }, []);
 
     useEffect(() => {
@@ -761,41 +728,6 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         closeDetail();
       }
     }, [currentLogIndex, sortedLogsForNav]);
-
-    const runIssueAgent = useCallback(
-      async (mode: "triage" | "fix" | "triage-and-fix") => {
-        if (!selectedLog) return;
-        setIssueAgentRunningMode(mode);
-        setIssueAgentStatus(`Starting ${mode} run...`);
-        try {
-          const res = await fetch("/api/issue-agent/runs", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              mode,
-              source: "request-log",
-              log: selectedLog,
-              detail: detailData,
-            }),
-          });
-          const data = await res.json().catch(() => null);
-          if (!res.ok) {
-            throw new Error(data?.error?.message || data?.error || `HTTP ${res.status}`);
-          }
-          const run = data?.run;
-          const suffix =
-            run?.status === "blocked" ? " blocked by prerequisite checks" : " recorded";
-          setIssueAgentStatus(`Issue-agent run ${run?.id || "created"}${suffix}.`);
-        } catch (error) {
-          setIssueAgentStatus(
-            error instanceof Error ? error.message : "Failed to start issue-agent run"
-          );
-        } finally {
-          setIssueAgentRunningMode(null);
-        }
-      },
-      [detailData, selectedLog]
-    );
 
     const toggleDetailLogging = async () => {
       setDetailLoggingLoading(true);
@@ -1589,11 +1521,11 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
             loading={detailLoading}
             debugEnabled={selectedLog.active ? true : detailLoggingEnabled}
             emailsVisible={emailsVisible}
-            issueAgentEnabled={issueAgentEnabled}
-            issueAgentFixEnabled={issueAgentFixEnabled}
-            issueAgentRunningMode={issueAgentRunningMode}
-            issueAgentStatus={issueAgentStatus}
-            onRunIssueAgent={runIssueAgent}
+            issueAgentEnabled={issueAgent.enabled}
+            issueAgentFixEnabled={issueAgent.fixEnabled}
+            issueAgentRunningMode={issueAgent.runningMode}
+            issueAgentStatus={issueAgent.status}
+            onRunIssueAgent={issueAgent.run}
             onClose={closeDetail}
             onCopy={copyToClipboard}
             onPrevious={handlePrev}
