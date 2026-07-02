@@ -8,7 +8,7 @@
 
 ### ✨ New Features
 
-_TBD_
+- **feat(providers):** add Augment (Auggie CLI) as a local no-auth provider. (thanks @chamdanilukman)
 
 ### 🔧 Bug Fixes
 
