@@ -15,10 +15,6 @@ export default defineConfig({
       "open-sse/mcp-server/__tests__/**/*.test.ts",
       "open-sse/services/autoCombo/__tests__/**/*.test.ts",
       "open-sse/services/combo/__tests__/**/*.test.ts",
-<<<<<<< HEAD
-      "open-sse/services/__tests__/antigravity-quota-family.test.ts",
-=======
->>>>>>> origin/main
       "tests/unit/autoCombo/**/*.test.ts",
       "tests/unit/encryption.spec.ts",
     ],

@@ -2296,13 +2296,8 @@
       }
     },
     "url": {
-<<<<<<< HEAD
-      "nonStream": "https://www.kimi.com/apiv2/kimi.gateway.chat.v1.ChatService/Chat",
-      "stream": "https://www.kimi.com/apiv2/kimi.gateway.chat.v1.ChatService/Chat"
-=======
       "nonStream": "https://www.kimi.com",
       "stream": "https://www.kimi.com"
->>>>>>> origin/main
     }
   },
   "kiro": {

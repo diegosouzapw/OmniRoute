@@ -30,9 +30,6 @@ export function logRoutingDecision(decision: RoutingDecision): void {
     console.log("[A2A ROUTING]", JSON.stringify(decision, null, 2));
   }
 
-<<<<<<< HEAD
-  return decision;
-=======
   // Hydrate OTel trace context when the caller didn't supply it
   const hydratedDecision: RoutingDecision = { ...decision };
   if (!hydratedDecision.traceId || !hydratedDecision.spanId) {
@@ -49,5 +46,4 @@ export function logRoutingDecision(decision: RoutingDecision): void {
   } catch {
     // Intentional: DB errors must not surface to the caller
   }
->>>>>>> origin/main
 }

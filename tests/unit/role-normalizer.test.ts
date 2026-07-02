@@ -84,8 +84,6 @@ test("normalizeSystemRole merges system and developer content into the first use
   ]);
 });
 
-<<<<<<< HEAD
-=======
 test("normalizeSystemRole preserves system role for glm-5.1 and glm-5.2", () => {
   const messages = [
     { role: "system", content: "follow policy" },
@@ -96,7 +94,6 @@ test("normalizeSystemRole preserves system role for glm-5.1 and glm-5.2", () => 
   assert.deepEqual(normalizeSystemRole(messages, "openai", "glm-5.2"), messages);
 });
 
->>>>>>> origin/main
 test("normalizeSystemRole preserves the system role for GLM > 5.0 (glm-5.1/5.2 support it, #5610)", () => {
   const messages = [
     { role: "system", content: "be helpful" },
@@ -150,8 +147,6 @@ test("normalizeSystemRole inserts a user message when no user exists and drops e
   ]);
 });
 
-<<<<<<< HEAD
-=======
 test("normalizeSystemRole converts system role for older glm-5.0 models", () => {
   const messages = [
     { role: "system", content: "[Context compressed: earlier messages removed]" },
@@ -168,7 +163,6 @@ test("normalizeSystemRole converts system role for older glm-5.0 models", () => 
   ]);
 });
 
->>>>>>> origin/main
 test("normalizeSystemRole treats ZenMux z-ai/glm models as GLM even with vendor prefix", () => {
   const messages = [
     { role: "system", content: "[Context compressed: earlier messages removed]" },

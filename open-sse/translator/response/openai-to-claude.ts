@@ -225,10 +225,6 @@ export function openaiToClaudeResponse(chunk, state) {
     }
   }
 
-<<<<<<< HEAD
-  // Finish — guard against duplicate finish_reason chunks (common with OpenAI-compatible models)
-  if (choice.finish_reason && !state.finishReason) {
-=======
   // Finish — guard against duplicate finish_reason chunks (common with OpenAI-compatible models).
   // Use a dedicated `claudeFinishEmitted` flag rather than `state.finishReason`: in the
   // Responses→Claude hub path the shared `state` object is also written by the
@@ -238,7 +234,6 @@ export function openaiToClaudeResponse(chunk, state) {
   // for Responses→Claude streams (#5828 regression).
   if (choice.finish_reason && !state.claudeFinishEmitted) {
     state.claudeFinishEmitted = true;
->>>>>>> origin/main
     stopThinkingBlock(state, results);
     stopTextBlock(state, results);
 

@@ -11,10 +11,7 @@
     "./*": "./*"
   },
   "dependencies": {
-<<<<<<< HEAD
-=======
     "@opentelemetry/api": "^1.9.0",
->>>>>>> origin/main
     "@toon-format/toon": "^2.3.0",
     "safe-regex": "^2.1.1"
   }

@@ -82,10 +82,7 @@ const PROVIDER_SCOPED_MODELS_WITHOUT_SYSTEM_ROLE: Record<string, RegExp[]> = {
   zenmux: [/(?:^|\/)glm(?:-|$)/i],
 };
 
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/main
 interface MessageContentPart {
   type?: string;
   text?: string;
