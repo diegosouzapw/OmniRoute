@@ -1,6 +1,7 @@
 import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
+import { getUpstreamErrorIdentifier } from "./chatCore/getUpstreamErrorIdentifier.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
 import { buildExecutorClientHeaders } from "./chatCore/buildExecutorClientHeaders.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
@@ -1136,12 +1137,6 @@ function createStreamingErrorResult(
   };
 }
 
-function getUpstreamErrorIdentifier(error: unknown): string | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const value = (error as { code?: unknown }).code;
-  return typeof value === "string" && value.length > 0 ? value : undefined;
-}
-
 function wrapReadableStreamWithFinalize<T>(
   readable: ReadableStream<T>,
   finalize: () => void
@@ -1395,7 +1390,6 @@ function attachLogMeta(
  * @param {string} options.connectionId - Connection ID for settings lookup
  */
 
-<<<<<<< HEAD
 /**
  * Module-level cache for upstream proxy config (shared across all requests).
  * 10s TTL prevents per-request DB lookups while staying fresh enough for setting changes.
