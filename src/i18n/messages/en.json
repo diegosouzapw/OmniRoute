@@ -1856,7 +1856,8 @@
       "webSearch": "Web Search",
       "webFetch": "Web Fetch",
       "video": "Video",
-      "music": "Music"
+      "music": "Music",
+      "ocr": "OCR"
     },
     "noProviders": "No providers configured for this kind yet.",
     "addConnection": "Add Connection",

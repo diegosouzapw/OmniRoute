@@ -16,6 +16,13 @@ export const MODERATION_PROVIDERS = {
       { id: "text-moderation-latest", name: "Text Moderation Latest" },
     ],
   },
+  mistral: {
+    id: "mistral",
+    baseUrl: "https://api.mistral.ai/v1/moderations",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "mistral-moderation-latest", name: "Mistral Moderation" }],
+  },
 };
 
 /**

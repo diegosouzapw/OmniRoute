@@ -87,6 +87,31 @@ export const v1ModerationSchema = z
   })
   .catchall(z.unknown());
 
+// Mistral OCR: `document` is a { type, document_url | image_url } object.
+// Keep the schema permissive-but-typed — validate model + that a non-empty
+// `document` object (or a document_url/image_url string shorthand) is present.
+export const v1OcrDocumentSchema = z.union([
+  z
+    .object({
+      type: z.string().trim().min(1).optional(),
+      document_url: z.string().trim().min(1).optional(),
+      image_url: z.union([z.string().trim().min(1), z.record(z.string(), z.unknown())]).optional(),
+    })
+    .catchall(z.unknown())
+    .refine(
+      (value) => value.document_url !== undefined || value.image_url !== undefined,
+      "document must include document_url or image_url"
+    ),
+  nonEmptyStringSchema,
+]);
+
+export const v1OcrSchema = z
+  .object({
+    model: modelIdSchema.optional(),
+    document: v1OcrDocumentSchema,
+  })
+  .catchall(z.unknown());
+
 export const v1RerankSchema = z
   .object({
     model: modelIdSchema,
