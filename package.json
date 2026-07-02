@@ -205,7 +205,9 @@
     "uninstall:full": "node scripts/build/uninstall.mjs --full",
     "prepare": "husky",
     "system-info": "node scripts/dev/system-info.mjs",
-    "build:cli-api": "node --import tsx/esm scripts/cli/generate-api-commands.mjs"
+    "build:cli-api": "node --import tsx/esm scripts/cli/generate-api-commands.mjs",
+    "release:contributors": "node scripts/release/gen-contributors.mjs",
+    "release:uncovered": "node scripts/release/list-uncovered-commits.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1073.0",
