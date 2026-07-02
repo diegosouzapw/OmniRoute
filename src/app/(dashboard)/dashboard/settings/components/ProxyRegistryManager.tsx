@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Card, Modal } from "@/shared/components";
+import { useProxyBatchOperations } from "./useProxyBatchOperations";
+import { ProxyStatusBadge } from "./ProxyStatusBadge";
+import { ProxyHealthCell } from "./ProxyHealthCell";
+import { ProxyBatchActions } from "./ProxyBatchActions";
+import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
 
 type ProxyItem = {
   id: string;
@@ -184,33 +189,27 @@ export default function ProxyRegistryManager() {
     failed: number;
   } | null>(null);
 
-  // Selection state for batch operations
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [batchDeleting, setBatchDeleting] = useState(false);
-  const [autoTesting, setAutoTesting] = useState(false);
+  const {
+    selectedIds,
+    setSelectedIds,
+    batchDeleting,
+    autoTesting,
+    toggleSelectAll: hookToggleSelectAll,
+    toggleSelect,
+    handleBatchDelete: hookHandleBatchDelete,
+    handleAutoTestAll: hookHandleAutoTestAll,
+  } = useProxyBatchOperations(load);
 
   const allSelected = items.length > 0 && items.every((item) => selectedIds.has(item.id));
-  const someSelected = items.some((item) => selectedIds.has(item.id)) && !allSelected;
 
-  const toggleSelectAll = useCallback(() => {
-    if (allSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(items.map((item) => item.id)));
-    }
-  }, [allSelected, items]);
 
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  }, []);
+  const handleBatchDelete = useCallback(() => {
+    hookHandleBatchDelete(setError);
+  }, [hookHandleBatchDelete, setError]);
+
+  const handleAutoTestAll = useCallback(() => {
+    hookHandleAutoTestAll(setError, setTestById);
+  }, [hookHandleAutoTestAll, setError, setTestById]);
 
 
   const editingId = useMemo(() => form.id || "", [form.id]);
@@ -705,32 +704,13 @@ export default function ProxyRegistryManager() {
             >
               {t("bulkAssign")}
             </Button>
-            {selectedIds.size > 0 && (
-              <>
-                <span className="text-xs text-text-muted">{t("batchSelectedCount", { count: selectedIds.size })}</span>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  icon="delete"
-                  onClick={handleBatchDelete}
-                  loading={batchDeleting}
-                  className="!text-red-400 !border-red-500/30"
-                  data-testid="proxy-registry-batch-delete"
-                >
-                  {t("batchDeleteSelected", { count: selectedIds.size })}
-                </Button>
-              </>
-            )}
-            <Button
-              size="sm"
-              variant="secondary"
-              icon="network_check"
-              onClick={handleAutoTestAll}
-              loading={autoTesting}
-              data-testid="proxy-registry-test-all"
-            >
-              {t("testAll")}
-            </Button>
+            <ProxyBatchActions
+              selectedCount={selectedIds.size}
+              batchDeleting={batchDeleting}
+              autoTesting={autoTesting}
+              onBatchDelete={handleBatchDelete}
+              onAutoTestAll={handleAutoTestAll}
+            />
             <Button
               size="sm"
               icon="add"
@@ -763,14 +743,13 @@ export default function ProxyRegistryManager() {
                       className="accent-blue-500 w-4 h-4 cursor-pointer"
                       checked={allSelected}
                       ref={(el) => {
-                        if (el) el.indeterminate = someSelected;
+                        if (el) el.indeterminate = !allSelected && items.some((item) => selectedIds.has(item.id));
                       }}
-                      onChange={toggleSelectAll}
+                      onChange={() => hookToggleSelectAll(allSelected, items)}
                       aria-label="Select all proxies"
                     />
                   </th>
                   <th className="py-2 pr-3">{t("tableName")}</th>
-                  <th className="py-2 pr-3">{t("tableEndpoint")}</th>
                   <th className="py-2 pr-3">{t("tableStatus")}</th>
                   <th className="py-2 pr-3">{t("tableHealth")}</th>
                   <th className="py-2 pr-3">{t("tableUsage")}</th>
@@ -783,15 +762,11 @@ export default function ProxyRegistryManager() {
                   const health = healthById[item.id];
                   return (
                     <tr key={item.id} className="border-b border-border/60">
-                      <td className="py-2 pr-2 w-8">
-                        <input
-                          type="checkbox"
-                          className="accent-blue-500 w-4 h-4 cursor-pointer"
-                          checked={selectedIds.has(item.id)}
-                          onChange={() => toggleSelect(item.id)}
-                          aria-label={`Select ${item.name}`}
-                        />
-                      </td>
+                      <ProxyCheckboxCell
+                        checked={selectedIds.has(item.id)}
+                        onChange={() => toggleSelect(item.id)}
+                        label={`Select ${item.name}`}
+                      />
                       <td className="py-2 pr-3">
                         <div className="font-medium text-text-main">{item.name}</div>
                         {item.region && (
@@ -802,48 +777,13 @@ export default function ProxyRegistryManager() {
                         {item.type}://{item.host}:{item.port}
                       </td>
                       <td className="py-2 pr-3">
-                        <span className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded border ${
-                          item.status === "inactive"
-                            ? "border-red-500/30 bg-red-500/10 text-red-400"
-                            : "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                            item.status === "inactive" ? "bg-red-400" : "bg-emerald-400"
-                          }`} />
-                          {item.status === "inactive" ? t("statusInactive") : t("statusActive")}
-                        </span>
+                        <ProxyStatusBadge status={item.status} />
                       </td>
                       <td className="py-2 pr-3 text-xs text-text-muted">
-                        <div className="flex flex-col gap-0.5">
-                          {testById[item.id] ? (
-                            testById[item.id]!.success ? (
-                              <>
-                                <span className="text-emerald-400">{t("testPassed")}</span>
-                                {testById[item.id]!.latencyMs && (
-                                  <span className={
-                                    testById[item.id]!.latencyMs! < 1000 ? "text-emerald-400" :
-                                    testById[item.id]!.latencyMs! < 3000 ? "text-amber-400" : "text-red-400"
-                                  }>
-                                    {testById[item.id]!.latencyMs}ms
-                                  </span>
-                                )}
-                              </>
-                            ) : (
-                              <span className="text-red-400">
-                                ✗ {testById[item.id]!.error || t("failed")}
-                              </span>
-                            )
-                          ) : health ? (
-                            <>
-                              <span>{t("successRate", { rate: health.successRate ?? 0 })}</span>
-                              <span>
-                                {t("avgLatency", { latency: health.avgLatencyMs ?? "-" })}
-                              </span>
-                            </>
-                          ) : (
-                            <span>—</span>
-                          )}
-                        </div>
+                        <ProxyHealthCell
+                          testResult={testById[item.id] ?? undefined}
+                          health={health ?? undefined}
+                        />
                       </td>
                       <td className="py-2 pr-3 text-xs text-text-muted">
                         {usageById[item.id] != null
