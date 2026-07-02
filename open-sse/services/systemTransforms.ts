@@ -449,7 +449,23 @@ function resolveProviderConfig(
 // Runtime singleton.
 // ────────────────────────────────────────────────────────────────────────────
 
-let _systemTransformsConfig: SystemTransformsConfig = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
+// Backed by globalThis so the config is shared across the SEPARATE webpack module
+// graphs Next.js builds for `instrumentation.ts` (boot-time hydration via
+// applyRuntimeSettings → setSystemTransformsConfig) and the app-route / open-sse
+// executors (per-request reads in base.ts / claudeCodeCompatible.ts). A module-local
+// `let` is duplicated per graph, so a Settings-UI override applied at boot never
+// reaches the request path (the #5312-class module-graph bug; the protective
+// compiled default still runs, but operator customizations were silently dropped).
+// Mirrors systemPrompt.ts (#2470) and thinkingBudget.ts (#5312).
+const GLOBAL_KEY = "__omniroute_systemTransforms_config__";
+const _store = globalThis as unknown as Record<string, SystemTransformsConfig | undefined>;
+
+function getStore(): SystemTransformsConfig {
+  if (!_store[GLOBAL_KEY]) {
+    _store[GLOBAL_KEY] = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
+  }
+  return _store[GLOBAL_KEY]!;
+}
 
 /**
  * Replace the active system-transforms config. Called from
@@ -460,14 +476,14 @@ let _systemTransformsConfig: SystemTransformsConfig = DEFAULT_SYSTEM_TRANSFORMS_
  */
 export function setSystemTransformsConfig(input: unknown): void {
   if (!input || typeof input !== "object") {
-    _systemTransformsConfig = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
+    _store[GLOBAL_KEY] = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
     return;
   }
   const candidate = input as Record<string, unknown>;
 
   // Legacy shape: { enabled, pipeline } → migrate to per-provider map.
   if ("pipeline" in candidate && Array.isArray(candidate.pipeline)) {
-    _systemTransformsConfig = {
+    _store[GLOBAL_KEY] = {
       providers: {
         ...DEFAULT_SYSTEM_TRANSFORMS_CONFIG.providers,
         [PROVIDER_CC_BRIDGE]: {
@@ -500,17 +516,17 @@ export function setSystemTransformsConfig(input: unknown): void {
         next.providers[providerId] = providerDefault;
       }
     }
-    _systemTransformsConfig = next;
+    _store[GLOBAL_KEY] = next;
     return;
   }
 
-  _systemTransformsConfig = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
+  _store[GLOBAL_KEY] = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
 }
 
 export function getSystemTransformsConfig(): SystemTransformsConfig {
-  return _systemTransformsConfig;
+  return getStore();
 }
 
 export function resetSystemTransformsConfig(): void {
-  _systemTransformsConfig = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
+  _store[GLOBAL_KEY] = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
 }

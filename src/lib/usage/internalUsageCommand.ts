@@ -3,11 +3,13 @@ import {
   buildApiKeyUsageLimitText,
   type ApiKeyUsageLimitStatus,
 } from "@/lib/usage/apiKeyUsageLimits";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
 export const INTERNAL_USAGE_COMMAND = "@@om-usage";
 export const USAGE_COMMAND_DISABLED_MESSAGE = "Usage command is disabled for this API key.";
 const USAGE_COMMAND_AUTH_REQUIRED_MESSAGE = "Usage command requires an authenticated API key.";
 const LOCAL_USAGE_MODEL = "omniroute/local-usage";
+const TEXT_PLAIN_HEADERS = { "Content-Type": "text/plain; charset=utf-8" } as const;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -32,6 +34,11 @@ interface UsageSnapshot {
   provider: string;
   plan: unknown;
   quotas: JsonRecord;
+}
+
+interface UsageCommandSelection {
+  preferredProvider?: string | null;
+  preferredConnectionId?: string | null;
 }
 
 export interface InternalUsageCommandDeps {
@@ -350,7 +357,7 @@ function snapshotScore(snapshot: UsageSnapshot): number {
   return score;
 }
 
-function selectUsageSnapshot(snapshots: UsageSnapshot[]): UsageSnapshot | null {
+function selectBestUsageSnapshot(snapshots: UsageSnapshot[]): UsageSnapshot | null {
   let selected: UsageSnapshot | null = null;
   let bestScore = -1;
   for (const snapshot of snapshots) {
@@ -363,6 +370,35 @@ function selectUsageSnapshot(snapshots: UsageSnapshot[]): UsageSnapshot | null {
   return selected;
 }
 
+function normalizeProviderId(provider: string | null | undefined): string | null {
+  const normalized = provider?.trim().toLowerCase().replace(/_/g, "-");
+  if (!normalized) return null;
+  if (normalized === "cc" || normalized === "claude-code" || normalized === "claudecode") {
+    return "claude";
+  }
+  return normalized;
+}
+
+function selectUsageSnapshot(
+  snapshots: UsageSnapshot[],
+  selection: UsageCommandSelection = {}
+): UsageSnapshot | null {
+  const preferredConnectionId = selection.preferredConnectionId?.trim();
+  if (preferredConnectionId) {
+    const snapshot = snapshots.find((entry) => entry.connectionId === preferredConnectionId);
+    if (snapshot) return snapshot;
+  }
+
+  const preferredProvider = normalizeProviderId(selection.preferredProvider);
+  if (preferredProvider) {
+    return selectBestUsageSnapshot(
+      snapshots.filter((entry) => normalizeProviderId(entry.provider) === preferredProvider)
+    );
+  }
+
+  return selectBestUsageSnapshot(snapshots);
+}
+
 function appendQuotaBlock(lines: string[], label: string, quota: JsonRecord | null, now: number) {
   lines.push(label);
   lines.push(formatPercent(getQuotaUsedPercent(quota)));
@@ -371,7 +407,8 @@ function appendQuotaBlock(lines: string[], label: string, quota: JsonRecord | nu
 
 export async function buildUsageCommandText(
   metadata: UsageCommandApiKeyMetadata,
-  deps: InternalUsageCommandDeps = {}
+  deps: InternalUsageCommandDeps = {},
+  selection: UsageCommandSelection = {}
 ): Promise<string> {
   const resolvedDeps = await normalizeDeps(deps);
   if (metadata.usageLimitEnabled === true) {
@@ -381,7 +418,10 @@ export async function buildUsageCommandText(
     );
   }
 
-  const snapshot = selectUsageSnapshot(await collectUsageSnapshots(metadata, resolvedDeps));
+  const snapshot = selectUsageSnapshot(
+    await collectUsageSnapshots(metadata, resolvedDeps),
+    selection
+  );
 
   if (!snapshot) {
     return ["Plan", "Unavailable", "", "Usage", "No cached usage data available."].join("\n");
@@ -401,6 +441,28 @@ function getResponseModel(body: unknown): string {
   return isRecord(body) && typeof body.model === "string" && body.model.trim()
     ? body.model
     : LOCAL_USAGE_MODEL;
+}
+
+function inferHttpUsageCommandSelection(request: Request): UsageCommandSelection {
+  try {
+    const url = new URL(request.url, "http://localhost");
+    return {
+      preferredConnectionId:
+        url.searchParams.get("connectionId")?.trim() ||
+        readHeader(request, "x-omniroute-connection")?.trim() ||
+        null,
+      preferredProvider: url.searchParams.get("provider")?.trim() || null,
+    };
+  } catch {
+    return {
+      preferredConnectionId: readHeader(request, "x-omniroute-connection")?.trim() || null,
+      preferredProvider: null,
+    };
+  }
+}
+
+function createPlainUsageCommandResponse(text: string, status = 200): Response {
+  return new Response(text, { status, headers: TEXT_PLAIN_HEADERS });
 }
 
 function isAnthropicRequest(request: Request): boolean {
@@ -567,4 +629,33 @@ export async function handleInternalUsageCommand(
     body,
     await buildUsageCommandText(metadata, resolvedDeps)
   );
+}
+
+export async function handleInternalUsageCommandHttpRequest(
+  request: Request,
+  deps: InternalUsageCommandDeps = {}
+): Promise<Response> {
+  try {
+    const resolvedDeps = await normalizeDeps(deps);
+    const apiKey = extractUsageCommandApiKey(request);
+    if (!apiKey || !(await resolvedDeps.isValidApiKey(apiKey))) {
+      return createPlainUsageCommandResponse(USAGE_COMMAND_AUTH_REQUIRED_MESSAGE, 401);
+    }
+
+    const metadata = await resolvedDeps.getApiKeyMetadata(apiKey);
+    if (!metadata?.id) {
+      return createPlainUsageCommandResponse(USAGE_COMMAND_AUTH_REQUIRED_MESSAGE, 401);
+    }
+
+    if (metadata.allowUsageCommand !== true) {
+      return createPlainUsageCommandResponse(USAGE_COMMAND_DISABLED_MESSAGE, 403);
+    }
+
+    return createPlainUsageCommandResponse(
+      await buildUsageCommandText(metadata, resolvedDeps, inferHttpUsageCommandSelection(request))
+    );
+  } catch (err) {
+    const body = buildErrorBody(500, err instanceof Error ? err.message : String(err));
+    return Response.json(body, { status: 500 });
+  }
 }

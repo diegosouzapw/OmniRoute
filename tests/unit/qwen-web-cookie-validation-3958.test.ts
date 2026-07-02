@@ -1,6 +1,16 @@
-// Regression for #3931 / #3958: Qwen's `GET /api/v2/user` returns HTTP 200 even
-// for invalid tokens, so the validator must inspect the response body for a real
-// `user` object — checking `resp.ok` alone produced a false-positive "Valid".
+// Regression for #3931 / #3958: Qwen's session probe endpoint must return a real
+// user object for the validator to accept it.
+//
+// History of the probe URL:
+//   - Originally `GET /api/v2/user` returned `{ user: { ... } }` (nested).
+//   - As of mid-2026, `/api/v2/user` is retired and answers `not found` regardless
+//     of credentials. The probe moved to `GET /api/v1/auths/` (trailing slash
+//     required), which returns the user object at the top level:
+//     `{ id, email, name, role, ... }`.
+//
+// These tests mock `/api/v1/auths/` and assert the validator accepts a real user
+// object (top-level `id`), and rejects bodies that lack one (was the original
+// #3958 false-positive: HTTP 200 with no user).
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -20,12 +30,18 @@ function jsonResponse(body: string) {
   });
 }
 
-test("qwen-web validation is VALID when the 200 body carries a real user object", async () => {
-  globalThis.fetch = (async () =>
-    jsonResponse(JSON.stringify({ user: { id: "u-1", name: "tester" } }))) as typeof fetch;
+test("qwen-web validation is VALID when /api/v1/auths/ returns a top-level user object", async () => {
+  let probedUrl = "";
+  globalThis.fetch = (async (url: any) => {
+    probedUrl = String(url);
+    return jsonResponse(
+      JSON.stringify({ id: "u-1234567", email: "tester@example.com", name: "tester", role: "user" })
+    );
+  }) as typeof fetch;
 
   const result = await validateProviderApiKey({ provider: "qwen-web", apiKey: "qwen-token-abc123" });
   assert.strictEqual(result.valid, true);
+  assert.equal(probedUrl, "https://chat.qwen.ai/api/v1/auths/");
 });
 
 test("qwen-web validation rejects a 200 response with no user object (was false-positive)", async () => {
@@ -36,12 +52,16 @@ test("qwen-web validation rejects a 200 response with no user object (was false-
   assert.match(result.error, /invalid or expired/i);
 });
 
-test("qwen-web validation accepts a nested data.user object", async () => {
+test("qwen-web validation still accepts legacy nested shapes for robustness", async () => {
   globalThis.fetch = (async () =>
-    jsonResponse(JSON.stringify({ data: { user: { id: "u-2" } } }))) as typeof fetch;
-
+    jsonResponse(JSON.stringify({ user: { id: "u-2" } }))) as typeof fetch;
   const result = await validateProviderApiKey({ provider: "qwen-web", apiKey: "qwen-token-abc123" });
   assert.strictEqual(result.valid, true);
+
+  globalThis.fetch = (async () =>
+    jsonResponse(JSON.stringify({ data: { user: { id: "u-3" } } }))) as typeof fetch;
+  const result2 = await validateProviderApiKey({ provider: "qwen-web", apiKey: "qwen-token-abc123" });
+  assert.strictEqual(result2.valid, true);
 });
 
 test("qwen-web validation rejects a 200 body that is not valid JSON", async () => {

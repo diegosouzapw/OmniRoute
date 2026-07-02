@@ -8,9 +8,84 @@ import {
   buildGrokCookieHeader,
   buildQwenCookieHeader,
   extractCookieValue,
+  extractKimiJwt,
   extractQwenToken,
   normalizeSessionCookieHeader,
 } from "@/lib/providers/webCookieAuth";
+
+// kimi-web uses the international `www.kimi.com` Connect-RPC API. The legacy
+// `kimi.moonshot.cn` domain now 307-redirects every non-CN visitor, and even
+// if you bypass the redirect the old `/api/chat` REST endpoint is gone. The
+// SPA exposes a profile probe at `GET /api/user` that returns the user object
+// at the top level when the `Authorization: Bearer <JWT>` header is valid.
+//
+// Auth source: the `kimi-auth` cookie set after login. The user pastes the
+// full Cookie header; we extract `kimi-auth` and send it as both the Bearer
+// token and a `Cookie: kimi-auth=<jwt>` replay (the latter is what the SPA
+// does, though the upstream only consults the Authorization header in
+// practice — verified by stripping one of the two at a time).
+export async function validateKimiWebProvider({ apiKey }: any) {
+  const rawCred = String(apiKey ?? "").trim();
+  if (!rawCred) {
+    return {
+      valid: false,
+      error:
+        "Missing Kimi session — paste the full Cookie header from www.kimi.com (must contain kimi-auth=<JWT>)",
+    };
+  }
+
+  const jwt = extractKimiJwt(rawCred);
+  if (!jwt) {
+    return {
+      valid: false,
+      error:
+        "Could not find a kimi-auth JWT in the pasted value. Re-login at https://www.kimi.com and copy the full Cookie header.",
+    };
+  }
+
+  try {
+    const resp = await fetch("https://www.kimi.com/api/user", {
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        Authorization: `Bearer ${jwt}`,
+        Cookie: `kimi-auth=${jwt}`,
+        Origin: "https://www.kimi.com",
+        Referer: "https://www.kimi.com/",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      },
+    });
+
+    if (resp.status === 401 || resp.status === 403) {
+      return {
+        valid: false,
+        error:
+          "Kimi session is invalid or expired — re-login at https://www.kimi.com and paste a fresh Cookie header",
+      };
+    }
+    if (!resp.ok) {
+      return { valid: false, error: `Kimi returned HTTP ${resp.status}` };
+    }
+
+    // Profile response: `{ id, name, email, region, ... }` at the top level.
+    try {
+      const data = await resp.json();
+      if (!data?.id) {
+        return {
+          valid: false,
+          error:
+            "Kimi session token is invalid or expired — re-login at https://www.kimi.com and paste a fresh Cookie header",
+        };
+      }
+    } catch {
+      return { valid: false, error: "Kimi returned invalid JSON response" };
+    }
+
+    return { valid: true, error: null };
+  } catch (error) {
+    return toValidationErrorResult(error);
+  }
+}
 
 export async function validateDeepSeekWebProvider({ apiKey }: any) {
   if (!apiKey) {
@@ -65,13 +140,22 @@ export async function validateDeepSeekWebProvider({ apiKey }: any) {
 }
 
 // qwen-web has no `modelsUrl` in its registry entry, so the generic OpenAI-compatible
-// validator derived a probe URL of `https://chat.qwen.ai/api/v2/models` (via
+// validator used to derive a probe URL of `https://chat.qwen.ai/api/v2/models` (via
 // addModelsSuffix) — a non-existent path that answers with a 307 redirect, which the
 // outbound guard blocked and the route then mislabeled as an SSRF block (#3288/#3758).
-// This specialty validator probes the real session-validity endpoint instead
-// (`GET /api/v2/user`, the same one Chat2API uses), mirroring the executor's anti-bot
-// headers + cookie-jar replay. It uses plain fetch (like the other web-cookie
-// validators) so it never hits the addModelsSuffix/redirect path.
+//
+// History of the session probe:
+//   - Originally `GET /api/v2/user` (Chat2API-derived). Upstream retired the path
+//     in mid-2026: it now returns `{"success":false,"data":{"code":"not found"}}`
+//     regardless of credentials, so the body-shape check (#3958) always fails.
+//   - Current probe: `GET /api/v1/auths/` (note the trailing slash — without it
+//     the path returns 401). This is the endpoint Qwen's own SPA hits right after
+//     login to fetch the user profile. It returns the user object directly at the
+//     top level: `{ id, email, name, role, ... }`.
+//
+// The validator mirrors the executor's anti-bot headers + cookie-jar replay and uses
+// plain fetch (like the other web-cookie validators) so it never hits the
+// addModelsSuffix/redirect path.
 export async function validateQwenWebProvider({ apiKey }: any) {
   const rawCred = String(apiKey ?? "").trim();
   if (!rawCred) {
@@ -100,11 +184,19 @@ export async function validateQwenWebProvider({ apiKey }: any) {
       Referer: "https://chat.qwen.ai/",
       source: "web",
       "bx-v": "2.5.36",
+      // The Qwen SPA's `version` header is required by the v2 chat completion
+      // endpoint; the validator sends it too so the probe matches a real
+      // browser request as closely as possible. (The session probe endpoint
+      // doesn't enforce it, but consistency with the executor avoids surprises
+      // if Qwen ever tightens its WAF rules.)
+      version: "0.2.66",
     };
     if (token) headers["Authorization"] = `Bearer ${token}`;
     if (cookieHeader) headers["Cookie"] = cookieHeader;
 
-    const resp = await fetch("https://chat.qwen.ai/api/v2/user", { headers });
+    // The trailing slash is significant: `/api/v1/auths` (no slash) answers 401,
+    // `/api/v1/auths/` returns the user profile.
+    const resp = await fetch("https://chat.qwen.ai/api/v1/auths/", { headers });
     const contentType = resp.headers.get("content-type") || "";
 
     if (resp.status === 401 || resp.status === 403) {
@@ -127,13 +219,21 @@ export async function validateQwenWebProvider({ apiKey }: any) {
       return { valid: false, error: `Qwen returned HTTP ${resp.status}` };
     }
 
-    // Parse JSON response and verify we have a real user object
-    // Qwen returns HTTP 200 even for invalid tokens, so we must check the body
+    // Parse JSON response and verify we have a real user object.
+    // /api/v1/auths/ returns the user at the top level: {id, email, name, role, ...}.
+    // We require `id` to be a non-empty string AND look like a real identifier
+    // (uuid-ish or otherwise ≥8 chars) to avoid false-positives from upstream
+    // error envelopes that happen to ship a top-level `id: "not_found"` style
+    // field. Keep the legacy nested checks (data.user, user) for robustness in
+    // case the upstream shape changes again.
     try {
       const data = await resp.json();
-      const user = data?.user || data?.data?.user;
-
-      if (!user) {
+      const hasTopLevelUser =
+        typeof data?.id === "string" && data.id.length >= 8 && typeof data?.email === "string";
+      const hasNestedUser =
+        (typeof data?.user?.id === "string" && data.user.id.length > 0) ||
+        (typeof data?.data?.user?.id === "string" && data.data.user.id.length > 0);
+      if (!hasTopLevelUser && !hasNestedUser) {
         return {
           valid: false,
           error:

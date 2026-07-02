@@ -149,3 +149,96 @@ test("truncateForLog summarizes oversized payloads instead of cloning", () => {
   // the original (huge) is NOT returned — it is a fresh summary object
   assert.notEqual(summary, huge);
 });
+
+test("truncateForLog keeps a bounded `tools` field alive when the request is summarized", () => {
+  // A request whose message history alone blows well past the 8KB summary
+  // threshold, but which also carries `tools` — a field that used to be
+  // silently dropped once the payload got summarized.
+  const tools = [
+    {
+      type: "function",
+      function: {
+        name: "get_weather",
+        description: "Get the current weather for a location",
+        parameters: {
+          type: "object",
+          properties: { location: { type: "string" } },
+          required: ["location"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "search_web",
+        description: "Search the web for a query",
+        parameters: {
+          type: "object",
+          properties: { query: { type: "string" } },
+          required: ["query"],
+        },
+      },
+    },
+  ];
+  const huge = {
+    model: "gpt-4o",
+    provider: "openai",
+    stream: true,
+    messages: Array.from({ length: 50000 }, () => ({ role: "user", content: "x".repeat(64) })),
+    tools,
+  };
+
+  const summary = truncateForLog(huge) as Record<string, unknown>;
+
+  // it is still truncated/summarized — the fix must not change this
+  assert.equal(summary._truncated, true);
+  assert.equal(summary.messageCount, 50000);
+
+  // ...but `tools` now survives, bounded via cloneBoundedChatLogPayload
+  assert.ok(summary.tools, "expected the summary to retain a `tools` field");
+  const clonedTools = summary.tools as Array<Record<string, unknown>>;
+  assert.equal(clonedTools.length, tools.length);
+  assert.equal(
+    (clonedTools[0].function as Record<string, unknown>).name,
+    "get_weather"
+  );
+  assert.equal(
+    (clonedTools[1].function as Record<string, unknown>).name,
+    "search_web"
+  );
+});
+
+test("truncateForLog bounds an oversized `tools` array to the configured tail-item cap", () => {
+  const maxTailItems = getChatLogArrayTailItems();
+  const manyTools = Array.from({ length: maxTailItems + 50 }, (_, i) => ({
+    type: "function",
+    function: { name: `tool_${i}`, description: "d", parameters: {} },
+  }));
+  const huge = {
+    model: "gpt-4o",
+    messages: Array.from({ length: 50000 }, () => ({ role: "user", content: "x".repeat(64) })),
+    tools: manyTools,
+  };
+
+  const summary = truncateForLog(huge) as Record<string, unknown>;
+  assert.equal(summary._truncated, true);
+
+  const clonedTools = summary.tools as unknown[];
+  // marker entry + retained tail items — never the full (unbounded) list
+  assert.equal(clonedTools.length, maxTailItems + 1);
+  const marker = clonedTools[0] as Record<string, unknown>;
+  assert.equal(marker._omniroute_truncated_array, true);
+  assert.equal(marker.originalLength, manyTools.length);
+  assert.equal(marker.retainedTailItems, maxTailItems);
+});
+
+test("truncateForLog leaves small requests with `tools` unchanged (no regression)", () => {
+  const small = {
+    model: "gpt-4o",
+    messages: [{ role: "user", content: "hi" }],
+    tools: [{ type: "function", function: { name: "get_weather", parameters: {} } }],
+  };
+  const result = truncateForLog(small);
+  // untouched — same reference, not a summary or a clone
+  assert.equal(result, small);
+});

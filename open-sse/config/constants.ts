@@ -22,6 +22,12 @@ export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 // conservative for large prompts and slow first-byte reasoning providers.
 export const STREAM_READINESS_TIMEOUT_MS = upstreamTimeouts.streamReadinessTimeoutMs;
 
+// Upper bound for adaptive stream readiness extensions (large histories,
+// tool-heavy requests, high-reasoning Codex targets). Override with
+// STREAM_READINESS_MAX_TIMEOUT_MS when an operator needs longer first-event
+// windows for slow-thinking agent workloads.
+export const STREAM_READINESS_MAX_TIMEOUT_MS = upstreamTimeouts.streamReadinessMaxTimeoutMs;
+
 // Error code used when an upstream Antigravity request stalls before response
 // headers are returned. Keep it shared so executor, core normalization and
 // account fallback detection cannot drift.

@@ -256,6 +256,24 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
     const c = choice as Record<string, unknown>;
     const msg = c?.message as Record<string, unknown> | undefined;
     if (typeof msg?.content === "string" && (msg.content as string).length > 0) return true;
+    // #5559: some OpenAI-compatible upstreams (e.g. Cline via OAuth) return
+    // `message.content` as an array of Anthropic-style content blocks rather than
+    // a plain string. An array with at least one non-empty text block is real
+    // output — without this it was falsely flagged as empty_choices → 502 + cooldown.
+    if (
+      Array.isArray(msg?.content) &&
+      (msg.content as unknown[]).some((block) => {
+        const b = block as Record<string, unknown> | null;
+        return (
+          !!b &&
+          typeof b === "object" &&
+          b.type === "text" &&
+          typeof b.text === "string" &&
+          (b.text as string).length > 0
+        );
+      })
+    )
+      return true;
     if (Array.isArray(msg?.tool_calls) && (msg.tool_calls as unknown[]).length > 0) return true;
     if (typeof msg?.reasoning_content === "string" && (msg.reasoning_content as string).length > 0)
       return true;

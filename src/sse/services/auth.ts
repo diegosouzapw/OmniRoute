@@ -865,8 +865,7 @@ async function loadNoAuthProviderSpecificData(providerId: string): Promise<JsonR
 
 function providerCanUseSyntheticNoAuthFallback(providerId: string): boolean {
   const providerDef = getProviderById(providerId) as
-    | AnonymousFallbackProviderDefinition
-    | undefined;
+    AnonymousFallbackProviderDefinition | undefined;
   const noAuthProviderDef = (
     NOAUTH_PROVIDERS as Record<string, AnonymousFallbackProviderDefinition | undefined>
   )[providerId];
@@ -1656,8 +1655,7 @@ export async function getProviderCredentials(
     }
 
     const apiKeyHealth = connection.providerSpecificData?.apiKeyHealth as
-      | Record<string, KeyHealth>
-      | undefined;
+      Record<string, KeyHealth> | undefined;
     if (apiKeyHealth) {
       syncHealthFromDB(connection.id, apiKeyHealth);
     }
@@ -1918,14 +1916,20 @@ export async function markAccountUnavailable(
     // If this connection was ALREADY marked unavailable by a prior concurrent
     // request (within the mutex window), skip re-marking to avoid resetting
     // the cooldown timer or double-incrementing the backoff level.
-    if (conn?.rateLimitedUntil && new Date(conn.rateLimitedUntil).getTime() > Date.now()) {
+    // Uses cooldownUntilMs (not a raw `new Date()`) because `rate_limited_until`
+    // can hold a numeric-epoch string (e.g. the Antigravity full-quota path) —
+    // see #3954.
+    const existingCooldownMs = conn?.rateLimitedUntil
+      ? cooldownUntilMs(conn.rateLimitedUntil)
+      : NaN;
+    if (Number.isFinite(existingCooldownMs) && existingCooldownMs > Date.now()) {
       log.info(
         "AUTH",
-        `${connectionId.slice(0, 8)} already marked unavailable (until ${conn.rateLimitedUntil}), skipping duplicate mark`
+        `${connectionId.slice(0, 8)} already marked unavailable (until ${conn?.rateLimitedUntil}), skipping duplicate mark`
       );
       return {
         shouldFallback: true,
-        cooldownMs: new Date(conn.rateLimitedUntil).getTime() - Date.now(),
+        cooldownMs: existingCooldownMs - Date.now(),
       };
     }
 
@@ -1967,8 +1971,7 @@ export async function markAccountUnavailable(
     // Read passthroughModels from connection config (user-configured per-model quota)
     const connProviderSpecificData = (conn?.providerSpecificData as Record<string, unknown>) || {};
     const connectionPassthroughModels = connProviderSpecificData.passthroughModels as
-      | boolean
-      | undefined;
+      boolean | undefined;
     // #2997: per-connection opt-out of the TRANSIENT connection cooldown. When set,
     // a recoverable failure records lastError/backoff but does NOT cool the
     // connection, so getProviderCredentials keeps selecting it. Terminal states
@@ -2017,7 +2020,9 @@ export async function markAccountUnavailable(
         {
           ...modelLockoutOptions,
           exactCooldownMs:
-            fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
+            fallbackResult.usedUpstreamRetryHint === true
+              ? fallbackResult.cooldownMs
+              : (fallbackResult.quotaResetHintMs ?? null),
           maxCooldownMs: mlSettings.maxCooldownMs,
         }
       );
@@ -2107,8 +2112,7 @@ export async function markAccountUnavailable(
     // doesn't exist or isn't available for this account — it should NOT lock
     // out the entire connection.
     const connBaseUrl = (conn?.providerSpecificData as Record<string, unknown>)?.baseUrl as
-      | string
-      | undefined;
+      string | undefined;
 
     if (isLocalProvider(connBaseUrl) && status === 404 && provider && model) {
       const lockout = recordModelLockoutFailure(

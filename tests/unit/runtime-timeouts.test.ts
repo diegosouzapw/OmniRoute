@@ -14,6 +14,7 @@ test("upstream timeout config derives hidden fetch timeouts from FETCH_TIMEOUT_M
     streamIdleTimeoutMs: 600000,
     sseHeartbeatIntervalMs: 15000,
     streamReadinessTimeoutMs: 80000,
+    streamReadinessMaxTimeoutMs: 180000,
     fetchHeadersTimeoutMs: 600000,
     fetchBodyTimeoutMs: 600000,
     fetchConnectTimeoutMs: 30000,
@@ -32,6 +33,7 @@ test("REQUEST_TIMEOUT_MS becomes the common timeout baseline when specific overr
   assert.equal(upstreamConfig.fetchTimeoutMs, 600000);
   assert.equal(upstreamConfig.streamIdleTimeoutMs, 600000);
   assert.equal(upstreamConfig.streamReadinessTimeoutMs, 600000);
+  assert.equal(upstreamConfig.streamReadinessMaxTimeoutMs, 180000);
   assert.equal(upstreamConfig.fetchHeadersTimeoutMs, 600000);
   assert.equal(upstreamConfig.fetchBodyTimeoutMs, 600000);
   assert.equal(apiBridgeConfig.proxyTimeoutMs, 600000);
@@ -44,6 +46,7 @@ test("upstream timeout config honors explicit overrides and falls back on invali
     FETCH_TIMEOUT_MS: "600000",
     STREAM_IDLE_TIMEOUT_MS: "600000",
     STREAM_READINESS_TIMEOUT_MS: "90000",
+    STREAM_READINESS_MAX_TIMEOUT_MS: "240000",
     FETCH_HEADERS_TIMEOUT_MS: "610000",
     FETCH_BODY_TIMEOUT_MS: "0",
     FETCH_CONNECT_TIMEOUT_MS: "45000",
@@ -51,6 +54,7 @@ test("upstream timeout config honors explicit overrides and falls back on invali
   });
 
   assert.equal(config.streamReadinessTimeoutMs, 90000);
+  assert.equal(config.streamReadinessMaxTimeoutMs, 240000);
   assert.equal(config.fetchHeadersTimeoutMs, 610000);
   assert.equal(config.fetchBodyTimeoutMs, 0);
   assert.equal(config.fetchConnectTimeoutMs, 45000);
@@ -105,6 +109,21 @@ test("idle timeout default stays at 10min (600_000) for slow-thinking model safe
   // The heartbeat-shape change is preserved; only the idle-timeout default revert remains.
   assert.equal(runtimeTimeouts.DEFAULT_STREAM_IDLE_TIMEOUT_MS, 600_000);
   assert.equal(runtimeTimeouts.getUpstreamTimeoutConfig({}).streamIdleTimeoutMs, 600_000);
+});
+
+test("readiness adaptive cap defaults to 180s and is env-overridable", () => {
+  assert.equal(runtimeTimeouts.DEFAULT_STREAM_READINESS_MAX_TIMEOUT_MS, 180_000);
+  assert.equal(runtimeTimeouts.getUpstreamTimeoutConfig({}).streamReadinessMaxTimeoutMs, 180_000);
+  assert.equal(
+    runtimeTimeouts.getUpstreamTimeoutConfig({ STREAM_READINESS_MAX_TIMEOUT_MS: "300000" })
+      .streamReadinessMaxTimeoutMs,
+    300_000
+  );
+  assert.equal(
+    runtimeTimeouts.getUpstreamTimeoutConfig({ STREAM_READINESS_MAX_TIMEOUT_MS: "bad" })
+      .streamReadinessMaxTimeoutMs,
+    180_000
+  );
 });
 
 test("heartbeat interval default = 15s, env-overridable", () => {

@@ -9,19 +9,7 @@
  */
 
 import { z } from "zod";
-
-const SERVICE_KIND_VALUES = [
-  "llm",
-  "embedding",
-  "image",
-  "imageToText",
-  "tts",
-  "stt",
-  "webSearch",
-  "webFetch",
-  "video",
-  "music",
-] as const;
+import { SERVICE_KIND_VALUES } from "@/shared/constants/serviceKinds";
 
 export const ProviderSchema = z.object({
   id: z.string().min(1),

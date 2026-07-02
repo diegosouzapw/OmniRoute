@@ -6,7 +6,8 @@
  *
  * API flow:
  *   1. POST /chat/conversation  { model } -> { conversationId }
- *   2. POST /chat/conversation/{id}  (multipart: data = JSON{inputs}, optional files)
+ *   2. GET /chat/api/v2/conversations/{id} -> { rootMessageId }
+ *   3. POST /chat/conversation/{id}  (multipart: data = JSON{inputs, id}, optional files)
  *      -> JSONL stream of MessageUpdate objects
  *
  * Streaming format (JSONL, not SSE):
@@ -24,21 +25,27 @@ import {
   type ExecuteInput,
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 
 const HUGGINGFACE_BASE = "https://huggingface.co";
 const CONVERSATION_URL = `${HUGGINGFACE_BASE}/chat/conversation`;
+const API_CONVERSATIONS_URL = `${HUGGINGFACE_BASE}/chat/api/v2/conversations`;
 const DEFAULT_COOKIE_NAME = "hf-chat";
 
 const USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
-const DEFAULT_MODEL = "meta-llama/Llama-3.3-70B-Instruct";
+const DEFAULT_MODEL = "baidu/ERNIE-4.5-VL-424B-A47B-Base-PT";
 
 // -- Helpers -----------------------------------------------------------------
 
 function normalizeHuggingChatCookieHeader(apiKey: string): string {
   return normalizeSessionCookieHeader(apiKey, DEFAULT_COOKIE_NAME);
+}
+
+function isEncryptedCredentialBlob(value: unknown): boolean {
+  return typeof value === "string" && value.trim().startsWith("enc:v1:");
 }
 
 function extractTextFromContent(content: unknown): string {
@@ -107,6 +114,135 @@ function sseChunk(data: unknown): string {
 
 function estimateTokens(text: string): number {
   return Math.max(1, Math.ceil((text || "").length / 4));
+}
+
+function getLocalTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
+async function readUpstreamErrorDetails(response: Response): Promise<{
+  message: string | null;
+  details: unknown;
+}> {
+  const contentType = response.headers.get("content-type") || "";
+  const text = await response.text().catch(() => "");
+  if (!text) return { message: null, details: null };
+
+  if (contentType.includes("json")) {
+    try {
+      const parsed = JSON.parse(text) as Record<string, unknown>;
+      const message =
+        typeof parsed.message === "string"
+          ? parsed.message
+          : typeof parsed.error === "string"
+            ? parsed.error
+            : parsed.error &&
+                typeof parsed.error === "object" &&
+                typeof (parsed.error as Record<string, unknown>).message === "string"
+              ? String((parsed.error as Record<string, unknown>).message)
+              : null;
+      return { message: message ? sanitizeErrorMessage(message) : null, details: parsed };
+    } catch {
+      // Fall through to text handling below.
+    }
+  }
+
+  return { message: sanitizeErrorMessage(text), details: { body: text } };
+}
+
+function unwrapSuperjsonPayload(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const record = value as Record<string, unknown>;
+  return record.json && typeof record.json === "object" ? record.json : value;
+}
+
+function extractInitialParentMessageId(value: unknown): string | null {
+  const payload = unwrapSuperjsonPayload(value);
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+
+  const record = payload as Record<string, unknown>;
+  if (typeof record.rootMessageId === "string" && record.rootMessageId.trim()) {
+    return record.rootMessageId;
+  }
+
+  const messages = Array.isArray(record.messages) ? record.messages : [];
+  const lastMessage = messages.at(-1);
+  if (lastMessage && typeof lastMessage === "object") {
+    const id = (lastMessage as Record<string, unknown>).id;
+    if (typeof id === "string" && id.trim()) return id;
+  }
+
+  return null;
+}
+
+async function fetchInitialParentMessageId(
+  conversationId: string,
+  headers: Record<string, string>,
+  signal: AbortSignal
+): Promise<string | null> {
+  const res = await fetch(`${API_CONVERSATIONS_URL}/${conversationId}`, {
+    method: "GET",
+    headers,
+    signal,
+  });
+  if (!res.ok) return null;
+
+  const text = await res.text().catch(() => "");
+  if (!text) return null;
+
+  try {
+    return extractInitialParentMessageId(JSON.parse(text));
+  } catch {
+    return null;
+  }
+}
+
+function splitCombinedSetCookieHeader(header: string): string[] {
+  return header
+    .split(/,(?=\s*[^;,=\s]+=)/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function getSetCookieHeaders(headers: Headers): string[] {
+  const maybeGetSetCookie = (headers as Headers & { getSetCookie?: () => string[] }).getSetCookie;
+  if (typeof maybeGetSetCookie === "function") {
+    return maybeGetSetCookie.call(headers).filter(Boolean);
+  }
+
+  const combined = headers.get("set-cookie");
+  return combined ? splitCombinedSetCookieHeader(combined) : [];
+}
+
+function parseSetCookiePair(setCookie: string): { name: string; value: string } | null {
+  const pair = setCookie.split(";", 1)[0]?.trim() || "";
+  const eq = pair.indexOf("=");
+  if (eq <= 0) return null;
+  return { name: pair.slice(0, eq).trim(), value: pair.slice(eq + 1) };
+}
+
+function mergeCookieHeaderWithSetCookie(cookieHeader: string, setCookieHeaders: string[]): string {
+  const cookieMap = new Map<string, string>();
+
+  for (const part of cookieHeader.split(";")) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) continue;
+    cookieMap.set(trimmed.slice(0, eq).trim(), trimmed.slice(eq + 1));
+  }
+
+  for (const setCookie of setCookieHeaders) {
+    const parsed = parseSetCookiePair(setCookie);
+    if (!parsed || !parsed.value) continue;
+    cookieMap.set(parsed.name, parsed.value);
+  }
+
+  return [...cookieMap.entries()].map(([name, value]) => `${name}=${value}`).join("; ");
 }
 
 function parseJsonlLine(line: string): {
@@ -340,8 +476,7 @@ export class HuggingChatExecutor extends BaseExecutor {
   }> {
     const { model, body, stream, credentials, signal, log, upstreamExtraHeaders } = input;
     const messages = (body as Record<string, unknown>).messages as
-      | Array<Record<string, unknown>>
-      | undefined;
+      Array<Record<string, unknown>> | undefined;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return {
@@ -357,7 +492,26 @@ export class HuggingChatExecutor extends BaseExecutor {
       };
     }
 
-    const cookieHeader = normalizeHuggingChatCookieHeader(credentials.apiKey || "");
+    if (isEncryptedCredentialBlob(credentials.apiKey)) {
+      return {
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message:
+                "HuggingChat credentials are encrypted but STORAGE_ENCRYPTION_KEY is not loaded. " +
+                "Restore the encryption key or re-save the HuggingChat cookie.",
+              type: "auth_error",
+            },
+          }),
+          { status: 401, headers: { "Content-Type": "application/json" } }
+        ),
+        url: CONVERSATION_URL,
+        headers: {},
+        transformedBody: body,
+      };
+    }
+
+    let cookieHeader = normalizeHuggingChatCookieHeader(credentials.apiKey || "");
     if (!cookieHeader) {
       return {
         response: new Response(
@@ -419,6 +573,7 @@ export class HuggingChatExecutor extends BaseExecutor {
 
       if (!createRes.ok) {
         const status = createRes.status;
+        const upstreamError = await readUpstreamErrorDetails(createRes);
         let message = `HuggingChat conversation creation failed (HTTP ${status})`;
         if (status === 401 || status === 403) {
           message =
@@ -427,9 +582,12 @@ export class HuggingChatExecutor extends BaseExecutor {
         } else if (status === 429) {
           message = "HuggingChat rate limited. Wait a moment and retry.";
         }
+        if (upstreamError.message) {
+          message = `${message}: ${upstreamError.message}`;
+        }
         return {
           response: new Response(
-            JSON.stringify({ error: { message, type: "upstream_error", code: `HTTP_${status}` } }),
+            JSON.stringify(buildErrorBody(status, message, upstreamError.details)),
             { status, headers: { "Content-Type": "application/json" } }
           ),
           url: CONVERSATION_URL,
@@ -440,6 +598,9 @@ export class HuggingChatExecutor extends BaseExecutor {
 
       const createData = (await createRes.json()) as Record<string, unknown>;
       conversationId = createData.conversationId as string;
+      const createSetCookieHeaders = getSetCookieHeaders(createRes.headers);
+      cookieHeader = mergeCookieHeaderWithSetCookie(cookieHeader, createSetCookieHeaders);
+      baseHeaders.Cookie = cookieHeader;
 
       if (!conversationId) {
         return {
@@ -457,8 +618,6 @@ export class HuggingChatExecutor extends BaseExecutor {
           transformedBody: body,
         };
       }
-
-      log?.debug?.("HUGGINGCHAT", `Created conversation: ${conversationId}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       log?.error?.("HUGGINGCHAT", `Conversation creation failed: ${message}`);
@@ -476,15 +635,41 @@ export class HuggingChatExecutor extends BaseExecutor {
     }
 
     // -- Step 2: Send message -----------------------------------------------
+    const parentMessageId = await fetchInitialParentMessageId(
+      conversationId,
+      baseHeaders,
+      combinedSignal
+    );
+    if (!parentMessageId) {
+      return {
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message: "HuggingChat did not return an initial parent message id",
+              type: "upstream_error",
+            },
+          }),
+          { status: 502, headers: { "Content-Type": "application/json" } }
+        ),
+        url: `${API_CONVERSATIONS_URL}/${conversationId}`,
+        headers: baseHeaders,
+        transformedBody: body,
+      };
+    }
+
     const messageUrl = `${CONVERSATION_URL}/${conversationId}`;
     const formData = new FormData();
-    formData.append(
-      "data",
-      JSON.stringify({
-        inputs,
-        id: crypto.randomUUID(),
-      })
-    );
+    const sendDataPayload: Record<string, unknown> = {
+      inputs,
+      is_retry: false,
+      is_continue: false,
+      generationId: crypto.randomUUID(),
+      selectedMcpServerNames: [],
+      selectedMcpServers: [],
+      timezone: getLocalTimezone(),
+      id: parentMessageId,
+    };
+    formData.append("data", JSON.stringify(sendDataPayload));
 
     mergeUpstreamExtraHeaders(baseHeaders, upstreamExtraHeaders);
 
@@ -508,12 +693,13 @@ export class HuggingChatExecutor extends BaseExecutor {
         ),
         url: messageUrl,
         headers: baseHeaders,
-        transformedBody: body,
+        transformedBody: sendDataPayload,
       };
     }
 
     if (!upstreamResponse.ok) {
       const status = upstreamResponse.status;
+      const upstreamError = await readUpstreamErrorDetails(upstreamResponse);
       let message = `HuggingChat returned HTTP ${status}`;
       if (status === 401 || status === 403) {
         message = "HuggingChat auth failed -- session cookie may be expired.";
@@ -522,14 +708,17 @@ export class HuggingChatExecutor extends BaseExecutor {
       } else if (status === 404) {
         message = `HuggingChat model not found: ${resolvedModel}. Check the model ID.`;
       }
+      if (upstreamError.message) {
+        message = `${message}: ${upstreamError.message}`;
+      }
       return {
         response: new Response(
-          JSON.stringify({ error: { message, type: "upstream_error", code: `HTTP_${status}` } }),
+          JSON.stringify(buildErrorBody(status, message, upstreamError.details)),
           { status, headers: { "Content-Type": "application/json" } }
         ),
         url: messageUrl,
         headers: baseHeaders,
-        transformedBody: body,
+        transformedBody: sendDataPayload,
       };
     }
 
@@ -543,7 +732,7 @@ export class HuggingChatExecutor extends BaseExecutor {
         ),
         url: messageUrl,
         headers: baseHeaders,
-        transformedBody: body,
+        transformedBody: sendDataPayload,
       };
     }
 
@@ -586,7 +775,7 @@ export class HuggingChatExecutor extends BaseExecutor {
         }),
         url: messageUrl,
         headers: baseHeaders,
-        transformedBody: body,
+        transformedBody: sendDataPayload,
       };
     }
 
@@ -617,7 +806,7 @@ export class HuggingChatExecutor extends BaseExecutor {
       ),
       url: messageUrl,
       headers: baseHeaders,
-      transformedBody: body,
+      transformedBody: sendDataPayload,
     };
   }
 }

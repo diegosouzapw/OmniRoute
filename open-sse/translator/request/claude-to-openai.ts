@@ -410,7 +410,10 @@ function convertClaudeMessage(msg, preserveCacheControl = false) {
             type: "function",
             function: {
               name: block.name,
-              arguments: JSON.stringify(block.input || {}),
+              arguments:
+                typeof block.input === "string"
+                  ? block.input
+                  : JSON.stringify(block.input || {}),
             },
           });
           break;

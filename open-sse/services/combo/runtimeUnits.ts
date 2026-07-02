@@ -3,6 +3,7 @@ import { errorResponse } from "../../utils/error.ts";
 import { recordComboRequest } from "../comboMetrics.ts";
 import { resolveDelayMs } from "./comboPredicates.ts";
 import { validateResponseQuality } from "./validateQuality.ts";
+import type { ResponseValidationConfig } from "./responseValidation.ts";
 import type {
   ComboCollectionLike,
   ComboLike,
@@ -227,7 +228,12 @@ export async function executeRuntimeUnitCombo(args: {
           });
           return { response, unit };
         }
-        const quality = await validateResponseQuality(response, clientRequestedStream, args.log);
+        const quality = await validateResponseQuality(
+          response,
+          clientRequestedStream,
+          args.log,
+          args.config.responseValidation as ResponseValidationConfig | undefined
+        );
         if (quality.valid) {
           recordComboRequest(args.combo.name, unit.modelStr, {
             success: true,

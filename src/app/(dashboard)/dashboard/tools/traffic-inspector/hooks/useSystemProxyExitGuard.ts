@@ -9,10 +9,10 @@ interface UseSystemProxyExitGuardOpts {
 
 /**
  * On unmount / page hide / beforeunload, if system proxy is applied,
- * silently fires a revert request via navigator.sendBeacon (best-effort,
- * survives unload) AND attaches a beforeunload listener that prompts the
- * user with a native confirm dialog (browser default — text is ignored
- * by most browsers but the prompt itself appears).
+ * silently fires a keepalive fetch revert request (best-effort, survives
+ * unload) AND attaches a beforeunload listener that prompts the user with a
+ * native confirm dialog (browser default — text is ignored by most browsers
+ * but the prompt itself appears).
  */
 export function useSystemProxyExitGuard(opts: UseSystemProxyExitGuardOpts): void {
   // 1. Track latest 'applied' in a ref so the listener always sees fresh value
@@ -22,19 +22,21 @@ export function useSystemProxyExitGuard(opts: UseSystemProxyExitGuardOpts): void
   }, [opts.applied]);
 
   useEffect(() => {
-    const endpoint =
-      opts.endpoint ?? "/api/tools/traffic-inspector/capture-modes/system-proxy";
+    const endpoint = opts.endpoint ?? "/api/tools/traffic-inspector/capture-modes/system-proxy";
     const body = JSON.stringify({ action: "revert" });
-    const blob = new Blob([body], { type: "application/json" });
+
+    const revertSystemProxy = () => {
+      void fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      }).catch(() => {});
+    };
 
     const beforeUnload = (e: BeforeUnloadEvent) => {
       if (!appliedRef.current) return;
-      // Best-effort revert via sendBeacon (survives navigation)
-      try {
-        navigator.sendBeacon(endpoint, blob);
-      } catch {
-        /* ignore */
-      }
+      revertSystemProxy();
       // Show confirmation prompt
       e.preventDefault();
       e.returnValue = "System-wide proxy still active — leave page anyway?";
@@ -46,11 +48,7 @@ export function useSystemProxyExitGuard(opts: UseSystemProxyExitGuardOpts): void
       window.removeEventListener("beforeunload", beforeUnload);
       // On component unmount (SPA navigation), fire revert too
       if (appliedRef.current) {
-        try {
-          navigator.sendBeacon(endpoint, blob);
-        } catch {
-          /* ignore */
-        }
+        revertSystemProxy();
       }
     };
   }, [opts.endpoint]);

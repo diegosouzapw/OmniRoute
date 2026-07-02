@@ -55,6 +55,10 @@ test("classify429: AG 'Individual quota reached' message → quota_exhausted", (
   assert.equal(classify429(msg), "quota_exhausted");
 });
 
+test("classify429: AG G1 Credits Exhausted message → quota_exhausted", () => {
+  assert.equal(classify429("insufficient_g1_credits_balance"), "quota_exhausted");
+});
+
 test("classify429: standard Gemini rate limit 'resource has been exhausted' -> rate_limited or unknown, not quota_exhausted", () => {
   const msg =
     "RESOURCE_EXHAUSTED: Resource has been exhausted (e.g. queries per minute limit was reached).";

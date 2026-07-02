@@ -30,6 +30,7 @@ const providerModelsRoute = await import("../../src/app/api/providers/[id]/model
 const originalFetch = globalThis.fetch;
 const originalFlag = process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
 const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+const originalAllowLocalProviderUrls = process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -49,6 +50,11 @@ test.afterEach(async () => {
   } else {
     process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
   }
+  if (originalAllowLocalProviderUrls === undefined) {
+    delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+  } else {
+    process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS = originalAllowLocalProviderUrls;
+  }
   await resetStorage();
 });
 
@@ -63,6 +69,11 @@ test.after(() => {
     delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
   } else {
     process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
+  }
+  if (originalAllowLocalProviderUrls === undefined) {
+    delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+  } else {
+    process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS = originalAllowLocalProviderUrls;
   }
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -880,8 +891,9 @@ test("provider-nodes validate route rejects invalid JSON and schema errors", asy
   assert.equal(invalidBodyPayload.error.details.length >= 1, true);
 });
 
-test("provider-nodes validate route blocks private provider hosts before fetch", async () => {
+test("provider-nodes validate route allows local provider hosts by default", async () => {
   delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
 
   let called = false;
   globalThis.fetch = async () => {
@@ -900,9 +912,35 @@ test("provider-nodes validate route blocks private provider hosts before fetch",
     })
   );
 
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { valid: true, error: null });
+  assert.equal(called, true);
+});
+
+test("provider-nodes validate route blocks cloud metadata provider hosts before fetch", async () => {
+  delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
+
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    return Response.json({ data: [] });
+  };
+
+  const response = await providerNodesValidateRoute.POST(
+    new Request("http://localhost/api/provider-nodes/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        baseUrl: "http://169.254.169.254/latest/meta-data",
+        apiKey: "sk-metadata-test",
+      }),
+    })
+  );
+
   assert.equal(response.status, 503);
   assert.deepEqual(await response.json(), {
-    error: "Blocked private or local provider URL",
+    error: "Blocked cloud-metadata endpoint",
   });
   assert.equal(called, false);
   const auditEntries = compliance.getAuditLog({
@@ -914,8 +952,8 @@ test("provider-nodes validate route blocks private provider hosts before fetch",
   assert.equal(auditEntries[0].status, "blocked");
   assert.deepEqual(auditEntries[0].metadata, {
     route: "/api/provider-nodes/validate",
-    reason: "Blocked private or local provider URL",
-    baseUrl: "http://127.0.0.1:11434/v1",
+    reason: "Blocked cloud-metadata endpoint",
+    baseUrl: "http://169.254.169.254/latest/meta-data",
   });
 });
 

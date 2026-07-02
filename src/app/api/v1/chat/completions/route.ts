@@ -3,6 +3,9 @@ import { callCloudWithMachineId } from "@/shared/utils/cloud";
 import { handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
+import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
+import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
+import { checkChatAdmission } from "@/shared/middleware/chatBodyAdmission";
 
 let initPromise = null;
 
@@ -30,6 +33,15 @@ export async function OPTIONS() {
 
 export async function POST(request) {
   await ensureInitialized();
+
+  // Heap-pressure-aware admission: shed a large body with 503 (or 413 if pathological)
+  // BEFORE the request is cloned + JSON-parsed below. A large coding-agent compact body
+  // amplifies into hundreds of MB of transient JS objects on the combo path; under a
+  // burst of concurrent compacts that stacks past the V8 heap ceiling and OOM-crashes the
+  // whole process. Shedding the marginal request here turns a pod-wide crash into a single
+  // client retry. Healthy heap (the normal case) admits every body untouched. (#5152)
+  const admissionRejection = checkChatAdmission(request);
+  if (admissionRejection) return admissionRejection;
 
   // One-line marker for diagnosing 413 / Server-Action interceptions.
   // Logs only when Content-Length is present so debug noise stays low for
@@ -68,6 +80,14 @@ export async function POST(request) {
     }
   } catch (error) {
     console.error("[SECURITY] Prompt injection guard failed:", error);
+  }
+
+  const wantsStreaming = parsedBody?.stream !== false;
+  if (wantsStreaming) {
+    return await withEarlyStreamKeepalive(handleChat(request, null, parsedBody), {
+      signal: request.signal,
+      thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
+    });
   }
 
   return await handleChat(request, null, parsedBody);

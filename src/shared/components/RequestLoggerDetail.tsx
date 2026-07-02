@@ -176,6 +176,8 @@ export default function RequestLoggerDetail({
   onCopy,
   onPrevious,
   onNext,
+  relatedLogs = [],
+  onSelectRelated,
 }) {
   // Close on Escape key
   useEffect(() => {
@@ -202,11 +204,12 @@ export default function RequestLoggerDetail({
     if (iso == null) return "\u2014";
     try {
       const d = new Date(iso);
+      if (!Number.isFinite(d.getTime())) return "\u2014";
       return (
         d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("en-US", { hour12: false })
       );
     } catch {
-      return iso;
+      return "\u2014";
     }
   };
 
@@ -239,32 +242,17 @@ export default function RequestLoggerDetail({
     : [];
   const requestJson = detail?.requestBody ? toPrettyJson(detail.requestBody) : null;
   const responseJson = detail?.responseBody ? toPrettyJson(detail.responseBody) : null;
-  const streamChunksText = (() => {
+  const streamChunks = (() => {
     if (!debugEnabled || !detail?.pipelinePayloads?.streamChunks) return null;
     let chunks: StreamChunks = detail.pipelinePayloads.streamChunks;
-
     if (typeof chunks === "string") {
       try {
-        const parsed = JSON.parse(chunks);
-        chunks = parsed;
+        chunks = JSON.parse(chunks);
       } catch {
-        return chunks;
+        return null;
       }
     }
-
-    if (chunks && typeof chunks === "object") {
-      try {
-        return Object.entries(chunks)
-          .map(([stage, arr]) => {
-            const joined = Array.isArray(arr) ? arr.join("") : String(arr);
-            return `--- ${stage} ---\n${joined}`;
-          })
-          .join("\n\n");
-      } catch {
-        return toPrettyJson(chunks);
-      }
-    }
-
+    if (chunks && typeof chunks === "object") return chunks;
     return null;
   })();
   const detailIssue =
@@ -346,6 +334,14 @@ export default function RequestLoggerDetail({
                 {log.id}
               </span>
             )}
+            {log.correlationId && (
+              <span
+                className="text-[10px] text-text-muted/50 font-mono self-center ml-2 px-1.5 py-0.5 rounded bg-bg-subtle border border-border/40 select-all"
+                title="Correlation ID"
+              >
+                cid: {log.correlationId}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1">
             <button
@@ -421,7 +417,23 @@ export default function RequestLoggerDetail({
             >
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
-                  Completed Time
+                  Started At
+                </div>
+                <div className="text-sm font-medium">
+                  {(() => {
+                    try {
+                      const ts = new Date(log.timestamp).getTime();
+                      if (!Number.isFinite(ts)) return "\u2014";
+                      return formatDate(new Date(ts - (log.duration || 0)).toISOString());
+                    } catch {
+                      return "\u2014";
+                    }
+                  })()}
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Ended At
                 </div>
                 <div className="text-sm font-medium">{formatDate(log.timestamp)}</div>
               </div>
@@ -597,6 +609,62 @@ export default function RequestLoggerDetail({
             </div>
           )}
 
+          {/* Related Requests (same correlation ID) */}
+          {relatedLogs.length > 1 && (
+            <div className="p-4 rounded-xl bg-bg-subtle border border-border">
+              <div className="text-[10px] text-text-muted uppercase tracking-wider mb-2 font-bold">
+                Related Requests ({relatedLogs.length})
+              </div>
+              <div className="flex flex-col gap-1">
+                {[...relatedLogs]
+                  .sort((a, b) => {
+                    const aStart = new Date(a.timestamp).getTime() - (a.duration || 0);
+                    const bStart = new Date(b.timestamp).getTime() - (b.duration || 0);
+                    return aStart - bStart;
+                  })
+                  .map((r) => {
+                    const rStatusStyle = r.active ? null : getStatusStyle(r.status);
+                    const isCurrent = r.id === log.id;
+                    const startTime = new Date(new Date(r.timestamp).getTime() - (r.duration || 0));
+                    return (
+                      <button
+                        key={r.id}
+                        onClick={() => !isCurrent && onSelectRelated?.(r)}
+                        disabled={isCurrent}
+                        className={`flex items-center gap-2 px-2 py-1.5 rounded text-left text-xs transition-colors ${
+                          isCurrent
+                            ? "bg-primary/10 border border-primary/30 cursor-default"
+                            : "hover:bg-bg-hover cursor-pointer"
+                        }`}
+                      >
+                        <span
+                          className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold min-w-[28px] text-center"
+                          style={
+                            rStatusStyle
+                              ? { backgroundColor: rStatusStyle.bg, color: rStatusStyle.text }
+                              : { backgroundColor: "#374151", color: "#fff" }
+                          }
+                        >
+                          {r.status || "..."}
+                        </span>
+                        <span className="font-mono text-text-muted">{r.id}</span>
+                        <span className="text-text-muted">{r.model}</span>
+                        <span className="text-text-muted text-[10px]">
+                          {startTime.toLocaleTimeString("en-US", { hour12: false })}
+                        </span>
+                        <span className="text-text-muted ml-auto">
+                          {formatDuration(r.duration)}
+                        </span>
+                        {isCurrent && (
+                          <span className="text-[9px] text-primary font-bold ml-1">current</span>
+                        )}
+                      </button>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
           {detailIssue && (
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
               <div className="text-[10px] text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1 font-bold">
@@ -612,13 +680,62 @@ export default function RequestLoggerDetail({
             </div>
           ) : (
             <>
-              {streamChunksText && (
+              {streamChunks && streamChunks.provider && (
                 <StreamSection
-                  title="Event Stream (Debug)"
-                  json={streamChunksText}
-                  onCopy={() => onCopy(streamChunksText)}
+                  title="Provider Event Stream"
+                  json={
+                    Array.isArray(streamChunks.provider)
+                      ? streamChunks.provider.join("")
+                      : String(streamChunks.provider)
+                  }
+                  onCopy={() =>
+                    onCopy(
+                      Array.isArray(streamChunks.provider)
+                        ? streamChunks.provider.join("")
+                        : String(streamChunks.provider)
+                    )
+                  }
                 />
               )}
+
+              {streamChunks && streamChunks.client && (
+                <StreamSection
+                  title="Client Event Stream"
+                  json={
+                    Array.isArray(streamChunks.client)
+                      ? streamChunks.client.join("")
+                      : String(streamChunks.client)
+                  }
+                  onCopy={() =>
+                    onCopy(
+                      Array.isArray(streamChunks.client)
+                        ? streamChunks.client.join("")
+                        : String(streamChunks.client)
+                    )
+                  }
+                />
+              )}
+
+              {streamChunks &&
+                streamChunks.openai &&
+                !streamChunks.provider &&
+                !streamChunks.client && (
+                  <StreamSection
+                    title="Event Stream"
+                    json={
+                      Array.isArray(streamChunks.openai)
+                        ? streamChunks.openai.join("")
+                        : String(streamChunks.openai)
+                    }
+                    onCopy={() =>
+                      onCopy(
+                        Array.isArray(streamChunks.openai)
+                          ? streamChunks.openai.join("")
+                          : String(streamChunks.openai)
+                      )
+                    }
+                  />
+                )}
 
               {payloadSections.length > 0 &&
                 payloadSections.map((section) => (

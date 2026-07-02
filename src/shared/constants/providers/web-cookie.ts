@@ -125,7 +125,7 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "M365",
     website: "https://m365.cloud.microsoft/chat",
     authHint:
-      "Paste the access_token and account-specific Chathub path from the Microsoft 365 Copilot WebSocket URL.",
+      "Sign in at m365.cloud.microsoft/chat, then open DevTools → Network → filter 'WS' → click the Chathub WebSocket connection. Copy both the access_token query parameter AND the account-specific Chathub path segment from its request URL (wss://…/Chathub/<path>?…&access_token=…). It is NOT an Authorization: Bearer header on an XHR/Fetch request. The token is short-lived; this is an unofficial integration.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
@@ -197,7 +197,7 @@ export const WEB_COOKIE_PROVIDERS = {
     hasFree: true,
     freeNote: "Free LLM chat — no subscription required. Rate limits apply.",
     authHint:
-      "Paste your hf-chat cookie value from huggingface.co/chat (DevTools → Application → Cookies → hf-chat). Optional — works without auth for basic use.",
+      "Paste the full Cookie header from huggingface.co/chat (DevTools → Network → /chat/conversation → Request Headers → Cookie). It should include hf-chat and may also include token / aws-waf-token.",
     riskNoticeVariant: "webCookie",
   },
   "poe-web": {
@@ -242,8 +242,8 @@ export const WEB_COOKIE_PROVIDERS = {
     icon: "auto_awesome",
     color: "#2563EB",
     textIcon: "KW",
-    website: "https://kimi.moonshot.cn",
-    authHint: "Paste your session cookie from kimi.moonshot.cn (DevTools → Application → Cookies)",
+    website: "https://www.kimi.com",
+    authHint: "Paste your Cookie header from www.kimi.com (must contain kimi-auth=...). Find it via DevTools → Network → request → Cookie.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },

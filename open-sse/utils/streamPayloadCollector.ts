@@ -3,6 +3,7 @@ import { FORMATS } from "../translator/formats.ts";
 
 type StructuredSSEEvent = {
   index: number;
+  timestamp?: string;
   event?: string;
   data: unknown;
 };
@@ -356,9 +357,21 @@ function buildClaudeSummary(events: StructuredSSEEvent[], fallbackModel?: string
   let role = "assistant";
   let stopReason = "end_turn";
   let stopSequence: string | null = null;
+  // Context Editing (`anthropic-beta: context-management-2025-06-27`) surfaces
+  // `context_management.applied_edits[]` on the final `message_delta` snapshot. Preserve it
+  // so streaming context-clear savings reach `extractContextEditingTelemetry`, mirroring the
+  // non-streaming JSON path. Last-writer-wins: the final snapshot is authoritative.
+  let contextManagement: JsonRecord | null = null;
 
   for (const payload of payloads) {
     const eventType = toString(payload.type);
+    if (
+      payload.context_management &&
+      typeof payload.context_management === "object" &&
+      !Array.isArray(payload.context_management)
+    ) {
+      contextManagement = asRecord(payload.context_management);
+    }
     if (eventType === "message_start") {
       const message = asRecord(payload.message);
       messageId = toString(message.id, messageId || `msg_${Date.now()}`);
@@ -506,6 +519,7 @@ function buildClaudeSummary(events: StructuredSSEEvent[], fallbackModel?: string
     stop_reason: stopReason,
     ...(stopSequence ? { stop_sequence: stopSequence } : {}),
     ...(Object.keys(usage).length > 0 ? { usage } : {}),
+    ...(contextManagement ? { context_management: contextManagement } : {}),
   };
 }
 
@@ -647,6 +661,7 @@ export function createStructuredSSECollector(options: CollectorOptions = {}) {
 
       const event: StructuredSSEEvent = {
         index: events.length + droppedEvents,
+        timestamp: new Date().toISOString(),
         data: cloneLogPayload(payload),
       };
 

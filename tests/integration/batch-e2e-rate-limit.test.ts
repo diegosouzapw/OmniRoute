@@ -13,6 +13,19 @@ const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const RELAY_PORT = await getFreePort();
 const SERVER_PORT = await getFreePort();
 
+type FileUploadResponse = {
+  id?: string;
+};
+
+type BatchResponse = {
+  id?: string;
+  status?: string;
+  request_counts?: {
+    completed?: number;
+    failed?: number;
+  };
+};
+
 function getFreePort() {
   return new Promise<number>((resolve, reject) => {
     const server = net.createServer();
@@ -32,6 +45,47 @@ function getFreePort() {
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+function summarizeText(text: string, maxLength = 800) {
+  const compact = text.replace(/\s+/g, " ").trim();
+  return compact.length > maxLength ? `${compact.slice(0, maxLength)}...` : compact;
+}
+
+function formatServerTail(proc: ReturnType<typeof createServerProcess>) {
+  return [
+    "--- stdout ---",
+    ...proc.stdoutLines.slice(-40),
+    "--- stderr ---",
+    ...proc.stderrLines.slice(-40),
+  ].join("\n");
+}
+
+async function readJsonForTest<T>(
+  response: Response,
+  label: string,
+  proc: ReturnType<typeof createServerProcess>
+): Promise<T> {
+  const text = await response.text();
+  let body: T;
+  try {
+    body = JSON.parse(text) as T;
+  } catch {
+    throw new Error(
+      [
+        `${label} returned invalid JSON (${response.status} ${response.statusText}, content-type=${response.headers.get("content-type") || "unknown"})`,
+        summarizeText(text),
+        formatServerTail(proc),
+      ].join("\n")
+    );
+  }
+
+  assert.equal(
+    response.status,
+    200,
+    `${label} failed (${response.status}): ${JSON.stringify(body)}`
+  );
+  return body;
 }
 
 /* ---------- Fake embedding relay ---------- */
@@ -162,24 +216,29 @@ function createServerProcess() {
 
 async function waitForServer(baseUrl: string, proc: ReturnType<typeof createServerProcess>) {
   const startedAt = Date.now();
-  while (Date.now() - startedAt < 120_000) {
+  const readinessTimeoutMs = 240_000;
+  const probeTimeoutMs = 15_000;
+  let lastReadiness = "";
+  while (Date.now() - startedAt < readinessTimeoutMs) {
     if (proc.exitInfo) {
       throw new Error(
         [
           `Server exited early (code=${proc.exitInfo.code}, signal=${proc.exitInfo.signal})`,
-          "--- stdout ---",
-          ...proc.stdoutLines.slice(-40),
-          "--- stderr ---",
-          ...proc.stderrLines.slice(-40),
+          formatServerTail(proc),
         ].join("\n")
       );
     }
     try {
-      const resp = await fetch(`${baseUrl}/api/monitoring/health`, {
-        signal: AbortSignal.timeout(5_000),
-      });
-      if (resp.ok) return;
-    } catch {
+      for (const readinessPath of ["/api/health/ping", "/api/monitoring/health"]) {
+        const resp = await fetch(`${baseUrl}${readinessPath}`, {
+          signal: AbortSignal.timeout(probeTimeoutMs),
+        });
+        if (resp.ok) return;
+        const body = await resp.text().catch(() => "");
+        lastReadiness = `${readinessPath} -> ${resp.status}: ${summarizeText(body, 200)}`;
+      }
+    } catch (error) {
+      lastReadiness = error instanceof Error ? error.message : String(error);
       // not ready yet
     }
     await sleep(500);
@@ -187,10 +246,8 @@ async function waitForServer(baseUrl: string, proc: ReturnType<typeof createServ
   throw new Error(
     [
       "Timed out waiting for server",
-      "--- stdout ---",
-      ...proc.stdoutLines.slice(-40),
-      "--- stderr ---",
-      ...proc.stderrLines.slice(-40),
+      `Last readiness probe: ${lastReadiness}`,
+      formatServerTail(proc),
     ].join("\n")
   );
 }
@@ -205,6 +262,18 @@ async function stopProcess(child: ReturnType<typeof spawn>) {
   if (!exited && !child.killed) {
     child.kill("SIGKILL");
     await new Promise<void>((resolve) => child.once("exit", () => resolve()));
+  }
+}
+
+async function removeDirWithRetry(dir: string) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      if (attempt === 4) throw error;
+      await sleep(250);
+    }
   }
 }
 
@@ -248,7 +317,7 @@ test.after(async () => {
     await relay.stop();
   } catch {}
   if (fs.existsSync(TEST_DATA_DIR)) {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+    await removeDirWithRetry(TEST_DATA_DIR);
   }
 });
 
@@ -281,9 +350,12 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
     method: "POST",
     body: formData,
   });
-  const uploadText = await uploadResp.text();
-  assert.equal(uploadResp.status, 200, `File upload failed (${uploadResp.status}): ${uploadText}`);
-  const uploadBody = JSON.parse(uploadText);
+  assert.match(
+    uploadResp.headers.get("content-type") || "",
+    /json/i,
+    "File upload should return JSON"
+  );
+  const uploadBody = await readJsonForTest<FileUploadResponse>(uploadResp, "File upload", app);
   const fileId = uploadBody.id;
   assert.ok(fileId, "file id missing from upload response");
 
@@ -297,22 +369,35 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
       completion_window: "24h",
     }),
   });
-  const batchText = await batchResp.text();
-  assert.equal(batchResp.status, 200, `Batch creation failed (${batchResp.status}): ${batchText}`);
-  const batchBody = JSON.parse(batchText);
+  const batchBody = await readJsonForTest<BatchResponse>(batchResp, "Batch creation", app);
   const batchId = batchBody.id;
   assert.ok(batchId, "batch id missing from create response");
 
   // 3. Poll for batch completion
   let batchStatus = "";
   let attempts = 0;
+  let lastPollSummary = "";
   const maxAttempts = 120;
   while (attempts < maxAttempts) {
     await sleep(2_000);
     attempts++;
     const sr = await fetch(`${app.baseUrl}/api/v1/batches/${batchId}`);
-    const sb = (await sr.json()) as any;
-    batchStatus = sb.status;
+    const text = await sr.text();
+    let sb: BatchResponse;
+    try {
+      sb = JSON.parse(text);
+    } catch {
+      lastPollSummary = `poll ${attempts} returned invalid JSON (${sr.status} ${sr.statusText}, content-type=${sr.headers.get("content-type") || "unknown"}): ${summarizeText(text, 300)}`;
+      console.warn(`[poll ${attempts}] ${lastPollSummary}`);
+      continue;
+    }
+    if (!sr.ok) {
+      lastPollSummary = `poll ${attempts} failed (${sr.status} ${sr.statusText}): ${JSON.stringify(sb)}`;
+      console.warn(`[poll ${attempts}] ${lastPollSummary}`);
+      continue;
+    }
+    batchStatus = sb.status || "";
+    lastPollSummary = `poll ${attempts} status=${batchStatus}`;
     console.log(
       `[poll ${attempts}] batch ${batchId} status=${batchStatus} completed=${sb.request_counts?.completed} failed=${sb.request_counts?.failed}`
     );
@@ -322,6 +407,7 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
     batchStatus,
     "completed",
     `Batch did not complete; final status: ${batchStatus}. ` +
+      `Last poll: ${lastPollSummary}\n` +
       `Server [BATCH] logs:\n${[...app.stdoutLines, ...app.stderrLines].filter((l) => l.includes("[BATCH]")).join("\n")}`
   );
 
@@ -348,7 +434,7 @@ test("batch E2E: upload file, create batch, verify rate-limit logs appear", asyn
 
   // 5. Verify batch results
   const finalResp = await fetch(`${app.baseUrl}/api/v1/batches/${batchId}`);
-  const finalBody = (await finalResp.json()) as any;
+  const finalBody = await readJsonForTest<BatchResponse>(finalResp, "Final batch fetch", app);
   assert.equal(
     finalBody.request_counts?.completed,
     2,

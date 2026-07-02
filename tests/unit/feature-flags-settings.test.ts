@@ -30,17 +30,19 @@ const {
   isControlPlaneProxyDirectFallbackEnabled,
 } = await import("../../src/shared/utils/featureFlags.ts");
 
+const EXPECTED_FEATURE_FLAG_COUNT = 40;
+
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry
 // ──────────────────────────────────────────────────────
 describe("featureFlagDefinitions", () => {
-  it("has exactly 38 flag definitions", () => {
-    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, 38);
+  it("has exactly 40 flag definitions", () => {
+    assert.strictEqual(FEATURE_FLAG_DEFINITIONS.length, EXPECTED_FEATURE_FLAG_COUNT);
   });
 
   it("has unique keys for all flags", () => {
     const keys = FEATURE_FLAG_DEFINITIONS.map((d) => d.key);
-    assert.strictEqual(new Set(keys).size, 38);
+    assert.strictEqual(new Set(keys).size, EXPECTED_FEATURE_FLAG_COUNT);
   });
 
   it("has valid categories for all flags", () => {
@@ -157,6 +159,21 @@ describe("featureFlagDefinitions", () => {
     assert.strictEqual(def.defaultValue, "false");
     assert.strictEqual(def.requiresRestart, false);
     assert.strictEqual(def.warningLevel, "danger");
+  });
+
+  it("defines CLI profile auto-sync flags as CLI booleans disabled by default", () => {
+    for (const key of [
+      "OMNIROUTE_AUTO_SYNC_CODEX_PROFILES",
+      "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES",
+    ]) {
+      const def = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === key);
+      assert.ok(def, `${key} should exist`);
+      assert.strictEqual(def.category, "cli");
+      assert.strictEqual(def.type, "boolean");
+      assert.strictEqual(def.defaultValue, "false");
+      assert.strictEqual(def.requiresRestart, false);
+      assert.strictEqual(def.warningLevel, "caution");
+    }
   });
 });
 
@@ -295,9 +312,9 @@ describe("resolveFeatureFlag", () => {
   });
 
   describe("resolveAllFeatureFlags", () => {
-    it("returns all 38 flags", () => {
+    it("returns all 40 flags", () => {
       const all = resolveAllFeatureFlags();
-      assert.strictEqual(all.length, 38);
+      assert.strictEqual(all.length, EXPECTED_FEATURE_FLAG_COUNT);
     });
 
     it("marks DB-overridden flags with source 'db'", () => {

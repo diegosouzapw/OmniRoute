@@ -2443,6 +2443,37 @@ test("copilot-web validator: empty input → paste prompt", async () => {
   assert.match(result.error || "", /Paste your access_token/i);
 });
 
+// ─── copilot-m365-web validator ──────────────────────────────────────────────
+
+test("copilot-m365-web validator: accepts pasted OmniRoute credential without /models probe", async () => {
+  globalThis.fetch = async () => {
+    throw new Error("should not fetch");
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "copilot-m365-web",
+    apiKey: "access_token=tok; chathubPath=redacted-account@redacted-tenant",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+  assert.match(result.warning || "", /verified when the provider sends a chat/i);
+});
+
+test("copilot-m365-web validator: requires chathubPath", async () => {
+  globalThis.fetch = async () => {
+    throw new Error("should not fetch");
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "copilot-m365-web",
+    apiKey: "access_token=tok",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Chathub path/i);
+});
+
 // ─── t3-web validator ────────────────────────────────────────────────────────
 
 test("t3-web validator: valid cookies → valid", async () => {
@@ -2685,71 +2716,6 @@ test("gitlawb-gmi validator: accepts custom baseUrl override", async () => {
     },
   });
   assert.equal(result.valid, true);
-});
-
-// #3288 / #3758: qwen-web validation used to fall through to the generic
-// OpenAI-compatible validator, which probed a non-existent `/api/v2/models` URL that
-// answered with a 307 redirect — blocked by the outbound guard and mislabeled as an
-// SSRF block. A specialty validator now probes the real session endpoint instead.
-test("qwen-web validator probes /api/v2/user (not /api/v2/models) and returns valid on 200", async () => {
-  let probedUrl = "";
-  let sentHeaders: Record<string, string> = {};
-  globalThis.fetch = async (url, init = {}) => {
-    probedUrl = String(url);
-    sentHeaders = toPlainHeaders(init.headers);
-    // Qwen's /api/v2/user returns a real user object for a valid session. Since
-    // #3958 the validator inspects the body for `user` (Qwen answers 200 even for
-    // invalid tokens), so a valid response must carry one.
-    return new Response(JSON.stringify({ user: { id: "u-1", name: "Tester" } }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    });
-  };
-
-  const result = await validateProviderApiKey({
-    provider: "qwen-web",
-    apiKey: "token=eyJqwen; cna=abc; ssxmod_itna=def",
-  });
-
-  assert.equal(probedUrl, "https://chat.qwen.ai/api/v2/user");
-  assert.ok(!probedUrl.includes("/api/v2/models"), "must not probe the bogus /api/v2/models URL");
-  assert.equal(sentHeaders.Authorization, "Bearer eyJqwen");
-  assert.equal(sentHeaders.source, "web");
-  assert.match(sentHeaders.Cookie, /token=eyJqwen/);
-  assert.equal(result.valid, true);
-});
-
-test("qwen-web validator reports an invalid session (401) without flagging a security block", async () => {
-  globalThis.fetch = async () =>
-    new Response(JSON.stringify({ error: "unauthorized" }), {
-      status: 401,
-      headers: { "content-type": "application/json" },
-    });
-
-  const result = await validateProviderApiKey({
-    provider: "qwen-web",
-    apiKey: "token=stale; cna=abc; ssxmod_itna=def",
-  });
-
-  assert.equal(result.valid, false);
-  assert.equal((result as { securityBlocked?: boolean }).securityBlocked ?? false, false);
-  assert.match(result.error ?? "", /invalid or expired/i);
-});
-
-test("qwen-web validator surfaces the WAF/anti-bot HTML challenge as a re-login hint", async () => {
-  globalThis.fetch = async () =>
-    new Response("<html>aliyun_waf</html>", {
-      status: 200,
-      headers: { "content-type": "text/html" },
-    });
-
-  const result = await validateProviderApiKey({
-    provider: "qwen-web",
-    apiKey: "token=eyJqwen; cna=abc; ssxmod_itna=def",
-  });
-
-  assert.equal(result.valid, false);
-  assert.match(result.error ?? "", /WAF|Cookie header/i);
 });
 
 // #3288 / #3758: a blocked redirect (REDIRECT_BLOCKED) to a PUBLIC host is benign — the

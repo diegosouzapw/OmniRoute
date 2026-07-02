@@ -55,11 +55,80 @@ test("appendNonStreamingSseTerminalSignal detects [DONE] and terminal event type
   const stop: NonStreamingSseTerminalState = { currentEvent: "", pendingLine: "" };
   assert.equal(appendNonStreamingSseTerminalSignal(stop, "event: message_stop\ndata: {}\n"), true);
 
+  const responseTerminalEvents = [
+    "response.completed",
+    "response.done",
+    "response.cancelled",
+    "response.canceled",
+    "response.failed",
+    "response.incomplete",
+  ];
+  for (const eventType of responseTerminalEvents) {
+    const typed: NonStreamingSseTerminalState = { currentEvent: "", pendingLine: "" };
+    assert.equal(
+      appendNonStreamingSseTerminalSignal(typed, `data: {"type":"${eventType}"}\n`),
+      true,
+      eventType
+    );
+
+    const eventOnly: NonStreamingSseTerminalState = { currentEvent: "", pendingLine: "" };
+    assert.equal(
+      appendNonStreamingSseTerminalSignal(eventOnly, `event: ${eventType}\n\n`),
+      true,
+      eventType
+    );
+  }
+
+  const splitTerminalData: NonStreamingSseTerminalState = { currentEvent: "", pendingLine: "" };
+  assert.equal(
+    appendNonStreamingSseTerminalSignal(splitTerminalData, "event: response.completed\n"),
+    false
+  );
+  assert.equal(
+    appendNonStreamingSseTerminalSignal(
+      splitTerminalData,
+      'data: {"response":{"status":"completed"}}\n'
+    ),
+    true
+  );
+
+  const messageDeltaWithType: NonStreamingSseTerminalState = { currentEvent: "", pendingLine: "" };
+  assert.equal(
+    appendNonStreamingSseTerminalSignal(
+      messageDeltaWithType,
+      'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"}}\n'
+    ),
+    true
+  );
+
+  const messageDeltaFromEvent: NonStreamingSseTerminalState = { currentEvent: "", pendingLine: "" };
+  assert.equal(
+    appendNonStreamingSseTerminalSignal(
+      messageDeltaFromEvent,
+      'event: message_delta\ndata: {"delta":{"stop_reason":"end_turn"}}\n'
+    ),
+    true
+  );
+
   const delta: NonStreamingSseTerminalState = { currentEvent: "", pendingLine: "" };
   assert.equal(
     appendNonStreamingSseTerminalSignal(delta, 'data: {"type":"content_block_delta"}\n'),
     false
   );
+});
+
+test("parseNonStreamingSSEPayload still parses Claude event/data buffers", () => {
+  const raw =
+    'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_1","model":"claude","role":"assistant","usage":{"input_tokens":1}}}\n\n' +
+    'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}\n\n' +
+    'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"hi"}}\n\n' +
+    'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":1}}\n\n' +
+    'event: message_stop\ndata: {"type":"message_stop"}\n\n';
+  const result = parseNonStreamingSSEPayload(raw, FORMATS.CLAUDE, "claude");
+  assert.ok(result !== null);
+  assert.equal(result?.format, FORMATS.CLAUDE);
+  assert.deepEqual(result?.body.content, [{ type: "text", text: "hi" }]);
+  assert.equal(result?.body.stop_reason, "end_turn");
 });
 
 test("parseNonStreamingSSEPayload parses an OpenAI-format SSE buffer", () => {

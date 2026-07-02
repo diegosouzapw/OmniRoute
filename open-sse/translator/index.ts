@@ -1,5 +1,9 @@
 import { FORMATS } from "./formats.ts";
-import { ensureToolCallIds, fixMissingToolResponses } from "./helpers/toolCallHelper.ts";
+import {
+  ensureToolCallIds,
+  fixMissingToolResponses,
+  stripOrphanedToolResults,
+} from "./helpers/toolCallHelper.ts";
 import {
   NON_ANTHROPIC_THINKING_PLACEHOLDER,
   prepareClaudeRequest,
@@ -178,6 +182,9 @@ export function translateRequest(
   // Fix missing tool responses (insert empty tool_result if needed)
   fixMissingToolResponses(result);
 
+  // Strip orphaned tool results (tool_result/role:tool with no matching tool_call)
+  stripOrphanedToolResults(result);
+
   // Normalize roles: developer→system unless preserved, system→user for incompatible models.
   // This handles (1) sourceFormat openai with messages containing developer → non-openai target
   // or preserveDeveloperRole=false, and (2) all other paths where result.messages already exists.
@@ -340,6 +347,7 @@ export function translateRequest(
   // Ensure unique tool_call ids on final payload (translators may have introduced duplicates)
   ensureToolCallIds(result, { use9CharId });
   fixMissingToolResponses(result);
+  stripOrphanedToolResults(result);
 
   if (result.tools) {
     result.tools = coerceToolSchemas(result.tools);

@@ -5,6 +5,7 @@ import {
   buildUsageCommandText,
   extractLastUserText,
   handleInternalUsageCommand,
+  handleInternalUsageCommandHttpRequest,
   isInternalUsageCommand,
 } from "../../src/lib/usage/internalUsageCommand.ts";
 
@@ -173,6 +174,174 @@ test("buildUsageCommandText formats API key USD limits when fair usage is enable
       "Resets in 7d",
     ].join("\n")
   );
+});
+
+test("handleInternalUsageCommandHttpRequest returns terminal text for an allowed API key", async () => {
+  const response = await handleInternalUsageCommandHttpRequest(
+    new Request("http://localhost/api/usage/om-usage?provider=claude", {
+      headers: { Authorization: "Bearer sk-allowed" },
+    }),
+    {
+      now: () => NOW,
+      isValidApiKey: async (apiKey) => apiKey === "sk-allowed",
+      getApiKeyMetadata: async () => ({
+        id: "key-allowed",
+        name: "Claude terminal",
+        allowedConnections: ["conn-codex", "conn-claude"],
+        allowUsageCommand: true,
+      }),
+      getProviderConnectionById: async (connectionId) => ({
+        id: connectionId,
+        provider: connectionId === "conn-claude" ? "claude" : "codex",
+        isActive: true,
+      }),
+      getProviderConnections: async () => [],
+      getProviderLimitsCache: (connectionId) =>
+        connectionId === "conn-claude"
+          ? {
+              plan: "Claude Max",
+              quotas: {
+                "session (5h)": {
+                  used: 74,
+                  total: 100,
+                  remaining: 26,
+                  resetAt: new Date(NOW + 2 * 60 * 60_000).toISOString(),
+                },
+                "weekly (7d)": {
+                  used: 25,
+                  total: 100,
+                  remaining: 75,
+                  resetAt: new Date(NOW + 6 * 24 * 60 * 60_000).toISOString(),
+                },
+              },
+              message: null,
+              fetchedAt: new Date(NOW).toISOString(),
+            }
+          : {
+              plan: "Codex Pro",
+              quotas: {
+                weekly: {
+                  used: 9,
+                  total: 100,
+                  remaining: 91,
+                  resetAt: new Date(NOW + 5 * 24 * 60 * 60_000).toISOString(),
+                },
+              },
+              message: null,
+              fetchedAt: new Date(NOW).toISOString(),
+            },
+      getAllProviderLimitsCache: () => ({}),
+      getApiKeyUsageLimitStatus: async () => {
+        throw new Error("usage limit lookup must not run for provider quota output");
+      },
+    }
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("content-type"), "text/plain; charset=utf-8");
+  assert.equal(
+    await response.text(),
+    [
+      "Plan",
+      "Claude Max",
+      "",
+      "Usage",
+      "Session (5hr)",
+      "74%",
+      "Resets in 2h",
+      "",
+      "Weekly (7 day)",
+      "25%",
+      "Resets in 6d",
+      "",
+      "Weekly Sonnet",
+      "Unavailable",
+      "Resets in unknown",
+    ].join("\n")
+  );
+});
+
+test("handleInternalUsageCommandHttpRequest sanitizes internal errors and never leaks stack traces", async () => {
+  const response = await handleInternalUsageCommandHttpRequest(
+    new Request("http://localhost/api/usage/om-usage", {
+      headers: { Authorization: "Bearer sk-boom" },
+    }),
+    {
+      isValidApiKey: async () => {
+        throw new Error(
+          `boom at /home/diegosouzapw/dev/proxys/OmniRoute/src/lib/usage/internalUsageCommand.ts:1:1`
+        );
+      },
+      getApiKeyMetadata: async () => {
+        throw new Error("metadata lookup must not run when auth check throws");
+      },
+      getProviderConnectionById: async () => null,
+      getProviderConnections: async () => [],
+      getProviderLimitsCache: () => null,
+      getAllProviderLimitsCache: () => ({}),
+      getApiKeyUsageLimitStatus: async () => {
+        throw new Error("usage limit lookup must not run when auth check throws");
+      },
+    }
+  );
+
+  assert.equal(response.status, 500);
+  assert.equal(response.headers.get("content-type"), "application/json");
+  const body = await response.json();
+  assert.equal(typeof body.error.message, "string");
+  assert.equal(body.error.message.includes("at /"), false);
+  assert.equal(body.error.message.includes("internalUsageCommand.ts"), false);
+});
+
+test("handleInternalUsageCommandHttpRequest rejects invalid API keys as plain text", async () => {
+  const response = await handleInternalUsageCommandHttpRequest(
+    new Request("http://localhost/api/usage/om-usage", {
+      headers: { Authorization: "Bearer sk-invalid" },
+    }),
+    {
+      isValidApiKey: async () => false,
+      getApiKeyMetadata: async () => {
+        throw new Error("metadata lookup must not run for invalid keys");
+      },
+      getProviderConnectionById: async () => null,
+      getProviderConnections: async () => [],
+      getProviderLimitsCache: () => null,
+      getAllProviderLimitsCache: () => ({}),
+      getApiKeyUsageLimitStatus: async () => {
+        throw new Error("usage limit lookup must not run for invalid keys");
+      },
+    }
+  );
+
+  assert.equal(response.status, 401);
+  assert.equal(response.headers.get("content-type"), "text/plain; charset=utf-8");
+  assert.equal(await response.text(), "Usage command requires an authenticated API key.");
+});
+
+test("handleInternalUsageCommandHttpRequest rejects API keys without usage command access", async () => {
+  const response = await handleInternalUsageCommandHttpRequest(
+    new Request("http://localhost/api/usage/om-usage", {
+      headers: { Authorization: "Bearer sk-disabled" },
+    }),
+    {
+      isValidApiKey: async () => true,
+      getApiKeyMetadata: async () => ({
+        id: "key-disabled",
+        allowUsageCommand: false,
+      }),
+      getProviderConnectionById: async () => null,
+      getProviderConnections: async () => [],
+      getProviderLimitsCache: () => null,
+      getAllProviderLimitsCache: () => ({}),
+      getApiKeyUsageLimitStatus: async () => {
+        throw new Error("usage limit lookup must not run for disabled keys");
+      },
+    }
+  );
+
+  assert.equal(response.status, 403);
+  assert.equal(response.headers.get("content-type"), "text/plain; charset=utf-8");
+  assert.equal(await response.text(), "Usage command is disabled for this API key.");
 });
 
 test("handleInternalUsageCommand returns disabled response locally without provider routing", async () => {

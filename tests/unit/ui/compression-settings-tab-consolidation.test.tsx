@@ -111,4 +111,34 @@ describe("CompressionSettingsTab — compression controls consolidation (T11)", 
     expect(container.textContent).toContain("compressionSkipRules");
     expect(container.textContent).toContain("compressionPreservePatterns");
   });
+
+  it("renders the preserveSystemPrompt 3-way mode select reflecting the shim (T05/C5)", async () => {
+    await renderTab();
+    const select = container.querySelector<HTMLSelectElement>(
+      '[data-testid="preserve-system-mode-select"]'
+    );
+    expect(select).not.toBeNull();
+    const values = Array.from(select!.querySelectorAll("option")).map((o) => o.value);
+    expect(values).toEqual(["always", "whenNoCache", "never"]);
+    // CONFIG has preserveSystemPrompt: true and no explicit mode → shim renders "always".
+    expect(select!.value).toBe("always");
+  });
+
+  it("saves the chosen mode via PUT (T05/C5)", async () => {
+    await renderTab();
+    const select = container.querySelector<HTMLSelectElement>(
+      '[data-testid="preserve-system-mode-select"]'
+    );
+    await act(async () => {
+      select!.value = "never";
+      select!.dispatchEvent(new Event("change", { bubbles: true }));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    const putCall = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.find(
+      ([, init]) => (init as RequestInit | undefined)?.method === "PUT"
+    );
+    expect(putCall).toBeTruthy();
+    const body = JSON.parse(String((putCall![1] as RequestInit).body));
+    expect(body.preserveSystemPromptMode).toBe("never");
+  });
 });
