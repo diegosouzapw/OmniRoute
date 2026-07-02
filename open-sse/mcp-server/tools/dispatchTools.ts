@@ -11,10 +11,12 @@
  *   SUBSTRATE_HTTP_URL env var (e.g., http://localhost:8000)
  */
 
+import { z } from "zod";
+
 interface McpToolExtraLike {
   name: string;
   description: string;
-  inputSchema: Record<string, unknown>;
+  inputSchema: z.ZodTypeAny;
   handler: (input: Record<string, unknown>, extra?: Record<string, unknown>) => Promise<object>;
 }
 
@@ -117,31 +119,22 @@ export const dispatchTools: McpToolExtraLike[] = [
     name: "substrate_dispatch",
     description:
       "Dispatch a prompt to substrate with optional tier-based model routing (heavy=reasoning, main=standard, worker=fast). Returns task status and artifacts.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        prompt: {
-          type: "string",
-          description: "The prompt, task description, or codebase instruction to dispatch.",
-        },
-        tier: {
-          type: "string",
-          enum: ["heavy", "main", "worker"],
-          description:
-            "Model tier: heavy (gpt-5.5 reasoning), main (gpt-5.4-mini), worker (codex spark). Defaults to auto.",
-        },
-        engine: {
-          type: "string",
-          enum: ["forge", "codex", "claude", "agentapi"],
-          description: "Execution engine. Defaults to forge.",
-        },
-        cwd: {
-          type: "string",
-          description: "Working directory for execution context (optional).",
-        },
-      },
-      required: ["prompt"],
-    },
+    inputSchema: z.object({
+      prompt: z
+        .string()
+        .describe("The prompt, task description, or codebase instruction to dispatch."),
+      tier: z
+        .enum(["heavy", "main", "worker"])
+        .optional()
+        .describe(
+          "Model tier: heavy (gpt-5.5 reasoning), main (gpt-5.4-mini), worker (codex spark). Defaults to auto."
+        ),
+      engine: z
+        .enum(["forge", "codex", "claude", "agentapi"])
+        .optional()
+        .describe("Execution engine. Defaults to forge."),
+      cwd: z.string().optional().describe("Working directory for execution context (optional)."),
+    }),
     handler: async (
       input: Record<string, unknown>,
       extra?: Record<string, unknown>,
@@ -159,25 +152,14 @@ export const dispatchTools: McpToolExtraLike[] = [
     name: "substrate_plan",
     description:
       "Invoke substrate planner to generate task plan without execution. Returns structured plan for review before running dispatch.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        prompt: {
-          type: "string",
-          description: "Task description or request to plan.",
-        },
-        engine: {
-          type: "string",
-          enum: ["forge", "codex", "claude", "agentapi"],
-          description: "Planner engine. Defaults to claude.",
-        },
-        cwd: {
-          type: "string",
-          description: "Working directory context (optional).",
-        },
-      },
-      required: ["prompt"],
-    },
+    inputSchema: z.object({
+      prompt: z.string().describe("Task description or request to plan."),
+      engine: z
+        .enum(["forge", "codex", "claude", "agentapi"])
+        .optional()
+        .describe("Planner engine. Defaults to claude."),
+      cwd: z.string().optional().describe("Working directory context (optional)."),
+    }),
     handler: async (
       input: Record<string, unknown>,
       extra?: Record<string, unknown>,
@@ -193,10 +175,7 @@ export const dispatchTools: McpToolExtraLike[] = [
   {
     name: "substrate_health",
     description: "Health check: verify substrate HTTP server is reachable and operational.",
-    inputSchema: {
-      type: "object",
-      properties: {},
-    },
+    inputSchema: z.object({}),
     handler: async (
       _input: Record<string, unknown>,
       extra?: Record<string, unknown>,
