@@ -1456,6 +1456,37 @@ paths:
             transcription cost is computed per second when pricing is available,
             otherwise `0` (fail-open).
 
+  /api/v1/audio/translations:
+    post:
+      tags: [Audio]
+      summary: Translate audio to English
+      description: >-
+        Audio-to-English-text translation endpoint (OpenAI Whisper-compatible).
+        Unlike `/audio/transcriptions`, output is always English regardless of
+        the source audio language.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                model:
+                  type: string
+      responses:
+        "200":
+          description: >-
+            Translation result. Success responses carry the `X-OmniRoute-*`
+            cost-telemetry headers (see `POST /api/v1/chat/completions`); no
+            per-second pricing is available from the multipart upload, so cost
+            is always `0` (fail-open).
+
   /api/v1/moderations:
     post:
       tags: [Moderations]

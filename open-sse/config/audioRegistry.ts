@@ -3,6 +3,7 @@
  *
  * Defines providers that support audio endpoints:
  * - /v1/audio/transcriptions (Whisper API)
+ * - /v1/audio/translations (Whisper translate-to-English API)
  * - /v1/audio/speech (TTS API)
  */
 
@@ -157,6 +158,30 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
       { id: "elevenlabs/speech-to-text", name: "ElevenLabs STT" },
       { id: "elevenlabs/audio-isolation", name: "ElevenLabs Audio Isolation" },
     ],
+  },
+};
+
+/**
+ * Providers that expose an OpenAI-Whisper-compatible /audio/translations
+ * endpoint (translate-to-English). This is a narrower surface than
+ * transcription: only Whisper-family models support it, and there is no
+ * `language` input — output is always English regardless of source audio.
+ */
+export const AUDIO_TRANSLATION_PROVIDERS: Record<string, AudioProvider> = {
+  openai: {
+    id: "openai",
+    baseUrl: "https://api.openai.com/v1/audio/translations",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "whisper-1", name: "Whisper 1" }],
+  },
+
+  groq: {
+    id: "groq",
+    baseUrl: "https://api.groq.com/openai/v1/audio/translations",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "whisper-large-v3", name: "Whisper Large v3" }],
   },
 };
 
@@ -404,6 +429,13 @@ export function getTranscriptionProvider(providerId: string): AudioProvider | nu
 }
 
 /**
+ * Get translation provider config by ID
+ */
+export function getTranslationProvider(providerId: string): AudioProvider | null {
+  return AUDIO_TRANSLATION_PROVIDERS[providerId] || null;
+}
+
+/**
  * Get speech provider config by ID
  */
 export function getSpeechProvider(providerId: string): AudioProvider | null {
@@ -478,6 +510,13 @@ export function parseTranscriptionModel(
 
 export function parseSpeechModel(modelStr: string | null, dynamicProviders?: AudioProvider[]) {
   return parseAudioModel(modelStr, AUDIO_SPEECH_PROVIDERS, dynamicProviders);
+}
+
+export function parseTranslationModel(
+  modelStr: string | null,
+  dynamicProviders?: AudioProvider[]
+) {
+  return parseAudioModel(modelStr, AUDIO_TRANSLATION_PROVIDERS, dynamicProviders);
 }
 
 /**
