@@ -9,6 +9,7 @@
 ### ✨ New Features
 
 - **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
+- **feat(providers):** add ModelScope as an OpenAI-compatible (API-key) provider. (thanks @tn5052)
 
 ### 🔧 Bug Fixes
 
