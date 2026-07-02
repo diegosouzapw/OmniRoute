@@ -674,8 +674,7 @@ test("chatCore builds Claude Code-compatible upstream requests for CC providers"
 
   assert.equal(result.success, true);
   assert.equal(call.headers.Accept ?? call.headers.accept, "text/event-stream");
-  assert.equal(call.body.stream, true);
-  assert.equal(call.body.context_management, undefined);
+  assert.deepEqual([call.body.stream, call.body.context_management], [true, undefined]);
   assert.equal(call.body.system.length, 1);
   assert.match(call.body.system[0].text, /Claude Agent SDK/);
   assert.equal(typeof call.body.metadata.user_id, "string");
