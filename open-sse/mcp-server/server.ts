@@ -28,6 +28,7 @@ import {
   getProviderMetricsInput,
   bestComboForTaskInput,
   explainRouteInput,
+  pickFastestModelInput,
   getSessionSnapshotInput,
   dbHealthCheckInput,
   syncPricingInput,
@@ -57,6 +58,7 @@ import {
   handleGetProviderMetrics,
   handleBestComboForTask,
   handleExplainRoute,
+  handlePickFastestModel,
   handleGetSessionSnapshot,
   handleDbHealthCheck,
   handleSyncPricing,
@@ -1082,6 +1084,18 @@ export function createMcpServer(): McpServer {
     },
     withScopeEnforcement("omniroute_explain_route", (args) =>
       handleExplainRoute(explainRouteInput.parse(args))
+    )
+  );
+
+  server.registerTool(
+    "omniroute_pick_fastest_model",
+    {
+      description:
+        "Picks the fastest reliable provider×model pair using live TTFT/TPS/E2E/p95/health/failure/stability telemetry, and optionally applies the result to a target combo",
+      inputSchema: pickFastestModelInput,
+    },
+    withScopeEnforcement("omniroute_pick_fastest_model", (args) =>
+      handlePickFastestModel(pickFastestModelInput.parse(args))
     )
   );
 
