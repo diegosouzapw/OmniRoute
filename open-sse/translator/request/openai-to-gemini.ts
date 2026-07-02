@@ -24,6 +24,20 @@ import {
   cleanJSONSchemaForAntigravity,
 } from "../helpers/geminiHelper.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
+import {
+  type GeminiGenerationConfig,
+  isVertexGeminiProvider,
+  buildChangedToolNameMap,
+  extractClientThoughtSignature,
+  deepCleanUndefined,
+  applyAntigravityGenerationDefaults,
+  stringifyHistoricalToolArguments,
+  buildInertHistoricalToolCallText,
+  buildInertHistoricalToolResponseText,
+  escapeHistoricalContextAttribute,
+  escapeHistoricalContextContent,
+  buildHistoricalToolResultContext,
+} from "./openai-to-gemini/helpers.ts";
 
 // Observed Antigravity wrapper output cap, not an underlying model capability.
 // Keep this bridge-local: Antigravity currently caps visible output around 16K.
@@ -42,20 +56,6 @@ const GEMINI_BUILTIN_TOOL_NAMES = new Set<string>([
 
 type GeminiPart = Record<string, unknown>;
 type GeminiContent = { role: string; parts: GeminiPart[] };
-
-type GeminiGenerationConfig = {
-  temperature?: unknown;
-  topP?: unknown;
-  topK?: unknown;
-  maxOutputTokens?: unknown;
-  thinkingConfig?: {
-    thinkingBudget: number;
-    includeThoughts: boolean;
-  };
-  responseMimeType?: string;
-  responseSchema?: unknown;
-  stopSequences?: string[] | unknown[];
-};
 
 type GeminiFunctionDeclaration = {
   name: string;
@@ -118,124 +118,27 @@ type GeminiToolNameOptions = {
   supportsSignatureBypass?: boolean;
 };
 
-// Vertex AI (and Vertex Partner models) reject the OpenAI-style `id` field inside
-// function_call / function_response parts. Detect these by the routed provider id.
-function isVertexGeminiProvider(provider: unknown): boolean {
-  return provider === "vertex" || provider === "vertex-partner";
-}
-
-type OpenAIToolCallLike = {
-  thoughtSignature?: unknown;
-  thought_signature?: unknown;
-  function?: {
-    thoughtSignature?: unknown;
-    thought_signature?: unknown;
-  };
-};
-
-function buildChangedToolNameMap(toolNameMap: Map<string, string>): Map<string, string> | null {
-  const changedEntries = [...toolNameMap.entries()].filter(
-    ([sanitizedName, originalName]) => sanitizedName !== originalName
-  );
-  return changedEntries.length > 0 ? new Map(changedEntries) : null;
-}
-
-function extractClientThoughtSignature(toolCall: unknown): string | null {
-  if (!toolCall || typeof toolCall !== "object") return null;
-  const candidate = toolCall as OpenAIToolCallLike;
-
-  const signature =
-    candidate.thoughtSignature ||
-    candidate.thought_signature ||
-    candidate.function?.thoughtSignature ||
-    candidate.function?.thought_signature ||
-    null;
-  return typeof signature === "string" && signature.length > 0 ? signature : null;
-}
-
-function deepCleanUndefined(value: unknown, depth = 0): void {
-  if (depth > 10 || !value || typeof value !== "object") {
-    return;
-  }
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      deepCleanUndefined(item, depth + 1);
-    }
-  } else {
-    const obj = value as Record<string, unknown>;
-    for (const key of Object.keys(obj)) {
-      const val = obj[key];
-      if (typeof val === "string" && val === "[undefined]") {
-        delete obj[key];
-      } else {
-        deepCleanUndefined(val, depth + 1);
-      }
+// Gemini-family APIs (incl. Antigravity / Vertex) reject a `contents[]` array that
+// has two adjacent entries with the same role:
+//   400 INVALID_ARGUMENT "Request contains consecutive messages with the same role".
+// Client history that carries consecutive user turns — or a tool-result turn (mapped
+// to role:"user") immediately followed by a plain user turn — would otherwise leak
+// that invalid alternation through. Merge adjacent same-role entries by concatenating
+// their parts, the same normalization the Kiro and Claude request paths already apply
+// (9router#2191).
+export function mergeConsecutiveSameRoleContents(contents: GeminiContent[]): GeminiContent[] {
+  const merged: GeminiContent[] = [];
+  for (const entry of contents) {
+    const last = merged[merged.length - 1];
+    if (last && last.role === entry.role) {
+      last.parts.push(...entry.parts);
+    } else {
+      // Shallow-copy the entry and its `parts` array so a later same-role merge
+      // (`last.parts.push(...)`) never mutates the caller's input objects.
+      merged.push({ ...entry, parts: [...entry.parts] });
     }
   }
-}
-
-function applyAntigravityGenerationDefaults(generationConfig: GeminiGenerationConfig) {
-  const config = { ...generationConfig };
-  if (config.topK === undefined) {
-    config.topK = 40;
-  }
-  if (config.topP === undefined) {
-    config.topP = 1;
-  }
-
-  const thinkingBudget = Number(config.thinkingConfig?.thinkingBudget);
-  const maxOutputTokens = Number(config.maxOutputTokens);
-  if (
-    Number.isFinite(thinkingBudget) &&
-    thinkingBudget > 0 &&
-    (!Number.isFinite(maxOutputTokens) || maxOutputTokens <= thinkingBudget)
-  ) {
-    config.maxOutputTokens = Math.floor(thinkingBudget) + 1;
-  }
-
-  return config;
-}
-
-function stringifyHistoricalToolArguments(value: unknown): string {
-  if (typeof value === "string") return value;
-  try {
-    return JSON.stringify(value ?? {});
-  } catch {
-    return String(value ?? "{}");
-  }
-}
-
-function buildInertHistoricalToolCallText(name: string | undefined, args: unknown): string {
-  const toolName = name || "unknown";
-  return `[tool_history_call: ${toolName}] ${stringifyHistoricalToolArguments(args || "{}")}`;
-}
-
-function buildInertHistoricalToolResponseText(name: string, response: unknown): string {
-  return `[tool_history_result: ${name || "unknown"}] ${typeof response === "string" ? response : stringifyHistoricalToolArguments(response)}`;
-}
-
-function escapeHistoricalContextAttribute(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
-
-function escapeHistoricalContextContent(value: string): string {
-  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-}
-
-function buildHistoricalToolResultContext(name: string, response: unknown): string {
-  const source = escapeHistoricalContextAttribute(name || "unknown");
-  const rawResult =
-    typeof response === "string" ? response : stringifyHistoricalToolArguments(response);
-  const result = escapeHistoricalContextContent(rawResult);
-  return [
-    `<previous_tool_result_context source="${source}">`,
-    result,
-    "</previous_tool_result_context>",
-  ].join("\n");
+  return merged;
 }
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)
@@ -584,6 +487,9 @@ function openaiToGeminiBase(
       }
     }
   }
+
+  // Collapse any consecutive same-role contents Gemini would reject (9router#2191).
+  result.contents = mergeConsecutiveSameRoleContents(result.contents ?? []);
 
   // Convert tools
   const bodyTools = body.tools as Array<Record<string, unknown>> | undefined;

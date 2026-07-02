@@ -5,6 +5,7 @@
 // dependency. Extracting them here unblocks moving the heavier modals
 // (AddApiKeyModal / EditConnectionModal) out of the god-component in later phases.
 import { LOCAL_PROVIDERS, isSelfHostedChatProvider } from "@/shared/constants/providers";
+import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
@@ -37,14 +38,7 @@ export type LocalProviderMetadata = {
 
 export type CommandCodeAuthFlowState = {
   phase:
-    | "idle"
-    | "starting"
-    | "polling"
-    | "received"
-    | "applying"
-    | "applied"
-    | "expired"
-    | "error";
+    "idle" | "starting" | "polling" | "received" | "applying" | "applied" | "expired" | "error";
   state: string;
   authUrl: string;
   callbackUrl: string;
@@ -123,6 +117,22 @@ export function providerText(
     );
   }
   return fallback;
+}
+
+/**
+ * #5442 — Badge variant + i18n label key for an add-credential validation result.
+ * A provider with no live validator returns `unsupported` (Save still succeeds);
+ * previously the modal only had success/failed states, so it rendered a red
+ * "Invalid" badge for those providers even though saving worked (LMArena, PiAPI…).
+ * "unsupported" now maps to a neutral `info` badge ("N/A"), not "Invalid".
+ */
+export function validationBadgeProps(result: string): {
+  variant: "success" | "error" | "info";
+  labelKey: string;
+} {
+  if (result === "success") return { variant: "success", labelKey: "valid" };
+  if (result === "unsupported") return { variant: "info", labelKey: "notApplicable" };
+  return { variant: "error", labelKey: "invalid" };
 }
 
 /** A single model's outcome from a `/api/models/test-all` response. */
@@ -400,6 +410,20 @@ export function getWebSessionCredentialHint(
           "Leave blank to keep the current session cookie. Required cookie: {credential}.",
           values
         );
+  }
+
+  // #5465 — a provider-specific hint (e.g. t3.chat's step-by-step DevTools copy)
+  // replaces the generic one-line cookie/token template when that template is
+  // unclear for the provider (t3.chat needs a localStorage value AND the Cookie
+  // header, so "Required cookie: convex-session-id + Cookie header…" reads
+  // circular). The override key ships translated in every locale.
+  if (requirement.hintKey) {
+    return providerText(
+      t,
+      requirement.hintKey,
+      "Open the provider's web session in DevTools, copy the required credential(s), and paste them in the fields below.",
+      values
+    );
   }
 
   return requirement.kind === "token"
@@ -718,6 +742,30 @@ export function compatProtocolLabelKey(protocol: string): string {
   if (protocol === "openai-responses") return "compatProtocolOpenAIResponses";
   if (protocol === "claude") return "compatProtocolClaude";
   return "compatProtocolOpenAI";
+}
+
+/**
+ * #5446 — Modal authenticates with two credentials, a Token ID (`ak-…`) and a
+ * Token Secret (`as-…`), sent as `Authorization: Bearer <TOKEN_ID>:<TOKEN_SECRET>`.
+ * The add-connection form collects them in two fields and combines them here into
+ * the single encrypted `apiKey` value, so the generic bearer executor path emits
+ * `Bearer <id:secret>` with no provider-specific header code. When only the id
+ * field is filled, it is returned verbatim so users can still paste a pre-combined
+ * `id:secret` string into the single field.
+ */
+// #5446 checklist item 4 — Modal is bring-your-own-deploy, but the server-side
+// validator probes a known public model; pre-fill the same id so the UI and the
+// probe never drift.
+export function defaultValidationModelIdForProvider(provider: string | undefined): string {
+  return provider === "modal" ? MODAL_DEFAULT_VALIDATION_MODEL_ID : "";
+}
+
+export function combineModalCredential(tokenId: string, tokenSecret: string): string {
+  const id = tokenId.trim();
+  const secret = tokenSecret.trim();
+  if (!secret) return id;
+  if (!id) return secret;
+  return `${id}:${secret}`;
 }
 
 export function extractCommandCodeCredentialInput(value: string): string {

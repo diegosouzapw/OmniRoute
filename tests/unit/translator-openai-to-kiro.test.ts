@@ -832,6 +832,50 @@ test("OpenAI -> Kiro toolUseId round-trips between tool_use and tool_result in 2
   assert.equal(tr!.status, "success");
 });
 
+test("OpenAI -> Kiro does not inject the '(empty)' placeholder on a trailing tool-result-only turn", () => {
+  // Regression for the same bug class as upstream decolua/9router#2183: an agentic
+  // loop that ends in a tool-result turn with no follow-up user text must not have
+  // its (otherwise legitimately-empty) user content replaced by a placeholder —
+  // toolResults already give Kiro all the context it needs for this turn.
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "What is 2+2? Use the calc tool." },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_1",
+              type: "function",
+              function: { name: "calc", arguments: '{"expr":"2+2"}' },
+            },
+          ],
+        },
+        { role: "tool", tool_call_id: "call_1", content: "4" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const current = result.conversationState.currentMessage.userInputMessage;
+  const ctx = current.userInputMessageContext as {
+    toolResults?: Array<{ toolUseId: string }>;
+  };
+
+  // The trailing tool-result turn must still carry its toolResults...
+  assert.ok(ctx?.toolResults, "toolResults must be present in currentMessage context");
+  assert.equal(ctx.toolResults![0].toolUseId, "call_1");
+
+  // ...and the turn's own body (content minus the injected "[Context: ...]" time
+  // prefix, which buildKiroPayload always prepends) must be empty — NOT the
+  // literal "(empty)" placeholder, since tool-result context is present.
+  const body = current.content.replace(/^\[Context: Current time is [^\]]*\]\n\n/, "");
+  assert.equal(body, "");
+  assert.ok(!current.content.includes("(empty)"), "must not contain the '(empty)' placeholder");
+});
+
 test("OpenAI -> Kiro generates stable non-random toolUseId when tool_call has no id", () => {
   const makePayload = () =>
     buildKiroPayload(
@@ -994,5 +1038,50 @@ test("buildKiroPayload accepts kr/* model ids without the [1m] suffix", () => {
   assert.doesNotThrow(
     () => buildKiroPayload("claude-sonnet-4.5", body, true, {}),
     "model ids without [1m] must continue to build normally"
+  );
+});
+
+// Regression for upstream decolua/9router PR #2270: the dash->dot normalization's
+// trailing minor-version group must be bounded (1-2 digits), otherwise a
+// date-suffixed Claude model id (e.g. claude-opus-4-20250514) gets corrupted into
+// "claude-opus-4.20250514" because the unbounded `-(\d+)$` group swallows the
+// 8-digit date as if it were a minor version.
+test("buildKiroPayload normalizes short dash-suffixed minor versions to dots", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const opus = buildKiroPayload("claude-opus-4-8", body, false, null);
+  assert.equal(
+    opus.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4.8",
+    "1-digit minor version should normalize dash to dot"
+  );
+
+  const sonnet = buildKiroPayload("claude-sonnet-4-6", body, false, null);
+  assert.equal(
+    sonnet.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-sonnet-4.6",
+    "1-digit minor version should normalize dash to dot (sonnet)"
+  );
+});
+
+test("buildKiroPayload does not corrupt date-suffixed Claude model ids (#2270)", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("claude-opus-4-20250514", body, false, null);
+  assert.equal(
+    result.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4-20250514",
+    "date-suffixed model ids (3+ digit trailing group) must NOT be dash->dot normalized"
+  );
+});
+
+test("buildKiroPayload leaves already-two-dash Claude ids unchanged (#2270)", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("claude-opus-4-1-20250805", body, false, null);
+  assert.equal(
+    result.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4-1-20250805",
+    "two-dash form (patch + date) must remain unchanged"
   );
 });

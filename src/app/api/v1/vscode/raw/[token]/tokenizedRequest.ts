@@ -1,1 +1,5 @@
-export { withPathTokenApiKey, withSanitizedPathTokenApiKey } from "@/lib/vscode/tokenizedRequest";
+export {
+  withPathTokenApiKey,
+  withSanitizedPathTokenApiKey,
+  __vscodeRawInternals,
+} from "@/lib/vscode/tokenizedRequest";

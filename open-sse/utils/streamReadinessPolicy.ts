@@ -14,7 +14,7 @@ export type StreamReadinessPolicyResult = {
   reasons: string[];
 };
 
-const DEFAULT_MAX_TIMEOUT_MS = 120_000;
+const DEFAULT_MAX_TIMEOUT_MS = 180_000;
 const LARGE_ITEM_THRESHOLD = 150;
 const VERY_LARGE_ITEM_THRESHOLD = 400;
 const TOOL_HEAVY_THRESHOLD = 15;

@@ -78,6 +78,8 @@ test("responses ws proxy prepares and forwards OpenAI Responses websocket events
             connectionId: "conn_1",
             provider: "codex",
             account: "codex@example.com",
+            // #5611: prepare resolves the configured proxy and threads it through.
+            proxy: "http://test-proxy:8888",
             model: "gpt-5.5",
             response: {
               ...body.response,
@@ -133,6 +135,11 @@ test("responses ws proxy prepares and forwards OpenAI Responses websocket events
     wsFactory: async (url, options) => {
       assert.equal(url, "wss://chatgpt.com/backend-api/codex/responses");
       assert.equal(options.headers.Authorization, "Bearer upstream-token");
+      // #5591: prepare omits `browser`, so the fallback must be the supported
+      // chrome_142 (not the non-existent chrome_149).
+      assert.equal(options.browser, "chrome_142");
+      // #5611: the configured proxy from prepare must reach the upstream connect.
+      assert.equal(options.proxy, "http://test-proxy:8888");
       return fakeUpstream;
     },
   });

@@ -62,8 +62,8 @@ const INJECTION_PATTERNS = [
  * latency/GC source. Injection directives sit near the top of a prompt, so
  * scanning hundreds of KB of pasted code / RAG context buys only CPU. We bound
  * the scan to the first 16 KB (generous: real directives are far shorter) before
- * the regex loop. The 10 MB body-size cap that protects ingestion lives
- * elsewhere; this constant only bounds the regex scan. Refs #3932 / #4041.
+ * the regex loop. The body-size caps that protect ingestion live elsewhere;
+ * this constant only bounds the regex scan. Refs #3932 / #4041.
  */
 export const MAX_INJECTION_SCAN_BYTES = 16 * 1024;
 

@@ -40,7 +40,7 @@ test("event stream shows only when debugEnabled and appears above legacy respons
   );
 
   assert.notEqual(
-    html.indexOf(">Event Stream (Debug)<"),
+    html.indexOf(">Provider Event Stream<"),
     -1,
     "Event Stream should be present when debugEnabled"
   );
@@ -51,7 +51,7 @@ test("event stream shows only when debugEnabled and appears above legacy respons
     "Legacy response payload should be present"
   );
   assert(
-    html.indexOf(">Event Stream (Debug)<") < html.indexOf(">Response Payload (Legacy)<"),
+    html.indexOf(">Provider Event Stream<") < html.indexOf(">Response Payload (Legacy)<"),
     "Event Stream should appear before Response Payload (Legacy)"
   );
 });
@@ -85,7 +85,7 @@ test("event stream hidden when debugEnabled is false", () => {
   );
 
   assert.equal(
-    html.indexOf(">Event Stream (Debug)<"),
+    html.indexOf(">Provider Event Stream<"),
     -1,
     "Event Stream should be hidden when debugEnabled is false"
   );
@@ -163,15 +163,17 @@ test("request logger detail renders stream chunks correctly", () => {
 
   const expectedFragment = "message_start";
   assert.notEqual(
-    html.indexOf(">Event Stream (Debug)<"),
+    html.indexOf(">Provider Event Stream<"),
     -1,
     "Event Stream header should be present"
   );
-  // The payload is HTML-escaped; check for the provider key token and the message content
+  // The new UI renders the provider stream under a "Provider Event Stream" section
+  // (the raw key is no longer dumped inline); match case-insensitively so the check
+  // still asserts the provider stream is referenced in the output.
   assert.notEqual(
-    html.indexOf("provider"),
+    html.toLowerCase().indexOf("provider"),
     -1,
-    "Stream chunks output should reference provider key"
+    "Stream chunks output should reference the provider stream"
   );
   assert.notEqual(
     html.indexOf(expectedFragment),

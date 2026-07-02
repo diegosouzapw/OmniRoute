@@ -17,7 +17,19 @@ import type { DashboardChannel, DashboardEventName } from "@/lib/events/types";
 // ── Config ────────────────────────────────────────────────────────────────
 
 const WS_RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 16000, 30000];
+
+/** Only accept ws:// or wss:// URLs (mirrors the guard in src/app/api/v1/ws/route.ts). */
+function sanitizeWsPublicUrl(url: unknown): string | null {
+  if (typeof url !== "string" || url.length === 0) return null;
+  return url.startsWith("ws://") || url.startsWith("wss://") ? url : null;
+}
+
+// Build-time inlined value (Docker/npm prebuilt images won't have this — the
+// runtime value is discovered via the /api/v1/ws?handshake=1 handshake below).
+const BUILD_TIME_PUBLIC_WS_URL = sanitizeWsPublicUrl(process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL);
+
 function getDefaultWsUrl(): string {
+  if (BUILD_TIME_PUBLIC_WS_URL) return BUILD_TIME_PUBLIC_WS_URL;
   if (typeof window === "undefined") return "ws://localhost:20129";
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const { hostname } = window.location;
@@ -72,7 +84,7 @@ export interface UseLiveDashboardOptions {
  * Manages connection lifecycle, reconnection, and event streaming.
  */
 export function useLiveDashboard({
-  wsUrl = DEFAULT_WS_URL,
+  wsUrl,
   enabled = true,
   apiKey,
   channels = ["requests", "combo", "credentials"],
@@ -85,6 +97,38 @@ export function useLiveDashboard({
     error: null,
     reconnectAttempt: 0,
   });
+
+  // Runtime discovery of the public WS URL via the handshake endpoint.
+  // NEXT_PUBLIC_* env vars are inlined at build time, so prebuilt Docker/npm
+  // images never see a runtime NEXT_PUBLIC_LIVE_WS_PUBLIC_URL — the server
+  // echoes it in the /api/v1/ws?handshake=1 response instead.
+  // Skipped when the caller passes an explicit wsUrl or the env was inlined.
+  const needsHandshake = !wsUrl && !BUILD_TIME_PUBLIC_WS_URL && typeof window !== "undefined";
+  const [handshakeUrl, setHandshakeUrl] = useState<string | null>(null);
+  const [wsUrlResolved, setWsUrlResolved] = useState(!needsHandshake);
+
+  useEffect(() => {
+    if (!needsHandshake || wsUrlResolved) return;
+    let cancelled = false;
+    fetch("/api/v1/ws?handshake=1")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body) => {
+        if (cancelled) return;
+        const publicUrl = sanitizeWsPublicUrl(body?.live?.publicUrl);
+        if (publicUrl) setHandshakeUrl(publicUrl);
+      })
+      .catch(() => {
+        // Handshake unavailable — fall back to the default URL.
+      })
+      .finally(() => {
+        if (!cancelled) setWsUrlResolved(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [needsHandshake, wsUrlResolved]);
+
+  const effectiveWsUrl = wsUrl ?? handshakeUrl ?? DEFAULT_WS_URL;
 
   const [events, setEvents] = useState<WsEventPayload[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
@@ -108,7 +152,9 @@ export function useLiveDashboard({
     }));
 
     try {
-      const wsUrlWithAuth = apiKey ? `${wsUrl}?token=${encodeURIComponent(apiKey)}` : wsUrl;
+      const wsUrlWithAuth = apiKey
+        ? `${effectiveWsUrl}?token=${encodeURIComponent(apiKey)}`
+        : effectiveWsUrl;
 
       const ws = new WebSocket(wsUrlWithAuth);
       wsRef.current = ws;
@@ -206,7 +252,7 @@ export function useLiveDashboard({
         error: err instanceof Error ? err.message : "Connection failed",
       }));
     }
-  }, [wsUrl, apiKey, channels.join(","), autoReconnect, connection.reconnectAttempt]);
+  }, [effectiveWsUrl, apiKey, channels.join(","), autoReconnect, connection.reconnectAttempt]);
 
   // Connect on mount and on reconnect trigger
   useEffect(() => {
@@ -227,6 +273,10 @@ export function useLiveDashboard({
       return;
     }
 
+    // Wait for the handshake URL resolution before opening the socket, so we
+    // never connect to the hardcoded default and then flap to the public URL.
+    if (!wsUrlResolved) return;
+
     connect();
     return () => {
       mountedRef.current = false;
@@ -235,7 +285,7 @@ export function useLiveDashboard({
       }
       wsRef.current?.close();
     };
-  }, [connect, enabled]);
+  }, [connect, enabled, wsUrlResolved]);
 
   // Connect (for manual retry)
   const reconnect = useCallback(() => {

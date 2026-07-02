@@ -1,5 +1,26 @@
 import { sanitizeVscodeRequest } from "@/app/api/v1/vscode/contextSanitizer";
 
+// Path-token endpoints carry the API key in the URL (by design, for Ollama/VS Code clients that
+// cannot send an Authorization header). URLs leak via access logs, proxies, and browser history,
+// so we alert the operator once per process when such an endpoint is exercised (Seg4 hardening).
+let hasWarnedTokenInUrl = false;
+
+export const __vscodeRawInternals = {
+  resetTokenInUrlWarning() {
+    hasWarnedTokenInUrl = false;
+  },
+};
+
+function warnTokenInUrlOnce() {
+  if (hasWarnedTokenInUrl) return;
+  hasWarnedTokenInUrl = true;
+  console.warn(
+    "[VSCODE][SECURITY] A path-token endpoint (/api/v1/vscode/raw/[token] or /api/v1/vscode/[token]) " +
+      "was used. The API key travels in the request URL and can leak via access logs, proxies, and " +
+      "browser history. Prefer the Authorization header where the client supports it."
+  );
+}
+
 function inferTokenFromVscodePath(request: Request) {
   try {
     const url = new URL(request.url, "http://localhost");
@@ -26,6 +47,8 @@ function inferTokenFromVscodePath(request: Request) {
 export function withPathTokenApiKey(request: Request, token?: string) {
   const resolvedToken = token || inferTokenFromVscodePath(request);
   if (!resolvedToken) return request;
+
+  warnTokenInUrlOnce();
 
   const headers = new Headers(request.headers);
 

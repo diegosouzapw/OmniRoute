@@ -4667,7 +4667,7 @@
     "v0VercelWebLabel": "v0 Vercel Web",
     "v0VercelWebDesc": "通过 v0.dev 的 AI 代码生成",
     "kimiWebLabel": "Kimi Web",
-    "kimiWebDesc": "通过 kimi.moonshot.cn 访问中国市场的 AI 聊天",
+    "kimiWebDesc": "通过 www.kimi.com 访问 Moonshot AI 聊天（国际版，Connect-RPC API）",
     "doubaoWebLabel": "豆包网",
     "doubaoWebDesc": "字节跳动 AI 聊天通过 doubao.com",
     "Account Deactivated": "账户已停用",

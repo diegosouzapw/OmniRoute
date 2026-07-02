@@ -77,6 +77,11 @@ test("providers validate route returns 400 for invalid provider type", async () 
 
   // Should return 400 for unsupported
   assert.equal(response.status, 400);
+  // #5565/#5567: the body must carry `unsupported: true` so the dashboard can
+  // treat "validation not supported" as a non-blocking warning (allow Save)
+  // instead of a hard "Invalid" block.
+  const body = await response.json();
+  assert.equal(body.unsupported, true);
 });
 
 test("providers validate route forwards baseUrl to built-in specialty validators", async () => {

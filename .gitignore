@@ -229,3 +229,6 @@ docs/prompts/AGENT-OWNERSHIP-PROTOCOL.md
 docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute-mim.md
 docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute-mid.md
 omniroute.md
+
+# mise configuration
+mise.toml

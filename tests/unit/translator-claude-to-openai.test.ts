@@ -259,6 +259,42 @@ test("Claude -> OpenAI turns thinking and tool_use blocks into assistant tool_ca
   });
 });
 
+test("Claude -> OpenAI passes pre-stringified tool_use input through verbatim (no double-encoding)", () => {
+  // #2279: some upstream Claude sources emit tool_use.input already JSON-encoded
+  // as a string. Re-running JSON.stringify on it would double-encode the
+  // payload (wrapping it in an extra pair of quotes with escaped internals).
+  const result = claudeToOpenAIRequest(
+    "gpt-4o",
+    {
+      messages: [
+        {
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "tu_2",
+              name: "read_file",
+              input: '{"path":"/tmp/demo"}',
+            },
+          ],
+        },
+      ],
+    },
+    false
+  );
+
+  assert.deepEqual(result.messages[0].tool_calls, [
+    {
+      id: "tu_2",
+      type: "function",
+      function: {
+        name: "read_file",
+        arguments: '{"path":"/tmp/demo"}',
+      },
+    },
+  ]);
+});
+
 test("Claude -> OpenAI converts tool_result blocks into tool messages and preserves trailing user text", () => {
   const result = claudeToOpenAIRequest(
     "gpt-4o",

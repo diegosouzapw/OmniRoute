@@ -65,6 +65,7 @@ interface CompressionConfig extends CompressionTokenSaverConfig {
   autoTriggerTokens: number;
   cacheMinutes: number;
   preserveSystemPrompt: boolean;
+  preserveSystemPromptMode?: "always" | "whenNoCache" | "never";
   mcpDescriptionCompressionEnabled?: boolean;
   comboOverrides: Record<string, CompressionMode>;
   cavemanConfig?: CavemanConfig;
@@ -372,18 +373,26 @@ export default function CompressionSettingsTab() {
 
             <label className="flex items-center justify-between">
               <span className="text-sm text-text-muted">{t("compressionPreserveSystem")}</span>
-              <button
-                onClick={() => save({ preserveSystemPrompt: !config.preserveSystemPrompt })}
-                className={`relative w-10 h-5 rounded-full transition-colors ${
-                  config.preserveSystemPrompt ? "bg-green-500" : "bg-border"
-                }`}
+              <select
+                value={
+                  config.preserveSystemPromptMode ??
+                  (config.preserveSystemPrompt === false ? "whenNoCache" : "always")
+                }
+                onChange={(e) =>
+                  save({
+                    preserveSystemPromptMode: e.target.value as
+                      | "always"
+                      | "whenNoCache"
+                      | "never",
+                  })
+                }
+                className="w-36 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
+                data-testid="preserve-system-mode-select"
               >
-                <span
-                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    config.preserveSystemPrompt ? "left-5" : "left-0.5"
-                  }`}
-                />
-              </button>
+                <option value="always">{t("compressionPreserveSystemAlways")}</option>
+                <option value="whenNoCache">{t("compressionPreserveSystemWhenNoCache")}</option>
+                <option value="never">{t("compressionPreserveSystemNever")}</option>
+              </select>
             </label>
 
             <label className="flex items-center justify-between">

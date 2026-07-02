@@ -34,12 +34,11 @@ Dashboard opens at `http://localhost:20128` and API base URL is `http://localhos
 ### pnpm
 
 ```bash
-pnpm install -g omniroute
-pnpm approve-builds -g   # Select all packages → approve
+pnpm add -g omniroute@latest --allow-build=better-sqlite3 --allow-build=@swc/core
 omniroute
 ```
 
-> **pnpm users:** `pnpm approve-builds -g` is required to enable native build scripts for `better-sqlite3` and `@swc/core`.
+> **pnpm users:** the `--allow-build` flag is required to enable native build scripts for `better-sqlite3` and `@swc/core`. The `pnpm approve-builds -g` command is not supported for global installs on pnpm v11.
 
 ### Arch Linux (AUR)
 

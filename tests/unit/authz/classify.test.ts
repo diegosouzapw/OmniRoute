@@ -177,6 +177,13 @@ const cases: Case[] = [
   { name: "/api/audit MANAGEMENT", path: "/api/audit", expectedClass: "MANAGEMENT" },
 
   {
+    name: "/api/usage/om-usage is PUBLIC (handler enforces its own API key auth)",
+    path: "/api/usage/om-usage",
+    method: "GET",
+    expectedClass: "PUBLIC",
+  },
+
+  {
     name: "Unknown top-level path defaults MANAGEMENT (fail-closed)",
     path: "/totally-unknown",
     expectedClass: "MANAGEMENT",

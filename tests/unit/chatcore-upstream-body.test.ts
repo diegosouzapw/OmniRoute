@@ -46,6 +46,41 @@ test("leaves the model untouched when it already matches", async () => {
   assert.equal(out.model, "model-a");
 });
 
+// PR #5563: the `effectiveToolLimit < MAX_TOOLS_LIMIT` gate was removed from
+// truncateToolList, so providers whose proactive limit is >= the 128 default
+// (e.g. grok-cli at 200) are actually truncated. Without the gate removal these
+// two assertions fail (250 tools would pass through untruncated).
+test("truncates the tool list to the grok-cli proactive limit (200) when exceeded", async () => {
+  const tools = Array.from({ length: 250 }, (_, i) => ({
+    type: "function",
+    function: { name: `tool_${i}`, parameters: {} },
+  }));
+  const out = await prepareUpstreamBody({
+    translatedBody: { model: "grok-cli-model", messages: [], tools },
+    modelToCall: "grok-cli-model",
+    provider: "grok-cli",
+    targetFormat: "claude",
+    credentials: null,
+  });
+  assert.ok(Array.isArray(out.tools));
+  assert.equal(out.tools.length, 200);
+});
+
+test("preserves the full tool list when within the grok-cli limit", async () => {
+  const tools = Array.from({ length: 150 }, (_, i) => ({
+    type: "function",
+    function: { name: `tool_${i}`, parameters: {} },
+  }));
+  const out = await prepareUpstreamBody({
+    translatedBody: { model: "grok-cli-model", messages: [], tools },
+    modelToCall: "grok-cli-model",
+    provider: "grok-cli",
+    targetFormat: "claude",
+    credentials: null,
+  });
+  assert.equal(out.tools.length, 150);
+});
+
 test("backfills the Qwen OAuth user when missing", async () => {
   const out = await prepareUpstreamBody({
     translatedBody: { model: "qwen-max", messages: [] },

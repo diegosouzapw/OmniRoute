@@ -49,13 +49,29 @@ function defaultPreserveDeveloperForProvider(provider: string): boolean {
 
 /**
  * Models that are known to reject the `system` role regardless of provider.
- * Uses prefix matching (e.g., "glm-" matches "glm-4.7", "glm-4.5", etc.)
+ * Uses prefix matching (e.g., "ernie-" matches "ernie-4.0").
  */
 const MODELS_WITHOUT_SYSTEM_ROLE = [
-  "glm-", // ZhipuAI GLM models (prefix: glm-5.1, glm-4.7, etc.)
-  "glm", // Exact match for model id "glm" (e.g., Pollinations)
   "ernie-", // Baidu ERNIE models
 ];
+
+/**
+ * ZhipuAI GLM rejects the `system` role EXCEPT generation > 5.0: per z.ai docs,
+ * GLM 5.1 / 5.2 (and newer) accept it, so their system prompt must NOT be folded
+ * into the first user turn (#5610). Everything else GLM — bare "glm" (Pollinations),
+ * the 4.x family, and the 5.0 generation — still needs the fold. The version is read
+ * from "glm-<major>.<minor>" or the Fireworks "glm-5p1" point alias.
+ */
+function isGlmWithoutSystemRole(modelLower: string): boolean {
+  if (!modelLower.startsWith("glm")) return false;
+  const match = modelLower.match(/glm-?(\d+)(?:[.p](\d+))?/);
+  if (match) {
+    const major = Number(match[1]);
+    const minor = match[2] ? Number(match[2]) : 0;
+    if (major > 5 || (major === 5 && minor >= 1)) return false;
+  }
+  return true;
+}
 
 const PROVIDER_SCOPED_MODELS_WITHOUT_SYSTEM_ROLE: Record<string, RegExp[]> = {
   // ZenMux exposes Z.AI GLM through OpenAI-compatible model ids such as
@@ -105,6 +121,8 @@ function supportsSystemRole(provider: string, model: string): boolean {
   for (const pattern of PROVIDER_SCOPED_MODELS_WITHOUT_SYSTEM_ROLE[providerLower] ?? []) {
     if (pattern.test(modelLower)) return false;
   }
+
+  if (isGlmWithoutSystemRole(modelLower)) return false;
 
   for (const prefix of MODELS_WITHOUT_SYSTEM_ROLE) {
     if (modelLower.startsWith(prefix)) return false;

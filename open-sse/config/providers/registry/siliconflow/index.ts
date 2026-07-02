@@ -1,13 +1,10 @@
 import type { RegistryEntry } from "../../shared.ts";
+import { buildOpenAiCompatibleRegistryEntry } from "../../shared.ts";
 
-export const siliconflowProvider: RegistryEntry = {
+export const siliconflowProvider: RegistryEntry = buildOpenAiCompatibleRegistryEntry({
   id: "siliconflow",
   alias: "siliconflow",
-  format: "openai",
-  executor: "default",
   baseUrl: "https://api.siliconflow.com/v1/chat/completions",
-  authType: "apikey",
-  authHeader: "bearer",
   models: [
     // DeepSeek
     { id: "deepseek-ai/DeepSeek-V3.2", name: "DeepSeek V3.2" },
@@ -84,4 +81,4 @@ export const siliconflowProvider: RegistryEntry = {
     { id: "google/gemma-4-26B-A4B-it", name: "Gemma 4 26B" },
     { id: "ByteDance-Seed/Seed-OSS-36B-Instruct", name: "Seed OSS 36B" },
   ],
-};
+});
