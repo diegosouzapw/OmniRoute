@@ -11,7 +11,6 @@ import {
   listIssueAgentRuns,
   saveIssueAgentRun,
   type CommandRunner,
-  type IssueAgentSettingsInput,
 } from "@/lib/issueAgent";
 
 export const dynamic = "force-dynamic";
@@ -19,39 +18,36 @@ export const revalidate = 0;
 
 const execFileAsync = promisify(execFile);
 
-const issueAgentSettingsSchema = z
-  .object({
-    mode: z.enum(["report", "triage", "fix", "triage-and-fix"]).optional(),
-    maxBudgetUsd: z.number().finite().optional(),
-    maxIterations: z.number().finite().optional(),
-    provider: z.string().optional(),
-    model: z.string().optional(),
-    routingPolicy: z.string().optional(),
-    githubRepository: z.string().optional(),
-    defaultBaseBranch: z.string().optional(),
-    dockerWorkerImage: z.string().optional(),
-    retentionDays: z.number().finite().optional(),
-    budgets: z
-      .object({
-        maxRuntimeSeconds: z.number().finite().optional(),
-        maxTokens: z.number().finite().optional(),
-        maxCostUsd: z.number().finite().optional(),
-      })
-      .strict()
-      .optional(),
-  })
-  .strict();
+const issueAgentModeSchema = z.enum(["report", "triage", "fix", "triage-and-fix"]);
 
-const createIssueAgentRunBodySchema = z
-  .object({
-    mode: z.enum(["report", "triage", "fix", "triage-and-fix"]),
-    issueRef: z.string().optional(),
-    source: z.string().optional(),
-    log: z.unknown().optional(),
-    detail: z.unknown().optional(),
-    settings: issueAgentSettingsSchema.optional(),
-  })
-  .strict();
+const createIssueAgentRunSchema = z.object({
+  mode: issueAgentModeSchema,
+  source: z.string().max(100).optional(),
+  issueRef: z.string().max(300).optional(),
+  log: z.unknown().optional(),
+  detail: z.unknown().optional(),
+  settings: z
+    .object({
+      mode: issueAgentModeSchema.optional(),
+      maxBudgetUsd: z.number().min(0).max(100).optional(),
+      maxIterations: z.number().int().min(1).max(100).optional(),
+      provider: z.string().max(100).optional(),
+      model: z.string().max(200).optional(),
+      routingPolicy: z.string().max(200).optional(),
+      githubRepository: z.string().max(200).optional(),
+      defaultBaseBranch: z.string().max(100).optional(),
+      dockerWorkerImage: z.string().max(300).optional(),
+      retentionDays: z.number().int().min(1).max(365).optional(),
+      budgets: z
+        .object({
+          maxRuntimeSeconds: z.number().int().min(30).max(86_400).optional(),
+          maxTokens: z.number().int().min(1_000).max(50_000_000).optional(),
+          maxCostUsd: z.number().min(0).max(100_000).optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+});
 
 const commandRunner: CommandRunner = async (command, args) => {
   try {
@@ -91,12 +87,15 @@ export async function POST(request: Request) {
   if (authError) return authError;
 
   try {
-    const parsed = createIssueAgentRunBodySchema.safeParse(await request.json());
+    const parsed = createIssueAgentRunSchema.safeParse(await request.json());
     if (!parsed.success) {
       return createErrorResponse({
         status: 400,
         message: "Invalid issue-agent run request",
-        details: parsed.error.flatten(),
+        details: parsed.error.issues.map((issue) => ({
+          path: issue.path.join("."),
+          message: issue.message,
+        })),
       });
     }
     const body = parsed.data;
@@ -112,7 +111,7 @@ export async function POST(request: Request) {
         source: typeof body.source === "string" ? body.source : "api",
         log: body.log,
         detail: body.detail,
-        settings: body.settings as IssueAgentSettingsInput | undefined,
+        settings: body.settings,
         prerequisiteCheck,
         dockerDetected: await detectDocker(),
       })

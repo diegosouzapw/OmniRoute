@@ -1151,3 +1151,13 @@ Not required for normal operation — developer tooling only.
 | Variable                     | Default      | Source File                         | Description                                                                                                                                              |
 | ---------------------------- | ------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `OMNIROUTE_EVAL_CREDENTIALS` | `{}` (empty) | `scripts/compression-eval/index.ts` | Operator-supplied JSON credentials for the provider exercised by the offline compression-eval CLI (parsed with `JSON.parse`). Leave unset for a dry run. |
+
+### Runtime environment probes
+
+These values are read as deployment-environment signals and are normally injected
+by Docker or Kubernetes rather than configured by operators.
+
+| Variable                  | Default   | Source File                              | Description                                                                                                    |
+| ------------------------- | --------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `DOCKER_CONTAINER`        | _(unset)_ | `src/app/api/issue-agent/runs/route.ts`  | Indicates the server is running inside a container so issue-agent fix runs can surface the Docker worker plan. |
+| `KUBERNETES_SERVICE_HOST` | _(unset)_ | `src/app/api/issue-agent/runs/route.ts`  | Kubernetes-injected service host; used as a containerized runtime signal for issue-agent worker planning.      |

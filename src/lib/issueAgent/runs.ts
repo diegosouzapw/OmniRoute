@@ -45,7 +45,6 @@ export type CreateIssueAgentRunInput = {
 };
 
 let nextRunId = 1;
-export const MAX_ISSUE_AGENT_RUNS = 100;
 
 export function createIssueAgentRun(input: CreateIssueAgentRunInput): IssueAgentRun {
   const now = input.now ?? (() => new Date());
@@ -100,26 +99,13 @@ function buildDiagnosticSummary(log: unknown, detail: unknown): string {
 }
 
 const runs = new Map<string, IssueAgentRun>();
+const MAX_RUNS = 200;
 
 export function saveIssueAgentRun(run: IssueAgentRun): IssueAgentRun {
+  pruneIssueAgentRuns(run.settings.retentionDays);
   runs.set(run.id, run);
-  pruneIssueAgentRuns(new Date(run.createdAt));
+  pruneIssueAgentRuns(run.settings.retentionDays);
   return run;
-}
-
-function pruneIssueAgentRuns(now: Date): void {
-  for (const run of runs.values()) {
-    const createdAt = Date.parse(run.createdAt);
-    const retentionMs = run.settings.retentionDays * 24 * 60 * 60 * 1000;
-    if (Number.isFinite(createdAt) && now.getTime() - createdAt > retentionMs) {
-      runs.delete(run.id);
-    }
-  }
-
-  const sortedRuns = listIssueAgentRuns();
-  for (const run of sortedRuns.slice(MAX_ISSUE_AGENT_RUNS)) {
-    runs.delete(run.id);
-  }
 }
 
 export function listIssueAgentRuns(): IssueAgentRun[] {
@@ -141,4 +127,18 @@ export function cancelIssueAgentRun(id: string): IssueAgentRun | null {
 export function resetIssueAgentRunsForTests() {
   runs.clear();
   nextRunId = 1;
+}
+
+export function pruneIssueAgentRuns(retentionDays = 7) {
+  const cutoff = Date.now() - Math.max(1, retentionDays) * 24 * 60 * 60 * 1000;
+  for (const [id, run] of runs) {
+    if (new Date(run.createdAt).getTime() < cutoff) {
+      runs.delete(id);
+    }
+  }
+
+  const sorted = Array.from(runs.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  for (const stale of sorted.slice(MAX_RUNS)) {
+    runs.delete(stale.id);
+  }
 }

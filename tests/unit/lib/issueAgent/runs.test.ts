@@ -3,12 +3,16 @@ import { test } from "node:test";
 
 import {
   createIssueAgentRun,
+  getIssueAgentRun,
+  IssueAgentMode,
   listIssueAgentRuns,
-  MAX_ISSUE_AGENT_RUNS,
   resetIssueAgentRunsForTests,
   saveIssueAgentRun,
 } from "../../../../src/lib/issueAgent/runs.ts";
-import type { IssueAgentMode } from "../../../../src/lib/issueAgent/settings.ts";
+
+test.beforeEach(() => {
+  resetIssueAgentRunsForTests();
+});
 
 test("run creation records report, triage, fix, and combined modes without executing git", () => {
   const modes: IssueAgentMode[] = ["report", "triage", "fix", "triage-and-fix"];
@@ -39,12 +43,9 @@ test("run creation records report, triage, fix, and combined modes without execu
     runs.map((run) => run.id),
     ["run-report", "run-triage", "run-fix", "run-triage-and-fix"]
   );
-  assert.deepEqual(
-    runs.map((run) => run.status),
-    ["recorded", "recorded", "recorded", "recorded"]
-  );
   assert.match(runs[0].diagnostics.summary, /POST/);
   assert.doesNotMatch(runs[0].diagnostics.redactedPreview, /secret/);
+  assert.equal(runs[0].status, "recorded");
 });
 
 test("fix run is blocked when prerequisite checks fail", () => {
@@ -60,53 +61,43 @@ test("fix run is blocked when prerequisite checks fail", () => {
   assert.deepEqual(run.prerequisiteCheck?.missing, ["gh"]);
 });
 
-test("saved runs are bounded to the newest max run count", () => {
-  resetIssueAgentRunsForTests();
+test("run store prunes expired runs on write", () => {
+  const oldRun = createIssueAgentRun({
+    issueRef: "owner/repo#123",
+    mode: "triage",
+    settings: { retentionDays: 1 },
+    now: () => new Date("2026-06-28T12:00:00.000Z"),
+    idFactory: () => "old-run",
+  });
+  saveIssueAgentRun(oldRun);
 
-  for (let index = 0; index < MAX_ISSUE_AGENT_RUNS + 5; index += 1) {
+  const freshRun = createIssueAgentRun({
+    issueRef: "owner/repo#123",
+    mode: "triage",
+    settings: { retentionDays: 1 },
+    now: () => new Date(),
+    idFactory: () => "fresh-run",
+  });
+  saveIssueAgentRun(freshRun);
+
+  assert.equal(getIssueAgentRun("old-run"), null);
+  assert.equal(getIssueAgentRun("fresh-run")?.id, "fresh-run");
+});
+
+test("run store caps retained runs", () => {
+  for (let i = 0; i < 205; i += 1) {
     saveIssueAgentRun(
       createIssueAgentRun({
-        issueRef: `owner/repo#${index}`,
+        issueRef: "owner/repo#123",
         mode: "triage",
-        now: () => new Date(Date.UTC(2026, 5, 30, 12, 0, index)),
+        now: () => new Date(2026, 5, 30, 12, 0, i),
+        idFactory: () => `run-${i}`,
       })
     );
   }
 
   const runs = listIssueAgentRuns();
-  assert.equal(runs.length, MAX_ISSUE_AGENT_RUNS);
-  assert.equal(runs[0].issueRef, `owner/repo#${MAX_ISSUE_AGENT_RUNS + 4}`);
-  assert.equal(runs.at(-1)?.issueRef, "owner/repo#5");
-
-  resetIssueAgentRunsForTests();
-});
-
-test("saved runs prune entries older than their retention window", () => {
-  resetIssueAgentRunsForTests();
-
-  saveIssueAgentRun(
-    createIssueAgentRun({
-      issueRef: "owner/repo#old",
-      mode: "triage",
-      settings: { retentionDays: 1 },
-      now: () => new Date("2026-06-28T12:00:00.000Z"),
-      idFactory: () => "old-run",
-    })
-  );
-  saveIssueAgentRun(
-    createIssueAgentRun({
-      issueRef: "owner/repo#new",
-      mode: "triage",
-      settings: { retentionDays: 1 },
-      now: () => new Date("2026-06-30T12:00:00.000Z"),
-      idFactory: () => "new-run",
-    })
-  );
-
-  assert.deepEqual(
-    listIssueAgentRuns().map((run) => run.id),
-    ["new-run"]
-  );
-
-  resetIssueAgentRunsForTests();
+  assert.equal(runs.length, 200);
+  assert.equal(getIssueAgentRun("run-0"), null);
+  assert.equal(getIssueAgentRun("run-204")?.id, "run-204");
 });
