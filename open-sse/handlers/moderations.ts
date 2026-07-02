@@ -1,0 +1,82 @@
+import { CORS_HEADERS } from "../utils/cors.ts";
+/**
+ * Moderation Handler
+ *
+ * Handles POST /v1/moderations (OpenAI Moderations API format).
+ */
+
+import { getModerationProvider, parseModerationModel } from "../config/moderationRegistry.ts";
+import { errorResponse } from "../utils/error.ts";
+import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { generateRequestId } from "@/shared/utils/requestId";
+
+/**
+ * Handle moderation request
+ *
+ * @param {Object} options
+ * @param {Object} options.body - JSON body { model, input }
+ * @param {Object} options.credentials - Provider credentials { apiKey }
+ * @returns {Response}
+ */
+/** @returns {Promise<unknown>} */
+export async function handleModeration({ body, credentials }) {
+  const startTime = Date.now();
+  if (!body.input) {
+    return errorResponse(400, "input is required");
+  }
+
+  // Default to latest moderation model
+  const model = body.model || "omni-moderation-latest";
+  const { provider: providerId, model: modelId } = parseModerationModel(model);
+  const providerConfig = providerId ? getModerationProvider(providerId) : null;
+
+  if (!providerConfig) {
+    return errorResponse(
+      400,
+      `No moderation provider found for model "${model}". Available: openai`
+    );
+  }
+
+  const token = credentials?.apiKey || credentials?.accessToken;
+  if (!token) {
+    return errorResponse(401, `No credentials for moderation provider: ${providerId}`);
+  }
+
+  try {
+    const res = await fetch(providerConfig.baseUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        model: modelId,
+        input: body.input,
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      return new Response(errText, {
+        status: res.status,
+        headers: {
+          "Content-Type": "application/json",
+          ...CORS_HEADERS,
+        },
+      });
+    }
+
+    const data = await res.json();
+    const headers = new Headers({ ...CORS_HEADERS, "Content-Type": "application/json" });
+    attachOmniRouteMetaHeaders(headers, {
+      provider: providerId,
+      model: modelId,
+      costUsd: 0,
+      latencyMs: Date.now() - startTime,
+      requestId: generateRequestId(),
+    });
+    return new Response(JSON.stringify(data), { status: 200, headers });
+  } catch (err) {
+    return errorResponse(500, `Moderation request failed: ${err.message}`);
+  }
+}
