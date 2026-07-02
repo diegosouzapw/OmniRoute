@@ -1,33 +1,41 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { APIKEY_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
+const { OAUTH_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
 const { PROVIDER_ENDPOINTS } = await import("../../src/shared/constants/config.ts");
 const { REGISTRY: providerRegistry } = await import("../../open-sse/config/providerRegistry.ts");
+const { PROVIDERS: oauthFlows } = await import("../../src/lib/oauth/providers/index.ts");
 
-test("ClinePass is registered as an API-key provider with the canonical identity", () => {
-  const clinepass = APIKEY_PROVIDERS.clinepass;
-  assert.ok(clinepass, "APIKEY_PROVIDERS.clinepass must be defined");
+test("ClinePass is registered as an OAuth provider with the canonical identity", () => {
+  const clinepass = OAUTH_PROVIDERS.clinepass;
+  assert.ok(clinepass, "OAUTH_PROVIDERS.clinepass must be defined");
   assert.equal(clinepass.id, "clinepass");
   assert.equal(clinepass.alias, "cp");
   assert.equal(clinepass.name, "ClinePass");
   assert.equal(clinepass.website, "https://cline.bot/clinepass");
-  assert.equal(typeof clinepass.textIcon, "string");
 });
 
-test("ClinePass exposes the OpenAI-compatible chat completions URL", () => {
-  assert.equal(PROVIDER_ENDPOINTS.clinepass, "https://api.cline.bot/api/v1/chat/completions");
-});
-
-test("ClinePass registry entry uses OpenAI format with bearer apikey auth", () => {
+test("ClinePass registry entry reuses the Cline OAuth wire image", () => {
   const entry = providerRegistry.clinepass;
   assert.ok(entry, "providerRegistry.clinepass must be defined");
   assert.equal(entry.id, "clinepass");
   assert.equal(entry.format, "openai");
-  assert.equal(entry.executor, "default");
-  assert.equal(entry.authType, "apikey");
-  assert.equal(entry.authHeader, "bearer");
+  assert.equal(entry.executor, "openai");
+  assert.equal(entry.authType, "oauth");
   assert.equal(entry.baseUrl, "https://api.cline.bot/api/v1/chat/completions");
+  assert.ok(entry.oauth, "must carry the Cline OAuth urls");
+  assert.equal(entry.oauth.authUrl, "https://api.cline.bot/api/v1/auth/authorize");
+  assert.equal(entry.oauth.tokenUrl, "https://api.cline.bot/api/v1/auth/token");
+  assert.equal(entry.oauth.refreshUrl, "https://api.cline.bot/api/v1/auth/refresh");
+});
+
+test("ClinePass reuses the Cline OAuth flow implementation (no new OAuth code)", () => {
+  assert.ok(oauthFlows.clinepass, "clinepass must map to an OAuth flow");
+  assert.equal(
+    oauthFlows.clinepass,
+    oauthFlows.cline,
+    "clinepass must reuse the cline OAuth flow 1:1"
+  );
 });
 
 test("ClinePass seed model list is the 10 cline-pass/* models from the docs", () => {
@@ -51,4 +59,8 @@ test("ClinePass seed model list is the 10 cline-pass/* models from the docs", ()
       `seed list must include ${family}`
     );
   }
+});
+
+test("ClinePass exposes the OpenAI-compatible chat completions URL", () => {
+  assert.equal(PROVIDER_ENDPOINTS.clinepass, "https://api.cline.bot/api/v1/chat/completions");
 });

@@ -92,22 +92,6 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "CR",
     website: "https://crof.ai",
   },
-  clinepass: {
-    id: "clinepass",
-    alias: "cp",
-    name: "ClinePass",
-    icon: "vpn_key",
-    color: "#9D4EDD",
-    textIcon: "CP",
-    website: "https://cline.bot/clinepass",
-    passthroughModels: true,
-    hasFree: false,
-    freeNote:
-      "Cline subscription $9.99/mo — 10 open coding models (GLM 5.2, Kimi K2.7 Code, DeepSeek V4, MiMo, MiniMax M3, Qwen3.7) with 2-5x API rate limits.",
-    authHint: "Use your Cline API key (Settings → API Keys in app.cline.bot) as a Bearer token.",
-    apiHint:
-      "Create an API key at https://app.cline.bot (Settings → API Keys), then paste it as a Bearer token. OpenAI-compatible endpoint at https://api.cline.bot/api/v1; models use the cline-pass/<model> namespace.",
-  },
   bazaarlink: {
     id: "bazaarlink",
     alias: "bzl",
