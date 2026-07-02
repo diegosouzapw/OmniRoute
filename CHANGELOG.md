@@ -12,7 +12,7 @@
 
 ### 🔧 Bug Fixes
 
-_TBD_
+- **fix(embeddings):** forward the connection-level proxy to embedding requests (Gemini/OpenAI). (thanks @nic562)
 
 ### 📝 Maintenance
 
