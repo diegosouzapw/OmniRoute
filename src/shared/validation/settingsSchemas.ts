@@ -19,6 +19,26 @@ import { SPAWN_CAPABLE_PREFIXES } from "@/shared/constants/spawnCapablePrefixes"
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
+const issueAgentSettingsSchema = z.object({
+  automaticReportsEnabled: z.boolean().optional(),
+  manualActionsEnabled: z.boolean().optional(),
+  fixPrCreationEnabled: z.boolean().optional(),
+  provider: z.string().max(100).optional(),
+  model: z.string().max(200).optional(),
+  routingPolicy: z.string().max(200).optional(),
+  githubRepository: z.string().max(200).optional(),
+  defaultBaseBranch: z.string().max(100).optional(),
+  dockerWorkerImage: z.string().max(300).optional(),
+  retentionDays: z.number().int().min(1).max(365).optional(),
+  budgets: z
+    .object({
+      maxRuntimeSeconds: z.number().int().min(30).max(86_400).optional(),
+      maxTokens: z.number().int().min(1_000).max(50_000_000).optional(),
+      maxCostUsd: z.number().min(0).max(100_000).optional(),
+    })
+    .optional(),
+});
+
 const transformDropParagraphIfContainsSchema = z.object({
   kind: z.literal("drop_paragraph_if_contains"),
   needles: z.array(z.string().max(500)).max(50),
@@ -144,6 +164,7 @@ export const updateSettingsSchema = z.object({
     .optional(),
   customBannedSignals: z.array(z.string().max(200)).optional(),
   debugMode: z.boolean().optional(),
+  issueAgent: issueAgentSettingsSchema.optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   hiddenSidebarGroupLabels: z.array(z.enum(HIDEABLE_SIDEBAR_GROUP_IDS)).optional(),
   sidebarSectionOrder: z

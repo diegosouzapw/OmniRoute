@@ -129,6 +129,23 @@ export async function getSettings() {
     wsAuth: false,
     maxBodySizeMb: requestBodyLimitMbFromEnv(process.env.MAX_BODY_SIZE_BYTES),
     debugMode: true,
+    issueAgent: {
+      automaticReportsEnabled: false,
+      manualActionsEnabled: true,
+      fixPrCreationEnabled: false,
+      provider: "omniroute",
+      model: "",
+      routingPolicy: "default",
+      githubRepository: "",
+      defaultBaseBranch: "main",
+      dockerWorkerImage: "ghcr.io/omniroute/issue-agent-worker:latest",
+      retentionDays: 7,
+      budgets: {
+        maxRuntimeSeconds: 900,
+        maxTokens: 200000,
+        maxCostUsd: 10,
+      },
+    },
     // Opt-in diagnostic: when true, the chat handler emits a `log.debug("TOOLS", …)`
     // line per request summarizing tool count + MCP/hosted/client source breakdown.
     logToolSources: false,

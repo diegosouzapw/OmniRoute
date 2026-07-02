@@ -172,6 +172,11 @@ export default function RequestLoggerDetail({
   loading,
   debugEnabled,
   emailsVisible = false,
+  issueAgentEnabled = false,
+  issueAgentFixEnabled = false,
+  issueAgentRunningMode = null,
+  issueAgentStatus = null,
+  onRunIssueAgent,
   onClose,
   onCopy,
   onPrevious,
@@ -281,6 +286,7 @@ export default function RequestLoggerDetail({
       : "bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30";
   const accountLabel = maskAccount(detail?.account || log.account, emailsVisible);
   const codexAccountRotation = getCodexAccountRotation(detail);
+  const showIssueAgentActions = !log.active && Number(log.status) >= 400 && issueAgentEnabled;
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh]"
@@ -344,6 +350,39 @@ export default function RequestLoggerDetail({
             )}
           </div>
           <div className="flex items-center gap-1">
+            {showIssueAgentActions && (
+              <div className="flex items-center gap-1 mr-2">
+                <button
+                  onClick={() => onRunIssueAgent?.("triage")}
+                  disabled={issueAgentRunningMode !== null}
+                  className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                  aria-label="Explain issue"
+                  title="Explain issue"
+                >
+                  <span className="material-symbols-outlined text-[18px]">psychology</span>
+                </button>
+                <button
+                  onClick={() => onRunIssueAgent?.("fix")}
+                  disabled={!issueAgentFixEnabled || issueAgentRunningMode !== null}
+                  className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                  aria-label="Try fix"
+                  title={issueAgentFixEnabled ? "Try fix" : "Enable fix PRs in Advanced Settings"}
+                >
+                  <span className="material-symbols-outlined text-[18px]">build</span>
+                </button>
+                <button
+                  onClick={() => onRunIssueAgent?.("triage-and-fix")}
+                  disabled={!issueAgentFixEnabled || issueAgentRunningMode !== null}
+                  className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                  aria-label="Explain and fix"
+                  title={
+                    issueAgentFixEnabled ? "Explain and fix" : "Enable fix PRs in Advanced Settings"
+                  }
+                >
+                  <span className="material-symbols-outlined text-[18px]">auto_fix_high</span>
+                </button>
+              </div>
+            )}
             <button
               onClick={onPrevious}
               disabled={!onPrevious}
@@ -371,6 +410,11 @@ export default function RequestLoggerDetail({
         </div>
 
         <div className="p-6 flex flex-col gap-6">
+          {showIssueAgentActions && issueAgentStatus && (
+            <div className="rounded-xl border border-border bg-bg-subtle px-4 py-3 text-sm text-text-muted">
+              {issueAgentStatus}
+            </div>
+          )}
           {/* Metadata Grid */}
           {log.active ? (
             <div className="flex flex-wrap gap-4 p-4 bg-bg-subtle rounded-xl border border-border">
