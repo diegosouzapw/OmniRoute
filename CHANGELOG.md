@@ -12,7 +12,7 @@ _TBD_
 
 ### 🔧 Bug Fixes
 
-_TBD_
+- **fix(api):** the shared API client no longer crashes on non-JSON error responses. (thanks @Delcado19)
 
 ### 📝 Maintenance
 
