@@ -394,6 +394,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "codex",
   "claude",
   "cursor",
+  "qoder",
   "kimi-coding",
   "kimi-coding-apikey",
   "glm",
