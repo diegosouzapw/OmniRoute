@@ -12,6 +12,7 @@ import {
   formatRetryAfter,
   getModelLockoutInfo,
   getRuntimeProviderProfile,
+  hasPerModelQuota,
   isModelLocked,
   recordModelLockoutFailure,
   recordProviderFailure,
@@ -2009,7 +2010,16 @@ export async function handleComboChat({
           }
           log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
-          if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
+          // #5976: per-model-quota providers (Gemini, GitHub, etc.) multiplex models
+          // behind one connection. A model-level 500 must NOT cool down the entire
+          // provider — sibling models may still succeed. Skip cooldown recording for
+          // these providers on 500 errors so the next target can try.
+          if (
+            resilienceSettings.providerCooldown.enabled &&
+            provider &&
+            provider !== "unknown" &&
+            !(result.status === 500 && hasPerModelQuota(provider, rawModel))
+          ) {
             recordProviderCooldown(
               provider,
               targetWithConnection.connectionId ?? undefined,
@@ -2824,7 +2834,12 @@ async function handleRoundRobinCombo({
         if (offset > 0) fallbackCount++;
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
 
-        if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
+        if (
+          resilienceSettings.providerCooldown.enabled &&
+          provider &&
+          provider !== "unknown" &&
+          !(result.status === 500 && hasPerModelQuota(provider, rawModel))
+        ) {
           recordProviderCooldown(
             provider,
             targetWithConnection.connectionId ?? undefined,
