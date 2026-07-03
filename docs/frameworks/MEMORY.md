@@ -223,7 +223,13 @@ chronological order if the FTS table is missing or the FTS query throws.
 ### Optional: Qdrant (vector store tier 2)
 
 `src/lib/memory/qdrant.ts` implements an optional Qdrant integration as tier 2
-vector store. Enabled via `qdrantEnabled` in settings / toggle in Engine tab.
+vector store. Retrieval only routes to Qdrant when the engine selector
+`memoryVectorStore === "qdrant"` — the default `"auto"` (and `"sqlite-vec"`)
+**never** select Qdrant. The Engine-tab toggle sets **both** `qdrantEnabled` and
+`memoryVectorStore` together: enabling makes Qdrant the primary store, disabling
+resets to `"auto"` (#5597 — before that fix, enabling was inert because nothing
+wrote the engine selector). If Qdrant is unreachable or returns nothing, retrieval
+falls back to sqlite-vec → FTS5.
 
 - `upsertSemanticMemoryPoint()` — embed `key + content` with the configured
   embedding model, ensure the collection exists (creates cosine-distance
@@ -250,6 +256,26 @@ routes under `src/app/api/settings/qdrant/` are all wired as of v3.8.6:
 | `/api/settings/qdrant/search`           | `POST`        | Semantic search test            |
 | `/api/settings/qdrant/cleanup`          | `POST`        | Remove expired / old points     |
 | `/api/settings/qdrant/embedding-models` | `GET`         | List available embedding models |
+
+**Behavior notes (what to expect):**
+
+- **Engine selection** — enabling Qdrant in the Engine tab makes it the primary
+  store (sets `memoryVectorStore="qdrant"`); disabling resets to `"auto"` (#5597).
+- **No back-fill** — only memories created/updated **after** Qdrant is enabled are
+  written to it (fire-and-forget dual-write). Pre-existing SQLite memories are **not**
+  migrated; "Reindex Now" rebuilds the sqlite-vec index only, not Qdrant.
+- **Vector dimension is auto-detected** from the actual embedding on first use — there
+  is no dimension field to fill in. Changing the embedding model after a collection
+  exists is **not** auto-handled: the existing collection is left untouched, dimension-
+  mismatched writes/searches fail and fall back to sqlite-vec. Recreate the collection
+  (new name, or delete it in Qdrant) to switch embedders.
+- **Distance metric** — always **Cosine** (hardcoded on collection creation; not
+  configurable).
+- **Auth** — API key only (sent as the `api-key` header; optional for unauthenticated
+  local Docker). JWT/RBAC are not used.
+- **Config fields** — the UI exposes `host`, `port`, `collection`, `embeddingModel`,
+  `apiKey`. `vectorSize` / `hnswEfConstruct` are env/DB only and `vectorSize` is not
+  used for collection creation (dimension comes from the embedding).
 
 ### Vector quantization (int8 — opt-in, both backends)
 

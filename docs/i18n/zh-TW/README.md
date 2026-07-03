@@ -626,7 +626,7 @@ PORT=20128 npm run dev
 **📦 pnpm**
 
 ```bash
-pnpm install -g omniroute && pnpm approve-builds -g && omniroute
+pnpm add -g omniroute@latest --allow-build=better-sqlite3 --allow-build=@swc/core && omniroute
 ```
 
 **🐧 Arch Linux（AUR）**

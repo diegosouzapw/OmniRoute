@@ -19,6 +19,7 @@
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { createLogger } from "@/shared/utils/logger";
+import { buildNpmExecOptions } from "@/lib/services/installers/utils";
 
 const execFileAsync = promisify(execFile);
 const log = createLogger("system/versionCheck");
@@ -71,9 +72,13 @@ export function isNewer(latest: string | null | undefined, current: string): boo
 /** Latest published version via the `npm` CLI (fast when npm is on PATH, e.g. source installs). */
 export async function getLatestVersionFromNpmCli(): Promise<string | null> {
   try {
-    const { stdout } = await execFileAsync("npm", ["info", "omniroute", "version", "--json"], {
-      timeout: LOOKUP_TIMEOUT_MS,
-    });
+    // #5542 — win32 npm is npm.cmd; execFile without a shell throws "spawn npm ENOENT"
+    // on Node ≥24 (nodejs/node#52554). buildNpmExecOptions enables the shell on win32.
+    const { stdout } = await execFileAsync(
+      "npm",
+      ["info", "omniroute", "version", "--json"],
+      buildNpmExecOptions(process.platform, { timeoutMs: LOOKUP_TIMEOUT_MS })
+    );
     const parsed = JSON.parse(String(stdout).trim());
     return typeof parsed === "string" && parsed ? parsed : null;
   } catch {

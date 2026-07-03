@@ -68,6 +68,7 @@ export const KNOWN_UNCLASSIFIED: Record<string, string> = {};
  */
 export function routeFileToApiPath(routeFile: string): string {
   return routeFile
+    .replace(/\\/g, "/")
     .replace(/^src\/app/, "")
     .replace(/\/route\.ts$/, "")
     .replace(/\[([^\]]+)\]/g, "_$1_");

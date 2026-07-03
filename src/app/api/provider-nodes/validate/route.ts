@@ -8,10 +8,7 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import {
-  PROVIDER_URL_BLOCKED_MESSAGE,
-  getProviderOutboundGuard,
-} from "@/shared/network/outboundUrlGuard";
+import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuard";
 import { isCcCompatibleProviderEnabled } from "@/shared/utils/featureFlags";
 import { providerNodeValidateSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -105,7 +102,7 @@ async function probeChatFallback({
   const chatUrl = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
   return safeOutboundFetch(chatUrl, {
     ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
-    guard: getProviderOutboundGuard(),
+    guard: getProviderValidationGuard(),
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -193,7 +190,7 @@ export async function POST(request) {
 
       const res = await safeOutboundFetch(modelsUrl, {
         ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
-        guard: getProviderOutboundGuard(),
+        guard: getProviderValidationGuard(),
         method: "GET",
         headers: {
           "x-api-key": apiKey,
@@ -231,7 +228,7 @@ export async function POST(request) {
     const modelsUrl = `${openAiBase}${modelsPath || "/models"}`;
     const res = await safeOutboundFetch(modelsUrl, {
       ...SAFE_OUTBOUND_FETCH_PRESETS.validationRead,
-      guard: getProviderOutboundGuard(),
+      guard: getProviderValidationGuard(),
       headers: { Authorization: `Bearer ${apiKey}` },
     });
 
@@ -260,13 +257,14 @@ export async function POST(request) {
         : "";
     const status = getSafeOutboundFetchErrorStatus(error);
     if (status) {
-      const rawMessage = error instanceof Error ? error.message : "Validation failed";
+      const rawMessage =
+        error instanceof SafeOutboundFetchError && error.code === "INVALID_URL"
+          ? "Invalid provider base URL format"
+          : error instanceof Error
+            ? error.message
+            : "Validation failed";
       const message = augmentDockerLocalhostHint(error, attemptedBaseUrl, rawMessage);
-      if (
-        error instanceof SafeOutboundFetchError &&
-        error.code === "URL_GUARD_BLOCKED" &&
-        message.includes(PROVIDER_URL_BLOCKED_MESSAGE)
-      ) {
+      if (error instanceof SafeOutboundFetchError && error.code === "URL_GUARD_BLOCKED") {
         logAuditEvent({
           action: "provider.validation.ssrf_blocked",
           actor: "admin",

@@ -61,8 +61,16 @@ export interface ProviderCandidate {
   circuitBreakerState: "CLOSED" | "HALF_OPEN" | "OPEN";
   costPer1MTokens: number;
   p95LatencyMs: number;
+  /** Average time-to-first-token in ms, when stream telemetry is available. */
+  avgTtftMs?: number;
+  /** Average end-to-end request latency in ms, when usage telemetry is available. */
+  avgE2ELatencyMs?: number;
+  /** Average generation throughput in output tokens/sec, when token telemetry is available. */
+  avgTokensPerSecond?: number;
   latencyStdDev: number;
   errorRate: number;
+  /** Optional provider/model observed failure rate. Falls back to errorRate. */
+  failureRate?: number;
   /** T10: Optional account tier for priority boosting (Ultra > Pro > Free) */
   accountTier?: "ultra" | "pro" | "standard" | "free";
   /** T10: Optional quota reset interval in seconds (shorter = higher priority when same quota) */

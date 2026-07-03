@@ -119,7 +119,27 @@ export function computeVerdict(results) {
 
 // ─── Orchestration (only when run directly) ─────────────────────────────────
 
-function run(cmd, cmdArgs) {
+/**
+ * Map a thrown `execFileSync` error to a {code, out} gate result. Exported as a pure helper
+ * so the timeout/hang path has a regression test: a gate that exceeds its ceiling (e.g. the unit
+ * suite wedged on an unreleased SQLite handle — see CLAUDE.md "Database Handles in Tests") is
+ * killed by `execFileSync` (`err.killed === true`) and MUST surface as a visible non-zero gate,
+ * never an infinite block that the release captain mistakes for a hang and kills the pre-flight.
+ */
+export function classifyRunError(err, timeoutMs) {
+  if (err && err.killed && timeoutMs) {
+    return {
+      code: 124,
+      out: `gate exceeded its ${Math.round(timeoutMs / 1000)}s ceiling and was killed — treat as a hung/failed gate (e.g. an unreleased DB handle in the unit suite); does NOT pass`,
+    };
+  }
+  return {
+    code: typeof err?.status === "number" ? err.status : 1,
+    out: `${err?.stdout || ""}${err?.stderr || ""}`,
+  };
+}
+
+function run(cmd, cmdArgs, opts = {}) {
   try {
     const out = execFileSync(cmd, cmdArgs, {
       cwd: ROOT,
@@ -127,13 +147,13 @@ function run(cmd, cmdArgs) {
       stdio: ["ignore", "pipe", "pipe"],
       maxBuffer: 256 * 1024 * 1024,
       env: { ...process.env, FORCE_COLOR: "0" },
+      // A hard ceiling for the long, silent test suites (execFileSync buffers all output until
+      // exit, so they show no progress while running). undefined = no timeout for fast gates.
+      ...(opts.timeout ? { timeout: opts.timeout } : {}),
     });
     return { code: 0, out };
   } catch (err) {
-    return {
-      code: typeof err.status === "number" ? err.status : 1,
-      out: `${err.stdout || ""}${err.stderr || ""}`,
-    };
+    return classifyRunError(err, opts.timeout);
   }
 }
 
@@ -150,8 +170,14 @@ function main() {
     process.stderr.write(`${icon} [${r.kind}] ${r.label}${r.detail ? ` — ${r.detail}` : ""}\n`);
   };
 
-  const hardCmd = (id, label, cmd, cmdArgs) => {
-    const { code, out } = run(cmd, cmdArgs);
+  // Announce a gate BEFORE running it. The long suites (unit/vitest/integration) run silently
+  // for many minutes (execFileSync buffers their output until exit), which previously looked like
+  // a hang and got the pre-flight killed before it surfaced the unit reds (the v3.8.42 miss).
+  const announce = (label) => process.stderr.write(`▶ ${label}…\n`);
+
+  const hardCmd = (id, label, cmd, cmdArgs, opts) => {
+    announce(label);
+    const { code, out } = run(cmd, cmdArgs, opts);
     record({ id, label, kind: "hard", ok: code === 0, detail: code === 0 ? "pass" : firstFailureLine(out) });
   };
 
@@ -160,8 +186,9 @@ function main() {
   // non-zero exit here is drift to rebaseline at release, never a contributor block.
   // ALL checks run regardless of earlier failures (the report is collected, not
   // fail-fast) so one pass surfaces every red instead of revealing them in layers.
-  const driftCmd = (id, label, cmd, cmdArgs, okDetail = "within baseline") => {
-    const { code, out } = run(cmd, cmdArgs);
+  const driftCmd = (id, label, cmd, cmdArgs, okDetail = "within baseline", opts) => {
+    announce(label);
+    const { code, out } = run(cmd, cmdArgs, opts);
     record({ id, label, kind: "drift", ok: code === 0, detail: code === 0 ? okDetail : firstFailureLine(out) });
   };
 
@@ -171,7 +198,8 @@ function main() {
 
   // ESLint: ONE pass → errors (hard) + warnings (drift)
   {
-    const { out } = run("npx", ["eslint", ".", "--format", "json"]);
+    announce("ESLint (errors + warnings — ~3-6min)");
+    const { out } = run("npx", ["eslint", ".", "--format", "json"], { timeout: 15 * 60 * 1000 });
     const parsed = parseEslintJson(out);
     if (!parsed) {
       record({ id: "lint", label: "ESLint", kind: "hard", ok: false, detail: "could not parse eslint json" });
@@ -198,6 +226,7 @@ function main() {
 
   // Cognitive-complexity (drift)
   {
+    announce("Cognitive complexity (ratchet)");
     const { out } = run(npmCmd, ["run", "check:cognitive-complexity"]);
     const current = parseCognitiveCount(out);
     const base = baselineValue("cognitiveComplexity");
@@ -243,15 +272,20 @@ function main() {
   hardCmd("docs-all", "Docs sync + fabricated-docs (strict)", npmCmd, ["run", "check:docs-all"]);
 
   if (!QUICK) {
-    hardCmd("unit", "Unit tests (full, CI concurrency)", npmCmd, ["run", "test:unit:ci"]);
-    hardCmd("vitest", "Vitest (MCP / autoCombo / cache)", npmCmd, ["run", "test:vitest"]);
+    // These are the gates that catch inherited base-red tests from cycle PRs (the fast-path
+    // PR→release does NOT run unit/vitest/integration per-PR — the v3.8.42 release PR exploded
+    // with 15 such reds). They run SILENTLY for many minutes; the announce line above + these
+    // hard ceilings keep a long-but-healthy run from being mistaken for a hang (the ceiling also
+    // converts a genuine DB-handle hang into a visible failure instead of an infinite block).
+    hardCmd("unit", "Unit tests (full suite, CI concurrency — runs ~20-35min silently)", npmCmd, ["run", "test:unit:ci"], { timeout: 45 * 60 * 1000 });
+    hardCmd("vitest", "Vitest (MCP / autoCombo / cache — ~3-8min)", npmCmd, ["run", "test:vitest"], { timeout: 15 * 60 * 1000 });
     // Integration tests run ONLY on the release PR full CI (PR→main), so an assertion
     // regression here (e.g. a contributor flipping a Codex fingerprint key order) is
     // invisible until release — run them in the pre-flight as a HARD gate.
-    hardCmd("integration", "Integration tests", npmCmd, ["run", "test:integration"]);
+    hardCmd("integration", "Integration tests (~3-10min)", npmCmd, ["run", "test:integration"], { timeout: 20 * 60 * 1000 });
   }
   if (WITH_BUILD) {
-    hardCmd("pack-artifact", "Package artifact (npm pack policy)", npmCmd, ["run", "check:pack-artifact"]);
+    hardCmd("pack-artifact", "Package artifact (npm pack policy)", npmCmd, ["run", "check:pack-artifact"], { timeout: 20 * 60 * 1000 });
   }
 
   const { releaseGreen, hardFailures, drift } = computeVerdict(results);

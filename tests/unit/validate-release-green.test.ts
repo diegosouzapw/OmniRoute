@@ -11,6 +11,7 @@ const {
   parseCognitiveCount,
   isDrift,
   computeVerdict,
+  classifyRunError,
 } = mod;
 
 test("eslintCounts sums errors + warnings across files", () => {
@@ -95,4 +96,28 @@ test("computeVerdict: full-coverage classification — ratchets are drift, defec
   const withHardFail = computeVerdict([...results, { id: "integration", kind: "hard", ok: false }]);
   assert.equal(withHardFail.releaseGreen, false);
   assert.equal(withHardFail.hardFailures.length, 1);
+});
+
+test("classifyRunError: a killed gate under a timeout surfaces as a visible non-zero failure (not an infinite hang)", () => {
+  // execFileSync kills the child on timeout → err.killed === true. The unit suite wedged on an
+  // unreleased SQLite handle must become a reported failure, never an infinite block that gets
+  // the pre-flight killed before it surfaces the unit reds (the v3.8.42 miss).
+  const r = classifyRunError({ killed: true, signal: "SIGTERM" }, 45 * 60 * 1000);
+  assert.equal(r.code, 124);
+  assert.match(r.out, /ceiling/);
+  assert.match(r.out, /hung\/failed gate/);
+});
+
+test("classifyRunError: a normal non-zero exit keeps its status + combined output", () => {
+  const r = classifyRunError({ status: 1, stdout: "boom-out", stderr: "boom-err" }, undefined);
+  assert.equal(r.code, 1);
+  assert.equal(r.out, "boom-outboom-err");
+});
+
+test("classifyRunError: a kill WITHOUT a configured timeout is not misreported as a timeout", () => {
+  // No timeout set → a killed/odd error falls through to the generic branch (code 1), so we never
+  // claim a hang ceiling that was not actually configured.
+  const r = classifyRunError({ killed: true }, undefined);
+  assert.equal(r.code, 1);
+  assert.doesNotMatch(r.out, /ceiling/);
 });

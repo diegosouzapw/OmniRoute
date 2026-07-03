@@ -526,6 +526,13 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 15.0,
       cache_creation: 3.0,
     },
+    "claude-sonnet-5": {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 15.0,
+      cache_creation: 3.0,
+    },
     "deepseek-v3.2": {
       input: 0.27,
       output: 1.1,

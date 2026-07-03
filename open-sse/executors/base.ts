@@ -65,6 +65,7 @@ import {
   stainlessRuntimeVersion,
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
+import { withForcedResponsesUpstream } from "./forceResponsesUpstream.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -233,7 +234,10 @@ export function stripStainlessHeadersForOpenAICompat(
   // Normalize User-Agent: SDK-based clients send verbose product strings that some
   // upstreams block. Replace with a clean browser-like UA only when it looks SDK-derived.
   const ua = (headers["User-Agent"] || headers["user-agent"] || "").toLowerCase();
-  if (ua.includes("openai") && (ua.includes("node") || ua.includes("axios") || ua.includes("undici"))) {
+  if (
+    ua.includes("openai") &&
+    (ua.includes("node") || ua.includes("axios") || ua.includes("undici"))
+  ) {
     setUserAgentHeader(headers, "Mozilla/5.0 (compatible; OpenAI Compatible)");
   }
 
@@ -528,15 +532,52 @@ export class BaseExecutor {
     return baseUrls[urlIndex] || baseUrls[0] || this.config.baseUrl || "";
   }
 
-  buildHeaders(
+  /**
+   * Resolve the effective base URL for a request, preferring per-connection
+   * providerSpecificData.baseUrl over the static provider config baseUrl.
+   */
+  protected resolveBaseUrl(credentials: ProviderCredentials | null, fallback?: string): string {
+    const psdBaseUrl = credentials?.providerSpecificData?.baseUrl;
+    return (
+      (typeof psdBaseUrl === "string" ? psdBaseUrl : "") || fallback || this.config.baseUrl || ""
+    );
+  }
+
+  /**
+   * Resolve the effective API key via extra-keys round-robin rotation.
+   * Mutates `credentials.providerSpecificData.selectedKeyId` on rotation.
+   */
+  protected resolveEffectiveKey(credentials: ProviderCredentials): string | undefined {
+    const extraKeys =
+      (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+    const selectedKeyId = (credentials.providerSpecificData as Record<string, unknown> | undefined)
+      ?.selectedKeyId as string | undefined;
+    let effectiveKey = credentials.apiKey;
+    if (extraKeys.length > 0 && credentials.connectionId && credentials.apiKey) {
+      const resolved = resolveKeyForRequest(
+        credentials.connectionId,
+        credentials.apiKey,
+        extraKeys,
+        selectedKeyId ?? null
+      );
+      effectiveKey = resolved?.key ?? credentials.apiKey;
+      if (resolved && credentials.providerSpecificData) {
+        (credentials.providerSpecificData as Record<string, unknown>).selectedKeyId =
+          resolved.keyId;
+      }
+    }
+    return effectiveKey;
+  }
+
+  /**
+   * Build the common header preamble shared by BaseExecutor and DefaultExecutor:
+   * Content-Type, config.headers, per-provider User-Agent env override, and
+   * resolved effective key (via extra-keys round-robin).
+   */
+  protected buildHeadersPreamble(
     credentials: ProviderCredentials,
-    stream = true,
-    clientHeaders?: Record<string, string> | null,
-    model?: string,
-    health?: Record<string, KeyHealth>
-  ): Record<string, string> {
-    void clientHeaders;
-    void model;
+    stream: boolean
+  ): { headers: Record<string, string>; effectiveKey: string | undefined } {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...this.config.headers,
@@ -553,28 +594,25 @@ export class BaseExecutor {
       }
     }
 
+    const effectiveKey = this.resolveEffectiveKey(credentials);
+    void stream;
+    return { headers, effectiveKey };
+  }
+
+  buildHeaders(
+    credentials: ProviderCredentials,
+    stream = true,
+    clientHeaders?: Record<string, string> | null,
+    model?: string,
+    health?: Record<string, KeyHealth>
+  ): Record<string, string> {
+    void clientHeaders;
+    void model;
+    const { headers, effectiveKey } = this.buildHeadersPreamble(credentials, stream);
+
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
     } else if (credentials.apiKey) {
-      const extraKeys =
-        (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
-      const selectedKeyId = (
-        credentials.providerSpecificData as Record<string, unknown> | undefined
-      )?.selectedKeyId as string | undefined;
-      let effectiveKey = credentials.apiKey;
-      if (extraKeys.length > 0 && credentials.connectionId) {
-        const resolved = resolveKeyForRequest(
-          credentials.connectionId,
-          credentials.apiKey,
-          extraKeys,
-          selectedKeyId ?? null
-        );
-        effectiveKey = resolved?.key ?? credentials.apiKey;
-        if (resolved && credentials.providerSpecificData) {
-          (credentials.providerSpecificData as Record<string, unknown>).selectedKeyId =
-            resolved.keyId;
-        }
-      }
       headers["Authorization"] = `Bearer ${effectiveKey}`;
     }
 
@@ -863,9 +901,14 @@ export class BaseExecutor {
     const strippedFields = new Set<string>();
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
-      const url = this.buildUrl(model, stream, urlIndex, activeCredentials);
-      const headers = this.buildHeaders(activeCredentials, stream, clientHeaders, model);
-      applyConfiguredUserAgent(headers, activeCredentials?.providerSpecificData);
+      const requestCredentials = withForcedResponsesUpstream(
+        this.provider,
+        body,
+        activeCredentials
+      );
+      const url = this.buildUrl(model, stream, urlIndex, requestCredentials);
+      const headers = this.buildHeaders(requestCredentials, stream, clientHeaders, model);
+      applyConfiguredUserAgent(headers, requestCredentials?.providerSpecificData);
 
       // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
       // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
@@ -878,7 +921,7 @@ export class BaseExecutor {
       }
 
       const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
-        ? getClaudeCodeCompatibleRequestDefaults(activeCredentials?.providerSpecificData)
+        ? getClaudeCodeCompatibleRequestDefaults(requestCredentials?.providerSpecificData)
         : {};
       const shouldForwardExtendedContext =
         extendedContext &&
@@ -894,7 +937,7 @@ export class BaseExecutor {
         model,
         body,
         stream,
-        activeCredentials
+        requestCredentials
       );
       let transformedBody = sanitizeReasoningEffortForProvider(
         rawTransformedBody,
@@ -1110,14 +1153,11 @@ export class BaseExecutor {
 
           const seed = activeCredentials?.accessToken || activeCredentials?.apiKey || "anon";
           const psd = activeCredentials?.providerSpecificData as
-            | Record<string, unknown>
-            | undefined;
+            Record<string, unknown> | undefined;
 
           let identitySource:
-            | "upstream-metadata"
-            | "upstream-header"
-            | "synthesized"
-            | "synthesized-cloaked" = "synthesized";
+            "upstream-metadata" | "upstream-header" | "synthesized" | "synthesized-cloaked" =
+            "synthesized";
           let sessionId: string;
           let deviceId: string;
           let accountUUID: string;

@@ -4,6 +4,7 @@ import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { QdrantSettingsUpdateSchema } from "@/shared/schemas/qdrant";
 import { getQdrantConfig, normalizeQdrantConfig } from "@/lib/memory/qdrant";
 import { updateSettings, getSettings } from "@/lib/localDb";
+import { invalidateMemorySettingsCache } from "@/lib/memory/settings";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 function maskApiKey(apiKey: string | null): { hasApiKey: boolean; apiKeyMasked: string | null } {
@@ -68,7 +69,14 @@ export async function PUT(request: NextRequest) {
 
   try {
     const updates: Record<string, unknown> = {};
-    if (body.enabled !== undefined) updates.qdrantEnabled = body.enabled;
+    if (body.enabled !== undefined) {
+      updates.qdrantEnabled = body.enabled;
+      // #5597: enabling Qdrant here was inert — retrieval only routes to Qdrant when
+      // memoryVectorStore === "qdrant" (the default "auto" never selects it), and no UI
+      // wrote that. Activate/deactivate the engine alongside the toggle so "enabled"
+      // actually means "Qdrant is the primary vector store" (matching the UI copy).
+      updates.memoryVectorStore = body.enabled ? "qdrant" : "auto";
+    }
     if (body.host !== undefined) updates.qdrantHost = body.host;
     if (body.port !== undefined) updates.qdrantPort = body.port;
     if (body.collection !== undefined) updates.qdrantCollection = body.collection;
@@ -80,6 +88,10 @@ export async function PUT(request: NextRequest) {
     }
 
     const newSettings = (await updateSettings(updates)) as Record<string, unknown>;
+    // #5597 follow-up: bust the module-level memory-settings cache so the retrieval
+    // layer (getMemorySettings) picks up the new vectorStore/qdrant config without a
+    // process restart — mirrors src/app/api/settings/memory/route.ts.
+    invalidateMemorySettingsCache();
     return NextResponse.json(buildQdrantSettingsResponse(newSettings));
   } catch (err: unknown) {
     const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));

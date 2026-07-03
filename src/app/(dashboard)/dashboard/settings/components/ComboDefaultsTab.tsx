@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, Input, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
+import FusionDefaultsFields from "./FusionDefaultsFields";
 import {
   ROUTING_STRATEGIES,
   SETTINGS_FALLBACK_STRATEGY_VALUES,
@@ -645,6 +646,10 @@ export default function ComboDefaultsTab() {
               </p>
             </div>
           </div>
+        )}
+
+        {comboDefaults.strategy === "fusion" && (
+          <FusionDefaultsFields comboDefaults={comboDefaults} setComboDefaults={setComboDefaults} />
         )}
 
         {/* Toggles */}

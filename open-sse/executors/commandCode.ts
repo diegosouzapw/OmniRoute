@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { isVisionModelId } from "@/shared/constants/visionModels";
 import { REGISTRY } from "../config/providerRegistry.ts";
 import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
 
@@ -55,6 +56,99 @@ function normalizeContentText(content: unknown): string {
     .join("\n");
 }
 
+/**
+ * Model id patterns for Command Code models that have `text, vision`
+ * capability per the official CC model registry, but are NOT caught
+ * by the shared {@link isVisionModelId} heuristic. Kept as a local
+ * set because these are CC-specific model IDs (vendor-prefix shapes
+ * like "moonshotai/Kimi-K2.6" or CC aliases like "gpt-5.4-mini").
+ *
+ * Source: Command Code /alpha/generate model registry (docs).
+ */
+const CC_VISION_MODEL_PATTERNS: readonly RegExp[] = [
+  // Open Source
+  /kimi-k2/i, // moonshotai/Kimi-K2.6, Kimi-K2.7-Code, Kimi-K2.5
+  /qwen3\.\d/i, // Qwen/Qwen3.6-Plus, Qwen/Qwen3.7-Plus
+  /step-?3/i, // stepfun/Step-3.7-Flash
+  // Anthropic
+  /claude-fable/i, // claude-fable-5 (not covered by claude-opus/sonnet/haiku-4)
+  // OpenAI
+  /gpt-5/i, // gpt-5.5, gpt-5.4, gpt-5.3-codex, gpt-5.4-mini
+  // Sakana
+  /fugu/i, // sakana/fugu-ultra
+];
+
+/**
+ * Whether a model id routed through the Command Code executor is
+ * vision-capable. Checks Mimo-specific rules first, then CC-specific
+ * patterns, then falls through to the shared {@link isVisionModelId}
+ * heuristic (which covers minimax-m3, claude-3/4 families, gemini,
+ * gpt-4o/4.1, mistral-medium-3, and general "-vision" / "multimodal").
+ */
+function isCommandCodeVisionModel(model?: string | null): boolean {
+  if (!model) return false;
+  // mimo-v2.5-pro is text-only — exclude before any positive check
+  if (/(?:^|\/)mimo-v2\.5-pro$/i.test(model)) return false;
+  // Only mimo-v2.5 and mimo-v2-omni accept images per Xiaomi vendor docs
+  if (/(?:^|\/)mimo-v2\.5$/i.test(model)) return true;
+  if (/(?:^|\/)mimo-v2-omni$/i.test(model)) return true;
+  // CC-specific patterns: Kimi K2, Qwen 3.x, Stepfun, Claude Fable,
+  // GPT-5, Sakana Fugu — not covered by the shared heuristic
+  if (CC_VISION_MODEL_PATTERNS.some((pattern) => pattern.test(model))) return true;
+  // Fall through: minimax-m3, claude-3/4, gemini-2/3, gpt-4o, -vision, multimodal
+  return isVisionModelId(model);
+}
+
+/**
+ * Extract the image URL from an OpenAI-compatible or Command Code
+ * content part, returning undefined for non-image parts.
+ *
+ * OpenAI-compatible:  { type: "image_url", image_url: { url: "..." } }
+ * Command Code CLI:   { type: "image", image: "..." }
+ */
+function extractImageUrl(part: JsonRecord): string | undefined {
+  if (part.type === "image") return stringValue(part.image);
+  if (part.type === "image_url") {
+    if (isRecord(part.image_url)) return stringValue(part.image_url.url);
+    return stringValue(part.image_url);
+  }
+  return undefined;
+}
+
+/**
+ * Convert an OpenAI-format content array to Command Code's internal
+ * CLI format. For vision-capable models (MiniMax M3, MiMo v2.5, etc.)
+ * this also preserves image parts alongside text.
+ */
+function convertUserContentParts(content: unknown, isVisionModel: boolean): string | unknown[] {
+  // For non-vision models or string content, extract text only.
+  if (!isVisionModel || typeof content === "string") {
+    return normalizeContentText(content);
+  }
+
+  const parts: unknown[] = [];
+  for (const part of asRecordArray(content)) {
+    if (part.type === "text") {
+      const text = stringValue(part.text);
+      if (text) parts.push({ type: "text", text });
+      continue;
+    }
+    const imgUrl = extractImageUrl(part);
+    if (imgUrl) {
+      parts.push({ type: "image", image: imgUrl });
+      continue;
+    }
+    // Always drop tool_use / tool_result / thinking parts from user
+    // messages (Command Code doesn't accept them for role:"user").
+  }
+
+  // When every part was stripped, fall back to empty text so the
+  // message is still valid JSON (Command Code rejects empty content).
+  if (parts.length === 0) parts.push({ type: "text", text: "" });
+
+  return parts;
+}
+
 function convertTools(tools: unknown): unknown[] {
   return asRecordArray(tools).map((tool) => {
     const fn = isRecord(tool.function) ? tool.function : tool;
@@ -86,11 +180,15 @@ function completeToolCallIds(messages: JsonRecord[]): Set<string> {
   return new Set([...callIds].filter((id) => resultIds.has(id)));
 }
 
-function convertMessages(messages: unknown): { system: string; messages: unknown[] } {
+function convertMessages(
+  messages: unknown,
+  model?: string | null
+): { system: string; messages: unknown[] } {
   const source = asRecordArray(messages);
   const pairedToolCallIds = completeToolCallIds(source);
   const out: unknown[] = [];
   const system: string[] = [];
+  const isVision = isCommandCodeVisionModel(model);
 
   for (const message of source) {
     const role = stringValue(message.role);
@@ -101,7 +199,7 @@ function convertMessages(messages: unknown): { system: string; messages: unknown
     }
 
     if (role === "user") {
-      out.push({ role: "user", content: normalizeContentText(message.content) });
+      out.push({ role: "user", content: convertUserContentParts(message.content, isVision) });
       continue;
     }
 
@@ -175,15 +273,16 @@ const COMMAND_CODE_PASSTHROUGH_FIELDS = [
 
 function buildCommandCodeBody(model: string, body: unknown, stream = false): JsonRecord {
   const input = isRecord(body) ? body : {};
-  const converted = convertMessages(input.messages);
-  const explicitSystem = typeof input.system === "string" ? input.system : "";
-  const system = [converted.system, explicitSystem].filter(Boolean).join("\n\n");
 
   // Payload rules may rewrite `body.model` (e.g. deepseek-v4-pro-max →
   // deepseek/deepseek-v4-pro for the command-code provider). Prefer the
   // rewritten value if present; fall back to the resolved combo model arg.
   const resolvedModel =
     typeof input.model === "string" && input.model.trim().length > 0 ? input.model : model;
+
+  const converted = convertMessages(input.messages, resolvedModel);
+  const explicitSystem = typeof input.system === "string" ? input.system : "";
+  const system = [converted.system, explicitSystem].filter(Boolean).join("\n\n");
 
   const params: JsonRecord = {
     model: resolvedModel,

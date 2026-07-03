@@ -27,12 +27,13 @@ import {
   extractCodeAssistSubscriptionTier,
 } from "@omniroute/open-sse/services/codeAssistSubscription.ts";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
-import {
-  isUserCallableAntigravityModelId,
-  toClientAntigravityModelId,
-} from "@omniroute/open-sse/config/antigravityModelAliases.ts";
-import { isUserCallableAgyModelId } from "@omniroute/open-sse/config/agyModels.ts";
 import { onUsageRecorded } from "./usageEvents";
+import {
+  isRecord,
+  isUsageQuotaKeyAllowed,
+  normalizeUsageQuotasForProvider,
+  sanitizeUsageQuotasForProvider,
+} from "./providerLimits/quotaNormalize";
 
 type JsonRecord = Record<string, unknown>;
 type SyncSource = "manual" | "scheduled";
@@ -78,10 +79,6 @@ const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
 const DEFAULT_PROVIDER_LIMITS_POST_USAGE_REFRESH_DELAY_MS = 5_000;
 const pendingPostUsageRefreshes = new Set<string>();
-
-function isRecord(value: unknown): value is JsonRecord {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
 
 function toProviderLimitsCacheEntry(
   usage: JsonRecord,
@@ -134,67 +131,6 @@ export function notifyProviderUsageRecorded(
 // this module (and its executors/translator import graph). This module is loaded by
 // the provider-limits route and the background auto-sync scheduler at server boot.
 onUsageRecorded(notifyProviderUsageRecorded);
-
-function isUsageQuotaKeyAllowed(provider: string, quotaKey: string): boolean {
-  if (quotaKey === "credits" || quotaKey === "models") return true;
-  if (provider === "antigravity") return isUserCallableAntigravityModelId(quotaKey);
-  if (provider === "agy") return isUserCallableAgyModelId(quotaKey);
-  return true;
-}
-
-function normalizeUsageQuotaKey(provider: string, quotaKey: string): string | null {
-  if (quotaKey === "credits" || quotaKey === "models") return quotaKey;
-  if (provider === "antigravity" || provider === "agy") {
-    const clientKey = toClientAntigravityModelId(quotaKey);
-    return isUsageQuotaKeyAllowed(provider, clientKey) ? clientKey : null;
-  }
-  return isUsageQuotaKeyAllowed(provider, quotaKey) ? quotaKey : null;
-}
-
-function normalizeUsageQuotasForProvider(
-  provider: string,
-  quotas: JsonRecord | null | undefined
-): JsonRecord | null {
-  if (!isRecord(quotas)) return quotas ?? null;
-
-  const normalized: JsonRecord = {};
-  let changed = false;
-
-  for (const [quotaKey, quota] of Object.entries(quotas)) {
-    const normalizedKey = normalizeUsageQuotaKey(provider, quotaKey);
-    if (!normalizedKey) {
-      changed = true;
-      continue;
-    }
-
-    const existing = normalized[normalizedKey];
-    if (existing && isRecord(existing) && isRecord(quota)) {
-      const existingSource = String(existing.quotaSource ?? "");
-      const nextSource = String(quota.quotaSource ?? "");
-      const sourceRank: Record<string, number> = {
-        fetchAvailableModels: 0,
-        localUsageHistory: 1,
-        retrieveUserQuota: 2,
-      };
-      if ((sourceRank[existingSource] ?? 0) > (sourceRank[nextSource] ?? 0)) {
-        continue;
-      }
-    }
-
-    normalized[normalizedKey] = quota as JsonRecord;
-    if (normalizedKey !== quotaKey) changed = true;
-  }
-
-  return changed ? normalized : quotas;
-}
-
-function sanitizeUsageQuotasForProvider(provider: string, usage: JsonRecord): JsonRecord {
-  if (provider !== "antigravity" && provider !== "agy") return usage;
-  if (!isRecord(usage.quotas)) return usage;
-
-  const sanitizedQuotas = normalizeUsageQuotasForProvider(provider, usage.quotas);
-  return sanitizedQuotas === usage.quotas ? usage : { ...usage, quotas: sanitizedQuotas };
-}
 
 function hasRetrieveUserQuotaSource(
   provider: string,

@@ -1278,12 +1278,22 @@ export async function handleComboChat({
       log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
     }
 
+    const autoCandidateResilienceSettings =
+      relayOptions?.bypassProviderQuotaPolicy === true
+        ? {
+            ...resilienceSettings,
+            quotaPreflight: {
+              ...resilienceSettings.quotaPreflight,
+              enabled: false,
+            },
+          }
+        : resilienceSettings;
     const candidates = await buildAutoCandidates(
       eligibleTargets,
       combo.name,
       relayOptions?.sessionId,
       resetWindowConfig,
-      resilienceSettings
+      autoCandidateResilienceSettings
     );
     const routableCandidates = candidates.filter(
       (candidate) => candidate.quotaCutoffBlocked !== true
@@ -1881,8 +1891,11 @@ export async function handleComboChat({
           });
 
           // Deep clone the body to ensure context preservation and prevent mutations
-          // from affecting other targets in the combo
-          let attemptBody = JSON.parse(JSON.stringify(body));
+          // from affecting other targets in the combo. structuredClone avoids the
+          // full intermediate JSON string that JSON.parse(JSON.stringify(...)) builds
+          // (a second multi-hundred-KB allocation per target on large agent payloads),
+          // halving the per-target transient heap on the hot path (#5152).
+          let attemptBody = structuredClone(body);
 
           // Proactive Context Compression for fallbacks (Zero-Latency optimization)
           if (
@@ -1968,7 +1981,12 @@ export async function handleComboChat({
               undefined;
             const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
-            const quality = await validateResponseQuality(result, clientRequestedStream, log);
+            const quality = await validateResponseQuality(
+              result,
+              clientRequestedStream,
+              log,
+              config.responseValidation
+            );
             if (!quality.valid) {
               log.warn(
                 "COMBO",
@@ -2330,6 +2348,7 @@ export async function handleComboChat({
             log,
             tag: "COMBO",
             exhaustedLogLevel: "info",
+            structuredError,
           });
 
           // #2101: Prevent infinite fallback loops with 400 Bad Request errors that are genuinely
@@ -3012,7 +3031,12 @@ async function handleRoundRobinCombo({
 
         // Success — validate response quality before returning
         if (result.ok) {
-          const quality = await validateResponseQuality(result, clientRequestedStream, log);
+          const quality = await validateResponseQuality(
+            result,
+            clientRequestedStream,
+            log,
+            config.responseValidation
+          );
           if (!quality.valid) {
             log.warn(
               "COMBO-RR",
@@ -3237,6 +3261,7 @@ async function handleRoundRobinCombo({
           log,
           tag: "COMBO-RR",
           exhaustedLogLevel: "debug",
+          structuredError,
         });
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.

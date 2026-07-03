@@ -11,6 +11,11 @@ const core = await import("../../src/lib/db/core.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
 
+// Captured stream chunks carry a per-chunk arrival-time prefix ("[HH:MM:SS.mmm] ")
+// added by the request logger for streaming-latency observability (#5834). Strip it
+// before comparing the raw chunk payload.
+const stripChunkTs = (chunk: string): string => chunk.replace(/^\[\d{2}:\d{2}:\d{2}\.\d{3}\] /, "");
+
 test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -544,7 +549,7 @@ test("createRequestLogger and trackPendingRequest with matching model propagate 
     string,
     string[]
   >;
-  assert.equal(apiChunks?.provider[0], 'data: {"chunk":"hello"}');
+  assert.equal(stripChunkTs(apiChunks?.provider[0]), 'data: {"chunk":"hello"}');
 });
 
 test("finalizePendingRequestById completes the exact stream when same model requests overlap", () => {

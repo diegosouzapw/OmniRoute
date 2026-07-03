@@ -20,8 +20,11 @@ const npmCommand: string = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function runNpm(args: string[], stdio: "inherit" | "pipe" = "pipe"): string {
   const npmExecPath = process.env.npm_execpath;
-  const command = npmExecPath ? process.execPath : npmCommand;
-  return execFileSync(command, [...(npmExecPath ? [npmExecPath] : []), ...args], {
+  const isBunRuntime = "Bun" in globalThis;
+  const command = npmExecPath && !isBunRuntime ? process.execPath : npmCommand;
+  const commandArgs = npmExecPath && !isBunRuntime ? [npmExecPath, ...args] : args;
+
+  return execFileSync(command, commandArgs, {
     cwd: ROOT,
     encoding: "utf8",
     stdio: stdio === "inherit" ? "inherit" : ["ignore", "pipe", "pipe"],

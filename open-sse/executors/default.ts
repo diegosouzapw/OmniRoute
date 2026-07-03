@@ -1,12 +1,7 @@
-import { BaseExecutor, setUserAgentHeader, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
-import {
-  getRotatingApiKey,
-  getValidApiKey,
-  resolveKeyForRequest,
-} from "../services/apiKeyRotator.ts";
-import type { KeyHealth } from "../services/apiKeyRotator.ts";
+
 import {
   buildClaudeCodeCompatibleHeaders,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
@@ -14,6 +9,7 @@ import {
 } from "../services/claudeCodeCompatible.ts";
 import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
   mergeClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
@@ -38,6 +34,14 @@ import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import { buildClineHeaders } from "@/shared/utils/clineAuth";
+import { normalizeBaseUrl } from "../utils/urlSanitize.ts";
+import {
+  normalizeHerokuChatUrl,
+  normalizeDatabricksChatUrl,
+  normalizeSnowflakeChatUrl,
+  normalizeGigachatChatUrl,
+} from "@/lib/providers/validation/urlHelpers";
+import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -83,26 +87,10 @@ function applyCustomHeaders(headers: Record<string, string>, rawCustomHeaders: u
   }
 }
 
-function normalizeBaseUrl(baseUrl) {
-  return (baseUrl || "").trim().replace(/\/$/, "");
-}
-
 function normalizeBailianMessagesUrl(baseUrl) {
   const normalized = normalizeBaseUrl(baseUrl).replace(/\?beta=true$/, "");
   const messagesUrl = normalized.endsWith("/messages") ? normalized : `${normalized}/messages`;
   return messagesUrl;
-}
-
-function normalizeHerokuChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl);
-  if (normalized.endsWith("/v1/chat/completions")) return normalized;
-  return `${normalized}/v1/chat/completions`;
-}
-
-function normalizeDatabricksChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl);
-  if (normalized.endsWith("/chat/completions")) return normalized;
-  return `${normalized}/chat/completions`;
 }
 
 function normalizeDataRobotChatUrl(baseUrl) {
@@ -126,18 +114,6 @@ function normalizeSapChatUrl(baseUrl) {
 }
 
 function normalizeXiaomiMimoChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
-  return `${normalized}/chat/completions`;
-}
-
-function normalizeSnowflakeChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl)
-    .replace(/\/cortex\/inference:complete$/, "")
-    .replace(/\/api\/v2$/, "");
-  return `${normalized}/api/v2/cortex/inference:complete`;
-}
-
-function normalizeGigachatChatUrl(baseUrl) {
   const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
   return `${normalized}/chat/completions`;
 }
@@ -186,8 +162,9 @@ export class DefaultExecutor extends BaseExecutor {
       const normalized = baseUrl.replace(/\/$/, "");
       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;
       if (customPath) return `${normalized}${customPath}`;
+      const forceResponses = psd?._omnirouteForceResponsesUpstream === true;
       const path =
-        getOpenAICompatibleType(this.provider, psd) === "responses"
+        forceResponses || getOpenAICompatibleType(this.provider, psd) === "responses"
           ? "/responses"
           : "/chat/completions";
       return `${normalized}${path}`;
@@ -206,20 +183,38 @@ export class DefaultExecutor extends BaseExecutor {
       return `${normalized}${customPath || "/messages"}`;
     }
     switch (this.provider) {
+      case "openai": {
+        // #5842: responses-only models (o1-pro / gpt-5.x-pro) 404 on
+        // /v1/chat/completions ("only supported in v1/responses"). Route them to
+        // the native /responses endpoint — the per-model targetFormat (registry tag
+        // + the -pro heuristic in getModelTargetFormat) is the single source of
+        // truth, keeping the URL in lockstep with the chatCore body translation.
+        // Mirrors the gh executor's targetFormat-driven routing (9router#102).
+        const customBaseUrl =
+          typeof credentials?.providerSpecificData?.baseUrl === "string" &&
+          credentials.providerSpecificData.baseUrl.trim()
+            ? (credentials.providerSpecificData.baseUrl as string)
+            : null;
+        const chatUrl = customBaseUrl ? normalizeOpenAIChatUrl(customBaseUrl) : this.config.baseUrl;
+        if (getModelTargetFormat("openai", model) === "openai-responses") {
+          return chatUrl.replace(/\/chat\/completions\/?$/, "/responses");
+        }
+        return chatUrl;
+      }
       case "bailian-coding-plan": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeBailianMessagesUrl(baseUrl);
       }
       case "heroku": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeHerokuChatUrl(baseUrl);
       }
       case "databricks": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeDatabricksChatUrl(baseUrl);
       }
       case "datarobot": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeDataRobotChatUrl(baseUrl);
       }
       case "azure-ai": {
@@ -229,11 +224,11 @@ export class DefaultExecutor extends BaseExecutor {
           forceResponses || credentials?.providerSpecificData?.apiType === "responses"
             ? "responses"
             : "chat";
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeAzureAiChatUrl(baseUrl, apiType);
       }
       case "watsonx": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeWatsonxChatUrl(baseUrl);
       }
       case "oci": {
@@ -243,33 +238,34 @@ export class DefaultExecutor extends BaseExecutor {
           forceResponses || credentials?.providerSpecificData?.apiType === "responses"
             ? "responses"
             : "chat";
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeOciChatUrl(baseUrl, apiType);
       }
       case "sap": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeSapChatUrl(baseUrl);
       }
       case "xiaomi-mimo": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeXiaomiMimoChatUrl(baseUrl);
       }
       case "snowflake": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeSnowflakeChatUrl(baseUrl);
       }
       case "gigachat": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeGigachatChatUrl(baseUrl);
       }
       case "maritalk": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return buildMaritalkChatUrl(baseUrl);
       }
       case "siliconflow": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const baseUrl = this.resolveBaseUrl(credentials);
         return normalizeOpenAIChatUrl(baseUrl);
       }
+      case "ollama-local":
       case "llama-cpp":
       case "lm-studio":
       case "modal":
@@ -293,7 +289,7 @@ export class DefaultExecutor extends BaseExecutor {
       }
       case "zai":
       case "glm-coding-apikey": {
-        const zaiBaseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        const zaiBaseUrl = this.resolveBaseUrl(credentials);
         return `${zaiBaseUrl}?beta=true`;
       }
       case "claude":
@@ -333,40 +329,7 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   buildHeaders(credentials, stream = true, clientHeaders?: Record<string, string> | null) {
-    const headers = { "Content-Type": "application/json", ...this.config.headers };
-
-    // Allow per-provider User-Agent override via environment variable.
-    const providerId = this.config?.id || this.provider;
-    if (providerId) {
-      const envKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
-      const envUA = process.env[envKey]?.trim();
-      if (envUA) {
-        headers["User-Agent"] = envUA;
-        if ("user-agent" in headers) {
-          headers["user-agent"] = envUA;
-        }
-      }
-    }
-
-    // T07: resolve extra keys round-robin locally since DefaultExecutor overrides BaseExecutor buildHeaders
-    const extraKeys =
-      (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
-    const selectedKeyId = (credentials.providerSpecificData as Record<string, unknown> | undefined)
-      ?.selectedKeyId as string | undefined;
-    let effectiveKey = credentials.apiKey;
-    if (extraKeys.length > 0 && credentials.connectionId && credentials.apiKey) {
-      const resolved = resolveKeyForRequest(
-        credentials.connectionId,
-        credentials.apiKey,
-        extraKeys,
-        selectedKeyId ?? null
-      );
-      effectiveKey = resolved?.key ?? credentials.apiKey;
-      if (resolved && credentials.providerSpecificData) {
-        (credentials.providerSpecificData as Record<string, unknown>).selectedKeyId =
-          resolved.keyId;
-      }
-    }
+    const { headers, effectiveKey } = this.buildHeadersPreamble(credentials, stream);
 
     switch (this.provider) {
       case "gemini":
@@ -544,25 +507,7 @@ export class DefaultExecutor extends BaseExecutor {
     // Forward client request metadata headers (from OpenCode or similar clients)
     // Allowlist-based: only specific x-opencode-* headers and User-Agent are forwarded
     if (clientHeaders) {
-      const clientUA = clientHeaders["User-Agent"] || clientHeaders["user-agent"];
-      if (clientUA) {
-        setUserAgentHeader(headers, clientUA);
-      }
-
-      const opencodeHeaderKeys = [
-        "x-opencode-session",
-        "x-opencode-request",
-        "x-opencode-project",
-        "x-opencode-client",
-      ];
-      for (const headerName of opencodeHeaderKeys) {
-        const value = Object.entries(clientHeaders).find(
-          ([key]) => key.toLowerCase() === headerName.toLowerCase()
-        )?.[1];
-        if (value) {
-          headers[headerName] = value;
-        }
-      }
+      forwardOpencodeClientHeaders(headers, clientHeaders);
 
       // #3974: merge the client's negotiated anthropic-beta (allowlisted) into the
       // outbound set. The registry's static ANTHROPIC_BETA_CLAUDE_OAUTH lacks
@@ -596,8 +541,7 @@ export class DefaultExecutor extends BaseExecutor {
 
     const record = body as Record<string, unknown>;
     const rf = record.response_format as
-      | { type?: string; json_schema?: { schema?: unknown } }
-      | undefined;
+      { type?: string; json_schema?: { schema?: unknown } } | undefined;
     if (rf?.type !== "json_schema" || !rf.json_schema?.schema) return body;
 
     const schemaJson = JSON.stringify(rf.json_schema.schema, null, 2);
@@ -691,7 +635,8 @@ export class DefaultExecutor extends BaseExecutor {
         // injection when `thinking` / `enable_thinking` is set. Skip injection in
         // those cases instead of unconditionally adding `stream_options`.
         const defaultsRecord = withDefaults as Record<string, unknown>;
-        const bodyDisablesStreamOptions = defaultsRecord.stream !== undefined && defaultsRecord.stream !== true;
+        const bodyDisablesStreamOptions =
+          defaultsRecord.stream !== undefined && defaultsRecord.stream !== true;
         const qwenBlocksStreamOptions =
           this.provider === "qwen" &&
           (Boolean(defaultsRecord.thinking) || Boolean(defaultsRecord.enable_thinking));
@@ -768,8 +713,7 @@ export class DefaultExecutor extends BaseExecutor {
     // ../translator/paramSupport.ts so adding one means editing one table.
     if (typeof withDefaults === "object" && withDefaults !== null) {
       const bodyRecord = withDefaults as Record<string, unknown>;
-      const outboundModel =
-        typeof bodyRecord.model === "string" ? bodyRecord.model : model;
+      const outboundModel = typeof bodyRecord.model === "string" ? bodyRecord.model : model;
       stripUnsupportedParams(this.provider, outboundModel, bodyRecord);
     }
 

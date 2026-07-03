@@ -81,7 +81,7 @@ OmniRoute has three distinct but related resilience mechanisms. Each has a diffe
 
 **Terminal states (NOT cooldowns):**
 
-- `banned`
+- `banned` — set by banned-keyword / account-ban detection (see [BAN_DETECTION](../security/BAN_DETECTION.md))
 - `expired`
 - `credits_exhausted`
 

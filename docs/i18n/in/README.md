@@ -755,11 +755,10 @@ npm install -g omniroute
 omniroute
 ```
 
-> **pnpm users:** Run `pnpm approve-builds -g` after install to enable native build scripts required by `better-sqlite3` and `@swc/core`:
+> **pnpm users:** Pass `--allow-build` at install time to enable native build scripts required by `better-sqlite3` and `@swc/core` (the `approve-builds -g` command is not supported for global installs on pnpm v11):
 >
 > ```bash
-> pnpm install -g omniroute
-> pnpm approve-builds -g   # Select all packages → approve
+> pnpm add -g omniroute@latest --allow-build=better-sqlite3 --allow-build=@swc/core
 > omniroute
 > ```
 

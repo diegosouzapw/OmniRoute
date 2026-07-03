@@ -541,15 +541,21 @@ export default function ConnectionRow({
               {statusPresentation.statusLabel}
             </Badge>
             {/* T12: Token expiry status indicator (state-driven, no Date.now in render) */}
+            {/* #5836: the red "Token Expired" badge is TERMINAL-only — for OAuth
+               refresh-capable providers (Antigravity/Gemini) the access token lapses
+               ~hourly but is auto-refreshed, so a lapsed token alone must not paint
+               red. Gate it on testStatus === "expired" (continuation of #5326). */}
             {tokenMinsLeft !== null &&
               (tokenMinsLeft < 0 ? (
-                <span
-                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-red-500/15 text-red-500"
-                  title={t("tokenExpiredTitle", { date: effectiveExpiresAt })}
-                >
-                  <span className="material-symbols-outlined text-[11px]">error</span>
-                  {t("tokenExpiredBadge")}
-                </span>
+                connection.testStatus === "expired" ? (
+                  <span
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-red-500/15 text-red-500"
+                    title={t("tokenExpiredTitle", { date: effectiveExpiresAt })}
+                  >
+                    <span className="material-symbols-outlined text-[11px]">error</span>
+                    {t("tokenExpiredBadge")}
+                  </span>
+                ) : null
               ) : tokenMinsLeft < 30 ? (
                 <span
                   className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-500"
