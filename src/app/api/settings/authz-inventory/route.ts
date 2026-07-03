@@ -9,6 +9,7 @@ import {
   LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES,
   SPAWN_CAPABLE_PREFIXES,
 } from "@/server/authz/routeGuard";
+import { getCorsStatus } from "@/server/cors/origins";
 
 /**
  * Static MANAGEMENT-tier example prefixes. Render-only — never consulted by
@@ -153,6 +154,9 @@ export async function GET(request: Request) {
       bypassEnabled,
       bypassPrefixes,
       spawnCapablePrefixes: [...SPAWN_CAPABLE_PREFIXES],
+      // #5602: surface the effective CORS allowlist so the dashboard can warn
+      // when `CORS_ALLOW_ALL=true` is set (wildcard origins). See docs/security/CORS.md.
+      cors: getCorsStatus(),
     });
   } catch (error) {
     console.log("Error loading authz inventory:", error);

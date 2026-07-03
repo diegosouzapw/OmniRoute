@@ -722,6 +722,22 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     defaultCommand: "pi",
   },
 
+  /** Added — ported from upstream decolua/9router#1233 (dashboard catalog entry for Crush). */
+  crush: {
+    id: "crush",
+    name: "Crush",
+    icon: "terminal",
+    color: "#FB923C",
+    description: "Crush coding agent CLI — terminal AI agent by Charm (charmbracelet/crush)",
+    docsUrl: "https://github.com/charmbracelet/crush",
+    configType: "custom",
+    category: "code",
+    vendor: "OSS (Charm)",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    defaultCommand: "crush",
+  },
+
   // ── Agent entries ─────────────────────────────────────────────────────────
 
   /** ★ Added by plan 14 (CLI Pages Redesign) — 2026-05-27 */
