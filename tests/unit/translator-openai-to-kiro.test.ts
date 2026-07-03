@@ -81,7 +81,9 @@ test("OpenAI -> Kiro preserves prior history, tool uses and accumulated tool res
   assert.equal(result.conversationState.history.length, 2);
   assert.deepEqual(result.conversationState.history[0], {
     userInputMessage: {
-      content: "Rules\n\nHello",
+      // #2306: the system prompt ("Rules") is wrapped in <system-reminder> before
+      // being merged into the Kiro user turn, instead of leaking as raw user text.
+      content: "<system-reminder>\nRules\n</system-reminder>\n\nHello",
       modelId: "claude-sonnet-4",
       origin: "AI_EDITOR",
     },
@@ -233,11 +235,11 @@ test("OpenAI -> Kiro derives a stable conversationId for the same first history 
 
   assert.equal(
     (first.conversationState as any).history[0].userInputMessage.content,
-    "Rules\n\nHello"
+    "<system-reminder>\nRules\n</system-reminder>\n\nHello"
   );
   assert.equal(
     (second as any).conversationState.history[0].userInputMessage.content,
-    "Rules\n\nHello"
+    "<system-reminder>\nRules\n</system-reminder>\n\nHello"
   );
   assert.equal(first.conversationState.conversationId, second.conversationState.conversationId);
 });
@@ -291,7 +293,10 @@ test("OpenAI -> Kiro merges adjacent user history turns after role normalization
 
   const firstUser = history[0].userInputMessage;
   assert.ok(firstUser, "first history turn should be a user turn");
-  assert.equal(firstUser.content, "System rules\n\nFirst question");
+  assert.equal(
+    firstUser.content,
+    "<system-reminder>\nSystem rules\n</system-reminder>\n\nFirst question"
+  );
   assert.equal(history[1].assistantResponseMessage?.content, "Answer 1");
 });
 

@@ -7,38 +7,16 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
+import {
+  normalizeToolName,
+  stripEmptyOptionalToolArgs,
+  normalizeOutputIndex,
+  normalizeUpstreamFailure,
+  extractResponsesReasoningSummaryText,
+} from "./openai-responses/pureHelpers.ts";
 
-function normalizeToolName(value) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function stripEmptyOptionalToolArgs(value, toolName) {
-  if (value == null) return value;
-
-  if (typeof value === "string") {
-    // JSON-string cleanup is intentionally scoped to Claude Code's Read tool.
-    // For arbitrary tools, empty strings/arrays may be valid user payloads.
-    if (toolName !== "Read") return value;
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed) || typeof parsed !== "object" || parsed === null) return value;
-      const cleaned = stripEmptyOptionalToolArgs(parsed, toolName);
-      return JSON.stringify(cleaned ?? {});
-    } catch {
-      return value;
-    }
-  }
-
-  if (Array.isArray(value) || typeof value !== "object") return value;
-
-  const cleaned = { ...value };
-  for (const [key, entry] of Object.entries(cleaned)) {
-    if (entry === "" || (Array.isArray(entry) && entry.length === 0)) {
-      delete cleaned[key];
-    }
-  }
-  return cleaned;
-}
+// normalizeUpstreamFailure is re-exported for external importers (tests).
+export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
 
 /**
  * Translate OpenAI chunk to Responses API events
@@ -192,11 +170,6 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
 }
 
 // Normalize output_index to a non-negative integer (replaces fragile parseInt calls)
-function normalizeOutputIndex(outputIndex) {
-  const normalized = Number(outputIndex);
-  return Number.isInteger(normalized) && normalized >= 0 ? normalized : 0;
-}
-
 // Record a finalized item keyed by output_index so buildDenseOutput can sort later
 function recordCompletedItem(state, outputIndex, item) {
   if (!Array.isArray(state.completedOutputItems)) {
@@ -564,50 +537,6 @@ function flushEvents(state) {
   return events;
 }
 
-export function normalizeUpstreamFailure(data, fallbackType = "server_error") {
-  const response = data?.response && typeof data.response === "object" ? data.response : null;
-  const error =
-    response?.error && typeof response.error === "object"
-      ? response.error
-      : data?.error && typeof data.error === "object"
-        ? data.error
-        : null;
-
-  const code = typeof error?.code === "string" ? error.code : "";
-  const message =
-    typeof error?.message === "string"
-      ? error.message
-      : typeof data?.message === "string"
-        ? data.message
-        : "Upstream failure";
-
-  // Preserve upstream error semantics:
-  // - context_length_exceeded → 400 (client can retry with smaller context)
-  // - rate_limit_exceeded → 429 (client should back off)
-  // - Everything else → 502 (upstream failure)
-  const isContextOverflow = code === "context_length_exceeded";
-  const isRateLimit = code === "rate_limit_exceeded" || code === "rate_limited";
-  let status: number;
-  let type: string;
-  if (isRateLimit) {
-    status = 429;
-    type = "rate_limit_error";
-  } else if (isContextOverflow) {
-    status = 400;
-    type = "invalid_request_error";
-  } else {
-    status = 502;
-    type = fallbackType;
-  }
-
-  return {
-    status,
-    type,
-    code: code || (isRateLimit ? "rate_limit_exceeded" : "bad_gateway"),
-    message,
-  };
-}
-
 /**
  * OpenAI Chat Completions streams announce the assistant role on the FIRST delta
  * (e.g. `{ "role": "assistant", "content": "" }` or `{ "role": "assistant",
@@ -678,15 +607,6 @@ function buildResponsesReasoningDeltaChunk(state, text) {
       },
     ],
   };
-}
-
-function extractResponsesReasoningSummaryText(item) {
-  if (!item || !Array.isArray(item.summary)) return "";
-  return item.summary
-    .map((part) =>
-      part && typeof part === "object" && typeof part.text === "string" ? part.text : ""
-    )
-    .join("");
 }
 
 /**

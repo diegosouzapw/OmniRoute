@@ -189,6 +189,25 @@ test("isLocalOnlyBypassableByManageScope: /api/services/* is NOT bypassable (spa
   assert.equal(isLocalOnlyBypassableByManageScope("/api/services/"), false);
 });
 
+// Hard Rule #17 — Mux (coder/mux) embedded service (spawns child processes via
+// runNpm install + node server spawn): every /api/services/mux/* route MUST be
+// classified local-only, same as every other embedded service under this prefix.
+test("isLocalOnlyPath: /api/services/mux/* is local-only (Hard Rule #17)", () => {
+  assert.equal(isLocalOnlyPath("/api/services/mux/install"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/start"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/stop"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/restart"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/update"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/status"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/auto-start"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/logs"), true);
+});
+
+test("isLocalOnlyBypassableByManageScope: /api/services/mux/* is NOT bypassable (spawn-capable)", () => {
+  assert.equal(isLocalOnlyBypassableByManageScope("/api/services/mux/start"), false);
+  assert.equal(isLocalOnlyBypassableByManageScope("/api/services/mux/install"), false);
+});
+
 test("management policy rejects /api/services/ from non-localhost (status 403)", async () => {
   const ctx = makeCtx("/api/services/9router/start", { host: "evil.tunnel.io" });
   const outcome = await managementPolicy.evaluate(ctx);

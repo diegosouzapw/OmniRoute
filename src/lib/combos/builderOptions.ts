@@ -65,6 +65,7 @@ type ProviderConnectionLike = {
   lastTested?: string | null;
   updatedAt?: string | null;
   testStatus?: string | null;
+  providerSpecificData?: Record<string, unknown> | null;
 };
 
 type ProviderNodeLike = {
@@ -221,6 +222,50 @@ function deriveConnectionStatus(connection: ProviderConnectionLike): BuilderConn
     return "error";
   }
   return "active";
+}
+
+/**
+ * Expand a list of raw DB connection rows into `ComboBuilderConnectionOption` items.
+ *
+ * No-auth account providers (opencode, mimocode) pack multiple "accounts" as UUIDs in
+ * `providerSpecificData.fingerprints` of a single DB row (#6087). This helper inflates
+ * them: each fingerprint becomes a separate option labeled "Account N" with an id of
+ * `${rowId}|fp|${fingerprint}` so the combo step can pin a specific account.
+ * Rows without fingerprints are converted 1:1 via buildConnectionOption as before.
+ */
+export function expandConnectionOptions(
+  connections: ProviderConnectionLike[]
+): ComboBuilderConnectionOption[] {
+  const result: ComboBuilderConnectionOption[] = [];
+  for (const connection of connections) {
+    const fingerprints = Array.isArray(connection.providerSpecificData?.fingerprints)
+      ? (connection.providerSpecificData.fingerprints as unknown[]).filter(
+          (fp): fp is string => typeof fp === "string" && fp.length > 0
+        )
+      : [];
+    if (fingerprints.length > 0) {
+      const baseStatus = deriveConnectionStatus(connection);
+      const basePriority = typeof connection.priority === "number" ? connection.priority : 0;
+      for (let i = 0; i < fingerprints.length; i++) {
+        result.push({
+          id: `${toStringOrNull(connection.id) || ""}|fp|${fingerprints[i]}`,
+          label: `Account ${i + 1}`,
+          type: toStringOrNull(connection.authType) || "unknown",
+          status: baseStatus,
+          priority: basePriority,
+          isActive: connection.isActive !== false,
+          defaultModel: toStringOrNull(connection.defaultModel),
+          rateLimitedUntil: toNumberOrNull(connection.rateLimitedUntil),
+          lastError: toStringOrNull(connection.lastError),
+          lastTested: toStringOrNull(connection.lastTested),
+        });
+      }
+    } else {
+      const opt = buildConnectionOption(connection);
+      if (opt) result.push(opt);
+    }
+  }
+  return result;
 }
 
 function buildConnectionOption(
@@ -509,10 +554,9 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
       customModels
     );
 
-    const normalizedConnections = providerConnections
-      .map((connection) => buildConnectionOption(connection))
-      .filter((connection): connection is ComboBuilderConnectionOption => Boolean(connection))
-      .sort(compareConnections);
+    const normalizedConnections = expandConnectionOptions(providerConnections).sort(
+      compareConnections
+    );
 
     const activeConnectionCount = normalizedConnections.filter(
       (connection) => connection.isActive

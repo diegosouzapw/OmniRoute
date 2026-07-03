@@ -657,6 +657,26 @@ export default function OAuthModal({
         await submitCredentialBlob(provider, callbackUrl, reauthConnection, setStep, onSuccess);
         return;
       }
+
+      // Codex: a bare ChatGPT access token (JWT, no refresh token) pasted
+      // directly instead of a callback URL/code — mirrors the grok-cli
+      // raw-token paste pattern. Routed through the access-token-only import
+      // endpoint (#1290) instead of the authorization-code exchange below.
+      if (provider === "codex" && /^eyJ/.test(callbackUrl.trim())) {
+        const res = await fetch("/api/oauth/codex/import-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken: callbackUrl.trim() }),
+        });
+        const data = (await parseResponseBody(res)) as Record<string, unknown>;
+        if (!res.ok) {
+          throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
+        }
+        setStep("success");
+        onSuccess?.();
+        return;
+      }
+
       if (!authData) {
         throw new Error(
           "OAuth session not initialized. Restart the connection flow and try again."
