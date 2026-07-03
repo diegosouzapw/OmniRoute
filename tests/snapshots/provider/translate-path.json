@@ -1656,14 +1656,14 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       },
       "oauth": {
@@ -1671,7 +1671,7 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       }
     },
@@ -1688,14 +1688,14 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       },
       "oauth": {
@@ -1703,7 +1703,7 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       }
     },

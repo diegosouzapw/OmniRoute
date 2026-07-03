@@ -59,7 +59,7 @@ function sanitize(headers: Record<string, unknown>): Record<string, unknown> {
     let s = v
       .replace(/Bearer .+/, "Bearer <TOK>")
       .replace(/sk-test-APIKEY|tok-test-ACCESS/g, "<CRED>")
-      .replace(/\((?:darwin|linux|win32); (?:arm64|x64|ia32)\)/g, "(<OS>; <ARCH>)")
+      .replace(/\((?:darwin|linux|win32); (?:arm64|x64|x86_64|ia32)\)/g, "(<OS>; <ARCH>)")
       .replace(/kimi-\d{10,}/g, "kimi-<TS>")
       .replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "<UUID>");
     if (NODE_VERSION) s = s.split(NODE_VERSION).join("<NODE>");
