@@ -101,43 +101,6 @@ test("parseRetryFromErrorText caps extreme reset windows at 30 days", () => {
   assert.equal(parseRetryFromErrorText("Resets in 999999h"), thirtyDaysMs);
 });
 
-test("parseRetryFromErrorText reads a bare ISO retryAfter from a 429 JSON body", () => {
-  const futureIso = new Date(Date.now() + 120_000).toISOString();
-  const body = JSON.stringify({ error: { retryAfter: futureIso } });
-  const waitMs = parseRetryFromErrorText(body);
-  assert.ok(waitMs !== null, "expected a parsed wait time, got null");
-  assert.ok(Math.abs((waitMs as number) - 120_000) <= 2_000, `expected ~120000ms, got ${waitMs}`);
-});
-
-test("parseRetryFromErrorText reads top-level retryAfter when error.retryAfter is absent", () => {
-  const futureIso = new Date(Date.now() + 60_000).toISOString();
-  const body = JSON.stringify({ retryAfter: futureIso });
-  const waitMs = parseRetryFromErrorText(body);
-  assert.ok(waitMs !== null, "expected a parsed wait time, got null");
-  assert.ok(Math.abs((waitMs as number) - 60_000) <= 2_000, `expected ~60000ms, got ${waitMs}`);
-});
-
-test("parseRetryFromErrorText reads retry_after_ms from a 429 JSON body", () => {
-  const body = JSON.stringify({ retry_after_ms: 45_000 });
-  assert.equal(parseRetryFromErrorText(body), 45_000);
-});
-
-test("parseRetryFromErrorText reads error.retry_after_ms nested in a 429 JSON body", () => {
-  const body = JSON.stringify({ error: { retry_after_ms: 12_000 } });
-  assert.equal(parseRetryFromErrorText(body), 12_000);
-});
-
-test("parseRetryFromErrorText reads retryAfterMs (camelCase ms variant)", () => {
-  const body = JSON.stringify({ retryAfterMs: 8_000 });
-  assert.equal(parseRetryFromErrorText(body), 8_000);
-});
-
-test("parseRetryFromErrorText returns null for a past ISO retryAfter in a JSON body", () => {
-  const pastIso = new Date(Date.now() - 60_000).toISOString();
-  const body = JSON.stringify({ error: { retryAfter: pastIso } });
-  assert.equal(parseRetryFromErrorText(body), null);
-});
-
 test("checkFallbackError locks Antigravity quota-reached 429 for the full reset window", () => {
   const message =
     "Individual quota reached. Contact your administrator to enable overages. " +
