@@ -16,6 +16,7 @@ import { COPILOT_TARGET } from "./copilot";
 import { CODEX_TARGET } from "./codex";
 import { CURSOR_TARGET } from "./cursor";
 import { ZED_TARGET } from "./zed";
+import { LETTA_TARGET } from "./lettaDesktop";
 import { CLAUDE_CODE_TARGET } from "./claudeCode";
 import { OPEN_CODE_TARGET } from "./openCode";
 import { TRAE_TARGET } from "./trae";
@@ -60,10 +61,7 @@ export type ConnectionRoute =
  *   2. known target host — decrypt and dispatch to the matching handler
  *   3. anything else — passthrough (transparent TCP forward)
  */
-export function routeConnection(
-  hostname: string,
-  userBypass: string[] = []
-): ConnectionRoute {
+export function routeConnection(hostname: string, userBypass: string[] = []): ConnectionRoute {
   if (shouldBypass(hostname, userBypass)) {
     return { kind: "bypass", reason: "bypass" };
   }

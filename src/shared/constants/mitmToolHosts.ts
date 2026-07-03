@@ -23,6 +23,7 @@ export const MITM_TOOL_HOSTS: Record<string, string[]> = {
   "claude-code": ["api.anthropic.com"],
   "open-code": ["opencode.ai"],
   trae: ["trae.invalid"],
+  lettaDesktop: ["api.letta.com"],
 };
 
 /** Hosts for a tool id, falling back to an empty list for unknown ids. */

@@ -9,7 +9,8 @@ export type AgentId =
   | "zed"
   | "claude-code"
   | "open-code"
-  | "trae";
+  | "trae"
+  | "lettaDesktop";
 
 /**
  * Minimal abstract interface for MitmHandlerBase.
@@ -25,8 +26,8 @@ export interface MitmTarget {
   name: string;
   icon: string;
   color: string;
-  hosts: string[];                  // ex.: ["api.githubcopilot.com"]
-  port: number;                     // default 443
+  hosts: string[]; // ex.: ["api.githubcopilot.com"]
+  port: number; // default 443
   endpointPatterns: string[];
   defaultModels: Array<{ id: string; name: string; alias: string }>;
   setupTutorial: {
@@ -34,8 +35,8 @@ export interface MitmTarget {
     detection: { command: string; platform: "linux" | "macos" | "windows" | "all" };
   };
   handler: () => Promise<{ default: new () => MitmHandlerBase }>;
-  riskNoticeKey: string;            // i18n key
-  viability?: "investigating" | "supported" | "deprecated";  // Trae = "investigating"
+  riskNoticeKey: string; // i18n key
+  viability?: "investigating" | "supported" | "deprecated"; // Trae = "investigating"
 }
 
 /**
@@ -47,8 +48,16 @@ export type MitmTargetView = Omit<MitmTarget, "handler">;
 
 export const MitmTargetSchema = z.object({
   id: z.enum([
-    "antigravity", "kiro", "copilot", "codex", "cursor", "zed",
-    "claude-code", "open-code", "trae",
+    "antigravity",
+    "kiro",
+    "copilot",
+    "codex",
+    "cursor",
+    "zed",
+    "claude-code",
+    "open-code",
+    "trae",
+    "lettaDesktop",
   ]),
   name: z.string(),
   icon: z.string(),
@@ -56,7 +65,9 @@ export const MitmTargetSchema = z.object({
   hosts: z.array(z.string()).min(1),
   port: z.number().int().positive().max(65535).default(443),
   endpointPatterns: z.array(z.string()).default([]),
-  defaultModels: z.array(z.object({ id: z.string(), name: z.string(), alias: z.string() })).default([]),
+  defaultModels: z
+    .array(z.object({ id: z.string(), name: z.string(), alias: z.string() }))
+    .default([]),
   setupTutorial: z.object({
     steps: z.array(z.string()),
     detection: z.object({
