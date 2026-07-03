@@ -1,5 +1,5 @@
 /**
- * MCP Tool Schemas — Contracts for all 22 core and advanced OmniRoute MCP tools.
+ * MCP Tool Schemas — Contracts for all 23 core and advanced OmniRoute MCP tools.
  *
  * Defines input/output Zod schemas, descriptions, scopes, and audit levels
  * for both essential (Phase 1) and advanced (Phase 2) MCP tools.
@@ -11,6 +11,7 @@
 
 import { z } from "zod";
 import { toolSearchTool } from "./toolSearch.ts";
+import { pickFastestModelTool } from "./pickFastestModel.ts";
 import {
   AUTO_ROUTING_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
@@ -22,6 +23,7 @@ import {
 // Re-exported here for backward compatibility (many modules import them from ./tools.ts).
 export type { AuditLevel, McpToolDefinition } from "./toolDefinition.ts";
 import type { McpToolDefinition } from "./toolDefinition.ts";
+export { pickFastestModelInput, pickFastestModelOutput } from "./pickFastestModel.ts";
 
 // ============ Phase 1: Essential Tools (8) ============
 
@@ -1466,6 +1468,7 @@ export const MCP_TOOLS = [
   agentSkillsListTool,
   agentSkillsGetTool,
   agentSkillsCoverageTool,
+  pickFastestModelTool,
 ] as const;
 
 export const MCP_ESSENTIAL_TOOLS = MCP_TOOLS.filter((t) => t.phase === 1);

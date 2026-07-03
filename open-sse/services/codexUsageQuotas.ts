@@ -160,13 +160,43 @@ function findCodexReviewRateLimit(data: JsonRecord): JsonRecord {
   return {};
 }
 
+/**
+ * Codex "banked reset credits" — an eligibility-gated field some ChatGPT plans
+ * expose on the /wham/usage payload: a count of extra rate-limit resets the
+ * account has banked (available_count), plus an optional descriptor of which
+ * window is currently blocking (rate_limit_reached_type). DISPLAY ONLY — this
+ * reads the field defensively (many accounts will not have it) and never
+ * throws; redemption is an unofficial mutating endpoint and out of scope
+ * (issue #5199).
+ */
+function parseBankedResetCredits(data: JsonRecord): number | undefined {
+  const resetCredits = toRecord(getFieldValue(data, "rate_limit_reset_credits", "rateLimitResetCredits"));
+  const availableCount = getFieldValue(resetCredits, "available_count", "availableCount");
+  const count = toNumber(availableCount, NaN);
+  return Number.isFinite(count) ? count : undefined;
+}
+
+function parseRateLimitReachedType(data: JsonRecord): string | undefined {
+  const reachedType = getFieldValue(data, "rate_limit_reached_type", "rateLimitReachedType");
+  if (typeof reachedType === "string" && reachedType.trim().length > 0) return reachedType.trim();
+  const reachedTypeObj = toRecord(reachedType);
+  const type = getFieldValue(reachedTypeObj, "type");
+  return typeof type === "string" && type.trim().length > 0 ? type.trim() : undefined;
+}
+
 export function buildCodexUsageQuotas(dataValue: unknown): {
   rateLimit: JsonRecord;
   quotas: Record<string, CodexUsageQuota>;
+  /** Banked reset credits available on the account (undefined when absent/not eligible). */
+  bankedResetCredits?: number;
+  /** Which window is currently reported as blocking, when the upstream exposes it. */
+  rateLimitReachedType?: string;
 } {
   const data = toRecord(dataValue);
   const rateLimit = toRecord(getFieldValue(data, "rate_limit", "rateLimit"));
   const quotas: Record<string, CodexUsageQuota> = {};
+  const bankedResetCredits = parseBankedResetCredits(data);
+  const rateLimitReachedType = parseRateLimitReachedType(data);
 
   const primaryWindow = toRecord(getFieldValue(rateLimit, "primary_window", "primaryWindow"));
   if (Object.keys(primaryWindow).length > 0) quotas.session = buildPercentageQuota(primaryWindow);
@@ -231,5 +261,10 @@ export function buildCodexUsageQuotas(dataValue: unknown): {
     );
   }
 
-  return { rateLimit, quotas };
+  return {
+    rateLimit,
+    quotas,
+    ...(bankedResetCredits !== undefined ? { bankedResetCredits } : {}),
+    ...(rateLimitReachedType !== undefined ? { rateLimitReachedType } : {}),
+  };
 }

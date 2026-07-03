@@ -84,6 +84,13 @@ async function seedOpenAIConnection({
     errorCode: "refresh_failed",
     rateLimitedUntil,
     backoffLevel: 2,
+    // These embeddings edge-case tests do not exercise proxying. Pin the
+    // connection to a direct egress (proxy off) so resolveProxyForConnection
+    // returns "direct" regardless of any global/provider proxyConfig the
+    // settings-proxy suite left behind in the shared DATA_DIR. Without this,
+    // #5975 (embeddings now honor the connection-level proxy) makes the leaked
+    // provider.local:8080 fast-fail the upstream with PROXY_UNREACHABLE.
+    proxyEnabled: false,
   });
 }
 

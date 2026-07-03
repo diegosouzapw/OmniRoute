@@ -111,16 +111,21 @@ function parseCookies(raw: string): Array<{ name: string; value: string }> {
  *   <length>
  *   [["wrb.fr", null, "<JSON string>"]]
  *
- * The JSON string contains nested array: inner[4][0][1] = ["text chunks"]
- * We return text from the first wrb.fr line that contains content.
+ * The JSON string contains nested array: inner[4][0][1] = ["text chunks"].
+ * We concatenate text from every wrb.fr line because Gemini can split one
+ * assistant answer across multiple StreamGenerate chunks.
  */
-function parseStreamResponse(raw: string): string {
+export function parseStreamResponse(raw: string): string {
   const lines = raw.split("\n");
-  for (const line of lines) {
-    if (!line.trim() || line.trim() === ")]}'" || /^\d+$/.test(line.trim())) continue;
+  const textChunks: string[] = [];
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line === ")]}'" || /^\d+$/.test(line)) continue;
+    if (!line.includes("wrb.fr")) continue;
     try {
       const arr = JSON.parse(line);
-      if (!Array.isArray(arr) || !arr[0] || arr[0][0] !== "wrb.fr") continue;
+      if (!Array.isArray(arr) || !Array.isArray(arr[0]) || arr[0][0] !== "wrb.fr") continue;
       const payload = arr[0]?.[2];
       if (typeof payload !== "string") continue;
       const inner = JSON.parse(payload);
@@ -128,12 +133,63 @@ function parseStreamResponse(raw: string): string {
       const responseArray = inner?.[4]?.[0]?.[1];
       if (!Array.isArray(responseArray)) continue;
       const text = responseArray.filter((c: unknown) => typeof c === "string").join("");
-      if (text) return text;
+      if (text) textChunks.push(text);
     } catch {
       // Skip unparseable lines
     }
   }
+  return textChunks.join("");
+}
+
+function readCredentialString(value: unknown): string {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : "";
+}
+
+function readProviderSpecificString(
+  providerSpecificData: unknown,
+  keys: readonly string[]
+): string {
+  if (
+    !providerSpecificData ||
+    typeof providerSpecificData !== "object" ||
+    Array.isArray(providerSpecificData)
+  ) {
+    return "";
+  }
+  const data = providerSpecificData as Record<string, unknown>;
+  for (const key of keys) {
+    const value = readCredentialString(data[key]);
+    if (value) return value;
+  }
   return "";
+}
+
+function normalizeGeminiCookieInput(raw: string, cookieName = "__Secure-1PSID"): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  return trimmed.includes("=") ? trimmed : `${cookieName}=${trimmed}`;
+}
+
+function resolveGeminiWebCookie(credentials: ExecuteInput["credentials"]): string {
+  const directCookie =
+    readCredentialString(credentials?.apiKey) ||
+    readCredentialString((credentials as Record<string, unknown> | undefined)?.cookie);
+  if (directCookie) return normalizeGeminiCookieInput(directCookie);
+
+  const providerSpecificData = credentials?.providerSpecificData;
+  const cookie = readProviderSpecificString(providerSpecificData, ["cookie"]);
+  if (cookie) return normalizeGeminiCookieInput(cookie);
+
+  const psid = readProviderSpecificString(providerSpecificData, ["__Secure-1PSID"]);
+  const psidts = readProviderSpecificString(providerSpecificData, ["__Secure-1PSIDTS"]);
+  return [
+    psid ? normalizeGeminiCookieInput(psid, "__Secure-1PSID") : "",
+    psidts ? normalizeGeminiCookieInput(psidts, "__Secure-1PSIDTS") : "",
+  ]
+    .filter(Boolean)
+    .join("; ");
 }
 
 // ─── Executor ───────────────────────────────────────────────────────────────
@@ -147,7 +203,7 @@ export class GeminiWebExecutor extends BaseExecutor {
     const { model, body, stream, credentials, signal } = input;
     const requestBody = body as GeminiRequestBody;
 
-    const cookie = credentials.apiKey || "";
+    const cookie = resolveGeminiWebCookie(credentials);
     if (!cookie) {
       return {
         response: new Response(JSON.stringify({ error: "Missing Gemini cookies" }), {

@@ -24,17 +24,23 @@ import {
   isClaudeCodeCompatible,
 } from "../services/provider.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
-import { buildDataRobotChatUrl } from "../config/datarobot.ts";
-import { buildAzureAiChatUrl } from "../config/azureAi.ts";
-import { buildWatsonxChatUrl } from "../config/watsonx.ts";
-import { buildOciChatUrl } from "../config/oci.ts";
-import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
+import { getSapResourceGroup } from "../config/sap.ts";
+import {
+  normalizeBailianMessagesUrl,
+  normalizeDataRobotChatUrl,
+  normalizeAzureAiChatUrl,
+  normalizeWatsonxChatUrl,
+  normalizeOciChatUrl,
+  normalizeSapChatUrl,
+  normalizeXiaomiMimoChatUrl,
+  normalizeOpenAIChatUrl,
+  getOpenRouterConnectionPreset,
+} from "./default/urlNormalizers.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import { buildClineHeaders } from "@/shared/utils/clineAuth";
-import { normalizeBaseUrl } from "../utils/urlSanitize.ts";
 import {
   normalizeHerokuChatUrl,
   normalizeDatabricksChatUrl,
@@ -85,62 +91,6 @@ function applyCustomHeaders(headers: Record<string, string>, rawCustomHeaders: u
     }
     headers[k] = v;
   }
-}
-
-function normalizeBailianMessagesUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl).replace(/\?beta=true$/, "");
-  const messagesUrl = normalized.endsWith("/messages") ? normalized : `${normalized}/messages`;
-  return messagesUrl;
-}
-
-function normalizeDataRobotChatUrl(baseUrl) {
-  return buildDataRobotChatUrl(baseUrl);
-}
-
-function normalizeAzureAiChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
-  return buildAzureAiChatUrl(baseUrl, apiType);
-}
-
-function normalizeWatsonxChatUrl(baseUrl: string) {
-  return buildWatsonxChatUrl(baseUrl);
-}
-
-function normalizeOciChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
-  return buildOciChatUrl(baseUrl, apiType);
-}
-
-function normalizeSapChatUrl(baseUrl) {
-  return buildSapChatUrl(baseUrl);
-}
-
-function normalizeXiaomiMimoChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
-  return `${normalized}/chat/completions`;
-}
-
-function normalizeOpenAIChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl);
-  if (
-    normalized.endsWith("/chat/completions") ||
-    normalized.endsWith("/responses") ||
-    normalized.endsWith("/chat")
-  ) {
-    return normalized;
-  }
-  if (normalized.endsWith("/v1")) {
-    return `${normalized}/chat/completions`;
-  }
-  // Assume OpenAI-compatible /v1/chat/completions path structure
-  // when the base URL is a bare hostname or custom path (e.g. llama.cpp, vLLM, LM Studio).
-  return `${normalized}/v1/chat/completions`;
-}
-
-function getOpenRouterConnectionPreset(
-  providerSpecificData?: Record<string, unknown> | null
-): string | null {
-  const preset =
-    typeof providerSpecificData?.preset === "string" ? providerSpecificData.preset.trim() : "";
-  return preset || null;
 }
 
 export class DefaultExecutor extends BaseExecutor {
@@ -737,7 +687,52 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
+    // ClinePass reasoning models burn all of max_tokens on the thinking phase
+    // when the budget is too small, leaving content empty (finish_reason:
+    // "length"). Bump max_tokens to a safe floor when reasoning is enabled and
+    // the budget is undersized. CLINEPASS-GATED — no-op for every other provider.
+    if (typeof withDefaults === "object" && withDefaults !== null) {
+      this.ensureThinkingBudget(withDefaults as Record<string, unknown>, model);
+    }
+
     return withDefaults;
+  }
+
+  // ClinePass / OpenRouter-style thinking models leave content empty when the
+  // reasoning budget consumes all of max_tokens. Bump max_tokens to a safe
+  // minimum only when reasoning is enabled and the budget is undersized.
+  // CLINEPASS-GATED: returns early for every other provider.
+  ensureThinkingBudget(body: Record<string, unknown>, model: string): Record<string, unknown> {
+    if (!body || this.provider !== "clinepass") return body;
+
+    const outboundModel = typeof body.model === "string" ? body.model : model;
+    const entry = getRegistryEntry(this.provider);
+    const modelEntry = entry?.models?.find((m) => m.id === outboundModel);
+    if (!modelEntry?.supportsReasoning) return body;
+
+    const extraBody = body.extra_body as Record<string, unknown> | undefined;
+    const thinking = extraBody?.thinking as Record<string, unknown> | undefined;
+    const effort = body.reasoning_effort;
+    const reasoningEnabled =
+      thinking?.type === "enabled" ||
+      (typeof effort === "string" && effort !== "none" && effort !== "off") ||
+      effort === true;
+    if (!reasoningEnabled) return body;
+
+    const MIN_TOKENS = 4096;
+    const maxOutput =
+      typeof modelEntry.maxOutputTokens === "number" && modelEntry.maxOutputTokens > 0
+        ? modelEntry.maxOutputTokens
+        : MIN_TOKENS;
+    const target = Math.min(MIN_TOKENS, maxOutput);
+    const current = body.max_tokens ?? body.max_completion_tokens;
+
+    if (typeof current !== "number" || current <= 0) {
+      body.max_tokens = target;
+    } else if (current < MIN_TOKENS && current < maxOutput) {
+      body.max_tokens = MIN_TOKENS;
+    }
+    return body;
   }
 
   /**
