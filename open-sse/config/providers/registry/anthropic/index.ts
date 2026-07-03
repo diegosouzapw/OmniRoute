@@ -38,6 +38,13 @@ export const anthropicProvider: RegistryEntry = {
     },
     { id: "claude-opus-4.6", name: "Claude Opus 4.6" },
     { id: "claude-opus-4.5", name: "Claude Opus 4.5" },
+    {
+      id: "claude-sonnet-5",
+      name: "Claude Sonnet 5",
+      contextLength: 1048576,
+      // Sonnet 5 rejects non-default sampling params with a 400 (adaptive-only).
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
     { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
     { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.6" },
     { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
