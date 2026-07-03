@@ -39,7 +39,44 @@ const CLAUDE_NAMES: Record<string, string> = {
   "claude haiku 3.5": "CLAUDE_4_5_HAIKU",
 };
 
-function mapModel(model: string): string {
+// Canonical upstream model IDs served by theoldllm's /api/chatgpt proxy
+// (apiProvider "chatgpt" in the site's model catalog — the free, reachable tier).
+// Source: https://theoldllm.vercel.app model list (reported in #5181).
+// These pass through mapModel() UNCHANGED — critical for non-GPT/Claude models
+// (Gemini, o-series, Grok, DeepSeek, Sonar) which would otherwise fall through
+// to the GPT_5_4 default and silently misroute.
+export const CHATGPT_UPSTREAM_MODELS: ReadonlySet<string> = new Set<string>([
+  "GPT_5_4",
+  "GPT_5_3",
+  "GPT_5_2",
+  "GPT_5_1",
+  "GPT_5",
+  "GPT_o4_mini",
+  "GPT_o3_mini",
+  "gemini_3_pro",
+  "gemini_2_5_pro",
+  "gemini_2_0_flash",
+  "gemini_1_5_flash",
+  "CLAUDE_4_6_OPUS",
+  "CLAUDE_4_6_SONNET",
+  "CLAUDE_4_5_HAIKU",
+  "openrouter_gpt_4_o",
+  "openrouter_gpt_4_o_mini",
+  "openrouter_gpt_4",
+  "openrouter_grok_4",
+  "together_deepseek_r1",
+  "openrouter_deepseek_r1",
+  "together_deepseek_v3",
+  "openrouter_deepseek_v3",
+  "sonar-deep-research",
+  "sonar-pro",
+  "openrouter_web_search",
+]);
+
+export function mapModel(model: string): string {
+  const trimmed = model.trim();
+  // Known upstream IDs (from live discovery / refreshed catalog) route as-is.
+  if (CHATGPT_UPSTREAM_MODELS.has(trimmed)) return trimmed;
   const n = model.toLowerCase().trim();
   const gptKey = n.replace(/[_\s]+/g, "-");
   if (GPT_MODELS[gptKey]) return GPT_MODELS[gptKey];
