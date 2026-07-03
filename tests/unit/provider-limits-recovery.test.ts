@@ -194,3 +194,104 @@ test("error-only quota response does not clear transient state", async () => {
   assert.equal(updated.testStatus, "unavailable", "transient state should not be cleared on error");
   assert.equal(updated.lastErrorType, "rate_limited");
 });
+
+test("CAS primitive clears when expected state matches", async () => {
+  const created = await createGlmConnectionWithTransientCooldown();
+  const connectionId = (created as { id: string }).id;
+  const before = (await providersDb.getProviderConnectionById(connectionId)) as Record<
+    string,
+    unknown
+  >;
+
+  const applied = await providersDb.clearConnectionErrorIfUnchanged(connectionId, {
+    testStatus: (before.testStatus as string) ?? null,
+    lastErrorAt: (before.lastErrorAt as string) ?? null,
+    rateLimitedUntil: (before.rateLimitedUntil as string) ?? null,
+  });
+
+  assert.equal(applied, true, "CAS UPDATE should apply when expected state matches");
+  const after = (await providersDb.getProviderConnectionById(connectionId)) as Record<
+    string,
+    unknown
+  >;
+  assert.equal(after.testStatus, "active");
+  assert.equal(after.rateLimitedUntil, undefined);
+  assert.equal(after.backoffLevel, 0);
+});
+
+test("CAS primitive aborts when state changed concurrently", async () => {
+  const created = await createGlmConnectionWithTransientCooldown();
+  const connectionId = (created as { id: string }).id;
+  const before = (await providersDb.getProviderConnectionById(connectionId)) as Record<
+    string,
+    unknown
+  >;
+
+  // Simulate a concurrent markAccountUnavailable writing a fresh error state.
+  const newLastErrorAt = new Date(Date.now() + 1000).toISOString();
+  const newRateLimitedUntil = new Date(Date.now() + 120_000).toISOString();
+  await providersDb.updateProviderConnection(connectionId, {
+    lastErrorAt: newLastErrorAt,
+    rateLimitedUntil: newRateLimitedUntil,
+    lastError: "fresh 429",
+    errorCode: 429,
+    backoffLevel: 3,
+  });
+
+  const applied = await providersDb.clearConnectionErrorIfUnchanged(connectionId, {
+    testStatus: (before.testStatus as string) ?? null,
+    lastErrorAt: (before.lastErrorAt as string) ?? null,
+    rateLimitedUntil: (before.rateLimitedUntil as string) ?? null,
+  });
+
+  assert.equal(applied, false, "CAS UPDATE should abort when state changed");
+  const after = (await providersDb.getProviderConnectionById(connectionId)) as Record<
+    string,
+    unknown
+  >;
+  assert.equal(after.testStatus, "unavailable", "fresh mark should be preserved");
+  assert.equal(after.backoffLevel, 3, "fresh backoff level should be preserved");
+  assert.equal(after.lastError, "fresh 429");
+});
+
+test("quota recovery path does NOT overwrite a concurrent mark (TOCTOU closed)", async () => {
+  const created = await createGlmConnectionWithTransientCooldown();
+  const connectionId = (created as { id: string }).id;
+  const snapshotBeforeClear = (await providersDb.getProviderConnectionById(
+    connectionId
+  )) as Record<string, unknown>;
+  const expectedLastErrorAt = (snapshotBeforeClear.lastErrorAt as string) ?? null;
+
+  // Mock fetch so that DURING the quota fetch (between read and clear), a
+  // concurrent mark writes a fresh error state. This deterministically
+  // reproduces the TOCTOU window the CAS primitive is meant to close.
+  const concurrentMarkFetch = (() => {
+    // Simulate concurrent markAccountUnavailable writing fresh state.
+    providersDb.updateProviderConnection(connectionId, {
+      lastErrorAt: new Date(Date.now() + 1000).toISOString(),
+      rateLimitedUntil: new Date(Date.now() + 120_000).toISOString(),
+      lastError: "fresh concurrent 429",
+      errorCode: 429,
+      backoffLevel: 3,
+    });
+    return glmQuotaResponse();
+  }) as typeof fetch;
+
+  await withMockedFetch(concurrentMarkFetch, async () => {
+    await providerLimits.fetchAndPersistProviderLimits(connectionId, "manual");
+  });
+
+  const after = (await providersDb.getProviderConnectionById(connectionId)) as Record<
+    string,
+    unknown
+  >;
+  // Recovery should have aborted (CAS miss) — fresh mark must survive.
+  assert.notEqual(
+    after.lastErrorAt,
+    expectedLastErrorAt,
+    "fresh lastErrorAt must not be overwritten by recovery clear"
+  );
+  assert.equal(after.testStatus, "unavailable", "fresh testStatus must survive");
+  assert.equal(after.backoffLevel, 3, "fresh backoff level must survive");
+  assert.equal(after.lastError, "fresh concurrent 429");
+});

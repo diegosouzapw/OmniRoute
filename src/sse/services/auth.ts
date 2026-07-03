@@ -4,6 +4,7 @@ import {
   getProviderNodes,
   validateApiKey,
   updateProviderConnection,
+  clearConnectionErrorIfUnchanged,
   getSettings,
   getCachedSettings,
   getSessionAccountAffinity,
@@ -2276,11 +2277,41 @@ export async function clearAccountError(
   log.info("AUTH", `Account ${connectionId.slice(0, 8)} error cleared`);
 }
 
+/**
+ * Optional CAS token. When provided, the clear is performed via an atomic
+ * conditional UPDATE (clearConnectionErrorIfUnchanged) that aborts if the row
+ * was written by a concurrent path between the caller's snapshot read and this
+ * clear. Closes the TOCTOU window in the quota-recovery path. When omitted,
+ * the clear is unconditional (preserves existing post-success-call behavior).
+ */
+export interface RecoveredStateExpectation {
+  testStatus: string | null;
+  lastErrorAt: string | null;
+  rateLimitedUntil: string | null;
+}
+
 export async function clearRecoveredProviderState(
-  credentials: Partial<RecoverableConnectionState> | null
-) {
-  if (!credentials?.connectionId) return;
+  credentials: Partial<RecoverableConnectionState> | null,
+  expectedState?: RecoveredStateExpectation
+): Promise<{ applied: boolean }> {
+  if (!credentials?.connectionId) return { applied: false };
+  if (expectedState) {
+    const applied = await clearConnectionErrorIfUnchanged(
+      credentials.connectionId,
+      expectedState
+    );
+    if (!applied) {
+      log.info(
+        "AUTH",
+        `Skipped recovery clear for ${credentials.connectionId.slice(0, 8)} — state changed concurrently (CAS miss)`
+      );
+      return { applied: false };
+    }
+    log.info("AUTH", `Account ${credentials.connectionId.slice(0, 8)} error cleared (CAS)`);
+    return { applied: true };
+  }
   await clearAccountError(credentials.connectionId, credentials);
+  return { applied: true };
 }
 
 type AuthRequestHeaders = Headers | Record<string, string | string[] | undefined>;

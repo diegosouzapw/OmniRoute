@@ -12,6 +12,7 @@ export {
   getProviderConnectionById,
   createProviderConnection,
   updateProviderConnection,
+  clearConnectionErrorIfUnchanged,
   deleteProviderConnection,
   deleteProviderConnections,
   deleteProviderConnectionsByProvider,

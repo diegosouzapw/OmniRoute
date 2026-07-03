@@ -437,18 +437,34 @@ export async function maybeClearRecoveredQuotaState(
 
   if (!hasTransientState) return connection;
 
+  let cleared = true;
   try {
-    await clearRecoveredProviderState({
-      connectionId: connection.id,
-      testStatus: connection.testStatus,
-      lastError: connection.lastError ?? null,
-      rateLimitedUntil: connection.rateLimitedUntil ?? null,
-      errorCode: connection.errorCode ?? null,
-      lastErrorType: connection.lastErrorType ?? null,
-      lastErrorSource: connection.lastErrorSource ?? null,
-    });
+    const result = await clearRecoveredProviderState(
+      {
+        connectionId: connection.id,
+        testStatus: connection.testStatus,
+        lastError: connection.lastError ?? null,
+        rateLimitedUntil: connection.rateLimitedUntil ?? null,
+        errorCode: connection.errorCode ?? null,
+        lastErrorType: connection.lastErrorType ?? null,
+        lastErrorSource: connection.lastErrorSource ?? null,
+      },
+      {
+        testStatus: connection.testStatus ?? null,
+        lastErrorAt: connection.lastErrorAt ?? null,
+        rateLimitedUntil: connection.rateLimitedUntil ?? null,
+      }
+    );
+    cleared = result.applied;
   } catch (dbError) {
     console.warn("[ProviderLimits] Failed to clear recovered quota state:", dbError);
+    return connection;
+  }
+
+  if (!cleared) {
+    // CAS miss — a concurrent writer (markAccountUnavailable, etc.) updated
+    // the row between our read and the clear. Return the original snapshot;
+    // the next read from DB will surface the fresh state.
     return connection;
   }
 
