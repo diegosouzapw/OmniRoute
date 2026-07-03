@@ -30,6 +30,10 @@ import type {
   RoutingStrategyValue,
 } from "../../../src/shared/constants/routingStrategies.ts";
 import { normalizeRoutingStrategy } from "../../../src/shared/constants/routingStrategies.ts";
+import { rankBySpeed, DEFAULT_SPEED_WEIGHTS } from "../../services/autoCombo/speedRanking.ts";
+import type { SpeedCandidate } from "../../services/autoCombo/speedRanking.ts";
+import { pickFastestModelInput } from "../schemas/tools.ts";
+import type { z } from "zod";
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY || "";
@@ -751,6 +755,242 @@ export async function handleBestComboForTask(args: {
   }
 }
 
+/**
+ * Speed-optimized "pick the fastest reliable provider×model" tool.
+ *
+ * Composes live telemetry from `/api/combos/metrics` (per-combo per-model
+ * avg latency + success rate), `/api/monitoring/health` (circuit-breaker
+ * state), `/api/usage/quota` (quota remaining) and `/api/usage/analytics`
+ * (per-provider p95 / errorRate) into SpeedCandidates, runs the same
+ * `rankBySpeed` engine that drives `LatencyStrategyImpl` and the latency-
+ * optimized playground preview, and returns:
+ *   - the top-ranked (fastest) provider×model pair,
+ *   - the full ranked list with per-factor scores (ttft / tps / e2e /
+ *     p95 / health / reliability / stability) so callers can show
+ *     "why this one wins" in dashboards,
+ *   - optionally applies the choice to a target combo by flipping its
+ *     strategy to "auto" + autoRoutingStrategy "latency", so the runtime
+ *     router will keep using this ranking.
+ */
+export async function handlePickFastestModel(args: {
+  comboId?: string;
+  /** When true, OPEN-circuit candidates are still scored (sorted to the bottom). */
+  includeUnhealthy?: boolean;
+  /** Optional weight overrides; merged onto DEFAULT_SPEED_WEIGHTS. */
+  weights?: Partial<{
+    ttft: number;
+    tps: number;
+    e2e: number;
+    p95: number;
+    health: number;
+    reliability: number;
+    stability: number;
+  }>;
+  /** When true + comboId present, sets the combo's autoRoutingStrategy to "latency". */
+  applyToCombo?: boolean;
+  /** Max number of ranked entries to return (default 10). */
+  limit?: number;
+}) {
+  const start = Date.now();
+  try {
+    // Pull all of the live telemetry we need in parallel.
+    const [combosRaw, healthRaw, quotaRaw, analyticsRaw] = await Promise.allSettled([
+      apiFetch("/api/combos"),
+      apiFetch("/api/monitoring/health"),
+      apiFetch("/api/usage/quota"),
+      apiFetch("/api/usage/analytics?period=session"),
+    ]);
+
+    const combos = combosRaw.status === "fulfilled" ? normalizeCombosResponse(combosRaw.value) : [];
+    const health = healthRaw.status === "fulfilled" ? toRecord(healthRaw.value) : {};
+    const quota =
+      quotaRaw.status === "fulfilled"
+        ? normalizeQuotaResponse(quotaRaw.value)
+        : normalizeQuotaResponse({});
+    const analytics = analyticsRaw.status === "fulfilled" ? toRecord(analyticsRaw.value) : {};
+    const analyticsByProvider = toRecord(toRecord(analytics.byProvider));
+    const analyticsTop = toRecord(analytics);
+
+    // Narrow to the requested combo, if provided.
+    const targetCombo = args.comboId
+      ? combos.find(
+          (combo) => toString(combo.id) === args.comboId || toString(combo.name) === args.comboId
+        )
+      : undefined;
+
+    const scopedCombos = targetCombo
+      ? [targetCombo]
+      : combos.filter((combo) => combo.enabled !== false);
+
+    if (scopedCombos.length === 0) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify({ error: "No matching combos available" }),
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    const breakers = toArrayOfRecords(health.circuitBreakers);
+    const providers = quota.providers;
+
+    // Assemble SpeedCandidates from the combo's models.
+    const speedCandidates: SpeedCandidate[] = [];
+    for (const combo of scopedCombos) {
+      const models = getComboModels(combo);
+      for (const model of models) {
+        if (!model.provider || !model.model) continue;
+        const cb = breakers.find((breaker) => toString(breaker.provider) === model.provider);
+        const q = providers.find((providerEntry) => providerEntry.provider === model.provider);
+        const perProvider = toRecord(analyticsByProvider[model.provider]);
+        const fallbackAnalytics = perProvider.requests
+          ? perProvider
+          : toRecord(analyticsTop.byProvider && analyticsTop.byProvider[model.provider]);
+        const cbState = toString(cb?.state, "CLOSED") as SpeedCandidate["circuitBreakerState"];
+        const p95 = toNumber(perProvider.p95LatencyMs ?? fallbackAnalytics.p95LatencyMs, NaN);
+        const errorRate = toNumber(perProvider.errorRate ?? fallbackAnalytics.errorRate, 0);
+
+        speedCandidates.push({
+          provider: model.provider,
+          model: model.model,
+          circuitBreakerState: cbState,
+          avgE2ELatencyMs: toNumber(perProvider.avgLatencyMs ?? fallbackAnalytics.avgLatencyMs, NaN),
+          p95LatencyMs: Number.isFinite(p95) ? p95 : 0,
+          avgTokensPerSecond: toNumber(perProvider.avgTokensPerSecond ?? fallbackAnalytics.tps, NaN),
+          avgTtftMs: toNumber(
+            perProvider.avgTtftMs ?? fallbackAnalytics.ttftMs ?? fallbackAnalytics.avgTtftMs,
+            NaN
+          ),
+          latencyStdDev: toNumber(perProvider.latencyStdDev ?? fallbackAnalytics.latencyStdDev, NaN),
+          errorRate: Number.isFinite(errorRate) ? errorRate : 0,
+          failureRate: Number.isFinite(errorRate) ? errorRate : 0,
+          quotaRemaining: q?.quotaUsed != null && q?.quotaTotal
+            ? Math.max(0, 100 - q.quotaUsed / q.quotaTotal * 100)
+            : 100,
+          quotaTotal: q?.quotaTotal ?? 100,
+          costPer1MTokens: model.inputCostPer1M ?? 0,
+        });
+      }
+    }
+
+    // Dedupe by provider×model (a model can appear across multiple combos).
+    const dedupeKey = (c: SpeedCandidate) => `${c.provider}::${c.model}`;
+    const deduped = new Map<string, SpeedCandidate>();
+    for (const candidate of speedCandidates) {
+      const key = dedupeKey(candidate);
+      const existing = deduped.get(key);
+      if (!existing) {
+        deduped.set(key, candidate);
+        continue;
+      }
+      // Prefer the candidate whose CB / quota numbers are most populated.
+      const existingScore = (existing.circuitBreakerState ? 1 : 0) + (existing.quotaRemaining != null ? 1 : 0);
+      const newScore = (candidate.circuitBreakerState ? 1 : 0) + (candidate.quotaRemaining != null ? 1 : 0);
+      if (newScore > existingScore) deduped.set(key, candidate);
+    }
+    const finalCandidates = [...deduped.values()];
+
+    if (finalCandidates.length === 0) {
+      return {
+        content: [
+          { type: "text" as const, text: JSON.stringify({ error: "No provider×model candidates available to rank" }) },
+        ],
+        isError: true,
+      };
+    }
+
+    // Merge caller weight overrides on top of the defaults.
+    const weights = args.weights
+      ? { ...DEFAULT_SPEED_WEIGHTS, ...args.weights }
+      : DEFAULT_SPEED_WEIGHTS;
+
+    const ranked = rankBySpeed(finalCandidates, weights, {
+      includeUnhealthy: args.includeUnhealthy === true,
+    });
+
+    const limit = Math.min(Math.max(toNumber(args.limit, 10), 1), 50);
+    const trimmed = ranked.slice(0, limit);
+    const winner = trimmed[0];
+
+    // Optionally apply the winner's provider×model back to the target combo by
+    // flipping it into "auto" routing with the "latency" strategy.  We still
+    // let the runtime router pick the actual model within the combo's pool
+    // (this call does not mutate the combo's model list).
+    let appliedToCombo: JsonRecord | null = null;
+    if (args.applyToCombo && targetCombo && winner) {
+      const comboId = toString(targetCombo.id);
+      const comboData = toRecord(targetCombo.data);
+      const currentConfig = toRecord(
+        Object.keys(toRecord(targetCombo.config)).length > 0
+          ? targetCombo.config
+          : comboData.config
+      );
+      const currentAutoConfig = toRecord(currentConfig.auto);
+      const nextConfig = {
+        ...currentConfig,
+        auto: {
+          ...currentAutoConfig,
+          routerStrategy: "latency" as AutoRoutingStrategyValue,
+        },
+      };
+      const updatedCombo = toRecord(
+        await apiFetch(`/api/combos/${encodeURIComponent(comboId)}`, {
+          method: "PUT",
+          body: JSON.stringify({ strategy: "auto", config: nextConfig }),
+        })
+      );
+      const updatedConfig = toRecord(updatedCombo.config);
+      appliedToCombo = {
+        id: toString(updatedCombo.id, comboId),
+        name: toString(updatedCombo.name, toString(targetCombo.name, comboId)),
+        strategy: toString(updatedCombo.strategy, "auto"),
+        autoRoutingStrategy: toString(toRecord(updatedConfig.auto).routerStrategy, "latency"),
+      };
+    }
+
+    const result = {
+      fastest: winner
+        ? {
+            provider: winner.provider,
+            model: winner.model,
+            score: winner.score,
+            reason: winner.reason,
+          }
+        : null,
+      ranked: trimmed.map((entry) => ({
+        provider: entry.provider,
+        model: entry.model,
+        score: entry.score,
+        factors: entry.factors,
+        metrics: entry.metrics,
+        reason: entry.reason,
+      })),
+      weights,
+      comboScope: targetCombo
+        ? { id: toString(targetCombo.id), name: toString(targetCombo.name) }
+        : null,
+      appliedToCombo,
+    };
+
+    await logToolCall("omniroute_pick_fastest_model", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall(
+      "omniroute_pick_fastest_model",
+      args,
+      null,
+      Date.now() - start,
+      false,
+      msg
+    );
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
 export async function handleExplainRoute(args: { requestId: string }) {
   const start = Date.now();
   try {
@@ -810,6 +1050,324 @@ export async function handleExplainRoute(args: { requestId: string }) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await logToolCall("omniroute_explain_route", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+// ============ handlePickFastestModel ============
+// Picks the fastest *reliable* provider×model pair using live TTFT, TPS, and
+// E2E latency averages — not just p95 latency — penalised for circuit-breaker
+// OPEN state, high failure rate, and latency instability (high std-dev). The
+// ranking shape comes from open-sse/services/autoCombo/speedRanking.ts so the
+// same scoring math also drives the internal LatencyStrategy.
+//
+// This tool complements `handleGetProviderMetrics` (per-provider payload) by
+// returning the *whole ranked pool* with per-candidate factor breakdowns so
+// agents can present side-by-side comparisons without re-implementing the
+// scoring themselves.
+
+export async function handlePickFastestModel(args: z.infer<typeof pickFastestModelInput>) {
+  const start = Date.now();
+  const toolName = "omniroute_pick_fastest_model";
+
+  try {
+    // Pull live health (circuit-breaker state) + combos. Per-provider perf
+    // telemetry comes from the per-combo metrics endpoint which already
+    // exposes TTFT, TPS, E2E per provider×model combo inside a combo.
+    const [healthRaw, combosRaw] = await Promise.allSettled([
+      apiFetch("/api/monitoring/health"),
+      apiFetch("/api/combos"),
+    ]);
+
+    const health = healthRaw.status === "fulfilled" ? toRecord(healthRaw.value) : {};
+    const combos =
+      combosRaw.status === "fulfilled"
+        ? normalizeCombosResponse(combosRaw.value)
+        : [];
+
+    const circuitBreakers = Array.isArray(health.circuitBreakers)
+      ? health.circuitBreakers.filter(isRecord)
+      : [];
+    const breakerByProvider = new Map<string, "CLOSED" | "HALF_OPEN" | "OPEN">();
+    for (const breaker of circuitBreakers) {
+      const provider = toString(breaker.provider);
+      if (!provider) continue;
+      const rawState = toString(breaker.state, "CLOSED").toUpperCase();
+      const state: "CLOSED" | "HALF_OPEN" | "OPEN" =
+        rawState === "OPEN"
+          ? "OPEN"
+          : rawState === "HALF_OPEN"
+            ? "HALF_OPEN"
+            : "CLOSED";
+      breakerByProvider.set(provider, state);
+    }
+
+    // Determine scope: a single combo, or all enabled combos.
+    const scopedCombos: JsonRecord[] = args.comboId
+      ? combos.filter(
+          (c) => toString(c.id) === args.comboId || toString(c.name) === args.comboId,
+        )
+      : combos.filter((c) => c.enabled !== false);
+
+    const comboScope = scopedCombos[0]
+      ? { id: toString(scopedCombos[0].id, ""), name: toString(scopedCombos[0].name, "") }
+      : null;
+
+    if (scopedCombos.length === 0) {
+      const msg = args.comboId
+        ? `Combo '${args.comboId}' not found`
+        : "No enabled combos available";
+      await logToolCall(toolName, args, null, Date.now() - start, false, msg);
+      return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+    }
+
+    // Pull per-combo metrics for each scoped combo so we can populate
+    // provider-level TTFT/TPS/E2E for the candidate pool.
+    const perComboMetrics = await Promise.all(
+      scopedCombos.map(async (combo) => {
+        const comboId = toString(combo.id);
+        if (!comboId) return { comboId: "", metrics: {} };
+        const metrics = await apiFetch(
+          `/api/combos/metrics?comboId=${encodeURIComponent(comboId)}`,
+        ).catch(() => ({}));
+        return { comboId, metrics: toRecord(metrics) };
+      }),
+    );
+    const metricsByCombo = new Map<string, JsonRecord>(
+      perComboMetrics.map((entry) => [entry.comboId, entry.metrics]),
+    );
+
+    // Build the raw candidate pool from scoped combos' models + per-combo
+    // metrics. Each provider×model instance becomes a candidate.
+    interface RawCandidate {
+      provider: string;
+      model: string;
+      comboId: string;
+      comboName: string;
+      avgTtftMs?: number;
+      avgTokensPerSecond?: number;
+      avgE2ELatencyMs?: number;
+      p95LatencyMs?: number;
+      latencyStdDev?: number;
+      failureRate?: number;
+      errorRate?: number;
+      costPer1MTokens?: number;
+      quotaRemaining?: number;
+      quotaTotal?: number;
+      circuitBreakerState: "CLOSED" | "HALF_OPEN" | "OPEN";
+    }
+
+    const rawPool: RawCandidate[] = [];
+    for (const combo of scopedCombos) {
+      const comboId = toString(combo.id, "");
+      const comboName = toString(combo.name, "");
+      const comboMetrics = metricsByCombo.get(comboId) ?? {};
+      // metrics shape: { byProvider: [{ provider, avgLatency, errorRate, … }] }
+      const byProvider = toArrayOfRecords(comboMetrics.byProvider);
+      const perfByProvider = new Map<string, JsonRecord>();
+      for (const entry of byProvider) {
+        const provider = toString(entry.provider);
+        if (provider) perfByProvider.set(provider, entry);
+      }
+      const models = getComboModels(combo);
+      for (const m of models) {
+        const perf = perfByProvider.get(m.provider) ?? {};
+        const avgLatency = toNumber(perf.avgLatency, -1);
+        const errorRate = toNumber(perf.errorRate, -1);
+        const ttft = toNumber(perf.avgTtftMs, -1);
+        const tps = toNumber(perf.avgTokensPerSecond, -1);
+        const p95Raw = toNumber(perf.p95LatencyMs, -1);
+        const stdDevRaw = toNumber(perf.latencyStdDev, -1);
+        const rawCircuit = toString(perf.circuitState, "").toUpperCase();
+        const breakState: "CLOSED" | "HALF_OPEN" | "OPEN" =
+          rawCircuit === "OPEN"
+            ? "OPEN"
+            : rawCircuit === "HALF_OPEN"
+              ? "HALF_OPEN"
+              : breakerByProvider.get(m.provider) ?? "CLOSED";
+        rawPool.push({
+          provider: m.provider,
+          model: m.model,
+          comboId,
+          comboName,
+          avgTtftMs: ttft >= 0 ? ttft : undefined,
+          avgTokensPerSecond: tps >= 0 ? tps : undefined,
+          avgE2ELatencyMs: avgLatency >= 0 ? avgLatency : undefined,
+          p95LatencyMs: p95Raw >= 0 ? p95Raw : undefined,
+          latencyStdDev:
+            stdDevRaw >= 0
+              ? stdDevRaw
+              : p95Raw >= 0
+                ? Math.max(1, p95Raw * 0.25)
+                : undefined,
+          failureRate: errorRate >= 0 ? errorRate : 0,
+          errorRate: errorRate >= 0 ? errorRate : 0,
+          circuitBreakerState: breakState,
+        });
+      }
+    }
+
+    if (rawPool.length === 0) {
+      const msg = "No provider candidates available to rank";
+      await logToolCall(toolName, args, null, Date.now() - start, false, msg);
+      return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+    }
+
+    // Map raw pool → SpeedCandidate shape consumed by rankBySpeed.
+    const candidates: SpeedCandidate[] = rawPool.map((c) => ({
+      provider: c.provider,
+      model: c.model,
+      quotaRemaining: c.quotaRemaining ?? 100,
+      quotaTotal: c.quotaTotal ?? 1,
+      circuitBreakerState: c.circuitBreakerState,
+      costPer1MTokens: c.costPer1MTokens ?? 0,
+      p95LatencyMs: c.p95LatencyMs ?? 0,
+      avgTtftMs: c.avgTtftMs,
+      avgE2ELatencyMs: c.avgE2ELatencyMs,
+      avgTokensPerSecond: c.avgTokensPerSecond,
+      latencyStdDev: c.latencyStdDev ?? 0,
+      errorRate: c.errorRate ?? 0,
+      failureRate: c.failureRate ?? 0,
+      health:
+        c.circuitBreakerState === "CLOSED"
+          ? 1
+          : c.circuitBreakerState === "HALF_OPEN"
+            ? 0.5
+            : 0,
+    }));
+
+    // Strict filter (default): drop OPEN-circuit candidates so they can't
+    // sneak into the top-N. Non-strict mode keeps them but lets scoring
+    // push them to the bottom of the ranking.
+    const includeUnhealthy = args.includeUnhealthy === true;
+    const filtered = includeUnhealthy
+      ? candidates
+      : candidates.filter((c) => c.circuitBreakerState !== "OPEN");
+
+    if (filtered.length === 0) {
+      const msg = includeUnhealthy
+        ? "No candidates available after filtering"
+        : "All candidates have OPEN circuit breakers";
+      await logToolCall(toolName, args, null, Date.now() - start, false, msg);
+      return { content: [{ type: "text", text: JSON.stringify({ error: msg }) }], isError: true };
+    }
+
+    const weightsOverride =
+      args.weights && typeof args.weights === "object"
+        ? {
+            ...DEFAULT_SPEED_WEIGHTS,
+            ...(typeof args.weights.ttft === "number" ? { ttft: args.weights.ttft } : {}),
+            ...(typeof args.weights.tps === "number" ? { tps: args.weights.tps } : {}),
+            ...(typeof args.weights.e2e === "number" ? { e2e: args.weights.e2e } : {}),
+            ...(typeof args.weights.p95 === "number" ? { p95: args.weights.p95 } : {}),
+            ...(typeof args.weights.reliability === "number"
+              ? { reliability: args.weights.reliability }
+              : {}),
+            ...(typeof args.weights.stability === "number"
+              ? { stability: args.weights.stability }
+              : {}),
+            ...(typeof args.weights.health === "number"
+              ? { health: args.weights.health }
+              : {}),
+          }
+        : undefined;
+
+    const ranking = rankBySpeed(filtered, weightsOverride);
+    const limit = Math.max(1, Math.min(50, args.limit ?? 10));
+    const top = ranking.slice(0, limit);
+
+    const winner = top[0];
+
+    // Translate the internal ranking shape into the schema-described output.
+    const ranked = top.map((entry, idx) => ({
+      provider: entry.provider,
+      model: entry.model,
+      score: Math.round(entry.score * 10000) / 10000,
+      rank: idx + 1,
+      factors: {
+        ttft: Math.round(entry.factors.ttft * 10000) / 10000,
+        tps: Math.round(entry.factors.tps * 10000) / 10000,
+        e2e: Math.round(entry.factors.e2e * 10000) / 10000,
+        p95: Math.round(entry.factors.p95 * 10000) / 10000,
+        health: Math.round(entry.factors.health * 10000) / 10000,
+        reliability: Math.round(entry.factors.reliability * 10000) / 10000,
+        stability: Math.round(entry.factors.stability * 10000) / 10000,
+      },
+      metrics: {
+        avgTtftMs: entry.metrics.avgTtftMs,
+        avgTokensPerSecond: entry.metrics.avgTokensPerSecond,
+        avgE2ELatencyMs: entry.metrics.avgE2ELatencyMs,
+        p95LatencyMs: entry.metrics.p95LatencyMs ?? null,
+        latencyStdDev: entry.metrics.latencyStdDev,
+        failureRate: Math.round(entry.metrics.failureRate * 10000) / 10000,
+        circuitBreakerState: entry.metrics.circuitBreakerState,
+      },
+      reason: entry.reason,
+    }));
+
+    const usedWeights = weightsOverride ?? DEFAULT_SPEED_WEIGHTS;
+    const result = {
+      fastest: winner ? ranked[0] : null,
+      ranked,
+      weights: usedWeights,
+      comboScope,
+      appliedToCombo: null as null | {
+        id: string;
+        name: string;
+        strategy: string;
+        autoRoutingStrategy: string;
+      },
+    };
+
+    // Optionally flip the combo's strategy to auto + latency so the runtime
+    // router keeps using the same scoring we just computed.
+    if (args.applyToCombo && args.comboId && winner) {
+      try {
+        const target = scopedCombos[0];
+        if (target) {
+          const body = {
+            strategy: "auto",
+            autoRoutingStrategy: "latency",
+          };
+          await apiFetch(
+            `/api/combos/${encodeURIComponent(toString(target.id))}`,
+            { method: "PUT", body: JSON.stringify(body) },
+          );
+          result.appliedToCombo = {
+            id: toString(target.id, args.comboId),
+            name: toString(target.name, args.comboId),
+            strategy: "auto",
+            autoRoutingStrategy: "latency",
+          };
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        await logToolCall(
+          toolName,
+          { ...args, applyToComboError: msg },
+          null,
+          Date.now() - start,
+          false,
+          msg,
+        );
+        return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+      }
+    }
+
+    await logToolCall(
+      toolName,
+      args,
+      {
+        candidateCount: ranking.length,
+        winner: winner ? `${winner.provider}/${winner.model}` : null,
+      },
+      Date.now() - start,
+      true,
+    );
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall(toolName, args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }

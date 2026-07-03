@@ -1,5 +1,5 @@
 /**
- * MCP Tool Schemas — Contracts for all 22 core and advanced OmniRoute MCP tools.
+ * MCP Tool Schemas — Contracts for all 23 core and advanced OmniRoute MCP tools.
  *
  * Defines input/output Zod schemas, descriptions, scopes, and audit levels
  * for both essential (Phase 1) and advanced (Phase 2) MCP tools.
@@ -819,6 +819,130 @@ export const explainRouteTool: McpToolDefinition<
   sourceEndpoints: [],
 };
 
+// --- Tool 23: omniroute_pick_fastest_model ---
+export const pickFastestModelInput = z.object({
+  comboId: z
+    .string()
+    .optional()
+    .describe(
+      "Optional combo id or name to scope the ranking to. Omit to rank across all enabled combos."
+    ),
+  includeUnhealthy: z
+    .boolean()
+    .optional()
+    .describe(
+      "When true, OPEN-circuit candidates are scored (sorted to the bottom) instead of filtered out."
+    ),
+  weights: z
+    .object({
+      ttft: z.number().min(0).optional(),
+      tps: z.number().min(0).optional(),
+      e2e: z.number().min(0).optional(),
+      p95: z.number().min(0).optional(),
+      health: z.number().min(0).optional(),
+      reliability: z.number().min(0).optional(),
+      stability: z.number().min(0).optional(),
+    })
+    .partial()
+    .optional()
+    .describe(
+      "Optional overrides for the speed-ranking weights (merged onto the defaults). Higher = more important."
+    ),
+  applyToCombo: z
+    .boolean()
+    .optional()
+    .describe(
+      "When true + comboId present, sets the combo's strategy to 'auto' and autoRoutingStrategy to 'latency' so the runtime router uses this ranking."
+    ),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(50)
+    .optional()
+    .describe("Maximum number of ranked entries to return (default 10, max 50)."),
+});
+
+export const pickFastestModelOutput = z.object({
+  fastest: z
+    .object({
+      provider: z.string(),
+      model: z.string(),
+      score: z.number(),
+      reason: z.string(),
+    })
+    .nullable(),
+  ranked: z.array(
+    z.object({
+      provider: z.string(),
+      model: z.string(),
+      score: z.number(),
+      factors: z.object({
+        ttft: z.number(),
+        tps: z.number(),
+        e2e: z.number(),
+        p95: z.number(),
+        health: z.number(),
+        reliability: z.number(),
+        stability: z.number(),
+      }),
+      metrics: z.object({
+        avgTtftMs: z.number().nullable(),
+        avgTokensPerSecond: z.number().nullable(),
+        avgE2ELatencyMs: z.number().nullable(),
+        p95LatencyMs: z.number().nullable(),
+        latencyStdDev: z.number().nullable(),
+        failureRate: z.number(),
+        circuitBreakerState: z.enum(["CLOSED", "OPEN", "HALF_OPEN"]),
+      }),
+      reason: z.string(),
+    })
+  ),
+  weights: z.object({
+    ttft: z.number(),
+    tps: z.number(),
+    e2e: z.number(),
+    p95: z.number(),
+    health: z.number(),
+    reliability: z.number(),
+    stability: z.number(),
+  }),
+  comboScope: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+    })
+    .nullable(),
+  appliedToCombo: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      strategy: z.string(),
+      autoRoutingStrategy: z.string(),
+    })
+    .nullable(),
+});
+
+export const pickFastestModelTool: McpToolDefinition<
+  typeof pickFastestModelInput,
+  typeof pickFastestModelOutput
+> = {
+  name: "omniroute_pick_fastest_model",
+  description:
+    "Picks the fastest reliable provider×model pair from the live telemetry (TTFT, TPS, E2E, p95 latency, circuit-breaker health, failure rate, stability). Returns the top-ranked pair plus the full ranked list with per-factor scores and per-metric breakdowns so the caller can show 'why this one wins'. Optionally applies the result to a target combo by switching its strategy to 'auto' + autoRoutingStrategy 'latency'.",
+  inputSchema: pickFastestModelInput,
+  outputSchema: pickFastestModelOutput,
+  scopes: ["read:combos", "read:health", "read:usage"],
+  auditLevel: "basic",
+  phase: 2,
+  sourceEndpoints: [
+    "/api/combos",
+    "/api/monitoring/health",
+    "/api/usage/quota",
+    "/api/usage/analytics",
+  ],
+};
+
 // --- Tool 17: omniroute_get_session_snapshot ---
 export const getSessionSnapshotInput = z.object({}).describe("No parameters required");
 
@@ -1466,6 +1590,7 @@ export const MCP_TOOLS = [
   agentSkillsListTool,
   agentSkillsGetTool,
   agentSkillsCoverageTool,
+  pickFastestModelTool,
 ] as const;
 
 export const MCP_ESSENTIAL_TOOLS = MCP_TOOLS.filter((t) => t.phase === 1);
