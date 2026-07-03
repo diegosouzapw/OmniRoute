@@ -22,6 +22,13 @@ import { getDeviceCount, getDeviceDetails } from "@omniroute/open-sse/services/d
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import * as log from "@/sse/utils/logger";
 
+function methodNotAllowed() {
+  return NextResponse.json(buildErrorBody(405, "Method Not Allowed"), {
+    status: 405,
+    headers: { Allow: "GET" },
+  });
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
@@ -44,3 +51,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json(buildErrorBody(500, sanitizeErrorMessage(error)), { status: 500 });
   }
 }
+
+export const POST = methodNotAllowed;
+export const PUT = methodNotAllowed;
+export const PATCH = methodNotAllowed;
+export const DELETE = methodNotAllowed;
+export const TRACE = methodNotAllowed;

@@ -6487,10 +6487,15 @@ components:
         error:
           type: object
           properties:
+            code:
+              type: string
             message:
               type: string
             type:
               type: string
+            correlation_id:
+              type: string
+              format: uuid
             details:
               description: Optional additional error details
         requestId:
