@@ -16,10 +16,18 @@
 - **hygiene:** Add CodeRabbit review config (.coderabbit.yaml) and Gemini context (.gemini/config.json, .gemini/prompts.md)
 - **hygiene:** Add ADR.md with fleet hygiene decisions (ADR-001 baseline, ADR-002 e2e restoration, ADR-003 dual dependency automation)
 - **e2e:** Remove orphaned testIgnore entries (analytics-tabs, protocol-visibility, skills-marketplace) whose specs no longer exist
+- **feat(server):** support reverse-proxy subpath deployment via OMNIROUTE_BASE_PATH (basePath-aware auth redirects). (thanks @SillyHippy)
+- **feat(api-keys):** track devices/connections per API key — an in-memory, TTL-evicted device fingerprint tracker (SHA-256 of masked IP + truncated user-agent) wired non-blocking into the chat path and surfaced via `GET /api/keys/[id]/devices` with a dashboard device-count chip. (thanks @mugnimaestra)
+- **feat(proxy):** add Webshare proxy pool import and sync — a `WebshareProvider` (`FreeProxyProvider`) that paginates `proxy.webshare.io/api/v2/proxy/list/` gated on `FREE_PROXY_WEBSHARE_API_KEY`, SSRF-guards imported hosts, and tombstones retired proxy IDs via `pruneStaleFreeProxies()`. (thanks @ricatix)
+- **feat(dashboard):** suggest HuggingFace Hub media models in the media provider view. (thanks @yicone)
 
 ### 🔧 Bug Fixes
 
 - **ci:** Pin scorecard workflow to ubuntu-24.04
+
+### 📝 Maintenance
+
+- **API validation:** add a `validatedJsonBody(request, schema)` helper in `src/shared/validation/helpers.ts` that fuses JSON body parsing and Zod validation into a single call, returning either the type-narrowed data or a ready-to-return 400 `NextResponse` with the standard error envelope. Salvaged from the closed refactor PR #5075 (Tier 1 portable helper) with a focused 6-case regression test. Co-authored-by: KooshaPari <KooshaPari@users.noreply.github.com>
 
 ---
 
