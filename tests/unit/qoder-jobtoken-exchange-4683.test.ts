@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 // #4683: Qoder PAT (`pt-*`) chat requests failed with a Cosy 500 because OmniRoute
 // injected the raw `pt-*` PAT into the Cosy `security_oauth_token`. The official
@@ -163,34 +166,39 @@ test("#4683 resolveQoderJobToken falls back to the PAT when the exchange fails",
   __clearQoderJobTokenCache();
 });
 
-test("#4683 validateQoderCliPat performs the jobToken exchange before the Cosy chat call", async () => {
+// The jobToken exchange helpers above are retained (and independently unit-tested)
+// but are no longer on the PAT validation path: the Cosy HTTP protocol moved to a
+// WASM-signed envelope that OmniRoute cannot reproduce, so validation now delegates
+// to the local qodercli binary. This test guards that new contract — validation
+// must NOT hit the (dead) jobToken/Cosy HTTP endpoints.
+test("validateQoderCliPat validates via qodercli and makes no Cosy/jobToken HTTP calls", async () => {
   __clearQoderJobTokenCache();
   const originalFetch = globalThis.fetch;
+  const prevBin = process.env.CLI_QODER_BIN;
   const urls: string[] = [];
   // @ts-ignore - test stub
-  globalThis.fetch = async (url: string, init?: Record<string, unknown>) => {
+  globalThis.fetch = async (url: string) => {
     urls.push(String(url));
-    if (String(url).includes("/ping")) return jsonResponse({ ok: true });
-    if (String(url).includes("/jobToken/exchange")) {
-      assert.deepEqual(JSON.parse(String(init?.body ?? "{}")), { personal_token: "pt-live" });
-      return jsonResponse({ job_token: "jt-live", expires_in: 86400 });
-    }
-    // agent_chat_generation -> accept (valid)
-    return jsonResponse({ success: true }, { ok: true, status: 200 });
+    return jsonResponse({ success: true });
   };
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "qodercli-stub-"));
+  const stub = path.join(dir, "qodercli");
+  fs.writeFileSync(stub, '#!/bin/sh\nprintf "MODEL\\nAuto\\n"\nexit 0\n', { mode: 0o755 });
+  process.env.CLI_QODER_BIN = stub;
 
   try {
     const res = await validateQoderCliPat({ apiKey: "pt-live" });
     assert.equal(res.valid, true);
-    const exchangeIdx = urls.findIndex((u) => u.includes("/jobToken/exchange"));
-    const chatIdx = urls.findIndex((u) => u.includes("agent_chat_generation"));
-    assert.ok(
-      exchangeIdx >= 0,
-      "the PAT->job-token exchange step must run (was skipped before #4683)"
+    assert.equal(
+      urls.some((u) => u.includes("/jobToken/exchange") || u.includes("agent_chat_generation")),
+      false,
+      "validation must not call the dead Cosy/jobToken HTTP endpoints"
     );
-    assert.ok(chatIdx >= 0 && exchangeIdx < chatIdx, "exchange must precede the Cosy chat call");
   } finally {
     globalThis.fetch = originalFetch;
+    if (prevBin === undefined) delete process.env.CLI_QODER_BIN;
+    else process.env.CLI_QODER_BIN = prevBin;
+    fs.rmSync(dir, { recursive: true, force: true });
     __clearQoderJobTokenCache();
   }
 });

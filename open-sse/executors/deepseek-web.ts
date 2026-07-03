@@ -7,6 +7,13 @@ import {
   buildToolConversationPrompt,
 } from "../translator/deepseekWebTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  isThinkingModel,
+  isSearchModel,
+  formatStreamContent,
+  appendSearchCitations,
+  type DeepSeekSearchResult,
+} from "./deepseek-web/stream-format.ts";
 
 export const DEEPSEEK_WEB_BASE = "https://chat.deepseek.com";
 const DEEPSEEK_API_BASE = `${DEEPSEEK_WEB_BASE}/api`;
@@ -143,46 +150,6 @@ async function solvePow(challenge: PowChallenge): Promise<string> {
 }
 
 // ── SSE Transform (DeepSeek → OpenAI) ───────────────────────────────────
-
-function isThinkingModel(model: string): boolean {
-  const m = model.toLowerCase();
-  return m.includes("think") || m.includes("r1") || m.includes("reason");
-}
-
-function isSearchModel(model: string): boolean {
-  const m = model.toLowerCase();
-  return m.includes("search") || m.includes("fold");
-}
-
-function cleanDeepSeekToken(text: string): string {
-  return text.replace(/FINISHED/g, "").replace(/^(SEARCH|WEB_SEARCH|SEARCHING)\s*/i, "");
-}
-
-function formatStreamContent(raw: string, model: string): string {
-  let text = cleanDeepSeekToken(raw);
-  if (!isSearchModel(model)) return text;
-  if (model.toLowerCase().includes("search-silent")) {
-    return text.replace(/\[citation:(\d+)\]/g, "");
-  }
-  return text.replace(/\[citation:(\d+)\]/g, "[$1]");
-}
-
-interface DeepSeekSearchResult {
-  cite_index?: number;
-  title?: string;
-  url?: string;
-}
-
-function appendSearchCitations(searchResults: DeepSeekSearchResult[], model: string): string {
-  if (searchResults.length === 0 || model.toLowerCase().includes("search-silent")) {
-    return "";
-  }
-  return searchResults
-    .filter((r) => r.cite_index)
-    .sort((a, b) => (a.cite_index || 0) - (b.cite_index || 0))
-    .map((r) => `[${r.cite_index}]: [${r.title}](${r.url})`)
-    .join("\n");
-}
 
 function transformSSE(deepseekStream: ReadableStream, model: string): ReadableStream {
   const encoder = new TextEncoder();

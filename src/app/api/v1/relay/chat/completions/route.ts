@@ -22,9 +22,10 @@ import {
   getBifrostRoutingConfig,
   getRoutingFallbackHeader,
   resolveRelayRoutingBackend,
-  shouldTryBifrost,
+  shouldTryBifrostForRequest,
   type BifrostRoutingConfig,
 } from "./routingBackend";
+import { getProviderPluginManifestEntryForModel } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
 import { finalizeReadableStream } from "./streamFinalizer";
 import {
   clearBifrostFailure,
@@ -290,7 +291,16 @@ export async function POST(request: Request) {
     const backend = resolveRelayRoutingBackend();
     const bifrostConfig = getBifrostRoutingConfig();
     let bifrostFallbackReason: string | null = null;
-    if (shouldTryBifrost(backend, bifrostConfig)) {
+    const bifrostDecision = shouldTryBifrostForRequest(
+      backend,
+      bifrostConfig,
+      parsedBody,
+      (model) => getProviderPluginManifestEntryForModel(model)?.sidecar ?? null
+    );
+    if (bifrostDecision.fallbackReason) {
+      bifrostFallbackReason = bifrostDecision.fallbackReason;
+    }
+    if (bifrostDecision.tryBifrost) {
       const cooldown =
         backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
       if (cooldown) {

@@ -57,6 +57,16 @@ export const CLAUDE_SONNET_46_PRICING = {
   cache_creation: 3.0,
 };
 
+// Claude Sonnet 5 — Sonnet-tier ($3/$15/M, same sticker as Sonnet 4.6; intro
+// $2/$10 through 2026-08-31 not encoded — track the standard rate like 4.6).
+export const CLAUDE_SONNET_5_PRICING = {
+  input: 3.0,
+  output: 15.0,
+  cached: 1.5,
+  reasoning: 22.5,
+  cache_creation: 3.0,
+};
+
 export const GLM_PRICING = {
   "glm-5.2": {
     input: 1.2,
