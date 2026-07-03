@@ -10,6 +10,9 @@
 
 - **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
 - **Discovery tool (Phase 2):** add the `discoveryResults` DB module (CRUD over the `discovery_results` table, migration 074) and wire the opt-in provider-discovery service to persist and read findings through it (`persistDiscoveryResult`, `getDiscoveryResults`, `getDiscoveryResultById`, `markVerified`, `deleteDiscoveryResult`) with `(provider, method, endpoint)` upsert de-duplication. Adds the `/api/discovery/*` HTTP surface — `GET /results`, `GET|DELETE /results/:id`, `POST /scan`, `POST /verify/:id` — under **strict loopback-only** authorization (`/api/discovery/` is in `LOCAL_ONLY_API_PREFIXES` and is NOT manage-scope-bypassable, so the `scan` route's outbound probes can never be reached from a tunnel/remote origin). Adds a **dashboard UI tab** (Tools → Discovery, `/dashboard/discovery`) to run scans and review, verify, or delete findings. The service stays **opt-in / default-off**.
+- **feat(api):** expose a read-only provider plugin manifest at `GET /api/v1/provider-plugin-manifest` for sidecar/relay discovery. (thanks @KooshaPari)
+- **feat(sidecar):** advertise the provider manifest URL to Bifrost/CLIProxyAPI via the `X-OmniRoute-Provider-Manifest-Url` header (`OMNIROUTE_PROVIDER_MANIFEST_URL`). (thanks @KooshaPari)
+- **feat(autoCombo):** add a latency/speed-optimized routing mode (shared `rankBySpeed` scoring core) plus the `omniroute_pick_fastest_model` MCP tool. (thanks @KooshaPari)
 
 ### 🔧 Bug Fixes
 
