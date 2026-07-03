@@ -113,6 +113,11 @@ export async function getSettings() {
     preferClaudeCodeForUnprefixedClaudeModels: isTruthyEnvFlag(
       process.env.OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS
     ),
+    // Opt-in (default "off"): short-circuits Claude Code's `--permission-mode auto`
+    // internal security-classifier request with a synthetic `<block>no</block>` ALLOW
+    // response, without calling the upstream provider. See
+    // open-sse/handlers/chatCore/claudeClassifierCompat.ts for the detector + builder.
+    claudeClassifierCompat: "off",
     autoRefreshProviderQuota: false,
     autoRefreshProviderQuotaInterval: 180,
     comboConfigMode: "guided",
