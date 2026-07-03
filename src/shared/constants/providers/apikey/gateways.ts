@@ -28,6 +28,20 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint.",
     apiHint: "Create or copy an API key from Command Code, then paste it here as a Bearer token.",
   },
+  clinepass: {
+    id: "clinepass",
+    alias: "clinepass",
+    name: "ClinePass",
+    icon: "vpn_key",
+    color: "#5B9BD5",
+    textIcon: "CP",
+    passthroughModels: true,
+    website: "https://cline.bot",
+    notice: {
+      text: "ClinePass is Cline's paid BYOK gateway ($9.99/mo). Bring your own Cline API key; requests hit api.cline.bot with the cline-pass/* model namespace.",
+      apiKeyUrl: "https://app.cline.bot/settings/api-keys",
+    },
+  },
   openrouter: {
     id: "openrouter",
     alias: "openrouter",

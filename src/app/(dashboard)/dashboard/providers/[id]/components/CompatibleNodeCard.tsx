@@ -3,6 +3,7 @@
 // Phase 1t.2 extraction — Issue #3501
 import { useRouter } from "next/navigation";
 import { Card, Button } from "@/shared/components";
+import ProviderIcon from "@/shared/components/ProviderIcon";
 import { getApiLabel, getApiPath } from "../providerPageHelpers";
 import type { ProviderMessageTranslator } from "../providerPageHelpers";
 
@@ -11,6 +12,8 @@ interface ProviderNode {
   apiType?: string;
   chatPath?: string;
   prefix?: string;
+  /** Optional operator-supplied remote icon URL (#2166). */
+  iconUrl?: string;
   [key: string]: unknown;
 }
 
@@ -42,24 +45,35 @@ export default function CompatibleNodeCard({
   return (
     <Card>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">
-            {isCcCompatible
-              ? t("ccCompatibleDetailsTitle")
-              : isAnthropicCompatible
-                ? t("anthropicCompatibleDetails")
-                : t("openaiCompatibleDetails")}
-          </h2>
-          <p className="text-sm text-text-muted">
-            {getApiLabel(t, isAnthropicProtocolCompatible, providerNode?.apiType)} ·{" "}
-            {(providerNode.baseUrl || "").replace(/\/$/, "")}/
-            {getApiPath(
-              isCcCompatible,
-              isAnthropicCompatible,
-              providerNode?.apiType,
-              providerNode?.chatPath
-            )}
-          </p>
+        <div className="flex items-center gap-3">
+          {providerNode.iconUrl && (
+            <ProviderIcon
+              providerId={providerId}
+              src={providerNode.iconUrl}
+              size={32}
+              className="shrink-0 rounded-lg"
+              fallbackText={isCcCompatible ? "CC" : isAnthropicCompatible ? "AC" : "OC"}
+            />
+          )}
+          <div>
+            <h2 className="text-lg font-semibold">
+              {isCcCompatible
+                ? t("ccCompatibleDetailsTitle")
+                : isAnthropicCompatible
+                  ? t("anthropicCompatibleDetails")
+                  : t("openaiCompatibleDetails")}
+            </h2>
+            <p className="text-sm text-text-muted">
+              {getApiLabel(t, isAnthropicProtocolCompatible, providerNode?.apiType)} ·{" "}
+              {(providerNode.baseUrl || "").replace(/\/$/, "")}/
+              {getApiPath(
+                isCcCompatible,
+                isAnthropicCompatible,
+                providerNode?.apiType,
+                providerNode?.chatPath
+              )}
+            </p>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openApiKeyAddFlow)}>
