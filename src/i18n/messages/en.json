@@ -1763,6 +1763,8 @@
     "copyMaskedKey": "Copy masked key",
     "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key",
     "modelsCount": "{count, plural, one {# model} other {# models}}",
+    "devicesCount": "{count, plural, one {# device} other {# devices}}",
+    "devicesTooltip": "{count, plural, one {# distinct IP/User-Agent device seen with this key (last 30 min)} other {# distinct IP/User-Agent devices seen with this key (last 30 min)}}",
     "lastUsedOn": "Last: {date}",
     "viewCostsFor": "View costs for {name}",
     "editPermissions": "Edit permissions",
@@ -1866,7 +1868,8 @@
     "backToProviders": "Back to Providers",
     "connections": "{count} Connections",
     "noConnections": "No connections yet — add one from the provider page.",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "suggestedModels": "Suggested models from provider"
   },
   "search": {
     "searchQuery": "Search Query",
@@ -4992,6 +4995,8 @@
     "modelsDevInfoOrder": "User Override → models.dev → LiteLLM → Hardcoded Default",
     "systemTheme": "System Theme",
     "debugToggle": "Enable Debug Mode",
+    "logToolSourcesToggle": "Log Tool Sources",
+    "logToolSourcesDescription": "Emit a diagnostic log line per request summarizing tool count and MCP/hosted/client source breakdown.",
     "homePinProviderQuotaToHome": "Pin Information to Home Page",
     "homeProviderQuotaLimits": "Provider Quota Limits",
     "homeProviderQuotaLimitsDesc": "Pin the Provider Quota status container (with Refresh All button) to the top of the Home page.",
@@ -6700,6 +6705,8 @@
     "autoRefresh": "Auto-refresh",
     "refreshAll": "Refresh All",
     "loadingQuotas": "Loading...",
+    "showMoreQuotas": "Show {count} more",
+    "showLessQuotas": "Show less",
     "account": "Account",
     "modelQuotas": "Model Quotas",
     "lastUsed": "Last Refreshed",

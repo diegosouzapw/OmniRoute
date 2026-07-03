@@ -557,6 +557,7 @@ export {
   promoteFreeProxyToPool,
   deleteFreeProxy,
   clearFreeProxiesBySource,
+  pruneStaleFreeProxies,
   getFreeProxyStats,
   recordFreeProxySync,
 } from "./db/freeProxies";
