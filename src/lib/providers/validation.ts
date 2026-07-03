@@ -19,6 +19,7 @@ import {
   isOpenAICompatibleProvider,
   isSelfHostedChatProvider,
   providerAllowsOptionalApiKey,
+  WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
@@ -26,7 +27,12 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import {
+  areLocalProviderUrlsAllowed,
+  getProviderOutboundGuard,
+  isCloudMetadataHost,
+  isPrivateHost,
+} from "@/shared/network/outboundUrlGuard";
 import { extractCookieValue, normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
@@ -85,6 +91,16 @@ import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
+
+function isAllowedLocalValidationBaseUrl(baseUrl: string) {
+  if (!areLocalProviderUrlsAllowed()) return false;
+  try {
+    const hostname = new URL(baseUrl).hostname;
+    return isPrivateHost(hostname) && !isCloudMetadataHost(hostname);
+  } catch {
+    return false;
+  }
+}
 
 function normalizeBaseUrl(baseUrl: string) {
   // Guard against a non-string baseUrl reaching .trim() / .replace() — see #2463
@@ -355,6 +371,8 @@ async function validateOpenAILikeProvider({
   isLocal = false,
 }: any) {
   try {
+    const isLocalValidationTarget =
+      isLocal || isAllowedLocalValidationBaseUrl(String(baseUrl || ""));
     // Guard against a non-string modelsUrl reaching .trim()/.startsWith() — a malformed
     // providerSpecificData / registry value would otherwise throw a TypeError mid-validation
     // ("trim is not a function" / "startsWith is not a function"). See #2463 class.
@@ -381,7 +399,7 @@ async function validateOpenAILikeProvider({
           ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
       },
-      isLocal
+      isLocalValidationTarget
     );
 
     if (response.ok) {
@@ -430,7 +448,7 @@ async function validateOpenAILikeProvider({
         },
         body: JSON.stringify(testBody),
       },
-      isLocal
+      isLocalValidationTarget
     );
 
     if (chatRes.ok) {
@@ -1211,7 +1229,56 @@ async function validateHerokuProvider({ apiKey, providerSpecificData = {} }: any
       max_tokens: 1,
     },
     providerSpecificData,
+    isLocal: isAllowedLocalValidationBaseUrl(baseUrl),
   });
+}
+
+async function validateZaiProvider({ apiKey, providerSpecificData = {} }: any) {
+  const configuredBaseUrl =
+    typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
+      ? providerSpecificData.baseUrl.trim()
+      : "https://api.z.ai/api/anthropic/v1/messages?beta=true";
+  const baseUrl = normalizeBaseUrl(configuredBaseUrl);
+  const url = baseUrl.includes("/messages") ? baseUrl : `${baseUrl}/api/anthropic/v1/messages?beta=true`;
+
+  try {
+    const response = await validationWrite(
+      url,
+      {
+        method: "POST",
+        headers: applyCustomUserAgent(
+          {
+            "Content-Type": "application/json",
+            "Anthropic-Version": "2023-06-01",
+            "x-api-key": apiKey,
+          },
+          providerSpecificData
+        ),
+        body: JSON.stringify({
+          model: providerSpecificData.validationModelId || "glm-5.1",
+          max_tokens: 1,
+          messages: [{ role: "user", content: "test" }],
+        }),
+      },
+      isAllowedLocalValidationBaseUrl(url)
+    );
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    if (response.ok || response.status === 502) {
+      return { valid: true, error: null };
+    }
+    if (response.status === 404) {
+      return { valid: false, error: "Provider validation endpoint not supported" };
+    }
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+    return { valid: true, error: null };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
 }
 
 async function validateDatabricksProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -2178,6 +2245,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
   if (!baseUrl) {
     return { valid: false, error: "No base URL configured for OpenAI compatible provider" };
   }
+  const isLocalValidationTarget = isAllowedLocalValidationBaseUrl(baseUrl);
 
   const validationModelId =
     typeof providerSpecificData?.validationModelId === "string"
@@ -2190,7 +2258,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
     const modelsRes = await validationRead(`${baseUrl}/models`, {
       method: "GET",
       headers: buildBearerHeaders(apiKey, providerSpecificData),
-    });
+    }, isLocalValidationTarget);
 
     modelsReachable = true;
 
@@ -2253,7 +2321,7 @@ async function validateOpenAICompatibleProvider({ apiKey, providerSpecificData =
         messages: [{ role: "user", content: "test" }],
         max_tokens: 1,
       }),
-    });
+    }, isLocalValidationTarget);
 
     if (chatRes.ok) {
       return { valid: true, error: null, method: "chat_completions" };
@@ -2332,6 +2400,7 @@ async function validateAnthropicCompatibleProvider({
   if (!baseUrl) {
     return { valid: false, error: "No base URL configured for Anthropic compatible provider" };
   }
+  const isLocalValidationTarget = isLocal || isAllowedLocalValidationBaseUrl(baseUrl);
 
   const headers = applyCustomUserAgent(
     {
@@ -2351,7 +2420,7 @@ async function validateAnthropicCompatibleProvider({
         method: "GET",
         headers,
       },
-      isLocal
+      isLocalValidationTarget
     );
 
     if (modelsRes.ok) {
@@ -2379,7 +2448,7 @@ async function validateAnthropicCompatibleProvider({
           messages: [{ role: "user", content: "test" }],
         }),
       },
-      isLocal
+      isLocalValidationTarget
     );
 
     if (messagesRes.status === 401 || messagesRes.status === 403) {
@@ -3487,6 +3556,53 @@ async function validateInnerAiProvider({ apiKey, providerSpecificData = {} }: an
   }
 }
 
+export async function validateWebCookieProvider({
+  provider,
+  apiKey,
+  providerSpecificData = {},
+}: any) {
+  const entry = (WEB_COOKIE_PROVIDERS as Record<string, { website?: string } | undefined>)[provider];
+  if (!entry) {
+    return { valid: false, error: "Provider validation not supported", unsupported: true };
+  }
+
+  const cookie = typeof apiKey === "string" ? apiKey.trim() : "";
+  if (!cookie) {
+    return {
+      valid: false,
+      error: "Cookie is required for web-cookie provider validation",
+      unsupported: false,
+    };
+  }
+
+  try {
+    const url = new URL("/models", entry.website || "https://example.com").toString();
+    const response = await globalThis.fetch(url, {
+      method: "GET",
+      headers: applyCustomUserAgent(
+        {
+          Accept: "application/json",
+          Cookie: cookie,
+        },
+        providerSpecificData
+      ),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "SESSION_EXPIRED",
+        errorCode: "AUTH_007",
+        unsupported: false,
+      };
+    }
+
+    return { valid: true, error: null, unsupported: false };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
 // #5422: Bytez key validation cannot use a chat probe. A Bytez account only serves models
 // that have been added to its catalog, so even Bytez's own documented model ids return 404
 // ("Model does not exist or has yet to be added to the Bytez catalog") for a fresh/free key —
@@ -3627,6 +3743,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     kie: validateKieProvider,
     "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
+    zai: validateZaiProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,
     datarobot: validateDataRobotProvider,

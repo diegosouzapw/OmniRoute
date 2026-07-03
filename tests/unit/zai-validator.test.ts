@@ -187,40 +187,24 @@ test("zai validator sends x-api-key header (Anthropic wire format, not Bearer)",
   assert.deepEqual(body.messages, [{ role: "user", content: "test" }]);
 });
 
-test("zai validator uses directHttpsRequest (does not proxy through undici pool)", async () => {
-  // The key invariant: directHttpsRequest calls safeOutboundFetch with
-  // bypassProxyPatch:true, which uses the original (pre-patch) native fetch.
-  // This means patching globalThis.fetch AFTER module load must NOT intercept it.
-  // If the validator were using validationWrite (undici), globalThis.fetch would
-  // still be the patched version at call time and we would see our mock called.
-  let mockCalled = false;
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (...args: Parameters<typeof fetch>) => {
-    mockCalled = true;
-    return originalFetch(...args);
-  };
+test("zai validator reaches local validation baseUrl instead of SSRF-blocking it", async () => {
+  let requestCount = 0;
 
-  try {
-    await withMockServer(
-      (_req, res) => {
-        res.writeHead(200, { "content-type": "application/json" });
-        res.end("{}");
-      },
-      async (baseUrl) => {
-        await validateProviderApiKey({
-          provider: "zai",
-          apiKey: "key",
-          providerSpecificData: { baseUrl },
-        });
-      }
-    );
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-
-  assert.equal(
-    mockCalled,
-    false,
-    "zai validator must use bypassProxyPatch path, not the patched globalThis.fetch"
+  await withMockServer(
+    (_req, res) => {
+      requestCount++;
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end("{}");
+    },
+    async (baseUrl) => {
+      const result = await validateProviderApiKey({
+        provider: "zai",
+        apiKey: "key",
+        providerSpecificData: { baseUrl },
+      });
+      assert.equal(result.valid, true);
+    }
   );
+
+  assert.equal(requestCount, 1);
 });

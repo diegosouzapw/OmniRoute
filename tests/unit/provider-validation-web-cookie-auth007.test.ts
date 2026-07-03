@@ -1,15 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// The validator probes the provider's /models endpoint via safeOutboundFetch →
-// fetchWithTimeout, which binds globalThis.fetch at MODULE LOAD time. The mock MUST be
-// installed BEFORE importing validation.ts — a late reassignment (inside a test) is
-// ignored and the validator hits the real network instead. (That made the 401/403
-// assertions pass only by coincidence — live chatgpt.com returns 401/403 — while the
-// 200 case failed.) A mutable `nextResponse` lets each test vary the probe result, and
-// `fetchCalls` proves the mocked probe ran rather than the live network.
+// The validation module installs the proxy-aware fetch wrapper during import. Install this
+// test mock after importing the exported helper so the /models probe is deterministic and
+// does not hit the live web-cookie provider.
 let nextResponse: { status: number; body: string } = { status: 200, body: "{}" };
 let fetchCalls = 0;
+
+const { validateWebCookieProvider } = await import("../../src/lib/providers/validation.ts");
+
 globalThis.fetch = (async () => {
   fetchCalls++;
   return new Response(nextResponse.body, {
@@ -17,8 +16,6 @@ globalThis.fetch = (async () => {
     headers: { "content-type": "application/json" },
   });
 }) as typeof fetch;
-
-const { validateWebCookieProvider } = await import("../../src/lib/providers/validation.ts");
 
 function mockFetch(status: number, body: string) {
   nextResponse = { status, body };
