@@ -299,7 +299,7 @@
     "tests/unit/provider-models-route.test.ts": 1752,
     "tests/unit/provider-validation-specialty.test.ts": 2874,
     "_rebaseline_pr4613_compatible_provider_groups": "Reconcile #4613 already-merged growth: providers-page-utils.test.ts 1004->1052 (+48, buildCompatibleProviderGroups partition unit test). Fast-gate PR->release does not run check:file-size, so this surfaced post-merge.",
-    "tests/unit/providers-page-utils.test.ts": 1092,
+    "tests/unit/providers-page-utils.test.ts": 1109,
     "tests/unit/reasoning-cache.test.ts": 980,
     "tests/unit/route-edge-coverage.test.ts": 1234,
     "tests/unit/search-handler-extended.test.ts": 1124,
