@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -9,6 +9,27 @@ import {
 } from "../../../bin/cli/commands/setup-claude.mjs";
 import { buildClaudeEnv, resolveLaunchTarget } from "../../../bin/cli/commands/launch.mjs";
 import { categoriseModel } from "../../../bin/cli/commands/setup-codex.mjs";
+
+// #5959 — deflake: `node --test` runs each file in a child process that streams
+// its report back to the parent as V8-serialized frames on fd 1 (stdout). The CLI
+// helpers under test (`syncClaudeProfilesFromModels`) print progress via
+// `console.log`, and that stdout output interleaves with the serialized frames,
+// corrupting the stream — the parent then throws
+// "Unable to deserialize cloned data due to invalid or unsupported version" at
+// file teardown ~50% of runs (all subtests pass; only the file errors). No test
+// here asserts on stdout, so silence the stdout-writing console methods for the
+// duration of this file. Restored in `after` for good hygiene.
+const _console = { log: console.log, info: console.info, warn: console.warn };
+before(() => {
+  console.log = () => {};
+  console.info = () => {};
+  console.warn = () => {};
+});
+after(() => {
+  console.log = _console.log;
+  console.info = _console.info;
+  console.warn = _console.warn;
+});
 
 // ── setup-claude profile generation ──────────────────────────────────────────
 
@@ -68,19 +89,30 @@ test("syncClaudeProfilesFromModels writes directory-per-profile settings + threa
   }
 });
 
-test("syncClaudeProfilesFromModels dry-run writes nothing", async () => {
+test("syncClaudeProfilesFromModels dry-run writes nothing and reports via the injected log (#5959)", async () => {
   const claudeHome = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-claude-dry-"));
+  // The collector keeps the dry-run's multi-byte "──" heading OFF this child
+  // process's stdout: under the node:test runner that write corrupts the V8
+  // serialization stream ~50% of runs (#5959, "Unable to deserialize cloned
+  // data due to invalid or unsupported version").
+  const lines: string[] = [];
   try {
     const result = await syncClaudeProfilesFromModels([{ id: "glm/glm-5.2" }], {
       claudeHome,
       baseUrl: "http://vps:20128",
       dryRun: true,
+      log: (line: string) => lines.push(line),
     });
     assert.equal(result.written, 1);
-    await assert.rejects(
-      fs.stat(path.join(claudeHome, "profiles", "glm52", "settings.json")),
-      /ENOENT/
-    );
+    // Dry-run reports the would-be file + its content through the log sink…
+    assert.equal(lines.length, 2);
+    const settingsPath = path.join(claudeHome, "profiles", "glm52", "settings.json");
+    assert.ok(lines[0].includes(settingsPath));
+    const printed = JSON.parse(lines[1]);
+    assert.equal(printed.model, "glm/glm-5.2");
+    assert.equal(printed.env.ANTHROPIC_BASE_URL, "http://vps:20128");
+    // …and writes nothing to disk.
+    await assert.rejects(fs.stat(settingsPath), /ENOENT/);
   } finally {
     await fs.rm(claudeHome, { recursive: true, force: true });
   }

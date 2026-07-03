@@ -485,7 +485,7 @@ test("CC-compatible providerRequest log keeps request beta headers and summarize
   assert.ok(providerRequest, "providerRequest must be present on CC-compatible success");
   assert.equal(providerRequest.headers["cf-ray"], undefined);
   assert.equal(providerRequest.headers.server, undefined);
-  assert.equal(providerRequest.headers.Accept, "application/json");
+  assert.equal(providerRequest.headers.Accept, "text/event-stream");
   assert.match(providerRequest.headers["anthropic-beta"], new RegExp(CONTEXT_1M_BETA_HEADER));
   assert.match(
     providerRequest.headers["anthropic-beta"],
