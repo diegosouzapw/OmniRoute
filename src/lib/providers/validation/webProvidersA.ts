@@ -112,8 +112,12 @@ export async function validateDeepSeekWebProvider({ apiKey }: any) {
         Referer: "https://chat.deepseek.com/",
         "User-Agent":
           "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-        "X-App-Version": "20241129.1",
+        // Match the current chat.deepseek.com web client (v2.0.0): the legacy
+        // X-App-Version build stamp was dropped, X-Client-Bundle-Id was added.
+        // Keep aligned with FAKE_HEADERS in open-sse/executors/deepseek-web.ts.
+        "X-Client-Bundle-Id": "com.deepseek.chat",
         "X-Client-Platform": "web",
+        "X-Client-Version": "2.0.0",
       },
     });
     if (resp.status === 401 || resp.status === 403) {

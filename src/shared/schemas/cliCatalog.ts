@@ -47,9 +47,7 @@ export const CliCatalogEntrySchema = z.object({
     .optional(),
   codeBlock: z.object({ language: z.string(), code: z.string() }).optional(),
   notes: z
-    .array(
-      z.object({ type: z.enum(["info", "warning", "error", "cloudCheck"]), text: z.string() })
-    )
+    .array(z.object({ type: z.enum(["info", "warning", "error", "cloudCheck"]), text: z.string() }))
     .optional(),
   requiresCloud: z.boolean().optional(),
   modelSelectionMode: z.enum(["single", "multiple"]).optional(),
@@ -61,6 +59,6 @@ export type CliCatalogEntry = z.infer<typeof CliCatalogEntrySchema>;
 
 export const CliCatalogSchema = z.record(CliCatalogEntrySchema);
 
-/** Cardinalidade obrigatória (Plano §3.1/§3.2 + D15). */
-export const EXPECTED_CODE_COUNT = 18;
+/** Cardinalidade obrigatória (Plano §3.1/§3.2 + D15). +1 (crush, decolua/9router#1233). */
+export const EXPECTED_CODE_COUNT = 19;
 export const EXPECTED_AGENT_COUNT = 6;
