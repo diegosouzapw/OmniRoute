@@ -289,6 +289,29 @@
       "stream": "https://api.airforce/v1/chat/completions"
     }
   },
+  "auggie": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "auggie://cli/stdio",
+      "stream": "auggie://cli/stdio"
+    }
+  },
   "baichuan": {
     "format": "openai",
     "headers": {
