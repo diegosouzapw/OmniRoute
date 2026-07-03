@@ -22,6 +22,8 @@
 
 ### 🔧 Bug Fixes
 
+- **combo (prefer known context capacity over unknown):** when a combo filters out at least one target for exceeding a *known* context limit, the router now prefers the remaining known-compatible targets over targets whose context metadata is simply unknown, instead of letting unknown-metadata targets be the only survivors. If no known-compatible context target remains, context-only candidates fall back to the normal strategy order. Regression guard: `tests/unit/combo-context-window-filter.test.ts`. ([#6088](https://github.com/diegosouzapw/OmniRoute/pull/6088) — thanks @Thinkscape)
+
 - **models (GLM-5.2 context normalization):** stop treating every hosted GLM-5.2 provider alias as the native 1M-context model. Native/bare GLM-5.2 and verified OpenCode / ZenMux routes keep their 1,000,000-token context, while hosted-provider aliases now respect the caps declared in their provider metadata instead of inheriting the native max. Regression guards: `tests/unit/model-capabilities-registry.test.ts`, `tests/unit/models-catalog-route.test.ts`. ([#6091](https://github.com/diegosouzapw/OmniRoute/pull/6091) — thanks @Thinkscape)
 
 - **providers (Gemini Web):** refresh the Gemini Web cookie handling and model catalog so live Gemini Web sessions keep authenticating and routing to current models. Regression guard: `tests/unit/gemini-web.test.ts`. ([#6095](https://github.com/diegosouzapw/OmniRoute/pull/6095) — thanks @backryun)
