@@ -14,6 +14,7 @@
 ### 🔧 Bug Fixes
 
 - **tests(cli):** stabilize `setup-claude.test.ts` (#5959) — the dry-run path printed a multi-byte "──" heading to the test child's stdout, corrupting the node:test runner's V8-serialized event stream in ~50% of runs ("Unable to deserialize cloned data due to invalid or unsupported version") and randomly failing the PR→release queue. `syncClaudeProfilesFromModels` now accepts an injectable `log` sink (CLI default unchanged: `console.log`); the test injects a collector and gains assertions on the dry-run report. Validated 0/30 failures post-fix vs 5/10 on the pristine base.
+- **tests(ci):** collect the orphaned `tests/unit/executors/` directory (created by #5800 outside every runner glob — its 2 test files never ran anywhere). Added `executors` to the unit-runner brace globs (package.json, ci.yml shards, quality.yml TIA, test-impact map, test-discovery gate); both files pass (10/10).
 
 ### 📝 Maintenance
 
