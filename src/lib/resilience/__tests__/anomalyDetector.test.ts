@@ -85,9 +85,13 @@ describe("detect", () => {
 
   test("flags an outlier in error_rate when z >= warn threshold", () => {
     const prior = Array.from({ length: 30 }, (_, i) =>
-      mkSample(i, { errorRate: 0.01, p95LatencyMs: 800, consecutiveFailures: 0 })
+      mkSample(i, {
+        errorRate: i % 2 === 0 ? 0.01 : 0.02,
+        p95LatencyMs: 800,
+        consecutiveFailures: 0,
+      })
     );
-    const latest = mkSample(31, { errorRate: 0.5 });
+    const latest = mkSample(31, { errorRate: 0.03 });
     const out = detect(latest, prior);
     const errRateSignal = out.find((s) => s.dimension === "error_rate");
     expect(errRateSignal).toBeDefined();
@@ -97,7 +101,11 @@ describe("detect", () => {
 
   test("escalates to critical when z >= critical threshold", () => {
     const prior = Array.from({ length: 30 }, (_, i) =>
-      mkSample(i, { errorRate: 0.01, p95LatencyMs: 800, consecutiveFailures: 0 })
+      mkSample(i, {
+        errorRate: i % 2 === 0 ? 0.01 : 0.02,
+        p95LatencyMs: 800,
+        consecutiveFailures: 0,
+      })
     );
     const latest = mkSample(31, { errorRate: 0.99 });
     const out = detect(latest, prior);
@@ -125,9 +133,13 @@ describe("detect", () => {
       },
     };
     const prior = Array.from({ length: 30 }, (_, i) =>
-      mkSample(i, { errorRate: 0.01, p95LatencyMs: 800, consecutiveFailures: 0 })
+      mkSample(i, {
+        errorRate: i % 2 === 0 ? 0.01 : 0.02,
+        p95LatencyMs: 800,
+        consecutiveFailures: 0,
+      })
     );
-    const latest = mkSample(31, { errorRate: 0.5 }); // would normally flag
+    const latest = mkSample(31, { errorRate: 0.03 }); // would normally flag
     const out = detect(latest, prior, cfg);
     expect(out.find((s) => s.dimension === "error_rate")).toBeUndefined();
   });
@@ -137,7 +149,10 @@ describe("scanWindow", () => {
   test("scores every point after the first against the running history", () => {
     const window: ProviderHealthSample[] = [
       ...Array.from({ length: 30 }, (_, i) =>
-        mkSample(i, { errorRate: 0.01, p95LatencyMs: 800 })
+        mkSample(i, {
+          errorRate: i % 2 === 0 ? 0.01 : 0.02,
+          p95LatencyMs: i % 2 === 0 ? 800 : 820,
+        })
       ),
       mkSample(31, { errorRate: 0.5 }), // anomaly
       ...Array.from({ length: 5 }, (_, i) =>

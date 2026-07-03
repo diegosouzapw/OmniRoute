@@ -64,11 +64,18 @@ describe("/api/settings/memory", () => {
 
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
+      embeddingProviderModel: null,
+      embeddingSource: "auto",
       enabled: false,
       maxTokens: 3200,
+      rerankEnabled: false,
+      rerankProviderModel: null,
       retentionDays: 365,
       strategy: "recent",
       skillsEnabled: true,
+      staticEnabled: false,
+      transformersEnabled: false,
+      vectorStore: "auto",
     });
   });
 
@@ -94,11 +101,18 @@ describe("/api/settings/memory", () => {
     });
     expect(invalidateMemorySettingsCache).toHaveBeenCalledOnce();
     await expect(res.json()).resolves.toEqual({
+      embeddingProviderModel: null,
+      embeddingSource: "auto",
       enabled: false,
       maxTokens: 0,
+      rerankEnabled: false,
+      rerankProviderModel: null,
       retentionDays: 14,
       strategy: "semantic",
       skillsEnabled: true,
+      staticEnabled: false,
+      transformersEnabled: false,
+      vectorStore: "auto",
     });
   });
 });

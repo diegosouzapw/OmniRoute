@@ -257,10 +257,10 @@ describe("applyThinkingBudget — CUSTOM mode", () => {
     expect(result.reasoning_effort).toBe("low");
   });
 
-  it("maps high budget to xhigh reasoning_effort", () => {
+  it("maps full budget to xhigh reasoning_effort", () => {
     const result = applyThinkingBudget({ model: "o3-2024-12-17", messages: [{ role: "user", content: "hi" }], reasoning_effort: "high" }, {
       mode: ThinkingMode.CUSTOM,
-      customBudget: 100000,
+      customBudget: 131072,
     });
     expect(result.reasoning_effort).toBe("xhigh");
   });

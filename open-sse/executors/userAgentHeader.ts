@@ -38,6 +38,7 @@ export function setUserAgentHeader(
   headers: Record<string, string>,
   userAgent: string,
 ): void {
+  if (!userAgent) return;
   headers["User-Agent"] = userAgent;
   if ("user-agent" in headers) {
     headers["user-agent"] = userAgent;

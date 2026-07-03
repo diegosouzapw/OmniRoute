@@ -33,14 +33,10 @@ test.describe("A11y — Resilience Routes", () => {
 
   test("keyboard navigation reaches first actionable element on error page", async ({ page }) => {
     await page.goto("/500");
+    await page.waitForLoadState("networkidle");
 
     await page.keyboard.press("Tab");
-    const activeTag = await page.evaluate(
-      () => document.activeElement?.tagName?.toLowerCase() || null
-    );
-
-    expect(activeTag).not.toBeNull();
-    expect(["a", "button"]).toContain(activeTag as string);
+    await expect(page.locator("a[href], button").first()).toBeFocused();
   });
 
   test("status page exposes live region during loading or status section after load", async ({

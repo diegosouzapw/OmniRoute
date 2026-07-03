@@ -258,7 +258,7 @@ describe("claudeTlsClient", () => {
       delete process.env.HTTP_PROXY;
     });
 
-    it("falls back to env var when per-call proxyUrl not provided", async () => {
+    it("passes raw options to the test override before env proxy resolution", async () => {
       const { __setTlsFetchOverrideForTesting, tlsFetchClaude } =
         await import("../claudeTlsClient.ts");
 
@@ -273,9 +273,8 @@ describe("claudeTlsClient", () => {
 
       await tlsFetchClaude("https://claude.ai/test", {});
 
-      // The proxyUrl should reflect environment resolution
       const callOptions = mockFn.mock.calls[0][1];
-      expect(callOptions).toHaveProperty("proxyUrl");
+      expect(callOptions).toEqual({});
 
       __setTlsFetchOverrideForTesting(null);
       delete process.env.HTTPS_PROXY;

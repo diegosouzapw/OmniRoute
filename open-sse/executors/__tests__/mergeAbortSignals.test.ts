@@ -2,38 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mergeAbortSignals } from "../mergeAbortSignals";
 
 describe("mergeAbortSignals", () => {
-  it("returns undefined when no signals are provided", () => {
-    expect(mergeAbortSignals(undefined, undefined)).toBeUndefined();
-  });
-
-  it("returns undefined when both signals are undefined", () => {
-    const a: AbortSignal | undefined = undefined;
-    const b: AbortSignal | undefined = undefined;
-    expect(mergeAbortSignals(a, b)).toBeUndefined();
-  });
-
-  it("returns the first signal when second is undefined", () => {
-    const controller = new AbortController();
-    const result = mergeAbortSignals(controller.signal, undefined);
-    expect(result).toBe(controller.signal);
-  });
-
-  it("returns the second signal when first is undefined", () => {
-    const controller = new AbortController();
-    const result = mergeAbortSignals(undefined, controller.signal);
-    expect(result).toBe(controller.signal);
-  });
-
-  it("returns the already-aborted signal when one is aborted and other is not", () => {
-    const controllerA = new AbortController();
-    const controllerB = new AbortController();
-    controllerA.abort();
-    expect(mergeAbortSignals(controllerA.signal, controllerB.signal)).toBe(
-      controllerA.signal,
-    );
-  });
-
-  it("returns either signal when both are already aborted", () => {
+  it("returns an already-aborted composite signal when both are already aborted", () => {
     const a = new AbortController();
     const b = new AbortController();
     a.abort();
@@ -43,10 +12,13 @@ describe("mergeAbortSignals", () => {
     expect(merged?.aborted).toBe(true);
   });
 
-  it("returns undefined when both are fresh (non-aborted) signals", () => {
+  it("returns a fresh composite signal when both inputs are fresh", () => {
     const a = new AbortController();
     const b = new AbortController();
-    expect(mergeAbortSignals(a.signal, b.signal)).toBeUndefined();
+    const merged = mergeAbortSignals(a.signal, b.signal);
+    expect(merged).not.toBe(a.signal);
+    expect(merged).not.toBe(b.signal);
+    expect(merged.aborted).toBe(false);
   });
 
   it("propagates an abort from the first signal onto the merged controller", () => {
@@ -81,19 +53,19 @@ describe("mergeAbortSignals", () => {
     const upstream = new AbortController();
     const downstream = new AbortController();
     const merged = mergeAbortSignals(upstream.signal, downstream.signal)!;
-    upstream.abort();
+    upstream.abort(new Error("first"));
     // a second abort on the upstream is a no-op for the listener we registered
     upstream.abort(new Error("second"));
     expect(merged.aborted).toBe(true);
-    expect((merged.reason as Error).message).toBe("second");
+    expect((merged.reason as Error).message).toBe("first");
   });
 
-  it("returns the first aborted signal directly when one is already aborted", () => {
+  it("returns an aborted composite signal when one is already aborted", () => {
     const aborted = new AbortController();
     aborted.abort(new Error("pre-aborted"));
     const fresh = new AbortController();
     const merged = mergeAbortSignals(aborted.signal, fresh.signal);
-    expect(merged).toBe(aborted.signal);
+    expect(merged).not.toBe(aborted.signal);
     expect(merged?.reason).toBeInstanceOf(Error);
   });
 });

@@ -27,6 +27,52 @@ export const DEFAULT_ANOMALY_DETECTOR_CONFIG: AnomalyDetectorConfig = {
   minSamplesForDetection: 15,
 };
 
+export interface DetectorConfig {
+  windowSize: number;
+  zScoreThreshold: number;
+  minSamples: number;
+}
+
+export interface LegacyAnomalyDetection {
+  zScore: number;
+  value: number;
+  mean: number;
+  stdev: number;
+}
+
+export interface AnomalyDetector {
+  detect(
+    window: readonly { metric: string; value: number }[],
+    config: DetectorConfig,
+    metric: string
+  ): LegacyAnomalyDetection | null;
+}
+
+export function createAnomalyDetector(): AnomalyDetector {
+  return {
+    detect(window, config, metric) {
+      const matching = window.filter((sample) => sample.metric === metric);
+      if (matching.length <= config.minSamples) return null;
+      const latest = matching[matching.length - 1]!;
+      const prior = matching.slice(
+        Math.max(0, matching.length - 1 - config.windowSize),
+        matching.length - 1
+      );
+      if (prior.length < config.minSamples) return null;
+      const stats = computeRollingStats(prior.map((sample) => sample.value));
+      if (!stats || stats.stdev <= Number.EPSILON) return null;
+      const zScore = (latest.value - stats.mean) / stats.stdev;
+      if (zScore < config.zScoreThreshold) return null;
+      return {
+        zScore,
+        value: latest.value,
+        mean: stats.mean,
+        stdev: stats.stdev,
+      };
+    },
+  };
+}
+
 /**
  * Compute the rolling mean and population stdev for `values`.
  * Population stdev (divide by N, not N-1) is intentional: we are scoring
