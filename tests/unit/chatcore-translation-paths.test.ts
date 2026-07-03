@@ -499,7 +499,9 @@ test("chatCore keeps Responses-native Codex payloads in native passthrough mode"
 
   assert.equal(result.success, true);
   assert.match(call.url, /\/responses$/);
-  assert.deepEqual(call.body.input, [{ type: "message", role: "user", content: [{ type: "input_text", text: "ship it" }] }]);
+  assert.deepEqual(call.body.input, [
+    { type: "message", role: "user", content: [{ type: "input_text", text: "ship it" }] },
+  ]);
   assert.equal(call.body.instructions, "custom system prompt");
   assert.equal(call.body.store, false);
   assert.deepEqual(call.body.metadata, { source: "codex-client" });
@@ -671,9 +673,8 @@ test("chatCore builds Claude Code-compatible upstream requests for CC providers"
   });
 
   assert.equal(result.success, true);
-  assert.equal(call.headers.Accept ?? call.headers.accept, "application/json");
-  assert.equal(call.body.stream, true);
-  assert.equal(call.body.context_management, undefined);
+  assert.equal(call.headers.Accept ?? call.headers.accept, "text/event-stream");
+  assert.deepEqual([call.body.stream, call.body.context_management], [true, undefined]);
   assert.equal(call.body.system.length, 1);
   assert.match(call.body.system[0].text, /Claude Agent SDK/);
   assert.equal(typeof call.body.metadata.user_id, "string");

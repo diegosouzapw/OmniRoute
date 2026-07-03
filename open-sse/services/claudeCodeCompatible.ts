@@ -54,6 +54,7 @@ const CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS = [
 ];
 const CONTEXT_1M_SUPPORTED_MODELS = [
   "claude-fable-5",
+  "claude-sonnet-5",
   "claude-opus-4-8",
   "claude-opus-4-7",
   "claude-opus-4-6",
@@ -175,13 +176,12 @@ export function buildClaudeCodeCompatibleHeaders(
   sessionId?: string | null,
   options: { redactThinking?: boolean } = {}
 ): Record<string, string> {
-  void stream;
   // These headers intentionally mirror Claude Code's wire image closely.
   // For CC-compatible relays, passing the upstream's client-gating checks is
   // more important than forwarding arbitrary caller-specific header shapes.
   return {
     "Content-Type": "application/json",
-    Accept: "application/json",
+    Accept: stream ? "text/event-stream" : "application/json",
     Authorization: `Bearer ${apiKey}`,
     "anthropic-version": CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
     "anthropic-beta": resolveClaudeCodeCompatibleAnthropicBeta({

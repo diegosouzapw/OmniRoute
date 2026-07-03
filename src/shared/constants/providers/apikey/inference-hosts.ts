@@ -265,6 +265,21 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     passthroughModels: true,
     authHint: "Get API key at monsterapi.ai",
   },
+  modelscope: {
+    id: "modelscope",
+    alias: "ms",
+    name: "ModelScope",
+    icon: "cloud",
+    color: "#FF6A00",
+    textIcon: "MS",
+    website: "https://modelscope.cn",
+    hasFree: true,
+    // #1764 (upstream 9router): OpenAI-compatible API-Inference. Base URL verified
+    // live against ModelScope's own docs — the upstream PR used the `.ai` TLD, but
+    // the confirmed production domain is `api-inference.modelscope.cn` (see registry
+    // entry + test guard).
+    freeNote: "Free tier via ModelScope API-Inference — Alibaba account required.",
+  },
   byteplus: {
     id: "byteplus",
     alias: "bpm",
