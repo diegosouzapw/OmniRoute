@@ -21,7 +21,10 @@ const messages = JSON.parse(
 
 test("#5695 Quick Start step 1 links to the API Manager (API Keys), not Endpoint", () => {
   // The endpoint render-prop Link inside the step1Desc rich block.
-  const hrefMatch = source.match(/t\.rich\("step1Desc"[\s\S]*?<Link href="([^"]*)"/);
+  // NB: tolerate Prettier splitting `<Link href=...>` across lines (\s+ between
+  // the tag and the attr) — otherwise the regex skips the multi-line step1 Link
+  // and wrongly matches the single-line step2 `/dashboard/providers` Link.
+  const hrefMatch = source.match(/t\.rich\("step1Desc"[\s\S]*?<Link\s+href="([^"]*)"/);
   assert.ok(hrefMatch, "expected to find the step1Desc endpoint Link in HomePageClient.tsx");
   assert.equal(
     hrefMatch![1],
