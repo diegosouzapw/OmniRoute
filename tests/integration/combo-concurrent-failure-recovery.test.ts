@@ -16,6 +16,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { createChatPipelineHarness } from "./_chatPipelineHarness.ts";
+import {
+  buildValidSSEStream,
+  buildGeminiSSEStream,
+  buildBrokenSSEStream,
+  buildEmptySSEStream,
+  hungStream,
+  buildDelayedSSEStream,
+} from "./_sseTestHelpers.ts";
 
 const harness = await createChatPipelineHarness("combo-concurrent-failure");
 const {
@@ -32,19 +40,6 @@ const { getCircuitBreaker } = await import("../../src/shared/utils/circuitBreake
 
 function body(combo: string, content = "test") {
   return { model: combo, stream: false, messages: [{ role: "user", content }] };
-}
-
-function hungStream(init?: RequestInit, contentType = "text/event-stream"): Response {
-  const stream = new ReadableStream({
-    start(controller) {
-      init?.signal?.addEventListener("abort", () => {
-        try {
-          controller.close();
-        } catch {}
-      });
-    },
-  });
-  return new Response(stream, { status: 200, headers: { "Content-Type": contentType } });
 }
 
 test.beforeEach(async () => {
@@ -212,63 +207,7 @@ test("combo does not burn retries against OPEN circuit breaker", { timeout: 30_0
   );
 });
 
-// ── Broken 200 responses ─────────────────────────────────────────────────
-
-function buildBrokenSSEStream(errorMessage: string): Response {
-  // Simulates Gemini returning 200 with SSE that contains an error on a data: line
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ error: { message: errorMessage } })}\n\n`)
-      );
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
-    },
-  });
-  return new Response(stream, {
-    status: 200,
-    headers: { "Content-Type": "text/event-stream" },
-  });
-}
-
-function buildEmptySSEStream(): Response {
-  // Simulates a 200 response with an immediately-closed empty stream
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
-    },
-  });
-  return new Response(stream, {
-    status: 200,
-    headers: { "Content-Type": "text/event-stream" },
-  });
-}
-
-function buildValidSSEStream(text: string): Response {
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(
-          `data: ${JSON.stringify({
-            id: "chatcmpl_test",
-            object: "chat.completion.chunk",
-            choices: [{ index: 0, delta: { role: "assistant", content: text } }],
-          })}\n\n`
-        )
-      );
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
-    },
-  });
-  return new Response(stream, {
-    status: 200,
-    headers: { "Content-Type": "text/event-stream" },
-  });
-}
+// ── 500 error fallback ───────────────────────────────────────────────────
 
 test("combo retries when first model returns 500 error", { timeout: 30_000 }, async () => {
   await seedConnection("gemini", { apiKey: "sk-gemini-broken" });
@@ -366,28 +305,6 @@ test(
 
 // ── Smart timeout: streaming vs non-streaming ────────────────────────────
 
-function buildGeminiSSEStream(text: string): Response {
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(
-          `data: ${JSON.stringify({
-            candidates: [{ content: { parts: [{ text }], role: "model" }, index: 0 }],
-            usageMetadata: { promptTokenCount: 4, candidatesTokenCount: 2, totalTokenCount: 6 },
-          })}\n\n`
-        )
-      );
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
-    },
-  });
-  return new Response(stream, {
-    status: 200,
-    headers: { "Content-Type": "text/event-stream" },
-  });
-}
-
 test("streaming: fast response succeeds, no fallback needed", { timeout: 30_000 }, async () => {
   await seedConnection("gemini", { apiKey: "sk-gemini-fast" });
   await combosDb.createCombo({
@@ -481,21 +398,12 @@ test(
     globalThis.fetch = async (_url: string, init?: RequestInit) => {
       const delay = 500 + Math.random() * 1000; // 500-1500ms
       requestCount++;
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          const aborted = new Promise<void>((resolve) => {
-            init?.signal?.addEventListener("abort", () => resolve(), { once: true });
-          });
-          await Promise.race([new Promise((r) => setTimeout(r, delay)), aborted]);
-          if (init?.signal?.aborted) {
-            try {
-              controller.close();
-            } catch {}
-            return;
-          }
-          controller.enqueue(
-            encoder.encode(
+      const response = buildDelayedSSEStream(
+        delay,
+        (ctrl) => {
+          const enc = new TextEncoder();
+          ctrl.enqueue(
+            enc.encode(
               `data: ${JSON.stringify({
                 candidates: [
                   { content: { parts: [{ text: "slow response" }], role: "model" }, index: 0 },
@@ -504,14 +412,11 @@ test(
               })}\n\n`
             )
           );
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
+          ctrl.enqueue(enc.encode("data: [DONE]\n\n"));
         },
-      });
-      return new Response(stream, {
-        status: 200,
-        headers: { "Content-Type": "text/event-stream" },
-      });
+        init
+      );
+      return response;
     };
 
     // Fire 5 concurrent requests (simulates the test's 5 threads)
@@ -563,31 +468,18 @@ test(
     });
 
     let geminiStarted = false;
-    let geminiResolved = false;
 
     globalThis.fetch = async (url: string, init?: RequestInit) => {
       const target = String(url);
       if (target.includes("gemma-4-31b-it") || target.includes("gemini")) {
         geminiStarted = true;
         // Gemini reasoning model: thinks for 35s, THEN starts streaming
-        // Abort-aware: close immediately on abort so the stream readiness check cleans up
-        const encoder = new TextEncoder();
-        const stream = new ReadableStream({
-          async start(controller) {
-            const aborted = new Promise<void>((resolve) => {
-              init?.signal?.addEventListener("abort", () => resolve(), { once: true });
-            });
-            const delay = new Promise<void>((r) => setTimeout(r, 35_000));
-            await Promise.race([delay, aborted]);
-            if (init?.signal?.aborted) {
-              try {
-                controller.close();
-              } catch {}
-              return;
-            }
-            geminiResolved = true;
-            controller.enqueue(
-              encoder.encode(
+        const response = buildDelayedSSEStream(
+          35_000,
+          (ctrl) => {
+            const enc = new TextEncoder();
+            ctrl.enqueue(
+              enc.encode(
                 `data: ${JSON.stringify({
                   candidates: [
                     {
@@ -607,14 +499,11 @@ test(
                 })}\n\n`
               )
             );
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-            controller.close();
+            ctrl.enqueue(enc.encode("data: [DONE]\n\n"));
           },
-        });
-        return new Response(stream, {
-          status: 200,
-          headers: { "Content-Type": "text/event-stream" },
-        });
+          init
+        );
+        return response;
       }
       if (target.includes("gpt-4o-mini") || target.includes("openai")) {
         return buildOpenAIResponse("fallback answer");
