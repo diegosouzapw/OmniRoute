@@ -10,10 +10,7 @@ import {
   createSSEDataLineNormalizer,
   isKnownNonClaudeStreamPayload,
 } from "../../utils/streamHelpers.ts";
-import {
-  evaluateResponseValidation,
-  type ResponseValidationConfig,
-} from "./responseValidation.ts";
+import { evaluateResponseValidation, type ResponseValidationConfig } from "./responseValidation.ts";
 import { getReasoningTokens } from "../../../src/lib/usage/tokenAccounting.ts";
 import type { ComboRetryAfter } from "./types.ts";
 
@@ -259,9 +256,18 @@ export async function validateResponseQuality(
           return { valid: true, clonedResponse };
         }
       }
-    } catch {
-      // If reading the stream fails, pass through — other mechanisms
-      // (stream readiness timeout) will catch truly broken streams.
+    } catch (streamErr) {
+      // If reading the stream fails due to a locked stream or pipe error,
+      // the content cannot be verified — mark as invalid for combo failover.
+      // A locked ReadableStream means the response body is already consumed
+      // or corrupted (e.g. "Invalid state: The ReadableStream is locked").
+      if (
+        streamErr instanceof TypeError &&
+        (streamErr.message.includes("locked") || streamErr.message.includes("disturbed"))
+      ) {
+        return { valid: false, reason: "stream locked or disturbed" };
+      }
+      // Other read errors — pass through (stream readiness timeout will catch truly broken streams)
       return { valid: true };
     }
   }
@@ -308,7 +314,8 @@ export async function validateResponseQuality(
 
   const choices = json?.choices;
   if (json?.object === "response") {
-    if (!responsesApiOutputHasContent(json.output)) return { valid: false, reason: "empty_choices" };
+    if (!responsesApiOutputHasContent(json.output))
+      return { valid: false, reason: "empty_choices" };
     const status = typeof json.status === "string" ? json.status : "";
     if (status && !["completed", "done"].includes(status)) {
       return { valid: false, reason: "no_terminal" };
