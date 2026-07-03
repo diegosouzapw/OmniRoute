@@ -3388,6 +3388,29 @@
       "stream": "https://qianfan.baidubce.com/v2/chat/completions"
     }
   },
+  "qiniu": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.qnaigc.com/v1/chat/completions",
+      "stream": "https://api.qnaigc.com/v1/chat/completions"
+    }
+  },
   "qoder": {
     "format": "openai",
     "headers": {
