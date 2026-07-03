@@ -19,6 +19,13 @@ type RejectedTarget = {
   reasons: string[];
 };
 
+type MediaPartOptions = {
+  dataPrefix: string;
+  mediaPrefix: string;
+  typeNames: Set<string>;
+  keyNames: string[];
+};
+
 export type RequestCompatibilityEvaluation = {
   requirements: RequestCompatibilityRequirements;
   compatibleTargets: ResolvedComboTarget[];
@@ -57,38 +64,53 @@ function estimateRequestInputTokens(body: Record<string, unknown>): number {
   return Object.keys(estimatePayload).length > 0 ? estimateTokens(estimatePayload) : 0;
 }
 
-function valueContainsImagePart(value: unknown, depth = 0): boolean {
-  if (depth > 8 || value === null || value === undefined) return false;
-  if (typeof value === "string") return value.startsWith("data:image/");
-  if (Array.isArray(value)) return value.some((entry) => valueContainsImagePart(entry, depth + 1));
-  if (!isRecord(value)) return false;
-
+function recordHasMediaMarker(value: Record<string, unknown>, options: MediaPartOptions): boolean {
   const type = typeof value.type === "string" ? value.type.toLowerCase() : null;
-  if (type === "image" || type === "image_url" || type === "input_image") return true;
-  if ("image_url" in value || "input_image" in value) return true;
-
-  const source = isRecord(value.source) ? value.source : null;
-  const mediaType = typeof source?.media_type === "string" ? source.media_type.toLowerCase() : "";
-  if (mediaType.startsWith("image/")) return true;
-
-  return Object.values(value).some((entry) => valueContainsImagePart(entry, depth + 1));
+  if (type !== null && options.typeNames.has(type)) return true;
+  return options.keyNames.some((key) => key in value);
 }
 
-function valueContainsAudioPart(value: unknown, depth = 0): boolean {
-  if (depth > 8 || value === null || value === undefined) return false;
-  if (typeof value === "string") return value.startsWith("data:audio/");
-  if (Array.isArray(value)) return value.some((entry) => valueContainsAudioPart(entry, depth + 1));
-  if (!isRecord(value)) return false;
-
-  const type = typeof value.type === "string" ? value.type.toLowerCase() : null;
-  if (type === "audio" || type === "input_audio" || type === "audio_url") return true;
-  if ("audio_url" in value || "input_audio" in value || "audio" in value) return true;
-
+function recordHasSourceMediaType(
+  value: Record<string, unknown>,
+  options: MediaPartOptions
+): boolean {
   const source = isRecord(value.source) ? value.source : null;
   const mediaType = typeof source?.media_type === "string" ? source.media_type.toLowerCase() : "";
-  if (mediaType.startsWith("audio/")) return true;
+  return mediaType.startsWith(options.mediaPrefix);
+}
 
-  return Object.values(value).some((entry) => valueContainsAudioPart(entry, depth + 1));
+function valueContainsMediaPart(value: unknown, options: MediaPartOptions, depth = 0): boolean {
+  if (depth > 8 || value === null || value === undefined) return false;
+  if (typeof value === "string") return value.startsWith(options.dataPrefix);
+  if (Array.isArray(value)) {
+    return value.some((entry) => valueContainsMediaPart(entry, options, depth + 1));
+  }
+  if (!isRecord(value)) return false;
+  if (recordHasMediaMarker(value, options)) return true;
+  if (recordHasSourceMediaType(value, options)) return true;
+  return Object.values(value).some((entry) => valueContainsMediaPart(entry, options, depth + 1));
+}
+
+const IMAGE_PART_OPTIONS: MediaPartOptions = {
+  dataPrefix: "data:image/",
+  mediaPrefix: "image/",
+  typeNames: new Set(["image", "image_url", "input_image"]),
+  keyNames: ["image_url", "input_image"],
+};
+
+const AUDIO_PART_OPTIONS: MediaPartOptions = {
+  dataPrefix: "data:audio/",
+  mediaPrefix: "audio/",
+  typeNames: new Set(["audio", "input_audio", "audio_url"]),
+  keyNames: ["audio_url", "input_audio", "audio"],
+};
+
+function valueContainsImagePart(value: unknown): boolean {
+  return valueContainsMediaPart(value, IMAGE_PART_OPTIONS);
+}
+
+function valueContainsAudioPart(value: unknown): boolean {
+  return valueContainsMediaPart(value, AUDIO_PART_OPTIONS);
 }
 
 function deriveRequestCompatibilityRequirements(
@@ -131,39 +153,35 @@ function targetSupportsAudioOutput(
   return capabilities.modalitiesOutput.includes("audio");
 }
 
-function getTargetCompatibilityFailures(
-  target: ResolvedComboTarget,
+function pushCapabilityFailures(
+  failures: string[],
+  capabilities: ReturnType<typeof getResolvedModelCapabilities>,
   requirements: RequestCompatibilityRequirements
-): string[] {
-  const capabilities = getResolvedModelCapabilities(target.modelStr);
-  const failures: string[] = [];
-
-  if (
-    requirements.requiresTools &&
-    (capabilities.supportsTools === false || !capabilities.toolCalling)
-  ) {
-    failures.push("tools");
-  }
-
-  // For image requests, only route to a target whose vision support is
-  // confirmed. Unknown capability is treated as incompatible so the request
-  // never falls through to a text-only model.
-  if (requirements.requiresVision && capabilities.supportsVision !== true) {
-    failures.push("vision");
-  }
-
-  if (requirements.requiresAudioInput && !targetSupportsAudioInput(capabilities)) {
-    failures.push("audio_input");
-  }
-
-  if (requirements.requiresAudioOutput && !targetSupportsAudioOutput(capabilities)) {
-    failures.push("audio_output");
-  }
-
+): void {
+  if (requirements.requiresVision && capabilities.supportsVision !== true) failures.push("vision");
   if (requirements.requiresStructuredOutput && capabilities.structuredOutput === false) {
     failures.push("structured_output");
   }
+}
 
+function pushAudioFailures(
+  failures: string[],
+  capabilities: ReturnType<typeof getResolvedModelCapabilities>,
+  requirements: RequestCompatibilityRequirements
+): void {
+  if (requirements.requiresAudioInput && !targetSupportsAudioInput(capabilities)) {
+    failures.push("audio_input");
+  }
+  if (requirements.requiresAudioOutput && !targetSupportsAudioOutput(capabilities)) {
+    failures.push("audio_output");
+  }
+}
+
+function pushTokenFailures(
+  failures: string[],
+  capabilities: ReturnType<typeof getResolvedModelCapabilities>,
+  requirements: RequestCompatibilityRequirements
+): void {
   if (exceedsKnownOutputLimit(requirements.requestedOutputTokens, capabilities.maxOutputTokens)) {
     failures.push("output_tokens");
   }
@@ -177,6 +195,24 @@ function getTargetCompatibilityFailures(
   ) {
     failures.push("context_window");
   }
+}
+
+function getTargetCompatibilityFailures(
+  target: ResolvedComboTarget,
+  requirements: RequestCompatibilityRequirements
+): string[] {
+  const capabilities = getResolvedModelCapabilities(target.modelStr);
+  const failures: string[] = [];
+
+  if (
+    requirements.requiresTools &&
+    (capabilities.supportsTools === false || !capabilities.toolCalling)
+  ) {
+    failures.push("tools");
+  }
+  pushCapabilityFailures(failures, capabilities, requirements);
+  pushAudioFailures(failures, capabilities, requirements);
+  pushTokenFailures(failures, capabilities, requirements);
 
   return failures;
 }

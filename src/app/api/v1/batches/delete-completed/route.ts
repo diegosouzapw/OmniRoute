@@ -3,6 +3,9 @@ import { deleteCompletedBatches } from "@/lib/localDb";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export async function OPTIONS() {
   return handleCorsOptions();
 }

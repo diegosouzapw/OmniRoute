@@ -3,6 +3,9 @@ import { getFile, getFileContent } from "@/lib/localDb";
 import { NextResponse } from "next/server";
 import { getApiKeyRequestScope } from "@/app/api/v1/_helpers/apiKeyScope";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export async function OPTIONS() {
   return handleCorsOptions();
 }
@@ -30,7 +33,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     );
   }
 
-  const sanitizedFilename = file.filename.replace(/[^\w.\-()\[\] ]/g, "_").slice(0, 255);
+  const sanitizedFilename = file.filename.replace(/[^\w.\-()[\] ]/g, "_").slice(0, 255);
   const encodedFilename = encodeURIComponent(file.filename);
 
   return new Response(content, {
