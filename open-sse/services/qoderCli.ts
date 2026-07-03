@@ -1,12 +1,17 @@
 import { spawn } from "child_process";
 import crypto from "crypto";
+import fs from "fs";
+import os from "os";
+import path from "path";
 
 const DEFAULT_TIMEOUT_MS = 45_000;
-const DEFAULT_MAX_TURNS = "1";
+const DEFAULT_MODELS_TIMEOUT_MS = 20_000;
 const QODER_DEFAULT_MODEL = "qoder-rome-30ba3b";
 
 export const QODER_STATIC_MODELS = [
   { id: "qoder-rome-30ba3b", name: "Qoder ROME" },
+  { id: "glm-5.2", name: "GLM-5.2" },
+  { id: "minimax-m3", name: "MiniMax M3" },
   { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
   { id: "qwen3-max", name: "Qwen3 Max" },
   { id: "qwen3-vl-plus", name: "Qwen3 Vision Plus" },
@@ -72,6 +77,361 @@ export function getQoderCliWorkspace(): string {
   return home || process.cwd();
 }
 
+/**
+ * Isolated `--config-dir` for OmniRoute-driven qodercli runs. Keeping it separate
+ * from the operator's own `~/.qoder` avoids polluting an interactive qodercli
+ * session and lets each PAT authenticate via `QODER_PERSONAL_ACCESS_TOKEN`
+ * without clobbering a browser login. Override with `QODER_CLI_CONFIG_DIR`.
+ */
+export function getQoderCliConfigDir(): string {
+  const explicit = String(process.env.QODER_CLI_CONFIG_DIR || "").trim();
+  if (explicit) return explicit;
+  const dataDir = String(process.env.DATA_DIR || "").trim();
+  const base = dataDir || path.join(os.homedir() || os.tmpdir(), ".omniroute");
+  return path.join(base, "qoder-cli");
+}
+
+// Memoized per resolved path so we don't hit synchronous disk I/O
+// (fs.mkdirSync blocks the event loop) on every chat/quota request.
+const ensuredQoderCliConfigDirs = new Set<string>();
+
+/** Ensure the qodercli config dir exists so it is a valid spawn cwd + cache root. */
+function ensureQoderCliConfigDir(): string {
+  const dir = getQoderCliConfigDir();
+  if (ensuredQoderCliConfigDirs.has(dir)) return dir;
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    ensuredQoderCliConfigDirs.add(dir);
+  } catch {
+    /* best-effort — spawn will surface a real failure */
+  }
+  return dir;
+}
+
+type SpawnQoderCliOptions = {
+  args: string[];
+  token?: string | null;
+  stdin?: string | null;
+  signal?: AbortSignal | null;
+  timeoutMs?: number;
+  command?: string | null;
+  cwd?: string | null;
+};
+
+/**
+ * Low-level qodercli spawn. The PAT (if any) is passed via the
+ * `QODER_PERSONAL_ACCESS_TOKEN` env var — the only env var the official CLI
+ * honors for headless PAT auth — and the prompt is piped through stdin so no
+ * untrusted value is ever interpolated into a shell command (Hard Rule #13).
+ */
+function spawnQoderCli(options: SpawnQoderCliOptions): Promise<QoderCliRunResult> {
+  const command = String(options.command || "").trim() || getQoderCliCommand();
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const env: NodeJS.ProcessEnv = { ...process.env };
+  const token = String(options.token || "").trim();
+  if (token) env.QODER_PERSONAL_ACCESS_TOKEN = token;
+
+  return new Promise<QoderCliRunResult>((resolve) => {
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    let timedOut = false;
+
+    let child: ReturnType<typeof spawn>;
+    try {
+      child = spawn(command, options.args, {
+        env,
+        cwd: options.cwd || undefined,
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    } catch (err) {
+      resolve({
+        ok: false,
+        code: null,
+        stdout: "",
+        stderr: "",
+        timedOut: false,
+        error: (err as Error).message,
+      });
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      timedOut = true;
+      try {
+        child.kill("SIGKILL");
+      } catch {
+        /* already gone */
+      }
+    }, timeoutMs);
+    timer.unref?.();
+
+    const onAbort = () => {
+      try {
+        child.kill("SIGKILL");
+      } catch {
+        /* already gone */
+      }
+    };
+    if (options.signal) {
+      if (options.signal.aborted) onAbort();
+      else options.signal.addEventListener("abort", onAbort, { once: true });
+    }
+
+    const finish = (result: QoderCliRunResult) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      options.signal?.removeEventListener?.("abort", onAbort);
+      resolve(result);
+    };
+
+    child.on("error", (err: Error) => {
+      finish({ ok: false, code: null, stdout, stderr, timedOut, error: err.message });
+    });
+    // If qodercli exits or closes stdin before we finish writing the prompt, the
+    // write/end below can emit an ASYNC EPIPE/EINVAL on the stream (not caught by
+    // the surrounding try/catch). Without a listener that becomes an unhandled
+    // 'error' event that crashes the whole process — attach no-op handlers.
+    child.stdin?.on("error", () => {});
+    child.stdout?.on("error", () => {});
+    child.stderr?.on("error", () => {});
+    // Decode with a stateful UTF-8 reader so a multi-byte character (e.g. Chinese,
+    // common in Qoder output) split across two chunks is not corrupted — Buffer
+    // per-chunk toString() would mangle the boundary bytes.
+    child.stdout?.setEncoding("utf8");
+    child.stderr?.setEncoding("utf8");
+    child.stdout?.on("data", (chunk: string) => {
+      stdout += chunk;
+    });
+    child.stderr?.on("data", (chunk: string) => {
+      stderr += chunk;
+    });
+    child.on("close", (code: number | null) => {
+      finish({
+        ok: code === 0 && !timedOut,
+        code,
+        stdout,
+        stderr,
+        timedOut,
+        error: timedOut ? "qodercli timed out" : null,
+      });
+    });
+
+    try {
+      if (options.stdin != null) child.stdin?.write(options.stdin);
+      child.stdin?.end();
+    } catch {
+      /* stdin closed early — the child will surface its own error */
+    }
+  });
+}
+
+/**
+ * Run a single non-interactive chat turn through qodercli. Returns the raw
+ * process result; use {@link parseQoderCliResult} to extract the reply text.
+ */
+export async function runQoderCli(options: QoderCliRunOptions): Promise<QoderCliRunResult> {
+  const level = await resolveQoderCliModel(options.model, options.token, {
+    command: options.command,
+    signal: options.signal,
+  });
+  const configDir = ensureQoderCliConfigDir();
+  const cwd = String(options.workspace || "").trim() || configDir;
+  const args = [
+    "--print",
+    "--output-format",
+    "json",
+    "--model",
+    level,
+    // Disable all built-in tools — OmniRoute only wants a plain LM reply, never
+    // file-system access or command execution from the proxied CLI.
+    "--tools",
+    "",
+    "--config-dir",
+    configDir,
+  ];
+  return spawnQoderCli({
+    args,
+    token: options.token,
+    stdin: options.prompt,
+    signal: options.signal,
+    timeoutMs: options.timeoutMs,
+    command: options.command,
+    cwd,
+  });
+}
+
+/**
+ * List the models qodercli can reach for the given PAT. Used as a cheap
+ * connection/credential check (no chat tokens are consumed).
+ */
+export async function listQoderCliModels(
+  options: {
+    token?: string | null;
+    signal?: AbortSignal | null;
+    timeoutMs?: number;
+    command?: string | null;
+  } = {}
+): Promise<QoderCliRunResult> {
+  const configDir = ensureQoderCliConfigDir();
+  return spawnQoderCli({
+    args: ["--list-models", "--config-dir", configDir],
+    token: options.token,
+    signal: options.signal,
+    timeoutMs: options.timeoutMs ?? DEFAULT_MODELS_TIMEOUT_MS,
+    command: options.command,
+    cwd: configDir,
+  });
+}
+
+/** Normalize a model id / display name so "glm-5.2" and "GLM-5.2" compare equal. */
+export function normalizeQoderModelKey(value: unknown): string {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+/** Extract the display names from a `qodercli --list-models` table. */
+export function parseQoderCliModelNames(stdout: string): string[] {
+  return String(stdout || "")
+    .split("\n")
+    .map((line) => line.replace(/\[[0-9;]*m/g, "").trim()) // strip ANSI colors
+    .filter(
+      (line) =>
+        line.length > 0 &&
+        line.toLowerCase() !== "model" && // header row
+        !/invalid model|not logged in|please run|available model keys/i.test(line)
+    );
+}
+
+/**
+ * Resolve an OmniRoute model id to the exact value to pass to `qodercli -m`.
+ * Pure (no I/O) so it can be unit-tested against a captured model list.
+ *
+ * Preference order:
+ *  1. A live `--list-models` display name (case-insensitive, punctuation-insensitive)
+ *     — qodercli accepts these directly and they track upstream renames of the
+ *     opaque internal level keys.
+ *  2. The static family map (level keys) — used when the live list is unavailable
+ *     or has no match.
+ *  3. "Auto".
+ */
+export function resolveQoderModelName(
+  requested: string | null | undefined,
+  availableNames: string[]
+): string {
+  const normalized = normalizeQoderModelKey(requested);
+  if (!normalized) return "auto";
+  const match = (availableNames || []).find((name) => normalizeQoderModelKey(name) === normalized);
+  if (match) return match;
+  return mapQoderModelToLevel(requested) || "auto";
+}
+
+// Per-token cache of the `--list-models` display names (the catalog is stable and
+// per-account); TTL keeps it fresh without a CLI spawn on every request.
+const QODER_MODEL_LIST_TTL_MS = 10 * 60 * 1000;
+type QoderModelNamesCacheEntry = { names: string[]; expiresAt: number };
+const qoderModelNamesCache = new Map<string, QoderModelNamesCacheEntry>();
+const qoderModelNamesPending = new Map<string, Promise<string[]>>();
+
+async function getCachedQoderCliModelNames(
+  token?: string | null,
+  options: { command?: string | null; signal?: AbortSignal | null; now?: number } = {}
+): Promise<string[]> {
+  const key = String(token || "").trim() || "default";
+  const now = options.now ?? Date.now();
+  const cached = qoderModelNamesCache.get(key);
+  if (cached && cached.expiresAt > now) return cached.names;
+
+  let pending = qoderModelNamesPending.get(key);
+  if (!pending) {
+    pending = listQoderCliModels({ token, command: options.command, signal: options.signal })
+      .then((run) => {
+        const names = run.ok ? parseQoderCliModelNames(run.stdout) : [];
+        // Only cache a non-empty success; a failed/empty list should retry next time.
+        if (names.length > 0) {
+          qoderModelNamesCache.set(key, { names, expiresAt: now + QODER_MODEL_LIST_TTL_MS });
+        }
+        return names;
+      })
+      .catch(() => [] as string[])
+      .finally(() => qoderModelNamesPending.delete(key));
+    qoderModelNamesPending.set(key, pending);
+  }
+  return pending;
+}
+
+/** Async resolver: matches the request against the live (cached) `--list-models`. */
+export async function resolveQoderCliModel(
+  requested: string | null | undefined,
+  token?: string | null,
+  options: { command?: string | null; signal?: AbortSignal | null } = {}
+): Promise<string> {
+  let names: string[] = [];
+  try {
+    names = await getCachedQoderCliModelNames(token, options);
+  } catch {
+    names = [];
+  }
+  return resolveQoderModelName(requested, names);
+}
+
+/** Test-only: drop the cached `--list-models` names so unit tests don't leak state. */
+export function __clearQoderModelNamesCache(): void {
+  qoderModelNamesCache.clear();
+  qoderModelNamesPending.clear();
+}
+
+/**
+ * Parse the `--output-format json` envelope qodercli prints in print mode. The
+ * CLI may emit banner/log lines before the JSON, so we fall back to scanning for
+ * the last JSON object line. Returns the assistant text plus an error flag.
+ */
+export function parseQoderCliResult(stdout: string): {
+  text: string;
+  isError: boolean;
+  errorMessage: string;
+} {
+  const trimmed = String(stdout || "").trim();
+  if (!trimmed) {
+    return { text: "", isError: true, errorMessage: "qodercli produced no output" };
+  }
+
+  let parsed: JsonRecord | null = null;
+  try {
+    const whole = JSON.parse(trimmed);
+    if (whole && typeof whole === "object") parsed = whole as JsonRecord;
+  } catch {
+    for (const line of trimmed.split("\n").reverse()) {
+      const candidate = line.trim();
+      if (!candidate.startsWith("{")) continue;
+      try {
+        const obj = JSON.parse(candidate);
+        if (obj && typeof obj === "object") {
+          parsed = obj as JsonRecord;
+          break;
+        }
+      } catch {
+        /* keep scanning earlier lines */
+      }
+    }
+  }
+
+  if (!parsed) {
+    return { text: "", isError: true, errorMessage: trimmed.slice(0, 300) };
+  }
+
+  const result = getString(parsed.result);
+  const isError =
+    parsed.is_error === true || getString(parsed.subtype).trim().toLowerCase() === "error";
+  return {
+    text: result,
+    isError,
+    errorMessage: isError ? result || "qodercli returned an error" : "",
+  };
+}
+
 export function normalizeQoderPatProviderData(providerSpecificData: JsonRecord = {}): JsonRecord {
   return {
     ...providerSpecificData,
@@ -92,12 +452,33 @@ export function getStaticQoderModels() {
   return QODER_STATIC_MODELS.map((model) => ({ ...model }));
 }
 
+/** qodercli's `-m` accepts these level keys (see `qodercli --list-models`). */
+const QODER_LEVEL_KEYS = new Set([
+  "auto",
+  "ultimate",
+  "performance",
+  "efficient",
+  "lite",
+  "q35model_preview",
+  "qmodel_latest",
+  "qmodel",
+  "gm51model",
+  "kmodel",
+  "dmodel",
+  "dfmodel",
+  "mmodel",
+]);
+
 export function mapQoderModelToLevel(model: string | null | undefined): string | null {
   const normalized = String(model || "")
     .trim()
     .toLowerCase();
   if (!normalized) return null;
+  // A caller may pass a qodercli level key directly (e.g. "gm51model") — honor it.
+  if (QODER_LEVEL_KEYS.has(normalized)) return normalized;
   if (normalized.includes("deepseek-r1")) return "ultimate";
+  if (normalized.includes("glm")) return "gm51model"; // GLM-5.2 (`qoder/glm-5.2`)
+  if (normalized.includes("minimax")) return "mmodel";
   if (normalized.includes("qwen3-max")) return "performance";
   if (normalized.includes("kimi-k2")) return "kmodel";
   if (normalized.includes("qwen3-coder")) return "qmodel";
@@ -310,7 +691,13 @@ export function parseQoderCliFailure(stderrText: string, stdoutText = ""): Qoder
   if (
     normalized.includes("invalid api key") ||
     normalized.includes("invalid token") ||
+    normalized.includes("invalid personal token") ||
     normalized.includes("personal access token") ||
+    normalized.includes("personal token format") ||
+    normalized.includes("exchangejobtoken failed") ||
+    normalized.includes("not logged in") ||
+    normalized.includes("please run /login") ||
+    normalized.includes("login required") ||
     (normalized.includes("unauthorized") && normalized.includes("qoder"))
   ) {
     return { status: 401, message: combined, code: "upstream_auth_error" };
@@ -541,126 +928,61 @@ export async function validateQoderCliPat({
     };
   }
 
-  const modelId =
-    getString(providerSpecificData.validationModelId).trim() ||
-    getString(providerSpecificData.modelId).trim() ||
-    QODER_DEFAULT_MODEL;
+  // Reference providerSpecificData so callers can still pass validation hints
+  // (model id, etc.) without a signature change; the CLI resolves models itself.
+  void providerSpecificData;
 
-  const bodyStr = JSON.stringify({
-    model: modelId || "coder-model",
-    messages: [{ role: "user", content: "hi" }],
-    stream: false,
-  });
+  // Validate by asking the local qodercli to list the models reachable for this
+  // PAT. The official CLI signs the (WASM-based) Cosy request internally, which
+  // the pure-HTTP path can no longer replicate — a raw Cosy call now returns a
+  // generic 500 for every token, so it cannot distinguish valid from invalid.
+  // `--list-models` authenticates without consuming any chat tokens.
+  const run = await listQoderCliModels({ token: resolvedToken });
+  const combined = `${run.stdout}\n${run.stderr}`.trim();
+  const normalized = combined.toLowerCase();
 
-  // Step 1: Connectivity check — verify Qoder API is reachable
-  try {
-    const pingRes = await fetch("https://api1.qoder.sh/algo/api/v1/ping", {
-      method: "GET",
-      // @ts-ignore
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!pingRes.ok) {
-      return {
-        valid: false,
-        error: `Qoder API unreachable (ping returned ${pingRes.status}). Check your network/proxy configuration.`,
-        unsupported: false,
-      };
-    }
-  } catch (pingErr: any) {
+  if (run.error && /enoent|not found|no such file|spawn/i.test(run.error)) {
     return {
       valid: false,
       error:
-        `Cannot reach Qoder API (${pingErr.message}). ` +
-        "If behind a proxy, configure HTTPS_PROXY. For Docker, ensure the container has internet access.",
+        `Qoder CLI (qodercli) was not found on the OmniRoute host (${run.error}). ` +
+        "Install it from https://qoder.com or point CLI_QODER_BIN at the binary. " +
+        "PAT auth is driven through the local qodercli binary.",
       unsupported: false,
     };
   }
 
-  // Step 2: Auth validation — exchange the PAT for a job token (#4683), then send a
-  // minimal request with the `jt-*` (Cosy rejects a raw `pt-*` with a generic 500).
-  const cosyToken = await resolveQoderJobToken(resolvedToken);
-  const headers = buildCosyHeadersForValidation(bodyStr, cosyToken);
-  const endpoint =
-    "https://api1.qoder.sh/algo/api/v2/service/pro/sse/agent_chat_generation?AgentId=agent_common";
-
-  try {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers,
-      body: bodyStr,
-      // @ts-ignore
-      signal: AbortSignal.timeout(30000),
-    });
-
-    if (res.ok || res.status === 200) {
-      return { valid: true, error: null, unsupported: false };
-    }
-
-    // Parse error body for better diagnostics
-    let errorDetail = "";
-    try {
-      const errBody = await res.text();
-      errorDetail = errBody.slice(0, 300);
-    } catch {}
-
-    if (res.status === 401 || res.status === 403) {
-      return {
-        valid: false,
-        error:
-          `Authentication failed (HTTP ${res.status}). ` +
-          "Make sure you're using a valid Personal Access Token from https://qoder.com/account/integrations. " +
-          "Note: tokens from ~/.qoder/.auth/user are encrypted and cannot be used directly." +
-          (errorDetail ? ` Server: ${errorDetail}` : ""),
-        unsupported: false,
-      };
-    }
-
-    // 4xx other than auth — token was accepted but request had issues (model, format, etc.)
-    if (res.status >= 400 && res.status < 500) {
-      return { valid: true, error: null, unsupported: false };
-    }
-
-    // Treat 5xx as a valid bypass to prevent false negatives from legacy Qoder APIs (#1391).
-    // A Cosy `{"success":false}` 500 is ambiguous: it can be a genuine auth rejection OR a
-    // transient/generic upstream "Internal Server Error". Only mark the PAT invalid when the
-    // body carries an EXPLICIT auth signal — a generic 500 is a server fault, not an auth
-    // verdict, so a working PAT must not be reported as expired (#3247, narrowing #2860).
-    if (res.status >= 500) {
-      const isCosyResponse = /"success"\s*:\s*false/.test(errorDetail);
-      const hasAuthSignal =
-        /(unauthorized|forbidden|expired|revoked|not\s*authorized|permission\s*denied|access\s*denied|invalid\s*(?:token|credential|api[\s_-]*key)|token\s*(?:invalid|expired|revoked))/i.test(
-          errorDetail
-        );
-
-      if (isCosyResponse && hasAuthSignal) {
-        return {
-          valid: false,
-          error:
-            `Authentication failed (HTTP ${res.status}). The Qoder Cosy server rejected the token ` +
-            "as invalid, expired, or not authorized. " +
-            "Please check your token at https://qoder.com/account/integrations." +
-            (errorDetail ? ` Server response: ${errorDetail}` : ""),
-          unsupported: false,
-        };
-      }
-
-      return {
-        valid: true,
-        error: `Validation endpoint returned HTTP ${res.status}${errorDetail ? `: ${errorDetail}` : ""}, treating PAT as valid`,
-        unsupported: false,
-      };
-    }
-
+  if (run.timedOut) {
     return {
       valid: false,
-      error: `Qoder API returned HTTP ${res.status}${errorDetail ? `: ${errorDetail}` : ""}`,
-      unsupported: false,
-    };
-  } catch (e: any) {
-    return {
-      valid: false,
-      error: `Qoder validation request failed: ${e.message}`,
+      error:
+        "qodercli timed out while validating the token. Check network/proxy access from the OmniRoute host.",
       unsupported: false,
     };
   }
+
+  if (
+    /not logged in|please run \/login|login required|unauthorized|forbidden|exchangejobtoken failed|personal token format|invalid[\s\w]{0,40}?(?:token|credential|api[\s_-]*key)/i.test(
+      normalized
+    )
+  ) {
+    return {
+      valid: false,
+      error:
+        "Qoder rejected this Personal Access Token (not authorized). " +
+        "Check your token at https://qoder.com/account/integrations.",
+      unsupported: false,
+    };
+  }
+
+  // A successful `--list-models` prints the catalog (a table headed by "MODEL").
+  if (run.ok && normalized.includes("model")) {
+    return { valid: true, error: null, unsupported: false };
+  }
+
+  return {
+    valid: false,
+    error: `qodercli validation failed: ${(combined || run.error || "unknown error").slice(0, 300)}`,
+    unsupported: false,
+  };
 }

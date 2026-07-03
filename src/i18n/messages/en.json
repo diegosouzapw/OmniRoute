@@ -1117,7 +1117,9 @@
     "dragReorderItem": "Drag to reorder",
     "cannotHide": "This item cannot be hidden",
     "alwaysVisible": "Always visible",
-    "groupSeparatorLabel": "Separator"
+    "groupSeparatorLabel": "Separator",
+    "discovery": "Discovery",
+    "discoverySubtitle": "Scan providers for free access"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -1761,6 +1763,8 @@
     "copyMaskedKey": "Copy masked key",
     "keyOnlyAvailableAtCreation": "Full key available only at creation time — copy it when you first create the key",
     "modelsCount": "{count, plural, one {# model} other {# models}}",
+    "devicesCount": "{count, plural, one {# device} other {# devices}}",
+    "devicesTooltip": "{count, plural, one {# distinct IP/User-Agent device seen with this key (last 30 min)} other {# distinct IP/User-Agent devices seen with this key (last 30 min)}}",
     "lastUsedOn": "Last: {date}",
     "viewCostsFor": "View costs for {name}",
     "editPermissions": "Edit permissions",
@@ -1856,14 +1860,16 @@
       "webSearch": "Web Search",
       "webFetch": "Web Fetch",
       "video": "Video",
-      "music": "Music"
+      "music": "Music",
+      "ocr": "OCR"
     },
     "noProviders": "No providers configured for this kind yet.",
     "addConnection": "Add Connection",
     "backToProviders": "Back to Providers",
     "connections": "{count} Connections",
     "noConnections": "No connections yet — add one from the provider page.",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "suggestedModels": "Suggested models from provider"
   },
   "search": {
     "searchQuery": "Search Query",
@@ -4085,6 +4091,8 @@
     "prefixHint": "Required. Unique prefix for model names.",
     "nameHint": "Required. A friendly label for this node.",
     "baseUrlHint": "Required. Provider API base URL.",
+    "iconUrlLabel": "Icon URL",
+    "iconUrlHint": "Optional. Image URL shown as this provider's icon.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -4686,7 +4694,7 @@
     "totalKeysRotating": "{count, plural, one {1 key rotating} other {# keys rotating}}",
     "unhideModel": "Unhide Model",
     "upstreamProxyProviders": "Upstream Proxy Providers",
-    "validationModelIdHint": "Model used to verify the API key. Leave blank to use the provider\u2019s first available model.",
+    "validationModelIdHint": "Model used to verify the API key. Leave blank to use the provider’s first available model.",
     "validationModelIdLabel": "Validation Model",
     "validationModelIdPlaceholder": "e.g. meta-llama/llama-3.1-8b-instruct",
     "vertexServiceAccountPlaceholder": "Paste your Service Account JSON ({\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}) or an OAuth access_token",
@@ -5952,6 +5960,12 @@
     "claudeFastModeModelCheckbox": "Enable Fast Mode for {model}",
     "claudeFastModeSaveError": "Failed to update Claude Fast Mode setting",
     "authz": {
+      "cors": {
+        "wildcard": {
+          "title": "CORS is open to every origin (CORS_ALLOW_ALL=true)",
+          "desc": "Any website can call this server's API from a visitor's browser. Use only on trusted networks — set explicit origins in ALLOWED_ORIGINS and disable CORS_ALLOW_ALL in production."
+        }
+      },
       "title": "Authorization Inventory",
       "description": "5-tier route classification with live bypass policy. Read shows the full taxonomy; mutations re-prompt for the management password.",
       "loading": "Loading inventory…",
@@ -8993,5 +9007,30 @@
     "colAvgScore": "Avg Score",
     "colModels": "Models",
     "colType": "Type"
+  },
+  "discovery": {
+    "title": "Provider Discovery",
+    "subtitle": "Scan providers for free/unlimited access methods and review findings. Opt-in, local-only.",
+    "scanLabel": "Provider to scan",
+    "scanPlaceholder": "e.g. huggingchat",
+    "scan": "Scan",
+    "scanning": "Scanning…",
+    "scanQueued": "Scan complete for {provider}.",
+    "scanFailed": "Scan failed.",
+    "loadFailed": "Failed to load discovery results.",
+    "localOnlyNote": "This tool is local-only (loopback). Scans run from this machine and are never reachable remotely.",
+    "verify": "Verify",
+    "verifyFailed": "Failed to verify finding.",
+    "delete": "Delete",
+    "deleteFailed": "Failed to delete finding.",
+    "deleteTitle": "Delete discovery result",
+    "deleteConfirm": "Delete the discovery finding for {provider}? This cannot be undone.",
+    "emptyTitle": "No discovery results yet",
+    "emptyDescription": "Run a scan above to look for free access methods on a provider.",
+    "risk": "Risk",
+    "method": "Method",
+    "auth": "Auth",
+    "feasibility": "Feasibility",
+    "models": "Models"
   }
 }

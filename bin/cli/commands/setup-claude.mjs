@@ -56,7 +56,7 @@ export function buildProfileSettings(modelId, baseUrl, cfg) {
  * behaviorally identical. Writes `<claudeHome>/profiles/<name>/settings.json`
  * (directory-per-profile); never touches the active/default Claude config.
  * @param {Array} models
- * @param {{claudeHome?:string, baseUrl:string, dryRun?:boolean, only?:string}} opts
+ * @param {{claudeHome?:string, baseUrl:string, dryRun?:boolean, only?:string, log?:(line:string)=>void}} opts
  * @returns {Promise<{written:number, skipped:number, profiles:Array<{name:string, model:string, filePath:string}>}>}
  */
 export async function syncClaudeProfilesFromModels(models, opts = {}) {
@@ -64,6 +64,12 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
   const profilesRoot = join(claudeHome, "profiles");
   const baseUrl = opts.baseUrl;
   const dryRun = Boolean(opts.dryRun);
+  // Injectable dry-run printer (#5959): under the node:test runner, a child
+  // process writing multi-byte UTF-8 (the "──" box-drawing heading) to stdout
+  // corrupts the runner's V8-serialized event stream ~50% of the time
+  // ("Unable to deserialize cloned data due to invalid or unsupported
+  // version"). Tests inject a collector; the CLI default stays console.log.
+  const log = opts.log ?? console.log;
   const onlyFilter = opts.only ? opts.only.split(",").map((s) => s.trim()) : null;
 
   if (!dryRun && !existsSync(profilesRoot)) {
@@ -96,8 +102,8 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
     const content = buildProfileSettings(id, baseUrl, cfg);
 
     if (dryRun) {
-      console.log(`\n── [dry-run] ${filePath} ──`);
-      console.log(content);
+      log(`\n── [dry-run] ${filePath} ──`);
+      log(content);
     } else {
       mkdirSync(dir, { recursive: true });
       writeFileSync(filePath, content, "utf8");
