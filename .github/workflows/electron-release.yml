@@ -94,7 +94,7 @@ jobs:
           cache: npm
 
       - name: Cache node_modules
-        uses: actions/cache@v6.0.0
+        uses: actions/cache@v6.1.0
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
