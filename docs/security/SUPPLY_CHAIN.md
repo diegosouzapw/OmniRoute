@@ -4,7 +4,7 @@ title: "Supply-Chain Gates"
 
 # Supply-Chain Gates (Phase 8 · Block A)
 
-OmniRoute publishes npm + Docker artifacts. These gates provide proveniance,
+OmniRoute publishes npm + Docker artifacts. These gates provide provenance,
 inventory (SBOM) and CVE scanning, all OSS, plugged into release workflows.
 **Advisory-first** posture — they report now, promote to blocking after the 1st
 green release.

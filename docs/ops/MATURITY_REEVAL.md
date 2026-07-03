@@ -99,7 +99,7 @@ Result: the per-module mutation score **cannot regress** — coverage has ceased
 ### 4.3 Explicitly out of scope
 
 - **DSOMM L5** is largely **org-level / process** (not CI-encodable).
-- **SLSA L4** (bit-for-bit reproducibility) is an declared stretch goal.
+- **SLSA L4** (bit-for-bit reproducibility) is a declared stretch goal.
 
 ---
 
