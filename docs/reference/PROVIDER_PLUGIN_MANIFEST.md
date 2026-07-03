@@ -15,6 +15,10 @@ executor code, OAuth defaults, headers, or process environment state.
 
 The same manifest is available over HTTP at
 `GET /api/v1/provider-plugin-manifest` for sidecars that run out-of-process.
+Code that needs to consume the manifest over HTTP should use
+`open-sse/config/providerPluginManifestClient.ts` instead of hard-coding the
+route. The client resolves `OMNIROUTE_PROVIDER_MANIFEST_URL`, then an explicit
+base URL, then the local OmniRoute API default.
 
 OmniRoute advertises that URL to Bifrost and CLIProxyAPI via the
 `X-OmniRoute-Provider-Manifest-Url` request header. Set
