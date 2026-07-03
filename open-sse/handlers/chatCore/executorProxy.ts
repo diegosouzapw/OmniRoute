@@ -22,13 +22,72 @@ type LoggerLike =
   | null
   | undefined;
 
+type ExecuteInput = {
+  model: string;
+  body: unknown;
+  stream: boolean;
+  credentials: unknown;
+  signal?: AbortSignal | null;
+  log?: unknown;
+  upstreamExtraHeaders?: Record<string, string> | null;
+};
+
+const CLIPROXYAPI_SENTINEL_PROVIDER_ID = "cliproxyapi";
+
+async function resolveCliproxyapiModel(
+  providerId: string,
+  model: string,
+  providerMapping: Record<string, string> | null | undefined
+): Promise<string> {
+  const mapped = providerMapping?.[model];
+  if (mapped) return mapped;
+
+  if (providerId === CLIPROXYAPI_SENTINEL_PROVIDER_ID) return model;
+
+  const sentinelCfg = await getUpstreamProxyConfigCached(CLIPROXYAPI_SENTINEL_PROVIDER_ID);
+  return sentinelCfg.cliproxyapiModelMapping?.[model] || model;
+}
+
+async function mapCliproxyapiInput(
+  providerId: string,
+  input: ExecuteInput,
+  providerMapping: Record<string, string> | null | undefined
+): Promise<ExecuteInput> {
+  const mappedModel = await resolveCliproxyapiModel(providerId, input.model, providerMapping);
+  if (mappedModel === input.model) return input;
+
+  const mappedBody =
+    input.body && typeof input.body === "object"
+      ? { ...(input.body as Record<string, unknown>), model: mappedModel }
+      : input.body;
+
+  return {
+    ...input,
+    model: mappedModel,
+    body: mappedBody,
+  };
+}
+
+async function executeCliproxyapiMapped(
+  proxyExec: { execute: (input: ExecuteInput) => Promise<unknown> },
+  providerId: string,
+  input: ExecuteInput,
+  providerMapping: Record<string, string> | null | undefined
+) {
+  return proxyExec.execute(await mapCliproxyapiInput(providerId, input, providerMapping));
+}
+
 export async function resolveExecutorWithProxy(prov: string, log?: LoggerLike) {
   const cfg = await getUpstreamProxyConfigCached(prov);
   if (!cfg.enabled || cfg.mode === "native") return getExecutor(prov);
 
   if (cfg.mode === "cliproxyapi") {
     log?.info?.("UPSTREAM_PROXY", `${prov} routed through CLIProxyAPI (passthrough)`);
-    return getExecutor("cliproxyapi");
+    const proxyExec = getExecutor("cliproxyapi");
+    const wrapper = Object.create(proxyExec);
+    wrapper.execute = (input: ExecuteInput) =>
+      executeCliproxyapiMapped(proxyExec, prov, input, cfg.cliproxyapiModelMapping);
+    return wrapper;
   }
 
   // mode === "fallback": try native first, retry via CLIProxyAPI on specific failures
@@ -55,15 +114,7 @@ export async function resolveExecutorWithProxy(prov: string, log?: LoggerLike) {
   const isRetryableStatus = (s: number) => fallbackCodes.includes(s) || s === 0;
 
   const wrapper = Object.create(nativeExec);
-  wrapper.execute = async (input: {
-    model: string;
-    body: unknown;
-    stream: boolean;
-    credentials: unknown;
-    signal?: AbortSignal | null;
-    log?: unknown;
-    upstreamExtraHeaders?: Record<string, string> | null;
-  }) => {
+  wrapper.execute = async (input: ExecuteInput) => {
     let result;
     try {
       result = await nativeExec.execute(input);
@@ -71,7 +122,7 @@ export async function resolveExecutorWithProxy(prov: string, log?: LoggerLike) {
       const errMsg = err instanceof Error ? err.message : String(err);
       log?.info?.("UPSTREAM_PROXY", `${prov} native error (${errMsg}), retrying via CLIProxyAPI`);
       try {
-        return await proxyExec.execute(input);
+        return await executeCliproxyapiMapped(proxyExec, prov, input, cfg.cliproxyapiModelMapping);
       } catch (proxyErr) {
         const proxyMsg = proxyErr instanceof Error ? proxyErr.message : String(proxyErr);
         log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);
@@ -87,7 +138,7 @@ export async function resolveExecutorWithProxy(prov: string, log?: LoggerLike) {
       `${prov} native failed (${result.response.status}), retrying via CLIProxyAPI`
     );
     try {
-      return await proxyExec.execute(input);
+      return await executeCliproxyapiMapped(proxyExec, prov, input, cfg.cliproxyapiModelMapping);
     } catch (proxyErr) {
       const proxyMsg = proxyErr instanceof Error ? proxyErr.message : String(proxyErr);
       log?.error?.("UPSTREAM_PROXY", `${prov} CLIProxyAPI fallback also failed: ${proxyMsg}`);

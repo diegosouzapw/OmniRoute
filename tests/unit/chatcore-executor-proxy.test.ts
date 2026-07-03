@@ -55,7 +55,7 @@ test("mode 'native' returns the provider's own executor", async () => {
   assert.equal(exec, getExecutor("openai"));
 });
 
-test("mode 'cliproxyapi' returns the CLIProxyAPI passthrough executor", async () => {
+test("mode 'cliproxyapi' returns a CLIProxyAPI passthrough wrapper", async () => {
   await upstreamProxyDb.upsertUpstreamProxyConfig({
     providerId: "anthropic",
     mode: "cliproxyapi",
@@ -63,7 +63,9 @@ test("mode 'cliproxyapi' returns the CLIProxyAPI passthrough executor", async ()
   });
   clearUpstreamProxyConfigCache("anthropic");
   const exec = await resolveExecutorWithProxy("anthropic");
-  assert.equal(exec, getExecutor("cliproxyapi"));
+  assert.notEqual(exec, getExecutor("anthropic"));
+  assert.notEqual(exec, getExecutor("cliproxyapi"));
+  assert.equal(typeof exec.execute, "function");
 });
 
 test("mode 'fallback' returns a distinct wrapper owning its own execute()", async () => {
@@ -77,4 +79,90 @@ test("mode 'fallback' returns a distinct wrapper owning its own execute()", asyn
   assert.notEqual(exec, getExecutor("openai"));
   assert.notEqual(exec, getExecutor("cliproxyapi"));
   assert.equal(typeof exec.execute, "function");
+});
+
+test("mode 'cliproxyapi' maps models before dispatching to CLIProxyAPI", async () => {
+  await upstreamProxyDb.upsertUpstreamProxyConfig({
+    providerId: "anthropic",
+    mode: "cliproxyapi",
+    enabled: true,
+    cliproxyapiModelMapping: {
+      "claude-3-5-sonnet": "anthropic/claude-3-5-sonnet-latest",
+    },
+  });
+  clearUpstreamProxyConfigCache("anthropic");
+
+  const cliproxyapiExec = getExecutor("cliproxyapi");
+  const originalExecute = cliproxyapiExec.execute;
+  let capturedInput;
+  cliproxyapiExec.execute = async (input) => {
+    capturedInput = input;
+    return { response: { status: 200 } };
+  };
+
+  try {
+    const exec = await resolveExecutorWithProxy("anthropic");
+    await exec.execute({
+      model: "claude-3-5-sonnet",
+      body: { model: "claude-3-5-sonnet", messages: [] },
+      stream: false,
+      credentials: {},
+    });
+  } finally {
+    cliproxyapiExec.execute = originalExecute;
+  }
+
+  assert.equal(capturedInput.model, "anthropic/claude-3-5-sonnet-latest");
+  assert.deepEqual(capturedInput.body, {
+    model: "anthropic/claude-3-5-sonnet-latest",
+    messages: [],
+  });
+});
+
+test("mode 'fallback' applies global CLIProxyAPI model mappings on proxy retry", async () => {
+  await upstreamProxyDb.upsertUpstreamProxyConfig({
+    providerId: "openai",
+    mode: "fallback",
+    enabled: true,
+  });
+  await upstreamProxyDb.upsertUpstreamProxyConfig({
+    providerId: "cliproxyapi",
+    mode: "native",
+    enabled: true,
+    cliproxyapiModelMapping: {
+      "gpt-4o": "openai/gpt-4o",
+    },
+  });
+  clearUpstreamProxyConfigCache();
+
+  const nativeExec = getExecutor("openai");
+  const cliproxyapiExec = getExecutor("cliproxyapi");
+  const originalNativeExecute = nativeExec.execute;
+  const originalProxyExecute = cliproxyapiExec.execute;
+  let capturedProxyInput;
+
+  nativeExec.execute = async () => ({ response: { status: 503 } });
+  cliproxyapiExec.execute = async (input) => {
+    capturedProxyInput = input;
+    return { response: { status: 200 } };
+  };
+
+  try {
+    const exec = await resolveExecutorWithProxy("openai");
+    await exec.execute({
+      model: "gpt-4o",
+      body: { model: "gpt-4o", messages: [] },
+      stream: false,
+      credentials: {},
+    });
+  } finally {
+    nativeExec.execute = originalNativeExecute;
+    cliproxyapiExec.execute = originalProxyExecute;
+  }
+
+  assert.equal(capturedProxyInput.model, "openai/gpt-4o");
+  assert.deepEqual(capturedProxyInput.body, {
+    model: "openai/gpt-4o",
+    messages: [],
+  });
 });
