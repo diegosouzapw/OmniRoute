@@ -289,6 +289,52 @@
       "stream": "https://api.airforce/v1/chat/completions"
     }
   },
+  "auggie": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "auggie://cli/stdio",
+      "stream": "auggie://cli/stdio"
+    }
+  },
+  "bai": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.b.ai/v1/chat/completions",
+      "stream": "https://api.b.ai/v1/chat/completions"
+    }
+  },
   "baichuan": {
     "format": "openai",
     "headers": {
@@ -563,6 +609,29 @@
     "url": {
       "nonStream": "https://api.cerebras.ai/v1/chat/completions",
       "stream": "https://api.cerebras.ai/v1/chat/completions"
+    }
+  },
+  "charm-hyper": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://hyper.charm.land/v1/chat/completions",
+      "stream": "https://hyper.charm.land/v1/chat/completions"
     }
   },
   "chatgpt-web": {
@@ -2686,6 +2755,29 @@
       "stream": "https://api.modal.ai/v1/chat/completions"
     }
   },
+  "modelscope": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api-inference.modelscope.cn/v1/chat/completions",
+      "stream": "https://api-inference.modelscope.cn/v1/chat/completions"
+    }
+  },
   "monsterapi": {
     "format": "openai",
     "headers": {
@@ -2914,6 +3006,29 @@
     "url": {
       "nonStream": "https://inference.api.nscale.com/v1/chat/completions",
       "stream": "https://inference.api.nscale.com/v1/chat/completions"
+    }
+  },
+  "nube": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://ai.nube.sh/api/v1/chat/completions",
+      "stream": "https://ai.nube.sh/api/v1/chat/completions"
     }
   },
   "nvidia": {
@@ -3342,6 +3457,29 @@
       "stream": "https://qianfan.baidubce.com/v2/chat/completions"
     }
   },
+  "qiniu": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.qnaigc.com/v1/chat/completions",
+      "stream": "https://api.qnaigc.com/v1/chat/completions"
+    }
+  },
   "qoder": {
     "format": "openai",
     "headers": {
@@ -3638,6 +3776,29 @@
     "url": {
       "nonStream": "https://api.stepfun.com/v1/chat/completions",
       "stream": "https://api.stepfun.com/v1/chat/completions"
+    }
+  },
+  "sumopod": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://ai.sumopod.com/v1/chat/completions",
+      "stream": "https://ai.sumopod.com/v1/chat/completions"
     }
   },
   "suno": {
@@ -4124,6 +4285,29 @@
     "url": {
       "nonStream": "https://server.self-serve.windsurf.com",
       "stream": "https://server.self-serve.windsurf.com"
+    }
+  },
+  "x5lab": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.x5lab.dev/v1/chat/completions",
+      "stream": "https://api.x5lab.dev/v1/chat/completions"
     }
   },
   "xai": {
