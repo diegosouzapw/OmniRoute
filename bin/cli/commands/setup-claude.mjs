@@ -29,6 +29,10 @@ function effortLevelFor(cfg) {
   return cfg.effort || undefined;
 }
 
+function dryRunLogger(opts) {
+  return opts.log ?? console.log;
+}
+
 /** Build the settings.json content for one Claude Code profile. */
 export function buildProfileSettings(modelId, baseUrl, cfg) {
   const env = {
@@ -65,7 +69,7 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
   const baseUrl = opts.baseUrl;
   const dryRun = Boolean(opts.dryRun);
   const onlyFilter = opts.only ? opts.only.split(",").map((s) => s.trim()) : null;
-  const log = opts.log || console.log;
+  const log = dryRunLogger(opts);
 
   if (!dryRun && !existsSync(profilesRoot)) {
     mkdirSync(profilesRoot, { recursive: true });
