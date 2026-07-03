@@ -486,6 +486,27 @@ function exceedsKnownOutputLimit(
   return maxOutputTokens < requestedOutputTokens;
 }
 
+function getKnownContextLimit(capabilities: {
+  maxInputTokens?: number | null;
+  contextWindow?: number | null;
+}): number | null {
+  return capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
+}
+
+function hasKnownCompatibleContextLimit(
+  target: ResolvedComboTarget,
+  requiredContextTokens: number
+): boolean {
+  if (requiredContextTokens <= 0) return false;
+  const capabilities = getResolvedModelCapabilities(target.modelStr);
+  const contextLimit = getKnownContextLimit(capabilities);
+  return contextLimit !== null && contextLimit >= requiredContextTokens;
+}
+
+function hasOnlyContextWindowFailures(reasons: string[]): boolean {
+  return reasons.length > 0 && reasons.every((reason) => reason === "context_window");
+}
+
 function getTargetCompatibilityFailures(
   target: ResolvedComboTarget,
   requirements: RequestCompatibilityRequirements
@@ -518,11 +539,10 @@ function getTargetCompatibilityFailures(
     failures.push("output_tokens");
   }
 
-  const contextLimit = capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
+  const contextLimit = getKnownContextLimit(capabilities);
   if (
     requirements.requiredContextTokens > 0 &&
     contextLimit !== null &&
-    contextLimit !== undefined &&
     contextLimit < requirements.requiredContextTokens
   ) {
     failures.push("context_window");
@@ -553,6 +573,63 @@ export function filterTargetsByRequestCompatibility(
     rejected.push({ target, reasons });
     return false;
   });
+
+  // Unknown context limits are safe only as a fallback. If this request already
+  // filtered at least one known-too-small target and known-good targets remain,
+  // prefer the known-good set over unknown metadata gaps. If no known-good
+  // context target remains, fall back to the strategy order for context-only
+  // candidates instead of letting unknown metadata be the only survivors.
+  const rejectedForContextWindow = rejected.some((entry) =>
+    entry.reasons.includes("context_window")
+  );
+  if (requirements.requiredContextTokens > 0 && rejectedForContextWindow) {
+    const knownContextCompatible = compatible.filter((target) =>
+      hasKnownCompatibleContextLimit(target, requirements.requiredContextTokens)
+    );
+
+    if (knownContextCompatible.length > 0 && knownContextCompatible.length < compatible.length) {
+      const knownContextCompatibleTargets = new Set(knownContextCompatible);
+      for (const target of compatible) {
+        if (!knownContextCompatibleTargets.has(target)) {
+          rejected.push({ target, reasons: ["context_window_unknown"] });
+        }
+      }
+
+      log.info(
+        "COMBO",
+        `${label}: kept ${knownContextCompatible.length}/${targets.length} targets for request requirements`
+      );
+      log.debug?.(
+        "COMBO",
+        `${label}: rejected targets ${rejected
+          .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
+          .join(", ")}`
+      );
+      return knownContextCompatible;
+    }
+
+    if (knownContextCompatible.length === 0 && compatible.length > 0) {
+      const rejectedByTarget = new Map(rejected.map((entry) => [entry.target, entry.reasons]));
+      const contextOnlyFallback = targets.filter((target) => {
+        const reasons = rejectedByTarget.get(target);
+        return !reasons || hasOnlyContextWindowFailures(reasons);
+      });
+
+      if (contextOnlyFallback.length > compatible.length) {
+        log.warn(
+          "COMBO",
+          `${label}: no known-compatible context target remains; preserving strategy order for context-only candidates`
+        );
+        log.debug?.(
+          "COMBO",
+          `${label}: rejected targets ${rejected
+            .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
+            .join(", ")}`
+        );
+        return contextOnlyFallback;
+      }
+    }
+  }
 
   if (compatible.length === targets.length) return targets;
   if (compatible.length === 0) {
