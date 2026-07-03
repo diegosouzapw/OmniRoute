@@ -473,7 +473,16 @@ async function main(): Promise<void> {
     ...(strategiesMod.ROUTING_STRATEGY_VALUES as readonly string[]),
     ...(strategiesMod.INTERNAL_ROUTING_STRATEGY_VALUES as readonly string[]),
   ];
-  const comboSource = readFileSync(resolvePath(REPO_ROOT, "open-sse/services/combo.ts"), "utf8");
+  // The combo dispatch was decomposed (Block J): the `strategy === "..."` branches
+  // now live across combo.ts + its strategy-ordering leaves, so scan all of them.
+  const comboDispatchFiles = [
+    "open-sse/services/combo.ts",
+    "open-sse/services/combo/applyStrategyOrdering.ts",
+    "open-sse/services/combo/resolveAutoStrategy.ts",
+  ];
+  const comboSource = comboDispatchFiles
+    .map((rel) => readFileSync(resolvePath(REPO_ROOT, rel), "utf8"))
+    .join("\n");
   const handled = extractHandledStrategies(comboSource);
 
   // Stale-enforcement (6A.3): IMPLICIT_DEFAULT_STRATEGIES is a suppression allowlist —

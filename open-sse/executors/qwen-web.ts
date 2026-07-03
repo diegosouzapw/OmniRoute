@@ -58,7 +58,9 @@ const MODEL_ALIASES: Record<string, string> = {
   "qwen3-plus": "qwen3.7-plus",
   "qwen3-max": "qwen3.7-max",
   "qwen3-flash": "qwen3.6-plus",
-  "qwen3-coder-plus": "qwen3.7-max",
+  // Note: `qwen3-coder-plus` is a real upstream model id (Qwen3-Coder) and
+  // must NOT be aliased — the previous `"qwen3-coder-plus": "qwen3.7-max"`
+  // entry silently rewrote valid coder requests to the wrong model.
   "qwen3-coder-flash": "qwen3.6-plus",
   qwen: "qwen3.7-max",
   qwen3: "qwen3.7-max",
