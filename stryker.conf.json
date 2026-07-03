@@ -114,6 +114,7 @@
       "tests/unit/combo-provider-cooldown.test.ts",
       "tests/unit/combo-provider-diversity-wiring.test.ts",
       "tests/unit/combo-quality-validator-reasoning.test.ts",
+      "tests/unit/combo-priority-quota-exhaustion-cutoff-5923.test.ts",
       "tests/unit/combo-quota-soft-penalty.test.ts",
       "tests/unit/combo-round-robin-streaming-lock-3811.test.ts",
       "tests/unit/combo-routing-engine.test.ts",
