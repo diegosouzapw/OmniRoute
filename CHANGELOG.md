@@ -22,6 +22,8 @@
 
 ### 🔧 Bug Fixes
 
+- **models (GLM-5.2 context normalization):** stop treating every hosted GLM-5.2 provider alias as the native 1M-context model. Native/bare GLM-5.2 and verified OpenCode / ZenMux routes keep their 1,000,000-token context, while hosted-provider aliases now respect the caps declared in their provider metadata instead of inheriting the native max. Regression guards: `tests/unit/model-capabilities-registry.test.ts`, `tests/unit/models-catalog-route.test.ts`. ([#6091](https://github.com/diegosouzapw/OmniRoute/pull/6091) — thanks @Thinkscape)
+
 - **providers (Gemini Web):** refresh the Gemini Web cookie handling and model catalog so live Gemini Web sessions keep authenticating and routing to current models. Regression guard: `tests/unit/gemini-web.test.ts`. ([#6095](https://github.com/diegosouzapw/OmniRoute/pull/6095) — thanks @backryun)
 
 - **providers (Perplexity Web):** refresh the Perplexity Web model catalog to the current set (GPT-5.4/5.5, Claude Sonnet 5.0 / Opus 4.8, GLM-5.2, Kimi K2.6, Nemotron 3 Ultra) and update the internal mode / `model_preference` mappings and thinking variants so requests resolve to live upstream models. Regression guard: `tests/unit/perplexity-web.test.ts`. ([#6106](https://github.com/diegosouzapw/OmniRoute/pull/6106) — thanks @backryun)
