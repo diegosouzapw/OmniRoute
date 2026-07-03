@@ -444,6 +444,51 @@ export async function getAllSyncedAvailableModels(): Promise<
 }
 
 /**
+ * One-query accessor that returns synced available models grouped first by
+ * providerId, then by connectionId.
+ *
+ * result[providerId][connectionId] deep-equals
+ * getSyncedAvailableModelsByConnection(providerId)[connectionId]
+ * for every (providerId, connectionId) pair present in the store.
+ *
+ * Runs a single SELECT over the entire namespace instead of one query per
+ * provider, eliminating the N+1 pattern in the combo request path.
+ * Malformed JSON rows are skipped (same try/catch as getSyncedAvailableModelsByConnection).
+ */
+export async function getSyncedAvailableModelsGroupedByProviderConnection(): Promise<
+  Record<string, Record<string, SyncedAvailableModel[]>>
+> {
+  const db = getDbInstance();
+  const rows = db
+    .prepare("SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels'")
+    .all();
+
+  const result: Record<string, Record<string, SyncedAvailableModel[]>> = {};
+
+  for (const row of rows) {
+    const { key, value } = getKeyValue(row);
+    if (!key || value === null) continue;
+
+    // Key format: '<providerId>:<connectionId>'  (providerId never contains ':')
+    const colonIdx = key.indexOf(":");
+    if (colonIdx === -1) continue;
+    const providerId = key.slice(0, colonIdx);
+    const connectionId = key.slice(colonIdx + 1);
+    if (!providerId || !connectionId) continue;
+
+    try {
+      const models = normalizeSyncedAvailableModels(JSON.parse(value));
+      if (!result[providerId]) result[providerId] = {};
+      result[providerId][connectionId] = models;
+    } catch {
+      // Ignore malformed legacy entries (same as getSyncedAvailableModelsByConnection).
+    }
+  }
+
+  return result;
+}
+
+/**
  * Replace the model list for a specific connection.
  * Key format: '<providerId>:<connectionId>'
  */

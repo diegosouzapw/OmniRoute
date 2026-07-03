@@ -76,6 +76,63 @@ export async function getProviderConnections(filter: JsonRecord = {}) {
   });
 }
 
+/**
+ * Batch fetch provider connections for multiple provider IDs in a single query.
+ * Returns a Map keyed by provider id; each value is the ordered connection list
+ * (same ORDER BY priority ASC, updated_at DESC as getProviderConnections).
+ * Providers with zero connections get an empty array.
+ * If providerIds is empty, returns an empty Map without querying the DB.
+ */
+export async function getProviderConnectionsByProviders(
+  providerIds: string[],
+  isActive?: boolean
+): Promise<Map<string, Awaited<ReturnType<typeof getProviderConnections>>>> {
+  if (providerIds.length === 0) return new Map();
+
+  const db = getDbInstance() as unknown as DbLike;
+
+  // Build named params @p0, @p1, ... for the IN clause
+  const paramNames = providerIds.map((_, i) => `@p${i}`);
+  const params: Record<string, unknown> = {};
+  providerIds.forEach((id, i) => {
+    params[`p${i}`] = id;
+  });
+
+  let sql = `SELECT * FROM provider_connections WHERE provider IN (${paramNames.join(",")})`;
+  if (isActive !== undefined) {
+    sql += " AND is_active = @isActive";
+    params.isActive = isActive ? 1 : 0;
+  }
+  sql += " ORDER BY priority ASC, updated_at DESC";
+
+  const rows = db.prepare(sql).all(params);
+
+  // Initialize map with empty arrays for all requested provider ids
+  const result = new Map<string, Awaited<ReturnType<typeof getProviderConnections>>>();
+  for (const pid of providerIds) {
+    result.set(pid, []);
+  }
+
+  for (const r of rows) {
+    const camelRow = rowToCamel(r);
+    const conn = decryptConnectionFields(
+      withNullableRateLimitOverrides(
+        withNullableQuotaWindowThresholds(
+          withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
+          camelRow
+        ),
+        camelRow
+      )
+    );
+    const pid = typeof conn.provider === "string" ? conn.provider : String(conn.provider ?? "");
+    if (result.has(pid)) {
+      result.get(pid)!.push(conn);
+    }
+  }
+
+  return result;
+}
+
 export async function getProviderConnectionById(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const row = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);

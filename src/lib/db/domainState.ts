@@ -628,3 +628,77 @@ export function deleteAllCircuitBreakerStates() {
   const db = getDbInstance();
   db.prepare("DELETE FROM domain_circuit_breakers").run();
 }
+
+// ──────────────── Async-flush batch circuit-breaker writer ────────────────
+//
+// Callers that write CB state on every combo tick (5-20 writes per request)
+// can use queueCircuitBreakerState / flushCircuitBreakerStates to coalesce
+// those writes into a single transaction ~100ms later.
+//
+// saveCircuitBreakerState remains unchanged for callers that need immediate
+// persistence. These two APIs are strictly additive.
+
+const _cbQueue = new Map<string, CircuitBreakerStateRecord>();
+let _cbFlushTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Queue a circuit breaker state update for async batch writing.
+ * Last-write-wins per name (same semantics as INSERT OR REPLACE).
+ * Schedules a flush ~100ms out if not already scheduled.
+ * The timer is unref()'d so it never prevents the process from exiting.
+ */
+export function queueCircuitBreakerState(name: string, cbState: CircuitBreakerStateRecord): void {
+  _cbQueue.set(name, cbState);
+
+  if (_cbFlushTimer === null) {
+    const timer = setTimeout(() => {
+      _cbFlushTimer = null;
+      flushCircuitBreakerStates();
+    }, 100);
+    // Allow the process to exit even if the timer hasn't fired yet.
+    if (typeof timer === "object" && timer !== null && typeof (timer as NodeJS.Timeout).unref === "function") {
+      (timer as NodeJS.Timeout).unref();
+    }
+    _cbFlushTimer = timer;
+  }
+}
+
+/**
+ * Synchronously drain the queue and persist all pending circuit breaker states
+ * inside a single SQLite transaction (one INSERT OR REPLACE per queued entry).
+ * The resulting rows are identical to having called saveCircuitBreakerState for
+ * each queued (name → latest state).
+ * Exported so combo completion / tests can force-flush without waiting.
+ */
+export function flushCircuitBreakerStates(): void {
+  if (_cbQueue.size === 0) return;
+
+  // Cancel a pending auto-flush timer — we're flushing now.
+  if (_cbFlushTimer !== null) {
+    clearTimeout(_cbFlushTimer);
+    _cbFlushTimer = null;
+  }
+
+  // Snapshot and clear before the transaction in case a queued re-entrant
+  // queueCircuitBreakerState call arrives mid-flight.
+  const snapshot = new Map(_cbQueue);
+  _cbQueue.clear();
+
+  const db = getDbInstance();
+  const stmt = db.prepare(
+    `INSERT OR REPLACE INTO domain_circuit_breakers (name, state, failure_count, last_failure_time, options)
+     VALUES (?, ?, ?, ?, ?)`
+  );
+
+  db.transaction(() => {
+    for (const [name, cbState] of snapshot) {
+      stmt.run(
+        name,
+        cbState.state,
+        cbState.failureCount,
+        cbState.lastFailureTime,
+        cbState.options ? JSON.stringify(cbState.options) : null
+      );
+    }
+  })();
+}

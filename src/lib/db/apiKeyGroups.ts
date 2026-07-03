@@ -276,6 +276,87 @@ export function checkKeyModelAccess(
   return { allowed: false, matchedRules: permissions, deniedBy: null };
 }
 
+/**
+ * Batch access check for multiple (keyId, model) pairs in a single pass.
+ * For each keyId, fetches its groups once and evaluates all models in-memory
+ * using the identical logic as checkKeyModelAccess — result[keyId][model]
+ * deep-equals checkKeyModelAccess(keyId, model, provider).
+ * Empty keyIds or empty models → nested empty maps, no throw.
+ */
+export function checkMultipleKeyModelAccess(
+  keyIds: string[],
+  models: string[],
+  provider?: string
+): Map<string, Map<string, ModelAccessCheck>> {
+  const outer = new Map<string, Map<string, ModelAccessCheck>>();
+  if (keyIds.length === 0 || models.length === 0) {
+    for (const keyId of keyIds) {
+      outer.set(keyId, new Map());
+    }
+    return outer;
+  }
+
+  const db = getDbInstance() as any;
+
+  for (const keyId of keyIds) {
+    const inner = new Map<string, ModelAccessCheck>();
+    outer.set(keyId, inner);
+
+    const groups = getKeyGroupsForApiKey(keyId);
+
+    if (groups.length === 0) {
+      // No groups → no restrictions; all models allowed
+      for (const model of models) {
+        inner.set(model, { allowed: true, matchedRules: [], deniedBy: null });
+      }
+      continue;
+    }
+
+    // Fetch all permissions for this key's groups in one query
+    const groupIds = groups.map((g) => g.id);
+    const placeholders = groupIds.map(() => "?").join(",");
+    const rules = db
+      .prepare(
+        `SELECT * FROM group_model_permissions WHERE group_id IN (${placeholders}) ORDER BY access_type ASC`
+      )
+      .all(...groupIds) as any[];
+    const permissions = rules.map(rowToPermission);
+
+    for (const model of models) {
+      // Deny rules first (take precedence)
+      const denyRules = permissions.filter(
+        (p) =>
+          p.accessType === "deny" &&
+          matchesModelPattern(p.modelPattern, model) &&
+          (!p.provider || p.provider === provider)
+      );
+
+      if (denyRules.length > 0) {
+        inner.set(model, { allowed: false, matchedRules: permissions, deniedBy: denyRules[0] });
+        continue;
+      }
+
+      // Allow rules
+      const allowRules = permissions.filter(
+        (p) =>
+          p.accessType === "allow" &&
+          matchesModelPattern(p.modelPattern, model) &&
+          (!p.provider || p.provider === provider)
+      );
+
+      if (allowRules.length > 0) {
+        inner.set(model, { allowed: true, matchedRules: permissions, deniedBy: null });
+        continue;
+      }
+
+      // No matching rules → restricted by group membership but no explicit allow
+      inner.set(model, { allowed: false, matchedRules: permissions, deniedBy: null });
+    }
+  }
+
+  return outer;
+}
+
 function matchesModelPattern(pattern: string, model: string): boolean {
   if (pattern === "*") return true;
   if (pattern.includes("*")) {

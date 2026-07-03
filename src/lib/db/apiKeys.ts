@@ -7,7 +7,12 @@ import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel } from "./core";
 import { backupDbFile } from "./backup";
 import { registerDbStateResetter } from "./stateReset";
-import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
+import {
+  getKeyGroupsForApiKey,
+  checkKeyModelAccess,
+  checkMultipleKeyModelAccess,
+} from "./apiKeyGroups";
+export { checkMultipleKeyModelAccess } from "./apiKeyGroups";
 import { API_KEY_COLUMN_FALLBACKS } from "./apiKeyColumnFallbacks";
 import {
   appendUsageLimitUpdates,
