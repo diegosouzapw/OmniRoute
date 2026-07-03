@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { XaiExecutor } from "../../../open-sse/executors/xai.ts";
-import { getExecutor, hasSpecializedExecutor } from "../../../open-sse/executors/index.ts";
-import { xaiProvider } from "../../../open-sse/config/providers/registry/xai/index.ts";
+import { XaiExecutor } from "../../open-sse/executors/xai.ts";
+import { getExecutor, hasSpecializedExecutor } from "../../open-sse/executors/index.ts";
+import { xaiProvider } from "../../open-sse/config/providers/registry/xai/index.ts";
 
 // Real xai catalog ids (open-sse/config/providers/registry/xai/index.ts):
 //   grok-4.3                          — plain, reasoning-capable

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { firecrawlFetch } = await import("../../../open-sse/executors/firecrawl-fetch.ts");
+const { firecrawlFetch } = await import("../../open-sse/executors/firecrawl-fetch.ts");
 
 // ── #2253 (decolua/9router): self-hosted Firecrawl support ────────────────────
 // FIRECRAWL_BASE_URL lets operators point the executor at a self-hosted instance.
