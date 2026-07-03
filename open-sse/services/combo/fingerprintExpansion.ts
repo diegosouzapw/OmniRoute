@@ -27,9 +27,9 @@ export function getConnectionFingerprints(
   connection: Record<string, unknown> | undefined | null
 ): string[] {
   if (!connection || typeof connection !== "object") return [];
-  const psd = connection.providerSpecificData;
+  const psd = connection["providerSpecificData"];
   if (!psd || typeof psd !== "object") return [];
-  const fps = (psd as Record<string, unknown>).fingerprints;
+  const fps = (psd as Record<string, unknown>)["fingerprints"];
   if (!Array.isArray(fps)) return [];
   return fps.filter((fp): fp is string => typeof fp === "string" && fp.trim().length > 0);
 }
@@ -77,13 +77,14 @@ export function expandTargetsByFingerprints(
 
   for (const target of targets) {
     const provider = getProvider(target);
+    const { connectionId } = target;
 
-    if (!target.connectionId || !isFingerprintProvider(provider)) {
+    if (!connectionId || !isFingerprintProvider(provider)) {
       result.push(target);
       continue;
     }
 
-    const connection = connectionById.get(target.connectionId);
+    const connection = connectionById.get(connectionId);
     const fingerprints = getConnectionFingerprints(connection);
 
     if (fingerprints.length <= 1) {

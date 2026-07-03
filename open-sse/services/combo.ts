@@ -455,7 +455,10 @@ export async function buildAutoCandidates(
   const fingerprintExpandedTargets = expandTargetsByFingerprints(
     expandedTargets,
     connectionById,
-    (t) => t.provider || parseModel(t.modelStr).provider || "unknown"
+    (t) => {
+      const parsed = parseModel(t.modelStr);
+      return t.provider || parsed.provider || parsed.providerAlias || "unknown";
+    }
   );
 
   const candidates = await Promise.all(
