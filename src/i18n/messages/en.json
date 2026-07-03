@@ -7926,7 +7926,12 @@
     "bulkImportMaxExceeded": "Maximum 100 proxies per import",
     "bulkImportPreview": "Preview",
     "clearAssignment": "(clear assignment)",
-    "bulkProxyAssignment": "Bulk Proxy Assignment"
+    "bulkProxyAssignment": "Bulk Proxy Assignment",
+    "testAll": "Test All",
+    "errorTestFailed": "Failed to test proxies",
+    "batchSelectedCount": "{count} selected",
+    "batchDeleteSelected": "Delete {count} selected",
+    "testPassed": "✓ OK"
   },
   "playground": {
     "title": "Model Playground",
