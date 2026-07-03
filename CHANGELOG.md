@@ -13,11 +13,10 @@
 
 ### 🔧 Bug Fixes
 
-_TBD_
+- **tests(cli):** stabilize `setup-claude.test.ts` (#5959) — the dry-run path printed a multi-byte "──" heading to the test child's stdout, corrupting the node:test runner's V8-serialized event stream in ~50% of runs ("Unable to deserialize cloned data due to invalid or unsupported version") and randomly failing the PR→release queue. `syncClaudeProfilesFromModels` now accepts an injectable `log` sink (CLI default unchanged: `console.log`); the test injects a collector and gains assertions on the dry-run report. Validated 0/30 failures post-fix vs 5/10 on the pristine base.
+- **tests(ci):** collect the orphaned `tests/unit/executors/` directory (created by #5800 outside every runner glob — its 2 test files never ran anywhere). Added `executors` to the unit-runner brace globs (package.json, ci.yml shards, quality.yml TIA, test-impact map, test-discovery gate); both files pass (10/10).
 
 ### 📝 Maintenance
-
-- **test (deflake `setup-claude`):** `tests/unit/cli/setup-claude.test.ts` failed ~50% of runs with `Unable to deserialize cloned data due to invalid or unsupported version` at file teardown (all subtests passed), randomly reddening `Unit Tests fast-path (2/2)` / `Fast Quality Gates` across the PR→release queue. Root cause: `node --test` streams each file's report to the parent as V8-serialized frames on fd 1 (stdout), and the CLI helper under test (`syncClaudeProfilesFromModels`) prints progress via `console.log` — that stdout output interleaved with the serialized frames and corrupted the stream. The test now silences the stdout-writing `console` methods for the file's duration (no assertion inspects stdout), making it deterministic (15/15 green locally). ([#5959](https://github.com/diegosouzapw/OmniRoute/issues/5959))
 
 - **API validation:** add a `validatedJsonBody(request, schema)` helper in `src/shared/validation/helpers.ts` that fuses JSON body parsing and Zod validation into a single call, returning either the type-narrowed data or a ready-to-return 400 `NextResponse` with the standard error envelope. Salvaged from the closed refactor PR #5075 (Tier 1 portable helper) with a focused 6-case regression test. Co-authored-by: KooshaPari <KooshaPari@users.noreply.github.com>
 
