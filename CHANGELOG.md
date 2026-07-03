@@ -8,15 +8,25 @@
 
 ### ✨ New Features
 
+- **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
+- **Discovery tool (Phase 2):** add the `discoveryResults` DB module (CRUD over the `discovery_results` table, migration 074) and wire the opt-in provider-discovery service to persist and read findings through it (`persistDiscoveryResult`, `getDiscoveryResults`, `getDiscoveryResultById`, `markVerified`, `deleteDiscoveryResult`) with `(provider, method, endpoint)` upsert de-duplication. Adds the `/api/discovery/*` HTTP surface — `GET /results`, `GET|DELETE /results/:id`, `POST /scan`, `POST /verify/:id` — under **strict loopback-only** authorization (`/api/discovery/` is in `LOCAL_ONLY_API_PREFIXES` and is NOT manage-scope-bypassable, so the `scan` route's outbound probes can never be reached from a tunnel/remote origin). Adds a **dashboard UI tab** (Tools → Discovery, `/dashboard/discovery`) to run scans and review, verify, or delete findings. The service stays **opt-in / default-off**.
+- **feat(proxy):** add Webshare proxy pool import and sync — a `WebshareProvider` (`FreeProxyProvider`) that paginates `proxy.webshare.io/api/v2/proxy/list/` gated on `FREE_PROXY_WEBSHARE_API_KEY`, SSRF-guards imported hosts, and tombstones retired proxy IDs via `pruneStaleFreeProxies()`. (thanks @ricatix)
+- **feat(api-keys):** track devices/connections per API key — an in-memory, TTL-evicted device fingerprint tracker (SHA-256 of masked IP + truncated user-agent) wired non-blocking into the chat path and surfaced via `GET /api/keys/[id]/devices` with a dashboard device-count chip. (thanks @mugnimaestra)
+- **feat(providers):** support Vercel AI Gateway embeddings and image generation. (thanks @newnol)
+- **feat(cli-tools):** add Crush CLI tool to the dashboard with one-click configuration. (thanks @dopaemon)
+- **feat(dashboard):** suggest HuggingFace Hub media models in the media provider view. (thanks @yicone)
+- **feat(dashboard):** collapse quota rows and sort by remaining quota in the usage view. (thanks @j2-cuong)
 - **feat(dashboard):** add a settings toggle for tool-source diagnostics logging. (thanks @DuyPrX)
 
 ### 🔧 Bug Fixes
 
-_TBD_
+- **tests(cli):** stabilize `setup-claude.test.ts` (#5959) — the dry-run path printed a multi-byte "──" heading to the test child's stdout, corrupting the node:test runner's V8-serialized event stream in ~50% of runs ("Unable to deserialize cloned data due to invalid or unsupported version") and randomly failing the PR→release queue. `syncClaudeProfilesFromModels` now accepts an injectable `log` sink (CLI default unchanged: `console.log`); the test injects a collector and gains assertions on the dry-run report. Validated 0/30 failures post-fix vs 5/10 on the pristine base.
+- **tests(cli):** deflake `cli-setup-opencode.test.ts` preemptively — same #5959 class: the command under test prints multi-byte "✔"/"✖" CLI glyphs to the test child's stdout, which can corrupt the node:test V8 report stream. Console silenced for the file (pattern of #6019/#6021); no test asserts on stdout. 0/20 failures, stdout clean.
+- **tests(ci):** collect the orphaned `tests/unit/executors/` directory (created by #5800 outside every runner glob — its 2 test files never ran anywhere). Added `executors` to the unit-runner brace globs (package.json, ci.yml shards, quality.yml TIA, test-impact map, test-discovery gate); both files pass (10/10).
 
 ### 📝 Maintenance
 
-_TBD_
+- **API validation:** add a `validatedJsonBody(request, schema)` helper in `src/shared/validation/helpers.ts` that fuses JSON body parsing and Zod validation into a single call, returning either the type-narrowed data or a ready-to-return 400 `NextResponse` with the standard error envelope. Salvaged from the closed refactor PR #5075 (Tier 1 portable helper) with a focused 6-case regression test. Co-authored-by: KooshaPari <KooshaPari@users.noreply.github.com>
 
 ---
 
