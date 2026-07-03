@@ -1,0 +1,2 @@
+{"sample_id":"cand-1","config_id":"priority","expected_model":"gpt-4.1","selected_model":"gpt-4.1","latency_ms":140,"cost_usd":0.004,"status":200}
+{"sample_id":"cand-2","config_id":"priority","expected_model":"claude-3.5-sonnet","selected_model":"claude-3.5-sonnet","latency_ms":170,"cost_usd":0.005,"status":200}

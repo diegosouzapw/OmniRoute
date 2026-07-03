@@ -124,6 +124,7 @@ jobs:
           # Compare current trace vs baseline; flag >10% regression
           if [ ! -f "${{ env.TRACE_FILE }}" ]; then
             echo "No trace file available — cannot compute regression"
+            echo "No trace file available — skipping latency regression comparison." > regression-output.txt
             echo "exit=0" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -145,7 +146,9 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('regression-output.txt', 'utf8');
+            const report = fs.existsSync('regression-output.txt')
+              ? fs.readFileSync('regression-output.txt', 'utf8')
+              : 'No regression report was generated.';
             const marker = '<!-- latency-regression-bot -->';
             const body = `${marker}\n## L17 Latency Regression Report\n\n\`\`\`\n${report.trim()}\n\`\`\`\n\n_Threshold: 10% p99 regression._`;
             const { data: comments } = await github.rest.issues.listComments({

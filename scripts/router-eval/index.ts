@@ -22,14 +22,23 @@ import {
   type RouterEvalObservation,
   type RouterEvalReport,
 } from "../../src/lib/routerEval/index.ts";
+import { SQLITE_FILE } from "../../src/lib/db/core.ts";
+import { openDatabaseAsync } from "../../src/lib/db/adapters/driverFactory.ts";
+import type { SqliteAdapter } from "../../src/lib/db/adapters/types.ts";
+
+type DbReplaySource = "auto" | "call-logs" | "usage-history";
 
 type CliArgs = {
   input?: string;
   baselineInput?: string;
   db?: string;
   baselineDb?: string;
+  dbSource?: DbReplaySource;
+  baselineDbSource?: DbReplaySource;
   since?: string;
   limit?: string;
+  provider?: string;
+  model?: string;
   out?: string;
   json?: boolean;
   failOnRegression?: boolean;
@@ -66,10 +75,18 @@ function parseCliArgs(argv: string[]): CliArgs {
       parsed.db = getValue(undefined);
     } else if (key === "baseline-db") {
       parsed.baselineDb = getValue(undefined);
+    } else if (key === "db-source") {
+      parsed.dbSource = parseReplaySource(getValue(""));
+    } else if (key === "baseline-db-source") {
+      parsed.baselineDbSource = parseReplaySource(getValue(""));
     } else if (key === "since") {
       parsed.since = getValue("");
     } else if (key === "limit") {
       parsed.limit = getValue("");
+    } else if (key === "provider") {
+      parsed.provider = getValue("");
+    } else if (key === "model") {
+      parsed.model = getValue("");
     } else if (key === "out" || key === "output") {
       parsed.out = getValue("");
     } else if (key === "json") {
@@ -87,16 +104,20 @@ function usage(): string {
     "",
     "Usage:",
     "  bun scripts/router-eval/index.ts --input <jsonl|->",
-    "  bun scripts/router-eval/index.ts --db <DATA_DIR> [--since <ts>] [--limit <n>]",
+    "  bun scripts/router-eval/index.ts --db [DATA_DIR|storage.sqlite] [--db-source <source>] [--since <ts>] [--limit <n>]",
     "  bun scripts/router-eval/index.ts --input <candidate> --baseline-input <baseline> --fail-on-regression",
     "",
     "Options:",
     "  --input             JSONL source (or - for stdin)",
     "  --baseline-input     JSONL baseline for regression compare",
-    "  --db                 Offline replay from call_logs in a DATA_DIR",
-    "  --baseline-db        DB baseline source (currently must match --db path)",
+    "  --db                 Offline replay from DATA_DIR/storage.sqlite or a SQLite file",
+    "  --db-source          auto, call-logs, or usage-history (default: auto)",
+    "  --baseline-db        DB baseline source",
+    "  --baseline-db-source auto, call-logs, or usage-history (default: auto)",
     "  --since              Optional ISO timestamp filter for DB replay",
     "  --limit              Max rows for DB replay",
+    "  --provider           Exact provider filter for DB replay",
+    "  --model              Exact model filter for DB replay",
     "  --out, --output      Write report to file",
     "  --json               Emit a machine-readable JSON artifact",
     "  --fail-on-regression Exit non-zero when candidate AIQ drops or frontier shrinks",
@@ -127,51 +148,223 @@ function coerceLimit(limit: string | undefined): number | undefined {
   return Math.trunc(parsed);
 }
 
+function parseReplaySource(rawSource?: string): DbReplaySource {
+  if (!rawSource) return "auto";
+  const normalized = rawSource.toLowerCase();
+  if (normalized === "auto") return "auto";
+  if (normalized === "usage-history" || normalized === "usage_history") return "usage-history";
+  if (normalized === "call-logs" || normalized === "call_logs") return "call-logs";
+  throw new Error(`Unsupported db source: ${rawSource}`);
+}
+
 function toObservationsFromRows(rows: unknown[], fallbackConfigId: string): RouterEvalObservation[] {
   return rows.map((row) => parseObservation(row, fallbackConfigId));
 }
 
-async function loadObservationsFromDb(dbPath: string, since?: string, limit?: string): Promise<RouterEvalObservation[]> {
-  const sqliteFile = dbPath.endsWith(".sqlite")
+function resolveSqliteFile(dbPath?: string): string {
+  if (!dbPath) {
+    if (!SQLITE_FILE) throw new Error("No SQLITE_FILE and no --db path provided");
+    return SQLITE_FILE;
+  }
+  return dbPath.endsWith(".sqlite")
     ? path.resolve(dbPath)
     : path.join(path.resolve(dbPath), "storage.sqlite");
-  const limitValue = coerceLimit(limit);
-  const { Database } = await import("bun:sqlite");
-  const db = new Database(sqliteFile, { readonly: true });
-  try {
-    const conditions: string[] = [];
-    const params: unknown[] = [];
-    if (since) {
-      conditions.push("timestamp >= ?");
-      params.push(since);
+}
+
+function hasReplayTable(db: SqliteAdapter, tableName: string): boolean {
+  return Boolean(
+    db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(tableName)
+  );
+}
+
+function getTableColumns(db: SqliteAdapter, tableName: string): Set<string> {
+  const rows = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name?: string }>;
+  return new Set(rows.map((row) => row.name).filter((name): name is string => typeof name === "string"));
+}
+
+function selectColumn(columns: Set<string>, column: string, alias = column): string {
+  return columns.has(column) ? column : `NULL AS ${alias}`;
+}
+
+function resolveReplaySource(db: SqliteAdapter, requestedSource: DbReplaySource): DbReplaySource {
+  const hasCallLogs = hasReplayTable(db, "call_logs");
+  const hasUsageHistory = hasReplayTable(db, "usage_history");
+
+  if (requestedSource === "call-logs") {
+    if (!hasCallLogs) throw new Error("Table 'call_logs' missing in database");
+    return "call-logs";
+  }
+  if (requestedSource === "usage-history") {
+    if (!hasUsageHistory) throw new Error("Table 'usage_history' missing in database");
+    return "usage-history";
+  }
+  if (hasCallLogs) return "call-logs";
+  if (hasUsageHistory) return "usage-history";
+  throw new Error("No replay table found in database (expected call_logs or usage_history)");
+}
+
+function estimateCost(tokensIn: unknown, tokensOut: unknown): number | null {
+  const input = typeof tokensIn === "number" ? tokensIn : 0;
+  const output = typeof tokensOut === "number" ? tokensOut : 0;
+  const total = input + output;
+  return total > 0 ? Number((total * 0.000001).toFixed(6)) : null;
+}
+
+function addSharedDbFilters(
+  queryParts: string[],
+  params: unknown[],
+  options: { since?: string; provider?: string; model?: string },
+  modelColumns: string[],
+  tableColumns: Set<string>
+): void {
+  if (options.since && tableColumns.has("timestamp")) {
+    queryParts.push("AND timestamp >= ?");
+    params.push(options.since);
+  }
+  if (options.provider && tableColumns.has("provider")) {
+    queryParts.push("AND provider = ?");
+    params.push(options.provider);
+  }
+  if (options.model) {
+    const availableModelColumns = modelColumns.filter((column) => tableColumns.has(column));
+    if (availableModelColumns.length > 0) {
+      queryParts.push(`AND (${availableModelColumns.map((column) => `${column} = ?`).join(" OR ")})`);
+      params.push(...availableModelColumns.map(() => options.model));
     }
-    const where = conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
-    const limitClause = limitValue ? " LIMIT ?" : "";
-    if (limitValue) params.push(limitValue);
-    const logs = db
-      .query(
-        `SELECT id, model, requested_model, combo_name, status, duration FROM call_logs${where} ORDER BY timestamp DESC${limitClause}`
-      )
-      .all(...params) as Array<{
-        id: string | number;
-        model: string | null;
-        requested_model: string | null;
-        combo_name: string | null;
-        status: number;
-        duration: number | null;
-      }>;
-    const fallbackModel = "default";
-    return toObservationsFromRows(
-      logs.map((log) => ({
-        sampleId: String(log.id),
-        configId: log.combo_name ?? "default",
-        expected_model: log.requested_model ?? null,
-        selected_model: log.model ?? null,
-        latencyMs: log.duration ?? null,
-        status: log.status,
-      })),
-      fallbackModel
-    );
+  }
+}
+
+function readCallLogDb(
+  db: SqliteAdapter,
+  options: { since?: string; limit?: string; provider?: string; model?: string }
+): RouterEvalObservation[] {
+  const columns = getTableColumns(db, "call_logs");
+  const params: unknown[] = [];
+  const queryParts = [
+    `SELECT ${[
+      "id",
+      selectColumn(columns, "model"),
+      selectColumn(columns, "requested_model"),
+      selectColumn(columns, "combo_name"),
+      selectColumn(columns, "provider"),
+      selectColumn(columns, "status"),
+      selectColumn(columns, "duration"),
+      selectColumn(columns, "tokens_in"),
+      selectColumn(columns, "tokens_out"),
+      selectColumn(columns, "error_summary"),
+    ].join(", ")}`,
+    "FROM call_logs",
+    "WHERE 1=1",
+  ];
+  addSharedDbFilters(queryParts, params, options, ["model", "requested_model"], columns);
+  queryParts.push(columns.has("timestamp") ? "ORDER BY timestamp ASC" : "ORDER BY id ASC");
+  const limitValue = coerceLimit(options.limit);
+  if (limitValue) {
+    queryParts.push("LIMIT ?");
+    params.push(limitValue);
+  }
+
+  const logs = db.prepare(queryParts.join(" ")).all(...params) as Array<{
+    id: string | number;
+    model: string | null;
+    requested_model: string | null;
+    combo_name: string | null;
+    provider: string | null;
+    status: number | null;
+    duration: number | null;
+    tokens_in: number | null;
+    tokens_out: number | null;
+    error_summary: string | null;
+  }>;
+
+  return toObservationsFromRows(
+    logs.map((log) => ({
+      sampleId: String(log.id),
+      configId: log.combo_name ?? log.provider ?? "default",
+      expected_model: log.requested_model ?? null,
+      selected_model: log.model ?? null,
+      latencyMs: log.duration ?? null,
+      costUsd: estimateCost(log.tokens_in, log.tokens_out),
+      success: log.status != null && log.status >= 200 && log.status < 300 && !log.error_summary,
+      status: log.status ?? null,
+    })),
+    "default"
+  );
+}
+
+function readUsageHistoryDb(
+  db: SqliteAdapter,
+  options: { since?: string; limit?: string; provider?: string; model?: string }
+): RouterEvalObservation[] {
+  const columns = getTableColumns(db, "usage_history");
+  const params: unknown[] = [];
+  const queryParts = [
+    `SELECT ${[
+      "id",
+      selectColumn(columns, "provider"),
+      selectColumn(columns, "model"),
+      selectColumn(columns, "tokens_input"),
+      selectColumn(columns, "tokens_output"),
+      selectColumn(columns, "status"),
+      selectColumn(columns, "success"),
+      selectColumn(columns, "latency_ms"),
+      selectColumn(columns, "combo_strategy"),
+    ].join(", ")}`,
+    "FROM usage_history",
+    "WHERE 1=1",
+  ];
+  addSharedDbFilters(queryParts, params, options, ["model"], columns);
+  queryParts.push(columns.has("timestamp") ? "ORDER BY timestamp ASC" : "ORDER BY id ASC");
+  const limitValue = coerceLimit(options.limit);
+  if (limitValue) {
+    queryParts.push("LIMIT ?");
+    params.push(limitValue);
+  }
+
+  const rows = db.prepare(queryParts.join(" ")).all(...params) as Array<{
+    id: string | number;
+    provider: string | null;
+    model: string | null;
+    tokens_input: number | null;
+    tokens_output: number | null;
+    status: string | number | null;
+    success: number | boolean | null;
+    latency_ms: number | null;
+    combo_strategy: string | null;
+  }>;
+
+  return toObservationsFromRows(
+    rows.map((row) => ({
+      sampleId: String(row.id),
+      configId: row.combo_strategy ?? row.provider ?? "default",
+      expected_model: row.model ?? null,
+      selected_model: row.model ?? null,
+      latencyMs: row.latency_ms ?? null,
+      costUsd: estimateCost(row.tokens_input, row.tokens_output),
+      success: row.success === true || row.success === 1,
+      status: row.status,
+    })),
+    "default"
+  );
+}
+
+async function loadObservationsFromDb(
+  dbPath: string | undefined,
+  options: {
+    since?: string;
+    limit?: string;
+    provider?: string;
+    model?: string;
+    source?: DbReplaySource;
+  }
+): Promise<RouterEvalObservation[]> {
+  const sqliteFile = resolveSqliteFile(dbPath);
+  const db = await openDatabaseAsync(sqliteFile, { readonly: true });
+  try {
+    const activeSource = resolveReplaySource(db, options.source ?? "auto");
+    return activeSource === "usage-history"
+      ? readUsageHistoryDb(db, options)
+      : readCallLogDb(db, options);
   } finally {
     db.close();
   }
@@ -189,18 +382,33 @@ function buildReportFromSource(args: CliArgs, isBaseline = false): Promise<LoadR
 
   if (isBaseline ? Boolean(args.baselineDb) : Boolean(args.db)) {
     const dbPath = (isBaseline ? args.baselineDb : args.db) as string;
-    return loadDbReport(dbPath, args.since, args.limit, source);
+    return loadDbReport(
+      dbPath,
+      {
+        since: args.since,
+        limit: args.limit,
+        provider: args.provider,
+        model: args.model,
+        source: isBaseline ? args.baselineDbSource : args.dbSource,
+      },
+      source
+    );
   }
   return loadJsonlReport(source, isBaseline);
 }
 
 async function loadDbReport(
-  dbPath: string,
-  since: string | undefined,
-  limit: string | undefined,
+  dbPath: string | undefined,
+  options: {
+    since?: string;
+    limit?: string;
+    provider?: string;
+    model?: string;
+    source?: DbReplaySource;
+  },
   source: string
 ): Promise<LoadResult> {
-  const observations = await loadObservationsFromDb(dbPath, since, limit);
+  const observations = await loadObservationsFromDb(dbPath, options);
   const report = aggregateRouterObservations(observations);
   return { source, report, observations };
 }

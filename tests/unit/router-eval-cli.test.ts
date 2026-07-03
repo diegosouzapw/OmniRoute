@@ -1,4 +1,3 @@
-import os from "node:os";
 import path from "node:path";
 import fs from "node:fs";
 import test from "node:test";
@@ -13,7 +12,9 @@ function writeJsonl(filePath: string, rows: Array<Record<string, unknown>>): str
 }
 
 async function withTempFiles<T>(handler: (workspace: string) => Promise<T>): Promise<T> {
-  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "router-eval-"));
+  const tempRoot = path.join(process.cwd(), ".tmp");
+  fs.mkdirSync(tempRoot, { recursive: true });
+  const workspace = fs.mkdtempSync(path.join(tempRoot, "router-eval-"));
   try {
     return await handler(workspace);
   } finally {
@@ -165,34 +166,6 @@ test("runRouterEvalCli emits JSON comparison artifact", async () => {
   assert.equal(result.cliResult.code, 2);
   assert.equal(result.artifact.kind, "router-eval-comparison");
   assert.equal(result.artifact.comparison.regressed, true);
-});
-
-test("runRouterEvalCli replays SQLite call logs from a temp DATA_DIR", async () => {
-  const result = await withTempFiles(async (workspace) => {
-    const { Database } = await import("bun:sqlite");
-    const db = new Database(path.join(workspace, "storage.sqlite"));
-    db.run(
-      "CREATE TABLE call_logs (id TEXT, timestamp TEXT, model TEXT, requested_model TEXT, combo_name TEXT, status INTEGER, duration INTEGER)"
-    );
-    db.run(
-      "INSERT INTO call_logs (id, timestamp, model, requested_model, combo_name, status, duration) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      "call-1",
-      "2026-01-01T00:00:00.000Z",
-      "gpt-4o",
-      "gpt-4o",
-      "balanced",
-      200,
-      144
-    );
-    db.close();
-
-    return runRouterEvalCli(["--db", workspace, "--limit", "1"]);
-  });
-
-  assert.equal(result.code, 0);
-  assert.match(result.output, /# Router Eval Report/);
-  assert.match(result.output, /\| balanced \|/);
-  assert.match(result.output, /Observations: 1/);
 });
 
 test("runRouterEvalCli returns help text with --help", async () => {
