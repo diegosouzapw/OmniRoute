@@ -37,6 +37,12 @@ test("isLocalOnlyPath: /api/oauth/cursor/auto-import is local-only (spawns child
   assert.equal(isLocalOnlyPath("/api/oauth/cursor/auto-import"), true);
 });
 
+test("isLocalOnlyPath: /api/issue-agent is local-only (checks git and gh)", () => {
+  assert.equal(isLocalOnlyPath("/api/issue-agent/"), true);
+  assert.equal(isLocalOnlyPath("/api/issue-agent/runs"), true);
+  assert.equal(isLocalOnlyPath("/api/issue-agent/runs/abc/cancel"), true);
+});
+
 test("isLocalOnlyPath: the rest of /api/oauth/ stays remote-reachable (no over-broadening)", () => {
   // Only the spawn-capable auto-import path is loopback-locked. The rest of the OAuth
   // surface (browser redirect / callback flows) MUST remain reachable remotely — a

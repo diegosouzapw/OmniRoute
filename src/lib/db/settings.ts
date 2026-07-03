@@ -8,6 +8,7 @@ import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.
 import { invalidateDbCache } from "./readCache";
 import { getProxyRegistryGeneration, resolveProxyForScopeFromRegistry } from "./proxies";
 import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
+import { DEFAULT_ISSUE_AGENT_SETTINGS } from "@/lib/issueAgent";
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 import { DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE } from "@/shared/constants/responsesPreviousResponseId";
 import { type JsonRecord, toRecord } from "./settings/shared";
@@ -24,9 +25,7 @@ type ProxyResolutionCacheEntry = {
   registryGeneration: number;
   result: ProxyResolutionResult;
 };
-
 const PROXY_RESOLUTION_CACHE_MAX_ENTRIES = 100;
-
 function isTruthyEnvFlag(value: string | undefined): boolean {
   return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
 }
@@ -129,6 +128,7 @@ export async function getSettings() {
     wsAuth: false,
     maxBodySizeMb: requestBodyLimitMbFromEnv(process.env.MAX_BODY_SIZE_BYTES),
     debugMode: true,
+    issueAgent: DEFAULT_ISSUE_AGENT_SETTINGS,
     // Opt-in diagnostic: when true, the chat handler emits a `log.debug("TOOLS", …)`
     // line per request summarizing tool count + MCP/hosted/client source breakdown.
     logToolSources: false,
@@ -428,7 +428,8 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
     if (perKeyEnabled) {
       try {
         const apiKeyRow = db.prepare("SELECT proxy_id FROM api_keys WHERE id = ?").get(apiKeyId) as
-          { proxy_id?: string | null } | undefined;
+          | { proxy_id?: string | null }
+          | undefined;
         if (apiKeyRow?.proxy_id) {
           const proxyRow = db
             .prepare(

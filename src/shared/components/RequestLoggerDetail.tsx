@@ -7,8 +7,7 @@ import {
   getProtocolColor,
 } from "@/shared/constants/colors";
 import { formatDuration, formatApiKeyLabel, maskAccount } from "@/shared/utils/formatting";
-
-// ─── Payload Code Block ─────────────────────────────────────────────────────
+import { RequestLoggerIssueAgentActions, RequestLoggerIssueAgentStatus } from "./RequestLoggerIssueAgentActions";
 
 function PayloadSection({ title, json, onCopy, collapsible = true, defaultOpen = true }) {
   const [copied, setCopied] = useState(false);
@@ -60,8 +59,6 @@ function PayloadSection({ title, json, onCopy, collapsible = true, defaultOpen =
     </div>
   );
 }
-
-// ─── Stream section + Detail Modal ───────────────────────────────────────────────────────────
 
 function StreamSection({ title, json, onCopy }) {
   const [copied, setCopied] = useState(false);
@@ -138,8 +135,6 @@ function StreamSection({ title, json, onCopy }) {
   );
 }
 
-// ─── Detail Modal ───────────────────────────────────────────────────────────
-
 type StreamChunks = Record<string, string | string[]>;
 
 function getCodexAccountRotation(detail) {
@@ -172,6 +167,11 @@ export default function RequestLoggerDetail({
   loading,
   debugEnabled,
   emailsVisible = false,
+  issueAgentEnabled = false,
+  issueAgentFixEnabled = false,
+  issueAgentRunningMode = null,
+  issueAgentStatus = null,
+  onRunIssueAgent,
   onClose,
   onCopy,
   onPrevious,
@@ -281,6 +281,7 @@ export default function RequestLoggerDetail({
       : "bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/30";
   const accountLabel = maskAccount(detail?.account || log.account, emailsVisible);
   const codexAccountRotation = getCodexAccountRotation(detail);
+  const showIssueAgentActions = !log.active && Number(log.status) >= 400 && issueAgentEnabled;
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh]"
@@ -344,6 +345,13 @@ export default function RequestLoggerDetail({
             )}
           </div>
           <div className="flex items-center gap-1">
+            {showIssueAgentActions && (
+              <RequestLoggerIssueAgentActions
+                fixEnabled={issueAgentFixEnabled}
+                runningMode={issueAgentRunningMode}
+                onRun={onRunIssueAgent}
+              />
+            )}
             <button
               onClick={onPrevious}
               disabled={!onPrevious}
@@ -371,6 +379,9 @@ export default function RequestLoggerDetail({
         </div>
 
         <div className="p-6 flex flex-col gap-6">
+          {showIssueAgentActions && issueAgentStatus && (
+            <RequestLoggerIssueAgentStatus status={issueAgentStatus} />
+          )}
           {/* Metadata Grid */}
           {log.active ? (
             <div className="flex flex-wrap gap-4 p-4 bg-bg-subtle rounded-xl border border-border">

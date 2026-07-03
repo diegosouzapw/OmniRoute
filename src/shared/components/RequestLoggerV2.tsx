@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-  forwardRef,
-  useImperativeHandle,
-} from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, forwardRef, useImperativeHandle } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Card from "./Card";
@@ -39,6 +31,7 @@ import {
   readSavedRefreshIntervalSec,
   writeSavedRefreshIntervalSec,
 } from "./requestLoggerPreferences";
+import { useIssueAgentActions } from "./useIssueAgentActions";
 import {
   LOG_TABLE_CLASS,
   LOG_TABLE_HEAD_CLASS,
@@ -172,6 +165,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const [detailData, setDetailData] = useState(null);
     const [detailLoggingEnabled, setDetailLoggingEnabled] = useState(false);
     const [detailLoggingLoading, setDetailLoggingLoading] = useState(false);
+    const issueAgent = useIssueAgentActions(selectedLog, detailData);
     const [limit, setLimit] = useState(PAGE_SIZE);
     const [hasMore, setHasMore] = useState(false);
     const [refreshIntervalSec, setRefreshIntervalSec] = useState(DEFAULT_REFRESH_INTERVAL_SEC);
@@ -1527,6 +1521,11 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
             loading={detailLoading}
             debugEnabled={selectedLog.active ? true : detailLoggingEnabled}
             emailsVisible={emailsVisible}
+            issueAgentEnabled={issueAgent.enabled}
+            issueAgentFixEnabled={issueAgent.fixEnabled}
+            issueAgentRunningMode={issueAgent.runningMode}
+            issueAgentStatus={issueAgent.status}
+            onRunIssueAgent={issueAgent.run}
             onClose={closeDetail}
             onCopy={copyToClipboard}
             onPrevious={handlePrev}
