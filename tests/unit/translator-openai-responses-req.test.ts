@@ -260,6 +260,33 @@ test("Responses -> Chat strips client_metadata (Mistral 422 fix)", () => {
   assert.equal((result.messages as unknown[]).length, 1, "user message must be preserved");
 });
 
+test("Responses -> Chat strips truncation (9router#2311)", () => {
+  // Responses API clients (e.g. Codex CLI) send `truncation` at the top level.
+  // It has no Chat Completions equivalent; third-party upstreams such as
+  // NVIDIA NIM reject it with HTTP 400 "Unsupported parameter(s): truncation".
+  // codex.ts already strips it for the Codex-native /responses passthrough,
+  // but a Responses-API client routed via combo to a non-Codex Chat Completions
+  // upstream went through this generic translator unstripped. The translator
+  // must strip the field in the Responses-API cleanup block so it never
+  // reaches the upstream, mirroring safety_identifier/client_metadata above.
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      truncation: "auto",
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(
+    result.truncation,
+    undefined,
+    "truncation must be stripped before forwarding to Chat Completions"
+  );
+  assert.ok(Array.isArray(result.messages), "translation must still produce messages");
+});
+
 test("Chat -> Responses clamps call_id to 64 chars and keeps the pair matched (port from 9router#396)", () => {
   // The Responses API rejects call_id values longer than 64 characters. A long
   // upstream tool-call id must be clamped on BOTH the function_call and its matching
