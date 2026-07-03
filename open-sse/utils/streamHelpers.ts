@@ -53,6 +53,31 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
+/**
+ * Matches ANSI/VT100 terminal control sequences plus non-whitespace C0 control
+ * codes, while preserving `\t` (0x09), `\n` (0x0a), and `\r` (0x0d).
+ *
+ * Some upstream CLIs (notably gemini-cli via the `gc/` bridge) prefix SSE frames
+ * with cursor-movement escapes such as `\x1b[2K\x1b[1A` to redraw the terminal.
+ * Those bytes are not whitespace, so `line.trimStart().startsWith("data:")` fails
+ * and the frame is silently dropped, stalling the client SSE parser (issue #2273).
+ *
+ * The pattern is strictly bounded (no unbounded quantifiers over overlapping
+ * alternatives) so it runs in linear time on untrusted input — ReDoS-safe.
+ */
+// eslint-disable-next-line no-control-regex
+const ANSI_ESCAPE_RE =
+  /\x1b(?:\[[0-9;?]*[A-Za-z]|\][^\x07\x1b]*(?:\x07|\x1b\\)|[A-Z\[\]\\^_`])|[\x00-\x08\x0b\x0c\x0e-\x1f]/g;
+
+/**
+ * Strip ANSI/VT100 escape sequences (and stray C0 controls) from a string.
+ * Non-string inputs (null/undefined) are returned unchanged. Preserves \t \n \r.
+ */
+export function stripAnsiCodes<T>(str: T): T {
+  if (typeof str !== "string") return str;
+  return str.replace(ANSI_ESCAPE_RE, "") as T;
+}
+
 export function parseSSEDataPayload(
   data: unknown,
   options: SSEPayloadOptions = {}
@@ -88,15 +113,18 @@ export function parseSSEDataLines(
 export function parseSSELine(line: string): SSEJsonPayload | null {
   if (!line) return null;
 
-  // Trim leading whitespace before checking field name.
+  // Trim leading whitespace before checking field name. Also strip ANSI/VT100
+  // escape codes so terminal-redraw-prefixed frames (e.g. gemini-cli `\x1b[2K\x1b[1A`)
+  // still resolve to a `data:` line instead of being silently dropped (#2273).
   const trimmed = line.trimStart();
-  if (!trimmed.startsWith("data:")) return null;
+  const clean = stripAnsiCodes(trimmed);
+  if (!clean.startsWith("data:")) return null;
 
-  return parseSSEDataPayload(trimmed.slice(5));
+  return parseSSEDataPayload(clean.slice(5));
 }
 
 function extractSseDataLine(line: string): string | null {
-  const trimmed = line.trimStart().replace(/\r$/, "");
+  const trimmed = stripAnsiCodes(line.trimStart().replace(/\r$/, ""));
   if (!trimmed.startsWith("data:")) return null;
   return trimmed.slice(5).trimStart();
 }

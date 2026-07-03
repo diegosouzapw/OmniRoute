@@ -66,6 +66,26 @@ import {
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
 import { withForcedResponsesUpstream } from "./forceResponsesUpstream.ts";
+import {
+  mergeUpstreamExtraHeaders,
+  setUserAgentHeader,
+  applyConfiguredUserAgent,
+  stripStainlessHeadersForOpenAICompat,
+} from "./base/headers.ts";
+// Header helpers extracted to a pure leaf; re-exported for external importers
+// (executors + tests) that import them from "./base.ts".
+export {
+  mergeUpstreamExtraHeaders,
+  getCustomUserAgent,
+  setUserAgentHeader,
+  applyConfiguredUserAgent,
+  isOpenAICompatibleEndpoint,
+  stripStainlessHeadersForOpenAICompat,
+} from "./base/headers.ts";
+import { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
+// Reasoning-effort sanitation extracted to a pure leaf; re-exported for external
+// importers (mimoThinking service + tests) that import it from "./base.ts".
+export { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -155,95 +175,6 @@ export type CountTokensInput = {
   signal?: AbortSignal | null;
 };
 
-/** Apply model-level extra upstream headers (e.g. Authentication, X-Custom-Auth). */
-export function mergeUpstreamExtraHeaders(
-  headers: Record<string, string>,
-  extra?: Record<string, string> | null
-): void {
-  if (!extra) return;
-  for (const [k, v] of Object.entries(extra)) {
-    if (typeof k === "string" && k.length > 0 && typeof v === "string") {
-      if (k.toLowerCase() === "user-agent") {
-        setUserAgentHeader(headers, v);
-        continue;
-      }
-      headers[k] = v;
-    }
-  }
-}
-
-export function getCustomUserAgent(providerSpecificData?: JsonRecord | null): string | null {
-  const customUserAgent =
-    typeof providerSpecificData?.customUserAgent === "string"
-      ? providerSpecificData.customUserAgent.trim()
-      : "";
-  return customUserAgent || null;
-}
-
-export function setUserAgentHeader(headers: Record<string, string>, userAgent: string): void {
-  headers["User-Agent"] = userAgent;
-  if ("user-agent" in headers) {
-    headers["user-agent"] = userAgent;
-  }
-}
-
-export function applyConfiguredUserAgent(
-  headers: Record<string, string>,
-  providerSpecificData?: JsonRecord | null
-): void {
-  const customUserAgent = getCustomUserAgent(providerSpecificData);
-  if (customUserAgent) {
-    setUserAgentHeader(headers, customUserAgent);
-  }
-}
-
-/**
- * Returns true when the outbound request targets an OpenAI-compatible endpoint
- * (a `openai-compatible-*` provider, or a Chat Completions / Responses URL).
- * Used to scope the X-Stainless strip narrowly so genuine SDK-spoofing paths
- * (e.g. Claude Code compat, which legitimately ADDS X-Stainless-*) are untouched.
- */
-export function isOpenAICompatibleEndpoint(provider: string, url: string): boolean {
-  if (provider?.startsWith?.("openai-compatible-")) return true;
-  return url.includes("/v1/chat/completions") || url.includes("/v1/responses");
-}
-
-/**
- * Strip OpenAI SDK (`X-Stainless-*`) metadata headers and normalize an SDK-derived
- * User-Agent for OpenAI-compatible passthrough requests. Some upstream gateways
- * 403 on these SDK-identifying headers. Only applied to OpenAI-compatible endpoints —
- * other providers (Claude/Claude Code compat) may legitimately send X-Stainless-*.
- *
- * Mutates `headers` in place and returns the list of stripped header keys (for logging).
- */
-export function stripStainlessHeadersForOpenAICompat(
-  headers: Record<string, string>,
-  provider: string,
-  url: string
-): string[] {
-  if (!isOpenAICompatibleEndpoint(provider, url)) return [];
-
-  const strippedKeys: string[] = [];
-  for (const key of Object.keys(headers)) {
-    if (key.toLowerCase().startsWith("x-stainless-")) {
-      delete headers[key];
-      strippedKeys.push(key);
-    }
-  }
-
-  // Normalize User-Agent: SDK-based clients send verbose product strings that some
-  // upstreams block. Replace with a clean browser-like UA only when it looks SDK-derived.
-  const ua = (headers["User-Agent"] || headers["user-agent"] || "").toLowerCase();
-  if (
-    ua.includes("openai") &&
-    (ua.includes("node") || ua.includes("axios") || ua.includes("undici"))
-  ) {
-    setUserAgentHeader(headers, "Mozilla/5.0 (compatible; OpenAI Compatible)");
-  }
-
-  return strippedKeys;
-}
-
 export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
   const controller = new AbortController();
 
@@ -270,161 +201,6 @@ export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal):
 function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
   const thinking = body.thinking as Record<string, unknown> | undefined;
   return thinking?.type === "enabled" || thinking?.type === "adaptive";
-}
-
-/**
- * Sanitize reasoning_effort for providers that don't accept all values.
- *
- * The claude→openai translator may emit reasoning_effort=max/xhigh when the
- * client sends output_config.effort=max on a Claude-shape request. Combined with
- * runtime alias remapping (e.g. claude-opus-4-6 → mimo/mimo-v2.5-pro), this
- * routes xhigh to OpenAI-shape providers that don't accept the value:
- *
- *   xiaomi-mimo : low|medium|high only — 400 literal_error on xhigh
- *   mistral     : devstral models reject reasoning_effort entirely
- *   github      : claude/haiku/oswe models reject reasoning_effort entirely
- *
- * Each rejection burns a combo fallback attempt before reaching a working
- * provider. Apply provider-aware sanitation here (after transformRequest, so
- * reintroductions by per-provider transforms are also caught) before fetch.
- * xhigh support is opt-out: pass through unchanged unless the registry marks
- * a model as unsupported. Literal max support is provider-specific and
- * intentionally separate: some upstreams accept max even when they do not
- * accept xhigh. For OpenAI-shape providers, max normalizes to xhigh by default
- * and falls back to high only for explicit xhigh opt-outs.
- */
-const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
-// GitHub Copilot Claude routing is granular (upstream port: decolua/9router#791):
-//   ✅ Pass through — Claude Opus 4.6, Claude Sonnet 4.6. Copilot routes both to
-//      Anthropic's chat/completions surface, which honors reasoning_effort and
-//      emits visible reasoning tokens (verified upstream: 3× token increase
-//      between low/medium/high).
-//   ❌ Strip — Claude Haiku 4.5 and Claude Opus 4.7 (rejected upstream by
-//      Copilot's Claude backend), older Claude variants, all `haiku`-named
-//      models, and the `oswe-*` family (Raptor) which still rejects
-//      reasoning_effort.
-// Order matters: the opt-in check must run BEFORE the broad Claude/haiku/oswe strip.
-const GITHUB_REASONING_EFFORT_OPT_IN_PATTERN = /claude[-_.]?(?:opus|sonnet)[-_.]?4[-_.]6/i;
-const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
-
-function supportsMaxEffortForProvider(provider: string, model: string): boolean {
-  const isClaude =
-    (provider === PROVIDER_CLAUDE || isClaudeCodeCompatible(provider)) &&
-    supportsClaudeMaxEffort(model);
-  // opencode-go proxies DeepSeek with the native DeepSeek API contract, which
-  // accepts {high, max} literally. Without this opt-in, max would be
-  // normalized to xhigh (the OmniRoute-internal top tier) and rejected by the
-  // upstream. Scoped to opencode-go deliberately: OpenRouter's DeepSeek path
-  // (pi#4055) is the documented inverse and expects xhigh, not max.
-  // Ollama Cloud also accepts literal max (for example GLM 5.2 supports
-  // low|medium|high|max|none) and rejects xhigh.
-  const isOpencodeGoDeepSeek =
-    provider === "opencode-go" && model.toLowerCase().includes("deepseek");
-  const isOllamaCloud = provider === "ollama-cloud";
-  return isClaude || isOpencodeGoDeepSeek || isOllamaCloud;
-}
-
-export function sanitizeReasoningEffortForProvider(
-  body: unknown,
-  provider: string,
-  model: string | undefined,
-  log?: { info?: (tag: string, msg: string) => void } | null
-): unknown {
-  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
-  const b = body as Record<string, unknown>;
-  const reasoning =
-    b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
-      ? (b.reasoning as Record<string, unknown>)
-      : null;
-  const hasTopLevelReasoningEffort = Object.prototype.hasOwnProperty.call(b, "reasoning_effort");
-  const effort = b.reasoning_effort ?? reasoning?.effort;
-  if (effort === undefined) return body;
-  const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
-  const modelStr = model || "";
-
-  const githubOptIn =
-    provider === "github" && GITHUB_REASONING_EFFORT_OPT_IN_PATTERN.test(modelStr);
-  const rejecting =
-    (provider === "mistral" && MISTRAL_NO_REASONING_EFFORT_PATTERN.test(modelStr)) ||
-    (provider === "github" && !githubOptIn && GITHUB_NO_REASONING_EFFORT_PATTERN.test(modelStr));
-  if (rejecting) {
-    log?.info?.(
-      "REASONING_SANITIZE",
-      `${provider}/${modelStr}: removed unsupported reasoning_effort`
-    );
-    const next: Record<string, unknown> = { ...b };
-    delete next.reasoning_effort;
-    if (reasoning) {
-      const r = { ...reasoning };
-      delete r.effort;
-      if (Object.keys(r).length === 0) delete next.reasoning;
-      else next.reasoning = r;
-    }
-    return next;
-  }
-
-  // Native DeepSeek (api.deepseek.com) — V4 thinking mode accepts reasoning_effort
-  // ONLY as {high, max} (its own top tier is literally "max"). OmniRoute's internal
-  // scale is low|medium|high|xhigh where xhigh is the top, so map onto DeepSeek's
-  // vocabulary: xhigh → max (top→top), low|medium → high (below the enum floor).
-  // high/max pass through unchanged. Without this, the claude→openai translator's
-  // xhigh (and max-normalized-to-xhigh below) reaches DeepSeek as an unknown value,
-  // silently dropping the client's requested effort. This is the INVERSE of the
-  // OpenRouter-DeepSeek path, whose normalized API expects xhigh, not max (pi#4055).
-  if (provider === "deepseek") {
-    const mapped =
-      effortStr === "xhigh" ? "max" : effortStr === "low" || effortStr === "medium" ? "high" : null;
-    if (mapped && mapped !== effortStr) {
-      log?.info?.(
-        "REASONING_SANITIZE",
-        `deepseek/${modelStr}: normalized reasoning_effort ${effortStr} → ${mapped}`
-      );
-      const next: Record<string, unknown> = { ...b };
-      if (hasTopLevelReasoningEffort) next.reasoning_effort = mapped;
-      if (reasoning) next.reasoning = { ...reasoning, effort: mapped };
-      return next;
-    }
-    return body;
-  }
-
-  const supportsXHigh = supportsXHighEffort(provider, modelStr);
-  const shouldDowngradeXHigh = effortStr === "xhigh" && !supportsXHigh;
-  const supportsXHighForMax = supportsXHigh;
-  const supportsMax = supportsMaxEffortForProvider(provider, modelStr);
-  const shouldNormalizeMaxToXHigh = effortStr === "max" && !supportsMax && supportsXHighForMax;
-  const shouldDowngradeMax = effortStr === "max" && !supportsMax && !supportsXHighForMax;
-
-  if (shouldNormalizeMaxToXHigh) {
-    log?.info?.(
-      "REASONING_SANITIZE",
-      `${provider}/${modelStr}: normalized reasoning_effort max → xhigh`
-    );
-    const next: Record<string, unknown> = { ...b };
-    if (hasTopLevelReasoningEffort) {
-      next.reasoning_effort = "xhigh";
-    }
-    if (reasoning) {
-      next.reasoning = { ...reasoning, effort: "xhigh" };
-    }
-    return next;
-  }
-
-  if (shouldDowngradeXHigh || shouldDowngradeMax) {
-    log?.info?.(
-      "REASONING_SANITIZE",
-      `${provider}/${modelStr}: downgraded reasoning_effort ${effortStr} → high`
-    );
-    const next: Record<string, unknown> = { ...b };
-    if (hasTopLevelReasoningEffort) {
-      next.reasoning_effort = "high";
-    }
-    if (reasoning) {
-      next.reasoning = { ...reasoning, effort: "high" };
-    }
-    return next;
-  }
-
-  return body;
 }
 
 /**

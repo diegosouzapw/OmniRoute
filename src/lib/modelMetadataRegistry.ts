@@ -4,6 +4,8 @@ import { getModelInfo } from "@/sse/services/model";
 import { getModelAliases } from "@/lib/db/models";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import {
+  getAuthoritativeContextWindow,
+  getAuthoritativeProviderContextWindow,
   getModelSpec,
   resolveModelAlias as resolveStaticModelAlias,
 } from "@/shared/constants/modelSpecs";
@@ -273,6 +275,11 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
 
   const nextEntry: JsonRecord = { ...entry };
   const existingName = asNonEmptyString(entry.name);
+  const authoritativeContextWindow =
+    getAuthoritativeProviderContextWindow(metadata.provider, metadata.model) ??
+    getAuthoritativeProviderContextWindow(provider, model) ??
+    getAuthoritativeContextWindow(metadata.model) ??
+    getAuthoritativeContextWindow(model);
   const capabilityFields = {
     ...(typeof metadata.capabilities.vision === "boolean"
       ? { vision: metadata.capabilities.vision }
@@ -309,7 +316,7 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   }
 
   if (
-    typeof nextEntry.context_length !== "number" &&
+    (typeof nextEntry.context_length !== "number" || authoritativeContextWindow !== null) &&
     typeof metadata.limits.contextWindow === "number"
   ) {
     nextEntry.context_length = metadata.limits.contextWindow;
@@ -319,7 +326,10 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
     nextEntry.max_output_tokens = metadata.limits.maxOutputTokens;
   }
 
-  if (typeof metadata.limits.maxInputTokens === "number") {
+  if (
+    typeof metadata.limits.maxInputTokens === "number" &&
+    (typeof nextEntry.max_input_tokens !== "number" || authoritativeContextWindow !== null)
+  ) {
     nextEntry.max_input_tokens = metadata.limits.maxInputTokens;
   }
 
