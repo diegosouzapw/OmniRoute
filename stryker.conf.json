@@ -43,6 +43,7 @@
   "tap": {
     "testFiles": [
       "tests/unit/account-fallback-anthropic-quota.test.ts",
+      "tests/unit/account-fallback-retry-after-json.test.ts",
       "tests/unit/account-fallback-route-restriction-403.test.ts",
       "tests/unit/account-fallback-service.test.ts",
       "tests/unit/api-key-rotator-health.test.ts",
@@ -197,10 +198,13 @@
       "tests/unit/chatcore-upstream-timeouts.test.ts",
       "tests/unit/circuit-breaker-registry-cap.test.ts",
       "tests/unit/circuit-breaker-stream-controller-4602.test.ts",
+      "tests/unit/clinepass-provider.test.ts",
+      "tests/unit/codex-session-affinity-reset-aware-5903.test.ts",
       "tests/unit/combo-account-allowlist-3266.test.ts",
       "tests/unit/combo-headroom-strategy.test.ts",
       "tests/unit/combo-model-lockout-honors-reset-1308.test.ts",
       "tests/unit/combo-param-validation-fallback-4519.test.ts",
+      "tests/unit/combo-priority-quota-exhaustion-cutoff-5923.test.ts",
       "tests/unit/combo-quota-share-cooldown-wait.test.ts",
       "tests/unit/combo-selected-connection-success.test.ts",
       "tests/unit/combo-stream-readiness-fallback.test.ts",
