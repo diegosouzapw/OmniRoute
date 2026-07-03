@@ -66,6 +66,29 @@ test("Fable 5 catalog exposes claude-fable-5 in cc and kiro providers with match
   assert.ok(kiroPricing["claude-fable-5"], "kiro pricing must include claude-fable-5");
 });
 
+test("Sonnet 5 catalog exposes claude-sonnet-5 across cc/kiro/anthropic/blackbox with Sonnet-tier pricing", () => {
+  // Sonnet 5 must be wired everywhere the last flagship (Fable 5) was — but as a
+  // Sonnet-tier model: $3/$15 pricing (NOT the Opus/Fable $15/$75), 1M ctx / 128K out.
+  for (const providerId of ["cc", "kiro", "anthropic", "blackbox"]) {
+    const ids = new Set(getModelsByProviderId(providerId).map((m) => m.id));
+    assert.ok(ids.has("claude-sonnet-5"), `${providerId} must expose claude-sonnet-5`);
+  }
+
+  const kiroSonnet5 = getModelsByProviderId("kiro").find((m) => m.id === "claude-sonnet-5");
+  assert.equal(kiroSonnet5?.contextLength, 1000000);
+  assert.equal(kiroSonnet5?.maxOutputTokens, 128000);
+
+  const ccPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).cc;
+  assert.ok(ccPricing["claude-sonnet-5"], "cc pricing must include claude-sonnet-5");
+
+  const kiroPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).kiro;
+  const kiroSonnet5Price = kiroPricing["claude-sonnet-5"] as { input: number; output: number };
+  assert.ok(kiroSonnet5Price, "kiro pricing must include claude-sonnet-5");
+  // Sonnet-tier, not Opus-tier — guards against copying Fable 5's $15/$75.
+  assert.equal(kiroSonnet5Price.input, 3.0);
+  assert.equal(kiroSonnet5Price.output, 15.0);
+});
+
 test("Kiro catalog exposes Claude Opus 4.8 alongside 4.7 with matching pricing", () => {
   const models = getModelsByProviderId("kiro");
   const ids = new Set(models.map((model) => model.id));

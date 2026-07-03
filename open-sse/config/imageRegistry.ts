@@ -175,6 +175,20 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "2048x2048"],
   },
 
+  "vercel-ai-gateway": {
+    id: "vercel-ai-gateway",
+    alias: "vag",
+    baseUrl: "https://ai-gateway.vercel.sh/v1/images/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [
+      { id: "gpt-image-1", name: "GPT Image 1" },
+      { id: "black-forest-labs/flux-1.1-pro", name: "FLUX 1.1 Pro" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
+  },
+
   together: {
     id: "together",
     baseUrl: "https://api.together.xyz/v1/images/generations",
