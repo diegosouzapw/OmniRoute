@@ -14,6 +14,7 @@ import {
 import { syncToCloud } from "@/lib/cloudSync";
 import { setQuotaCache } from "@/domain/quotaCache";
 import { buildClaudeExtraUsageConnectionUpdate } from "@/lib/providers/claudeExtraUsage";
+import { clearRecoveredProviderState } from "@/sse/services/auth";
 import { getMachineId } from "@/shared/utils/machine";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
@@ -389,9 +390,87 @@ export function quotaPathShouldMarkExpired(
   return true;
 }
 
-async function syncExpiredStatusIfNeeded(connection: ProviderConnectionLike, usage: JsonRecord) {
+const TERMINAL_STATUSES_FOR_QUOTA_RECOVERY = new Set([
+  "credits_exhausted",
+  "banned",
+  "expired",
+  "deactivated",
+]);
+
+function isTerminalStatusForQuotaRecovery(testStatus: string | null | undefined): boolean {
+  if (!testStatus) return false;
+  return TERMINAL_STATUSES_FOR_QUOTA_RECOVERY.has(testStatus);
+}
+
+export function hasUsableQuota(usage: JsonRecord): boolean {
+  const quotas = usage?.quotas;
+  if (!isRecord(quotas)) return false;
+  for (const value of Object.values(quotas)) {
+    if (!isRecord(value)) continue;
+    if (value.unlimited === true) return true;
+    const remaining =
+      typeof value.remaining === "number"
+        ? value.remaining
+        : typeof value.remainingPercentage === "number"
+          ? value.remainingPercentage
+          : null;
+    if (remaining !== null && remaining > 0) return true;
+  }
+  return false;
+}
+
+export async function maybeClearRecoveredQuotaState(
+  connection: ProviderConnectionLike,
+  usage: JsonRecord
+): Promise<ProviderConnectionLike> {
+  if (!hasUsableQuota(usage)) return connection;
+  if (isTerminalStatusForQuotaRecovery(connection.testStatus)) return connection;
+
+  const hasTransientState =
+    connection.testStatus === "unavailable" ||
+    Boolean(connection.rateLimitedUntil) ||
+    Boolean(connection.lastError) ||
+    Boolean(connection.errorCode) ||
+    Boolean(connection.lastErrorType) ||
+    Boolean(connection.lastErrorSource) ||
+    (connection.backoffLevel ?? 0) > 0;
+
+  if (!hasTransientState) return connection;
+
+  try {
+    await clearRecoveredProviderState({
+      connectionId: connection.id,
+      testStatus: connection.testStatus,
+      lastError: connection.lastError ?? null,
+      rateLimitedUntil: connection.rateLimitedUntil ?? null,
+      errorCode: connection.errorCode ?? null,
+      lastErrorType: connection.lastErrorType ?? null,
+      lastErrorSource: connection.lastErrorSource ?? null,
+    });
+  } catch (dbError) {
+    console.warn("[ProviderLimits] Failed to clear recovered quota state:", dbError);
+    return connection;
+  }
+
+  return {
+    ...connection,
+    testStatus: "active",
+    lastError: null,
+    lastErrorAt: null,
+    lastErrorType: null,
+    lastErrorSource: null,
+    errorCode: null,
+    rateLimitedUntil: null,
+    backoffLevel: 0,
+  };
+}
+
+async function syncExpiredStatusIfNeeded(
+  connection: ProviderConnectionLike,
+  usage: JsonRecord
+): Promise<ProviderConnectionLike> {
   if (!quotaPathShouldMarkExpired(connection.provider, usage.message, connection.testStatus)) {
-    return;
+    return connection;
   }
 
   try {
@@ -402,7 +481,14 @@ async function syncExpiredStatusIfNeeded(connection: ProviderConnectionLike, usa
     });
   } catch (dbError) {
     console.error("[ProviderLimits] Failed to sync expired status to DB:", dbError);
+    return connection;
   }
+
+  return {
+    ...connection,
+    testStatus: "expired",
+    lastErrorType: "token_expired",
+  };
 }
 
 async function syncClaudeExtraUsageStateIfNeeded(
@@ -623,10 +709,11 @@ async function fetchLiveProviderLimitsWithOptions(
     if (isRecord(usage.quotas)) {
       setQuotaCache(connectionId, connection.provider, usage.quotas);
     }
-    await syncExpiredStatusIfNeeded(connection, usage);
+    connection = await syncExpiredStatusIfNeeded(connection, usage);
     connection = await syncClaudeExtraUsageStateIfNeeded(connection, usage);
     connection = await syncClaudeBootstrapIfNeeded(connection, usage);
     connection = await syncAntigravitySubscriptionIfNeeded(connection, usage);
+    connection = await maybeClearRecoveredQuotaState(connection, usage);
     return { connection, usage };
   }
 
@@ -737,10 +824,11 @@ async function fetchLiveProviderLimitsWithOptions(
   if (isRecord(result.usage.quotas)) {
     setQuotaCache(connectionId, connection.provider, result.usage.quotas);
   }
-  await syncExpiredStatusIfNeeded(connection, result.usage);
+  connection = await syncExpiredStatusIfNeeded(connection, result.usage);
   connection = await syncClaudeExtraUsageStateIfNeeded(connection, result.usage);
   connection = await syncClaudeBootstrapIfNeeded(connection, result.usage);
   connection = await syncAntigravitySubscriptionIfNeeded(connection, result.usage);
+  connection = await maybeClearRecoveredQuotaState(connection, result.usage);
 
   return {
     connection,
