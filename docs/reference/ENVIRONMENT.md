@@ -354,6 +354,8 @@ Controls how OmniRoute discovers and launches CLI sidecars (Claude Code, Codex, 
 | `CLI_QODER_BIN`           | `qoder`     | `src/shared/services/cliRuntime.ts`                 | Custom path to Qoder CLI binary.                                                                                                                                               |
 | `CLI_QWEN_BIN`            | `qwen`      | `src/shared/services/cliRuntime.ts`                 | Custom path to the Qwen Code CLI binary.                                                                                                                                       |
 | `CLI_DEVIN_BIN`           | `devin`     | `open-sse/executors/devin-cli.ts`                   | Custom path to the Devin CLI binary (v3.8.0). Used by the Windsurf/Devin executor.                                                                                             |
+| `AUGGIE_BIN`              | `auggie`    | `open-sse/executors/auggie.ts`                      | Absolute-path override for the Augment (Auggie) CLI binary used by the local `auggie` provider. Falls back to `CLI_AUGGIE_BIN`, then a PATH lookup.                            |
+| `CLI_AUGGIE_BIN`          | `auggie`    | `open-sse/executors/auggie.ts`                      | Alias override for the Augment (Auggie) CLI binary path (checked after `AUGGIE_BIN`).                                                                                          |
 | `HERMES_HOME`             | `~/.hermes` | `src/lib/cli-helper/config-generator/hermesHome.ts` | Hermes Agent home directory where OmniRoute reads/writes the Hermes CLI config. Matches the env var the Hermes PowerShell installer sets on Windows (`%LOCALAPPDATA%\hermes`). |
 
 ### CLI Profile Auto-Sync
