@@ -26,9 +26,9 @@ import { Card } from "@/components/ui/card";
 import { formatResetCountdown } from "@/lib/localDb";
 import type { ConnectionRowConnection } from "./ConnectionRow";
 
-export type CoolingConnectionsPanelProps = Readonly<{
-  connections: ReadonlyArray<ConnectionRowConnection>;
-}>;
+export interface CoolingConnectionsPanelProps {
+  readonly connections: readonly ConnectionRowConnection[];
+}
 
 function isCoolingNow(connection: ConnectionRowConnection, now: number): boolean {
   if (!connection.rateLimitedUntil) return false;
@@ -37,8 +37,9 @@ function isCoolingNow(connection: ConnectionRowConnection, now: number): boolean
 }
 
 export default function CoolingConnectionsPanel(
-  { connections }: Readonly<CoolingConnectionsPanelProps>,
+  props: CoolingConnectionsPanelProps,
 ) {
+  const { connections } = props;
   // Tick once per second so the human-readable countdown updates.
   const [now, setNow] = useState<number>(() => Date.now());
   useEffect(() => {
