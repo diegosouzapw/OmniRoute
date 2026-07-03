@@ -17,6 +17,8 @@ _TBD_
 
 ### 📝 Maintenance
 
+- **test (deflake `setup-claude`):** `tests/unit/cli/setup-claude.test.ts` failed ~50% of runs with `Unable to deserialize cloned data due to invalid or unsupported version` at file teardown (all subtests passed), randomly reddening `Unit Tests fast-path (2/2)` / `Fast Quality Gates` across the PR→release queue. Root cause: `node --test` streams each file's report to the parent as V8-serialized frames on fd 1 (stdout), and the CLI helper under test (`syncClaudeProfilesFromModels`) prints progress via `console.log` — that stdout output interleaved with the serialized frames and corrupted the stream. The test now silences the stdout-writing `console` methods for the file's duration (no assertion inspects stdout), making it deterministic (15/15 green locally). ([#5959](https://github.com/diegosouzapw/OmniRoute/issues/5959))
+
 - **API validation:** add a `validatedJsonBody(request, schema)` helper in `src/shared/validation/helpers.ts` that fuses JSON body parsing and Zod validation into a single call, returning either the type-narrowed data or a ready-to-return 400 `NextResponse` with the standard error envelope. Salvaged from the closed refactor PR #5075 (Tier 1 portable helper) with a focused 6-case regression test. Co-authored-by: KooshaPari <KooshaPari@users.noreply.github.com>
 
 ---
