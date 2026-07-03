@@ -14,7 +14,10 @@
 import { getComboModelString, normalizeComboStep } from "../../../src/lib/combos/steps.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
 import { getTargetProvider, MAX_COMBO_DEPTH } from "./comboPredicates.ts";
-export { filterTargetsByRequestCompatibility } from "./requestCapabilities.ts";
+export {
+  evaluateTargetsByRequestCompatibility,
+  filterTargetsByRequestCompatibility,
+} from "./requestCapabilities.ts";
 export { getModelContextLimitForModelString, sortTargetsByContextSize } from "./contextSizing.ts";
 import {
   normalizeModelEntry,
@@ -25,7 +28,6 @@ import type {
   ComboCollectionLike,
   ComboInput,
   ComboLike,
-  ComboLogger,
   ComboRuntimeStep,
   NestedComboMode,
   ResolvedComboTarget,
