@@ -135,9 +135,11 @@ function markConnectionLevelExhaustion(
     // be tried in-request.
     isEmptyContentFailure(result.status, errorText) ||
     // Per-model-quota providers (gemini, github, passthrough, compatible) multiplex models
-    // behind one connection. A model-level error (e.g. Gemini 500 "Internal error encountered")
+    // behind one connection. A model-level 500 (e.g. Gemini "Internal error encountered")
     // must NOT exhaust the connection — other models on the same connection may still succeed.
-    hasPerModelQuota(provider, rawModel)
+    // Other connection-level statuses (408/502/503/504/524) indicate the connection itself is
+    // bad, so they correctly exhaust even for per-model-quota providers.
+    (result.status === 500 && hasPerModelQuota(provider, rawModel))
   ) {
     return;
   }
