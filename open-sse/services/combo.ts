@@ -141,6 +141,7 @@ import {
   shouldSkipForPredictedTtft,
   shouldRecordProviderBreakerFailure,
   resolveDelayMs,
+  comboCapabilityNotFoundResponse,
   comboModelNotFoundResponse,
   isStreamReadinessFailureErrorBody,
   isTokenLimitBreachErrorBody,
@@ -161,8 +162,9 @@ import {
   orderTargetsByPowerOfTwoChoices,
 } from "./combo/targetSorters.ts";
 import {
-  filterTargetsByRequestCompatibility,
+  evaluateTargetsByRequestCompatibility,
   getModelContextLimitForModelString,
+  filterTargetsByRequestCompatibility,
   resolveComboRuntimeUnits,
   resolveComboTargets,
   resolveWeightedTargets,
@@ -1599,7 +1601,14 @@ export async function handleComboChat({
   );
   orderedTargets = _sticky.targets;
   orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
-  orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
+  const requestCompatibility = evaluateTargetsByRequestCompatibility(orderedTargets, body);
+  if (requestCompatibility.requestRejected) {
+    return comboCapabilityNotFoundResponse(requestCompatibility.rejectionReason || "");
+  }
+  orderedTargets =
+    requestCompatibility.compatibleTargets.length > 0
+      ? requestCompatibility.compatibleTargets
+      : orderedTargets;
 
   // Task-aware reordering: only active for strategies ["smart","task","task-aware","task_aware","auto"].
   // Additive — does not affect any of the other 15 strategies.
@@ -2765,12 +2774,14 @@ async function handleRoundRobinCombo({
   );
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
   const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
-  const filteredTargets = filterTargetsByRequestCompatibility(
-    evalRankedTargets,
-    body,
-    log,
-    "Context-aware round-robin fallback"
-  );
+  const requestCompatibility = evaluateTargetsByRequestCompatibility(evalRankedTargets, body);
+  if (requestCompatibility.requestRejected) {
+    return comboCapabilityNotFoundResponse(requestCompatibility.rejectionReason || "");
+  }
+  const filteredTargets =
+    requestCompatibility.compatibleTargets.length > 0
+      ? requestCompatibility.compatibleTargets
+      : evalRankedTargets;
   const modelCount = filteredTargets.length;
   if (modelCount === 0) {
     return comboModelNotFoundResponse("Round-robin combo has no executable targets");

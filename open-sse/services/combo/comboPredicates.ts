@@ -172,6 +172,10 @@ export function comboModelNotFoundResponse(message: string) {
   return errorResponse(404, message);
 }
 
+export function comboCapabilityNotFoundResponse(message: string) {
+  return errorResponse(400, message);
+}
+
 export function getTargetProvider(modelStr: string, providerId?: string | null): string {
   const parsed = parseModel(modelStr);
   return providerId || parsed.provider || parsed.providerAlias || "unknown";
