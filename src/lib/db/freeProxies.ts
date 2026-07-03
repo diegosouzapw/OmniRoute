@@ -270,6 +270,34 @@ export async function clearFreeProxiesBySource(source: FreeProxySourceId): Promi
   return result.changes;
 }
 
+/**
+ * Tombstone rows for `source` whose `host:port` is no longer present in the
+ * provider's latest list — e.g. Webshare recycles/retires proxy IDs between
+ * syncs. Rows already promoted to the pool (`in_pool = 1`) are left alone so
+ * runtime resolution of an in-use proxy is never disturbed; only stale,
+ * not-yet-pooled candidates are pruned. Returns the number of rows removed.
+ */
+export async function pruneStaleFreeProxies(
+  source: FreeProxySourceId,
+  activeKeys: ReadonlySet<string>
+): Promise<number> {
+  const db = getDbInstance();
+  const rows = db
+    .prepare("SELECT id, host, port FROM free_proxies WHERE source = ? AND in_pool = 0")
+    .all(source) as Array<{ id: string; host: string; port: number }>;
+
+  const staleIds = rows.filter((r) => !activeKeys.has(`${r.host}:${r.port}`)).map((r) => r.id);
+
+  if (staleIds.length === 0) return 0;
+
+  const placeholders = staleIds.map(() => "?").join(",");
+  const result = db
+    .prepare(`DELETE FROM free_proxies WHERE id IN (${placeholders})`)
+    .run(...staleIds);
+  backupDbFile("pre-write");
+  return result.changes;
+}
+
 // #4878: the displayed "last sync" used to be derived from MAX(last_validated),
 // which only advances when a provider returns at least one new/updated proxy. A
 // sync that returns zero rows (or whose providers all fail) left the timestamp
