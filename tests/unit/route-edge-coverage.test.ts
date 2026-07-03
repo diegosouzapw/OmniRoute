@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-route-edges-"));
@@ -38,6 +39,12 @@ async function resetStorage() {
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  await localDb.setProxyConfig({ global: null, providers: {}, combos: {}, keys: {} });
+  const proxies = await localDb.listProxies({ includeSecrets: true });
+  for (const proxy of proxies) {
+    await localDb.deleteProxyById(proxy.id, { force: true });
+  }
+  clearDispatcherCache();
 }
 
 async function enableManagementAuth() {
@@ -900,6 +907,7 @@ test("v1 routes surface provider-rate-limit sentinels instead of missing credent
 });
 
 test("embeddings route tolerates custom-model and provider-node lookup failures", async () => {
+  await resetStorage();
   await seedOpenAIConnection();
 
   const originalFetch = globalThis.fetch;
@@ -944,6 +952,7 @@ test("embeddings route tolerates custom-model and provider-node lookup failures"
 });
 
 test("embeddings route supports local provider nodes without credentials and enforces model policy", async () => {
+  await resetStorage();
   await providersDb.createProviderNode({
     id: "local-embed-node",
     type: "openai-compatible",
@@ -1017,6 +1026,7 @@ test("embeddings route supports local provider nodes without credentials and enf
 });
 
 test("embeddings route returns normalized upstream failures", async () => {
+  await resetStorage();
   await seedOpenAIConnection();
 
   const originalFetch = globalThis.fetch;
@@ -1076,6 +1086,7 @@ test("embeddings route GET skips malformed, non-embedding, and duplicate custom 
 });
 
 test("embeddings route tolerates non-array provider nodes and remote fallback lookup errors", async () => {
+  await resetStorage();
   await seedOpenAIConnection();
 
   const originalFetch = globalThis.fetch;
