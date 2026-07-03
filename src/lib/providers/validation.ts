@@ -298,6 +298,23 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       }
     },
     jules: validateJulesProvider,
+    // auggie is a fully local, credential-less CLI passthrough — there is no API
+    // key to check upstream. The only meaningful validation is confirming the
+    // `auggie` binary is installed and runnable on this machine.
+    auggie: async () => {
+      const { checkAuggieCliVersion } = await import(
+        "@omniroute/open-sse/executors/auggie.ts"
+      );
+      const result = await checkAuggieCliVersion();
+      if (!result.ok) {
+        return {
+          valid: false,
+          error: result.error || "Auggie CLI not found. Install it and run `auggie login`.",
+          unsupported: false,
+        };
+      }
+      return { valid: true, error: null, unsupported: false, method: result.version };
+    },
     qoder: async ({ apiKey, providerSpecificData }: any) => {
       // Bifurcate validation: PAT tokens use Cosy auth against api1.qoder.sh;
       // regular API keys validate against dashscope (OpenAI-compatible endpoint).
