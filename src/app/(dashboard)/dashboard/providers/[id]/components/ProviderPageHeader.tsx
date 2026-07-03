@@ -12,6 +12,10 @@ interface ProviderInfo {
   website?: string;
   color: string;
   apiType?: string;
+  /** Optional operator-supplied remote icon URL (#2166) for compatible provider nodes. */
+  iconUrl?: string;
+  /** Short text-badge fallback (e.g. "OC"/"AC"/"CC") shown if `iconUrl` fails to load. */
+  textIcon?: string;
 }
 
 interface ProviderPageHeaderProps {
@@ -56,6 +60,10 @@ export default function ProviderPageHeader({
             )}
             size={48}
             type="color"
+            src={providerInfo.iconUrl}
+            alt={providerInfo.name}
+            fallbackText={providerInfo.textIcon}
+            fallbackColor={providerInfo.color}
           />
         </div>
         <div>

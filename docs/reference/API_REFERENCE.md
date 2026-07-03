@@ -18,6 +18,7 @@ Complete reference for all OmniRoute API endpoints.
 - [Embeddings](#embeddings)
 - [Image Generation](#image-generation)
 - [List Models](#list-models)
+- [Provider Plugin Manifest](#provider-plugin-manifest)
 - [Compatibility Endpoints](#compatibility-endpoints)
 - [Files API](#files-api)
 - [Batches API](#batches-api)
@@ -175,6 +176,22 @@ claude-3-omniroute-no-thinking/<provider>/<model>
 ```
 
 Selecting this id (e.g. in a Claude Code config that always attaches a `thinking` block) resolves back to the real `<provider>/<model>` with reasoning suppressed — `thinking:{type:"disabled"}` on the `/v1/messages` path, or the `reasoning`/`reasoning_effort` fields dropped on the `/v1/chat/completions` path. The variant is only listed for Claude-family models that support thinking **and** honor `disabled` (so e.g. adaptive-only models that reject `disabled` are excluded). Operators can force the variant on or off per model via `ModelSpec.noThinkingAlias`.
+
+---
+
+## Provider Plugin Manifest
+
+```bash
+GET /api/v1/provider-plugin-manifest
+```
+
+Returns the JSON-safe provider plugin manifest used by Bifrost, CLIProxyAPI, and
+future sidecar routers. The response is generated from the TypeScript provider
+registry and intentionally excludes OAuth client secrets, runtime environment
+resolution, executor functions, request headers, and account data.
+
+Use this endpoint when a sidecar runs out-of-process and cannot import
+`open-sse/config/providerPluginManifestRegistry.ts` directly.
 
 ---
 

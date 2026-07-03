@@ -26,6 +26,7 @@ import {
   type BifrostRoutingConfig,
 } from "./routingBackend";
 import { getProviderPluginManifestEntryForModel } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
+import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
 import { finalizeReadableStream } from "./streamFinalizer";
 import {
   clearBifrostFailure,
@@ -74,6 +75,7 @@ async function forwardToBifrost(
     "Content-Type": "application/json",
     "x-relay-token-id": token.id,
     "x-relay-client-ip": clientIp,
+    ...getProviderPluginManifestHeader(new URL(request.url).origin),
   };
   if (config.apiKey) {
     upstreamHeaders.Authorization = `Bearer ${config.apiKey}`;
