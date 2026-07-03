@@ -3444,6 +3444,166 @@ paths:
         "400":
           description: Invalid request body
 
+  /api/services/mux/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install Mux from npm
+      description: >-
+        Installs the `mux` npm package (coder/mux — local agent-orchestration
+        daemon) under DATA_DIR/services/mux/. **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Install succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+        "400":
+          description: Invalid request body
+        "500":
+          description: npm install failed
+
+  /api/services/mux/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start Mux
+      description: >-
+        Spawns `mux server --host 127.0.0.1 --port <port>`. Idempotent if
+        already running. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "409":
+          description: Mux is not installed
+        "503":
+          description: Start failed
+
+  /api/services/mux/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop Mux
+      description: >-
+        Gracefully stops Mux. Idempotent.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/mux/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart Mux
+      description: >-
+        stop() then start() under the operation lock.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service restarted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/mux/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update Mux to a newer npm version
+      description: >-
+        Stops, installs newer version, restarts.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Update succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+        "500":
+          description: Update failed
+
+  /api/services/mux/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get Mux status
+      description: >-
+        Returns live supervisor state and DB metadata.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Status response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/mux/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle Mux auto-start
+      description: >-
+        When enabled, Mux starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Auto-start flag updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  autoStart:
+                    type: boolean
+        "400":
+          description: Invalid request body
+
   /api/services/{name}/logs:
     get:
       tags: [Embedded Services]

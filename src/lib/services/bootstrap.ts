@@ -7,12 +7,14 @@ import {
   resolveSpawnArgs as cliproxySpawnArgs,
   CLIPROXY_DEFAULT_PORT,
 } from "./installers/cliproxy";
+import { resolveSpawnArgs as muxSpawnArgs, MUX_DEFAULT_PORT } from "./installers/mux";
 import { getOrCreateApiKey } from "./apiKey";
 import { scheduleServiceModelSync, stopServiceModelSync } from "./modelSync";
 import type { ServiceStatus } from "./types";
 
 const NINEROUTER_PORT = parseInt(process.env.NINEROUTER_PORT ?? "20130", 10);
 const CLIPROXY_PORT = parseInt(process.env.CLIPROXYAPI_PORT ?? String(CLIPROXY_DEFAULT_PORT), 10);
+const MUX_PORT = parseInt(process.env.MUX_SERVICE_PORT ?? String(MUX_DEFAULT_PORT), 10);
 
 type ServiceEntry = {
   tool: string;
@@ -43,6 +45,15 @@ const SERVICES: ServiceEntry[] = [
     logsBufferBytes: 5_242_880,
     needsApiKey: false,
   },
+  {
+    tool: "mux",
+    port: MUX_PORT,
+    healthPath: "/health",
+    healthIntervalMs: 5_000,
+    stopTimeoutMs: 15_000,
+    logsBufferBytes: 5_242_880,
+    needsApiKey: true,
+  },
 ];
 
 function buildSpawnArgsFactory(
@@ -51,6 +62,9 @@ function buildSpawnArgsFactory(
 ): () => ReturnType<typeof nineRouterSpawnArgs> {
   if (cfg.tool === "9router") {
     return () => nineRouterSpawnArgs(apiKey, cfg.port);
+  }
+  if (cfg.tool === "mux") {
+    return () => muxSpawnArgs(apiKey, cfg.port);
   }
   return () => cliproxySpawnArgs(cfg.port);
 }
