@@ -702,7 +702,21 @@ export async function handleComboChat({
         "COMBO",
         `Bypassing strategy — routing directly to pinned context model: ${pinnedModel}`
       );
-      return handleSingleModelWithTimeout(body, pinnedModel);
+      const pinnedResult = await handleSingleModelWithTimeout(body, pinnedModel);
+      // If the pinned model succeeds, return immediately.
+      if (pinnedResult.ok) return pinnedResult;
+      // If the pinned model fails with a transient error, fall through to the
+      // normal target iteration loop so retries and sibling models can be tried.
+      // Gemini 500s are intermittent — the combo should keep trying.
+      const pinnedStatus = pinnedResult.status || 500;
+      if ([408, 429, 500, 502, 503, 504].includes(pinnedStatus)) {
+        log.warn(
+          "COMBO",
+          `Pinned model ${pinnedModel} failed (${pinnedStatus}), falling through to combo retry/fallback`
+        );
+      } else {
+        return pinnedResult;
+      }
     }
     log.warn(
       "COMBO",
@@ -710,7 +724,8 @@ export async function handleComboChat({
         ? `Context-cache pin "${pinnedModel}" provider durably unhealthy — dropping pin, using strategy`
         : `Stale context-cache pin "${pinnedModel}" not in combo "${combo.name}" targets — dropping pin, using strategy`
     );
-    return handleSingleModelWithTimeout(body, pinnedModel);
+    // Fall through to the normal target iteration loop below — the pin is
+    // dropped, so the combo strategy picks the best available target.
   }
 
   // Fusion strategy: parallel panel + judge synthesis. Handled in a separate module
