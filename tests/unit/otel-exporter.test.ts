@@ -10,13 +10,33 @@
  * Reference: open-sse/observability/otelExporter.ts, PLAN.md § 2.5.2 (B10).
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import assert from "node:assert/strict";
+import { describe, it, beforeEach, afterEach, mock } from "node:test";
 import {
   getTracer,
   isOtelEnabled,
   recordException,
   _resetOtelInitLoggedForTest,
 } from "../../open-sse/observability/otelExporter.ts";
+
+function expect<T>(actual: T) {
+  return {
+    toBe(expected: unknown) {
+      assert.equal(actual, expected);
+    },
+    toBeDefined() {
+      assert.notEqual(actual, undefined);
+    },
+    not: {
+      toBe(expected: unknown) {
+        assert.notEqual(actual, expected);
+      },
+      toThrow() {
+        assert.doesNotThrow(actual as () => unknown);
+      },
+    },
+  };
+}
 
 describe("otelExporter", () => {
   const ORIGINAL_ENV = { ...process.env };
@@ -31,7 +51,7 @@ describe("otelExporter", () => {
   afterEach(() => {
     process.env = { ...ORIGINAL_ENV };
     _resetOtelInitLoggedForTest();
-    vi.restoreAllMocks();
+    mock.restoreAll();
   });
 
   describe("isOtelEnabled", () => {

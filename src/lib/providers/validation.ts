@@ -2719,6 +2719,21 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       },
     };
   },
+  firecrawl: (apiKey) => ({
+    url: "https://api.firecrawl.dev/v1/scrape",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ url: "https://example.com", formats: ["markdown"] }),
+    },
+  }),
+  "jina-reader": (apiKey) => ({
+    url: "https://r.jina.ai/https://example.com",
+    init: {
+      method: "GET",
+      headers: { Authorization: `Bearer ${apiKey}` },
+    },
+  }),
 };
 
 // See open-sse/executors/muse-spark-web.ts for the rationale: Meta migrated
@@ -3643,6 +3658,24 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }
 
+  const searchValidatorConfig = SEARCH_VALIDATOR_CONFIGS[provider];
+  if (searchValidatorConfig) {
+    try {
+      const { url, init } = searchValidatorConfig(apiKey, providerSpecificData);
+      return await validateSearchProvider(url, init, providerSpecificData, isLocal);
+    } catch (error: any) {
+      return toValidationErrorResult(error);
+    }
+  }
+
+  if (SPECIALTY_VALIDATORS[provider]) {
+    try {
+      return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
+    } catch (error: any) {
+      return toValidationErrorResult(error);
+    }
+  }
+
   if (isOpenAICompatibleProvider(provider)) {
     try {
       return await validateOpenAICompatibleProvider({ apiKey, providerSpecificData });
@@ -3989,14 +4022,6 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       ])
     ),
   };
-
-  if (SPECIALTY_VALIDATORS[provider]) {
-    try {
-      return await SPECIALTY_VALIDATORS[provider]({ apiKey, providerSpecificData });
-    } catch (error: any) {
-      return toValidationErrorResult(error);
-    }
-  }
 
   const entry = getRegistryEntry(provider);
   if (!entry) {

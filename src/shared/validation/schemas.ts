@@ -1,18 +1,13 @@
 import { z } from "zod";
-import {
-  ACCOUNT_FALLBACK_STRATEGY_VALUES,
-  ROUTING_STRATEGY_VALUES,
-} from "@/shared/constants/routingStrategies";
+import { ACCOUNT_FALLBACK_STRATEGY_VALUES, ROUTING_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
-import {
-  isForbiddenUpstreamHeaderName,
-  isForbiddenCustomHeaderName,
-} from "@/shared/constants/upstreamHeaders";
+import { isForbiddenUpstreamHeaderName, isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
+import { comboRuntimeExtensionShape, promoteZeroLatencyConfig } from "./schemas/comboRuntimeExtensions";
 
 function isHttpUrl(value: string): boolean {
   try {
@@ -682,8 +677,10 @@ export const comboRuntimeConfigSchema = z
     resetWindowQuotaCacheMaxStaleMs: z.coerce.number().int().min(0).max(3_600_000).optional(),
     shadowRouting: shadowRoutingSchema.optional(),
     evalRouting: evalRoutingSchema.optional(),
+    ...comboRuntimeExtensionShape,
   })
   .strict()
+  .transform(promoteZeroLatencyConfig)
   .superRefine((config, ctx) => {
     if (config.zeroLatencyOptimizationsEnabled === true) return;
 
@@ -719,6 +716,7 @@ const comboNameSchema = z
 
 export const createComboSchema = z.object({
   name: comboNameSchema,
+  description: z.string().max(1000).optional(),
   models: z.array(comboModelEntry).optional().default([]),
   strategy: comboStrategySchema.optional().default("priority"),
   config: comboRuntimeConfigSchema.optional(),
@@ -1776,6 +1774,7 @@ export const cloudSyncActionSchema = z.object({
 export const updateComboSchema = z
   .object({
     name: comboNameSchema.optional(),
+    description: z.string().max(1000).optional(),
     models: z.array(comboModelEntry).optional(),
     strategy: comboStrategySchema.optional(),
     config: comboRuntimeConfigSchema.optional(),
@@ -1790,6 +1789,7 @@ export const updateComboSchema = z
   .superRefine((value, ctx) => {
     if (
       value.name === undefined &&
+      value.description === undefined &&
       value.models === undefined &&
       value.strategy === undefined &&
       value.config === undefined &&

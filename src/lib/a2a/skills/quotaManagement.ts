@@ -2,6 +2,8 @@
  * Quota Management A2A Skill
  *
  * Per-tenant quota ledger with three operations:
+ * Mirrors the dashboard read surface at /api/usage/quota while keeping
+ * A2A quota mutations on the tenant_quotas ledger.
  *
  *   - check   — read-only snapshot of usage against the cap.
  *   - consume — atomic debit; rejected when the requested amount would

@@ -37,6 +37,11 @@ export const A2A_SKILL_HANDLERS: Record<string, A2ASkillHandler> = {
     return skillModule.executeHealthReport(task);
   },
 
+  "list-capabilities": async (task) => {
+    const skillModule = await import("./skills/listCapabilities");
+    return skillModule.executeListCapabilities(task);
+  },
+
   "agent-dispatch": async (task) => {
     const skillModule = await import("./skills/agentDispatch");
     return skillModule.executeAgentDispatch(task);

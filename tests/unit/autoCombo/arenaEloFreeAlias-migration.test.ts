@@ -12,20 +12,19 @@
  * on a tree with duplicated migration numbers and passes once every migration
  * has a unique numeric prefix.
  */
-import { test, before, after } from "node:test";
-import assert from "node:assert/strict";
+import { test, beforeAll, afterAll, expect } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 let dataDir: string;
 
-before(() => {
+beforeAll(() => {
   dataDir = mkdtempSync(join(tmpdir(), "omniroute-arena-elo-"));
   process.env.DATA_DIR = dataDir;
 });
 
-after(async () => {
+afterAll(async () => {
   const { resetDbInstance } = await import("../../../src/lib/db/core.ts");
   resetDbInstance();
   rmSync(dataDir, { recursive: true, force: true });
@@ -36,7 +35,7 @@ test("migrations run cleanly (no version collision) on a fresh DB", async () => 
   // Throws "Migration version collision detected: ..." if any two migration
   // files share a numeric prefix. Succeeds only when all prefixes are unique.
   const db = getDbInstance();
-  assert.ok(db, "getDbInstance() must return a usable handle after migrations");
+  expect(db, "getDbInstance() must return a usable handle after migrations").toBeTruthy();
 });
 
 test("returns the base model's arena_elo when given a -free variant", async () => {
@@ -60,8 +59,10 @@ test("returns the base model's arena_elo when given a -free variant", async () =
   invalidateFitnessCache();
   try {
     const result = getTaskFitnessWithSource(freeId, "coding");
-    assert.ok(Math.abs(result.score - 0.42) < 1e-5, `expected ~0.42, got ${result.score}`);
-    assert.equal(result.source, "arena_elo_free_alias");
+    expect(Math.abs(result.score - 0.42), `expected ~0.42, got ${result.score}`).toBeLessThan(
+      1e-5
+    );
+    expect(result.source).toBe("arena_elo_free_alias");
   } finally {
     deleteModelIntelligence(baseId, "arena_elo", "coding");
     invalidateFitnessCache();
@@ -74,8 +75,8 @@ test("does not strip -free when arena_elo is present on the literal model id", a
   setUserFitnessOverride("foo-free", "coding", 0.91);
   try {
     const result = getTaskFitnessWithSource("foo-free", "coding");
-    assert.equal(result.score, 0.91);
-    assert.equal(result.source, "user_override");
+    expect(result.score).toBe(0.91);
+    expect(result.source).toBe("user_override");
   } finally {
     clearUserFitnessOverride("foo-free", "coding");
     invalidateFitnessCache();

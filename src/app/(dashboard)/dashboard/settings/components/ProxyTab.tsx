@@ -57,7 +57,7 @@ export default function ProxyTab() {
         ))}
       </div>
 
-      <div role="tabpanel">
+      <div role="tabpanel" aria-label={t(TABS.find((tab) => tab.id === activeTab)!.labelKey)}>
         {activeTab === "global-config" && <GlobalConfigTab />}
         {activeTab === "proxy-pool" && <ProxyPoolTab />}
         {activeTab === "free-pool" && <FreePoolTab />}

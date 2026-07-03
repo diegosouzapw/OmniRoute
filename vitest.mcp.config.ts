@@ -44,7 +44,6 @@ export default defineConfig({
       "open-sse/services/__tests__/tierResolver.test.ts",
       "open-sse/services/__tests__/volumeDetector.test.ts",
       "src/app/api/compression/replay/__tests__/route.test.ts",
-      "tests/unit/autoCombo/arenaEloFreeAlias-migration.test.ts",
       "tests/unit/transformer/responsesTransformer.test.ts",
     ],
     coverage: {

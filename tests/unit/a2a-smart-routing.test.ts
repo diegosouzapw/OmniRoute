@@ -13,10 +13,51 @@
  * for the orchestrator (`strategy_hint`, `recommendation`, etc.).
  */
 
-import { describe, expect, it } from "vitest";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
 import { executeSmartRouting } from "@/lib/a2a/skills/smartRouting";
 import type { A2ATask } from "@/lib/a2a/taskManager";
+
+function expect<T>(actual: T) {
+  return {
+    toBe(expected: unknown) {
+      assert.equal(actual, expected);
+    },
+    toBeTruthy() {
+      assert.ok(actual);
+    },
+    toBeNull() {
+      assert.equal(actual, null);
+    },
+    toHaveLength(expected: number) {
+      assert.equal((actual as { length: number }).length, expected);
+    },
+    toMatch(expected: RegExp) {
+      assert.match(String(actual), expected);
+    },
+    toBeGreaterThan(expected: number) {
+      assert.ok(Number(actual) > expected);
+    },
+    toBeGreaterThanOrEqual(expected: number) {
+      assert.ok(Number(actual) >= expected);
+    },
+    toBeLessThanOrEqual(expected: number) {
+      assert.ok(Number(actual) <= expected);
+    },
+    not: {
+      toBe(expected: unknown) {
+        assert.notEqual(actual, expected);
+      },
+      toBeNull() {
+        assert.notEqual(actual, null);
+      },
+      toThrow() {
+        assert.doesNotThrow(actual as () => unknown);
+      },
+    },
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Result types — what the smart-routing skill actually emits

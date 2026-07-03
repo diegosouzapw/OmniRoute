@@ -5,7 +5,7 @@ import { parseOcrModel } from "@omniroute/open-sse/config/ocrRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
-import { v1OcrSchema } from "@/shared/validation/schemas";
+import { v1OcrSchema } from "@/shared/validation/schemas/apiV1";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
   isAllRateLimitedCredentials,
