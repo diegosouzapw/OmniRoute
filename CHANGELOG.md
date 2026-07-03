@@ -18,6 +18,7 @@
 - **feat(providers):** add sign-up geo-restriction notices for **SenseNova** and **StepFun** ([#5462](https://github.com/diegosouzapw/OmniRoute/issues/5462)) — the provider add-form now warns that SenseNova's console appears to require a Chinese (+86) phone number with no documented international path, and that StepFun's default endpoint is its China platform while a global StepFun Open Platform (`platform.stepfun.ai`, operated by Sparkling AI Pte. Ltd., Singapore) with email/Google/Discord login exists for international users. Informational `notice` only — neither provider is disabled. Regression guard: `tests/unit/regional-provider-cn-notices-5462.test.ts`. (thanks @chirag127)
 - **feat(usage):** add on-demand period-scoped usage-data reset (Settings → System Storage) with a purge API and time-window selector.
 - **feat(claude-code):** add an opt-in auto-permission classifier compat mode (off/auto/always) for Claude Code, toggleable from the CLI Code settings.
+- **feat(providers):** add optional client-identity header profiles for compatible nodes — preset User-Agent/fingerprint headers (e.g. matching a known CLI) merged into the existing customHeaders field.
 
 ### 🔧 Bug Fixes
 
