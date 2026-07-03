@@ -162,3 +162,128 @@ test("Antigravity inferred Gemini family cooldown starts around 30s when no upst
   assert.equal(otherGemini.cooldownScope, "model");
   assert.equal(otherGemini.lastErrorCode, 429);
 });
+
+test("Antigravity 429 with exhausted cached quota persists connection cooldown until resetAt", async () => {
+  await resetStorage();
+
+  const resetAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+  const conn = await providersDb.createProviderConnection({
+    provider: "antigravity",
+    authType: "oauth",
+    email: "cached-quota@example.test",
+    accessToken: "tok-cached-quota",
+    isActive: true,
+    testStatus: "active",
+  });
+  const connId = connectionId(conn);
+
+  const quotaCache = await import("../../src/domain/quotaCache.ts");
+  quotaCache.setQuotaCache(connId, "antigravity", {
+    "gemini-3-pro": { remainingPercentage: 0, resetAt },
+  });
+
+  const result = await auth.markAccountUnavailable(
+    connId,
+    429,
+    "RESOURCE_EXHAUSTED: Resource has been exhausted",
+    "antigravity",
+    "gemini-2.5-pro"
+  );
+  const updated = await providersDb.getProviderConnectionById(connId);
+
+  assert.equal(result.shouldFallback, true);
+  assert.ok(
+    result.cooldownMs > 60 * 60 * 1000,
+    `expected reset-sized cooldown, got ${result.cooldownMs}`
+  );
+  assert.equal(updated.testStatus, "unavailable");
+  assert.equal(updated.lastErrorType, "quota_exhausted");
+  assert.equal(Number(updated.errorCode), 429);
+  assert.ok(updated.rateLimitedUntil, "expected persistent rateLimitedUntil");
+  assert.ok(
+    Math.abs(new Date(updated.rateLimitedUntil).getTime() - new Date(resetAt).getTime()) < 2_000,
+    `expected rateLimitedUntil near resetAt ${resetAt}, got ${updated.rateLimitedUntil}`
+  );
+
+  const selection = await auth.getProviderCredentials("antigravity", null, null, "gemini-3-pro");
+  assert.ok(selection && "allRateLimited" in selection && selection.allRateLimited);
+});
+
+test("non-Antigravity 429 ignores unrelated exhausted quota cache and keeps model-only behavior", async () => {
+  await resetStorage();
+
+  const resetAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+  const conn = await providersDb.createProviderConnection({
+    provider: "gemini",
+    authType: "apikey",
+    email: "gemini@example.test",
+    apiKey: "sk-gemini-quota-cache",
+    isActive: true,
+    testStatus: "active",
+  });
+  const connId = connectionId(conn);
+
+  const quotaCache = await import("../../src/domain/quotaCache.ts");
+  quotaCache.setQuotaCache(connId, "gemini", {
+    "gemini-2.5-pro": { remainingPercentage: 0, resetAt },
+  });
+
+  const result = await auth.markAccountUnavailable(
+    connId,
+    429,
+    "too many requests",
+    "gemini",
+    "gemini-2.5-pro"
+  );
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const updated = await providersDb.getProviderConnectionById(connId);
+
+  assert.equal(result.shouldFallback, true);
+  assert.ok(result.cooldownMs > 0);
+  assert.equal(updated.testStatus, "active");
+  assert.equal(updated.rateLimitedUntil, undefined);
+  assert.equal(updated.lastErrorType, "rate_limited");
+});
+
+test("Antigravity 499 does not punish account, but prior quota-reset cooldown persists", async () => {
+  await resetStorage();
+
+  const resetAt = new Date(Date.now() + 90 * 60 * 1000).toISOString();
+  const conn = await providersDb.createProviderConnection({
+    provider: "antigravity",
+    authType: "oauth",
+    email: "abort-after-quota@example.test",
+    accessToken: "tok-abort-after-quota",
+    isActive: true,
+    testStatus: "active",
+  });
+  const connId = connectionId(conn);
+
+  const quotaCache = await import("../../src/domain/quotaCache.ts");
+  quotaCache.setQuotaCache(connId, "antigravity", {
+    "gemini-3-pro": { remainingPercentage: 0, resetAt },
+  });
+
+  await auth.markAccountUnavailable(
+    connId,
+    429,
+    "RESOURCE_EXHAUSTED: Resource has been exhausted",
+    "antigravity",
+    "gemini-3-pro"
+  );
+  const after429 = await providersDb.getProviderConnectionById(connId);
+
+  const abortResult = await auth.markAccountUnavailable(
+    connId,
+    499,
+    "client_disconnected",
+    "antigravity",
+    "gemini-3-pro"
+  );
+  const after499 = await providersDb.getProviderConnectionById(connId);
+
+  assert.equal(abortResult.shouldFallback, true);
+  assert.ok(abortResult.cooldownMs > 0);
+  assert.equal(after499.rateLimitedUntil, after429.rateLimitedUntil);
+  assert.equal(after499.lastErrorType, "quota_exhausted");
+});
