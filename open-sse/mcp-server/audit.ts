@@ -206,6 +206,49 @@ function toString(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+async function openBetterSqliteAuditDb(dbPath: string): Promise<AuditDatabase> {
+  const Database = (await import("better-sqlite3")).default as unknown as new (
+    dbPath: string
+  ) => AuditDatabase;
+  return new Database(dbPath);
+}
+
+function nodeSqliteFallbackAvailable(): boolean {
+  const [maj, min] = (process.versions.node ?? "0.0").split(".").map(Number);
+  return maj > 22 || (maj === 22 && (min ?? 0) >= 5);
+}
+
+async function openNodeSqliteAuditDb(dbPath: string): Promise<AuditDatabase> {
+  const { DatabaseSync } = (await import("node:sqlite")) as {
+    DatabaseSync: new (p: string) => NodeSqliteDatabase;
+  };
+  return createNodeSqliteAuditAdapter(new DatabaseSync(dbPath));
+}
+
+async function openFallbackAuditDb(dbPath: string, nativeMessage: string): Promise<AuditDatabase | null> {
+  if (!nodeSqliteFallbackAvailable()) {
+    console.error(
+      `[MCP Audit] better-sqlite3 native binding unavailable and Node ${process.version} ` +
+        "has no built-in sqlite. Audit logging disabled. Fix: run " +
+        "`npm rebuild better-sqlite3` in the omniroute install root."
+    );
+    return null;
+  }
+
+  try {
+    const adapter = await openNodeSqliteAuditDb(dbPath);
+    console.warn(
+      `[MCP Audit] better-sqlite3 binding unavailable — fell back to node:sqlite ` +
+        `(${nativeMessage.split("\n")[0]})`
+    );
+    return adapter;
+  } catch (nodeErr) {
+    const nodeMessage = nodeErr instanceof Error ? nodeErr.message : String(nodeErr);
+    console.error("[MCP Audit] Failed to connect to database:", nodeMessage);
+    return null;
+  }
+}
+
 /**
  * Lazy-load the database connection.
  * Uses the same SQLite database as the main OmniRoute app.
@@ -238,58 +281,19 @@ async function getDb(): Promise<AuditDatabase | null> {
       return null;
     }
 
-    // Try better-sqlite3 first (matches the main app's default driver).
     try {
-      const Database = (await import("better-sqlite3")).default as unknown as new (
-        dbPath: string
-      ) => AuditDatabase;
-      const database = new Database(dbPath);
+      const database = await openBetterSqliteAuditDb(dbPath);
       setCachedAuditDb(database);
       return database;
     } catch (nativeErr) {
-      // Declared once at the top of the catch: nativeMessage is read both on
-      // the non-fallback bail-out and in the node:sqlite fallback warning
-      // further down. A block-scoped const inside the `if` below would be out
-      // of scope in the fallback path.
       const nativeMessage = nativeErr instanceof Error ? nativeErr.message : String(nativeErr);
-      // Reuse the canonical detection helper from the main app's DB layer
-      // so we cover every ABI/binding failure mode the rest of the codebase
-      // already knows about: missing MODULE_NOT_FOUND, ERR_DLOPEN_FAILED,
-      // "Module did not self-register", "Cannot find module 'better-sqlite3'",
-      // the standard V8 "was compiled against a different Node.js version"
-      // message, and the bindings-loader "Could not locate the bindings file".
-      // Real errors (corrupt db, permission denied) still surface to the operator.
       if (!isNativeSqliteLoadError(nativeErr)) {
         console.error("[MCP Audit] Failed to connect to database:", nativeMessage);
         return null;
       }
-      // Fall back to Node's built-in sqlite (Node 22.5+).
-      const [maj, min] = (process.versions.node ?? "0.0").split(".").map(Number);
-      if (maj < 22 || (maj === 22 && (min ?? 0) < 5)) {
-        console.error(
-          `[MCP Audit] better-sqlite3 native binding unavailable and Node ${process.version} ` +
-            "has no built-in sqlite. Audit logging disabled. Fix: run " +
-            "`npm rebuild better-sqlite3` in the omniroute install root."
-        );
-        return null;
-      }
-      try {
-        const { DatabaseSync } = (await import("node:sqlite")) as {
-          DatabaseSync: new (p: string) => NodeSqliteDatabase;
-        };
-        const nodeDb = new DatabaseSync(dbPath);
-        const adapter = createNodeSqliteAuditAdapter(nodeDb);
-        setCachedAuditDb(adapter);
-        console.warn(
-          `[MCP Audit] better-sqlite3 binding unavailable — fell back to node:sqlite ` +
-            `(${nativeMessage.split("\n")[0]})`
-        );
-        return adapter;
-      } catch (nodeErr) {
-        const nodeMessage = nodeErr instanceof Error ? nodeErr.message : String(nodeErr);
-        console.error("[MCP Audit] Failed to connect to database:", nodeMessage);
-        return null;
-      }
+      const fallbackDb = await openFallbackAuditDb(dbPath, nativeMessage);
+      setCachedAuditDb(fallbackDb);
+      return fallbackDb;
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);

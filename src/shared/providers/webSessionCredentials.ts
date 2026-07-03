@@ -273,3 +273,28 @@ export function hasUsableWebSessionCredential(
   const data = providerSpecificData as Record<string, unknown>;
   return requirement.storageKeys.some((key) => hasNonEmptyString(data[key]));
 }
+
+/**
+ * Resolve the value that a web-session import must store in the connection's
+ * `apiKey` column.
+ *
+ * `token`-kind providers (deepseek-web, copilot-web, copilot-m365-web,
+ * t3-chat-web, …) are authenticated from `apiKey`: both the connection
+ * validator (`validateDeepSeekWebProvider({ apiKey })`) and the executor
+ * (`extractUserToken` → `credentials.apiKey`) read the token there — never from
+ * `providerSpecificData`. The bulk web-session import used to leave `apiKey`
+ * null and stash the token only in `providerSpecificData`, so imported token-kind
+ * connections were never recognized. Return the credential for token-kind so the
+ * import stores it where those readers look.
+ *
+ * `cookie`-kind providers keep `apiKey` null — their executors read the full
+ * cookie from `providerSpecificData.cookie`.
+ */
+export function resolveWebSessionImportApiKey(
+  requirement: WebSessionCredentialRequirement | null,
+  credential: string
+): string | null {
+  if (!requirement || requirement.kind !== "token") return null;
+  const trimmed = typeof credential === "string" ? credential.trim() : "";
+  return trimmed.length > 0 ? trimmed : null;
+}

@@ -2,19 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LANGUAGES, LOCALE_COOKIE } from "@/i18n/config";
+import { LANGUAGES } from "@/i18n/config";
 import type { Locale } from "@/i18n/config";
 import { useLocale } from "next-intl";
-
-/** Persist locale preference in cookie + localStorage (outside component scope for ESLint) */
-function persistLocale(code: Locale) {
-  document.cookie = `${LOCALE_COOKIE}=${code};path=/;max-age=${365 * 24 * 60 * 60};samesite=lax`;
-  try {
-    localStorage.setItem(LOCALE_COOKIE, code);
-  } catch {
-    // Ignore
-  }
-}
+import { persistLocale } from "@/shared/lib/persistLocale";
 
 function CountryFlag({ emoji, alt }: { emoji: string; alt: string }) {
   const [error, setError] = useState(false);

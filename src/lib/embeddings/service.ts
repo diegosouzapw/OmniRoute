@@ -12,6 +12,8 @@ import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import { getProviderNodes, getComboByName, getCombos, getDatabaseSettings } from "@/lib/localDb";
+import { resolveProxyForConnection } from "@/lib/db/settings";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { findEmbeddingComboDimensionConflict } from "./familyGuard";
@@ -220,20 +222,41 @@ export async function createEmbeddingResponse(
     connectionDefaultModel
   );
 
-  const result = await handleEmbedding({
-    body: effectiveModel !== resolvedModel ? { ...body, model: `${provider}/${effectiveModel}` } : body,
-    // getProviderCredentials returns a richer connection object; handleEmbedding
-    // only reads apiKey/accessToken, both present at runtime. Bridge the wider
-    // selection type to the handler's narrow credential shape.
-    credentials: credentials as { apiKey?: string; accessToken?: string } | null,
-    log,
-    resolvedProvider: providerConfig,
-    resolvedModel: effectiveModel,
-    clientRawRequest: options.clientRawRequest || null,
-    apiKeyId: options.apiKeyId || null,
-    apiKeyName: options.apiKeyName || null,
-    connectionId: options.connectionId || null,
-  });
+  // Resolve the connection-level proxy so the upstream embedding request honors
+  // the same per-connection pinning as chat, image generation, and count_tokens
+  // (#1904-style behavior). Without this, embeddings silently fall back to the
+  // global/env proxy and ignore a connection's pinned proxy. Ported from
+  // upstream decolua/9router#1701.
+  let proxyInfo: Awaited<ReturnType<typeof resolveProxyForConnection>> | null = null;
+  const connectionIdForProxy = (credentials as { connectionId?: string } | null)?.connectionId;
+  if (connectionIdForProxy) {
+    try {
+      proxyInfo = await resolveProxyForConnection(connectionIdForProxy);
+    } catch (err) {
+      log.error("EMBED", `Failed to resolve proxy for connection ${connectionIdForProxy}: ${err}`);
+    }
+  }
+
+  const runEmbedding = () =>
+    handleEmbedding({
+      body:
+        effectiveModel !== resolvedModel ? { ...body, model: `${provider}/${effectiveModel}` } : body,
+      // getProviderCredentials returns a richer connection object; handleEmbedding
+      // only reads apiKey/accessToken, both present at runtime. Bridge the wider
+      // selection type to the handler's narrow credential shape.
+      credentials: credentials as { apiKey?: string; accessToken?: string } | null,
+      log,
+      resolvedProvider: providerConfig,
+      resolvedModel: effectiveModel,
+      clientRawRequest: options.clientRawRequest || null,
+      apiKeyId: options.apiKeyId || null,
+      apiKeyName: options.apiKeyName || null,
+      connectionId: options.connectionId || null,
+    });
+
+  const result = connectionIdForProxy
+    ? await runWithProxyContext(proxyInfo?.proxy || null, runEmbedding)
+    : await runEmbedding();
 
   const responseHeaders = new Headers(result.headers);
 
