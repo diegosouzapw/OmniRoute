@@ -347,3 +347,76 @@ test("handleMcpStreamableHTTP keeps 400 for a missing session id (non-initialize
   // only the *present-but-unknown* case changed to 404. This must NOT regress.
   assert.equal(res.status, 400);
 });
+
+test("handleMcpStreamableHTTP auto-recovers when stale session id is sent with initialize", async () => {
+  mod.shutdownMcpHttp();
+
+  const initReq = new Request("http://localhost/api/mcp/stream", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      method: "initialize",
+      id: 1,
+      params: {
+        protocolVersion: "2025-03-26",
+        capabilities: {},
+        clientInfo: { name: "test-client", version: "1.0.0" },
+      },
+    }),
+  });
+
+  const firstRes = await mod.handleMcpStreamableHTTP(initReq);
+  const staleSessionId = firstRes.headers.get("mcp-session-id");
+  if (!staleSessionId) {
+    mod.shutdownMcpHttp();
+    return;
+  }
+
+  mod.shutdownMcpHttp();
+  assert.equal(mod.isMcpHttpActive(), false);
+
+  const reinitReq = new Request("http://localhost/api/mcp/stream", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+      "mcp-session-id": staleSessionId,
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      method: "initialize",
+      id: 2,
+      params: {
+        protocolVersion: "2025-03-26",
+        capabilities: {},
+        clientInfo: { name: "test-client", version: "1.0.0" },
+      },
+    }),
+  });
+
+  const recoveryRes = await mod.handleMcpStreamableHTTP(reinitReq);
+
+  assert.notEqual(
+    recoveryRes.status,
+    404,
+    "Stale session + initialize must NOT return 404 — server should auto-recover"
+  );
+  assert.ok(
+    recoveryRes.status >= 200 && recoveryRes.status < 300,
+    `Expected 2xx response on auto-recovery, got ${recoveryRes.status}`
+  );
+
+  const newSessionId = recoveryRes.headers.get("mcp-session-id");
+  assert.ok(newSessionId, "Server must issue a new mcp-session-id on auto-recovery");
+  assert.equal(
+    mod.isMcpHttpActive(),
+    true,
+    "Server must have an active session after auto-recovery"
+  );
+
+  mod.shutdownMcpHttp();
+});

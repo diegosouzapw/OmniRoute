@@ -18,6 +18,8 @@ export const qoderProvider: RegistryEntry = {
   },
   models: [
     { id: "qoder-rome-30ba3b", name: "Qoder ROME" },
+    { id: "glm-5.2", name: "GLM-5.2" },
+    { id: "minimax-m3", name: "MiniMax M3", supportsVision: true },
     { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
     { id: "qwen3-max", name: "Qwen3 Max" },
     { id: "qwen3-vl-plus", name: "Qwen3 Vision Plus", supportsVision: true },
