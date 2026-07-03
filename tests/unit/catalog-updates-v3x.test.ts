@@ -75,8 +75,8 @@ test("Sonnet 5 catalog exposes claude-sonnet-5 across cc/kiro/anthropic/blackbox
   }
 
   const kiroSonnet5 = getModelsByProviderId("kiro").find((m) => m.id === "claude-sonnet-5");
-  assert.equal(kiroSonnet5?.contextLength, 1000000);
-  assert.equal(kiroSonnet5?.maxOutputTokens, 128000);
+  assert.equal(kiroSonnet5?.capabilities?.contextWindow, 1000000);
+  assert.equal(kiroSonnet5?.capabilities?.maxOutputTokens, 128000);
 
   const ccPricing = (DEFAULT_PRICING as Record<string, Record<string, unknown>>).cc;
   assert.ok(ccPricing["claude-sonnet-5"], "cc pricing must include claude-sonnet-5");

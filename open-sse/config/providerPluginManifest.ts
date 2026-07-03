@@ -58,21 +58,32 @@ const SIDECAR_COMPATIBLE_EXECUTORS = new Set(["default"]);
 
 function compactObject<T extends Record<string, unknown>>(value: T): Partial<T> {
   return Object.fromEntries(
-    Object.entries(value).filter(([, entryValue]) => entryValue !== undefined),
+    Object.entries(value).filter(([, entryValue]) => entryValue !== undefined)
   ) as Partial<T>;
 }
 
 function mapModel(model: RegistryModel): ProviderPluginModel {
+  const capabilities = model.capabilities ?? {};
+  const compat = model.compat ?? {};
   return compactObject({
     id: model.id,
     name: model.name,
-    contextLength: model.contextLength,
-    maxOutputTokens: model.maxOutputTokens,
-    toolCalling: model.toolCalling,
-    supportsReasoning: model.supportsReasoning,
-    supportsVision: model.supportsVision,
-    unsupportedParams: model.unsupportedParams,
-    targetFormat: model.targetFormat,
+    contextLength:
+      typeof capabilities.contextWindow === "number" ? capabilities.contextWindow : undefined,
+    maxOutputTokens:
+      typeof capabilities.maxOutputTokens === "number" ? capabilities.maxOutputTokens : undefined,
+    toolCalling:
+      typeof capabilities.supportsTools === "boolean" ? capabilities.supportsTools : undefined,
+    supportsReasoning:
+      typeof capabilities.supportsReasoning === "boolean"
+        ? capabilities.supportsReasoning
+        : undefined,
+    supportsVision:
+      typeof capabilities.supportsVision === "boolean" ? capabilities.supportsVision : undefined,
+    unsupportedParams: Array.isArray(compat.unsupportedParams)
+      ? compat.unsupportedParams
+      : undefined,
+    targetFormat: typeof compat.targetFormat === "string" ? compat.targetFormat : undefined,
   }) as ProviderPluginModel;
 }
 
@@ -130,7 +141,7 @@ function capabilitiesFor(entry: RegistryEntry, eligible: boolean): ProviderPlugi
 }
 
 export function createProviderPluginManifestEntry(
-  entry: RegistryEntry,
+  entry: RegistryEntry
 ): ProviderPluginManifestEntry {
   const sidecar = sidecarEligibility(entry);
 
@@ -163,7 +174,7 @@ export function createProviderPluginManifestEntry(
 }
 
 export function generateProviderPluginManifestFromRegistry(
-  registry: Record<string, RegistryEntry>,
+  registry: Record<string, RegistryEntry>
 ): ProviderPluginManifest {
   return {
     schemaVersion: 1,
@@ -176,11 +187,10 @@ export function generateProviderPluginManifestFromRegistry(
 
 export function getProviderPluginManifestEntryFromRegistry(
   registry: Record<string, RegistryEntry>,
-  provider: string,
+  provider: string
 ): ProviderPluginManifestEntry | null {
   const entry =
-    registry[provider] ||
-    Object.values(registry).find((candidate) => candidate.alias === provider);
+    registry[provider] || Object.values(registry).find((candidate) => candidate.alias === provider);
 
   return entry ? createProviderPluginManifestEntry(entry) : null;
 }

@@ -433,6 +433,22 @@ test("OpenAI -> Claude fits thinking budget within a 128k output cap (regression
   );
 });
 
+test("OpenAI -> Claude keeps known Claude output caps for Anthropic-compatible providers", () => {
+  const result = openaiToClaudeRequest(
+    "claude-opus-4-6",
+    {
+      messages: [{ role: "user", content: "Reason about something hard" }],
+      max_tokens: 32000,
+      reasoning_effort: "high",
+    },
+    false,
+    { _provider: "anthropic-compatible-test" }
+  );
+
+  assert.equal(result.max_tokens, 128000, "known Claude model caps must still apply");
+  assert.equal((result.thinking as { budget_tokens: number }).budget_tokens, 96000);
+});
+
 test("OpenAI -> Claude steers adaptive-only models via output_config.effort for EVERY level", () => {
   // Opus 4.7+/Fable 5 reject a manual `thinking.budget_tokens`/`type:"enabled"` with 400.
   // reasoning_effort low/medium/high must therefore map to adaptive + output_config.effort

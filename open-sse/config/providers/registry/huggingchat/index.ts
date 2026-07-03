@@ -1,26 +1,5 @@
 import type { RegistryEntry } from "../../shared.ts";
 
-type HuggingChatModel = RegistryEntry["models"][number];
-
-function withLegacyCapabilityFields(model: HuggingChatModel): HuggingChatModel {
-  const capabilities = model.capabilities;
-  return {
-    ...model,
-    ...(typeof capabilities?.supportsVision === "boolean"
-      ? { supportsVision: capabilities.supportsVision }
-      : {}),
-    ...(typeof capabilities?.supportsTools === "boolean"
-      ? { toolCalling: capabilities.supportsTools }
-      : {}),
-    ...(typeof capabilities?.supportsReasoning === "boolean"
-      ? {
-          supportsReasoning: capabilities.supportsReasoning,
-          supportsThinking: capabilities.supportsReasoning,
-        }
-      : {}),
-  } as HuggingChatModel;
-}
-
 export const huggingchatProvider: RegistryEntry = {
   id: "huggingchat",
   // Distinct alias: "hc" belongs to the hackclub provider; huggingchat is
@@ -154,5 +133,5 @@ export const huggingchatProvider: RegistryEntry = {
       name: "GLM 5.2",
       capabilities: { supportsTools: true, supportsReasoning: true },
     },
-  ].map(withLegacyCapabilityFields),
+  ],
 };

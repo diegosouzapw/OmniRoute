@@ -158,10 +158,48 @@ export function normalizeDataRobotCatalogResponse(
     .filter((value): value is { id: string; name: string } => Boolean(value));
 }
 
+const OPENAI_LIKE_MODEL_METADATA_FIELDS = [
+  "apiFormat",
+  "supportedEndpoints",
+  "description",
+  "capabilities",
+  "capabilityOverrides",
+  "compat",
+  "contextLength",
+  "context_length",
+  "inputTokenLimit",
+  "max_input_tokens",
+  "outputTokenLimit",
+  "max_output_tokens",
+  "top_provider",
+  "architecture",
+  "input_modalities",
+  "modality",
+  "supportsVision",
+  "supportsTools",
+  "toolCalling",
+  "supportsThinking",
+  "supportsReasoning",
+  "supportsXHighEffort",
+  "supportsMaxEffort",
+  "defaultThinkingBudget",
+  "thinkingBudgetCap",
+  "maxThinkingBudget",
+  "thinkingOverhead",
+  "adaptiveMaxTokens",
+  "interleavedField",
+  "targetFormat",
+  "unsupportedParams",
+  "normalizeToolCallId",
+  "preserveOpenAIDeveloperRole",
+  "compatByProtocol",
+  "upstreamHeaders",
+] as const;
+
 export function normalizeOpenAiLikeModelsResponse(
   data: unknown,
   fallbackOwner: string
-): Array<{ id: string; name: string; owned_by: string }> {
+): Array<Record<string, unknown> & { id: string; name: string; owned_by: string }> {
   const payload = asRecord(data);
   const items = Array.isArray(data)
     ? data
@@ -184,9 +222,20 @@ export function normalizeOpenAiLikeModelsResponse(
         id;
       const ownedBy =
         toNonEmptyString(item.owned_by) || toNonEmptyString(item.provider) || fallbackOwner;
-      return { id, name, owned_by: ownedBy };
+      const normalized: Record<string, unknown> & { id: string; name: string; owned_by: string } = {
+        id,
+        name,
+        owned_by: ownedBy,
+      };
+      for (const key of OPENAI_LIKE_MODEL_METADATA_FIELDS) {
+        if (item[key] !== undefined) normalized[key] = item[key];
+      }
+      return normalized;
     })
-    .filter((value): value is { id: string; name: string; owned_by: string } => Boolean(value));
+    .filter(
+      (value): value is Record<string, unknown> & { id: string; name: string; owned_by: string } =>
+        Boolean(value)
+    );
 }
 
 export function normalizeSapModelsResponse(

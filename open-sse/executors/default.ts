@@ -491,7 +491,8 @@ export class DefaultExecutor extends BaseExecutor {
 
     const record = body as Record<string, unknown>;
     const rf = record.response_format as
-      { type?: string; json_schema?: { schema?: unknown } } | undefined;
+      | { type?: string; json_schema?: { schema?: unknown } }
+      | undefined;
     if (rf?.type !== "json_schema" || !rf.json_schema?.schema) return body;
 
     const schemaJson = JSON.stringify(rf.json_schema.schema, null, 2);
@@ -708,7 +709,7 @@ export class DefaultExecutor extends BaseExecutor {
     const outboundModel = typeof body.model === "string" ? body.model : model;
     const entry = getRegistryEntry(this.provider);
     const modelEntry = entry?.models?.find((m) => m.id === outboundModel);
-    if (!modelEntry?.supportsReasoning) return body;
+    if (!modelEntry?.capabilities?.supportsReasoning) return body;
 
     const extraBody = body.extra_body as Record<string, unknown> | undefined;
     const thinking = extraBody?.thinking as Record<string, unknown> | undefined;
@@ -721,8 +722,9 @@ export class DefaultExecutor extends BaseExecutor {
 
     const MIN_TOKENS = 4096;
     const maxOutput =
-      typeof modelEntry.maxOutputTokens === "number" && modelEntry.maxOutputTokens > 0
-        ? modelEntry.maxOutputTokens
+      typeof modelEntry.capabilities?.maxOutputTokens === "number" &&
+      modelEntry.capabilities.maxOutputTokens > 0
+        ? modelEntry.capabilities.maxOutputTokens
         : MIN_TOKENS;
     const target = Math.min(MIN_TOKENS, maxOutput);
     const current = body.max_tokens ?? body.max_completion_tokens;

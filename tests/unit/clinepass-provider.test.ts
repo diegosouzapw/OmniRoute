@@ -45,7 +45,7 @@ test("ClinePass models are cline-pass/* and deepseek entries flag reasoning", ()
   const deepseek = models.filter((m: { id: string }) => m.id.includes("deepseek"));
   assert.ok(deepseek.length >= 2, "expect the two DeepSeek V4 entries");
   for (const m of deepseek) {
-    assert.equal((m as { supportsReasoning?: boolean }).supportsReasoning, true);
+    assert.equal(m.capabilities?.supportsReasoning, true);
   }
 });
 

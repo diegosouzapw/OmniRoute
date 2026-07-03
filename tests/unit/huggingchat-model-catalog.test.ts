@@ -108,10 +108,18 @@ test("huggingchat registry preserves supported boolean capabilities", () => {
   for (const id of HUGGINGCHAT_CONCRETE_MODELS) {
     const model = byId.get(id);
     assert.ok(model, `${id} should be registered`);
-    assert.equal(model.supportsVision === true, MULTIMODAL_MODELS.has(id), `${id} vision flag`);
-    assert.equal(model.toolCalling === true, TOOL_CALLING_MODELS.has(id), `${id} tools flag`);
     assert.equal(
-      model.supportsReasoning === true,
+      model.capabilities?.supportsVision === true,
+      MULTIMODAL_MODELS.has(id),
+      `${id} vision flag`
+    );
+    assert.equal(
+      model.capabilities?.supportsTools === true,
+      TOOL_CALLING_MODELS.has(id),
+      `${id} tools flag`
+    );
+    assert.equal(
+      model.capabilities?.supportsReasoning === true,
       REASONING_MODELS.has(id),
       `${id} reasoning flag`
     );

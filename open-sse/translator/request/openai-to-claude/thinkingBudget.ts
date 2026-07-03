@@ -1,4 +1,7 @@
-import { capMaxOutputTokens } from "../../../../src/lib/modelCapabilities.ts";
+import {
+  capMaxOutputTokens,
+  isModelMaxOutputTokensExplicitlyUnset,
+} from "../../../../src/lib/modelCapabilities.ts";
 
 // Anthropic constraints for the thinking + max_tokens contract:
 //   - thinking.budget_tokens must be >= 1024 when thinking is enabled
@@ -7,7 +10,19 @@ import { capMaxOutputTokens } from "../../../../src/lib/modelCapabilities.ts";
 const MIN_CLAUDE_THINKING_BUDGET = 1024;
 const MIN_RESPONSE_ROOM = 1024;
 
-function safeCapMaxOutputTokens(model: string): number | null {
+function safeCapMaxOutputTokens(model: string, provider?: string | null): number | null {
+  if (provider) {
+    try {
+      const providerScopedInput = { provider, model };
+      const providerCap = capMaxOutputTokens(providerScopedInput);
+      if (typeof providerCap === "number" && providerCap > 0) return providerCap;
+      if (isModelMaxOutputTokensExplicitlyUnset(providerScopedInput)) return null;
+    } catch {
+      // Fall back to the model-only lookup below; this preserves the pre-refactor
+      // behavior for known Claude model IDs when a custom provider has no override.
+    }
+  }
+
   try {
     const cap = capMaxOutputTokens(model);
     return typeof cap === "number" && cap > 0 ? cap : null;
@@ -42,9 +57,10 @@ function safeCapMaxOutputTokens(model: string): number | null {
 export function fitThinkingToMaxTokens(
   model: string,
   callerMaxTokens: number,
-  thinking: Record<string, unknown> | undefined
+  thinking: Record<string, unknown> | undefined,
+  provider?: string | null
 ): { maxTokens: number; thinking: Record<string, unknown> | undefined } {
-  const modelCap = safeCapMaxOutputTokens(model);
+  const modelCap = safeCapMaxOutputTokens(model, provider);
   const requestedBudget = Number(thinking?.budget_tokens) || 0;
 
   // No budgeted thinking — just cap max_tokens to the model output ceiling.

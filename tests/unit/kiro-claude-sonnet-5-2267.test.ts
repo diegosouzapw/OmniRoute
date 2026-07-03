@@ -28,8 +28,8 @@ test("kiro claude-sonnet-5 declares the 1M-context / 128K-output capability", ()
   const sonnet5 = kiroProvider.models.find((m) => m.id === "claude-sonnet-5");
   assert.ok(sonnet5, "claude-sonnet-5 must be present in the kiro registry");
   assert.equal(sonnet5.name, "Claude Sonnet 5");
-  assert.equal(sonnet5.contextLength, 1000000);
-  assert.equal(sonnet5.maxOutputTokens, 128000);
+  assert.equal(sonnet5.capabilities?.contextWindow, 1000000);
+  assert.equal(sonnet5.capabilities?.maxOutputTokens, 128000);
 });
 
 test("claude-sonnet-5 degrades to the Sonnet family, not Opus", () => {

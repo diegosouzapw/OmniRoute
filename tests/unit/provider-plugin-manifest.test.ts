@@ -18,12 +18,21 @@ const registryFixture: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     defaultContextLength: 128000,
     models: [
-      { id: "gpt-4.1", name: "GPT-4.1", contextLength: 1047576 },
+      { id: "gpt-4.1", name: "GPT-4.1", capabilities: { contextWindow: 1047576 } },
       {
         id: "o3",
         name: "O3",
-        contextLength: 200000,
-        unsupportedParams: ["temperature", "top_p"],
+        capabilities: {
+          contextWindow: 200000,
+          maxOutputTokens: 100000,
+          supportsTools: true,
+          supportsReasoning: true,
+          supportsVision: false,
+        },
+        compat: {
+          targetFormat: "openai-responses",
+          unsupportedParams: ["temperature", "top_p"],
+        },
       },
     ],
   },
@@ -76,7 +85,7 @@ test("provider plugin manifest is JSON-safe and stable enough for sidecars", () 
   assert.equal(roundTripped.providers.length, 4);
   assert.deepEqual(
     roundTripped.providers.map((provider: { id: string }) => provider.id),
-    [...roundTripped.providers.map((provider: { id: string }) => provider.id)].sort(),
+    [...roundTripped.providers.map((provider: { id: string }) => provider.id)].sort()
   );
 });
 
@@ -90,6 +99,20 @@ test("manifest exposes API-key default-executor providers as sidecar candidates"
   assert.ok(openai.capabilities.includes("sidecar-candidate"));
   assert.equal(openai.endpoints.baseUrl, "https://api.openai.com/v1/chat/completions");
   assert.ok(openai.models.some((model) => model.id === "gpt-4.1"));
+  assert.deepEqual(
+    openai.models.find((model) => model.id === "o3"),
+    {
+      id: "o3",
+      name: "O3",
+      contextLength: 200000,
+      maxOutputTokens: 100000,
+      toolCalling: true,
+      supportsReasoning: true,
+      supportsVision: false,
+      unsupportedParams: ["temperature", "top_p"],
+      targetFormat: "openai-responses",
+    }
+  );
 });
 
 test("manifest keeps custom web executors on the TypeScript fallback path", () => {

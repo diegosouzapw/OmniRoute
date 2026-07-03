@@ -150,3 +150,40 @@ test("provider models route returns canonical metadata from fresh discovery", as
   assert.equal("inputTokenLimit" in model, false);
   assert.equal("targetFormat" in model, false);
 });
+
+test("provider models route preserves OpenRouter-style discovery metadata before canonicalizing", async () => {
+  const connection = await seedConnection("opencode-go", {
+    apiKey: "opencode-go-key",
+  });
+
+  globalThis.fetch = async () =>
+    Response.json({
+      data: [
+        {
+          id: "openrouter-shaped",
+          name: "OpenRouter Shaped",
+          context_length: 262144,
+          top_provider: {
+            max_completion_tokens: 32768,
+          },
+          architecture: {
+            input_modalities: ["text", "image"],
+          },
+        },
+      ],
+    });
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as any;
+  const [model] = body.models;
+
+  assert.equal(response.status, 200);
+  assert.equal(model.id, "openrouter-shaped");
+  assert.equal(model.capabilities.contextWindow, 262144);
+  assert.equal(model.capabilities.maxInputTokens, 262144);
+  assert.equal(model.capabilities.maxOutputTokens, 32768);
+  assert.equal(model.capabilities.supportsVision, true);
+  assert.equal("context_length" in model, false);
+  assert.equal("top_provider" in model, false);
+  assert.equal("architecture" in model, false);
+});

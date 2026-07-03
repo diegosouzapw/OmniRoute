@@ -14,25 +14,25 @@ export const auggieProvider: RegistryEntry = {
   defaultContextLength: 200000,
   models: [
     // Claude
-    { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6", contextLength: 200000 },
+    { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6", capabilities: { contextWindow: 200000 } },
     {
       id: "claude-sonnet-4.6-thinking",
       name: "Claude Sonnet 4.6 Thinking",
-      contextLength: 200000,
+      capabilities: { contextWindow: 200000 },
     },
-    { id: "claude-opus-4.6", name: "Claude Opus 4.6", contextLength: 200000 },
-    { id: "claude-haiku-4.5", name: "Claude Haiku 4.5", contextLength: 200000 },
+    { id: "claude-opus-4.6", name: "Claude Opus 4.6", capabilities: { contextWindow: 200000 } },
+    { id: "claude-haiku-4.5", name: "Claude Haiku 4.5", capabilities: { contextWindow: 200000 } },
     // Gemini
-    { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro", contextLength: 1000000 },
-    { id: "gemini-3.0-flash", name: "Gemini 3 Flash", contextLength: 1000000 },
+    { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro", capabilities: { contextWindow: 1000000 } },
+    { id: "gemini-3.0-flash", name: "Gemini 3 Flash", capabilities: { contextWindow: 1000000 } },
     // GPT-5.x
-    { id: "gpt-5.5-high", name: "GPT-5.5 High", contextLength: 200000 },
-    { id: "gpt-5.5-medium", name: "GPT-5.5 Medium", contextLength: 200000 },
-    { id: "gpt-5.4-high", name: "GPT-5.4 High", contextLength: 200000 },
-    { id: "gpt-5.4-medium", name: "GPT-5.4 Medium", contextLength: 200000 },
+    { id: "gpt-5.5-high", name: "GPT-5.5 High", capabilities: { contextWindow: 200000 } },
+    { id: "gpt-5.5-medium", name: "GPT-5.5 Medium", capabilities: { contextWindow: 200000 } },
+    { id: "gpt-5.4-high", name: "GPT-5.4 High", capabilities: { contextWindow: 200000 } },
+    { id: "gpt-5.4-medium", name: "GPT-5.4 Medium", capabilities: { contextWindow: 200000 } },
     // Kimi
-    { id: "kimi-k2.6", name: "Kimi K2.6", contextLength: 131000 },
+    { id: "kimi-k2.6", name: "Kimi K2.6", capabilities: { contextWindow: 131000 } },
     // Prism (Augment's in-house model)
-    { id: "prism", name: "Augment Prism", contextLength: 200000 },
+    { id: "prism", name: "Augment Prism", capabilities: { contextWindow: 200000 } },
   ],
 };
