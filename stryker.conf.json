@@ -187,6 +187,7 @@
       "tests/unit/antigravity-429-quota-tdd.test.ts",
       "tests/unit/auth-antigravity-account-retry-v2.test.ts",
       "tests/unit/middleware-header-strip-5849.test.ts",
+      "tests/unit/authz/discovery-routes-local-only.test.ts",
       "tests/unit/authz/route-guard-local-prefix.test.ts",
       "tests/unit/authz/route-guard-version-get-exemption.test.ts",
       "tests/unit/chat-combo-live-test.test.ts",

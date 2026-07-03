@@ -315,7 +315,7 @@
     "tests/unit/usage-service-hardening.test.ts": 1633,
     "tests/unit/vscode-token-routes.test.ts": 1212,
     "tests/unit/combo-config.test.ts": 881,
-  "_rebaseline_2026_07_02_5928_base_red": "web-cookie-providers-new.test.ts 845->850: #5928 (test(security) Kimi Web URL host parse, CodeQL #689) grew the file +5 lines and merged into release/v3.8.44 WITHOUT rebaselining, leaving a fast-gates base-red that blocked every subsequent PR->release. Test growth is legitimate (a security regression test); maintainer absorbs the drift here. Frozen at 850.",
+    "_rebaseline_2026_07_02_5928_base_red": "web-cookie-providers-new.test.ts 845->850: #5928 (test(security) Kimi Web URL host parse, CodeQL #689) grew the file +5 lines and merged into release/v3.8.44 WITHOUT rebaselining, leaving a fast-gates base-red that blocked every subsequent PR->release. Test growth is legitimate (a security regression test); maintainer absorbs the drift here. Frozen at 850.",
     "tests/unit/web-cookie-providers-new.test.ts": 850,
     "tests/unit/response-sanitizer.test.ts": 906
   },
