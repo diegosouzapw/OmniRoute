@@ -8,15 +8,19 @@
 
 ### ✨ New Features
 
-- **feat(proxy):** add Webshare proxy pool import and sync. (thanks @ricatix)
+- **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
+- **Discovery tool (Phase 2):** add the `discoveryResults` DB module (CRUD over the `discovery_results` table, migration 074) and wire the opt-in provider-discovery service to persist and read findings through it (`persistDiscoveryResult`, `getDiscoveryResults`, `getDiscoveryResultById`, `markVerified`, `deleteDiscoveryResult`) with `(provider, method, endpoint)` upsert de-duplication. Adds the `/api/discovery/*` HTTP surface — `GET /results`, `GET|DELETE /results/:id`, `POST /scan`, `POST /verify/:id` — under **strict loopback-only** authorization (`/api/discovery/` is in `LOCAL_ONLY_API_PREFIXES` and is NOT manage-scope-bypassable, so the `scan` route's outbound probes can never be reached from a tunnel/remote origin). Adds a **dashboard UI tab** (Tools → Discovery, `/dashboard/discovery`) to run scans and review, verify, or delete findings. The service stays **opt-in / default-off**.
+- **feat(proxy):** add Webshare proxy pool import and sync — a `WebshareProvider` (`FreeProxyProvider`) that paginates `proxy.webshare.io/api/v2/proxy/list/` gated on `FREE_PROXY_WEBSHARE_API_KEY`, SSRF-guards imported hosts, and tombstones retired proxy IDs via `pruneStaleFreeProxies()`. (thanks @ricatix)
 
 ### 🔧 Bug Fixes
 
-_TBD_
+- **tests(cli):** stabilize `setup-claude.test.ts` (#5959) — the dry-run path printed a multi-byte "──" heading to the test child's stdout, corrupting the node:test runner's V8-serialized event stream in ~50% of runs ("Unable to deserialize cloned data due to invalid or unsupported version") and randomly failing the PR→release queue. `syncClaudeProfilesFromModels` now accepts an injectable `log` sink (CLI default unchanged: `console.log`); the test injects a collector and gains assertions on the dry-run report. Validated 0/30 failures post-fix vs 5/10 on the pristine base.
+- **tests(cli):** deflake `cli-setup-opencode.test.ts` preemptively — same #5959 class: the command under test prints multi-byte "✔"/"✖" CLI glyphs to the test child's stdout, which can corrupt the node:test V8 report stream. Console silenced for the file (pattern of #6019/#6021); no test asserts on stdout. 0/20 failures, stdout clean.
+- **tests(ci):** collect the orphaned `tests/unit/executors/` directory (created by #5800 outside every runner glob — its 2 test files never ran anywhere). Added `executors` to the unit-runner brace globs (package.json, ci.yml shards, quality.yml TIA, test-impact map, test-discovery gate); both files pass (10/10).
 
 ### 📝 Maintenance
 
-_TBD_
+- **API validation:** add a `validatedJsonBody(request, schema)` helper in `src/shared/validation/helpers.ts` that fuses JSON body parsing and Zod validation into a single call, returning either the type-narrowed data or a ready-to-return 400 `NextResponse` with the standard error envelope. Salvaged from the closed refactor PR #5075 (Tier 1 portable helper) with a focused 6-case regression test. Co-authored-by: KooshaPari <KooshaPari@users.noreply.github.com>
 
 ---
 
