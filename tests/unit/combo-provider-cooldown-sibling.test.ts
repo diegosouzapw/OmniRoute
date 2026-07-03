@@ -4,6 +4,8 @@
 // gemini/gemma-4-26b-a4b-it from being tried.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import {
   recordProviderCooldown,
   isProviderInCooldown,
@@ -104,5 +106,35 @@ test("fix: combo still records cooldown for non-per-model-quota provider on 500"
     isProviderInCooldown(provider, "conn-1", settings),
     true,
     "OpenAI should be in cooldown after 500"
+  );
+});
+
+// ── Source guards: auth.ts must not model-lockout Gemini on 500 ──
+
+test("source guard: auth.ts skips model lockout for per-model-quota providers on 500+", () => {
+  const src = fs.readFileSync(
+    path.join(process.cwd(), "src", "sse", "services", "auth.ts"),
+    "utf-8"
+  );
+  // The fix adds an early return for status >= 500 that skips recordModelLockoutFailure
+  assert.ok(
+    src.includes("status >= 500") && src.includes("no model lockout"),
+    "auth.ts must have a guard that skips model lockout for 500+ server errors on per-model-quota providers"
+  );
+  // Verify the early return sends cooldownMs: 0 (no cooldown for sibling models)
+  assert.ok(
+    src.includes("cooldownMs: 0") && src.includes("sibling models"),
+    "auth.ts must return cooldownMs: 0 for per-model-quota 500 errors to allow sibling retries"
+  );
+});
+
+test("source guard: combo.ts skips provider cooldown for per-model-quota on 500", () => {
+  const src = fs.readFileSync(
+    path.join(process.cwd(), "open-sse", "services", "combo.ts"),
+    "utf-8"
+  );
+  assert.ok(
+    src.includes("hasPerModelQuota(provider, rawModel)") && src.includes("recordProviderCooldown"),
+    "combo.ts must skip provider cooldown recording for per-model-quota providers on 500"
   );
 });
