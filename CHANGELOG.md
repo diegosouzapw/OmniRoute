@@ -22,6 +22,8 @@
 - **feat(dashboard):** suggest HuggingFace Hub media models in the media provider view. (thanks @yicone)
 - **feat(i18n):** auto-detect the browser language on first visit. (thanks @ayanmw)
 
+- **routing (latency/speed mode):** add a dedicated **speed-optimized routing mode** that scores every provider×model pair in a combo against **TTFT, tokens-per-second, E2E latency, p95 latency, circuit-breaker health, failure rate, and latency stability (std-dev)** — and ranks them so the "fastest reliable pair" wins. The runtime `LatencyStrategyImpl` (`routerStrategy.ts`) and the new MCP tool `omniroute_pick_fastest_model` (`schemas/tools.ts` + `tools/advancedTools.ts`) now share a single pure core (`services/autoCombo/speedRanking.ts` → `rankBySpeed`), so the user-facing preview and the live router pick the same winner. The MCP tool returns the top-ranked pair plus the **full ranked list with per-factor scores and per-metric breakdowns**, and optionally applies the result to a target combo by switching its strategy to `auto` + `autoRoutingStrategy: "latency"`. Weights are tunable (`{ttft, tps, e2e, p95, health, reliability, stability}`), OPEN-circuit candidates are dropped by default but can be retained with `includeUnhealthy=true`, and stability + reliability multipliers prevent a flaky fast provider from beating a steady slower one. Regression guard: `open-sse/services/autoCombo/__tests__/speedRanking.test.ts`. Closes the speed-mode routing gap tracked in this issue.
+
 ### 🔧 Bug Fixes
 
 - **ci:** Pin scorecard workflow to ubuntu-24.04
