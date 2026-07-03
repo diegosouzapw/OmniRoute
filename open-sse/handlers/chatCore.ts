@@ -22,6 +22,7 @@ import {
   isStripReasoningRequested,
 } from "./chatCore/headers.ts";
 import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
+import { trackDevice, extractIpFromHeaders } from "../services/deviceTracker.ts";
 import { getCombosCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
 import {
@@ -454,6 +455,15 @@ export async function handleChatCore({
   }
   if (pluginGate.body) {
     body = pluginGate.body;
+  }
+  // Per-API-key device/connection tracking (port of upstream 9router#931,
+  // thanks @mugnimaestra). In-memory only, never blocks the request path.
+  if (apiKeyInfo?.id) {
+    trackDevice(
+      apiKeyInfo.id,
+      extractIpFromHeaders(clientRawRequest?.headers ?? null),
+      userAgent ?? null
+    );
   }
   const agentGoalPolicy = resolveAgentGoalPolicy(body, clientRawRequest?.headers ?? null);
   if (agentGoalPolicy.detected) {
