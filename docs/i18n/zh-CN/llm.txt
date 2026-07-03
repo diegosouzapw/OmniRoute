@@ -4,511 +4,511 @@
 
 ---
 
-> OmniRoute 是一个免费、开源的 AI 网关，为多个大语言模型服务商提供通用 API 代理。通过单一 OpenAI 兼容端点，提供智能路由、自动容灾、负载均衡和格式转换功能，覆盖 177 个 AI 服务商。内置 MCP Server（37 个工具）、A2A v0.3 协议、记忆/技能系统、云代理（Codex Cloud、Devin、Jules）、安全护栏框架，以及 Electron 桌面应用。
+> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 177 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (37 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex-cloud, devin, jules), Guardrails framework, and an Electron desktop app.
 
-## 概述
+## Overview
 
-OmniRoute 解决了管理多个 AI 服务商订阅、配额和速率限制的问题。它位于你的 AI 驱动工具（IDE 编程助手、CLI 工具）与 AI 服务商之间，通过 4 层容灾体系智能路由请求：订阅 → API Key → 低成本 → 免费。
+OmniRoute solves the problem of managing multiple AI provider subscriptions, quotas, and rate limits. It sits between your AI-powered tools (IDE agents, CLI tools) and AI providers, routing requests intelligently through a 4-tier fallback system: Subscription → API Key → Cheap → Free.
 
-**核心价值：** 一个端点（`http://localhost:20128/v1`），无限模型，零停机，最低成本。
+**Key value:** One endpoint (`http://localhost:20128/v1`), unlimited models, zero downtime, minimal cost.
 
-**当前版本：** 3.8.8
+**Current version:** 3.8.8
 
-## 技术栈
+## Tech Stack
 
-- **运行时：** Node.js `>=22.22.2 <23 || >=24.0.0 <27`，ES Modules（`"type": "module"`）
-- **框架：** Next.js 16（App Router）+ TypeScript 5.9
-- **数据库：** SQLite + better-sqlite3（本地、零配置、55 个迁移）
-- **状态管理：** Zustand（客户端），SQLite（服务端持久化）
-- **UI：** React 19、Tailwind CSS 4、Recharts（分析图表）、@lobehub/icons（130+ 服务商 SVG 图标）
-- **认证：** 服务商侧 OAuth 2.0（PKCE），本地用户侧 bcrypt
-- **Schema：** Zod v4（所有 API / MCP 输入校验）
-- **后台任务：** 自定义 Token 健康检查调度、24 小时模型自动同步
-- **流式传输：** Server-Sent Events（SSE）实时代理响应
-- **代理引擎：** 自定义管线，包含格式转换、熔断器、速率限制、Auto-Combo 引擎
-- **国际化：** next-intl，40+ 种语言
-- **桌面：** Electron（跨平台：Windows、macOS、Linux）
-- **包发布：** npm（`omniroute`）和 Docker Hub（`diegosouzapw/omniroute`）
+- **Runtime:** Node.js `>=22.22.2 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
+- **Framework:** Next.js 16 (App Router) with TypeScript 5.9
+- **Database:** SQLite via better-sqlite3 (local, zero-config, 55 migrations)
+- **State management:** Zustand (client), SQLite (server persistence)
+- **UI:** React 19, Tailwind CSS 4, Recharts for analytics, @lobehub/icons for 130+ provider SVG icons
+- **Auth:** OAuth 2.0 (PKCE) for providers, bcrypt for local user auth
+- **Schemas:** Zod v4 for all API / MCP input validation
+- **Background jobs:** Custom token health check scheduler, 24h model auto-sync
+- **Streaming:** Server-Sent Events (SSE) for real-time proxy responses
+- **Proxy engine:** Custom pipeline with format translation, circuit breaker, rate limiting, auto-combo engine
+- **i18n:** next-intl with 40+ languages
+- **Desktop:** Electron (cross-platform: Windows, macOS, Linux)
+- **Package:** Published on npm (`omniroute`) and Docker Hub (`diegosouzapw/omniroute`)
 
-## 项目结构
+## Project Structure
 
 ```
 /
-├── src/                          # 主应用源码
-│   ├── app/                      # Next.js App Router 页面和 API 路由
-│   │   ├── (dashboard)/          # 仪表盘 UI 页面
+├── src/                          # Main application source
+│   ├── app/                      # Next.js App Router pages and API routes
+│   │   ├── (dashboard)/          # Dashboard UI pages
 │   │   │   └── dashboard/
-│   │   │       ├── agents/       # ACP 代理仪表盘（CLI 编程助手检测 + 自定义代理）
-│   │   │       ├── analytics/    # 用量分析和图表
-│   │   │       ├── api-manager/  # API Key 管理
-│   │   │       ├── audit/        # 审计日志
-│   │   │       ├── auto-combo/   # Auto-Combo 引擎仪表盘
-│   │   │       ├── cache/        # 缓存仪表盘（语义缓存统计）
-│   │   │       ├── cli-tools/    # CLI 工具配置（Claude Code、Codex 等）
-│   │   │       ├── combos/       # 模型 Combo 管理（14 种策略 + 4 个模板）
-│   │   │       ├── costs/        # 按服务商/模型统计成本
-│   │   │       ├── endpoint/     # 统一入口：端点代理、MCP、A2A、API 端点（选项卡）
-│   │   │       ├── health/       # 系统健康（运行时长、熔断器、延迟）
-│   │   │       ├── limits/       # 速率限制仪表盘
-│   │   │       ├── logs/         # 请求、代理、审计、控制台日志（选项卡）
-│   │   │       ├── media/        # 图像/视频/音乐生成 + 语音转录
-│   │   │       ├── memory/       # 记忆系统仪表盘
-│   │   │       ├── onboarding/   # 入门向导
-│   │   │       ├── playground/   # 模型游乐场（Monaco 编辑器、流式响应）
-│   │   │       ├── providers/    # 服务商管理（OAuth + API Key + 免费）
-│   │   │       ├── search-tools/ # 搜索工具配置
-│   │   │       ├── settings/     # 设置选项卡（常规、外观、安全、路由、容灾、高级）
-│   │   │       ├── skills/       # 技能系统仪表盘
-│   │   │       ├── translator/   # 格式转换器 + 调试工具
-│   │   │       └── usage/        # 用量历史
-│   │   ├── api/                  # REST API 端点（51 个路由目录）
-│   │   │   ├── v1/               # OpenAI 兼容 API（chat、completions、models、embeddings、
-│   │   │   │                     #   images、audio、videos、music、moderations、rerank、search、
-│   │   │   │                     #   responses、messages、registered-keys、quotas、accounts）
-│   │   │   ├── v1beta/           # Gemini 兼容 API
-│   │   │   ├── a2a/              # A2A 代理管理 API
-│   │   │   ├── acp/              # ACP 代理管理 API
-│   │   │   ├── oauth/            # 各服务商 OAuth 流程
-│   │   │   ├── providers/        # 服务商 CRUD 和批量测试
-│   │   │   ├── models/           # 仪表盘模型列表和别名
-│   │   │   ├── combos/           # Combo CRUD（多模型容灾链路）
-│   │   │   ├── memory/           # 记忆系统 API
-│   │   │   ├── skills/           # 技能系统 API
-│   │   │   ├── evals/            # 评估运行器 API
-│   │   │   ├── mcp/              # MCP HTTP 传输 API
-│   │   │   ├── search/           # 搜索服务商 API
-│   │   │   ├── webhooks/         # Webhook 管理
-│   │   │   ├── tunnels/          # Cloudflare 隧道管理
-│   │   │   └── ...               # 其他端点（用量、日志、健康、设置、定价等）
-│   │   ├── landing/              # 着陆页
-│   │   ├── login/                # 登录页
-│   │   ├── forgot-password/      # 密码找回
-│   │   ├── status/               # 状态页
-│   │   └── docs/                 # 应用内文档
-│   ├── domain/                   # 领域类型和策略引擎
-│   │   ├── policyEngine.ts       # 中央策略引擎
-│   │   ├── comboResolver.ts      # Combo 解析逻辑
-│   │   ├── costRules.ts          # 成本计算规则
-│   │   ├── degradation.ts        # 优雅降级
-│   │   ├── fallbackPolicy.ts     # 容灾行为
-│   │   ├── lockoutPolicy.ts      # 账户锁定逻辑
-│   │   ├── modelAvailability.ts  # 模型可用性检查
-│   │   ├── providerExpiration.ts # 服务商凭证过期
-│   │   ├── quotaCache.ts         # 配额缓存层
-│   │   ├── configAudit.ts        # 配置审计
-│   │   └── responses.ts          # 领域响应类型
-│   ├── i18n/                     # 国际化
-│   │   └── messages/             # 40+ 语言 JSON 文件
-│   ├── lib/                      # 核心库
-│   │   ├── a2a/                  # Agent-to-Agent v0.3 协议服务器
-│   │   │   ├── skills/           # A2A 技能（quotaManagement、smartRouting）
-│   │   │   ├── taskManager.ts    # 任务生命周期管理 + TTL 清理
-│   │   │   └── streaming.ts      # A2A SSE 流式传输
-│   │   ├── acp/                  # Agent Communication Protocol 注册表和管理器
-│   │   ├── compliance/           # 合规策略引擎
-│   │   ├── db/                   # SQLite 数据库层（21 个模块 + 迁移）
-│   │   │   ├── core.ts           # 数据库初始化、连接、Schema
-│   │   │   ├── providers.ts      # 服务商连接 CRUD
-│   │   │   ├── models.ts         # 模型目录管理
-│   │   │   ├── combos.ts         # Combo 配置
-│   │   │   ├── apiKeys.ts        # API Key 管理
-│   │   │   ├── settings.ts       # 设置持久化
-│   │   │   ├── backup.ts         # 数据库备份/恢复
-│   │   │   ├── proxies.ts        # 代理注册表
-│   │   │   ├── prompts.ts        # 提示模板
-│   │   │   ├── webhooks.ts       # Webhook 订阅
-│   │   │   ├── detailedLogs.ts   # 详细请求日志
-│   │   │   ├── domainState.ts    # 领域状态持久化
-│   │   │   ├── registeredKeys.ts # 已注册 API Key（含配额）
-│   │   │   ├── quotaSnapshots.ts # 配额快照历史
-│   │   │   ├── modelComboMappings.ts # 模型到 Combo 映射
-│   │   │   ├── cliToolState.ts   # CLI 工具状态追踪
-│   │   │   ├── encryption.ts     # 数据加密
-│   │   │   ├── readCache.ts      # 读穿透缓存层
-│   │   │   ├── secrets.ts        # 密钥管理
-│   │   │   ├── stateReset.ts     # 状态重置工具
-│   │   │   ├── migrationRunner.ts # Schema 迁移运行器
-│   │   │   └── migrations/       # 16 个 SQL 迁移文件
-│   │   ├── evals/                # 评估运行器和调度器
-│   │   ├── memory/               # 持久化对话记忆
-│   │   │   ├── extraction.ts     # 对话记忆提取
-│   │   │   ├── injection.ts      # 上下文中注入记忆
-│   │   │   ├── retrieval.ts      # 记忆检索/搜索
-│   │   │   ├── store.ts          # 记忆持久层
-│   │   │   └── summarization.ts  # 记忆摘要
-│   │   ├── oauth/                # OAuth 服务商、服务和工具
-│   │   │   ├── constants/        # OAuth 默认凭证（可通过环境变量覆盖）
-│   │   │   ├── providers/        # 各服务商 OAuth 配置
-│   │   │   ├── services/         # 各服务商 Token 交换逻辑
-│   │   │   └── utils/            # PKCE、回调服务器、Token 辅助工具
-│   │   ├── plugins/              # 插件系统
-│   │   ├── skills/               # 可扩展技能框架
-│   │   │   ├── registry.ts       # 技能注册
-│   │   │   ├── executor.ts       # 技能执行引擎
-│   │   │   ├── sandbox.ts        # 技能沙箱环境
-│   │   │   ├── builtin/          # 内置技能
-│   │   │   ├── interception.ts   # 技能请求拦截
-│   │   │   └── injection.ts      # 技能上下文注入
-│   │   ├── usage/                # 用量追踪系统
-│   │   │   ├── callLogs.ts       # 调用日志持久化
-│   │   │   ├── costCalculator.ts # 成本计算引擎
-│   │   │   └── usageHistory.ts   # 用量历史查询
-│   │   ├── cloudSync.ts          # Cloudflare Workers 云端同步
-│   │   ├── cloudflaredTunnel.ts  # Cloudflare 隧道管理
-│   │   ├── pricingSync.ts        # LiteLLM 定价数据同步
-│   │   ├── semanticCache.ts      # 语义缓存层
-│   │   ├── tokenHealthCheck.ts   # 后台 OAuth Token 刷新调度
-│   │   ├── webhookDispatcher.ts  # Webhook 事件分发器
-│   │   └── localDb.ts            # 所有 DB 模块的统一再导出层
-│   ├── middleware/               # 请求中间件
-│   │   └── promptInjectionGuard.ts # 提示注入检测
-│   ├── mitm/                     # MITM 代理能力
-│   │   ├── cert/                 # 证书管理
-│   │   ├── dns/                  # DNS 处理
-│   │   ├── targets/              # 目标路由
-│   │   └── manager.ts            # MITM 代理管理器
-│   ├── shared/                   # 共享工具、组件和常量
-│   │   ├── components/           # 可复用 UI 组件（Card、Badge、Button、Modal、Sidebar、ProviderIcon 等）
-│   │   ├── constants/            # 服务商定义（160+）、模型列表、定价、路由策略、MCP 权限域
-│   │   ├── contracts/            # 共享 API 契约
-│   │   ├── hooks/                # React Hooks
-│   │   ├── middleware/           # 共享中间件工具
-│   │   ├── schemas/              # 共享 Zod Schema
-│   │   ├── services/             # 共享服务
-│   │   ├── types/                # 共享 TypeScript 类型
-│   │   ├── validation/           # Zod Schema（设置、服务商、路由）
-│   │   └── utils/                # 辅助工具（认证、CORS、错误码、机器 ID）
-│   ├── sse/                      # SSE 代理管线
-│   │   ├── services/             # 认证解析、格式转换、响应处理
-│   │   └── middleware/           # 速率限制、熔断器、缓存、幂等
-│   ├── store/                    # Zustand 客户端状态（主题、服务商等）
-│   └── types/                    # TypeScript 类型定义
-├── open-sse/                     # 独立 SSE 服务器（npm workspace）
-│   ├── config/                   # 模型注册表（providerRegistry、embedding、image、audio、video、
-│   │                             #   music、rerank、moderation、search、CLI 指纹、Ollama 模型）
-│   ├── executors/                # 各服务商请求执行器（31 个执行器）
-│   │   ├── base.ts               # 基础执行器（共享逻辑）
-│   │   ├── default.ts            # 默认 OpenAI 兼容执行器
-│   │   ├── cursor.ts             # Cursor IDE（protobuf + checksum）
+│   │   │       ├── agents/       # ACP Agents dashboard (CLI agent detection + custom agents)
+│   │   │       ├── analytics/    # Usage analytics and charts
+│   │   │       ├── api-manager/  # API key management
+│   │   │       ├── audit/        # Audit logs
+│   │   │       ├── auto-combo/   # Auto-combo engine dashboard
+│   │   │       ├── cache/        # Cache dashboard (semantic cache stats)
+│   │   │       ├── cli-tools/    # CLI tool configuration (Claude Code, Codex, etc.)
+│   │   │       ├── combos/       # Model combo management (14 strategies + 4 templates)
+│   │   │       ├── costs/        # Cost tracking per provider/model
+│   │   │       ├── endpoint/     # Unified: Endpoint Proxy, MCP, A2A, API Endpoints tabs
+│   │   │       ├── health/       # System health (uptime, circuit breakers, latency)
+│   │   │       ├── limits/       # Rate limits dashboard
+│   │   │       ├── logs/         # Request, Proxy, Audit, Console logs (tabbed)
+│   │   │       ├── media/        # Image/video/music generation + transcription
+│   │   │       ├── memory/       # Memory system dashboard
+│   │   │       ├── onboarding/   # Onboarding wizard
+│   │   │       ├── playground/   # Model playground (Monaco editor, streaming)
+│   │   │       ├── providers/    # Provider management (OAuth + API key + free)
+│   │   │       ├── search-tools/ # Search tools configuration
+│   │   │       ├── settings/     # Settings tabs (General, Appearance, Security, Routing, Resilience, Advanced)
+│   │   │       ├── skills/       # Skills system dashboard
+│   │   │       ├── translator/   # Format translator + debug tools
+│   │   │       └── usage/        # Usage history
+│   │   ├── api/                  # REST API endpoints (51 route directories)
+│   │   │   ├── v1/               # OpenAI-compatible API (chat, completions, models, embeddings,
+│   │   │   │                     #   images, audio, videos, music, moderations, rerank, search,
+│   │   │   │                     #   responses, messages, registered-keys, quotas, accounts)
+│   │   │   ├── v1beta/           # Gemini-compatible API
+│   │   │   ├── a2a/              # A2A agent management API
+│   │   │   ├── acp/              # ACP agent management API
+│   │   │   ├── oauth/            # OAuth flows per provider
+│   │   │   ├── providers/        # Provider CRUD and batch testing
+│   │   │   ├── models/           # Dashboard model listing and aliases
+│   │   │   ├── combos/           # Combo CRUD (multi-model fallback chains)
+│   │   │   ├── memory/           # Memory system API
+│   │   │   ├── skills/           # Skills system API
+│   │   │   ├── evals/            # Eval runner API
+│   │   │   ├── mcp/              # MCP HTTP transport API
+│   │   │   ├── search/           # Search provider API
+│   │   │   ├── webhooks/         # Webhook management
+│   │   │   ├── tunnels/          # Cloudflare tunnel management
+│   │   │   └── ...               # Other endpoints (usage, logs, health, settings, pricing, etc.)
+│   │   ├── landing/              # Landing page
+│   │   ├── login/                # Login page
+│   │   ├── forgot-password/      # Password recovery
+│   │   ├── status/               # Status page
+│   │   └── docs/                 # In-app documentation
+│   ├── domain/                   # Domain types and policy engine
+│   │   ├── policyEngine.ts       # Central policy engine
+│   │   ├── comboResolver.ts      # Combo resolution logic
+│   │   ├── costRules.ts          # Cost calculation rules
+│   │   ├── degradation.ts        # Graceful degradation
+│   │   ├── fallbackPolicy.ts     # Fallback behavior
+│   │   ├── lockoutPolicy.ts      # Account lockout logic
+│   │   ├── modelAvailability.ts  # Model availability checks
+│   │   ├── providerExpiration.ts # Provider credential expiration
+│   │   ├── quotaCache.ts         # Quota caching layer
+│   │   ├── configAudit.ts        # Configuration auditing
+│   │   └── responses.ts          # Domain response types
+│   ├── i18n/                     # Internationalization
+│   │   └── messages/             # 40+ language JSON files
+│   ├── lib/                      # Core libraries
+│   │   ├── a2a/                  # Agent-to-Agent v0.3 protocol server
+│   │   │   ├── skills/           # A2A skills (quotaManagement, smartRouting)
+│   │   │   ├── taskManager.ts    # Task lifecycle with TTL cleanup
+│   │   │   └── streaming.ts      # SSE streaming for A2A
+│   │   ├── acp/                  # Agent Communication Protocol registry and manager
+│   │   ├── compliance/           # Compliance policy engine
+│   │   ├── db/                   # SQLite database layer (21 modules + migrations)
+│   │   │   ├── core.ts           # Database initialization, connection, schema
+│   │   │   ├── providers.ts      # Provider connection CRUD
+│   │   │   ├── models.ts         # Model catalog management
+│   │   │   ├── combos.ts         # Combo configuration
+│   │   │   ├── apiKeys.ts        # API key management
+│   │   │   ├── settings.ts       # Settings persistence
+│   │   │   ├── backup.ts         # Database backup/restore
+│   │   │   ├── proxies.ts        # Proxy registry
+│   │   │   ├── prompts.ts        # Prompt templates
+│   │   │   ├── webhooks.ts       # Webhook subscriptions
+│   │   │   ├── detailedLogs.ts   # Detailed request logging
+│   │   │   ├── domainState.ts    # Domain state persistence
+│   │   │   ├── registeredKeys.ts # Registered API keys with quotas
+│   │   │   ├── quotaSnapshots.ts # Quota snapshot history
+│   │   │   ├── modelComboMappings.ts # Model-to-combo mappings
+│   │   │   ├── cliToolState.ts   # CLI tool state tracking
+│   │   │   ├── encryption.ts     # Data encryption
+│   │   │   ├── readCache.ts      # Read-through cache layer
+│   │   │   ├── secrets.ts        # Secrets management
+│   │   │   ├── stateReset.ts     # State reset utilities
+│   │   │   ├── migrationRunner.ts # Schema migration runner
+│   │   │   └── migrations/       # 16 SQL migration files
+│   │   ├── evals/                # Eval runner and scheduler
+│   │   ├── memory/               # Persistent conversational memory
+│   │   │   ├── extraction.ts     # Memory extraction from conversations
+│   │   │   ├── injection.ts      # Memory injection into context
+│   │   │   ├── retrieval.ts      # Memory retrieval/search
+│   │   │   ├── store.ts          # Memory persistence layer
+│   │   │   └── summarization.ts  # Memory summarization
+│   │   ├── oauth/                # OAuth providers, services, and utilities
+│   │   │   ├── constants/        # Default OAuth credentials (overridable via env)
+│   │   │   ├── providers/        # Provider-specific OAuth configs
+│   │   │   ├── services/         # Provider-specific token exchange logic
+│   │   │   └── utils/            # PKCE, callback server, token helpers
+│   │   ├── plugins/              # Plugin system
+│   │   ├── skills/               # Extensible skill framework
+│   │   │   ├── registry.ts       # Skill registration
+│   │   │   ├── executor.ts       # Skill execution engine
+│   │   │   ├── sandbox.ts        # Skill sandbox environment
+│   │   │   ├── builtin/          # Built-in skills
+│   │   │   ├── interception.ts   # Skill request interception
+│   │   │   └── injection.ts      # Skill context injection
+│   │   ├── usage/                # Usage tracking system
+│   │   │   ├── callLogs.ts       # Call log persistence
+│   │   │   ├── costCalculator.ts # Cost calculation engine
+│   │   │   └── usageHistory.ts   # Usage history queries
+│   │   ├── cloudSync.ts          # Cloud sync via Cloudflare Workers
+│   │   ├── cloudflaredTunnel.ts  # Cloudflare tunnel management
+│   │   ├── pricingSync.ts        # LiteLLM pricing data sync
+│   │   ├── semanticCache.ts      # Semantic caching layer
+│   │   ├── tokenHealthCheck.ts   # Background OAuth token refresh scheduler
+│   │   ├── webhookDispatcher.ts  # Webhook event dispatcher
+│   │   └── localDb.ts            # Unified re-export layer for all DB modules
+│   ├── middleware/               # Request middleware
+│   │   └── promptInjectionGuard.ts # Prompt injection detection
+│   ├── mitm/                     # MITM proxy capability
+│   │   ├── cert/                 # Certificate management
+│   │   ├── dns/                  # DNS handling
+│   │   ├── targets/              # Target routing
+│   │   └── manager.ts            # MITM proxy manager
+│   ├── shared/                   # Shared utilities, components, and constants
+│   │   ├── components/           # Reusable UI components (Card, Badge, Button, Modal, Sidebar, ProviderIcon, etc.)
+│   │   ├── constants/            # Provider definitions (160+), model lists, pricing, routing strategies, MCP scopes
+│   │   ├── contracts/            # Shared API contracts
+│   │   ├── hooks/                # React hooks
+│   │   ├── middleware/           # Shared middleware utilities
+│   │   ├── schemas/              # Shared Zod schemas
+│   │   ├── services/             # Shared services
+│   │   ├── types/                # Shared TypeScript types
+│   │   ├── validation/           # Zod schemas (settings, providers, routes)
+│   │   └── utils/                # Helpers (auth, CORS, error codes, machine ID)
+│   ├── sse/                      # SSE proxy pipeline
+│   │   ├── services/             # Auth resolution, format translation, response handling
+│   │   └── middleware/           # Rate limiting, circuit breaker, caching, idempotency
+│   ├── store/                    # Zustand client-side stores (theme, providers, etc.)
+│   └── types/                    # TypeScript type definitions
+├── open-sse/                     # Standalone SSE server (npm workspace)
+│   ├── config/                   # Model registries (providerRegistry, embedding, image, audio, video,
+│   │                             #   music, rerank, moderation, search, CLI fingerprints, Ollama models)
+│   ├── executors/                # Provider-specific request executors (31 executors)
+│   │   ├── base.ts               # Base executor with shared logic
+│   │   ├── default.ts            # Default OpenAI-compatible executor
+│   │   ├── cursor.ts             # Cursor IDE (protobuf + checksum)
 │   │   ├── codex.ts              # OpenAI Codex CLI
 │   │   ├── antigravity.ts        # Antigravity IDE
 │   │   ├── github.ts             # GitHub Copilot
 │   │   ├── kiro.ts               # Kiro AI
 │   │   ├── qoder.ts              # Qoder AI
-│   │   ├── vertex.ts             # Vertex AI（Service Account JSON）
+│   │   ├── vertex.ts             # Vertex AI (Service Account JSON)
 │   │   ├── cloudflare-ai.ts      # Cloudflare Workers AI
 │   │   ├── opencode.ts           # OpenCode Zen/Go
 │   │   ├── pollinations.ts       # Pollinations AI
 │   │   └── puter.ts              # Puter AI
-│   ├── handlers/                 # 各 API 类型的请求处理器（11 个处理器）
-│   │   ├── chatCore.ts           # 主 Chat Completions 处理器
-│   │   ├── responsesHandler.ts   # OpenAI Responses API 处理器
-│   │   ├── embeddings.ts         # Embedding 生成
-│   │   ├── imageGeneration.ts    # 图像生成（GPT-Image、FLUX、SD 等）
-│   │   ├── videoGeneration.ts    # 视频生成
-│   │   ├── musicGeneration.ts    # 音乐生成
-│   │   ├── audioSpeech.ts        # 文本转语音
-│   │   ├── audioTranscription.ts # 语音转文本（Whisper、Deepgram、AssemblyAI）
-│   │   ├── moderations.ts        # 内容审核
+│   ├── handlers/                 # Request handlers per API type (11 handlers)
+│   │   ├── chatCore.ts           # Main chat completions handler
+│   │   ├── responsesHandler.ts   # OpenAI Responses API handler
+│   │   ├── embeddings.ts         # Embedding generation
+│   │   ├── imageGeneration.ts    # Image generation (GPT-Image, FLUX, SD, etc.)
+│   │   ├── videoGeneration.ts    # Video generation
+│   │   ├── musicGeneration.ts    # Music generation
+│   │   ├── audioSpeech.ts        # Text-to-speech
+│   │   ├── audioTranscription.ts # Speech-to-text (Whisper, Deepgram, AssemblyAI)
+│   │   ├── moderations.ts        # Content moderation
 │   │   ├── rerank.ts             # Reranking API
-│   │   └── search.ts             # 网页搜索 API
-│   ├── mcp-server/               # 内置 MCP Server（29 个工具，3 种传输：stdio/SSE/streamable-HTTP）
-│   │   ├── server.ts             # MCP Server 核心（工具注册、权限域强制）
-│   │   ├── tools/                # 工具实现（advancedTools、memoryTools、skillTools）
-│   │   ├── schemas/              # Zod 输入 Schema（工具、审计、A2A）
-│   │   ├── scopeEnforcement.ts   # 基于权限域的访问控制（10 个权限域）
-│   │   ├── audit.ts              # 工具调用审计日志
-│   │   ├── runtimeHeartbeat.ts   # MCP 运行时心跳
-│   │   └── httpTransport.ts      # HTTP 传输处理器
-│   ├── services/                 # 36+ 个服务模块
-│   │   ├── combo.ts              # 核心路由引擎
-│   │   ├── usage.ts              # 用量追踪
-│   │   ├── tokenRefresh.ts       # OAuth Token 刷新
-│   │   ├── rateLimitManager.ts   # 速率限制管理
-│   │   ├── accountFallback.ts    # 多账户容灾
-│   │   ├── sessionManager.ts     # 会话管理
-│   │   ├── wildcardRouter.ts     # 通配符模型路由
-│   │   ├── autoCombo/            # Auto-Combo 引擎（6 因子评分、bandit 探索）
-│   │   ├── intentClassifier.ts   # 请求意图分类
-│   │   ├── taskAwareRouter.ts    # 任务感知路由
-│   │   ├── thinkingBudget.ts     # 思考预算管理
-│   │   ├── contextManager.ts     # 上下文窗口管理
-│   │   ├── modelDeprecation.ts   # 模型弃用处理
-│   │   ├── modelFamilyFallback.ts # 模型族内容灾
-│   │   ├── emergencyFallback.ts  # 紧急容灾
-│   │   ├── workflowFSM.ts        # 工作流状态机
-│   │   ├── backgroundTaskDetector.ts # 后台任务检测
-│   │   ├── ipFilter.ts           # 基于 IP 的访问控制
-│   │   ├── signatureCache.ts     # CLI 签名缓存
-│   │   ├── volumeDetector.ts     # 请求量检测
-│   │   ├── contextHandoff.ts    # 上下文中继交接生成与注入
-│   │   ├── codexQuotaFetcher.ts # Codex 配额获取（用于 context-relay）
-│   │   └── ...                   # 其他服务（另有 14 个模块）
-│   ├── transformer/              # Responses API 转换器
+│   │   └── search.ts             # Web search API
+│   ├── mcp-server/               # Built-in MCP server (29 tools, 3 transports: stdio/SSE/streamable-HTTP)
+│   │   ├── server.ts             # MCP server core (tool registration, scope enforcement)
+│   │   ├── tools/                # Tool implementations (advancedTools, memoryTools, skillTools)
+│   │   ├── schemas/              # Zod input schemas (tools, audit, a2a)
+│   │   ├── scopeEnforcement.ts   # Scope-based access control (10 scopes)
+│   │   ├── audit.ts              # Tool call audit logging
+│   │   ├── runtimeHeartbeat.ts   # MCP runtime heartbeat
+│   │   └── httpTransport.ts      # HTTP transport handler
+│   ├── services/                 # 36+ service modules
+│   │   ├── combo.ts              # Core routing engine
+│   │   ├── usage.ts              # Usage tracking
+│   │   ├── tokenRefresh.ts       # OAuth token refresh
+│   │   ├── rateLimitManager.ts   # Rate limit management
+│   │   ├── accountFallback.ts    # Multi-account fallback
+│   │   ├── sessionManager.ts     # Session management
+│   │   ├── wildcardRouter.ts     # Wildcard model routing
+│   │   ├── autoCombo/            # Auto-combo engine (6-factor scoring, bandit exploration)
+│   │   ├── intentClassifier.ts   # Request intent classification
+│   │   ├── taskAwareRouter.ts    # Task-aware routing
+│   │   ├── thinkingBudget.ts     # Thinking budget management
+│   │   ├── contextManager.ts     # Context window management
+│   │   ├── modelDeprecation.ts   # Model deprecation handling
+│   │   ├── modelFamilyFallback.ts # Intra-family model fallback
+│   │   ├── emergencyFallback.ts  # Emergency fallback
+│   │   ├── workflowFSM.ts        # Workflow state machine
+│   │   ├── backgroundTaskDetector.ts # Background task detection
+│   │   ├── ipFilter.ts           # IP-based access control
+│   │   ├── signatureCache.ts     # CLI signature caching
+│   │   ├── volumeDetector.ts     # Request volume detection
+│   │   ├── contextHandoff.ts    # Context relay handoff generation and injection
+│   │   ├── codexQuotaFetcher.ts # Codex quota fetching for context-relay
+│   │   └── ...                   # Additional services (14 more modules)
+│   ├── transformer/              # Responses API transformer
 │   │   └── responsesTransformer.ts
-│   ├── translator/               # 格式转换器（OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama ↔ DeepSeek）
-│   │   ├── request/              # 各服务商请求转换器
-│   │   ├── response/             # 各服务商响应转换器
-│   │   ├── helpers/              # 转换辅助工具
-│   │   └── image/                # 图像格式转换
-│   └── utils/                    # 22 个工具模块（流、TLS、代理、日志等）
-├── electron/                     # Electron 桌面应用（跨平台）
-│   ├── main.js                   # Electron 主进程
-│   ├── preload.js                # 预加载脚本（IPC 桥接）
-│   └── assets/                   # 应用图标和资源
-├── tests/                        # 测试套件
-│   ├── unit/                     # 122 个单元测试文件
-│   ├── integration/              # 集成测试
-│   ├── e2e/                      # Playwright E2E 测试
-│   ├── security/                 # 安全测试
-│   ├── translator/               # 转换器专项测试
-│   └── load/                     # 负载测试
-├── docs/                         # 文档
-│   ├── i18n/                     # 30 语言翻译文档
-│   ├── ARCHITECTURE.md           # 完整架构文档
-│   ├── API_REFERENCE.md          # API 参考
-│   ├── USER_GUIDE.md             # 用户指南
-│   ├── CODEBASE_DOCUMENTATION.md # 代码库概述
-│   ├── CLI-TOOLS.md              # CLI 工具集成指南
-│   ├── A2A-SERVER.md             # A2A 代理协议文档
-│   ├── AUTO-COMBO.md             # Auto-Combo 引擎（6 因子评分）
-│   ├── MCP-SERVER.md             # MCP Server（29 个工具）
-│   ├── TROUBLESHOOTING.md        # 故障排除指南
-│   ├── VM_DEPLOYMENT_GUIDE.md    # VPS 部署指南
-│   ├── openapi.yaml              # OpenAPI 规范
-│   └── screenshots/              # 仪表盘截图
-├── bin/                          # CLI 入口点（omniroute、reset-password）
-├── scripts/                      # 构建和工具脚本
-└── .env.example                  # 环境变量模板
+│   ├── translator/               # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama ↔ DeepSeek)
+│   │   ├── request/              # Request translators per provider
+│   │   ├── response/             # Response translators per provider
+│   │   ├── helpers/              # Translation helpers
+│   │   └── image/                # Image format translation
+│   └── utils/                    # 22 utility modules (stream, TLS, proxy, logging, etc.)
+├── electron/                     # Electron desktop app (cross-platform)
+│   ├── main.js                   # Electron main process
+│   ├── preload.js                # Preload script (IPC bridge)
+│   └── assets/                   # App icons and assets
+├── tests/                        # Test suites
+│   ├── unit/                     # 122 unit test files
+│   ├── integration/              # Integration tests
+│   ├── e2e/                      # Playwright E2E tests
+│   ├── security/                 # Security tests
+│   ├── translator/               # Translator-specific tests
+│   └── load/                     # Load tests
+├── docs/                         # Documentation
+│   ├── i18n/                     # 30-language translated docs
+│   ├── ARCHITECTURE.md           # Full architecture documentation
+│   ├── API_REFERENCE.md          # API reference
+│   ├── USER_GUIDE.md             # User guide
+│   ├── CODEBASE_DOCUMENTATION.md # Codebase overview
+│   ├── CLI-TOOLS.md              # CLI tools integration guide
+│   ├── A2A-SERVER.md             # A2A agent protocol documentation
+│   ├── AUTO-COMBO.md             # Auto-combo engine (6-factor scoring)
+│   ├── MCP-SERVER.md             # MCP server (29 tools)
+│   ├── TROUBLESHOOTING.md        # Troubleshooting guide
+│   ├── VM_DEPLOYMENT_GUIDE.md    # VPS deployment guide
+│   ├── openapi.yaml              # OpenAPI specification
+│   └── screenshots/              # Dashboard screenshots
+├── bin/                          # CLI entry points (omniroute, reset-password)
+├── scripts/                      # Build and utility scripts
+└── .env.example                  # Environment variable template
 ```
 
-## 核心功能（v3.8.8）
+## Key Features (v3.8.8)
 
-### 核心代理
-- **177 个 AI 服务商**，自动格式转换
-- **4 类服务商**：免费（5）、OAuth（14）、API Key（123+）、自托管（8+）、自定义（OpenAI/Anthropic 兼容）
-- **14 种路由策略**：priority、weighted、round-robin、fill-first、p2c、random、least-used、cost-optimized、strict-random、auto、lkgp、context-optimized、context-relay、**reset-aware**（v3.8）
-- **4 层容灾**：订阅 → API Key → 低成本 → 免费
-- **Context Relay 策略**：账户轮换时生成会话交接摘要，确保连续性
-- **Auto-Combo 引擎**：自修复路由优化，**9 因子评分**（health/quota/costInv/latencyInv/taskFit/specificityMatch/stability/tierPriority/tierAffinity）、bandit 探索、渐进式冷却
-- **语义缓存**，带缓存命中/未命中响应头
-- **幂等**，支持可配置的去重窗口
-- **3 层容灾**：服务商熔断器 / 连接冷却 / 模型锁定
-- **服务商图标**：130+ 服务商 Logo，通过 `@lobehub/icons`（SVG）+ PNG 降级
-- **模型自动同步**：24 小时调度任务，刷新 16 个服务商的模型列表
-- **已注册 Key API**：通过 `POST /api/v1/registered-keys` 自动发放 API Key，带配额强制
-- **记忆系统**：持久化对话记忆，支持提取、注入、检索和摘要
-- **技能系统**：可扩展技能框架，含注册表、执行器、沙箱、内置和自定义技能
-- **云代理**：Codex Cloud、Devin、Jules — 自主编程代理，带任务生命周期管理
-- **安全护栏框架**：热重载注册表，含 vision-bridge、pii-masker、prompt-injection（按优先级排序）
-- **MITM 代理**：证书管理、DNS 处理和目标路由
-- **Cloudflare 隧道**：托管隧道创建，支持远程访问
-- **覆盖率门禁**：75% statements/lines/functions，70% branches（实测约 82%）
+### Core Proxy
+- **177 AI providers** with automatic format translation
+- **4 provider categories**: Free (5), OAuth (14), API Key (123+), Self-Hosted (8+), Custom (OpenAI/Anthropic-compatible)
+- **14 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay, **reset-aware** (v3.8)
+- **4-tier fallback**: Subscription → API Key → Cheap → Free
+- **Context Relay strategy**: Session handoff summaries on account rotation for continuity
+- **Auto-combo engine**: Self-healing routing optimization with **9-factor scoring** (health/quota/costInv/latencyInv/taskFit/specificityMatch/stability/tierPriority/tierAffinity), bandit exploration, progressive cooldown
+- **Semantic caching** with cache hit/miss headers
+- **Idempotency** with configurable dedup window
+- **3-layer resilience**: Provider Circuit Breaker / Connection Cooldown / Model Lockout
+- **Provider Icons**: 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback
+- **Model Auto-Sync**: 24h scheduler refreshes model lists for 16 providers
+- **Registered Keys API**: Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement
+- **Memory System**: Persistent conversational memory with extraction, injection, retrieval, and summarization
+- **Skills System**: Extensible skill framework with registry, executor, sandbox, built-in and custom skills
+- **Cloud Agents**: Codex Cloud, Devin, Jules — autonomous coding agents with task lifecycle management
+- **Guardrails Framework**: Hot-reloadable registry with vision-bridge, pii-masker, prompt-injection (priority-ordered)
+- **MITM Proxy**: Certificate management, DNS handling, and target routing
+- **Cloudflare Tunnels**: Managed tunnel creation for remote access
+- **Coverage gate**: 75% statements/lines/functions, 70% branches (measured ~82%)
 
-### 安全
-- **数据丢失防护**：SQLite 迁移安全检查会在大规模 Schema 危险覆盖时中止启动。迁移前执行 `VACUUM INTO` 备份，隔离回滚快照。
-- **CodeQL 安全**：修复 10+ CodeQL 告警（多项式 ReDoS、不安全随机数、Shell 注入、SSRF、不完整 URL）
-- **Web Crypto 会话 ID**：`generateSessionId` 使用 `crypto.getRandomValues()` 而非 `Math.random()`
-- **路由校验**：所有 API 路由通过 Zod v4 Schema + `validateBody()` 校验
-- **omniModel 标签清理**：内部 `<omniModel>` 标签绝不会在 SSE 流中泄露给客户端
-- **TLS 指纹伪装** — 模拟浏览器 TLS 指纹，降低机器人检测
-- **CLI 指纹匹配** — 各服务商请求签名匹配
-- **提示注入检测** — 请求中间件检测
-- **服务商常量在模块加载时校验**，通过 Zod（`src/shared/validation/providerSchema.ts`）
-- **PII 脱敏** — 日志中的敏感数据擦除
+### Security
+- **Data Loss Prevention**: SQLite migration safety bounds abort startup on dangerous massive schema overrides. Pre-migration `VACUUM INTO` backups isolate rollback snapshots.
+- **CodeQL security**: Fixed 10+ CodeQL alerts (polynomial-redos, insecure-randomness, shell-injection, SSRF, incomplete URLs)
+- **Web Crypto session IDs**: `generateSessionId` uses `crypto.getRandomValues()` instead of `Math.random()`
+- **Route validation**: All API routes validated with Zod v4 schemas + `validateBody()`
+- **omniModel tag sanitization**: Internal `<omniModel>` tags never leak to clients in SSE streams
+- **TLS Fingerprint Spoofing** — Browser-like TLS fingerprint to reduce bot detection
+- **CLI Fingerprint Matching** — Per-provider request signature matching
+- **Prompt injection guard** — Request middleware detection
+- **Provider constants validated at module load** via Zod (`src/shared/validation/providerSchema.ts`)
+- **PII sanitizer** — Sensitive data scrubbing in logs
 
-### 仪表盘页面（23 个板块）
-- **服务商** — OAuth、API Key 和免费服务商管理，带 ProviderIcon SVG 图标
-- **Combo** — 多模型 Combo 构建器，含 4 个模板（免费栈、高可用、成本节约、均衡）+ 14 种策略
-- **Auto-Combo** — Auto-Combo 引擎仪表盘，展示评分指标
-- **分析** — Token 消耗、成本、热力图、分布
-- **健康** — 运行时长、内存、延迟百分位数、熔断器
-- **日志** — 请求、代理、审计、控制台（选项卡）
-- **审计** — 审计追踪和合规日志
-- **成本** — 按服务商/模型统计成本
-- **限制** — 速率限制监控
-- **缓存** — 语义缓存统计和管理
-- **CLI 工具** — 10+ AI CLI 工具一键配置
-- **CLI 代理** — 14+ 内置代理网格，带 ProviderIcon 和安装检测 + 自定义代理注册
-- **游乐场** — Monaco 编辑器测试任意模型，流式响应
-- **媒体** — 图像/视频/音乐生成（GPT-Image、FLUX 等）+ 语音转录（最高 2GB 文件）
-- **搜索工具** — 搜索服务商配置和测试
-- **记忆** — 记忆系统管理和可视化
-- **技能** — 技能框架管理和执行
-- **转换器** — 格式调试：游乐场、对话测试器、测试台、实时监控
-- **设置** — 常规、外观（7 种颜色主题）、安全（TLS/CLI 指纹、IP 过滤）、路由、容灾、高级
-- **端点** — 统一入口：端点代理、MCP Server、A2A Server、API 端点（选项卡）
-- **入门** — 新用户配置向导
-- **用量** — 用量历史和分析
-- **API 管理** — API Key 管理，带权限域授权
+### Dashboard Pages (23 sections)
+- **Providers** — OAuth, API key, and free provider management with ProviderIcon SVG icons
+- **Combos** — Multi-model combo builder with 4 templates (Free Stack, High Availability, Cost Saver, Balanced) + 14 strategies
+- **Auto-Combo** — Auto-combo engine dashboard with scoring metrics
+- **Analytics** — Token consumption, cost, heatmaps, distributions
+- **Health** — Uptime, memory, latency percentiles, circuit breakers
+- **Logs** — Request, Proxy, Audit, Console (tabbed)
+- **Audit** — Audit trail and compliance logging
+- **Costs** — Cost tracking per provider/model
+- **Limits** — Rate limit monitoring
+- **Cache** — Semantic cache statistics and management
+- **CLI Tools** — One-click configuration for 10+ AI CLI tools
+- **CLI Agents** — Grid of 14+ built-in agents with ProviderIcon and install detection + custom agent registration
+- **Playground** — Test any model with Monaco editor, streaming responses
+- **Media** — Image/video/music generation (GPT-Image, FLUX, etc.) + audio transcription (up to 2GB files)
+- **Search Tools** — Search provider configuration and testing
+- **Memory** — Memory system management and visualization
+- **Skills** — Skills framework management and execution
+- **Translator** — Format debugging: playground, chat tester, test bench, live monitor
+- **Settings** — General, Appearance (7 color themes), Security (TLS/CLI fingerprint, IP filter), Routing, Resilience, Advanced
+- **Endpoint** — Unified: Endpoint Proxy, MCP Server, A2A Server, API Endpoints (tabbed)
+- **Onboarding** — Setup wizard for new users
+- **Usage** — Usage history and analytics
+- **API Manager** — API key management with scoped permissions
 
-### 协议支持
-- **OpenAI 兼容** — `/v1/chat/completions`、`/v1/models`、`/v1/embeddings`、`/v1/images/generations`、`/v1/audio/transcriptions`、`/v1/audio/speech`、`/v1/moderations`、`/v1/rerank`、`/v1/videos/generations`、`/v1/music/generations`
-- **Anthropic** — `/v1/messages`、`/v1/messages/count_tokens`
+### Protocol Support
+- **OpenAI-compatible** — `/v1/chat/completions`, `/v1/models`, `/v1/embeddings`, `/v1/images/generations`, `/v1/audio/transcriptions`, `/v1/audio/speech`, `/v1/moderations`, `/v1/rerank`, `/v1/videos/generations`, `/v1/music/generations`
+- **Anthropic** — `/v1/messages`, `/v1/messages/count_tokens`
 - **OpenAI Responses** — `/v1/responses`
-- **Gemini** — `/v1beta/models`、`/v1beta/models/{...path}`
-- **Ollama** — `/v1/api/chat`、`/api/tags`
-- **搜索** — `/v1/search`（Perplexity、Serper、Brave、Exa、Tavily）
-- **MCP** — 37 工具 MCP Server，带基于权限域的认证（3 种传输：stdio、SSE、streamable HTTP）
-- **A2A** — Agent-to-Agent v0.3 协议（JSON-RPC 2.0，5 个技能：smart-routing、quota-management、provider-discovery、cost-analysis、health-report）
-- **ACP** — Agent Communication Protocol 注册表和管理器
+- **Gemini** — `/v1beta/models`, `/v1beta/models/{...path}`
+- **Ollama** — `/v1/api/chat`, `/api/tags`
+- **Search** — `/v1/search` (Perplexity, Serper, Brave, Exa, Tavily)
+- **MCP** — 37-tool MCP server with scope-based auth (3 transports: stdio, SSE, streamable HTTP)
+- **A2A** — Agent-to-Agent v0.3 protocol (JSON-RPC 2.0, 5 skills: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
+- **ACP** — Agent Communication Protocol registry and manager
 
-### MCP Server（37 个工具）
-| 分类 | 工具 |
-|------|------|
-| 核心（30） | `get_health`、`list_combos`、`get_combo_metrics`、`switch_combo`、`check_quota`、`route_request`、`cost_report`、`list_models_catalog`、`web_search`、`simulate_route`、`set_budget_guard`、`set_routing_strategy`、`set_resilience_profile`、`test_combo`、`get_provider_metrics`、`best_combo_for_task`、`explain_route`、`get_session_snapshot`、`db_health_check`、`sync_pricing`、`cache_stats`、`cache_flush`，以及高级路由/诊断工具（完整清单见 `docs/frameworks/MCP-SERVER.md`） |
-| 记忆（3） | `memory_search`、`memory_add`、`memory_clear` |
-| 技能（4） | `skills_list`、`skills_enable`、`skills_execute`、`skills_executions` |
+### MCP Server (37 Tools)
+| Category   | Tools |
+|------------|-------|
+| Core (30)  | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog`, `web_search`, `simulate_route`, `set_budget_guard`, `set_routing_strategy`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot`, `db_health_check`, `sync_pricing`, `cache_stats`, `cache_flush`, and advanced routing/diagnostics tools (see `docs/frameworks/MCP-SERVER.md` for full inventory) |
+| Memory (3) | `memory_search`, `memory_add`, `memory_clear` |
+| Skills (4) | `skills_list`, `skills_enable`, `skills_execute`, `skills_executions` |
 
-**MCP 认证权限域（约 13 个）：** `read:health`、`read:combos`、`write:combos`、`read:quota`、`read:usage`、`read:models`、`execute:completions`、`execute:search`、`write:budget`、`write:resilience`，以及记忆/技能权限域 — 完整列表见 `docs/frameworks/MCP-SERVER.md`。
+**MCP Auth Scopes (~13):** `read:health`, `read:combos`, `write:combos`, `read:quota`, `read:usage`, `read:models`, `execute:completions`, `execute:search`, `write:budget`, `write:resilience`, plus memory/skills scopes — full list in `docs/frameworks/MCP-SERVER.md`.
 
-### 服务商分类
+### Provider Categories
 
-**免费服务商（4 个）：** Qoder AI、Qwen Code（已弃用）、Kiro AI、Windsurf
+**Free Providers (4):** Qoder AI, Qwen Code (deprecated), Kiro AI, Windsurf
 
-**OAuth 服务商（14 个）：** Claude Code、Antigravity、OpenAI Codex、GitHub Copilot、Cursor IDE、Kimi Coding、Kilo Code、Cline、Qwen、Kiro、Qoder、Gemini、Windsurf、GitLab Duo
+**OAuth Providers (14):** Claude Code, Antigravity, OpenAI Codex, GitHub Copilot, Cursor IDE, Kimi Coding, Kilo Code, Cline, Qwen, Kiro, Qoder, Gemini, Windsurf, GitLab Duo
 
-**API Key 服务商（48+）：** OpenAI、Anthropic、Gemini (Google AI Studio)、DeepSeek、Groq、xAI (Grok)、Mistral、Perplexity、Together AI、Fireworks AI、Cerebras、Cohere、NVIDIA NIM、Nebius AI、SiliconFlow、Hyperbolic、HuggingFace、OpenRouter、Vertex AI、Cloudflare Workers AI、Scaleway AI、AI/ML API、Pollinations AI、Puter AI、LongCat AI、Alibaba、Alibaba (China)、Kimi、Kimi Coding (API Key)、Minimax、Minimax (China)、Blackbox AI、Synthetic、Kilo Gateway、Z.AI、GLM Coding、Deepgram、AssemblyAI、ElevenLabs、Cartesia、PlayHT、Inworld、NanoBanana、SD WebUI、ComfyUI、Ollama Cloud、Perplexity Search、Serper Search、Brave Search、Exa Search、Tavily Search、OpenCode Zen、OpenCode Go、Alibaba Coding Plan
+**API Key Providers (48+):** OpenAI, Anthropic, Gemini (Google AI Studio), DeepSeek, Groq, xAI (Grok), Mistral, Perplexity, Together AI, Fireworks AI, Cerebras, Cohere, NVIDIA NIM, Nebius AI, SiliconFlow, Hyperbolic, HuggingFace, OpenRouter, Vertex AI, Cloudflare Workers AI, Scaleway AI, AI/ML API, Pollinations AI, Puter AI, LongCat AI, Alibaba, Alibaba (China), Kimi, Kimi Coding (API Key), Minimax, Minimax (China), Blackbox AI, Synthetic, Kilo Gateway, Z.AI, GLM Coding, Deepgram, AssemblyAI, ElevenLabs, Cartesia, PlayHT, Inworld, NanoBanana, SD WebUI, ComfyUI, Ollama Cloud, Perplexity Search, Serper Search, Brave Search, Exa Search, Tavily Search, OpenCode Zen, OpenCode Go, Alibaba Coding Plan
 
-**自定义服务商：** OpenAI 兼容（`openai-compatible-*`）和 Anthropic 兼容（`anthropic-compatible-*`），支持自定义基础 URL
+**Custom Providers:** OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) with custom base URLs
 
-### 国际化
-- 40+ 种 UI 语言（覆盖全部仪表盘页面）
-- 40 套翻译文档，位于 docs/i18n/
-- 文档内置语言切换器
+### Internationalization
+- 40+ languages for UI (all dashboard pages)
+- 40 translated documentation sets in docs/i18n/
+- Language switcher in documentation
 
-## 关键架构决策
+## Key Architectural Decisions
 
-1. **OpenAI 兼容 API 接口：** 所有入站请求遵循 OpenAI API 格式。这使 OmniRoute 可以作为任何支持自定义 OpenAI 端点工具的直接替代。
+1. **OpenAI-compatible API surface:** All incoming requests follow the OpenAI API format. This makes OmniRoute a drop-in replacement for any tool that supports custom OpenAI endpoints.
 
-2. **通过格式转换器抽象服务商：** 每个 AI 服务商在 `open-sse/translator/` 中都有一个转换器，透明地在 OpenAI 格式和该服务商原生格式之间转换。
+2. **Provider abstraction via format translators:** Each AI provider has a translator in `open-sse/translator/` that converts between OpenAI format and the provider's native format transparently.
 
-3. **基于连接的服务商模型：** 服务商以"连接"形式存储在 SQLite 中。每个连接有 `id`、`provider`、`authType`（oauth/apikey/free）、`isActive` 标志和凭证。同一服务商可创建多个连接，用于多账户轮换。
+3. **Connection-based provider model:** Providers are stored as "connections" in SQLite. Each connection has an `id`, `provider`, `authType` (oauth/apikey/free), `isActive` flag, and credentials. Multiple connections per provider for multi-account rotation.
 
-4. **Combo 系统实现容灾：** 用户创建"Combo"——即 `服务商/模型` 对的有序列表。代理按顺序尝试每个选项，直到成功。支持 14 种策略，包括带自修复的 Auto-Combo 和用于会话连续性的 Context Relay。
+4. **Combo system for fallback:** Users create "combos" — ordered lists of `provider/model` pairs. The proxy tries each in order until one succeeds. Supports 14 strategies including auto-combo with self-healing and context-relay for session continuity.
 
-5. **SSE 代理管线：** 代理管线基于中间件：请求 → 认证解析 → 速率限制 → 熔断器 → 格式转换 → 上游调用 → 响应转换 → SSE 流返回客户端。
+5. **SSE proxy pipeline:** The proxy pipeline is middleware-based: request → auth resolution → rate limiting → circuit breaker → format translation → upstream call → response translation → SSE streaming back to client.
 
-6. **SQLite 持久化：** 所有状态（服务商、Combo、日志、设置、API Key、记忆、技能）通过 21 个领域专用模块存储在单一 SQLite 数据库中。所有数据库操作均通过 `src/lib/db/` 模块进行，路由中绝不出现裸 SQL。
+6. **SQLite for persistence:** All state (providers, combos, logs, settings, API keys, memory, skills) stored in a single SQLite database via 21 domain-specific modules. All DB operations go through `src/lib/db/` modules, never raw SQL in routes.
 
-7. **OAuth + PKCE：** OAuth 流程使用 PKCE 保障安全。Token 刷新由后台任务（`tokenHealthCheck.ts`）处理。
+7. **OAuth with PKCE:** OAuth flows use PKCE for security. Token refresh handled by background job (`tokenHealthCheck.ts`).
 
-8. **ProviderIcon 组件：** 统一图标系统，使用 `@lobehub/icons`（130+ SVG）+ PNG 降级 + 通用图标降级链。在服务商、仪表盘和代理页面上使用。
+8. **ProviderIcon component:** Unified icon system using `@lobehub/icons` (130+ SVG) with PNG fallback and generic icon fallback chain. Used on providers, dashboard, and agents pages.
 
-9. **数据库架构：** `localDb.ts` 仅为再导出层——真正的逻辑位于 21 个 `src/lib/db/` 模块和 16 个 SQL 迁移中。
+9. **DB architecture:** `localDb.ts` is a re-export layer only — real logic lives in 21 `src/lib/db/` modules with 16 SQL migrations.
 
-10. **上游响应头：** 自定义响应头在执行器中合并，位于默认认证之后；相同响应头名称会替换执行器值。禁用的响应头名称定义在 `src/shared/constants/upstreamHeaders.ts`。
+10. **Upstream headers:** Custom headers merged in executors after default auth; same header name replaces executor value. Forbidden header names in `src/shared/constants/upstreamHeaders.ts`.
 
-11. **记忆/技能跨系统：** 记忆和技能影响 MCP 工具、请求管线和 A2A 技能。记忆提供跨会话的持久上下文；技能提供带沙箱隔离的可扩展工具执行。
+11. **Memory/Skills cross-cutting systems:** Memory and Skills affect the MCP tools, request pipeline, and A2A skills. Memory provides persistent context across sessions; Skills provide extensible tool execution with sandbox isolation.
 
-12. **领域策略引擎：** `src/domain/` 包含策略引擎模块（policyEngine、comboResolver、costRules、degradation、fallbackPolicy、lockoutPolicy、modelAvailability、providerExpiration、quotaCache、configAudit），独立于管线管控路由决策。
+12. **Domain policy engine:** `src/domain/` contains policy engine modules (policyEngine, comboResolver, costRules, degradation, fallbackPolicy, lockoutPolicy, modelAvailability, providerExpiration, quotaCache, configAudit) that govern routing decisions independently from the pipeline.
 
-13. **服务商常量加载时校验：** 所有服务商定义在模块加载时通过 Zod Schema 校验（`src/shared/validation/providerSchema.ts`）。无效的服务商会立刻暴露。
+13. **Provider constants validated at load:** All provider definitions validated via Zod schemas at module load time (`src/shared/validation/providerSchema.ts`). Invalid providers fail fast.
 
-## 主要流程
+## Main Flows
 
-### 代理请求流程
-1. 客户端向 `/v1/chat/completions` 发送 OpenAI 格式请求
-2. API Key 校验
-3. 模型解析：直接模型查询或 Combo 查询
-4. 对于 Combo：按选定策略遍历模型
-5. 认证解析：获取目标服务商的凭证
-6. 格式转换：OpenAI → 服务商原生格式
-7. CLI 指纹匹配（若对该服务商启用）
-8. 上游请求，带熔断器和速率限制
-9. 响应转换：服务商 → OpenAI 格式
-10. omniModel 标签清理（剥离内部标签）
-11. SSE 流式返回客户端
-12. 记忆提取（若记忆系统启用）
-13. 用量日志记录和成本计算
+### Proxy Request Flow
+1. Client sends OpenAI-format request to `/v1/chat/completions`
+2. API key validation
+3. Model resolution: direct model or combo lookup
+4. For combos: iterate through models with selected strategy
+5. Auth resolution: get credentials for the target provider
+6. Format translation: OpenAI → provider native format
+7. CLI fingerprint matching (if enabled for provider)
+8. Upstream request with circuit breaker and rate limiting
+9. Response translation: provider → OpenAI format
+10. omniModel tag sanitization (strip internal tags)
+11. SSE streaming back to client
+12. Memory extraction (if memory system enabled)
+13. Usage logging and cost calculation
 
-### OAuth 流程
-1. 仪表盘发起 `/api/oauth/[provider]/authorize`
-2. 用户在浏览器中完成 OAuth 登录
-3. 回调命中 `/api/oauth/[provider]/exchange`
-4. Token 作为服务商连接存储在 SQLite 中
-5. 后台任务在过期前刷新 Token
+### OAuth Flow
+1. Dashboard initiates `/api/oauth/[provider]/authorize`
+2. User completes OAuth login in browser
+3. Callback hits `/api/oauth/[provider]/exchange`
+4. Tokens stored as a provider connection in SQLite
+5. Background job refreshes tokens before expiry
 
-## LLM 重要注意事项
+## Important Notes for LLMs
 
-1. **存在两个模型端点：** `/api/models`（仪表盘，全部模型）和 `/v1/models`（OpenAI 兼容，仅活跃模型）。
+1. **Two model endpoints exist:** `/api/models` (dashboard, all models) and `/v1/models` (OpenAI-compatible, active only).
 
-2. **服务商 ID 与别名：** 服务商同时有 ID（`claude`、`github`）和短别名（`cc`、`gh`）。模型引用格式为 `alias/model-name`（如 `cc/claude-opus-4-6`）。
+2. **Provider IDs vs aliases:** Providers have both an ID (`claude`, `github`) and a short alias (`cc`, `gh`). Models are referenced as `alias/model-name` (e.g., `cc/claude-opus-4-6`).
 
-3. **`open-sse/` 目录是独立的 npm workspace**，拥有自己的配置、处理器、执行器、转换器和服务。
+3. **The `open-sse/` directory is a separate npm workspace** with its own config, handlers, executors, translators, and services.
 
-4. **环境变量：** 所有配置位于 `.env`（来自 `.env.example`）。关键变量：`PORT`、`NEXT_PUBLIC_BASE_URL`、`API_KEY`、`ADMIN_PASSWORD`。
+4. **Environment variables:** All configuration is in `.env` (from `.env.example`). Key vars: `PORT`, `NEXT_PUBLIC_BASE_URL`, `API_KEY`, `ADMIN_PASSWORD`.
 
-5. **数据库层：** 操作通过 `src/lib/db/` 模块（45+ 个领域专用文件，55 个迁移）进行。`localDb.ts` 仅做再导出——新增函数请加到正确的 `db/*.ts` 模块。
+5. **Database layer:** Operations go through `src/lib/db/` modules (45+ domain-specific files, 55 migrations). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
 
-6. **测试** 使用 Node.js 内置测试运行器 + Vitest。运行 `npm test`。MCP/autoCombo 用 Vitest（`npm run test:vitest`）。E2E 用 Playwright（`npm run test:e2e`）。覆盖率门禁：75% statements/lines/functions，70% branches。
+6. **Tests** use Node.js built-in test runner + Vitest. Run `npm test`. Vitest for MCP/autoCombo (`npm run test:vitest`). Playwright for E2E (`npm run test:e2e`). Coverage gate: 75% statements/lines/functions, 70% branches.
 
-7. **MCP 和 A2A 页面是嵌入到 `/dashboard/endpoint` 内的选项卡**，不是独立路由。
+7. **MCP and A2A pages are embedded as tabs inside `/dashboard/endpoint`**, not standalone routes.
 
-8. **ACP 代理** 位于 `src/lib/acp/registry.ts`，有检测缓存。自定义代理通过设置 DB 存储。
+8. **ACP agents** are in `src/lib/acp/registry.ts` with detection cache. Custom agents stored via settings DB.
 
-9. **Auto-Combo 引擎** 位于 `open-sse/services/autoCombo/` — **9 因子评分**（health 0.22、quota 0.17、costInv 0.17、latencyInv 0.13、taskFit 0.08、specificityMatch 0.08、stability 0.05、tierPriority 0.05、tierAffinity 0.05），4 种模式包，bandit 探索，渐进式冷却。
+9. **Auto-combo engine** in `open-sse/services/autoCombo/` — **9-factor scoring** (health 0.22, quota 0.17, costInv 0.17, latencyInv 0.13, taskFit 0.08, specificityMatch 0.08, stability 0.05, tierPriority 0.05, tierAffinity 0.05), 4 mode packs, bandit exploration, progressive cooldown.
 
-10. **Docker：** Dockerfile 有两个目标：`runner-base` 和 `runner-cli`。`docker-compose.yml` 用于开发（3 个 profile），`docker-compose.prod.yml` 用于生产（端口 20130）。
+10. **Docker:** Dockerfile has two targets: `runner-base` and `runner-cli`. `docker-compose.yml` for dev (3 profiles), `docker-compose.prod.yml` for production (port 20130).
 
-11. **Electron 桌面应用** 位于 `electron/`，含 main.js 和 preload.js。通过 `npm run electron:build` 构建（支持 Windows、macOS、Linux）。
+11. **Electron desktop app** in `electron/` with main.js and preload.js. Build with `npm run electron:build` (supports Windows, macOS, Linux).
 
-12. **定价数据** 从 LiteLLM 同步至 `src/lib/pricingSync.ts`。使用 `sync_pricing` MCP 工具或 API 端点。
+12. **Pricing data** syncs from LiteLLM via `src/lib/pricingSync.ts`. Use `sync_pricing` MCP tool or API endpoint.
 
-13. **记忆系统** 位于 `src/lib/memory/`，提供提取、注入、检索、摘要和持久存储。通过 MCP 记忆工具和 `/api/memory/` API 对外暴露。
+13. **Memory system** in `src/lib/memory/` provides extraction, injection, retrieval, summarization, and persistent store. Exposed via MCP memory tools and `/api/memory/ API.
 
-14. **技能系统** 位于 `src/lib/skills/`，提供注册表、执行器、沙箱隔离、内置技能、自定义技能支持、请求拦截和上下文注入。通过 MCP 技能工具和 `/api/skills/` API 对外暴露。
+14. **Skills system** in `src/lib/skills/` provides registry, executor, sandbox isolation, built-in skills, custom skill support, request interception, and context injection. Exposed via MCP skill tools and `/api/skills/` API.
 
-15. **所有校验使用 Zod v4**。从 `zod` 包导入。服务商 Schema 在模块加载时校验。
+15. **Zod v4** is used for all validation. Import from `zod` package. Provider schemas validated at module load time.
 
-16. **Context Relay 策略**（`context-relay`）分两层实现：`combo.ts` 决定在成功轮次后是否生成交接；`chat.ts` 在账户解析后才注入交接信息。交接数据存储在 `context_handoffs` SQLite 表中。配置项：`handoffThreshold`、`handoffModel`、`handoffProviders`。
+16. **Context Relay** strategy (`context-relay`) is split across two layers: `combo.ts` decides if a handoff should be generated after a successful turn; `chat.ts` injects the handoff only after account resolution. Handoff data lives in `context_handoffs` SQLite table. Config: `handoffThreshold`, `handoffModel`, `handoffProviders`.
 
-17. **代理强制全面覆盖**：Token 健康检查按连接解析代理，服务商校验在 `runWithProxyContext` 中包装，代理分发器使用 `undici.fetch()` 而非 Node 内置 `fetch()` 以避免 Node 22 上的分发器不兼容问题。
+17. **Proxy enforcement** is now comprehensive: token health checks resolve proxy per connection, provider validation wraps in `runWithProxyContext`, and proxy dispatchers use `undici.fetch()` instead of the Node built-in `fetch()` to avoid dispatcher incompatibilities on Node 22.
 
-18. **Node.js 24+ 兼容性**：登录页面（`/api/settings/require-login`）检测 Node.js 版本，发送 `nodeVersion`/`nodeCompatible` 字段。当 `nodeCompatible` 为 false 时，登录 UI 渲染警告横幅。
+18. **Node.js 24+ compatibility**: The login page (`/api/settings/require-login`) detects the Node.js version and sends `nodeVersion`/`nodeCompatible` fields. The login UI renders a warning banner when `nodeCompatible` is false.
 
-19. **云代理** 位于 `src/lib/cloudAgent/` — 三个外部自主编程代理（Codex Cloud、Devin、Jules），任务生命周期端点位于 `/api/v1/agents/tasks/`。须使用管理认证，而非客户端认证。
+19. **Cloud Agents** in `src/lib/cloudAgent/` — three external autonomous coding agents (Codex Cloud, Devin, Jules) with task lifecycle endpoints under `/api/v1/agents/tasks/`. Require management auth, not client auth.
 
-20. **安全护栏框架** 位于 `src/lib/guardrails/` — 热重载注册表。内置（按优先级）：`vision-bridge`（5）→ `pii-masker`（10）→ `prompt-injection`（20）。Fail-open 模式：异常绝不阻塞流量。可通过 `x-omniroute-disabled-guardrails` 头进行逐请求关闭。
+20. **Guardrails framework** in `src/lib/guardrails/` — hot-reloadable registry. Built-ins (priority-ordered): `vision-bridge` (5) → `pii-masker` (10) → `prompt-injection` (20). Fail-open model: exceptions never block traffic. Per-request opt-out via `x-omniroute-disabled-guardrails` header.
 
-21. **授权管线**（`src/server/authz/`）：每个请求被分类为 `PUBLIC`、`CLIENT_API` 或 `MANAGEMENT`，然后经过策略 + 强制执行阶段。见 `docs/architecture/AUTHZ_GUIDE.md`。
+21. **Authz pipeline** (`src/server/authz/`): every request is classified as `PUBLIC`, `CLIENT_API`, or `MANAGEMENT`, then run through policy + enforce stages. See `docs/architecture/AUTHZ_GUIDE.md`.
 
-22. **三种容灾层各司其职**（请勿混淆）：
-    - **服务商熔断器**（`src/shared/utils/circuitBreaker.ts`）— 整个服务商范围。
-    - **连接冷却**（`src/sse/services/auth.ts::markAccountUnavailable`）— 单个密钥/账户范围。
-    - **模型锁定**（`open-sse/services/accountFallback.ts`）— 服务商 + 连接 + 模型范围。
+22. **Three resilience layers** are distinct (do not conflate them):
+    - **Provider Circuit Breaker** (`src/shared/utils/circuitBreaker.ts`) — whole-provider scope.
+    - **Connection Cooldown** (`src/sse/services/auth.ts::markAccountUnavailable`) — one key/account scope.
+    - **Model Lockout** (`open-sse/services/accountFallback.ts`) — provider + connection + model scope.
 
-## v3.8.0 亮点
+## v3.8.0 Highlights
 
-- **云代理**（Codex Cloud、Devin、Jules），带任务生命周期管理和管理认证强制
-- **安全护栏框架**：热重载注册表，含 vision-bridge、pii-masker、prompt-injection
-- **9 因子 Auto-Combo 评分**（早期版本为 6 因子）
-- **`reset-aware` 路由策略**（第 14 种）— 选择配额即将重置的账户
-- **A2A 协议扩展至 5 个技能**：smart-routing、quota-management、provider-discovery、cost-analysis、health-report
-- **MCP Server 扩展至 37 个工具**（30 个基础 + 3 个记忆 + 4 个技能），约 13 个权限域
-- **OAuth 服务商扩展至 14 个**：新增 Qwen、Kiro、Qoder、Gemini、Windsurf、GitLab Duo
-- **覆盖率门禁提升至 75/75/75/70**（此前为全面 60%）— 实测约 82%
-- **推理回放**（`docs/routing/REASONING_REPLAY.md`）— 捕获和检查服务商推理流
-- **合规 + 评估 + Webhook** 文档引入
-- **隐身指南**（`docs/security/STEALTH_GUIDE.md`）— TLS / CLI 指纹配置
-- **隧道指南**（`docs/ops/TUNNELS_GUIDE.md`）— Cloudflare 隧道管理
-- **Electron 指南**（`docs/guides/ELECTRON_GUIDE.md`）— 桌面应用构建 + 签名
+- **Cloud Agents** (Codex Cloud, Devin, Jules) with task lifecycle management and management-auth enforcement
+- **Guardrails framework**: hot-reloadable registry with vision-bridge, pii-masker, prompt-injection
+- **9-factor Auto-Combo scoring** (was 6-factor in earlier versions)
+- **`reset-aware` routing strategy** (14th strategy) — picks the account whose quota will reset soonest
+- **A2A protocol expanded to 5 skills**: smart-routing, quota-management, provider-discovery, cost-analysis, health-report
+- **MCP server expanded to 37 tools** (30 base + 3 memory + 4 skills) across ~13 scopes
+- **OAuth providers expanded to 14**: added Qwen, Kiro, Qoder, Gemini, Windsurf, GitLab Duo
+- **Coverage gate raised to 75/75/75/70** (was 60% across the board) — measured ~82%
+- **Reasoning replay** (`docs/routing/REASONING_REPLAY.md`) — capture and inspect provider reasoning streams
+- **Compliance + Evals + Webhooks** documentation introduced
+- **Stealth guide** (`docs/security/STEALTH_GUIDE.md`) — TLS / CLI fingerprint configuration
+- **Tunnels guide** (`docs/ops/TUNNELS_GUIDE.md`) — Cloudflare tunnel management
+- **Electron guide** (`docs/guides/ELECTRON_GUIDE.md`) — desktop app build + signing
 
-## 链接
+## Links
 
-- 仓库：https://github.com/diegosouzapw/OmniRoute
-- 网站：https://omniroute.online
-- npm：https://www.npmjs.com/package/omniroute
-- Docker Hub：https://hub.docker.com/r/diegosouzapw/omniroute
-- 文档：参见 `/docs/` 目录
+- Repository: https://github.com/diegosouzapw/OmniRoute
+- Website: https://omniroute.online
+- npm: https://www.npmjs.com/package/omniroute
+- Docker Hub: https://hub.docker.com/r/diegosouzapw/omniroute
+- Documentation: See `/docs/` directory
 
-### 文档索引
+### Documentation Index
 
-- **架构与参考**：`docs/architecture/ARCHITECTURE.md`、`docs/architecture/CODEBASE_DOCUMENTATION.md`、`docs/architecture/REPOSITORY_MAP.md`、`docs/reference/API_REFERENCE.md`、`docs/reference/PROVIDER_REFERENCE.md`、`docs/reference/openapi.yaml`
-- **运维指南**：`docs/guides/USER_GUIDE.md`、`docs/reference/CLI-TOOLS.md`、`docs/guides/TROUBLESHOOTING.md`、`docs/ops/COVERAGE_PLAN.md`
-- **协议**：`docs/frameworks/MCP-SERVER.md`、`docs/frameworks/A2A-SERVER.md`、`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`、`docs/frameworks/CLOUD_AGENT.md`
-- **路由与容灾**：`docs/routing/AUTO-COMBO.md`、`docs/architecture/RESILIENCE_GUIDE.md`
-- **安全**：`docs/architecture/AUTHZ_GUIDE.md`、`docs/security/GUARDRAILS.md`、`docs/security/COMPLIANCE.md`、`docs/security/STEALTH_GUIDE.md`
-- **扩展性**：`docs/frameworks/SKILLS.md`、`docs/frameworks/MEMORY.md`、`docs/frameworks/EVALS.md`、`docs/frameworks/WEBHOOKS.md`、`docs/routing/REASONING_REPLAY.md`
-- **平台**：`docs/guides/ELECTRON_GUIDE.md`、`docs/ops/TUNNELS_GUIDE.md`
-- **AI 代理**：`CLAUDE.md`、`AGENTS.md`、`GEMINI.md`
+- **Architecture & Reference**: `docs/architecture/ARCHITECTURE.md`, `docs/architecture/CODEBASE_DOCUMENTATION.md`, `docs/architecture/REPOSITORY_MAP.md`, `docs/reference/API_REFERENCE.md`, `docs/reference/PROVIDER_REFERENCE.md`, `docs/reference/openapi.yaml`
+- **Operator guides**: `docs/guides/USER_GUIDE.md`, `docs/reference/CLI-TOOLS.md`, `docs/guides/TROUBLESHOOTING.md`, `docs/ops/COVERAGE_PLAN.md`
+- **Protocols**: `docs/frameworks/MCP-SERVER.md`, `docs/frameworks/A2A-SERVER.md`, `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`, `docs/frameworks/CLOUD_AGENT.md`
+- **Routing & resilience**: `docs/routing/AUTO-COMBO.md`, `docs/architecture/RESILIENCE_GUIDE.md`
+- **Security**: `docs/architecture/AUTHZ_GUIDE.md`, `docs/security/GUARDRAILS.md`, `docs/security/COMPLIANCE.md`, `docs/security/STEALTH_GUIDE.md`
+- **Extensibility**: `docs/frameworks/SKILLS.md`, `docs/frameworks/MEMORY.md`, `docs/frameworks/EVALS.md`, `docs/frameworks/WEBHOOKS.md`, `docs/routing/REASONING_REPLAY.md`
+- **Platform**: `docs/guides/ELECTRON_GUIDE.md`, `docs/ops/TUNNELS_GUIDE.md`
+- **AI agents**: `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`
