@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -9,6 +9,27 @@ import {
 } from "../../../bin/cli/commands/setup-claude.mjs";
 import { buildClaudeEnv, resolveLaunchTarget } from "../../../bin/cli/commands/launch.mjs";
 import { categoriseModel } from "../../../bin/cli/commands/setup-codex.mjs";
+
+// #5959 — deflake: `node --test` runs each file in a child process that streams
+// its report back to the parent as V8-serialized frames on fd 1 (stdout). The CLI
+// helpers under test (`syncClaudeProfilesFromModels`) print progress via
+// `console.log`, and that stdout output interleaves with the serialized frames,
+// corrupting the stream — the parent then throws
+// "Unable to deserialize cloned data due to invalid or unsupported version" at
+// file teardown ~50% of runs (all subtests pass; only the file errors). No test
+// here asserts on stdout, so silence the stdout-writing console methods for the
+// duration of this file. Restored in `after` for good hygiene.
+const _console = { log: console.log, info: console.info, warn: console.warn };
+before(() => {
+  console.log = () => {};
+  console.info = () => {};
+  console.warn = () => {};
+});
+after(() => {
+  console.log = _console.log;
+  console.info = _console.info;
+  console.warn = _console.warn;
+});
 
 // ── setup-claude profile generation ──────────────────────────────────────────
 
