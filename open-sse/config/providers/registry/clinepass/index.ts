@@ -34,7 +34,7 @@ export const clinepassProvider: RegistryEntry = {
     },
     { id: "cline-pass/mimo-v2.5", name: "MiMo-V2.5 (ClinePass)" },
     { id: "cline-pass/mimo-v2.5-pro", name: "MiMo-V2.5-Pro (ClinePass)" },
-    { id: "cline-pass/minimax-m3", name: "MiniMax M3 (ClinePass)", supportsVision: true },
+    { id: "cline-pass/minimax-m3", name: "MiniMax M3 (ClinePass)" },
     { id: "cline-pass/qwen3.7-max", name: "Qwen3.7 Max (ClinePass)" },
     { id: "cline-pass/qwen3.7-plus", name: "Qwen3.7 Plus (ClinePass)" },
   ],
