@@ -123,10 +123,10 @@ test("usage history persists entries and supports filtering and usageDb compatib
 test("getModelLatencyStats aggregates success rate and latency percentiles", async () => {
   const now = Date.now();
   const entries = [
-    { latencyMs: 100, success: true },
-    { latencyMs: 200, success: true },
-    { latencyMs: 400, success: true },
-    { latencyMs: 900, success: false },
+    { latencyMs: 100, timeToFirstTokenMs: 40, outputTokens: 6, success: true },
+    { latencyMs: 200, timeToFirstTokenMs: 80, outputTokens: 12, success: true },
+    { latencyMs: 400, timeToFirstTokenMs: 100, outputTokens: 30, success: true },
+    { latencyMs: 900, timeToFirstTokenMs: 200, outputTokens: 70, success: false },
   ];
 
   for (const [index, entry] of entries.entries()) {
@@ -135,6 +135,8 @@ test("getModelLatencyStats aggregates success rate and latency percentiles", asy
       model: "latency-model",
       success: entry.success,
       latencyMs: entry.latencyMs,
+      timeToFirstTokenMs: entry.timeToFirstTokenMs,
+      tokens: { output: entry.outputTokens },
       timestamp: new Date(now - index * 60 * 1000).toISOString(),
     });
   }
@@ -151,6 +153,9 @@ test("getModelLatencyStats aggregates success rate and latency percentiles", asy
   assert.equal(entry.successfulRequests, 3);
   assert.equal(entry.successRate, 0.75);
   assert.equal(entry.avgLatencyMs, 233);
+  assert.equal(entry.avgTtftMs, 73);
+  assert.equal(entry.avgE2ELatencyMs, 233);
+  assert.equal(entry.avgTokensPerSecond, 100);
   assert.equal(entry.p50LatencyMs, 200);
   assert.equal(entry.p95LatencyMs, 400);
   assert.equal(entry.p99LatencyMs, 400);

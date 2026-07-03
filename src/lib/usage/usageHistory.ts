@@ -732,6 +732,9 @@ export interface ModelLatencyStatsEntry {
   successfulRequests: number;
   successRate: number; // 0..1
   avgLatencyMs: number;
+  avgTtftMs: number | null;
+  avgE2ELatencyMs: number;
+  avgTokensPerSecond: number | null;
   p50LatencyMs: number;
   p95LatencyMs: number;
   p99LatencyMs: number;
@@ -767,12 +770,14 @@ export async function getModelLatencyStats(
     model: string | null;
     success: number | null;
     latency_ms: number | null;
+    ttft_ms: number | null;
+    tokens_output: number | null;
   };
 
   const rows = db
     .prepare(
       `
-      SELECT provider, model, success, latency_ms
+      SELECT provider, model, success, latency_ms, ttft_ms, tokens_output
       FROM usage_history
       WHERE timestamp >= @sinceIso
         AND provider IS NOT NULL
@@ -792,6 +797,8 @@ export async function getModelLatencyStats(
       successfulRequests: number;
       successfulLatencies: number[];
       allLatencies: number[];
+      successfulTtfts: number[];
+      successfulTokensPerSecond: number[];
     }
   >();
 
@@ -809,6 +816,8 @@ export async function getModelLatencyStats(
         successfulRequests: 0,
         successfulLatencies: [],
         allLatencies: [],
+        successfulTtfts: [],
+        successfulTokensPerSecond: [],
       });
     }
 
@@ -820,9 +829,22 @@ export async function getModelLatencyStats(
     if (isSuccess) bucket.successfulRequests += 1;
 
     const latency = toNumber(row.latency_ms);
+    const ttft = toNumber(row.ttft_ms);
     if (latency > 0) {
       bucket.allLatencies.push(latency);
-      if (isSuccess) bucket.successfulLatencies.push(latency);
+      if (isSuccess) {
+        bucket.successfulLatencies.push(latency);
+
+        if (ttft > 0) {
+          bucket.successfulTtfts.push(ttft);
+        }
+
+        const outputTokens = toNumber(row.tokens_output);
+        const generationMs = Math.max(latency - Math.max(ttft, 0), 1);
+        if (outputTokens > 0) {
+          bucket.successfulTokensPerSecond.push(outputTokens / (generationMs / 1000));
+        }
+      }
     }
   }
 
@@ -837,6 +859,15 @@ export async function getModelLatencyStats(
 
     const sorted = [...baseLatencies].sort((a, b) => a - b);
     const avg = sorted.reduce((acc, n) => acc + n, 0) / sorted.length;
+    const avgTtft =
+      bucket.successfulTtfts.length > 0
+        ? bucket.successfulTtfts.reduce((acc, n) => acc + n, 0) / bucket.successfulTtfts.length
+        : null;
+    const avgTokensPerSecond =
+      bucket.successfulTokensPerSecond.length > 0
+        ? bucket.successfulTokensPerSecond.reduce((acc, n) => acc + n, 0) /
+          bucket.successfulTokensPerSecond.length
+        : null;
     const successRate =
       bucket.totalRequests > 0 ? bucket.successfulRequests / bucket.totalRequests : 0;
 
@@ -848,6 +879,10 @@ export async function getModelLatencyStats(
       successfulRequests: bucket.successfulRequests,
       successRate,
       avgLatencyMs: Math.round(avg),
+      avgTtftMs: avgTtft === null ? null : Math.round(avgTtft),
+      avgE2ELatencyMs: Math.round(avg),
+      avgTokensPerSecond:
+        avgTokensPerSecond === null ? null : Math.round(avgTokensPerSecond * 10) / 10,
       p50LatencyMs: Math.round(percentile(sorted, 0.5)),
       p95LatencyMs: Math.round(percentile(sorted, 0.95)),
       p99LatencyMs: Math.round(percentile(sorted, 0.99)),

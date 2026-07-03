@@ -101,6 +101,9 @@ export type HistoricalLatencyStatsEntry = {
   p95LatencyMs?: number;
   latencyStdDev?: number;
   successRate?: number;
+  avgTtftMs?: number | null;
+  avgE2ELatencyMs?: number;
+  avgTokensPerSecond?: number | null;
 };
 
 export type AutoProviderCandidate = ProviderCandidate & {

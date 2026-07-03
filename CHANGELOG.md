@@ -136,6 +136,8 @@ _TBD_
 
 - **providers (CLI profile auto-sync):** opt-in CLI profile auto-sync toggles, including Claude Code auto-sync, so generated CLI profiles can track provider changes automatically. ([#5755](https://github.com/diegosouzapw/OmniRoute/pull/5755) — thanks @diegosouzapw)
 
+- **feat(minimax):** surface MiniMax M3 `<think>` reasoning as `reasoning_content` on OpenAI-format provider tiers. (thanks @zmf963)
+
 ### 🔧 Bug Fixes
 
 - **fix(opencode):** stop fabricating `User-Agent: opencode/local` and `x-opencode-client: cli` headers when the client sends none — the executor-dedup refactor ([#5720](https://github.com/diegosouzapw/OmniRoute/pull/5720)) accidentally re-introduced header fabrication, violating the forward-only contract (inventing opencode-internal values risks upstream rejection). Restored to forward-only: those headers are emitted only when a real client source is present. Regression guard: `tests/unit/opencode-executor.test.ts`. (thanks @diegosouzapw)
