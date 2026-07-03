@@ -12,6 +12,7 @@ export const blackboxProvider: RegistryEntry = {
   models: [
     { id: "claude-fable-5", name: "Claude Fable 5" },
     { id: "claude-opus-4.8", name: "Claude Opus 4.8" },
+    { id: "claude-sonnet-5", name: "Claude Sonnet 5" },
     { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
     { id: "gpt-5.5", name: "GPT-5.5" },
     { id: "gpt-5.4-pro", name: "GPT-5.4 Pro" },

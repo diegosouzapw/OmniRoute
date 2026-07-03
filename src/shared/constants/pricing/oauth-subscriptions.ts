@@ -41,6 +41,13 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 15.0,
       cache_creation: 3.75,
     },
+    "claude-sonnet-5": {
+      input: 3.0,
+      output: 15.0,
+      cached: 0.3,
+      reasoning: 15.0,
+      cache_creation: 3.75,
+    },
     "claude-opus-4-5-20251101": {
       input: 5.0,
       output: 25.0,

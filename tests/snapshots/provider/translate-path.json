@@ -289,6 +289,52 @@
       "stream": "https://api.airforce/v1/chat/completions"
     }
   },
+  "auggie": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "auggie://cli/stdio",
+      "stream": "auggie://cli/stdio"
+    }
+  },
+  "bai": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.b.ai/v1/chat/completions",
+      "stream": "https://api.b.ai/v1/chat/completions"
+    }
+  },
   "baichuan": {
     "format": "openai",
     "headers": {
@@ -764,6 +810,35 @@
         "X-IS-MULTIROOT": "false",
         "X-PLATFORM": "linux",
         "X-PLATFORM-VERSION": "<NODE>",
+        "X-Title": "Cline"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.cline.bot/api/v1/chat/completions",
+      "stream": "https://api.cline.bot/api/v1/chat/completions"
+    }
+  },
+  "clinepass": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://cline.bot",
+        "X-Title": "Cline"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://cline.bot",
+        "X-Title": "Cline"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://cline.bot",
         "X-Title": "Cline"
       }
     },
@@ -2657,6 +2732,29 @@
       "stream": "https://api.modal.ai/v1/chat/completions"
     }
   },
+  "modelscope": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api-inference.modelscope.cn/v1/chat/completions",
+      "stream": "https://api-inference.modelscope.cn/v1/chat/completions"
+    }
+  },
   "monsterapi": {
     "format": "openai",
     "headers": {
@@ -3311,6 +3409,29 @@
     "url": {
       "nonStream": "https://qianfan.baidubce.com/v2/chat/completions",
       "stream": "https://qianfan.baidubce.com/v2/chat/completions"
+    }
+  },
+  "qiniu": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.qnaigc.com/v1/chat/completions",
+      "stream": "https://api.qnaigc.com/v1/chat/completions"
     }
   },
   "qoder": {

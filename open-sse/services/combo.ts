@@ -48,7 +48,6 @@ import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import {
   evaluateQuotaCutoff,
   getQuotaFetcher,
-  type PreflightQuotaThresholds,
   type QuotaInfo,
 } from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
@@ -196,6 +195,10 @@ import {
   type PreScreenResult,
 } from "./combo/quotaStrategies.ts";
 import {
+  buildAutoQuotaThresholds,
+  resolveQuotaExhaustionCutoffForTarget,
+} from "./combo/quotaExhaustionCutoff.ts";
+import {
   classifyTask,
   getConversationCacheKey,
   isTaskRoutingStrategy,
@@ -255,55 +258,6 @@ function getBootstrapLatencyMs(modelId: string): number {
 function clampPercent(value: number): number {
   if (!Number.isFinite(value)) return 100;
   return Math.max(0, Math.min(100, value));
-}
-
-function asThresholdMap(value: unknown): Record<string, number> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  const result: Record<string, number> = {};
-  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
-    const numeric = Number(raw);
-    if (key && Number.isFinite(numeric)) result[key] = numeric;
-  }
-  return result;
-}
-
-function quotaWindowLookupNames(provider: string, windowName: string): string[] {
-  const names = [windowName];
-  const lower = windowName.toLowerCase();
-  if (lower !== windowName) names.push(lower);
-  if (provider === "codex") {
-    if (lower.includes("session") || lower === "5h" || lower === "five_hour") names.push("session");
-    if (lower.includes("weekly") || lower === "7d" || lower === "seven_day") names.push("weekly");
-    if (lower.includes("monthly") || lower === "30d") names.push("monthly");
-  }
-  return [...new Set(names)];
-}
-
-function buildAutoQuotaThresholds(
-  provider: string,
-  connection: Record<string, unknown> | undefined,
-  resilienceSettings: ResilienceSettings | null | undefined
-): PreflightQuotaThresholds {
-  const quotaPreflight = (resilienceSettings ?? resolveResilienceSettings(null))?.quotaPreflight;
-  const defaultThresholdPercent = quotaPreflight?.defaultThresholdPercent ?? 2;
-  const warnThresholdPercent = quotaPreflight?.warnThresholdPercent ?? 20;
-  const providerWindowMap = asThresholdMap(quotaPreflight?.providerWindowDefaults?.[provider]);
-  const perConnectionWindowOverrides = asThresholdMap(connection?.quotaWindowThresholds);
-
-  return {
-    resolveMinRemainingPercent: (windowName: string | null): number => {
-      if (windowName !== null) {
-        for (const lookupWindowName of quotaWindowLookupNames(provider, windowName)) {
-          const override = perConnectionWindowOverrides[lookupWindowName];
-          if (typeof override === "number") return override;
-          const providerDefault = providerWindowMap[lookupWindowName];
-          if (typeof providerDefault === "number") return providerDefault;
-        }
-      }
-      return defaultThresholdPercent;
-    },
-    resolveWarnRemainingPercent: () => warnThresholdPercent,
-  };
 }
 
 function quotaRemainingPercentFromQuota(quota: unknown): number {
@@ -1638,6 +1592,12 @@ export async function handleComboChat({
         )
       : new Map<string, PreScreenResult>();
 
+  // #5923 (Finding #4) — reset-window config for the shared per-target quota-
+  // exhaustion cutoff below. The "auto" strategy already applies its own cutoff
+  // via buildAutoCandidates/routableCandidates, so this only affects the other
+  // 16 strategies (priority, weighted, etc.) that funnel through executeTarget.
+  const quotaCutoffResetWindowConfig = resolveResetWindowConfig(config as Record<string, unknown>);
+
   if (orderedTargets.length === 0) {
     return comboModelNotFoundResponse("Combo has no executable targets");
   }
@@ -1788,6 +1748,33 @@ export async function handleComboChat({
           log.info("COMBO", `Skipping ${modelStr} — model locked by resilience (cooldown active)`);
           if (i > 0) fallbackCount++;
           return null;
+        }
+
+        // #5923 (Finding #4) — honor the same opt-in quota-exhaustion cutoff the
+        // "auto" strategy already applies (buildAutoCandidates), for every other
+        // strategy (priority, weighted, etc.). Strictly scoped per (provider,
+        // connectionId): a 0%-remaining connection is skipped here, but sibling
+        // connections/models on the same provider are untouched — the provider
+        // circuit breaker is never touched by this check. The "auto" strategy is
+        // excluded to avoid a redundant duplicate fetch — it already filtered its
+        // candidate pool via `routableCandidates` before reaching this loop.
+        if (strategy !== "auto" && provider && target.connectionId) {
+          const quotaCutoff = await resolveQuotaExhaustionCutoffForTarget(
+            provider,
+            target.connectionId,
+            resilienceSettings,
+            quotaCutoffResetWindowConfig,
+            combo.name,
+            log
+          );
+          if (quotaCutoff.blocked) {
+            log.info(
+              "COMBO",
+              `Skipping ${modelStr} — quota exhaustion cutoff (${quotaCutoff.reason || "quota_exhausted"})`
+            );
+            if (i > 0) fallbackCount++;
+            return null;
+          }
         }
 
         // Pre-screen snapshot is NOT used as a permanent skip — availability

@@ -41,6 +41,8 @@ import { yiProvider } from "./registry/yi/index.ts";
 import { deepseekProvider } from "./registry/deepseek/index.ts";
 import { deepseek_webProvider } from "./registry/deepseek/web/index.ts";
 import { dgridProvider } from "./registry/dgrid/index.ts";
+import { baiProvider } from "./registry/bai/index.ts";
+import { qiniuProvider } from "./registry/qiniu/index.ts";
 import { kimi_coding_apikeyProvider } from "./registry/kimi/coding-apikey/index.ts";
 import { kimi_codingProvider } from "./registry/kimi/coding/index.ts";
 import { kimiProvider } from "./registry/kimi/index.ts";
@@ -50,6 +52,7 @@ import { inference_netProvider } from "./registry/inference-net/index.ts";
 import { llm7Provider } from "./registry/llm7/index.ts";
 import { cerebrasProvider } from "./registry/cerebras/index.ts";
 import { nubeProvider } from "./registry/nube/index.ts";
+import { clinepassProvider } from "./registry/clinepass/index.ts";
 import { sparkdeskProvider } from "./registry/sparkdesk/index.ts";
 import { nlpcloudProvider } from "./registry/nlpcloud/index.ts";
 import { nvidiaProvider } from "./registry/nvidia/index.ts";
@@ -79,6 +82,7 @@ import { leonardoProvider } from "./registry/leonardo/index.ts";
 import { grok_webProvider } from "./registry/grok-web/index.ts";
 import { kieProvider } from "./registry/kie/index.ts";
 import { monsterapiProvider } from "./registry/monsterapi/index.ts";
+import { modelscopeProvider } from "./registry/modelscope/index.ts";
 import { sensenovaProvider } from "./registry/sensenova/index.ts";
 import { hyperbolicProvider } from "./registry/hyperbolic/index.ts";
 import { lambda_aiProvider } from "./registry/lambda-ai/index.ts";
@@ -142,6 +146,7 @@ import { kilo_gatewayProvider } from "./registry/kilo-gateway/index.ts";
 import { bailian_coding_planProvider } from "./registry/bailian-coding-plan/index.ts";
 import { gigachatProvider } from "./registry/gigachat/index.ts";
 import { devin_cliProvider } from "./registry/devin-cli/index.ts";
+import { auggieProvider } from "./registry/auggie/index.ts";
 import { chutesProvider } from "./registry/chutes/index.ts";
 import { factoryProvider } from "./registry/factory/index.ts";
 import { databricksProvider } from "./registry/databricks/index.ts";
@@ -213,6 +218,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   deepseek: deepseekProvider,
   "deepseek-web": deepseek_webProvider,
   dgrid: dgridProvider,
+  bai: baiProvider,
+  qiniu: qiniuProvider,
   "kimi-coding-apikey": kimi_coding_apikeyProvider,
   "kimi-coding": kimi_codingProvider,
   kimi: kimiProvider,
@@ -222,6 +229,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   llm7: llm7Provider,
   cerebras: cerebrasProvider,
   nube: nubeProvider,
+  clinepass: clinepassProvider,
   sparkdesk: sparkdeskProvider,
   nlpcloud: nlpcloudProvider,
   nvidia: nvidiaProvider,
@@ -251,6 +259,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "grok-web": grok_webProvider,
   kie: kieProvider,
   monsterapi: monsterapiProvider,
+  modelscope: modelscopeProvider,
   sensenova: sensenovaProvider,
   hyperbolic: hyperbolicProvider,
   "lambda-ai": lambda_aiProvider,
@@ -313,6 +322,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "bailian-coding-plan": bailian_coding_planProvider,
   gigachat: gigachatProvider,
   "devin-cli": devin_cliProvider,
+  auggie: auggieProvider,
   chutes: chutesProvider,
   factory: factoryProvider,
   databricks: databricksProvider,
