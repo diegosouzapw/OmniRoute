@@ -250,15 +250,20 @@ export function setQuotaCache(
             }
           : null,
       });
+      // #5923 (Finding #5) — is_exhausted must reflect THIS window's own remaining
+      // percentage, not the connection-wide AND-across-all-windows aggregate
+      // (`entry.exhausted`). A connection with one 0% window and other non-zero
+      // windows previously never flagged that window's row as exhausted.
+      const windowExhausted = remainingPercentage <= 0;
       // #4438 — only persist on the first observation or a real change.
-      if (!quotaSnapshotChanged(prior, windowKey, remainingPercentage, entry.exhausted)) continue;
+      if (!quotaSnapshotChanged(prior, windowKey, remainingPercentage, windowExhausted)) continue;
       try {
         saveQuotaSnapshot({
           provider,
           connection_id: connectionId,
           window_key: windowKey,
           remaining_percentage: remainingPercentage,
-          is_exhausted: entry.exhausted ? 1 : 0,
+          is_exhausted: windowExhausted ? 1 : 0,
           next_reset_at: quotaInfo.resetAt ?? null,
           window_duration_ms: entry.windowDurationMs ?? null,
           raw_data: null,

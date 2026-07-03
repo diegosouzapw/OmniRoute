@@ -10,6 +10,18 @@ export interface BifrostRoutingConfig {
   enabled: boolean;
 }
 
+export interface SidecarEligibility {
+  eligible: boolean;
+  reasons: readonly string[];
+}
+
+export type ProviderSidecarLookup = (model: string | undefined) => SidecarEligibility | null;
+
+export interface BifrostRoutingDecision {
+  tryBifrost: boolean;
+  fallbackReason?: string;
+}
+
 export function getBifrostRoutingConfig(
   env: NodeJS.ProcessEnv = process.env
 ): BifrostRoutingConfig | null {
@@ -42,6 +54,33 @@ export function shouldTryBifrost(
   config: BifrostRoutingConfig | null
 ): config is BifrostRoutingConfig {
   return Boolean(config?.enabled && backend !== "ts");
+}
+
+export function shouldTryBifrostForRequest(
+  backend: RelayRoutingBackend,
+  config: BifrostRoutingConfig | null,
+  body: unknown,
+  lookupProviderSidecar: ProviderSidecarLookup
+): BifrostRoutingDecision {
+  if (!shouldTryBifrost(backend, config)) {
+    return { tryBifrost: false };
+  }
+  if (backend === "bifrost") {
+    return { tryBifrost: true };
+  }
+
+  const model = typeof (body as { model?: unknown } | null)?.model === "string"
+    ? (body as { model: string }).model
+    : undefined;
+  const provider = lookupProviderSidecar(model);
+  if (provider?.eligible) {
+    return { tryBifrost: true };
+  }
+
+  return {
+    tryBifrost: false,
+    fallbackReason: provider ? "bifrost-ineligible" : "bifrost-provider-unknown",
+  };
 }
 
 export function getRoutingFallbackHeader(

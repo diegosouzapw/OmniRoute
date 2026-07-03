@@ -748,6 +748,7 @@ test("compatible catalog entries keep dynamic compatible metadata", () => {
         type: "openai-compatible",
         apiType: "responses",
         baseUrl: "https://example.test",
+        iconUrl: "https://cdn.example.com/icons/lab.png",
       },
       compatibleLabels: {
         ccCompatibleName: "CC Compatible",
@@ -762,6 +763,8 @@ test("compatible catalog entries keep dynamic compatible metadata", () => {
   assert.equal(compatibleProvider?.toggleAuthType, "apikey");
   assert.equal(compatibleProvider?.apiType, "responses");
   assert.equal(compatibleProvider?.baseUrl, "https://example.test");
+  // #2166: custom remote icon URL passthrough.
+  assert.equal(compatibleProvider?.iconUrl, "https://cdn.example.com/icons/lab.png");
 });
 
 test("model search filter matches providers by model id", async () => {
@@ -1015,7 +1018,13 @@ test("buildCompatibleProviderGroups partitions nodes by type + claude-code prefi
 
   const groups = providerPageUtils.buildCompatibleProviderGroups(
     [
-      { id: "my-oai", name: "My OAI", type: "openai-compatible", apiType: "responses" },
+      {
+        id: "my-oai",
+        name: "My OAI",
+        type: "openai-compatible",
+        apiType: "responses",
+        iconUrl: "https://cdn.example.com/icons/my-oai.png",
+      },
       { id: "my-anthropic", name: "My Claude", type: "anthropic-compatible" },
       { id: "anthropic-compatible-cc-acme", name: "Acme CC", type: "anthropic-compatible" },
       { id: "ignored-node", name: "Ignored", type: "unsupported-provider" },
@@ -1037,6 +1046,14 @@ test("buildCompatibleProviderGroups partitions nodes by type + claude-code prefi
     "missing name falls back to the openai-compatible label"
   );
 
+  // #2166: custom remote icon URL passthrough.
+  assert.equal(
+    groups.openai[0].iconUrl,
+    "https://cdn.example.com/icons/my-oai.png",
+    "iconUrl is preserved for nodes that set it"
+  );
+  assert.equal(groups.openai[1].iconUrl, undefined, "iconUrl is undefined when the node has none");
+
   assert.deepEqual(
     groups.anthropic.map((p) => p.id),
     ["my-anthropic"],
@@ -1048,4 +1065,44 @@ test("buildCompatibleProviderGroups partitions nodes by type + claude-code prefi
     ["anthropic-compatible-cc-acme"],
     "anthropic-compatible nodes with the cc- prefix land in the claudeCode bucket"
   );
+});
+
+test("connectionMatchesProviderCard counts a dual-auth provider's PAT (apikey) connection on its OAuth card", () => {
+  const { connectionMatchesProviderCard } = providerPageUtils;
+
+  // qoder is OAuth-categorized but its working auth is a PAT (authType "apikey").
+  // Regression: the OAuth card must count the PAT connection, else the dashboard
+  // shows a connected qoder as "not connected".
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "qoder", authType: "apikey" }, "qoder", "oauth"),
+    true
+  );
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "qoder", authType: "oauth" }, "qoder", "oauth"),
+    true
+  );
+
+  // A normal OAuth-only provider must NOT count an apikey connection on its OAuth card.
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "claude", authType: "apikey" }, "claude", "oauth"),
+    false
+  );
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "claude", authType: "oauth" }, "claude", "oauth"),
+    true
+  );
+
+  // Provider mismatch and the "free" card (counts everything) behave as expected.
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "openai", authType: "apikey" }, "qoder", "oauth"),
+    false
+  );
+  assert.equal(
+    connectionMatchesProviderCard({ provider: "qoder", authType: "apikey" }, "qoder", "free"),
+    true
+  );
+
+  // Defensive: a null/undefined connection must not throw (gemini-code-assist).
+  assert.equal(connectionMatchesProviderCard(null, "qoder", "oauth"), false);
+  assert.equal(connectionMatchesProviderCard(undefined, "qoder", "oauth"), false);
 });
