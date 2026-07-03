@@ -166,3 +166,94 @@ test("a 200/benign status with no exhaustion mutates nothing and returns false",
     0
   );
 });
+
+test("does NOT mark provider exhausted for per-model-quota providers (different model)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target({ provider: "gemini" }), {
+    ...baseOpts,
+    result: { status: 429 },
+    fallbackResult: { reason: "quota_exhausted" },
+    errorText: "quota exceeded for model gpt-4",
+    sets: s,
+  });
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedProviders.has("gemini"), false);
+  assert.ok(s.transientRateLimitedProviders.has("gemini"));
+});
+
+test("does NOT mark provider exhausted for empty provider strings", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target({ provider: "" }), {
+    ...baseOpts,
+    result: { status: 503 },
+    fallbackResult: { error: { code: "quota_exhausted" } },
+    errorText: "quota exhausted",
+    allAccountsRateLimited: true,
+    sets: s,
+  });
+  assert.equal(exhausted, false);
+});
+
+test("does NOT mark transientRateLimited on 429 when isTokenLimitBreach is true", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 429 },
+    fallbackResult: {},
+    errorText: "Token limit exceeded",
+    isTokenLimitBreach: true,
+    sets: s,
+  });
+  assert.equal(exhausted, false);
+  assert.equal(s.transientRateLimitedProviders.has("test-dedup-provider"), false);
+  assert.equal(s.exhaustedProviders.has("test-dedup-provider"), false);
+});
+
+test("does NOT mark anything for circuit-open (X-OmniRoute-Provider-Breaker header)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 503, headers: new Map([["x-omniroute-provider-breaker", "open"]]) },
+    fallbackResult: {},
+    errorText: "",
+    sets: s,
+  });
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedProviders.has("test-dedup-provider"), false);
+  assert.equal(s.exhaustedConnections.has("test-dedup-provider:conn-1"), false);
+  assert.equal(s.transientRateLimitedProviders.has("test-dedup-provider"), false);
+});
+
+test("does NOT mark exhaustion for non-connection-level status codes (400)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 400 },
+    fallbackResult: {},
+    errorText: "Bad Request",
+    sets: s,
+  });
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedConnections.size, 0);
+  assert.equal(s.exhaustedProviders.size, 0);
+  assert.equal(s.transientRateLimitedProviders.size, 0);
+});
+
+test("does NOT mark connection exhausted for per-model-quota provider on 500 (gemini model-level error)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(
+    target({ provider: "gemini", connectionId: "gemini-conn-1" }),
+    {
+      ...baseOpts,
+      result: { status: 500 },
+      fallbackResult: {},
+      errorText: "Internal error encountered.",
+      rawModel: "gemma-4-31b-it",
+      sets: s,
+    }
+  );
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedProviders.has("gemini"), false);
+  assert.equal(s.exhaustedConnections.has("gemini:gemini-conn-1"), false);
+  assert.equal(s.transientRateLimitedProviders.has("gemini"), false);
+});
