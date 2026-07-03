@@ -13,7 +13,7 @@
 
 ### 🔧 Bug Fixes
 
-_TBD_
+- **tests(cli):** stabilize `setup-claude.test.ts` (#5959) — the dry-run path printed a multi-byte "──" heading to the test child's stdout, corrupting the node:test runner's V8-serialized event stream in ~50% of runs ("Unable to deserialize cloned data due to invalid or unsupported version") and randomly failing the PR→release queue. `syncClaudeProfilesFromModels` now accepts an injectable `log` sink (CLI default unchanged: `console.log`); the test injects a collector and gains assertions on the dry-run report. Validated 0/30 failures post-fix vs 5/10 on the pristine base.
 
 ### 📝 Maintenance
 
