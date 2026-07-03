@@ -25,6 +25,8 @@
 
 ### 🔧 Bug Fixes
 
+- fix(providers): strip orphan tool_result blocks on the Antigravity MITM path before forwarding to Claude ([#6026](https://github.com/diegosouzapw/OmniRoute/issues/6026))
+
 - **dashboard ("Update now" → Internal Server Error):** clicking **Update now** on the dashboard home could crash the page with a blank "Internal Server Error" screen (`Minified React error #31`). The handler POSTs the loopback-only `/api/system/version` auto-update endpoint and, on a non-OK JSON response (e.g. a `403` when the dashboard is reached through a reverse proxy / non-loopback origin), passed the raw error envelope object `{ error: { code, message, correlation_id } }` straight to `notify.error()`, which rendered the object as a React child and threw #31. The update-error path now funnels the body through `extractApiErrorMessage()` (the same safe extractor added in #5340), so a readable string always reaches the toast. Regression guard: `tests/unit/ui/home-update-error-render-5991.test.ts`. ([#5991](https://github.com/diegosouzapw/OmniRoute/issues/5991))
 
 - **kiro (system prompt leaked as raw user text):** when Claude Code routed through the Kiro/CodeWhisperer backend, the `system` message was normalized to a `user` turn with no wrapper, so the entire system prompt (environment info, tool definitions, memory instructions, etc.) appeared as if the user had typed it — polluting the model context. System-origin content is now wrapped in `<system-reminder>` tags before being merged into the Kiro user message, so the model can distinguish it from real user input. Real user turns are untouched. Regression guard: `tests/unit/kiro-system-reminder-2306.test.ts`. (thanks @VitzS7)
