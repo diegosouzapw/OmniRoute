@@ -1,9 +1,22 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Button, Badge } from "@/shared/components";
+import { Card, Button, Badge, ConfirmModal } from "@/shared/components";
 import { useLocale, useTranslations } from "next-intl";
 import DatabaseBackupRetentionCard from "./DatabaseBackupRetentionCard";
+
+// Whitelist mirrored from src/lib/db/cleanup.ts::RESET_USAGE_HISTORY_PERIODS.
+const RESET_USAGE_PERIOD_VALUES = [
+  "5m",
+  "1h",
+  "3h",
+  "6h",
+  "12h",
+  "1d",
+  "7d",
+  "30d",
+  "all",
+] as const;
 
 export default function SystemStorageTab() {
   const [backups, setBackups] = useState([]);
@@ -38,6 +51,10 @@ export default function SystemStorageTab() {
   const [purgeCallLogsStatus, setPurgeCallLogsStatus] = useState({ type: "", message: "" });
   const [purgeDetailedLogsLoading, setPurgeDetailedLogsLoading] = useState(false);
   const [purgeDetailedLogsStatus, setPurgeDetailedLogsStatus] = useState({ type: "", message: "" });
+  const [resetUsageModalOpen, setResetUsageModalOpen] = useState(false);
+  const [resetUsagePeriod, setResetUsagePeriod] = useState("all");
+  const [resetUsageLoading, setResetUsageLoading] = useState(false);
+  const [resetUsageStatus, setResetUsageStatus] = useState({ type: "", message: "" });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const jsonInputRef = useRef<HTMLInputElement>(null);
   const locale = useLocale();
@@ -326,6 +343,48 @@ export default function SystemStorageTab() {
     } finally {
       setPurgeDetailedLogsLoading(false);
     }
+  };
+
+  const handleResetUsageHistory = async () => {
+    setResetUsageLoading(true);
+    setResetUsageStatus({ type: "", message: "" });
+    try {
+      const res = await fetch("/api/settings/purge-usage-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ period: resetUsagePeriod }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        const deleted = data?.deleted ?? 0;
+        setResetUsageStatus({
+          type: "success",
+          message:
+            t("resetUsageSuccess", { count: deleted }) ||
+            `Usage data reset (${deleted} row(s) deleted).`,
+        });
+        setResetUsageModalOpen(false);
+      } else {
+        setResetUsageStatus({
+          type: "error",
+          message:
+            data?.error?.message ||
+            (typeof data?.error === "string" ? data.error : null) ||
+            t("resetUsageFailed") ||
+            "Failed to reset usage data",
+        });
+      }
+    } catch {
+      setResetUsageStatus({ type: "error", message: t("errorOccurred") });
+    } finally {
+      setResetUsageLoading(false);
+    }
+  };
+
+  const openResetUsageModal = () => {
+    setResetUsagePeriod("all");
+    setResetUsageStatus({ type: "", message: "" });
+    setResetUsageModalOpen(true);
   };
 
   const handleManualVacuum = async () => {
@@ -1393,6 +1452,17 @@ export default function SystemStorageTab() {
             </span>
             Purge Detailed Logs
           </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            loading={resetUsageLoading}
+            onClick={openResetUsageModal}
+          >
+            <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
+              restart_alt
+            </span>
+            {t("resetUsageData") || "Reset Usage Data"}
+          </Button>
         </div>
         <div className="mt-4 border-t border-border/50 pt-3">
           <div className="flex flex-col gap-2">
@@ -1403,6 +1473,7 @@ export default function SystemStorageTab() {
               purgeQuotaSnapshotsStatus,
               purgeCallLogsStatus,
               purgeDetailedLogsStatus,
+              resetUsageStatus,
             ].map(renderStatusAlert)}
           </div>
         </div>
@@ -1459,6 +1530,37 @@ export default function SystemStorageTab() {
       {renderRetentionSettings()}
       {renderOptimizationSettings()}
       {renderCompressionAggregationSettings()}
+
+      <ConfirmModal
+        isOpen={resetUsageModalOpen}
+        onClose={() => !resetUsageLoading && setResetUsageModalOpen(false)}
+        onConfirm={handleResetUsageHistory}
+        title={t("resetUsageData") || "Reset Usage Data"}
+        message={
+          <div className="space-y-3">
+            <p className="text-text-muted">
+              {t("resetUsageDataDesc") ||
+                "Select how far back you want to delete usage data. This action cannot be undone."}
+            </p>
+            <select
+              value={resetUsagePeriod}
+              onChange={(e) => setResetUsagePeriod(e.target.value)}
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-red-500/40"
+            >
+              {RESET_USAGE_PERIOD_VALUES.map((value) => (
+                <option key={value} value={value}>
+                  {t(`resetUsagePeriod_${value}`) || value}
+                </option>
+              ))}
+            </select>
+          </div>
+        }
+        confirmText={
+          resetUsageLoading ? t("resetting") || "Resetting..." : t("reset") || "Reset"
+        }
+        variant="danger"
+        loading={resetUsageLoading}
+      />
     </Card>
   );
 }

@@ -1,4 +1,4 @@
--- Migration 113: Seed the Mux (coder/mux) embedded service row.
+-- Migration 114: Seed the Mux (coder/mux) embedded service row.
 --
 -- Mux is a local agent-orchestration daemon (npm package `mux`, headless
 -- `mux server --port <port>` mode) managed via the ServiceSupervisor

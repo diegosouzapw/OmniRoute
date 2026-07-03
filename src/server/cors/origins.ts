@@ -97,6 +97,28 @@ export function resolveAllowedOrigin(requestOrigin: string | null | undefined): 
 }
 
 /**
+ * Read-only snapshot of the effective CORS allowlist configuration, for
+ * dashboards / monitoring (`/api/settings/authz-inventory`). `allowAll` mirrors
+ * the `CORS_ALLOW_ALL` opt-in (and the legacy `CORS_ORIGIN=*`); `allowedOrigins`
+ * is the merged, normalized, sorted, deduped env + runtime allowlist.
+ *
+ * A `true` `allowAll` is what the dashboard surfaces as a wildcard-CORS warning.
+ * See `docs/security/CORS.md`.
+ */
+export interface CorsStatus {
+  allowAll: boolean;
+  allowedOrigins: string[];
+}
+
+export function getCorsStatus(): CorsStatus {
+  const merged = new Set<string>([...envAllowedOrigins(), ...runtimeAllowedOrigins]);
+  return {
+    allowAll: envAllowAll(),
+    allowedOrigins: [...merged].sort(),
+  };
+}
+
+/**
  * Apply CORS headers to a response in-place. Safe to call on any response
  * (rejections, preflight, normal `next()` continuations). When the origin
  * is not allowed, no `Access-Control-Allow-Origin` is added — browsers

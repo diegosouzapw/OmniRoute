@@ -675,12 +675,17 @@ test("Kimi Web: targets www.kimi.com (international)", async () => {
     const executor = new KimiWebExecutor();
     const result = await executor.execute({
       ...noopExecuteInput,
-      model: "kimi-default",
+      model: "k2d6",
       credentials: { apiKey: "kimi-auth=eyJ.eyJzdWI.signature" },
     });
     assert.ok(result.response instanceof Response);
-    assert.ok(result.url.includes("www.kimi.com"), `got ${result.url}`);
-    assert.ok(!result.url.includes("moonshot.cn"));
+    // Parse the URL and assert on the exact hostname rather than a substring
+    // match — `includes("www.kimi.com")` would also accept a hostile host like
+    // `www.kimi.com.evil.net` or `evil.net/?x=www.kimi.com` (CodeQL
+    // js/incomplete-url-substring-sanitization).
+    const host = new URL(result.url).hostname;
+    assert.equal(host, "www.kimi.com", `got ${result.url}`);
+    assert.notEqual(host, "www.moonshot.cn", `got ${result.url}`);
   } finally {
     restore.restore();
   }
@@ -690,7 +695,7 @@ test("Kimi Web: missing JWT returns a 400 before fetching", async () => {
   const executor = new KimiWebExecutor();
   const result = await executor.execute({
     ...noopExecuteInput,
-    model: "kimi-default",
+    model: "k2d6",
     credentials: { apiKey: "" },
   });
   assert.equal(result.response.status, 400);
@@ -702,7 +707,7 @@ test("Kimi Web: error response returns error result", async () => {
     const executor = new KimiWebExecutor();
     const result = await executor.execute({
       ...noopExecuteInput,
-      model: "kimi-default",
+      model: "k2d6",
       credentials: { apiKey: "kimi-auth=eyJ.eyJzdWI.signature" },
     });
     assert.ok(result.response instanceof Response);
