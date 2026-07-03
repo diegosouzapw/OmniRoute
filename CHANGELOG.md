@@ -35,6 +35,8 @@
 
 - **combo (per-model-quota providers exhausted on a single model 500):** for per-model-quota providers (gemini, github, passthrough, compatible) that multiplex many models behind one connection, a model-level `500` (e.g. Gemini "Internal error encountered") wrongly marked the whole connection exhausted, so sibling models on the same connection were skipped and the combo could 502 instead of falling back. `markConnectionLevelExhaustion` now leaves the connection eligible on a `500` for per-model-quota providers (other connection-level statuses — 408/502/503/504/524 — still exhaust correctly), and the retry loop early-returns when a model is already in lockout. Regression guard: `tests/unit/combo/combo-target-exhaustion.test.ts`. ([#5976](https://github.com/diegosouzapw/OmniRoute/pull/5976) — thanks @hartmark)
 
+- fix(providers): GitLab Duo executor now emulates OpenAI tool_calls (#6051)
+
 ### 📝 Maintenance
 
 - **test (deflake `setup-claude`):** `tests/unit/cli/setup-claude.test.ts` failed ~50% of runs with `Unable to deserialize cloned data due to invalid or unsupported version` at file teardown (all subtests passed), randomly reddening `Unit Tests fast-path (2/2)` / `Fast Quality Gates` across the PR→release queue. Root cause: `node --test` streams each file's report to the parent as V8-serialized frames on fd 1 (stdout), and the CLI helper under test (`syncClaudeProfilesFromModels`) prints progress via `console.log` — that stdout output interleaved with the serialized frames and corrupted the stream. The test now silences the stdout-writing `console` methods for the file's duration (no assertion inspects stdout), making it deterministic (15/15 green locally). ([#5959](https://github.com/diegosouzapw/OmniRoute/issues/5959))
