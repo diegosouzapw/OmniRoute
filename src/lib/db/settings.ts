@@ -25,7 +25,9 @@ type ProxyResolutionCacheEntry = {
   registryGeneration: number;
   result: ProxyResolutionResult;
 };
+
 const PROXY_RESOLUTION_CACHE_MAX_ENTRIES = 100;
+
 function isTruthyEnvFlag(value: string | undefined): boolean {
   return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
 }
@@ -428,8 +430,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
     if (perKeyEnabled) {
       try {
         const apiKeyRow = db.prepare("SELECT proxy_id FROM api_keys WHERE id = ?").get(apiKeyId) as
-          | { proxy_id?: string | null }
-          | undefined;
+          { proxy_id?: string | null } | undefined;
         if (apiKeyRow?.proxy_id) {
           const proxyRow = db
             .prepare(
