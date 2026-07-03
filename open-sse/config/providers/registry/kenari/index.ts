@@ -1,14 +1,10 @@
-import type { RegistryEntry } from "../../shared.ts";
+import { buildOpenAiCompatibleRegistryEntry } from "../../shared.ts";
 
-export const kenariProvider: RegistryEntry = {
+export const kenariProvider = buildOpenAiCompatibleRegistryEntry({
   id: "kenari",
   alias: "kenari",
-  format: "openai",
-  executor: "default",
   baseUrl: "https://kenari.id/v1/chat/completions",
   modelsUrl: "https://kenari.id/v1/models",
-  authType: "apikey",
-  authHeader: "bearer",
   passthroughModels: true,
   models: [],
-};
+});
