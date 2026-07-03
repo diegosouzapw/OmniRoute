@@ -19,6 +19,7 @@
 - **feat(usage):** add on-demand period-scoped usage-data reset (Settings → System Storage) with a purge API and time-window selector.
 - **feat(claude-code):** add an opt-in auto-permission classifier compat mode (off/auto/always) for Claude Code, toggleable from the CLI Code settings.
 - **feat(providers):** add optional client-identity header profiles for compatible nodes — preset User-Agent/fingerprint headers (e.g. matching a known CLI) merged into the existing customHeaders field.
+- **feat(autoCombo):** add **per-request Auto-Combo controls** via two headers ([#6024](https://github.com/diegosouzapw/OmniRoute/issues/6024) / [#6025](https://github.com/diegosouzapw/OmniRoute/issues/6025) / [#6023](https://github.com/diegosouzapw/OmniRoute/issues/6023)) — `X-OmniRoute-Mode` steers an `auto` combo's scoring for a single request (friendly presets `fast`/`balanced`/`quality`/`cheap`/`reliable`/`offline` **or** a raw mode-pack name; `balanced` forces the default weights), and `X-OmniRoute-Budget` sets a hard per-request USD cost ceiling. Both override the combo's stored config only for the request that carries them; unknown/garbage values are ignored so the saved config is preserved. The resolvers are pure (`open-sse/services/autoCombo/requestControls.ts`) and feed the engine's existing `config.modePack` / `config.budgetCap` inputs — no engine changes. Regression guard: `tests/unit/auto-combo-request-controls-6024.test.ts` (5). (thanks @chirag127)
 
 ### 🔧 Bug Fixes
 

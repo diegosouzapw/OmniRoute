@@ -58,6 +58,10 @@ import { emit } from "../../src/lib/events/eventBus";
 import { notifyWebhookEvent } from "../../src/lib/webhookDispatcher";
 import { classifyWithConfig } from "./intentClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
+import {
+  resolveRequestModePack,
+  parseRequestBudgetCap,
+} from "./autoCombo/requestControls.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
 import { parseAutoPrefix } from "./autoCombo/autoPrefix.ts";
 import { handlePipelineCombo, buildPipelineResponse } from "./autoCombo/pipelineRouter.ts";
@@ -1151,11 +1155,27 @@ export async function handleComboChat({
     const explorationRate = Number.isFinite(Number(autoConfigSource.explorationRate))
       ? Number(autoConfigSource.explorationRate)
       : 0.05;
-    const budgetCap = Number.isFinite(Number(autoConfigSource.budgetCap))
+    // Per-request overrides (#6023 / #6024 / #6025): X-OmniRoute-Budget and
+    // X-OmniRoute-Mode headers are threaded here via relayOptions and take
+    // precedence over the combo's stored config for this single request.
+    const configBudgetCap = Number.isFinite(Number(autoConfigSource.budgetCap))
       ? Number(autoConfigSource.budgetCap)
       : undefined;
-    const modePack =
+    const requestBudgetCap = parseRequestBudgetCap(relayOptions?.budgetCap);
+    const budgetCap = requestBudgetCap ?? configBudgetCap;
+
+    const configModePack =
       typeof autoConfigSource.modePack === "string" ? autoConfigSource.modePack : undefined;
+    const requestModePack = resolveRequestModePack(relayOptions?.mode);
+    const modePack = requestModePack.override ? requestModePack.modePack : configModePack;
+    if (requestModePack.override || requestBudgetCap !== undefined) {
+      log.debug?.(
+        "COMBO",
+        `Auto strategy: per-request controls applied (mode=${
+          requestModePack.override ? (requestModePack.modePack ?? "balanced") : "—"
+        }, budgetCap=${requestBudgetCap ?? "—"})`
+      );
+    }
     const resetWindowConfig = resolveResetWindowConfig(autoConfigSource);
     const slaPolicy = resolveSlaRoutingPolicy(autoConfigSource);
 
