@@ -18,12 +18,7 @@ import {
   selectLockoutCooldownMs,
 } from "./accountFallback.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
-import {
-  recordComboIntent,
-  recordComboRequest,
-  recordComboShadowRequest,
-  getComboMetrics,
-} from "./comboMetrics.ts";
+import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import {
   resolveComboConfig,
   getDefaultComboConfig,
@@ -41,7 +36,6 @@ import {
   getLastSessionModel,
   getHandoff,
 } from "../../src/lib/db/contextHandoffs.ts";
-import { extractSessionAffinityKey } from "@/sse/services/auth";
 import { getHiddenModelsByProvider } from "@/models";
 import { resolveModelLockoutSettings } from "../../src/lib/resilience/modelLockoutSettings";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
@@ -141,7 +135,6 @@ import {
   shouldSkipForPredictedTtft,
   shouldRecordProviderBreakerFailure,
   resolveDelayMs,
-  comboCapabilityNotFoundResponse,
   comboModelNotFoundResponse,
   isStreamReadinessFailureErrorBody,
   isTokenLimitBreachErrorBody,
@@ -767,7 +760,7 @@ export async function handleComboChat({
       }, comboTargetTimeoutMs);
     });
     const targetWithSignal = {
-      ...(target ?? {}),
+      ...target,
       modelAbortSignal: timeoutController.signal,
     };
     const parentHedgeSignal = target?.modelAbortSignal ?? null;
@@ -1602,9 +1595,6 @@ export async function handleComboChat({
   orderedTargets = _sticky.targets;
   orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
   const requestCompatibility = evaluateTargetsByRequestCompatibility(orderedTargets, body);
-  if (requestCompatibility.requestRejected) {
-    return comboCapabilityNotFoundResponse(requestCompatibility.rejectionReason || "");
-  }
   orderedTargets =
     requestCompatibility.compatibleTargets.length > 0
       ? requestCompatibility.compatibleTargets
@@ -2573,9 +2563,7 @@ export async function handleComboChat({
 
         if (zeroLatencyOptimizationsEnabled && config.hedging && i + 1 < orderedTargets.length) {
           const hedgeDelay = resolveDelayMs(config.hedgeDelayMs, 500);
-          let timeoutResolve: () => void;
           const timeoutPromise = new Promise<void>((r) => {
-            timeoutResolve = r;
             setTimeout(r, hedgeDelay);
           });
           await Promise.race([task, globalPromise, timeoutPromise]);
@@ -2585,7 +2573,7 @@ export async function handleComboChat({
       }
 
       if (!anySuccess && runningTasks.size > 0) {
-        await Promise.race([globalPromise, Promise.all([...runningTasks])]);
+        await Promise.race([globalPromise, Promise.all(runningTasks)]);
       }
 
       if (anySuccess) {
@@ -2735,7 +2723,7 @@ async function handleRoundRobinCombo({
 }: HandleRoundRobinOptions): Promise<Response> {
   const config = settings
     ? resolveComboConfig(combo, settings)
-    : { ...getDefaultComboConfig(), ...(combo.config || {}) };
+    : { ...getDefaultComboConfig(), ...combo.config };
   const concurrency = config.concurrencyPerModel ?? 3;
   // Honor each target connection's own maxConcurrent ceiling (cached per dispatch)
   // so a low-concurrency subscription account is not flooded; falls back to the
@@ -2775,9 +2763,6 @@ async function handleRoundRobinCombo({
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
   const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
   const requestCompatibility = evaluateTargetsByRequestCompatibility(evalRankedTargets, body);
-  if (requestCompatibility.requestRejected) {
-    return comboCapabilityNotFoundResponse(requestCompatibility.rejectionReason || "");
-  }
   const filteredTargets =
     requestCompatibility.compatibleTargets.length > 0
       ? requestCompatibility.compatibleTargets
