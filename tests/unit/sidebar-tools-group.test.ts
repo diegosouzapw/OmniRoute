@@ -25,14 +25,22 @@ function getToolsGroup() {
   };
 }
 
-test("TOOLS_GROUP items follow plan 14 order: cli-code → cli-agents → acp-agents → cloud-agents → agent-bridge → traffic-inspector", () => {
+test("TOOLS_GROUP items follow plan 14 order: cli-code → cli-agents → acp-agents → cloud-agents → agent-bridge → traffic-inspector → discovery", () => {
   const toolsGroup = getToolsGroup();
   const itemIds = toolsGroup.items.map((item) => item.id);
-  // cli-code/cli-agents/acp-agents/cloud-agents from plan 14 (#2839); agent-bridge/traffic-inspector from plans 11/12 (#2858).
+  // cli-code/cli-agents/acp-agents/cloud-agents from plan 14 (#2839); agent-bridge/traffic-inspector from plans 11/12 (#2858); discovery from #5939.
   assert.deepEqual(
     itemIds,
-    ["cli-code", "cli-agents", "acp-agents", "cloud-agents", "agent-bridge", "traffic-inspector"],
-    "TOOLS_GROUP items order must be cli-code, cli-agents, acp-agents, cloud-agents, agent-bridge, traffic-inspector"
+    [
+      "cli-code",
+      "cli-agents",
+      "acp-agents",
+      "cloud-agents",
+      "agent-bridge",
+      "traffic-inspector",
+      "discovery",
+    ],
+    "TOOLS_GROUP items order must be cli-code, cli-agents, acp-agents, cloud-agents, agent-bridge, traffic-inspector, discovery"
   );
 });
 

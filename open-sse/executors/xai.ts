@@ -1,0 +1,94 @@
+import { BaseExecutor, type ProviderCredentials } from "./base.ts";
+import { PROVIDERS } from "../config/constants.ts";
+
+type JsonRecord = Record<string, unknown>;
+
+/**
+ * xAI/Grok model ids (open-sse/config/providers/registry/xai/index.ts) that accept
+ * a graduated `reasoning_effort`. Kept narrow and reconciled against the REAL
+ * catalog rather than upstream's example ids (grok-4/grok-3 do not exist here):
+ *   - grok-4.3                  — current-generation flagship, reasoning-capable.
+ *   - grok-4.20-0309-reasoning  — explicit reasoning variant.
+ *
+ * grok-4.20-multi-agent-0309 is intentionally left unclassified (neither allow
+ * nor deny): its reasoning support is not documented in the local catalog, so
+ * we pass it through unchanged rather than guess.
+ */
+const REASONING_ALLOWED = ["grok-4.3", "grok-4.20-0309-reasoning"];
+
+/**
+ * Model ids that reject `reasoning_effort` outright:
+ *   - grok-build-0.1                — build/tool-oriented model, no reasoning mode.
+ *   - grok-4.20-0309-non-reasoning   — already encodes "no reasoning" in the id;
+ *     forwarding reasoning_effort here would be redundant/rejected upstream.
+ */
+const REASONING_DENIED = ["grok-build-0.1", "grok-4.20-0309-non-reasoning"];
+
+/** `-{level}` suffixes some clients append to a model id to select reasoning intensity. */
+const EFFORT_SUFFIXES = ["low", "medium", "high", "xhigh"] as const;
+
+function asRecord(value: unknown): JsonRecord | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : null;
+}
+
+/**
+ * xAI/Grok executor (port of decolua/9router#2147).
+ *
+ * Some Grok clients select reasoning intensity via a `-{low,medium,high,xhigh}`
+ * suffix on the model id (e.g. `grok-4.3-high`) rather than a native
+ * `reasoning_effort` field — xAI itself does not recognize the suffixed id.
+ * This executor:
+ *   1. Parses and strips that suffix off the model id before the request
+ *      reaches xAI, mapping it to `reasoning_effort` for allow-listed models.
+ *   2. Strips any `reasoning_effort` for deny-listed models — including ids
+ *      that already encode their reasoning state in the name (`-reasoning` /
+ *      `-non-reasoning`), which must not be double-mutated by also stacking a
+ *      `reasoning_effort` field on top of what the id already declares.
+ *   3. Leaves unclassified models and bodies untouched otherwise.
+ */
+export class XaiExecutor extends BaseExecutor {
+  constructor() {
+    super("xai", PROVIDERS.xai);
+  }
+
+  transformRequest(
+    model: string,
+    body: unknown,
+    stream: boolean,
+    credentials: ProviderCredentials
+  ): unknown {
+    const cleaned = super.transformRequest(model, body, stream, credentials);
+    const record = asRecord(cleaned);
+    if (!record) return cleaned;
+
+    const out: JsonRecord = { ...record };
+    let modelId = typeof out.model === "string" ? out.model : model;
+
+    let suffixEffort: string | null = null;
+    for (const level of EFFORT_SUFFIXES) {
+      const suffix = `-${level}`;
+      if (modelId.endsWith(suffix)) {
+        suffixEffort = level;
+        modelId = modelId.slice(0, -suffix.length);
+        break;
+      }
+    }
+    if (suffixEffort && typeof out.model === "string") {
+      out.model = modelId;
+    }
+
+    const isDenied = REASONING_DENIED.some((id) => modelId.includes(id));
+    const isAllowed = REASONING_ALLOWED.some((id) => modelId.includes(id));
+
+    if (isDenied) {
+      delete out.reasoning_effort;
+    } else if (isAllowed) {
+      const effort = suffixEffort || out.reasoning_effort;
+      if (effort) out.reasoning_effort = effort;
+    }
+
+    return out;
+  }
+}
+
+export default XaiExecutor;
