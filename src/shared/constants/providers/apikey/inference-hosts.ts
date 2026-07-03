@@ -61,6 +61,20 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     hasFree: true,
     freeNote: "~$1 trial credits on signup for API testing",
   },
+  nube: {
+    id: "nube",
+    alias: "nube",
+    name: "Nube.sh",
+    icon: "cloud",
+    color: "#2563EB",
+    textIcon: "NB",
+    website: "https://nube.sh",
+    hasFree: false,
+    notice: {
+      text: "OpenAI-compatible gateway (LiteLLM). Bring your own API key — models are resolved live from the account (passthrough).",
+      apiKeyUrl: "https://nube.sh/dashboard/api-keys",
+    },
+  },
   siliconflow: {
     id: "siliconflow",
     alias: "siliconflow",
@@ -264,6 +278,21 @@ export const APIKEY_PROVIDERS_INFERENCE = {
       "One-time signup trial credits for decentralized GPU inference (no recurring free plan). No credit card required.",
     passthroughModels: true,
     authHint: "Get API key at monsterapi.ai",
+  },
+  modelscope: {
+    id: "modelscope",
+    alias: "ms",
+    name: "ModelScope",
+    icon: "cloud",
+    color: "#FF6A00",
+    textIcon: "MS",
+    website: "https://modelscope.cn",
+    hasFree: true,
+    // #1764 (upstream 9router): OpenAI-compatible API-Inference. Base URL verified
+    // live against ModelScope's own docs — the upstream PR used the `.ai` TLD, but
+    // the confirmed production domain is `api-inference.modelscope.cn` (see registry
+    // entry + test guard).
+    freeNote: "Free tier via ModelScope API-Inference — Alibaba account required.",
   },
   byteplus: {
     id: "byteplus",

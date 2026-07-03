@@ -67,7 +67,15 @@ function decodeJwtPayload(jwt: unknown): Record<string, unknown> | null {
   }
 }
 
-function extractCodexAccountInfo(idToken: string): {
+/**
+ * Decode a Codex JWT (id_token, or a bare ChatGPT access token — both carry
+ * the same `https://api.openai.com/auth` custom claim) into account info.
+ *
+ * Exported so other Codex import paths (e.g. the bare-access-token import at
+ * `/api/oauth/codex/import-token`, #1290) can reuse this decode logic instead
+ * of duplicating an inline JWT decode.
+ */
+export function extractCodexAccountInfo(idToken: string): {
   email?: string;
   chatgptAccountId?: string;
   chatgptPlanType?: string;
