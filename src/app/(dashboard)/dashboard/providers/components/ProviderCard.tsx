@@ -56,6 +56,10 @@ interface ProviderCardProps {
     subscriptionRisk?: boolean;
     /** Declared service kinds — "llm" enables the inline Test button */
     serviceKinds?: string[];
+    /** Optional operator-supplied remote icon URL (#2166) for compatible provider nodes. */
+    iconUrl?: string;
+    /** Short text-badge fallback (e.g. "OC"/"AC"/"CC") shown if `iconUrl` fails to load. */
+    textIcon?: string;
   };
   stats: ProviderStats;
   authType?: string;
@@ -240,7 +244,17 @@ export default function ProviderCard({
                 className="size-9 rounded-lg flex items-center justify-center shrink-0"
                 style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
               >
-                {staticIconPath ? (
+                {provider.iconUrl ? (
+                  <ProviderIcon
+                    providerId={provider.id || providerId}
+                    src={provider.iconUrl}
+                    alt={provider.name}
+                    size={26}
+                    className="max-h-[26px] max-w-[26px] rounded-lg object-contain"
+                    fallbackText={provider.textIcon}
+                    fallbackColor={provider.color}
+                  />
+                ) : staticIconPath ? (
                   <Image
                     src={staticIconPath}
                     alt={provider.name}

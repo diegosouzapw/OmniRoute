@@ -121,7 +121,11 @@ test("Antigravity -> OpenAI extracts string system instructions and text-only me
   ]);
 });
 
-test("Antigravity -> OpenAI returns tool messages when content contains only function responses", () => {
+test("Antigravity -> OpenAI strips a lone function response with no matching function call (#6026)", () => {
+  // A `functionResponse` with no preceding `functionCall` is an orphan tool_result. Left in
+  // place it becomes an orphan `tool_result` block after the openai→claude step, which
+  // Anthropic (Vertex claude-opus-4.6) rejects with HTTP 400 (#6026). `fixToolPairs` now
+  // strips it at the antigravity assembly point, so the upstream request stays valid.
   const result = antigravityToOpenAIRequest(
     "gpt-4o",
     {
@@ -145,11 +149,74 @@ test("Antigravity -> OpenAI returns tool messages when content contains only fun
     false
   );
 
-  assert.deepEqual(result.messages, [
+  assert.deepEqual(result.messages, []);
+});
+
+test("Antigravity -> OpenAI keeps co-located function call and text but strips the orphan function response (#6026)", () => {
+  const result = antigravityToOpenAIRequest(
+    "gpt-4o",
     {
-      role: "tool",
-      tool_call_id: "call_2",
-      content: '{"ok":true}',
+      request: {
+        contents: [
+          {
+            role: "model",
+            parts: [
+              { text: "Let me look that up." },
+              { functionResponse: { id: "call_9", name: "lookup", response: { result: { ok: true } } } },
+              { functionCall: { id: "call_10", name: "lookup", args: { q: "weather" } } },
+            ],
+          },
+        ],
+      },
+    },
+    false
+  );
+
+  // The accompanying assistant message (text + tool_call) survives, but the co-located
+  // function response `call_9` has no matching function call, so it is an orphan tool_result
+  // and must be stripped (#6026) — otherwise Anthropic 400s on the openai→claude request.
+  const toolMsg = result.messages.find((m) => m.role === "tool");
+  const assistantMsg = result.messages.find((m) => m.role === "assistant");
+  assert.equal(toolMsg, undefined, "orphan function-response tool message must be stripped");
+  assert.ok(assistantMsg, "expected a role:assistant message");
+  assert.equal(assistantMsg.content, "Let me look that up.");
+  assert.deepEqual(assistantMsg.tool_calls, [
+    {
+      id: "call_10",
+      type: "function",
+      function: { name: "lookup", arguments: '{"q":"weather"}' },
+    },
+  ]);
+});
+
+test("Antigravity -> OpenAI drops empty thoughtSignature text instead of emitting empty content", () => {
+  const result = antigravityToOpenAIRequest(
+    "gpt-4o",
+    {
+      request: {
+        contents: [
+          {
+            role: "model",
+            parts: [
+              { thoughtSignature: "sig", text: "" },
+              { functionCall: { id: "call_11", name: "noop", args: {} } },
+            ],
+          },
+        ],
+      },
+    },
+    false
+  );
+
+  const assistantMsg = result.messages.find((m) => m.role === "assistant");
+  assert.ok(assistantMsg, "expected a role:assistant message");
+  // No empty content block should be emitted (Anthropic rejects it with a 400).
+  assert.equal("content" in assistantMsg, false);
+  assert.deepEqual(assistantMsg.tool_calls, [
+    {
+      id: "call_11",
+      type: "function",
+      function: { name: "noop", arguments: "{}" },
     },
   ]);
 });

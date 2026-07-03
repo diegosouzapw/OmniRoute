@@ -49,6 +49,13 @@ export interface CodexDualWindowQuota extends QuotaInfo {
   limitReached: boolean;
   /** All known Codex quota windows, including Spark when the upstream exposes it. */
   allWindows?: Record<string, { percentUsed: number; resetAt: string | null }>;
+  /**
+   * Banked reset credits available on the account (display-only, issue #5199).
+   * Eligibility-gated: absent for most accounts. Never throws when missing.
+   */
+  bankedResetCredits?: number;
+  /** Which window is currently reported as blocking, when the upstream exposes it. */
+  rateLimitReachedType?: string;
 }
 
 interface CacheEntry {
@@ -295,6 +302,26 @@ function parseCodexWindow(
   return { percentUsed, resetAt: parseWindowReset(window) };
 }
 
+/**
+ * Codex "banked reset credits" — same eligibility-gated field parsed in
+ * codexUsageQuotas.ts (kept in sync manually; the two parsers read the same
+ * /wham/usage payload independently). DISPLAY ONLY, never throws.
+ */
+function parseBankedResetCredits(data: Record<string, unknown>): number | undefined {
+  const resetCredits = toRecord(data["rate_limit_reset_credits"] ?? data["rateLimitResetCredits"]);
+  const availableCount = resetCredits["available_count"] ?? resetCredits["availableCount"];
+  const count = toNumber(availableCount, NaN);
+  return Number.isFinite(count) ? count : undefined;
+}
+
+function parseRateLimitReachedType(data: Record<string, unknown>): string | undefined {
+  const reachedType = data["rate_limit_reached_type"] ?? data["rateLimitReachedType"];
+  if (typeof reachedType === "string" && reachedType.trim().length > 0) return reachedType.trim();
+  const reachedTypeObj = toRecord(reachedType);
+  const type = reachedTypeObj["type"];
+  return typeof type === "string" && type.trim().length > 0 ? type.trim() : undefined;
+}
+
 function findSparkRateLimit(data: Record<string, unknown>): Record<string, unknown> | null {
   const additional = data["additional_rate_limits"] ?? data["additionalRateLimits"];
   if (!Array.isArray(additional)) return null;
@@ -403,6 +430,9 @@ function parseCodexUsageResponse(
     secondary: CODEX_WINDOW_WEEKLY,
   });
 
+  const bankedResetCredits = parseBankedResetCredits(obj);
+  const rateLimitReachedType = parseRateLimitReachedType(obj);
+
   return {
     used: Math.round(worstPercentUsed * 100),
     total: 100,
@@ -419,6 +449,9 @@ function parseCodexUsageResponse(
     window5h,
     window7d,
     limitReached,
+    // Banked reset credits (display-only, eligibility-gated — issue #5199).
+    ...(bankedResetCredits !== undefined ? { bankedResetCredits } : {}),
+    ...(rateLimitReachedType !== undefined ? { rateLimitReachedType } : {}),
   };
 }
 

@@ -14,6 +14,8 @@ import type { ProviderCandidate, ScoredProvider } from "./scoring.ts";
 import { scorePool } from "./scoring.ts";
 import { getTaskFitness } from "./taskFitness.ts";
 import { clamp01 } from "../../utils/number.ts";
+import { rankBySpeed } from "./speedRanking.ts";
+import type { SpeedCandidate } from "./speedRanking.ts";
 
 export interface SlaRoutingPolicy {
   targetP95Ms?: number;
@@ -48,6 +50,36 @@ export interface RouterStrategy {
 }
 
 // ── RulesStrategy: wraps 6-factor scoring engine ────────────────────────────
+
+function toSpeedCandidate(c: ProviderCandidate): SpeedCandidate {
+  return {
+    // Identity
+    provider: c.provider,
+    model: c.model,
+    // Resource state
+    quotaRemaining: c.quotaRemaining,
+    quotaTotal: c.quotaTotal,
+    circuitBreakerState: c.circuitBreakerState,
+    // Costs
+    costPer1MTokens: c.costPer1MTokens,
+    // Latency metrics
+    p95LatencyMs: c.p95LatencyMs,
+    avgTtftMs: c.avgTtftMs,
+    avgE2ELatencyMs: c.avgE2ELatencyMs,
+    avgTokensPerSecond: c.avgTokensPerSecond,
+    latencyStdDev: c.latencyStdDev,
+    // Reliability
+    errorRate: c.errorRate,
+    failureRate: c.failureRate,
+    // Tier signals (forwarded so weights stay available for downstream tuning)
+    accountTier: c.accountTier,
+    quotaResetIntervalSecs: c.quotaResetIntervalSecs,
+    contextAffinity: c.contextAffinity,
+    resetWindowAffinity: c.resetWindowAffinity,
+    connectionPoolSize: c.connectionPoolSize,
+    connectionId: c.connectionId,
+  };
+}
 
 class RulesStrategyImpl implements RouterStrategy {
   readonly name = "rules";
@@ -100,103 +132,46 @@ class CostStrategyImpl implements RouterStrategy {
 
 // ── LatencyStrategy: prioritize low latency + reliability ───────────────────
 
-function positiveMetric(value: unknown): number | null {
-  const numericValue = Number(value);
-  return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
-}
-
-function boundedRate(value: unknown): number {
-  const numericValue = Number(value);
-  return Number.isFinite(numericValue) && numericValue >= 0 ? Math.min(1, numericValue) : 0;
-}
-
-function maxPositiveMetric(
-  candidates: ProviderCandidate[],
-  readMetric: (candidate: ProviderCandidate) => unknown,
-  fallback = 1
-): number {
-  return Math.max(
-    ...candidates.map((candidate) => positiveMetric(readMetric(candidate)) ?? 0),
-    fallback
-  );
-}
-
-function latencyMetricScore(value: number | null, maxValue: number): number {
-  if (value == null) return 0.5;
-  return inverseNormalized(value, maxValue);
-}
-
-function throughputMetricScore(value: number | null, maxValue: number): number {
-  if (value == null) return 0.5;
-  return clamp01(value / Math.max(maxValue, 0.000_001));
-}
-
 class LatencyStrategyImpl implements RouterStrategy {
   readonly name = "latency";
   readonly description =
     "Prioritizes the fastest reliable provider-model pair using TTFT, TPS, E2E latency, health, fail rate, and stability";
 
   select(pool: ProviderCandidate[], context: RoutingContext): RoutingDecision {
-    const healthy = pool.filter((c) => c.circuitBreakerState !== "OPEN");
-    const candidates = healthy.length > 0 ? healthy : pool;
-    if (candidates.length === 0) throw new Error("[LatencyStrategy] No candidates available");
-
-    const maxP95 = maxPositiveMetric(candidates, (candidate) => candidate.p95LatencyMs);
-    const maxTtft = maxPositiveMetric(
-      candidates,
-      (candidate) => candidate.avgTtftMs ?? candidate.p95LatencyMs
-    );
-    const maxE2E = maxPositiveMetric(
-      candidates,
-      (candidate) => candidate.avgE2ELatencyMs ?? candidate.p95LatencyMs
-    );
-    const maxTps = maxPositiveMetric(candidates, (candidate) => candidate.avgTokensPerSecond);
-    const maxStdDev = maxPositiveMetric(candidates, (candidate) => candidate.latencyStdDev, 0.001);
-
-    const scored = candidates
-      .map((candidate) => {
-        const p95 = positiveMetric(candidate.p95LatencyMs);
-        const ttft = positiveMetric(candidate.avgTtftMs) ?? p95;
-        const e2e = positiveMetric(candidate.avgE2ELatencyMs) ?? p95;
-        const tps = positiveMetric(candidate.avgTokensPerSecond);
-        const failureRate = boundedRate(candidate.failureRate ?? candidate.errorRate);
-        const healthScore = getHealthScore(candidate);
-        const p95Score = latencyMetricScore(p95, maxP95);
-        const ttftScore = latencyMetricScore(ttft, maxTtft);
-        const e2eScore = latencyMetricScore(e2e, maxE2E);
-        const throughputScore = throughputMetricScore(tps, maxTps);
-        const reliabilityScore = 1 - failureRate;
-        const stabilityScore = latencyMetricScore(
-          positiveMetric(candidate.latencyStdDev),
-          maxStdDev
-        );
-        const rawScore =
-          ttftScore * 0.25 +
-          throughputScore * 0.2 +
-          e2eScore * 0.18 +
-          p95Score * 0.12 +
-          reliabilityScore * 0.15 +
-          healthScore * 0.05 +
-          stabilityScore * 0.05;
-        const reliabilityMultiplier = Math.max(0.05, reliabilityScore * reliabilityScore);
-        const score = rawScore * reliabilityMultiplier * Math.max(0.25, healthScore);
-
-        return { candidate, score, ttft, e2e, tps, failureRate };
-      })
-      .sort((a, b) => b.score - a.score);
-
-    const best = scored[0];
-    if (!best) throw new Error("[LatencyStrategy] No candidates available");
+    const ranked = rankBySpeed(pool.map(toSpeedCandidate));
+    const winner = ranked[0];
+    if (!winner) {
+      throw new Error("[LatencyStrategy] No candidates available after speed ranking");
+    }
 
     return {
-      provider: best.candidate.provider,
-      model: best.candidate.model,
+      provider: winner.provider,
+      model: winner.model,
       strategy: this.name,
-      reason: `LatencyStrategy: ttft=${best.ttft ?? "n/a"}ms, tps=${best.tps ?? "n/a"}, e2e=${best.e2e ?? "n/a"}ms, p95=${best.candidate.p95LatencyMs}ms, failRate=${(best.failureRate * 100).toFixed(2)}%`,
-      candidatesConsidered: candidates.length,
-      finalScore: best.score,
+      reason: latencyDecisionReason(winner),
+      candidatesConsidered: ranked.length,
+      finalScore: winner.score,
     };
   }
+}
+
+function metricString(value: number | null | undefined, digits = 0): string {
+  return value == null ? "n/a" : value.toFixed(digits);
+}
+
+function latencyDecisionReason(winner: ReturnType<typeof rankBySpeed>[number]): string {
+  const metrics = winner.metrics;
+  const e2e = metrics.avgE2ELatencyMs ?? metrics.p95LatencyMs;
+  return (
+    `LatencyStrategy(score=${winner.score.toFixed(3)}): ` +
+    `ttft=${metricString(metrics.avgTtftMs)}ms ` +
+    `tps=${metricString(metrics.avgTokensPerSecond, 1)} ` +
+    `e2e=${metricString(e2e)}ms ` +
+    `p95=${metricString(metrics.p95LatencyMs)}ms ` +
+    `failRate=${((metrics.failureRate ?? 0) * 100).toFixed(2)}% ` +
+    `stability=${metricString(metrics.latencyStdDev)}ms ` +
+    `cb=${metrics.circuitBreakerState ?? "n/a"}`
+  );
 }
 
 // ── SLAStrategy: favor targets that meet latency/error/cost SLOs ───────────

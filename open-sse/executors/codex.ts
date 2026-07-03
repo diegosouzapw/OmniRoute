@@ -37,6 +37,17 @@ import { CORS_HEADERS } from "../utils/cors.ts";
 import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
+// Quota parsing/scheduling extracted to a pure leaf; re-exported for external
+// importers (handlers/chatCore/codexQuota.ts + tests).
+export {
+  type CodexQuotaSnapshot,
+  parseCodexQuotaHeaders,
+  getCodexResetTime,
+  getCodexDualWindowCooldownMs,
+} from "./codex/quota.ts";
+import { isCodexFreePlan, normalizeCodexTools } from "./codex/tools.ts";
+// Re-exported for external importers (tests + provider services).
+export { isCodexFreePlan, normalizeCodexTools } from "./codex/tools.ts";
 
 // ─── wreq-js lazy loader ───────────────────────────────────────────────────
 // wreq-js is a Rust-native module that requires platform-specific .node binaries.
@@ -103,119 +114,6 @@ function codexWebSocketUnavailableResponse(): Response {
 // Exhausting one should NOT block requests to the other.
 // Ref: sub2api PR #1129 (feat(openai): split codex spark rate limiting from codex)
 export { getCodexModelScope, getCodexRateLimitKey, type CodexQuotaScope };
-
-/**
- * T03: Parsed quota snapshot from Codex response headers.
- * Codex includes per-account usage windows that allow precise reset scheduling.
- * Ref: sub2api PR #357 (feat(oauth): persist usage snapshots and window cooldown)
- */
-export interface CodexQuotaSnapshot {
-  usage5h: number; // tokens used in 5h window
-  limit5h: number; // token limit for 5h window
-  resetAt5h: string | null; // ISO timestamp when 5h window resets
-  usage7d: number; // tokens used in 7d window
-  limit7d: number; // token limit for 7d window
-  resetAt7d: string | null; // ISO timestamp when 7d window resets
-}
-
-/**
- * T03: Parse Codex-specific quota headers from a provider response.
- * Returns null if none of the relevant headers are present.
- *
- * Extracts:
- *   x-codex-5h-usage / x-codex-5h-limit / x-codex-5h-reset-at
- *   x-codex-7d-usage / x-codex-7d-limit / x-codex-7d-reset-at
- */
-export function parseCodexQuotaHeaders(headers: Record<string, string>): CodexQuotaSnapshot | null {
-  const usage5h = headers["x-codex-5h-usage"] ?? null;
-  const limit5h = headers["x-codex-5h-limit"] ?? null;
-  const resetAt5h = headers["x-codex-5h-reset-at"] ?? null;
-  const usage7d = headers["x-codex-7d-usage"] ?? null;
-  const limit7d = headers["x-codex-7d-limit"] ?? null;
-  const resetAt7d = headers["x-codex-7d-reset-at"] ?? null;
-
-  // Return null if none of the quota headers are present (not a quota-aware response)
-  if (!usage5h && !limit5h && !resetAt5h && !usage7d && !limit7d && !resetAt7d) {
-    return null;
-  }
-
-  return {
-    usage5h: usage5h ? parseFloat(usage5h) : 0,
-    limit5h: limit5h ? parseFloat(limit5h) : Infinity,
-    resetAt5h: resetAt5h ?? null,
-    usage7d: usage7d ? parseFloat(usage7d) : 0,
-    limit7d: limit7d ? parseFloat(limit7d) : Infinity,
-    resetAt7d: resetAt7d ?? null,
-  };
-}
-
-/**
- * T03: Get the soonest quota reset time from a CodexQuotaSnapshot.
- * 7d window takes priority (wider window, harder limit) but we use whichever
- * is further in the future to avoid releasing the block too early.
- *
- * @returns Unix timestamp (ms) of the soonest effective reset, or null
- */
-export function getCodexResetTime(quota: CodexQuotaSnapshot): number | null {
-  const times: number[] = [];
-  if (quota.resetAt7d) {
-    const t = new Date(quota.resetAt7d).getTime();
-    if (!isNaN(t) && t > Date.now()) times.push(t);
-  }
-  if (quota.resetAt5h) {
-    const t = new Date(quota.resetAt5h).getTime();
-    if (!isNaN(t) && t > Date.now()) times.push(t);
-  }
-  if (times.length === 0) return null;
-  return Math.max(...times); // Use furthest-out reset to avoid premature unblock
-}
-
-/**
- * T03 (Item 3): Compute the minimum-necessary cooldown based on which window
- * is actually exhausted. Prevents over-blocking the account:
- *
- * - If 7d window >= threshold: cooldown until 7d reset (weekly window exhausted)
- * - If 5h window >= threshold: cooldown until 5h reset only (short-term limit)
- * - Otherwise: 0 (account is healthy, no cooldown needed)
- *
- * Called after parsing quota headers from a successful/429 response to
- * mark the account accordingly without overly long cooldowns.
- *
- * @param quota - Parsed quota snapshot from response headers
- * @param threshold - Fraction (0-1) that triggers cooldown (default: 0.95)
- * @returns Cooldown duration in milliseconds (0 = no cooldown needed)
- */
-export function getCodexDualWindowCooldownMs(
-  quota: CodexQuotaSnapshot,
-  threshold = 0.95
-): { cooldownMs: number; window: "7d" | "5h" | "none" } {
-  const now = Date.now();
-
-  // Compute per-window usage ratios (0..1)
-  const ratio7d =
-    quota.limit7d > 0 && Number.isFinite(quota.limit7d) ? quota.usage7d / quota.limit7d : 0;
-  const ratio5h =
-    quota.limit5h > 0 && Number.isFinite(quota.limit5h) ? quota.usage5h / quota.limit5h : 0;
-
-  // 7d window takes priority — if the weekly budget is near-exhausted,
-  // we must wait until the weekly reset (not just 5h).
-  if (ratio7d >= threshold && quota.resetAt7d) {
-    const resetTime = new Date(quota.resetAt7d).getTime();
-    if (resetTime > now) {
-      return { cooldownMs: resetTime - now, window: "7d" };
-    }
-  }
-
-  // 5h window (primary short-term rate limit)
-  if (ratio5h >= threshold && quota.resetAt5h) {
-    const resetTime = new Date(quota.resetAt5h).getTime();
-    if (resetTime > now) {
-      return { cooldownMs: resetTime - now, window: "5h" };
-    }
-  }
-
-  return { cooldownMs: 0, window: "none" };
-}
 
 // Ordered list of effort levels from lowest to highest
 const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
@@ -398,169 +296,6 @@ function repairMissingCodexFunctionCallOutputs(body: Record<string, unknown>): v
     console.debug(
       `[Codex] repairMissingCodexFunctionCallOutputs: inserted ${insertedCount} empty function_call_output item(s)`
     );
-  }
-}
-
-// Responses-API hosted tool types that OpenAI/Codex executes server-side.
-// These arrive shaped as `{ type, ...params }` with no `function` object and no `name` —
-// e.g. Codex CLI injects `{ type: "image_generation", output_format: "png" }` or
-// `{ type: "namespace", name: "mcp__atlassian__", tools: [...] }` for MCP tool groups.
-// Keep them through `normalizeCodexTools` so upstream can execute them.
-const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
-  "tool_search",
-  "image_generation",
-  "web_search",
-  "web_search_preview",
-  "file_search",
-  "computer",
-  "computer_use_preview",
-  "code_interpreter",
-  "mcp",
-]);
-
-// #2980: a free-plan Codex account (workspacePlanType === "free", from the OAuth
-// id_token) cannot run the server-side `image_generation` hosted tool. The Codex
-// CLI injects it into every Responses request regardless of plan, so it must be
-// dropped for free-plan accounts (mirrors CLIProxyAPI's isCodexFreePlanAuth).
-export function isCodexFreePlan(providerSpecificData: unknown): boolean {
-  if (!providerSpecificData || typeof providerSpecificData !== "object") return false;
-  const plan = (providerSpecificData as { workspacePlanType?: unknown }).workspacePlanType;
-  return typeof plan === "string" && plan.trim().toLowerCase() === "free";
-}
-
-export function normalizeCodexTools(
-  body: Record<string, unknown>,
-  options?: { dropImageGeneration?: boolean; preserveCustomTools?: boolean }
-): void {
-  if (!Array.isArray(body.tools)) return;
-
-  const validToolNames = new Set<string>();
-  body.tools = body.tools.filter((toolValue) => {
-    if (!toolValue || typeof toolValue !== "object" || Array.isArray(toolValue)) {
-      return false;
-    }
-
-    const tool = toolValue as Record<string, unknown>;
-    const toolType = typeof tool.type === "string" ? tool.type : "";
-
-    // Preserve namespace tools (MCP tool groups used by Codex/OpenAI Responses API).
-    // Codex API supports them natively; register sub-tool names for tool_choice validation.
-    if (toolType === "namespace") {
-      if (Array.isArray(tool.tools)) {
-        for (const st of tool.tools as unknown[]) {
-          if (st && typeof st === "object" && !Array.isArray(st)) {
-            const subTool = st as Record<string, unknown>;
-            const name = typeof subTool.name === "string" ? subTool.name.trim().slice(0, 128) : "";
-            if (name) validToolNames.add(name);
-          }
-        }
-      }
-      return true;
-    }
-
-    // Native Codex clients send Responses API custom tools such as apply_patch as:
-    // { type: "custom", name, format }. Preserve those only on native passthrough;
-    // translated/non-native requests can still contain provider-specific "custom"
-    // shapes that the Codex backend would reject.
-    if (toolType === "custom" && options?.preserveCustomTools === true) {
-      const name = typeof tool.name === "string" ? tool.name.trim().slice(0, 128) : "";
-      if (!name) return false;
-      tool.name = name;
-      validToolNames.add(name);
-      return true;
-    }
-
-    if (toolType !== "function") {
-      const hasFunctionObject = tool.function && typeof tool.function === "object";
-      const hasName = typeof tool.name === "string";
-      if (!toolType || hasFunctionObject || hasName) {
-        return false;
-      }
-      if (CODEX_HOSTED_TOOL_TYPES.has(toolType)) {
-        // #2980: drop the CLI-injected image_generation tool for free-plan
-        // accounts, which can't run it server-side (upstream 400 otherwise).
-        if (toolType === "image_generation" && options?.dropImageGeneration === true) {
-          return false;
-        }
-        return true;
-      }
-      console.debug(`[Codex] dropping unknown hosted tool type: ${toolType}`);
-      return false;
-    }
-
-    const rawName =
-      typeof tool.name === "string"
-        ? tool.name
-        : tool.function &&
-            typeof tool.function === "object" &&
-            !Array.isArray(tool.function) &&
-            typeof (tool.function as Record<string, unknown>).name === "string"
-          ? ((tool.function as Record<string, unknown>).name as string)
-          : "";
-    const name = rawName.trim();
-    if (!name) {
-      return false;
-    }
-
-    // Codex Responses API requires function tools in flat Responses format:
-    // { type: "function", name, description, parameters }
-    // Some clients/translators send Chat Completions shape:
-    // { type: "function", function: { name, description, parameters } }
-    // which upstream rejects with "Missing required parameter: tools[0].name".
-    // Flatten the nested `function` wrapper into top-level fields (#1914).
-    const functionObject =
-      tool.function && typeof tool.function === "object" && !Array.isArray(tool.function)
-        ? (tool.function as Record<string, unknown>)
-        : null;
-    const description =
-      typeof tool.description === "string"
-        ? tool.description
-        : typeof functionObject?.description === "string"
-          ? functionObject.description
-          : "";
-    const parameters =
-      tool.parameters && typeof tool.parameters === "object" && !Array.isArray(tool.parameters)
-        ? tool.parameters
-        : functionObject?.parameters &&
-            typeof functionObject.parameters === "object" &&
-            !Array.isArray(functionObject.parameters)
-          ? functionObject.parameters
-          : { type: "object", properties: {} };
-    const strict =
-      typeof tool.strict === "boolean"
-        ? tool.strict
-        : typeof functionObject?.strict === "boolean"
-          ? functionObject.strict
-          : undefined;
-
-    // Rewrite in-place to Responses format
-    for (const key of Object.keys(tool)) {
-      delete tool[key];
-    }
-    tool.type = "function";
-    tool.name = name.slice(0, 128);
-    if (description) tool.description = description;
-    tool.parameters = parameters;
-    if (strict !== undefined) tool.strict = strict;
-
-    validToolNames.add(name);
-    return true;
-  });
-
-  if (
-    body.tool_choice &&
-    typeof body.tool_choice === "object" &&
-    !Array.isArray(body.tool_choice)
-  ) {
-    const toolChoice = body.tool_choice as Record<string, unknown>;
-    if (toolChoice.type === "function") {
-      const rawName = typeof toolChoice.name === "string" ? toolChoice.name.trim() : "";
-      if (!rawName || !validToolNames.has(rawName)) {
-        delete body.tool_choice;
-      }
-    } else if (toolChoice.type === "local_shell") {
-      delete body.tool_choice;
-    }
   }
 }
 
@@ -1159,9 +894,7 @@ export class CodexExecutor extends BaseExecutor {
       headers["chatgpt-account-id"] = workspaceId;
     }
     const clientIdentity = credentials?.providerSpecificData?.codexClientIdentity as
-      | CodexClientIdentity
-      | null
-      | undefined;
+      CodexClientIdentity | null | undefined;
 
     // Originator header — identifies the client type to the Codex backend.
     // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
@@ -1481,9 +1214,7 @@ export class CodexExecutor extends BaseExecutor {
       applyCodexClientMetadata(
         body,
         credentials?.providerSpecificData?.codexClientIdentity as
-          | CodexClientIdentity
-          | null
-          | undefined
+          CodexClientIdentity | null | undefined
       );
     }
 

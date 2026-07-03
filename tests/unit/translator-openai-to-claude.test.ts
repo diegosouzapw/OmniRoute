@@ -114,6 +114,11 @@ test("OpenAI -> Claude converts multimodal content, tool declarations, tool call
   const result = openaiToClaudeRequest(
     "claude-4-sonnet",
     {
+      // #5945: the redacted_thinking precursor is only emitted when the outbound
+      // request actually has extended thinking enabled (Anthropic's schema
+      // requirement). Set it explicitly so this test keeps exercising that
+      // legitimate #5312 case alongside the multimodal/tool assertions below.
+      thinking: { type: "enabled", budget_tokens: 4096 },
       messages: [
         {
           role: "user",

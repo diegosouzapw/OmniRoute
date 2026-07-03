@@ -1,7 +1,7 @@
 ---
 title: "Extending the Compression Pipeline"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.44
+lastUpdated: 2026-07-02
 ---
 
 # Extending the Compression Pipeline
@@ -509,6 +509,62 @@ To drive it from config, set `mode: "stacked"` and provide the step array under
   }
 }
 ```
+
+---
+
+## Upstream Sync Policy
+
+OmniRoute's compression engines credit several upstream projects in the README
+("inspired by RTK, Caveman, LLMLingua-2, Troglodita"). A common contributor
+question is: **when upstream RTK adds a new tool filter or Caveman adds a rule
+pack, how does that reach OmniRoute?** This section is the authoritative answer.
+
+### Vendored copies vs. independent implementations
+
+| Engine                       | Relationship to upstream                                                                                                        | Location                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **RTK**                      | **Independent reimplementation** (inspired-by, not a copy)                                                                      | `open-sse/services/compression/engines/rtk/`                        |
+| **Caveman**                  | **Independent reimplementation** (inspired-by)                                                                                  | `open-sse/services/compression/engines/cavemanAdapter.ts`           |
+| **Headroom**                 | Mostly internal; only the `gcf/` codec is **genuinely vendored** from `gcf-typescript` (MIT, SPDX-marked, generic profile only) | `open-sse/services/compression/engines/headroom/gcf/`               |
+| **LLMLingua-2 / Troglodita** | Inspired-by (drive the `llmlingua` + `session-dedup` engines)                                                                   | `open-sse/services/compression/engines/llmlingua/`, `session-dedup` |
+
+Key point: **RTK and Caveman are clean-room TypeScript implementations of the
+_ideas_ (filter rules, rule packs), not vendored source trees.** There is no
+upstream copy to `git pull` from — which is exactly why the README says
+"inspired by" rather than "bundled".
+
+### How upstream improvements are merged
+
+There is **no automated upstream-release tracking and no `compression-sync`
+label** — by design. Because the engines are reimplementations, an upstream RTK
+filter or Caveman rule pack is not merged as code; it is **re-expressed as a new
+rule/filter in OmniRoute's own format** (see
+[COMPRESSION_RULES_FORMAT.md](./COMPRESSION_RULES_FORMAT.md)) and lands ad-hoc via
+a normal PR. The extension points above (custom engine, language pack, RTK filter)
+are the sanctioned way to contribute one.
+
+Recent examples of exactly this flow:
+
+- RTK filters for Gradle & `dotnet` build output (v3.8.42)
+- RTK filters for kubectl / docker-build / composer / gh (#2824)
+- Caveman Indonesian language pack (#3975), plus German / French / Japanese / Chinese packs
+
+### Headroom (input-compression proxy)
+
+Headroom is **fully internal** — a pinned vendored `gcf` codec snapshot plus
+OmniRoute's own `smartcrusher` / `toon` / `tabular` layers. There is no live
+upstream to track beyond the vendored copy; updates to `gcf` are refreshed
+manually when the codec changes and re-validated against the compression budget
+gate (`check:compression-budget`).
+
+### Proposing an upstream-inspired improvement
+
+1. **Don't vendor** — re-express the upstream rule/filter in OmniRoute's format.
+2. Add it via the matching extension point below (language pack, RTK filter, or
+   custom engine).
+3. Reference the upstream project in the PR description (attribution), not by
+   copying its license-bearing source.
+4. Include tests and confirm the `check:compression-budget` gate still passes.
 
 ---
 
