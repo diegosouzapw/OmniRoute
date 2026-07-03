@@ -114,6 +114,101 @@ test("GitlabExecutor synthesizes SSE responses from non-streaming upstream compl
   }
 });
 
+test("GitlabExecutor parses tool calls from buffered completions", async () => {
+  const executor = new GitlabExecutor();
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    jsonResponse({
+      model: { name: "code-gecko" },
+      choices: [
+        {
+          text: '<tool>{"name":"run_tests","arguments":{"path":"src/app.py"}}</tool>',
+          finish_reason: "stop",
+        },
+      ],
+    });
+
+  try {
+    const result = await executor.execute({
+      model: "gitlab-duo-code-suggestions",
+      body: {
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "run_tests",
+              description: "Run the test suite",
+              parameters: {
+                type: "object",
+                properties: {
+                  path: { type: "string" },
+                },
+              },
+            },
+          },
+        ],
+        messages: [{ role: "user", content: "Run the tests" }],
+      },
+      stream: false,
+      credentials: { apiKey: "glpat-test" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+
+    const body = (await result.response.json()) as any;
+    assert.equal(body.choices[0].message.role, "assistant");
+    assert.equal(body.choices[0].message.content, null);
+    assert.equal(body.choices[0].finish_reason, "tool_calls");
+    assert.equal(body.choices[0].message.tool_calls[0].function.name, "run_tests");
+    assert.match(body.choices[0].message.tool_calls[0].function.arguments, /"path":"src\/app\.py"/);
+    assert.match(
+      String(result.transformedBody.current_file.content_above_cursor),
+      /You can call tools\./
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GitlabExecutor streams tool calls as terminal SSE chunks", async () => {
+  const executor = new GitlabExecutor();
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    jsonResponse({
+      model: { name: "code-gecko" },
+      choices: [
+        {
+          text: '<tool>{"name":"run_tests","arguments":{"path":"src/app.py"}}</tool>',
+          finish_reason: "stop",
+        },
+      ],
+    });
+
+  try {
+    const result = await executor.execute({
+      model: "gitlab-duo-code-suggestions",
+      body: {
+        tools: [{ type: "function", function: { name: "run_tests" } }],
+        messages: [{ role: "user", content: "Run the tests" }],
+      },
+      stream: true,
+      credentials: { apiKey: "glpat-test" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+
+    assert.equal(result.response.headers.get("Content-Type"), "text/event-stream");
+    const text = await result.response.text();
+    assert.match(text, /"tool_calls"/);
+    assert.match(text, /"finish_reason":"tool_calls"/);
+    assert.match(text, /"name":"run_tests"/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("GitlabExecutor maps upstream auth failures to OpenAI-style errors", async () => {
   const executor = new GitlabExecutor();
   const originalFetch = globalThis.fetch;

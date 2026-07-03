@@ -10,6 +10,7 @@ import {
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import {
   buildGitLabDirectGatewayUrl,
   buildGitLabOAuthEndpoints,
@@ -19,6 +20,7 @@ import {
   resolveGitLabOAuthBaseUrl,
   type GitLabDirectAccessDetails,
 } from "@/lib/oauth/gitlab";
+import { prepareToolMessages } from "../translator/webTools.ts";
 
 type OpenAIMessage = {
   role?: string;
@@ -335,7 +337,12 @@ export class GitlabExecutor extends BaseExecutor {
     _stream: boolean,
     credentials: ExecuteInput["credentials"]
   ): Record<string, unknown> {
-    const prompt = buildPrompt(body.messages as OpenAIMessage[] | undefined);
+    const messages = body.messages as OpenAIMessage[] | undefined;
+    const { effectiveMessages } = prepareToolMessages(
+      body,
+      messages as Array<{ role: string; content: unknown }>
+    );
+    const prompt = buildPrompt(effectiveMessages);
     const providerData =
       credentials?.providerSpecificData && typeof credentials.providerSpecificData === "object"
         ? credentials.providerSpecificData
@@ -572,9 +579,13 @@ export class GitlabExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    const prompt = buildPrompt(
-      (input.body as Record<string, unknown>)?.messages as OpenAIMessage[]
+    const bodyObj = (input.body as Record<string, unknown>) || {};
+    const messages = bodyObj.messages as OpenAIMessage[] | undefined;
+    const { hasTools, requestedTools } = prepareToolMessages(
+      bodyObj,
+      messages as Array<{ role: string; content: unknown }>
     );
+    const prompt = buildPrompt(messages);
     if (!prompt) {
       return {
         response: toOpenAIError(400, "GitLab Duo requires at least one user message"),
@@ -684,6 +695,27 @@ export class GitlabExecutor extends BaseExecutor {
     const resolvedModel = resolveResponseModel(payload, input.model);
     const responseId = `chatcmpl-gitlab-${randomUUID()}`;
     const created = Math.floor(Date.now() / 1000);
+
+    if (hasTools) {
+      const toolAwareResponse = await buildToolModeResponse(
+        buildJsonCompletion(content, resolvedModel, responseId, created),
+        requestedTools,
+        input.stream,
+        {
+          cid: responseId,
+          created,
+          model: resolvedModel,
+          idSeed: "gitlab",
+        }
+      );
+      return {
+        response: toolAwareResponse,
+        url: activeTarget.url,
+        headers: requestHeaders,
+        transformedBody,
+      };
+    }
+
     const response = input.stream
       ? buildStreamingResponse(content, resolvedModel, responseId, created)
       : buildJsonCompletion(content, resolvedModel, responseId, created);
