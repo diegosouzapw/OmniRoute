@@ -17,7 +17,10 @@ import {
   getQuotaWindowStatus,
   isAccountQuotaExhausted,
 } from "@/domain/quotaCache";
-import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import {
+  getAntigravityQuotaFamily,
+  getQuotaScopeLabelForProvider,
+} from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -131,6 +134,53 @@ const NON_RETRYABLE_MODEL_LOCKOUT_REASONS = new Set(["not_found", "not_found_loc
 // this base. Real upstream Retry-After hints still win — they flow through
 // `exactCooldownMs` (usedUpstreamRetryHint), not this base. (#5222)
 const ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS = 30_000;
+
+const ANTIGRAVITY_QUOTA_EXHAUSTED_ERROR =
+  "Antigravity quota exhausted until cached quota reset";
+
+function antigravityQuotaResetCooldownMs(
+  connectionId: string,
+  model: string | null
+): number | null {
+  const entry = getQuotaCache(connectionId);
+  if (!entry || entry.provider !== "antigravity") return null;
+
+  const now = Date.now();
+  const modelFamily = getAntigravityQuotaFamily(model);
+  const normalizedModel = String(model || "")
+    .toLowerCase()
+    .replace(/^antigravity\//, "");
+
+  let earliestFutureResetMs = Infinity;
+
+  for (const [quotaKey, quota] of Object.entries(entry.quotas || {})) {
+    if (!quota || quota.remainingPercentage > 0 || !quota.resetAt) continue;
+
+    const resetMs = new Date(quota.resetAt).getTime();
+    if (!Number.isFinite(resetMs) || resetMs <= now) continue;
+
+    const quotaFamily = getAntigravityQuotaFamily(quotaKey);
+    const normalizedQuotaKey = quotaKey.toLowerCase().replace(/^antigravity\//, "");
+    const matchesRequestedModel =
+      !model ||
+      (modelFamily !== "other" && quotaFamily === modelFamily) ||
+      normalizedQuotaKey === normalizedModel ||
+      normalizedQuotaKey.includes(normalizedModel) ||
+      normalizedModel.includes(normalizedQuotaKey);
+
+    if (matchesRequestedModel) earliestFutureResetMs = Math.min(earliestFutureResetMs, resetMs);
+  }
+
+  if (!Number.isFinite(earliestFutureResetMs)) {
+    const resetMs = entry.exhausted && entry.nextResetAt
+      ? new Date(entry.nextResetAt).getTime()
+      : NaN;
+    if (Number.isFinite(resetMs) && resetMs > now) earliestFutureResetMs = resetMs;
+  }
+
+  if (!Number.isFinite(earliestFutureResetMs)) return null;
+  return Math.max(earliestFutureResetMs - now, 1);
+}
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -1984,6 +2034,40 @@ export async function markAccountUnavailable(
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
     const modelLockoutOptions = { maxCooldownMs: effectiveProviderProfile?.maxCooldownMs };
+
+    // Antigravity exposes real quota windows through the quota cache. When a 429
+    // arrives while the requested model/family is cached as exhausted with a
+    // future reset, persist a connection-level cooldown until that reset. This
+    // intentionally lives in the failure path (not the cache writer): a stale
+    // dashboard snapshot alone must not punish an account, but a matching 429
+    // confirms the account is unusable for selection until the quota window
+    // rolls over. This also survives process restarts, unlike model-only locks.
+    const antigravityQuotaCooldownMs =
+      provider === "antigravity" && status === 429
+        ? antigravityQuotaResetCooldownMs(connectionId, model)
+        : null;
+    if (antigravityQuotaCooldownMs && antigravityQuotaCooldownMs > 0) {
+      const resetAt = getUnavailableUntil(antigravityQuotaCooldownMs);
+      const errorMsg =
+        typeof errorText === "string"
+          ? errorText.slice(0, 100)
+          : ANTIGRAVITY_QUOTA_EXHAUSTED_ERROR;
+      await updateProviderConnection(connectionId, {
+        lastError: errorMsg,
+        lastErrorType: "quota_exhausted",
+        errorCode: status,
+        lastErrorAt: new Date().toISOString(),
+        backoffLevel: fallbackResult.newBackoffLevel ?? backoffLevel,
+        rateLimitedUntil: resetAt,
+        testStatus: "unavailable",
+      });
+      log.info(
+        "AUTH",
+        `Antigravity quota cache confirmed exhaustion for ${connectionId.slice(0, 8)} until ${resetAt}; persisted connection cooldown`
+      );
+      return { shouldFallback: true, cooldownMs: antigravityQuotaCooldownMs };
+    }
+
     if (
       isPerModelQuotaProvider &&
       provider &&
@@ -2155,7 +2239,7 @@ export async function markAccountUnavailable(
         lastError: errorMsg,
         errorCode: status,
         lastErrorAt: new Date().toISOString(),
-        backoffLevel: newBackoffLevel ?? backoffLevel,
+        backoffLevel: fallbackResult.newBackoffLevel ?? backoffLevel,
         providerSpecificData: {
           ...conn.providerSpecificData,
           codexScopeRateLimitedUntil: {
@@ -2181,7 +2265,7 @@ export async function markAccountUnavailable(
       lastErrorType: providerErrorType,
       errorCode: status,
       lastErrorAt: new Date().toISOString(),
-      backoffLevel: newBackoffLevel ?? backoffLevel,
+      backoffLevel: fallbackResult.newBackoffLevel ?? backoffLevel,
     };
     const persistUnavailableState = options.persistUnavailableState !== false;
 
