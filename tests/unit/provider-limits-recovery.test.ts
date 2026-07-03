@@ -183,7 +183,14 @@ test("error-only quota response does not clear transient state", async () => {
         headers: { "content-type": "application/json" },
       })) as typeof fetch,
     async () => {
-      await providerLimits.fetchAndPersistProviderLimits(connectionId, "manual");
+      // The live GLM usage path throws on a 429 (it does not return an error
+      // envelope), so the fetch rejects. The transient-state assertions below then
+      // confirm the throw happened BEFORE maybeClearRecoveredQuotaState — i.e. an
+      // errored refresh never clears the connection's cooldown.
+      await assert.rejects(
+        () => providerLimits.fetchAndPersistProviderLimits(connectionId, "manual"),
+        /429/
+      );
     }
   );
 
