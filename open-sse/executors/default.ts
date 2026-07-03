@@ -24,17 +24,23 @@ import {
   isClaudeCodeCompatible,
 } from "../services/provider.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
-import { buildDataRobotChatUrl } from "../config/datarobot.ts";
-import { buildAzureAiChatUrl } from "../config/azureAi.ts";
-import { buildWatsonxChatUrl } from "../config/watsonx.ts";
-import { buildOciChatUrl } from "../config/oci.ts";
-import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
+import { getSapResourceGroup } from "../config/sap.ts";
+import {
+  normalizeBailianMessagesUrl,
+  normalizeDataRobotChatUrl,
+  normalizeAzureAiChatUrl,
+  normalizeWatsonxChatUrl,
+  normalizeOciChatUrl,
+  normalizeSapChatUrl,
+  normalizeXiaomiMimoChatUrl,
+  normalizeOpenAIChatUrl,
+  getOpenRouterConnectionPreset,
+} from "./default/urlNormalizers.ts";
 import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import { buildClineHeaders } from "@/shared/utils/clineAuth";
-import { normalizeBaseUrl } from "../utils/urlSanitize.ts";
 import {
   normalizeHerokuChatUrl,
   normalizeDatabricksChatUrl,
@@ -85,62 +91,6 @@ function applyCustomHeaders(headers: Record<string, string>, rawCustomHeaders: u
     }
     headers[k] = v;
   }
-}
-
-function normalizeBailianMessagesUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl).replace(/\?beta=true$/, "");
-  const messagesUrl = normalized.endsWith("/messages") ? normalized : `${normalized}/messages`;
-  return messagesUrl;
-}
-
-function normalizeDataRobotChatUrl(baseUrl) {
-  return buildDataRobotChatUrl(baseUrl);
-}
-
-function normalizeAzureAiChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
-  return buildAzureAiChatUrl(baseUrl, apiType);
-}
-
-function normalizeWatsonxChatUrl(baseUrl: string) {
-  return buildWatsonxChatUrl(baseUrl);
-}
-
-function normalizeOciChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
-  return buildOciChatUrl(baseUrl, apiType);
-}
-
-function normalizeSapChatUrl(baseUrl) {
-  return buildSapChatUrl(baseUrl);
-}
-
-function normalizeXiaomiMimoChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl).replace(/\/chat\/completions$/, "");
-  return `${normalized}/chat/completions`;
-}
-
-function normalizeOpenAIChatUrl(baseUrl) {
-  const normalized = normalizeBaseUrl(baseUrl);
-  if (
-    normalized.endsWith("/chat/completions") ||
-    normalized.endsWith("/responses") ||
-    normalized.endsWith("/chat")
-  ) {
-    return normalized;
-  }
-  if (normalized.endsWith("/v1")) {
-    return `${normalized}/chat/completions`;
-  }
-  // Assume OpenAI-compatible /v1/chat/completions path structure
-  // when the base URL is a bare hostname or custom path (e.g. llama.cpp, vLLM, LM Studio).
-  return `${normalized}/v1/chat/completions`;
-}
-
-function getOpenRouterConnectionPreset(
-  providerSpecificData?: Record<string, unknown> | null
-): string | null {
-  const preset =
-    typeof providerSpecificData?.preset === "string" ? providerSpecificData.preset.trim() : "";
-  return preset || null;
 }
 
 export class DefaultExecutor extends BaseExecutor {
