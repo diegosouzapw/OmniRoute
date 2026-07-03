@@ -43,6 +43,22 @@
 
 ---
 
+## [3.8.44] — TBD
+
+### ✨ New Features
+
+- **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
+
+### 🔧 Bug Fixes
+
+_TBD_
+
+### 📝 Maintenance
+
+_TBD_
+
+---
+
 ## [3.8.43] — 2026-07-02
 
 ### ✨ New Features

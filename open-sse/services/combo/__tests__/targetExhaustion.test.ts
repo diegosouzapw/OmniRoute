@@ -22,10 +22,18 @@ function makeTarget(overrides: Partial<ResolvedComboTarget> = {}): ResolvedCombo
 function makeLogger(): ComboLogger {
   const msgs: string[] = [];
   return {
-    info: (...args: unknown[]) => { msgs.push(args.join(" ")); },
-    warn: (...args: unknown[]) => { msgs.push(args.join(" ")); },
-    error: (...args: unknown[]) => { msgs.push(args.join(" ")); },
-    debug: (...args: unknown[]) => { msgs.push(args.join(" ")); },
+    info: (...args: unknown[]) => {
+      msgs.push(args.join(" "));
+    },
+    warn: (...args: unknown[]) => {
+      msgs.push(args.join(" "));
+    },
+    error: (...args: unknown[]) => {
+      msgs.push(args.join(" "));
+    },
+    debug: (...args: unknown[]) => {
+      msgs.push(args.join(" "));
+    },
     _msgs: msgs,
   } as ComboLogger & { _msgs: string[] };
 }
@@ -286,6 +294,31 @@ describe("applyComboTargetExhaustion", () => {
     expect(sets.exhaustedConnections.size).toBe(0);
     expect(sets.exhaustedProviders.size).toBe(0);
     expect(sets.transientRateLimitedProviders.size).toBe(0);
+  });
+
+  it("does NOT mark connection exhausted for per-model-quota provider on 500 (gemini model-level error)", () => {
+    const sets = makeSets();
+    const log = makeLogger();
+    // gemini has per-model quotas: a 500 "Internal error encountered" is model-level,
+    // not connection-level. The connection must NOT be exhausted so the sibling model
+    // (e.g. gemma-4-26b-a4b-it) can still be tried.
+    const target = makeTarget({ provider: "gemini", connectionId: "gemini-conn-1" });
+    const exhausted = applyComboTargetExhaustion(target, {
+      result: { status: 500 },
+      fallbackResult: {} as any,
+      errorText: "Internal error encountered.",
+      rawModel: "gemma-4-31b-it",
+      isTokenLimitBreach: false,
+      allAccountsRateLimited: false,
+      sets,
+      log,
+      tag: "COMBO",
+      exhaustedLogLevel: "info",
+    });
+    expect(exhausted).toBe(false);
+    expect(sets.exhaustedProviders.has("gemini")).toBe(false);
+    expect(sets.exhaustedConnections.has("gemini:gemini-conn-1")).toBe(false);
+    expect(sets.transientRateLimitedProviders.has("gemini")).toBe(false);
   });
 
   it("does NOT mark anything for 200 (success)", () => {

@@ -1,6 +1,7 @@
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
+import { filterClinepassModels } from "@omniroute/open-sse/services/clinepassModels.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 
 export type ProviderModelsConfigEntry = {
@@ -245,6 +246,16 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
+  },
+  // ClinePass (BYOK apikey gateway) — same host as OAuth `cline`, but only the
+  // `cline-pass/*` namespace is surfaced (filterClinepassModels).
+  clinepass: {
+    url: "https://api.cline.bot/api/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => filterClinepassModels(Array.isArray(data) ? data : data?.data),
   },
   cohere: {
     url: "https://api.cohere.com/v2/models",

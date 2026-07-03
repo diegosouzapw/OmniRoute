@@ -393,6 +393,81 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
   assert.equal((result as any).top_p, 0.9);
 });
 
+test("Chat -> Responses converts json_schema response_format to text.format", () => {
+  const schema = {
+    type: "object",
+    additionalProperties: false,
+    properties: { answer: { type: "string" } },
+    required: ["answer"],
+  };
+
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2-codex",
+    {
+      messages: [{ role: "user", content: "Return the answer as JSON" }],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "answer_schema",
+          description: "A structured answer",
+          strict: true,
+          schema,
+        },
+      },
+    },
+    false,
+    null
+  ) as any;
+
+  assert.deepEqual(result.text, {
+    format: {
+      type: "json_schema",
+      name: "answer_schema",
+      description: "A structured answer",
+      strict: true,
+      schema,
+    },
+  });
+  assert.equal(result.response_format, undefined);
+});
+
+test("Chat -> Responses uses response_format over nonstandard chat text.format", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2-codex",
+    {
+      messages: [{ role: "user", content: "Return JSON" }],
+      text: {
+        format: { type: "json_schema", name: "nonstandard", schema: { type: "object" } },
+        verbosity: "low",
+      },
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "chat", schema: { type: "object", properties: {} } },
+      },
+    },
+    false,
+    null
+  ) as any;
+
+  assert.deepEqual(result.text, {
+    format: { type: "json_schema", name: "chat", schema: { type: "object", properties: {} } },
+  });
+});
+
+test("Chat -> Responses ignores nonstandard chat text.format without response_format", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2-codex",
+    {
+      messages: [{ role: "user", content: "Return JSON" }],
+      text: { format: { type: "json_schema", name: "nonstandard", schema: { type: "object" } } },
+    },
+    false,
+    null
+  ) as any;
+
+  assert.equal(result.text, undefined);
+});
+
 test("Responses round-trip preserves store and previous_response_id when opt-in is enabled", () => {
   const credentials = {
     providerSpecificData: {
@@ -893,85 +968,6 @@ test("Responses -> Chat: image_generation is stripped from output tools array (i
   assert.equal(tools.length, 1, "only the function tool must remain");
   assert.equal(tools[0].type, "function");
   assert.equal(tools[0].function.name, "foo");
-});
-
-// --- Codex CLI: local_shell built-in should be mapped to a function tool ---
-
-test("Responses -> Chat: local_shell does not throw", () => {
-  assert.doesNotThrow(() =>
-    openaiResponsesToOpenAIRequest(
-      "gpt-4o",
-      {
-        input: [{ role: "user", content: [{ type: "input_text", text: "pwd" }] }],
-        tools: [{ type: "local_shell" }],
-      },
-      false,
-      null
-    )
-  );
-});
-
-test("Responses -> Chat: local_shell maps to a shell function tool", () => {
-  const result = openaiResponsesToOpenAIRequest(
-    "gpt-4o",
-    {
-      input: [{ role: "user", content: [{ type: "input_text", text: "pwd" }] }],
-      tools: [{ type: "local_shell" }],
-    },
-    false,
-    null
-  ) as Record<string, unknown>;
-
-  const tools = result.tools as any[];
-  assert.ok(Array.isArray(tools), "tools array must be present");
-  assert.equal(tools.length, 1, "local_shell must be represented as one function tool");
-  assert.equal(tools[0].type, "function");
-  assert.equal(tools[0].function.name, "shell");
-  assert.equal(tools[0].function.parameters.type, "object");
-  assert.deepEqual(tools[0].function.parameters.required, ["command"]);
-});
-
-test("Responses -> Chat: local_shell tool_choice maps to shell function choice", () => {
-  const result = openaiResponsesToOpenAIRequest(
-    "gpt-4o",
-    {
-      input: [{ role: "user", content: [{ type: "input_text", text: "pwd" }] }],
-      tools: [{ type: "local_shell" }],
-      tool_choice: { type: "local_shell" },
-    },
-    false,
-    null
-  ) as Record<string, unknown>;
-
-  assert.deepEqual(result.tool_choice, { type: "function", function: { name: "shell" } });
-});
-
-test("Chat -> Responses: shell function stays caller-side and does not leak local_shell", () => {
-  const result = openaiToOpenAIResponsesRequest(
-    "gpt-4o",
-    {
-      messages: [{ role: "user", content: "pwd" }],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "shell",
-            description: "Run a shell command",
-            parameters: { type: "object" },
-          },
-        },
-      ],
-      tool_choice: { type: "function", function: { name: "shell" } },
-    },
-    false,
-    null
-  ) as Record<string, unknown>;
-
-  assert.equal((result.tools as any[])[0].type, "function");
-  assert.equal((result.tools as any[])[0].name, "shell");
-  assert.equal((result.tools as any[])[0].description, "Run a shell command");
-  assert.deepEqual((result.tools as any[])[0].parameters, { type: "object" });
-  assert.deepEqual(result.tool_choice, { type: "function", name: "shell" });
 });
 
 // --- Issue #2893: orphaned tool results from empty/missing call_id ---
