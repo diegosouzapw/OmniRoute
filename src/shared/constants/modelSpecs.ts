@@ -215,6 +215,22 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-4-6", "claude-sonnet-4.6"),
   },
 
+  // ── Claude Sonnet 5 ─────────────────────────────────────────────
+  "claude-sonnet-5": {
+    // 1M context, 128K max output. Adaptive-thinking-only (manual
+    // budget_tokens / thinking.type:"enabled" return 400; effort-steered);
+    // unlike Fable 5 it still accepts thinking.type:"disabled".
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-5"),
+  },
+
   // ── Claude Opus 4.6 ─────────────────────────────────────────────
   "claude-opus-4-6": {
     maxOutputTokens: 128000,

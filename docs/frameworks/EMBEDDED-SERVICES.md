@@ -1,13 +1,13 @@
 ---
 title: "Embedded Services"
-description: "Reference for 9Router and CLIProxyAPI"
+description: "Reference for 9Router, CLIProxyAPI, Mux, and Bifrost"
 ---
 
 # Embedded Services
 
-> **Version:** v3.8.4
-> **Last updated:** 2026-06-28
-> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI).
+> **Version:** v3.8.44
+> **Last updated:** 2026-07-03
+> **Audience:** Engineers adding, maintaining, or debugging embedded services (9Router, CLIProxyAPI, Mux, Bifrost).
 
 Embedded services are locally-installed process sidecar tools that OmniRoute installs, supervises, and
 exposes as first-class routing targets. Unlike external providers (which are reached over the internet
@@ -32,18 +32,20 @@ via API keys), embedded services run on the same machine as OmniRoute and commun
 
 ### Why embedded services?
 
-Two services are embedded as of v3.8.4:
+Four services are embedded as of v3.8.44:
 
-| Service         | npm package                                    | Default port | Purpose                                                                                              |
-| --------------- | ---------------------------------------------- | :----------: | ---------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                                      |    20130     | AI router that OmniRoute can use as a sub-provider. Models exposed as `9router/{sub}/{model}`        |
-| **CLIProxyAPI** | `@anthropic/cli-proxy` (via `cliproxy` binary) |     auto     | Local proxy adapter for Anthropic CLI auth flows. Provides fallback routing when OAuth tokens expire |
+| Service         | npm package                                    | Default port | Purpose                                                                                                          |
+| --------------- | ----------------------------------------------- | :----------: | ------------------------------------------------------------------------------------------------------------------ |
+| **9Router**     | `9router`                                      |    20130     | AI router that OmniRoute can use as a sub-provider. Models exposed as `9router/{sub}/{model}`                     |
+| **CLIProxyAPI** | `@anthropic/cli-proxy` (via `cliproxy` binary) |     auto     | Local proxy adapter for Anthropic CLI auth flows. Provides fallback routing when OAuth tokens expire              |
+| **Mux**         | `mux` (headless `mux server`)                  |     8322     | Local agent-orchestration daemon (coder/mux). Lifecycle-managed only — not a routing target (no LLM proxying).   |
+| **Bifrost**     | `@maximhq/bifrost`                             |    8080      | Go AI-gateway relay backend. When running, auto-selected by the relay route (`/v1/relay/`)                       |
 
-Both follow the same supervisory model:
+All four follow the same supervisory model:
 
 - OmniRoute installs them under `DATA_DIR/services/{name}/` (isolated from OmniRoute's own `package.json`)
 - OmniRoute spawns and monitors them as child processes
-- OmniRoute injects an ephemeral API key into the child's environment and rotates it without downtime
+- OmniRoute injects an ephemeral API key into the child's environment and rotates it without downtime (where applicable)
 - All management routes (`/api/services/*`) are **LOCAL_ONLY** — accessible only from loopback (hard rule #17)
 
 ### Key decisions (from design plan)
@@ -54,7 +56,7 @@ Both follow the same supervisory model:
 | Installation mechanism                | `npm install {package}` via `execFile` (no shell interpolation)          |
 | Consumption mode                      | Provider registered as `9router/{sub}/{model}` in routing engine         |
 | API key management                    | OmniRoute generates, encrypts at-rest (AES-256-GCM), and injects via env |
-| Dashboard location                    | `/dashboard/providers/services` (two tabs)                               |
+| Dashboard location                    | `/dashboard/providers/services` (three tabs)                             |
 | Auto-start                            | Toggle per service, default OFF                                          |
 
 ---
@@ -64,12 +66,13 @@ Both follow the same supervisory model:
 ```
 ┌────────────────────────────────────────────────────────────────────┐
 │  Layer 1 — UI                                                      │
-│  /dashboard/providers/services  (tabs: CLIProxyAPI | 9Router)      │
+│  /dashboard/providers/services  (tabs: CLIProxyAPI | 9Router | Mux)│
 │  Logs live (SSE), Start/Stop/Restart/Update, Settings, Install     │
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
 │    ├── page.tsx               Shell + tab routing by ?tab=         │
-│    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab│
+│    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab,│
+│    │                          MuxServiceTab                        │
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
 │                               ServiceLogsPanel, ApiKeyCard, ...    │
 └──────────────────────┬─────────────────────────────────────────────┘
@@ -81,6 +84,8 @@ Both follow the same supervisory model:
 │                          rotate-key|status|auto-start|logs}        │
 │  /api/services/cliproxy/{install|start|stop|restart|update|        │
 │                           status|auto-start|logs}                  │
+│  /api/services/mux/{install|start|stop|restart|update|             │
+│                      status|auto-start|logs}                       │
 │  /dashboard/providers/services/9router/embed/[...path]             │
 │    (reverse HTTP + WebSocket proxy → 9Router upstream)             │
 │                                                                    │
@@ -106,7 +111,8 @@ Both follow the same supervisory model:
 │  modelSync.ts       Periodic GET /v1/models → service_models table │
 │  ringBuffer.ts      Circular log buffer (5 MB per service)         │
 │  healthCheck.ts     Polling HTTP health probe                      │
-│  installers/        ninerouter.ts, cliproxy.ts (installer adapters)│
+│  installers/        ninerouter.ts, cliproxy.ts, mux.ts             │
+│                      (installer adapters)                          │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ OpenAI-compatible HTTP (loopback)
 ┌──────────────────────▼─────────────────────────────────────────────┐
@@ -123,6 +129,10 @@ Both follow the same supervisory model:
 │  open-sse/config/providerRegistry.ts                               │
 │    Models stored as "9router/{sub}/{model}" (prefixed).            │
 │    Synced every 5 min by modelSync.ts.                             │
+│                                                                    │
+│  Mux is lifecycle-managed ONLY (Layers 1-3) — it is an agent-       │
+│  orchestration daemon, not an LLM proxy, so it has no Layer 4      │
+│  executor/provider entry and is never a routing target.            │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -139,6 +149,7 @@ Both follow the same supervisory model:
 | `src/lib/services/healthCheck.ts`           | HTTP health probe (configurable interval)        |
 | `src/lib/services/installers/ninerouter.ts` | npm install/update/uninstall for 9Router         |
 | `src/lib/services/installers/cliproxy.ts`   | npm install/update/uninstall for CLIProxyAPI     |
+| `src/lib/services/installers/mux.ts`        | npm install/update/uninstall for Mux             |
 | `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` helper                   |
 | `src/app/api/services/[name]/logs/route.ts` | Shared SSE logs endpoint                         |
 | `open-sse/executors/ninerouter.ts`          | Provider executor (Layer 4)                      |
@@ -434,12 +445,56 @@ config) and `status` includes fewer fields.
 | `GET`  | `/api/services/cliproxy/status`     | Live + DB status (no `apiKeyMasked`) |
 | `POST` | `/api/services/cliproxy/auto-start` | Toggle auto-start                    |
 
-The shared `GET /api/services/{name}/logs` endpoint (see §4.1) works for both
-services using the `[name]` dynamic segment.
+The shared `GET /api/services/{name}/logs` endpoint (see §4.1) works for all
+four services using the `[name]` dynamic segment.
 
 ---
 
-### 4.3 Reverse proxy (9Router dashboard embed)
+### 4.3 Mux endpoints (7 routes)
+
+Mux has the same endpoint shape as CLIProxyAPI — no `rotate-key` route in the API
+surface (the bearer token is generated the same way as 9Router's via
+`getOrCreateApiKey("mux")` and injected via the `MUX_SERVER_AUTH_TOKEN` env var, but
+there is no dedicated rotation endpoint yet). Mux is lifecycle-managed only: unlike
+9Router, it has no Layer 4 executor and is never registered as a routing provider.
+
+| Method | Path                            | Description                          |
+| ------ | -------------------------------- | ------------------------------------- |
+| `POST` | `/api/services/mux/install`    | Install Mux from npm (`npm i mux`)   |
+| `POST` | `/api/services/mux/start`      | Start Mux (`mux server`)             |
+| `POST` | `/api/services/mux/stop`       | Stop Mux                             |
+| `POST` | `/api/services/mux/restart`    | Restart Mux                          |
+| `POST` | `/api/services/mux/update`     | Update to newer npm version          |
+| `GET`  | `/api/services/mux/status`     | Live + DB status                     |
+| `POST` | `/api/services/mux/auto-start` | Toggle auto-start                    |
+
+---
+
+### 4.4 Bifrost endpoints (7 routes)
+
+Bifrost is a Go AI-gateway relay backend (`@maximhq/bifrost`). It uses the same
+endpoint shape as CLIProxyAPI (no `rotate-key` — Bifrost manages its own provider
+keys in `config.json` under its `-app-dir`).
+
+| Method | Path                               | Description                                            |
+| ------ | ---------------------------------- | ------------------------------------------------------ |
+| `POST` | `/api/services/bifrost/install`    | Install Bifrost from npm (`@maximhq/bifrost`)          |
+| `POST` | `/api/services/bifrost/start`      | Start Bifrost on port 8080 (default)                   |
+| `POST` | `/api/services/bifrost/stop`       | Stop Bifrost                                           |
+| `POST` | `/api/services/bifrost/restart`    | Restart Bifrost                                        |
+| `POST` | `/api/services/bifrost/update`     | Update to newer version                                |
+| `GET`  | `/api/services/bifrost/status`     | Live + DB status                                       |
+| `POST` | `/api/services/bifrost/auto-start` | Toggle auto-start                                      |
+| `GET`  | `/api/services/bifrost/logs`       | SSE log tail (via shared `[name]/logs` dynamic route)  |
+
+**Routing wiring:** When `BIFROST_BASE_URL` is unset and the supervised Bifrost
+instance is running, `getBifrostRoutingConfig()` (in `routingBackend.ts`) automatically
+uses `http://127.0.0.1:{port}` as the relay base URL. Explicit `BIFROST_BASE_URL` env
+always takes precedence.
+
+---
+
+### 4.4 Reverse proxy (9Router dashboard embed)
 
 The dashboard embeds the 9Router web UI inside an iframe via an internal reverse
 proxy at:
@@ -486,13 +541,19 @@ matrix.
 
 ### API key injection
 
-9Router requires an API key for its own HTTP endpoints. OmniRoute:
+9Router and Mux require an API key/bearer token for their own HTTP endpoints.
+OmniRoute:
 
 1. Generates a key via `crypto.randomBytes(32).toString("base64url")` with a
-   service-specific prefix (`nr_` for 9Router).
+   service-specific prefix (`nr_` for 9Router, `mx_` for Mux).
 2. Encrypts it at-rest using AES-256-GCM (same cipher used for provider credentials).
-3. Decrypts and injects it as `NINEROUTER_API_KEY` environment variable at spawn time.
+3. Decrypts and injects it as an environment variable at spawn time —
+   `NINEROUTER_API_KEY` for 9Router, `MUX_SERVER_AUTH_TOKEN` for Mux (never a CLI
+   flag, so the token never appears in `ps`/process listings).
 4. Never returns the plaintext key in any HTTP response.
+
+CLIProxyAPI does not require an injected key (it authenticates via the host's
+existing CLI config).
 
 ### SSRF defense
 

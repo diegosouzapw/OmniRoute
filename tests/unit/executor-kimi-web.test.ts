@@ -19,7 +19,7 @@ describe("KimiWebExecutor", () => {
   it("execute returns a 400 error when no JWT is provided", async () => {
     const executor = new mod.KimiWebExecutor();
     const result = await executor.execute({
-      model: "kimi-default",
+      model: "k2d6",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: false,
       credentials: { apiKey: "" },
@@ -43,7 +43,7 @@ describe("KimiWebExecutor", () => {
         });
       }) as typeof fetch;
       await executor.execute({
-        model: "kimi-default",
+        model: "k2d6",
         body: { messages: [{ role: "user", content: "hi" }] },
         stream: false,
         credentials: { apiKey: "kimi-auth=fake.jwt.token" },
@@ -54,6 +54,28 @@ describe("KimiWebExecutor", () => {
     } finally {
       globalThis.fetch = originalFetch;
     }
+  });
+});
+
+describe("resolveModelConfig", () => {
+  const { resolveModelConfig } = mod;
+
+  it("maps k2d6-thinking to the K2D5 scenario with thinking enabled", () => {
+    const cfg = resolveModelConfig("k2d6-thinking");
+    assert.equal(cfg.scenario, "SCENARIO_K2D5");
+    assert.equal(cfg.thinking, true);
+  });
+
+  it("maps k2d6 (Instant) to the K2D5 scenario without thinking", () => {
+    const cfg = resolveModelConfig("k2d6");
+    assert.equal(cfg.scenario, "SCENARIO_K2D5");
+    assert.equal(cfg.thinking, false);
+  });
+
+  it("falls back to K2D5 + no thinking for an unknown model id", () => {
+    const cfg = resolveModelConfig("k2d6-agent");
+    assert.equal(cfg.scenario, "SCENARIO_K2D5");
+    assert.equal(cfg.thinking, false);
   });
 });
 

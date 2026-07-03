@@ -173,6 +173,27 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
       // terminated/unknown, the server MUST respond with HTTP 404 Not Found so the
       // client re-initializes. A 400 here is non-recoverable for spec-compliant
       // clients (they only re-init on 404). See issue #5169.
+      //
+      // Auto-recovery: if the client sends an initialize request with a stale session
+      // id (e.g. after a server restart or idle eviction), treat it as a fresh
+      // initialization rather than hard-failing with 404. This avoids requiring users
+      // to manually restart their MCP client after every server restart.
+      if (await isInitializeRequest(request)) {
+        const newSession = createStreamableSession();
+        try {
+          const response = await withMcpHttpAuthContext(request, () =>
+            newSession.transport.handleRequest(request)
+          );
+          return withSessionHeader(response, newSession.sessionId);
+        } catch (err) {
+          closeStreamableSession(newSession.sessionId);
+          console.error("[MCP] Streamable HTTP error during stale-session recovery:", err);
+          return new Response(JSON.stringify({ error: "MCP transport error" }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+      }
       return errorResponse("Not Found: Unknown Mcp-Session-Id header", -32000, 404);
     }
 
