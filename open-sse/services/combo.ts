@@ -53,20 +53,16 @@ import { emit } from "../../src/lib/events/eventBus";
 import { notifyWebhookEvent } from "../../src/lib/webhookDispatcher";
 import { parseAutoPrefix } from "./autoCombo/autoPrefix.ts";
 import { resolveAutoStrategyOrder } from "./combo/resolveAutoStrategy.ts";
+import { applyStrategyOrdering } from "./combo/applyStrategyOrdering.ts";
 import { handlePipelineCombo, buildPipelineResponse } from "./autoCombo/pipelineRouter.ts";
 import { type ProviderCandidate } from "./autoCombo/scoring.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import { applySessionStickiness, recordStickyBinding } from "./combo/sessionStickiness.ts";
 import { selectQuotaShareTarget } from "./combo/quotaShareStrategy.ts";
-import {
-  resolveMaxConcurrentByConnection,
-  makeConnectionConcurrencyResolver,
-  lookupPositiveCap,
-} from "./combo/concurrencyCaps.ts";
+import { makeConnectionConcurrencyResolver, lookupPositiveCap } from "./combo/concurrencyCaps.ts";
 import { acquireQuotaShareConcurrencySlot } from "./combo/quotaShareConcurrency.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
-import { generateRoutingHints } from "./manifestAdapter";
 import type { CompressionMode } from "./compression/types.ts";
 import { getProviderConnections } from "../../src/lib/db/providers";
 import {
@@ -138,17 +134,11 @@ import {
 } from "./combo/providerWildcard.ts";
 import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouting.ts";
 import {
-  sortTargetsByCost,
-  sortTargetsByUsage,
-  orderTargetsByPowerOfTwoChoices,
-} from "./combo/targetSorters.ts";
-import {
   filterTargetsByRequestCompatibility,
   resolveComboRuntimeUnits,
   resolveComboTargets,
   resolveWeightedTargets,
   resolveWeightedStepGroups,
-  sortTargetsByContextSize,
 } from "./combo/comboStructure.ts";
 import {
   QUOTA_SOFT_DEPRIORITIZE_FACTOR,
@@ -167,9 +157,6 @@ import {
 import {
   fetchResetAwareQuotaWithCache,
   preScreenTargets,
-  orderTargetsByResetAwareQuota,
-  orderTargetsByResetWindow,
-  orderTargetsByHeadroom,
   type PreScreenResult,
 } from "./combo/quotaStrategies.ts";
 import {
@@ -1061,183 +1048,14 @@ export async function handleComboChat({
     if ("earlyResponse" in autoResult) return autoResult.earlyResponse;
     orderedTargets = autoResult.orderedTargets;
     autoUsedExplicitRouter = autoResult.autoUsedExplicitRouter;
-  } else if (strategy === "lkgp") {
-    try {
-      const { getLKGP } = await import("../../src/lib/localDb");
-      const lkgpProvider = await getLKGP(combo.name, combo.id || combo.name);
-
-      if (lkgpProvider) {
-        const lkgpRecord = lkgpProvider;
-        const providerName = lkgpRecord.provider;
-        const connId = lkgpRecord.connectionId;
-
-        let lkgpIndex = -1;
-        if (connId) {
-          lkgpIndex = orderedTargets.findIndex(
-            (target) => target.provider === providerName && target.connectionId === connId
-          );
-        }
-        if (lkgpIndex < 0) {
-          lkgpIndex = orderedTargets.findIndex(
-            (target) =>
-              target.provider === providerName ||
-              // Issue #2359: Defensive guard. The `target.modelStr` type
-              // annotation is `string`, but malformed combo entries (e.g.,
-              // local-provider rows whose `modelStr` failed to resolve when
-              // the executor catalogue was being rebuilt) have leaked
-              // through and surfaced as `e.startsWith is not a function`
-              // 500s on combo test/dispatch. The fast path stays
-              // unchanged for the common case; this only avoids the
-              // crash when the field is unexpectedly non-string.
-              (typeof target.modelStr === "string" &&
-                target.modelStr.startsWith(`${providerName}/`))
-          );
-        }
-
-        if (lkgpIndex > 0) {
-          const [lkgpTarget] = orderedTargets.splice(lkgpIndex, 1);
-          orderedTargets.unshift(lkgpTarget);
-          log.info(
-            "COMBO",
-            `[LKGP] Prioritizing last known good provider ${providerName}${connId ? ` (account ${connId})` : ""} for combo "${combo.name}"`
-          );
-        } else if (lkgpIndex === 0) {
-          log.debug?.(
-            "COMBO",
-            `[LKGP] Last known good provider ${providerName}${connId ? ` (account ${connId})` : ""} already first for combo "${combo.name}"`
-          );
-        }
-      }
-    } catch (err) {
-      log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
-    }
-  } else if (strategy === "strict-random") {
-    const selectedExecutionKey = await getNextFromDeck(
-      `combo:${combo.name}`,
-      orderedTargets.map((target) => target.executionKey)
-    );
-    const selectedTarget =
-      orderedTargets.find((target) => target.executionKey === selectedExecutionKey) || null;
-    // #3959: shuffle the fallback remainder too. Previously `rest` kept fixed
-    // priority order, so after a failing deck pick the chain always fell through
-    // to the same top-priority model — a persistently-failing model was retried
-    // on essentially every request and fallback load never spread across peers.
-    const rest = fisherYatesShuffle(
-      orderedTargets.filter((target) => target.executionKey !== selectedExecutionKey)
-    );
-    orderedTargets = [selectedTarget, ...rest].filter(
-      (target): target is ResolvedComboTarget => target !== null
-    );
-    log.info(
-      "COMBO",
-      `Strict-random deck: ${selectedExecutionKey} selected (${orderedTargets.length} targets)`
-    );
-  } else if (strategy === "random") {
-    orderedTargets = fisherYatesShuffle([...orderedTargets]);
-    log.info("COMBO", `Random shuffle: ${orderedTargets.length} targets`);
-  } else if (strategy === "fill-first") {
-    log.info(
-      "COMBO",
-      `Fill-first ordering: preserving priority order (${orderedTargets.length} targets)`
-    );
-  } else if (strategy === "p2c") {
-    orderedTargets = orderTargetsByPowerOfTwoChoices(orderedTargets, combo.name);
-    log.info("COMBO", `Power-of-two-choices ordering: selected ${orderedTargets[0]?.modelStr}`);
-  } else if (strategy === "least-used") {
-    orderedTargets = sortTargetsByUsage(orderedTargets, combo.name);
-    log.info("COMBO", `Least-used ordering: ${orderedTargets[0]?.modelStr} has fewest requests`);
-  } else if (strategy === "cost-optimized") {
-    orderedTargets = await sortTargetsByCost(orderedTargets);
-    if (config.manifestRouting === true) {
-      try {
-        const manifestHint = generateRoutingHints(
-          orderedTargets.filter((t) => t.kind === "model"),
-          {
-            messages: Array.isArray(body?.messages)
-              ? (body.messages as Array<{ role?: string; content?: string | unknown }>)
-              : [],
-            tools: Array.isArray(body?.tools)
-              ? (body.tools as Array<{
-                  function?: { name: string; description?: string; parameters?: unknown };
-                }>)
-              : undefined,
-            model: typeof body?.model === "string" ? body.model : undefined,
-          }
-        );
-        if (manifestHint.strategyModifier === "require-premium") {
-          const eligible = orderedTargets.filter(
-            (t) =>
-              t.kind !== "model" ||
-              manifestHint.eligibleTargets.some(
-                (e) => e.provider === t.provider && e.modelStr === t.modelStr
-              )
-          );
-          if (eligible.length > 0) orderedTargets = eligible;
-        }
-        log.debug?.(
-          {
-            strategyModifier: manifestHint.strategyModifier,
-            specificityLevel: manifestHint.specificityLevel,
-            score: manifestHint.specificity.score,
-          },
-          "manifest routing applied"
-        );
-      } catch (err) {
-        log.warn({ err }, "manifest routing failed, falling back to standard strategy");
-      }
-    }
-    log.info("COMBO", `Cost-optimized ordering: cheapest first (${orderedTargets[0]?.modelStr})`);
-  } else if (strategy === "reset-aware") {
-    orderedTargets = await orderTargetsByResetAwareQuota(
-      orderedTargets,
-      combo.name,
+  } else {
+    orderedTargets = await applyStrategyOrdering(strategy, orderedTargets, {
+      combo,
       config,
+      body,
       log,
-      apiKeyAllowedConnections
-    );
-    log.info(
-      "COMBO",
-      `Reset-aware ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} first`
-    );
-  } else if (strategy === "reset-window") {
-    orderedTargets = await orderTargetsByResetWindow(
-      orderedTargets,
-      combo.name,
-      config,
-      log,
-      apiKeyAllowedConnections
-    );
-    log.info(
-      "COMBO",
-      `Reset-window ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} first`
-    );
-  } else if (strategy === "context-optimized") {
-    orderedTargets = sortTargetsByContextSize(orderedTargets);
-    log.info("COMBO", `Context-optimized ordering: largest first (${orderedTargets[0]?.modelStr})`);
-  } else if (strategy === "headroom") {
-    orderedTargets = await orderTargetsByHeadroom(
-      orderedTargets,
-      combo.name,
-      log,
-      apiKeyAllowedConnections
-    );
-    log.info(
-      "COMBO",
-      `Headroom ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} has most free capacity`
-    );
-  } else if (strategy === "quota-share") {
-    // Internal quota-share combos (qtSd/): delegate to the dedicated module (DRR +
-    // P2C in-flight + per-model bucket gating + per-connection concurrency gating).
-    const qsModel =
-      typeof body?.model === "string" ? body.model : (orderedTargets[0]?.modelStr ?? "");
-    const qsMaxConcurrent = await resolveMaxConcurrentByConnection(orderedTargets);
-    orderedTargets = selectQuotaShareTarget(orderedTargets, combo.name, qsModel, Date.now(), {
-      maxConcurrentByConnection: qsMaxConcurrent,
-    }).orderedTargets;
-    log.info(
-      "COMBO",
-      `Quota-share ordering: ${orderedTargets[0]?.modelStr}${orderedTargets[0]?.connectionId ? ` (${orderedTargets[0].connectionId})` : ""} selected (DRR+P2C)`
-    );
+      apiKeyAllowedConnections,
+    });
   }
   const _sticky = await applySessionStickiness(
     orderedTargets,
