@@ -175,6 +175,20 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "2048x2048"],
   },
 
+  "vercel-ai-gateway": {
+    id: "vercel-ai-gateway",
+    alias: "vag",
+    baseUrl: "https://ai-gateway.vercel.sh/v1/images/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [
+      { id: "gpt-image-1", name: "GPT Image 1" },
+      { id: "black-forest-labs/flux-1.1-pro", name: "FLUX 1.1 Pro" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
+  },
+
   together: {
     id: "together",
     baseUrl: "https://api.together.xyz/v1/images/generations",
@@ -588,6 +602,27 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authHeader: "bearer",
     format: "openai",
     models: [{ id: "sensenova-u1-fast", name: "SenseNova U1 Fast" }],
+    supportedSizes: ["1024x1024"],
+  },
+
+  // HuggingFace Hub Inference API text-to-image task. Returns raw image bytes
+  // (not JSON), so it uses a dedicated "huggingface-image" format handled by
+  // handleHuggingFaceImageGeneration. Same base URL convention as the HF
+  // STT/TTS entries in audioRegistry.ts. Model list is deliberately small —
+  // the dashboard's "suggested models" chip row (GET
+  // /api/v1/providers/suggested-models) surfaces additional HF Hub models
+  // beyond this seed list.
+  huggingface: {
+    id: "huggingface",
+    baseUrl: "https://api-inference.huggingface.co/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "huggingface-image",
+    models: [
+      { id: "black-forest-labs/FLUX.1-dev", name: "FLUX.1 Dev (HF)" },
+      { id: "black-forest-labs/FLUX.1-schnell", name: "FLUX.1 Schnell (HF)" },
+      { id: "stabilityai/stable-diffusion-xl-base-1.0", name: "Stable Diffusion XL (HF)" },
+    ],
     supportedSizes: ["1024x1024"],
   },
 };

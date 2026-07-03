@@ -452,7 +452,7 @@ test("DefaultExecutor uses CC-compatible path and headers", () => {
   assert.equal(headers.Authorization, "Bearer sk-test");
   assert.equal(headers["x-api-key"], undefined);
   assert.equal(headers["X-Claude-Code-Session-Id"], "session-3");
-  assert.equal(headers.Accept, "application/json");
+  assert.equal(headers.Accept, "text/event-stream");
 });
 
 test("validateProviderApiKey uses CC skeleton request after /models fallback", async () => {
@@ -493,7 +493,7 @@ test("validateProviderApiKey uses CC skeleton request after /models fallback", a
   assert.equal(calls[1].body.stream, true);
   assert.equal(calls[1].headers.Authorization, "Bearer sk-test");
   assert.equal(calls[1].headers["x-api-key"], undefined);
-  assert.equal(calls[1].headers.Accept, "application/json");
+  assert.equal(calls[1].headers.Accept, "text/event-stream");
 });
 
 test("handleChatCore forces SSE upstream for CC compatible providers while returning JSON to non-stream clients", async () => {
@@ -571,7 +571,7 @@ test("handleChatCore forces SSE upstream for CC compatible providers while retur
 
   assert.equal(result.success, true);
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].headers.Accept, "application/json");
+  assert.equal(calls[0].headers.Accept, "text/event-stream");
   assert.equal(calls[0].body.stream, true);
   assert.equal(calls[0].body.stream_options, undefined);
   assert.equal(JSON.stringify(calls[0].body).includes('"cache_control"'), false);

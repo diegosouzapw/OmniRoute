@@ -109,3 +109,22 @@ test("shared api utils throw enriched errors for non-OK responses", async () => 
     }
   );
 });
+
+test("shared api utils throw a clean error for non-JSON non-OK responses", async () => {
+  globalThis.fetch = async () =>
+    new Response("Bad Gateway", {
+      status: 502,
+      headers: { "Content-Type": "text/plain" },
+    });
+
+  await assert.rejects(
+    () => get("http://localhost/get"),
+    (error) => {
+      assert.ok(!(error instanceof SyntaxError), "must not be a raw JSON parse SyntaxError");
+      assert.match((error as any).message, /Bad Gateway/);
+      assert.equal((error as any).status, 502);
+      assert.equal((error as any).data, "Bad Gateway");
+      return true;
+    }
+  );
+});

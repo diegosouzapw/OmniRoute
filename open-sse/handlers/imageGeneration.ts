@@ -50,6 +50,7 @@ import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts
 // are still used by handleImageEdit below, so they are imported (not re-defined).
 import { handleSDWebUIImageGeneration } from "./imageGeneration/providers/sdWebUI.ts";
 import { handleHyperbolicImageGeneration } from "./imageGeneration/providers/hyperbolic.ts";
+import { handleHuggingFaceImageGeneration } from "./imageGeneration/providers/huggingface.ts";
 import { handleComfyUIImageGeneration } from "./imageGeneration/providers/comfyUI.ts";
 import { handleImagen3ImageGeneration } from "./imageGeneration/providers/imagen3.ts";
 import { handleIdeogramImageGeneration } from "./imageGeneration/providers/ideogram.ts";
@@ -371,6 +372,17 @@ export async function handleImageGeneration({
 
   if (providerConfig.format === "hyperbolic") {
     return handleHyperbolicImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "huggingface-image") {
+    return handleHuggingFaceImageGeneration({
       model,
       provider,
       providerConfig,
