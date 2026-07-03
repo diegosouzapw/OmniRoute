@@ -40,7 +40,10 @@ test("representative media providers derive the expected kinds", () => {
   for (const [id, expected] of Object.entries(cases)) {
     const derived = getRegistryMediaKinds(id);
     for (const kind of expected) {
-      assert.ok(derived.includes(kind as never), `${id} should derive ${kind}; got ${derived.join(",")}`);
+      assert.ok(
+        derived.includes(kind as never),
+        `${id} should derive ${kind}; got ${derived.join(",")}`
+      );
     }
   }
 });
@@ -72,13 +75,32 @@ test("media listing filter surfaces minimax where the old declared-only filter m
       .map((p) => p.id);
 
   for (const kind of ["tts", "video", "music"]) {
-    assert.ok(!oldListFor(kind).includes("minimax"), `precondition (bug): old filter missed minimax under ${kind}`);
+    assert.ok(
+      !oldListFor(kind).includes("minimax"),
+      `precondition (bug): old filter missed minimax under ${kind}`
+    );
     assert.ok(newListFor(kind).includes("minimax"), `fix: minimax now listed under ${kind}`);
     assert.ok(!newListFor(kind).includes("minimax-cn"), `minimax-cn must not appear under ${kind}`);
   }
 
   // The fix is systemic, not minimax-only: many providers were invisible before.
-  assert.ok(oldListFor("tts").length < newListFor("tts").length, "fix surfaces additional tts providers");
+  assert.ok(
+    oldListFor("tts").length < newListFor("tts").length,
+    "fix surfaces additional tts providers"
+  );
+});
+
+test("ocr is a registry-backed media kind and mistral derives it", () => {
+  assert.ok(
+    (REGISTRY_MEDIA_KINDS as readonly string[]).includes("ocr"),
+    "REGISTRY_MEDIA_KINDS should include ocr once the OCR registry is wired"
+  );
+  assert.ok(
+    getRegistryMediaKinds("mistral").includes("ocr" as never),
+    "mistral should derive the ocr media kind from OCR_PROVIDERS"
+  );
+  const merged = resolveProviderServiceKinds("mistral", ["llm"]);
+  assert.ok(merged.includes("ocr"), `expected ocr in ${merged.join(",")}`);
 });
 
 test("derived kinds are always within the known media-kind set", () => {

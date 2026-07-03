@@ -48,9 +48,25 @@ function sanitize(headers: Record<string, unknown>): Record<string, unknown> {
       out[k] = v;
       continue;
     }
+    if (k === "X-Stainless-Arch") {
+      out[k] = "<ARCH>";
+      continue;
+    }
+    if (k === "X-Stainless-Os") {
+      out[k] = "<OS>";
+      continue;
+    }
     let s = v
       .replace(/Bearer .+/, "Bearer <TOK>")
       .replace(/sk-test-APIKEY|tok-test-ACCESS/g, "<CRED>")
+      .replace(/\(([A-Za-z0-9_. -]+); (?:arm64|x64|x86_64|amd64|ia32)\)/g, "(<OS>; <ARCH>)")
+      // Antigravity's User-Agent embeds an os.platform()-derived platform string
+      // (getAntigravityPlatformInfo) that the (OS; arch) rule above does not cover,
+      // so normalize the three known values to keep the golden runner-independent.
+      .replace(
+        /Macintosh; Intel Mac OS X 10_15_7|Windows NT 10\.0; Win64; x64|X11; Linux x86_64/g,
+        "<PLATFORM>"
+      )
       .replace(/kimi-\d{10,}/g, "kimi-<TS>")
       .replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "<UUID>");
     if (NODE_VERSION) s = s.split(NODE_VERSION).join("<NODE>");

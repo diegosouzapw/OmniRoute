@@ -60,7 +60,7 @@ function sourceDepsOf(entry) {
 const testFiles = globSync(
   [
     "tests/unit/*.test.ts",
-    "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts",
+    "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts",
   ],
   { cwd: ROOT, absolute: true }
 );
@@ -73,7 +73,10 @@ for (const tf of testFiles) {
 }
 for (const k of Object.keys(map)) map[k].sort();
 const out = path.join(ROOT, "config/quality/test-impact-map.json");
-fs.writeFileSync(out, JSON.stringify({ generatedFrom: "import-graph", sources: map }, null, 2) + "\n");
+fs.writeFileSync(
+  out,
+  JSON.stringify({ generatedFrom: "import-graph", sources: map }, null, 2) + "\n"
+);
 console.log(
   `test-impact-map: ${Object.keys(map).length} source files mapped from ${testFiles.length} test files`
 );

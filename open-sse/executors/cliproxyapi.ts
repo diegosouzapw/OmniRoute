@@ -22,6 +22,7 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { getProviderPluginManifestHeader } from "../config/providerPluginManifestUrl.ts";
 import { cloakThirdPartyToolNames } from "../services/claudeCodeToolRemapper.ts";
 import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 
@@ -131,7 +132,9 @@ export function clearCliproxyapiUrlCache() {
     if (typeof settings.cliproxyapi_url === "string" && settings.cliproxyapi_url.trim()) {
       _cachedSettingsUrl = { url: settings.cliproxyapi_url.trim(), ts: Date.now() };
     }
-  } catch { /* env vars will be used as fallback */ }
+  } catch {
+    /* env vars will be used as fallback */
+  }
 })();
 
 /**
@@ -154,7 +157,9 @@ async function resolveCliproxyapiBaseUrl(): Promise<string> {
       _cachedSettingsUrl = { url, ts: Date.now() };
       return url;
     }
-  } catch { /* fall through to env vars */ }
+  } catch {
+    /* fall through to env vars */
+  }
 
   const host = process.env.CLIPROXYAPI_HOST || DEFAULT_HOST;
   const port = parseInt(process.env.CLIPROXYAPI_PORT || String(DEFAULT_PORT), 10);
@@ -265,6 +270,7 @@ export class CliproxyapiExecutor extends BaseExecutor {
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      ...getProviderPluginManifestHeader(),
     };
 
     if (key) {

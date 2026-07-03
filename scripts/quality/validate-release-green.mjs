@@ -53,7 +53,9 @@ const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 /** Read the committed ratchet baseline value for a metric (null if unknown). */
 export function baselineValue(metric, root = ROOT) {
   try {
-    const raw = JSON.parse(readFileSync(join(root, "config/quality/quality-baseline.json"), "utf8"));
+    const raw = JSON.parse(
+      readFileSync(join(root, "config/quality/quality-baseline.json"), "utf8")
+    );
     const metrics = raw.metrics || raw;
     const v = metrics?.[metric]?.value;
     return typeof v === "number" ? v : null;
@@ -146,7 +148,7 @@ function run(cmd, cmdArgs, opts = {}) {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
       maxBuffer: 256 * 1024 * 1024,
-      env: { ...process.env, FORCE_COLOR: "0" },
+      env: { ...process.env, FORCE_COLOR: "0", ...(opts.env || {}) },
       // A hard ceiling for the long, silent test suites (execFileSync buffers all output until
       // exit, so they show no progress while running). undefined = no timeout for fast gates.
       ...(opts.timeout ? { timeout: opts.timeout } : {}),
@@ -178,7 +180,13 @@ function main() {
   const hardCmd = (id, label, cmd, cmdArgs, opts) => {
     announce(label);
     const { code, out } = run(cmd, cmdArgs, opts);
-    record({ id, label, kind: "hard", ok: code === 0, detail: code === 0 ? "pass" : firstFailureLine(out) });
+    record({
+      id,
+      label,
+      kind: "hard",
+      ok: code === 0,
+      detail: code === 0 ? "pass" : firstFailureLine(out),
+    });
   };
 
   // A ratchet command (check:complexity, check:dead-code, …) exits 1 ONLY on a
@@ -189,7 +197,13 @@ function main() {
   const driftCmd = (id, label, cmd, cmdArgs, okDetail = "within baseline", opts) => {
     announce(label);
     const { code, out } = run(cmd, cmdArgs, opts);
-    record({ id, label, kind: "drift", ok: code === 0, detail: code === 0 ? okDetail : firstFailureLine(out) });
+    record({
+      id,
+      label,
+      kind: "drift",
+      ok: code === 0,
+      detail: code === 0 ? okDetail : firstFailureLine(out),
+    });
   };
 
   process.stderr.write("🔎 Release-green validation (current working tree)\n\n");
@@ -202,10 +216,22 @@ function main() {
     const { out } = run("npx", ["eslint", ".", "--format", "json"], { timeout: 15 * 60 * 1000 });
     const parsed = parseEslintJson(out);
     if (!parsed) {
-      record({ id: "lint", label: "ESLint", kind: "hard", ok: false, detail: "could not parse eslint json" });
+      record({
+        id: "lint",
+        label: "ESLint",
+        kind: "hard",
+        ok: false,
+        detail: "could not parse eslint json",
+      });
     } else {
       const { errors, warnings } = eslintCounts(parsed);
-      record({ id: "lint-errors", label: "ESLint errors", kind: "hard", ok: errors === 0, detail: `${errors} error(s)` });
+      record({
+        id: "lint-errors",
+        label: "ESLint errors",
+        kind: "hard",
+        ok: errors === 0,
+        detail: `${errors} error(s)`,
+      });
       const base = baselineValue("eslintWarnings");
       const over = isDrift(warnings, base);
       record({
@@ -255,6 +281,27 @@ function main() {
     });
   }
 
+  // test-masking (hard) — a PR-context gate: it only runs on the release PR (PR→main) in CI, so
+  // net-assert reductions accrue unseen on release/** and explode on the release PR. Reproduce it
+  // here against origin/main so a non-allowlisted reduction surfaces in the pre-flight, not in a
+  // ~40-min CI layer (v3.8.43 cost 3 such round-trips). Legitimate reductions get allowlisted in
+  // config/quality/test-masking-allowlist.json; tautology/skip/deletion signals are never allowlistable.
+  if (!QUICK) {
+    announce("Test-masking (weakened-assert guard vs main)");
+    // best-effort fetch so the merge-base diff is accurate; ignore fetch failure (offline pre-flight)
+    run("git", ["fetch", "--no-tags", "origin", "main", "--depth=200"], { timeout: 60 * 1000 });
+    const { code, out } = run(npmCmd, ["run", "check:test-masking"], {
+      env: { GITHUB_BASE_REF: "main" },
+    });
+    record({
+      id: "test-masking",
+      label: "Test-masking (weakened-assert guard)",
+      kind: "hard",
+      ok: code === 0,
+      detail: code === 0 ? "no weakening" : firstFailureLine(out),
+    });
+  }
+
   // Remaining quality-gate / quality-extended ratchets that the PR→release
   // fast-gates skip and that historically surfaced — one at a time, because the
   // CI Quality Ratchet job is fail-fast — only on the release PR. Running them all
@@ -262,9 +309,20 @@ function main() {
   driftCmd("complexity", "Cyclomatic complexity (ratchet)", npmCmd, ["run", "check:complexity"]);
   driftCmd("dead-code", "Dead-code (ratchet)", npmCmd, ["run", "check:dead-code"]);
   driftCmd("type-coverage", "Type coverage (ratchet)", npmCmd, ["run", "check:type-coverage"]);
-  driftCmd("compression-budget", "Compression budget (ratchet)", npmCmd, ["run", "check:compression-budget"]);
-  driftCmd("openapi-coverage", "OpenAPI route coverage (ratchet)", npmCmd, ["run", "check:openapi-coverage"]);
-  driftCmd("workflow-lint", "Workflow lint (zizmor ratchet)", npmCmd, ["run", "check:workflows", "--", "--ratchet"]);
+  driftCmd("compression-budget", "Compression budget (ratchet)", npmCmd, [
+    "run",
+    "check:compression-budget",
+  ]);
+  driftCmd("openapi-coverage", "OpenAPI route coverage (ratchet)", npmCmd, [
+    "run",
+    "check:openapi-coverage",
+  ]);
+  driftCmd("workflow-lint", "Workflow lint (zizmor ratchet)", npmCmd, [
+    "run",
+    "check:workflows",
+    "--",
+    "--ratchet",
+  ]);
   driftCmd("codeql-ratchet", "CodeQL alerts (ratchet)", npmCmd, ["run", "check:codeql-ratchet"]);
 
   // Docs sync + fabricated-docs (strict) is a real-defect gate (invented env vars /
@@ -277,15 +335,35 @@ function main() {
     // with 15 such reds). They run SILENTLY for many minutes; the announce line above + these
     // hard ceilings keep a long-but-healthy run from being mistaken for a hang (the ceiling also
     // converts a genuine DB-handle hang into a visible failure instead of an infinite block).
-    hardCmd("unit", "Unit tests (full suite, CI concurrency — runs ~20-35min silently)", npmCmd, ["run", "test:unit:ci"], { timeout: 45 * 60 * 1000 });
-    hardCmd("vitest", "Vitest (MCP / autoCombo / cache — ~3-8min)", npmCmd, ["run", "test:vitest"], { timeout: 15 * 60 * 1000 });
+    hardCmd(
+      "unit",
+      "Unit tests (full suite, CI concurrency — runs ~20-35min silently)",
+      npmCmd,
+      ["run", "test:unit:ci"],
+      { timeout: 45 * 60 * 1000 }
+    );
+    hardCmd(
+      "vitest",
+      "Vitest (MCP / autoCombo / cache — ~3-8min)",
+      npmCmd,
+      ["run", "test:vitest"],
+      { timeout: 15 * 60 * 1000 }
+    );
     // Integration tests run ONLY on the release PR full CI (PR→main), so an assertion
     // regression here (e.g. a contributor flipping a Codex fingerprint key order) is
     // invisible until release — run them in the pre-flight as a HARD gate.
-    hardCmd("integration", "Integration tests (~3-10min)", npmCmd, ["run", "test:integration"], { timeout: 20 * 60 * 1000 });
+    hardCmd("integration", "Integration tests (~3-10min)", npmCmd, ["run", "test:integration"], {
+      timeout: 20 * 60 * 1000,
+    });
   }
   if (WITH_BUILD) {
-    hardCmd("pack-artifact", "Package artifact (npm pack policy)", npmCmd, ["run", "check:pack-artifact"], { timeout: 20 * 60 * 1000 });
+    hardCmd(
+      "pack-artifact",
+      "Package artifact (npm pack policy)",
+      npmCmd,
+      ["run", "check:pack-artifact"],
+      { timeout: 20 * 60 * 1000 }
+    );
   }
 
   const { releaseGreen, hardFailures, drift } = computeVerdict(results);

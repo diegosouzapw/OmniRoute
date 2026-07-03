@@ -10,6 +10,7 @@ import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
@@ -161,13 +162,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   // Electron internal auto-updater state and listeners
   const [electronUpdateStatus, setElectronUpdateStatus] = useState<{
     status:
-      | "idle"
-      | "checking"
-      | "available"
-      | "not-available"
-      | "downloading"
-      | "downloaded"
-      | "error";
+      "idle" | "checking" | "available" | "not-available" | "downloading" | "downloaded" | "error";
     version?: string;
     percent?: number;
     message?: string;
@@ -685,7 +680,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       if (contentType.includes("application/json")) {
         const data = await res.json();
         if (!res.ok || !data.success) {
-          notify.error(data.error || "Failed to start update.");
+          // #5991: the error envelope is `{ error: { code, message, correlation_id } }`.
+          // Passing the raw object to notify.error() rendered it as a React child →
+          // "Minified React error #31" crash ("Internal Server Error" screen), e.g. on
+          // the 403 from the loopback-only /api/system/version. Extract the string.
+          notify.error(extractApiErrorMessage(data, "Failed to start update."));
           setUpdating(false);
           setUpdatePhase("idle");
           return;
@@ -1109,7 +1108,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   <p className="text-text-muted mt-0.5">
                     {t.rich("step1Desc", {
                       endpoint: (chunks) => (
-                        <Link href="/dashboard/api-manager" className="text-primary hover:underline">
+                        <Link
+                          href="/dashboard/api-manager"
+                          className="text-primary hover:underline"
+                        >
                           {chunks}
                         </Link>
                       ),

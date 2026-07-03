@@ -9,9 +9,8 @@
  *
  * This helper runs on the translated path (before the allowlist) and folds whichever
  * shape arrived into a single, validated `text:{verbosity}`. `text` is then added to
- * the allowlist so the hint survives. Non-verbosity `text` keys (e.g. a stray
- * `text.format`) are intentionally dropped — they were already stripped by the
- * pre-existing allowlist, so this preserves the status quo while adding verbosity.
+ * the allowlist so the hint survives. Other Responses `text` keys, such as
+ * `text.format` for structured output, are preserved.
  *
  * Ref: OpenAI GPT-5 docs (text.verbosity), Azure Foundry reasoning guide.
  */
@@ -33,8 +32,8 @@ function normalizeLevel(value: unknown): string | undefined {
 /**
  * Mutates `body` in place: resolves verbosity from `text.verbosity` (Responses) or
  * the top-level `verbosity` (Chat Completions, which takes precedence when both are
- * present), drops the Chat-only top-level field, and collapses `text` to
- * `{verbosity}` when valid or removes it otherwise.
+ * present), drops the Chat-only top-level field, and preserves any other existing
+ * Responses `text` configuration.
  */
 export function normalizeCodexVerbosity(body: Record<string, unknown>): void {
   const textRecord = asRecord(body.text);
@@ -45,8 +44,15 @@ export function normalizeCodexVerbosity(body: Record<string, unknown>): void {
 
   delete body.verbosity;
 
+  const nextText = textRecord ? { ...textRecord } : {};
   if (verbosity) {
-    body.text = { verbosity };
+    nextText.verbosity = verbosity;
+  } else {
+    delete nextText.verbosity;
+  }
+
+  if (Object.keys(nextText).length > 0) {
+    body.text = nextText;
   } else {
     delete body.text;
   }

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const freeProxySourceSchema = z.enum(["1proxy", "proxifly", "iplocate"]);
+export const freeProxySourceSchema = z.enum(["1proxy", "proxifly", "iplocate", "webshare"]);
 
 export const freeProxyListSchema = z.object({
   sources: z
@@ -87,10 +87,7 @@ export const cloudflareDeploySchema = z.object({
     .string()
     .min(8, "Cloudflare Account ID looks too short")
     .max(64)
-    .regex(
-      /^[a-f0-9]+$/,
-      "Cloudflare Account ID must be lowercase hex"
-    ),
+    .regex(/^[a-f0-9]+$/, "Cloudflare Account ID must be lowercase hex"),
   // Cloudflare API tokens are opaque alphanumeric (40+ chars) — same alphabet
   // we accept for Vercel tokens; constrain length to catch paste accidents.
   apiToken: z
@@ -108,4 +105,3 @@ export const cloudflareDeploySchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Worker name must be lowercase alphanumeric with hyphens")
     .default("omniroute-relay"),
 });
-

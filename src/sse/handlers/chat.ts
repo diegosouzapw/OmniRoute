@@ -933,7 +933,7 @@ async function handleSingleModelChat(
       allCombos: [],
       relayOptions: undefined,
       signal: request?.signal ?? null,
-      correlationId: reqId,
+      correlationId: runtimeOptions?.correlationId ?? null,
     });
   }
 

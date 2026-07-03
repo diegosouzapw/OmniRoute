@@ -14,8 +14,14 @@ export const kimi_webProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "cookie",
   models: [
-    { id: "kimi-default", name: "Kimi Default" },
-    { id: "kimi-k2.6", name: "Kimi K2.6 (Thinking)" },
-    { id: "kimi-128k", name: "Kimi 128K (Long Context)" },
+    // Model ids are the `key` field from www.kimi.com's
+    // `/apiv2/kimi.gateway.config.v1.ConfigService/GetAvailableModels` response.
+    // Agent / Agent-Swarm variants (`k2d6-agent`, `k2d6-agent-ultra`) are
+    // intentionally NOT exposed — they need a different scenario
+    // (`SCENARIO_OK_COMPUTER`) plus `kimiPlusId` / `agentMode` fields, which
+    // the executor does not yet shape. Use `kimi-coding` (api.kimi.com) for
+    // agentic flows.
+    { id: "k2d6", name: "K2.6 Instant" },
+    { id: "k2d6-thinking", name: "K2.6 Thinking", supportsReasoning: true },
   ],
 };

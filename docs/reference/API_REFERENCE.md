@@ -18,6 +18,7 @@ Complete reference for all OmniRoute API endpoints.
 - [Embeddings](#embeddings)
 - [Image Generation](#image-generation)
 - [List Models](#list-models)
+- [Provider Plugin Manifest](#provider-plugin-manifest)
 - [Compatibility Endpoints](#compatibility-endpoints)
 - [Files API](#files-api)
 - [Batches API](#batches-api)
@@ -175,6 +176,22 @@ claude-3-omniroute-no-thinking/<provider>/<model>
 ```
 
 Selecting this id (e.g. in a Claude Code config that always attaches a `thinking` block) resolves back to the real `<provider>/<model>` with reasoning suppressed — `thinking:{type:"disabled"}` on the `/v1/messages` path, or the `reasoning`/`reasoning_effort` fields dropped on the `/v1/chat/completions` path. The variant is only listed for Claude-family models that support thinking **and** honor `disabled` (so e.g. adaptive-only models that reject `disabled` are excluded). Operators can force the variant on or off per model via `ModelSpec.noThinkingAlias`.
+
+---
+
+## Provider Plugin Manifest
+
+```bash
+GET /api/v1/provider-plugin-manifest
+```
+
+Returns the JSON-safe provider plugin manifest used by Bifrost, CLIProxyAPI, and
+future sidecar routers. The response is generated from the TypeScript provider
+registry and intentionally excludes OAuth client secrets, runtime environment
+resolution, executor functions, request headers, and account data.
+
+Use this endpoint when a sidecar runs out-of-process and cannot import
+`open-sse/config/providerPluginManifestRegistry.ts` directly.
 
 ---
 
@@ -947,17 +964,17 @@ Persistent conversational/factual memory store, scoped per API key / session.
 
 OmniRoute ships an embedded Model Context Protocol server with 3 transports (stdio, SSE, streamable-http) and scoped tools. The dashboard endpoints below read status/audit data and proxy the HTTP transports.
 
-| Method | Path                   | Description                                                                                      |
+| Method | Path | Description |
 | ------ | ---------------------- | ------------------------------------------------------------------------------------------------ | -------------------- |
-| GET    | `/api/mcp/status`      | Heartbeat, transport, online state, last call, top tools, 24h success rate                       |
-| GET    | `/api/mcp/tools`       | List of MCP tools with `name`, `description`, `scopes`, `phase`, `auditLevel`, `sourceEndpoints` |
-| GET    | `/api/mcp/sse`         | Open SSE stream for the SSE transport (returns `503` if MCP disabled or transport mismatch)      |
-| POST   | `/api/mcp/sse`         | Send JSON-RPC frame on the SSE transport                                                         |
-| GET    | `/api/mcp/stream`      | Open SSE side of the Streamable HTTP transport (server-initiated messages)                       |
-| POST   | `/api/mcp/stream`      | Send JSON-RPC frame on the Streamable HTTP transport                                             |
-| DELETE | `/api/mcp/stream`      | End a Streamable HTTP session                                                                    |
-| GET    | `/api/mcp/audit`       | Query audit log — `?limit=`, `?offset=`, `?tool=`, `?success=true                                | false`, `?apiKeyId=` |
-| GET    | `/api/mcp/audit/stats` | Aggregate audit stats (totals, success rate, avg duration, top tools)                            |
+| GET | `/api/mcp/status` | Heartbeat, transport, online state, last call, top tools, 24h success rate |
+| GET | `/api/mcp/tools` | List of MCP tools with `name`, `description`, `scopes`, `phase`, `auditLevel`, `sourceEndpoints` |
+| GET | `/api/mcp/sse` | Open SSE stream for the SSE transport (returns `503` if MCP disabled or transport mismatch) |
+| POST | `/api/mcp/sse` | Send JSON-RPC frame on the SSE transport |
+| GET | `/api/mcp/stream` | Open SSE side of the Streamable HTTP transport (server-initiated messages) |
+| POST | `/api/mcp/stream` | Send JSON-RPC frame on the Streamable HTTP transport |
+| DELETE | `/api/mcp/stream` | End a Streamable HTTP session |
+| GET | `/api/mcp/audit` | Query audit log — `?limit=`, `?offset=`, `?tool=`, `?success=true                                | false`, `?apiKeyId=` |
+| GET | `/api/mcp/audit/stats` | Aggregate audit stats (totals, success rate, avg duration, top tools) |
 
 **Auth:** the `sse`/`stream` transports honor the MCP-specific auth surface (Bearer API key with `mcp` scope); the `status`/`tools`/`audit*` routes are readable from the dashboard (no extra auth required beyond reaching the dashboard host).
 
@@ -1022,18 +1039,18 @@ Returns the public A2A agent card (name, description, capabilities, skill catalo
 
 ## Cloud, Evals & Assess
 
-| Method | Path                            | Description                                                                                       |
+| Method | Path | Description |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST   | `/api/cloud/auth`               | Verify a Bearer key and return masked provider connections + model aliases for cloud sync clients |
-| POST   | `/api/cloud/credentials/update` | Update encrypted credentials for a cloud-synced provider                                          |
-| POST   | `/api/cloud/model/resolve`      | Resolve a logical model id to a concrete provider/model using the local routing table             |
-| GET    | `/api/cloud/models/alias`       | List model aliases as exposed to cloud sync                                                       |
-| GET    | `/api/assess`                   | Read latest assessment categorizations (per-provider/model)                                       |
-| POST   | `/api/assess`                   | Run an assessment — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET    | `/api/evals`                    | List built-in eval suites + most recent runs                                                      |
-| POST   | `/api/evals`                    | Trigger an eval run                                                                               |
-| POST   | `/api/evals/suites`             | Create a custom eval suite — body validated by `evalSuiteSaveSchema`                              |
-| GET    | `/api/evals/suites/[id]`        | Retrieve a custom eval suite                                                                      |
+| POST | `/api/cloud/auth` | Verify a Bearer key and return masked provider connections + model aliases for cloud sync clients |
+| POST | `/api/cloud/credentials/update` | Update encrypted credentials for a cloud-synced provider |
+| POST | `/api/cloud/model/resolve` | Resolve a logical model id to a concrete provider/model using the local routing table |
+| GET | `/api/cloud/models/alias` | List model aliases as exposed to cloud sync |
+| GET | `/api/assess` | Read latest assessment categorizations (per-provider/model) |
+| POST | `/api/assess` | Run an assessment — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | List built-in eval suites + most recent runs |
+| POST | `/api/evals` | Trigger an eval run |
+| POST | `/api/evals/suites` | Create a custom eval suite — body validated by `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | Retrieve a custom eval suite |
 
 **Auth:** `/api/cloud/auth` validates a Bearer key directly; the other `/api/cloud/*`, `/api/evals/*`, and `/api/assess` routes require management session/API key. `/api/assess` POST uses `validateBody` with a discriminated-union scope schema.
 

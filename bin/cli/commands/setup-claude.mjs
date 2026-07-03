@@ -60,7 +60,7 @@ export function buildProfileSettings(modelId, baseUrl, cfg) {
  * behaviorally identical. Writes `<claudeHome>/profiles/<name>/settings.json`
  * (directory-per-profile); never touches the active/default Claude config.
  * @param {Array} models
- * @param {{claudeHome?:string, baseUrl:string, dryRun?:boolean, only?:string, log?:Function}} opts
+ * @param {{claudeHome?:string, baseUrl:string, dryRun?:boolean, only?:string, log?:(line:string)=>void}} opts
  * @returns {Promise<{written:number, skipped:number, profiles:Array<{name:string, model:string, filePath:string}>}>}
  */
 export async function syncClaudeProfilesFromModels(models, opts = {}) {
