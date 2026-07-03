@@ -702,21 +702,41 @@ export async function handleComboChat({
         "COMBO",
         `Bypassing strategy — routing directly to pinned context model: ${pinnedModel}`
       );
-      const pinnedResult = await handleSingleModelWithTimeout(body, pinnedModel);
-      // If the pinned model succeeds, return immediately.
-      if (pinnedResult.ok) return pinnedResult;
-      // If the pinned model fails with a transient error, fall through to the
-      // normal target iteration loop so retries and sibling models can be tried.
-      // Gemini 500s are intermittent — the combo should keep trying.
-      const pinnedStatus = pinnedResult.status || 500;
-      if ([408, 429, 500, 502, 503, 504].includes(pinnedStatus)) {
+      let pinnedResult: Response | null = null;
+      try {
+        pinnedResult = await handleSingleModelWithTimeout(body, pinnedModel);
+      } catch (pinErr) {
         log.warn(
           "COMBO",
-          `Pinned model ${pinnedModel} failed (${pinnedStatus}), falling through to combo retry/fallback`
+          `Pinned model ${pinnedModel} threw error: ${pinErr instanceof Error ? pinErr.message : String(pinErr)}, falling through to combo retry/fallback`
         );
-      } else {
-        return pinnedResult;
       }
+      if (pinnedResult) {
+        if (pinnedResult.ok) {
+          const pinnedQuality = await validateResponseQuality(
+            pinnedResult,
+            clientRequestedStream,
+            log,
+            config.responseValidation
+          );
+          if (pinnedQuality.valid) return pinnedResult;
+          log.warn(
+            "COMBO",
+            `Pinned model ${pinnedModel} returned 200 but failed quality check: ${pinnedQuality.reason}, falling through to combo retry/fallback`
+          );
+        } else {
+          const pinnedStatus = pinnedResult.status || 500;
+          if (![408, 429, 500, 502, 503, 504].includes(pinnedStatus)) {
+            return pinnedResult;
+          }
+          log.warn(
+            "COMBO",
+            `Pinned model ${pinnedModel} failed (${pinnedStatus}), falling through to combo retry/fallback`
+          );
+        }
+      }
+      // Fall through to the target iteration loop below — retries and sibling
+      // models will be tried via the normal combo machinery.
     }
     log.warn(
       "COMBO",
