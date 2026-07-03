@@ -2141,7 +2141,8 @@
       "amp": "Sourcegraph Amp 编程助手 CLI",
       "hermes": "Hermes AI 终端助手",
       "hermes-agent": "Hermes Agent (by Nousresearch) — 支持多模型(委派、视觉、压缩等)的高级终端 AI。",
-      "custom": "通用 OpenAI 兼容 CLI 或 SDK 配置生成器"
+      "custom": "通用 OpenAI 兼容 CLI 或 SDK 配置生成器",
+      "jcode": "jcode 终端编码代理 — 由 1jehuang 开发的兼容 OpenAI 的 CLI"
     },
     "guides": {
       "cursor": {

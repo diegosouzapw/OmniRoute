@@ -201,13 +201,31 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".jcode/config.json",
     },
   },
-  "deepseek-tui": {
-    defaultCommand: "deepseek-tui",
-    envBinKey: "CLI_DEEPSEEK_TUI_BIN",
+  codewhale: {
+    defaultCommand: "codewhale",
+    envBinKey: "CLI_CODEWHALE_BIN",
     requiresBinary: true,
     healthcheckTimeoutMs: 8000,
     paths: {
-      config: ".config/deepseek-tui/config.toml",
+      config: ".codewhale/config.toml",
+    },
+  },
+  omp: {
+    defaultCommand: "omp",
+    envBinKey: "CLI_OMP_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".omp/agent/models.yml",
+    },
+  },
+  letta: {
+    defaultCommand: "letta",
+    envBinKey: "CLI_LETTA_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".letta/lc-local-backend/providers/auth.json",
     },
   },
   smelt: {

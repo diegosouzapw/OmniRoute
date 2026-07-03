@@ -16,22 +16,22 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
-const TOOL_ID = "deepseek-tui";
+const TOOL_ID = "codewhale";
 
-const getDeepseekTuiConfigPath = (): string =>
+const getCodewhaleConfigPath = (): string =>
   getCliPrimaryConfigPath(TOOL_ID) ??
-  path.join(process.env.HOME ?? "~", ".config", "deepseek-tui", "config.toml");
+  path.join(process.env.HOME ?? "~", ".codewhale", "config.toml");
 
-const getDeepseekTuiDir = () => path.dirname(getDeepseekTuiConfigPath());
+const getCodewhaleDir = () => path.dirname(getCodewhaleConfigPath());
 
 /**
- * Render the OmniRoute config block in DeepSeek TUI TOML format.
- * DeepSeek TUI reads OPENAI_BASE_URL and OPENAI_API_KEY from its config.
- * Reference: https://github.com/hunterbown/deepseek-tui
+ * Render the OmniRoute config block in CodeWhale TOML format.
+ * CodeWhale reads OPENAI_BASE_URL and OPENAI_API_KEY from its config.
+ * Reference: https://github.com/Hmbown/CodeWhale
  */
-function renderDeepseekTuiConfig(baseUrl: string, apiKey: string, model: string): string {
+function renderCodewhaleConfig(baseUrl: string, apiKey: string, model: string): string {
   return [
-    "# DeepSeek TUI config — managed by OmniRoute (plan 14)",
+    "# CodeWhale config — managed by OmniRoute (plan 14)",
     "",
     "[openai]",
     `base_url = "${baseUrl}"`,
@@ -52,14 +52,14 @@ const hasOmniRouteConfig = (content: string | null): boolean => {
 // Read current config.toml
 const readConfig = async (): Promise<string | null> => {
   try {
-    return await fs.readFile(getDeepseekTuiConfigPath(), "utf-8");
+    return await fs.readFile(getCodewhaleConfigPath(), "utf-8");
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw err;
   }
 };
 
-// GET — check deepseek-tui CLI and return current config
+// GET — check codewhale CLI and return current config
 export async function GET(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -78,8 +78,8 @@ export async function GET(request: Request) {
         config: null,
         message:
           runtime.installed && !runtime.runnable
-            ? "DeepSeek TUI is installed but not runnable"
-            : "DeepSeek TUI is not installed",
+            ? "CodeWhale is installed but not runnable"
+            : "CodeWhale is not installed",
       });
     }
 
@@ -94,17 +94,14 @@ export async function GET(request: Request) {
       reason: runtime.reason,
       config,
       hasOmniRoute: hasOmniRouteConfig(config),
-      configPath: getDeepseekTuiConfigPath(),
+      configPath: getCodewhaleConfigPath(),
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }
 
-// POST — write OmniRoute settings to DeepSeek TUI config.toml
+// POST — write OmniRoute settings to CodeWhale config.toml
 export async function POST(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -113,10 +110,7 @@ export async function POST(request: Request) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: { message: "Invalid JSON body" } },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: { message: "Invalid JSON body" } }, { status: 400 });
   }
 
   try {
@@ -135,8 +129,8 @@ export async function POST(request: Request) {
     const { baseUrl, model } = validation.data;
     const apiKey = await resolveApiKey(keyId, validation.data.apiKey);
 
-    const configPath = getDeepseekTuiConfigPath();
-    const configDir = getDeepseekTuiDir();
+    const configPath = getCodewhaleConfigPath();
+    const configDir = getCodewhaleDir();
 
     // Ensure directory exists
     await fs.mkdir(configDir, { recursive: true });
@@ -145,7 +139,7 @@ export async function POST(request: Request) {
     await createBackup(TOOL_ID, configPath);
 
     // Write new config (full replace — simple TOML file)
-    const content = renderDeepseekTuiConfig(baseUrl, apiKey, model);
+    const content = renderCodewhaleConfig(baseUrl, apiKey, model);
     await fs.writeFile(configPath, content, "utf-8");
 
     // Persist last-configured timestamp
@@ -157,18 +151,15 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "DeepSeek TUI settings applied successfully!",
+      message: "CodeWhale settings applied successfully!",
       configPath,
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }
 
-// DELETE — remove DeepSeek TUI OmniRoute config
+// DELETE — remove CodeWhale OmniRoute config
 export async function DELETE(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -179,7 +170,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: writeGuard }, { status: 403 });
     }
 
-    const configPath = getDeepseekTuiConfigPath();
+    const configPath = getCodewhaleConfigPath();
 
     // Backup before removing
     await createBackup(TOOL_ID, configPath);
@@ -195,12 +186,9 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "DeepSeek TUI settings removed successfully",
+      message: "CodeWhale settings removed successfully",
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: { message: sanitizeErrorMessage(err) } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { message: sanitizeErrorMessage(err) } }, { status: 500 });
   }
 }

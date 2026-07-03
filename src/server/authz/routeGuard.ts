@@ -29,6 +29,9 @@ const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/mcp/",
   "/api/cli-tools/runtime/",
+  "/api/cli-tools/jcode-settings",
+  "/api/cli-tools/omp-settings",
+  "/api/cli-tools/letta-settings",
   "/api/services/", // T-10: embedded service lifecycle (spawn child processes)
   "/dashboard/providers/services/", // T-07: reverse proxy to embedded service UIs
   "/api/copilot/", // unauthenticated LLM driver — CLI-only by default; admins can opt-in to remote access via manage-scope bypass
@@ -161,9 +164,7 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
  *   triggers the auto-update flow (spawns git checkout + npm install + pm2).
  *   Hard Rules #15/#17 still apply to POST.
  */
-export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set([
-  "/api/system/version",
-]);
+export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set(["/api/system/version"]);
 
 /** Safe HTTP methods that can be exempted for read-only paths. */
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);

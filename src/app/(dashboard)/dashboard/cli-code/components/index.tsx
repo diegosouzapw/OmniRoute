@@ -8,4 +8,5 @@ export { default as DefaultToolCard } from "./DefaultToolCard";
 export { default as AntigravityToolCard } from "./AntigravityToolCard";
 export { default as CopilotToolCard } from "./CopilotToolCard";
 export { default as CustomCliCard } from "./CustomCliCard";
+export { default as JcodeToolCard } from "./JcodeToolCard";
 export { default as HermesAgentToolCard } from "./HermesAgentToolCard";

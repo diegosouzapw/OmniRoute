@@ -646,22 +646,6 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
   },
 
   /** ★ Added by plan 14 (CLI Pages Redesign) — 2026-05-27 */
-  "deepseek-tui": {
-    id: "deepseek-tui",
-    name: "DeepSeek TUI",
-    icon: "terminal",
-    color: "#4F46E5",
-    description: "DeepSeek TUI — Rust-based coding agent CLI with OPENAI_BASE_URL support",
-    docsUrl: "https://github.com/hunterbown/deepseek-tui",
-    configType: "custom",
-    category: "code",
-    vendor: "OSS (Hunter Bown)",
-    acpSpawnable: false,
-    baseUrlSupport: "full",
-    defaultCommand: "deepseek-tui",
-  },
-
-  /** ★ Added by plan 14 (CLI Pages Redesign) — 2026-05-27 */
   smelt: {
     id: "smelt",
     name: "Smelt",
@@ -798,6 +782,135 @@ OPENAI_API_KEY: "{{apiKey}}"`,
       { step: 2, title: "API Key", type: "apiKeySelector" },
       { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
       { step: 4, title: "Select Model", type: "modelSelector" },
+    ],
+  },
+
+  /** ★ Added by plan 15 (CLI Mods Integration) — 2026-07-03 */
+  codewhale: {
+    id: "codewhale",
+    name: "CodeWhale",
+    image: "/providers/codewhale.png",
+    color: "#4D6BFE",
+    description: "CodeWhale terminal coding agent with multi-provider support",
+    docsUrl: "https://github.com/Hmbown/CodeWhale",
+    configType: "custom",
+    category: "agent",
+    vendor: "OSS",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    defaultCommand: "codewhale",
+    modelAliases: [
+      "deepseek-v4-pro",
+      "deepseek-v4-flash",
+      "deepseek-chat",
+      "deepseek-reasoner",
+      "gpt-4.1",
+      "glm-5",
+    ],
+    defaultModels: [
+      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", alias: "deepseek-v4-pro" },
+      { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", alias: "deepseek-v4-flash" },
+      { id: "deepseek-chat", name: "DeepSeek V3 Chat", alias: "deepseek-chat" },
+      { id: "gpt-4.1", name: "GPT-4.1", alias: "gpt-4.1" },
+    ],
+    notes: [
+      {
+        type: "info",
+        text: "CodeWhale uses ~/.codewhale/config.toml. OmniRoute seeds the OpenAI provider entry so you can point CodeWhale at OmniRoute and still switch to its other providers later.",
+      },
+      {
+        type: "warning",
+        text: "Config path: Linux/macOS ~/.codewhale/config.toml • Windows %USERPROFILE%\\.codewhale\\config.toml",
+      },
+    ],
+  },
+  omp: {
+    id: "omp",
+    name: "Oh My Pi",
+    image: "/providers/omp.png",
+    color: "#111111",
+    description: "Oh My Pi terminal coding agent via OmniRoute",
+    configType: "custom",
+    category: "agent",
+    vendor: "OSS",
+    acpSpawnable: true,
+    baseUrlSupport: "full",
+    defaultCommand: "omp",
+    notes: [
+      {
+        type: "info",
+        text: "Oh My Pi reads custom OpenAI-compatible providers from ~/.omp/agent/models.yml. OmniRoute adds itself as a provider with auto-discovery — models appear automatically in omp's /model menu.",
+      },
+      {
+        type: "warning",
+        text: "Config path: Linux/macOS ~/.omp/agent/models.yml • Windows %USERPROFILE%\\.omp\\agent\\models.yml",
+      },
+    ],
+  },
+  pi: {
+    id: "pi",
+    name: "Pi",
+    image: "/providers/pi.svg",
+    color: "#111111",
+    description: "Pi terminal coding harness via OmniRoute",
+    docsUrl: "https://pi.dev",
+    configType: "custom",
+    category: "agent",
+    vendor: "OSS",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    defaultCommand: "pi",
+    notes: [
+      {
+        type: "info",
+        text: "Pi reads custom OpenAI-compatible providers from ~/.pi/agent/models.json. Add OmniRoute there, then select the OmniRoute model from Pi's /model menu.",
+      },
+      {
+        type: "warning",
+        text: "Config path: Linux/macOS ~/.pi/agent/models.json • Windows %USERPROFILE%\\.pi\\agent\\models.json",
+      },
+    ],
+    guideSteps: [
+      { step: 1, title: "Install Pi", desc: "npm install -g @earendil-works/pi-coding-agent" },
+      { step: 2, title: "API Key", type: "apiKeySelector" },
+      { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      { step: 4, title: "Select Model", type: "modelSelector" },
+      {
+        step: 5,
+        title: "Save Config",
+        desc: "Copy the JSON below to ~/.pi/agent/models.json, then run pi and choose the model with /model.",
+      },
+    ],
+    codeBlock: {
+      language: "json",
+      code: `{\n  "providers": {\n    "omniroute": {\n      "baseUrl": "{{baseUrl}}",\n      "api": "openai-completions",\n      "apiKey": "{{apiKey}}",\n      "authHeader": true,\n      "models": [\n        {\n          "id": "{{model}}",\n          "name": "{{model}} via OmniRoute",\n          "reasoning": true,\n          "input": ["text", "image"],\n          "contextWindow": 200000,\n          "maxTokens": 32000\n        }\n      ]\n    }\n  }\n}`,
+    },
+  },
+  letta: {
+    id: "letta",
+    name: "Letta CLI",
+    image: "/providers/letta.png",
+    color: "#FF6B35",
+    description: "Letta CLI — AI agent with persistent memory and tool use",
+    configType: "custom",
+    category: "agent",
+    vendor: "Letta",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    docsUrl: "https://docs.letta.com",
+    notes: [
+      {
+        type: "info",
+        text: "Letta CLI uses pi-ai which sends OpenAI-compatible requests. OmniRoute configures it as an OpenAI provider with custom base URL.",
+      },
+      {
+        type: "info",
+        text: "CLI (Local Mode): OmniRoute auto-configures ~/.letta/lc-local-backend/providers/auth.json. Use 'letta --info' to check if local mode is enabled.",
+      },
+      {
+        type: "warning",
+        text: "Local mode config path: ~/.letta/lc-local-backend/providers/auth.json (CLI only)",
+      },
     ],
   },
 };

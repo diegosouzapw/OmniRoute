@@ -2161,7 +2161,8 @@
       "amp": "Sourcegraph Amp coding assistant CLI",
       "hermes": "Hermes AI Terminal Assistant",
       "hermes-agent": "Hermes Agent (by Nousresearch) - Advanced terminal AI with multi-model support (delegation, vision, compression, etc.)",
-      "custom": "Generic OpenAI-compatible CLI or SDK configuration generator"
+      "custom": "Generic OpenAI-compatible CLI or SDK configuration generator",
+      "jcode": "jcode terminal coding agent — OpenAI-compatible CLI by 1jehuang"
     },
     "guides": {
       "cursor": {
