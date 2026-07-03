@@ -166,3 +166,200 @@ test("a 200/benign status with no exhaustion mutates nothing and returns false",
     0
   );
 });
+
+test("does NOT mark provider exhausted for per-model-quota providers (different model)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target({ provider: "gemini" }), {
+    ...baseOpts,
+    result: { status: 429 },
+    fallbackResult: { reason: "quota_exhausted" },
+    errorText: "quota exceeded for model gpt-4",
+    sets: s,
+  });
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedProviders.has("gemini"), false);
+  assert.ok(s.transientRateLimitedProviders.has("gemini"));
+});
+
+test("does NOT mark provider exhausted for empty provider strings", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target({ provider: "" }), {
+    ...baseOpts,
+    result: { status: 503 },
+    fallbackResult: { error: { code: "quota_exhausted" } },
+    errorText: "quota exhausted",
+    allAccountsRateLimited: true,
+    sets: s,
+  });
+  assert.equal(exhausted, false);
+});
+
+test("does NOT mark transientRateLimited on 429 when isTokenLimitBreach is true", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 429 },
+    fallbackResult: {},
+    errorText: "Token limit exceeded",
+    isTokenLimitBreach: true,
+    sets: s,
+  });
+  assert.equal(exhausted, false);
+  assert.equal(s.transientRateLimitedProviders.has("test-dedup-provider"), false);
+  assert.equal(s.exhaustedProviders.has("test-dedup-provider"), false);
+});
+
+test("does NOT mark anything for circuit-open (X-OmniRoute-Provider-Breaker header)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 503, headers: new Map([["x-omniroute-provider-breaker", "open"]]) },
+    fallbackResult: {},
+    errorText: "",
+    sets: s,
+  });
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedProviders.has("test-dedup-provider"), false);
+  assert.equal(s.exhaustedConnections.has("test-dedup-provider:conn-1"), false);
+  assert.equal(s.transientRateLimitedProviders.has("test-dedup-provider"), false);
+});
+
+test("does NOT mark exhaustion for non-connection-level status codes (400)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 400 },
+    fallbackResult: {},
+    errorText: "Bad Request",
+    sets: s,
+  });
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedConnections.size, 0);
+  assert.equal(s.exhaustedProviders.size, 0);
+  assert.equal(s.transientRateLimitedProviders.size, 0);
+});
+
+test("does NOT mark connection exhausted for per-model-quota provider on 500 (gemini model-level error)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(
+    target({ provider: "gemini", connectionId: "gemini-conn-1" }),
+    {
+      ...baseOpts,
+      result: { status: 500 },
+      fallbackResult: {},
+      errorText: "Internal error encountered.",
+      rawModel: "gemma-4-31b-it",
+      sets: s,
+    }
+  );
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedProviders.has("gemini"), false);
+  assert.equal(s.exhaustedConnections.has("gemini:gemini-conn-1"), false);
+  assert.equal(s.transientRateLimitedProviders.has("gemini"), false);
+});
+
+// Sanitized Gemini 500 response — model-level "Internal error encountered" should NOT exhaust
+// the connection, allowing sibling models on the same provider to be tried.
+test("gemini 500 INTERNAL (sanitized real response) does NOT exhaust connection — sibling retry", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(
+    target({ provider: "gemini", connectionId: "gemini-key-abc" }),
+    {
+      ...baseOpts,
+      result: { status: 500 },
+      fallbackResult: {},
+      errorText: "Internal error encountered.",
+      rawModel: "gemma-4-31b-it",
+      structuredError: { code: 500, status: "INTERNAL", message: "Internal error encountered." },
+      sets: s,
+    }
+  );
+  assert.equal(exhausted, false, "providerExhausted must be false");
+  assert.equal(s.exhaustedProviders.has("gemini"), false, "must not exhaust provider");
+  assert.equal(
+    s.exhaustedConnections.has("gemini:gemini-key-abc"),
+    false,
+    "must not exhaust connection — sibling model may succeed"
+  );
+  assert.equal(s.transientRateLimitedProviders.has("gemini"), false);
+});
+
+// Non-500 connection-level errors MUST exhaust the connection even for per-model-quota providers.
+// A 503 (Service Unavailable) means the upstream is down — retrying sibling models wastes calls.
+test("gemini 503 DOES exhaust connection (upstream down, not model-level)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(
+    target({ provider: "gemini", connectionId: "gemini-key-abc" }),
+    {
+      ...baseOpts,
+      result: { status: 503 },
+      fallbackResult: {},
+      errorText: "The service is currently unavailable.",
+      rawModel: "gemma-4-31b-it",
+      sets: s,
+    }
+  );
+  assert.equal(exhausted, false, "providerExhausted is false (not quota)");
+  assert.equal(
+    s.exhaustedConnections.has("gemini:gemini-key-abc"),
+    true,
+    "503 must exhaust connection — upstream is down"
+  );
+  assert.equal(s.exhaustedProviders.size, 0);
+});
+
+test("gemini 502 DOES exhaust connection (bad gateway)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(
+    target({ provider: "gemini", connectionId: "gemini-key-abc" }),
+    {
+      ...baseOpts,
+      result: { status: 502 },
+      fallbackResult: {},
+      errorText: "Bad Gateway",
+      rawModel: "gemma-4-31b-it",
+      sets: s,
+    }
+  );
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedConnections.has("gemini:gemini-key-abc"), true);
+});
+
+test("gemini 504 DOES exhaust connection (gateway timeout)", () => {
+  const s = sets();
+  applyComboTargetExhaustion(target({ provider: "gemini", connectionId: "gemini-key-abc" }), {
+    ...baseOpts,
+    result: { status: 504 },
+    fallbackResult: {},
+    errorText: "Gateway Timeout",
+    rawModel: "gemini-2.0-flash",
+    sets: s,
+  });
+  assert.equal(s.exhaustedConnections.has("gemini:gemini-key-abc"), true);
+});
+
+test("gemini 408 DOES exhaust connection (request timeout)", () => {
+  const s = sets();
+  applyComboTargetExhaustion(target({ provider: "gemini", connectionId: "gemini-key-abc" }), {
+    ...baseOpts,
+    result: { status: 408 },
+    fallbackResult: {},
+    errorText: "Request Timeout",
+    rawModel: "gemini-2.0-flash",
+    sets: s,
+  });
+  assert.equal(s.exhaustedConnections.has("gemini:gemini-key-abc"), true);
+});
+
+test("gemini 524 DOES exhaust connection (cloudflare timeout)", () => {
+  const s = sets();
+  applyComboTargetExhaustion(target({ provider: "gemini", connectionId: "gemini-key-abc" }), {
+    ...baseOpts,
+    result: { status: 524 },
+    fallbackResult: {},
+    errorText: "A Timeout Occurred",
+    rawModel: "gemini-2.0-flash",
+    sets: s,
+  });
+  assert.equal(s.exhaustedConnections.has("gemini:gemini-key-abc"), true);
+});

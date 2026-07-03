@@ -675,7 +675,7 @@ test("Kimi Web: targets www.kimi.com (international)", async () => {
     const executor = new KimiWebExecutor();
     const result = await executor.execute({
       ...noopExecuteInput,
-      model: "kimi-default",
+      model: "k2d6",
       credentials: { apiKey: "kimi-auth=eyJ.eyJzdWI.signature" },
     });
     assert.ok(result.response instanceof Response);
@@ -695,7 +695,7 @@ test("Kimi Web: missing JWT returns a 400 before fetching", async () => {
   const executor = new KimiWebExecutor();
   const result = await executor.execute({
     ...noopExecuteInput,
-    model: "kimi-default",
+    model: "k2d6",
     credentials: { apiKey: "" },
   });
   assert.equal(result.response.status, 400);
@@ -707,7 +707,7 @@ test("Kimi Web: error response returns error result", async () => {
     const executor = new KimiWebExecutor();
     const result = await executor.execute({
       ...noopExecuteInput,
-      model: "kimi-default",
+      model: "k2d6",
       credentials: { apiKey: "kimi-auth=eyJ.eyJzdWI.signature" },
     });
     assert.ok(result.response instanceof Response);

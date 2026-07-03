@@ -75,15 +75,20 @@ const MODEL_FAMILIES: Record<string, string[]> = {
 
   // Claude Mythos family (Fable 5) — flagship falls to the next-best Opus
   // tiers before the cheaper Sonnet, matching the Opus family ordering.
-  "claude-fable-5": ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-4-6"],
+  "claude-fable-5": ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-5"],
 
   // Claude Opus family
-  "claude-opus-4-8": ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6"],
-  "claude-opus-4-7": ["claude-opus-4-6", "claude-opus-4-5-20251101", "claude-sonnet-4-6"],
-  "claude-opus-4-6": ["claude-opus-4-6-thinking", "claude-opus-4-5-20251101", "claude-sonnet-4-6"],
+  "claude-opus-4-8": ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-5"],
+  "claude-opus-4-7": ["claude-opus-4-6", "claude-opus-4-5-20251101", "claude-sonnet-5"],
+  "claude-opus-4-6": ["claude-opus-4-6-thinking", "claude-opus-4-5-20251101", "claude-sonnet-5"],
   "claude-opus-4-6-thinking": ["claude-opus-4-6", "claude-opus-4-5-20251101"],
 
-  // Claude Sonnet family
+  // Claude Sonnet family — Sonnet 5 is the newest tier; degrade to 4.6 → 4.5 → 4.
+  "claude-sonnet-5": [
+    "claude-sonnet-4-6",
+    "claude-sonnet-4-5-20250929",
+    "claude-sonnet-4-20250514",
+  ],
   "claude-sonnet-4-6": ["claude-sonnet-4-5-20250929", "claude-sonnet-4-20250514"],
   "claude-sonnet-4-5-20250929": ["claude-sonnet-4-6", "claude-sonnet-4-20250514"],
 

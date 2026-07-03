@@ -893,11 +893,13 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
   });
   assert.match(qwen.message, /Usage tracked per request/i);
 
+  // Qoder now reads its PAT from `apiKey` (not `accessToken`); with no PAT the
+  // usage fetcher returns a friendly prompt instead of hitting the network.
   const qoder: any = await usageService.getUsageForProvider({
     provider: "qoder",
     accessToken: "qoder-token",
   });
-  assert.match(qoder.message, /Usage tracked per request/i);
+  assert.match(qoder.message, /Personal Access Token/i);
 
   const glmMissingKey: any = await usageService.getUsageForProvider({
     provider: "glm",
@@ -1019,6 +1021,39 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
       }),
     /Invalid API key/
   );
+});
+
+test("GLM usage maps unit=6 one-week token limits to the weekly quota window", async () => {
+  const resetAtMs = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        data: {
+          planName: "Pro Plan",
+          limits: [
+            {
+              type: "TOKENS_LIMIT",
+              unit: 6,
+              number: 1,
+              percentage: "100",
+              nextResetTime: resetAtMs,
+            },
+          ],
+        },
+      }),
+      { status: 200 }
+    );
+
+  const usage: any = await usageService.getUsageForProvider({
+    provider: "glm",
+    apiKey: "glm-weekly-key",
+  });
+
+  assert.ok(usage.quotas.weekly, "unit=6/number=1 should be treated as weekly quota");
+  assert.equal(usage.quotas.weekly.used, 100);
+  assert.equal(usage.quotas.weekly.remaining, 0);
+  assert.equal(usage.quotas.weekly.resetAt, new Date(resetAtMs).toISOString());
+  assert.equal(usage.quotas.session, undefined);
 });
 
 test("usage service covers MiniMax usage parsing, documented endpoint fallback and auth errors", async () => {
