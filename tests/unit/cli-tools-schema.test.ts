@@ -1,12 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-test("CLI_TOOLS registry contains all expected tools (plan 14 — 28 total + crush)", async () => {
+test("CLI_TOOLS registry contains all expected tools (plan 14 — 30 total + crush + codewhale)", async () => {
   const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
   // windsurf and amp removed per plan 14 D17 (MITM backlog plan 11)
   // New entries added: roo, jcode, deepseek-tui, smelt, pi, aider, forge,
   //   cursor-cli, goose, interpreter, warp, agent-deck (+ hermes-agent already existed)
   // crush added — ported from upstream decolua/9router#1233
+  // codewhale added 2026-07-02 as a dual entry alongside deepseek-tui
+  //   (CodeWhale is the actively-maintained successor to DeepSeek TUI).
   const expected = [
     "claude",
     "codex",
@@ -30,6 +32,7 @@ test("CLI_TOOLS registry contains all expected tools (plan 14 — 28 total + cru
     "roo",
     "jcode",
     "deepseek-tui",
+    "codewhale",
     "smelt",
     "pi",
     "goose",
