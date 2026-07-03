@@ -57,24 +57,17 @@ const KNOWN_PNGS = new Set([
   "aimlapi",
   "anthropic-m",
   "blackbox",
-  "claude",
-  "continue",
-  "copilot",
-  "cursor",
-  "deepgram",
   "ironclaw",
   "kie",
   "nanobot",
   "oai-cc",
   "oai-r",
-  "openclaw",
   "zeroclaw",
   "adapta-web",
   "blackbox-web",
   "cliproxyapi",
   "empower",
   "gigachat",
-  "heroku",
   "lemonade",
   "linkup-search",
   "llamafile",
@@ -82,12 +75,14 @@ const KNOWN_PNGS = new Set([
   "maritalk",
   "nanogpt",
   "nscale",
-  "ovhcloud",
   "piapi",
   "predibase",
   "reka",
 ]);
 const KNOWN_SVGS = new Set([
+  "claude",
+  "copilot",
+  "openclaw",
   "apikey",
   "bazaarlink",
   "brave",
@@ -129,6 +124,11 @@ const KNOWN_SVGS = new Set([
   "synthetic",
   "wandb",
   "youcom-search",
+  "continue",
+  "cursor",
+  "deepgram",
+  "heroku",
+  "ovhcloud",
 ]);
 
 const ProviderIcon = memo(function ProviderIcon({
@@ -151,17 +151,23 @@ const ProviderIcon = memo(function ProviderIcon({
   const [remoteSrcFailed, setRemoteSrcFailed] = useState(false);
   const pngKey = `${normalizedId}:png`;
   const svgKey = `${normalizedId}:svg`;
-  const usePng = !lobeIcon && hasPng && !failedAssets[pngKey];
-  const useSvg = !lobeIcon && hasSvg && !failedAssets[svgKey] && (!hasPng || failedAssets[pngKey]);
+  const theSvgKey = `${normalizedId}:thesvg`;
 
   const trimmedSrc = typeof src === "string" ? src.trim() : "";
+  const useSvg = hasSvg && !failedAssets[svgKey];
+  const useLobeIcon = !useSvg && !!lobeIcon;
+  const usePng = !useSvg && !useLobeIcon && hasPng && !failedAssets[pngKey];
+  const useTheSvg = !useSvg && !useLobeIcon && !usePng && !failedAssets[theSvgKey];
 
   // #2166: a custom remote icon URL always wins over the @lobehub/static resolution
   // below. It is a plain <img> (not next/image) so operators can point at any host
   // without requiring `images.remotePatterns` allow-listing for arbitrary domains.
   if (trimmedSrc && !remoteSrcFailed) {
     return (
-      <span className={className} style={{ display: "inline-flex", alignItems: "center", ...style }}>
+      <span
+        className={className}
+        style={{ display: "inline-flex", alignItems: "center", ...style }}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element -- operator-supplied remote URL, not a static/known asset */}
         <img
           src={trimmedSrc}
@@ -197,7 +203,26 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  if (lobeIcon) {
+  if (useSvg) {
+    return (
+      <span
+        className={className}
+        style={{ display: "inline-flex", alignItems: "center", ...style }}
+      >
+        <Image
+          src={`/providers/${normalizedId}.svg`}
+          alt={providerId}
+          width={size}
+          height={size}
+          style={{ objectFit: "contain" }}
+          onError={() => setFailedAssets((current) => ({ ...current, [svgKey]: true }))}
+          unoptimized
+        />
+      </span>
+    );
+  }
+
+  if (useLobeIcon) {
     return (
       <span
         className={className}
@@ -233,20 +258,20 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  if (useSvg) {
+  if (useTheSvg) {
     return (
       <span
         className={className}
         style={{ display: "inline-flex", alignItems: "center", ...style }}
       >
-        <Image
-          src={`/providers/${normalizedId}.svg`}
+        {/* eslint-disable-next-line @next/next/no-img-element -- external SVG from thesvg.org, not a static/known asset */}
+        <img
+          src={`https://thesvg.org/icons/${normalizedId}/default.svg`}
           alt={providerId}
           width={size}
           height={size}
-          style={{ objectFit: "contain" }}
-          onError={() => setFailedAssets((current) => ({ ...current, [svgKey]: true }))}
-          unoptimized
+          style={{ objectFit: "contain", flex: "none" }}
+          onError={() => setFailedAssets((current) => ({ ...current, [theSvgKey]: true }))}
         />
       </span>
     );
