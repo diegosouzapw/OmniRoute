@@ -1,13 +1,16 @@
-// Tool-call emulation helpers for the ChatGPT Web executor (#5240).
+// Tool-call emulation helpers for web-cookie executors (#5240, #5927).
 //
-// chatgpt.com has no native function calling. When the OpenAI request carries
-// `tools`, the prompt-side shim (`prepareToolMessages` in
-// ../translator/webTools.ts) injects a `<tool>` contract; on the response side
-// we parse `<tool>{...}</tool>` blocks back into OpenAI `tool_calls` —
-// mirroring the sibling web-session executors (qwen-web, perplexity-web, ...).
+// Web-cookie providers (chatgpt-web, perplexity-web, ...) have no native
+// function calling. When the OpenAI request carries `tools`, the prompt-side
+// shim (`prepareToolMessages` in ../translator/webTools.ts) injects a `<tool>`
+// contract; on the response side we parse `<tool>{...}</tool>` blocks back
+// into OpenAI `tool_calls`.
 //
-// The whole tool-mode orchestration lives here so the (frozen) chatgpt-web.ts
-// only gains an import + a single delegating call.
+// The whole tool-mode orchestration lives here — provider-agnostic — so each
+// (frozen) executor only gains an import + a single delegating call. Despite
+// the filename (kept for git-blame continuity from #5240, the first caller),
+// this module is shared: `buildToolModeResponse()` accepts an `idSeed` so
+// every provider gets its own `tool_calls[].id` prefix.
 
 import { buildToolAwareResult } from "../translator/webTools.ts";
 
@@ -28,7 +31,8 @@ function sseChunk(data: unknown): string {
  */
 async function applyToolCallsToJsonResponse(
   response: Response,
-  requestedTools: unknown
+  requestedTools: unknown,
+  idSeed: string
 ): Promise<Response> {
   const bodyText = await response.text();
   try {
@@ -37,7 +41,7 @@ async function applyToolCallsToJsonResponse(
     const { content, toolCalls, finishReason } = buildToolAwareResult(
       rawContent,
       requestedTools,
-      "cgpt"
+      idSeed
     );
     if (toolCalls) {
       json.choices[0].message = { role: "assistant", content: null, tool_calls: toolCalls };
@@ -107,9 +111,13 @@ export async function buildToolModeResponse(
   bufferedJson: Response,
   requestedTools: unknown,
   stream: boolean,
-  meta: { cid: string; created: number; model: string }
+  meta: { cid: string; created: number; model: string; idSeed?: string }
 ): Promise<Response> {
-  const jsonResponse = await applyToolCallsToJsonResponse(bufferedJson, requestedTools);
+  const jsonResponse = await applyToolCallsToJsonResponse(
+    bufferedJson,
+    requestedTools,
+    meta.idSeed ?? "cgpt"
+  );
   if (!stream) return jsonResponse;
   const completion = await jsonResponse.json();
   return new Response(toolCompletionToSseStream(completion, meta.cid, meta.created, meta.model), {

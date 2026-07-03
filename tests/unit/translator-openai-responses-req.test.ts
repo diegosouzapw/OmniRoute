@@ -393,6 +393,81 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
   assert.equal((result as any).top_p, 0.9);
 });
 
+test("Chat -> Responses converts json_schema response_format to text.format", () => {
+  const schema = {
+    type: "object",
+    additionalProperties: false,
+    properties: { answer: { type: "string" } },
+    required: ["answer"],
+  };
+
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2-codex",
+    {
+      messages: [{ role: "user", content: "Return the answer as JSON" }],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "answer_schema",
+          description: "A structured answer",
+          strict: true,
+          schema,
+        },
+      },
+    },
+    false,
+    null
+  ) as any;
+
+  assert.deepEqual(result.text, {
+    format: {
+      type: "json_schema",
+      name: "answer_schema",
+      description: "A structured answer",
+      strict: true,
+      schema,
+    },
+  });
+  assert.equal(result.response_format, undefined);
+});
+
+test("Chat -> Responses uses response_format over nonstandard chat text.format", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2-codex",
+    {
+      messages: [{ role: "user", content: "Return JSON" }],
+      text: {
+        format: { type: "json_schema", name: "nonstandard", schema: { type: "object" } },
+        verbosity: "low",
+      },
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "chat", schema: { type: "object", properties: {} } },
+      },
+    },
+    false,
+    null
+  ) as any;
+
+  assert.deepEqual(result.text, {
+    format: { type: "json_schema", name: "chat", schema: { type: "object", properties: {} } },
+  });
+});
+
+test("Chat -> Responses ignores nonstandard chat text.format without response_format", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.2-codex",
+    {
+      messages: [{ role: "user", content: "Return JSON" }],
+      text: { format: { type: "json_schema", name: "nonstandard", schema: { type: "object" } } },
+    },
+    false,
+    null
+  ) as any;
+
+  assert.equal(result.text, undefined);
+});
+
 test("Responses round-trip preserves store and previous_response_id when opt-in is enabled", () => {
   const credentials = {
     providerSpecificData: {

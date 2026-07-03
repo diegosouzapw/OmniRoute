@@ -154,6 +154,74 @@ test("Antigravity -> OpenAI returns tool messages when content contains only fun
   ]);
 });
 
+test("Antigravity -> OpenAI keeps co-located function response, function call and text", () => {
+  const result = antigravityToOpenAIRequest(
+    "gpt-4o",
+    {
+      request: {
+        contents: [
+          {
+            role: "model",
+            parts: [
+              { text: "Let me look that up." },
+              { functionResponse: { id: "call_9", name: "lookup", response: { result: { ok: true } } } },
+              { functionCall: { id: "call_10", name: "lookup", args: { q: "weather" } } },
+            ],
+          },
+        ],
+      },
+    },
+    false
+  );
+
+  // Both the tool-result message AND the accompanying assistant message must survive.
+  const toolMsg = result.messages.find((m) => m.role === "tool");
+  const assistantMsg = result.messages.find((m) => m.role === "assistant");
+  assert.ok(toolMsg, "expected a role:tool message");
+  assert.equal(toolMsg.tool_call_id, "call_9");
+  assert.ok(assistantMsg, "expected a role:assistant message");
+  assert.equal(assistantMsg.content, "Let me look that up.");
+  assert.deepEqual(assistantMsg.tool_calls, [
+    {
+      id: "call_10",
+      type: "function",
+      function: { name: "lookup", arguments: '{"q":"weather"}' },
+    },
+  ]);
+});
+
+test("Antigravity -> OpenAI drops empty thoughtSignature text instead of emitting empty content", () => {
+  const result = antigravityToOpenAIRequest(
+    "gpt-4o",
+    {
+      request: {
+        contents: [
+          {
+            role: "model",
+            parts: [
+              { thoughtSignature: "sig", text: "" },
+              { functionCall: { id: "call_11", name: "noop", args: {} } },
+            ],
+          },
+        ],
+      },
+    },
+    false
+  );
+
+  const assistantMsg = result.messages.find((m) => m.role === "assistant");
+  assert.ok(assistantMsg, "expected a role:assistant message");
+  // No empty content block should be emitted (Anthropic rejects it with a 400).
+  assert.equal("content" in assistantMsg, false);
+  assert.deepEqual(assistantMsg.tool_calls, [
+    {
+      id: "call_11",
+      type: "function",
+      function: { name: "noop", arguments: "{}" },
+    },
+  ]);
+});
+
 test("Antigravity -> OpenAI lowers schema types recursively", () => {
   const result = antigravityToOpenAIRequest(
     "gpt-4o",

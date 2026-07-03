@@ -56,7 +56,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { name, prefix, apiType, baseUrl, chatPath, modelsPath, customHeaders } = validation.data;
+    const { name, prefix, apiType, baseUrl, chatPath, modelsPath, customHeaders, iconUrl } =
+      validation.data;
     const node: any = await getProviderNodeById(id);
 
     if (!node) {
@@ -93,6 +94,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       baseUrl: sanitizedBaseUrl,
       chatPath: chatPath || null,
       modelsPath: isClaudeCodeCompatibleProvider(id) ? null : modelsPath || null,
+      // #2166: explicit null (not omission) so an empty submission clears a
+      // previously stored custom icon.
+      iconUrl: iconUrl?.trim() || null,
       customHeaders: customHeaders || null,
     };
 

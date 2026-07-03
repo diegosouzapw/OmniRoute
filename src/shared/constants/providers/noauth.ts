@@ -100,4 +100,24 @@ export const NOAUTH_PROVIDERS = {
       text: "MiMoCode uses Xiaomi's public free AI endpoint with bootstrap-based JWT authentication. No signup needed. Rate limits apply.",
     },
   },
+  auggie: {
+    id: "auggie",
+    alias: "aug",
+    name: "Augment (Auggie CLI)",
+    icon: "terminal",
+    color: "#7C3AED",
+    textIcon: "AU",
+    website: "https://augmentcode.com",
+    noAuth: true,
+    hasFree: false,
+    serviceKinds: ["llm"],
+    isLocalCli: true,
+    freeNote:
+      "Local passthrough — runs the Augment CLI (`auggie`) on this machine. Auth is handled by `auggie login`, not OmniRoute.",
+    authHint:
+      "No API key stored by OmniRoute. Install the Auggie CLI and run `auggie login` on this machine, then OmniRoute spawns it locally for each request.",
+    notice: {
+      text: "Augment (Auggie CLI) requires the `auggie` binary installed and authenticated locally (`auggie login`). OmniRoute spawns it as a subprocess and never sees or stores your Augment credentials.",
+    },
+  },
 };

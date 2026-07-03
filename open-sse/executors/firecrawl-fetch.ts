@@ -6,13 +6,37 @@
  *
  * Free tier: 500 fetches/month, no credit card required.
  * Docs: https://docs.firecrawl.dev/api-reference/endpoint/scrape
+ *
+ * Self-hosted: set FIRECRAWL_BASE_URL to point at a self-hosted Firecrawl
+ * instance (e.g. http://127.0.0.1:3002). The API key is only required against
+ * the default cloud base URL — self-hosted instances typically run with no
+ * auth in front of them, so credentials.apiKey becomes optional in that case.
  */
 
 import { sanitizeErrorMessage, buildErrorBody } from "../utils/error.ts";
 import type { WebFetchResult, WebFetchFormat, WebFetchCredentials } from "../handlers/webFetch.ts";
 
-const FIRECRAWL_API_BASE = "https://api.firecrawl.dev/v1";
-const FIRECRAWL_TIMEOUT_MS = 30_000;
+const FIRECRAWL_DEFAULT_BASE_URL = "https://api.firecrawl.dev";
+const FIRECRAWL_DEFAULT_TIMEOUT_MS = 30_000;
+
+/** Resolve the configured Firecrawl base URL, falling back to the public cloud API. */
+function getFirecrawlBaseUrl(): string {
+  const envBase = process.env.FIRECRAWL_BASE_URL?.trim();
+  return envBase ? envBase.replace(/\/+$/, "") : FIRECRAWL_DEFAULT_BASE_URL;
+}
+
+/** Whether the given base URL is the default Firecrawl cloud endpoint. */
+function isDefaultFirecrawlBaseUrl(baseUrl: string): boolean {
+  return baseUrl === FIRECRAWL_DEFAULT_BASE_URL;
+}
+
+/** Resolve the configured request timeout, falling back to a sane default. */
+function getFirecrawlTimeoutMs(): number {
+  const raw = process.env.FIRECRAWL_TIMEOUT_MS;
+  if (!raw) return FIRECRAWL_DEFAULT_TIMEOUT_MS;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : FIRECRAWL_DEFAULT_TIMEOUT_MS;
+}
 
 function mapFormat(format: WebFetchFormat): string {
   switch (format) {
@@ -43,7 +67,12 @@ interface FirecrawlScrapeOptions {
 export async function firecrawlFetch(opts: FirecrawlScrapeOptions): Promise<WebFetchResult> {
   const { url, format, depth, waitForSelector, includeMetadata, credentials } = opts;
 
-  if (!credentials.apiKey) {
+  const baseUrl = getFirecrawlBaseUrl();
+  const isDefaultBaseUrl = isDefaultFirecrawlBaseUrl(baseUrl);
+
+  // The API key is mandatory for the public Firecrawl cloud API, but optional
+  // once a custom (self-hosted) base URL is configured.
+  if (isDefaultBaseUrl && !credentials.apiKey) {
     const body = buildErrorBody(401, "Firecrawl API key required");
     return { success: false, status: 401, error: body.error.message };
   }
@@ -71,15 +100,17 @@ export async function firecrawlFetch(opts: FirecrawlScrapeOptions): Promise<WebF
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), FIRECRAWL_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), getFirecrawlTimeoutMs());
 
   try {
-    const response = await fetch(`${FIRECRAWL_API_BASE}/scrape`, {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (credentials.apiKey) {
+      headers.Authorization = `Bearer ${credentials.apiKey}`;
+    }
+
+    const response = await fetch(`${baseUrl}/v1/scrape`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${credentials.apiKey}`,
-      },
+      headers,
       body: JSON.stringify(requestBody),
       signal: controller.signal,
     });

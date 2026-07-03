@@ -96,10 +96,10 @@ export function getErrorMessage(
 }
 
 async function handleResponse(response: Response) {
-  const data = await response.json();
+  const data = await parseResponseBody(response);
 
   if (!response.ok) {
-    const error: any = new Error(data.error || "An error occurred");
+    const error: any = new Error(getErrorMessage(data, response.status, "An error occurred"));
     error.status = response.status;
     error.data = data;
     throw error;

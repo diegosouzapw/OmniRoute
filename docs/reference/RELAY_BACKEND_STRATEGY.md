@@ -75,3 +75,10 @@ For sustained high RPM/RPS and strict success SLO:
 - `BIFROST_ENABLED=1`
 - Keep API keys, allowlist, sanitizer, and rate-limit checks enabled in route handlers (they always run before downstream forwarding).
 - Export fallback metrics from your reverse proxy and request logs so sidecar outages are visible within one minute.
+
+## Provider plugin contract
+
+Sidecars should import provider metadata through the JSON-safe provider plugin
+manifest instead of depending on TypeScript executor internals. See
+[Provider Plugin Manifest](./PROVIDER_PLUGIN_MANIFEST.md) for the sidecar
+eligibility contract and migration phases.

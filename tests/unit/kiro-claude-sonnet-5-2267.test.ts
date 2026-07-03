@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 
 import { kiroProvider } from "../../open-sse/config/providers/registry/kiro/index.ts";
 
-// Regression for the port of decolua/9router#2267 ("claude-sonnet-5 is not supported").
+const { getNextFamilyFallback } = await import("../../open-sse/services/modelFamilyFallback.ts");
+
+// Regression for the port of decolua/9router#2267 ("claude-sonnet-5 is not supported"),
+// upstream PR diegosouzapw/OmniRoute#5796.
 //
 // The Kiro provider's OAuth model catalog lives in `registry/kiro/index.ts` `models[]`.
 // That list is both the model selector's source and the fallback for the live
@@ -27,4 +30,13 @@ test("kiro claude-sonnet-5 declares the 1M-context / 128K-output capability", ()
   assert.equal(sonnet5.name, "Claude Sonnet 5");
   assert.equal(sonnet5.contextLength, 1000000);
   assert.equal(sonnet5.maxOutputTokens, 128000);
+});
+
+test("claude-sonnet-5 degrades to the Sonnet family, not Opus", () => {
+  // Sonnet 5 is Sonnet-tier: its first fallback must be a cheaper Sonnet, never an Opus.
+  const next = getNextFamilyFallback("kiro/claude-sonnet-5", new Set(["kiro/claude-sonnet-5"]));
+  assert.ok(
+    next && /claude-sonnet-4/.test(next),
+    `expected claude-sonnet-5 to fall back within the Sonnet family, got: ${next}`
+  );
 });

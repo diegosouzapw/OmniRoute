@@ -42,6 +42,20 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint.",
     apiHint: "Create or copy an API key from Command Code, then paste it here as a Bearer token.",
   },
+  clinepass: {
+    id: "clinepass",
+    alias: "clinepass",
+    name: "ClinePass",
+    icon: "vpn_key",
+    color: "#5B9BD5",
+    textIcon: "CP",
+    passthroughModels: true,
+    website: "https://cline.bot",
+    notice: {
+      text: "ClinePass is Cline's paid BYOK gateway ($9.99/mo). Bring your own Cline API key; requests hit api.cline.bot with the cline-pass/* model namespace.",
+      apiKeyUrl: "https://app.cline.bot/settings/api-keys",
+    },
+  },
   openrouter: {
     id: "openrouter",
     alias: "openrouter",
@@ -70,6 +84,20 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create a DGrid API key at https://dgrid.ai, then use https://api.dgrid.ai/v1 " +
       "as the OpenAI-compatible base URL.",
+  },
+  qiniu: {
+    id: "qiniu",
+    alias: "qiniu",
+    name: "Qiniu",
+    icon: "cloud",
+    color: "#1E88E5",
+    textIcon: "QN",
+    passthroughModels: true,
+    website: "https://www.qiniu.com",
+    apiHint:
+      "Create a Qiniu AI inference API key at https://portal.qiniu.com/ai-inference/api-key, " +
+      "then paste it here as a Bearer token. OpenAI-compatible endpoint " +
+      "at https://api.qnaigc.com/v1, proxying DeepSeek, Claude, Kimi and more behind one key.",
   },
   orcarouter: {
     id: "orcarouter",
@@ -391,6 +419,19 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "TB",
     website: "https://theb.ai",
     authHint: "Bearer API key for the TheB.AI OpenAI-compatible gateway.",
+    passthroughModels: true,
+  },
+  bai: {
+    id: "bai",
+    alias: "bai",
+    name: "b.ai",
+    icon: "hub",
+    color: "#6366F1",
+    textIcon: "BA",
+    website: "https://b.ai",
+    authHint:
+      "Bearer API key for the b.ai OpenAI-compatible LLM gateway (distinct from TheB.AI). " +
+      "Create a key at https://docs.b.ai, then use https://api.b.ai/v1 as the OpenAI-compatible base URL.",
     passthroughModels: true,
   },
   fenayai: {

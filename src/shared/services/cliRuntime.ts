@@ -228,6 +228,18 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".pi/config.json",
     },
   },
+  // Config path reconciled with bin/cli/commands/setup-crush.mjs::resolveCrushTarget's
+  // default (~/.config/crush/crush.json) so the dashboard and `omniroute setup-crush`
+  // agree on one canonical config location.
+  crush: {
+    defaultCommand: "crush",
+    envBinKey: "CLI_CRUSH_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".config/crush/crush.json",
+    },
+  },
 };
 
 const isWindows = () => process.platform === "win32";
