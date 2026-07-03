@@ -92,6 +92,7 @@
       "tests/unit/claude-passthrough-stream-boolean.test.ts",
       "tests/unit/claude-passthrough-thinking-2454.test.ts",
       "tests/unit/cli-simulate.test.ts",
+      "tests/unit/cline-response-envelope.test.ts",
       "tests/unit/codex-failover.test.ts",
       "tests/unit/codex-stream-false.test.ts",
       "tests/unit/collect-metrics-module-coverage.test.ts",

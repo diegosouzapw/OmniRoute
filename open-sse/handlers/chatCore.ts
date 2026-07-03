@@ -248,6 +248,7 @@ import { isCompactResponsesEndpoint } from "../executors/codex.ts";
 import { buildCodexQuotaPersistence } from "./chatCore/codexQuota.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
+import { unwrapClineNonStreamingEnvelope } from "./chatCore/clineResponseEnvelope.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
 import {
   sanitizeOpenAIResponse,
@@ -3584,6 +3585,7 @@ export async function handleChatCore({
       }
       responseBody = unwrapped;
     }
+    responseBody = unwrapClineNonStreamingEnvelope(provider, responseBody);
 
     // Check for empty content response (fake success) - trigger fallback
     if (isEmptyContentResponse(responseBody)) {

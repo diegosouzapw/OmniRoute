@@ -60,12 +60,9 @@ import { classifyWithConfig } from "./intentClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
 import { parseAutoPrefix } from "./autoCombo/autoPrefix.ts";
+import { parseAutoConfig } from "./combo/autoConfig.ts";
 import { handlePipelineCombo, buildPipelineResponse } from "./autoCombo/pipelineRouter.ts";
-import {
-  DEFAULT_WEIGHTS,
-  type ProviderCandidate,
-  type ScoringWeights,
-} from "./autoCombo/scoring.ts";
+import { type ProviderCandidate } from "./autoCombo/scoring.ts";
 import { supportsToolCalling } from "./modelCapabilities.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
@@ -179,7 +176,6 @@ import {
 } from "./combo/autoStrategy.ts";
 import {
   resolveResetWindowConfig,
-  resolveSlaRoutingPolicy,
   calculateResetWindowAffinity,
   type ResetWindowConfig,
 } from "./combo/quotaScoring.ts";
@@ -1140,41 +1136,16 @@ export async function handleComboChat({
     recordComboIntent(combo.name, intent);
     const taskType = mapIntentToTaskType(intent);
 
-    const rawAutoConfigSource =
-      combo?.autoConfig ||
-      (isRecord(combo?.config?.auto) ? combo.config.auto : null) ||
-      combo?.config ||
-      {};
-    const autoConfigSource: Record<string, unknown> = isRecord(rawAutoConfigSource)
-      ? rawAutoConfigSource
-      : {};
-    const routingStrategy =
-      typeof autoConfigSource.routerStrategy === "string"
-        ? autoConfigSource.routerStrategy
-        : typeof autoConfigSource.routingStrategy === "string"
-          ? autoConfigSource.routingStrategy
-          : typeof autoConfigSource.strategyName === "string"
-            ? autoConfigSource.strategyName
-            : "rules";
-
-    const candidatePool = Array.isArray(autoConfigSource.candidatePool)
-      ? autoConfigSource.candidatePool
-      : [...new Set(eligibleTargets.map((target) => target.provider))];
-
-    const weights =
-      autoConfigSource.weights && typeof autoConfigSource.weights === "object"
-        ? (autoConfigSource.weights as ScoringWeights)
-        : DEFAULT_WEIGHTS;
-    const explorationRate = Number.isFinite(Number(autoConfigSource.explorationRate))
-      ? Number(autoConfigSource.explorationRate)
-      : 0.05;
-    const budgetCap = Number.isFinite(Number(autoConfigSource.budgetCap))
-      ? Number(autoConfigSource.budgetCap)
-      : undefined;
-    const modePack =
-      typeof autoConfigSource.modePack === "string" ? autoConfigSource.modePack : undefined;
-    const resetWindowConfig = resolveResetWindowConfig(autoConfigSource);
-    const slaPolicy = resolveSlaRoutingPolicy(autoConfigSource);
+    const {
+      routingStrategy,
+      candidatePool,
+      weights,
+      explorationRate,
+      budgetCap,
+      modePack,
+      resetWindowConfig,
+      slaPolicy,
+    } = parseAutoConfig(combo, eligibleTargets);
 
     let lastKnownGoodProvider: string | undefined;
     try {
