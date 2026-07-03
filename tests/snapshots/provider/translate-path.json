@@ -2709,6 +2709,29 @@
       "stream": "https://api.modal.ai/v1/chat/completions"
     }
   },
+  "modelscope": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api-inference.modelscope.cn/v1/chat/completions",
+      "stream": "https://api-inference.modelscope.cn/v1/chat/completions"
+    }
+  },
   "monsterapi": {
     "format": "openai",
     "headers": {
