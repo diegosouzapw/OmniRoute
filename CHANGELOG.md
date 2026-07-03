@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **providers (Kenari):** add [Kenari](https://kenari.id), an Indonesian OpenAI-compatible AI gateway billed in Rupiah (IDR). One `kn-` API key covers the whole catalog (Claude, GPT, DeepSeek, GLM, Kimi and more); the model list stays live via the public `https://kenari.id/v1/models` catalog (`passthroughModels`). Registered as an aggregator gateway. Regression guard: `tests/unit/kenari-provider-integrity.test.ts`.
+
 ---
 
 ## [3.8.43] — 2026-07-02

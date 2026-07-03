@@ -86,6 +86,7 @@ import { klusterProvider } from "./registry/kluster/index.ts";
 import { iflytekProvider } from "./registry/iflytek/index.ts";
 import { crofProvider } from "./registry/crof/index.ts";
 import { moonshotProvider } from "./registry/moonshot/index.ts";
+import { kenariProvider } from "./registry/kenari/index.ts";
 import { bazaarlinkProvider } from "./registry/bazaarlink/index.ts";
 import { perplexityProvider } from "./registry/perplexity/index.ts";
 import { perplexity_webProvider } from "./registry/perplexity/web/index.ts";
@@ -296,6 +297,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   nanogpt: nanogptProvider,
   scaleway: scalewayProvider,
   agentrouter: agentrouterProvider,
+  kenari: kenariProvider,
   zai: zaiProvider,
   huggingchat: huggingchatProvider,
   galadriel: galadrielProvider,

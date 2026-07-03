@@ -16,6 +16,20 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     freeNote: "$200 free credits on signup - multi-model routing gateway",
     apiHint: "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
   },
+  kenari: {
+    id: "kenari",
+    alias: "kenari",
+    name: "Kenari",
+    icon: "router",
+    color: "#B5362A",
+    textIcon: "KN",
+    passthroughModels: true,
+    website: "https://kenari.id",
+    authHint:
+      "Use a kn- API key from the Kenari dashboard in Authorization: Bearer <key>. Fully OpenAI-compatible. API base URL: https://kenari.id/v1.",
+    apiHint:
+      "Kenari is an Indonesian AI gateway billed in Rupiah (IDR): one kn- key covers the whole catalog (Claude, GPT, DeepSeek, GLM, Kimi and more). OpenAI-compatible chat completions at https://kenari.id/v1/chat/completions with a public /v1/models catalog. Docs: https://kenari.id/docs, spec: https://kenari.id/openapi.json.",
+  },
   "command-code": {
     id: "command-code",
     alias: "cmd",
