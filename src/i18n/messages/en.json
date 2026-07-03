@@ -4088,6 +4088,8 @@
     "prefixHint": "Required. Unique prefix for model names.",
     "nameHint": "Required. A friendly label for this node.",
     "baseUrlHint": "Required. Provider API base URL.",
+    "iconUrlLabel": "Icon URL",
+    "iconUrlHint": "Optional. Image URL shown as this provider's icon.",
     "anthropicPrefixPlaceholder": "ac-prod",
     "openaiPrefixPlaceholder": "oc-prod",
     "anthropicBaseUrlPlaceholder": "https://api.anthropic.com/v1",
@@ -5955,6 +5957,12 @@
     "claudeFastModeModelCheckbox": "Enable Fast Mode for {model}",
     "claudeFastModeSaveError": "Failed to update Claude Fast Mode setting",
     "authz": {
+      "cors": {
+        "wildcard": {
+          "title": "CORS is open to every origin (CORS_ALLOW_ALL=true)",
+          "desc": "Any website can call this server's API from a visitor's browser. Use only on trusted networks — set explicit origins in ALLOWED_ORIGINS and disable CORS_ALLOW_ALL in production."
+        }
+      },
       "title": "Authorization Inventory",
       "description": "5-tier route classification with live bypass policy. Read shows the full taxonomy; mutations re-prompt for the management password.",
       "loading": "Loading inventory…",
