@@ -39,6 +39,8 @@
 
 - fix(providers): GitLab Duo executor now emulates OpenAI tool_calls (#6051)
 
+- **grok-cli (context-aware routing filtered out larger requests):** the `grok-cli` registry declared a 128k `contextLength` for `grok-build` and `grok-composer-2.5-fast`, below their real Grok CLI capacities, so OmniRoute's context-aware routing dropped these models for larger prompts. Updated to match the actual `/context` values — `grok-build` → 256000 (xAI-published 256k window) and `grok-composer-2.5-fast` → 200000. Registry-only; no runtime logic change. ([#5913](https://github.com/diegosouzapw/OmniRoute/pull/5913) — thanks @Chewji9875)
+
 ### 📝 Maintenance
 
 - **ci (env-doc base-red):** document `BIFROST_PORT` in `.env.example` + `docs/reference/ENVIRONMENT.md`. The Bifrost embedded-service merge referenced `process.env.BIFROST_PORT` (`src/lib/services/bootstrap.ts`, default `8080`) without documenting it, so `check:env-doc-sync` failed on the release tip — reddening the `Fast Quality Gates` job for **every** open PR→release regardless of its content. Docs-only; no runtime change.
