@@ -1052,6 +1052,17 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
     return computeDurationMs(resetsInMatch);
   }
 
+  // Monthly limit phrasing: "Monthly usage limit reached. Resets in 5 days."
+  // The day-unit variant is a separate pattern because "days" is a full word
+  // and does not compose with the h/m/s group format above.
+  const resetsInDaysMatch = /resets? in (\d+)\s+days?/i.exec(msg);
+  if (resetsInDaysMatch?.[1]) {
+    const days = Number.parseInt(resetsInDaysMatch[1], 10);
+    if (days > 0) {
+      return Math.min(days * 24 * 60 * 60 * 1000, MAX_PROVIDER_COOLDOWN_MS);
+    }
+  }
+
   return null;
 }
 
@@ -1450,9 +1461,14 @@ export function checkFallbackError(
       !isDailyQuotaExhausted(errorStr) &&
       isSubscriptionQuotaText(errorStr.toLowerCase())
     ) {
-      // getUpstreamRetryHintMs() gates both headers and body reset text on
-      // profile.useUpstreamRetryHints.
-      const hintMs = getUpstreamRetryHintMs();
+      // Always parse a body-embedded reset window (e.g. "Resets in 5 days") regardless
+      // of the useUpstreamRetryHints profile setting — a monthly-limit reset window
+      // is factual, not a server hint that could be adversarially inflated, so the
+      // operator preference should not suppress it. Fall back to getUpstreamRetryHintMs()
+      // for header-based hints, then to the 1h floor.
+      const bodyHintMs = parseRetryFromErrorText(errorStr);
+      const headerHintMs = bodyHintMs == null ? getUpstreamRetryHintMs() : null;
+      const hintMs = bodyHintMs ?? headerHintMs;
       const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
       return {
         shouldFallback: true,

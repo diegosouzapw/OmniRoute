@@ -106,6 +106,12 @@ export const ERROR_RULES: ErrorRule[] = [
     reason: "rate_limit_exceeded",
   },
   {
+    id: "usage_limit_reached",
+    text: "usage limit reached",
+    backoff: true,
+    reason: "quota_exhausted",
+  },
+  {
     id: "hour_quota_exceeded",
     text: "hour quota",
     backoff: true,
