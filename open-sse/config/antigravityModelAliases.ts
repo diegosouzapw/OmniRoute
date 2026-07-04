@@ -5,6 +5,15 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
   // `antigravity/claude-opus-4-6-thinking` and `antigravity/claude-sonnet-4-6` both work.
   // They are upstream IDs, so no alias remapping is required.
   {
+    id: "claude-sonnet-5",
+    name: "Claude Sonnet 5 (Thinking)",
+    contextLength: 200000,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
     id: "claude-opus-4-6-thinking",
     name: "Claude Opus 4.6 (Thinking)",
     contextLength: 200000,

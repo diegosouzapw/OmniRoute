@@ -2,107 +2,114 @@
 title: "Quality-Gate Maturity Re-evaluation (Fase 9)"
 ---
 
-# Reavaliação de Maturidade — pós-Ondas 0–3 (Quality-Gate v2)
+# Maturity Re-evaluation — post-Waves 0–3 (Quality-Gate v2)
 
-> **O que é este documento.** Uma re-medição da maturidade do sistema de quality-gates
-> **após** as Ondas 0–3 do programa Quality-Gate v2, comparada ao baseline registrado em
-> [`QUALITY_GATE_PLAYBOOK.md`](./QUALITY_GATE_PLAYBOOK.md) (2026-06-16). Mede o que mudou,
-> contra DSOMM L5 / OpenSSF Scorecard 9 / SLSA L3, separando o que é **CI-mensurável**
-> (já entregue / entregável por código) do que é **processo/owner** (settings de organização).
+> **What this document is.** A re-measurement of the quality-gates system maturity
+> **after** Waves 0–3 of the Quality-Gate v2 program, compared to the baseline recorded in
+> [`QUALITY_GATE_PLAYBOOK.md`](./QUALITY_GATE_PLAYBOOK.md) (2026-06-16). Measures what changed,
+> against DSOMM L5 / OpenSSF Scorecard 9 / SLSA L3, separating what is **CI-measurable**
+> (already delivered / deliverable by code) from what is **process/owner** (organization settings).
 >
-> **Data:** 2026-06-30. Gerado do estado real do repositório, não da memória.
-> **Régua:** OWASP DSOMM · OpenSSF Scorecard · SLSA · SonarQube "Clean as You Code".
+> **Date:** 2026-06-30. Generated from the actual state of the repository, not from memory.
+> **Benchmarks:** OWASP DSOMM · OpenSSF Scorecard · SLSA · SonarQube "Clean as You Code".
 
 ---
 
-## 1. Veredito atualizado
+## 1. Updated verdict
 
-**Nota geral: A− → A ("Avançado", topo ~5%).** As **duas maiores fraquezas estruturais**
-do baseline 06-16 — o *buraco fast-gates* e o *mutation-score-não-catraca* — foram **fechadas**.
-Os gaps residuais para "máximo absoluto" são quase todos **owner/infra-gated** (branch-protection,
-SLSA L3, CodeQL advanced); o lado-código do programa está essencialmente completo.
+**Overall grade: A− → A ("Advanced", top ~5%).** The **two biggest structural weaknesses**
+of the 06-16 baseline — the _fast-gates gap_ and the _mutation-score-not-a-ratchet_ — have been **closed**.
+The residual gaps for "absolute maximum" are almost all **owner/infra-gated** (branch-protection,
+SLSA L3, CodeQL advanced); the code side of the program is essentially complete.
 
-| Framework de referência | Baseline 06-16 | Agora 06-30 | Movimento | Evidência |
-| --- | --- | --- | --- | --- |
-| **OWASP DSOMM** (5 níveis) | L3→L4 | **L4** em *Test Intensity* e *Static Depth*; L3 sólido nas demais | ▲ | mutation-ratchet bloqueante + suíte determinística no gate-de-merge |
-| **OpenSSF Scorecard** | ~7–8/10 | ~7–8/10 (inalterado — gate é o **owner**) | = | falta Branch-Protection na `main` (setting do dono) + pin de actions |
-| **SLSA** | L2→L3 | **L2** (encostando em L3) | = | falta builder hermético/reprodutível (infra/owner) |
-| **SonarQube "Clean as You Code"** | Alinhado c/ ressalva | Alinhado c/ ressalva | = | ressalva de *sprawl* (~46+ gates) permanece — review de ROI pendente |
-| **Quality-Ratchet pattern** | Exemplar | **Exemplar+** | ▲ | novo `dedicatedGate` de `mutationScore` (direction up) |
-| **Mutation testing** | "Quase lá" (não-catraca) | **Catraca ativa** | ▲▲ | `check-mutation-ratchet.mjs` + baseline semeado + job nightly bloqueante |
-
----
-
-## 2. Deltas desde 2026-06-16 (o que as Ondas 0–3 entregaram)
-
-### 2.1 🔴→✅ Buraco fast-gates FECHADO (era a fraqueza estrutural #1)
-O baseline alertava: `quality.yml` (PR→`release/**`) rodava **só gates de filesystem** — sem
-typecheck, testes ou build —, então regressões determinísticas só explodiam no PR→`main`.
-**Hoje** `.github/workflows/quality.yml` roda, no job *Fast Quality Gates*: `typecheck:core`,
-**testes unitários impactados (TIA) bloqueantes com fail-safe para a suíte completa**, o
-fast-path do **vitest**, e shards de unit. O gate agora roda **onde o merge acontece** (shift-left),
-exatamente o princípio transversal que o playbook prescreve.
-
-### 2.2 🟠→✅ Mutation score virou CATRACA (era a fraqueza #3 / P0 #1)
-O antídoto mais forte contra coverage-gaming estava **advisory**. **Hoje**:
-- `scripts/check/check-mutation-ratchet.mjs` (advisory por default, `--ratchet` bloqueante, skip gracioso);
-- `config/quality/quality-baseline.json` tem entradas `mutationScore.<módulo>` semeadas (`direction: up`, `dedicatedGate`);
-- `.github/workflows/nightly-mutation.yml` tem o job **"Mutation score ratchet (blocking)"** que unifica os relatórios por-batch e ratcheteia os scores merged por-módulo.
-
-Resultado: o score de mutação por-módulo **não pode regredir** — cobertura deixou de ser vanity-metric.
-
-### 2.3 ✅ Quick-wins de gate (Fase 6A/7) entregues
-- **a11y axe-core "fake-green" corrigido:** `@axe-core/playwright` em devDeps; `a11y.spec.ts` com skip condicional `REQUIRE_AXE`; job no `nightly-resilience.yml`.
-- **complexity varre `bin/`+`electron`:** `check-complexity.mjs` inclui esses diretórios no `ESLINT_ARGS`.
-- **tracked-artifacts no pre-commit + pre-push:** `.husky/pre-commit` + `pre-push` bloqueiam artefato rastreado por engano.
+| Reference framework               | Baseline 06-16                 | Now 06-30                                                         | Movement | Evidence                                                              |
+| --------------------------------- | ------------------------------ | ----------------------------------------------------------------- | -------- | --------------------------------------------------------------------- |
+| **OWASP DSOMM** (5 levels)        | L3→L4                          | **L4** in _Test Intensity_ and _Static Depth_; solid L3 in others | ▲        | blocking mutation-ratchet + deterministic suite at merge gate         |
+| **OpenSSF Scorecard**             | ~7–8/10                        | ~7–8/10 (unchanged — gate is the **owner**)                       | =        | missing Branch-Protection on `main` (owner setting) + actions pinning |
+| **SLSA**                          | L2→L3                          | **L2** (approaching L3)                                           | =        | missing hermetic/reproducible builder (infra/owner)                   |
+| **SonarQube "Clean as You Code"** | Aligned with caveat            | Aligned with caveat                                               | =        | _sprawl_ caveat (~46+ gates) persists — ROI review pending            |
+| **Quality-Ratchet pattern**       | Exemplar                       | **Exemplar+**                                                     | ▲        | new `dedicatedGate` for `mutationScore` (direction up)                |
+| **Mutation testing**              | "Almost there" (not a ratchet) | **Active ratchet**                                                | ▲▲       | `check-mutation-ratchet.mjs` + seeded baseline + blocking nightly job |
 
 ---
 
-## 3. As 12 categorias — situação (delta-focada)
+## 2. Deltas since 2026-06-16 (what Waves 0–3 delivered)
 
-| # | Categoria | Situação 06-30 |
-| --- | --- | --- |
-| 1 | Estilo & formatação | ✅ inalterado (Prettier+ESLint lint-staged) |
-| 2 | Tipos | ✅ **reforçado** — `typecheck:core` agora também no gate PR→release |
-| 3 | Testes (intensidade) | ✅ **reforçado** — mutation testing virou catraca; suíte determinística no gate-de-merge |
-| 4 | Política de testes (anti-gaming) | ✅ inalterado (pr-test-policy/test-masking/pr-evidence) |
-| 5 | Complexidade & saúde | ✅ **reforçado** — complexity varre bin/electron |
-| 6 | Segurança estática (SAST+segredos) | 🟡 CodeQL default-setup (advanced = owner); semgrep cloud não-versionado |
-| 7 | Supply-chain (deps) | ✅ inalterado (osv/audit/Trivy/Dependabot + allowlist) |
-| 8 | Supply-chain (build/release) | 🟡 SLSA L2 (L3 = builder hermético, owner/infra) |
-| 9 | Contratos & API | 🟡 oasdiff/osv advisory (candidatos a bloqueante-com-escopo, P1) |
-| 10 | Docs & i18n (anti-rot) | ✅ **reforçado** — `fabricated-docs --strict` bloqueante (verificado exit 0) |
-| 11 | Anti-alucinação / consistência | ✅ inalterado (known-symbols/fetch-targets/docs-symbols/db-rules) |
-| 12 | Resiliência & domínio | ✅ inalterado (chaos/heap/k6/promptfoo/garak nightly) |
+### 2.1 🔴→✅ Fast-gates gap CLOSED (was structural weakness #1)
+
+The baseline warned: `quality.yml` (PR→`release/**`) ran **only filesystem gates** — no
+typecheck, tests, or build —, so deterministic regressions only exploded on PR→`main`.
+**Today** `.github/workflows/quality.yml` runs, in the _Fast Quality Gates_ job: `typecheck:core`,
+**blocking impacted unit tests (TIA) with fail-safe to the full suite**, the
+vitest fast-path, and unit shards. The gate now runs **where the merge happens** (shift-left),
+exactly the cross-cutting principle the playbook prescribes.
+
+### 2.2 🟠→✅ Mutation score became a RATCHET (was weakness #3 / P0 #1)
+
+The strongest antidote against coverage-gaming was **advisory**. **Today**:
+
+- `scripts/check/check-mutation-ratchet.mjs` (advisory by default, `--ratchet` blocking, graceful skip);
+- `config/quality/quality-baseline.json` has seeded `mutationScore.<module>` entries (`direction: up`, `dedicatedGate`);
+- `.github/workflows/nightly-mutation.yml` has the **"Mutation score ratchet (blocking)"** job that unifies batch reports and ratchets merged per-module scores.
+
+Result: the per-module mutation score **cannot regress** — coverage has ceased to be a vanity metric.
+
+### 2.3 ✅ Quick-win gates (Phase 6A/7) delivered
+
+- **a11y axe-core "fake-green" fixed:** `@axe-core/playwright` in devDeps; `a11y.spec.ts` with conditional `REQUIRE_AXE` skip; job in `nightly-resilience.yml`.
+- **complexity scans `bin/`+`electron`:** `check-complexity.mjs` includes those directories in `ESLINT_ARGS`.
+- **tracked-artifacts in pre-commit + pre-push:** `.husky/pre-commit` + `pre-push` block accidentally tracked artifacts.
 
 ---
 
-## 4. Gap residual para "máximo absoluto"
+## 3. The 12 categories — status (delta-focused)
 
-### 4.1 CI-mensurável / entregável por código (backlog deste programa)
-- **P1 — osv/oasdiff → bloqueante com escopo certo:** osv só `CRITICAL`+fixable (two-step como o Trivy); oasdiff bloqueia breaking-change de contrato.
-- **P1 — `require-tighten` bloqueante (fim de ciclo):** trava ganhos de métrica (impede afrouxar baseline sem registrar).
-- **P1/P2 — review de ROI / sprawl de gates:** consolidar micro-gates de doc-sync; medir timing por-gate no `ci-summary` (combate a fadiga — ressalva do SonarQube/DORA). Os merges ROI deferidos (complexity unificada; `/api` anti-alucinação unificada) entram aqui.
-- **P2 — CodeQL config commitado + semgrep versionado:** mais controle/reprodutibilidade.
+| #   | Category                         | Status 06-30                                                                             |
+| --- | -------------------------------- | ---------------------------------------------------------------------------------------- |
+| 1   | Style & formatting               | ✅ unchanged (Prettier+ESLint lint-staged)                                               |
+| 2   | Types                            | ✅ **reinforced** — `typecheck:core` now also in the PR→release gate                     |
+| 3   | Tests (intensity)                | ✅ **reinforced** — mutation testing became a ratchet; deterministic suite at merge gate |
+| 4   | Test policy (anti-gaming)        | ✅ unchanged (pr-test-policy/test-masking/pr-evidence)                                   |
+| 5   | Complexity & health              | ✅ **reinforced** — complexity scans bin/electron                                        |
+| 6   | Static security (SAST+secrets)   | 🟡 CodeQL default-setup (advanced = owner); semgrep cloud not versioned                  |
+| 7   | Supply-chain (deps)              | ✅ unchanged (osv/audit/Trivy/Dependabot + allowlist)                                    |
+| 8   | Supply-chain (build/release)     | 🟡 SLSA L2 (L3 = hermetic builder, owner/infra)                                          |
+| 9   | Contracts & API                  | 🟡 oasdiff/osv advisory (candidates for blocking-with-scope, P1)                         |
+| 10  | Docs & i18n (anti-rot)           | ✅ **reinforced** — `fabricated-docs --strict` blocking (exit 0 verified)                |
+| 11  | Anti-hallucination / consistency | ✅ unchanged (known-symbols/fetch-targets/docs-symbols/db-rules)                         |
+| 12  | Resilience & domain              | ✅ unchanged (chaos/heap/k6/promptfoo/garak nightly)                                     |
 
-### 4.2 Processo / owner (CI não move — settings de organização)
-- **Branch-protection na `main`** (sobe Scorecard, fecha o gap DSOMM). Ver [`BRANCH_PROTECTION_MAIN.md`](./BRANCH_PROTECTION_MAIN.md).
+---
+
+## 4. Residual gaps for "absolute maximum"
+
+### 4.1 CI-measurable / deliverable by code (this program's backlog)
+
+- **P1 — osv/oasdiff → blocking with the right scope:** osv only `CRITICAL`+fixable (two-step like Trivy); oasdiff blocks contract-breaking changes.
+- **P1 — `require-tighten` blocking (end of cycle):** locks metric gains (prevents loosening the baseline without recording).
+- **P1/P2 — ROI review / gate sprawl:** consolidate doc-sync micro-gates; measure per-gate timing in `ci-summary` (combats fatigue — SonarQube/DORA caveat). Deferred ROI merges (unified complexity; unified `/api` anti-hallucination) fall here.
+- **P2 — CodeQL config committed + semgrep versioned:** more control/reproducibility.
+
+### 4.2 Process / owner (CI cannot move — organization settings)
+
+- **Branch-protection on `main`** (raises Scorecard, closes the DSOMM gap). See [`BRANCH_PROTECTION_MAIN.md`](./BRANCH_PROTECTION_MAIN.md).
 - **CodeQL Default → Advanced setup.**
-- **SLSA L3** — builder hermético/reprodutível (gerador SLSA do GitHub). Stretch (diminishing returns).
+- **SLSA L3** — hermetic/reproducible builder (GitHub SLSA generator). Stretch (diminishing returns).
 
-### 4.3 Explicitamente fora-de-escopo
-- **DSOMM L5** é majoritariamente **org-level / processo** (não CI-codificável).
-- **SLSA L4** (bit-a-bit reprodutível) é stretch declarado.
+### 4.3 Explicitly out of scope
+
+- **DSOMM L5** is largely **org-level / process** (not CI-encodable).
+- **SLSA L4** (bit-for-bit reproducibility) is a declared stretch goal.
 
 ---
 
-## 5. Itens deferidos / removidos (housekeeping da cauda)
+## 5. Deferred / removed items (tail housekeeping)
 
-- **`semcheck.yaml` (camada LLM de drift semântico docs↔code) — REMOVIDO.** Estava **órfão**
-  (nenhum workflow/script o invocava) e com contagens stale nas regras. A cobertura determinística
-  já existe (`check:fabricated-docs --strict` + `check:docs-counts-sync` + `check:docs-symbols`),
-  e a ressalva de *gate sprawl* desaconselha adicionar um gate LLM advisory de custo recorrente.
-  Pode ser re-introduzido no futuro como job nightly opt-in se o drift semântico virar problema real.
-- **`agent-lsp` scaffold — DEFERIDO / opt-in não-ativado.** Existe como menção em docs
-  (`docs/architecture/QUALITY_GATES.md`, CHANGELOG) mas **sem wiring** e sem `.mcp.json.example`
-  no repo. Permanece como scaffold opt-in documentado; não é um gate ativo nem um gap de maturidade.
+- **`semcheck.yaml` (LLM layer for semantic drift docs↔code) — REMOVED.** It was **orphaned**
+  (no workflow/script invoked it) and had stale counts in the rules. Deterministic coverage
+  already exists (`check:fabricated-docs --strict` + `check:docs-counts-sync` + `check:docs-symbols`),
+  and the _gate sprawl_ caveat discourages adding an LLM advisory gate with recurring cost.
+  It may be re-introduced in the future as an opt-in nightly job if semantic drift becomes a real problem.
+- **`agent-lsp` scaffold — DEFERRED / opt-in not enabled.** Exists as a mention in docs
+  (`docs/architecture/QUALITY_GATES.md`, CHANGELOG) but **without wiring** and without `.mcp.json.example`
+  in the repo. Remains as a documented opt-in scaffold; it is not an active gate nor a maturity gap.

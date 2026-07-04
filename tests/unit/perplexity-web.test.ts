@@ -271,7 +271,10 @@ test("Schematized API: diff_block chunks reconstruct answer (non-streaming)", as
       blocks: [
         {
           intended_usage: "ask_text_0_markdown",
-          diff_block: { field: "markdown_block", patches: [{ op: "add", path: "/chunks/1", value: "answer " }] },
+          diff_block: {
+            field: "markdown_block",
+            patches: [{ op: "add", path: "/chunks/1", value: "answer " }],
+          },
         },
       ],
     },
@@ -281,7 +284,10 @@ test("Schematized API: diff_block chunks reconstruct answer (non-streaming)", as
       blocks: [
         {
           intended_usage: "ask_text_0_markdown",
-          diff_block: { field: "markdown_block", patches: [{ op: "add", path: "/chunks/2", value: "is 42." }] },
+          diff_block: {
+            field: "markdown_block",
+            patches: [{ op: "add", path: "/chunks/2", value: "is 42." }],
+          },
         },
       ],
     },
@@ -291,7 +297,11 @@ test("Schematized API: diff_block chunks reconstruct answer (non-streaming)", as
       blocks: [
         {
           intended_usage: "ask_text_0_markdown",
-          markdown_block: { progress: "DONE", chunks: ["The answer is 42."], answer: "The answer is 42." },
+          markdown_block: {
+            progress: "DONE",
+            chunks: ["The answer is 42."],
+            answer: "The answer is 42.",
+          },
         },
       ],
     },
@@ -325,7 +335,12 @@ test("Schematized API: diff_block streams incremental deltas", async () => {
       blocks: [
         {
           intended_usage: "ask_text_0_markdown",
-          diff_block: { field: "markdown_block", patches: [{ op: "replace", path: "", value: { progress: "IN_PROGRESS", chunks: ["one, "] } }] },
+          diff_block: {
+            field: "markdown_block",
+            patches: [
+              { op: "replace", path: "", value: { progress: "IN_PROGRESS", chunks: ["one, "] } },
+            ],
+          },
         },
       ],
     },
@@ -334,7 +349,10 @@ test("Schematized API: diff_block streams incremental deltas", async () => {
       blocks: [
         {
           intended_usage: "ask_text_0_markdown",
-          diff_block: { field: "markdown_block", patches: [{ op: "add", path: "/chunks/1", value: "two, " }] },
+          diff_block: {
+            field: "markdown_block",
+            patches: [{ op: "add", path: "/chunks/1", value: "two, " }],
+          },
         },
       ],
     },
@@ -344,7 +362,11 @@ test("Schematized API: diff_block streams incremental deltas", async () => {
       blocks: [
         {
           intended_usage: "ask_text_0_markdown",
-          markdown_block: { progress: "DONE", chunks: ["one, two, three"], answer: "one, two, three" },
+          markdown_block: {
+            progress: "DONE",
+            chunks: ["one, two, three"],
+            answer: "one, two, three",
+          },
         },
       ],
     },
@@ -743,7 +765,7 @@ test("Auth: JWT auth sends Authorization Bearer header", async () => {
 
 // ─── Test: Model mapping ────────────────────────────────────────────────────
 
-test("Model mapping: pplx-gpt sends correct internal preference", async () => {
+test("Model mapping: pplx-gpt sends current GPT-5.5 internal preference", async () => {
   let capturedBody = null;
   const original = globalThis.fetch;
   globalThis.fetch = async (url, opts) => {
@@ -775,8 +797,8 @@ test("Model mapping: pplx-gpt sends correct internal preference", async () => {
       log: null,
     });
 
-    assert.equal(capturedBody.params.model_preference, "gpt54");
-    assert.equal(capturedBody.params.mode, "copilot");
+    assert.equal(capturedBody.params.model_preference, "gpt55");
+    assert.equal(capturedBody.params.mode, "search");
   } finally {
     globalThis.fetch = original;
   }
@@ -818,7 +840,8 @@ test("Model mapping: thinking mode uses thinking variant", async () => {
       log: null,
     });
 
-    assert.equal(capturedBody.params.model_preference, "claude46sonnetthinking");
+    assert.equal(capturedBody.params.model_preference, "claude50sonnetthinking");
+    assert.equal(capturedBody.params.mode, "search");
   } finally {
     globalThis.fetch = original;
   }
@@ -831,17 +854,31 @@ test("Provider registry: perplexity-web is registered with correct models", asyn
 
   const models = PROVIDER_MODELS["pplx-web"];
   assert.ok(models, "pplx-web should be in PROVIDER_MODELS");
-  assert.ok(models.length === 8, `Expected 8 models, got ${models.length}`);
+  assert.ok(models.length === 10, `Expected 10 models, got ${models.length}`);
 
   const modelIds = models.map((m) => m.id);
   assert.ok(modelIds.includes("pplx-auto"));
   assert.ok(modelIds.includes("pplx-gpt"));
+  assert.ok(modelIds.includes("pplx-gpt-5.4"));
   assert.ok(modelIds.includes("pplx-sonnet"));
   assert.ok(modelIds.includes("pplx-opus"));
   assert.ok(modelIds.includes("pplx-gemini"));
   assert.ok(modelIds.includes("pplx-nemotron"));
   assert.ok(modelIds.includes("pplx-sonar"));
   assert.ok(modelIds.includes("pplx-kimi"));
+  assert.ok(modelIds.includes("pplx-glm"));
+});
+
+test("Provider registry: every advertised perplexity-web model has an explicit internal mapping", async () => {
+  const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
+  const { MODEL_MAP } = await import("../../open-sse/executors/perplexity-web/protocol.ts");
+
+  const missing = PROVIDER_MODELS["pplx-web"].filter((model) => !MODEL_MAP[model.id]);
+  assert.deepEqual(
+    missing.map((model) => model.id),
+    [],
+    "all advertised Perplexity Web models should map to an explicit model_preference"
+  );
 });
 
 // ─── Test: Fallback text field ──────────────────────────────────────────────
@@ -903,7 +940,10 @@ test("Request: posts to correct Perplexity SSE endpoint", async () => {
 
     assert.equal(capturedUrl, "https://www.perplexity.ai/rest/sse/perplexity_ask");
     assert.equal(capturedHeaders["Origin"], "https://www.perplexity.ai");
-    assert.equal(capturedHeaders["x-perplexity-request-endpoint"], "https://www.perplexity.ai/rest/sse/perplexity_ask");
+    assert.equal(
+      capturedHeaders["x-perplexity-request-endpoint"],
+      "https://www.perplexity.ai/rest/sse/perplexity_ask"
+    );
     assert.equal(capturedHeaders["x-perplexity-request-reason"], "ask-query-state-provider");
     assert.ok(capturedHeaders["x-request-id"], "x-request-id header should be set");
     assert.equal(capturedHeaders["Accept"], "text/event-stream");
