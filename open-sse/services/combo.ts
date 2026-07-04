@@ -2892,7 +2892,7 @@ async function handleRoundRobinCombo({
           resilienceSettings.providerCooldown.enabled &&
           provider &&
           provider !== "unknown" &&
-          !(result.status === 500 && hasPerModelQuota(provider, rawModel))
+          !(result.status === 500 && hasPerModelQuota(provider, parseModel(modelStr).model || modelStr))
         ) {
           recordProviderCooldown(
             provider,
