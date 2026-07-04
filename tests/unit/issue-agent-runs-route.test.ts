@@ -118,3 +118,36 @@ test("issue-agent run rejects invalid enabled recorded-triage URL", async () => 
     else process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = previous;
   }
 });
+
+test("issue-agent run returns recorded context summary with redaction", async () => {
+  const previous = process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
+  process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = "true";
+  try {
+    const response = await POST(
+      new Request("http://localhost/api/issue-agent/runs", {
+        method: "POST",
+        body: JSON.stringify({
+          mode: "recorded-triage",
+          issueUrl: "https://github.com/KooshaPari/OmniRoute/issues/7",
+          recordedContext: {
+            title: "Review PR mention",
+            body: "Authorization: Bearer sk-routeSecret1234567890",
+            comments: [{ author: "maintainer", body: "please review", isBot: false }],
+          },
+        }),
+      })
+    );
+    const body = await json(response);
+    const context = body.context as Record<string, unknown>;
+
+    assert.equal(response.status, 200);
+    assert.equal(context.issueTitle, "Review PR mention");
+    assert.equal(context.intent, "review");
+    assert.equal(context.humanCommentCount, 1);
+    assert.doesNotMatch(String(context.redactedDigestSource), /sk-routeSecret/);
+    assert.match(String(context.redactedDigestSource), /\[REDACTED\]/);
+  } finally {
+    if (previous === undefined) delete process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
+    else process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = previous;
+  }
+});

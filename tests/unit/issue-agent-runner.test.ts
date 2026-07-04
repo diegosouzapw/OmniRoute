@@ -39,3 +39,25 @@ test("createRecordedTriageRun rejects non-GitHub issue URLs", () => {
     /Expected a GitHub issue or pull request URL/
   );
 });
+
+test("createRecordedTriageRun summarizes recorded context without leaking secrets", () => {
+  const run = createRecordedTriageRun({
+    issueUrl: "https://github.com/KooshaPari/OmniRoute/issues/42",
+    recordedContext: {
+      title: "Need fix for failing route guard",
+      body: "Please inspect Authorization: Bearer sk-secret1234567890abcd",
+      comments: [
+        { author: "octobot", body: "automated noise", isBot: true },
+        { author: "human", body: "mentions @KooshaPari and asks for patch", isBot: false },
+      ],
+    },
+  });
+
+  assert.equal(run.context.issueTitle, "Need fix for failing route guard");
+  assert.equal(run.context.commentCount, 2);
+  assert.equal(run.context.humanCommentCount, 1);
+  assert.equal(run.context.botCommentCount, 1);
+  assert.equal(run.context.intent, "bugfix");
+  assert.doesNotMatch(run.context.redactedDigestSource, /sk-secret/);
+  assert.match(run.context.redactedDigestSource, /\[REDACTED\]/);
+});

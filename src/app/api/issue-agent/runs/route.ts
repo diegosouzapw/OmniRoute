@@ -5,6 +5,7 @@ interface IssueAgentRunRequest {
   mode?: string;
   issueUrl?: string;
   dryRun?: boolean;
+  recordedContext?: unknown;
 }
 
 const ENABLED_VALUES = new Set(["1", "true", "yes", "on"]);
@@ -20,6 +21,7 @@ function parseRunRequest(value: unknown): IssueAgentRunRequest {
     mode: typeof row.mode === "string" ? row.mode : undefined,
     issueUrl: typeof row.issueUrl === "string" ? row.issueUrl : undefined,
     dryRun: typeof row.dryRun === "boolean" ? row.dryRun : undefined,
+    recordedContext: row.recordedContext,
   };
 }
 
