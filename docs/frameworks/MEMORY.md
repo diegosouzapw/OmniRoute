@@ -519,7 +519,7 @@ See [MCP-SERVER.md](./MCP-SERVER.md) for transport and scope details.
 
 `src/app/(dashboard)/dashboard/memory/page.tsx` is now a **3-tab Studio**:
 
-### Tab: Memórias / Memories
+### Tab: Memories
 
 - Concept card (collapsible "How it works" explainer).
 - Real-time list, search, and pagination (debounced 300 ms).
@@ -724,12 +724,13 @@ When a user says:
 
 > "I prefer TypeScript. I'll use Postgres for this project. I always commit before pushing. I don't like Python."
 > Extraction produces 4 memories:
-> | Key | Category | Type | Content |
-> |-----|----------|------|---------|
-> | `preference:typescript` | preference | factual | "TypeScript" |
-> | `decision:postgres_for_this_project` | decision | episodic | "Postgres for this project" |
-> | `pattern:commit_before_pushing` | pattern | factual | "commit before pushing" |
-> | `preference:python` | preference | factual | "Python" |
+>
+> | Key                                  | Category   | Type     | Content                     |
+> | ------------------------------------ | ---------- | -------- | --------------------------- |
+> | `preference:typescript`              | preference | factual  | "TypeScript"                |
+> | `decision:postgres_for_this_project` | decision   | episodic | "Postgres for this project" |
+> | `pattern:commit_before_pushing`      | pattern    | factual  | "commit before pushing"     |
+> | `preference:python`                  | preference | factual  | "Python"                    |
 
 ### Extraction Limits
 
