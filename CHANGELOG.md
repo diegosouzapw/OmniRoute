@@ -2,10 +2,6 @@
 
 ## [Unreleased]
 
-### 🔧 Bug Fixes
-
-- **fix(mitm):** add in-process guard to prevent concurrent MITM server starts. (thanks @anki1kr)
-
 ---
 
 ## [3.8.44] — TBD
@@ -23,21 +19,22 @@
 - **feat(usage):** add on-demand period-scoped usage-data reset (Settings → System Storage) with a purge API and time-window selector.
 - **feat(claude-code):** add an opt-in auto-permission classifier compat mode (off/auto/always) for Claude Code, toggleable from the CLI Code settings.
 - **feat(providers):** add optional client-identity header profiles for compatible nodes — preset User-Agent/fingerprint headers (e.g. matching a known CLI) merged into the existing customHeaders field.
-- **feat(xai):** surface Grok usage on the quota dashboard via local usage-history aggregation. (thanks @DevEstacion)
-- **feat(services):** add **Mux** (`coder/mux`) as a managed embedded service — install/start/stop/restart/logs lifecycle + dashboard tab, loopback-only API, `127.0.0.1`-bound with the auth token passed via env (never argv). Ported from upstream 9router#1802. (thanks @Ansh7473)
-- **feat(services):** promote **Bifrost** (`@maximhq/bifrost`) to a supervised embedded service ([#5670](https://github.com/diegosouzapw/OmniRoute/issues/5670)) — full install/start/stop/restart/update/status/auto-start lifecycle + dashboard tab, loopback-only API (hard rule #17). When a supervised Bifrost is running and `BIFROST_BASE_URL` is unset, the relay route auto-selects it as the routing backend (`getBifrostRoutingConfig()`); an explicit `BIFROST_BASE_URL` always takes precedence.
 
 ### 🔧 Bug Fixes
 
+- **fix(mitm):** add an in-process guard so concurrent MITM server starts no longer race — a second start while one is already in flight is short-circuited instead of double-binding the listener. Regression guard: `tests/unit/mitm-start-guard.test.ts`. (thanks @anki1kr)
+
+- **translator (Responses → Chat Completions):** strip the Responses-API-only `truncation` field before forwarding a `/v1/responses` request to a non-OpenAI Chat Completions upstream. Strict upstreams (e.g. NVIDIA NIM) rejected it with HTTP 400 `Unsupported parameter(s): truncation`, breaking Codex-style clients routed to those providers. `client_metadata`, `background`, and `safety_identifier` were already stripped — `truncation` was the remaining gap. Regression guard: `tests/unit/responses-strip-truncation-2311.test.ts`. (thanks @TuanNguyen0708)
+
+- **combo (prefer known context capacity over unknown):** when a combo filters out at least one target for exceeding a *known* context limit, the router now prefers the remaining known-compatible targets over targets whose context metadata is simply unknown, instead of letting unknown-metadata targets be the only survivors. If no known-compatible context target remains, context-only candidates fall back to the normal strategy order. Regression guard: `tests/unit/combo-context-window-filter.test.ts`. ([#6088](https://github.com/diegosouzapw/OmniRoute/pull/6088) — thanks @Thinkscape)
+
+- **models (GLM-5.2 context normalization):** stop treating every hosted GLM-5.2 provider alias as the native 1M-context model. Native/bare GLM-5.2 and verified OpenCode / ZenMux routes keep their 1,000,000-token context, while hosted-provider aliases now respect the caps declared in their provider metadata instead of inheriting the native max. Regression guards: `tests/unit/model-capabilities-registry.test.ts`, `tests/unit/models-catalog-route.test.ts`. ([#6091](https://github.com/diegosouzapw/OmniRoute/pull/6091) — thanks @Thinkscape)
+
+- **providers (Gemini Web):** refresh the Gemini Web cookie handling and model catalog so live Gemini Web sessions keep authenticating and routing to current models. Regression guard: `tests/unit/gemini-web.test.ts`. ([#6095](https://github.com/diegosouzapw/OmniRoute/pull/6095) — thanks @backryun)
+
+- **providers (Perplexity Web):** refresh the Perplexity Web model catalog to the current set (GPT-5.4/5.5, Claude Sonnet 5.0 / Opus 4.8, GLM-5.2, Kimi K2.6, Nemotron 3 Ultra) and update the internal mode / `model_preference` mappings and thinking variants so requests resolve to live upstream models. Regression guard: `tests/unit/perplexity-web.test.ts`. ([#6106](https://github.com/diegosouzapw/OmniRoute/pull/6106) — thanks @backryun)
+
 - **dashboard ("Update now" → Internal Server Error):** clicking **Update now** on the dashboard home could crash the page with a blank "Internal Server Error" screen (`Minified React error #31`). The handler POSTs the loopback-only `/api/system/version` auto-update endpoint and, on a non-OK JSON response (e.g. a `403` when the dashboard is reached through a reverse proxy / non-loopback origin), passed the raw error envelope object `{ error: { code, message, correlation_id } }` straight to `notify.error()`, which rendered the object as a React child and threw #31. The update-error path now funnels the body through `extractApiErrorMessage()` (the same safe extractor added in #5340), so a readable string always reaches the toast. Regression guard: `tests/unit/ui/home-update-error-render-5991.test.ts`. ([#5991](https://github.com/diegosouzapw/OmniRoute/issues/5991))
-
-- **kiro (system prompt leaked as raw user text):** when Claude Code routed through the Kiro/CodeWhisperer backend, the `system` message was normalized to a `user` turn with no wrapper, so the entire system prompt (environment info, tool definitions, memory instructions, etc.) appeared as if the user had typed it — polluting the model context. System-origin content is now wrapped in `<system-reminder>` tags before being merged into the Kiro user message, so the model can distinguish it from real user input. Real user turns are untouched. Regression guard: `tests/unit/kiro-system-reminder-2306.test.ts`. (thanks @VitzS7)
-
-- **antigravity/gemini tool calls (`400 Unknown name "multipleOf"`):** requests routed to antigravity/gemini models with tools that declare a `multipleOf` numeric constraint failed with a hard upstream `400` (`Invalid JSON payload received. Unknown name "multipleOf"`). `multipleOf` is not part of the Gemini/antigravity OpenAPI 3.0 schema subset and was not being stripped from `function_declarations`. It is now removed at every schema level (top-level, nested, and array `items`), alongside the other unsupported constraints; `minimum`/`maximum` remain untouched. Regression guard: `tests/unit/gemini-multipleof-2309.test.ts`. (thanks @abil0321)
-
-- **cline (empty/false-502 non-streaming responses):** the Cline gateway can wrap OpenAI-compatible chat completions in a `{ success, data: { choices, usage, … } }` envelope. The non-streaming path checked the top-level body for empty content before unwrapping, so a valid Cline response was treated as malformed. The body is now unwrapped via `unwrapClineNonStreamingEnvelope()` right after the provider-envelope unwrap and before the empty-content check, closing the remaining gap from #5956/#5924. Regression guard: `tests/unit/cline-response-envelope.test.ts`. ([#5956](https://github.com/diegosouzapw/OmniRoute/issues/5956) — thanks @KooshaPari)
-
-- **combo (per-model-quota providers exhausted on a single model 500):** for per-model-quota providers (gemini, github, passthrough, compatible) that multiplex many models behind one connection, a model-level `500` (e.g. Gemini "Internal error encountered") wrongly marked the whole connection exhausted, so sibling models on the same connection were skipped and the combo could 502 instead of falling back. `markConnectionLevelExhaustion` now leaves the connection eligible on a `500` for per-model-quota providers (other connection-level statuses — 408/502/503/504/524 — still exhaust correctly), and the retry loop early-returns when a model is already in lockout. Regression guard: `tests/unit/combo/combo-target-exhaustion.test.ts`. ([#5976](https://github.com/diegosouzapw/OmniRoute/pull/5976) — thanks @hartmark)
 
 ### 📝 Maintenance
 
