@@ -11,6 +11,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { searchGitHubSkills } from "@/lib/skills/githubCollector";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
 
