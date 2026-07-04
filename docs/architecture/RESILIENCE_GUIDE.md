@@ -225,19 +225,19 @@ Provider-specific stealth (JA3/JA4, CCH, obfuscation) is separately documented �
 
 ---
 
-## Resilience testing (Fase 8 · Bloco C)
+## Resilience testing (Phase 8 · Block C)
 
-Além dos unit tests da lógica de resiliência, três testes exercitam o runtime sob
-estresse/falha real (todos integração/nightly — nenhum bloqueia PR):
+Beyond unit tests for resilience logic, three tests exercise the runtime under
+real stress/failure conditions (all integration/nightly — none block PRs):
 
-| Teste       | O quê                                                                                                                                                                   | Rodar                                    |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| Chaos       | Fake-upstream node injeta latência/reset/timeout/503 reais; valida que o circuit breaker abre/recupera e `checkFallbackError` classifica 503 como fallback recuperável. | `RUN_CHAOS_INT=1 npm run test:chaos`     |
-| Heap-growth | ~500 streams por `createSSEStream` sob `--expose-gc`; falha se o heap crescer além do teto (guarda OOM #3069).                                                          | `npm run test:heap`                      |
-| k6 soak     | Carga sustentada contra `/api/monitoring/health`; thresholds p95/erro.                                                                                                  | `k6 run tests/load/k6-soak.js` (nightly) |
+| Test        | What                                                                                                                                                                          | Run                                      |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Chaos       | Fake-upstream node injects real latency/reset/timeout/503; validates that the circuit breaker opens/recovers and `checkFallbackError` classifies 503 as recoverable fallback. | `RUN_CHAOS_INT=1 npm run test:chaos`     |
+| Heap-growth | ~500 streams per `createSSEStream` under `--expose-gc`; fails if the heap grows beyond the ceiling (OOM guard #3069).                                                         | `npm run test:heap`                      |
+| k6 soak     | Sustained load against `/api/monitoring/health`; p95/error thresholds.                                                                                                        | `k6 run tests/load/k6-soak.js` (nightly) |
 
-Orquestrados por `.github/workflows/nightly-resilience.yml` (cron + dispatch). No
-`test:integration` default, chaos e heap se auto-skipam (sem `RUN_CHAOS_INT`/`--expose-gc`).
+Orchestrated by `.github/workflows/nightly-resilience.yml` (cron + dispatch). In the
+default `test:integration`, chaos and heap self-skip (without `RUN_CHAOS_INT`/`--expose-gc`).
 
 ---
 
