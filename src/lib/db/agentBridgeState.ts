@@ -6,7 +6,7 @@
 // require core at runtime to keep this module server-only at bundling time
 function getDb() {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { getDbInstance } = require("./core.js");
+  const { getDbInstance } = require("./core");
   return getDbInstance();
 }
 import type { AgentBridgeStateRow } from "./_rowTypes.js";

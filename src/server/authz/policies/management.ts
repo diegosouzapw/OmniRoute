@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { isModelSyncInternalRequest } from "../../../shared/services/modelSyncScheduler";
+import { isModelSyncInternalRequest } from "../../../shared/services/modelSyncSchedulerAuth";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "../../../shared/utils/apiAuth";
 import { getLegacyCliTokenSync, getMachineTokenSync } from "../../../lib/machineToken";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
