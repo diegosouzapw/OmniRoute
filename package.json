@@ -87,7 +87,7 @@
     "build:release": "rm -rf .build dist && OMNIROUTE_BUILD_SHA=$(git rev-parse --short HEAD) npm run build && npm run build:cli && node scripts/build/write-build-sha.mjs",
     "build:native:tproxy": "cd src/mitm/tproxy/native && npx --yes node-gyp rebuild",
     "start": "node scripts/dev/run-next.mjs start",
-    "lint": "eslint .",
+    "lint": "eslint . --suppressions-location config/quality/eslint-suppressions.json",
     "lint:md": "npx --yes markdownlint-cli2 \"docs/**/*.md\" \"*.md\" \"!docs/i18n\" \"!docs/research\"",
     "lint:prose": "vale docs",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:20128 && cd electron && npm run dev\"",
@@ -346,7 +346,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs}": [
       "prettier --write",
-      "eslint --fix --no-error-on-unmatched-pattern"
+      "eslint --fix --no-error-on-unmatched-pattern --suppressions-location config/quality/eslint-suppressions.json"
     ],
     "*.{json,md,yml,yaml,css}": [
       "prettier --write"

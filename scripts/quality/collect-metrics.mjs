@@ -15,11 +15,21 @@ import * as yaml from "js-yaml";
 const cwd = process.cwd();
 const out = {};
 
-// 1) ESLint: contagem de warnings (errors devem ser 0; o lint já gata isso)
+// 1) ESLint: contagem de warnings/errors NOVOS além do baseline congelado.
+// Pacote 4 (plano mestre testes+CI, 2026-07-04): a dívida pré-existente vive em
+// config/quality/eslint-suppressions.json (ESLint bulk suppressions nativo) e é
+// bloqueada no PR que a introduziria (job lint-guard + lint-staged). A métrica do
+// ratchet passa a medir a dívida LÍQUIDA nova — em regime, ~0 — em vez do estoque
+// bruto (que driftava +41/+88 por ciclo e era rebaselinado às cegas na release).
+// O aperto do estoque acontece via --prune-suppressions na release.
 function eslintCounts() {
   let stdout;
+  const args = ["eslint", ".", "--format", "json"];
+  if (fs.existsSync(path.join(cwd, "config/quality/eslint-suppressions.json"))) {
+    args.push("--suppressions-location", "config/quality/eslint-suppressions.json");
+  }
   try {
-    stdout = execFileSync("npx", ["eslint", ".", "--format", "json"], {
+    stdout = execFileSync("npx", args, {
       encoding: "utf8",
       maxBuffer: 256 * 1024 * 1024,
     });
