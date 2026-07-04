@@ -31,7 +31,7 @@ const STRIP_RULES: StripRule[] = [
   },
   // NVIDIA NIM z-ai/glm-5.2: OpenAI-compatible wrapper rejects the `reasoning`
   // body field → HTTP 400 "Unsupported parameter(s): `reasoning`". #6102 drop pattern.
-  { provider: "nvidia", match: /z-ai\/glm-5\.2/i, drop: ["reasoning"] },
+  { provider: "nvidia", match: /z-ai\/glm-5\.2\b/i, drop: ["reasoning"] },
 ];
 
 function matches(rule: StripRule, model: string): boolean {
