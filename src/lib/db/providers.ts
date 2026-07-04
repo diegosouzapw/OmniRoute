@@ -231,6 +231,14 @@ export async function createProviderConnection(data: JsonRecord) {
       data.name,
       normalizedProviderSpecificData
     );
+  } else if (data.authType === "access_token") {
+    // #1290 — bare access-token imports (e.g. a raw ChatGPT website access
+    // token with no refresh token) are intentionally never deduped: every
+    // import creates a new connection. Unlike oauth (workspace+email) or
+    // apikey (key-value) imports, a bare access token has no refresh token
+    // and no stable long-lived identity to safely dedup against — matching
+    // on email alone here would risk silently overwriting an existing full
+    // oauth connection for the same account.
   }
 
   if (existing) {
@@ -255,7 +263,7 @@ export async function createProviderConnection(data: JsonRecord) {
   // Generate name: prefer explicit name, then email, then a stable short-ID label.
   // Avoid sequential "Account N" — it reassigns when accounts are deleted/reordered.
   let connectionName = data.name || null;
-  if (!connectionName && data.authType === "oauth") {
+  if (!connectionName && (data.authType === "oauth" || data.authType === "access_token")) {
     if (data.email) {
       connectionName = data.email as string;
     } else if (data.displayName) {
@@ -730,6 +738,8 @@ export {
 } from "./providers/nodes";
 export {
   setConnectionRateLimitUntil,
+  markConnectionRateLimitedUntil,
+  clearConnectionRateLimit,
   isConnectionRateLimited,
   getRateLimitedConnections,
   getEffectiveQuotaUsage,

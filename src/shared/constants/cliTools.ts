@@ -645,7 +645,13 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     defaultCommand: "jcode",
   },
 
-  /** ★ Added by plan 14 (CLI Pages Redesign) — 2026-05-27 */
+  /**
+   * ★ Added by plan 14 (CLI Pages Redesign) — 2026-05-27
+   * Kept as a legacy/dual entry after CodeWhale (see below) took over as the
+   * actively-maintained successor. Existing users who still have DeepSeek
+   * TUI installed keep a working dashboard card; new users are steered to
+   * "codewhale" instead.
+   */
   "deepseek-tui": {
     id: "deepseek-tui",
     name: "DeepSeek TUI",
@@ -659,6 +665,29 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     acpSpawnable: false,
     baseUrlSupport: "full",
     defaultCommand: "deepseek-tui",
+  },
+
+  /**
+   * ★ Added 2026-07-02 (dual-entry, see deepseek-tui above). CodeWhale is
+   * the actively-maintained successor to DeepSeek TUI — same author, new
+   * name. Config lives under ~/.codewhale/config.toml; the settings route
+   * also keeps ~/.deepseek/config.toml (legacy) in sync for upgrading
+   * users. Reference: https://github.com/Hmbown/CodeWhale
+   */
+  codewhale: {
+    id: "codewhale",
+    name: "CodeWhale",
+    icon: "terminal",
+    color: "#4F46E5",
+    description:
+      "CodeWhale — Rust-based coding agent CLI with OPENAI_BASE_URL support (successor to DeepSeek TUI)",
+    docsUrl: "https://github.com/Hmbown/CodeWhale",
+    configType: "custom",
+    category: "code",
+    vendor: "OSS (Hmbown)",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    defaultCommand: "codewhale",
   },
 
   /** ★ Added by plan 14 (CLI Pages Redesign) — 2026-05-27 */
@@ -691,6 +720,22 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     acpSpawnable: false,
     baseUrlSupport: "full",
     defaultCommand: "pi",
+  },
+
+  /** Added — ported from upstream decolua/9router#1233 (dashboard catalog entry for Crush). */
+  crush: {
+    id: "crush",
+    name: "Crush",
+    icon: "terminal",
+    color: "#FB923C",
+    description: "Crush coding agent CLI — terminal AI agent by Charm (charmbracelet/crush)",
+    docsUrl: "https://github.com/charmbracelet/crush",
+    configType: "custom",
+    category: "code",
+    vendor: "OSS (Charm)",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    defaultCommand: "crush",
   },
 
   // ── Agent entries ─────────────────────────────────────────────────────────

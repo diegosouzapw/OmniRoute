@@ -32,6 +32,7 @@ import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { getRelayTokenByHash, checkRateLimit, recordRelayUsage } from "@/lib/db/relayProxies";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
+import { getProviderPluginManifestHeader } from "@omniroute/open-sse/config/providerPluginManifestUrl.ts";
 import { z } from "zod";
 import {
   checkIpRateLimit,
@@ -257,6 +258,7 @@ export async function POST(request: Request) {
       "Content-Type": "application/json",
       "x-relay-token-id": token.id,
       "x-relay-client-ip": clientIp,
+      ...getProviderPluginManifestHeader(new URL(request.url).origin),
     };
     if (BIFROST_API_KEY) {
       upstreamHeaders["Authorization"] = `Bearer ${BIFROST_API_KEY}`;
