@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { appendIssueAgentAuditRecord } from "@/lib/issueAgent/audit";
 import { createRecordedTriageRun } from "@/lib/issueAgent/recordedTriage";
 
 interface IssueAgentRunRequest {
@@ -62,7 +63,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    return NextResponse.json(createRecordedTriageRun(parsed));
+    const run = createRecordedTriageRun(parsed);
+    const audit = await appendIssueAgentAuditRecord(run);
+    return NextResponse.json({ ...run, auditPath: audit.path });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid issue-agent request";
     return NextResponse.json({ error: message }, { status: 400 });
