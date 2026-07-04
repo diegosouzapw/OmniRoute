@@ -59,10 +59,10 @@ describe("home topology hidden networking (#4596)", () => {
     expect(websocketMock).not.toHaveBeenCalled();
   });
 
-  it("opens a WebSocket when the topology section is enabled", () => {
+  it("opens a WebSocket when the topology section is enabled", async () => {
     act(() => {
       root!.render(<LiveRequestsHarness enabled={true} />);
     });
-    expect(websocketMock).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(websocketMock).toHaveBeenCalledTimes(1));
   });
 });

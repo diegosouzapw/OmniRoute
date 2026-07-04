@@ -4,21 +4,21 @@
  * All domain modules import `getDbInstance` and helpers from here.
  */
 
-import type { SqliteAdapter } from "./adapters/types";
+import type { SqliteAdapter } from "./adapters/types.js";
 import {
   tryOpenSync,
   getSqlJsAdapter,
   preInitSqlJs,
   openDatabaseAsync,
-} from "./adapters/driverFactory";
+} from "./adapters/driverFactory.js";
 import path from "path";
 import fs from "fs";
-import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
-import { runMigrations } from "./migrationRunner";
-import { runDbHealthCheck } from "./healthCheck";
-import { resetAllDbModuleState } from "./stateReset";
-import { parseStoredPayload } from "../logPayloads";
-import { DEFAULT_DATABASE_SETTINGS, type DatabaseSettings } from "@/types/databaseSettings";
+import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths.js";
+import { runMigrations } from "./migrationRunner.js";
+import { runDbHealthCheck } from "./healthCheck.js";
+import { resetAllDbModuleState } from "./stateReset.js";
+import { parseStoredPayload } from "../logPayloads.js";
+import { DEFAULT_DATABASE_SETTINGS, type DatabaseSettings } from "../../types/databaseSettings.js";
 import {
   applyDatabaseOptimizationSettingsForDb,
   applyStoredDatabaseOptimizationSettings,
@@ -26,17 +26,17 @@ import {
   setAutoVacuumForDb,
   setCacheSizeForDb,
   setPageSizeForDb,
-} from "./optimizationSettings";
+} from "./optimizationSettings.js";
 import {
   buildArtifactRelativePath,
   writeCallArtifact,
   type CallLogArtifact,
-} from "../usage/callLogArtifacts";
-import { migrateLegacyEncryptedString } from "./encryption";
-import { invalidateDbCache } from "./readCache";
-import { rowToCamel } from "./caseMapping";
+} from "../usage/callLogArtifacts.js";
+import { migrateLegacyEncryptedString } from "./encryption.js";
+import { invalidateDbCache } from "./readCache.js";
+import { rowToCamel } from "./caseMapping.js";
 // Re-exported so existing call sites that pull these helpers off the core module keep working.
-export { toSnakeCase, toCamelCase, objToSnake, rowToCamel, cleanNulls } from "./caseMapping";
+export { toSnakeCase, toCamelCase, objToSnake, rowToCamel, cleanNulls } from "./caseMapping.js";
 import {
   ensureProviderConnectionsColumns,
   ensureUsageHistoryColumns,
@@ -44,7 +44,7 @@ import {
   hasTable,
   quoteIdentifier,
   getTableColumns,
-} from "./schemaColumns";
+} from "./schemaColumns.js";
 
 type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
@@ -996,8 +996,7 @@ export function getDbInstance(): SqliteDatabase {
         let hasData = false;
         try {
           const count = probe.prepare("SELECT COUNT(*) as c FROM provider_connections").get() as
-            | { c: number }
-            | undefined;
+            { c: number } | undefined;
           hasData = Boolean(count && count.c > 0);
         } catch {
           // Table might not exist at all — truly incompatible

@@ -380,7 +380,8 @@ export class BlackboxWebExecutor extends BaseExecutor {
           signal: sideSignal,
         });
         sessionData = sessionRes.ok ? ((await sessionRes.json()) as Record<string, unknown>) : null;
-        const email = (sessionData as any)?.user?.email as string | undefined;
+        const email = (sessionData?.user as Record<string, unknown> | undefined)?.email as
+          string | undefined;
         teamAccount = email || "";
         log?.debug?.("BLACKBOX-WEB", `Session email: ${email ?? "none"}`);
 

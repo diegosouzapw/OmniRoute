@@ -248,13 +248,13 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
           }
         };
 
-        const applyFragmentType = (frag: any) => {
+        const applyFragmentType = (frag: Record<string, unknown>) => {
           const type = String(frag?.type || "").toUpperCase();
           if (type === "THINK") currentPath = "thinking";
           else if (type === "ANSWER" || type === "RESPONSE") currentPath = "content";
         };
 
-        const handleFragment = (frag: any, setPathFromType = false) => {
+        const handleFragment = (frag: Record<string, unknown>, setPathFromType = false) => {
           if (setPathFromType) applyFragmentType(frag);
           if (typeof frag?.content !== "string" || frag.content.length === 0) return;
           if (!setPathFromType) {
@@ -290,9 +290,9 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
                 continue;
               }
 
-              const p = (data as any)?.p;
-              const o = (data as any)?.o;
-              const v = (data as any)?.v;
+              const p = (data as Record<string, unknown>)?.p;
+              const o = (data as Record<string, unknown>)?.o;
+              const v = (data as Record<string, unknown>)?.v;
 
               if (v && typeof v === "object" && v.response) {
                 if (v.response.thinking_enabled === true) currentPath = "thinking";
@@ -342,7 +342,11 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
               } else if (Array.isArray(v) && p === "response") {
                 for (const entry of v) {
                   if (Array.isArray(entry?.v)) {
-                    const joined = entry.v.map((item: any) => item?.content || "").join("");
+                    const joined = entry.v
+                      .map((item: Record<string, unknown>) =>
+                        typeof item?.content === "string" ? item.content : ""
+                      )
+                      .join("");
                     if (joined) sendByPath(joined);
                   }
                 }
@@ -390,13 +394,13 @@ async function collectSSEContent(
     else content += text;
   };
 
-  const applyFragmentType = (frag: any) => {
+  const applyFragmentType = (frag: Record<string, unknown>) => {
     const type = String(frag?.type || "").toUpperCase();
     if (type === "THINK") currentPath = "thinking";
     else if (type === "ANSWER" || type === "RESPONSE") currentPath = "content";
   };
 
-  const handleFragment = (frag: any, setPathFromType = false) => {
+  const handleFragment = (frag: Record<string, unknown>, setPathFromType = false) => {
     if (setPathFromType) applyFragmentType(frag);
     if (typeof frag?.content !== "string" || frag.content.length === 0) return;
     if (!setPathFromType) {
@@ -469,7 +473,11 @@ async function collectSSEContent(
         } else if (Array.isArray(v) && p === "response") {
           for (const entry of v) {
             if (Array.isArray(entry?.v)) {
-              const joined = entry.v.map((item: any) => item?.content || "").join("");
+              const joined = entry.v
+                .map((item: Record<string, unknown>) =>
+                  typeof item?.content === "string" ? item.content : ""
+                )
+                .join("");
               if (joined) appendByPath(joined);
             }
           }
@@ -490,9 +498,9 @@ async function collectSSEContent(
 
 function extractMessageText(content: unknown): string {
   if (Array.isArray(content)) {
-    return (content as any[])
-      .filter((item: any) => item.type === "text")
-      .map((item: any) => item.text)
+    return (content as Record<string, unknown>[])
+      .filter((item: Record<string, unknown>) => item.type === "text")
+      .map((item: Record<string, unknown>) => String(item.text || ""))
       .join("\n");
   }
   return String(content || "");

@@ -157,8 +157,8 @@ export async function fetchClaudeBootstrap(accessToken: string): Promise<ClaudeB
       signal: ctrl.signal,
     });
     if (!res.ok) return null;
-    const data: any = await res.json().catch(() => null);
-    const acct = data?.oauth_account;
+    const data = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+    const acct = data?.oauth_account as Record<string, unknown> | undefined;
     if (!acct || typeof acct !== "object") return null;
     return {
       account_uuid: acct.account_uuid || null,
@@ -261,7 +261,7 @@ export function parseUpstreamMetadataUserId(
   const md = body.metadata as Record<string, unknown> | undefined;
   const raw = md?.user_id;
   if (typeof raw !== "string" || raw.length === 0) return null;
-  let parsed: any;
+  let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
   } catch {

@@ -200,7 +200,7 @@ function normalizeClaudeSessionCookie(rawValue: string): string {
  */
 async function normalizeClaudeSessionCookieWithAutoRefresh(
   rawValue: string,
-  options?: { allowAutoSolve?: boolean; log?: any }
+  options?: { allowAutoSolve?: boolean; log?: Record<string, unknown> }
 ): Promise<string> {
   let normalized = normalizeClaudeSessionCookie(rawValue);
 
@@ -748,8 +748,9 @@ export class ClaudeWebExecutor extends BaseExecutor {
       }
 
       // Get organization and conversation IDs
-      let orgId = (credentials as any)?.orgId as string | undefined;
-      let conversationId = (credentials as any)?.conversationId as string | undefined;
+      let orgId = (credentials as Record<string, unknown>)?.orgId as string | undefined;
+      let conversationId = (credentials as Record<string, unknown>)?.conversationId as
+        string | undefined;
 
       if (!orgId) {
         orgId = await getOrganizationId(cookieHeader, deviceId, signal);

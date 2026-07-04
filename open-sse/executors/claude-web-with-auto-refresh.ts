@@ -54,7 +54,7 @@ class ClaudeWebWithAutoRefresh extends ClaudeWebExecutor {
         const freshCfClearance = await getCfClearanceToken({ force: shouldForce });
 
         // Update credentials
-        const rawCookie = String((credentials as any)?.cookie || "");
+        const rawCookie = String((credentials as Record<string, unknown>)?.cookie || "");
         const hasCfClearance = rawCookie.includes("cf_clearance=");
 
         let newCookie: string;
@@ -98,7 +98,7 @@ class ClaudeWebWithAutoRefresh extends ClaudeWebExecutor {
       if (basicTest) return true;
 
       // Try with fresh cf_clearance
-      const rawCookie = String((credentials as any)?.cookie || "");
+      const rawCookie = String((credentials as Record<string, unknown>)?.cookie || "");
       if (!rawCookie.trim()) return false;
 
       const freshCfClearance = await getCfClearanceToken();

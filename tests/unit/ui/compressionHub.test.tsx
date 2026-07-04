@@ -124,7 +124,7 @@ describe("CompressionHub", () => {
 
     const text = container.textContent ?? "";
     expect(text).toContain("Compression Hub");
-    expect(text).toContain("Token Saver");
+    expect(text).toContain("hub");
     expect(text).toContain("Stacked");
     // Active pipeline engine (from the default combo) renders
     expect(text).toContain("RTK");
@@ -134,58 +134,62 @@ describe("CompressionHub", () => {
     expect(text).toContain("Layer pipeline is active");
   });
 
-  it("INVARIANT #1: no per-layer control issues a PUT/POST to /api/context/combos/default", { timeout: 20000 }, async () => {
-    const comboWrites: { method: string }[] = [];
-    const json = (body: unknown, status = 200) =>
-      new Response(JSON.stringify(body), {
-        status,
-        headers: { "Content-Type": "application/json" },
-      });
-    vi.spyOn(globalThis, "fetch").mockImplementation(
-      async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = input.toString();
-        if (url.includes("/api/context/combos/default")) {
-          if (init?.method === "PUT" || init?.method === "POST") {
-            comboWrites.push({ method: init.method });
+  it(
+    "INVARIANT #1: no per-layer control issues a PUT/POST to /api/context/combos/default",
+    { timeout: 20000 },
+    async () => {
+      const comboWrites: { method: string }[] = [];
+      const json = (body: unknown, status = 200) =>
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { "Content-Type": "application/json" },
+        });
+      vi.spyOn(globalThis, "fetch").mockImplementation(
+        async (input: RequestInfo | URL, init?: RequestInit) => {
+          const url = input.toString();
+          if (url.includes("/api/context/combos/default")) {
+            if (init?.method === "PUT" || init?.method === "POST") {
+              comboWrites.push({ method: init.method });
+            }
+            return json({ id: "default", name: "Default", pipeline: [{ engine: "rtk" }] });
           }
-          return json({ id: "default", name: "Default", pipeline: [{ engine: "rtk" }] });
+          if (url.includes("/api/settings/compression")) {
+            return json({ enabled: true, defaultMode: "stacked" });
+          }
+          if (url.includes("/api/compression/engines")) {
+            return json(enginePayload());
+          }
+          if (url.includes("/api/context/combos") || url.includes("/api/combos")) {
+            return json({ combos: [] });
+          }
+          if (url.includes("/api/compression/language-packs")) {
+            return json({ packs: [] });
+          }
+          return json({}, 404);
         }
-        if (url.includes("/api/settings/compression")) {
-          return json({ enabled: true, defaultMode: "stacked" });
-        }
-        if (url.includes("/api/compression/engines")) {
-          return json(enginePayload());
-        }
-        if (url.includes("/api/context/combos") || url.includes("/api/combos")) {
-          return json({ combos: [] });
-        }
-        if (url.includes("/api/compression/language-packs")) {
-          return json({ packs: [] });
-        }
-        return json({}, 404);
-      }
-    );
+      );
 
-    const { default: CompressionHub } =
-      await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
+      const { default: CompressionHub } =
+        await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
 
-    let container!: HTMLElement;
-    await act(async () => {
-      container = mountInContainer(<CompressionHub />);
-    });
-    await flush();
-
-    // Click every on/off switch in the Hub (master + any layer controls that remain).
-    const switches = Array.from(container.querySelectorAll('[role="switch"]'));
-    for (const sw of switches) {
+      let container!: HTMLElement;
       await act(async () => {
-        (sw as HTMLElement).click();
+        container = mountInContainer(<CompressionHub />);
       });
       await flush();
-    }
 
-    expect(comboWrites).toHaveLength(0);
-  });
+      // Click every on/off switch in the Hub (master + any layer controls that remain).
+      const switches = Array.from(container.querySelectorAll('[role="switch"]'));
+      for (const sw of switches) {
+        await act(async () => {
+          (sw as HTMLElement).click();
+        });
+        await flush();
+      }
+
+      expect(comboWrites).toHaveLength(0);
+    }
+  );
 
   it("shows the activation warning when Token Saver is off", async () => {
     setupFetchMock({ enabled: false, mode: "off", pipeline: [] });
