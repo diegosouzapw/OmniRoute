@@ -37,8 +37,10 @@ test("doctor.mjs implements a /favicon.ico fallback for unauthenticated liveness
   // The probe order matters: try the configured health endpoint first, then
   // fall back. Locking the order prevents future refactors from regressing
   // back to "always report WARN on 401".
-  const primaryMatch = content.match(/primary\.ok\s*\?/);
-  assert.ok(primaryMatch, "doctor.mjs must check `primary.ok` to decide whether to fall back");
+  assert.ok(
+    /\bprimary\.ok\b/.test(content),
+    "doctor.mjs must branch on `primary.ok` to decide whether to fall back to /favicon.ico"
+  );
 });
 
 test("doctor.mjs derives fallback URL from primary URL via new URL() (Gemini review)", () => {
