@@ -100,7 +100,7 @@ jobs:
           fi
           echo "Running impacted tests:"; echo "$SEL"
           mapfile -t FILES <<< "$SEL"
-          node --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${FILES[@]}"
+          node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${FILES[@]}"
 
   fast-vitest:
     name: Vitest (fast-path)
@@ -140,9 +140,9 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - run: >
-          node --max-old-space-size=4096 --import tsx
-          --import ./tests/_setup/isolateDataDir.ts
-          --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2
-          tests/unit/*.test.ts
-          "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+      # QW-d: fonte única — o mesmo npm script do CI pesado/local. Fecha dois drifts do
+      # comando inline antigo: os dirs `memory` e `usage` estavam FORA do glob (testes
+      # silenciosamente não rodavam no fast path) e o setupPolyfill não era importado.
+      - run: npm run test:unit:ci:shard
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/2

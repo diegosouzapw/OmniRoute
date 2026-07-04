@@ -624,7 +624,11 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+      # QW-d (plano mestre): fonte única — o MESMO npm script dos runs locais (adiciona o
+      # setupPolyfill que o comando inline omitia; o glob canônico vive só no package.json).
+      - run: npm run test:unit:ci:shard
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/8
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
@@ -676,7 +680,10 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+      # QW-d: fonte única — mesmo npm script dos runs locais (inclui setupPolyfill; glob no package.json).
+      - run: npm run test:unit:ci:shard
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/4
 
   node-26-compat-build:
     name: Node 26 Compatibility Build
@@ -729,7 +736,10 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+      # QW-d: fonte única — mesmo npm script dos runs locais (inclui setupPolyfill; glob no package.json).
+      - run: npm run test:unit:ci:shard
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/4
 
   test-coverage-shard:
     name: Coverage Shard (${{ matrix.shard }}/8)
@@ -755,6 +765,8 @@ jobs:
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Run c8 over shard ${{ matrix.shard }}/8
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/8
         run: |
           rm -rf coverage-shard coverage-shard-report
           # `--temp-directory` (writable via NODE_V8_COVERAGE) is what the merge
@@ -763,14 +775,15 @@ jobs:
           # `coverage/tmp`, so uploading `coverage-shard/` was empty. Pin the temp
           # dir so the raw coverage files live there and the artifact upload picks
           # them up regardless of `--test-force-exit` timing.
+          # QW-d: o comando de teste é o MESMO npm script dos runs locais (c8 propaga
+          # NODE_V8_COVERAGE aos filhos através do npm; node_modules é excluído por default).
           npx c8 \
             --temp-directory=coverage-shard \
             --reports-dir=coverage-shard-report \
             --reporter=json \
             --exclude=tests/** \
             --exclude=**/*.test.* \
-            node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 \
-              --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+            npm run test:unit:ci:shard
       - name: Upload raw shard coverage
         if: always()
         uses: actions/upload-artifact@v7
@@ -1061,7 +1074,8 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
+      # (tsx/esm = QW-b; o alinhamento de ESCOPO do integration com o npm script fica p/ follow-up)
+      - run: node --import tsx/esm --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
 
   test-security:
     name: Security Tests
