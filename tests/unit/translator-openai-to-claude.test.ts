@@ -225,6 +225,70 @@ test("OpenAI -> Claude converts multimodal content, tool declarations, tool call
   });
 });
 
+test("OpenAI -> Claude does not leave tool results separated from their tool use", () => {
+  const result = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      messages: [
+        { role: "user", content: "Start" },
+        {
+          role: "assistant",
+          content: "Calling tool",
+          tool_calls: [
+            {
+              id: "call_weather",
+              type: "function",
+              function: {
+                name: "weather.get",
+                arguments: '{"city":"Tokyo"}',
+              },
+            },
+          ],
+        },
+        { role: "user", content: "Please wait before using that result." },
+        {
+          role: "tool",
+          tool_call_id: "call_weather",
+          content: "20C",
+        },
+      ],
+    },
+    false
+  );
+
+  const toolResultIndex = result.messages.findIndex(
+    (message) =>
+      message.role === "user" &&
+      message.content.some(
+        (block) => block.type === "tool_result" && block.tool_use_id === "call_weather"
+      )
+  );
+
+  assert.notEqual(toolResultIndex, -1, "expected the delayed tool_result to be preserved");
+  const previousMessage = result.messages[toolResultIndex - 1];
+  assert.equal(previousMessage?.role, "assistant");
+  assert.ok(
+    previousMessage.content.some(
+      (block) => block.type === "tool_use" && block.id === "call_weather"
+    ),
+    "tool_result must immediately follow its matching tool_use"
+  );
+
+  const waitMessageIndex = result.messages.findIndex(
+    (message) =>
+      message.role === "user" &&
+      message.content.some(
+        (block) =>
+          block.type === "text" &&
+          block.text === "Please wait before using that result."
+      )
+  );
+  assert.ok(
+    waitMessageIndex > toolResultIndex,
+    "intervening user text should be moved after the repaired tool_result turn"
+  );
+});
+
 test("OpenAI -> Claude maps tool_choice and injects response_format instructions into system", () => {
   const schemaResult = openaiToClaudeRequest(
     "claude-4-sonnet",
