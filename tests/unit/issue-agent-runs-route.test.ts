@@ -159,3 +159,42 @@ test("issue-agent run returns recorded context summary with redaction", async ()
     else process.env.DATA_DIR = previousDataDir;
   }
 });
+
+test("issue-agent run accepts recorded GitHub export payloads", async () => {
+  const previous = process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
+  const previousDataDir = process.env.DATA_DIR;
+  process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = "true";
+  process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "issue-agent-export-route-"));
+  try {
+    const response = await POST(
+      new Request("http://localhost/api/issue-agent/runs", {
+        method: "POST",
+        body: JSON.stringify({
+          mode: "recorded-triage",
+          githubExport: {
+            issue: {
+              title: "Fix GitHub export importer",
+              body: "bug in recorded context path",
+              html_url: "https://github.com/KooshaPari/OmniRoute/issues/88",
+            },
+            comments: [{ user: { login: "maintainer", type: "User" }, body: "please patch" }],
+          },
+        }),
+      })
+    );
+    const body = await json(response);
+    const context = body.context as Record<string, unknown>;
+
+    assert.equal(response.status, 200);
+    assert.equal(body.issueUrl, "https://github.com/KooshaPari/OmniRoute/issues/88");
+    assert.equal(body.issueNumber, 88);
+    assert.equal(context.issueTitle, "Fix GitHub export importer");
+    assert.equal(context.intent, "bugfix");
+    assert.equal(body.auditPath, join(process.env.DATA_DIR, "issue-agent", "audit.jsonl"));
+  } finally {
+    if (previous === undefined) delete process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
+    else process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = previous;
+    if (previousDataDir === undefined) delete process.env.DATA_DIR;
+    else process.env.DATA_DIR = previousDataDir;
+  }
+});
