@@ -70,3 +70,51 @@ test("issue-agent run is disabled by default", async () => {
     else process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = previous;
   }
 });
+
+test("issue-agent run returns deterministic recorded-triage plan when enabled", async () => {
+  const previous = process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
+  process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = "true";
+  try {
+    const response = await POST(
+      new Request("http://localhost/api/issue-agent/runs", {
+        method: "POST",
+        body: JSON.stringify({
+          mode: "recorded-triage",
+          issueUrl: "https://github.com/KooshaPari/OmniRoute/issues/6059",
+          dryRun: true,
+        }),
+      })
+    );
+    const body = await json(response);
+
+    assert.equal(response.status, 200);
+    assert.equal(body.accepted, true);
+    assert.equal(body.mode, "recorded-triage");
+    assert.equal(body.repository, "KooshaPari/OmniRoute");
+    assert.equal(body.issueNumber, 6059);
+    assert.match(String(body.runId), /^issue-agent-recorded-triage-[a-f0-9]{16}$/);
+  } finally {
+    if (previous === undefined) delete process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
+    else process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = previous;
+  }
+});
+
+test("issue-agent run rejects invalid enabled recorded-triage URL", async () => {
+  const previous = process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
+  process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = "true";
+  try {
+    const response = await POST(
+      new Request("http://localhost/api/issue-agent/runs", {
+        method: "POST",
+        body: JSON.stringify({ mode: "recorded-triage", issueUrl: "https://example.com/nope" }),
+      })
+    );
+    const body = await json(response);
+
+    assert.equal(response.status, 400);
+    assert.equal(body.error, "Expected a GitHub issue or pull request URL");
+  } finally {
+    if (previous === undefined) delete process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
+    else process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = previous;
+  }
+});
