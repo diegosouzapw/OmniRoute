@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createRecordedTriageRun } from "@/lib/issueAgent/recordedTriage";
 
 interface IssueAgentRunRequest {
   mode?: string;
@@ -58,14 +59,10 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json(
-    {
-      accepted: false,
-      mode: parsed.mode,
-      issueUrl: parsed.issueUrl ?? null,
-      dryRun: parsed.dryRun ?? true,
-      error: "Issue Agent runner is not wired in this build",
-    },
-    { status: 501 }
-  );
+  try {
+    return NextResponse.json(createRecordedTriageRun(parsed));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Invalid issue-agent request";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 }
