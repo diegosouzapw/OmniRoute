@@ -1588,7 +1588,13 @@ export async function handleChatCore({
     headers: clientRawRequest?.headers,
     userAgent,
   });
-  const upstreamStream = stream || isClaudeCodeCompatible;
+  // `forceStream` providers (e.g. Cline / ClinePass) only implement upstream
+  // streaming — a non-streaming request returns "generateText is not implemented"
+  // / an empty body. Force the upstream request to stream even when the client
+  // wants JSON; the non-streaming branch below accumulates the SSE and converts
+  // it back to JSON (same mechanism already used for Claude-Code-compatible
+  // providers via isClaudeCodeCompatible).
+  const upstreamStream = stream || isClaudeCodeCompatible || providerRequiresStreaming;
   let ccSessionId: string | null = null;
   const stripTypes = getStripTypesForProviderModel(provider || "", model || "");
 
