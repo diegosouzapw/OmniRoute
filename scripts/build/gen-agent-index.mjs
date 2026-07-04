@@ -242,14 +242,29 @@ const KNOWN_HELPER_FILES = new Set([
   // Extraction utilities split out of large executors.
   "antigravityupstreamerror",
   "chatgptweberrors",
+  "chatgptwebtools", // helpers for chatgpt-web.ts (buildToolModeResponse)
   "claudeidentity",
   "copilot-m365-connection",
   "copilot-m365-frames",
   "vertexmedia",
+  "kirothinking", // helpers for kiro.ts (splitInlineThinking, flushPendingThinking)
+  "forceresponsesupstream", // helpers for base.ts:68 (shouldForceResponsesUpstream)
   // Upstream fetch adapters (toolchain, not providers).
   "firecrawl-fetch",
   "jina-reader-fetch",
   "tavily-fetch",
+]);
+
+// Executor classes imported into `open-sse/executors/index.ts` only for
+// re-export -- typically base classes extended by a sibling
+// `*-with-auto-refresh.ts` that IS the registry entry. Their absence from
+// the executors map is intentional; the sibling importer reaches them via
+// a direct relative `./<name>.ts` import. Without this list the gate would
+// spuriously flag them as orphan imports.
+const BASE_CLASS_REEXPORTS = new Set([
+  "DeepSeekWebExecutor", // base for DeepSeekWebWithAutoRefreshExecutor
+  "ClaudeWebExecutor",   // base for ClaudeWebWithAutoRefresh
+  "KieExecutor",         // class form of the kieExecutor singleton consumed directly by handlers
 ]);
 
 // ---------------------------------------------------------------------------
@@ -332,6 +347,9 @@ function buildMarkdown(registry) {
     const used = registry.map.some((m) => m.className === imp.className);
     if (!used) {
       seenOrphanClasses.add(imp.className);
+      // Suppress false positives for known base-class re-exports whose
+      // sibling (e.g. `*-with-auto-refresh.ts`) extends them directly.
+      if (BASE_CLASS_REEXPORTS.has(imp.className)) continue;
       drift.push(
         `"${imp.className}" (./${imp.file}) is never instantiated in the executors registry -- if it is consumed by name elsewhere, register it in the map; otherwise remove the import/export`,
       );

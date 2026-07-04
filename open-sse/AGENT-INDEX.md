@@ -17,32 +17,32 @@ If your task touches a *specific* provider, read only `open-sse/executors/<file>
 
 | Executor class | File | Size | Primary ids | Aliases | Recent commits | Last touch | T |
 | --- | --- | ---: | --- | --- | ---: | --- | --- |
-| `ChatGptWebExecutor` | `open-sse/executors/chatgpt-web.ts` | 115.9 KB | chatgpt-web | cgpt-web | 12 | 2026-07-02 |  |
-| `AntigravityExecutor` | `open-sse/executors/antigravity.ts` | 69.2 KB | antigravity, agy | - | 23 | 2026-07-02 |  |
-| `GrokWebExecutor` | `open-sse/executors/grok-web.ts` | 64.7 KB | grok-web | - | 8 | 2026-06-29 |  |
-| `CursorExecutor` | `open-sse/executors/cursor.ts` | 58.7 KB | cursor | cu | 10 | 2026-06-27 |  |
-| `CodexExecutor` | `open-sse/executors/codex.ts` | 57.7 KB | codex | - | 19 | 2026-06-29 |  |
-| `DuckDuckGoWebExecutor` | `open-sse/executors/duckduckgo-web.ts` | 38.8 KB | duckduckgo-web | ddgw | 11 | 2026-06-29 |  |
-| `MuseSparkWebExecutor` | `open-sse/executors/muse-spark-web.ts` | 37.8 KB | muse-spark-web | ms-web | 9 | 2026-06-30 |  |
-| `KiroExecutor` | `open-sse/executors/kiro.ts` | 34.5 KB | kiro, amazon-q | - | 11 | 2026-06-27 |  |
-| `PerplexityWebExecutor` | `open-sse/executors/perplexity-web.ts` | 33.9 KB | perplexity-web | pplx-web | 11 | 2026-06-29 |  |
+| `ChatGptWebExecutor` | `open-sse/executors/chatgpt-web.ts` | 115.9 KB | chatgpt-web | cgpt-web | 14 | 2026-07-03 |  |
+| `AntigravityExecutor` | `open-sse/executors/antigravity.ts` | 69.2 KB | antigravity, agy | - | 25 | 2026-07-03 |  |
+| `GrokWebExecutor` | `open-sse/executors/grok-web.ts` | 64.7 KB | grok-web | - | 10 | 2026-07-03 |  |
+| `CursorExecutor` | `open-sse/executors/cursor.ts` | 58.7 KB | cursor | cu | 12 | 2026-07-03 |  |
+| `CodexExecutor` | `open-sse/executors/codex.ts` | 57.7 KB | codex | - | 21 | 2026-07-03 |  |
+| `DuckDuckGoWebExecutor` | `open-sse/executors/duckduckgo-web.ts` | 38.8 KB | duckduckgo-web | ddgw | 13 | 2026-07-03 |  |
+| `MuseSparkWebExecutor` | `open-sse/executors/muse-spark-web.ts` | 37.8 KB | muse-spark-web | ms-web | 11 | 2026-07-03 |  |
+| `KiroExecutor` | `open-sse/executors/kiro.ts` | 34.5 KB | kiro, amazon-q | - | 13 | 2026-07-03 |  |
+| `PerplexityWebExecutor` | `open-sse/executors/perplexity-web.ts` | 33.9 KB | perplexity-web | pplx-web | 13 | 2026-07-03 |  |
 | `InnerAiExecutor` | `open-sse/executors/inner-ai.ts` | 27.5 KB | inner-ai | in-ai | 9 | 2026-06-29 |  |
 | `WindsurfExecutor` | `open-sse/executors/windsurf.ts` | 27.2 KB | windsurf | ws | 6 | 2026-06-05 |  |
 | `CopilotWebExecutor` | `open-sse/executors/copilot-web.ts` | 26.0 KB | copilot-web | copilot | 7 | 2026-06-29 |  |
-| `HuggingChatExecutor` | `open-sse/executors/huggingchat.ts` | 24.8 KB | huggingchat | hc | 8 | 2026-07-02 |  |
+| `HuggingChatExecutor` | `open-sse/executors/huggingchat.ts` | 24.8 KB | huggingchat | hc | 10 | 2026-07-03 |  |
 | `CommandCodeExecutor` | `open-sse/executors/commandCode.ts` | 23.6 KB | command-code | cmd | 14 | 2026-07-02 |  |
 | `BlackboxWebExecutor` | `open-sse/executors/blackbox-web.ts` | 22.5 KB | blackbox-web | bb-web | 8 | 2026-06-29 |  |
 | `BedrockExecutor` | `open-sse/executors/bedrock.ts` | 22.0 KB | bedrock | - | 7 | 2026-06-17 |  |
 | `T3ChatWebExecutor` | `open-sse/executors/t3-chat-web.ts` | 20.3 KB | t3-web | t3chat | 10 | 2026-07-02 |  |
-| `GitlabExecutor` | `open-sse/executors/gitlab.ts` | 19.5 KB | gitlab, gitlab-duo | - | 6 | 2026-06-05 |  |
+| `GitlabExecutor` | `open-sse/executors/gitlab.ts` | 19.5 KB | gitlab, gitlab-duo | - | 8 | 2026-07-03 |  |
 | `MimocodeExecutor` | `open-sse/executors/mimocode.ts` | 19.2 KB | mimocode | mcode | 5 | 2026-06-30 |  |
-| `CliproxyapiExecutor` | `open-sse/executors/cliproxyapi.ts` | 18.1 KB | cliproxyapi | cpa | 7 | 2026-06-05 |  |
+| `CliproxyapiExecutor` | `open-sse/executors/cliproxyapi.ts` | 18.1 KB | cliproxyapi | cpa | 9 | 2026-07-03 |  |
 | `AdaptaWebExecutor` | `open-sse/executors/adapta-web.ts` | 17.8 KB | adapta-web | adp-web | 9 | 2026-06-29 |  |
 | `DevinCliExecutor` | `open-sse/executors/devin-cli.ts` | 17.4 KB | devin-cli | devin | 6 | 2026-06-05 |  |
 | `TraeExecutor` | `open-sse/executors/trae.ts` | 17.4 KB | trae | - | 6 | 2026-06-29 |  |
 | `GlmExecutor` | `open-sse/executors/glm.ts` | 16.5 KB | glm, glm-cn, glmt | - | 8 | 2026-06-19 |  |
-| `KimiWebExecutor` | `open-sse/executors/kimi-web.ts` | 16.5 KB | kimi-web | - | 8 | 2026-07-02 |  |
-| `QwenWebExecutor` | `open-sse/executors/qwen-web.ts` | 16.4 KB | qwen-web | qw | 11 | 2026-07-02 |  |
+| `KimiWebExecutor` | `open-sse/executors/kimi-web.ts` | 16.5 KB | kimi-web | - | 10 | 2026-07-03 |  |
+| `QwenWebExecutor` | `open-sse/executors/qwen-web.ts` | 16.4 KB | qwen-web | qw | 13 | 2026-07-03 |  |
 | `LMArenaExecutor` | `open-sse/executors/lmarena.ts` | 15.9 KB | lmarena | lma | 4 | 2026-06-29 |  |
 | `GithubExecutor` | `open-sse/executors/github.ts` | 15.7 KB | github | - | 11 | 2026-07-02 |  |
 | `GeminiBusinessExecutor` | `open-sse/executors/gemini-business.ts` | 15.2 KB | gemini-business | gembiz | 2 | 2026-06-29 |  |
@@ -50,9 +50,9 @@ If your task touches a *specific* provider, read only `open-sse/executors/<file>
 | `ChipotleExecutor` | `open-sse/executors/chipotle.ts` | 12.7 KB | chipotle | pepper | 4 | 2026-06-29 |  |
 | `GeminiWebExecutor` | `open-sse/executors/gemini-web.ts` | 12.2 KB | gemini-web | gweb | 8 | 2026-06-29 |  |
 | `VeoAIFreeWebExecutor` | `open-sse/executors/veoaifree-web.ts` | 12.0 KB | veoaifree-web | veo-free | 8 | 2026-06-29 |  |
-| `QoderExecutor` | `open-sse/executors/qoder.ts` | 11.7 KB | qoder | - | 9 | 2026-06-26 |  |
+| `QoderExecutor` | `open-sse/executors/qoder.ts` | 11.7 KB | qoder | - | 11 | 2026-07-03 |  |
 | `OpencodeExecutor` | `open-sse/executors/opencode.ts` | 10.5 KB | opencode-zen, opencode-go | opencode | 12 | 2026-07-02 |  |
-| `TheOldLlmExecutor` | `open-sse/executors/theoldllm.ts` | 10.2 KB | theoldllm | tllm | 4 | 2026-06-29 |  |
+| `TheOldLlmExecutor` | `open-sse/executors/theoldllm.ts` | 10.2 KB | theoldllm | tllm | 6 | 2026-07-03 |  |
 | `ZenmuxFreeExecutor` | `open-sse/executors/zenmux-free.ts` | 9.7 KB | zenmux-free | zmf | 1 | 2026-06-27 |  |
 | `CopilotM365WebExecutor` | `open-sse/executors/copilot-m365-web.ts` | 9.4 KB | copilot-m365-web | - | 1 | 2026-06-29 |  |
 | `VertexExecutor` | `open-sse/executors/vertex.ts` | 7.5 KB | vertex, vertex-partner | - | 8 | 2026-06-16 |  |
@@ -62,7 +62,7 @@ If your task touches a *specific* provider, read only `open-sse/executors/<file>
 | `V0VercelWebExecutor` | `open-sse/executors/v0-vercel-web.ts` | 5.1 KB | v0-vercel-web | v0 | 7 | 2026-06-29 |  |
 | `DoubaoWebExecutor` | `open-sse/executors/doubao-web.ts` | 5.1 KB | doubao-web | db | 7 | 2026-06-29 |  |
 | `PoeWebExecutor` | `open-sse/executors/poe-web.ts` | 4.9 KB | poe-web | poe | 7 | 2026-06-29 |  |
-| `DeepSeekWebWithAutoRefreshExecutor` | `open-sse/executors/deepseek-web-with-auto-refresh.ts` | 4.6 KB | deepseek-web | ds-web | 6 | 2026-06-05 |  |
+| `DeepSeekWebWithAutoRefreshExecutor` | `open-sse/executors/deepseek-web-with-auto-refresh.ts` | 4.6 KB | deepseek-web | ds-web | 8 | 2026-07-03 |  |
 | `KimiExecutor` | `open-sse/executors/kimi.ts` | 4.5 KB |  | kimi-coding-apikey, kimi-coding | 3 | 2026-06-05 |  |
 | `PollinationsExecutor` | `open-sse/executors/pollinations.ts` | 3.8 KB | pollinations | pol | 9 | 2026-06-25 |  |
 | `ClaudeWebWithAutoRefresh` | `open-sse/executors/claude-web-with-auto-refresh.ts` | 3.7 KB | claude-web | cw-web | 6 | 2026-06-05 |  |
@@ -72,17 +72,6 @@ If your task touches a *specific* provider, read only `open-sse/executors/<file>
 | `AzureOpenAIExecutor` | `open-sse/executors/azure-openai.ts` | 1.6 KB | azure-openai | - | 7 | 2026-06-27 |  |
 
 **T column (reserved for future migration waves):** `T1` = first-class executor that the sidecar will retire. The current Wk-2 rollout (openai, anthropic, claude, gemini, ollama) is bypass-only -- they have no first-class executor here, so they carry no tag in this table. `T1` will become live for any executor whose primary id lands in `BIFROST_PROVIDER_IDS` (see `scripts/build/gen-agent-index.mjs`).
-
-## Drift findings (must be resolved)
-
-These are inconsistencies between `open-sse/executors/` on disk and `open-sse/executors/index.ts` registry. Each one is a likely bug or a stale import -- address before merging.
-
-- WARNING: "DeepSeekWebExecutor" (./deepseek-web.ts) is never instantiated in the executors registry -- if it is consumed by name elsewhere, register it in the map; otherwise remove the import/export
-- WARNING: "ClaudeWebExecutor" (./claude-web.ts) is never instantiated in the executors registry -- if it is consumed by name elsewhere, register it in the map; otherwise remove the import/export
-- WARNING: "KieExecutor" (./kie.ts) is never instantiated in the executors registry -- if it is consumed by name elsewhere, register it in the map; otherwise remove the import/export
-- WARNING: file "open-sse/executors/chatgptWebTools.ts" exists on disk but is NOT imported in index.ts
-- WARNING: file "open-sse/executors/forceResponsesUpstream.ts" exists on disk but is NOT imported in index.ts
-- WARNING: file "open-sse/executors/kiroThinking.ts" exists on disk but is NOT imported in index.ts
 
 ## Non-executor helpers in `open-sse/executors/`
 
