@@ -47,6 +47,16 @@ const PROVIDERS_WITHOUT_SYSTEM_MESSAGE = new Set([
 ]);
 
 /**
+ * Providers that enforce system messages only at index 0 (strict).
+ * When memory injection uses cache-safe mode, these providers cannot accept a
+ * system message mid-array — it must be merged into or placed at index 0.
+ * (#6135)
+ */
+const PROVIDERS_SYSTEM_MUST_BE_FIRST = new Set([
+  "xiaomi-mimo", // Xiaomi MiMo throws 400 if system message is not at index 0
+]);
+
+/**
  * Returns true when the given provider accepts a system-role message.
  * Falls back to true for unknown/null providers (safe default).
  */
@@ -90,6 +100,14 @@ export interface InjectMemoryOptions {
    * contextualizes the current turn.
    */
   cacheSafe?: boolean;
+  /**
+   * When true, system messages MUST appear at index 0 in the messages array.
+   * If `cacheSafe` is also true, the memory system message is merged into the
+   * existing index-0 system message (or unshifted to index 0) instead of being
+   * spliced mid-array. This prevents 400 errors from strict providers like
+   * Xiaomi MiMo. (#6135)
+   */
+  systemMessageMustBeFirst?: boolean;
 }
 
 export function injectMemory(
@@ -116,11 +134,49 @@ export function injectMemory(
   // back to a leading message when caching is off or there is no user turn to anchor on.
   const cacheSafeIndex = options.cacheSafe ? messages.findLastIndex((m) => m.role === "user") : -1;
 
+  // #6135: some strict providers (e.g. Xiaomi MiMo) require system messages ONLY at index 0.
+  // When both cacheSafe and systemMessageMustBeFirst are true, we cannot splice a system
+  // message mid-array — instead we merge into the existing system[0] or unshift to front.
+  const strictSystemIndex =
+    options.cacheSafe && options.systemMessageMustBeFirst
+      ? 0
+      : options.systemMessageMustBeFirst && !options.cacheSafe
+        ? 0
+        : -1;
+
+  const isStrictSystem = strictSystemIndex >= 0;
+
   if (providerSupportsSystemMessage(provider)) {
-    // Strategy 1: inject as a system message.
-    // Prepending before any existing system messages keeps memory context
-    // accessible without overriding the caller's own system instructions.
     const memorySystemMessage: ChatMessage = { role: "system", content: memoryText };
+
+    if (isStrictSystem) {
+      // Strict provider: system message must be at index 0.
+      // If an existing system message exists at index 0, merge memory into it.
+      // Otherwise, unshift the memory system message to index 0.
+      const firstSystemIdx = messages.findIndex((m) => m.role === "system");
+      if (firstSystemIdx === 0) {
+        // Merge memory context into the existing system message at index 0.
+        const merged = [
+          { ...messages[0], content: `${memoryText}\n\n${messages[0].content}` },
+          ...messages.slice(1),
+        ];
+        log.info("memory.injection.injected", {
+          count: memories.length,
+          strategy: "system-strict-merge",
+          model: request.model,
+        });
+        return { ...request, messages: merged };
+      }
+      // No system message at index 0 — unshift memory to front.
+      log.info("memory.injection.injected", {
+        count: memories.length,
+        strategy: "system-strict-unshift",
+        model: request.model,
+      });
+      return { ...request, messages: [memorySystemMessage, ...messages] };
+    }
+
+    // Lenient path: cache-safe splices before last user, otherwise unshifts to front.
     log.info("memory.injection.injected", {
       count: memories.length,
       strategy: cacheSafeIndex >= 0 ? "system-cache-safe" : "system",

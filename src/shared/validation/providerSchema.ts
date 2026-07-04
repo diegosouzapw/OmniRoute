@@ -32,6 +32,7 @@ export const ProviderSchema = z.object({
   serviceKinds: z.array(z.enum(SERVICE_KIND_VALUES)).optional(),
   noAuth: z.boolean().optional(),
   anonymousFallback: z.boolean().optional(),
+  systemMessageMustBeFirst: z.boolean().optional(),
 });
 
 export const ProvidersMapSchema = z.record(z.string(), ProviderSchema);

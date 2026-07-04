@@ -102,4 +102,79 @@ describe("injectMemory cache-safe positioning (#3890)", () => {
     assert.ok(out.messages[0].content.includes("Memory context"));
     assert.equal(out.messages[1].content, "SYS");
   });
+
+  // ── #6135: systemMessageMustBeFirst for strict providers ──
+
+  it("cacheSafe + non-strict provider injects memory mid-array (lenient path)", () => {
+    const req = multiTurn();
+    const out = injectMemory(req, [mem("dark mode")], "anthropic", {
+      cacheSafe: true,
+      systemMessageMustBeFirst: false,
+    });
+    // Lenient: memory inserted before last user message, NOT at index 0
+    assert.equal(out.messages[0].content, "SYSTEM PROMPT");
+    assert.equal(out.messages[3].role, "system");
+    assert.ok(out.messages[3].content.includes("Memory context"));
+    assert.equal(out.messages[4].content, "turn 2 question");
+  });
+
+  it("cacheSafe + strict provider merges memory into existing system[0]", () => {
+    const req = multiTurn(); // [sys, u1, a1, u2]
+    const out = injectMemory(req, [mem("dark mode")], "xiaomi-mimo", {
+      cacheSafe: true,
+      systemMessageMustBeFirst: true,
+    });
+    // Memory merged into the existing system message at index 0
+    assert.equal(out.messages.length, 4, "no extra message added — merged into system[0]");
+    assert.equal(out.messages[0].role, "system");
+    assert.ok(out.messages[0].content.includes("Memory context"));
+    assert.ok(out.messages[0].content.includes("SYSTEM PROMPT"));
+    // No system message exists after index 0
+    const systemRolesAfterZero = out.messages.slice(1).filter((m) => m.role === "system");
+    assert.equal(systemRolesAfterZero.length, 0, "no system messages after index 0");
+    // Rest of conversation preserved
+    assert.equal(out.messages[1].content, "turn 1 question");
+    assert.equal(out.messages[2].content, "turn 1 answer");
+    assert.equal(out.messages[3].content, "turn 2 question");
+  });
+
+  it("cacheSafe + strict provider unshifts when no system message at index 0", () => {
+    const req: ChatRequest = {
+      model: "xiaomi-mimo/mimo-v2.5-pro",
+      messages: [
+        { role: "user", content: "turn 1 question" },
+        { role: "assistant", content: "turn 1 answer" },
+        { role: "user", content: "turn 2 question" },
+      ],
+    };
+    const out = injectMemory(req, [mem("context")], "xiaomi-mimo", {
+      cacheSafe: true,
+      systemMessageMustBeFirst: true,
+    });
+    // Memory unshifted to index 0 as a new system message
+    assert.equal(out.messages[0].role, "system");
+    assert.ok(out.messages[0].content.includes("Memory context"));
+    assert.equal(out.messages[1].content, "turn 1 question");
+    assert.equal(out.messages[2].content, "turn 1 answer");
+    assert.equal(out.messages[3].content, "turn 2 question");
+    // No system messages after index 0
+    const systemRolesAfterZero = out.messages.slice(1).filter((m) => m.role === "system");
+    assert.equal(systemRolesAfterZero.length, 0, "no system messages after index 0");
+  });
+
+  it("strict provider without cacheSafe still enforces system at index 0", () => {
+    const req = multiTurn(); // [sys, u1, a1, u2]
+    const out = injectMemory(req, [mem("fact")], "xiaomi-mimo", {
+      systemMessageMustBeFirst: true,
+    });
+    // Memory merged into existing system message at index 0
+    assert.equal(out.messages[0].role, "system");
+    assert.ok(out.messages[0].content.includes("Memory context"));
+    assert.ok(out.messages[0].content.includes("SYSTEM PROMPT"));
+    // Merged — same message count as input
+    assert.equal(out.messages.length, 4);
+    // No system messages after index 0
+    const systemRolesAfterZero = out.messages.slice(1).filter((m) => m.role === "system");
+    assert.equal(systemRolesAfterZero.length, 0, "no system messages after index 0");
+  });
 });

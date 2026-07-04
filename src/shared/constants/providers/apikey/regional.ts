@@ -175,6 +175,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     color: "#EA580C",
     textIcon: "MM",
     website: "https://mimo.mi.com",
+    systemMessageMustBeFirst: true,
   },
   baidu: {
     id: "baidu",

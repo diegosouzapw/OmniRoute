@@ -204,3 +204,68 @@ describe("shouldInjectMemory", () => {
     expect(shouldInjectMemory(request)).toBe(false);
   });
 });
+
+describe("injectMemory — systemMessageMustBeFirst (#6135)", () => {
+  function multiTurnRequest(): ChatRequest {
+    return {
+      model: "xiaomi-mimo/mimo-v2.5-pro",
+      messages: [
+        { role: "system", content: "You are helpful" },
+        { role: "user", content: "turn 1" },
+        { role: "assistant", content: "answer 1" },
+        { role: "user", content: "turn 2" },
+      ],
+    };
+  }
+
+  test("cacheSafe + systemMessageMustBeFirst merges memory into system[0]", () => {
+    const request = multiTurnRequest();
+    const result = injectMemory(request, [makeMemory("fact")], "xiaomi-mimo", {
+      cacheSafe: true,
+      systemMessageMustBeFirst: true,
+    });
+
+    // Memory merged into existing system message at index 0
+    expect(result.messages).toHaveLength(4);
+    expect(result.messages[0].role).toBe("system");
+    expect(result.messages[0].content).toContain("Memory context: fact");
+    expect(result.messages[0].content).toContain("You are helpful");
+    // No system messages after index 0
+    const systemAfterZero = result.messages.slice(1).filter((m) => m.role === "system");
+    expect(systemAfterZero).toHaveLength(0);
+  });
+
+  test("cacheSafe + systemMessageMustBeFirst unshifts when no system at index 0", () => {
+    const request: ChatRequest = {
+      model: "xiaomi-mimo/mimo-v2.5-pro",
+      messages: [
+        { role: "user", content: "hello" },
+        { role: "assistant", content: "hi" },
+        { role: "user", content: "question" },
+      ],
+    };
+    const result = injectMemory(request, [makeMemory("ctx")], "xiaomi-mimo", {
+      cacheSafe: true,
+      systemMessageMustBeFirst: true,
+    });
+
+    expect(result.messages[0].role).toBe("system");
+    expect(result.messages[0].content).toBe("Memory context: ctx");
+    expect(result.messages[1].content).toBe("hello");
+    const systemAfterZero = result.messages.slice(1).filter((m) => m.role === "system");
+    expect(systemAfterZero).toHaveLength(0);
+  });
+
+  test("lenient provider with cacheSafe ignores systemMessageMustBeFirst", () => {
+    const request = multiTurnRequest();
+    const result = injectMemory(request, [makeMemory("fact")], "anthropic", {
+      cacheSafe: true,
+      systemMessageMustBeFirst: false,
+    });
+
+    // Lenient: memory injected before last user, not at index 0
+    expect(result.messages[0].content).toBe("You are helpful");
+    expect(result.messages[3].role).toBe("system");
+    expect(result.messages[3].content).toContain("Memory context");
+  });
+});
