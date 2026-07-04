@@ -157,10 +157,25 @@ export async function withEarlyStreamKeepalive(
           if (response.body && isSse) {
             // Real SSE stream — forward it verbatim.
             upstreamReader = response.body.getReader();
-            while (true) {
-              const { done, value } = await upstreamReader.read();
-              if (done) break;
-              if (value) controller.enqueue(value);
+            let bytesForwarded = 0;
+            try {
+              while (true) {
+                const { done, value } = await upstreamReader.read();
+                if (done) break;
+                if (value) {
+                  controller.enqueue(value);
+                  bytesForwarded += value.byteLength;
+                }
+              }
+            } catch (readErr) {
+              // Upstream stream failed mid-flight. Only emit an error frame if
+              // NO content was forwarded yet — otherwise the client already
+              // received partial content and a late error frame would corrupt
+              // the SSE stream. Silently close instead; the client will see
+              // the stream end naturally.
+              if (bytesForwarded === 0) {
+                controller.enqueue(ERROR_FRAME);
+              }
             }
           } else {
             // Non-SSE response (e.g. a JSON error) reached us after we already
