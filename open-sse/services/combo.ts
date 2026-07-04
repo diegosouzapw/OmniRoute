@@ -704,7 +704,9 @@ export async function handleComboChat({
       );
       let pinnedResult: Response | null = null;
       try {
-        pinnedResult = await handleSingleModelWithTimeout(body, pinnedModel);
+        pinnedResult = await handleSingleModelWithTimeout(body, pinnedModel, {
+          modelPinned: true,
+        } as SingleModelTarget);
       } catch (pinErr) {
         log.warn(
           "COMBO",
@@ -713,8 +715,14 @@ export async function handleComboChat({
       }
       if (pinnedResult) {
         if (pinnedResult.ok) {
+          let pinnedClone: Response;
+          try {
+            pinnedClone = pinnedResult.clone();
+          } catch {
+            pinnedClone = pinnedResult;
+          }
           const pinnedQuality = await validateResponseQuality(
-            pinnedResult,
+            pinnedClone,
             clientRequestedStream,
             log,
             config.responseValidation
@@ -1526,8 +1534,17 @@ export async function handleComboChat({
               undefined;
             const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
+            // Clone BEFORE quality check — validateResponseQuality reads the body
+            // via getReader() which locks the stream. The clone's body is consumed
+            // by the quality check; the original stays unlocked for piping.
+            let qualityClone: Response;
+            try {
+              qualityClone = result.clone();
+            } catch {
+              qualityClone = result;
+            }
             const quality = await validateResponseQuality(
-              result,
+              qualityClone,
               clientRequestedStream,
               log,
               config.responseValidation
@@ -1766,7 +1783,7 @@ export async function handleComboChat({
               })();
             }
 
-            return { ok: true, response: quality.clonedResponse ?? result };
+            return { ok: true, response: result };
           }
 
           // Extract error info from response
@@ -2594,8 +2611,14 @@ async function handleRoundRobinCombo({
 
         // Success — validate response quality before returning
         if (result.ok) {
+          let rrClone: Response;
+          try {
+            rrClone = result.clone();
+          } catch {
+            rrClone = result;
+          }
           const quality = await validateResponseQuality(
-            result,
+            rrClone,
             clientRequestedStream,
             log,
             config.responseValidation
@@ -2687,12 +2710,8 @@ async function handleRoundRobinCombo({
               }
             })();
           }
-          // validateResponseQuality peeks streaming bodies via getReader(),
-          // which locks `result.body`. It returns a clonedResponse that replays
-          // the buffered prefix and forwards the rest. Returning the original
-          // (now-locked) `result` makes Next.js throw "ReadableStream is locked"
-          // → 500. Mirror the priority strategy and return the replay response.
-          return quality.clonedResponse ?? result;
+          // Clone is consumed by quality check; original stays unlocked.
+          return result;
         }
 
         // Extract error info

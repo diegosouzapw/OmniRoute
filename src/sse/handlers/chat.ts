@@ -718,6 +718,7 @@ export async function handleChat(
             cachedSettings: settings,
             providerId: target?.providerId ?? null,
             correlationId: reqId,
+            modelPinned: (target as any)?.modelPinned ?? false,
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
@@ -1288,6 +1289,7 @@ async function handleSingleModelChat(
         cachedSettings: runtimeOptions.cachedSettings,
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
         correlationId: runtimeOptions?.correlationId ?? null,
+        modelPinned: runtimeOptions?.modelPinned ?? false,
       });
       if (telemetry) telemetry.endPhase();
 

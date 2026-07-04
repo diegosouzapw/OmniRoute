@@ -374,6 +374,7 @@ export async function handleChatCore({
   skipUpstreamRetry = false,
   createPiiTransform = null,
   correlationId = null,
+  modelPinned = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   // ── Memory pressure guard ────────────────────────────────────────────
@@ -805,6 +806,7 @@ export async function handleChatCore({
       apiKeyInfo,
       noLogEnabled,
       correlationId,
+      modelPinned,
     });
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved

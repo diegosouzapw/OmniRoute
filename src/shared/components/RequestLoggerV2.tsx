@@ -372,7 +372,15 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
       // #4269: a filter change is a fresh first-page view — re-arm the ghost-load-more
       // guard so auto-refresh resumes until the user scrolls again.
       hasScrolledRef.current = false;
-    }, [search, activeFilter, selectedModel, selectedAccount, selectedProvider, selectedApiKey]);
+    }, [
+      search,
+      activeFilter,
+      selectedModel,
+      selectedAccount,
+      selectedProvider,
+      selectedApiKey,
+      correlationIdFilter,
+    ]);
 
     const loadMore = useCallback(() => {
       setLimit((prev) => prev + PAGE_SIZE);
@@ -1305,6 +1313,14 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                                   title={`All ${log.groupSize} attempts failed`}
                                 >
                                   failed
+                                </span>
+                              )}
+                              {log.modelPinned && (
+                                <span
+                                  className="inline-flex items-center gap-0.5 px-1 py-0 rounded text-[8px] font-bold bg-violet-500/15 text-violet-600 dark:text-violet-400 border border-violet-500/25"
+                                  title="Model selected via context-cache session pinning"
+                                >
+                                  pinned
                                 </span>
                               )}
                             </div>

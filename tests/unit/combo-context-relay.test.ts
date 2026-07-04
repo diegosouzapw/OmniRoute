@@ -542,7 +542,12 @@ test("context_cache_protection: pins body.model to last session model when histo
   const comboName = "cache-pin-combo";
 
   // Pre-record a prior model usage for this session/combo
-  handoffDb.recordSessionModelUsage(sessionId, comboName, "anthropic/claude-3-5-sonnet", "anthropic");
+  handoffDb.recordSessionModelUsage(
+    sessionId,
+    comboName,
+    "anthropic/claude-3-5-sonnet",
+    "anthropic"
+  );
 
   const capturedModels: string[] = [];
 
@@ -609,5 +614,54 @@ test("context_cache_protection: does NOT pin when no session history exists (fir
 
   assert.equal(result.ok, true);
   // No pinning on first request — should use the combo's first model
-  assert.equal(capturedModels[0], "openai/gpt-4o", "first request must use combo model (no pinning)");
+  assert.equal(
+    capturedModels[0],
+    "openai/gpt-4o",
+    "first request must use combo model (no pinning)"
+  );
+});
+
+// ── clearSessionModelHistoryForCombo ────────────────────────────────────────
+// Proves that clearing pins for a combo name removes stale session history,
+// so that after a combo edit the next request does NOT use the old pinned model.
+
+test("clearSessionModelHistoryForCombo removes all pins for a combo", async () => {
+  const comboName = "test-clear-pins";
+
+  // Seed history for two different sessions on the same combo
+  handoffDb.recordSessionModelUsage("sess-A", comboName, "openai/gpt-4o", "openai");
+  handoffDb.recordSessionModelUsage(
+    "sess-B",
+    comboName,
+    "anthropic/claude-3-5-sonnet",
+    "anthropic"
+  );
+
+  // Sanity: pins exist
+  assert.equal(handoffDb.getLastSessionModel("sess-A", comboName), "openai/gpt-4o");
+  assert.equal(handoffDb.getLastSessionModel("sess-B", comboName), "anthropic/claude-3-5-sonnet");
+
+  // Clear pins for this combo
+  const cleared = handoffDb.clearSessionModelHistoryForCombo(comboName);
+  assert.ok(cleared >= 2, `should have cleared at least 2 entries, got ${cleared}`);
+
+  // Pins are gone
+  assert.equal(handoffDb.getLastSessionModel("sess-A", comboName), null);
+  assert.equal(handoffDb.getLastSessionModel("sess-B", comboName), null);
+});
+
+test("clearSessionModelHistoryForCombo does not affect other combos", async () => {
+  const comboA = "combo-keep";
+  const comboB = "combo-clear";
+
+  handoffDb.recordSessionModelUsage("sess-1", comboA, "openai/gpt-4o", "openai");
+  handoffDb.recordSessionModelUsage("sess-1", comboB, "anthropic/claude-3-5-sonnet", "anthropic");
+
+  // Clear only comboB
+  handoffDb.clearSessionModelHistoryForCombo(comboB);
+
+  // comboA is untouched
+  assert.equal(handoffDb.getLastSessionModel("sess-1", comboA), "openai/gpt-4o");
+  // comboB is cleared
+  assert.equal(handoffDb.getLastSessionModel("sess-1", comboB), null);
 });
