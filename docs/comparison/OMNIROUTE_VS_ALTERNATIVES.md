@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute vs Alternatives"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.43
+lastUpdated: 2026-07-01
 ---
 
 # OmniRoute vs Alternatives
@@ -11,34 +11,37 @@ Objective feature comparison vs popular open-source AI routers.
 > **Methodology**: Public repos audited 2026-Q2. Versions as listed.
 > Submit corrections via PR — we want this to be accurate.
 
-| Feature                                            |       OmniRoute 3.8        |  LiteLLM 1.x   | OpenRouter (SaaS) |   Portkey   |
-| -------------------------------------------------- | :------------------------: | :------------: | :---------------: | :---------: |
-| **Providers**                                      |          **207+**          |      ~100      |        ~50        |     ~30     |
-| **Self-hostable**                                  |             ✅             |       ✅       |        ❌         |   ⚠ paid    |
-| **OAuth providers (Claude, Codex, Copilot, etc.)** |          **15+**           |    partial     |        ❌         |     ❌      |
-| **Auto-fallback combos**                           |     **17 strategies**      | priority-based |    tier-based     |  weighted   |
-| **Tier 1/2/3 fallback (subscription→cheap→free)**  |          ✅ + UI           |     manual     |        n/a        |   manual    |
-| **Token compression**                              | RTK (47 filters) + Caveman |      none      |       none        |    none     |
-| **Built-in MCP server**                            |   ✅ 87 tools, 30 scopes   |       ❌       |        ❌         |     ❌      |
-| **A2A protocol**                                   |        ✅ 5 skills         |       ❌       |        ❌         |     ❌      |
-| **Memory (FTS5 + vector)**                         |             ✅             |       ❌       |        ❌         |     ❌      |
-| **Guardrails (PII, injection, vision)**            |             ✅             |    partial     |        ❌         |   ✅ paid   |
-| **Cloud agent integrations**                       |    Codex, Devin, Jules     |       ❌       |        ❌         |     ❌      |
-| **Circuit breaker per provider**                   | ✅ 3-state, lazy recovery  |     basic      |        ❌         |     ✅      |
-| **TLS fingerprint stealth (JA3/JA4)**              |         ✅ wreq-js         |       ❌       |        ❌         |     ❌      |
-| **Eval framework**                                 |        ✅ built-in         |       ❌       |        ❌         |   ⚠ paid    |
-| **MITM proxy (intercepts Cursor/Antigravity)**     |     ✅ cross-platform      |       ❌       |        ❌         |     ❌      |
-| **CLI with system tray (no Electron)**             |             ✅             |       ❌       |        n/a        |     n/a     |
-| **CLI machine-ID auto-auth**                       |             ✅             |       ❌       |        n/a        |     n/a     |
-| **Dashboard**                                      |         Next.js 16         |     basic      |    proprietary    | proprietary |
-| **i18n**                                           |      **42+ locales**       |       ❌       |        ❌         |      ⚠      |
-| **Public agent skills (SKILL.md)**                 |           ✅ 10            |       ❌       |        ❌         |     ❌      |
-| **Tunnel support (Cloudflared, Tailscale, Ngrok)** |             ✅             |       ❌       |        n/a        |     n/a     |
-| **License**                                        |            MIT             |      MIT       |    proprietary    | proprietary |
+| Feature                                            |                  OmniRoute 3.8                   |  LiteLLM 1.x   | OpenRouter (SaaS) |   Portkey   |
+| -------------------------------------------------- | :----------------------------------------------: | :------------: | :---------------: | :---------: |
+| **Providers**                                      |                     **237+**                     |      ~100      |        ~50        |     ~30     |
+| **Free-tier providers**                            |                     **90+**                      |      n/a       |    passthrough    |     n/a     |
+| **Self-hostable**                                  |                        ✅                        |       ✅       |        ❌         |   ⚠ paid    |
+| **OAuth providers (Claude, Codex, Copilot, etc.)** |                     **15+**                      |    partial     |        ❌         |     ❌      |
+| **Auto-fallback combos**                           |                **17 strategies**                 | priority-based |    tier-based     |  weighted   |
+| **Fusion (parallel panel + judge synthesis)**      |                        ✅                        |       ❌       |        ❌         |     ❌      |
+| **Tier 1/2/3 fallback (subscription→cheap→free)**  |                     ✅ + UI                      |     manual     |        n/a        |   manual    |
+| **Token compression**                              | 10-engine pipeline (RTK + Caveman + LLMLingua-2) |      none      |       none        |    none     |
+| **Multimodal generation (speech/music/video)**     |                        ✅                        |       ❌       |    passthrough    |     ❌      |
+| **Built-in MCP server**                            |              ✅ 95 tools, 30 scopes              |       ❌       |        ❌         |     ❌      |
+| **A2A protocol**                                   |                   ✅ 6 skills                    |       ❌       |        ❌         |     ❌      |
+| **Memory (FTS5 + vector)**                         |                        ✅                        |       ❌       |        ❌         |     ❌      |
+| **Guardrails (PII, injection, vision)**            |                        ✅                        |    partial     |        ❌         |   ✅ paid   |
+| **Cloud agent integrations**                       |           Codex, Cursor, Devin, Jules            |       ❌       |        ❌         |     ❌      |
+| **Circuit breaker per provider**                   |            ✅ 3-state, lazy recovery             |     basic      |        ❌         |     ✅      |
+| **TLS fingerprint stealth (JA3/JA4)**              |                    ✅ wreq-js                    |       ❌       |        ❌         |     ❌      |
+| **Eval framework**                                 |                   ✅ built-in                    |       ❌       |        ❌         |   ⚠ paid    |
+| **MITM proxy (intercepts Cursor/Antigravity)**     |                ✅ cross-platform                 |       ❌       |        ❌         |     ❌      |
+| **CLI with system tray (no Electron)**             |                        ✅                        |       ❌       |        n/a        |     n/a     |
+| **CLI machine-ID auto-auth**                       |                        ✅                        |       ❌       |        n/a        |     n/a     |
+| **Dashboard**                                      |                    Next.js 16                    |     basic      |    proprietary    | proprietary |
+| **i18n**                                           |                 **42+ locales**                  |       ❌       |        ❌         |      ⚠      |
+| **Public agent skills (SKILL.md)**                 |                      ✅ 43                       |       ❌       |        ❌         |     ❌      |
+| **Tunnel support (Cloudflared, Tailscale, Ngrok)** |                        ✅                        |       ❌       |        n/a        |     n/a     |
+| **License**                                        |                       MIT                        |      MIT       |    proprietary    | proprietary |
 
 ## When to choose OmniRoute
 
-- You self-host and want **maximum provider coverage** (207+)
+- You self-host and want **maximum provider coverage** (237+, 90+ with a free tier)
 - You need a **built-in MCP server** (LLM tools, memory, skills exposed as tools)
 - You need **A2A protocol** for agent-to-agent workflows
 - You want **fingerprint stealth** (JA3/JA4) to avoid detection by upstream CAPTCHAs

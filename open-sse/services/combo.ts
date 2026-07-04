@@ -169,6 +169,7 @@ import {
   isTaskRoutingStrategy,
   reorderByTaskWeight,
 } from "./taskAwareRouting.ts";
+import { expandTargetsByFingerprints } from "./combo/fingerprintExpansion.ts";
 
 export { RESET_WINDOW_NAMES };
 export { QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
@@ -368,8 +369,19 @@ export async function buildAutoCandidates(
     }
   }
 
+  // #5521: Expand fingerprint-based providers (mimocode, mcode, opencode) so each
+  // fingerprint gets its own combo slot instead of being bundled into one connection.
+  const fingerprintExpandedTargets = expandTargetsByFingerprints(
+    expandedTargets,
+    connectionById,
+    (t) => {
+      const parsed = parseModel(t.modelStr);
+      return t.provider || parsed.provider || parsed.providerAlias || "unknown";
+    }
+  );
+
   const candidates = await Promise.all(
-    expandedTargets.map(async (target) => {
+    fingerprintExpandedTargets.map(async (target) => {
       const modelStr = target.modelStr;
       const parsed = parseModel(modelStr);
       const provider = target.provider || parsed.provider || parsed.providerAlias || "unknown";

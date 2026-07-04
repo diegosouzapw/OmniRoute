@@ -1,5 +1,9 @@
 import { unavailableResponse } from "../../utils/error.ts";
 import { selectProvider as selectAutoProvider } from "../autoCombo/engine.ts";
+import {
+  resolveRequestModePack,
+  parseRequestBudgetCap,
+} from "../autoCombo/requestControls.ts";
 import { selectWithStrategy } from "../autoCombo/routerStrategy.ts";
 import { buildComplexityRoutingHint } from "../autoCombo/complexityRouter";
 import { recordComboIntent } from "../comboMetrics.ts";
@@ -47,7 +51,14 @@ export interface ResolveAutoStrategyDeps {
   combo: ComboLike;
   settings: Record<string, unknown> | null | undefined;
   config: { complexityAwareRouting?: boolean };
-  relayOptions?: { bypassProviderQuotaPolicy?: boolean; sessionId?: string | null } | null;
+  relayOptions?: {
+    bypassProviderQuotaPolicy?: boolean;
+    sessionId?: string | null;
+    /** Per-request X-OmniRoute-Mode value (#6024/#6025). */
+    mode?: string | null;
+    /** Per-request X-OmniRoute-Budget value in USD (#6023). */
+    budgetCap?: number | null;
+  } | null;
   resilienceSettings: ResilienceSettings;
   log: ComboLogger;
   buildAutoCandidates: BuildAutoCandidates;
@@ -145,11 +156,28 @@ export async function resolveAutoStrategyOrder(
     candidatePool,
     weights,
     explorationRate,
-    budgetCap,
-    modePack,
+    budgetCap: configBudgetCap,
+    modePack: configModePack,
     resetWindowConfig,
     slaPolicy,
   } = parseAutoConfig(combo, eligibleTargets);
+
+  // Per-request overrides (#6023 / #6024 / #6025): X-OmniRoute-Budget and
+  // X-OmniRoute-Mode headers (threaded via relayOptions) take precedence over
+  // the combo's stored config for this single request. Unknown/garbage header
+  // values are ignored so the saved config is preserved.
+  const requestBudgetCap = parseRequestBudgetCap(relayOptions?.budgetCap);
+  const budgetCap = requestBudgetCap ?? configBudgetCap;
+  const requestModePack = resolveRequestModePack(relayOptions?.mode);
+  const modePack = requestModePack.override ? requestModePack.modePack : configModePack;
+  if (requestModePack.override || requestBudgetCap !== undefined) {
+    log.debug?.(
+      "COMBO",
+      `Auto strategy: per-request controls applied (mode=${
+        requestModePack.override ? (requestModePack.modePack ?? "balanced") : "—"
+      }, budgetCap=${requestBudgetCap ?? "—"})`
+    );
+  }
 
   let lastKnownGoodProvider: string | undefined;
   try {

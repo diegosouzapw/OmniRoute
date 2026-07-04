@@ -228,10 +228,12 @@ test("getProviderCredentials enforces generic quota policy unless explicitly byp
   assert.equal(bypassed.connectionId, connection.id);
 });
 
-test("getProviderCredentialsWithQuotaPreflight skips exhausted preflight accounts and selects the next healthy one", async () => {
+test("getProviderCredentialsWithQuotaPreflight persists exhausted accounts until reset and selects a healthy sibling", async () => {
+  const resetAt = futureIso(120_000);
   const blocked = await seedConnection("openai", {
     name: "quota-preflight-blocked",
     apiKey: "sk-preflight-blocked",
+    priority: 1,
     providerSpecificData: {
       quotaPreflightEnabled: true,
     },
@@ -239,21 +241,66 @@ test("getProviderCredentialsWithQuotaPreflight skips exhausted preflight account
   const healthy = await seedConnection("openai", {
     name: "quota-preflight-healthy",
     apiKey: "sk-preflight-healthy",
+    priority: 2,
     providerSpecificData: {
       quotaPreflightEnabled: true,
     },
   });
 
   const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
-  quotaPreflight.registerQuotaFetcher("openai", async (connectionId) => ({
-    used: connectionId === blocked.id ? 100 : 40,
-    total: 100,
-    percentUsed: connectionId === blocked.id ? 1.0 : 0.4,
-  }));
+  const preflightCalls: string[] = [];
+  quotaPreflight.registerQuotaFetcher("openai", async (connectionId) => {
+    preflightCalls.push(connectionId);
+    return {
+      used: connectionId === blocked.id ? 100 : 40,
+      total: 100,
+      percentUsed: connectionId === blocked.id ? 1.0 : 0.4,
+      resetAt: connectionId === blocked.id ? resetAt : null,
+      windows: {
+        session: {
+          percentUsed: connectionId === blocked.id ? 1.0 : 0.4,
+          resetAt: connectionId === blocked.id ? resetAt : null,
+        },
+        weekly: {
+          percentUsed: 0.2,
+          resetAt: null,
+        },
+      },
+    };
+  });
 
-  const selected = await auth.getProviderCredentialsWithQuotaPreflight("openai");
+  const selected = await auth.getProviderCredentialsWithQuotaPreflight(
+    "openai",
+    null,
+    null,
+    "glm-5.2"
+  );
 
   assert.equal((selected as any).connectionId, healthy.id);
+  const blockedAfter = await providersDb.getProviderConnectionById(blocked.id);
+  assert.equal(blockedAfter?.testStatus, "unavailable");
+  assert.equal(blockedAfter?.rateLimitedUntil, resetAt);
+  assert.equal(blockedAfter?.lastErrorType, "quota_exhausted");
+  assert.equal(blockedAfter?.lastErrorSource, "quota_preflight");
+  assert.match(String(blockedAfter?.lastError), /glm-5\.2/);
+
+  const healthyAfter = await providersDb.getProviderConnectionById(healthy.id);
+  assert.equal(healthyAfter?.testStatus, "active");
+  assert.equal(healthyAfter?.rateLimitedUntil ?? null, null);
+
+  preflightCalls.length = 0;
+  const selectedAgain = await auth.getProviderCredentialsWithQuotaPreflight(
+    "openai",
+    null,
+    null,
+    "glm-5.2"
+  );
+  assert.equal((selectedAgain as any).connectionId, healthy.id);
+  assert.deepEqual(
+    preflightCalls,
+    [healthy.id],
+    "persisted lockout must skip the exhausted account on later selections"
+  );
 });
 
 test("getProviderCredentialsWithQuotaPreflight returns allRateLimited when a forced connection is blocked by preflight", async () => {

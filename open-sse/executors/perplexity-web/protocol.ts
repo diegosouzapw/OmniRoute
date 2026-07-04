@@ -46,19 +46,24 @@ export const PPLX_USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0";
 
 export const MODEL_MAP: Record<string, [string, string]> = {
-  "pplx-auto": ["concise", "pplx_pro"],
-  "pplx-sonar": ["copilot", "experimental"],
-  "pplx-gpt": ["copilot", "gpt54"],
-  "pplx-gemini": ["copilot", "gemini31pro_high"],
-  "pplx-sonnet": ["copilot", "claude46sonnet"],
-  "pplx-opus": ["copilot", "claude46opus"],
-  "pplx-nemotron": ["copilot", "nv_nemotron_3_super"],
+  "pplx-auto": ["search", "pplx_pro"],
+  "pplx-sonar": ["search", "experimental"],
+  "pplx-gpt-5.4": ["search", "gpt54"],
+  "pplx-gpt": ["search", "gpt55"],
+  "pplx-gemini": ["search", "gemini31pro_high"],
+  "pplx-sonnet": ["search", "claude50sonnet"],
+  "pplx-opus": ["search", "claude48opus"],
+  "pplx-glm": ["search", "glm_5_2"],
+  "pplx-kimi": ["search", "kimik26instant"],
+  "pplx-nemotron": ["search", "nv_nemotron_3_ultra"],
 };
 
 export const THINKING_MAP: Record<string, string> = {
-  "pplx-gpt": "gpt54_thinking",
-  "pplx-sonnet": "claude46sonnetthinking",
-  "pplx-opus": "claude46opusthinking",
+  "pplx-gpt-5.4": "gpt54_thinking",
+  "pplx-gpt": "gpt55_thinking",
+  "pplx-sonnet": "claude50sonnetthinking",
+  "pplx-opus": "claude48opusthinking",
+  "pplx-kimi": "kimik26thinking",
 };
 
 export const CITATION_RE = /\[\d+\]/g;
