@@ -57,9 +57,9 @@ function convertMessages(messages, tools, model) {
   let toolsAttached = false;
 
   // Only Claude models support images in Kiro. Kiro also routes non-Claude
-  // models (deepseek, minimax, glm, qwen3-coder-next, auto-kiro) that do not
-  // accept image attachments — gate image extraction behind a Claude check so
-  // we never attach images those models would reject.
+  // models (deepseek, minimax, glm, qwen3-coder-next) that do not accept image
+  // attachments — gate image extraction behind a Claude check so we never
+  // attach images those models would reject.
   const supportsImages = typeof model === "string" && model.toLowerCase().includes("claude");
 
   const flushPending = () => {
