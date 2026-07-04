@@ -228,8 +228,14 @@ export async function executeRuntimeUnitCombo(args: {
           });
           return { response, unit };
         }
+        let unitClone: Response;
+        try {
+          unitClone = response.clone();
+        } catch {
+          unitClone = response;
+        }
         const quality = await validateResponseQuality(
-          response,
+          unitClone,
           clientRequestedStream,
           args.log,
           args.config.responseValidation as ResponseValidationConfig | undefined
@@ -242,7 +248,7 @@ export async function executeRuntimeUnitCombo(args: {
             strategy: effectiveStrategy,
             target: { executionKey: unit.executionKey, stepId: unit.stepId, label: unit.label },
           });
-          return { response: quality.clonedResponse ?? response, unit };
+          return { response, unit };
         }
       }
       if (![408, 429, 500, 502, 503, 504].includes(response.status)) break;

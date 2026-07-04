@@ -96,6 +96,7 @@ export async function validateResponseQuality(
     let hasMessageStart = false;
     let hasContentBlock = false;
     let hasLifecycleEnd = false;
+    let anyContentFound = false;
     const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
 
@@ -233,6 +234,18 @@ export async function validateResponseQuality(
             return { valid: false, reason: "streaming empty content block" };
           }
 
+          // Non-Claude stream with no recognizable content at all — the stream
+          // ended without any content deltas (e.g. Gemini returning HTTP 200
+          // with an empty body or only metadata chunks). Mark as invalid for
+          // combo failover so the sibling model gets tried.
+          if (!anyContentFound && !hasContentBlock) {
+            log.warn?.(
+              "COMBO",
+              "Streaming response ended with no recognized content — marking as invalid for combo failover"
+            );
+            return { valid: false, reason: "streaming no recognized content" };
+          }
+
           // Incomplete lifecycle or non-Claude stream — replay all buffered
           // bytes. The reader is exhausted so the forwarding reader will
           // immediately signal done.
@@ -248,6 +261,7 @@ export async function validateResponseQuality(
         const foundContent = parseAccumulatedSse();
 
         if (foundContent) {
+          anyContentFound = true;
           // A content_block_* event was found — stop peeking. Return a
           // clonedResponse that replays all buffered bytes (the current chunk
           // is already in bufferedChunks) and then forwards the remainder of
@@ -261,9 +275,14 @@ export async function validateResponseQuality(
       // the content cannot be verified — mark as invalid for combo failover.
       // A locked ReadableStream means the response body is already consumed
       // or corrupted (e.g. "Invalid state: The ReadableStream is locked").
+      // Broad match: Chrome/V8 throws "body used already", Firefox throws
+      // "ReadableStream is locked", etc.
+      const errMsg = streamErr instanceof Error ? streamErr.message : String(streamErr);
       if (
         streamErr instanceof TypeError &&
-        (streamErr.message.includes("locked") || streamErr.message.includes("disturbed"))
+        (errMsg.includes("locked") ||
+          errMsg.includes("disturbed") ||
+          errMsg.includes("used already"))
       ) {
         return { valid: false, reason: "stream locked or disturbed" };
       }
