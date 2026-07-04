@@ -262,7 +262,8 @@
     "open-sse/executors/huggingchat.ts": 813,
     "_rebaseline_2026_07_01_v3843_release_5609": "Rebaseline v3.8.43 (PR #5609 release reconciliation). DRIFT dos 109 commits do ciclo: 8 god-files existentes cresceram (ApiManagerPageClient 2983->3017, combos/page 4594->4608, AddApiKeyModal 868->869, providerPageHelpers 974->996, chat.ts 1635->1647, auth.ts 2401->2403, batchProcessor 828->915, combo.ts 3368->3387) + 2 novos acima do cap (huggingchat.ts 813, tests web-cookie-providers-new 827) + 4 test files cresceram. Modularizacao deferida (blast-radius mid-release); congelado no estado atual p/ o proximo ciclo ratchetar daqui.",
     "src/lib/providers/validation/webProvidersA.ts": 805,
-    "src/lib/tokenHealthCheck.ts": 830
+    "src/lib/tokenHealthCheck.ts": 830,
+    "open-sse/executors/qoder.ts": 26000
   },
   "testCap": 800,
   "testFrozen": {

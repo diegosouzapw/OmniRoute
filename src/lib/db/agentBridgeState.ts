@@ -3,7 +3,12 @@
  * CRUD operations for agent_bridge_state table.
  */
 
-import { getDbInstance } from "./core.js";
+// require core at runtime to keep this module server-only at bundling time
+function getDb() {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { getDbInstance } = require("./core.js");
+  return getDbInstance();
+}
 import type { AgentBridgeStateRow } from "./_rowTypes.js";
 
 // SQLite stores booleans as 0/1 integers
@@ -28,7 +33,7 @@ function mapRow(row: AgentBridgeStateDbRow): AgentBridgeStateRow {
 }
 
 export function getAllAgentBridgeStates(): AgentBridgeStateRow[] {
-  const db = getDbInstance();
+  const db = getDb();
   const rows = db
     .prepare("SELECT * FROM agent_bridge_state ORDER BY agent_id ASC")
     .all() as AgentBridgeStateDbRow[];
@@ -36,7 +41,7 @@ export function getAllAgentBridgeStates(): AgentBridgeStateRow[] {
 }
 
 export function getAgentBridgeState(agentId: string): AgentBridgeStateRow | null {
-  const db = getDbInstance();
+  const db = getDb();
   const row = db.prepare("SELECT * FROM agent_bridge_state WHERE agent_id = ?").get(agentId) as
     AgentBridgeStateDbRow | undefined;
   return row ? mapRow(row) : null;
@@ -45,7 +50,7 @@ export function getAgentBridgeState(agentId: string): AgentBridgeStateRow | null
 export function upsertAgentBridgeState(
   row: Partial<AgentBridgeStateRow> & { agent_id: string }
 ): void {
-  const db = getDbInstance();
+  const db = getDb();
   const existing = getAgentBridgeState(row.agent_id);
 
   if (!existing) {
@@ -96,7 +101,7 @@ export function upsertAgentBridgeState(
 }
 
 export function setLastStarted(agentId: string, ts: string): void {
-  const db = getDbInstance();
+  const db = getDb();
   db.prepare(
     `INSERT INTO agent_bridge_state (agent_id, last_started_at)
      VALUES (?, ?)
@@ -105,7 +110,7 @@ export function setLastStarted(agentId: string, ts: string): void {
 }
 
 export function setLastError(agentId: string, err: string | null): void {
-  const db = getDbInstance();
+  const db = getDb();
   db.prepare(
     `INSERT INTO agent_bridge_state (agent_id, last_error)
      VALUES (?, ?)
