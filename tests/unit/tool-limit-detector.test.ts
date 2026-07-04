@@ -69,6 +69,15 @@ describe("toolLimitDetector", () => {
     assert.strictEqual(getEffectiveToolLimit("grok-cli"), 200);
   });
 
+  it("should return proactive limit for nvidia (1536) without any detection", () => {
+    assert.strictEqual(getEffectiveToolLimit("nvidia"), 1536);
+  });
+
+  it("should not override nvidia proactive limit with reactive detection", () => {
+    setDetectedToolLimit("nvidia", 100);
+    assert.strictEqual(getEffectiveToolLimit("nvidia"), 1536);
+  });
+
   it("should still return default (128) for unknown providers", () => {
     assert.strictEqual(getEffectiveToolLimit("some-new-provider"), 128);
   });
