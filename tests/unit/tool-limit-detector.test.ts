@@ -23,8 +23,16 @@ describe("toolLimitDetector", () => {
     assert.strictEqual(getKnownToolLimit("openai"), null);
   });
 
+  it("should return null from getKnownToolLimit for null/undefined provider", () => {
+    assert.strictEqual(getKnownToolLimit("openai"), null);
+    assert.strictEqual(getKnownToolLimit(null), null);
+    assert.strictEqual(getKnownToolLimit(undefined), null);
+  });
+
   it("should return default limit when no cached value", () => {
     assert.strictEqual(getEffectiveToolLimit("openai"), 128);
+    assert.strictEqual(getEffectiveToolLimit(null), 128);
+    assert.strictEqual(getEffectiveToolLimit(undefined), 128);
   });
 
   it("should return proactive known limit for grok-cli", () => {
