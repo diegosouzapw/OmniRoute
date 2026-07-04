@@ -630,4 +630,18 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "X5Lab exposes an OpenAI-compatible chat completions endpoint at https://api.x5lab.dev/v1/chat/completions, plus a live /v1/models catalog. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
   },
+  kenari: {
+    id: "kenari",
+    alias: "kenari",
+    name: "Kenari",
+    icon: "hub",
+    color: "#B5362A",
+    textIcon: "KN",
+    passthroughModels: true,
+    website: "https://kenari.id",
+    authHint:
+      "Use your Kenari API key (kn-...) in Authorization: Bearer <key>. Fully OpenAI-compatible. API base URL: https://kenari.id/v1.",
+    apiHint:
+      "Kenari exposes an OpenAI-compatible chat completions endpoint at https://kenari.id/v1/chat/completions, plus a live /v1/models catalog covering Claude, GPT, DeepSeek, GLM, Kimi and more. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
+  },
 };

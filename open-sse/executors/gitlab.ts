@@ -10,6 +10,13 @@ import {
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import {
+  buildStreamingResponse,
+  buildJsonCompletion,
+  buildToolJsonCompletion,
+  buildToolStreamingResponse,
+} from "./gitlabResponses.ts";
 import {
   buildGitLabDirectGatewayUrl,
   buildGitLabOAuthEndpoints,
@@ -107,101 +114,6 @@ function toOpenAIError(status: number, message: string): Response {
     }),
     {
       status,
-      headers: { "Content-Type": "application/json" },
-    }
-  );
-}
-
-function buildSseChunk(data: unknown): string {
-  return `data: ${JSON.stringify(data)}\n\n`;
-}
-
-function buildStreamingResponse(
-  content: string,
-  model: string,
-  id: string,
-  created: number
-): Response {
-  const encoder = new TextEncoder();
-
-  const body = new ReadableStream<Uint8Array>({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(
-          buildSseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            choices: [{ index: 0, delta: { role: "assistant" }, finish_reason: null }],
-          })
-        )
-      );
-
-      if (content) {
-        controller.enqueue(
-          encoder.encode(
-            buildSseChunk({
-              id,
-              object: "chat.completion.chunk",
-              created,
-              model,
-              choices: [{ index: 0, delta: { content }, finish_reason: null }],
-            })
-          )
-        );
-      }
-
-      controller.enqueue(
-        encoder.encode(
-          buildSseChunk({
-            id,
-            object: "chat.completion.chunk",
-            created,
-            model,
-            choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
-          })
-        )
-      );
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
-    },
-  });
-
-  return new Response(body, {
-    status: 200,
-    headers: { "Content-Type": "text/event-stream" },
-  });
-}
-
-function buildJsonCompletion(
-  content: string,
-  model: string,
-  id: string,
-  created: number
-): Response {
-  const estimated = Math.max(1, Math.ceil(content.length / 4));
-  return new Response(
-    JSON.stringify({
-      id,
-      object: "chat.completion",
-      created,
-      model,
-      choices: [
-        {
-          index: 0,
-          message: { role: "assistant", content },
-          finish_reason: "stop",
-        },
-      ],
-      usage: {
-        prompt_tokens: estimated,
-        completion_tokens: estimated,
-        total_tokens: estimated * 2,
-      },
-    }),
-    {
-      status: 200,
       headers: { "Content-Type": "application/json" },
     }
   );
@@ -572,9 +484,20 @@ export class GitlabExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    const prompt = buildPrompt(
-      (input.body as Record<string, unknown>)?.messages as OpenAIMessage[]
+    const bodyObj = (input.body as Record<string, unknown>) || {};
+    const rawMessages = (bodyObj.messages as OpenAIMessage[]) || [];
+
+    // Emulate OpenAI tool calling for GitLab Duo (which has no native function
+    // calling). When `tools` are present we serialize the tool contract into the
+    // prompt and parse `<tool>{...}</tool>` blocks back out of the completion text
+    // into OpenAI `tool_calls` — the same web-tool-emulation idiom used by the
+    // qwen-web / duckduckgo-web executors (#6051).
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
+      bodyObj,
+      rawMessages as Array<{ role: string; content: unknown }>
     );
+
+    const prompt = buildPrompt(effectiveMessages as OpenAIMessage[]);
     if (!prompt) {
       return {
         response: toOpenAIError(400, "GitLab Duo requires at least one user message"),
@@ -598,7 +521,7 @@ export class GitlabExecutor extends BaseExecutor {
 
     const transformedBody = this.transformRequest(
       input.model,
-      (input.body as Record<string, unknown>) || {},
+      { ...bodyObj, messages: effectiveMessages },
       false,
       activeCredentials
     );
@@ -684,6 +607,24 @@ export class GitlabExecutor extends BaseExecutor {
     const resolvedModel = resolveResponseModel(payload, input.model);
     const responseId = `chatcmpl-gitlab-${randomUUID()}`;
     const created = Math.floor(Date.now() / 1000);
+
+    if (hasTools) {
+      const {
+        content: toolContent,
+        toolCalls,
+        finishReason,
+      } = buildToolAwareResult(content, requestedTools, "gitlab");
+      const message: Record<string, unknown> = { role: "assistant", content: toolContent };
+      if (toolCalls) {
+        message.tool_calls = toolCalls;
+        message.content = null;
+      }
+      const response = input.stream
+        ? buildToolStreamingResponse(message, finishReason, resolvedModel, responseId, created)
+        : buildToolJsonCompletion(message, finishReason, resolvedModel, responseId, created);
+      return { response, url: activeTarget.url, headers: requestHeaders, transformedBody };
+    }
+
     const response = input.stream
       ? buildStreamingResponse(content, resolvedModel, responseId, created)
       : buildJsonCompletion(content, resolvedModel, responseId, created);

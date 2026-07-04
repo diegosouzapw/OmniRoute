@@ -214,6 +214,13 @@ const nextConfig = {
     "tough-cookie",
     "@ngrok/ngrok",
     "@huggingface/transformers",
+    // copilot-m365-web.ts imports 'ws' as a client-side WebSocket. When bundled,
+    // ws cannot resolve its 'bufferutil' native addon (frame masking) and throws
+    // TypeError: b.mask is not a function on the first outgoing frame, causing
+    // every chat request to time out at the stream-readiness watchdog. (#6062)
+    "ws",
+    "bufferutil",
+    "utf-8-validate",
     "child_process",
     "fs",
     "path",

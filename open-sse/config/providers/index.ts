@@ -180,6 +180,7 @@ import { pioneerProvider } from "./registry/pioneer/index.ts";
 import { zenmux_freeProvider } from "./registry/zenmux-free/index.ts";
 import { sumopodProvider } from "./registry/sumopod/index.ts";
 import { x5labProvider } from "./registry/x5lab/index.ts";
+import { kenariProvider } from "./registry/kenari/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -362,4 +363,5 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "zenmux-free": zenmux_freeProvider,
   sumopod: sumopodProvider,
   x5lab: x5labProvider,
+  kenari: kenariProvider,
 };
