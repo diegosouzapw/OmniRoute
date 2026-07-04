@@ -1,3 +1,5 @@
+import { getSupervisor } from "@/lib/services/registry";
+
 export type RelayRoutingBackend = "ts" | "bifrost" | "auto";
 
 const VALID_BACKENDS = new Set<RelayRoutingBackend>(["ts", "bifrost", "auto"]);
@@ -26,11 +28,22 @@ export function getBifrostRoutingConfig(
   env: NodeJS.ProcessEnv = process.env
 ): BifrostRoutingConfig | null {
   const baseUrl = env.BIFROST_BASE_URL?.replace(/\/$/, "");
-  if (!baseUrl) return null;
+
+  // §4b: if BIFROST_BASE_URL is unset, check if supervised instance is running
+  let resolvedBaseUrl = baseUrl;
+  if (!resolvedBaseUrl) {
+    const sup = getSupervisor("bifrost");
+    if (sup?.getStatus().state === "running") {
+      resolvedBaseUrl = `http://127.0.0.1:${sup.getStatus().port}`;
+    }
+  }
+
+  if (!resolvedBaseUrl) return null;
+
   const timeoutMs = Number.parseInt(env.BIFROST_TIMEOUT_MS || "", 10);
 
   return {
-    baseUrl,
+    baseUrl: resolvedBaseUrl,
     apiKey: env.BIFROST_API_KEY || env.OMNIROUTE_BIFROST_KEY || undefined,
     timeoutMs: Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 30000,
     streamingEnabled: env.BIFROST_STREAMING_ENABLED !== "0",

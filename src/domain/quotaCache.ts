@@ -89,12 +89,6 @@ function advancedWindowResetAt(entry: QuotaCacheEntry, now: number): { exhausted
     return { exhausted: false };
   }
 
-  // If we know the window duration, check if the *next* window also passed.
-  if (entry.windowDurationMs && entry.windowDurationMs > 0) {
-    const elapsed = now - resetMs;
-    if (elapsed >= 0) return { exhausted: false };
-  }
-
   return null;
 }
 

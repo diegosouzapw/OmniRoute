@@ -45,9 +45,9 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 | Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                               |
 | Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                       |
 | Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                               |
-| Database      | `src/lib/db/`           | SQLite domain modules (94 files, 106 migrations)                                                                                                       |
+| Database      | `src/lib/db/`           | SQLite domain modules (95 files, 110 migrations)                                                                                                       |
 | Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                              |
-| MCP Server    | `open-sse/mcp-server/`  | 95 tools (35 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 30 scopes |
+| MCP Server    | `open-sse/mcp-server/`  | 94 tools (34 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 30 scopes |
 | A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                            |
 | Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                             |
 | Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                       |

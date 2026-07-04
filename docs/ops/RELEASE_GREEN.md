@@ -1,89 +1,89 @@
 ---
-title: "Release-Green — fila e release branch verdes"
+title: "Release-Green — keeping the queue and release branch green"
 ---
 
-# Release-Green: mantendo a fila e a release branch verdes
+# Release-Green: keeping the queue and release branch green
 
-## O problema que isto resolve
+## The problem this solves
 
-O **gate completo** (`.github/workflows/ci.yml` — unit shards, vitest, ratchets,
-`package-artifact`, SonarQube, E2E) roda **apenas na release PR** (PR → `main`). PRs para
-`release/**` recebem só as **fast-gates** (`quality.yml`: testes TIA-impactados + typecheck +
-lint). Consequência: reds se acumulam silenciosamente na release branch e **explodem em camadas
-de ~40 min** no momento do release, uma de cada vez.
+The **full gate** (`.github/workflows/ci.yml` — unit shards, vitest, ratchets,
+`package-artifact`, SonarQube, E2E) runs **only on the release PR** (PR → `main`). PRs targeting
+`release/**` receive only the **fast-gates** (`quality.yml`: TIA-impacted tests + typecheck +
+lint). Consequence: reds accumulate silently on the release branch and **explode in layers
+of ~40 min** at release time, one at a time.
 
-A "família release-green" existe para **antecipar** esses reds — validar o equivalente ao gate
-completo **localmente / fora do release**, a qualquer momento, para que a release PR já nasça
-verde na primeira CI.
+The "release-green family" exists to **anticipate** those reds — validate the equivalent of the full
+gate **locally / outside of release**, at any time, so the release PR is already
+green on its first CI run.
 
-> **Princípio inegociável:** nada disto bloqueia o contribuidor. Não adicionamos um required
-> check que falhe o PR dele. O **drift** (ratchets) é do mantenedor rebaselinar no release —
-> nunca uma preocupação do contribuidor. Nenhuma peça **fecha** um PR (roubo de crédito) nem
-> **enfraquece** um teste para passar.
+> **Non-negotiable principle:** none of this blocks the contributor. We do not add a required
+> check that fails their PR. The **drift** (ratchets) is for the maintainer to rebaseline at release —
+> never a contributor concern. No piece **closes** a PR (credit theft) nor
+> **weakens** a test to pass.
 
-## A família (4 peças) — e como cada uma roda à parte
+## The family (4 pieces) — and how each runs independently
 
-| Peça                                                                      | O que é                                                                              | Quando rodar                                                                  | Escopo                               |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------ |
-| **`/green-prs`** (Solução A)                                              | Varredura sob demanda do mantenedor sobre a **fila de PRs abertos**                  | **À parte, periódico** — e principalmente **antes** de um `/generate-release` | Fila inteira de PRs → `release/**`   |
-| **`/validate-release-green`** (Solução C — `npm run check:release-green`) | Motor de validação: reproduz o gate completo contra uma branch OU um merge-candidato | À parte, a qualquer momento                                                   | Uma branch específica ou um PR-merge |
-| **`/babysit <PR#>`**                                                      | Conduz a **CI ao vivo** de **um** PR até o verde                                     | À parte, por PR                                                               | Um PR                                |
-| **`nightly-release-green.yml`** (Solução D)                               | Workflow noturno automático; abre issue em HARD red                                  | Automático (cron)                                                             | A release branch ativa               |
+| Piece                                                                      | What it is                                                                        | When to run                                                                       | Scope                           |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------- |
+| **`/green-prs`** (Solution A)                                              | On-demand scan by the maintainer of the **queue of open PRs**                     | **Independently, periodically** — and especially **before** a `/generate-release` | Entire PR queue → `release/**`  |
+| **`/validate-release-green`** (Solution C — `npm run check:release-green`) | Validation engine: reproduces the full gate against a branch OR a merge candidate | Independently, at any time                                                        | A specific branch or a merge-PR |
+| **`/babysit <PR#>`**                                                       | Drives **live CI** of **one** PR to green                                         | Independently, per PR                                                             | A single PR                     |
+| **`nightly-release-green.yml`** (Solution D)                               | Automated nightly workflow; opens issue on HARD red                               | Automatic (cron)                                                                  | The active release branch       |
 
-**Resposta curta à pergunta "é só para release?":** **não.** O `/green-prs` foi desenhado para
-rodar **de tempos em tempos, entre releases**. Rodar à parte é o uso normal — o release é apenas
-o momento em que rodá-lo dá mais retorno.
+**Short answer to "is this only for releases?":** **no.** `/green-prs` was designed to
+run **periodically, between releases**. Running independently is the normal use — release is just
+the moment when running it yields the most value.
 
-## Solução C — `npm run check:release-green` (o motor)
+## Solution C — `npm run check:release-green` (the engine)
 
-Reproduz a validação release-equivalente contra a árvore de trabalho atual e classifica cada red:
+Reproduces release-equivalent validation against the current working tree and classifies each red:
 
-- **HARD** (typecheck, lint errors, unit, vitest, db-rules, public-creds, opcional
-  `package-artifact`) → **defeito real**; `exit 1`. Conserta-se na branch de origem (TDD, Rule #18).
-- **DRIFT** (eslint **warnings**, cognitive-complexity, file-size) → drift de ratchet acumulado no
-  ciclo, **não é culpa do contribuidor**; é só reportado e **rebaselinado pelo mantenedor no
-  release**. Drift **nunca** muda o exit code — então nunca bloqueia ninguém.
+- **HARD** (typecheck, lint errors, unit, vitest, db-rules, public-creds, optional
+  `package-artifact`) → **real defect**; `exit 1`. Fixed on the source branch (TDD, Rule #18).
+- **DRIFT** (eslint **warnings**, cognitive-complexity, file-size) → ratchet drift accumulated in
+  the cycle, **not the contributor's fault**; it is only reported and **rebaselined by the maintainer at
+  release**. Drift **never** changes the exit code — so it never blocks anyone.
 
 ```bash
-npm run check:release-green                 # branch atual (working tree)
-node scripts/quality/validate-release-green.mjs --json   # saída estruturada
-node scripts/quality/validate-release-green.mjs --quick  # pula unit+vitest (só drift+typecheck+lint)
-node scripts/quality/validate-release-green.mjs --with-build  # inclui package-artifact (lento)
+npm run check:release-green                 # current branch (working tree)
+node scripts/quality/validate-release-green.mjs --json   # structured output
+node scripts/quality/validate-release-green.mjs --quick  # skips unit+vitest (drift+typecheck+lint only)
+node scripts/quality/validate-release-green.mjs --with-build  # includes package-artifact (slow)
 ```
 
-Diagnostica e **reporta** apenas (sem auto-fix). A orquestração de fix-to-green vive no
-`/green-prs` e no `/review-prs`.
+Diagnoses and **reports** only (no auto-fix). The fix-to-green orchestration lives in
+`/green-prs` and `/review-prs`.
 
-## Solução A — `/green-prs` (a varredura da fila)
+## Solution A — `/green-prs` (the queue scan)
 
-Procedimento (resumo — ver a skill `green-prs` para o detalhe):
+Procedure (summary — see the `green-prs` skill for details):
 
-1. **Inventariar** a fila de PRs abertos contra a release branch ativa.
-2. **Triar** cada PR (viável / reject-worthy / needs-author) — reject/needs-author são
-   **reportados, não fechados** (o dono decide).
-3. Para cada viável, em **worktree isolado** (Rule #19), trazer o PR ao tip da release e rodar
+1. **Inventory** the queue of open PRs against the active release branch.
+2. **Triage** each PR (viable / reject-worthy / needs-author) — reject/needs-author are
+   **reported, not closed** (the author decides).
+3. For each viable PR, in an **isolated worktree** (Rule #19), bring the PR to the release tip and run
    `npm run check:release-green`:
-   - **HARD** → consertar **na branch do contribuidor** via coautoria (mantém o "Merged" do autor),
-     re-rodar até zerar os HARD.
-   - **DRIFT** → deixar; é rebaselinado no release.
-4. **Reportar** uma tabela PR × (verdict, HARD reds, fixado?, DRIFT, release-green agora?).
+   - **HARD** → fix **on the contributor's branch** via co-authorship (preserves the author's "Merged" status),
+     re-run until all HARDs are cleared.
+   - **DRIFT** → leave it; it will be rebaselined at release.
+4. **Report** a PR × (verdict, HARD reds, fixed?, DRIFT, release-green now?) table.
 
-Pode **preparar** a fila sem mergear; só mergeia quando explicitamente pedido — e nunca fecha PR.
+Can **prepare** the queue without merging; only merges when explicitly requested — and never closes a PR.
 
-## Cadência recomendada
+## Recommended cadence
 
-- Rode **`/green-prs` periodicamente** (ex.: semanalmente) e **sempre antes de um
+- Run **`/green-prs` periodically** (e.g., weekly) and **always before a
   `/generate-release`**.
-- Deixe o **`nightly-release-green.yml`** (Solução D) como sinal contínuo: quando ele abrir issue
-  de HARD red, é hora de uma varredura.
-- Use **`/validate-release-green`** ad-hoc para checar uma branch ou um merge-candidato pontual.
-- Use **`/babysit <PR#>`** quando um PR específico precisa ser conduzido ao verde na CI ao vivo.
+- Keep **`nightly-release-green.yml`** (Solution D) as a continuous signal: when it opens a
+  HARD red issue, it is time for a scan.
+- Use **`/validate-release-green`** ad-hoc to check a branch or a specific merge candidate.
+- Use **`/babysit <PR#>`** when a specific PR needs to be driven to green on live CI.
 
-## Relação com o release
+## Relationship to release
 
-- `/generate-release` chama a validação na **Fase 0 (pré-flight)**: rebaselina o DRIFT e conserta
-  o HARD antes de abrir a release PR.
-- `/review-prs` usa o gate release-green no passo de decisão de merge (verde-antes-de-merge).
+- `/generate-release` calls validation in **Phase 0 (pre-flight)**: rebaselines DRIFT and fixes
+  HARD before opening the release PR.
+- `/review-prs` uses the release-green gate at the merge decision step (green-before-merge).
 
-O objetivo de todas as peças é o mesmo: **a release PR verde na primeira CI**, em vez de surfar
-reds em camadas de 40 min no dia do release.
+The goal of all pieces is the same: **a green release PR on the first CI run**, instead of surfing
+reds in 40-minute layers on release day.

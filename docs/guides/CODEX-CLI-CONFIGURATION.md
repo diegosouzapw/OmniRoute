@@ -195,7 +195,7 @@ codex -p chat     # cx/gpt-5.5, no effort set (server default)
 | `nemotron` | `ollamacloud/nemotron-3-super` | 32k     | NVIDIA Nemotron         |
 | `gptoss`   | `ollamacloud/gpt-oss:20b`      | 32k     | Open-source GPT         |
 
-### Fast models (rápidos) — low effort
+### Fast models — low effort
 
 | Profile          | Model                                | Context | Use for                 |
 | ---------------- | ------------------------------------ | ------- | ----------------------- |

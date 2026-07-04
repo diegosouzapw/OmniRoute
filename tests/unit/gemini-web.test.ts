@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { GeminiWebExecutor } = await import("../../open-sse/executors/gemini-web.ts");
+const { GeminiWebExecutor, parseStreamResponse } =
+  await import("../../open-sse/executors/gemini-web.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
 
 // ─── Registration ───────────────────────────────────────────────────────────
@@ -22,7 +23,7 @@ test("GeminiWebExecutor sets correct provider name", () => {
 test("Returns 401 when no cookies provided", async () => {
   const executor = new GeminiWebExecutor();
   const result = await executor.execute({
-    model: "gemini-2.5-pro",
+    model: "gemini-3.1-pro",
     body: { messages: [{ role: "user", content: "hi" }], stream: false },
     stream: false,
     credentials: {},
@@ -37,7 +38,7 @@ test("Returns 401 when no cookies provided", async () => {
 test("Returns 400 when no user message", async () => {
   const executor = new GeminiWebExecutor();
   const result = await executor.execute({
-    model: "gemini-2.5-pro",
+    model: "gemini-3.1-pro",
     body: { messages: [{ role: "system", content: "You are helpful" }], stream: false },
     stream: false,
     credentials: { apiKey: "test-cookie" },
@@ -47,6 +48,104 @@ test("Returns 400 when no user message", async () => {
   assert.equal(result.response.status, 400);
   const json = (await result.response.json()) as any;
   assert.ok(json.error.includes("No user message"));
+});
+
+test("Reads bulk-imported cookie credentials from providerSpecificData.cookie", async () => {
+  const playwrightError = new Error(
+    "browserType.launch: Executable doesn't exist at /home/node/.cache/ms-playwright/chromium_headless_shell-1161/chrome-linux/headless_shell"
+  );
+
+  const playwright = await import("playwright");
+  const originalLaunch = playwright.chromium.launch;
+
+  playwright.chromium.launch = async () => {
+    throw playwrightError;
+  };
+
+  try {
+    const executor = new GeminiWebExecutor();
+    const result = await executor.execute({
+      model: "gemini-3.1-pro",
+      body: { messages: [{ role: "user", content: "hello" }], stream: false },
+      stream: false,
+      credentials: {
+        providerSpecificData: { cookie: "__Secure-1PSID=from-bulk-import" },
+      } as any,
+      signal: AbortSignal.timeout(5000),
+      log: null,
+    });
+
+    assert.equal(
+      result.response.status,
+      503,
+      "providerSpecificData.cookie should be accepted and reach Playwright launch"
+    );
+  } finally {
+    playwright.chromium.launch = originalLaunch;
+  }
+});
+
+test("Ignores array-valued providerSpecificData when resolving cookies", async () => {
+  const executor = new GeminiWebExecutor();
+  const result = await executor.execute({
+    model: "gemini-3.1-pro",
+    body: { messages: [{ role: "user", content: "hello" }], stream: false },
+    stream: false,
+    credentials: {
+      providerSpecificData: ["__Secure-1PSID=not-a-record"],
+    } as any,
+    signal: AbortSignal.timeout(5000),
+    log: null,
+  });
+
+  assert.equal(result.response.status, 401);
+});
+
+test("Normalizes a bare __Secure-1PSID value before adding browser cookies", async () => {
+  const playwright = await import("playwright");
+  const originalLaunch = playwright.chromium.launch;
+  let addedCookies: Array<{ name: string; value: string }> = [];
+
+  playwright.chromium.launch = async () =>
+    ({
+      newContext: async () => ({
+        addCookies: async (cookies: Array<{ name: string; value: string }>) => {
+          addedCookies = cookies;
+        },
+        newPage: async () => ({
+          on: () => {},
+          goto: async () => {},
+          waitForTimeout: async () => {},
+          waitForSelector: async () => ({
+            click: async () => {},
+          }),
+          keyboard: {
+            type: async () => {},
+            press: async () => {},
+          },
+        }),
+      }),
+      close: async () => {},
+    }) as any;
+
+  try {
+    const executor = new GeminiWebExecutor();
+    const result = await executor.execute({
+      model: "gemini-3.1-pro",
+      body: { messages: [{ role: "user", content: "hello" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "raw-psid-value" },
+      signal: AbortSignal.timeout(5000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 502, "fake page intentionally returns no Gemini response");
+    assert.equal(addedCookies.length, 1);
+    assert.equal(addedCookies[0].name, "__Secure-1PSID");
+    assert.equal(addedCookies[0].value, "raw-psid-value");
+  } finally {
+    playwright.chromium.launch = originalLaunch;
+  }
 });
 
 // ─── Provider registration ──────────────────────────────────────────────────
@@ -68,11 +167,14 @@ test("Provider: gemini-web in providerRegistry", async () => {
 test("Provider: gemini-web has correct models", async () => {
   const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
   const models = REGISTRY["gemini-web"].models;
-  const modelIds = models.map((m: any) => m.id);
-  assert.ok(modelIds.includes("gemini-2.5-pro"));
-  assert.ok(modelIds.includes("gemini-2.5-flash"));
-  assert.ok(modelIds.includes("gemini-2.0-pro"));
-  assert.ok(modelIds.includes("gemini-2.0-flash"));
+  assert.deepEqual(
+    models.map((m: any) => [m.id, m.name]),
+    [
+      ["gemini-3.1-pro", "Gemini 3.1 Pro"],
+      ["gemini-3.5-flash", "Gemini 3.5 Flash"],
+      ["gemini-3.1-flash-lite", "Gemini 3.1 Flash-Lite"],
+    ]
+  );
 });
 
 // ─── Regression: #2832 / #3516 — Playwright missing in Docker (runner-base) ──
@@ -106,7 +208,7 @@ test("#2832/#3516: missing Playwright browser returns an actionable 503 with coo
   try {
     const executor = new GeminiWebExecutor();
     const result = await executor.execute({
-      model: "gemini-2.5-pro",
+      model: "gemini-3.1-pro",
       body: { messages: [{ role: "user", content: "hello" }], stream: false },
       stream: false,
       credentials: { apiKey: "fake-cookie=abc" },
@@ -126,7 +228,10 @@ test("#2832/#3516: missing Playwright browser returns an actionable 503 with coo
     assert.match(json.error, /playwright install|not installed/i, "message must be actionable");
     // No raw stack trace / source path leaks into the body.
     assert.ok(!json.error.includes("\n    at "), "must not contain multi-line stack trace");
-    assert.ok(!json.error.includes("node_modules/playwright-core"), "must not contain node_modules source path");
+    assert.ok(
+      !json.error.includes("node_modules/playwright-core"),
+      "must not contain node_modules source path"
+    );
   } finally {
     playwright.chromium.launch = originalLaunch;
   }
@@ -143,7 +248,7 @@ test("#2832: GeminiWebExecutor catch block sanitizes Playwright launch errors (i
   controller.abort(new Error("Request aborted"));
 
   const result = await executor.execute({
-    model: "gemini-2.5-pro",
+    model: "gemini-3.1-pro",
     body: { messages: [{ role: "user", content: "hello" }], stream: false },
     stream: false,
     credentials: { apiKey: "fake-cookie=abc" },
@@ -157,4 +262,22 @@ test("#2832: GeminiWebExecutor catch block sanitizes Playwright launch errors (i
   const json = (await result.response.json()) as any;
   assert.ok(typeof json.error === "string", "error must be a string");
   assert.ok(!json.error.includes("at /"), "no stack trace path in error response");
+});
+
+// ─── StreamGenerate parsing ─────────────────────────────────────────────────
+
+test("parseStreamResponse concatenates Gemini Web text from multiple wrb.fr chunks", () => {
+  const makeChunk = (text: string) => {
+    const inner = new Array(80).fill(null);
+    inner[4] = [[null, [text]]];
+    return `[["wrb.fr", null, ${JSON.stringify(JSON.stringify(inner))}]]`;
+  };
+
+  const raw = `)]}'\n10\n${makeChunk("First ")}\n5\n${makeChunk("chunk")}`;
+  assert.equal(parseStreamResponse(raw), "First chunk");
+});
+
+test("parseStreamResponse ignores wrb.fr lines whose first entry is not an array", () => {
+  const raw = `)]}'\n10\n${JSON.stringify(["wrb.fr", null, "[]"])}`;
+  assert.equal(parseStreamResponse(raw), "");
 });

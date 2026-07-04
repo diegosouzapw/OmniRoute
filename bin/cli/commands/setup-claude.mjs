@@ -20,13 +20,28 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import os from "node:os";
 import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
-import { categoriseModel } from "./setup-codex.mjs";
+import {
+  categoriseModel,
+  isCodexCompatibleTextModel,
+  profileNameFromModelId,
+} from "./setup-codex.mjs";
 
 /** Map a Codex-style effort to a Claude Code settings.json effortLevel. */
 function effortLevelFor(cfg) {
   // Codex categories use xhigh/high/low/undefined; Claude Code accepts the same
   // names (low|medium|high|xhigh). Pass through, omit for the "simple" tier.
   return cfg.effort || undefined;
+}
+
+/**
+ * Generic profile for a live-catalog model that `categoriseModel()` doesn't
+ * recognize (e.g. any provider added after the hardcoded glm/kimi/mimo/…
+ * pattern list was written). Mirrors setup-codex.mjs's fallbackCodexProfile()
+ * so setup-claude never silently produces zero profiles for a fresh catalog.
+ */
+export function fallbackClaudeProfile(modelId, model) {
+  if (!isCodexCompatibleTextModel(model)) return null;
+  return { name: profileNameFromModelId(modelId) };
 }
 
 /** Build the settings.json content for one Claude Code profile. */
@@ -91,7 +106,7 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
       continue;
     }
 
-    const cfg = categoriseModel(id);
+    const cfg = categoriseModel(id) ?? fallbackClaudeProfile(id, m);
     if (!cfg) {
       skipped++;
       continue;
