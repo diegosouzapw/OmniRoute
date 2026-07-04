@@ -67,6 +67,16 @@ export function providerSupportsSystemMessage(provider: string | null | undefine
 }
 
 /**
+ * Returns true when the given provider requires system messages only at index 0.
+ * Falls back to false for unknown/null providers (lenient default).
+ */
+export function providerSystemMustBeFirst(provider: string | null | undefined): boolean {
+  if (!provider) return false;
+  const normalized = provider.toLowerCase().trim();
+  return PROVIDERS_SYSTEM_MUST_BE_FIRST.has(normalized);
+}
+
+/**
  * Format memories into a single labeled context string.
  * Format: "Memory context: <content1>\n<content2>..."
  */
@@ -135,16 +145,10 @@ export function injectMemory(
   const cacheSafeIndex = options.cacheSafe ? messages.findLastIndex((m) => m.role === "user") : -1;
 
   // #6135: some strict providers (e.g. Xiaomi MiMo) require system messages ONLY at index 0.
-  // When both cacheSafe and systemMessageMustBeFirst are true, we cannot splice a system
-  // message mid-array — instead we merge into the existing system[0] or unshift to front.
-  const strictSystemIndex =
-    options.cacheSafe && options.systemMessageMustBeFirst
-      ? 0
-      : options.systemMessageMustBeFirst && !options.cacheSafe
-        ? 0
-        : -1;
-
-  const isStrictSystem = strictSystemIndex >= 0;
+  // Auto-detected from PROVIDERS_SYSTEM_MUST_BE_FIRST, or overridden via options.
+  // When strict, we cannot splice a system message mid-array — instead we merge into the
+  // existing system[0] or unshift to front.
+  const isStrictSystem = !!options.systemMessageMustBeFirst || providerSystemMustBeFirst(provider);
 
   if (providerSupportsSystemMessage(provider)) {
     const memorySystemMessage: ChatMessage = { role: "system", content: memoryText };

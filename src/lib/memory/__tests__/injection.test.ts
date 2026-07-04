@@ -268,4 +268,20 @@ describe("injectMemory — systemMessageMustBeFirst (#6135)", () => {
     expect(result.messages[3].role).toBe("system");
     expect(result.messages[3].content).toContain("Memory context");
   });
+
+  test("strict provider auto-detected from set without explicit option", () => {
+    const request = multiTurnRequest();
+    // No systemMessageMustBeFirst option — auto-detected from xiaomi-mimo provider
+    const result = injectMemory(request, [makeMemory("fact")], "xiaomi-mimo", {
+      cacheSafe: true,
+    });
+
+    // Should behave as strict: merge into system[0], not splice mid-array
+    expect(result.messages).toHaveLength(4);
+    expect(result.messages[0].role).toBe("system");
+    expect(result.messages[0].content).toContain("Memory context: fact");
+    expect(result.messages[0].content).toContain("You are helpful");
+    const systemAfterZero = result.messages.slice(1).filter((m) => m.role === "system");
+    expect(systemAfterZero).toHaveLength(0);
+  });
 });

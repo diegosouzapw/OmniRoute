@@ -177,4 +177,17 @@ describe("injectMemory cache-safe positioning (#3890)", () => {
     const systemRolesAfterZero = out.messages.slice(1).filter((m) => m.role === "system");
     assert.equal(systemRolesAfterZero.length, 0, "no system messages after index 0");
   });
+
+  it("strict provider auto-detected from set without explicit option", () => {
+    const req = multiTurn(); // [sys, u1, a1, u2]
+    // No systemMessageMustBeFirst option — auto-detected from xiaomi-mimo provider
+    const out = injectMemory(req, [mem("fact")], "xiaomi-mimo", { cacheSafe: true });
+    // Should behave as strict: merge into system[0], not splice mid-array
+    assert.equal(out.messages[0].role, "system");
+    assert.ok(out.messages[0].content.includes("Memory context"));
+    assert.ok(out.messages[0].content.includes("SYSTEM PROMPT"));
+    assert.equal(out.messages.length, 4, "merged — no extra message");
+    const systemRolesAfterZero = out.messages.slice(1).filter((m) => m.role === "system");
+    assert.equal(systemRolesAfterZero.length, 0, "no system messages after index 0");
+  });
 });
