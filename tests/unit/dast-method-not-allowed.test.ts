@@ -32,6 +32,12 @@ test("raw HTTP guard rejects high-risk unsupported methods before Next.js handle
       url: "/api/keys/0",
       allow: "GET, PATCH, DELETE",
     },
+    {
+      label: "key devices TRACE",
+      method: "TRACE",
+      url: "/api/keys/0/devices",
+      allow: "GET",
+    },
   ];
 
   for (const testCase of cases) {
@@ -78,6 +84,10 @@ test("raw HTTP guard allows documented methods through", () => {
     false
   );
   assert.equal(
+    maybeHandleDisallowedMethod({ method: "GET", url: "/api/keys/0/devices" }, response),
+    false
+  );
+  assert.equal(
     maybeHandleDisallowedMethod({ method: "QUERY", url: "/api/health/ping" }, response),
     false
   );
@@ -121,6 +131,15 @@ test("OpenAPI documents high-risk route auth and setup responses", () => {
   assert.match(apiKeyDetail, /\n    delete:/);
   assert.match(apiKeyDetail, /"401":\n\s+description: Authentication required/);
   assert.match(apiKeyDetail, /"404":\n\s+description: Key not found/);
+
+  const apiKeyDevicesStart = spec.indexOf("  /api/keys/{id}/devices:");
+  const apiKeyDevicesEnd = spec.indexOf("\n  /api/settings/purge-usage-history:", apiKeyDevicesStart);
+  const apiKeyDevices = spec.slice(apiKeyDevicesStart, apiKeyDevicesEnd);
+  assert.match(apiKeyDevices, /\n    get:/);
+  assert.match(
+    apiKeyDevices,
+    /"401":\n\s+\$ref: "#\/components\/responses\/ManagementAuthenticationRequired"/
+  );
 
   const loginStart = spec.indexOf("  /api/auth/login:");
   const loginEnd = spec.indexOf("\n  /api/auth/logout:", loginStart);
