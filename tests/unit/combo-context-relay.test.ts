@@ -549,6 +549,14 @@ test("context_cache_protection: pins body.model to last session model when histo
     "anthropic"
   );
 
+  // Ensure anthropic provider has an active connection so the pin isn't
+  // dropped by isPinnedModelDurablyUnhealthy (no connections = durably down).
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT OR IGNORE INTO provider_connections (id, provider, auth_type, name, is_active, test_status, created_at, updated_at)
+     VALUES ('test-anthropic-conn', 'anthropic', 'api_key', 'test-anthropic', 1, 'active', datetime('now'), datetime('now'))`
+  ).run();
+
   const capturedModels: string[] = [];
 
   const result = await handleComboChat({
