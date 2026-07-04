@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { appendIssueAgentAuditRecord } from "@/lib/issueAgent/audit";
+import { normalizeGitHubIssueExport } from "@/lib/issueAgent/githubExport";
 import { createRecordedTriageRun } from "@/lib/issueAgent/recordedTriage";
 
 interface IssueAgentRunRequest {
@@ -7,6 +8,7 @@ interface IssueAgentRunRequest {
   issueUrl?: string;
   dryRun?: boolean;
   recordedContext?: unknown;
+  githubExport?: unknown;
 }
 
 const ENABLED_VALUES = new Set(["1", "true", "yes", "on"]);
@@ -23,6 +25,7 @@ function parseRunRequest(value: unknown): IssueAgentRunRequest {
     issueUrl: typeof row.issueUrl === "string" ? row.issueUrl : undefined,
     dryRun: typeof row.dryRun === "boolean" ? row.dryRun : undefined,
     recordedContext: row.recordedContext,
+    githubExport: row.githubExport,
   };
 }
 
@@ -63,7 +66,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const run = createRecordedTriageRun(parsed);
+    const normalized = parsed.githubExport
+      ? normalizeGitHubIssueExport(parsed.githubExport)
+      : null;
+    const run = createRecordedTriageRun({
+      ...parsed,
+      issueUrl: parsed.issueUrl ?? normalized?.issueUrl,
+      recordedContext: parsed.recordedContext ?? normalized?.recordedContext,
+    });
     const audit = await appendIssueAgentAuditRecord(run);
     return NextResponse.json({ ...run, auditPath: audit.path });
   } catch (error) {
