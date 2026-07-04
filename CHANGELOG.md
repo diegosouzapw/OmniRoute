@@ -14,6 +14,8 @@
 
 - **fix(security):** the mutable cloud-agent routes (`/api/cloud/credentials/update`, `/api/cloud/models/alias`) now require management auth instead of being treated as public. They were classified as public API routes, so a request without management credentials could update stored cloud-agent credentials and model aliases. They are removed from the public-route set, classified as management routes in the authz pipeline, and gated by `requireManagementAuth`; cloud **read**/auth routes stay public. Regression guards: `tests/unit/cloud-write-auth.test.ts`, `tests/unit/authz/classify.test.ts`, `tests/unit/public-api-routes.test.ts`. ([#6233](https://github.com/diegosouzapw/OmniRoute/pull/6233) — thanks @vittoroliveira-dev)
 
+- **refactor(dashboard):** extract the onboarding-wizard "Open provider details" link target into a pure, unit-tested `buildProviderDetailsHref(connection)` helper. The wizard already routes by `connection.id` (the node UUID) rather than the provider category slug (#6144/#6145); this hardens that behavior behind a tested helper that guards a missing id/connection. Regression guard: `tests/unit/provider-onboarding-href.test.ts`. ([#6166](https://github.com/diegosouzapw/OmniRoute/pull/6166) — thanks @KooshaPari)
+
 ---
 
 ## [3.8.43] — 2026-07-02
