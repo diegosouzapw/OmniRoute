@@ -1023,6 +1023,39 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
   );
 });
 
+test("GLM usage maps unit=6 one-week token limits to the weekly quota window", async () => {
+  const resetAtMs = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        data: {
+          planName: "Pro Plan",
+          limits: [
+            {
+              type: "TOKENS_LIMIT",
+              unit: 6,
+              number: 1,
+              percentage: "100",
+              nextResetTime: resetAtMs,
+            },
+          ],
+        },
+      }),
+      { status: 200 }
+    );
+
+  const usage: any = await usageService.getUsageForProvider({
+    provider: "glm",
+    apiKey: "glm-weekly-key",
+  });
+
+  assert.ok(usage.quotas.weekly, "unit=6/number=1 should be treated as weekly quota");
+  assert.equal(usage.quotas.weekly.used, 100);
+  assert.equal(usage.quotas.weekly.remaining, 0);
+  assert.equal(usage.quotas.weekly.resetAt, new Date(resetAtMs).toISOString());
+  assert.equal(usage.quotas.session, undefined);
+});
+
 test("usage service covers MiniMax usage parsing, documented endpoint fallback and auth errors", async () => {
   const calls: any[] = [];
   const beforeCall = Date.now();

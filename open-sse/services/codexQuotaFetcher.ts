@@ -24,6 +24,7 @@ import {
 } from "../config/codexQuotaScopes.ts";
 import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
+import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 
 /**
  * Stable identifiers for Codex's quota windows. These match the quota keys
@@ -226,6 +227,13 @@ export async function fetchCodexQuota(
     if (meta.workspaceId) {
       headers["chatgpt-account-id"] = meta.workspaceId;
     }
+
+    // #6009: space concurrent upstream quota fetches so N accounts on one IP do
+    // not all hit the provider in the same second (anti-fingerprint / avoids the
+    // Codex OAuth revocation reported in router-for-me/CLIProxyAPI#2385). Cache
+    // hits above never reach here; this only paces genuine network calls and is
+    // configurable (OMNIROUTE_QUOTA_FETCH_MIN_INTERVAL_MS, 0 = disabled).
+    await throttleQuotaFetch();
 
     const response = await fetch(CODEX_USAGE_URL, {
       method: "GET",

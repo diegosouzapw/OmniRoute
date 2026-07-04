@@ -33,6 +33,15 @@ export function hasUnsupportedKiroContextSuffix(model: unknown): boolean {
 }
 
 /**
+ * Wrap system-prompt content in <system-reminder> tags before it is merged into
+ * a Kiro user message. Kiro/CodeWhisperer has no `system` role, so without this
+ * the system prompt would appear as raw user text (issue #2306).
+ */
+function wrapSystemReminder(text: string): string {
+  return `<system-reminder>\n${text}\n</system-reminder>`;
+}
+
+/**
  * Convert OpenAI messages to Kiro format
  * Rules: system/tool/user -> user role, merge consecutive same roles
  */
@@ -238,7 +247,11 @@ function convertMessages(messages, tools, model) {
           content: [{ text: toolContent }],
         });
       } else if (content) {
-        pendingUserContent.push(content);
+        // #2306: Kiro/CodeWhisperer has no `system` role, so system messages are
+        // normalized to `user`. Wrap their content in <system-reminder> tags so
+        // the model can tell the system prompt apart from real user input instead
+        // of treating the full Claude Code prompt as something the user typed.
+        pendingUserContent.push(msg.role === "system" ? wrapSystemReminder(content) : content);
       }
     } else if (role === "assistant") {
       // Extract text content and tool uses

@@ -23,6 +23,10 @@ import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.
 import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import {
+  resolveRequestModePack,
+  parseRequestBudgetCap,
+} from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
 import {
@@ -645,8 +649,17 @@ export async function handleChat(
     ]);
     const relayConfig =
       combo.strategy === "context-relay" ? resolveComboConfig(combo, settings) : null;
+    // Per-request Auto-Combo controls (#6023 / #6024 / #6025): steer an `auto`
+    // combo on this single request without mutating its stored config.
+    const requestModeHeader = request.headers.get("x-omniroute-mode")?.trim() || null;
+    const requestBudgetHeader = request.headers.get("x-omniroute-budget")?.trim() || null;
+    const perRequestMode = resolveRequestModePack(requestModeHeader);
+    const perRequestBudgetCap = parseRequestBudgetCap(requestBudgetHeader);
     const relayOptions =
-      combo.strategy === "context-relay" || bypassProviderQuotaPolicy
+      combo.strategy === "context-relay" ||
+      bypassProviderQuotaPolicy ||
+      perRequestMode.override ||
+      perRequestBudgetCap !== undefined
         ? {
             ...(combo.strategy === "context-relay"
               ? {
@@ -655,6 +668,8 @@ export async function handleChat(
                 }
               : {}),
             ...(bypassProviderQuotaPolicy ? { bypassProviderQuotaPolicy: true } : {}),
+            ...(perRequestMode.override ? { mode: requestModeHeader } : {}),
+            ...(perRequestBudgetCap !== undefined ? { budgetCap: perRequestBudgetCap } : {}),
           }
         : undefined;
     telemetry.endPhase();
@@ -933,7 +948,7 @@ async function handleSingleModelChat(
       allCombos: [],
       relayOptions: undefined,
       signal: request?.signal ?? null,
-      correlationId: reqId,
+      correlationId: runtimeOptions?.correlationId ?? null,
     });
   }
 

@@ -346,7 +346,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
     let pplxMode: string;
     let modelPref: string;
     if (thinking && THINKING_MAP[model]) {
-      pplxMode = "copilot";
+      pplxMode = "search";
       modelPref = THINKING_MAP[model];
       log?.info?.("PPLX-WEB", `Thinking mode → ${model} using ${modelPref}`);
     } else if (MODEL_MAP[model]) {

@@ -33,10 +33,10 @@
         "Content-Type": "application/json",
         "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
-        "X-Stainless-Arch": "x64",
+        "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "Linux",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "0.94.0",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
@@ -51,10 +51,10 @@
         "Content-Type": "application/json",
         "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
-        "X-Stainless-Arch": "x64",
+        "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "Linux",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "0.94.0",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
@@ -70,10 +70,10 @@
         "Content-Type": "application/json",
         "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
-        "X-Stainless-Arch": "x64",
+        "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "Linux",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "0.94.0",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
@@ -94,18 +94,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       }
     },
     "url": {
@@ -241,18 +241,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
       }
     },
     "url": {
@@ -714,10 +714,10 @@
         "Content-Type": "application/json",
         "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
-        "X-Stainless-Arch": "x64",
+        "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "Linux",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "0.94.0",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
@@ -732,10 +732,10 @@
         "Content-Type": "application/json",
         "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
-        "X-Stainless-Arch": "x64",
+        "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "Linux",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "0.94.0",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
@@ -751,10 +751,10 @@
         "Content-Type": "application/json",
         "User-Agent": "claude-cli/2.1.195 (external, cli)",
         "X-App": "cli",
-        "X-Stainless-Arch": "x64",
+        "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
         "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "Linux",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "0.94.0",
         "X-Stainless-Retry-Count": "0",
         "X-Stainless-Runtime": "node",
@@ -965,7 +965,7 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.142.0 (Windows 10.0.26200; x64)",
+        "User-Agent": "codex-cli/0.142.0 (<OS>; <ARCH>)",
         "Version": "0.142.0",
         "X-Codex-Beta-Features": "responses_websockets"
       },
@@ -973,7 +973,7 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.142.0 (Windows 10.0.26200; x64)",
+        "User-Agent": "codex-cli/0.142.0 (<OS>; <ARCH>)",
         "Version": "0.142.0",
         "X-Codex-Beta-Features": "responses_websockets"
       },
@@ -982,7 +982,7 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.142.0 (Windows 10.0.26200; x64)",
+        "User-Agent": "codex-cli/0.142.0 (<OS>; <ARCH>)",
         "Version": "0.142.0",
         "X-Codex-Beta-Features": "responses_websockets"
       }
@@ -1754,14 +1754,14 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       },
       "oauth": {
@@ -1769,7 +1769,7 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       }
     },
@@ -1786,14 +1786,14 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       },
       "oauth": {
@@ -1801,7 +1801,7 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
-        "User-Agent": "OpenClaude/1.0 (linux; x86_64)",
+        "User-Agent": "OpenClaude/1.0 (<OS>; <ARCH>)",
         "X-Title": "OpenClaude CLI"
       }
     },
@@ -3516,13 +3516,13 @@
         "Connection": "keep-alive",
         "Content-Type": "application/json",
         "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.19.3 (linux; x64)",
+        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
         "X-Dashscope-AuthType": "qwen-oauth",
         "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (linux; x64)",
-        "X-Stainless-Arch": "x64",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "Linux",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "5.11.0",
         "X-Stainless-Retry-Count": "1",
         "X-Stainless-Runtime": "node",
@@ -3534,13 +3534,13 @@
         "Connection": "keep-alive",
         "Content-Type": "application/json",
         "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.19.3 (linux; x64)",
+        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
         "X-Dashscope-AuthType": "qwen-oauth",
         "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (linux; x64)",
-        "X-Stainless-Arch": "x64",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "Linux",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "5.11.0",
         "X-Stainless-Retry-Count": "1",
         "X-Stainless-Runtime": "node",
@@ -3553,13 +3553,13 @@
         "Connection": "keep-alive",
         "Content-Type": "application/json",
         "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.19.3 (linux; x64)",
+        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
         "X-Dashscope-AuthType": "qwen-oauth",
         "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (linux; x64)",
-        "X-Stainless-Arch": "x64",
+        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
+        "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "Linux",
+        "X-Stainless-Os": "<OS>",
         "X-Stainless-Package-Version": "5.11.0",
         "X-Stainless-Retry-Count": "1",
         "X-Stainless-Runtime": "node",

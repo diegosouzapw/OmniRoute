@@ -332,7 +332,6 @@ AI providers can become unstable, return 5xx errors, or hit temporary rate limit
 <details>
 <summary><b>🔧 7. "Configuring each AI tool is tedious and repetitive"</b></summary>
 
-
 **How OmniRoute solves it:**
 
 - **CLI Tools Dashboard** — Dedicated page with one-click setup for Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
@@ -855,7 +854,6 @@ API Key:  [copy from Endpoint page]
 Model:    if/kimi-k2-thinking (or any provider/model prefix)
 ```
 
-
 ### 4) Enable and validate protocols (v2.0)
 
 **MCP (for tool-driven operations):**
@@ -1222,7 +1220,6 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
 | `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
 
-
 ### ⚫ NVIDIA NIM (Free API Key — build.nvidia.com)
 
 | Tier       | Daily Limit  | Rate Limit  | Notes                                                  |
@@ -1352,7 +1349,7 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | 🗑️ **Uninstall / Full Uninstall**  | `npm run uninstall` keeps data, `npm run uninstall:full` removes everything — clean removal for all install methods                               |
 | 🔧 **OAuth Env Repair**            | One-click "Repair env" action for OAuth providers restores missing env vars and fixes broken auth state                                           |
 | 🔒 **Graceful Electron Shutdown**  | Electron `before-quit` shuts down Next.js gracefully, preventing SQLite WAL database locks on desktop close                                       |
-| 👁️ **Model Visibility Toggle**     | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages                                  |
+| 👁️ **Model Visibility Toggle**     | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages                                   |
 | 📧 **Email Privacy Masking**       | OAuth account emails masked (`di*****@g****.com`), full address visible on hover                                                                  |
 | 🔗 **Context Relay Strategy**      | Combo strategy preserving session continuity via structured handoff summaries when accounts rotate mid-conversation                               |
 | 🛡️ **Proxy Hardening**             | Token health check, API key validation, and undici dispatcher all honor proxy config                                                              |
@@ -1375,14 +1372,14 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ### 🚀 Previous v2.0.9+ — Playground, CLI Fingerprints & ACP
 
-| Feature                                    | What It Does                                                                                                                                                                                                                            |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                                                                                                                  |
-| 🔏 **CLI Fingerprint Matching**            | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved**                                                                                           |
-| 🤖 **ACP Agents Dashboard**                | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
-| 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                                                                                                                |
+| Feature                                 | What It Does                                                                                                                                                                                                                            |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎮 **Model Playground**                 | Dashboard page to test any model directly — provider/model/endpoint selectors, Monaco Editor, streaming, abort, timing                                                                                                                  |
+| 🔏 **CLI Fingerprint Matching**         | Per-provider header/body ordering to match native CLI signatures — toggle per provider in Settings > Security. **Your proxy IP is preserved**                                                                                           |
+| 🤖 **ACP Agents Dashboard**             | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
+| 🔧 **Custom Model `apiFormat` Routing** | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
+| 🏢 **Codex Workspace Isolation**        | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
+| 🔄 **Electron Auto-Update**             | Desktop app checks for updates + auto-install on restart                                                                                                                                                                                |
 
 ### 🤖 Agent & Protocol Operations (v2.0)
 
@@ -1680,8 +1677,6 @@ Scenarios:
 - `5h OFF` + `Weekly ON`: only weekly usage can block the account.
 - `5h ON` + `Weekly OFF`: only 5-hour usage can block the account.
 - `resetAt` passed: account re-enters rotation automatically (no manual re-enable).
-
-
 
 ### GitHub Copilot
 
@@ -2024,8 +2019,6 @@ opencode
 
 > **⚠️ Important for users running OmniRoute on a VPS, Docker, or any remote server**
 
-
-
 The OAuth credentials bundled in OmniRoute are registered **for `localhost` only**. When you access OmniRoute on a remote server (e.g. `https://omniroute.myserver.com`), Google rejects the authentication with:
 
 ```
@@ -2087,7 +2080,6 @@ docker restart omniroute
 
 **7. Try connecting again**
 
-
 Google will now redirect correctly to `https://your-server.com/callback`.
 
 ---
@@ -2105,95 +2097,6 @@ If you don't want to set up your own credentials right now, you can still use th
 > This works because the authorization code in the URL is valid regardless of whether the redirect page loaded.
 
 ---
-
-<details>
-<summary><b>🇧🇷 Versão em Português</b></summary>
-
-
-
-As credenciais OAuth embutidas no OmniRoute estão cadastradas **apenas para `localhost`**. Quando você acessa o OmniRoute em um servidor remoto (ex: `https://omniroute.meuservidor.com`), o Google rejeita a autenticação com:
-
-```
-Error 400: redirect_uri_mismatch
-```
-
-#### Solução: Configure suas próprias credenciais OAuth
-
-Você precisa criar um **OAuth 2.0 Client ID** no Google Cloud Console com a URI do seu servidor.
-
-#### Passo a passo
-
-**1. Acesse o Google Cloud Console**
-
-Abra: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
-
-**2. Crie um novo OAuth 2.0 Client ID**
-
-- Clique em **"+ Create Credentials"** → **"OAuth client ID"**
-- Tipo de aplicativo: **"Web application"**
-- Nome: escolha qualquer nome (ex: `OmniRoute Remote`)
-
-**3. Adicione as Authorized Redirect URIs**
-
-No campo **"Authorized redirect URIs"**, adicione:
-
-```
-https://seu-servidor.com/callback
-```
-
-> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:20128/callback`).
-
-**4. Salve e copie as credenciais**
-
-Após criar, o Google mostrará o **Client ID** e o **Client Secret**.
-
-**5. Configure as variáveis de ambiente**
-
-No seu `.env` (ou nas variáveis de ambiente do Docker):
-
-```bash
-# Para Antigravity:
-ANTIGRAVITY_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-
-GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-```
-
-**6. Reinicie o OmniRoute**
-
-```bash
-# Se usando npm:
-npm run dev
-
-# Se usando Docker:
-docker restart omniroute
-```
-
-**7. Tente conectar novamente**
-
-
-Agora o Google redirecionará corretamente para `https://seu-servidor.com/callback` e a autenticação funcionará.
-
----
-
-#### Workaround temporário (sem configurar credenciais próprias)
-
-Se não quiser criar credenciais próprias agora, ainda é possível usar o fluxo **manual de URL**:
-
-1. O OmniRoute abrirá a URL de autorização do Google
-2. Após você autorizar, o Google tentará redirecionar para `localhost` (que falha no servidor remoto)
-3. **Copie a URL completa** da barra de endereço do seu browser (mesmo que a página não carregue)
-4. Cole essa URL no campo que aparece no modal de conexão do OmniRoute
-5. Clique em **"Connect"**
-
-> Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
-
-</details>
-
----
-
-</details>
 
 ## 🛠️ Tech Stack
 
