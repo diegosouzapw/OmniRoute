@@ -11,9 +11,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // component here fails at module-load if that broken import ever comes back,
 // so this test fails-without-the-fix.
 
-// `formatResetCountdown` lives in db/providers/rateLimit.ts and is re-exported by
-// localDb; stub it so the countdown text is deterministic and no DB is touched.
-vi.mock("@/lib/localDb", () => ({
+// `formatResetCountdown` lives in the client-safe `@/shared/utils/formatting`
+// module (imported directly by the panel — never via the server-only localDb
+// barrel, which would drag ioredis/node:net into the browser bundle). Stub it so
+// the countdown text is deterministic.
+vi.mock("@/shared/utils/formatting", () => ({
   formatResetCountdown: (v: string | number | null | undefined) => (v == null ? null : "in 5m"),
 }));
 

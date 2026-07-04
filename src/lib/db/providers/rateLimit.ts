@@ -190,21 +190,9 @@ export function clearStaleCrashCooldowns(): { cleared: number } {
   return { cleared: toReset.length };
 }
 
-/**
- * T13: Format a reset countdown as a human-readable string: "2h 35m" or "4m 30s".
- * Returns null if resetAt is in the past or not set.
- */
-export function formatResetCountdown(resetAt: string | number | null | undefined): string | null {
-  if (!resetAt) return null;
-  const resetTime = typeof resetAt === "number" ? resetAt : new Date(resetAt).getTime();
-  if (isNaN(resetTime)) return null;
-  const diffMs = resetTime - Date.now();
-  if (diffMs <= 0) return null;
-  const totalSeconds = Math.floor(diffMs / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  if (minutes > 0) return `${minutes}m ${seconds}s`;
-  return `${seconds}s`;
-}
+// T13: Format a reset countdown as a human-readable string ("2h 35m" / "4m 30s").
+// The implementation lives in the client-safe formatting utils so client
+// components (e.g. CoolingConnectionsPanel) can import it without pulling this
+// server-only DB module (better-sqlite3/ioredis) into the browser bundle.
+// Re-exported here for existing server-side callers and the db/providers barrel.
+export { formatResetCountdown } from "@/shared/utils/formatting";

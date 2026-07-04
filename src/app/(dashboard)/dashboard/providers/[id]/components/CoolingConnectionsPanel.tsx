@@ -4,7 +4,7 @@
  * CoolingConnectionsPanel — Dashboard readout of connections currently in a
  * persisted 429 cooldown. Sourced from `useProviderConnections().connections`
  * filtered on `rateLimitedUntil`. Live human-readable countdown via the
- * existing `formatResetCountdown` helper re-exported by `@/lib/localDb`.
+ * client-safe `formatResetCountdown` helper in `@/shared/utils/formatting`.
  *
  * Why this exists: Fix A (per-account 429 cascade not persisting) writes the
  * cooldown to `provider_connections.rate_limited_until` so the cascade
@@ -22,7 +22,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { formatResetCountdown } from "@/lib/localDb";
+import { formatResetCountdown } from "@/shared/utils/formatting";
 import type { ConnectionRowConnection } from "./ConnectionRow";
 
 export interface CoolingConnectionsPanelProps {
