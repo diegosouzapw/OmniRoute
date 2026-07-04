@@ -112,10 +112,15 @@ export default function CompressionHub() {
       setSettings(next);
       setError(null);
       try {
+        // Send only the changed fields (patch), not the full merged settings.
+        // The API schema is designed for partial updates; sending the full
+        // CompressionConfig round-trips fields unknown to the schema and causes
+        // a 400 strict-validation failure (e.g. contextBudget, pipeline engines
+        // added after the schema was written). CompressionPanel already does this.
         const res = await fetch("/api/settings/compression", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(next),
+          body: JSON.stringify(patch),
         });
         if (!res.ok) {
           setSettings(settings); // revert

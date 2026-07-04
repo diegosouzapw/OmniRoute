@@ -56,6 +56,33 @@ export function interpretMitmStartupError(stderr: string, port: number): string 
 let serverProcess: ChildProcess | null = null;
 let serverPid: number | null = null;
 
+// Set while startMitm() is in flight, from the guard check through spawn.
+// Guards a TOCTOU race: the "already running" check above only trips once
+// `serverProcess` is assigned by spawn() — ~130 lines and several awaits
+// later (DNS entries, cert generation, cert install). Two concurrent
+// startMitm() calls would both pass that check before either assigns
+// serverProcess. (upstream 9router#2316)
+let mitmStarting = false;
+
+/**
+ * Attempt to acquire the single-flight "MITM server is starting" lock.
+ * Returns `true` if acquired — the caller must release it via
+ * `releaseMitmStartLock()` in a `finally` block — or `false` if another
+ * `startMitm()` call already holds it. Exported so the concurrency guard is
+ * unit-testable without exercising startMitm()'s full side effects
+ * (DNS/cert/spawn).
+ */
+export function tryAcquireMitmStartLock(): boolean {
+  if (mitmStarting) return false;
+  mitmStarting = true;
+  return true;
+}
+
+/** Release the single-flight start lock acquired via `tryAcquireMitmStartLock()`. */
+export function releaseMitmStartLock(): void {
+  mitmStarting = false;
+}
+
 // Set when getMitmStatus() finds a stale PID file (server died without clean
 // teardown). The dashboard surfaces this to offer a one-click Repair. Cleared
 // by repairMitm(). (Gap 7.)
@@ -239,9 +266,7 @@ export function buildRepairPlan(): RepairPlan {
  */
 async function revertSystemProxyIfApplied(): Promise<boolean> {
   try {
-    const { getSystemProxyState, clearSystemProxy } = await import(
-      "@/lib/inspector/captureState"
-    );
+    const { getSystemProxyState, clearSystemProxy } = await import("@/lib/inspector/captureState");
     const state = getSystemProxyState();
     if (!state.applied || !state.previousState) return false;
     const { revert } = await import("./inspector/systemProxyConfig.ts");
@@ -463,6 +488,29 @@ export async function startMitm(
     throw new Error("MITM proxy is already running");
   }
 
+  // Check if another startMitm() call is already in flight (TOCTOU guard —
+  // see the `mitmStarting` comment above).
+  if (!tryAcquireMitmStartLock()) {
+    throw new Error("MITM server is already starting");
+  }
+
+  try {
+    return await startMitmInternal(apiKey, sudoPassword, options);
+  } finally {
+    releaseMitmStartLock();
+  }
+}
+
+/**
+ * Internal body of startMitm(), extracted so the single-flight lock in
+ * startMitm() cleanly wraps it in try/finally without re-indenting the
+ * entire implementation.
+ */
+async function startMitmInternal(
+  apiKey: string,
+  sudoPassword: string,
+  options: { port?: number }
+): Promise<{ running: true; pid: number | null; certTrusted: boolean }> {
   // Register best-effort teardown on parent SIGINT/SIGTERM (Gap 7).
   installCleanupHandlers();
 
@@ -577,9 +625,7 @@ export async function startMitm(
   let ingestToken = process.env.INSPECTOR_INTERNAL_INGEST_TOKEN || "";
   if (!ingestToken) {
     try {
-      const ingestMod = await import(
-        "@/app/api/tools/traffic-inspector/internal/ingest/route"
-      );
+      const ingestMod = await import("@/app/api/tools/traffic-inspector/internal/ingest/route");
       if (typeof ingestMod.getIngestTokenForBootstrap === "function") {
         ingestToken = ingestMod.getIngestTokenForBootstrap();
       }

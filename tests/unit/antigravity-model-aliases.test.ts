@@ -85,6 +85,7 @@ test("isUserCallableAntigravityModelId only allows public chat-capable model IDs
   // 2.0 was wrong.
   assert.equal(isUserCallableAntigravityModelId("claude-opus-4-6-thinking"), true);
   assert.equal(isUserCallableAntigravityModelId("claude-sonnet-4-6"), true);
+  assert.equal(isUserCallableAntigravityModelId("claude-sonnet-5"), true);
   // Antigravity 2.0.4 exposes Gemini 3.5 Flash as separate UI tiers.
   assert.equal(isUserCallableAntigravityModelId("gemini-3.1-pro-high"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-3.1-pro-low"), true);
@@ -108,6 +109,16 @@ test("ANTIGRAVITY_PUBLIC_MODELS exposes captured Antigravity 2.0.1 names and cap
     toolCalling: true,
   });
   assert.equal(getPublicModel("claude-sonnet-4-6").name, "Claude Sonnet 4.6 (Thinking)");
+  // claude-sonnet-5 was added to the Antigravity catalog alongside the existing Claude entries.
+  assert.deepEqual(getPublicModel("claude-sonnet-5"), {
+    id: "claude-sonnet-5",
+    name: "Claude Sonnet 5 (Thinking)",
+    contextLength: 200000,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  });
   assert.deepEqual(getPublicModel("gemini-3.5-flash-high"), {
     id: "gemini-3.5-flash-high",
     name: "Gemini 3.5 Flash (High)",

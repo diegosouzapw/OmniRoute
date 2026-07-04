@@ -1,72 +1,102 @@
-# Troubleshooting (中文 (简体))
+---
+title: "故障排除"
+version: 3.8.40
+lastUpdated: 2026-06-28
+---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/TROUBLESHOOTING.md) · 🇸🇦 [ar](../../ar/docs/TROUBLESHOOTING.md) · 🇧🇬 [bg](../../bg/docs/TROUBLESHOOTING.md) · 🇧🇩 [bn](../../bn/docs/TROUBLESHOOTING.md) · 🇨🇿 [cs](../../cs/docs/TROUBLESHOOTING.md) · 🇩🇰 [da](../../da/docs/TROUBLESHOOTING.md) · 🇩🇪 [de](../../de/docs/TROUBLESHOOTING.md) · 🇪🇸 [es](../../es/docs/TROUBLESHOOTING.md) · 🇮🇷 [fa](../../fa/docs/TROUBLESHOOTING.md) · 🇫🇮 [fi](../../fi/docs/TROUBLESHOOTING.md) · 🇫🇷 [fr](../../fr/docs/TROUBLESHOOTING.md) · 🇮🇳 [gu](../../gu/docs/TROUBLESHOOTING.md) · 🇮🇱 [he](../../he/docs/TROUBLESHOOTING.md) · 🇮🇳 [hi](../../hi/docs/TROUBLESHOOTING.md) · 🇭🇺 [hu](../../hu/docs/TROUBLESHOOTING.md) · 🇮🇩 [id](../../id/docs/TROUBLESHOOTING.md) · 🇮🇹 [it](../../it/docs/TROUBLESHOOTING.md) · 🇯🇵 [ja](../../ja/docs/TROUBLESHOOTING.md) · 🇰🇷 [ko](../../ko/docs/TROUBLESHOOTING.md) · 🇮🇳 [mr](../../mr/docs/TROUBLESHOOTING.md) · 🇲🇾 [ms](../../ms/docs/TROUBLESHOOTING.md) · 🇳🇱 [nl](../../nl/docs/TROUBLESHOOTING.md) · 🇳🇴 [no](../../no/docs/TROUBLESHOOTING.md) · 🇵🇭 [phi](../../phi/docs/TROUBLESHOOTING.md) · 🇵🇱 [pl](../../pl/docs/TROUBLESHOOTING.md) · 🇵🇹 [pt](../../pt/docs/TROUBLESHOOTING.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/TROUBLESHOOTING.md) · 🇷🇴 [ro](../../ro/docs/TROUBLESHOOTING.md) · 🇷🇺 [ru](../../ru/docs/TROUBLESHOOTING.md) · 🇸🇰 [sk](../../sk/docs/TROUBLESHOOTING.md) · 🇸🇪 [sv](../../sv/docs/TROUBLESHOOTING.md) · 🇰🇪 [sw](../../sw/docs/TROUBLESHOOTING.md) · 🇮🇳 [ta](../../ta/docs/TROUBLESHOOTING.md) · 🇮🇳 [te](../../te/docs/TROUBLESHOOTING.md) · 🇹🇭 [th](../../th/docs/TROUBLESHOOTING.md) · 🇹🇷 [tr](../../tr/docs/TROUBLESHOOTING.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/TROUBLESHOOTING.md) · 🇵🇰 [ur](../../ur/docs/TROUBLESHOOTING.md) · 🇻🇳 [vi](../../vi/docs/TROUBLESHOOTING.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/TROUBLESHOOTING.md)
+# 故障排除
+
+> **致用户**：想快速解决问题？请参阅下方的[快速参考](#快速参考)。
+
+🌐 **Languages:** 🇺🇸 [English](../../../../docs/guides/TROUBLESHOOTING.md) | 🇧🇷 [Português (Brasil)](../../pt-BR/docs/guides/TROUBLESHOOTING.md) | 🇪🇸 [Español](../../es/docs/guides/TROUBLESHOOTING.md) | 🇫🇷 [Français](../../fr/docs/guides/TROUBLESHOOTING.md) | 🇮🇹 [Italiano](../../it/docs/guides/TROUBLESHOOTING.md) | 🇷🇺 [Русский](../../ru/docs/guides/TROUBLESHOOTING.md) | 🇨🇳 [中文 (简体)](../../zh-CN/docs/guides/TROUBLESHOOTING.md) | 🇩🇪 [Deutsch](../../de/docs/guides/TROUBLESHOOTING.md) | 🇮🇳 [हिन्दी](../../in/docs/guides/TROUBLESHOOTING.md) | 🇹🇭 [ไทย](../../th/docs/guides/TROUBLESHOOTING.md) | 🇺🇦 [Українська](../../uk-UA/docs/guides/TROUBLESHOOTING.md) | 🇸🇦 [العربية](../../ar/docs/guides/TROUBLESHOOTING.md) | 🇯🇵 [日本語](../../ja/docs/guides/TROUBLESHOOTING.md) | 🇻🇳 [Tiếng Việt](../../vi/docs/guides/TROUBLESHOOTING.md) | 🇧🇬 [Български](../../bg/docs/guides/TROUBLESHOOTING.md) | 🇩🇰 [Dansk](../../da/docs/guides/TROUBLESHOOTING.md) | 🇫🇮 [Suomi](../../fi/docs/guides/TROUBLESHOOTING.md) | 🇮🇱 [עברית](../../he/docs/guides/TROUBLESHOOTING.md) | 🇭🇺 [Magyar](../../hu/docs/guides/TROUBLESHOOTING.md) | 🇮🇩 [Bahasa Indonesia](../../id/docs/guides/TROUBLESHOOTING.md) | 🇰🇷 [한국어](../../ko/docs/guides/TROUBLESHOOTING.md) | 🇲🇾 [Bahasa Melayu](../../ms/docs/guides/TROUBLESHOOTING.md) | 🇳🇱 [Nederlands](../../nl/docs/guides/TROUBLESHOOTING.md) | 🇳🇴 [Norsk](../../no/docs/guides/TROUBLESHOOTING.md) | 🇵🇹 [Português (Portugal)](../../pt/docs/guides/TROUBLESHOOTING.md) | 🇷🇴 [Română](../../ro/docs/guides/TROUBLESHOOTING.md) | 🇵🇱 [Polski](../../pl/docs/guides/TROUBLESHOOTING.md) | 🇸🇰 [Slovenčina](../../sk/docs/guides/TROUBLESHOOTING.md) | 🇸🇪 [Svenska](../../sv/docs/guides/TROUBLESHOOTING.md) | 🇵🇭 [Filipino](../../phi/docs/guides/TROUBLESHOOTING.md) | 🇨🇿 [Čeština](../../cs/docs/guides/TROUBLESHOOTING.md)
+
+OmniRoute 常见问题及解决方案。
 
 ---
 
-Common problems and solutions for OmniRoute.
+## 快速参考
+
+**刚接触 OmniRoute？** 从这里开始 —— 以下内容可解决 90% 的问题：
+
+| 你看到的提示            | 含义                     | 解决方法                                                                                          |
+| ----------------------- | ------------------------ | ------------------------------------------------------------------------------------------------- |
+| "Can't connect"         | OmniRoute 未运行          | 运行 `omniroute` 或 `docker restart omniroute`                                                     |
+| "Invalid API key"       | API 密钥错误或已过期      | 从服务商网站重新复制密钥                                                                          |
+| "Rate limit exceeded"   | 请求频率过高              | 等待 1 分钟，或使用 `model: "auto"` 自动容灾                                                     |
+| "Quota exceeded"        | 免费/付费配额已用尽       | 接入更多服务商，或使用免费服务商（Kiro、Pollinations）                                              |
+| "Slow responses"        | 服务商繁忙或距离较远      | 使用 `model: "auto/fast"` 或接入速度更快的服务商（Groq、Cerebras）                                 |
+| "Wrong provider used"   | `auto` 选择了其他服务商    | 这是正常现象！`auto` 会选取最优服务商。如需指定，使用 `model: "openai/gpt-4o"`                       |
+| "502 Bad Gateway"       | 服务商宕机                | 等待重试，或使用 `model: "auto"` 切换服务商                                                        |
+| "401 Unauthorized"      | 凭据有误                  | 检查 API 密钥或通过 OAuth 重新认证                                                                |
+| "429 Too Many Requests" | 触发速率限制              | 等待 1 分钟，或接入更多服务商                                                                     |
+
+**还是不行？** 请参阅下方的[详细故障排除](#详细故障排除)，或前往 [Discord](https://discord.gg/EkzRkpzKYt) 提问。
 
 ---
 
-## Quick Fixes
-
-| Problem                                             | Solution                                                                                                                                                 |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| First login not working                             | Set `INITIAL_PASSWORD` in `.env` (no hardcoded default)                                                                                                  |
-| Dashboard opens on wrong port                       | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                       |
-| No logs written to disk                             | Set `APP_LOG_TO_FILE=true` and verify call log capture is enabled                                                                                        |
-| EACCES: permission denied                           | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`                                                                                          |
-| Routing strategy not saving                         | Update to v1.4.11+ (Zod schema fix for settings persistence)                                                                                             |
-| Login crash / blank page                            | Check Node.js version — see [Node.js Compatibility](#nodejs-compatibility) below                                                                         |
-| `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
-| Proxy "fetch failed"                                | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below                                                                |
+## 详细故障排除
 
 ---
 
-## Node.js Compatibility
+## 快速修复
+
+| 问题                                                | 解决方案                                                                                                                                              |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 首次登录无法使用                                    | 在 `.env` 中设置 `INITIAL_PASSWORD`（无硬编码默认值）                                                                                                  |
+| 仪表盘打开的端口不对                                | 设置 `PORT=20128` 和 `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                    |
+| 没有日志写入磁盘                                    | 设置 `APP_LOG_TO_FILE=true` 并确认已启用调用日志捕获                                                                                                  |
+| EACCES: permission denied                           | 设置 `DATA_DIR=/path/to/writable/dir` 覆盖 `~/.omniroute`                                                                                             |
+| 路由策略无法保存                                    | 更新至最新 v3.x 版本（早期版本中已修复 settings 持久化的 Zod Schema 问题）                                                                            |
+| 登录崩溃 / 空白页面                                 | 检查 Node.js 版本 —— 参见下方的 [Node.js 兼容性](#nodejs-兼容性)                                                                                      |
+| `dlopen` / `slice is not valid mach-o file` (macOS) | 运行 `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` —— 参见下方的 [macOS 原生模块重新编译](#macos-原生模块重新编译)         |
+| 代理 "fetch failed"                                 | 请确认代理配置已设置在正确的层级 —— 参见下方的[代理问题](#代理问题)                                                                                  |
+
+---
+
+## Node.js 兼容性
 
 <a name="nodejs-compatibility"></a>
 
-### Login page crashes or shows "Module self-registration" error
+### 登录页面崩溃或显示 "Module self-registration" 错误
 
-**Cause:** You are running a Node.js version outside OmniRoute's approved secure runtime floor. The most common case is running an older Node 20, 22, or 24 patch level that falls below the patched security floor OmniRoute requires.
+**原因：** 你使用的 Node.js 版本不在 OmniRoute 批准的安全运行时范围内。最常见的情况是运行的 Node.js 22 或 24 补丁版本过低，未达到 OmniRoute 所需的安全补丁基线。
 
-**Symptoms:**
+**症状：**
 
-- Login page shows a blank screen or a server error
-- Console shows `Error: Module did not self-register` or similar native binding errors
-- The login page shows an **orange warning banner** with your Node version if the runtime is outside the supported secure policy
+- 登录页面显示空白或服务器报错
+- 控制台显示 `Error: Module did not self-register` 或类似的原生绑定错误
+- 如果运行时不在支持的安全策略范围内，登录页面会显示一个**橙色警告横幅**，标明你的 Node 版本
 
-**Fix:**
+**修复：**
 
-1. Install a supported Node.js LTS release (recommended: Node.js 24.x):
+1. 安装受支持的 Node.js LTS 版本（推荐：Node.js 24.x）：
    ```bash
    nvm install 24
    nvm use 24
    ```
-2. Verify your version: `node --version` should show `v24.0.0` or newer on the 24.x LTS line
-3. Reinstall OmniRoute: `npm install -g omniroute`
-4. Restart: `omniroute`
+2. 验证版本：`node --version` 应显示 `v24.0.0` 或 24.x LTS 线上的更高版本
+3. 重新安装 OmniRoute：`npm install -g omniroute`
+4. 重启：`omniroute`
 
-> **Supported secure versions:** `>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25`. Node.js 24.x LTS (Krypton) is fully supported.
+> **受支持的安全版本：** `>=22.22.2 <23` 或 `>=24.0.0 <27`。Node.js 24.x LTS (Krypton) 和 Node.js 26 完全支持。
 
-### macOS: `dlopen` / "slice is not valid mach-o file"
+### macOS：`dlopen` / "slice is not valid mach-o file"
 
 <a name="macos-native-module-rebuild"></a>
 
-**Cause:** After a global `npm install -g omniroute`, the `better-sqlite3` native binary inside the package may have been compiled for a different architecture or Node.js ABI than what is running locally. This is common on macOS (both Apple Silicon and Intel) when the pre-built binary does not match your environment.
+**原因：** 执行全局 `npm install -g omniroute` 后，包内的 `better-sqlite3` 原生二进制文件可能被编译为与你本地运行环境不同的架构或 Node.js ABI。这在 macOS 上很常见（Apple Silicon 和 Intel 均如此），当预编译的二进制文件与你的环境不匹配时就会发生。
 
-**Symptoms:**
+**症状：**
 
-- Server fails immediately on startup with a `dlopen` error
-- Error contains `slice is not valid mach-o file`
-- Full example:
+- 服务器启动时立即报出 `dlopen` 错误
+- 错误信息包含 `slice is not valid mach-o file`
+- 完整示例：
 
 ```
 dlopen(/Users/<user>/.nvm/versions/node/v24.14.1/lib/node_modules/omniroute/app/node_modules/better-sqlite3/build/Release/better_sqlite3.node, 0x0001): tried: '...' (slice is not valid mach-o file)
 ```
 
-**Fix — rebuild for your local environment (no Node.js downgrade required):**
+**修复 —— 针对本地环境重新编译（无需降级 Node.js）：**
 
 ```bash
 cd $(npm root -g)/omniroute/app
@@ -74,98 +104,114 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **Note:** This recompiles the native binding against your local Node.js version and CPU architecture, resolving the binary mismatch. The officially supported range is **`>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25`** (`engines` field in `package.json`). Node.js 24.x LTS (Krypton) is fully supported with `better-sqlite3` v12.x.
+> **说明：** 这会针对你的本地 Node.js 版本和 CPU 架构重新编译原生绑定，解决二进制不匹配问题。官方支持的运行时范围为 **`>=22.22.2 <23` 或 `>=24.0.0 <27`**（`src/shared/utils/nodeRuntimeSupport.ts` 中的 `SUPPORTED_NODE_RANGE`，与 `package.json` 的 `engines` 字段一致）。Node.js 24.x LTS (Krypton) 和 Node.js 26 在 `better-sqlite3` v12.x 下完全支持。
 
 ---
 
-## Proxy Issues
+## 代理问题
 
 <a name="proxy-issues"></a>
 
-### Provider validation shows "fetch failed"
+### 服务商验证提示 "fetch failed"
 
-**Cause:** The API key validation endpoint (`POST /api/providers/validate`) was previously bypassing proxy configuration, causing failures in environments that require proxy routing.
+**原因：** API 密钥验证端点（`POST /api/providers/validate`）之前绕过了代理配置，导致在需要代理路由的环境中验证失败。
 
-**Fix (v3.5.5+):** This is now fixed. Provider validation routes through `runWithProxyContext`, honoring provider-level and global proxy settings automatically.
+**修复（v3.5.5+）：** 已修复。服务商验证现在通过 `runWithProxyContext` 路由，自动遵循服务商级别和全局代理设置。
 
-### Token health check fails with "fetch failed"
+### Token 健康检查报错 "fetch failed"
 
-**Cause:** Background OAuth token refresh was not resolving proxy configuration per connection.
+**原因：** 后台 OAuth Token 刷新未解析每个连接对应的代理配置。
 
-**Fix (v3.5.5+):** The token health check scheduler now resolves proxy config per connection before attempting refresh. Update to v3.5.5+.
+**修复（v3.5.5+）：** Token 健康检查调度器现在在尝试刷新之前会按连接解析代理配置。请更新至 v3.5.5+。
 
-### SOCKS5 proxy returns "invalid onRequestStart method"
+### SOCKS5 代理返回 "invalid onRequestStart method"
 
-**Cause:** On Node.js 22, the undici@8 dispatcher is incompatible with Node's built-in `fetch()` implementation.
+**原因：** 在 Node.js 22 上，undici@8 调度器与 Node 内置的 `fetch()` 实现不兼容。
 
-**Fix (v3.5.5+):** OmniRoute now uses undici's own `fetch()` function when a proxy dispatcher is active, ensuring consistent behavior. Update to v3.5.5+.
+**修复（v3.5.5+）：** OmniRoute 现在在代理调度器激活时使用 undici 自身的 `fetch()` 函数，确保行为一致。请更新至 v3.5.5+。
+
+### WSL 下的 MITM 代理：Windows 主机上的桌面应用未被拦截
+
+**原因：** MITM 代理及其 CA 证书安装在 OmniRoute 运行的环境中。在 WSL 下，该环境是 Linux 客户机，而 AI 桌面应用（Kiro、Trae、Copilot、Zed 等）运行在 Windows 主机上。主机应用不信任客户机的证书存储，也不会通过客户机的系统代理路由，因此桌面拦截不会在那里生效。
+
+**建议：** 将 OmniRoute 以原生方式运行在与你想要拦截的桌面应用相同的操作系统上（Windows 应用在 Windows 上运行；macOS/Linux 同理）。将 OmniRoute 留在 WSL 内同时针对主机应用，需要手动在 Windows 主机上信任生成的 CA 证书，并将每个主机应用的网络/代理设置指向 WSL 代理端点 —— 这是一种不受支持、脆弱的配置方案。
 
 ---
 
-## Provider Issues
+## 服务商问题
 
 ### "Language model did not provide messages"
 
-**Cause:** Provider quota exhausted.
+**原因：** 服务商配额耗尽。
 
-**Fix:**
+**修复：**
 
-1. Check dashboard quota tracker
-2. Use a combo with fallback tiers
-3. Switch to cheaper/free tier
+1. 检查仪表盘配额追踪器
+2. 使用包含容灾层级的 Combo
+3. 切换到更便宜/免费的层级
 
-### Rate Limiting
+### 速率限制
 
-**Cause:** Subscription quota exhausted.
+**原因：** 订阅配额耗尽。
 
-**Fix:**
+**修复：**
 
-- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
-- Use GLM/MiniMax as cheap backup
+- 添加容灾：`cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- 使用 GLM/MiniMax 作为廉价备用
 
-### OAuth Token Expired
+### OAuth Token 过期
 
-OmniRoute auto-refreshes tokens. If issues persist:
+OmniRoute 会自动刷新 Token。如果问题持续：
 
-1. Dashboard → Provider → Reconnect
-2. Delete and re-add the provider connection
+1. 仪表盘 → 服务商 → 重新连接
+2. 删除并重新添加该服务商连接
 
----
+### Kiro 多账号：第二个账号使第一个失效
 
-## Cloud Issues
+**原因：** Kiro 后端强制每个 OIDC 客户端注册仅允许一个活跃会话。当两个账号共享同一个注册客户端（v3.8.0 之前导入的连接）时，刷新一个账号的 Token 会使另一个账号的 refresh token 失效。
 
-### Cloud Sync Errors
+**修复（v3.8.0+）：** 重新导入受影响的连接。从 v3.8.0 开始，每个通过 **Import Token**、**Google/GitHub 社交登录**或 **Auto-Import** 创建的 Kiro 新连接，都会自动注册自己的独立 OIDC 客户端。因此每个连接完全隔离，刷新一个账号对其他账号没有影响。
 
-1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
-2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
-3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
+在 v3.8.0 之前导入的连接没有携带每个连接独立的客户端注册。这些连接继续使用共享的社交认证刷新端点。要获得隔离，请从仪表盘 → 服务商中删除旧连接，然后通过三种导入流程之一重新添加。
 
-### Cloud `stream=false` Returns 500
-
-**Symptom:** `Unexpected token 'd'...` on cloud endpoint for non-streaming calls.
-
-**Cause:** Upstream returns SSE payload while client expects JSON.
-
-**Workaround:** Use `stream=true` for cloud direct calls. Local runtime includes SSE→JSON fallback.
-
-### Cloud Says Connected but "Invalid API key"
-
-1. Create a fresh key from local dashboard (`/api/keys`)
-2. Run cloud sync: Enable Cloud → Sync Now
-3. Old/non-synced keys can still return `401` on cloud
+详细信息和添加两个 Kiro 账号的逐步说明，请参阅 [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md)。
 
 ---
 
-## Docker Issues
+## 云端问题
 
-### CLI Tool Shows Not Installed
+### 云端同步错误
 
-1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
-2. For portable mode: use image target `runner-cli` (bundled CLIs)
-3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
-4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
+1. 验证 `BASE_URL` 指向你正在运行的实例（例如 `http://localhost:20128`）
+2. 验证 `CLOUD_URL` 指向你的云端端点（例如 `https://omniroute.dev`）
+3. 保持 `NEXT_PUBLIC_*` 值与服务器端值一致
 
-### Quick Runtime Validation
+### 云端 `stream=false` 返回 500
+
+**症状：** 云端端点上非流式调用出现 `Unexpected token 'd'...`。
+
+**原因：** 上游返回 SSE 载荷，而客户端期望 JSON。
+
+**临时方案：** 对云端直接调用使用 `stream=true`。本地运行时包含 SSE→JSON 容灾。
+
+### 云端显示已连接但报 "Invalid API key"
+
+1. 从本地仪表盘创建一个新密钥（`/api/keys`）
+2. 运行云端同步：启用 Cloud → Sync Now
+3. 旧的/未同步的密钥在云端可能仍然返回 `401`
+
+---
+
+## Docker 问题
+
+### CLI 工具显示未安装
+
+1. 检查运行时字段：`curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+2. 便携模式：使用镜像目标 `runner-cli`（内嵌 CLI）
+3. 主机挂载模式：设置 `CLI_EXTRA_PATHS` 并以只读方式挂载主机 bin 目录
+4. 如果 `installed=true` 且 `runnable=false`：二进制文件已找到但健康检查失败
+
+### 快速运行时验证
 
 ```bash
 curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
@@ -175,166 +221,279 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 
 ---
 
-## Cost Issues
+## 费用问题
 
-### High Costs
+### 费用过高
 
-1. Check usage stats in Dashboard → Usage
-2. Switch primary model to GLM/MiniMax
-3. Set cost budgets per API key: Dashboard → API Keys → Budget
+1. 在仪表盘 → Usage 中查看用量统计
+2. 将主模型切换到 GLM/MiniMax
+3. 对非关键任务使用免费层级（Qoder、Kiro）
+4. 按 API 密钥设置费用预算：仪表盘 → API Keys → Budget
 
 ---
 
-## Debugging
+## 调试
 
-### Enable Log Files
+### 启用日志文件
 
-Set `APP_LOG_TO_FILE=true` in your `.env` file. Application logs are written under `logs/`.
-Request artifacts are stored under `${DATA_DIR}/call_logs/` when the call log pipeline is
-enabled in settings.
+在 `.env` 文件中设置 `APP_LOG_TO_FILE=true`。应用日志将写入 `logs/` 目录。当调用日志流水线在设置中启用时，请求产物存储在 `${DATA_DIR}/call_logs/` 下。当流水线捕获启用时，可设置 `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` 来省略流式分块载荷，或调整 `CALL_LOG_PIPELINE_MAX_SIZE_KB` 来修改产物上限（单位 KB）。
 
-### Check Provider Health
+### 检查服务商健康状态
 
 ```bash
-# Health dashboard
+# 健康仪表盘
 http://localhost:20128/dashboard/health
 
-# API health check
+# API 健康检查
 curl http://localhost:20128/api/monitoring/health
 ```
 
-### Runtime Storage
+### 运行时存储
 
-- Main state: `${DATA_DIR}/storage.sqlite` (providers, combos, aliases, keys, settings)
-- Usage: SQLite tables in `storage.sqlite` (`usage_history`, `call_logs`, `proxy_logs`) + optional `${DATA_DIR}/call_logs/`
-- Application logs: `<repo>/logs/...` (when `APP_LOG_TO_FILE=true`)
-- Call log artifacts: `${DATA_DIR}/call_logs/YYYY-MM-DD/...` when the call log pipeline is enabled
+- 主状态：`${DATA_DIR}/storage.sqlite`（服务商、Combo、别名、密钥、设置）
+- 用量：`storage.sqlite` 中的 SQLite 表（`usage_history`、`call_logs`、`proxy_logs`）+ 可选的 `${DATA_DIR}/call_logs/`
+- 应用日志：`<repo>/logs/...`（当 `APP_LOG_TO_FILE=true` 时）
+- 调用日志产物：当调用日志流水线启用时为 `${DATA_DIR}/call_logs/YYYY-MM-DD/...`
 
----
-
-## Circuit Breaker Issues
-
-### Provider stuck in OPEN state
-
-When a provider's circuit breaker is OPEN, requests are blocked until the cooldown expires.
-
-**Fix:**
-
-1. Go to **Dashboard → Settings → Resilience**
-2. Check the circuit breaker card for the affected provider
-3. Click **Reset All** to clear all breakers, or wait for the cooldown to expire
-4. Verify the provider is actually available before resetting
-
-### Provider keeps tripping the circuit breaker
-
-If a provider repeatedly enters OPEN state:
-
-1. Check **Dashboard → Health → Provider Health** for the failure pattern
-2. Go to **Settings → Resilience → Provider Profiles** and increase the failure threshold
-3. Check if the provider has changed API limits or requires re-authentication
-4. Review latency telemetry — high latency may cause timeout-based failures
+请求日志页面的 **Clean history** 操作会清除 `call_logs`、旧版 `request_detail_logs` 以及本地 `${DATA_DIR}/call_logs/` 产物目录。
 
 ---
 
-## Audio Transcription Issues
+## 熔断器问题
 
-### "Unsupported model" error
+### 服务商卡在 OPEN 状态
 
-- Ensure you're using the correct prefix: `deepgram/nova-3` or `assemblyai/best`
-- Verify the provider is connected in **Dashboard → Providers**
+当服务商的熔断器处于 OPEN 状态时，请求会被阻止，直到冷却时间结束。
 
-### Transcription returns empty or fails
+**修复：**
 
-- Check supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`
-- Verify file size is within provider limits (typically < 25MB)
-- Check provider API key validity in the provider card
+1. 前往 **仪表盘 → Settings → Resilience**
+2. 查看受影响服务商的熔断器卡片
+3. 点击 **Reset All** 清除所有熔断器，或等待冷却时间结束
+4. 重置前请先确认该服务商确实可用
 
----
+### 服务商反复触发熔断器
 
-## Translator Debugging
+如果服务商反复进入 OPEN 状态：
 
-Use **Dashboard → Translator** to debug format translation issues:
-
-| Mode             | When to Use                                                                                  |
-| ---------------- | -------------------------------------------------------------------------------------------- |
-| **Playground**   | Compare input/output formats side by side — paste a failing request to see how it translates |
-| **Chat Tester**  | Send live messages and inspect the full request/response payload including headers           |
-| **Test Bench**   | Run batch tests across format combinations to find which translations are broken             |
-| **Live Monitor** | Watch real-time request flow to catch intermittent translation issues                        |
-
-### Common format issues
-
-- **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
-- **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
-- **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
-- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
-- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
-- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
-- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
+1. 在 **仪表盘 → Health → Provider Health** 中查看报错模式
+2. 前往 **Settings → Resilience → Provider Profiles** 提高失败阈值
+3. 检查服务商是否更改了 API 限额或需要重新认证
+4. 审查延迟遥测数据 —— 高延迟可能导致超时类报错
 
 ---
 
-## Resilience Settings
+## 音频转写问题
 
-### Auto rate-limit not triggering
+### "Unsupported model" 错误
 
-- Auto rate-limit only applies to API key providers (not OAuth/subscription)
-- Verify **Settings → Resilience → Provider Profiles** has auto-rate-limit enabled
-- Check if the provider returns `429` status codes or `Retry-After` headers
+- 请确认使用正确的前缀：`deepgram/nova-3` 或 `assemblyai/best`
+- 在 **仪表盘 → Providers** 中验证该服务商已连接
 
-### Tuning exponential backoff
+### 转写返回空结果或失败
 
-Provider profiles support these settings:
-
-- **Base delay** — Initial wait time after first failure (default: 1s)
-- **Max delay** — Maximum wait time cap (default: 30s)
-- **Multiplier** — How much to increase delay per consecutive failure (default: 2x)
-
-### Anti-thundering herd
-
-When many concurrent requests hit a rate-limited provider, OmniRoute uses mutex + auto rate-limiting to serialize requests and prevent cascading failures. This is automatic for API key providers.
+- 检查支持的音频格式：`mp3`、`wav`、`m4a`、`flac`、`ogg`、`webm`
+- 验证文件大小是否在服务商限制内（通常 < 25MB）
+- 在服务商卡片中检查 API 密钥有效性
 
 ---
 
-## Optional RAG / LLM failure taxonomy (16 problems)
+## 格式转换器调试
 
-Some OmniRoute users place the gateway in front of RAG or agent stacks. In those setups it is common to see a strange pattern: OmniRoute looks healthy (providers up, routing profiles ok, no rate limit alerts) but the final answer is still wrong.
+使用 **仪表盘 → Translator** 来调试格式转换问题：
 
-In practice these incidents usually come from the downstream RAG pipeline, not from the gateway itself.
+| 模式             | 使用场景                                                                  |
+| ---------------- | ------------------------------------------------------------------------- |
+| **Playground**   | 并排对比输入/输出格式 —— 粘贴一个失败的请求，查看其转换结果               |
+| **Chat Tester**  | 发送实时消息并检查完整的请求/响应载荷，包括 headers                       |
+| **Test Bench**   | 跨格式组合运行批量测试，找出哪些转换存在问题                              |
+| **Live Monitor** | 实时观察请求流，捕获间歇性的转换问题                                      |
 
-If you want a shared vocabulary to describe those failures you can use the WFGY ProblemMap, an external MIT license text resource that defines sixteen recurring RAG / LLM failure patterns. At a high level it covers:
+### 常见格式问题
 
-- retrieval drift and broken context boundaries
-- empty or stale indexes and vector stores
-- embedding versus semantic mismatch
-- prompt assembly and context window issues
-- logic collapse and overconfident answers
-- long chain and agent coordination failures
-- multi agent memory and role drift
-- deployment and bootstrap ordering problems
+- **thinking 标签不显示** —— 检查目标服务商是否支持 thinking 以及 thinking 预算设置
+- **工具调用丢失** —— 部分格式转换可能会去除不支持的字段；在 Playground 模式下验证
+- **系统提示丢失** —— Claude 和 Gemini 处理系统提示的方式不同；检查转换输出
+- **SDK 返回原始字符串而非对象** —— 已在 v1.x 修复；响应清理器现在会去除导致 OpenAI SDK Pydantic 校验失败的非标准字段（`x_groq`、`usage_breakdown` 等）。如果在 v3.x+ 上仍遇到此问题，请提交 issue
+- **GLM/ERNIE 拒绝 `system` 角色** —— 已在 v1.x 修复；角色规范化器对不兼容模型自动将系统消息合并到用户消息中。如果在 v3.x+ 上仍遇到此问题，请提交 issue
+- **`developer` 角色不被识别** —— 已在 v1.x 修复；对非 OpenAI 服务商自动转换为 `system`。如果在 v3.x+ 上仍遇到此问题，请提交 issue
+- **`json_schema` 在 Gemini 上不生效** —— 已在 v1.x 修复；`response_format` 现在会转换为 Gemini 的 `responseMimeType` + `responseSchema`。如果在 v3.x+ 上仍遇到此问题，请提交 issue
 
-The idea is simple:
+---
 
-1. When you investigate a bad response, capture:
-   - user task and request
-   - route or provider combo in OmniRoute
-   - any RAG context used downstream (retrieved documents, tool calls, etc)
-2. Map the incident to one or two WFGY ProblemMap numbers (`No.1` … `No.16`).
-3. Store the number in your own dashboard, runbook, or incident tracker next to the OmniRoute logs.
-4. Use the corresponding WFGY page to decide whether you need to change your RAG stack, retriever, or routing strategy.
+## 容灾设置
 
-Full text and concrete recipes live here (MIT license, text only):
+### 自动速率限制未触发
+
+- 自动速率限制仅适用于 API 密钥类服务商（不适用于 OAuth/订阅类）
+- 验证 **Settings → Resilience → Provider Profiles** 已启用自动速率限制
+- 检查服务商是否返回 `429` 状态码或 `Retry-After` header
+
+### 调整指数退避参数
+
+服务商配置文件支持以下设置：
+
+- **Base delay** —— 首次失败后的初始等待时间（默认：1s）
+- **Max delay** —— 最大等待时间上限（默认：30s）
+- **Multiplier** —— 每次连续失败延时的增加倍数（默认：2x）
+
+### 防惊群效应
+
+当大量并发请求同时打到一个受速率限制的服务商时，OmniRoute 使用互斥锁 + 自动速率限制来串行化请求，防止级联失败。这对 API 密钥类服务商是自动生效的。
+
+---
+
+## 可选的 RAG / LLM 失败分类法（16 种问题）
+
+部分 OmniRoute 用户将网关部署在 RAG 或代理栈之前。在这些场景中，经常会出现一种奇怪的现象：OmniRoute 看起来一切正常（服务商在线、路由配置正常、无线速告警），但最终答案仍然不对。
+
+实际上，这些事件通常来自下游的 RAG 流水线，而非网关本身。
+
+如果你想要一套共享词汇来描述这些失败，可以使用 WFGY ProblemMap —— 一个外部的 MIT 许可文本资源，定义了 16 种常见的 RAG / LLM 失败模式。其高层次覆盖内容如下：
+
+- 检索漂移和上下文边界断裂
+- 索引和向量存储为空或过期
+- 嵌入向量与语义不匹配
+- 提示组装和上下文窗口问题
+- 逻辑崩溃和过度自信的答案
+- 长链和代理协调失败
+- 多代理记忆和角色漂移
+- 部署和启动顺序问题
+
+思路很简单：
+
+1. 当你调查一个错误响应时，捕获：
+   - 用户任务和请求
+   - OmniRoute 中的路由或服务商 Combo
+   - 下游使用的任何 RAG 上下文（检索到的文档、工具调用等）
+2. 将该事件映射到一个或两个 WFGY ProblemMap 编号（`No.1` … `No.16`）。
+3. 将编号存储在你自己的仪表盘、runbook 或事件追踪器中，紧邻 OmniRoute 日志。
+4. 使用对应的 WFGY 页面来判断是需要调整 RAG 栈、检索器还是路由策略。
+
+完整文本和具体方案在此（MIT 许可，纯文本）：
 
 [WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
-You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
+如果你不在 OmniRoute 后面运行 RAG 或代理流水线，可以忽略本节。
 
 ---
 
-## Still Stuck?
+## v3.8.0 已知问题
+
+v3.8.0 版本特有的问题及其当前临时方案。如果后续补丁中得到了修复，对应条目将更新或移除。
+
+### Windsurf OAuth 流程报 401
+
+**症状：**
+
+- 从仪表盘完成 Windsurf OAuth 流程时出现 "401 unauthorized"
+- OAuth 回调后 Windsurf 服务商卡片持续显示"需要重新连接"状态
+
+**原因：**
+
+- `WINDSURF_FIREBASE_API_KEY` 环境变量缺失或为空
+- `WINDSURF_API_KEY` 配置错误或指向了过期的 Token
+- 本地防火墙/代理阻止了 OAuth 回调
+
+**修复：**
+
+1. 验证 `.env` 中已设置 `WINDSURF_FIREBASE_API_KEY` 和 `WINDSURF_API_KEY`
+2. 重启 OmniRoute 使新的环境变量生效
+3. 从 **仪表盘 → Providers → Windsurf → Reconnect** 重新运行 OAuth 流程
+
+### Devin CLI 认证失败
+
+**症状：**
+
+- 调用 Devin 支持的工具时出现 "Devin CLI not found" 或 "auth failed"
+- CLI 运行时检查报告 `installed=false`
+
+**原因：**
+
+- `CLI_DEVIN_BIN` 指向的路径不存在
+- 主机上未安装 Devin CLI
+
+**修复：**
+
+1. 为你的平台安装 Devin CLI
+2. 在 `.env` 中设置 `CLI_DEVIN_BIN=/usr/local/bin/devin`（或实际路径）
+3. 重启 OmniRoute 并从 **仪表盘 → CLI Tools** 重新测试
+
+### 模型冷却卡住（手动重置）
+
+**症状：**
+
+- 即便过期时间已过，某模型仍然显示在冷却列表中
+- Combo 路由在时间戳已过期的情况下仍然跳过该模型
+
+**手动重置：**
+
+- **仪表盘：** **Settings → Model Cooldowns** → 点击受影响卡片上的 **Re-enable**
+- **API：** 使用管理认证 headers 调用 `DELETE /api/resilience/model-cooldowns`
+
+### Command Code 服务商连接返回 403
+
+**症状：**
+
+- 测试 Command Code 服务商连接时返回 403
+- 新添加后服务商卡片显示 "unauthorized"
+
+**原因：** OAuth 流程未完成（未收到回调或 Token 未持久化）。
+
+**修复：**
+
+- 从 CLI 运行 `omniroute providers` 重新触发 OAuth 流程，或
+- 从 **仪表盘 → Providers → Command Code → Reconnect** 重新运行 OAuth
+
+### ModelScope 返回过于激进的 429 冷却
+
+**症状：**
+
+- ModelScope 在少量请求后触发极短或立即的冷却
+- Combo 路由比预期更早地跳过 ModelScope
+
+**原因：** ModelScope 会发出服务商专用的 `Retry-After` header。v3.8.0 对这些 header 进行了专门处理，而旧版本会将其误读为通用速率限制提示。
+
+**修复：**
+
+- 确认你使用的是 v3.8.0 或更高版本
+- 验证 **Settings → Resilience** 下的 `useUpstream429BreakerHints` 开关已启用
+
+### 生产环境缺少 OMNIROUTE_WS_BRIDGE_SECRET
+
+**症状：**
+
+- 在远程生产主机上运行时，每个 Codex/Responses WebSocket bridge 请求都返回 401
+- WebSocket bridge 握手在连接后立即关闭
+
+**原因：** 生产环境中缺少 `OMNIROUTE_WS_BRIDGE_SECRET` 环境变量。
+
+**修复：**
+
+1. 生成一个随机密钥：`openssl rand -hex 32`
+2. 在生产服务器环境中设置 `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>`（以及任何与该 bridge 通信的客户端）
+3. 重启 OmniRoute
+
+### Responses API：后台模式降级为同步
+
+**症状：**
+
+- 日志警告：`background mode degraded to synchronous`
+- `background: true` 的请求返回了普通同步响应，而非后台任务句柄
+
+**原因：** v3.8.0 有意将 Responses API 上的 `background: true` 降级为同步执行，同时发出警告。完整的异步后台执行是未来的交付内容。
+
+**修复：**
+
+- 调整客户端调用时不带 `background`，或
+- 等待后续版本提供完整的异步后台模式（关注更新日志）
+
+---
+
+## 仍然卡住了？
 
 - **GitHub Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](ARCHITECTURE.md) for internal details
-- **API Reference**: See [`docs/reference/API_REFERENCE.md`](API_REFERENCE.md) for all endpoints
-- **Health Dashboard**: Check **Dashboard → Health** for real-time system status
-- **Translator**: Use **Dashboard → Translator** to debug format issues
+- **架构**：内部细节请参见 [`docs/architecture/ARCHITECTURE.md`](../../../../docs/architecture/ARCHITECTURE.md)
+- **API 参考**：所有端点请参见 [`docs/reference/API_REFERENCE.md`](../../../../docs/reference/API_REFERENCE.md)
+- **健康仪表盘**：在 **仪表盘 → Health** 中查看实时系统状态
+- **格式转换器**：使用 **仪表盘 → Translator** 调试格式问题

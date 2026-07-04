@@ -520,6 +520,10 @@ export function openaiResponsesToOpenAIRequest(
   // client_metadata is sent by Codex CLI and has no Chat Completions equivalent.
   // Strict upstreams (e.g. Mistral) reject it with HTTP 422 extra_forbidden.
   delete result.client_metadata;
+  // truncation ("auto"/"disabled") is a Responses-API-only field with no Chat
+  // Completions equivalent. Strict non-OpenAI upstreams (e.g. NVIDIA NIM) reject
+  // it with HTTP 400 "Unsupported parameter(s): truncation" (#2311).
+  delete result.truncation;
 
   return result;
 }

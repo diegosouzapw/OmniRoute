@@ -572,6 +572,61 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   );
 }
 
+/**
+ * Atomic conditional clear of recoverable error state on a connection row.
+ *
+ * Returns true when the row was cleared, false when a concurrent writer
+ * (markAccountUnavailable, connectionRecovery tick, test, etc.) changed the
+ * row between the caller's snapshot read and this UPDATE — in which case the
+ * clear is skipped to preserve the freshest error state. Closes the TOCTOU
+ * window in the quota-recovery path.
+ *
+ * CAS token = (test_status, last_error_at, rate_limited_until).
+ * markAccountUnavailable always bumps last_error_at on every cooldown/error
+ * write, so an unchanged last_error_at reliably indicates no concurrent write.
+ */
+export async function clearConnectionErrorIfUnchanged(
+  id: string,
+  expected: {
+    testStatus: string | null | undefined;
+    lastErrorAt: string | null | undefined;
+    rateLimitedUntil: string | null | undefined;
+  }
+): Promise<boolean> {
+  const db = getDbInstance() as unknown as DbLike;
+  const result = db.prepare(
+    `
+    UPDATE provider_connections SET
+      test_status = 'active',
+      last_error = NULL,
+      last_error_at = NULL,
+      last_error_type = NULL,
+      last_error_source = NULL,
+      error_code = NULL,
+      rate_limited_until = NULL,
+      backoff_level = 0,
+      updated_at = ?
+    WHERE id = ?
+      AND IFNULL(test_status, '') = ?
+      AND IFNULL(last_error_at, '') = ?
+      AND IFNULL(rate_limited_until, '') = ?
+    `
+  ).run(
+    new Date().toISOString(),
+    id,
+    expected.testStatus ?? "",
+    expected.lastErrorAt ?? "",
+    expected.rateLimitedUntil ?? ""
+  );
+  const applied = (result.changes ?? 0) > 0;
+  if (applied) {
+    backupDbFile("pre-write");
+    invalidateDbCache("connections");
+    bumpProxyConfigGeneration();
+  }
+  return applied;
+}
+
 export async function deleteProviderConnection(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const existing = db.prepare("SELECT provider FROM provider_connections WHERE id = ?").get(id);
@@ -738,6 +793,8 @@ export {
 } from "./providers/nodes";
 export {
   setConnectionRateLimitUntil,
+  markConnectionRateLimitedUntil,
+  clearConnectionRateLimit,
   isConnectionRateLimited,
   getRateLimitedConnections,
   getEffectiveQuotaUsage,
