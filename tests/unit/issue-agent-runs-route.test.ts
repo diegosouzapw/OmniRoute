@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import { GET, POST } from "../../src/app/api/issue-agent/runs/route.ts";
 
@@ -121,7 +124,9 @@ test("issue-agent run rejects invalid enabled recorded-triage URL", async () => 
 
 test("issue-agent run returns recorded context summary with redaction", async () => {
   const previous = process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
+  const previousDataDir = process.env.DATA_DIR;
   process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = "true";
+  process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "issue-agent-route-"));
   try {
     const response = await POST(
       new Request("http://localhost/api/issue-agent/runs", {
@@ -141,6 +146,7 @@ test("issue-agent run returns recorded context summary with redaction", async ()
     const context = body.context as Record<string, unknown>;
 
     assert.equal(response.status, 200);
+    assert.equal(body.auditPath, join(process.env.DATA_DIR, "issue-agent", "audit.jsonl"));
     assert.equal(context.issueTitle, "Review PR mention");
     assert.equal(context.intent, "review");
     assert.equal(context.humanCommentCount, 1);
@@ -149,5 +155,7 @@ test("issue-agent run returns recorded context summary with redaction", async ()
   } finally {
     if (previous === undefined) delete process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
     else process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = previous;
+    if (previousDataDir === undefined) delete process.env.DATA_DIR;
+    else process.env.DATA_DIR = previousDataDir;
   }
 });
