@@ -401,19 +401,31 @@ async function checkServerLiveness(options = {}) {
   // #6162: /api/health and /api/health/degradation require a management token.
   // When unauthenticated, fall back to probing a publicly served static asset
   // (favicon.ico) to confirm the Next.js server is alive and reachable.
-  const port = parsePort(process.env.PORT || "20128", 20128);
-  const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
-  const host = String(options.livenessHost || process.env.OMNIROUTE_DOCTOR_HOST || "127.0.0.1")
-    .trim()
-    .replace(/^https?:\/\//, "")
-    .replace(/\/.*$/, "");
-  const fallbackUrl = `http://${formatHostForUrl(host || "127.0.0.1")}:${dashboardPort}/favicon.ico`;
+  // Derive the fallback URL from the primary URL (preserving protocol/host/port)
+  // so custom liveness URL configurations are honored. Fall back to defaults
+  // only if the primary URL can't be parsed.
+  let fallbackUrl;
+  try {
+    const parsed = new URL(url);
+    parsed.pathname = "/favicon.ico";
+    parsed.search = "";
+    parsed.hash = "";
+    fallbackUrl = parsed.toString();
+  } catch {
+    const port = parsePort(process.env.PORT || "20128", 20128);
+    const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
+    const host = String(options.livenessHost || process.env.OMNIROUTE_DOCTOR_HOST || "127.0.0.1")
+      .trim()
+      .replace(/^https?:\/\//, "")
+      .replace(/\/.*$/, "");
+    fallbackUrl = `http://${formatHostForUrl(host || "127.0.0.1")}:${dashboardPort}/favicon.ico`;
+  }
   const fallback = await probeUrl(fallbackUrl);
 
   if (fallback.ok) {
     return ok(
       "Server liveness",
-      `Server reachable on :${dashboardPort} (health endpoint returned ${primary.status}, likely requires MANAGEMENT_TOKEN)`,
+      `Server reachable (health endpoint returned ${primary.status}, likely requires MANAGEMENT_TOKEN)`,
       { primaryUrl: url, primaryStatus: primary.status, fallbackUrl, fallbackStatus: fallback.status }
     );
   }
