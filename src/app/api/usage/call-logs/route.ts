@@ -147,8 +147,10 @@ export async function GET(request: Request) {
     // (active + completed) that don't match — getCallLogs already filters
     // the DB rows but activeEntries/completedEntries bypass it.
     if (filter.correlationId) {
-      const cid = filter.correlationId;
-      return NextResponse.json(rows.filter((r: any) => r.correlationId === cid));
+      const cid = filter.correlationId.toLowerCase();
+      return NextResponse.json(
+        rows.filter((r: any) => (r.correlationId || "").toLowerCase().includes(cid))
+      );
     }
 
     return NextResponse.json(rows);
