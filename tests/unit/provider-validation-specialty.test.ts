@@ -242,6 +242,48 @@ test("embedding and rerank specialty validators surface auth failures for Voyage
   assert.equal(jina.error, "Invalid API key");
 });
 
+test("v0-vercel specialty validator checks the Platform API chats endpoint", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://api.v0.dev/v1/chats?limit=1");
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer v0-key");
+    return new Response(JSON.stringify({ object: "list", data: [] }), { status: 200 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "v0-vercel",
+    apiKey: "v0-key",
+    providerSpecificData: {
+      baseUrl: "https://api.v0.dev/v1/chat/completions",
+    },
+  });
+
+  assert.deepEqual(result, {
+    valid: true,
+    error: null,
+    method: "v0_platform_chats_list",
+  });
+});
+
+test("v0-vercel specialty validator treats auth failures as invalid API key", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://api.v0.dev/v1/chats?limit=1");
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer bad-v0-key");
+    return new Response(JSON.stringify({ error: { type: "unauthorized_error" } }), {
+      status: 401,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "v0-vercel",
+    apiKey: "bad-v0-key",
+    providerSpecificData: {
+      baseUrl: "https://api.v0.dev/v1",
+    },
+  });
+
+  assert.equal(result.error, "Invalid API key");
+});
+
 test("gitlab specialty validator accepts PAT auth on the direct access endpoint", async () => {
   globalThis.fetch = async (url, init = {}) => {
     assert.equal(String(url), "https://gitlab.com/api/v4/code_suggestions/direct_access");
@@ -2783,12 +2825,14 @@ test("huggingface validator accepts a token whoami-v2 recognizes", async () => {
 });
 
 test("huggingface validator treats 401/403 as an invalid token", async () => {
-  globalThis.fetch = async () => new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   const unauthorized = await validateProviderApiKey({ provider: "huggingface", apiKey: "hf_bad" });
   assert.equal(unauthorized.valid, false);
   assert.equal(unauthorized.error, "Invalid API key");
 
-  globalThis.fetch = async () => new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
   const forbidden = await validateProviderApiKey({ provider: "huggingface", apiKey: "hf_bad" });
   assert.equal(forbidden.valid, false);
   assert.equal(forbidden.error, "Invalid API key");
@@ -2800,7 +2844,10 @@ test("huggingface validator does NOT mark a fine-grained token invalid on a non-
   // non-OK status must surface as a transient error, never "Invalid API key".
   globalThis.fetch = async () => new Response("upstream down", { status: 503 });
 
-  const result = await validateProviderApiKey({ provider: "huggingface", apiKey: "hf_finegrained" });
+  const result = await validateProviderApiKey({
+    provider: "huggingface",
+    apiKey: "hf_finegrained",
+  });
 
   assert.equal(result.valid, false);
   assert.notEqual(result.error, "Invalid API key");

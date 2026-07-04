@@ -94,6 +94,13 @@ function readTimeoutMs(...values) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Opt-in subpath deployment behind a reverse proxy (e.g. nginx/Caddy serving
+  // OmniRoute under https://host/omniroute/). Empty by default so root-path
+  // deployments are unaffected. Next.js strips this prefix from `pathname`
+  // before route matching, so authz classification (classifyRoute/isLocalOnlyPath)
+  // keeps operating on un-prefixed paths — see src/server/authz/pipeline.ts for
+  // the two redirect call sites that re-add it via `request.nextUrl.basePath`.
+  basePath: process.env.OMNIROUTE_BASE_PATH || "",
   distDir,
   // Turbopack config: redirect native modules to stubs at build time
   turbopack: {
@@ -207,6 +214,13 @@ const nextConfig = {
     "tough-cookie",
     "@ngrok/ngrok",
     "@huggingface/transformers",
+    // copilot-m365-web.ts imports 'ws' as a client-side WebSocket. When bundled,
+    // ws cannot resolve its 'bufferutil' native addon (frame masking) and throws
+    // TypeError: b.mask is not a function on the first outgoing frame, causing
+    // every chat request to time out at the stream-readiness watchdog. (#6062)
+    "ws",
+    "bufferutil",
+    "utf-8-validate",
     "child_process",
     "fs",
     "path",

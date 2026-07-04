@@ -28,7 +28,8 @@ export async function getOrCreateApiKey(tool: string): Promise<string> {
     // operator-facing signal.
     throw new ServiceApiKeyDecryptError(tool);
   }
-  const key = generateServiceApiKey(tool === "9router" ? "nr" : "cp");
+  const prefix = tool === "9router" ? "nr" : tool === "mux" ? "mx" : "cp";
+  const key = generateServiceApiKey(prefix);
   await updateServiceField(tool, "apiKey", encrypt(key) ?? key);
   return key;
 }

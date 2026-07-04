@@ -4,6 +4,42 @@
 
 ---
 
+## [3.8.44] — TBD
+
+### ✨ New Features
+
+- **feat(api):** add `/v1/ocr` endpoint (Mistral OCR), an OCR provider category, and Mistral moderation support. (thanks @waguriagentic)
+- **Discovery tool (Phase 2):** add the `discoveryResults` DB module (CRUD over the `discovery_results` table, migration 074) and wire the opt-in provider-discovery service to persist and read findings through it (`persistDiscoveryResult`, `getDiscoveryResults`, `getDiscoveryResultById`, `markVerified`, `deleteDiscoveryResult`) with `(provider, method, endpoint)` upsert de-duplication. Adds the `/api/discovery/*` HTTP surface — `GET /results`, `GET|DELETE /results/:id`, `POST /scan`, `POST /verify/:id` — under **strict loopback-only** authorization (`/api/discovery/` is in `LOCAL_ONLY_API_PREFIXES` and is NOT manage-scope-bypassable, so the `scan` route's outbound probes can never be reached from a tunnel/remote origin). Adds a **dashboard UI tab** (Tools → Discovery, `/dashboard/discovery`) to run scans and review, verify, or delete findings. The service stays **opt-in / default-off**.
+- **feat(api):** expose a read-only provider plugin manifest at `GET /api/v1/provider-plugin-manifest` for sidecar/relay discovery. (thanks @KooshaPari)
+- **feat(sidecar):** advertise the provider manifest URL to Bifrost/CLIProxyAPI via the `X-OmniRoute-Provider-Manifest-Url` header (`OMNIROUTE_PROVIDER_MANIFEST_URL`). (thanks @KooshaPari)
+- **feat(autoCombo):** add a latency/speed-optimized routing mode (shared `rankBySpeed` scoring core) plus the `omniroute_pick_fastest_model` MCP tool. (thanks @KooshaPari)
+- **feat(providers):** refresh The Old LLM (Free) model catalog ([#5181](https://github.com/diegosouzapw/OmniRoute/issues/5181)) — seed the current free `/api/chatgpt` tier (GPT-5/5.1/5.2/5.3/5.4, o3/o4-mini, Gemini 3 Pro / 2.5 Pro / 2.0 Flash / 1.5 Flash, Claude 4.6 Opus/Sonnet & 4.5 Haiku, GPT-4o, Grok 4, DeepSeek V3/R1, Sonar Pro) while keeping the legacy alias IDs for saved-preference compatibility. Also fixes a latent routing bug: `mapModel()` now passes known upstream IDs through unchanged, so Gemini/o-series/Grok/DeepSeek/Sonar models no longer silently collapse onto `GPT_5_4`. Regression guard: `tests/unit/theoldllm-model-refresh-5181.test.ts`. (thanks @WslzGmzs)
+- **feat(resilience):** surface Codex **banked reset credits** per connected account ([#5199](https://github.com/diegosouzapw/OmniRoute/issues/5199)) — the Codex quota parsers (`buildCodexUsageQuotas`, `parseCodexUsageResponse`) now additively read `rate_limit_reset_credits.available_count` (+ optional `rate_limit_reached_type`) from the `/wham/usage` payload OmniRoute already fetches, and the provider-limits dashboard renders a **"Banked Reset Credits"** row when a positive count is present. Display-only and **fail-open** — the field is eligibility-gated, so accounts without it are unaffected (parsers never throw on absent/garbage shapes); redemption (an unofficial mutating endpoint) is intentionally out of scope. Regression guard: `tests/unit/codex-banked-reset-credits-5199.test.ts` (8). (thanks @ofekbetzalel)
+- **feat(providers):** add sign-up geo-restriction notices for **SenseNova** and **StepFun** ([#5462](https://github.com/diegosouzapw/OmniRoute/issues/5462)) — the provider add-form now warns that SenseNova's console appears to require a Chinese (+86) phone number with no documented international path, and that StepFun's default endpoint is its China platform while a global StepFun Open Platform (`platform.stepfun.ai`, operated by Sparkling AI Pte. Ltd., Singapore) with email/Google/Discord login exists for international users. Informational `notice` only — neither provider is disabled. Regression guard: `tests/unit/regional-provider-cn-notices-5462.test.ts`. (thanks @chirag127)
+- **feat(usage):** add on-demand period-scoped usage-data reset (Settings → System Storage) with a purge API and time-window selector.
+- **feat(claude-code):** add an opt-in auto-permission classifier compat mode (off/auto/always) for Claude Code, toggleable from the CLI Code settings.
+- **feat(providers):** add optional client-identity header profiles for compatible nodes — preset User-Agent/fingerprint headers (e.g. matching a known CLI) merged into the existing customHeaders field.
+
+### 🔧 Bug Fixes
+
+- **combo (prefer known context capacity over unknown):** when a combo filters out at least one target for exceeding a *known* context limit, the router now prefers the remaining known-compatible targets over targets whose context metadata is simply unknown, instead of letting unknown-metadata targets be the only survivors. If no known-compatible context target remains, context-only candidates fall back to the normal strategy order. Regression guard: `tests/unit/combo-context-window-filter.test.ts`. ([#6088](https://github.com/diegosouzapw/OmniRoute/pull/6088) — thanks @Thinkscape)
+
+- **models (GLM-5.2 context normalization):** stop treating every hosted GLM-5.2 provider alias as the native 1M-context model. Native/bare GLM-5.2 and verified OpenCode / ZenMux routes keep their 1,000,000-token context, while hosted-provider aliases now respect the caps declared in their provider metadata instead of inheriting the native max. Regression guards: `tests/unit/model-capabilities-registry.test.ts`, `tests/unit/models-catalog-route.test.ts`. ([#6091](https://github.com/diegosouzapw/OmniRoute/pull/6091) — thanks @Thinkscape)
+
+- **providers (Gemini Web):** refresh the Gemini Web cookie handling and model catalog so live Gemini Web sessions keep authenticating and routing to current models. Regression guard: `tests/unit/gemini-web.test.ts`. ([#6095](https://github.com/diegosouzapw/OmniRoute/pull/6095) — thanks @backryun)
+
+- **providers (Perplexity Web):** refresh the Perplexity Web model catalog to the current set (GPT-5.4/5.5, Claude Sonnet 5.0 / Opus 4.8, GLM-5.2, Kimi K2.6, Nemotron 3 Ultra) and update the internal mode / `model_preference` mappings and thinking variants so requests resolve to live upstream models. Regression guard: `tests/unit/perplexity-web.test.ts`. ([#6106](https://github.com/diegosouzapw/OmniRoute/pull/6106) — thanks @backryun)
+
+- **dashboard ("Update now" → Internal Server Error):** clicking **Update now** on the dashboard home could crash the page with a blank "Internal Server Error" screen (`Minified React error #31`). The handler POSTs the loopback-only `/api/system/version` auto-update endpoint and, on a non-OK JSON response (e.g. a `403` when the dashboard is reached through a reverse proxy / non-loopback origin), passed the raw error envelope object `{ error: { code, message, correlation_id } }` straight to `notify.error()`, which rendered the object as a React child and threw #31. The update-error path now funnels the body through `extractApiErrorMessage()` (the same safe extractor added in #5340), so a readable string always reaches the toast. Regression guard: `tests/unit/ui/home-update-error-render-5991.test.ts`. ([#5991](https://github.com/diegosouzapw/OmniRoute/issues/5991))
+
+### 📝 Maintenance
+
+- **test (deflake `setup-claude`):** `tests/unit/cli/setup-claude.test.ts` failed ~50% of runs with `Unable to deserialize cloned data due to invalid or unsupported version` at file teardown (all subtests passed), randomly reddening `Unit Tests fast-path (2/2)` / `Fast Quality Gates` across the PR→release queue. Root cause: `node --test` streams each file's report to the parent as V8-serialized frames on fd 1 (stdout), and the CLI helper under test (`syncClaudeProfilesFromModels`) prints progress via `console.log` — that stdout output interleaved with the serialized frames and corrupted the stream. The test now silences the stdout-writing `console` methods for the file's duration (no assertion inspects stdout), making it deterministic (15/15 green locally). ([#5959](https://github.com/diegosouzapw/OmniRoute/issues/5959))
+
+- **API validation:** add a `validatedJsonBody(request, schema)` helper in `src/shared/validation/helpers.ts` that fuses JSON body parsing and Zod validation into a single call, returning either the type-narrowed data or a ready-to-return 400 `NextResponse` with the standard error envelope. Salvaged from the closed refactor PR #5075 (Tier 1 portable helper) with a focused 6-case regression test. Co-authored-by: KooshaPari <KooshaPari@users.noreply.github.com>
+
+---
+
 ## [3.8.43] — 2026-07-02
 
 ### ✨ New Features
@@ -73,6 +109,8 @@
 - **mcp (RTK tools):** T07 — expose the RTK learn/discover capabilities as first-class MCP tools. ([#5691](https://github.com/diegosouzapw/OmniRoute/pull/5691) — thanks @diegosouzapw)
 
 - **providers (CLI profile auto-sync):** opt-in CLI profile auto-sync toggles, including Claude Code auto-sync, so generated CLI profiles can track provider changes automatically. ([#5755](https://github.com/diegosouzapw/OmniRoute/pull/5755) — thanks @diegosouzapw)
+
+- **feat(minimax):** surface MiniMax M3 `<think>` reasoning as `reasoning_content` on OpenAI-format provider tiers. (thanks @zmf963)
 
 ### 🔧 Bug Fixes
 
