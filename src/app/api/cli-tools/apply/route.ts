@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
@@ -14,14 +15,14 @@ const applySchema = z.object({
   dryRun: z.boolean().optional(),
 });
 
-const TOOL_CONFIG_PATHS: Record<string, string> = {
+const getToolConfigPaths = (): Record<string, string> => ({
   claude: path.join(os.homedir(), ".claude", "settings.json"),
   codex: path.join(os.homedir(), ".codex", "config.yaml"),
   opencode: path.join(os.homedir(), ".config", "opencode", "opencode.json"),
   cline: path.join(os.homedir(), ".cline", "data", "globalState.json"),
   kilocode: path.join(os.homedir(), ".config", "kilocode", "settings.json"),
   continue: path.join(os.homedir(), ".continue", "config.yaml"),
-};
+});
 
 function ensureBackup(configPath: string): string | null {
   if (!fs.existsSync(configPath)) return null;
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const configPath = TOOL_CONFIG_PATHS[toolId];
+    const configPath = getToolConfigPaths()[toolId];
     if (!configPath) {
       return NextResponse.json({ error: `Unknown tool: ${toolId}` }, { status: 400 });
     }

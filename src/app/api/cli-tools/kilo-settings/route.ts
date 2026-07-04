@@ -1,4 +1,5 @@
-"use server";
+export const dynamic = "force-dynamic";
+("use server");
 
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
@@ -13,9 +14,9 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
 import { readJsoncConfig } from "../_lib/jsoncConfig";
 
-const KILO_DATA_DIR = path.join(os.homedir(), ".local", "share", "kilo");
-const AUTH_PATH = path.join(KILO_DATA_DIR, "auth.json");
-const KILO_CONFIG_DIR = path.join(os.homedir(), ".config", "kilo");
+const getKiloDataDir = () => path.join(os.homedir(), ".local", "share", "kilo");
+const AUTH_PATH = path.join(getKiloDataDir(), "auth.json");
+const getKiloConfigDir = () => path.join(os.homedir(), ".config", "kilo");
 
 // Read auth.json.
 // Ported from upstream decolua/9router@6c10edf8: tolerate JSONC (trailing
@@ -144,7 +145,7 @@ export async function POST(request) {
     const apiKey = await resolveApiKey(keyId, validation.data.apiKey);
 
     // Ensure directories exist
-    await fs.mkdir(KILO_DATA_DIR, { recursive: true });
+    await fs.mkdir(getKiloDataDir(), { recursive: true });
 
     // Backup auth before modifying
     await createBackup("kilo", AUTH_PATH);

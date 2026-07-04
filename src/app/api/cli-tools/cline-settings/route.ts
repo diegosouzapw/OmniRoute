@@ -1,4 +1,5 @@
-"use server";
+export const dynamic = "force-dynamic";
+("use server");
 
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
@@ -13,9 +14,9 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
 import { readJsoncConfig } from "../_lib/jsoncConfig";
 
-const CLINE_DATA_DIR = path.join(os.homedir(), ".cline", "data");
-const GLOBAL_STATE_PATH = path.join(CLINE_DATA_DIR, "globalState.json");
-const SECRETS_PATH = path.join(CLINE_DATA_DIR, "secrets.json");
+const getClineDataDir = () => path.join(os.homedir(), ".cline", "data");
+const GLOBAL_STATE_PATH = path.join(getClineDataDir(), "globalState.json");
+const SECRETS_PATH = path.join(getClineDataDir(), "secrets.json");
 
 // Read globalState.json.
 // Ported from upstream decolua/9router@6c10edf8: tolerate JSONC (trailing
@@ -128,7 +129,7 @@ export async function POST(request: Request) {
     const apiKey = await resolveApiKey(keyId, validation.data.apiKey);
 
     // Ensure directory exists
-    await fs.mkdir(CLINE_DATA_DIR, { recursive: true });
+    await fs.mkdir(getClineDataDir(), { recursive: true });
 
     // Backup current files before modifying
     await createBackup("cline", GLOBAL_STATE_PATH);

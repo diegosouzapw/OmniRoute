@@ -1,4 +1,5 @@
-"use server";
+export const dynamic = "force-dynamic";
+("use server");
 
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
@@ -125,9 +126,7 @@ export async function POST(request: Request) {
         {
           error: {
             message: "Invalid request",
-            details: [
-              { field: "models", message: "baseUrl and at least one model are required" },
-            ],
+            details: [{ field: "models", message: "baseUrl and at least one model are required" }],
           },
         },
         { status: 400 }

@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 /**
  * CLI Log Stream API — GET /api/cli-tools/logs
  *

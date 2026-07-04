@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 /**
  * OpenClaw Integration — Dynamic provider.order based on Auto-Combo scores.
  *
