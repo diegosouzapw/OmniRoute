@@ -35,25 +35,53 @@ export type ProviderErrorRuleMatch = {
   cooldownMs?: number;
 };
 
-// ─── Opencode ──────────────────────────────────────────────────────────────
+// ─── Opencode ───────────────────────────────────────────────────────────────────
 // Opencode Go uses an account-wide quota. The body usually says "rate limit
 // reached" but the presence of `x-ratelimit-remaining-requests: 0` is the
 // tell. Without this rule, an exhausted org quota would be classified as
 // RATE_LIMIT_EXCEEDED (~5s cooldown), causing the combo to keep retrying
 // every model on the same provider until the 5h window resets.
+//
+// Scope note: `scope: "connection"` (not "provider") is correct because the
+// upstream quota is per-account, and a single OmniRoute provider entry maps to
+// one user account. Multiple OmniRoute connections under the same provider
+// name mean the user has multiple upstream accounts — locking at the provider
+// level would disable every one of them when only one is exhausted. See
+// Issue #2 (Monthly quota exhausted treated as transient 429).
 function buildOpencodeRules(): ProviderErrorRule[] {
   return [
+    {
+      id: "opencode-monthly-quota-resets-in",
+      match: ({ status, body }) => {
+        if (status !== 429) return null;
+        // The exact body envelope we observe in the wild:
+        //   "[429] Monthly usage limit reached. Resets in 13 days. To continue
+        //    using this model now, enable usage from your available balance: ..."
+        // Also covers the headers-less case where only the body carries the
+        // reset hint (the opencode-quota-exhausted-headers rule above requires
+        // headers, but the upstream sometimes omits them).
+        const text = JSON.stringify(body ?? "").toLowerCase();
+        if (!text.includes("monthly usage limit reached")) return null;
+        const cooldownMs = parseResetCountdownMs(text);
+        if (cooldownMs === null) return null;
+        return {
+          reason: "quota_exhausted",
+          scope: "connection",
+          cooldownMs,
+        };
+      },
+    },
     {
       id: "opencode-quota-exhausted-headers",
       match: ({ status, headers }) => {
         if (status !== 429) return null;
         const remainingRequests = headers["x-ratelimit-remaining-requests"];
         if (remainingRequests === "0") {
-          return { reason: "quota_exhausted", scope: "provider" };
+          return { reason: "quota_exhausted", scope: "connection" };
         }
         const remainingTokens = headers["x-ratelimit-remaining-tokens"];
         if (remainingTokens === "0") {
-          return { reason: "quota_exhausted", scope: "provider" };
+          return { reason: "quota_exhausted", scope: "connection" };
         }
         return null;
       },
@@ -68,7 +96,7 @@ function buildOpencodeRules(): ProviderErrorRule[] {
           text.includes("account_quota_exceeded") ||
           text.includes("plan_limit_reached")
         ) {
-          return { reason: "quota_exhausted", scope: "provider" };
+          return { reason: "quota_exhausted", scope: "connection" };
         }
         return null;
       },
@@ -146,4 +174,45 @@ export function getProviderErrorRuleMatch(
     if (match) return match;
   }
   return null;
+}
+
+/**
+ * Parse a "Resets in N <unit>" countdown phrase from an upstream error body.
+ *
+ * Returns the cooldown in milliseconds, or null if no recognizable phrase is
+ * present. Supports the units observed across OpenCode-Go / Workplace /
+ * Deepseek envelopes: `days`, `day`, `hours`, `hour`, `minutes`, `minute`,
+ * `seconds`, `second`. Variants like `Resets in 13 days.`, `resets in 2 hours`
+ * and `Resets in 30 minutes.` all parse correctly.
+ *
+ * Input must already be lowercased — callers pass a `.toLowerCase()`'d body
+ * because the upstream envelopes are case-inconsistent.
+ *
+ * Fix C / Issue #2: this is what lets a single rule declare an explicit
+ * cooldown of "13 days" instead of falling through to the engine's scaled
+ * ~60s default.
+ */
+export function parseResetCountdownMs(text: string): number | null {
+  if (typeof text !== "string" || text.length === 0) return null;
+  const match = text.match(/resets?\s+in\s+(\d+)\s+(day|days|hour|hours|minute|minutes|second|seconds)\b/);
+  if (!match) return null;
+  const n = Number(match[1]);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const unit = match[2];
+  switch (unit) {
+    case "day":
+    case "days":
+      return n * 86_400_000;
+    case "hour":
+    case "hours":
+      return n * 3_600_000;
+    case "minute":
+    case "minutes":
+      return n * 60_000;
+    case "second":
+    case "seconds":
+      return n * 1_000;
+    default:
+      return null;
+  }
 }

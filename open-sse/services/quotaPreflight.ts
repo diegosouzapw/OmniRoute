@@ -151,6 +151,13 @@ function exhaustedResult(quotaPercent: number, resetAt: string | null): Prefligh
   };
 }
 
+function limitReachedResult(quota: QuotaInfo): PreflightQuotaResult {
+  return exhaustedResult(
+    Number.isFinite(quota.percentUsed) ? quota.percentUsed : 1,
+    quota.resetAt ?? null
+  );
+}
+
 function quotaWindowCutoffResult(
   windows: NonNullable<QuotaInfo["windows"]>,
   thresholds?: PreflightQuotaThresholds
@@ -209,7 +216,7 @@ export function evaluateQuotaCutoff(
   thresholds?: PreflightQuotaThresholds
 ): PreflightQuotaResult {
   if (!quota) return { proceed: true };
-  if (quota.limitReached === true) return exhaustedResult(1, quota.resetAt ?? null);
+  if (quota.limitReached === true) return limitReachedResult(quota);
 
   const windows = quota.windows;
   if (windows && Object.keys(windows).length > 0) {
@@ -246,6 +253,10 @@ export async function preflightQuota(
 
   if (!quota) {
     return { proceed: true };
+  }
+
+  if (quota.limitReached === true) {
+    return limitReachedResult(quota);
   }
 
   // Per-window evaluation — only when the fetcher surfaces a windows map.

@@ -2414,6 +2414,21 @@ export async function handleChatCore({
                     rateLimitedUntil: new Date(Date.now() + (retryAfterMs || 60_000)).toISOString(),
                     credentials,
                   });
+                  // Fix B: also persist the cooldown to
+                  // `provider_connections.rate_limited_until`. Without this,
+                  // the Codex 429 cascade survives the current request (via
+                  // `markCodexScopeRateLimited`'s in-memory Map) but is lost
+                  // on process restart — the same exhausted Codex key is
+                  // re-picked on the very next request. Mirrors
+                  // `open-sse/executors/antigravity.ts:343`.
+                  // Best-effort: never crash the chat path on DB write failure.
+                  try {
+                    const { setConnectionRateLimitUntil } = await import("@/lib/db/providers");
+                    const untilMs = Date.now() + (retryAfterMs || 60_000);
+                    setConnectionRateLimitUntil(String(failedConnectionId), untilMs);
+                  } catch {
+                    // ignore — best effort
+                  }
                   if (!codexExcludedIds.includes(String(failedConnectionId))) {
                     codexExcludedIds.push(String(failedConnectionId));
                   }

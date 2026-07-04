@@ -8,6 +8,7 @@ import { safeParseJSON } from "../helpers/jsonUtil.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { isAdaptiveThinkingOnly } from "../../../src/shared/constants/modelSpecs.ts";
 import { fitThinkingToMaxTokens } from "./openai-to-claude/thinkingBudget.ts";
+import { enforceToolResultAdjacency } from "./openai-to-claude/toolResultAdjacency.ts";
 
 // Reasoning-effort levels Anthropic accepts on `output_config.effort`. Used to steer
 // adaptive-only Claude models (Opus 4.7+/Fable 5) without ever emitting a manual budget.
@@ -339,34 +340,7 @@ export function openaiToClaudeRequest(model, body, stream) {
       return true;
     });
 
-    // Filter orphaned tool_result blocks whose tool_use_id has no matching tool_use
-    const allToolUseIds = new Set<string>();
-    for (const msg of result.messages) {
-      if (msg.role === "assistant" && Array.isArray(msg.content)) {
-        for (const block of msg.content) {
-          if (block.type === "tool_use" && block.id) {
-            allToolUseIds.add(String(block.id));
-          }
-        }
-      }
-    }
-    for (const msg of result.messages) {
-      if (msg.role === "user" && Array.isArray(msg.content)) {
-        msg.content = msg.content.filter((block) => {
-          if (block.type === "tool_result" && block.tool_use_id) {
-            return allToolUseIds.has(String(block.tool_use_id));
-          }
-          return true;
-        });
-      }
-    }
-    // Remove user messages that became empty after orphan filtering
-    result.messages = result.messages.filter((msg) => {
-      if (msg.role === "user" && Array.isArray(msg.content) && msg.content.length === 0) {
-        return false;
-      }
-      return true;
-    });
+    result.messages = enforceToolResultAdjacency(result.messages);
 
     // Add cache_control to last assistant message
     for (let i = result.messages.length - 1; i >= 0; i--) {
