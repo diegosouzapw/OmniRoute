@@ -9,6 +9,7 @@
 ### 🔧 Bug Fixes
 
 - **fix(api):** relay worker now binds the SSRF guard to a stable `const` name so minified standalone (Docker) builds resolve it ([#6149](https://github.com/diegosouzapw/OmniRoute/issues/6149)) — the Vercel/Deno relay generators embedded the shared `resolveRelayTarget` guard as a bare `${fn.toString()}` declaration while the worker body called the hardcoded literal name; SWC minification mangled the source function's name, so the deployed worker defined `<mangled>` but still called `resolveRelayTarget` → `ReferenceError`. Both templates now emit `const resolveRelayTarget = ${fn.toString()};` (the const name is a template literal, immune to minification). Regression guard: `tests/unit/relay-minified-fn-6149.test.ts` (4). (thanks @SeaXen)
+- **fix(services):** 9Router embed panel no longer 404s (optional catch-all route) and the supervisor probes the port before spawning to avoid raw EADDRINUSE ([#6205](https://github.com/diegosouzapw/OmniRoute/issues/6205)). Regression guards: `tests/unit/ninerouter-embed-port-6205.test.ts`, `tests/unit/services/ServiceSupervisor.test.ts`. (thanks @jonlwheat2-gif)
 
 ### ⚡ Performance & Infrastructure
 

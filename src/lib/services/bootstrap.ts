@@ -105,6 +105,10 @@ export async function bootstrapEmbeddedServices(): Promise<void> {
       healthIntervalMs: cfg.healthIntervalMs,
       stopTimeoutMs: cfg.stopTimeoutMs,
       logsBufferBytes: cfg.logsBufferBytes,
+      // #6205: embedded services bind a fixed port — probe before spawning so
+      // an orphaned prior instance yields adopt/clear-error instead of a raw
+      // EADDRINUSE crash.
+      probeBeforeSpawn: true,
     });
 
     registerSupervisor(supervisor);

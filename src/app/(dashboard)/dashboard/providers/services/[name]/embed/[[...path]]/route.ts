@@ -1,7 +1,11 @@
 /**
  * Reverse-proxy handler for embedded service UIs.
  *
- * Route: /dashboard/providers/services/[name]/embed/[...path]
+ * Route: /dashboard/providers/services/[name]/embed/[[...path]]
+ *
+ * Optional catch-all ([[...path]]) so the segment-less prefix
+ * `/embed/` (the panel root — #6205) also matches; a required catch-all
+ * ([...path]) does not match a zero-segment path and falls through to 404.
  *
  * Thin wrapper — all proxy logic lives in @/lib/services/reverseProxy.ts.
  *
@@ -17,11 +21,12 @@ import { proxyRequest } from "@/lib/services/reverseProxy";
 
 export const dynamic = "force-dynamic";
 
-type RouteParams = { name: string; path: string[] };
+// Optional catch-all: `path` is `undefined` for the segment-less `/embed/` root.
+type RouteParams = { name: string; path?: string[] };
 
 async function handleProxy(request: Request, params: RouteParams): Promise<Response> {
   const { name, path } = params;
-  return proxyRequest(request, path, {
+  return proxyRequest(request, path ?? [], {
     name,
     publicPrefix: `/dashboard/providers/services/${name}/embed`,
     htmlRewrite: true,
