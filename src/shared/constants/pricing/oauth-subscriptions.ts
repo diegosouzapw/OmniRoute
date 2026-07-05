@@ -41,6 +41,13 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 15.0,
       cache_creation: 3.75,
     },
+    "claude-sonnet-5": {
+      input: 3.0,
+      output: 15.0,
+      cached: 0.3,
+      reasoning: 15.0,
+      cache_creation: 3.75,
+    },
     "claude-opus-4-5-20251101": {
       input: 5.0,
       output: 25.0,
@@ -577,16 +584,11 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 8.0,
       cache_creation: 2.0,
     },
-    // Kiro "Auto" model — routes to best available
+    // Kiro "Auto" pricing — retained as a fallback price for any legacy "auto"
+    // reference. The "auto-kiro" registry model was removed (Kiro's API has no
+    // "auto" model id — it 400'd "Invalid model"), so its dedicated price key
+    // was dropped with it. See kiro cluster #6112/#6113/#6099.
     auto: {
-      input: 3.0,
-      output: 15.0,
-      cached: 1.5,
-      reasoning: 15.0,
-      cache_creation: 3.0,
-    },
-    // Registry exposes the Auto model as id "auto-kiro" — keep both keys priced.
-    "auto-kiro": {
       input: 3.0,
       output: 15.0,
       cached: 1.5,

@@ -284,23 +284,23 @@ exercise the full flow without DB or network access.
 - `docs/architecture/RESILIENCE_GUIDE.md` — orthogonal layer (circuit breaker, cooldowns)
 - `docs/reference/ENVIRONMENT.md` — full env var reference
 
-## Injection-guard route coverage & red-team (Fase 8 · Bloco D)
+## Injection-guard route coverage & red-team (Phase 8 · Block D)
 
-O injection-guard (`createInjectionGuard` / `withInjectionGuard`) cobre todas as rotas
-que aceitam prompt do usuário. Respeita `INJECTION_GUARD_MODE` (default `warn` = só loga;
-`block` = retorna HTTP 400 `SECURITY_001`).
+The injection-guard (`createInjectionGuard` / `withInjectionGuard`) covers all routes
+that accept user prompts. It respects `INJECTION_GUARD_MODE` (default `warn` = log only;
+`block` = returns HTTP 400 `SECURITY_001`).
 
-| Tipo                 | Rotas                                                                                                                                                | Modo default |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| Texto (já existente) | `/v1/chat/completions`, `/v1/completions`, `/v1/relay/chat/completions`                                                                              | warn         |
-| Generativas          | `/v1/messages`, `/v1/responses`, `/v1/images/generations`, `/v1/images/edits`, `/v1/videos/generations`, `/v1/music/generations`, `/v1/audio/speech` | warn         |
-| Dados                | `/v1/embeddings`, `/v1/rerank`, `/v1/search`, `/v1/moderations`                                                                                      | warn         |
+| Type            | Routes                                                                                                                                               | Default mode |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Text (existing) | `/v1/chat/completions`, `/v1/completions`, `/v1/relay/chat/completions`                                                                              | warn         |
+| Generative      | `/v1/messages`, `/v1/responses`, `/v1/images/generations`, `/v1/images/edits`, `/v1/videos/generations`, `/v1/music/generations`, `/v1/audio/speech` | warn         |
+| Data            | `/v1/embeddings`, `/v1/rerank`, `/v1/search`, `/v1/moderations`                                                                                      | warn         |
 
-A extração de texto (`extractMessageContents`) cobre `messages`/`input`/`prompt`/`query`+`documents`/`instructions`/`system`.
+Text extraction (`extractMessageContents`) covers `messages`/`input`/`prompt`/`query`+`documents`/`instructions`/`system`.
 
-**Red-team (nightly, `nightly-llm-security.yml`):** promptfoo valida que cada rota bloqueia
-o corpus OWASP-LLM em `INJECTION_GUARD_MODE=block`; garak roda probes (skip sem secret).
-`moderations` é incluída por consistência — operadores em block-mode podem isentá-la via
+**Red-team (nightly, `nightly-llm-security.yml`):** promptfoo validates that each route blocks
+the OWASP-LLM corpus in `INJECTION_GUARD_MODE=block`; garak runs probes (skips without secret).
+`moderations` is included for consistency — operators in block-mode can exempt it via
 `resolveDisabledGuardrails`.
 
 The nightly workflow (`.github/workflows/nightly-llm-security.yml`, cron + manual

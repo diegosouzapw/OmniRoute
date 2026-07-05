@@ -9,9 +9,9 @@ lastUpdated: 2026-06-28
 > **Last updated:** 2026-06-28 — v3.8.40
 > Streamlined release flow that leverages Claude Code skills for automation.
 >
-> **Manter a fila/branch verdes entre releases:** veja [RELEASE_GREEN.md](./RELEASE_GREEN.md)
-> (família `/green-prs` + `npm run check:release-green` + `/babysit` + nightly). Rodar
-> periodicamente — e principalmente **antes** deste checklist — faz a release PR nascer verde.
+> **Keep the queue/branch green between releases:** see [RELEASE_GREEN.md](./RELEASE_GREEN.md)
+> (`/green-prs` family + `npm run check:release-green` + `/babysit` + nightly). Running
+> this periodically — and especially **before** this checklist — makes the release PR start green.
 
 ## TL;DR
 

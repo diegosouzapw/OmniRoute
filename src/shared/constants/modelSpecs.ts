@@ -48,6 +48,23 @@ const BEDROCK_CLAUDE_ALIASES = (...modelIds: string[]) => [
   ),
 ];
 
+// Provider discovery/sync sources can under-report GLM-5.2 IDs as 128K.
+// Keep native/bare Z.AI GLM-5.2 context authoritative, but do not blindly apply
+// it to every provider-wrapped alias: hosted providers can and do cap lower.
+const AUTHORITATIVE_CONTEXT_WINDOW_MODEL_IDS = new Set(["glm-5.2", "glm-5.2-high", "glm-5.2-max"]);
+const AUTHORITATIVE_PROVIDER_CONTEXT_WINDOWS = new Map<string, number>([
+  ["cloudflare-ai/@cf/zai-org/glm-5.2", 262144],
+  // Hugging Face Router has 1M-capable backends, but bare routing can select
+  // lower-context providers (notably Together at 262K), so advertise a safe floor
+  // unless the caller can pin a 1M-capable backend.
+  ["huggingface/zai-org/glm-5.2", 262144],
+  ["opencode/glm-5.2", 1000000],
+  ["opencode-zen/glm-5.2", 1000000],
+  ["opencode-go/glm-5.2", 1000000],
+  ["zenmux/z-ai/glm-5.2", 1000000],
+  ["zenmux/z-ai/glm-5.2-free", 1000000],
+]);
+
 export const MODEL_SPECS: Record<string, ModelSpec> = {
   "gpt-5.5": {
     maxOutputTokens: 128000,
@@ -198,6 +215,22 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-4-6", "claude-sonnet-4.6"),
   },
 
+  // ── Claude Sonnet 5 ─────────────────────────────────────────────
+  "claude-sonnet-5": {
+    // 1M context, 128K max output. Adaptive-thinking-only (manual
+    // budget_tokens / thinking.type:"enabled" return 400; effort-steered);
+    // unlike Fable 5 it still accepts thinking.type:"disabled".
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-5"),
+  },
+
   // ── Claude Opus 4.6 ─────────────────────────────────────────────
   "claude-opus-4-6": {
     maxOutputTokens: 128000,
@@ -259,7 +292,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
     adaptiveThinkingOnly: true,
-    aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-4-8", "claude-opus-4.8"),
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-4-8", "claude-opus-4.8", "claude-opus-4.8-fast"),
   },
 
   // ── Claude Sonnet 4.5 ───────────────────────────────────────────
@@ -460,29 +493,53 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   __default__: {},
 };
 
-export function getModelSpec(modelId: string): ModelSpec | undefined {
-  if (MODEL_SPECS[modelId]) return MODEL_SPECS[modelId];
+export function getCanonicalModelSpecId(modelId: string): string | null {
+  if (MODEL_SPECS[modelId]) return modelId;
 
   // Case-insensitive lookups: upstream model ids are often capitalized
   // (e.g. "MiniMax-M2.7") while specs/aliases use lowercase ids (#3141).
   const lower = modelId.toLowerCase();
 
   // Exact match (case-insensitive)
-  for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
-    if (canonical.toLowerCase() === lower) return spec;
+  for (const canonical of Object.keys(MODEL_SPECS)) {
+    if (canonical.toLowerCase() === lower) return canonical;
   }
 
   // Buscas por alias (case-insensitive)
-  for (const [, spec] of Object.entries(MODEL_SPECS)) {
-    if (spec.aliases?.some((alias) => alias.toLowerCase() === lower)) return spec;
+  for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
+    if (spec.aliases?.some((alias) => alias.toLowerCase() === lower)) return canonical;
   }
 
   // Prefix matching (case-insensitive)
-  for (const [key, spec] of Object.entries(MODEL_SPECS)) {
-    if (key !== "__default__" && lower.startsWith(key.toLowerCase())) return spec;
+  for (const key of Object.keys(MODEL_SPECS)) {
+    if (key !== "__default__" && lower.startsWith(key.toLowerCase())) return key;
   }
 
-  return undefined;
+  return null;
+}
+
+export function getModelSpec(modelId: string): ModelSpec | undefined {
+  const canonical = getCanonicalModelSpecId(modelId);
+  return canonical ? MODEL_SPECS[canonical] : undefined;
+}
+
+export function getAuthoritativeContextWindow(modelId: string | null | undefined): number | null {
+  if (typeof modelId !== "string" || modelId.length === 0) return null;
+  const normalized = modelId.toLowerCase();
+  for (const canonical of AUTHORITATIVE_CONTEXT_WINDOW_MODEL_IDS) {
+    if (canonical.toLowerCase() === normalized)
+      return MODEL_SPECS[canonical]?.contextWindow ?? null;
+  }
+  return null;
+}
+
+export function getAuthoritativeProviderContextWindow(
+  provider: string | null | undefined,
+  modelId: string | null | undefined
+): number | null {
+  if (typeof provider !== "string" || typeof modelId !== "string") return null;
+  const key = `${provider}/${modelId}`.toLowerCase();
+  return AUTHORITATIVE_PROVIDER_CONTEXT_WINDOWS.get(key) ?? null;
 }
 
 /**

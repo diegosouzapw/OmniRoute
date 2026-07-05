@@ -5,6 +5,12 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
+import { capMaxOutputTokens, capThinkingBudget, supportsReasoning } from "@/lib/modelCapabilities";
+import {
+  parseToolInput,
+  normalizeKiroToolSchema,
+  serializeToolResultContent,
+} from "./openai-to-kiro/messageHelpers.ts";
 
 /**
  * Anthropic's direct-provider `[1m]` context-1m beta suffix. Kiro is AWS
@@ -23,116 +29,17 @@ export const KIRO_UNSUPPORTED_CONTEXT_1M_MESSAGE =
  */
 export function hasUnsupportedKiroContextSuffix(model: unknown): boolean {
   return (
-    typeof model === "string" &&
-    model.toLowerCase().includes(KIRO_UNSUPPORTED_CONTEXT_1M_SUFFIX)
+    typeof model === "string" && model.toLowerCase().includes(KIRO_UNSUPPORTED_CONTEXT_1M_SUFFIX)
   );
 }
 
-function parseToolInput(value: unknown) {
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    return value;
-  }
-  if (typeof value !== "string") {
-    return {};
-  }
-
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return {};
-  }
-
-  try {
-    const parsed = JSON.parse(trimmed);
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
 /**
- * Recursively sanitize JSON Schema for Kiro API.
- * Kiro returns 400 "Improperly formed request" if:
- * - `required` is an empty array []
- * - `additionalProperties` is present anywhere
+ * Wrap system-prompt content in <system-reminder> tags before it is merged into
+ * a Kiro user message. Kiro/CodeWhisperer has no `system` role, so without this
+ * the system prompt would appear as raw user text (issue #2306).
  */
-function normalizeKiroToolSchema(schema: unknown): Record<string, unknown> {
-  if (!schema || typeof schema !== "object" || Array.isArray(schema)) {
-    return { type: "object", properties: {} };
-  }
-
-  const result: Record<string, unknown> = {};
-  const src = schema as Record<string, unknown>;
-
-  for (const [key, value] of Object.entries(src)) {
-    // Skip empty required arrays — Kiro rejects them
-    if (key === "required" && Array.isArray(value) && value.length === 0) {
-      continue;
-    }
-    // Skip additionalProperties — Kiro doesn't support it
-    if (key === "additionalProperties") {
-      continue;
-    }
-    // Recursively process nested objects
-    if (
-      key === "properties" &&
-      typeof value === "object" &&
-      value !== null &&
-      !Array.isArray(value)
-    ) {
-      const sanitizedProps: Record<string, unknown> = {};
-      for (const [propName, propValue] of Object.entries(value as Record<string, unknown>)) {
-        sanitizedProps[propName] = normalizeKiroToolSchema(propValue);
-      }
-      result[key] = sanitizedProps;
-    } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-      result[key] = normalizeKiroToolSchema(value);
-    } else if (Array.isArray(value)) {
-      result[key] = value.map((item) =>
-        typeof item === "object" && item !== null && !Array.isArray(item)
-          ? normalizeKiroToolSchema(item)
-          : item
-      );
-    } else {
-      result[key] = value;
-    }
-  }
-
-  return result;
-}
-
-function serializeToolResultContent(content: unknown): string {
-  if (typeof content === "string") {
-    return content || "(no output)";
-  }
-  if (!Array.isArray(content)) {
-    if (content !== null && content !== undefined) {
-      try {
-        return JSON.stringify(content);
-      } catch {
-        return "(no output)";
-      }
-    }
-    return "(no output)";
-  }
-  const parts: string[] = [];
-  for (const block of content as Array<Record<string, unknown>>) {
-    if (!block || typeof block !== "object") continue;
-    if (block.type === "text" && typeof block.text === "string") {
-      if (block.text) parts.push(block.text);
-    } else if (block.type === "image" || block.type === "image_url") {
-      const src = block.source as Record<string, unknown> | undefined;
-      const mediaType = src?.media_type ?? block.media_type ?? "image";
-      parts.push(`[image: ${mediaType}]`);
-    } else {
-      try {
-        const str = JSON.stringify(block);
-        if (str && str !== "{}") parts.push(str);
-      } catch {
-        // skip unserializable block
-      }
-    }
-  }
-  return parts.join("\n") || "(no output)";
+function wrapSystemReminder(text: string): string {
+  return `<system-reminder>\n${text}\n</system-reminder>`;
 }
 
 /**
@@ -151,9 +58,9 @@ function convertMessages(messages, tools, model) {
   let toolsAttached = false;
 
   // Only Claude models support images in Kiro. Kiro also routes non-Claude
-  // models (deepseek, minimax, glm, qwen3-coder-next, auto-kiro) that do not
-  // accept image attachments — gate image extraction behind a Claude check so
-  // we never attach images those models would reject.
+  // models (deepseek, minimax, glm, qwen3-coder-next) that do not accept image
+  // attachments — gate image extraction behind a Claude check so we never
+  // attach images those models would reject.
   const supportsImages = typeof model === "string" && model.toLowerCase().includes("claude");
 
   const flushPending = () => {
@@ -341,7 +248,11 @@ function convertMessages(messages, tools, model) {
           content: [{ text: toolContent }],
         });
       } else if (content) {
-        pendingUserContent.push(content);
+        // #2306: Kiro/CodeWhisperer has no `system` role, so system messages are
+        // normalized to `user`. Wrap their content in <system-reminder> tags so
+        // the model can tell the system prompt apart from real user input instead
+        // of treating the full Claude Code prompt as something the user typed.
+        pendingUserContent.push(msg.role === "system" ? wrapSystemReminder(content) : content);
       }
     } else if (role === "assistant") {
       // Extract text content and tool uses
@@ -665,6 +576,80 @@ function convertMessages(messages, tools, model) {
   return { history: alternatingHistory, currentMessage, toolsAttached };
 }
 
+/** Kiro's accepted reasoning-effort levels (`output_config.effort`). */
+const KIRO_EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max"];
+
+/**
+ * Resolve the Kiro effort level for a request, or "" when no reasoning was asked
+ * for. Effort sources, in priority order:
+ *   1. OpenAI-style `reasoning_effort`
+ *   2. Anthropic adaptive-thinking `output_config.effort` (the canonical field)
+ *   3. Anthropic `thinking` block — `{type:"enabled", budget_tokens}` mapped to a
+ *      level via {@link effortFromBudget}; `{type:"adaptive"}` (no explicit
+ *      effort) defaults to `high`, matching Anthropic's documented default
+ *      (omitting `effort` ≡ `high`).
+ * OpenAI's `minimal` collapses to `low` (Kiro has no `minimal`).
+ */
+function resolveKiroEffort(body: Record<string, unknown>): string {
+  let effort = typeof body.reasoning_effort === "string" ? body.reasoning_effort.toLowerCase() : "";
+
+  if (!effort) {
+    const outputConfig = body.output_config as Record<string, unknown> | undefined;
+    if (
+      outputConfig &&
+      typeof outputConfig === "object" &&
+      typeof outputConfig.effort === "string"
+    ) {
+      effort = outputConfig.effort.toLowerCase();
+    }
+  }
+
+  if (!effort) {
+    const thinking = body.thinking as Record<string, unknown> | undefined;
+    if (thinking && typeof thinking === "object") {
+      if (thinking.type === "enabled") {
+        effort = effortFromBudget(Number(thinking.budget_tokens) || 0);
+      } else if (thinking.type === "adaptive") {
+        effort = "high";
+      }
+    }
+  }
+
+  if (effort === "minimal") effort = "low";
+  return KIRO_EFFORT_LEVELS.includes(effort) ? effort : "";
+}
+
+/** Map an Anthropic `thinking.budget_tokens` to a coarse Kiro effort level. */
+function effortFromBudget(budget: number): string {
+  if (budget >= 32000) return "high";
+  if (budget >= 16000) return "medium";
+  if (budget > 0) return "low";
+  return "";
+}
+
+/**
+ * Soft `<max_thinking_length>` budget for the Kiro prompt directive, per effort
+ * level. Anthropic publishes no effort→token mapping (effort is "a behavioral
+ * signal, not a strict token budget"), so this is a heuristic tuned against the
+ * live CodeWhisperer stream, where a larger budget measurably deepens reasoning
+ * up to the model cap. It is a hint the model may honor, not a hard cap (the hard
+ * enable signal is `<thinking_mode>`); the caller clamps it to the model's cap.
+ */
+function thinkingLengthForEffort(effort: string): number {
+  switch (effort) {
+    case "max":
+      return 120000;
+    case "xhigh":
+      return 64000;
+    case "high":
+      return 32000;
+    case "medium":
+      return 16000;
+    default:
+      return 8000; // low
+  }
+}
+
 /**
  * Build Kiro payload from OpenAI format
  */
@@ -773,6 +758,11 @@ export function buildKiroPayload(model, body, stream, credentials) {
       temperature?: number;
       topP?: number;
     };
+    additionalModelRequestFields?: {
+      thinking?: { type: string; display?: string };
+      output_config?: { effort: string };
+      max_tokens?: number;
+    };
   } = {
     conversationState: {
       chatTriggerType: "MANUAL",
@@ -806,9 +796,7 @@ export function buildKiroPayload(model, body, stream, credentials) {
   // compressContext runs). This keeps conversationId stable even when compression alters content.
   // Priority 2: Deterministic hash from first user message in translated history (fallback).
   const preCompressionBody = credentials?._preCompressionBody as
-    | Record<string, unknown>
-    | null
-    | undefined;
+    Record<string, unknown> | null | undefined;
   const preCompressionMessages = Array.isArray(preCompressionBody?.messages)
     ? preCompressionBody.messages
     : null;
@@ -844,6 +832,55 @@ export function buildKiroPayload(model, body, stream, credentials) {
     if (maxTokens) payload.inferenceConfig.maxTokens = maxTokens;
     if (temperature !== undefined) payload.inferenceConfig.temperature = temperature;
     if (topP !== undefined) payload.inferenceConfig.topP = topP;
+  }
+
+  // Thinking mode for Claude models on Kiro (ported from javargasm/pi-kiro).
+  // Two coordinated signals steer reasoning on the CodeWhisperer surface:
+  //   1. a `<thinking_mode>enabled</thinking_mode><max_thinking_length>N</...>`
+  //      directive prepended to the current user message — makes Claude emit its
+  //      reasoning INLINE as `<thinking>…</thinking>`, which the Kiro executor
+  //      splits back into the OpenAI `reasoning_content` channel (kiroThinking.ts);
+  //   2. top-level `additionalModelRequestFields` (output_config.effort +
+  //      thinking:{type:"adaptive"} + a clamped max_tokens), forwarded to AWS by
+  //      the Kiro executor's transformRequest allowlist — this is the graded
+  //      effort lever. Gated on models that advertise thinking support.
+  const kiroEffort = supportsReasoning(normalizedModel) ? resolveKiroEffort(body) : "";
+  if (kiroEffort) {
+    // `<thinking_mode>` / `<max_thinking_length>` are Kiro/CodeWhisperer prompt
+    // conventions (NOT Anthropic API params); the length is a soft hint (the hard
+    // enable signal is `<thinking_mode>`), clamped to the model's thinking cap.
+    const thinkingLength = capThinkingBudget(normalizedModel, thinkingLengthForEffort(kiroEffort));
+    const directive =
+      `<thinking_mode>enabled</thinking_mode>` +
+      `<max_thinking_length>${thinkingLength}</max_thinking_length>`;
+    payload.conversationState.currentMessage.userInputMessage.content = `${directive}\n\n${payload.conversationState.currentMessage.userInputMessage.content}`;
+
+    const fields: {
+      output_config: { effort: string };
+      thinking: { type: string; display: string };
+      max_tokens?: number;
+    } = {
+      output_config: { effort: kiroEffort },
+      thinking: { type: "adaptive", display: "summarized" },
+    };
+    // Forward max_tokens only when the client set one, clamped to the model's
+    // output window (floor 1024) — matches pi-kiro and avoids an over-budget reject.
+    if (maxTokens > 0) {
+      const capped = capMaxOutputTokens(normalizedModel, maxTokens) ?? maxTokens;
+      fields.max_tokens = Math.max(Math.floor(capped), 1024);
+    }
+    payload.additionalModelRequestFields = fields;
+
+    // Adaptive-only Claude models (Opus 4.7/4.8, Sonnet 5, Fable 5) reject a
+    // non-default temperature / top_p with a 400 while thinking is active, so
+    // strip both. Drop inferenceConfig entirely if nothing else remains.
+    if (payload.inferenceConfig) {
+      delete payload.inferenceConfig.temperature;
+      delete payload.inferenceConfig.topP;
+      if (Object.keys(payload.inferenceConfig).length === 0) {
+        delete payload.inferenceConfig;
+      }
+    }
   }
 
   return payload;

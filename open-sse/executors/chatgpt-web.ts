@@ -32,6 +32,7 @@ import {
   __resetChatGptImageCacheForTesting,
   type ChatGptImageConversationContext,
 } from "../services/chatgptImageCache.ts";
+import { isThinkingCapableModel, resolveChatGptModel } from "./chatgpt-web/models.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -84,52 +85,6 @@ function deviceIdFor(cookie: string): string {
 // ChatGPT's backend routes use dash-form slugs (e.g. "gpt-5-5-pro"). The slug
 // catalog comes from /backend-api/models on a logged-in account;
 // "gpt-5-4-t-mini" is ChatGPT's abbreviated slug for "GPT-5.4 Thinking Mini".
-const MODEL_MAP: Record<string, string> = {
-  // ChatGPT backend slugs are also accepted directly for power users / tests.
-  "gpt-5-5-pro": "gpt-5-5-pro",
-  "gpt-5-5-pro-extended": "gpt-5-5-pro",
-  "gpt-5-5-thinking": "gpt-5-5-thinking",
-  "gpt-5-5": "gpt-5-5",
-  "gpt-5-4-pro": "gpt-5-4-pro",
-  "gpt-5-4-thinking": "gpt-5-4-thinking",
-  "gpt-5-4-t-mini": "gpt-5-4-t-mini",
-  "gpt-5-3": "gpt-5-3",
-  "gpt-5-3-mini": "gpt-5-3-mini",
-
-  // Public OmniRoute dot-form ids exposed by the provider catalog.
-  "gpt-5.5-pro": "gpt-5-5-pro",
-  "gpt-5.5-pro-extended": "gpt-5-5-pro",
-  "gpt-5.5-thinking": "gpt-5-5-thinking",
-  "gpt-5.5": "gpt-5-5",
-  "gpt-5.4-pro": "gpt-5-4-pro",
-  "gpt-5.4-thinking": "gpt-5-4-thinking",
-  "gpt-5.4-thinking-mini": "gpt-5-4-t-mini",
-  "gpt-5.3-instant": "gpt-5-3-instant",
-  "gpt-5.3": "gpt-5-3",
-  "gpt-5.3-mini": "gpt-5-3-mini",
-  o3: "o3",
-};
-
-const MODEL_FORCED_EFFORT: Record<string, "standard" | "extended"> = {
-  "gpt-5-5-pro": "standard",
-  "gpt-5-5-pro-extended": "extended",
-  "gpt-5.5-pro": "standard",
-  "gpt-5.5-pro-extended": "extended",
-};
-
-/** Set of chatgpt.com slugs that the user_last_used_model_config endpoint
- * accepts a `thinking_effort` value for, derived from MODEL_MAP so adding a
- * new thinking entry there automatically extends this set. Includes the
- * abbreviated slug `gpt-5-4-t-mini` (no literal "thinking" substring) — the
- * reason this set exists at all rather than a substring match.
- *
- * Derived from MODEL_MAP keys (always dot-form) that contain "thinking" or
- * are the `o3` reasoning model; the values are the chatgpt.com-side slugs. */
-const THINKING_CAPABLE_SLUGS: ReadonlySet<string> = new Set(
-  Object.entries(MODEL_MAP)
-    .filter(([k]) => k.includes("thinking") || k === "o3")
-    .map(([, v]) => v)
-);
 
 // ─── Browser-like default headers ──────────────────────────────────────────
 
@@ -471,90 +426,6 @@ async function runSessionWarmup(
 const thinkingEffortCache = new Map<string, number>();
 const THINKING_EFFORT_TTL_MS = 5 * 60 * 1000;
 const THINKING_EFFORT_CACHE_MAX = 400;
-
-/** chatgpt.com only exposes the thinking-effort toggle on dedicated thinking
- * models and the o-series. PATCHing for a non-thinking surface is a no-op
- * (the server accepts it but the routing-time read picks the wrong knob).
- *
- * Three branches because the input can arrive in three shapes:
- *   1. OmniRoute dot-form id (`gpt-5.4-thinking-mini`) — every thinking
- *      variant carries the literal "thinking" substring here.
- *   2. Resolved chatgpt.com slug containing "thinking" (`gpt-5-5-thinking`).
- *   3. Resolved chatgpt.com slug that drops the substring under abbreviation
- *      (`gpt-5-4-t-mini`). Looked up via THINKING_CAPABLE_SLUGS, which is
- *      derived from MODEL_MAP itself so adding a new abbreviated thinking
- *      mapping automatically extends the check.
- *
- * Branch 3 also catches the case where a caller passes the chatgpt.com slug
- * directly as the `model` field (no MODEL_MAP translation needed), which
- * would otherwise silently bypass the PATCH. */
-function isThinkingCapableModel(modelId: string, slug: string): boolean {
-  return (
-    modelId.includes("thinking") ||
-    modelId === "o3" ||
-    slug.includes("thinking") ||
-    THINKING_CAPABLE_SLUGS.has(slug) ||
-    THINKING_CAPABLE_SLUGS.has(modelId)
-  );
-}
-
-/** Map either a chatgpt.com-native value (`standard`/`extended`) or the
- * OpenAI Chat Completions `reasoning_effort` field to the value the
- * `user_last_used_model_config` endpoint expects.
- *
- *   minimal | low | medium | standard  → standard
- *   high    | xhigh | extended         → extended
- *
- * `medium` collapses to `standard` because chatgpt.com only has two levels —
- * there is no separate medium tier on the web product. Returns null for
- * absent/unknown inputs. */
-function normalizeThinkingEffort(input: unknown): "standard" | "extended" | null {
-  if (typeof input !== "string") return null;
-  const v = input.trim().toLowerCase();
-  if (v === "extended" || v === "high" || v === "xhigh") return "extended";
-  if (v === "standard" || v === "low" || v === "medium" || v === "minimal") {
-    return "standard";
-  }
-  return null;
-}
-
-/** Resolve the requested effort for this turn.
- * Order: `providerSpecificData.thinkingEffort` (raw override, takes
- * `standard`/`extended` directly) > `body.reasoning_effort` (top-level OpenAI
- * Chat Completions field) > `body.reasoning.effort` (Responses-API nesting).
- * Returns null when the caller did not request one. */
-function resolveThinkingEffort(
-  body: unknown,
-  providerSpecificData: Record<string, unknown> | undefined
-): "standard" | "extended" | null {
-  if (providerSpecificData && providerSpecificData.thinkingEffort !== undefined) {
-    return normalizeThinkingEffort(providerSpecificData.thinkingEffort);
-  }
-  const b = (body as Record<string, unknown> | null) ?? null;
-  if (!b) return null;
-  const top = normalizeThinkingEffort(b.reasoning_effort);
-  if (top) return top;
-  const nested = (b.reasoning as Record<string, unknown> | undefined)?.effort;
-  return normalizeThinkingEffort(nested);
-}
-
-interface ResolvedChatGptModel {
-  slug: string;
-  effort: "standard" | "extended" | null;
-  isPro: boolean;
-}
-
-function resolveChatGptModel(
-  model: string,
-  body: unknown,
-  providerSpecificData: Record<string, unknown> | undefined
-): ResolvedChatGptModel {
-  const slug = MODEL_MAP[model] ?? model;
-  const forcedEffort = MODEL_FORCED_EFFORT[model] ?? null;
-  const effort = forcedEffort ?? resolveThinkingEffort(body, providerSpecificData);
-  const isPro = slug === "gpt-5-5-pro";
-  return { slug, effort, isPro };
-}
 
 function configuredProPollTimeoutMs(): number {
   const raw = Number(process.env.OMNIROUTE_CGPT_WEB_PRO_TIMEOUT_MS);
@@ -1399,8 +1270,7 @@ async function* extractContent(
     // on a tool-role message (handled below).
     if (event.type === "server_ste_metadata") {
       const meta = (event as Record<string, unknown>).metadata as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       if (meta && meta.turn_use_case === "image gen") {
         imageGenAsync = true;
       }
@@ -1708,6 +1578,21 @@ type ImageResolver = (
   conversationId: string | null,
   parentMessageId?: string | null
 ) => Promise<string | null>;
+
+/**
+ * True when ChatGPT emitted an image asset pointer (the image WAS generated
+ * upstream) but none of the pointers could be resolved to a downloadable URL
+ * — so the assistant text carries no image markdown. Lets callers surface an
+ * accurate "generated but not retrievable" error instead of the misleading
+ * "no image was produced". Escalated mesh report: image visible in the ChatGPT
+ * chat but returned to OmniRoute as a bare "completed without image markdown".
+ */
+export function detectImageResolutionFailure(
+  pointerCount: number,
+  resolvedCount: number
+): boolean {
+  return pointerCount > 0 && resolvedCount === 0;
+}
 
 /** Build the final markdown block for a list of resolved image URLs. */
 function imageMarkdown(urls: string[]): string {
@@ -2147,6 +2032,23 @@ async function buildNonStreamingResponse(
     log,
     parentCandidateMessageId
   );
+  // The image genuinely exists upstream but no pointer resolved to a URL
+  // (unknown asset scheme, download 403/expired, oversize). Flag it so the
+  // image-generation handler can report an accurate "generated but not
+  // retrievable" error instead of the misleading "no image markdown" 502.
+  const imageResolutionFailed = detectImageResolutionFailure(
+    imagePointers?.length ?? 0,
+    urls.length
+  );
+  if (imageResolutionFailed && log?.warn) {
+    const schemes = (imagePointers ?? [])
+      .map((p) => p.pointer.split("://")[0] || p.pointer.slice(0, 24))
+      .join(", ");
+    log.warn(
+      "CGPT-WEB",
+      `Image generated upstream but no asset pointer resolved (schemes: ${schemes}) — surfacing as unretrievable`
+    );
+  }
   fullAnswer += imageMarkdown(urls);
   const promptTokens = Math.ceil(currentMsg.length / 4);
   const completionTokens = Math.ceil(fullAnswer.length / 4);
@@ -2158,6 +2060,7 @@ async function buildNonStreamingResponse(
       created,
       model,
       system_fingerprint: null,
+      ...(imageResolutionFailed ? { x_image_resolution_failed: true } : {}),
       choices: [
         {
           index: 0,
@@ -2780,8 +2683,7 @@ export class ChatGptWebExecutor extends BaseExecutor {
     clientHeaders,
   }: ExecuteInput) {
     const messages = (body as Record<string, unknown> | null)?.messages as
-      | Array<Record<string, unknown>>
-      | undefined;
+      Array<Record<string, unknown>> | undefined;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return {
         response: errorResponse(400, "Missing or empty messages array"),

@@ -41,20 +41,45 @@ const UPDATE = process.argv.includes("--update");
 // Raízes varridas em busca de arquivos de teste.
 const WALK_ROOTS = ["tests", "src", "open-sse", "electron", "bin"];
 const WALK_EXCLUDE = new Set(["node_modules", ".next", "dist", "coverage", ".git"]);
-const TEST_FILE_RE = /\.(test|spec)\.(ts|tsx)$/;
+const TEST_FILE_RE = /\.(test|spec)\.(ts|tsx|mjs)$/;
 
 // Runners REAIS e seus globs. `sources`: arquivos onde `anchor` (default: o próprio
 // glob) deve aparecer textualmente — se o runner mudar, este gate exige o sync.
 export const COLLECTORS = [
-  // Node native runner — test:unit / test:unit:fast / shards / test:coverage + CI (8 shards, node24, node26)
-  { glob: "tests/unit/*.test.ts", sources: ["package.json", ".github/workflows/ci.yml"] },
+  // Node native runner — test:unit / test:unit:fast / shards / test:coverage. O CI
+  // (test-unit ×8 + quality.yml fast-unit) agora chama o npm script test:unit:ci:shard
+  // (fonte única, plano mestre testes+CI QW-d) — o wiring é ancorado pelo NOME do script
+  // nos workflows (entrada dedicada abaixo), e os globs vivem SÓ no package.json.
+  { glob: "tests/unit/*.test.ts", sources: ["package.json"] },
   // Node native runner — subdiretórios religados pela 6A.1c (2026-06-09). Braces
   // explícitos para NÃO incluir tests/unit/autoCombo/** (testes vitest — importam
-  // "vitest" e explodem no node runner). Subdir novo: adicione aqui E nos scripts
-  // (o drift-check + o gate de órfãos forçam a manutenção em sincronia).
+  // "vitest" e explodem no node runner) NEM tests/unit/dashboard/** (invocação própria
+  // abaixo). Subdir novo: adicione aqui E nos scripts (o drift-check + o gate de
+  // órfãos forçam a manutenção em sincronia).
   {
-    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts",
-    sources: ["package.json", ".github/workflows/ci.yml"],
+    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts",
+    sources: ["package.json"],
+  },
+  // Node native runner — tests/unit/dashboard/** roda numa invocação separada com o hook
+  // COMPLETO do tsx (--import tsx): o grafo dos componentes de dashboard puxa
+  // @lobehub/icons, cujo build es/ faz require() interno de arquivos com sintaxe ESM —
+  // sem o patch CJS do tsx isso estoura "Unexpected token 'export'" (visto no Node
+  // 24.18 do CI; no 24.16 local vira um crawl de ~60s/arquivo). O resto da suíte roda
+  // sob tsx/esm (~-50% de bootstrap por processo). Plano mestre testes+CI, QW-b.
+  { glob: "tests/unit/dashboard/**/*.test.ts", sources: ["package.json"] },
+  // Órfãos religados (plano mestre QW-c): arquivos .test.mjs (top-level + db/ + feature-triage/) — fora do glob
+  // *.test.ts histórico, nunca rodava em job nenhum (53 casos recuperados).
+  { glob: "tests/unit/**/*.test.mjs", sources: ["package.json"] },
+  // Wiring CI→npm script (fonte única): os jobs de unit do ci.yml e o fast-unit do
+  // quality.yml DEVEM invocar o script canônico — se renomearem/inlinarem, este gate
+  // exige o sync (substitui as âncoras textuais de glob que existiam nos workflows).
+  {
+    glob: "tests/unit/*.test.ts",
+    sources: ["package.json", ".github/workflows/ci.yml", ".github/workflows/quality.yml"],
+    anchors: {
+      ".github/workflows/ci.yml": "test:unit:ci:shard",
+      ".github/workflows/quality.yml": "test:unit:ci:shard",
+    },
   },
   // Node native runner — test:integration (top-level only; tests/integration/services/ NÃO roda)
   { glob: "tests/integration/*.test.ts", sources: ["package.json"] },

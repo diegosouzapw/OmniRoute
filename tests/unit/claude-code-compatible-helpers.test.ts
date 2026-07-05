@@ -47,7 +47,7 @@ test("buildClaudeCodeCompatibleHeaders emits bearer auth headers and session id"
   const streamHeaders = buildClaudeCodeCompatibleHeaders("sk-demo", true, "session-123");
   const jsonHeaders = buildClaudeCodeCompatibleHeaders("sk-demo", false);
 
-  assert.equal(streamHeaders.Accept, "application/json");
+  assert.equal(streamHeaders.Accept, "text/event-stream");
   assert.equal(streamHeaders.Authorization, "Bearer sk-demo");
   assert.equal(streamHeaders["x-api-key"], undefined);
   assert.equal(streamHeaders["X-Claude-Code-Session-Id"], "session-123");

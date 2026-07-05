@@ -1,6 +1,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
+import { fixToolPairs } from "../../services/contextManager.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -95,6 +96,19 @@ export function antigravityToOpenAIRequest(model, body, stream) {
       }
     }
   }
+
+  // Guard against orphan tool_result/tool_use pairs (#6026). Antigravity IDE can ship a
+  // truncated history whose first turn is a `functionResponse` with no preceding
+  // `functionCall`. Left untouched, that becomes an orphan `role:"tool"` message here and,
+  // after the openai→claude step, an orphan `tool_result` block — which Anthropic (Vertex
+  // `claude-opus-4.6`) rejects with `unexpected tool_use_id found in tool_result blocks`.
+  // `fixToolPairs` strips only genuine orphans and is idempotent on well-formed histories,
+  // so paired functionCall/functionResponse turns pass through unchanged. This mirrors the
+  // executor-side guard in `executors/base.ts` / `services/claudeCodeCompatible.ts`; the
+  // Antigravity MITM path did not run it (no `fixToolPairs` under `src/mitm/`). We do NOT
+  // run `fixToolAdjacency` here because this stage still emits OpenAI-format messages and
+  // Claude's adjacency rule is enforced downstream per provider.
+  result.messages = fixToolPairs(result.messages) as JsonRecord[];
 
   return result;
 }
@@ -229,14 +243,17 @@ function convertContent(content) {
       continue;
     }
 
-    // Text with thoughtSignature = regular text after thinking
+    // Text with thoughtSignature = regular text after thinking.
+    // Skip empty text — Anthropic rejects empty content blocks with a 400.
     if (part.thoughtSignature && part.text !== undefined) {
-      textParts.push({ type: "text", text: part.text });
+      if (part.text) {
+        textParts.push({ type: "text", text: part.text });
+      }
       continue;
     }
 
-    // Regular text
-    if (part.text !== undefined) {
+    // Regular text — skip empty strings (Anthropic rejects empty content blocks).
+    if (part.text !== undefined && part.text !== "") {
       textParts.push({ type: "text", text: part.text });
     }
 
@@ -274,8 +291,26 @@ function convertContent(content) {
     }
   }
 
-  // Content with only functionResponses → return array of tool messages
+  // Function responses may be co-located with function calls / text / reasoning in
+  // the same content. Emit the tool messages AND the accompanying assistant message so
+  // nothing is dropped (previously only the tool messages survived).
   if (toolResults.length > 0) {
+    if (toolCalls.length > 0 || textParts.length > 0 || reasoningContent) {
+      const assistantMsg: JsonRecord = { role: "assistant" };
+      if (textParts.length > 0) {
+        assistantMsg.content =
+          textParts.length === 1 && textParts[0].type === "text"
+            ? textParts[0].text
+            : textParts;
+      }
+      if (reasoningContent) {
+        assistantMsg.reasoning_content = reasoningContent;
+      }
+      if (toolCalls.length > 0) {
+        assistantMsg.tool_calls = toolCalls;
+      }
+      return [...toolResults, assistantMsg];
+    }
     return toolResults;
   }
 

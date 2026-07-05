@@ -264,7 +264,57 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
+    "v0-vercel": async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const configuredBaseUrl =
+          typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
+            ? providerSpecificData.baseUrl.trim()
+            : "https://api.v0.dev";
+
+        const root = normalizeBaseUrl(configuredBaseUrl)
+          .replace(/\/v1\/chat\/completions$/, "")
+          .replace(/\/v1$/, "");
+
+        const res = await validationRead(
+          `${root}/v1/chats?limit=1`,
+          {
+            method: "GET",
+            headers: buildBearerHeaders(apiKey, providerSpecificData),
+          },
+          isLocal
+        );
+
+        if (res.ok) {
+          return { valid: true, error: null, method: "v0_platform_chats_list" };
+        }
+
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+
+        return { valid: false, error: `v0 validation failed: ${res.status}` };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    },
     jules: validateJulesProvider,
+    // auggie is a fully local, credential-less CLI passthrough — there is no API
+    // key to check upstream. The only meaningful validation is confirming the
+    // `auggie` binary is installed and runnable on this machine.
+    auggie: async () => {
+      const { checkAuggieCliVersion } = await import(
+        "@omniroute/open-sse/executors/auggie.ts"
+      );
+      const result = await checkAuggieCliVersion();
+      if (!result.ok) {
+        return {
+          valid: false,
+          error: result.error || "Auggie CLI not found. Install it and run `auggie login`.",
+          unsupported: false,
+        };
+      }
+      return { valid: true, error: null, unsupported: false, method: result.version };
+    },
     qoder: async ({ apiKey, providerSpecificData }: any) => {
       // Bifurcate validation: PAT tokens use Cosy auth against api1.qoder.sh;
       // regular API keys validate against dashscope (OpenAI-compatible endpoint).

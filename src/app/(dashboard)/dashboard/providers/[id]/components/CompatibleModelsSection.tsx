@@ -17,6 +17,7 @@ import { resolveManagedModelAlias } from "@/shared/utils/providerModelAliases";
 import { useNotificationStore } from "@/store/notificationStore";
 import {
   buildCompatMap,
+  getDisplayModelAlias,
   providerText,
   type CompatModelRow,
 } from "../providerPageHelpers";
@@ -57,10 +58,7 @@ export interface CompatibleModelsSectionProps {
   effectiveModelNormalize: (alias: string) => boolean;
   effectiveModelPreserveDeveloper: (alias: string) => boolean;
   getUpstreamHeadersRecord: (modelId: string, protocol: string) => Record<string, string>;
-  saveModelCompatFlags: (
-    modelId: string,
-    flags: CompatibleModelsSaveFlags
-  ) => Promise<void>;
+  saveModelCompatFlags: (modelId: string, flags: CompatibleModelsSaveFlags) => Promise<void>;
   compatSavingModelId?: string;
   onModelsChanged?: () => void;
   isModelHidden: (modelId: string) => boolean;
@@ -155,7 +153,8 @@ export default function CompatibleModelsSection({
     for (const [alias, fullModel] of providerAliases) {
       const fmStr = fullModel as string;
       const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
-      aliasByModelId.set(modelId, alias as string);
+      const displayAlias = getDisplayModelAlias(modelId, alias as string);
+      if (displayAlias) aliasByModelId.set(modelId, displayAlias);
     }
 
     const addModel = (model: CompatModelRow, source: string) => {
@@ -194,11 +193,13 @@ export default function CompatibleModelsSection({
       const fmStr = fullModel as string;
       const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
       if (!modelId || seenModelIds.has(modelId)) continue;
+      const displayAlias = getDisplayModelAlias(modelId, alias as string);
+      if (!displayAlias) continue;
       const customModel = customModelMap.get(modelId);
       rows.push({
         modelId,
-        alias: alias as string,
-        displayName: alias as string,
+        alias: displayAlias,
+        displayName: displayAlias,
         source: customModel ? customModel.source || "custom" : "alias",
         isFree:
           modelId.endsWith(":free") ||

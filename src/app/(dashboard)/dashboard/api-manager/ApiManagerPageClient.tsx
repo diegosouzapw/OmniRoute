@@ -222,6 +222,7 @@ export default function ApiManagerPageClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [usageStats, setUsageStats] = useState<Record<string, KeyUsageStats>>({});
   const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
+  const [deviceCounts, setDeviceCounts] = useState<Record<string, number>>({});
   const [allowKeyReveal, setAllowKeyReveal] = useState(false);
   // Per-row API key visibility toggle (eye / eye-off). Keys default to masked.
   // Map id -> fully revealed key string fetched on demand from /api/keys/{id}/reveal.
@@ -367,6 +368,7 @@ export default function ApiManagerPageClient() {
         // Fetch usage stats after keys are loaded
         fetchUsageStats(data.keys || []);
         fetchSessionCounts(data.keys || []);
+        fetchDeviceCounts(data.keys || []);
       }
     } catch (error) {
       console.log("Error fetching keys:", error);
@@ -444,6 +446,35 @@ export default function ApiManagerPageClient() {
       setSessionCounts(normalized);
     } catch (error) {
       console.log("Error fetching session counts:", error);
+    }
+  };
+
+  // Per-key device/connection counts (port of upstream 9router#931, thanks
+  // @mugnimaestra). One lightweight GET per key against
+  // /api/keys/[id]/devices — device counts are in-memory + TTL-evicted, so
+  // this is a much smaller payload than session data.
+  const fetchDeviceCounts = async (apiKeys: ApiKey[]) => {
+    if (apiKeys.length === 0) {
+      setDeviceCounts({});
+      return;
+    }
+    try {
+      const results = await Promise.all(
+        apiKeys.map(async (key) => {
+          try {
+            const res = await fetch(`/api/keys/${encodeURIComponent(key.id)}/devices`);
+            if (!res.ok) return [key.id, 0] as const;
+            const data = await res.json();
+            const count = typeof data?.count === "number" && Number.isFinite(data.count) ? data.count : 0;
+            return [key.id, count] as const;
+          } catch {
+            return [key.id, 0] as const;
+          }
+        })
+      );
+      setDeviceCounts(Object.fromEntries(results));
+    } catch (error) {
+      console.log("Error fetching device counts:", error);
     }
   };
 
@@ -963,6 +994,7 @@ export default function ApiManagerPageClient() {
               const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
               const hasSessionLimit = maxSessions > 0;
               const activeSessions = sessionCounts[key.id] || 0;
+              const deviceCount = deviceCounts[key.id] || 0;
               const hasSchedule = key.accessSchedule?.enabled === true;
               const keyIsQuota = isQuotaKey(key);
               const groups = quotaGroupsForKey(key);
@@ -1122,6 +1154,15 @@ export default function ApiManagerPageClient() {
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[11px] font-medium">
                           <span className="material-symbols-outlined text-[12px]">group</span>
                           Sessions: {activeSessions}/{maxSessions}
+                        </span>
+                      )}
+                      {deviceCount > 0 && (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 text-[11px] font-medium"
+                          title={t("devicesTooltip", { count: deviceCount })}
+                        >
+                          <span className="material-symbols-outlined text-[12px]">devices</span>
+                          {t("devicesCount", { count: deviceCount })}
                         </span>
                       )}
                       {hasThrottle && (

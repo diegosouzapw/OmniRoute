@@ -151,6 +151,9 @@ export async function registerNodejs(): Promise<void> {
     import("@/lib/skills/builtins"),
   ]);
 
+  // Proxy health scheduler (auto-removes dead proxies on interval)
+  await import("@/lib/proxyHealth/scheduler");
+
   initGracefulShutdown();
   initApiBridgeServer();
   startSpendBatchWriter();
@@ -375,6 +378,24 @@ export async function registerNodejs(): Promise<void> {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
+    }
+
+    // Real-time dashboard WebSocket daemon (port 20129): powers Combo Studio Live,
+    // the Home live-pulse, and Live Compression. liveServer.ts auto-starts the
+    // daemon on import (gated by OMNIROUTE_ENABLE_LIVE_WS, default ON) — but NOTHING
+    // imported it in the packaged standalone/PM2 runtime. Only the unused
+    // `server-init.ts` and a dev-only helper script (`scripts/start-ws-server.mjs`)
+    // ever pulled it into a module graph, so in the published `omniroute` bin the
+    // daemon never bound its port and every live dashboard reported "Live disabled —
+    // WebSocket disconnected". Importing it here (the instrumentation hook that DOES
+    // run in standalone) fires that flag-gated auto-start. Side-effect import + the
+    // module's own `.catch` keep it non-fatal.
+    try {
+      await import("@/server/ws/liveServer");
+      console.log("[STARTUP] Live dashboard WebSocket daemon bootstrap invoked");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Live dashboard WebSocket daemon failed to start (non-fatal):", msg);
     }
   }
 }

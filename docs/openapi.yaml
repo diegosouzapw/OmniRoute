@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.43
+  version: 3.8.45
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -3444,6 +3444,276 @@ paths:
         "400":
           description: Invalid request body
 
+  /api/services/mux/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install Mux from npm
+      description: >-
+        Installs the `mux` npm package (coder/mux — local agent-orchestration
+        daemon) under DATA_DIR/services/mux/. **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Install succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+        "400":
+          description: Invalid request body
+        "500":
+          description: npm install failed
+
+  /api/services/mux/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start Mux
+      description: >-
+        Spawns `mux server --host 127.0.0.1 --port <port>`. Idempotent if
+        already running. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "409":
+          description: Mux is not installed
+        "503":
+          description: Start failed
+
+  /api/services/mux/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop Mux
+      description: >-
+        Gracefully stops Mux. Idempotent.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/mux/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart Mux
+      description: >-
+        stop() then start() under the operation lock.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service restarted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/mux/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update Mux to a newer npm version
+      description: >-
+        Stops, installs newer version, restarts.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Update succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+        "500":
+          description: Update failed
+
+  /api/services/mux/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get Mux status
+      description: >-
+        Returns live supervisor state and DB metadata.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Status response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/mux/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle Mux auto-start
+      description: >-
+        When enabled, Mux starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Auto-start flag updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  autoStart:
+                    type: boolean
+        "400":
+          description: Invalid request body
+
+  /api/services/bifrost/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install Bifrost
+      description: >-
+        Installs the `@maximhq/bifrost` npm package under DATA_DIR/services/bifrost/.
+        The package downloads the Go binary on first run. Accepts an optional `version`
+        field (semver or `latest`). **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Installation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+                  installPath:
+                    type: string
+                  durationMs:
+                    type: number
+
+  /api/services/bifrost/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start Bifrost
+      description: Starts the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after start
+        "409":
+          description: Bifrost is not installed
+
+  /api/services/bifrost/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop Bifrost
+      description: Stops the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after stop
+
+  /api/services/bifrost/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart Bifrost
+      description: Restarts the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after restart
+        "409":
+          description: Bifrost is not installed
+
+  /api/services/bifrost/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update Bifrost
+      description: >-
+        Updates Bifrost to the latest npm version. Stops the running process,
+        installs the new version, and restarts if it was previously running.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Update result
+
+  /api/services/bifrost/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get Bifrost status
+      description: Returns live and DB status for the supervised Bifrost service. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Bifrost service status
+
+  /api/services/bifrost/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle Bifrost auto-start
+      description: >-
+        When enabled, Bifrost starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Auto-start flag updated
+        "400":
+          description: Invalid request body
+
   /api/services/{name}/logs:
     get:
       tags: [Embedded Services]
@@ -5264,6 +5534,214 @@ paths:
           $ref: "#/components/responses/InternalError"
         "503":
           description: Generator module not available
+  /api/v1/ocr:
+    post:
+      tags:
+        - Images
+      summary: Document OCR
+      description: >-
+        Mistral OCR–compatible document OCR endpoint. Accepts a JSON body
+        referencing a document/image and returns extracted text. Success
+        responses carry the `X-OmniRoute-*` cost-telemetry headers.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                document:
+                  type: object
+      responses:
+        "200":
+          description: OCR result with extracted text.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/audio/translations:
+    post:
+      tags:
+        - Audio
+      summary: Translate audio to English
+      description: >-
+        OpenAI Whisper–compatible audio translation (multipart/form-data).
+        Unlike `/api/v1/audio/transcriptions`, output is always English
+        regardless of the source language. Success responses carry the
+        `X-OmniRoute-*` cost-telemetry headers.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                model:
+                  type: string
+      responses:
+        "200":
+          description: English translation of the audio.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/providers/suggested-models:
+    get:
+      tags:
+        - Providers
+      summary: Suggested media models
+      description: >-
+        Read-only server-side proxy to the public HuggingFace Hub models search
+        API, used by the dashboard to suggest models for a media provider kind
+        without exposing an HF token client-side. Never accepts or returns
+        credentials.
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+          description: Media kind to search for (e.g. `image`, `audio`, `video`).
+      responses:
+        "200":
+          description: List of suggested HuggingFace Hub models.
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/provider-plugin-manifest:
+    get:
+      tags:
+        - Providers
+      summary: Provider plugin manifest
+      description: Returns the manifest describing installed provider plugins.
+      responses:
+        "200":
+          description: Provider plugin manifest.
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/keys/{id}/devices:
+    get:
+      tags:
+        - API Keys
+      summary: List devices for an API key
+      description: >-
+        Lists the distinct devices (masked IP + User-Agent fingerprints)
+        tracked for an API key by the in-memory device tracker. IPs are masked
+        before storage; the route never sees the raw client IP.
+      x-internal: true
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Distinct devices seen for the API key.
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/settings/purge-usage-history:
+    post:
+      tags:
+        - Settings
+      summary: Purge usage history
+      description: Dashboard-only. Purges stored usage-history records.
+      x-internal: true
+      responses:
+        "200":
+          description: Usage history purged.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/oauth/codex/import-token:
+    post:
+      tags:
+        - OAuth
+      summary: Import a Codex connection from a bare access token
+      description: >-
+        Dashboard-only. Creates a Codex (ChatGPT/OpenAI) connection from a raw
+        access token with no refresh token (authType `access_token`).
+      x-internal: true
+      responses:
+        "200":
+          description: Connection imported.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/cli-tools/crush-settings:
+    get:
+      tags:
+        - CLI Tools
+      summary: Read Crush CLI OmniRoute config
+      description: Local-only. Reads the OmniRoute provider block in Crush's config.
+      x-internal: true
+      responses:
+        "200":
+          description: Current Crush config state.
+    post:
+      tags:
+        - CLI Tools
+      summary: Write Crush CLI OmniRoute config
+      description: Local-only. Registers OmniRoute as an `openai-compat` provider in Crush's config.
+      x-internal: true
+      responses:
+        "200":
+          description: Crush config updated.
+    delete:
+      tags:
+        - CLI Tools
+      summary: Remove OmniRoute from Crush CLI config
+      description: Local-only. Removes the OmniRoute provider block from Crush's config.
+      x-internal: true
+      responses:
+        "200":
+          description: Crush config entry removed.
+  /api/cli-tools/codewhale-settings:
+    get:
+      tags:
+        - CLI Tools
+      summary: Read CodeWhale CLI OmniRoute config
+      description: >-
+        Local-only. Reads the OmniRoute config block from
+        `~/.codewhale/config.toml` (with `~/.deepseek/config.toml` legacy
+        fallback).
+      x-internal: true
+      responses:
+        "200":
+          description: Current CodeWhale config state.
+    post:
+      tags:
+        - CLI Tools
+      summary: Write CodeWhale CLI OmniRoute config
+      description: Local-only. Writes the OmniRoute config block in CodeWhale TOML format.
+      x-internal: true
+      responses:
+        "200":
+          description: CodeWhale config updated.
+    delete:
+      tags:
+        - CLI Tools
+      summary: Remove OmniRoute from CodeWhale CLI config
+      description: Local-only. Removes the OmniRoute config block from CodeWhale's config.
+      x-internal: true
+      responses:
+        "200":
+          description: CodeWhale config entry removed.
 
 components:
   securitySchemes:

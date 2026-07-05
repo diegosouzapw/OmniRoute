@@ -92,6 +92,56 @@ test("evaluateDeletedFiles: empty list returns no flags", () => {
   assert.deepEqual(evaluateDeletedFiles([]), []);
 });
 
+test("evaluateDeletedFiles: deletion with verified replacement (allowlisted, replacement exists) is not flagged", () => {
+  const allow = {
+    "tests/unit/foo.test.ts": {
+      replacement: "tests/unit/bar.test.ts",
+      reason: "v9.9.9 #0000: rewritten as deterministic unit test",
+    },
+  };
+  const flags = evaluateDeletedFiles(
+    ["tests/unit/foo.test.ts"],
+    allow,
+    (p) => p === "tests/unit/bar.test.ts"
+  );
+  assert.deepEqual(flags, []);
+});
+
+test("evaluateDeletedFiles: allowlisted deletion whose replacement does NOT exist is still flagged", () => {
+  const allow = {
+    "tests/unit/foo.test.ts": {
+      replacement: "tests/unit/missing.test.ts",
+      reason: "v9.9.9 #0000: bogus",
+    },
+  };
+  const flags = evaluateDeletedFiles(["tests/unit/foo.test.ts"], allow, () => false);
+  assert.equal(flags.length, 1);
+  assert.match(flags[0], /substituto|replacement/i);
+});
+
+test("evaluateDeletedFiles: allowlisted deletion whose replacement is not a test file is still flagged", () => {
+  const allow = {
+    "tests/unit/foo.test.ts": {
+      replacement: "src/lib/notATest.ts",
+      reason: "v9.9.9 #0000: bogus",
+    },
+  };
+  const flags = evaluateDeletedFiles(["tests/unit/foo.test.ts"], allow, () => true);
+  assert.equal(flags.length, 1);
+});
+
+test("evaluateDeletedFiles: deletion not present in the allowlist is flagged as before", () => {
+  const allow = {
+    "tests/unit/other.test.ts": {
+      replacement: "tests/unit/bar.test.ts",
+      reason: "v9.9.9 #0000: unrelated entry",
+    },
+  };
+  const flags = evaluateDeletedFiles(["tests/unit/foo.test.ts"], allow, () => true);
+  assert.equal(flags.length, 1);
+  assert.match(flags[0], /foo\.test\.ts/);
+});
+
 test("evaluateDeletedFiles: multiple deleted test files all flagged", () => {
   const flags = evaluateDeletedFiles([
     "tests/unit/a.test.ts",

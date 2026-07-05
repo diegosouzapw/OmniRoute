@@ -20,6 +20,32 @@
 import { getGitHubCopilotChatHeaders } from "../config/providerHeaderProfiles.ts";
 
 export const GITHUB_COPILOT_MODELS_URL = "https://api.githubcopilot.com/models";
+export const GITHUB_COPILOT_MODEL_ALLOWLIST = [
+  "claude-fable-5",
+  "claude-opus-4.8-fast",
+  "claude-opus-4.8",
+  "claude-opus-4.7",
+  "claude-sonnet-4.6",
+  "claude-opus-4.5",
+  "claude-sonnet-5",
+  "claude-sonnet-4.5",
+  "claude-haiku-4.5",
+  "gemini-3.1-pro-preview",
+  "gemini-3.5-flash",
+  "gpt-5.5",
+  "gpt-5.4",
+  "gpt-5.4-mini",
+  "gpt-5.3-codex",
+  "gpt-5-mini",
+  "gpt-4o-2024-11-20",
+  "gpt-4o-mini",
+  "gpt-4-0125-preview",
+  "kimi-k2.7-code",
+  "mai-code-1-flash",
+  "oswe-vscode-prime",
+] as const;
+
+const GITHUB_COPILOT_MODEL_ALLOWLIST_SET = new Set<string>(GITHUB_COPILOT_MODEL_ALLOWLIST);
 
 export type GitHubCopilotModel = {
   id: string;
@@ -59,6 +85,7 @@ export function parseGitHubCopilotModels(data: unknown): GitHubCopilotModel[] {
     const item = asRecord(value);
     const id = toNonEmptyString(item.id) || toNonEmptyString(item.model);
     if (!id || seen.has(id)) continue;
+    if (!GITHUB_COPILOT_MODEL_ALLOWLIST_SET.has(id)) continue;
     seen.add(id);
     const name = toNonEmptyString(item.name) || toNonEmptyString(item.display_name) || id;
     models.push({ id, name, owned_by: "github" });
@@ -89,6 +116,7 @@ function toFallbackResult(
     .map((model) => {
       const id = toNonEmptyString(model.id);
       if (!id) return null;
+      if (!GITHUB_COPILOT_MODEL_ALLOWLIST_SET.has(id)) return null;
       return { id, name: toNonEmptyString(model.name) || id, owned_by: "github" };
     })
     .filter((model): model is GitHubCopilotModel => Boolean(model));

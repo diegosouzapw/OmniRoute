@@ -81,7 +81,9 @@ test("OpenAI -> Kiro preserves prior history, tool uses and accumulated tool res
   assert.equal(result.conversationState.history.length, 2);
   assert.deepEqual(result.conversationState.history[0], {
     userInputMessage: {
-      content: "Rules\n\nHello",
+      // #2306: the system prompt ("Rules") is wrapped in <system-reminder> before
+      // being merged into the Kiro user turn, instead of leaking as raw user text.
+      content: "<system-reminder>\nRules\n</system-reminder>\n\nHello",
       modelId: "claude-sonnet-4",
       origin: "AI_EDITOR",
     },
@@ -233,11 +235,11 @@ test("OpenAI -> Kiro derives a stable conversationId for the same first history 
 
   assert.equal(
     (first.conversationState as any).history[0].userInputMessage.content,
-    "Rules\n\nHello"
+    "<system-reminder>\nRules\n</system-reminder>\n\nHello"
   );
   assert.equal(
     (second as any).conversationState.history[0].userInputMessage.content,
-    "Rules\n\nHello"
+    "<system-reminder>\nRules\n</system-reminder>\n\nHello"
   );
   assert.equal(first.conversationState.conversationId, second.conversationState.conversationId);
 });
@@ -291,7 +293,10 @@ test("OpenAI -> Kiro merges adjacent user history turns after role normalization
 
   const firstUser = history[0].userInputMessage;
   assert.ok(firstUser, "first history turn should be a user turn");
-  assert.equal(firstUser.content, "System rules\n\nFirst question");
+  assert.equal(
+    firstUser.content,
+    "<system-reminder>\nSystem rules\n</system-reminder>\n\nFirst question"
+  );
   assert.equal(history[1].assistantResponseMessage?.content, "Answer 1");
 });
 
@@ -1084,4 +1089,145 @@ test("buildKiroPayload leaves already-two-dash Claude ids unchanged (#2270)", ()
     "claude-opus-4-1-20250805",
     "two-dash form (patch + date) must remain unchanged"
   );
+});
+
+test("buildKiroPayload enables thinking mode for Claude models via reasoning_effort", () => {
+  const body = {
+    messages: [{ role: "user", content: "Solve a hard problem" }],
+    reasoning_effort: "high",
+    max_tokens: 64000,
+  };
+
+  const result = buildKiroPayload("claude-opus-4.8", body, false, null);
+
+  assert.ok(result.additionalModelRequestFields, "additionalModelRequestFields must be set");
+  assert.deepEqual(result.additionalModelRequestFields.thinking, {
+    type: "adaptive",
+    display: "summarized",
+  });
+  assert.equal(result.additionalModelRequestFields.output_config.effort, "high");
+  assert.equal(result.additionalModelRequestFields.max_tokens, 64000);
+  assert.match(
+    result.conversationState.currentMessage.userInputMessage.content,
+    /<thinking_mode>enabled<\/thinking_mode>/,
+    "thinking_mode directive must be injected into user content"
+  );
+  assert.match(
+    result.conversationState.currentMessage.userInputMessage.content,
+    /<max_thinking_length>\d+<\/max_thinking_length>/,
+    "max_thinking_length directive must be injected into user content"
+  );
+});
+
+test("buildKiroPayload drops temperature when thinking is enabled", () => {
+  const body = {
+    messages: [{ role: "user", content: "Solve a hard problem" }],
+    reasoning_effort: "high",
+    temperature: 0.5,
+  };
+
+  const result = buildKiroPayload("claude-opus-4.8", body, false, null);
+
+  assert.ok(result.additionalModelRequestFields, "thinking must be enabled");
+  assert.equal(
+    result.inferenceConfig?.temperature,
+    undefined,
+    "temperature must be dropped when adaptive thinking is active"
+  );
+});
+
+test("buildKiroPayload ignores thinking request for unsupported effort levels", () => {
+  const body = {
+    messages: [{ role: "user", content: "Hello" }],
+    reasoning_effort: "invalid",
+  };
+
+  const result = buildKiroPayload("claude-opus-4.8", body, false, null);
+
+  assert.equal(
+    result.additionalModelRequestFields,
+    undefined,
+    "invalid effort must not enable thinking"
+  );
+});
+
+test("buildKiroPayload maps body.thinking budget_tokens to effort level", () => {
+  const body = {
+    messages: [{ role: "user", content: "Deep reasoning" }],
+    thinking: { type: "enabled", budget_tokens: 50000 },
+  };
+
+  const result = buildKiroPayload("claude-opus-4.7", body, false, null);
+
+  assert.ok(result.additionalModelRequestFields, "thinking must be enabled from budget_tokens");
+  assert.equal(result.additionalModelRequestFields.output_config.effort, "high");
+});
+
+test("buildKiroPayload leaves thinking off when no reasoning is requested", () => {
+  const body = { messages: [{ role: "user", content: "Hi" }] };
+
+  const result = buildKiroPayload("claude-opus-4.8", body, false, null);
+
+  assert.equal(result.additionalModelRequestFields, undefined, "no thinking fields by default");
+  assert.doesNotMatch(
+    result.conversationState.currentMessage.userInputMessage.content,
+    /<thinking_mode>/,
+    "no directive injected by default"
+  );
+});
+
+test("buildKiroPayload maps reasoning_effort to the same Kiro effort level (no +1 shift)", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-5",
+    { messages: [{ role: "user", content: "hard" }], reasoning_effort: "medium" },
+    false,
+    null
+  );
+
+  assert.equal(result.additionalModelRequestFields.output_config.effort, "medium");
+});
+
+test("buildKiroPayload reads effort from Anthropic output_config.effort", () => {
+  const result = buildKiroPayload(
+    "claude-opus-4.8",
+    { messages: [{ role: "user", content: "hard" }], output_config: { effort: "xhigh" } },
+    false,
+    null
+  );
+
+  assert.ok(result.additionalModelRequestFields, "output_config.effort must enable thinking");
+  assert.equal(result.additionalModelRequestFields.output_config.effort, "xhigh");
+});
+
+test("buildKiroPayload defaults adaptive thinking (no effort) to high", () => {
+  const result = buildKiroPayload(
+    "claude-opus-4.8",
+    { messages: [{ role: "user", content: "hard" }], thinking: { type: "adaptive" } },
+    false,
+    null
+  );
+
+  assert.equal(
+    result.additionalModelRequestFields.output_config.effort,
+    "high",
+    "adaptive with no explicit effort defaults to Anthropic's documented default (high)"
+  );
+});
+
+test("buildKiroPayload drops both temperature and top_p when thinking is enabled", () => {
+  const result = buildKiroPayload(
+    "claude-opus-4.8",
+    {
+      messages: [{ role: "user", content: "hard" }],
+      reasoning_effort: "high",
+      temperature: 0.5,
+      top_p: 0.9,
+    },
+    false,
+    null
+  );
+
+  assert.ok(result.additionalModelRequestFields, "thinking must be enabled");
+  assert.equal(result.inferenceConfig?.temperature, undefined, "temperature must be dropped");
+  assert.equal(result.inferenceConfig?.topP, undefined, "top_p must be dropped");
 });

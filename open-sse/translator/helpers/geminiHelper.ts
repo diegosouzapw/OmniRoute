@@ -12,6 +12,10 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   "maxLength",
   "exclusiveMinimum",
   "exclusiveMaximum",
+  // `multipleOf` is not part of the Gemini/antigravity OpenAPI 3.0 schema subset;
+  // leaving it in function_declarations triggers a hard upstream 400
+  // ("Unknown name \"multipleOf\""). `minimum`/`maximum` ARE accepted and kept.
+  "multipleOf",
   // NOTE: `pattern` is intentionally NOT in this set. Antigravity (Gemini-derived
   // surface) accepts `pattern` on string constraints, and glob/grep/file-search
   // tools depend on it to express their argument regex. Removing it produced

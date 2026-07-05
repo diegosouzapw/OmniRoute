@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Card, Modal } from "@/shared/components";
-import { parseBulkImportText } from "./parseBulkProxyImport.ts";
-import type { ParsedProxyEntry, ParseError } from "./parseBulkProxyImport.ts";
+import { useProxyBatchOperations } from "./useProxyBatchOperations";
+import { ProxyStatusBadge } from "./ProxyStatusBadge";
+import { ProxyHealthCell } from "./ProxyHealthCell";
+import { ProxyBatchActions } from "./ProxyBatchActions";
+import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
 
 type ProxyItem = {
   id: string;
@@ -41,6 +44,23 @@ type TestResult = {
   error?: string;
 };
 
+type ParsedProxyEntry = {
+  name: string;
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  type: string;
+  region: string;
+  status: string;
+  notes: string;
+};
+
+type ParseError = {
+  line: number;
+  reason: string;
+};
+
 const EMPTY_FORM = {
   id: "",
   name: "",
@@ -56,11 +76,9 @@ const EMPTY_FORM = {
 };
 
 const BULK_IMPORT_TEMPLATE = `# Proxy Bulk Import
-# Format A (pipe-delimited): NAME|HOST|PORT|USERNAME|PASSWORD|TYPE|REGION|STATUS|NOTES
-#   Required: NAME, HOST, PORT
-#   Optional: USERNAME, PASSWORD, TYPE (http|https|socks5, default: socks5), REGION, STATUS (active|inactive, default: active), NOTES
-# Format B (auth-less shorthand): HOST:PORT
-#   Imports an HTTP proxy without credentials; name is auto-generated.
+# Format: NAME|HOST|PORT|USERNAME|PASSWORD|TYPE|REGION|STATUS|NOTES
+# Required: NAME, HOST, PORT
+# Optional: USERNAME, PASSWORD, TYPE (http|https|socks5, default: socks5), REGION, STATUS (active|inactive, default: active), NOTES
 # Lines starting with # are ignored. Existing proxies (same host+port) will be updated.
 #
 # SOCKS5 examples:
@@ -70,11 +88,71 @@ const BULK_IMPORT_TEMPLATE = `# Proxy Bulk Import
 # HTTP/HTTPS examples:
 # http-proxy|10.0.0.50|8080|||http||active|Internal HTTP proxy
 # https-proxy|proxy.example.com|443|admin|secret123|https|US|active
-#
-# Auth-less shorthand examples:
-# 127.0.0.1:7897
-# proxy.example.com:3128
 `;
+
+const VALID_TYPES = new Set(["http", "https", "socks5"]);
+const VALID_STATUSES = new Set(["active", "inactive"]);
+
+function parseBulkImportText(text: string): {
+  entries: ParsedProxyEntry[];
+  errors: ParseError[];
+  skipped: number;
+} {
+  const lines = text.split("\n");
+  const entries: ParsedProxyEntry[] = [];
+  const errors: ParseError[] = [];
+  let skipped = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i].trim();
+    if (!raw || raw.startsWith("#")) {
+      skipped++;
+      continue;
+    }
+
+    const parts = raw.split("|").map((p) => p.trim());
+    const [name, host, portStr, username, password, type, region, status, notes] = parts;
+    const lineNum = i + 1;
+
+    if (!name) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorMissingName" });
+      continue;
+    }
+    if (!host) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorMissingHost" });
+      continue;
+    }
+    const port = Number(portStr);
+    if (!portStr || isNaN(port) || port < 1 || port > 65535) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorInvalidPort" });
+      continue;
+    }
+    const normalizedType = (type || "socks5").toLowerCase();
+    if (!VALID_TYPES.has(normalizedType)) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorInvalidType" });
+      continue;
+    }
+    const normalizedStatus = (status || "active").toLowerCase();
+    if (!VALID_STATUSES.has(normalizedStatus)) {
+      errors.push({ line: lineNum, reason: "bulkImportErrorInvalidStatus" });
+      continue;
+    }
+
+    entries.push({
+      name,
+      host,
+      port,
+      username: username || "",
+      password: password || "",
+      type: normalizedType,
+      region: region || "",
+      status: normalizedStatus,
+      notes: notes || "",
+    });
+  }
+
+  return { entries, errors, skipped };
+}
 
 export default function ProxyRegistryManager() {
   const t = useTranslations("proxyRegistry");
@@ -174,13 +252,36 @@ export default function ProxyRegistryManager() {
       const ids = loaded.map((p) => p.id).filter(Boolean);
       void loadHealth();
       void loadAllUsage(ids);
-    } catch (e: any) {
-      setError(e?.message || t("errorLoadFailed"));
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg || t("errorLoadFailed"));
       setItems([]);
     } finally {
       setLoading(false);
     }
   }, [loadHealth, loadAllUsage, t]);
+
+  // MUST stay after the `load` const — earlier use TDZ-crashes SSR (#5918 guard).
+  const {
+    selectedIds,
+    setSelectedIds,
+    batchDeleting,
+    autoTesting,
+    toggleSelectAll: hookToggleSelectAll,
+    toggleSelect,
+    handleBatchDelete: hookHandleBatchDelete,
+    handleAutoTestAll: hookHandleAutoTestAll,
+  } = useProxyBatchOperations(load);
+
+  const allSelected = items.length > 0 && items.every((item) => selectedIds.has(item.id));
+
+  const handleBatchDelete = useCallback(() => {
+    hookHandleBatchDelete(setError);
+  }, [hookHandleBatchDelete, setError]);
+
+  const handleAutoTestAll = useCallback(() => {
+    hookHandleAutoTestAll(setError, setTestById);
+  }, [hookHandleAutoTestAll, setError, setTestById]);
 
   useEffect(() => {
     void load();
@@ -531,6 +632,13 @@ export default function ProxyRegistryManager() {
             >
               {t("bulkAssign")}
             </Button>
+            <ProxyBatchActions
+              selectedCount={selectedIds.size}
+              batchDeleting={batchDeleting}
+              autoTesting={autoTesting}
+              onBatchDelete={handleBatchDelete}
+              onAutoTestAll={handleAutoTestAll}
+            />
             <Button
               size="sm"
               icon="add"
@@ -557,8 +665,21 @@ export default function ProxyRegistryManager() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-text-muted border-b border-border">
+                  <th className="py-2 pr-2 w-8">
+                    <input
+                      type="checkbox"
+                      className="accent-blue-500 w-4 h-4 cursor-pointer"
+                      checked={allSelected}
+                      ref={(el) => {
+                        if (el)
+                          el.indeterminate =
+                            !allSelected && items.some((item) => selectedIds.has(item.id));
+                      }}
+                      onChange={() => hookToggleSelectAll(allSelected, items)}
+                      aria-label="Select all proxies"
+                    />
+                  </th>
                   <th className="py-2 pr-3">{t("tableName")}</th>
-                  <th className="py-2 pr-3">{t("tableEndpoint")}</th>
                   <th className="py-2 pr-3">{t("tableStatus")}</th>
                   <th className="py-2 pr-3">{t("tableHealth")}</th>
                   <th className="py-2 pr-3">{t("tableUsage")}</th>
@@ -571,6 +692,11 @@ export default function ProxyRegistryManager() {
                   const health = healthById[item.id];
                   return (
                     <tr key={item.id} className="border-b border-border/60">
+                      <ProxyCheckboxCell
+                        checked={selectedIds.has(item.id)}
+                        onChange={() => toggleSelect(item.id)}
+                        label={`Select ${item.name}`}
+                      />
                       <td className="py-2 pr-3">
                         <div className="font-medium text-text-main">{item.name}</div>
                         {item.region && (
@@ -581,38 +707,13 @@ export default function ProxyRegistryManager() {
                         {item.type}://{item.host}:{item.port}
                       </td>
                       <td className="py-2 pr-3">
-                        <span className="text-xs px-2 py-1 rounded border border-border bg-bg-subtle">
-                          {item.status === "inactive" ? t("statusInactive") : t("statusActive")}
-                        </span>
+                        <ProxyStatusBadge status={item.status} />
                       </td>
                       <td className="py-2 pr-3 text-xs text-text-muted">
-                        <div className="flex flex-col gap-0.5">
-                          {testById[item.id] ? (
-                            testById[item.id]!.success ? (
-                              <>
-                                <span className="text-emerald-400">
-                                  ✓ {testById[item.id]!.publicIp}
-                                </span>
-                                {testById[item.id]!.latencyMs && (
-                                  <span>{testById[item.id]!.latencyMs}ms</span>
-                                )}
-                              </>
-                            ) : (
-                              <span className="text-red-400">
-                                ✗ {testById[item.id]!.error || t("failed")}
-                              </span>
-                            )
-                          ) : health ? (
-                            <>
-                              <span>{t("successRate", { rate: health.successRate ?? 0 })}</span>
-                              <span>
-                                {t("avgLatency", { latency: health.avgLatencyMs ?? "-" })}
-                              </span>
-                            </>
-                          ) : (
-                            <span>—</span>
-                          )}
-                        </div>
+                        <ProxyHealthCell
+                          testResult={testById[item.id] ?? undefined}
+                          health={health ?? undefined}
+                        />
                       </td>
                       <td className="py-2 pr-3 text-xs text-text-muted">
                         {usageById[item.id] != null

@@ -35,6 +35,7 @@ import {
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { keychainImportOnlyGuard } from "./keychainImportOnly";
 
 // Use globalThis to persist callback server state across Next.js HMR reloads
 if (!globalThis.__codexCallbackState) {
@@ -136,6 +137,10 @@ export async function GET(
         { status: 410 }
       );
     }
+    // Keychain-import-only providers (e.g. zed) have no OAuth flow — return a
+    // clear 400 pointing at the Import button instead of a 500 (#6041).
+    const kio = keychainImportOnlyGuard(earlyParams.provider, earlyParams.action);
+    if (kio) return kio;
   } catch {
     /* fall through to normal handling */
   }
@@ -356,6 +361,9 @@ export async function POST(
         { status: 410 }
       );
     }
+    // Keychain-import-only providers (e.g. zed) have no OAuth flow (#6041).
+    const kio = keychainImportOnlyGuard(earlyParams.provider, earlyParams.action);
+    if (kio) return kio;
   } catch {
     /* fall through to normal handling */
   }

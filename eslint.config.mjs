@@ -4,6 +4,23 @@ import tseslint from "typescript-eslint";
 /** @type {import("eslint").Linter.Config[]} */
 const eslintConfig = [
   ...nextVitals,
+  // Pacote 4 (plano mestre testes+CI, 2026-07-04) — zero-warning policy: TODA regra roda
+  // como "error" e a dívida pré-existente vive congelada por arquivo+regra em
+  // config/quality/eslint-suppressions.json (ESLint bulk suppressions nativo). Violação
+  // NOVA = vermelho no ato (lint-staged no pre-commit + job lint-guard no fast path);
+  // o drift de +41/+88 warnings/ciclo que era rebaselinado às cegas na release morre no
+  // PR que o introduz. Aperto do baseline: npx eslint . --prune-suppressions
+  // --suppressions-location config/quality/eslint-suppressions.json (na release).
+  {
+    // Escopo = onde os presets do next registram estes plugins (bloco global sem `files`
+    // atingiria scripts/*.mjs sem o plugin react-hooks e explodiria o flat config).
+    files: ["src/**/*.{ts,tsx,js,jsx}"],
+    rules: {
+      "react-hooks/exhaustive-deps": "error",
+      "@next/next/no-img-element": "error",
+      "import/no-anonymous-default-export": "error",
+    },
+  },
   // FASE-02: Security rules (strict everywhere)
   {
     rules: {
@@ -32,7 +49,7 @@ const eslintConfig = [
     files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-syntax": [
-        "warn",
+        "error",
         {
           selector:
             "CallExpression[callee.property.name='includes'][callee.object.callee.property.name='toLowerCase']",
@@ -49,7 +66,7 @@ const eslintConfig = [
       "@typescript-eslint": tseslint.plugin,
     },
     rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "error",
       "@next/next/no-assign-module-variable": "off",
       "react-hooks/rules-of-hooks": "off",
     },

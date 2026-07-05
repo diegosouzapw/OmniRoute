@@ -320,6 +320,130 @@ test("provider models route discovers SiliconFlow models from configured China b
   ]);
 });
 
+test("provider models route handles local hostnames named 'v1' correctly", async () => {
+  const connection = await seedConnection("openai-compatible-local-v1", {
+    apiKey: "sk-local",
+    providerSpecificData: {
+      baseUrl: "http://v1/chat/completions",
+    },
+  });
+  const seenUrls: string[] = [];
+
+  globalThis.fetch = async (url) => {
+    seenUrls.push(String(url));
+    return Response.json({
+      data: [{ id: "local-v1-model", name: "Local v1 Model" }],
+    });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  assert.deepEqual(seenUrls, ["http://v1/v1/models"]);
+});
+
+test("provider models route correctly strips standard /v1 paths", async () => {
+  const connection = await seedConnection("openai-compatible-standard-v1", {
+    apiKey: "sk-standard",
+    providerSpecificData: {
+      baseUrl: "https://api.openai.com/v1",
+    },
+  });
+  const seenUrls: string[] = [];
+
+  globalThis.fetch = async (url) => {
+    seenUrls.push(String(url));
+    return Response.json({
+      data: [{ id: "standard-model", name: "Standard Model" }],
+    });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  assert.deepEqual(seenUrls, ["https://api.openai.com/v1/models"]);
+});
+
+test("provider models route strips /v1 when it precedes /chat/completions (#5899 no double /v1)", async () => {
+  // Regression for #5899 (Api Airforce): a baseUrl of the form
+  // "https://api.airforce/v1/chat/completions" must probe ".../v1/models" — NOT
+  // ".../v1/v1/models". The old `else if` strip chain only removed
+  // "/chat/completions", leaving a trailing "/v1" that the endpoint builder then
+  // doubled, producing a 308 redirect that aborted discovery.
+  const connection = await seedConnection("openai-compatible-airforce-v1", {
+    apiKey: "sk-airforce",
+    providerSpecificData: {
+      baseUrl: "https://api.airforce/v1/chat/completions",
+    },
+  });
+  const seenUrls: string[] = [];
+
+  globalThis.fetch = async (url) => {
+    seenUrls.push(String(url));
+    return Response.json({
+      data: [{ id: "airforce-model", name: "Airforce Model" }],
+    });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  // First probed endpoint must have a single /v1 — no ".../v1/v1/models".
+  assert.equal(seenUrls[0], "https://api.airforce/v1/models");
+  assert.ok(
+    !seenUrls.some((u) => u.includes("/v1/v1/")),
+    `no endpoint should contain a doubled /v1: ${JSON.stringify(seenUrls)}`
+  );
+});
+
+test("provider models route continues probing past a REDIRECT_BLOCKED endpoint (#5899)", async () => {
+  // Regression for #5899: a REDIRECT_BLOCKED error on one candidate endpoint must
+  // not abort the whole probe loop — discovery should fall through to the next
+  // endpoint instead of surfacing an empty catalog.
+  const connection = await seedConnection("openai-compatible-redirect-v1", {
+    apiKey: "sk-redirect",
+    providerSpecificData: {
+      baseUrl: "https://redirect.example",
+    },
+  });
+  const seenUrls: string[] = [];
+
+  globalThis.fetch = async (url) => {
+    const u = String(url);
+    seenUrls.push(u);
+    // First candidate ".../v1/models" answers with a real 308 redirect →
+    // safeOutboundFetch throws a SafeOutboundFetchError(REDIRECT_BLOCKED). The old
+    // code re-threw on it (status 503) and aborted the loop; the fix `continue`s.
+    if (u === "https://redirect.example/v1/models") {
+      return new Response(null, {
+        status: 308,
+        headers: { location: "https://redirect.example/models" },
+      });
+    }
+    return Response.json({
+      data: [{ id: "redirect-model", name: "Redirect Model" }],
+    });
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  // Without the REDIRECT_BLOCKED `continue`, discovery aborted and fell back to a
+  // non-api catalog. The fix lets it reach the next endpoint and return live models.
+  assert.equal(body.source, "api");
+  assert.ok(
+    seenUrls.length >= 2,
+    `expected the loop to continue past REDIRECT_BLOCKED: ${JSON.stringify(seenUrls)}`
+  );
+});
+
 test("provider models route returns static catalog entries for providers with hardcoded models", async () => {
   const connection = await seedConnection("bailian-coding-plan", {
     apiKey: "bailian-key",
@@ -610,9 +734,9 @@ test("provider models route returns the expanded local catalog for Kiro", async 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "kiro");
   assert.equal(body.source, "local_catalog");
-  assert.ok(body.models.some((model) => model.id === "claude-haiku-4.5"));
-  assert.ok(body.models.some((model) => model.id === "claude-opus-4.7"));
-  assert.ok(body.models.some((model) => model.id === "claude-sonnet-4.6"));
+  const kiroIds = new Set(body.models.map((model) => model.id)); // #6170: real upstream lineup
+  assert.ok(kiroIds.has("claude-sonnet-5") && kiroIds.has("claude-sonnet-4.5") && kiroIds.has("claude-haiku-4.5"));
+  assert.equal(kiroIds.has("claude-opus-4.7") || kiroIds.has("claude-sonnet-4.6"), false); // fabricated ids removed
 });
 
 test("provider models route returns the local catalog for new built-in chat-openai-compat providers", async () => {

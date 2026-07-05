@@ -7,10 +7,14 @@ import {
   type ResolvedProviderCatalogEntry,
   type StaticProviderCatalogCategory,
 } from "@/lib/providers/catalog";
-import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
+import {
+  isClaudeCodeCompatibleProvider,
+  supportsApiKeyOnFreeProvider,
+} from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
+import { fetchWithTimeout } from "@/shared/utils/fetchTimeout";
 import type { ProviderDisplayMode } from "./providerPageStorage";
 
 export interface ProviderStatsSnapshot {
@@ -32,6 +36,8 @@ export type CompatibleProviderInfo = {
   color: string;
   textIcon: string;
   apiType?: string;
+  /** Optional operator-supplied remote icon URL (#2166). */
+  iconUrl?: string;
 };
 
 export type CompatibleProviderGroups = {
@@ -64,6 +70,26 @@ export function shouldShowFirstProviderHint(
 }
 
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
+
+/**
+ * Whether a provider connection should be counted on a provider card rendered in
+ * the given section. Dual-auth providers (qoder, opencode, codebuddy-cn, …) are
+ * OAuth-categorized but also accept a PAT/API key stored as authType "apikey";
+ * their single OAuth card must count BOTH, else a working PAT connection shows as
+ * "not connected" on the dashboard.
+ */
+export function connectionMatchesProviderCard(
+  conn: { provider?: string; authType?: string } | null | undefined,
+  providerId: string,
+  cardAuthType: "oauth" | "free" | "apikey"
+): boolean {
+  if (!conn || conn.provider !== providerId) return false;
+  if (cardAuthType === "free") return true;
+  if (supportsApiKeyOnFreeProvider(providerId)) {
+    return conn.authType === "oauth" || conn.authType === "apikey";
+  }
+  return conn.authType === cardAuthType;
+}
 
 type GetProviderStats = (
   providerId: string,
@@ -126,7 +152,13 @@ export function buildStaticProviderEntries(
 }
 
 export function buildCompatibleProviderGroups(
-  providerNodes: Array<{ id: string; name?: string; type?: string; apiType?: string }>,
+  providerNodes: Array<{
+    id: string;
+    name?: string;
+    type?: string;
+    apiType?: string;
+    iconUrl?: string | null;
+  }>,
   labels: {
     openaiCompatibleName: string;
     anthropicCompatibleName: string;
@@ -145,6 +177,7 @@ export function buildCompatibleProviderGroups(
         color: "#10A37F",
         textIcon: "OC",
         apiType: node.apiType,
+        iconUrl: node.iconUrl || undefined,
       });
       continue;
     }
@@ -157,6 +190,7 @@ export function buildCompatibleProviderGroups(
         name: node.name || labels.claudeCodeCompatibleName,
         color: "#B45309",
         textIcon: "CC",
+        iconUrl: node.iconUrl || undefined,
       });
       continue;
     }
@@ -166,6 +200,7 @@ export function buildCompatibleProviderGroups(
       name: node.name || labels.anthropicCompatibleName,
       color: "#D97757",
       textIcon: "AC",
+      iconUrl: node.iconUrl || undefined,
     });
   }
 
@@ -296,4 +331,68 @@ export function upsertProviderNodeById<T extends { id?: string | null }>(prev: T
   const next = prev.slice();
   next[idx] = node;
   return next;
+}
+
+/** Parsed payload the providers dashboard renders its first paint from. */
+export interface ProviderPageData {
+  connections: any[];
+  providerNodes: any[];
+  ccCompatibleProviderEnabled: boolean;
+  expirations: any | null;
+  blockedProviders: string[] | null;
+  settings: any | null;
+}
+
+// Bound each first-paint request so a single stalled connection cannot freeze
+// the page on its skeleton. 20s is generous for a loopback dashboard API while
+// still guaranteeing the skeleton clears in bounded time.
+const PROVIDER_PAGE_FETCH_TIMEOUT_MS = 20_000;
+
+/**
+ * Load the four data sources the providers dashboard renders from, each bounded
+ * by an AbortSignal timeout and independently degrading to a default.
+ *
+ * Why this exists (infinite-skeleton bug): the page used to gate its `loading`
+ * flag on `await Promise.all([fetch(...) x4])` with **no** timeout. A bare
+ * `fetch()` that never *settles* — e.g. the browser's 6-connection HTTP/1.1 pool
+ * starved by the dashboard's RSC `<Link>` prefetch storm, or any stalled
+ * connection — leaves `Promise.all` pending forever, so `setLoading(false)`
+ * (which lives in the effect's `finally`) never runs and the Suspense skeleton
+ * shows indefinitely. A `try/catch` cannot rescue a promise that never settles;
+ * only a timeout/abort can. Here every request is time-bounded and failures
+ * degrade to a default, so the loader always resolves within the timeout and the
+ * page paints from whatever data arrived (matching the fast `/api/providers`).
+ */
+export async function loadProviderPageData(
+  fetchImpl: typeof fetch = (globalThis.fetch as typeof fetch),
+  timeoutMs: number = PROVIDER_PAGE_FETCH_TIMEOUT_MS
+): Promise<ProviderPageData> {
+  const safeJson = async (url: string, init?: RequestInit): Promise<any | null> => {
+    try {
+      const res = await fetchWithTimeout(url, { ...init, timeoutMs, fetchFn: fetchImpl });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch {
+      // Timeout/abort/network error → degrade to the default; never hang.
+      return null;
+    }
+  };
+
+  const [connectionsData, nodesData, expirationsData, settingsData] = await Promise.all([
+    safeJson("/api/providers"),
+    safeJson("/api/provider-nodes"),
+    safeJson("/api/providers/expiration"),
+    safeJson("/api/settings", { cache: "no-store" }),
+  ]);
+
+  return {
+    connections: Array.isArray(connectionsData?.connections) ? connectionsData.connections : [],
+    providerNodes: Array.isArray(nodesData?.nodes) ? nodesData.nodes : [],
+    ccCompatibleProviderEnabled: nodesData?.ccCompatibleProviderEnabled === true,
+    expirations: expirationsData ?? null,
+    blockedProviders: Array.isArray(settingsData?.blockedProviders)
+      ? settingsData.blockedProviders
+      : null,
+    settings: settingsData ?? null,
+  };
 }

@@ -28,11 +28,17 @@ export const codexProvider: RegistryEntry = {
     // 1.05M). Public refs : openai/codex#19208, #19319, #19464 ;
     // opencode#24171. max_output_tokens is stripped server-side
     // (litellm#21193, codex#4138) so 128K is informational only.
+    // The usable INPUT budget is smaller than the 400K window (part is
+    // reserved for output), so max_input_tokens must be distinct from
+    // context_length or coding agents never auto-compact (#6191). OpenAI's
+    // own live catalog reports ~272K for gpt-5.5 in Codex.
     {
       id: "gpt-5.5",
       name: "GPT 5.5",
       ...GPT_5_5_CODEX_CAPABILITIES,
       contextLength: 400000,
+      // #6191: input cap per reporter; TODO confirm exact value
+      maxInputTokens: 272000,
       maxOutputTokens: 128000,
     },
     {
@@ -40,6 +46,8 @@ export const codexProvider: RegistryEntry = {
       name: "GPT 5.5 (xHigh)",
       ...GPT_5_5_CODEX_CAPABILITIES,
       contextLength: 400000,
+      // #6191: input cap per reporter; TODO confirm exact value
+      maxInputTokens: 272000,
       maxOutputTokens: 128000,
     },
     {
@@ -47,6 +55,8 @@ export const codexProvider: RegistryEntry = {
       name: "GPT 5.5 (High)",
       ...GPT_5_5_CODEX_CAPABILITIES,
       contextLength: 400000,
+      // #6191: input cap per reporter; TODO confirm exact value
+      maxInputTokens: 272000,
       maxOutputTokens: 128000,
     },
     {
@@ -54,6 +64,8 @@ export const codexProvider: RegistryEntry = {
       name: "GPT 5.5 (Medium)",
       ...GPT_5_5_CODEX_CAPABILITIES,
       contextLength: 400000,
+      // #6191: input cap per reporter; TODO confirm exact value
+      maxInputTokens: 272000,
       maxOutputTokens: 128000,
     },
     {
@@ -61,6 +73,8 @@ export const codexProvider: RegistryEntry = {
       name: "GPT 5.5 (Low)",
       ...GPT_5_5_CODEX_CAPABILITIES,
       contextLength: 400000,
+      // #6191: input cap per reporter; TODO confirm exact value
+      maxInputTokens: 272000,
       maxOutputTokens: 128000,
     },
     {

@@ -28,12 +28,23 @@ function decodeJwtPayload(jwt: string): JsonRecord | null {
   }
 }
 
-function extractExpiresAt(idToken: string): string | null {
-  const payload = decodeJwtPayload(idToken);
+function extractExpFromJwt(jwt: string): number | null {
+  const payload = decodeJwtPayload(jwt);
   if (!payload) return null;
   const exp = payload.exp;
-  if (typeof exp !== "number" || !Number.isFinite(exp)) return null;
-  return new Date(exp * 1000).toISOString();
+  return typeof exp === "number" && Number.isFinite(exp) ? exp : null;
+}
+
+// Prefer access_token.exp over id_token.exp — the id_token may be expired
+// while the access_token (and refresh_token) are still valid. Using a stale
+// id_token expiry would mark the connection as expired immediately after import
+// and trigger an unnecessary refresh (which can invalidate the token family).
+function extractExpiresAt(accessToken: string, idToken: string): string | null {
+  const accessExp = extractExpFromJwt(accessToken);
+  if (accessExp !== null) return new Date(accessExp * 1000).toISOString();
+  const idExp = extractExpFromJwt(idToken);
+  if (idExp !== null) return new Date(idExp * 1000).toISOString();
+  return null;
 }
 
 function extractJwtEmail(idToken: string): string | null {
@@ -132,7 +143,7 @@ export function parseAndValidateCodexAuth(raw: unknown): ParsedCodexAuth {
     refreshToken,
     accountId,
     email: extractJwtEmail(idToken),
-    expiresAt: extractExpiresAt(idToken),
+    expiresAt: extractExpiresAt(accessToken, idToken),
   };
 }
 

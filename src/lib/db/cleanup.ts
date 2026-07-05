@@ -352,6 +352,127 @@ export async function purgeDetailedLogs(): Promise<CleanupResult> {
 }
 
 /**
+ * Whitelist of periods accepted by {@link resetUsageHistory}. `"all"` wipes
+ * every row; any other value deletes rows strictly older than `now - period`.
+ */
+export const RESET_USAGE_HISTORY_PERIODS = [
+  "5m",
+  "1h",
+  "3h",
+  "6h",
+  "12h",
+  "1d",
+  "7d",
+  "30d",
+  "all",
+] as const;
+
+export type ResetUsageHistoryPeriod = (typeof RESET_USAGE_HISTORY_PERIODS)[number];
+
+type TimedResetUsageHistoryPeriod = Exclude<ResetUsageHistoryPeriod, "all">;
+
+const RESET_USAGE_HISTORY_PERIOD_MS: Record<TimedResetUsageHistoryPeriod, number> = {
+  "5m": 5 * 60 * 1000,
+  "1h": 60 * 60 * 1000,
+  "3h": 3 * 60 * 60 * 1000,
+  "6h": 6 * 60 * 60 * 1000,
+  "12h": 12 * 60 * 60 * 1000,
+  "1d": 24 * 60 * 60 * 1000,
+  "7d": 7 * 24 * 60 * 60 * 1000,
+  "30d": 30 * 24 * 60 * 60 * 1000,
+};
+
+export interface ResetUsageHistoryResult extends CleanupResult {
+  deletedUsageHistory: number;
+  deletedDailySummary: number;
+  deletedHourlySummary: number;
+}
+
+function isResetUsageHistoryPeriod(period: string): period is ResetUsageHistoryPeriod {
+  return (RESET_USAGE_HISTORY_PERIODS as readonly string[]).includes(period);
+}
+
+/**
+ * On-demand, period-scoped reset of usage analytics data (`usage_history`,
+ * `daily_usage_summary`, `hourly_usage_summary`).
+ *
+ * Unlike {@link cleanupUsageHistory} (retention-based background cleanup,
+ * which rolls up rows into `daily_usage_summary` before deleting them), this
+ * is a destructive user-triggered reset — it intentionally does NOT roll up
+ * first, since the whole point is to wipe the data the user selected.
+ *
+ * @param period - One of {@link RESET_USAGE_HISTORY_PERIODS}. `"all"` wipes
+ *   every row in all three tables; any other value deletes rows strictly
+ *   older than `now - period`. Throws on an invalid period.
+ */
+export async function resetUsageHistory(period: string): Promise<ResetUsageHistoryResult> {
+  if (!isResetUsageHistoryPeriod(period)) {
+    throw new Error(`Invalid reset period: ${period}`);
+  }
+
+  const db = getDbInstance();
+  const result: ResetUsageHistoryResult = {
+    deleted: 0,
+    deletedUsageHistory: 0,
+    deletedDailySummary: 0,
+    deletedHourlySummary: 0,
+    errors: 0,
+  };
+
+  try {
+    const runReset = db.transaction(() => {
+      if (period === "all") {
+        const usageHistory = db.prepare("DELETE FROM usage_history").run();
+        const dailySummary = db.prepare("DELETE FROM daily_usage_summary").run();
+        const hourlySummary = db.prepare("DELETE FROM hourly_usage_summary").run();
+        result.deletedUsageHistory = usageHistory.changes;
+        result.deletedDailySummary = dailySummary.changes;
+        result.deletedHourlySummary = hourlySummary.changes;
+        return;
+      }
+
+      const cutoffMs = Date.now() - RESET_USAGE_HISTORY_PERIOD_MS[period];
+      const cutoffIso = new Date(cutoffMs).toISOString();
+      // usage_history.timestamp is a full ISO string; daily_usage_summary.date is
+      // "YYYY-MM-DD"; hourly_usage_summary.date_hour is "YYYY-MM-DD HH:00:00" (see
+      // src/lib/usage/aggregateHistory.ts, which derives both with SQLite's UTC-based
+      // DATE()/strftime()). Slicing the UTC ISO cutoff keeps all three comparisons
+      // consistent without re-deriving timezone-sensitive date math by hand.
+      const cutoffDate = cutoffIso.slice(0, 10);
+      const cutoffDateHour = `${cutoffIso.slice(0, 10)} ${cutoffIso.slice(11, 13)}:00:00`;
+
+      const usageHistory = db
+        .prepare("DELETE FROM usage_history WHERE timestamp < ?")
+        .run(cutoffIso);
+      const dailySummary = db
+        .prepare("DELETE FROM daily_usage_summary WHERE date < ?")
+        .run(cutoffDate);
+      const hourlySummary = db
+        .prepare("DELETE FROM hourly_usage_summary WHERE date_hour < ?")
+        .run(cutoffDateHour);
+
+      result.deletedUsageHistory = usageHistory.changes;
+      result.deletedDailySummary = dailySummary.changes;
+      result.deletedHourlySummary = hourlySummary.changes;
+    });
+
+    runReset();
+    result.deleted =
+      result.deletedUsageHistory + result.deletedDailySummary + result.deletedHourlySummary;
+
+    console.log(
+      `[Cleanup] Reset usage data (period=${period}): ${result.deletedUsageHistory} usage_history, ` +
+        `${result.deletedDailySummary} daily_usage_summary, ${result.deletedHourlySummary} hourly_usage_summary`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error resetting usage history:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
  * Clean up old proxy_logs based on retention settings.
  * Uses the same retention period as call_logs (30 days default).
  */
