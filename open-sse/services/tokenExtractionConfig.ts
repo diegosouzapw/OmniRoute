@@ -255,7 +255,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     [
       { type: "cookie", name: "sessionid", domain: ".dola.com" },
       { type: "cookie", name: "ttwid", domain: ".dola.com" },
-      { type: "cookie", name: "s_v_web_id", domain: "www.dola.com" },
+      { type: "cookie", name: "s_v_web_id", domain: ".dola.com" },
     ],
     "Log in to Dola at www.dola.com with your ByteDance account. sessionid, ttwid, and s_v_web_id will be extracted.",
     { cookieDomain: ".dola.com" }
