@@ -194,14 +194,13 @@ interface ToolBatchStatus {
 
 New tools with `configType: "custom"` have dedicated settings API routes:
 
-| Route                                       | Tool                                                             |
-| ------------------------------------------- | ---------------------------------------------------------------- |
-| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)                                          |
-| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)                                          |
-| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL, legacy)                           |
-| `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, primary + legacy `~/.deepseek` sync) |
-| `POST /api/cli-tools/smelt-settings`        | Smelt                                                            |
-| `POST /api/cli-tools/pi-settings`           | Pi coding agent                                                  |
+| Route                                    | Tool                                                             |
+| ---------------------------------------- | ---------------------------------------------------------------- |
+| `POST /api/cli-tools/forge-settings`     | ForgeCode (.forge.toml)                                          |
+| `POST /api/cli-tools/jcode-settings`     | jcode (--base-url flag)                                          |
+| `POST /api/cli-tools/codewhale-settings` | CodeWhale (OPENAI_BASE_URL, primary + legacy `~/.deepseek` sync) |
+| `POST /api/cli-tools/smelt-settings`     | Smelt                                                            |
+| `POST /api/cli-tools/pi-settings`        | Pi coding agent                                                  |
 
 All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 

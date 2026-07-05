@@ -184,13 +184,13 @@ interface ToolBatchStatus {
 
 `configType: "custom"` 的新工具具有专用的 settings API 路由：
 
-| 路由                                        | 工具                           |
-| ------------------------------------------- | ------------------------------ |
-| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)        |
-| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url 标志)        |
-| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL) |
-| `POST /api/cli-tools/smelt-settings`        | Smelt                          |
-| `POST /api/cli-tools/pi-settings`           | Pi coding agent                |
+| 路由                                     | 工具                        |
+| ---------------------------------------- | --------------------------- |
+| `POST /api/cli-tools/forge-settings`     | ForgeCode (.forge.toml)     |
+| `POST /api/cli-tools/jcode-settings`     | jcode (--base-url 标志)     |
+| `POST /api/cli-tools/codewhale-settings` | CodeWhale (OPENAI_BASE_URL) |
+| `POST /api/cli-tools/smelt-settings`     | Smelt                       |
+| `POST /api/cli-tools/pi-settings`        | Pi coding agent             |
 
 所有路由均使用 `sanitizeErrorMessage()` 处理错误响应（Hard Rule #12）。
 
