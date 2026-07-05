@@ -154,10 +154,13 @@ const ProviderIcon = memo(function ProviderIcon({
   const theSvgKey = `${normalizedId}:thesvg`;
 
   const trimmedSrc = typeof src === "string" ? src.trim() : "";
-  const useSvg = hasSvg && !failedAssets[svgKey];
-  const useLobeIcon = !useSvg && !!lobeIcon;
-  const usePng = !useSvg && !useLobeIcon && hasPng && !failedAssets[pngKey];
-  const useTheSvg = !useSvg && !useLobeIcon && !usePng && !failedAssets[theSvgKey];
+  const useSvg = !lobeIcon && hasSvg && !failedAssets[svgKey];
+  const usePng = !lobeIcon && hasPng && !failedAssets[pngKey] && (!hasSvg || failedAssets[svgKey]);
+  const useTheSvg =
+    !lobeIcon &&
+    !failedAssets[theSvgKey] &&
+    (!hasSvg || failedAssets[svgKey]) &&
+    (!hasPng || failedAssets[pngKey]);
 
   // #2166: a custom remote icon URL always wins over the @lobehub/static resolution
   // below. It is a plain <img> (not next/image) so operators can point at any host
@@ -203,26 +206,7 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  if (useSvg) {
-    return (
-      <span
-        className={className}
-        style={{ display: "inline-flex", alignItems: "center", ...style }}
-      >
-        <Image
-          src={`/providers/${normalizedId}.svg`}
-          alt={providerId}
-          width={size}
-          height={size}
-          style={{ objectFit: "contain" }}
-          onError={() => setFailedAssets((current) => ({ ...current, [svgKey]: true }))}
-          unoptimized
-        />
-      </span>
-    );
-  }
-
-  if (useLobeIcon) {
+  if (lobeIcon) {
     return (
       <span
         className={className}
@@ -237,21 +221,19 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  if (usePng) {
+  if (useSvg) {
     return (
       <span
         className={className}
         style={{ display: "inline-flex", alignItems: "center", ...style }}
       >
         <Image
-          src={`/providers/${normalizedId}.png`}
+          src={`/providers/${normalizedId}.svg`}
           alt={providerId}
           width={size}
           height={size}
           style={{ objectFit: "contain" }}
-          onError={() => {
-            setFailedAssets((current) => ({ ...current, [pngKey]: true }));
-          }}
+          onError={() => setFailedAssets((current) => ({ ...current, [svgKey]: true }))}
           unoptimized
         />
       </span>
@@ -272,6 +254,27 @@ const ProviderIcon = memo(function ProviderIcon({
           height={size}
           style={{ objectFit: "contain", flex: "none" }}
           onError={() => setFailedAssets((current) => ({ ...current, [theSvgKey]: true }))}
+        />
+      </span>
+    );
+  }
+
+  if (usePng) {
+    return (
+      <span
+        className={className}
+        style={{ display: "inline-flex", alignItems: "center", ...style }}
+      >
+        <Image
+          src={`/providers/${normalizedId}.png`}
+          alt={providerId}
+          width={size}
+          height={size}
+          style={{ objectFit: "contain" }}
+          onError={() => {
+            setFailedAssets((current) => ({ ...current, [pngKey]: true }));
+          }}
+          unoptimized
         />
       </span>
     );

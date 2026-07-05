@@ -72,32 +72,30 @@ describe("ProviderIcon — custom remote icon URL (#2166)", () => {
     expect(img?.getAttribute("src")).toBe("https://example.com/logo.png");
   });
 
-  it("falls back to the generic icon chain when `src` is unset", () => {
+  it("falls back to thesvg.org icon when `src` is unset", () => {
     const container = renderIcon({});
-
-    // 1. First fallback is thesvg.org
-    const theSvgImg = container.querySelector("img");
-    expect(theSvgImg).not.toBeNull();
-    expect(theSvgImg?.getAttribute("src")).toContain("thesvg.org");
-
-    // 2. thesvg.org fails -> falls back to generic svg
-    fireImgError(container);
-    expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelector("svg")).not.toBeNull();
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute("src")).toBe(
+      "https://thesvg.org/icons/openai-compatible-test-node-xyz/default.svg"
+    );
   });
 
-  it("falls back to the generic (lobehub/static) icon chain when `src` load fails and no fallbackText is given", () => {
+  it("falls back to the generic (lobehub/static) icon chain and then generic icon when `src` load fails and no fallbackText is given", () => {
     const container = renderIcon({ src: "https://example.com/broken.png" });
     expect(container.querySelector("img")).not.toBeNull();
 
-    // 1. src fails -> falls back to thesvg.org
-    fireImgError(container);
-    const theSvgImg = container.querySelector("img");
-    expect(theSvgImg).not.toBeNull();
-    expect(theSvgImg?.getAttribute("src")).toContain("thesvg.org");
+    fireImgError(container); // fails custom remote URL
 
-    // 2. thesvg.org fails -> falls back to generic svg
-    fireImgError(container);
+    // Now it falls back to thesvg.org
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute("src")).toBe(
+      "https://thesvg.org/icons/openai-compatible-test-node-xyz/default.svg"
+    );
+
+    fireImgError(container); // fails thesvg.org
+
     expect(container.querySelector("img")).toBeNull();
     expect(container.querySelector("svg")).not.toBeNull();
   });
@@ -117,17 +115,12 @@ describe("ProviderIcon — custom remote icon URL (#2166)", () => {
     expect(container.textContent).toBe("OC");
   });
 
-  it("ignores a whitespace-only src and falls back to the generic icon chain", () => {
+  it("ignores a whitespace-only src and falls back to thesvg.org", () => {
     const container = renderIcon({ src: "   " });
-
-    // 1. First fallback is thesvg.org
-    const theSvgImg = container.querySelector("img");
-    expect(theSvgImg).not.toBeNull();
-    expect(theSvgImg?.getAttribute("src")).toContain("thesvg.org");
-
-    // 2. thesvg.org fails -> falls back to generic svg
-    fireImgError(container);
-    expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelector("svg")).not.toBeNull();
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute("src")).toBe(
+      "https://thesvg.org/icons/openai-compatible-test-node-xyz/default.svg"
+    );
   });
 });
