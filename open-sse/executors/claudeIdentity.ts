@@ -161,12 +161,12 @@ export async function fetchClaudeBootstrap(accessToken: string): Promise<ClaudeB
     const acct = data?.oauth_account as Record<string, unknown> | undefined;
     if (!acct || typeof acct !== "object") return null;
     return {
-      account_uuid: acct.account_uuid || null,
-      account_email: acct.account_email || null,
-      organization_uuid: acct.organization_uuid || null,
-      organization_name: acct.organization_name || null,
-      organization_type: acct.organization_type || null,
-      organization_rate_limit_tier: acct.organization_rate_limit_tier || null,
+      account_uuid: (acct.account_uuid as string) || null,
+      account_email: (acct.account_email as string) || null,
+      organization_uuid: (acct.organization_uuid as string) || null,
+      organization_name: (acct.organization_name as string) || null,
+      organization_type: (acct.organization_type as string) || null,
+      organization_rate_limit_tier: (acct.organization_rate_limit_tier as string) || null,
     };
   } catch {
     return null;
@@ -268,7 +268,7 @@ export function parseUpstreamMetadataUserId(
     return null;
   }
   if (!parsed || typeof parsed !== "object") return null;
-  const { device_id, account_uuid, session_id } = parsed;
+  const { device_id, account_uuid, session_id } = parsed as Record<string, unknown>;
   if (
     typeof device_id !== "string" ||
     !HEX64_RE.test(device_id) ||
