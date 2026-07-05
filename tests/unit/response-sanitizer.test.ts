@@ -898,7 +898,7 @@ test("sanitizeStreamingChunk strips zero-width joiners from native response.func
   const sanitized = sanitizeStreamingChunk({
     type: "response.function_call_arguments.delta",
     delta: '{"command":"o\u200d',
-  }) as any;
+  }) as unknown as { delta: string };
   const output = JSON.stringify(sanitized);
 
   assert.equal(sanitized.delta, '{"command":"o');
@@ -909,7 +909,7 @@ test("sanitizeStreamingChunk strips zero-width joiners from native response.func
   const sanitized = sanitizeStreamingChunk({
     type: "response.function_call_arguments.done",
     arguments: '{"command":"o\u200dpencode"}',
-  }) as any;
+  }) as unknown as { arguments: string };
   const output = JSON.stringify(sanitized);
 
   assert.equal(sanitized.arguments, '{"command":"opencode"}');
@@ -940,7 +940,9 @@ test("sanitizeStreamingChunk strips zero-width joiners from OpenAI chat tool-cal
         },
       },
     ],
-  }) as any;
+  }) as unknown as {
+    choices: { delta: { tool_calls: { function: { arguments: string } }[] } }[];
+  };
   const output = JSON.stringify(sanitized);
 
   assert.equal(
@@ -974,7 +976,9 @@ test("sanitizeOpenAIResponse strips zero-width joiners from non-stream tool-call
         },
       },
     ],
-  }) as any;
+  }) as unknown as {
+    choices: { message: { tool_calls: { function: { arguments: string } }[] } }[];
+  };
   const output = JSON.stringify(sanitized);
 
   assert.equal(
@@ -999,7 +1003,7 @@ test("sanitizeResponsesApiResponse strips zero-width joiners from native functio
         arguments: '{"command":"o\u200dpencode"}',
       },
     ],
-  }) as any;
+  }) as unknown as { output: { arguments: string }[] };
   const output = JSON.stringify(sanitized);
 
   assert.equal(sanitized.output[0].arguments, '{"command":"opencode"}');
@@ -1026,7 +1030,9 @@ test("sanitizer leaves normal tool arguments byte-identical (no parse/restringif
         },
       },
     ],
-  }) as any;
+  }) as unknown as {
+    choices: { delta: { tool_calls: { function: { arguments: string } }[] } }[];
+  };
   assert.equal(streamed.choices[0].delta.tool_calls[0].function.arguments === rawArgs, true);
 
   const nonStream = sanitizeOpenAIResponse({
@@ -1049,6 +1055,8 @@ test("sanitizer leaves normal tool arguments byte-identical (no parse/restringif
         },
       },
     ],
-  }) as any;
+  }) as unknown as {
+    choices: { message: { tool_calls: { function: { arguments: string } }[] } }[];
+  };
   assert.equal(nonStream.choices[0].message.tool_calls[0].function.arguments === rawArgs, true);
 });

@@ -1964,7 +1964,7 @@
   },
   "tests/unit/response-sanitizer.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 84
+      "count": 83
     }
   },
   "tests/unit/responses-parse-once-4041.test.ts": {

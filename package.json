@@ -143,6 +143,8 @@
     "check:tracked-artifacts": "node scripts/check/check-tracked-artifacts.mjs",
     "check:test-masking": "node scripts/check/check-test-masking.mjs",
     "check:test-runner-api": "node scripts/check/check-test-runner-api.mjs",
+    "check:changelog-integrity": "node scripts/check/check-changelog-integrity.mjs",
+    "check:agent-skills-sync": "node --import tsx/esm scripts/skills/generate-agent-skills.mjs",
     "check:build-scope": "node scripts/check/check-build-scope.mjs",
     "check:error-helper": "node scripts/check/check-error-helper.mjs",
     "check:migration-numbering": "node scripts/check/check-migration-numbering.mjs",

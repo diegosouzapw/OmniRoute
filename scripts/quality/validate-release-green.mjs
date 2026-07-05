@@ -33,20 +33,39 @@
 // orchestration lives in the /green-prs + review-prs flows that call it.
 //
 // Usage:
-//   node scripts/quality/validate-release-green.mjs [--json] [--with-build] [--quick]
+//   node scripts/quality/validate-release-green.mjs [--json] [--with-build] [--quick] [--hermetic]
 //     --json        emit machine-readable JSON to stdout (report goes to stderr)
 //     --with-build  also run check:pack-artifact (needs a dist/ build — slow)
 //     --quick       skip the slow unit + vitest + integration suites (drift + fast
 //                   gates only)
+//     --hermetic    scrub OMNIROUTE_API_KEY/OMNIROUTE_URL from gate env so live
+//                   tests self-skip exactly like CI (dev machines otherwise run
+//                   them against localhost and produce false-positive reds)
+//
+// Per-gate output is saved to _artifacts/release-green/<gate>.log (gitignored) —
+// diagnose a red from the file instead of re-running the gate.
 
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+
+// Per-gate captured output. execFileSync buffers everything and the report only
+// shows a one-line summary, so without these files every red requires RE-RUNNING
+// the gate just to see the detail (the dominant cost of the 2026-07-05 pre-flight).
+const LOG_DIR = join(ROOT, "_artifacts", "release-green");
+function saveGateLog(id, out) {
+  try {
+    mkdirSync(LOG_DIR, { recursive: true });
+    writeFileSync(join(LOG_DIR, `${id}.log`), String(out ?? ""));
+  } catch {
+    /* log persistence is best-effort — never fails a gate */
+  }
+}
 
 // ─── Pure helpers (exported for tests) ──────────────────────────────────────
 
@@ -141,6 +160,17 @@ export function classifyRunError(err, timeoutMs) {
   };
 }
 
+// --hermetic: scrub the live-test trigger vars so the pre-flight behaves like CI
+// (a dev machine with OMNIROUTE_API_KEY set runs 17+ live tests that CI skips —
+// every one a false-positive red against the release branch).
+const HERMETIC_SCRUB = ["OMNIROUTE_API_KEY", "OMNIROUTE_URL"];
+let hermetic = false;
+function buildGateEnv(extra) {
+  const env = { ...process.env, FORCE_COLOR: "0", ...(extra || {}) };
+  if (hermetic) for (const k of HERMETIC_SCRUB) delete env[k];
+  return env;
+}
+
 function run(cmd, cmdArgs, opts = {}) {
   try {
     const out = execFileSync(cmd, cmdArgs, {
@@ -148,7 +178,7 @@ function run(cmd, cmdArgs, opts = {}) {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
       maxBuffer: 256 * 1024 * 1024,
-      env: { ...process.env, FORCE_COLOR: "0", ...(opts.env || {}) },
+      env: buildGateEnv(opts.env),
       // A hard ceiling for the long, silent test suites (execFileSync buffers all output until
       // exit, so they show no progress while running). undefined = no timeout for fast gates.
       ...(opts.timeout ? { timeout: opts.timeout } : {}),
@@ -164,6 +194,7 @@ function main() {
   const JSON_OUT = args.has("--json");
   const WITH_BUILD = args.has("--with-build");
   const QUICK = args.has("--quick");
+  hermetic = args.has("--hermetic");
 
   const results = [];
   const record = (r) => {
@@ -180,6 +211,7 @@ function main() {
   const hardCmd = (id, label, cmd, cmdArgs, opts) => {
     announce(label);
     const { code, out } = run(cmd, cmdArgs, opts);
+    saveGateLog(id, out);
     record({
       id,
       label,
@@ -197,6 +229,7 @@ function main() {
   const driftCmd = (id, label, cmd, cmdArgs, okDetail = "within baseline", opts) => {
     announce(label);
     const { code, out } = run(cmd, cmdArgs, opts);
+    saveGateLog(id, out);
     record({
       id,
       label,
@@ -229,6 +262,7 @@ function main() {
       ],
       { timeout: 30 * 60 * 1000 }
     );
+    saveGateLog("lint", out);
     const parsed = parseEslintJson(out);
     if (!parsed) {
       record({
@@ -269,6 +303,7 @@ function main() {
   {
     announce("Cognitive complexity (ratchet)");
     const { out } = run(npmCmd, ["run", "check:cognitive-complexity"]);
+    saveGateLog("cognitive", out);
     const current = parseCognitiveCount(out);
     const base = baselineValue("cognitiveComplexity");
     const over = isDrift(current, base);
@@ -308,6 +343,7 @@ function main() {
     const { code, out } = run(npmCmd, ["run", "check:test-masking"], {
       env: { GITHUB_BASE_REF: "main" },
     });
+    saveGateLog("test-masking", out);
     record({
       id: "test-masking",
       label: "Test-masking (weakened-assert guard)",
