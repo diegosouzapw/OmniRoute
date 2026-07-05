@@ -9,7 +9,7 @@ import type { RegistryEntry } from "../../shared.ts";
  * for all API requests as a query parameter.
  *
  * Models available on the free tier (5 Flows/5h, 38.64 Flows/week):
- * DeepSeek V3.2, GLM 4.7 Flash Free, MiMo V2 Flash Free, and others.
+ * DeepSeek V3.2, GLM 4.7 Flash Free, and others.
  *
  * Short alias "zmf" is distinct from the paid "zenmux" (alias "zm") which
  * uses API-key auth against the OpenAI-compatible endpoint.
@@ -27,7 +27,6 @@ export const zenmux_freeProvider: RegistryEntry = {
     { id: "deepseek/deepseek-reasoner", name: "DeepSeek V3.2 (Thinking)", supportsReasoning: true },
     { id: "deepseek/deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
     { id: "kuaishou/kat-coder-pro-v1-free", name: "KAT Coder Pro V1 Free" },
-    { id: "xiaomi/mimo-v2-flash-free", name: "MiMo V2 Flash Free" },
     { id: "z-ai/glm-4.7-flash-free", name: "GLM 4.7 Flash Free" },
     { id: "stepfun/step-3.5-flash-free", name: "Step 3.5 Flash Free" },
     { id: "inclusionai/ling-1t", name: "Ling 1T" },

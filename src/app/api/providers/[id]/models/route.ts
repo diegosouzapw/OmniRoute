@@ -92,6 +92,7 @@ import {
   normalizeSapModelsResponse,
 } from "./discovery/normalizers";
 import { isNamedOpenAIStyleProvider } from "./discovery/providerSets";
+import { buildStaleEncryptionKeyResponse } from "./staleEncryptionGuard";
 import {
   type ProviderModelsConfigEntry,
   PROVIDER_MODELS_CONFIG,
@@ -192,6 +193,13 @@ export async function GET(
       }
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
+
+    // #6148 — short-circuit when a stored credential is encrypted but no longer
+    // decrypts (STORAGE_ENCRYPTION_KEY changed/unset). Otherwise the null key is
+    // coerced to "", an empty-Bearer probe is sent, and the operator sees a
+    // misleading "Auth failed: 401" instead of the real cause.
+    const staleEncryptionResponse = buildStaleEncryptionKeyResponse(connection);
+    if (staleEncryptionResponse) return staleEncryptionResponse;
 
     const provider =
       typeof connection.provider === "string" && connection.provider.trim().length > 0

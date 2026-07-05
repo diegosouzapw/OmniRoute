@@ -214,6 +214,12 @@ export class KiroExecutor extends BaseExecutor {
     if (b.conversationState !== undefined) kiroPayload.conversationState = b.conversationState;
     if (b.profileArn !== undefined) kiroPayload.profileArn = b.profileArn;
     if (b.inferenceConfig !== undefined) kiroPayload.inferenceConfig = b.inferenceConfig;
+    // Thinking control: `additionalModelRequestFields` ({output_config.effort,
+    // thinking:{type:"adaptive"}, max_tokens}) is a recognized top-level field on
+    // GenerateAssistantResponse — it steers adaptive reasoning. Built by the
+    // openai-to-kiro translator only when the request asked for thinking.
+    if (b.additionalModelRequestFields !== undefined)
+      kiroPayload.additionalModelRequestFields = b.additionalModelRequestFields;
 
     // Fallback: if somehow conversationState isn't there, return the rest without model
     // (for backward compatibility if something else bypasses the translator)
@@ -381,6 +387,56 @@ export class KiroExecutor extends BaseExecutor {
             // Track total content length for token estimation
             if (!state.totalContentLength) state.totalContentLength = 0;
             if (!state.contextUsagePercentage) state.contextUsagePercentage = 0;
+
+            // Native reasoning frames. Verified against the live CodeWhisperer
+            // stream (2026-07): with adaptive thinking enabled (via
+            // additionalModelRequestFields), Kiro streams reasoning as a dedicated
+            // `reasoningContentEvent` frame carrying `{ text, signature }` — NOT
+            // inline `<thinking>` tags and NOT `assistantResponseEvent`. Some
+            // models/variants instead use a `reasoningText` object or a flat
+            // `{ text }` (cf. javargasm/pi-kiro `src/event-parser.ts`). OmniRoute
+            // had no handler for this event, so the reasoning was silently dropped;
+            // route it to the OpenAI `reasoning_content` channel.
+            {
+              const rp = event.payload as Record<string, unknown> | undefined;
+              const rt = rp?.reasoningText;
+              if (eventType === "reasoningContentEvent" || rt !== undefined) {
+                let nativeReasoning = "";
+                if (rt && typeof rt === "object") {
+                  const rto = rt as { text?: unknown; Text?: unknown };
+                  nativeReasoning =
+                    typeof rto.text === "string"
+                      ? rto.text
+                      : typeof rto.Text === "string"
+                        ? rto.Text
+                        : "";
+                } else if (typeof rt === "string") {
+                  nativeReasoning = rt;
+                } else if (typeof rp?.text === "string") {
+                  nativeReasoning = rp.text as string;
+                }
+                if (nativeReasoning) {
+                  state.hasReasoningContent = true;
+                  const reasoningDelta: JsonRecord =
+                    (state.reasoningChunkCount ?? 0) === 0 && chunkIndex === 0
+                      ? { role: "assistant", reasoning_content: nativeReasoning }
+                      : { reasoning_content: nativeReasoning };
+                  const chunk: JsonRecord = {
+                    id: responseId,
+                    object: "chat.completion.chunk",
+                    created,
+                    model,
+                    choices: [{ index: 0, delta: reasoningDelta, finish_reason: null }],
+                  };
+                  chunkIndex++;
+                  state.reasoningChunkCount = (state.reasoningChunkCount ?? 0) + 1;
+                  controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                }
+                // Consume the reasoning frame (incl. signature-only) so it never
+                // falls through to the content handlers below.
+                continue;
+              }
+            }
 
             // Handle assistantResponseEvent
             if (eventType === "assistantResponseEvent") {

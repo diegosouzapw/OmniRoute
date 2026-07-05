@@ -3972,6 +3972,54 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                         <option value="execute">Execute nested combos as targets</option>
                       </select>
                     </div>
+                    {/* #6168: per-combo session-stickiness override (tri-state so it can
+                        force ON or OFF regardless of the global default; blank = inherit). */}
+                    <div>
+                      <FieldLabelWithHelp
+                        label={getI18nOrFallback(
+                          t,
+                          "disableSessionStickiness",
+                          "Disable session stickiness"
+                        )}
+                        help={getI18nOrFallback(
+                          t,
+                          "advancedHelp.disableSessionStickiness",
+                          "Rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Overrides the global default. Leave on Inherit to preserve prompt-cache hits for multi-turn chats."
+                        )}
+                        showHelp={!isExpertMode}
+                      />
+                      <select
+                        value={
+                          config.disableSessionStickiness === true
+                            ? "disabled"
+                            : config.disableSessionStickiness === false
+                              ? "enabled"
+                              : "inherit"
+                        }
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            disableSessionStickiness:
+                              e.target.value === "disabled"
+                                ? true
+                                : e.target.value === "enabled"
+                                  ? false
+                                  : undefined,
+                          })
+                        }
+                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-surface-1 focus:border-primary focus:outline-none"
+                      >
+                        <option value="inherit">
+                          {getI18nOrFallback(t, "stickyLimitInherit", "inherit")}
+                        </option>
+                        <option value="enabled">
+                          {getI18nOrFallback(t, "sessionStickinessEnabled", "Stickiness on")}
+                        </option>
+                        <option value="disabled">
+                          {getI18nOrFallback(t, "sessionStickinessDisabled", "Stickiness off")}
+                        </option>
+                      </select>
+                    </div>
                   </div>
                   {strategy === "context-relay" && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2 border-t border-black/5 dark:border-white/5">

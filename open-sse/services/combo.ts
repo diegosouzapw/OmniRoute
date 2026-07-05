@@ -59,7 +59,11 @@ import { handlePipelineCombo, buildPipelineResponse } from "./autoCombo/pipeline
 import { type ProviderCandidate } from "./autoCombo/scoring.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
-import { applySessionStickiness, recordStickyBinding } from "./combo/sessionStickiness.ts";
+import {
+  applySessionStickiness,
+  recordStickyBinding,
+  resolveDisableSessionStickiness,
+} from "./combo/sessionStickiness.ts";
 import { selectQuotaShareTarget } from "./combo/quotaShareStrategy.ts";
 import { makeConnectionConcurrencyResolver, lookupPositiveCap } from "./combo/concurrencyCaps.ts";
 import { acquireQuotaShareConcurrencySlot } from "./combo/quotaShareConcurrency.ts";
@@ -104,7 +108,11 @@ import {
   getStickyWeightedExecutionKey,
   recordStickyWeightedSuccess,
 } from "./combo/rrState.ts";
-import { validateResponseQuality, toRetryAfterDisplayValue } from "./combo/validateQuality.ts";
+import {
+  validateResponseQuality,
+  releaseQualityClone,
+  toRetryAfterDisplayValue,
+} from "./combo/validateQuality.ts";
 import { resolveComboCooldownWaitDecision } from "./combo/comboCooldownRetry.ts";
 import {
   computeClosestRetryAfter,
@@ -727,6 +735,7 @@ export async function handleComboChat({
             log,
             config.responseValidation
           );
+          releaseQualityClone(pinnedClone, pinnedResult, pinnedQuality);
           if (pinnedQuality.valid) return pinnedResult;
           log.warn(
             "COMBO",
@@ -1113,10 +1122,20 @@ export async function handleComboChat({
       apiKeyAllowedConnections,
     });
   }
-  const _sticky = await applySessionStickiness(
-    orderedTargets,
-    body.messages as Array<{ role?: string; content?: unknown }>
+  // #6168: session stickiness opt-out. Per-combo `config.disableSessionStickiness`
+  // overrides the global `settings.disableSessionStickiness` fallback (default false,
+  // preserving the #3825 prompt-cache/504 fix). When disabled, skip the reorder and
+  // treat the result as a no-op so the recordStickyBinding write-back below is skipped.
+  const disableSessionStickiness = resolveDisableSessionStickiness(
+    config as Record<string, unknown> | null | undefined,
+    settings as Record<string, unknown> | null | undefined
   );
+  const _sticky = disableSessionStickiness
+    ? ({ targets: orderedTargets, messageHash: null, stuck: false } as const)
+    : await applySessionStickiness(
+        orderedTargets,
+        body.messages as Array<{ role?: string; content?: unknown }>
+      );
   orderedTargets = _sticky.targets;
   orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
   orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
@@ -1549,6 +1568,7 @@ export async function handleComboChat({
               log,
               config.responseValidation
             );
+            releaseQualityClone(qualityClone, result, quality);
             if (!quality.valid) {
               log.warn(
                 "COMBO",
@@ -2451,10 +2471,19 @@ async function handleRoundRobinCombo({
   // call — so sessionless RR combos rotated every turn, busting the upstream prompt-cache.
   // Reuse the SAME mechanism: start the rotation at the conversation's sticky connection
   // (the loop still falls through to the other targets on failure → failover preserved).
-  const _rrSessionSticky = await applySessionStickiness(
-    filteredTargets,
-    body?.messages as Array<{ role?: string; content?: unknown }>
+  // #6168: honor the session-stickiness opt-out here too, otherwise round-robin would
+  // still pin the conversation even when the flag is set. Per-combo `config` overrides
+  // the global `settings.disableSessionStickiness` fallback (default false).
+  const disableSessionStickiness = resolveDisableSessionStickiness(
+    config as Record<string, unknown> | null | undefined,
+    settings as Record<string, unknown> | null | undefined
   );
+  const _rrSessionSticky = disableSessionStickiness
+    ? ({ targets: filteredTargets, messageHash: null, stuck: false } as const)
+    : await applySessionStickiness(
+        filteredTargets,
+        body?.messages as Array<{ role?: string; content?: unknown }>
+      );
   let rrStartIndex = startIndex;
   if (_rrSessionSticky.stuck) {
     const stickyIdx = filteredTargets.findIndex(
@@ -2623,6 +2652,7 @@ async function handleRoundRobinCombo({
             log,
             config.responseValidation
           );
+          releaseQualityClone(rrClone, result, quality);
           if (!quality.valid) {
             log.warn(
               "COMBO-RR",

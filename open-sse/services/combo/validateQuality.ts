@@ -415,3 +415,27 @@ export async function validateResponseQuality(
     }),
   };
 }
+
+/**
+ * Release the peek-and-abandon clone used by {@link validateResponseQuality}.
+ *
+ * The quality check clones the upstream response, reads the clone only until the
+ * first content block, then hands back a `clonedResponse` that callers on the
+ * streaming path DISCARD (they forward the original, untouched response). Because
+ * a `Response.clone()` tees the body, that abandoned branch would otherwise buffer
+ * the entire remaining body in memory until the original finishes streaming.
+ *
+ * Cancelling the abandoned branch releases that buffer. Per the ReadableStream tee
+ * contract, cancelling one branch does NOT cancel the shared source while the other
+ * branch (the original response being streamed to the client) is still active, so
+ * this is safe. No-op when the clone fell back to the original (clone unsupported)
+ * or when quality reading already exhausted the body (no `clonedResponse`).
+ */
+export function releaseQualityClone(
+  clone: Response,
+  original: Response,
+  quality: { clonedResponse?: Response }
+): void {
+  if (clone === original) return;
+  void quality.clonedResponse?.body?.cancel().catch(() => {});
+}

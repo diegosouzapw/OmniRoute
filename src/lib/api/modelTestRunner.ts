@@ -9,6 +9,9 @@ import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
 
 const INTERNAL_ORIGIN = "http://omniroute.internal";
 const DEFAULT_TEST_TIMEOUT_MS = 10_000;
+const DOLA_PRO_TEST_TIMEOUT_MS = 90_000;
+const DOUBAO_WEB_PROVIDER_ID = "doubao-web";
+const SLOW_WEB_TEST_MODELS = new Set(["dola-pro"]);
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -68,6 +71,26 @@ export function extractProviderErrorMessage(body: unknown, fallback: string) {
 function stripFirstSegment(modelId: string): string | null {
   const slashIdx = modelId.indexOf("/");
   return slashIdx > 0 ? modelId.slice(slashIdx + 1) : null;
+}
+
+function getModelLeafId(modelId: string): string {
+  const segments = modelId.trim().toLowerCase().split("/").filter(Boolean);
+  return segments[segments.length - 1] || "";
+}
+
+export function resolveModelTestTimeoutMs(
+  providerId: string,
+  modelId: string,
+  requestedTimeoutMs: number = DEFAULT_TEST_TIMEOUT_MS
+) {
+  if (
+    providerId.trim().toLowerCase() === DOUBAO_WEB_PROVIDER_ID &&
+    SLOW_WEB_TEST_MODELS.has(getModelLeafId(modelId))
+  ) {
+    return Math.max(requestedTimeoutMs, DOLA_PRO_TEST_TIMEOUT_MS);
+  }
+
+  return requestedTimeoutMs;
 }
 
 async function findCustomModelMetadata(providerId: string, modelId: string) {
@@ -198,6 +221,7 @@ export async function runSingleModelTest(
   if (!fullModelStr.includes("/")) {
     fullModelStr = `${providerId}/${modelId}`;
   }
+  const effectiveTimeoutMs = resolveModelTestTimeoutMs(providerId, fullModelStr, timeoutMs);
 
   const startTime = Date.now();
   const customModel = await findCustomModelMetadata(providerId, fullModelStr);
@@ -224,7 +248,7 @@ export async function runSingleModelTest(
   const timeoutHandle = setTimeout(() => {
     timedOut = true;
     controller.abort();
-  }, timeoutMs);
+  }, effectiveTimeoutMs);
 
   const runInner = async (signal: AbortSignal): Promise<Response> => {
     if (isEmbedding) {
@@ -262,7 +286,7 @@ export async function runSingleModelTest(
           status: "error",
           latencyMs,
           httpStatus: 500,
-          error: `Timeout (${Math.round(timeoutMs / 1000)}s)`,
+          error: `Timeout (${Math.round(effectiveTimeoutMs / 1000)}s)`,
           isTimeout: true,
         };
       }

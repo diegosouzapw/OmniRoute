@@ -60,6 +60,8 @@ export default function FreeProviderRankingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<string>("");
+  const [configuredOnly, setConfiguredOnly] = useState(false);
+  const [configuredProviderIds, setConfiguredProviderIds] = useState<Set<string>>(new Set());
 
   const fetchRankings = useCallback(
     async (category?: string) => {
@@ -86,6 +88,28 @@ export default function FreeProviderRankingsPage() {
     fetchRankings(filter || undefined);
   }, [filter, fetchRankings]);
 
+  useEffect(() => {
+    let active = true;
+    fetch("/api/providers")
+      .then((res) => (res.ok ? res.json() : { connections: [] }))
+      .then((data) => {
+        if (!active) return;
+        const ids = new Set<string>();
+        for (const conn of data.connections || []) {
+          if (conn?.provider) ids.add(conn.provider);
+        }
+        setConfiguredProviderIds(ids);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const displayedRankings = configuredOnly
+    ? rankings.filter((r) => configuredProviderIds.has(r.id))
+    : rankings;
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -111,6 +135,30 @@ export default function FreeProviderRankingsPage() {
             {t(opt.labelKey)}
           </button>
         ))}
+        <div className="ml-auto flex items-center gap-2">
+          <label
+            htmlFor="configured-only-toggle"
+            className="text-sm text-text-muted select-none cursor-pointer"
+            title={t("configuredOnlyHint")}
+          >
+            {t("configuredOnly")}
+          </label>
+          <button
+            id="configured-only-toggle"
+            role="switch"
+            aria-checked={configuredOnly}
+            onClick={() => setConfiguredOnly(!configuredOnly)}
+            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 ${
+              configuredOnly ? "bg-violet-500" : "bg-border"
+            }`}
+          >
+            <span
+              className={`pointer-events-none block h-4 w-4 rounded-full bg-white shadow-lg transition-transform ${
+                configuredOnly ? "translate-x-4" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       {error && <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm">{error}</div>}
@@ -122,9 +170,9 @@ export default function FreeProviderRankingsPage() {
       ) : (
         <>
           {/* Top 3 Podium */}
-          {rankings.length >= 3 && (
+          {displayedRankings.length >= 3 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {rankings.slice(0, 3).map((provider, idx) => (
+              {displayedRankings.slice(0, 3).map((provider, idx) => (
                 <Card key={provider.id} className="relative overflow-hidden">
                   <div
                     className={`absolute top-0 left-0 right-0 h-1 ${
@@ -168,7 +216,7 @@ export default function FreeProviderRankingsPage() {
           )}
 
           {/* Full List */}
-          {rankings.length > 0 && (
+          {displayedRankings.length > 0 && (
             <Card>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -181,10 +229,11 @@ export default function FreeProviderRankingsPage() {
                       <th className="pb-3 font-medium text-right">{t("colAvgScore")}</th>
                       <th className="pb-3 font-medium text-right">{t("colModels")}</th>
                       <th className="pb-3 font-medium text-right">{t("colType")}</th>
+                      <th className="pb-3 font-medium text-right">{t("colConfigured")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {rankings.map((provider, idx) => (
+                    {displayedRankings.map((provider, idx) => (
                       <tr key={provider.id} className="border-b border-border/50 last:border-b-0">
                         <td className="py-3 text-text-muted font-mono">{idx + 1}</td>
                         <td className="py-3">
@@ -229,6 +278,17 @@ export default function FreeProviderRankingsPage() {
                             {provider.category.toUpperCase()}
                           </span>
                         </td>
+                        <td className="py-3 text-right">
+                          {configuredProviderIds.has(provider.id) ? (
+                            <span className="text-xs px-2 py-1 rounded bg-green-500/10 text-green-500">
+                              ✓
+                            </span>
+                          ) : (
+                            <span className="text-xs px-2 py-1 rounded bg-text-muted/10 text-text-muted">
+                              —
+                            </span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -237,9 +297,13 @@ export default function FreeProviderRankingsPage() {
             </Card>
           )}
 
-          {rankings.length === 0 && !error && (
+          {displayedRankings.length === 0 && !error && (
             <Card>
-              <div className="text-center py-12 text-text-muted">{t("emptyState")}</div>
+              <div className="text-center py-12 text-text-muted">
+                {configuredOnly && rankings.length > 0
+                  ? t("noConfiguredProviders")
+                  : t("emptyState")}
+              </div>
             </Card>
           )}
         </>

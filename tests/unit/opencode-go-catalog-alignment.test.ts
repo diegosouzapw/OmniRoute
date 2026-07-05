@@ -11,13 +11,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { opencode_goProvider } = await import(
-  "../../open-sse/config/providers/registry/opencode/go/index.ts"
-);
+const { opencode_goProvider } =
+  await import("../../open-sse/config/providers/registry/opencode/go/index.ts");
 
 function modelIds(): string[] {
   return (opencode_goProvider.models ?? []).map((m) => m.id);
 }
+
+const DEPRECATED_MIMO_V2_MODELS = ["mimo-v2-pro", "mimo-v2-omni"];
 
 test("opencode-go advertises glm-5.2 (official Go endpoint addition)", () => {
   assert.ok(
@@ -31,6 +32,13 @@ test("opencode-go advertises kimi-k2.7-code (live API rejects plain kimi-k2.7 fo
     modelIds().includes("kimi-k2.7-code"),
     `expected kimi-k2.7-code in opencode-go catalog, got: ${modelIds().join(", ")}`
   );
+});
+
+test("opencode-go does not advertise deprecated MiMo V2 models", () => {
+  const ids = modelIds();
+  for (const modelId of DEPRECATED_MIMO_V2_MODELS) {
+    assert.ok(!ids.includes(modelId), `${modelId} is deprecated`);
+  }
 });
 
 test("opencode-go preserves the pre-existing minimax-m3 and qwen routing via targetFormat=claude", () => {
