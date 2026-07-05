@@ -242,11 +242,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/settings/components/ComboDefaultsTab.tsx": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/settings/components/ModelLockoutCard.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
@@ -1132,11 +1127,6 @@
       "count": 4
     }
   },
-  "tests/unit/copilot-gemini-claude-route-no-responses.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 9
-    }
-  },
   "tests/unit/cursor-usage-fetcher.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -1397,11 +1387,6 @@
       "count": 1
     }
   },
-  "tests/unit/executor-kiro.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "tests/unit/executor-nlpcloud.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
@@ -1570,11 +1555,6 @@
   "tests/unit/memory-summarization.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    }
-  },
-  "tests/unit/messages-count-tokens-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 4
     }
   },
   "tests/unit/mimocode-executor.test.ts": {
@@ -2007,11 +1987,6 @@
       "count": 9
     }
   },
-  "tests/unit/save-call-log-persistence.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 7
-    }
-  },
   "tests/unit/schema-coercion.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 12
@@ -2355,11 +2330,6 @@
   "tests/unit/vscode-token-routes.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 76
-    }
-  },
-  "tests/unit/web-cookie-providers-new.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 18
     }
   },
   "tests/unit/web-runtime-env.test.ts": {

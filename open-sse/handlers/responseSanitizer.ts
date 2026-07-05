@@ -554,6 +554,23 @@ function normalizeResponsesId(id: unknown): string {
   return `resp_${id}`;
 }
 
+/**
+ * True when a Responses output item is an assistant `message` in the internal
+ * `commentary` phase — i.e. reasoning/scratchpad text that must never reach the
+ * client. Streaming `response.output_text.delta` events do not carry the `phase`
+ * themselves, so the passthrough path uses this on the `response.output_item.added`
+ * item to decide which subsequent deltas/dones to drop statefully (#6199).
+ */
+export function isResponsesCommentaryMessageItem(item: unknown): boolean {
+  const itemRecord = toRecord(item);
+  if (!itemRecord) return false;
+  const type = toString(itemRecord.type) || "message";
+  if (type !== "message") return false;
+  const role = toString(itemRecord.role) || "assistant";
+  const phase = toString(itemRecord.phase);
+  return role === "assistant" && phase === "commentary";
+}
+
 function sanitizeResponsesStreamingOutputItem(item: unknown): JsonRecord | null {
   const itemRecord = toRecord(item);
   if (!itemRecord) return null;
@@ -562,8 +579,7 @@ function sanitizeResponsesStreamingOutputItem(item: unknown): JsonRecord | null 
 
   if (type === "message") {
     const role = toString(itemRecord.role) || "assistant";
-    const phase = toString(itemRecord.phase);
-    if (role === "assistant" && phase === "commentary") {
+    if (isResponsesCommentaryMessageItem(itemRecord)) {
       return null;
     }
 

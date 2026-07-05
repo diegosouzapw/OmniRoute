@@ -273,3 +273,22 @@ test("#3685 streaming is preserved for non-empty response: clonedResponse body y
   assert.ok(decoded.includes("Hello"), "decoded body must contain the actual text content");
   assert.ok(decoded.includes(", world!"), "decoded body must contain the full text delta");
 });
+
+test("#5976 truly EMPTY streaming body (zero bytes) → invalid for combo failover", async () => {
+  // A 200 SSE response whose body closes without emitting a single byte
+  // (e.g. Gemini returning HTTP 200 with an empty body) cannot carry content —
+  // fail over to the sibling model. Streams with ANY SSE activity (an explicit
+  // [DONE], ping/metadata events) keep the pass-through contract (#3399/#3685).
+  const emptyBody = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.close();
+    },
+  });
+  const res = new Response(emptyBody, {
+    status: 200,
+    headers: { "content-type": "text/event-stream" },
+  });
+  const out = await validateResponseQuality(res, true, silentLog);
+  assert.equal(out.valid, false, "zero-byte streaming body must trigger failover");
+  assert.equal(out.reason, "streaming no recognized content");
+});

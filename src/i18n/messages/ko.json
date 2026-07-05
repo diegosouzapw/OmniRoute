@@ -4812,8 +4812,8 @@
     "v0VercelWebDesc": "__MISSING__:AI code generation via v0.dev",
     "kimiWebLabel": "__MISSING__:Kimi Web",
     "kimiWebDesc": "__MISSING__:Moonshot AI consumer chat via www.kimi.com (international, Connect-RPC API)",
-    "doubaoWebLabel": "__MISSING__:Doubao Web",
-    "doubaoWebDesc": "__MISSING__:ByteDance AI chat via doubao.com"
+    "doubaoWebLabel": "Dola Web",
+    "doubaoWebDesc": "dola.com을 통한 ByteDance AI 채팅"
   },
   "settings": {
     "title": "설정",

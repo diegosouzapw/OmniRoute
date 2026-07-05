@@ -309,7 +309,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/bun": "latest",
-    "@types/node": "^26.0.0",
+    "@types/node": "^26.1.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@types/safe-regex": "^1.1.6",

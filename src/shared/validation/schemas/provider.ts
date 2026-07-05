@@ -92,6 +92,8 @@ export const bulkCreateProviderSchema = z
         z.object({
           name: z.string().min(1).max(200),
           apiKey: z.string().min(1).max(10000),
+          // Per-key account id — required for cloudflare-ai (enforced in superRefine below).
+          accountId: z.string().min(1).max(200).optional(),
         })
       )
       .min(1, "entries must contain at least 1 item")
@@ -119,6 +121,19 @@ export const bulkCreateProviderSchema = z
           path: ["providerSpecificData", "cx"],
         });
       }
+    }
+    if (data.provider === "cloudflare-ai") {
+      // Cloudflare Workers AI builds its per-connection URL from accountId, so every
+      // bulk entry must carry its own non-empty account id (name|accountId|apiKey).
+      data.entries.forEach((entry, index) => {
+        if (typeof entry.accountId !== "string" || entry.accountId.trim().length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "accountId is required for cloudflare-ai entries",
+            path: ["entries", index, "accountId"],
+          });
+        }
+      });
     }
   });
 

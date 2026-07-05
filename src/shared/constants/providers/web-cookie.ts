@@ -185,6 +185,21 @@ export const WEB_COOKIE_PROVIDERS = {
       "Paste the full Cookie header from lmarena.ai (DevTools → Network → request → Cookie). The session is now split across arena-auth-prod-v1.0, .1, … — copy the whole header. Optional — works with free tier for basic comparisons.",
     riskNoticeVariant: "webCookie",
   },
+  "yuanbao-web": {
+    id: "yuanbao-web",
+    alias: "ybw",
+    name: "Tencent Yuanbao (Free)",
+    icon: "auto_awesome",
+    color: "#0052D9",
+    textIcon: "YB",
+    website: "https://yuanbao.tencent.com",
+    hasFree: true,
+    freeNote:
+      "Free consumer web session — DeepSeek V3/R1 and Hunyuan / Hunyuan-T1, optional web search. No subscription required. Rate limits apply.",
+    authHint:
+      "Log in to yuanbao.tencent.com, then paste the full Cookie header (DevTools → Network → any /api request → Request Headers → Cookie). It must contain hy_user and hy_token.",
+    riskNoticeVariant: "webCookie",
+  },
   huggingchat: {
     id: "huggingchat",
     // "hc" belongs to the hackclub provider; huggingchat uses its own id as alias.
@@ -243,19 +258,21 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#2563EB",
     textIcon: "KW",
     website: "https://www.kimi.com",
-    authHint: "Paste your Cookie header from www.kimi.com (must contain kimi-auth=...). Find it via DevTools → Network → request → Cookie.",
+    authHint:
+      "Paste your Cookie header from www.kimi.com (must contain kimi-auth=...). Find it via DevTools → Network → request → Cookie.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
   "doubao-web": {
     id: "doubao-web",
     alias: "db",
-    name: "Doubao Web (ByteDance)",
+    name: "Dola Web (ByteDance)",
     icon: "auto_awesome",
     color: "#3B82F6",
-    textIcon: "DW",
-    website: "https://www.doubao.com",
-    authHint: "Paste your session cookie from doubao.com (DevTools → Application → Cookies)",
+    textIcon: "DA",
+    website: "https://www.dola.com",
+    authHint:
+      "Paste the full Cookie header from www.dola.com. It should include sessionid, ttwid, and s_v_web_id. If s_v_web_id is unavailable, fp=verify_... from a chat/completion request URL can be used as a fallback.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
@@ -298,7 +315,7 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://zenmux.ai",
     hasFree: true,
     freeNote:
-      "Free tier (5 Flows/5h, 38.64 Flows/week) — DeepSeek V3.2, GLM 4.7 Flash Free, MiMo V2 Flash Free and more. No subscription required.",
+      "Free tier (5 Flows/5h, 38.64 Flows/week) — DeepSeek V3.2, GLM 4.7 Flash Free and more. No subscription required.",
     authHint:
       "Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days.",
   },

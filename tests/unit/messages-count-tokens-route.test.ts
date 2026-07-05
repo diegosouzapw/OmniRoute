@@ -11,6 +11,13 @@ const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const { POST } = await import("../../src/app/api/v1/messages/count_tokens/route.ts");
 
+type CountTokensResponse = {
+  input_tokens: number;
+  source: string;
+  provider?: string;
+  model?: string;
+};
+
 async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -68,7 +75,7 @@ test("messages/count_tokens uses real provider count when Claude-compatible upst
     );
 
     assert.equal(response.status, 200);
-    const body = (await response.json()) as any;
+    const body = (await response.json()) as CountTokensResponse;
     assert.equal(body.input_tokens, 321);
     assert.equal(body.source, "provider");
     assert.equal(body.provider, "anthropic");
@@ -96,7 +103,7 @@ test("messages/count_tokens falls back to estimate when model is missing", async
   );
 
   assert.equal(response.status, 200);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as CountTokensResponse;
   assert.equal(body.input_tokens, 4); // tiktoken: "abcd"=1 + "12345678"=3
   assert.equal(body.source, "local");
 });
@@ -108,9 +115,79 @@ test("count_tokens fallback uses exact tiktoken count with source=local", async 
     body: JSON.stringify({ messages: [{ role: "user", content: "hello world" }] }),
   });
   const res = await POST(req);
-  const json = (await res.json()) as any;
+  const json = (await res.json()) as CountTokensResponse;
   assert.equal(json.source, "local");
   assert.equal(json.input_tokens, 2); // exact cl100k_base count, not Math.ceil(11/4)=3
+});
+
+test("count_tokens estimate counts tool_use / tool_result / thinking blocks (not just text) — #2337", async () => {
+  // Real agentic conversations carry ~95% of their tokens inside tool_use inputs
+  // and tool_result content. The estimation path used to only sum `text` blocks,
+  // returning input_tokens: 0 for the shape below, which silently broke Claude
+  // Code's auto-compaction. Every non-text block below must contribute tokens.
+  const response = await POST(
+    new Request("http://localhost/v1/messages/count_tokens", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: "assistant",
+            content: [
+              {
+                type: "thinking",
+                thinking: "The user wants me to read a file, let me call the Read tool.",
+              },
+              {
+                type: "tool_use",
+                id: "toolu_01",
+                name: "Read",
+                input: { file_path: "/tmp/a.txt", limit: 200 },
+              },
+            ],
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "tool_result",
+                tool_use_id: "toolu_01",
+                content: "line1 line2 line3 some file content here",
+              },
+            ],
+          },
+        ],
+      }),
+    })
+  );
+
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as CountTokensResponse;
+  assert.equal(body.source, "local");
+  // Before the fix this was 0 (only `text` blocks were counted).
+  assert.ok(
+    body.input_tokens > 0,
+    `expected tool/thinking blocks to contribute tokens, got ${body.input_tokens}`
+  );
+});
+
+test("count_tokens estimate counts array-form system prompt blocks — #2337", async () => {
+  const response = await POST(
+    new Request("http://localhost/v1/messages/count_tokens", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system: [{ type: "text", text: "You are a helpful coding assistant." }],
+        messages: [{ role: "user", content: "hi" }],
+      }),
+    })
+  );
+
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as CountTokensResponse;
+  assert.equal(body.source, "local");
+  // Array-form `system` used to count as 0 (only string system was summed).
+  assert.ok(body.input_tokens > 1, `expected system blocks counted, got ${body.input_tokens}`);
 });
 
 test("messages/count_tokens falls back to estimate when real upstream count fails", async () => {
@@ -132,7 +209,7 @@ test("messages/count_tokens falls back to estimate when real upstream count fail
     );
 
     assert.equal(response.status, 200);
-    const body = (await response.json()) as any;
+    const body = (await response.json()) as CountTokensResponse;
     assert.equal(body.input_tokens, 1); // tiktoken: "abcd"=1
     assert.equal(body.source, "local");
   } finally {

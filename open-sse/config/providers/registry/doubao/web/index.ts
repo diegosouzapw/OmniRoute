@@ -5,11 +5,11 @@ export const doubao_webProvider: RegistryEntry = {
   alias: "db",
   format: "openai",
   executor: "doubao-web",
-  baseUrl: "https://www.doubao.com/api/chat",
+  baseUrl: "https://www.dola.com/chat/completion",
   authType: "apikey",
   authHeader: "cookie",
   models: [
-    { id: "doubao-default", name: "Doubao Default" },
-    { id: "doubao-pro", name: "Doubao Pro" },
+    { id: "dola-speed", name: "Dola Speed" },
+    { id: "dola-pro", name: "Dola Pro" },
   ],
 };

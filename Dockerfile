@@ -60,22 +60,25 @@ RUN --mount=type=cache,target=/root/.npm \
   && npm rebuild better-sqlite3 \
   && node -e "require('better-sqlite3')(':memory:').close()"
 
-# Build with webpack (stable). Turbopack hit a non-recoverable internal panic on this
-# Next.js version during the v3.8.27 release build — TurbopackInternalError "entered
-# unreachable code: there must be a path to a root" in ImportTracer::get_traces, on both
-# linux/amd64 and linux/arm64. Webpack is the proven engine (build:release / VPS / CI Build
-# all green). Re-enable Turbopack (=1) once the upstream tracer bug is fixed.
+# Build with Turbopack (stable in Next 16, the repo default). The v3.8.27-era
+# TurbopackInternalError panic ("entered unreachable code: there must be a path to a
+# root" in ImportTracer::get_traces) no longer reproduces on Next 16.2.9 — validated
+# 2026-07-05 with clean amd64 (12min14s, image smoke-tested: /api/monitoring/health
+# 200) and arm64 (qemu, exit 0, zero panic strings) builds. Turbopack cut the bare
+# build from 17min to 9min on the same 32-core box. Webpack stays available as the
+# escape hatch: `--build-arg`/-e OMNIROUTE_USE_TURBOPACK=0.
 # See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
-ENV OMNIROUTE_USE_TURBOPACK=0
+ENV OMNIROUTE_USE_TURBOPACK=1
 
 # Raise the V8 heap ceiling for the build. The webpack production optimization
-# pass (forced above since Turbopack panics) needs more than V8's default ceiling
-# (~2 GB) for a codebase this size; a memory-constrained Docker build otherwise
-# dies with "FATAL ERROR: ... JavaScript heap out of memory" during the builder
-# stage (#4076). NODE_OPTIONS propagates to the spawned `next build` child
-# (build-next-isolated.mjs → resolveNextBuildEnv spreads process.env). Build-only;
-# the runtime heap is set separately on the runner stage (OMNIROUTE_MEMORY_MB).
-# Override for hosts with more/less RAM: `--build-arg OMNIROUTE_BUILD_MEMORY_MB=6144`.
+# pass needs more than V8's default ceiling (~2 GB) for a codebase this size; a
+# memory-constrained Docker build otherwise dies with "FATAL ERROR: ... JavaScript
+# heap out of memory" during the builder stage (#4076). Turbopack's compile is
+# native (Rust) and less V8-heap-bound, but the prerender/export phase still runs
+# on V8, so keep the ceiling. NODE_OPTIONS propagates to the spawned `next build`
+# child (build-next-isolated.mjs → resolveNextBuildEnv spreads process.env).
+# Build-only; the runtime heap is set separately on the runner stage
+# (OMNIROUTE_MEMORY_MB). Override: `--build-arg OMNIROUTE_BUILD_MEMORY_MB=6144`.
 ARG OMNIROUTE_BUILD_MEMORY_MB=4096
 ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_BUILD_MEMORY_MB}"
 
