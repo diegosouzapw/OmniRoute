@@ -6,6 +6,10 @@
 
 ## [3.8.45] — TBD
 
+### 🔧 Bug Fixes
+
+- **fix(api):** relay worker now binds the SSRF guard to a stable `const` name so minified standalone (Docker) builds resolve it ([#6149](https://github.com/diegosouzapw/OmniRoute/issues/6149)) — the Vercel/Deno relay generators embedded the shared `resolveRelayTarget` guard as a bare `${fn.toString()}` declaration while the worker body called the hardcoded literal name; SWC minification mangled the source function's name, so the deployed worker defined `<mangled>` but still called `resolveRelayTarget` → `ReferenceError`. Both templates now emit `const resolveRelayTarget = ${fn.toString()};` (the const name is a template literal, immune to minification). Regression guard: `tests/unit/relay-minified-fn-6149.test.ts` (4). (thanks @SeaXen)
+
 ### ⚡ Performance & Infrastructure
 
 - **perf(test):** test-suite loader quick wins ([#6214](https://github.com/diegosouzapw/OmniRoute/pull/6214)) — the 19 test scripts switch `--import tsx` → `--import tsx/esm` (the repo is pure ESM; the unused CJS hook cost ~1.3s per test process × 2,462 processes — CI fast-path unit shards dropped 14.8→7.5 min, −49%), tsx bumped to ^4.23.0 (tsx#809 startup-regression fix), **37 orphan `.test.mjs` files (224 cases) recovered** into the canonical glob (they matched no runner and never ran in any CI job; `check:test-discovery` now scans `.mjs` too), and ci.yml/quality.yml unit jobs now call the canonical npm script `test:unit:ci:shard` (single source of truth — closes two silent drifts: missing `setupPolyfill` import in CI and `memory/`+`usage/` dirs absent from the fast-path glob). `tests/unit/dashboard/**` keeps the full tsx hook in its own invocation (`@lobehub/icons` es/ build internally `require()`s ESM-syntax files).
