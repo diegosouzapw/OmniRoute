@@ -1,6 +1,9 @@
 import path from "path";
 
-const DEFAULT_APP_LOG_RETENTION_DAYS = 7;
+// DATA_DIR is the project root for local installs or ~/.omniroute/ for global CLI.
+// Fall back to cwd so existing setups don't break silently.
+const appRoot = process.env.DATA_DIR || process.cwd();
+const DEFAULT_APP_LOG_PATH = path.join(appRoot, "logs", "application", "app.log");
 const DEFAULT_CALL_LOG_RETENTION_DAYS = 7;
 const DEFAULT_APP_LOG_MAX_SIZE = 50 * 1024 * 1024;
 const DEFAULT_APP_LOG_MAX_FILES = 20;
@@ -8,7 +11,7 @@ const DEFAULT_CALL_LOG_MAX_ENTRIES = 10000;
 const DEFAULT_CALL_LOGS_TABLE_MAX_ROWS = 100000;
 const DEFAULT_CALL_LOG_PIPELINE_MAX_SIZE_KB = 512;
 const DEFAULT_PROXY_LOGS_TABLE_MAX_ROWS = 100000;
-const DEFAULT_APP_LOG_PATH = path.join(process.cwd(), "logs", "application", "app.log");
+
 
 function parsePositiveInt(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
