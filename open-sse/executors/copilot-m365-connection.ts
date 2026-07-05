@@ -170,22 +170,33 @@ export function resolveConnectionParams(
   const host = (typeof psd.host === "string" && psd.host) || M365_INDIVIDUAL_DEFAULTS.host;
   const variants = typeof psd.variants === "string" && psd.variants ? psd.variants : undefined;
 
-  // Tier selection (opt-in). tier="edu"|"included" applies the EDU overrides; individual
-  // fields can also be overridden directly via providerSpecificData. (#6210)
+  return { host, chathubPath, accessToken, variants, ...resolveTierOverrides(psd) };
+}
+
+/**
+ * Resolve tier overrides (opt-in). `tier="edu"|"included"` applies the EDU overrides;
+ * individual fields (`scenario`/`isEdu`/`licenseType`) can also be overridden directly
+ * via providerSpecificData. Unset fields fall back to the individual defaults in
+ * buildWsUrl. (#6210)
+ */
+function resolveTierOverrides(
+  psd: JsonRecord
+): Pick<M365ConnectionParams, "scenario" | "isEdu" | "licenseType"> {
   const tier = typeof psd.tier === "string" ? psd.tier.toLowerCase() : "";
   const isEduTier = tier === "edu" || tier === "included";
-  const scenario =
-    (typeof psd.scenario === "string" && psd.scenario) ||
-    (isEduTier ? M365_EDU_OVERRIDES.scenario : undefined);
-  const isEdu =
+  const psdIsEdu =
     (typeof psd.isEdu === "string" && psd.isEdu) ||
     (typeof psd.isEdu === "boolean" && String(psd.isEdu)) ||
-    (isEduTier ? M365_EDU_OVERRIDES.isEdu : undefined);
-  const licenseType =
-    (typeof psd.licenseType === "string" && psd.licenseType) ||
-    (isEduTier ? M365_EDU_OVERRIDES.licenseType : undefined);
-
-  return { host, chathubPath, accessToken, variants, scenario, isEdu, licenseType };
+    undefined;
+  return {
+    scenario:
+      (typeof psd.scenario === "string" && psd.scenario) ||
+      (isEduTier ? M365_EDU_OVERRIDES.scenario : undefined),
+    isEdu: psdIsEdu || (isEduTier ? M365_EDU_OVERRIDES.isEdu : undefined),
+    licenseType:
+      (typeof psd.licenseType === "string" && psd.licenseType) ||
+      (isEduTier ? M365_EDU_OVERRIDES.licenseType : undefined),
+  };
 }
 
 /**
