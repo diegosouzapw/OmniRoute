@@ -1,22 +1,6 @@
 [
-  {
-    "name": "CLI entry (omniroute.mjs)",
-    "path": "bin/omniroute.mjs",
-    "limit": "15 KB"
-  },
-  {
-    "name": "MCP server entry (mcp-server.mjs)",
-    "path": "bin/mcp-server.mjs",
-    "limit": "5 KB"
-  },
-  {
-    "name": "Node runtime support (nodeRuntimeSupport.mjs)",
-    "path": "bin/nodeRuntimeSupport.mjs",
-    "limit": "8 KB"
-  },
-  {
-    "name": "Reset password entry (reset-password.mjs)",
-    "path": "bin/reset-password.mjs",
-    "limit": "6 KB"
-  }
+  { "path": "apps/web/.svelte-kit/output/client/_app/immutable/entry/app.*.js", "limit": "20 KB" },
+  { "path": "apps/web/.svelte-kit/output/client/_app/immutable/chunks/*.js", "limit": "100 KB" },
+  { "path": "apps/web/.svelte-kit/output/server/index.js", "limit": "200 KB" },
+  { "path": "apps/bff/dist/index.js", "limit": "1 MB" }
 ]

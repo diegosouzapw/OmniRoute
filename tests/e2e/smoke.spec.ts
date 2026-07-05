@@ -1,33 +1,38 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
-test.describe("Smoke — Static Pages", () => {
-  test("landing page renders", async ({ page }) => {
-    await page.goto("/landing");
-    await expect(page).toHaveTitle(/OmniRoute/i);
-    const hero = page.locator("h1").first();
-    await expect(hero).toBeVisible();
-  });
+test('home page renders', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('h1')).toContainText('Welcome to OmniRoute v4');
+});
 
-  test("/terms page renders all sections", async ({ page }) => {
-    await page.goto("/terms");
-    await expect(page).toHaveTitle(/Terms of Service/i);
-    await expect(page.locator("h1")).toContainText("Terms of Service");
-    // Verify at least 4 section headings
-    const headings = page.locator("h2");
-    await expect(headings).toHaveCount(6);
-  });
+test('login page renders', async ({ page }) => {
+  await page.goto('/login');
+  await expect(page.getByLabel('Email')).toBeVisible();
+  await expect(page.getByLabel('Password')).toBeVisible();
+});
 
-  test("/privacy page renders all sections", async ({ page }) => {
-    await page.goto("/privacy");
-    await expect(page).toHaveTitle(/Privacy Policy/i);
-    await expect(page.locator("h1")).toContainText("Privacy Policy");
-    const headings = page.locator("h2");
-    await expect(headings).toHaveCount(7);
-  });
+test('dashboard home renders', async ({ page }) => {
+  await page.goto('/dashboard');
+  await expect(page.locator('h1')).toContainText('Dashboard');
+});
 
-  test("back link on /terms navigates home", async ({ page }) => {
-    await page.goto("/terms");
-    const backLink = page.locator('a[href="/"]').first();
-    await expect(backLink).toBeVisible();
-  });
+test('providers page renders', async ({ page }) => {
+  await page.goto('/dashboard/providers');
+  await expect(page.locator('h2').first()).toContainText('Providers');
+});
+
+test('usage page renders', async ({ page }) => {
+  await page.goto('/dashboard/usage');
+  await expect(page.locator('h2').first()).toContainText('Usage');
+});
+
+test('health page renders with SSE', async ({ page }) => {
+  await page.goto('/dashboard/health');
+  await expect(page.locator('h2').first()).toContainText('Health');
+  await expect(page.getByText('Disconnected')).toBeVisible();
+});
+
+test('settings page renders', async ({ page }) => {
+  await page.goto('/dashboard/settings/general');
+  await expect(page.locator('h2').first()).toContainText('General settings');
 });
