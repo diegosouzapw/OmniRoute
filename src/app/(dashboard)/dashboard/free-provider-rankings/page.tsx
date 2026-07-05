@@ -60,14 +60,21 @@ export default function FreeProviderRankingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<string>("");
+  const [configuredOnly, setConfiguredOnly] = useState(false);
+  const [availableOnly, setAvailableOnly] = useState(false);
 
   const fetchRankings = useCallback(
-    async (category?: string) => {
+    async (category?: string, opts?: { configuredOnly?: boolean; availableOnly?: boolean }) => {
       setLoading(true);
       setError("");
       try {
-        const url = category
-          ? `/api/free-provider-rankings?category=${category}`
+        const params = new URLSearchParams();
+        if (category) params.set("category", category);
+        if (opts?.configuredOnly) params.set("configuredOnly", "1");
+        if (opts?.availableOnly) params.set("availableOnly", "1");
+        const qs = params.toString();
+        const url = qs
+          ? `/api/free-provider-rankings?${qs}`
           : "/api/free-provider-rankings";
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -83,8 +90,8 @@ export default function FreeProviderRankingsPage() {
   );
 
   useEffect(() => {
-    fetchRankings(filter || undefined);
-  }, [filter, fetchRankings]);
+    fetchRankings(filter || undefined, { configuredOnly, availableOnly });
+  }, [filter, configuredOnly, availableOnly, fetchRankings]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -111,6 +118,33 @@ export default function FreeProviderRankingsPage() {
             {t(opt.labelKey)}
           </button>
         ))}
+      </div>
+
+      {/* Availability toggles (default off → show all providers) */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <button
+          onClick={() => setConfiguredOnly((v) => !v)}
+          aria-pressed={configuredOnly}
+          className={`px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
+            configuredOnly
+              ? "bg-emerald-500 border-emerald-500 text-white"
+              : "border-border text-text-muted hover:text-text-main hover:border-emerald-500/50"
+          }`}
+        >
+          {t("filterConfiguredOnly")}
+        </button>
+        <button
+          onClick={() => setAvailableOnly((v) => !v)}
+          aria-pressed={availableOnly}
+          title={t("filterAvailableOnlyHelp")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
+            availableOnly
+              ? "bg-emerald-500 border-emerald-500 text-white"
+              : "border-border text-text-muted hover:text-text-main hover:border-emerald-500/50"
+          }`}
+        >
+          {t("filterAvailableOnly")}
+        </button>
       </div>
 
       {error && <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm">{error}</div>}

@@ -11,6 +11,7 @@
 import { NOAUTH_PROVIDERS, OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/providers";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { listModelIntelligence } from "./db/modelIntelligence";
+import { getProviderConnections } from "./db/providers";
 
 export interface ProviderModelScore {
   modelId: string;
@@ -161,15 +162,107 @@ export function findMatchingIntelligence(
 }
 
 /**
+ * Minimal shape of a provider connection needed to decide "configured" /
+ * "non-exhausted". Matches the camelCase columns returned by
+ * `getProviderConnections()` (`provider`, `testStatus`, `rateLimitedUntil`).
+ */
+export interface ConnectionState {
+  provider: string;
+  testStatus?: string | null;
+  rateLimitedUntil?: string | null;
+}
+
+/**
+ * Options controlling the additive "configured" / "available" filters.
+ * Both default off (undefined/false) → output identical to current behavior.
+ */
+export interface FreeProviderRankingFilterOptions {
+  /** Keep only providers that have ≥1 (active) connection configured. */
+  configuredOnly?: boolean;
+  /** Keep only providers that have ≥1 non-exhausted, non-rate-limited connection (implies configured). */
+  availableOnly?: boolean;
+}
+
+// Terminal connection statuses — mirrors `isTerminalConnectionStatus`
+// (`src/sse/services/auth.ts`). A connection in one of these states stays
+// unavailable until credentials/settings change; it never self-recovers.
+const TERMINAL_CONNECTION_STATUSES = new Set(["credits_exhausted", "banned", "expired"]);
+
+/**
+ * Pure predicate: is at least one of a provider's connections usable *right now*?
+ *
+ * A connection is usable when it is neither terminal (`testStatus` ∉
+ * {credits_exhausted, banned, expired}) nor currently rate-limited
+ * (`rateLimitedUntil` null or in the past — lazy recovery, matching the
+ * Connection Cooldown rule in CLAUDE.md).
+ *
+ * NOTE: granularity is PROVIDER-level (connection = provider+account). Per-model
+ * quota lockout (model lockout, `open-sse/services/accountFallback.ts`) is a
+ * deferred Phase 3 and is intentionally NOT consulted here.
+ */
+export function isProviderUsable(connections: ConnectionState[], now: number = Date.now()): boolean {
+  return connections.some((conn) => {
+    const status = (conn.testStatus || "").trim().toLowerCase();
+    if (TERMINAL_CONNECTION_STATUSES.has(status)) return false;
+    if (conn.rateLimitedUntil) {
+      const until = new Date(conn.rateLimitedUntil).getTime();
+      if (Number.isFinite(until) && until > now) return false;
+    }
+    return true;
+  });
+}
+
+/**
+ * Pure filter over a ranking list + a snapshot of provider connections.
+ *
+ * - `configuredOnly`: keep only providers whose `id` appears in `connections`.
+ * - `availableOnly` (implies configured): additionally require ≥1 usable
+ *   connection per `isProviderUsable`.
+ *
+ * With both flags off/absent the input list is returned unchanged.
+ * Fully synchronous + side-effect-free so it can be unit-tested without a DB.
+ */
+export function filterFreeProviderRankings(
+  rankings: FreeProviderRanking[],
+  connections: ConnectionState[],
+  opts: FreeProviderRankingFilterOptions = {},
+  now: number = Date.now()
+): FreeProviderRanking[] {
+  const { configuredOnly, availableOnly } = opts;
+  if (!configuredOnly && !availableOnly) return rankings;
+
+  const byProvider = new Map<string, ConnectionState[]>();
+  for (const conn of connections) {
+    const list = byProvider.get(conn.provider);
+    if (list) {
+      list.push(conn);
+    } else {
+      byProvider.set(conn.provider, [conn]);
+    }
+  }
+
+  return rankings.filter((ranking) => {
+    const conns = byProvider.get(ranking.id);
+    if (!conns || conns.length === 0) return false; // not configured
+    if (availableOnly) return isProviderUsable(conns, now);
+    return true; // configuredOnly
+  });
+}
+
+/**
  * Compute rankings for free providers based on ELO scores.
  *
  * @param category - Optional filter for task category (e.g., "coding", "default")
  * @param limit - Maximum number of providers to return
+ * @param opts - Optional additive filters (configured-only / available-only).
+ *   When set, live provider-connection state is read from the DB and providers
+ *   with no configured / no usable connection are dropped. Both default off.
  */
-export function computeFreeProviderRankings(
+export async function computeFreeProviderRankings(
   category?: string,
-  limit: number = 50
-): FreeProviderRanking[] {
+  limit: number = 50,
+  opts: FreeProviderRankingFilterOptions = {}
+): Promise<FreeProviderRanking[]> {
   const freeProviders = getFreeProviders();
   const intelligenceEntries = listModelIntelligence({
     source: "arena_elo",
@@ -235,5 +328,13 @@ export function computeFreeProviderRankings(
     return b.averageScore - a.averageScore;
   });
 
-  return rankings.slice(0, limit);
+  // Apply the additive configured/available filters (if requested) BEFORE the
+  // limit slice, so `limit` counts providers that survive the filter.
+  let filtered = rankings;
+  if (opts.configuredOnly || opts.availableOnly) {
+    const connections = (await getProviderConnections({ isActive: true })) as ConnectionState[];
+    filtered = filterFreeProviderRankings(rankings, connections, opts);
+  }
+
+  return filtered.slice(0, limit);
 }

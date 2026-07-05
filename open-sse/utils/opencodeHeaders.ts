@@ -32,11 +32,19 @@ function findHeader(headers: Record<string, string>, name: string): string | und
  * @param options.synthesizeRequestId - When true (OpencodeExecutor only), maps
  *   x-session-affinity / x-session-id to x-opencode-session when the latter is
  *   missing, and synthesizes a UUID for x-opencode-request if also missing.
+ * @param options.cliDefaults - When provided (OpencodeExecutor only), synthesize
+ *   the OpenCode CLI identity headers that Cloudflare requires on VPS egress
+ *   (User-Agent, x-opencode-client, x-opencode-project) plus fresh request/session
+ *   UUIDs, but ONLY for keys the client did not already supply. Client values always
+ *   win; these defaults only fill gaps. (#5997)
  */
 export function forwardOpencodeClientHeaders(
   headers: Record<string, string>,
   clientHeaders: Record<string, string>,
-  options?: { synthesizeRequestId?: boolean }
+  options?: {
+    synthesizeRequestId?: boolean;
+    cliDefaults?: { userAgent: string; client: string; project: string };
+  }
 ): void {
   // 1. Forward User-Agent
   const clientUA = clientHeaders["User-Agent"] || clientHeaders["user-agent"];
@@ -64,4 +72,27 @@ export function forwardOpencodeClientHeaders(
       }
     }
   }
+
+  // 4. OpencodeExecutor-only: synthesize the OpenCode CLI identity Cloudflare expects
+  //    on VPS egress, for any key the client did not supply (#5997).
+  if (options?.cliDefaults) {
+    applyCliDefaults(headers, options.cliDefaults);
+  }
+}
+
+/**
+ * Fill the OpenCode CLI identity headers Cloudflare requires on VPS egress, but only for
+ * keys the client did not already supply (client values always win). (#5997)
+ */
+function applyCliDefaults(
+  headers: Record<string, string>,
+  cliDefaults: { userAgent: string; client: string; project: string }
+): void {
+  if (!headers["User-Agent"] && !headers["user-agent"]) {
+    setUserAgentHeader(headers, cliDefaults.userAgent);
+  }
+  headers["x-opencode-client"] ||= cliDefaults.client;
+  headers["x-opencode-project"] ||= cliDefaults.project;
+  headers["x-opencode-request"] ||= randomUUID();
+  headers["x-opencode-session"] ||= randomUUID();
 }

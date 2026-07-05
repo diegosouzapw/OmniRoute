@@ -5,7 +5,7 @@ import {
   parseOutboundUrl,
   isCloudMetadataHost,
   OutboundUrlGuardError,
-} from "@/shared/network/outboundUrlGuard";
+} from "../../../shared/network/outboundUrlGuard";
 
 const CONFIG_PATH = path.join(os.homedir(), ".config", "opencode", "opencode.json");
 

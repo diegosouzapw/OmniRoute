@@ -348,7 +348,7 @@ export default function AddApiKeyModal({
 
   const handleBulkSubmit = async () => {
     if (!provider) return;
-    const parsed = parseBulkApiKeys(bulkText);
+    const parsed = parseBulkApiKeys(bulkText, { withAccountId: isCloudflare });
     setBulkWarnings(parsed.warnings);
     if (parsed.entries.length === 0) return;
 
@@ -378,7 +378,11 @@ export default function AddApiKeyModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider,
-          entries: parsed.entries.map((e) => ({ name: e.name, apiKey: e.apiKey })),
+          entries: parsed.entries.map((e) => ({
+            name: e.name,
+            apiKey: e.apiKey,
+            ...(e.accountId ? { accountId: e.accountId } : {}),
+          })),
           priority: formData.priority || 1,
           providerSpecificData,
           validateKeys: bulkValidateKeys,
@@ -457,12 +461,18 @@ export default function AddApiKeyModal({
 
         {bulkSupported && mode === "bulk" && (
           <div className="flex flex-col gap-3">
-            <p className="text-xs text-text-muted">{t("bulkAddFormatHint")}</p>
+            <p className="text-xs text-text-muted">
+              {isCloudflare ? t("bulkAddFormatHintCloudflare") : t("bulkAddFormatHint")}
+            </p>
             {openRouterPreset.input}
             {freeModelsToggle}
             <textarea
               className="w-full rounded border border-border bg-background p-2 text-sm font-mono resize-y min-h-[140px] focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder={"name1|sk-key1\nname2|sk-key2\nsk-key-only-auto-named"}
+              placeholder={
+                isCloudflare
+                  ? "name1|account-id-1|cf-token-1\nname2|account-id-2|cf-token-2"
+                  : "name1|sk-key1\nname2|sk-key2\nsk-key-only-auto-named"
+              }
               value={bulkText}
               onChange={(e) => setBulkText(e.target.value)}
             />

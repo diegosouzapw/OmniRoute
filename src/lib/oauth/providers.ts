@@ -113,10 +113,18 @@ export function generateAuthData(providerName, redirectUri) {
   const { codeVerifier, codeChallenge, state } = generatePKCE();
 
   if (provider.flowType === "import_token") {
-    const error =
-      providerName === "windsurf" || providerName === "devin-cli"
-        ? "Browser login disabled — paste token from https://windsurf.com/show-auth-token instead. Phase 2 will restore Firebase OAuth via app.devin.ai successor."
-        : `Browser login is disabled for ${providerName}. Use the import-token flow instead.`;
+    let error: string;
+    if (providerName === "windsurf" || providerName === "devin-cli") {
+      error =
+        "Browser login disabled — paste token from https://windsurf.com/show-auth-token instead. Phase 2 will restore Firebase OAuth via app.devin.ai successor.";
+    } else if (providerName === "zed") {
+      error =
+        "Zed does not use a browser OAuth flow. Use the Zed provider page to import credentials " +
+        "directly from the OS keychain (POST /api/providers/zed/import), or paste a token manually " +
+        "via POST /api/providers/zed/manual-import for Docker environments.";
+    } else {
+      error = `Browser login is disabled for ${providerName}. Use the import-token flow instead.`;
+    }
     return {
       authUrl: undefined,
       state: undefined,

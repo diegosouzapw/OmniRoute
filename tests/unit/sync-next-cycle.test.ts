@@ -1,0 +1,86 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import {
+  insertNextSection,
+  extractSection,
+} from "../../scripts/release/sync-next-cycle.mjs";
+
+// Pure-function guards for the parallel-cycle sync-back (generate-release
+// Phase 5 step 20): main's CHANGELOG must win VERBATIM and the next cycle's
+// section must be re-inserted on top without eating any of main's bullets
+// (anti-CHANGELOG-eat protocol, design doc
+// _tasks/release-flow/2026-07-04_proposta-ciclo-paralelo-v2.md).
+
+const MAIN = `# Changelog
+
+## [Unreleased]
+
+---
+
+## [3.8.44] — 2026-07-04
+
+### ✨ New Features
+
+- **feat(a):** shipped feature one. (#1)
+- **feat(b):** shipped feature two. (#2)
+
+### 🙌 Contributors
+
+| Contributor | PRs / Issues |
+| --- | --- |
+| [@x](https://github.com/x) | #1 |
+
+---
+
+## [3.8.43] — 2026-07-02
+
+- **old:** bullet. (#0)
+`;
+
+const CYCLE_SECTION = `## [3.8.45] — TBD
+
+### ✨ New Features
+
+- **feat(new):** cycle bullet accumulated before the sync. (#9)`;
+
+test("insertNextSection puts the cycle section before main's latest version, keeping main intact", () => {
+  const out = insertNextSection(MAIN, CYCLE_SECTION, "3.8.45");
+  const i45 = out.indexOf("## [3.8.45]");
+  const i44 = out.indexOf("## [3.8.44]");
+  const i43 = out.indexOf("## [3.8.43]");
+  assert.ok(i45 !== -1 && i44 !== -1 && i43 !== -1, "all three sections present");
+  assert.ok(i45 < i44 && i44 < i43, "ordering: 3.8.45 → 3.8.44 → 3.8.43");
+  // main's content survives verbatim (no bullet eaten)
+  assert.ok(out.includes("shipped feature one"), "main bullet 1 intact");
+  assert.ok(out.includes("shipped feature two"), "main bullet 2 intact");
+  assert.ok(out.includes("| [@x](https://github.com/x) | #1 |"), "contributors row intact");
+  // the cycle's accumulated bullet survives
+  assert.ok(out.includes("cycle bullet accumulated before the sync"), "cycle bullet intact");
+});
+
+test("insertNextSection synthesizes a TBD placeholder when the cycle has no section yet", () => {
+  const out = insertNextSection(MAIN, null, "3.8.45");
+  assert.ok(out.includes("## [3.8.45] — TBD"));
+  assert.ok(out.indexOf("## [3.8.45]") < out.indexOf("## [3.8.44]"));
+});
+
+test("insertNextSection replaces a pre-existing copy of the next section instead of duplicating", () => {
+  const withNext = insertNextSection(MAIN, CYCLE_SECTION, "3.8.45");
+  const again = insertNextSection(withNext, CYCLE_SECTION, "3.8.45");
+  const count = (again.match(/## \[3\.8\.45\]/g) || []).length;
+  assert.equal(count, 1, "exactly one [3.8.45] heading after re-run (idempotent)");
+});
+
+test("extractSection returns header through the line before the next heading, trimming the separator", () => {
+  const withNext = insertNextSection(MAIN, CYCLE_SECTION, "3.8.45");
+  const section = extractSection(withNext, "3.8.45");
+  assert.ok(section, "section found");
+  assert.ok(section.startsWith("## [3.8.45]"));
+  assert.ok(section.includes("cycle bullet accumulated"));
+  assert.ok(!section.includes("## [3.8.44]"), "does not bleed into the next section");
+  assert.ok(!section.trimEnd().endsWith("---"), "trailing separator trimmed");
+});
+
+test("extractSection returns null when the version has no section", () => {
+  assert.equal(extractSection(MAIN, "9.9.9"), null);
+});

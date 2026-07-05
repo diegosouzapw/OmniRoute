@@ -43,6 +43,9 @@ export async function handleChatGptWebImageGeneration({
   log,
   signal,
   clientHeaders,
+  // Injectable so unit tests can drive the handler without a live ChatGPT
+  // session; production uses the real executor.
+  executorFactory = () => new ChatGptWebExecutor(),
 }) {
   const startTime = Date.now();
   const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
@@ -98,7 +101,7 @@ export async function handleChatGptWebImageGeneration({
   };
 
   for (let i = 0; i < requestedCount; i++) {
-    const executor = new ChatGptWebExecutor();
+    const executor = executorFactory();
     const result = await executor.execute({
       model,
       body: {
@@ -124,21 +127,30 @@ export async function handleChatGptWebImageGeneration({
     }
 
     let content = "";
+    let imageResolutionFailed = false;
     try {
       const json = JSON.parse(responseText);
       content = String(json?.choices?.[0]?.message?.content || "");
+      imageResolutionFailed = json?.x_image_resolution_failed === true;
     } catch {
       content = responseText;
     }
 
     const urls = extractMarkdownImageUrls(content);
     if (urls.length === 0) {
+      // Distinguish "image was generated upstream but OmniRoute could not
+      // retrieve it" (executor flagged the unresolved asset pointer) from
+      // "no image was produced at all" — the former is our bug/limitation,
+      // not a failed prompt, so the message must not read as "no image made".
+      const error = imageResolutionFailed
+        ? `ChatGPT Web generated an image but OmniRoute could not retrieve it (the image asset could not be downloaded — the URL may have expired or ChatGPT changed its image delivery format). Please retry; if it persists, report it. Assistant text: ${content.slice(0, 200)}`
+        : `ChatGPT Web completed without returning image markdown: ${content.slice(0, 300)}`;
       return saveImageErrorResult({
         provider,
         model,
         status: 502,
         startTime,
-        error: `ChatGPT Web completed without returning image markdown: ${content.slice(0, 300)}`,
+        error,
         requestBody,
       });
     }

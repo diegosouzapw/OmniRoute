@@ -228,3 +228,52 @@ export function incrementalDelta(previous: string, next: string): string {
   if (next.startsWith(previous)) return next.slice(previous.length);
   return next;
 }
+
+/**
+ * Extract an incremental `writeAtCursor` delta from a `type:1` update frame. The EDU /
+ * GPT-5.5 path (`OfficeWebIncludedCopilot`, feature.bizchatfluxv3) streams response text
+ * as `arguments[0].writeAtCursor` INCREMENTS instead of only accumulated `messages[].text`
+ * snapshots. Returns null when the frame carries no writeAtCursor delta. (#6210)
+ */
+export function extractWriteAtCursor(frame: Record<string, unknown> | null): string | null {
+  if (!isUpdateFrame(frame)) return null;
+  const args = (frame as Record<string, unknown>).arguments;
+  const first = Array.isArray(args) ? (args[0] as Record<string, unknown> | undefined) : undefined;
+  const wac = first?.writeAtCursor;
+  return typeof wac === "string" && wac.length > 0 ? wac : null;
+}
+
+/**
+ * Extract the final answer from a `type:2` invocation-result frame
+ * (`item.result.message`). Used as a last-resort fallback when a turn emitted no
+ * streamed content (some EDU turns only surface the answer here). (#6210)
+ */
+export function extractFinalResultMessage(frame: Record<string, unknown> | null): string | null {
+  if (!frame || frame.type !== 2) return null;
+  const item = frame.item as Record<string, unknown> | undefined;
+  const result = item?.result as Record<string, unknown> | undefined;
+  const message = result?.message;
+  return typeof message === "string" && message.length > 0 ? message : null;
+}
+
+/**
+ * Fold a single incoming frame into the running bot answer, returning the suffix to
+ * stream (`delta`) and the new accumulated text (`next`). Handles both wire formats:
+ * `messages[].text` snapshots are the full accumulated answer (diffed via
+ * {@link incrementalDelta}), while `writeAtCursor` frames are incremental and are
+ * appended. Non-content frames leave the state unchanged. (#6210)
+ */
+export function accumulateBotContent(
+  previous: string,
+  frame: Record<string, unknown> | null
+): { delta: string; next: string } {
+  const snapshot = extractBotText(frame);
+  if (snapshot) {
+    return { delta: incrementalDelta(previous, snapshot), next: snapshot };
+  }
+  const wac = extractWriteAtCursor(frame);
+  if (wac) {
+    return { delta: wac, next: previous + wac };
+  }
+  return { delta: "", next: previous };
+}

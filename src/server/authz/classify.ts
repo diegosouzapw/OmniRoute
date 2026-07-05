@@ -1,7 +1,7 @@
 import {
-  PUBLIC_API_ROUTE_PREFIXES,
   PUBLIC_READONLY_API_ROUTE_PREFIXES,
   PUBLIC_READONLY_METHODS,
+  isPublicApiRoute,
 } from "../../shared/constants/publicApiRoutes";
 import type { ClassificationReason, RouteClassification } from "./types";
 
@@ -131,11 +131,5 @@ function matchesReadonlyPublic(path: string, method: string): boolean {
 }
 
 function isClassifiedAsPublic(path: string, method: string): boolean {
-  const isV1ApiPrefix = (p: string) =>
-    p === "/api/v1" || p === "/api/v1/" || p.startsWith("/api/v1/");
-  const filtered = PUBLIC_API_ROUTE_PREFIXES.filter((p) => p !== "/api/v1/");
-  if (filtered.some((prefix) => path.startsWith(prefix)) && !isV1ApiPrefix(path)) {
-    return true;
-  }
-  return matchesReadonlyPublic(path, method);
+  return isPublicApiRoute(path, method);
 }
