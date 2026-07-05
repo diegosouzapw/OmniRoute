@@ -32,11 +32,6 @@ for (const [id, alias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
 // or backward-compatible slug changes, not a single provider's display name.
 // opencode/ → opencode-zen (the main free/open tier; opencode-go is a separate paid tier)
 ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
-
-// Manual aliases for external compatibility not covered by PROVIDER_ID_TO_ALIAS.
-// OpenCode's Zen provider now uses the "opencode" slug, but OmniRoute registers
-// it as "opencode-zen". This alias ensures `opencode/<model>` resolves correctly.
-ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
 // xiaomi/ is the user-visible prefix for MiMo models; register it so
 // parseModel("xiaomi/mimo-v2-flash") resolves provider = "xiaomi-mimo" instead
 // of falling through to the identity fallback ("xiaomi").
@@ -147,7 +142,24 @@ interface ProviderConnectionLike {
  */
 export function resolveProviderAlias(aliasOrId: string | null | undefined): string | null {
   if (typeof aliasOrId !== "string") return null;
-  return ALIAS_TO_PROVIDER_ID[aliasOrId] || aliasOrId;
+  // Follow the alias chain transitively so intermediate alias-only hops resolve
+  // to the final target, but STOP as soon as a hop lands on a registered
+  // provider id (#2901): "oc" must resolve to the no-auth "opencode" provider,
+  // NOT continue through the manual "opencode" → "opencode-zen" slug override —
+  // that override is for user-typed `opencode/` prefixes only. Without this
+  // boundary the no-auth provider becomes unreachable by any prefix.
+  // Guarded against infinite loops with both a depth limit and a seen-set.
+  let current = aliasOrId;
+  const seen = new Set<string>();
+  for (let i = 0; i < 10; i++) {
+    const next = ALIAS_TO_PROVIDER_ID[current];
+    if (!next || next === current) return current;
+    if (next in PROVIDER_ID_TO_ALIAS) return next;
+    if (seen.has(next)) return next;
+    seen.add(next);
+    current = next;
+  }
+  return current;
 }
 
 /**
@@ -546,8 +558,15 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     };
   }
 
-  // Fallback for newly released OpenAI-family model IDs that may not be in the local catalog yet.
-  if (/^gpt-/i.test(modelId) || /^o1/i.test(modelId) || /^o3/i.test(modelId)) {
+  // Fallback for newly released OpenAI-family model IDs that may not be in the local
+  // catalog yet. This must only fire when NO known provider catalogs the model id —
+  // otherwise it hijacks cataloged open-weight models like "gpt-oss-120b" (served by
+  // fireworks/cerebras/scaleway/byteplus) into provider "openai", which does not carry
+  // them (#5852).
+  if (
+    providers.length === 0 &&
+    (/^gpt-/i.test(modelId) || /^o1/i.test(modelId) || /^o3/i.test(modelId))
+  ) {
     return {
       provider: "openai",
       model: modelId,

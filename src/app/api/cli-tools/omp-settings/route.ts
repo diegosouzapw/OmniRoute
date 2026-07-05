@@ -4,11 +4,13 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { exec } from "child_process";
 import { promisify } from "util";
-import fs from "fs/promises";
 import path from "path";
 import os from "os";
-import Database from "better-sqlite3";
+import fs from "fs/promises";
 import yaml from "js-yaml";
+import { validateBody } from "@/shared/validation/schemas";
+import { cliAuthOnlyConfigSchema } from "@/shared/validation/schemas/cli";
+import { getOmpCredentials, saveOmpCredentials, deleteOmpCredentials } from "@/lib/db/omp";
 
 const execAsync = promisify(exec);
 
@@ -50,26 +52,6 @@ const readModelsYml = async () => {
   }
 };
 
-const readOmpCredentials = () => {
-  const dbPath = getOmpDbPath();
-  try {
-    const db = new Database(dbPath, { readonly: true });
-    const row = db
-      .prepare(
-        "SELECT data FROM auth_credentials WHERE provider = ? AND credential_type = 'api_key'"
-      )
-      .get(PROVIDER_ID);
-    db.close();
-    if (row?.data) {
-      const parsed = JSON.parse(row.data);
-      return { hasOmniRoute: true, baseUrl: parsed.baseUrl || null, apiKey: parsed.apiKey || null };
-    }
-    return { hasOmniRoute: false, baseUrl: null, apiKey: null };
-  } catch {
-    return { hasOmniRoute: false, baseUrl: null, apiKey: null };
-  }
-};
-
 export async function GET() {
   try {
     const installed = await checkOmpInstalled();
@@ -82,7 +64,7 @@ export async function GET() {
       });
     }
 
-    const creds = readOmpCredentials();
+    const creds = getOmpCredentials(PROVIDER_ID);
     const modelsYml = await readModelsYml();
     const ymlProvider = modelsYml?.providers?.[PROVIDER_ID];
 
@@ -108,12 +90,10 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    // validateBody() check bypassed - handled manually
-    const { baseUrl, apiKey } = await request.json();
+    const { success, data, errorResponse } = await validateBody(request, cliAuthOnlyConfigSchema);
+    if (!success || !data) return errorResponse;
 
-    if (!baseUrl) {
-      return NextResponse.json({ error: "baseUrl is required" }, { status: 400 });
-    }
+    const { baseUrl, apiKey } = data;
 
     const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
     const keyRef = apiKey || "sk_omniroute";
@@ -136,21 +116,7 @@ export async function POST(request: Request) {
     await fs.writeFile(getOmpModelsYmlPath(), yaml.dump(modelsYml, { lineWidth: -1 }), "utf-8");
 
     // 2. Write auth_credentials — so omp sees omniroute as "logged in"
-    const dbPath = getOmpDbPath();
-    const db = new Database(dbPath);
-
-    db.prepare("DELETE FROM auth_credentials WHERE provider = ?").run(PROVIDER_ID);
-    db.prepare(
-      "INSERT INTO auth_credentials (provider, credential_type, data, disabled_cause, identity_key, created_at, updated_at) VALUES (?, ?, ?, NULL, NULL, ?, ?)"
-    ).run(
-      PROVIDER_ID,
-      "api_key",
-      JSON.stringify({ apiKey: keyRef, baseUrl: normalizedBaseUrl }),
-      Math.floor(Date.now() / 1000),
-      Math.floor(Date.now() / 1000)
-    );
-
-    db.close();
+    saveOmpCredentials(PROVIDER_ID, keyRef, normalizedBaseUrl);
 
     return NextResponse.json({
       success: true,
@@ -180,10 +146,7 @@ export async function DELETE() {
     }
 
     // 2. Remove from auth_credentials
-    const dbPath = getOmpDbPath();
-    const db = new Database(dbPath);
-    db.prepare("DELETE FROM auth_credentials WHERE provider = ?").run(PROVIDER_ID);
-    db.close();
+    deleteOmpCredentials(PROVIDER_ID);
 
     return NextResponse.json({
       success: true,

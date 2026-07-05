@@ -4,13 +4,21 @@ import { useState } from "react";
 
 const CUSTOM_VALUE = "__custom__";
 
+interface ApiKeySelectProps {
+  value: string;
+  onChange: (value: string) => void;
+  apiKeys?: Array<{ id: string | number; key: string; name: string }>;
+  cloudEnabled?: boolean;
+  className?: string;
+}
+
 export default function ApiKeySelect({
   value,
   onChange,
   apiKeys = [],
   cloudEnabled = false,
   className = "",
-}) {
+}: ApiKeySelectProps) {
   const isCustom = !apiKeys.some((k) => k.key === value) && value !== "";
   const [mode, setMode] = useState(() => {
     if (!value) return apiKeys.length > 0 ? apiKeys[0].key : CUSTOM_VALUE;

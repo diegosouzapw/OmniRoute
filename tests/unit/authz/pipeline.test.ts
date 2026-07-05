@@ -138,6 +138,50 @@ test("runAuthzPipeline redirects unauthenticated /home/* nested paths to login (
   assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
 });
 
+// PR #1810 (upstream 9router): reverse-proxy subpath deployment via
+// OMNIROUTE_BASE_PATH. Next.js strips the basePath from nextUrl.pathname
+// before route classification, so the redirect targets must re-add it via
+// request.nextUrl.basePath to stay inside the deployed subpath.
+test("runAuthzPipeline prefixes the root-to-dashboard redirect with basePath when set", async () => {
+  await forceAuthRequired();
+
+  const req = new NextRequest("http://localhost/omniroute/", {
+    nextConfig: { basePath: "/omniroute" },
+  });
+
+  const response = await pipeline.runAuthzPipeline(req, { enforce: true });
+
+  assert.equal(response.status, 307);
+  assert.equal(response.headers.get("location"), "http://localhost/omniroute/dashboard");
+});
+
+test("runAuthzPipeline prefixes the dashboard login redirect with basePath when set", async () => {
+  await forceAuthRequired();
+
+  const req = new NextRequest("http://localhost/omniroute/dashboard", {
+    nextConfig: { basePath: "/omniroute" },
+  });
+
+  const response = await pipeline.runAuthzPipeline(req, { enforce: true });
+
+  assert.equal(response.status, 307);
+  assert.equal(response.headers.get("location"), "http://localhost/omniroute/login");
+  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+});
+
+test("runAuthzPipeline leaves redirect targets unprefixed when basePath is empty", async () => {
+  await forceAuthRequired();
+
+  const req = new NextRequest("http://localhost/dashboard", {
+    nextConfig: { basePath: "" },
+  });
+
+  const response = await pipeline.runAuthzPipeline(req, { enforce: true });
+
+  assert.equal(response.status, 307);
+  assert.equal(response.headers.get("location"), "http://localhost/login");
+});
+
 test("runAuthzPipeline allows onboarding when login is required but no password exists", async () => {
   delete process.env.INITIAL_PASSWORD;
   await settingsDb.updateSettings({

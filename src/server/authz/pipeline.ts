@@ -9,6 +9,7 @@ import { validateBrowserMutationOrigin } from "../origin/publicOrigin";
 import { classifyRoute } from "./classify";
 import { validateDashboardCsrfToken } from "./csrf";
 import { classifyStampedPeerLocality } from "./peerStamp";
+import { checkRequestIP } from "@omniroute/open-sse/services/ipFilter.ts";
 import { clientApiPolicy } from "./policies/clientApi";
 import { managementPolicy } from "./policies/management";
 import { publicPolicy } from "./policies/public";
@@ -148,7 +149,7 @@ async function refreshDashboardSessionIfNeeded(
 }
 
 function dashboardLoginRedirect(request: NextRequest, requestId: string): NextResponse {
-  const response = NextResponse.redirect(new URL("/login", request.url));
+  const response = NextResponse.redirect(new URL(`${request.nextUrl.basePath}/login`, request.url));
   response.cookies.delete("auth_token");
   stampRouteResponse(response, requestId, "MANAGEMENT");
   applyCorsHeaders(response, request);
@@ -223,7 +224,9 @@ export async function runAuthzPipeline(
   const requestId = generateRequestId();
 
   if (pathname === "/") {
-    const response = NextResponse.redirect(new URL("/dashboard", request.url));
+    const response = NextResponse.redirect(
+      new URL(`${request.nextUrl.basePath}/dashboard`, request.url)
+    );
     return stampRouteResponse(response, requestId, "MANAGEMENT");
   }
 
@@ -285,14 +288,12 @@ export async function runAuthzPipeline(
   // to "remote" so the LOCAL_ONLY gate is not bypassed by a request arriving
   // through an external reverse proxy (nginx / Caddy / Cloudflare Tunnel).
   // See peerStamp.ts and the upstream da667836 reference for the full rationale.
-  requestHeaders.set(
-    AUTHZ_HEADER_PEER_LOCALITY,
-    classifyStampedPeerLocality(
-      request.headers.get(PEER_IP_HEADER),
-      request.headers.get(VIA_PROXY_HEADER),
-      process.env.OMNIROUTE_PEER_STAMP_TOKEN
-    )
+  const peerLocality = classifyStampedPeerLocality(
+    request.headers.get(PEER_IP_HEADER),
+    request.headers.get(VIA_PROXY_HEADER),
+    process.env.OMNIROUTE_PEER_STAMP_TOKEN
   );
+  requestHeaders.set(AUTHZ_HEADER_PEER_LOCALITY, peerLocality);
 
   if (method === "OPTIONS") {
     const preflight = new NextResponse(null, { status: 204 });
@@ -308,6 +309,23 @@ export async function runAuthzPipeline(
     response.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
     applyCorsHeaders(response, request, corsRelaxOrigin);
     return response;
+  }
+
+  // IP filter (#6131): enforce the operator's IP blacklist/whitelist on the
+  // external surface. Loopback is exempt so the local operator can never lock
+  // themselves out of the dashboard (they can always fix the list from
+  // localhost). checkIP is a no-op when the filter is disabled.
+  if (peerLocality !== "loopback") {
+    const ipVerdict = checkRequestIP(request);
+    if (!ipVerdict.allowed) {
+      const blocked = NextResponse.json(
+        { error: ipVerdict.reason || "Access denied" },
+        { status: 403 }
+      );
+      stampRouteResponse(blocked, requestId, classification.routeClass);
+      applyCorsHeaders(blocked, request, corsRelaxOrigin);
+      return blocked;
+    }
   }
 
   const policy = POLICIES[classification.routeClass];

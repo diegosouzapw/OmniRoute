@@ -14,7 +14,6 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
-
 export const cliMitmStartSchema = z.object({
   apiKey: z.string().trim().min(1).nullable().optional(),
   keyId: z.string().trim().min(1).nullable().optional(),
@@ -83,4 +82,16 @@ export const cliModelConfigSchema = z.object({
 export const cliMultiModelConfigSchema = cliModelConfigSchema.extend({
   models: z.array(z.string().trim().min(1)).optional(),
   activeModel: z.string().optional(),
+});
+
+export const cliAuthOnlyConfigSchema = z.object({
+  baseUrl: z.string().trim().min(1, "baseUrl is required"),
+  apiKey: z.string().nullable().optional(),
+  overwrite: z.boolean().optional(),
+});
+
+export const jcodeConfigSchema = z.object({
+  baseUrl: z.string().trim().min(1, "baseUrl is required"),
+  apiKey: z.string().nullable().optional(),
+  models: z.array(z.string().trim().min(1)).optional(),
 });

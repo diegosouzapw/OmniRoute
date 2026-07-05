@@ -29,13 +29,14 @@ test.after(() => {
 
 // ── Registry ─────────────────────────────────────────────────────────────────
 
-test("getAllProviders returns exactly 3 providers", () => {
+test("getAllProviders returns exactly 4 providers", () => {
   const providers = getAllProviders();
-  assert.equal(providers.length, 3);
+  assert.equal(providers.length, 4);
   const ids = providers.map((p) => p.id);
   assert.ok(ids.includes("1proxy"));
   assert.ok(ids.includes("proxifly"));
   assert.ok(ids.includes("iplocate"));
+  assert.ok(ids.includes("webshare"));
 });
 
 test("getProvider returns the correct provider by id", () => {
@@ -258,7 +259,10 @@ test("IplocateProvider.sync parses the plain-text ip:port lists (.txt, not .json
       seenUrls.length > 0 && seenUrls.every((u) => u.endsWith(".txt")),
       `expected .txt URLs, got: ${seenUrls.join(", ")}`
     );
-    assert.ok(result.fetched > 0, `expected proxies parsed from the txt list, got ${result.fetched}`);
+    assert.ok(
+      result.fetched > 0,
+      `expected proxies parsed from the txt list, got ${result.fetched}`
+    );
     const items = await p.list({ limit: 50 });
     assert.ok(
       items.some((i) => i.host === "103.173.141.10" && i.port === 8080),

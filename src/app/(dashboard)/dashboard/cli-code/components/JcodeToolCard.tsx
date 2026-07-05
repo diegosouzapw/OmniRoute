@@ -7,6 +7,22 @@ import BaseUrlSelect from "./BaseUrlSelect";
 import ApiKeySelect from "./ApiKeySelect";
 import { matchKnownEndpoint } from "./cliEndpointMatch";
 
+interface JcodeToolCardProps {
+  tool: any;
+  isExpanded: boolean;
+  onToggle: () => void;
+  baseUrl: string;
+  hasActiveProviders: boolean;
+  apiKeys: any[];
+  activeProviders: any[];
+  cloudEnabled: boolean;
+  initialStatus: any;
+  tunnelEnabled?: boolean;
+  tunnelPublicUrl?: string;
+  tailscaleEnabled?: boolean;
+  tailscaleUrl?: string;
+}
+
 export default function JcodeToolCard({
   tool,
   isExpanded,
@@ -21,7 +37,7 @@ export default function JcodeToolCard({
   tunnelPublicUrl,
   tailscaleEnabled,
   tailscaleUrl,
-}) {
+}: JcodeToolCardProps) {
   const [jcodeStatus, setJcodeStatus] = useState(initialStatus || null);
   const [checkingJcode, setCheckingJcode] = useState(false);
   const [applying, setApplying] = useState(false);

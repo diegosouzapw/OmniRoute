@@ -1,6 +1,7 @@
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
+import { filterClinepassModels } from "@omniroute/open-sse/services/clinepassModels.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 
 export type ProviderModelsConfigEntry = {
@@ -74,6 +75,35 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
           owned_by: item.owned_by || "qwen",
         }))
         .filter((m: any) => m.id);
+    },
+  },
+  // #5858 follow-up: kimi-web (cookie provider) on the international domain.
+  // `GetAvailableModels` returns the model list as a plain JSON envelope
+  // (no Connect framing on either request or response — only the chat
+  // completion endpoint uses the 5-byte envelope). Auth: Bearer JWT extracted
+  // from the `kimi-auth` cookie the user pasted. Agent variants
+  // (`k2d6-agent*`) need a different scenario + agent fields this executor
+  // doesn't shape, so they're filtered out.
+  "kimi-web": {
+    url: "https://www.kimi.com/apiv2/kimi.gateway.config.v1.ConfigService/GetAvailableModels",
+    method: "GET",
+    headers: { accept: "application/json, text/plain, */*", "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => {
+      const list = (data?.availableModels || []) as Array<{
+        key?: string;
+        displayName?: string;
+        thinking?: boolean;
+      }>;
+      return list
+        .filter((m) => typeof m.key === "string" && !m.key?.includes("agent"))
+        .map((m) => ({
+          id: m.key as string,
+          name: m.displayName || (m.key as string),
+          supportsReasoning: !!m.thinking,
+          owned_by: "kimi",
+        }));
     },
   },
   antigravity: {
@@ -245,6 +275,16 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
+  },
+  // ClinePass (BYOK apikey gateway) — same host as OAuth `cline`, but only the
+  // `cline-pass/*` namespace is surfaced (filterClinepassModels).
+  clinepass: {
+    url: "https://api.cline.bot/api/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => filterClinepassModels(Array.isArray(data) ? data : data?.data),
   },
   cohere: {
     url: "https://api.cohere.com/v2/models",

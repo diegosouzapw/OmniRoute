@@ -41,6 +41,8 @@ export interface ProviderCatalogMetadata {
   riskNoticeVariant?: RiskNoticeVariant;
   apiType?: string;
   baseUrl?: string;
+  /** Optional operator-supplied remote icon URL (#2166) for compatible provider nodes. */
+  iconUrl?: string;
   [key: string]: unknown;
 }
 
@@ -59,6 +61,8 @@ export interface CompatibleProviderNodeLike {
   type?: string | null;
   apiType?: string | null;
   baseUrl?: string | null;
+  /** Optional operator-supplied remote icon URL (#2166). */
+  iconUrl?: string | null;
 }
 
 export interface CompatibleProviderLabels {
@@ -83,8 +87,7 @@ export interface ResolvedCompatibleProviderCatalogEntry extends ProviderCatalogM
 }
 
 export type ResolvedProviderCatalogEntry =
-  | ResolvedStaticProviderCatalogEntry
-  | ResolvedCompatibleProviderCatalogEntry;
+  ResolvedStaticProviderCatalogEntry | ResolvedCompatibleProviderCatalogEntry;
 
 export const STATIC_PROVIDER_CATALOG_GROUPS: Record<
   StaticProviderCatalogCategory,
@@ -218,6 +221,7 @@ export function resolveCompatibleProviderCatalogEntry(
     textIcon: isCcCompatible ? "CC" : isAnthropicCompatible ? "AC" : "OC",
     apiType: providerNode.apiType || undefined,
     baseUrl: providerNode.baseUrl || undefined,
+    iconUrl: providerNode.iconUrl || undefined,
     type: providerNode.type,
     category: "compatible",
     displayAuthType: "compatible",

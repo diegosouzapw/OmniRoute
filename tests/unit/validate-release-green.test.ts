@@ -15,23 +15,25 @@ const {
 } = mod;
 
 test("eslintCounts sums errors + warnings across files", () => {
-  const parsed = [
-    { errorCount: 2, warningCount: 5 },
-    { errorCount: 0, warningCount: 3 },
-    {},
-  ];
+  const parsed = [{ errorCount: 2, warningCount: 5 }, { errorCount: 0, warningCount: 3 }, {}];
   assert.deepEqual(eslintCounts(parsed), { errors: 2, warnings: 8 });
 });
 
 test("parseEslintJson tolerates a leading non-JSON banner", () => {
-  const out = "npm warn something\n[{\"errorCount\":0,\"warningCount\":1}]";
+  const out = 'npm warn something\n[{"errorCount":0,"warningCount":1}]';
   assert.deepEqual(parseEslintJson(out), [{ errorCount: 0, warningCount: 1 }]);
   assert.equal(parseEslintJson("no json here"), null);
 });
 
 test("parseCognitiveCount reads the gate's count (en + pt)", () => {
-  assert.equal(parseCognitiveCount("[cognitive-complexity] 797 function(s) exceed the threshold (15)."), 797);
-  assert.equal(parseCognitiveCount("[cognitive-complexity] REGRESSÃO — 801 violações > baseline 797"), 801);
+  assert.equal(
+    parseCognitiveCount("[cognitive-complexity] 797 function(s) exceed the threshold (15)."),
+    797
+  );
+  assert.equal(
+    parseCognitiveCount("[cognitive-complexity] REGRESSÃO — 801 violações > baseline 797"),
+    801
+  );
   assert.equal(parseCognitiveCount("no number"), null);
 });
 
@@ -120,4 +122,27 @@ test("classifyRunError: a kill WITHOUT a configured timeout is not misreported a
   const r = classifyRunError({ killed: true }, undefined);
   assert.equal(r.code, 1);
   assert.doesNotMatch(r.out, /ceiling/);
+});
+
+test("pre-flight wires the test-masking PR-context gate against origin/main (v3.8.43 gap fix)", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  // The gate must run check:test-masking, pin the base to main, and be classified HARD —
+  // it caught a real net-assert reduction that only surfaced on the release PR before.
+  assert.match(src, /check:test-masking/, "test-masking gate must be wired into the pre-flight");
+  assert.match(src, /GITHUB_BASE_REF:\s*"main"/, "test-masking must diff against origin/main");
+  assert.match(
+    src,
+    /id:\s*"test-masking"[\s\S]*?kind:\s*"hard"/,
+    "test-masking must be a HARD gate (non-allowlisted weakening blocks the release)"
+  );
+  // run() must honor a per-gate env override so GITHUB_BASE_REF actually reaches the child.
+  assert.match(
+    src,
+    /\.\.\.\(opts\.env \|\| \{\}\)/,
+    "run() must merge opts.env into the child env"
+  );
 });

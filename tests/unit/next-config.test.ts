@@ -37,6 +37,15 @@ test("next config exposes standalone build settings and canonical rewrites", asy
     "fumadocs-ui",
     "fumadocs-core",
   ]);
+  // #6062: `ws` and its native masking helpers must stay external so the
+  // copilot-m365-web executor keeps a working WebSocket masking path at runtime
+  // (bundling ws breaks `bufferutil` → `TypeError: b.mask is not a function`).
+  for (const pkg of ["ws", "bufferutil", "utf-8-validate"]) {
+    assert.ok(
+      nextConfig.serverExternalPackages.includes(pkg),
+      `expected serverExternalPackages to externalize "${pkg}" (#6062)`
+    );
+  }
   assert.equal(headers[0].source, "/:path*");
   assert.match(securityHeaders["Content-Security-Policy"], /default-src 'self'/);
   assert.match(securityHeaders["Content-Security-Policy"], /frame-ancestors 'none'/);
@@ -167,7 +176,11 @@ test("manager.stub.ts exports every name statically imported from @/mitm/manager
   }
   for (const m of stubSrc.matchAll(/export\s*\{([^}]*)\}/g)) {
     for (const part of m[1].split(",")) {
-      const exported = part.trim().split(/\s+as\s+/).pop()?.trim(); // `x as y` exports y
+      const exported = part
+        .trim()
+        .split(/\s+as\s+/)
+        .pop()
+        ?.trim(); // `x as y` exports y
       if (exported) stubExports.add(exported);
     }
   }

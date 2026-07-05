@@ -8,6 +8,8 @@ import os from "os";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { parseTOML, stringifyTOML } from "confbox";
+import { validateBody } from "@/shared/validation/schemas";
+import { jcodeConfigSchema } from "@/shared/validation/schemas/cli";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const execAsync = promisify(exec);
@@ -133,14 +135,12 @@ export async function GET() {
   });
 }
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
-    // validateBody() check bypassed - handled manually
-    const { baseUrl, apiKey, models } = await request.json();
+    const { success, data, errorResponse } = await validateBody(request, jcodeConfigSchema);
+    if (!success || !data) return errorResponse;
 
-    if (!baseUrl || !apiKey) {
-      return NextResponse.json({ error: "baseUrl and apiKey are required" }, { status: 400 });
-    }
+    const { baseUrl, apiKey, models } = data;
 
     const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
 

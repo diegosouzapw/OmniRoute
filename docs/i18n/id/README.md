@@ -331,7 +331,6 @@ Penyedia AI bisa menjadi tidak stabil, mengembalikan kesalahan 5xx, atau mencapa
 <details>
 <summary><b>🔧 7. "Mengonfigurasi setiap alat AI membosankan dan berulang"</b></summary>
 
-
 **Cara OmniRoute menyelesaikannya:**
 
 - **Dashboard Alat CLI** — Halaman khusus dengan pengaturan satu klik untuk Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline
@@ -343,7 +342,6 @@ Penyedia AI bisa menjadi tidak stabil, mengembalikan kesalahan 5xx, atau mencapa
 
 <details>
 <summary><b>🔑 8. "Mengelola token OAuth dari beberapa penyedia adalah mimpi buruk"</b></summary>
-
 
 **Cara OmniRoute menyelesaikannya:**
 
@@ -734,12 +732,12 @@ Outcome: deep fallback depth for deadline-critical workloads
 
 > Siapkan pengkodean AI dalam hitungan menit di **$0/bulan**. Hubungkan akun gratis ini dan gunakan kombo **Free Stack** bawaan.
 
-| Step | Action                                             | Providers Unlocked                                                 |
-| ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
-| 1    | Connect **Kiro** (AWS Builder ID OAuth)            | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
-| 2    | Connect **Qoder** (Google OAuth)                   | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
-| 3    | Connect **Qwen** (Device Code)                     | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
-| 4    | `/dashboard/combos` → **Templat Tumpukan Gratis ($0)** | Round-robin semua penyedia gratis secara otomatis                       |
+| Step | Action                                                 | Providers Unlocked                                                 |
+| ---- | ------------------------------------------------------ | ------------------------------------------------------------------ |
+| 1    | Connect **Kiro** (AWS Builder ID OAuth)                | Claude Sonnet 4.5, Haiku 4.5 — **unlimited**                       |
+| 2    | Connect **Qoder** (Google OAuth)                       | kimi-k2-thinking, qwen3-coder-plus, deepseek-r1... — **unlimited** |
+| 3    | Connect **Qwen** (Device Code)                         | qwen3-coder-plus, qwen3-coder-flash... — **unlimited**             |
+| 4    | `/dashboard/combos` → **Templat Tumpukan Gratis ($0)** | Round-robin semua penyedia gratis secara otomatis                  |
 
 **Arahkan IDE/CLI apa pun ke:** `http://localhost:20128/v1` · Kunci API: `any-string` · Selesai.
 
@@ -772,13 +770,13 @@ yay -S omniroute-bin
 systemctl --user enable --now omniroute.service
 ```
 
-| Command                 | Description                                                 |
-| ----------------------- | ----------------------------------------------------------- |
+| Command                 | Description                                                     |
+| ----------------------- | --------------------------------------------------------------- |
 | `omniroute`             | Mulai server (`PORT=20128`, API dan dasbor pada port yang sama) |
-| `omniroute --port 3000` | Set canonical/API port to 3000                              |
-| `omniroute --mcp`       | Mulai server MCP (stdio transport)                          |
-| `omniroute --no-open`   | Don't auto-open browser                                     |
-| `omniroute --help`      | Show help                                                   |
+| `omniroute --port 3000` | Set canonical/API port to 3000                                  |
+| `omniroute --mcp`       | Mulai server MCP (stdio transport)                              |
+| `omniroute --no-open`   | Don't auto-open browser                                         |
+| `omniroute --help`      | Show help                                                       |
 
 Optional split-port mode:
 
@@ -792,9 +790,9 @@ PORT=20128 DASHBOARD_PORT=20129 omniroute
 
 Saat Anda tidak lagi memerlukan OmniRoute, kami menyediakan dua skrip cepat untuk penghapusan bersih:
 
-| Command                  | Action                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Menghapus aplikasi sistem tetapi **menyimpan DB dan konfigurasi Anda** di `~/.omniroute`.  |
+| Command                  | Action                                                                                       |
+| ------------------------ | -------------------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Menghapus aplikasi sistem tetapi **menyimpan DB dan konfigurasi Anda** di `~/.omniroute`.    |
 | `npm run uninstall:full` | Menghapus aplikasi DAN secara permanen **menghapus semua konfigurasi, kunci, dan database**. |
 
 > Catatan: Untuk menjalankan perintah ini, navigasikan ke folder proyek OmniRoute (jika Anda mengkloningnya) dan jalankan. Alternatifnya, jika diinstal secara global, Anda cukup menjalankan `npm uninstall -g omniroute`.
@@ -803,10 +801,10 @@ Saat Anda tidak lagi memerlukan OmniRoute, kami menyediakan dua skrip cepat untu
 
 Untuk sebagian besar penerapan, Anda hanya memerlukan:
 
-| Variable                 | Default                       | Purpose                                                                                                                                      |
-| ------------------------ | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Variable                 | Default                       | Purpose                                                                                                                                                                      |
+| ------------------------ | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `REQUEST_TIMEOUT_MS`     | `600000`                      | Garis dasar bersama untuk batas waktu mulai respons upstream, batas waktu Undici yang tersembunyi, permintaan sidik jari TLS, dan batas waktu permintaan/proksi jembatan API |
-| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Kesenjangan maksimum antara potongan streaming sebelum OmniRoute membatalkan aliran SSE                                                                  |
+| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Kesenjangan maksimum antara potongan streaming sebelum OmniRoute membatalkan aliran SSE                                                                                      |
 
 Kompatibilitas mundur dipertahankan: `FETCH_TIMEOUT_MS`, `API_BRIDGE_PROXY_TIMEOUT_MS`, dan var batas waktu per lapisan lainnya yang ada masih berfungsi dan menggantikan garis dasar bersama.
 
@@ -819,19 +817,19 @@ hanya meneruskan penanda `cache_control` yang disediakan klien. Jika permintaan 
 
 Penggantian tingkat lanjut tersedia jika Anda memerlukan kontrol yang lebih baik:
 
-| Variable                                 | Default                                    | Purpose                                                              |
-| ---------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
-| `FETCH_TIMEOUT_MS`                       | inherits `REQUEST_TIMEOUT_MS`              | Batas waktu mulai respons hulu digunakan hingga header respons tiba   |
-| `FETCH_HEADERS_TIMEOUT_MS`               | inherits `FETCH_TIMEOUT_MS`                | Batas waktu Undici untuk menerima header respons upstream            |
-| `FETCH_BODY_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Undici time limit between upstream body chunks (`0` disables it)     |
-| `FETCH_CONNECT_TIMEOUT_MS`               | `30000`                                    | Undici TCP connect timeout                                           |
-| `FETCH_KEEPALIVE_TIMEOUT_MS`             | `4000`                                     | Undici idle keep-alive socket timeout                                |
-| `TLS_CLIENT_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Batas waktu untuk permintaan sidik jari TLS yang dilakukan melalui `wreq-js`          |
-| `API_BRIDGE_PROXY_TIMEOUT_MS`            | inherits `REQUEST_TIMEOUT_MS` or `600000`  | Batas waktu untuk penerusan proxy `/v1` dari port API ke port dasbor   |
-| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `max(API_BRIDGE_PROXY_TIMEOUT_MS, 300000)` | Batas waktu permintaan masuk di server jembatan API                    |
-| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`                                    | Batas waktu header masuk di server jembatan API                     |
-| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`                                     | Batas waktu tetap hidup di server jembatan API|
-| `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                                        |Batas waktu ketidakaktifan soket di server jembatan API (`0` menonaktifkannya) |
+| Variable                                 | Default                                    | Purpose                                                                        |
+| ---------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
+| `FETCH_TIMEOUT_MS`                       | inherits `REQUEST_TIMEOUT_MS`              | Batas waktu mulai respons hulu digunakan hingga header respons tiba            |
+| `FETCH_HEADERS_TIMEOUT_MS`               | inherits `FETCH_TIMEOUT_MS`                | Batas waktu Undici untuk menerima header respons upstream                      |
+| `FETCH_BODY_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Undici time limit between upstream body chunks (`0` disables it)               |
+| `FETCH_CONNECT_TIMEOUT_MS`               | `30000`                                    | Undici TCP connect timeout                                                     |
+| `FETCH_KEEPALIVE_TIMEOUT_MS`             | `4000`                                     | Undici idle keep-alive socket timeout                                          |
+| `TLS_CLIENT_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Batas waktu untuk permintaan sidik jari TLS yang dilakukan melalui `wreq-js`   |
+| `API_BRIDGE_PROXY_TIMEOUT_MS`            | inherits `REQUEST_TIMEOUT_MS` or `600000`  | Batas waktu untuk penerusan proxy `/v1` dari port API ke port dasbor           |
+| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `max(API_BRIDGE_PROXY_TIMEOUT_MS, 300000)` | Batas waktu permintaan masuk di server jembatan API                            |
+| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`                                    | Batas waktu header masuk di server jembatan API                                |
+| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`                                     | Batas waktu tetap hidup di server jembatan API                                 |
+| `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                                        | Batas waktu ketidakaktifan soket di server jembatan API (`0` menonaktifkannya) |
 
 Untuk permintaan streaming, `FETCH_TIMEOUT_MS` hanya mencakup pengaturan koneksi/menunggu respons upstream pertama. Setelah aliran aktif, OmniRoute hanya akan dibatalkan pada keadaan terhenti sebenarnya (`STREAM_IDLE_TIMEOUT_MS`) atau tubuh Undici tidak aktif (`FETCH_BODY_TIMEOUT_MS`).
 
@@ -851,7 +849,6 @@ Base URL: http://localhost:20128/v1
 API Key:  [copy from Endpoint page]
 Model:    if/kimi-k2-thinking (or any provider/model prefix)
 ```
-
 
 ### 4) Mengaktifkan dan memvalidasi protokol (v2.0)
 
@@ -1133,32 +1130,32 @@ Saat diminimalkan, OmniRoute ada di baki sistem Anda dengan tindakan cepat:
 
 ## 💰 Harga Sekilas
 
-| Tier                | Provider                    | Cost                      | Quota Reset      | Best For                          |
-| ------------------- | --------------------------- | ------------------------- | ---------------- | --------------------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                    | 5h + weekly      | Already subscribed                |
-|                     | Codex (Plus/Pro)            | $20-200/mo                | 5h + weekly      | OpenAI users                      |
-|                     | GitHub Copilot              | $10-19/mo                 | Monthly          | GitHub users                      |
-| **🔑 API KEY**      | NVIDIA NIM                  | **GRATIS** (pengembangan selamanya)    | ~40 RPM          | 70+ open models                   |
-|                     | Cerebras                    | **FREE** (1M tok/day)     | 60K TPM / 30 RPM | World's fastest                   |
-|                     | Groq                        | **FREE** (30 RPM)         | 14.4K RPD        | Ultra-fast Llama/Gemma            |
-|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M        | None             | Best price/quality reasoning      |
-|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕 | None             | Fastest + tool calling, ultralow  |
-|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕     | None             | Penalaran andalan dari xAI       |
-|                     | Mistral                     | Uji coba gratis + berbayar         | Rate limited     | European AI                       |
-|                     | OpenRouter                  | Bayar per penggunaan               | None             | 100+ models aggr.                 |
-| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                   | Daily 10AM       | 128K output, newest flagship      |
-|                     | GLM-4.7                     | $0.6/1M                   | Daily 10AM       | Budget backup                     |
-|                     | MiniMax M2.5 🆕             | $0.3/1M input             | 5-hour rolling   | Reasoning + agentic tasks         |
-|                     | MiniMax M2.1                | $0.2/1M                   | 5-hour rolling   | Cheapest option                   |
-|                     | Kimi K2.5 (Moonshot API) 🆕 | Bayar per penggunaan               | None             | Direct Moonshot API access        |
-|                     | Kimi K2                     | $9/mo flat                | 10M tokens/mo    | Predictable cost                  |
-| **🆓 FREE**         | Qoder                       | **$0**                    | Unlimited        | 5 models unlimited                |
-|                     | Qwen                        | **$0**                    | Unlimited        | 4 models unlimited                |
-|                     | Kiro                        | **$0**                    | Unlimited        | Claude Sonnet/Haiku (AWS Builder) |
-|                     | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)   | 1 RPS            | Kuota gratis terbesar di dunia       |
-|                     | Pollinations AI 🆕          | **$0** (tidak perlu kunci)    | 1 req/15s        | GPT-5, Claude, DeepSeek, Llama 4  |
-|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)  | ~150 resp/day    | 50+ model, keunggulan global           |
-|                     | Scaleway AI 🆕              | **$0** (1M tokens total)  | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
+| Tier                | Provider                    | Cost                                | Quota Reset      | Best For                          |
+| ------------------- | --------------------------- | ----------------------------------- | ---------------- | --------------------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro)           | $20/mo                              | 5h + weekly      | Already subscribed                |
+|                     | Codex (Plus/Pro)            | $20-200/mo                          | 5h + weekly      | OpenAI users                      |
+|                     | GitHub Copilot              | $10-19/mo                           | Monthly          | GitHub users                      |
+| **🔑 API KEY**      | NVIDIA NIM                  | **GRATIS** (pengembangan selamanya) | ~40 RPM          | 70+ open models                   |
+|                     | Cerebras                    | **FREE** (1M tok/day)               | 60K TPM / 30 RPM | World's fastest                   |
+|                     | Groq                        | **FREE** (30 RPM)                   | 14.4K RPD        | Ultra-fast Llama/Gemma            |
+|                     | DeepSeek V3.2               | $0.27/$1.10 per 1M                  | None             | Best price/quality reasoning      |
+|                     | xAI Grok-4 Fast             | **$0.20/$0.50 per 1M** 🆕           | None             | Fastest + tool calling, ultralow  |
+|                     | xAI Grok-4 (standard)       | $0.20/$1.50 per 1M 🆕               | None             | Penalaran andalan dari xAI        |
+|                     | Mistral                     | Uji coba gratis + berbayar          | Rate limited     | European AI                       |
+|                     | OpenRouter                  | Bayar per penggunaan                | None             | 100+ models aggr.                 |
+| **💰 CHEAP**        | GLM-5 (via Z.AI) 🆕         | $0.5/1M                             | Daily 10AM       | 128K output, newest flagship      |
+|                     | GLM-4.7                     | $0.6/1M                             | Daily 10AM       | Budget backup                     |
+|                     | MiniMax M2.5 🆕             | $0.3/1M input                       | 5-hour rolling   | Reasoning + agentic tasks         |
+|                     | MiniMax M2.1                | $0.2/1M                             | 5-hour rolling   | Cheapest option                   |
+|                     | Kimi K2.5 (Moonshot API) 🆕 | Bayar per penggunaan                | None             | Direct Moonshot API access        |
+|                     | Kimi K2                     | $9/mo flat                          | 10M tokens/mo    | Predictable cost                  |
+| **🆓 FREE**         | Qoder                       | **$0**                              | Unlimited        | 5 models unlimited                |
+|                     | Qwen                        | **$0**                              | Unlimited        | 4 models unlimited                |
+|                     | Kiro                        | **$0**                              | Unlimited        | Claude Sonnet/Haiku (AWS Builder) |
+|                     | LongCat Flash-Lite 🆕       | **$0** (50M tok/day 🔥)             | 1 RPS            | Kuota gratis terbesar di dunia    |
+|                     | Pollinations AI 🆕          | **$0** (tidak perlu kunci)          | 1 req/15s        | GPT-5, Claude, DeepSeek, Llama 4  |
+|                     | Cloudflare Workers AI 🆕    | **$0** (10K Neurons/day)            | ~150 resp/day    | 50+ model, keunggulan global      |
+|                     | Scaleway AI 🆕              | **$0** (1M tokens total)            | Rate limited     | EU/GDPR, Qwen3 235B, Llama 70B    |
 
 > 🆕 **Model baru ditambahkan (Mar 2026):** Keluarga Grok-4 Fast seharga $0,20/$0,50/M (dibandingkan pada 1143ms — 30% lebih cepat dibandingkan Gemini 2.5 Flash), GLM-5 melalui Z.AI dengan output 128K, penalaran MiniMax M2.5, harga DeepSeek V3.2 yang diperbarui, Kimi K2.5 melalui API langsung Moonshot.
 
@@ -1219,11 +1216,10 @@ Cerebras (cerebras/)   → Llama/Qwen world-fastest — 1M tok/day
 | `qwen3-coder-next`  | `qw/`  | **Unlimited** | No reported cap     |
 | `vision-model`      | `qw/`  | **Unlimited** | Multimodal (images) |
 
-
 ### ⚫ NVIDIA NIM (Kunci API Gratis — build.nvidia.com)
 
-| Tier       | Daily Limit  | Rate Limit  | Notes                                                  |
-| ---------- | ------------ | ----------- | ------------------------------------------------------ |
+| Tier       | Daily Limit  | Rate Limit  | Notes                                                                |
+| ---------- | ------------ | ----------- | -------------------------------------------------------------------- |
 | Free (Dev) | No token cap | **~40 RPM** | 70+ model; transisi ke batas tarif murni pada pertengahan tahun 2025 |
 
 Model gratis populer: `moonshotai/kimi-k2.5` (Kimi K2.5), `z-ai/glm4.7` (GLM 4.7), `deepseek-ai/deepseek-v3.2` (DeepSeek V3.2), `nvidia/llama-3.3-70b-instruct`, `deepseek/deepseek-r1`
@@ -1246,13 +1242,13 @@ Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whis
 
 ### 🔴 LONGCAT AI (Kunci API Gratis — longcat.chat) 🆕
 
-| Model                         | Prefix | Kuota Gratis Harian  | Notes                   |
-| ----------------------------- | ------ | ----------------- | ----------------------- |
-| `LongCat-Flash-Lite`          | `lc/`  | **50M tokens** 💥 | Kuota gratis terbesar yang pernah ada |
-| `LongCat-Flash-Chat`          | `lc/`  | 500K tokens       | Multi-turn chat         |
-| `LongCat-Flash-Thinking`      | `lc/`  | 500K tokens       | Reasoning / CoT         |
-| `LongCat-Flash-Thinking-2601` | `lc/`  | 500K tokens       | Jan 2026 version        |
-| `LongCat-Flash-Omni-2603`     | `lc/`  | 500K tokens       | Multimodal              |
+| Model                         | Prefix | Kuota Gratis Harian | Notes                                 |
+| ----------------------------- | ------ | ------------------- | ------------------------------------- |
+| `LongCat-Flash-Lite`          | `lc/`  | **50M tokens** 💥   | Kuota gratis terbesar yang pernah ada |
+| `LongCat-Flash-Chat`          | `lc/`  | 500K tokens         | Multi-turn chat                       |
+| `LongCat-Flash-Thinking`      | `lc/`  | 500K tokens         | Reasoning / CoT                       |
+| `LongCat-Flash-Thinking-2601` | `lc/`  | 500K tokens         | Jan 2026 version                      |
+| `LongCat-Flash-Omni-2603`     | `lc/`  | 500K tokens         | Multimodal                            |
 
 > 100% gratis saat dalam versi beta publik. Daftar di [longcat.chat](https://longcat.chat) dengan email atau telepon. Reset setiap hari pukul 00:00 UTC.
 
@@ -1271,8 +1267,8 @@ Available free: `llama-3.3-70b-versatile`, `gemma2-9b-it`, `mixtral-8x7b`, `whis
 
 ### 🟠 AI CLOUDFLARE WORKERS (Kunci API Gratis — cloudflare.com) 🆕
 
-| Tier | Daily Neurons | Equivalent Usage                        | Notes                   |
-| ---- | ------------- | --------------------------------------- | ----------------------- |
+| Tier | Daily Neurons | Equivalent Usage                        | Notes                        |
+| ---- | ------------- | --------------------------------------- | ---------------------------- |
 | Free | **10,000**    | ~150 LLM resp / 500s audio / 15K embeds | Keunggulan global, 50+ model |
 
 Model gratis populer: `@cf/meta/llama-3.3-70b-instruct`, `@cf/google/gemma-3-12b-it`, `@cf/openai/whisper-large-v3-turbo` (audio gratis!), `@cf/qwen/qwen2.5-coder-15b-instruct`
@@ -1309,11 +1305,11 @@ Tersedia gratis: `qwen3-235b-a22b-instruct-2507` (Qwen3 235B!), `llama-3.1-70b-i
 
 > Transkripsikan audio/video apa pun seharga **$0** — Deepgram memimpin dengan $200 gratis, penggantian AssemblyAI $50, Groq Whisper sebagai cadangan darurat tanpa batas.
 
-| Provider          | Free Credits           | Best Model                                   | Rate Limit                   |
-| ----------------- | ---------------------- | -------------------------------------------- | ---------------------------- |
+| Provider          | Free Credits           | Best Model                                   | Rate Limit                               |
+| ----------------- | ---------------------- | -------------------------------------------- | ---------------------------------------- |
 | 🟢 **Deepgram**   | **$200 free** (signup) | `nova-3` — best accuracy, 30+ languages      | Tidak ada batasan RPM pada kredit gratis |
 | 🔵 **AssemblyAI** | **$50 free** (signup)  | `universal-3-pro` — chapters, sentiment, PII | Tidak ada batasan RPM pada kredit gratis |
-| 🔴 **Groq**       | **Free forever**       | `whisper-large-v3` — OpenAI Whisper          | 30 RPM (rate limited)        |
+| 🔴 **Groq**       | **Free forever**       | `whisper-large-v3` — OpenAI Whisper          | 30 RPM (rate limited)                    |
 
 **Suggested combo in `/dashboard/combos`:**
 
@@ -1334,168 +1330,168 @@ OmniRoute v3.6 dibangun sebagai platform operasional, bukan hanya proxy relai.
 
 ### 🆕 Baru — Sorotan v3.6.x (Apr 2026)
 
-| Feature                            | Apa Fungsinya                                                                                                                                      |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🌐 **V1 WebSocket Bridge**         | Lalu lintas WebSocket yang kompatibel dengan OpenAI ditingkatkan dan diproksi melalui `/v1/ws` — streaming penuh melalui WS dengan autentikasi sesi (kunci API atau cookie sesi)      |
-| 🔑 **Sync Tokens & Config Bundle** | Menerbitkan/mencabut token sinkronisasi untuk titik akhir sinkronisasi konfigurasi. Paket konfigurasi diversi dengan ETag untuk polling hemat bandwidth                            |
-| 🧠 **GLM Thinking (glmt) Preset**  | GLM Thinking registered first-class: 65 536 max tokens, 24 576 thinking budget, 900s timeout, usage sync & pricing — Claude-compatible API        |
-| 🔢 **Hybrid Token Counting**       | Menggunakan `/messages/count_tokens` sisi penyedia jika tersedia; kembali ke perkiraan — pelacakan penggunaan yang akurat tanpa menebak-nebak|
-|🌱 **Model Alias Benih Otomatis**       | 30+ cross-proxy dialect aliases normalised at startup — no more routing mismatches                                                                |
-| 🛡️ **Safe Outbound Fetch**         | Semua validasi penyedia dan penemuan model melalui lapisan pengambilan yang dilindungi yang memblokir URL pribadi/lokal dengan percobaan ulang, batas waktu, dan perlindungan SSRF |
-| ⏳ **Tunggu Masa Tenang**           | Percobaan ulang obrolan sisi server ketika setiap koneksi kandidat sedang dingin; dapat dikonfigurasi `enabled`, `maxRetries`, dan `maxRetryWaitSec`             |
-| 🔍 **Validasi Env Runtime**      | Startup memvalidasi semua env vars dengan skema Zod - menghapus kesalahan untuk rahasia yang hilang, URL yang tidak valid, atau tipe yang salah                                  |
-| 📋 **Compliance Audit Expansion**  | Log audit terstruktur dengan penomoran halaman, konteks permintaan, peristiwa autentikasi, peristiwa CRUD penyedia, dan pencatatan validasi yang diblokir SSRF                    |
-| 🔐 **TPS Log Metric**              | Modal detail log menunjukkan Token Per Second (TPS) — sekilas kinerja cepat untuk setiap permintaan                                                 |
-| 🗑️ **Uninstall / Full Uninstall**  | `npm run uninstall` menyimpan data, `npm run uninstall:full` menghapus semuanya — penghapusan bersih untuk semua metode instalasi                               |
-| 🔧 **OAuth Env Repair**            | Tindakan "Perbaiki env" sekali klik untuk penyedia OAuth memulihkan vars env yang hilang dan memperbaiki status autentikasi yang rusak                                           |
-| 🔒 **Pematian Elektron yang Anggun**  | Electron `before-quit` dimatikan Next.js dengan baik, mencegah penguncian database SQLite WAL pada penutupan desktop                                       |
-| 👁️ **Pengalih Visibilitas Model**     | Pengalih visibilitas per model (ikon 👁) dengan filter pencarian dan lencana jumlah aktif (`N/M active`) di halaman penyedia                                  |
-| 📧 **Email Privacy Masking**       | OAuth account emails masked (`di*****@g****.com`), full address visible on hover                                                                  |
-| 🔗 **Context Relay Strategy**      | Strategi kombo menjaga kesinambungan sesi melalui ringkasan penyerahan terstruktur saat akun dirotasi di tengah percakapan                               |
-| 🛡️ **Proxy Hardening**             | Pemeriksaan kesehatan token, validasi kunci API, dan operator undici semuanya menghormati konfigurasi proxy                                                              |
-| ⚠️ **Node.js 24 Login Warning**    | Login page proactively detects incompatible Node.js versions and shows a clear warning banner                                                     |
-| 📎 **Gemini PDF Attachments**      | PDF attachments correctly routed to Gemini via `inline_data` and generic base64 detection                                                         |
-| 🔒 **Pengerasan Keamanan CodeQL**   | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                                      |
+| Feature                              | Apa Fungsinya                                                                                                                                                                      |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🌐 **V1 WebSocket Bridge**           | Lalu lintas WebSocket yang kompatibel dengan OpenAI ditingkatkan dan diproksi melalui `/v1/ws` — streaming penuh melalui WS dengan autentikasi sesi (kunci API atau cookie sesi)   |
+| 🔑 **Sync Tokens & Config Bundle**   | Menerbitkan/mencabut token sinkronisasi untuk titik akhir sinkronisasi konfigurasi. Paket konfigurasi diversi dengan ETag untuk polling hemat bandwidth                            |
+| 🧠 **GLM Thinking (glmt) Preset**    | GLM Thinking registered first-class: 65 536 max tokens, 24 576 thinking budget, 900s timeout, usage sync & pricing — Claude-compatible API                                         |
+| 🔢 **Hybrid Token Counting**         | Menggunakan `/messages/count_tokens` sisi penyedia jika tersedia; kembali ke perkiraan — pelacakan penggunaan yang akurat tanpa menebak-nebak                                      |
+| 🌱 **Model Alias Benih Otomatis**    | 30+ cross-proxy dialect aliases normalised at startup — no more routing mismatches                                                                                                 |
+| 🛡️ **Safe Outbound Fetch**           | Semua validasi penyedia dan penemuan model melalui lapisan pengambilan yang dilindungi yang memblokir URL pribadi/lokal dengan percobaan ulang, batas waktu, dan perlindungan SSRF |
+| ⏳ **Tunggu Masa Tenang**            | Percobaan ulang obrolan sisi server ketika setiap koneksi kandidat sedang dingin; dapat dikonfigurasi `enabled`, `maxRetries`, dan `maxRetryWaitSec`                               |
+| 🔍 **Validasi Env Runtime**          | Startup memvalidasi semua env vars dengan skema Zod - menghapus kesalahan untuk rahasia yang hilang, URL yang tidak valid, atau tipe yang salah                                    |
+| 📋 **Compliance Audit Expansion**    | Log audit terstruktur dengan penomoran halaman, konteks permintaan, peristiwa autentikasi, peristiwa CRUD penyedia, dan pencatatan validasi yang diblokir SSRF                     |
+| 🔐 **TPS Log Metric**                | Modal detail log menunjukkan Token Per Second (TPS) — sekilas kinerja cepat untuk setiap permintaan                                                                                |
+| 🗑️ **Uninstall / Full Uninstall**    | `npm run uninstall` menyimpan data, `npm run uninstall:full` menghapus semuanya — penghapusan bersih untuk semua metode instalasi                                                  |
+| 🔧 **OAuth Env Repair**              | Tindakan "Perbaiki env" sekali klik untuk penyedia OAuth memulihkan vars env yang hilang dan memperbaiki status autentikasi yang rusak                                             |
+| 🔒 **Pematian Elektron yang Anggun** | Electron `before-quit` dimatikan Next.js dengan baik, mencegah penguncian database SQLite WAL pada penutupan desktop                                                               |
+| 👁️ **Pengalih Visibilitas Model**    | Pengalih visibilitas per model (ikon 👁) dengan filter pencarian dan lencana jumlah aktif (`N/M active`) di halaman penyedia                                                        |
+| 📧 **Email Privacy Masking**         | OAuth account emails masked (`di*****@g****.com`), full address visible on hover                                                                                                   |
+| 🔗 **Context Relay Strategy**        | Strategi kombo menjaga kesinambungan sesi melalui ringkasan penyerahan terstruktur saat akun dirotasi di tengah percakapan                                                         |
+| 🛡️ **Proxy Hardening**               | Pemeriksaan kesehatan token, validasi kunci API, dan operator undici semuanya menghormati konfigurasi proxy                                                                        |
+| ⚠️ **Node.js 24 Login Warning**      | Login page proactively detects incompatible Node.js versions and shows a clear warning banner                                                                                      |
+| 📎 **Gemini PDF Attachments**        | PDF attachments correctly routed to Gemini via `inline_data` and generic base64 detection                                                                                          |
+| 🔒 **Pengerasan Keamanan CodeQL**    | Resolved SSRF, insecure randomness, polynomial ReDoS, and incomplete URL sanitization alerts                                                                                       |
 
 ### 🆕 Baru — Peningkatan Terinspirasi ClawRouter (Mar 2026)
 
-| Feature                              | Apa Fungsinya                                                                                |
-| ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| ⚡ **Grok-4 Fast Family**            | xAI models at $0.20/$0.50/M — benchmarked 1143ms (30% faster than Gemini 2.5 Flash)         |
-| 🧠 **GLM-5 via Z.AI**                | Konteks keluaran 128 ribu, $0,5/1 juta — andalan terbaru dari keluarga GLM                          |
-| 🔮 **MiniMax M2.5**                  | Penalaran + tugas agen seharga $0,30/1 juta — peningkatan signifikan dari M2.1|
-|🎯 **alat Memanggil Bendera per Model**    | Per model `toolCalling: true/false` di registri — AutoCombo melewatkan model yang tidak mendukung alat   |
-| 🌍 **Multilingual Intent Detection** | Kata kunci PT/ZH/ES/AR dalam penilaian AutoCombo — pemilihan model yang lebih baik untuk konten non-Inggris  |
-| 📊 **Benchmark-Driven Fallbacks**    | Latensi p95 nyata dari penilaian kombo umpan permintaan langsung — AutoCombo belajar dari data aktual |
-| 🔁 **Request Deduplication**         | Content-hash based dedup window — multi-agent safe, prevents duplicate charges              |
-| 🔌 **Pluggable RouterStrategy**      | Antarmuka `RouterStrategy` yang dapat diperluas — tambahkan logika perutean khusus sebagai plugin                 |
+| Feature                                 | Apa Fungsinya                                                                                               |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| ⚡ **Grok-4 Fast Family**               | xAI models at $0.20/$0.50/M — benchmarked 1143ms (30% faster than Gemini 2.5 Flash)                         |
+| 🧠 **GLM-5 via Z.AI**                   | Konteks keluaran 128 ribu, $0,5/1 juta — andalan terbaru dari keluarga GLM                                  |
+| 🔮 **MiniMax M2.5**                     | Penalaran + tugas agen seharga $0,30/1 juta — peningkatan signifikan dari M2.1                              |
+| 🎯 **alat Memanggil Bendera per Model** | Per model `toolCalling: true/false` di registri — AutoCombo melewatkan model yang tidak mendukung alat      |
+| 🌍 **Multilingual Intent Detection**    | Kata kunci PT/ZH/ES/AR dalam penilaian AutoCombo — pemilihan model yang lebih baik untuk konten non-Inggris |
+| 📊 **Benchmark-Driven Fallbacks**       | Latensi p95 nyata dari penilaian kombo umpan permintaan langsung — AutoCombo belajar dari data aktual       |
+| 🔁 **Request Deduplication**            | Content-hash based dedup window — multi-agent safe, prevents duplicate charges                              |
+| 🔌 **Pluggable RouterStrategy**         | Antarmuka `RouterStrategy` yang dapat diperluas — tambahkan logika perutean khusus sebagai plugin           |
 
 ### 🚀 Sebelumnya v2.0.9+ — Playground, Fingerprint CLI & ACP
 
-| Feature                                    | Apa Fungsinya                                                                                                                                                                                                                            |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🎮 **Model Playground**                    | Halaman dasbor untuk menguji model apa pun secara langsung — pemilih penyedia/model/titik akhir, Editor Monaco, streaming, batalkan, pengaturan waktu                                                                                                                  |
-| 🔏 **CLI Fingerprint Matching**            | Pengurutan header/isi per penyedia agar sesuai dengan tanda tangan CLI asli — alihkan per penyedia di Pengaturan > Keamanan. **IP proxy Anda dipertahankan**                                                                                           |
-| 🤖 **Dasbor Agen ACP**                | Debug › Halaman agen — kisi 14 agen dengan status pemasangan, versi, formulir agen khusus untuk alat CLI apa pun. Pengguna **OpenCode** mendapatkan tombol "Unduh opencode.json" yang secara otomatis menghasilkan konfigurasi siap pakai dengan semua model yang tersedia. |
-| 🔧 **Custom Model `apiFormat` Routing**    | Model khusus dengan `apiFormat: "responses"` sekarang dirutekan dengan benar ke penerjemah Responses API                                                                                                                                         |
-| 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
-| 🔄 **Pembaruan Otomatis Elektron**                | Aplikasi desktop memeriksa pembaruan + instal otomatis saat restart                                                                                                                                                                                |
+| Feature                                 | Apa Fungsinya                                                                                                                                                                                                                                                               |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🎮 **Model Playground**                 | Halaman dasbor untuk menguji model apa pun secara langsung — pemilih penyedia/model/titik akhir, Editor Monaco, streaming, batalkan, pengaturan waktu                                                                                                                       |
+| 🔏 **CLI Fingerprint Matching**         | Pengurutan header/isi per penyedia agar sesuai dengan tanda tangan CLI asli — alihkan per penyedia di Pengaturan > Keamanan. **IP proxy Anda dipertahankan**                                                                                                                |
+| 🤖 **Dasbor Agen ACP**                  | Debug › Halaman agen — kisi 14 agen dengan status pemasangan, versi, formulir agen khusus untuk alat CLI apa pun. Pengguna **OpenCode** mendapatkan tombol "Unduh opencode.json" yang secara otomatis menghasilkan konfigurasi siap pakai dengan semua model yang tersedia. |
+| 🔧 **Custom Model `apiFormat` Routing** | Model khusus dengan `apiFormat: "responses"` sekarang dirutekan dengan benar ke penerjemah Responses API                                                                                                                                                                    |
+| 🏢 **Codex Workspace Isolation**        | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                                                                 |
+| 🔄 **Pembaruan Otomatis Elektron**      | Aplikasi desktop memeriksa pembaruan + instal otomatis saat restart                                                                                                                                                                                                         |
 
 ### 🤖 Operasi Agen & Protokol (v2.0)
 
-| Feature                               | Apa Fungsinya                                                                                                                           |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 🔧 **Server MCP (25 alat)**          | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 18 core + 3 memory + 4 skill tools |
-| 🤝 **Server A2A (JSON-RPC + SSE)**    | Eksekusi tugas agen-ke-agen dengan alur sinkronisasi dan streaming                                                                            |
-| 🧭 **Halaman Titik Akhir Konsolidasi**    | Halaman manajemen bertab dengan tab Proksi Titik Akhir, MCP, A2A, dan Titik Akhir API|
-| 🎚️ **Service Enable/Disable Toggles** |Sakelar ON/OFF untuk MCP dan A2A dengan pengaturan persistensi (default: OFF)                                                               |
-| 🛰️ **Detak Jantung Waktu Proses MCP**          | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                |
-| 📋 **MCP Audit Trail**                | Log audit yang dapat difilter dengan keberhasilan/kegagalan dan atribusi kunci                                                                         |
-| 🔐 **MCP Scope Enforcement**          | 10 izin cakupan terperinci untuk akses alat terkontrol                                                                               |
-| 📡 **Manajemen Siklus Hidup Tugas A2A**  | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                      |
-| 📋 **Agent Card Discovery**           | `/.well-known/agent.json` untuk penemuan otomatis klien                                                                                    |
-| 🧪 **Protocol E2E Test Harness**      | Klien MCP SDK + A2A asli mengalir di `test:protocols:e2e`                                                                                |
-| ⚙️ **Operational Controls**           | Ganti kombo, sesuaikan pengaturan ketahanan, dan tinjau status pemutus dari permukaan Kesehatan dan Pengaturan khusus                          |
+| Feature                                 | Apa Fungsinya                                                                                                                          |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔧 **Server MCP (25 alat)**             | IDE/agent tools via 3 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`). 18 core + 3 memory + 4 skill tools |
+| 🤝 **Server A2A (JSON-RPC + SSE)**      | Eksekusi tugas agen-ke-agen dengan alur sinkronisasi dan streaming                                                                     |
+| 🧭 **Halaman Titik Akhir Konsolidasi**  | Halaman manajemen bertab dengan tab Proksi Titik Akhir, MCP, A2A, dan Titik Akhir API                                                  |
+| 🎚️ **Service Enable/Disable Toggles**   | Sakelar ON/OFF untuk MCP dan A2A dengan pengaturan persistensi (default: OFF)                                                          |
+| 🛰️ **Detak Jantung Waktu Proses MCP**   | Real process status (pid, uptime, heartbeat age, transport, scope mode)                                                                |
+| 📋 **MCP Audit Trail**                  | Log audit yang dapat difilter dengan keberhasilan/kegagalan dan atribusi kunci                                                         |
+| 🔐 **MCP Scope Enforcement**            | 10 izin cakupan terperinci untuk akses alat terkontrol                                                                                 |
+| 📡 **Manajemen Siklus Hidup Tugas A2A** | List/filter tasks, inspect events/artifacts, cancel running tasks                                                                      |
+| 📋 **Agent Card Discovery**             | `/.well-known/agent.json` untuk penemuan otomatis klien                                                                                |
+| 🧪 **Protocol E2E Test Harness**        | Klien MCP SDK + A2A asli mengalir di `test:protocols:e2e`                                                                              |
+| ⚙️ **Operational Controls**             | Ganti kombo, sesuaikan pengaturan ketahanan, dan tinjau status pemutus dari permukaan Kesehatan dan Pengaturan khusus                  |
 
 ### 🧠 Routing & Kecerdasan
 
-| Feature                            | Apa Fungsinya                                                             |
-| ---------------------------------- | ------------------------------------------------------------------------ |
-| 🎯 **Pengembalian 4 Tingkat Cerdas**       | Rute otomatis: Berlangganan → Kunci API → Murah → Gratis                        |
-| 📊 **Pelacakan Kuota Waktu Nyata**    | Jumlah token langsung + setel ulang hitungan mundur per penyedia                          |
-| 🔄 **Format Translation**          | OpenAI ↔ Claude ↔ Gemini ↔ Respons dengan konversi skema-aman        |
-| 👥 **Dukungan Multi-Akun**       | Banyak akun per penyedia dengan pilihan cerdas                |
-| 🔄 **Auto Token Refresh**          | Token OAuth disegarkan secara otomatis dengan percobaan ulang                            |
-| 🎨 **Custom Combos**               | 13 strategi penyeimbangan + kontrol rantai mundur                         |
-| 🔗 **Context Relay**               | Penyerahan kesinambungan sesi ketika rotasi akun terjadi di tengah sesi    |
-| 🌐 **Wildcard Router**             | `provider/*` dynamic routing                                             |
-| 🧠 **Thinking Budget Controls**    | Batas penalaran passthrough, otomatis, kustom, dan adaptif|
-| 🔀 **Model Aliases**               |Alias ​​model khusus + bawaan dan keamanan migrasi                    |
-| ⚡ **Background Degradation**      | Arahkan tugas latar belakang berprioritas rendah ke model yang lebih murah                    |
-| 🧪 **Perutean Cerdas Sadar Tugas**    | Pilih model secara otomatis berdasarkan jenis konten (pengkodean/visi/analisis/ringkasan) |
-| 🔄 **A2A Agent Workflows**         | Deterministic FSM orchestrator for stateful multi-step agent executions  |
-| 🔀 **Adaptive Routing**            | Dynamic strategy override based on token volume and prompt complexity    |
-| 🎲 **Provider Diversity**          | Shannon entropy scoring balancing auto-combo traffic distribution        |
-| 💬 **System Prompt Injection**     | Global behavior controls applied consistently                            |
-| 📄 **Kompatibilitas API Respons** | Dukungan penuh `/v1/responses` untuk Codex dan alur kerja agen tingkat lanjut    |
+| Feature                              | Apa Fungsinya                                                                             |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| 🎯 **Pengembalian 4 Tingkat Cerdas** | Rute otomatis: Berlangganan → Kunci API → Murah → Gratis                                  |
+| 📊 **Pelacakan Kuota Waktu Nyata**   | Jumlah token langsung + setel ulang hitungan mundur per penyedia                          |
+| 🔄 **Format Translation**            | OpenAI ↔ Claude ↔ Gemini ↔ Respons dengan konversi skema-aman                             |
+| 👥 **Dukungan Multi-Akun**           | Banyak akun per penyedia dengan pilihan cerdas                                            |
+| 🔄 **Auto Token Refresh**            | Token OAuth disegarkan secara otomatis dengan percobaan ulang                             |
+| 🎨 **Custom Combos**                 | 13 strategi penyeimbangan + kontrol rantai mundur                                         |
+| 🔗 **Context Relay**                 | Penyerahan kesinambungan sesi ketika rotasi akun terjadi di tengah sesi                   |
+| 🌐 **Wildcard Router**               | `provider/*` dynamic routing                                                              |
+| 🧠 **Thinking Budget Controls**      | Batas penalaran passthrough, otomatis, kustom, dan adaptif                                |
+| 🔀 **Model Aliases**                 | Alias ​​model khusus + bawaan dan keamanan migrasi                                        |
+| ⚡ **Background Degradation**        | Arahkan tugas latar belakang berprioritas rendah ke model yang lebih murah                |
+| 🧪 **Perutean Cerdas Sadar Tugas**   | Pilih model secara otomatis berdasarkan jenis konten (pengkodean/visi/analisis/ringkasan) |
+| 🔄 **A2A Agent Workflows**           | Deterministic FSM orchestrator for stateful multi-step agent executions                   |
+| 🔀 **Adaptive Routing**              | Dynamic strategy override based on token volume and prompt complexity                     |
+| 🎲 **Provider Diversity**            | Shannon entropy scoring balancing auto-combo traffic distribution                         |
+| 💬 **System Prompt Injection**       | Global behavior controls applied consistently                                             |
+| 📄 **Kompatibilitas API Respons**    | Dukungan penuh `/v1/responses` untuk Codex dan alur kerja agen tingkat lanjut             |
 
 ### 🎵 API Multi-Modal
 
-| Feature                    | Apa Fungsinya                                                                                                                                                               |
+| Feature                    | Apa Fungsinya                                                                                                                                                              |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🖼️ **Image Generation**    | `/v1/images/generations` dengan cloud dan backend lokal                                                                                                                     |
-| 📐 **Embeddings**          | `/v1/embeddings` untuk saluran pencarian dan RAG                                                                                                                              |
+| 🖼️ **Image Generation**    | `/v1/images/generations` dengan cloud dan backend lokal                                                                                                                    |
+| 📐 **Embeddings**          | `/v1/embeddings` untuk saluran pencarian dan RAG                                                                                                                           |
 | 🎤 **Audio Transcription** | `/v1/audio/transcriptions` — 7 providers (Deepgram Nova 3, AssemblyAI, Groq Whisper, HuggingFace, ElevenLabs, OpenAI, Azure), auto-language detection, MP4/MP3/WAV support |
-| 🔊 **Text-to-Speech**      | `/v1/audio/speech` — 10 penyedia (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise) dengan pesan kesalahan yang benar          |
+| 🔊 **Text-to-Speech**      | `/v1/audio/speech` — 10 penyedia (ElevenLabs, OpenAI, Deepgram, Cartesia, PlayHT, HuggingFace, Nvidia NIM, Inworld, Coqui, Tortoise) dengan pesan kesalahan yang benar     |
 | 🎬 **Video Generation**    | `/v1/videos/generations` (ComfyUI + SD WebUI workflows)                                                                                                                    |
 | 🎵 **Music Generation**    | `/v1/music/generations` (ComfyUI workflows)                                                                                                                                |
 | 🛡️ **Moderations**         | `/v1/moderations` safety checks                                                                                                                                            |
-| 🔀 **Reranking**           | `/v1/rerank` untuk penilaian relevansi                                                                                                                                         |
+| 🔀 **Reranking**           | `/v1/rerank` untuk penilaian relevansi                                                                                                                                     |
 | 🔍 **Web Search** 🆕       | `/v1/search` — 5 providers (Serper, Brave, Perplexity, Exa, Tavily), 6,500+ free/month, auto-failover, cache                                                               |
 
 ### 🛡️ Ketahanan, Keamanan & Tata Kelola
 
-| Feature                             | Apa Fungsinya                                                                                            |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| 🔌 **Penyedia Pemutus Arus**    | Perjalanan/pemulihan di seluruh penyedia setelah kelelahan fallback dengan ambang batas yang dapat dikonfigurasi                       |
-| 🔒 **Kunci Kuota Harian** 🆕          | Mendeteksi sinyal kelelahan dan mengunci perutean untuk model tertentu hingga tengah malam                      |
-| 🎯 **Model Sadar Titik Akhir**        | Model khusus mendeklarasikan titik akhir + format API yang didukung                                                  |
-| 🛡️ **Anti-Thundering Herd**         | Mutex + semaphore protections on retry/rate events                                                      |
-| 🧠 **Semantic + Signature Cache**   | Pengurangan biaya/latensi dengan dua lapisan cache                                                            |
-| ⚡ **Request Idempotency**          | Duplicate protection window                                                                             |
-| 🔒 **TLS Fingerprint Spoofing**     | Sidik jari TLS seperti browser — **mengurangi deteksi bot dan penandaan akun**|
-| 🔏 **CLI Fingerprint Matching**     | Matches native CLI request signatures — **reduces ban risk while preserving proxy IP**                  |
-| 🌐 **IP Filtering**                 |Kontrol daftar yang diizinkan/daftar blokir untuk penerapan yang terbuka                                                     |
-| 🚦 **Minta Antrian & Kecepatan**       | Bucket permintaan per koneksi yang dapat dikonfigurasi untuk RPM, spasi, konkurensi, dan waktu tunggu maksimal                 |
-| 📉 **Graceful Degradation**         | Multi-layer capability fallbacks protecting core gateway operations                                     |
-| 📜 **Config Audit Trail**           | Pelacakan perubahan berbasis diff mencegah penyimpangan operasional dengan rollback sederhana                           |
-| ⏳ **Sinkronisasi Kesehatan Penyedia**         | Proactive token expiration monitoring triggering alerts before authorization failures                   |
-| ❄️ **Connection Cooldown**          | Retryable 408/429/5xx failures cool down a single connection with optional upstream hints               |
-| 🚪 **Nonaktifkan Otomatis Akun yang Diblokir** | Akun token yang diblokir secara permanen dapat dinonaktifkan secara otomatis                                        |
-| 🔑 **Manajemen Kunci API + Pelingkupan** | Mengamankan penerbitan/rotasi kunci dan kontrol model/penyedia                                                |
-| 👁️ **Pengungkapan Kunci API Cakupan** 🆕     | Ikut serta dalam pemulihan kunci API melalui `ALLOW_API_KEY_REVEAL`                                                  |
-| 🛡️ **Protected `/models`**          | Gerbang autentikasi opsional dan penyembunyian penyedia untuk katalog model                                              |
-| 🛡️ **Safe Outbound Fetch** 🆕       | Pengambilan yang dijaga untuk panggilan penyedia — memblokir URL pribadi/lokal, percobaan ulang, perlindungan SSRF                  |
-| ⏳ **Tunggu Cooldown** 🆕         | Coba ulang obrolan secara otomatis setelah cooldown koneksi; dapat dikonfigurasi `enabled`, `maxRetries`, dan `maxRetryWaitSec` |
-| 🔍 **Validasi Env Runtime** 🆕    | Zod-based env schema validation at startup with actionable error messages                               |
-| 📋 **Compliance Audit v2** 🆕       | Penomoran halaman, konteks permintaan, peristiwa autentikasi, CRUD penyedia, dan logging yang diblokir SSRF                       |
+| Feature                                        | Apa Fungsinya                                                                                                                   |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| 🔌 **Penyedia Pemutus Arus**                   | Perjalanan/pemulihan di seluruh penyedia setelah kelelahan fallback dengan ambang batas yang dapat dikonfigurasi                |
+| 🔒 **Kunci Kuota Harian** 🆕                   | Mendeteksi sinyal kelelahan dan mengunci perutean untuk model tertentu hingga tengah malam                                      |
+| 🎯 **Model Sadar Titik Akhir**                 | Model khusus mendeklarasikan titik akhir + format API yang didukung                                                             |
+| 🛡️ **Anti-Thundering Herd**                    | Mutex + semaphore protections on retry/rate events                                                                              |
+| 🧠 **Semantic + Signature Cache**              | Pengurangan biaya/latensi dengan dua lapisan cache                                                                              |
+| ⚡ **Request Idempotency**                     | Duplicate protection window                                                                                                     |
+| 🔒 **TLS Fingerprint Spoofing**                | Sidik jari TLS seperti browser — **mengurangi deteksi bot dan penandaan akun**                                                  |
+| 🔏 **CLI Fingerprint Matching**                | Matches native CLI request signatures — **reduces ban risk while preserving proxy IP**                                          |
+| 🌐 **IP Filtering**                            | Kontrol daftar yang diizinkan/daftar blokir untuk penerapan yang terbuka                                                        |
+| 🚦 **Minta Antrian & Kecepatan**               | Bucket permintaan per koneksi yang dapat dikonfigurasi untuk RPM, spasi, konkurensi, dan waktu tunggu maksimal                  |
+| 📉 **Graceful Degradation**                    | Multi-layer capability fallbacks protecting core gateway operations                                                             |
+| 📜 **Config Audit Trail**                      | Pelacakan perubahan berbasis diff mencegah penyimpangan operasional dengan rollback sederhana                                   |
+| ⏳ **Sinkronisasi Kesehatan Penyedia**         | Proactive token expiration monitoring triggering alerts before authorization failures                                           |
+| ❄️ **Connection Cooldown**                     | Retryable 408/429/5xx failures cool down a single connection with optional upstream hints                                       |
+| 🚪 **Nonaktifkan Otomatis Akun yang Diblokir** | Akun token yang diblokir secara permanen dapat dinonaktifkan secara otomatis                                                    |
+| 🔑 **Manajemen Kunci API + Pelingkupan**       | Mengamankan penerbitan/rotasi kunci dan kontrol model/penyedia                                                                  |
+| 👁️ **Pengungkapan Kunci API Cakupan** 🆕       | Ikut serta dalam pemulihan kunci API melalui `ALLOW_API_KEY_REVEAL`                                                             |
+| 🛡️ **Protected `/models`**                     | Gerbang autentikasi opsional dan penyembunyian penyedia untuk katalog model                                                     |
+| 🛡️ **Safe Outbound Fetch** 🆕                  | Pengambilan yang dijaga untuk panggilan penyedia — memblokir URL pribadi/lokal, percobaan ulang, perlindungan SSRF              |
+| ⏳ **Tunggu Cooldown** 🆕                      | Coba ulang obrolan secara otomatis setelah cooldown koneksi; dapat dikonfigurasi `enabled`, `maxRetries`, dan `maxRetryWaitSec` |
+| 🔍 **Validasi Env Runtime** 🆕                 | Zod-based env schema validation at startup with actionable error messages                                                       |
+| 📋 **Compliance Audit v2** 🆕                  | Penomoran halaman, konteks permintaan, peristiwa autentikasi, CRUD penyedia, dan logging yang diblokir SSRF                     |
 
 ### 📊 Observabilitas & Analitik
 
-| Feature                          | Apa Fungsinya                                          |
-| -------------------------------- | ----------------------------------------------------- |
-| 📝 **Permintaan + Pencatatan Proksi**   | Permintaan/respons penuh dan pencatatan proksi|
-| 📉 **Streamed Detailed Logs**    |Merekonstruksi aliran muatan SSE dengan rapi ke dalam UI  |
-| 🏷️ **Lencana Model Real-Time** 🆕 | Status model langsung dan penghitung waktu mundur kuota harian    |
-| 📋 **Dasbor Log Terpadu**    | Tampilan permintaan, proksi, audit, dan konsol dalam satu halaman  |
-| 🔍 **Request Telemetry**         | latensi p50/p95/p99 dan penelusuran permintaan               |
-| 🏥 **Health Dashboard**          | Uptime, breaker states, lockouts, cache stats         |
-| 💰 **Cost Tracking**             | Kontrol anggaran dan visibilitas harga per model      |
-| 📈 **Analytics Visualizations**  | Wawasan penggunaan model/penyedia dan tampilan tren         |
-| 🧪 **Evaluation Framework**      | Pengujian set emas dengan strategi pencocokan yang dapat dikonfigurasi |
-| 📡 **Live Diagnostics** 🆕       | Bypass cache semantik untuk pengujian langsung kombo yang akurat |
-| 🔐 **TPS Log Metric** 🆕         | Tokens Per Second badge in log details modal          |
+| Feature                               | Apa Fungsinya                                                          |
+| ------------------------------------- | ---------------------------------------------------------------------- |
+| 📝 **Permintaan + Pencatatan Proksi** | Permintaan/respons penuh dan pencatatan proksi                         |
+| 📉 **Streamed Detailed Logs**         | Merekonstruksi aliran muatan SSE dengan rapi ke dalam UI               |
+| 🏷️ **Lencana Model Real-Time** 🆕     | Status model langsung dan penghitung waktu mundur kuota harian         |
+| 📋 **Dasbor Log Terpadu**             | Tampilan permintaan, proksi, audit, dan konsol dalam satu halaman      |
+| 🔍 **Request Telemetry**              | latensi p50/p95/p99 dan penelusuran permintaan                         |
+| 🏥 **Health Dashboard**               | Uptime, breaker states, lockouts, cache stats                          |
+| 💰 **Cost Tracking**                  | Kontrol anggaran dan visibilitas harga per model                       |
+| 📈 **Analytics Visualizations**       | Wawasan penggunaan model/penyedia dan tampilan tren                    |
+| 🧪 **Evaluation Framework**           | Pengujian set emas dengan strategi pencocokan yang dapat dikonfigurasi |
+| 📡 **Live Diagnostics** 🆕            | Bypass cache semantik untuk pengujian langsung kombo yang akurat       |
+| 🔐 **TPS Log Metric** 🆕              | Tokens Per Second badge in log details modal                           |
 
 ### ☁️ Deployment & Platform
 
-| Feature                        | Apa Fungsinya                                                          |
-| ------------------------------ | --------------------------------------------------------------------- |
-| 🌐 **Deploy Anywhere**         | Localhost, VPS, Docker, Cloud environments                            |
-| 🚇 **Cloudflare Tunnel** 🆕    | Integrasi Quick Tunnel sekali klik dari dasbor                 |
-| 🔑 **Pemfilteran Model Kunci API** | Respons asli /v1/models difilter melalui peran konteks Pembawa yang ditetapkan |
-| ⚡ **Smart Cache Bypass**      | Heuristik TTL yang dapat dikonfigurasi dan kontrol pengambilan ulang paksa               |
-| 🔄 **Backup/Restore**          | Arus ekspor/impor dan pemulihan bencana                             |
-| 🧙 **Onboarding Wizard**       | Penyiapan terpandu yang dijalankan pertama kali                                                |
-| 🔧 **Dasbor Alat CLI**     | Pengaturan sekali klik untuk alat pengkodean populer                              |
-| 🎮 **Model Playground**        | Uji penyedia/model/titik akhir apa pun dari dasbor|
-| 🔏 **CLI Fingerprint Toggle**  |Pencocokan sidik jari per penyedia di Pengaturan > Keamanan              |
-| 🌐 **i18n (30 languages)**     | Dasbor lengkap + dukungan bahasa dokumen dengan cakupan RTL              |
-| 🧹 **Hapus Semua Model**        | Pembersihan daftar model sekali klik di detail penyedia                     |
-| 👁️ **Sidebar Controls** 🆕     | Sembunyikan komponen dan integrasi dari Pengaturan Penampilan             |
-| 📋 **Issue Templates**         | Templat GitHub standar untuk bug dan fitur                   |
-| 📂 **Custom Data Directory**   | `DATA_DIR` penggantian untuk lokasi penyimpanan                              |
-| 🌐 **V1 WebSocket Bridge** 🆕  | OpenAI-compatible WebSocket traffic proxied via `/v1/ws`              |
-| 🔑 **Sync Tokens & Bundle** 🆕 | Konfigurasikan token sinkronisasi + titik akhir bundel berversi dengan dukungan ETag      |
+| Feature                            | Apa Fungsinya                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------ |
+| 🌐 **Deploy Anywhere**             | Localhost, VPS, Docker, Cloud environments                                           |
+| 🚇 **Cloudflare Tunnel** 🆕        | Integrasi Quick Tunnel sekali klik dari dasbor                                       |
+| 🔑 **Pemfilteran Model Kunci API** | Respons asli /v1/models difilter melalui peran konteks Pembawa yang ditetapkan       |
+| ⚡ **Smart Cache Bypass**          | Heuristik TTL yang dapat dikonfigurasi dan kontrol pengambilan ulang paksa           |
+| 🔄 **Backup/Restore**              | Arus ekspor/impor dan pemulihan bencana                                              |
+| 🧙 **Onboarding Wizard**           | Penyiapan terpandu yang dijalankan pertama kali                                      |
+| 🔧 **Dasbor Alat CLI**             | Pengaturan sekali klik untuk alat pengkodean populer                                 |
+| 🎮 **Model Playground**            | Uji penyedia/model/titik akhir apa pun dari dasbor                                   |
+| 🔏 **CLI Fingerprint Toggle**      | Pencocokan sidik jari per penyedia di Pengaturan > Keamanan                          |
+| 🌐 **i18n (30 languages)**         | Dasbor lengkap + dukungan bahasa dokumen dengan cakupan RTL                          |
+| 🧹 **Hapus Semua Model**           | Pembersihan daftar model sekali klik di detail penyedia                              |
+| 👁️ **Sidebar Controls** 🆕         | Sembunyikan komponen dan integrasi dari Pengaturan Penampilan                        |
+| 📋 **Issue Templates**             | Templat GitHub standar untuk bug dan fitur                                           |
+| 📂 **Custom Data Directory**       | `DATA_DIR` penggantian untuk lokasi penyimpanan                                      |
+| 🌐 **V1 WebSocket Bridge** 🆕      | OpenAI-compatible WebSocket traffic proxied via `/v1/ws`                             |
+| 🔑 **Sync Tokens & Bundle** 🆕     | Konfigurasikan token sinkronisasi + titik akhir bundel berversi dengan dukungan ETag |
 
 ### Fitur Penyelaman Mendalam
 
@@ -1677,8 +1673,6 @@ Scenarios:
 - `5h OFF` + `Weekly ON`: hanya penggunaan mingguan yang dapat memblokir akun.
 - `5h ON` + `Weekly OFF` : hanya penggunaan 5 jam yang dapat memblokir akun.
 - `resetAt` lolos: akun masuk kembali ke rotasi secara otomatis (tidak ada pengaktifan ulang secara manual).
-
-
 
 ### GitHub Copilot
 
@@ -2021,8 +2015,6 @@ opencode
 
 > **⚠️ Penting bagi pengguna yang menjalankan OmniRoute di VPS, Docker, atau server jarak jauh mana pun**
 
-
-
 Kredensial OAuth yang disertakan dalam OmniRoute didaftarkan **hanya untuk `localhost`**. Saat Anda mengakses OmniRoute di server jarak jauh (misalnya `https://omniroute.myserver.com`), Google menolak autentikasi dengan:
 
 ```
@@ -2084,7 +2076,6 @@ docker restart omniroute
 
 **7. Try connecting again**
 
-
 Google will now redirect correctly to `https://your-server.com/callback`.
 
 ---
@@ -2102,95 +2093,6 @@ Jika Anda tidak ingin menyiapkan kredensial Anda sendiri saat ini, Anda masih da
 > Ini berfungsi karena kode otorisasi di URL valid terlepas dari apakah halaman pengalihan dimuat.
 
 ---
-
-<details>
-<summary><b>🇧🇷 Versão em Português</b></summary>
-
-
-
-As credenciais OAuth embutidas no OmniRoute estão cadastradas **apenas para `localhost`**. Quando você acessa o OmniRoute em um servidor remoto (ex: `https://omniroute.meuservidor.com`), o Google rejeita a autenticação com:
-
-```
-Error 400: redirect_uri_mismatch
-```
-
-#### Solução: Configure suas próprias credenciais OAuth
-
-Você precisa criar um **OAuth 2.0 Client ID** no Google Cloud Console com a URI do seu servidor.
-
-#### Passo a passo
-
-**1. Acesse o Google Cloud Console**
-
-Abra: [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
-
-**2. Inilah ID Klien OAuth 2.0 yang baru**
-
-- Klik pada **"+ Buat Kredensial"** → **"ID klien OAuth"**
-- Tip aplikasi: **"Aplikasi web"**
-- Nama: nama escolha qualquer (misal: `OmniRoute Remote`)
-
-**3. Adicione as Authorized Redirect URIs**
-
-No campo **"Authorized redirect URIs"**, adicione:
-
-```
-https://seu-servidor.com/callback
-```
-
-> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:20128/callback`).
-
-**4. Salve e copie as credenciais**
-
-Kemudian, Google menampilkan **ID Klien** dan **Rahasia Klien**.
-
-**5. Configure as variáveis de ambiente**
-
-No seu `.env` (ou nas variáveis de ambiente do Docker):
-
-```bash
-# Para Antigravity:
-ANTIGRAVITY_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-ANTIGRAVITY_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-
-GEMINI_OAUTH_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-seu-secret
-```
-
-**6. Reinicie o OmniRoute**
-
-```bash
-# Se usando npm:
-npm run dev
-
-# Se usando Docker:
-docker restart omniroute
-```
-
-**7. Tente conectar novamente**
-
-
-Agora o Google redirecionará corretamente para `https://seu-servidor.com/callback` e a autenticação funcionará.
-
----
-
-#### Workaround temporário (sem configurar credenciais próprias)
-
-Se não quiser criar credenciais próprias agora, ainda é possível usar o fluxo **manual de URL**:
-
-1. O OmniRoute abrirá a URL de autorização do Google
-2. Após você autorizar, o Google tentará redirecionar para `localhost` (que falha no servidor remoto)
-3. **Copie a URL completa** da barra de endereço do seu browser (mesmo que a página não carregue)
-4. Cole essa URL no campo que aparece no modal de conexão do OmniRoute
-5. Clique em **"Connect"**
-
-> Este workaround funciona porque o código de autorização na URL é válido independente do redirect ter carregado ou não.
-
-</details>
-
----
-
-</details>
 
 ## 🛠️ Stack Teknologi
 
@@ -2218,25 +2120,25 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ## Dokumentasi
 
-| Document                                                              | Description                                         |
-| --------------------------------------------------------------------- | --------------------------------------------------- |
-| [User Guide](docs/guides/USER_GUIDE.md)                               | Penyedia, kombo, integrasi CLI, penerapan      |
-| [API Reference](docs/reference/API_REFERENCE.md)                      | Semua titik akhir dengan contoh                         |
-| [MCP Server](open-sse/mcp-server/README.md)                           | 25 alat MCP, konfigurasi IDE, klien Python/TS/Go     |
+| Document                                                              | Description                                                     |
+| --------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [User Guide](docs/guides/USER_GUIDE.md)                               | Penyedia, kombo, integrasi CLI, penerapan                       |
+| [API Reference](docs/reference/API_REFERENCE.md)                      | Semua titik akhir dengan contoh                                 |
+| [MCP Server](open-sse/mcp-server/README.md)                           | 25 alat MCP, konfigurasi IDE, klien Python/TS/Go                |
 | [A2A Server](src/lib/a2a/README.md)                                   | Protokol JSON-RPC 2.0, keterampilan, streaming, manajemen tugas |
-| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                       | 6-factor scoring, mode packs, self-healing          |
-| [Context Relay](docs/features/context-relay.md)                       | Strategi penyerahan sesi untuk rotasi akun       |
-| [Troubleshooting](docs/guides/TROUBLESHOOTING.md)                     | Masalah umum dan solusinya                       |
-| [Architecture](docs/architecture/ARCHITECTURE.md)                     | Arsitektur sistem dan internal|
-| [Codebase Documentation](docs/architecture/CODEBASE_DOCUMENTATION.md) | Beginner-friendly codebase walkthrough              |
-| [Uninstall Guide](docs/guides/UNINSTALL.md)                           |Penghapusan bersih untuk semua metode instalasi               |
-| [Environment Config](docs/reference/ENVIRONMENT.md)                   | Lengkapi `.env` variabel dan referensi            |
-| [Contributing](CONTRIBUTING.md)                                       | Pengaturan dan pedoman pengembangan                    |
-| [OpenAPI Spec](docs/reference/openapi.yaml)                           | OpenAPI 3.0 specification                           |
-| [Security Policy](SECURITY.md)                                        | Pelaporan kerentanan dan praktik keamanan      |
-| [VM Deployment](docs/ops/VM_DEPLOYMENT_GUIDE.md)                      | Panduan lengkap: pengaturan VM + nginx + Cloudflare       |
-| [Features Gallery](docs/guides/FEATURES.md)                           | Tur dasbor visual dengan tangkapan layar              |
-| [Release Checklist](docs/ops/RELEASE_CHECKLIST.md)                    | Pre-release validation steps                        |
+| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                       | 6-factor scoring, mode packs, self-healing                      |
+| [Context Relay](docs/features/context-relay.md)                       | Strategi penyerahan sesi untuk rotasi akun                      |
+| [Troubleshooting](docs/guides/TROUBLESHOOTING.md)                     | Masalah umum dan solusinya                                      |
+| [Architecture](docs/architecture/ARCHITECTURE.md)                     | Arsitektur sistem dan internal                                  |
+| [Codebase Documentation](docs/architecture/CODEBASE_DOCUMENTATION.md) | Beginner-friendly codebase walkthrough                          |
+| [Uninstall Guide](docs/guides/UNINSTALL.md)                           | Penghapusan bersih untuk semua metode instalasi                 |
+| [Environment Config](docs/reference/ENVIRONMENT.md)                   | Lengkapi `.env` variabel dan referensi                          |
+| [Contributing](CONTRIBUTING.md)                                       | Pengaturan dan pedoman pengembangan                             |
+| [OpenAPI Spec](docs/reference/openapi.yaml)                           | OpenAPI 3.0 specification                                       |
+| [Security Policy](SECURITY.md)                                        | Pelaporan kerentanan dan praktik keamanan                       |
+| [VM Deployment](docs/ops/VM_DEPLOYMENT_GUIDE.md)                      | Panduan lengkap: pengaturan VM + nginx + Cloudflare             |
+| [Features Gallery](docs/guides/FEATURES.md)                           | Tur dasbor visual dengan tangkapan layar                        |
+| [Release Checklist](docs/ops/RELEASE_CHECKLIST.md)                    | Pre-release validation steps                                    |
 
 ---
 
@@ -2244,14 +2146,14 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 OmniRoute memiliki **218+ fitur yang direncanakan** di berbagai fase pengembangan. Berikut adalah bidang-bidang utamanya:
 
-| Category                      | Planned Features | Highlights                                                                                            |
-| ----------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------- |
+| Category                      | Planned Features | Highlights                                                                                                          |
+| ----------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
 | 🧠 **Routing & Intelligence** | 25+              | Perutean latensi terendah, perutean berbasis tag, preflight kuota, P2C sadar kuota, perutean kombo berbasis langkah |
-| 🔒 **Security & Compliance**  | 20+              | Pengerasan SSRF, penyelubungan kredensial, batas tarif per titik akhir, pelingkupan kunci manajemen                  |
-| 📊 **Observability**          | 15+              | Integrasi OpenTelemetry, pemantauan kuota waktu nyata, kesehatan target kombo, pelacakan biaya per model   |
-| 🔄 **Provider Integrations**  | 20+              | Registri model dinamis, cooldown koneksi, Codex multi-akun, penguraian kuota Salinan              |
-| ⚡ **Performance**            | 15+              | Lapisan cache ganda, cache cepat, cache respons, streaming keepalive, API batch|
-| 🌐 **Ecosystem**              | 10+              | WebSocket API, config hot-reload, distributed config store, commercial mode                           |
+| 🔒 **Security & Compliance**  | 20+              | Pengerasan SSRF, penyelubungan kredensial, batas tarif per titik akhir, pelingkupan kunci manajemen                 |
+| 📊 **Observability**          | 15+              | Integrasi OpenTelemetry, pemantauan kuota waktu nyata, kesehatan target kombo, pelacakan biaya per model            |
+| 🔄 **Provider Integrations**  | 20+              | Registri model dinamis, cooldown koneksi, Codex multi-akun, penguraian kuota Salinan                                |
+| ⚡ **Performance**            | 15+              | Lapisan cache ganda, cache cepat, cache respons, streaming keepalive, API batch                                     |
+| 🌐 **Ecosystem**              | 10+              | WebSocket API, config hot-reload, distributed config store, commercial mode                                         |
 
 ### 🔜 Segera Hadir
 

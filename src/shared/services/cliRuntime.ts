@@ -228,6 +228,15 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".letta/lc-local-backend/providers/auth.json",
     },
   },
+  codewhale: {
+    defaultCommand: "codewhale",
+    envBinKey: "CLI_CODEWHALE_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".codewhale/config.toml",
+    },
+  },
   smelt: {
     defaultCommand: "smelt",
     envBinKey: "CLI_SMELT_BIN",
@@ -244,6 +253,18 @@ const CLI_TOOLS: Record<string, any> = {
     healthcheckTimeoutMs: 8000,
     paths: {
       config: ".pi/config.json",
+    },
+  },
+  // Config path reconciled with bin/cli/commands/setup-crush.mjs::resolveCrushTarget's
+  // default (~/.config/crush/crush.json) so the dashboard and `omniroute setup-crush`
+  // agree on one canonical config location.
+  crush: {
+    defaultCommand: "crush",
+    envBinKey: "CLI_CRUSH_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".config/crush/crush.json",
     },
   },
 };

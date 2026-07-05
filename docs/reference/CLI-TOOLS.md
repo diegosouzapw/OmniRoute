@@ -12,7 +12,7 @@ OmniRoute integrates with three categories of CLI tools spread across three dedi
 
 | Page           | Route                   | Concept                                                                   | Count        |
 | -------------- | ----------------------- | ------------------------------------------------------------------------- | ------------ |
-| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 19           |
+| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 20           |
 | **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 6            |
 | **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow)        | see registry |
 
@@ -90,30 +90,31 @@ Entries with `baseUrlSupport: "none"` are **not shown** in the dashboard pages �
 
 ---
 
-## 1. CLI Code's Catalog (19 tools)
+## 1. CLI Code's Catalog (20 tools)
 
 Tools that support custom base URL and appear in `/dashboard/cli-code`:
 
-| id | name | vendor | baseUrlSupport | configType | acpSpawnable |
-|----|------|--------|---------------|-----------|-------------|
-| claude | Claude Code | Anthropic | full | env | true |
-| codex | OpenAI Codex CLI | OpenAI | full | custom | true |
-| cline | Cline | OSS (ex-Claude Dev) | full | custom | true |
-| kilo | Kilo Code | Kilo-Org | full | custom | false |
-| roo | Roo Code | Roo (OSS) | full | guide | false |
-| continue | Continue | continue.dev | full | guide | false |
-| qwen | Qwen Code | Alibaba | full | guide | true |
-| aider | Aider | OSS (P. Gauthier) | full | guide | true |
-| forge | ForgeCode | Antinomy HQ | full | custom | true |
-| jcode | jcode | 1jehuang (OSS) | full | custom | false |
-| deepseek-tui | DeepSeek TUI | Hunter Bown (OSS) | full | custom | false |
-| opencode | OpenCode | Anomaly (ex-SST) | full | guide | true |
-| droid | Factory Droid | Factory AI | partial | guide | false |
-| copilot | GitHub Copilot CLI | GitHub/MS | full | custom | false |
-| cursor-cli | Cursor CLI | Anysphere | partial | guide | true |
-| smelt | Smelt | leonardcser (OSS) | full | custom | false |
-| pi | Pi (pi-coding-agent) | M. Zechner (OSS) | full | custom | false |
-| custom | Custom CLI | — | full | custom-builder | false |
+| id           | name                 | vendor              | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | -------------------- | ------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code          | Anthropic           | full           | env            | true         |
+| codex        | OpenAI Codex CLI     | OpenAI              | full           | custom         | true         |
+| cline        | Cline                | OSS (ex-Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code            | Kilo-Org            | full           | custom         | false        |
+| roo          | Roo Code             | Roo (OSS)           | full           | guide          | false        |
+| continue     | Continue             | continue.dev        | full           | guide          | false        |
+| qwen         | Qwen Code            | Alibaba             | full           | guide          | true         |
+| aider        | Aider                | OSS (P. Gauthier)   | full           | guide          | true         |
+| forge        | ForgeCode            | Antinomy HQ         | full           | custom         | true         |
+| jcode        | jcode                | 1jehuang (OSS)      | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI         | Hunter Bown (OSS)   | full           | custom         | false        |
+| codewhale    | CodeWhale            | Hmbown (OSS)        | full           | custom         | false        |
+| opencode     | OpenCode             | Anomaly (ex-SST)    | full           | guide          | true         |
+| droid        | Factory Droid        | Factory AI          | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI   | GitHub/MS           | full           | custom         | false        |
+| cursor-cli   | Cursor CLI           | Anysphere           | partial        | guide          | true         |
+| smelt        | Smelt                | leonardcser (OSS)   | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent) | M. Zechner (OSS)    | full           | custom         | false        |
+| custom       | Custom CLI           | —                   | full           | custom-builder | false        |
 
 Tools with `baseUrlSupport: "partial"` show a badge "⚠ Base URL parcial" in the dashboard card.
 
@@ -137,7 +138,6 @@ Autonomous agents that appear in `/dashboard/cli-agents`:
 ## 3. ACP Agents (/dashboard/acp-agents)
 
 This page (renamed from `/dashboard/agents`) shows CLIs that OmniRoute can **spawn** as backend execution engines via stdio/ACP protocol. The catalog is maintained separately in `src/lib/acp/registry.ts` and is **not** the same as `CLI_TOOLS`.
-
 
 ---
 
@@ -194,13 +194,14 @@ interface ToolBatchStatus {
 
 New tools with `configType: "custom"` have dedicated settings API routes:
 
-| Route                                       | Tool                           |
-| ------------------------------------------- | ------------------------------ |
-| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)        |
-| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)        |
-| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL) |
-| `POST /api/cli-tools/smelt-settings`        | Smelt                          |
-| `POST /api/cli-tools/pi-settings`           | Pi coding agent                |
+| Route                                       | Tool                                                             |
+| ------------------------------------------- | ---------------------------------------------------------------- |
+| `POST /api/cli-tools/forge-settings`        | ForgeCode (.forge.toml)                                          |
+| `POST /api/cli-tools/jcode-settings`        | jcode (--base-url flag)                                          |
+| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI (OPENAI_BASE_URL, legacy)                           |
+| `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, primary + legacy `~/.deepseek` sync) |
+| `POST /api/cli-tools/smelt-settings`        | Smelt                                                            |
+| `POST /api/cli-tools/pi-settings`           | Pi coding agent                                                  |
 
 All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 

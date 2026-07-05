@@ -65,6 +65,19 @@ const buildOptions = ({
   return opts;
 };
 
+interface BaseUrlSelectProps {
+  value: string;
+  onChange: (value: string) => void;
+  requiresExternalUrl?: boolean;
+  tunnelEnabled?: boolean;
+  tunnelPublicUrl?: string;
+  tailscaleEnabled?: boolean;
+  tailscaleUrl?: string;
+  cloudEnabled?: boolean;
+  cloudUrl?: string;
+  withV1?: boolean;
+}
+
 export default function BaseUrlSelect({
   value,
   onChange,
@@ -76,7 +89,7 @@ export default function BaseUrlSelect({
   cloudEnabled = false,
   cloudUrl = "",
   withV1 = true,
-}) {
+}: BaseUrlSelectProps) {
   const [savedPresets, setSavedPresets] = useState([]);
   const [mode, setMode] = useState("");
   const [customInput, setCustomInput] = useState("");

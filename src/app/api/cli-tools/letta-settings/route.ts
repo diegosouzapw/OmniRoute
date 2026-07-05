@@ -7,6 +7,8 @@ import path from "path";
 import os from "os";
 import { exec } from "child_process";
 import { promisify } from "util";
+import { validateBody } from "@/shared/validation/schemas";
+import { cliAuthOnlyConfigSchema } from "@/shared/validation/schemas/cli";
 
 const execAsync = promisify(exec);
 
@@ -125,12 +127,10 @@ export async function GET() {
 // ── POST - Apply OmniRoute as LM Studio provider + switch to local mode ──
 export async function POST(request: Request) {
   try {
-    // validateBody() check bypassed - handled manually
-    const { baseUrl, apiKey, overwrite } = await request.json();
+    const { success, data, errorResponse } = await validateBody(request, cliAuthOnlyConfigSchema);
+    if (!success || !data) return errorResponse;
 
-    if (!baseUrl || !apiKey) {
-      return NextResponse.json({ error: "baseUrl and apiKey are required" }, { status: 400 });
-    }
+    const { baseUrl, apiKey, overwrite } = data;
 
     const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
 

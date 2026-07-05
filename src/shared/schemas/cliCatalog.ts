@@ -59,6 +59,8 @@ export type CliCatalogEntry = z.infer<typeof CliCatalogEntrySchema>;
 
 export const CliCatalogSchema = z.record(CliCatalogEntrySchema);
 
-/** Cardinalidade obrigatória (Plano §3.1/§3.2 + D15). */
-export const EXPECTED_CODE_COUNT = 16;
-export const EXPECTED_AGENT_COUNT = 10;
+/** Cardinalidade obrigatória (Plano §3.1/§3.2 + D15). +1 (crush, decolua/9router#1233). */
+// +1 (2026-07-02): "codewhale" added as a dual entry alongside "deepseek-tui"
+// (CodeWhale is the actively-maintained successor to DeepSeek TUI).
+export const EXPECTED_CODE_COUNT = 20;
+export const EXPECTED_AGENT_COUNT = 9;
