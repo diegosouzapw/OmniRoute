@@ -174,3 +174,37 @@ jobs:
       - run: npm ci
       - name: ESLint (baseline congelado — warning novo = vermelho)
         run: npx eslint . --suppressions-location config/quality/eslint-suppressions.json --max-warnings 0
+
+  # Merge-integrity: pega no PR os dois vazamentos crônicos de merge que hoje só
+  # explodem na release-PR. (1) CHANGELOG-eat — o auto-resolve do merge come
+  # bullets vizinhos/seções inteiras (incidente #6193, 2026-07-05: 212 linhas /
+  # 130 bullets); o checkout de PR é refs/pull/N/merge, então comparar contra a
+  # base detecta o eat ANTES do merge. (2) SKILL.md gerado stale vs o catálogo de
+  # agent-skills (#6186 mergeou um id de catálogo sem rodar o gerador → 8 reds de
+  # integration invisíveis até a release).
+  #
+  # Princípio Zero: bloqueante SÓ para branches internas; PR de FORK roda em modo
+  # report (continue-on-error) — a campanha corrige via co-autoria, o contribuidor
+  # nunca é bloqueado.
+  merge-integrity:
+    name: Merge integrity (changelog + generated skills)
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
+    env:
+      JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-lint-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: CHANGELOG integrity (nenhum bullet da base pode sumir no merge-result)
+        run: npm run check:changelog-integrity
+      - name: Agent-skills generator sync (SKILL.md gerado ≡ catálogo)
+        run: npm run check:agent-skills-sync

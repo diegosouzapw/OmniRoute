@@ -137,6 +137,24 @@ test("pre-flight wires the test-masking PR-context gate against origin/main (v3.
     /id:\s*"test-masking"[\s\S]*?kind:\s*"hard"/,
     "test-masking must be a HARD gate (non-allowlisted weakening blocks the release)"
   );
-  // run() must honor a per-gate env override so GITHUB_BASE_REF actually reaches the child.
-  assert.match(src, /\.\.\.\(opts\.env \|\| \{\}\)/, "run() must merge opts.env into the child env");
+  // run() must honor a per-gate env override so GITHUB_BASE_REF actually reaches the child
+  // (routed through buildGateEnv since the --hermetic scrub was added).
+  assert.match(src, /env:\s*buildGateEnv\(opts\.env\)/, "run() must merge opts.env into the child env");
+  assert.match(src, /\.\.\.\(extra \|\| \{\}\)/, "buildGateEnv must spread the per-gate env override");
+});
+
+test("pre-flight --hermetic scrubs the live-test trigger vars (2026-07-05 false-positive fix)", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  // A dev machine with OMNIROUTE_API_KEY set runs 17+ live tests that CI skips —
+  // the pre-flight must be able to reproduce the CI env exactly.
+  assert.match(src, /HERMETIC_SCRUB\s*=\s*\["OMNIROUTE_API_KEY",\s*"OMNIROUTE_URL"\]/);
+  assert.match(src, /args\.has\("--hermetic"\)/, "--hermetic flag must be parsed");
+  // Per-gate logs: a red must be diagnosable from _artifacts/release-green/<gate>.log
+  // without re-running the gate.
+  assert.match(src, /saveGateLog/, "per-gate output must be persisted");
+  assert.match(src, /_artifacts[/", ]+release-green/, "logs must land in _artifacts/release-green");
 });
