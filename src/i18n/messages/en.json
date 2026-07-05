@@ -7940,6 +7940,7 @@
     "errorTestFailed": "Failed to test proxies",
     "batchSelectedCount": "{count} selected",
     "batchDeleteSelected": "Delete {count} selected",
+    "batchActivateSelected": "Enable {count} selected",
     "testPassed": "✓ OK"
   },
   "playground": {

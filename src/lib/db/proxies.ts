@@ -632,6 +632,59 @@ export async function resolveProxyForScopeFromRegistry(scope: string, scopeId?: 
   }
 }
 
+/**
+ * #6246 fail-closed guard. Returns true when a connection would egress DIRECTLY
+ * ONLY because its ASSIGNED proxy (account/provider/global scope) is dead/inactive
+ * — i.e. the request must be BLOCKED, not silently sent on the real IP.
+ *
+ * Callers use this after `resolveProxyForConnection` returns a direct result: if
+ * the operator assigned a proxy but every assigned proxy is dead, leaking the IP
+ * is worse than failing the request. An explicit "proxy off" (global or per
+ * connection) is a deliberate direct choice and is NOT treated as a leak. Read-only
+ * and best-effort: any DB error fails OPEN (returns false) so a guard never breaks
+ * the request path.
+ */
+export function hasBlockingProxyAssignment(connectionId: string): boolean {
+  try {
+    const db = getDbInstance();
+
+    // Explicit global "proxy off" → direct is intended, never a leak.
+    const globalRow = db
+      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'proxyEnabled'")
+      .get() as { value?: string } | undefined;
+    if (globalRow?.value) {
+      try {
+        if (JSON.parse(globalRow.value) === false) return false;
+      } catch {
+        /* malformed → treat as enabled */
+      }
+    }
+
+    // Explicit per-connection "proxy off" → direct is intended.
+    const conn = db
+      .prepare("SELECT provider, proxy_enabled FROM provider_connections WHERE id = ?")
+      .get(connectionId) as { provider?: string | null; proxy_enabled?: number } | undefined;
+    if (conn && conn.proxy_enabled === 0) return false;
+    const provider = conn?.provider ?? null;
+
+    // A proxy is assigned to this connection at some scope, but every assigned
+    // proxy is dead (the alive filter would have resolved a live one already).
+    const dead = db
+      .prepare(
+        `SELECT 1 FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id
+           WHERE ((a.scope = 'account' AND a.scope_id = ?)
+               OR (a.scope = 'provider' AND a.scope_id = ?)
+               OR (a.scope = 'global'))
+             AND NOT ${PROXY_ALIVE_PREDICATE}
+           LIMIT 1`
+      )
+      .get(connectionId, provider);
+    return !!dead;
+  } catch {
+    return false;
+  }
+}
+
 export async function migrateLegacyProxyConfigToRegistry(options?: { force?: boolean }) {
   const force = options?.force === true;
   const db = getDbInstance();

@@ -28,6 +28,7 @@ import {
   type AppliedProxySink,
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
+import { hasBlockingProxyAssignment } from "@/lib/db/proxies";
 import {
   CircuitBreakerOpenError,
   getCircuitBreaker,
@@ -686,7 +687,22 @@ export function decideProxyResolutionFailure(
 
 export async function safeResolveProxy(connectionId: string, apiKeyId?: string) {
   try {
-    return await resolveProxyForConnection(connectionId, apiKeyId);
+    const resolved = await resolveProxyForConnection(connectionId, apiKeyId);
+    // #6246: a connection that resolves to DIRECT only because its assigned proxy
+    // is dead/inactive must fail closed — egressing on the real IP leaks it. Reuse
+    // the existing proxy-resolution-failure policy (blocks by default; PROXY_FAIL_OPEN
+    // opts back into direct). Explicit "proxy off" is not a leak (see the guard).
+    if (!(resolved as { proxy?: unknown } | null)?.proxy && hasBlockingProxyAssignment(connectionId)) {
+      return decideProxyResolutionFailure(
+        Object.assign(
+          new Error(
+            "PROXY_ASSIGNED_UNAVAILABLE: assigned proxy is inactive/unreachable; refusing to egress on a direct connection"
+          ),
+          { code: "PROXY_ASSIGNED_UNAVAILABLE" }
+        )
+      );
+    }
+    return resolved;
   } catch (proxyErr) {
     return decideProxyResolutionFailure(proxyErr);
   }
