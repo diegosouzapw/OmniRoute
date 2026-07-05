@@ -12,19 +12,24 @@
     { href: '/dashboard/combos', key: 'nav.combos' },
     { href: '/dashboard/keys', key: 'nav.keys' },
     { href: '/dashboard/usage', key: 'nav.usage' },
-    { href: '/dashboard/health', key: 'nav.health' },
-    { href: '/dashboard/security', key: 'nav.security' },
-    { href: '/dashboard/skills', key: 'nav.skills' },
-    { href: '/dashboard/a2a', key: 'nav.a2a' },
-    { href: '/dashboard/mcp', key: 'nav.mcp' },
     { href: '/dashboard/cost', key: 'nav.cost' },
     { href: '/dashboard/billing', key: 'nav.billing' },
+    { href: '/dashboard/compression', key: 'nav.cost' },
+    { href: '/dashboard/playground', key: 'nav.usage' },
+    { href: '/dashboard/router', key: 'nav.settings' },
+    { href: '/dashboard/observability', key: 'nav.health' },
+    { href: '/dashboard/diagnostics', key: 'nav.health' },
     { href: '/dashboard/logs', key: 'nav.logs' },
     { href: '/dashboard/memory', key: 'nav.memory' },
     { href: '/dashboard/cache', key: 'nav.cache' },
     { href: '/dashboard/batch', key: 'nav.batch' },
     { href: '/dashboard/webhooks', key: 'nav.webhooks' },
     { href: '/dashboard/audit', key: 'nav.audit' },
+    { href: '/dashboard/mcp', key: 'nav.mcp' },
+    { href: '/dashboard/a2a', key: 'nav.a2a' },
+    { href: '/dashboard/skills', key: 'nav.skills' },
+    { href: '/dashboard/flags', key: 'nav.settings' },
+    { href: '/dashboard/security', key: 'nav.security' },
     { href: '/dashboard/settings/general', key: 'nav.settings' },
   ];
 </script>
@@ -39,7 +44,7 @@
         {#each nav as item}
           <a
             href={item.href}
-            class="px-3 py-1.5 text-sm rounded hover:bg-gray-100 {$page.url.pathname === item.href ? 'bg-gray-100 font-semibold' : 'text-gray-700'}"
+            class="px-2.5 py-1 text-xs rounded hover:bg-gray-100 {$page.url.pathname === item.href ? 'bg-gray-100 font-semibold' : 'text-gray-700'}"
           >
             {t(item.key)}
           </a>

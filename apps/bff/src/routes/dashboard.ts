@@ -4,14 +4,17 @@ import { streamSSE } from 'hono/streaming';
 import { z } from 'zod';
 import { ProviderSchema } from '@omniroute/api-contracts';
 
-const SettingsSchema = z.object({
-  baseUrl: z.string().url(),
-  telemetry: z.boolean(),
-  autoUpdate: z.boolean(),
-  language: z.string(),
-  theme: z.enum(['auto', 'light', 'dark']),
-});
+const SettingsSchema = z.object({ baseUrl: z.string().url(), telemetry: z.boolean(), autoUpdate: z.boolean(), language: z.string(), theme: z.enum(['auto','light','dark']) });
 const KeyCreateSchema = z.object({ name: z.string().min(1).max(100) });
+const CompressionABSchema = z.object({ text: z.string() });
+const PlaygroundStreamSchema = z.object({ model: z.string(), systemPrompt: z.string(), userPrompt: z.string(), temperature: z.number() });
+const RouterSchema = z.object({
+  defaultModel: z.string(),
+  overrides: z.object({ chat: z.string(), code: z.string(), embed: z.string(), image: z.string(), vision: z.string() }),
+  fallbackChain: z.array(z.string()),
+  costBudgetUsd: z.number(),
+});
+const FlagOverrideSchema = z.object({ userOverride: z.boolean().nullable() });
 
 export const dashboardRoutes = new Hono()
   .get('/health', (c) => c.json({ status: 'healthy', ts: new Date().toISOString() }))
@@ -19,15 +22,9 @@ export const dashboardRoutes = new Hono()
   .post('/providers', zValidator('json', ProviderSchema), (c) => c.json({ ok: true, provider: c.req.valid('json') }))
   .get('/usage', (c) => c.json({ rows: [] }))
   .get('/combos', (c) => c.json({ combos: [] }))
-  .get('/security', (c) => c.json({
-    csrfEnabled: true, jwtSecretRotatedAt: '2026-06-15T00:00:00Z',
-    mitmCertInstalled: false, sessionSecretStrong: true, openaiApiKeyLeakage: 'safe',
-  }))
+  .get('/security', (c) => c.json({ csrfEnabled: true, jwtSecretRotatedAt: '2026-06-15T00:00:00Z', mitmCertInstalled: false, sessionSecretStrong: true, openaiApiKeyLeakage: 'safe' }))
   .get('/keys', (c) => c.json({ keys: [] }))
-  .post('/keys', zValidator('json', KeyCreateSchema), (c) => c.json({
-    ok: true,
-    key: { id: crypto.randomUUID(), name: c.req.valid('json').name, prefix: 'omni_pk_' + Math.random().toString(36).slice(2, 10), createdAt: new Date().toISOString(), lastUsedAt: null, revoked: false },
-  }))
+  .post('/keys', zValidator('json', KeyCreateSchema), (c) => c.json({ ok: true, key: { id: crypto.randomUUID(), name: c.req.valid('json').name, prefix: 'omni_pk_' + Math.random().toString(36).slice(2, 10), createdAt: new Date().toISOString(), lastUsedAt: null, revoked: false } }))
   .post('/keys/:id/revoke', (c) => c.json({ ok: true, id: c.req.param('id') }))
   .get('/settings', (c) => c.json({ baseUrl: 'http://localhost:20128', telemetry: true, autoUpdate: true, language: 'en', theme: 'auto' }))
   .post('/settings', zValidator('json', SettingsSchema), (c) => c.json({ ok: true, settings: c.req.valid('json') }))
@@ -42,19 +39,75 @@ export const dashboardRoutes = new Hono()
   .get('/batch', (c) => c.json({ batches: [] }))
   .get('/webhooks', (c) => c.json({ webhooks: [] }))
   .get('/audit', (c) => c.json({ events: [] }))
+  // Phase 2.11-2.12 critical routes
+  .get('/compression/stats', (c) => c.json({ gcfBytes: 1840, toonBytes: 2104, jsonBytes: 4120, prompts: 1280 }))
+  .post('/compression/ab', zValidator('json', CompressionABSchema), (c) => {
+    const t = c.req.valid('json').text;
+    return c.json({ gcf: `gcf(${t.length}b)`, toon: `toon(${t.length}b)`, json: JSON.stringify({ text: t }) });
+  })
+  .get('/playground/models', (c) => c.json({ models: [
+    { id: 'claude-sonnet-4', name: 'Claude Sonnet 4', provider: 'anthropic' },
+    { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai' },
+    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'google' },
+  ] }))
+  .post('/playground/stream', zValidator('json', PlaygroundStreamSchema), (c) => {
+    return streamSSE(c, async (stream) => {
+      const input = c.req.valid('json');
+      const text = `Echo from ${input.model}: ${input.userPrompt.slice(0, 50)}...`;
+      const words = text.split(' ');
+      let i = 0;
+      while (i < words.length) {
+        await stream.writeSSE({ event: 'token', data: JSON.stringify({ token: words[i] + ' ' }) });
+        i++;
+        await new Promise((r) => setTimeout(r, 30));
+      }
+      await stream.writeSSE({ event: 'done', data: JSON.stringify({ tokens: words.length, cost: words.length * 0.00003 }) });
+    });
+  })
+  .get('/router', (c) => c.json({
+    defaultModel: 'claude-sonnet-4',
+    overrides: { chat: 'claude-sonnet-4', code: 'claude-sonnet-4', embed: 'text-embedding-3-small', image: 'gpt-image-1', vision: 'claude-sonnet-4' },
+    fallbackChain: ['claude-sonnet-4', 'gpt-4o', 'gemini-2.5-pro'],
+    costBudgetUsd: 500,
+  }))
+  .put('/router', zValidator('json', RouterSchema), (c) => c.json({ ok: true, router: c.req.valid('json') }))
+  .get('/observability/overview', (c) => c.json({ p50: 120, p95: 480, p99: 1200, rps: 47, errorRate: 0.012 }))
+  .get('/observability/timeseries', (c) => c.json({ points: Array.from({ length: 60 }, (_, i) => ({ ts: new Date(Date.now() - (60 - i) * 60000).toISOString(), latency: 100 + Math.random() * 800 })) }))
+  .get('/observability/top-endpoints', (c) => c.json({ endpoints: [
+    { path: '/v1/chat/completions', method: 'POST', rps: 22.4 },
+    { path: '/v1/embeddings', method: 'POST', rps: 11.2 },
+    { path: '/v1/models', method: 'GET', rps: 8.1 },
+  ] }))
+  .get('/diagnostics/full', (c) => c.json({
+    uptimeSeconds: 86420,
+    version: '0.1.0',
+    bffConnected: true,
+    nextjsConnected: true,
+    tauriShell: false,
+    dbWalPosition: 1042834,
+    lastBackup: '2026-07-04T03:00:00Z',
+    cacheHitRate: 0.974,
+    networkChecks: [
+      { url: 'http://localhost:4322/healthz', ok: true, latencyMs: 4 },
+      { url: 'http://localhost:20128/healthz', ok: true, latencyMs: 12 },
+      { url: 'https://api.openai.com', ok: true, latencyMs: 88 },
+      { url: 'https://api.anthropic.com', ok: true, latencyMs: 124 },
+    ],
+  }))
+  .get('/flags', (c) => c.json({ flags: [
+    { key: 'new-dashboard', description: 'New Svelte 5 dashboard', default: true, rollout: 100, conditions: [], userOverride: null },
+    { key: 'telemetry', description: 'Send anonymous usage telemetry', default: true, rollout: 100, conditions: [], userOverride: null },
+    { key: 'beta-compression', description: 'TOON + GCF best-of-N encoder', default: false, rollout: 25, conditions: [], userOverride: null },
+  ] }))
+  .put('/flags/:key', zValidator('json', FlagOverrideSchema), (c) => c.json({ ok: true, key: c.req.param('key'), override: c.req.valid('json').userOverride }))
   .get('/health/stream', (c) => {
     return streamSSE(c, async (stream) => {
       let id = 0;
       const send = async (level: 'info'|'warn'|'error', message: string) => {
-        await stream.writeSSE({
-          id: String(id++), event: 'health',
-          data: JSON.stringify({ ts: new Date().toISOString(), level, message }),
-        });
+        await stream.writeSSE({ id: String(id++), event: 'health', data: JSON.stringify({ ts: new Date().toISOString(), level, message }) });
       };
       await send('info', 'SSE stream connected');
-      const interval = setInterval(() => {
-        send('info', `heartbeat @ ${new Date().toLocaleTimeString()}`).catch(() => {});
-      }, 5000);
+      const interval = setInterval(() => { send('info', `heartbeat @ ${new Date().toLocaleTimeString()}`).catch(() => {}); }, 5000);
       stream.onAbort(() => clearInterval(interval));
       await new Promise<void>((resolve) => stream.onAbort(() => resolve()));
     });
