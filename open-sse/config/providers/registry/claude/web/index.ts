@@ -9,6 +9,7 @@ export const claude_webProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "cookie",
   models: [
+    { id: "claude-sonnet-5", name: "Claude 5 Sonnet (web)" },
     { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet (web)" },
     { id: "claude-haiku-4-5", name: "Claude 4.5 Haiku (web)" },
   ],

@@ -20,21 +20,23 @@ export async function POST(request: Request) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
-      { status: 400 }
-    );
+    // Keep `error` a plain string — the dashboard renders it directly in a toast,
+    // and an object here throws React #31 ("Objects are not valid as a React
+    // child"), freezing the whole page instead of showing the message.
+    return NextResponse.json({ status: "error", error: "Invalid JSON body" }, { status: 400 });
   }
 
   try {
     const validation = testModelSchema.safeParse(rawBody);
     if (!validation.success) {
-      return NextResponse.json({ error: validation.error.format() }, { status: 400 });
+      // Flatten the Zod issues to a string (never return the object — see above).
+      const detail = validation.error.issues
+        .map((i) => `${i.path.join(".") || "body"}: ${i.message}`)
+        .join("; ");
+      return NextResponse.json(
+        { status: "error", error: `Invalid request: ${detail}` },
+        { status: 400 }
+      );
     }
     const { providerId, modelId, connectionId } = validation.data;
 

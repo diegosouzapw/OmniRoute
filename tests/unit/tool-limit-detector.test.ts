@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 
 import {
   getEffectiveToolLimit,
+  getKnownToolLimit,
   setDetectedToolLimit,
   parseToolLimitFromError,
   shouldDetectLimit,
@@ -18,8 +19,37 @@ describe("toolLimitDetector", () => {
     clearDetectedLimits();
   });
 
+  it("should return null from getKnownToolLimit when no proactive or detected limit exists", () => {
+    assert.strictEqual(getKnownToolLimit("openai"), null);
+  });
+
+  it("should return null from getKnownToolLimit for null/undefined provider", () => {
+    assert.strictEqual(getKnownToolLimit("openai"), null);
+    assert.strictEqual(getKnownToolLimit(null), null);
+    assert.strictEqual(getKnownToolLimit(undefined), null);
+  });
+
   it("should return default limit when no cached value", () => {
     assert.strictEqual(getEffectiveToolLimit("openai"), 128);
+    assert.strictEqual(getEffectiveToolLimit(null), 128);
+    assert.strictEqual(getEffectiveToolLimit(undefined), 128);
+  });
+
+  it("should return proactive known limit for grok-cli", () => {
+    assert.strictEqual(getKnownToolLimit("grok-cli"), 200);
+  });
+
+  it("should return detected known limit when available", () => {
+    setDetectedToolLimit("openai", 100);
+    assert.strictEqual(getKnownToolLimit("openai"), 100);
+    assert.strictEqual(getEffectiveToolLimit("openai"), 100);
+  });
+
+  it("should keep getEffectiveToolLimit contract for default, proactive, and detected limits", () => {
+    assert.strictEqual(getEffectiveToolLimit("openai"), 128);
+    assert.strictEqual(getEffectiveToolLimit("grok-cli"), 200);
+    setDetectedToolLimit("openai", 100);
+    assert.strictEqual(getEffectiveToolLimit("openai"), 100);
   });
 
   it("should return cached limit when available", () => {
@@ -61,12 +91,26 @@ describe("toolLimitDetector", () => {
   });
 
   it("should return proactive limit for grok-cli (200) without any detection", () => {
+    assert.strictEqual(getKnownToolLimit("grok-cli"), 200);
     assert.strictEqual(getEffectiveToolLimit("grok-cli"), 200);
+  });
+
+  it("should document grok-cli known limit precedence for opencode bypass truncation", () => {
+    assert.strictEqual(getKnownToolLimit("grok-cli"), 200);
   });
 
   it("should not override proactive limit with setDetectedToolLimit", () => {
     setDetectedToolLimit("grok-cli", 150);
     assert.strictEqual(getEffectiveToolLimit("grok-cli"), 200);
+  });
+
+  it("should return proactive limit for nvidia (1536) without any detection", () => {
+    assert.strictEqual(getEffectiveToolLimit("nvidia"), 1536);
+  });
+
+  it("should not override nvidia proactive limit with reactive detection", () => {
+    setDetectedToolLimit("nvidia", 100);
+    assert.strictEqual(getEffectiveToolLimit("nvidia"), 1536);
   });
 
   it("should still return default (128) for unknown providers", () => {
