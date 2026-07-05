@@ -3,6 +3,7 @@ import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityH
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
 import { filterClinepassModels } from "@omniroute/open-sse/services/clinepassModels.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
+import { extractKimiJwt } from "@/lib/providers/webCookieAuth";
 
 export type ProviderModelsConfigEntry = {
   url: string;
@@ -12,6 +13,7 @@ export type ProviderModelsConfigEntry = {
   authPrefix?: string;
   authQuery?: string;
   body?: unknown;
+  buildHeaders?: (token: string) => Record<string, string>;
   parseResponse: (data: any) => any;
 };
 
@@ -60,10 +62,10 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
   },
   // #3931: qwen-web (cookie provider) was missing here, so its discovery page
   // showed nothing (the OAuth fallback above only fires for provider==="qwen").
-  // `chat.qwen.ai/api/v2/models` is public (no auth header configured/sent);
+  // `chat.qwen.ai/api/v2/models/` is public (no auth header configured/sent);
   // shape `{ data: { data: [{ id, name, owned_by }] } }`, flatter `{ data: [] }` fallback.
   "qwen-web": {
-    url: "https://chat.qwen.ai/api/v2/models",
+    url: "https://chat.qwen.ai/api/v2/models/",
     method: "GET",
     headers: { "Content-Type": "application/json" },
     parseResponse: (data) => {
@@ -78,18 +80,34 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     },
   },
   // #5858 follow-up: kimi-web (cookie provider) on the international domain.
-  // `GetAvailableModels` returns the model list as a plain JSON envelope
-  // (no Connect framing on either request or response — only the chat
-  // completion endpoint uses the 5-byte envelope). Auth: Bearer JWT extracted
-  // from the `kimi-auth` cookie the user pasted. Agent variants
+  // `GetAvailableModels` returns the model list as a plain JSON envelope.
+  // Auth mirrors the web app: Bearer JWT plus `Cookie: kimi-auth=<JWT>`.
+  // Agent variants
   // (`k2d6-agent*`) need a different scenario + agent fields this executor
   // doesn't shape, so they're filtered out.
   "kimi-web": {
     url: "https://www.kimi.com/apiv2/kimi.gateway.config.v1.ConfigService/GetAvailableModels",
-    method: "GET",
-    headers: { accept: "application/json, text/plain, */*", "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
+    method: "POST",
+    headers: { accept: "*/*", "Content-Type": "application/json" },
+    body: {},
+    buildHeaders: (token) => {
+      const jwt = extractKimiJwt(token);
+      return {
+        accept: "*/*",
+        "Content-Type": "application/json",
+        "connect-protocol-version": "1",
+        Origin: "https://www.kimi.com",
+        Referer: "https://www.kimi.com/",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+        ...(jwt
+          ? {
+              Authorization: `Bearer ${jwt}`,
+              Cookie: `kimi-auth=${jwt}`,
+            }
+          : {}),
+      };
+    },
     parseResponse: (data) => {
       const list = (data?.availableModels || []) as Array<{
         key?: string;

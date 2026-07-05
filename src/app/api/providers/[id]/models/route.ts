@@ -92,10 +92,7 @@ import {
   normalizeSapModelsResponse,
 } from "./discovery/normalizers";
 import { isNamedOpenAIStyleProvider } from "./discovery/providerSets";
-import {
-  type ProviderModelsConfigEntry,
-  PROVIDER_MODELS_CONFIG,
-} from "./discovery/providerModelsConfig";
+import { PROVIDER_MODELS_CONFIG } from "./discovery/providerModelsConfig";
 
 /**
  * GET /api/providers/[id]/models - Get models list from provider
@@ -1757,8 +1754,8 @@ export async function GET(
     }
 
     // Build headers
-    const headers = { ...config.headers };
-    if (config.authHeader && !config.authQuery) {
+    const headers = config.buildHeaders ? config.buildHeaders(token) : { ...config.headers };
+    if (!config.buildHeaders && config.authHeader && !config.authQuery) {
       headers[config.authHeader] = (config.authPrefix || "") + token;
     }
 

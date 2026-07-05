@@ -2766,7 +2766,7 @@ test("gitlawb-gmi validator: accepts custom baseUrl override", async () => {
 test("isSecurityBlockError: public-host redirect block is NOT a security block", () => {
   const publicRedirect = new SafeOutboundFetchError("Redirect blocked", {
     code: "REDIRECT_BLOCKED",
-    url: "https://chat.qwen.ai/api/v2/models",
+    url: "https://chat.qwen.ai/api/v2/models/",
     method: "GET",
     attempts: 1,
     status: 307,
