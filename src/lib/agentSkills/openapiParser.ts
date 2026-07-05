@@ -107,14 +107,17 @@ const HTTP_METHODS = ["get", "post", "put", "patch", "delete", "head", "options"
 
 function resolveArea(urlPath: string): SkillArea | null {
   for (const [prefix, area] of PATH_AREA_MAP) {
-    if (urlPath === prefix || urlPath.startsWith(prefix + "/") || urlPath.startsWith(prefix + "{")) {
+    if (
+      urlPath === prefix ||
+      urlPath.startsWith(prefix + "/") ||
+      urlPath.startsWith(prefix + "{")
+    ) {
       return area;
     }
   }
   return null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function extractOperations(pathsObj: Record<string, any>): OpenapiPath[] {
   const ops: OpenapiPath[] = [];
 
@@ -155,7 +158,7 @@ export function parseOpenapi(): ParsedOpenapi {
   } catch (err) {
     throw new Error(
       `openapiParser: could not read ${yamlPath}. ` +
-        `Run from project root. Underlying error: ${err instanceof Error ? err.message : String(err)}`,
+        `Run from project root. Underlying error: ${err instanceof Error ? err.message : String(err)}`
     );
   }
 

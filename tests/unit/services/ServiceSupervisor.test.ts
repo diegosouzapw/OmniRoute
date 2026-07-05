@@ -36,6 +36,10 @@ db.prepare(
   `INSERT OR IGNORE INTO version_manager (tool, status, port, auto_start, auto_update, provider_expose)
    VALUES ('test-lock', 'stopped', 29997, 0, 0, 0)`
 ).run();
+db.prepare(
+  `INSERT OR IGNORE INTO version_manager (tool, status, port, auto_start, auto_update, provider_expose)
+   VALUES ('test-adopt', 'stopped', 29996, 0, 0, 0)`
+).run();
 
 const { ServiceSupervisor } = await import("../../../src/lib/services/ServiceSupervisor.ts");
 
@@ -201,6 +205,27 @@ test("does NOT auto-restart on crash", async () => {
       `supervisor should not auto-restart: state was "${status.state}"`
     );
   } finally {
+    healthServer.close();
+  }
+});
+
+// #6205: when probeBeforeSpawn is enabled and a healthy instance already serves
+// the port, the supervisor ADOPTS it (marks running, no child spawned) instead
+// of spawning a duplicate that would die with EADDRINUSE.
+test("#6205: probeBeforeSpawn adopts a healthy existing instance (no spawn)", async () => {
+  const healthServer = startHealthServer(29996);
+  const cfg = { ...tickConfig("test-adopt", 29996), probeBeforeSpawn: true };
+  const sup = new ServiceSupervisor(cfg);
+
+  try {
+    const status = await sup.start();
+    assert.equal(status.state, "running", "adopted instance is marked running");
+    assert.equal(status.pid, null, "no child process is spawned when adopting");
+    // No child means no captured stdout ticks.
+    await new Promise((r) => setTimeout(r, 300));
+    assert.equal(sup.getRingBuffer().snapshot().length, 0, "no logs — nothing was spawned");
+  } finally {
+    await sup.stop();
     healthServer.close();
   }
 });
