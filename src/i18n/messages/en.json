@@ -9030,7 +9030,11 @@
     "colScore": "Score",
     "colAvgScore": "Avg Score",
     "colModels": "Models",
-    "colType": "Type"
+    "colType": "Type",
+    "configuredOnly": "Configured Only",
+    "configuredOnlyHint": "Show only providers with active connections",
+    "noConfiguredProviders": "No configured providers found. Add a provider connection first.",
+    "colConfigured": "Status"
   },
   "discovery": {
     "title": "Provider Discovery",
