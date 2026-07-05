@@ -300,7 +300,7 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://zenmux.ai",
     hasFree: true,
     freeNote:
-      "Free tier (5 Flows/5h, 38.64 Flows/week) — DeepSeek V3.2, GLM 4.7 Flash Free, MiMo V2 Flash Free and more. No subscription required.",
+      "Free tier (5 Flows/5h, 38.64 Flows/week) — DeepSeek V3.2, GLM 4.7 Flash Free and more. No subscription required.",
     authHint:
       "Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days.",
   },
