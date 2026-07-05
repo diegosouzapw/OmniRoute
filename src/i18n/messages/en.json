@@ -4847,8 +4847,8 @@
     "v0VercelWebDesc": "AI code generation via v0.dev",
     "kimiWebLabel": "Kimi Web",
     "kimiWebDesc": "Moonshot AI consumer chat via www.kimi.com (international, Connect-RPC API)",
-    "doubaoWebLabel": "Doubao Web",
-    "doubaoWebDesc": "ByteDance AI chat via doubao.com"
+    "doubaoWebLabel": "Dola Web",
+    "doubaoWebDesc": "ByteDance AI chat via dola.com"
   },
   "settings": {
     "title": "Settings",

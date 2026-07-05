@@ -171,10 +171,11 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
   },
   "doubao-web": {
     kind: "cookie",
-    credentialName: "session",
-    placeholder: "session=... or full Cookie header from doubao.com",
+    credentialName: "full Cookie header (sessionid + ttwid + s_v_web_id)",
+    placeholder:
+      "sessionid=...; ttwid=...; s_v_web_id=... (or fp=verify_... fallback from www.dola.com)",
     acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "session"],
+    storageKeys: ["cookie", "sessionid", "ttwid", "s_v_web_id", "fp"],
   },
   "qwen-web": {
     kind: "cookie",

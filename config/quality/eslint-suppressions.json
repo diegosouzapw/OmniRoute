@@ -2357,11 +2357,6 @@
       "count": 76
     }
   },
-  "tests/unit/web-cookie-providers-new.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 18
-    }
-  },
   "tests/unit/web-runtime-env.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1

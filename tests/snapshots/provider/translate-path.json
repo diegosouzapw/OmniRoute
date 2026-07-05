@@ -804,7 +804,7 @@
         "X-CLIENT-VERSION": "<APP>",
         "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
-        "X-PLATFORM": "linux",
+        "X-PLATFORM": "<PLATFORM>",
         "X-PLATFORM-VERSION": "<NODE>",
         "X-Title": "Cline"
       },
@@ -817,7 +817,7 @@
         "X-CLIENT-VERSION": "<APP>",
         "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
-        "X-PLATFORM": "linux",
+        "X-PLATFORM": "<PLATFORM>",
         "X-PLATFORM-VERSION": "<NODE>",
         "X-Title": "Cline"
       },
@@ -831,7 +831,7 @@
         "X-CLIENT-VERSION": "<APP>",
         "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
-        "X-PLATFORM": "linux",
+        "X-PLATFORM": "<PLATFORM>",
         "X-PLATFORM-VERSION": "<NODE>",
         "X-Title": "Cline"
       }
@@ -1388,8 +1388,8 @@
       }
     },
     "url": {
-      "nonStream": "https://www.doubao.com/api/chat",
-      "stream": "https://www.doubao.com/api/chat"
+      "nonStream": "https://www.dola.com/chat/completion",
+      "stream": "https://www.dola.com/chat/completion"
     }
   },
   "duckduckgo-web": {
