@@ -1380,6 +1380,46 @@ test("markAccountUnavailable stores Codex scope-specific cooldowns without a glo
   assert.equal(normalSelected.connectionId, connection.id);
 });
 
+test("markAccountUnavailable stores Antigravity family-specific cooldowns without a global rate limit", async () => {
+  const connection = await seedConnection("antigravity", {
+    authType: "oauth",
+    name: "antigravity-scope",
+    email: "antigravity@example.com",
+    apiKey: null,
+    accessToken: "antigravity-access",
+    refreshToken: "antigravity-refresh",
+  });
+
+  const result = await auth.markAccountUnavailable(
+    connection.id,
+    429,
+    "quota reached",
+    "antigravity",
+    "gemini-3.5-flash-medium"
+  );
+  const updated = await providersDb.getProviderConnectionById(connection.id);
+  const selectedFlash = await auth.getProviderCredentials(
+    "antigravity",
+    null,
+    null,
+    "gemini-3.5-flash-medium"
+  );
+  const selectedClaude = await auth.getProviderCredentials(
+    "antigravity",
+    null,
+    null,
+    "claude-sonnet-4"
+  );
+
+  assert.equal(result.shouldFallback, true);
+  assert.ok(result.cooldownMs > 0);
+  assert.equal(updated.testStatus, "unavailable");
+  assert.equal(updated.rateLimitedUntil, undefined);
+  assert.ok(updated.providerSpecificData.antigravityScopeRateLimitedUntil.gemini);
+  assert.equal(selectedFlash.allRateLimited, true);
+  assert.equal(selectedClaude.connectionId, connection.id);
+});
+
 test("markAccountUnavailable returns without fallback on bad requests", async () => {
   const connection = await seedConnection("openai", {
     name: "bad-request-no-fallback",
