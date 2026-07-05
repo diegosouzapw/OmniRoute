@@ -75,7 +75,11 @@ function stripZeroWidthToolArgumentJson(value: unknown): string {
 function stripZeroWidthFunctionArguments(functionCall: unknown): unknown {
   const fn = toRecord(functionCall);
   if (!fn || typeof fn.arguments !== "string") return functionCall;
-  return { ...fn, arguments: stripZeroWidthText(fn.arguments) };
+  const stripped = stripZeroWidthText(fn.arguments);
+  // Fast path: return the original reference when there is nothing to strip, so
+  // hot streaming paths avoid a per-chunk shallow clone of every tool call.
+  if (stripped === fn.arguments) return functionCall;
+  return { ...fn, arguments: stripped };
 }
 
 function stripZeroWidthToolCallArguments(toolCall: unknown): unknown {
