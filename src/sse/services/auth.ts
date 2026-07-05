@@ -14,7 +14,10 @@ import {
   getQuotaWindowStatus,
   isAccountQuotaExhausted,
 } from "@/domain/quotaCache";
-import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import {
+  getAntigravityQuotaFamily,
+  getQuotaScopeLabelForProvider,
+} from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -400,6 +403,73 @@ function isCodexScopeUnavailable(
   const until = getCodexScopeRateLimitedUntil(connection.providerSpecificData, model);
   if (!until) return false;
   return new Date(until).getTime() > Date.now();
+}
+
+function getAntigravityScopeRateLimitedUntil(
+  providerSpecificData: JsonRecord,
+  model: string | null
+): string | number | null {
+  if (!model) return null;
+  const family = getAntigravityQuotaFamily(model);
+  if (family === "other") return null;
+  const scopeMap = asRecord(providerSpecificData.antigravityScopeRateLimitedUntil);
+  const value = scopeMap[family];
+  return typeof value === "string" || typeof value === "number" ? value : null;
+}
+
+function isAntigravityScopeUnavailable(
+  connection: ProviderConnectionView,
+  model: string | null
+): boolean {
+  const until = getAntigravityScopeRateLimitedUntil(connection.providerSpecificData, model);
+  if (!until) return false;
+  const ms = cooldownUntilMs(until);
+  return Number.isFinite(ms) && ms > Date.now();
+}
+
+const ANTIGRAVITY_QUOTA_EXHAUSTED_ERROR = "Antigravity quota exhausted until cached quota reset";
+
+function antigravityQuotaResetCooldownMs(
+  connectionId: string,
+  model: string | null
+): number | null {
+  const entry = getQuotaCache(connectionId);
+  if (!entry || entry.provider !== "antigravity") return null;
+
+  const now = Date.now();
+  const modelFamily = getAntigravityQuotaFamily(model);
+  const normalizedModel = String(model || "")
+    .toLowerCase()
+    .replace(/^antigravity\//, "");
+
+  let earliestFutureResetMs = Infinity;
+
+  for (const [quotaKey, quota] of Object.entries(entry.quotas || {})) {
+    if (!quota || quota.remainingPercentage > 0 || !quota.resetAt) continue;
+
+    const resetMs = new Date(quota.resetAt).getTime();
+    if (!Number.isFinite(resetMs) || resetMs <= now) continue;
+
+    const quotaFamily = getAntigravityQuotaFamily(quotaKey);
+    const normalizedQuotaKey = quotaKey.toLowerCase().replace(/^antigravity\//, "");
+    const matchesRequestedModel =
+      !model ||
+      (modelFamily !== "other" && quotaFamily === modelFamily) ||
+      normalizedQuotaKey === normalizedModel ||
+      normalizedQuotaKey.includes(normalizedModel) ||
+      normalizedModel.includes(normalizedQuotaKey);
+
+    if (matchesRequestedModel) earliestFutureResetMs = Math.min(earliestFutureResetMs, resetMs);
+  }
+
+  if (!Number.isFinite(earliestFutureResetMs)) {
+    const resetMs =
+      entry.exhausted && entry.nextResetAt ? new Date(entry.nextResetAt).getTime() : NaN;
+    if (Number.isFinite(resetMs) && resetMs > now) earliestFutureResetMs = resetMs;
+  }
+
+  if (!Number.isFinite(earliestFutureResetMs)) return null;
+  return Math.max(earliestFutureResetMs - now, 1);
 }
 
 function getEarliestCodexScopeRateLimitedUntil(
@@ -1231,6 +1301,8 @@ export async function getProviderCredentials(
         if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) return false;
         if (isTerminalConnectionStatus(c)) return false;
         if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
+        if (provider === "antigravity" && isAntigravityScopeUnavailable(c, requestedModel))
+          return false;
         // Per-model lockout: if this specific model/family is locked on this connection, skip it
         if (requestedModel && isModelLocked(provider, c.id, requestedModel)) {
           if (
@@ -1262,6 +1334,8 @@ export async function getProviderCredentials(
       const rateLimited = isAccountUnavailable(c.rateLimitedUntil);
       const terminalStatus = isTerminalConnectionStatus(c);
       const codexScopeLimited = provider === "codex" && isCodexScopeUnavailable(c, requestedModel);
+      const antigravityScopeLimited =
+        provider === "antigravity" && isAntigravityScopeUnavailable(c, requestedModel);
       const modelLocked =
         Boolean(requestedModel) && isModelLocked(provider, c.id, requestedModel as string);
       const modelExcluded =
@@ -1291,6 +1365,17 @@ export async function getProviderCredentials(
           allowSuppressedConnections
             ? `  → ${c.id?.slice(0, 8)} | retained codex scope-limited account until ${scopeUntil} for combo live test`
             : `  → ${c.id?.slice(0, 8)} | codex scope-limited until ${scopeUntil}`
+        );
+      } else if (antigravityScopeLimited) {
+        const scopeUntil = getAntigravityScopeRateLimitedUntil(
+          c.providerSpecificData,
+          requestedModel
+        );
+        log.debug(
+          "AUTH",
+          allowSuppressedConnections
+            ? `  → ${c.id?.slice(0, 8)} | retained antigravity scope-limited account until ${scopeUntil} for combo live test`
+            : `  → ${c.id?.slice(0, 8)} | antigravity scope-limited until ${scopeUntil}`
         );
       } else if (modelLocked) {
         const lockout = getModelLockoutInfo(provider, c.id, requestedModel);
@@ -1979,6 +2064,7 @@ export async function markAccountUnavailable(
       isPerModelQuotaProvider &&
       provider &&
       provider !== "codex" &&
+      !(provider === "antigravity" && status === 429) &&
       model &&
       (status === 404 || status === 429 || status >= 500)
     ) {
@@ -2167,6 +2253,60 @@ export async function markAccountUnavailable(
       return { shouldFallback: true, cooldownMs: scopeCooldownMs };
     }
 
+    // T09: Antigravity per-family lockout (do not block the whole account globally).
+    if (provider === "antigravity" && status === 429 && model && conn) {
+      const family = getAntigravityQuotaFamily(model);
+      if (family !== "other") {
+        const existingScopeMap = asRecord(
+          conn.providerSpecificData.antigravityScopeRateLimitedUntil
+        );
+        const persistedScopeUntil = getAntigravityScopeRateLimitedUntil(
+          conn.providerSpecificData,
+          model
+        );
+
+        // Use the exact reset time from our quota cache if cache cooldown is available
+        const cacheCooldownMs = antigravityQuotaResetCooldownMs(connectionId, model);
+        const effectiveCooldownMs =
+          cacheCooldownMs && cacheCooldownMs > 0
+            ? cacheCooldownMs
+            : fallbackResult.quotaResetHintMs && fallbackResult.quotaResetHintMs > 0
+              ? fallbackResult.quotaResetHintMs
+              : fallbackResult.usedUpstreamRetryHint === true
+                ? cooldownMs
+                : ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS;
+
+        const scopeRateLimitedUntil =
+          persistedScopeUntil || getUnavailableUntil(effectiveCooldownMs);
+        const scopeCooldownMs = Math.max(cooldownUntilMs(scopeRateLimitedUntil) - Date.now(), 0);
+
+        await updateProviderConnection(connectionId, {
+          testStatus: "unavailable",
+          lastError: errorMsg,
+          errorCode: status,
+          lastErrorAt: new Date().toISOString(),
+          backoffLevel: newBackoffLevel ?? backoffLevel,
+          providerSpecificData: {
+            ...conn.providerSpecificData,
+            antigravityScopeRateLimitedUntil: {
+              ...existingScopeMap,
+              [family]: scopeRateLimitedUntil,
+            },
+          },
+        });
+
+        if (scopeCooldownMs > 0) {
+          lockModel(provider, connectionId, model, reason || "unknown", scopeCooldownMs);
+        }
+
+        if (status && errorMsg) {
+          console.error(`❌ ${provider} [${status}] (${family}): ${errorMsg}`);
+        }
+
+        return { shouldFallback: true, cooldownMs: scopeCooldownMs };
+      }
+    }
+
     const baseUpdate = {
       lastError: errorMsg,
       lastErrorType: providerErrorType,
@@ -2286,10 +2426,7 @@ export async function clearRecoveredProviderState(
 ): Promise<{ applied: boolean }> {
   if (!credentials?.connectionId) return { applied: false };
   if (expectedState) {
-    const applied = await clearConnectionErrorIfUnchanged(
-      credentials.connectionId,
-      expectedState
-    );
+    const applied = await clearConnectionErrorIfUnchanged(credentials.connectionId, expectedState);
     if (!applied) {
       log.info(
         "AUTH",
