@@ -1,0 +1,24 @@
+[package]
+name = "omniroute-storage"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute SQLite storage layer (call_logs, usage_history, keys, combos)"
+
+[dependencies]
+omniroute-core = { path = "../omniroute-core" }
+
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+async-trait = { workspace = true }
+sha2 = { workspace = true }
+base64 = { workspace = true }
+argon2 = { workspace = true }
+rand = { workspace = true }
+hex = { workspace = true }
+parking_lot = { workspace = true }

@@ -1,0 +1,32 @@
+[package]
+name = "omniroute-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute CLI (clap-based single binary)"
+
+[[bin]]
+name = "omniroute"
+path = "src/main.rs"
+
+[dependencies]
+omniroute-core = { path = "../omniroute-core" }
+omniroute-sdk = { path = "../omniroute-sdk" }
+
+clap = { workspace = true }
+tokio = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+comfy-table = { workspace = true }
+indicatif = { workspace = true }
+dialoguer = { workspace = true }
+console = { workspace = true }
+url = { workspace = true }

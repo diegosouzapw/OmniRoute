@@ -1,0 +1,51 @@
+[package]
+name = "omniroute-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute HTTP server (axum-based)"
+
+[[bin]]
+name = "omniroute-server"
+path = "src/main.rs"
+
+[dependencies]
+omniroute-core = { path = "../omniroute-core" }
+omniroute-storage = { path = "../omniroute-storage" }
+omniroute-providers = { path = "../omniroute-providers" }
+omniroute-pipeline = { path = "../omniroute-pipeline" }
+omniroute-sdk = { path = "../omniroute-sdk" }
+
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-opentelemetry = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry_sdk = { workspace = true }
+opentelemetry-otlp = { workspace = true }
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+bytes = { workspace = true }
+http = { workspace = true }
+mime = { workspace = true }
+clap = { workspace = true }
+config = { workspace = true }
+utoipa = { workspace = true }
+dashmap = { workspace = true }
+parking_lot = { workspace = true }
+once_cell = { workspace = true }
+regex = { workspace = true }
+url = { workspace = true }
+percent-encoding = { workspace = true }
+encoding_rs = { workspace = true }

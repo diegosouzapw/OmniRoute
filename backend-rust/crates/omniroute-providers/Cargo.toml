@@ -1,0 +1,27 @@
+[package]
+name = "omniroute-providers"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute provider adapters (OpenAI, Anthropic, Gemini, Cohere, Bedrock, Responses)"
+
+[dependencies]
+omniroute-core = { path = "../omniroute-core" }
+omniroute-pipeline = { path = "../omniroute-pipeline" }
+
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+futures = { workspace = true }
+tracing = { workspace = true }
+bytes = { workspace = true }
+http = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+url = { workspace = true }
+once_cell = { workspace = true }
+dashmap = { workspace = true }

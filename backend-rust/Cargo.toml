@@ -1,0 +1,133 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/omniroute-core",
+    "crates/omniroute-storage",
+    "crates/omniroute-providers",
+    "crates/omniroute-pipeline",
+    "crates/omniroute-server",
+    "crates/omniroute-cli",
+    "crates/omniroute-sdk",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+repository = "https://github.com/kooshapari/omniroute"
+authors = ["OmniRoute Contributors"]
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1.42", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+tokio-util = { version = "0.7", features = ["io"] }
+futures = "0.3"
+async-trait = "0.1"
+
+# HTTP server
+axum = { version = "0.8", features = ["macros", "ws"] }
+tower = { version = "0.5", features = ["util", "limit", "timeout"] }
+tower-http = { version = "0.6", features = ["trace", "cors", "compression-gzip", "request-id", "util"] }
+hyper = { version = "1.5", features = ["full"] }
+hyper-util = { version = "0.1", features = ["full"] }
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls"], default-features = false }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+serde_yaml = "0.9"
+simd-json = "0.13"
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "macros", "chrono", "uuid", "json", "migrate"] }
+
+# Crypto / hashing
+sha2 = "0.10"
+hmac = "0.12"
+base64 = "0.22"
+hex = "0.4"
+rand = "0.8"
+argon2 = "0.5"
+
+# UUID / time
+uuid = { version = "1.11", features = ["v4", "v7", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "fmt"] }
+tracing-opentelemetry = "0.28"
+opentelemetry = { version = "0.27", features = ["trace"] }
+opentelemetry_sdk = { version = "0.27", features = ["rt-tokio"] }
+opentelemetry-otlp = "0.27"
+metrics = "0.24"
+metrics-exporter-prometheus = "0.16"
+
+# CLI
+clap = { version = "4.5", features = ["derive", "env", "color"] }
+indicatif = "0.17"
+dialoguer = "0.11"
+console = "0.15"
+comfy-table = "7"
+
+# Errors
+thiserror = "2"
+anyhow = "1"
+
+# Misc
+bytes = "1.8"
+pin-project = "1.1"
+parking_lot = "0.12"
+dashmap = "6"
+once_cell = "1.20"
+regex = "1.11"
+url = "2.5"
+mime = "0.3"
+http = "1.1"
+http-body-util = "0.1"
+
+# Tokenizer (tiktoken-rs for OpenAI, tokenizers for HF)
+tiktoken-rs = "0.7"
+tokenizers = { version = "0.21", default-features = false, features = ["http"] }
+
+# Config
+config = { version = "0.14", default-features = false, features = ["toml", "yaml"] }
+
+# OpenAPI
+utoipa = { version = "5", features = ["axum_extras", "chrono", "uuid"] }
+
+# JSON pointer / patch
+json-patch = "3"
+
+# Encoding
+encoding_rs = "0.8"
+percent-encoding = "2"
+
+# Linting
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
+
+[profile.dev]
+opt-level = 1
+debug = 1
+incremental = true
