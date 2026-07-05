@@ -162,7 +162,7 @@ jobs:
   lint-guard:
     name: No new ESLint warnings
     runs-on: ubuntu-latest
-    continue-on-error: ${{ github.event.pull_request.head.repo.fork }}
+    continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     steps:
       - uses: actions/checkout@v7
         with:
