@@ -64,6 +64,8 @@ export async function createProviderNode(data: JsonRecord) {
     baseUrl: data.baseUrl || null,
     chatPath: data.chatPath || null,
     modelsPath: data.modelsPath || null,
+    // Optional operator-supplied remote icon URL (#2166) — plain TEXT, no JSON parsing needed.
+    iconUrl: data.iconUrl || null,
     customHeadersJson,
     createdAt: now,
     updatedAt: now,
@@ -71,8 +73,8 @@ export async function createProviderNode(data: JsonRecord) {
 
   db.prepare(
     `
-    INSERT INTO provider_nodes (id, type, name, prefix, api_type, base_url, chat_path, models_path, custom_headers_json, created_at, updated_at)
-    VALUES (@id, @type, @name, @prefix, @apiType, @baseUrl, @chatPath, @modelsPath, @customHeadersJson, @createdAt, @updatedAt)
+    INSERT INTO provider_nodes (id, type, name, prefix, api_type, base_url, chat_path, models_path, icon_url, custom_headers_json, created_at, updated_at)
+    VALUES (@id, @type, @name, @prefix, @apiType, @baseUrl, @chatPath, @modelsPath, @iconUrl, @customHeadersJson, @createdAt, @updatedAt)
   `
   ).run(node);
 
@@ -119,7 +121,8 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
     `
     UPDATE provider_nodes SET type = @type, name = @name, prefix = @prefix,
     api_type = @apiType, base_url = @baseUrl, chat_path = @chatPath,
-    models_path = @modelsPath, custom_headers_json = @customHeadersJson, updated_at = @updatedAt
+    models_path = @modelsPath, icon_url = @iconUrl,
+    custom_headers_json = @customHeadersJson, updated_at = @updatedAt
     WHERE id = @id
   `
   ).run({
@@ -131,6 +134,9 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
     baseUrl: merged["baseUrl"] || null,
     chatPath: merged["chatPath"] || null,
     modelsPath: merged["modelsPath"] || null,
+    // #2166: iconUrl is nullable — explicit `null` (not omission) clears a previously
+    // stored custom icon when the caller submits an empty value.
+    iconUrl: merged["iconUrl"] || null,
     customHeadersJson: merged["customHeadersJson"] || null,
     updatedAt: merged["updatedAt"],
   });

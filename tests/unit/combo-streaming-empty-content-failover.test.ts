@@ -138,21 +138,13 @@ test("#3685 empty Claude stream (content_filter, no content blocks) is marked in
     false,
     `expected invalid for empty content-filtered stream, got valid=true (reason: ${out.reason})`
   );
-  assert.match(
-    out.reason ?? "",
-    /empty/i,
-    `reason should mention 'empty', got: "${out.reason}"`
-  );
+  assert.match(out.reason ?? "", /empty/i, `reason should mention 'empty', got: "${out.reason}"`);
 });
 
 test("#3685 non-empty Claude stream (has content blocks) remains valid", async () => {
   const res = makeNonEmptyClaudeStream();
   const out = await validateResponseQuality(res, true, silentLog);
-  assert.equal(
-    out.valid,
-    true,
-    `expected valid for non-empty stream, got invalid: ${out.reason}`
-  );
+  assert.equal(out.valid, true, `expected valid for non-empty stream, got invalid: ${out.reason}`);
   // The clonedResponse must be present so the combo loop can pipe the stream body
   assert.ok(out.clonedResponse, "clonedResponse must be returned for valid streaming response");
   assert.ok(out.clonedResponse!.body, "clonedResponse must have a body stream");
@@ -172,10 +164,7 @@ test("#3685 empty Claude stream without message_start lifecycle → valid (incom
   // A stream that only has partial events (e.g. disconnected before message_start)
   // should not trigger the failover since the lifecycle isn't complete — this is
   // handled by other mechanisms (stream readiness timeout).
-  const partialEvents = [
-    `event: ping\ndata: ${JSON.stringify({ type: "ping" })}`,
-    "",
-  ];
+  const partialEvents = [`event: ping\ndata: ${JSON.stringify({ type: "ping" })}`, ""];
   const res = new Response(claudeSseStream(partialEvents), {
     status: 200,
     headers: { "content-type": "text/event-stream" },
@@ -252,7 +241,7 @@ test("#3685 streaming is preserved for non-empty response: clonedResponse body y
   // Drain the clonedResponse body and reconstruct the full byte sequence.
   const reader = out.clonedResponse!.body!.getReader();
   const receivedChunks: Uint8Array[] = [];
-  // eslint-disable-next-line no-constant-condition
+
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -277,7 +266,10 @@ test("#3685 streaming is preserved for non-empty response: clonedResponse body y
   // Verify the response carries SSE content blocks in the decoded text,
   // confirming real content was streamed through.
   const decoded = new TextDecoder().decode(reconstructed);
-  assert.ok(decoded.includes("content_block_start"), "decoded body must contain content_block_start");
+  assert.ok(
+    decoded.includes("content_block_start"),
+    "decoded body must contain content_block_start"
+  );
   assert.ok(decoded.includes("Hello"), "decoded body must contain the actual text content");
   assert.ok(decoded.includes(", world!"), "decoded body must contain the full text delta");
 });

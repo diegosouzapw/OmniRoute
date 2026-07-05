@@ -44,6 +44,7 @@ const NOT_ACP_SPAWNABLE_IDS = [
   "roo",
   "jcode",
   "deepseek-tui",
+  "codewhale",
   "smelt",
   "pi",
   "hermes-agent",

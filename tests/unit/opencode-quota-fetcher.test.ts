@@ -295,6 +295,38 @@ test("registerOpencodeQuotaFetcher exposes opencode-go quota to preflight system
   invalidateOpencodeQuotaCache(connectionId);
 });
 
+test("preflight honors an explicit opencode limit_reached flag even before a window reaches 100%", async () => {
+  const connectionId = `oc-limit-reached-${Date.now()}`;
+  const resetAt = Math.floor((Date.now() + 30 * 60_000) / 1000);
+
+  registerOpencodeQuotaFetcher();
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        limit_reached: true,
+        quota: {
+          window_5h: { used: 10.0, limit: 12.0, reset_at: resetAt },
+          window_weekly: { used: 20.0, limit: 30.0, reset_at: null },
+          window_monthly: { used: 30.0, limit: 60.0, reset_at: null },
+        },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+
+  const preflight = await preflightQuota("opencode-go", connectionId, {
+    apiKey: "test-key",
+    providerSpecificData: { quotaPreflightEnabled: true },
+  });
+
+  assert.equal(preflight.proceed, false, "explicit limit_reached must block the account");
+  assert.equal(preflight.reason, "quota_exhausted");
+  assert.equal(preflight.quotaPercent, 10 / 12);
+  assert.equal(preflight.resetAt, new Date(resetAt * 1000).toISOString());
+
+  invalidateOpencodeQuotaCache(connectionId);
+});
+
 test("registerOpencodeQuotaFetcher also covers opencode and opencode-zen providers", async () => {
   registerOpencodeQuotaFetcher();
 

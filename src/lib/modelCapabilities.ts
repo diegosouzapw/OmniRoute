@@ -3,7 +3,13 @@ import {
   PROVIDER_MODELS,
 } from "@omniroute/open-sse/config/providerModels.ts";
 import { parseModel, resolveCanonicalProviderModel } from "@omniroute/open-sse/services/model.ts";
-import { MODEL_SPECS, getModelSpec, type ModelSpec } from "@/shared/constants/modelSpecs";
+import {
+  MODEL_SPECS,
+  getAuthoritativeContextWindow,
+  getAuthoritativeProviderContextWindow,
+  getModelSpec,
+  type ModelSpec,
+} from "@/shared/constants/modelSpecs";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
 import { isVisionModelId } from "@/shared/constants/visionModels";
@@ -176,6 +182,22 @@ function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSp
     return getModelSpec(rawModel);
   }
   return undefined;
+}
+
+function getAuthoritativeStaticContextWindow(
+  provider: string | null,
+  modelId: string | null,
+  rawModel: string | null
+): number | null {
+  for (const candidate of [modelId, rawModel]) {
+    const providerContextWindow = getAuthoritativeProviderContextWindow(provider, candidate);
+    if (typeof providerContextWindow === "number") return providerContextWindow;
+  }
+  for (const candidate of [modelId, rawModel]) {
+    const contextWindow = getAuthoritativeContextWindow(candidate);
+    if (typeof contextWindow === "number") return contextWindow;
+  }
+  return null;
 }
 
 function getStaticSpecCanonicalModelId(modelId: string | null, rawModel: string | null) {
@@ -351,7 +373,13 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
         : null) ??
       (typeof spec?.supportsThinking === "boolean" ? spec.supportsThinking : null));
 
+  const authoritativeContextWindow = getAuthoritativeStaticContextWindow(
+    resolved.provider,
+    resolved.model,
+    resolved.rawModel
+  );
   const contextWindow =
+    authoritativeContextWindow ??
     synced?.limit_context ??
     (typeof registryModel?.contextLength === "number" ? registryModel.contextLength : null) ??
     spec?.contextWindow ??
@@ -378,7 +406,11 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     structuredOutput: synced?.structured_output ?? null,
     temperature: synced?.temperature ?? null,
     contextWindow,
-    maxInputTokens: synced?.limit_input ?? contextWindow,
+    maxInputTokens:
+      (typeof registryModel?.maxInputTokens === "number" ? registryModel.maxInputTokens : null) ??
+      authoritativeContextWindow ??
+      synced?.limit_input ??
+      contextWindow,
     maxOutputTokens:
       synced?.limit_output ??
       (typeof registryModel?.maxOutputTokens === "number" ? registryModel.maxOutputTokens : null) ??

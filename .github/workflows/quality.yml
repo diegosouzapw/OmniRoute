@@ -100,7 +100,7 @@ jobs:
           fi
           echo "Running impacted tests:"; echo "$SEL"
           mapfile -t FILES <<< "$SEL"
-          node --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${FILES[@]}"
+          node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${FILES[@]}"
 
   fast-vitest:
     name: Vitest (fast-path)
@@ -140,9 +140,37 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - run: >
-          node --max-old-space-size=4096 --import tsx
-          --import ./tests/_setup/isolateDataDir.ts
-          --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2
-          tests/unit/*.test.ts
-          "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts"
+      # QW-d: fonte única — o mesmo npm script do CI pesado/local. Fecha dois drifts do
+      # comando inline antigo: os dirs `memory` e `usage` estavam FORA do glob (testes
+      # silenciosamente não rodavam no fast path) e o setupPolyfill não era importado.
+      - run: npm run test:unit:ci:shard
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/2
+
+  # ── Pacote 4 (plano mestre testes+CI, aprovado 2026-07-04) ─────────────────────────
+  # No-new-warnings por PR via ESLint bulk suppressions nativo (>=9.24). O baseline
+  # config/quality/eslint-suppressions.json congela as violações EXISTENTES por
+  # arquivo+regra; qualquer warning NOVO aparece e o --max-warnings 0 falha o job — o
+  # drift de +41/+88 warnings por ciclo passa a morrer no PR que o introduz, em vez de
+  # ser rebaselinado às cegas na release. Aperto do baseline (na reconciliação da
+  # release): npx eslint . --prune-suppressions --suppressions-location config/quality/eslint-suppressions.json
+  #
+  # Princípio Zero: bloqueante SÓ para branches internas (as campanhas/sessões são a
+  # origem do drift). PR de FORK roda em modo report (continue-on-error → o job fica
+  # verde com anotação; a campanha /green-prs aplica o fix via co-autoria — o
+  # contribuidor NUNCA é bloqueado nem cobrado).
+  lint-guard:
+    name: No new ESLint warnings
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: ESLint (baseline congelado — warning novo = vermelho)
+        run: npx eslint . --suppressions-location config/quality/eslint-suppressions.json --max-warnings 0

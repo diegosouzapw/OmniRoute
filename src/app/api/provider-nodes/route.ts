@@ -79,6 +79,7 @@ export async function POST(request) {
       chatPath,
       modelsPath,
       customHeaders,
+      iconUrl,
     } = validation.data;
 
     // Determine type
@@ -98,6 +99,7 @@ export async function POST(request) {
         name: name.trim(),
         chatPath: chatPath || null,
         modelsPath: modelsPath || null,
+        iconUrl: iconUrl?.trim() || null,
         customHeaders: customHeaders || null,
       });
       return NextResponse.json({ node }, { status: 201 });
@@ -127,6 +129,7 @@ export async function POST(request) {
         name: name.trim(),
         chatPath: chatPath || null,
         modelsPath: compatMode === "cc" ? null : modelsPath || null,
+        iconUrl: iconUrl?.trim() || null,
         customHeaders: customHeaders || null,
       });
       return NextResponse.json({ node }, { status: 201 });

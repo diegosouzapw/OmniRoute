@@ -13,7 +13,7 @@ export const options = {
 
 const BASE_URL = __ENV.BASE_URL || "http://localhost:20128";
 
-export default function () {
+export default function soakScenario() {
   const res = http.get(`${BASE_URL}/api/monitoring/health`);
   check(res, { "status is 200": (r) => r.status === 200 });
 }

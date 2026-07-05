@@ -36,6 +36,39 @@ export function setConnectionRateLimitUntil(connectionId: string, until: number 
 }
 
 /**
+ * Mark a connection as rate-limited until `Date.now() + retryAfterMs`.
+ *
+ * Best-effort: never throws — a DB failure must not crash the chat path. The T05
+ * startup helper `clearStaleCrashCooldowns` will not undo a write made here because
+ * the timestamp is always strictly in the future at the moment of write. See Issue #1
+ * (per-account 429 cascade not persisting).
+ */
+export function markConnectionRateLimitedUntil(connectionId: string, retryAfterMs: number): void {
+  if (typeof connectionId !== "string" || connectionId.length === 0) return;
+  if (!Number.isFinite(retryAfterMs) || retryAfterMs <= 0) return;
+  try {
+    setConnectionRateLimitUntil(connectionId, Date.now() + retryAfterMs);
+  } catch {
+    // best-effort
+  }
+}
+
+/**
+ * Clear a connection's persisted 429 cooldown.
+ *
+ * Best-effort: never throws. Mirrors `resetAccountState`'s in-memory clear so the
+ * in-memory AccountState and the DB row agree.
+ */
+export function clearConnectionRateLimit(connectionId: string): void {
+  if (typeof connectionId !== "string" || connectionId.length === 0) return;
+  try {
+    setConnectionRateLimitUntil(connectionId, null);
+  } catch {
+    // best-effort
+  }
+}
+
+/**
  * T05: Check if a connection is currently rate-limited (DB-backed).
  * Use this before account selection to skip transiently rate-limited accounts.
  *
@@ -157,21 +190,9 @@ export function clearStaleCrashCooldowns(): { cleared: number } {
   return { cleared: toReset.length };
 }
 
-/**
- * T13: Format a reset countdown as a human-readable string: "2h 35m" or "4m 30s".
- * Returns null if resetAt is in the past or not set.
- */
-export function formatResetCountdown(resetAt: string | number | null | undefined): string | null {
-  if (!resetAt) return null;
-  const resetTime = typeof resetAt === "number" ? resetAt : new Date(resetAt).getTime();
-  if (isNaN(resetTime)) return null;
-  const diffMs = resetTime - Date.now();
-  if (diffMs <= 0) return null;
-  const totalSeconds = Math.floor(diffMs / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  if (minutes > 0) return `${minutes}m ${seconds}s`;
-  return `${seconds}s`;
-}
+// T13: Format a reset countdown as a human-readable string ("2h 35m" / "4m 30s").
+// The implementation lives in the client-safe formatting utils so client
+// components (e.g. CoolingConnectionsPanel) can import it without pulling this
+// server-only DB module (better-sqlite3/ioredis) into the browser bundle.
+// Re-exported here for existing server-side callers and the db/providers barrel.
+export { formatResetCountdown } from "@/shared/utils/formatting";

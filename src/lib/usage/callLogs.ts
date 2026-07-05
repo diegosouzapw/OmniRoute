@@ -18,6 +18,7 @@ import {
   getPromptCacheReadTokensOrNull,
   getPromptCacheCreationTokensOrNull,
   getReasoningTokensOrNull,
+  getObservedReasoning,
 } from "./tokenAccounting";
 import { isNoLog } from "../compliance/noLog";
 import { protectPayloadForLog, parseStoredPayload } from "../logPayloads";
@@ -238,6 +239,37 @@ function buildArtifact(
     error: error ?? null,
     ...(pipelinePayloads ? { pipeline: pipelinePayloads } : {}),
   };
+}
+
+// #6187: extract the assistant message from a chat-completion-shaped response
+// body so we can inspect its reasoning_content / <think> content.
+function extractAssistantMessage(responseBody: unknown): unknown {
+  if (!responseBody || typeof responseBody !== "object") return responseBody;
+  const choices = (responseBody as JsonRecord).choices;
+  if (Array.isArray(choices) && choices.length > 0) {
+    const first = choices[0] as JsonRecord;
+    return first?.message ?? first?.delta ?? first;
+  }
+  return responseBody;
+}
+
+// #6187: decide the reasoning SOURCE and (char-only) count recorded alongside
+// the usage-derived tokens_reasoning. Usage is authoritative when it reports
+// non-zero reasoning tokens; otherwise we fall back to observed reasoning
+// content so "reasoned but metered 0" stays distinguishable. reasoning_chars is
+// a CHARACTER count, never a token count — it must not touch cost math.
+function resolveReasoningObservation(
+  usageReasoning: number | null,
+  responseBody: unknown
+): { source: string | null; chars: number | null } {
+  if (usageReasoning != null && usageReasoning > 0) {
+    return { source: "usage", chars: null };
+  }
+  const observed = getObservedReasoning(extractAssistantMessage(responseBody));
+  if (observed.chars > 0) {
+    return { source: observed.source, chars: observed.chars };
+  }
+  return { source: null, chars: null };
 }
 
 function hasTable(tableName: string): boolean {
@@ -534,6 +566,10 @@ export async function saveCallLog(entry: any) {
       const nodePrefix = await resolveProviderPrefix(rawProvider);
       resolvedRequestedModel = applyNodePrefix(rawRequestedModel, rawProvider, nodePrefix);
     }
+    // #6187: usage-derived reasoning tokens stay UNCHANGED (cost math reads this),
+    // while reasoning source/char-count are recorded separately for observability.
+    const tokensReasoning = getReasoningTokensOrNull(entry.tokens);
+    const reasoningObservation = resolveReasoningObservation(tokensReasoning, entry.responseBody);
     const logEntry = {
       id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
       timestamp: typeof entry.timestamp === "string" ? entry.timestamp : new Date().toISOString(),
@@ -550,7 +586,9 @@ export async function saveCallLog(entry: any) {
       tokensOut: toNumber(getLoggedOutputTokens(entry.tokens)),
       tokensCacheRead: getPromptCacheReadTokensOrNull(entry.tokens),
       tokensCacheCreation: getPromptCacheCreationTokensOrNull(entry.tokens),
-      tokensReasoning: getReasoningTokensOrNull(entry.tokens),
+      tokensReasoning,
+      reasoningSource: reasoningObservation.source,
+      reasoningChars: reasoningObservation.chars,
       tokensCompressed: entry.tokensCompressed != null ? toNumber(entry.tokensCompressed) : null,
       cacheSource: entry.cacheSource === "semantic" ? "semantic" : "upstream",
       requestType: entry.requestType || null,
@@ -606,6 +644,7 @@ export async function saveCallLog(entry: any) {
         id, timestamp, method, path, status, model, requested_model, provider,
         account, connection_id, duration, tokens_in, tokens_out,
         tokens_cache_read, tokens_cache_creation, tokens_reasoning, tokens_compressed,
+        reasoning_source, reasoning_chars,
         cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
@@ -616,6 +655,7 @@ export async function saveCallLog(entry: any) {
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
         @account, @connectionId, @duration, @tokensIn, @tokensOut,
         @tokensCacheRead, @tokensCacheCreation, @tokensReasoning, @tokensCompressed,
+        @reasoningSource, @reasoningChars,
         @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,

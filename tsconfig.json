@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "checkJs": false,
     "skipLibCheck": true,
@@ -21,15 +17,9 @@
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@omniroute/open-sse": [
-        "./open-sse"
-      ],
-      "@omniroute/open-sse/*": [
-        "./open-sse/*"
-      ]
+      "@/*": ["./src/*"],
+      "@omniroute/open-sse": ["./open-sse"],
+      "@omniroute/open-sse/*": ["./open-sse/*"]
     },
     "plugins": [
       {
@@ -54,6 +44,9 @@
   ],
   "exclude": [
     "node_modules",
+    "electron/node_modules",
+    "electron/dist-electron",
+    ".build",
     "open-sse",
     "dist",
     "coverage",

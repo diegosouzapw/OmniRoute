@@ -28,7 +28,7 @@ export function isForbiddenUpstreamHeaderName(name: string): boolean {
  * apply-loop (open-sse/executors/default.ts) cannot drift apart.
  */
 const FORBIDDEN_AUTH = new Set(
-  ["authorization", "x-api-key", "x-goog-api-key", "api-key"].map((s) => s.toLowerCase())
+  ["authorization", "x-api-key", "x-goog-api-key", "api-key", "cookie"].map((s) => s.toLowerCase())
 );
 
 /**

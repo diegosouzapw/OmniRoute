@@ -61,15 +61,32 @@ export function countExtendedTautologies(src) {
  * (6A.10 subcheck 1) Sinaliza arquivos de teste DELETADOS ou renomeados-e-não-
  * substituídos. Recebe lista de paths de arquivos de teste que foram deletados
  * (filtro D do git diff --diff-filter=MDR).
+ *
+ * `deletionAllowlist` (`_deletedWithReplacement` no test-masking-allowlist.json)
+ * isenta uma deleção SOMENTE quando o substituto declarado existe no HEAD e é
+ * ele próprio um arquivo de teste — o caso "reescrito em outro path sem rename
+ * detectável" (conteúdo novo demais para o -M do git). Qualquer entrada cujo
+ * substituto não exista ou não seja teste continua flagada.
  */
-export function evaluateDeletedFiles(deletedPaths) {
+export function evaluateDeletedFiles(
+  deletedPaths,
+  deletionAllowlist = {},
+  fileExists = fs.existsSync
+) {
   const flags = [];
   for (const f of deletedPaths) {
-    if (TEST_RE.test(f)) {
+    if (!TEST_RE.test(f)) continue;
+    const entry = deletionAllowlist[f];
+    if (entry && typeof entry.replacement === "string") {
+      if (TEST_RE.test(entry.replacement) && fileExists(entry.replacement)) continue;
       flags.push(
-        `${f}: arquivo de teste deletado — revisão humana obrigatória (mascaramento alto-sinal)`
+        `${f}: deleção allowlistada mas o substituto declarado (${entry.replacement}) não existe ou não é arquivo de teste`
       );
+      continue;
     }
+    flags.push(
+      `${f}: arquivo de teste deletado — revisão humana obrigatória (mascaramento alto-sinal)`
+    );
   }
   return flags;
 }
@@ -197,8 +214,6 @@ function main() {
     });
   }
 
-  const deletedFlags = evaluateDeletedFiles([...deletedTests, ...relocatedOutOfTest]);
-
   // Arquivos de teste modificados (subcheck original + skips + extTaut)
   const changed = git(["diff", "--name-only", "--diff-filter=M", `${base}...HEAD`])
     .split("\n")
@@ -225,13 +240,19 @@ function main() {
   // Per-file allowlist for verified-legitimate net-assert reductions (refactor/field-removal).
   // Only exempts the reduction signal; tautology/skip/deletion signals still fire.
   let assertReductionAllowlist = new Set();
+  let deletionAllowlist = {};
   try {
     const raw = JSON.parse(fs.readFileSync("config/quality/test-masking-allowlist.json", "utf8"));
     assertReductionAllowlist = new Set(Object.keys(raw).filter((k) => !k.startsWith("_")));
+    deletionAllowlist = raw._deletedWithReplacement || {};
   } catch {
     // no allowlist file — treat as empty
   }
 
+  const deletedFlags = evaluateDeletedFiles(
+    [...deletedTests, ...relocatedOutOfTest],
+    deletionAllowlist
+  );
   const maskingFlags = evaluateMasking(perFile, assertReductionAllowlist);
   const allFlags = [...deletedFlags, ...maskingFlags];
 

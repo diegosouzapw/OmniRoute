@@ -71,7 +71,9 @@ test("S2b: provider error rules match canonical-cased plain header records", asy
   });
   assert.ok(opencodeMatch, "Opencode quota headers must be case-insensitive");
   assert.equal(opencodeMatch.reason, "quota_exhausted");
-  assert.equal(opencodeMatch.scope, "provider");
+  // #6061: opencode quota is per-account, so the lock scopes to the CONNECTION
+  // (locking the whole provider would disable every other account's connection).
+  assert.equal(opencodeMatch.scope, "connection");
 
   const minimaxMatch = getProviderErrorRuleMatch("Minimax", 429, {
     "X-Model-Quota-Remaining": "haiku=0,sonnet=42",
