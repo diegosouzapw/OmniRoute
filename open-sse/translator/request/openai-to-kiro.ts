@@ -5,6 +5,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
+import { capMaxOutputTokens, capThinkingBudget, supportsReasoning } from "@/lib/modelCapabilities";
 import {
   parseToolInput,
   normalizeKiroToolSchema,
@@ -57,9 +58,9 @@ function convertMessages(messages, tools, model) {
   let toolsAttached = false;
 
   // Only Claude models support images in Kiro. Kiro also routes non-Claude
-  // models (deepseek, minimax, glm, qwen3-coder-next, auto-kiro) that do not
-  // accept image attachments — gate image extraction behind a Claude check so
-  // we never attach images those models would reject.
+  // models (deepseek, minimax, glm, qwen3-coder-next) that do not accept image
+  // attachments — gate image extraction behind a Claude check so we never
+  // attach images those models would reject.
   const supportsImages = typeof model === "string" && model.toLowerCase().includes("claude");
 
   const flushPending = () => {
@@ -575,6 +576,80 @@ function convertMessages(messages, tools, model) {
   return { history: alternatingHistory, currentMessage, toolsAttached };
 }
 
+/** Kiro's accepted reasoning-effort levels (`output_config.effort`). */
+const KIRO_EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max"];
+
+/**
+ * Resolve the Kiro effort level for a request, or "" when no reasoning was asked
+ * for. Effort sources, in priority order:
+ *   1. OpenAI-style `reasoning_effort`
+ *   2. Anthropic adaptive-thinking `output_config.effort` (the canonical field)
+ *   3. Anthropic `thinking` block — `{type:"enabled", budget_tokens}` mapped to a
+ *      level via {@link effortFromBudget}; `{type:"adaptive"}` (no explicit
+ *      effort) defaults to `high`, matching Anthropic's documented default
+ *      (omitting `effort` ≡ `high`).
+ * OpenAI's `minimal` collapses to `low` (Kiro has no `minimal`).
+ */
+function resolveKiroEffort(body: Record<string, unknown>): string {
+  let effort = typeof body.reasoning_effort === "string" ? body.reasoning_effort.toLowerCase() : "";
+
+  if (!effort) {
+    const outputConfig = body.output_config as Record<string, unknown> | undefined;
+    if (
+      outputConfig &&
+      typeof outputConfig === "object" &&
+      typeof outputConfig.effort === "string"
+    ) {
+      effort = outputConfig.effort.toLowerCase();
+    }
+  }
+
+  if (!effort) {
+    const thinking = body.thinking as Record<string, unknown> | undefined;
+    if (thinking && typeof thinking === "object") {
+      if (thinking.type === "enabled") {
+        effort = effortFromBudget(Number(thinking.budget_tokens) || 0);
+      } else if (thinking.type === "adaptive") {
+        effort = "high";
+      }
+    }
+  }
+
+  if (effort === "minimal") effort = "low";
+  return KIRO_EFFORT_LEVELS.includes(effort) ? effort : "";
+}
+
+/** Map an Anthropic `thinking.budget_tokens` to a coarse Kiro effort level. */
+function effortFromBudget(budget: number): string {
+  if (budget >= 32000) return "high";
+  if (budget >= 16000) return "medium";
+  if (budget > 0) return "low";
+  return "";
+}
+
+/**
+ * Soft `<max_thinking_length>` budget for the Kiro prompt directive, per effort
+ * level. Anthropic publishes no effort→token mapping (effort is "a behavioral
+ * signal, not a strict token budget"), so this is a heuristic tuned against the
+ * live CodeWhisperer stream, where a larger budget measurably deepens reasoning
+ * up to the model cap. It is a hint the model may honor, not a hard cap (the hard
+ * enable signal is `<thinking_mode>`); the caller clamps it to the model's cap.
+ */
+function thinkingLengthForEffort(effort: string): number {
+  switch (effort) {
+    case "max":
+      return 120000;
+    case "xhigh":
+      return 64000;
+    case "high":
+      return 32000;
+    case "medium":
+      return 16000;
+    default:
+      return 8000; // low
+  }
+}
+
 /**
  * Build Kiro payload from OpenAI format
  */
@@ -683,6 +758,11 @@ export function buildKiroPayload(model, body, stream, credentials) {
       temperature?: number;
       topP?: number;
     };
+    additionalModelRequestFields?: {
+      thinking?: { type: string; display?: string };
+      output_config?: { effort: string };
+      max_tokens?: number;
+    };
   } = {
     conversationState: {
       chatTriggerType: "MANUAL",
@@ -752,6 +832,55 @@ export function buildKiroPayload(model, body, stream, credentials) {
     if (maxTokens) payload.inferenceConfig.maxTokens = maxTokens;
     if (temperature !== undefined) payload.inferenceConfig.temperature = temperature;
     if (topP !== undefined) payload.inferenceConfig.topP = topP;
+  }
+
+  // Thinking mode for Claude models on Kiro (ported from javargasm/pi-kiro).
+  // Two coordinated signals steer reasoning on the CodeWhisperer surface:
+  //   1. a `<thinking_mode>enabled</thinking_mode><max_thinking_length>N</...>`
+  //      directive prepended to the current user message — makes Claude emit its
+  //      reasoning INLINE as `<thinking>…</thinking>`, which the Kiro executor
+  //      splits back into the OpenAI `reasoning_content` channel (kiroThinking.ts);
+  //   2. top-level `additionalModelRequestFields` (output_config.effort +
+  //      thinking:{type:"adaptive"} + a clamped max_tokens), forwarded to AWS by
+  //      the Kiro executor's transformRequest allowlist — this is the graded
+  //      effort lever. Gated on models that advertise thinking support.
+  const kiroEffort = supportsReasoning(normalizedModel) ? resolveKiroEffort(body) : "";
+  if (kiroEffort) {
+    // `<thinking_mode>` / `<max_thinking_length>` are Kiro/CodeWhisperer prompt
+    // conventions (NOT Anthropic API params); the length is a soft hint (the hard
+    // enable signal is `<thinking_mode>`), clamped to the model's thinking cap.
+    const thinkingLength = capThinkingBudget(normalizedModel, thinkingLengthForEffort(kiroEffort));
+    const directive =
+      `<thinking_mode>enabled</thinking_mode>` +
+      `<max_thinking_length>${thinkingLength}</max_thinking_length>`;
+    payload.conversationState.currentMessage.userInputMessage.content = `${directive}\n\n${payload.conversationState.currentMessage.userInputMessage.content}`;
+
+    const fields: {
+      output_config: { effort: string };
+      thinking: { type: string; display: string };
+      max_tokens?: number;
+    } = {
+      output_config: { effort: kiroEffort },
+      thinking: { type: "adaptive", display: "summarized" },
+    };
+    // Forward max_tokens only when the client set one, clamped to the model's
+    // output window (floor 1024) — matches pi-kiro and avoids an over-budget reject.
+    if (maxTokens > 0) {
+      const capped = capMaxOutputTokens(normalizedModel, maxTokens) ?? maxTokens;
+      fields.max_tokens = Math.max(Math.floor(capped), 1024);
+    }
+    payload.additionalModelRequestFields = fields;
+
+    // Adaptive-only Claude models (Opus 4.7/4.8, Sonnet 5, Fable 5) reject a
+    // non-default temperature / top_p with a 400 while thinking is active, so
+    // strip both. Drop inferenceConfig entirely if nothing else remains.
+    if (payload.inferenceConfig) {
+      delete payload.inferenceConfig.temperature;
+      delete payload.inferenceConfig.topP;
+      if (Object.keys(payload.inferenceConfig).length === 0) {
+        delete payload.inferenceConfig;
+      }
+    }
   }
 
   return payload;

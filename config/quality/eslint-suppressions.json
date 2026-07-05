@@ -1132,11 +1132,6 @@
       "count": 4
     }
   },
-  "tests/unit/copilot-gemini-claude-route-no-responses.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 9
-    }
-  },
   "tests/unit/cursor-usage-fetcher.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1

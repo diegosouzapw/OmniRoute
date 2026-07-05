@@ -5,6 +5,7 @@
 //   1. claude-opus-4 series: temperature deprecated → Anthropic 400.
 //   2. github + gpt-5.4: temperature unsupported.
 //   3. github + Claude (except opus/sonnet 4.6): thinking + reasoning_effort rejected.
+//   4. nvidia + z-ai/glm-5.2: reasoning rejected → NVIDIA 400.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -110,6 +111,47 @@ test("stripUnsupportedParams: missing model is a no-op", () => {
   const body: Record<string, unknown> = { temperature: 0.7 };
   stripUnsupportedParams("anthropic", "", body);
   assert.equal(body.temperature, 0.7);
+});
+
+test("stripUnsupportedParams: drops reasoning for nvidia z-ai/glm-5.2", () => {
+  const body: Record<string, unknown> = {
+    model: "z-ai/glm-5.2",
+    reasoning: { effort: "high" },
+    temperature: 0.7,
+  };
+  stripUnsupportedParams("nvidia", "z-ai/glm-5.2", body);
+  assert.equal(body.reasoning, undefined, "reasoning must be stripped");
+  assert.equal(body.temperature, 0.7, "other params must survive");
+  assert.equal(body.model, "z-ai/glm-5.2", "model must not be touched");
+});
+
+test("stripUnsupportedParams: nvidia z-ai/glm-5.1 keeps reasoning (rule is 5.2-only)", () => {
+  const body: Record<string, unknown> = {
+    model: "z-ai/glm-5.1",
+    reasoning: { effort: "medium" },
+    max_tokens: 100,
+  };
+  stripUnsupportedParams("nvidia", "z-ai/glm-5.1", body);
+  assert.ok(body.reasoning !== undefined, "reasoning must survive for glm-5.1");
+  assert.equal(body.max_tokens, 100, "other params must survive");
+});
+
+test("stripUnsupportedParams: nvidia glm-5 rule is provider-scoped (no-op for other providers)", () => {
+  const body: Record<string, unknown> = {
+    model: "z-ai/glm-5.2",
+    reasoning: { effort: "high" },
+  };
+  stripUnsupportedParams("openai", "z-ai/glm-5.2", body);
+  assert.ok(body.reasoning !== undefined, "reasoning must survive for non-nvidia provider");
+});
+
+test("stripUnsupportedParams: nvidia non-glm-5 model keeps reasoning", () => {
+  const body: Record<string, unknown> = {
+    model: "deepseek-ai/deepseek-v4-pro",
+    reasoning: { effort: "high" },
+  };
+  stripUnsupportedParams("nvidia", "deepseek-ai/deepseek-v4-pro", body);
+  assert.ok(body.reasoning !== undefined, "reasoning must survive for non-glm-5 nvidia model");
 });
 
 test("STRIP_RULES is non-empty and every rule has a drop list", () => {
