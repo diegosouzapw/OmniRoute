@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **feat(providers):** **bulk-add API keys for Cloudflare Workers AI** ([#6174](https://github.com/diegosouzapw/OmniRoute/issues/6174)) — `cloudflare-ai` is removed from the bulk-add exclusion list and the bulk parser gains a 3-field `name|accountId|apiKey` mode; the bulk route now builds a **per-entry** `providerSpecificData` so each key carries its own `accountId` (fixing the previous shared-object reuse), and both the create + key-validation paths receive it. Regression guard: `tests/unit/bulk-api-key-parser-cloudflare.test.ts`. (thanks @muflifadla38)
+
 ### 🐛 Bug Fixes
 
 - **chatcore (tools): stop the default 128-tool cap from silently dropping opencode's `task`/MCP tools.** opencode (used as an MCP/agent host) sends a large tool list; when it exceeds the speculative `MAX_TOOLS_LIMIT` (128) default, `truncateToolList` did a blind `tools.slice(0, 128)`, dropping every tool past index 128 — including opencode's built-in `task` tool (subagent launch) and many MCP tools, so models routed through OmniRoute could no longer spawn subagents or reach part of their tools. The cap exists to avoid upstream `400`s for providers with real hard limits (e.g. grok-cli 200), so it is kept for those: detection of the opencode client (`isOpencodeClient` — any `x-opencode-*` header, or `opencode` in the user-agent) now only bypasses the **speculative 128 default**, never a known provider ceiling. Precedence is explicit — a proactive/detected provider limit always truncates (even for opencode); otherwise opencode forwards its full tool list; otherwise the unchanged 128 default applies to every other client. Refactors `getEffectiveToolLimit` into `getKnownToolLimit(provider) ?? DEFAULT_LIMIT` (byte-identical for existing callers) and fixes a cosmetic debug-log that reported the truncated count instead of the original. Regression guard: `tests/unit/tool-limit-detector.test.ts`.

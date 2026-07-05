@@ -4848,7 +4848,8 @@
     "kimiWebLabel": "Kimi Web",
     "kimiWebDesc": "Moonshot AI consumer chat via www.kimi.com (international, Connect-RPC API)",
     "doubaoWebLabel": "Dola Web",
-    "doubaoWebDesc": "ByteDance AI chat via dola.com"
+    "doubaoWebDesc": "ByteDance AI chat via dola.com",
+    "bulkAddFormatHintCloudflare": "One key per line. Format: name|accountId|apiKey (Cloudflare account ID + API token)."
   },
   "settings": {
     "title": "Settings",
