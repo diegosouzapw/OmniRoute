@@ -57,6 +57,13 @@ export interface RegistryModel {
   /** Maximum context window in tokens */
   contextLength?: number;
   /**
+   * Explicit maximum input-token budget, when it is smaller than the full
+   * context window (e.g. OAuth backends that reserve part of the window for
+   * output). When set, catalog/capability builders prefer this over deriving
+   * max_input_tokens from contextLength (#6191).
+   */
+  maxInputTokens?: number;
+  /**
    * Interleaved-reasoning signal, mirroring models.dev's `interleaved_field`.
    * Set to "reasoning_content" for models whose upstream runs DeepSeek thinking
    * mode (e.g. OpenCode `big-pickle`) so follow-up/tool-use turns replay
