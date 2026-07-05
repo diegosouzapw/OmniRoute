@@ -108,7 +108,8 @@ test("canonical model capability resolver lets exact synced metadata override gl
 
   const codexGpt55 = modelCapabilities.getResolvedModelCapabilities("codex/gpt-5.5");
   assert.equal(codexGpt55.contextWindow, 400000);
-  assert.equal(codexGpt55.maxInputTokens, 400000);
+  // #6191: max_input_tokens is a distinct, smaller cap than the context window.
+  assert.equal(codexGpt55.maxInputTokens, 272000);
   assert.equal(codexGpt55.maxOutputTokens, 128000);
   assert.equal(codexGpt55.supportsThinking, true);
   assert.equal(codexGpt55.supportsVision, true);
@@ -206,4 +207,54 @@ test("Kimi K2.7 Code resolves full capabilities instead of the degraded import d
   assert.equal(ollama.supportsVision, true);
   assert.notEqual(ollama.contextWindow, 128000);
   assert.notEqual(ollama.maxOutputTokens, 8192);
+});
+
+test("GLM-5.2 context limits respect provider-hosted caps", () => {
+  modelsDevSync.saveModelsDevCapabilities({
+    huggingface: {
+      "zai-org/GLM-5.2": buildCapability({
+        limit_context: 128000,
+        limit_input: 128000,
+        limit_output: 128000,
+      }),
+    },
+    "cloudflare-ai": {
+      "@cf/zai-org/glm-5.2": buildCapability({
+        limit_context: 128000,
+        limit_input: 128000,
+        limit_output: 128000,
+      }),
+    },
+    zenmux: {
+      "z-ai/glm-5.2": buildCapability({
+        limit_context: 128000,
+        limit_input: 128000,
+        limit_output: 128000,
+      }),
+    },
+  });
+
+  for (const modelId of ["glm-5.2", "opencode-go/glm-5.2", "opencode/glm-5.2", "oc/glm-5.2"]) {
+    const capabilities = modelCapabilities.getResolvedModelCapabilities(modelId);
+    assert.equal(capabilities.contextWindow, 1000000, modelId);
+    assert.equal(capabilities.maxInputTokens, 1000000, modelId);
+  }
+
+  for (const modelId of ["zenmux/z-ai/glm-5.2", "zenmux/z-ai/glm-5.2-free"]) {
+    const capabilities = modelCapabilities.getResolvedModelCapabilities(modelId);
+    assert.equal(capabilities.contextWindow, 1000000, modelId);
+    assert.equal(capabilities.maxInputTokens, 1000000, modelId);
+  }
+
+  for (const modelId of ["cloudflare-ai/@cf/zai-org/glm-5.2", "cf/@cf/zai-org/glm-5.2"]) {
+    const capabilities = modelCapabilities.getResolvedModelCapabilities(modelId);
+    assert.equal(capabilities.contextWindow, 262144, modelId);
+    assert.equal(capabilities.maxInputTokens, 262144, modelId);
+  }
+
+  for (const modelId of ["huggingface/zai-org/GLM-5.2", "hf/zai-org/GLM-5.2"]) {
+    const capabilities = modelCapabilities.getResolvedModelCapabilities(modelId);
+    assert.equal(capabilities.contextWindow, 262144, modelId);
+    assert.equal(capabilities.maxInputTokens, 262144, modelId);
+  }
 });

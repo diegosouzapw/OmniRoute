@@ -29,6 +29,10 @@ const STRIP_RULES: StripRule[] = [
       /claude/i.test(m) && !/claude.*(opus|sonnet).*4\.6/i.test(m),
     drop: ["thinking", "reasoning_effort"],
   },
+  // NVIDIA NIM minimaxai/minimax-m2.7: NVIDIA's OpenAI-compatible wrapper
+  // (format:"openai") does not accept the Claude-style `thinking` body field
+  // and returns 400 "Unsupported parameter(s): thinking". Upstream #2268.
+  { provider: "nvidia", match: /minimax-m2\.7/i, drop: ["thinking"] },
 ];
 
 function matches(rule: StripRule, model: string): boolean {

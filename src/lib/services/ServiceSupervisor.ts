@@ -7,6 +7,7 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getServiceRow, updateServiceField, setToolStatus } from "@/lib/db/versionManager";
 import { RingBuffer } from "./ringBuffer";
 import { HealthChecker } from "./healthCheck";
+import { decidePreSpawn, probeBeforeSpawn } from "./portProbe";
 import type { ServiceConfig, ServiceState, ServiceStatus, LogLine, HealthState } from "./types";
 
 const CRASH_FAST_THRESHOLD_MS = 5_000;
@@ -60,6 +61,32 @@ export class ServiceSupervisor extends EventEmitter {
 
       this.setState("starting");
       this.lastError = null;
+
+      // Pre-spawn probe (#6205): avoid a raw EADDRINUSE crash when a prior
+      // instance is still holding the port. A healthy instance is adopted; a
+      // held-but-unhealthy port surfaces a clear error instead of a stack.
+      // Opt-in per ServiceConfig so the default spawn path is unchanged.
+      if (this.config.probeBeforeSpawn) {
+        const probe = await probeBeforeSpawn(this.config.healthUrl(), this.config.port);
+        const decision = decidePreSpawn(probe, this.config.port);
+
+        if (decision.action === "adopt") {
+          // Something healthy already serves this port — treat it as running
+          // rather than spawning a duplicate that would die with EADDRINUSE.
+          this.checker.start();
+          this.startedAt = new Date().toISOString();
+          this.setState("running");
+          await setToolStatus(this.config.tool, "running");
+          return this.getStatus();
+        }
+
+        if (decision.action === "error") {
+          this.lastError = sanitizeErrorMessage(decision.message);
+          this.setState("error");
+          await setToolStatus(this.config.tool, "error", undefined, this.lastError);
+          return this.getStatus();
+        }
+      }
 
       const { command, args, env, cwd } = this.config.spawnArgs();
 

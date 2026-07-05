@@ -23,6 +23,7 @@ function getGlmTokenQuotaName(
   const number = toNumber(limit.number, 0);
 
   if (unit === 3 && number === 5) return "session";
+  if (unit === 6 && number === 1) return "weekly";
   if ((unit === 4 && number === 7) || (unit === 3 && number >= 24 * 7)) return "weekly";
 
   return existingQuotas.session ? "weekly" : "session";

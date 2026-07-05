@@ -64,6 +64,10 @@ export type ComboRelayOptions = {
   sessionId?: string | null;
   config?: Record<string, unknown> | null;
   bypassProviderQuotaPolicy?: boolean;
+  /** Per-request X-OmniRoute-Mode value (auto-combo preset / mode-pack name) — #6024/#6025. */
+  mode?: string | null;
+  /** Per-request X-OmniRoute-Budget value (hard cost ceiling in USD) — #6023. */
+  budgetCap?: number | null;
   [key: string]: unknown;
 };
 

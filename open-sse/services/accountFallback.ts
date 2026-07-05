@@ -33,6 +33,8 @@ import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/provid
 import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
 import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
 import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
+import { setConnectionRateLimitUntil } from "@/lib/db/providers";
+import { parseRetryHintFromJsonBody } from "./retryAfterJson.ts";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
@@ -1035,22 +1037,15 @@ function parseDelayString(value: unknown): number | null {
   return Number.isNaN(num) ? null : num * 1000;
 }
 
-/**
- * T07: Parse retry time from error text body with combined "XhYmZs" format.
- * Examples: "Your quota will reset after 2h30m14s", "reset after 45m", "reset after 30s"
- * Returns milliseconds or null if not parseable.
- *
- * @param {string} errorText - Error message text from response body
- * @returns {number|null} Retry duration in milliseconds
- */
+// T07: parse retry time from error text body with combined "XhYmZs" format.
 export function parseRetryFromErrorText(errorText: unknown): number | null {
   if (!errorText || typeof errorText !== "string") return null;
   const msg: string = String(errorText);
 
-  // Issue #2321: Anthropic OAuth occasionally embeds an absolute ISO 8601
-  // timestamp instead of a relative duration (e.g. "Try again at
-  // 2026-05-17T10:00:00Z" or "Please wait until 2026-05-17T10:00:00.000Z").
-  // Convert to a future-duration in milliseconds if it parses.
+  const bodyHintMs = parseRetryHintFromJsonBody(msg, MAX_PROVIDER_COOLDOWN_MS);
+  if (bodyHintMs !== null) return bodyHintMs;
+
+  // Issue #2321: parse embedded absolute ISO retry timestamps.
   const isoMatch =
     /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i.exec(
       msg
@@ -1297,6 +1292,9 @@ export function checkFallbackError(
    * circuit-breaker failure when this flag is set. */
   skipProviderBreaker?: boolean;
   quotaResetHintMs?: number;
+  /** #6061: the provider-configured cooldown (ms) before backoff scaling, surfaced so the
+   * caller can persist an explicit reset window instead of the engine's scaled cooldown. */
+  configuredCooldownMs?: number;
 } {
   // G-02: detect embedded service supervisor failures (X-Omni-Fallback-Hint: connection_cooldown).
   // These are NOT upstream AI provider failures — they are local supervisor state changes.
@@ -1559,13 +1557,34 @@ export function checkFallbackError(
       const reason = providerMatch
         ? providerMatch.reason
         : (configuredRule.reason ?? RateLimitReason.UNKNOWN);
-      return buildRetryableFallback(reason);
+      // Fix C: thread `providerMatch.cooldownMs` through so a configured rule
+      // like the "Monthly usage limit reached. Resets in N days." matcher can
+      // declare an explicit cooldown (e.g. 13 days) and have it win over the
+      // scaled backoff default returned by `buildRetryableFallback`. Without
+      // this, the rule's reason is used but its cooldownMs is silently
+      // dropped — which is exactly the user-visible bug where a 13-day
+      // upstream quota reset was being treated as ~60s.
+      const providerCooldownMs =
+        providerMatch?.cooldownMs !== undefined && providerMatch.cooldownMs > 0
+          ? providerMatch.cooldownMs
+          : undefined;
+      const fallback = buildRetryableFallback(reason);
+      if (providerCooldownMs !== undefined) {
+        return {
+          ...fallback,
+          cooldownMs: providerCooldownMs,
+          baseCooldownMs: providerCooldownMs,
+          configuredCooldownMs: providerCooldownMs,
+        };
+      }
+      return fallback;
     }
     const cooldownMs = configuredRule.cooldownMs ?? 0;
     return {
       shouldFallback: true,
       cooldownMs,
       baseCooldownMs: cooldownMs,
+      configuredCooldownMs: cooldownMs,
       reason: configuredRule.reason ?? RateLimitReason.UNKNOWN,
     };
   }
@@ -1736,6 +1755,20 @@ export function resetAccountState<T extends AccountState | null | undefined>(
   account: T
 ): T | AccountState {
   if (!account) return account;
+  // Persist the cooldown clear so a successfully-retried connection is no longer
+  // marked as rate-limited in `provider_connections.rate_limited_until`. Mirrors
+  // Fix A: the in-memory AccountState and the DB row must agree so the cascade
+  // survives the request boundary and `clearStaleCrashCooldowns` doesn't have
+  // to rediscover what we already know is healthy.
+  // Best-effort: a DB write failure must not crash the request path.
+  const connId = (account as AccountState | null | undefined)?.id;
+  if (typeof connId === "string" && connId.length > 0) {
+    try {
+      setConnectionRateLimitUntil(connId, null);
+    } catch {
+      // ignore — best effort
+    }
+  }
   return {
     ...account,
     rateLimitedUntil: null,
@@ -1762,13 +1795,54 @@ export function applyErrorState<T extends AccountState | null | undefined>(
   const newBackoffLevel =
     "newBackoffLevel" in fallbackDecision ? fallbackDecision.newBackoffLevel : undefined;
 
-  return {
+  // Cooldown may be overridden by a configured provider rule (see
+  // `accountFallback.ts:1511-1540` provider-match branch + the
+  // `providerMatch.cooldownMs` thread-through added by Fix C). When the
+  // configured rule sets an explicit cooldownMs, it wins over the scaled
+  // backoff default that `checkFallbackError` returned.
+  const configuredCooldownMs =
+    "configuredCooldownMs" in fallbackDecision
+      ? (fallbackDecision as { configuredCooldownMs?: number }).configuredCooldownMs
+      : undefined;
+  const effectiveCooldownMs =
+    typeof configuredCooldownMs === "number" && configuredCooldownMs > 0
+      ? configuredCooldownMs
+      : cooldownMs;
+
+  const nextState: T | AccountState = {
     ...account,
-    rateLimitedUntil: cooldownMs > 0 ? getUnavailableUntil(cooldownMs) : null,
+    rateLimitedUntil: effectiveCooldownMs > 0 ? getUnavailableUntil(effectiveCooldownMs) : null,
     backoffLevel: newBackoffLevel ?? backoffLevel,
     lastError: { status, message: errorText, timestamp: new Date().toISOString(), reason },
     status: "error",
   };
+
+  // Persist the cooldown to `provider_connections.rate_limited_until` so the
+  // cascade survives the request boundary. Before Fix A the cooldown only
+  // lived in the in-memory AccountState object returned here, which was
+  // discarded the moment the request ended — the same exhausted key was
+  // re-picked on the very next request.
+  // Best-effort try/catch mirrors `open-sse/executors/antigravity.ts:343`
+  // (`markConnectionQuotaExhausted`) so a DB failure can never crash the
+  // chat path. See issue #1 (per-account 429 cascade not persisting).
+  const connId = (account as AccountState | null | undefined)?.id;
+  if (
+    typeof connId === "string" &&
+    connId.length > 0 &&
+    effectiveCooldownMs > 0 &&
+    nextState.rateLimitedUntil
+  ) {
+    try {
+      const untilMs = cooldownUntilMs(nextState.rateLimitedUntil);
+      if (Number.isFinite(untilMs) && untilMs > Date.now()) {
+        setConnectionRateLimitUntil(connId, untilMs);
+      }
+    } catch {
+      // ignore — best effort
+    }
+  }
+
+  return nextState;
 }
 
 /**

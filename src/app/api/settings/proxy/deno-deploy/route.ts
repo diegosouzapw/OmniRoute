@@ -74,8 +74,11 @@ export function resolveRelayTarget(
 // SAME source used by the server and by the unit tests — embedded here via
 // Function#toString so the worker enforces byte-for-byte the audited policy.
 // Mirrors the Vercel-relay guard so a future audit can diff the two.
+// The guard is bound to a LITERAL const name (not a bare declaration) so the
+// hardcoded call site below resolves even when the SWC-minified standalone build
+// mangles the source function's own name in `.toString()` output (#6149).
 function buildRelayWorker(relayAuth: string): string {
-  return `${resolveRelayTarget.toString()}
+  return `const resolveRelayTarget = ${resolveRelayTarget.toString()};
 
 function isPrivateHostname(h) {
   if (!h) return true;

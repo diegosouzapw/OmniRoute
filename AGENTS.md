@@ -8,9 +8,9 @@ Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepI
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
 with **MCP Server** (94 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
 
-> **Live counts (v3.8.40)**: providers 237 · MCP tools 94 · MCP scopes 30 · A2A skills 6 ·
-> open-sse services 298 · routing strategies 17 · auto-combo scoring factors 12 ·
-> DB modules 94 · DB migrations 106 · base tables 17 · search providers 11 ·
+> **Live counts (v3.8.43)**: providers 237 · MCP tools 94 · MCP scopes 30 · A2A skills 6 ·
+> open-sse services 134 · routing strategies 17 · auto-combo scoring factors 12 ·
+> DB modules 95 · DB migrations 110 · base tables 17 · search providers 11 ·
 > i18n locales 42. **Refresh with `npm run check:docs-all`.**
 
 ## Doc Accuracy Discipline (read before writing any doc)
@@ -178,7 +178,7 @@ Always run `prettier --write` on changed files.
 
 ### Data Layer (`src/lib/db/`)
 
-All persistence uses SQLite through **83 domain-specific modules** in `src/lib/db/`. Top modules:
+All persistence uses SQLite through **95 domain-specific modules** in `src/lib/db/`. Top modules:
 
 - Core: `core.ts`, `migrationRunner.ts`, `encryption.ts`, `stateReset.ts`
 - Providers / catalog: `providers.ts`, `models.ts`, `providerLimits.ts`, `compressionAnalytics.ts`
@@ -188,8 +188,8 @@ All persistence uses SQLite through **83 domain-specific modules** in `src/lib/d
 - Storage: `backup.ts`, `cleanup.ts`, `jsonMigration.ts`, `healthCheck.ts`, `databaseSettings.ts`
 - Extension modules: `evals.ts`, `webhooks.ts`, `reasoningCache.ts`, `readCache.ts`, `tierConfig.ts`, `compressionCombos.ts`, `compressionScheduler.ts`, `batches.ts`, `files.ts`, `syncTokens.ts`, `proxies.ts`, `oneproxy.ts`, `upstreamProxy.ts`, `versionManager.ts`, `cliToolState.ts`, `prompts.ts`, `detailedLogs.ts`, `contextHandoffs.ts`, `compression.ts`, `stats.ts`
 
-Live count: `ls src/lib/db/*.ts | wc -l` (currently 83). Drift detection: `npm run check:docs-counts`.
-Schema migrations live in `db/migrations/` (**97 files** as of v3.8.24) and run via `migrationRunner.ts`.
+Live count: `ls src/lib/db/*.ts | wc -l` (currently 95). Drift detection: `npm run check:docs-counts`.
+Schema migrations live in `db/migrations/` (**110 files** as of v3.8.43) and run via `migrationRunner.ts`.
 `src/lib/localDb.ts` is a **re-export layer only** — never add logic there.
 
 #### DB Internals
@@ -198,7 +198,7 @@ Schema migrations live in `db/migrations/` (**97 files** as of v3.8.24) and run 
   journaling. `SCHEMA_SQL` defines **17 base tables** (verify with `grep -c "CREATE TABLE" src/lib/db/core.ts` minus 1 for the bookkeeping `_omniroute_migrations` table). Helpers: `rowToCamel`, `encryptConnectionFields`.
 - **`migrationRunner.ts`**: Applies versioned SQL files from `db/migrations/` inside transactions.
   Tracks applied migrations in `_omniroute_migrations` table.
-- **Migrations**: 97 files (`001_initial_schema.sql` → `099_*.sql`).
+- **Migrations**: 110 files (`001_initial_schema.sql` → `110_*.sql`).
   Each migration is idempotent and runs in a transaction. Live count: `ls src/lib/db/migrations/*.sql | wc -l`.
 - **Domain modules** import `getDbInstance()` from `core.ts` for all CRUD operations.
   Each module owns a specific table/set of tables (e.g., `providers.ts` → `provider_connections`,
@@ -336,7 +336,7 @@ Includes request/response translators with helpers for image handling.
 
 ### Services (`open-sse/services/`)
 
-115 service modules in `open-sse/services/` (top-level only; 184 including sub-dirs like `autoCombo/` and `compression/`). Refresh: `ls open-sse/services/*.ts | wc -l`. Key modules:
+134 service modules in `open-sse/services/` (top-level only; more including sub-dirs like `autoCombo/` and `compression/`). Refresh: `ls open-sse/services/*.ts | wc -l`. Key modules:
 `combo.ts` (routing engine), `usage.ts`, `tokenRefresh.ts`,
 `rateLimitManager.ts`, `accountFallback.ts`, `sessionManager.ts`, `wildcardRouter.ts`,
 `autoCombo/`, `intentClassifier.ts`, `taskAwareRouter.ts`, `thinkingBudget.ts`,
@@ -378,8 +378,8 @@ Modular prompt compression that runs proactively before the existing reactive co
   and iterates through targets in order until one succeeds or all fail.
 - **`resolveComboTargets()`**: Expands a combo configuration into an ordered array of
   `ResolvedComboTarget[]`, each specifying provider + model + account + credentials.
-- **Strategies** (15): priority, weighted, fill-first, round-robin, P2C, random, least-used, reset-aware (v3.8),
-  reset-window, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay. Source: `ROUTING_STRATEGY_VALUES` in `src/shared/constants/routingStrategies.ts`.
+- **Strategies** (17): priority, weighted, fill-first, round-robin, P2C, random, least-used, reset-aware (v3.8),
+  reset-window, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay, headroom, fusion. Source: `ROUTING_STRATEGY_VALUES` in `src/shared/constants/routingStrategies.ts`.
 - Each target calls **`handleSingleModel()`** which wraps `handleChatCore()` with
   per-target error handling and circuit breaker checks.
 

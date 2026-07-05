@@ -5,6 +5,10 @@ import { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 export { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
+import {
+  shouldDefaultAllowClassifier,
+  buildDefaultAllowClaudeMessage,
+} from "./chatCore/claudeClassifierCompat.ts";
 import { applyClientUsageBuffer } from "./chatCore/clientUsageBuffer.ts";
 import { buildPostCallGuardrailContext } from "./chatCore/postCallGuardrailContext.ts";
 import { storeSemanticCacheResponse } from "./chatCore/semanticCacheStore.ts";
@@ -22,6 +26,7 @@ import {
   isStripReasoningRequested,
 } from "./chatCore/headers.ts";
 import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
+import { trackDevice, extractIpFromHeaders } from "../services/deviceTracker.ts";
 import { getCombosCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
 import {
@@ -212,6 +217,7 @@ import {
   type NonStreamingSseTerminalState,
 } from "./chatCore/nonStreamingSse.ts";
 import { parseNonStreamingResponseBody } from "./chatCore/nonStreamingResponseParse.ts";
+import { unwrapClinepassEnvelope } from "../utils/clinepassEnvelope.ts";
 import { recordNonStreamingUsageStats } from "./chatCore/nonStreamingUsageStats.ts";
 import {
   createBodyTimeoutError,
@@ -246,6 +252,7 @@ import { isCompactResponsesEndpoint } from "../executors/codex.ts";
 import { buildCodexQuotaPersistence } from "./chatCore/codexQuota.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
+import { unwrapClineNonStreamingEnvelope } from "./chatCore/clineResponseEnvelope.ts";
 import { extractUsageFromResponse } from "./usageExtractor.ts";
 import {
   sanitizeOpenAIResponse,
@@ -454,6 +461,15 @@ export async function handleChatCore({
   if (pluginGate.body) {
     body = pluginGate.body;
   }
+  // Per-API-key device/connection tracking (port of upstream 9router#931,
+  // thanks @mugnimaestra). In-memory only, never blocks the request path.
+  if (apiKeyInfo?.id) {
+    trackDevice(
+      apiKeyInfo.id,
+      extractIpFromHeaders(clientRawRequest?.headers ?? null),
+      userAgent ?? null
+    );
+  }
   const agentGoalPolicy = resolveAgentGoalPolicy(body, clientRawRequest?.headers ?? null);
   if (agentGoalPolicy.detected) {
     log?.debug?.(
@@ -576,6 +592,30 @@ export async function handleChatCore({
   const bypassResponse = handleBypassRequest(body, model, userAgent);
   if (bypassResponse) {
     return bypassResponse;
+  }
+
+  // ── Claude Code auto-mode classifier compat (opt-in, default "off") ──
+  // Claude Code's `--permission-mode auto` sends an internal classifier request that
+  // requires the response to START with `<block>no</block>`/`<block>yes</block>`.
+  // When a combo/fallback route sends that call to a cheap model returning 200 with
+  // empty content, Claude Code fails closed on every gated action. Detect the
+  // classifier request and short-circuit with a synthetic ALLOW response, WITHOUT
+  // calling the upstream provider. See chatCore/claudeClassifierCompat.ts.
+  {
+    const classifierSettings = cachedSettings ?? (await getCachedSettings());
+    if (
+      shouldDefaultAllowClassifier(
+        sourceFormat,
+        body as Record<string, unknown>,
+        classifierSettings.claudeClassifierCompat as string | undefined
+      )
+    ) {
+      log?.warn?.(
+        "CHAT",
+        `classifier compat=${classifierSettings.claudeClassifierCompat} | short-circuit default-allow`
+      );
+      return buildDefaultAllowClaudeMessage(requestedModel);
+    }
   }
 
   // Detect source format and get target format
@@ -2376,6 +2416,21 @@ export async function handleChatCore({
                     rateLimitedUntil: new Date(Date.now() + (retryAfterMs || 60_000)).toISOString(),
                     credentials,
                   });
+                  // Fix B: also persist the cooldown to
+                  // `provider_connections.rate_limited_until`. Without this,
+                  // the Codex 429 cascade survives the current request (via
+                  // `markCodexScopeRateLimited`'s in-memory Map) but is lost
+                  // on process restart — the same exhausted Codex key is
+                  // re-picked on the very next request. Mirrors
+                  // `open-sse/executors/antigravity.ts:343`.
+                  // Best-effort: never crash the chat path on DB write failure.
+                  try {
+                    const { setConnectionRateLimitUntil } = await import("@/lib/db/providers");
+                    const untilMs = Date.now() + (retryAfterMs || 60_000);
+                    setConnectionRateLimitUntil(String(failedConnectionId), untilMs);
+                  } catch {
+                    // ignore — best effort
+                  }
                   if (!codexExcludedIds.includes(String(failedConnectionId))) {
                     codexExcludedIds.push(String(failedConnectionId));
                   }
@@ -3518,6 +3573,64 @@ export async function handleChatCore({
 
     let responseBody = parsed.responseBody;
     let responsePayloadFormat = parsed.responsePayloadFormat;
+
+    // ── ClinePass {success,data} envelope unwrap (before translation) ──────────
+    // ClinePass wraps non-streaming JSON in a {success, data} envelope; errors
+    // use {success:false, error}. Transient {success:false, error:"empty..."}
+    // responses get one 2s retry before surfacing. CLINEPASS-GATED — untouched
+    // for every other provider. Envelope errors route through createErrorResult
+    // (→ buildErrorBody/sanitizeErrorMessage, Rule #12).
+    if (provider === "clinepass") {
+      let { body: unwrapped, error: envError } = unwrapClinepassEnvelope(responseBody, provider);
+      if (envError && /empty/i.test(envError.message || "")) {
+        log?.warn?.("RETRY", "clinepass returned empty content, retrying once after 2s");
+        await new Promise((r) => setTimeout(r, 2000));
+        try {
+          const retryResult = await executeProviderRequest(effectiveModel, false);
+          if (retryResult?.response?.ok) {
+            const retryParsed = await parseNonStreamingResponseBody({
+              providerResponse: retryResult.response,
+              upstreamStream: undefined,
+              providerHeaders: retryResult.headers,
+              finalBody: retryResult.transformedBody,
+              targetFormat,
+              model,
+              log,
+            });
+            if (retryParsed.kind !== "invalid_sse" && retryParsed.kind !== "invalid_json") {
+              providerResponse = retryResult.response;
+              providerUrl = retryResult.url;
+              providerHeaders = retryResult.headers;
+              finalBody = providerRequestCapture.body(retryResult.transformedBody);
+              ({ body: unwrapped, error: envError } = unwrapClinepassEnvelope(
+                retryParsed.responseBody,
+                provider
+              ));
+            }
+          }
+        } catch (retryErr) {
+          log?.warn?.(
+            "RETRY",
+            `clinepass retry failed: ${
+              retryErr instanceof Error ? retryErr.message : String(retryErr)
+            }`
+          );
+        }
+      }
+      if (envError) {
+        appendRequestLog({
+          model,
+          provider,
+          connectionId,
+          status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
+        }).catch(() => {});
+        persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "clinepass_envelope_error");
+        trackPendingRequest(model, provider, connectionId, false);
+        return createErrorResult(HTTP_STATUS.BAD_GATEWAY, envError.message);
+      }
+      responseBody = unwrapped;
+    }
+    responseBody = unwrapClineNonStreamingEnvelope(provider, responseBody);
 
     // Check for empty content response (fake success) - trigger fallback
     if (isEmptyContentResponse(responseBody)) {
