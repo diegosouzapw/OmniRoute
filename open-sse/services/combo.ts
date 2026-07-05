@@ -12,6 +12,7 @@ import {
   formatRetryAfter,
   getModelLockoutInfo,
   getRuntimeProviderProfile,
+  hasPerModelQuota,
   isModelLocked,
   recordModelLockoutFailure,
   recordProviderFailure,
@@ -107,7 +108,11 @@ import {
   getStickyWeightedExecutionKey,
   recordStickyWeightedSuccess,
 } from "./combo/rrState.ts";
-import { validateResponseQuality, toRetryAfterDisplayValue } from "./combo/validateQuality.ts";
+import {
+  validateResponseQuality,
+  releaseQualityClone,
+  toRetryAfterDisplayValue,
+} from "./combo/validateQuality.ts";
 import { resolveComboCooldownWaitDecision } from "./combo/comboCooldownRetry.ts";
 import {
   computeClosestRetryAfter,
@@ -705,7 +710,50 @@ export async function handleComboChat({
         "COMBO",
         `Bypassing strategy — routing directly to pinned context model: ${pinnedModel}`
       );
-      return handleSingleModelWithTimeout(body, pinnedModel);
+      let pinnedResult: Response | null = null;
+      try {
+        pinnedResult = await handleSingleModelWithTimeout(body, pinnedModel, {
+          modelPinned: true,
+        } as SingleModelTarget);
+      } catch (pinErr) {
+        log.warn(
+          "COMBO",
+          `Pinned model ${pinnedModel} threw error: ${pinErr instanceof Error ? pinErr.message : String(pinErr)}, falling through to combo retry/fallback`
+        );
+      }
+      if (pinnedResult) {
+        if (pinnedResult.ok) {
+          let pinnedClone: Response;
+          try {
+            pinnedClone = pinnedResult.clone();
+          } catch {
+            pinnedClone = pinnedResult;
+          }
+          const pinnedQuality = await validateResponseQuality(
+            pinnedClone,
+            clientRequestedStream,
+            log,
+            config.responseValidation
+          );
+          releaseQualityClone(pinnedClone, pinnedResult, pinnedQuality);
+          if (pinnedQuality.valid) return pinnedResult;
+          log.warn(
+            "COMBO",
+            `Pinned model ${pinnedModel} returned 200 but failed quality check: ${pinnedQuality.reason}, falling through to combo retry/fallback`
+          );
+        } else {
+          const pinnedStatus = pinnedResult.status || 500;
+          if (![408, 429, 500, 502, 503, 504].includes(pinnedStatus)) {
+            return pinnedResult;
+          }
+          log.warn(
+            "COMBO",
+            `Pinned model ${pinnedModel} failed (${pinnedStatus}), falling through to combo retry/fallback`
+          );
+        }
+      }
+      // Fall through to the target iteration loop below — retries and sibling
+      // models will be tried via the normal combo machinery.
     }
     log.warn(
       "COMBO",
@@ -713,7 +761,8 @@ export async function handleComboChat({
         ? `Context-cache pin "${pinnedModel}" provider durably unhealthy — dropping pin, using strategy`
         : `Stale context-cache pin "${pinnedModel}" not in combo "${combo.name}" targets — dropping pin, using strategy`
     );
-    return handleSingleModelWithTimeout(body, pinnedModel);
+    // Fall through to the normal target iteration loop below — the pin is
+    // dropped, so the combo strategy picks the best available target.
   }
 
   // Fusion strategy: parallel panel + judge synthesis. Handled in a separate module
@@ -1504,12 +1553,22 @@ export async function handleComboChat({
               undefined;
             const effectiveConnectionId = selectedConnectionId || target.connectionId || "";
 
+            // Clone BEFORE quality check — validateResponseQuality reads the body
+            // via getReader() which locks the stream. The clone's body is consumed
+            // by the quality check; the original stays unlocked for piping.
+            let qualityClone: Response;
+            try {
+              qualityClone = result.clone();
+            } catch {
+              qualityClone = result;
+            }
             const quality = await validateResponseQuality(
-              result,
+              qualityClone,
               clientRequestedStream,
               log,
               config.responseValidation
             );
+            releaseQualityClone(qualityClone, result, quality);
             if (!quality.valid) {
               log.warn(
                 "COMBO",
@@ -1744,7 +1803,7 @@ export async function handleComboChat({
               })();
             }
 
-            return { ok: true, response: quality.clonedResponse ?? result };
+            return { ok: true, response: result };
           }
 
           // Extract error info from response
@@ -2023,7 +2082,16 @@ export async function handleComboChat({
           }
           log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
-          if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
+          // #5976: per-model-quota providers (Gemini, GitHub, etc.) multiplex models
+          // behind one connection. A model-level 500 must NOT cool down the entire
+          // provider — sibling models may still succeed. Skip cooldown recording for
+          // these providers on 500 errors so the next target can try.
+          if (
+            resilienceSettings.providerCooldown.enabled &&
+            provider &&
+            provider !== "unknown" &&
+            !(result.status === 500 && hasPerModelQuota(provider, rawModel))
+          ) {
             recordProviderCooldown(
               provider,
               targetWithConnection.connectionId ?? undefined,
@@ -2572,12 +2640,19 @@ async function handleRoundRobinCombo({
 
         // Success — validate response quality before returning
         if (result.ok) {
+          let rrClone: Response;
+          try {
+            rrClone = result.clone();
+          } catch {
+            rrClone = result;
+          }
           const quality = await validateResponseQuality(
-            result,
+            rrClone,
             clientRequestedStream,
             log,
             config.responseValidation
           );
+          releaseQualityClone(rrClone, result, quality);
           if (!quality.valid) {
             log.warn(
               "COMBO-RR",
@@ -2665,12 +2740,8 @@ async function handleRoundRobinCombo({
               }
             })();
           }
-          // validateResponseQuality peeks streaming bodies via getReader(),
-          // which locks `result.body`. It returns a clonedResponse that replays
-          // the buffered prefix and forwards the rest. Returning the original
-          // (now-locked) `result` makes Next.js throw "ReadableStream is locked"
-          // → 500. Mirror the priority strategy and return the replay response.
-          return quality.clonedResponse ?? result;
+          // Clone is consumed by quality check; original stays unlocked.
+          return result;
         }
 
         // Extract error info
@@ -2847,7 +2918,12 @@ async function handleRoundRobinCombo({
         if (offset > 0) fallbackCount++;
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
 
-        if (resilienceSettings.providerCooldown.enabled && provider && provider !== "unknown") {
+        if (
+          resilienceSettings.providerCooldown.enabled &&
+          provider &&
+          provider !== "unknown" &&
+          !(result.status === 500 && hasPerModelQuota(provider, parseModel(modelStr).model || modelStr))
+        ) {
           recordProviderCooldown(
             provider,
             targetWithConnection.connectionId ?? undefined,

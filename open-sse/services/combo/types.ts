@@ -46,6 +46,8 @@ export type SingleModelTarget =
       allowRateLimitedConnection?: boolean;
       effectiveComboStrategy?: string | null;
       modelAbortSignal?: AbortSignal | null;
+      /** True when this target was selected via context-cache session pinning. */
+      modelPinned?: boolean;
     })
   | { modelAbortSignal: AbortSignal };
 

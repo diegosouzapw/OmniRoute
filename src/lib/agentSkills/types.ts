@@ -24,6 +24,8 @@ export type SkillArea =
   | "agents-a2a"
   | "version-manager"
   | "inference"
+  // GitHub skills
+  | "github-skills"
   // Config skills
   | "config-codex-cli"
   // CLI families (20)
@@ -64,7 +66,7 @@ export interface AgentSkill {
 }
 
 export interface SkillCoverage {
-  api: { have: number; total: 22 };
+  api: { have: number; total: 23 };
   cli: { have: number; total: 20 };
   config: { have: number; total: number };
   totalSkills: number; // sum
