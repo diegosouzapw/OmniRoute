@@ -7,15 +7,15 @@ import os from "node:os";
 import path from "node:path";
 import type { DetectionResult } from "../types";
 
-const HOME = os.homedir();
+const getHome = () => os.homedir();
 const PATHS = [
   "/Applications/Kiro.app",
-  path.join(HOME, "Applications", "Kiro.app"),
+  path.join(getHome(), "Applications", "Kiro.app"),
   "/usr/bin/kiro",
   "/usr/local/bin/kiro",
-  path.join(HOME, ".local", "bin", "kiro"),
+  path.join(getHome(), ".local", "bin", "kiro"),
   path.join(
-    process.env.LOCALAPPDATA ?? path.join(HOME, "AppData", "Local"),
+    process.env.LOCALAPPDATA ?? path.join(getHome(), "AppData", "Local"),
     "Programs",
     "Kiro",
     "Kiro.exe"

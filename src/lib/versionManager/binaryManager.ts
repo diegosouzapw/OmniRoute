@@ -10,7 +10,7 @@ import { promisify } from "util";
 import { getChecksums, getReleaseByVersion } from "./releaseChecker.ts";
 
 const execFileAsync = promisify(execFile);
-const DEFAULT_DATA_DIR = process.env.DATA_DIR || path.join(os.homedir(), ".omniroute");
+const getDefaultDataDir = () => process.env.DATA_DIR || path.join(os.homedir(), ".omniroute");
 
 type Platform = "linux" | "darwin" | "windows" | "freebsd";
 type Arch = "amd64" | "arm64";
@@ -155,7 +155,7 @@ export async function downloadRelease(
 }
 
 export async function installVersion(version: string, dataDir?: string): Promise<string> {
-  const dir = dataDir || DEFAULT_DATA_DIR;
+  const dir = dataDir || getDefaultDataDir();
   const binDir = path.join(dir, "bin");
   await fs.mkdir(binDir, { recursive: true });
 
@@ -175,7 +175,7 @@ export async function installVersion(version: string, dataDir?: string): Promise
 }
 
 export async function getCurrentBinaryPath(dataDir?: string): Promise<string | null> {
-  const dir = dataDir || DEFAULT_DATA_DIR;
+  const dir = dataDir || getDefaultDataDir();
   const symlinkPath = path.join(dir, "bin", "cliproxyapi");
   try {
     const real = await fs.realpath(symlinkPath);
@@ -186,7 +186,7 @@ export async function getCurrentBinaryPath(dataDir?: string): Promise<string | n
 }
 
 export async function getInstalledVersions(dataDir?: string): Promise<string[]> {
-  const dir = dataDir || DEFAULT_DATA_DIR;
+  const dir = dataDir || getDefaultDataDir();
   const binDir = path.join(dir, "bin");
   try {
     const entries = await fs.readdir(binDir);
@@ -210,7 +210,7 @@ export async function rollbackVersion(dataDir?: string): Promise<string | null> 
   versions.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
   const previous = versions[1];
 
-  const dir = dataDir || DEFAULT_DATA_DIR;
+  const dir = dataDir || getDefaultDataDir();
   const binDir = path.join(dir, "bin");
   const oldBinary = findBinaryInDir(path.join(binDir, `cliproxyapi-${previous}`));
   if (!oldBinary) return null;
@@ -229,7 +229,7 @@ export async function rollbackVersion(dataDir?: string): Promise<string | null> 
 }
 
 export async function removeVersion(version: string, dataDir?: string): Promise<boolean> {
-  const dir = dataDir || DEFAULT_DATA_DIR;
+  const dir = dataDir || getDefaultDataDir();
   const versionDir = path.join(dir, "bin", `cliproxyapi-${version}`);
   try {
     await fs.rm(versionDir, { recursive: true, force: true });

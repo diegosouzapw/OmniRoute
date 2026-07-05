@@ -38,16 +38,6 @@ function expandHome(p: string): string {
   return p.replace(/^~\//, home + "/");
 }
 
-// Static paths that do not depend on runtime env vars can stay eagerly computed.
-const STATIC_TOOL_CONFIG_PATHS: Record<string, string> = {
-  claude: path.join(os.homedir(), ".claude", "settings.json"),
-  codex: path.join(os.homedir(), ".codex", "config.yaml"),
-  opencode: path.join(os.homedir(), ".config", "opencode", "opencode.json"),
-  cline: path.join(os.homedir(), ".cline", "data", "globalState.json"),
-  kilocode: path.join(os.homedir(), ".config", "kilocode", "settings.json"),
-  continue: path.join(os.homedir(), ".continue", "config.yaml"),
-};
-
 /**
  * Returns the config path for a given tool.
  *
@@ -58,6 +48,16 @@ function getToolConfigPath(toolId: string): string {
   if (toolId === "hermes" || toolId === "hermes-agent") {
     return getHermesConfigPath();
   }
+
+  const STATIC_TOOL_CONFIG_PATHS: Record<string, string> = {
+    claude: path.join(os.homedir(), ".claude", "settings.json"),
+    codex: path.join(os.homedir(), ".codex", "config.yaml"),
+    opencode: path.join(os.homedir(), ".config", "opencode", "opencode.json"),
+    cline: path.join(os.homedir(), ".cline", "data", "globalState.json"),
+    kilocode: path.join(os.homedir(), ".config", "kilocode", "settings.json"),
+    continue: path.join(os.homedir(), ".continue", "config.yaml"),
+  };
+
   return STATIC_TOOL_CONFIG_PATHS[toolId] ?? "";
 }
 

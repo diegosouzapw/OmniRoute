@@ -7,14 +7,14 @@ import os from "node:os";
 import path from "node:path";
 import type { DetectionResult } from "../types.ts";
 
-const HOME = os.homedir();
+const getHome = () => os.homedir();
 const PATHS = [
   "/usr/local/bin/codex",
   "/usr/bin/codex",
-  path.join(HOME, ".local", "bin", "codex"),
-  path.join(HOME, ".npm-global", "bin", "codex"),
-  path.join(HOME, "node_modules", ".bin", "codex"),
-  path.join(process.env.APPDATA ?? path.join(HOME, "AppData", "Roaming"), "npm", "codex.cmd"),
+  path.join(getHome(), ".local", "bin", "codex"),
+  path.join(getHome(), ".npm-global", "bin", "codex"),
+  path.join(getHome(), "node_modules", ".bin", "codex"),
+  path.join(process.env.APPDATA ?? path.join(getHome(), "AppData", "Roaming"), "npm", "codex.cmd"),
 ];
 
 export function detectCodex(): DetectionResult {

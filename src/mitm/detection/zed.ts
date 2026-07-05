@@ -7,15 +7,15 @@ import os from "node:os";
 import path from "node:path";
 import type { DetectionResult } from "../types";
 
-const HOME = os.homedir();
+const getHome = () => os.homedir();
 const PATHS = [
   "/Applications/Zed.app",
-  path.join(HOME, "Applications", "Zed.app"),
+  path.join(getHome(), "Applications", "Zed.app"),
   "/usr/bin/zed",
   "/usr/local/bin/zed",
-  path.join(HOME, ".local", "bin", "zed"),
-  path.join(HOME, ".local", "share", "zed"),
-  path.join(HOME, ".config", "zed"),
+  path.join(getHome(), ".local", "bin", "zed"),
+  path.join(getHome(), ".local", "share", "zed"),
+  path.join(getHome(), ".config", "zed"),
 ];
 
 export function detectZed(): DetectionResult {

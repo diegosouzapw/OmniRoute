@@ -7,17 +7,17 @@ import os from "node:os";
 import path from "node:path";
 import type { DetectionResult } from "../types";
 
-const HOME = os.homedir();
+const getHome = () => os.homedir();
 const PATHS = [
   "/Applications/OpenCode.app",
-  path.join(HOME, "Applications", "OpenCode.app"),
+  path.join(getHome(), "Applications", "OpenCode.app"),
   "/usr/bin/opencode",
   "/usr/local/bin/opencode",
-  path.join(HOME, ".local", "bin", "opencode"),
-  path.join(HOME, ".opencode"),
-  path.join(HOME, ".config", "opencode"),
+  path.join(getHome(), ".local", "bin", "opencode"),
+  path.join(getHome(), ".opencode"),
+  path.join(getHome(), ".config", "opencode"),
   path.join(
-    process.env.LOCALAPPDATA ?? path.join(HOME, "AppData", "Local"),
+    process.env.LOCALAPPDATA ?? path.join(getHome(), "AppData", "Local"),
     "Programs",
     "OpenCode",
     "OpenCode.exe"

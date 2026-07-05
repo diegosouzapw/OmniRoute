@@ -7,16 +7,16 @@ import os from "node:os";
 import path from "node:path";
 import type { DetectionResult } from "../types";
 
-const HOME = os.homedir();
+const getHome = () => os.homedir();
 const PATHS = [
   "/Applications/Cursor.app",
-  path.join(HOME, "Applications", "Cursor.app"),
+  path.join(getHome(), "Applications", "Cursor.app"),
   "/usr/bin/cursor",
   "/usr/local/bin/cursor",
-  path.join(HOME, ".local", "bin", "cursor"),
-  path.join(HOME, ".cursor"),
+  path.join(getHome(), ".local", "bin", "cursor"),
+  path.join(getHome(), ".cursor"),
   path.join(
-    process.env.LOCALAPPDATA ?? path.join(HOME, "AppData", "Local"),
+    process.env.LOCALAPPDATA ?? path.join(getHome(), "AppData", "Local"),
     "Programs",
     "cursor",
     "Cursor.exe"

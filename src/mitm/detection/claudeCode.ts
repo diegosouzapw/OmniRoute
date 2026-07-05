@@ -7,14 +7,14 @@ import os from "node:os";
 import path from "node:path";
 import type { DetectionResult } from "../types.ts";
 
-const HOME = os.homedir();
+const getHome = () => os.homedir();
 const PATHS = [
   "/usr/local/bin/claude",
   "/usr/bin/claude",
-  path.join(HOME, ".local", "bin", "claude"),
-  path.join(HOME, ".npm-global", "bin", "claude"),
-  path.join(HOME, ".claude"),
-  path.join(process.env.APPDATA ?? path.join(HOME, "AppData", "Roaming"), "npm", "claude.cmd"),
+  path.join(getHome(), ".local", "bin", "claude"),
+  path.join(getHome(), ".npm-global", "bin", "claude"),
+  path.join(getHome(), ".claude"),
+  path.join(process.env.APPDATA ?? path.join(getHome(), "AppData", "Roaming"), "npm", "claude.cmd"),
 ];
 
 export function detectClaudeCode(): DetectionResult {

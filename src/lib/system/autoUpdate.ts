@@ -23,8 +23,8 @@ export function resolveProjectRoot(
   return fallback;
 }
 
-const FALLBACK_CWD = process.env.HOME || homedir() || "/tmp";
-export const PROJECT_ROOT: string = resolveProjectRoot(FALLBACK_CWD);
+const getFallbackCwd = () => process.env.HOME || homedir() || "/tmp";
+export const PROJECT_ROOT: string = resolveProjectRoot(getFallbackCwd());
 
 type ComposeCommand = "docker compose" | "docker-compose";
 export type AutoUpdateMode = "npm" | "docker-compose" | "source";

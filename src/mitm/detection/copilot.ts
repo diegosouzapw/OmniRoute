@@ -10,12 +10,12 @@ import os from "node:os";
 import path from "node:path";
 import type { DetectionResult } from "../types";
 
-const HOME = os.homedir();
+const getHome = () => os.homedir();
 
 const EXTENSIONS_DIRS = [
-  path.join(HOME, ".vscode", "extensions"),
-  path.join(HOME, ".vscode-insiders", "extensions"),
-  path.join(HOME, ".cursor", "extensions"),
+  path.join(getHome(), ".vscode", "extensions"),
+  path.join(getHome(), ".vscode-insiders", "extensions"),
+  path.join(getHome(), ".cursor", "extensions"),
 ];
 
 export function detectCopilot(): DetectionResult {
