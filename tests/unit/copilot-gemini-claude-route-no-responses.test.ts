@@ -23,9 +23,16 @@ import assert from "node:assert/strict";
 
 import { GithubExecutor } from "../../open-sse/executors/github.ts";
 import { PROVIDER_MODELS } from "../../open-sse/config/providerModels.ts";
+import type { RegistryModel } from "../../open-sse/config/providerRegistry.ts";
 
 const CHAT_URL = "https://api.githubcopilot.com/chat/completions";
 const RESPONSES_URL = "https://api.githubcopilot.com/responses";
+
+function getGithubModel(modelId: string): RegistryModel {
+  const model = PROVIDER_MODELS["gh"]?.find((entry) => entry.id === modelId);
+  assert.ok(model, `${modelId} must be registered`);
+  return model;
+}
 
 describe("GithubExecutor — Gemini/Claude must never hit /responses (port 9router#1536)", () => {
   it("routes registered Claude/Gemini Copilot models to chat/completions", () => {
@@ -34,11 +41,15 @@ describe("GithubExecutor — Gemini/Claude must never hit /responses (port 9rout
       "claude-haiku-4.5",
       "claude-sonnet-4.5",
       "claude-sonnet-4.6",
+      "claude-sonnet-5",
+      "claude-fable-5",
       "claude-opus-4.6",
       "claude-opus-4.7",
-      "claude-opus-4-5-20251101",
+      "claude-opus-4.8",
+      "claude-opus-4.8-fast",
+      "claude-opus-4.5",
       "gemini-3.1-pro-preview",
-      "gemini-3-flash-preview",
+      "gemini-3.5-flash",
     ]) {
       assert.equal(exec.buildUrl(id, false), CHAT_URL, `${id} must route to chat/completions`);
     }
@@ -46,48 +57,51 @@ describe("GithubExecutor — Gemini/Claude must never hit /responses (port 9rout
 
   it("still uses chat/completions if a Claude/Gemini model is wrongly tagged openai-responses", () => {
     const exec = new GithubExecutor();
-    const ghModels = PROVIDER_MODELS["gh"];
-    assert.ok(Array.isArray(ghModels), "gh provider models registry must exist");
-
-    const claude = ghModels.find((m: any) => m.id === "claude-sonnet-4.6");
-    const gemini = ghModels.find((m: any) => m.id === "gemini-3.1-pro-preview");
-    assert.ok(claude && gemini, "claude-sonnet-4.6 and gemini-3.1-pro-preview must be registered");
+    const claude = getGithubModel("claude-sonnet-4.6");
+    const gemini = getGithubModel("gemini-3.1-pro-preview");
 
     const originalClaude = claude.targetFormat;
     const originalGemini = gemini.targetFormat;
     try {
       // Simulate a future misconfiguration. The guard must still hold.
-      (claude as any).targetFormat = "openai-responses";
-      (gemini as any).targetFormat = "openai-responses";
+      claude.targetFormat = "openai-responses";
+      gemini.targetFormat = "openai-responses";
 
       assert.equal(exec.buildUrl("claude-sonnet-4.6", false), CHAT_URL);
       assert.equal(exec.buildUrl("gemini-3.1-pro-preview", false), CHAT_URL);
     } finally {
-      (claude as any).targetFormat = originalClaude;
-      (gemini as any).targetFormat = originalGemini;
+      claude.targetFormat = originalClaude;
+      gemini.targetFormat = originalGemini;
     }
   });
 
   it("still routes registered OpenAI/codex Copilot models to /responses", () => {
     const exec = new GithubExecutor();
-    for (const id of ["gpt-5-mini", "gpt-5.3-codex", "gpt-5.4-mini", "gpt-5.4"]) {
+    for (const id of [
+      "gpt-5.3-codex",
+      "gpt-5.4-mini",
+      "gpt-5.4",
+      "gpt-5.5",
+      "mai-code-1-flash",
+      "gpt-5-mini",
+      "oswe-vscode-prime",
+    ]) {
       assert.equal(exec.buildUrl(id, false), RESPONSES_URL, `${id} must route to /responses`);
     }
   });
 
   it("is case-insensitive when guarding (defensive against upper/mixed-case ids)", () => {
     const exec = new GithubExecutor();
-    const ghModels = PROVIDER_MODELS["gh"];
-    const claude = ghModels.find((m: any) => m.id === "claude-sonnet-4.6");
+    const claude = getGithubModel("claude-sonnet-4.6");
     const original = claude.targetFormat;
     try {
-      (claude as any).targetFormat = "openai-responses";
+      claude.targetFormat = "openai-responses";
       // Look up by the same id (registry is case-sensitive on lookup) but with a
       // mixed-case path through the guard. We rebuild with the registered id;
       // the guard normalizes before substring check, so it must still detect.
       assert.equal(exec.buildUrl("claude-sonnet-4.6", false), CHAT_URL);
     } finally {
-      (claude as any).targetFormat = original;
+      claude.targetFormat = original;
     }
   });
 });

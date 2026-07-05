@@ -41,6 +41,7 @@ import { T3ChatWebExecutor } from "./t3-chat-web.ts";
 import { ClaudeWebExecutor } from "./claude-web.ts";
 import { InnerAiExecutor } from "./inner-ai.ts";
 import { HuggingChatExecutor } from "./huggingchat.ts";
+import { YuanbaoWebExecutor } from "./yuanbao-web.ts";
 import { PoeWebExecutor } from "./poe-web.ts";
 import { VeniceWebExecutor } from "./venice-web.ts";
 import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
@@ -129,6 +130,8 @@ const executors = {
   "in-ai": new InnerAiExecutor(), // Alias
   huggingchat: new HuggingChatExecutor(),
   hc: new HuggingChatExecutor(), // Alias
+  "yuanbao-web": new YuanbaoWebExecutor(),
+  ybw: new YuanbaoWebExecutor(), // Alias
   "poe-web": new PoeWebExecutor(),
   poe: new PoeWebExecutor(), // Alias
   "venice-web": new VeniceWebExecutor(),
@@ -212,6 +215,7 @@ export { ClaudeWebExecutor } from "./claude-web.ts";
 export { DeepSeekWebExecutor } from "./deepseek-web.ts";
 export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
 export { AdaptaWebExecutor } from "./adapta-web.ts";
+export { YuanbaoWebExecutor } from "./yuanbao-web.ts";
 export { T3ChatWebExecutor } from "./t3-chat-web.ts";
 export { InnerAiExecutor } from "./inner-ai.ts";
 export { QwenWebExecutor } from "./qwen-web.ts";

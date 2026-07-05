@@ -159,6 +159,12 @@ export const comboRuntimeConfigSchema = z
     // falls back to the global `settings.stickyRoundRobinLimit` so the existing
     // knob still controls the default. 0 clamps to 1 (no batching) upstream.
     stickyRoundRobinLimit: z.coerce.number().int().min(0).max(1000).optional(),
+    // #6168: opt-out for per-conversation session stickiness. When true, round-robin
+    // and random/weighted/priority combos rotate freely instead of pinning a whole
+    // conversation to one connection by the first-message hash. Per-combo `config`
+    // wins over the global `settings.disableSessionStickiness` fallback. Default false
+    // preserves the #3825 prompt-cache/504 fix.
+    disableSessionStickiness: z.boolean().optional(),
     stickyWeightedLimit: z.coerce.number().int().min(0).max(1000).optional(),
     healthCheckEnabled: z.boolean().optional(),
     healthCheckTimeoutMs: z.coerce.number().int().min(100).max(30000).optional(),

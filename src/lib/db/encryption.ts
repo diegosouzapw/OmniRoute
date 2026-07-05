@@ -103,6 +103,16 @@ export function isEncryptionEnabled(): boolean {
 }
 
 /**
+ * True when `value` is a stored ciphertext (carries the `enc:v1:` prefix).
+ * Lets callers tell "credential present but undecryptable" (stale/changed
+ * STORAGE_ENCRYPTION_KEY) apart from "credential genuinely empty" — decrypt()
+ * collapses both to null otherwise. See #6148.
+ */
+export function looksEncrypted(value: unknown): boolean {
+  return typeof value === "string" && value.startsWith(PREFIX);
+}
+
+/**
  * Encrypt a plaintext string using the STATIC salt key.
  * If encryption is not configured, returns plaintext unchanged.
  */
@@ -232,12 +242,28 @@ export function decryptConnectionFields<T extends ConnectionFields | null | unde
   if (!row) return row;
   if (!isEncryptionEnabled()) return row;
 
+  const apiKey = decrypt(row.apiKey);
+  const accessToken = decrypt(row.accessToken);
+  const refreshToken = decrypt(row.refreshToken);
+  const idToken = decrypt(row.idToken);
+
+  // #6148 — a stored credential that is still encrypted (`enc:v1:…`) but
+  // decrypts to null means the STORAGE_ENCRYPTION_KEY changed or was unset.
+  // Flag it so callers surface a clear error instead of coercing the null to
+  // "" and firing an empty-Bearer request that upstream rejects as 401.
+  const credentialDecryptFailed =
+    (looksEncrypted(row.apiKey) && apiKey === null) ||
+    (looksEncrypted(row.accessToken) && accessToken === null) ||
+    (looksEncrypted(row.refreshToken) && refreshToken === null) ||
+    (looksEncrypted(row.idToken) && idToken === null);
+
   return {
     ...row,
-    apiKey: decrypt(row.apiKey),
-    accessToken: decrypt(row.accessToken),
-    refreshToken: decrypt(row.refreshToken),
-    idToken: decrypt(row.idToken),
+    apiKey,
+    accessToken,
+    refreshToken,
+    idToken,
+    ...(credentialDecryptFailed ? { credentialDecryptFailed: true } : {}),
   };
 }
 

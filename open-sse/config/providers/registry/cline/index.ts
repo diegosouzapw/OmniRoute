@@ -5,6 +5,11 @@ export const clineProvider: RegistryEntry = {
   alias: "cl",
   format: "openai",
   executor: "openai",
+  // Cline's API only implements streaming (streamText). A non-streaming request
+  // returns "generateText is not implemented" / an empty body, so force upstream
+  // streaming and let chatCore convert the SSE back to JSON for stream:false
+  // clients (e.g. the model-test button, non-streaming API callers).
+  forceStream: true,
   baseUrl: "https://api.cline.bot/api/v1/chat/completions",
   authType: "oauth",
   authHeader: "Authorization",

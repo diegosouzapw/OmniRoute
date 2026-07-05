@@ -187,7 +187,8 @@ const testServerEnv = {
 };
 
 export function shouldUseWebpackForPlaywrightDev({ mode, env }) {
-  return mode === "dev" && env.OMNIROUTE_USE_TURBOPACK !== "1";
+  // Webpack only on the explicit escape hatch (=0) — turbopack is the default.
+  return mode === "dev" && env.OMNIROUTE_USE_TURBOPACK === "0";
 }
 
 function runChild(command, args, env) {

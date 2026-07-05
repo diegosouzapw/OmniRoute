@@ -1,6 +1,7 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { callCloudWithMachineId } from "@/shared/utils/cloud";
 import { handleChat } from "@/sse/handlers/chat";
+import { generateRequestId } from "@/shared/utils/requestId";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
@@ -99,9 +100,11 @@ export async function POST(request) {
   const wantsStreaming = (parsedBodyIsRecord && parsedBody.stream === true) || acceptForcesStream;
 
   if (wantsStreaming) {
-    return await withEarlyStreamKeepalive(handleChat(request, null, parsedBody), {
+    const reqId = generateRequestId();
+    return await withEarlyStreamKeepalive(handleChat(request, null, parsedBody, reqId), {
       signal: request.signal,
       thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
+      extraHeaders: { "X-Correlation-Id": reqId },
     });
   }
 

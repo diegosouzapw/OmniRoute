@@ -14,6 +14,7 @@ import {
   supportsXHighEffort,
   supportsXHighEffortForMaxNormalization,
 } from "../../open-sse/config/providerModels.ts";
+import { GITHUB_COPILOT_MODEL_ALLOWLIST } from "../../open-sse/services/githubCopilotModels.ts";
 
 test("provider models helpers expose model lists and defaults", () => {
   const openaiModels = getProviderModels("openai");
@@ -56,8 +57,7 @@ test("provider models helpers resolve provider IDs through aliases", () => {
 test("getProviderModels returns models for both the alias and the raw provider id", () => {
   // Pick a provider whose alias differs from its id (e.g. "github" → "gh").
   const aliased = Object.entries(PROVIDER_ID_TO_ALIAS).find(([id, a]) => id !== a) as
-    | [string, string]
-    | undefined;
+    [string, string] | undefined;
   if (!aliased) return; // no aliased providers → trivially satisfied
 
   const [rawId, alias] = aliased;
@@ -85,31 +85,37 @@ test("Reka registry exposes preset models", () => {
 
 test("GitHub Copilot registry reflects the current supported model lineup", () => {
   const githubModels = getProviderModels("gh");
-  const ids = new Set(githubModels.map((model) => model.id));
+  const ids = githubModels.map((model) => model.id);
 
-  assert.ok(ids.has("gpt-5.3-codex"));
-  assert.ok(ids.has("gpt-5.4"));
-  assert.ok(ids.has("gpt-5.4-mini"));
-  assert.ok(ids.has("claude-opus-4.7"));
-  assert.ok(ids.has("claude-opus-4.6"));
-  assert.ok(ids.has("claude-sonnet-4.6"));
-  assert.ok(ids.has("gemini-3-flash-preview"));
+  assert.deepEqual(ids, [...GITHUB_COPILOT_MODEL_ALLOWLIST]);
   assert.equal(getModelTargetFormat("gh", "gpt-5.3-codex"), "openai-responses");
   assert.equal(getModelTargetFormat("gh", "claude-opus-4.6"), null);
-  assert.equal(ids.has("gpt-5.1"), false);
-  assert.equal(ids.has("gpt-5.1-codex"), false);
-  assert.equal(ids.has("claude-opus-4.1"), false);
+  assert.equal(getModelTargetFormat("gh", "claude-opus-4.8-fast"), null);
+  assert.equal(getModelTargetFormat("gh", "gemini-3.5-flash"), null);
+  assert.equal(getModelTargetFormat("gh", "kimi-k2.7-code"), null);
+  assert.equal(ids.includes("gpt-4"), false);
+  assert.equal(ids.includes("gpt-4o"), false);
+  assert.equal(ids.includes("gpt-5.4-nano"), false);
+  assert.equal(ids.includes("gpt-5.1"), false);
+  assert.equal(ids.includes("gpt-5.1-codex"), false);
+  assert.equal(ids.includes("claude-opus-4.1"), false);
+  assert.equal(ids.includes("claude-opus-4-5-20251101"), false);
+  assert.equal(ids.includes("gemini-3-flash-preview"), false);
 });
 
 test("Kiro registry exposes the current CLI model lineup with context windows", () => {
   const kiroModels = getProviderModels("kr");
   const byId = new Map(kiroModels.map((model) => [model.id, model]));
 
-  assert.ok(byId.has("claude-opus-4.7"));
-  assert.equal(byId.get("claude-opus-4.7")?.contextLength, 1000000);
-  assert.ok(byId.has("claude-sonnet-4.6"));
+  // Kiro's real upstream Claude lineup (#6170): Sonnet 5 / Sonnet 4.5 / Haiku 4.5.
+  // The Opus 4.x and Sonnet 4.6 ids were fabricated (copied from the Anthropic
+  // catalog) and returned upstream 400 "Invalid model" — removed.
+  assert.ok(byId.has("claude-sonnet-5"));
+  assert.equal(byId.get("claude-sonnet-5")?.contextLength, 1000000);
+  assert.ok(byId.has("claude-sonnet-4.5"));
   assert.ok(byId.has("claude-haiku-4.5"));
-  assert.equal(byId.has("claude-opus-4-7"), false);
+  assert.equal(byId.has("claude-opus-4.7"), false);
+  assert.equal(byId.has("claude-sonnet-4.6"), false);
   assert.equal(byId.has("claude-sonnet-4-6"), false);
   assert.equal(byId.has("claude-haiku-4-5"), false);
 });

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, Button, Input, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
+import { matchesSearch } from "@/shared/utils/turkishText";
 import FusionDefaultsFields from "./FusionDefaultsFields";
 import {
   ROUTING_STRATEGIES,
@@ -97,6 +98,7 @@ export default function ComboDefaultsTab() {
     handoffModel: "",
     maxMessagesForSummary: 30,
     stickyRoundRobinLimit: 3,
+    disableSessionStickiness: false,
     resetAwareQuotaCacheTtlMs: 0,
     resetAwareQuotaCacheMaxStaleMs: 0,
     zeroLatencyOptimizationsEnabled: false,
@@ -168,6 +170,10 @@ export default function ComboDefaultsTab() {
             settingsData.stickyRoundRobinLimit ??
             comboData.comboDefaults?.stickyRoundRobinLimit ??
             prev.stickyRoundRobinLimit,
+          disableSessionStickiness:
+            settingsData.disableSessionStickiness ??
+            comboData.comboDefaults?.disableSessionStickiness ??
+            prev.disableSessionStickiness,
         }));
         if (comboData.providerOverrides) {
           setProviderOverrides(sanitizeProviderOverrides(comboData.providerOverrides));
@@ -214,10 +220,14 @@ export default function ComboDefaultsTab() {
   const saveComboDefaults = async () => {
     setSaving(true);
     try {
-      const { stickyRoundRobinLimit, ...comboDefaultsPayload } = comboDefaults;
+      const { stickyRoundRobinLimit, disableSessionStickiness, ...comboDefaultsPayload } =
+        comboDefaults;
       const settingsPatch = {
         ...toGlobalRoutingPatch(comboDefaults.strategy, stickyRoundRobinLimit),
         codexSessionAffinityTtlMs,
+        // #6168: global session-stickiness opt-out — persisted top-level on settings
+        // (mirrors stickyRoundRobinLimit) so combo.ts resolution reads settings.disableSessionStickiness.
+        disableSessionStickiness: disableSessionStickiness === true,
       };
 
       const comboDefaultsRes = await fetch("/api/settings/combo-defaults", {
@@ -283,7 +293,7 @@ export default function ComboDefaultsTab() {
   // Filtered provider list — excludes already-added ones, filtered by search query
   const filteredProviders = availableProviders.filter(
     (p) =>
-      !providerOverrides[p.provider] && p.provider.toLowerCase().includes(searchQuery.toLowerCase())
+      !providerOverrides[p.provider] && matchesSearch(p.provider, searchQuery)
   );
 
   const handleDropdownKeyDown = (e: React.KeyboardEvent) => {
@@ -708,6 +718,29 @@ export default function ComboDefaultsTab() {
                 setComboDefaults((prev) => ({
                   ...prev,
                   zeroLatencyOptimizationsEnabled: prev.zeroLatencyOptimizationsEnabled !== true,
+                }))
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm">
+                {translateOrFallback(t, "disableSessionStickiness", "Disable session stickiness")}
+              </p>
+              <p className="text-xs text-text-muted">
+                {translateOrFallback(
+                  t,
+                  "disableSessionStickinessDesc",
+                  "Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence."
+                )}
+              </p>
+            </div>
+            <Toggle
+              checked={comboDefaults.disableSessionStickiness === true}
+              onChange={() =>
+                setComboDefaults((prev) => ({
+                  ...prev,
+                  disableSessionStickiness: prev.disableSessionStickiness !== true,
                 }))
               }
             />

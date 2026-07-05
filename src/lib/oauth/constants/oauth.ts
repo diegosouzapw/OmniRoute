@@ -429,6 +429,17 @@ export const WINDSURF_CONFIG = {
   extensionVersion: "3.14.0",
 };
 
+// Zed IDE credential import — no standard OAuth flow.
+// Credentials are extracted from the OS keychain via POST /api/providers/zed/import.
+// Docker environments fall back to manual token paste via POST /api/providers/zed/manual-import.
+// This config is a placeholder so that getProvider("zed") doesn't throw
+// "Unknown provider: zed" when the UI probes the OAuth capability endpoint.
+export const ZED_CONFIG = {
+  importUrl: "/api/providers/zed/import",
+  discoverUrl: "/api/providers/zed/discover",
+  manualImportUrl: "/api/providers/zed/manual-import",
+};
+
 // OAuth timeout (5 minutes)
 export const OAUTH_TIMEOUT = 300000;
 
@@ -455,4 +466,5 @@ export const PROVIDERS = {
   TRAE: "trae",
   CODEBUDDY_CN: "codebuddy-cn",
   GROK_CLI: "grok-cli",
+  ZED: "zed",
 };

@@ -547,6 +547,19 @@ export default function RequestLoggerDetail({
                   {cacheSourceLabel}
                 </span>
               </div>
+              {(detail?.modelPinned || log.modelPinned) && (
+                <div>
+                  <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                    Model Pinning
+                  </div>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold bg-violet-500/15 text-violet-600 dark:text-violet-400 border border-violet-500/25">
+                    <svg className="w-3 h-3" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M4.5 2A1.5 1.5 0 003 3.5v1.9l-1.4 2.8A.5.5 0 002 9h4v4.5a.5.5 0 00.5.5h3a.5.5 0 00.5-.5V9h4a.5.5 0 00.44-.73L13 5.4V3.5A1.5 1.5 0 0011.5 2h-7z" />
+                    </svg>
+                    Active — model selected via session pinning
+                  </span>
+                </div>
+              )}
               <div>
                 <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">
                   Account

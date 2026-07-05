@@ -440,6 +440,7 @@ export {
   upsertSessionAccountAffinity,
   touchSessionAccountAffinity,
   deleteSessionAccountAffinity,
+  evictSessionAccountAffinityForConnection,
   cleanupStaleSessionAccountAffinities,
   startSessionAccountAffinityCleanup,
   stopSessionAccountAffinityCleanupForTests,

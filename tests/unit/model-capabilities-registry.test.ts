@@ -108,7 +108,8 @@ test("canonical model capability resolver lets exact synced metadata override gl
 
   const codexGpt55 = modelCapabilities.getResolvedModelCapabilities("codex/gpt-5.5");
   assert.equal(codexGpt55.contextWindow, 400000);
-  assert.equal(codexGpt55.maxInputTokens, 400000);
+  // #6191: max_input_tokens is a distinct, smaller cap than the context window.
+  assert.equal(codexGpt55.maxInputTokens, 272000);
   assert.equal(codexGpt55.maxOutputTokens, 128000);
   assert.equal(codexGpt55.supportsThinking, true);
   assert.equal(codexGpt55.supportsVision, true);

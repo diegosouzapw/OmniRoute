@@ -4,6 +4,7 @@ import { createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createProxyDispatcher } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { fetch as undiciFetch } from "undici";
+import { resolveHealthCheckStatusWrite } from "@/lib/proxyHealth/statusPolicy";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
@@ -43,11 +44,16 @@ async function testSingleProxy(proxy: { id: string; type: string; host: string; 
     });
     const latencyMs = Date.now() - start;
     const alive = resp.status < 500;
-    await updateProxy(proxy.id, { status: alive ? "active" : "inactive" }).catch(() => {});
+    // #6246: "Test All" is a test, not test-and-set. By default an automated probe
+    // never mutates a proxy's status (only the operator does). Opt back into the
+    // legacy write with PROXY_HEALTH_AUTO_DEACTIVATE=true.
+    const statusWrite = resolveHealthCheckStatusWrite(alive);
+    if (statusWrite) await updateProxy(proxy.id, { status: statusWrite }).catch(() => {});
     return { proxyId: proxy.id, host: proxy.host, port: proxy.port, alive, latencyMs };
   } catch (err) {
     const latencyMs = Date.now() - start;
-    await updateProxy(proxy.id, { status: "inactive" }).catch(() => {});
+    const statusWrite = resolveHealthCheckStatusWrite(false);
+    if (statusWrite) await updateProxy(proxy.id, { status: statusWrite }).catch(() => {});
     return {
       proxyId: proxy.id,
       host: proxy.host,

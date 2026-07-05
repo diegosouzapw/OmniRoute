@@ -1990,6 +1990,27 @@ export async function markAccountUnavailable(
             : status === 429
               ? "rate_limited"
               : "server_error";
+
+      // #5976: Gemini (and other per-model-quota providers) have model-level rate
+      // limits, not global. A 500 server error is intermittent and NOT model-specific
+      // — recording a model lockout here blocks the sibling model from being tried
+      // by both the combo retry loop (isModelLocked check) and the credential
+      // resolver. Skip model lockout for server errors; only lock for 404 (model
+      // genuinely missing) and 429 (rate limit / quota exhaustion).
+      if (status >= 500) {
+        updateProviderConnection(connectionId, {
+          lastErrorType: reason,
+          lastError: `Model ${model} ${reason}`,
+          lastErrorAt: new Date().toISOString(),
+          errorCode: status,
+        }).catch(() => {});
+        log.info(
+          "AUTH",
+          `Server error for ${provider}:${model} — ${status} ${reason} (no model lockout, connection stays active for sibling models)`
+        );
+        return { shouldFallback: true, cooldownMs: 0 };
+      }
+
       const quotaScope = getQuotaScopeLabelForProvider(provider, model);
       const antigravityFamilyInferredBaseCooldownMs =
         provider === "antigravity" && quotaScope === "family" && status === 429
