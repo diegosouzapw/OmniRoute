@@ -122,6 +122,19 @@ export async function checkCertInstalled(certPath: string): Promise<boolean> {
   return checkCertInstalledLinux(certPath);
 }
 
+/**
+ * macOS `security find-certificate -a -Z` prints the SHA-1 as a colon-less
+ * hex string (e.g. `SHA-1 hash: ABCDEF…`), while {@link getCertFingerprint}
+ * returns a colon-separated one (`AB:CD:EF…`). A raw substring check therefore
+ * never matched and the cert was reported as not-installed on every run,
+ * re-prompting for the sudo install. Normalize both sides (strip `:`,
+ * upper-case) before comparing.
+ */
+export function macCertOutputHasFingerprint(securityOutput: string, fingerprint: string): boolean {
+  const normalize = (value: string) => value.replace(/:/g, "").toUpperCase();
+  return normalize(securityOutput).includes(normalize(fingerprint));
+}
+
 async function checkCertInstalledMac(certPath: string): Promise<boolean> {
   try {
     const fingerprint = getCertFingerprint(certPath);
@@ -131,7 +144,7 @@ async function checkCertInstalledMac(certPath: string): Promise<boolean> {
       "-Z",
       "/Library/Keychains/System.keychain",
     ]);
-    return output.toUpperCase().includes(fingerprint);
+    return macCertOutputHasFingerprint(output, fingerprint);
   } catch {
     return false;
   }
