@@ -185,6 +185,21 @@ export const WEB_COOKIE_PROVIDERS = {
       "Paste the full Cookie header from lmarena.ai (DevTools → Network → request → Cookie). The session is now split across arena-auth-prod-v1.0, .1, … — copy the whole header. Optional — works with free tier for basic comparisons.",
     riskNoticeVariant: "webCookie",
   },
+  "yuanbao-web": {
+    id: "yuanbao-web",
+    alias: "ybw",
+    name: "Tencent Yuanbao (Free)",
+    icon: "auto_awesome",
+    color: "#0052D9",
+    textIcon: "YB",
+    website: "https://yuanbao.tencent.com",
+    hasFree: true,
+    freeNote:
+      "Free consumer web session — DeepSeek V3/R1 and Hunyuan / Hunyuan-T1, optional web search. No subscription required. Rate limits apply.",
+    authHint:
+      "Log in to yuanbao.tencent.com, then paste the full Cookie header (DevTools → Network → any /api request → Request Headers → Cookie). It must contain hy_user and hy_token.",
+    riskNoticeVariant: "webCookie",
+  },
   huggingchat: {
     id: "huggingchat",
     // "hc" belongs to the hackclub provider; huggingchat uses its own id as alias.

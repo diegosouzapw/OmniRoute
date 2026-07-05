@@ -141,6 +141,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "hf-chat"],
   },
+  "yuanbao-web": {
+    kind: "cookie",
+    credentialName: "full Cookie header (hy_user + hy_token)",
+    placeholder: "hy_user=...; hy_token=... (full Cookie header from yuanbao.tencent.com)",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "hy_user", "hy_token"],
+  },
   "poe-web": {
     kind: "cookie",
     credentialName: "p-b",

@@ -257,6 +257,25 @@ export function isBaseUrlConfigurableProvider(providerId?: string | null) {
   );
 }
 
+/**
+ * #6147 — whether a built-in provider is eligible for an OPT-IN "Advanced →
+ * override base URL" affordance in the edit-connection modal.
+ *
+ * This does NOT widen the always-on base-URL field: providers already covered by
+ * `isBaseUrlConfigurableProvider` (the configurable set + self-hosted) keep their
+ * existing dedicated field and return `false` here. Every *other* provider id is
+ * eligible to opt in per-connection so an operator can hot-fix a broken built-in
+ * preset by pointing it at a custom endpoint. The field stays hidden until the
+ * user explicitly reveals it (or an override was already saved), so nothing is
+ * exposed by default. OAuth connections are excluded at the call site, since
+ * their save path does not persist `providerSpecificData.baseUrl`.
+ */
+export function isBaseUrlOverrideEligibleProvider(providerId?: string | null): boolean {
+  if (!providerId) return false;
+  if (isBaseUrlConfigurableProvider(providerId)) return false;
+  return true;
+}
+
 export function getProviderBaseUrlDefault(providerId?: string | null) {
   const localProvider = getLocalProviderMetadata(providerId);
   if (typeof localProvider?.localDefault === "string" && localProvider.localDefault.trim()) {

@@ -23,6 +23,7 @@ import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage
 import { resolveDashboardProviderInfo } from "../../../providerPageUtils";
 import {
   isBaseUrlConfigurableProvider,
+  isBaseUrlOverrideEligibleProvider,
   getProviderBaseUrlDefault,
   getProviderBaseUrlHint,
   getProviderBaseUrlPlaceholder,
@@ -153,7 +154,19 @@ export default function EditConnectionModal({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const showEmail = useEmailPrivacyStore((state) => state.emailsVisible);
 
-  const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
+  // #6147 — built-in providers can opt in to an advanced base-URL override.
+  // OAuth connections are excluded: their save path does not persist
+  // providerSpecificData.baseUrl.
+  const isConfigurableBaseUrl = isBaseUrlConfigurableProvider(provider);
+  const isBaseUrlOverrideEligible =
+    connection.authType !== "oauth" && isBaseUrlOverrideEligibleProvider(provider);
+  const [showBaseUrlOverride, setShowBaseUrlOverride] = useState(
+    () =>
+      typeof connection.providerSpecificData?.baseUrl === "string" &&
+      connection.providerSpecificData.baseUrl.trim().length > 0
+  );
+  const usesBaseUrl =
+    isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
   const isBedrock = provider === "bedrock";
@@ -441,12 +454,18 @@ export default function EditConnectionModal({
 
       let validatedBaseUrl = null;
       if (usesBaseUrl) {
-        const checked = normalizeAndValidateHttpBaseUrl(formData.baseUrl, defaultBaseUrl);
-        if (checked.error) {
-          setSaveError(checked.error);
-          return;
+        // #6147 — an opt-in override left blank clears it (no default to fall
+        // back to). Configurable providers keep their existing default-fallback.
+        if (!isConfigurableBaseUrl && !formData.baseUrl.trim()) {
+          validatedBaseUrl = null;
+        } else {
+          const checked = normalizeAndValidateHttpBaseUrl(formData.baseUrl, defaultBaseUrl);
+          if (checked.error) {
+            setSaveError(checked.error);
+            return;
+          }
+          validatedBaseUrl = checked.value;
         }
-        validatedBaseUrl = checked.value;
       }
 
       if (!isOAuth && formData.apiKey) {
@@ -937,13 +956,33 @@ export default function EditConnectionModal({
           </>
         )}
 
+        {/* #6147 — opt-in "Advanced → override base URL" for eligible built-ins */}
+        {!usesBaseUrl && isBaseUrlOverrideEligible && (
+          <button
+            type="button"
+            onClick={() => setShowBaseUrlOverride(true)}
+            className="self-start text-xs text-primary hover:underline"
+          >
+            {providerText(t, "overrideBaseUrlAdvanced", "Advanced: override base URL")}
+          </button>
+        )}
+
         {usesBaseUrl && (
           <Input
             label={t("baseUrlLabel")}
             value={formData.baseUrl}
             onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
             placeholder={getProviderBaseUrlPlaceholder(provider)}
-            hint={getProviderBaseUrlHint(provider, t)}
+            hint={
+              getProviderBaseUrlHint(provider, t) ||
+              (isBaseUrlOverrideEligible
+                ? providerText(
+                    t,
+                    "overrideBaseUrlHint",
+                    "Advanced: point this built-in provider at a custom endpoint. Leave blank to use the default."
+                  )
+                : undefined)
+            }
           />
         )}
 
