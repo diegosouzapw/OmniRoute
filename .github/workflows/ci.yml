@@ -137,3 +137,35 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bunx playwright install --with-deps chromium
       - run: bun run test:e2e
+
+  a11y:
+    name: a11y (axe-core)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: [build-web, build-bff]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - run: bun install --frozen-lockfile
+      - run: cd apps/web && bunx svelte-kit sync && bun run build
+      - run: cd apps/bff && bun run build
+      - run: bunx playwright install --with-deps chromium
+      - run: bunx playwright test tests/a11y/
+
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: [build-web]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - run: bun install --frozen-lockfile
+      - run: cd apps/web && bunx svelte-kit sync && bun run build
+      - run: cd apps/web && bun run preview &
+      - run: sleep 5
+      - run: bunx lhci autorun

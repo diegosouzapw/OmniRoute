@@ -35,6 +35,11 @@
 </script>
 
 <CommandPalette />
+  <script>
+    import { initWebVitals } from "$lib/observability/web-vitals";
+    import { onMount } from "svelte";
+    onMount(() => { initWebVitals(); });
+  </script>
 
 <main class="min-h-screen bg-[var(--color-surface)]">
   <header class="border-b border-gray-200 bg-white">
