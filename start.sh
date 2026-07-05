@@ -29,10 +29,8 @@ if [ ! -d "node_modules" ]; then
     npm install --ignore-scripts
 fi
 
-# Check if C drive OmniRoute is on the same port
-if curl -s http://127.0.0.1:30128/api/health > /dev/null 2>&1; then
-    echo "ℹ️  C: drive OmniRoute detected on port 30128 (running independently)"
-fi
+# Check if C drive OmniRoute is on the same port (non-blocking)
+curl -s --max-time 2 http://127.0.0.1:30128/api/health > /dev/null 2>&1 && echo "ℹ️  C: drive OmniRoute detected on port 30128 (running independently)" || true
 
 echo ""
 echo "🚀 Starting OmniRoute dev server..."

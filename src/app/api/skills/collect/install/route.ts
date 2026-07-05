@@ -16,11 +16,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { sanitizeErrorMessage, buildErrorBody } from "@omniroute/open-sse/utils/error";
-import { resolveInstallPath, INSTALL_TARGETS } from "@/lib/skills/githubCollector";
 
 const installSchema = z.object({
   repoName: z.string().min(1, "repoName is required"),
-  targets: z.array(z.string()).min(1, "at least one target required").max(10, "max 10 targets"),
+  targets: z
+    .array(z.string().min(1, "target toolId must be non-empty"))
+    .min(1, "at least one target required")
+    .max(10, "max 10 targets"),
   description: z.string().default(""),
 });
 
@@ -30,6 +32,17 @@ const CODING_TOOL_PATHS: Record<string, string> = {
   hermes: "~/AppData/Local/hermes/skills/{category}",
   opencode: "~/.opencode/skills/{category}",
   gemini: "~/.gemini/skills/{category}",
+  cursor: "~/.cursor/skills/{category}",
+  copilot: "~/.copilot/skills/{category}",
+  cline: "~/.cline/skills/{category}",
+  windsurf: "~/.windsurf/skills/{category}",
+  devin: "~/.devin/skills/{category}",
+  antigravity: "~/.antigravity/skills/{category}",
+  qwen: "~/.qwen/skills/{category}",
+  kilocode: "~/.kilocode/skills/{category}",
+  openclaw: "~/.openclaw/skills/{category}",
+  droid: "~/.droid/skills/{category}",
+  continue: "~/.continue/skills/{category}",
 };
 
 function inferCategory(skillName: string, description: string): string {
@@ -50,19 +63,23 @@ function inferCategory(skillName: string, description: string): string {
   return "imported-github";
 }
 
+function expandHome(dir: string): string {
+  // Home dir resolution: Windows (USERPROFILE) → Unix fallback (HOME)
+  const home =
+    typeof process !== "undefined" ? process.env.USERPROFILE || process.env.HOME || "" : "";
+  return dir.replace(/^~/, home);
+}
+
 function resolveDestDir(target: string, skillName: string, description: string): string {
   const template = CODING_TOOL_PATHS[target];
-  if (!template) throw new Error(`Unknown target: ${target}`);
+  if (!template) {
+    throw new Error(
+      `Unknown target tool: "${target}". Supported: ${Object.keys(CODING_TOOL_PATHS).join(", ")}`
+    );
+  }
   const category = inferCategory(skillName, description);
-  let resolved = template.replace("{category}", category).replace("{name}", skillName);
-  const home =
-    typeof process !== "undefined" && process.env?.HOME
-      ? process.env.HOME
-      : typeof process !== "undefined" && process.env?.USERPROFILE
-        ? process.env.USERPROFILE
-        : "";
-  resolved = resolved.replace("~", home);
-  return `${resolved}/${skillName}`;
+  const resolved = template.replace("{category}", category).replace("{name}", skillName);
+  return expandHome(`${resolved}/${skillName}`);
 }
 
 export async function POST(request: Request) {

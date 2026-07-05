@@ -22,7 +22,7 @@ No separate Skill Collector app needed — OmniRoute's own CLI detection + GitHu
 Query OmniRoute's CLI tool detection to find which coding agents are installed:
 
 ```bash
-curl http://localhost:30128/api/skills/collect/detect
+curl http://localhost:30129/api/skills/collect/detect
 ```
 
 This returns:
@@ -114,7 +114,7 @@ ls -la ~/AppData/Local/hermes/skills/imported-github/*/SKILL.md
 Also re-check detection:
 
 ```bash
-curl http://localhost:30128/api/skills/collect/detect
+curl http://localhost:30129/api/skills/collect/detect
 ```
 
 ---
@@ -123,7 +123,7 @@ curl http://localhost:30128/api/skills/collect/detect
 
 ```bash
 # 1. Detect
-DETECT=$(curl -s http://localhost:30128/api/skills/collect/detect)
+DETECT=$(curl -s http://localhost:30129/api/skills/collect/detect)
 
 # 2. Pick top matched skill for first installed tool
 TOOL=$(echo "$DETECT" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['installedToolIds'][0] if d['installedToolIds'] else '')")
@@ -142,6 +142,6 @@ fi
 
 ## Notes
 
-- OmniRoute must be running locally on port 30128 (default)
+- OmniRoute must be running locally on port 30129 (default)
 - The `/api/skills/collect/*` endpoints are **unauth** in dev mode (use management auth if `REQUIRE_API_KEY=true`)
 - This replaces the standalone Skill Collector Python app — all logic is now inside OmniRoute

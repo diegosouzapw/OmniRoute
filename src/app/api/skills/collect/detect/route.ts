@@ -36,11 +36,14 @@ const CODING_TOOL_KEYWORDS: Record<string, string[]> = {
   devin: ["devin", "cognition"],
 };
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     // 1. Detect installed CLI tools
     const toolIds = CLI_TOOL_IDS as readonly string[];
-    const detectedTools: Record<string, any> = {};
+    const detectedTools: Record<
+      string,
+      { installed: boolean; runnable: boolean; command: string | null; reason: string | null }
+    > = {};
 
     await Promise.allSettled(
       toolIds.map(async (toolId) => {
@@ -53,7 +56,12 @@ export async function GET(request: Request) {
             reason: result.reason ?? null,
           };
         } catch {
-          detectedTools[toolId] = { installed: false, runnable: false, reason: "check_failed" };
+          detectedTools[toolId] = {
+            installed: false,
+            runnable: false,
+            command: null,
+            reason: "check_failed",
+          };
         }
       })
     );
@@ -69,10 +77,20 @@ export async function GET(request: Request) {
     });
 
     // 3. Match skills to installed tools
-    const matchedSkills: any[] = [];
+    const matchedSkills: {
+      toolId: string;
+      toolName: string;
+      skillName: string;
+      repo: string;
+      htmlUrl: string;
+      score: number;
+      stars: number;
+      description: string;
+    }[] = [];
+
     for (const repo of repos) {
-      const name = repo.fullName.toLowerCase();
-      const desc = repo.description.toLowerCase();
+      const name = (repo.fullName ?? "").toLowerCase();
+      const desc = (repo.description ?? "").toLowerCase();
 
       for (const toolId of installedTools) {
         const keywords = CODING_TOOL_KEYWORDS[toolId] ?? [toolId];
@@ -81,37 +99,39 @@ export async function GET(request: Request) {
           matchedSkills.push({
             toolId,
             toolName: toolId,
-            skillName: repo.fullName.split("/").pop(),
-            repo: repo.fullName,
-            htmlUrl: repo.htmlUrl,
-            score: repo.score,
-            stars: repo.stars,
-            description: repo.description.slice(0, 200),
+            skillName: repo.fullName?.split("/").pop() ?? "unknown",
+            repo: repo.fullName ?? "",
+            htmlUrl: repo.htmlUrl ?? "",
+            score: repo.score ?? 0,
+            stars: repo.stars ?? 0,
+            description: (repo.description ?? "").slice(0, 200),
           });
           break;
         }
       }
     }
 
-    // For tools with no specific matches, add top general-purpose skills
+    // For tools with no specific matches, distribute top skills evenly
     const toolsWithoutMatches = installedTools.filter(
       (id) => !matchedSkills.some((m) => m.toolId === id)
     );
     if (toolsWithoutMatches.length > 0 && repos.length > 0) {
       const topSkills = repos
-        .filter((r) => r.score >= 0.4)
-        .slice(0, 5)
-        .map((r) => ({
-          toolId: toolsWithoutMatches[0],
-          toolName: toolsWithoutMatches[0],
-          skillName: r.fullName.split("/").pop(),
-          repo: r.fullName,
-          htmlUrl: r.htmlUrl,
-          score: r.score,
-          stars: r.stars,
-          description: r.description.slice(0, 200),
-        }));
-      matchedSkills.push(...topSkills);
+        .filter((r) => (r.score ?? 0) >= 0.4)
+        .slice(0, Math.min(10, repos.length));
+      topSkills.forEach((r, i) => {
+        const toolIdx = i % toolsWithoutMatches.length;
+        matchedSkills.push({
+          toolId: toolsWithoutMatches[toolIdx],
+          toolName: toolsWithoutMatches[toolIdx],
+          skillName: r.fullName?.split("/").pop() ?? "unknown",
+          repo: r.fullName ?? "",
+          htmlUrl: r.htmlUrl ?? "",
+          score: r.score ?? 0,
+          stars: r.stars ?? 0,
+          description: (r.description ?? "").slice(0, 200),
+        });
+      });
     }
 
     return NextResponse.json({
@@ -120,7 +140,7 @@ export async function GET(request: Request) {
       matchedSkills: matchedSkills.slice(0, 50),
       totalSkills: repos.length,
       totalMatched: matchedSkills.length,
-      searchErrors: errors.length > 0 ? errors : undefined,
+      searchErrors: (errors?.length ?? 0) > 0 ? errors : undefined,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
