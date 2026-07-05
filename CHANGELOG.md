@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🐛 Bug Fixes
+
+- **fix(sse):** strip zero-width markers from streamed **tool-call arguments** — a follow-up to [#5857](https://github.com/diegosouzapw/OmniRoute/pull/5857). That PR removed injected zero-width joiners (U+200D) from streamed assistant text/reasoning but deliberately left tool-call argument JSON byte-exact. The request-side obfuscation (`open-sse/services/claudeCodeObfuscation.ts`) injects ZWJ into agent words — including the temp path inside the Bash tool description — and Claude models copy that verbatim into generated commands, which are delivered as tool-call arguments rather than assistant text. As a result the ZWJ survived and corrupted code blocks (e.g. a temp path rendered with an invisible joiner). Now `open-sse/handlers/responseSanitizer.ts` strips zero-width code points from tool-call argument strings at every emit site (OpenAI non-stream/stream chat `tool_calls` + legacy `function_call`, native Responses `function_call` items, the OpenAI→Responses conversion, and the native Responses streaming `response.function_call_arguments.delta/.done` events). Only zero-width code points are removed; JSON structure and all other bytes stay identical (no parse/restringify), so normal arguments remain byte-exact. Regression guard: 6 new cases in `tests/unit/response-sanitizer.test.ts` (suite 50/50).
+
 ---
 
 ## [3.8.44] — TBD
