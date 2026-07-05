@@ -16,6 +16,10 @@
 
 - **refactor(dashboard):** extract the onboarding-wizard "Open provider details" link target into a pure, unit-tested `buildProviderDetailsHref(connection)` helper. The wizard already routes by `connection.id` (the node UUID) rather than the provider category slug (#6144/#6145); this hardens that behavior behind a tested helper that guards a missing id/connection. Regression guard: `tests/unit/provider-onboarding-href.test.ts`. ([#6166](https://github.com/diegosouzapw/OmniRoute/pull/6166) — thanks @KooshaPari)
 
+### ✨ New Features
+
+- **feat(rankings):** add a **'Configured Only'** filter to the Free Provider Rankings page, so the table can be narrowed to just the providers you have configured connections for (with an empty-state hint when none are configured). New `en.json` keys and a pure filter helper covered by `tests/unit/free-provider-rankings-configured-filter.test.ts`. ([#6245](https://github.com/diegosouzapw/OmniRoute/pull/6245), closes [#6150](https://github.com/diegosouzapw/OmniRoute/issues/6150) — thanks @Iammilansoni)
+
 ---
 
 ## [3.8.43] — 2026-07-02

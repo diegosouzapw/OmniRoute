@@ -89,16 +89,21 @@ export default function FreeProviderRankingsPage() {
   }, [filter, fetchRankings]);
 
   useEffect(() => {
+    let active = true;
     fetch("/api/providers")
       .then((res) => (res.ok ? res.json() : { connections: [] }))
       .then((data) => {
+        if (!active) return;
         const ids = new Set<string>();
         for (const conn of data.connections || []) {
-          if (conn.provider) ids.add(conn.provider);
+          if (conn?.provider) ids.add(conn.provider);
         }
         setConfiguredProviderIds(ids);
       })
       .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, []);
 
   const displayedRankings = configuredOnly
