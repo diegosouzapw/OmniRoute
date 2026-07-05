@@ -31,6 +31,9 @@ concurrency:
   group: nightly-release-green
   cancel-in-progress: true
 
+env:
+  OMNIROUTE_SKIP_SYSTEM_TRUST: "1"
+
 jobs:
   release-green:
     name: Validate active release branch

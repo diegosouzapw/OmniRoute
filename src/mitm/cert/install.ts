@@ -184,6 +184,11 @@ export async function installCert(sudoPassword: string, certPath: string): Promi
     return;
   }
 
+  if (process.env.OMNIROUTE_SKIP_SYSTEM_TRUST === "1") {
+    console.log("[cert] OMNIROUTE_SKIP_SYSTEM_TRUST=1 — skipping OS trust-store mutation");
+    return;
+  }
+
   if (IS_WIN) {
     await installCertWindows(certPath);
   } else if (IS_MAC) {
@@ -367,6 +372,11 @@ export async function uninstallCert(sudoPassword: string, certPath: string): Pro
   const isInstalled = await checkCertInstalled(certPath);
   if (!isInstalled) {
     console.log("Certificate not found in system store");
+    return;
+  }
+
+  if (process.env.OMNIROUTE_SKIP_SYSTEM_TRUST === "1") {
+    console.log("[cert] OMNIROUTE_SKIP_SYSTEM_TRUST=1 — skipping OS trust-store mutation");
     return;
   }
 
