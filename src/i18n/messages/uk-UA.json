@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} не потребує ключа API або файлу cookie. Збережіть підключення, щоб використовувати його безкоштовну веб-кінцеву точку.",
     "webSessionCredentialValidationFailed": "Помилка перевірки облікових даних сеансу. Увійдіть знову, скопіюйте нові облікові дані та повторіть спробу.",
     "checkCookie": "Перевірте cookie",
-    "checkWebToken": "Чек жетона"
+    "checkWebToken": "Чек жетона",
+    "filterAll": "Усі",
+    "filterActive": "Активні",
+    "filterError": "Помилка",
+    "filterBanned": "Заблоковано",
+    "filterCreditsExhausted": "Кредити вичерпано"
   },
   "settings": {
     "title": "Налаштування",

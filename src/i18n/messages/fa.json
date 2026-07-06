@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} به کلید API یا کوکی نیاز ندارد. اتصال را ذخیره کنید تا از نقطه پایانی وب رایگان آن استفاده کنید.",
     "webSessionCredentialValidationFailed": "تأیید اعتبار جلسه ناموفق بود. دوباره وارد سیستم شوید، یک اعتبارنامه جدید را کپی کنید و دوباره امتحان کنید.",
     "checkCookie": "کوکی را بررسی کنید",
-    "checkWebToken": "نشانه را بررسی کنید"
+    "checkWebToken": "نشانه را بررسی کنید",
+    "filterAll": "همه",
+    "filterActive": "فعال",
+    "filterError": "خطا",
+    "filterBanned": "مسدود",
+    "filterCreditsExhausted": "اعتبار تمام‌شده"
   },
   "settings": {
     "title": "Settings",

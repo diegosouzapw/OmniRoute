@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} behøver ikke en API-nøgle eller cookie. Gem forbindelsen for at bruge dens gratis webslutpunkt.",
     "webSessionCredentialValidationFailed": "Validering af legitimationsoplysninger for session mislykkedes. Log ind igen, kopier en ny login, og prøv igen.",
     "checkCookie": "Tjek cookie",
-    "checkWebToken": "Tjek token"
+    "checkWebToken": "Tjek token",
+    "filterAll": "Alle",
+    "filterActive": "Aktiv",
+    "filterError": "Fejl",
+    "filterBanned": "Blokeret",
+    "filterCreditsExhausted": "Kreditter opbrugt"
   },
   "settings": {
     "title": "Indstillinger",
