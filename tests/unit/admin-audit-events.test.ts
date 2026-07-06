@@ -7,6 +7,7 @@ import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-admin-audit-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.APP_LOG_TO_FILE = "false";
 process.env.JWT_SECRET = "test-jwt-secret-for-audit-events";
 process.env.INITIAL_PASSWORD = "admin-secret";
 

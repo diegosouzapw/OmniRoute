@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} tidak memerlukan kunci API atau cookie. Simpan koneksi untuk menggunakan titik akhir web gratisnya.",
     "webSessionCredentialValidationFailed": "Validasi kredensial sesi gagal. Masuk lagi, salin kredensial baru, dan coba lagi.",
     "checkCookie": "Periksa kue",
-    "checkWebToken": "Periksa token"
+    "checkWebToken": "Periksa token",
+    "filterAll": "Semua",
+    "filterActive": "Aktif",
+    "filterError": "Kesalahan",
+    "filterBanned": "Diblokir",
+    "filterCreditsExhausted": "Kredit habis"
   },
   "settings": {
     "title": "Pengaturan",
