@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} אינו זקוק למפתח API או לקובץ cookie. שמור את החיבור כדי להשתמש בנקודת הקצה האינטרנטית החינמית שלו.",
     "webSessionCredentialValidationFailed": "אימות פרטי הכניסה נכשל. היכנס שוב, העתק אישור חדש ונסה שוב.",
     "checkCookie": "בדוק עוגיה",
-    "checkWebToken": "בדוק אסימון"
+    "checkWebToken": "בדוק אסימון",
+    "filterAll": "הכול",
+    "filterActive": "פעיל",
+    "filterError": "שגיאה",
+    "filterBanned": "חסום",
+    "filterCreditsExhausted": "קרדיטים אזלו"
   },
   "settings": {
     "title": "הגדרות",
