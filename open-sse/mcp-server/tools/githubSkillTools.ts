@@ -11,6 +11,7 @@
  */
 
 import { z } from "zod";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
 import {
   searchGitHubSkills,
   scanText,
@@ -88,7 +89,7 @@ async function handleInstall(args: z.infer<typeof GitHubSkillsInstallSchema>) {
         target,
         ok: false,
         action: "error",
-        error: (err as Error).message,
+        error: sanitizeErrorMessage((err as Error).message),
       });
     }
   }
