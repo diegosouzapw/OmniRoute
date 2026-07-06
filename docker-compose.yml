@@ -38,6 +38,8 @@ x-common: &common
     - API_PORT=${API_PORT:-20129}
     - API_HOST=${API_HOST:-0.0.0.0}
     - LIVE_WS_PORT=${LIVE_WS_PORT:-20132}
+    - LIVE_WS_HOST=${LIVE_WS_HOST:-0.0.0.0}
+    - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
     - REDIS_URL=${REDIS_URL:-redis://redis:6379}
   volumes:
     - ./data:/app/data
@@ -76,6 +78,7 @@ services:
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
       - "${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     profiles:
       - base
 
@@ -93,6 +96,7 @@ services:
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
       - "${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     profiles:
       - web
 
@@ -107,6 +111,7 @@ services:
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
       - "${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     volumes:
       - ./data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
@@ -126,6 +131,7 @@ services:
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
       - "${API_PORT:-20129}:${API_PORT:-20129}"
+      - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     environment:
       - DATA_DIR=/app/data
       - PORT=${PORT:-20128}
@@ -133,6 +139,8 @@ services:
       - API_PORT=${API_PORT:-20129}
       - API_HOST=${API_HOST:-0.0.0.0}
       - LIVE_WS_PORT=${LIVE_WS_PORT:-20132}
+      - LIVE_WS_HOST=${LIVE_WS_HOST:-0.0.0.0}
+      - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
       - CLI_MODE=host
       - CLI_EXTRA_PATHS=/host-local/bin:/host-node/bin
       - CLI_CONFIG_HOME=/host-home

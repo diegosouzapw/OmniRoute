@@ -87,6 +87,14 @@ function proxyLiveWs(req, socket, head) {
 function wrapUpgradeListener(server, listener) {
   return async function responsesWsAwareUpgrade(req, socket, head) {
     try {
+      // If this server IS the LiveWS server (port 20132), the ws library's
+      // own upgrade handler should process the request directly — proxying
+      // /live-ws back to 127.0.0.1:20132 would create an infinite self-loop.
+      const liveWsPort = parseInt(process.env.LIVE_WS_PORT || "20132", 10);
+      if (getPort(server) === liveWsPort) {
+        return listener.call(this, req, socket, head);
+      }
+
       const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
       if (url.pathname === LIVE_WS_PATH || url.pathname.startsWith(LIVE_WS_PATH + "/")) {
         proxyLiveWs(req, socket, head);
