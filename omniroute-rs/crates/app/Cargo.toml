@@ -1,0 +1,21 @@
+[package]
+name = "omniroute-rs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "omniroute-rs"
+path = "src/main.rs"
+
+[dependencies]
+omniroute-core = { path = "../core" }
+omniroute-providers = { path = "../providers" }
+omniroute-combo = { path = "../combo" }
+omniroute-transport = { path = "../transport" }
+omniroute-observability = { path = "../observability" }
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+anyhow = "1"

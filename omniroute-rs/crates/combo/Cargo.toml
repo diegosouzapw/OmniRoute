@@ -1,0 +1,9 @@
+[package]
+name = "omniroute-combo"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+omniroute-core = { path = "../core" }
+serde = { version = "1", features = ["derive"] }

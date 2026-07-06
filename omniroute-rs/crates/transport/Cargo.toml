@@ -1,0 +1,21 @@
+[package]
+name = "omniroute-transport"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+omniroute-core = { path = "../core" }
+omniroute-providers = { path = "../providers" }
+omniroute-combo = { path = "../combo" }
+axum = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace", "cors"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+tracing = "0.1"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
