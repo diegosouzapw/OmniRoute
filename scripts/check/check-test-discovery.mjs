@@ -67,6 +67,11 @@ export const COLLECTORS = [
   // 24.18 do CI; no 24.16 local vira um crawl de ~60s/arquivo). O resto da suíte roda
   // sob tsx/esm (~-50% de bootstrap por processo). Plano mestre testes+CI, QW-b.
   { glob: "tests/unit/dashboard/**/*.test.ts", sources: ["package.json"] },
+  // Quarentena de flakes de concorrência (plano melhorias v3.8.46, P0.3): arquivos
+  // sensíveis a contenção de CPU/timing (classe glm-3580 / quota-division /
+  // provider-health-autopilot) rodam num passo dedicado --test-concurrency=1 ao FIM
+  // de cada runner. Fora dos globs paralelos acima por diretório próprio.
+  { glob: "tests/unit/serial/**/*.test.ts", sources: ["package.json"] },
   // Órfãos religados (plano mestre QW-c): arquivos .test.mjs (top-level + db/ + feature-triage/) — fora do glob
   // *.test.ts histórico, nunca rodava em job nenhum (53 casos recuperados).
   { glob: "tests/unit/**/*.test.mjs", sources: ["package.json"] },
