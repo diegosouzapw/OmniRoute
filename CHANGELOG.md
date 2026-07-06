@@ -21,6 +21,7 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(api):** unknown `/api/*` routes now return a JSON `404` (instead of the dashboard HTML shell) and scalar chat params (`model`/`temperature`/etc.) are validated **before** the provider lookup so malformed requests fail fast with a clear `400` ([#6424](https://github.com/diegosouzapw/OmniRoute/issues/6424), [#6412](https://github.com/diegosouzapw/OmniRoute/issues/6412)). Regression guards: `tests/unit/api/api-catchall-json-404.test.ts`, `tests/unit/chat-early-schema-validation-6412.test.ts`. (thanks @chirag127)
 - **fix(api):** `/v1/chat/completions` now rejects a non-JSON `Content-Type` with a `400` before parsing the body ([#6414](https://github.com/diegosouzapw/OmniRoute/issues/6414)). Regression guard: `tests/unit/v1-chat-completions-content-type-6414.test.ts`. (thanks @chirag127)
 - **fix(api):** the `X-OmniRoute-Compression` response header is now echoed on `/v1/chat/completions` and `/v1/completions` ([#6422](https://github.com/diegosouzapw/OmniRoute/issues/6422)). Regression guard: `tests/unit/compression-header-echo-6422.test.ts`. (thanks @chirag127)
 - **fix(api):** concurrent `GET /v1/models` requests are coalesced into a single catalog build ([#6408](https://github.com/diegosouzapw/OmniRoute/issues/6408)). Regression guard: `tests/unit/v1-models-concurrent-6408.test.ts`. (thanks @chirag127)
