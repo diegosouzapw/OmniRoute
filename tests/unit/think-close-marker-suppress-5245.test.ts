@@ -110,6 +110,9 @@ function contentChunks(chunks: unknown[]): string[] {
 test("shouldSuppressThinkCloseMarker: suppresses for OpenCode, preserves CC/Cursor/unknown", () => {
   assert.equal(shouldSuppressThinkCloseMarker("opencode/1.17.11"), true);
   assert.equal(shouldSuppressThinkCloseMarker("OpenCode/2.0"), true);
+  // #1061: Antigravity IDE client UA (vscode/<v> (Antigravity/<v>)) renders
+  // the bare </think> verbatim and trips loop-detection → suppress.
+  assert.equal(shouldSuppressThinkCloseMarker("vscode/1.100.0 (Antigravity/1.2.3)"), true);
   assert.equal(shouldSuppressThinkCloseMarker("claude-code/1.0"), false);
   assert.equal(shouldSuppressThinkCloseMarker("cursor-agent/0.5"), false);
   assert.equal(shouldSuppressThinkCloseMarker("some-other-client/1.0"), false);

@@ -112,6 +112,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [baseUrl, setBaseUrl] = useState("/v1");
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [providerMetrics, setProviderMetrics] = useState<Record<string, ProviderMetricSummary>>({});
+  const [providerTopology, setProviderTopology] = useState({ lastProvider: "", errorProvider: "" });
   const [providerNodes, setProviderNodes] = useState<
     Array<{ id?: string; prefix?: string; name?: string }>
   >([]);
@@ -304,6 +305,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           const data = await metricsRes.json();
           if (!cancelled) {
             setProviderMetrics(data.metrics || {});
+            setProviderTopology({
+              lastProvider: normalizeProviderId(data.topology?.lastProvider),
+              errorProvider: normalizeProviderId(data.topology?.errorProvider),
+            });
           }
         }
       } catch (error) {
@@ -494,28 +499,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     return Array.from(byProvider.values());
   }, [providerStats, providerMetrics, providerNodes]);
 
-  const { lastProvider, errorProvider } = useMemo(() => {
-    let recentProvider = "";
-    let recentTimestamp = 0;
-    let recentErrorProvider = "";
-    let recentErrorTimestamp = 0;
-
-    for (const [provider, metrics] of Object.entries(providerMetrics)) {
-      const requestTimestamp = metrics.lastRequestAt ? Date.parse(metrics.lastRequestAt) : 0;
-      if (Number.isFinite(requestTimestamp) && requestTimestamp > recentTimestamp) {
-        recentProvider = normalizeProviderId(provider);
-        recentTimestamp = requestTimestamp;
-      }
-
-      const errorTimestamp = metrics.lastErrorAt ? Date.parse(metrics.lastErrorAt) : 0;
-      if (Number.isFinite(errorTimestamp) && errorTimestamp > recentErrorTimestamp) {
-        recentErrorProvider = normalizeProviderId(provider);
-        recentErrorTimestamp = errorTimestamp;
-      }
-    }
-
-    return { lastProvider: recentProvider, errorProvider: recentErrorProvider };
-  }, [providerMetrics]);
+  const { lastProvider, errorProvider } = providerTopology;
 
   const pollBackgroundUpdate = useCallback(
     async ({
