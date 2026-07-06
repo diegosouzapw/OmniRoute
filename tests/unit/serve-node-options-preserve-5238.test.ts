@@ -14,9 +14,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { buildServerNodeOptions, buildNodeHeapArgs, envHasExplicitHeapFlag } = await import(
-  "../../scripts/build/runtime-env.mjs"
-);
+const { buildServerNodeOptions, buildNodeHeapArgs, envHasExplicitHeapFlag } =
+  await import("../../scripts/build/runtime-env.mjs");
 
 const HEAP_RE = /--max-old-space-size=(\d+)/g;
 function heapValues(nodeOptions: string): string[] {
