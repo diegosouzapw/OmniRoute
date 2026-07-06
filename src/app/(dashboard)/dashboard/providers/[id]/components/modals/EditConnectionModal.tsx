@@ -52,6 +52,7 @@ import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecificData";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
+import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 
 export interface EditConnectionModalConnection {
   id?: string;
@@ -117,6 +118,7 @@ export default function EditConnectionModal({
     codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
+    ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
@@ -165,8 +167,7 @@ export default function EditConnectionModal({
       typeof connection?.providerSpecificData?.baseUrl === "string" &&
       connection.providerSpecificData.baseUrl.trim().length > 0
   );
-  const usesBaseUrl =
-    isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
+  const usesBaseUrl = isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
   const isBedrock = provider === "bedrock";
@@ -236,6 +237,14 @@ export default function EditConnectionModal({
         stringField(connection.providerSpecificData?.opencodeGoWorkspaceId) ||
         stringField(connection.providerSpecificData?.openCodeGoWorkspaceId) ||
         stringField(connection.providerSpecificData?.workspaceId);
+      const existingGlmOrganizationId =
+        stringField(connection.providerSpecificData?.glmOrganizationId) ||
+        stringField(connection.providerSpecificData?.bigmodelOrganization) ||
+        stringField(connection.providerSpecificData?.glmOrganization);
+      const existingGlmProjectId =
+        stringField(connection.providerSpecificData?.glmProjectId) ||
+        stringField(connection.providerSpecificData?.bigmodelProject) ||
+        stringField(connection.providerSpecificData?.glmProject);
       const codexRequestDefaults = getCodexRequestDefaults(connection.providerSpecificData);
       const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
         connection.providerSpecificData
@@ -287,6 +296,8 @@ export default function EditConnectionModal({
         codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
+        glmOrganizationId: existingGlmOrganizationId,
+        glmProjectId: existingGlmProjectId,
         opencodeGoWorkspaceId: existingOpenCodeGoWorkspaceId,
         opencodeGoAuthCookie: "",
         ollamaCloudUsageCookie: "",
@@ -1007,19 +1018,26 @@ export default function EditConnectionModal({
         )}
 
         {isGlm && (
-          <div>
-            <label className="text-sm font-medium text-text-main mb-1 block">
-              {t("apiRegionLabel")}
-            </label>
-            <select
-              value={formData.apiRegion}
-              onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-            >
-              <option value="international">{t("apiRegionInternational")}</option>
-              <option value="china">{t("apiRegionChina")}</option>
-            </select>
-            <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
+          <div className="flex flex-col gap-3">
+            <div>
+              <label className="text-sm font-medium text-text-main mb-1 block">
+                {t("apiRegionLabel")}
+              </label>
+              <select
+                value={formData.apiRegion}
+                onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+              >
+                <option value="international">{t("apiRegionInternational")}</option>
+                <option value="china">{t("apiRegionChina")}</option>
+              </select>
+              <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
+            </div>
+            <GlmTeamQuotaFields
+              values={formData}
+              onChange={(patch) => setFormData({ ...formData, ...patch })}
+              t={t}
+            />
           </div>
         )}
 

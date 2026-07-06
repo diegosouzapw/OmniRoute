@@ -30,6 +30,7 @@ import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
+import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 export interface AddApiKeyModalProps {
   isOpen: boolean;
   provider?: string;
@@ -116,6 +117,7 @@ export default function AddApiKeyModal({
     customUserAgent: "",
     accountId: "",
     consoleApiKey: "",
+    ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
@@ -872,19 +874,26 @@ export default function AddApiKeyModal({
               />
             )}
             {isGlm && (
-              <div>
-                <label className="text-sm font-medium text-text-main mb-1 block">
-                  {t("apiRegionLabel")}
-                </label>
-                <select
-                  value={formData.apiRegion}
-                  onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-                >
-                  <option value="international">{t("apiRegionInternational")}</option>
-                  <option value="china">{t("apiRegionChina")}</option>
-                </select>
-                <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
+              <div className="flex flex-col gap-3">
+                <div>
+                  <label className="text-sm font-medium text-text-main mb-1 block">
+                    {t("apiRegionLabel")}
+                  </label>
+                  <select
+                    value={formData.apiRegion}
+                    onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+                  >
+                    <option value="international">{t("apiRegionInternational")}</option>
+                    <option value="china">{t("apiRegionChina")}</option>
+                  </select>
+                  <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
+                </div>
+                <GlmTeamQuotaFields
+                  values={formData}
+                  onChange={(patch) => setFormData({ ...formData, ...patch })}
+                  t={t}
+                />
               </div>
             )}
             <div className="flex gap-2">

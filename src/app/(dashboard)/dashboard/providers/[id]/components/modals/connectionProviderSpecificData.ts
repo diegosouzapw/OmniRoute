@@ -7,24 +7,29 @@ import {
   assignQuotaScrapingProviderData,
   type QuotaScrapingFieldValues,
 } from "./QuotaScrapingFields";
+import {
+  assignGlmTeamQuotaProviderData,
+  type GlmTeamQuotaFieldValues,
+} from "./glmTeamQuotaProviderData";
 
-type FormData = QuotaScrapingFieldValues & {
-  accountId: string;
-  apiRegion: string;
-  ccCompatibleContext1m: boolean;
-  ccCompatibleRedactThinking: boolean;
-  ccCompatibleSummarizeThinking: boolean;
-  consoleApiKey: string;
-  customUserAgent: string;
-  cx: string;
-  excludedModels: string;
-  importFreeModelsOnly: boolean;
-  passthroughModels: boolean;
-  region: string;
-  routingTags: string;
-  tag?: string;
-  validationModelId?: string;
-};
+type FormData = QuotaScrapingFieldValues &
+  GlmTeamQuotaFieldValues & {
+    accountId: string;
+    apiRegion: string;
+    ccCompatibleContext1m: boolean;
+    ccCompatibleRedactThinking: boolean;
+    ccCompatibleSummarizeThinking: boolean;
+    consoleApiKey: string;
+    customUserAgent: string;
+    cx: string;
+    excludedModels: string;
+    importFreeModelsOnly: boolean;
+    passthroughModels: boolean;
+    region: string;
+    routingTags: string;
+    tag?: string;
+    validationModelId?: string;
+  };
 type ProviderSpecificData = Record<string, unknown>;
 
 export function buildAddProviderSpecificData(options: {
@@ -71,8 +76,10 @@ export function buildAddProviderSpecificData(options: {
   if (isGooglePse && formData.cx.trim()) data.cx = formData.cx.trim();
   if (usesBaseUrl) data.baseUrl = validatedBaseUrl;
   else if (showsRegion) data.region = formData.region.trim() || defaultRegion;
-  else if (isGlm) data.apiRegion = formData.apiRegion;
-  else if (isCloudflare && formData.accountId.trim()) data.accountId = formData.accountId.trim();
+  else if (isGlm) {
+    data.apiRegion = formData.apiRegion;
+    assignGlmTeamQuotaProviderData(isGlm, formData, data);
+  } else if (isCloudflare && formData.accountId.trim()) data.accountId = formData.accountId.trim();
   if (isCcCompatible) assignCcCompatibleRequestDefaults(data, formData);
   return Object.keys(data).length > 0 ? data : undefined;
 }
@@ -112,8 +119,10 @@ export function assignEditApiKeyProviderSpecificData(options: {
   if (o.isGooglePse) o.target.cx = o.formData.cx.trim() || undefined;
   if (o.usesBaseUrl) o.target.baseUrl = o.validatedBaseUrl;
   else if (o.showsRegion) o.target.region = o.formData.region.trim() || o.defaultRegion;
-  else if (o.isGlm) o.target.apiRegion = o.formData.apiRegion;
-  else if (o.isCloudflare && o.formData.accountId.trim()) {
+  else if (o.isGlm) {
+    o.target.apiRegion = o.formData.apiRegion;
+    assignGlmTeamQuotaProviderData(o.isGlm, o.formData, o.target);
+  } else if (o.isCloudflare && o.formData.accountId.trim()) {
     o.target.accountId = o.formData.accountId.trim();
   }
   if (o.isAntigravityFamily) o.target.projectId = o.trimmedCloudCodeProjectId || null;
