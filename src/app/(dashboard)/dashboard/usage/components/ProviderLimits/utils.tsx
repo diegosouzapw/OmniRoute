@@ -33,7 +33,7 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   "Monthly Tools": "Monthly Tools",
   tokens: "Tokens",
   time_limit: "Time Limit",
-  banked_reset_credits: "Banked Reset Credits",
+  banked_reset_credits: "Reset Credits",
 };
 
 function toRecord(value: unknown): Record<string, unknown> {

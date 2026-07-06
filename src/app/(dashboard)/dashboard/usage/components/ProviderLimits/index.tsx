@@ -247,6 +247,7 @@ export default function ProviderLimits({
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
+  const [redeemingResetCreditId, setRedeemingResetCreditId] = useState<string | null>(null);
 
   const [purchaseTypeFilter, setPurchaseTypeFilter] = useState<PurchaseTypeKey>(() => {
     if (typeof window === "undefined") return "all";
@@ -482,6 +483,66 @@ export default function ProviderLimits({
       await fetchQuota(connectionId, provider, { force: true });
     },
     [fetchQuota]
+  );
+
+  const redeemCodexResetCredit = useCallback(
+    async (connectionId: string, provider: string) => {
+      if (provider !== "codex" || redeemingResetCreditId) return;
+
+      const confirmed = window.confirm(
+        tr(
+          "confirmRedeemResetCredit",
+          "Redeem one Codex reset credit for this account? This consumes one reset credit."
+        )
+      );
+      if (!confirmed) return;
+
+      const idempotencyKey =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      setRedeemingResetCreditId(connectionId);
+      setErrors((prev) => ({ ...prev, [connectionId]: null }));
+
+      try {
+        const response = await fetch("/api/usage/codex-reset-credit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ connectionId, idempotencyKey }),
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.error || response.statusText);
+        }
+
+        const usage = data.usage || {};
+        setQuotaData((prev) => ({
+          ...prev,
+          [connectionId]: {
+            quotas: parseQuotaData(provider, usage),
+            plan: usage.plan || null,
+            message: usage.message || null,
+            raw: usage,
+            stale: usage._stale ? { since: usage._staleSince, reason: usage._staleReason } : null,
+          },
+        }));
+        setLastRefreshedAt((prev) => ({
+          ...prev,
+          [connectionId]: new Date().toISOString(),
+        }));
+        notify.success(tr("resetCreditRedeemed", "Reset redeemed"));
+      } catch (error: any) {
+        const message =
+          error?.message || tr("resetCreditRedeemFailed", "Failed to redeem reset credit");
+        setErrors((prev) => ({ ...prev, [connectionId]: message }));
+        notify.error(message);
+      } finally {
+        setRedeemingResetCreditId(null);
+      }
+    },
+    [notify, redeemingResetCreditId, tr]
   );
 
   const refreshingAllRef = useRef(false);
@@ -1076,8 +1137,10 @@ export default function ProviderLimits({
             setCutoffModalWindows(windows);
             setCutoffModalConn(conn);
           }}
+          onRedeemResetCredit={redeemCodexResetCredit}
           onToggleActive={handleToggleActive}
           togglingActiveId={togglingActiveId}
+          redeemingResetCreditId={redeemingResetCreditId}
         />
       </div>
 
