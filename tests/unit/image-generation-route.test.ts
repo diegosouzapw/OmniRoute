@@ -48,7 +48,10 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("v1 image models GET exposes image-only modalities for image-only models", async () => {
+test("v1 image models GET exposes image-only modalities for credential-backed image-only models", async () => {
+  await seedConnection("topaz", { apiKey: "topaz-key" });
+  await seedConnection("stability-ai", { apiKey: "stability-key" });
+
   const response = await imageRoute.GET();
   const body = (await response.json()) as any;
   const byId = new Map(body.data.map((item: { id: string }) => [item.id, item]));
@@ -57,6 +60,19 @@ test("v1 image models GET exposes image-only modalities for image-only models", 
   assert.deepEqual((byId.get("topaz/topaz-enhance") as any).input_modalities, ["image"]);
   assert.deepEqual((byId.get("stability-ai/remove-background") as any).input_modalities, ["image"]);
   assert.deepEqual((byId.get("stability-ai/fast") as any).input_modalities, ["image"]);
+});
+
+test("v1 image models GET hides providers without active credentials", async () => {
+  await seedConnection("codex", { apiKey: "codex-key" });
+
+  const response = await imageRoute.GET();
+  const body = (await response.json()) as { data: Array<{ id: string }> };
+  const ids = body.data.map((item) => item.id);
+
+  assert.equal(response.status, 200);
+  assert.ok(ids.includes("codex/gpt-5.5"));
+  assert.ok(!ids.includes("openai/gpt-image-2"));
+  assert.ok(!ids.some((id: string) => id.startsWith("xai/")));
 });
 
 test("v1 image generation POST accepts promptless requests for image-only models", async () => {
