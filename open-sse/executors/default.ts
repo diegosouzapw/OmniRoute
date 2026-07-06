@@ -18,6 +18,10 @@ import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 import {
+  injectReasoningContentForThinkingModel,
+  isThinkingMessageModel,
+} from "../utils/reasoningContentInjector.ts";
+import {
   detectFormat,
   getOpenAICompatibleType,
   getTargetFormat,
@@ -565,6 +569,41 @@ export class DefaultExecutor extends BaseExecutor {
       withDefaults = withoutClientMetadata;
     }
 
+    // 9router#1649: Mistral's API returns 422 (extra_forbidden) when an
+    // assistant message carries a `reasoning_content` field (replayed thinking
+    // from a prior turn, e.g. via the Codex /responses path). The field is
+    // nested per-message, so the generic top-level 400/field-downgrade retry
+    // doesn't cover it. Strip it from every message before sending — scoped to
+    // Mistral so DeepSeek (which *requires* replayed reasoning_content) is
+    // unaffected.
+    if (
+      this.provider === "mistral" &&
+      withDefaults &&
+      typeof withDefaults === "object" &&
+      !Array.isArray(withDefaults) &&
+      Array.isArray((withDefaults as Record<string, unknown>).messages)
+    ) {
+      const record = withDefaults as Record<string, unknown>;
+      const messages = record.messages as unknown[];
+      let mutated = false;
+      const cleaned = messages.map((msg) => {
+        if (
+          msg &&
+          typeof msg === "object" &&
+          !Array.isArray(msg) &&
+          Object.prototype.hasOwnProperty.call(msg, "reasoning_content")
+        ) {
+          mutated = true;
+          const { reasoning_content: _dropped, ...rest } = msg as Record<string, unknown>;
+          return rest;
+        }
+        return msg;
+      });
+      if (mutated) {
+        withDefaults = { ...record, messages: cleaned };
+      }
+    }
+
     const targetFormat = getTargetFormat(this.provider, credentials?.providerSpecificData);
     const requestFormat =
       withDefaults && typeof withDefaults === "object" && !Array.isArray(withDefaults)
@@ -696,6 +735,23 @@ export class DefaultExecutor extends BaseExecutor {
     // the budget is undersized. CLINEPASS-GATED — no-op for every other provider.
     if (typeof withDefaults === "object" && withDefaults !== null) {
       this.ensureThinkingBudget(withDefaults as Record<string, unknown>, model);
+    }
+
+    // 9router#1480: the native Moonshot `kimi` provider (executor "default")
+    // is a thinking-mode upstream that 400s with "reasoning_content must be
+    // passed back" when a prior assistant turn lacks it. OpencodeExecutor
+    // already injects a placeholder for OpenCode-routed thinking models; the
+    // direct kimi connection hit neither injection path. Scope to `kimi` so
+    // gateway-served models that merely match the thinking-model name pattern
+    // (and may reject an extra field) are unaffected.
+    if (this.provider === "kimi") {
+      const outboundModel =
+        typeof (withDefaults as Record<string, unknown>)?.model === "string"
+          ? ((withDefaults as Record<string, unknown>).model as string)
+          : model;
+      if (isThinkingMessageModel(outboundModel)) {
+        withDefaults = injectReasoningContentForThinkingModel(withDefaults);
+      }
     }
 
     return withDefaults;

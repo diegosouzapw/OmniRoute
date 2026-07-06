@@ -31,6 +31,7 @@ import type { ProviderMessageTranslator } from "../providerPageHelpers";
 interface ProviderInfo {
   name: string;
   riskNoticeVariant?: string;
+  website?: string;
   [key: string]: unknown;
 }
 
@@ -277,6 +278,7 @@ export default function ProviderModalsPanel({
           isOpen={showAddApiKeyModal}
           provider={providerId}
           providerName={providerInfo.name}
+          providerWebsite={providerInfo.website}
           initialBaseUrl={siliconFlowInitialBaseUrl}
           isCompatible={isCompatible}
           isAnthropic={isAnthropicProtocolCompatible}
@@ -312,6 +314,7 @@ export default function ProviderModalsPanel({
           isOpen={showEditModal}
           connection={selectedConnection}
           providerId={providerId}
+          providerWebsite={providerInfo.website}
           onSave={handleUpdateConnection}
           onResyncModels={(id) => handleCompatibleImportWithProgress(id, "sync")}
           onClose={() => setShowEditModal(false)}
