@@ -184,6 +184,7 @@ import { x5labProvider } from "./registry/x5lab/index.ts";
 import { kenariProvider } from "./registry/kenari/index.ts";
 import { requestyProvider } from "./registry/requesty/index.ts";
 import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
+import { hcnsecProvider } from "./registry/hcnsec/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -370,4 +371,5 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   kenari: kenariProvider,
   requesty: requestyProvider,
   digitalocean: digitaloceanProvider,
+  hcnsec: hcnsecProvider,
 };

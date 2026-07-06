@@ -142,6 +142,7 @@ import {
   expandProviderWildcardsInCollection,
 } from "./combo/providerWildcard.ts";
 import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouting.ts";
+import { attemptCompatRejectedFallback } from "./combo/comboCompatFallback.ts";
 import {
   filterTargetsByRequestCompatibility,
   resolveComboRuntimeUnits,
@@ -2371,6 +2372,15 @@ async function handleRoundRobinCombo({
     log,
     "Context-aware round-robin fallback"
   );
+  // #6238: keep the targets the compat pre-filter rejected so they can serve as a
+  // last-resort fallback tier. The pre-filter drops request-incompatible targets
+  // BEFORE availability is known; if every compat-kept target then turns out to be
+  // runtime-unavailable, we must reconsider these before returning 503, instead of
+  // permanently dropping a compat-rejected-but-healthy provider.
+  const compatKeptSet = new Set(filteredTargets);
+  const compatRejectedTargets = evalRankedTargets.filter(
+    (target) => !compatKeptSet.has(target)
+  );
   const modelCount = filteredTargets.length;
   if (modelCount === 0) {
     return comboModelNotFoundResponse("Round-robin combo has no executable targets");
@@ -2712,6 +2722,15 @@ async function handleRoundRobinCombo({
 
           if (stickyRoundRobinEnabled) {
             recordStickyRoundRobinSuccess(combo.name, target, stickyLimit, filteredTargets);
+          } else {
+            // #948: true round-robin (stickyLimit <= 1). The counter was advanced
+            // eagerly (+1 from the scheduled start index) before this loop ran, so
+            // when the scheduled model failed and a *different* model served via
+            // fallback, the next request reused the fallback-served model. Advance
+            // the pointer past the model that ACTUALLY served (modelIndex) instead,
+            // mirroring recordStickyRoundRobinSuccess's served-index logic. Read
+            // side applies `% modelCount`, so storing modelIndex + 1 is correct.
+            rrCounters.set(combo.name, modelIndex + 1);
           }
 
           // #3825: (re)record the sticky binding so the next turn re-pins (prompt-cache).
@@ -2964,6 +2983,37 @@ async function handleRoundRobinCombo({
 
   // All models exhausted
   const latencyMs = Date.now() - startTime;
+
+  // #6238: every compat-kept target was skipped as unavailable and NONE was ever
+  // attempted (recordedAttempts === 0). Before crystallizing 503, probe the targets
+  // the compat pre-filter rejected — a compat-rejected-but-healthy provider is a
+  // valid last-resort fallback tier, not a permanently dropped target.
+  if (recordedAttempts === 0 && compatRejectedTargets.length > 0) {
+    const compatFallbackResult = await attemptCompatRejectedFallback(compatRejectedTargets, body, {
+      handleSingleModel,
+      isModelAvailable,
+      isProviderInCooldown: (target) =>
+        resilienceSettings.providerCooldown.enabled &&
+        Boolean(target.provider && target.provider !== "unknown") &&
+        isProviderInCooldown(
+          target.provider as string,
+          target.connectionId as string | undefined,
+          resilienceSettings
+        ),
+      log,
+      strategy: "round-robin",
+    });
+    if (compatFallbackResult) {
+      recordComboRequest(combo.name, null, {
+        success: true,
+        latencyMs: Date.now() - startTime,
+        fallbackCount,
+        strategy: "round-robin",
+      });
+      return compatFallbackResult;
+    }
+  }
+
   if (recordedAttempts === 0) {
     recordComboRequest(combo.name, null, {
       success: false,

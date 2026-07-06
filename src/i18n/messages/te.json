@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider}కి API కీ లేదా కుక్కీ అవసరం లేదు. దాని ఉచిత వెబ్ ఎండ్ పాయింట్‌ని ఉపయోగించడానికి కనెక్షన్‌ని సేవ్ చేయండి.",
     "webSessionCredentialValidationFailed": "సెషన్ క్రెడెన్షియల్ ధ్రువీకరణ విఫలమైంది. మళ్లీ సైన్ ఇన్ చేసి, తాజా ఆధారాలను కాపీ చేసి, మళ్లీ ప్రయత్నించండి.",
     "checkCookie": "కుక్కీని తనిఖీ చేయండి",
-    "checkWebToken": "టోకెన్‌ని తనిఖీ చేయండి"
+    "checkWebToken": "టోకెన్‌ని తనిఖీ చేయండి",
+    "filterAll": "అన్నీ",
+    "filterActive": "సక్రియం",
+    "filterError": "లోపం",
+    "filterBanned": "నిషేధించబడింది",
+    "filterCreditsExhausted": "క్రెడిట్‌లు అయిపోయాయి"
   },
   "settings": {
     "title": "Settings",
