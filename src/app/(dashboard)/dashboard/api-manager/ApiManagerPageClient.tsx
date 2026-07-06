@@ -203,6 +203,7 @@ export default function ApiManagerPageClient() {
   const createKeyFormRef = useRef<HTMLDivElement | null>(null);
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [allModels, setAllModels] = useState<Model[]>([]);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
   const [allCombos, setAllCombos] = useState<ComboOption[]>([]);
   const [allConnections, setAllConnections] = useState<ProviderConnection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -320,14 +321,20 @@ export default function ApiManagerPageClient() {
   }, [showAddModal, nameError, scrollCreateKeyFormToTop]);
 
   const fetchModels = async () => {
+    setModelsLoaded(false);
     try {
       const res = await fetch("/v1/models");
       if (res.ok) {
         const data = await res.json();
-        setAllModels(data.data || []);
+        setAllModels(Array.isArray(data.data) ? data.data : []);
+      } else {
+        setAllModels([]);
       }
     } catch (error) {
       console.log("Error fetching models:", error);
+      setAllModels([]);
+    } finally {
+      setModelsLoaded(true);
     }
   };
 
@@ -1533,6 +1540,7 @@ export default function ApiManagerPageClient() {
           apiKey={editingKey}
           modelsByProvider={filteredModelsByProvider}
           allModels={permissionModels}
+          modelsLoaded={modelsLoaded}
           allCombos={allCombos}
           allConnections={allConnections}
           searchModel={searchModel}
@@ -1552,6 +1560,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey,
   modelsByProvider,
   allModels,
+  modelsLoaded,
   allCombos,
   allConnections,
   searchModel,
@@ -1563,6 +1572,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey: ApiKey;
   modelsByProvider: ProviderGroup[];
   allModels: Model[];
+  modelsLoaded: boolean;
   allCombos: ComboOption[];
   allConnections: ProviderConnection[];
   searchModel: string;
@@ -2026,9 +2036,11 @@ const PermissionsModal = memo(function PermissionsModal({
           >
             {allowAll
               ? t("allowAllDesc")
-              : totalModels === 0
+              : !modelsLoaded
                 ? t("restrictLoading")
-                : t("restrictDesc", { selectedCount, totalModels })}
+                : totalModels === 0
+                  ? t("restrictCatalogUnavailable", { selectedCount })
+                  : t("restrictDesc", { selectedCount, totalModels })}
           </p>
         </div>
 
