@@ -8,6 +8,13 @@
  *
  * These helpers translate a chat-shaped object/stream back to the legacy
  * text-completion shape so the endpoint honours its OpenAI Completions contract.
+ *
+ * When a `requestedModel` is supplied, the transformed body/chunks echo the
+ * caller's requested model identifier instead of the upstream provider's
+ * post-routing string. This matches the `x-omniroute-model` response header
+ * and keeps legacy clients (TabbyML, cache keys, dashboards) consistent with
+ * what they asked for. If `requestedModel` is omitted, the upstream model is
+ * preserved (backward-compat).
  */
 
 type AnyRec = Record<string, any>;
@@ -24,8 +31,13 @@ function choiceText(choice: AnyRec): string {
  * Convert a single chat.completion / chat.completion.chunk object into the legacy
  * text-completion shape (`object: "text_completion"`, `choices[].text`).
  * Non-object input and already-text_completion objects are returned unchanged.
+ *
+ * @param obj chat-shaped object to transform
+ * @param requestedModel optional model identifier the caller requested; when
+ *   provided, overrides `obj.model` in the output so the response echoes what
+ *   the caller asked for (matching `x-omniroute-model`).
  */
-export function toTextCompletionObject(obj: AnyRec): AnyRec {
+export function toTextCompletionObject(obj: AnyRec, requestedModel?: string): AnyRec {
   if (!obj || typeof obj !== "object" || !Array.isArray(obj.choices)) return obj;
 
   const choices = obj.choices.map((c: AnyRec, i: number) => ({
@@ -39,7 +51,7 @@ export function toTextCompletionObject(obj: AnyRec): AnyRec {
     id: obj.id,
     object: "text_completion",
     created: obj.created,
-    model: obj.model,
+    model: requestedModel ?? obj.model,
     choices,
   };
   if (obj.usage) out.usage = obj.usage;
@@ -52,27 +64,29 @@ export function toTextCompletionObject(obj: AnyRec): AnyRec {
  * text-completion JSON, `"[DONE]"` unchanged, or the original payload when it is
  * not JSON we recognise.
  */
-export function transformSseData(payload: string): string {
+export function transformSseData(payload: string, requestedModel?: string): string {
   const trimmed = payload.trim();
   if (trimmed === "" || trimmed === "[DONE]") return trimmed;
   try {
-    return JSON.stringify(toTextCompletionObject(JSON.parse(trimmed)));
+    return JSON.stringify(toTextCompletionObject(JSON.parse(trimmed), requestedModel));
   } catch {
     return trimmed;
   }
 }
 
-function transformLine(line: string): string {
+function transformLine(line: string, requestedModel?: string): string {
   if (!line.startsWith("data:")) return line;
   const payload = line.slice("data:".length).replace(/^ /, "");
-  return "data: " + transformSseData(payload);
+  return "data: " + transformSseData(payload, requestedModel);
 }
 
 /**
  * A line-oriented SSE TransformStream that rewrites each `data:` event from chat
  * shape to text-completion shape, passing through blank separators and `[DONE]`.
  */
-export function createTextCompletionStreamTransformer(): TransformStream<Uint8Array, Uint8Array> {
+export function createTextCompletionStreamTransformer(
+  requestedModel?: string
+): TransformStream<Uint8Array, Uint8Array> {
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   let buffer = "";
@@ -83,11 +97,11 @@ export function createTextCompletionStreamTransformer(): TransformStream<Uint8Ar
       while ((idx = buffer.indexOf("\n")) >= 0) {
         const line = buffer.slice(0, idx);
         buffer = buffer.slice(idx + 1);
-        controller.enqueue(encoder.encode(transformLine(line) + "\n"));
+        controller.enqueue(encoder.encode(transformLine(line, requestedModel) + "\n"));
       }
     },
     flush(controller) {
-      if (buffer.length > 0) controller.enqueue(encoder.encode(transformLine(buffer)));
+      if (buffer.length > 0) controller.enqueue(encoder.encode(transformLine(buffer, requestedModel)));
     },
   });
 }
@@ -95,8 +109,17 @@ export function createTextCompletionStreamTransformer(): TransformStream<Uint8Ar
 /**
  * Wrap a chat-pipeline Response so `/v1/completions` returns the legacy
  * text-completion shape. Error responses and non-JSON/non-SSE bodies pass through.
+ *
+ * @param res upstream chat-pipeline response
+ * @param requestedModel optional caller-requested model identifier; when
+ *   provided, the response body's `model` field (and every SSE chunk's `model`)
+ *   is rewritten to this value so clients see what they asked for, matching the
+ *   `x-omniroute-model` header semantics.
  */
-export async function asTextCompletionResponse(res: Response): Promise<Response> {
+export async function asTextCompletionResponse(
+  res: Response,
+  requestedModel?: string
+): Promise<Response> {
   if (!res.ok) return res;
   const contentType = res.headers.get("content-type") || "";
 
@@ -106,10 +129,13 @@ export async function asTextCompletionResponse(res: Response): Promise<Response>
     // the client), mirroring the JSON branch below. (#3821-review LEDGER-8)
     const headers = new Headers(res.headers);
     headers.delete("content-length");
-    return new Response(res.body.pipeThrough(createTextCompletionStreamTransformer()), {
-      status: res.status,
-      headers,
-    });
+    return new Response(
+      res.body.pipeThrough(createTextCompletionStreamTransformer(requestedModel)),
+      {
+        status: res.status,
+        headers,
+      }
+    );
   }
 
   if (contentType.includes("application/json")) {
@@ -117,7 +143,7 @@ export async function asTextCompletionResponse(res: Response): Promise<Response>
     if (obj === null) return res;
     const headers = new Headers(res.headers);
     headers.delete("content-length"); // body length changed after re-serialization
-    return new Response(JSON.stringify(toTextCompletionObject(obj)), {
+    return new Response(JSON.stringify(toTextCompletionObject(obj, requestedModel)), {
       status: res.status,
       headers,
     });
