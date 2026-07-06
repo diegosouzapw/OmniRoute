@@ -119,6 +119,36 @@
 
 <br/>
 
+> **📣 This project is now distributed as `argismonitor`.**
+>
+> `OmniRoute` is the upstream (`diegosouzapw/OmniRoute`, MIT). This fork
+> (`KooshaPari/OmniRoute`) is published under the new name **`argismonitor`**
+> on npm and the **`KooshaPari/ArgisMonitor`** GitHub repo. The internal
+> identifier `omniroute` is preserved as a deprecated alias for upstream-merge
+> safety; new installs should use `argismonitor`.
+>
+> |  | old (deprecated) | new (canonical) |
+> |--|------------------|-----------------|
+> | binary | `omniroute` | `argismonitor` |
+> | npm | `omniroute` | `argismonitor` |
+> | data dir | `~/.omniroute` | `~/.argismonitor` (legacy preserved) |
+> | env vars | `OMNIROUTE_*` | `ARGIS_*` (legacy aliased) |
+> | repo | `KooshaPari/OmniRoute` | `KooshaPari/ArgisMonitor` |
+>
+> ```bash
+> # Migrate in 30 seconds
+> npm uninstall -g omniroute
+> npm install -g argismonitor
+> argismonitor --version   # canonical
+> OMNIROUTE_LEGACY=1 omniroute --version   # legacy shim still works
+> ```
+>
+> Removal window for the legacy aliases is **6 months** after `argismonitor`
+> is published as `latest` on npm. See `docs/RENAMES-STRATEGY.md` for the
+> full migration matrix and `docs/FORK.md` for fork attribution.
+
+<br/>
+
 <div align="center">
 
 # 💰 ~1.6B Free Tokens / Month

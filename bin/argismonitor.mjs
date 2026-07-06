@@ -23,6 +23,72 @@ import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSuppo
 import { getDefaultDataDir } from "./cli/data-dir.mjs";
 import { shouldProvisionStorageKey } from "./cli/utils/storageKeyProvision.mjs";
 
+// -----------------------------------------------------------------------------
+// ArgisMonitor additive-rename shim layer
+// -----------------------------------------------------------------------------
+// New identifiers (canonical):
+//   - binary:        `argismonitor`
+//   - data dir:      `~/.argismonitor` (DATA_DIR)
+//   - env vars:      ARGIS_* (ARGIS_LANG, ARGIS_NO_UPDATE_NOTIFIER,
+//                     ARGIS_CLI_SKIP_REPO_ENV, ARGIS_DATA_DIR, ...)
+//   - npm pkg:       `argismonitor` (with @argismonitor/* scoped pkgs)
+//   - repo:          KooshaPari/ArgisMonitor (post-rename)
+//
+// Legacy aliases (preserved; emit a one-time stderr notice on first use):
+//   - binary:        `omniroute`         -> bin/omniroute.mjs shim
+//   - data dir:      `~/.omniroute`      (fallback if ARGIS_DATA_DIR unset)
+//   - env vars:      OMNIROUTE_*         (read AFTER ARGIS_*)
+//   - npm pkg:       `omniroute`         (deprecated redirect post-publish)
+//
+// To silence the legacy-notice:
+//   OMNIROUTE_LEGACY=1 argismonitor ...
+// or:
+//   ARGIS_LEGACY_OFF=1 argismonitor ...
+//
+// Removal window: tracked in docs/RENAMES-STRATEGY.md (no earlier than 6
+// months after the `KooshaPari/OmniRoute` -> `KooshaPari/ArgisMonitor`
+// rename is pushed to remote + npm `argismonitor` is published as `latest`).
+// -----------------------------------------------------------------------------
+
+// Bridge OMNIROUTE_* env vars -> ARGIS_* if the new names are unset. This
+// lets existing automation keep working while we migrate.
+const ENV_BRIDGE = {
+  ARGIS_LANG: ["OMNIROUTE_LANG"],
+  ARGIS_NO_UPDATE_NOTIFIER: ["OMNIROUTE_NO_UPDATE_NOTIFIER"],
+  ARGIS_CLI_SKIP_REPO_ENV: ["OMNIROUTE_CLI_SKIP_REPO_ENV"],
+  ARGIS_DATA_DIR: ["OMNIROUTE_DATA_DIR", "DATA_DIR"],
+  ARGIS_LEGACY_OFF: ["OMNIROUTE_LEGACY"],
+};
+const _legacyHits = [];
+for (const [newKey, oldKeys] of Object.entries(ENV_BRIDGE)) {
+  if (process.env[newKey] === undefined) {
+    for (const oldKey of oldKeys) {
+      if (process.env[oldKey] !== undefined) {
+        process.env[newKey] = process.env[oldKey];
+        _legacyHits.push(oldKey);
+        break;
+      }
+    }
+  }
+}
+// Emit a one-time legacy-notice (suppressed in CI / OMNIROUTE_LEGACY=1).
+if (_legacyHits.length > 0 && !process.env.CI) {
+  const silenced =
+    process.env.OMNIROUTE_LEGACY === "1" || process.env.ARGIS_LEGACY_OFF === "1";
+  if (!silenced) {
+    process.stderr.write(
+      "\x1b[33m⚠ ArgisMonitor legacy env vars detected: " +
+        _legacyHits.join(", ") +
+        "\x1b[0m\n" +
+        "  These will be removed in a future release. Migrate to:\n" +
+        _legacyHits.map((k) => `    ${k.replace(/^OMNIROUTE_/, "ARGIS_")}`).join("\n") +
+        "\n" +
+        "  Silence this notice with: ARGIS_LEGACY_OFF=1\n" +
+        "  See docs/RENAMES-STRATEGY.md for the migration window.\n"
+    );
+  }
+}
+
 // Register tsx so dynamic imports of .ts source files (referenced as .js per
 // TypeScript conventions) resolve correctly. The build never emits .js for
 // src/lib/cli-helper/, so tsx handles the .ts → .js resolution at runtime.
@@ -53,8 +119,8 @@ function loadEnvFile() {
     envPaths.push(envPath);
   };
 
-  if (process.env.DATA_DIR) {
-    addEnvPath(join(process.env.DATA_DIR, ".env"));
+  if (process.env.DATA_DIR || process.env.ARGIS_DATA_DIR) {
+    addEnvPath(join(process.env.ARGIS_DATA_DIR || process.env.DATA_DIR, ".env"));
   }
 
   addEnvPath(join(getDefaultDataDir(), ".env"));
@@ -62,7 +128,7 @@ function loadEnvFile() {
   addEnvPath(join(process.cwd(), ".env"));
   // Skip the repo-checkout .env when explicitly requested (used by isolation tests
   // that need a deterministic environment without the development repo's defaults).
-  if (process.env.OMNIROUTE_CLI_SKIP_REPO_ENV !== "1") {
+  if (process.env.OMNIROUTE_CLI_SKIP_REPO_ENV !== "1" && process.env.ARGIS_CLI_SKIP_REPO_ENV !== "1") {
     addEnvPath(join(ROOT, ".env"));
   }
 
@@ -115,7 +181,7 @@ if (shouldProvisionStorageKey(process.argv)) {
     // Docker (where storage.sqlite lives), so the key survives `docker down` / `docker pull`.
     // Writing only to ~/.omniroute (the container home, not a volume) silently lost the key on
     // container recreation, leaving the persisted encrypted DB undecryptable (regression of #1622).
-    const dataDir = process.env.DATA_DIR || join(homedir(), ".omniroute");
+    const dataDir = process.env.ARGIS_DATA_DIR || process.env.DATA_DIR || join(homedir(), ".argismonitor");
     const envPath = join(dataDir, ".env");
     const dbPath = join(dataDir, "storage.sqlite");
 
@@ -163,7 +229,7 @@ if (shouldProvisionStorageKey(process.argv)) {
 {
   const langIdx = process.argv.findIndex((a) => a === "--lang");
   const langArg = langIdx >= 0 ? process.argv[langIdx + 1] : null;
-  const langEnv = process.env.OMNIROUTE_LANG;
+  const langEnv = process.env.ARGIS_LANG || process.env.OMNIROUTE_LANG;
   const chosen = langArg || langEnv;
   if (chosen) {
     const { setLocale } = await import(
@@ -177,7 +243,7 @@ if (shouldProvisionStorageKey(process.argv)) {
 const _pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
 const _notifier = updateNotifier({ pkg: _pkg, updateCheckInterval: 1000 * 60 * 60 * 24 });
 process.on("exit", () => {
-  if (process.env.OMNIROUTE_NO_UPDATE_NOTIFIER) return;
+  if (process.env.OMNIROUTE_NO_UPDATE_NOTIFIER || process.env.ARGIS_NO_UPDATE_NOTIFIER) return;
   if (process.env.CI) return;
   if (process.argv.includes("--quiet") || process.argv.includes("-q")) return;
   const outputIdx = process.argv.indexOf("--output");
@@ -190,7 +256,7 @@ process.on("exit", () => {
       isGlobal: true,
       message:
         `Update available: ${_notifier.update.current} → ${_notifier.update.latest}\n` +
-        "Run `npm install -g omniroute` or `omniroute update --apply`",
+        "Run `npm install -g argismonitor` or `argismonitor update --apply`",
     });
   }
 });
