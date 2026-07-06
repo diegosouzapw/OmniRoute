@@ -67,6 +67,7 @@ adjust on infra change.
 | 41 | `/api/quota/*` (CRUD) | CRUD | 800 ms | 1.5 s | |
 | 42 | `/api/monitoring/health` (heavy) | GET | 3.0 s | 5.0 s | |
 | 43 | `/api/health/ping` | GET | 50 ms | 100 ms | |
+| 44 | `/api/system/version` | GET | 50 ms | 100 ms | |
 
 ---
 

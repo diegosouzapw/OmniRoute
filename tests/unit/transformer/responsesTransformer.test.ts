@@ -578,6 +578,7 @@ test("baseline: <think>...</think> tags become reasoning items", async () => {
   // Construct a chunk that interleaves <think> with a delta.
   const payload = {
     id: "chatcmpl-think",
+    model: "deepseek-r1",
     choices: [
       {
         index: 0,

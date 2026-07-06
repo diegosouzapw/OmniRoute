@@ -16,9 +16,14 @@
  * can safely forward it through any pipeline without aliasing the sources.
  */
 export function mergeAbortSignals(
-  primary: AbortSignal,
-  secondary: AbortSignal
-): AbortSignal {
+  primary?: AbortSignal,
+  secondary?: AbortSignal
+): AbortSignal | undefined {
+  if (!primary) return secondary;
+  if (!secondary) return primary;
+  if (primary.aborted) return primary;
+  if (secondary.aborted) return secondary;
+
   const controller = new AbortController();
 
   const abortFrom = (source: AbortSignal) => {
@@ -26,15 +31,6 @@ export function mergeAbortSignals(
       controller.abort(source.reason);
     }
   };
-
-  if (primary.aborted) {
-    abortFrom(primary);
-    return controller.signal;
-  }
-  if (secondary.aborted) {
-    abortFrom(secondary);
-    return controller.signal;
-  }
 
   primary.addEventListener("abort", () => abortFrom(primary), { once: true });
   secondary.addEventListener("abort", () => abortFrom(secondary), { once: true });

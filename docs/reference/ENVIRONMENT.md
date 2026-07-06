@@ -1173,3 +1173,25 @@ Not required for normal operation — developer tooling only.
 | Variable                     | Default      | Source File                         | Description                                                                                                                                              |
 | ---------------------------- | ------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `OMNIROUTE_EVAL_CREDENTIALS` | `{}` (empty) | `scripts/compression-eval/index.ts` | Operator-supplied JSON credentials for the provider exercised by the offline compression-eval CLI (parsed with `JSON.parse`). Leave unset for a dry run. |
+
+### Local agent, observability, and proxy health knobs
+
+Optional operator knobs for local agent executors, Bifrost shadowing, OpenTelemetry export, proxy health automation, and Substrate dispatch integration.
+
+| Variable | Default | Source File | Description |
+| --- | --- | --- | --- |
+| `AUGGIE_BIN` | _(unset)_ | `open-sse/executors/auggie.ts` | Absolute path override for the Auggie CLI executable. |
+| `CLI_AUGGIE_BIN` | _(unset)_ | `open-sse/executors/auggie.ts` | Alias for `AUGGIE_BIN`. |
+| `BIFROST_KILLSWITCH_DISABLED` | _(unset)_ | `open-sse/executors/bifrost.ts` | Emergency/operator bypass for the Bifrost kill switch. Accepts `true` or `1`. |
+| `BIFROST_SHADOW_ENABLED` | _(unset)_ | Bifrost shadow tests/config | Enables Bifrost shadow traffic when the shadow lane is configured. |
+| `BIFROST_SHADOW_SAMPLE_RATE` | _(unset)_ | Bifrost shadow tests/config | Fraction of eligible traffic sampled into Bifrost shadow mode. |
+| `BIFROST_SHADOW_COST_OR_LATENCY_WINS` | _(unset)_ | Bifrost shadow tests/config | Records cost/latency shadow wins as useful comparison events. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | _(unset)_ | `src/instrumentation-node.ts` | OTLP endpoint; leave unset for no-op tracing. |
+| `OTEL_SDK_DISABLED` | _(unset)_ | `src/instrumentation-node.ts` | Standard OpenTelemetry SDK disable switch. |
+| `OTEL_SERVICE_NAME` | `omniroute` | `src/instrumentation-node.ts` | Service name for exported OpenTelemetry spans. |
+| `PROXY_HEALTH_ENABLED` | _(unset)_ | proxy health scheduler | Enables background proxy health checks. |
+| `PROXY_HEALTH_INTERVAL_MS` | _(unset)_ | proxy health scheduler | Proxy health-check interval in milliseconds. |
+| `PROXY_AUTO_REMOVE` | `false` | `src/lib/proxyHealth/scheduler.ts` | Auto-remove dead proxies after repeated health failures when set to `true`. |
+| `PROXY_AUTO_REMOVE_AFTER` | `3` | `src/lib/proxyHealth/scheduler.ts` | Consecutive failures required before proxy auto-removal. |
+| `SUBSTRATE_BIN` | _(unset)_ | Substrate integration | Local Substrate dispatcher binary override. |
+| `SUBSTRATE_HTTP_URL` | _(unset)_ | Substrate integration | Substrate HTTP cockpit/dispatcher URL. |

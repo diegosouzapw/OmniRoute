@@ -11,11 +11,7 @@ import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
 import { PoolRegistry } from "../services/sessionPool/poolRegistry.ts";
-import {
-  getRotatingApiKey,
-  getValidApiKey,
-  resolveKeyForRequest,
-} from "../services/apiKeyRotator.ts";
+import { resolveKeyForRequest } from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
 import {
@@ -85,6 +81,7 @@ export {
   isOpenAICompatibleEndpoint,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
+export { sanitizeReasoningEffortForProvider } from "./reasoningEffortMaps.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -174,7 +171,15 @@ export type CountTokensInput = {
   signal?: AbortSignal | null;
 };
 
-export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
+export function mergeAbortSignals(
+  primary?: AbortSignal | null,
+  secondary?: AbortSignal | null
+): AbortSignal | undefined {
+  if (!primary) return secondary ?? undefined;
+  if (!secondary) return primary;
+  if (primary.aborted) return primary;
+  if (secondary.aborted) return secondary;
+
   const controller = new AbortController();
 
   const abortFrom = (source: AbortSignal) => {
@@ -182,15 +187,6 @@ export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal):
       controller.abort(source.reason);
     }
   };
-
-  if (primary.aborted) {
-    abortFrom(primary);
-    return controller.signal;
-  }
-  if (secondary.aborted) {
-    abortFrom(secondary);
-    return controller.signal;
-  }
 
   primary.addEventListener("abort", () => abortFrom(primary), { once: true });
   secondary.addEventListener("abort", () => abortFrom(secondary), { once: true });
@@ -358,7 +354,7 @@ export class BaseExecutor {
     stream = true,
     clientHeaders?: Record<string, string> | null,
     model?: string,
-    health?: Record<string, KeyHealth>
+    _health?: Record<string, KeyHealth>
   ): Record<string, string> {
     void clientHeaders;
     void model;

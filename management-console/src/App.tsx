@@ -29,10 +29,6 @@ export function App() {
   const routePlan = useMemo(() => tabs.map((tab) => `/api/management/${tab.id}`), []);
 
   useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) setStatus("loading");
-    });
     fetchManagement<Record<string, unknown>>(active.id).then((result) => {
       if (cancelled) return;
       setStatus(result.ok ? "online" : "needs facade");

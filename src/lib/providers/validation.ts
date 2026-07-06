@@ -88,6 +88,9 @@ import {
 } from "@omniroute/open-sse/config/maritalk.ts";
 import { signAwsRequest } from "@omniroute/open-sse/utils/awsSigV4.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
+import { directHttpsRequest } from "@/lib/providers/validation/headers";
+
+export { isRetryableProxyTarget, isSecurityBlockError } from "@/lib/providers/validation/transport";
 
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
@@ -3650,6 +3653,116 @@ export async function validateBytezProvider({ apiKey, providerSpecificData = {} 
   }
 }
 
+const WEB_COOKIE_VALIDATORS: Record<string, (args: any) => Promise<any>> = {
+  "deepseek-web": validateDeepSeekWebProvider,
+  "grok-web": validateGrokWebProvider,
+  "qwen-web": validateQwenWebProvider,
+  "kimi-web": validateKimiWebProvider,
+  "chatgpt-web": validateChatGptWebProvider,
+  "perplexity-web": validatePerplexityWebProvider,
+  "blackbox-web": validateBlackboxWebProvider,
+  "muse-spark-web": validateMuseSparkWebProvider,
+  "inner-ai": validateInnerAiProvider,
+  "adapta-web": validateAdaptaWebProvider,
+  "claude-web": validateClaudeWebProvider,
+  "gemini-web": validateGeminiWebProvider,
+  "copilot-m365-web": validateCopilotM365WebProvider,
+  "copilot-web": validateCopilotWebProvider,
+  "t3-web": validateT3WebProvider,
+};
+
+export async function validateWebCookieProvider({
+  provider,
+  apiKey,
+  providerSpecificData = {},
+}: any) {
+  const validator = WEB_COOKIE_VALIDATORS[provider];
+  if (!validator) {
+    return { valid: false, error: "Unsupported web-cookie provider", unsupported: true };
+  }
+  if (!apiKey) {
+    return { valid: false, error: "Web cookie credential required", unsupported: false };
+  }
+  if (provider === "chatgpt-web") {
+    const cookieHeader = normalizeSessionCookieHeader(String(apiKey));
+    const response = await directHttpsRequest(
+      "https://chatgpt.com/backend-api/models",
+      {
+        method: "GET",
+        headers: applyCustomUserAgent(
+          {
+            Accept: "application/json",
+            Cookie: cookieHeader,
+          },
+          providerSpecificData
+        ),
+      },
+      5000
+    );
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "SESSION_EXPIRED",
+        errorCode: "AUTH_007",
+        unsupported: false,
+      };
+    }
+    return { valid: true, error: null, unsupported: false };
+  }
+  return validator({ apiKey, providerSpecificData });
+}
+
+async function validateZaiProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const baseUrl = normalizeBaseUrl(
+      providerSpecificData?.baseUrl || "https://api.z.ai/api/anthropic/v1/messages"
+    );
+    const url = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}beta=true`;
+    const response = await directHttpsRequest(
+      url,
+      {
+        method: "POST",
+        headers: applyCustomUserAgent(
+          {
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01",
+            "x-api-key": apiKey,
+          },
+          providerSpecificData
+        ),
+        body: JSON.stringify({
+          model: providerSpecificData?.validationModelId || "glm-5.1",
+          max_tokens: 1,
+          messages: [{ role: "user", content: "test" }],
+        }),
+      },
+      15000
+    );
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    if (
+      response.ok ||
+      response.status === 400 ||
+      response.status === 422 ||
+      response.status === 429 ||
+      response.status === 502
+    ) {
+      return { valid: true, error: null };
+    }
+    if (response.status === 404 || response.status === 405) {
+      return { valid: false, error: "Provider validation endpoint not supported" };
+    }
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = !providerAllowsOptionalApiKey(provider);
   const isLocal = isLocalProvider(provider);
@@ -3746,6 +3859,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     qoder: ({ apiKey, providerSpecificData }: any) =>
       validateQoderCliPat({ apiKey, providerSpecificData }),
     "command-code": validateCommandCodeProvider,
+    zai: validateZaiProvider,
     huggingface: validateHuggingFaceProvider,
     // #5422: auth-only probe — Bytez 404s on every chat model until the account adds it to
     // its catalog, so the generic chat probe can't validate a fresh key.

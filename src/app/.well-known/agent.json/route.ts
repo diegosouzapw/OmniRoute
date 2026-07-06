@@ -93,11 +93,11 @@ export async function GET() {
       {
         id: "mint-virtual-key",
         name: "Mint Virtual Key",
-        description: "Issues scoped virtual keys for tenant-specific agent access",
-        tags: ["security", "virtual-keys", "tenant", "a2a"],
+        description: "Creates scoped virtual keys for delegated agent or client access",
+        tags: ["credentials", "virtual-key", "delegation", "access-control"],
         examples: [
-          "Mint a virtual key for this tenant",
-          "Create a scoped agent access key",
+          "Mint a virtual key for a delegated coding agent",
+          "Create a scoped key for a desktop client session",
         ],
       },
     ],

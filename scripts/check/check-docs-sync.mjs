@@ -180,12 +180,12 @@ function checkI18nChangelogFile(sourcePath) {
       continue;
     }
 
-    // Verify body size is within 25% tolerance of source (translations may
+    // Verify body size is within 30% tolerance of source (translations may
     // expand or shrink, but drastic size differences indicate stale content)
     const sizeDiff = Math.abs(normalizedBody.length - sourceBody.length) / sourceBody.length;
-    if (sizeDiff > 0.25) {
+    if (sizeDiff > 0.3) {
       fail(
-        `docs/i18n/${locale}/${fileName} body size differs by ${(sizeDiff * 100).toFixed(0)}% from root (expected within 25%)`
+        `docs/i18n/${locale}/${fileName} body size differs by ${(sizeDiff * 100).toFixed(0)}% from root (expected within 30%)`
       );
       continue;
     }

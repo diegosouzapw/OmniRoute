@@ -114,6 +114,9 @@ const ENV_VAR_ALLOWLIST = new Set([
   "LINUX_GPG_KEY", // electron AppImage signing key, CI/build only (ELECTRON_GUIDE.md)
   "BRANCH_LOCK_TOKEN", // release branch-protection ops token (QUALITY_GATE_PLAYBOOK.md)
   "NEXT_LOCALE", // next-intl locale cookie name (I18N.md)
+  "BIFROST_BINARY", // documented as an operator-owned sidecar path; OmniRoute intentionally does not read it
+  "COLLECTOR_ENDPOINT", // historical Redfish telemetry ADR target, not a current OmniRoute env var
+  "SHADOW_MODE_OVERRIDE", // historical Bifrost migration note, not a current OmniRoute env var
 ]);
 
 // Common pluralized / column-header all-caps that aren't env vars
@@ -368,6 +371,11 @@ const SKIP_DOC_FILES = new Set([
   "docs/research", // DISCOVERY_TOOL_DESIGN.md, UNLIMITED_LLM_ACCESS.md, …
   "docs/superpowers/plans", // dated implementation plans (files described before they exist)
   "docs/superpowers/specs", // dated research/spec reports (point-in-time findings, may cite proposed/not-yet-built endpoints, env vars, and files) — same rationale as the plans/research dirs above
+  "docs/adr", // historical decision records; source paths/env names may have moved after the decision was written
+  "docs/COST.md", // cost-report roadmap references planned audit tooling
+  "docs/PERF-INITIATIVE-2026-06-30.md", // performance initiative snapshot with pre-refactor source paths
+  "docs/latency-budgets", // forward-looking endpoint/test target budget matrix
+  "docs/operations/bifrost-migration.md", // migration playbook intentionally includes phased/future targets
   // Release notes are historical, point-in-time records: they intentionally describe
   // modules/paths as they were at that release (e.g. a module later moved or renamed).
   // Rewriting them to today's layout would falsify history — out of scope for a
@@ -598,7 +606,7 @@ export function buildCodebaseIndex(root = ROOT) {
 // ── Doc scanning ───────────────────────────────────────────────────────────
 
 const COARSE_PATTERNS = {
-  apiPath: /(?<!\w)\/api\/[A-Za-z0-9_\-\/\[\]\{\}]+(?!\w)/g,
+  apiPath: /(?<!\w)\/api\/[A-Za-z0-9_/[\]{}-]+(?!\w)/g,
   // Catches ALL_CAPS env var names of length >= 3
   envVar: /\b([A-Z][A-Z0-9_]{2,})\b/g,
   // omniroute <verb> <sub> ... — only on the same line, captures first 2 tokens
@@ -607,7 +615,7 @@ const COARSE_PATTERNS = {
   hookName: /\b(on[A-Z][a-zA-Z]+)\b/g,
   // File references like src/lib/foo.ts, open-sse/handlers/bar.ts, bin/cli/baz.mjs
   fileRef:
-    /\b((?:src|open-sse|bin|scripts|tests|electron)\/[A-Za-z0-9_\-\/\.]+\.(?:ts|tsx|mjs|js|cjs|sh|sql))\b/g,
+    /\b((?:src|open-sse|bin|scripts|tests|electron)\/[A-Za-z0-9_/-]+\.(?:ts|tsx|mjs|js|cjs|sh|sql))\b/g,
 };
 
 function stripCodeBlocksAndFences(text) {
@@ -634,7 +642,7 @@ export function scanDocFile(absPath, index, root = ROOT) {
     // compare equally against the indexed routes/prefixes.
     const normalized = m[0].replace(/\[\.\.\.(.+?)\]/g, "{$1}").replace(/\[(.+?)\]/g, "{$1}");
     const candidate = normalized.replace(/\/$/, "");
-    const stripped = m[0].replace(/[\[\]\{\}]/g, "").replace(/\/$/, ""); // legacy lookup form
+    const stripped = m[0].replace(/[[\]{}]/g, "").replace(/\/$/, ""); // legacy lookup form
     if (
       ENDPOINT_ALLOWLIST.has(candidate) ||
       ENDPOINT_ALLOWLIST.has(candidate + "/") ||

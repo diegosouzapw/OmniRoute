@@ -1613,6 +1613,181 @@ paths:
 
   # ─── Management Endpoints ──────────────────────────────────────
 
+  /api/management/health:
+    get:
+      tags: [Management]
+      summary: Read management facade health
+      description: Returns health and readiness details for the standalone management facade.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Management facade health status
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+
+  /api/management/events:
+    get:
+      tags: [Management]
+      summary: Stream management facade events
+      description: Opens the management event stream for console and desktop clients.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Server-sent management event stream
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+
+  /api/management/rpc:
+    post:
+      tags: [Management]
+      summary: Invoke management RPC command
+      description: Dispatches a typed management RPC command for desktop and console clients.
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, command]
+              properties:
+                id:
+                  type: string
+                command:
+                  type: string
+                params:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: RPC command result
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+
+  /api/management/session:
+    post:
+      tags: [Management]
+      summary: Create management facade session
+      description: Establishes a management session for console and desktop clients.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Management session established
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/management/providers:
+    get:
+      tags: [Management]
+      summary: List management facade providers
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Provider facade list
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+    patch:
+      tags: [Management]
+      summary: Update management facade provider
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Provider updated
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+    delete:
+      tags: [Management]
+      summary: Delete management facade provider
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Provider deleted
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+
+  /api/management/models:
+    get:
+      tags: [Management]
+      summary: List management facade models
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Model facade list
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+
+  /api/management/keys:
+    get:
+      tags: [Management]
+      summary: List management facade keys
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Key facade list
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+
+  /api/management/virtual-keys:
+    get:
+      tags: [Management]
+      summary: List management facade virtual keys
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Virtual key facade list
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+
+  /api/management/compression/budget:
+    get:
+      tags: [Management]
+      summary: Read management compression budget
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Compression budget facade state
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+
+  /api/management/usage/call-logs:
+    get:
+      tags: [Management]
+      summary: List management usage call logs
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Management call-log list
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+
   /api/providers:
     get:
       tags: [Providers]

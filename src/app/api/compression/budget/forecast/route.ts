@@ -26,18 +26,14 @@
 import { NextResponse } from "next/server";
 import {
   projectBudgetSavings,
-  type BudgetHistoryPoint,
   type BudgetForecast,
 } from "@omniroute/open-sse/services/compression/budgetForecast";
-import { readCompressionBudgetHistory } from "@/lib/db/compressionBudgetHistory";
+import { readCompressionHistory } from "@/lib/db/compressionBudgetForecast";
 
 /** Default projection horizon: 1 hour. */
 const DEFAULT_HORIZON_MS = 60 * 60 * 1000;
 /** Default look-back window: 1 hour. */
 const DEFAULT_WINDOW_MS = 60 * 60 * 1000;
-/** Hard cap on rows pulled out of compression_analytics per request. */
-const MAX_HISTORY_ROWS = 5_000;
-
 interface ForecastResponseBody {
   success: boolean;
   windowMs: number;

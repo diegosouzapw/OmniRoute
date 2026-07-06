@@ -91,9 +91,17 @@ export {
 } from "./db/combos";
 
 export * from "./db/compressionCacheStats";
+export * from "./db/compressionBudgetForecast";
 export * from "./db/compressionCombos";
 export * from "./db/compressionRunTelemetry";
 export * from "./db/modelContextOverrides";
+export * from "./db/bifrostModels";
+export * from "./db/bifrostShadow";
+export * from "./db/costTracking";
+export * from "./db/providerHealthHistory";
+export * from "./db/routingDecisions";
+export * from "./db/trafficShadow";
+export * from "./db/virtualKeys";
 
 export {
   // API Keys

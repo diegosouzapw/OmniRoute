@@ -58,6 +58,7 @@
     "csv-stringify",
     "dompurify",
     "dpdm",
+    "electrobun",
     "electron",
     "electron-builder",
     "electron-updater",

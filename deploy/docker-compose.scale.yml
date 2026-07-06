@@ -1,8 +1,6 @@
-version: '3.9'
-
 services:
   loadbalancer:
-    image: caddy:2-latest
+    image: caddy:2
     container_name: omniroute-lb
     ports:
       - "20128:20128"
@@ -19,7 +17,7 @@ services:
       - omniroute-net
 
   redis:
-    image: redis:7-latest
+    image: redis:7-alpine
     container_name: omniroute-redis
     ports:
       - "6379:6379"

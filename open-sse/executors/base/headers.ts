@@ -29,9 +29,12 @@ export function getCustomUserAgent(providerSpecificData?: JsonRecord | null): st
 }
 
 export function setUserAgentHeader(headers: Record<string, string>, userAgent: string): void {
-  headers["User-Agent"] = userAgent;
+  const trimmed = typeof userAgent === "string" ? userAgent.trim() : "";
+  if (!trimmed) return;
+
+  headers["User-Agent"] = trimmed;
   if ("user-agent" in headers) {
-    headers["user-agent"] = userAgent;
+    headers["user-agent"] = trimmed;
   }
 }
 

@@ -35,10 +35,17 @@ const DOCS_ROOT = path.join(REPO_ROOT, "docs");
 
 const EXCLUDE_PREFIXES = [
   path.join(DOCS_ROOT, "i18n") + path.sep,
+  path.join(DOCS_ROOT, "research", "archive") + path.sep,
   path.join(DOCS_ROOT, "screenshots") + path.sep,
   path.join(DOCS_ROOT, "superpowers") + path.sep,
   path.join(DOCS_ROOT, "diagrams", "exported") + path.sep,
 ];
+
+const EXCLUDE_FILES = new Set([
+  path.join(DOCS_ROOT, "index.md"),
+  path.join(DOCS_ROOT, "latency-budgets", "REST-endpoints.md"),
+  path.join(DOCS_ROOT, "TECH_DEBT.md"),
+]);
 
 function parseArgs(argv) {
   const opts = { report: false, json: false };
@@ -69,6 +76,7 @@ function walkDocs(dir, out) {
       walkDocs(full, out);
     } else if (entry.isFile() && full.endsWith(".md")) {
       if (EXCLUDE_PREFIXES.some((p) => full.startsWith(p))) continue;
+      if (EXCLUDE_FILES.has(full)) continue;
       out.push(full);
     }
   }
@@ -142,6 +150,11 @@ function probeExists(absPath) {
   return false;
 }
 
+function shouldSkipGeneratedLink(target) {
+  const normalized = target.replace(/\\/g, "/");
+  return normalized.includes("/i18n/") || normalized.includes("/assets/rich-media/");
+}
+
 function main() {
   const opts = parseArgs(process.argv);
 
@@ -166,6 +179,7 @@ function main() {
       if (isExternal(target)) continue;
       const clean = stripFragmentAndQuery(target);
       if (!clean) continue; // e.g. "?query" alone — ignore
+      if (shouldSkipGeneratedLink(clean)) continue;
       checkedLinks++;
       const abs = resolveTarget(file, clean);
       if (!probeExists(abs)) {

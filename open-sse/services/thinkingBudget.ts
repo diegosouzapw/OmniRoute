@@ -306,10 +306,10 @@ function setCustomBudget(body: unknown, budget: number) {
       result.reasoning_effort = "low";
     } else if (budget <= 10240) {
       result.reasoning_effort = "medium";
-    } else if (budget < 131072) {
-      result.reasoning_effort = "high";
-    } else {
+    } else if (budget >= 100000) {
       result.reasoning_effort = "xhigh";
+    } else {
+      result.reasoning_effort = "high";
     }
   }
 

@@ -1,6 +1,7 @@
 :{$CADDY_PORT:20128} {
 	handle /api/v1/* {
-		reverse_proxy {$CADDY_API_UPSTREAM:omniroute-base:20129} {
+		reverse_proxy {$CADDY_API_UPSTREAMS:omniroute-1:3000 omniroute-2:3000 omniroute-3:3000} {
+			lb_policy least_conn
 			health_uri {$CADDY_API_HEALTH_URI:/v1/models}
 			health_interval 10s
 			health_timeout 5s
