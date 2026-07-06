@@ -1,4 +1,5 @@
 import { CORS_HEADERS } from "@/shared/utils/cors";
+import { getLiveWsPath } from "@/shared/utils/wsPath";
 import { authorizeWebSocketHandshake } from "@/lib/ws/handshake";
 
 const WS_HANDSHAKE_HEADERS = {
@@ -28,7 +29,7 @@ function getWsProtocol() {
     live: {
       port: parseInt(process.env.LIVE_WS_PORT || "20132", 10),
       publicUrl: getLivePublicUrl(),
-      path: "/live",
+      path: getLiveWsPath(),
       protocol: "json",
       channels: ["requests", "combo", "credentials"],
       auth: "api-key",
@@ -84,7 +85,7 @@ export async function GET(request: Request) {
         live: {
           port: parseInt(process.env.LIVE_WS_PORT || "20132", 10),
           publicUrl: getLivePublicUrl(),
-          path: "/live",
+          path: getLiveWsPath(),
           protocol: "json",
           channels: ["requests", "combo", "credentials"],
           auth: "api-key",

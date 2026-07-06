@@ -47,6 +47,21 @@ function getProxy(server) {
   return proxy;
 }
 
+function deriveLiveWsPath() {
+  const publicUrl = process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL;
+  if (!publicUrl) return "/live-ws";
+  if (!publicUrl.startsWith("ws://") && !publicUrl.startsWith("wss://")) return "/live-ws";
+  try {
+    const parsed = new URL(publicUrl);
+    const pathname = parsed.pathname;
+    return pathname && pathname !== "/" ? pathname : "/live-ws";
+  } catch {
+    return "/live-ws";
+  }
+}
+
+const LIVE_WS_PATH = deriveLiveWsPath();
+
 function proxyLiveWs(req, socket, head) {
   const targetPort = parseInt(process.env.LIVE_WS_PORT || "20132", 10);
   const targetSocket = net.connect(targetPort, "127.0.0.1", () => {
@@ -73,7 +88,7 @@ function wrapUpgradeListener(server, listener) {
   return async function responsesWsAwareUpgrade(req, socket, head) {
     try {
       const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
-      if (url.pathname === "/live-ws" || url.pathname.startsWith("/live-ws")) {
+      if (url.pathname === LIVE_WS_PATH || url.pathname.startsWith(LIVE_WS_PATH + "/")) {
         proxyLiveWs(req, socket, head);
         return;
       }

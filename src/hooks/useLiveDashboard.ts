@@ -13,6 +13,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { DashboardChannel, DashboardEventName } from "@/lib/events/types";
+import { deriveLiveWsPath } from "@/shared/utils/wsPath";
 
 // ── Config ────────────────────────────────────────────────────────────────
 
@@ -27,10 +28,11 @@ function sanitizeWsPublicUrl(url: unknown): string | null {
 // Build-time inlined value (Docker/npm prebuilt images won't have this — the
 // runtime value is discovered via the /api/v1/ws?handshake=1 handshake below).
 const BUILD_TIME_PUBLIC_WS_URL = sanitizeWsPublicUrl(process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL);
+const BUILD_TIME_WS_PATH = deriveLiveWsPath(process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL);
 
 function getDefaultWsUrl(): string {
   if (BUILD_TIME_PUBLIC_WS_URL) return BUILD_TIME_PUBLIC_WS_URL;
-  if (typeof window === "undefined") return "ws://localhost:20132";
+  if (typeof window === "undefined") return `ws://localhost:20132${BUILD_TIME_WS_PATH}`;
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const { hostname } = window.location;
   // Bug #1 fix: Use the WS server's actual port (20132) for both loopback
@@ -39,9 +41,9 @@ function getDefaultWsUrl(): string {
   // handler in src/proxy.ts. If the user wants the upgrade to go through
   // Next.js (same-origin), they should explicitly pass `wsUrl`.
   if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
-    return `${protocol}//${hostname}:20132`;
+    return `${protocol}//${hostname}:20132${BUILD_TIME_WS_PATH}`;
   }
-  return `${protocol}//${hostname}:20132`;
+  return `${protocol}//${hostname}:20132${BUILD_TIME_WS_PATH}`;
 }
 
 const DEFAULT_WS_URL = getDefaultWsUrl();
@@ -105,6 +107,7 @@ export function useLiveDashboard({
   // Skipped when the caller passes an explicit wsUrl or the env was inlined.
   const needsHandshake = !wsUrl && !BUILD_TIME_PUBLIC_WS_URL && typeof window !== "undefined";
   const [handshakeUrl, setHandshakeUrl] = useState<string | null>(null);
+  const [handshakePath, setHandshakePath] = useState<string | null>(null);
   const [wsUrlResolved, setWsUrlResolved] = useState(!needsHandshake);
 
   useEffect(() => {
@@ -116,6 +119,9 @@ export function useLiveDashboard({
         if (cancelled) return;
         const publicUrl = sanitizeWsPublicUrl(body?.live?.publicUrl);
         if (publicUrl) setHandshakeUrl(publicUrl);
+        if (typeof body?.live?.path === "string" && body.live.path.startsWith("/")) {
+          setHandshakePath(body.live.path);
+        }
       })
       .catch(() => {
         // Handshake unavailable — fall back to the default URL.
@@ -128,7 +134,12 @@ export function useLiveDashboard({
     };
   }, [needsHandshake, wsUrlResolved]);
 
-  const effectiveWsUrl = wsUrl ?? handshakeUrl ?? DEFAULT_WS_URL;
+  const effectiveWsUrl =
+    wsUrl ??
+    handshakeUrl ??
+    (handshakePath && handshakePath !== BUILD_TIME_WS_PATH
+      ? DEFAULT_WS_URL.replace(BUILD_TIME_WS_PATH, handshakePath)
+      : DEFAULT_WS_URL);
 
   const [events, setEvents] = useState<WsEventPayload[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
