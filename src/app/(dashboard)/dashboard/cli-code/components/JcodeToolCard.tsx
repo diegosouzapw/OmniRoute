@@ -79,7 +79,7 @@ export default function JcodeToolCard({
       fetchModelAliases();
     }
     if (isExpanded) fetchModelAliases();
-  }, [isExpanded]);
+  }, [isExpanded, jcodeStatus]);
 
   const fetchModelAliases = async () => {
     try {

@@ -1,5 +1,4 @@
 export const dynamic = "force-dynamic";
-("use server");
 
 import { NextResponse } from "next/server";
 import { exec } from "child_process";
@@ -7,7 +6,7 @@ import { promisify } from "util";
 import path from "path";
 import os from "os";
 import fs from "fs/promises";
-import yaml from "js-yaml";
+import { load as yamlLoad, dump as yamlDump } from "js-yaml";
 import { validateBody } from "@/shared/validation/schemas";
 import { cliAuthOnlyConfigSchema } from "@/shared/validation/schemas/cli";
 import { getOmpCredentials, saveOmpCredentials, deleteOmpCredentials } from "@/lib/db/omp";
@@ -46,7 +45,7 @@ const checkOmpInstalled = async () => {
 const readModelsYml = async () => {
   try {
     const content = await fs.readFile(getOmpModelsYmlPath(), "utf-8");
-    return yaml.load(content) || {};
+    return yamlLoad(content) || {};
   } catch {
     return {};
   }
@@ -113,7 +112,7 @@ export async function POST(request: Request) {
       discovery: { type: "proxy" },
     };
 
-    await fs.writeFile(getOmpModelsYmlPath(), yaml.dump(modelsYml, { lineWidth: -1 }), "utf-8");
+    await fs.writeFile(getOmpModelsYmlPath(), yamlDump(modelsYml, { lineWidth: -1 }), "utf-8");
 
     // 2. Write auth_credentials — so omp sees omniroute as "logged in"
     saveOmpCredentials(PROVIDER_ID, keyRef, normalizedBaseUrl);
@@ -141,7 +140,7 @@ export async function DELETE() {
       if (Object.keys(modelsYml).length === 0) {
         await fs.unlink(getOmpModelsYmlPath()).catch(() => {});
       } else {
-        await fs.writeFile(getOmpModelsYmlPath(), yaml.dump(modelsYml, { lineWidth: -1 }), "utf-8");
+        await fs.writeFile(getOmpModelsYmlPath(), yamlDump(modelsYml, { lineWidth: -1 }), "utf-8");
       }
     }
 
