@@ -73,7 +73,6 @@ describe("providerLimits.ts public API surface (13 functions)", () => {
     "getSanitizedCachedProviderLimitsMap",
     "notifyProviderUsageRecorded",
     "quotaPathShouldMarkExpired",
-    "redeemCodexResetCreditForProviderLimits",
     "refreshAndUpdateCredentials",
     "shouldAttemptRotatingRefresh",
     "syncAllProviderLimits",

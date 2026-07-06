@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { CodexResetCreditError } from "@/lib/usage/codexResetCredits";
-import { redeemCodexResetCreditForProviderLimits } from "@/lib/usage/providerLimits";
+import { CodexResetCreditError, consumeCodexResetCredit } from "@/lib/usage/codexResetCredits";
 
 type RequestBody = {
   connectionId?: unknown;
@@ -13,7 +12,7 @@ export async function POST(request: Request) {
     const connectionId = typeof body.connectionId === "string" ? body.connectionId : "";
     const idempotencyKey = typeof body.idempotencyKey === "string" ? body.idempotencyKey : "";
 
-    const result = await redeemCodexResetCreditForProviderLimits(connectionId, idempotencyKey);
+    const result = await consumeCodexResetCredit(connectionId, idempotencyKey);
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     const status = error instanceof CodexResetCreditError ? error.status : 500;

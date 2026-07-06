@@ -22,6 +22,8 @@ import { useNotificationStore } from "@/store/notificationStore";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
 import { useVisibleQuotaData } from "./useVisibleQuotaData";
+import { useCodexResetCreditRedemption } from "./useCodexResetCreditRedemption";
+import { PROVIDER_LABEL, PROVIDER_ORDER, TIER_FILTERS } from "./constants";
 import { formatAutoRefreshCountdown } from "./formatters";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 import { compareTr } from "@/shared/utils/turkishText";
@@ -42,56 +44,6 @@ const LS_PROVIDER_FILTER = "omniroute:limits:providerFilter";
 const MIN_FETCH_INTERVAL_MS = 30000;
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
 const QUOTA_BAR_YELLOW_THRESHOLD = 20;
-
-const PROVIDER_LABEL: Record<string, string> = {
-  antigravity: "Antigravity",
-  github: "GitHub Copilot",
-  kiro: "Kiro AI",
-  "amazon-q": "Amazon Q",
-  codex: "OpenAI Codex",
-  claude: "Claude Code",
-  glm: "GLM (Z.AI)",
-  zai: "Z.AI",
-  glmt: "GLM Thinking",
-  "opencode-go": "OpenCode Go",
-  "ollama-cloud": "Ollama Cloud",
-  "kimi-coding": "Kimi Coding",
-  minimax: "MiniMax",
-  "minimax-cn": "MiniMax CN",
-  nanogpt: "NanoGPT",
-  deepseek: "DeepSeek",
-};
-
-// Group ordering — single source of truth for provider placement.
-const PROVIDER_ORDER: Record<string, number> = {
-  antigravity: 1,
-  github: 3,
-  codex: 4,
-  claude: 5,
-  kiro: 6,
-  glm: 7,
-  zai: 8,
-  glmt: 9,
-  "opencode-go": 10,
-  "ollama-cloud": 11,
-  "kimi-coding": 12,
-  minimax: 13,
-  "minimax-cn": 14,
-  nanogpt: 15,
-};
-
-const TIER_FILTERS = [
-  { key: "all", labelKey: "tierAll" },
-  { key: "enterprise", labelKey: "tierEnterprise" },
-  { key: "team", labelKey: "tierTeam" },
-  { key: "business", labelKey: "tierBusiness" },
-  { key: "ultra", labelKey: "tierUltra" },
-  { key: "pro", labelKey: "tierPro" },
-  { key: "plus", labelKey: "tierPlus" },
-  { key: "lite", labelKey: "tierLite" },
-  { key: "free", labelKey: "tierFree" },
-  { key: "unknown", labelKey: "tierUnknown" },
-];
 
 type PurchaseTypeKey = "all" | "oauth-free" | "oauth-sub" | "apikey";
 type StatusKey = "all" | "critical" | "alert" | "ok" | "empty";
@@ -247,7 +199,12 @@ export default function ProviderLimits({
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
-  const [redeemingResetCreditId, setRedeemingResetCreditId] = useState<string | null>(null);
+  const resetCreditRedemption = useCodexResetCreditRedemption(
+    tr,
+    setErrors,
+    setQuotaData,
+    setLastRefreshedAt
+  );
 
   const [purchaseTypeFilter, setPurchaseTypeFilter] = useState<PurchaseTypeKey>(() => {
     if (typeof window === "undefined") return "all";
@@ -483,66 +440,6 @@ export default function ProviderLimits({
       await fetchQuota(connectionId, provider, { force: true });
     },
     [fetchQuota]
-  );
-
-  const redeemCodexResetCredit = useCallback(
-    async (connectionId: string, provider: string) => {
-      if (provider !== "codex" || redeemingResetCreditId) return;
-
-      const confirmed = window.confirm(
-        tr(
-          "confirmRedeemResetCredit",
-          "Redeem one Codex reset credit for this account? This consumes one reset credit."
-        )
-      );
-      if (!confirmed) return;
-
-      const idempotencyKey =
-        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-          ? crypto.randomUUID()
-          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-      setRedeemingResetCreditId(connectionId);
-      setErrors((prev) => ({ ...prev, [connectionId]: null }));
-
-      try {
-        const response = await fetch("/api/usage/codex-reset-credit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ connectionId, idempotencyKey }),
-        });
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          throw new Error(data.error || response.statusText);
-        }
-
-        const usage = data.usage || {};
-        setQuotaData((prev) => ({
-          ...prev,
-          [connectionId]: {
-            quotas: parseQuotaData(provider, usage),
-            plan: usage.plan || null,
-            message: usage.message || null,
-            raw: usage,
-            stale: usage._stale ? { since: usage._staleSince, reason: usage._staleReason } : null,
-          },
-        }));
-        setLastRefreshedAt((prev) => ({
-          ...prev,
-          [connectionId]: new Date().toISOString(),
-        }));
-        notify.success(tr("resetCreditRedeemed", "Reset redeemed"));
-      } catch (error: any) {
-        const message =
-          error?.message || tr("resetCreditRedeemFailed", "Failed to redeem reset credit");
-        setErrors((prev) => ({ ...prev, [connectionId]: message }));
-        notify.error(message);
-      } finally {
-        setRedeemingResetCreditId(null);
-      }
-    },
-    [notify, redeemingResetCreditId, tr]
   );
 
   const refreshingAllRef = useRef(false);
@@ -1137,10 +1034,10 @@ export default function ProviderLimits({
             setCutoffModalWindows(windows);
             setCutoffModalConn(conn);
           }}
-          onRedeemResetCredit={redeemCodexResetCredit}
+          onRedeemResetCredit={resetCreditRedemption.redeemCodexResetCredit}
           onToggleActive={handleToggleActive}
           togglingActiveId={togglingActiveId}
-          redeemingResetCreditId={redeemingResetCreditId}
+          redeemingResetCreditId={resetCreditRedemption.redeemingResetCreditId}
         />
       </div>
 

@@ -897,14 +897,6 @@ export async function fetchAndPersistProviderLimits(
   return { connection, usage, cache: newCache };
 }
 
-export async function redeemCodexResetCreditForProviderLimits(
-  connectionId: string,
-  idempotencyKey: string
-) {
-  const { consumeCodexResetCredit } = await import("./codexResetCredits");
-  return consumeCodexResetCredit(connectionId, idempotencyKey);
-}
-
 export async function syncAllProviderLimits(
   options: {
     source?: SyncSource;
