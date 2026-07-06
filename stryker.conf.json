@@ -118,7 +118,7 @@
       "tests/unit/combo-config.test.ts",
       "tests/unit/combo-context-relay.test.ts",
       "tests/unit/combo-headroom-strategy.test.ts",
-      "tests/unit/combo-health-autopilot.test.ts",
+      "tests/unit/serial/combo-health-autopilot.test.ts",
       "tests/unit/combo-health-dashboard.test.ts",
       "tests/unit/combo-health-route.test.ts",
       "tests/unit/combo-hedging.test.ts",

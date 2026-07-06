@@ -61,6 +61,7 @@ test("a quarentena contém os 3 flakes conhecidos e os gates de discovery/TIA a 
     "glm-coding-plan-monthly-3580.test.ts",
     "quota-division-blocks.test.ts",
     "provider-health-autopilot.test.ts",
+    "combo-health-autopilot.test.ts",
   ]) {
     assert.ok(files.includes(f), `${f} deve estar na quarentena`);
   }
