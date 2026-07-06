@@ -327,6 +327,26 @@ export default function ApiManagerPageClient() {
       if (res.ok) {
         const data = await res.json();
         setAllModels(Array.isArray(data.data) ? data.data : []);
+        return;
+      }
+
+      // Fallback for dashboard API-key editing: /v1/models can be protected by
+      // API-key catalog auth, but the dashboard still needs a stable catalog so
+      // users can edit allowedModels. /api/models?all=true returns the static
+      // dashboard model inventory in a slightly different shape.
+      const fallbackRes = await fetch("/api/models?all=true");
+      if (fallbackRes.ok) {
+        const fallbackData = await fallbackRes.json();
+        const fallbackModels = Array.isArray(fallbackData.models) ? fallbackData.models : [];
+        setAllModels(
+          fallbackModels
+            .map((m: any) => ({
+              id: typeof m.fullModel === "string" ? m.fullModel : `${m.provider}/${m.model}`,
+              owned_by: typeof m.provider === "string" ? m.provider : "unknown",
+              name: typeof m.alias === "string" ? m.alias : m.model || m.fullModel,
+            }))
+            .filter((m: Model) => typeof m.id === "string" && m.id.length > 0)
+        );
       } else {
         setAllModels([]);
       }
