@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} ને API કી અથવા કૂકીની જરૂર નથી. કનેક્શનને તેના મફત વેબ એન્ડપોઇન્ટનો ઉપયોગ કરવા માટે સાચવો.",
     "webSessionCredentialValidationFailed": "સત્ર ઓળખપત્ર માન્યતા નિષ્ફળ. ફરીથી સાઇન ઇન કરો, નવા ઓળખપત્રની નકલ કરો અને ફરી પ્રયાસ કરો.",
     "checkCookie": "કૂકી તપાસો",
-    "checkWebToken": "ટોકન તપાસો"
+    "checkWebToken": "ટોકન તપાસો",
+    "filterAll": "બધા",
+    "filterActive": "સક્રિય",
+    "filterError": "ભૂલ",
+    "filterBanned": "પ્રતિબંધિત",
+    "filterCreditsExhausted": "ક્રેડિટ સમાપ્ત"
   },
   "settings": {
     "title": "Settings",

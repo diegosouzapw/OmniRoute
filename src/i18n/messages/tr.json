@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} bir API anahtarına veya çereze ihtiyaç duymaz. Ücretsiz web uç noktasını kullanmak için bağlantıyı kaydedin.",
     "webSessionCredentialValidationFailed": "Oturum kimlik bilgisi doğrulaması başarısız oldu. Tekrar oturum açın, yeni kimlik bilgilerini kopyalayın ve tekrar deneyin.",
     "checkCookie": "Çerezleri kontrol et",
-    "checkWebToken": "Jetonu kontrol et"
+    "checkWebToken": "Jetonu kontrol et",
+    "filterAll": "Tümü",
+    "filterActive": "Etkin",
+    "filterError": "Hata",
+    "filterBanned": "Yasaklandı",
+    "filterCreditsExhausted": "Krediler tükendi"
   },
   "settings": {
     "title": "Ayarlar",

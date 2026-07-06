@@ -1239,6 +1239,14 @@ export async function getUnifiedModelsResponse(
           timestamp,
           (c) => buildComboCatalogMetadata(c, combos)
         );
+      } else if (!keyMeta) {
+        // #6406: A valid apiKey without a DB metadata row is an env-var master key
+        // (OMNIROUTE_API_KEY / ROUTER_API_KEY per isValidApiKey). Those keys have no
+        // per-key allow/deny/quota restrictions — they authenticate the request but
+        // do NOT scope the catalog. Skipping the per-model filter matches the intent:
+        // auth GATES access; env-var master keys see everything the unauth path sees.
+        // Without this branch, isModelAllowedForKey returns false for every model
+        // (metadata missing → deny), collapsing /v1/models to 0 entries.
       } else {
         const filtered = [];
         for (const m of models) {

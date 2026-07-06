@@ -1777,6 +1777,8 @@
     "models": "{count} models",
     "permissionsTitle": "Permissions: {name}",
     "allowAllDesc": "This key can access all available models.",
+    "restrictLoading": "Loading model catalog…",
+    "restrictCatalogUnavailable": "Model catalog unavailable; this key has {selectedCount} selected model restrictions.",
     "restrictDesc": "This key can access {selectedCount} of {totalModels} models.",
     "selectedCount": "{count} selected",
     "maxActiveSessions": "Max Active Sessions",
