@@ -189,7 +189,7 @@
       "tests/unit/plugin-sandbox-permissions.test.ts",
       "tests/unit/plugins-route-error-sanitization.test.ts",
       "tests/unit/provider-error-rules.test.ts",
-      "tests/unit/provider-health-autopilot.test.ts",
+      "tests/unit/serial/provider-health-autopilot.test.ts",
       "tests/unit/provider-health-matrix.test.ts",
       "tests/unit/provider-request-failure-pipeline.test.ts",
       "tests/unit/public-client-ids-3493.test.ts",
