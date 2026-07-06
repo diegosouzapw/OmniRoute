@@ -158,3 +158,22 @@ test("pre-flight --hermetic scrubs the live-test trigger vars (2026-07-05 false-
   assert.match(src, /saveGateLog/, "per-gate output must be persisted");
   assert.match(src, /_artifacts[/", ]+release-green/, "logs must land in _artifacts/release-green");
 });
+
+test("pre-flight runs the slow suites CONCURRENTLY (v3.8.45 perf — was ~1h serial)", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../scripts/quality/validate-release-green.mjs", import.meta.url),
+    "utf8"
+  );
+  // main() must be async and the slow suites (unit/vitest/integration/pack-artifact)
+  // must run via a single Promise.all over runAsync — not four sequential hardCmd calls.
+  assert.match(src, /async function main\(\)/, "main must be async to await the parallel wave");
+  assert.match(src, /const execFileAsync = promisify\(execFile\)/, "async runner must exist");
+  assert.match(src, /await Promise\.all\(\s*slow\.map\(/, "slow suites must run concurrently");
+  // The four slow-gate ids must all be present in the parallel wave.
+  for (const id of ["unit", "vitest", "integration", "pack-artifact"]) {
+    assert.ok(src.includes(`id: "${id}"`), `slow gate ${id} must be in the parallel wave`);
+  }
+  // Each still saves its per-gate log for red diagnosis without a re-run.
+  assert.match(src, /slow\.forEach\([\s\S]*?saveGateLog\(g\.id/, "each slow gate persists its log");
+});
