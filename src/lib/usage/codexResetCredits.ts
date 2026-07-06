@@ -9,6 +9,7 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const CODEX_RESET_CREDIT_CONSUME_URL =
   "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits/consume";
+const CODEX_RESET_CREDITS_URL = "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -103,6 +104,59 @@ function throwKnownConsumeError(payload: unknown): void {
   }
 }
 
+function extractStringField(record: JsonRecord, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim().length > 0) return value.trim();
+  }
+  return null;
+}
+
+function isUnavailableResetCredit(record: JsonRecord): boolean {
+  const status = normalizeOutcome(
+    record.status ?? record.state ?? record.outcome ?? record.result ?? record.code
+  );
+  if (status && ["consumed", "redeemed", "used", "expired", "unavailable"].includes(status)) {
+    return true;
+  }
+  return record.consumed === true || record.redeemed === true || record.available === false;
+}
+
+function extractCreditIdFromRecord(value: unknown): string | null {
+  const record = toRecord(value);
+  if (!record || Object.keys(record).length === 0 || isUnavailableResetCredit(record)) return null;
+  return extractStringField(record, ["credit_id", "creditId", "id"]);
+}
+
+function getResetCreditCandidates(payload: unknown): unknown[] {
+  if (Array.isArray(payload)) return payload;
+
+  const record = toRecord(payload);
+  for (const key of [
+    "credits",
+    "reset_credits",
+    "resetCredits",
+    "rate_limit_reset_credits",
+    "rateLimitResetCredits",
+    "items",
+    "data",
+  ]) {
+    const value = record[key];
+    if (Array.isArray(value)) return value;
+  }
+
+  return [];
+}
+
+function parseAvailableResetCreditId(payload: unknown): string {
+  for (const candidate of getResetCreditCandidates(payload)) {
+    const creditId = extractCreditIdFromRecord(candidate);
+    if (creditId) return creditId;
+  }
+
+  throw new CodexResetCreditError(409, "no_credit", "No Codex reset credits are available.");
+}
+
 async function readResponsePayload(response: Response): Promise<unknown> {
   const text = await response.text();
   if (!text) return {};
@@ -183,7 +237,8 @@ async function refreshCodexConnectionIfNeeded(
 
 async function postConsumeResetCredit(
   connection: CodexConnectionLike,
-  idempotencyKey: string
+  idempotencyKey: string,
+  creditId: string
 ): Promise<Response> {
   const headers = buildCodexResetCreditHeaders(connection);
   const proxyInfo = await resolveProxyForConnection(connection.id);
@@ -191,7 +246,19 @@ async function postConsumeResetCredit(
     fetch(CODEX_RESET_CREDIT_CONSUME_URL, {
       method: "POST",
       headers,
-      body: JSON.stringify({ redeem_request_id: idempotencyKey }),
+      body: JSON.stringify({ redeem_request_id: idempotencyKey, credit_id: creditId }),
+      signal: AbortSignal.timeout(15_000),
+    })
+  );
+}
+
+async function fetchResetCredits(connection: CodexConnectionLike): Promise<Response> {
+  const headers = buildCodexResetCreditHeaders(connection);
+  const proxyInfo = await resolveProxyForConnection(connection.id);
+  return runWithProxyContext(proxyInfo?.proxy ?? null, () =>
+    fetch(CODEX_RESET_CREDITS_URL, {
+      method: "GET",
+      headers,
       signal: AbortSignal.timeout(15_000),
     })
   );
@@ -202,11 +269,40 @@ async function consumeWithAuthRetry(
   idempotencyKey: string
 ): Promise<{ connection: CodexConnectionLike; response: Response }> {
   let refreshedConnection = await refreshCodexConnectionIfNeeded(connection);
-  let response = await postConsumeResetCredit(refreshedConnection, idempotencyKey);
+  let creditsResponse = await fetchResetCredits(refreshedConnection);
+
+  if (creditsResponse.status === 401 || creditsResponse.status === 403) {
+    refreshedConnection = await refreshCodexConnectionIfNeeded(refreshedConnection, true);
+    creditsResponse = await fetchResetCredits(refreshedConnection);
+  }
+
+  const creditsPayload = await readResponsePayload(creditsResponse);
+  if (!creditsResponse.ok) {
+    throwKnownConsumeError(creditsPayload);
+    throw new CodexResetCreditError(
+      creditsResponse.status,
+      "codex_reset_credit_upstream_error",
+      `Codex reset-credit API returned HTTP ${creditsResponse.status}.`
+    );
+  }
+
+  const creditId = parseAvailableResetCreditId(creditsPayload);
+  let response = await postConsumeResetCredit(refreshedConnection, idempotencyKey, creditId);
 
   if (response.status === 401 || response.status === 403) {
     refreshedConnection = await refreshCodexConnectionIfNeeded(refreshedConnection, true);
-    response = await postConsumeResetCredit(refreshedConnection, idempotencyKey);
+    const refreshedCreditsResponse = await fetchResetCredits(refreshedConnection);
+    const refreshedCreditsPayload = await readResponsePayload(refreshedCreditsResponse);
+    if (!refreshedCreditsResponse.ok) {
+      throwKnownConsumeError(refreshedCreditsPayload);
+      throw new CodexResetCreditError(
+        refreshedCreditsResponse.status,
+        "codex_reset_credit_upstream_error",
+        `Codex reset-credit API returned HTTP ${refreshedCreditsResponse.status}.`
+      );
+    }
+    const refreshedCreditId = parseAvailableResetCreditId(refreshedCreditsPayload);
+    response = await postConsumeResetCredit(refreshedConnection, idempotencyKey, refreshedCreditId);
   }
 
   return { connection: refreshedConnection, response };

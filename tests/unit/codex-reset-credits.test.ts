@@ -45,16 +45,31 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("consumeCodexResetCredit posts redeem_request_id and account id, then refreshes usage", async () => {
+test("consumeCodexResetCredit fetches a credit id, posts it, then refreshes usage", async () => {
   const connection = (await createCodexConnection()) as { id: string };
   const calls: Array<{ url: string; init: RequestInit }> = [];
 
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
 
+    if (String(url).endsWith("/rate-limit-reset-credits")) {
+      assert.equal(init.method, "GET");
+      assert.equal((init.headers as Record<string, string>)["chatgpt-account-id"], "workspace-123");
+      return new Response(
+        JSON.stringify({ credits: [{ id: "credit-123", status: "available" }] }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }
+      );
+    }
+
     if (String(url).includes("/rate-limit-reset-credits/consume")) {
       assert.equal((init.headers as Record<string, string>)["chatgpt-account-id"], "workspace-123");
-      assert.deepEqual(JSON.parse(String(init.body)), { redeem_request_id: "redeem-1" });
+      assert.deepEqual(JSON.parse(String(init.body)), {
+        redeem_request_id: "redeem-1",
+        credit_id: "credit-123",
+      });
       return new Response(JSON.stringify({ code: "reset" }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -85,6 +100,10 @@ test("consumeCodexResetCredit posts redeem_request_id and account id, then refre
   assert.equal(result.usage.plan, "plus");
   assert.equal(refreshedQuotas.weekly?.used, 40);
   assert.equal(
+    calls.some((call) => call.url.endsWith("/rate-limit-reset-credits")),
+    true
+  );
+  assert.equal(
     calls.some((call) => call.url.includes("/rate-limit-reset-credits/consume")),
     true
   );
@@ -94,6 +113,11 @@ test("consumeCodexResetCredit accepts alreadyRedeemed as success", async () => {
   const connection = (await createCodexConnection()) as { id: string };
 
   globalThis.fetch = async (url) => {
+    if (String(url).endsWith("/rate-limit-reset-credits")) {
+      return new Response(JSON.stringify({ credits: [{ credit_id: "credit-456" }] }), {
+        status: 200,
+      });
+    }
     if (String(url).includes("/rate-limit-reset-credits/consume")) {
       return new Response(JSON.stringify({ code: "alreadyRedeemed" }), { status: 200 });
     }
@@ -117,6 +141,11 @@ for (const code of ["noCredit", "nothingToReset"]) {
     const connection = (await createCodexConnection()) as { id: string };
 
     globalThis.fetch = async (url) => {
+      if (String(url).endsWith("/rate-limit-reset-credits")) {
+        return new Response(JSON.stringify({ credits: [{ id: "credit-error" }] }), {
+          status: 200,
+        });
+      }
       if (String(url).includes("/rate-limit-reset-credits/consume")) {
         return new Response(JSON.stringify({ code }), { status: 200 });
       }
@@ -132,6 +161,30 @@ for (const code of ["noCredit", "nothingToReset"]) {
     );
   });
 }
+
+test("consumeCodexResetCredit rejects when the credits endpoint has no redeemable id", async () => {
+  const connection = (await createCodexConnection()) as { id: string };
+
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith("/rate-limit-reset-credits")) {
+      return new Response(
+        JSON.stringify({ credits: [{ id: "used-credit", status: "redeemed" }] }),
+        {
+          status: 200,
+        }
+      );
+    }
+    return new Response("unexpected", { status: 500 });
+  };
+
+  await assert.rejects(
+    () => resetCredits.consumeCodexResetCredit(connection.id, "redeem-no-credit-id"),
+    (error: unknown) =>
+      error instanceof resetCredits.CodexResetCreditError &&
+      error.status === 409 &&
+      error.code === "no_credit"
+  );
+});
 
 test("consumeCodexResetCredit rejects non-Codex and missing connections", async () => {
   await assert.rejects(
