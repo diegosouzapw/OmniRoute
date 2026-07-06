@@ -21,6 +21,7 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(api):** `/v1/completions` now echoes the requested `body.model` in its JSON + streamed responses. Regression guard: `tests/unit/completions-body-model-echo.test.ts`. (thanks @chirag127)
 - **fix(api):** env-var master keys now see the full `/v1/models` catalog ([#6406](https://github.com/diegosouzapw/OmniRoute/issues/6406)). Regression guard: `tests/unit/models-catalog-envkey-6406.test.ts`. (thanks @chirag127)
 - **fix(api):** non-streaming `/v1/completions` responses now echo `body.model` aligned with the `X-OmniRoute-Model` header ([#6426](https://github.com/diegosouzapw/OmniRoute/issues/6426)). Regression guard: `tests/unit/v1-completions-model-header-match-6426.test.ts`. (thanks @chirag127)
 - **fix(api):** unknown `/v1/*` routes now return a JSON `404 not_found` instead of the Next.js dashboard HTML shell ([#6405](https://github.com/diegosouzapw/OmniRoute/issues/6405)). Regression guard: `tests/unit/api/v1-catchall-json-404.test.ts`. (thanks @chirag127)
