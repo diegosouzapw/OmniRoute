@@ -1966,7 +1966,7 @@
     "scrapeProvider": "Provider",
     "scrapeSize": "Size",
     "scrapeEmptyState": "Enter a URL to extract its content",
-    "scrapeProvidersAvailable": "Available providers: Firecrawl, Jina Reader, Tavily.",
+    "scrapeProvidersAvailable": "Available providers: Firecrawl, Jina Reader, Tavily, TinyFish.",
     "compareRun": "Compare",
     "compareRunning": "Comparing…",
     "autoProvider": "Auto (cheapest)",
