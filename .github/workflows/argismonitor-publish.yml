@@ -1,0 +1,247 @@
+name: Publish ArgisMonitor to npm
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (e.g. 2.9.5 or 3.0.0-rc.15)"
+        required: true
+        type: string
+      tag:
+        description: "npm dist-tag (auto / latest / next / historic)"
+        required: false
+        default: "auto"
+        type: choice
+        options:
+          - auto
+          - latest
+          - next
+          - historic
+  workflow_call:
+    inputs:
+      version:
+        description: "Version to publish (without v prefix)"
+        required: true
+        type: string
+      tag:
+        description: "npm dist-tag (auto / latest / next / historic)"
+        required: false
+        default: "auto"
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  NPM_PUBLISH_NODE_VERSION: "24"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies (skip scripts to avoid heavy build)
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Resolve version, dist-tag and skip flag
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          VERSION="${INPUT_VERSION:-}"
+          if [ -z "$VERSION" ] && [ "$EVENT_NAME" = "release" ]; then
+            VERSION="$REF_NAME"
+          fi
+          VERSION="${VERSION#v}"
+          if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$'; then
+            echo "Refusing to publish unsafe VERSION value: $VERSION" >&2
+            exit 1
+          fi
+          REQUESTED_TAG="${INPUT_TAG:-auto}"
+          TAG="$REQUESTED_TAG"
+          if [ "$TAG" = "auto" ] || [ -z "$TAG" ]; then
+            if printf '%s' "$VERSION" | grep -qE -- '-(rc|alpha|beta|pre|next)'; then
+              TAG="next"
+            else
+              git fetch --tags --quiet || true
+              HIGHEST=$(git tag -l 'v[0-9]*' | sed 's/^v//' | grep -vE -- '-(rc|alpha|beta|pre|next)' | sort -V | tail -1 || echo "")
+              if [ -n "$HIGHEST" ] && [ "$VERSION" = "$HIGHEST" ]; then
+                TAG="latest"
+              else
+                echo "Version $VERSION is not the highest semver tag (highest=${HIGHEST:-<none>}). Using dist-tag 'historic' to avoid clobbering @latest."
+                TAG="historic"
+              fi
+            fi
+          fi
+          PUBLISHED="$(npm view "argismonitor@${VERSION}" version 2>/dev/null || true)"
+          SKIP="false"
+          if [ "$PUBLISHED" = "$VERSION" ]; then
+            echo "⚠️ argismonitor@${VERSION} is already on npm — skipping publish."
+            SKIP="true"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG"          >> "$GITHUB_OUTPUT"
+          echo "skip=$SKIP"        >> "$GITHUB_OUTPUT"
+          echo "📦 Resolved argismonitor@$VERSION dist-tag=$TAG skip=$SKIP"
+
+      - name: Sync package.json version
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.resolve.outputs.version }}
+        run: npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+      - name: Build CLI bundle (standalone app)
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+        run: npm run build:cli
+
+      - name: Validate npm package artifact
+        if: steps.resolve.outputs.skip != 'true'
+        run: npm run check:pack-artifact
+
+      - name: Generate CycloneDX SBOM (npm)
+        if: steps.resolve.outputs.skip != 'true'
+        run: npx @cyclonedx/cyclonedx-npm --ignore-npm-errors --output-format JSON --output-file sbom-npm.cdx.json
+
+      - name: Upload SBOM (npm) as workflow artifact
+        if: steps.resolve.outputs.skip != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-argismonitor-npm
+          path: sbom-npm.cdx.json
+          if-no-files-found: error
+
+      - name: Attach SBOM to GitHub Release
+        if: steps.resolve.outputs.skip != 'true' && github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: gh release upload "$TAG" sbom-npm.cdx.json --clobber
+
+      - name: Publish to npm
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.resolve.outputs.version }}
+          TAG: ${{ steps.resolve.outputs.tag }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          npm publish --provenance --access public --tag "$TAG"
+          echo "✅ Published argismonitor@$VERSION (dist-tag=$TAG)"
+
+      - name: Publish to GitHub Packages
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.resolve.outputs.version }}
+          TAG: ${{ steps.resolve.outputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > .npmrc
+          npm pkg set name="@kooshapari/argismonitor"
+          npm publish --registry=https://npm.pkg.github.com --tag "$TAG" \
+            || echo "⚠️ argismonitor@${VERSION} might already be published on GitHub Packages."
+          echo "✅ Action finished for GitHub Packages"
+
+  publish-opencode-plugin:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+
+      - name: Auto-bump plugin version if plugin changed since last release
+        id: bump
+        working-directory: "@argismonitor/opencode-plugin"
+        env:
+          CURRENT_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          PKG_NAME=$(node -p "require('./package.json').name")
+          PUBLISHED="$(npm view "${PKG_NAME}@${PKG_VERSION}" version 2>/dev/null || true)"
+          if [ "$PUBLISHED" != "$PKG_VERSION" ]; then
+            echo "✅ ${PKG_NAME}@${PKG_VERSION} is new — no bump needed."
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          PREV_TAG=$(git tag -l 'v*' --sort=-version:refname \
+            | grep -v "^${CURRENT_TAG}$" | head -1 || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            echo "No previous tag to compare — skipping bump."
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git diff --quiet "$PREV_TAG" -- "@argismonitor/opencode-plugin/"; then
+            echo "⏭️ No plugin changes since $PREV_TAG — nothing to publish."
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          npm version patch --no-git-tag-version --allow-same-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "bumped=true" >> "$GITHUB_OUTPUT"
+          echo "📦 Auto-bumped ${PKG_NAME} from ${PKG_VERSION} to ${NEW_VERSION}"
+
+      - name: Install plugin dependencies
+        working-directory: "@argismonitor/opencode-plugin"
+        run: npm install --no-audit --no-fund
+
+      - name: Build plugin
+        working-directory: "@argismonitor/opencode-plugin"
+        run: npm run clean && npm run build
+
+      - name: Test plugin
+        working-directory: "@argismonitor/opencode-plugin"
+        run: npm test
+
+      - name: Publish @argismonitor/opencode-plugin to npm
+        working-directory: "@argismonitor/opencode-plugin"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          PKG_NAME=$(node -p "require('./package.json').name")
+          PUBLISHED="$(npm view "${PKG_NAME}@${PKG_VERSION}" version 2>/dev/null || true)"
+          if [ "$PUBLISHED" = "$PKG_VERSION" ]; then
+            echo "⚠️ ${PKG_NAME}@${PKG_VERSION} is already published on npm — skipping."
+            exit 0
+          fi
+          npm publish --provenance --access public --ignore-scripts
+          echo "✅ Published ${PKG_NAME}@${PKG_VERSION}"

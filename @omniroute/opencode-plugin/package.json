@@ -1,7 +1,7 @@
 {
-  "name": "@omniroute/opencode-plugin",
-  "version": "0.2.0",
-  "description": "OpenCode plugin for the OmniRoute AI Gateway. Drives dynamic model discovery, /connect auth flow, and multi-instance OmniRoute providers via the official @opencode-ai/plugin contract.",
+  "name": "@argismonitor/opencode-plugin",
+  "version": "0.3.0-argismonitor-prep.1",
+  "description": "ArgisMonitor (formerly OmniRoute) OpenCode plugin. Drives dynamic model discovery, /connect auth flow, and multi-instance AI router providers via the official @opencode-ai/plugin contract.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -27,7 +27,9 @@
     "prepublishOnly": "npm run clean && npm run build && npm test"
   },
   "keywords": [
-    "omniroute",
+    "argismonitor",
+    "argis",
+    "phenotype",
     "opencode",
     "opencode-plugin",
     "ai-sdk",
@@ -37,17 +39,20 @@
     "combos",
     "mcp"
   ],
-  "author": "OmniRoute contributors",
+  "author": {
+    "name": "KooshaPari",
+    "url": "https://kooshapari.com"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/diegosouzapw/OmniRoute.git",
-    "directory": "@omniroute/opencode-plugin"
+    "url": "https://github.com/KooshaPari/ArgisMonitor.git",
+    "directory": "@argismonitor/opencode-plugin"
   },
   "bugs": {
-    "url": "https://github.com/diegosouzapw/OmniRoute/issues"
+    "url": "https://github.com/KooshaPari/ArgisMonitor/issues"
   },
-  "homepage": "https://github.com/diegosouzapw/OmniRoute/tree/main/%40omniroute/opencode-plugin#readme",
+  "homepage": "https://github.com/KooshaPari/ArgisMonitor/tree/main/%40argismonitor/opencode-plugin#readme",
   "engines": {
     "node": ">=22.22.3"
   },

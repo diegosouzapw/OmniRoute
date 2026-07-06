@@ -1,16 +1,20 @@
 {
-  "name": "omniroute",
+  "name": "argismonitor",
   "version": "3.8.44",
-  "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
+  "description": "ArgisMonitor (formerly OmniRoute) — Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
+    "argismonitor": "bin/argismonitor.mjs",
+    "argismonitor-reset-password": "bin/argismonitor-reset-password.mjs",
     "omniroute": "bin/omniroute.mjs",
-    "omniroute-reset-password": "bin/reset-password.mjs"
+    "omniroute-reset-password": "bin/omniroute-reset-password.mjs"
   },
+  "deprecated": false,
   "files": [
     "bin/",
     "dist/",
     "@omniroute/",
+    "@argismonitor/",
     "open-sse/",
     "src/domain/",
     "src/lib/",
@@ -67,12 +71,16 @@
     "auto-fallback"
   ],
   "license": "MIT",
-  "author": "diegosouzapw",
+  "author": "KooshaPari (maintainer) / diegosouzapw (upstream)",
+  "contributors": [
+    { "name": "KooshaPari", "url": "https://kooshapari.com" },
+    { "name": "diegosouzapw (upstream)", "url": "https://github.com/diegosouzapw" }
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/diegosouzapw/OmniRoute"
+    "url": "https://github.com/KooshaPari/ArgisMonitor"
   },
-  "homepage": "https://omniroute.online",
+  "homepage": "https://argismonitor.phenotype.space",
   "scripts": {
     "dev": "node --max-old-space-size=8192 scripts/dev/run-next.mjs dev",
     "prebuild:docs": "node scripts/docs/gen-openapi-module.mjs",

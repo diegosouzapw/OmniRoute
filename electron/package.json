@@ -1,14 +1,14 @@
 {
-  "name": "omniroute-desktop",
-  "version": "3.8.44",
-  "description": "OmniRoute Desktop Application",
+  "name": "argismonitor-desktop",
+  "version": "3.8.44-argismonitor-prep.1",
+  "description": "ArgisMonitor (formerly OmniRoute) Desktop Application",
   "main": "main.js",
   "author": {
-    "name": "OmniRoute Team",
-    "email": "support@omniroute.online"
+    "name": "KooshaPari",
+    "url": "https://kooshapari.com"
   },
   "license": "MIT",
-  "homepage": "https://omniroute.online",
+  "homepage": "https://argismonitor.phenotype.space",
   "engines": {
     "node": ">=22.22.2 <23 || >=24.0.0 <27"
   },
@@ -39,17 +39,17 @@
     "undici": "^7.28.0"
   },
   "build": {
-    "appId": "online.omniroute.desktop",
-    "productName": "OmniRoute",
-    "copyright": "Copyright © 2025 OmniRoute",
+    "appId": "space.phenotype.argismonitor.desktop",
+    "productName": "ArgisMonitor",
+    "copyright": "Copyright © 2026 KooshaPari / Phenotype.",
     "directories": {
       "output": "dist-electron",
       "buildResources": "assets"
     },
     "publish": {
       "provider": "github",
-      "owner": "diegosouzapw",
-      "repo": "OmniRoute"
+      "owner": "KooshaPari",
+      "repo": "ArgisMonitor"
     },
     "files": [
       "main.js",

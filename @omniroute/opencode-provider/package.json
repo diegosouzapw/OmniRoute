@@ -1,7 +1,7 @@
 {
-  "name": "@omniroute/opencode-provider",
-  "version": "0.1.0",
-  "description": "DEPRECATED — use @omniroute/opencode-plugin instead (it fetches the live OmniRoute /v1/models catalog at startup, so models never drift). This static-config generator still works but is no longer the recommended path. OpenCode provider helper for the OmniRoute AI Gateway.",
+  "name": "@argismonitor/opencode-provider",
+  "version": "0.2.0-argismonitor-prep.1",
+  "description": "DEPRECATED — use @argismonitor/opencode-plugin instead (it fetches the live AI router /v1/models catalog at startup, so models never drift). This static-config generator still works but is no longer the recommended path. OpenCode provider helper for ArgisMonitor (formerly OmniRoute).",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -25,7 +25,9 @@
     "prepublishOnly": "npm run clean && npm run build && npm test"
   },
   "keywords": [
-    "omniroute",
+    "argismonitor",
+    "argis",
+    "phenotype",
     "opencode",
     "opencode-ai",
     "ai-sdk",
@@ -34,17 +36,20 @@
     "ai-gateway",
     "llm-router"
   ],
-  "author": "OmniRoute contributors",
+  "author": {
+    "name": "KooshaPari",
+    "url": "https://kooshapari.com"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/diegosouzapw/OmniRoute.git",
-    "directory": "@omniroute/opencode-provider"
+    "url": "git+https://github.com/KooshaPari/ArgisMonitor.git",
+    "directory": "@argismonitor/opencode-provider"
   },
   "bugs": {
-    "url": "https://github.com/diegosouzapw/OmniRoute/issues"
+    "url": "https://github.com/KooshaPari/ArgisMonitor/issues"
   },
-  "homepage": "https://github.com/diegosouzapw/OmniRoute/tree/main/%40omniroute/opencode-provider#readme",
+  "homepage": "https://github.com/KooshaPari/ArgisMonitor/tree/main/%40argismonitor/opencode-provider#readme",
   "engines": {
     "node": ">=22.22.3"
   },
