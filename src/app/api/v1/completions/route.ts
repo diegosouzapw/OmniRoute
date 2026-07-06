@@ -77,8 +77,11 @@ export async function POST(request: Request) {
         });
         // #3571 — translate the chat-pipeline response back to the legacy
         // text-completion shape so OpenAI Completion clients (e.g. TabbyML) work.
+        // Thread `body.model` so response `body.model` echoes the caller's
+        // requested identifier, matching the `x-omniroute-model` header.
         return await asTextCompletionResponse(
-          await handleChat(newRequest, buildClientRawRequest(request, body))
+          await handleChat(newRequest, buildClientRawRequest(request, body)),
+          typeof body.model === "string" ? body.model : undefined
         );
       }
     }
@@ -88,5 +91,15 @@ export async function POST(request: Request) {
 
   // Standard path: body already has messages[] (chat format). Still emit the legacy
   // text-completion shape — this is the /v1/completions contract (#3571).
-  return await asTextCompletionResponse(await handleChat(request));
+  // Re-read body.model so the response echoes the caller's requested identifier.
+  let requestedModel: string | undefined;
+  try {
+    const bodyForModel = await request.clone().json().catch(() => null);
+    if (bodyForModel && typeof bodyForModel.model === "string") {
+      requestedModel = bodyForModel.model;
+    }
+  } catch {
+    // ignore — asTextCompletionResponse falls back to upstream body.model
+  }
+  return await asTextCompletionResponse(await handleChat(request), requestedModel);
 }
