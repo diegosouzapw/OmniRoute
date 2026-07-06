@@ -8,6 +8,7 @@
 
 ### ✨ New Features
 
+- **feat(providers):** add **DigitalOcean** AI (serverless inference) as an OpenAI-compatible API-key provider — base `https://inference.do-ai.run/v1`, wired through the shared OpenAI-compatible registry with full model passthrough (`open-sse/config/providers/registry/digitalocean/`, `src/shared/constants/providers/apikey/inference-hosts.ts`). Regression guard: `tests/unit/digitalocean-provider.test.ts`. (thanks @newnol)
 - **feat(providers):** add **Huancheng Public API** (`hcnsec`) as an OpenAI-compatible regional provider — Xinjiang Huancheng Cybersecurity's public LLM platform (base `https://api.hcnsec.cn/v1`, free credits via daily check-ins), wired through the shared OpenAI-compatible registry with full model passthrough (`open-sse/config/providers/registry/hcnsec/`, `src/shared/constants/providers/apikey/regional.ts`). Regression guard: `tests/unit/hcnsec-provider.test.ts`. (thanks @UnrealAryan)
 - **feat(dashboard):** the web-session credential guide now shows an **"Open {host}" link** to the provider's sign-in site (derived from the provider `website` via `getProviderWebsiteHost`), so you can jump straight to the page where the cookie/session must be captured. Regression guard: `tests/unit/web-session-provider-link-6316.test.ts`. (thanks @jordansilly77-stack)
 - **feat(cerebras):** add the **Gemma 4 31B** model (`gemma-4-31b`) to the Cerebras registry + pricing table. Regression guard extends `tests/unit/t28-model-catalog-updates.test.ts`. (thanks @backryun)
