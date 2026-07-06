@@ -9,6 +9,11 @@ import { PROVIDERS } from "../config/constants.ts";
 import { v4 as uuidv4 } from "uuid";
 import { refreshKiroToken } from "../services/tokenRefresh.ts";
 import {
+  isExternalIdpAuthMethod,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE,
+} from "../services/kiroExternalIdp.ts";
+import {
   splitInlineThinking,
   flushPendingThinking,
   type KiroThinkingState,
@@ -198,6 +203,16 @@ export class KiroExecutor extends BaseExecutor {
 
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+
+      // Enterprise / Microsoft Entra "Your organization" (external_idp) logins send an
+      // org-IdP-issued access token. CodeWhisperer only binds it to the Amazon Q Developer
+      // profile when the request carries `TokenType: EXTERNAL_IDP`; without it every call
+      // returns `ValidationException: Invalid ARN <clientId>` (the service falls back to the
+      // token's client id as the resource ARN). AWS SSO (Builder ID / IDC) and social tokens
+      // must NOT send this header, so it is gated on the persisted authMethod.
+      if (isExternalIdpAuthMethod(credentials.providerSpecificData?.authMethod)) {
+        headers[KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER] = KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE;
+      }
     }
 
     return headers;

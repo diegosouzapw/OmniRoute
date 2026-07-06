@@ -13,6 +13,11 @@
 
 import { toRecord, toNumber } from "./scalars.ts";
 import { type UsageQuota, parseResetTime } from "./quota.ts";
+import {
+  isExternalIdpAuthMethod,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE,
+} from "../kiroExternalIdp.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -188,14 +193,22 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
       resourceType: "AGENTIC_REQUEST",
     };
 
+    // Enterprise / Microsoft Entra (external_idp) org accounts require the
+    // `TokenType: EXTERNAL_IDP` header for CodeWhisperer to bind the bearer to the
+    // profile; without it GetUsageLimits returns `ValidationException: Invalid ARN`.
+    const usageHeaders: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/x-amz-json-1.0",
+      "x-amz-target": "AmazonCodeWhispererService.GetUsageLimits",
+      Accept: "application/json",
+    };
+    if (isExternalIdpAuthMethod(providerSpecificData?.authMethod)) {
+      usageHeaders[KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER] = KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE;
+    }
+
     const response = await fetch(usageBaseUrl, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/x-amz-json-1.0",
-        "x-amz-target": "AmazonCodeWhispererService.GetUsageLimits",
-        Accept: "application/json",
-      },
+      headers: usageHeaders,
       body: JSON.stringify(payload),
     });
 

@@ -1,4 +1,8 @@
 import { KIRO_CONFIG, assertValidAwsRegion } from "../constants/oauth";
+import {
+  buildExternalIdpRefreshParams,
+  isExternalIdpAuthMethod,
+} from "@omniroute/open-sse/services/kiroExternalIdp.ts";
 
 /**
  * Kiro OAuth Service
@@ -186,6 +190,32 @@ export class KiroService {
    */
   async refreshToken(refreshToken: string, providerSpecificData: any = {}) {
     const { authMethod, clientId, clientSecret, region } = providerSpecificData;
+
+    // Enterprise / Microsoft Entra "Your organization" (external_idp) login: refresh with a
+    // standard public-client OAuth2 refresh_token grant against the org IdP's tokenEndpoint
+    // (form-encoded client_id + refresh_token + scope, no client_secret). The AWS SSO OIDC and
+    // Kiro social endpoints cannot refresh these tokens.
+    if (isExternalIdpAuthMethod(authMethod)) {
+      const refreshRequest = buildExternalIdpRefreshParams(refreshToken, providerSpecificData);
+      const response = await fetch(refreshRequest.tokenEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+        body: refreshRequest.body,
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Token refresh failed: ${error}`);
+      }
+      const data = await response.json();
+      return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token || refreshToken,
+        expiresIn: data.expires_in || 3600,
+      };
+    }
 
     // AWS SSO OIDC refresh (Builder ID or IDC).
     // Imported social tokens (authMethod === "imported") have a registered clientId/clientSecret
