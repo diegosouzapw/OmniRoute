@@ -3,6 +3,10 @@ import { buildClientRawRequest, handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { asTextCompletionResponse } from "./textCompletionTransform.ts";
+import {
+  readCompressionRequestHeader,
+  withCompressionHeaderEcho,
+} from "@/shared/utils/compressionHeaderEcho";
 
 let initPromise = null;
 const injectionGuard = createInjectionGuard();
@@ -39,6 +43,10 @@ export async function OPTIONS() {
  */
 export async function POST(request: Request) {
   await ensureInitialized();
+
+  // #6422 — capture the compression request header once so we can echo it back
+  // on the response when internal early-returns drop the meta the docs promise.
+  const compressionRequestHeader = readCompressionRequestHeader(request);
 
   // Prompt injection guard
   try {
@@ -77,8 +85,15 @@ export async function POST(request: Request) {
         });
         // #3571 — translate the chat-pipeline response back to the legacy
         // text-completion shape so OpenAI Completion clients (e.g. TabbyML) work.
-        return await asTextCompletionResponse(
-          await handleChat(newRequest, buildClientRawRequest(request, body))
+        // Thread `body.model` so response `body.model` echoes the caller's
+        // requested identifier, matching the `x-omniroute-model` header, and
+        // echo the compression header on the way out.
+        return withCompressionHeaderEcho(
+          await asTextCompletionResponse(
+            await handleChat(newRequest, buildClientRawRequest(request, body)),
+            typeof body.model === "string" ? body.model : undefined
+          ),
+          compressionRequestHeader
         );
       }
     }
@@ -88,5 +103,18 @@ export async function POST(request: Request) {
 
   // Standard path: body already has messages[] (chat format). Still emit the legacy
   // text-completion shape — this is the /v1/completions contract (#3571).
-  return await asTextCompletionResponse(await handleChat(request));
+  // Re-read body.model so the response echoes the caller's requested identifier.
+  let requestedModel: string | undefined;
+  try {
+    const bodyForModel = await request.clone().json().catch(() => null);
+    if (bodyForModel && typeof bodyForModel.model === "string") {
+      requestedModel = bodyForModel.model;
+    }
+  } catch {
+    // ignore — asTextCompletionResponse falls back to upstream body.model
+  }
+  return withCompressionHeaderEcho(
+    await asTextCompletionResponse(await handleChat(request), requestedModel),
+    compressionRequestHeader
+  );
 }

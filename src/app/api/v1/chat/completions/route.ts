@@ -8,6 +8,10 @@ import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.
 import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 import { checkChatAdmission } from "@/shared/middleware/chatBodyAdmission";
+import {
+  readCompressionRequestHeader,
+  withCompressionHeaderEcho,
+} from "@/shared/utils/compressionHeaderEcho";
 
 let initPromise = null;
 
@@ -116,14 +120,26 @@ export async function POST(request) {
     parsedBodyIsRecord && acceptHeaderForcesStream(acceptHeader, parsedBody.stream);
   const wantsStreaming = (parsedBodyIsRecord && parsedBody.stream === true) || acceptForcesStream;
 
+  // #6422 — capture the compression request header once so we can echo it back
+  // on the response when internal early-returns (idempotency cache, some combo
+  // paths) drop the meta the docs promise.
+  const compressionRequestHeader = readCompressionRequestHeader(request);
+
   if (wantsStreaming) {
     const reqId = generateRequestId();
-    return await withEarlyStreamKeepalive(handleChat(request, null, parsedBody, reqId), {
-      signal: request.signal,
-      thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
-      extraHeaders: { "X-Correlation-Id": reqId },
-    });
+    const streamedResponse = await withEarlyStreamKeepalive(
+      handleChat(request, null, parsedBody, reqId),
+      {
+        signal: request.signal,
+        thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
+        extraHeaders: { "X-Correlation-Id": reqId },
+      }
+    );
+    return withCompressionHeaderEcho(streamedResponse, compressionRequestHeader);
   }
 
-  return await handleChat(request, null, parsedBody);
+  return withCompressionHeaderEcho(
+    await handleChat(request, null, parsedBody),
+    compressionRequestHeader
+  );
 }
