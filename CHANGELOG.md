@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### 🐛 Bug Fixes
+
+- **fix(combos):** `/api/combos/test` probe picks the wrong API key. `getInternalApiKey()` returned the first active key in DB row order, which is usually a regular `self:usage` key with a model allowlist — so the probe got rejected at `/v1/chat/completions` with `"Model X is not allowed for this API key"` even when the upstream combo path worked perfectly in real call logs. Fixed by preferring a `manage`-scoped key when one exists (probe identity should be management, not user); falls back to the legacy first-active-key behavior. Reported by @jmengit.
+
 ---
 
 ## [3.8.45] — 2026-07-06
