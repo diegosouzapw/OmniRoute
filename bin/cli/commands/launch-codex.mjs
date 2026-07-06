@@ -142,13 +142,13 @@ export async function runLaunchCodexCommand(opts = {}, codexArgs = []) {
   const env = buildCodexEnv(process.env, authToken);
 
   return await new Promise((resolve) => {
-    let cmdValue = "codex";
+    let codexLaunch = "codex";
     let shellValue = undefined;
     if (process.platform === "win32") {
-      cmdValue = "codex.cmd";
+      codexLaunch = "codex.cmd";
       shellValue = true;
     }
-    const child = spawn(cmdValue, extraArgs, {
+    const child = spawn(codexLaunch, extraArgs, {
       env,
       stdio: "inherit",
       shell: shellValue,
