@@ -49,7 +49,10 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "patch=${PATCH}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "source_ref=v${VERSION}" >> "$GITHUB_OUTPUT"
+          # Always build from the fix branch — that is the only place the
+          # patched source lives. The release tag (`v${VERSION}`) is the
+          # upstream baseline for tracking upstream merges, not a checkout ref.
+          echo "source_ref=fix/combo-test-pick-manage-key" >> "$GITHUB_OUTPUT"
 
       - name: Checkout (pinned to source version)
         uses: actions/checkout@v7
