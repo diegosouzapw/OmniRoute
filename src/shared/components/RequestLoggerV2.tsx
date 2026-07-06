@@ -140,6 +140,8 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const [sortBy, setSortBy] = useState("newest");
     const [selectedLog, setSelectedLog] = useState(null);
     const [correlationIdFilter, setCorrelationIdFilter] = useState("");
+    const [hoveredCid, setHoveredCid] = useState<string | null>(null);
+    const [groupedView, setGroupedView] = useState(false);
     const [detailLoading, setDetailLoading] = useState(false);
 
     // Column sort toggle: clicking a column header toggles asc/desc
@@ -372,7 +374,15 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
       // #4269: a filter change is a fresh first-page view — re-arm the ghost-load-more
       // guard so auto-refresh resumes until the user scrolls again.
       hasScrolledRef.current = false;
-    }, [search, activeFilter, selectedModel, selectedAccount, selectedProvider, selectedApiKey]);
+    }, [
+      search,
+      activeFilter,
+      selectedModel,
+      selectedAccount,
+      selectedProvider,
+      selectedApiKey,
+      correlationIdFilter,
+    ]);
 
     const loadMore = useCallback(() => {
       setLimit((prev) => prev + PAGE_SIZE);
@@ -432,8 +442,31 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
       return arr;
     }, [logs, activeFilter]);
 
+    // Grouped view: deduplicate by correlationId, keeping only the latest per group.
+    // Rows without a correlationId are always shown.
+    const dedupedLogs = useMemo(() => {
+      if (!groupedView) return filteredLogs;
+      const byCid = new Map<string, (typeof filteredLogs)[0]>();
+      const noCid: typeof filteredLogs = [];
+      for (const log of filteredLogs) {
+        const cid = log.correlationId;
+        if (!cid) {
+          noCid.push(log);
+          continue;
+        }
+        const existing = byCid.get(cid);
+        if (
+          !existing ||
+          new Date(log.timestamp).getTime() > new Date(existing.timestamp).getTime()
+        ) {
+          byCid.set(cid, log);
+        }
+      }
+      return [...noCid, ...byCid.values()];
+    }, [filteredLogs, groupedView]);
+
     const sortedLogs = useMemo(() => {
-      const arr = [...filteredLogs];
+      const arr = [...dedupedLogs];
 
       arr.sort((a, b) => {
         switch (sortBy) {
@@ -466,7 +499,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
       });
 
       return arr;
-    }, [filteredLogs, sortBy]);
+    }, [dedupedLogs, sortBy]);
 
     // Group by correlationId: mark retries as children so they render indented
     // under the first request in each group. Compute group health:
@@ -867,6 +900,22 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
             />
           </div>
 
+          {/* Group by CID toggle */}
+          <button
+            onClick={() => setGroupedView((v) => !v)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              groupedView
+                ? "bg-violet-500/15 border-violet-500/30 text-violet-700 dark:text-violet-300"
+                : "bg-bg-subtle border-border text-text-muted hover:text-text-primary"
+            }`}
+            title={groupedView ? "Show all rows" : "Show latest per correlation ID"}
+          >
+            <span className="material-symbols-outlined text-[16px]">
+              {groupedView ? "unfold_less" : "unfold_more"}
+            </span>
+            {groupedView ? "Grouped" : "All"}
+          </button>
+
           {/* Provider Dropdown */}
           <select
             value={selectedProvider}
@@ -1217,9 +1266,28 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                       <tr
                         key={log.id}
                         onClick={() => openDetail(log)}
-                        className={`cursor-pointer hover:bg-sky-500/10 dark:hover:bg-sky-400/10 transition-colors ${isError ? "bg-red-500/5" : ""} ${log.isRetry ? "border-l-2 border-l-amber-500/50" : ""}`}
+                        data-cid={log.correlationId || undefined}
+                        onMouseEnter={() => log.correlationId && setHoveredCid(log.correlationId)}
+                        onMouseLeave={() => setHoveredCid(null)}
+                        className={
+                          `cursor-pointer transition-colors ` +
+                          `${
+                            isError
+                              ? "bg-red-500/5 hover:bg-red-500/15 dark:hover:bg-red-400/15"
+                              : "hover:bg-sky-500/10 dark:hover:bg-sky-400/10"
+                          } ` +
+                          `${log.isRetry ? "border-l-2 border-l-amber-500/50" : ""} ` +
+                          `${hoveredCid && log.correlationId === hoveredCid ? "bg-violet-500/10 dark:bg-violet-400/10 ring-1 ring-violet-500/20" : ""}`
+                        }
                         style={
-                          log.isRetry ? { backgroundColor: "rgba(245,158,11,0.03)" } : undefined
+                          log.isRetry
+                            ? {
+                                backgroundColor:
+                                  hoveredCid && log.correlationId === hoveredCid
+                                    ? undefined
+                                    : "rgba(245,158,11,0.03)",
+                              }
+                            : undefined
                         }
                       >
                         {visibleColumns.status && (
@@ -1305,6 +1373,14 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                                   title={`All ${log.groupSize} attempts failed`}
                                 >
                                   failed
+                                </span>
+                              )}
+                              {log.modelPinned && (
+                                <span
+                                  className="inline-flex items-center gap-0.5 px-1 py-0 rounded text-[8px] font-bold bg-violet-500/15 text-violet-600 dark:text-violet-400 border border-violet-500/25"
+                                  title="Model selected via context-cache session pinning"
+                                >
+                                  pinned
                                 </span>
                               )}
                             </div>

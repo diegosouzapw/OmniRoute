@@ -9,10 +9,12 @@ export const nvidiaProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   models: [
-    { id: "z-ai/glm-5.1", name: "GLM 5.1" },
-    // #3329: minimaxai/minimax-m3 removed — NVIDIA NIM does not host it yet
-    // (every request 404s), while minimax-m2.7 on the same provider works.
-    // Re-add only once NVIDIA actually serves it.
+    // #6108: z-ai/glm-5.1 EOL'd 2026-07-02 (direct probe returns 410) — dropped.
+    { id: "z-ai/glm-5.2", name: "GLM 5.2" },
+    // #3329/#6108: minimaxai/minimax-m3 stays excluded from the nvidia tier — it
+    // still 404s here for most callers; the single 200 probe in #6108 was not
+    // reproducible enough to override the #3329 guard. Re-add only once NVIDIA
+    // reliably serves it (and flip nvidia-minimax-m3-removed-3329.test.ts then).
     { id: "minimaxai/minimax-m2.7", name: "MiniMax M2.7" },
     { id: "google/gemma-4-31b-it", name: "Gemma 4 31B" },
     { id: "mistralai/mistral-small-4-119b-2603", name: "Mistral Small 4 2603" },
@@ -25,11 +27,10 @@ export const nvidiaProvider: RegistryEntry = {
     { id: "deepseek-ai/deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
     { id: "deepseek-ai/deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
     // Sweep 2026-06-19: verified present in the live NVIDIA NIM /v1/models catalog.
-    // minimaxai/minimax-m3 is now listed too, but left out per #3329 until inference
-    // (not just listing) is confirmed — re-add when a real request stops 404ing.
     { id: "moonshotai/kimi-k2.6", name: "Kimi K2.6" },
     { id: "openai/gpt-oss-120b", name: "GPT OSS 120B", toolCalling: false },
     { id: "openai/gpt-oss-20b", name: "GPT OSS 20B", toolCalling: false },
     { id: "nvidia/nemotron-3-super-120b-a12b", name: "Nemotron 3 Super 120B A12B" },
+    { id: "nvidia/nemotron-3-ultra-550b-a55b", name: "Nemotron 3 Ultra 550B" },
   ],
 };

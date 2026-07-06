@@ -15,14 +15,14 @@ const agentSkillsConstants = await import("../../src/shared/constants/agentSkill
 
 // ─── Counts ───────────────────────────────────────────────────────────────────
 
-test("getCatalog() returns exactly 43 entries", () => {
+test("getCatalog() returns exactly 44 entries", () => {
   refreshCatalog();
   const catalog = getCatalog();
-  assert.equal(catalog.length, 43, `Expected 43 but got ${catalog.length}`);
+  assert.equal(catalog.length, 44, `Expected 44 but got ${catalog.length}`);
 });
 
-test("API_SKILL_IDS has exactly 22 entries", () => {
-  assert.equal(API_SKILL_IDS.length, 22);
+test("API_SKILL_IDS has exactly 23 entries", () => {
+  assert.equal(API_SKILL_IDS.length, 23);
 });
 
 test("CLI_SKILL_IDS has exactly 20 entries", () => {
@@ -31,7 +31,7 @@ test("CLI_SKILL_IDS has exactly 20 entries", () => {
 
 test("getCatalog() contains exactly 22 api skills", () => {
   const apiSkills = getCatalog().filter((s) => s.category === "api");
-  assert.equal(apiSkills.length, 22);
+  assert.equal(apiSkills.length, 23);
 });
 
 test("getCatalog() contains exactly 20 cli skills", () => {
@@ -152,9 +152,9 @@ test("getSkillById('') returns null", () => {
 
 // ─── filterCatalog ────────────────────────────────────────────────────────────
 
-test("filterCatalog({ category: 'api' }) returns 22 api skills", () => {
+test("filterCatalog({ category: 'api' }) returns 23 api skills", () => {
   const skills = filterCatalog({ category: "api" });
-  assert.equal(skills.length, 22);
+  assert.equal(skills.length, 23);
   for (const s of skills) {
     assert.equal(s.category, "api");
   }
@@ -185,9 +185,9 @@ test("filterCatalog({ area: 'nonexistent' }) returns empty array", () => {
   assert.equal(skills.length, 0);
 });
 
-test("filterCatalog({}) returns full catalog (43 entries)", () => {
+test("filterCatalog({}) returns full catalog (44 entries)", () => {
   const skills = filterCatalog({});
-  assert.equal(skills.length, 43);
+  assert.equal(skills.length, 44);
 });
 
 // ─── refreshCatalog ───────────────────────────────────────────────────────────
@@ -209,9 +209,9 @@ test("computeCoverage() returns valid SkillCoverage shape", () => {
   const cov = computeCoverage();
 
   assert.ok(typeof cov.api === "object");
-  assert.equal(cov.api.total, 22);
+  assert.equal(cov.api.total, 23);
   assert.ok(typeof cov.api.have === "number");
-  assert.ok(cov.api.have >= 0 && cov.api.have <= 22);
+  assert.ok(cov.api.have >= 0 && cov.api.have <= 23);
 
   assert.ok(typeof cov.cli === "object");
   assert.equal(cov.cli.total, 20);
@@ -247,8 +247,8 @@ test("API_SKILL_IDS first entry is omni-auth", () => {
   assert.equal(API_SKILL_IDS[0], "omni-auth");
 });
 
-test("API_SKILL_IDS last entry is omni-inference", () => {
-  assert.equal(API_SKILL_IDS[API_SKILL_IDS.length - 1], "omni-inference");
+test("API_SKILL_IDS last entry is omni-github-skills", () => {
+  assert.equal(API_SKILL_IDS[API_SKILL_IDS.length - 1], "omni-github-skills");
 });
 
 test("CLI_SKILL_IDS first entry is cli-serve", () => {

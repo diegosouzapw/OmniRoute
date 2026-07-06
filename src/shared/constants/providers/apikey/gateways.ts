@@ -68,6 +68,21 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     hasFree: true,
     freeNote: "Free models at $0/token with :free suffix - 20 RPM / 200 RPD",
   },
+  requesty: {
+    id: "requesty",
+    alias: "requesty",
+    name: "Requesty",
+    icon: "router",
+    color: "#6366F1",
+    textIcon: "RQ",
+    passthroughModels: true,
+    website: "https://requesty.ai",
+    hasFree: true,
+    freeNote: "Free tier ~200 requests/day - multi-model routing gateway (300+ models)",
+    apiHint:
+      "Create an API key at https://app.requesty.ai, then paste it here as a Bearer token. " +
+      "OpenAI-compatible endpoint at https://router.requesty.ai/v1, with a live /v1/models catalog.",
+  },
   dgrid: {
     id: "dgrid",
     alias: "dgrid",

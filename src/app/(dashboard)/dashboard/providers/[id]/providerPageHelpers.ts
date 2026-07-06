@@ -70,6 +70,7 @@ export type CompatModelRow = {
   normalizeToolCallId?: boolean;
   preserveOpenAIDeveloperRole?: boolean;
   isHidden?: boolean;
+  isDeleted?: boolean;
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
   /** #2905: per-model upstream wire-format override. */ targetFormat?: string;
@@ -254,6 +255,25 @@ export function isBaseUrlConfigurableProvider(providerId?: string | null) {
     providerId &&
     (CONFIGURABLE_BASE_URL_PROVIDERS.has(providerId) || isSelfHostedChatProvider(providerId))
   );
+}
+
+/**
+ * #6147 — whether a built-in provider is eligible for an OPT-IN "Advanced →
+ * override base URL" affordance in the edit-connection modal.
+ *
+ * This does NOT widen the always-on base-URL field: providers already covered by
+ * `isBaseUrlConfigurableProvider` (the configurable set + self-hosted) keep their
+ * existing dedicated field and return `false` here. Every *other* provider id is
+ * eligible to opt in per-connection so an operator can hot-fix a broken built-in
+ * preset by pointing it at a custom endpoint. The field stays hidden until the
+ * user explicitly reveals it (or an override was already saved), so nothing is
+ * exposed by default. OAuth connections are excluded at the call site, since
+ * their save path does not persist `providerSpecificData.baseUrl`.
+ */
+export function isBaseUrlOverrideEligibleProvider(providerId?: string | null): boolean {
+  if (!providerId) return false;
+  if (isBaseUrlConfigurableProvider(providerId)) return false;
+  return true;
 }
 
 export function getProviderBaseUrlDefault(providerId?: string | null) {
@@ -557,19 +577,31 @@ export function buildCompatMap(rows: CompatModelRow[]): CompatModelMap {
   return m;
 }
 
+export function getDisplayModelAlias(modelId: string, alias?: string | null): string | null {
+  const trimmed = typeof alias === "string" ? alias.trim() : "";
+  if (!trimmed || trimmed === modelId) return null;
+  return trimmed;
+}
+
+function readActiveHiddenFlag(row: CompatModelRow | undefined): boolean | undefined {
+  if (!row || row.isDeleted === true) return undefined;
+  if (Object.prototype.hasOwnProperty.call(row, "isHidden")) {
+    return Boolean(row.isHidden);
+  }
+  return undefined;
+}
+
 export function isModelHiddenFn(
   modelId: string,
   customMap: CompatModelMap,
   overrideMap: CompatModelMap
 ): boolean {
-  const c = customMap.get(modelId);
-  if (c && Object.prototype.hasOwnProperty.call(c, "isHidden")) {
-    return Boolean(c.isHidden);
-  }
-  const o = overrideMap.get(modelId);
-  if (o && Object.prototype.hasOwnProperty.call(o, "isHidden")) {
-    return Boolean(o.isHidden);
-  }
+  const customHidden = readActiveHiddenFlag(customMap.get(modelId));
+  if (customHidden !== undefined) return customHidden;
+
+  const overrideHidden = readActiveHiddenFlag(overrideMap.get(modelId));
+  if (overrideHidden !== undefined) return overrideHidden;
+
   return false;
 }
 

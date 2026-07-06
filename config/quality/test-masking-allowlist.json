@@ -21,6 +21,18 @@
     "open-sse/services/combo/__tests__/targetExhaustion.test.ts": {
       "replacement": "tests/unit/combo/combo-target-exhaustion.test.ts",
       "reason": "v3.8.44 #5976: os testes de exaustão eram flake-prone (delays Math.random, timeouts 30s, >3min no CI) e foram REESCRITOS como unit determinístico com MAIS cobertura (21 casos/52 asserts vs 13 casos/37 asserts). Documentado no commit 5fe225850. Revisão humana: apresentado ao operador no STOP #1 do release v3.8.44."
+    },
+    "src/shared/components/AutoRoutingBanner.test.tsx": {
+      "replacement": "tests/unit/home-no-autorouting-banner.test.ts",
+      "reason": "v3.8.45 #6164: fix(dashboard) remove the always-on Auto-Routing banner — o COMPONENTE foi deletado junto com o teste (feature removida pelo mantenedor, não mascaramento). O replacement guarda o novo contrato: a home NÃO renderiza o banner e o componente permanece deletado."
+    },
+    "tests/unit/free-provider-rankings-configured-filter.test.ts": {
+      "replacement": "tests/unit/freeProviderRankings-filters.test.ts",
+      "reason": "v3.8.45 #6251 supersede #6245: a página Free Provider Rankings migrou do toggle client-side 'Configured Only' (#6245, configuredProviderIds no cliente) para filtros server-side configuredOnly/availableOnly (#6251). O teste antigo pinava a implementação removida (7 asserts quebrados contra código que não existe); o replacement cobre o contrato novo com 11 casos (server-side, lib helper). Verificado legítimo — supersessão documentada no CHANGELOG do #6251."
     }
-  }
+  },
+  "tests/unit/catalog-updates-v3x.test.ts": "v3.8.45 #6248: fix(providers) remove deprecated MiMo V2 entries — os 5 asserts removidos pinavam specs de modelos mimo-v2-* que deixaram de existir no catálogo (54→49). Asserts seguem a remoção dos modelos, não enfraquecimento. Verificado legítimo. Prune após v3.8.45 mergear para main.",
+  "tests/unit/xiaomi-mimo-provider.test.ts": "v3.8.45 #6248: fix(providers) remove deprecated MiMo V2 entries — 2 asserts sobre mimo-v2-pro/omni/flash removidos junto com os modelos (21→19). Verificado legítimo, não mascaramento. Prune após v3.8.45 mergear para main.",
+  "tests/unit/provider-models-route.test.ts": "v3.8.45 #6170: fix(providers) correct Kiro model catalog to real upstream ids — 3 assert.ok positivos de ids fabricados (claude-opus-4.7/sonnet-4.6) substituídos por 1 assert positivo de conjunto + 1 assert NEGATIVO garantindo que os ids fabricados sumiram (310→309). Asserts migrados ao catálogo real, não enfraquecidos. Verificado legítimo. Prune após v3.8.45 mergear para main.",
+  "tests/unit/copilot-gemini-claude-route-no-responses.test.ts": "v3.8.45 #6154: fix(providers) refresh GitHub Copilot catalog — 2 asserts combinados (registry-exists + par claude/gemini) reescritos como loop per-model com assert.ok individual por id do catálogo novo (7→6). Asserts reestruturados ao catálogo atualizado, não enfraquecidos. Verificado legítimo. Prune após v3.8.45 mergear para main."
 }

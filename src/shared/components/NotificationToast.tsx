@@ -19,6 +19,28 @@ const ICONS = {
   info: "ℹ",
 };
 
+/**
+ * Coerce a toast title/message to a string. `message`/`title` are typed as
+ * `string`, but callers occasionally pass a raw API error body (an object) —
+ * rendering that object directly throws React #31 ("Objects are not valid as a
+ * React child") and freezes the whole page. This keeps the toast resilient no
+ * matter what a caller hands it.
+ */
+export function toToastText(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value == null) return "";
+  if (typeof value === "object") {
+    const message = (value as { message?: unknown }).message;
+    if (typeof message === "string") return message;
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+  return String(value);
+}
+
 const BG_DARK = "rgba(30, 30, 30, 0.95)";
 
 const COLORS = {
@@ -101,7 +123,7 @@ function Toast({ notification, onDismiss }) {
               marginBottom: "2px",
             }}
           >
-            {notification.title}
+            {toToastText(notification.title)}
           </div>
         )}
         <div
@@ -111,7 +133,7 @@ function Toast({ notification, onDismiss }) {
             lineHeight: 1.4,
           }}
         >
-          {notification.message}
+          {toToastText(notification.message)}
         </div>
       </div>
       {notification.dismissible && (

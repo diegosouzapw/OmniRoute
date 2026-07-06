@@ -196,7 +196,6 @@ const BULK_API_KEY_EXCLUDED = new Set([
   "google-pse-search",
   "command-code",
   "azure",
-  "cloudflare-ai",
 ]);
 
 export function supportsBulkApiKey(providerId: unknown): boolean {

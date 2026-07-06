@@ -1990,6 +1990,26 @@ export async function markAccountUnavailable(
             : status === 429
               ? "rate_limited"
               : "server_error";
+
+      // #5976: a bare 500 is intermittent and NOT model-specific — skip
+      // lockout/cooldown ONLY for the exact 500 (the contract its own tests pin:
+      // combo-provider-cooldown-sibling.test.ts — "Gemini 503 should NOT skip
+      // cooldown"). 502/503/504 keep the pre-#6216 model-lockout path: cooldownMs
+      // 0 hot-loops the failing upstream (broke resilience-http-e2e on the PR).
+      if (status === 500) {
+        updateProviderConnection(connectionId, {
+          lastErrorType: reason,
+          lastError: `Model ${model} ${reason}`,
+          lastErrorAt: new Date().toISOString(),
+          errorCode: status,
+        }).catch(() => {});
+        log.info(
+          "AUTH",
+          `Server error for ${provider}:${model} — ${status} ${reason} (no model lockout, connection stays active for sibling models)`
+        );
+        return { shouldFallback: true, cooldownMs: 0 };
+      }
+
       const quotaScope = getQuotaScopeLabelForProvider(provider, model);
       const antigravityFamilyInferredBaseCooldownMs =
         provider === "antigravity" && quotaScope === "family" && status === 429
@@ -2286,10 +2306,7 @@ export async function clearRecoveredProviderState(
 ): Promise<{ applied: boolean }> {
   if (!credentials?.connectionId) return { applied: false };
   if (expectedState) {
-    const applied = await clearConnectionErrorIfUnchanged(
-      credentials.connectionId,
-      expectedState
-    );
+    const applied = await clearConnectionErrorIfUnchanged(credentials.connectionId, expectedState);
     if (!applied) {
       log.info(
         "AUTH",

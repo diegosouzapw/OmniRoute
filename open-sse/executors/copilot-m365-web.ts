@@ -9,12 +9,12 @@ import {
   resolveConnectionParams,
 } from "./copilot-m365-connection.ts";
 import {
+  accumulateBotContent,
   buildChatInvocation,
   encodeFrame,
-  extractBotText,
+  extractFinalResultMessage,
   handshakeError,
   handshakeFrame,
-  incrementalDelta,
   isCompletionFrame,
   keepaliveFrame,
   parseFrame,
@@ -68,6 +68,7 @@ export class CopilotM365WebExecutor extends BaseExecutor {
           let settled = false;
           let buffer = "";
           let previousText = "";
+          let finalResultMessage = "";
           let handshakeComplete = false;
 
           const cleanup = () => {
@@ -85,6 +86,13 @@ export class CopilotM365WebExecutor extends BaseExecutor {
             if (settled) return;
             settled = true;
             cleanup();
+            // Last-resort fallback (#6210): some EDU turns surface the answer only in the
+            // type:2 invocation result. Emit it if nothing was streamed.
+            if (!previousText && finalResultMessage) {
+              controller.enqueue(
+                encoder.encode(sseChunk(input.model, { content: finalResultMessage }))
+              );
+            }
             controller.enqueue(encoder.encode(sseChunk(input.model, {}, "stop")));
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
@@ -157,13 +165,15 @@ export class CopilotM365WebExecutor extends BaseExecutor {
                   continue;
                 }
 
-                const text = extractBotText(frame);
-                if (text) {
-                  const delta = incrementalDelta(previousText, text);
-                  previousText = text;
-                  if (delta) {
-                    controller.enqueue(encoder.encode(sseChunk(input.model, { content: delta })));
-                  }
+                const { delta, next } = accumulateBotContent(previousText, frame);
+                previousText = next;
+                if (delta) {
+                  controller.enqueue(encoder.encode(sseChunk(input.model, { content: delta })));
+                }
+
+                const finalMsg = extractFinalResultMessage(frame);
+                if (finalMsg) {
+                  finalResultMessage = finalMsg;
                 }
 
                 if (isCompletionFrame(frame)) {

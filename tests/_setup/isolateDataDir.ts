@@ -34,3 +34,10 @@ if (!process.env.DATA_DIR) {
     }
   });
 }
+
+// System-trust guard: the suite must NEVER mutate the OS trust store. On a
+// persistent self-hosted runner the cert-flow integration test installed a fake
+// 105-byte PEM into /usr/local/share/ca-certificates and update-ca-certificates
+// baked it into the bundle, breaking ALL system TLS on the VM (2026-07-05).
+// installCert/uninstallCert/installTproxyCa/uninstallTproxyCa no-op under this.
+process.env.OMNIROUTE_SKIP_SYSTEM_TRUST = "1";

@@ -150,7 +150,6 @@ export default function StreamTransformerAccordion({
     const prev = prevForceOpen.current;
     prevForceOpen.current = Boolean(forceOpen);
     if (!prev && forceOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing deep-link prop into local state
       setOpen(true);
       setHasOpened(true);
       onOpenChange?.(true);
@@ -344,10 +343,7 @@ export default function StreamTransformerAccordion({
                         onClick={() => handleCopy(rawSse, "input")}
                         aria-label={translateOrFallback("copyInput", "Copy input")}
                       >
-                        <span
-                          className="material-symbols-outlined text-[14px]"
-                          aria-hidden="true"
-                        >
+                        <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                           {copiedField === "input" ? "check" : "content_copy"}
                         </span>
                       </Button>
@@ -358,7 +354,10 @@ export default function StreamTransformerAccordion({
                       data-testid="raw-sse-input"
                       className="min-h-[360px] w-full rounded-lg border border-border bg-bg-secondary px-3 py-3 text-xs font-mono text-text-main focus:outline-none focus:ring-1 focus:ring-primary/50"
                       spellCheck={false}
-                      aria-label={translateOrFallback("rawChatSseInput", "Raw chat completions SSE")}
+                      aria-label={translateOrFallback(
+                        "rawChatSseInput",
+                        "Raw chat completions SSE"
+                      )}
                     />
                   </div>
 
@@ -378,10 +377,7 @@ export default function StreamTransformerAccordion({
                         disabled={!transformedSse}
                         aria-label={translateOrFallback("copyOutput", "Copy output")}
                       >
-                        <span
-                          className="material-symbols-outlined text-[14px]"
-                          aria-hidden="true"
-                        >
+                        <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                           {copiedField === "output" ? "check" : "content_copy"}
                         </span>
                       </Button>
@@ -440,9 +436,7 @@ export default function StreamTransformerAccordion({
                           <th className="pb-2 pr-4">
                             {translateOrFallback("eventType", "Event type")}
                           </th>
-                          <th className="pb-2">
-                            {translateOrFallback("eventPreview", "Preview")}
-                          </th>
+                          <th className="pb-2">{translateOrFallback("eventPreview", "Preview")}</th>
                         </tr>
                       </thead>
                       <tbody>

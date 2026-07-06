@@ -110,9 +110,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "ChatGPT Web",
     "https://chatgpt.com/auth/login",
     "https://chatgpt.com",
-    [
-      { type: "cookie", name: "__Secure-next-auth.session-token", domain: ".chatgpt.com" },
-    ],
+    [{ type: "cookie", name: "__Secure-next-auth.session-token", domain: ".chatgpt.com" }],
     "Log in to ChatGPT. The __Secure-next-auth.session-token cookie will be extracted after login."
   ),
 
@@ -146,9 +144,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "Perplexity Web",
     "https://www.perplexity.ai/login",
     "https://www.perplexity.ai",
-    [
-      { type: "cookie", name: "__Secure-next-auth.session-token", domain: ".perplexity.ai" },
-    ],
+    [{ type: "cookie", name: "__Secure-next-auth.session-token", domain: ".perplexity.ai" }],
     "Log in to Perplexity. The __Secure-next-auth.session-token cookie will be extracted.",
     { cookieDomain: ".perplexity.ai" }
   ),
@@ -195,9 +191,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "Kimi (Moonshot)",
     "https://www.kimi.com/",
     "https://www.kimi.com",
-    [
-      { type: "cookie", name: "kimi-auth", domain: ".kimi.com" },
-    ],
+    [{ type: "cookie", name: "kimi-auth", domain: ".kimi.com" }],
     "Log in to Kimi at www.kimi.com (international). The kimi-auth JWT cookie will be extracted.",
     { cookieDomain: ".kimi.com" }
   ),
@@ -222,9 +216,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "Poe (Quora)",
     "https://poe.com/login",
     "https://poe.com",
-    [
-      { type: "cookie", name: "p-b", domain: ".poe.com" },
-    ],
+    [{ type: "cookie", name: "p-b", domain: ".poe.com" }],
     "Log in to Poe at poe.com. The session cookie will be extracted.",
     { cookieDomain: ".poe.com" }
   ),
@@ -235,9 +227,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "Microsoft Copilot",
     "https://copilot.microsoft.com/",
     "https://copilot.microsoft.com",
-    [
-      { type: "cookie", name: "RPSCAuth", domain: ".microsoft.com" },
-    ],
+    [{ type: "cookie", name: "RPSCAuth", domain: ".microsoft.com" }],
     "Log in with your Microsoft account at copilot.microsoft.com. The session auth cookie will be extracted.",
     { cookieDomain: ".microsoft.com" }
   ),
@@ -248,9 +238,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "DuckDuckGo AI Chat",
     "https://duckduckgo.com/?q=DuckDuckGo+AI+Chat&ia=chat&duckai=1",
     "https://duckduckgo.com",
-    [
-      { type: "cookie", name: "duckai", domain: ".duckduckgo.com" },
-    ],
+    [{ type: "cookie", name: "duckai", domain: ".duckduckgo.com" }],
     "Open DuckDuckGo AI Chat. Some models may require a free account. The duckai cookie will be extracted.",
     {
       cookieDomain: ".duckduckgo.com",
@@ -258,17 +246,19 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     }
   ),
 
-  // ── DouBao Web ────────────────────────────────────────────
+  // ── Dola Web ──────────────────────────────────────────────
   config(
     "doubao-web",
-    "DouBao (ByteDance)",
-    "https://www.doubao.com/",
-    "https://www.doubao.com",
+    "Dola (ByteDance)",
+    "https://www.dola.com/",
+    "https://www.dola.com",
     [
-      { type: "cookie", name: "sessionid", domain: ".doubao.com" },
+      { type: "cookie", name: "sessionid", domain: ".dola.com" },
+      { type: "cookie", name: "ttwid", domain: ".dola.com" },
+      { type: "cookie", name: "s_v_web_id", domain: ".dola.com" },
     ],
-    "Log in to DouBao at doubao.com with your ByteDance account. The sessionid will be extracted.",
-    { cookieDomain: ".doubao.com" }
+    "Log in to Dola at www.dola.com with your ByteDance account. sessionid, ttwid, and s_v_web_id will be extracted.",
+    { cookieDomain: ".dola.com" }
   ),
 
   // ── T3 Chat Web ───────────────────────────────────────────
@@ -277,9 +267,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "T3 Chat",
     "https://t3.chat/login",
     "https://t3.chat",
-    [
-      { type: "localStorage", key: "token" },
-    ],
+    [{ type: "localStorage", key: "token" }],
     "Log in to T3 Chat at t3.chat using Google/GitHub. The token from localStorage will be extracted.",
     { pollingConfig: QUICK_POLLING }
   ),
@@ -304,9 +292,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "v0 by Vercel",
     "https://v0.dev/login",
     "https://v0.dev",
-    [
-      { type: "cookie", name: "__Secure-next-auth.session-token", domain: ".v0.dev" },
-    ],
+    [{ type: "cookie", name: "__Secure-next-auth.session-token", domain: ".v0.dev" }],
     "Log in to v0.dev with your Vercel/Google/GitHub account. The session cookie will be extracted.",
     { cookieDomain: ".v0.dev" }
   ),
@@ -317,9 +303,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "Meta AI (Muse)",
     "https://www.meta.ai/",
     "https://www.meta.ai",
-    [
-      { type: "cookie", name: "session", domain: ".meta.ai" },
-    ],
+    [{ type: "cookie", name: "session", domain: ".meta.ai" }],
     "Log in to Meta AI at meta.ai with your Facebook/Instagram account. The session cookie will be extracted.",
     { cookieDomain: ".meta.ai" }
   ),
@@ -330,9 +314,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "Adapta AI",
     "https://agent.adapta.one/login",
     "https://agent.adapta.one",
-    [
-      { type: "cookie", name: "__session", domain: ".adapta.one" },
-    ],
+    [{ type: "cookie", name: "__session", domain: ".adapta.one" }],
     "Log in to Adapta at agent.adapta.one. The session token will be extracted.",
     { cookieDomain: ".adapta.one" }
   ),
@@ -343,9 +325,7 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "VeoAI Free",
     "https://veoaifree.com/",
     "https://veoaifree.com",
-    [
-      { type: "cookie", name: "wordpress_logged_in", domain: ".veoaifree.com" },
-    ],
+    [{ type: "cookie", name: "wordpress_logged_in", domain: ".veoaifree.com" }],
     "Log in to VeoAI Free at veoaifree.com. The WordPress session cookie will be extracted.",
     {
       cookieDomain: ".veoaifree.com",

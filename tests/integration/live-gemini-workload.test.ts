@@ -159,7 +159,8 @@ test("[27] single-thread sequential — 1 thread × 5 iterations", { skip }, asy
       results.push(r);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.log(`  ${label.padEnd(45)} FAILED: ${msg}`);
+      const ts = new Date().toISOString().slice(11, 23);
+      console.log(`${ts} ${label.padEnd(45)} FAILED: ${msg}`);
       assert.fail(`iteration ${i} failed: ${msg}`);
     }
   }

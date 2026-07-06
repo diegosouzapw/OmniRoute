@@ -14,7 +14,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 - **Runtime:** Node.js `>=22.22.2 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
 - **Framework:** Next.js 16 (App Router) with TypeScript 5.9
-- **Database:** SQLite via better-sqlite3 (local, zero-config, 55 migrations)
+- **Database:** SQLite via better-sqlite3 (local, zero-config, 110+ migrations)
 - **State management:** Zustand (client), SQLite (server persistence)
 - **UI:** React 19, Tailwind CSS 4, Recharts for analytics, @lobehub/icons for 130+ provider SVG icons
 - **Auth:** OAuth 2.0 (PKCE) for providers, bcrypt for local user auth
@@ -102,7 +102,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   │   └── streaming.ts      # SSE streaming for A2A
 │   │   ├── acp/                  # Agent Communication Protocol registry and manager
 │   │   ├── compliance/           # Compliance policy engine
-│   │   ├── db/                   # SQLite database layer (21 modules + migrations)
+│   │   ├── db/                   # SQLite database layer (95+ modules + migrations)
 │   │   │   ├── core.ts           # Database initialization, connection, schema
 │   │   │   ├── providers.ts      # Provider connection CRUD
 │   │   │   ├── models.ts         # Model catalog management
@@ -124,7 +124,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   │   ├── secrets.ts        # Secrets management
 │   │   │   ├── stateReset.ts     # State reset utilities
 │   │   │   ├── migrationRunner.ts # Schema migration runner
-│   │   │   └── migrations/       # 16 SQL migration files
+│   │   │   └── migrations/       # 110+ versioned SQL migration files
 │   │   ├── evals/                # Eval runner and scheduler
 │   │   ├── memory/               # Persistent conversational memory
 │   │   │   ├── extraction.ts     # Memory extraction from conversations
@@ -435,7 +435,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 4. **Environment variables:** All configuration is in `.env` (from `.env.example`). Key vars: `PORT`, `NEXT_PUBLIC_BASE_URL`, `API_KEY`, `ADMIN_PASSWORD`.
 
-5. **Database layer:** Operations go through `src/lib/db/` modules (45+ domain-specific files, 55 migrations). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
+5. **Database layer:** Operations go through `src/lib/db/` modules (95+ domain-specific files, 110+ migrations). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
 
 6. **Tests** use Node.js built-in test runner + Vitest. Run `npm test`. Vitest for MCP/autoCombo (`npm run test:vitest`). Playwright for E2E (`npm run test:e2e`). Coverage gate: 75% statements/lines/functions, 70% branches.
 
