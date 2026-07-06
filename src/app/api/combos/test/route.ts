@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
-import { getApiKeys, getComboByName, getCombos } from "@/lib/localDb";
+import { getComboByName, getCombos, pickApiKeyForInternalUse } from "@/lib/localDb";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
@@ -9,35 +9,10 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 async function getInternalApiKey(): Promise<string | null> {
-  try {
-    const keys = await getApiKeys();
-    // Prefer a key with the `manage` scope. Combo health-check probes go
-    // through /v1/chat/completions, which enforces per-key model allowlists.
-    // Picking the first active key arbitrarily means the probe can be
-    // rejected with "Model X is not allowed for this API key" when that
-    // first key's allowedModels is empty/null/short, even though the
-    // upstream combo path itself works fine. A management-scoped key is
-    // not subject to model restrictions and is the right probe identity.
-    const manageKey = (
-      keys as Array<{ key: string; isActive?: boolean; revokedAt?: string | null; scopes?: string[] }>
-    ).find(
-      (k) =>
-        k.key &&
-        k.isActive !== false &&
-        !k.revokedAt &&
-        Array.isArray(k.scopes) &&
-        k.scopes.includes("manage"),
-    );
-    if (manageKey?.key) return manageKey.key;
-    // Fallback: first active key (legacy behavior). Keeps the function
-    // working for setups that have no management-scoped key.
-    const active = (
-      keys as Array<{ key: string; isActive?: boolean; revokedAt?: string | null }>
-    ).find((k) => k.key && k.isActive !== false && !k.revokedAt);
-    return active?.key ?? null;
-  } catch {
-    return null;
-  }
+  // Combo health-check probes hit /v1/chat/completions, which enforces
+  // per-key model allowlists (see shared/utils/apiKeyPolicy.ts). Picking
+  // an arbitrary active key is unsafe — see pickApiKeyForInternalUse.
+  return pickApiKeyForInternalUse("combo-health-check");
 }
 
 function buildComboTestResult(target, partial = {}) {

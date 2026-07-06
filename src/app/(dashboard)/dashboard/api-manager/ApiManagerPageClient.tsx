@@ -2024,7 +2024,11 @@ const PermissionsModal = memo(function PermissionsModal({
               allowAll ? "text-green-700 dark:text-green-300" : "text-amber-700 dark:text-amber-300"
             }`}
           >
-            {allowAll ? t("allowAllDesc") : t("restrictDesc", { selectedCount, totalModels })}
+            {allowAll
+              ? t("allowAllDesc")
+              : totalModels === 0
+                ? t("restrictLoading")
+                : t("restrictDesc", { selectedCount, totalModels })}
           </p>
         </div>
 
