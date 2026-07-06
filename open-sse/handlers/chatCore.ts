@@ -4056,6 +4056,13 @@ export async function handleChatCore({
       requestId: skillRequestId,
       compressionResponseMeta,
     });
+    // #6426: align response body `model` with the `X-OmniRoute-Model` header
+    // (both must be the resolved backend model). Some upstreams (notably legacy
+    // /v1/completions text-completion path) return a body `model` field that
+    // differs from the resolved backend id we advertised in the header, leaving
+    // strict clients unable to reconcile the two. Rewrite body.model to `model`
+    // FIRST, then let #1311 echo override it when the opt-in setting is on.
+    if (typeof model === "string" && model) echoModelInObject(translatedResponse, model);
     // #1311: echo the requested alias/combo name in the non-streaming response model.
     if (echoModel) echoModelInObject(translatedResponse, echoModel);
     return {
