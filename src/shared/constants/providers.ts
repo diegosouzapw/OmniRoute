@@ -410,6 +410,12 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "minimax",
   "minimax-cn",
   "crof",
+  // ClinePass — real runtime entry confirmed in research round 2026-06-29
+  // from the upstream cline/cline docs/getting-started/clinepass.mdx file
+  // at main-branch commit dbe15202e1b7dc12b6bfd8c86b450d678f3ec33d
+  // (PR #11986). Real base URL, env var, and model list live in
+  // open-sse/config/providers/registry/clinepass/index.ts. Tracks issue #5518.
+  "clinepass",
   "nanogpt",
   "deepseek",
   "xiaomi-mimo",

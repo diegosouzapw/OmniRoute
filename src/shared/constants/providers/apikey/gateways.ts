@@ -120,6 +120,25 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "CR",
     website: "https://crof.ai",
   },
+  clinepass: {
+    id: "clinepass",
+    alias: "clinepass",
+    name: "ClinePass",
+    icon: "vpn_key",
+    color: "#6B7280",
+    textIcon: "CP",
+    // Real values from https://cline.bot/cline-pass and the upstream
+    // cline/cline docs/getting-started/clinepass.mdx (PR #11986).
+    // Tracks diegosouzapw/OmniRoute#5518.
+    website: "https://cline.bot/cline-pass",
+    authHint:
+      "Use your ClinePass API key (env CLINE_API_KEY) in Authorization: Bearer <key>. " +
+      "OpenAI-compatible endpoint at https://api.cline.bot/api/v1.",
+    apiHint:
+      "Get your ClinePass API key from https://cline.bot/cline-pass, then point the " +
+      "OpenAI-compatible base URL at https://api.cline.bot/api/v1. Model ids use the " +
+      "cline-pass/<model> namespace (10 models across 6 labs).",
+  },
   bazaarlink: {
     id: "bazaarlink",
     alias: "bzl",

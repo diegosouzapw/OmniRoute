@@ -89,6 +89,7 @@ import { t3_webProvider } from "./registry/t3-web/index.ts";
 import { klusterProvider } from "./registry/kluster/index.ts";
 import { iflytekProvider } from "./registry/iflytek/index.ts";
 import { crofProvider } from "./registry/crof/index.ts";
+import { clinepassProvider } from "./registry/clinepass/index.ts";
 import { moonshotProvider } from "./registry/moonshot/index.ts";
 import { bazaarlinkProvider } from "./registry/bazaarlink/index.ts";
 import { perplexityProvider } from "./registry/perplexity/index.ts";
@@ -265,6 +266,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   kluster: klusterProvider,
   iflytek: iflytekProvider,
   crof: crofProvider,
+  clinepass: clinepassProvider,
   moonshot: moonshotProvider,
   bazaarlink: bazaarlinkProvider,
   perplexity: perplexityProvider,
