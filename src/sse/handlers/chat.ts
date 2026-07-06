@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
+import { normalizeReasoningRequest } from "@/shared/reasoning/effortStandardization";
 import { resolveRoutingModel } from "./resolveRoutingModel";
 import {
   getProviderCredentialsWithQuotaPreflight,
@@ -230,6 +231,14 @@ export async function handleChat(
     log.warn("CHAT", "Invalid JSON body");
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
+
+  // Feature #6241: fold the canonical `effort` / `thinking` request params onto the
+  // per-provider reasoning fields (reasoning_effort / reasoning.effort / thinking) that the
+  // existing translators already consume. Done here — right after the body is first
+  // resolved, before any reasoning field is read below — so it flows uniformly into every
+  // downstream mapper (Anthropic / Gemini / xAI / Responses). An explicit client
+  // reasoning_effort / reasoning / object-shaped thinking always wins (backward compatible).
+  body = normalizeReasoningRequest(body);
 
   // Early guard: an explicitly empty `messages` array is invalid for every
   // upstream (Anthropic/OpenAI both reject "at least one message is required").
