@@ -107,6 +107,7 @@ export {
   updateApiKeyPermissions,
   regenerateApiKey,
   isModelAllowedForKey,
+  pickApiKeyForInternalUse,
   clearApiKeyCaches,
   resetApiKeyState,
 } from "./db/apiKeys";
