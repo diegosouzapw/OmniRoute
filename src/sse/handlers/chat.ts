@@ -245,6 +245,20 @@ export async function handleChat(
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
   }
 
+  // Reject non-string `model` before it reaches downstream code that calls
+  // `.toLowerCase()` / `.split()` / `.startsWith()` on it (crash-then-500 with an
+  // empty body, escaping the error sanitizer — #6407). An explicit `null`/`undefined`
+  // stays permitted here because the existing `Missing model` guard below returns a
+  // clean 400 for those; anything else that is not a string is a client type error.
+  const rawModel = (body as { model?: unknown }).model;
+  if (rawModel !== undefined && rawModel !== null && typeof rawModel !== "string") {
+    log.warn("CHAT", `Rejecting non-string model (typeof=${typeof rawModel})`);
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      `model: Expected string, received ${Array.isArray(rawModel) ? "array" : typeof rawModel}`
+    );
+  }
+
   // buildClientRawRequest already deep-clones the body, so pass `body` directly — the
   // prior local clone was a redundant second full-body copy on the hot path (#5152).
   if (!clientRawRequest) {
