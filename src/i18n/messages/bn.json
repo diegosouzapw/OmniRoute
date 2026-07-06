@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} এর একটি API কী বা কুকির প্রয়োজন নেই৷ এর বিনামূল্যের ওয়েব এন্ডপয়েন্ট ব্যবহার করতে সংযোগটি সংরক্ষণ করুন।",
     "webSessionCredentialValidationFailed": "সেশন শংসাপত্রের বৈধতা ব্যর্থ হয়েছে৷ আবার সাইন ইন করুন, একটি নতুন শংসাপত্র অনুলিপি করুন এবং আবার চেষ্টা করুন৷",
     "checkCookie": "কুকি চেক করুন",
-    "checkWebToken": "টোকেন চেক করুন"
+    "checkWebToken": "টোকেন চেক করুন",
+    "filterAll": "সব",
+    "filterActive": "সক্রিয়",
+    "filterError": "ত্রুটি",
+    "filterBanned": "নিষিদ্ধ",
+    "filterCreditsExhausted": "ক্রেডিট শেষ"
   },
   "settings": {
     "title": "Settings",
