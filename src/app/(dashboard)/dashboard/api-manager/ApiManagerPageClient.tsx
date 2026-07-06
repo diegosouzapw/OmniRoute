@@ -203,6 +203,7 @@ export default function ApiManagerPageClient() {
   const createKeyFormRef = useRef<HTMLDivElement | null>(null);
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [allModels, setAllModels] = useState<Model[]>([]);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
   const [allCombos, setAllCombos] = useState<ComboOption[]>([]);
   const [allConnections, setAllConnections] = useState<ProviderConnection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -320,14 +321,40 @@ export default function ApiManagerPageClient() {
   }, [showAddModal, nameError, scrollCreateKeyFormToTop]);
 
   const fetchModels = async () => {
+    setModelsLoaded(false);
     try {
       const res = await fetch("/v1/models");
       if (res.ok) {
         const data = await res.json();
-        setAllModels(data.data || []);
+        setAllModels(Array.isArray(data.data) ? data.data : []);
+        return;
+      }
+
+      // Fallback for dashboard API-key editing: /v1/models can be protected by
+      // API-key catalog auth, but the dashboard still needs a stable catalog so
+      // users can edit allowedModels. /api/models?all=true returns the static
+      // dashboard model inventory in a slightly different shape.
+      const fallbackRes = await fetch("/api/models?all=true");
+      if (fallbackRes.ok) {
+        const fallbackData = await fallbackRes.json();
+        const fallbackModels = Array.isArray(fallbackData.models) ? fallbackData.models : [];
+        setAllModels(
+          fallbackModels
+            .map((m: any) => ({
+              id: typeof m.fullModel === "string" ? m.fullModel : `${m.provider}/${m.model}`,
+              owned_by: typeof m.provider === "string" ? m.provider : "unknown",
+              name: typeof m.alias === "string" ? m.alias : m.model || m.fullModel,
+            }))
+            .filter((m: Model) => typeof m.id === "string" && m.id.length > 0)
+        );
+      } else {
+        setAllModels([]);
       }
     } catch (error) {
       console.log("Error fetching models:", error);
+      setAllModels([]);
+    } finally {
+      setModelsLoaded(true);
     }
   };
 
@@ -1533,6 +1560,7 @@ export default function ApiManagerPageClient() {
           apiKey={editingKey}
           modelsByProvider={filteredModelsByProvider}
           allModels={permissionModels}
+          modelsLoaded={modelsLoaded}
           allCombos={allCombos}
           allConnections={allConnections}
           searchModel={searchModel}
@@ -1552,6 +1580,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey,
   modelsByProvider,
   allModels,
+  modelsLoaded,
   allCombos,
   allConnections,
   searchModel,
@@ -1563,6 +1592,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey: ApiKey;
   modelsByProvider: ProviderGroup[];
   allModels: Model[];
+  modelsLoaded: boolean;
   allCombos: ComboOption[];
   allConnections: ProviderConnection[];
   searchModel: string;
@@ -2024,7 +2054,13 @@ const PermissionsModal = memo(function PermissionsModal({
               allowAll ? "text-green-700 dark:text-green-300" : "text-amber-700 dark:text-amber-300"
             }`}
           >
-            {allowAll ? t("allowAllDesc") : t("restrictDesc", { selectedCount, totalModels })}
+            {allowAll
+              ? t("allowAllDesc")
+              : !modelsLoaded
+                ? t("restrictLoading")
+                : totalModels === 0
+                  ? t("restrictCatalogUnavailable", { selectedCount })
+                  : t("restrictDesc", { selectedCount, totalModels })}
           </p>
         </div>
 
