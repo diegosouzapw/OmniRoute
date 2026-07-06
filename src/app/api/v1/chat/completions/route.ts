@@ -40,6 +40,23 @@ export async function OPTIONS() {
 export async function POST(request) {
   await ensureInitialized();
 
+  // Content-Type guard (#6414) — reject non-JSON POST bodies with 415 per RFC 7231.
+  // OpenAI/Anthropic reject `text/plain` or missing Content-Type at the edge; matching
+  // that behavior prevents a text/plain body from silently reaching provider lookup.
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().split(";")[0].trim().startsWith("application/json")) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Content-Type must be application/json",
+          type: "invalid_request_error",
+          code: "unsupported_media_type",
+        },
+      }),
+      { status: 415, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+    );
+  }
+
   // Heap-pressure-aware admission: shed a large body with 503 (or 413 if pathological)
   // BEFORE the request is cloned + JSON-parsed below. A large coding-agent compact body
   // amplifies into hundreds of MB of transient JS objects on the combo path; under a
