@@ -134,12 +134,20 @@ export function useLiveDashboard({
     };
   }, [needsHandshake, wsUrlResolved]);
 
-  const effectiveWsUrl =
-    wsUrl ??
-    handshakeUrl ??
-    (handshakePath && handshakePath !== BUILD_TIME_WS_PATH
-      ? DEFAULT_WS_URL.replace(BUILD_TIME_WS_PATH, handshakePath)
-      : DEFAULT_WS_URL);
+  const effectiveWsUrl = (() => {
+    if (wsUrl) return wsUrl;
+    if (handshakeUrl) return handshakeUrl;
+    if (handshakePath && handshakePath !== BUILD_TIME_WS_PATH) {
+      try {
+        const url = new URL(DEFAULT_WS_URL);
+        url.pathname = handshakePath;
+        return url.toString();
+      } catch {
+        return DEFAULT_WS_URL;
+      }
+    }
+    return DEFAULT_WS_URL;
+  })();
 
   const [events, setEvents] = useState<WsEventPayload[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
