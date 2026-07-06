@@ -14,7 +14,7 @@ export interface WebSessionCredentialGuideProps {
   t: ProviderMessageTranslator;
 }
 
-function getProviderWebsiteHost(providerWebsite?: string): string | null {
+export function getProviderWebsiteHost(providerWebsite?: string): string | null {
   if (!providerWebsite) {
     return null;
   }
