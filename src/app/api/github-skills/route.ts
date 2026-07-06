@@ -10,9 +10,17 @@
  *       Body: { repoName, targets, description }
  */
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { searchGitHubSkills } from "@/lib/skills/githubCollector";
 import { matchesSearch } from "@/shared/utils/turkishText";
+import { validateBody } from "@/shared/validation/helpers";
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+
+const installSkillSchema = z.object({
+  repoName: z.string().min(1),
+  targets: z.array(z.string().min(1)).optional().default(["hermes"]),
+  description: z.string().optional().default(""),
+});
 
 export const dynamic = "force-dynamic";
 
@@ -57,20 +65,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const {
-      repoName,
-      targets = ["hermes"],
-      description = "",
-    } = body as {
-      repoName?: string;
-      targets?: string[];
-      description?: string;
-    };
-
-    if (!repoName || typeof repoName !== "string") {
+    const parsed = validateBody(installSkillSchema, await request.json());
+    if (!parsed.success) {
       return NextResponse.json(buildErrorBody(400, "repoName is required"), { status: 400 });
     }
+    const { repoName, targets, description } = parsed.data;
 
     const { resolveInstallPath, INSTALL_TARGETS } = await import("@/lib/skills/githubCollector");
     const skillName = repoName.split("/").pop() || repoName;
