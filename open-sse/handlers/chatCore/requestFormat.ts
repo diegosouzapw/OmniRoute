@@ -37,6 +37,33 @@ function isCopilotClient(
   return false;
 }
 
+function isOpencodeClient(
+  headers: Headers | Record<string, unknown> | null | undefined,
+  userAgent?: string | null
+): boolean {
+  const matchesUserAgent = (value: unknown) =>
+    typeof value === "string" && value.toLowerCase().includes("opencode");
+  const matchesHeaderKey = (key: string) => key.toLowerCase().startsWith("x-opencode-");
+
+  if (matchesUserAgent(userAgent)) return true;
+
+  if (headers instanceof Headers) {
+    for (const [key, value] of headers as unknown as Iterable<[string, string]>) {
+      if (matchesHeaderKey(key) || (key.toLowerCase() === "user-agent" && matchesUserAgent(value))) {
+        return true;
+      }
+    }
+  } else if (headers && typeof headers === "object") {
+    for (const [key, value] of Object.entries(headers)) {
+      if (matchesHeaderKey(key) || (key.toLowerCase() === "user-agent" && matchesUserAgent(value))) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 /**
  * Resolve the per-request endpoint/format facts at the top of handleChatCore. Pure: a function of
  * the inbound endpoint, the (possibly already-mutated) body, the resolved provider, and the
@@ -64,6 +91,7 @@ export function resolveChatCoreRequestFormat(opts: {
   const isDroidCLI =
     userAgent?.toLowerCase().includes("droid") || userAgent?.toLowerCase().includes("codex-cli");
   const copilotCompatibleReasoning = isCopilotClient(clientRawRequest?.headers, userAgent);
+  const isOpencodeClientRequest = isOpencodeClient(clientRawRequest?.headers, userAgent);
   const clientResponseFormat =
     sourceFormat === FORMATS.OPENAI_RESPONSES && !isResponsesEndpoint && !isDroidCLI
       ? FORMATS.OPENAI
@@ -75,6 +103,7 @@ export function resolveChatCoreRequestFormat(opts: {
     nativeCodexPassthrough,
     isDroidCLI,
     copilotCompatibleReasoning,
+    isOpencodeClient: isOpencodeClientRequest,
     clientResponseFormat,
   };
 }

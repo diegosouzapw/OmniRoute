@@ -59,21 +59,49 @@ export function execFileText(command: string, args: string[]): Promise<string> {
   });
 }
 
-export function execFileWithPassword(
+/**
+ * Truthy-env check for `OMNIROUTE_NO_SUDO`. Inlined (not imported from
+ * `src/lib/db/apiKeys/modelPermissions.ts`) because that module pulls in the DB
+ * read-cache graph and importing it here — into a low-level MITM primitive that
+ * is loaded during cert bootstrap — would create a module cycle. The same tiny
+ * helper is already duplicated locally in `runtimeSettings.ts` / `db/settings.ts`
+ * for exactly this reason; behavior matches `isTruthyEnvFlag` byte-for-byte
+ * (`1|true|yes|on`, case-insensitive, trimmed).
+ */
+export function isNoSudoEnv(): boolean {
+  const value = process.env.OMNIROUTE_NO_SUDO;
+  return typeof value === "string" && /^(1|true|yes|on)$/i.test(value.trim());
+}
+
+export interface ResolvedSpawn {
+  finalCommand: string;
+  finalArgs: string[];
+  stripSudo: boolean;
+  needsPassword: boolean;
+}
+
+/**
+ * Pure resolver for the sudo-stripping decision. Extracted so tests can assert
+ * the resulting argv (and whether a password is written to stdin) WITHOUT
+ * spawning a real `sudo`. `root`/`sudoAvailable` default to the live probes and
+ * can be injected for deterministic tests; `noSudo` defaults to the
+ * `OMNIROUTE_NO_SUDO` env flag.
+ *
+ * Strips the leading `sudo -S` (running the underlying command directly, same
+ * user, no elevation) when running as root, when `sudo` is unavailable, OR when
+ * the operator opts into root-less mode via `OMNIROUTE_NO_SUDO` (#6122). No
+ * runtime value is ever interpolated into a shell — the argv array is preserved
+ * and only the leading `sudo`/`-S` tokens are dropped (Hard Rule #13).
+ */
+export function resolveSudoSpawn(
   command: string,
   args: string[],
-  password: string,
-  stdinAfterPassword = ""
-): Promise<string> {
-  // When running as root, OR when `sudo` is not installed on the host (slim
-  // Docker images / containerized non-root runtime), skip `sudo -S` and run
-  // the underlying command directly — same user, no elevation. This lets MITM
-  // operations triggered from inside `node:*-slim` containers succeed for any
-  // command that does not actually require root (everything but writing to
-  // /etc/hosts or the system trust store).
-  const root = isRoot();
-  const sudoAvailable = isSudoAvailable();
-  const stripSudo = command === "sudo" && (root || !sudoAvailable);
+  overrides: { root?: boolean; sudoAvailable?: boolean; noSudo?: boolean } = {}
+): ResolvedSpawn {
+  const root = overrides.root ?? isRoot();
+  const sudoAvailable = overrides.sudoAvailable ?? isSudoAvailable();
+  const noSudo = overrides.noSudo ?? isNoSudoEnv();
+  const stripSudo = command === "sudo" && (root || !sudoAvailable || noSudo);
   const needsPassword = !stripSudo && command === "sudo";
   let finalCommand = command;
   let finalArgs = args;
@@ -85,6 +113,24 @@ export function execFileWithPassword(
       finalArgs = args.slice(realCmdIndex + 1);
     }
   }
+
+  return { finalCommand, finalArgs, stripSudo, needsPassword };
+}
+
+export function execFileWithPassword(
+  command: string,
+  args: string[],
+  password: string,
+  stdinAfterPassword = ""
+): Promise<string> {
+  // When running as root, when `sudo` is not installed on the host (slim
+  // Docker images / containerized non-root runtime), OR when the operator sets
+  // `OMNIROUTE_NO_SUDO` (root-less / user-namespace deployments — #6122), skip
+  // `sudo -S` and run the underlying command directly — same user, no
+  // elevation. This lets MITM operations triggered from inside `node:*-slim`
+  // containers succeed for any command that does not actually require root
+  // (everything but writing to /etc/hosts or the system trust store).
+  const { finalCommand, finalArgs, needsPassword } = resolveSudoSpawn(command, args);
 
   return new Promise((resolve, reject) => {
     // `command` and `args` are never user-controlled. This helper is a

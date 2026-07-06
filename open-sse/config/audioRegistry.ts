@@ -416,7 +416,6 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "mimo-v2.5-tts", name: "MiMo V2.5 TTS" },
       { id: "mimo-v2.5-tts-voicedesign", name: "MiMo V2.5 Voice Design" },
       { id: "mimo-v2.5-tts-voiceclone", name: "MiMo V2.5 Voice Clone" },
-      { id: "mimo-v2-tts", name: "MiMo V2 TTS" },
     ],
   },
 };
@@ -512,10 +511,7 @@ export function parseSpeechModel(modelStr: string | null, dynamicProviders?: Aud
   return parseAudioModel(modelStr, AUDIO_SPEECH_PROVIDERS, dynamicProviders);
 }
 
-export function parseTranslationModel(
-  modelStr: string | null,
-  dynamicProviders?: AudioProvider[]
-) {
+export function parseTranslationModel(modelStr: string | null, dynamicProviders?: AudioProvider[]) {
   return parseAudioModel(modelStr, AUDIO_TRANSLATION_PROVIDERS, dynamicProviders);
 }
 

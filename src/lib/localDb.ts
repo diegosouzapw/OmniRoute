@@ -107,6 +107,7 @@ export {
   updateApiKeyPermissions,
   regenerateApiKey,
   isModelAllowedForKey,
+  pickApiKeyForInternalUse,
   clearApiKeyCaches,
   resetApiKeyState,
 } from "./db/apiKeys";
@@ -440,6 +441,7 @@ export {
   upsertSessionAccountAffinity,
   touchSessionAccountAffinity,
   deleteSessionAccountAffinity,
+  evictSessionAccountAffinityForConnection,
   cleanupStaleSessionAccountAffinities,
   startSessionAccountAffinityCleanup,
   stopSessionAccountAffinityCleanupForTests,

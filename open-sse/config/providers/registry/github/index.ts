@@ -25,69 +25,137 @@ export const githubProvider: RegistryEntry = {
   defaultContextLength: 128000,
   headers: getGitHubCopilotChatHeaders(),
   models: [
-    // Copilot still serves the original GPT-4 via chat/completions; keep it
-    // alongside GPT-4o and the GPT-5.x family so apps that hard-code `gpt-4` resolve here.
-    { id: "gpt-4", name: "GPT-4", contextLength: 128000 },
-    // 9router#98 — Copilot still serves GPT-4o via chat/completions; keep it
-    // alongside the GPT-5.x family so apps that hard-code `gpt-4o` resolve here.
-    { id: "gpt-4o", name: "GPT-4o", contextLength: 128000 },
-    // Copilot also serves the cheaper GPT-4o mini via chat/completions; keep it
-    // alongside gpt-4o so apps that hard-code `gpt-4o-mini` resolve to the Copilot
-    // (`gh`) provider rather than only the github-models (`ghm`) marketplace entry.
-    { id: "gpt-4o-mini", name: "GPT-4o mini", contextLength: 128000 },
-    { id: "gpt-5-mini", name: "GPT-5 Mini", targetFormat: "openai-responses" },
-    { id: "gpt-5.3-codex", name: "GPT-5.3 Codex", targetFormat: "openai-responses" },
-    { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", targetFormat: "openai-responses" },
     {
-      id: "gpt-5.4",
-      name: "GPT-5.4",
-      targetFormat: "openai-responses",
-      supportsXHighEffort: true,
+      id: "claude-fable-5",
+      name: "Claude Fable 5",
+      contextLength: 1000000,
+      maxOutputTokens: 64000,
     },
-    { id: "gpt-5.5", name: "GPT-5.5", ...GPT_5_5_CODEX_CAPABILITIES },
     {
-      id: "claude-haiku-4.5",
-      name: "Claude Haiku 4.5",
+      id: "claude-opus-4.8-fast",
+      name: "Claude Opus 4.8 (fast mode)",
+      contextLength: 1000000,
+      maxOutputTokens: 64000,
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
+    {
+      id: "claude-opus-4.8",
+      name: "Claude Opus 4.8",
+      contextLength: 1000000,
+      maxOutputTokens: 64000,
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
+    {
+      id: "claude-opus-4.7",
+      name: "Claude Opus 4.7",
+      contextLength: 1000000,
+      maxOutputTokens: 64000,
+    },
+    {
+      id: "claude-sonnet-4.6",
+      name: "Claude Sonnet 4.6",
+      contextLength: 1000000,
+      maxOutputTokens: 64000,
+    },
+    {
+      id: "claude-opus-4.5",
+      name: "Claude Opus 4.5",
       contextLength: 200000,
+      maxOutputTokens: 32000,
+    },
+    {
+      id: "claude-sonnet-5",
+      name: "Claude Sonnet 5",
+      contextLength: 1000000,
       maxOutputTokens: 64000,
     },
     {
       id: "claude-sonnet-4.5",
       name: "Claude Sonnet 4.5",
       contextLength: 200000,
-      maxOutputTokens: 64000,
+      maxOutputTokens: 32000,
     },
     {
-      id: "claude-sonnet-4.6",
-      name: "Claude Sonnet 4.6",
+      id: "claude-haiku-4.5",
+      name: "Claude Haiku 4.5",
       contextLength: 200000,
-      maxOutputTokens: 64000,
-    },
-    {
-      // #2911: GitHub Copilot's Responses API does not serve Claude/Gemini —
-      // route them via chat/completions (provider default) like claude-opus-4.6.
-      id: "claude-opus-4-5-20251101",
-      name: "Claude Opus 4.5 (Full ID)",
-      contextLength: 200000,
-      maxOutputTokens: 64000,
-    },
-    {
-      id: "claude-opus-4.6",
-      name: "Claude Opus 4.6",
-      contextLength: 1000000,
-      maxOutputTokens: 128000,
-    },
-    {
-      // #2911: Claude on Copilot must use chat/completions, not the Responses API.
-      id: "claude-opus-4.7",
-      name: "Claude Opus 4.7",
-      contextLength: 1000000,
-      maxOutputTokens: 128000,
+      maxOutputTokens: 32000,
     },
     // #2911: Gemini on Copilot must use chat/completions, not the Responses API.
-    { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro" },
-    { id: "gemini-3-flash-preview", name: "Gemini 3 Flash" },
-    { id: "oswe-vscode-prime", name: "Raptor Mini", targetFormat: "openai-responses" },
-    //{ id: "?", name: "Goldeneye" },
+    {
+      id: "gemini-3.1-pro-preview",
+      name: "Gemini 3.1 Pro",
+      contextLength: 1000000,
+      maxOutputTokens: 64000,
+    },
+    {
+      id: "gemini-3.5-flash",
+      name: "Gemini 3.5 Flash",
+      contextLength: 1000000,
+      maxOutputTokens: 64000,
+    },
+    { id: "gpt-5.5", name: "GPT-5.5", ...GPT_5_5_CODEX_CAPABILITIES, maxOutputTokens: 128000 },
+    {
+      id: "gpt-5.4",
+      name: "GPT-5.4",
+      targetFormat: "openai-responses",
+      supportsXHighEffort: true,
+      contextLength: 1050000,
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "gpt-5.4-mini",
+      name: "GPT-5.4 mini",
+      targetFormat: "openai-responses",
+      contextLength: 400000,
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "gpt-5.3-codex",
+      name: "GPT-5.3-Codex",
+      targetFormat: "openai-responses",
+      contextLength: 400000,
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "gpt-5-mini",
+      name: "GPT-5 mini",
+      targetFormat: "openai-responses",
+      contextLength: 264000,
+      maxOutputTokens: 64000,
+    },
+    {
+      id: "gpt-4o-2024-11-20",
+      name: "GPT-4o",
+      contextLength: 128000,
+      maxOutputTokens: 16384,
+    },
+    { id: "gpt-4o-mini", name: "GPT-4o mini", contextLength: 128000, maxOutputTokens: 4096 },
+    {
+      id: "gpt-4-0125-preview",
+      name: "GPT 4 Turbo",
+      contextLength: 128000,
+      maxOutputTokens: 4096,
+    },
+    {
+      id: "kimi-k2.7-code",
+      name: "Kimi K2.7 Code",
+      contextLength: 256000,
+      maxOutputTokens: 32000,
+    },
+    {
+      id: "mai-code-1-flash",
+      name: "MAI-Code-1-Flash",
+      targetFormat: "openai-responses",
+      contextLength: 256000,
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "oswe-vscode-prime",
+      name: "Raptor mini",
+      targetFormat: "openai-responses",
+      contextLength: 264000,
+      maxOutputTokens: 64000,
+    },
   ],
 };

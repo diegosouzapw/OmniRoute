@@ -16,6 +16,10 @@ permissions:
   contents: read
 
 env:
+  # CI must never mutate the runner's OS trust store (2026-07-05: a cert-flow
+  # test installed a fake PEM on a persistent self-hosted runner and broke all
+  # system TLS). Belt-and-suspenders with tests/_setup/isolateDataDir.ts.
+  OMNIROUTE_SKIP_SYSTEM_TRUST: "1"
   CI_NODE_VERSION: "24"
   CI_NODE_24_VERSION: "24"
   CI_NODE_26_VERSION: "26"
@@ -92,6 +96,9 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
+    # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     env:
       # tsx gates below (known-symbols, route-guard-membership) import modules that
       # open SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
@@ -148,7 +155,7 @@ jobs:
     # release PR #4854, where the drift cascade only surfaced post-merge in #5029).
     # The coverage.* metrics degrade gracefully: the download is continue-on-error and
     # the ratchet runs with --allow-missing, so absent coverage is skipped, not failed.
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     # security-events: read lets the CodeQL ratchet read open code-scanning alerts
     # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
     permissions:
@@ -240,6 +247,9 @@ jobs:
   quality-extended:
     name: Quality Gates (Extended)
     runs-on: ubuntu-latest
+    # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
+    # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     steps:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
       # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
@@ -347,6 +357,9 @@ jobs:
   docs-sync-strict:
     name: Docs Sync (Strict)
     runs-on: ubuntu-latest
+    # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
+    # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -376,6 +389,9 @@ jobs:
   docs-lint:
     name: Docs Lint (prose — advisory)
     runs-on: ubuntu-latest
+    # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
+    # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     # Advisory (warning-first): prose/markdown style must not block merges while the
     # existing doc corpus is brought up to style. Promote to blocking once it converges.
     continue-on-error: true
@@ -402,6 +418,9 @@ jobs:
   i18n-ui-coverage:
     name: i18n UI Coverage
     runs-on: ubuntu-latest
+    # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
+    # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -413,30 +432,18 @@ jobs:
       - uses: ./.github/actions/npm-ci-retry
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
 
-  i18n-matrix:
-    name: Build language matrix
-    runs-on: ubuntu-latest
-    outputs:
-      langs: ${{ steps.langs.outputs.langs }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - id: langs
-        run: |
-          LANG_DIR="src/i18n/messages"
-          LANGS=$(ls "$LANG_DIR"/*.json | xargs -n1 basename | sed 's/.json$//' | grep -v '^en$' | jq -R . | jq -s . | jq -c .)
-          echo "langs=${LANGS}" >> "$GITHUB_OUTPUT"
-
+  # D4 (plano mestre testes+CI): a matrix de ~40 jobs de <1min por idioma saturava sozinha
+  # a concorrência de jobs da conta (Free = 20 slots, compartilhados entre TODOS os repos)
+  # e pagava spin-up + arredondamento de billing por idioma. Um único job itera os idiomas
+  # (mesmo script), com grupo de log por idioma e artifact único de resultados nomeados por
+  # idioma (a matrix antiga subia 40 artifacts cujo result.txt colidia no merge-multiple).
   i18n:
-    name: i18n Validation
+    name: i18n Validation (all languages)
     runs-on: ubuntu-latest
+    # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
+    # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     continue-on-error: true
-    strategy:
-      fail-fast: false
-      matrix:
-        lang: ${{ fromJson(needs.i18n-matrix.outputs.langs) }}
-    needs: i18n-matrix
     steps:
       - uses: actions/checkout@v7
         with:
@@ -444,27 +451,35 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-
-      - name: Validate ${{ matrix.lang }}
-        env:
-          # Pass the matrix value via env (never interpolate ${{ ... }} straight
-          # into the run: script body) so the shell receives a variable, not
-          # inlined text — zizmor template-injection mitigation. Named MATRIX_LANG
-          # to avoid clobbering the POSIX `LANG` locale variable.
-          MATRIX_LANG: ${{ matrix.lang }}
+      - name: Validate all languages
         run: |
-          python3 scripts/i18n/validate_translation.py quick -l "$MATRIX_LANG" > result.txt
-
-      - name: Upload result
+          set -uo pipefail
+          mkdir -p i18n-results
+          FAIL=0
+          for f in src/i18n/messages/*.json; do
+            lang=$(basename "$f" .json)
+            [ "$lang" = "en" ] && continue
+            echo "::group::i18n $lang"
+            if python3 scripts/i18n/validate_translation.py quick -l "$lang" > "i18n-results/$lang.txt" 2>&1; then
+              echo "OK $lang"
+            else
+              FAIL=1
+              echo "FAIL $lang"
+              cat "i18n-results/$lang.txt"
+            fi
+            echo "::endgroup::"
+          done
+          exit "$FAIL"
+      - name: Upload results
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: i18n-${{ matrix.lang }}
-          path: result.txt
+          name: i18n-results
+          path: i18n-results/
 
   pr-test-policy:
     name: PR Test Policy
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -495,9 +510,17 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    # Dynamic runner: when the release captain flips the USE_VPS_RUNNER repo var to
+    # 'true' (scripts/vps/release-runner-up.sh does it after the self-hosted VM is
+    # online), the heavy jobs run on the dedicated 32-core VPS runners (label
+    # omni-release) instead of queueing on the 20-concurrent-job hosted pool.
+    # Safety: fork PRs NEVER reach the self-hosted runner — the expression falls
+    # back to ubuntu-latest unless the PR head repo is this repository (push /
+    # dispatch events are own-origin by definition). Any failure path (VM down,
+    # var unset/false) also falls back to ubuntu-latest.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     needs: changes
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.code == 'true' }}
+    if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -508,14 +531,21 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - name: Cache Next.js build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: .build/next/cache
-          key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
-          restore-keys: |
-            nextjs-${{ runner.os }}-node-${{ env.CI_NODE_VERSION }}-${{ hashFiles('package-lock.json') }}-
+      # NOTE: the webpack `.build/next/cache` actions/cache step was removed with the
+      # Turbopack switch below — Turbopack does not read/write the webpack cache dir
+      # (its persistent FS cache is still experimental and intentionally NOT enabled),
+      # so restoring the old ~0.5 GB webpack cache would only waste download time.
+      # Rolling back to webpack = revert this commit (cache step comes back with it).
+      #
+      # Turbopack production build (Next 16, stable): benchmarked 1.9× faster than the
+      # webpack pass (9min0s vs 17min15s on a 32-core box; multi-core Rust vs webpack's
+      # single-threaded compile). Standalone output smoke-validated (server boots,
+      # /api/monitoring/health 200). Downstream jobs (e2e ×9, package-artifact,
+      # electron-package-smoke) consume this artifact, so a green run here validates
+      # the Turbopack artifact end-to-end.
       - run: npm run build
+        env:
+          OMNIROUTE_USE_TURBOPACK: "1"
       - name: Archive Next.js build for downstream jobs
         # Use tar so the archive preserves paths relative to CWD (.build/next/...).
         # upload-artifact path-stripping is ambiguous when exclude patterns are used;
@@ -603,9 +633,16 @@ jobs:
 
   test-unit:
     name: Unit Tests (${{ matrix.shard }}/8)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: build
+    # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
+    timeout-minutes: 25
+    # needs: changes (not build) — this job never downloads the next-build artifact;
+    # gating it on Build only serialized ~20min of wall-clock for nothing. Jobs that
+    # DO consume the artifact (e2e, package-artifact, electron-package-smoke) keep
+    # needs: build. The `if` mirrors Build's own skip condition so docs-only PRs
+    # still skip the suite.
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     strategy:
       fail-fast: false
       matrix:
@@ -624,13 +661,39 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
+      # QW-d (plano mestre): fonte única — o MESMO npm script dos runs locais (adiciona o
+      # setupPolyfill que o comando inline omitia; o glob canônico vive só no package.json).
+      # D3 (plano mestre): a coverage é coletada NESTE mesmo run (c8/NODE_V8_COVERAGE propaga
+      # aos filhos através do npm) — elimina a matrix Coverage Shard ×8, que re-executava a
+      # suíte inteira só para medir o gate. Padrão usado pelo CI do próprio nodejs/node.
+      - name: Unit tests (shard ${{ matrix.shard }}/8) with V8 coverage
+        env:
+          TEST_SHARD: ${{ matrix.shard }}/8
+        run: |
+          rm -rf coverage-shard coverage-shard-report
+          npx c8 \
+            --temp-directory=coverage-shard \
+            --reports-dir=coverage-shard-report \
+            --reporter=json \
+            --exclude=tests/** \
+            --exclude=**/*.test.* \
+            npm run test:unit:ci:shard
+      - name: Upload raw shard coverage
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-shard-${{ matrix.shard }}
+          path: coverage-shard/*.json
+          if-no-files-found: error
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
-    runs-on: ubuntu-latest
+    # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     timeout-minutes: 15
-    needs: build
+    # needs: changes (not build) — no artifact consumed; see test-unit note.
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -653,138 +716,16 @@ jobs:
       - run: npm run test:vitest:ui
         continue-on-error: true
 
-  node-24-compat:
-    name: Node 24 Compatibility Tests (${{ matrix.shard }}/4)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.CI_NODE_24_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
-
-  node-26-compat-build:
-    name: Node 26 Compatibility Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    needs: build
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.CI_NODE_26_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - name: Cache Next.js build cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: .build/next/cache
-          key: nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**/*', 'open-sse/**/*', 'db/**/*', 'next.config.mjs', 'tsconfig*.json', 'postcss.config.*', 'tailwind.config.*') }}
-          restore-keys: |
-            nextjs-${{ runner.os }}-node-${{ env.CI_NODE_26_VERSION }}-${{ hashFiles('package-lock.json') }}-
-      - run: npm run build
-
-  node-26-compat:
-    name: Node 26 Compatibility Tests (${{ matrix.shard }}/4)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: node-26-compat-build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.CI_NODE_26_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - run: node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
-
-  test-coverage-shard:
-    name: Coverage Shard (${{ matrix.shard }}/8)
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - uses: ./.github/actions/npm-ci-retry
-      - run: npm run check:node-runtime
-      - name: Run c8 over shard ${{ matrix.shard }}/8
-        run: |
-          rm -rf coverage-shard coverage-shard-report
-          # `--temp-directory` (writable via NODE_V8_COVERAGE) is what the merge
-          # job reads with `c8 report --temp-directory ...`. Using `--output-dir`
-          # only produces the final json *report* and leaves the raw v8 files in
-          # `coverage/tmp`, so uploading `coverage-shard/` was empty. Pin the temp
-          # dir so the raw coverage files live there and the artifact upload picks
-          # them up regardless of `--test-force-exit` timing.
-          npx c8 \
-            --temp-directory=coverage-shard \
-            --reports-dir=coverage-shard-report \
-            --reporter=json \
-            --exclude=tests/** \
-            --exclude=**/*.test.* \
-            node --max-old-space-size=4096 --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 \
-              --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts"
-      - name: Upload raw shard coverage
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-shard-${{ matrix.shard }}
-          path: coverage-shard/*.json
-          if-no-files-found: error
-
+  # Node 24/26 compatibility matrices moved to .github/workflows/nightly-compat.yml
+  # (plano mestre testes+CI, Eixo D2 — they cost ~28% of every heavy run to catch a
+  # failure class that rarely originates in a PR; nightly catches it within 24h and
+  # the release gate can still exercise them via workflow_dispatch when needed).
   test-coverage:
     name: Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: test-coverage-shard
-    if: ${{ !cancelled() && needs.test-coverage-shard.result == 'success' }}
+    needs: test-unit
+    if: ${{ !cancelled() && needs.test-unit.result == 'success' }}
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -915,7 +856,7 @@ jobs:
   coverage-pr-comment:
     name: PR Coverage Comment
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false && needs.changes.outputs.code == 'true' }}
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.head.repo.fork == false && needs.changes.outputs.code == 'true' }}
     needs:
       - changes
       - pr-test-policy
@@ -1040,7 +981,9 @@ jobs:
     name: Integration Tests (${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: build
+    # needs: changes (not build) — no artifact consumed; see test-unit note.
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     strategy:
       fail-fast: false
       matrix:
@@ -1061,12 +1004,15 @@ jobs:
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
+      # (tsx/esm = QW-b; o alinhamento de ESCOPO do integration com o npm script fica p/ follow-up)
+      - run: node --import tsx/esm --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
 
   test-security:
     name: Security Tests
     runs-on: ubuntu-latest
-    needs: build
+    # needs: changes (not build) — no artifact consumed; see test-unit note.
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -1098,9 +1044,6 @@ jobs:
       - package-artifact
       - electron-package-smoke
       - test-unit
-      - node-24-compat
-      - node-26-compat-build
-      - node-26-compat
       - test-coverage
       - sonarqube
       - coverage-pr-comment
@@ -1150,15 +1093,12 @@ jobs:
           echo "| Build Matrix | $(status '${{ needs.build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Node 26 Compatibility Build | $(status '${{ needs.node-26-compat-build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "## 🧪 Tests" >> "$GITHUB_STEP_SUMMARY"
           echo "| Suite | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Unit | $(status '${{ needs.test-unit.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Node 24 Compatibility Tests | $(status '${{ needs.node-24-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Node 26 Compatibility Tests | $(status '${{ needs.node-26-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| E2E | $(status '${{ needs.test-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"

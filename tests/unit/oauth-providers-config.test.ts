@@ -28,6 +28,7 @@ const {
   CLINE_CONFIG,
   CODEX_CONFIG,
   CODEBUDDY_CN_CONFIG,
+  ZED_CONFIG,
   CURSOR_CONFIG,
   GITHUB_CONFIG,
   GITLAB_DUO_CONFIG,
@@ -66,6 +67,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "devin-cli",
   "grok-cli",
   "codebuddy-cn",
+  "zed",
 ];
 
 const EXPECTED_CONFIG_BY_PROVIDER = {
@@ -88,6 +90,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   trae: TRAE_CONFIG,
   "grok-cli": GROK_CLI_CONFIG,
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
+  zed: ZED_CONFIG,
 };
 
 const REQUIRED_FIELDS_BY_PROVIDER = {
