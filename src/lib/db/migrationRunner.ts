@@ -426,6 +426,12 @@ function isSchemaAlreadyApplied(
       // was dropped on integration; this canonical migration creates the table
       // that recordPluginExecution()/getPluginAnalytics() rely on.
       return hasTable(db, "plugin_analytics");
+    case "117":
+      // Proxy-pool rotation (#6365): the assignments table was rebuilt to add a
+      // `position` column and drop UNIQUE(scope, scope_id). If `position` already
+      // exists the rebuild ran — skip re-executing the rename/copy/drop, which
+      // would fail on the missing proxy_assignments_pre117 table.
+      return hasColumn(db, "proxy_assignments", "position");
     default:
       return false;
   }
