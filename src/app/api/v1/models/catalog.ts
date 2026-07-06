@@ -74,6 +74,7 @@ import {
 import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
 import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
+import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 
 // Public API of this module is preserved after the catalog helper extraction:
 // `isVisionModelId` (vision-detection-consistency.test.ts) and
@@ -116,6 +117,19 @@ export async function getUnifiedModelsResponse(
       aliasOrProviderId;
     // Issue #96: Allow blocking specific providers from the models list
     const blockedProviders = normalizeBlockedProviderSet(settings.blockedProviders);
+    // #6316: Opt-in filter — hide paid-only models via `isFreeModel()`. Only applied to
+    // PROVIDER_MODELS + OpenRouter loops (where pricing metadata / :free suffix / catalog
+    // membership is available). Modality registries (embedding/image/rerank/audio/
+    // moderation/video/music) represent local capabilities without pricing, so they are
+    // exempt. Combos + auto/* + synced/custom/alias-backed rows also stay unfiltered —
+    // extending v1 scope to those requires per-entry pricing lookup not available today.
+    const hidePaid = settings.hidePaidModels === true;
+    const shouldHidePaid = (providerKey: string, modelId: string, pricing?: unknown): boolean => {
+      if (!hidePaid) return false;
+      const provider = aliasToProviderId[providerKey] || providerKey;
+      if (!providerHasFreeModels(provider)) return true;
+      return !isFreeModel(provider, { id: modelId, pricing: pricing as any });
+    };
 
     // Get active provider connections
     let connections = [];
@@ -560,6 +574,7 @@ export async function getUnifiedModelsResponse(
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
         if (getModelIsHidden(canonicalProviderId, model.id)) continue;
+        if (shouldHidePaid(canonicalProviderId, model.id, (model as any).pricing)) continue;
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
@@ -769,6 +784,7 @@ export async function getUnifiedModelsResponse(
           );
           const modelType = getOpenRouterModelType(inputModalities, outputModalities);
           const isFree = isOpenRouterFreeModel(openRouterModel);
+          if (hidePaid && !isFree) continue;
           const supportedParameters = Array.isArray(openRouterModel.supported_parameters)
             ? openRouterModel.supported_parameters
             : [];
