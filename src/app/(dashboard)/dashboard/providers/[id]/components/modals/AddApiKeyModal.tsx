@@ -35,6 +35,7 @@ export interface AddApiKeyModalProps {
   provider?: string;
   providerName?: string;
   initialBaseUrl?: string;
+  existingConnectionCount?: number;
   isCompatible?: boolean;
   isAnthropic?: boolean;
   isCcCompatible?: boolean;
@@ -57,6 +58,7 @@ export default function AddApiKeyModal({
   provider,
   providerName,
   initialBaseUrl,
+  existingConnectionCount = 0,
   isCompatible,
   isAnthropic,
   isCcCompatible,
@@ -88,6 +90,15 @@ export default function AddApiKeyModal({
   const providerDisplayName = providerName || provider || "";
   const apiKeyOptional =
     providerAllowsOptionalApiKey(provider) || Boolean(isNoAuthWebSessionCredential);
+  // Compute a unique default name based on existing connections to prevent
+  // the backend name-based upsert from overwriting an existing connection.
+  // First connection defaults to "main" (backward compatible); subsequent ones
+  // get a numeric suffix ("main-2", "main-3", …).
+  const computeDefaultName = (): string => {
+    const count = existingConnectionCount ?? 0;
+    return count === 0 ? "main" : `main-${count + 1}`;
+  };
+
   const commandCodeAuthPhaseLabel = commandCodeAuthState
     ? {
         idle: "Ready",
@@ -100,8 +111,9 @@ export default function AddApiKeyModal({
         error: "Connection failed",
       }[commandCodeAuthState.phase]
     : null;
+  const defaultName = computeDefaultName();
   const [formData, setFormData] = useState({
-    name: "main", // #5421: required field; default resists autofill garbage (was "" → "wiw")
+    name: defaultName,
     apiKey: "",
     tokenSecret: "", // #5446 — Modal Token Secret (joined with apiKey as id:secret)
     defaultModel: "",
@@ -134,11 +146,33 @@ export default function AddApiKeyModal({
     const wasOpen = wasOpenRef.current;
     wasOpenRef.current = isOpen;
     if (!isOpen || wasOpen) return;
-    setFormData((current) => ({
-      ...current,
+    // Reset form to defaults on open — including a unique name so a second
+    // API key for the same provider doesn't trigger the backend name-based
+    // upsert and silently overwrite the first connection.
+    setFormData({
+      name: computeDefaultName(),
+      apiKey: "",
+      tokenSecret: "",
+      defaultModel: "",
+      priority: 1,
       baseUrl: initialBaseUrl || defaultBaseUrl,
-    }));
-  }, [defaultBaseUrl, initialBaseUrl, isOpen]);
+      cx: "",
+      region: showsRegion ? defaultRegion : "",
+      apiRegion: "international",
+      validationModelId: defaultValidationModelIdForProvider(provider),
+      routingTags: "",
+      excludedModels: "",
+      customUserAgent: "",
+      accountId: "",
+      consoleApiKey: "",
+      ...EMPTY_QUOTA_SCRAPING_FIELDS,
+      ccCompatibleContext1m: false,
+      ccCompatibleRedactThinking: false,
+      ccCompatibleSummarizeThinking: false,
+      passthroughModels: false,
+      importFreeModelsOnly: false,
+    });
+  }, [defaultBaseUrl, initialBaseUrl, isOpen, showsRegion, defaultRegion, provider]);
   const bulkSupported = supportsBulkApiKey(provider);
   const [mode, setMode] = useState<"single" | "bulk">("single");
   const [bulkText, setBulkText] = useState("");
