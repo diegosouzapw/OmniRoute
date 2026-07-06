@@ -1834,29 +1834,6 @@
       "stream": "https://opengateway.gitlawb.com/v1/gmi-cloud"
     }
   },
-  "glhf": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://api.laf.run/v1/chat/completions",
-      "stream": "https://api.laf.run/v1/chat/completions"
-    }
-  },
   "glm": {
     "format": "openai",
     "headers": {

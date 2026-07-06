@@ -106,7 +106,6 @@ import { nscaleProvider } from "./registry/nscale/index.ts";
 import { chatgpt_webProvider } from "./registry/chatgpt-web/index.ts";
 import { openrouterProvider } from "./registry/openrouter/index.ts";
 import { orcarouterProvider } from "./registry/orcarouter/index.ts";
-import { glhfProvider } from "./registry/glhf/index.ts";
 import { copilot_webProvider } from "./registry/copilot-web/index.ts";
 import { copilot_m365_webProvider } from "./registry/copilot-m365-web/index.ts";
 import { stepfunProvider } from "./registry/stepfun/index.ts";
@@ -292,7 +291,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "chatgpt-web": chatgpt_webProvider,
   openrouter: openrouterProvider,
   orcarouter: orcarouterProvider,
-  glhf: glhfProvider,
   "copilot-web": copilot_webProvider,
   "copilot-m365-web": copilot_m365_webProvider,
   stepfun: stepfunProvider,
