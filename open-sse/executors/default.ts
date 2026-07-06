@@ -545,8 +545,9 @@ export class DefaultExecutor extends BaseExecutor {
     withDefaults = this.defaultResponsesTextFormat(withDefaults);
 
     // Port of decolua/9router commit d652300e:
-    // Cerebras returns 400 (wrong_api_format) and Mistral returns 422
-    // (extra_forbidden) when the forwarded body carries `client_metadata`
+    // Cerebras returns 400 (wrong_api_format), Mistral returns 422
+    // (extra_forbidden), and NVIDIA's OpenAI-compatible wrapper returns 400
+    // (Unsupported parameter) when the forwarded body carries `client_metadata`
     // (an OpenAI Codex / Claude CLI passthrough field with no equivalent on
     // these upstreams). Strip it before sending downstream. Other providers
     // (notably `openai` / `codex`) intentionally keep it.
@@ -554,7 +555,9 @@ export class DefaultExecutor extends BaseExecutor {
       withDefaults &&
       typeof withDefaults === "object" &&
       !Array.isArray(withDefaults) &&
-      (this.provider === "cerebras" || this.provider === "mistral") &&
+      (this.provider === "cerebras" ||
+        this.provider === "mistral" ||
+        this.provider === "nvidia") &&
       Object.prototype.hasOwnProperty.call(withDefaults, "client_metadata")
     ) {
       const withoutClientMetadata = { ...(withDefaults as Record<string, unknown>) };
