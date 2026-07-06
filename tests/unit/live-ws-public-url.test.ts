@@ -112,7 +112,7 @@ test("publicUrl with non-WebSocket scheme is rejected (null)", async () => {
 });
 
 test("publicUrl with ws:// scheme is accepted", async () => {
-  process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL = "ws://lan-host:20129/live-ws";
+  process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL = "ws://lan-host:20132/live-ws";
 
   const response = await wsRoute.GET(
     new Request("http://localhost/api/v1/ws?handshake=1", {
@@ -122,5 +122,5 @@ test("publicUrl with ws:// scheme is accepted", async () => {
 
   assert.equal(response.status, 200);
   const body = (await response.json()) as any;
-  assert.equal(body.live.publicUrl, "ws://lan-host:20129/live-ws");
+  assert.equal(body.live.publicUrl, "ws://lan-host:20132/live-ws");
 });

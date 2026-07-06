@@ -30,18 +30,18 @@ const BUILD_TIME_PUBLIC_WS_URL = sanitizeWsPublicUrl(process.env.NEXT_PUBLIC_LIV
 
 function getDefaultWsUrl(): string {
   if (BUILD_TIME_PUBLIC_WS_URL) return BUILD_TIME_PUBLIC_WS_URL;
-  if (typeof window === "undefined") return "ws://localhost:20129";
+  if (typeof window === "undefined") return "ws://localhost:20132";
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const { hostname } = window.location;
-  // Bug #1 fix: Use the WS server's actual port (20129) for both loopback
+  // Bug #1 fix: Use the WS server's actual port (20132) for both loopback
   // and non-loopback clients. Previously the non-loopback branch tried to
   // upgrade the HTTP port (window.location.host) which has no upgrade
   // handler in src/proxy.ts. If the user wants the upgrade to go through
   // Next.js (same-origin), they should explicitly pass `wsUrl`.
   if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
-    return `${protocol}//${hostname}:20129`;
+    return `${protocol}//${hostname}:20132`;
   }
-  return `${protocol}//${hostname}:20129`;
+  return `${protocol}//${hostname}:20132`;
 }
 
 const DEFAULT_WS_URL = getDefaultWsUrl();
@@ -65,7 +65,7 @@ export interface DashboardConnectionState {
 // ── Core Hook ─────────────────────────────────────────────────────────────
 
 export interface UseLiveDashboardOptions {
-  /** WebSocket URL (default: ws://hostname:20129) */
+  /** WebSocket URL (default: ws://hostname:20132) */
   wsUrl?: string;
   /** Whether the WebSocket connection should be active (default: true) */
   enabled?: boolean;

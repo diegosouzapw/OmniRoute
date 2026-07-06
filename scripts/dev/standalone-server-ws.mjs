@@ -17,9 +17,7 @@ const { wrapRequestListenerWithMethodGuard } = methodGuard;
 // TLS). Absent or misconfigured → null → identical plain-HTTP behavior as before.
 const tlsOptions = resolveTlsOptions(process.env);
 if (tlsOptions) {
-  console.log(
-    `[omniroute][tls] HTTPS enabled — terminating TLS with cert=${tlsOptions.certPath}`
-  );
+  console.log(`[omniroute][tls] HTTPS enabled — terminating TLS with cert=${tlsOptions.certPath}`);
 }
 
 process.env.OMNIROUTE_WS_BRIDGE_SECRET ||= randomUUID();
@@ -50,7 +48,7 @@ function getProxy(server) {
 }
 
 function proxyLiveWs(req, socket, head) {
-  const targetPort = parseInt(process.env.LIVE_WS_PORT || "20129", 10);
+  const targetPort = parseInt(process.env.LIVE_WS_PORT || "20132", 10);
   const targetSocket = net.connect(targetPort, "127.0.0.1", () => {
     let rawRequest = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
     for (const [key, val] of Object.entries(req.headers)) {

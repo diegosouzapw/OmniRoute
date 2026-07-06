@@ -1,7 +1,7 @@
 /**
  * Live Dashboard WebSocket Server
  *
- * Separate process (runs alongside Next.js on port 20129).
+ * Separate process (runs alongside Next.js on port 20132).
  * Forwards EventBus events to subscribed dashboard clients.
  *
  * Protocol:
@@ -20,12 +20,7 @@ import { randomUUID } from "crypto";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
-import type {
-  WsClientMessage,
-  WsServerMessage,
-  WsEventMessage,
-  WsAuthResult,
-} from "./types";
+import type { WsClientMessage, WsServerMessage, WsEventMessage, WsAuthResult } from "./types";
 
 import { emit, on, onAny, getEventHistory, type HistoryEntry } from "@/lib/events/eventBus";
 
@@ -41,7 +36,7 @@ import {
 
 // ── Config ────────────────────────────────────────────────────────────────
 
-const DEFAULT_PORT = 20129;
+const DEFAULT_PORT = 20132;
 // Loopback by default. Opt-in to LAN exposure via LIVE_WS_HOST=0.0.0.0 — the
 // caller is then responsible for fronting it with a TLS terminator + origin
 // allow-list. Mirrors the route guard "local-only by default" posture.
