@@ -6,7 +6,7 @@
  *   (a) read `${clientIdHash}.json` from the same cache dir to obtain
  *       `clientId` / `clientSecret`;
  *   (b) probe Kiro IDE's `profile.json` (Windows + Linux paths) for `arn` and
- *       normalize the ARN region to `us-east-1`;
+ *       preserve its region verbatim (see region-preservation note below);
  *   (c) include all IDC fields in the returned JSON so the import UI can pass
  *       them along to /api/oauth/kiro/import.
  *
@@ -15,6 +15,20 @@
  *
  * The import schema (`kiroImportSchema`) must accept the new optional IDC
  * fields and reject invalid types.
+ *
+ * REGION PRESERVATION (upstream #2314, reverses the #2059 forced-normalization
+ * behavior originally pinned by this file): #2059 forced every profile.json
+ * ARN's region segment to `us-east-1`, on the assumption the runtime gateway
+ * always required it. That assumption was wrong for Kiro IDC (Identity
+ * Center) accounts that live in a non-us-east-1 region — forcing us-east-1
+ * 403s those accounts. The OAuth device-code path
+ * (src/lib/oauth/providers/kiro.ts) already does correct region-aware ARN
+ * discovery (it picks the ARN whose region matches the token's region), so
+ * forcing us-east-1 only in this auto-import fallback was inconsistent. The
+ * fix removes the forced rewrite and preserves the profile's ARN region
+ * as-is, matching the already-correct OAuth path. The tests below were
+ * updated to assert preservation instead of normalization — this is
+ * realignment with the correct behavior, not test-weakening.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -219,7 +233,7 @@ test("auto-import: when clientIdHash is present, reads client registration file 
   );
 });
 
-test("auto-import: when clientIdHash is present and profile.json exists, returns normalized ARN with us-east-1", async () => {
+test("auto-import: when clientIdHash is present and profile.json exists, preserves the ARN's original (non-us-east-1) region — #2314 reverses #2059 forced normalization", async () => {
   const CLIENT_ID_HASH = "hash999";
 
   writeAwsSsoCache({
@@ -241,13 +255,72 @@ test("auto-import: when clientIdHash is present and profile.json exists, returns
   const { body } = await callGet();
 
   assert.equal(body.found, true, `expected found:true, got: ${JSON.stringify(body)}`);
-  assert.ok(
-    typeof body.profileArn === "string" && body.profileArn.includes("us-east-1"),
-    `profileArn should be normalized to us-east-1, got: ${body.profileArn}`
+  // #2059 forced this to be rewritten to us-east-1, which 403s non-us-east-1
+  // IDC accounts. #2314 reverses that: the profile's ARN region must be
+  // preserved verbatim, matching the OAuth device-code path's region-aware
+  // ARN discovery.
+  assert.equal(
+    body.profileArn,
+    "arn:aws:codewhisperer:ap-southeast-1:123456789012:profile/MyProfile",
+    `profileArn region must be preserved verbatim (not forced to us-east-1), got: ${body.profileArn}`
   );
   assert.ok(
-    !(body.profileArn as string).includes("ap-southeast-1"),
-    `normalized profileArn must not contain original region ap-southeast-1, got: ${body.profileArn}`
+    !(body.profileArn as string).includes("us-east-1"),
+    `profileArn must NOT be rewritten to us-east-1, got: ${body.profileArn}`
+  );
+});
+
+test("auto-import: when the profile.json ARN is already us-east-1, it is left unchanged (no-op)", async () => {
+  const CLIENT_ID_HASH = "hash-useast1";
+
+  writeAwsSsoCache({
+    tokenData: {
+      refreshToken: "aorAAAAAGidc-useast1-test",
+      clientIdHash: CLIENT_ID_HASH,
+      region: "us-east-1",
+      authMethod: "idc",
+    },
+    clientIdHash: CLIENT_ID_HASH,
+    clientData: { clientId: "cid", clientSecret: "csec" },
+  });
+
+  writeKiroProfileJson("arn:aws:codewhisperer:us-east-1:123456789012:profile/MyProfile");
+
+  stubFetchForRefresh();
+
+  const { body } = await callGet();
+
+  assert.equal(body.found, true, `expected found:true, got: ${JSON.stringify(body)}`);
+  assert.equal(
+    body.profileArn,
+    "arn:aws:codewhisperer:us-east-1:123456789012:profile/MyProfile",
+    `us-east-1 ARN must be left unchanged, got: ${body.profileArn}`
+  );
+});
+
+test("auto-import: when profile.json is missing/malformed, profileArn is null and import still succeeds", async () => {
+  const CLIENT_ID_HASH = "hash-noprofile";
+
+  writeAwsSsoCache({
+    tokenData: {
+      refreshToken: "aorAAAAAGidc-noprofile-test",
+      clientIdHash: CLIENT_ID_HASH,
+      region: "eu-west-1",
+      authMethod: "idc",
+    },
+    clientIdHash: CLIENT_ID_HASH,
+    clientData: { clientId: "cid", clientSecret: "csec" },
+  });
+
+  // Intentionally do NOT write profile.json — simulates a missing/absent file.
+  stubFetchForRefresh();
+
+  const { body } = await callGet();
+
+  assert.equal(body.found, true, `expected found:true, got: ${JSON.stringify(body)}`);
+  assert.ok(
+    body.profileArn === null || body.profileArn === undefined,
+    `profileArn must be null/undefined when profile.json is absent, got: ${body.profileArn}`
   );
 });
 

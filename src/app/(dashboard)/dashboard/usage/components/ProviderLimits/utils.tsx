@@ -18,7 +18,7 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   weekly: "Weekly",
   code_review: "Code Review",
   code_review_weekly: "Code Review Weekly",
-  gpt_5_3_codex_spark_session: "GPT-5.3-Codex-Spark",
+  gpt_5_3_codex_spark_session: "GPT-5.3-Codex-Spark Session",
   gpt_5_3_codex_spark_weekly: "GPT-5.3-Codex-Spark Weekly",
   agentic_request: "Agentic",
   agentic_request_freetrial: "Agentic (Trial)",

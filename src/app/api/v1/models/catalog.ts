@@ -24,9 +24,11 @@ import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
 import {
   AUTO_TEMPLATE_VARIANTS,
   AUTO_SUFFIX_VARIANTS,
+  AUTO_FAMILY_IDS,
   createBuiltinAutoCombo,
 } from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
+import { getModelCatalogCacheVersion } from "@/lib/db/readCache";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
@@ -74,6 +76,7 @@ import {
 import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
 import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
+import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 
 // Public API of this module is preserved after the catalog helper extraction:
 // `isVisionModelId` (vision-detection-consistency.test.ts) and
@@ -82,11 +85,184 @@ import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catal
 export { isVisionModelId } from "@/shared/constants/visionModels";
 export { getCustomVisionCapabilityFields };
 
+// #6408 — Concurrent GET /v1/models requests serialized (~1.2s each × N). The
+// per-request builder walks 8 registries + hits SQLite for connections, combos,
+// custom models, and aliases; under Next.js single-threaded App Router request
+// handling, N concurrent calls execute back-to-back and the Nth completes
+// N × single-request latency (linear staircase reproduced in the issue).
+//
+// Fix: coalesce identical concurrent requests onto a single in-flight promise,
+// then memoize the serialized body for a short window so a burst (SDK startup,
+// multi-tab dashboard poll) returns from cache. Auth-rejection paths are NOT
+// cached (they depend on live session state — dashboard cookies, API key).
+type CachedCatalog = {
+  body: string;
+  headers: Record<string, string>;
+  status: number;
+  expiresAt: number;
+};
+const CATALOG_CACHE_TTL_MS = 1500; // ~one request-latency window; safe vs SDK bursts
+const catalogCache = new Map<string, CachedCatalog>();
+const catalogInFlight = new Map<string, Promise<CachedCatalog>>();
+
+// Test hook — increments each time the full catalog builder runs. Used by
+// tests/unit/v1-models-concurrent-6408.test.ts to prove concurrent requests
+// share one execution. Not part of the public API; do not read from app code.
+let _catalogBuilderRuns = 0;
+export function __resetCatalogBuilderRunsForTest(): void {
+  _catalogBuilderRuns = 0;
+  catalogCache.clear();
+  catalogInFlight.clear();
+  lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
+}
+export function __getCatalogBuilderRunsForTest(): number {
+  return _catalogBuilderRuns;
+}
+
+function buildCatalogCacheKey(request: Request): string {
+  const url = new URL(request.url);
+  const prefix = url.searchParams.get("prefix") || "";
+  const apiKey = extractApiKey(request) || "";
+  const isCodex = isCodexModelCatalogClient(request) ? "1" : "0";
+  return `${prefix}|${isCodex}|${apiKey}`;
+}
+
+// Tracks the model-catalog cache version (src/lib/db/readCache.ts) as of the last
+// cache access. invalidateDbCache() bumps that version on every settings/connections/
+// combos/pricing write; when it moves on, every memoized entry here was built from
+// state that no longer holds, so drop them all rather than keying by version (which
+// would leak one Map entry per version forever instead of ever pruning old ones).
+let lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
+function dropCatalogCacheIfStateChanged(): void {
+  const currentVersion = getModelCatalogCacheVersion();
+  if (currentVersion === lastSeenCatalogCacheVersion) return;
+  lastSeenCatalogCacheVersion = currentVersion;
+  catalogCache.clear();
+  // Deliberately NOT clearing catalogInFlight: an in-flight build already reads live
+  // DB/settings state as of when it started, so letting it finish and populate the
+  // (now-current) cache entry is correct — clearing it would just force a redundant
+  // second builder run for requests that arrive mid-flight.
+}
+
+// Header sources here mix Title-Case keys (diagnosticHeaders, corsHeaders — plain
+// objects built by app code) with lower-case keys (payload/cached.headers — captured
+// via the Fetch `Headers` iterator, which always yields lower-cased names). Merging
+// those with a plain object spread leaves both casings present as distinct object
+// keys; the `Response` constructor then treats them as the same case-insensitive
+// header and *appends* rather than overwrites, producing a comma-joined duplicate
+// (e.g. request-id echoing "foo, foo"). Merge through a real `Headers` instance
+// instead so `.set()` overwrites case-insensitively. Sources listed earlier are the
+// base (cached/freshly-built payload headers); `diagnosticHeaders` is applied last so
+// per-request fields (e.g. X-Request-Id) always reflect the *current* request rather
+// than whichever request happened to populate the cache entry.
+function mergeCatalogHeaders(...sources: Array<Record<string, string> | undefined>): Headers {
+  const merged = new Headers();
+  for (const source of sources) {
+    if (!source) continue;
+    for (const [key, value] of Object.entries(source)) {
+      merged.set(key, value);
+    }
+  }
+  return merged;
+}
+
 /**
  * Build unified OpenAI-compatible model catalog response.
  * Reused by `/api/v1/models` and `/api/v1` to avoid semantic drift (T09).
  */
 export async function getUnifiedModelsResponse(
+  request: Request,
+  corsHeaders: Record<string, string> = {}
+) {
+  const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
+
+  // #6408 fast path: reject unauthorized callers first (auth state is per-request
+  // and MUST NOT be cached), then coalesce identical concurrent requests + short-
+  // TTL memoize the serialized JSON body.
+  try {
+    let settingsForAuth: Record<string, any> = {};
+    try {
+      settingsForAuth = await getSettings();
+    } catch {}
+    const authRejection = await getModelCatalogAuthRejection(request, settingsForAuth, {
+      ...corsHeaders,
+      ...diagnosticHeaders,
+    });
+    if (authRejection) return authRejection;
+  } catch {
+    // Fall through to full builder on auth-check failure; core handles errors.
+  }
+
+  dropCatalogCacheIfStateChanged();
+  const cacheKey = buildCatalogCacheKey(request);
+  const cached = catalogCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return new Response(cached.body, {
+      status: cached.status,
+      headers: mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
+    });
+  }
+
+  let inflight = catalogInFlight.get(cacheKey);
+  if (!inflight) {
+    inflight = buildCatalogPayload(request).then((payload) => {
+      catalogCache.set(cacheKey, {
+        body: payload.body,
+        headers: payload.headers,
+        status: payload.status,
+        expiresAt: Date.now() + CATALOG_CACHE_TTL_MS,
+      });
+      return payload;
+    });
+    catalogInFlight.set(cacheKey, inflight);
+    inflight.finally(() => {
+      if (catalogInFlight.get(cacheKey) === inflight) catalogInFlight.delete(cacheKey);
+    });
+  }
+
+  try {
+    const payload = await inflight;
+    return new Response(payload.body, {
+      status: payload.status,
+      headers: mergeCatalogHeaders(corsHeaders, payload.headers, diagnosticHeaders),
+    });
+  } catch (err) {
+    return Response.json(
+      {
+        error: {
+          message: err instanceof Error ? err.message : String(err),
+          type: "server_error",
+          code: INTERNAL_PROXY_ERROR,
+        },
+      },
+      { status: 500, headers: { ...corsHeaders, ...diagnosticHeaders } }
+    );
+  }
+}
+
+async function buildCatalogPayload(
+  request: Request
+): Promise<{ body: string; headers: Record<string, string>; status: number }> {
+  _catalogBuilderRuns++;
+  const built = await buildUnifiedModelsResponseCore(request);
+  const body = await built.text();
+  const headers: Record<string, string> = {};
+  built.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+  // buildUnifiedModelsResponseCore() itself returns a real error Response (status 500)
+  // when the builder crashes (e.g. a DB read throws) instead of throwing — status must
+  // be captured and replayed through the cache/coalescing wrapper above, otherwise the
+  // caller-facing Response (built with a fresh `new Response(...)`, defaulting to 200)
+  // silently downgrades a genuine server error into an HTTP 200 with an `error`-shaped
+  // JSON body.
+  return { body, headers, status: built.status };
+}
+
+/**
+ * Original catalog builder. Runs once per unique cache key per TTL window.
+ */
+async function buildUnifiedModelsResponseCore(
   request: Request,
   corsHeaders: Record<string, string> = {}
 ) {
@@ -116,6 +292,19 @@ export async function getUnifiedModelsResponse(
       aliasOrProviderId;
     // Issue #96: Allow blocking specific providers from the models list
     const blockedProviders = normalizeBlockedProviderSet(settings.blockedProviders);
+    // #6316: Opt-in filter — hide paid-only models via `isFreeModel()`. Only applied to
+    // PROVIDER_MODELS + OpenRouter loops (where pricing metadata / :free suffix / catalog
+    // membership is available). Modality registries (embedding/image/rerank/audio/
+    // moderation/video/music) represent local capabilities without pricing, so they are
+    // exempt. Combos + auto/* + synced/custom/alias-backed rows also stay unfiltered —
+    // extending v1 scope to those requires per-entry pricing lookup not available today.
+    const hidePaid = settings.hidePaidModels === true;
+    const shouldHidePaid = (providerKey: string, modelId: string, pricing?: unknown): boolean => {
+      if (!hidePaid) return false;
+      const provider = aliasToProviderId[providerKey] || providerKey;
+      if (!providerHasFreeModels(provider)) return true;
+      return !isFreeModel(provider, { id: modelId, pricing: pricing as any });
+    };
 
     // Get active provider connections
     let connections = [];
@@ -453,7 +642,12 @@ export async function getUnifiedModelsResponse(
     // combo cannot be materialized (e.g. no eligible connections yet) the minimal
     // #4164 entry is emitted instead, so the id is never dropped.
     // #4235 Phase B: also advertise the curated `auto/<category>[:<tier>]` combos.
-    for (const autoId of [...Object.keys(AUTO_TEMPLATE_VARIANTS), ...AUTO_SUFFIX_VARIANTS]) {
+    // #6453: also advertise the `auto/<family>` combos (auto/glm, auto/minimax, ...).
+    for (const autoId of [
+      ...Object.keys(AUTO_TEMPLATE_VARIANTS),
+      ...AUTO_SUFFIX_VARIANTS,
+      ...AUTO_FAMILY_IDS,
+    ]) {
       if (blockedProviders.has("auto") || listedIds.has(autoId)) continue; // #5192
       listedIds.add(autoId);
       const baseAutoEntry = {
@@ -560,6 +754,7 @@ export async function getUnifiedModelsResponse(
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
         if (getModelIsHidden(canonicalProviderId, model.id)) continue;
+        if (shouldHidePaid(canonicalProviderId, model.id, (model as any).pricing)) continue;
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
@@ -769,6 +964,7 @@ export async function getUnifiedModelsResponse(
           );
           const modelType = getOpenRouterModelType(inputModalities, outputModalities);
           const isFree = isOpenRouterFreeModel(openRouterModel);
+          if (hidePaid && !isFree) continue;
           const supportedParameters = Array.isArray(openRouterModel.supported_parameters)
             ? openRouterModel.supported_parameters
             : [];
@@ -1239,6 +1435,14 @@ export async function getUnifiedModelsResponse(
           timestamp,
           (c) => buildComboCatalogMetadata(c, combos)
         );
+      } else if (!keyMeta) {
+        // #6406: A valid apiKey without a DB metadata row is an env-var master key
+        // (OMNIROUTE_API_KEY / ROUTER_API_KEY per isValidApiKey). Those keys have no
+        // per-key allow/deny/quota restrictions — they authenticate the request but
+        // do NOT scope the catalog. Skipping the per-model filter matches the intent:
+        // auth GATES access; env-var master keys see everything the unauth path sees.
+        // Without this branch, isModelAllowedForKey returns false for every model
+        // (metadata missing → deny), collapsing /v1/models to 0 entries.
       } else {
         const filtered = [];
         for (const m of models) {
