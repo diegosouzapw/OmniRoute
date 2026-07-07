@@ -61,6 +61,7 @@ export const DEFAULT_PRICING_INFERENCE = {
   },
   cerebras: {
     "gpt-oss-120b": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
+    "gemma-4-31b": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
     "zai-glm-4.7": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
     "llama-3.3-70b": { input: 0, output: 0, cached: 0, reasoning: 0, cache_creation: 0 },
     "llama-4-scout-17b-16e-instruct": {

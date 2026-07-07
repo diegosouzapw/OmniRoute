@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { glmMonthlyRemainingPercentage } from "../../open-sse/services/usage.ts";
+import { glmMonthlyRemainingPercentage } from "../../../open-sse/services/usage.ts";
 
 // #3580 — z.ai/GLM coding plans have no monthly cap (only 5-hour windows), so the
 // quota API reports the TIME_LIMIT ("Monthly") entry with total=0. The previous

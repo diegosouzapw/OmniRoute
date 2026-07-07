@@ -32,7 +32,7 @@ export const PreviewRequestSchema = z.object({
     )
     .min(1),
   mode: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked", "caveman"])
     .optional()
     .default("stacked"),
   engineId: z.string().optional(),
@@ -183,8 +183,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock, heatmap: heatmapMode } =
+  const { messages, mode, engineId: rawEngineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock, heatmap: heatmapMode } =
     parsed.data;
+  // Alias: `mode: "caveman"` is a synonym for `engineId: "caveman"` (single-engine stacked run).
+  // The caveman engine is not a top-level CompressionMode, but it IS a registered engine.
+  const engineId = mode === "caveman" && !rawEngineId ? "caveman" : rawEngineId;
   const effectiveMode: CompressionMode =
     engineId || pipeline ? "stacked" : (mode as CompressionMode);
   const originalText = messagesToText(messages);
@@ -278,11 +281,14 @@ export async function POST(req: Request) {
         errors: diff.validationErrors,
         warnings: diff.validationWarnings,
         fallbackApplied: diff.fallbackApplied,
+        ...(diff.fallbackReason && { fallbackReason: diff.fallbackReason }),
       },
       validationWarnings: diff.validationWarnings,
       validationErrors: diff.validationErrors,
       fallbackApplied: diff.fallbackApplied,
-      fallbackReason,
+      // Prefer the pipeline's canonical `diff.fallbackReason`; fall back to the
+      // first synthesized reason (#6461) when the pipeline did not set one.
+      fallbackReason: diff.fallbackReason ?? fallbackReason,
       fallbackReasons,
       ...(diff.heatmap ? { heatmap: diff.heatmap } : {}),
     });

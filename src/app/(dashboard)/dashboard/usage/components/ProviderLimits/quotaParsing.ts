@@ -2,6 +2,13 @@ import { getModelsByProviderId } from "@omniroute/open-sse/config/providerModels
 import { safePercentage } from "@/shared/utils/formatting";
 
 const GLM_QUOTA_ORDER: Record<string, number> = { session: 0, weekly: 1, mcp_monthly: 2 };
+const CODEX_QUOTA_ORDER: Record<string, number> = {
+  session: 0,
+  weekly: 1,
+  gpt_5_3_codex_spark_session: 2,
+  gpt_5_3_codex_spark_weekly: 3,
+  banked_reset_credits: 4,
+};
 
 function quotaEntries(data: any): Array<[string, any]> {
   return data?.quotas && typeof data.quotas === "object" ? Object.entries(data.quotas) : [];
@@ -110,14 +117,18 @@ function parseAntigravity(data: any) {
     .filter(Boolean);
 }
 
-/**
- * Codex "banked reset credits" — an eligibility-gated field (issue #5199):
- * a count of extra rate-limit resets the account has banked. DISPLAY ONLY
- * (redemption is an unofficial mutating endpoint, out of scope). Most
- * accounts won't have this field; only render it when the count is positive.
- */
 function buildBankedResetCreditsQuota(count: number) {
-  return buildCreditsQuota("banked_reset_credits", count, 100, { currency: "" });
+  return {
+    name: "banked_reset_credits",
+    used: 0,
+    total: 0,
+    remaining: count,
+    resetAt: null,
+    unlimited: false,
+    isResetCredits: true,
+    remainingPercentage: 100,
+    creditCount: count,
+  };
 }
 
 function parseCodex(data: any) {
@@ -183,6 +194,11 @@ function sortGlmOrder(providerId: string, quotas: any[]) {
   quotas.sort((a, b) => (GLM_QUOTA_ORDER[a.name] ?? 99) - (GLM_QUOTA_ORDER[b.name] ?? 99));
 }
 
+function sortCodexOrder(providerId: string, quotas: any[]) {
+  if (providerId !== "codex") return;
+  quotas.sort((a, b) => (CODEX_QUOTA_ORDER[a.name] ?? 99) - (CODEX_QUOTA_ORDER[b.name] ?? 99));
+}
+
 export function parseQuotaData(provider: string | undefined, data: any) {
   if (!data || typeof data !== "object") return [];
   const providerId = String(provider || "").toLowerCase();
@@ -191,6 +207,7 @@ export function parseQuotaData(provider: string | undefined, data: any) {
     const normalizedQuotas = parseProviderQuotas(providerId, data);
     sortProviderModelOrder(provider, normalizedQuotas);
     sortGlmOrder(providerId, normalizedQuotas);
+    sortCodexOrder(providerId, normalizedQuotas);
     return normalizedQuotas;
   } catch (error) {
     console.error(`Error parsing quota data for ${provider}:`, error);

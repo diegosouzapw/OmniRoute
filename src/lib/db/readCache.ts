@@ -164,15 +164,39 @@ export function getCombosCacheVersion(): number {
   return combosCacheVersion;
 }
 
+// ──────────────── Model Catalog Cache Invalidation Signal ────────────────
+//
+// #6408 added a request-shape-keyed (prefix/isCodex/apiKey) TTL cache around the
+// unified /v1/models builder (src/app/api/v1/models/catalog.ts) to coalesce
+// concurrent/bursty GETs. That cache key does not vary with the underlying DB
+// state the builder reads (connections, settings, combos), so a write followed by
+// a read within the ~1.5s TTL replayed the pre-write response. Same import-cycle
+// constraint as combosCacheVersion above (a db module must not import the route
+// module) — catalog.ts instead compares this version on every access and drops its
+// whole cache the moment it moves, so any write that calls invalidateDbCache() makes
+// the next read miss immediately instead of waiting out the TTL.
+let modelCatalogCacheVersion = 0;
+
+/**
+ * Current model-catalog-cache version. `getUnifiedModelsResponse()` folds this
+ * into its response cache key; a change means settings/connections/combos were
+ * written since the cache was populated and the cached body is stale.
+ */
+export function getModelCatalogCacheVersion(): number {
+  return modelCatalogCacheVersion;
+}
+
 /**
  * Invalidate all caches (call after writes to any of: settings, pricing,
  * connections, combos).
  */
-export function invalidateDbCache(
-  scope?: "settings" | "pricing" | "connections" | "combos"
-): void {
+export function invalidateDbCache(scope?: "settings" | "pricing" | "connections" | "combos"): void {
   if (!scope || scope === "settings") settingsCache.invalidate();
   if (!scope || scope === "pricing") pricingCache.invalidate();
   if (!scope || scope === "connections") connectionsCache.invalidate();
   if (!scope || scope === "combos") combosCacheVersion++;
+  // Settings/connections/combos all feed the unified model catalog builder
+  // (blockedProviders + hidePaidModels, provider connections + excludedModels,
+  // combo definitions, respectively) — pricing does too, via isFreeModel().
+  modelCatalogCacheVersion++;
 }

@@ -23,6 +23,7 @@ import {
   getLatestQuotaSnapshotsForConnection,
 } from "@/lib/db/quotaSnapshots";
 import { recordProviderQuotaResetEventIfChanged } from "@/lib/db/quotaResetEvents";
+import { getCodexQuotaWindowFilterForModel } from "@omniroute/open-sse/config/codexQuotaScopes.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -199,6 +200,30 @@ function normalizeQuotas(rawQuotas: Record<string, any>): Record<string, QuotaIn
 }
 
 // ─── Public API ─────────────────────────────────────────────────────────────
+
+export function __clearForTests() {
+  cache.clear();
+}
+
+export function isQuotaExhaustedForRequest(
+  connectionId: string,
+  provider: string,
+  requestedModel: string | null = null
+): boolean {
+  if (!isAccountQuotaExhausted(connectionId)) return false;
+  if (provider !== "codex" || !requestedModel) return true;
+  const entry = getQuotaCache(connectionId);
+  const quotaNames = Object.keys(entry?.quotas || {});
+  if (quotaNames.length === 0) return true;
+  const filterWindow = getCodexQuotaWindowFilterForModel(requestedModel);
+  const scopedWindowNames = quotaNames.filter((windowName) => filterWindow?.(windowName));
+  return (
+    scopedWindowNames.length > 0 &&
+    scopedWindowNames.every(
+      (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+    )
+  );
+}
 
 /**
  * Store quota data for a connection (called by usage endpoint and background refresh).

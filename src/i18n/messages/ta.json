@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider}க்கு API விசை அல்லது குக்கீ தேவையில்லை. இலவச இணைய இறுதிப் புள்ளியைப் பயன்படுத்த இணைப்பைச் சேமிக்கவும்.",
     "webSessionCredentialValidationFailed": "அமர்வு நற்சான்றிதழ் சரிபார்ப்பு தோல்வியடைந்தது. மீண்டும் உள்நுழைந்து, புதிய நற்சான்றிதழை நகலெடுத்து, மீண்டும் முயற்சிக்கவும்.",
     "checkCookie": "குக்கீயை சரிபார்க்கவும்",
-    "checkWebToken": "டோக்கனை சரிபார்க்கவும்"
+    "checkWebToken": "டோக்கனை சரிபார்க்கவும்",
+    "filterAll": "அனைத்தும்",
+    "filterActive": "செயலில்",
+    "filterError": "பிழை",
+    "filterBanned": "தடைசெய்யப்பட்டது",
+    "filterCreditsExhausted": "கிரெடிட் தீர்ந்தது"
   },
   "settings": {
     "title": "Settings",
