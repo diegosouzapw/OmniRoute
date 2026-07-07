@@ -247,7 +247,9 @@ export async function handleFusionChat({
     stragglerGraceMs: tuning?.stragglerGraceMs ?? FUSION_DEFAULTS.stragglerGraceMs,
     panelHardTimeoutMs: tuning?.panelHardTimeoutMs ?? FUSION_DEFAULTS.panelHardTimeoutMs,
   };
-  const minPanel = Math.min(Math.max(2, cfg.minPanel), panel.length);
+  // Honor user-supplied minPanel down to 1: with 1 survivor we still degrade
+  // gracefully via the answers.length===1 branch below (issue #6454).
+  const minPanel = Math.min(Math.max(1, cfg.minPanel), panel.length);
   const judge = judgeModel && judgeModel.trim() ? judgeModel.trim() : panel[0];
   log.info(
     "FUSION",
@@ -266,29 +268,34 @@ export async function handleFusionChat({
   const settled = await collectPanel(calls, { ...cfg, minPanel });
   log.info("FUSION", `fan-out collected in ${Date.now() - t0}ms`);
 
-  // 2. Collect successful answers.
+  // 2. Collect successful answers + per-member failure reasons (issue #6454).
   const answers: Array<{ model: string; text: string }> = [];
+  const failures: Array<{ model: string; reason: string }> = [];
   for (let i = 0; i < settled.length; i++) {
     const res = settled[i];
     const model = panel[i];
     if (!res) {
       log.warn("FUSION", `Panel ${model} dropped (straggler/timeout)`);
+      failures.push({ model, reason: "straggler_dropped" });
       continue;
     }
     const sentinel = res as Sentinel;
     if (sentinel.__timeout) {
       log.warn("FUSION", `Panel ${model} timed out`);
+      failures.push({ model, reason: "timeout" });
       continue;
     }
     if (sentinel.__error) {
       log.warn("FUSION", `Panel ${model} threw`, {
         error: sanitizeErrorMessage(sentinel.__error as Error),
       });
+      failures.push({ model, reason: "threw" });
       continue;
     }
     const resp = res as Response;
     if (!resp.ok) {
       log.warn("FUSION", `Panel ${model} failed`, { status: resp.status });
+      failures.push({ model, reason: `status_${resp.status}` });
       continue;
     }
     try {
@@ -299,18 +306,28 @@ export async function handleFusionChat({
         log.info("FUSION", `Panel ${model} ok (${text.length} chars)`);
       } else {
         log.warn("FUSION", `Panel ${model} returned empty content`);
+        failures.push({ model, reason: "empty_content" });
       }
     } catch (e) {
       log.warn("FUSION", `Panel ${model} unparseable`, {
         error: sanitizeErrorMessage(e as Error),
       });
+      failures.push({ model, reason: "unparseable" });
     }
   }
 
   // 3. Degrade gracefully when the panel is too thin to fuse.
   if (answers.length === 0) {
     log.warn("FUSION", "All panel models failed");
-    return errorResponse(503, "All fusion panel models failed");
+    // Surface per-member reasons so operators can distinguish rate-limit fan-fail
+    // from outage (issue #6454). Still routed through errorResponse for sanitization.
+    const detail = failures.map((f) => `${f.model}=${f.reason}`).join(", ");
+    return errorResponse(
+      503,
+      detail
+        ? `All fusion panel models failed: ${detail}`
+        : "All fusion panel models failed"
+    );
   }
   if (answers.length === 1) {
     log.info(
