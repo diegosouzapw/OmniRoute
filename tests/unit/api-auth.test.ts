@@ -318,6 +318,24 @@ test("isAuthRequired keeps fresh bootstrap open only on loopback", async () => {
   );
 });
 
+test("isAuthRequired rejects remote require-login bootstrap writes without a configured password", async () => {
+  delete process.env.INITIAL_PASSWORD;
+  await localDb.updateSettings({ requireLogin: true, setupComplete: true, password: "" });
+
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      new Request("https://example.com/api/settings/require-login", { method: "POST" })
+    ),
+    true
+  );
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      new Request("http://localhost/api/settings/require-login", { method: "POST" })
+    ),
+    false
+  );
+});
+
 test("isAuthenticated rejects remote management bootstrap without a configured password", async () => {
   await localDb.updateSettings({ requireLogin: true, password: "" });
 

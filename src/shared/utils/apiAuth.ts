@@ -335,7 +335,7 @@ export async function isAuthRequired(
       }
 
       if (isRequireLoginBootstrapWritePath(pathname, method)) {
-        return false;
+        return !isLoopbackRequest(request);
       }
 
       return settings.setupComplete === true || !isLoopbackRequest(request);
