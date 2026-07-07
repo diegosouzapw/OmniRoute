@@ -1255,6 +1255,12 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 | ------------------------------------------------------------------------------------------- | --: | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **[awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)** · tldrsec | 708 | A curated list of secure-by-default libraries that guides our security choices (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). |
 
+### 🧭 Complementary tools
+
+| Project                                                                       | How it composes with OmniRoute                                                                                                                                                                             |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **[CodeWebChat](https://github.com/robertpiosik/CodeWebChat)** · robertpiosik | Editor-side companion — VS Code + browser extension that autofills 15+ chatbot web UIs with editor context. Owns the free-web-UI rail alongside OmniRoute's API rail; can point its API mode at OmniRoute. |
+
 ## ❤️ Support
 
 OmniRoute is free and open source, built and maintained in the open. If it saves you time or money, consider supporting development:

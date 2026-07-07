@@ -241,18 +241,30 @@ export async function handleChat(
   // reasoning_effort / reasoning / object-shaped thinking always wins (backward compatible).
   body = normalizeReasoningRequest(body);
 
-  // Early guard: an explicitly empty `messages` array is invalid for every
-  // upstream (Anthropic/OpenAI both reject "at least one message is required").
-  // Forwarding it produced a confusing raw upstream 400/502; reject it here with
-  // a clear OmniRoute-level error before any routing or upstream call (#5110).
-  // Responses-API requests use `input` (not `messages`) so they are unaffected,
-  // and an absent `messages` field is left to downstream validation.
-  if (
-    Array.isArray((body as { messages?: unknown }).messages) &&
-    (body as { messages: unknown[] }).messages.length === 0
-  ) {
-    log.warn("CHAT", "Rejecting request with empty messages array");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+  // Early guard: an invalid `messages` field is rejected here with a clear
+  // OmniRoute-level 400 before any routing or upstream call (#5110, #6402).
+  // Without this guard, schema-invalid bodies fell through to model resolution
+  // and surfaced as a misleading 404 `model_not_found` from chatHelpers.ts (#6402).
+  // Cases covered:
+  //   - present-but-non-array (null, number, string, object) → 400 (#6402)
+  //   - empty array → 400 ("at least one message is required") (#5110)
+  //   - missing entirely, when the Responses-API `input` discriminator is also
+  //     absent → 400 (#6402). Responses-API requests use `input` (not `messages`)
+  //     and are still unaffected.
+  {
+    const b = body as { messages?: unknown; input?: unknown };
+    if ("messages" in b && !Array.isArray(b.messages)) {
+      log.warn("CHAT", "Rejecting request with non-array messages");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array");
+    }
+    if (Array.isArray(b.messages) && b.messages.length === 0) {
+      log.warn("CHAT", "Rejecting request with empty messages array");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+    }
+    if (!("messages" in b) && !("input" in b)) {
+      log.warn("CHAT", "Rejecting request with missing messages");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array, received undefined");
+    }
   }
 
   // Reject non-string `model` before it reaches downstream code that calls
