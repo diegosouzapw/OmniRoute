@@ -13,7 +13,13 @@ import { formatQuotaLabel } from "./utils";
  * and surface them as columns; everything else becomes "+N more".
  */
 const PROVIDER_COLUMNS: Record<string, string[]> = {
-  codex: ["session", "weekly"],
+  codex: [
+    "session",
+    "weekly",
+    "gpt_5_3_codex_spark_session",
+    "gpt_5_3_codex_spark_weekly",
+    "banked_reset_credits",
+  ],
   claude: ["session", "weekly"],
   glm: ["session", "weekly", "mcp_monthly"],
   "glm-cn": ["session", "weekly", "mcp_monthly"],
@@ -71,8 +77,8 @@ function matchQuotaByKey(quotas: any[], key: string): any | null {
  *
  * - Named providers: use the static schema; missing windows render as `null`.
  * - Unknown providers: take the first N non-credit quotas in array order.
- * - Credits (`isCredits === true`) are never used as columns — they render
- *   in the overflow tooltip / expanded panel as a balance, not as a %.
+ * - Credits (`isCredits === true`) are normally rendered only in overflow, except
+ *   Codex banked reset credits which intentionally occupy a fixed final column.
  */
 export function getProviderColumns(provider: string, quotas: any[] = []): ResolvedSchema {
   const safe = Array.isArray(quotas) ? quotas : [];
@@ -81,13 +87,14 @@ export function getProviderColumns(provider: string, quotas: any[] = []): Resolv
   const named = PROVIDER_COLUMNS[String(provider || "").toLowerCase()];
 
   if (named && named.length > 0) {
+    const namedPool = String(provider || "").toLowerCase() === "codex" ? safe : nonCredits;
     const columns: ResolvedColumn[] = named.map((key) => ({
       key,
       label: formatQuotaLabel(key),
-      quota: matchQuotaByKey(nonCredits, key),
+      quota: matchQuotaByKey(namedPool, key),
     }));
     const matchedQuotas = new Set(columns.map((c) => c.quota).filter(Boolean));
-    const overflowCount = nonCredits.filter((q) => !matchedQuotas.has(q)).length + credits.length;
+    const overflowCount = safe.filter((q) => q && !matchedQuotas.has(q)).length;
     return { columns, overflowCount };
   }
 

@@ -219,3 +219,43 @@ test("provider schemas reject malformed quota scraping provider-specific values"
   assert.equal(created.success, false);
   assert.equal(updated.success, false);
 });
+
+test("provider schemas accept GLM team quota provider-specific strings", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "glm-cn",
+    apiKey: "id.secret",
+    name: "GLM CN Team",
+    providerSpecificData: {
+      glmOrganizationId: "org-team",
+      glmProjectId: "proj_team",
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      glmOrganizationId: "org-team",
+      glmProjectId: "proj_team",
+    },
+  });
+
+  assert.equal(created.success, true);
+  assert.equal(updated.success, true);
+});
+
+test("provider schemas reject incomplete GLM team quota provider-specific values", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "glm-cn",
+    apiKey: "id.secret",
+    name: "GLM CN Team",
+    providerSpecificData: {
+      glmOrganizationId: "org-only",
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      glmProjectId: 123,
+    },
+  });
+
+  assert.equal(created.success, false);
+  assert.equal(updated.success, false);
+});

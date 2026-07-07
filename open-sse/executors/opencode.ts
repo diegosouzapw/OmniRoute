@@ -292,6 +292,19 @@ export class OpencodeExecutor extends BaseExecutor {
     credentials: ProviderCredentials
   ): any {
     let modifiedBody = super.transformRequest(model, body, stream, credentials);
+    // 9router#1442: OpenCode upstreams (e.g. kimi-k2.6 via opencode-go) return
+    // 400 "Extra inputs are not permitted, field: 'client_metadata'" — an
+    // OpenAI-Codex/Claude-CLI passthrough field with no equivalent here. The
+    // DefaultExecutor strip only covers cerebras/mistral, and OpencodeExecutor
+    // extends BaseExecutor directly, so nothing removed it on this path.
+    if (
+      modifiedBody &&
+      typeof modifiedBody === "object" &&
+      !Array.isArray(modifiedBody) &&
+      Object.prototype.hasOwnProperty.call(modifiedBody, "client_metadata")
+    ) {
+      delete (modifiedBody as Record<string, unknown>).client_metadata;
+    }
     if (
       modifiedBody &&
       typeof modifiedBody === "object" &&

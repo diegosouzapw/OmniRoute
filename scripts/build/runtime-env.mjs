@@ -44,8 +44,9 @@ const MAX_OLD_SPACE_FLAG = "--max-old-space-size";
  * append/inject the calibrated default — a user-set value must always win.
  * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} [env]
  */
-export function envHasExplicitHeapFlag(env = process.env) {
-  return String(env?.NODE_OPTIONS || "").includes(MAX_OLD_SPACE_FLAG);
+export function envHasExplicitHeapFlag(env) {
+  const sourceEnv = arguments.length === 0 ? process.env : env;
+  return String(sourceEnv?.NODE_OPTIONS || "").includes(MAX_OLD_SPACE_FLAG);
 }
 
 /**

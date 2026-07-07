@@ -42,11 +42,11 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-division-
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 // ── Imports ──────────────────────────────────────────────────────────────────
-const providerPlans = await import("../../src/lib/db/providerPlans.ts");
-const quotaPools = await import("../../src/lib/db/quotaPools.ts");
-const { SqliteQuotaStore } = await import("../../src/lib/quota/sqliteQuotaStore.ts");
-const { enforceQuotaShare } = await import("../../src/lib/quota/enforce.ts");
-const core = await import("../../src/lib/db/core.ts");
+const providerPlans = await import("../../../src/lib/db/providerPlans.ts");
+const quotaPools = await import("../../../src/lib/db/quotaPools.ts");
+const { SqliteQuotaStore } = await import("../../../src/lib/quota/sqliteQuotaStore.ts");
+const { enforceQuotaShare } = await import("../../../src/lib/quota/enforce.ts");
+const core = await import("../../../src/lib/db/core.ts");
 
 // ── Suite cleanup ─────────────────────────────────────────────────────────────
 test.after(() => {
