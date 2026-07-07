@@ -128,6 +128,23 @@ export const chatCompletionSchema = z.object({
   top_p: z.number().min(0).max(1).optional(),
 });
 
+// Scalar-only variant (#6412) — validates just the OpenAI-typed scalars
+// (temperature / max_tokens / top_p / stream) so invalid values are rejected
+// with a clear 400 at the API boundary instead of being forwarded to a
+// provider (which then either 400s upstream or, worse, produces a 404 "no
+// active credentials" after routing has already begun). Model/messages have
+// their own downstream handling per #5907 (relaxed) and the inline empty-
+// messages guard (#5110) — keeping them out of this schema preserves that
+// contract while still catching type/range errors early.
+export const chatCompletionScalarSchema = z
+  .object({
+    stream: z.boolean().optional(),
+    temperature: z.number().min(0).max(2).optional(),
+    max_tokens: z.number().int().min(1).optional(),
+    top_p: z.number().min(0).max(1).optional(),
+  })
+  .passthrough();
+
 // ─── Helper ───────────────────────────────────────────────────────
 
 /**

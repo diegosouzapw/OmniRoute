@@ -92,6 +92,7 @@ import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTel
 import { generateRequestId } from "../../shared/utils/requestId";
 import { logAuditEvent } from "../../lib/compliance/index";
 import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
+import { chatCompletionScalarSchema } from "@/shared/schemas/validation";
 import { hasProviderQuotaBypassScope } from "../../shared/constants/apiKeyPolicyScopes";
 import { cloneLogPayload } from "@/lib/logPayloads";
 import { handleInternalUsageCommand } from "@/lib/usage/internalUsageCommand";
@@ -243,6 +244,22 @@ export async function handleChat(
   ) {
     log.warn("CHAT", "Rejecting request with empty messages array");
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+  }
+
+  // Scalar-parameter validation (#6412). Reject bad `temperature` / `max_tokens`
+  // / `top_p` / `stream` at the API boundary — otherwise a body like
+  // `{ max_tokens: "not-a-number" }` sails through parsing + the empty-messages
+  // guard and only fails deep inside provider credential resolution as an
+  // unrelated 404 "No active credentials". Model/messages stay out of the
+  // schema so #5907's relaxed handling and the inline empty-messages guard
+  // above keep owning them. Responses-API bodies (which don't use `messages`)
+  // pass through untouched — passthrough() preserves unknown fields.
+  const scalarCheck = chatCompletionScalarSchema.safeParse(body);
+  if (!scalarCheck.success) {
+    const issue = scalarCheck.error.issues[0];
+    const path = issue.path.join(".") || "request";
+    log.warn("CHAT", `Rejecting request with invalid scalar: ${path}: ${issue.message}`);
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, `${path}: ${issue.message}`);
   }
 
   // buildClientRawRequest already deep-clones the body, so pass `body` directly — the
