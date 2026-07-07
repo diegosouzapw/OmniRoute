@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} لا يحتاج إلى مفتاح API أو ملف تعريف الارتباط. احفظ الاتصال لاستخدام نقطة نهاية الويب المجانية الخاصة به.",
     "webSessionCredentialValidationFailed": "فشل التحقق من صحة بيانات اعتماد الجلسة. قم بتسجيل الدخول مرة أخرى، وانسخ بيانات اعتماد جديدة، ثم حاول مرة أخرى.",
     "checkCookie": "تحقق من ملف تعريف الارتباط",
-    "checkWebToken": "رمز التحقق"
+    "checkWebToken": "رمز التحقق",
+    "filterAll": "الكل",
+    "filterActive": "نشط",
+    "filterError": "خطأ",
+    "filterBanned": "محظور",
+    "filterCreditsExhausted": "نفدت الأرصدة"
   },
   "settings": {
     "title": "الإعدادات",

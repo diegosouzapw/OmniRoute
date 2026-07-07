@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} کو API کلید یا کوکی کی ضرورت نہیں ہے۔ اس کے مفت ویب اینڈ پوائنٹ کو استعمال کرنے کے لیے کنکشن کو محفوظ کریں۔",
     "webSessionCredentialValidationFailed": "سیشن کی اسناد کی توثیق ناکام ہو گئی۔ دوبارہ سائن ان کریں، ایک تازہ سند کاپی کریں، اور دوبارہ کوشش کریں۔",
     "checkCookie": "کوکی چیک کریں۔",
-    "checkWebToken": "ٹوکن چیک کریں۔"
+    "checkWebToken": "ٹوکن چیک کریں۔",
+    "filterAll": "سب",
+    "filterActive": "فعال",
+    "filterError": "خرابی",
+    "filterBanned": "پابندی شدہ",
+    "filterCreditsExhausted": "کریڈٹ ختم"
   },
   "settings": {
     "title": "Settings",

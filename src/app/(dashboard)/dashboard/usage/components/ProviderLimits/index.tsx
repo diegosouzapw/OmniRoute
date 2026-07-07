@@ -22,6 +22,8 @@ import { useNotificationStore } from "@/store/notificationStore";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
 import { useVisibleQuotaData } from "./useVisibleQuotaData";
+import { useCodexResetCreditRedemption } from "./useCodexResetCreditRedemption";
+import { PROVIDER_LABEL, PROVIDER_ORDER, TIER_FILTERS } from "./constants";
 import { formatAutoRefreshCountdown } from "./formatters";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 import { compareTr } from "@/shared/utils/turkishText";
@@ -42,56 +44,6 @@ const LS_PROVIDER_FILTER = "omniroute:limits:providerFilter";
 const MIN_FETCH_INTERVAL_MS = 30000;
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
 const QUOTA_BAR_YELLOW_THRESHOLD = 20;
-
-const PROVIDER_LABEL: Record<string, string> = {
-  antigravity: "Antigravity",
-  github: "GitHub Copilot",
-  kiro: "Kiro AI",
-  "amazon-q": "Amazon Q",
-  codex: "OpenAI Codex",
-  claude: "Claude Code",
-  glm: "GLM (Z.AI)",
-  zai: "Z.AI",
-  glmt: "GLM Thinking",
-  "opencode-go": "OpenCode Go",
-  "ollama-cloud": "Ollama Cloud",
-  "kimi-coding": "Kimi Coding",
-  minimax: "MiniMax",
-  "minimax-cn": "MiniMax CN",
-  nanogpt: "NanoGPT",
-  deepseek: "DeepSeek",
-};
-
-// Group ordering — single source of truth for provider placement.
-const PROVIDER_ORDER: Record<string, number> = {
-  antigravity: 1,
-  github: 3,
-  codex: 4,
-  claude: 5,
-  kiro: 6,
-  glm: 7,
-  zai: 8,
-  glmt: 9,
-  "opencode-go": 10,
-  "ollama-cloud": 11,
-  "kimi-coding": 12,
-  minimax: 13,
-  "minimax-cn": 14,
-  nanogpt: 15,
-};
-
-const TIER_FILTERS = [
-  { key: "all", labelKey: "tierAll" },
-  { key: "enterprise", labelKey: "tierEnterprise" },
-  { key: "team", labelKey: "tierTeam" },
-  { key: "business", labelKey: "tierBusiness" },
-  { key: "ultra", labelKey: "tierUltra" },
-  { key: "pro", labelKey: "tierPro" },
-  { key: "plus", labelKey: "tierPlus" },
-  { key: "lite", labelKey: "tierLite" },
-  { key: "free", labelKey: "tierFree" },
-  { key: "unknown", labelKey: "tierUnknown" },
-];
 
 type PurchaseTypeKey = "all" | "oauth-free" | "oauth-sub" | "apikey";
 type StatusKey = "all" | "critical" | "alert" | "ok" | "empty";
@@ -247,6 +199,12 @@ export default function ProviderLimits({
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
+  const resetCreditRedemption = useCodexResetCreditRedemption(
+    tr,
+    setErrors,
+    setQuotaData,
+    setLastRefreshedAt
+  );
 
   const [purchaseTypeFilter, setPurchaseTypeFilter] = useState<PurchaseTypeKey>(() => {
     if (typeof window === "undefined") return "all";
@@ -1076,8 +1034,10 @@ export default function ProviderLimits({
             setCutoffModalWindows(windows);
             setCutoffModalConn(conn);
           }}
+          onRedeemResetCredit={resetCreditRedemption.redeemCodexResetCredit}
           onToggleActive={handleToggleActive}
           togglingActiveId={togglingActiveId}
+          redeemingResetCreditId={resetCreditRedemption.redeemingResetCreditId}
         />
       </div>
 

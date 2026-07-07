@@ -8,6 +8,13 @@ const providerLimitUtils =
 const providerConstants = await import("../../src/shared/constants/providers.ts");
 const settingsSchemas = await import("../../src/shared/validation/settingsSchemas.ts");
 
+type ParsedQuota = {
+  name?: string;
+  isResetCredits?: boolean;
+  isCredits?: boolean;
+  creditCount?: number;
+};
+
 test("provider plan fallbacks normalize to Unknown instead of repeating provider labels", () => {
   const tier = providerLimitUtils.normalizePlanTier("Claude Code");
 
@@ -110,6 +117,31 @@ test("remaining percentage helpers reflect remaining quota and stale resets refi
   assert.equal(providerLimitUtils.calculatePercentage(parsed[0].used, parsed[0].total), 100);
 });
 
+test("Codex quota rows use stable OpenAI Codex order with banked reset credits last", () => {
+  const parsed = providerLimitUtils.parseQuotaData("codex", {
+    bankedResetCredits: 2,
+    quotas: {
+      gpt_5_3_codex_spark_weekly: { used: 100, total: 100, remainingPercentage: 0 },
+      weekly: { used: 2, total: 100, remainingPercentage: 98 },
+      gpt_5_3_codex_spark_session: { used: 0, total: 100, remainingPercentage: 100 },
+      session: { used: 10, total: 100, remainingPercentage: 90 },
+    },
+  });
+
+  assert.deepEqual(
+    parsed.map((quota) => quota.name),
+    [
+      "session",
+      "weekly",
+      "gpt_5_3_codex_spark_session",
+      "gpt_5_3_codex_spark_weekly",
+      "banked_reset_credits",
+    ]
+  );
+  assert.equal(providerLimitUtils.formatQuotaLabel(parsed[2].name), "GPT-5.3-Codex-Spark Session");
+  assert.equal(providerLimitUtils.formatQuotaLabel(parsed[4].name), "Banked Reset Credits");
+});
+
 test("percentage-only quotas hide redundant usage counts while counted quotas keep them", () => {
   const codex = providerLimitUtils.parseQuotaData("codex", {
     quotas: {
@@ -137,6 +169,23 @@ test("percentage-only quotas hide redundant usage counts while counted quotas ke
   assert.equal(counted.length, 1);
   assert.equal(counted[0].isPercentageOnly, undefined);
   assert.equal(providerLimitUtils.shouldShowQuotaUsageCount(counted[0]), true);
+});
+
+test("Codex banked reset credits parse as an integer reset-credit counter", () => {
+  const parsed = providerLimitUtils.parseQuotaData("codex", {
+    quotas: {
+      session: { used: 7, total: 100, remainingPercentage: 93 },
+    },
+    bankedResetCredits: 2,
+  });
+
+  const resetCredits = (parsed as ParsedQuota[]).find(
+    (quota) => quota.name === "banked_reset_credits"
+  );
+  assert.ok(resetCredits);
+  assert.equal(resetCredits.isResetCredits, true);
+  assert.equal(resetCredits.isCredits, undefined);
+  assert.equal(resetCredits.creditCount, 2);
 });
 
 test("quota labels normalize session and weekly windows while preserving readable titles", () => {
@@ -284,6 +333,11 @@ test("usage namespace includes Provider Limits UI translation keys", () => {
     "resetsIn",
     "editCutoffs",
     "forceRefresh",
+    "resetCreditsLabel",
+    "redeemResetCredit",
+    "confirmRedeemResetCredit",
+    "resetCreditRedeemed",
+    "resetCreditRedeemFailed",
   ]) {
     assert.equal(typeof usage[key], "string", `usage.${key} should be defined in en.json`);
     assert.ok(!usage[key].startsWith("__MISSING__:"), `usage.${key} should not be a placeholder`);

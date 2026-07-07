@@ -35,22 +35,32 @@ export class ServerSupervisor {
     // heap via NODE_OPTIONS (a CLI arg would shadow/override their value). The
     // calibrated heap is already carried by env.NODE_OPTIONS either way.
     const heapArgs = buildNodeHeapArgs(process.env, this.memoryLimit);
+    // #6321: stdout used to be discarded (`"ignore"`) whenever `--log`/OMNIROUTE_SHOW_LOG
+    // wasn't set (the default) — any debug/pino output written to stdout vanished
+    // silently, so a boot that never becomes ready looked like a dead hang with zero
+    // output even at APP_LOG_LEVEL=debug. Pipe stdout too and buffer it alongside
+    // stderr so a readiness timeout can surface what the child actually printed.
     this.child = spawn("node", [...heapArgs, this.serverPath], {
       cwd: dirname(this.serverPath),
       env: this.env,
-      stdio: showLog ? "inherit" : ["ignore", "ignore", "pipe"],
+      stdio: showLog ? "inherit" : ["ignore", "pipe", "pipe"],
     });
 
     writePidFile("server", this.child.pid);
 
+    const bufferOutput = (data) => {
+      const lines = data.toString().split("\n").filter(Boolean);
+      this.crashLog.push(...lines);
+      if (this.crashLog.length > CRASH_LOG_LINES) {
+        this.crashLog = this.crashLog.slice(-CRASH_LOG_LINES);
+      }
+    };
+
+    if (this.child.stdout) {
+      this.child.stdout.on("data", bufferOutput);
+    }
     if (this.child.stderr) {
-      this.child.stderr.on("data", (data) => {
-        const lines = data.toString().split("\n").filter(Boolean);
-        this.crashLog.push(...lines);
-        if (this.crashLog.length > CRASH_LOG_LINES) {
-          this.crashLog = this.crashLog.slice(-CRASH_LOG_LINES);
-        }
-      });
+      this.child.stderr.on("data", bufferOutput);
     }
 
     this.child.on("error", (err) => this.handleExit(-1, err));
@@ -105,6 +115,12 @@ export class ServerSupervisor {
       await waitUntilPortFree(process.env.PORT || 20128);
       this.start();
     }, delay);
+  }
+
+  // #6321: exposes the buffered stdout+stderr lines so a caller (e.g. a readiness
+  // timeout) can print what the child actually said instead of silence.
+  getRecentLog() {
+    return [...this.crashLog];
   }
 
   dumpCrashLog() {
