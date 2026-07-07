@@ -25,6 +25,7 @@ import {
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
   upsertProviderNodeById,
+  loadProviderPageData,
 } from "./providerPageUtils";
 import type { ProviderEntry } from "./providerPageUtils";
 import {
@@ -235,26 +236,16 @@ export default function ProvidersPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [connectionsRes, nodesRes, expirationsRes, settingsRes] = await Promise.all([
-          fetch("/api/providers"),
-          fetch("/api/provider-nodes"),
-          fetch("/api/providers/expiration"),
-          fetch("/api/settings", { cache: "no-store" }),
-        ]);
-        const connectionsData = await connectionsRes.json();
-        const nodesData = await nodesRes.json();
-        const expirationsData = await expirationsRes.json();
-        const settingsData = settingsRes.ok ? await settingsRes.json() : null;
-        if (connectionsRes.ok) setConnections(connectionsData.connections || []);
-        if (nodesRes.ok) {
-          setProviderNodes(nodesData.nodes || []);
-          setCcCompatibleProviderEnabled(nodesData.ccCompatibleProviderEnabled === true);
-        }
-        if (expirationsRes.ok && expirationsData) setExpirations(expirationsData);
-        if (settingsData && Array.isArray(settingsData.blockedProviders)) {
-          setBlockedProviders(settingsData.blockedProviders);
-        }
-        setCodexGlobalServiceMode(getCodexGlobalServiceMode(settingsData));
+        // Each request is time-bounded (see loadProviderPageData); a single
+        // stalled connection can no longer wedge `loading` on `true` and freeze
+        // the page on its skeleton forever.
+        const data = await loadProviderPageData();
+        setConnections(data.connections);
+        setProviderNodes(data.providerNodes);
+        setCcCompatibleProviderEnabled(data.ccCompatibleProviderEnabled);
+        if (data.expirations) setExpirations(data.expirations);
+        if (data.blockedProviders) setBlockedProviders(data.blockedProviders);
+        setCodexGlobalServiceMode(getCodexGlobalServiceMode(data.settings));
       } catch (error) {
         console.log("Error fetching data:", error);
       } finally {

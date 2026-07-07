@@ -65,7 +65,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * The pattern is strictly bounded (no unbounded quantifiers over overlapping
  * alternatives) so it runs in linear time on untrusted input — ReDoS-safe.
  */
-// eslint-disable-next-line no-control-regex
+
 const ANSI_ESCAPE_RE =
   /\x1b(?:\[[0-9;?]*[A-Za-z]|\][^\x07\x1b]*(?:\x07|\x1b\\)|[A-Z\[\]\\^_`])|[\x00-\x08\x0b\x0c\x0e-\x1f]/g;
 

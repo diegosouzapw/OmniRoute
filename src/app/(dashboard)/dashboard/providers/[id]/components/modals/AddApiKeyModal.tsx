@@ -2,7 +2,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Toggle } from "@/shared/components";
-import { providerAllowsOptionalApiKey, supportsBulkApiKey } from "@/shared/constants/providers";
+import {
+  providerAllowsOptionalApiKey,
+  supportsBulkApiKey,
+  resolveWebProviderHost,
+} from "@/shared/constants/providers";
 import { parseBulkApiKeys } from "@/shared/utils/bulkApiKeyParser";
 import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import {
@@ -29,11 +33,14 @@ import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
+import { computeConnectionDefaultName } from "./computeConnectionDefaultName";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
+import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 export interface AddApiKeyModalProps {
   isOpen: boolean;
   provider?: string;
   providerName?: string;
+  providerWebsite?: string;
   initialBaseUrl?: string;
   existingConnectionCount?: number;
   isCompatible?: boolean;
@@ -57,6 +64,7 @@ export default function AddApiKeyModal({
   isOpen,
   provider,
   providerName,
+  providerWebsite,
   initialBaseUrl,
   existingConnectionCount = 0,
   isCompatible,
@@ -87,18 +95,15 @@ export default function AddApiKeyModal({
   const webSessionCredential = getWebSessionCredentialRequirement(provider);
   const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
   const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
+  // #6268 — for web-session providers, resolve the provider's public site so the
+  // modal can offer a prominent "Open ‹host› →" link. Gated on webSessionCredential
+  // so non-web providers never render a link.
+  const webProviderHostLink = webSessionCredential
+    ? resolveWebProviderHost(provider, defaultBaseUrl)
+    : null;
   const providerDisplayName = providerName || provider || "";
   const apiKeyOptional =
     providerAllowsOptionalApiKey(provider) || Boolean(isNoAuthWebSessionCredential);
-  // Compute a unique default name based on existing connections to prevent
-  // the backend name-based upsert from overwriting an existing connection.
-  // First connection defaults to "main" (backward compatible); subsequent ones
-  // get a numeric suffix ("main-2", "main-3", …).
-  const computeDefaultName = (): string => {
-    const count = existingConnectionCount ?? 0;
-    return count === 0 ? "main" : `main-${count + 1}`;
-  };
-
   const commandCodeAuthPhaseLabel = commandCodeAuthState
     ? {
         idle: "Ready",
@@ -111,9 +116,8 @@ export default function AddApiKeyModal({
         error: "Connection failed",
       }[commandCodeAuthState.phase]
     : null;
-  const defaultName = computeDefaultName();
   const [formData, setFormData] = useState({
-    name: defaultName,
+    name: computeConnectionDefaultName(existingConnectionCount),
     apiKey: "",
     tokenSecret: "", // #5446 — Modal Token Secret (joined with apiKey as id:secret)
     defaultModel: "",
@@ -128,6 +132,7 @@ export default function AddApiKeyModal({
     customUserAgent: "",
     accountId: "",
     consoleApiKey: "",
+    ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
     ccCompatibleRedactThinking: false,
@@ -146,33 +151,15 @@ export default function AddApiKeyModal({
     const wasOpen = wasOpenRef.current;
     wasOpenRef.current = isOpen;
     if (!isOpen || wasOpen) return;
-    // Reset form to defaults on open — including a unique name so a second
-    // API key for the same provider doesn't trigger the backend name-based
-    // upsert and silently overwrite the first connection.
-    setFormData({
-      name: computeDefaultName(),
-      apiKey: "",
-      tokenSecret: "",
-      defaultModel: "",
-      priority: 1,
+    // On open, reset baseUrl and assign a unique default name so a second API key
+    // for the same provider doesn't reuse "main" and trigger the backend
+    // name-based upsert that would silently overwrite the first connection (#6499).
+    setFormData((current) => ({
+      ...current,
+      name: computeConnectionDefaultName(existingConnectionCount),
       baseUrl: initialBaseUrl || defaultBaseUrl,
-      cx: "",
-      region: showsRegion ? defaultRegion : "",
-      apiRegion: "international",
-      validationModelId: defaultValidationModelIdForProvider(provider),
-      routingTags: "",
-      excludedModels: "",
-      customUserAgent: "",
-      accountId: "",
-      consoleApiKey: "",
-      ...EMPTY_QUOTA_SCRAPING_FIELDS,
-      ccCompatibleContext1m: false,
-      ccCompatibleRedactThinking: false,
-      ccCompatibleSummarizeThinking: false,
-      passthroughModels: false,
-      importFreeModelsOnly: false,
-    });
-  }, [defaultBaseUrl, initialBaseUrl, isOpen, showsRegion, defaultRegion, provider]);
+    }));
+  }, [defaultBaseUrl, initialBaseUrl, isOpen, existingConnectionCount]);
   const bulkSupported = supportsBulkApiKey(provider);
   const [mode, setMode] = useState<"single" | "bulk">("single");
   const [bulkText, setBulkText] = useState("");
@@ -382,7 +369,7 @@ export default function AddApiKeyModal({
 
   const handleBulkSubmit = async () => {
     if (!provider) return;
-    const parsed = parseBulkApiKeys(bulkText);
+    const parsed = parseBulkApiKeys(bulkText, { withAccountId: isCloudflare });
     setBulkWarnings(parsed.warnings);
     if (parsed.entries.length === 0) return;
 
@@ -412,7 +399,11 @@ export default function AddApiKeyModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider,
-          entries: parsed.entries.map((e) => ({ name: e.name, apiKey: e.apiKey })),
+          entries: parsed.entries.map((e) => ({
+            name: e.name,
+            apiKey: e.apiKey,
+            ...(e.accountId ? { accountId: e.accountId } : {}),
+          })),
           priority: formData.priority || 1,
           providerSpecificData,
           validateKeys: bulkValidateKeys,
@@ -455,6 +446,21 @@ export default function AddApiKeyModal({
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
+        {webProviderHostLink && (
+          <a
+            href={webProviderHostLink.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+          >
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              open_in_new
+            </span>
+            {providerText(t, "openWebProviderSite", "Open {host}", {
+              host: webProviderHostLink.host,
+            })}
+          </a>
+        )}
         {bulkSupported && (
           <div className="flex gap-1 border-b border-border">
             <button
@@ -491,12 +497,18 @@ export default function AddApiKeyModal({
 
         {bulkSupported && mode === "bulk" && (
           <div className="flex flex-col gap-3">
-            <p className="text-xs text-text-muted">{t("bulkAddFormatHint")}</p>
+            <p className="text-xs text-text-muted">
+              {isCloudflare ? t("bulkAddFormatHintCloudflare") : t("bulkAddFormatHint")}
+            </p>
             {openRouterPreset.input}
             {freeModelsToggle}
             <textarea
               className="w-full rounded border border-border bg-background p-2 text-sm font-mono resize-y min-h-[140px] focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder={"name1|sk-key1\nname2|sk-key2\nsk-key-only-auto-named"}
+              placeholder={
+                isCloudflare
+                  ? "name1|account-id-1|cf-token-1\nname2|account-id-2|cf-token-2"
+                  : "name1|sk-key1\nname2|sk-key2\nsk-key-only-auto-named"
+              }
               value={bulkText}
               onChange={(e) => setBulkText(e.target.value)}
             />
@@ -681,6 +693,7 @@ export default function AddApiKeyModal({
               <WebSessionCredentialGuide
                 requirement={webSessionCredential}
                 providerName={providerDisplayName}
+                providerWebsite={providerWebsite}
                 t={t}
               />
             )}
@@ -896,19 +909,26 @@ export default function AddApiKeyModal({
               />
             )}
             {isGlm && (
-              <div>
-                <label className="text-sm font-medium text-text-main mb-1 block">
-                  {t("apiRegionLabel")}
-                </label>
-                <select
-                  value={formData.apiRegion}
-                  onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
-                >
-                  <option value="international">{t("apiRegionInternational")}</option>
-                  <option value="china">{t("apiRegionChina")}</option>
-                </select>
-                <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
+              <div className="flex flex-col gap-3">
+                <div>
+                  <label className="text-sm font-medium text-text-main mb-1 block">
+                    {t("apiRegionLabel")}
+                  </label>
+                  <select
+                    value={formData.apiRegion}
+                    onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+                  >
+                    <option value="international">{t("apiRegionInternational")}</option>
+                    <option value="china">{t("apiRegionChina")}</option>
+                  </select>
+                  <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
+                </div>
+                <GlmTeamQuotaFields
+                  values={formData}
+                  onChange={(patch) => setFormData({ ...formData, ...patch })}
+                  t={t}
+                />
               </div>
             )}
             <div className="flex gap-2">

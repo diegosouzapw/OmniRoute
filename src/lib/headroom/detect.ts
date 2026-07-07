@@ -18,9 +18,8 @@
 import { execFileSync } from "node:child_process";
 
 const EXTRA_BINS = ["/usr/local/bin", "/opt/homebrew/bin", "/usr/bin", "/bin"];
-const EXTENDED_PATH = [...EXTRA_BINS, process.env.PATH || ""].filter(Boolean).join(":");
 
-const PYTHON_CANDIDATES = [
+export const PYTHON_CANDIDATES = [
   "python3.13",
   "python3.12",
   "python3.11",
@@ -28,6 +27,52 @@ const PYTHON_CANDIDATES = [
   "python3",
   "python",
 ];
+
+type EnvLike = Record<string, string | undefined>;
+
+/**
+ * Build the PATH used to locate a python interpreter (upstream 9router#2353).
+ *
+ * Version managers (mise, pyenv, asdf) and conda expose their interpreters via
+ * shim dirs that are only added to PATH by interactive-shell activation
+ * (`eval "$(mise activate bash)"` in `.bashrc`). The non-interactive server
+ * process never runs that, so it would only ever see the system python. We
+ * therefore prepend the well-known shim/bin dirs (respecting the managers' own
+ * root env vars when set) so `findPython310` can discover a managed interpreter.
+ *
+ * Pure + env-injectable so it is unit-testable without spawning.
+ */
+export function buildPythonSearchPath(env: EnvLike = process.env): string {
+  const home = env.HOME || "";
+  const managerDirs: string[] = [];
+  if (home || env.MISE_DATA_DIR) {
+    managerDirs.push(`${env.MISE_DATA_DIR || `${home}/.local/share/mise`}/shims`);
+  }
+  if (home || env.PYENV_ROOT) {
+    managerDirs.push(`${env.PYENV_ROOT || `${home}/.pyenv`}/shims`);
+  }
+  if (home || env.ASDF_DATA_DIR) {
+    managerDirs.push(`${env.ASDF_DATA_DIR || `${home}/.asdf`}/shims`);
+  }
+  if (env.CONDA_PREFIX) {
+    managerDirs.push(`${env.CONDA_PREFIX}/bin`);
+  }
+  if (home) {
+    managerDirs.push(`${home}/.local/bin`); // pipx / uv installs
+  }
+  return [...managerDirs, ...EXTRA_BINS, env.PATH || ""].filter(Boolean).join(":");
+}
+
+/**
+ * Resolve the ordered list of python commands to probe. A `HEADROOM_PYTHON`
+ * override (absolute path or command name) is tried first, mirroring the
+ * `HEADROOM_URL` escape hatch, so operators on exotic setups can point directly
+ * at their interpreter (upstream 9router#2353).
+ */
+export function resolvePythonCandidates(env: EnvLike = process.env): string[] {
+  const override = env.HEADROOM_PYTHON?.trim();
+  return override ? [override, ...PYTHON_CANDIDATES] : [...PYTHON_CANDIDATES];
+}
 const MIN_VERSION: readonly [number, number] = [3, 10];
 const HEADROOM_HEALTH_TIMEOUT_MS = 1500;
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]", "0.0.0.0"]);
@@ -106,7 +151,7 @@ export function findHeadroomBinary(): string | null {
     const out = execFileSync("which", ["headroom"], {
       stdio: ["ignore", "pipe", "ignore"],
       windowsHide: true,
-      env: { ...process.env, PATH: EXTENDED_PATH },
+      env: { ...process.env, PATH: buildPythonSearchPath() },
     })
       .toString()
       .trim();
@@ -117,14 +162,16 @@ export function findHeadroomBinary(): string | null {
 }
 
 export function findPython310(): string | null {
-  for (const candidate of PYTHON_CANDIDATES) {
+  const searchPath = buildPythonSearchPath();
+  for (const candidate of resolvePythonCandidates()) {
     try {
-      // candidate is from a fixed allowlist (PYTHON_CANDIDATES) above — no
-      // user input — but use execFileSync anyway to remove the shell entirely.
+      // candidate is from a fixed allowlist (PYTHON_CANDIDATES) plus an optional
+      // operator-set HEADROOM_PYTHON override — never remote/request input — but
+      // use execFileSync anyway to remove the shell entirely.
       const ver = execFileSync(candidate, ["--version"], {
         stdio: ["ignore", "pipe", "ignore"],
         windowsHide: true,
-        env: { ...process.env, PATH: EXTENDED_PATH },
+        env: { ...process.env, PATH: searchPath },
       })
         .toString()
         .trim();

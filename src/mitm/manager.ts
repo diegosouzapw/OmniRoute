@@ -2,7 +2,8 @@ import { spawn, type ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";
 import { resolveMitmDataDir } from "./dataDir.ts";
-import { addDNSEntry, addDNSEntries, removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
+import { removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
+import { provisionDnsEntries } from "./dns/provision.ts";
 import { generateCert } from "./cert/generate.ts";
 import { installCertResult, uninstallCert } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
@@ -573,40 +574,9 @@ async function startMitmInternal(
   }
 
   // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
-  //    all custom hosts with enabled=true.
+  //    all custom hosts with enabled=true. Best-effort — see provisionDnsEntries.
   log.info("Adding DNS entries...");
-  await addDNSEntry(sudoPassword);
-
-  // Collect hosts from agents that have dns_enabled=true in the DB.
-  try {
-    const agentStates = getAllAgentBridgeStates();
-    const agentHostsToAdd: string[] = [];
-    for (const state of agentStates) {
-      if (!state.dns_enabled) continue;
-      const target = ALL_TARGETS.find((t) => t.id === state.agent_id);
-      if (target) {
-        agentHostsToAdd.push(...target.hosts);
-      }
-    }
-    if (agentHostsToAdd.length > 0) {
-      log.info({ count: agentHostsToAdd.length }, "Adding DNS for agent host(s)...");
-      await addDNSEntries(agentHostsToAdd, sudoPassword);
-    }
-  } catch (err) {
-    log.error({ err }, "Failed to add agent DNS entries (continuing)");
-  }
-
-  // Collect enabled custom hosts.
-  try {
-    const customHosts = listCustomHosts({ enabledOnly: true });
-    const customHostNames = customHosts.map((h) => h.host);
-    if (customHostNames.length > 0) {
-      log.info({ count: customHostNames.length }, "Adding DNS for custom host(s)...");
-      await addDNSEntries(customHostNames, sudoPassword);
-    }
-  } catch (err) {
-    log.error({ err }, "Failed to add custom host DNS entries (continuing)");
-  }
+  await provisionDnsEntries(sudoPassword);
 
   // 4. Start MITM server
   log.info("Starting MITM server...");

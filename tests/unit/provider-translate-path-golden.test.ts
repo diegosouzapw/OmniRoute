@@ -56,6 +56,10 @@ function sanitize(headers: Record<string, unknown>): Record<string, unknown> {
       out[k] = "<OS>";
       continue;
     }
+    if (k === "X-PLATFORM") {
+      out[k] = "<PLATFORM>";
+      continue;
+    }
     let s = v
       .replace(/Bearer .+/, "Bearer <TOK>")
       .replace(/sk-test-APIKEY|tok-test-ACCESS/g, "<CRED>")

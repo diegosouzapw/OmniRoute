@@ -1,7 +1,7 @@
 import WebSocket from "ws";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput, type ExecutorLog } from "./base.ts";
 import {
   buildPrompt,
   buildWsUrl,
@@ -9,12 +9,12 @@ import {
   resolveConnectionParams,
 } from "./copilot-m365-connection.ts";
 import {
+  accumulateBotContent,
   buildChatInvocation,
   encodeFrame,
-  extractBotText,
+  extractFinalResultMessage,
   handshakeError,
   handshakeFrame,
-  incrementalDelta,
   isCompletionFrame,
   keepaliveFrame,
   parseFrame,
@@ -59,7 +59,11 @@ export class CopilotM365WebExecutor extends BaseExecutor {
     prompt: string;
     model: string;
     signal?: AbortSignal;
+    log?: ExecutorLog | null;
   }): Promise<ReadableStream<Uint8Array>> {
+    // #6210 — observability for the empty-response class. The access_token rides
+    // in the WS query string, so every URL logged here goes through redactWsUrl().
+    const log = input.log ?? null;
     return new ReadableStream<Uint8Array>(
       {
         start: async (controller) => {
@@ -68,6 +72,7 @@ export class CopilotM365WebExecutor extends BaseExecutor {
           let settled = false;
           let buffer = "";
           let previousText = "";
+          let finalResultMessage = "";
           let handshakeComplete = false;
 
           const cleanup = () => {
@@ -85,6 +90,13 @@ export class CopilotM365WebExecutor extends BaseExecutor {
             if (settled) return;
             settled = true;
             cleanup();
+            // Last-resort fallback (#6210): some EDU turns surface the answer only in the
+            // type:2 invocation result. Emit it if nothing was streamed.
+            if (!previousText && finalResultMessage) {
+              controller.enqueue(
+                encoder.encode(sseChunk(input.model, { content: finalResultMessage }))
+              );
+            }
             controller.enqueue(encoder.encode(sseChunk(input.model, {}, "stop")));
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
@@ -111,6 +123,8 @@ export class CopilotM365WebExecutor extends BaseExecutor {
             const traceId = wsUrlParts.searchParams.get("clientrequestid") ?? crypto.randomUUID().replace(/-/g, "");
             const sessionId = wsUrlParts.searchParams.get("X-SessionId") ?? crypto.randomUUID();
 
+            log?.debug?.("M365_WS", `connecting → ${redactWsUrl(input.wsUrl)}`);
+
             ws = new WebSocketCtor(input.wsUrl, {
               headers: {
                 Origin: "https://m365.cloud.microsoft",
@@ -134,6 +148,7 @@ export class CopilotM365WebExecutor extends BaseExecutor {
             };
 
             ws.on("open", () => {
+              log?.debug?.("M365_WS", "socket open — sending handshake");
               ws?.send(handshakeFrame());
             });
 
@@ -145,25 +160,33 @@ export class CopilotM365WebExecutor extends BaseExecutor {
 
               for (const rawFrame of split.frames) {
                 const frame = parseFrame(rawFrame);
+                log?.debug?.(
+                  "M365_WS",
+                  `frame type=${String(frame?.type)} target=${String(frame?.target)}`
+                );
                 if (!handshakeComplete) {
                   const err = handshakeError(frame);
                   if (err) {
                     clearTimeout(timeout);
+                    log?.debug?.("M365_WS", `handshake failed: ${err}`);
                     abort(`Microsoft 365 Copilot handshake failed: ${err}`);
                     return;
                   }
                   handshakeComplete = true;
+                  log?.debug?.("M365_WS", "handshake complete — sending chat invocation");
                   sendChat();
                   continue;
                 }
 
-                const text = extractBotText(frame);
-                if (text) {
-                  const delta = incrementalDelta(previousText, text);
-                  previousText = text;
-                  if (delta) {
-                    controller.enqueue(encoder.encode(sseChunk(input.model, { content: delta })));
-                  }
+                const { delta, next } = accumulateBotContent(previousText, frame);
+                previousText = next;
+                if (delta) {
+                  controller.enqueue(encoder.encode(sseChunk(input.model, { content: delta })));
+                }
+
+                const finalMsg = extractFinalResultMessage(frame);
+                if (finalMsg) {
+                  finalResultMessage = finalMsg;
                 }
 
                 if (isCompletionFrame(frame)) {
@@ -176,6 +199,10 @@ export class CopilotM365WebExecutor extends BaseExecutor {
 
             ws.on("error", (err) => {
               clearTimeout(timeout);
+              log?.debug?.(
+                "M365_WS",
+                `socket error: ${err instanceof Error ? err.message : String(err)}`
+              );
               abort(
                 sanitizeErrorMessage(
                   err instanceof Error ? err.message : "Microsoft 365 Copilot WebSocket error"
@@ -234,7 +261,13 @@ export class CopilotM365WebExecutor extends BaseExecutor {
     const wsUrl = buildWsUrl(connectionParams);
 
     try {
-      const wsStream = await this.wsChat({ wsUrl, prompt, model, signal: input.signal ?? undefined });
+      const wsStream = await this.wsChat({
+        wsUrl,
+        prompt,
+        model,
+        signal: input.signal ?? undefined,
+        log: input.log,
+      });
 
       if (stream) {
         return {

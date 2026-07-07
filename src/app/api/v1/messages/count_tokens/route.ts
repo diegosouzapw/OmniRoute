@@ -99,6 +99,59 @@ export async function POST(request) {
   }
 }
 
+function safeStringify(value) {
+  if (typeof value === "string") return value;
+  try {
+    return JSON.stringify(value) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+// Estimate tokens for a single Anthropic content block. Real agentic
+// conversations carry most of their tokens in `tool_use` inputs, `tool_result`
+// content, and `thinking` blocks — counting only `text` (as before) reported
+// near-zero for those messages and silently broke Claude Code's auto-compaction
+// (#2337). Image / redacted_thinking blocks are not text-estimable and count 0.
+function estimateContentBlockTokens(part) {
+  if (!part || typeof part !== "object") return 0;
+  let tokens = 0;
+  switch (part.type) {
+    case "text":
+      if (typeof part.text === "string") tokens += countTextTokens(part.text);
+      break;
+    case "tool_use":
+      if (typeof part.name === "string") tokens += countTextTokens(part.name);
+      if (part.input !== undefined) tokens += countTextTokens(safeStringify(part.input));
+      break;
+    case "tool_result":
+      tokens += estimateToolResultTokens(part.content);
+      break;
+    case "thinking":
+      if (typeof part.thinking === "string") tokens += countTextTokens(part.thinking);
+      break;
+    default:
+      break;
+  }
+  return tokens;
+}
+
+// A `tool_result` content can be a plain string or an array of nested blocks
+// (text / image). Count string content and nested text blocks.
+function estimateToolResultTokens(content) {
+  if (typeof content === "string") return countTextTokens(content);
+  if (Array.isArray(content)) {
+    let tokens = 0;
+    for (const block of content) {
+      if (block?.type === "text" && typeof block.text === "string") {
+        tokens += countTextTokens(block.text);
+      }
+    }
+    return tokens;
+  }
+  return 0;
+}
+
 function buildEstimatedCountResponse(body) {
   const messages = Array.isArray(body?.messages) ? body.messages : [];
   let inputTokens = 0;
@@ -111,15 +164,19 @@ function buildEstimatedCountResponse(body) {
 
     if (Array.isArray(msg?.content)) {
       for (const part of msg.content) {
-        if (part?.type === "text" && typeof part.text === "string") {
-          inputTokens += countTextTokens(part.text);
-        }
+        inputTokens += estimateContentBlockTokens(part);
       }
     }
   }
 
   if (typeof body?.system === "string") {
     inputTokens += countTextTokens(body.system);
+  } else if (Array.isArray(body?.system)) {
+    for (const block of body.system) {
+      if (block?.type === "text" && typeof block.text === "string") {
+        inputTokens += countTextTokens(block.text);
+      }
+    }
   }
 
   return new Response(

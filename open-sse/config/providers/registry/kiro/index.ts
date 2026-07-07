@@ -15,32 +15,14 @@ export const kiroProvider: RegistryEntry = {
     tokenUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/refreshToken",
     authUrl: "https://prod.us-east-1.auth.desktop.kiro.dev",
   },
+  // Model IDs must match Kiro's real upstream catalog exactly — an unknown id
+  // makes Kiro return `400 "Invalid model. Please select a different model"`.
+  // Fabricated ids (auto-kiro, claude-opus-4.x, claude-fable-5, claude-sonnet-4.6)
+  // were removed after live VPS validation: Kiro offers no Opus/Fable, its Sonnet
+  // is 4.5 (not 4.6), and there is no "auto" model id (it was sent verbatim and
+  // 400'd). claude-sonnet-5 is a real Kiro model but plan-gated per account —
+  // kept so entitled accounts can use it. See kiro cluster #6112/#6113/#6099.
   models: [
-    { id: "auto-kiro", name: "Auto (Kiro picks best model)" },
-    {
-      id: "claude-fable-5",
-      name: "Claude Fable 5",
-      contextLength: 1000000,
-      maxOutputTokens: 128000,
-    },
-    {
-      id: "claude-opus-4.8",
-      name: "Claude Opus 4.8",
-      contextLength: 1000000,
-      maxOutputTokens: 128000,
-    },
-    {
-      id: "claude-opus-4.7",
-      name: "Claude Opus 4.7",
-      contextLength: 1000000,
-      maxOutputTokens: 128000,
-    },
-    {
-      id: "claude-opus-4.6",
-      name: "Claude Opus 4.6",
-      contextLength: 1000000,
-      maxOutputTokens: 128000,
-    },
     {
       id: "claude-sonnet-5",
       name: "Claude Sonnet 5",
@@ -48,8 +30,8 @@ export const kiroProvider: RegistryEntry = {
       maxOutputTokens: 128000,
     },
     {
-      id: "claude-sonnet-4.6",
-      name: "Claude Sonnet 4.6",
+      id: "claude-sonnet-4.5",
+      name: "Claude Sonnet 4.5",
       contextLength: 200000,
       maxOutputTokens: 64000,
     },

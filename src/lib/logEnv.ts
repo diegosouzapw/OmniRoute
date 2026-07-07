@@ -1,4 +1,5 @@
 import path from "path";
+import { resolveDataDir } from "@/lib/dataPaths";
 
 const DEFAULT_APP_LOG_RETENTION_DAYS = 7;
 const DEFAULT_CALL_LOG_RETENTION_DAYS = 7;
@@ -8,7 +9,18 @@ const DEFAULT_CALL_LOG_MAX_ENTRIES = 10000;
 const DEFAULT_CALL_LOGS_TABLE_MAX_ROWS = 100000;
 const DEFAULT_CALL_LOG_PIPELINE_MAX_SIZE_KB = 512;
 const DEFAULT_PROXY_LOGS_TABLE_MAX_ROWS = 100000;
-const DEFAULT_APP_LOG_PATH = path.join(process.cwd(), "logs", "application", "app.log");
+/**
+ * Default app log path, anchored to DATA_DIR (never `process.cwd()`).
+ *
+ * The globally-installed CLI runs from an arbitrary working directory, so anchoring
+ * the default to cwd made file logging silently no-op under an unrelated directory
+ * (#6197). Computed lazily so a per-process/per-test `DATA_DIR` override is honoured
+ * (the env var is read at call time, not at module load). Uses the pure
+ * `resolveDataDir()` resolver — no directory creation side effects in a path getter.
+ */
+function getDefaultAppLogPath(): string {
+  return path.join(resolveDataDir(), "logs", "application", "app.log");
+}
 
 function parsePositiveInt(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
@@ -56,7 +68,7 @@ export function getAppLogToFile(): boolean {
 }
 
 export function getAppLogFilePath(): string {
-  return process.env.APP_LOG_FILE_PATH || DEFAULT_APP_LOG_PATH;
+  return process.env.APP_LOG_FILE_PATH || getDefaultAppLogPath();
 }
 
 export function getAppLogMaxFileSize(): number {

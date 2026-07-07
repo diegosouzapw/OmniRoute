@@ -1579,6 +1579,21 @@ type ImageResolver = (
   parentMessageId?: string | null
 ) => Promise<string | null>;
 
+/**
+ * True when ChatGPT emitted an image asset pointer (the image WAS generated
+ * upstream) but none of the pointers could be resolved to a downloadable URL
+ * — so the assistant text carries no image markdown. Lets callers surface an
+ * accurate "generated but not retrievable" error instead of the misleading
+ * "no image was produced". Escalated mesh report: image visible in the ChatGPT
+ * chat but returned to OmniRoute as a bare "completed without image markdown".
+ */
+export function detectImageResolutionFailure(
+  pointerCount: number,
+  resolvedCount: number
+): boolean {
+  return pointerCount > 0 && resolvedCount === 0;
+}
+
 /** Build the final markdown block for a list of resolved image URLs. */
 function imageMarkdown(urls: string[]): string {
   if (urls.length === 0) return "";
@@ -2017,6 +2032,23 @@ async function buildNonStreamingResponse(
     log,
     parentCandidateMessageId
   );
+  // The image genuinely exists upstream but no pointer resolved to a URL
+  // (unknown asset scheme, download 403/expired, oversize). Flag it so the
+  // image-generation handler can report an accurate "generated but not
+  // retrievable" error instead of the misleading "no image markdown" 502.
+  const imageResolutionFailed = detectImageResolutionFailure(
+    imagePointers?.length ?? 0,
+    urls.length
+  );
+  if (imageResolutionFailed && log?.warn) {
+    const schemes = (imagePointers ?? [])
+      .map((p) => p.pointer.split("://")[0] || p.pointer.slice(0, 24))
+      .join(", ");
+    log.warn(
+      "CGPT-WEB",
+      `Image generated upstream but no asset pointer resolved (schemes: ${schemes}) — surfacing as unretrievable`
+    );
+  }
   fullAnswer += imageMarkdown(urls);
   const promptTokens = Math.ceil(currentMsg.length / 4);
   const completionTokens = Math.ceil(fullAnswer.length / 4);
@@ -2028,6 +2060,7 @@ async function buildNonStreamingResponse(
       created,
       model,
       system_fingerprint: null,
+      ...(imageResolutionFailed ? { x_image_resolution_failed: true } : {}),
       choices: [
         {
           index: 0,

@@ -158,7 +158,29 @@ export function classifyProviderError(
     return PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED;
   }
   if (statusCode === 403) {
-    if (bodyStr.includes("has not been used in project")) {
+    // Cloud Code / Antigravity (Gemini Code Assist) 403s are almost always a
+    // RECOVERABLE project-config issue — the Cloud AI Companion API not enabled
+    // on the project ("has not been used in project …", SERVICE_DISABLED,
+    // accessNotConfigured), a stale/mismatched project, or PERMISSION_DENIED on
+    // the project — NOT an account ban. Real account bans are already caught by
+    // isAccountDeactivated above (→ ACCOUNT_DEACTIVATED). Classifying these as
+    // PROJECT_ROUTE_ERROR keeps the account active and recoverable once the
+    // project/API is fixed, instead of permanently disabling it on a single
+    // fixable 403 (which previously required a full OAuth reconnect). (antigravity-403)
+    const p = (provider || "").toLowerCase();
+    const isCloudCodeProvider =
+      p === "antigravity" ||
+      p === "gemini-cli" ||
+      p.includes("cloudcode") ||
+      p.includes("cloud-code");
+    const recoverableProject403 =
+      bodyStr.includes("has not been used in project") ||
+      bodyStr.includes("SERVICE_DISABLED") ||
+      bodyStr.includes("accessNotConfigured") ||
+      bodyStr.includes("PERMISSION_DENIED") ||
+      /\bit is disabled\b/i.test(bodyStr) ||
+      isCloudCodeProvider;
+    if (recoverableProject403) {
       return PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
     }
     if (provider && getProviderCategory(provider) === "apikey") {
