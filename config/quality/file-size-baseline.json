@@ -259,8 +259,8 @@
     "src/shared/validation/schemas.ts": 2523,
     "_rebaseline_2026_06_28_5275_correlation_id_extract": "Extraction of the safe CorrelationId subset of #5275 (hartmark) — request correlation id stored in call_logs (migration 109) and returned via the X-Correlation-Id response header, WITHOUT the combo/resilience or build/lazy-loading changes (those stay in #5275). Own growth: callLogs.ts 975->985 (correlation_id column on CallLogSummaryRow + read/map), usageHistory.ts 983->988 (correlationId metadata normalize), chat.ts 1575->1632 (withCorrelationId response wiring + combo-failure log carrying correlationId), chatHelpers.ts new 811 (withCorrelationId helper + reqId threading; was 791<cap pre-feature). Cohesive request/logging chokepoint wiring; structural shrink of chat.ts tracked in #3501.",
     "src/sse/handlers/chat.ts": 1751,
-    "src/sse/handlers/chatHelpers.ts": 860,
-    "src/sse/services/auth.ts": 2447,
+    "src/sse/handlers/chatHelpers.ts": 866,
+    "src/sse/services/auth.ts": 2448,
     "open-sse/executors/default.ts": 877,
     "open-sse/translator/request/openai-responses.ts": 902,
     "open-sse/executors/kiro.ts": 944,
@@ -382,5 +382,6 @@
   "_rebaseline_2026_07_06_6118_zed_oauthmodal": "PR #6118 own growth: OAuthModal.tsx 989->993 (+4 = Zed hosted native-app sign-in modal branch). Cohesive UI growth for the zed-hosted OAuth provider; not extractable. The prior 6118 comment set the note but left the frozen value at 989.",
   "_rebaseline_2026_07_06_6351_glm_team_quota": "PR #6351 own growth (GLM team-plan quota fields threaded through the connection modals; new GlmTeamQuotaFields.tsx extracted): AddApiKeyModal.tsx ->951 (+9), EditConnectionModal.tsx ->1277 (+18). Absorbs the pre-existing session base-red on these frozen modals; release captain rebaseline-at-release supersedes.",
   "_rebaseline_2026_07_06_6499_unique_default_name": "PR #6499 own growth: AddApiKeyModal.tsx 952->959 (+7 = a unique default connection name so a second API key for the same provider does not reuse 'main' and trigger the backend name-based upsert that silently overwrote the first connection). The pure name derivation was extracted to computeConnectionDefaultName.ts (unit-tested) to keep the growth minimal; the contributor's original full-form-reset rewrite was trimmed to a spread reset to avoid dropping the GLM team-quota fields #6351 added and to hold the frozen god-file growth down. Release captain rebaseline-at-release supersedes.",
-  "_rebaseline_2026_07_07_6526_chirag_modal_1080p": "PR #6526 (@chirag127, #6265) own growth: AddApiKeyModal.tsx 959->961 (+2 = 1080p sizing — drop inner max-h cap, widen to lg). Owner-approved rebaseline. Frozen."
+  "_rebaseline_2026_07_07_6523_chirag_cooldown_body": "PR #6523 (@chirag127, #6460) own growth: chatHelpers.ts 860->866 (+6 = retryAfterAt/credentialsCoolingCount fields on modelCooldownResponse) and auth.ts 2447->2448 (+1 = connectionsCount threaded through no-credentials fallback). Owner-approved rebaseline (file-size cap for contributor PR). Frozen (cannot grow further); release captain's rebaseline-at-release supersedes.",
+  "_rebaseline_2026_07_07_6526_chirag_modal_1080p": "PR #6526 (@chirag127, #6265): AddApiKeyModal.tsx ->961 (1080p sizing). Owner-approved. Frozen."
 }
