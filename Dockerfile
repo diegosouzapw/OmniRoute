@@ -136,6 +136,15 @@ COPY --from=builder /app/scripts/dev/healthcheck.mjs ./healthcheck.mjs
 # COPYs so it covers files originally owned by root in the builder stage.
 RUN chown -R node:node /app
 
+# Install Python + pipx for Headroom CLI (required for headroom proxy management)
+# Install as root, then ensure pipx binaries are accessible to node user
+ENV PIPX_BIN_DIR=/usr/local/bin
+ENV PIPX_HOME=/opt/pipx
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip python3-venv 
+    && python3 -m pip install --no-cache-dir pipx 
+    && python3 -m pipx install --global headroom-ai 
+    && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 20128
 
 # Drop to non-root before ENTRYPOINT/CMD so every derived stage (runner-cli,
