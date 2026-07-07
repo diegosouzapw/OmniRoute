@@ -562,6 +562,10 @@ export async function handleChatCore({
     clientRawRequest,
     provider,
     model,
+    // NEXA fusion-idempotency fix: body.messages feeds the key digest so combo-internal
+    // sub-requests (fusion panel + judge re-enter chatCore sharing the client's headers)
+    // can never collide on the raw Idempotency-Key/x-request-id header key.
+    body,
     effectiveServiceTier,
     startTime,
     log,
