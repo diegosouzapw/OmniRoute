@@ -2107,7 +2107,15 @@ export async function handleChatCore({
   // mode="cliproxyapi": returns the CLIProxyAPI executor instead.
   // mode="fallback": returns a wrapper that tries native first, falls back to CLIProxyAPI on 5xx/network errors.
 
-  const resolveExecutorWithProxy = (prov: string) => resolveExecutorWithProxyFor(prov, log);
+  // #6339: pass the resolved connection's providerSpecificData so a per-connection
+  // cliproxyapiMode="claude-native" override can deep-route this single connection
+  // through CLIProxyAPI regardless of the provider-level upstream_proxy_config mode.
+  const resolveExecutorWithProxy = (prov: string) =>
+    resolveExecutorWithProxyFor(
+      prov,
+      log,
+      (credentials?.providerSpecificData as Record<string, unknown> | null | undefined) ?? null
+    );
 
   // === Quota Share enforcement PRE-hook (B/F7) ===
   // Runs after provider/model/credentials/apiKeyInfo are fully resolved,
@@ -4056,6 +4064,13 @@ export async function handleChatCore({
       requestId: skillRequestId,
       compressionResponseMeta,
     });
+    // #6426: align response body `model` with the `X-OmniRoute-Model` header
+    // (both must be the resolved backend model). Some upstreams (notably legacy
+    // /v1/completions text-completion path) return a body `model` field that
+    // differs from the resolved backend id we advertised in the header, leaving
+    // strict clients unable to reconcile the two. Rewrite body.model to `model`
+    // FIRST, then let #1311 echo override it when the opt-in setting is on.
+    if (typeof model === "string" && model) echoModelInObject(translatedResponse, model);
     // #1311: echo the requested alias/combo name in the non-streaming response model.
     if (echoModel) echoModelInObject(translatedResponse, echoModel);
     return {

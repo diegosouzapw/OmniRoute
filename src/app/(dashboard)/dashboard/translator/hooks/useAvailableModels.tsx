@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { compareTr } from "@/shared/utils/turkishText";
+import type { ModelReasoningCapabilities } from "@/app/(dashboard)/dashboard/playground/components/reasoningControls";
 
 /**
  * Prefix-based format→model matching, used to pick a smart default
@@ -40,6 +41,12 @@ export function filterModelsByProvider(allModels: string[], provider?: string): 
 export function useAvailableModels(provider?: string) {
   const [model, setModel] = useState("");
   const [allModels, setAllModels] = useState<string[]>([]);
+  // #6241: keep the per-model reasoning capability flags (supportsThinking / effort_tiers) the
+  // catalog exposes on each entry's `capabilities`, keyed by model id, so callers (Playground)
+  // can render the effort/thinking controls only when the selected model supports thinking.
+  const [modelCapabilities, setModelCapabilities] = useState<
+    Record<string, ModelReasoningCapabilities>
+  >({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,10 +54,19 @@ export function useAvailableModels(provider?: string) {
       try {
         const res = await fetch("/api/v1/models");
         const data = await res.json();
-        const models = (data.data || []).map((m) => m.id).sort((a, b) => compareTr(a, b));
+        const entries = data.data || [];
+        const models = entries.map((m) => m.id).sort((a, b) => compareTr(a, b));
+        const caps: Record<string, ModelReasoningCapabilities> = {};
+        for (const entry of entries) {
+          if (entry && typeof entry.id === "string" && entry.capabilities) {
+            caps[entry.id] = entry.capabilities as ModelReasoningCapabilities;
+          }
+        }
         setAllModels(models);
+        setModelCapabilities(caps);
       } catch {
         setAllModels([]);
+        setModelCapabilities({});
       } finally {
         setLoading(false);
       }
@@ -80,5 +96,5 @@ export function useAvailableModels(provider?: string) {
     [availableModels]
   );
 
-  return { model, setModel, availableModels, loading, pickModelForFormat };
+  return { model, setModel, availableModels, modelCapabilities, loading, pickModelForFormat };
 }

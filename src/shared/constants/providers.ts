@@ -12,7 +12,9 @@ export interface ProviderRiskNoticeFields {
 
 import { NOAUTH_PROVIDERS } from "./providers/noauth";
 import { OAUTH_PROVIDERS } from "./providers/oauth";
-import { WEB_COOKIE_PROVIDERS } from "./providers/web-cookie";
+import { WEB_COOKIE_PROVIDERS, resolveWebProviderHost } from "./providers/web-cookie";
+export { resolveWebProviderHost };
+export type { WebProviderHostLink } from "./providers/web-cookie";
 import { APIKEY_PROVIDERS } from "./providers/apikey";
 import { LOCAL_PROVIDERS } from "./providers/local";
 import { SEARCH_PROVIDERS } from "./providers/search";

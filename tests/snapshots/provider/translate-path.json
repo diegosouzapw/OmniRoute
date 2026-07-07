@@ -1324,6 +1324,29 @@
       "stream": "https://api.dify.ai/v1/chat/completions"
     }
   },
+  "digitalocean": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://inference.do-ai.run/v1/chat/completions",
+      "stream": "https://inference.do-ai.run/v1/chat/completions"
+    }
+  },
   "dit": {
     "format": "openai",
     "headers": {
@@ -2016,6 +2039,29 @@
     "url": {
       "nonStream": "https://api.haiper.ai/v1",
       "stream": "https://api.haiper.ai/v1"
+    }
+  },
+  "hcnsec": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.hcnsec.cn/v1/chat/completions",
+      "stream": "https://api.hcnsec.cn/v1/chat/completions"
     }
   },
   "heroku": {

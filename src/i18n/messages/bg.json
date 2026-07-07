@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} не се нуждае от API ключ или бисквитка. Запазете връзката, за да използвате нейната безплатна уеб крайна точка.",
     "webSessionCredentialValidationFailed": "Потвърждаването на идентификационните данни на сесията не бе успешно. Влезте отново, копирайте нови идентификационни данни и опитайте отново.",
     "checkCookie": "Проверете бисквитката",
-    "checkWebToken": "Чек токен"
+    "checkWebToken": "Чек токен",
+    "filterAll": "Всички",
+    "filterActive": "Активни",
+    "filterError": "Грешка",
+    "filterBanned": "Блокиран",
+    "filterCreditsExhausted": "Изчерпани кредити"
   },
   "settings": {
     "title": "Настройки",
