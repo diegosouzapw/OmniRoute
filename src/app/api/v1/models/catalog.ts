@@ -26,6 +26,7 @@ import {
   AUTO_SUFFIX_VARIANTS,
   AUTO_FAMILY_IDS,
   createBuiltinAutoCombo,
+  isPaidTierAutoId,
 } from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
@@ -593,6 +594,11 @@ async function buildUnifiedModelsResponseCore(
       ...AUTO_FAMILY_IDS,
     ]) {
       if (blockedProviders.has("auto") || listedIds.has(autoId)) continue; // #5192
+      // #6328 (follow-up to #6495 / #6512): REMOVE — not just hide — paid-tier
+      // auto/* ids (auto/pro-* + auto/*:pro) from the advertised catalog when the
+      // operator opts into hidePaidModels. The candidate-pool filter in
+      // virtualFactory (#6512) still gates request-time routing for the rest.
+      if (hidePaid && isPaidTierAutoId(autoId)) continue;
       listedIds.add(autoId);
       const baseAutoEntry = {
         id: autoId,
