@@ -6,16 +6,19 @@
 
 import type { WebSessionCredentialRequirement } from "../webSessionCredentials";
 import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
+import { getWebCookieProviderWebsite } from "@/shared/constants/providers/web-cookie";
 
 export interface WebSessionCredentialGuideProps {
   requirement: WebSessionCredentialRequirement;
   providerName: string;
+  providerId?: string;
   t: ProviderMessageTranslator;
 }
 
 export default function WebSessionCredentialGuide({
   requirement,
   providerName,
+  providerId,
   t,
 }: WebSessionCredentialGuideProps) {
   if (requirement.kind === "none") {
@@ -76,6 +79,33 @@ export default function WebSessionCredentialGuide({
               {providerText(t, "webSessionGuideStep1", "Sign in to {provider} in your browser.", {
                 provider: providerName,
               })}
+              {(() => {
+                const website = getWebCookieProviderWebsite(providerId);
+                let host: string | null = null;
+                if (website) {
+                  try {
+                    host = new URL(website).host;
+                  } catch {
+                    host = null;
+                  }
+                }
+                if (!website || !host) return null;
+                return (
+                  <>
+                    {" "}
+                    <a
+                      href={website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-0.5 font-medium text-primary hover:underline"
+                    >
+                      {providerText(t, "webSessionGuideOpenHost", "Open {host} →", {
+                        host,
+                      })}
+                    </a>
+                  </>
+                );
+              })()}
             </li>
             <li>
               {providerText(

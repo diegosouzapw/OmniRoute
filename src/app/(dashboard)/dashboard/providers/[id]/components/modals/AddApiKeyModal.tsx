@@ -657,6 +657,7 @@ export default function AddApiKeyModal({
               <WebSessionCredentialGuide
                 requirement={webSessionCredential}
                 providerName={providerDisplayName}
+                providerId={provider}
                 t={t}
               />
             )}

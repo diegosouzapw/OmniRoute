@@ -320,3 +320,15 @@ export const WEB_COOKIE_PROVIDERS = {
       "Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days.",
   },
 };
+
+
+/**
+ * Return the public `website` URL for a web-cookie provider, or `null` when the
+ * provider id is unknown or the entry does not declare a website. Used by the
+ * "Add session cookie" modal to render a one-click "Open <host>" link (#6268).
+ */
+export function getWebCookieProviderWebsite(providerId: string | undefined): string | null {
+  if (!providerId) return null;
+  const entry = (WEB_COOKIE_PROVIDERS as Record<string, { website?: string }>)[providerId];
+  return entry?.website ?? null;
+}

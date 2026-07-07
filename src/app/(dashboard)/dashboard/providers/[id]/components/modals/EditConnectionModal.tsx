@@ -795,6 +795,7 @@ export default function EditConnectionModal({
               <WebSessionCredentialGuide
                 requirement={webSessionCredential}
                 providerName={providerDisplayName}
+                providerId={provider}
                 t={t}
               />
             )}
