@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
+import { makeManagementSessionRequest } from "../../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-autopilot-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
@@ -13,15 +13,15 @@ const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const core = await import("../../src/lib/db/core.ts");
-const combosDb = await import("../../src/lib/db/combos.ts");
-const settingsDb = await import("../../src/lib/db/settings.ts");
-const quotaSnapshotsDb = await import("../../src/lib/db/quotaSnapshots.ts");
-const callLogs = await import("../../src/lib/usage/callLogs.ts");
-const comboMetrics = await import("../../open-sse/services/comboMetrics.ts");
-const comboAutopilot = await import("../../src/lib/monitoring/comboHealthAutopilot.ts");
-const route = await import("../../src/app/api/usage/combo-health-autopilot/route.ts");
-const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
+const core = await import("../../../src/lib/db/core.ts");
+const combosDb = await import("../../../src/lib/db/combos.ts");
+const settingsDb = await import("../../../src/lib/db/settings.ts");
+const quotaSnapshotsDb = await import("../../../src/lib/db/quotaSnapshots.ts");
+const callLogs = await import("../../../src/lib/usage/callLogs.ts");
+const comboMetrics = await import("../../../open-sse/services/comboMetrics.ts");
+const comboAutopilot = await import("../../../src/lib/monitoring/comboHealthAutopilot.ts");
+const route = await import("../../../src/app/api/usage/combo-health-autopilot/route.ts");
+const { normalizeComboStep } = await import("../../../src/lib/combos/steps.ts");
 
 async function resetStorage() {
   comboMetrics.resetAllComboMetrics();

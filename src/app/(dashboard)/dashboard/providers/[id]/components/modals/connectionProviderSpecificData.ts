@@ -3,6 +3,7 @@ import {
   assignCcCompatibleRequestDefaults,
   mergeCcCompatibleRequestDefaults,
 } from "./ccCompatibleRequestDefaults";
+import { applyM365Tier, isM365TierCapableProvider, type M365TierValue } from "./m365Tier";
 import {
   assignQuotaScrapingProviderData,
   type QuotaScrapingFieldValues,
@@ -19,6 +20,7 @@ type FormData = QuotaScrapingFieldValues & {
   cx: string;
   excludedModels: string;
   importFreeModelsOnly: boolean;
+  m365Tier?: M365TierValue;
   passthroughModels: boolean;
   region: string;
   routingTags: string;
@@ -117,6 +119,7 @@ export function assignEditApiKeyProviderSpecificData(options: {
     o.target.accountId = o.formData.accountId.trim();
   }
   if (o.isAntigravityFamily) o.target.projectId = o.trimmedCloudCodeProjectId || null;
+  if (isM365TierCapableProvider(o.provider)) applyM365Tier(o.target, o.formData.m365Tier ?? "");
   if (o.isCcCompatible) {
     o.target.requestDefaults = mergeCcCompatibleRequestDefaults(
       o.target.requestDefaults,
