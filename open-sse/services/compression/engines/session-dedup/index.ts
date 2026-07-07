@@ -89,6 +89,53 @@ function findSuffixBlocks(
 // ─── two-pass dedup on message texts ─────────────────────────────────────────
 
 /**
+ * Deduplicates repeated lines within a single message (intra-message dedup).
+ * Replaces repeated suffix blocks with markers.
+ */
+function dedupeWithinMessage(
+  text: string,
+  minBlockChars: number
+): { deduped: string; changed: boolean } {
+  const lines = text.split("\n");
+  const blocks = findSuffixBlocks(lines, minBlockChars);
+
+  if (blocks.length < 2) return { deduped: text, changed: false };
+
+  // Find the most common block (likely candidate for intra-message dedup).
+  const blockFreq = new Map<string, number>();
+  for (const { block } of blocks) {
+    blockFreq.set(block, (blockFreq.get(block) || 0) + 1);
+  }
+
+  // Sort by frequency descending, then by length descending (prefer replacing more common, longer blocks first).
+  const sortedBlocks = [...blocks].sort((a, b) => {
+    const freqDiff = (blockFreq.get(b.block) || 0) - (blockFreq.get(a.block) || 0);
+    return freqDiff !== 0 ? freqDiff : b.block.length - a.block.length;
+  });
+
+  let result = text;
+  let changed = false;
+
+  for (const { block } of sortedBlocks) {
+    // Only dedup blocks that appear 2+ times in the text.
+    const occurrences = (result.match(new RegExp(block.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
+    if (occurrences < 2) continue;
+
+    const sha = hashBlock(block);
+    const marker = `[dedup:ref sha=${sha}]`;
+    // Replace ALL occurrences except the first (keep the original once).
+    let count = 0;
+    result = result.replace(new RegExp(block.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"), () => {
+      count++;
+      return count === 1 ? block : marker;
+    });
+    changed = true;
+  }
+
+  return { deduped: result, changed };
+}
+
+/**
  * Runs two-pass dedup over an ordered list of (msgIdx, text) pairs.
  * Returns the replaced texts for duplicate messages, a reverse map, and a count.
  */
@@ -99,6 +146,21 @@ function dedupMessageTexts(
   deduped: Map<number, string>;
   dedupCount: number;
 } {
+  const deduped = new Map<number, string>();
+  let dedupCount = 0;
+
+  // Single-message case: apply intra-message dedup.
+  if (msgTexts.length === 1) {
+    const { text, msgIdx } = msgTexts[0];
+    const { deduped: dedupedText, changed } = dedupeWithinMessage(text, minBlockChars);
+    if (changed) {
+      deduped.set(msgIdx, dedupedText);
+      dedupCount++;
+    }
+    return { deduped, dedupCount };
+  }
+
+  // Multi-message case: apply cross-turn dedup.
   // Pass 1: for each message, extract suffix blocks and record first ownership.
   // `firstSeen`: sha → { ownerMsgIdx, block }
   const firstSeen = new Map<string, { ownerMsgIdx: number; block: string }>();
@@ -115,9 +177,6 @@ function dedupMessageTexts(
   }
 
   // Pass 2: for each message, find blocks that were FIRST seen in an earlier message.
-  const deduped = new Map<number, string>();
-  let dedupCount = 0;
-
   for (const { msgIdx, text } of msgTexts) {
     const lines = text.split("\n");
     const blocks = findSuffixBlocks(lines, minBlockChars);
@@ -202,7 +261,7 @@ function processMessages(
     }
   }
 
-  if (msgTexts.length < 2) {
+  if (msgTexts.length === 0) {
     return { messages, dedupCount: 0 };
   }
 

@@ -5,6 +5,7 @@ import crypto from "node:crypto";
 import { REGISTRY } from "../../open-sse/config/providers/index.ts";
 import { getExecutor, hasSpecializedExecutor } from "../../open-sse/executors/index.ts";
 import { ZedHostedExecutor, __test__ } from "../../open-sse/executors/zed-hosted.ts";
+import type { ExecutorLog } from "../../open-sse/executors/base.ts";
 import {
   createZedNativeAuthData,
   encodeZedPrivateKeyVerifier,
@@ -15,6 +16,7 @@ import {
   resolveZedOrganizationId,
   mapZedModel,
   clearZedCaches,
+  type ZedCredentials,
 } from "../../open-sse/shared/zedAuth.ts";
 
 const { normalizeZedProvider, unwrapZedLine } = __test__;
@@ -91,7 +93,10 @@ describe("zed private key verifier encode/decode round-trip", () => {
 
   test("rejects a malformed/missing verifier", () => {
     assert.throws(() => decodeZedPrivateKeyVerifier(""), /Missing Zed private key verifier/);
-    assert.throws(() => decodeZedPrivateKeyVerifier("not-a-zed-verifier"), /Missing Zed private key verifier/);
+    assert.throws(
+      () => decodeZedPrivateKeyVerifier("not-a-zed-verifier"),
+      /Missing Zed private key verifier/
+    );
   });
 });
 
@@ -200,24 +205,30 @@ describe("resolveZedOrganizationId", () => {
   test("prefers an explicit providerSpecificData.organizationId", () => {
     const orgId = resolveZedOrganizationId({
       providerSpecificData: { organizationId: "org-explicit" },
-    } as any);
+    });
     assert.equal(orgId, "org-explicit");
   });
 
   test("falls back to the personal organization from userInfo", () => {
-    const orgId = resolveZedOrganizationId({ providerSpecificData: {} } as any, {
-      organizations: [
-        { id: "org-team", is_personal: false },
-        { id: "org-personal", is_personal: true },
-      ],
-    });
+    const orgId = resolveZedOrganizationId(
+      { providerSpecificData: {} },
+      {
+        organizations: [
+          { id: "org-team", is_personal: false },
+          { id: "org-personal", is_personal: true },
+        ],
+      }
+    );
     assert.equal(orgId, "org-personal");
   });
 
   test("falls back to the first organization when none is personal", () => {
-    const orgId = resolveZedOrganizationId({ providerSpecificData: {} } as any, {
-      organizations: [{ id: "org-first" }, { id: "org-second" }],
-    });
+    const orgId = resolveZedOrganizationId(
+      { providerSpecificData: {} },
+      {
+        organizations: [{ id: "org-first" }, { id: "org-second" }],
+      }
+    );
     assert.equal(orgId, "org-first");
   });
 });
@@ -337,7 +348,12 @@ describe("ZedHostedExecutor.resolveModel + zedLlmFetch (mocked upstream)", () =>
     }) as typeof fetch;
 
     const executor = new ZedHostedExecutor();
-    const result = await executor.resolveModel("claude-sonnet-5", credentials as any, undefined, undefined);
+    const result = await executor.resolveModel(
+      "claude-sonnet-5",
+      credentials as ZedCredentials,
+      undefined,
+      undefined
+    );
     assert.equal(result.provider, "Anthropic");
     assert.ok(calls.some((u) => u.includes("/client/llm_tokens")));
     assert.ok(calls.some((u) => u.includes("/models")));
@@ -358,9 +374,9 @@ describe("ZedHostedExecutor.resolveModel + zedLlmFetch (mocked upstream)", () =>
     const warnCalls: string[] = [];
     const result = await executor.resolveModel(
       "gemini-3.1-pro",
-      credentials as any,
+      credentials as ZedCredentials,
       undefined,
-      { warn: (_tag: string, msg: string) => warnCalls.push(msg) } as any
+      { warn: (_tag: string, msg: string) => warnCalls.push(msg) } as ExecutorLog
     );
     assert.equal(result.provider, "Google");
     assert.ok(warnCalls.length > 0);
@@ -384,7 +400,10 @@ describe("ZedHostedExecutor.parseError", () => {
 
   test("prefixes other error codes with Zed", () => {
     const response = new Response(null, { status: 400 });
-    const result = executor.parseError(response, JSON.stringify({ code: "bad_request", message: "oops" }));
+    const result = executor.parseError(
+      response,
+      JSON.stringify({ code: "bad_request", message: "oops" })
+    );
     assert.equal(result.message, "Zed bad_request: oops");
   });
 
