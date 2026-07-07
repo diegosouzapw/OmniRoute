@@ -18,17 +18,12 @@ const body = () => ({
   messages: [{ role: "user", content: [{ type: "text", text: "oi" }] }],
 });
 
-// NOTE: this asserts on the per-engine `engineBreakdown` entry (not the final
-// `r.compressed`/`r.body`). The stacked pipeline's honest aggregate inflation guard
-// (`guardPipelineInflation` in pipelineGuards.ts, unrelated to this task) reverts the
-// final body whenever the naive char-based token estimator (`estimateCompressionTokens`
-// in stats.ts) counts the base64-PNG output as "bigger" than the original text — which
-// it always will for this fixture, since it doesn't understand real image-token billing.
-// That is a pre-existing gap outside Task 5's scope (chatCore.ts + strategySelector.ts
-// options plumbing only) — flagged in the task report, not fixed here. What this test
-// verifies is squarely Task 5's job: that `providerTransport` reaches the per-engine
-// options inside the stacked runner, so omniglyph actually RUNS instead of being
-// skipped with `transport_not_direct`.
+// Agora que `estimateCompressionTokens` (stats.ts) é image-aware (Task 6), o guard
+// honesto de inflação agregada do stacked (`guardPipelineInflation` em
+// pipelineGuards.ts) não reverte mais a saída imageada do omniglyph: o estimador
+// conta o bloco de imagem pelo billing real (patches 28px + overhead), não pelo
+// char-count do base64. Este teste cobre tanto o plumbing de `providerTransport`
+// (Task 5) quanto a saída final ponta a ponta (Task 6).
 test("stacked com step omniglyph recebe providerTransport (engine roda, não é pulado por transporte)", async () => {
   registerBuiltinCompressionEngines();
   const r = await applyCompressionAsync(body(), "stacked", {
@@ -44,6 +39,11 @@ test("stacked com step omniglyph recebe providerTransport (engine roda, não é 
     `omniglyph deveria ter rodado (não pulado) — techniquesUsed=${JSON.stringify(
       omniglyphStep!.techniquesUsed
     )}`
+  );
+  assert.equal(r.compressed, true);
+  assert.ok(
+    JSON.stringify(r.body).includes('"type":"image"'),
+    "stacked mantém a saída imageada (guard não reverte mais)"
   );
 });
 
