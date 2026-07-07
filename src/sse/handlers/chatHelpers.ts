@@ -577,6 +577,12 @@ export function handleNoCredentials(
       return modelCooldownResponse({
         model: cooldownModel,
         retryAfter: credentials.retryAfter,
+        retryAfterAt:
+          typeof credentials.retryAfter === "string" ? credentials.retryAfter : null,
+        credentialsCoolingCount:
+          typeof credentials.connectionsCount === "number"
+            ? credentials.connectionsCount
+            : null,
       });
     }
 
