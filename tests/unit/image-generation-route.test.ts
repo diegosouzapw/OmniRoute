@@ -14,6 +14,7 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const imageRoute = await import("../../src/app/api/v1/images/generations/route.ts");
 const imageEditRoute = await import("../../src/app/api/v1/images/edits/route.ts");
+const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -23,6 +24,12 @@ async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  // #6303 moved this route onto the shared unified catalog (getUnifiedModelsResponse),
+  // which #6408 wrapped in a 1.5s TTL response cache keyed only by (prefix, isCodex
+  // client, apiKey) — NOT by DB state. Without clearing it between test cases, a test
+  // running within the TTL window of a previous one gets served the previous test's
+  // stale serialized catalog instead of a fresh build reflecting this test's DB state.
+  v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
 
 async function seedConnection(provider: string, overrides: { apiKey?: string | null } = {}) {
@@ -48,7 +55,10 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("v1 image models GET exposes image-only modalities for image-only models", async () => {
+test("v1 image models GET exposes image-only modalities for credential-backed image-only models", async () => {
+  await seedConnection("topaz", { apiKey: "topaz-key" });
+  await seedConnection("stability-ai", { apiKey: "stability-key" });
+
   const response = await imageRoute.GET();
   const body = (await response.json()) as any;
   const byId = new Map(body.data.map((item: { id: string }) => [item.id, item]));
@@ -57,6 +67,19 @@ test("v1 image models GET exposes image-only modalities for image-only models", 
   assert.deepEqual((byId.get("topaz/topaz-enhance") as any).input_modalities, ["image"]);
   assert.deepEqual((byId.get("stability-ai/remove-background") as any).input_modalities, ["image"]);
   assert.deepEqual((byId.get("stability-ai/fast") as any).input_modalities, ["image"]);
+});
+
+test("v1 image models GET hides providers without active credentials", async () => {
+  await seedConnection("codex", { apiKey: "codex-key" });
+
+  const response = await imageRoute.GET();
+  const body = (await response.json()) as { data: Array<{ id: string }> };
+  const ids = body.data.map((item) => item.id);
+
+  assert.equal(response.status, 200);
+  assert.ok(ids.includes("codex/gpt-5.5"));
+  assert.ok(!ids.includes("openai/gpt-image-2"));
+  assert.ok(!ids.some((id: string) => id.startsWith("xai/")));
 });
 
 test("v1 image generation POST accepts promptless requests for image-only models", async () => {

@@ -59,6 +59,21 @@ function getDispatcherOptions() {
     // keepAliveTimeout UP to undici's default keepAliveMaxTimeout (600 s),
     // completely overriding the configured 1 s and restoring zombie-socket risk.
     keepAliveMaxTimeout: timeouts.fetchKeepAliveTimeoutMs,
+    // 9router#1237: RFC 8305 Happy Eyeballs. undici does not
+    // enable it by default, so when DNS returns both AAAA (IPv6) and A (IPv4)
+    // and the IPv6 route is broken (e.g. NAT64 `64:ff9b::` without routing),
+    // the direct egress connect hangs until ETIMEDOUT — even though `curl`
+    // (which has Happy Eyeballs) reaches the same host. Race both families and
+    // use whichever connects first. The proxy path pins family via `proxyTls`
+    // and ProxyAgent ignores `connect`, so this only affects direct egress.
+    // undici types `connect` as a union whose TcpNetConnectOpts member nominally
+    // requires `port`; at runtime undici merges these into net.connect (the origin
+    // already carries host:port), so the partial pin is valid — cast to suppress
+    // the spurious missing-`port` error, mirroring the `proxyTls` cast below.
+    connect: {
+      autoSelectFamily: true,
+      autoSelectFamilyAttemptTimeout: 1000,
+    } as ProxyAgent.Options["proxyTls"],
   };
 }
 

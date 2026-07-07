@@ -209,6 +209,79 @@ export function getGlmQuotaUrl(providerSpecificData: unknown): string {
   return GLM_QUOTA_URLS[getGlmApiRegion(providerSpecificData)];
 }
 
+function getProviderSpecificString(data: JsonRecord, keys: readonly string[]): string | null {
+  for (const key of keys) {
+    const value = asString(data[key]);
+    if (value) return value;
+  }
+  return null;
+}
+
+export const GLM_TEAM_QUOTA_ORGANIZATION_KEYS = [
+  "glmOrganizationId",
+  "bigmodelOrganization",
+  "glmOrganization",
+] as const;
+
+export const GLM_TEAM_QUOTA_PROJECT_KEYS = [
+  "glmProjectId",
+  "bigmodelProject",
+  "glmProject",
+] as const;
+
+export const GLM_TEAM_QUOTA_ALIAS_KEYS = [
+  "bigmodelOrganization",
+  "glmOrganization",
+  "bigmodelProject",
+  "glmProject",
+] as const;
+
+export type GlmTeamQuotaConfig =
+  | { state: "none" }
+  | { state: "configured"; organizationId: string; projectId: string }
+  | { state: "incomplete"; missing: "glmOrganizationId" | "glmProjectId" };
+
+export function getGlmTeamQuotaConfig(providerSpecificData: unknown): GlmTeamQuotaConfig {
+  const data = asRecord(providerSpecificData);
+  const organizationId = getProviderSpecificString(data, GLM_TEAM_QUOTA_ORGANIZATION_KEYS);
+  const projectId = getProviderSpecificString(data, GLM_TEAM_QUOTA_PROJECT_KEYS);
+
+  if (!organizationId && !projectId) return { state: "none" };
+  if (organizationId && projectId) {
+    return { state: "configured", organizationId, projectId };
+  }
+  return {
+    state: "incomplete",
+    missing: organizationId ? "glmProjectId" : "glmOrganizationId",
+  };
+}
+
+export function buildGlmQuotaFetch(
+  apiKey: string,
+  providerSpecificData?: unknown
+): { url: string; headers: Record<string, string> } {
+  const teamConfig = getGlmTeamQuotaConfig(providerSpecificData);
+  const baseUrl = getGlmQuotaUrl(providerSpecificData);
+  const url =
+    teamConfig.state === "configured"
+      ? baseUrl.includes("?")
+        ? `${baseUrl}&type=2`
+        : `${baseUrl}?type=2`
+      : baseUrl;
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${apiKey}`,
+    Accept: "application/json",
+  };
+
+  if (teamConfig.state === "configured") {
+    headers["bigmodel-organization"] = teamConfig.organizationId;
+    headers["bigmodel-project"] = teamConfig.projectId;
+  }
+
+  return { url, headers };
+}
+
 function stripKnownGlmEndpointSuffix(baseUrl: string): { base: string; suffix: string } {
   const parts = splitUrlQueryAndHash(baseUrl);
   let base = parts.base;

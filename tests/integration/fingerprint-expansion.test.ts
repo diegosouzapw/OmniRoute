@@ -297,7 +297,15 @@ test("round-robin combo with 3 fingerprints: all requests succeed", async () => 
       `request ${i + 1} failed: ${JSON.stringify(result.json)}`
     );
     assert.equal(result.json.choices[0].message.content, "fingerprint ok");
-    assert.equal(result.json.model, "fp-mimocode/mimo-auto");
+    // #6426 (v3.8.46): chatCore now unconditionally aligns the non-streaming
+    // response body.model with the resolved backend model advertised in the
+    // X-OmniRoute-Model header (echoRequestedModelName/#1311 is opt-in and off
+    // here), so the response echoes the bare backend model id ("mimo-auto"),
+    // not the "fp-mimocode/"-prefixed provider-node routing target — even
+    // though the mock upstream in this test is configured to self-report the
+    // prefixed id. This assertion documents/pins that contract for fingerprint-
+    // expanded combo targets specifically.
+    assert.equal(result.json.model, "mimo-auto");
   }
 
   // Mock server should have received all 3 hits

@@ -43,6 +43,22 @@ type OpenAIMessage = {
 
 type JsonRecord = Record<string, unknown>;
 
+/**
+ * Bounds for GitLab's `code_suggestions` `small_file` generation contract. Its AI-Gateway
+ * validation guard rejects an oversized/over-structured prompt with
+ * `422 {"detail":"Validation error"}` (tokens 0/0, pre-inference). Turn-1 is small and
+ * passes; a long folded tool-exchange history trips it — so the serialized prompt (and the
+ * `user_instruction` field) must stay bounded (#6220).
+ */
+const MAX_TOOL_EXCHANGE_CHARS = 24_000;
+const MAX_TOOL_RESULT_CHARS = 8_000;
+const MAX_USER_INSTRUCTION_CHARS = 4_000;
+
+function capText(text: string, max: number): string {
+  if (text.length <= max) return text;
+  return `${text.slice(0, max)}\n…[truncated ${text.length - max} chars]`;
+}
+
 type GitLabRequestTarget = {
   mode: "monolith" | "direct";
   url: string;
@@ -145,26 +161,76 @@ function renderConversationTurn(message: OpenAIMessage, role: string, text: stri
   return null;
 }
 
-/** Serialize the full turn history so the model sees the tool result (#6220). */
+/**
+ * Keep only what the `small_file` generation contract can carry: every system message,
+ * the latest user message, and the most-recent tool round (the last assistant `tool_calls`
+ * turn onward). Older turns are dropped so `content_above_cursor` stays bounded (#6220).
+ */
+function selectBoundedMessages(messages: OpenAIMessage[]): OpenAIMessage[] {
+  let lastUserIdx = -1;
+  let lastToolRoundIdx = -1;
+  messages.forEach((message, idx) => {
+    const role = String(message?.role || "user").toLowerCase();
+    if (role === "user") lastUserIdx = idx;
+    if (role === "assistant" && Array.isArray(message?.tool_calls) && message.tool_calls.length) {
+      lastToolRoundIdx = idx;
+    }
+  });
+  const tailStart = lastToolRoundIdx >= 0 ? lastToolRoundIdx : lastUserIdx;
+  const kept: OpenAIMessage[] = [];
+  messages.forEach((message, idx) => {
+    const role = String(message?.role || "user").toLowerCase();
+    if (role === "system" || role === "developer") {
+      kept.push(message);
+    } else if (idx === lastUserIdx || idx >= tailStart) {
+      kept.push(message);
+    }
+  });
+  return kept;
+}
+
+/**
+ * Serialize the most-recent turn history so the model sees the tool result (#6220), but
+ * BOUNDED: only the last tool round is kept, each tool result is capped, and the whole
+ * prompt is capped — otherwise the folded history trips GitLab's `small_file` 422 guard.
+ */
 function buildToolExchangePrompt(messages: OpenAIMessage[]): string {
   const systemParts: string[] = [];
   const convo: string[] = [];
-  for (const message of messages) {
+  for (const message of selectBoundedMessages(messages)) {
     const role = String(message?.role || "user").toLowerCase();
-    const text = extractTextContent(message?.content);
+    let text = extractTextContent(message?.content);
     if (role === "system" || role === "developer") {
       if (text) systemParts.push(text);
       continue;
     }
+    if (role === "tool") text = capText(text, MAX_TOOL_RESULT_CHARS);
     const line = renderConversationTurn(message, role, text);
     if (line) convo.push(line);
   }
   const header = systemParts.length
     ? `System instructions:\n${systemParts.join("\n\n")}\n\n`
     : "";
-  return `${header}${convo.join(
+  const body = `${header}${convo.join(
     "\n\n"
   )}\n\nContinue the response using the tool result above; do not repeat the tool call.`.trim();
+  return capText(body, MAX_TOOL_EXCHANGE_CHARS);
+}
+
+/**
+ * The user's actual instruction — the latest user message, capped. Kept separate from the
+ * folded history so it is NOT duplicated into an oversized `user_instruction`, the likely
+ * offending 422 field on tool-calling follow-up turns (#6220).
+ */
+function buildLatestUserInstruction(messages: OpenAIMessage[]): string {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const role = String(messages[i]?.role || "user").toLowerCase();
+    if (role === "user") {
+      const text = extractTextContent(messages[i]?.content);
+      if (text) return capText(text, MAX_USER_INSTRUCTION_CHARS);
+    }
+  }
+  return "";
 }
 
 /**
@@ -329,7 +395,16 @@ export class GitlabExecutor extends BaseExecutor {
     _stream: boolean,
     credentials: ExecuteInput["credentials"]
   ): Record<string, unknown> {
-    const prompt = buildPrompt(body.messages as OpenAIMessage[] | undefined);
+    const messages = body.messages as OpenAIMessage[] | undefined;
+    const prompt = buildPrompt(messages);
+    // On a tool-exchange follow-up, `content_above_cursor` already carries the (bounded)
+    // folded history — sending the same long text again as `user_instruction` is the
+    // likely field that trips GitLab's `small_file` 422 guard. Send only the short latest
+    // user message there instead (#6220). Simple turns keep the legacy behavior.
+    const isToolExchange = Array.isArray(messages) && hasToolExchange(messages);
+    const userInstruction = isToolExchange
+      ? buildLatestUserInstruction(messages as OpenAIMessage[])
+      : prompt;
     const providerData =
       credentials?.providerSpecificData && typeof credentials.providerSpecificData === "object"
         ? credentials.providerSpecificData
@@ -354,7 +429,7 @@ export class GitlabExecutor extends BaseExecutor {
       generation_type: "small_file",
       stream: false,
       ...(projectPath ? { project_path: projectPath } : {}),
-      ...(prompt ? { user_instruction: prompt } : {}),
+      ...(userInstruction ? { user_instruction: userInstruction } : {}),
     };
   }
 

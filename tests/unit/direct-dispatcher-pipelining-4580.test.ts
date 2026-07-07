@@ -40,6 +40,18 @@ describe("#4580 direct dispatcher options", () => {
     );
   });
 
+  it("enables Happy Eyeballs (autoSelectFamily) on both direct and proxy options (#1237)", () => {
+    const direct = __getDefaultDispatcherOptionsForTest({}) as {
+      connect?: { autoSelectFamily?: boolean; autoSelectFamilyAttemptTimeout?: number };
+    };
+    assert.equal(
+      direct.connect?.autoSelectFamily,
+      true,
+      "direct egress must race IPv4/IPv6 so a broken IPv6 route does not ETIMEDOUT"
+    );
+    assert.equal(typeof direct.connect?.autoSelectFamilyAttemptTimeout, "number");
+  });
+
   it("connection limit honors OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS", () => {
     assert.equal(
       getDefaultDispatcherConnectionLimit({ OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS: "8" }),
