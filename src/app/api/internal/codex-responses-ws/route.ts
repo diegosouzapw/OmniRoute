@@ -9,6 +9,7 @@ import { getProviderCredentialsWithQuotaPreflight } from "@/sse/services/auth";
 import { checkAndRefreshToken } from "@/sse/services/tokenRefresh";
 import { resolveCodexWsModelInfo } from "./modelResolution";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { formatMemoryContext } from "@/lib/memory/injection";
 import { retrieveMemories } from "@/lib/memory/retrieval";
 import {
@@ -289,6 +290,14 @@ function getAuthRequest(body: JsonRecord): Request {
   return new Request(url, { headers: requestHeaders });
 }
 
+function getPolicyRequest(authRequest: Request, apiKey: string | null): Request {
+  if (!apiKey) return authRequest;
+
+  const headers = new Headers(authRequest.headers);
+  headers.set("Authorization", `Bearer ${apiKey}`);
+  return new Request(authRequest.url, { headers });
+}
+
 function jsonError(status: number, code: string, message: string) {
   return NextResponse.json(
     {
@@ -352,17 +361,22 @@ async function prepare(body: JsonRecord) {
 
   const authRequest = getAuthRequest(body);
   const apiKey = extractWsTokenFromRequest(authRequest);
-  const metadata = apiKey ? await getApiKeyMetadata(apiKey).catch(() => null) : null;
-  const allowedConnections =
-    metadata && Array.isArray(metadata.allowedConnections) && metadata.allowedConnections.length > 0
-      ? metadata.allowedConnections
-      : null;
-
   const responseBody = isRecord(body.response) ? body.response : {};
   const requestedModel =
     typeof responseBody.model === "string" && responseBody.model.trim()
       ? responseBody.model.trim()
       : "gpt-5.5";
+
+  const policy = await enforceApiKeyPolicy(getPolicyRequest(authRequest, apiKey), requestedModel);
+  if (policy.rejection) return policy.rejection;
+
+  const metadata =
+    policy.apiKeyInfo || (apiKey ? await getApiKeyMetadata(apiKey).catch(() => null) : null);
+  const allowedConnections =
+    metadata && Array.isArray(metadata.allowedConnections) && metadata.allowedConnections.length > 0
+      ? metadata.allowedConnections
+      : null;
+
   // codex-only bridge: re-resolve bare ChatGPT model ids (the Codex CLI rejects
   // provider-prefixed ids client-side over WebSocket) as codex models.
   const modelInfo = await resolveCodexWsModelInfo(requestedModel, getModelInfo);
