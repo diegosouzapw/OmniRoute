@@ -46,7 +46,7 @@ export function geminiToOpenAIRequest(model, body, stream) {
 
   // Convert contents to messages
   if (body.contents && Array.isArray(body.contents)) {
-    for (const content of body.contents) {
+    for (const content of splitCoLocatedFunctionResponses(body.contents)) {
       const converted = convertGeminiContent(content);
       if (converted) {
         result.messages.push(converted);
@@ -77,6 +77,38 @@ export function geminiToOpenAIRequest(model, body, stream) {
 }
 
 // Convert Gemini content to OpenAI message
+// convertGeminiContent() early-returns the tool message on the first
+// `functionResponse` part in a content, dropping any co-located parts
+// (another functionCall, or trailing text). Gemini clients can send those
+// co-located. Pre-split each such content into: one single-part content per
+// functionResponse (each early-returns cleanly as a tool message, emitted
+// first to keep tool-result-before-next-turn ordering) plus one content for
+// the remaining non-functionResponse parts.
+function splitCoLocatedFunctionResponses(contents) {
+  const out = [];
+  for (const content of contents) {
+    if (!content || !Array.isArray(content.parts)) {
+      out.push(content);
+      continue;
+    }
+    const hasFunctionResponse = content.parts.some((p) => p && p.functionResponse);
+    if (!hasFunctionResponse) {
+      out.push(content);
+      continue;
+    }
+    for (const part of content.parts) {
+      if (part && part.functionResponse) {
+        out.push({ ...content, parts: [part] });
+      }
+    }
+    const nonFRParts = content.parts.filter((p) => !(p && p.functionResponse));
+    if (nonFRParts.length > 0) {
+      out.push({ ...content, parts: nonFRParts });
+    }
+  }
+  return out;
+}
+
 function convertGeminiContent(content) {
   const role = content.role === "user" ? "user" : "assistant";
 

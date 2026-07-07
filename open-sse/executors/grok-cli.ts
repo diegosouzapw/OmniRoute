@@ -240,8 +240,17 @@ export class GrokCliExecutor extends BaseExecutor {
     }
     transformed.stream = !!stream;
 
-    // Grok Build rejects unsupported parameters with 400.
-    const UNSUPPORTED = ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"];
+    // Grok Build rejects unsupported parameters with 400. `reasoning_effort`/`reasoning`
+    // are sent by clients like Claude Code (routing the Opus slot) but are not accepted
+    // by Grok Build's upstream chat-proxy endpoint — see #6288.
+    const UNSUPPORTED = [
+      "presencePenalty",
+      "frequencyPenalty",
+      "logprobs",
+      "topLogprobs",
+      "reasoning_effort",
+      "reasoning",
+    ];
     for (const param of UNSUPPORTED) {
       if (param in transformed) {
         delete transformed[param];

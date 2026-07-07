@@ -14,7 +14,7 @@ import {
 import * as log from "@/sse/utils/logger";
 
 // ---------------------------------------------------------------------------
-// Fetch provider metadata (hardcoded — no registry for these 3)
+// Fetch provider metadata (hardcoded — no registry for these 4)
 // ---------------------------------------------------------------------------
 
 interface FetchProviderDef {
@@ -46,6 +46,13 @@ const FETCH_PROVIDERS: FetchProviderDef[] = [
     costPerQuery: 0.001,
     freeMonthlyQuota: 1000,
     fetchFormats: ["markdown", "text"],
+  },
+  {
+    id: "tinyfish",
+    name: "TinyFish Fetch",
+    costPerQuery: 0,
+    freeMonthlyQuota: 0,
+    fetchFormats: ["markdown", "html"],
   },
 ];
 
@@ -115,10 +122,7 @@ async function resolveProviderStatus(
 
 export async function GET(request: Request) {
   if (!(await isAuthenticated(request))) {
-    return NextResponse.json(
-      buildErrorBody(401, "Unauthorized"),
-      { status: 401 }
-    );
+    return NextResponse.json(buildErrorBody(401, "Unauthorized"), { status: 401 });
   }
 
   try {
@@ -133,19 +137,21 @@ export async function GET(request: Request) {
       )
     );
 
-    const searchItems: SearchProviderCatalogItem[] = searchProviderStatuses.map(({ p, status }) => ({
-      id: p.id,
-      name: p.name,
-      kind: "search" as const,
-      costPerQuery: p.costPerQuery,
-      freeMonthlyQuota: p.freeMonthlyQuota,
-      searchTypes: p.searchTypes,
-      status,
-      configureHref: "/dashboard/providers",
-    }));
+    const searchItems: SearchProviderCatalogItem[] = searchProviderStatuses.map(
+      ({ p, status }) => ({
+        id: p.id,
+        name: p.name,
+        kind: "search" as const,
+        costPerQuery: p.costPerQuery,
+        freeMonthlyQuota: p.freeMonthlyQuota,
+        searchTypes: p.searchTypes,
+        status,
+        configureHref: "/dashboard/providers",
+      })
+    );
 
     // -----------------------------------------------------------------------
-    // 2. Build fetch providers (3 hardcoded)
+    // 2. Build fetch providers (4 hardcoded)
     // -----------------------------------------------------------------------
     const fetchProviderStatuses = await Promise.all(
       FETCH_PROVIDERS.map((fp) =>
