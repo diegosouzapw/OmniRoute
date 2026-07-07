@@ -88,6 +88,7 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
   if (Array.isArray(tools)) {
     for (const tool of tools) {
+      if (!tool) continue;
       // Server tools (bash_20250124 / web_search_20250305 / …) keep their
       // type-bound literal name.
       if (isAnthropicServerToolType(tool.type)) continue;

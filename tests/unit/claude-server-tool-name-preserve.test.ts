@@ -124,6 +124,22 @@ describe("remapToolNamesInRequest — Anthropic server tools", () => {
     assert.equal((body.tool_choice as AnyRecord).name, "bash");
   });
 
+  it("tolerates null entries in tools[] without throwing", () => {
+    const body: AnyRecord = {
+      tools: [null, { type: "bash_20250124", name: "bash" }],
+      messages: [
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "toolu_1", name: "bash", input: {} }],
+        },
+      ],
+    };
+    remapToolNamesInRequest(body);
+    assert.equal((body.tools as AnyRecord[])[1].name, "bash");
+    const block = ((body.messages as AnyRecord[])[0].content as AnyRecord[])[0];
+    assert.equal(block.name, "bash");
+  });
+
   it("still renames a plain lowercase custom bash tool to Bash", () => {
     const body: AnyRecord = {
       tools: [{ name: "bash", input_schema: { type: "object" } }],
