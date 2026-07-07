@@ -768,6 +768,18 @@ export async function handleComboChat({
   // Fusion strategy: parallel panel + judge synthesis. Handled in a separate module
   // because it neither iterates targets in order nor needs the failover/retry/credential
   // gate machinery that follows — it fans out, then synthesizes once.
+  const cfg = config as Record<string, unknown>;
+  const judgeModel = typeof cfg.judgeModel === "string" ? cfg.judgeModel : undefined;
+  const fusionTuning =
+    cfg.fusionTuning && typeof cfg.fusionTuning === "object"
+      ? (cfg.fusionTuning as FusionTuning)
+      : undefined;
+  if (strategy !== "fusion" && (judgeModel || fusionTuning)) {
+    log.warn(
+      "COMBO",
+      `Combo "${combo.name}" sets config.judgeModel/fusionTuning but strategy is "${strategy}" — these fields are only consumed by the fusion strategy and will be ignored (#6455)`
+    );
+  }
   if (strategy === "fusion") {
     const fusionModels = (combo.models || [])
       .map((m) => {
@@ -779,12 +791,6 @@ export async function handleComboChat({
         return null;
       })
       .filter((m): m is string => Boolean(m));
-    const cfg = config as Record<string, unknown>;
-    const judgeModel = typeof cfg.judgeModel === "string" ? cfg.judgeModel : undefined;
-    const tuning =
-      cfg.fusionTuning && typeof cfg.fusionTuning === "object"
-        ? (cfg.fusionTuning as FusionTuning)
-        : undefined;
     return handleFusionChat({
       body,
       models: fusionModels,
@@ -792,7 +798,7 @@ export async function handleComboChat({
       log,
       comboName: combo.name,
       judgeModel,
-      tuning,
+      tuning: fusionTuning,
     });
   }
 
