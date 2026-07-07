@@ -9,6 +9,7 @@ import { useStreamMetrics } from "../../hooks/useStreamMetrics";
 import { getModelPricing } from "@/lib/playground/types";
 import type { ConfigState } from "../StudioConfigPane";
 import type { StreamMetrics } from "@/shared/schemas/playground";
+import { buildReasoningRequestFields } from "../reasoningControls";
 
 interface Message {
   role: "system" | "user" | "assistant";
@@ -76,6 +77,16 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
     if (p.seed !== null) body.seed = p.seed;
     if (p.stop.trim()) body.stop = p.stop;
     if (p.jsonMode) body.response_format = { type: "json_object" };
+
+    // #6241: fold the canonical effort / thinking params onto the body — gated to models that
+    // support thinking (via the resolved reasoning spec) and to valid effort tiers.
+    Object.assign(
+      body,
+      buildReasoningRequestFields(
+        { effort: p.effort, thinking: p.thinking },
+        configState.reasoning ?? { show: false, effortOptions: [] }
+      )
+    );
 
     return body;
   }

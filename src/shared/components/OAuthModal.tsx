@@ -322,7 +322,11 @@ export default function OAuthModal({
       // Claude Code and Cline OAuth flows can finish on provider-hosted pages that
       // show an auth code instead of redirecting back to OmniRoute.
       // Start directly in manual mode so users always have an input to paste code/url.
-      if (provider === "claude" || provider === "cline") {
+      // zed-hosted's native-app sign-in always redirects the browser to a local
+      // 127.0.0.1:<port> callback that OmniRoute never listens on (the port is
+      // arbitrary and unrelated to the dashboard's own port) — nothing can
+      // auto-close the popup, so always show the manual paste-URL input.
+      if (provider === "claude" || provider === "cline" || provider === "zed-hosted") {
         forceManual = true;
       }
 

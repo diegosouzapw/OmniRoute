@@ -19,6 +19,16 @@ const STRIPPED_CODEX_ENV_KEYS = [
 /** Placeholder so codex's `env_key` is always satisfied when the backend is open. */
 const NO_AUTH_SENTINEL = "omniroute-no-auth";
 
+// On Windows the `codex` binary is an npm `.cmd` shim that `spawn` cannot resolve
+// without a shell (bare "codex" → ENOENT). Mirror the qodercli Windows fix (#6263):
+// spawn `codex.cmd` through a shell on win32, and the bare binary elsewhere.
+export function resolveCodexSpawn(platform) {
+  if (platform === "win32") {
+    return { command: "codex.cmd", shell: true };
+  }
+  return { command: "codex", shell: undefined };
+}
+
 function stripTrailingSlash(value) {
   let s = String(value);
   let end = s.length;
@@ -126,10 +136,10 @@ export async function runLaunchCodexCommand(opts = {}, codexArgs = []) {
 
   if (!(await healthCheck(baseUrl))) {
     console.error(
-      (t("launch.notRunning") || "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'.").replace(
-        "{port}",
-        baseUrl
-      )
+      (
+        t("launch.notRunning") ||
+        "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'."
+      ).replace("{port}", baseUrl)
     );
     return 1;
   }
@@ -142,7 +152,12 @@ export async function runLaunchCodexCommand(opts = {}, codexArgs = []) {
   const env = buildCodexEnv(process.env, authToken);
 
   return await new Promise((resolve) => {
-    const child = spawn("codex", extraArgs, { env, stdio: "inherit" });
+    const { command: codexLaunch, shell: shellValue } = resolveCodexSpawn(process.platform);
+    const child = spawn(codexLaunch, extraArgs, {
+      env,
+      stdio: "inherit",
+      shell: shellValue,
+    });
     child.on("error", (err) => {
       if (err?.code === "ENOENT") {
         console.error(
@@ -165,10 +180,16 @@ export function registerLaunchCodex(program) {
       t("launchCodex.description") || "Launch Codex CLI pointed at OmniRoute (local or remote VPS)"
     )
     .option("--port <port>", "Local OmniRoute port (ignored when --remote is set)", "20128")
-    .option("--remote <url>", "Remote OmniRoute base URL, e.g. http://192.168.0.15:20128 (overrides --port + context)")
+    .option(
+      "--remote <url>",
+      "Remote OmniRoute base URL, e.g. http://192.168.0.15:20128 (overrides --port + context)"
+    )
     .option("--profile <name>", "Codex profile to activate (passed as --profile <name>)")
     .option("-p, --p <name>", "Alias for --profile")
-    .option("--api-key <key>", "OmniRoute API key (overrides OMNIROUTE_API_KEY env var for this invocation)")
+    .option(
+      "--api-key <key>",
+      "OmniRoute API key (overrides OMNIROUTE_API_KEY env var for this invocation)"
+    )
     .allowUnknownOption(true)
     .allowExcessArguments(true)
     .argument("[codexArgs...]", "arguments passed through to the codex binary")

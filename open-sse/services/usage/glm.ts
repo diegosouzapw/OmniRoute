@@ -11,7 +11,7 @@
 
 import { toNumber, toRecord, toTitleCase, toPercentage } from "./scalars.ts";
 import { type UsageQuota } from "./quota.ts";
-import { getGlmQuotaUrl } from "../../config/glmProvider.ts";
+import { buildGlmQuotaFetch, getGlmTeamQuotaConfig } from "../../config/glmProvider.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -84,19 +84,45 @@ export function glmMonthlyRemainingPercentage(total: number, remaining: number):
   return Math.max(0, Math.min(100, Math.round(remaining)));
 }
 
+function glmTeamQuotaIncompleteMessage(missing: "glmOrganizationId" | "glmProjectId"): string {
+  const fieldLabel = missing === "glmOrganizationId" ? "Organization ID" : "Project ID";
+  return `GLM team plan quota requires both Organization ID and Project ID. Add the missing ${fieldLabel} on this connection.`;
+}
+
+function glmTeamQuotaHintMessage(): string {
+  return "This API key appears to be a GLM Coding team plan. Add Organization ID and Project ID on this connection to view usage.";
+}
+
+function sanitizeGlmQuotaErrorMessage(msg: unknown): string {
+  if (typeof msg !== "string" || !msg.trim()) {
+    return "Unable to fetch GLM quota.";
+  }
+  return msg.trim();
+}
+
+function shouldSuggestGlmTeamQuota(
+  teamConfig: ReturnType<typeof getGlmTeamQuotaConfig>,
+  _providerSpecificData: unknown,
+  _json: JsonRecord,
+  upstreamMsg: string
+): boolean {
+  if (teamConfig.state !== "none") return false;
+  return /coding\s*plan|不存在.*plan|没有.*coding|团队|编码套餐/i.test(upstreamMsg);
+}
+
 export async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
   if (!apiKey) {
     return { message: "API key not available. Add a coding plan API key to view usage." };
   }
 
-  const quotaUrl = getGlmQuotaUrl(providerSpecificData);
+  const teamConfig = getGlmTeamQuotaConfig(providerSpecificData);
+  if (teamConfig.state === "incomplete") {
+    return { message: glmTeamQuotaIncompleteMessage(teamConfig.missing) };
+  }
 
-  const res = await fetch(quotaUrl, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-    },
-  });
+  const { url: quotaUrl, headers } = buildGlmQuotaFetch(apiKey, providerSpecificData);
+
+  const res = await fetch(quotaUrl, { headers });
 
   if (!res.ok) {
     if (res.status === 401) throw new Error("Invalid API key");
@@ -104,8 +130,19 @@ export async function getGlmUsage(apiKey: string, providerSpecificData?: Record<
   }
 
   const json = await res.json();
-  if (toNumber(json.code, 200) === 401 || json.success === false) {
+  if (!json || typeof json !== "object") {
+    throw new Error("Invalid JSON response from GLM quota API");
+  }
+  if (toNumber(json.code, 200) === 401) {
     throw new Error("Invalid API key");
+  }
+
+  if (json.success === false) {
+    const upstreamMsg = sanitizeGlmQuotaErrorMessage(json.msg ?? json.message);
+    if (shouldSuggestGlmTeamQuota(teamConfig, providerSpecificData, toRecord(json), upstreamMsg)) {
+      return { message: glmTeamQuotaHintMessage() };
+    }
+    return { message: upstreamMsg };
   }
 
   const data = toRecord(json.data);
