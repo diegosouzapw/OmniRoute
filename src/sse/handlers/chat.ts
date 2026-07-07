@@ -19,6 +19,7 @@ import {
 import { getModelInfo, getComboForModel } from "../services/model";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
@@ -315,6 +316,20 @@ export async function handleChat(
   if (!modelStr) {
     log.warn("CHAT", "Missing model");
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
+  }
+
+  // Reject image-generation models routed to /v1/chat/completions (#6457).
+  // Image-only models live in IMAGE_PROVIDERS (open-sse/config/imageRegistry.ts)
+  // and are served by /v1/images/generations. Forwarding them to a chat upstream
+  // yielded confusing raw provider 400s (e.g. HuggingFace: "not a chat model").
+  // getImageModelEntry returns non-null only for models registered in the image
+  // registry — chat-only models (openai/gpt-4o, etc.) resolve to null and pass.
+  if (getImageModelEntry(modelStr)) {
+    log.warn("CHAT", `Rejecting image-generation model on chat endpoint: ${modelStr}`);
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      `Model '${modelStr}' is an image-generation model and cannot be used on /v1/chat/completions. Use POST /v1/images/generations instead.`
+    );
   }
 
   // T04: client-provided external session header has priority over generated fingerprint.
