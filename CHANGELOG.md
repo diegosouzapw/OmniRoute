@@ -4,7 +4,25 @@
 
 ---
 
-## [3.8.46] — TBD
+## [3.8.47] — TBD
+
+_Living section — bullets land here as PRs merge into `release/v3.8.47` (parallel-cycle model; cycle opened at the v3.8.46 release freeze). Finalized at the v3.8.47 release._
+
+### 🐛 Bug Fixes
+
+- **fix(providers):** stop Antigravity connections from falsely reporting **all-accounts quota-exhausted** ([#6295](https://github.com/diegosouzapw/OmniRoute/issues/6295)) — `genericQuotaFetcher.ts::percentUsedForQuota()` ignored the `fractionReported` flag and defaulted an unreported model's `remainingPercentage` to 0, which computed as 100% used; since `convertUsageToQuotaInfo()` takes the worst-case window across a connection, a single model with no reported fraction dragged the whole account into `limitReached` and `quotaPreflight` skipped it. `percentUsedForQuota()` now returns `null` (unknown, window ignored) whenever `fractionReported === false`, before falling back to `remainingPercentage`. Regression guard: `tests/unit/generic-quota-fetcher.test.ts`.
+- **fix(providers):** grok-cli (Grok Build) now strips `reasoning_effort`/`reasoning` before forwarding the request ([#6288](https://github.com/diegosouzapw/OmniRoute/issues/6288)) — Claude Code sends `reasoning_effort` on every request (routing the Opus slot), which Grok Build's upstream chat-proxy endpoint rejects with a 400; `transformRequest()`'s existing `UNSUPPORTED` sampling-param strip list (#5273) never covered it. Regression guard: `tests/unit/grok-cli-reasoning-strip-6288.test.ts`.
+- **fix(cli):** `omniroute serve` no longer hangs silently on a readiness timeout ([#6321](https://github.com/diegosouzapw/OmniRoute/issues/6321)) — the child server's stdout was piped to `"ignore"` whenever `--log`/`OMNIROUTE_SHOW_LOG` wasn't set (the default), discarding any debug output, and `runWithSupervisor`'s `waitForServer(...).then((up) => { if (up) {...} })` had no `else` branch, so a boot that never became ready produced zero further output after "⏳ Starting server...". Stdout is now buffered alongside stderr (`ServerSupervisor.getRecentLog()`), and a timeout prints a clear diagnostic plus the buffered output instead of staying silent. Does not by itself explain why boot never completes on a given machine — see the issue for further reproduction. Regression guard: `tests/unit/cli-serve-readiness-timeout-6321.test.ts`.
+- **fix(pricing):** Pricing Sync dashboard no longer stuck on "Next Sync: Never" / "Synced Models: 0" ([#6325](https://github.com/diegosouzapw/OmniRoute/issues/6325)) — `pricingSync.ts` kept sync state (`lastSyncTime`, `lastSyncModelCount`) in module-level vars, but the background periodic sync (`instrumentation-node.ts`) and the dashboard status route (`/api/pricing/sync`) each import the module from separate Next.js standalone webpack chunks, giving each its own independent state; `getSyncStatus()` read the (empty) API-route instance's vars. Sync status is now additionally persisted to a new `pricing_sync_status` `key_value` namespace and `getSyncStatus()` falls back to it when the local module instance never ran a sync itself. Regression guard: `tests/unit/pricing-sync-cross-instance.test.ts`.
+- **fix(api):** stop spuriously 403-ing "Invalid request origin" on `POST /api/providers/health-autopilot/actions` for Docker/LAN dashboard requests ([#6277](https://github.com/diegosouzapw/OmniRoute/issues/6277)) — the route carried a duplicate per-route `validateBrowserMutationOrigin` check re-added by the v3.8.42 release squash after PR #5278 centralized origin enforcement in the authz pipeline; the pipeline strips `PEER_IP_HEADER` before forwarding, so the stale duplicate check could no longer resolve the LAN "direct-local-host" candidate and rejected legitimate same-origin LAN mutations (e.g. clicking "remove cooldown" when accessed via a LAN IP). Removed the duplicate check — origin validation is now solely enforced by the centralized pipeline check, which already handles this case correctly. Regression guard: `tests/unit/serial/provider-health-autopilot.test.ts`.
+
+### 📝 Maintenance
+
+- **chore(quality):** `validate-release-green --full-ci` reproduces the full `ci.yml` static gate set locally — the pre-flight now reads `ci.yml` itself and runs every `npm run check:*` from the `lint` / `quality-gate` / `quality-extended` / `docs-sync-strict` / `pr-test-policy` jobs (`--` ratchet flags preserved, `test-masking` against `GITHUB_BASE_REF=main`), skipping only the non-local `pr-evidence`/`codeql-ratchet`. Closes the gap where 11 static base-reds leaked to the v3.8.46 release PR in ~2h of layered CI. Also wired into `nightly-release-green` so a static base-red opens a tracking issue the night it lands. Regression guard: `tests/unit/validate-release-green.test.ts` (+5 `extractCiGates` cases).
+
+---
+
+## [3.8.46] — 2026-07-07
 
 ### ✨ New Features
 
@@ -142,6 +160,7 @@
 - **fix(api):** `POST /api/github-skills` now Zod-validates its request body; documented the new quality-gate env vars and pinned the merge-integrity GitHub Actions to a commit SHA.
 - **fix(skills):** generate the missing `omni-github-skills` registry entry and align the agent-skills catalog-count tests (follow-up to #6186).
 - **fix(quality):** clear the cycle's 11 net-new ESLint errors and make `validate-release-green` suppressions-aware.
+- **fix(security):** proxy-pool `random` rotation now selects via `crypto.randomInt` instead of `Math.random` — silences the post-release CodeQL `js/insecure-randomness` alerts (#698/#699) that flagged `Math.random` flowing into the selected proxy's credentials. Load-balancing selection is not a secret, but the crypto source is unbiased and clears the alert at the origin (#6365 follow-up).
 
 ### 📝 Maintenance
 
