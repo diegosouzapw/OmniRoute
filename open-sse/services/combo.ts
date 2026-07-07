@@ -2431,7 +2431,7 @@ async function handleRoundRobinCombo({
   const maxRetries = config.maxRetries ?? 1;
   const retryDelayMs = resolveDelayMs(config.retryDelayMs, 2000);
   const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
-  const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled !== false;
+  const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled === true;
 
   const resilienceSettings: ResilienceSettings = settings
     ? resolveResilienceSettings(settings)
@@ -3032,7 +3032,10 @@ async function handleRoundRobinCombo({
           resilienceSettings.providerCooldown.enabled &&
           provider &&
           provider !== "unknown" &&
-          !(result.status === 500 && hasPerModelQuota(provider, parseModel(modelStr).model || modelStr))
+          !(
+            result.status === 500 &&
+            hasPerModelQuota(provider, parseModel(modelStr).model || modelStr)
+          )
         ) {
           recordProviderCooldown(
             provider,

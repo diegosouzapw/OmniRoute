@@ -30,7 +30,7 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.failoverBeforeRetry, true);
   assert.equal(first.maxSetRetries, 0);
   assert.equal(first.setRetryDelayMs, 2000);
-  assert.equal(first.reasoningTokenBufferEnabled, true);
+  assert.equal(first.reasoningTokenBufferEnabled, false);
   assert.equal(first.zeroLatencyOptimizationsEnabled, false);
   assert.equal(first.hedging, false);
   assert.equal(first.fallbackCompressionMode, "lite");

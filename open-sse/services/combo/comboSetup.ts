@@ -90,9 +90,7 @@ export function phaseComboSetup(ctx: ComboContext): ComboSetup {
 
   const universalHandoffConfig = resolveUniversalHandoffConfig(
     (combo.universal_handoff || combo.universalHandoff) as
-      | Record<string, unknown>
-      | null
-      | undefined,
+      Record<string, unknown> | null | undefined,
     relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
   );
 
@@ -118,7 +116,7 @@ export function phaseComboSetup(ctx: ComboContext): ComboSetup {
     FETCH_TIMEOUT_MS,
     DEFAULT_COMBO_TARGET_TIMEOUT_MS
   );
-  const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled !== false;
+  const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled === true;
 
   return {
     strategy,

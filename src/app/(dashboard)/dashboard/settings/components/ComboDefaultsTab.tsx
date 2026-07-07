@@ -93,7 +93,7 @@ export default function ComboDefaultsTab() {
     retryDelayMs: 2000,
     maxComboDepth: 3,
     trackMetrics: true,
-    reasoningTokenBufferEnabled: true,
+    reasoningTokenBufferEnabled: false,
     handoffThreshold: 0.85,
     handoffModel: "",
     maxMessagesForSummary: 30,
@@ -292,8 +292,7 @@ export default function ComboDefaultsTab() {
 
   // Filtered provider list — excludes already-added ones, filtered by search query
   const filteredProviders = availableProviders.filter(
-    (p) =>
-      !providerOverrides[p.provider] && matchesSearch(p.provider, searchQuery)
+    (p) => !providerOverrides[p.provider] && matchesSearch(p.provider, searchQuery)
   );
 
   const handleDropdownKeyDown = (e: React.KeyboardEvent) => {
@@ -690,11 +689,11 @@ export default function ComboDefaultsTab() {
               </p>
             </div>
             <Toggle
-              checked={comboDefaults.reasoningTokenBufferEnabled !== false}
+              checked={comboDefaults.reasoningTokenBufferEnabled === true}
               onChange={() =>
                 setComboDefaults((prev) => ({
                   ...prev,
-                  reasoningTokenBufferEnabled: prev.reasoningTokenBufferEnabled === false,
+                  reasoningTokenBufferEnabled: prev.reasoningTokenBufferEnabled !== true,
                 }))
               }
             />
