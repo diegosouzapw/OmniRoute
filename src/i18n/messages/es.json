@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} no necesita una clave API ni una cookie. Guarde la conexión para utilizar su punto final web gratuito.",
     "webSessionCredentialValidationFailed": "Error en la validación de credenciales de sesión. Inicie sesión nuevamente, copie una credencial nueva e inténtelo nuevamente.",
     "checkCookie": "comprobar galleta",
-    "checkWebToken": "ficha de cheque"
+    "checkWebToken": "ficha de cheque",
+    "filterAll": "Todos",
+    "filterActive": "Activo",
+    "filterError": "Error",
+    "filterBanned": "Bloqueado",
+    "filterCreditsExhausted": "Créditos agotados"
   },
   "settings": {
     "title": "Configuración",
