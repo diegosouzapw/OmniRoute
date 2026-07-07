@@ -3,7 +3,7 @@
 // (Vercel Edge, Deno Deploy, or Cloudflare Workers) instead of an undici ProxyAgent. All relay
 // types share the exact same x-relay-target / x-relay-path / x-relay-auth header spec; only the
 // deployment surface differs.
-import { randomUUID } from "crypto";
+import { randomUUID, randomInt } from "crypto";
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import type {
@@ -722,7 +722,7 @@ function getOrCreateRotationRow(
 /**
  * Pick one member from an already-alive candidate list according to the scope's
  * rotation strategy. Assumes `candidates` is non-empty and ordered by position.
- * Round-robin uses (and persists) a monotonic cursor; random uses Math.random;
+ * Round-robin uses (and persists) a monotonic cursor; random uses crypto.randomInt;
  * sticky holds the current member until its window elapses, then advances.
  */
 function pickFromCandidates<T>(
@@ -736,7 +736,11 @@ function pickFromCandidates<T>(
   const state = getOrCreateRotationRow(db, normalizedScope, rotationScopeId);
 
   if (state.strategy === "random") {
-    return candidates[Math.floor(Math.random() * candidates.length)];
+    // crypto.randomInt (unbiased, uniform in [0, length)) instead of Math.random —
+    // CodeQL js/insecure-randomness flags Math.random flowing into the selected proxy's
+    // credentials (a "security context"). Load-balancing selection is not a secret, but
+    // crypto.randomInt silences the alert at the source and is unbiased (#6365 follow-up).
+    return candidates[randomInt(candidates.length)];
   }
 
   if (state.strategy === "sticky") {

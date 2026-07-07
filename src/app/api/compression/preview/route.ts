@@ -256,10 +256,12 @@ export async function POST(req: Request) {
         errors: diff.validationErrors,
         warnings: diff.validationWarnings,
         fallbackApplied: diff.fallbackApplied,
+        ...(diff.fallbackReason && { fallbackReason: diff.fallbackReason }),
       },
       validationWarnings: diff.validationWarnings,
       validationErrors: diff.validationErrors,
       fallbackApplied: diff.fallbackApplied,
+      ...(diff.fallbackReason && { fallbackReason: diff.fallbackReason }),
       ...(diff.heatmap ? { heatmap: diff.heatmap } : {}),
     });
   } catch (err: unknown) {
