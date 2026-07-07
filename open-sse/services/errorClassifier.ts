@@ -4,7 +4,7 @@ import {
   isDailyQuotaExhausted,
   isOAuthInvalidToken,
 } from "./accountFallback.ts";
-import { getProviderCategory } from "../config/providerRegistry.ts";
+import { getProviderCategory, getRegistryEntry } from "../config/providerRegistry.ts";
 
 // Terminal stop signals where an empty content payload is still a legitimate,
 // successful completion (truncated at the token limit, or a tool-call turn) —
@@ -184,6 +184,15 @@ export function classifyProviderError(
       return PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
     }
     if (provider && getProviderCategory(provider) === "apikey") {
+      return null;
+    }
+    // No-credential ("authType: none") providers — free, stateless per-request
+    // token proxies like mimocode/theoldllm — have no real account/credential
+    // to revoke. An unrecognized 403 from these is a transient upstream
+    // rate-limit/blocklist signal, not an account ban: keep it recoverable so
+    // the connection cooldown/retry layer handles it instead of a permanent
+    // "banned" state on the first unmatched 403. (#6315, #6345)
+    if (provider && getRegistryEntry(provider)?.authType === "none") {
       return null;
     }
     return PROVIDER_ERROR_TYPES.FORBIDDEN;

@@ -1204,7 +1204,7 @@ export async function handleChatCore({
       // Phase 4A: unified output styles (supersedes cavemanOutputMode via the back-compat shim).
       let outputStyleResult:
         import("../services/compression/outputStyles/apply.ts").OutputStylesResult | null = null;
-      if (config.enabled) {
+      if (config.enabled && compressionHeader?.trim().toLowerCase() !== "off") {
         try {
           const { resolveOutputStyleSelection } =
             await import("../services/compression/outputStyles/backCompat.ts");
