@@ -32,7 +32,7 @@ export const PreviewRequestSchema = z.object({
     )
     .min(1),
   mode: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked", "caveman"])
     .optional()
     .default("stacked"),
   engineId: z.string().optional(),
@@ -185,8 +185,11 @@ export async function POST(req: Request) {
 
   const { messages, mode, engineId, pipeline, config, fidelityGate, fuzzyDedup, riskGate, quantumLock, heatmap: heatmapMode } =
     parsed.data;
+  // "caveman" is a public alias for the internal "standard" mode (standard runs cavemanCompress
+  // per strategySelector.ts). Normalize before dispatch so both names hit the same engine.
+  const normalizedMode = mode === "caveman" ? "standard" : mode;
   const effectiveMode: CompressionMode =
-    engineId || pipeline ? "stacked" : (mode as CompressionMode);
+    engineId || pipeline ? "stacked" : (normalizedMode as CompressionMode);
   const originalText = messagesToText(messages);
   const originalTokens = countTokens(originalText);
 
