@@ -294,13 +294,13 @@ export async function handleFusionChat({
     }
     const resp = res as Response;
     if (!resp.ok) {
-      if (resp.status === 429) {
-        failures.push({ model, reason: "rate_limited" });
-        log.warn("FUSION", `Panel ${model} rate-limited`, { status: resp.status });
-      } else {
-        failures.push({ model, reason: `status_${resp.status}` });
-        log.warn("FUSION", `Panel ${model} failed`, { status: resp.status });
-      }
+      // Per-member reason keeps the exact status code (e.g. status_429 for a
+      // rate-limit fan-fail, status_503 for an outage) — strictly more
+      // informative than the earlier aggregate rate-limit count (#6454).
+      failures.push({ model, reason: `status_${resp.status}` });
+      log.warn("FUSION", `Panel ${model} ${resp.status === 429 ? "rate-limited" : "failed"}`, {
+        status: resp.status,
+      });
       continue;
     }
     try {
