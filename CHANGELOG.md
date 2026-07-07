@@ -11,6 +11,7 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 ### 🐛 Bug Fixes
 
 - **fix(providers):** stop Antigravity connections from falsely reporting **all-accounts quota-exhausted** ([#6295](https://github.com/diegosouzapw/OmniRoute/issues/6295)) — `genericQuotaFetcher.ts::percentUsedForQuota()` ignored the `fractionReported` flag and defaulted an unreported model's `remainingPercentage` to 0, which computed as 100% used; since `convertUsageToQuotaInfo()` takes the worst-case window across a connection, a single model with no reported fraction dragged the whole account into `limitReached` and `quotaPreflight` skipped it. `percentUsedForQuota()` now returns `null` (unknown, window ignored) whenever `fractionReported === false`, before falling back to `remainingPercentage`. Regression guard: `tests/unit/generic-quota-fetcher.test.ts`.
+- **fix(providers):** grok-cli (Grok Build) now strips `reasoning_effort`/`reasoning` before forwarding the request ([#6288](https://github.com/diegosouzapw/OmniRoute/issues/6288)) — Claude Code sends `reasoning_effort` on every request (routing the Opus slot), which Grok Build's upstream chat-proxy endpoint rejects with a 400; `transformRequest()`'s existing `UNSUPPORTED` sampling-param strip list (#5273) never covered it. Regression guard: `tests/unit/grok-cli-reasoning-strip-6288.test.ts`.
 
 ### 📝 Maintenance
 
