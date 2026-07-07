@@ -10,6 +10,7 @@ import {
   getModelAliases,
 } from "@/lib/localDb";
 import { extractAliasBackedModels } from "./aliasBackedModels";
+import { getCoalescedCatalog } from "./catalogCache";
 import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
 import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry";
@@ -83,10 +84,32 @@ export { isVisionModelId } from "@/shared/constants/visionModels";
 export { getCustomVisionCapabilityFields };
 
 /**
+ * Public entry point: unified OpenAI-compatible model catalog, behind a
+ * short-TTL request-coalescing cache (QA P1 — fixes the concurrent-`/v1/models`
+ * latency stair-step). Preserves the exact `(request, corsHeaders)` signature so
+ * every existing caller is unchanged; the heavy build lives in
+ * `buildUnifiedModelsResponse`. The caller's CORS headers + cache-diagnostic
+ * headers are (re)applied on the returned (possibly cached) Response.
+ */
+export async function getUnifiedModelsResponse(
+  request: Request,
+  corsHeaders: Record<string, string> = {}
+): Promise<Response> {
+  const { response, cacheStatus, buildMs } = await getCoalescedCatalog(request, () =>
+    buildUnifiedModelsResponse(request, corsHeaders)
+  );
+  // snapshotToResponse hands back a fresh Response, so mutating its headers is safe.
+  for (const [k, v] of Object.entries(corsHeaders)) response.headers.set(k, v);
+  response.headers.set("x-omniroute-catalog-cache", cacheStatus);
+  response.headers.set("x-omniroute-catalog-build-ms", String(buildMs));
+  return response;
+}
+
+/**
  * Build unified OpenAI-compatible model catalog response.
  * Reused by `/api/v1/models` and `/api/v1` to avoid semantic drift (T09).
  */
-export async function getUnifiedModelsResponse(
+async function buildUnifiedModelsResponse(
   request: Request,
   corsHeaders: Record<string, string> = {}
 ) {
