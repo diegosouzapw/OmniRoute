@@ -1,6 +1,7 @@
 import { connect, type Socket } from 'node:net';
 import * as msgpack from 'msgpackr';
 import { decodeMessage, encodeMessage, type KbridgeRequest, type KbridgeResponse } from './protocol';
+import { buildKbridgeRequest, type KbridgeOpParams } from './call';
 
 const SOCKET_PATH = process.env.OMNIRoute_GATEWAY_SOCKET ?? '/var/run/argismonitor/gateway.sock';
 
@@ -42,9 +43,13 @@ function connectSocket(): Socket {
   return s;
 }
 
-async function call(req: Omit<KbridgeRequest, 'id'>): Promise<KbridgeResponse> {
+async function call<Op extends KbridgeRequest['op']>(
+  op: Op,
+  params: KbridgeOpParams[Op]
+): Promise<KbridgeResponse> {
   const id = crypto.randomUUID();
-  const message = { id, ...req } as KbridgeRequest;
+  const partial = buildKbridgeRequest(op, params);
+  const message: KbridgeRequest = { ...partial, id };
   const payload = encodeMessage(message);
   // length-prefix framing: 4-byte BE length + msgpack payload
   const frame = Buffer.alloc(4 + payload.length);
@@ -62,11 +67,12 @@ async function call(req: Omit<KbridgeRequest, 'id'>): Promise<KbridgeResponse> {
 }
 
 export const kbridge = {
-  ping: () => call({ op: 'ping' }),
-  health: () => call({ op: 'health' }),
-  resolveCombo: (name: string, model: string) => call({ op: 'combo.resolve', name, model }),
+  ping: () => call('ping', {} as KbridgeOpParams['ping']),
+  health: () => call('health', {} as KbridgeOpParams['health']),
+  resolveCombo: (name: string, model: string) =>
+    call('combo.resolve', { name, model }),
   recordUsage: (provider: string, model: string, tokens: number, cost: number) =>
-    call({ op: 'usage.record', provider, model, tokens, cost, ts: Date.now() }),
+    call('usage.record', { provider, model, tokens, cost }),
 };
 
 export function kbridgeAvailable(): boolean {

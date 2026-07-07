@@ -26,7 +26,7 @@
   let tab = $state<Tab>('identity');
 
   onMount(async () => {
-    id = $page.params.id;
+    id = $page.params.id ?? '';
     const r = await fetch('http://localhost:4322/api/dashboard/combos');
     if (r.ok) {
       const j = await r.json();

@@ -24,7 +24,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   if (force === 'svelte') {
     event.cookies.set('web_stack', 'svelte', { path: '/', maxAge: 60 * 60 * 24 * 365 });
     const clean = url.pathname + (url.search ? url.search.replace(/[?&]web=svelte/, '').replace(/^&/, '?') : '');
-    return redirect(clean || '/dashboard');
+    return redirect(302, clean || '/dashboard');
   }
   if (force === 'next') {
     event.cookies.set('web_stack', 'next', { path: '/', maxAge: 60 * 60 * 24 * 365 });

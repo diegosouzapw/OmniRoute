@@ -1,5 +1,5 @@
 <script lang="ts">
-  type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
   type Size = 'sm' | 'md' | 'lg';
 
   let {
@@ -30,14 +30,7 @@
     ghost: 'bg-transparent text-gray-700 hover:bg-gray-100',
     danger: 'bg-red-500 text-white hover:bg-red-600',
   };
-</script>
 
-<button
-  {type}
-  {disabled}
-  onclick={onclick}
-  class="{base} {sizes[size]} {variants[variant]}"
-  style={variant === 'primary' ? 'background: var(--grad-brand)' : ''}
->
-  {@render children?.()}
-</button>
+const cls = $derived(`{base} {sizes[size]} {variants[variant]}`);
+  const style = $derived(variant === 'primary' ? 'background: var(--grad-brand)' : '');
+</script>

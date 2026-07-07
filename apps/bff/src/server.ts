@@ -13,14 +13,11 @@ if (socketPath) {
   // The @hono/node-server adapter wraps node:http.Server, which doesn't
   // speak Unix sockets directly. So we use Bun.serve() when running under Bun
   // (i.e. always in this repo), and fall back to a clear error on Node.
-  // @ts-expect-error - Bun global is injected by Bun's runtime
   if (typeof Bun !== 'undefined' && typeof Bun.serve === 'function') {
-    // @ts-expect-error - Bun global
     Bun.serve({
       unix: socketPath,
       fetch: app.fetch,
-      // Bun's unix listener takes the path as `unix: string` (above) OR as `socket: { path }`
-    } as { unix: string; fetch: typeof app.fetch });
+    });
     console.log(`argismonitor BFF also listening on Unix socket ${socketPath}`);
   } else {
     console.error(

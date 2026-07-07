@@ -72,9 +72,9 @@
         class="w-full mt-1 px-3 py-2 border border-gray-300 rounded font-mono text-sm"
         placeholder="Paste a prompt, JSON, or conversation to encode..."
       ></textarea>
-      <Button onclick={encode} disabled={encoding} class="mt-2">
+      <div class="mt-2"><Button onclick={encode} disabled={encoding}>
         {encoding ? 'Encoding...' : 'Encode all 3'}
-      </Button>
+      </Button></div>
     </div>
 
     <div class="space-y-2">

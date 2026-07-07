@@ -37,34 +37,35 @@
 </script>
 
 <Card title="Model router">
-  {#if router}
+  {#if router !== null}
+    {@const r = router}
     <div class="space-y-4 max-w-2xl">
       <div>
         <label class="text-sm font-medium text-gray-700">Default model</label>
-        <input bind:value={router.defaultModel} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded font-mono text-sm" />
+        <input bind:value={r.defaultModel} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded font-mono text-sm" />
       </div>
       <fieldset>
         <legend class="text-sm font-medium text-gray-700">Per-task overrides</legend>
         <div class="grid grid-cols-2 gap-2 mt-1">
-          <label class="text-xs text-gray-600">Chat<input bind:value={router.overrides.chat} class="w-full px-2 py-1 border border-gray-300 rounded font-mono text-sm" /></label>
-          <label class="text-xs text-gray-600">Code<input bind:value={router.overrides.code} class="w-full px-2 py-1 border border-gray-300 rounded font-mono text-sm" /></label>
-          <label class="text-xs text-gray-600">Embed<input bind:value={router.overrides.embed} class="w-full px-2 py-1 border border-gray-300 rounded font-mono text-sm" /></label>
-          <label class="text-xs text-gray-600">Image<input bind:value={router.overrides.image} class="w-full px-2 py-1 border border-gray-300 rounded font-mono text-sm" /></label>
-          <label class="text-xs text-gray-600">Vision<input bind:value={router.overrides.vision} class="w-full px-2 py-1 border border-gray-300 rounded font-mono text-sm" /></label>
+          <label class="text-xs text-gray-600">Chat<input bind:value={r.overrides.chat} class="w-full px-2 py-1 border border-gray-300 rounded font-mono text-sm" /></label>
+          <label class="text-xs text-gray-600">Code<input bind:value={r.overrides.code} class="w-full px-2 py-1 border border-gray-300 rounded font-mono text-sm" /></label>
+          <label class="text-xs text-gray-600">Embed<input bind:value={r.overrides.embed} class="w-full px-2 py-1 border border-gray-300 rounded font-mono text-sm" /></label>
+          <label class="text-xs text-gray-600">Image<input bind:value={r.overrides.image} class="w-full px-2 py-1 border border-gray-300 rounded font-mono text-sm" /></label>
+          <label class="text-xs text-gray-600">Vision<input bind:value={r.overrides.vision} class="w-full px-2 py-1 border border-gray-300 rounded font-mono text-sm" /></label>
         </div>
       </fieldset>
       <div>
         <label class="text-sm font-medium text-gray-700">Fallback chain (one model per line)</label>
         <textarea
           rows="4"
-          value={router.fallbackChain.join('\n')}
-          oninput={(e) => router.fallbackChain = (e.target as HTMLTextAreaElement).value.split('\n').filter((s) => s.trim())}
+          value={r.fallbackChain.join('\n')}
+          oninput={(e) => r.fallbackChain = (e.target as HTMLTextAreaElement).value.split('\n').filter((s) => s.trim())}
           class="w-full mt-1 px-3 py-2 border border-gray-300 rounded font-mono text-sm"
         ></textarea>
       </div>
       <div>
         <label class="text-sm font-medium text-gray-700">Monthly cost budget (USD)</label>
-        <input type="number" step="1" min="0" bind:value={router.costBudgetUsd} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
+        <input type="number" step="1" min="0" bind:value={r.costBudgetUsd} class="w-full mt-1 px-3 py-2 border border-gray-300 rounded" />
       </div>
       {#if saved}<p class="text-sm text-green-600">Saved.</p>{/if}
       <Button onclick={save} disabled={saving}>{saving ? 'Saving...' : 'Save router config'}</Button>

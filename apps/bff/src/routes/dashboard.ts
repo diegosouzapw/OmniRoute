@@ -136,6 +136,26 @@ export const dashboardRoutes = new Hono()
   .get('/rules', (c) => c.json({ rules: [] }))
   .put('/rules', (c) => c.json({ ok: true }))
   
+  .get('/profile', (c) => c.json({ displayName: '', email: 'user@argismonitor.local', bio: '', avatarUrl: '', theme: 'auto', language: 'en' }))
+  .put('/profile', (c) => c.json({ ok: true }))
+  .get('/sessions', (c) => c.json({ sessions: [
+    { id: 's1', device: 'MacBook Pro 16', ip: '192.168.1.10', location: 'San Francisco, CA', lastActive: new Date().toISOString(), current: true },
+    { id: 's2', device: 'iPhone 15 Pro', ip: '73.222.18.4', location: 'San Francisco, CA', lastActive: new Date(Date.now() - 86400000).toISOString(), current: false },
+    { id: 's3', device: 'Firefox on Linux', ip: '12.34.56.78', location: 'Frankfurt, DE', lastActive: new Date(Date.now() - 5 * 86400000).toISOString(), current: false },
+  ] }))
+  .delete('/sessions/:id', (c) => c.json({ ok: true, id: c.req.param('id') }))
+  .post('/keys-rotation', (c) => c.json({ ok: true, newKey: 'omni_pk_' + Math.random().toString(36).slice(2, 18) }))
+  .get('/sso', (c) => c.json({ enabled: false, provider: 'google', allowedDomains: [] }))
+  .put('/sso', (c) => c.json({ ok: true }))
+  .post('/sso/test', (c) => c.json({ ok: true, message: 'SSO endpoint reachable' }))
+  .get('/notifications', (c) => c.json({
+    channels: { email: true, push: false, inApp: true },
+    events: { outage: true, comboHealth: true, usageSpike: true, release: false },
+    dailyDigest: { enabled: false, time: '09:00' },
+  }))
+  .put('/notifications', (c) => c.json({ ok: true }))
+  .post('/notifications/test', (c) => c.json({ ok: true, sentTo: 'user@argismonitor.local' }))
+
   .get('/health/stream', (c) => {
     return streamSSE(c, async (stream) => {
       let id = 0;
