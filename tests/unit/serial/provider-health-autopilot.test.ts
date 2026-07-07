@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { NextRequest } from "next/server";
-import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
+import { makeManagementSessionRequest } from "../../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-health-autopilot-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
@@ -13,14 +13,14 @@ const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const core = await import("../../src/lib/db/core.ts");
-const settingsDb = await import("../../src/lib/db/settings.ts");
-const providersDb = await import("../../src/lib/db/providers.ts");
-const autopilot = await import("../../src/lib/monitoring/providerHealthAutopilot.ts");
-const actionsRoute = await import("../../src/app/api/providers/health-autopilot/actions/route.ts");
-const reportRoute = await import("../../src/app/api/providers/health-autopilot/route.ts");
-const routeGuard = await import("../../src/server/authz/routeGuard.ts");
-const authzPipeline = await import("../../src/server/authz/pipeline.ts");
+const core = await import("../../../src/lib/db/core.ts");
+const settingsDb = await import("../../../src/lib/db/settings.ts");
+const providersDb = await import("../../../src/lib/db/providers.ts");
+const autopilot = await import("../../../src/lib/monitoring/providerHealthAutopilot.ts");
+const actionsRoute = await import("../../../src/app/api/providers/health-autopilot/actions/route.ts");
+const reportRoute = await import("../../../src/app/api/providers/health-autopilot/route.ts");
+const routeGuard = await import("../../../src/server/authz/routeGuard.ts");
+const authzPipeline = await import("../../../src/server/authz/pipeline.ts");
 const accountFallback = await import("@omniroute/open-sse/services/accountFallback");
 
 const PROVIDER = "autopilot-test-provider";

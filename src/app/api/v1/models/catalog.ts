@@ -74,6 +74,7 @@ import {
 import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
 import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
+import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 
 // Public API of this module is preserved after the catalog helper extraction:
 // `isVisionModelId` (vision-detection-consistency.test.ts) and
@@ -82,11 +83,129 @@ import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catal
 export { isVisionModelId } from "@/shared/constants/visionModels";
 export { getCustomVisionCapabilityFields };
 
+// #6408 — Concurrent GET /v1/models requests serialized (~1.2s each × N). The
+// per-request builder walks 8 registries + hits SQLite for connections, combos,
+// custom models, and aliases; under Next.js single-threaded App Router request
+// handling, N concurrent calls execute back-to-back and the Nth completes
+// N × single-request latency (linear staircase reproduced in the issue).
+//
+// Fix: coalesce identical concurrent requests onto a single in-flight promise,
+// then memoize the serialized body for a short window so a burst (SDK startup,
+// multi-tab dashboard poll) returns from cache. Auth-rejection paths are NOT
+// cached (they depend on live session state — dashboard cookies, API key).
+type CachedCatalog = { body: string; headers: Record<string, string>; expiresAt: number };
+const CATALOG_CACHE_TTL_MS = 1500; // ~one request-latency window; safe vs SDK bursts
+const catalogCache = new Map<string, CachedCatalog>();
+const catalogInFlight = new Map<string, Promise<CachedCatalog>>();
+
+// Test hook — increments each time the full catalog builder runs. Used by
+// tests/unit/v1-models-concurrent-6408.test.ts to prove concurrent requests
+// share one execution. Not part of the public API; do not read from app code.
+let _catalogBuilderRuns = 0;
+export function __resetCatalogBuilderRunsForTest(): void {
+  _catalogBuilderRuns = 0;
+  catalogCache.clear();
+  catalogInFlight.clear();
+}
+export function __getCatalogBuilderRunsForTest(): number {
+  return _catalogBuilderRuns;
+}
+
+function buildCatalogCacheKey(request: Request): string {
+  const url = new URL(request.url);
+  const prefix = url.searchParams.get("prefix") || "";
+  const apiKey = extractApiKey(request) || "";
+  const isCodex = isCodexModelCatalogClient(request) ? "1" : "0";
+  return `${prefix}|${isCodex}|${apiKey}`;
+}
+
 /**
  * Build unified OpenAI-compatible model catalog response.
  * Reused by `/api/v1/models` and `/api/v1` to avoid semantic drift (T09).
  */
 export async function getUnifiedModelsResponse(
+  request: Request,
+  corsHeaders: Record<string, string> = {}
+) {
+  const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
+
+  // #6408 fast path: reject unauthorized callers first (auth state is per-request
+  // and MUST NOT be cached), then coalesce identical concurrent requests + short-
+  // TTL memoize the serialized JSON body.
+  try {
+    let settingsForAuth: Record<string, any> = {};
+    try {
+      settingsForAuth = await getSettings();
+    } catch {}
+    const authRejection = await getModelCatalogAuthRejection(request, settingsForAuth, {
+      ...corsHeaders,
+      ...diagnosticHeaders,
+    });
+    if (authRejection) return authRejection;
+  } catch {
+    // Fall through to full builder on auth-check failure; core handles errors.
+  }
+
+  const cacheKey = buildCatalogCacheKey(request);
+  const cached = catalogCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return new Response(cached.body, {
+      headers: { ...corsHeaders, ...diagnosticHeaders, ...cached.headers },
+    });
+  }
+
+  let inflight = catalogInFlight.get(cacheKey);
+  if (!inflight) {
+    inflight = buildCatalogPayload(request).then((payload) => {
+      catalogCache.set(cacheKey, {
+        body: payload.body,
+        headers: payload.headers,
+        expiresAt: Date.now() + CATALOG_CACHE_TTL_MS,
+      });
+      return payload;
+    });
+    catalogInFlight.set(cacheKey, inflight);
+    inflight.finally(() => {
+      if (catalogInFlight.get(cacheKey) === inflight) catalogInFlight.delete(cacheKey);
+    });
+  }
+
+  try {
+    const payload = await inflight;
+    return new Response(payload.body, {
+      headers: { ...corsHeaders, ...diagnosticHeaders, ...payload.headers },
+    });
+  } catch (err) {
+    return Response.json(
+      {
+        error: {
+          message: err instanceof Error ? err.message : String(err),
+          type: "server_error",
+          code: INTERNAL_PROXY_ERROR,
+        },
+      },
+      { status: 500, headers: { ...corsHeaders, ...diagnosticHeaders } }
+    );
+  }
+}
+
+async function buildCatalogPayload(
+  request: Request
+): Promise<{ body: string; headers: Record<string, string> }> {
+  _catalogBuilderRuns++;
+  const built = await buildUnifiedModelsResponseCore(request);
+  const body = await built.text();
+  const headers: Record<string, string> = {};
+  built.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+  return { body, headers };
+}
+
+/**
+ * Original catalog builder. Runs once per unique cache key per TTL window.
+ */
+async function buildUnifiedModelsResponseCore(
   request: Request,
   corsHeaders: Record<string, string> = {}
 ) {
@@ -116,6 +235,19 @@ export async function getUnifiedModelsResponse(
       aliasOrProviderId;
     // Issue #96: Allow blocking specific providers from the models list
     const blockedProviders = normalizeBlockedProviderSet(settings.blockedProviders);
+    // #6316: Opt-in filter — hide paid-only models via `isFreeModel()`. Only applied to
+    // PROVIDER_MODELS + OpenRouter loops (where pricing metadata / :free suffix / catalog
+    // membership is available). Modality registries (embedding/image/rerank/audio/
+    // moderation/video/music) represent local capabilities without pricing, so they are
+    // exempt. Combos + auto/* + synced/custom/alias-backed rows also stay unfiltered —
+    // extending v1 scope to those requires per-entry pricing lookup not available today.
+    const hidePaid = settings.hidePaidModels === true;
+    const shouldHidePaid = (providerKey: string, modelId: string, pricing?: unknown): boolean => {
+      if (!hidePaid) return false;
+      const provider = aliasToProviderId[providerKey] || providerKey;
+      if (!providerHasFreeModels(provider)) return true;
+      return !isFreeModel(provider, { id: modelId, pricing: pricing as any });
+    };
 
     // Get active provider connections
     let connections = [];
@@ -560,6 +692,7 @@ export async function getUnifiedModelsResponse(
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
         if (getModelIsHidden(canonicalProviderId, model.id)) continue;
+        if (shouldHidePaid(canonicalProviderId, model.id, (model as any).pricing)) continue;
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
@@ -769,6 +902,7 @@ export async function getUnifiedModelsResponse(
           );
           const modelType = getOpenRouterModelType(inputModalities, outputModalities);
           const isFree = isOpenRouterFreeModel(openRouterModel);
+          if (hidePaid && !isFree) continue;
           const supportedParameters = Array.isArray(openRouterModel.supported_parameters)
             ? openRouterModel.supported_parameters
             : [];
@@ -1239,6 +1373,14 @@ export async function getUnifiedModelsResponse(
           timestamp,
           (c) => buildComboCatalogMetadata(c, combos)
         );
+      } else if (!keyMeta) {
+        // #6406: A valid apiKey without a DB metadata row is an env-var master key
+        // (OMNIROUTE_API_KEY / ROUTER_API_KEY per isValidApiKey). Those keys have no
+        // per-key allow/deny/quota restrictions — they authenticate the request but
+        // do NOT scope the catalog. Skipping the per-model filter matches the intent:
+        // auth GATES access; env-var master keys see everything the unauth path sees.
+        // Without this branch, isModelAllowedForKey returns false for every model
+        // (metadata missing → deny), collapsing /v1/models to 0 entries.
       } else {
         const filtered = [];
         for (const m of models) {
