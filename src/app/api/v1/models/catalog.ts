@@ -24,6 +24,7 @@ import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
 import {
   AUTO_TEMPLATE_VARIANTS,
   AUTO_SUFFIX_VARIANTS,
+  AUTO_FAMILY_IDS,
   createBuiltinAutoCombo,
 } from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
@@ -585,7 +586,12 @@ async function buildUnifiedModelsResponseCore(
     // combo cannot be materialized (e.g. no eligible connections yet) the minimal
     // #4164 entry is emitted instead, so the id is never dropped.
     // #4235 Phase B: also advertise the curated `auto/<category>[:<tier>]` combos.
-    for (const autoId of [...Object.keys(AUTO_TEMPLATE_VARIANTS), ...AUTO_SUFFIX_VARIANTS]) {
+    // #6453: also advertise the `auto/<family>` combos (auto/glm, auto/minimax, ...).
+    for (const autoId of [
+      ...Object.keys(AUTO_TEMPLATE_VARIANTS),
+      ...AUTO_SUFFIX_VARIANTS,
+      ...AUTO_FAMILY_IDS,
+    ]) {
       if (blockedProviders.has("auto") || listedIds.has(autoId)) continue; // #5192
       listedIds.add(autoId);
       const baseAutoEntry = {

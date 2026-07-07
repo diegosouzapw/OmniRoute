@@ -33,6 +33,7 @@ import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
+import { computeConnectionDefaultName } from "./computeConnectionDefaultName";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 export interface AddApiKeyModalProps {
@@ -41,6 +42,7 @@ export interface AddApiKeyModalProps {
   providerName?: string;
   providerWebsite?: string;
   initialBaseUrl?: string;
+  existingConnectionCount?: number;
   isCompatible?: boolean;
   isAnthropic?: boolean;
   isCcCompatible?: boolean;
@@ -64,6 +66,7 @@ export default function AddApiKeyModal({
   providerName,
   providerWebsite,
   initialBaseUrl,
+  existingConnectionCount = 0,
   isCompatible,
   isAnthropic,
   isCcCompatible,
@@ -114,7 +117,7 @@ export default function AddApiKeyModal({
       }[commandCodeAuthState.phase]
     : null;
   const [formData, setFormData] = useState({
-    name: "main", // #5421: required field; default resists autofill garbage (was "" → "wiw")
+    name: computeConnectionDefaultName(existingConnectionCount),
     apiKey: "",
     tokenSecret: "", // #5446 — Modal Token Secret (joined with apiKey as id:secret)
     defaultModel: "",
@@ -148,11 +151,15 @@ export default function AddApiKeyModal({
     const wasOpen = wasOpenRef.current;
     wasOpenRef.current = isOpen;
     if (!isOpen || wasOpen) return;
+    // On open, reset baseUrl and assign a unique default name so a second API key
+    // for the same provider doesn't reuse "main" and trigger the backend
+    // name-based upsert that would silently overwrite the first connection (#6499).
     setFormData((current) => ({
       ...current,
+      name: computeConnectionDefaultName(existingConnectionCount),
       baseUrl: initialBaseUrl || defaultBaseUrl,
     }));
-  }, [defaultBaseUrl, initialBaseUrl, isOpen]);
+  }, [defaultBaseUrl, initialBaseUrl, isOpen, existingConnectionCount]);
   const bulkSupported = supportsBulkApiKey(provider);
   const [mode, setMode] = useState<"single" | "bulk">("single");
   const [bulkText, setBulkText] = useState("");
