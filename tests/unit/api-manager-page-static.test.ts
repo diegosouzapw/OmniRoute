@@ -113,6 +113,20 @@ test("permissions modal expands Claude Code default families in selected models 
   assert.doesNotMatch(source, /Block Fable family/);
 });
 
+test("API-key model fallback preserves combo pseudo-models", () => {
+  const source = readApiManagerPage();
+  const fallbackBlock = source.slice(
+    source.indexOf("const [fallbackRes, combosRes] = await Promise.all"),
+    source.indexOf("} catch (error)", source.indexOf("const [fallbackRes, combosRes] = await Promise.all"))
+  );
+
+  assert.match(fallbackBlock, /fetch\("\/api\/models\?all=true"\)/);
+  assert.match(fallbackBlock, /fetch\("\/api\/combos"\)/);
+  assert.match(fallbackBlock, /owned_by: "combo"/);
+  assert.match(fallbackBlock, /\[\.\.\.comboModels, \.\.\.modelEntries\]/);
+  assert.match(fallbackBlock, /seen\.has\(m\.id\)/);
+});
+
 test("self-service API key scope labels do not expose missing placeholders", () => {
   const messageFiles = fs.readdirSync(messagesDir).filter((file) => file.endsWith(".json"));
 

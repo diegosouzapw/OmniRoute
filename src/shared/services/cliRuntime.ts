@@ -533,7 +533,7 @@ const getExtraPaths = () =>
  * Checks npm global prefix, NVM locations, standalone installer paths.
  * Works on all platforms — Windows checks .cmd wrappers, Linux/macOS checks bare names.
  */
-const getKnownToolPaths = (toolId: string): string[] => {
+export const getKnownToolPaths = (toolId: string): string[] => {
   const home = os.homedir();
   const paths: string[] = [];
 
@@ -658,7 +658,7 @@ const getNvmNodePath = (): string | null => {
   return null;
 };
 
-const getLookupEnv = () => {
+export const getLookupEnv = () => {
   const env = { ...process.env };
   const extraPaths = getExtraPaths();
   const basePath = env.PATH || env.Path || "";
@@ -1081,7 +1081,7 @@ export const getCliRuntimeStatus = async (toolId: string) => {
   }
 
   const healthcheck = await checkRunnable(
-    located.commandPath,
+    located.commandPath || command || "", // located + executable ⇒ commandPath set
     env,
     Number(tool.healthcheckTimeoutMs || 4000)
   );

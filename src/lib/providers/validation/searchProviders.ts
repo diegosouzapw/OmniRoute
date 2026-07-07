@@ -188,4 +188,12 @@ export const SEARCH_VALIDATOR_CONFIGS: Record<
       headers: { Authorization: `Bearer ${apiKey}` },
     },
   }),
+  tinyfish: (apiKey) => ({
+    url: "https://api.fetch.tinyfish.ai",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+      body: JSON.stringify({ urls: ["https://example.com"], format: "markdown" }),
+    },
+  }),
 };

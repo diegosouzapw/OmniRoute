@@ -110,7 +110,9 @@ export function getProvider(name) {
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
-  const { codeVerifier, codeChallenge, state } = generatePKCE();
+  const pkce = generatePKCE();
+  let codeVerifier = pkce.codeVerifier;
+  const { codeChallenge, state } = pkce;
 
   if (provider.flowType === "import_token") {
     let error: string;
@@ -145,7 +147,24 @@ export function generateAuthData(providerName, redirectUri) {
   } else if (provider.flowType === "authorization_code_pkce") {
     authUrl = provider.buildAuthUrl(provider.config, redirectUri, state, codeChallenge);
   } else {
-    authUrl = provider.buildAuthUrl(provider.config, redirectUri, state);
+    const built = provider.buildAuthUrl(provider.config, redirectUri, state);
+    // Some non-PKCE "authorization_code" providers (e.g. zed-hosted) need to
+    // override the auto-generated PKCE codeVerifier/redirectUri with their own
+    // provider-specific verifier (e.g. an RSA private-key verifier) instead of
+    // an unused PKCE code_verifier — they return an object instead of a bare
+    // authUrl string. Existing providers all return a plain string, so this is
+    // backward compatible.
+    if (built && typeof built === "object" && typeof built.authUrl === "string") {
+      authUrl = built.authUrl;
+      if (typeof built.codeVerifier === "string" && built.codeVerifier) {
+        codeVerifier = built.codeVerifier;
+      }
+      if (typeof built.redirectUri === "string" && built.redirectUri) {
+        redirectUri = built.redirectUri;
+      }
+    } else {
+      authUrl = built;
+    }
   }
 
   return {

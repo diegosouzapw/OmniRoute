@@ -42,6 +42,7 @@ const {
   QWEN_CONFIG,
   TRAE_CONFIG,
   WINDSURF_CONFIG,
+  ZED_HOSTED_CONFIG,
 } = oauthModule;
 const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
 
@@ -68,6 +69,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "grok-cli",
   "codebuddy-cn",
   "zed",
+  "zed-hosted",
 ];
 
 const EXPECTED_CONFIG_BY_PROVIDER = {
@@ -91,6 +93,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   "grok-cli": GROK_CLI_CONFIG,
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
   zed: ZED_CONFIG,
+  "zed-hosted": ZED_HOSTED_CONFIG,
 };
 
 const REQUIRED_FIELDS_BY_PROVIDER = {
@@ -138,6 +141,7 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
+  "zed-hosted": ["webBaseUrl", "cloudBaseUrl", "llmBaseUrl", "userInfoUrl", "llmTokenUrl", "modelsUrl"],
 };
 
 function getByPath(object, path) {
@@ -330,6 +334,37 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
   assert.equal(codexUrl.searchParams.get("code_challenge"), codeChallenge);
   assert.equal(antigravityUrl.origin, "https://accounts.google.com");
   assert.equal(clineUrl.origin, "https://api.cline.bot");
+});
+
+// zed-hosted's buildAuthUrl deliberately returns an object (authUrl + codeVerifier +
+// redirectUri) instead of a bare string — generateAuthData() in providers.ts special-
+// cases this shape to thread an RSA private-key verifier through the existing PKCE
+// codeVerifier slot (see src/lib/oauth/providers/zed-hosted.ts header comment).
+test("zed-hosted buildAuthUrl returns {authUrl, codeVerifier, redirectUri} carrying a fresh RSA keypair", () => {
+  const built = PROVIDERS["zed-hosted"].buildAuthUrl(ZED_HOSTED_CONFIG);
+  assert.equal(typeof built, "object");
+  assert.ok(built.authUrl.startsWith("https://zed.dev/native_app_signin?"));
+  const url = new URL(built.authUrl);
+  assert.ok(url.searchParams.get("native_app_public_key"));
+  assert.ok(built.codeVerifier.startsWith("zed-rsa-pkcs1:"));
+  assert.ok(built.redirectUri.startsWith("http://127.0.0.1:"));
+});
+
+test("generateAuthData honors an object-returning buildAuthUrl (zed-hosted) without breaking string-returning providers", async () => {
+  const oauthHelpers = await import("../../src/lib/oauth/providers.ts");
+  const zedAuthData = oauthHelpers.generateAuthData("zed-hosted", "http://localhost:20128/callback");
+  assert.equal(zedAuthData.flowType, "authorization_code");
+  assert.ok(zedAuthData.authUrl.startsWith("https://zed.dev/native_app_signin?"));
+  assert.ok(zedAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
+  assert.ok(zedAuthData.redirectUri.startsWith("http://127.0.0.1:"));
+
+  // A string-returning provider (cline) must still get the plain PKCE codeVerifier,
+  // not be affected by the object-return branch added for zed-hosted.
+  const clineAuthData = oauthHelpers.generateAuthData("cline", "http://localhost:20128/callback");
+  assert.equal(typeof clineAuthData.authUrl, "string");
+  assert.equal(clineAuthData.redirectUri, "http://localhost:20128/callback");
+  assert.ok(clineAuthData.codeVerifier);
+  assert.ok(!clineAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
 });
 
 // Regression for #3861: GitLab Duo needs an operator-registered OAuth client_id.
