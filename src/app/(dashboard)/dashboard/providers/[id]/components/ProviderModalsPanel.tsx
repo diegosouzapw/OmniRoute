@@ -50,6 +50,7 @@ interface ProviderModalsPanelProps {
   isCommandCode: boolean;
   isUpstreamProxyProvider: boolean;
   subscriptionRisk: boolean;
+  existingConnectionCount?: number;
   // Risk notice
   showRiskNoticeModal: boolean;
   handleConfirmRiskNotice: () => void;
@@ -146,6 +147,7 @@ export default function ProviderModalsPanel({
   isCcCompatible,
   isUpstreamProxyProvider,
   subscriptionRisk,
+  existingConnectionCount,
   showRiskNoticeModal,
   handleConfirmRiskNotice,
   handleCancelRiskNotice,
@@ -280,6 +282,7 @@ export default function ProviderModalsPanel({
           providerName={providerInfo.name}
           providerWebsite={providerInfo.website}
           initialBaseUrl={siliconFlowInitialBaseUrl}
+          existingConnectionCount={existingConnectionCount}
           isCompatible={isCompatible}
           isAnthropic={isAnthropicProtocolCompatible}
           isCcCompatible={isCcCompatible}

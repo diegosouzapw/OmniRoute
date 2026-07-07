@@ -14,6 +14,7 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const imageRoute = await import("../../src/app/api/v1/images/generations/route.ts");
 const imageEditRoute = await import("../../src/app/api/v1/images/edits/route.ts");
+const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -23,6 +24,12 @@ async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  // #6303 moved this route onto the shared unified catalog (getUnifiedModelsResponse),
+  // which #6408 wrapped in a 1.5s TTL response cache keyed only by (prefix, isCodex
+  // client, apiKey) — NOT by DB state. Without clearing it between test cases, a test
+  // running within the TTL window of a previous one gets served the previous test's
+  // stale serialized catalog instead of a fresh build reflecting this test's DB state.
+  v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
 
 async function seedConnection(provider: string, overrides: { apiKey?: string | null } = {}) {

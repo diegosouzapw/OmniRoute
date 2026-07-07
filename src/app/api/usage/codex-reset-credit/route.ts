@@ -1,16 +1,25 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { CodexResetCreditError, consumeCodexResetCredit } from "@/lib/usage/codexResetCredits";
 
-type RequestBody = {
-  connectionId?: unknown;
-  idempotencyKey?: unknown;
-};
+const CodexResetCreditBodySchema = z.object({
+  connectionId: z.string().optional(),
+  idempotencyKey: z.string().optional(),
+});
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json().catch(() => ({}))) as RequestBody;
-    const connectionId = typeof body.connectionId === "string" ? body.connectionId : "";
-    const idempotencyKey = typeof body.idempotencyKey === "string" ? body.idempotencyKey : "";
+    const raw = await request.json().catch(() => ({}));
+    const parsed = CodexResetCreditBodySchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { ok: false, code: "invalid_request_body", error: "Invalid request body." },
+        { status: 400 }
+      );
+    }
+
+    const connectionId = parsed.data.connectionId ?? "";
+    const idempotencyKey = parsed.data.idempotencyKey ?? "";
 
     const result = await consumeCodexResetCredit(connectionId, idempotencyKey);
     return NextResponse.json({ ok: true, ...result });

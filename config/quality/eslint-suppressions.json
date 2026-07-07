@@ -242,6 +242,11 @@
       "count": 1
     }
   },
+  "src/app/(dashboard)/dashboard/settings/components/MitmProxyTab.tsx": {
+    "@next/next/no-html-link-for-pages": {
+      "count": 1
+    }
+  },
   "src/app/(dashboard)/dashboard/settings/components/ModelLockoutCard.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1

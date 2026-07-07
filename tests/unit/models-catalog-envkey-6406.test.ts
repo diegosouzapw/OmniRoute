@@ -19,6 +19,13 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
+// `getUnifiedModelsResponse` returns the OpenAI-shaped `{object, data}` catalog
+// list (see catalog.ts's `responseBody`); only `data[].id` is asserted here.
+interface ModelsCatalogResponseBody {
+  object: string;
+  data: Array<{ id: string; [key: string]: unknown }>;
+}
+
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
@@ -56,7 +63,7 @@ test("#6406 env-var master key (no DB metadata) sees the full catalog, not 0 mod
   const unauthResponse = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
-  const unauthBody = (await unauthResponse.json()) as any;
+  const unauthBody = (await unauthResponse.json()) as ModelsCatalogResponseBody;
   assert.equal(unauthResponse.status, 200);
   const unauthCount = unauthBody.data.length;
   assert.ok(unauthCount > 0, `unauth baseline must have models, got ${unauthCount}`);
@@ -70,7 +77,7 @@ test("#6406 env-var master key (no DB metadata) sees the full catalog, not 0 mod
       headers: { Authorization: `Bearer ${envKey}` },
     })
   );
-  const authBody = (await authResponse.json()) as any;
+  const authBody = (await authResponse.json()) as ModelsCatalogResponseBody;
 
   assert.equal(authResponse.status, 200);
   // Regression: before the fix, this collapsed to 0. Now it matches the unauth
@@ -94,8 +101,8 @@ test("#6406 DB-backed key with allowedModels still filters (unchanged behavior)"
       headers: { Authorization: `Bearer ${key.key}` },
     })
   );
-  const body = (await response.json()) as any;
-  const ids: string[] = body.data.map((item: any) => item.id);
+  const body = (await response.json()) as ModelsCatalogResponseBody;
+  const ids: string[] = body.data.map((item) => item.id);
 
   assert.equal(response.status, 200);
   assert.ok(
