@@ -14,11 +14,19 @@ const imageRoute = await import("../../src/app/api/v1/images/generations/route.t
 const embeddingsRoute = await import("../../src/app/api/v1/embeddings/route.ts");
 const videoRoute = await import("../../src/app/api/v1/videos/generations/route.ts");
 const musicRoute = await import("../../src/app/api/v1/music/generations/route.ts");
+const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  // These routes all derive from the shared unified catalog (getUnifiedModelsResponse),
+  // which #6408 wrapped in a 1.5s TTL response cache keyed only by (prefix, isCodex
+  // client, apiKey) — NOT by DB state. Every test in this file hits that same cache key,
+  // so without clearing it between test cases a test running within the TTL window of
+  // a previous one gets served the previous test's stale catalog instead of a fresh
+  // build reflecting this test's own seeded connections.
+  v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
 
 async function seedConnection(provider: string) {
