@@ -53,7 +53,15 @@ jobs:
         run: npx --yes promptfoo@latest eval -c promptfooconfig.yaml --no-cache
       - name: Stop server
         if: always()
-        run: kill "$(cat server.pid)" || true
+        # Wrap in `set +e` + `|| true` defensively because if `cat server.pid` ever fails
+        # (e.g. the Start step errored before writing it, or the runner image lacks the
+        # file), bash's strict-mode `kill ''` is a non-zero exit. We don't want CI to
+        # fail purely because the teardown step couldn't read a PID file.
+        run: |
+          set +e
+          PID="$(cat server.pid 2>/dev/null || true)"
+          if [ -n "$PID" ]; then kill "$PID" || true; fi
+          exit 0
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
