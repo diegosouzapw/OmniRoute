@@ -1377,6 +1377,7 @@ export async function getProviderCredentials(
           lastErrorCode: allBlockedByModelCooldown ? 429 : earliestConn?.errorCode || null,
           cooldownScope: allBlockedByModelCooldown ? "model" : "connection",
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
+          connectionsCount: connections.length,
         };
       }
       const syntheticFallback = await maybeSyntheticNoAuthFallback(

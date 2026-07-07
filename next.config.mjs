@@ -588,6 +588,33 @@ const nextConfig = {
         source: "/v1beta",
         destination: "/api/v1beta",
       },
+      // Issue #6405 follow-up: unknown root-level paths must return JSON 404,
+      // not the dashboard HTML shell. Rewrite the missing prefixes under /api/*
+      // so they hit the /api/[...omnirouteApiCatchAll] route (#6424) — which
+      // returns application/json with error.type === "not_found". Real /api/*
+      // routes take precedence over the catch-all, so any future
+      // /api/anthropic/*, /api/openai/*, /api/metrics, /api/debug endpoints
+      // still match first.
+      {
+        source: "/anthropic/:path*",
+        destination: "/api/anthropic/:path*",
+      },
+      {
+        source: "/openai/:path*",
+        destination: "/api/openai/:path*",
+      },
+      {
+        source: "/metrics",
+        destination: "/api/metrics",
+      },
+      {
+        source: "/debug",
+        destination: "/api/debug",
+      },
+      {
+        source: "/.env",
+        destination: "/api/.env",
+      },
     ];
   },
 };
