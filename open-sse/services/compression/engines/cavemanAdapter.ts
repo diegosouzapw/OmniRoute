@@ -289,7 +289,11 @@ export const cavemanEngine: CompressionEngine = {
   },
   apply(body, options) {
     const adapter = adaptBodyForCompression(body);
+    // Selecting caveman as a stacked step runs it regardless of the per-engine
+    // cavemanConfig.enabled flag (B-MODE-ENGINE-DECOUPLE). Later spreads still
+    // win, so an explicit `stepConfig.enabled === false` opts out.
     const cavemanConfig = {
+      enabled: true,
       ...(options?.config?.cavemanConfig ?? {}),
       ...(options?.stepConfig ?? {}),
       ...(options?.config?.languageConfig?.enabled
