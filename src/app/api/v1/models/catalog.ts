@@ -754,7 +754,7 @@ async function buildUnifiedModelsResponseCore(
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
         if (getModelIsHidden(canonicalProviderId, model.id)) continue;
-        if (shouldHidePaid(canonicalProviderId, model.id, (model as any).pricing)) continue;
+        if (shouldHidePaid(canonicalProviderId, model.id, (model as { pricing?: unknown }).pricing)) continue;
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
@@ -843,6 +843,12 @@ async function buildUnifiedModelsResponseCore(
         for (const sm of syncedModels) {
           if (!providerSupportsModel(canonicalProviderId, sm.id)) continue;
           if (getModelIsHidden(providerId, sm.id)) continue;
+          // #6328: apply hidePaidModels to synced provider rows too. Synced rows
+          // rarely carry pricing metadata, so shouldHidePaid() falls through to
+          // the FREE_MODEL_IDS_BY_PROVIDER catalog — providers with a curated
+          // free roster show only those; providers with none fall through to
+          // hide-all via providerHasFreeModels() === false.
+          if (shouldHidePaid(canonicalProviderId, sm.id, (sm as { pricing?: unknown }).pricing)) continue;
 
           const registryEntry = REGISTRY[providerId];
           const displayModelId =
@@ -1200,6 +1206,10 @@ async function buildUnifiedModelsResponseCore(
           if (!modelId) continue;
           if (model.isHidden === true) continue;
           if (getModelIsHidden(canonicalProviderId, modelId)) continue;
+          // #6328: apply hidePaidModels to user-defined custom rows too.
+          // Custom entries do not carry pricing, so shouldHidePaid() decides
+          // via FREE_MODEL_IDS_BY_PROVIDER — matches synced/PROVIDER_MODELS.
+          if (shouldHidePaid(canonicalProviderId, modelId, (model as { pricing?: unknown }).pricing)) continue;
           // noAuth providers have no connection rows; keep auth providers gated. (#2798/#3200)
           const isNoAuthProvider = isNoAuthProviderKey(canonicalProviderId, providerId, alias);
           if (
@@ -1325,6 +1335,10 @@ async function buildUnifiedModelsResponseCore(
         }
 
         if (getModelIsHidden(canonicalProviderId, modelId)) continue;
+        // #6328: apply hidePaidModels to alias-backed rows too. Alias mappings
+        // point at providerKey/modelId with no pricing, so shouldHidePaid()
+        // decides via the FREE_MODEL_IDS_BY_PROVIDER catalog tier.
+        if (shouldHidePaid(canonicalProviderId, modelId)) continue;
 
         const aliasId = `${alias}/${modelId}`;
         const rawPrefixedId = `${providerKey}/${modelId}`;
@@ -1393,6 +1407,10 @@ async function buildUnifiedModelsResponseCore(
         const modelId = typeof model.id === "string" ? model.id : null;
         if (!modelId) continue;
         if (getModelIsHidden(canonicalProviderId, modelId)) continue;
+        // #6328: apply hidePaidModels to managed-fallback rows too. Compatible
+        // provider fallbacks lack pricing; shouldHidePaid() decides via the
+        // FREE_MODEL_IDS_BY_PROVIDER catalog tier.
+        if (shouldHidePaid(canonicalProviderId, modelId, (model as { pricing?: unknown }).pricing)) continue;
         if (!hasEligibleConnectionForModel([conn], modelId)) continue;
 
         const aliasId = `${alias}/${modelId}`;
