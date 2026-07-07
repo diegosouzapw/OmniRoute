@@ -48,11 +48,23 @@ function parseJsonRecord(raw: string): JsonRecord | null {
 }
 
 function randomNumericId(length = 19): string {
-  // crypto-backed (CodeQL js/insecure-randomness): a synthetic device/web id,
-  // not a secret — but crypto.getRandomValues costs the same and closes the alert.
-  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(length));
-  let id = String((bytes[0] % 9) + 1);
-  for (let i = 1; i < length; i += 1) id += String(bytes[i] % 10);
+  // crypto-backed, UNBIASED digits (CodeQL js/insecure-randomness +
+  // js/biased-cryptographic-random): a synthetic device/web id, not a secret.
+  // A raw `cryptoByte % 10` is biased (256 is not a multiple of 10), so each
+  // digit is drawn by rejection sampling — discard bytes in the biased tail so
+  // the remaining range divides evenly, then reduce.
+  const digit = (max: number): number => {
+    const limit = 256 - (256 % max); // largest multiple of `max` that fits in a byte
+    const buf = new Uint8Array(1);
+    let b: number;
+    do {
+      globalThis.crypto.getRandomValues(buf);
+      b = buf[0];
+    } while (b >= limit);
+    return b % max;
+  };
+  let id = String(digit(9) + 1);
+  for (let i = 1; i < length; i += 1) id += String(digit(10));
   return id;
 }
 

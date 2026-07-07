@@ -294,8 +294,13 @@ export async function handleFusionChat({
     }
     const resp = res as Response;
     if (!resp.ok) {
-      log.warn("FUSION", `Panel ${model} failed`, { status: resp.status });
-      failures.push({ model, reason: `status_${resp.status}` });
+      if (resp.status === 429) {
+        failures.push({ model, reason: "rate_limited" });
+        log.warn("FUSION", `Panel ${model} rate-limited`, { status: resp.status });
+      } else {
+        failures.push({ model, reason: `status_${resp.status}` });
+        log.warn("FUSION", `Panel ${model} failed`, { status: resp.status });
+      }
       continue;
     }
     try {
@@ -318,15 +323,15 @@ export async function handleFusionChat({
 
   // 3. Degrade gracefully when the panel is too thin to fuse.
   if (answers.length === 0) {
-    log.warn("FUSION", "All panel models failed");
-    // Surface per-member reasons so operators can distinguish rate-limit fan-fail
-    // from outage (issue #6454). Still routed through errorResponse for sanitization.
+    // Surface per-member reasons so operators can distinguish a rate-limit
+    // fan-fail (reason=rate_limited) from an outage (issue #6454). This supersedes
+    // the earlier aggregate "N rate-limited, M failed" summary — per-member is
+    // strictly more informative. Still routed through errorResponse for sanitization.
     const detail = failures.map((f) => `${f.model}=${f.reason}`).join(", ");
+    log.warn("FUSION", `No live models: ${detail}`);
     return errorResponse(
       503,
-      detail
-        ? `All fusion panel models failed: ${detail}`
-        : "All fusion panel models failed"
+      detail ? `All fusion panel models failed: ${detail}` : "All fusion panel models failed"
     );
   }
   if (answers.length === 1) {
