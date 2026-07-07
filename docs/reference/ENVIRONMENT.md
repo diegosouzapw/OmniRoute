@@ -524,7 +524,20 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 ---
 
-## 13. CLI Fingerprint Compatibility
+## 13. PR Reconciliation
+
+Optional webhook target for PR review/CI reconciliation automation.
+
+**Source:** `.github/workflows/pr-reconcile.yml`, `scripts/pr-reconcile/cli.ts`
+
+| Variable                       | Default | Description                                  |
+| ------------------------------ | ------- | -------------------------------------------- |
+| `KILO_RECONCILE_WEBHOOK_URL`   | unset   | Webhook URL for dispatching reconcile payloads |
+| `KILO_RECONCILE_WEBHOOK_TOKEN` | unset   | Bearer token for the reconcile webhook         |
+
+---
+
+## 14. CLI Fingerprint Compatibility
 
 When enabled, OmniRoute reorders HTTP headers and JSON body fields to match the exact signature of official CLI tools. This reduces the risk of account flagging while preserving your proxy IP.
 
@@ -562,7 +575,7 @@ When enabled, OmniRoute reorders HTTP headers and JSON body fields to match the 
 
 ---
 
-## 14. API Key Providers
+## 15. API Key Providers
 
 API keys for providers that use direct authentication. **Preferred setup:** Dashboard → Providers → Add API Key.
 

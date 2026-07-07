@@ -71,16 +71,6 @@ export async function GET() {
         ],
       },
       {
-        id: "list-capabilities",
-        name: "List Capabilities",
-        description: "Returns the full OmniRoute agent skill catalog with raw skill URLs",
-        tags: ["discovery", "skills", "catalog", "a2a"],
-        examples: [
-          "List OmniRoute agent capabilities",
-          "Show me available A2A skills",
-        ],
-      },
-      {
         id: "agent-dispatch",
         name: "Agent Dispatch",
         description: "Dispatches coding tasks to the substrate engine for code execution",
@@ -93,11 +83,11 @@ export async function GET() {
       {
         id: "mint-virtual-key",
         name: "Mint Virtual Key",
-        description: "Creates scoped virtual keys for delegated agent or client access",
-        tags: ["credentials", "virtual-key", "delegation", "access-control"],
+        description: "Mints a scoped per-tenant virtual key when the task carries keys:write",
+        tags: ["keys", "tenant", "credentials", "a2a"],
         examples: [
-          "Mint a virtual key for a delegated coding agent",
-          "Create a scoped key for a desktop client session",
+          "Mint a virtual key for tenant acme-dev",
+          "Create a capped key for this tenant",
         ],
       },
     ],

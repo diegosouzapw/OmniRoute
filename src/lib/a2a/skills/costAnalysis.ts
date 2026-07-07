@@ -37,10 +37,7 @@
 
 import { A2ATask } from "../taskManager";
 import { A2ASkillResult } from "../taskExecution";
-import {
-  getPricingForModel,
-  calculateCostFromTokens,
-} from "@/shared/constants/pricing";
+import { getPricingForModel } from "@/shared/constants/pricing";
 
 interface TokenUsageLite {
   input_tokens?: number;
@@ -151,6 +148,23 @@ function shapePricing(
   };
 }
 
+function priceField(raw: Record<string, unknown> | null, key: string): number {
+  const value = raw?.[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function calculateCostUsd(
+  tokens: ReturnType<typeof normalizeTokens>,
+  pricing: Record<string, unknown> | null,
+): number {
+  const inputCost = (tokens.inputTokens * priceField(pricing, "input")) / 1_000_000;
+  const outputCost = (tokens.outputTokens * priceField(pricing, "output")) / 1_000_000;
+  const cachedCost = (tokens.cachedTokens * priceField(pricing, "cached")) / 1_000_000;
+  const reasoningCost =
+    (tokens.reasoningTokens * priceField(pricing, "reasoning")) / 1_000_000;
+  return inputCost + outputCost + cachedCost + reasoningCost;
+}
+
 export async function executeCostAnalysis(task: A2ATask): Promise<A2ASkillResult> {
   const input = extractInput(task.metadata);
   const warnings: string[] = [];
@@ -193,18 +207,7 @@ export async function executeCostAnalysis(task: A2ATask): Promise<A2ASkillResult
         };
       })();
 
-  // calculateCostFromTokens accepts the pricing row and the canonical
-  // TokenUsage shape; we pass through only the fields it reads.
-  const cost = calculateCostFromTokens(
-    {
-      prompt_tokens: tokens.inputTokens,
-      completion_tokens: tokens.outputTokens,
-      cached_tokens: tokens.cachedTokens,
-      reasoning_tokens: tokens.reasoningTokens,
-      cache_creation_input_tokens: tokens.cacheCreationTokens,
-    },
-    (pricingRaw as Parameters<typeof calculateCostFromTokens>[1]) ?? null,
-  );
+  const cost = calculateCostUsd(tokens, pricingRaw);
 
   const budget = input.budget_usd ?? null;
   const overBudget = budget !== null && cost > budget;

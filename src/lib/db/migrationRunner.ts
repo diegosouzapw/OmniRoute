@@ -457,17 +457,8 @@ function isSchemaAlreadyApplied(
 }
 
 function applyApiKeyLifecycleMigration(db: SqliteAdapter): void {
-  ensureColumn(db, "api_keys", "revoked_at", "ALTER TABLE api_keys ADD COLUMN revoked_at TEXT");
-  ensureColumn(db, "api_keys", "expires_at", "ALTER TABLE api_keys ADD COLUMN expires_at TEXT");
-  ensureColumn(db, "api_keys", "last_used_at", "ALTER TABLE api_keys ADD COLUMN last_used_at TEXT");
-  ensureColumn(db, "api_keys", "key_prefix", "ALTER TABLE api_keys ADD COLUMN key_prefix TEXT");
-  ensureColumn(db, "api_keys", "ip_allowlist", "ALTER TABLE api_keys ADD COLUMN ip_allowlist TEXT");
-  ensureColumn(db, "api_keys", "scopes", "ALTER TABLE api_keys ADD COLUMN scopes TEXT");
-
-  db.exec(`
-    CREATE INDEX IF NOT EXISTS idx_api_keys_revoked_at ON api_keys(revoked_at);
-    CREATE INDEX IF NOT EXISTS idx_api_keys_expires_at ON api_keys(expires_at);
-  `);
+  const migrationPath = path.join(MIGRATIONS_DIR, "032_apikey_lifecycle.sql");
+  db.exec(fs.readFileSync(migrationPath, "utf-8"));
 }
 
 function isSearchRequestTypeMigration(migration: { version: string; name: string }): boolean {
@@ -485,79 +476,8 @@ function applySearchRequestTypeMigration(db: SqliteAdapter): void {
 }
 
 function applyCompressionReceiptsMigration(db: SqliteAdapter): void {
-  ensureColumn(
-    db,
-    "compression_analytics",
-    "actual_prompt_tokens",
-    "ALTER TABLE compression_analytics ADD COLUMN actual_prompt_tokens INTEGER"
-  );
-  ensureColumn(
-    db,
-    "compression_analytics",
-    "actual_completion_tokens",
-    "ALTER TABLE compression_analytics ADD COLUMN actual_completion_tokens INTEGER"
-  );
-  ensureColumn(
-    db,
-    "compression_analytics",
-    "actual_total_tokens",
-    "ALTER TABLE compression_analytics ADD COLUMN actual_total_tokens INTEGER"
-  );
-  ensureColumn(
-    db,
-    "compression_analytics",
-    "actual_cache_read_tokens",
-    "ALTER TABLE compression_analytics ADD COLUMN actual_cache_read_tokens INTEGER"
-  );
-  ensureColumn(
-    db,
-    "compression_analytics",
-    "actual_cache_write_tokens",
-    "ALTER TABLE compression_analytics ADD COLUMN actual_cache_write_tokens INTEGER"
-  );
-  ensureColumn(
-    db,
-    "compression_analytics",
-    "estimated_usd_saved",
-    "ALTER TABLE compression_analytics ADD COLUMN estimated_usd_saved REAL"
-  );
-  ensureColumn(
-    db,
-    "compression_analytics",
-    "mcp_description_tokens_saved",
-    "ALTER TABLE compression_analytics ADD COLUMN mcp_description_tokens_saved INTEGER DEFAULT 0"
-  );
-  ensureColumn(
-    db,
-    "compression_analytics",
-    "multimodal_skip_count",
-    "ALTER TABLE compression_analytics ADD COLUMN multimodal_skip_count INTEGER DEFAULT 0"
-  );
-  ensureColumn(
-    db,
-    "compression_analytics",
-    "receipt_source",
-    "ALTER TABLE compression_analytics ADD COLUMN receipt_source TEXT"
-  );
-  ensureColumn(
-    db,
-    "compression_analytics",
-    "validation_fallback",
-    "ALTER TABLE compression_analytics ADD COLUMN validation_fallback INTEGER DEFAULT 0"
-  );
-  ensureColumn(
-    db,
-    "compression_analytics",
-    "output_mode",
-    "ALTER TABLE compression_analytics ADD COLUMN output_mode TEXT"
-  );
-
-  db.exec(`
-    CREATE INDEX IF NOT EXISTS idx_compression_analytics_request_id
-      ON compression_analytics(request_id);
-    CREATE INDEX IF NOT EXISTS idx_compression_analytics_receipt_source
-      ON compression_analytics(receipt_source);
-  `);
+  const migrationPath = path.join(MIGRATIONS_DIR, "041_compression_receipts.sql");
+  db.exec(fs.readFileSync(migrationPath, "utf-8"));
 }
 
 function applyCompressionCombosMigration(db: SqliteAdapter, migrationPath: string): void {

@@ -20,6 +20,12 @@ import {
 const projectRoot = process.cwd();
 const distDir = path.resolve(process.env.NEXT_DIST_DIR || ".build/next");
 const backupRoot = path.join(os.tmpdir(), `omniroute-build-isolated-${process.pid}-${Date.now()}`);
+const asyncLocalStoragePreload = path.join(
+  projectRoot,
+  "scripts",
+  "build",
+  "node-async-local-storage-global.cjs"
+);
 
 export function getTransientBuildPaths(rootDir = projectRoot, env = process.env) {
   const paths = [
@@ -111,6 +117,10 @@ export function resolveNextBuildEnv(baseEnv = process.env) {
     ...baseEnv,
     NEXT_PRIVATE_BUILD_WORKER: baseEnv.NEXT_PRIVATE_BUILD_WORKER || "0",
   };
+  const nodeOptions = env.NODE_OPTIONS || "";
+  if (!nodeOptions.includes(asyncLocalStoragePreload)) {
+    env.NODE_OPTIONS = `${nodeOptions} --require ${asyncLocalStoragePreload}`.trim();
+  }
 
   // Raise the Node heap for the spawned `next build`. The webpack production pass
   // ("Compiling instrumentation" bundles the whole server graph) is the heaviest

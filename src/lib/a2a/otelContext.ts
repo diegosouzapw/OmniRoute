@@ -42,9 +42,8 @@ let _initDone = false;
 async function _resolveOtelBinding(): Promise<void> {
   // Tier 1 — @pheno-otel/tracing (sibling Rust-to-JS bridge)
   try {
-    // @ts-expect-error — @pheno-otel/tracing is an optional sibling Rust-to-JS
-    // bridge. The try/catch makes the import safe; TS doesn't know it's optional.
-    const mod = await import("@pheno-otel/tracing");
+    const tracingPackage = "@pheno-otel/tracing";
+    const mod = await import(tracingPackage);
     if (typeof mod.getActiveSpanContext === "function") {
       _getter = () => {
         const ctx = mod.getActiveSpanContext();

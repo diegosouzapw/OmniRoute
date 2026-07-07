@@ -1,5 +1,5 @@
 import type { BudgetHistoryPoint } from "@omniroute/open-sse/services/compression/budgetForecast";
-import { getDbInstance } from "@/lib/db/core";
+import { getDbInstance } from "./core";
 
 /** Hard cap on rows pulled out of compression_analytics per request. */
 const MAX_HISTORY_ROWS = 5_000;
@@ -13,7 +13,7 @@ interface AnalyticsRow {
   provider: string | null;
 }
 
-export function readCompressionHistory(
+export function readCompressionBudgetHistory(
   windowMs: number,
   provider: string | null
 ): BudgetHistoryPoint[] {
@@ -46,16 +46,16 @@ export function readCompressionHistory(
   }
 
   const out: BudgetHistoryPoint[] = [];
-  for (const row of rows) {
-    const tsMs = row.timestamp ? Date.parse(row.timestamp) : NaN;
+  for (const r of rows) {
+    const tsMs = r.timestamp ? Date.parse(r.timestamp) : NaN;
     if (!Number.isFinite(tsMs)) continue;
     const originalTokens =
-      typeof row.original_tokens === "number" && Number.isFinite(row.original_tokens)
-        ? row.original_tokens
+      typeof r.original_tokens === "number" && Number.isFinite(r.original_tokens)
+        ? r.original_tokens
         : 0;
     const tokensSaved =
-      typeof row.tokens_saved === "number" && Number.isFinite(row.tokens_saved)
-        ? row.tokens_saved
+      typeof r.tokens_saved === "number" && Number.isFinite(r.tokens_saved)
+        ? r.tokens_saved
         : 0;
     if (originalTokens <= 0 && tokensSaved <= 0) continue;
     out.push({ tsMs, tokens: originalTokens, savedTokens: tokensSaved });

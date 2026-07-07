@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const distDir = process.env.NEXT_DIST_DIR || ".build/next";
 const projectRoot = dirname(fileURLToPath(import.meta.url));
+const appPageModuleCompiledShim = `${projectRoot}/scripts/build/next-app-page-module-compiled-shim.cjs`;
 const scriptSrc =
   process.env.NODE_ENV === "development"
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:"
@@ -234,7 +235,7 @@ const nextConfig = {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
     ignoreBuildErrors: true,
   },
-  webpack(config, { webpack }) {
+  webpack(config, { isServer, webpack }) {
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
       isNextIntlExtractorDynamicImportWarning,
@@ -319,6 +320,15 @@ const nextConfig = {
           })
         );
       }
+    }
+
+    if (isServer) {
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /^next\/dist\/server\/route-modules\/app-page\/module\.compiled$/,
+          appPageModuleCompiledShim
+        )
+      );
     }
 
     return config;

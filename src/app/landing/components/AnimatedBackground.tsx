@@ -28,31 +28,6 @@ export default function AnimatedBackground() {
           }}
         />
       </div>
-
-      {/* CSS Animations */}
-      <style jsx global>{`
-        @keyframes blob {
-          0%,
-          100% {
-            transform: translate(0, 0) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-        }
-        .animate-blob {
-          animation: blob 20s ease-in-out infinite;
-        }
-        .animate-blob-delayed-1 {
-          animation: blob 22s ease-in-out 2s infinite;
-        }
-        .animate-blob-delayed-2 {
-          animation: blob 25s ease-in-out 4s infinite;
-        }
-      `}</style>
     </>
   );
 }

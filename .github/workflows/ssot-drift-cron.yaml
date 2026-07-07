@@ -37,6 +37,8 @@ jobs:
       - name: Report drift summary
         if: always()
         run: |
-          echo "## SSOT Drift Scan — $(date -u '+%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Scans run: docs-sync, route-validation, provider-catalog." >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## SSOT Drift Scan — $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+            echo ""
+            echo "Scans run: docs-sync, route-validation, provider-catalog."
+          } >> "$GITHUB_STEP_SUMMARY"
