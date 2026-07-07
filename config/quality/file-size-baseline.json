@@ -258,7 +258,7 @@
     "src/shared/services/cliRuntime.ts": 1100,
     "src/shared/validation/schemas.ts": 2523,
     "_rebaseline_2026_06_28_5275_correlation_id_extract": "Extraction of the safe CorrelationId subset of #5275 (hartmark) — request correlation id stored in call_logs (migration 109) and returned via the X-Correlation-Id response header, WITHOUT the combo/resilience or build/lazy-loading changes (those stay in #5275). Own growth: callLogs.ts 975->985 (correlation_id column on CallLogSummaryRow + read/map), usageHistory.ts 983->988 (correlationId metadata normalize), chat.ts 1575->1632 (withCorrelationId response wiring + combo-failure log carrying correlationId), chatHelpers.ts new 811 (withCorrelationId helper + reqId threading; was 791<cap pre-feature). Cohesive request/logging chokepoint wiring; structural shrink of chat.ts tracked in #3501.",
-    "src/sse/handlers/chat.ts": 1763,
+    "src/sse/handlers/chat.ts": 1778,
     "src/sse/handlers/chatHelpers.ts": 876,
     "src/sse/services/auth.ts": 2448,
     "open-sse/executors/default.ts": 877,
@@ -386,5 +386,6 @@
   "_rebaseline_2026_07_07_6526_chirag_modal_1080p": "PR #6526 (@chirag127, #6265): AddApiKeyModal.tsx ->961 (1080p sizing). Owner-approved. Frozen.",
   "_rebaseline_2026_07_07_6515_chirag": "PR #6515 (@chirag127) own growth: src/sse/handlers/chat.ts ->1763. Owner-approved rebaseline. Frozen.",
   "_rebaseline_2026_07_07_6534_chirag": "PR #6534 (@chirag127) own growth: open-sse/services/compression/strategySelector.ts ->1025. Owner-approved rebaseline. Frozen.",
-  "_rebaseline_2026_07_07_6546_chirag": "PR #6546 (@chirag127) own growth: src/sse/handlers/chatHelpers.ts ->876. Owner-approved rebaseline. Frozen."
+  "_rebaseline_2026_07_07_6546_chirag": "PR #6546 (@chirag127) own growth: src/sse/handlers/chatHelpers.ts ->876. Owner-approved rebaseline. Frozen.",
+  "_rebaseline_2026_07_07_6525_chirag_image_guard": "PR #6525 (@chirag127, #6457) own growth: chat.ts ->1778 (reject image-only models on /v1/chat/completions; stacks on #6515). Owner-approved. Frozen."
 }
