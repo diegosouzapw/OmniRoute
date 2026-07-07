@@ -8,6 +8,7 @@ import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.
 import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 import { checkChatAdmission } from "@/shared/middleware/chatBodyAdmission";
+import { requireJsonContentType } from "@/shared/middleware/requireJsonContentType";
 
 let initPromise = null;
 
@@ -38,6 +39,12 @@ export async function OPTIONS() {
 }
 
 export async function POST(request) {
+  // Reject non-JSON Content-Type with 415 before touching the body — mirrors OpenAI's
+  // reference API. Previously such requests silently reached the provider-lookup layer
+  // and surfaced as misleading errors instead of the RFC 7231 §6.5.13 415 (#6414).
+  const ctRejection = requireJsonContentType(request);
+  if (ctRejection) return ctRejection;
+
   await ensureInitialized();
 
   // Heap-pressure-aware admission: shed a large body with 503 (or 413 if pathological)
