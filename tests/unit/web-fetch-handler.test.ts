@@ -70,6 +70,33 @@ test("handleWebFetch routes to jina-reader when provider=jina-reader", async () 
   }
 });
 
+test("handleWebFetch routes to tinyfish when provider=tinyfish", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () => {
+    return new Response(
+      JSON.stringify({
+        results: [{ url: "https://example.com", title: "Test", text: "# TinyFish content" }],
+        errors: [],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleWebFetch(
+      { url: "https://example.com", format: "markdown" },
+      { apiKey: "tf-key" },
+      "tinyfish"
+    );
+
+    assert.equal(result.success, true);
+    assert.equal(result.data?.provider, "tinyfish");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleWebFetch returns error 401 when no apiKey for firecrawl", async () => {
   const result = await handleWebFetch({ url: "https://example.com" }, {}, "firecrawl");
 

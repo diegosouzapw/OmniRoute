@@ -2,7 +2,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Toggle } from "@/shared/components";
-import { providerAllowsOptionalApiKey, supportsBulkApiKey } from "@/shared/constants/providers";
+import {
+  providerAllowsOptionalApiKey,
+  supportsBulkApiKey,
+  resolveWebProviderHost,
+} from "@/shared/constants/providers";
 import { parseBulkApiKeys } from "@/shared/utils/bulkApiKeyParser";
 import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import {
@@ -35,6 +39,7 @@ export interface AddApiKeyModalProps {
   isOpen: boolean;
   provider?: string;
   providerName?: string;
+  providerWebsite?: string;
   initialBaseUrl?: string;
   isCompatible?: boolean;
   isAnthropic?: boolean;
@@ -57,6 +62,7 @@ export default function AddApiKeyModal({
   isOpen,
   provider,
   providerName,
+  providerWebsite,
   initialBaseUrl,
   isCompatible,
   isAnthropic,
@@ -86,6 +92,12 @@ export default function AddApiKeyModal({
   const webSessionCredential = getWebSessionCredentialRequirement(provider);
   const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
   const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
+  // #6268 — for web-session providers, resolve the provider's public site so the
+  // modal can offer a prominent "Open ‹host› →" link. Gated on webSessionCredential
+  // so non-web providers never render a link.
+  const webProviderHostLink = webSessionCredential
+    ? resolveWebProviderHost(provider, defaultBaseUrl)
+    : null;
   const providerDisplayName = providerName || provider || "";
   const apiKeyOptional =
     providerAllowsOptionalApiKey(provider) || Boolean(isNoAuthWebSessionCredential);
@@ -427,6 +439,21 @@ export default function AddApiKeyModal({
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
+        {webProviderHostLink && (
+          <a
+            href={webProviderHostLink.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+          >
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              open_in_new
+            </span>
+            {providerText(t, "openWebProviderSite", "Open {host}", {
+              host: webProviderHostLink.host,
+            })}
+          </a>
+        )}
         {bulkSupported && (
           <div className="flex gap-1 border-b border-border">
             <button
@@ -659,6 +686,7 @@ export default function AddApiKeyModal({
               <WebSessionCredentialGuide
                 requirement={webSessionCredential}
                 providerName={providerDisplayName}
+                providerWebsite={providerWebsite}
                 t={t}
               />
             )}

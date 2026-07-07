@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} ไม่จำเป็นต้องมีคีย์ API หรือคุกกี้ บันทึกการเชื่อมต่อเพื่อใช้จุดสิ้นสุดเว็บฟรี",
     "webSessionCredentialValidationFailed": "การตรวจสอบข้อมูลรับรองเซสชันล้มเหลว ลงชื่อเข้าใช้อีกครั้ง คัดลอกข้อมูลประจำตัวใหม่ แล้วลองอีกครั้ง",
     "checkCookie": "ตรวจสอบคุกกี้",
-    "checkWebToken": "ตรวจสอบโทเค็น"
+    "checkWebToken": "ตรวจสอบโทเค็น",
+    "filterAll": "ทั้งหมด",
+    "filterActive": "ใช้งาน",
+    "filterError": "ข้อผิดพลาด",
+    "filterBanned": "ถูกแบน",
+    "filterCreditsExhausted": "เครดิตหมด"
   },
   "settings": {
     "title": "การตั้งค่า",
