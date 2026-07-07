@@ -9,6 +9,12 @@ test("findOffendingField matches known field names in a 400 body", () => {
   assert.equal(findOffendingField("Invalid argument: reasoning_budget not supported"), "reasoning_budget");
   assert.equal(findOffendingField("unexpected field chat_template"), "chat_template");
   assert.equal(findOffendingField("reasoning_content is not allowed"), "reasoning_content");
+  // #1468: Claude Code's top-level context_management field rejected by strict
+  // anthropic-compatible gateways → strip + retry regardless of the contextEditing flag.
+  assert.equal(
+    findOffendingField("context_management: Extra inputs are not permitted"),
+    "context_management"
+  );
   assert.equal(findOffendingField("all good"), null);
   assert.equal(findOffendingField(""), null);
 });
