@@ -31,6 +31,7 @@ import type { ProviderMessageTranslator } from "../providerPageHelpers";
 interface ProviderInfo {
   name: string;
   riskNoticeVariant?: string;
+  website?: string;
   [key: string]: unknown;
 }
 
@@ -49,6 +50,7 @@ interface ProviderModalsPanelProps {
   isCommandCode: boolean;
   isUpstreamProxyProvider: boolean;
   subscriptionRisk: boolean;
+  existingConnectionCount?: number;
   // Risk notice
   showRiskNoticeModal: boolean;
   handleConfirmRiskNotice: () => void;
@@ -145,6 +147,7 @@ export default function ProviderModalsPanel({
   isCcCompatible,
   isUpstreamProxyProvider,
   subscriptionRisk,
+  existingConnectionCount,
   showRiskNoticeModal,
   handleConfirmRiskNotice,
   handleCancelRiskNotice,
@@ -277,7 +280,9 @@ export default function ProviderModalsPanel({
           isOpen={showAddApiKeyModal}
           provider={providerId}
           providerName={providerInfo.name}
+          providerWebsite={providerInfo.website}
           initialBaseUrl={siliconFlowInitialBaseUrl}
+          existingConnectionCount={existingConnectionCount}
           isCompatible={isCompatible}
           isAnthropic={isAnthropicProtocolCompatible}
           isCcCompatible={isCcCompatible}
@@ -312,6 +317,7 @@ export default function ProviderModalsPanel({
           isOpen={showEditModal}
           connection={selectedConnection}
           providerId={providerId}
+          providerWebsite={providerInfo.website}
           onSave={handleUpdateConnection}
           onResyncModels={(id) => handleCompatibleImportWithProgress(id, "sync")}
           onClose={() => setShowEditModal(false)}

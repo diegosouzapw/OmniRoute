@@ -40,6 +40,7 @@ export function mapAssignmentRow(row: unknown): ProxyAssignmentRecord {
     proxyId: typeof r.proxy_id === "string" ? r.proxy_id : "",
     scope,
     scopeId: scope === "global" && rawScopeId === "__global__" ? null : rawScopeId,
+    position: Number(r.position) || 0,
     createdAt: typeof r.created_at === "string" ? r.created_at : "",
     updatedAt: typeof r.updated_at === "string" ? r.updated_at : "",
   };

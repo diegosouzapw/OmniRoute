@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { NextRequest } from "next/server";
-import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
+import { makeManagementSessionRequest } from "../../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-health-autopilot-"));
 const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
@@ -13,14 +13,14 @@ const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const core = await import("../../src/lib/db/core.ts");
-const settingsDb = await import("../../src/lib/db/settings.ts");
-const providersDb = await import("../../src/lib/db/providers.ts");
-const autopilot = await import("../../src/lib/monitoring/providerHealthAutopilot.ts");
-const actionsRoute = await import("../../src/app/api/providers/health-autopilot/actions/route.ts");
-const reportRoute = await import("../../src/app/api/providers/health-autopilot/route.ts");
-const routeGuard = await import("../../src/server/authz/routeGuard.ts");
-const authzPipeline = await import("../../src/server/authz/pipeline.ts");
+const core = await import("../../../src/lib/db/core.ts");
+const settingsDb = await import("../../../src/lib/db/settings.ts");
+const providersDb = await import("../../../src/lib/db/providers.ts");
+const autopilot = await import("../../../src/lib/monitoring/providerHealthAutopilot.ts");
+const actionsRoute = await import("../../../src/app/api/providers/health-autopilot/actions/route.ts");
+const reportRoute = await import("../../../src/app/api/providers/health-autopilot/route.ts");
+const routeGuard = await import("../../../src/server/authz/routeGuard.ts");
+const authzPipeline = await import("../../../src/server/authz/pipeline.ts");
 const accountFallback = await import("@omniroute/open-sse/services/accountFallback");
 
 const PROVIDER = "autopilot-test-provider";
@@ -215,6 +215,48 @@ test("provider health autopilot action rejects cross-site mutations", async () =
     unknown
   >;
   assert.ok(unchanged.rateLimitedUntil);
+});
+
+test("provider health autopilot action accepts LAN dashboard requests (#6277)", async () => {
+  // #6277: Docker/LAN deployments (accessed via LAN IP, not localhost) got a
+  // spurious 403 "Invalid request origin" clicking "remove cooldown". Root
+  // cause: this route carried a DUPLICATE per-route validateBrowserMutationOrigin
+  // check re-added by the v3.8.42 release squash after PR #5278 centralized
+  // origin enforcement in the authz pipeline. The pipeline's centralized check
+  // (src/server/authz/pipeline.ts) strips PEER_IP_HEADER before forwarding the
+  // request to the route handler, so by the time this handler runs the peer
+  // stamp is gone — exactly what a real post-middleware request looks like.
+  // The route must trust the pipeline's verdict and NOT re-validate origin
+  // itself; without PEER_IP_HEADER, the per-route check cannot resolve the LAN
+  // "direct-local-host" candidate and rejects a same-origin-but-LAN mutation.
+  await enableManagementAuth();
+  const connection = await createCooldownConnection();
+  const report = await autopilot.buildProviderHealthAutopilotReport({
+    provider: PROVIDER,
+    includeHealthy: true,
+  });
+  const action = findAction(report, "clear_connection_cooldown");
+  assert.ok(action);
+
+  const request = await makeManagementSessionRequest(
+    "http://localhost/api/providers/health-autopilot/actions",
+    {
+      method: "POST",
+      headers: { origin: "http://192.168.1.50:20128", "sec-fetch-site": "same-origin" },
+      body: {
+        type: action.type,
+        target: action.target,
+        preconditionsHash: action.preconditionsHash,
+        confirm: true,
+      },
+    }
+  );
+  assert.equal(request.headers.get("x-omniroute-peer-ip"), null);
+
+  const response = await actionsRoute.POST(request);
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.success, true);
 });
 
 test("provider health autopilot action rejects malformed JSON", async () => {

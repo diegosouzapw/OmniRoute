@@ -82,6 +82,10 @@ test("T28: volcengine (Ark) catalog includes DeepSeek V4 models", () => {
 });
 
 test("T28: new catalog models resolve through getModelInfoCore", async () => {
+  const cerebrasGemma = await getModelInfoCore("cerebras/gemma-4-31b", {});
+  assert.equal(cerebrasGemma.provider, "cerebras");
+  assert.equal(cerebrasGemma.model, "gemma-4-31b");
+
   const minimax = await getModelInfoCore("minimax/MiniMax-M2.7", {});
   assert.equal(minimax.provider, "minimax");
   assert.equal(minimax.model, "MiniMax-M2.7");
