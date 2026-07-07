@@ -155,10 +155,10 @@ combo's stored config. These apply only to the `auto` strategy and only for the 
 that carries them; the combo's saved `modePack`/`budgetCap` are used when the header is
 absent.
 
-| Header               | Accepts                                                                                              | Effect                                                                                                            |
-| :------------------- | :-------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`   | a preset alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) or a raw pack name (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Overrides the scoring weights for this request. `balanced`/`default` force the default weights (no pack). Unknown values are ignored (config preserved). |
-| `X-OmniRoute-Budget` | a positive number (max USD per request)                                                             | Hard cost ceiling: candidates whose estimated cost exceeds it are filtered before selection, falling back to the cheapest healthy candidate if all exceed. Non-positive/garbage values are ignored. |
+| Header               | Accepts                                                                                                                                                                                 | Effect                                                                                                                                                                                              |
+| :------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`   | a preset alias (`fast`, `balanced`, `quality`, `cheap`, `reliable`, `offline`) or a raw pack name (`ship-fast`, `cost-saver`, `quality-first`, `offline-friendly`, `reliability-first`) | Overrides the scoring weights for this request. `balanced`/`default` force the default weights (no pack). Unknown values are ignored (config preserved).                                            |
+| `X-OmniRoute-Budget` | a positive number (max USD per request)                                                                                                                                                 | Hard cost ceiling: candidates whose estimated cost exceeds it are filtered before selection, falling back to the cheapest healthy candidate if all exceed. Non-positive/garbage values are ignored. |
 
 ```bash
 # Force the fastest profile and cap this request at $0.05
@@ -174,27 +174,28 @@ resolved values feed the engine's existing `config.modePack` / `config.budgetCap
 
 ## All Routing Strategies
 
-OmniRoute's combo engine supports **17 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
+OmniRoute's combo engine supports **18 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
 
-| Strategy            | Description                                                                                  |
-| :------------------ | :------------------------------------------------------------------------------------------- |
-| `priority`          | First-target ordered list with explicit priority                                             |
-| `weighted`          | Weighted random by per-target weight                                                         |
-| `round-robin`       | Cycle through targets in order                                                               |
-| `context-relay`     | Hand off context across targets (long conversations)                                         |
-| `fill-first`        | Fill each target's quota before moving to next                                               |
-| `p2c`               | Power-of-2-choices random load balancing                                                     |
-| `random`            | Uniform random selection                                                                     |
-| `least-used`        | Pick target with lowest current load                                                         |
-| `cost-optimized`    | Minimize $ per request given catalog pricing                                                 |
-| `reset-aware` ⭐    | Prioritize by quota reset time — short reset windows ranked higher                           |
-| `reset-window`      | Prefer targets whose quota window resets soonest                                             |
-| `headroom`          | Pick the target with the most remaining quota headroom                                       |
-| `strict-random`     | Random without deduplication of repeats                                                      |
-| `auto`              | Use Auto Combo scoring (9-factor) — **recommended**                                          |
-| `lkgp`              | Last-Known-Good Path (sticky route to last successful target)                                |
-| `context-optimized` | Pick target with best fit for current context size                                           |
-| `fusion` 🧬         | Fan out to a panel of models in parallel, then synthesize one answer via a judge (see below) |
+| Strategy            | Description                                                                                                                  |
+| :------------------ | :--------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | First-target ordered list with explicit priority                                                                             |
+| `weighted`          | Weighted random by per-target weight                                                                                         |
+| `round-robin`       | Cycle through targets in order                                                                                               |
+| `context-relay`     | Hand off context across targets (long conversations)                                                                         |
+| `fill-first`        | Fill each target's quota before moving to next                                                                               |
+| `p2c`               | Power-of-2-choices random load balancing                                                                                     |
+| `random`            | Uniform random selection                                                                                                     |
+| `least-used`        | Pick target with lowest current load                                                                                         |
+| `cost-optimized`    | Minimize $ per request given catalog pricing                                                                                 |
+| `reset-aware` ⭐    | Prioritize by quota reset time — short reset windows ranked higher                                                           |
+| `reset-window`      | Prefer targets whose quota window resets soonest                                                                             |
+| `headroom`          | Pick the target with the most remaining quota headroom                                                                       |
+| `strict-random`     | Random without deduplication of repeats                                                                                      |
+| `auto`              | Use Auto Combo scoring (9-factor) — **recommended**                                                                          |
+| `lkgp`              | Last-Known-Good Path (sticky route to last successful target)                                                                |
+| `context-optimized` | Pick target with best fit for current context size                                                                           |
+| `fusion` 🧬         | Fan out to a panel of models in parallel, then synthesize one answer via a judge (see below)                                 |
+| `pipeline`          | Run targets sequentially, threading each step's output into the next step's input; only the final answer is returned (#6396) |
 
 ⭐ = New in v3.8.0 · 🧬 = New in v3.8.36
 
@@ -605,7 +606,7 @@ See `docs/marketing/TIERS.md` for tier definitions and provider classification.
 public strategies end-to-end through the real combo pipeline with a mocked upstream.
 Coverage includes:
 
-- All 17 `ROUTING_STRATEGY_VALUES` strategies (ordered, weighted, cost, context, fusion, …).
+- All 18 `ROUTING_STRATEGY_VALUES` strategies (ordered, weighted, cost, context, fusion, …).
 - `quota-share` (internal) end-to-end: DRR fairness + saturation deprioritization via the
   real `selectQuotaShareTarget` seam (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -639,5 +640,5 @@ intentionally excluded from CI because they require live credentials and VPS acc
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefix parser + 6 variants                                         |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Builds in-memory `AutoComboConfig` from live connections                   |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook for mocking provider registry                                    |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (17 strategies)                                  |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (18 strategies)                                  |
 | `src/sse/handlers/chat.ts`                                | Integration: auto-prefix short-circuit                                     |
