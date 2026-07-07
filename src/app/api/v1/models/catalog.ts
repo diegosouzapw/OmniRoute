@@ -754,7 +754,7 @@ async function buildUnifiedModelsResponseCore(
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
         if (getModelIsHidden(canonicalProviderId, model.id)) continue;
-        if (shouldHidePaid(canonicalProviderId, model.id, (model as any).pricing)) continue;
+        if (shouldHidePaid(canonicalProviderId, model.id, (model as { pricing?: unknown }).pricing)) continue;
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
@@ -848,7 +848,7 @@ async function buildUnifiedModelsResponseCore(
           // the FREE_MODEL_IDS_BY_PROVIDER catalog — providers with a curated
           // free roster show only those; providers with none fall through to
           // hide-all via providerHasFreeModels() === false.
-          if (shouldHidePaid(canonicalProviderId, sm.id, (sm as any).pricing)) continue;
+          if (shouldHidePaid(canonicalProviderId, sm.id, (sm as { pricing?: unknown }).pricing)) continue;
 
           const registryEntry = REGISTRY[providerId];
           const displayModelId =
@@ -1209,7 +1209,7 @@ async function buildUnifiedModelsResponseCore(
           // #6328: apply hidePaidModels to user-defined custom rows too.
           // Custom entries do not carry pricing, so shouldHidePaid() decides
           // via FREE_MODEL_IDS_BY_PROVIDER — matches synced/PROVIDER_MODELS.
-          if (shouldHidePaid(canonicalProviderId, modelId, (model as any).pricing)) continue;
+          if (shouldHidePaid(canonicalProviderId, modelId, (model as { pricing?: unknown }).pricing)) continue;
           // noAuth providers have no connection rows; keep auth providers gated. (#2798/#3200)
           const isNoAuthProvider = isNoAuthProviderKey(canonicalProviderId, providerId, alias);
           if (
@@ -1410,7 +1410,7 @@ async function buildUnifiedModelsResponseCore(
         // #6328: apply hidePaidModels to managed-fallback rows too. Compatible
         // provider fallbacks lack pricing; shouldHidePaid() decides via the
         // FREE_MODEL_IDS_BY_PROVIDER catalog tier.
-        if (shouldHidePaid(canonicalProviderId, modelId, (model as any).pricing)) continue;
+        if (shouldHidePaid(canonicalProviderId, modelId, (model as { pricing?: unknown }).pricing)) continue;
         if (!hasEligibleConnectionForModel([conn], modelId)) continue;
 
         const aliasId = `${alias}/${modelId}`;
