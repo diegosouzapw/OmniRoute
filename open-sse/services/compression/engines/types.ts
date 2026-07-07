@@ -32,16 +32,16 @@ export interface CompressionEngineMetadata {
 export interface CompressionEngineApplyOptions {
   model?: string;
   supportsVision?: boolean | null;
-  config?: CompressionConfig;
-  compressionComboId?: string | null;
-  stepConfig?: Record<string, unknown>;
-  /** Authenticated principal (API key id) making the request. Used by CCR to scope its store. */
-  principalId?: string;
   /** Como o request chega ao provider: rota direta oficial ('direct') vs
    *  agregador que pode reprocessar imagens ('aggregator'). O engine omniglyph
    *  exige 'direct' — medição 2026-07-06: agregadores redimensionam as páginas
    *  e destroem a legibilidade. undefined = desconhecido = skip (fail-closed). */
   providerTransport?: "direct" | "aggregator";
+  config?: CompressionConfig;
+  compressionComboId?: string | null;
+  stepConfig?: Record<string, unknown>;
+  /** Authenticated principal (API key id) making the request. Used by CCR to scope its store. */
+  principalId?: string;
 }
 
 export interface CompressionEngine {

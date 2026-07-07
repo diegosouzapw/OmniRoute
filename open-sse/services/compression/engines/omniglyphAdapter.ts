@@ -22,11 +22,18 @@ import { createCompressionStats } from "../stats.ts";
 import { transformAnthropicMessages, isOmniGlyphSupportedModel } from "omniglyph";
 
 function skip(body: Record<string, unknown>, reason: string): CompressionResult {
-  return {
-    body,
-    compressed: false,
-    stats: createCompressionStats(body, body, "stacked", [`skip:${reason}`]),
-  };
+  try {
+    return {
+      body,
+      compressed: false,
+      stats: createCompressionStats(body, body, "stacked", [`skip:${reason}`]),
+    };
+  } catch {
+    // Fail-open guard: a non-serializable body (e.g. circular reference) makes
+    // createCompressionStats' internal JSON.stringify throw too — stats become
+    // best-effort telemetry, never a reason to propagate the error.
+    return { body, compressed: false, stats: null };
+  }
 }
 
 /** Formato Claude nativo: system no topo, nunca role:"system" dentro de messages. */
@@ -47,11 +54,18 @@ async function applyOmniglyph(
   if (!isClaudeFormat(body)) return skip(body, "source_format_not_claude");
 
   const started = Date.now();
-  const encoded = new TextEncoder().encode(JSON.stringify(body));
-  const result = await transformAnthropicMessages({ body: encoded, model });
-  if (!result.applied) return skip(body, result.reason ?? "not_profitable");
+  let outBody: Record<string, unknown>;
+  try {
+    const encoded = new TextEncoder().encode(JSON.stringify(body));
+    const result = await transformAnthropicMessages({ body: encoded, model });
+    if (!result.applied) return skip(body, result.reason ?? "not_profitable");
+    outBody = JSON.parse(new TextDecoder().decode(result.body)) as Record<string, unknown>;
+  } catch {
+    // Fail-open: qualquer erro no encode/transform/decode (ex.: corpo não serializável,
+    // render PNG estourando, JSON decodificado malformado) vira skip, nunca propaga.
+    return skip(body, "transform_error");
+  }
 
-  const outBody = JSON.parse(new TextDecoder().decode(result.body)) as Record<string, unknown>;
   return {
     body: outBody,
     compressed: true,

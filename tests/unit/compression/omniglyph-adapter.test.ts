@@ -64,3 +64,11 @@ test("apply síncrono é pass-through seguro (engine async-only)", () => {
   assert.equal(r.compressed, false);
   assert.deepEqual(r.body, body);
 });
+
+test("fail-open: erro no transform vira skip, nunca propaga", async () => {
+  const body = claudeBody() as Record<string, unknown>;
+  (body as any).self = body; // referência circular → JSON.stringify lança
+  const r = await omniglyphEngine.applyAsync!(body, OK);
+  assert.equal(r.compressed, false);
+  assert.deepEqual(r.body, body); // corpo original devolvido intacto
+});
