@@ -3,7 +3,7 @@
  * `isPaidTierAutoId`, which lets `/v1/models` REMOVE (not just hide) paid-tier
  * `auto/*` ids when the operator opts into `hidePaidModels`.
  */
-import { test } from "node:test";
+import { test } from "vitest";
 import assert from "node:assert/strict";
 
 import { isPaidTierAutoId } from "../../../open-sse/services/autoCombo/builtinCatalog.ts";
