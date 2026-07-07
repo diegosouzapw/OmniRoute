@@ -116,7 +116,10 @@ function getRequestHostname(request: RequestLike | Request | null | undefined): 
 export function isLoopbackRequest(request: RequestLike | Request | null | undefined): boolean {
   const requestHeaders =
     request && typeof request === "object" && "headers" in request ? request.headers : undefined;
-  const peerLocality = requestHeaders?.get(AUTHZ_HEADER_PEER_LOCALITY);
+  const peerLocality =
+    requestHeaders && typeof requestHeaders.get === "function"
+      ? requestHeaders.get(AUTHZ_HEADER_PEER_LOCALITY)
+      : undefined;
   if (peerLocality) {
     return peerLocality === "loopback";
   }
