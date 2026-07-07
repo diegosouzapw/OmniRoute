@@ -98,7 +98,7 @@ export async function GET(request: Request) {
     } catch {}
     const filtered = hidePaid
       ? models.filter(
-          (m: any) => providerHasFreeModels(m.provider) && isFreeModel(m.provider, { id: m.model })
+          (m: { provider: string; model: string }) => providerHasFreeModels(m.provider) && isFreeModel(m.provider, { id: m.model })
         )
       : models;
 

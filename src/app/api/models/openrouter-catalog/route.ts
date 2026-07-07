@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     hidePaid = settings?.hidePaidModels === true;
   } catch {}
   const applyFilter = <T extends { id?: string }>(data: T[]): T[] =>
-    hidePaid ? data.filter((m) => isFreeModel("or", m as any)) : data;
+    hidePaid ? data.filter((m) => isFreeModel("or", m as { id: string; pricing?: unknown })) : data;
 
   const forceRefresh = req.nextUrl.searchParams.get("refresh") === "true";
 
