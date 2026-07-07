@@ -423,6 +423,8 @@ export default function AddApiKeyModal({
       isOpen={isOpen}
       title={getAddCredentialModalTitle(t, providerDisplayName, webSessionCredential)}
       onClose={onClose}
+      size="lg"
+      bodyClassName="p-6 max-h-[85vh] overflow-y-auto"
     >
       <div className="flex flex-col gap-4">
         {bulkSupported && (
