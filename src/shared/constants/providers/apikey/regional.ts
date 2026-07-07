@@ -355,4 +355,18 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     deprecationReason:
       "api.inclusionai.tech no longer resolves (sweep 2026-06-19); the inference API appears discontinued.",
   },
+  hcnsec: {
+    id: "hcnsec",
+    alias: "hcnsec",
+    name: "Huancheng Public API",
+    icon: "security",
+    color: "#0EA5E9",
+    textIcon: "HC",
+    website: "https://api.hcnsec.cn",
+    hasFree: true,
+    freeNote:
+      "Xinjiang Huancheng Cybersecurity public LLM API platform: free credits with daily check-ins.",
+    passthroughModels: true,
+    authHint: "Get API key at api.hcnsec.cn",
+  },
 };

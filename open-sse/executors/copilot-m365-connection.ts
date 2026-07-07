@@ -35,6 +35,19 @@ export const M365_EDU_OVERRIDES = {
   licenseType: "Starter",
 } as const;
 
+/**
+ * Enterprise / "work" (Microsoft 365 Copilot for work) tier overrides (#6334). Enterprise
+ * tenants ride the `agent="work"` BizChat surface with the `officeweb` scenario and a
+ * Premium license. Opt-in via `providerSpecificData.tier="enterprise"` (alias `"work"`) so
+ * the individual and EDU paths are unchanged. A raw `providerSpecificData.agent` override is
+ * also honored for tenants that need a different agent value.
+ */
+export const M365_ENTERPRISE_OVERRIDES = {
+  agent: "work",
+  scenario: "officeweb",
+  licenseType: "Premium",
+} as const;
+
 export const M365_DEFAULT_VARIANTS = [
   "EnableMcpServerWidgets",
   "feature.EnableMcpServerWidgets",
@@ -94,6 +107,7 @@ export interface M365ConnectionParams {
   scenario?: string;
   isEdu?: string;
   licenseType?: string;
+  agent?: string;
 }
 
 /** A new 32-hex chat session id (== XRoutingParameterSessionKey == clientrequestid). */
@@ -174,16 +188,18 @@ export function resolveConnectionParams(
 }
 
 /**
- * Resolve tier overrides (opt-in). `tier="edu"|"included"` applies the EDU overrides;
- * individual fields (`scenario`/`isEdu`/`licenseType`) can also be overridden directly
- * via providerSpecificData. Unset fields fall back to the individual defaults in
- * buildWsUrl. (#6210)
+ * Resolve tier overrides (opt-in). `tier="edu"|"included"` applies the EDU overrides and
+ * `tier="enterprise"|"work"` applies the enterprise/work overrides; individual fields
+ * (`scenario`/`isEdu`/`licenseType`/`agent`) can also be overridden directly via
+ * providerSpecificData. Unset fields fall back to the individual defaults in buildWsUrl.
+ * (#6210, #6334)
  */
 function resolveTierOverrides(
   psd: JsonRecord
-): Pick<M365ConnectionParams, "scenario" | "isEdu" | "licenseType"> {
+): Pick<M365ConnectionParams, "scenario" | "isEdu" | "licenseType" | "agent"> {
   const tier = typeof psd.tier === "string" ? psd.tier.toLowerCase() : "";
   const isEduTier = tier === "edu" || tier === "included";
+  const isEnterpriseTier = tier === "enterprise" || tier === "work";
   const psdIsEdu =
     (typeof psd.isEdu === "string" && psd.isEdu) ||
     (typeof psd.isEdu === "boolean" && String(psd.isEdu)) ||
@@ -191,11 +207,16 @@ function resolveTierOverrides(
   return {
     scenario:
       (typeof psd.scenario === "string" && psd.scenario) ||
-      (isEduTier ? M365_EDU_OVERRIDES.scenario : undefined),
+      (isEduTier ? M365_EDU_OVERRIDES.scenario : undefined) ||
+      (isEnterpriseTier ? M365_ENTERPRISE_OVERRIDES.scenario : undefined),
     isEdu: psdIsEdu || (isEduTier ? M365_EDU_OVERRIDES.isEdu : undefined),
     licenseType:
       (typeof psd.licenseType === "string" && psd.licenseType) ||
-      (isEduTier ? M365_EDU_OVERRIDES.licenseType : undefined),
+      (isEduTier ? M365_EDU_OVERRIDES.licenseType : undefined) ||
+      (isEnterpriseTier ? M365_ENTERPRISE_OVERRIDES.licenseType : undefined),
+    agent:
+      (typeof psd.agent === "string" && psd.agent) ||
+      (isEnterpriseTier ? M365_ENTERPRISE_OVERRIDES.agent : undefined),
   };
 }
 
@@ -219,7 +240,7 @@ export function buildWsUrl(params: M365ConnectionParams): string {
     agentHost: M365_INDIVIDUAL_DEFAULTS.agentHost,
     licenseType: params.licenseType ?? M365_INDIVIDUAL_DEFAULTS.licenseType,
     isEdu: params.isEdu ?? "false",
-    agent: M365_INDIVIDUAL_DEFAULTS.agent,
+    agent: params.agent ?? M365_INDIVIDUAL_DEFAULTS.agent,
     scenario: params.scenario ?? M365_INDIVIDUAL_DEFAULTS.scenario,
   });
   return `wss://${params.host}/m365Copilot/Chathub/${params.chathubPath}?${query.toString()}`;

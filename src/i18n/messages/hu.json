@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "Az {provider} nem igényel API-kulcsot vagy cookie-t. Mentse el a kapcsolatot az ingyenes webvégpont használatához.",
     "webSessionCredentialValidationFailed": "A munkamenet hitelesítő adatainak ellenőrzése sikertelen. Jelentkezzen be újra, másoljon egy új hitelesítő adatot, és próbálja újra.",
     "checkCookie": "Ellenőrizze a cookie-t",
-    "checkWebToken": "Check token"
+    "checkWebToken": "Check token",
+    "filterAll": "Összes",
+    "filterActive": "Aktív",
+    "filterError": "Hiba",
+    "filterBanned": "Letiltva",
+    "filterCreditsExhausted": "Elfogyott kreditek"
   },
   "settings": {
     "title": "Beállítások elemre",

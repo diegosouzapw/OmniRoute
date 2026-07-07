@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
+import { normalizeReasoningRequest } from "@/shared/reasoning/effortStandardization";
 import { resolveRoutingModel } from "./resolveRoutingModel";
 import {
   getProviderCredentialsWithQuotaPreflight,
@@ -231,16 +232,24 @@ export async function handleChat(
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
 
+  // Feature #6241: fold the canonical `effort` / `thinking` request params onto the
+  // per-provider reasoning fields (reasoning_effort / reasoning.effort / thinking) that the
+  // existing translators already consume. Done here — right after the body is first
+  // resolved, before any reasoning field is read below — so it flows uniformly into every
+  // downstream mapper (Anthropic / Gemini / xAI / Responses). An explicit client
+  // reasoning_effort / reasoning / object-shaped thinking always wins (backward compatible).
+  body = normalizeReasoningRequest(body);
+
   // Early guard: an invalid `messages` field is rejected here with a clear
   // OmniRoute-level 400 before any routing or upstream call (#5110, #6402).
   // Without this guard, schema-invalid bodies fell through to model resolution
-  // and surfaced as a misleading 404 `model_not_found` from chatHelpers.ts
-  // (#6402). Cases covered:
-  //   - present-but-non-array (null, number, string, object) → 400
-  //   - empty array → 400 ("at least one message is required")
+  // and surfaced as a misleading 404 `model_not_found` from chatHelpers.ts (#6402).
+  // Cases covered:
+  //   - present-but-non-array (null, number, string, object) → 400 (#6402)
+  //   - empty array → 400 ("at least one message is required") (#5110)
   //   - missing entirely, when the Responses-API `input` discriminator is also
-  //     absent → 400. Responses-API requests use `input` (not `messages`) and
-  //     are still unaffected.
+  //     absent → 400 (#6402). Responses-API requests use `input` (not `messages`)
+  //     and are still unaffected.
   {
     const b = body as { messages?: unknown; input?: unknown };
     if ("messages" in b && !Array.isArray(b.messages)) {
@@ -253,10 +262,68 @@ export async function handleChat(
     }
     if (!("messages" in b) && !("input" in b)) {
       log.warn("CHAT", "Rejecting request with missing messages");
-      return errorResponse(
-        HTTP_STATUS.BAD_REQUEST,
-        "messages: Expected array, received undefined"
-      );
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array, received undefined");
+    }
+  }
+
+  // Reject non-string `model` before it reaches downstream code that calls
+  // `.toLowerCase()` / `.split()` / `.startsWith()` on it (crash-then-500 with an
+  // empty body, escaping the error sanitizer — #6407). An explicit `null`/`undefined`
+  // stays permitted here because the existing `Missing model` guard below returns a
+  // clean 400 for those; anything else that is not a string is a client type error.
+  const rawModel = (body as { model?: unknown }).model;
+  if (rawModel !== undefined && rawModel !== null && typeof rawModel !== "string") {
+    log.warn("CHAT", `Rejecting non-string model (typeof=${typeof rawModel})`);
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      `model: Expected string, received ${Array.isArray(rawModel) ? "array" : typeof rawModel}`
+    );
+  }
+
+  // Early schema validation for scalar params BEFORE provider/model resolution (#6412).
+  // Previously, a bad `temperature: "not-a-number"` on an unknown provider returned
+  // 404 "model_not_found" — hiding the real schema error. Validate the param shape
+  // first so the client gets a 400 with the field name. Kept narrow to widely-supported
+  // OpenAI-spec params (temperature 0..2, top_p 0..1, max_tokens int >=1) so we don't
+  // reject legitimate provider-specific fields.
+  {
+    const b = body as {
+      temperature?: unknown;
+      top_p?: unknown;
+      max_tokens?: unknown;
+      n?: unknown;
+    };
+    const badParam = (name: string, msg: string) =>
+      errorResponse(HTTP_STATUS.BAD_REQUEST, `${name}: ${msg}`);
+    if (b.temperature !== undefined) {
+      if (typeof b.temperature !== "number" || Number.isNaN(b.temperature)) {
+        return badParam("temperature", "must be a number");
+      }
+      if (b.temperature < 0 || b.temperature > 2) {
+        return badParam("temperature", "must be between 0 and 2");
+      }
+    }
+    if (b.top_p !== undefined) {
+      if (typeof b.top_p !== "number" || Number.isNaN(b.top_p)) {
+        return badParam("top_p", "must be a number");
+      }
+      if (b.top_p < 0 || b.top_p > 1) {
+        return badParam("top_p", "must be between 0 and 1");
+      }
+    }
+    if (b.max_tokens !== undefined) {
+      if (
+        typeof b.max_tokens !== "number" ||
+        !Number.isInteger(b.max_tokens) ||
+        b.max_tokens < 1
+      ) {
+        return badParam("max_tokens", "must be a positive integer");
+      }
+    }
+    if (b.n !== undefined) {
+      if (typeof b.n !== "number" || !Number.isInteger(b.n) || b.n < 1) {
+        return badParam("n", "must be a positive integer");
+      }
     }
   }
 

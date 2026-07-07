@@ -109,7 +109,10 @@ export function recordRequestComplete(
   opts: RecordRequestCompleteOpts
 ): void {
   intercepted.status = opts.status;
-  intercepted.responseHeaders = opts.responseHeaders;
+  // SECURITY_AUDIT M6: mask secret-bearing upstream response headers (Set-Cookie,
+  // Authorization, …) before they land in inspector JSON. The request side already
+  // sanitizes (line ~69); the response side was storing headers verbatim.
+  intercepted.responseHeaders = sanitizeHeaders(opts.responseHeaders);
   intercepted.responseBody =
     opts.responseBody != null ? maskSecret(opts.responseBody) : null;
   intercepted.responseSize = opts.responseSize;
