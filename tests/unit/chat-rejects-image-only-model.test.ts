@@ -11,7 +11,11 @@ import assert from "node:assert/strict";
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
 
 const harness = await createChatPipelineHarness("chat-rejects-image-only-model");
-const { buildRequest, handleChat, resetStorage } = harness as any;
+const { buildRequest, handleChat, resetStorage } = harness as {
+  buildRequest: (opts: { body: unknown }) => Request;
+  handleChat: (req: Request) => Promise<Response>;
+  resetStorage: () => void | Promise<void>;
+};
 
 test.beforeEach(async () => {
   await resetStorage();
@@ -39,7 +43,7 @@ test("POST /v1/chat/completions with a HuggingFace image model returns 400 + gen
   try {
     const res = await handleChat(request);
     assert.equal(res.status, 400, "must reject with 400 before dispatch");
-    const body: any = await res.json();
+    const body = (await res.json()) as { error?: { message?: string } };
     const msg = body?.error?.message || JSON.stringify(body);
     assert.match(msg, /image-generation model/i);
     assert.match(msg, /\/v1\/images\/generations/);
@@ -62,7 +66,7 @@ test("POST /v1/chat/completions with a chat model still reaches routing (guard i
   // routing produces (typically a credentials/connection error in the harness).
   // The critical assertion is: it is NOT the image-guard 400.
   if (res.status === 400) {
-    const body: any = await res.json();
+    const body = (await res.json()) as { error?: { message?: string } };
     const msg = body?.error?.message || JSON.stringify(body);
     assert.doesNotMatch(msg, /image-generation model/i, "chat model must not trip the image guard");
   }
