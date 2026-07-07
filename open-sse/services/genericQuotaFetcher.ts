@@ -72,6 +72,11 @@ function percentUsedForQuota(entry: unknown): number | null {
   if (!entry || typeof entry !== "object") return null;
   const q = entry as Record<string, unknown>;
   if (q.unlimited === true) return null;
+  // Upstream explicitly told us it did not report this window's fraction
+  // (e.g. Antigravity per-model quota with no usage data yet). Treat as
+  // unknown rather than defaulting remainingPercentage:0 into "100% used" —
+  // otherwise one unreported model falsely exhausts the whole connection.
+  if (q.fractionReported === false) return null;
 
   const remainingPercentage = toNumber(q.remainingPercentage);
   if (remainingPercentage !== null) {

@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} haihitaji ufunguo wa API au kidakuzi. Hifadhi muunganisho ili utumie mwisho wake wa wavuti bila malipo.",
     "webSessionCredentialValidationFailed": "Uthibitishaji wa kitambulisho cha kipindi umeshindwa. Ingia tena, nakili kitambulisho kipya, na ujaribu tena.",
     "checkCookie": "Angalia kuki",
-    "checkWebToken": "Angalia ishara"
+    "checkWebToken": "Angalia ishara",
+    "filterAll": "Zote",
+    "filterActive": "Inayotumika",
+    "filterError": "Hitilafu",
+    "filterBanned": "Imepigwa marufuku",
+    "filterCreditsExhausted": "Salio limeisha"
   },
   "settings": {
     "title": "Settings",
