@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_07_07_v3846_proxy_insecure_random": "PR #6580 (v3.8.46 post-release closing fix): proxies.ts 1173->1177 (+4) — o fix de segurança CodeQL #698/#699 troca Math.random por crypto.randomInt no random rotation strategy (#6365) e adiciona 4 linhas de comentário explicando por que (a seleção flui para credenciais do proxy). Crescimento irreducivel do proprio fix; frozen so encolhe daqui.",
   "_rebaseline_2026_07_07_v3846_release_close": "Release v3.8.46 Phase 0 (generate-release) — drift de ciclo absorvido no fechamento (fast-gates PR->release nao rodam check:file-size). PROD god-files crescidos por merges do ciclo (nao meus; DECOMPOR idealmente, debt #3501): proxies.ts 1060->1173, chat.ts 1681->1751, ApiManagerPageClient.tsx 3058->3120, ProxyRegistryManager.tsx 1125->1437 (feature de proxy). TEST frozen: models-catalog-route.test.ts 1600->1605 (+5 do fix#2 do captain, #6408 catalogo cache), vscode-token-routes.test.ts 1212->1285 (cycle drift + os asserts effort_tiers/supportsThinking do #6241 alinhados no release-PR-CI base-red), que adiciona o import + 2 chamadas do hook __resetCatalogBuilderRunsForTest existente no setup (harness, sem asserts). Shrink estrutural rastreado no roadmap #3501.",
   "_rebaseline_2026_07_04_v3844_release_close": "Release v3.8.44 Phase 0 (generate-release): drift de ciclo absorvido no fechamento, medido no tip 415d159c8 (fast-gates PR->release nao rodam check:file-size). oauth/[provider]/[action]/route.ts 924->960 (#6054 zed keychain-import 400 gracioso; PR #6158 aberto extrai o guard e restaura o freeze — quando mergear, o frozen so encolhe), providerLimits.ts 982->998 (#6139 TOCTOU quota recovery + #6128), chat.ts 1647->1662 (#6057 per-request Auto-Combo X-OmniRoute-Mode/Budget + #6097), auth.ts 2405->2426 (#6139 + #6090 quota preflight lockouts + #5943 codex session affinity). Crescimento irreducivel em chokepoints existentes, coberto por testes por-PR; shrink estrutural rastreado no roadmap #3501.",
   "_rebaseline_2026_07_03_v3844_ipfilter_release_green": "testFrozen bumps: models-catalog-route 1507->1600, perplexity-web 959->999, route-edge-coverage 1234->1241 (last is my #5975 comment +7). v3.8.44 cycle drift measured on release tip 32e4c906e during the #6131/#5975 release-green rebaseline. Inherited from the merge burst (Quality Ratchet does not run on PR->release fast-gates). route-edge-coverage +7 is my #5975 test comment; the rest is parallel-session drift. Tighten via --update next cycle.",
@@ -234,7 +235,7 @@
     "src/lib/db/migrationRunner.ts": 1125,
     "src/lib/db/models.ts": 1259,
     "src/lib/db/providers.ts": 1107,
-    "src/lib/db/proxies.ts": 1173,
+    "src/lib/db/proxies.ts": 1177,
     "src/lib/db/settings.ts": 1155,
     "src/lib/db/usageAnalytics.ts": 925,
     "src/lib/evals/evalRunner.ts": 961,
