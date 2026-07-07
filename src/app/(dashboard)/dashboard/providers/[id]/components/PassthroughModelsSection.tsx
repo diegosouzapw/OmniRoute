@@ -14,6 +14,7 @@
  */
 import React, { useState, useMemo } from "react";
 import { Button } from "@/shared/components";
+import { generateUniqueModelAlias } from "./passthroughAlias.ts";
 import {
   matchesModelCatalogQuery,
   normalizeModelCatalogSource,
@@ -323,22 +324,18 @@ export default function PassthroughModelsSection({
     : filteredModels;
   const activeCount = allModels.filter((model) => !model.isHidden).length;
 
-  // Generate default alias from modelId (last part after /)
-  const generateDefaultAlias = (modelId: string) => {
-    const parts = modelId.split("/");
-    return parts[parts.length - 1];
-  };
-
   const handleAdd = async () => {
     if (!newModel.trim() || adding) return;
     const modelId = newModel.trim();
-    const defaultAlias = generateDefaultAlias(modelId);
 
-    // Check if alias already exists
-    if (modelAliases[defaultAlias]) {
-      alert(t("aliasExistsAlert", { alias: defaultAlias }));
+    // #1850: block re-adding the SAME model, but disambiguate DISTINCT models
+    // that would otherwise collapse to the same last-segment alias (e.g.
+    // enx/gpt-5.5 vs enx/codebuddy/gpt-5.5 → both "gpt-5.5").
+    if (Object.values(modelAliases).includes(modelId)) {
+      alert(t("aliasExistsAlert", { alias: modelId }));
       return;
     }
+    const defaultAlias = generateUniqueModelAlias(modelId, modelAliases);
 
     setAdding(true);
     try {

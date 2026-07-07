@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} không cần khóa API hoặc cookie. Lưu kết nối để sử dụng điểm cuối web miễn phí của nó.",
     "webSessionCredentialValidationFailed": "Xác thực thông tin xác thực phiên không thành công. Đăng nhập lại, sao chép thông tin xác thực mới và thử lại.",
     "checkCookie": "Kiểm tra cookie",
-    "checkWebToken": "Kiểm tra mã thông báo"
+    "checkWebToken": "Kiểm tra mã thông báo",
+    "filterAll": "Tất cả",
+    "filterActive": "Hoạt động",
+    "filterError": "Lỗi",
+    "filterBanned": "Bị cấm",
+    "filterCreditsExhausted": "Hết tín dụng"
   },
   "settings": {
     "title": "Cài đặt",

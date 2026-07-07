@@ -648,7 +648,7 @@ omniroute providers validate                        # Local-only structural vali
 ### Recovery & Reset
 
 ```bash
-omniroute reset-password                # Reset the admin password (legacy alias still works)
+omniroute reset-password                # Reset the admin password (also: omniroute-reset-password)
 omniroute reset-encrypted-columns       # Show warning + dry-run for encrypted credential reset
 omniroute reset-encrypted-columns --force  # Actually null out encrypted credentials in SQLite
 ```
