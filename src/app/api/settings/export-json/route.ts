@@ -20,7 +20,7 @@ import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
  * re-materialises the paid targets the operator asked to REMOVE (#6328).
  * Filter combo model steps in place; keep combo-ref steps untouched.
  */
-function filterPaidComboSteps<T extends { models?: unknown }>(combos: T[]): T[] {
+export function filterPaidComboSteps<T extends { models?: unknown }>(combos: T[]): T[] {
   return combos.map((combo) => {
     if (!Array.isArray(combo.models)) return combo;
     const filtered = combo.models.filter((step) => {
