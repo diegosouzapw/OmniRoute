@@ -29,6 +29,7 @@ import {
   isPaidTierAutoId,
 } from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
+import { getModelCatalogCacheVersion } from "@/lib/db/readCache";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
@@ -95,7 +96,12 @@ export { getCustomVisionCapabilityFields };
 // then memoize the serialized body for a short window so a burst (SDK startup,
 // multi-tab dashboard poll) returns from cache. Auth-rejection paths are NOT
 // cached (they depend on live session state — dashboard cookies, API key).
-type CachedCatalog = { body: string; headers: Record<string, string>; expiresAt: number };
+type CachedCatalog = {
+  body: string;
+  headers: Record<string, string>;
+  status: number;
+  expiresAt: number;
+};
 const CATALOG_CACHE_TTL_MS = 1500; // ~one request-latency window; safe vs SDK bursts
 const catalogCache = new Map<string, CachedCatalog>();
 const catalogInFlight = new Map<string, Promise<CachedCatalog>>();
@@ -108,6 +114,7 @@ export function __resetCatalogBuilderRunsForTest(): void {
   _catalogBuilderRuns = 0;
   catalogCache.clear();
   catalogInFlight.clear();
+  lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
 }
 export function __getCatalogBuilderRunsForTest(): number {
   return _catalogBuilderRuns;
@@ -119,6 +126,45 @@ function buildCatalogCacheKey(request: Request): string {
   const apiKey = extractApiKey(request) || "";
   const isCodex = isCodexModelCatalogClient(request) ? "1" : "0";
   return `${prefix}|${isCodex}|${apiKey}`;
+}
+
+// Tracks the model-catalog cache version (src/lib/db/readCache.ts) as of the last
+// cache access. invalidateDbCache() bumps that version on every settings/connections/
+// combos/pricing write; when it moves on, every memoized entry here was built from
+// state that no longer holds, so drop them all rather than keying by version (which
+// would leak one Map entry per version forever instead of ever pruning old ones).
+let lastSeenCatalogCacheVersion = getModelCatalogCacheVersion();
+function dropCatalogCacheIfStateChanged(): void {
+  const currentVersion = getModelCatalogCacheVersion();
+  if (currentVersion === lastSeenCatalogCacheVersion) return;
+  lastSeenCatalogCacheVersion = currentVersion;
+  catalogCache.clear();
+  // Deliberately NOT clearing catalogInFlight: an in-flight build already reads live
+  // DB/settings state as of when it started, so letting it finish and populate the
+  // (now-current) cache entry is correct — clearing it would just force a redundant
+  // second builder run for requests that arrive mid-flight.
+}
+
+// Header sources here mix Title-Case keys (diagnosticHeaders, corsHeaders — plain
+// objects built by app code) with lower-case keys (payload/cached.headers — captured
+// via the Fetch `Headers` iterator, which always yields lower-cased names). Merging
+// those with a plain object spread leaves both casings present as distinct object
+// keys; the `Response` constructor then treats them as the same case-insensitive
+// header and *appends* rather than overwrites, producing a comma-joined duplicate
+// (e.g. request-id echoing "foo, foo"). Merge through a real `Headers` instance
+// instead so `.set()` overwrites case-insensitively. Sources listed earlier are the
+// base (cached/freshly-built payload headers); `diagnosticHeaders` is applied last so
+// per-request fields (e.g. X-Request-Id) always reflect the *current* request rather
+// than whichever request happened to populate the cache entry.
+function mergeCatalogHeaders(...sources: Array<Record<string, string> | undefined>): Headers {
+  const merged = new Headers();
+  for (const source of sources) {
+    if (!source) continue;
+    for (const [key, value] of Object.entries(source)) {
+      merged.set(key, value);
+    }
+  }
+  return merged;
 }
 
 /**
@@ -148,11 +194,13 @@ export async function getUnifiedModelsResponse(
     // Fall through to full builder on auth-check failure; core handles errors.
   }
 
+  dropCatalogCacheIfStateChanged();
   const cacheKey = buildCatalogCacheKey(request);
   const cached = catalogCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
     return new Response(cached.body, {
-      headers: { ...corsHeaders, ...diagnosticHeaders, ...cached.headers },
+      status: cached.status,
+      headers: mergeCatalogHeaders(corsHeaders, cached.headers, diagnosticHeaders),
     });
   }
 
@@ -162,6 +210,7 @@ export async function getUnifiedModelsResponse(
       catalogCache.set(cacheKey, {
         body: payload.body,
         headers: payload.headers,
+        status: payload.status,
         expiresAt: Date.now() + CATALOG_CACHE_TTL_MS,
       });
       return payload;
@@ -175,7 +224,8 @@ export async function getUnifiedModelsResponse(
   try {
     const payload = await inflight;
     return new Response(payload.body, {
-      headers: { ...corsHeaders, ...diagnosticHeaders, ...payload.headers },
+      status: payload.status,
+      headers: mergeCatalogHeaders(corsHeaders, payload.headers, diagnosticHeaders),
     });
   } catch (err) {
     return Response.json(
@@ -193,7 +243,7 @@ export async function getUnifiedModelsResponse(
 
 async function buildCatalogPayload(
   request: Request
-): Promise<{ body: string; headers: Record<string, string> }> {
+): Promise<{ body: string; headers: Record<string, string>; status: number }> {
   _catalogBuilderRuns++;
   const built = await buildUnifiedModelsResponseCore(request);
   const body = await built.text();
@@ -201,7 +251,13 @@ async function buildCatalogPayload(
   built.headers.forEach((value, key) => {
     headers[key] = value;
   });
-  return { body, headers };
+  // buildUnifiedModelsResponseCore() itself returns a real error Response (status 500)
+  // when the builder crashes (e.g. a DB read throws) instead of throwing — status must
+  // be captured and replayed through the cache/coalescing wrapper above, otherwise the
+  // caller-facing Response (built with a fresh `new Response(...)`, defaulting to 200)
+  // silently downgrades a genuine server error into an HTTP 200 with an `error`-shaped
+  // JSON body.
+  return { body, headers, status: built.status };
 }
 
 /**
