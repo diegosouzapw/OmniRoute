@@ -227,6 +227,31 @@ export async function POST(req: Request) {
       ? summarizeEncoderCandidates(messages, DEFAULT_MIN_ROWS, countTextTokens)
       : null;
 
+    // #6461: when fallbackApplied=true, synthesize a deduped reason list from data the
+    // pipeline already produces on result.stats (engineBreakdown[].rejectReason,
+    // validationErrors, and inflation-guard entries in validationWarnings). Non-fallback
+    // runs return []/null — zero change on the happy path.
+    const fallbackReasons: string[] = [];
+    if (diff.fallbackApplied) {
+      const seen = new Set<string>();
+      const push = (s: unknown) => {
+        if (typeof s === "string" && s.length > 0 && !seen.has(s)) {
+          seen.add(s);
+          fallbackReasons.push(s);
+        }
+      };
+      for (const step of engineBreakdown) {
+        if ((step as { rejected?: boolean }).rejected === true) {
+          push((step as { rejectReason?: string }).rejectReason);
+        }
+      }
+      for (const err of diff.validationErrors ?? []) push(err);
+      for (const warn of diff.validationWarnings ?? []) {
+        if (typeof warn === "string" && warn.startsWith("pipeline-inflation-guard:")) push(warn);
+      }
+    }
+    const fallbackReason = fallbackReasons[0] ?? null;
+
     return NextResponse.json({
       encoderComparison,
       original: originalText,
@@ -243,7 +268,7 @@ export async function POST(req: Request) {
       mode: effectiveMode,
       intensity: null,
       outputMode: null,
-      skippedReasons: [],
+      skippedReasons: fallbackReasons,
       diff: diff.segments,
       preservedBlocks: diff.preservedBlocks,
       ruleRemovals: diff.ruleRemovals,
@@ -257,6 +282,8 @@ export async function POST(req: Request) {
       validationWarnings: diff.validationWarnings,
       validationErrors: diff.validationErrors,
       fallbackApplied: diff.fallbackApplied,
+      fallbackReason,
+      fallbackReasons,
       ...(diff.heatmap ? { heatmap: diff.heatmap } : {}),
     });
   } catch (err: unknown) {
