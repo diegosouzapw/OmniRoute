@@ -223,6 +223,50 @@ export function validateProviderSpecificData(
     }
   }
 
+  for (const key of [
+    "glmOrganizationId",
+    "bigmodelOrganization",
+    "glmOrganization",
+    "glmProjectId",
+    "bigmodelProject",
+    "glmProject",
+  ] as const) {
+    const value = data[key];
+    if (value !== undefined && value !== null && typeof value !== "string") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be a string`,
+        path: [key],
+      });
+    }
+    if (typeof value === "string" && value.length > 200) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `providerSpecificData.${key} must be at most 200 characters`,
+        path: [key],
+      });
+    }
+  }
+
+  const glmOrganizationId =
+    (typeof data.glmOrganizationId === "string" && data.glmOrganizationId.trim()) ||
+    (typeof data.bigmodelOrganization === "string" && data.bigmodelOrganization.trim()) ||
+    (typeof data.glmOrganization === "string" && data.glmOrganization.trim()) ||
+    "";
+  const glmProjectId =
+    (typeof data.glmProjectId === "string" && data.glmProjectId.trim()) ||
+    (typeof data.bigmodelProject === "string" && data.bigmodelProject.trim()) ||
+    (typeof data.glmProject === "string" && data.glmProject.trim()) ||
+    "";
+  if (Boolean(glmOrganizationId) !== Boolean(glmProjectId)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "providerSpecificData.glmOrganizationId and glmProjectId must both be set for GLM team plan quota",
+      path: glmOrganizationId ? ["glmProjectId"] : ["glmOrganizationId"],
+    });
+  }
+
   const groupTag = data.tag;
   if (
     groupTag !== undefined &&

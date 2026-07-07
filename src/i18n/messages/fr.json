@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} n'a pas besoin de clé API ni de cookie. Enregistrez la connexion pour utiliser son point de terminaison Web gratuit.",
     "webSessionCredentialValidationFailed": "La validation des informations d'identification de session a échoué. Connectez-vous à nouveau, copiez un nouvel identifiant et réessayez.",
     "checkCookie": "Vérifier les cookies",
-    "checkWebToken": "Vérifier le jeton"
+    "checkWebToken": "Vérifier le jeton",
+    "filterAll": "Tous",
+    "filterActive": "Actif",
+    "filterError": "Erreur",
+    "filterBanned": "Banni",
+    "filterCreditsExhausted": "Crédits épuisés"
   },
   "settings": {
     "title": "Paramètres",

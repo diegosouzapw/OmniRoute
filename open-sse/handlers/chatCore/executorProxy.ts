@@ -10,6 +10,7 @@
  */
 
 import { getExecutor } from "../../executors/index.ts";
+import { isCliproxyapiDeepModeEnabled } from "../../executors/cliproxyapi.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { getUpstreamProxyConfigCached } from "./comboContextCache.ts";
 
@@ -22,7 +23,25 @@ type LoggerLike =
   | null
   | undefined;
 
-export async function resolveExecutorWithProxy(prov: string, log?: LoggerLike) {
+export async function resolveExecutorWithProxy(
+  prov: string,
+  log?: LoggerLike,
+  providerSpecificData?: Record<string, unknown> | null
+) {
+  // Per-connection routing override (#6339): the resolved connection can opt itself
+  // into the CLIProxyAPI passthrough executor via providerSpecificData.cliproxyapiMode
+  // === "claude-native" (UI toggle). This takes precedence over the provider-level
+  // upstream_proxy_config mode — one connection can deep-route while the provider's
+  // default (and its other connections) stay native. Backward-compatible: connections
+  // without the flag fall through to the existing per-provider behaviour untouched.
+  if (isCliproxyapiDeepModeEnabled(providerSpecificData)) {
+    log?.info?.(
+      "UPSTREAM_PROXY",
+      `${prov} routed through CLIProxyAPI (per-connection claude-native override)`
+    );
+    return getExecutor("cliproxyapi");
+  }
+
   const cfg = await getUpstreamProxyConfigCached(prov);
   if (!cfg.enabled || cfg.mode === "native") return getExecutor(prov);
 

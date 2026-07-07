@@ -193,3 +193,51 @@ export const bulkProxyAssignmentSchema = z
       });
     }
   });
+
+// #6365 proxy pools — a scope may hold MULTIPLE proxies (a rotation pool). These
+// schemas gate the pool-membership add/remove and the per-scope rotation strategy.
+// Kept in lockstep with `ProxyRotationStrategy` in src/lib/db/proxies/types.ts.
+export const PROXY_POOL_ROTATION_STRATEGY_VALUES = [
+  "round-robin",
+  "random",
+  "sticky",
+] as const;
+
+// Add/remove one proxy to/from a scope's pool. proxyId is REQUIRED (unlike the
+// single-assign schema where a null proxyId clears the assignment).
+export const proxyPoolMemberSchema = z
+  .object({
+    scope: z.enum(["global", "provider", "account", "combo", "key"]),
+    scopeId: z.string().trim().nullable().optional(),
+    proxyId: z.string().trim().min(1, "proxyId is required"),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.scope !== "global" && !value.scopeId?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "scopeId is required for provider/account/combo/key scope",
+        path: ["scopeId"],
+      });
+    }
+  });
+
+// Set a scope pool's rotation strategy. Optional sticky window (minutes) only
+// applies to the `sticky` strategy; ignored otherwise.
+export const proxyRotationStrategySchema = z
+  .object({
+    scope: z.enum(["global", "provider", "account", "combo", "key"]),
+    scopeId: z.string().trim().nullable().optional(),
+    strategy: z.enum(PROXY_POOL_ROTATION_STRATEGY_VALUES),
+    stickyWindowMinutes: z.number().int().min(1).max(1440).optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.scope !== "global" && !value.scopeId?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "scopeId is required for provider/account/combo/key scope",
+        path: ["scopeId"],
+      });
+    }
+  });

@@ -440,6 +440,29 @@ export const ZED_CONFIG = {
   manualImportUrl: "/api/providers/zed/manual-import",
 };
 
+// Zed Hosted Models Configuration (native-app RSA-keypair sign-in)
+//
+// Zed's cloud aggregator (cloud.zed.dev) does not use a registered OAuth
+// client_id/secret. The client generates a fresh RSA keypair per login
+// attempt and sends the public key to zed.dev/native_app_signin; Zed
+// encrypts the resulting access token against that public key and redirects
+// the browser to a local "native app" callback
+// (http://127.0.0.1:<port>/?user_id=...&access_token=...). OmniRoute decrypts
+// the token with the matching private key — see open-sse/shared/zedAuth.ts.
+// No client_id/secret/Firebase key is embedded here (Hard Rule #11 does not
+// apply — there is no upstream secret to embed).
+export const ZED_HOSTED_CONFIG = {
+  webBaseUrl: "https://zed.dev",
+  cloudBaseUrl: "https://cloud.zed.dev",
+  llmBaseUrl: "https://cloud.zed.dev",
+  nativeSignInPath: "/native_app_signin",
+  userInfoUrl: "https://cloud.zed.dev/client/users/me",
+  llmTokenUrl: "https://cloud.zed.dev/client/llm_tokens",
+  modelsUrl: "https://cloud.zed.dev/models",
+  completionsUrl: "https://cloud.zed.dev/completions",
+  defaultNativeAppPort: 58443,
+};
+
 // OAuth timeout (5 minutes)
 export const OAUTH_TIMEOUT = 300000;
 
@@ -467,4 +490,5 @@ export const PROVIDERS = {
   CODEBUDDY_CN: "codebuddy-cn",
   GROK_CLI: "grok-cli",
   ZED: "zed",
+  ZED_HOSTED: "zed-hosted",
 };
