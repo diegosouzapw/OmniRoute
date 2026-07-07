@@ -295,7 +295,7 @@ function getPolicyRequest(authRequest: Request, apiKey: string | null): Request 
 
   const headers = new Headers(authRequest.headers);
   headers.set("Authorization", `Bearer ${apiKey}`);
-  return new Request(authRequest.url, { headers });
+  return new Request(authRequest, { headers });
 }
 
 function jsonError(status: number, code: string, message: string) {
@@ -370,8 +370,7 @@ async function prepare(body: JsonRecord) {
   const policy = await enforceApiKeyPolicy(getPolicyRequest(authRequest, apiKey), requestedModel);
   if (policy.rejection) return policy.rejection;
 
-  const metadata =
-    policy.apiKeyInfo || (apiKey ? await getApiKeyMetadata(apiKey).catch(() => null) : null);
+  const metadata = policy.apiKeyInfo;
   const allowedConnections =
     metadata && Array.isArray(metadata.allowedConnections) && metadata.allowedConnections.length > 0
       ? metadata.allowedConnections
