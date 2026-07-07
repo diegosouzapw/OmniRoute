@@ -10,6 +10,7 @@
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { getSettings } from "@/lib/localDb";
+import { AUTHZ_HEADER_PEER_LOCALITY } from "@/server/authz/headers";
 import { isPublicApiRoute } from "@/shared/constants/publicApiRoutes";
 import { extractApiKey } from "@/sse/services/auth";
 
@@ -113,6 +114,13 @@ function getRequestHostname(request: RequestLike | Request | null | undefined): 
 }
 
 export function isLoopbackRequest(request: RequestLike | Request | null | undefined): boolean {
+  const requestHeaders =
+    request && typeof request === "object" && "headers" in request ? request.headers : undefined;
+  const peerLocality = requestHeaders?.get(AUTHZ_HEADER_PEER_LOCALITY);
+  if (peerLocality) {
+    return peerLocality === "loopback";
+  }
+
   const hostname = getRequestHostname(request);
   if (!hostname) return false;
 
@@ -335,7 +343,7 @@ export async function isAuthRequired(
       }
 
       if (isRequireLoginBootstrapWritePath(pathname, method)) {
-        return false;
+        return !isLoopbackRequest(request);
       }
 
       return settings.setupComplete === true || !isLoopbackRequest(request);
