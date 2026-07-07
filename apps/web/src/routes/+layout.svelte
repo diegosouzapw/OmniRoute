@@ -5,8 +5,12 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { t, getLocale, setLocale, supportedLanguages } from '$lib/i18n';
+  import { initWebVitals } from '$lib/observability/web-vitals';
+  import { onMount } from 'svelte';
 
   let { children } = $props();
+
+  onMount(() => { initWebVitals(); });
 
   const nav = [
     { href: '/dashboard', key: 'nav.dashboard' },
