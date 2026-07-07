@@ -38,9 +38,9 @@ function isAnthropicPngImageBlock(value: unknown): value is AnthropicImageBlock 
 /**
  * Decode PNG width/height from the IHDR chunk without decoding the whole image.
  * PNG layout: 8-byte signature, then IHDR chunk `length(4) + "IHDR"(4) + width(4) +
- * height(4) + ...`. Width/height live at bytes 16..19 / 20..23 (big-endian uint32).
- * We only need the first 33 raw bytes → ~44 base64 chars is enough; the brief's
- * "~32 chars" undershoots by a few bytes so we read a safely larger prefix.
+ * height(4) + ...`. Width/height live at bytes 16..19 / 20..23 (big-endian uint32),
+ * so we need through byte 23 (24 raw bytes). We slice the first 64 base64 chars
+ * → 48 raw bytes, a comfortable margin over the 24 required.
  * Returns null (never throws) on malformed/non-PNG/truncated input.
  */
 function decodePngDimensions(base64: string): { width: number; height: number } | null {
