@@ -1,11 +1,11 @@
 [package]
-name = "omniroute-desktop"
+name = "argismonitor-desktop"
 version = "0.1.0"
 edition = "2021"
-description = "OmniRoute native desktop shell"
+description = "argismonitor native desktop shell"
 
 [lib]
-name = "omniroute_desktop_lib"
+name = "argismonitor_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

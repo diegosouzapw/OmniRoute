@@ -1,4 +1,4 @@
-# OmniRoute desktop (canonical entry)
+# argismonitor desktop (canonical entry)
 
 This path is the **registry-canonical** desktop client location per [ADR-ECO-015](https://github.com/KooshaPari/phenotype-registry/blob/main/docs/adrs/ADR-ECO-015-hybrid-gateway-app-layer.md) (FFI + Electrobun spike).
 

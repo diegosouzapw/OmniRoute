@@ -1,5 +1,5 @@
 {
-  "name": "@omniroute/bff",
+  "name": "@argismonitor/bff",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@omniroute/api-contracts": "workspace:*",
+    "@argismonitor/api-contracts": "workspace:*",
     "hono": "^4.0.0",
     "@hono/zod-validator": "^0.4.0",
     "@hono/node-server": "^1.0.0",

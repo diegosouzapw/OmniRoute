@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "OmniRoute",
+  "productName": "argismonitor",
   "version": "0.1.0",
-  "identifier": "online.phenotype.omniroute",
+  "identifier": "online.phenotype.argismonitor",
   "build": {
     "frontendDist": "http://localhost:4321",
     "devUrl": "http://localhost:4321"
@@ -10,7 +10,7 @@
   "app": {
     "windows": [
       {
-        "title": "OmniRoute",
+        "title": "argismonitor",
         "width": 1280,
         "height": 800,
         "minWidth": 800,
@@ -18,7 +18,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' ipc: http://ipc.localhost ws://localhost:4321 http://localhost:20128 unix:/var/run/omniroute/bff.sock"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' ipc: http://ipc.localhost ws://localhost:4321 http://localhost:20128 unix:/var/run/argismonitor/bff.sock"
     },
     "trayIcon": {
       "iconPath": "icons/tray.png",
@@ -30,13 +30,13 @@
     "targets": "all",
     "icon": ["icons/32x32.png", "icons/128x128.png"],
     "category": "DeveloperTool",
-    "shortDescription": "OmniRoute desktop",
+    "shortDescription": "argismonitor desktop",
     "longDescription": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A.",
     "publisher": "Phenotype Contributors",
     "copyright": "MIT License",
-    "homepage": "https://omniroute.online",
+    "homepage": "https://argismonitor.online",
     "category": "DeveloperTool",
-    "shortDescription": "OmniRoute - unified AI router",
+    "shortDescription": "argismonitor - unified AI router",
     "longDescription": "Unified AI router with 160+ providers, auto fallback, MCP/A2A, OpenAI-compatible API, web + native desktop.",
     "resources": ["images/*", "binaries/*"],
     "externalBin": [],

@@ -1,6 +1,6 @@
-# OmniRoute v4 Monorepo
+# argismonitor v4 Monorepo
 
-Subpath monorepo for the OmniRoute v4 frontend + native shell rewrite.
+Subpath monorepo for the argismonitor frontend + native shell rewrite (was OmniRoute v4).
 
 ## Stack
 

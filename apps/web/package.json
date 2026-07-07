@@ -1,5 +1,5 @@
 {
-  "name": "@omniroute/web",
+  "name": "@argismonitor/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@inlang/paraglide-js": "^2.0.0",
-    "@omniroute/api-contracts": "workspace:*",
+    "@argismonitor/api-contracts": "workspace:*",
     "@sveltejs/adapter-node": "^5.0.0",
     "@sveltejs/kit": "^2.0.0",
     "@trpc/client": "^11.0.0",

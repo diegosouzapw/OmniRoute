@@ -12,12 +12,12 @@ and the release pipeline.
 | macOS notarization | App-specific password | n/a | repo secret `APPLE_PASSWORD` |
 | macOS team | Apple Developer Team ID | n/a | repo secret `APPLE_TEAM_ID` |
 | Windows | Azure Trusted Signing (.pfx) | n/a | repo secrets `WINDOWS_CERTIFICATE` + `WINDOWS_CERTIFICATE_PASSWORD` + Azure service principal |
-| Tauri updater | self-generated RSA key (per release train) | `~/.tauri/omniroute.key` | repo secret `TAURI_SIGNING_PRIVATE_KEY` |
+| Tauri updater | self-generated RSA key (per release train) | `~/.tauri/argismonitor.key` | repo secret `TAURI_SIGNING_PRIVATE_KEY` |
 | Tauri updater pubkey | derived from above | n/a | baked into `tauri.conf.json` -> `plugins.updater.pubkey` |
 
 ## macOS pipeline
 
-1. Sign with `codesign --deep --force --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" OmniRoute.app`
+1. Sign with `codesign --deep --force --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" argismonitor.app`
 2. Build DMG
 3. `xcrun notarytool submit` to Apple notary service (via `scripts/notarize.sh`)
 4. `xcrun stapler staple` to embed the ticket
@@ -39,7 +39,7 @@ and the release pipeline.
 
 ## Tauri updater
 
-- Generate release keypair once: `cargo install tauri-cli --version '^2' && tauri signer generate -w ~/.tauri/omniroute.key`
+- Generate release keypair once: `cargo install tauri-cli --version '^2' && tauri signer generate -w ~/.tauri/argismonitor.key`
 - Store the **private** key in `TAURI_SIGNING_PRIVATE_KEY` (CI secret)
 - Store the **public** key in `tauri.conf.json` -> `plugins.updater.pubkey`
 - Auto-update channel: `https://github.com/KooshaPari/OmniRoute/releases/latest/download/{{target}}/{{current_version}}`

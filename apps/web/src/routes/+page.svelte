@@ -15,7 +15,7 @@
 </script>
 
 <section class="p-8">
-  <h1 class="text-4xl font-bold mb-4">Welcome to OmniRoute v4</h1>
+  <h1 class="text-4xl font-bold mb-4">Welcome to argismonitor v4</h1>
   <p class="text-gray-700 mb-6">Svelte 5 + SvelteKit 2 + Hono 4 + Tauri 2. Cohabit behind per-route feature flag.</p>
 
   <div class="border border-gray-200 rounded-lg p-4 bg-white mb-6">

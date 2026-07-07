@@ -1,6 +1,6 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "app.title": "OmniRoute v4",
+  "app.title": "argismonitor v4",
   "app.tagline": "Svelte 5 + SvelteKit 2 + Hono 4 + Tauri 2",
   "nav.dashboard": "Dashboard", "nav.providers": "Aanbieders",
   "nav.combos": "Combo's", "nav.keys": "API-sleutels", "nav.usage": "Gebruik",

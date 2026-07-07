@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "OmniRoute default capabilities",
+  "description": "argismonitor default capabilities",
   "windows": ["main"],
   "permissions": [
     "core:default",

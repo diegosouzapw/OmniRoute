@@ -14,9 +14,9 @@ pub struct AppInfo {
 pub async fn get_app_info(app: AppHandle) -> AppResult<AppInfo> {
     let version = app.package_info().version.to_string();
     Ok(AppInfo {
-        name: "OmniRoute".to_string(),
+        name: "argismonitor".to_string(),
         version,
-        identifier: "online.phenotype.omniroute".to_string(),
+        identifier: "online.phenotype.argismonitor".to_string(),
     })
 }
 

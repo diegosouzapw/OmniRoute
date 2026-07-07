@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "OmniRoute",
+  "productName": "argismonitor",
   "version": "0.1.0",
-  "identifier": "online.phenotype.omniroute",
+  "identifier": "online.phenotype.argismonitor",
   "build": {
     "frontendDist": "http://localhost:4321",
     "devUrl": "http://localhost:4321"
@@ -10,7 +10,7 @@
   "app": {
     "windows": [
       {
-        "title": "OmniRoute",
+        "title": "argismonitor",
         "width": 1280,
         "height": 800,
         "minWidth": 800,
@@ -30,7 +30,7 @@
     "targets": "all",
     "icon": ["icons/32x32.png", "icons/128x128.png"],
     "category": "DeveloperTool",
-    "shortDescription": "OmniRoute desktop",
+    "shortDescription": "argismonitor desktop",
     "longDescription": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A."
   }
 }

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { streamSSE } from 'hono/streaming';
 import { z } from 'zod';
-import { ProviderSchema } from '@omniroute/api-contracts';
+import { ProviderSchema } from '@argismonitor/api-contracts';
 
 const SettingsSchema = z.object({ baseUrl: z.string().url(), telemetry: z.boolean(), autoUpdate: z.boolean(), language: z.string(), theme: z.enum(['auto','light','dark']) });
 const KeyCreateSchema = z.object({ name: z.string().min(1).max(100) });

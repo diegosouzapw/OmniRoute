@@ -4,11 +4,11 @@
 #
 # Reads credentials from env (.env or CI secrets):
 #   APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID, APPLE_SIGNING_IDENTITY
-# Reads DMG path from $1 (or .build/OmniRoute_x.y.z_aarch64.dmg).
+# Reads DMG path from $1 (or .build/argismonitor_x.y.z_aarch64.dmg).
 
 set -euo pipefail
 
-DMG="${1:-.build/OmniRoute_aarch64.dmg}"
+DMG="${1:-.build/argismonitor_aarch64.dmg}"
 TEAM_ID="${APPLE_TEAM_ID:?APPLE_TEAM_ID required}"
 APPLE_ID="${APPLE_ID:?APPLE_ID required}"
 APPLE_PASSWORD="${APPLE_PASSWORD:?APPLE_PASSWORD required (app-specific)}"

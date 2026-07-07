@@ -5,7 +5,7 @@ use tauri::{
 };
 
 pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error>> {
-    let show_item = MenuItem::with_id(app, "show", "Show OmniRoute", true, None::<&str>)?;
+    let show_item = MenuItem::with_id(app, "show", "Show argismonitor", true, None::<&str>)?;
     let hide_item = MenuItem::with_id(app, "hide", "Hide", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&show_item, &hide_item, &quit_item])?;

@@ -2,7 +2,7 @@ import { connect, type Socket } from 'node:net';
 import * as msgpack from 'msgpackr';
 import { decodeMessage, encodeMessage, type KbridgeRequest, type KbridgeResponse } from './protocol';
 
-const SOCKET_PATH = process.env.OMNIRoute_GATEWAY_SOCKET ?? '/var/run/omniroute/gateway.sock';
+const SOCKET_PATH = process.env.OMNIRoute_GATEWAY_SOCKET ?? '/var/run/argismonitor/gateway.sock';
 
 let socket: Socket | null = null;
 let inflight = new Map<string, { resolve: (r: KbridgeResponse) => void; reject: (e: Error) => void }>();

@@ -12,7 +12,7 @@
 
 <div class="space-y-6">
   <h1 class="text-3xl font-bold">Dashboard</h1>
-  <p class="text-gray-600">OmniRoute v4 home. Live stats from the BFF pending.</p>
+  <p class="text-gray-600">argismonitor v4 home. Live stats from the BFF pending.</p>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
     {#each stats as s}

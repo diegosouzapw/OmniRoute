@@ -11,7 +11,7 @@
 </script>
 
 <Card title="MCP servers">
-  <p class="text-sm text-gray-600 mb-4">Connect MCP-compliant tool servers so agents can call tools through OmniRoute.</p>
+  <p class="text-sm text-gray-600 mb-4">Connect MCP-compliant tool servers so agents can call tools through argismonitor.</p>
   <div class="flex justify-end mb-4"><Button>+ Add server</Button></div>
   {#if servers.length === 0}
     <p class="text-gray-500">No MCP servers connected yet.</p>

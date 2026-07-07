@@ -1,9 +1,9 @@
 {
-  "name": "@omniroute/desktop",
+  "name": "@argismonitor/desktop",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "OmniRoute native desktop shell (Tauri 2.x)",
+  "description": "argismonitor native desktop shell (Tauri 2.x)",
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",

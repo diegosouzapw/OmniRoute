@@ -5,7 +5,7 @@ const port = Number(process.env.PORT ?? 4322);
 const socketPath = process.env.OMNIROUTE_BFF_SOCKET;
 
 serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`OmniRoute BFF listening on http://localhost:${info.port}`);
+  console.log(`argismonitor BFF listening on http://localhost:${info.port}`);
 });
 
 if (socketPath) {
@@ -21,7 +21,7 @@ if (socketPath) {
       fetch: app.fetch,
       // Bun's unix listener takes the path as `unix: string` (above) OR as `socket: { path }`
     } as { unix: string; fetch: typeof app.fetch });
-    console.log(`OmniRoute BFF also listening on Unix socket ${socketPath}`);
+    console.log(`argismonitor BFF also listening on Unix socket ${socketPath}`);
   } else {
     console.error(
       `OMNIROUTE_BFF_SOCKET=${socketPath} requested but Bun runtime not detected. ` +

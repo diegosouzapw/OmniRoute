@@ -31,7 +31,7 @@
   }
 </script>
 
-<Card title="Sign in to OmniRoute">
+<Card title="Sign in to argismonitor">
   <form onsubmit={handleSubmit} class="space-y-4 max-w-md">
     <div>
       <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>

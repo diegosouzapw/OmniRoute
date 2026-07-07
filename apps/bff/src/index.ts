@@ -11,7 +11,7 @@ const app = new Hono();
 app.use('*', logger());
 app.use('*', cors({ origin: ['http://localhost:4321'], credentials: true }));
 
-app.get('/healthz', (c) => c.json({ status: 'ok', service: 'omniroute-bff' }));
+app.get('/healthz', (c) => c.json({ status: 'ok', service: 'argismonitor-bff' }));
 
 app.route('/api/dashboard', dashboardRoutes);
 app.route('/api/v1', proxyRoutes);

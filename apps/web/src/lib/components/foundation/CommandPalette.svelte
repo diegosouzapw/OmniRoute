@@ -32,7 +32,7 @@
   function nav(href: string) { open = false; location.href = href; }
   function setTheme(t: 'auto' | 'light' | 'dark') {
     document.documentElement.classList.toggle('dark', t === 'dark' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches));
-    localStorage.setItem('omniroute-theme', t);
+    localStorage.setItem('argismonitor-theme', t);
     open = false;
   }
 

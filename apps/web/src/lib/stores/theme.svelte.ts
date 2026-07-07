@@ -6,7 +6,7 @@ function createThemeStore() {
   let value = $state<Theme>('auto');
 
   if (browser) {
-    const stored = localStorage.getItem('omniroute-theme') as Theme | null;
+    const stored = localStorage.getItem('argismonitor-theme') as Theme | null;
     if (stored === 'auto' || stored === 'light' || stored === 'dark') {
       value = stored;
     }
@@ -30,7 +30,7 @@ function createThemeStore() {
     get value() { return value; },
     set(t: Theme) {
       value = t;
-      if (browser) localStorage.setItem('omniroute-theme', t);
+      if (browser) localStorage.setItem('argismonitor-theme', t);
       applyTheme(t);
     },
   };

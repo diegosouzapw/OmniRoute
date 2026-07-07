@@ -11,7 +11,7 @@
 </script>
 
 <Card title="A2A agents">
-  <p class="text-sm text-gray-600 mb-4">Agent-to-agent registry. Other agents that can be reached via OmniRoute.</p>
+  <p class="text-sm text-gray-600 mb-4">Agent-to-agent registry. Other agents that can be reached via argismonitor.</p>
   {#if agents.length === 0}
     <p class="text-gray-500">No agents registered.</p>
   {:else}

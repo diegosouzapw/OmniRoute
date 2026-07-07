@@ -27,7 +27,7 @@ export const proxyRoutes = new Hono().all('/*', async (c) => {
   c.req.raw.headers.forEach((value, key) => {
     if (!['host', 'content-length'].includes(key.toLowerCase())) headers.set(key, value);
   });
-  headers.set('x-proxied-by', 'omniroute-bff');
+  headers.set('x-proxied-by', 'argismonitor-bff');
 
   const init: RequestInit = {
     method: c.req.method,
@@ -38,7 +38,7 @@ export const proxyRoutes = new Hono().all('/*', async (c) => {
   try {
     const upstream = await fetch(upstreamUrl, init);
     const responseHeaders = new Headers(upstream.headers);
-    responseHeaders.set('x-proxied-by', 'omniroute-bff');
+    responseHeaders.set('x-proxied-by', 'argismonitor-bff');
     return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
   } catch (err) {
     return c.json({ error: 'upstream_unreachable', message: (err as Error).message }, 502);

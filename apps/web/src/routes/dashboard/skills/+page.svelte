@@ -11,7 +11,7 @@
 </script>
 
 <Card title="Skills marketplace">
-  <p class="text-sm text-gray-600 mb-4">Install reusable agent skills (prompt templates + tool bindings) into this OmniRoute instance.</p>
+  <p class="text-sm text-gray-600 mb-4">Install reusable agent skills (prompt templates + tool bindings) into this argismonitor instance.</p>
   {#if skills.length === 0}
     <p class="text-gray-500">No skills available.</p>
   {:else}
