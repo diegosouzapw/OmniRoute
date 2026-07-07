@@ -18,6 +18,7 @@ import {
   type AutoTier,
 } from "./suffixComposition";
 import { getHiddenModelsByProvider } from "@/models";
+import { filterPaidOnlyCandidates } from "./paidModelFilter";
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos. */
 export interface AutoComboSpec {
@@ -269,6 +270,17 @@ export async function createVirtualAutoCombo(
   candidatePool.push(
     ...getNoAuthCandidates(new Set(validConnections.map((conn) => conn.provider)), blockedProviders)
   );
+
+  // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
+  // exclude paid-only backends from EVERY `auto/*` candidate pool — not just the
+  // `/v1/models` listing — so auto-routing never picks a model that will 402/403.
+  // If this empties the pool the existing graceful empty-pool path below handles it
+  // (consistent with the opt-in intent). Default OFF → pool unchanged.
+  const paidFilteredPool = filterPaidOnlyCandidates(candidatePool, settings.hidePaidModels === true);
+  if (paidFilteredPool !== candidatePool) {
+    candidatePool.length = 0;
+    candidatePool.push(...paidFilteredPool);
+  }
 
   if (candidatePool.length === 0) {
     log.warn("AUTO", "No connected providers with valid credentials for virtual auto-combo");
