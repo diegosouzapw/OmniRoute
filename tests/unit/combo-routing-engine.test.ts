@@ -2977,8 +2977,8 @@ test("#3587 reasoning buffer is disabled without explicit model capability data"
     "reasoning metadata without an explicit output cap is not safe enough to inflate"
   );
   assert.equal(
-    resolveReasoningBufferedMaxTokens("openai/default-cap-reasoning", 100),
-    1100,
+    resolveReasoningBufferedMaxTokens("openai/default-cap-reasoning", 300),
+    1300,
     "explicit default-sized caps are treated as real capability data"
   );
 });

@@ -6,8 +6,8 @@
  * Responses API when it sets `targetFormat: "openai-responses"`.
  *
  * GitHub Copilot's Responses API does NOT serve the Claude/Gemini models, so
- * `claude-opus-4.7`, `claude-opus-4-5-20251101`, `gemini-3.1-pro-preview` and
- * `gemini-3-flash-preview` failed with a 400. The working `claude-opus-4.6`
+ * `claude-opus-4.7`, `gemini-3.1-pro-preview` and other non-OpenAI models
+ * failed with a 400. The working `claude-sonnet-4.6`
  * carries no `targetFormat` and goes through chat/completions.
  *
  * Fix: drop `targetFormat: "openai-responses"` from the Claude/Gemini entries so
@@ -29,10 +29,17 @@ function githubModel(id: string): ModelEntry | undefined {
 
 // Claude/Gemini models that must NOT route through the Responses API.
 const MUST_NOT_BE_RESPONSES = [
+  "claude-fable-5",
   "claude-opus-4.7",
-  "claude-opus-4-5-20251101",
+  "claude-opus-4.8",
+  "claude-opus-4.8-fast",
+  "claude-opus-4.5",
+  "claude-sonnet-4.6",
+  "claude-sonnet-5",
+  "claude-sonnet-4.5",
+  "claude-haiku-4.5",
   "gemini-3.1-pro-preview",
-  "gemini-3-flash-preview",
+  "gemini-3.5-flash",
 ];
 
 for (const id of MUST_NOT_BE_RESPONSES) {
@@ -47,14 +54,22 @@ for (const id of MUST_NOT_BE_RESPONSES) {
   });
 }
 
-test("#2911 github/claude-opus-4.6 baseline stays on chat/completions (no targetFormat)", () => {
-  const model = githubModel("claude-opus-4.6");
-  assert.ok(model, "claude-opus-4.6 must be registered");
+test("#2911 github/claude-sonnet-4.6 baseline stays on chat/completions (no targetFormat)", () => {
+  const model = githubModel("claude-sonnet-4.6");
+  assert.ok(model, "claude-sonnet-4.6 must be registered");
   assert.notEqual(model.targetFormat, "openai-responses");
 });
 
-// Regression guard: native OpenAI models keep the Responses API.
-for (const id of ["gpt-5.4", "gpt-5.4-mini"]) {
+// Regression guard: models with `/responses` in the curated Copilot catalog keep the Responses API.
+for (const id of [
+  "gpt-5.3-codex",
+  "gpt-5.4-mini",
+  "gpt-5.4",
+  "gpt-5.5",
+  "mai-code-1-flash",
+  "gpt-5-mini",
+  "oswe-vscode-prime",
+]) {
   test(`#2911 github/${id} (OpenAI-native) still uses openai-responses`, () => {
     const model = githubModel(id);
     assert.ok(model, `${id} must be registered`);

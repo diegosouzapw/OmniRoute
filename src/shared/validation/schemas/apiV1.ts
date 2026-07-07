@@ -13,6 +13,10 @@ import {
   isForbiddenCustomHeaderName,
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
+import {
+  effortRequestSchema,
+  thinkingRequestSchema,
+} from "@/shared/reasoning/effortStandardization";
 
 import { modelIdSchema, nonEmptyStringSchema } from "./misc.ts";
 
@@ -126,6 +130,15 @@ export const providerChatCompletionSchema = z
     messages: z.array(chatMessageSchema).min(1).optional(),
     input: z.union([nonEmptyStringSchema, z.array(z.unknown()).min(1)]).optional(),
     prompt: nonEmptyStringSchema.optional(),
+    // Canonical, provider-agnostic reasoning controls (#6241). `effort` reuses the shared
+    // none/low/medium/high/xhigh vocabulary (UI tiers extra/max collapse onto xhigh);
+    // `thinking` is a simple boolean toggle. Both are optional and normalized onto the
+    // per-provider reasoning fields (reasoning_effort / reasoning.effort / thinking) by
+    // normalizeReasoningRequest before translation — an explicit client reasoning_effort /
+    // reasoning / object-shaped thinking always wins. See
+    // @/shared/reasoning/effortStandardization.
+    effort: effortRequestSchema.optional(),
+    thinking: thinkingRequestSchema.optional(),
   })
   .catchall(z.unknown())
   .superRefine((value, ctx) => {

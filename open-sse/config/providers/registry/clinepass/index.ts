@@ -9,6 +9,11 @@ export const clinepassProvider: RegistryEntry = {
   alias: "clinepass",
   format: "openai",
   executor: "default",
+  // ClinePass shares Cline's streaming-only API — a non-streaming request returns
+  // "generateText is not implemented" / an empty body. Force upstream streaming;
+  // chatCore accumulates the SSE and converts it back to JSON for stream:false
+  // clients. (Same as the sibling `cline` provider.)
+  forceStream: true,
   baseUrl: "https://api.cline.bot/api/v1/chat/completions",
   authType: "apikey",
   authHeader: "bearer",

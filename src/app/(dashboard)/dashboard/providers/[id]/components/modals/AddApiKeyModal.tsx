@@ -2,7 +2,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Badge, Input, Modal, Toggle } from "@/shared/components";
-import { providerAllowsOptionalApiKey, supportsBulkApiKey } from "@/shared/constants/providers";
+import {
+  providerAllowsOptionalApiKey,
+  supportsBulkApiKey,
+  resolveWebProviderHost,
+} from "@/shared/constants/providers";
 import { parseBulkApiKeys } from "@/shared/utils/bulkApiKeyParser";
 import { providerHasFreeModels } from "@/shared/utils/freeModels";
 import {
@@ -34,6 +38,7 @@ export interface AddApiKeyModalProps {
   isOpen: boolean;
   provider?: string;
   providerName?: string;
+  providerWebsite?: string;
   initialBaseUrl?: string;
   isCompatible?: boolean;
   isAnthropic?: boolean;
@@ -56,6 +61,7 @@ export default function AddApiKeyModal({
   isOpen,
   provider,
   providerName,
+  providerWebsite,
   initialBaseUrl,
   isCompatible,
   isAnthropic,
@@ -85,6 +91,12 @@ export default function AddApiKeyModal({
   const webSessionCredential = getWebSessionCredentialRequirement(provider);
   const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
   const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
+  // #6268 — for web-session providers, resolve the provider's public site so the
+  // modal can offer a prominent "Open ‹host› →" link. Gated on webSessionCredential
+  // so non-web providers never render a link.
+  const webProviderHostLink = webSessionCredential
+    ? resolveWebProviderHost(provider, defaultBaseUrl)
+    : null;
   const providerDisplayName = providerName || provider || "";
   const apiKeyOptional =
     providerAllowsOptionalApiKey(provider) || Boolean(isNoAuthWebSessionCredential);
@@ -348,7 +360,7 @@ export default function AddApiKeyModal({
 
   const handleBulkSubmit = async () => {
     if (!provider) return;
-    const parsed = parseBulkApiKeys(bulkText);
+    const parsed = parseBulkApiKeys(bulkText, { withAccountId: isCloudflare });
     setBulkWarnings(parsed.warnings);
     if (parsed.entries.length === 0) return;
 
@@ -378,7 +390,11 @@ export default function AddApiKeyModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider,
-          entries: parsed.entries.map((e) => ({ name: e.name, apiKey: e.apiKey })),
+          entries: parsed.entries.map((e) => ({
+            name: e.name,
+            apiKey: e.apiKey,
+            ...(e.accountId ? { accountId: e.accountId } : {}),
+          })),
           priority: formData.priority || 1,
           providerSpecificData,
           validateKeys: bulkValidateKeys,
@@ -421,6 +437,21 @@ export default function AddApiKeyModal({
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
+        {webProviderHostLink && (
+          <a
+            href={webProviderHostLink.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+          >
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              open_in_new
+            </span>
+            {providerText(t, "openWebProviderSite", "Open {host}", {
+              host: webProviderHostLink.host,
+            })}
+          </a>
+        )}
         {bulkSupported && (
           <div className="flex gap-1 border-b border-border">
             <button
@@ -457,12 +488,18 @@ export default function AddApiKeyModal({
 
         {bulkSupported && mode === "bulk" && (
           <div className="flex flex-col gap-3">
-            <p className="text-xs text-text-muted">{t("bulkAddFormatHint")}</p>
+            <p className="text-xs text-text-muted">
+              {isCloudflare ? t("bulkAddFormatHintCloudflare") : t("bulkAddFormatHint")}
+            </p>
             {openRouterPreset.input}
             {freeModelsToggle}
             <textarea
               className="w-full rounded border border-border bg-background p-2 text-sm font-mono resize-y min-h-[140px] focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder={"name1|sk-key1\nname2|sk-key2\nsk-key-only-auto-named"}
+              placeholder={
+                isCloudflare
+                  ? "name1|account-id-1|cf-token-1\nname2|account-id-2|cf-token-2"
+                  : "name1|sk-key1\nname2|sk-key2\nsk-key-only-auto-named"
+              }
               value={bulkText}
               onChange={(e) => setBulkText(e.target.value)}
             />
@@ -647,6 +684,7 @@ export default function AddApiKeyModal({
               <WebSessionCredentialGuide
                 requirement={webSessionCredential}
                 providerName={providerDisplayName}
+                providerWebsite={providerWebsite}
                 t={t}
               />
             )}

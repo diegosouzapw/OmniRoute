@@ -19,6 +19,7 @@ export function useProxyBatchOperations(load: () => Promise<void>) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchDeleting, setBatchDeleting] = useState(false);
   const [autoTesting, setAutoTesting] = useState(false);
+  const [batchActivating, setBatchActivating] = useState(false);
 
   const toggleSelectAll = useCallback(
     (allSelected: boolean, items: Array<{ id: string }>) => {
@@ -58,6 +59,34 @@ export function useProxyBatchOperations(load: () => Promise<void>) {
         setError(e instanceof Error ? e.message : "Batch delete failed");
       } finally {
         setBatchDeleting(false);
+      }
+    },
+    [selectedIds, load]
+  );
+
+  // #6246: bulk enable/disable — the only automated path that writes proxy
+  // status (an explicit operator action). Health probes are read-only by default.
+  const handleBatchActivate = useCallback(
+    async (setError: (msg: string | null) => void, status: "active" | "inactive" = "active") => {
+      if (selectedIds.size === 0) return;
+      setBatchActivating(true);
+      try {
+        const res = await fetch("/api/settings/proxies/batch-activate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: Array.from(selectedIds), status }),
+        });
+        const data: { error?: { message?: string } } = await res.json().catch(() => ({}));
+        if (res.ok) {
+          setSelectedIds(new Set());
+          await load();
+        } else {
+          setError(data?.error?.message || "Batch update failed");
+        }
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Batch update failed");
+      } finally {
+        setBatchActivating(false);
       }
     },
     [selectedIds, load]
@@ -106,9 +135,11 @@ export function useProxyBatchOperations(load: () => Promise<void>) {
     setSelectedIds,
     batchDeleting,
     autoTesting,
+    batchActivating,
     toggleSelectAll,
     toggleSelect,
     handleBatchDelete,
+    handleBatchActivate,
     handleAutoTestAll,
   };
 }

@@ -841,7 +841,9 @@
     "batchDetailCancelConfirm": "Cancel this batch? In-progress requests will stop.",
     "batchActionCancelError": "Failed to cancel batch. Try again.",
     "batchActionRetryError": "Failed to retry failed requests. Try again.",
-    "batchConceptRetentionNote": "Results and error files are retained for 30 days (Anthropic: 29 days)"
+    "batchConceptRetentionNote": "Results and error files are retained for 30 days (Anthropic: 29 days)",
+    "manualConfig": "Configurazione manuale",
+    "unknownProvider": "Provider sconosciuto"
   },
   "featureFlagOmnirouteEmergencyFallbackDescription": "__MISSING__:Route budget-exhausted requests to the emergency free fallback provider/model.",
   "featureFlagArenaEloSyncEnabledDescription": "__MISSING__:Enable periodic Arena AI leaderboard ELO sync for model intelligence rankings.",
@@ -1114,7 +1116,9 @@
     "dragReorderItem": "__MISSING__:Drag to reorder",
     "cannotHide": "__MISSING__:This item cannot be hidden",
     "alwaysVisible": "__MISSING__:Always visible",
-    "groupSeparatorLabel": "__MISSING__:Separator"
+    "groupSeparatorLabel": "__MISSING__:Separator",
+    "discovery": "Discovery",
+    "discoverySubtitle": "Scansiona provider per accesso gratuito"
   },
   "webhooks": {
     "title": "Webhook",
@@ -1806,7 +1810,9 @@
     "normalKeysSection": "__MISSING__:Normal keys",
     "quotaKeysSection": "__MISSING__:Quota keys",
     "quotaPill": "__MISSING__:QUOTA",
-    "quotaModeOnly": "__MISSING__:qtSd-only"
+    "quotaModeOnly": "__MISSING__:qtSd-only",
+    "devicesCount": "{count, plural, one {# dispositivo} other {# dispositivi}}",
+    "devicesTooltip": "{count, plural, one {# IP/User-Agent distinto visto con questa chiave (ultimi 30 min)} other {# IP/User-Agent distinti visti con questa chiave (ultimi 30 min)}}"
   },
   "auditLog": {
     "title": "Registro di controllo",
@@ -1853,14 +1859,16 @@
       "webSearch": "__MISSING__:Web Search",
       "webFetch": "__MISSING__:Web Fetch",
       "video": "__MISSING__:Video",
-      "music": "__MISSING__:Music"
+      "music": "__MISSING__:Music",
+      "ocr": "OCR"
     },
     "noProviders": "__MISSING__:No providers configured for this kind yet.",
     "addConnection": "__MISSING__:Add Connection",
     "backToProviders": "__MISSING__:Back to Providers",
     "connections": "__MISSING__:{count} Connections",
     "noConnections": "__MISSING__:No connections yet — add one from the provider page.",
-    "loading": "__MISSING__:Loading..."
+    "loading": "__MISSING__:Loading...",
+    "suggestedModels": "Modelli suggeriti dal provider"
   },
   "search": {
     "searchQuery": "Search Query",
@@ -2804,7 +2812,22 @@
     "agentFeaturesContextLengthErrorInteger": "La lunghezza del contesto deve essere un numero intero valido",
     "agentFeaturesContextLengthErrorRange": "La lunghezza del contesto deve essere compresa tra 1.000 e 2.000.000",
     "compressionOverride": "Sostituzione della compressione",
-    "modePack": "Pacchetto modalità"
+    "modePack": "Pacchetto modalità",
+    "fusionJudgeModel": "Modello giudice",
+    "fusionJudgeModelHelp": "Modello che sintetizza le risposte del panel in un'unica risposta finale. Lascia vuoto per usare il primo modello del panel.",
+    "fusionMinPanel": "Panel minimo",
+    "fusionMinPanelHelp": "Risposte del panel necessarie prima che i ritardatari ricevano una finestra di grazia (default 2).",
+    "fusionPanelHardTimeoutMs": "Timeout massimo panel (ms)",
+    "fusionPanelHardTimeoutMsHelp": "Limite assoluto per evitare che un modello bloccato fermi l'intero panel (default 90000).",
+    "fusionStragglerGraceMs": "Grazia ritardatari (ms)",
+    "fusionStragglerGraceMsHelp": "Quanto attendere i modelli lenti del panel una volta raggiunto il quorum (default 8000).",
+    "responseValidationAddCheck": "+ Aggiungi controllo",
+    "responseValidationForbidden": "Sottostringhe vietate (una per riga)",
+    "responseValidationHelp": "Passa al prossimo target quando un corpo 200 OK non supera questi controlli (contenuto dell'assistente).",
+    "responseValidationJsonPaths": "Controlli JSON-path",
+    "responseValidationMinLength": "Lunghezza minima contenuto (caratteri)",
+    "responseValidationRequired": "Sottostringhe richieste (una per riga)",
+    "responseValidationTitle": "Validazione risposta"
   },
   "costs": {
     "title": "Costi",
@@ -3432,7 +3455,11 @@
       "cleaning": "__MISSING__:Cleaning...",
       "cleanNow": "__MISSING__:Clean now",
       "cleanupSuccess": "__MISSING__:{count} point(s) removed",
-      "cleanupFailed": "__MISSING__:Cleanup failed"
+      "cleanupFailed": "__MISSING__:Cleanup failed",
+      "banner": "Vector store Tier 2 — un'alternativa esterna e scalabile al sqlite-vec integrato (Tier 1). Attivalo solo se hai un insieme di memorie molto grande o vuoi memoria condivisa tra istanze; la maggior parte degli utenti sta bene con sqlite-vec. Quando attivato diventa lo store primario e fa automaticamente fallback a sqlite-vec se non raggiungibile.",
+      "collectionHelp": "Qualsiasi nome — OmniRoute lo crea al primo utilizzo",
+      "embeddingModelHelp": "Imposta automaticamente la dimensione del vettore al primo utilizzo. Le memorie esistenti non vengono popolate retroattivamente, e cambiare modello dopo aver inserito dati richiede una nuova collezione.",
+      "hostHelp": "Docker locale: http://localhost:6333 · Qdrant Cloud: l'URL del tuo cluster"
     },
     "rerank": {
       "enableLabel": "__MISSING__:Enable Rerank",
@@ -3538,7 +3565,8 @@
     "installSkillModalDesc": "__MISSING__:Paste a skill manifest JSON or upload a .json file.",
     "uploadJson": "__MISSING__:Upload JSON",
     "cancel": "__MISSING__:Cancel",
-    "installSkill": "Installa abilità"
+    "installSkill": "Installa abilità",
+    "delete": "Elimina"
   },
   "health": {
     "title": "Salute del sistema",
@@ -3973,7 +4001,7 @@
     "errorCountNoCode": "{count} Errore",
     "testAllCompleted": "__MISSING__:Tested {total} models: {ok} OK, {failed} failed",
     "modelAutoHidden": "__MISSING__:Model {model} auto-hidden (test failed)",
-    "filterAll": "__MISSING__:All",
+    "filterAll": "Tutti",
     "filterVisible": "__MISSING__:Visible only",
     "filterHidden": "__MISSING__:Hidden only",
     "modelsHiddenCount": "__MISSING__:{count} hidden",
@@ -4088,10 +4116,10 @@
     "noConnectionsToTest": "__MISSING__:No matching connections to test",
     "batchDeleteConfirmTitle": "__MISSING__:Delete connections",
     "batchDeleteConfirmButton": "__MISSING__:Delete",
-    "filterActive": "__MISSING__:Active",
-    "filterError": "__MISSING__:Error",
-    "filterBanned": "__MISSING__:Banned",
-    "filterCreditsExhausted": "__MISSING__:Credits Exhausted",
+    "filterActive": "Attivo",
+    "filterError": "Errore",
+    "filterBanned": "Bloccato",
+    "filterCreditsExhausted": "Crediti esauriti",
     "noFilteredConnections": "__MISSING__:No connections match the current filter.",
     "failedSetAlias": "Impossibile impostare l'alias",
     "setAliasSuccess": "__MISSING__:Alias {alias} set",
@@ -4813,7 +4841,13 @@
     "kimiWebLabel": "__MISSING__:Kimi Web",
     "kimiWebDesc": "__MISSING__:Moonshot AI consumer chat via www.kimi.com (international, Connect-RPC API)",
     "doubaoWebLabel": "__MISSING__:Doubao Web",
-    "doubaoWebDesc": "__MISSING__:ByteDance AI chat via doubao.com"
+    "doubaoWebDesc": "__MISSING__:ByteDance AI chat via doubao.com",
+    "clientIdentityHint": "Opzionale. Aggiunge header di fingerprint client (es. User-Agent) corrispondenti a una CLI nota per gateway compatibili che li richiedono.",
+    "clientIdentityLabel": "Identità Client",
+    "compatibleDefaultModelHint": "Inserisci l'ID modello esattamente come lo aspetta il tuo endpoint compatibile. Questo modello verrà salvato come default della connessione.",
+    "compatibleDefaultModelLabel": "Modello Predefinito",
+    "iconUrlHint": "Opzionale. URL dell'immagine mostrata come icona di questo provider.",
+    "iconUrlLabel": "URL Icona"
   },
   "settings": {
     "title": "Impostazioni",
@@ -5955,6 +5989,12 @@
         "INSUFFICIENT_SCOPE": "__MISSING__:API key lacks the manage scope.",
         "BYPASS_PREFIX_NOT_ALLOWED": "__MISSING__:One or more prefixes target spawn-capable routes and cannot be bypassed.",
         "GENERIC": "__MISSING__:Failed to update authz settings."
+      },
+      "cors": {
+        "wildcard": {
+          "desc": "Qualsiasi sito web può chiamare l'API di questo server dal browser di un visitatore. Usa solo su reti fidate — imposta origini esplicite in ALLOWED_ORIGINS e disabilita CORS_ALLOW_ALL in produzione.",
+          "title": "CORS è aperto a tutte le origini (CORS_ALLOW_ALL=true)"
+        }
       }
     },
     "resilienceBaseCooldownLabel": "Tempo di recupero della base",
@@ -6059,7 +6099,56 @@
     "modelLockoutExponentialBackoff": "__MISSING__:Exponential Backoff",
     "modelLockoutExponentialBackoffDescription": "__MISSING__:When enabled, each consecutive failure increases the cooldown duration exponentially.",
     "modelLockoutMaxBackoffSteps": "__MISSING__:Max Backoff Steps",
-    "modelLockoutMaxBackoffStepsDescription": "__MISSING__:Maximum number of backoff steps before the cooldown stops growing. The Max Cooldown cap is reached first in most configurations, making this a safety ceiling for when Max Cooldown is raised."
+    "modelLockoutMaxBackoffStepsDescription": "__MISSING__:Maximum number of backoff steps before the cooldown stops growing. The Max Cooldown cap is reached first in most configurations, making this a safety ceiling for when Max Cooldown is raised.",
+    "compressionCavemanPanelHint": "L'attivazione e il livello si impostano nel panel:",
+    "compressionPreserveSystemAlways": "Sempre",
+    "compressionPreserveSystemNever": "Mai",
+    "compressionPreserveSystemWhenNoCache": "Quando nessuna cache",
+    "description": "Descrizione",
+    "disable": "Disabilita",
+    "enable": "Abilita",
+    "logToolSourcesDescription": "Emette una riga di log diagnostico per richiesta che riepiloga il conteggio tool e la suddivisione per sorgente MCP/hosted/client.",
+    "logToolSourcesToggle": "Log Sorgenti Tool",
+    "logsDeleted": "{count, plural, =0 {Nessun log scaduto eliminato} one {Eliminato # log scaduto} other {Eliminati # log scaduti}}",
+    "queueDepth": "Profondità Coda",
+    "redisLauncherContainer": "Container",
+    "redisLauncherDesc": "Avvia con un clic un container Redis 7 (Podman o Docker) per cache risposte, tracciamento quote e rate limiting.",
+    "redisLauncherError": "Errore: {message}",
+    "redisLauncherHint": "Equivalente a eseguire `omniroute redis up`. Il container si chiama `omniroute-redis` e ascolta su 127.0.0.1:6379.",
+    "redisLauncherLaunch": "Avvia Redis",
+    "redisLauncherLaunching": "Avvio in corso...",
+    "redisLauncherReachable": "Raggiungibile",
+    "redisLauncherRefresh": "Aggiorna",
+    "redisLauncherRunning": "In esecuzione",
+    "redisLauncherStop": "Ferma",
+    "redisLauncherTitle": "Redis Locale",
+    "reset": "Ripristina",
+    "resetUsageData": "Ripristina Dati di Utilizzo",
+    "resetUsageDataDesc": "Seleziona fino a quando eliminare i dati di utilizzo. Questa azione non può essere annullata.",
+    "resetUsageFailed": "Ripristino dati di utilizzo fallito",
+    "resetUsagePeriod_12h": "12 ore",
+    "resetUsagePeriod_1d": "1 giorno",
+    "resetUsagePeriod_1h": "1 ora",
+    "resetUsagePeriod_30d": "30 giorni",
+    "resetUsagePeriod_3h": "3 ore",
+    "resetUsagePeriod_5m": "5 minuti",
+    "resetUsagePeriod_6h": "6 ore",
+    "resetUsagePeriod_7d": "7 giorni",
+    "resetUsagePeriod_all": "Tutto",
+    "resetUsageSuccess": "{count, plural, =0 {Nessuna riga dati utilizzo eliminata} one {Ripristinati dati utilizzo (# riga eliminata)} other {Ripristinati dati utilizzo (# righe eliminate)}}",
+    "resetting": "Ripristino in corso...",
+    "resilienceComboCooldownBudgetMs": "Budget attesa totale",
+    "resilienceComboCooldownMaxWaitMs": "Attesa massima per tentativo",
+    "resilienceComboCooldownWaitDesc": "Solo per combo quota-share: attende un breve cooldown transitorio e reinoltra invece di restituire subito un 429. Non attende mai su quota_exhausted.",
+    "resilienceComboCooldownWaitTitle": "Attesa cooldown combo quota-share",
+    "resilienceComboCooldownWaitToggleDesc": "Solo combo quota-share; non attende mai su quota_exhausted.",
+    "resilienceQuotaShareConcurrencyDesc": "Solo per combo quota-share: quando una connessione imposta un limite Max Concurrent, serializza le richieste concorrenti verso quell'account di sottoscrizione in modo che non venga mai inondato oltre il suo tetto. Le richieste in eccesso aspettano in coda invece di ricevere un 429. Il limite deriva dal campo Max Concurrent di ogni connessione; questo interruttore abilita o disabilita solo il suo rispetto.",
+    "resilienceQuotaShareConcurrencyTitle": "Concorrenza per connessione quota-share",
+    "resilienceQuotaShareConcurrencyToggleDesc": "Solo combo quota-share; rispetta il limite Max Concurrent di ogni connessione.",
+    "searchProviderAria": "Provider di ricerca",
+    "searchProviderPlaceholder": "Cerca provider...",
+    "selectProviderPlaceholder": "Seleziona provider...",
+    "update": "Aggiorna"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -6837,7 +6926,9 @@
     "updatedShort": "__MISSING__:Updated",
     "lastRefreshed": "__MISSING__:Last refreshed",
     "providerQuota": "__MISSING__:Provider Quota",
-    "providerQuotaHomeHint": "__MISSING__:Live status across connected accounts"
+    "providerQuotaHomeHint": "__MISSING__:Live status across connected accounts",
+    "showLessQuotas": "Mostra meno",
+    "showMoreQuotas": "Mostra {count} altri"
   },
   "modals": {
     "waitingAuth": "In attesa di autorizzazione",
@@ -7834,7 +7925,12 @@
     "bulkImportMaxExceeded": "Massimo 100 proxy per importazione",
     "bulkImportPreview": "Anteprima",
     "clearAssignment": "(incarico chiaro)",
-    "bulkProxyAssignment": "Assegnazione di proxy in blocco"
+    "bulkProxyAssignment": "Assegnazione di proxy in blocco",
+    "batchDeleteSelected": "Elimina {count} selezionati",
+    "batchSelectedCount": "{count} selezionati",
+    "errorTestFailed": "Test dei proxy fallito",
+    "testAll": "Testa tutti",
+    "testPassed": "✓ OK"
   },
   "playground": {
     "title": "Title",
@@ -8376,7 +8472,8 @@
     "verified": "__MISSING__:Verified",
     "install": "__MISSING__:Install",
     "installedFromMarketplace": "__MISSING__:Plugin {name} installed!",
-    "hooks": "Hooks"
+    "hooks": "Hooks",
+    "marketplaceInstallComingSoon": "Le installazioni dal marketplace saranno presto disponibili."
   },
   "quotaPlans": {
     "title": "__MISSING__:Plans & Quotas",
@@ -8606,7 +8703,8 @@
       "goNow": "__MISSING__:Go now",
       "message": "__MISSING__:The MITM Proxy now lives under AgentBridge.",
       "title": "__MISSING__:This page has moved"
-    }
+    },
+    "certManualTitle": "Il certificato non può essere installato automaticamente (es. dentro un container). Il bridge può comunque funzionare — aggiungi la CA manualmente:"
   },
   "trafficInspector": {
     "title": "__MISSING__:Traffic Inspector",
@@ -8932,5 +9030,31 @@
     "colAvgScore": "__MISSING__:Avg Score",
     "colModels": "__MISSING__:Models",
     "colType": "__MISSING__:Type"
+  },
+  "disabled": "Disabilitato",
+  "discovery": {
+    "title": "Provider Discovery",
+    "subtitle": "Scansiona i provider per metodi di accesso gratuiti/illimitati e rivedi i risultati. Opt-in, solo locale.",
+    "scanLabel": "Provider da scansionare",
+    "scanPlaceholder": "es. huggingchat",
+    "scan": "Scansiona",
+    "scanning": "Scansione in corso…",
+    "scanQueued": "Scansione accodata per {provider}.",
+    "scanFailed": "Scansione fallita.",
+    "loadFailed": "Caricamento risultati discovery fallito.",
+    "localOnlyNote": "Questo strumento è solo locale (loopback). Le scansioni vengono eseguite da questa macchina e non sono mai raggiungibili da remoto.",
+    "verify": "Verifica",
+    "verifyFailed": "Verifica del risultato fallita.",
+    "delete": "Elimina",
+    "deleteFailed": "Eliminazione del risultato fallita.",
+    "deleteTitle": "Elimina risultato discovery",
+    "deleteConfirm": "Eliminare il risultato discovery per {provider}? L'operazione non può essere annullata.",
+    "emptyTitle": "Nessun risultato discovery",
+    "emptyDescription": "Esegui una scansione qui sopra per cercare metodi di accesso gratuiti su un provider.",
+    "risk": "Rischio",
+    "method": "Metodo",
+    "auth": "Auth",
+    "feasibility": "Fattibilità",
+    "models": "Modelli"
   }
 }

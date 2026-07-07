@@ -28,7 +28,11 @@ export const THINKING_MARKER_HEADER = "x-omniroute-thinking-marker";
 
 // Lowercased User-Agent substrings of clients that render the textual
 // `</think>` marker verbatim and therefore want it suppressed.
-const SUPPRESS_THINK_CLOSE_UA_MARKERS = ["opencode"];
+// - `opencode` (#5245): renders the marker as literal text.
+// - `antigravity` (#1061): the Antigravity IDE client (UA
+//   `vscode/<v> (Antigravity/<v>)`) renders a bare `</think>` as the sole
+//   visible content on thinking-only turns, which trips its loop-detection.
+const SUPPRESS_THINK_CLOSE_UA_MARKERS = ["opencode", "antigravity"];
 
 /**
  * Whether the streamed `</think>` close marker should be suppressed for the

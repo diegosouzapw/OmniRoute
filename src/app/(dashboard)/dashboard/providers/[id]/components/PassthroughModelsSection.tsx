@@ -14,6 +14,7 @@
  */
 import React, { useState, useMemo } from "react";
 import { Button } from "@/shared/components";
+import { generateUniqueModelAlias } from "./passthroughAlias.ts";
 import {
   matchesModelCatalogQuery,
   normalizeModelCatalogSource,
@@ -21,6 +22,7 @@ import {
 import { useNotificationStore } from "@/store/notificationStore";
 import {
   buildCompatMap,
+  getDisplayModelAlias,
   providerText,
   testAllResultsText,
   evaluateTestAllEntry,
@@ -228,7 +230,8 @@ export default function PassthroughModelsSection({
     for (const [alias, fullModel] of providerAliases) {
       const fmStr = fullModel as string;
       const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
-      aliasByModelId.set(modelId, alias as string);
+      const displayAlias = getDisplayModelAlias(modelId, alias as string);
+      if (displayAlias) aliasByModelId.set(modelId, displayAlias);
       fullModelByModelId.set(modelId, fmStr);
     }
 
@@ -266,12 +269,14 @@ export default function PassthroughModelsSection({
       const fmStr = fullModel as string;
       const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
       if (!modelId || seenModelIds.has(modelId)) continue;
+      const displayAlias = getDisplayModelAlias(modelId, alias as string);
+      if (!displayAlias) continue;
       const customModel = customModelMap.get(modelId);
       rows.push({
         modelId,
         fullModel: fmStr,
-        alias: alias as string,
-        displayName: alias as string,
+        alias: displayAlias,
+        displayName: displayAlias,
         source: customModel ? customModel.source || "custom" : "alias",
         isFree:
           modelId.endsWith(":free") ||
@@ -319,22 +324,18 @@ export default function PassthroughModelsSection({
     : filteredModels;
   const activeCount = allModels.filter((model) => !model.isHidden).length;
 
-  // Generate default alias from modelId (last part after /)
-  const generateDefaultAlias = (modelId: string) => {
-    const parts = modelId.split("/");
-    return parts[parts.length - 1];
-  };
-
   const handleAdd = async () => {
     if (!newModel.trim() || adding) return;
     const modelId = newModel.trim();
-    const defaultAlias = generateDefaultAlias(modelId);
 
-    // Check if alias already exists
-    if (modelAliases[defaultAlias]) {
-      alert(t("aliasExistsAlert", { alias: defaultAlias }));
+    // #1850: block re-adding the SAME model, but disambiguate DISTINCT models
+    // that would otherwise collapse to the same last-segment alias (e.g.
+    // enx/gpt-5.5 vs enx/codebuddy/gpt-5.5 → both "gpt-5.5").
+    if (Object.values(modelAliases).includes(modelId)) {
+      alert(t("aliasExistsAlert", { alias: modelId }));
       return;
     }
+    const defaultAlias = generateUniqueModelAlias(modelId, modelAliases);
 
     setAdding(true);
     try {

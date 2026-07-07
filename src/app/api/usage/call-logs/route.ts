@@ -3,6 +3,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getCallLogs } from "@/lib/usageDb";
 import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
 import { getProviderConnections } from "@/lib/localDb";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 type CallLogListRowsInput = {
   logs: any[];
@@ -148,7 +149,7 @@ export async function GET(request: Request) {
     // the DB rows but activeEntries/completedEntries bypass it.
     if (filter.correlationId) {
       const cid = filter.correlationId;
-      return NextResponse.json(rows.filter((r: any) => r.correlationId === cid));
+      return NextResponse.json(rows.filter((r: any) => matchesSearch(r.correlationId || "", cid)));
     }
 
     return NextResponse.json(rows);

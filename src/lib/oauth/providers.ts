@@ -110,13 +110,23 @@ export function getProvider(name) {
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
-  const { codeVerifier, codeChallenge, state } = generatePKCE();
+  const pkce = generatePKCE();
+  let codeVerifier = pkce.codeVerifier;
+  const { codeChallenge, state } = pkce;
 
   if (provider.flowType === "import_token") {
-    const error =
-      providerName === "windsurf" || providerName === "devin-cli"
-        ? "Browser login disabled — paste token from https://windsurf.com/show-auth-token instead. Phase 2 will restore Firebase OAuth via app.devin.ai successor."
-        : `Browser login is disabled for ${providerName}. Use the import-token flow instead.`;
+    let error: string;
+    if (providerName === "windsurf" || providerName === "devin-cli") {
+      error =
+        "Browser login disabled — paste token from https://windsurf.com/show-auth-token instead. Phase 2 will restore Firebase OAuth via app.devin.ai successor.";
+    } else if (providerName === "zed") {
+      error =
+        "Zed does not use a browser OAuth flow. Use the Zed provider page to import credentials " +
+        "directly from the OS keychain (POST /api/providers/zed/import), or paste a token manually " +
+        "via POST /api/providers/zed/manual-import for Docker environments.";
+    } else {
+      error = `Browser login is disabled for ${providerName}. Use the import-token flow instead.`;
+    }
     return {
       authUrl: undefined,
       state: undefined,
@@ -137,7 +147,24 @@ export function generateAuthData(providerName, redirectUri) {
   } else if (provider.flowType === "authorization_code_pkce") {
     authUrl = provider.buildAuthUrl(provider.config, redirectUri, state, codeChallenge);
   } else {
-    authUrl = provider.buildAuthUrl(provider.config, redirectUri, state);
+    const built = provider.buildAuthUrl(provider.config, redirectUri, state);
+    // Some non-PKCE "authorization_code" providers (e.g. zed-hosted) need to
+    // override the auto-generated PKCE codeVerifier/redirectUri with their own
+    // provider-specific verifier (e.g. an RSA private-key verifier) instead of
+    // an unused PKCE code_verifier — they return an object instead of a bare
+    // authUrl string. Existing providers all return a plain string, so this is
+    // backward compatible.
+    if (built && typeof built === "object" && typeof built.authUrl === "string") {
+      authUrl = built.authUrl;
+      if (typeof built.codeVerifier === "string" && built.codeVerifier) {
+        codeVerifier = built.codeVerifier;
+      }
+      if (typeof built.redirectUri === "string" && built.redirectUri) {
+        redirectUri = built.redirectUri;
+      }
+    } else {
+      authUrl = built;
+    }
   }
 
   return {

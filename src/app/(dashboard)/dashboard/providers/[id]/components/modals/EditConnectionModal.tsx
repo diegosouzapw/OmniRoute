@@ -23,6 +23,7 @@ import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage
 import { resolveDashboardProviderInfo } from "../../../providerPageUtils";
 import {
   isBaseUrlConfigurableProvider,
+  isBaseUrlOverrideEligibleProvider,
   getProviderBaseUrlDefault,
   getProviderBaseUrlHint,
   getProviderBaseUrlPlaceholder,
@@ -50,6 +51,11 @@ import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecificData";
+import {
+  isM365TierCapableProvider,
+  normalizeM365TierValue,
+  type M365TierValue,
+} from "./m365Tier";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 
 export interface EditConnectionModalConnection {
@@ -71,6 +77,7 @@ export interface EditConnectionModalProps {
   isOpen: boolean;
   connection: EditConnectionModalConnection | null;
   providerId: string;
+  providerWebsite?: string;
   onSave: (data: unknown) => Promise<void | unknown>;
   /** Triggered after a successful save when the "import only free models" flag changed. */
   onResyncModels?: (connectionId: string) => void | Promise<void>;
@@ -83,6 +90,7 @@ export default function EditConnectionModal({
   isOpen,
   connection,
   providerId,
+  providerWebsite,
   onSave,
   onResyncModels,
   onClose,
@@ -129,6 +137,7 @@ export default function EditConnectionModal({
     passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
     disableCooling: connection?.providerSpecificData?.disableCooling === true,
     importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
+    m365Tier: normalizeM365TierValue(connection?.providerSpecificData?.tier) as M365TierValue,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -153,7 +162,19 @@ export default function EditConnectionModal({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const showEmail = useEmailPrivacyStore((state) => state.emailsVisible);
 
-  const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
+  // #6147 — built-in providers can opt in to an advanced base-URL override.
+  // OAuth connections are excluded: their save path does not persist
+  // providerSpecificData.baseUrl.
+  const isConfigurableBaseUrl = isBaseUrlConfigurableProvider(provider);
+  const isBaseUrlOverrideEligible =
+    connection?.authType !== "oauth" && isBaseUrlOverrideEligibleProvider(provider);
+  const [showBaseUrlOverride, setShowBaseUrlOverride] = useState(
+    () =>
+      typeof connection?.providerSpecificData?.baseUrl === "string" &&
+      connection.providerSpecificData.baseUrl.trim().length > 0
+  );
+  const usesBaseUrl =
+    isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
   const isBedrock = provider === "bedrock";
@@ -168,6 +189,7 @@ export default function EditConnectionModal({
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
+  const isM365TierCapable = isM365TierCapableProvider(provider);
   const webSessionCredential = getWebSessionCredentialRequirement(provider);
   const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
   const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
@@ -292,6 +314,7 @@ export default function EditConnectionModal({
         passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
         disableCooling: connection?.providerSpecificData?.disableCooling === true,
         importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
+        m365Tier: normalizeM365TierValue(connection.providerSpecificData?.tier) as M365TierValue,
       });
       const existing = connection.providerSpecificData?.extraApiKeys;
       setExtraApiKeys(Array.isArray(existing) ? existing : []);
@@ -310,7 +333,10 @@ export default function EditConnectionModal({
       setApiKeyHealth(health || {});
       setNewExtraKey("");
       setOpenRouterPreset(existingOpenRouterPreset);
-      setShowAdvanced(!!existingCustomUserAgent);
+      setShowAdvanced(
+        !!existingCustomUserAgent ||
+          normalizeM365TierValue(connection.providerSpecificData?.tier) !== ""
+      );
       setTestResult(null);
       setValidationResult(null);
       setSaveError(null);
@@ -441,12 +467,18 @@ export default function EditConnectionModal({
 
       let validatedBaseUrl = null;
       if (usesBaseUrl) {
-        const checked = normalizeAndValidateHttpBaseUrl(formData.baseUrl, defaultBaseUrl);
-        if (checked.error) {
-          setSaveError(checked.error);
-          return;
+        // #6147 — an opt-in override left blank clears it (no default to fall
+        // back to). Configurable providers keep their existing default-fallback.
+        if (!isConfigurableBaseUrl && !formData.baseUrl.trim()) {
+          validatedBaseUrl = null;
+        } else {
+          const checked = normalizeAndValidateHttpBaseUrl(formData.baseUrl, defaultBaseUrl);
+          if (checked.error) {
+            setSaveError(checked.error);
+            return;
+          }
+          validatedBaseUrl = checked.value;
         }
-        validatedBaseUrl = checked.value;
       }
 
       if (!isOAuth && formData.apiKey) {
@@ -776,6 +808,7 @@ export default function EditConnectionModal({
               <WebSessionCredentialGuide
                 requirement={webSessionCredential}
                 providerName={providerDisplayName}
+                providerWebsite={providerWebsite}
                 t={t}
               />
             )}
@@ -854,6 +887,21 @@ export default function EditConnectionModal({
                   placeholder="my-app/1.0"
                   hint={t("customUserAgentHint")}
                 />
+                {isM365TierCapable && (
+                  <Select
+                    label={t("m365TierLabel")}
+                    value={formData.m365Tier ?? ""}
+                    options={[
+                      { value: "", label: t("m365TierIndividualOption") },
+                      { value: "edu", label: t("m365TierEduOption") },
+                      { value: "enterprise", label: t("m365TierEnterpriseOption") },
+                    ]}
+                    onChange={(e) =>
+                      setFormData({ ...formData, m365Tier: e.target.value as M365TierValue })
+                    }
+                    hint={t("m365TierHint")}
+                  />
+                )}
                 <Toggle
                   size="sm"
                   checked={formData.passthroughModels}
@@ -937,13 +985,33 @@ export default function EditConnectionModal({
           </>
         )}
 
+        {/* #6147 — opt-in "Advanced → override base URL" for eligible built-ins */}
+        {!usesBaseUrl && isBaseUrlOverrideEligible && (
+          <button
+            type="button"
+            onClick={() => setShowBaseUrlOverride(true)}
+            className="self-start text-xs text-primary hover:underline"
+          >
+            {providerText(t, "overrideBaseUrlAdvanced", "Advanced: override base URL")}
+          </button>
+        )}
+
         {usesBaseUrl && (
           <Input
             label={t("baseUrlLabel")}
             value={formData.baseUrl}
             onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
             placeholder={getProviderBaseUrlPlaceholder(provider)}
-            hint={getProviderBaseUrlHint(provider, t)}
+            hint={
+              getProviderBaseUrlHint(provider, t) ||
+              (isBaseUrlOverrideEligible
+                ? providerText(
+                    t,
+                    "overrideBaseUrlHint",
+                    "Advanced: point this built-in provider at a custom endpoint. Leave blank to use the default."
+                  )
+                : undefined)
+            }
           />
         )}
 

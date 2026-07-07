@@ -374,6 +374,7 @@ export async function handleChatCore({
   skipUpstreamRetry = false,
   createPiiTransform = null,
   correlationId = null,
+  modelPinned = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   // ── Memory pressure guard ────────────────────────────────────────────
@@ -583,6 +584,7 @@ export async function handleChatCore({
     isResponsesEndpoint,
     nativeCodexPassthrough,
     isDroidCLI,
+    isOpencodeClient,
     copilotCompatibleReasoning,
     clientResponseFormat,
   } = resolveChatCoreRequestFormat({ clientRawRequest, body, provider, userAgent });
@@ -805,6 +807,7 @@ export async function handleChatCore({
       apiKeyInfo,
       noLogEnabled,
       correlationId,
+      modelPinned,
     });
 
   // Primary path: merge client model id + alias target so config on either key applies; resolved
@@ -873,9 +876,16 @@ export async function handleChatCore({
   // sourceFormat="claude" applies the Anthropic Messages spec default (stream=false
   // when body omits stream), preventing STREAM_EARLY_EOF on /v1/messages when
   // clients send Accept: */* without an explicit stream flag.
-  // providerRequiresStreaming: providers with forceStream:true reject stream:false
-  // upstream (HTTP 400); keep streaming so OmniRoute can convert the stream to JSON
-  // for the client via handleForcedSSEToJson. (#2081)
+  // providerRequiresStreaming: providers with forceStream:true (cline/clinepass)
+  // only implement upstream streaming — a non-streaming request returns
+  // "generateText is not implemented" / an empty body. This flag forces the
+  // UPSTREAM request to stream (see `upstreamStream` below), but it MUST NOT
+  // force the client-facing `stream` flag: a stream:false client (e.g. the
+  // model-test button, plain JSON API callers) still expects a JSON response.
+  // The client-side `if (!stream)` branch drains the forced upstream SSE and
+  // converts it back to JSON via readNonStreamingResponseBody. Passing this
+  // flag into resolveStreamFlag would force `stream=true` and skip that
+  // conversion, yielding STREAM_EARLY_EOF for JSON callers. (#2081, #6126)
   const providerRequiresStreaming = REGISTRY[provider]?.forceStream === true;
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
@@ -883,7 +893,6 @@ export async function handleChatCore({
       : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat, {
           userAgent: streamUserAgent,
           streamDefaultMode: apiKeyInfo?.streamDefaultMode,
-          providerRequiresStreaming,
         });
 
   // `settings` is already consolidated once near the top of handleChatCore
@@ -1588,7 +1597,13 @@ export async function handleChatCore({
     headers: clientRawRequest?.headers,
     userAgent,
   });
-  const upstreamStream = stream || isClaudeCodeCompatible;
+  // `forceStream` providers (e.g. Cline / ClinePass) only implement upstream
+  // streaming — a non-streaming request returns "generateText is not implemented"
+  // / an empty body. Force the upstream request to stream even when the client
+  // wants JSON; the non-streaming branch below accumulates the SSE and converts
+  // it back to JSON (same mechanism already used for Claude-Code-compatible
+  // providers via isClaudeCodeCompatible).
+  const upstreamStream = stream || isClaudeCodeCompatible || providerRequiresStreaming;
   let ccSessionId: string | null = null;
   const stripTypes = getStripTypesForProviderModel(provider || "", model || "");
 
@@ -2092,7 +2107,15 @@ export async function handleChatCore({
   // mode="cliproxyapi": returns the CLIProxyAPI executor instead.
   // mode="fallback": returns a wrapper that tries native first, falls back to CLIProxyAPI on 5xx/network errors.
 
-  const resolveExecutorWithProxy = (prov: string) => resolveExecutorWithProxyFor(prov, log);
+  // #6339: pass the resolved connection's providerSpecificData so a per-connection
+  // cliproxyapiMode="claude-native" override can deep-route this single connection
+  // through CLIProxyAPI regardless of the provider-level upstream_proxy_config mode.
+  const resolveExecutorWithProxy = (prov: string) =>
+    resolveExecutorWithProxyFor(
+      prov,
+      log,
+      (credentials?.providerSpecificData as Record<string, unknown> | null | undefined) ?? null
+    );
 
   // === Quota Share enforcement PRE-hook (B/F7) ===
   // Runs after provider/model/credentials/apiKeyInfo are fully resolved,
@@ -2224,6 +2247,7 @@ export async function handleChatCore({
         targetFormat,
         credentials,
         log,
+        bypassDefaultToolLimit: isOpencodeClient,
       });
 
       updatePendingScope(pendingScope, {
@@ -4040,6 +4064,13 @@ export async function handleChatCore({
       requestId: skillRequestId,
       compressionResponseMeta,
     });
+    // #6426: align response body `model` with the `X-OmniRoute-Model` header
+    // (both must be the resolved backend model). Some upstreams (notably legacy
+    // /v1/completions text-completion path) return a body `model` field that
+    // differs from the resolved backend id we advertised in the header, leaving
+    // strict clients unable to reconcile the two. Rewrite body.model to `model`
+    // FIRST, then let #1311 echo override it when the opt-in setting is on.
+    if (typeof model === "string" && model) echoModelInObject(translatedResponse, model);
     // #1311: echo the requested alias/combo name in the non-streaming response model.
     if (echoModel) echoModelInObject(translatedResponse, echoModel);
     return {

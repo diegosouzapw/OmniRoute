@@ -71,7 +71,7 @@ import {
   parseGeminiModelsList,
   type GeminiDiscoveryModel,
 } from "@/lib/providerModels/geminiModelsParser";
-import { getSyncedAvailableModels } from "@/lib/db/models";
+import { getSyncedAvailableModels, getCustomModels } from "@/lib/db/models";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 import {
   type JsonRecord,
@@ -92,6 +92,7 @@ import {
   normalizeSapModelsResponse,
 } from "./discovery/normalizers";
 import { isNamedOpenAIStyleProvider } from "./discovery/providerSets";
+import { buildStaleEncryptionKeyResponse } from "./staleEncryptionGuard";
 import {
   type ProviderModelsConfigEntry,
   PROVIDER_MODELS_CONFIG,
@@ -193,6 +194,13 @@ export async function GET(
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
+    // #6148 — short-circuit when a stored credential is encrypted but no longer
+    // decrypts (STORAGE_ENCRYPTION_KEY changed/unset). Otherwise the null key is
+    // coerced to "", an empty-Bearer probe is sent, and the operator sees a
+    // misleading "Auth failed: 401" instead of the real cause.
+    const staleEncryptionResponse = buildStaleEncryptionKeyResponse(connection);
+    if (staleEncryptionResponse) return staleEncryptionResponse;
+
     const provider =
       typeof connection.provider === "string" && connection.provider.trim().length > 0
         ? connection.provider
@@ -204,7 +212,38 @@ export async function GET(
     // Resolve proxy for this provider (provider-level → global → direct)
     const proxy = await resolveProxyForProvider(provider);
 
+    // #6247 — user-added custom models live in key_value namespace `customModels`
+    // (getCustomModels). The live REST /api/v1/models merges them, but this
+    // per-connection route (used by MCP list_models_catalog + the dashboard
+    // import view) never did, so custom models were dropped on both the
+    // discovery-success and local_catalog paths. Read them once here and fold
+    // them into every models response via buildResponse below (dedup by id).
+    let customModelsForProvider: Array<{ id: string; name?: string }> = [];
+    try {
+      const custom = await getCustomModels(provider);
+      if (Array.isArray(custom)) {
+        customModelsForProvider = custom as Array<{ id: string; name?: string }>;
+      }
+    } catch {
+      // DB unavailable — proceed without custom models.
+    }
+
+    const mergeCustomModels = (models: any[]) => {
+      if (customModelsForProvider.length === 0) return models;
+      const base = Array.isArray(models) ? models : [];
+      const existing = new Set(
+        base.map((m) => (m && typeof m.id === "string" ? m.id : null)).filter(Boolean)
+      );
+      const extra = customModelsForProvider
+        .filter((m) => m && typeof m.id === "string" && m.id.length > 0 && !existing.has(m.id))
+        .map((m) => ({ id: m.id, name: m.name || m.id, owned_by: provider }));
+      return extra.length > 0 ? [...base, ...extra] : base;
+    };
+
     const buildResponse = (payload: any, statusConfig?: ResponseInit) => {
+      if (payload.models && Array.isArray(payload.models)) {
+        payload.models = mergeCustomModels(payload.models);
+      }
       if (excludeHidden && payload.models && Array.isArray(payload.models)) {
         payload.models = payload.models.filter((m: any) => !getModelIsHidden(provider, m.id));
       }
@@ -308,6 +347,16 @@ export async function GET(
         localWarning?: string;
       }
     ) => {
+      // #6267 — a models-endpoint redirect (307/308) is not a fixable-config
+      // error. safeOutboundFetch throws REDIRECT_BLOCKED which
+      // getSafeOutboundFetchErrorStatus maps to 503, but unlike the other 503
+      // cases (URL_GUARD_BLOCKED / INVALID_URL, which are genuinely
+      // unrecoverable and stay hard errors) a blocked redirect should degrade to
+      // the local/cached catalog OmniRoute ships instead of surfacing a raw 503.
+      // General fix — covers any config-driven provider that 307s (e.g. qwen-web).
+      if (error instanceof SafeOutboundFetchError && error.code === "REDIRECT_BLOCKED") {
+        return buildDiscoveryFallbackResponse(warnings);
+      }
       const status = getSafeOutboundFetchErrorStatus(error);
       if (status === 400 || status === 503 || status === 504) return null;
       return buildDiscoveryFallbackResponse(warnings);
