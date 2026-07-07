@@ -332,20 +332,46 @@ export default function ApiManagerPageClient() {
 
       // Fallback for dashboard API-key editing: /v1/models can be protected by
       // API-key catalog auth, but the dashboard still needs a stable catalog so
-      // users can edit allowedModels. /api/models?all=true returns the static
-      // dashboard model inventory in a slightly different shape.
-      const fallbackRes = await fetch("/api/models?all=true");
+      // users can edit allowedModels. Preserve combo pseudo-models too: /v1/models
+      // lists active combos as owned_by="combo", while /api/models?all=true only
+      // returns the static provider model inventory.
+      const [fallbackRes, combosRes] = await Promise.all([
+        fetch("/api/models?all=true"),
+        fetch("/api/combos"),
+      ]);
       if (fallbackRes.ok) {
-        const fallbackData = await fallbackRes.json();
+        const [fallbackData, combosData] = await Promise.all([
+          fallbackRes.json(),
+          combosRes.ok ? combosRes.json() : Promise.resolve({ combos: [] }),
+        ]);
         const fallbackModels = Array.isArray(fallbackData.models) ? fallbackData.models : [];
+        const comboModels = (Array.isArray(combosData.combos) ? combosData.combos : [])
+          .filter(
+            (combo: any) =>
+              combo?.isActive !== false &&
+              combo?.isHidden !== true &&
+              typeof combo?.name === "string" &&
+              combo.name.trim().length > 0
+          )
+          .map((combo: any) => ({
+            id: combo.name,
+            owned_by: "combo",
+            name: combo.name,
+          }));
+        const modelEntries = fallbackModels
+          .map((m: any) => ({
+            id: typeof m.fullModel === "string" ? m.fullModel : `${m.provider}/${m.model}`,
+            owned_by: typeof m.provider === "string" ? m.provider : "unknown",
+            name: typeof m.alias === "string" ? m.alias : m.model || m.fullModel,
+          }))
+          .filter((m: Model) => typeof m.id === "string" && m.id.length > 0);
+        const seen = new Set<string>();
         setAllModels(
-          fallbackModels
-            .map((m: any) => ({
-              id: typeof m.fullModel === "string" ? m.fullModel : `${m.provider}/${m.model}`,
-              owned_by: typeof m.provider === "string" ? m.provider : "unknown",
-              name: typeof m.alias === "string" ? m.alias : m.model || m.fullModel,
-            }))
-            .filter((m: Model) => typeof m.id === "string" && m.id.length > 0)
+          [...comboModels, ...modelEntries].filter((m: Model) => {
+            if (seen.has(m.id)) return false;
+            seen.add(m.id);
+            return true;
+          })
         );
       } else {
         setAllModels([]);
