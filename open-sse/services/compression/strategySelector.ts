@@ -30,6 +30,7 @@ import {
 } from "./stackedStepCore.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
+import { applyOmniglyphSingleMode } from "./engines/omniglyphSingleMode.ts";
 import { applyRtkCompression } from "./engines/rtk/index.ts";
 import { adaptBodyForCompression } from "./bodyAdapter.ts";
 import {
@@ -497,14 +498,8 @@ async function runCompressionAsync(
     memoStore(key, result);
     return memoLookup(key)!;
   }
-  if (mode === "omniglyph") {
-    // Selecting the "omniglyph" mode IS the enable signal — run it alone, same pattern
-    // as the "rtk" single mode. (B-MODE-ENGINE-DECOUPLE)
-    registerBuiltinCompressionEngines();
-    const engine = getCompressionEngine("omniglyph");
-    if (!engine?.applyAsync) return { body, compressed: false, stats: null };
-    return engine.applyAsync(body, options);
-  }
+  // Single-mode omniglyph (async-only) — resolution lives in engines/omniglyphSingleMode.ts.
+  if (mode === "omniglyph") return applyOmniglyphSingleMode(body, options);
   if (mode === "stacked") {
     const adapter = adaptBodyForCompression(body);
     const result = await applyStackedCompressionAsync(
