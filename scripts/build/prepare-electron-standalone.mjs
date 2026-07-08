@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-import { existsSync, lstatSync, readdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 import { assembleStandalone } from "./assembleStandalone.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -70,14 +71,83 @@ function removeGeneratedElectronArtifacts() {
 
 // --- Electron-UNIQUE: remove native modules for electron-builder ABI rebuild ---
 
-function removeNativeModules(baseDir) {
+function removeNativeModules(baseDir, prefixes = ["keytar"]) {
   if (!existsSync(baseDir)) return;
   const dirs = readdirSync(baseDir);
   for (const dir of dirs) {
-    if (dir.startsWith("better-sqlite3") || dir.startsWith("keytar")) {
+    if (prefixes.some((p) => dir.startsWith(p))) {
       const fullPath = join(baseDir, dir);
       rmSync(fullPath, { recursive: true, force: true });
     }
+  }
+}
+
+// --- Electron-UNIQUE: rebuild better-sqlite3 against the Electron ABI --------
+//
+// The `npm ci` at the repo root compiles better-sqlite3 for the CI *Node* ABI
+// (e.g. 137 for Node 24). The packaged app runs its Next.js server via
+// ELECTRON_RUN_AS_NODE, so it needs the *Electron* ABI (146 for electron 42,
+// 148 for electron 43). We cannot rely on electron-builder's @electron/rebuild
+// here: it searches `electron/node_modules` (where better-sqlite3 does not live)
+// and, with the default prebuild path, tries to fetch a prebuilt binary — but
+// better-sqlite3@12.11.1 only ships prebuilds up to electron-v146, so electron
+// 43 (v148) silently gets no rebuild and the app dies with "Nenhum driver
+// SQLite disponível — better-sqlite3 (falhou)".
+//
+// Instead we copy the *full* module (source + binding.gyp) from the root into
+// the standalone and compile it from source against the Electron headers, so
+// `bindings` finds a correct build/Release/better_sqlite3.node regardless of
+// prebuild availability. Robust to any current/future electron version.
+
+function readElectronVersion() {
+  const pkg = JSON.parse(readFileSync(join(ROOT, "electron", "package.json"), "utf8"));
+  const raw = pkg.devDependencies?.electron || pkg.dependencies?.electron || "";
+  return String(raw).replace(/^[\^~]/, "");
+}
+
+function rebuildBetterSqlite3ForElectron(standaloneNodeModules) {
+  const srcMod = join(ROOT, "node_modules", "better-sqlite3");
+  if (!existsSync(srcMod)) {
+    console.warn("[electron] better-sqlite3 not found at repo root — skipping ABI rebuild.");
+    return;
+  }
+  const electronVersion = readElectronVersion();
+  if (!electronVersion) {
+    throw new Error("[electron] could not resolve electron version for better-sqlite3 rebuild.");
+  }
+  const destMod = join(standaloneNodeModules, "better-sqlite3");
+  // copyNatives only copies build/; we need the full module (src + binding.gyp)
+  // to compile from source. Overwrite the copied Node-ABI build in the process.
+  cpSync(srcMod, destMod, { recursive: true, force: true });
+  rmSync(join(destMod, "build"), { recursive: true, force: true });
+
+  console.log(`[electron] rebuilding better-sqlite3 against electron ${electronVersion} ABI…`);
+  const result = spawnSync(
+    process.platform === "win32" ? "npx.cmd" : "npx",
+    ["--yes", "node-gyp", "rebuild"],
+    {
+      cwd: destMod,
+      stdio: "inherit",
+      // Compile against the Electron headers (not Node's) so the .node lands in
+      // build/Release with the Electron NODE_MODULE_VERSION. No shell interpolation.
+      env: {
+        ...process.env,
+        npm_config_runtime: "electron",
+        npm_config_target: electronVersion,
+        npm_config_disturl: "https://electronjs.org/headers",
+        npm_config_arch: process.arch,
+        npm_config_build_from_source: "true",
+      },
+    }
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      `[electron] better-sqlite3 rebuild against electron ${electronVersion} failed (exit ${result.status}).`
+    );
+  }
+  // Drop the now-unneeded compile inputs to keep the packaged app lean.
+  for (const dir of ["deps", "src", "build/Debug", "build/obj.target"]) {
+    rmSync(join(destMod, dir), { recursive: true, force: true });
   }
 }
 
@@ -108,9 +178,17 @@ assembleStandalone({
 // Electron-UNIQUE post-assembly steps
 removeGeneratedElectronArtifacts();
 
-// Strip better-sqlite3 and keytar so electron-builder rebuilds them against Electron ABI
-removeNativeModules(join(ELECTRON_STANDALONE_DIR, "node_modules"));
-removeNativeModules(join(ELECTRON_STANDALONE_DIR, ".next", "node_modules"));
+// Rebuild better-sqlite3 from source against the Electron ABI in the primary
+// node_modules (where the standalone server resolves it). keytar is still
+// stripped so electron-builder's @electron/rebuild handles it (it has electron
+// prebuilds); also drop any stray Node-ABI better-sqlite3 under .next/node_modules
+// so it cannot shadow the rebuilt one.
+rebuildBetterSqlite3ForElectron(join(ELECTRON_STANDALONE_DIR, "node_modules"));
+removeNativeModules(join(ELECTRON_STANDALONE_DIR, "node_modules"), ["keytar"]);
+removeNativeModules(join(ELECTRON_STANDALONE_DIR, ".next", "node_modules"), [
+  "better-sqlite3",
+  "keytar",
+]);
 
 console.log(
   `[electron] prepared standalone bundle: ${relative(ROOT, ELECTRON_STANDALONE_DIR) || "."}`
