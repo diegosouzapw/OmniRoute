@@ -7,13 +7,13 @@ import type { LadderStage } from "./types.ts";
  * SLM tier wired through `ultra`); an operator can still add them via ladderOverride.
  */
 export const DEFAULT_LADDER: LadderStage[] = [
-  { engine: "session-dedup" },        // lossless cross-turn dedup (catalog pri 3)
+  { engine: "session-dedup" }, // lossless cross-turn dedup (catalog pri 3)
   { engine: "rtk", intensity: "standard" }, // command-output filtering (pri 10)
-  { engine: "headroom" },             // tabular JSON compaction (pri 15)
-  { engine: "lite" },                 // whitespace/format cleanup (pri 5, but cheap prose pass)
+  { engine: "headroom" }, // tabular JSON compaction (pri 15)
+  { engine: "lite" }, // whitespace/format cleanup (pri 5, but cheap prose pass)
   { engine: "caveman", intensity: "full" }, // rule-based prose (pri 20)
-  { engine: "aggressive" },           // summarize + age old turns (pri 30)
-  { engine: "ultra" },                // heuristic token pruning + optional SLM (pri 40)
+  { engine: "aggressive" }, // summarize + age old turns (pri 30)
+  { engine: "ultra" }, // heuristic token pruning + optional SLM (pri 40)
 ];
 
 /**
@@ -34,20 +34,21 @@ export const DEFAULT_LADDER: LadderStage[] = [
 const AGGRESSIVENESS: Record<string, number> = {
   off: 0,
   "session-dedup": 10, // stackPriority 3 — lossless cross-turn dedup
-  ccr: 15,              // stackPriority 4 — reversible retrieval marker, only if it shrinks
-  rtk: 20,              // stackPriority 10 — command-output filtering
-  ionizer: 25,          // stackPriority 13 — tabular row sampling (lighter than headroom)
-  headroom: 30,         // stackPriority 15 — tabular JSON compaction
-  lite: 40,             // pri 5, but cheap prose pass (pre-existing reorder, kept as-is)
+  ccr: 15, // stackPriority 4 — reversible retrieval marker, only if it shrinks
+  rtk: 20, // stackPriority 10 — command-output filtering
+  ionizer: 25, // stackPriority 13 — tabular row sampling (lighter than headroom)
+  headroom: 30, // stackPriority 15 — tabular JSON compaction
+  lite: 40, // pri 5, but cheap prose pass (pre-existing reorder, kept as-is)
   "read-lifecycle": 42, // stackPriority 5 (ties lite) — narrow-scope, opt-in, fully lossy
-  relevance: 45,        // stackPriority 18 — extractive sentence scoring, opt-in
+  relevance: 45, // stackPriority 18 — extractive sentence scoring, opt-in
   caveman: 50,
   standard: 50, // mode-name alias for caveman
-  stacked: 50,  // a derived/stacked base plan sits at the prose tier; floor escalates past it
+  stacked: 50, // a derived/stacked base plan sits at the prose tier; floor escalates past it
   aggressive: 60,
   llmlingua: 65, // stackPriority 35 — semantic pruning (ONNX), after aggressive, before ultra/llm
-  llm: 68,       // stackPriority 38 — full LLM-tier compressor, opt-in default-off
+  llm: 68, // stackPriority 38 — full LLM-tier compressor, opt-in default-off
   ultra: 70,
+  omniglyph: 80, // stackPriority 90 — context-as-image (lossy render), runs after every text engine
 };
 
 export function aggressivenessOf(engineOrMode: string): number {
@@ -74,6 +75,7 @@ const REDUCTION_FACTOR: Record<string, number> = {
   llmlingua: 0.5, // semantic pruning (ONNX)
   llm: 0.45, // full LLM-tier compressor, stronger than llmlingua
   ultra: 0.4,
+  omniglyph: 0.35, // measured 0.23-0.33 on converted blocks (254->84 tokens); 0.35 stays conservative
 };
 
 export function expectedReductionFactor(engine: string): number {

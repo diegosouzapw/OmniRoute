@@ -3,8 +3,13 @@ import assert from "node:assert";
 import { omniglyphEngine } from "../../../open-sse/services/compression/engines/omniglyphAdapter.ts";
 
 // Corpo Claude denso o bastante para o gate de rentabilidade do omniglyph converter.
-const DENSE = "X".repeat(500) + "\n" +
-  Array.from({ length: 400 }, (_, i) => `const row_${i} = compute(${i * 17}, "${"v".repeat(80)}");`).join("\n");
+const DENSE =
+  "X".repeat(500) +
+  "\n" +
+  Array.from(
+    { length: 400 },
+    (_, i) => `const row_${i} = compute(${i * 17}, "${"v".repeat(80)}");`
+  ).join("\n");
 function claudeBody(): Record<string, unknown> {
   return {
     model: "claude-fable-5",
@@ -42,7 +47,10 @@ test("skip: modelo fora da allowlist medida", async () => {
 test("skip: corpo em formato OpenAI (role system nas messages)", async () => {
   const body = {
     model: "claude-fable-5",
-    messages: [{ role: "system", content: DENSE }, { role: "user", content: "oi" }],
+    messages: [
+      { role: "system", content: DENSE },
+      { role: "user", content: "oi" },
+    ],
   };
   const r = await omniglyphEngine.applyAsync!(body, OK);
   assert.equal(r.compressed, false);
@@ -67,7 +75,7 @@ test("apply síncrono é pass-through seguro (engine async-only)", () => {
 
 test("fail-open: erro no transform vira skip, nunca propaga", async () => {
   const body = claudeBody() as Record<string, unknown>;
-  (body as any).self = body; // referência circular → JSON.stringify lança
+  (body as { self?: unknown }).self = body; // referência circular → JSON.stringify lança
   const r = await omniglyphEngine.applyAsync!(body, OK);
   assert.equal(r.compressed, false);
   assert.deepEqual(r.body, body); // corpo original devolvido intacto
