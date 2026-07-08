@@ -291,8 +291,17 @@ export const providerNodeValidateSchema = z.object({
 export const updateProviderConnectionSchema = z
   .object({
     name: z.string().max(200).optional(),
-    priority: z.coerce.number().int().min(1).max(100).optional(),
-    globalPriority: z.union([z.coerce.number().int().min(1).max(100), z.null()]).optional(),
+    // #6562: `priority` is auto-incremented on connection creation
+    // (src/lib/db/providers.ts::createProviderConnection — `MAX(priority)+1` per
+    // provider, unbounded) and the edit UI always round-trips the connection's
+    // current priority unchanged. Providers whose accounts are commonly rotated
+    // in bulk (e.g. Codex OAuth import-bulk, up to 50 entries per call, repeatable)
+    // routinely exceed 100 connections, so a `max(100)` UI-only ceiling here
+    // rejected re-saving an already-valid, already-persisted priority with
+    // "Invalid request" on every edit. Bounded well above any realistic
+    // connection count (still rejects garbage input) rather than removed.
+    priority: z.coerce.number().int().min(1).max(100_000).optional(),
+    globalPriority: z.union([z.coerce.number().int().min(1).max(100_000), z.null()]).optional(),
     defaultModel: z.union([z.string().max(200), z.null()]).optional(),
     isActive: z.boolean().optional(),
     apiKey: z.string().max(10000).optional(),
