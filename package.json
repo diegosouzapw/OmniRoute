@@ -46,7 +46,8 @@
     "!**/*.spec.tsx"
   ],
   "workspaces": [
-    "open-sse"
+    "open-sse",
+    "packages/tokn"
   ],
   "engines": {
     "node": ">=22.0.0 <23 || >=24.0.0 <27"
@@ -211,7 +212,9 @@
     "system-info": "node scripts/dev/system-info.mjs",
     "build:cli-api": "node --import tsx/esm scripts/cli/generate-api-commands.mjs",
     "release:contributors": "node scripts/release/gen-contributors.mjs",
-    "release:uncovered": "node scripts/release/list-uncovered-commits.mjs"
+    "release:uncovered": "node scripts/release/list-uncovered-commits.mjs",
+    "build:tokn-ffi": "cd packages/tokn && node scripts/build.mjs",
+    "test:tokn": "tsx --test src/lib/tokn/__tests__/*.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1073.0",

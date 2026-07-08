@@ -1,0 +1,42 @@
+{
+  "name": "@omniroute/tokn",
+  "version": "0.1.0",
+  "description": "Native binding to omniroute-combo (Rust) routing substrate. Sync, ≤5ms p99. Pure-TS fallback when binary unavailable.",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "scripts/build.mjs",
+    "scripts/postinstall.mjs",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "postinstall": "node scripts/postinstall.mjs",
+    "verify": "node scripts/verify.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "omniroute",
+    "routing",
+    "ai",
+    "napi",
+    "rust"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KooshaPari/OmniRoute.git",
+    "directory": "packages/tokn"
+  }
+}
