@@ -17,6 +17,11 @@ const PUBLIC_API_ROUTE_PREFIXES = [
   // The handler enforces its own auth via extractUsageCommandApiKey/isValidApiKey
   // and the allowUsageCommand flag — it must not be gated by management auth.
   "/api/usage/om-usage",
+  // Skill Collector endpoints — detect tools, install skills, chaos mode
+  // These are dev-mode convenience APIs (no destructive operations).
+  // In production (REQUIRE_API_KEY=true), the management auth middleware still
+  // enforces auth; this entry only bypasses the requireLogin gate.
+  "/api/skills/collect/",
 ];
 
 const PUBLIC_READONLY_API_ROUTE_PREFIXES = [

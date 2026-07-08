@@ -44,4 +44,8 @@ export const API_KEY_COLUMN_FALLBACKS = [
     name: "weekly_usage_limit_usd",
     definition: "weekly_usage_limit_usd REAL",
   },
+  {
+    name: "chaos_mode_enabled",
+    definition: "chaos_mode_enabled INTEGER NOT NULL DEFAULT 0",
+  },
 ] as const;

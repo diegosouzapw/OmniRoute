@@ -125,6 +125,7 @@ interface ApiKey {
   streamDefaultMode?: StreamDefaultMode;
   disableNonPublicModels?: boolean;
   allowUsageCommand?: boolean;
+  chaosModeEnabled?: boolean;
   usageLimitEnabled?: boolean;
   dailyUsageLimitUsd?: number | null;
   weeklyUsageLimitUsd?: number | null;
@@ -518,7 +519,8 @@ export default function ApiManagerPageClient() {
             const res = await fetch(`/api/keys/${encodeURIComponent(key.id)}/devices`);
             if (!res.ok) return [key.id, 0] as const;
             const data = await res.json();
-            const count = typeof data?.count === "number" && Number.isFinite(data.count) ? data.count : 0;
+            const count =
+              typeof data?.count === "number" && Number.isFinite(data.count) ? data.count : 0;
             return [key.id, count] as const;
           } catch {
             return [key.id, 0] as const;
@@ -791,7 +793,8 @@ export default function ApiManagerPageClient() {
     usageLimitEnabled: boolean,
     dailyUsageLimitUsd: number | null,
     weeklyUsageLimitUsd: number | null,
-    blockedModels: string[]
+    blockedModels: string[],
+    chaosModeEnabled: boolean
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -862,6 +865,7 @@ export default function ApiManagerPageClient() {
           usageLimitEnabled,
           dailyUsageLimitUsd,
           weeklyUsageLimitUsd,
+          chaosModeEnabled,
         }),
       });
 
@@ -1645,7 +1649,8 @@ const PermissionsModal = memo(function PermissionsModal({
     usageLimitEnabled: boolean,
     dailyUsageLimitUsd: number | null,
     weeklyUsageLimitUsd: number | null,
-    blockedModels: string[]
+    blockedModels: string[],
+    chaosModeEnabled: boolean
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -1731,6 +1736,7 @@ const PermissionsModal = memo(function PermissionsModal({
   const [usageCommandEnabled, setUsageCommandEnabled] = useState(
     apiKey?.allowUsageCommand === true
   );
+  const [chaosModeEnabled, setChaosModeEnabled] = useState(apiKey?.chaosModeEnabled === true);
   const [usageLimitEnabled, setUsageLimitEnabled] = useState(apiKey?.usageLimitEnabled === true);
   const [dailyUsageLimitUsd, setDailyUsageLimitUsd] = useState(
     typeof apiKey?.dailyUsageLimitUsd === "number" && apiKey.dailyUsageLimitUsd > 0
@@ -1935,7 +1941,8 @@ const PermissionsModal = memo(function PermissionsModal({
       usageLimitEnabled,
       parseUsdLimitInput(dailyUsageLimitUsd),
       parseUsdLimitInput(weeklyUsageLimitUsd),
-      blockedModels
+      blockedModels,
+      chaosModeEnabled
     );
   }, [
     onSave,
@@ -1974,6 +1981,7 @@ const PermissionsModal = memo(function PermissionsModal({
     parseUsdLimitInput,
     blockedClaudeCodeFamilies,
     initialBlockedModels,
+    chaosModeEnabled,
     apiKey?.scopes,
     t,
   ]);
@@ -2561,6 +2569,30 @@ const PermissionsModal = memo(function PermissionsModal({
             onDailyLimitUsdChange={setDailyUsageLimitUsd}
             onWeeklyLimitUsdChange={setWeeklyUsageLimitUsd}
           />
+        </div>
+
+        {/* Chaos Mode Access Toggle */}
+        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">{t("keyPermission")}</p>
+            <p className="text-xs text-text-muted">{t("keyPermissionDesc")}</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={chaosModeEnabled}
+            onClick={() => setChaosModeEnabled((prev) => !prev)}
+            className={`inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              chaosModeEnabled
+                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {chaosModeEnabled ? "blender" : "blender"}
+            </span>
+            {t("chaosConfig")} - {chaosModeEnabled ? tc("enabled") : tc("disabled")}
+          </button>
         </div>
 
         {/* Advanced Provider Quota Policy Override */}
