@@ -74,6 +74,24 @@
     } finally { saving = false; }
   }
 
+  // Derived state for the FlowEditor - keeps the visual editor in sync
+  // with the Identity form. If the visual editor ever supports write-back,
+  // syncFromFlow() can populate the form data.
+  const flowState = $derived({
+    primary,
+    fallbacks: fallbacks.map((f) => f.model),
+    strategy,
+    costBudget,
+  });
+
+  function syncFromFlow() {
+    // Read the latest flow state from the editor's DOM (data-* attrs
+    // or a window event), then fall back to the existing primary/fallbacks.
+    // For now this is a no-op stub - the visual editor in FlowEditor.svelte
+    // doesn't yet emit a write-back. Will land in v4.0.1.
+    alert('Flow -> Identity sync is a v4.0.1 follow-up. Edit fields manually in the Identity tab for now.');
+  }
+
   const tabs: { id: Tab; label: string }[] = [
     { id: 'identity', label: 'Identity' },
     { id: 'flow', label: 'Flow' },
@@ -163,7 +181,11 @@
 
   {:else if tab === 'flow'}
     <Card title="Visual flow editor">
-      <FlowEditor primaryModel={primary} fallbackModels={fallbacks.map((f) => f.model)} />
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-xs text-gray-500">Synced from Identity (Form ↔ Flow)</p>
+      <Button size="sm" variant="secondary" onclick={syncFromFlow}>Sync from flow</Button>
+    </div>
+      <FlowEditor primaryModel={flowState.primary} fallbackModels={flowState.fallbacks} costBudget={flowState.costBudget} />
       <p class="text-xs text-gray-500 mt-3">
         The flow editor reflects the same ComboNode/Edge data structures as the form. Drag nodes to rearrange, edit edges by clicking.
         Custom node types: <span class="font-mono">router</span> (entry), <span class="font-mono">model</span> (callable),

@@ -156,6 +156,7 @@ export const dashboardRoutes = new Hono()
   .put('/notifications', (c) => c.json({ ok: true }))
   .post('/notifications/test', (c) => c.json({ ok: true, sentTo: 'user@argismonitor.local' }))
 
+  .post('/combos/:id/flow', (c) => c.json({ ok: true, savedAt: new Date().toISOString() }))
   .get('/health/stream', (c) => {
     return streamSSE(c, async (stream) => {
       let id = 0;
