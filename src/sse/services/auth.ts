@@ -2044,6 +2044,24 @@ export async function markAccountUnavailable(
       }
     }
 
+    // T09: Antigravity scope-aware lockout guard.
+    if (provider === "antigravity" && model) {
+      const scopeRateLimitedUntil = getAntigravityScopeRateLimitedUntil(
+        conn?.providerSpecificData || {},
+        model
+      );
+      if (scopeRateLimitedUntil && cooldownUntilMs(scopeRateLimitedUntil) > Date.now()) {
+        log.info(
+          "AUTH",
+          `${connectionId.slice(0, 8)} already scope-limited for family of ${model} (until ${scopeRateLimitedUntil}), skipping duplicate mark`
+        );
+        return {
+          shouldFallback: true,
+          cooldownMs: cooldownUntilMs(scopeRateLimitedUntil) - Date.now(),
+        };
+      }
+    }
+
     const effectiveProviderProfile =
       providerProfile || (provider ? await getRuntimeProviderProfile(provider) : null);
     // #4530 follow-up: the combo.ts lockout sites forward the admin-configured
@@ -2261,7 +2279,15 @@ export async function markAccountUnavailable(
       const scope = getCodexModelScope(model);
       const existingScopeMap = asRecord(conn.providerSpecificData.codexScopeRateLimitedUntil);
       const persistedScopeUntil = getCodexScopeRateLimitedUntil(conn.providerSpecificData, model);
-      const scopeRateLimitedUntil = persistedScopeUntil || getUnavailableUntil(cooldownMs);
+      const newScopeUntil = getUnavailableUntil(cooldownMs);
+
+      const scopeRateLimitedUntil =
+        persistedScopeUntil &&
+        new Date(persistedScopeUntil).getTime() > Date.now() &&
+        new Date(persistedScopeUntil).getTime() > new Date(newScopeUntil).getTime()
+          ? persistedScopeUntil
+          : newScopeUntil;
+
       const scopeCooldownMs = Math.max(new Date(scopeRateLimitedUntil).getTime() - Date.now(), 0);
 
       await updateProviderConnection(connectionId, {
@@ -2313,8 +2339,14 @@ export async function markAccountUnavailable(
                 ? cooldownMs
                 : ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS;
 
+        const newScopeUntil = getUnavailableUntil(effectiveCooldownMs);
         const scopeRateLimitedUntil =
-          persistedScopeUntil || getUnavailableUntil(effectiveCooldownMs);
+          persistedScopeUntil &&
+          cooldownUntilMs(persistedScopeUntil) > Date.now() &&
+          cooldownUntilMs(persistedScopeUntil) > cooldownUntilMs(newScopeUntil)
+            ? persistedScopeUntil
+            : newScopeUntil;
+
         const scopeCooldownMs = Math.max(cooldownUntilMs(scopeRateLimitedUntil) - Date.now(), 0);
 
         await updateProviderConnection(connectionId, {
