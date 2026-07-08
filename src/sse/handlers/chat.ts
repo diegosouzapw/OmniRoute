@@ -438,7 +438,6 @@ export async function handleChat(
   }
   body = preCallGuardrails.payload;
   if (body?.model && typeof body.model === "string" && body.model !== modelStr) {
-    log.info("ROUTING", `Guardrail rerouted: ${modelStr} → ${body.model}`);
     modelStr = body.model;
   }
   telemetry.endPhase();
