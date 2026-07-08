@@ -75,6 +75,19 @@ type CriticalTableSpec = {
   readRows?: (db: SqliteDatabase) => JsonRecord[];
 };
 
+// ──────────────── Startup-Hang Mitigation ────────────────
+// The race-safe singleton + cycle-breaker below rely on three process-wide
+// globals (`__omnirouteDbInitPromise`, `__omnirouteDbInitFatal`,
+// `__omnirouteDbProbeFailureCount`). They're all declared further down in the
+// singleton block so concurrent subsystems (STARTUP, HealthCheck,
+// ProviderLimitsSync, ModelSync, BATCH, callLogs) racing their first
+// `getDbInstance()` share a single in-flight initialization, a single fatal
+// cache, and a single consecutive-failure counter — preventing the historical
+// rename/restore loop that hung the server indefinitely on startup.
+
+/** Hard cap on consecutive probe failures before we abort startup. */
+const MAX_CONSECUTIVE_PROBE_FAILURES = 3;
+
 // ──────────────── Environment Detection ────────────────
 
 export const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
@@ -462,6 +475,18 @@ const SCHEMA_SQL = `
 
 declare global {
   var __omnirouteDb: SqliteAdapter | undefined;
+  // Race-safe init lock: concurrent callers of getDbInstance() share one
+  // in-flight `ensureDbInitialized()` instead of each running their own
+  // probe + rename. Resolves once the singleton is populated (or rejects with
+  // the fatal if the DB is unloadable).
+  var __omnirouteDbInitPromise: Promise<unknown> | undefined;
+  // Cached fatal state: once a probe fails irrecoverably (e.g. the DB is too
+  // large for sql.js to load under the current heap), every subsequent caller
+  // re-throws the same clear error instead of looping probe → rename → restore
+  // → probe forever.
+  var __omnirouteDbInitFatal: Error | null | undefined;
+  // Consecutive-probe-failure counter for the cycle-breaker above.
+  var __omnirouteDbProbeFailureCount: number | undefined;
 }
 
 function getDb(): SqliteDatabase | null {
@@ -474,6 +499,50 @@ function setDb(db: SqliteDatabase | null): void {
   } else {
     delete globalThis.__omnirouteDb;
   }
+}
+
+function isOutOfMemoryError(message: string): boolean {
+  return /out of memory|allocation failure|Array buffer allocation failed|allocation failed/i.test(
+    message
+  );
+}
+
+function formatProbeFatalError(
+  message: string,
+  sqliteFile: string,
+  failedProbePath: string | null,
+  dbSizeBytes: number | null
+): Error {
+  const dbSizeMb = dbSizeBytes != null ? Math.round(dbSizeBytes / (1024 * 1024)) : null;
+  const recovery = [
+    `Manual recovery required: cannot load SQLite database.`,
+    `Original error: ${message}`,
+    `SQLite file: ${sqliteFile}${dbSizeMb != null ? ` (${dbSizeMb} MB)` : ""}.`,
+    failedProbePath ? `Most recent preserved copy: ${failedProbePath}` : "",
+    "",
+    `Common causes:`,
+    `  1. The DB has grown past what the sql.js WASM runtime can load under the`,
+    `     current V8 heap (--max-old-space-size). sql.js loads the entire file`,
+    `     into JS heap; a 300 MB DB needs ~1 GB of headroom.`,
+    `  2. No native better-sqlite3 / node:sqlite driver is available, so sql.js`,
+    `     (WASM) is the only path. Install/rebuild a native driver, e.g.:`,
+    `       npm rebuild better-sqlite3`,
+    `       or  omniroute runtime repair`,
+    `  3. The DB file is genuinely corrupt.`,
+    ``,
+    `Workarounds:`,
+    `  • Set OMNIROUTE_MEMORY_MB=4096 (or higher) before launching so sql.js has`,
+    `    enough heap to load the file.`,
+    `  • Delete the probe-failed-* backup(s) in the data dir AFTER copying them`,
+    `    out for forensics; OmniRoute will recreate the DB on the next start`,
+    `    (you will lose stored connections/combos — re-add them or restore from`,
+    `    a managed backup in db_backups/).`,
+    `  • If a native driver is installed, this fallback path will be skipped and`,
+    `    the DB will open directly.`,
+  ]
+    .filter((line) => line !== "" || true)
+    .join("\n");
+  return new Error(`[DB] ${recovery}`);
 }
 
 function checkpointDb(db: SqliteDatabase, mode: CheckpointMode = "TRUNCATE"): boolean {
@@ -931,6 +1000,15 @@ export function getDbInstance(): SqliteDatabase {
   const existing = getDb();
   if (existing) return existing;
 
+  // If a previous probe already determined the DB is unloadable, surface that
+  // immediately instead of re-entering the probe/rename/restore loop. Mirrors
+  // the synchronous code paths callers expect from getDbInstance().
+  const cachedFatal = globalThis.__omnirouteDbInitFatal;
+  if (cachedFatal) {
+    throw cachedFatal;
+  }
+
+  // Cloud/build path is synchronous in-memory; preserve the original behaviour.
   if (isCloud || isBuildPhase) {
     if (isBuildPhase) {
       console.log("[DB] Build phase detected — using in-memory SQLite (read-only)");
@@ -945,6 +1023,53 @@ export function getDbInstance(): SqliteDatabase {
     return memoryDb;
   }
 
+  // If we have a synchronous driver already loaded (better-sqlite3 / node:sqlite),
+  // we can satisfy getDbInstance() synchronously as before — no race possible
+  // because there's no async I/O.
+  const syncDriver = tryOpenSync(SQLITE_FILE!);
+  if (syncDriver) {
+    syncDriver.close();
+  }
+
+  // No synchronous driver. We are on the sql.js (WASM) path. If sql.js has
+  // NOT yet been pre-initialized, kick off `ensureDbInitialized()` and wait for
+  // it on the same Promise so concurrent callers don't each race their own
+  // probe (which is what caused the cascading probe/restore loop on startup).
+  const sqlJsAlreadyReady = getSqlJsAdapter(SQLITE_FILE!) != null;
+  if (!sqlJsAlreadyReady) {
+    if (!globalThis.__omnirouteDbInitPromise) {
+      globalThis.__omnirouteDbInitPromise = ensureDbInitialized();
+    }
+    // Synchronous getDbInstance() callers cannot await — but we are inside the
+    // very small set of callers invoked *after* ensureDbInitialized() has
+    // completed (the bundled instrumentation hook awaits it explicitly; this
+    // branch only triggers for callers that bypass the hook, e.g. ad-hoc CLI
+    // tools). Throw a clear, actionable error pointing them at the fix.
+    throw new Error(
+      `[DB] SQLite driver (sql.js) is not initialized yet. ` +
+        `Call \`await ensureDbInitialized()\` at process startup before any code that ` +
+        `invokes getDbInstance() — typically in the Next.js \`instrumentation\` hook. ` +
+        `This guard prevents concurrent subsystems from racing the probe/rename loop.`
+    );
+  }
+
+  // sql.js is ready; the cached singleton must already be populated by
+  // ensureDbInitialized() → runDbInstanceInit(). If it's still missing (only
+  // possible on a code path that cleared globalThis.__omnirouteDb), fall
+  // through to the synchronous init below.
+  const postReady = getDb();
+  if (postReady) return postReady;
+
+  return runDbInstanceInitSync();
+}
+
+/**
+ * Performs the synchronous DB initialization that originally lived inside
+ * `getDbInstance()` (probe, restore from preserved backup, migrate, optimize).
+ * Extracted so that the race-safe wrapper above can call it from both the
+ * sync path and the post-`ensureDbInitialized()` path without any duplication.
+ */
+function runDbInstanceInitSync(): Database {
   const sqliteFile = SQLITE_FILE;
   if (!sqliteFile) {
     throw new Error("SQLITE_FILE is unavailable for local mode");
@@ -1047,6 +1172,48 @@ export function getDbInstance(): SqliteDatabase {
       ) {
         throw e;
       }
+
+      // ── Cycle-breaker (fix for startup hang) ───────────────────────────────
+      // The legacy behaviour renamed storage.sqlite → storage.sqlite.probe-failed-XXX
+      // on ANY probe failure, then on the next call `listProbeFailureBackups` would
+      // restore the latest (just-renamed) file and the next probe would fail again.
+      // Under Bun + sql.js + a >200 MB DB this loop fires every few ms and the server
+      // never reaches a clean state. Detect OOM / resource-exhaustion explicitly and
+      // bail out with a clear, actionable message — and track consecutive failures
+      // globally so the second probe failure in the same process aborts instead of
+      // looping.
+      const dbSizeBytes = (() => {
+        try {
+          return fs.statSync(sqliteFile).size;
+        } catch {
+          return null;
+        }
+      })();
+      const preservedProbeFailures = listProbeFailureBackups(sqliteFile).length;
+      if (isOutOfMemoryError(message)) {
+        const fatal = formatProbeFatalError(message, sqliteFile, null, dbSizeBytes);
+        globalThis.__omnirouteDbInitFatal = fatal;
+        throw fatal;
+      }
+
+      // Track non-fatal probe failures too so we can break the rename/restore loop.
+      const prevConsecutive = globalThis.__omnirouteDbProbeFailureCount ?? 0;
+      const nextConsecutive = prevConsecutive + 1;
+      globalThis.__omnirouteDbProbeFailureCount = nextConsecutive;
+      if (nextConsecutive >= MAX_CONSECUTIVE_PROBE_FAILURES) {
+        const fatal = new Error(
+          `[DB] Aborting startup after ${nextConsecutive} consecutive DB probe failures ` +
+            `(${preservedProbeFailures} preserved probe-failed backup(s) exist). ` +
+            `Last error: ${message}. ` +
+            `This usually indicates a corrupt database or a runtime that cannot load the SQLite driver. ` +
+            `Preserved backup: ${sqliteFile}.probe-failed-* ` +
+            `(see DATA_DIR). To recover, remove the probe-failed backups so OmniRoute can ` +
+            `recreate a fresh DB on the next start.`
+        );
+        globalThis.__omnirouteDbInitFatal = fatal;
+        throw fatal;
+      }
+
       preservedCriticalState = captureCriticalDbState(sqliteFile);
 
       // SAFETY: Never delete the database — rename to backup so data can be recovered.
