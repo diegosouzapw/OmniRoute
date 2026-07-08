@@ -4886,7 +4886,8 @@
     "doubaoWebDesc": "ByteDance AI chat via dola.com",
     "overrideBaseUrlAdvanced": "Advanced: override base URL",
     "overrideBaseUrlHint": "Advanced: point this built-in provider at a custom endpoint. Leave blank to use the default.",
-    "bulkAddFormatHintCloudflare": "One key per line. Format: name|accountId|apiKey (Cloudflare account ID + API token)."
+    "bulkAddFormatHintCloudflare": "One key per line. Format: name|accountId|apiKey (Cloudflare account ID + API token).",
+    "lmarenaWebCookieHint": "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403."
   },
   "settings": {
     "title": "Settings",

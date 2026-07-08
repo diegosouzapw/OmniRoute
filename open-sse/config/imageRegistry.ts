@@ -5,6 +5,8 @@
  * Each provider has its own request format and endpoint.
  */
 
+import { LMARENA_DIRECT_IMAGE_MODELS } from "./providers/registry/lmarena/directModels.ts";
+
 interface ImageModelEntry {
   id: string;
   name: string;
@@ -576,7 +578,11 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authHeader: "bearer",
     format: "nvidia-nim",
     models: [
-      { id: "black-forest-labs/flux.1-dev", name: "FLUX.1 Dev", inputModalities: ["text", "image"] },
+      {
+        id: "black-forest-labs/flux.1-dev",
+        name: "FLUX.1 Dev",
+        inputModalities: ["text", "image"],
+      },
       { id: "black-forest-labs/flux.1-schnell", name: "FLUX.1 Schnell" },
       {
         id: "black-forest-labs/flux.1-kontext-dev",
@@ -624,6 +630,20 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
       { id: "stabilityai/stable-diffusion-xl-base-1.0", name: "Stable Diffusion XL (HF)" },
     ],
     supportedSizes: ["1024x1024"],
+  },
+
+  // Arena (formerly LMArena) Direct-chat Image category (static scrape 2026-07-09).
+  // Not listed in the chat registry — image catalog only. Generation path still
+  // uses cookie session auth via the lmarena provider connection (stable wire id).
+  lmarena: {
+    id: "lmarena",
+    alias: "lma",
+    baseUrl: "https://arena.ai/nextjs-api/stream/create-evaluation",
+    authType: "apikey",
+    authHeader: "cookie",
+    format: "openai",
+    models: LMARENA_DIRECT_IMAGE_MODELS,
+    supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
   },
 };
 

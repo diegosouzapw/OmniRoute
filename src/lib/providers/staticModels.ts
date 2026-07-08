@@ -146,24 +146,43 @@ export function getStaticModelsForProvider(provider: string): LocalCatalogModel[
     });
   }
 
+  // Image / video: only fold into the provider specialty list for *media-only*
+  // providers (no chat registry models). Chat+image providers (openai, lmarena,
+  // xai, …) keep image rows exclusively in IMAGE_PROVIDERS so the provider page
+  // chat catalog is not polluted with flux-* / dalle ids.
+  const chatRegistry = getModelsByProviderId(provider);
+  const hasChatRegistry = Array.isArray(chatRegistry) && chatRegistry.length > 0;
+
   const imageProvider = getImageProvider(provider);
-  if (imageProvider) {
-    appendModels(imageProvider.models);
+  if (imageProvider && !hasChatRegistry) {
+    appendModels(imageProvider.models, {
+      apiFormat: "images",
+      supportedEndpoints: ["images"],
+    });
   }
 
   const videoProvider = getVideoProvider(provider);
-  if (videoProvider) {
-    appendModels(videoProvider.models);
+  if (videoProvider && !hasChatRegistry) {
+    appendModels(videoProvider.models, {
+      apiFormat: "video",
+      supportedEndpoints: ["videos"],
+    });
   }
 
   const speechProvider = getSpeechProvider(provider);
   if (speechProvider) {
-    appendModels(speechProvider.models);
+    appendModels(speechProvider.models, {
+      apiFormat: "audio",
+      supportedEndpoints: ["audio"],
+    });
   }
 
   const transcriptionProvider = getTranscriptionProvider(provider);
   if (transcriptionProvider) {
-    appendModels(transcriptionProvider.models);
+    appendModels(transcriptionProvider.models, {
+      apiFormat: "audio",
+      supportedEndpoints: ["audio"],
+    });
   }
 
   return specialtyModels.length > 0 ? specialtyModels : undefined;
