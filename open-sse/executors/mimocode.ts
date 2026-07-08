@@ -12,7 +12,7 @@
  *
  * Only the "mimo-auto" model is supported (1M context, 128K output).
  * Supports multiple accounts: N fingerprints → N JWTs → round-robin with cooldown.
- * On 429, account enters cooldown (exponential backoff). On 401/403, JWT is re-bootstrapped.
+ * On 429 or 400, account enters cooldown (exponential backoff). On 401/403, JWT is re-bootstrapped.
  */
 
 import * as crypto from "node:crypto";
@@ -500,6 +500,15 @@ export class MimocodeExecutor extends BaseExecutor {
           log?.warn?.(
             "MIMOCODE",
             `Rate limited on account ${account.fingerprint.slice(0, 8)}, trying next…`
+          );
+          continue;
+        }
+
+        if (resp.status === 400) {
+          this.markCooldown(account);
+          log?.warn?.(
+            "MIMOCODE",
+            `Bad request on account ${account.fingerprint.slice(0, 8)}, trying next…`
           );
           continue;
         }
