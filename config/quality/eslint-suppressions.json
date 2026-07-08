@@ -412,11 +412,6 @@
       "count": 1
     }
   },
-  "tests/integration/liveGeminiShared.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
   "tests/integration/llama-cpp-provider.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4
@@ -2245,11 +2240,6 @@
   "tests/unit/translator-resp-gemini-to-openai.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 75
-    }
-  },
-  "tests/unit/translator-resp-openai-responses.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 5
     }
   },
   "tests/unit/translator-resp-openai-to-claude.test.ts": {

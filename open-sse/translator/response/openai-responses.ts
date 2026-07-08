@@ -19,6 +19,47 @@ import {
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
 
 /**
+ * Escape control characters (newlines, tabs, carriage returns) that appear
+ * inside JSON string values, ensuring the resulting string is valid JSON.
+ * This handles upstream providers (e.g. Gemini/Gemma) that emit literal
+ * newlines (0x0A) instead of \n escapes inside tool call argument JSON.
+ * Only escapes characters inside string contexts to avoid double-escaping
+ * already-proper JSON or corrupting structural newlines.
+ */
+function escapeJsonStringValues(json: string): string {
+  let result = "";
+  let inString = false;
+
+  for (let i = 0; i < json.length; i++) {
+    const ch = json[i];
+
+    // Inside a string, skip over escape sequences
+    if (inString && ch === "\\") {
+      result += ch + (json[i + 1] ?? "");
+      i++;
+      continue;
+    }
+
+    // Toggle string state on unescaped double quotes
+    if (ch === '"') {
+      result += ch;
+      inString = !inString;
+      continue;
+    }
+
+    // Escape control characters only inside string values
+    if (inString && (ch === "\n" || ch === "\r" || ch === "\t")) {
+      result += ch === "\n" ? "\\n" : ch === "\r" ? "\\r" : "\\t";
+      continue;
+    }
+
+    result += ch;
+  }
+
+  return result;
+}
+
+/**
  * Translate OpenAI chunk to Responses API events
  * @returns {Array} Array of events with { event, data } structure
  */
@@ -397,7 +438,8 @@ function emitToolCall(state, emit, tc) {
   if (tc.function?.arguments) {
     const refCallId = state.funcCallIds[tcIdx] || newCallId;
     const existingArgs = state.funcArgsBuf[tcIdx] || "";
-    const nextArgs = appendToolCallArgumentDelta(existingArgs, tc.function.arguments);
+    const sanitized = escapeJsonStringValues(tc.function.arguments);
+    const nextArgs = appendToolCallArgumentDelta(existingArgs, sanitized);
     const emittedDelta = nextArgs.slice(existingArgs.length);
     state.funcArgsBuf[tcIdx] = nextArgs;
 
@@ -498,13 +540,22 @@ function sendCompleted(state, emit) {
     // emission sequence for stable ordering.
     const output = buildDenseOutput(state);
 
+    // Surface upstream mid-stream errors (e.g. Gemini 503) in the
+    // Responses-API `response.completed` event instead of silently emitting
+    // `status: "completed"`. The error is set by the Gemini-to-OpenAI
+    // translator or the OpenAI-Responses translator itself when the upstream
+    // SSE stream emits a JSON error object after partial content.
+    const upstreamErr = state.upstreamError;
+
     const response: Record<string, unknown> = {
       id: state.responseId,
       object: "response",
       created_at: state.created,
-      status: "completed",
+      status: upstreamErr ? "failed" : "completed",
       background: false,
-      error: null,
+      error: upstreamErr
+        ? { code: String(upstreamErr.status ?? ""), message: upstreamErr.message ?? "" }
+        : null,
       output,
     };
 
