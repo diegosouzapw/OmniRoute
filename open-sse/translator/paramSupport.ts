@@ -11,7 +11,7 @@
 // introduces new keys and never throws on null/undefined bodies — call sites
 // can chain it without extra guards.
 
-import { getParamFilterConfig } from "@/lib/db/paramFilters";
+import { getParamFilterConfig, ModelParamFilter, ProviderParamFilter } from "@/lib/db/paramFilters";
 
 type StripRule = {
   provider?: string;
@@ -77,6 +77,61 @@ export function stripUnsupportedParams<T>(
 }
 
 /**
+ * Restore keys from `snapshot` into `body` for every key listed in `allow`,
+ * but only when the key was present in the original request. Shared by the
+ * provider-level and model-level allowlist passes below.
+ */
+function restoreAllowedKeys(
+  body: Record<string, unknown>,
+  snapshot: Record<string, unknown>,
+  allow: readonly string[]
+): void {
+  for (const key of allow) {
+    if (key in snapshot) {
+      body[key] = snapshot[key];
+    }
+  }
+}
+
+/**
+ * Apply the provider-level denylist, then restore the provider-level
+ * allowlist from `snapshot`. Runs BEFORE model-level operations so
+ * model-level settings can override provider-level ones.
+ */
+function applyProviderLevelFilters(
+  body: Record<string, unknown>,
+  snapshot: Record<string, unknown>,
+  config: ProviderParamFilter
+): void {
+  for (const key of config.block) {
+    delete body[key];
+  }
+  if (config.allow.length > 0) {
+    restoreAllowedKeys(body, snapshot, config.allow);
+  }
+}
+
+/**
+ * Apply the model-level denylist (overrides the provider-level allowlist),
+ * then restore the model-level allowlist from `snapshot` (final pass, most
+ * specific wins).
+ */
+function applyModelLevelFilters(
+  body: Record<string, unknown>,
+  snapshot: Record<string, unknown>,
+  modelCfg: ModelParamFilter | undefined
+): void {
+  if (modelCfg?.block) {
+    for (const key of modelCfg.block) {
+      delete body[key];
+    }
+  }
+  if (modelCfg?.allow) {
+    restoreAllowedKeys(body, snapshot, modelCfg.allow);
+  }
+}
+
+/**
  * Apply config-driven denylist + allowlist rules from the DB-backed
  * ProviderParamFilter store. Order of operations:
  *   1. Provider-level denylist
@@ -97,37 +152,10 @@ export function applyConfigFilters(
   const config = getParamFilterConfig(provider);
   if (!config) return;
 
-  // 1. Provider-level denylist
-  for (const key of config.block) {
-    delete body[key];
-  }
+  applyProviderLevelFilters(body, snapshot, config);
 
-  // 2. Provider-level allowlist — restore from snapshot if key existed in original
-  //    Runs BEFORE model-level operations so model settings can override provider.
-  if (config.allow.length > 0) {
-    for (const key of config.allow) {
-      if (key in snapshot) {
-        body[key] = snapshot[key];
-      }
-    }
-  }
-
-  // 3. Model-level denylist — overrides provider-level allowlist
   const modelCfg = config.models?.[model ?? ""];
-  if (modelCfg?.block) {
-    for (const key of modelCfg.block) {
-      delete body[key];
-    }
-  }
-
-  // 4. Model-level allowlist — final pass, most specific wins
-  if (modelCfg?.allow) {
-    for (const key of modelCfg.allow) {
-      if (key in snapshot) {
-        body[key] = snapshot[key];
-      }
-    }
-  }
+  applyModelLevelFilters(body, snapshot, modelCfg);
 }
 
 // Exported for unit tests only — do not import from production code.

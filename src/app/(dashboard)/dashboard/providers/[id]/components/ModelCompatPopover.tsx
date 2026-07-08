@@ -26,6 +26,46 @@ function recordToHeaderRows(rec: Record<string, string>, genId: () => string): H
   return entries.map(([name, value]) => ({ id: genId(), name, value }));
 }
 
+function parseCommaList(text: string): string[] {
+  return text
+    ? text
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+}
+
+interface ParamFilterConfigLike {
+  block?: string[];
+  allow?: string[];
+  models?: Record<string, unknown>;
+  autoLearn?: boolean;
+}
+
+// Builds the PUT body for the model-level block/allow save. Extracted so the
+// caller's async handler stays simple — this is pure payload-shaping logic.
+function buildModelParamFilterPayload(
+  current: ParamFilterConfigLike | null | undefined,
+  modelId: string,
+  blockText: string,
+  allowText: string
+) {
+  const updatedModels: Record<string, unknown> = { ...(current?.models ?? {}) };
+  const block = parseCommaList(blockText);
+  const allow = parseCommaList(allowText);
+  if (block.length > 0 || allow.length > 0) {
+    updatedModels[modelId] = { block, allow };
+  } else {
+    delete updatedModels[modelId];
+  }
+  return {
+    block: current?.block ?? [],
+    allow: current?.allow ?? [],
+    models: Object.keys(updatedModels).length > 0 ? updatedModels : undefined,
+    autoLearn: current?.autoLearn ?? false,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
@@ -140,7 +180,6 @@ export default function ModelCompatPopover({
       }
       setParamDirty(false);
     })();
-     
   }, [open]);
 
   const saveModelParamFilters = useCallback(async () => {
@@ -149,34 +188,11 @@ export default function ModelCompatPopover({
     try {
       const res = await fetch(`/api/providers/${providerId}/param-filters`);
       const current = await res.json();
-      const existingModels = current?.models ?? {};
-      const updatedModels = { ...existingModels };
-      const block = blockText
-        ? blockText
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [];
-      const allow = allowText
-        ? allowText
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [];
-      if (block.length > 0 || allow.length > 0) {
-        updatedModels[modelId] = { block, allow };
-      } else {
-        delete updatedModels[modelId];
-      }
+      const payload = buildModelParamFilterPayload(current, modelId, blockText, allowText);
       await fetch(`/api/providers/${providerId}/param-filters`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          block: current?.block ?? [],
-          allow: current?.allow ?? [],
-          models: Object.keys(updatedModels).length > 0 ? updatedModels : undefined,
-          autoLearn: current?.autoLearn ?? false,
-        }),
+        body: JSON.stringify(payload),
       });
       setParamDirty(false);
     } catch {
@@ -184,7 +200,6 @@ export default function ModelCompatPopover({
     } finally {
       setParamSaving(false);
     }
-     
   }, [paramDirty, blockText, allowText]);
 
   useEffect(() => {
