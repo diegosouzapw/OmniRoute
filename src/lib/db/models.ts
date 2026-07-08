@@ -814,6 +814,23 @@ export function getHiddenModelsByProvider(): Map<string, Set<string>> {
     }
   }
 
+  // Also fetch from hiddenModels namespace (set by dashboard hide/unhide toggle)
+  const hiddenRows = db
+    .prepare("SELECT key, value FROM key_value WHERE namespace = 'hiddenModels'")
+    .all() as Array<{ key: string; value: string | null }>;
+  for (const hr of hiddenRows) {
+    if (!hr.value) continue;
+    try {
+      const parsed = JSON.parse(hr.value);
+      if (!Array.isArray(parsed)) continue;
+      for (const modelId of parsed) {
+        if (typeof modelId === "string" && modelId.length > 0) {
+          if (!result.has(hr.key)) result.set(hr.key, new Set());
+          result.get(hr.key)!.add(modelId);
+        }
+      }
+    } catch {}
+  }
   return result;
 }
 
