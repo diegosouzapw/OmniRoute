@@ -10,9 +10,13 @@ const memoMap = new Map<string, CompressionResult>();
 // CCR store (`ccr/index.ts` ccrStore; session-dedup imports storeBlock), so their output
 // depends on prior state → not safe to memoize; `ultra`/`aggressive`/`llmlingua` are
 // model-backed/non-deterministic. Any NEW engine is excluded until explicitly vetted.
+// "omniglyph" is intentionally excluded too (P2 registry-consistency pass): it renders
+// context as an image via a model-backed pipeline, so it is not yet proven deterministic
+// across requests — conservative default (never-wrong) until explicitly vetted.
 const DETERMINISTIC_ENGINES = new Set(["lite", "caveman", "rtk"]);
 
-/** Top-level modes safe to cache (whitelist — any unknown/new mode defaults to false). */
+/** Top-level modes safe to cache (whitelist — any unknown/new mode defaults to false).
+ * "omniglyph" intentionally omitted — see comment on DETERMINISTIC_ENGINES above. */
 const DETERMINISTIC_MODES = new Set<CompressionMode>(["lite", "standard", "rtk"]);
 
 export function isDeterministicMode(mode: CompressionMode, config?: CompressionConfig): boolean {
