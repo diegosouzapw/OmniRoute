@@ -64,6 +64,18 @@ export function insertNextSection(mainChangelog, nextSection, nextVersion) {
     .replace(/\n{4,}/g, "\n\n\n");
 }
 
+/** Pure: the version whose `## [x.y.z]` heading follows `version`'s section (or null). */
+export function versionAfter(changelog, version) {
+  const lines = changelog.split("\n");
+  const start = lines.findIndex((l) => l.startsWith(`## [${version}]`));
+  if (start === -1) return null;
+  for (let i = start + 1; i < lines.length; i++) {
+    const m = lines[i].match(/^## \[(\d+\.\d+\.\d+)\]/);
+    if (m) return m[1];
+  }
+  return null;
+}
+
 /** Pure: extract the `## [<version>]` section (header included, next heading excluded). */
 export function extractSection(changelog, version) {
   const lines = changelog.split("\n");
@@ -89,7 +101,9 @@ export function extractSection(changelog, version) {
 }
 
 function git(args, opts = {}) {
-  return execFileSync("git", args, { encoding: "utf8", ...opts }).trim();
+  // maxBuffer: the default 1 MiB overflows on `git show origin/main:CHANGELOG.md`
+  // (the CHANGELOG alone is >1 MiB) — ENOBUFS found live in the v3.8.45 run (2026-07-06).
+  return execFileSync("git", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, ...opts }).trim();
 }
 
 function main() {
@@ -163,6 +177,18 @@ function main() {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
+    // Also propagate the just-FINALIZED [prevVersion] section (dated bullets +
+    // Contributors) into the mirrors — syncing only [NEXT] leaves the shipped
+    // section as "— TBD" in all 42 mirrors (found live in the v3.8.45 run).
+    // Boundary = the version heading right below it in main's CHANGELOG.
+    const belowPrev = versionAfter(mainChangelog, prevVersion);
+    if (belowPrev) {
+      execFileSync("npm", ["run", "release:sync-changelog-i18n", "--", prevVersion, belowPrev], {
+        cwd: WT,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+    }
     execFileSync("git", ["add", "-A", "docs/i18n"], { cwd: WT });
   } catch (e) {
     console.warn("[sync-next-cycle] i18n mirror resync failed (resolve manually):", e.message);

@@ -113,7 +113,7 @@ async function findCustomModelMetadata(providerId: string, modelId: string) {
   }
 }
 
-function buildInternalChatRequest(testBody: Record<string, unknown>, signal: AbortSignal) {
+export function buildInternalChatRequest(testBody: Record<string, unknown>, signal: AbortSignal) {
   return new Request(`${INTERNAL_ORIGIN}/v1/chat/completions`, {
     method: "POST",
     headers: {
@@ -121,6 +121,9 @@ function buildInternalChatRequest(testBody: Record<string, unknown>, signal: Abo
       // Reuse the existing strict-mode internal bypass for live health checks.
       "X-Internal-Test": "combo-health-check",
       "X-OmniRoute-No-Cache": "true",
+      // #6240: a connection test must be clean — never let the operator's globally-enabled
+      // Output Styles (e.g. "Ultra terse") leak a system prompt into a test-model call.
+      "X-OmniRoute-Compression": "off",
       "X-Request-Id": `model-test-${randomUUID()}`,
     },
     body: JSON.stringify(testBody),
@@ -128,13 +131,14 @@ function buildInternalChatRequest(testBody: Record<string, unknown>, signal: Abo
   });
 }
 
-function buildInternalRerankRequest(testBody: Record<string, unknown>, signal: AbortSignal) {
+export function buildInternalRerankRequest(testBody: Record<string, unknown>, signal: AbortSignal) {
   return new Request(`${INTERNAL_ORIGIN}/v1/rerank`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-Internal-Test": "combo-health-check",
       "X-OmniRoute-No-Cache": "true",
+      "X-OmniRoute-Compression": "off",
       "X-Request-Id": `model-test-${randomUUID()}`,
     },
     body: JSON.stringify(testBody),

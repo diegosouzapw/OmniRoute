@@ -23,6 +23,11 @@ async function resetStorage() {
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  // #6408 added a 1.5s TTL response cache to getUnifiedModelsResponse keyed only by
+  // (prefix, isCodex client, apiKey) — NOT by DB/settings state. Without clearing it
+  // between test cases, a test running within the TTL window of a previous one gets
+  // served the previous test's stale serialized catalog instead of a fresh build.
+  v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
 
 async function seedConnection(provider: string, overrides: Record<string, unknown> = {}) {
