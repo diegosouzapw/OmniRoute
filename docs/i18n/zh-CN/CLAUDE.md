@@ -375,7 +375,7 @@ baseCooldownMs * 2 ** failureIndex;
 | --------------------------------- | ------------------------- | -------------------------------------------------------------- |
 | 计划 (`writing-plans`)            | `docs/superpowers/plans/`  | `_tasks/superpowers/plans/YYYY-MM-DD-<feature>.md`             |
 | 方案 / 设计 (`brainstorming`)     | `docs/superpowers/specs/`  | `_tasks/superpowers/specs/YYYY-MM-DD-<topic>-design.md`        |
-| 调研 (`deep-research`, 临时)      | `docs/research/`           | `_tasks/research/…`                                            |
+| 调研 (`deep-research`, 临时)      | `docs/research/`           | `_tasks/superpowers/research/YYYY-MM-DD-<topic>.md`            |
 | 交接 (`/handoff`)                 | —                          | `_tasks/hands-off/<YYYY-MM-DD>_<branch>_v<versão>_sess-<id>/`  |
 
 当 superpowers 技能通告一个路径如 "saved to `docs/superpowers/plans/…`" 时，在写入前改写为 `_tasks/…` 等效路径。在 `_tasks/` 仓库内部提交这些产物 (`git -C _tasks …`)，绝不在主仓库中提交。

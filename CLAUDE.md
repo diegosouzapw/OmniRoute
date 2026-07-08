@@ -406,7 +406,7 @@ same filename convention:
 | ---------------------------------- | ------------------------- | ------------------------------------------------------------- |
 | Plans (`writing-plans`)            | `docs/superpowers/plans/` | `_tasks/superpowers/plans/YYYY-MM-DD-<feature>.md`            |
 | Specs / design (`brainstorming`)   | `docs/superpowers/specs/` | `_tasks/superpowers/specs/YYYY-MM-DD-<topic>-design.md`       |
-| Research (`deep-research`, ad-hoc) | `docs/research/`          | `_tasks/research/…`                                           |
+| Research (`deep-research`, ad-hoc) | `docs/research/`          | `_tasks/superpowers/research/YYYY-MM-DD-<topic>.md`           |
 | Hand-offs (`/handoff`)             | —                         | `_tasks/hands-off/<YYYY-MM-DD>_<branch>_v<versão>_sess-<id>/` |
 
 When a superpowers skill announces a path like "saved to `docs/superpowers/plans/…`",
