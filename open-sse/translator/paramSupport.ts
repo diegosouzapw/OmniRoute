@@ -11,6 +11,8 @@
 // introduces new keys and never throws on null/undefined bodies — call sites
 // can chain it without extra guards.
 
+import { getParamFilterConfig } from "@/lib/db/paramFilters";
+
 type StripRule = {
   provider?: string;
   match: RegExp | ((model: string) => boolean);
@@ -56,6 +58,11 @@ export function stripUnsupportedParams<T>(
 ): T {
   if (!model || !body || typeof body !== "object") return body;
   const rec = body as unknown as Record<string, unknown>;
+  // Snapshot the original body before any mutations so the allowlist can
+  // restore params that were stripped by hardcoded or config-driven denylist.
+  const snapshot = { ...rec };
+
+  // Phase 1: Hardcoded rules (unchanged)
   for (const rule of STRIP_RULES) {
     if (rule.provider && rule.provider !== provider) continue;
     if (!matches(rule, model)) continue;
@@ -63,7 +70,64 @@ export function stripUnsupportedParams<T>(
       if (rec[key] !== undefined) delete rec[key];
     }
   }
+
+  // Phase 2: Config-driven rules from DB
+  applyConfigFilters(provider, model, rec, snapshot);
+
   return body;
+}
+
+/**
+ * Apply config-driven denylist + allowlist rules from the DB-backed
+ * ProviderParamFilter store. Order of operations:
+ *   1. Provider-level denylist
+ *   2. Model-level denylist
+ *   3. Provider-level allowlist (restores from snapshot)
+ *   4. Model-level allowlist (restores from snapshot)
+ *
+ * The allowlist only restores keys that were present in the original request
+ * (the snapshot). It never introduces new params the client didn't send.
+ */
+export function applyConfigFilters(
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  body: Record<string, unknown>,
+  snapshot: Record<string, unknown>
+): void {
+  if (!provider || !body) return;
+  const config = getParamFilterConfig(provider);
+  if (!config) return;
+
+  // 1. Provider-level denylist
+  for (const key of config.block) {
+    delete body[key];
+  }
+
+  // 2. Model-level denylist
+  const modelCfg = config.models?.[model ?? ""];
+  if (modelCfg?.block) {
+    for (const key of modelCfg.block) {
+      delete body[key];
+    }
+  }
+
+  // 3. Provider-level allowlist — restore from snapshot if key existed in original
+  if (config.allow.length > 0) {
+    for (const key of config.allow) {
+      if (key in snapshot) {
+        body[key] = snapshot[key];
+      }
+    }
+  }
+
+  // 4. Model-level allowlist
+  if (modelCfg?.allow) {
+    for (const key of modelCfg.allow) {
+      if (key in snapshot) {
+        body[key] = snapshot[key];
+      }
+    }
+  }
 }
 
 // Exported for unit tests only — do not import from production code.
