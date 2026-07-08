@@ -27,8 +27,7 @@ const STRIP_RULES: StripRule[] = [
   // GitHub Copilot Claude (except opus/sonnet 4.6): thinking + reasoning_effort rejected. #713
   {
     provider: "github",
-    match: (m: string) =>
-      /claude/i.test(m) && !/claude.*(opus|sonnet).*4\.6/i.test(m),
+    match: (m: string) => /claude/i.test(m) && !/claude.*(opus|sonnet).*4\.6/i.test(m),
     drop: ["thinking", "reasoning_effort"],
   },
   // NVIDIA NIM z-ai/glm-5.2: OpenAI-compatible wrapper rejects BOTH the `reasoning`
@@ -103,15 +102,8 @@ export function applyConfigFilters(
     delete body[key];
   }
 
-  // 2. Model-level denylist
-  const modelCfg = config.models?.[model ?? ""];
-  if (modelCfg?.block) {
-    for (const key of modelCfg.block) {
-      delete body[key];
-    }
-  }
-
-  // 3. Provider-level allowlist — restore from snapshot if key existed in original
+  // 2. Provider-level allowlist — restore from snapshot if key existed in original
+  //    Runs BEFORE model-level operations so model settings can override provider.
   if (config.allow.length > 0) {
     for (const key of config.allow) {
       if (key in snapshot) {
@@ -120,7 +112,15 @@ export function applyConfigFilters(
     }
   }
 
-  // 4. Model-level allowlist
+  // 3. Model-level denylist — overrides provider-level allowlist
+  const modelCfg = config.models?.[model ?? ""];
+  if (modelCfg?.block) {
+    for (const key of modelCfg.block) {
+      delete body[key];
+    }
+  }
+
+  // 4. Model-level allowlist — final pass, most specific wins
   if (modelCfg?.allow) {
     for (const key of modelCfg.allow) {
       if (key in snapshot) {

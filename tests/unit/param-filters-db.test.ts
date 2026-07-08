@@ -227,6 +227,26 @@ test("stripUnsupportedParams allowlist does not introduce params not in original
   assert.equal((result as Record<string, unknown>).nonexistent_param, undefined);
 });
 
+test("stripUnsupportedParams model-level denylist overrides provider-level allowlist", () => {
+  setParamFilterConfig("nvidia", {
+    block: ["thinking"],
+    allow: ["thinking"],
+    models: { "deepseek-r1": { block: ["thinking"] } },
+    autoLearn: false,
+  });
+  loadParamFilterConfigs();
+
+  // Provider allowlist re-adds thinking, but model-level denylist strips it again
+  const body = { model: "deepseek-r1", thinking: "enabled", max_tokens: 100 };
+  const result = stripUnsupportedParams("nvidia", "deepseek-r1", body);
+  assert.equal(
+    (result as Record<string, unknown>).thinking,
+    undefined,
+    "model denylist should win over provider allowlist"
+  );
+  assert.equal((result as Record<string, unknown>).max_tokens, 100);
+});
+
 test("stripUnsupportedParams no-op when no DB config exists (default behavior)", () => {
   const body = { model: "deepseek-r1", thinking: "enabled", max_tokens: 100 };
   const result = stripUnsupportedParams("unknown", "deepseek-r1", body);

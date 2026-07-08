@@ -1284,7 +1284,7 @@ export class BaseExecutor {
                 const shouldAutoLearn = isAutoLearnGloballyEnabled() || config?.autoLearn === true;
                 if (shouldAutoLearn) {
                   strippedFields.add(autoLearned);
-                  addParamToBlocklist(this.provider, autoLearned);
+                  addParamToBlocklist(this.provider, autoLearned, model);
                   delete (transformedBody as Record<string, unknown>)[autoLearned];
                   let retryBody = JSON.stringify(transformedBody);
                   if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
@@ -1292,7 +1292,7 @@ export class BaseExecutor {
                   }
                   log?.info?.(
                     "AUTO_LEARN",
-                    `Auto-learned "${autoLearned}" for provider ${this.provider} from 400 on ${url} — retrying`
+                    `Auto-learned "${autoLearned}" for provider ${this.provider} (model: ${model}) from 400 on ${url} — retrying`
                   );
                   response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
                 }
