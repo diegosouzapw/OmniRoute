@@ -119,6 +119,24 @@ export async function updateProviderCredentials(connectionId: string, newCredent
 
     if (newCredentials.accessToken) {
       updates.accessToken = newCredentials.accessToken;
+      // #6352: a successful refresh proves the connection is reachable and its
+      // refresh_token is valid again — clear any stale auth-failure state
+      // (testStatus/lastError*) left over from a prior expired/invalid refresh
+      // token or an upstream 401/403. Without this, a genuinely successful
+      // rotating-refresh (e.g. Codex/OpenAI) persisted the new access/refresh
+      // token while leaving the dashboard showing "Auth Failed" forever,
+      // because the error metadata was never reset here — only the health-check
+      // sweep (tokenHealthCheck.ts::checkConnection) did this clearing, so any
+      // OTHER caller of updateProviderCredentials (the manual refresh route,
+      // the reactive per-request refresh in chat.ts) looked like it "didn't
+      // pick up" the refreshed token. Explicit `newCredentials.testStatus`
+      // below still wins for callers that need a specific terminal state.
+      updates.testStatus = "active";
+      updates.lastError = null;
+      updates.lastErrorAt = null;
+      updates.lastErrorType = null;
+      updates.lastErrorSource = null;
+      updates.errorCode = null;
     }
     if (newCredentials.refreshToken) {
       updates.refreshToken = newCredentials.refreshToken;

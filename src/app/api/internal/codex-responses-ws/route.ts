@@ -6,6 +6,7 @@ import { getApiKeyMetadata } from "@/lib/db/apiKeys";
 import { authorizeWebSocketHandshake, extractWsTokenFromRequest } from "@/lib/ws/handshake";
 import { getModelInfo } from "@/sse/services/model";
 import { getProviderCredentialsWithQuotaPreflight } from "@/sse/services/auth";
+import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { checkAndRefreshToken } from "@/sse/services/tokenRefresh";
 import { resolveCodexWsModelInfo } from "./modelResolution";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
@@ -340,6 +341,28 @@ async function authenticate(body: JsonRecord) {
   });
 }
 
+/**
+ * #6564: the WS bridge authenticates the API key (see `authenticate()`) but
+ * historically never enforced the API-key model/combo policy the HTTP
+ * `/v1/responses` path enforces via `enforceApiKeyPolicy()` — a key
+ * restricted to `allowedModels`/`allowedCombos` could still reach a direct
+ * Codex model through this transport. The bridge's token arrives via query
+ * params, not a normal Authorization header, so this builds an equivalent
+ * Request carrying the extracted bearer token and evaluates policy against
+ * the CLIENT-requested model, before any Codex-specific remapping.
+ */
+async function enforceCodexWsApiKeyPolicy(
+  authRequest: Request,
+  apiKey: string | null,
+  requestedModel: string
+): Promise<{ rejection: Response | null; apiKeyInfo: ApiKeyMetadata | null }> {
+  const policyHeaders = new Headers(authRequest.headers);
+  if (apiKey) policyHeaders.set("Authorization", `Bearer ${apiKey}`);
+  const policyRequest = new Request(authRequest.url, { headers: policyHeaders });
+  const policy = await enforceApiKeyPolicy(policyRequest, requestedModel);
+  return { rejection: policy.rejection, apiKeyInfo: policy.apiKeyInfo };
+}
+
 async function prepare(body: JsonRecord) {
   // Global kill-switch (feature flag OMNIROUTE_CODEX_WS_ENABLED, default ON).
   // When disabled, the public Responses-over-WebSocket endpoint is unavailable.
@@ -352,17 +375,23 @@ async function prepare(body: JsonRecord) {
 
   const authRequest = getAuthRequest(body);
   const apiKey = extractWsTokenFromRequest(authRequest);
-  const metadata = apiKey ? await getApiKeyMetadata(apiKey).catch(() => null) : null;
-  const allowedConnections =
-    metadata && Array.isArray(metadata.allowedConnections) && metadata.allowedConnections.length > 0
-      ? metadata.allowedConnections
-      : null;
 
   const responseBody = isRecord(body.response) ? body.response : {};
   const requestedModel =
     typeof responseBody.model === "string" && responseBody.model.trim()
       ? responseBody.model.trim()
       : "gpt-5.5";
+
+  const policyResult = await enforceCodexWsApiKeyPolicy(authRequest, apiKey, requestedModel);
+  if (policyResult.rejection) return policyResult.rejection;
+
+  const metadata =
+    policyResult.apiKeyInfo ?? (apiKey ? await getApiKeyMetadata(apiKey).catch(() => null) : null);
+  const allowedConnections =
+    metadata && Array.isArray(metadata.allowedConnections) && metadata.allowedConnections.length > 0
+      ? metadata.allowedConnections
+      : null;
+
   // codex-only bridge: re-resolve bare ChatGPT model ids (the Codex CLI rejects
   // provider-prefixed ids client-side over WebSocket) as codex models.
   const modelInfo = await resolveCodexWsModelInfo(requestedModel, getModelInfo);

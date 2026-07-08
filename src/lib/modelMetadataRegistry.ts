@@ -12,6 +12,7 @@ import {
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "@/shared/constants/models";
 import { getSyncStatus, getSyncedCapability } from "@/lib/modelsDevSync";
+import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization";
 
 const MODEL_METADATA_SCHEMA_VERSION = "model-metadata-v1";
 
@@ -286,8 +287,18 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
       : {}),
     tool_calling: metadata.capabilities.toolCalling,
     reasoning: metadata.capabilities.reasoning,
+    // #6241: surface thinking support + the canonical effort tiers so the frontend can
+    // render the effort/thinking toggles. `thinking` is kept for back-compat; `supportsThinking`
+    // is the explicit flag and `effort_tiers` lists the selectable reasoning levels
+    // (only when the model actually supports thinking).
     ...(typeof metadata.capabilities.supportsThinking === "boolean"
-      ? { thinking: metadata.capabilities.supportsThinking }
+      ? {
+          thinking: metadata.capabilities.supportsThinking,
+          supportsThinking: metadata.capabilities.supportsThinking,
+          ...(metadata.capabilities.supportsThinking
+            ? { effort_tiers: [...CANONICAL_EFFORT_VALUES] }
+            : {}),
+        }
       : {}),
     ...(typeof metadata.capabilities.attachment === "boolean"
       ? { attachment: metadata.capabilities.attachment }

@@ -15,18 +15,25 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const vscodeRootRoute = await import("../../src/app/api/v1/vscode/[token]/route.ts");
 const vscodeModelsRoute = await import("../../src/app/api/v1/vscode/[token]/models/route.ts");
 const vscodeRawRootRoute = await import("../../src/app/api/v1/vscode/raw/[token]/route.ts");
-const vscodeRawModelsRoute = await import("../../src/app/api/v1/vscode/raw/[token]/models/route.ts");
-const vscodeRawVersionRoute = await import("../../src/app/api/v1/vscode/raw/[token]/api/version/route.ts");
-const vscodeRawShowRoute = await import("../../src/app/api/v1/vscode/raw/[token]/api/show/route.ts");
-const vscodeRawTagsRoute = await import("../../src/app/api/v1/vscode/raw/[token]/api/tags/route.ts");
+const vscodeRawModelsRoute =
+  await import("../../src/app/api/v1/vscode/raw/[token]/models/route.ts");
+const vscodeRawVersionRoute =
+  await import("../../src/app/api/v1/vscode/raw/[token]/api/version/route.ts");
+const vscodeRawShowRoute =
+  await import("../../src/app/api/v1/vscode/raw/[token]/api/show/route.ts");
+const vscodeRawTagsRoute =
+  await import("../../src/app/api/v1/vscode/raw/[token]/api/tags/route.ts");
 const vscodeV1ModelsRoute = await import("../../src/app/api/v1/vscode/[token]/v1/models/route.ts");
 const vscodeVersionRoute = await import("../../src/app/api/v1/vscode/[token]/api/version/route.ts");
 const vscodeShowRoute = await import("../../src/app/api/v1/vscode/[token]/api/show/route.ts");
 const vscodeTagsRoute = await import("../../src/app/api/v1/vscode/[token]/api/tags/route.ts");
-const vscodeV1ChatCompletionsRoute = await import("../../src/app/api/v1/vscode/[token]/v1/chat/completions/route.ts");
-const vscodeChatCompletionsRoute = await import("../../src/app/api/v1/vscode/[token]/chat/completions/route.ts");
+const vscodeV1ChatCompletionsRoute =
+  await import("../../src/app/api/v1/vscode/[token]/v1/chat/completions/route.ts");
+const vscodeChatCompletionsRoute =
+  await import("../../src/app/api/v1/vscode/[token]/chat/completions/route.ts");
 const vscodeResponsesRoute = await import("../../src/app/api/v1/vscode/[token]/responses/route.ts");
-const serviceTierVariants = await import("../../src/app/api/v1/vscode/[token]/serviceTierVariants.ts");
+const serviceTierVariants =
+  await import("../../src/app/api/v1/vscode/[token]/serviceTierVariants.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 
 async function resetStorage() {
@@ -82,7 +89,9 @@ test("vscode tokenized root route mirrors the grouped VS Code catalog without co
   assert.ok(Array.isArray(body.data));
   assert.ok(body.data.length > 0);
   assert.equal(
-    body.data.some((entry: any) => entry.id === "root-hidden-combo" || entry.name === "root-hidden-combo"),
+    body.data.some(
+      (entry: any) => entry.id === "root-hidden-combo" || entry.name === "root-hidden-combo"
+    ),
     false
   );
 });
@@ -94,7 +103,10 @@ test("vscode tokenized root route exposes friendly model names alongside ids", a
     requireAuthForModels: true,
   });
   await seedConnection("codex", { name: "codex-vscode-root-friendly-name" });
-  const key = await apiKeysDb.createApiKey("vscode-root-friendly-name", "machine-vscode-root-friendly-name");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-root-friendly-name",
+    "machine-vscode-root-friendly-name"
+  );
 
   const response = await vscodeRootRoute.GET(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/`)
@@ -142,7 +154,8 @@ test("vscode tokenized combos route exposes configured combos via token alias", 
     models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
   });
 
-  const combosRoute = await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
+  const combosRoute =
+    await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
   const response = await combosRoute.GET(
     new Request(`http://localhost/api/v1/vscode/combos/${encodeURIComponent(key.key)}`),
     { params: { token: key.key, slug: undefined } }
@@ -152,14 +165,21 @@ test("vscode tokenized combos route exposes configured combos via token alias", 
   assert.equal(response.status, 200);
   assert.equal(body.object, "list");
   assert.ok(Array.isArray(body.data), "expected data property to be an array");
-  assert.ok(body.data.some((combo: any) => combo.name === "test-combo"), "expected test combo in data response");
+  assert.ok(
+    body.data.some((combo: any) => combo.name === "test-combo"),
+    "expected test combo in data response"
+  );
   assert.equal("combos" in body, false, "did not expect legacy combos property in response");
 });
 
 test("vscode combos route responds to Ollama compatibility check (/api/version)", async () => {
-  const key = await apiKeysDb.createApiKey("vscode-combos-version", "machine-vscode-combos-version");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-combos-version",
+    "machine-vscode-combos-version"
+  );
 
-  const combosRoute = await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
+  const combosRoute =
+    await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
   const response = await combosRoute.GET(
     new Request(`http://localhost/api/v1/vscode/combos/${encodeURIComponent(key.key)}/api/version`),
     { params: { token: key.key, slug: ["api", "version"] } }
@@ -187,7 +207,8 @@ test("vscode combos route exposes combos through Ollama api/tags", async () => {
     models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
   });
 
-  const combosRoute = await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
+  const combosRoute =
+    await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
   const response = await combosRoute.GET(
     new Request(`http://localhost/api/v1/vscode/combos/${encodeURIComponent(key.key)}/api/tags`),
     { params: { token: key.key, slug: ["api", "tags"] } }
@@ -218,7 +239,8 @@ test("vscode combos route resolves combo names through Ollama api/show", async (
     models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
   });
 
-  const combosRoute = await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
+  const combosRoute =
+    await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
   const response = await combosRoute.POST(
     new Request(`http://localhost/api/v1/vscode/combos/${encodeURIComponent(key.key)}/api/show`, {
       method: "POST",
@@ -246,14 +268,18 @@ test("vscode tokenized combos root route exposes importable combo metadata", asy
   });
 
   await seedConnection("codex", { name: "codex-vscode-combos-root" });
-  const key = await apiKeysDb.createApiKey("vscode-combos-root-rich", "machine-vscode-combos-root-rich");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-combos-root-rich",
+    "machine-vscode-combos-root-rich"
+  );
   await combosDb.createCombo({
     name: "balanced-load",
     strategy: "reset-aware",
     models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
   });
 
-  const combosRoute = await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
+  const combosRoute =
+    await import("../../src/app/api/v1/vscode/combos/[token]/[[...slug]]/route.ts");
   const response = await combosRoute.GET(
     new Request(`http://localhost/api/v1/vscode/combos/${encodeURIComponent(key.key)}`),
     { params: { token: key.key, slug: undefined } }
@@ -329,12 +355,19 @@ test("vscode tokenized models route keeps xhigh for codex models that advertise 
   );
   const body = (await response.json()) as any;
   const model = (body.data || []).find((entry: any) => entry.id === "gpt-5.4__provider_cx");
-  const fastModel = (body.data || []).find((entry: any) => entry.id === "gpt-5.4__provider_cx__tier_priority");
-  const flexModel = (body.data || []).find((entry: any) => entry.id === "gpt-5.4__provider_cx__tier_flex");
+  const fastModel = (body.data || []).find(
+    (entry: any) => entry.id === "gpt-5.4__provider_cx__tier_priority"
+  );
+  const flexModel = (body.data || []).find(
+    (entry: any) => entry.id === "gpt-5.4__provider_cx__tier_flex"
+  );
 
   assert.equal(response.status, 200);
   assert.ok(model, "missing gpt-5.4__provider_cx in tokenized VS Code models route");
-  assert.ok(fastModel, "missing gpt-5.4__provider_cx__tier_priority in tokenized VS Code models route");
+  assert.ok(
+    fastModel,
+    "missing gpt-5.4__provider_cx__tier_priority in tokenized VS Code models route"
+  );
   assert.ok(flexModel, "missing gpt-5.4__provider_cx__tier_flex in tokenized VS Code models route");
   assert.equal(model.name, "Codex GPT 5.4 (Default)");
   assert.equal(fastModel.name, "Codex GPT 5.4 (Fast)");
@@ -388,14 +421,20 @@ test("vscode tokenized raw models route exposes provider-native ids without fami
   const body = (await response.json()) as any;
   const importedIds = new Set((body.data || []).map((entry: any) => entry.id));
   const defaultModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4");
-  const fastModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4__tier_priority");
+  const fastModel = (body.data || []).find(
+    (entry: any) => entry.id === "cx/gpt-5.4__tier_priority"
+  );
   const flexModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4__tier_flex");
 
   assert.equal(response.status, 200);
   assert.ok(defaultModel, "missing cx/gpt-5.4 in raw VS Code models route");
   assert.ok(fastModel, "missing cx/gpt-5.4__tier_priority in raw VS Code models route");
   assert.ok(flexModel, "missing cx/gpt-5.4__tier_flex in raw VS Code models route");
-  assert.equal(importedIds.size, (body.data || []).length, "raw VS Code models route should not duplicate model ids");
+  assert.equal(
+    importedIds.size,
+    (body.data || []).length,
+    "raw VS Code models route should not duplicate model ids"
+  );
   assert.ok(!importedIds.has("gpt-5.4__provider_cx"));
   assert.ok(!importedIds.has("gpt-5.4__provider_cx__tier_priority"));
   assert.ok(!importedIds.has("gpt-5.4__provider_cx__tier_flex"));
@@ -411,6 +450,8 @@ test("vscode tokenized raw models route exposes provider-native ids without fami
     tool_calling: true,
     reasoning: true,
     thinking: true,
+    supportsThinking: true,
+    effort_tiers: ["none", "low", "medium", "high", "xhigh"],
   });
   assert.equal(defaultModel.url, undefined);
   assert.equal(defaultModel.toolCalling, undefined);
@@ -466,6 +507,8 @@ test("vscode tokenized raw models route exposes provider-native ids without fami
     tool_calling: true,
     reasoning: true,
     thinking: true,
+    supportsThinking: true,
+    effort_tiers: ["none", "low", "medium", "high", "xhigh"],
   });
 });
 
@@ -677,7 +720,10 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
     requireAuthForModels: true,
   });
   await seedConnection("codex", { name: "codex-vscode-tags-reasoning" });
-  const key = await apiKeysDb.createApiKey("vscode-tags-reasoning", "machine-vscode-tags-reasoning");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-tags-reasoning",
+    "machine-vscode-tags-reasoning"
+  );
 
   const response = await vscodeTagsRoute.GET(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/tags`)
@@ -709,7 +755,13 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
     "high",
     "xhigh",
   ]);
-  assert.deepEqual(model.details.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(model.details.supports_reasoning_effort, [
+    "none",
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+  ]);
   assert.equal(model.details.selected_reasoning_effort, "none");
   assert.ok(
     !(body.models || []).some((entry: any) => entry.name === "cx/gpt-5.4-low"),
@@ -719,8 +771,12 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
     !(body.models || []).some((entry: any) => entry.name === "cx/gpt-5.4-low__tier_priority"),
     "tier reasoning variant leaked into grouped VS Code tags route"
   );
-  assert.ok((body.models || []).some((entry: any) => entry.name === "gpt-5.4__provider_cx__tier_priority"));
-  assert.ok((body.models || []).some((entry: any) => entry.name === "gpt-5.4__provider_cx__tier_flex"));
+  assert.ok(
+    (body.models || []).some((entry: any) => entry.name === "gpt-5.4__provider_cx__tier_priority")
+  );
+  assert.ok(
+    (body.models || []).some((entry: any) => entry.name === "gpt-5.4__provider_cx__tier_flex")
+  );
 });
 
 test("vscode tokenized tags route only exposes usable canonical chat models", async () => {
@@ -762,8 +818,7 @@ test("vscode tokenized tags route only exposes usable canonical chat models", as
 
   for (const tagModel of tagsBody.models || []) {
     const catalogModel = (catalogById.get(tagModel.name) || rawCatalogById.get(tagModel.name)) as
-      | CatalogLike
-      | undefined;
+      CatalogLike | undefined;
     assert.ok(catalogModel, `missing catalog model for tag ${tagModel.name}`);
     assert.ok(!catalogModel.parent, `tag ${tagModel.name} should not expose an alias child`);
     assert.ok(
@@ -838,7 +893,10 @@ test("vscode tokenized tags route prefers canonical codex models when codex is t
     requireAuthForModels: true,
   });
   await seedConnection("codex", { name: "codex-vscode-tags-canonical" });
-  const key = await apiKeysDb.createApiKey("vscode-tags-canonical", "machine-vscode-tags-canonical");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-tags-canonical",
+    "machine-vscode-tags-canonical"
+  );
 
   const response = await vscodeTagsRoute.GET(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/tags`)
@@ -1014,7 +1072,10 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
     requireAuthForModels: true,
   });
   await seedConnection("codex", { name: "codex-vscode-show-reasoning" });
-  const key = await apiKeysDb.createApiKey("vscode-show-reasoning", "machine-vscode-show-reasoning");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-show-reasoning",
+    "machine-vscode-show-reasoning"
+  );
 
   const response = await vscodeShowRoute.POST(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/show`, {
@@ -1046,9 +1107,21 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
   assert.equal(body.model_info["general.basename"], "Codex GPT 5.4 (Default)");
   assert.equal(body.model_info["general.architecture"], "codex");
   assert.equal(body.model_info["codex.context_length"], 200000);
-  assert.deepEqual(body.model_info.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(body.model_info.supports_reasoning_effort, [
+    "none",
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+  ]);
   assert.equal(body.model_info.selected_reasoning_effort, "none");
-  assert.deepEqual(body.model_info.capabilities.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(body.model_info.capabilities.supports_reasoning_effort, [
+    "none",
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+  ]);
 });
 
 test("vscode tokenized api/show route exposes service tier variants with suffixed display names", async () => {
@@ -1058,7 +1131,10 @@ test("vscode tokenized api/show route exposes service tier variants with suffixe
     requireAuthForModels: true,
   });
   await seedConnection("codex", { name: "codex-vscode-show-tier-priority" });
-  const key = await apiKeysDb.createApiKey("vscode-show-tier-priority", "machine-vscode-show-tier-priority");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-show-tier-priority",
+    "machine-vscode-show-tier-priority"
+  );
 
   const response = await vscodeShowRoute.POST(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/show`, {
@@ -1076,7 +1152,9 @@ test("vscode tokenized api/show route exposes service tier variants with suffixe
 });
 
 test("vscode tokenized chat routes rewrite family-first ids back to the codex provider id", async () => {
-  const payload = serviceTierVariants.resolveVscodeServiceTierRequest({ model: "gpt-5.4__provider_cx__tier_priority" });
+  const payload = serviceTierVariants.resolveVscodeServiceTierRequest({
+    model: "gpt-5.4__provider_cx__tier_priority",
+  });
 
   assert.equal(payload.model, "cx/gpt-5.4");
   assert.equal(payload.service_tier, "priority");
@@ -1088,7 +1166,10 @@ test("vscode tokenized /chat/completions route applies the path token and codex 
     password: "hashed-password",
     requireAuthForModels: true,
   });
-  const key = await apiKeysDb.createApiKey("vscode-chat-completions-route", "machine-vscode-chat-completions-route");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-chat-completions-route",
+    "machine-vscode-chat-completions-route"
+  );
 
   const response = await vscodeChatCompletionsRoute.POST(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/chat/completions`, {
@@ -1118,7 +1199,10 @@ test("vscode tokenized /responses route applies the path token and codex tier re
     password: "hashed-password",
     requireAuthForModels: true,
   });
-  const key = await apiKeysDb.createApiKey("vscode-responses-route", "machine-vscode-responses-route");
+  const key = await apiKeysDb.createApiKey(
+    "vscode-responses-route",
+    "machine-vscode-responses-route"
+  );
 
   const response = await vscodeResponsesRoute.POST(
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/responses`, {
