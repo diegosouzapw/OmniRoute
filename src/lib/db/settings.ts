@@ -151,6 +151,11 @@ export async function getSettings() {
     perKeyProxyEnabled: false,
     customSystemPromptEnabled: false,
     customSystemPrompt: "",
+    // #6316: Opt-in filter that hides paid-only models from the /v1/models catalog.
+    // Uses isFreeModel() from src/shared/utils/freeModels.ts to detect free entries
+    // (`:free` suffix, zero-price pricing, or FREE_MODEL_BUDGETS membership). Default
+    // false preserves prior behaviour; opt-in only.
+    hidePaidModels: false,
   };
   for (const row of rows) {
     const record = toRecord(row);

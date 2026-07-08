@@ -4,6 +4,253 @@
 
 ---
 
+## [3.8.47] — TBD
+
+_Living section — bullets land here as PRs merge into `release/v3.8.47` (parallel-cycle model; cycle opened at the v3.8.46 release freeze). Finalized at the v3.8.47 release._
+
+### 🐛 Bug Fixes
+
+- **fix(auth):** an API key restricted via `allowedModels`/`allowedCombos` could bypass that restriction entirely over the Codex Responses-over-WebSocket bridge ([#6564](https://github.com/diegosouzapw/OmniRoute/issues/6564)) — `prepare()` in `src/app/api/internal/codex-responses-ws/route.ts` authenticated the WS bridge's API key (`authenticate()`/`authorizeWebSocketHandshake()`) and honored `allowedConnections`, but never called `enforceApiKeyPolicy()`, the same model/combo policy gate the HTTP `/v1/responses` path enforces via `handleChat()` — so a key scoped to e.g. `combo/model-1.0` could still reach a direct Codex model like `gpt-5.5` through this transport, as long as an eligible Codex OAuth connection existed. The bridge's WS auth token arrives via query params (`api_key`/`token`/`access_token`), not a normal `Authorization` header, so a new `enforceCodexWsApiKeyPolicy()` builds an equivalent `Request` carrying an explicit `Authorization: Bearer <apiKey>` header and calls `enforceApiKeyPolicy()` against the CLIENT-requested model, before any Codex-specific model remapping or credential selection. Regression guard: `tests/unit/codex-ws-policy-enforcement-6564.test.ts` (a model-restricted key is rejected 403 before reaching credential selection; a combo-restricted key is rejected 403 requesting a disallowed combo; a key that DOES allow the requested model still proceeds past policy).
+- **fix(startup):** AgentBridge's MITM server no longer fails to start with `ROUTER_API_KEY is required` on a normal install ([#6403](https://github.com/diegosouzapw/OmniRoute/issues/6403)) — `POST /api/tools/agent-bridge/server` resolved the spawned MITM child's router key from only an explicit `apiKey` body field (never sent by the AgentBridge UI — the schema has no such field) and the `ROUTER_API_KEY` env var (unset by default), so `startMitm()` always received `""` and the child hard-exited, even though OmniRoute already had a usable API key in its own DB. A new `resolveRouterApiKey()` now falls back to `pickApiKeyForInternalUse()` (the same DB-backed selector the combo-health-check / cloud-sync internal probes use), resolving in order: explicit key → `ROUTER_API_KEY` env → an existing DB key. Regression guard: `tests/unit/agentbridge-mitm-router-key-6403.test.ts`.
+- **fix(providers):** deploying a Cloudflare relay Worker from Dashboard → System → Proxy pool → Cloudflare relay failed immediately with `Cloudflare Worker upload failed: Content-Type must be one of: application/javascript, text/javascript, multipart/form-data`, even with a valid token/account ([#6416](https://github.com/diegosouzapw/OmniRoute/issues/6416)) — the Worker-script upload built a native `FormData` and let `fetch` derive the multipart Content-Type automatically, but in production `globalThis.fetch` is patched with `node_modules/undici`'s own fetch (`open-sse/utils/proxyFetch.ts`), whose `FormData`/`Request` classes differ from the runtime's global `FormData` (same cross-realm class mismatch already fixed once for image edits in #3273); passing a native `FormData` instance through undici's patched fetch made it serialize the body as the literal string `"[object FormData]"` with `Content-Type: text/plain;charset=UTF-8`, which Cloudflare rejects outright. `buildCloudflareWorkerUploadRequest()` (`src/lib/proxyRelay/cloudflareWorkerScript.ts`) now builds the multipart body as a raw `Buffer` with an explicit boundary and `Content-Type: multipart/form-data; boundary=…` header, accepted verbatim by any fetch implementation. Regression guard: `tests/unit/cloudflare-worker-upload-content-type-6416.test.ts` + updated `tests/unit/relay-deploy-5128.test.ts`.
+- **fix(startup):** AgentBridge's MITM proxy served a mismatched cert for 3 of the 4 antigravity/cloudcode-pa hosts it terminates TLS for, breaking interception ([#6494](https://github.com/diegosouzapw/OmniRoute/issues/6494)) — `src/mitm/server.cjs`'s `TARGET_HOSTS` decrypts all 4 hosts locally (`daily-cloudcode-pa.googleapis.com`, `cloudcode-pa.googleapis.com`, `daily-cloudcode-pa.sandbox.googleapis.com`, `autopush-cloudcode-pa.sandbox.googleapis.com`), but `src/mitm/cert/generate.ts`'s self-signed cert only carried a SAN entry for the first host — a request to any of the other 3 got served a cert whose CN/SAN didn't match (confirmed via `curl -k https://cloudcode-pa.googleapis.com/` showing `CN=daily-cloudcode-pa.googleapis.com`). `generateCert()` now sources its host list from `ANTIGRAVITY_TARGET.hosts` (`src/mitm/targets/antigravity.ts`, the single authoritative registry already kept in lock-step with `server.cjs`/`dnsConfig.ts`/`mitmToolHosts.ts` by their own drift tests) and emits a SAN entry for all 4 hosts instead of hard-coding a second, incomplete copy. Regression guard: `tests/unit/agentbridge-antigravity-cert-hosts-6494.test.ts` (asserts the host list covers all 4 hosts and that the real generated cert's SAN includes each one).
+- **fix(resilience):** a `priority` combo never fell back when a target masked credit/quota exhaustion behind an HTTP 200 ([#6427](https://github.com/diegosouzapw/OmniRoute/issues/6427)) — `validateResponseQuality()` (`open-sse/services/combo/validateQuality.ts`) only inspected the response body's top-level `error` field when `choices` was ALSO missing/empty (the narrower #3424 empty-completion case); a masked 200 that echoed a non-empty stub `choices` alongside a structured error object, or a known exhaustion phrase (e.g. "insufficient credits", "quota exceeded") in the error envelope, slipped through as "valid" and the combo kept returning the dead target's response forever instead of failing over. The quality check now inspects the error envelope — a top-level OpenAI-shape `error` object, or a bounded, case-insensitive exhaustion-phrase match against `error.message`/`error.code`/`error.type`/top-level `message`/`detail` — unconditionally, before any shape-specific branch, and regardless of whether `choices`/`output` also look structurally present. The check never inspects `choices[].message.content`, so a legitimate completion that merely mentions "quota" or "credits" in assistant prose is not misclassified. Regression guard: `tests/unit/masked-200-exhaustion-fallback-6427.test.ts`.
+- **fix(compression):** adaptive-compression ladder ranked 6 real catalog engines (`ccr`, `ionizer`, `relevance`, `llmlingua`, `llm`, `read-lifecycle`) as if they didn't exist ([#6533](https://github.com/diegosouzapw/OmniRoute/issues/6533)) — `ladder.ts`'s `AGGRESSIVENESS` and `REDUCTION_FACTOR` maps only covered the 7 engines wired into `DEFAULT_LADDER` (session-dedup/rtk/headroom/lite/caveman/aggressive/ultra); every other engine registered in `open-sse/services/compression/engines/index.ts` — including `ccr`/`llmlingua`, which the ladder doc comment already says are intentionally addable via `ladderOverride` — fell through to `aggressivenessOf()`'s `?? 0` default (same rank as `"off"`) and `expectedReductionFactor()`'s generic `?? 0.9` fallback, so `floor`-mode escalation could not rank or escalate past them once added to a custom ladder. Both maps now carry entries for all 6 missing real engines, rescaled ×10 (`off:0` … `ultra:70`) and placed by each engine's documented `stackPriority` (`ionizer` between `rtk`/`headroom`, `relevance` before `caveman`, `llmlingua`/`llm` between `aggressive` and `ultra`, etc.); `mcpAccessibility` — named in the report — is not a registered `CompressionEngine` (it's a separate MCP tool-response truncation mechanism) and was correctly left out. Regression guard: `tests/unit/ladder-engine-maps-6533.test.ts` (asserts every id from `listCompressionEngines()` ranks above `"off"` with a non-default reduction factor). (thanks @chirag127)
+- **fix(api):** tool-call arguments could render as `[object Object]` sequences instead of the real JSON through the `/anthropic` (Anthropic-shape `/messages`) routing path ([#6459](https://github.com/diegosouzapw/OmniRoute/issues/6459)) — `appendToolCallArgumentDelta()` (`open-sse/utils/toolCallArguments.ts`), the shared accumulator the streaming `openai-to-claude` response translator, `openai-responses` translator, and `responsesTransformer` all call to build up a tool call's `arguments`/`input_json_delta` buffer, treated any non-string `incoming` fragment as an empty string. Some upstreams deliver the full `tool_calls[].function.arguments` value as an already-parsed JSON object/array instead of the OpenAI-contracted JSON-encoded string; the old code silently discarded that fragment, leaving `tool_use.input` empty, and left downstream buffers open to a plain string coercion of the object (`[object Object]`) once client-side concatenation kicked in. `appendToolCallArgumentDelta()` now `JSON.stringify()`s a non-string, non-null object/array fragment into a valid JSON fragment instead of dropping it, so the assembled `partial_json` always parses back into the original structured value. Regression guard: `tests/unit/anthropic-toolcall-args-6459.test.ts`. (thanks @chirag127)
+- **fix(providers):** `fusion` combo returned the opaque `"All fusion panel models failed"` 503 even when only a minority of panel members were actually cooling down / rate-limited, and a user-supplied `fusionTuning.minPanel=1` was silently overridden ([#6454](https://github.com/diegosouzapw/OmniRoute/issues/6454)) — `handleFusionChat()` hard-clamped the quorum floor via `Math.min(Math.max(2, cfg.minPanel), panel.length)`, so an operator-configured `minPanel=1` never took effect: `collectPanel()`'s straggler-grace timer only starts once `ok >= minPanel`, and with the floor forced to 2 a single fast success plus N slow-failing stragglers never reached quorum, so the panel sat waiting instead of degrading to the survivor. Per-member failure reasons (`straggler_dropped`/`timeout`/`threw`/`status_XXX`/`empty_content`/`unparseable`) were also logged server-side but never surfaced in the 503 body, leaving operators unable to tell a rate-limit fan-fail from a broader outage. Fixed by honoring `Math.max(1, cfg.minPanel)` and threading a `failures: Array<{ model, reason }>` collector into the 503 message (`model=reason` per entry) — production fix already merged via #6521; this entry backfills the missing CHANGELOG bullet and adds an 11-member, `fusion-free`-scale regression test matching the original repro shape (a cooling minority must not sink a healthy majority; a genuinely all-failed panel still returns the documented 503). Regression guard: `tests/unit/services/fusion-min-panel-and-failure-detail.test.ts` + `tests/unit/fusion-partial-panel-failure-6454.test.ts`. (thanks @chirag127)
+- **fix(providers):** `fusion` combo strategy silently returned a panel member's raw answer instead of the configured `config.judgeModel` synthesis ([#6455](https://github.com/diegosouzapw/OmniRoute/issues/6455)) — `handleFusionChat()`'s single-survivor "degrade gracefully" path (added for #6454) returned the lone panel answer directly whenever only one panelist succeeded, regardless of whether an explicit `judgeModel` was configured; with the default `minPanel: 2` and a 2-model panel, any single flaky/rate-limited panelist forced this path on every request, so the configured judge (e.g. `auto/claude-opus`) was never invoked and the client-visible `.model` reflected whichever panelist happened to survive. The judge is now still invoked to synthesize a lone surviving answer whenever `judgeModel` is explicitly configured; the cheap direct-answer shortcut is kept only for the implicit case (no `judgeModel` set, where the "judge" is just `panel[0]`). Regression guard: `tests/unit/fusion-judge-model-6455.test.ts` + updated `tests/unit/combo-fusion-strategy.test.ts`. (thanks @chirag127)
+- **fix(providers):** image/diffusion models discovered from an upstream catalog (e.g. HuggingFace's live `/v1/models`) are no longer advertised as chat models ([#6457](https://github.com/diegosouzapw/OmniRoute/issues/6457)) — the chat catalog builder defaulted synced models with no modality info to `endpoints: ["chat"]`, so `huggingface/stabilityai/stable-diffusion-xl-base-1.0` showed up in the chat `/v1/models` listing and returned `400 "not a chat model"` when called. `catalog.ts` now skips any synced model already registered as an image model for that provider (via the new `isRegisteredImageModel()`), leaving `getAllImageModels()` to list it with the correct `type: "image"`. Regression guard: `tests/unit/image-model-not-in-chat-catalog-6457.test.ts`.
+- **fix(test):** replace the bare `expect(true).toBe(true)` tautology in `playground-api-tab.test.tsx`'s SSE test and close the `check:test-masking` gap that let it slip through for a full cycle ([#6404](https://github.com/diegosouzapw/OmniRoute/issues/6404)) — a prior pass (#6548) had already swapped the literal to `expect(sendBtn).toBeDefined()`, but that stayed just as vacuous: the test's fetch mock returned an empty `/v1/models` list, so `ApiTab`'s Send button is always `disabled` (`!selectedModel`) and the SSE branch never runs — the "SSE infra is verified" comment was never true. The test now mocks a real model, drives the model `<select>` to enable Send, asserts `sendBtn.disabled === false` before clicking, and asserts the streamed SSE delta (`"Hello!"`) actually reached the response editor. Root cause on the detector side: `check-test-masking.mjs`'s tautology subcheck only compares base-vs-HEAD counts within a PR's own diff (`headExtTaut > baseExtTaut`) and no-ops locally when `GITHUB_BASE_SHA`/`GITHUB_BASE_REF` are unset ("sem base ref — pulando") — so a tautology merged once, or checked with a bare local run, was invisible forever after. Added a new always-on, PR-independent absolute-floor scan (`scanBareTautologies` + `countBareTautologies`) over every git-tracked test file for the bare `expect(true).toBe(true)` / `assert.equal(1,1)` / `assert.strictEqual(1,1)` patterns specifically (deliberately excluding `assert.ok(true)`, which has ~15 pre-existing verified-legitimate try/catch-fallback uses repo-wide and stays governed by the lenient diff-only subcheck) — verified zero pre-existing hits repo-wide once this file was fixed, so the new floor is safe to enforce unconditionally. Regression guard: `tests/unit/check-test-masking.test.ts` (new `scanBareTautologies`/`countBareTautologies` cases) + `tests/unit/ui/playground-api-tab.test.tsx`. (thanks @chirag127)
+- **fix(oauth):** Codex/ChatGPT (and every other OAuth provider) connection stays stuck showing "Auth Failed" even after a genuinely successful token refresh ([#6352](https://github.com/diegosouzapw/OmniRoute/issues/6352)) — `updateProviderCredentials()` (the shared `onPersist` callback for the manual "Refresh token" route, the reactive per-request refresh in `chat.ts`, and the Codex/Claude auth-file importers) correctly reused the stored `refresh_token`, persisted the new `access_token`, and replaced a rotated `refresh_token`, but never cleared the stale `testStatus`/`lastError*`/`errorCode` fields left over from a prior expired/invalid refresh or upstream 401/403 — only the separate background health-check sweep did that clearing. A successful refresh now resets `testStatus` to `"active"` and clears `lastError`, `lastErrorAt`, `lastErrorType`, `lastErrorSource`, and `errorCode` (an explicit `testStatus` from the caller still wins). Regression guard: `tests/unit/codex-oauth-refresh-persist-6352.test.ts`.
+- **fix(resilience):** `headroom` combo routing did not always select the Codex account with the most free quota ([#6379](https://github.com/diegosouzapw/OmniRoute/issues/6379)) — `orderTargetsByHeadroom` (`open-sse/services/combo/quotaStrategies.ts`) already loaded the per-connection DB snapshot (with decrypted credentials) via `expandTargetsByQuotaAwareConnections`, but discarded it before calling `getSaturation`; for Codex, `fetchCodexSaturation` forwards straight to `fetchCodexQuota(connectionId, connection)`, which needs `connection` (or a prior `registerCodexConnection()` call, which never happens before headroom ranking runs) to read `accessToken` — so it returned `null` for every candidate, saturation failed open to `0` across the board, and ranking fell back to the original combo order regardless of actual free quota. `getSaturation()` and the headroom `SaturationFetcher` seam now accept and thread the loaded connection snapshot through to `fetchCodexQuota`. Kilo's dup flag vs #5903 was a false positive — that issue is about session-sticky reset-aware/least-used selection, not headroom's Codex saturation lookup. Regression guard: `tests/unit/headroom-codex-quota-snapshot-6379.test.ts`. (thanks @eidoog)
+- **fix(providers):** custom models a provider actually has are no longer dropped from the Free Provider Rankings when both **"Configured only"** and **"Available only"** filters are applied ([#6368](https://github.com/diegosouzapw/OmniRoute/issues/6368)), follow-up to #6150 — `freeProviderRankings.ts::getProviderModels()` only ever walked the static `open-sse/config/providerRegistry.ts` catalog, so a user-added custom model (e.g. a Puter `claude-fable-5` model saved as "Claude Fable 5") never entered the candidate model list the ranking scores against, and could never survive the #6150 configured/available filters even when actually configured and available. It now additively merges the provider's custom models (`db/models.ts::getCustomModels`) into that candidate list via a new pure, de-duping `mergeProviderModels()` helper, before scoring/filtering runs — catalog free/paid filtering elsewhere is untouched. Regression guard: `tests/unit/free-provider-rankings-custom-models-6368.test.ts`. (thanks @shabeer)
+- **fix(providers):** `cloudflare-ai` no longer silently drops image/non-text content parts ([#6390](https://github.com/diegosouzapw/OmniRoute/issues/6390)) — `transformRequest()`'s `flattenContent()` (added for #2539 to satisfy the Workers AI `/ai/v1/chat/completions` plain-string `content` requirement) mapped any non-text OpenAI content part (e.g. `image_url`) to `""` and joined the rest, so a request carrying an image quietly went out as text-only with the attachment gone and no error surfaced. It now throws a clear error on the first non-text part instead of dropping it silently, which the existing top-level `chatCore.ts` catch already routes through `buildErrorBody()`/`sanitizeErrorMessage()` (same pattern as `buildUrl()`'s missing-Account-ID error). Regression guard: `tests/unit/cloudflare-ai-image-parts-6390.test.ts`.
+- **fix(providers):** stop Antigravity connections from falsely reporting **all-accounts quota-exhausted** ([#6295](https://github.com/diegosouzapw/OmniRoute/issues/6295)) — `genericQuotaFetcher.ts::percentUsedForQuota()` ignored the `fractionReported` flag and defaulted an unreported model's `remainingPercentage` to 0, which computed as 100% used; since `convertUsageToQuotaInfo()` takes the worst-case window across a connection, a single model with no reported fraction dragged the whole account into `limitReached` and `quotaPreflight` skipped it. `percentUsedForQuota()` now returns `null` (unknown, window ignored) whenever `fractionReported === false`, before falling back to `remainingPercentage`. Regression guard: `tests/unit/generic-quota-fetcher.test.ts`.
+- **fix(providers):** grok-cli (Grok Build) now strips `reasoning_effort`/`reasoning` before forwarding the request ([#6288](https://github.com/diegosouzapw/OmniRoute/issues/6288)) — Claude Code sends `reasoning_effort` on every request (routing the Opus slot), which Grok Build's upstream chat-proxy endpoint rejects with a 400; `transformRequest()`'s existing `UNSUPPORTED` sampling-param strip list (#5273) never covered it. Regression guard: `tests/unit/grok-cli-reasoning-strip-6288.test.ts`.
+- **fix(cli):** `omniroute serve` no longer hangs silently on a readiness timeout ([#6321](https://github.com/diegosouzapw/OmniRoute/issues/6321)) — the child server's stdout was piped to `"ignore"` whenever `--log`/`OMNIROUTE_SHOW_LOG` wasn't set (the default), discarding any debug output, and `runWithSupervisor`'s `waitForServer(...).then((up) => { if (up) {...} })` had no `else` branch, so a boot that never became ready produced zero further output after "⏳ Starting server...". Stdout is now buffered alongside stderr (`ServerSupervisor.getRecentLog()`), and a timeout prints a clear diagnostic plus the buffered output instead of staying silent. Does not by itself explain why boot never completes on a given machine — see the issue for further reproduction. Regression guard: `tests/unit/cli-serve-readiness-timeout-6321.test.ts`.
+- **fix(pricing):** Pricing Sync dashboard no longer stuck on "Next Sync: Never" / "Synced Models: 0" ([#6325](https://github.com/diegosouzapw/OmniRoute/issues/6325)) — `pricingSync.ts` kept sync state (`lastSyncTime`, `lastSyncModelCount`) in module-level vars, but the background periodic sync (`instrumentation-node.ts`) and the dashboard status route (`/api/pricing/sync`) each import the module from separate Next.js standalone webpack chunks, giving each its own independent state; `getSyncStatus()` read the (empty) API-route instance's vars. Sync status is now additionally persisted to a new `pricing_sync_status` `key_value` namespace and `getSyncStatus()` falls back to it when the local module instance never ran a sync itself. Regression guard: `tests/unit/pricing-sync-cross-instance.test.ts`.
+- **fix(api):** stop spuriously 403-ing "Invalid request origin" on `POST /api/providers/health-autopilot/actions` for Docker/LAN dashboard requests ([#6277](https://github.com/diegosouzapw/OmniRoute/issues/6277)) — the route carried a duplicate per-route `validateBrowserMutationOrigin` check re-added by the v3.8.42 release squash after PR #5278 centralized origin enforcement in the authz pipeline; the pipeline strips `PEER_IP_HEADER` before forwarding, so the stale duplicate check could no longer resolve the LAN "direct-local-host" candidate and rejected legitimate same-origin LAN mutations (e.g. clicking "remove cooldown" when accessed via a LAN IP). Removed the duplicate check — origin validation is now solely enforced by the centralized pipeline check, which already handles this case correctly. Regression guard: `tests/unit/serial/provider-health-autopilot.test.ts`.
+- **fix(resilience):** a bare, unrecognized `403` from a no-credential (`authType:"none"`) provider like mimocode or theoldllm no longer permanently bans the connection ([#6315](https://github.com/diegosouzapw/OmniRoute/issues/6315), [#6345](https://github.com/diegosouzapw/OmniRoute/issues/6345)) — `classifyProviderError()`'s 403 branch only exempted `apikey` providers from the terminal `FORBIDDEN` classification, so these free/stateless proxies (no real account/credential to revoke) fell through to `FORBIDDEN` on the first unmatched 403 and got `isActive:false, testStatus:"banned"` with no cooldown or retry. The exemption now also covers `authType:"none"` providers, returning `null` (recoverable) so the existing connection-cooldown/retry layer handles it. Regression guard: `tests/unit/errorClassifier-noauth-403-6315.test.ts`.
+- **fix(providers):** the **Auggie (Augment CLI)** executor no longer fails on Windows with `spawn EINVAL` ([#6304](https://github.com/diegosouzapw/OmniRoute/issues/6304)) — the global-npm install exposes `auggie` as a `.cmd` shim, which Node's `child_process.spawn` cannot launch on win32 without `shell: true`. Both spawn sites (streaming + the `auggie --version` test) now go through a shared `buildAuggieSpawnOptions()` that sets `shell: process.platform === "win32"`; the argv (built by `buildAuggieArgs()` with a registry-validated `model` and a trailing `--` end-of-options marker) is unchanged, so the argument-injection surface stays closed on non-Windows. Regression guard: `tests/unit/auggie-win32-spawn-6304.test.ts`.
+- **fix(api):** the dashboard **"Test model"** action is now a clean connection test ([#6240](https://github.com/diegosouzapw/OmniRoute/issues/6240)) — `modelTestRunner` sent its probe request without an explicit compression override, so whenever the operator's global `compression.enabled` flag was on the test call inherited compression (and any Output-Styles system prompt), polluting the result. The internal test requests now send `X-OmniRoute-Compression: off`, and `chatCore` honors an explicit `off` header even when `compression.enabled` is globally true. Regression guards: `tests/unit/model-test-runner-compression-off-6240.test.ts`, `tests/integration/test-model-compression-off-6240.test.ts`.
+- **fix(startup):** an update/restart could crash the whole server at boot with `TypeError: Cannot create property 'message' on string 'Database closed'`, masking the real failure and 500-ing every request until manually restarted ([#6560](https://github.com/diegosouzapw/OmniRoute/issues/6560), plausibly the root cause of #6594's post-upgrade 500) — `driverFactory.ts::preInitSqlJs()` cached its sql.js WASM adapter per file path in a `globalThis`-backed map for idempotency, but never checked whether the cached adapter had since been closed (e.g. by `gracefulShutdown`/`resetDbInstance` racing a reload); reusing that dead handle made the very next query throw sql.js's own bare string `"Database closed"` (not an `Error`) straight out of `instrumentation-node.ts`'s previously-unguarded `ensureDbInitialized()` call, and Next.js's internal `registerInstrumentation()` wrapper unconditionally does `err.message = ...` on whatever `register()` rejects with — assigning `.message` on a primitive string throws in strict mode, so the secondary `TypeError` is what actually crashed the process. Fixed in two parts: `preInitSqlJs()` now evicts a closed cached adapter and creates a fresh one instead of returning it; a new `ensureDbReadyForBoot()` wraps the DB-init call, normalizes any non-Error throw via `normalizeBootError()`, and retries once specifically for a transient "database closed" message (now succeeding against the fresh adapter) before re-throwing anything else as a real `Error`. Regression guard: `tests/unit/instrumentation-database-closed-6560.test.ts`.
+
+### 📝 Maintenance
+
+- **chore(open-sse):** removed the vestigial `// @ts-nocheck` directive from `open-sse/utils/usageTracking.ts` ([#6173](https://github.com/diegosouzapw/OmniRoute/pull/6173)) — `tsc` under the standard `typecheck:core` gate reports 0 errors for this 595-line hot-path file (executed for every provider response), so the suppression was no longer needed; removing it restores type-checking on the token-usage extraction/normalization path. (thanks @KooshaPari)
+- **chore(cli):** the shell-completion cache paths (`readCache`/`refreshCache`/`writeCache`) in `bin/cli/commands/completion.mjs` no longer swallow errors into a bare `catch {}` ([#6257](https://github.com/diegosouzapw/OmniRoute/pull/6257)) — each now binds the error and, when the new `OMNIROUTE_DEBUG_COMPLETION` env var is set, emits a `[omniroute completion]` diagnostic to `stderr`; the caches still fail silently by default so a missing/corrupt cache never breaks tab-completion. (thanks @KooshaPari)
+- **chore(quality):** `validate-release-green --full-ci` reproduces the full `ci.yml` static gate set locally — the pre-flight now reads `ci.yml` itself and runs every `npm run check:*` from the `lint` / `quality-gate` / `quality-extended` / `docs-sync-strict` / `pr-test-policy` jobs (`--` ratchet flags preserved, `test-masking` against `GITHUB_BASE_REF=main`), skipping only the non-local `pr-evidence`/`codeql-ratchet`. Closes the gap where 11 static base-reds leaked to the v3.8.46 release PR in ~2h of layered CI. Also wired into `nightly-release-green` so a static base-red opens a tracking issue the night it lands. Regression guard: `tests/unit/validate-release-green.test.ts` (+5 `extractCiGates` cases).
+
+---
+
+## [3.8.46] — 2026-07-07
+
+### ✨ New Features
+
+- **feat(sse):** **hide paid-only models from `auto/*` routing** when `hidePaidModels` is on ([#6512](https://github.com/diegosouzapw/OmniRoute/issues/6512)) — follow-up to #6328/#6495. PR #6495 hid paid-only models from the `GET /v1/models` listing, but `auto/*` combos (`auto/best-coding`, `auto/glm`, …) could still pick a paid-only backend into their candidate pool → a 402/403 at request time. `createVirtualAutoCombo` now filters the candidate pool through the new pure `open-sse/services/autoCombo/paidModelFilter.ts` (`filterPaidOnlyCandidates`), applying the same free-model predicate #6495 uses in `catalog.ts` (`providerHasFreeModels(provider) && isFreeModel(provider, {id})`) whenever `settings.hidePaidModels === true`. Applied before the category/tier/family narrowing, so it covers every `auto/*` combo; an all-paid pool degrades to the existing graceful empty-pool path. **Opt-in — default OFF leaves the pool unchanged** (identity). Regression guard: `tests/unit/autoCombo/paid-model-filter-6512.test.ts` (4, incl. the default-off identity guard).
+- **feat(sse):** **provider-family auto combos** — `auto/glm`, `auto/minimax`, `auto/mimo`, `auto/zai`, `auto/gemma`, `auto/llama`, `auto/gemini` ([#6453](https://github.com/diegosouzapw/OmniRoute/issues/6453)) — new routable ids that materialize an on-demand virtual combo spanning whatever installed backends currently expose that model family, degrading gracefully as backends rotate. A new pure `open-sse/services/autoCombo/modelFamily.ts` (`detectModelFamily`) classifies by model-id prefix for six families; `zai` is instead resolved by provider id (z.ai's hosted API serves the same `glm-*` model ids as every other GLM backend, so `auto/zai` means "route to my z.ai backend specifically" vs `auto/glm`'s "any connected GLM backend"). Reuses the existing `createVirtualAutoCombo` on-demand materialization path (no DB writes) and the `/v1/models` catalog advertising loop. Regression guard: `tests/unit/autoCombo/provider-family-combos.test.ts` (11).
+- **feat(proxy):** native **proxy-pool round-robin / egress IP rotation** ([#6365](https://github.com/diegosouzapw/OmniRoute/issues/6365)) — a scope (global / provider / account) can now hold **multiple** proxies as a pool with a rotation strategy, so outbound requests cycle their egress IP instead of pinning one proxy per scope. Migration `117_proxy_pool_rotation.sql` lifts the `UNIQUE(scope, scope_id)` constraint (rebuild via the canonical rename/copy/drop; existing single assignments become 1-element pools) and adds a `proxy_scope_rotation` companion table holding the per-scope strategy + a persisted monotonic round-robin cursor. Strategies: `round-robin` (default, monotonic cursor — never `Math.random`), `random`, and `sticky-per-N-min`. Resolution (`resolveProxyForScopeFromRegistry` / `resolveProxyForConnectionFromRegistry`) now fetches the alive, position-ordered candidate set (unchanged `PROXY_ALIVE_PREDICATE`) and applies the strategy; an empty / all-dead pool still returns `null` — the #6246 fail-closed guard is **untouched** (never falls through to direct egress). Backend + DB only; dashboard pool-builder UI is a follow-up. Regression guard: `tests/unit/proxy-pool-rotation-6365.test.ts` (8, incl. fail-closed + backward-compat).
+- **feat(providers):** end-to-end **tool/function calling on the native Gemini `/v1beta` endpoint** ([#6222](https://github.com/diegosouzapw/OmniRoute/issues/6222)) — both directions of the Gemini↔OpenAI conversion now preserve tool data (previously silently dropped). Request side: `convertGeminiToInternal` (extracted to its own testable module) maps `tools[].functionDeclarations` → OpenAI `tools`, prior `functionCall` parts → assistant `tool_calls`, and `functionResponse` parts → `tool`-role messages. Response side: `convertOpenAIResponseToGemini` emits `parts[].functionCall {name,args}` from `message.tool_calls`, and the streaming `openAIChunkToGeminiChunk` accumulates fragmented `tool_calls` deltas by index into complete `functionCall` parts. The non-Gemini client paths (Claude, OpenAI-Responses) already preserved tool calls — this closes the gap specific to the native Gemini surface. Regression guard: `tests/unit/v1beta-gemini-tool-calling-6222.test.ts` (6, incl. a streaming SSE round-trip).
+- **feat(providers):** copilot-m365-web **enterprise / work tier** support ([#6334](https://github.com/diegosouzapw/OmniRoute/issues/6334)) — mirrors the EDU-tier pattern (#6210): `M365ConnectionParams` gains an `agent` field, a new opt-in `M365_ENTERPRISE_OVERRIDES` preset (`agent=work`, `scenario=officeweb`, `licenseType=Premium`) applies via `providerSpecificData.tier="enterprise"` (alias `"work"`), and `agent` is also overridable directly via `providerSpecificData.agent`. `buildWsUrl` was hardcoding `agent="web"` (the one enterprise-distinguishing param with no override path), so a Premium work account handshook then returned an empty stream. The individual and EDU paths are untouched. Kilo's dup flag vs #6210 (EDU tier) was a false positive — different tier. Regression guard: `tests/unit/copilot-m365-enterprise-6334.test.ts` (7). End-to-end confirmation on a real Premium work account is a live-VPS validation follow-up (Hard Rule #18). (thanks @Forcerecon)
+- **feat(api):** standardized, provider-agnostic **`effort` + `thinking` request params** ([#6241](https://github.com/diegosouzapw/OmniRoute/issues/6241)) — a thin standardization layer over the existing mature per-provider reasoning plumbing (no provider mapper touched). `providerChatCompletionSchema` gains a canonical `effort` (reusing the shared `none/low/medium/high/xhigh` vocabulary — the UI tiers `extra`/`max` collapse onto `xhigh`) and a boolean `thinking`. A pure `normalizeReasoningRequest` (wired once in `src/sse/handlers/chat.ts`, before any reasoning field is read) folds them onto the fields the translators already consume (`reasoning_effort` / `reasoning.effort` / `thinking`), so they fan out to Anthropic / Gemini / xAI / Responses — an explicit client `reasoning_effort` / object-shaped `thinking` always wins (backward-compatible). `/models` additively exposes `supportsThinking` + `effort_tiers` so the frontend can render the toggles (UI component is a follow-up). Regression guard: `tests/unit/effort-thinking-standardization-6241.test.ts` (12). (thanks @Iammilansoni, @shabeer)
+- **feat(combo):** new **`pipeline` (sequential) combo strategy** ([#6297](https://github.com/diegosouzapw/OmniRoute/issues/6297)) — the 18th routing strategy runs targets **in order**, threading each step's output into the next step's input, with an optional per-step `prompt` (system instruction); only the final step's response is returned. Distinct from `fusion` (parallel fan-out + judge). Implemented as a self-contained `open-sse/services/pipeline.ts` (sibling to `fusion.ts`), dispatched from `combo.ts`; the step list reuses `combo.models` order and reads an optional `prompt` off each target (backward-compatible — ignored by every other strategy). Intermediate steps run non-streaming with tools stripped (complete prose to thread forward); the final step keeps the client's `stream` flag + tools. A failing/empty/unparseable intermediate step fails the whole pipeline explicitly via a sanitized error (never silently swallowed). Kilo's dup flag vs #563 was a false positive (that's model→chain selection; this is a sequential chain). Regression guard: `tests/unit/combo-pipeline-strategy.test.ts` (5). (thanks @ofekbetzalel)
+- **feat(ci):** `check:test-masking` now flags **inline-reimplemented prod conditions** ([#6348](https://github.com/diegosouzapw/OmniRoute/issues/6348)) — a new **report-only** subcheck (v2, 6A.10 family) catches the wrong-shape contract test: a test that recomputes the condition under test inline instead of importing/exercising the real function (the #6216 class, where `=== 500` → `>= 500` stayed green because the test re-implemented the branch). For each added/modified test file it warns when the file textually duplicates a ≥3-token conditional from a production file touched in the same PR **and** does not import the symbol/module owning it, via a pure, fixture-tested `findReimplementedConditions()` with an allowlist mirroring `assertReductionAllowlist`. Report-only for now (does not fail the gate) — to be promoted to blocking after a triage cycle. Regression guard: `tests/unit/check-test-masking.test.ts` (45).
+- **feat(sse):** per-connection routing override (native vs CLIProxyAPI) ([#6339](https://github.com/diegosouzapw/OmniRoute/issues/6339)) — the previously-dead `isCliproxyapiDeepModeEnabled` helper is now wired into `resolveExecutorWithProxy`: a single connection can opt itself into the CLIProxyAPI passthrough executor via `providerSpecificData.cliproxyapiMode="claude-native"`, with precedence **connection override > provider `upstream_proxy_config` mode > default**. `resolveExecutorWithProxy` now receives the resolved connection's `providerSpecificData` (threaded from `chatCore.ts`), so one connection can deep-route while the provider's other connections stay native — no DB schema change (the toggle rides in `providerSpecificData`). Also resolves the same-provider mixing ask in #6340. Regression guard: `tests/unit/chatcore-executor-proxy.test.ts` (9). (thanks @RaviTharuma)
+- **feat(dashboard):** "Add session cookie" modal now shows a prominent **"Open ‹host› →"** link to the provider's own site ([#6268](https://github.com/diegosouzapw/OmniRoute/issues/6268)) — every `-web` cookie-session provider (chatgpt-web, claude-web, gemini-web, kimi-web, lmarena, qwen-web, m365-copilot-web, …) renders a one-click external link (opening the provider's login/home page in a new tab) so operators no longer tab away to retype the URL mid-setup. The host resolves from a pure, unit-tested `resolveWebProviderHost()` (prefers `WEB_COOKIE_PROVIDERS[id].website`, falls back to the registry `baseUrl` origin); non-web providers render exactly as before. Kilo's dup flag vs #6265 (modal-too-small-on-1080p) was a false positive — distinct concern. Regression guard: `tests/unit/resolve-web-provider-host.test.ts` (5). (thanks @chirag127)
+- **feat(providers):** add **DigitalOcean** AI (serverless inference) as an OpenAI-compatible API-key provider ([#6373](https://github.com/diegosouzapw/OmniRoute/pull/6373)) — base `https://inference.do-ai.run/v1`, wired through the shared OpenAI-compatible registry with full model passthrough (`open-sse/config/providers/registry/digitalocean/`, `src/shared/constants/providers/apikey/inference-hosts.ts`). Regression guard: `tests/unit/digitalocean-provider.test.ts`. (thanks @newnol)
+- **feat(providers):** add **Huancheng Public API** (`hcnsec`) as an OpenAI-compatible regional provider ([#6410](https://github.com/diegosouzapw/OmniRoute/pull/6410)) — Xinjiang Huancheng Cybersecurity's public LLM platform (base `https://api.hcnsec.cn/v1`, free credits via daily check-ins), wired through the shared OpenAI-compatible registry with full model passthrough (`open-sse/config/providers/registry/hcnsec/`, `src/shared/constants/providers/apikey/regional.ts`). Regression guard: `tests/unit/hcnsec-provider.test.ts`. (thanks @UnrealAryan)
+- **feat(dashboard):** the web-session credential guide now shows an **"Open {host}" link** ([#6316](https://github.com/diegosouzapw/OmniRoute/pull/6316)) to the provider's sign-in site (derived from the provider `website` via `getProviderWebsiteHost`), so you can jump straight to the page where the cookie/session must be captured. Regression guard: `tests/unit/web-session-provider-link-6316.test.ts`. (thanks @jordansilly77-stack)
+- **feat(cerebras):** add the **Gemma 4 31B** model (`gemma-4-31b`) to the Cerebras registry + pricing table ([#6331](https://github.com/diegosouzapw/OmniRoute/pull/6331)). Regression guard extends `tests/unit/t28-model-catalog-updates.test.ts`. (thanks @backryun)
+- **feat(providers):** add **Yuanbao (web)** as a cookie-session provider ([#6196](https://github.com/diegosouzapw/OmniRoute/issues/6196)) — `yuanbao-web` (Tencent Yuanbao, `yuanbao.tencent.com`) with cookie-only auth (`hy_user`/`hy_token` + public agent id), SSE→OpenAI translation incl. `reasoning_content`, exposing DeepSeek V3/R1 + Hunyuan / Hunyuan-T1. Regression guard: `tests/unit/providers-yuanbao-web.test.ts`. `together-web` was **deferred** (no verifiable web-session endpoint — needs a captured request) and `huggingchat-web` **dropped** (the existing `huggingchat` already is a web-cookie provider). (thanks @chirag127)
+- **feat(providers):** route the built-in **agentrouter** through the dynamic Claude-Code wire image ([#6056](https://github.com/diegosouzapw/OmniRoute/issues/6056)) — a small static allow-set (`CC_WIRE_IMAGE_BUILTINS` in `open-sse/services/ccWireImageBuiltins.ts`), consulted by `isClaudeCodeCompatible` / `isClaudeCodeCompatibleProvider` / `applyFingerprint`, makes agentrouter adopt the CC wire-image headers + fingerprint **while guarding the CC baseUrl/auth branches** so it keeps its own registry `baseUrl` and `x-api-key` auth. Regression guard: `tests/unit/agentrouter-cc-wire-image.test.ts` (asserts the wire image is applied AND agentrouter's baseUrl/auth are preserved). Live WAF-acceptance against agentrouter.org is a VPS validation follow-up (Hard Rule #18).
+- **feat(providers):** **bulk-add API keys for Cloudflare Workers AI** ([#6174](https://github.com/diegosouzapw/OmniRoute/issues/6174)) — `cloudflare-ai` is removed from the bulk-add exclusion list and the bulk parser gains a 3-field `name|accountId|apiKey` mode; the bulk route now builds a **per-entry** `providerSpecificData` so each key carries its own `accountId` (fixing the previous shared-object reuse), and both the create + key-validation paths receive it. Regression guard: `tests/unit/bulk-api-key-parser-cloudflare.test.ts`. (thanks @muflifadla38)
+- **feat(dashboard):** routing/settings UX clarity ([#6147](https://github.com/diegosouzapw/OmniRoute/issues/6147)) — (1) weighted combos show the **effective routing share %** next to each weight when weights don't sum to 100 (`WeightTotalBar.tsx`); (2) the status widget's user-facing **"Cloud Sync" label is renamed** to "Remote Settings Sync" (`CloudSyncStatus.tsx`; internal ids/state untouched); (3) built-in providers gain an **opt-in advanced base-URL override** (`isBaseUrlOverrideEligibleProvider`, hidden behind an "Advanced" toggle, reusing the existing `providerSpecificData.baseUrl` persistence — not globally widened). Regression guard: `tests/unit/routing-settings-ux-6147.test.ts`.
+- **feat(combo):** add an option to **disable session stickiness**, per-combo or globally — round-robin / random combos can rotate to a different connection on every request instead of pinning a whole conversation to one connection by its first-message hash. Resolution precedence per-combo `config.disableSessionStickiness` → global `settings.disableSessionStickiness` → default `false` (preserves the #3825 prompt-cache/504 fix); gates **both** stickiness call sites in `open-sse/services/combo.ts`. Exposed as a global toggle (Combo Defaults) and a per-combo Inherit/on/off control. ([#6168](https://github.com/diegosouzapw/OmniRoute/issues/6168)) Regression guard: `tests/unit/combo-disable-session-stickiness.test.ts`. (thanks @RCrushMe)
+- **feat(docker):** add the `OMNIROUTE_NO_SUDO` env flag for root-less / user-namespaced deployments — the MITM cert-trust command path (`resolveSudoSpawn` in `src/mitm/systemCommands.ts`) now strips the leading `sudo` when the flag is truthy, in addition to the existing root / sudo-missing cases, so the Proxy Agent runs without `sudo` (the operator trusts the CA manually, e.g. via `NODE_EXTRA_CA_CERTS`). Argv-array `spawn` preserved — no shell interpolation (Hard Rule #13). ([#6122](https://github.com/diegosouzapw/OmniRoute/issues/6122)) Regression guard: `tests/unit/mitm-systemCommands-no-sudo.test.ts`. (thanks @powellnorma)
+- **feat(providers):** add **Requesty** as an OpenAI-compatible gateway provider (BYOK, base `https://router.requesty.ai/v1`, ~200 free requests/day) — wired through the shared OpenAI-compatible registry with full model passthrough (`open-sse/config/providers/registry/requesty/`, `src/shared/constants/providers/apikey/gateways.ts`). ([#6120](https://github.com/diegosouzapw/OmniRoute/issues/6120)) Regression guard: `tests/unit/requesty-provider.test.ts`. (thanks @chirag127)
+- **feat(dashboard):** add **configured-only / available-only filters** to the Free Provider Rankings page ([#6150](https://github.com/diegosouzapw/OmniRoute/issues/6150)) — hide providers you haven't configured, or whose connections are all rate-limited / out of quota, via server-side query params (`?configuredOnly` / `?availableOnly` on `GET /api/free-provider-rankings`) backed by a testable lib helper reusing the in-process connection state (no Redis). Both filters default off, so the default view is unchanged; this supersedes the earlier client-side "Configured Only" toggle (#6245) with an available-only dimension and unit-tested logic. Regression guard: `tests/unit/freeProviderRankings-filters.test.ts`.
+
+### 🔧 Bug Fixes
+
+- **fix(dashboard):** adding a second API key connection for the same provider no longer silently overwrites the first — the Add-API-key modal now derives a unique default connection name (`main`, then `main-2`, `main-3`, …) so the backend name-based upsert can't collide (#6499 — thanks @dilneiss).
+- **fix(compression):** the session-dedup engine now also deduplicates a large multi-line block repeated **within a single message** (intra-message dedup), not just across turns; the compression-preview API surfaces a `fallbackReason`, and the fusion panel reports how many models were rate-limited vs failed on total-panel failure (#6501 — thanks @chirag127).
+- **fix(compression):** a stacked-pipeline step naming an unregistered engine now surfaces a `validationErrors` entry instead of silently no-op'ing, so misconfigured pipelines are visible in the preview API (#6506 — thanks @chirag127).
+- **feat(usage):** add a **Codex reset-credit redemption** flow to the Provider Limits UI ([#6361](https://github.com/diegosouzapw/OmniRoute/pull/6361)) — a `useCodexResetCreditRedemption` hook + `/api/usage/codex-reset-credit` route + `codexResetCredits` lib let you redeem banked Codex reset credits from the quota card. Regression guard: `tests/unit/codex-reset-credits.test.ts`. (thanks @JxnLexn)
+- **feat(glm):** add **team-plan quota settings** for `glm-cn` connections ([#6351](https://github.com/diegosouzapw/OmniRoute/pull/6351)) — a dedicated `GlmTeamQuotaFields` form section (team quota id / limits) threaded through the Add/Edit connection modals, persisted via `providerSpecificData`, with the GLM usage service reading the team quota. Regression guards: `tests/unit/glm-team-quota.test.ts`, `provider-specific-data-schema.test.ts`. (thanks @hao3039032)
+- **feat(providers):** add **TinyFish** web-fetch/search support ([#6349](https://github.com/diegosouzapw/OmniRoute/pull/6349)) — a `tinyfish-fetch` executor + `/v1/web/fetch` route + MCP web-fetch tool, registered as a specialty-media provider with request-validation and a search-provider catalog entry. Regression guards: `tests/unit/executor-tinyfish-fetch.test.ts`, `web-fetch-handler.test.ts`, `mcp-web-fetch-tool.test.ts`, `provider-validation-tinyfish.test.ts`. (thanks @dtybnrj)
+- **fix(cli):** `omniroute launch-codex` now spawns `codex.cmd` through a shell on Windows (the npm `.cmd` shim is unresolvable by bare `spawn` → ENOENT), mirroring the qodercli Windows fix (#6263) ([#6312](https://github.com/diegosouzapw/OmniRoute/pull/6312)). Regression guard: `tests/unit/launch-codex-windows-spawn-6312.test.ts`. (thanks @swingtempo)
+- **fix(codex):** isolate the **Spark** quota from the shared Codex quota and stabilize the quota UI ordering / hydration so per-scope limits render consistently ([#6336](https://github.com/diegosouzapw/OmniRoute/pull/6336)). Regression guards: `tests/unit/codex-quota-selection-hydration.test.ts`, `provider-limits-ui.test.ts` + 3 more. (thanks @xz-dev)
+- **feat(api):** add a `hidePaidModels` setting that filters paid-only models out of the `/v1/models` catalog. Regression guard: `tests/unit/models-catalog-hide-paid.test.ts`. (thanks @chirag127)
+- **fix(api-manager):** the fallback model picker now preserves combos instead of dropping them when a primary model is unavailable ([#6443](https://github.com/diegosouzapw/OmniRoute/pull/6443)). Regression guard: `tests/unit/api-manager-page-static.test.ts`. (thanks @jmengit)
+- **fix(providers):** recoverable Antigravity / Cloud-Code (Gemini Code Assist) `403` responses ([#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452)) are now classified as a retryable project-config error instead of a terminal account ban, so a fixable project/API-disabled 403 no longer forces a ~1-year cooldown / full OAuth reconnect. Regression guard: `tests/unit/errorclassifier-antigravity-403.test.ts`. (thanks @developerjillur)
+- **fix(mitm):** `sanitizeHeaders` now redacts `Set-Cookie` response headers so upstream session cookies never leak into logs / diagnostics ([#6451](https://github.com/diegosouzapw/OmniRoute/pull/6451)). Regression guard: `tests/unit/mitm-sanitize-headers.test.ts`. (thanks @developerjillur)
+- **fix(api):** `/api/compression/preview` now accepts `mode: "caveman"` and correctly handles stacked / zero-compression previews ([#6425](https://github.com/diegosouzapw/OmniRoute/issues/6425)). Regression guard: `tests/unit/api/compression-preview-caveman-and-stacked-6425.test.ts`. (thanks @chirag127)
+- **feat(providers):** add **Zed** hosted LLM aggregator as a native-app provider ([#6118](https://github.com/diegosouzapw/OmniRoute/pull/6118)) — OAuth sign-in via the Zed hosted flow, registered through the shared provider registry + executor. Regression guards: `tests/unit/zed-oauth-provider.test.ts`, `zed-import-utils.test.ts`, `zed-docker-detect.test.ts`, `mitm-handler-zed.test.ts`. VPS-validated via live operator login (Hard Rule #18).
+- **fix(oauth):** the Kiro SSO-cache auto-import now **preserves the IDC region** — cross-region Amazon Q / Kiro profiles imported from the SSO cache are no longer collapsed to the default region ([#6113](https://github.com/diegosouzapw/OmniRoute/pull/6113)). Regression guard: `tests/unit/kiro-auto-import-idc-2059.test.ts`. VPS-validated via live operator login (Hard Rule #18).
+- **fix(dashboard):** passthrough model aliases no longer collide when two namespaced model ids share a last segment (port from 9router#1850, [#6431](https://github.com/diegosouzapw/OmniRoute/pull/6431)). `enx/gpt-5.5` and `enx/codebuddy/gpt-5.5` both auto-generated the alias `gpt-5.5`, so the second model could never be added (the UI just alerted "alias already exists"). Aliases are now disambiguated deterministically — bare last segment when free, then parent-qualified (`codebuddy-gpt-5.5`), then a numeric suffix — while re-adding the exact same model id is still blocked. Regression guard: `tests/unit/passthrough-alias-1850.test.ts`. (thanks @arpicato)
+- **fix(translator):** preserve a Gemini `functionResponse` co-located with other parts (another `functionCall`, or trailing `text`) in the same content when translating **Gemini → OpenAI** ([#6376](https://github.com/diegosouzapw/OmniRoute/pull/6376)). `convertGeminiContent()` early-returned the tool message on the first `functionResponse` part, dropping any co-located parts; such contents are now pre-split (one tool message per `functionResponse`, emitted first, plus one message for the remaining parts). Regression guard: `tests/unit/gemini-to-openai-function-response.test.ts`. (thanks @warelik)
+- **fix(headroom):** detect a python interpreter managed by **mise / pyenv / asdf / conda** (port from 9router#2353, [#6382](https://github.com/diegosouzapw/OmniRoute/pull/6382)). Headroom's python probe (`src/lib/headroom/detect.ts`) searched a hardcoded `PATH`, but version managers expose their interpreters via shim dirs that only join `PATH` through interactive-shell activation — which the non-interactive server never runs, so a managed python (≥3.10) was invisible and Headroom reported it missing. The search path now prepends the well-known shim/bin dirs (`~/.local/share/mise/shims`, `~/.pyenv/shims`, `~/.asdf/shims`, `$CONDA_PREFIX/bin`, `~/.local/bin`, respecting `MISE_DATA_DIR`/`PYENV_ROOT`/`ASDF_DATA_DIR` when set), and a new `HEADROOM_PYTHON` env override lets operators point straight at their interpreter (mirroring `HEADROOM_URL`). Still shell-free (`execFileSync`). Regression guard: `tests/unit/headroom-detect.test.ts` (5). (thanks @loopyd)
+- **fix(executors):** strip the OpenAI-Codex/Claude-CLI `client_metadata` passthrough field for **NVIDIA** requests (port from 9router#1887, [#6411](https://github.com/diegosouzapw/OmniRoute/pull/6411)). NVIDIA's OpenAI-compatible wrapper rejects it with `400 Unsupported parameter`, the same class already handled for `cerebras`/`mistral`; `nvidia` (executor `default`) was missing from the strip allowlist so Codex/Claude-Code passthrough requests 400'd. Regression guard: `tests/unit/executor-default-strip-client-metadata.test.ts` (+nvidia case). (thanks @phidinhmanh)
+- **fix(translator):** strip the Claude-style `thinking` field for **NVIDIA `z-ai/glm-5.2`** (port from 9router#2023, [#6413](https://github.com/diegosouzapw/OmniRoute/pull/6413)). NVIDIA's OpenAI-compatible wrapper 400s on `thinking` (a Claude-format client routed here leaves a `thinking:{type:"adaptive"}`); the existing strip rule only dropped `reasoning`. Same class already handled for `minimax-m2.7`. Regression guard: `tests/unit/nvidia-minimax-thinking-strip.test.ts` (+glm-5.2 case). (thanks @phidinhmanh)
+- **fix(translator):** suppress the streamed `</think>` close marker for the **Antigravity IDE** client (port from 9router#1061, [#6415](https://github.com/diegosouzapw/OmniRoute/pull/6415)). On thinking-only turns Antigravity rendered a bare `</think>` as the sole visible content, tripping its loop-detection and wasting requests. Antigravity's UA (`vscode/<v> (Antigravity/<v>)`) is added to the marker-suppress allowlist (alongside OpenCode); Claude Code / Cursor still get the marker, and `x-omniroute-thinking-marker: on` force-restores it. Regression guard: `tests/unit/think-close-marker-suppress-5245.test.ts`. (thanks @abdofallah)
+- **fix(executors):** strip nested `reasoning_content` from messages for **Mistral** (port from 9router#1649, [#6417](https://github.com/diegosouzapw/OmniRoute/pull/6417)). Mistral's API returns `422 extra_forbidden` when an assistant message carries `reasoning_content` (replayed thinking from a prior turn, e.g. via the Codex `/responses` path); the generic top-level 400 field-downgrade retry never covered the nested per-message field. `DefaultExecutor` now strips it for provider `mistral` only, so DeepSeek (which requires replayed `reasoning_content`) is unaffected. Regression guard: `tests/unit/mistral-strip-reasoning-content-1649.test.ts`. (thanks @xxy9468615)
+- **fix(executors):** strip the `client_metadata` passthrough field on the **OpenCode** path (port from 9router#1442, [#6418](https://github.com/diegosouzapw/OmniRoute/pull/6418)). OpenCode upstreams (e.g. `kimi-k2.6` via opencode-go) reject it with `400 "Extra inputs are not permitted, field: 'client_metadata'"`; the DefaultExecutor strip only covered cerebras/mistral and `OpencodeExecutor` extends `BaseExecutor` directly, so nothing removed it there. Regression guard: `tests/unit/opencode-strip-client-metadata-1442.test.ts`. (thanks @yanpaing007)
+- **fix(executors):** inject the `reasoning_content` echo for the native **Moonshot Kimi** provider (port from 9router#1480, [#6419](https://github.com/diegosouzapw/OmniRoute/pull/6419)). Kimi (executor `default`) is a thinking-mode upstream that 400s with "reasoning_content must be passed back" when a prior assistant turn lacks it; the placeholder injection was only wired into the OpenCode meta-provider, so direct multi-turn Kimi conversations failed. Scoped to `kimi` (gateway-served models matching the thinking-model name pattern are unaffected). Regression guard: `tests/unit/kimi-native-reasoning-injected-1480.test.ts`. (thanks @2220258345)
+- **fix(executors):** recover from a strict gateway's `context_management: Extra inputs are not permitted` 400 (port from 9router#1468, [#6420](https://github.com/diegosouzapw/OmniRoute/pull/6420)). **Claude Code** always sends a top-level `context_management` field; strict anthropic-compatible gateways reject it. The dedicated context-editing 400-fallback only fired when OmniRoute's own `contextEditing` feature was enabled (default off), so a client-sent field passed through untouched and 400'd. `context_management` is now in the generic reactive field-strip list, so it's stripped-and-retried once regardless of the feature flag (with correct request re-signing for claude-compatible relays). Regression guard: `tests/unit/provider-field-strips.test.ts`. (thanks @ohahe52-dot)
+- **fix(network):** enable **RFC 8305 Happy Eyeballs** (`autoSelectFamily`) on the direct-egress undici dispatcher (port from 9router#1237, [#6423](https://github.com/diegosouzapw/OmniRoute/pull/6423)). When DNS returns both IPv6 (AAAA) and IPv4 (A) and the IPv6 route is broken (e.g. a NAT64 `64:ff9b::` prefix without routing), undici tried IPv6 first and hung until `ETIMEDOUT` (then a 502 + account lockout), even though `curl` reached the same host. The direct dispatcher now races both families and uses whichever connects first. Proxy paths pin family via `proxyTls` and are unaffected. Regression guard: `tests/unit/direct-dispatcher-pipelining-4580.test.ts`. (thanks @adentdk)
+- **fix(combo):** round-robin now advances the rotation pointer past the model that **actually served**, not the eagerly-scheduled one (port from 9router#948, [#6428](https://github.com/diegosouzapw/OmniRoute/pull/6428)). With `stickyLimit: 1` (true round-robin), when the scheduled model failed and a _different_ model served via fallback, the counter had already advanced +1 from the scheduled index — so the next request reused the fallback-served model, degrading round-robin into hot-spotting on whichever model was healthy. The pointer now advances to the served index + 1 (mirroring the sticky-limit>1 path). Session-stickiness (#3825) and distribution are preserved. Regression guard: `tests/unit/combo-rr-fallback-advance-948.test.ts`. (thanks @binsarjr)
+- **fix(sse):** a non-string `model` field is now rejected with a `400` before the resolver, instead of crashing downstream `.toLowerCase()`/`.split()` calls into an empty-body `500` that escapes the error sanitizer ([#6407](https://github.com/diegosouzapw/OmniRoute/issues/6407)). Regression guard: `tests/unit/chat-non-string-model-6407.test.ts`. (thanks @chirag127)
+- **fix(api):** unknown `/api/*` routes now return a JSON `404` (instead of the dashboard HTML shell) and scalar chat params (`model`/`temperature`/etc.) are validated **before** the provider lookup so malformed requests fail fast with a clear `400` ([#6424](https://github.com/diegosouzapw/OmniRoute/issues/6424), [#6412](https://github.com/diegosouzapw/OmniRoute/issues/6412)). Regression guards: `tests/unit/api/api-catchall-json-404.test.ts`, `tests/unit/chat-early-schema-validation-6412.test.ts`. (thanks @chirag127)
+- **fix(api):** `/v1/chat/completions` now rejects a non-JSON `Content-Type` with a `400` before parsing the body ([#6414](https://github.com/diegosouzapw/OmniRoute/issues/6414)). Regression guard: `tests/unit/v1-chat-completions-content-type-6414.test.ts`. (thanks @chirag127)
+- **fix(api):** the `X-OmniRoute-Compression` response header is now echoed on `/v1/chat/completions` and `/v1/completions` ([#6422](https://github.com/diegosouzapw/OmniRoute/issues/6422)). Regression guard: `tests/unit/compression-header-echo-6422.test.ts`. (thanks @chirag127)
+- **fix(api):** concurrent `GET /v1/models` requests are coalesced into a single catalog build ([#6408](https://github.com/diegosouzapw/OmniRoute/issues/6408)). Regression guard: `tests/unit/v1-models-concurrent-6408.test.ts`. (thanks @chirag127)
+- **fix(api):** `/v1/completions` now echoes the requested `body.model` in its JSON + streamed responses ([#6429](https://github.com/diegosouzapw/OmniRoute/pull/6429)). Regression guard: `tests/unit/completions-body-model-echo.test.ts`. (thanks @chirag127)
+- **fix(api):** env-var master keys now see the full `/v1/models` catalog ([#6406](https://github.com/diegosouzapw/OmniRoute/issues/6406)). Regression guard: `tests/unit/models-catalog-envkey-6406.test.ts`. (thanks @chirag127)
+- **fix(api):** non-streaming `/v1/completions` responses now echo `body.model` aligned with the `X-OmniRoute-Model` header ([#6426](https://github.com/diegosouzapw/OmniRoute/issues/6426)). Regression guard: `tests/unit/v1-completions-model-header-match-6426.test.ts`. (thanks @chirag127)
+- **fix(api):** unknown `/v1/*` routes now return a JSON `404 not_found` instead of the Next.js dashboard HTML shell ([#6405](https://github.com/diegosouzapw/OmniRoute/issues/6405)). Regression guard: `tests/unit/api/v1-catchall-json-404.test.ts`. (thanks @chirag127)
+- **fix(api):** the per-connection provider models route now degrades to the shipped catalog when a provider's `/models` endpoint answers with a redirect ([#6267](https://github.com/diegosouzapw/OmniRoute/issues/6267)) — a `qwen-web` import failed with a raw `Redirect blocked … (307)` 503. `safeOutboundFetch` throws `REDIRECT_BLOCKED` on the 307, `getSafeOutboundFetchErrorStatus` maps it to 503, and `buildDiscoveryErrorFallbackResponse` treated every 503 as a hard error — so the non-empty `getModelsByProviderId("qwen-web")` catalog was never surfaced. A models-endpoint redirect is not a fixable-config error (unlike `URL_GUARD_BLOCKED`/`INVALID_URL`, which stay hard errors), so it now falls back to the local/cached catalog before the 503 short-circuit. General fix — covers any config-driven provider that 307s. Regression guard: `tests/unit/provider-models-qwen-web-redirect-6267.test.ts`. (thanks @chirag127)
+- **fix(api):** the per-connection provider models route (MCP `list_models_catalog` + the dashboard import view) now merges USER-ADDED custom models into its response ([#6247](https://github.com/diegosouzapw/OmniRoute/issues/6247)) — custom models live in the `key_value` namespace `customModels`, which the live REST `/api/v1/models` already merges, but `src/app/api/providers/[id]/models/route.ts` never read `getCustomModels`, so custom models were dropped on both the discovery-success and local_catalog paths. They are now folded into the returned model list (deduped by id, stamped `owned_by: provider`), fixing MCP + the dashboard import view in one place. Regression guard: `tests/unit/provider-models-custom-merge-6247.test.ts`. (thanks @RCrushMe)
+
+- **fix(providers):** GitLab Duo tool-calling follow-up turns no longer fail upstream with `422 {"detail":"Validation error"}` (tokens 0/0, rejected pre-inference). The #6234 tool-result-feedback fix serialized the **entire** multi-turn conversation into GitLab's single-file `code_suggestions` (`small_file`) generation endpoint — folded history that turn-N sent as an oversized `current_file.content_above_cursor` **and** duplicated verbatim into `user_instruction`, tripping the AI-Gateway's `small_file` validation guard. The executor now **bounds** that prompt: it keeps system + latest user message + the most-recent tool round (dropping older turns), caps oversized tool results, and stops duplicating the full prompt into `user_instruction` (which now carries only the short latest user message) — while still feeding the most-recent tool result back so the agent continues (`open-sse/executors/gitlab.ts`, [#6220](https://github.com/diegosouzapw/OmniRoute/issues/6220)). The unit test covers the bounding logic; the upstream 422→200 clearing is VPS-only (Hard Rule #18). Regression guard: `tests/unit/gitlab-tool-exchange-bounded-6220.test.ts`.
+
+- **fix(i18n):** the provider-detail (`/dashboard/providers/[id]`) connection-status filter labels no longer render as `__MISSING__:All` / `__MISSING__:Active` / `__MISSING__:Error` / `__MISSING__:Banned` / `__MISSING__:CreditsExhausted` in non-English locales (notably pt-BR) ([#6290](https://github.com/diegosouzapw/OmniRoute/issues/6290)). Root cause was **not** the namespace mismatch the issue guessed — the `providers.filter*` keys resolve correctly in `en.json`; the debt lived in the locale mirrors (`src/i18n/messages/*.json`), where these five keys carried the `__MISSING__:` sync sentinel in ~15 locales and were absent entirely in ~26 others, so next-intl found the key and echoed the sentinel verbatim. All 40 non-English/-Chinese mirrors now ship real translations for the five `providers.filter*` labels. Regression guard: `tests/unit/i18n-provider-filter-keys-6290.test.ts`. (thanks @diegosouzapw)
+
+- **fix(providers):** the `copilot-m365-web` streaming executor now emits `debug`-level WebSocket diagnostics ([#6210](https://github.com/diegosouzapw/OmniRoute/issues/6210)) — the outbound WS URL (with the `access_token` **redacted** via `redactWsUrl()`), handshake success/failure, and each received SignalR frame's `type`/`target`. Previously the streaming path logged nothing, so an empty `content:null` response (the M365 Education / Starter tier symptom fixed in #6234) was undiagnosable even at `APP_LOG_LEVEL=debug`. The change is debug-level and side-effect-free — it does not alter streaming behavior or the frame parser, and the token never reaches the logs. Regression guard: `tests/unit/copilot-m365-web-logging-6210.test.ts` (thanks @qpeyba)
+
+- **fix(resilience):** a round-robin combo no longer returns `503 all upstream accounts are unavailable` when a compatibility-rejected target is actually healthy ([#6238](https://github.com/diegosouzapw/OmniRoute/issues/6238)). `filterTargetsByRequestCompatibility` drops request-incompatible targets (tool/vision/structured-output unsupported, or below the required context window) **before** any availability check runs, and its `compatible.length === 0` safety net only fired when _all_ targets were filtered — not when the kept targets later all turned out runtime-unavailable (circuit-open / cooldown / no credentials). So a combo could 503 while a compat-rejected-but-healthy provider sat unused. `handleRoundRobinCombo` now keeps the compat-rejected set and, when every compat-kept target was skipped without a single real attempt, probes those rejected targets as a **last-resort fallback tier** (via the new pure `open-sse/services/combo/comboCompatFallback.ts`) before crystallizing the 503. Regression guard: `tests/unit/combo-roundrobin-compat-fallback-6238.test.ts`. (thanks @ThongAccount)
+
+- **fix(startup):** best-effort self-heal for a corrupted Turbopack dev cache on Windows ([#6289](https://github.com/diegosouzapw/OmniRoute/issues/6289)). On Windows, `pnpm dev` can fail at startup when Turbopack `mmap`s a persistent-cache SST file and the OS refuses the mapping (`os error 1455` — "paging file too small"), which Turbopack surfaces as a misleading `Module not found: Can't resolve '@/shared/utils/machine'`. This is a **known upstream Turbopack cache-corruption bug — not our code**. The dev launcher (`scripts/dev/run-next.mjs`) now wraps `nextApp.prepare()` and, when it rejects with that signature (`isTurbopackCacheCorruption` in the new `scripts/dev/turbopackCacheHeal.mjs`), purges `.build/next/**/cache/turbopack` and retries **once** with a clear log. **Caveat — best-effort only:** the corruption often surfaces as a runtime overlay rather than a `prepare()` rejection, so this cannot always intercept it; the reliable remedy remains manually deleting the Turbopack cache dir. Regression guard: `tests/unit/turbopack-cache-heal-6289.test.ts`. (thanks @chirag127)
+
+- **fix(providers):** qodercli PAT auth no longer fails with `spawn qodercli ENOENT` on Windows ([#6263](https://github.com/diegosouzapw/OmniRoute/issues/6263)) — `spawnQoderCli` spawned the bare `qodercli` name with `shell:false` and an unenriched env, so the npm `.cmd` wrapper under `%APPDATA%\npm` (a user-PATH directory) was never resolved. It now resolves the absolute `.cmd`/`.exe` path through the existing `getCliRuntimeStatus("qoder")` resolver in `src/shared/services/cliRuntime.ts` (memoized), spawns with `shell` when the target is a `.cmd`/`.bat`, and uses the cliRuntime-enriched env (PATH + PATHEXT + APPDATA); the ENOENT error now lists the searched paths plus the `CLI_QODER_BIN` override. End-to-end spawn on a real Windows host is host-only (Hard Rule #18); the path-resolution logic is unit-tested. Regression guard: `tests/unit/qodercli-windows-resolve-6263.test.ts`. (thanks @chirag127)
+
+- **fix(sse):** the reasoning-token buffer no longer inflates **probe-sized `max_tokens`** ([#6274](https://github.com/diegosouzapw/OmniRoute/issues/6274)) — Claude Code's `/model` capability check sends `max_tokens: 1`, but for a thinking-capable model with a large output cap (e.g. `glm-5.2`) the #3587 headroom heuristic (`max(current + 1000, ceil(current * 1.5))`) rewrote it to `1001` and forwarded that upstream, wasting tokens on a request that was never a genuine reasoning budget. `resolveReasoningBufferedMaxTokens()` (`open-sse/services/reasoningTokenBuffer.ts`) now short-circuits and returns the caller's value verbatim when it is below the new `REASONING_BUFFER_MIN_TRIGGER` (256) threshold — a tiny explicit limit is a probe, not a reasoning request. Real budgets still receive the #3587 headroom unchanged, and the guard runs after the existing capability checks so unknown / non-reasoning models keep returning `null`. Regression guard: `tests/unit/reasoning-token-buffer-6274.test.ts`. (thanks @brightfiscalband)
+
+- **fix(cli):** `omniroute reset-password` now works as a real subcommand, and password resets over piped (non-TTY) stdin actually apply ([#6261](https://github.com/diegosouzapw/OmniRoute/issues/6261), [#6258](https://github.com/diegosouzapw/OmniRoute/issues/6258)). Two coupled defects: (1) **#6261** — `bin/omniroute.mjs` routed everything through Commander with only two pre-Commander bypasses (`--mcp`, `reset-encrypted-columns`), so `omniroute reset-password` was rejected as an unknown command; only the separate `omniroute-reset-password` bin worked, while the docs falsely advertised the subcommand (incl. a bogus "legacy alias still works"). A pre-Commander bypass mirroring `reset-encrypted-columns` now dynamically imports `bin/reset-password.mjs` (which self-executes) before Commander parses; the three doc lines were corrected. (2) **#6258** — `bin/reset-password.mjs` issued two sequential `rl.question` prompts; under piped stdin the second read never settled at EOF, so `main()` never reached `resetManagementPassword` and the reset was a silent no-op (both prompts printed, no success, password unchanged). The CLI now detects non-TTY stdin and reads it once (first line = password, second line = confirm if present, else reused), adds a `--password-stdin` flag (entire stdin is the password, no confirmation), and exits `0` explicitly so the success line always flushes; interactive TTY behavior is unchanged. Regression guard: `tests/unit/reset-password-cli-6261-6258.test.ts` (3). (thanks @chirag127)
+
+- **fix(db):** the mass-migration **safety abort** now tells the operator how to bypass it and stops flooding the log ([#6260](https://github.com/diegosouzapw/OmniRoute/issues/6260)) — after restoring a backup that wiped the migration tracking table, `runMigrations()` threw the abort on every downstream `ensureDbInitialized()`, re-logging the full banner 11+ times, and the message never mentioned the existing `OMNIROUTE_MAX_PENDING_MIGRATIONS` escape hatch. The abort text now appends a bypass hint (set `OMNIROUTE_MAX_PENDING_MIGRATIONS=0` in `server.env` / `DATA_DIR/.env`), and a new `MigrationSafetyAbortError` is memoized so repeated calls in the same process throw the same instance and emit a single concise line instead of the full cascade. Regression guard: `tests/unit/migration-safety-abort-6260.test.ts`. (thanks @chirag127)
+
+- **fix(auth):** importing a **distinct** Codex/ChatGPT OAuth `auth.json` is no longer falsely rejected as "already exists" when it belongs to a different user in the same workspace ([#6301](https://github.com/diegosouzapw/OmniRoute/issues/6301)). `findExistingCodexConnection` (in `src/lib/oauth/utils/codexAuthImport.ts`) deduped **only** on `providerSpecificData.workspaceId === accountId`, where `accountId` is the shared `chatgpt_account_id`/`tokens.account_id` — so two members of the same ChatGPT Team collapsed onto a single connection (409 `duplicate_account`). The id_token's `https://api.openai.com/auth` claim carries a per-user `chatgpt_user_id` alongside the workspace id (the device-flow path already persisted it as `chatgptUserId`, but the import path did not). Now `parseAndValidateCodexAuth` extracts `userId` (`chatgpt_user_id` → `user_id` → JWT `sub`) into `ParsedCodexAuth`, the create/update paths persist `chatgptUserId` in `providerSpecificData` (mirroring `codex.ts`), and dedup keys on `workspaceId` **AND** `chatgptUserId` — with a backward-compat fallback to legacy accountId-only matching when no stored connection for that workspace records a `chatgptUserId`, so genuinely-same accounts still dedup. Regression guard: `tests/unit/codex-auth-import-userid-dedup-6301.test.ts` (4). (thanks @anungma)
+
+- **fix(providers):** importing models for the **venice-web** provider no longer fails with a red "Provider venice-web does not support models listing" ([#6269](https://github.com/diegosouzapw/OmniRoute/issues/6269)). `venice-web` is a web-cookie provider with an executor but no upstream `/v1/models` endpoint and no registry `models`, so the models route fell through to the tail `400`. Mirroring the `jules`/`linkup-search`/`ollama-search` fix (#5569), it now ships a static local catalog entry in `src/lib/providers/staticModels.ts` — seeding the current Venice lineup (`venice-uncensored`, `llama-3.3-70b`, `qwen3-235b`, `qwen3-4b`, `deepseek-r1-671b`; Venice rotates its catalog, see docs.venice.ai/models/overview) — so the route returns `200` with `source:"local_catalog"`, `intentional:true`. Regression guard: `tests/unit/static-models-venice-web-6269.test.ts`. (thanks @chirag127)
+
+- **fix(api):** the specialty model catalogs (`/v1/embeddings`, `/v1/images`, `/v1/music`, `/v1/videos` model lists) are now derived from the **unified catalog filtered by a predicate** (`getSpecialtyModelsResponse`) instead of ad-hoc per-route logic, so they consistently respect active-credential visibility and stay in sync with the main catalog ([#6303](https://github.com/diegosouzapw/OmniRoute/pull/6303)). Regression guard: `tests/unit/specialty-model-catalog-routes.test.ts`. (thanks @makcimbx)
+- **fix(api):** the agent-bridge server route now resolves the MITM manager via a **dynamic `import("@/mitm/manager.runtime")`** so Turbopack does not statically pull the stub (or over-bundle the manager), and the agent-skills generator anchors its output base path with `path.join(process.cwd(), …)` so Turbopack's static analyzer stops tracing the whole project root ([#6329](https://github.com/diegosouzapw/OmniRoute/issues/6329), [#6366](https://github.com/diegosouzapw/OmniRoute/pull/6366)). Regression guard: `tests/unit/agent-bridge-server-route-dynamic-import.test.ts`. (thanks @Iammilansoni)
+- **fix(api):** internal probes (combo-test, cloud-sync verify) now pick a **management-scoped / allow-all API key** instead of naively grabbing `getApiKeys()[0]` — a restricted `self:usage` first row made the probe fail with "Model X is not allowed for this API key" even when the combo path was healthy (`pickApiKeyForInternalUse` in `src/lib/db/apiKeys.ts`). The API-manager model editor also falls back to `/api/models?all=true` when `/v1/models` is catalog-protected ([#6372](https://github.com/diegosouzapw/OmniRoute/pull/6372)). Regression guard: `tests/unit/pick-internal-api-key-6372.test.ts`. (thanks @jmengit)
+- **fix(live-ws):** the Live Dashboard WebSocket server now **rejects on bind failure** (e.g. `EADDRINUSE` when the API bridge already holds the port) instead of letting the error surface as an unhandled `error` event that crash-loops the process — the `error` listener is attached to `wss` (not `server`) and releases the EventBus subscription on a failed start ([#6324](https://github.com/diegosouzapw/OmniRoute/issues/6324)). Regression guard: `tests/unit/live-ws-eaddrinuse-6324.test.ts`. (thanks @vinayakkulkarni)
+- **fix(dashboard):** the Home provider-topology widget now trusts the live provider-metrics snapshot — it uses `topology.errorProvider` and live `activeRequests` directly instead of re-deriving state from a stale `lastErrorAt` or applying a frontend timeout filter, so the topology reflects real-time provider health ([#6322](https://github.com/diegosouzapw/OmniRoute/pull/6322)). Regression guard: `tests/unit/home-provider-topology-live-state.test.ts`. (thanks @xz-dev)
+- **fix(sse):** strip zero-width markers from streamed **tool-call arguments** — a follow-up to [#5857](https://github.com/diegosouzapw/OmniRoute/pull/5857). That PR removed injected zero-width joiners (U+200D) from streamed assistant text/reasoning but deliberately left tool-call argument JSON byte-exact. The request-side obfuscation (`open-sse/services/claudeCodeObfuscation.ts`) injects ZWJ into agent words — including the temp path inside the Bash tool description — and Claude models copy that verbatim into generated commands, which are delivered as tool-call arguments rather than assistant text. As a result the ZWJ survived and corrupted code blocks (e.g. a temp path rendered with an invisible joiner). Now `open-sse/handlers/responseSanitizer.ts` strips zero-width code points from tool-call argument strings at every emit site (OpenAI non-stream/stream chat `tool_calls` + legacy `function_call`, native Responses `function_call` items, the OpenAI→Responses conversion, and the native Responses streaming `response.function_call_arguments.delta/.done` events). Only zero-width code points are removed; JSON structure and all other bytes stay identical (no parse/restringify), so normal arguments remain byte-exact. Regression guard: 6 new cases in `tests/unit/response-sanitizer.test.ts` (suite 50/50).
+
+- **fix(nodejs):** the default app log path now resolves under `DATA_DIR` (`~/.omniroute/logs/application/app.log`) instead of `process.cwd()` ([#6197](https://github.com/diegosouzapw/OmniRoute/issues/6197)) — the globally-installed CLI runs from an arbitrary working directory, so anchoring the default to cwd made file logging silently write to (or no-op under) an unrelated directory, contradicting the documented `.env.example` default. `getAppLogFilePath()` now computes the default lazily via the pure `resolveDataDir()` resolver (honours a per-process `DATA_DIR`, no directory-creation side effect); an explicit `APP_LOG_FILE_PATH` still wins. Regression guard: `tests/unit/logenv-datadir-path-6197.test.ts` (3).
+
+- **fix(docker):** AgentBridge/`startMitm` no longer aborts in containers/headless when the Antigravity-default DNS step can't write `/etc/hosts` ([#6127](https://github.com/diegosouzapw/OmniRoute/issues/6127)), and the privileged command's stderr now reaches `app.log` instead of only a bare exit code hitting the toast ([#6198](https://github.com/diegosouzapw/OmniRoute/issues/6198)). The default DNS step (`addDNSEntry`) was called unguarded while cert install and the two sibling DNS steps were each best-effort — in the runtime Docker image (`USER node`, no `sudo`, read-only `/etc/hosts`) it threw `Command failed with code 1` out of `startMitmInternal` and killed the whole start, discarding the stderr. The three DNS steps are extracted into a best-effort `provisionDnsEntries()` where each failure is logged with the full `err` (stderr included, folded in by `systemCommands.ts`) and never aborts the start. Regression guard: `tests/unit/mitm-dns-graceful-degrade-6127.test.ts` (4).
+
+- **fix(providers):** copilot-m365-web now supports the M365 Education "Starter / OfficeWebIncludedCopilot" tier and no longer returns an empty `content:null` stream ([#6210](https://github.com/diegosouzapw/OmniRoute/issues/6210)). Two gaps: (1) `buildWsUrl()` hardcoded the individual-consumer scenario (`OfficeWebPaidConsumerCopilot`, `isEdu=false`) — the EDU tier is now opt-in via `providerSpecificData.tier="edu"`, emitting `scenario=OfficeWebIncludedCopilot`/`isEdu=true` (the individual path is unchanged); (2) the EDU/GPT-5.5 path streams deltas via `arguments[0].writeAtCursor` (incremental) instead of only `messages[].text` (accumulated snapshots), which the parser dropped — a new `accumulateBotContent()` folds both formats, with `type:2 item.result.message` as a last-resort fallback. Regression guard: `tests/unit/copilot-m365-edu-writeatcursor-6210.test.ts` (10). (thanks @qpeyba)
+
+- **fix(providers):** GitLab Duo executor now feeds tool results back into the prompt instead of looping ([#6220](https://github.com/diegosouzapw/OmniRoute/issues/6220)) — `buildPrompt()` branched only on `system`/`user` and took `userParts.at(-1)`, silently dropping the `assistant{tool_calls}` + `tool{result}` turns the client appended, so the reconstructed prompt was byte-identical to turn 1 and the model re-emitted the same `<tool>` call forever. When a tool exchange is present the full conversation is now serialized, folding each tool result back keyed by its `tool_call_id`; simple conversations keep the legacy shape. Complements the tool_call emission from [#6051](https://github.com/diegosouzapw/OmniRoute/issues/6051) (the `kilo-duplicate` label was a false positive — different, sequential defect). Regression guard: `tests/unit/gitlab-tool-result-feedback-6220.test.ts` (4).
+
+- **fix(providers):** opencode-go/opencode-zen can now synthesize the OpenCode CLI identity headers Cloudflare requires on VPS egress ([#5997](https://github.com/diegosouzapw/OmniRoute/issues/5997)) — on a datacenter VPS, `opencode.ai/zen/go/v1/chat/completions` 403s (HTML challenge) requests lacking CLI identity, while the reporter's control curl proved that `User-Agent: opencode-cli/1.0.0` + `x-opencode-client: cli` + `x-opencode-project: default` + fresh request/session UUIDs succeed. Opt-in via `OPENCODE_SYNTHESIZE_CLI_HEADERS=true` (values overridable via `OPENCODE_GO_USER_AGENT`/`OPENCODE_USER_AGENT`/`OPENCODE_CLIENT`/`OPENCODE_PROJECT`); it fills only headers the client did not already send. Kept **off by default** — the forward-only path is deliberate (fabricating a wrong value risks upstream rejection; a prior dedup regressed with `opencode/local`), so this replaces the fragile local header-injection shim without changing default behavior. Regression guard: `tests/unit/opencode-cli-headers-synthesis-5997.test.ts` (6). (thanks @aleksesipenko)
+- fix(resilience): sticky session affinity now evicts and fails over to another account when the pinned account is exhausted/unavailable (#6219)
+
+- fix(sse): Responses API passthrough now drops internal commentary-phase output before forwarding to clients (gated by RESPONSES_PASSTHROUGH_DROP_COMMENTARY, default on) (#6199)
+
+- **fix(sse):** tool-call function schemas with a root `type: null` are now coerced to `type: "object"` before dispatch ([#6359](https://github.com/diegosouzapw/OmniRoute/issues/6359)) — clients like the Codex app emit `parameters: { type: null, ... }` for some tools, which OpenAI-compatible upstreams reject with `400 Invalid schema for function '...': schema must be a JSON Schema of 'type: "object"', got 'type: null'`, failing the whole request. `toolSchemaSanitizer` already stripped the null; it now re-adds the mandatory root `"object"` type (and empty `properties`/open `additionalProperties` when absent). Combinator roots (`anyOf`/`oneOf`/`allOf`) and explicit root types are left untouched. Regression guard: 5 new cases in `tests/unit/tool-schema-sanitizer.test.mjs`.
+
+- **fix(docker):** AgentBridge no longer fails to start on npm/Electron/VPS installs with "MITM manager stub reached at runtime" ([#6344](https://github.com/diegosouzapw/OmniRoute/issues/6344)) — v3.8.45 flipped the production bundler default to Turbopack, but `next.config.mjs` aliased `@/mitm/manager` to its Docker-only degraded stub **unconditionally**. That was harmless while Docker (which sets the alias intentionally for #3390 graceful degradation) was the sole Turbopack consumer, but once every artifact built with Turbopack the stub shipped to all non-Docker users and `startMitm` threw on the first Agent-Bridge start. The alias is now opt-in via `OMNIROUTE_MITM_STUB=1` (set only by the Dockerfile) through the shared `scripts/build/mitm-stub-flag.mjs` helper; default builds bundle the real manager. Regression guard: `tests/unit/mitm-stub-alias-6344.test.mjs` (4).
+
+- **fix(proxy):** stop the v3.8.44 proxy regression that leaked the real IP and disabled healthy proxies ([#6246](https://github.com/diegosouzapw/OmniRoute/issues/6246)). Two coupled defects from the new health scheduler: (1) **IP leak** — when a proxy assigned to a connection was marked `inactive`, resolution fell through to a **direct** egress instead of blocking, exposing the operator's real IP; (2) **over-deactivation** — the sweep flipped a proxy to `inactive` on the **first** failed probe and counted our own 5s timeout / a probe-target `5xx` as the proxy's fault, so healthy paid proxies vanished from egress selection ("my proxies are not being used anymore"). Fix: the sweep decision is extracted into a pure, network-free `decideProxyHealthAction` (`src/lib/proxyHealth/decision.ts`) — by default the health check now **only counts/logs and never downgrades status** (a proxy is downgraded/removed only with `PROXY_AUTO_REMOVE=true`, after `PROXY_AUTO_REMOVE_AFTER` **consecutive** conclusive failures); probes are classified tri-state so an inconclusive result (our timeout, or a `5xx` from the probe target) never penalizes the proxy, and the probe timeout is raised 5s→15s. Separately, `safeResolveProxy` now **fails closed** via the existing policy: a connection whose assigned proxy is dead is blocked instead of leaking direct (`hasBlockingProxyAssignment`), honoring the explicit `proxy off` toggles and the `PROXY_FAIL_OPEN=true` opt-out. Existing proxies stuck `inactive` by the old behavior need a one-time manual re-activate (the operator owns proxy status). Regression guards: `tests/unit/proxy-health-decide-action-6246.test.ts`, `tests/unit/proxy-assigned-unavailable-6246.test.ts`.
+
+- **fix(proxy):** make "Test All" read-only and add bulk enable/disable ([#6246](https://github.com/diegosouzapw/OmniRoute/issues/6246)). Complements the core fail-closed / scheduler fix (#6296) with the two remaining reporter asks. (1) The **"Test All" button** (`POST /api/settings/proxies/auto-test`) used to flip a proxy to `inactive` on a failed reachability probe; since the egress selector excludes `inactive` proxies, a flaky probe (an unreachable `httpbin.org`, a proxy that blocks `HEAD`, or a slow paid proxy) silently disabled every proxy that failed — "Test All" is now **read-only by default** (only the operator sets a proxy active/inactive; opt back into the legacy test-and-set with `PROXY_HEALTH_AUTO_DEACTIVATE=true`). (2) Adds a **bulk enable/disable** proxies endpoint + toolbar action (`POST /api/settings/proxies/batch-activate`) so an operator can re-activate proxies in one click. Regression guard: `tests/unit/proxy-health-6246.test.ts`. (thanks @tenshiak)
+
+- **chatcore (tools): stop the default 128-tool cap from silently dropping opencode's `task`/MCP tools.** opencode (used as an MCP/agent host) sends a large tool list; when it exceeds the speculative `MAX_TOOLS_LIMIT` (128) default, `truncateToolList` did a blind `tools.slice(0, 128)`, dropping every tool past index 128 — including opencode's built-in `task` tool (subagent launch) and many MCP tools, so models routed through OmniRoute could no longer spawn subagents or reach part of their tools. The cap exists to avoid upstream `400`s for providers with real hard limits (e.g. grok-cli 200), so it is kept for those: detection of the opencode client (`isOpencodeClient` — any `x-opencode-*` header, or `opencode` in the user-agent) now only bypasses the **speculative 128 default**, never a known provider ceiling. Precedence is explicit — a proactive/detected provider limit always truncates (even for opencode); otherwise opencode forwards its full tool list; otherwise the unchanged 128 default applies to every other client. Refactors `getEffectiveToolLimit` into `getKnownToolLimit(provider) ?? DEFAULT_LIMIT` (byte-identical for existing callers) and fixes a cosmetic debug-log that reported the truncated count instead of the original. Regression guard: `tests/unit/tool-limit-detector.test.ts`.
+
+- **fix(mitm):** the macOS MITM-cert install check now matches the system keychain again. `security find-certificate -a -Z` prints the SHA-1 as a colon-less hex string, but the installed-check compared it against `getCertFingerprint()`'s colon-separated form, so the substring match never hit — the cert was reported as not-installed and re-prompted for the sudo install on every run. Fingerprints are now normalized (colons stripped, upper-cased) on both sides via the extracted `macCertOutputHasFingerprint` helper. Regression guard: `tests/unit/mitm-cert-mac-fingerprint.test.ts`. ([#6204](https://github.com/diegosouzapw/OmniRoute/pull/6204), closes [#6134](https://github.com/diegosouzapw/OmniRoute/issues/6134) — thanks @rianonehub)
+
+- **fix(api):** `/v1/messages/count_tokens` now counts `tool_use`, `tool_result` and `thinking` content blocks (and array-form `system` prompts) in the local-estimation path, instead of only `text`. Real agentic conversations keep ~95% of their tokens inside tool results; the previous estimate returned near-zero for them, which silently broke Claude Code's auto-compaction (context grew past the window with no compaction until the upstream API rejected the request). The real provider-side count path is unchanged. Regression guard: `tests/unit/messages-count-tokens-route.test.ts`. ([#6221](https://github.com/diegosouzapw/OmniRoute/pull/6221) — thanks @luweiCN)
+
+- **fix(antigravity):** strip a trailing assistant prefill turn for Vertex Claude models to avoid upstream 400s ([#6114](https://github.com/diegosouzapw/OmniRoute/pull/6114)). Regression guard: `tests/unit/antigravity-claude-prefill-strip.test.ts`. (thanks @anki1kr)
+
+- **fix(security):** the mutable cloud-agent routes (`/api/cloud/credentials/update`, `/api/cloud/models/alias`) now require management auth instead of being treated as public. They were classified as public API routes, so a request without management credentials could update stored cloud-agent credentials and model aliases. They are removed from the public-route set, classified as management routes in the authz pipeline, and gated by `requireManagementAuth`; cloud **read**/auth routes stay public. Regression guards: `tests/unit/cloud-write-auth.test.ts`, `tests/unit/authz/classify.test.ts`, `tests/unit/public-api-routes.test.ts`. ([#6233](https://github.com/diegosouzapw/OmniRoute/pull/6233) — thanks @vittoroliveira-dev)
+
+- **refactor(dashboard):** extract the onboarding-wizard "Open provider details" link target into a pure, unit-tested `buildProviderDetailsHref(connection)` helper. The wizard already routes by `connection.id` (the node UUID) rather than the provider category slug (#6144/#6145); this hardens that behavior behind a tested helper that guards a missing id/connection. Regression guard: `tests/unit/provider-onboarding-href.test.ts`. ([#6166](https://github.com/diegosouzapw/OmniRoute/pull/6166) — thanks @KooshaPari)
+
+- **fix(security):** the doubao synthetic device-id generator now derives its digits via an unbiased crypto-random draw (rejection sampling over `crypto.randomBytes()`) instead of a `% 10` reduction, closing a CodeQL `js/biased-cryptographic-random` finding.
+- **fix(agentSkills):** the GitHub-skills generator now resolves `outputDir` to an absolute path before writing, fixing a regression introduced by #6366 (relative-to-cwd base path) that could write generated skill files to the wrong directory.
+- **fix(security):** `/api/keys/{id}/devices` now checks the HTTP method before auth/validation, returning a `405` for non-GET/DELETE verbs instead of a misleading `401`/`500` (closes a `dast-smoke` QUERY-method finding).
+- **fix(quality):** clear the last 2 heavy quality-gate reds on the release tip (cycle pre-flight).
+- **fix(mitm):** the test suite and CI can never mutate the OS trust store — `OMNIROUTE_SKIP_SYSTEM_TRUST=1` is set globally for tests/CI so `installCert`/`uninstallCert`/`installTproxyCa` skip the privileged OS dispatch ([#6310](https://github.com/diegosouzapw/OmniRoute/pull/6310); full detail is under the [3.8.45] section below — this branch received it via the parallel-cycle sync-back).
+- **fix(api):** `POST /api/github-skills` now Zod-validates its request body; documented the new quality-gate env vars and pinned the merge-integrity GitHub Actions to a commit SHA.
+- **fix(skills):** generate the missing `omni-github-skills` registry entry and align the agent-skills catalog-count tests (follow-up to #6186).
+- **fix(quality):** clear the cycle's 11 net-new ESLint errors and make `validate-release-green` suppressions-aware.
+- **fix(security):** proxy-pool `random` rotation now selects via `crypto.randomInt` instead of `Math.random` — silences the post-release CodeQL `js/insecure-randomness` alerts (#698/#699) that flagged `Math.random` flowing into the selected proxy's credentials. Load-balancing selection is not a secret, but the crypto source is unbiased and clears the alert at the origin (#6365 follow-up).
+
+### 📝 Maintenance
+
+- **i18n(it):** add 118 missing Italian (`it`) translations (net-additive — no existing keys dropped, valid JSON), improving Italian UI coverage. ([#6212](https://github.com/diegosouzapw/OmniRoute/pull/6212) — thanks @serverless83)
+- **chore(providers):** remove deprecated **MiMo V2** model entries from the catalogs (xiaomi-mimo, opencode-go, zenmux-free, audio TTS) — the upstream V2 line is superseded by MiMo V2.5; drops `mimo-v2-tts`, `mimo-v2-pro`, `mimo-v2-omni`, `mimo-v2-flash`, `mimo-v2-flash-free` and realigns the provider-catalog tests. ([#6248](https://github.com/diegosouzapw/OmniRoute/pull/6248) — thanks @backryun)
+- **chore(release):** ~50 commits on this branch are v3.8.45 pre-flight/hardening fixes and CI-perf work that landed here via the parallel-cycle sync-back (`sync-next-cycle.mjs`, Hard Rule #21) **after** the `v3.8.45` git tag was cut, and are already fully documented under the **[3.8.45]** section below — listed here only so the per-cycle commit-coverage check (`npm run release:uncovered`) doesn't flag them as gaps. Provider/catalog/UX/backend fixes: #6041, #6078, #6108, #6135, #6148, #6149, #6154, #6158, #6161, #6162, #6163, #6164, #6165, #6170, #6177, #6178, #6181, #6186, #6187, #6191, #6193, #6194, #6195, #6200, #6205, #6208, #6209, #6211, #6213, #6223, #6224, #6225, #6226, #6227, #6228, #6229, #6230, #6235, #6291, #6292. CI/release-pipeline work: #6167, #6203, #6214, #6215, #6218, #6273, #6275, #6283, #6284, #6285, #6300, #6305.
+- **chore(release):** additional zero-ref release-cycle plumbing on this branch, kept out of `release:uncovered` on purpose (no `#N` in the commit subject to cite): opening the v3.8.46 cycle, opening/closing the v3.8.45 cycle, the finalized [3.8.45] CHANGELOG i18n sync-back to 42 mirrors, the v3.8.45 cognitive/cyclomatic and file-size drift rebaselines, ESLint stale-suppression pruning (4,273 → 4,233), and clearing test-masking/docs-all pre-flight reds for v3.8.45.
+
+### ⚡ Performance & Infrastructure
+
+- **perf(release-green):** the pre-flight validator (`scripts/quality/validate-release-green.mjs`) now runs its 4 slow suites (unit / vitest / integration / pack-artifact) **concurrently** via `Promise.all` — pre-flight wall time drops from ~the sum of the suites to ~the slowest one (~30min saved per round; Phase 0 was the nº1 bottleneck of the v3.8.45 release benchmark, 2h54 of 6h34 e2e). Guard: `tests/unit/validate-release-green.test.ts` ("runs the slow suites CONCURRENTLY"). ([#6319](https://github.com/diegosouzapw/OmniRoute/pull/6319))
+- **fix(ci):** `scripts/release/sync-next-cycle.mjs` — two defects found live in its first production run (v3.8.45 Phase 5): (1) the `git()` helper's default 1 MiB `maxBuffer` crashed with `ENOBUFS` on `git show origin/main:CHANGELOG.md` (the CHANGELOG alone is >1 MiB) — widened to 64 MiB; (2) the i18n resync only propagated the `[NEXT]` (TBD) section, leaving the just-shipped finalized section as "— TBD" in all 42 mirrors — it now also syncs `[prevVersion]` bounded by the heading below it (new exported pure helper `versionAfter`). Guards: +5 tests in `tests/unit/sync-next-cycle.test.ts` (8/8). ([#6327](https://github.com/diegosouzapw/OmniRoute/pull/6327))
+- **test(ci):** concurrency-sensitive flaky tests are **quarantined into a serial pass** (`tests/unit/serial/`, `--test-concurrency=1`, appended to every unit runner incl. sharded variants — the serial pass is sharded too so concurrent shard jobs never self-collide). Initial set: `glm-coding-plan-monthly-3580`, `quota-division-blocks`, `provider-health-autopilot`, `combo-health-autopilot` — the class behind the ~28min CI wedges/re-runs (two live 1h+ wedges cancelled during this PR's own validation). Discovery + TIA gates track the new glob; systemic root cause (async logger writing after teardown) tracked in [#6360](https://github.com/diegosouzapw/OmniRoute/issues/6360). Guard: `tests/unit/test-serial-quarantine.test.ts` (4). ([#6347](https://github.com/diegosouzapw/OmniRoute/pull/6347))
+
+### 🙌 Contributors
+
+Thanks to everyone whose work landed in v3.8.46:
+
+| Contributor                                                    | PRs / Issues           |
+| -------------------------------------------------------------- | ---------------------- |
+| [@2220258345](https://github.com/2220258345)                   | direct commit / report |
+| [@abdofallah](https://github.com/abdofallah)                   | direct commit / report |
+| [@adentdk](https://github.com/adentdk)                         | direct commit / report |
+| [@aleksesipenko](https://github.com/aleksesipenko)             | direct commit / report |
+| [@anki1kr](https://github.com/anki1kr)                         | direct commit / report |
+| [@anungma](https://github.com/anungma)                         | direct commit / report |
+| [@arpicato](https://github.com/arpicato)                       | direct commit / report |
+| [@backryun](https://github.com/backryun)                       | #6248                  |
+| [@binsarjr](https://github.com/binsarjr)                       | direct commit / report |
+| [@brightfiscalband](https://github.com/brightfiscalband)       | direct commit / report |
+| [@chirag127](https://github.com/chirag127)                     | #6501, #6506           |
+| [@developerjillur](https://github.com/developerjillur)         | direct commit / report |
+| [@dilneiss](https://github.com/dilneiss)                       | #6499                  |
+| [@dtybnrj](https://github.com/dtybnrj)                         | direct commit / report |
+| [@Forcerecon](https://github.com/Forcerecon)                   | direct commit / report |
+| [@hao3039032](https://github.com/hao3039032)                   | direct commit / report |
+| [@Iammilansoni](https://github.com/Iammilansoni)               | #6150, #6245           |
+| [@jmengit](https://github.com/jmengit)                         | direct commit / report |
+| [@jordansilly77-stack](https://github.com/jordansilly77-stack) | direct commit / report |
+| [@JxnLexn](https://github.com/JxnLexn)                         | direct commit / report |
+| [@KooshaPari](https://github.com/KooshaPari)                   | #6166                  |
+| [@loopyd](https://github.com/loopyd)                           | direct commit / report |
+| [@luweiCN](https://github.com/luweiCN)                         | #6221                  |
+| [@makcimbx](https://github.com/makcimbx)                       | direct commit / report |
+| [@muflifadla38](https://github.com/muflifadla38)               | direct commit / report |
+| [@newnol](https://github.com/newnol)                           | direct commit / report |
+| [@ofekbetzalel](https://github.com/ofekbetzalel)               | direct commit / report |
+| [@ohahe52-dot](https://github.com/ohahe52-dot)                 | direct commit / report |
+| [@phidinhmanh](https://github.com/phidinhmanh)                 | direct commit / report |
+| [@powellnorma](https://github.com/powellnorma)                 | direct commit / report |
+| [@qpeyba](https://github.com/qpeyba)                           | direct commit / report |
+| [@RaviTharuma](https://github.com/RaviTharuma)                 | direct commit / report |
+| [@RCrushMe](https://github.com/RCrushMe)                       | direct commit / report |
+| [@rianonehub](https://github.com/rianonehub)                   | #6134, #6204           |
+| [@serverless83](https://github.com/serverless83)               | #6212                  |
+| [@swingtempo](https://github.com/swingtempo)                   | direct commit / report |
+| [@tenshiak](https://github.com/tenshiak)                       | direct commit / report |
+| [@ThongAccount](https://github.com/ThongAccount)               | direct commit / report |
+| [@UnrealAryan](https://github.com/UnrealAryan)                 | direct commit / report |
+| [@vinayakkulkarni](https://github.com/vinayakkulkarni)         | direct commit / report |
+| [@vittoroliveira-dev](https://github.com/vittoroliveira-dev)   | #6233                  |
+| [@warelik](https://github.com/warelik)                         | direct commit / report |
+| [@xxy9468615](https://github.com/xxy9468615)                   | direct commit / report |
+| [@xz-dev](https://github.com/xz-dev)                           | direct commit / report |
+| [@yanpaing007](https://github.com/yanpaing007)                 | direct commit / report |
+| [@diegosouzapw](https://github.com/diegosouzapw)               | maintainer             |
+
+---
+
 ## [3.8.45] — 2026-07-06
 
 ### ✨ New Features
@@ -4182,7 +4429,7 @@ Thanks also to **@app/dependabot** for keeping our dependency tree current via #
 - **feat(antigravity):** support custom Google Cloud project ID for Antigravity provider (#2227 — thanks @nickwizard)
 - **feat(cli):** CLI Integration Suite — 5 new management commands (`config`, `status`, `logs`, `update`, `provider`), 3 API endpoints, config generators for 6 tools (Claude, Cline, Codex, Continue, KiloCode, OpenCode), zero-config `auto/` routing, and `@omniroute/opencode-provider` npm package (#2240 — thanks @oyi77)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(pricing):** make `getPricingForModel` fully case-insensitive to ensure custom prices correctly reflect in new incoming requests cost calculations
 - **fix(gemini):** prevent `functionDeclarations` from being dropped by the sanitizer when `googleSearch` tool is present (#2077)
@@ -4401,7 +4648,7 @@ Thank you to all **55+ community contributors** who made v3.8.0 possible! 🎉
 - **feat(usage):** DeepSeek V4 native cache token extraction (#1930 — thanks @smartenok-ops)
 - **feat(cost):** enhance cost formatting and add Codex GPT-5.5 pricing support (#1944 — thanks @JxnLexn)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(auth):** implement session affinity sticky routing logic
 - **fix(dashboard):** derive display base URL from origin instead of hardcoding localhost (#1960 — thanks @jeanfbrito)
@@ -4466,7 +4713,7 @@ Thank you to all **55+ community contributors** who made v3.8.0 possible! 🎉
 - **feat(providers):** add muse-spark-web provider with multiple models and reasoning support (#1843)
 - **feat(1proxy):** integrate 1proxy free proxy marketplace with dashboard management and new MCP tools (closes #1788) (#1847)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(codex):** sanitize Responses replay state to prevent internal assistant commentary from leaking (#1868 — thanks @dhaern)
 - **fix(cli):** add capture-backed Gemini CLI fingerprint (#1866)
@@ -4505,7 +4752,7 @@ Thank you to all **55+ community contributors** who made v3.8.0 possible! 🎉
 - **Compression Caching & MCP:** Added caching-aware strategy adjustments to the compression pipeline, alongside new MCP tools for status and configuration (#1758)
 - **Analytics Custom Filters:** Added custom date range selection, API key filtering, and NULL key analytics backfilling to the Costs Dashboard (#1830)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **Combo Routing:** Fixed an issue where Gemini `-preview` models were incorrectly normalized to their canonical names, causing 404 errors during combo routing (#1834)
 - **Codex Native Passthrough:** Added support for Cursor 5.5 sending `messages` arrays to the `responses/compact` endpoint, preventing upstream rejections with empty requests (#1832)
@@ -4543,7 +4790,7 @@ Thank you to all **55+ community contributors** who made v3.8.0 possible! 🎉
 
 - **fix(security):** resolve ReDoS vulnerability in Codex executor regex patterns (#1797, #1789)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(stability):** resolve codex input validation, enable combo circuit breaker, and fix broken unit tests (#1804, #1805)
 - **fix(stability):** safely cast inputs to strings before calling `.trim()` to avoid crashes on numeric fields in proxy modal (#1825)
@@ -4637,7 +4884,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **feat(tunnels):** integrate native ngrok tunnel support with dashboard UI parity (#1753)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(dashboard):** add manual 'Clear All' button to terminate stalled long-running requests in Active Requests panel (#1799)
 - **fix(schema):** remove empty string values from optional tool parameters to prevent upstream validation errors (#1674)
@@ -4696,7 +4943,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **security:** replace insecure `Math.random` with `crypto.getRandomValues` for fallback UUID generation to resolve CodeQL CWE-338 finding (#182)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(cc-compatible):** fix CC-compatible relay format and UI copy (#1742)
 - **fix(codex):** normalize max reasoning effort for Codex routing (#1744)
@@ -4721,7 +4968,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.7.3] — 2026-04-28
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(claude):** strip existing billing headers from system array before injecting to prevent Anthropic prompt cache misses — stacked `x-anthropic-billing-header` blocks invalidated prefix matching, causing ~100% cache_create instead of cache_read (#1712)
 - **fix(claude):** strip `output_config.format` for non-Anthropic Claude-compatible providers during passthrough — third-party Claude endpoints (MiniMax, DeepSeek via aggregators) reject structured output fields with 400 errors (#1719)
@@ -4756,7 +5003,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **feat(codex):** enable native Codex websocket responses on beta-gated models (#1658)
 - **feat(muse-spark-web):** continue the same meta.ai conversation across turns (#1673)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(responses):** sanitize empty string placeholders from tool-call optional arguments in stream delta accumulation to avoid breaking strict clients (#1674)
 - **fix(codex):** prevent unexpected protocol leakage and fabricated instructions on bare chat completion requests without tools (#1686)
@@ -4830,7 +5077,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **feat(cli):** Add `omniroute reset-encrypted-columns` recovery command — nulls encrypted credential columns (`api_key`, `access_token`, `refresh_token`, `id_token`) in `provider_connections` while preserving provider metadata, giving users affected by #1622 a clean recovery path without losing configurations.
 - **feat(i18n):** Expand locale coverage with nine new language packs (Bengali, Farsi, Gujarati, Indonesian, Marathi, Swahili, Tamil, Telugu, Urdu), bringing total language support from 32 to 41 locales.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(rate-limit):** Add per-model rate limiting for GitHub Copilot provider — a 429 on one model (e.g. `gpt-5.1-codex-max`) no longer locks the entire connection, matching the existing Gemini per-model quota pattern (#1624 — thanks @slewis3600).
 - **fix(cli-tools):** Preserve existing OpenCode configuration (MCP servers, custom providers, comments) when saving OmniRoute settings — uses `jsonc-parser` for tree-preserving edits instead of destructive JSON roundtrip. Fix API key clipboard copy to use raw keys instead of masked placeholders. Add theme-aware OpenCode light/dark SVG logos (#1626 — thanks @JasonLandbridge).
@@ -4914,7 +5161,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **feat(providers):** Register Codex auto review and expand icon coverage.
 - **feat(tunnels):** Add Tailscale tunnel management routes and runtime helpers for install, login, daemon start, enable/disable, and health checks.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5050,7 +5297,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **feat(providers):** Derive Claude CLI model defaults dynamically from provider registry to stay current with upstream API changes (#1393)
 - **feat(core):** Implement persistent API key, backup pruning, and GPU optimization (#1350, #1367, #1369)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5163,7 +5410,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **ci:** Bump GitHub Actions CI node-version to Node.js 24 natively
 - **fix(types):** Resolve TypeScript compilation errors in `claudeCodeCompatible.ts` (type predicates, `cache_control` index access) and `proxyFetch.ts` (`signal` nullability)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5237,7 +5484,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **feat(oauth):** Supports `cursor-agent` CLI as a native Cursor credential source alongside the standard configuration (#1258).
 - **feat(models):** Custom and imported models now merge correctly into filter lists for all available global providers (#1191).
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5315,7 +5562,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Stabilization Settings:** Added persistence support for `lkgpEnabled` and `backgroundDegradation` settings, integrated into `instrumentation-node.ts` for improved lifecycle awareness (#1212)
 - **xxhash-wasm dependency:** Added `xxhash-wasm@^1.1.0` for CCH signing (xxHash64 with seed `0x6E52736AC806831E`)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5394,7 +5641,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Middleware Lazy Loading:** Refactored `src/proxy.ts` to lazy-import `apiAuth`, `db/settings`, and `modelSyncScheduler` modules, reducing middleware cold-start overhead. Added inline `isPublicApiRoute()` to avoid loading the full auth module for public routes
 - **E2E Auth Bypass:** Added `NEXT_PUBLIC_OMNIROUTE_E2E_MODE` environment flag to bypass authentication gates for dashboard and management API routes during Playwright E2E test runs
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5485,7 +5732,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **OpenAI-Compatible Loose Validation:** Empty API keys can now be naturally submitted and saved for any `openai-compatible-*` providers (e.g. Pollinations, localized routes) directly in the UI instead of blocking save actions (#1152)
 - **Cloudflare Configuration:** Updated the provider schema and UI integration for Cloudflare AI to officially expose and support the backend `accountId` field securely without overrides (#1150)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5532,7 +5779,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Documentation Refresh:** Updated README, ARCHITECTURE, FEATURES, AGENTS.md, and API_REFERENCE for v3.6.2 with accurate provider counts (100+), new executor list, and system API documentation
 - **Uninstall Guide:** Created comprehensive `docs/guides/UNINSTALL.md` covering clean uninstallation for all deployment methods (npm, Docker, Electron, source)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5568,7 +5815,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **OAuth Env Repair Action:** Added a "Repair env" button to the OAuth Providers dashboard that detects and restores missing OAuth client IDs from `.env.example` — with timestamped backup and append-only safety. Includes full 33-language i18n support and sanitized API responses (#1116, by @yart)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5604,7 +5851,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **Combo Smoke Test:** Raised the default token budget to 2048 to prevent truncation of thinking models during preflight checks, and fully randomized the arithmetic probe prompt to bypass deterministic caching from upstream relays (#1105)
 
-### 🐛 Bug Fixes & Compliance
+### 🔧 Bug Fixes & Compliance
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5642,7 +5889,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Persistent Combo Ordering:** Drag combo cards by handle to reorder them in the dashboard; order is persisted to SQLite via a new `sort_order` column and `POST /api/combos/reorder` endpoint. Includes DB migration `020_combo_sort_order.sql` and JSON import preservation (#1095)
 - **Sidebar Group Reorder:** Moved "Logs" before "Health" in the System section and "Limits & Quotas" after "Cache" in the Primary section for a more logical navigation flow (#1095)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5681,7 +5928,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **Analytics Layout Redesign:** Replaced flat metrics with a responsive `CompactStatGrid`, grouping data visually across sections (#1089)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5705,7 +5952,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.5.7] — 2026-04-09
 
-### 🐛 Bug Fixes & Security
+### 🔧 Bug Fixes & Security
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5745,7 +5992,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Environment Auto-Sync:** Added `sync-env.mjs` to auto-generate and append `.env` from `.env.example` during installation, automatically generating cryptographic secrets on first run.
 - **Source Mode Dashboard Update:** Fixed real-time Source (git-checkout) updating in the dashboard, enabling secure, real-time update pipelines for non-NPM installations.
 
-### 🐛 Bug Fixes & Security
+### 🔧 Bug Fixes & Security
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5795,7 +6042,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Context Relay Combo Strategy:** Added the new `context-relay` combo strategy with priority-style routing, structured handoff summary generation once quota usage reaches the warning threshold, and handoff injection after the next real account switch.
 - **Global Context Relay Defaults:** Added global Settings defaults plus combo-level configuration for `handoffThreshold`, `handoffModel`, and `handoffProviders`, so new or unconfigured combos can inherit the feature consistently.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5850,7 +6097,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Non-Stream Aliases:** Added API support for explicit non-streaming aliases (`non_stream`, `disable_stream`, `disable_streaming`, `streaming=false`), normalized at the boundary before provider translation (#1036 — thanks @wlfonseca).
 - **Russian Dashboard Localization:** Comprehensive Russian translation for the dashboard UI, including fixes for 2 Ukrainian locale keys (#1003 — thanks @mercs2910).
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5944,7 +6191,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Resilience Engine Overhaul:** Integrated context overflow graceful fallbacks, proactive OAuth token detection, and empty-content emission prevention (#990).
 - **Context-Optimized Routing Strategy:** Added new intelligent routing capability to natively maximize context windows in automated combo deployments (#990).
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -5983,7 +6230,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Provider Native Capabilities:** Added support for declaring and checking native API features (e.g. `systemInstructions_supported`) preventing failures by sanitizing invalid roles. Currently configured for Gemini Base and Antigravity OAuth providers.
 - **API Provider Advanced Settings:** Added per-connection custom `User-Agent` overrides for API-key provider connections. The override is stored in `providerSpecificData.customUserAgent` and now applies to validation probes and upstream execution requests.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6021,7 +6268,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **MCP Extensibility:** Added and successfully registered the new `omniroute_web_search` MCP framework tool out of beta into production schemas (#951).
 - **Tokens Buffer Logic:** Added runtime configuration limits extending configurable input/output token buffers for precise Usage Tracking metrics (#959).
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6129,7 +6376,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Dashboard UI:** Added standalone sidebar navigation for the new Memory and Skills modules (#926).
 - **i18n:** Added translation strings and layout mappings across 30 languages for the Memory and Skills namespaces.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6170,7 +6417,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Qoder PAT Support:** Integrated Personal Access Tokens (PAT) support directly via the local `qodercli` transport instead of legacy remote `.cn` browser configurations (#913).
 - **Gemini 3.1 Pro Preview (GitHub):** Added `gemini-3.1-pro-preview` canonical explicit model support natively into the GitHub Copilot provider while preserving older routing aliases (#924).
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6193,7 +6440,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.4.4] - 2026-04-02
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6244,7 +6491,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Model Enhancements:** Added explicit `contextLength` for all opencode-zen models.
 - **i18n & translations:** Integrated 33 language translations natively, including placeholder CI validations and Chinese documentation updates (#873, #869).
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6310,7 +6557,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Opencode-Zen Models:** Added 4 free models to opencode-zen registry (#854)
 - **Tests:** Added unit and E2E tests for settings toggles and bug fixes (#850)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6356,7 +6603,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Model Registry Update:** Injected `gpt-5.4-mini` into the Codex provider's array of models (#756)
 - **Provider Limit Tracking:** Track and display when provider rate limits were last refreshed per account (#843)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6383,7 +6630,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.3.9] - 2026-03-31
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6407,7 +6654,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Qoder Integration:** Native integration for Qoder AI natively replacing the legacy iFlow platform mappings (#660)
 - **Prompt Cache Tracking:** Added tracking capabilities and frontend visualization (Stats card) for semantic and prompt caching in the Dashboard UI
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6429,7 +6676,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.3.7] - 2026-03-30
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6448,7 +6695,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.3.6] - 2026-03-30
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6486,7 +6733,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Gemini Quota Tracking:** Added real-time Gemini CLI quota tracking via the `retrieveUserQuota` API (PR #825)
 - **Cache Dashboard:** Enhanced the Cache Dashboard to display prompt cache metrics, 24h trends, and estimated cost savings (PR #824)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6528,7 +6775,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Provider Diversity:** Implemented provider diversity scoring via Shannon entropy to improve load distribution.
 - **Auto-Disable Bounds:** Added an Auto-Disable Banned Accounts setting toggle to the Resilience dashboard.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6552,7 +6799,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.3.3] - 2026-03-29
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6591,7 +6838,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Cloudflare Tunnels:** Cloudflare Quick Tunnel integration with dashboard controls (PR #772).
 - **Diagnostics:** Semantic cache bypass for combo live tests (PR #773).
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6611,7 +6858,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.3.1] - 2026-03-29
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6636,7 +6883,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **Release Stabilization** — Finalized v3.2.9 release (combo diagnostics, quality gates, Gemini tool fix) and created missing git tag. Consolidated all staged changes into a single atomic release commit.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6660,7 +6907,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Combo Diagnostics** — Introduced a live test bypass flag (`forceLiveComboTest`) allowing administrators to execute real upstream health checks that bypass all local circuit-breaker and cooldown state mechanisms, enabling precise diagnostics during rolling outages (PR #759)
 - **Quality Gates** — Added automated response quality validation for combos and officially integrated `claude-4.6` model support into the core routing schemas (PR #762)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6683,7 +6930,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Docker Auto-Update UI** — Integrated a detached background update process for Docker Compose deployments. The Dashboard UI now seamlessly tracks update lifecycle events combining JSON REST responses with SSE streaming progress overlays for robust cross-environment reliability.
 - **Cache Analytics** — Repaired zero-metrics visualization mapping by migrating Semantic Cache telemetry logs directly into the centralized tracking SQLite module.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6720,7 +6967,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Strict Combo Testing (#735)** — Hardened the combo health check endpoint to require live text responses from models instead of just soft reachability signals.
 - **Streamed Detailed Logs (#734)** — Switched detailed request logging for SSE streams to reconstruct the final payload, saving immense amounts of SQLite database size and significantly cleaning up the UI.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6748,7 +6995,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **Qoder AI Migration (#660)** — Completely migrated the legacy `iFlow` core provider onto `Qoder AI` maintaining stable API routing capabilities.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6770,7 +7017,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **Provider Limits Quota UI (#728)** — Normalized quota limit logic and data labeling inside the Limits interface.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6807,7 +7054,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **Four-Stage Request Log Pipeline (#705)** — Refactored log persistence to save comprehensive payloads at four distinct pipeline stages: Client Request, Translated Provider Request, Provider Response, and Translated Client Response. Introduced `streamPayloadCollector` for robust SSE stream truncation and payload serialization.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6842,7 +7089,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **Global Fallback Provider (#689)** — When all combo models are exhausted (502/503), OmniRoute now attempts a configurable global fallback model before returning the error. Set `globalFallbackModel` in settings to enable.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6883,7 +7130,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **GLM Quota Tracking** — Added real-time usage and session quota tracking for the GLM Coding (Z.AI) provider (PR #698 by @christopher-s)
 - **Detailed Log Payloads** — Wired full four-stage pipeline payload capturing (original, translated, provider-response, streamed-deltas) directly into the UI (PR #705 by @rdself)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6906,7 +7153,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.1.10] — 2026-03-28
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6946,7 +7193,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Codex Auth Export** — Added Codex `auth.json` export and apply-local buttons for seamless CLI integration.
 - **Windsurf BYOK Notes** — Added official limitation warnings to the Windsurf CLI tool card documenting BYOK constraints.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6980,7 +7227,7 @@ We identified that **155 community PRs** across the entire project history (from
 | `tests/unit/t40-opencode-cli-tools-integration.test.mjs` | CLI tool integration tests                                  |
 | `COVERAGE_PLAN.md`                                       | Test coverage planning document                             |
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -6996,7 +7243,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.1.8] - 2026-03-27
 
-### 🐛 Bug Fixes & Features
+### 🔧 Bug Fixes & Features
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7012,7 +7259,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Stability:** Patched streaming crashes related to the native Antigravity provider integration failing due to unhandled undefined state arrays (#684).
 - **Localization Sync:** Deployed a fully overhauled `i18n` synchronizer detecting missing nested JSON properties and retro-fitting 30 locales sequentially (#685).## [3.1.7] - 2026-03-27
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7031,7 +7278,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.1.6] — 2026-03-27
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7050,7 +7297,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.1.5] — 2026-03-27
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7072,7 +7319,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.1.4] — 2026-03-27
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7104,7 +7351,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.1.2] — 2026-03-26
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7145,7 +7392,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **Vision Capability Metadata**: Added `capabilities.vision`, `input_modalities`, and `output_modalities` to `/v1/models` entries for vision-capable models (PR #646)
 - **Gemini 3.1 Models**: Added `gemini-3.1-pro-preview` and `gemini-3.1-flash-lite-preview` to the Antigravity provider (#645)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7186,7 +7433,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **GitHub Issue Templates**: Added standardized bug report, feature request, and config/proxy issue templates (#641)
 - **Clear All Models**: Added a "Clear All Models" button to the provider detail page with i18n support in 29 languages (#634)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7212,7 +7459,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.0.9] — 2026-03-26
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7242,7 +7489,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.0.8] — 2026-03-25
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7265,7 +7512,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.0.7] — 2026-03-25
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7310,7 +7557,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.0.6] — 2026-03-25
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7372,7 +7619,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 ## [3.0.4] — 2026-03-25
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7410,7 +7657,7 @@ We identified that **155 community PRs** across the entire project history (from
 
 - **Auto-Sync Models:** Added a UI toggle and `sync-models` endpoint to automatically synchronise model lists per provider using a scheduled interval scheduler (PR #597)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7442,7 +7689,7 @@ We identified that **155 community PRs** across the entire project history (from
 - Untagged connections appear first without a header, followed by tagged groups in alphabetical order.
 - The tag grouping automatically applies to the Codex/Copilot/Antigravity Limits section since toggles exist inside connection rows.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7630,7 +7877,7 @@ Full media generation playground at `/dashboard/media`: Image Generation, Video,
 
 ---
 
-### 🐛 Bug Fixes (40+)
+### 🔧 Bug Fixes (40+)
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -7818,7 +8065,7 @@ docker pull diegosouzapw/omniroute:3.0.0
   - `model-combo-mappings` (POST, PUT), `webhooks` (POST, PUT), `openapi/try` (POST)
   - CI `check:route-validation:t06` now passes: **176/176 routes validated**
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8281,7 +8528,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: New OpenCode providers, embedding credentials fix, CLI masked key bug, CACHE_TAG_PATTERN fix.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8311,7 +8558,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Bug fixes — preserve Codex prompt cache key, fix tagContent JSON escaping, sync expired token status to DB.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8381,7 +8628,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Fix media transcription (Deepgram/HuggingFace Content-Type, language detection) and TTS error display.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8456,7 +8703,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **feat(api)**: Per-API-key request-count limits — `max_requests_per_day` and `max_requests_per_minute` columns with in-memory sliding-window enforcement returning HTTP 429 (#452)
 - **feat(dev)**: ZWS v5 — HMR leak fix (485 DB connections → 1), memory 2.4GB → 195MB, `globalThis` singletons, Edge Runtime warning fix (@zhangqiang8vip)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8675,7 +8922,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **feat(dashboard)**: Response-first layout in request log detail UI (#470)
 - **feat(i18n)**: Improved Chinese (zh-CN) translation — complete retranslation (#475, @only4copilot)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8717,7 +8964,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **feat(providers)**: Added Alibaba Cloud Coding Plan support with two OpenAI-compatible endpoints — `alicode` (China) and `alicode-intl` (International), each with 8 models (#465, @dtk1985)
 - **feat(providers)**: Added dedicated `kimi-coding-apikey` provider path — API-key-based Kimi Coding access is no longer forced through OAuth-only `kimi-coding` route. Includes registry, constants, models API, config, and validation test (#463, @Mind-Dragon)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8741,7 +8988,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 - **feat(codex)**: Native responses subpath passthrough for Codex — natively routes `POST /v1/responses/compact` to Codex upstream, maintaining Claude Code compatibility without stripping the `/compact` suffix (#457)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8762,7 +9009,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Budget save bug + combo agent features UI + omniModel tag security fix.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8787,7 +9034,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Docker pino crash, Codex CLI responses worker fix, package-lock sync.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8812,7 +9059,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: UX improvements and Windows CLI healthcheck fix.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8842,7 +9089,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
   - Local provider_nodes routing for `/v1/rerank`
   - 30+ i18n keys in search namespace
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8865,7 +9112,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Codex direct API quota fallback fix.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8888,7 +9135,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: Light mode UI contrast fixes.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -8993,7 +9240,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 - **feat(migrations)**: New column `latency_p50` in `combo_metrics` table — zero-breaking, safe for existing users
 
-### 🐛 Bug Fixes / Closures
+### 🔧 Bug Fixes / Closures
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9013,7 +9260,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Windows fix: better-sqlite3 prebuilt download without node-gyp/Python/MSVC (#426).
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9033,7 +9280,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > CI fixes (t11 any-budget), bug fix #409 (file attachments via Copilot+Claude), release workflow correction.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9085,7 +9332,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **feat(audio)**: Route TTS/STT to local `provider_nodes` — `buildDynamicAudioProvider()` with SSRF protection (#416, @Regis-RCR)
 - **feat(proxy)**: Proxy registry, management APIs, and quota-limit generalization (#429, @Regis-RCR)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9116,7 +9363,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Hotfix: Turbopack/Docker compatibility — remove `node:` protocol from all `src/` imports.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9154,7 +9401,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 - **feat(api)**: Added **Kilo Gateway** (`api.kilo.ai`) as a new API Key provider (alias `kg`) — 335+ models, 6 free models, 3 auto-routing models (`kilo-auto/frontier`, `kilo-auto/balanced`, `kilo-auto/free`). Passthrough models supported via `/api/gateway/models` endpoint. (PR #408 by @Regis-RCR)
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9180,7 +9427,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 ## [2.6.4] — 2026-03-17
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9205,7 +9452,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: zod/pino hash-strip baked into build pipeline, Synthetic provider added, VPS PM2 path corrected.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9235,7 +9482,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Sprint: module hashing fully fixed, 2 PRs merged (Anthropic tools filter + custom endpoint paths), Alibaba Cloud DashScope provider added, 3 stale issues closed.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9267,7 +9514,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Critical startup fix: v2.6.0 global npm installs crashed with a 500 error due to a Turbopack/webpack module-name hashing bug in the Next.js 16 instrumentation hook.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9292,7 +9539,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Issue resolution sprint: 4 bugs fixed, logs UX improved, Kiro credit tracking added.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9323,7 +9570,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Codex native passthrough fix + route body validation hardening.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9345,7 +9592,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Build fix: restore VPS connectivity broken by v2.5.7 incomplete publish.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9365,7 +9612,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Media playground error handling fixes.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9387,7 +9634,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Critical security/auth fixes: Antigravity OAuth broken + JWT sessions lost after restart.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9408,7 +9655,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Model list dedup fix, Electron standalone build hardening, and Kiro credit tracking.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9444,7 +9691,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Logger startup fix, login bootstrap security fix, and dev HMR reliability improvement. CI infrastructure hardened.
 
-### 🐛 Bug Fixes (PRs #374, #375, #376 by @kfiramar)
+### 🔧 Bug Fixes (PRs #374, #375, #376 by @kfiramar)
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9470,7 +9717,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 > Critical bugfixes: DB schema migration, startup env loading, provider error state clearing, and i18n tooltip fix. Code quality improvements on top of each PR.
 
-### 🐛 Bug Fixes (PRs #369, #371, #372, #373 by @kfiramar)
+### 🔧 Bug Fixes (PRs #369, #371, #372, #373 by @kfiramar)
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9514,7 +9761,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **Codex Fast Tier Toggle (PR #367)**: Dashboard → Settings → Codex Service Tier. Default-off toggle injects `service_tier: "flex"` only for Codex requests, reducing cost ~80%. Full stack: UI tab + API endpoint + executor + translator + startup restore.
 - **gpt-5.4 Model (PR #368)**: Adds `cx/gpt-5.4` and `codex/gpt-5.4` to the Codex model registry. Regression test included.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9551,7 +9798,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **External Pricing Sync (LiteLLM)**: 3-tier pricing resolution (user overrides → synced → defaults). Opt-in via `PRICING_SYNC_ENABLED=true`. MCP tool `omniroute_sync_pricing`. 23 new tests.
 - **i18n**: 30 languages updated with strict-random strategy, API key management strings. pt-BR fully translated.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9616,7 +9863,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **Free Stack Preset Models**: Creating a combo with the Free Stack template now auto-fills 7 best-in-class free provider models (Gemini CLI, Kiro, Qoder×2, Qwen, NVIDIA NIM, Groq). Users just activate the providers and get a $0/month combo out-of-the-box.
 - **Wider Combo Modal**: Create/Edit combo modal now uses `max-w-4xl` for comfortable editing of large combos.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9658,7 +9905,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **Round-Robin State Management (PR #349)**: Enhanced round-robin logic to handle excluded accounts and maintain rotation state correctly.
 - **Clipboard UX (PR #360)**: Hardened clipboard operations with fallback for non-secure contexts; Claude tool normalization improvements.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9738,7 +9985,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 
 ## [2.3.14] - 2026-03-13
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.
@@ -9784,7 +10031,7 @@ OmniRoute now automatically refreshes model lists for connected providers every 
 - **Configurable API Bridge Timeout**: `API_BRIDGE_PROXY_TIMEOUT_MS` env var lets operators tune the proxy timeout (default 30s). Fixes 504 errors on slow upstream responses. (#332)
 - **Star History**: Replaced star-history.com widget with starchart.cc (`?variant=adaptive`) in all 30 READMEs — adapts to light/dark theme, real-time updates.
 
-### 🐛 Bug Fixes
+### 🔧 Bug Fixes
 
 - **fix(mitm):** Compile MITM utilities as NodeNext ESM during prepublish, copy the CommonJS MITM server into the standalone artifact, and resolve MITM data paths without relying on Next.js aliases in packaged runtime.
 - **fix(build):** Move the local `.tmp/wine32` Wine prefix out of the isolated Next.js build path so Windows Electron packaging artifacts cannot trigger `EACCES` scans during Node 24 builds.

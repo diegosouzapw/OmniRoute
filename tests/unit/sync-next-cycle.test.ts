@@ -1,9 +1,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import {
   insertNextSection,
   extractSection,
+  versionAfter,
 } from "../../scripts/release/sync-next-cycle.mjs";
+
+const SCRIPT_PATH = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../scripts/release/sync-next-cycle.mjs"
+);
 
 // Pure-function guards for the parallel-cycle sync-back (generate-release
 // Phase 5 step 20): main's CHANGELOG must win VERBATIM and the next cycle's
@@ -83,4 +92,34 @@ test("extractSection returns header through the line before the next heading, tr
 
 test("extractSection returns null when the version has no section", () => {
   assert.equal(extractSection(MAIN, "9.9.9"), null);
+});
+
+test("versionAfter finds the heading right below a version's section", () => {
+  assert.equal(versionAfter(MAIN, "3.8.44"), "3.8.43");
+  assert.equal(versionAfter(MAIN, "3.8.43"), null, "last section has nothing below");
+  assert.equal(versionAfter(MAIN, "9.9.9"), null, "missing version → null");
+});
+
+// Live-failure guards for the v3.8.45 run (2026-07-06) — source-shape assertions,
+// same style as tests/unit/validate-release-green.test.ts.
+test("git() passes a widened maxBuffer (ENOBUFS on `git show origin/main:CHANGELOG.md` — the CHANGELOG alone is >1 MiB)", () => {
+  const src = readFileSync(SCRIPT_PATH, "utf8");
+  const gitFn = src.slice(src.indexOf("function git("), src.indexOf("function main("));
+  assert.ok(gitFn.includes("maxBuffer"), "git() helper must set maxBuffer above the 1 MiB default");
+});
+
+test("i18n resync also propagates the FINALIZED [prevVersion] section into the mirrors, not just [NEXT]", () => {
+  const src = readFileSync(SCRIPT_PATH, "utf8");
+  assert.ok(
+    src.includes('"release:sync-changelog-i18n", "--", NEXT, prevVersion'),
+    "syncs the new cycle section"
+  );
+  assert.ok(
+    src.includes("versionAfter(mainChangelog, prevVersion)"),
+    "computes the boundary below the shipped section"
+  );
+  assert.ok(
+    src.includes('"release:sync-changelog-i18n", "--", prevVersion, belowPrev'),
+    "syncs the shipped (finalized) section — without this all 42 mirrors keep it as TBD"
+  );
 });
