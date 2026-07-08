@@ -16,6 +16,8 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { runSingleModelTest } from "@/lib/api/modelTestRunner";
 import { setModelIsHidden } from "@/lib/localDb";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { getSettings } from "@/lib/db/settings";
+import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 import * as log from "@/sse/utils/logger";
 
 const PER_MODEL_TIMEOUT_MS = 20_000;
@@ -80,6 +82,16 @@ export async function POST(request: Request) {
   }
   const { providerId, modelIds, connectionId, respectRateLimit, autoHideFailed } = validation.data;
 
+  // #6328 (follow-up to #6495): REMOVE — not just hide — paid Test-all dispatches
+  // when hidePaidModels is on. Paid ids are skipped inside the loop with a
+  // "Skipped" entry; the skip does NOT touch the consecutive-rate-limit halt
+  // counter (skips are not upstream failures). Fail open on settings read.
+  let hidePaid = false;
+  try {
+    const settings = await getSettings();
+    hidePaid = settings?.hidePaidModels === true;
+  } catch {}
+
   log.info(
     "MODEL_TEST_ALL",
     `Starting batch test for ${modelIds.length} model(s) on provider ${providerId}`,
@@ -98,6 +110,20 @@ export async function POST(request: Request) {
   let stopReason: "consecutive_rate_limits" | undefined;
 
   for (const modelId of modelIds) {
+    // #6328: skip paid ids without dispatching; do not increment
+    // consecutiveRateLimits — skip is not a rate-limited failure.
+    if (
+      hidePaid &&
+      !(providerHasFreeModels(providerId) && isFreeModel(providerId, { id: modelId }))
+    ) {
+      results[modelId] = {
+        status: "error",
+        latencyMs: 0,
+        error: "Skipped: paid model with hidePaidModels enabled",
+      };
+      continue;
+    }
+
     let entry: BatchTestResultEntry;
     try {
       // `runSingleModelTest` only engages the Bottleneck rate limiter when

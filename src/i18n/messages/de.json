@@ -4420,7 +4420,12 @@
     "webNoAuthGuideBody": "{provider} benötigt keinen API-Schlüssel und kein Cookie. Speichern Sie die Verbindung, um den kostenlosen Web-Endpunkt zu verwenden.",
     "webSessionCredentialValidationFailed": "Validierung der Session-Zugangsdaten fehlgeschlagen. Melden Sie sich erneut an, kopieren Sie frische Zugangsdaten und versuchen Sie es noch einmal.",
     "checkCookie": "Cookie prüfen",
-    "checkWebToken": "Token prüfen"
+    "checkWebToken": "Token prüfen",
+    "filterAll": "Alle",
+    "filterActive": "Aktiv",
+    "filterError": "Fehler",
+    "filterBanned": "Gesperrt",
+    "filterCreditsExhausted": "Guthaben aufgebraucht"
   },
   "settings": {
     "title": "Einstellungen",
@@ -6052,6 +6057,11 @@
     "resetsIn": "__MISSING__:Resets in",
     "editCutoffs": "Grenzwerte bearbeiten",
     "forceRefresh": "Jetzt aktualisieren",
+    "resetCreditsLabel": "Reset-Credits",
+    "redeemResetCredit": "Reset einlösen",
+    "confirmRedeemResetCredit": "Einen Codex-Reset-Credit für dieses Konto einlösen? Dabei wird genau ein Reset-Credit verbraucht.",
+    "resetCreditRedeemed": "Reset eingelöst",
+    "resetCreditRedeemFailed": "Reset-Credit konnte nicht eingelöst werden",
     "suiteBuilderSaveFailed": "Failed to save suite",
     "clone": "Klonen",
     "exportSuite": "Exportieren",

@@ -408,11 +408,23 @@ export function providerCircuitOpenResponse(
 export function buildModelCooldownBody({
   model,
   retryAfterSec,
+  retryAfterAt,
+  credentialsCoolingCount,
 }: {
   model?: string | null;
   retryAfterSec: number;
+  retryAfterAt?: string | null;
+  credentialsCoolingCount?: number | null;
 }): ModelCooldownErrorPayload {
   const resolvedModel = typeof model === "string" && model.trim().length > 0 ? model.trim() : null;
+  const resolvedRetryAfterAt =
+    typeof retryAfterAt === "string" && retryAfterAt.length > 0 ? retryAfterAt : null;
+  const resolvedCoolingCount =
+    typeof credentialsCoolingCount === "number" &&
+    Number.isFinite(credentialsCoolingCount) &&
+    credentialsCoolingCount > 0
+      ? Math.floor(credentialsCoolingCount)
+      : null;
 
   return {
     error: {
@@ -423,6 +435,8 @@ export function buildModelCooldownBody({
       code: "model_cooldown",
       ...(resolvedModel ? { model: resolvedModel } : {}),
       reset_seconds: Math.max(Math.ceil(retryAfterSec), 1),
+      ...(resolvedRetryAfterAt ? { retry_after: resolvedRetryAfterAt } : {}),
+      ...(resolvedCoolingCount ? { credentials_cooling: resolvedCoolingCount } : {}),
     },
   };
 }
@@ -430,16 +444,28 @@ export function buildModelCooldownBody({
 export function modelCooldownResponse({
   model,
   retryAfter,
+  retryAfterAt,
+  credentialsCoolingCount,
 }: {
   model?: string | null;
   retryAfter?: string | number | Date | null;
+  retryAfterAt?: string | null;
+  credentialsCoolingCount?: number | null;
 }) {
   const retryAfterSec = normalizeRetryAfterSeconds(retryAfter);
+  const resolvedRetryAfterAt =
+    typeof retryAfterAt === "string" && retryAfterAt.length > 0
+      ? retryAfterAt
+      : typeof retryAfter === "string" && retryAfter.length > 0
+        ? retryAfter
+        : null;
   return new Response(
     JSON.stringify(
       buildModelCooldownBody({
         model,
         retryAfterSec,
+        retryAfterAt: resolvedRetryAfterAt,
+        credentialsCoolingCount,
       })
     ),
     {

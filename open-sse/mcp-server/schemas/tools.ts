@@ -453,7 +453,7 @@ export const webFetchInput = z.object({
     .min(1, "URL is required")
     .describe("The URL to fetch content from"),
   provider: z
-    .enum(["firecrawl", "jina-reader", "tavily-search"])
+    .enum(["firecrawl", "jina-reader", "tavily-search", "tinyfish"])
     .optional()
     .describe("Specific fetch provider to use (default: first available)"),
   format: z
@@ -496,7 +496,7 @@ export const webFetchOutput = z.object({
 export const webFetchTool: McpToolDefinition<typeof webFetchInput, typeof webFetchOutput> = {
   name: "omniroute_web_fetch",
   description:
-    "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
+    "Fetches and extracts content from a URL using OmniRoute's web fetch gateway. Supports multiple providers (Firecrawl, Jina Reader, Tavily, TinyFish) with automatic failover. Returns the page content as markdown, HTML, links, or screenshot, along with metadata.",
   inputSchema: webFetchInput,
   outputSchema: webFetchOutput,
   scopes: ["execute:search"],

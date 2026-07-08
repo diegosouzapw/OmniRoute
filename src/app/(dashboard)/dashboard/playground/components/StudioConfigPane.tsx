@@ -16,6 +16,11 @@ import {
   OPENAI_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
 import { pickDefaultModel, resolveModelFilterKey } from "./modelSelection";
+import ReasoningControls from "./ReasoningControls";
+import {
+  resolveReasoningControls,
+  type ReasoningControlSpec,
+} from "./reasoningControls";
 
 export interface ConfigState {
   endpoint: PlaygroundEndpoint;
@@ -24,6 +29,10 @@ export interface ConfigState {
   provider?: string;
   systemPrompt: string;
   params: PlaygroundParams;
+  // #6241: resolved reasoning-control spec for the selected model (which controls to show + the
+  // effort tiers). Kept here so the tabs (ChatTab) can gate `effort`/`thinking` on the request
+  // body to models that actually support thinking.
+  reasoning?: ReasoningControlSpec;
 }
 
 interface StudioConfigPaneProps {
@@ -79,7 +88,12 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
     selectedProviderOption?.modelPrefix,
     isCompatibleConnectionId
   );
-  const { availableModels, loading: loadingModels } = useAvailableModels(modelFilterKey);
+  const { availableModels, modelCapabilities, loading: loadingModels } =
+    useAvailableModels(modelFilterKey);
+
+  // #6241: resolve the reasoning controls for the currently selected model from the capability
+  // flags the /models catalog exposes (supportsThinking / effort_tiers).
+  const reasoningSpec = resolveReasoningControls(modelCapabilities[configState.model]);
 
   // #3731: selecting a provider resets the model to "", and nothing picked a default —
   // so the active model stayed empty and the chat failed with "Set a model". Auto-select
@@ -89,6 +103,18 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
     if (next !== null) setConfigState({ ...configState, model: next });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableModels, configState.model]);
+
+  // #6241: keep the resolved reasoning spec on configState so the tabs (ChatTab) can gate the
+  // `effort`/`thinking` request fields on models that support thinking. Sync only when it changes.
+  useEffect(() => {
+    const current = configState.reasoning;
+    const changed =
+      !current ||
+      current.show !== reasoningSpec.show ||
+      current.effortOptions.join(",") !== reasoningSpec.effortOptions.join(",");
+    if (changed) setConfigState({ ...configState, reasoning: reasoningSpec });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reasoningSpec.show, reasoningSpec.effortOptions.join(",")]);
 
   function update<K extends keyof ConfigState>(key: K, value: ConfigState[K]) {
     setConfigState({ ...configState, [key]: value });
@@ -227,6 +253,13 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
           </span>
           <ParamSliders params={configState.params} setParams={(p) => update("params", p)} />
         </div>
+
+        {/* Reasoning controls — only shown when the selected model supports thinking (#6241) */}
+        <ReasoningControls
+          spec={reasoningSpec}
+          params={configState.params}
+          setParams={(p) => update("params", p)}
+        />
       </div>
     </aside>
   );
