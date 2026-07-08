@@ -30,7 +30,7 @@
 [![90+ Free](https://img.shields.io/badge/90%2B-Free_Tiers-00B894?style=for-the-badge)](#-237-ai-providers--90-free)
 [![1.6B Free Tokens/mo](https://img.shields.io/badge/1.6B-Free_Tokens%2Fmo-00B894?style=for-the-badge)](docs/reference/FREE_TIERS.md)
 [![Token Savings](https://img.shields.io/badge/up_to_95%25-Token_Savings-E17055?style=for-the-badge)](#%EF%B8%8F-save-1595-tokens--automatically)
-[![17 Strategies](https://img.shields.io/badge/17-Routing_Strategies-0984E3?style=for-the-badge)](#-combos--the-flagship)
+[![18 Strategies](https://img.shields.io/badge/18-Routing_Strategies-0984E3?style=for-the-badge)](#-combos--the-flagship)
 [![$0 to start](https://img.shields.io/badge/%240-To_Start-FDCB6E?style=for-the-badge&logoColor=black)](#-quick-start)
 
 <br/>
@@ -875,7 +875,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 <br/>
 
-**Routing:** 17 strategies · task-aware smart routing · thinking budget controls · wildcard routing · system prompt injection.
+**Routing:** 18 strategies · task-aware smart routing · thinking budget controls · wildcard routing · system prompt injection.
 **Compatibility:** OpenAI ↔ Claude ↔ Gemini ↔ Responses API · auto OAuth refresh (PKCE, 8 providers) · multi-account round-robin · Batch + Files API · live OpenAPI 3.0.
 **Protocols:** MCP (95 tools, 3 transports, 30 scopes) · A2A (JSON-RPC 2.0, SSE, 6 skills) · ACP · cloud agents (Codex, Cursor, Devin, Jules).
 **Plugins:** custom plugin marketplace (system-configured registry URL with SSRF-guarded fetch) · install / enable / disable · Notion + Obsidian knowledge-base integrations (WebDAV file server, vault search, note CRUD).
