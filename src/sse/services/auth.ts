@@ -127,6 +127,7 @@ interface CooldownInspectionState {
   connection: ProviderConnectionView;
   connectionCooldownMs: number | null;
   codexScopeCooldownMs: number | null;
+  antigravityScopeCooldownMs: number | null;
   retryableModelCooldownMs: number | null;
 }
 
@@ -1397,6 +1398,12 @@ export async function getProviderCredentials(
                 getCodexScopeRateLimitedUntil(connection.providerSpecificData, requestedModel)
               )
             : null;
+        const antigravityScopeCooldownMs =
+          provider === "antigravity"
+            ? parseFutureDateMs(
+                getAntigravityScopeRateLimitedUntil(connection.providerSpecificData, requestedModel)
+              )
+            : null;
         const modelLockout = requestedModel
           ? getModelLockoutInfo(provider, connection.id, requestedModel)
           : null;
@@ -1411,6 +1418,7 @@ export async function getProviderCredentials(
           connection,
           connectionCooldownMs,
           codexScopeCooldownMs,
+          antigravityScopeCooldownMs,
           retryableModelCooldownMs,
         };
       });
@@ -1424,6 +1432,9 @@ export async function getProviderCredentials(
           if (state.codexScopeCooldownMs !== null) {
             candidates.push({ ms: state.codexScopeCooldownMs, connection: state.connection });
           }
+          if (state.antigravityScopeCooldownMs !== null) {
+            candidates.push({ ms: state.antigravityScopeCooldownMs, connection: state.connection });
+          }
           if (state.retryableModelCooldownMs !== null) {
             candidates.push({ ms: state.retryableModelCooldownMs, connection: state.connection });
           }
@@ -1436,7 +1447,9 @@ export async function getProviderCredentials(
         cooldownStates.length > 0 &&
         cooldownStates.every((state) => {
           const hasModelSpecificCooldown =
-            state.codexScopeCooldownMs !== null || state.retryableModelCooldownMs !== null;
+            state.codexScopeCooldownMs !== null ||
+            state.antigravityScopeCooldownMs !== null ||
+            state.retryableModelCooldownMs !== null;
           return hasModelSpecificCooldown && state.connectionCooldownMs === null;
         });
 
