@@ -25,15 +25,20 @@ const DENSE_CLAUDE_BODY = {
 test("estimateCompressionTokens é image-aware: encolhe de verdade numa página omniglyph real", async () => {
   const encoded = new TextEncoder().encode(JSON.stringify(DENSE_CLAUDE_BODY));
   const result = await transformAnthropicMessages({ body: encoded, model: "claude-fable-5" });
-  assert.ok(result.applied, `omniglyph deveria ter convertido o corpo denso (reason=${result.reason})`);
+  assert.ok(
+    result.applied,
+    `omniglyph deveria ter convertido o corpo denso (reason=${result.reason})`
+  );
   const outBody = JSON.parse(new TextDecoder().decode(result.body)) as Record<string, unknown>;
-  assert.ok(JSON.stringify(outBody).includes('"type":"image"'), "saída deveria conter bloco de imagem");
+  assert.ok(
+    JSON.stringify(outBody).includes('"type":"image"'),
+    "saída deveria conter bloco de imagem"
+  );
 
   const naiveCharEstimate = Math.ceil(JSON.stringify(outBody).length / CHARS_PER_TOKEN);
   const imageAwareEstimate = estimateCompressionTokens(outBody);
   const originalTextEstimate = estimateCompressionTokens(DENSE_CLAUDE_BODY);
 
-  // eslint-disable-next-line no-console
   console.log(
     `naive-char=${naiveCharEstimate} image-aware=${imageAwareEstimate} original-text=${originalTextEstimate}`
   );
