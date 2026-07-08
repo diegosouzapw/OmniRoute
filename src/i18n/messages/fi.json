@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} ei tarvitse API-avainta tai evästettä. Tallenna yhteys käyttääksesi sen ilmaista verkkopäätepistettä.",
     "webSessionCredentialValidationFailed": "Istunnon kirjautumistietojen vahvistus epäonnistui. Kirjaudu uudelleen sisään, kopioi uudet kirjautumistiedot ja yritä uudelleen.",
     "checkCookie": "Tarkista eväste",
-    "checkWebToken": "Tarkista tunnus"
+    "checkWebToken": "Tarkista tunnus",
+    "filterAll": "Kaikki",
+    "filterActive": "Aktiivinen",
+    "filterError": "Virhe",
+    "filterBanned": "Estetty",
+    "filterCreditsExhausted": "Krediitit lopussa"
   },
   "settings": {
     "title": "Asetukset",

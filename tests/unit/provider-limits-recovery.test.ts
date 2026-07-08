@@ -10,6 +10,7 @@ process.env.API_KEY_SECRET = "test-provider-limits-recovery-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const providerLimitsDb = await import("../../src/lib/db/providerLimits.ts");
 const providerLimits = await import("../../src/lib/usage/providerLimits.ts");
 
 const originalFetch = globalThis.fetch;
@@ -170,6 +171,40 @@ test("successful quota refresh does not clear terminal expired status", async ()
     unknown
   >;
   assert.equal(updated.testStatus, "expired");
+});
+
+test("Codex stale quota fallback preserves banked reset credits", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    name: `Codex Banked Credits ${Date.now()}`,
+    accessToken: "codex-access-token",
+    refreshToken: "codex-refresh-token",
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+  });
+  const connectionId = (connection as { id: string }).id;
+
+  providerLimitsDb.setProviderLimitsCache(connectionId, {
+    quotas: { session: { used: 10, total: 100, remainingPercentage: 90 } },
+    plan: "pro",
+    message: null,
+    fetchedAt: "2026-01-01T00:00:00.000Z",
+    source: "scheduled",
+    bankedResetCredits: 2,
+  });
+
+  await withMockedFetch(
+    (() => new Response("server unavailable", { status: 500 })) as typeof fetch,
+    async () => {
+      const result = await providerLimits.fetchAndPersistProviderLimits(connectionId, "manual");
+
+      assert.equal(result.usage._stale, true);
+      assert.equal(result.usage.bankedResetCredits, 2);
+      assert.deepEqual(result.usage.quotas, {
+        session: { used: 10, total: 100, remainingPercentage: 90 },
+      });
+    }
+  );
 });
 
 test("error-only quota response does not clear transient state", async () => {

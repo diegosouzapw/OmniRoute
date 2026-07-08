@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} nepotřebuje klíč API ani soubor cookie. Uložte připojení, abyste mohli používat jeho bezplatný webový koncový bod.",
     "webSessionCredentialValidationFailed": "Ověření pověření relace se nezdařilo. Znovu se přihlaste, zkopírujte nové přihlašovací údaje a zkuste to znovu.",
     "checkCookie": "Zkontrolujte cookie",
-    "checkWebToken": "Zkontrolujte token"
+    "checkWebToken": "Zkontrolujte token",
+    "filterAll": "Vše",
+    "filterActive": "Aktivní",
+    "filterError": "Chyba",
+    "filterBanned": "Zablokováno",
+    "filterCreditsExhausted": "Vyčerpané kredity"
   },
   "settings": {
     "title": "Nastavení",
