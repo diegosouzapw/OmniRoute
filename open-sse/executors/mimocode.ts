@@ -12,13 +12,20 @@
  *
  * Only the "mimo-auto" model is supported (1M context, 128K output).
  * Supports multiple accounts: N fingerprints → N JWTs → round-robin with cooldown.
- * On 429 or 400, account enters cooldown (exponential backoff). On 401/403, JWT is re-bootstrapped.
+ * On 429 — or a 400 carrying MiMoCode's rate-limit text — account enters cooldown
+ * (exponential backoff) and the next account is tried. On 401/403, JWT is
+ * re-bootstrapped. Any other 400 is a genuinely malformed request (#2101): it fails
+ * fast on the current account instead of being retried identically on every
+ * account, which would waste N round-trips, cooldown every account, and hide the
+ * real upstream diagnostic behind a generic "all accounts exhausted" error (#4976).
  */
 
 import * as crypto from "node:crypto";
 import * as os from "node:os";
 import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
 import { createProxyDispatcher } from "../utils/proxyDispatcher.ts";
+import { RATE_LIMIT_TEXT_PATTERNS } from "../services/accountFallback.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
 import { fetch as undiciFetch, type Dispatcher } from "undici";
 
 const BOOTSTRAP_PATH = "/api/free-ai/bootstrap";
@@ -505,12 +512,51 @@ export class MimocodeExecutor extends BaseExecutor {
         }
 
         if (resp.status === 400) {
-          this.markCooldown(account);
+          const bodyText = await resp.text().catch(() => "");
+
+          // #4976: MiMoCode signals throttling via a non-standard 400 whose body
+          // carries rate-limit semantics (e.g. "Detected high-frequency
+          // non-compliant requests from you.") instead of a 429. Same
+          // classification as accountFallback.ts's checkFallbackError() so the
+          // two call sites never disagree on what counts as throttling.
+          if (RATE_LIMIT_TEXT_PATTERNS.some((p) => p.test(bodyText))) {
+            this.markCooldown(account);
+            log?.warn?.(
+              "MIMOCODE",
+              `Rate-limit-style 400 on account ${account.fingerprint.slice(0, 8)}, trying next…`
+            );
+            continue;
+          }
+
+          // #2101: a genuinely malformed 400 fails identically on every account —
+          // rotating here would waste N round-trips, cooldown every account (a
+          // provider-wide outage for parallel requests), and hide the real
+          // diagnostic behind a generic exhaustion error. Fail fast on THIS
+          // account without touching its cooldown/success state.
           log?.warn?.(
             "MIMOCODE",
-            `Bad request on account ${account.fingerprint.slice(0, 8)}, trying next…`
+            `Malformed request (400) on account ${account.fingerprint.slice(0, 8)}, not retrying`
           );
-          continue;
+          let upstreamMessage = bodyText;
+          try {
+            const parsed = JSON.parse(bodyText) as { error?: { message?: string } };
+            if (parsed?.error?.message) upstreamMessage = parsed.error.message;
+          } catch {
+            /* body wasn't JSON — use raw text */
+          }
+          const errorBody = buildErrorBody(
+            400,
+            sanitizeErrorMessage(upstreamMessage || "Bad request")
+          );
+          return {
+            response: new Response(encoder.encode(JSON.stringify(errorBody)), {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            }),
+            url,
+            headers: this.buildHeaders(input.credentials, stream),
+            transformedBody: reqBody,
+          };
         }
 
         this.markSuccess(account);
