@@ -6,7 +6,6 @@
  */
 
 import { getDbInstance } from "./core";
-import { invalidateDbCache } from "./readCache";
 
 const NAMESPACE = "provider_param_filters";
 
@@ -36,7 +35,6 @@ let cacheGeneration = 0;
 function bumpCacheGeneration(): void {
   cacheGeneration++;
   filterCache = null;
-  invalidateDbCache(NAMESPACE);
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

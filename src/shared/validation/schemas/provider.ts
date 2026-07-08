@@ -418,6 +418,21 @@ export const batchUpdateProviderConnectionsSchema = z.object({
   isActive: z.boolean(),
 });
 
+// PUT /api/providers/[id]/param-filters — upsert provider/model param filter config
+const paramFilterListSchema = z.array(z.string().trim().min(1).max(200)).max(500);
+
+const modelParamFilterSchema = z.object({
+  block: paramFilterListSchema.optional(),
+  allow: paramFilterListSchema.optional(),
+});
+
+export const updateParamFilterConfigSchema = z.object({
+  block: paramFilterListSchema.optional(),
+  allow: paramFilterListSchema.optional(),
+  models: z.record(z.string().trim().min(1).max(200), modelParamFilterSchema).optional(),
+  autoLearn: z.boolean().optional(),
+});
+
 export const validateProviderApiKeySchema = z
   .object({
     provider: z.string().trim().min(1, "Provider and API key required"),

@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { useNotificationStore } from "@/store/notificationStore";
 
 interface ProviderParamFilterSectionProps {
@@ -37,6 +38,7 @@ function formatCommaList(arr: string[]): string {
 export default function ProviderParamFilterSection({
   providerId,
 }: ProviderParamFilterSectionProps) {
+  const t = useTranslations("providers");
   const notify = useNotificationStore();
   const [config, setConfig] = useState<ParamFilterConfig>({
     block: [],
@@ -68,13 +70,15 @@ export default function ProviderParamFilterSection({
       setAutoLearn(cfg.autoLearn);
     } catch (err) {
       notify.notify(
-        `Failed to load param filter config: ${err instanceof Error ? err.message : String(err)}`,
+        t("paramFiltersLoadError", {
+          error: err instanceof Error ? err.message : String(err),
+        }),
         "error"
       );
     } finally {
       setLoading(false);
     }
-  }, [providerId, notify]);
+  }, [providerId, notify, t]);
 
   useEffect(() => {
     loadConfig();
@@ -100,10 +104,12 @@ export default function ProviderParamFilterSection({
 
       setConfig(body);
       setDirty(false);
-      notify.notify("Param filter config saved", "success");
+      notify.notify(t("paramFiltersSaveSuccess"), "success");
     } catch (err) {
       notify.notify(
-        `Failed to save param filter config: ${err instanceof Error ? err.message : String(err)}`,
+        t("paramFiltersSaveError", {
+          error: err instanceof Error ? err.message : String(err),
+        }),
         "error"
       );
     } finally {
@@ -128,10 +134,12 @@ export default function ProviderParamFilterSection({
       setAllowText("");
       setAutoLearn(false);
       setDirty(false);
-      notify.notify("Param filter config reset to defaults", "success");
+      notify.notify(t("paramFiltersResetSuccess"), "success");
     } catch (err) {
       notify.notify(
-        `Failed to reset param filter config: ${err instanceof Error ? err.message : String(err)}`,
+        t("paramFiltersResetError", {
+          error: err instanceof Error ? err.message : String(err),
+        }),
         "error"
       );
     } finally {
@@ -150,17 +158,21 @@ export default function ProviderParamFilterSection({
 
   return (
     <div className="rounded-xl border border-border bg-white p-5 dark:bg-zinc-950">
-      <h2 className="text-base font-semibold text-text-main mb-1">Param Filters</h2>
+      <h2 className="text-base font-semibold text-text-main mb-1">
+        {t("paramFiltersSectionTitle")}
+      </h2>
       <p className="text-xs text-text-muted mb-4 leading-relaxed">
-        Strip or re-add request parameters before sending to this provider. Used to avoid 400 errors
-        from providers that reject certain params (e.g. NVIDIA NIM rejects{" "}
-        <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">thinking</code>).
+        {t.rich("paramFiltersSectionHint", {
+          code: (chunks) => (
+            <code className="text-xs bg-zinc-100 dark:bg-zinc-800 px-1 rounded">{chunks}</code>
+          ),
+        })}
       </p>
 
       {/* Blocked params */}
       <div className="mb-3">
         <label className="block text-xs font-medium text-text-muted mb-1.5">
-          Blocked parameters
+          {t("paramFiltersBlockedLabel")}
         </label>
         <input
           type="text"
@@ -172,15 +184,13 @@ export default function ProviderParamFilterSection({
           placeholder="thinking, reasoning_budget, … (comma-separated)"
           className="w-full rounded-lg border border-border bg-white px-3 py-2 text-xs text-text-main placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary dark:bg-zinc-900"
         />
-        <p className="text-[11px] text-text-muted mt-1">
-          These params are stripped from outgoing requests (denylist).
-        </p>
+        <p className="text-[11px] text-text-muted mt-1">{t("paramFiltersBlockedHint")}</p>
       </div>
 
       {/* Allowed params */}
       <div className="mb-3">
         <label className="block text-xs font-medium text-text-muted mb-1.5">
-          Allowed parameters
+          {t("paramFiltersAllowedLabel")}
         </label>
         <input
           type="text"
@@ -192,9 +202,7 @@ export default function ProviderParamFilterSection({
           placeholder="reasoning, … (comma-separated)"
           className="w-full rounded-lg border border-border bg-white px-3 py-2 text-xs text-text-main placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary dark:bg-zinc-900"
         />
-        <p className="text-[11px] text-text-muted mt-1">
-          These params are re-added after denylist stripping (only if the client sent them).
-        </p>
+        <p className="text-[11px] text-text-muted mt-1">{t("paramFiltersAllowedHint")}</p>
       </div>
 
       {/* Auto-learn toggle */}
@@ -209,12 +217,11 @@ export default function ProviderParamFilterSection({
             }}
             className="rounded border-border text-primary focus:ring-primary"
           />
-          <span className="text-xs font-medium text-text-main">Auto-learn from 400 errors</span>
+          <span className="text-xs font-medium text-text-main">
+            {t("paramFiltersAutoLearnLabel")}
+          </span>
         </label>
-        <p className="text-[11px] text-text-muted mt-1 ml-5">
-          When enabled, if the upstream returns a 400 with &quot;Unsupported parameter: X&quot;, the
-          param is automatically added to the block list and the request retried.
-        </p>
+        <p className="text-[11px] text-text-muted mt-1 ml-5">{t("paramFiltersAutoLearnHint")}</p>
       </div>
 
       {/* Actions */}
@@ -232,7 +239,7 @@ export default function ProviderParamFilterSection({
           ) : (
             <span className="material-symbols-outlined text-sm">save</span>
           )}
-          {saving ? "Saving…" : "Save Changes"}
+          {saving ? t("paramFiltersSaving") : t("paramFiltersSaveChanges")}
         </button>
         <button
           type="button"
@@ -241,7 +248,7 @@ export default function ProviderParamFilterSection({
           className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted hover:text-text-main hover:border-primary/40 disabled:opacity-50 transition-colors"
         >
           <span className="material-symbols-outlined text-sm">delete</span>
-          Reset to Default
+          {t("paramFiltersResetToDefault")}
         </button>
       </div>
     </div>

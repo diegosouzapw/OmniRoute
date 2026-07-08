@@ -4,21 +4,25 @@ import {
   setParamFilterConfig,
   deleteParamFilterConfig,
 } from "@/lib/db/paramFilters";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { updateParamFilterConfigSchema } from "@/shared/validation/schemas";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 /**
  * GET /api/providers/[id]/param-filters
  * Returns the param filter config for a provider, or null if not configured.
  */
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const config = getParamFilterConfig(id);
     return NextResponse.json(config ?? { block: [], allow: [], autoLearn: false });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to read param filter config" },
-      { status: 500 }
-    );
+    return NextResponse.json(buildErrorBody(500, sanitizeErrorMessage(error)), { status: 500 });
   }
 }
 
@@ -28,40 +32,33 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
  * Body: { block?: string[], allow?: string[], models?: Record<string, { block?: string[], allow?: string[] }>, autoLearn?: boolean }
  */
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return NextResponse.json(buildErrorBody(400, "Invalid JSON body"), { status: 400 });
+  }
+
   try {
     const { id } = await params;
-    const body = await request.json();
-
-    if (!body || typeof body !== "object") {
-      return NextResponse.json({ error: "Request body is required" }, { status: 400 });
+    const validation = validateBody(updateParamFilterConfigSchema, rawBody);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
+    const { block, allow, models, autoLearn } = validation.data;
 
-    const block: string[] = Array.isArray(body.block)
-      ? body.block.filter((k: unknown): k is string => typeof k === "string")
-      : body.block !== undefined
-        ? []
-        : [];
-
-    const allow: string[] = Array.isArray(body.allow)
-      ? body.allow.filter((k: unknown): k is string => typeof k === "string")
-      : body.allow !== undefined
-        ? []
-        : [];
-
-    const models: Record<string, { block?: string[]; allow?: string[] }> | undefined =
-      body.models && typeof body.models === "object" && !Array.isArray(body.models)
-        ? body.models
-        : undefined;
-
-    const autoLearn = typeof body.autoLearn === "boolean" ? body.autoLearn : false;
-
-    setParamFilterConfig(id, { block, allow, models, autoLearn });
+    setParamFilterConfig(id, {
+      block: block ?? [],
+      allow: allow ?? [],
+      models,
+      autoLearn: autoLearn ?? false,
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to save param filter config" },
-      { status: 500 }
-    );
+    return NextResponse.json(buildErrorBody(500, sanitizeErrorMessage(error)), { status: 500 });
   }
 }
 
@@ -69,15 +66,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
  * DELETE /api/providers/[id]/param-filters
  * Remove the param filter config for a provider (reset to no filtering).
  */
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     deleteParamFilterConfig(id);
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to delete param filter config" },
-      { status: 500 }
-    );
+    return NextResponse.json(buildErrorBody(500, sanitizeErrorMessage(error)), { status: 500 });
   }
 }

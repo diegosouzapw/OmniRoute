@@ -8,6 +8,10 @@
 
 _Living section — bullets land here as PRs merge into `release/v3.8.47` (parallel-cycle model; cycle opened at the v3.8.46 release freeze). Finalized at the v3.8.47 release._
 
+### ✨ New Features
+
+- **Provider/model param filters**: config-driven parameter denylist/allowlist per provider/model with auto-learn from upstream 400s (#6649 — thanks @ThongAccount, closes #6625)
+
 ### 🐛 Bug Fixes
 
 - **fix(auth):** an API key restricted via `allowedModels`/`allowedCombos` could bypass that restriction entirely over the Codex Responses-over-WebSocket bridge ([#6564](https://github.com/diegosouzapw/OmniRoute/issues/6564)) — `prepare()` in `src/app/api/internal/codex-responses-ws/route.ts` authenticated the WS bridge's API key (`authenticate()`/`authorizeWebSocketHandshake()`) and honored `allowedConnections`, but never called `enforceApiKeyPolicy()`, the same model/combo policy gate the HTTP `/v1/responses` path enforces via `handleChat()` — so a key scoped to e.g. `combo/model-1.0` could still reach a direct Codex model like `gpt-5.5` through this transport, as long as an eligible Codex OAuth connection existed. The bridge's WS auth token arrives via query params (`api_key`/`token`/`access_token`), not a normal `Authorization` header, so a new `enforceCodexWsApiKeyPolicy()` builds an equivalent `Request` carrying an explicit `Authorization: Bearer <apiKey>` header and calls `enforceApiKeyPolicy()` against the CLIENT-requested model, before any Codex-specific model remapping or credential selection. Regression guard: `tests/unit/codex-ws-policy-enforcement-6564.test.ts` (a model-restricted key is rejected 403 before reaching credential selection; a combo-restricted key is rejected 403 requesting a disallowed combo; a key that DOES allow the requested model still proceeds past policy).
