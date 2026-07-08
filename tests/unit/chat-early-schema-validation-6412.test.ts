@@ -21,9 +21,25 @@ test.after(async () => {
  * returned 404 "model_not_found" — hiding the real schema error.
  */
 
-async function postChat(body: any) {
+interface ChatTestRequestBody {
+  model: string;
+  messages: Array<{ role: string; content: string }>;
+  // Intentionally loose: these are the scalar params under test, and several
+  // cases below deliberately pass the WRONG runtime type (e.g. temperature as
+  // a string) to prove schema validation catches it before provider lookup.
+  temperature?: unknown;
+  top_p?: unknown;
+  max_tokens?: unknown;
+  n?: unknown;
+}
+
+interface ChatTestResponsePayload {
+  error?: unknown;
+}
+
+async function postChat(body: ChatTestRequestBody) {
   const response = await handleChat(buildRequest({ body }));
-  const payload = (await response.json()) as any;
+  const payload = (await response.json()) as ChatTestResponsePayload;
   return { status: response.status, payload };
 }
 
