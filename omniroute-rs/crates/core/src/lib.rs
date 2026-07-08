@@ -1,5 +1,7 @@
 //! omniroute-core: domain types. No I/O.
 
+pub mod contracts;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
