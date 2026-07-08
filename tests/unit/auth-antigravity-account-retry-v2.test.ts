@@ -197,7 +197,7 @@ test("Antigravity 429 with exhausted cached quota persists family cooldown until
     result.cooldownMs > 60 * 60 * 1000,
     `expected reset-sized cooldown, got ${result.cooldownMs}`
   );
-  assert.equal(updated.testStatus, "unavailable");
+  assert.equal(updated.testStatus, "active");
   assert.equal(updated.rateLimitedUntil, undefined);
   const specificData = updated.providerSpecificData as any;
   assert.ok(
@@ -222,6 +222,54 @@ test("Antigravity 429 with exhausted cached quota persists family cooldown until
     "claude-sonnet-4"
   );
   assert.equal(selectionClaude.connectionId, connId);
+});
+
+test("Antigravity all-rate-limited retry-after ignores request-level excluded accounts", async () => {
+  await resetStorage();
+
+  const soon = new Date(Date.now() + 30_000).toISOString();
+  const later = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+
+  const excluded = await providersDb.createProviderConnection({
+    provider: "antigravity",
+    authType: "oauth",
+    email: "excluded-cooling@example.test",
+    accessToken: "tok-excluded-cooling",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {
+      antigravityScopeRateLimitedUntil: { gemini: soon },
+    },
+  });
+  const nonExcluded = await providersDb.createProviderConnection({
+    provider: "antigravity",
+    authType: "oauth",
+    email: "non-excluded-cooling@example.test",
+    accessToken: "tok-non-excluded-cooling",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {
+      antigravityScopeRateLimitedUntil: { gemini: later },
+    },
+  });
+
+  const selection = await auth.getProviderCredentials(
+    "antigravity",
+    null,
+    null,
+    "gemini-3-pro",
+    { excludeConnectionIds: [connectionId(excluded)] }
+  );
+
+  assert.ok(selection && "allRateLimited" in selection && selection.allRateLimited);
+  assert.equal(selection.cooldownScope, "model");
+  assert.equal(selection.cooldownModel, "gemini-3-pro");
+  assert.ok(selection.retryAfter, "expected retryAfter from non-excluded cooling account");
+  assert.ok(
+    Math.abs(new Date(selection.retryAfter).getTime() - new Date(later).getTime()) < 2_000,
+    `expected retryAfter near non-excluded cooldown ${later}, got ${selection.retryAfter}`
+  );
+  assert.notEqual(connectionId(nonExcluded), connectionId(excluded));
 });
 
 test("non-Antigravity 429 ignores unrelated exhausted quota cache and keeps model-only behavior", async () => {

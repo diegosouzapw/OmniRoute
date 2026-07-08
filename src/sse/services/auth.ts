@@ -1390,7 +1390,15 @@ export async function getProviderCredentials(
     });
 
     if (availableConnections.length === 0) {
-      const cooldownStates: CooldownInspectionState[] = connections.map((connection) => {
+      // Request-level exclusions are retry bookkeeping, not provider cooldowns.
+      // Do not let a just-failed/excluded account determine the provider-level
+      // all-rate-limited retry-after; only inspect accounts that remain relevant
+      // for this selection attempt.
+      const cooldownInspectionConnections = connections.filter(
+        (connection) => !excludedConnectionIds.has(connection.id)
+      );
+
+      const cooldownStates: CooldownInspectionState[] = cooldownInspectionConnections.map((connection) => {
         const connectionCooldownMs = parseFutureDateMs(connection.rateLimitedUntil);
         const codexScopeCooldownMs =
           provider === "codex"
@@ -1464,8 +1472,8 @@ export async function getProviderCredentials(
         log.warn(
           "AUTH",
           allBlockedByModelCooldown
-            ? `${provider} | all ${connections.length} active accounts cooling down for model ${requestedModel} (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
-            : `${provider} | all ${connections.length} active accounts rate limited (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
+            ? `${provider} | all ${cooldownInspectionConnections.length}/${connections.length} non-excluded active accounts cooling down for model ${requestedModel} (${formatRetryAfter(earliest)}) | excluded=${excludedConnectionIds.size} | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
+            : `${provider} | all ${cooldownInspectionConnections.length}/${connections.length} non-excluded active accounts rate limited (${formatRetryAfter(earliest)}) | excluded=${excludedConnectionIds.size} | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
         );
         return {
           allRateLimited: true,
@@ -2350,7 +2358,6 @@ export async function markAccountUnavailable(
         const scopeCooldownMs = Math.max(cooldownUntilMs(scopeRateLimitedUntil) - Date.now(), 0);
 
         await updateProviderConnection(connectionId, {
-          testStatus: "unavailable",
           lastError: errorMsg,
           errorCode: status,
           lastErrorAt: new Date().toISOString(),
