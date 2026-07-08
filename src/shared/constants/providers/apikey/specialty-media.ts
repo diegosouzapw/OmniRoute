@@ -248,4 +248,19 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
     },
     serviceKinds: ["webFetch"],
   },
+  tinyfish: {
+    id: "tinyfish",
+    alias: "tf",
+    name: "TinyFish Fetch",
+    icon: "language",
+    color: "#0891B2",
+    textIcon: "TF",
+    website: "https://docs.tinyfish.ai/fetch-api",
+    notice: {
+      text: "Fetch does not use TinyFish credits. Submit up to 10 URLs per request (OmniRoute fetches one URL per call).",
+      apiKeyUrl: "https://agent.tinyfish.ai/api-keys",
+    },
+    authHint: "X-API-Key from agent.tinyfish.ai/api-keys",
+    serviceKinds: ["webFetch"],
+  },
 };

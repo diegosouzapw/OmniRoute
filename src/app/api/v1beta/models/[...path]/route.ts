@@ -7,6 +7,7 @@ import {
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { v1betaGeminiGenerateSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { convertGeminiToInternal } from "./convertGeminiToInternal";
 
 let initialized = false;
 
@@ -131,41 +132,4 @@ export async function POST(request, { params }) {
       { status: 500 }
     );
   }
-}
-
-/**
- * Convert Gemini request format to OpenAI/internal format.
- *
- * @param geminiBody parsed Gemini request body
- * @param model      resolved model string (e.g. "gemini/gemini-pro")
- * @param stream     whether to stream (derived from URL action suffix)
- */
-function convertGeminiToInternal(geminiBody, model, stream) {
-  const messages = [];
-
-  // Convert system instruction
-  if (geminiBody.systemInstruction) {
-    const systemText = geminiBody.systemInstruction.parts?.map((p) => p.text).join("\n") || "";
-    if (systemText) {
-      messages.push({ role: "system", content: systemText });
-    }
-  }
-
-  // Convert contents to messages
-  if (geminiBody.contents) {
-    for (const content of geminiBody.contents) {
-      const role = content.role === "model" ? "assistant" : "user";
-      const text = content.parts?.map((p) => p.text).join("\n") || "";
-      messages.push({ role, content: text });
-    }
-  }
-
-  return {
-    model,
-    messages,
-    stream,
-    max_tokens: geminiBody.generationConfig?.maxOutputTokens,
-    temperature: geminiBody.generationConfig?.temperature,
-    top_p: geminiBody.generationConfig?.topP,
-  };
 }
