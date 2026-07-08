@@ -16,7 +16,8 @@ const apiAuth = await import("../../src/shared/utils/apiAuth.ts");
 const { requireManagementAuth } = await import("../../src/lib/api/requireManagementAuth.ts");
 const { getLegacyCliTokenSync, getMachineTokenSync } =
   await import("../../src/lib/machineToken.ts");
-const { CLI_TOKEN_HEADER } = await import("../../src/server/authz/headers.ts");
+const { AUTHZ_HEADER_PEER_LOCALITY, CLI_TOKEN_HEADER } =
+  await import("../../src/server/authz/headers.ts");
 
 const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
@@ -315,6 +316,48 @@ test("isAuthRequired keeps fresh bootstrap open only on loopback", async () => {
   assert.equal(
     await apiAuth.isAuthRequired(new Request("https://example.com/api/providers")),
     true
+  );
+});
+
+test("isAuthRequired rejects remote require-login bootstrap writes without a configured password", async () => {
+  delete process.env.INITIAL_PASSWORD;
+  await localDb.updateSettings({ requireLogin: true, setupComplete: true, password: "" });
+
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      new Request("https://example.com/api/settings/require-login", { method: "POST" })
+    ),
+    true
+  );
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      new Request("http://localhost/api/settings/require-login", { method: "POST" })
+    ),
+    false
+  );
+});
+
+test("isAuthRequired trusts peer locality header over request hostname", async () => {
+  delete process.env.INITIAL_PASSWORD;
+  await localDb.updateSettings({ requireLogin: true, setupComplete: true, password: "" });
+
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      new Request("http://localhost/api/settings/require-login", {
+        method: "POST",
+        headers: { [AUTHZ_HEADER_PEER_LOCALITY]: "remote" },
+      })
+    ),
+    true
+  );
+  assert.equal(
+    await apiAuth.isAuthRequired(
+      new Request("https://example.com/api/settings/require-login", {
+        method: "POST",
+        headers: { [AUTHZ_HEADER_PEER_LOCALITY]: "loopback" },
+      })
+    ),
+    false
   );
 });
 

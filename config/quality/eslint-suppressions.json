@@ -1527,11 +1527,6 @@
       "count": 12
     }
   },
-  "tests/unit/login-bootstrap-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 10
-    }
-  },
   "tests/unit/management-password.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4

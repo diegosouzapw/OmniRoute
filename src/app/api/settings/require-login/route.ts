@@ -4,7 +4,7 @@ import {
   hasManagementPasswordConfigured,
   hashManagementPassword,
 } from "@/lib/auth/managementPassword";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { isAuthenticated, isLoopbackRequest } from "@/shared/utils/apiAuth";
 import { getNodeRuntimeSupport } from "@/shared/utils/nodeRuntimeSupport.ts";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -46,7 +46,11 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   const settings = await getSettings();
-  if (!isBootstrapSecurityWindow(settings) && !(await isAuthenticated(request))) {
+  if (isBootstrapSecurityWindow(settings)) {
+    if (!isLoopbackRequest(request)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  } else if (!(await isAuthenticated(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
