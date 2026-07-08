@@ -28,13 +28,27 @@ err() { printf "\033[1;31m[cutover ERROR]\033[0m %s\n" "$*" >&2; }
 ok()  { printf "\033[1;32m[cutover OK]\033[0m %s\n" "$*"; }
 
 bff_health() {
-  curl -fsS --max-time 5 "$BFF_URL/healthz" || { err "BFF health failed"; return 1; }
+  if curl -fsS --max-time 5 "$BFF_URL/healthz" >/dev/null; then
+    return 0
+  fi
+  err "BFF health failed"
+  return 1
 }
-bff_per_route(path) {
-  curl -fsS --max-time 5 "$BFF_URL/api/v1$path" -H "Cookie: web_stack=svelte" -o /dev/null -w "%{http_code}\n" || true
+
+bff_per_route() {
+  local rp=$1
+  curl -fsS --max-time 5 "$BFF_URL/api/v1$rp" \
+    -H "Cookie: web_stack=svelte" \
+    -o /dev/null \
+    -w "%{http_code}\n" || true
 }
+
 nextjs_health() {
-  curl -fsS --max-time 5 "$NEXTJS_URL/healthz" || { err "Next.js health failed"; return 1; }
+  if curl -fsS --max-time 5 "$NEXTJS_URL/healthz" >/dev/null; then
+    return 0
+  fi
+  err "Next.js health failed"
+  return 1
 }
 
 slo_check() {
