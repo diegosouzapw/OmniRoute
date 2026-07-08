@@ -10,14 +10,30 @@ import { providerText, type ProviderMessageTranslator } from "../providerPageHel
 export interface WebSessionCredentialGuideProps {
   requirement: WebSessionCredentialRequirement;
   providerName: string;
+  providerWebsite?: string;
   t: ProviderMessageTranslator;
+}
+
+export function getProviderWebsiteHost(providerWebsite?: string): string | null {
+  if (!providerWebsite) {
+    return null;
+  }
+
+  try {
+    return new URL(providerWebsite).host;
+  } catch {
+    return providerWebsite;
+  }
 }
 
 export default function WebSessionCredentialGuide({
   requirement,
   providerName,
+  providerWebsite,
   t,
 }: WebSessionCredentialGuideProps) {
+  const providerWebsiteHost = getProviderWebsiteHost(providerWebsite);
+
   if (requirement.kind === "none") {
     return (
       <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-3 text-sm text-text-muted">
@@ -76,6 +92,21 @@ export default function WebSessionCredentialGuide({
               {providerText(t, "webSessionGuideStep1", "Sign in to {provider} in your browser.", {
                 provider: providerName,
               })}
+              {providerWebsite && providerWebsiteHost && (
+                <a
+                  href={providerWebsite}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-2 inline-flex items-center gap-1 text-primary hover:underline"
+                >
+                  {providerText(t, "webSessionGuideOpenProvider", "Open {host}", {
+                    host: providerWebsiteHost,
+                  })}
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                    open_in_new
+                  </span>
+                </a>
+              )}
             </li>
             <li>
               {providerText(
