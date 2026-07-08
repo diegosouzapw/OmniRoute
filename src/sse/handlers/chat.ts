@@ -437,6 +437,13 @@ export async function handleChat(
     );
   }
   body = preCallGuardrails.payload;
+  // Sync modelStr if a guardrail (e.g. Vision Bridge) changed body.model
+  // This ensures downstream routing (combo resolution, auto-detection, execution)
+  // uses the rerouted model rather than the original.
+  if (body?.model && typeof body.model === "string" && body.model !== modelStr) {
+    log.info("ROUTING", `Guardrail rerouted model: ${modelStr} → ${body.model}`);
+    modelStr = body.model;
+  }
   telemetry.endPhase();
 
   // T08: per-key active session limit (0 = unlimited).
