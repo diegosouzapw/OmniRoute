@@ -9,7 +9,11 @@ import {
   detectUnsupportedParam,
   stripGroqUnsupportedFields,
 } from "../config/providerFieldStrips.ts";
-import { getParamFilterConfig, addParamToBlocklist } from "@/lib/db/paramFilters";
+import {
+  getParamFilterConfig,
+  addParamToBlocklist,
+  isAutoLearnGloballyEnabled,
+} from "@/lib/db/paramFilters";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
@@ -1277,7 +1281,8 @@ export class BaseExecutor {
             ) {
               try {
                 const config = getParamFilterConfig(this.provider);
-                if (config?.autoLearn) {
+                const shouldAutoLearn = isAutoLearnGloballyEnabled() || config?.autoLearn === true;
+                if (shouldAutoLearn) {
                   strippedFields.add(autoLearned);
                   addParamToBlocklist(this.provider, autoLearned);
                   delete (transformedBody as Record<string, unknown>)[autoLearned];

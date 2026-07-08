@@ -133,9 +133,7 @@ export function loadParamFilterConfigs(): Map<string, ProviderParamFilter> {
  * Uses an in-memory cache refreshed on write.
  */
 export function getParamFilterConfig(provider: string): ProviderParamFilter | null {
-  return toNormalizedString(provider)
-    ? (loadParamFilterConfigs().get(provider) ?? null)
-    : null;
+  return toNormalizedString(provider) ? (loadParamFilterConfigs().get(provider) ?? null) : null;
 }
 
 /**
@@ -175,16 +173,41 @@ export function deleteParamFilterConfig(provider: string): void {
   bumpCacheGeneration();
 }
 
+// ── Global auto-learn flag ──────────────────────────────────────────────────
+
+const GLOBAL_AUTOLEARN_KEY = "__global__";
+
+/**
+ * Check whether the global auto-learn flag is enabled.
+ * When enabled, ALL providers auto-learn unsupported params from 400 errors
+ * regardless of their per-provider autoLearn setting.
+ * Only fires when this is explicitly configured, else returns false.
+ */
+export function isAutoLearnGloballyEnabled(): boolean {
+  const globalCfg = getParamFilterConfig(GLOBAL_AUTOLEARN_KEY);
+  return globalCfg?.autoLearn === true;
+}
+
+/**
+ * Enable or disable global auto-learn globally for all providers.
+ * When enabled, the per-provider autoLearn flag is still honored after
+ * the global check (either being on is sufficient to trigger auto-learn).
+ */
+export function setGlobalAutoLearnEnabled(enabled: boolean): void {
+  const existing = getParamFilterConfig(GLOBAL_AUTOLEARN_KEY);
+  setParamFilterConfig(GLOBAL_AUTOLEARN_KEY, {
+    block: existing?.block ?? [],
+    allow: existing?.allow ?? [],
+    autoLearn: enabled,
+  });
+}
+
 /**
  * Auto-learn helper: add a single parameter to a provider's block list.
  * If the field is already in the block list (or the config does not exist),
  * this is a no-op. Optionally scoped to a specific model.
  */
-export function addParamToBlocklist(
-  provider: string,
-  paramName: string,
-  model?: string
-): void {
+export function addParamToBlocklist(provider: string, paramName: string, model?: string): void {
   if (!toNormalizedString(provider) || !toNormalizedString(paramName)) return;
 
   const existing = getParamFilterConfig(provider) ?? {

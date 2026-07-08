@@ -17,6 +17,8 @@ const {
   deleteParamFilterConfig,
   loadParamFilterConfigs,
   addParamToBlocklist,
+  isAutoLearnGloballyEnabled,
+  setGlobalAutoLearnEnabled,
 } = await import("../../src/lib/db/paramFilters.ts");
 const { stripUnsupportedParams } = await import("../../open-sse/translator/paramSupport.ts");
 
@@ -130,6 +132,36 @@ test("addParamToBlocklist with model param adds to model-level block list", () =
   addParamToBlocklist("test-model", "temperature", "deepseek-r1");
   const config = getParamFilterConfig("test-model");
   assert.deepEqual(config!.models?.["deepseek-r1"]?.block, ["temperature"]);
+});
+
+// ---------------------------------------------------------------------------
+// Global auto-learn flag
+// ---------------------------------------------------------------------------
+
+test("isAutoLearnGloballyEnabled returns false by default", () => {
+  assert.equal(isAutoLearnGloballyEnabled(), false);
+});
+
+test("setGlobalAutoLearnEnabled(true) enables global auto-learn", () => {
+  setGlobalAutoLearnEnabled(true);
+  assert.equal(isAutoLearnGloballyEnabled(), true);
+});
+
+test("setGlobalAutoLearnEnabled(false) disables global auto-learn", () => {
+  setGlobalAutoLearnEnabled(true);
+  assert.equal(isAutoLearnGloballyEnabled(), true);
+  setGlobalAutoLearnEnabled(false);
+  assert.equal(isAutoLearnGloballyEnabled(), false);
+});
+
+test("setGlobalAutoLearnEnabled does not affect per-provider configs", () => {
+  setParamFilterConfig("test-global-safe", { block: ["thinking"], allow: [], autoLearn: false });
+  setGlobalAutoLearnEnabled(true);
+  const config = getParamFilterConfig("test-global-safe");
+  assert.deepEqual(config!.block, ["thinking"]);
+  assert.equal(config!.autoLearn, false);
+  // Global is independent
+  assert.equal(isAutoLearnGloballyEnabled(), true);
 });
 
 // ---------------------------------------------------------------------------

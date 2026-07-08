@@ -805,5 +805,7 @@ export {
   setParamFilterConfig,
   deleteParamFilterConfig,
   addParamToBlocklist,
+  isAutoLearnGloballyEnabled,
+  setGlobalAutoLearnEnabled,
 } from "./db/paramFilters";
 export type { ProviderParamFilter, ModelParamFilter } from "./db/paramFilters";
