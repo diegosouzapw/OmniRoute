@@ -56,32 +56,36 @@ function toNormalizedString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
+function toStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((k): k is string => typeof k === "string") : [];
+}
+
+function toModelParamFilter(raw: Record<string, unknown>): ModelParamFilter | null {
+  const block = toStringArray(raw.block);
+  const allow = toStringArray(raw.allow);
+  if (block.length === 0 && allow.length === 0) return null;
+  const filter: ModelParamFilter = {};
+  if (block.length > 0) filter.block = block;
+  if (allow.length > 0) filter.allow = allow;
+  return filter;
+}
+
+function toModelParamFilters(raw: unknown): Record<string, ModelParamFilter> {
+  const models: Record<string, ModelParamFilter> = {};
+  if (!isRecord(raw)) return models;
+  for (const [modelId, val] of Object.entries(raw)) {
+    if (!isRecord(val)) continue;
+    const filter = toModelParamFilter(val);
+    if (filter) models[modelId] = filter;
+  }
+  return models;
+}
+
 function toProviderParamFilter(raw: unknown): ProviderParamFilter | null {
   if (!isRecord(raw)) return null;
-  const block: string[] = Array.isArray(raw.block)
-    ? raw.block.filter((k): k is string => typeof k === "string")
-    : [];
-  const allow: string[] = Array.isArray(raw.allow)
-    ? raw.allow.filter((k): k is string => typeof k === "string")
-    : [];
-  const models: Record<string, ModelParamFilter> = {};
-  if (isRecord(raw.models)) {
-    for (const [modelId, val] of Object.entries(raw.models)) {
-      if (isRecord(val)) {
-        const mb: string[] = Array.isArray(val.block)
-          ? val.block.filter((k): k is string => typeof k === "string")
-          : [];
-        const ma: string[] = Array.isArray(val.allow)
-          ? val.allow.filter((k): k is string => typeof k === "string")
-          : [];
-        if (mb.length > 0 || ma.length > 0) {
-          models[modelId] = {};
-          if (mb.length > 0) models[modelId].block = mb;
-          if (ma.length > 0) models[modelId].allow = ma;
-        }
-      }
-    }
-  }
+  const block = toStringArray(raw.block);
+  const allow = toStringArray(raw.allow);
+  const models = toModelParamFilters(raw.models);
   const autoLearn = typeof raw.autoLearn === "boolean" ? raw.autoLearn : false;
   return { block, allow, models: Object.keys(models).length > 0 ? models : undefined, autoLearn };
 }
