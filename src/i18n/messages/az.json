@@ -4415,7 +4415,12 @@
     "webNoAuthGuideBody": "{provider} üçün API açarı və ya kuki tələb olunmur. Pulsuz veb son nöqtəsindən istifadə etmək üçün əlaqəni yadda saxlayın.",
     "webSessionCredentialValidationFailed": "Sessiya etimadnaməsinin yoxlanılması uğursuz oldu. Yenidən daxil olun, yeni etimadnaməsini kopyalayın və yenidən cəhd edin.",
     "checkCookie": "Kuki yoxlayın",
-    "checkWebToken": "Tokeni yoxlayın"
+    "checkWebToken": "Tokeni yoxlayın",
+    "filterAll": "Hamısı",
+    "filterActive": "Aktiv",
+    "filterError": "Xəta",
+    "filterBanned": "Qadağan edilib",
+    "filterCreditsExhausted": "Kreditlər bitib"
   },
   "settings": {
     "title": "Settings",

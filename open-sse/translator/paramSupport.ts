@@ -29,9 +29,12 @@ const STRIP_RULES: StripRule[] = [
       /claude/i.test(m) && !/claude.*(opus|sonnet).*4\.6/i.test(m),
     drop: ["thinking", "reasoning_effort"],
   },
-  // NVIDIA NIM z-ai/glm-5.2: OpenAI-compatible wrapper rejects the `reasoning`
-  // body field → HTTP 400 "Unsupported parameter(s): `reasoning`". #6102 drop pattern.
-  { provider: "nvidia", match: /z-ai\/glm-5\.2\b/i, drop: ["reasoning"] },
+  // NVIDIA NIM z-ai/glm-5.2: OpenAI-compatible wrapper rejects BOTH the `reasoning`
+  // body field (#6102) and the Claude-style `thinking` field. A Claude-format
+  // client (e.g. Claude Code) routed here leaves a `thinking:{type:"adaptive"}`
+  // that the wrapper 400s on — same class already handled for minimax-m2.7 below.
+  // 9router#2023.
+  { provider: "nvidia", match: /z-ai\/glm-5\.2\b/i, drop: ["reasoning", "thinking"] },
   // NVIDIA NIM minimaxai/minimax-m2.7: NVIDIA's OpenAI-compatible wrapper
   // (format:"openai") does not accept the Claude-style `thinking` body field
   // and returns 400 "Unsupported parameter(s): thinking". Upstream #2268.

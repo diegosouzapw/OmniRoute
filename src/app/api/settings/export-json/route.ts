@@ -12,6 +12,37 @@ import {
   getAllDomainCostHistory,
   getAllDomainBudgets,
 } from "@/lib/db/usageAnalytics";
+import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
+
+/**
+ * When `settings.hidePaidModels === true`, exports must not leak paid model ids
+ * via combos — otherwise a round-trip (export → share/store → import) silently
+ * re-materialises the paid targets the operator asked to REMOVE (#6328).
+ * Filter combo model steps in place; keep combo-ref steps untouched.
+ */
+export function filterPaidComboSteps<T extends { models?: unknown }>(combos: T[]): T[] {
+  return combos.map((combo) => {
+    if (!Array.isArray(combo.models)) return combo;
+    const filtered = combo.models.filter((step) => {
+      if (!step || typeof step !== "object") return true;
+      const s = step as Record<string, unknown>;
+      if (s.kind === "combo-ref") return true;
+      const rawModel = typeof s.model === "string" ? s.model.trim() : "";
+      if (!rawModel) return true;
+      const provider =
+        (typeof s.providerId === "string" && s.providerId.trim()) ||
+        (typeof s.provider === "string" && s.provider.trim()) ||
+        (rawModel.includes("/") ? rawModel.split("/")[0] : "");
+      if (!provider) return true;
+      if (!providerHasFreeModels(provider)) return false;
+      const modelId = rawModel.startsWith(`${provider}/`)
+        ? rawModel.slice(provider.length + 1)
+        : rawModel;
+      return isFreeModel(provider, { id: modelId });
+    });
+    return { ...combo, models: filtered };
+  });
+}
 
 /**
  * GET /api/settings/export-json
@@ -39,8 +70,14 @@ export async function GET(request: Request) {
 
     const providerConnections = await getProviderConnections();
     const providerNodes = await getProviderNodes();
-    const combos = await getCombos();
+    const combosRaw = await getCombos();
     const apiKeys = await getApiKeys();
+
+    // #6328: honor hidePaidModels at the export boundary so backup files
+    // cannot silently smuggle paid model ids back in on import.
+    const combos = rawSettings.hidePaidModels === true
+      ? filterPaidComboSteps(combosRaw as Array<{ models?: unknown }>)
+      : combosRaw;
 
     const exportData: Record<string, unknown> = {
       settings: safeSettings,
