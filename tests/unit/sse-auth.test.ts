@@ -1413,7 +1413,7 @@ test("markAccountUnavailable stores Antigravity family-specific cooldowns withou
 
   assert.equal(result.shouldFallback, true);
   assert.ok(result.cooldownMs > 0);
-  assert.equal(updated.testStatus, "unavailable");
+  assert.equal(updated.testStatus, "active");
   assert.equal(updated.rateLimitedUntil, undefined);
   assert.ok(updated.providerSpecificData.antigravityScopeRateLimitedUntil.gemini);
   assert.equal(selectedFlash.allRateLimited, true);

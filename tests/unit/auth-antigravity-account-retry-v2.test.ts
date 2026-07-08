@@ -272,6 +272,100 @@ test("Antigravity all-rate-limited retry-after ignores request-level excluded ac
   assert.notEqual(connectionId(nonExcluded), connectionId(excluded));
 });
 
+test("Antigravity quota-aware selection skips exhausted requested Gemini model only", async () => {
+  await resetStorage();
+
+  const resetAt = new Date(Date.now() + 90 * 60 * 1000).toISOString();
+  const exhausted = await providersDb.createProviderConnection({
+    provider: "antigravity",
+    authType: "oauth",
+    email: "gemini-exhausted@example.test",
+    accessToken: "tok-gemini-exhausted",
+    isActive: true,
+    testStatus: "active",
+    priority: 1,
+  });
+  const healthy = await providersDb.createProviderConnection({
+    provider: "antigravity",
+    authType: "oauth",
+    email: "gemini-healthy@example.test",
+    accessToken: "tok-gemini-healthy",
+    isActive: true,
+    testStatus: "active",
+    priority: 2,
+  });
+
+  const exhaustedId = connectionId(exhausted);
+  const healthyId = connectionId(healthy);
+  const quotaCache = await import("../../src/domain/quotaCache.ts");
+  quotaCache.setQuotaCache(exhaustedId, "antigravity", {
+    "gemini-3.5-flash-medium": { remainingPercentage: 0, resetAt },
+    "claude-sonnet-4": { remainingPercentage: 100 },
+  });
+  quotaCache.setQuotaCache(healthyId, "antigravity", {
+    "gemini-3.5-flash-medium": { remainingPercentage: 100, resetAt },
+    "claude-sonnet-4": { remainingPercentage: 100 },
+  });
+
+  const selectedGemini = await auth.getProviderCredentials(
+    "antigravity",
+    null,
+    null,
+    "gemini-3.5-flash-medium"
+  );
+  assert.ok(selectedGemini);
+  assert.equal(selectedGemini.connectionId, healthyId);
+
+  const selectedClaude = await auth.getProviderCredentials(
+    "antigravity",
+    null,
+    [exhaustedId],
+    "claude-sonnet-4"
+  );
+  assert.ok(selectedClaude);
+  assert.equal(selectedClaude.connectionId, exhaustedId);
+});
+
+test("Antigravity 429 writes family cooldown even when generic rateLimitedUntil already exists", async () => {
+  await resetStorage();
+
+  const conn = await providersDb.createProviderConnection({
+    provider: "antigravity",
+    authType: "oauth",
+    email: "generic-cooling@example.test",
+    accessToken: "tok-generic-cooling",
+    isActive: true,
+    testStatus: "active",
+    rateLimitedUntil: String(Date.now() + 10 * 60 * 1000),
+  });
+  const connId = connectionId(conn);
+
+  const result = await auth.markAccountUnavailable(
+    connId,
+    429,
+    "RESOURCE_EXHAUSTED: Resource has been exhausted",
+    "antigravity",
+    "gemini-3.5-flash-medium"
+  );
+  const updated = await providersDb.getProviderConnectionById(connId);
+  const data = updated.providerSpecificData as any;
+
+  assert.equal(result.shouldFallback, true);
+  assert.ok(
+    data?.antigravityScopeRateLimitedUntil?.gemini,
+    "expected family cooldown to be persisted despite existing global cooldown"
+  );
+  assert.equal(updated.testStatus, "active");
+
+  const selectedGemini = await auth.getProviderCredentials(
+    "antigravity",
+    null,
+    null,
+    "gemini-3.5-flash-medium"
+  );
+  assert.ok(selectedGemini && "allRateLimited" in selectedGemini && selectedGemini.allRateLimited);
+});
+
 test("non-Antigravity 429 ignores unrelated exhausted quota cache and keeps model-only behavior", async () => {
   await resetStorage();
 

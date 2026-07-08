@@ -12,7 +12,6 @@ import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
   getQuotaWindowStatus,
-  isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
 import {
   getAntigravityQuotaFamily,
@@ -430,47 +429,97 @@ function isAntigravityScopeUnavailable(
 
 const ANTIGRAVITY_QUOTA_EXHAUSTED_ERROR = "Antigravity quota exhausted until cached quota reset";
 
+function isAntigravityQuotaKeyForModel(quotaKey: string, model: string | null): boolean {
+  if (!model) return true;
+
+  const modelFamily = getAntigravityQuotaFamily(model);
+  const quotaFamily = getAntigravityQuotaFamily(quotaKey);
+  const normalizedModel = String(model).toLowerCase().replace(/^antigravity\//, "");
+  const normalizedQuotaKey = quotaKey.toLowerCase().replace(/^antigravity\//, "");
+
+  return (
+    (modelFamily !== "other" && quotaFamily === modelFamily) ||
+    normalizedQuotaKey === normalizedModel ||
+    normalizedQuotaKey.includes(normalizedModel) ||
+    normalizedModel.includes(normalizedQuotaKey)
+  );
+}
+
+function getAntigravityQuotaExhaustion(
+  connectionId: string,
+  model: string | null
+): { exhausted: boolean; resetAt: string | null } {
+  const entry = getQuotaCache(connectionId);
+  if (!entry || entry.provider !== "antigravity") return { exhausted: false, resetAt: null };
+
+  const now = Date.now();
+  let sawMatchingQuota = false;
+  let exhaustedMatchingQuota = false;
+  let earliestFutureResetMs = Infinity;
+
+  for (const [quotaKey, quota] of Object.entries(entry.quotas || {})) {
+    if (!quota || !isAntigravityQuotaKeyForModel(quotaKey, model)) continue;
+    sawMatchingQuota = true;
+    if (quota.remainingPercentage > 0) continue;
+
+    exhaustedMatchingQuota = true;
+    const resetMs = quota.resetAt ? new Date(quota.resetAt).getTime() : NaN;
+    if (Number.isFinite(resetMs) && resetMs > now) {
+      earliestFutureResetMs = Math.min(earliestFutureResetMs, resetMs);
+    }
+  }
+
+  if (sawMatchingQuota) {
+    return {
+      exhausted: exhaustedMatchingQuota,
+      resetAt: Number.isFinite(earliestFutureResetMs)
+        ? new Date(earliestFutureResetMs).toISOString()
+        : null,
+    };
+  }
+
+  if (entry.exhausted) {
+    const resetMs = entry.nextResetAt ? new Date(entry.nextResetAt).getTime() : NaN;
+    if (Number.isFinite(resetMs) && resetMs <= now) return { exhausted: false, resetAt: null };
+    return {
+      exhausted: true,
+      resetAt: Number.isFinite(resetMs) && resetMs > now ? new Date(resetMs).toISOString() : null,
+    };
+  }
+
+  return { exhausted: false, resetAt: null };
+}
+
+function isConnectionQuotaExhaustedForModel(
+  provider: string,
+  connectionId: string,
+  model: string | null
+): boolean {
+  if (provider === "antigravity") {
+    return getAntigravityQuotaExhaustion(connectionId, model).exhausted;
+  }
+
+  const entry = getQuotaCache(connectionId);
+  if (!entry || !entry.exhausted) return false;
+
+  const now = Date.now();
+  const resetMs = entry.nextResetAt ? new Date(entry.nextResetAt).getTime() : NaN;
+  if (Number.isFinite(resetMs) && resetMs <= now) return false;
+
+  const age = now - entry.fetchedAt;
+  if (!entry.nextResetAt && age > 5 * 60 * 1000) return false;
+
+  return true;
+}
+
 function antigravityQuotaResetCooldownMs(
   connectionId: string,
   model: string | null
 ): number | null {
-  const entry = getQuotaCache(connectionId);
-  if (!entry || entry.provider !== "antigravity") return null;
-
-  const now = Date.now();
-  const modelFamily = getAntigravityQuotaFamily(model);
-  const normalizedModel = String(model || "")
-    .toLowerCase()
-    .replace(/^antigravity\//, "");
-
-  let earliestFutureResetMs = Infinity;
-
-  for (const [quotaKey, quota] of Object.entries(entry.quotas || {})) {
-    if (!quota || quota.remainingPercentage > 0 || !quota.resetAt) continue;
-
-    const resetMs = new Date(quota.resetAt).getTime();
-    if (!Number.isFinite(resetMs) || resetMs <= now) continue;
-
-    const quotaFamily = getAntigravityQuotaFamily(quotaKey);
-    const normalizedQuotaKey = quotaKey.toLowerCase().replace(/^antigravity\//, "");
-    const matchesRequestedModel =
-      !model ||
-      (modelFamily !== "other" && quotaFamily === modelFamily) ||
-      normalizedQuotaKey === normalizedModel ||
-      normalizedQuotaKey.includes(normalizedModel) ||
-      normalizedModel.includes(normalizedQuotaKey);
-
-    if (matchesRequestedModel) earliestFutureResetMs = Math.min(earliestFutureResetMs, resetMs);
-  }
-
-  if (!Number.isFinite(earliestFutureResetMs)) {
-    const resetMs =
-      entry.exhausted && entry.nextResetAt ? new Date(entry.nextResetAt).getTime() : NaN;
-    if (Number.isFinite(resetMs) && resetMs > now) earliestFutureResetMs = resetMs;
-  }
-
-  if (!Number.isFinite(earliestFutureResetMs)) return null;
-  return Math.max(earliestFutureResetMs - now, 1);
+  const exhaustion = getAntigravityQuotaExhaustion(connectionId, model);
+  if (!exhaustion.exhausted || !exhaustion.resetAt) return null;
+  const resetMs = new Date(exhaustion.resetAt).getTime();
+  return Number.isFinite(resetMs) && resetMs > Date.now() ? Math.max(resetMs - Date.now(), 1) : null;
 }
 
 function getEarliestCodexScopeRateLimitedUntil(
@@ -729,7 +778,7 @@ function getP2CConnectionScore(
   requestedModel: string | null = null
 ): { score: number; quotaHeadroomPercent: number | null } {
   const quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
-  const quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
+  const quotaExhausted = isConnectionQuotaExhaustedForModel(provider, connection.id, requestedModel);
   const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(
     provider,
     connection,
@@ -1301,9 +1350,14 @@ export async function getProviderCredentials(
       if (!allowSuppressedConnections) {
         if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) return false;
         if (isTerminalConnectionStatus(c)) return false;
-        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
-        if (provider === "antigravity" && isAntigravityScopeUnavailable(c, requestedModel))
+        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) {
+          modelLockedCount += 1;
           return false;
+        }
+        if (provider === "antigravity" && isAntigravityScopeUnavailable(c, requestedModel)) {
+          familyLockedCount += 1;
+          return false;
+        }
         // Per-model lockout: if this specific model/family is locked on this connection, skip it
         if (requestedModel && isModelLocked(provider, c.id, requestedModel)) {
           if (
@@ -1545,10 +1599,10 @@ export async function getProviderCredentials(
 
     // Quota-aware: filter out accounts with exhausted quota for the requested scope.
     const withQuota = policyEligibleConnections.filter(
-      (c) => !isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+      (c) => !isConnectionQuotaExhaustedForModel(provider, c.id, requestedModel)
     );
     const exhaustedQuota = policyEligibleConnections.filter((c) =>
-      isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+      isConnectionQuotaExhaustedForModel(provider, c.id, requestedModel)
     );
 
     if (exhaustedQuota.length > 0) {
@@ -1562,6 +1616,9 @@ export async function getProviderCredentials(
       // All remaining eligible accounts are exhausted
       const earliestResetAt = getEarliestFutureDate(
         exhaustedQuota.map((c) => {
+          if (provider === "antigravity") {
+            return getAntigravityQuotaExhaustion(c.id, requestedModel).resetAt;
+          }
           const entry = getQuotaCache(c.id);
           return entry?.nextResetAt || null;
         })
@@ -2023,7 +2080,17 @@ export async function markAccountUnavailable(
     const existingCooldownMs = conn?.rateLimitedUntil
       ? cooldownUntilMs(conn.rateLimitedUntil)
       : NaN;
-    if (Number.isFinite(existingCooldownMs) && existingCooldownMs > Date.now()) {
+    const shouldBypassGlobalDuplicateGuardForAntigravityFamily429 =
+      provider === "antigravity" &&
+      status === 429 &&
+      Boolean(model) &&
+      getAntigravityQuotaFamily(model) !== "other" &&
+      Boolean(conn);
+    if (
+      Number.isFinite(existingCooldownMs) &&
+      existingCooldownMs > Date.now() &&
+      !shouldBypassGlobalDuplicateGuardForAntigravityFamily429
+    ) {
       log.info(
         "AUTH",
         `${connectionId.slice(0, 8)} already marked unavailable (until ${conn?.rateLimitedUntil}), skipping duplicate mark`
