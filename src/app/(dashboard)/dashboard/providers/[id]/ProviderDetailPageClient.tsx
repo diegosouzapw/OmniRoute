@@ -53,6 +53,7 @@ import EmptyConnectionsPlaceholder from "./components/EmptyConnectionsPlaceholde
 import UpstreamProxyCard from "./components/UpstreamProxyCard";
 import SearchProviderCard from "./components/SearchProviderCard";
 import NoAuthProviderControls from "./components/NoAuthProviderControls";
+import ProviderParamFilterSection from "./components/ProviderParamFilterSection";
 // providerText used by UpstreamProxyCard (Phase 1t.7)
 
 export default function ProviderDetailPageClient() {
@@ -698,6 +699,9 @@ export default function ProviderDetailPageClient() {
 
       {/* Playground panel — rendered for providers that declare serviceKinds */}
       <ProviderPlaygroundPanel providerId={providerId} />
+
+      {/* Param filters — denylist/allowlist config per provider/model (#6625) */}
+      <ProviderParamFilterSection providerId={providerId} />
 
       {/* Modals — Phase 1t.5: extracted to components/ProviderModalsPanel.tsx */}
       <ProviderModalsPanel
