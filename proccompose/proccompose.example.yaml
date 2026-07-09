@@ -1,0 +1,137 @@
+# proccompose.example.yaml - copy this to proccompose.yaml and edit.
+# One declarative file describes the entire argismonitor v4 deployment.
+# `proccompose up` reads it and runs the whole sequence.
+
+version: "1"
+project: argismonitor
+
+config:
+  desktop_host: desk                       # SSH alias from pheno-compute-layer
+  data_dir: ~/.argismonitor
+  gateway_socket: /var/run/argismonitor/gateway.sock
+  bff_port: 4322
+  web_port: 4321
+  nextjs_port: 20128
+  v4_ref: origin/feat/v4-svelte-hono-monorepo
+
+hosts:
+  desktop:
+    ssh_target: desk
+    address_resolver: pheno status --self --json | jq -r .Self.DNSName
+
+services:
+  bff:
+    host: desktop
+    description: "argismonitor BFF (Hono + tRPC + kbridge client + feature flag)"
+    build:
+      workdir: ~/argismonitor-monorepo/apps/bff
+      cmd: bun install && bun run build
+    run:
+      workdir: ~/argismonitor-monorepo/apps/bff
+      env:
+        DATA_DIR: $config.data_dir
+        PORT: $config.bff_port
+        OMNIROUTE_GATEWAY_SOCKET: $config.gateway_socket
+      cmd: bun run src/server.ts
+      log: $config.data_dir/bff.log
+    supervisor:
+      type: launchd
+      plist: ~/Library/LaunchAgents/online.phenotype.argismonitor.bff.plist
+      keep_alive: true
+      run_at_load: true
+
+  kbridge:
+    host: desktop
+    description: "argismonitor Rust gateway daemon (Unix-socket + MessagePack-RPC)"
+    build:
+      workdir: ~/argismonitor-monorepo/backend-rust
+      cmd: cargo build --release -p omniroute-server
+    run:
+      workdir: ~/argismonitor-monorepo/backend-rust
+      env:
+        OMNIRoute_GATEWAY_SOCKET: $config.gateway_socket
+      cmd: ./target/release/omniroute-server --port $config.nextjs_port --data-dir $config.data_dir --kbridge-socket $config.gateway_socket
+      log: $config.data_dir/gateway.log
+    supervisor:
+      type: launchd
+      plist: ~/Library/LaunchAgents/online.phenotype.argismonitor.gateway.plist
+      keep_alive: true
+      run_at_load: true
+
+  nextjs_legacy:
+    host: desktop
+    description: "Legacy Next.js upstream (only for the Phase 3 cutover redirect)"
+    build:
+      workdir: ~/OmniRoute-b10
+      cmd: bun install && bun run build
+    run:
+      workdir: ~/OmniRoute-b10
+      env:
+        PORT: $config.nextjs_port
+      cmd: bun run start
+      log: $config.data_dir/nextjs.log
+
+  tailscale_funnel:
+    host: desktop
+    description: "Expose the BFF over Tailscale Funnel so Vercel frontends can reach it"
+    run:
+      workdir: ~
+      cmd: tailscale funnel --bg --bg-local-allow-multiple-clients $config.bff_port
+    depends_on: [bff]
+    provides: url
+
+vercel_projects:
+  - name: argismonitor-homepage
+    env:
+      OMNI_BFF_URL: $services.tailscale_funnel.url:$config.bff_port
+      NEXTJS_UPSTREAM: $services.tailscale_funnel.url:$config.nextjs_port
+      OMNI_WEB_STACK: svelte
+      OMNI_WEB_STACK_ROLLOUT: 0
+  - name: argismonitor-app
+    env:
+      OMNI_BFF_URL: $services.tailscale_funnel.url:$config.bff_port
+      NEXTJS_UPSTREAM: $services.tailscale_funnel.url:$config.nextjs_port
+      OMNI_WEB_STACK: svelte
+      OMNI_WEB_STACK_ROLLOUT: 0
+  - name: argismonitor-docs
+    env:
+      OMNI_BFF_URL: $services.tailscale_funnel.url:$config.bff_port
+      NEXTJS_UPSTREAM: $services.tailscale_funnel.url:$config.nextjs_port
+      OMNI_WEB_STACK: svelte
+      OMNI_WEB_STACK_ROLLOUT: 0
+
+cutover:
+  - pct: 1
+    duration_hours: 4
+    success_criteria:
+      - error_rate < 0.005
+      - p95_latency_ms < 500
+  - pct: 10
+    duration_hours: 24
+    success_criteria:
+      - error_rate < 0.005
+      - p95_latency_ms < 500
+  - pct: 50
+    duration_hours: 48
+    success_criteria:
+      - error_rate < 0.005
+      - p95_latency_ms < 500
+  - pct: 100
+    duration_hours: 72
+    success_criteria:
+      - error_rate < 0.005
+      - p95_latency_ms < 500
+
+monitor:
+  health_endpoints:
+    - bff: http://$services.tailscale_funnel.url:$config.bff_port/healthz
+    - kbridge: $services.bff.url:$config.bff_port/api/dashboard/health/stream
+    - nextjs: http://$services.tailscale_funnel.url:$config.nextjs_port/healthz
+  slo:
+    p50_latency_ms: 150
+    p95_latency_ms: 500
+    p99_latency_ms: 1500
+    error_rate_max: 0.005
+  alert:
+    on_breach: console + slack_webhook
+    slo_breach_message: "argismonitor SLO breach: $service at $value (limit $limit)"

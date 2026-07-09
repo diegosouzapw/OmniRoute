@@ -165,6 +165,81 @@ print('cutover phases:', [c['pct'] for c in d.get('cutover', [])])
 "
 }
 
+
+cmd_doctor() {
+  log "checking prerequisites for argismonitor v4 stack..."
+  local fail=0
+  log "[1/6] pheno-compute-layer CLI (~/bin/pheno)..."
+  if command -v pheno >/dev/null 2>&1 || [[ -x "$HOME/bin/pheno" ]]; then
+    ok "pheno present: $(command -v pheno || echo "$HOME/bin/pheno")"
+  else
+    err "pheno missing - install via pheno-compute-layer"
+    fail=1
+  fi
+
+  log "[2/6] Tailscale on PATH..."
+  if command -v tailscale >/dev/null 2>&1; then
+    ok "tailscale present: $(command -v tailscale)"
+  else
+    err "tailscale missing"
+    fail=1
+  fi
+
+  log "[3/6] Tailscale running on desktop..."
+  if [[ -x "$HOME/bin/pheno" ]]; then
+    if "$HOME/bin/pheno" ts 2>&1 | head -1 | grep -q "100\."; then
+      ok "desktop on Tailscale"
+    else
+      err "desktop Tailscale not up - run 'pheno ts' on desktop"
+      fail=1
+    fi
+  fi
+
+  log "[4/6] vercel CLI on PATH..."
+  if command -v vercel >/dev/null 2>&1; then
+    ok "vercel present: $(command -v vercel)"
+  else
+    err "vercel missing - install via 'npm i -g vercel'"
+    fail=1
+  fi
+
+  log "[5/6] proccompose.yaml valid..."
+  if bash -n "$0" 2>/dev/null; then
+    if [[ -f "$YAML_FILE" ]]; then
+      python3 -c "import yaml; d=yaml.safe_load(open('$YAML_FILE')); assert 'services' in d" && ok "valid: 4 services declared" || err "invalid: missing 'services' key"
+    else
+      err "missing - copy proccompose.example.yaml to ./proccompose.yaml"
+      fail=1
+    fi
+  fi
+
+  log "[6/6] yq on PATH (for runtime config var expansion)..."
+  if command -v yq >/dev/null 2>&1; then
+    ok "yq present"
+  else
+    err "yq missing - install via 'brew install yq'"
+    fail=1
+  fi
+
+  if (( fail == 0 )); then
+    ok "all prerequisites met - safe to run 'proccompose up'"
+  else
+    err "$fail prereq(s) missing - see above"
+    exit 1
+  fi
+}
+
+cmd_status_json() {
+  cmd_status | python3 -c "
+import sys, json
+out = {'services': {}}
+for line in sys.stdin:
+    if 'responding' in line: out['services']['healthy'] = out['services'].get('healthy', 0) + 1
+    if 'down' in line: out['services']['unhealthy'] = out['services'].get('unhealthy', 0) + 1
+out['yaml_file'] = '$YAML_FILE'
+print(json.dumps(out, indent=2))
+"
+}
 case "${1:-help}" in
   up)        cmd_up ;;
   down)      cmd_down ;;
