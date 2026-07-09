@@ -43,6 +43,7 @@ const COMPRESSION_MODES = new Set<CompressionMode>([
   "ultra",
   "rtk",
   "stacked",
+  "omniglyph",
 ]);
 
 type JsonRecord = Record<string, unknown>;
@@ -271,6 +272,7 @@ const STACKED_PIPELINE_ENGINE_IDS = new Set([
   "session-dedup",
   "ccr",
   "llmlingua",
+  "omniglyph",
 ]);
 
 export function normalizeStackedPipeline(value: unknown): CompressionPipelineStep[] {
@@ -417,6 +419,7 @@ const SINGLE_MODE_ENGINE: Partial<Record<CompressionMode, string>> = {
   aggressive: "aggressive",
   ultra: "ultra",
   rtk: "rtk",
+  omniglyph: "omniglyph",
 };
 
 function normalizeEngineToggle(value: unknown): EngineToggle | null {

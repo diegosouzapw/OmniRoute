@@ -11,7 +11,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { sanitizeChatRequestBody } from "../../open-sse/handlers/chatCore/sanitization.ts";
-import { checkIdempotencyCache } from "../../open-sse/handlers/chatCore/idempotency.ts";
+import {
+  checkIdempotencyCache,
+  composeIdempotencyKey,
+} from "../../open-sse/handlers/chatCore/idempotency.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 import { saveIdempotency } from "../../src/lib/idempotencyLayer.ts";
 
@@ -74,14 +77,32 @@ test("checkIdempotencyCache returns { hit:null, idempotencyKey } on a miss", asy
     log: undefined,
   });
   assert.equal(result.hit, null);
-  assert.equal(result.idempotencyKey, "idem-miss-3821");
+  // #6558: the raw header key is now namespaced by provider/model + a messages
+  // digest (composeIdempotencyKey) so fusion panel/judge sub-requests can't collide.
+  assert.equal(
+    result.idempotencyKey,
+    composeIdempotencyKey({
+      rawKey: "idem-miss-3821",
+      provider: "openai",
+      model: "gpt-4.1",
+      messages: undefined,
+    })
+  );
 });
 
 test("checkIdempotencyCache returns a hit Response reusing the same key after a save", async () => {
-  const key = "idem-hit-3821";
+  const rawKey = "idem-hit-3821";
+  // #6558: the store is keyed by the COMPOSED key, so the save site saves under the
+  // same derivation checkIdempotencyCache returns — reproduce that here.
+  const key = composeIdempotencyKey({
+    rawKey,
+    provider: "openai",
+    model: "gpt-4.1",
+    messages: undefined,
+  })!;
   saveIdempotency(key, { object: "chat.completion", choices: [], usage: {} }, 200);
 
-  const headers = new Headers({ "idempotency-key": key });
+  const headers = new Headers({ "idempotency-key": rawKey });
   const result = await checkIdempotencyCache({
     clientRawRequest: { headers },
     provider: "openai",
