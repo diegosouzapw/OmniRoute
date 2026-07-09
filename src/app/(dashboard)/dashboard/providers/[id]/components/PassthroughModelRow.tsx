@@ -21,6 +21,7 @@ import { ModelSourceBadge, type ModelCompatSavePatch } from "./ModelRow";
 export interface PassthroughModelRowProps {
   modelId: string;
   fullModel: string;
+  provider: string;
   alias?: string | null;
   source?: string;
   isFree?: boolean;
@@ -64,6 +65,7 @@ export default function PassthroughModelRow({
   effectiveModelPreserveDeveloper,
   getUpstreamHeadersRecord,
   saveModelCompatFlags,
+  provider,
   compatDisabled,
   onToggleHidden,
   togglingHidden,
@@ -223,6 +225,8 @@ export default function PassthroughModelRow({
           )}
           <ModelCompatPopover
             t={t}
+            providerId={provider}
+            modelId={modelId}
             effectiveModelNormalize={(p) => effectiveModelNormalize(modelId, p)}
             effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(modelId, p)}
             getUpstreamHeadersRecord={getUpstreamHeadersRecord}

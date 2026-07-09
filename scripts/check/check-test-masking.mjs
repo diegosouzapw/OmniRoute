@@ -59,6 +59,29 @@ export function countExtendedTautologies(src) {
   return count;
 }
 
+/**
+ * (#6404) Narrower sibling of countExtendedTautologies(), deliberately EXCLUDING
+ * `assert.ok(true)`: that pattern is intentionally left to the lenient, diff-only,
+ * new-occurrences-only subcheck 3 above, because ~15 pre-existing, verified-legitimate
+ * uses already exist repo-wide (documented fallbacks like "expected to throw" /
+ * "DB not available, expected" in try/catch branches) — an absolute, always-on scan
+ * against all of them would be a mass false-positive, not a real signal.
+ *
+ * `expect(true).toBe(true)` / `assert.equal(1, 1)` / `assert.strictEqual(1, 1)` have
+ * no such legitimate use anywhere in this codebase (verified zero pre-existing hits
+ * after fixing #6404's playground-api-tab.test.tsx) — a genuinely bare, no-argument
+ * tautology is never a deliberate pattern here, so it is safe to fail on ANY hit,
+ * with or without a PR diff to compare against. See scanBareTautologies() below.
+ */
+export function countBareTautologies(src) {
+  let count = 0;
+  // expect(true).toBe(true)
+  count += (src.match(/\bexpect\s*\(\s*true\s*\)\s*\.\s*toBe\s*\(\s*true\s*\)/g) || []).length;
+  // assert.equal(1, 1) / assert.strictEqual(1, 1) — literal numeric identity
+  count += (src.match(/\bassert\s*\.\s*(?:strict)?[Ee]qual\s*\(\s*1\s*,\s*1\s*\)/g) || []).length;
+  return count;
+}
+
 // ─── (6348) Subcheck 4: inline-reimplemented prod conditions (REPORT-ONLY) ───
 // A test that copies a conditional expression out of production code (instead of
 // importing and exercising the symbol that owns it) is the wrong-shape-contract-test
@@ -325,12 +348,65 @@ export function evaluateMasking(perFile, assertReductionAllowlist = new Set()) {
   return flags;
 }
 
+/**
+ * (#6404) Absolute floor scan for bare tautologies (`expect(true).toBe(true)`,
+ * `assert.equal(1, 1)` / `assert.strictEqual(1, 1)`), independent of PR diffing.
+ *
+ * The subcheck-3 diff logic above (`evaluateMasking`'s `headExtTaut > baseExtTaut`)
+ * only fires for a tautology INTRODUCED within the current PR's own diff, and
+ * `resolveBase()` returns `null` outside CI (no `GITHUB_BASE_SHA`/`GITHUB_BASE_REF`),
+ * so a local `npm run check:test-masking` run silently no-ops — "sem base ref —
+ * pulando" — regardless of what the tests actually contain. That is exactly how
+ * #6404's `expect(true).toBe(true)` in `playground-api-tab.test.tsx` slipped through
+ * for a full release cycle after merging once (the diff-only gate has nothing to
+ * compare a pre-existing, already-merged tautology against, and local runs never
+ * scan repo content at all). This scans every tracked test file's current content,
+ * in or out of PR context, so a stray tautology can never hide once merged.
+ *
+ * Uses `countBareTautologies()` (not `countExtendedTautologies()`) — deliberately
+ * excludes `assert.ok(true)`, which has ~15 verified-legitimate pre-existing uses
+ * repo-wide and stays governed by the lenient, new-occurrence-only diff subcheck.
+ *
+ * `check-test-masking.test.ts` is excluded — its fixtures legitimately embed the
+ * literal pattern as string literals to exercise the count* helpers themselves.
+ */
+export function scanBareTautologies(testFiles, readFile) {
+  const read = readFile || ((f) => fs.readFileSync(f, "utf8"));
+  const flags = [];
+  for (const file of testFiles || []) {
+    if (file.endsWith("check-test-masking.test.ts")) continue;
+    let src;
+    try {
+      src = read(file);
+    } catch {
+      continue;
+    }
+    const count = countBareTautologies(src);
+    if (count > 0) {
+      flags.push(
+        `${file}: ${count} tautologia(s) pura(s) (expect(true).toBe(true) / assert.equal(1,1)) — ` +
+          "substitua por um assert real do comportamento observável"
+      );
+    }
+  }
+  return flags;
+}
+
 function git(args) {
   try {
     return execFileSync("git", args, { encoding: "utf8" });
   } catch {
     return "";
   }
+}
+
+/** All git-tracked test files (`.test.ts(x)`/`.spec.ts(x)`), repo-wide — used by the
+ * absolute floor scan so it also covers files untouched by the current diff/PR. */
+function listTrackedTestFiles() {
+  return git(["ls-files"])
+    .split("\n")
+    .map((s) => s.trim())
+    .filter((f) => TEST_RE.test(f));
 }
 
 function resolveBase() {
@@ -340,9 +416,34 @@ function resolveBase() {
 }
 
 function main() {
+  // (#6404) Absolute floor scan — runs unconditionally, PR or not, so a tautology
+  // that is already merged into the base (and thus invisible to the diff-only
+  // subchecks below) or a local pre-push run (which has no PR base to diff
+  // against) still gets caught. See scanBareTautologies() doc comment.
+  let bareTautAllowlist = new Set();
+  try {
+    const raw = JSON.parse(fs.readFileSync("config/quality/test-masking-allowlist.json", "utf8"));
+    bareTautAllowlist = new Set(raw._bareTautologyAllowlist || []);
+  } catch {
+    // no allowlist file — treat as empty
+  }
+  const trackedTestFiles = listTrackedTestFiles().filter((f) => !bareTautAllowlist.has(f));
+  const absoluteTautFlags = scanBareTautologies(trackedTestFiles);
+  if (absoluteTautFlags.length) {
+    console.error(
+      `[test-masking] ${absoluteTautFlags.length} tautologia(s) pura(s) encontradas ` +
+        `(scan absoluto — roda com ou sem contexto de PR):\n` +
+        absoluteTautFlags.map((f) => "  ✗ " + f).join("\n") +
+        `\n  → substitua por um assert real do comportamento observável.`
+    );
+    process.exit(1);
+  }
+
   const base = resolveBase();
   if (!base) {
-    console.log("[test-masking] sem base ref (não é PR) — pulando.");
+    console.log(
+      "[test-masking] sem base ref (não é PR) — pulando checks de diff (scan absoluto de tautologias OK)."
+    );
     return;
   }
 

@@ -18,7 +18,12 @@ import {
   recordProviderFailure,
   selectLockoutCooldownMs,
 } from "./accountFallback.ts";
-import { errorResponse, unavailableResponse } from "../utils/error.ts";
+import {
+  errorResponse,
+  unavailableResponse,
+  errorResponseWithComboDiagnostics,
+} from "../utils/error.ts";
+import type { ComboDiagnostics } from "../utils/error.ts";
 import { buildTargetTimeoutRunner } from "./combo/targetTimeoutRunner.ts";
 import { recordComboRequest, recordComboShadowRequest, getComboMetrics } from "./comboMetrics.ts";
 import {
@@ -770,6 +775,18 @@ export async function handleComboChat({
   // Fusion strategy: parallel panel + judge synthesis. Handled in a separate module
   // because it neither iterates targets in order nor needs the failover/retry/credential
   // gate machinery that follows — it fans out, then synthesizes once.
+  const cfg = config as Record<string, unknown>;
+  const judgeModel = typeof cfg.judgeModel === "string" ? cfg.judgeModel : undefined;
+  const fusionTuning =
+    cfg.fusionTuning && typeof cfg.fusionTuning === "object"
+      ? (cfg.fusionTuning as FusionTuning)
+      : undefined;
+  if (strategy !== "fusion" && (judgeModel || fusionTuning)) {
+    log.warn(
+      "COMBO",
+      `Combo "${combo.name}" sets config.judgeModel/fusionTuning but strategy is "${strategy}" — these fields are only consumed by the fusion strategy and will be ignored (#6455)`
+    );
+  }
   if (strategy === "fusion") {
     const fusionModels = (combo.models || [])
       .map((m) => {
@@ -781,12 +798,6 @@ export async function handleComboChat({
         return null;
       })
       .filter((m): m is string => Boolean(m));
-    const cfg = config as Record<string, unknown>;
-    const judgeModel = typeof cfg.judgeModel === "string" ? cfg.judgeModel : undefined;
-    const tuning =
-      cfg.fusionTuning && typeof cfg.fusionTuning === "object"
-        ? (cfg.fusionTuning as FusionTuning)
-        : undefined;
     return handleFusionChat({
       body,
       models: fusionModels,
@@ -794,7 +805,7 @@ export async function handleComboChat({
       log,
       comboName: combo.name,
       judgeModel,
-      tuning,
+      tuning: fusionTuning,
     });
   }
 
@@ -1216,8 +1227,24 @@ export async function handleComboChat({
   // 16 strategies (priority, weighted, etc.) that funnel through executeTarget.
   const quotaCutoffResetWindowConfig = resolveResetWindowConfig(config as Record<string, unknown>);
 
+  // QA P0 diagnostics: record the order in which targets were actually attempted
+  // (provider/model ids only) so a terminal combo failure can report the attempt
+  // sequence alongside pool size + exhaustion reasons. Accumulates across set retries.
+  const comboAttemptOrder: Array<{ provider: string; model: string }> = [];
+
   if (orderedTargets.length === 0) {
-    return comboModelNotFoundResponse("Combo has no executable targets");
+    return errorResponseWithComboDiagnostics(
+      404,
+      "Combo has no executable targets",
+      {
+        poolSize: 0,
+        attempted: 0,
+        excluded: [],
+        attemptOrder: [],
+        terminalReason: "no_executable_targets",
+      },
+      { code: "model_not_found", type: "invalid_request_error" }
+    );
   }
 
   scheduleShadowRouting(
@@ -1299,6 +1326,23 @@ export async function handleComboChat({
       const startTime = Date.now();
       let fallbackCount = 0;
       let recordedAttempts = 0;
+
+      // QA P0: assemble a sanitized diagnostic trace from the state already in scope
+      // (pool size + this set-try's exhausted providers/connections + attempt order +
+      // a terminal-reason code). Never touches keys/tokens — provider/model ids only.
+      const buildComboDiag = (terminalReason: string): ComboDiagnostics => ({
+        poolSize: orderedTargets.length,
+        attempted: recordedAttempts,
+        excluded: [
+          ...[...exhaustedProviders].map((p) => ({ provider: p, reason: "exhausted" })),
+          ...[...exhaustedConnections].map((c) => ({
+            provider: "unknown",
+            reason: `exhausted_connection:${String(c).slice(0, 8)}`,
+          })),
+        ],
+        attemptOrder: comboAttemptOrder,
+        terminalReason,
+      });
 
       let globalResolve: ((res: Response) => void) | null = null;
       const globalPromise = new Promise<Response>((res) => {
@@ -1436,7 +1480,23 @@ export async function handleComboChat({
               "COMBO",
               `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
             );
-            return { ok: false, response: errorResponse(503, "Maximum combo retry limit reached") };
+            // Actionable failure instead of an opaque 503 when every candidate
+            // failed the same recoverable way. If the dominant cause was reasoning
+            // models exhausting a too-small max_tokens budget (no content output),
+            // retrying other models can't help — tell the caller to raise max_tokens.
+            const reasoningExhausted = /reasoning consumed \d+\/\d+ tokens/.test(lastError || "");
+            return {
+              ok: false,
+              response: errorResponseWithComboDiagnostics(
+                503,
+                reasoningExhausted
+                  ? "All combo candidates exhausted their token budget on reasoning without producing content. Increase max_tokens — reasoning models need a larger budget to emit content."
+                  : "Maximum combo retry limit reached",
+                buildComboDiag(
+                  reasoningExhausted ? "reasoning_budget_exhausted" : "max_attempts_exceeded"
+                )
+              ),
+            };
           }
 
           // Predictive TTFT Circuit Breaker (skip slow models)
@@ -1494,6 +1554,8 @@ export async function handleComboChat({
             timestamp: Date.now(),
             strategy,
           });
+          // QA P0 diagnostics: capture the attempt order (provider/model ids only).
+          comboAttemptOrder.push({ provider: provider ?? "unknown", model: modelStr });
 
           // Deep clone the body to ensure context preservation and prevent mutations
           // from affecting other targets in the combo. structuredClone avoids the
@@ -2238,15 +2300,11 @@ export async function handleComboChat({
           latencyMs,
           fallbackCount,
         });
-        return new Response(
-          JSON.stringify({
-            error: {
-              message: "Service temporarily unavailable: all upstream accounts are inactive",
-              type: "service_unavailable",
-              code: "ALL_ACCOUNTS_INACTIVE",
-            },
-          }),
-          { status: 503, headers: { "Content-Type": "application/json" } }
+        return errorResponseWithComboDiagnostics(
+          503,
+          "Service temporarily unavailable: all upstream accounts are inactive",
+          buildComboDiag("all_accounts_inactive"),
+          { code: "ALL_ACCOUNTS_INACTIVE", type: "service_unavailable" }
         );
       }
 
@@ -2297,10 +2355,11 @@ export async function handleComboChat({
       }
 
       log.warn("COMBO", `All models failed | ${msg}`);
-      return new Response(JSON.stringify({ error: { message: msg } }), {
+      return errorResponseWithComboDiagnostics(
         status,
-        headers: { "Content-Type": "application/json" },
-      });
+        msg,
+        buildComboDiag(lastError ?? "all_models_failed")
+      );
     }
 
     return errorResponse(503, "Combo routing completed without an upstream response");

@@ -64,3 +64,28 @@ test("hidePaidModels default is false + toggles the catalog filter", async () =>
   const leaked = on.filter(isPaidChat).map((m) => m.id);
   assert.deepEqual(leaked, [], `paid OpenAI chat aliases leaked: ${leaked.join(", ")}`);
 });
+
+// #6328 (follow-up to #6495) — the paid filter must also apply to the
+// *custom* (user-defined) model loop, not just the built-in PROVIDER_MODELS
+// loop the original #6495 test covers. `openai` has no curated free roster, so
+// a pricing-less custom model on it is paid-tier and must disappear when the
+// toggle is on. Regression guard for the added `shouldHidePaid()` call in the
+// custom-rows loop (src/app/api/v1/models/catalog.ts).
+test("#6328 hidePaidModels also filters user-defined custom model rows", async () => {
+  const modelsDb = await import("../../src/lib/db/models.ts");
+  // openai connection already created by the previous test; ensure the custom model exists.
+  await modelsDb.addCustomModel("openai", "my-custom-paid-6328", "My Custom Paid 6328");
+
+  const hasCustom = (list: Array<{ id: string }>) =>
+    list.some((m) => m.id.includes("my-custom-paid-6328"));
+
+  await settingsDb.updateSettings({ hidePaidModels: false });
+  assert.equal(hasCustom(await fetchCatalog()), true, "custom model visible when toggle is off");
+
+  await settingsDb.updateSettings({ hidePaidModels: true });
+  assert.equal(
+    hasCustom(await fetchCatalog()),
+    false,
+    "custom paid model must be hidden when hidePaidModels is on (#6328)"
+  );
+});
