@@ -60,6 +60,7 @@
       "tests/unit/auth-terminal-status.test.ts",
       "tests/unit/authz/discovery-routes-local-only.test.ts",
       "tests/unit/authz/route-guard-local-prefix.test.ts",
+      "tests/unit/authz/route-guard-skills-collect.test.ts",
       "tests/unit/authz/route-guard-version-get-exemption.test.ts",
       "tests/unit/authz/routeGuard.test.ts",
       "tests/unit/auto-combo-context-advertising.test.ts",
