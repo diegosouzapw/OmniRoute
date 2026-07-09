@@ -602,7 +602,7 @@ See `docs/marketing/TIERS.md` for tier definitions and provider classification.
 
 ### Deterministic routing-decision matrix (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` proves the routing **decision** of all 17
+`tests/integration/combo-matrix/*.test.ts` proves the routing **decision** of all 18
 public strategies end-to-end through the real combo pipeline with a mocked upstream.
 Coverage includes:
 
