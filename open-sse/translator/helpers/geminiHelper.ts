@@ -175,9 +175,25 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
         //    so PDFs sent as `input_file` reach Gemini instead of being silently dropped (#2515).
         const file = toRecord(rec.file);
         const doc = toRecord(rec.document);
-        const rawDataStr = rec.data || rec.file_data || file?.data || doc?.data;
+        const rawDataStr =
+          rec.data ||
+          rec.file_data ||
+          rec.fileData ||
+          file?.data ||
+          file?.file_data ||
+          file?.fileData ||
+          doc?.data ||
+          doc?.file_data ||
+          doc?.fileData;
         const mimeTypeFallback =
-          rec.mime_type || rec.media_type || file?.mime_type || doc?.mime_type || "application/pdf";
+          rec.mime_type ||
+          rec.mimeType ||
+          rec.media_type ||
+          file?.mime_type ||
+          file?.mimeType ||
+          doc?.mime_type ||
+          doc?.mimeType ||
+          "application/pdf";
         if (typeof rawDataStr === "string" && !rawDataStr.startsWith("http")) {
           const rawData = rawDataStr.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
           parts.push({
