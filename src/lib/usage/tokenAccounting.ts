@@ -93,6 +93,48 @@ export function getReasoningTokens(tokens: unknown): number {
   );
 }
 
+// Non-greedy, single-capture, no nested variable-length quantifiers → ReDoS-safe.
+const THINK_BLOCK_RE = /<think>([\s\S]*?)<\/think>/gi;
+
+/**
+ * Inspect an assistant message for reasoning/thinking content that the usage
+ * object may not have metered (#6187 — e.g. stepfun step-3.7-flash emits
+ * `reasoning_content` but reports `reasoning_tokens=0`).
+ *
+ * Returns the reasoning SOURCE and the raw CHARACTER count of the observed
+ * reasoning text.
+ *
+ * IMPORTANT: `chars` is a CHARACTER count, NOT a token count. It must NEVER be
+ * fed into cost math (`costCalculator` prices `tokens.reasoning`). It exists
+ * only so call logs can distinguish "reasoned but metered 0" from
+ * "did not reason at all" without corrupting billing.
+ */
+export function getObservedReasoning(message: unknown): {
+  source: "content" | "think" | null;
+  chars: number;
+} {
+  const record = asRecord(message);
+
+  // Explicit reasoning field: `reasoning_content` is the raw provider field;
+  // `reasoning` is what sseTextTransform maps it to.
+  const explicit = record.reasoning_content ?? record.reasoning;
+  if (typeof explicit === "string" && explicit.trim().length > 0) {
+    return { source: "content", chars: explicit.length };
+  }
+
+  // Inline <think>...</think> blocks embedded in message content.
+  const content = record.content;
+  if (typeof content === "string" && content.length > 0) {
+    let chars = 0;
+    for (const match of content.matchAll(THINK_BLOCK_RE)) {
+      chars += (match[1] ?? "").length;
+    }
+    if (chars > 0) return { source: "think", chars };
+  }
+
+  return { source: null, chars: 0 };
+}
+
 // ─── Nullable variants ──────────────────────────────────────────────────
 // Return `null` when the provider simply doesn't report the field,
 // vs `0` when the provider explicitly reported zero.

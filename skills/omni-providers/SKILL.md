@@ -114,6 +114,50 @@ curl https://localhost:20128/api/providers/client \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### POST /api/providers/agy-auth/import
+
+Import an Antigravity CLI (agy) token file as an `agy` connection
+
+```bash
+curl -X POST https://localhost:20128/api/providers/agy-auth/import \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/providers/agy-auth/import-bulk
+
+Bulk-import multiple Antigravity CLI (agy) token files (up to 50)
+
+```bash
+curl -X POST https://localhost:20128/api/providers/agy-auth/import-bulk \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/providers/agy-auth/zip-extract
+
+Extract `.json` token files from an uploaded ZIP for agy bulk import
+
+```bash
+curl -X POST https://localhost:20128/api/providers/agy-auth/zip-extract \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/providers/agy-auth/apply-local
+
+Auto-detect and import the local Antigravity CLI (agy) login from disk
+
+```bash
+curl -X POST https://localhost:20128/api/providers/agy-auth/apply-local \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### GET /api/provider-nodes
 
 List provider nodes

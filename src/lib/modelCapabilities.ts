@@ -406,7 +406,11 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     structuredOutput: synced?.structured_output ?? null,
     temperature: synced?.temperature ?? null,
     contextWindow,
-    maxInputTokens: authoritativeContextWindow ?? synced?.limit_input ?? contextWindow,
+    maxInputTokens:
+      (typeof registryModel?.maxInputTokens === "number" ? registryModel.maxInputTokens : null) ??
+      authoritativeContextWindow ??
+      synced?.limit_input ??
+      contextWindow,
     maxOutputTokens:
       synced?.limit_output ??
       (typeof registryModel?.maxOutputTokens === "number" ? registryModel.maxOutputTokens : null) ??

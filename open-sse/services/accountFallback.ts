@@ -265,8 +265,8 @@ const MALFORMED_REQUEST_PATTERNS = [
 // non-standard 400 status whose body carries rate-limit semantics instead of a 429
 // (#4976). When detected, the request is fallback-worthy at connection-cooldown scope
 // (NOT a whole-provider breaker) so combo routing can fail over to another free target.
-// Bounded, non-overlapping patterns only (ReDoS-safe — no nested quantifiers).
-const RATE_LIMIT_TEXT_PATTERNS = [
+// Exported: mimocode.ts's executor reuses this list directly (single source of truth).
+export const RATE_LIMIT_TEXT_PATTERNS = [
   /high.?frequency/i,
   /non-compliant/i,
   /too many requests/i,

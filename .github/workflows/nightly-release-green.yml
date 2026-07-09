@@ -31,10 +31,17 @@ concurrency:
   group: nightly-release-green
   cancel-in-progress: true
 
+env:
+  OMNIROUTE_SKIP_SYSTEM_TRUST: "1"
+
 jobs:
   release-green:
     name: Validate active release branch
-    runs-on: ubuntu-latest
+    # Dynamic runner: with USE_VPS_RUNNER=true (release window / on-demand pre-flight)
+    # this runs on the dedicated VPS runner — clean env (no operator OMNIROUTE_API_KEY,
+    # no local noauth CLIs => zero machine-specific false positives) and no contention.
+    # Nightly cron normally finds the var false (VM off) and falls back to hosted.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-release"]')) || 'ubuntu-latest' }}
     env:
       JWT_SECRET: ci-nightly-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-nightly-api-key-secret-long
@@ -88,7 +95,14 @@ jobs:
         id: validate
         run: |
           set +e
-          node scripts/quality/validate-release-green.mjs --json --with-build \
+          # --hermetic: scrub live-test trigger vars (self-hosted runner may carry
+          # operator env; hosted ignores the unknown flag before #6300 lands).
+          # --full-ci: ALSO run every static gate from ci.yml's gate jobs (lint,
+          # quality-gate, quality-extended, docs-sync-strict, pr-test-policy). PRs into
+          # release/** only get the fast-gates, so these accrue silently and explode in
+          # layers on the release PR (v3.8.46: 11 static base-reds leaked). Running them
+          # nightly opens the tracking issue the moment one lands, not at release time.
+          node scripts/quality/validate-release-green.mjs --json --with-build --hermetic --full-ci \
             1> release-green.json 2> release-green.log
           echo "exit=$?" >> "$GITHUB_OUTPUT"
           echo "------- report -------"

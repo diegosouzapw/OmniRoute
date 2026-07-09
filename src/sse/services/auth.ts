@@ -12,7 +12,7 @@ import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
   getQuotaWindowStatus,
-  isAccountQuotaExhausted,
+  isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
 import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import {
@@ -658,7 +658,7 @@ function getP2CConnectionScore(
   requestedModel: string | null = null
 ): { score: number; quotaHeadroomPercent: number | null } {
   const quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
-  const quotaExhausted = isAccountQuotaExhausted(connection.id);
+  const quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
   const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(
     provider,
     connection,
@@ -1377,6 +1377,7 @@ export async function getProviderCredentials(
           lastErrorCode: allBlockedByModelCooldown ? 429 : earliestConn?.errorCode || null,
           cooldownScope: allBlockedByModelCooldown ? "model" : "connection",
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
+          connectionsCount: connections.length,
         };
       }
       const syntheticFallback = await maybeSyntheticNoAuthFallback(
@@ -1437,9 +1438,13 @@ export async function getProviderCredentials(
       };
     }
 
-    // Quota-aware: filter out accounts with exhausted quota
-    const withQuota = policyEligibleConnections.filter((c) => !isAccountQuotaExhausted(c.id));
-    const exhaustedQuota = policyEligibleConnections.filter((c) => isAccountQuotaExhausted(c.id));
+    // Quota-aware: filter out accounts with exhausted quota for the requested scope.
+    const withQuota = policyEligibleConnections.filter(
+      (c) => !isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+    );
+    const exhaustedQuota = policyEligibleConnections.filter((c) =>
+      isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+    );
 
     if (exhaustedQuota.length > 0) {
       log.info(
@@ -1990,6 +1995,26 @@ export async function markAccountUnavailable(
             : status === 429
               ? "rate_limited"
               : "server_error";
+
+      // #5976: a bare 500 is intermittent and NOT model-specific — skip
+      // lockout/cooldown ONLY for the exact 500 (the contract its own tests pin:
+      // combo-provider-cooldown-sibling.test.ts — "Gemini 503 should NOT skip
+      // cooldown"). 502/503/504 keep the pre-#6216 model-lockout path: cooldownMs
+      // 0 hot-loops the failing upstream (broke resilience-http-e2e on the PR).
+      if (status === 500) {
+        updateProviderConnection(connectionId, {
+          lastErrorType: reason,
+          lastError: `Model ${model} ${reason}`,
+          lastErrorAt: new Date().toISOString(),
+          errorCode: status,
+        }).catch(() => {});
+        log.info(
+          "AUTH",
+          `Server error for ${provider}:${model} — ${status} ${reason} (no model lockout, connection stays active for sibling models)`
+        );
+        return { shouldFallback: true, cooldownMs: 0 };
+      }
+
       const quotaScope = getQuotaScopeLabelForProvider(provider, model);
       const antigravityFamilyInferredBaseCooldownMs =
         provider === "antigravity" && quotaScope === "family" && status === 429
@@ -2286,10 +2311,7 @@ export async function clearRecoveredProviderState(
 ): Promise<{ applied: boolean }> {
   if (!credentials?.connectionId) return { applied: false };
   if (expectedState) {
-    const applied = await clearConnectionErrorIfUnchanged(
-      credentials.connectionId,
-      expectedState
-    );
+    const applied = await clearConnectionErrorIfUnchanged(credentials.connectionId, expectedState);
     if (!applied) {
       log.info(
         "AUTH",

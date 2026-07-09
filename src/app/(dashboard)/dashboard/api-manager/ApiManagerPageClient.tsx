@@ -203,6 +203,7 @@ export default function ApiManagerPageClient() {
   const createKeyFormRef = useRef<HTMLDivElement | null>(null);
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [allModels, setAllModels] = useState<Model[]>([]);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
   const [allCombos, setAllCombos] = useState<ComboOption[]>([]);
   const [allConnections, setAllConnections] = useState<ProviderConnection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -320,14 +321,66 @@ export default function ApiManagerPageClient() {
   }, [showAddModal, nameError, scrollCreateKeyFormToTop]);
 
   const fetchModels = async () => {
+    setModelsLoaded(false);
     try {
       const res = await fetch("/v1/models");
       if (res.ok) {
         const data = await res.json();
-        setAllModels(data.data || []);
+        setAllModels(Array.isArray(data.data) ? data.data : []);
+        return;
+      }
+
+      // Fallback for dashboard API-key editing: /v1/models can be protected by
+      // API-key catalog auth, but the dashboard still needs a stable catalog so
+      // users can edit allowedModels. Preserve combo pseudo-models too: /v1/models
+      // lists active combos as owned_by="combo", while /api/models?all=true only
+      // returns the static provider model inventory.
+      const [fallbackRes, combosRes] = await Promise.all([
+        fetch("/api/models?all=true"),
+        fetch("/api/combos"),
+      ]);
+      if (fallbackRes.ok) {
+        const [fallbackData, combosData] = await Promise.all([
+          fallbackRes.json(),
+          combosRes.ok ? combosRes.json() : Promise.resolve({ combos: [] }),
+        ]);
+        const fallbackModels = Array.isArray(fallbackData.models) ? fallbackData.models : [];
+        const comboModels = (Array.isArray(combosData.combos) ? combosData.combos : [])
+          .filter(
+            (combo: any) =>
+              combo?.isActive !== false &&
+              combo?.isHidden !== true &&
+              typeof combo?.name === "string" &&
+              combo.name.trim().length > 0
+          )
+          .map((combo: any) => ({
+            id: combo.name,
+            owned_by: "combo",
+            name: combo.name,
+          }));
+        const modelEntries = fallbackModels
+          .map((m: any) => ({
+            id: typeof m.fullModel === "string" ? m.fullModel : `${m.provider}/${m.model}`,
+            owned_by: typeof m.provider === "string" ? m.provider : "unknown",
+            name: typeof m.alias === "string" ? m.alias : m.model || m.fullModel,
+          }))
+          .filter((m: Model) => typeof m.id === "string" && m.id.length > 0);
+        const seen = new Set<string>();
+        setAllModels(
+          [...comboModels, ...modelEntries].filter((m: Model) => {
+            if (seen.has(m.id)) return false;
+            seen.add(m.id);
+            return true;
+          })
+        );
+      } else {
+        setAllModels([]);
       }
     } catch (error) {
       console.log("Error fetching models:", error);
+      setAllModels([]);
+    } finally {
+      setModelsLoaded(true);
     }
   };
 
@@ -1533,6 +1586,7 @@ export default function ApiManagerPageClient() {
           apiKey={editingKey}
           modelsByProvider={filteredModelsByProvider}
           allModels={permissionModels}
+          modelsLoaded={modelsLoaded}
           allCombos={allCombos}
           allConnections={allConnections}
           searchModel={searchModel}
@@ -1552,6 +1606,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey,
   modelsByProvider,
   allModels,
+  modelsLoaded,
   allCombos,
   allConnections,
   searchModel,
@@ -1563,6 +1618,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey: ApiKey;
   modelsByProvider: ProviderGroup[];
   allModels: Model[];
+  modelsLoaded: boolean;
   allCombos: ComboOption[];
   allConnections: ProviderConnection[];
   searchModel: string;
@@ -2024,7 +2080,13 @@ const PermissionsModal = memo(function PermissionsModal({
               allowAll ? "text-green-700 dark:text-green-300" : "text-amber-700 dark:text-amber-300"
             }`}
           >
-            {allowAll ? t("allowAllDesc") : t("restrictDesc", { selectedCount, totalModels })}
+            {allowAll
+              ? t("allowAllDesc")
+              : !modelsLoaded
+                ? t("restrictLoading")
+                : totalModels === 0
+                  ? t("restrictCatalogUnavailable", { selectedCount })
+                  : t("restrictDesc", { selectedCount, totalModels })}
           </p>
         </div>
 

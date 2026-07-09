@@ -5,9 +5,15 @@ import {
   countTautologies,
   countSkips,
   countExtendedTautologies,
+  countBareTautologies,
+  scanBareTautologies,
   evaluateMasking,
   evaluateDeletedFiles,
   partitionDeletedRenamed,
+  countSignificantTokens,
+  extractProdConditions,
+  extractImports,
+  findReimplementedConditions,
 } from "../../scripts/check/check-test-masking.mjs";
 
 // ─── Existing tests (must stay green) ────────────────────────────────────────
@@ -263,6 +269,75 @@ test("countExtendedTautologies: handles whitespace variants", () => {
   assert.equal(countExtendedTautologies(src), 2);
 });
 
+// ─── #6404: bare tautologies (absolute floor scan, no PR diff needed) ───────
+
+test("countBareTautologies: detects expect(true).toBe(true)", () => {
+  const src = `expect(true).toBe(true);`;
+  assert.equal(countBareTautologies(src), 1);
+});
+
+test("countBareTautologies: detects assert.equal(1, 1) and assert.strictEqual(1, 1)", () => {
+  assert.equal(countBareTautologies(`assert.equal(1, 1);`), 1);
+  assert.equal(countBareTautologies(`assert.strictEqual(1, 1);`), 1);
+});
+
+test("countBareTautologies: does NOT count assert.ok(true) (governed separately)", () => {
+  // Unlike countExtendedTautologies, the absolute scan deliberately excludes
+  // assert.ok(true) — it has many pre-existing, verified-legitimate uses
+  // (try/catch fallbacks) across the codebase and stays on the lenient,
+  // new-occurrence-only diff subcheck instead of an always-on floor.
+  const src = `assert.ok(true);`;
+  assert.equal(countBareTautologies(src), 0);
+});
+
+test("countBareTautologies: returns 0 for real assertions", () => {
+  const src = `
+    expect(result).toBe(42);
+    assert.equal(a, b);
+    assert.ok(someCondition);
+  `;
+  assert.equal(countBareTautologies(src), 0);
+});
+
+test("scanBareTautologies: flags a file containing the #6404 pattern (RED)", () => {
+  const files = ["tests/unit/ui/playground-api-tab.test.tsx"];
+  const read = () => `
+    it("does something", async () => {
+      // If button is disabled (no model selected), test still passes
+      expect(true).toBe(true);
+    });
+  `;
+  const flags = scanBareTautologies(files, read);
+  assert.equal(flags.length, 1);
+  assert.match(flags[0], /playground-api-tab\.test\.tsx/);
+});
+
+test("scanBareTautologies: a real assertion in the same spot is clean (GREEN)", () => {
+  const files = ["tests/unit/ui/playground-api-tab.test.tsx"];
+  const read = () => `
+    it("sends SSE stream request and accumulates response", async () => {
+      const responseEditor = editors[1];
+      expect(responseEditor.value).toContain("Hello!");
+    });
+  `;
+  const flags = scanBareTautologies(files, read);
+  assert.deepEqual(flags, []);
+});
+
+test("scanBareTautologies: excludes check-test-masking.test.ts itself", () => {
+  const files = ["tests/unit/check-test-masking.test.ts"];
+  const read = () => `expect(true).toBe(true);`;
+  assert.deepEqual(scanBareTautologies(files, read), []);
+});
+
+test("scanBareTautologies: skips unreadable files instead of throwing", () => {
+  const files = ["tests/unit/does-not-exist.test.ts"];
+  const read = () => {
+    throw new Error("ENOENT");
+  };
+  assert.deepEqual(scanBareTautologies(files, read), []);
+});
+
 test("evaluateMasking: new extended tautology is flagged", () => {
   const r = evaluateMasking([
     {
@@ -408,4 +483,131 @@ test("evaluateMasking: allowlist exempts ONLY reduction — tautology/skip still
   assert.equal(r.length, 2, "tautology + skip still flagged despite allowlist");
   assert.ok(r.some((f) => /tautolog/i.test(f)));
   assert.ok(r.some((f) => /skip/i.test(f)));
+});
+
+// ─── 6348 Subcheck 4: inline-reimplemented prod conditions (REPORT-ONLY) ──────
+
+test("countSignificantTokens: `status >= 500` has 3 significant tokens", () => {
+  assert.equal(countSignificantTokens("status >= 500"), 3);
+});
+
+test("countSignificantTokens: `x === LIMIT && y` has 3 significant tokens", () => {
+  assert.equal(countSignificantTokens("x === LIMIT && y"), 3);
+});
+
+test("countSignificantTokens: trivial `x > 0` has <3 significant tokens (noise guard)", () => {
+  assert.ok(countSignificantTokens("x > 0") < 3);
+});
+
+test("extractProdConditions: pulls the if-condition and its owning symbol", () => {
+  const prod = [
+    "export function isServerError(status) {",
+    "  if (status >= 500) {",
+    "    return true;",
+    "  }",
+    "  return false;",
+    "}",
+  ].join("\n");
+  const conds = extractProdConditions(prod);
+  const hit = conds.find((c) => c.condition === "status >= 500");
+  assert.ok(hit, "the ≥3-token condition is extracted");
+  assert.equal(hit.owner, "isServerError");
+});
+
+test("extractProdConditions: ignores trivial <3-token conditions", () => {
+  const prod = "export function f(x) {\n  if (x > 0) return 1;\n  return 0;\n}";
+  assert.deepEqual(extractProdConditions(prod), []);
+});
+
+test("extractImports: collects named bindings and module specifiers", () => {
+  const src = `import { isServerError, foo } from "../src/http";\nimport def from "./bar";`;
+  const names = extractImports(src);
+  assert.ok(names.has("isServerError"));
+  assert.ok(names.has("foo"));
+  assert.ok(names.has("def"));
+});
+
+const PROD_SERVER_ERROR = [
+  "export function isServerError(status) {",
+  "  if (status >= 500) {",
+  "    return true;",
+  "  }",
+  "  return false;",
+  "}",
+].join("\n");
+
+test("MASKED: test re-implements `status >= 500` without importing the owner → flagged", () => {
+  const testSrc = [
+    'import { test } from "node:test";',
+    'import assert from "node:assert";',
+    "// re-encodes the prod branch locally instead of importing isServerError",
+    "function localCheck(status) {",
+    "  return status >= 500;",
+    "}",
+    'test("server error", () => {',
+    "  assert.equal(localCheck(503), true);",
+    "});",
+  ].join("\n");
+  const flags = findReimplementedConditions(
+    [PROD_SERVER_ERROR],
+    testSrc,
+    extractImports(testSrc)
+  );
+  assert.equal(flags.length, 1);
+  assert.equal(flags[0].condition, "status >= 500");
+  assert.equal(flags[0].owner, "isServerError");
+});
+
+test("CLEAN: test imports and calls the real function → not flagged", () => {
+  const testSrc = [
+    'import { test } from "node:test";',
+    'import assert from "node:assert";',
+    'import { isServerError } from "../../src/http";',
+    'test("server error", () => {',
+    "  assert.equal(isServerError(503), true);",
+    "  assert.equal(isServerError(200), false);",
+    "});",
+  ].join("\n");
+  const flags = findReimplementedConditions(
+    [PROD_SERVER_ERROR],
+    testSrc,
+    extractImports(testSrc)
+  );
+  assert.deepEqual(flags, []);
+});
+
+test("CLEAN: importing the owner exempts even a textual copy of its condition", () => {
+  // The test both imports the owner AND happens to spell the condition — importing
+  // the owner means it exercises the real symbol, so the condition is not masked.
+  const testSrc = [
+    'import { isServerError } from "../../src/http";',
+    "// documents that isServerError fires when status >= 500",
+    'test("t", () => { isServerError(503); });',
+  ].join("\n");
+  const flags = findReimplementedConditions(
+    [PROD_SERVER_ERROR],
+    testSrc,
+    extractImports(testSrc)
+  );
+  assert.deepEqual(flags, []);
+});
+
+test("CLEAN: trivial `x > 0` condition is never flagged (noise guard)", () => {
+  const prod = "export function f(x) {\n  if (x > 0) return 1;\n  return 0;\n}";
+  const testSrc = [
+    'import { test } from "node:test";',
+    "function local(x) { return x > 0; }",
+    'test("t", () => { local(1); });',
+  ].join("\n");
+  const flags = findReimplementedConditions([prod], testSrc, extractImports(testSrc));
+  assert.deepEqual(flags, []);
+});
+
+test("findReimplementedConditions: matches despite operator-spacing differences", () => {
+  const prod = "export function big(status) {\n  if (status >= 500) return true;\n}";
+  // test spells the same condition with no spaces around the operator
+  const testSrc = "function local(status){ return status>=500; }";
+  const flags = findReimplementedConditions([prod], testSrc, extractImports(testSrc));
+  assert.equal(flags.length, 1);
+  assert.equal(flags[0].condition, "status >= 500");
 });

@@ -248,9 +248,35 @@ export class OpencodeExecutor extends BaseExecutor {
       headers["Accept"] = "text/event-stream";
     }
 
-    if (clientHeaders) {
-      forwardOpencodeClientHeaders(headers, clientHeaders, {
+    // Opt-in (#5997): synthesize OpenCode CLI identity headers the client did not send.
+    // Cloudflare in front of opencode.ai/zen/go 403s server-side (VPS) requests lacking
+    // CLI identity, but the forward-only default is deliberate — fabricating a WRONG
+    // value risks upstream rejection (#5720 regressed with "opencode/local"), and this
+    // is deployment-specific. So it stays OFF by default and the VPS operator enables it
+    // with OPENCODE_SYNTHESIZE_CLI_HEADERS=true (values env-overridable). Client-supplied
+    // headers always take precedence.
+    const synthesizeCli = /^(1|true|yes|on)$/i.test(
+      process.env.OPENCODE_SYNTHESIZE_CLI_HEADERS?.trim() ?? ""
+    );
+    const cliDefaults = synthesizeCli
+      ? (() => {
+          const providerId = this.config?.id || this.provider || "opencode";
+          const envUAKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
+          return {
+            userAgent:
+              process.env[envUAKey]?.trim() ||
+              process.env.OPENCODE_USER_AGENT?.trim() ||
+              "opencode-cli/1.0.0",
+            client: process.env.OPENCODE_CLIENT?.trim() || "cli",
+            project: process.env.OPENCODE_PROJECT?.trim() || "default",
+          };
+        })()
+      : undefined;
+
+    if (clientHeaders || cliDefaults) {
+      forwardOpencodeClientHeaders(headers, clientHeaders ?? {}, {
         synthesizeRequestId: true,
+        cliDefaults,
       });
     }
 
@@ -266,6 +292,19 @@ export class OpencodeExecutor extends BaseExecutor {
     credentials: ProviderCredentials
   ): any {
     let modifiedBody = super.transformRequest(model, body, stream, credentials);
+    // 9router#1442: OpenCode upstreams (e.g. kimi-k2.6 via opencode-go) return
+    // 400 "Extra inputs are not permitted, field: 'client_metadata'" — an
+    // OpenAI-Codex/Claude-CLI passthrough field with no equivalent here. The
+    // DefaultExecutor strip only covers cerebras/mistral, and OpencodeExecutor
+    // extends BaseExecutor directly, so nothing removed it on this path.
+    if (
+      modifiedBody &&
+      typeof modifiedBody === "object" &&
+      !Array.isArray(modifiedBody) &&
+      Object.prototype.hasOwnProperty.call(modifiedBody, "client_metadata")
+    ) {
+      delete (modifiedBody as Record<string, unknown>).client_metadata;
+    }
     if (
       modifiedBody &&
       typeof modifiedBody === "object" &&

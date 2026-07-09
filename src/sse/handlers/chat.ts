@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
+import { normalizeReasoningRequest } from "@/shared/reasoning/effortStandardization";
 import { resolveRoutingModel } from "./resolveRoutingModel";
 import {
   getProviderCredentialsWithQuotaPreflight,
@@ -19,6 +20,7 @@ import {
 import { getModelInfo, getComboForModel } from "../services/model";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
@@ -56,6 +58,7 @@ import { updateCombo } from "@/lib/db/combos";
 import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
+  evictSessionAccountAffinityForConnection,
   getCachedSettings,
   getCombos,
   getCombosCacheVersion,
@@ -213,10 +216,11 @@ const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
 export async function handleChat(
   request: any,
   clientRawRequest: any = null,
-  preParsedBody: any = null
+  preParsedBody: any = null,
+  correlationId?: string
 ) {
   // Pipeline: Start request telemetry
-  const reqId = generateRequestId();
+  const reqId = correlationId || generateRequestId();
   const telemetry = new RequestTelemetry(reqId);
 
   let body;
@@ -229,18 +233,99 @@ export async function handleChat(
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
   }
 
-  // Early guard: an explicitly empty `messages` array is invalid for every
-  // upstream (Anthropic/OpenAI both reject "at least one message is required").
-  // Forwarding it produced a confusing raw upstream 400/502; reject it here with
-  // a clear OmniRoute-level error before any routing or upstream call (#5110).
-  // Responses-API requests use `input` (not `messages`) so they are unaffected,
-  // and an absent `messages` field is left to downstream validation.
-  if (
-    Array.isArray((body as { messages?: unknown }).messages) &&
-    (body as { messages: unknown[] }).messages.length === 0
-  ) {
-    log.warn("CHAT", "Rejecting request with empty messages array");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+  // Feature #6241: fold the canonical `effort` / `thinking` request params onto the
+  // per-provider reasoning fields (reasoning_effort / reasoning.effort / thinking) that the
+  // existing translators already consume. Done here — right after the body is first
+  // resolved, before any reasoning field is read below — so it flows uniformly into every
+  // downstream mapper (Anthropic / Gemini / xAI / Responses). An explicit client
+  // reasoning_effort / reasoning / object-shaped thinking always wins (backward compatible).
+  body = normalizeReasoningRequest(body);
+
+  // Early guard: an invalid `messages` field is rejected here with a clear
+  // OmniRoute-level 400 before any routing or upstream call (#5110, #6402).
+  // Without this guard, schema-invalid bodies fell through to model resolution
+  // and surfaced as a misleading 404 `model_not_found` from chatHelpers.ts (#6402).
+  // Cases covered:
+  //   - present-but-non-array (null, number, string, object) → 400 (#6402)
+  //   - empty array → 400 ("at least one message is required") (#5110)
+  //   - missing entirely, when the Responses-API `input` discriminator is also
+  //     absent → 400 (#6402). Responses-API requests use `input` (not `messages`)
+  //     and are still unaffected.
+  {
+    const b = body as { messages?: unknown; input?: unknown };
+    if ("messages" in b && !Array.isArray(b.messages)) {
+      log.warn("CHAT", "Rejecting request with non-array messages");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array");
+    }
+    if (Array.isArray(b.messages) && b.messages.length === 0) {
+      log.warn("CHAT", "Rejecting request with empty messages array");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+    }
+    if (!("messages" in b) && !("input" in b)) {
+      log.warn("CHAT", "Rejecting request with missing messages");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array, received undefined");
+    }
+  }
+
+  // Reject non-string `model` before it reaches downstream code that calls
+  // `.toLowerCase()` / `.split()` / `.startsWith()` on it (crash-then-500 with an
+  // empty body, escaping the error sanitizer — #6407). An explicit `null`/`undefined`
+  // stays permitted here because the existing `Missing model` guard below returns a
+  // clean 400 for those; anything else that is not a string is a client type error.
+  const rawModel = (body as { model?: unknown }).model;
+  if (rawModel !== undefined && rawModel !== null && typeof rawModel !== "string") {
+    log.warn("CHAT", `Rejecting non-string model (typeof=${typeof rawModel})`);
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      `model: Expected string, received ${Array.isArray(rawModel) ? "array" : typeof rawModel}`
+    );
+  }
+
+  // Early schema validation for scalar params BEFORE provider/model resolution (#6412).
+  // Previously, a bad `temperature: "not-a-number"` on an unknown provider returned
+  // 404 "model_not_found" — hiding the real schema error. Validate the param shape
+  // first so the client gets a 400 with the field name. Kept narrow to widely-supported
+  // OpenAI-spec params (temperature 0..2, top_p 0..1, max_tokens int >=1) so we don't
+  // reject legitimate provider-specific fields.
+  {
+    const b = body as {
+      temperature?: unknown;
+      top_p?: unknown;
+      max_tokens?: unknown;
+      n?: unknown;
+    };
+    const badParam = (name: string, msg: string) =>
+      errorResponse(HTTP_STATUS.BAD_REQUEST, `${name}: ${msg}`);
+    if (b.temperature !== undefined) {
+      if (typeof b.temperature !== "number" || Number.isNaN(b.temperature)) {
+        return badParam("temperature", "must be a number");
+      }
+      if (b.temperature < 0 || b.temperature > 2) {
+        return badParam("temperature", "must be between 0 and 2");
+      }
+    }
+    if (b.top_p !== undefined) {
+      if (typeof b.top_p !== "number" || Number.isNaN(b.top_p)) {
+        return badParam("top_p", "must be a number");
+      }
+      if (b.top_p < 0 || b.top_p > 1) {
+        return badParam("top_p", "must be between 0 and 1");
+      }
+    }
+    if (b.max_tokens !== undefined) {
+      if (
+        typeof b.max_tokens !== "number" ||
+        !Number.isInteger(b.max_tokens) ||
+        b.max_tokens < 1
+      ) {
+        return badParam("max_tokens", "must be a positive integer");
+      }
+    }
+    if (b.n !== undefined) {
+      if (typeof b.n !== "number" || !Number.isInteger(b.n) || b.n < 1) {
+        return badParam("n", "must be a positive integer");
+      }
+    }
   }
 
   // buildClientRawRequest already deep-clones the body, so pass `body` directly — the
@@ -313,6 +398,20 @@ export async function handleChat(
   if (!modelStr) {
     log.warn("CHAT", "Missing model");
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
+  }
+
+  // Reject image-generation models routed to /v1/chat/completions (#6457).
+  // Image-only models live in IMAGE_PROVIDERS (open-sse/config/imageRegistry.ts)
+  // and are served by /v1/images/generations. Forwarding them to a chat upstream
+  // yielded confusing raw provider 400s (e.g. HuggingFace: "not a chat model").
+  // getImageModelEntry returns non-null only for models registered in the image
+  // registry — chat-only models (openai/gpt-4o, etc.) resolve to null and pass.
+  if (getImageModelEntry(modelStr)) {
+    log.warn("CHAT", `Rejecting image-generation model on chat endpoint: ${modelStr}`);
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      `Model '${modelStr}' is an image-generation model and cannot be used on /v1/chat/completions. Use POST /v1/images/generations instead.`
+    );
   }
 
   // T04: client-provided external session header has priority over generated fingerprint.
@@ -717,6 +816,7 @@ export async function handleChat(
             cachedSettings: settings,
             providerId: target?.providerId ?? null,
             correlationId: reqId,
+            modelPinned: (target as any)?.modelPinned ?? false,
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
@@ -1287,6 +1387,7 @@ async function handleSingleModelChat(
         cachedSettings: runtimeOptions.cachedSettings,
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
         correlationId: runtimeOptions?.correlationId ?? null,
+        modelPinned: runtimeOptions?.modelPinned ?? false,
       });
       if (telemetry) telemetry.endPhase();
 
@@ -1639,6 +1740,21 @@ async function handleSingleModelChat(
           requestRetryLastCooldownMs = cooldownMs;
         }
         log.warn("AUTH", `Account ${accountId}... unavailable (${result.status}), trying fallback`);
+        // #6219: evict the sticky session pin when the pinned account fails over,
+        // otherwise the next request re-pins the same throttled account until
+        // restart. Guarded by connection match so a pin for a different (healthy)
+        // account is left intact.
+        if (runtimeOptions.sessionAffinityKey) {
+          try {
+            evictSessionAccountAffinityForConnection(
+              runtimeOptions.sessionAffinityKey,
+              provider,
+              credentials.connectionId
+            );
+          } catch {
+            // best-effort: selection also excludes this connection for the current retry.
+          }
+        }
         excludedConnectionIds.add(credentials.connectionId);
         lastError = result.error;
         lastStatus = result.status;

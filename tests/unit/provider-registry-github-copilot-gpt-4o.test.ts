@@ -1,13 +1,9 @@
 /**
- * Port of 9router PR #98 — add GPT-4o to GitHub Copilot (`github`/alias `gh`).
+ * Curated GitHub Copilot GPT-4o registry coverage.
  *
- * Copilot still serves the original `gpt-4o` chat model via its chat/completions
- * endpoint. The OmniRoute registry only ships the GPT-5.x family, so apps that
- * explicitly request `gpt-4o` against the `gh` alias get an "unknown model"
- * error. Adding the entry restores parity with the upstream Copilot catalog
- * without disturbing the GPT-5.x / Claude / Gemini lineups already curated.
- *
- * GPT-4o is a chat/completions model — it must NOT use `openai-responses`.
+ * The final Copilot allowlist keeps `gpt-4o-2024-11-20` but intentionally drops
+ * the older bare `gpt-4o` alias. GPT-4o is a chat/completions model — it must
+ * NOT use `openai-responses`.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -22,14 +18,14 @@ function githubModel(id: string): ModelEntry | undefined {
   return provider?.models?.find((m) => m.id === id);
 }
 
-test("9router#98 github/gpt-4o is registered under the gh provider", () => {
-  const model = githubModel("gpt-4o");
-  assert.ok(model, "gpt-4o must be registered under the github (gh) provider");
+test("github/gpt-4o-2024-11-20 is registered under the gh provider", () => {
+  const model = githubModel("gpt-4o-2024-11-20");
+  assert.ok(model, "gpt-4o-2024-11-20 must be registered under the github (gh) provider");
   assert.equal(typeof model?.name, "string");
 });
 
-test("9router#98 github/gpt-4o routes via chat/completions (no openai-responses)", () => {
-  const model = githubModel("gpt-4o");
+test("github/gpt-4o-2024-11-20 routes via chat/completions (no openai-responses)", () => {
+  const model = githubModel("gpt-4o-2024-11-20");
   assert.ok(model);
   assert.notEqual(
     model.targetFormat,
@@ -38,8 +34,13 @@ test("9router#98 github/gpt-4o routes via chat/completions (no openai-responses)
   );
 });
 
-test("9router#98 getModelsByProviderId(github) exposes gpt-4o", () => {
+test("getModelsByProviderId(github) exposes gpt-4o-2024-11-20", () => {
   const models = getModelsByProviderId("github") as ModelEntry[];
-  const gpt4o = models.find((m) => m.id === "gpt-4o");
-  assert.ok(gpt4o, "gpt-4o resolvable via getModelsByProviderId(github)");
+  const gpt4o = models.find((m) => m.id === "gpt-4o-2024-11-20");
+  assert.ok(gpt4o, "gpt-4o-2024-11-20 resolvable via getModelsByProviderId(github)");
+  assert.equal(
+    models.some((m) => m.id === "gpt-4o"),
+    false,
+    "bare gpt-4o is not in the curated list"
+  );
 });

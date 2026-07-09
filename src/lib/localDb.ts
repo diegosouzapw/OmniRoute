@@ -107,6 +107,7 @@ export {
   updateApiKeyPermissions,
   regenerateApiKey,
   isModelAllowedForKey,
+  pickApiKeyForInternalUse,
   clearApiKeyCaches,
   resetApiKeyState,
 } from "./db/apiKeys";
@@ -182,6 +183,11 @@ export {
   getProxyAssignments,
   getProxyWhereUsed,
   assignProxyToScope,
+  addProxyToScopePool,
+  removeProxyFromScopePool,
+  getScopeProxyPool,
+  setScopeRotationStrategy,
+  getScopeRotationStrategy,
   resolveProxyForConnectionFromRegistry,
   resolveProxyForProvider,
   resolveProxyForScopeFromRegistry,
@@ -440,6 +446,7 @@ export {
   upsertSessionAccountAffinity,
   touchSessionAccountAffinity,
   deleteSessionAccountAffinity,
+  evictSessionAccountAffinityForConnection,
   cleanupStaleSessionAccountAffinities,
   startSessionAccountAffinityCleanup,
   stopSessionAccountAffinityCleanupForTests,
@@ -788,3 +795,5 @@ export { exportProxyLogsSince } from "./db/proxyLogs";
 // only); re-exported here for the historical localDb import contract.
 // ---------------------------------------------------------------------------
 export { markConnectionRateLimitedUntil, clearConnectionRateLimit } from "./db/providers";
+// Provider param filters — denylist/allowlist config per provider/model (#6625)
+export * from "./db/paramFilters";

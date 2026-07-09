@@ -315,6 +315,76 @@ curl -X DELETE https://localhost:20128/api/cli-tools/openclaw-settings \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/cli-tools/crush-settings
+
+Read Crush CLI OmniRoute config
+
+Local-only. Reads the OmniRoute provider block in Crush's config.
+
+```bash
+curl https://localhost:20128/api/cli-tools/crush-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/crush-settings
+
+Write Crush CLI OmniRoute config
+
+Local-only. Registers OmniRoute as an `openai-compat` provider in Crush's config.
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/crush-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/cli-tools/crush-settings
+
+Remove OmniRoute from Crush CLI config
+
+Local-only. Removes the OmniRoute provider block from Crush's config.
+
+```bash
+curl -X DELETE https://localhost:20128/api/cli-tools/crush-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/cli-tools/codewhale-settings
+
+Read CodeWhale CLI OmniRoute config
+
+Local-only. Reads the OmniRoute config block from `~/.codewhale/config.toml` (with `~/.deepseek/config.toml` legacy fallback).
+
+```bash
+curl https://localhost:20128/api/cli-tools/codewhale-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/cli-tools/codewhale-settings
+
+Write CodeWhale CLI OmniRoute config
+
+Local-only. Writes the OmniRoute config block in CodeWhale TOML format.
+
+```bash
+curl -X POST https://localhost:20128/api/cli-tools/codewhale-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/cli-tools/codewhale-settings
+
+Remove OmniRoute from CodeWhale CLI config
+
+Local-only. Removes the OmniRoute config block from CodeWhale's config.
+
+```bash
+curl -X DELETE https://localhost:20128/api/cli-tools/codewhale-settings \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

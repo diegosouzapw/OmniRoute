@@ -14,6 +14,102 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 
 ## Endpoints
 
+### GET /api/settings/memory
+
+Get memory settings
+
+Returns the extended memory settings including 7 new fields added in plan 21 (embeddingSource, embeddingProviderModel, transformersEnabled, staticEnabled, rerankEnabled, rerankProviderModel, vectorStore).
+
+```bash
+curl https://localhost:20128/api/settings/memory \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### PUT /api/settings/memory
+
+Update memory settings
+
+Update any subset of the extended memory settings. All fields are optional; only provided fields are updated. Schema: `MemorySettingsExtendedSchema`.
+
+```bash
+curl -X PUT https://localhost:20128/api/settings/memory \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/settings/qdrant
+
+Get Qdrant settings
+
+Returns current Qdrant configuration. The `apiKey` field is never returned raw — use `hasApiKey` / `apiKeyMasked` instead.
+
+```bash
+curl https://localhost:20128/api/settings/qdrant \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### PUT /api/settings/qdrant
+
+Update Qdrant settings
+
+Update Qdrant configuration. Pass `apiKey: ""` to remove the stored key. Schema: `QdrantSettingsUpdateSchema`.
+
+```bash
+curl -X PUT https://localhost:20128/api/settings/qdrant \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/settings/qdrant/health
+
+Qdrant health probe
+
+Performs a liveness check against the configured Qdrant instance. Returns latency and any connection error (sanitized — no stack traces).
+
+```bash
+curl https://localhost:20128/api/settings/qdrant/health \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/settings/qdrant/search
+
+Qdrant semantic search test
+
+Performs a test semantic search against the Qdrant collection. Useful for validating that the integration works end-to-end. Schema: `QdrantSearchSchema`.
+
+```bash
+curl -X POST https://localhost:20128/api/settings/qdrant/search \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/settings/qdrant/cleanup
+
+Clean up expired Qdrant points
+
+Removes Qdrant points for memories that have expired or exceeded the configured retention window.
+
+```bash
+curl -X POST https://localhost:20128/api/settings/qdrant/cleanup \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/settings/qdrant/embedding-models
+
+List Qdrant embedding models
+
+Returns the list of embedding models available for use with Qdrant.
+
+```bash
+curl https://localhost:20128/api/settings/qdrant/embedding-models \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ### GET /api/settings
 
 Get application settings
@@ -34,6 +130,19 @@ curl -X PATCH https://localhost:20128/api/settings \
   -d '{}'
 ```
 
+### POST /api/settings/purge-request-history
+
+Clear request log history
+
+Deletes `call_logs`, legacy `request_detail_logs`, and local request artifact files under `DATA_DIR/call_logs`.
+
+```bash
+curl -X POST https://localhost:20128/api/settings/purge-request-history \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### GET /api/settings/compression
 
 Get global compression settings
@@ -49,6 +158,28 @@ Update global compression settings
 
 ```bash
 curl -X PUT https://localhost:20128/api/settings/compression \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/settings/compression/mcp-accessibility
+
+Get the MCP tool-output accessibility (trimming) config
+
+```bash
+curl https://localhost:20128/api/settings/compression/mcp-accessibility \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### PUT /api/settings/compression/mcp-accessibility
+
+Update the MCP tool-output accessibility (trimming) config
+
+Partial-merge update. Numeric floors (e.g. a maxTextChars below the truncation-tail reserve) are folded back to the safe defaults server-side, so the response reflects the effective config.
+
+```bash
+curl -X PUT https://localhost:20128/api/settings/compression/mcp-accessibility \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
   -H "Content-Type: application/json" \
   -d '{}'
@@ -215,6 +346,41 @@ Returns models in Ollama /api/tags format for Ollama client compatibility
 ```bash
 curl https://localhost:20128/api/tags \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/settings/quota-store
+
+Get current quota store driver settings
+
+Redis URL is masked in the response (shows only scheme+host).
+
+```bash
+curl https://localhost:20128/api/settings/quota-store \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### PUT /api/settings/quota-store
+
+Update quota store driver settings
+
+```bash
+curl -X PUT https://localhost:20128/api/settings/quota-store \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/settings/purge-usage-history
+
+Purge usage history
+
+Dashboard-only. Purges stored usage-history records.
+
+```bash
+curl -X POST https://localhost:20128/api/settings/purge-usage-history \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
 ```
 
 ## Payloads

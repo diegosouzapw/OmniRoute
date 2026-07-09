@@ -13,6 +13,7 @@ const SAFETY_FINISH_REASONS = new Set([
   "prohibited_content",
   "content_filtered",
   "policy_violation",
+  "malformed_response",
 ]);
 
 export function normalizeOpenAICompatibleFinishReason(value: unknown): unknown {

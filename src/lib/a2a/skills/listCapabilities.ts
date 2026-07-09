@@ -13,7 +13,7 @@ export interface ListCapabilitiesResult {
   artifacts: TaskArtifact[];
   metadata: {
     coverage: {
-      api: { have: number; total: 22 };
+      api: { have: number; total: 23 };
       cli: { have: number; total: 20 };
     };
     totalSkills: number;
@@ -61,7 +61,7 @@ export async function executeListCapabilities(_task: A2ATask): Promise<ListCapab
     ],
     metadata: {
       coverage: {
-        api: { have: coverage.api.have, total: 22 },
+        api: { have: coverage.api.have, total: 23 },
         cli: { have: coverage.cli.have, total: 20 },
       },
       totalSkills: catalog.length,
