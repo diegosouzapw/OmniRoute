@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
 
@@ -6,7 +6,6 @@ const cwd = process.cwd();
 const candidates = [
   path.join(cwd, 'coverage', 'coverage-summary.json'),
   path.join(cwd, 'coverage', 'coverage-final.json'),
-  path.join(cwd, 'coverage', 'coverage-summary.json'),
 ];
 
 function readJson(p) {
@@ -78,11 +77,10 @@ if (data.total && data.total.statements && typeof data.total.statements.pct === 
     lines: (data.total.lines.covered / data.total.lines.total) * 100,
   };
 } else {
-  // Try to compute from per-file entries
   pct = computeFromDetailed(data);
 }
 
-const thresholds = { statements: 60, branches: 60, functions: 60, lines: 60 };
+const thresholds = { statements: 75, branches: 70, functions: 75, lines: 75 };
 let ok = true;
 console.log(`Coverage file used: ${foundPath}`);
 for (const key of Object.keys(thresholds)) {
