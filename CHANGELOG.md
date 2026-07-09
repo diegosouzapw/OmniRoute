@@ -11,6 +11,7 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 ### ✨ New Features
 
 - **Provider/model param filters**: config-driven parameter denylist/allowlist per provider/model with auto-learn from upstream 400s (#6649 — thanks @ThongAccount, closes #6625)
+- **feat(dashboard):** 9router-parity **Routing Strategy** settings card on Settings → Routing, plus a per-provider account-routing override on the provider detail page ([#6678](https://github.com/diegosouzapw/OmniRoute/pull/6678)) — surfaces the existing account round-robin / sticky-limit knobs and adds a new combo-level sticky round-robin (`comboStickyRoundRobinLimit`, resolved via `resolveComboStickyRoundRobinLimit()` — per-combo → global combo sticky → account sticky cascade) so combo targets can batch calls per target the same way account fallback already does. A new `providerStrategies` setting (Zod-validated map, `src/shared/validation/settingsSchemas.ts`) lets a specific provider override the global `fallbackStrategy`/`stickyRoundRobinLimit` without touching the account-wide default, wired into `getProviderCredentials()` (`src/sse/services/auth.ts`) ahead of the global fallback. Regression guard: `tests/unit/combo-rr-sticky-9router.test.ts`, `tests/unit/settings-ui-layout-static.test.ts`. (thanks @SeaXen)
 
 ### 🐛 Bug Fixes
 
