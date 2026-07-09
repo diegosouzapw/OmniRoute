@@ -20,12 +20,10 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-reasoning
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
-const { saveModelsDevCapabilities, clearModelsDevCapabilities } = await import(
-  "../../src/lib/modelsDevSync.ts"
-);
-const { resolveReasoningBufferedMaxTokens, REASONING_BUFFER_MIN_TRIGGER } = await import(
-  "../../open-sse/services/reasoningTokenBuffer.ts"
-);
+const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
+  await import("../../src/lib/modelsDevSync.ts");
+const { resolveReasoningBufferedMaxTokens, REASONING_BUFFER_MIN_TRIGGER } =
+  await import("../../open-sse/services/reasoningTokenBuffer.ts");
 
 function capabilityEntry(limitContext: unknown, overrides: Record<string, unknown> = {}) {
   return {
@@ -55,6 +53,11 @@ test.before(() => {
   saveModelsDevCapabilities({
     zhipu: {
       "glm-5.2": capabilityEntry(200000, { reasoning: true, limit_output: 65536 }),
+      "glm-5.2-no-output-cap": capabilityEntry(200000, { reasoning: true, limit_output: null }),
+      "glm-5.2-output-cap-40000": capabilityEntry(200000, {
+        reasoning: true,
+        limit_output: 40000,
+      }),
     },
   });
 });
@@ -89,5 +92,30 @@ test("#6274 reasoning buffer does not inflate probe-sized max_tokens", () => {
     resolveReasoningBufferedMaxTokens("zhipu/glm-5.2", 32000),
     48000,
     "genuine reasoning budgets keep the #3587 headroom"
+  );
+});
+
+test("reasoning buffer uses the model output cap only as an upper bound", () => {
+  // No known model output cap: keep the original #3587 calculation instead of disabling
+  // the buffer. max(32000 + 1000, ceil(32000 * 1.5)) = 48000.
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("zhipu/glm-5.2-no-output-cap", 32000),
+    48000,
+    "missing model output cap should not disable the existing buffer calculation"
+  );
+
+  // Known cap below the heuristic result: clamp to the model capability rather than
+  // falling all the way back to the unbuffered caller value.
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("zhipu/glm-5.2-output-cap-40000", 32000),
+    40000,
+    "known model output cap should clamp the buffered calculation"
+  );
+
+  // Known cap below the caller value still clamps the requested value itself.
+  assert.equal(
+    resolveReasoningBufferedMaxTokens("zhipu/glm-5.2-output-cap-40000", 41000),
+    40000,
+    "requested max_tokens above the model output cap should be capped"
   );
 });
