@@ -1834,29 +1834,6 @@
       "stream": "https://opengateway.gitlawb.com/v1/gmi-cloud"
     }
   },
-  "glhf": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://api.laf.run/v1/chat/completions",
-      "stream": "https://api.laf.run/v1/chat/completions"
-    }
-  },
   "glm": {
     "format": "openai",
     "headers": {
@@ -2202,29 +2179,6 @@
       "stream": "https://spark-api.xf-yun.com/v1/chat/completions"
     }
   },
-  "inclusionai": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://api.inclusionai.tech/v1/chat/completions",
-      "stream": "https://api.inclusionai.tech/v1/chat/completions"
-    }
-  },
   "inference-net": {
     "format": "openai",
     "headers": {
@@ -2495,29 +2449,6 @@
     "url": {
       "nonStream": "https://codewhisperer.us-east-1.amazonaws.com/generateAssistantResponse",
       "stream": "https://codewhisperer.us-east-1.amazonaws.com/generateAssistantResponse"
-    }
-  },
-  "kluster": {
-    "format": "openai",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://api.kluster.ai/v1/chat/completions",
-      "stream": "https://api.kluster.ai/v1/chat/completions"
     }
   },
   "lambda-ai": {
