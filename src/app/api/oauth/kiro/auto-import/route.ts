@@ -211,8 +211,14 @@ async function tryKiroCliSqlite(): Promise<{
  * Read the Amazon Q Developer profileArn the Kiro IDE persists in its
  * `profile.json`. This is the authoritative source for the profileArn of AWS
  * IAM Identity Center AND External IdP (organization) logins, since neither can
- * enumerate it via ListAvailableProfiles (org tokens get an empty list). The ARN
- * region is normalized to us-east-1 for the runtime gateway (#2059).
+ * enumerate it via ListAvailableProfiles (org tokens get an empty list).
+ *
+ * The ARN's region segment is preserved verbatim (#2314). #2059 originally
+ * forced every ARN's region to us-east-1, which 403s the runtime gateway for
+ * IDC accounts that live in a non-us-east-1 region. The OAuth device-code
+ * path (src/lib/oauth/providers/kiro.ts) already discovers the correct
+ * region-matched ARN, so this fallback now mirrors that behavior instead of
+ * rewriting it.
  */
 async function readKiroIdeProfileArn(): Promise<string | null> {
   const { readFile } = await import("fs/promises");
@@ -242,10 +248,7 @@ async function readKiroIdeProfileArn(): Promise<string | null> {
       const profileContent = await readFile(profilePath, "utf-8");
       const profileData = JSON.parse(profileContent);
       if (profileData.arn) {
-        return profileData.arn.replace(
-          /arn:aws:codewhisperer:[^:]+:/,
-          "arn:aws:codewhisperer:us-east-1:"
-        );
+        return profileData.arn;
       }
     } catch {
       continue;
@@ -340,9 +343,8 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
           }
         }
 
-        // Read profileArn from Kiro IDE's profile.json.
-        // The runtime gateway requires us-east-1 in the ARN regardless of the IDC
-        // region, so we normalize the ARN region to us-east-1 (#2059).
+        // Read profileArn from Kiro IDE's profile.json. The region is preserved
+        // verbatim by readKiroIdeProfileArn() (#2314) — see its docstring for why.
         const profileArn: string | null = await readKiroIdeProfileArn();
 
         return {

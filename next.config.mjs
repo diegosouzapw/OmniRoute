@@ -2,6 +2,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 import { createMDX } from "fumadocs-mdx/next";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { mitmManagerAliasFor } from "./scripts/build/mitm-stub-flag.mjs";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const distDir = process.env.NEXT_DIST_DIR || ".build/next";
@@ -106,8 +107,13 @@ const nextConfig = {
   turbopack: {
     root: projectRoot,
     resolveAlias: {
-      // Point mitm/manager to a stub during build (native child_process/fs can't be bundled)
-      "@/mitm/manager": "./src/mitm/manager.stub.ts",
+      // @/mitm/manager → stub ONLY where the runtime can't run the MITM stack
+      // (Docker sets OMNIROUTE_MITM_STUB=1 — #3390 graceful degradation). The
+      // alias used to be unconditional, which was fine while Docker was the
+      // only Turbopack consumer — but the v3.8.45 bundler-default flip shipped
+      // the stub to every npm/Electron/VPS artifact and broke Agent Bridge
+      // start for all non-Docker users (#6344). See scripts/build/mitm-stub-flag.mjs.
+      ...mitmManagerAliasFor(process.env),
       ...minimalBuildAliases,
     },
   },
@@ -581,6 +587,33 @@ const nextConfig = {
       {
         source: "/v1beta",
         destination: "/api/v1beta",
+      },
+      // Issue #6405 follow-up: unknown root-level paths must return JSON 404,
+      // not the dashboard HTML shell. Rewrite the missing prefixes under /api/*
+      // so they hit the /api/[...omnirouteApiCatchAll] route (#6424) — which
+      // returns application/json with error.type === "not_found". Real /api/*
+      // routes take precedence over the catch-all, so any future
+      // /api/anthropic/*, /api/openai/*, /api/metrics, /api/debug endpoints
+      // still match first.
+      {
+        source: "/anthropic/:path*",
+        destination: "/api/anthropic/:path*",
+      },
+      {
+        source: "/openai/:path*",
+        destination: "/api/openai/:path*",
+      },
+      {
+        source: "/metrics",
+        destination: "/api/metrics",
+      },
+      {
+        source: "/debug",
+        destination: "/api/debug",
+      },
+      {
+        source: "/.env",
+        destination: "/api/.env",
       },
     ];
   },

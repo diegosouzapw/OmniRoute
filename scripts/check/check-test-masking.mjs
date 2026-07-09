@@ -15,6 +15,8 @@ import { execFileSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
 const TEST_RE = /\.(test|spec)\.(ts|tsx)$/;
+// Production TypeScript sources (excludes test files, handled separately via TEST_RE).
+const PROD_SRC_RE = /\.(ts|tsx|mts|cts)$/;
 
 /** Conta chamadas de assert.*( / assert( / expect( . */
 export function countAssertions(src) {
@@ -55,6 +57,192 @@ export function countExtendedTautologies(src) {
   // assert.ok(true)
   count += (src.match(/\bassert\s*\.\s*ok\s*\(\s*true\s*\)/g) || []).length;
   return count;
+}
+
+/**
+ * (#6404) Narrower sibling of countExtendedTautologies(), deliberately EXCLUDING
+ * `assert.ok(true)`: that pattern is intentionally left to the lenient, diff-only,
+ * new-occurrences-only subcheck 3 above, because ~15 pre-existing, verified-legitimate
+ * uses already exist repo-wide (documented fallbacks like "expected to throw" /
+ * "DB not available, expected" in try/catch branches) — an absolute, always-on scan
+ * against all of them would be a mass false-positive, not a real signal.
+ *
+ * `expect(true).toBe(true)` / `assert.equal(1, 1)` / `assert.strictEqual(1, 1)` have
+ * no such legitimate use anywhere in this codebase (verified zero pre-existing hits
+ * after fixing #6404's playground-api-tab.test.tsx) — a genuinely bare, no-argument
+ * tautology is never a deliberate pattern here, so it is safe to fail on ANY hit,
+ * with or without a PR diff to compare against. See scanBareTautologies() below.
+ */
+export function countBareTautologies(src) {
+  let count = 0;
+  // expect(true).toBe(true)
+  count += (src.match(/\bexpect\s*\(\s*true\s*\)\s*\.\s*toBe\s*\(\s*true\s*\)/g) || []).length;
+  // assert.equal(1, 1) / assert.strictEqual(1, 1) — literal numeric identity
+  count += (src.match(/\bassert\s*\.\s*(?:strict)?[Ee]qual\s*\(\s*1\s*,\s*1\s*\)/g) || []).length;
+  return count;
+}
+
+// ─── (6348) Subcheck 4: inline-reimplemented prod conditions (REPORT-ONLY) ───
+// A test that copies a conditional expression out of production code (instead of
+// importing and exercising the symbol that owns it) is the wrong-shape-contract-test
+// class (#6216): the assertion re-encodes the branch locally, so it stays green even
+// when the real prod condition drifts. This subcheck is a HEURISTIC, textual gate
+// mirroring the count* helpers above — it never parses an AST. It is REPORT-ONLY for
+// now (warns, does not fail the gate).
+
+/** Collapse all runs of whitespace to a single space and trim. */
+function normalizeWhitespace(s) {
+  return (s || "").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Count "significant" tokens in a normalized condition. Single-char identifiers
+ * (`x`, `i`) and single-digit numeric literals (`0`, `1`) are treated as noise and
+ * NOT counted; operators and multi-char identifiers/numbers ARE. This is what makes
+ * `x > 0` trivial (1 significant token) while `status >= 500` is meaningful (3):
+ *   - `status >= 500` → status, >=, 500              → 3
+ *   - `x === LIMIT && y` → ===, LIMIT, &&            → 3
+ *   - `x > 0` → >                                    → 1
+ */
+export function countSignificantTokens(cond) {
+  const tokens =
+    (cond || "").match(
+      /===|!==|==|!=|>=|<=|&&|\|\||[<>+\-*/%!]|[A-Za-z_$][\w$]*|\d+(?:\.\d+)?/g
+    ) || [];
+  let count = 0;
+  for (const tk of tokens) {
+    if (/^[A-Za-z_$]/.test(tk)) {
+      if (tk.length >= 2) count++; // multi-char identifier
+    } else if (/^\d/.test(tk)) {
+      if (tk.length >= 2) count++; // multi-digit number
+    } else {
+      count++; // operator
+    }
+  }
+  return count;
+}
+
+/** A condition is "meaningful" when it carries ≥3 significant tokens. */
+function isSignificantCondition(cond) {
+  return countSignificantTokens(cond) >= 3;
+}
+
+/**
+ * Extract meaningful (≥3-token) conditional expressions from a production source,
+ * paired with the nearest enclosing declared symbol that "owns" them. Covers
+ * `if (...)` (via paren balancing) and comparison-bearing ternaries (`a === b ? … : …`).
+ * Returns [{ condition (whitespace-normalized), owner }].
+ */
+export function extractProdConditions(src) {
+  const results = [];
+  if (!src) return results;
+
+  // Declarations (function / const / let / var) with their positions, so each
+  // condition can be attributed to the symbol whose body it lives in.
+  const decls = [];
+  const declRe =
+    /(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)|(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/g;
+  let dm;
+  while ((dm = declRe.exec(src))) {
+    decls.push({ index: dm.index, name: dm[1] || dm[2] });
+  }
+  const ownerAt = (idx) => {
+    let owner = "";
+    for (const d of decls) {
+      if (d.index <= idx) owner = d.name;
+      else break;
+    }
+    return owner;
+  };
+
+  const seen = new Set();
+  const pushCond = (raw, owner) => {
+    const norm = normalizeWhitespace(raw);
+    if (!norm || seen.has(norm) || !isSignificantCondition(norm)) return;
+    seen.add(norm);
+    results.push({ condition: norm, owner });
+  };
+
+  // if (...) — balance parentheses to capture the full condition.
+  const ifRe = /\bif\s*\(/g;
+  let m;
+  while ((m = ifRe.exec(src))) {
+    let depth = 1;
+    let i = m.index + m[0].length;
+    for (; i < src.length && depth > 0; i++) {
+      const ch = src[i];
+      if (ch === "(") depth++;
+      else if (ch === ")") depth--;
+    }
+    pushCond(src.slice(m.index + m[0].length, i - 1), ownerAt(m.index));
+  }
+
+  // Comparison-bearing ternaries: `<lhs> <cmp> <rhs> ? … : …` (best-effort, low-noise).
+  const ternRe =
+    /([A-Za-z_$][\w$).\]]*\s*(?:===|!==|==|!=|>=|<=|>|<)\s*[^?;{}\n]+?)\s*\?/g;
+  let t;
+  while ((t = ternRe.exec(src))) {
+    pushCond(t[1], ownerAt(t.index));
+  }
+
+  return results;
+}
+
+/**
+ * Collect the identifiers/module specifiers a test file imports, so we can tell
+ * whether it exercises a prod symbol through the real import (clean) or merely
+ * re-implements one of its conditions locally (masked). Returns a Set of names:
+ * imported bindings, module paths, and module basenames.
+ */
+export function extractImports(src) {
+  const names = new Set();
+  if (!src) return names;
+  const addModule = (mod) => {
+    names.add(mod);
+    const base = mod.split("/").pop().replace(/\.\w+$/, "");
+    if (base) names.add(base);
+  };
+  let m;
+  const importRe = /import\s+(?:type\s+)?([^;]*?)\s+from\s+['"]([^'"]+)['"]/g;
+  while ((m = importRe.exec(src))) {
+    addModule(m[2]);
+    for (const id of m[1].match(/[A-Za-z_$][\w$]*/g) || []) {
+      if (id !== "as" && id !== "type") names.add(id);
+    }
+  }
+  const dynRe = /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+  while ((m = dynRe.exec(src))) addModule(m[1]);
+  const reqRe = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+  while ((m = reqRe.exec(src))) addModule(m[1]);
+  return names;
+}
+
+/**
+ * PURE core of subcheck 4. Given the sources of the prod files changed in a PR,
+ * one test file's source, and the set of names that test imports: return the prod
+ * conditions the test re-implements textually WITHOUT importing the symbol that owns
+ * them. Whitespace is squashed on both sides so spacing differences never mask a hit.
+ * Returns [{ condition, owner }].
+ */
+export function findReimplementedConditions(prodSources, testSource, testImports) {
+  const flags = [];
+  if (!testSource) return flags;
+  const imports =
+    testImports instanceof Set ? testImports : new Set(testImports || []);
+  const squash = (s) => (s || "").replace(/\s+/g, "");
+  const testSq = squash(testSource);
+  const seen = new Set();
+  for (const prod of prodSources || []) {
+    for (const { condition, owner } of extractProdConditions(prod)) {
+      if (owner && imports.has(owner)) continue; // exercised through the real import
+      if (seen.has(condition)) continue;
+      if (testSq.includes(squash(condition))) {
+        seen.add(condition);
+        flags.push({ condition, owner: owner || null });
+      }
+    }
+  }
+  return flags;
 }
 
 /**
@@ -160,12 +348,65 @@ export function evaluateMasking(perFile, assertReductionAllowlist = new Set()) {
   return flags;
 }
 
+/**
+ * (#6404) Absolute floor scan for bare tautologies (`expect(true).toBe(true)`,
+ * `assert.equal(1, 1)` / `assert.strictEqual(1, 1)`), independent of PR diffing.
+ *
+ * The subcheck-3 diff logic above (`evaluateMasking`'s `headExtTaut > baseExtTaut`)
+ * only fires for a tautology INTRODUCED within the current PR's own diff, and
+ * `resolveBase()` returns `null` outside CI (no `GITHUB_BASE_SHA`/`GITHUB_BASE_REF`),
+ * so a local `npm run check:test-masking` run silently no-ops — "sem base ref —
+ * pulando" — regardless of what the tests actually contain. That is exactly how
+ * #6404's `expect(true).toBe(true)` in `playground-api-tab.test.tsx` slipped through
+ * for a full release cycle after merging once (the diff-only gate has nothing to
+ * compare a pre-existing, already-merged tautology against, and local runs never
+ * scan repo content at all). This scans every tracked test file's current content,
+ * in or out of PR context, so a stray tautology can never hide once merged.
+ *
+ * Uses `countBareTautologies()` (not `countExtendedTautologies()`) — deliberately
+ * excludes `assert.ok(true)`, which has ~15 verified-legitimate pre-existing uses
+ * repo-wide and stays governed by the lenient, new-occurrence-only diff subcheck.
+ *
+ * `check-test-masking.test.ts` is excluded — its fixtures legitimately embed the
+ * literal pattern as string literals to exercise the count* helpers themselves.
+ */
+export function scanBareTautologies(testFiles, readFile) {
+  const read = readFile || ((f) => fs.readFileSync(f, "utf8"));
+  const flags = [];
+  for (const file of testFiles || []) {
+    if (file.endsWith("check-test-masking.test.ts")) continue;
+    let src;
+    try {
+      src = read(file);
+    } catch {
+      continue;
+    }
+    const count = countBareTautologies(src);
+    if (count > 0) {
+      flags.push(
+        `${file}: ${count} tautologia(s) pura(s) (expect(true).toBe(true) / assert.equal(1,1)) — ` +
+          "substitua por um assert real do comportamento observável"
+      );
+    }
+  }
+  return flags;
+}
+
 function git(args) {
   try {
     return execFileSync("git", args, { encoding: "utf8" });
   } catch {
     return "";
   }
+}
+
+/** All git-tracked test files (`.test.ts(x)`/`.spec.ts(x)`), repo-wide — used by the
+ * absolute floor scan so it also covers files untouched by the current diff/PR. */
+function listTrackedTestFiles() {
+  return git(["ls-files"])
+    .split("\n")
+    .map((s) => s.trim())
+    .filter((f) => TEST_RE.test(f));
 }
 
 function resolveBase() {
@@ -175,9 +416,34 @@ function resolveBase() {
 }
 
 function main() {
+  // (#6404) Absolute floor scan — runs unconditionally, PR or not, so a tautology
+  // that is already merged into the base (and thus invisible to the diff-only
+  // subchecks below) or a local pre-push run (which has no PR base to diff
+  // against) still gets caught. See scanBareTautologies() doc comment.
+  let bareTautAllowlist = new Set();
+  try {
+    const raw = JSON.parse(fs.readFileSync("config/quality/test-masking-allowlist.json", "utf8"));
+    bareTautAllowlist = new Set(raw._bareTautologyAllowlist || []);
+  } catch {
+    // no allowlist file — treat as empty
+  }
+  const trackedTestFiles = listTrackedTestFiles().filter((f) => !bareTautAllowlist.has(f));
+  const absoluteTautFlags = scanBareTautologies(trackedTestFiles);
+  if (absoluteTautFlags.length) {
+    console.error(
+      `[test-masking] ${absoluteTautFlags.length} tautologia(s) pura(s) encontradas ` +
+        `(scan absoluto — roda com ou sem contexto de PR):\n` +
+        absoluteTautFlags.map((f) => "  ✗ " + f).join("\n") +
+        `\n  → substitua por um assert real do comportamento observável.`
+    );
+    process.exit(1);
+  }
+
   const base = resolveBase();
   if (!base) {
-    console.log("[test-masking] sem base ref (não é PR) — pulando.");
+    console.log(
+      "[test-masking] sem base ref (não é PR) — pulando checks de diff (scan absoluto de tautologias OK)."
+    );
     return;
   }
 
@@ -241,12 +507,57 @@ function main() {
   // Only exempts the reduction signal; tautology/skip/deletion signals still fire.
   let assertReductionAllowlist = new Set();
   let deletionAllowlist = {};
+  let reimplementedAllowlist = new Set();
   try {
     const raw = JSON.parse(fs.readFileSync("config/quality/test-masking-allowlist.json", "utf8"));
     assertReductionAllowlist = new Set(Object.keys(raw).filter((k) => !k.startsWith("_")));
     deletionAllowlist = raw._deletedWithReplacement || {};
+    reimplementedAllowlist = new Set(raw._reimplementedConditions || []);
   } catch {
     // no allowlist file — treat as empty
+  }
+
+  // (6348 subcheck 4, REPORT-ONLY) Tests that inline-reimplement a prod condition
+  // instead of importing the symbol that owns it. Prod files changed in this PR
+  // (added/copied/modified TS sources) are the reference corpus; each changed test
+  // file is scanned against them. Warns only — it never fails the gate for now.
+  const prodChanged = git(["diff", "--name-only", "--diff-filter=ACM", `${base}...HEAD`])
+    .split("\n")
+    .map((s) => s.trim())
+    .filter((f) => PROD_SRC_RE.test(f) && !TEST_RE.test(f) && fs.existsSync(f));
+  const prodSources = prodChanged.map((f) => {
+    try {
+      return fs.readFileSync(f, "utf8");
+    } catch {
+      return "";
+    }
+  });
+  const changedTests = git(["diff", "--name-only", "--diff-filter=ACM", `${base}...HEAD`])
+    .split("\n")
+    .map((s) => s.trim())
+    .filter((f) => TEST_RE.test(f) && fs.existsSync(f));
+  const reimplementedFlags = [];
+  if (prodSources.length) {
+    for (const tf of changedTests) {
+      if (reimplementedAllowlist.has(tf)) continue;
+      const src = fs.readFileSync(tf, "utf8");
+      for (const hit of findReimplementedConditions(prodSources, src, extractImports(src))) {
+        reimplementedFlags.push(
+          `${tf}: re-implementa a condição \`${hit.condition}\`` +
+            (hit.owner ? ` (dona: ${hit.owner})` : "") +
+            " — asserte através do import real em vez de copiar a condição"
+        );
+      }
+    }
+  }
+  if (reimplementedFlags.length) {
+    console.warn(
+      `[test-masking] (report-only) ${reimplementedFlags.length} teste(s) re-implementam ` +
+        `condição de produção em vez de importar o símbolo dono (classe #6216):\n` +
+        reimplementedFlags.map((f) => "  ⚠ " + f).join("\n") +
+        `\n  → importe o símbolo/função dono e asserte através dele (evita contrato duplicado ` +
+        `que diverge silenciosamente). Report-only por enquanto — não falha o gate.`
+    );
   }
 
   const deletedFlags = evaluateDeletedFiles(

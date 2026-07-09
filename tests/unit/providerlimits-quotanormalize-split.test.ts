@@ -9,7 +9,7 @@
  *
  * Verifies that:
  *   1. isRecord + isUsageQuotaKeyAllowed behave correctly (DB-free).
- *   2. The host providerLimits.ts still exposes the FULL public API (13 funcs).
+ *   2. The host providerLimits.ts still exposes the FULL public API.
  *   3. The quotaNormalize leaf exports its helpers directly.
  *
  * Deeper quota-sanitization behaviour is covered by the existing
