@@ -11,6 +11,7 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 ### ✨ New Features
 
 - **Provider/model param filters**: config-driven parameter denylist/allowlist per provider/model with auto-learn from upstream 400s (#6649 — thanks @ThongAccount, closes #6625)
+- **Per-combo reasoning token buffer toggle**: the combo builder now exposes an explicit checkbox for the `#3587` reasoning-model `max_tokens` buffer, defaulting to the existing enabled behavior, so a combo can opt out without hand-editing raw JSON config (#6702 — thanks @xz-dev)
 
 ### 🐛 Bug Fixes
 
