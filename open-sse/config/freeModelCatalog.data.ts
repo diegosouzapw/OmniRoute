@@ -234,7 +234,6 @@ export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "hyperbolic", modelId: "Qwen/Qwen2.5-Coder-32B-Instruct", displayName: "Qwen 2.5 Coder 32B", monthlyTokens: 0, creditTokens: 5000000, freeType: "one-time-initial", poolKey: "hyperbolic", tos: "ok" },
   { provider: "hyperbolic", modelId: "NousResearch/Hermes-3-Llama-3.1-70B", displayName: "Hermes 3 70B", monthlyTokens: 0, creditTokens: 5000000, freeType: "one-time-initial", poolKey: "hyperbolic", tos: "ok" },
   { provider: "iflytek", modelId: "generalv3.5", displayName: "General V3.5", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "iflytek", tos: "avoid" },
-  { provider: "inclusionai", modelId: "inclusion-model", displayName: "Inclusion Model", monthlyTokens: 15000000, creditTokens: 0, freeType: "recurring-daily", poolKey: "inclusionai", tos: "ambiguous" },
   { provider: "inference-net", modelId: "meta-llama/Llama-3.3-70B-Instruct", displayName: "meta-llama/Llama-3.3-70B-Instruct", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-monthly", poolKey: "inference-net", tos: "caution" },
   { provider: "inference-net", modelId: "deepseek-ai/DeepSeek-R1", displayName: "deepseek-ai/DeepSeek-R1", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-monthly", poolKey: "inference-net", tos: "caution" },
   { provider: "inference-net", modelId: "Qwen/Qwen2.5-72B-Instruct", displayName: "Qwen/Qwen2.5-72B-Instruct", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-monthly", poolKey: "inference-net", tos: "caution" },
