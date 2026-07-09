@@ -180,7 +180,7 @@ export async function executeChaosRun(input: ChaosRunInput): Promise<ChaosRunRes
   // Merge request overrides → global config → hardcoded defaults
   const mode: ChaosMode = input.mode || globalConfig.defaultMode || "parallel";
   const timeoutMs = input.timeoutMs || globalConfig.timeoutMs || 120_000;
-  const maxTokens = input.maxTokens || DEFAULT_MAX_TOKENS;
+  const maxTokens = input.maxTokens || globalConfig.maxTokens || DEFAULT_MAX_TOKENS;
 
   const effectiveSystemPrompt =
     input.systemPrompt ||

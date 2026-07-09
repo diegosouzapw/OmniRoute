@@ -229,12 +229,6 @@ export default function ChaosConfigPage() {
     }));
   };
 
-  const isOverrideDuplicate = (providerId: string, excludeIndex: number): boolean => {
-    return config.providerOverrides.some(
-      (o, i) => i !== excludeIndex && o.providerId.toLowerCase() === providerId.toLowerCase()
-    );
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
