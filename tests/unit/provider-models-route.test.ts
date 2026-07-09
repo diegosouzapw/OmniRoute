@@ -223,6 +223,75 @@ test("provider models route falls back after OpenAI-compatible endpoint probes a
   assert.ok(seenUrls.length >= 2);
 });
 
+test("provider models route discovers live Codex models and tags them for Responses", async () => {
+  const connection = await seedConnection("codex", {
+    authType: "oauth",
+    accessToken: "codex-access-token",
+  });
+  const seenRequests: Array<{
+    url: string;
+    authorization: string | null;
+    userAgent: string | null;
+  }> = [];
+
+  globalThis.fetch = async (url, init) => {
+    const headers = new Headers(init?.headers as HeadersInit | undefined);
+    seenRequests.push({
+      url: String(url),
+      authorization: headers.get("authorization"),
+      userAgent: headers.get("user-agent"),
+    });
+    return Response.json({
+      models: [
+        { id: "gpt-5.6", display_name: "GPT 5.6" },
+        { id: "", name: "missing-id" },
+      ],
+    });
+  };
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "codex");
+  assert.equal(body.source, "api");
+  assert.deepEqual(seenRequests, [
+    {
+      url: "https://chatgpt.com/backend-api/models?history_and_training_disabled=false",
+      authorization: "Bearer codex-access-token",
+      userAgent: "codex-cli/0.142.0 (Windows 10.0.26200; x64)",
+    },
+  ]);
+  assert.deepEqual(body.models, [
+    {
+      id: "gpt-5.6",
+      name: "GPT 5.6",
+      owned_by: "codex",
+      apiFormat: "responses",
+      supportedEndpoints: ["responses"],
+    },
+  ]);
+});
+
+test("provider models route marks Codex local fallback as intentional when live discovery fails", async () => {
+  const connection = await seedConnection("codex", {
+    authType: "oauth",
+    accessToken: "codex-access-token",
+  });
+
+  globalThis.fetch = async () => new Response("upstream unavailable", { status: 503 });
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "codex");
+  assert.equal(body.source, "local_catalog");
+  assert.equal(body.intentional, true);
+  assert.equal(body.warning, "Codex live catalog unavailable — using local catalog");
+  assert.ok(body.models.some((model: any) => model.id === "gpt-5.5"));
+});
+
 test("provider models route retries transient OpenAI-compatible probe failures before succeeding", async () => {
   const connection = await seedConnection("openai-compatible-retry", {
     apiKey: "sk-openai-compatible",

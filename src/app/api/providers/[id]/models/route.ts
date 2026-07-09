@@ -97,6 +97,7 @@ import {
   type ProviderModelsConfigEntry,
   PROVIDER_MODELS_CONFIG,
 } from "./discovery/providerModelsConfig";
+import { fetchCodexDiscoveryModels } from "./discovery/codex";
 
 /**
  * GET /api/providers/[id]/models - Get models list from provider
@@ -1702,6 +1703,43 @@ export async function GET(
         // #5460/#5465 — Qwen OAuth has no OAuth-compatible remote /models list;
         // the static catalog is intentional, so model-sync should import it.
         intentional: true,
+      });
+    }
+
+    if (provider === "codex") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const liveModels = await fetchCodexDiscoveryModels({
+        accessToken: accessToken || null,
+        fetchImpl: (url, init) =>
+          safeOutboundFetch(url, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            ...init,
+          }),
+      });
+
+      if (liveModels && liveModels.length > 0) {
+        return buildApiDiscoveryResponse(liveModels);
+      }
+
+      const localCatalog = buildLocalCatalogResponse(
+        "Codex live catalog unavailable — using local catalog",
+        true
+      );
+      if (localCatalog) return localCatalog;
+      return buildResponse({
+        provider,
+        connectionId,
+        models: [],
+        source: "local_catalog",
+        intentional: true,
+        warning: "Codex live catalog unavailable — using local catalog",
       });
     }
 

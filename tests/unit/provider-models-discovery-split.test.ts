@@ -24,6 +24,11 @@ import {
   isNamedOpenAIStyleProvider,
 } from "../../src/app/api/providers/[id]/models/discovery/providerSets.ts";
 import { PROVIDER_MODELS_CONFIG } from "../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
+import {
+  CODEX_MODELS_URL,
+  fetchCodexDiscoveryModels,
+  normalizeCodexModelsResponse,
+} from "../../src/app/api/providers/[id]/models/discovery/codex.ts";
 
 // ── helpers leaf ─────────────────────────────────────────────────────────────
 
@@ -132,6 +137,89 @@ test("providerModelsConfig aimlapi.parseResponse keeps only chat-completion mode
   assert.deepEqual(parsed, [{ id: "chat-1", name: "Chat 1" }]);
 });
 
+// ── codex discovery leaf ────────────────────────────────────────────────────
+
+test("codex.normalizeCodexModelsResponse maps data/models/map payloads to response models", () => {
+  assert.deepEqual(normalizeCodexModelsResponse({ data: [{ id: "gpt-5.5", name: "GPT 5.5" }] }), [
+    {
+      id: "gpt-5.5",
+      name: "GPT 5.5",
+      owned_by: "codex",
+      apiFormat: "responses",
+      supportedEndpoints: ["responses"],
+    },
+  ]);
+
+  assert.deepEqual(
+    normalizeCodexModelsResponse({
+      "gpt-5.4": { title: "GPT 5.4" },
+      invalid: null,
+    }).map((m) => ({ id: m.id, name: m.name })),
+    [{ id: "gpt-5.4", name: "GPT 5.4" }]
+  );
+});
+
+test("codex.normalizeCodexModelsResponse drops entries without an id", () => {
+  const parsed = normalizeCodexModelsResponse({ models: [{ name: "" }, { model: "gpt-5.4" }] });
+  assert.deepEqual(
+    parsed.map((m) => m.id),
+    ["gpt-5.4"]
+  );
+});
+
+test("codex.fetchCodexDiscoveryModels returns null for missing token, auth failure, empty, or network error", async () => {
+  assert.equal(
+    await fetchCodexDiscoveryModels({
+      accessToken: null,
+      fetchImpl: async () => Response.json({ data: [{ id: "never-called" }] }),
+    }),
+    null
+  );
+
+  assert.equal(
+    await fetchCodexDiscoveryModels({
+      accessToken: "tok",
+      fetchImpl: async () => new Response("unauthorized", { status: 401 }),
+    }),
+    null
+  );
+
+  assert.equal(
+    await fetchCodexDiscoveryModels({
+      accessToken: "tok",
+      fetchImpl: async () => Response.json({ data: [] }),
+    }),
+    null
+  );
+
+  assert.equal(
+    await fetchCodexDiscoveryModels({
+      accessToken: "tok",
+      fetchImpl: async () => {
+        throw new Error("network down");
+      },
+    }),
+    null
+  );
+});
+
+test("codex.fetchCodexDiscoveryModels calls the ChatGPT models endpoint with Codex bearer headers", async () => {
+  let seenUrl = "";
+  let seenAuthorization = "";
+  const models = await fetchCodexDiscoveryModels({
+    accessToken: "codex-access",
+    fetchImpl: async (url, init) => {
+      seenUrl = url;
+      seenAuthorization = init.headers.Authorization;
+      return Response.json({ models: [{ id: "gpt-5.6", display_name: "GPT 5.6" }] });
+    },
+  });
+
+  assert.equal(seenUrl, CODEX_MODELS_URL);
+  assert.equal(seenAuthorization, "Bearer codex-access");
+  assert.deepEqual(models?.map((m) => m.id), ["gpt-5.6"]);
+});
+
 // ── host wiring guard ────────────────────────────────────────────────────────
 
 test("route.ts imports the discovery leaves and no longer declares the moved consts", () => {
@@ -139,7 +227,7 @@ test("route.ts imports the discovery leaves and no longer declares the moved con
     path.join("src", "app", "api", "providers", "[id]", "models", "route.ts"),
     "utf-8"
   );
-  for (const leaf of ["helpers", "normalizers", "providerSets", "providerModelsConfig"]) {
+  for (const leaf of ["helpers", "normalizers", "providerSets", "providerModelsConfig", "codex"]) {
     assert.match(
       route,
       new RegExp(`from "\\./discovery/${leaf}"`),
