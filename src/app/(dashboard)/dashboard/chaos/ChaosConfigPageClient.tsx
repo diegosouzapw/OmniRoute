@@ -94,7 +94,7 @@ export default function ChaosConfigPage() {
       try {
         const [configRes, providersRes] = await Promise.all([
           fetch("/api/chaos/config"),
-          fetch("/api/keys"),
+          fetch("/api/providers"),
         ]);
 
         if (configRes.ok) {
@@ -104,19 +104,19 @@ export default function ChaosConfigPage() {
 
         if (providersRes.ok) {
           const data = await providersRes.json();
-          if (data.keys && Array.isArray(data.keys)) {
-            // Extract unique provider info — assume key names include provider info
+          const allConnections = data?.connections || data?.data || data;
+          if (Array.isArray(allConnections)) {
             const extracted: ProviderInfo[] = [];
-            const nameSet = new Set<string>();
-            for (const key of data.keys) {
-              const providerName = key.name || key.provider || "";
-              if (providerName && !nameSet.has(providerName.toLowerCase())) {
-                nameSet.add(providerName.toLowerCase());
+            const seenProvider = new Set<string>();
+            for (const conn of allConnections) {
+              const providerName = conn.provider || conn.name || conn.id || "";
+              if (providerName && !seenProvider.has(providerName.toLowerCase())) {
+                seenProvider.add(providerName.toLowerCase());
                 extracted.push({
-                  id: key.id,
-                  name: key.name || providerName,
-                  provider: key.provider || providerName,
-                  defaultModel: key.defaultModel || key.model || null,
+                  id: conn.id,
+                  name: conn.name || conn.provider || providerName,
+                  provider: conn.provider || providerName,
+                  defaultModel: conn.defaultModel || null,
                 });
               }
             }
@@ -124,44 +124,6 @@ export default function ChaosConfigPage() {
               setProviders(extracted);
             }
           }
-        }
-
-        // Also try fetching providers from /api/models or /api/providers
-        try {
-          const modelsRes = await fetch("/api/models");
-          if (modelsRes.ok) {
-            const modelsData = await modelsRes.json();
-            const modelProviders: ProviderInfo[] = [];
-            const seenIds = new Set<string>();
-            const allModels = modelsData?.data || modelsData?.models || [];
-            for (const m of allModels) {
-              const owner = m.owned_by || m.provider || "";
-              if (owner && !seenIds.has(owner.toLowerCase())) {
-                seenIds.add(owner.toLowerCase());
-                modelProviders.push({
-                  id: owner,
-                  name: m.provider_name || owner,
-                  provider: owner,
-                  defaultModel: m.id || null,
-                });
-              }
-            }
-            if (modelProviders.length > 0) {
-              setProviders((prev) => {
-                const merged = [...prev];
-                const existing = new Set(merged.map((p) => p.provider.toLowerCase()));
-                for (const mp of modelProviders) {
-                  if (!existing.has(mp.provider.toLowerCase())) {
-                    merged.push(mp);
-                    existing.add(mp.provider.toLowerCase());
-                  }
-                }
-                return merged;
-              });
-            }
-          }
-        } catch {
-          // /api/models is optional; skip silently
         }
       } catch (err) {
         log.error("chaos", "Failed to load config", err);
