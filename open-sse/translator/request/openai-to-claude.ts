@@ -363,7 +363,13 @@ export function openaiToClaudeRequest(model, body, stream) {
   if (body.tools && Array.isArray(body.tools)) {
     result.tools = body.tools
       .map((tool) => {
-        const toolData = tool.type === "function" && tool.function ? tool.function : tool;
+        // Unwrap whenever a `.function` wrapper is present, regardless of the
+        // parent `type` field. Real-world clients / library generators sometimes
+        // emit a bare `{ function: { name, parameters } }` shape with no parent
+        // `type: "function"` — the old `tool.type === "function" && tool.function`
+        // guard left that shape un-unwrapped, resolving `name` to `undefined` and
+        // silently dropping the tool via the empty-name guard below (9router#2473).
+        const toolData = tool.function ?? tool;
         const originalName = typeof toolData.name === "string" ? toolData.name.trim() : "";
 
         if (!originalName) {
