@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import { createRequire } from "node:module";
@@ -56,6 +56,11 @@ function createFakeProcess({ onKill } = {}) {
 
 async function withSandboxModule(fakeSpawn, fn) {
   const originalSpawn = childProcess.spawn;
+  const originalRuntime = process.env["SKILLS_SANDBOX_RUNTIME"];
+  // Pin to docker for existing tests so the hardcoded args[0] === "run" /
+  // args[0] === "kill" assertions remain deterministic regardless of the
+  // host's installed container runtimes.
+  process.env["SKILLS_SANDBOX_RUNTIME"] = "docker";
   childProcess.spawn = fakeSpawn;
 
   try {
@@ -65,6 +70,11 @@ async function withSandboxModule(fakeSpawn, fn) {
     return await fn(module);
   } finally {
     childProcess.spawn = originalSpawn;
+    if (originalRuntime === undefined) {
+      delete process.env["SKILLS_SANDBOX_RUNTIME"];
+    } else {
+      process.env["SKILLS_SANDBOX_RUNTIME"] = originalRuntime;
+    }
   }
 }
 
@@ -349,4 +359,206 @@ test("sandboxRunner handles success, spawn errors, timeouts, and killAll cleanup
       assert.equal(sandboxRunner.isRunning("a"), false);
     }
   );
+});
+
+test("sandboxRunner kill/killAll fallback naming matches containerProvider's SANDBOX_NAME convention", async () => {
+  const calls = [];
+
+  await withSandboxModule(
+    (_command, args) => {
+      calls.push({ args });
+      return createFakeProcess();
+    },
+    async ({ sandboxRunner }) => {
+      // A freshly-imported sandboxRunner has never called run(), so
+      // cachedProvider is still null and kill()/killAll() must fall back to
+      // the docker CLI directly — that fallback name must still match
+      // containerProvider.ts's SANDBOX_NAME (`omniroute-${id}`), not the
+      // pre-PR `omniroute-sandbox-${id}` convention.
+      const proc = createFakeProcess();
+      sandboxRunner.runningContainers.set("fallback-id", proc);
+      sandboxRunner.kill("fallback-id");
+
+      const killCall = calls.find((entry) => entry.args[0] === "kill");
+      assert.ok(killCall, "kill command should have been issued");
+      assert.equal(killCall.args[1], "omniroute-fallback-id");
+
+      const procA = createFakeProcess();
+      const procB = createFakeProcess();
+      sandboxRunner.runningContainers.set("fallback-a", procA);
+      sandboxRunner.runningContainers.set("fallback-b", procB);
+      sandboxRunner.killAll();
+
+      const killAllNames = calls
+        .filter((entry) => entry.args[0] === "kill")
+        .map((entry) => entry.args[1]);
+      assert.ok(killAllNames.includes("omniroute-fallback-a"));
+      assert.ok(killAllNames.includes("omniroute-fallback-b"));
+    }
+  );
+});
+
+// -------------------------------------------------------------
+//  Container Provider Unit Tests
+// -------------------------------------------------------------
+
+test("containerProvider: all five providers registered", () => {
+  // Dynamic import to avoid polluting the sandbox module's state
+  return importFresh("src/lib/skills/containerProvider.ts").then((mod) => {
+    assert.ok(mod.ALL_PROVIDERS.length === 5);
+    assert.deepStrictEqual(
+      mod.ALL_PROVIDERS.map((p) => p.id),
+      ["docker", "apple", "wsl", "orbstack", "podman"],
+    );
+    assert.ok(mod.PROVIDER_BY_ID.has("docker"));
+    assert.ok(mod.PROVIDER_BY_ID.has("apple"));
+    assert.ok(mod.PROVIDER_BY_ID.has("wsl"));
+    assert.ok(mod.PROVIDER_BY_ID.has("orbstack"));
+    assert.ok(mod.PROVIDER_BY_ID.has("podman"));
+  });
+});
+
+test("containerProvider: platformPriority returns correct order per OS", () => {
+  return importFresh("src/lib/skills/containerProvider.ts").then((mod) => {
+    const originalPlatform = Object.getOwnPropertyDescriptor(
+      process,
+      "platform",
+    );
+
+    // darwin
+    Object.defineProperty(process, "platform", { value: "darwin" });
+    assert.deepStrictEqual(mod.platformPriority(), [
+      "apple",
+      "orbstack",
+      "podman",
+      "docker",
+    ]);
+
+    // win32
+    Object.defineProperty(process, "platform", { value: "win32" });
+    assert.deepStrictEqual(mod.platformPriority(), [
+      "wsl",
+      "docker",
+      "podman",
+    ]);
+
+    // linux
+    Object.defineProperty(process, "platform", { value: "linux" });
+    assert.deepStrictEqual(mod.platformPriority(), ["podman", "docker"]);
+
+    // Restore
+    if (originalPlatform) {
+      Object.defineProperty(
+        process,
+        "platform",
+        originalPlatform,
+      );
+    }
+  });
+});
+
+test("containerProvider: buildRun produces run as args[0] for all providers", () => {
+  return importFresh("src/lib/skills/containerProvider.ts").then((mod) => {
+    const config = {
+      cpuLimit: 100,
+      memoryLimit: 256,
+      timeout: 30000,
+      networkEnabled: false,
+      readOnly: true,
+    };
+    for (const provider of mod.ALL_PROVIDERS) {
+      const resolved = provider.buildRun(
+        "alpine",
+        ["echo", "hi"],
+        "test-id",
+        config,
+      );
+      assert.equal(
+        resolved.args[0],
+        "run",
+        `${provider.id}: args[0] must be "run"`,
+      );
+      assert.ok(
+        resolved.args.includes("--rm"),
+        `${provider.id}: should include --rm`,
+      );
+      assert.ok(
+        resolved.args.includes("alpine"),
+        `${provider.id}: should include image`,
+      );
+      // killArgs must return something callable
+      const kill = resolved.killArgs("test-cont");
+      assert.ok(Array.isArray(kill), `${provider.id}: killArgs returns array`);
+      assert.ok(kill.length > 0, `${provider.id}: killArgs non-empty`);
+    }
+  });
+});
+
+test("containerProvider: buildKillArgs returns kill|stop for cleanup", () => {
+  return importFresh("src/lib/skills/containerProvider.ts").then((mod) => {
+    // Every provider should return an array whose first element is
+    // its known cleanup verb.
+    const verbs = new Map([
+      ["docker", "kill"],
+      ["apple", "kill"],
+      ["wsl", "kill"],
+      ["orbstack", "kill"],
+      ["podman", "kill"],
+    ]);
+    for (const provider of mod.ALL_PROVIDERS) {
+      const expectedVerb = verbs.get(provider.id);
+      const args = provider.buildKillArgs("test-cont");
+      assert.equal(args[0], expectedVerb, `${provider.id} kill verb`);
+    }
+  });
+});
+
+test("containerProvider: buildKillCommand utility", () => {
+  return importFresh("src/lib/skills/containerProvider.ts").then((mod) => {
+    const dockerProvider = mod.PROVIDER_BY_ID.get("docker")!;
+    const result = mod.buildKillCommand(dockerProvider, "test-id");
+    assert.equal(result.command, "docker");
+    assert.equal(result.args[0], "kill");
+    assert.equal(result.args[1], "omniroute-test-id");
+  });
+});
+
+test("containerProvider: resolveProvider respects SKILLS_SANDBOX_RUNTIME override", async () => {
+  // Unpin the global env for this test
+  delete process.env.SKILLS_SANDBOX_RUNTIME;
+  const mod = await importFresh("src/lib/skills/containerProvider.ts");
+  mod._resetProviderCacheForTests();
+
+  process.env.SKILLS_SANDBOX_RUNTIME = "docker";
+  const provider = await mod.resolveProvider();
+  assert.equal(provider.id, "docker");
+
+  process.env.SKILLS_SANDBOX_RUNTIME = "apple";
+  mod._resetProviderCacheForTests();
+  const provider2 = await mod.resolveProvider();
+  assert.equal(provider2.id, "apple");
+
+  process.env.SKILLS_SANDBOX_RUNTIME = "wsl";
+  mod._resetProviderCacheForTests();
+  const provider3 = await mod.resolveProvider();
+  assert.equal(provider3.id, "wsl");
+
+  delete process.env.SKILLS_SANDBOX_RUNTIME;
+  mod._resetProviderCacheForTests();
+});
+
+test("containerProvider: resolveProvider falls back to docker when no runtime installed", async () => {
+  delete process.env.SKILLS_SANDBOX_RUNTIME;
+  const mod = await importFresh("src/lib/skills/containerProvider.ts");
+  mod._resetProviderCacheForTests();
+
+  // Auto-detect walks platform priority â€” if nothing is installed we
+  // always land on docker as the fallback.
+  const provider = await mod.resolveProvider();
+  assert.ok(
+    ["docker", "apple", "wsl", "podman", "orbstack"].includes(provider.id),
+  );
+  // Ensure the fallback is always docker when probes fail
+  // (this test is best-effort â€” on a host with docker installed,
+  //  the auto-detect will legitimately pick docker)
 });

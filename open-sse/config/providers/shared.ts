@@ -46,6 +46,7 @@ import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "@/lib/oa
 export interface RegistryModel {
   id: string;
   name: string;
+  aliases?: readonly string[];
   toolCalling?: boolean;
   supportsReasoning?: boolean;
   supportsVision?: boolean;
