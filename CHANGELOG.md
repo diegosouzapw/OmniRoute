@@ -97,6 +97,12 @@ Thanks to everyone whose work landed in v3.8.47:
 
 ---
 
+### 🐛 Bug Fixes
+
+- **fix(i18n):** the provider-detail (`/dashboard/providers/[id]`) visibility + free/paid model filter labels (`showVisibleOnly`, `showHiddenOnly`, `freeFilterAll`, `freeFilterFreeOnly`, `freeFilterPaidOnly`, `hideAllModels`, plus the currently-unused `filterVisible`/`filterHidden`/`filterByVisibility`) rendered as the literal `__MISSING__:<english>` sentinel in 15 locales, including pt-BR ([#6694](https://github.com/diegosouzapw/OmniRoute/issues/6694)) — `providerText()` (`providerPageHelpers.ts`) checks `t.has(key)` before falling back to clean English, and `t.has()` returns `true` even when the stored value is the `__MISSING__:` sentinel `scripts/i18n/sync-ui-keys.mjs` writes when mirroring keys across locales, so the sentinel rendered verbatim instead of the fallback. Disjoint key set from #6290 (`filterAll`/`filterActive`/`filterError`/`filterBanned`/`filterCreditsExhausted`). All 9 keys now carry real translations across the 15 affected locale files (`it`, `ja`, `ko`, `mr`, `ms`, `nl`, `no`, `phi`, `pl`, `pt`, `pt-BR`, `ro`, `ru`, `sk`, `sv`). Regression guard: `tests/unit/i18n-provider-visibility-filter-keys-6694.test.ts`.
+
+---
+
 ## [3.8.46] — 2026-07-07
 
 ### ✨ New Features
