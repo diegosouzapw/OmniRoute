@@ -12,7 +12,7 @@ import {
 import { extractAliasBackedModels } from "./aliasBackedModels";
 import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
-import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry";
+import { getAllImageModels, isRegisteredImageModel } from "@omniroute/open-sse/config/imageRegistry";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
 import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry";
 import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry";
@@ -849,6 +849,18 @@ async function buildUnifiedModelsResponseCore(
         for (const sm of syncedModels) {
           if (!providerSupportsModel(canonicalProviderId, sm.id)) continue;
           if (getModelIsHidden(providerId, sm.id)) continue;
+          // #6457: some upstream discovery catalogs (e.g. HuggingFace's live
+          // `/v1/models`) return image/diffusion models with no modality info,
+          // so `endpoints` below would default to ["chat"] and misrepresent
+          // them as chat-capable. Skip any synced model that is already a
+          // registered image model for this provider — getAllImageModels()
+          // below adds the correctly-typed `type: "image"` entry instead.
+          if (
+            isRegisteredImageModel(canonicalProviderId, sm.id) ||
+            isRegisteredImageModel(providerId, sm.id)
+          ) {
+            continue;
+          }
           // #6328: apply hidePaidModels to synced provider rows too. Synced rows
           // rarely carry pricing metadata, so shouldHidePaid() falls through to
           // the FREE_MODEL_IDS_BY_PROVIDER catalog — providers with a curated

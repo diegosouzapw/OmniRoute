@@ -23,7 +23,11 @@ env:
 jobs:
   fast-gates:
     name: Fast Quality Gates
-    runs-on: ubuntu-latest
+    # Dynamic runner (same rule as ci.yml): use the self-hosted VPS pool only when the
+    # release captain has USE_VPS_RUNNER=true AND this is not a fork PR (own-origin
+    # branches only — a fork PR must never execute on the LAN runner). Var unset/false
+    # or a fork PR falls back to ubuntu-latest, so this is inert until the flag flips.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     # tsx gates (known-symbols, route-guard-membership) import modules that open
     # SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
     env:
@@ -108,7 +112,8 @@ jobs:
 
   fast-vitest:
     name: Vitest (fast-path)
-    runs-on: ubuntu-latest
+    # Dynamic runner — see fast-gates (own-origin + flag; fork/unset → ubuntu-latest).
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     env:
       JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-lint-api-key-secret-long
@@ -126,7 +131,10 @@ jobs:
 
   fast-unit:
     name: Unit Tests fast-path (${{ matrix.shard }}/2)
-    runs-on: ubuntu-latest
+    # Dynamic runner — see fast-gates (own-origin + flag; fork/unset → ubuntu-latest).
+    # This is the heaviest fast-path job (~9min on ubuntu-latest); the 32-core VPS
+    # cuts it to ~2-3min when the flag is on.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:

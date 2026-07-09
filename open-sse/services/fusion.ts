@@ -250,7 +250,8 @@ export async function handleFusionChat({
   // Honor user-supplied minPanel down to 1: with 1 survivor we still degrade
   // gracefully via the answers.length===1 branch below (issue #6454).
   const minPanel = Math.min(Math.max(1, cfg.minPanel), panel.length);
-  const judge = judgeModel && judgeModel.trim() ? judgeModel.trim() : panel[0];
+  const hasExplicitJudge = Boolean(judgeModel && judgeModel.trim());
+  const judge = hasExplicitJudge ? (judgeModel as string).trim() : panel[0];
   log.info(
     "FUSION",
     `Combo "${comboName ?? ""}" | panel=${panel.length} [${panel.join(", ")}] | judge=${judge} | quorum=${minPanel}`
@@ -335,11 +336,24 @@ export async function handleFusionChat({
     );
   }
   if (answers.length === 1) {
+    // No explicit judgeModel configured: the "judge" is just panel[0], so
+    // synthesizing from a single source through itself would be redundant —
+    // answer directly with the lone survivor (issue #6454).
+    if (!hasExplicitJudge) {
+      log.info(
+        "FUSION",
+        `Only ${answers[0].model} succeeded — answering directly (no fusion)`
+      );
+      return handleSingleModel(body, answers[0].model);
+    }
+    // An explicit judgeModel IS configured: honor it even with a single
+    // surviving panel answer, rather than silently substituting the panel
+    // member for the configured judge (issue #6455). The judge still adds
+    // value reviewing/polishing a lone source per its documented contract.
     log.info(
       "FUSION",
-      `Only ${answers[0].model} succeeded — answering directly (no fusion)`
+      `Only ${answers[0].model} succeeded — judging single answer with ${judge}`
     );
-    return handleSingleModel(body, answers[0].model);
   }
 
   // 4. Judge analyzes + writes one final answer (streams to client if requested).

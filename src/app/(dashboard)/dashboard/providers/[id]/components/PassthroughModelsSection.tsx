@@ -413,6 +413,7 @@ export default function PassthroughModelsSection({
                 key={fullModel as string}
                 modelId={modelId}
                 fullModel={fullModel}
+                provider={providerId}
                 alias={alias}
                 source={source}
                 isFree={isFree}

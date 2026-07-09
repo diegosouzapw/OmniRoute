@@ -64,7 +64,16 @@ export function tryOpenSync(
 export async function preInitSqlJs(filePath: string): Promise<SqliteAdapter> {
   const cache = getSqlJsCache();
   const existing = cache.get(filePath);
-  if (existing) return existing;
+  if (existing) {
+    if (existing.open) return existing;
+    // Stale handle left over by a prior close/reload (e.g. gracefulShutdown or
+    // resetDbInstance closed the underlying WASM db but this globalThis-backed
+    // cache — deliberately shared across re-invocations for idempotency — still
+    // holds the reference). Reusing it would make every subsequent query throw
+    // the raw string "Database closed" straight from sql.js (#6560). Evict and
+    // recreate instead of returning a dead connection.
+    cache.delete(filePath);
+  }
 
   const { createSqlJsAdapter } = await import("./sqljsAdapter");
   const adapter = await createSqlJsAdapter(filePath);

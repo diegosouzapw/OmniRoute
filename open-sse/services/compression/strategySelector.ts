@@ -30,6 +30,7 @@ import {
 } from "./stackedStepCore.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
+import { applyOmniglyphSingleMode } from "./engines/omniglyphSingleMode.ts";
 import { applyRtkCompression } from "./engines/rtk/index.ts";
 import { adaptBodyForCompression } from "./bodyAdapter.ts";
 import {
@@ -321,6 +322,10 @@ function runCompression(
       config: { ...(options?.config?.rtkConfig ?? {}), enabled: true },
     });
   }
+  if (mode === "omniglyph") {
+    // omniglyph is async-only — use applyCompressionAsync. Safe no-op here.
+    return { body, compressed: false, stats: null };
+  }
   const adapter = adaptBodyForCompression(body);
   const compressionBody = adapter.body;
   if (mode === "lite") {
@@ -440,6 +445,8 @@ export async function applyCompressionAsync(
   options?: {
     model?: string;
     supportsVision?: boolean | null;
+    /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+    providerTransport?: "direct" | "aggregator";
     config?: CompressionConfig;
     principalId?: string;
     onEngineStep?: (step: StackedCompressionStep) => void;
@@ -457,6 +464,8 @@ async function runCompressionAsync(
   options?: {
     model?: string;
     supportsVision?: boolean | null;
+    /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+    providerTransport?: "direct" | "aggregator";
     config?: CompressionConfig;
     principalId?: string;
     onEngineStep?: (step: StackedCompressionStep) => void;
@@ -489,6 +498,8 @@ async function runCompressionAsync(
     memoStore(key, result);
     return memoLookup(key)!;
   }
+  // Single-mode omniglyph (async-only) — resolution lives in engines/omniglyphSingleMode.ts.
+  if (mode === "omniglyph") return applyOmniglyphSingleMode(body, options);
   if (mode === "stacked") {
     const adapter = adaptBodyForCompression(body);
     const result = await applyStackedCompressionAsync(
@@ -631,6 +642,8 @@ export interface StackedCompressionStep {
 interface StackOptions {
   model?: string;
   supportsVision?: boolean | null;
+  /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+  providerTransport?: "direct" | "aggregator";
   config?: CompressionConfig;
   compressionComboId?: string | null;
   /** TV1 bail-out discipline (opt-in, default disabled). */
