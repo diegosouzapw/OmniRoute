@@ -361,6 +361,43 @@ test("sandboxRunner handles success, spawn errors, timeouts, and killAll cleanup
   );
 });
 
+test("sandboxRunner kill/killAll fallback naming matches containerProvider's SANDBOX_NAME convention", async () => {
+  const calls = [];
+
+  await withSandboxModule(
+    (_command, args) => {
+      calls.push({ args });
+      return createFakeProcess();
+    },
+    async ({ sandboxRunner }) => {
+      // A freshly-imported sandboxRunner has never called run(), so
+      // cachedProvider is still null and kill()/killAll() must fall back to
+      // the docker CLI directly — that fallback name must still match
+      // containerProvider.ts's SANDBOX_NAME (`omniroute-${id}`), not the
+      // pre-PR `omniroute-sandbox-${id}` convention.
+      const proc = createFakeProcess();
+      sandboxRunner.runningContainers.set("fallback-id", proc);
+      sandboxRunner.kill("fallback-id");
+
+      const killCall = calls.find((entry) => entry.args[0] === "kill");
+      assert.ok(killCall, "kill command should have been issued");
+      assert.equal(killCall.args[1], "omniroute-fallback-id");
+
+      const procA = createFakeProcess();
+      const procB = createFakeProcess();
+      sandboxRunner.runningContainers.set("fallback-a", procA);
+      sandboxRunner.runningContainers.set("fallback-b", procB);
+      sandboxRunner.killAll();
+
+      const killAllNames = calls
+        .filter((entry) => entry.args[0] === "kill")
+        .map((entry) => entry.args[1]);
+      assert.ok(killAllNames.includes("omniroute-fallback-a"));
+      assert.ok(killAllNames.includes("omniroute-fallback-b"));
+    }
+  );
+});
+
 // -------------------------------------------------------------
 //  Container Provider Unit Tests
 // -------------------------------------------------------------

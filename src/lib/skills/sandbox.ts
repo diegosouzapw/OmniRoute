@@ -141,7 +141,7 @@ class SandboxRunner {
         const kill = buildKillCommand(provider, sandboxId);
         childProcess.spawn(kill.command, kill.args, { stdio: "ignore" });
       } else {
-        childProcess.spawn("docker", ["kill", `omniroute-sandbox-${sandboxId}`], {
+        childProcess.spawn("docker", ["kill", `omniroute-${sandboxId}`], {
           stdio: "ignore",
         });
       }
@@ -158,7 +158,7 @@ class SandboxRunner {
         const kill = buildKillCommand(provider, id);
         childProcess.spawn(kill.command, kill.args, { stdio: "ignore" });
       } else {
-        childProcess.spawn("docker", ["kill", `omniroute-sandbox-${id}`], {
+        childProcess.spawn("docker", ["kill", `omniroute-${id}`], {
           stdio: "ignore",
         });
       }
