@@ -277,6 +277,7 @@
   },
   "testCap": 800,
   "testFrozen": {
+    "_rebaseline_2026_07_09_6126_clinepass_dualauth": "#6126 (ClinePass dual-auth) own test growth: oauth-providers-config.test.ts 842->845 (+3: clinepass key/config/required-fields entries reusing the Cline WorkOS flow config, needed after registering clinepass in the oauth.ts PROVIDERS enum).",
     "_rebaseline_2026_06_27_5193_antigravity_test": "#5193 own test growth: oauth-providers-config.test.ts 870->873 (+3: antigravity projectId assertion + 50ms tick for the now fire-and-forget onboarding, matching the no-PKCE/no-openid flow).",
     "_rebaseline_2026_07_02_5928_base_red": "web-cookie-providers-new.test.ts 845->850: #5928 (test(security) Kimi Web URL host parse, CodeQL #689) grew the file +5 lines and merged into release/v3.8.44 WITHOUT rebaselining, leaving a fast-gates base-red that blocked every subsequent PR->release. Test growth is legitimate (a security regression test); maintainer absorbs the drift here. Frozen at 850.",
     "_rebaseline_basered_codebuddy_cn": "Base-red fix (#4664 CodeBuddy CN): oauth-providers-config.test.ts 867->870 (+3) to align the EXPECTED provider list/config with the codebuddy-cn provider that #4664 added to the registry without updating this test (it asserts 'exactly once').",
@@ -306,7 +307,7 @@
     "tests/unit/image-generation-handler.test.ts": 2019,
     "tests/unit/model-sync-route.test.ts": 1016,
     "tests/unit/models-catalog-route.test.ts": 1605,
-    "tests/unit/oauth-providers-config.test.ts": 842,
+    "tests/unit/oauth-providers-config.test.ts": 845,
     "tests/unit/perplexity-web.test.ts": 999,
     "tests/unit/provider-models-route.test.ts": 1752,
     "tests/unit/provider-validation-specialty.test.ts": 2856,

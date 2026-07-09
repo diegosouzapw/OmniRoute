@@ -88,9 +88,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   cursor: CURSOR_CONFIG,
   kilocode: KILOCODE_CONFIG,
   cline: CLINE_CONFIG,
-  // clinepass reuses the Cline WorkOS flow 1:1 (clinepass: cline in providers/index.ts) — same
-  // config object, not a duplicate.
-  clinepass: CLINE_CONFIG,
+  clinepass: CLINE_CONFIG, // reuses the Cline WorkOS flow (clinepass: cline in providers/index.ts)
   windsurf: WINDSURF_CONFIG,
   "devin-cli": WINDSURF_CONFIG,
   trae: TRAE_CONFIG,
