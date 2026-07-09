@@ -11,6 +11,8 @@
 // introduces new keys and never throws on null/undefined bodies — call sites
 // can chain it without extra guards.
 
+import { getParamFilterConfig, ModelParamFilter, ProviderParamFilter } from "@/lib/db/paramFilters";
+
 type StripRule = {
   provider?: string;
   match: RegExp | ((model: string) => boolean);
@@ -25,10 +27,15 @@ const STRIP_RULES: StripRule[] = [
   // GitHub Copilot Claude (except opus/sonnet 4.6): thinking + reasoning_effort rejected. #713
   {
     provider: "github",
-    match: (m: string) =>
-      /claude/i.test(m) && !/claude.*(opus|sonnet).*4\.6/i.test(m),
+    match: (m: string) => /claude/i.test(m) && !/claude.*(opus|sonnet).*4\.6/i.test(m),
     drop: ["thinking", "reasoning_effort"],
   },
+  // NVIDIA NIM z-ai/glm-5.2: OpenAI-compatible wrapper rejects BOTH the `reasoning`
+  // body field (#6102) and the Claude-style `thinking` field. A Claude-format
+  // client (e.g. Claude Code) routed here leaves a `thinking:{type:"adaptive"}`
+  // that the wrapper 400s on — same class already handled for minimax-m2.7 below.
+  // 9router#2023.
+  { provider: "nvidia", match: /z-ai\/glm-5\.2\b/i, drop: ["reasoning", "thinking"] },
   // NVIDIA NIM minimaxai/minimax-m2.7: NVIDIA's OpenAI-compatible wrapper
   // (format:"openai") does not accept the Claude-style `thinking` body field
   // and returns 400 "Unsupported parameter(s): thinking". Upstream #2268.
@@ -50,6 +57,11 @@ export function stripUnsupportedParams<T>(
 ): T {
   if (!model || !body || typeof body !== "object") return body;
   const rec = body as unknown as Record<string, unknown>;
+  // Snapshot the original body before any mutations so the allowlist can
+  // restore params that were stripped by hardcoded or config-driven denylist.
+  const snapshot = { ...rec };
+
+  // Phase 1: Hardcoded rules (unchanged)
   for (const rule of STRIP_RULES) {
     if (rule.provider && rule.provider !== provider) continue;
     if (!matches(rule, model)) continue;
@@ -57,7 +69,93 @@ export function stripUnsupportedParams<T>(
       if (rec[key] !== undefined) delete rec[key];
     }
   }
+
+  // Phase 2: Config-driven rules from DB
+  applyConfigFilters(provider, model, rec, snapshot);
+
   return body;
+}
+
+/**
+ * Restore keys from `snapshot` into `body` for every key listed in `allow`,
+ * but only when the key was present in the original request. Shared by the
+ * provider-level and model-level allowlist passes below.
+ */
+function restoreAllowedKeys(
+  body: Record<string, unknown>,
+  snapshot: Record<string, unknown>,
+  allow: readonly string[]
+): void {
+  for (const key of allow) {
+    if (key in snapshot) {
+      body[key] = snapshot[key];
+    }
+  }
+}
+
+/**
+ * Apply the provider-level denylist, then restore the provider-level
+ * allowlist from `snapshot`. Runs BEFORE model-level operations so
+ * model-level settings can override provider-level ones.
+ */
+function applyProviderLevelFilters(
+  body: Record<string, unknown>,
+  snapshot: Record<string, unknown>,
+  config: ProviderParamFilter
+): void {
+  for (const key of config.block) {
+    delete body[key];
+  }
+  if (config.allow.length > 0) {
+    restoreAllowedKeys(body, snapshot, config.allow);
+  }
+}
+
+/**
+ * Apply the model-level denylist (overrides the provider-level allowlist),
+ * then restore the model-level allowlist from `snapshot` (final pass, most
+ * specific wins).
+ */
+function applyModelLevelFilters(
+  body: Record<string, unknown>,
+  snapshot: Record<string, unknown>,
+  modelCfg: ModelParamFilter | undefined
+): void {
+  if (modelCfg?.block) {
+    for (const key of modelCfg.block) {
+      delete body[key];
+    }
+  }
+  if (modelCfg?.allow) {
+    restoreAllowedKeys(body, snapshot, modelCfg.allow);
+  }
+}
+
+/**
+ * Apply config-driven denylist + allowlist rules from the DB-backed
+ * ProviderParamFilter store. Order of operations:
+ *   1. Provider-level denylist
+ *   2. Model-level denylist
+ *   3. Provider-level allowlist (restores from snapshot)
+ *   4. Model-level allowlist (restores from snapshot)
+ *
+ * The allowlist only restores keys that were present in the original request
+ * (the snapshot). It never introduces new params the client didn't send.
+ */
+export function applyConfigFilters(
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  body: Record<string, unknown>,
+  snapshot: Record<string, unknown>
+): void {
+  if (!provider || !body) return;
+  const config = getParamFilterConfig(provider);
+  if (!config) return;
+
+  applyProviderLevelFilters(body, snapshot, config);
+
+  const modelCfg = config.models?.[model ?? ""];
+  applyModelLevelFilters(body, snapshot, modelCfg);
 }
 
 // Exported for unit tests only — do not import from production code.

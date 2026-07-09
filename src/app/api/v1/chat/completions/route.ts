@@ -1,12 +1,17 @@
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { callCloudWithMachineId } from "@/shared/utils/cloud";
 import { handleChat } from "@/sse/handlers/chat";
+import { generateRequestId } from "@/shared/utils/requestId";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 import { checkChatAdmission } from "@/shared/middleware/chatBodyAdmission";
+import {
+  readCompressionRequestHeader,
+  withCompressionHeaderEcho,
+} from "@/shared/utils/compressionHeaderEcho";
 
 let initPromise = null;
 
@@ -38,6 +43,23 @@ export async function OPTIONS() {
 
 export async function POST(request) {
   await ensureInitialized();
+
+  // Content-Type guard (#6414) — reject non-JSON POST bodies with 415 per RFC 7231.
+  // OpenAI/Anthropic reject `text/plain` or missing Content-Type at the edge; matching
+  // that behavior prevents a text/plain body from silently reaching provider lookup.
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().split(";")[0].trim().startsWith("application/json")) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "Content-Type must be application/json",
+          type: "invalid_request_error",
+          code: "unsupported_media_type",
+        },
+      }),
+      { status: 415, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+    );
+  }
 
   // Heap-pressure-aware admission: shed a large body with 503 (or 413 if pathological)
   // BEFORE the request is cloned + JSON-parsed below. A large coding-agent compact body
@@ -98,12 +120,26 @@ export async function POST(request) {
     parsedBodyIsRecord && acceptHeaderForcesStream(acceptHeader, parsedBody.stream);
   const wantsStreaming = (parsedBodyIsRecord && parsedBody.stream === true) || acceptForcesStream;
 
+  // #6422 — capture the compression request header once so we can echo it back
+  // on the response when internal early-returns (idempotency cache, some combo
+  // paths) drop the meta the docs promise.
+  const compressionRequestHeader = readCompressionRequestHeader(request);
+
   if (wantsStreaming) {
-    return await withEarlyStreamKeepalive(handleChat(request, null, parsedBody), {
-      signal: request.signal,
-      thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
-    });
+    const reqId = generateRequestId();
+    const streamedResponse = await withEarlyStreamKeepalive(
+      handleChat(request, null, parsedBody, reqId),
+      {
+        signal: request.signal,
+        thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
+        extraHeaders: { "X-Correlation-Id": reqId },
+      }
+    );
+    return withCompressionHeaderEcho(streamedResponse, compressionRequestHeader);
   }
 
-  return await handleChat(request, null, parsedBody);
+  return withCompressionHeaderEcho(
+    await handleChat(request, null, parsedBody),
+    compressionRequestHeader
+  );
 }

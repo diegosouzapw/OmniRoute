@@ -27,6 +27,17 @@ curl -X POST https://localhost:20128/api/v1/chat/completions \
   -d '{}'
 ```
 
+### GET /api/v1/ws
+
+Chat completion over WebSocket (handshake + upgrade)
+
+OpenAI-compatible chat over a WebSocket connection. `GET` with `?handshake=1` returns the connection descriptor (auth path, message protocol and live-event channels) as JSON; a plain `GET` without an Upgrade returns `426 Upgrade Required`. After upgrading, the client exchanges JSON frames — `{type:"request", id, payload:{model, messages}}` to start a completion and `{type:"cancel", id}` to abort it. A separate live channel (default port `LIVE_WS_PORT=20129`, path `/live`) streams dashboard events on the `requests`, `combo` and `credentials` topics with a 15s heartbeat. Requires an API key.
+
+```bash
+curl https://localhost:20128/api/v1/ws \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ### POST /api/v1/providers/{provider}/chat/completions
 
 Create chat completion (provider-specific)
@@ -205,6 +216,54 @@ Returns only models for the selected provider with provider prefix removed from 
 
 ```bash
 curl https://localhost:20128/api/v1/providers/{provider}/models \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/v1/ocr
+
+Document OCR
+
+Mistral OCR–compatible document OCR endpoint. Accepts a JSON body referencing a document/image and returns extracted text. Success responses carry the `X-OmniRoute-*` cost-telemetry headers.
+
+```bash
+curl -X POST https://localhost:20128/api/v1/ocr \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/v1/audio/translations
+
+Translate audio to English
+
+OpenAI Whisper–compatible audio translation (multipart/form-data). Unlike `/api/v1/audio/transcriptions`, output is always English regardless of the source language. Success responses carry the `X-OmniRoute-*` cost-telemetry headers.
+
+```bash
+curl -X POST https://localhost:20128/api/v1/audio/translations \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/v1/providers/suggested-models
+
+Suggested media models
+
+Read-only server-side proxy to the public HuggingFace Hub models search API, used by the dashboard to suggest models for a media provider kind without exposing an HF token client-side. Never accepts or returns credentials.
+
+```bash
+curl https://localhost:20128/api/v1/providers/suggested-models \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/v1/provider-plugin-manifest
+
+Provider plugin manifest
+
+Returns the manifest describing installed provider plugins.
+
+```bash
+curl https://localhost:20128/api/v1/provider-plugin-manifest \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 

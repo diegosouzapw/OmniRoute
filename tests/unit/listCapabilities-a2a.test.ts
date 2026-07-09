@@ -3,7 +3,7 @@
  *
  * Verifies:
  *  - Return shape matches §3.7 contract
- *  - Markdown table contains all 42 skill IDs
+ *  - Markdown table contains all 43 skill IDs
  *  - Coverage bounds are within declared totals
  *  - metadata.source === "agent-skills-catalog"
  *  - metadata.generatedAt is an ISO datetime string
@@ -31,31 +31,31 @@ test("executeListCapabilities returns shape matching §3.7 contract", async () =
   const { metadata } = result;
   assert.ok(metadata, "metadata exists");
   assert.equal(metadata.source, "agent-skills-catalog", "metadata.source matches");
-  assert.equal(metadata.totalSkills, 43, "metadata.totalSkills === 43");
+  assert.equal(metadata.totalSkills, 44, "metadata.totalSkills === 44 (43 + config)");
   assert.ok(metadata.coverage, "metadata.coverage exists");
   assert.ok(metadata.coverage.api, "metadata.coverage.api exists");
   assert.ok(metadata.coverage.cli, "metadata.coverage.cli exists");
-  assert.equal(metadata.coverage.api.total, 22, "api.total === 22");
+  assert.equal(metadata.coverage.api.total, 23, "api.total === 23");
   assert.equal(metadata.coverage.cli.total, 20, "cli.total === 20");
 });
 
-test("executeListCapabilities markdown table contains all 42 API+CLI skill IDs", async () => {
+test("executeListCapabilities markdown table contains all 43 API+CLI skill IDs", async () => {
   const result = await executeListCapabilities(stubTask);
   const content = result.artifacts[0].content;
 
   const allIds = [...API_SKILL_IDS, ...CLI_SKILL_IDS] as string[];
-  assert.equal(allIds.length, 42, "API+CLI catalog declares 42 skill IDs");
+  assert.equal(allIds.length, 43, "API+CLI catalog declares 43 skill IDs");
 
   for (const id of allIds) {
     assert.ok(content.includes(id), `Markdown table missing skill ID: ${id}`);
   }
 });
 
-test("metadata.coverage.api.have is within [0, 22]", async () => {
+test("metadata.coverage.api.have is within [0, 23]", async () => {
   const result = await executeListCapabilities(stubTask);
   const { api } = result.metadata.coverage;
   assert.ok(api.have >= 0, "api.have >= 0");
-  assert.ok(api.have <= 22, "api.have <= 22");
+  assert.ok(api.have <= 23, "api.have <= 23");
 });
 
 test("metadata.coverage.cli.have is within [0, 20]", async () => {
@@ -78,6 +78,6 @@ test("list-capabilities is registered in A2A_SKILL_HANDLERS", async () => {
   const { A2A_SKILL_HANDLERS } = await import("../../src/lib/a2a/taskExecution.js");
   assert.ok(
     "list-capabilities" in A2A_SKILL_HANDLERS,
-    "list-capabilities must be in A2A_SKILL_HANDLERS",
+    "list-capabilities must be in A2A_SKILL_HANDLERS"
   );
 });

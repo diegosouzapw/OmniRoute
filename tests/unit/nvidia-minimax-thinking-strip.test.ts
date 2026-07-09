@@ -24,6 +24,19 @@ test("stripUnsupportedParams: nvidia + minimaxai/minimax-m2.7 drops thinking", (
   assert.equal(body.model, "minimaxai/minimax-m2.7", "model must not be touched");
 });
 
+test("stripUnsupportedParams: nvidia + z-ai/glm-5.2 drops thinking AND reasoning (port from 9router#2023)", () => {
+  const body: Record<string, unknown> = {
+    model: "z-ai/glm-5.2",
+    thinking: { type: "adaptive" },
+    reasoning: { effort: "high" },
+    max_tokens: 512,
+  };
+  stripUnsupportedParams("nvidia", "z-ai/glm-5.2", body);
+  assert.equal(body.thinking, undefined, "thinking must be stripped for NVIDIA glm-5.2");
+  assert.equal(body.reasoning, undefined, "reasoning must still be stripped for NVIDIA glm-5.2");
+  assert.equal(body.max_tokens, 512, "other params must survive");
+});
+
 test("stripUnsupportedParams: nvidia + other model KEEPS thinking (regression guard)", () => {
   const body: Record<string, unknown> = { thinking: { type: "adaptive" } };
   stripUnsupportedParams("nvidia", "some-other-model", body);

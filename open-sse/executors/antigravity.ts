@@ -480,6 +480,46 @@ function sanitizeAntigravityGeminiRequest(
   return clean;
 }
 
+/**
+ * Ported from decolua/9router#2321 (anki1kr): Vertex AI (used by Antigravity for
+ * Claude-branded models) rejects a conversation ending on an assistant turn —
+ * "This model does not support assistant message prefill" — so the request must
+ * always end on a user turn. Upstream patched `openaiToClaudeRequestForAntigravity`
+ * (dead code here, zero callers — see `open-sse/translator/request/openai-to-claude.ts`);
+ * this relocates the same strip to the LIVE Antigravity dispatch path, where Claude
+ * requests are converted to Gemini `contents` (assistant role is `"model"`, not
+ * `"assistant"`). Mirrors the trailing-strip pop-loop already used for Mistral
+ * (#3396), Copilot (#5802), and the CC-bridge in `claudeCodeCompatible.ts`.
+ *
+ * Scoped strictly to the Claude path by the caller (`isClaude` branch only) — native
+ * Gemini models via Antigravity must be unaffected, since Vertex-Claude is the only
+ * documented rejection surface.
+ *
+ * Guard: never strip `contents` down to empty — an empty `contents` array is itself
+ * an invalid request, so at least one entry (even a lone trailing "model" turn) is
+ * always preserved.
+ */
+function stripTrailingAntigravityAssistantTurn(
+  request: Record<string, unknown>
+): Record<string, unknown> {
+  const contents = request.contents;
+  if (!Array.isArray(contents) || contents.length === 0) {
+    return request;
+  }
+
+  while (
+    contents.length > 1 &&
+    (contents[contents.length - 1] as AntigravityContent)?.role === "model"
+  ) {
+    contents.pop();
+  }
+
+  return request;
+}
+
+// Test-only export so the unit suite can exercise the strip logic directly.
+export const __test_stripTrailingAntigravityAssistantTurn = stripTrailingAntigravityAssistantTurn;
+
 export class AntigravityExecutor extends BaseExecutor {
   constructor() {
     super("antigravity", PROVIDERS.antigravity);
@@ -660,7 +700,7 @@ export class AntigravityExecutor extends BaseExecutor {
     };
 
     const transformedRequest = isClaude
-      ? sanitizeAntigravityGeminiRequest(rawTransformedRequest)
+      ? stripTrailingAntigravityAssistantTurn(sanitizeAntigravityGeminiRequest(rawTransformedRequest))
       : rawTransformedRequest;
 
     // Obfuscate sensitive client names in user content (e.g. "OpenCode", "Cursor")

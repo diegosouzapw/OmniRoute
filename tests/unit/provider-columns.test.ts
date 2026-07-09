@@ -6,21 +6,37 @@ const providerColumns =
 const utils =
   await import("../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.tsx");
 
-test("getProviderColumns: Codex surfaces session + weekly columns", () => {
+test("getProviderColumns: Codex surfaces all OpenAI Codex quota columns in fixed order", () => {
   const quotas = utils.parseQuotaData("codex", {
+    bankedResetCredits: 2,
     quotas: {
-      session: { used: 4, total: 100, remainingPercentage: 96 },
+      gpt_5_3_codex_spark_weekly: { used: 100, total: 100, remainingPercentage: 0 },
       weekly: { used: 1, total: 100, remainingPercentage: 99 },
+      session: { used: 4, total: 100, remainingPercentage: 96 },
+      gpt_5_3_codex_spark_session: { used: 0, total: 100, remainingPercentage: 100 },
     },
   });
 
   const schema = providerColumns.getProviderColumns("codex", quotas);
-  assert.equal(schema.columns.length, 2);
-  assert.equal(schema.columns[0].key, "session");
+  assert.equal(schema.columns.length, 5);
+  assert.deepEqual(
+    schema.columns.map((column) => column.key),
+    [
+      "session",
+      "weekly",
+      "gpt_5_3_codex_spark_session",
+      "gpt_5_3_codex_spark_weekly",
+      "banked_reset_credits",
+    ]
+  );
   assert.equal(schema.columns[0].label, "Session");
   assert.equal(schema.columns[0].quota?.name, "session");
   assert.equal(schema.columns[1].key, "weekly");
   assert.equal(schema.columns[1].quota?.name, "weekly");
+  assert.equal(schema.columns[2].label, "GPT-5.3-Codex-Spark Session");
+  assert.equal(schema.columns[2].quota?.name, "gpt_5_3_codex_spark_session");
+  assert.equal(schema.columns[4].label, "Banked Reset Credits");
+  assert.equal(schema.columns[4].quota?.name, "banked_reset_credits");
   assert.equal(schema.overflowCount, 0);
 });
 
@@ -33,9 +49,12 @@ test("getProviderColumns: missing window for a named column renders as null cell
   });
 
   const schema = providerColumns.getProviderColumns("codex", quotas);
-  assert.equal(schema.columns.length, 2, "schema column count stays stable per provider");
+  assert.equal(schema.columns.length, 5, "schema column count stays stable per provider");
   assert.equal(schema.columns[0].quota?.name, "session");
   assert.equal(schema.columns[1].quota, null, "missing weekly resolves to null, not overflow");
+  assert.equal(schema.columns[2].quota, null, "missing Spark session resolves to null");
+  assert.equal(schema.columns[3].quota, null, "missing Spark weekly resolves to null");
+  assert.equal(schema.columns[4].quota, null, "missing banked reset credits resolves to null");
   assert.equal(schema.overflowCount, 0);
 });
 
@@ -107,8 +126,9 @@ test("getProviderColumns: unknown provider uses dynamic fallback", () => {
 
 test("getProviderColumns: tolerates non-array quotas", () => {
   const schema = providerColumns.getProviderColumns("codex", null);
-  assert.equal(schema.columns.length, 2);
+  assert.equal(schema.columns.length, 5);
   assert.equal(schema.columns[0].quota, null);
+  assert.equal(schema.columns[4].quota, null);
   assert.equal(schema.overflowCount, 0);
 });
 

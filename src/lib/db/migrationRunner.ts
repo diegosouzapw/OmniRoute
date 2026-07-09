@@ -138,6 +138,29 @@ function resolveMaxPendingMigrations(): number {
   return DEFAULT_MAX_PENDING_MIGRATIONS_ON_EXISTING_DB;
 }
 
+/**
+ * Raised by the mass-migration safety check when far more migrations are pending
+ * than the resolved threshold — a strong signal the migration tracking table was
+ * wiped (e.g. a restored backup). Given its own type so callers/loggers can
+ * recognize the memoized cascade and keep repeated logs concise (#6260).
+ */
+export class MigrationSafetyAbortError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MigrationSafetyAbortError";
+  }
+}
+
+/**
+ * Memoized mass-migration abort (#6260). After a backup restore wipes the
+ * migration tracking table, EVERY downstream `ensureDbInitialized()` re-opens
+ * the DB and re-calls `runMigrations()`, which used to recompute the abort and
+ * re-`console.error` the full banner 11+ times. Caching the thrown instance
+ * (keyed by the exact message it would compute) lets repeated calls in the same
+ * process throw the SAME instance and log a single concise line instead.
+ */
+let memoizedSafetyAbort: MigrationSafetyAbortError | null = null;
+
 const fts5SupportCache = new WeakMap<SqliteAdapter, boolean>();
 
 /**
@@ -426,6 +449,12 @@ function isSchemaAlreadyApplied(
       // was dropped on integration; this canonical migration creates the table
       // that recordPluginExecution()/getPluginAnalytics() rely on.
       return hasTable(db, "plugin_analytics");
+    case "117":
+      // Proxy-pool rotation (#6365): the assignments table was rebuilt to add a
+      // `position` column and drop UNIQUE(scope, scope_id). If `position` already
+      // exists the rebuild ran — skip re-executing the rename/copy/drop, which
+      // would fail on the missing proxy_assignments_pre117 table.
+      return hasColumn(db, "proxy_assignments", "position");
     default:
       return false;
   }
@@ -890,14 +919,31 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
             `(${physicalBaseline.description}), so at most ${plausiblePendingCount} pending ` +
             `migration(s) are expected from a legitimate upgrade.`
           : "";
+      const bypassHint =
+        ` To bypass this check (e.g. after restoring a backup where the migration ` +
+        `tracking table was wiped), set OMNIROUTE_MAX_PENDING_MIGRATIONS=0 in your ` +
+        `server.env or DATA_DIR/.env and restart.`;
       const msg =
         `[Migration] 🛑 ABORT: Detected ${actionablePending.length} pending migrations on an existing database ` +
         `(threshold is ${maxPendingMigrations}). ` +
         `This usually means the migration tracking table was accidentally wiped. ` +
         `Running all migrations from scratch will cause data loss or schema errors.` +
-        schemaHint;
+        schemaHint +
+        bypassHint;
+
+      // #6260: memoize so the cascade of downstream ensureDbInitialized() calls
+      // that re-open the DB throw the SAME instance and only log once.
+      if (memoizedSafetyAbort && memoizedSafetyAbort.message === msg) {
+        console.error(
+          `[Migration] 🛑 ABORT (repeat — see earlier detail): ` +
+            `${actionablePending.length} pending > threshold ${maxPendingMigrations}. ` +
+            `Set OMNIROUTE_MAX_PENDING_MIGRATIONS=0 to bypass.`
+        );
+        throw memoizedSafetyAbort;
+      }
       console.error(msg);
-      throw new Error(msg);
+      memoizedSafetyAbort = new MigrationSafetyAbortError(msg);
+      throw memoizedSafetyAbort;
     }
   }
 

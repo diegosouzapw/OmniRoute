@@ -21,6 +21,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+// File logger worker threads can outlive a test's temporary DATA_DIR cleanup and then
+// raise ENOENT/ENOTEMPTY after the test has already passed. Keep the global test default
+// console-only; tests that cover file logging explicitly set APP_LOG_TO_FILE themselves.
+process.env.APP_LOG_TO_FILE ||= "false";
+
 if (!process.env.DATA_DIR) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-"));
   process.env.DATA_DIR = dir;
@@ -34,3 +39,10 @@ if (!process.env.DATA_DIR) {
     }
   });
 }
+
+// System-trust guard: the suite must NEVER mutate the OS trust store. On a
+// persistent self-hosted runner the cert-flow integration test installed a fake
+// 105-byte PEM into /usr/local/share/ca-certificates and update-ca-certificates
+// baked it into the bundle, breaking ALL system TLS on the VM (2026-07-05).
+// installCert/uninstallCert/installTproxyCa/uninstallTproxyCa no-op under this.
+process.env.OMNIROUTE_SKIP_SYSTEM_TRUST = "1";

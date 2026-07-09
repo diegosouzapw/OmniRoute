@@ -7,6 +7,7 @@ export const compressionModeSchema = z.enum([
   "aggressive",
   "ultra",
   "rtk",
+  "omniglyph",
   "stacked",
 ]);
 

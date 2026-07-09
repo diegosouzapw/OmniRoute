@@ -20,6 +20,20 @@ const WEIGHT_COLORS = [
   "bg-indigo-500",
 ];
 
+/**
+ * #6147 — effective routing share of a weighted target.
+ *
+ * The per-target `weight` values do not have to sum to 100; at routing time each
+ * target is picked with probability `weight / Σweights`. So a raw weight of 30
+ * with a total of 60 is an *effective* 50% share. This pure helper computes that
+ * share (0-100) and guards the `total === 0` case so the UI never renders NaN.
+ */
+export function effectiveSharePercent(weight: number, total: number): number {
+  if (!weight || weight <= 0) return 0;
+  if (!total || total <= 0) return 0;
+  return (weight / total) * 100;
+}
+
 export default function WeightTotalBar({ models }: WeightTotalBarProps) {
   const total = models.reduce((sum, m) => sum + (m.weight || 0), 0);
   const isValid = total === 100;
@@ -49,6 +63,16 @@ export default function WeightTotalBar({ models }: WeightTotalBarProps) {
                     className={`inline-block w-1.5 h-1.5 rounded-full ${WEIGHT_COLORS[i % WEIGHT_COLORS.length]}`}
                   />
                   {m.weight}%
+                  {/* #6147 — show the *effective* routing share when weights don't sum to 100 */}
+                  {total > 0 && total !== 100 && (
+                    <span
+                      className="text-text-muted/70"
+                      title="Effective routing share (weight ÷ total)"
+                    >
+                      {" → "}
+                      {Math.round(effectiveSharePercent(m.weight, total))}%
+                    </span>
+                  )}
                 </span>
               )
           )}

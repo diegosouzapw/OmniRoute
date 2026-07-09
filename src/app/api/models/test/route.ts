@@ -3,6 +3,8 @@ import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { runSingleModelTest } from "@/lib/api/modelTestRunner";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { getSettings } from "@/lib/db/settings";
+import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 
 const testModelSchema = z.object({
   providerId: z.string().min(1),
@@ -20,23 +22,46 @@ export async function POST(request: Request) {
   try {
     rawBody = await request.json();
   } catch {
-    return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
-      { status: 400 }
-    );
+    // Keep `error` a plain string — the dashboard renders it directly in a toast,
+    // and an object here throws React #31 ("Objects are not valid as a React
+    // child"), freezing the whole page instead of showing the message.
+    return NextResponse.json({ status: "error", error: "Invalid JSON body" }, { status: 400 });
   }
 
   try {
     const validation = testModelSchema.safeParse(rawBody);
     if (!validation.success) {
-      return NextResponse.json({ error: validation.error.format() }, { status: 400 });
+      // Flatten the Zod issues to a string (never return the object — see above).
+      const detail = validation.error.issues
+        .map((i) => `${i.path.join(".") || "body"}: ${i.message}`)
+        .join("; ");
+      return NextResponse.json(
+        { status: "error", error: `Invalid request: ${detail}` },
+        { status: 400 }
+      );
     }
     const { providerId, modelId, connectionId } = validation.data;
+
+    // #6328 (follow-up to #6495): REMOVE — not just hide — paid Test dispatches
+    // when hidePaidModels is on. 403 (distinct from validation-400) so callers
+    // can tell policy-blocked apart from bad-request. Fail open on settings read.
+    let hidePaid = false;
+    try {
+      const settings = await getSettings();
+      hidePaid = settings?.hidePaidModels === true;
+    } catch {}
+    if (
+      hidePaid &&
+      !(providerHasFreeModels(providerId) && isFreeModel(providerId, { id: modelId }))
+    ) {
+      return NextResponse.json(
+        {
+          status: "error",
+          error: "Paid model blocked while hidePaidModels is enabled",
+        },
+        { status: 403 }
+      );
+    }
 
     const result = await runSingleModelTest({
       providerId,

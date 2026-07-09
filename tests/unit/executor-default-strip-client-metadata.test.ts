@@ -54,6 +54,21 @@ test("DefaultExecutor.transformRequest strips client_metadata for mistral", () =
   );
 });
 
+test("DefaultExecutor.transformRequest strips client_metadata for nvidia (port from 9router#1887)", () => {
+  const executor = new DefaultExecutor("nvidia");
+  const out = executor.transformRequest(
+    "any",
+    bodyWithClientMetadata(),
+    STREAM,
+    CREDENTIALS
+  ) as Record<string, unknown>;
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(out, "client_metadata"),
+    false,
+    "nvidia forward body must not contain client_metadata"
+  );
+});
+
 test("DefaultExecutor.transformRequest preserves client_metadata for other providers", () => {
   // Sanity check: the strip must be scoped, not global. Openai keeps it
   // (codex flow needs it), the cerebras/mistral strip is the only carve-out.

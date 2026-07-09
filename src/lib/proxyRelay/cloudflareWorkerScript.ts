@@ -22,6 +22,54 @@
  *    the same proxyFetch relay short-circuit work unchanged.
  *  - SSRF guard is inlined so a leaked relay URL cannot scan internal IPs.
  */
+import { randomUUID } from "crypto";
+
+/**
+ * Build the multipart/form-data request body for Cloudflare's Worker
+ * script-upload API as a raw `Buffer` with an explicit boundary, instead of
+ * relying on the WHATWG `FormData` + `fetch`-derived Content-Type (#6416).
+ *
+ * In production `globalThis.fetch` is patched (`open-sse/utils/proxyFetch.ts`)
+ * with `node_modules/undici`'s own `fetch`, whose `FormData`/`Request` classes
+ * differ from the runtime's global `FormData` (same cross-realm class
+ * mismatch already fixed for image edits in #3273 —
+ * `open-sse/handlers/imageGeneration.ts::handleOpenAIImageEdit`). Passing a
+ * native `FormData` instance through that patched fetch makes undici
+ * serialize the body as the literal string `"[object FormData]"` with
+ * `Content-Type: text/plain;charset=UTF-8` — which Cloudflare's API rejects
+ * with "Content-Type must be one of: application/javascript, text/javascript,
+ * multipart/form-data". A manually-built `Buffer` body with an explicit
+ * `multipart/form-data; boundary=…` header is accepted verbatim by any fetch
+ * implementation (patched or native).
+ */
+export function buildCloudflareWorkerUploadRequest(
+  workerScript: string,
+  metadata: Record<string, unknown>
+): { headers: Record<string, string>; body: Buffer } {
+  const boundary = `----OmniRouteCFWorker${randomUUID().replace(/-/g, "")}`;
+  const CRLF = "\r\n";
+  const parts: Buffer[] = [
+    Buffer.from(
+      `--${boundary}${CRLF}` +
+        `Content-Disposition: form-data; name="index.js"; filename="index.js"${CRLF}` +
+        `Content-Type: application/javascript${CRLF}${CRLF}`
+    ),
+    Buffer.from(workerScript, "utf8"),
+    Buffer.from(CRLF),
+    Buffer.from(
+      `--${boundary}${CRLF}` +
+        `Content-Disposition: form-data; name="metadata"; filename="metadata.json"${CRLF}` +
+        `Content-Type: application/json${CRLF}${CRLF}` +
+        `${JSON.stringify(metadata)}${CRLF}`
+    ),
+    Buffer.from(`--${boundary}--${CRLF}`),
+  ];
+  return {
+    headers: { "Content-Type": `multipart/form-data; boundary=${boundary}` },
+    body: Buffer.concat(parts),
+  };
+}
+
 export function buildCloudflareWorkerScript(relayAuth: string): string {
   // relayAuth is generated server-side via randomBytes(24).toString("hex") — no
   // user-controlled input ever reaches this template, so direct interpolation

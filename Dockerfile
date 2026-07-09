@@ -8,8 +8,8 @@ WORKDIR /app
 # that already have a fix published in trixie. CVEs without an upstream fix yet
 # (local-only TOCTOU, etc.) remain until the distro patches them and the image
 # is rebuilt; none are reachable from the proxy's request surface at runtime.
-RUN --mount=type=cache,target=/var/cache/apt,sharing=shared \
-  --mount=type=cache,target=/var/lib/apt/lists,sharing=shared \
+RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=shared \
+  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=shared \
   apt-get update \
   && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
@@ -29,8 +29,8 @@ FROM base AS builder
 
 # Build tools for native module compilation
 # apt-get update needed here because base's rm -rf clears the shared cache
-RUN --mount=type=cache,target=/var/cache/apt,sharing=shared \
-  --mount=type=cache,target=/var/lib/apt/lists,sharing=shared \
+RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=shared \
+  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=shared \
   apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ \
   && rm -rf /var/lib/apt/lists/*
@@ -55,32 +55,40 @@ ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 # are reproducible.
 RUN test -f package-lock.json \
   || (echo "package-lock.json is required for reproducible Docker builds" >&2 && exit 1)
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
   npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
   && npm rebuild better-sqlite3 \
   && node -e "require('better-sqlite3')(':memory:').close()"
 
-# Build with webpack (stable). Turbopack hit a non-recoverable internal panic on this
-# Next.js version during the v3.8.27 release build — TurbopackInternalError "entered
-# unreachable code: there must be a path to a root" in ImportTracer::get_traces, on both
-# linux/amd64 and linux/arm64. Webpack is the proven engine (build:release / VPS / CI Build
-# all green). Re-enable Turbopack (=1) once the upstream tracer bug is fixed.
+# Build with Turbopack (stable in Next 16, the repo default). The v3.8.27-era
+# TurbopackInternalError panic ("entered unreachable code: there must be a path to a
+# root" in ImportTracer::get_traces) no longer reproduces on Next 16.2.9 — validated
+# 2026-07-05 with clean amd64 (12min14s, image smoke-tested: /api/monitoring/health
+# 200) and arm64 (qemu, exit 0, zero panic strings) builds. Turbopack cut the bare
+# build from 17min to 9min on the same 32-core box. Webpack stays available as the
+# escape hatch: `--build-arg`/-e OMNIROUTE_USE_TURBOPACK=0.
 # See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
-ENV OMNIROUTE_USE_TURBOPACK=0
+ENV OMNIROUTE_USE_TURBOPACK=1
+
+# Docker containers cannot run the MITM/Agent-Bridge stack (no host DNS/cert
+# access), so keep @/mitm/manager on the graceful stub (#3390). This flag is
+# Docker-only: npm/Electron/VPS builds must bundle the REAL manager (#6344).
+ENV OMNIROUTE_MITM_STUB=1
 
 # Raise the V8 heap ceiling for the build. The webpack production optimization
-# pass (forced above since Turbopack panics) needs more than V8's default ceiling
-# (~2 GB) for a codebase this size; a memory-constrained Docker build otherwise
-# dies with "FATAL ERROR: ... JavaScript heap out of memory" during the builder
-# stage (#4076). NODE_OPTIONS propagates to the spawned `next build` child
-# (build-next-isolated.mjs → resolveNextBuildEnv spreads process.env). Build-only;
-# the runtime heap is set separately on the runner stage (OMNIROUTE_MEMORY_MB).
-# Override for hosts with more/less RAM: `--build-arg OMNIROUTE_BUILD_MEMORY_MB=6144`.
+# pass needs more than V8's default ceiling (~2 GB) for a codebase this size; a
+# memory-constrained Docker build otherwise dies with "FATAL ERROR: ... JavaScript
+# heap out of memory" during the builder stage (#4076). Turbopack's compile is
+# native (Rust) and less V8-heap-bound, but the prerender/export phase still runs
+# on V8, so keep the ceiling. NODE_OPTIONS propagates to the spawned `next build`
+# child (build-next-isolated.mjs → resolveNextBuildEnv spreads process.env).
+# Build-only; the runtime heap is set separately on the runner stage
+# (OMNIROUTE_MEMORY_MB). Override: `--build-arg OMNIROUTE_BUILD_MEMORY_MB=6144`.
 ARG OMNIROUTE_BUILD_MEMORY_MB=4096
 ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_BUILD_MEMORY_MB}"
 
 COPY . ./
-RUN --mount=type=cache,target=/app/.build/next/cache \
+RUN --mount=type=cache,id=next-cache,target=/app/.build/next/cache \
   mkdir -p /app/data && npm run build
 
 # ── Runner base ────────────────────────────────────────────────────────────
@@ -176,8 +184,8 @@ COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
 # browsers land under /home/node which persists across image layers and is
 # accessible to the non-root runtime user.
 ENV PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
   && node node_modules/playwright/cli.js install chromium --with-deps \
   && chown -R node:node /home/node/.cache \
@@ -193,15 +201,15 @@ FROM runner-base AS runner-cli
 USER root
 
 # Install system dependencies required by openclaw (git+ssh references).
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
   && apt-get install -y --no-install-recommends git ca-certificates docker.io docker-compose \
   && rm -rf /var/lib/apt/lists/* \
   && git config --system url."https://github.com/".insteadOf "ssh://git@github.com/"
 
 # Install CLI tools globally. Separate layer from apt for better cache reuse.
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
   npm install -g --no-audit --no-fund @openai/codex @anthropic-ai/claude-code droid openclaw@latest
 
 USER node

@@ -10,10 +10,7 @@ import {
   createSSEDataLineNormalizer,
   isKnownNonClaudeStreamPayload,
 } from "../../utils/streamHelpers.ts";
-import {
-  evaluateResponseValidation,
-  type ResponseValidationConfig,
-} from "./responseValidation.ts";
+import { evaluateResponseValidation, type ResponseValidationConfig } from "./responseValidation.ts";
 import { getReasoningTokens } from "../../../src/lib/usage/tokenAccounting.ts";
 import type { ComboRetryAfter } from "./types.ts";
 
@@ -23,6 +20,38 @@ export function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date 
     return new Date(Date.now() + value * 1000);
   }
   return new Date(value);
+}
+
+// Issue #6427: some providers mask credit/quota exhaustion behind an HTTP 200 —
+// either an OpenAI-shape top-level `error` object, or a known exhaustion phrase
+// living in the error envelope itself (never in assistant prose — see
+// `extractEnvelopeErrorText`). Single-quantifier-per-token-class alternation,
+// no nested/overlapping quantifiers — cannot backtrack catastrophically.
+const EXHAUSTION_MARKER_PATTERN =
+  /\b(insufficient\s+credit|insufficient\s+balance|quota\s+exceeded|out\s+of\s+credits?|credit\s+exhausted)\b/i;
+
+/**
+ * Collect the small set of top-level "error envelope" strings a 200 response may
+ * carry alongside (or instead of) a normal completion: the OpenAI-shape `error`
+ * object's `message`/`code`/`type`, a bare string `error`, or sibling top-level
+ * `message`/`detail` fields some providers use for the same purpose. Deliberately
+ * does NOT look inside `choices[].message.content` — assistant prose that merely
+ * mentions "quota" or "credits" must never be misclassified as an upstream failure.
+ */
+function extractEnvelopeErrorText(json: Record<string, unknown>): string | null {
+  const parts: string[] = [];
+  const err = json.error;
+  if (err && typeof err === "object") {
+    const e = err as Record<string, unknown>;
+    if (typeof e.message === "string") parts.push(e.message);
+    if (typeof e.code === "string") parts.push(e.code);
+    if (typeof e.type === "string") parts.push(e.type);
+  } else if (typeof err === "string" && err.length > 0) {
+    parts.push(err);
+  }
+  if (typeof json.message === "string") parts.push(json.message);
+  if (typeof json.detail === "string") parts.push(json.detail);
+  return parts.length > 0 ? parts.join(" ") : null;
 }
 
 function responsesApiOutputHasContent(output: unknown): boolean {
@@ -99,6 +128,8 @@ export async function validateResponseQuality(
     let hasMessageStart = false;
     let hasContentBlock = false;
     let hasLifecycleEnd = false;
+    let anyContentFound = false;
+    let sawAnyBytes = false;
     const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
 
@@ -236,6 +267,20 @@ export async function validateResponseQuality(
             return { valid: false, reason: "streaming empty content block" };
           }
 
+          // Stream ended with a truly EMPTY body (e.g. Gemini returning HTTP
+          // 200 with zero bytes) — mark as invalid for combo failover so the
+          // sibling model gets tried. Streams that carried ANY SSE activity
+          // (an explicit `data: [DONE]`, ping/metadata events, an incomplete
+          // Claude lifecycle) keep the pass-through contract (#3399/#3685):
+          // those are handled by the stream-readiness timeout, not failover.
+          if (!anyContentFound && !hasContentBlock && !sawAnyBytes) {
+            log.warn?.(
+              "COMBO",
+              "Streaming response ended with no recognized content — marking as invalid for combo failover"
+            );
+            return { valid: false, reason: "streaming no recognized content" };
+          }
+
           // Incomplete lifecycle or non-Claude stream — replay all buffered
           // bytes. The reader is exhausted so the forwarding reader will
           // immediately signal done.
@@ -245,12 +290,14 @@ export async function validateResponseQuality(
 
         // Accumulate raw bytes for potential replay.
         bufferedChunks.push(value);
+        if (value && value.length > 0) sawAnyBytes = true;
 
         // Decode incrementally (stream:true keeps multi-byte char state).
         decodedSoFar += decoder.decode(value, { stream: true });
         const foundContent = parseAccumulatedSse();
 
         if (foundContent) {
+          anyContentFound = true;
           // A content_block_* event was found — stop peeking. Return a
           // clonedResponse that replays all buffered bytes (the current chunk
           // is already in bufferedChunks) and then forwards the remainder of
@@ -259,9 +306,23 @@ export async function validateResponseQuality(
           return { valid: true, clonedResponse };
         }
       }
-    } catch {
-      // If reading the stream fails, pass through — other mechanisms
-      // (stream readiness timeout) will catch truly broken streams.
+    } catch (streamErr) {
+      // If reading the stream fails due to a locked stream or pipe error,
+      // the content cannot be verified — mark as invalid for combo failover.
+      // A locked ReadableStream means the response body is already consumed
+      // or corrupted (e.g. "Invalid state: The ReadableStream is locked").
+      // Broad match: Chrome/V8 throws "body used already", Firefox throws
+      // "ReadableStream is locked", etc.
+      const errMsg = streamErr instanceof Error ? streamErr.message : String(streamErr);
+      if (
+        streamErr instanceof TypeError &&
+        (errMsg.includes("locked") ||
+          errMsg.includes("disturbed") ||
+          errMsg.includes("used already"))
+      ) {
+        return { valid: false, reason: "stream locked or disturbed" };
+      }
+      // Other read errors — pass through (stream readiness timeout will catch truly broken streams)
       return { valid: true };
     }
   }
@@ -306,9 +367,36 @@ export async function validateResponseQuality(
     }
   }
 
+  // Issue #6427: a masked 200 — an OpenAI-shape top-level `error` object, or a
+  // known exhaustion phrase in the error envelope — is a failure regardless of
+  // whether `choices`/`output` also look structurally present (some providers
+  // echo a stub completion alongside the error). Checked unconditionally, before
+  // any shape-specific branch, so it can't be shadowed by an otherwise-valid body.
+  const rawError = json?.error;
+  const errorIsMeaningful =
+    (typeof rawError === "string" && rawError.length > 0) ||
+    (!!rawError && typeof rawError === "object" && Object.keys(rawError).length > 0);
+  if (errorIsMeaningful) {
+    const envelopeText = extractEnvelopeErrorText(json);
+    const errMsg =
+      rawError && typeof rawError === "object" && typeof (rawError as Record<string, unknown>).message === "string"
+        ? ((rawError as Record<string, unknown>).message as string)
+        : envelopeText || JSON.stringify(rawError).substring(0, 200);
+    return { valid: false, reason: `upstream error in 200 body: ${errMsg}` };
+  }
+  {
+    const envelopeText = extractEnvelopeErrorText(json);
+    if (envelopeText && EXHAUSTION_MARKER_PATTERN.test(envelopeText)) {
+      const snippet =
+        envelopeText.length > 80 ? `${envelopeText.slice(0, 80)}…` : envelopeText;
+      return { valid: false, reason: `upstream exhaustion marker in 200 body: ${snippet}` };
+    }
+  }
+
   const choices = json?.choices;
   if (json?.object === "response") {
-    if (!responsesApiOutputHasContent(json.output)) return { valid: false, reason: "empty_choices" };
+    if (!responsesApiOutputHasContent(json.output))
+      return { valid: false, reason: "empty_choices" };
     const status = typeof json.status === "string" ? json.status : "";
     if (status && !["completed", "done"].includes(status)) {
       return { valid: false, reason: "no_terminal" };
@@ -324,14 +412,9 @@ export async function validateResponseQuality(
   }
 
   if (!Array.isArray(choices) || choices.length === 0) {
+    // `json?.error` is already handled unconditionally above (#6427); reaching
+    // here means no error envelope was present.
     if (json?.output || json?.result || json?.data || json?.response) return { valid: true };
-    if (json?.error) {
-      const err = json.error as Record<string, unknown>;
-      return {
-        valid: false,
-        reason: `upstream error in 200 body: ${err?.message || JSON.stringify(json.error).substring(0, 200)}`,
-      };
-    }
     return { valid: true };
   }
 
@@ -388,4 +471,28 @@ export async function validateResponseQuality(
       headers: response.headers,
     }),
   };
+}
+
+/**
+ * Release the peek-and-abandon clone used by {@link validateResponseQuality}.
+ *
+ * The quality check clones the upstream response, reads the clone only until the
+ * first content block, then hands back a `clonedResponse` that callers on the
+ * streaming path DISCARD (they forward the original, untouched response). Because
+ * a `Response.clone()` tees the body, that abandoned branch would otherwise buffer
+ * the entire remaining body in memory until the original finishes streaming.
+ *
+ * Cancelling the abandoned branch releases that buffer. Per the ReadableStream tee
+ * contract, cancelling one branch does NOT cancel the shared source while the other
+ * branch (the original response being streamed to the client) is still active, so
+ * this is safe. No-op when the clone fell back to the original (clone unsupported)
+ * or when quality reading already exhausted the body (no `clonedResponse`).
+ */
+export function releaseQualityClone(
+  clone: Response,
+  original: Response,
+  quality: { clonedResponse?: Response }
+): void {
+  if (clone === original) return;
+  void quality.clonedResponse?.body?.cancel().catch(() => {});
 }

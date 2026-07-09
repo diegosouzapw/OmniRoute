@@ -27,6 +27,8 @@ import { cline } from "./cline";
 import { windsurf } from "./windsurf";
 import { grokCli } from "./grok-cli";
 import { codebuddyCn } from "./codebuddy-cn";
+import { zed } from "./zed";
+import { zedHosted } from "./zed-hosted";
 
 export const PROVIDERS = {
   claude,
@@ -49,6 +51,9 @@ export const PROVIDERS = {
   "devin-cli": windsurf,
   "grok-cli": grokCli,
   "codebuddy-cn": codebuddyCn,
+  // Zed IDE credential bridge — uses keychain import, not standard OAuth
+  zed,
+  "zed-hosted": zedHosted,
 };
 
 export default PROVIDERS;

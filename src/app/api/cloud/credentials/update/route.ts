@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
-import { validateApiKey, getProviderConnections, updateProviderConnection } from "@/models";
+import { getProviderConnections, updateProviderConnection } from "@/models";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { cloudCredentialUpdateSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 // Update provider credentials (for cloud token refresh)
 export async function PUT(request: Request) {
+  const authError = await requireManagementAuth(request, {
+    alwaysRequireAuth: true,
+    invalidApiKeyStatus: 401,
+  });
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();
@@ -16,23 +23,11 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Missing API key" }, { status: 401 });
-    }
-
-    const apiKey = authHeader.slice(7);
     const validation = validateBody(cloudCredentialUpdateSchema, rawBody);
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const { provider, credentials } = validation.data;
-
-    // Validate API key
-    const isValid = await validateApiKey(apiKey);
-    if (!isValid) {
-      return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
-    }
 
     // Find active connection for provider
     const connections = await getProviderConnections({ provider, isActive: true });

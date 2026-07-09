@@ -18,6 +18,15 @@ test("raw HTTP guard rejects high-risk unsupported methods before Next.js handle
     { label: "logout QUERY", method: "QUERY", url: "/api/auth/logout", allow: "POST" },
     { label: "keys QUERY", method: "QUERY", url: "/api/keys", allow: "GET, POST" },
     {
+      // dast-smoke 2026-07-06: schemathesis's unsupported-methods check demands
+      // 405 (method-first) for QUERY /api/keys/{id}/devices — the auth layer was
+      // answering 401 first because the path had no HIGH_RISK rule.
+      label: "key devices QUERY",
+      method: "QUERY",
+      url: "/api/keys/0/devices",
+      allow: "GET",
+    },
+    {
       label: "key detail QUERY",
       method: "QUERY",
       url: "/api/keys/0",

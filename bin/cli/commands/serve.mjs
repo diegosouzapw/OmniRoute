@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { platform, totalmem } from "node:os";
+import { platform, totalmem, hostname as osHostname } from "node:os";
 import { t } from "../i18n.mjs";
 import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
 import { ServerSupervisor, detectMitmCrash } from "../runtime/processSupervisor.mjs";
@@ -170,7 +170,16 @@ export async function runServe(opts = {}) {
     PORT: String(dashboardPort),
     DASHBOARD_PORT: String(dashboardPort),
     API_PORT: String(apiPort),
-    HOSTNAME: process.env.HOSTNAME || "0.0.0.0",
+    // #6194: POSIX shells (bash/zsh) auto-set HOSTNAME to the machine name — the
+    // .env loader (first-wins) can never override it. Ignore HOSTNAME when it
+    // matches the OS-reported hostname (the auto-set signature). OMNIROUTE_SERVER_HOST
+    // takes precedence; legacy HOSTNAME values that don't match os.hostname() are
+    // still honoured for backward compatibility (e.g. Windows CMD/PowerShell users
+    // who set HOSTNAME in .env where it is NOT auto-set).
+    HOSTNAME:
+      process.env.OMNIROUTE_SERVER_HOST ||
+      (process.env.HOSTNAME !== osHostname() ? process.env.HOSTNAME : undefined) ||
+      "0.0.0.0",
     NODE_ENV: "production",
     // #5238: preserve a user-set NODE_OPTIONS (incl. their own
     // `--max-old-space-size=…`) instead of clobbering it with the calibrated
@@ -342,8 +351,32 @@ async function runWithSupervisor(
       if (up) {
         if (useTray) await maybeStartTray(dashboardPort, apiPort, supervisor);
         onReady(dashboardPort, apiPort, noOpen, startedAt);
+      } else {
+        reportReadinessTimeout(dashboardPort, supervisor);
       }
     });
+  }
+}
+
+// #6321: waitForServer resolving `false` used to fall through silently — the CLI
+// printed the banner + "⏳ Starting server..." and then produced ZERO further
+// output forever, even though the child process may well have crashed or be
+// stuck (issue reports show the server sometimes actually comes up later, or is
+// reachable directly while the CLI still looks hung). Surface a clear diagnostic
+// plus whatever stdout/stderr the child buffered instead of going silent.
+export function reportReadinessTimeout(dashboardPort, supervisor) {
+  console.error(
+    `\n\x1b[33m⚠ Server did not respond within 60s.\x1b[0m It may still be starting, or may` +
+      ` have failed silently.`
+  );
+  console.error(`  Try:  curl -I http://localhost:${dashboardPort}/api/monitoring/health`);
+  console.error(`  Or:   rerun with \x1b[36m--log\x1b[0m to see live server output.\n`);
+
+  const recentLog = supervisor?.getRecentLog?.() ?? [];
+  if (recentLog.length) {
+    console.error("--- Recent server output ---");
+    recentLog.forEach((l) => console.error(l));
+    console.error("--- End recent output ---\n");
   }
 }
 

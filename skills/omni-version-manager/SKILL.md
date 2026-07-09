@@ -205,6 +205,184 @@ curl -X POST https://localhost:20128/api/services/cliproxy/auto-start \
   -d '{}'
 ```
 
+### POST /api/services/mux/install
+
+Install Mux from npm
+
+Installs the `mux` npm package (coder/mux — local agent-orchestration daemon) under DATA_DIR/services/mux/. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/mux/install \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/mux/start
+
+Start Mux
+
+Spawns `mux server --host 127.0.0.1 --port <port>`. Idempotent if already running. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/mux/start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/mux/stop
+
+Stop Mux
+
+Gracefully stops Mux. Idempotent. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/mux/stop \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/mux/restart
+
+Restart Mux
+
+stop() then start() under the operation lock. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/mux/restart \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/mux/update
+
+Update Mux to a newer npm version
+
+Stops, installs newer version, restarts. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/mux/update \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/services/mux/status
+
+Get Mux status
+
+Returns live supervisor state and DB metadata. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl https://localhost:20128/api/services/mux/status \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/services/mux/auto-start
+
+Toggle Mux auto-start
+
+When enabled, Mux starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/mux/auto-start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/bifrost/install
+
+Install Bifrost
+
+Installs the `@maximhq/bifrost` npm package under DATA_DIR/services/bifrost/. The package downloads the Go binary on first run. Accepts an optional `version` field (semver or `latest`). **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/bifrost/install \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/bifrost/start
+
+Start Bifrost
+
+Starts the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/bifrost/start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/bifrost/stop
+
+Stop Bifrost
+
+Stops the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/bifrost/stop \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/bifrost/restart
+
+Restart Bifrost
+
+Restarts the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/bifrost/restart \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/bifrost/update
+
+Update Bifrost
+
+Updates Bifrost to the latest npm version. Stops the running process, installs the new version, and restarts if it was previously running. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/bifrost/update \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/services/bifrost/status
+
+Get Bifrost status
+
+Returns live and DB status for the supervised Bifrost service. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl https://localhost:20128/api/services/bifrost/status \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/services/bifrost/auto-start
+
+Toggle Bifrost auto-start
+
+When enabled, Bifrost starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST https://localhost:20128/api/services/bifrost/auto-start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### GET /api/services/{name}/logs
 
 Stream service logs via SSE

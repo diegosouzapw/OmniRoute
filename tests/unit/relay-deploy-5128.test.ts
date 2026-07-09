@@ -81,13 +81,24 @@ test("#5128B: extractRelayAuth decrypts the encrypted relayAuthEnc form (encrypt
 // --------------------------------------------------------------------------
 test("#5128C: Cloudflare worker upload sends an accepted script Content-Type", async () => {
   const realFetch = globalThis.fetch;
-  let putBodyType: string | undefined;
+  let requestContentType: string | undefined;
+  let scriptPartContentType: string | undefined;
   globalThis.fetch = (async (input: unknown, init: RequestInit = {}) => {
     const url = String(input);
     if (init.method === "PUT" && url.includes("/workers/scripts/")) {
-      const fd = init.body as FormData;
-      const scriptPart = fd.get("index.js") as Blob;
-      putBodyType = scriptPart.type;
+      // #6416: the upload body is a raw multipart Buffer (not a FormData
+      // instance — see cloudflareWorkerScript.ts::buildCloudflareWorkerUploadRequest),
+      // so assert directly on the request Content-Type header and the
+      // embedded part header instead of reading FormData.get().
+      const headers = new Headers(init.headers);
+      requestContentType = headers.get("content-type") ?? undefined;
+      const bodyText = Buffer.isBuffer(init.body)
+        ? (init.body as Buffer).toString("utf8")
+        : String(init.body);
+      const match = bodyText.match(
+        /name="index\.js"[^]*?Content-Type: ([^\r\n]+)/
+      );
+      scriptPartContentType = match?.[1];
       // Simulate the CF API rejecting the upload so the route short-circuits
       // without making the follow-up subdomain calls.
       return Response.json({ errors: [{ message: "stubbed" }] }, { status: 400 });
@@ -112,10 +123,18 @@ test("#5128C: Cloudflare worker upload sends an accepted script Content-Type", a
     globalThis.fetch = realFetch;
   }
 
+  // #6416: the overall request Content-Type must itself be one CF accepts —
+  // a FormData body auto-negotiated through undici's patched fetch degraded
+  // to "text/plain;charset=UTF-8", which CF flatly rejects.
+  assert.ok(
+    requestContentType?.startsWith("multipart/form-data; boundary="),
+    `expected an accepted request Content-Type, got "${requestContentType}"`
+  );
   // CF rejects "application/javascript+module"; only these are accepted.
   assert.ok(
-    putBodyType === "application/javascript" || putBodyType === "text/javascript",
-    `expected an accepted script MIME, got "${putBodyType}"`
+    scriptPartContentType === "application/javascript" ||
+      scriptPartContentType === "text/javascript",
+    `expected an accepted script MIME, got "${scriptPartContentType}"`
   );
 });
 

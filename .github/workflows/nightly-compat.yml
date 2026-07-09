@@ -1,0 +1,126 @@
+name: Nightly Node Compat
+
+# Plano mestre testes+CI (Eixo D2, aprovado 2026-07-04): as matrizes de compatibilidade
+# Node 24/26 custavam ~28% de CADA run do CI pesado (2 execuções completas da suíte por
+# sync da release-PR) para pegar uma classe de quebra que raramente nasce num PR típico.
+# Elas rodam aqui 1×/dia contra o tip da release ativa (mesmo alvo do nightly-release-green)
+# e continuam obrigatórias no gate de release via workflow_dispatch do ci.yml se preciso.
+# fail-fast desligado: numa quebra queremos saber TODAS as versões afetadas de uma vez.
+
+on:
+  schedule:
+    - cron: "47 6 * * *" # 06:47 UTC diário — slot distinto dos demais nightlies
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to validate (default: highest release/vX.Y.Z)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: nightly-compat
+  cancel-in-progress: true
+
+jobs:
+  resolve-branch:
+    name: Resolve active release branch
+    runs-on: ubuntu-latest
+    outputs:
+      target: ${{ steps.branch.outputs.target }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Resolve active release branch
+        id: branch
+        env:
+          INPUT_BRANCH: ${{ github.event.inputs.branch }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_BRANCH:-}" ]; then
+            TARGET="$INPUT_BRANCH"
+          else
+            TARGET=$(git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/release/v*' \
+              | sed 's#origin/##' \
+              | sort -t/ -k2 -V \
+              | tail -1)
+          fi
+          case "$TARGET" in
+            release/v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "Refusing non-canonical branch name: $TARGET"; exit 1 ;;
+          esac
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+
+  compat-build-26:
+    name: Node 26 Compatibility Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: resolve-branch
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.resolve-branch.outputs.target }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "26"
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run build
+
+  compat-tests:
+    name: Node ${{ matrix.node }} Compat Tests (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: resolve-branch
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [24, 26]
+        shard: [1, 2, 3, 4]
+    env:
+      JWT_SECRET: ci-nightly-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-nightly-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+      TEST_SHARD: ${{ matrix.shard }}/4
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.resolve-branch.outputs.target }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run check:node-runtime
+      - run: npm run test:unit:ci:shard
+
+  report:
+    name: Open / update tracking issue on failure
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && (needs.compat-tests.result == 'failure' || needs.compat-build-26.result == 'failure') }}
+    needs: [resolve-branch, compat-build-26, compat-tests]
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ needs.resolve-branch.outputs.target }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          TITLE="🌙 nightly-compat: Node 24/26 failures on $TARGET"
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$TITLE in:title" --json number --jq '.[0].number')
+          BODY="Nightly Node-compat run failed on \`$TARGET\`: $RUN_URL — triage which Node version/shard broke (fail-fast off, all versions reported)."
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY"
+          fi
