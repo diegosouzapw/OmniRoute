@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     const { task, providers, mode, systemPrompt, maxTokens } = validation.data;
 
     // ── Load global chaos config ───────────────────────────────────────
-    const globalConfig = getChaosConfig();
+    const globalConfig = await getChaosConfig();
     if (!globalConfig.enabled) {
       return NextResponse.json(
         buildErrorBody(400, "Chaos Mode is not enabled globally. Enable it in Dashboard → Chaos Mode."),
@@ -131,6 +131,7 @@ export async function POST(request: Request) {
       systemPrompt,
       timeoutMs: globalConfig.timeoutMs,
       maxTokens: maxTokens || globalConfig.maxTokens,
+      apiKey: bearerToken,
     });
 
     return NextResponse.json(result);

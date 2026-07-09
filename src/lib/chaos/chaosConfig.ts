@@ -9,7 +9,7 @@
  */
 
 import { z } from "zod";
-import { getDbInstance } from "@/lib/db/core";
+import { getSettings, updateSettings } from "@/lib/db/settings";
 
 // ── Schema ───────────────────────────────────────────────────────────────────
 
@@ -43,33 +43,34 @@ export const DEFAULT_CHAOS_CONFIG: ChaosConfig = {
 };
 
 // ── Persistence ──────────────────────────────────────────────────────────────
+//
+// Persisted via the shared settings store (src/lib/db/settings.ts::getSettings/
+// updateSettings — the `key_value` table, namespace 'settings') rather than
+// hand-rolled SQL against a nonexistent `settings` table (the original PR queried
+// a table that was never created — every read silently fell back to defaults and
+// every write/reset threw). Follows the repo convention of routing all settings
+// reads/writes through src/lib/db/settings.ts (see CLAUDE.md → Database).
 
-const CONFIG_KEY = "chaos_mode_config";
+const CONFIG_KEY = "chaosModeConfig";
 
 let _configCache: ChaosConfig | null = null;
 
 /**
  * Get the current Chaos Mode configuration.
  */
-export function getChaosConfig(): ChaosConfig {
+export async function getChaosConfig(): Promise<ChaosConfig> {
   if (_configCache) return _configCache;
 
   try {
-    const db = getDbInstance() as {
-      prepare: (sql: string) => {
-        get: (...params: unknown[]) => { value: string } | undefined;
-      };
-    };
+    const settings = await getSettings();
+    const raw = settings[CONFIG_KEY];
 
-    const row = db.prepare("SELECT value FROM settings WHERE key = ?").get(CONFIG_KEY);
-
-    if (!row || !row.value) {
+    if (raw === undefined || raw === null) {
       _configCache = DEFAULT_CHAOS_CONFIG;
       return _configCache;
     }
 
-    const parsed = JSON.parse(row.value);
-    const result = chaosConfigSchema.safeParse(parsed);
+    const result = chaosConfigSchema.safeParse(raw);
     if (result.success) {
       _configCache = result.data;
       return result.data;
@@ -87,17 +88,10 @@ export function getChaosConfig(): ChaosConfig {
 /**
  * Update the Chaos Mode configuration.
  */
-export function setChaosConfig(config: ChaosConfig): ChaosConfig {
-  const db = getDbInstance() as {
-    prepare: (sql: string) => {
-      run: (...params: unknown[]) => { changes?: number };
-    };
-  };
-
+export async function setChaosConfig(config: ChaosConfig): Promise<ChaosConfig> {
   const validated = chaosConfigSchema.parse(config);
-  const json = JSON.stringify(validated);
 
-  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run(CONFIG_KEY, json);
+  await updateSettings({ [CONFIG_KEY]: validated });
 
   // Invalidate cache
   _configCache = null;
@@ -108,14 +102,8 @@ export function setChaosConfig(config: ChaosConfig): ChaosConfig {
 /**
  * Reset chaos config to defaults.
  */
-export function resetChaosConfig(): ChaosConfig {
-  const db = getDbInstance() as {
-    prepare: (sql: string) => {
-      run: (...params: unknown[]) => { changes?: number };
-    };
-  };
-
-  db.prepare("DELETE FROM settings WHERE key = ?").run(CONFIG_KEY);
+export async function resetChaosConfig(): Promise<ChaosConfig> {
+  await updateSettings({ [CONFIG_KEY]: null });
   _configCache = null;
   return DEFAULT_CHAOS_CONFIG;
 }

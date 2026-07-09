@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   if (authError) return authError;
 
   try {
-    const config = getChaosConfig();
+    const config = await getChaosConfig();
     return NextResponse.json({ config });
   } catch (err) {
     const msg = sanitizeErrorMessage(err);
@@ -56,7 +56,7 @@ export async function PUT(request: Request) {
       });
     }
 
-    const config = setChaosConfig(validation.data);
+    const config = await setChaosConfig(validation.data);
     return NextResponse.json({ config, message: "Chaos config updated" });
   } catch (err) {
     const msg = sanitizeErrorMessage(err);
@@ -74,7 +74,7 @@ export async function DELETE(request: Request) {
   if (authError) return authError;
 
   try {
-    const config = resetChaosConfig();
+    const config = await resetChaosConfig();
     return NextResponse.json({ config, message: "Chaos config reset to defaults" });
   } catch (err) {
     const msg = sanitizeErrorMessage(err);

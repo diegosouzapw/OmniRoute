@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
   try {
     // Load global chaos config
-    const globalConfig = getChaosConfig();
+    const globalConfig = await getChaosConfig();
     if (!globalConfig.enabled) {
       return NextResponse.json(
         buildErrorBody(400, "Chaos Mode is not enabled. Enable it in Dashboard → Chaos Mode."),

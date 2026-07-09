@@ -11,6 +11,7 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 ### ✨ New Features
 
 - **Provider/model param filters**: config-driven parameter denylist/allowlist per provider/model with auto-learn from upstream 400s (#6649 — thanks @ThongAccount, closes #6625)
+- **Chaos Mode**: multi-model parallel/collaborative task execution — dispatches a task to every active provider connection at once (parallel) or chains outputs sequentially so each model builds on the previous one's answer (collaborative), configurable via Dashboard → Chaos Mode (`GET`/`PUT`/`DELETE /api/chaos/config`) and gated per-API-key via a new `chaosModeEnabled` permission (opt-in — disabled by default globally and per key). `POST /api/chaos/run` (dashboard session) and `POST /api/skills/collect/chaos` (external Bearer-token) delegate to a shared `executeChaosRun()` engine (`src/lib/chaos/chaosExecutor.ts`) that dispatches in-process via the established synthetic-Request/route-handler pattern (`src/lib/batches/dispatch.ts`-style — no network hop, no hardcoded port). Regression guard: `tests/unit/chaos-config.test.ts`, `tests/unit/chaos-executor.test.ts`, `tests/unit/chaos-api-routes.test.ts`. ([#6679](https://github.com/diegosouzapw/OmniRoute/pull/6679) — thanks @Moseyuh333)
 
 ### 🐛 Bug Fixes
 
