@@ -88,6 +88,28 @@ export function isRecognizedBuiltinAuto(modelStr: string, suffix: string): boole
   );
 }
 
+/**
+ * #6328 (follow-up to #6495 / #6512): recognize built-in `auto/*` ids whose
+ * intent is paid-tier only, so callers can REMOVE — not just hide — them from
+ * advertised catalogs when the operator opts into `hidePaidModels`.
+ *
+ * Two shapes qualify as paid-tier:
+ *   - flat variants prefixed `auto/pro-*` (e.g. `auto/pro-coding`)
+ *   - suffix variants with the `:pro` tier (e.g. `auto/coding:pro`)
+ *
+ * Non-`pro` `auto/*` ids (auto/coding, auto/best-*, auto/coding:free, …) keep
+ * their advertised status; the candidate-pool filter in `virtualFactory` (#6512)
+ * already excludes paid backends from them at request time. `auto/<family>` ids
+ * are unaffected — the family is a backend selector, not a tier.
+ */
+export function isPaidTierAutoId(autoId: string): boolean {
+  if (typeof autoId !== "string" || !autoId.startsWith("auto/")) return false;
+  const suffix = autoId.slice("auto/".length);
+  if (suffix.startsWith("pro-")) return true;
+  const parsed = parseAutoSuffix(suffix);
+  return parsed.valid && parsed.tier === "pro";
+}
+
 export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
   const { createVirtualAutoCombo } = await import("./virtualFactory.ts");
 

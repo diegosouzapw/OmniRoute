@@ -22,6 +22,38 @@ export function toRetryAfterDisplayValue(value: ComboRetryAfter): string | Date 
   return new Date(value);
 }
 
+// Issue #6427: some providers mask credit/quota exhaustion behind an HTTP 200 —
+// either an OpenAI-shape top-level `error` object, or a known exhaustion phrase
+// living in the error envelope itself (never in assistant prose — see
+// `extractEnvelopeErrorText`). Single-quantifier-per-token-class alternation,
+// no nested/overlapping quantifiers — cannot backtrack catastrophically.
+const EXHAUSTION_MARKER_PATTERN =
+  /\b(insufficient\s+credit|insufficient\s+balance|quota\s+exceeded|out\s+of\s+credits?|credit\s+exhausted)\b/i;
+
+/**
+ * Collect the small set of top-level "error envelope" strings a 200 response may
+ * carry alongside (or instead of) a normal completion: the OpenAI-shape `error`
+ * object's `message`/`code`/`type`, a bare string `error`, or sibling top-level
+ * `message`/`detail` fields some providers use for the same purpose. Deliberately
+ * does NOT look inside `choices[].message.content` — assistant prose that merely
+ * mentions "quota" or "credits" must never be misclassified as an upstream failure.
+ */
+function extractEnvelopeErrorText(json: Record<string, unknown>): string | null {
+  const parts: string[] = [];
+  const err = json.error;
+  if (err && typeof err === "object") {
+    const e = err as Record<string, unknown>;
+    if (typeof e.message === "string") parts.push(e.message);
+    if (typeof e.code === "string") parts.push(e.code);
+    if (typeof e.type === "string") parts.push(e.type);
+  } else if (typeof err === "string" && err.length > 0) {
+    parts.push(err);
+  }
+  if (typeof json.message === "string") parts.push(json.message);
+  if (typeof json.detail === "string") parts.push(json.detail);
+  return parts.length > 0 ? parts.join(" ") : null;
+}
+
 function responsesApiOutputHasContent(output: unknown): boolean {
   return (
     Array.isArray(output) &&
@@ -335,6 +367,32 @@ export async function validateResponseQuality(
     }
   }
 
+  // Issue #6427: a masked 200 — an OpenAI-shape top-level `error` object, or a
+  // known exhaustion phrase in the error envelope — is a failure regardless of
+  // whether `choices`/`output` also look structurally present (some providers
+  // echo a stub completion alongside the error). Checked unconditionally, before
+  // any shape-specific branch, so it can't be shadowed by an otherwise-valid body.
+  const rawError = json?.error;
+  const errorIsMeaningful =
+    (typeof rawError === "string" && rawError.length > 0) ||
+    (!!rawError && typeof rawError === "object" && Object.keys(rawError).length > 0);
+  if (errorIsMeaningful) {
+    const envelopeText = extractEnvelopeErrorText(json);
+    const errMsg =
+      rawError && typeof rawError === "object" && typeof (rawError as Record<string, unknown>).message === "string"
+        ? ((rawError as Record<string, unknown>).message as string)
+        : envelopeText || JSON.stringify(rawError).substring(0, 200);
+    return { valid: false, reason: `upstream error in 200 body: ${errMsg}` };
+  }
+  {
+    const envelopeText = extractEnvelopeErrorText(json);
+    if (envelopeText && EXHAUSTION_MARKER_PATTERN.test(envelopeText)) {
+      const snippet =
+        envelopeText.length > 80 ? `${envelopeText.slice(0, 80)}…` : envelopeText;
+      return { valid: false, reason: `upstream exhaustion marker in 200 body: ${snippet}` };
+    }
+  }
+
   const choices = json?.choices;
   if (json?.object === "response") {
     if (!responsesApiOutputHasContent(json.output))
@@ -354,14 +412,9 @@ export async function validateResponseQuality(
   }
 
   if (!Array.isArray(choices) || choices.length === 0) {
+    // `json?.error` is already handled unconditionally above (#6427); reaching
+    // here means no error envelope was present.
     if (json?.output || json?.result || json?.data || json?.response) return { valid: true };
-    if (json?.error) {
-      const err = json.error as Record<string, unknown>;
-      return {
-        valid: false,
-        reason: `upstream error in 200 body: ${err?.message || JSON.stringify(json.error).substring(0, 200)}`,
-      };
-    }
     return { valid: true };
   }
 

@@ -20,6 +20,7 @@ import {
 import { getModelInfo, getComboForModel } from "../services/model";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
@@ -240,18 +241,30 @@ export async function handleChat(
   // reasoning_effort / reasoning / object-shaped thinking always wins (backward compatible).
   body = normalizeReasoningRequest(body);
 
-  // Early guard: an explicitly empty `messages` array is invalid for every
-  // upstream (Anthropic/OpenAI both reject "at least one message is required").
-  // Forwarding it produced a confusing raw upstream 400/502; reject it here with
-  // a clear OmniRoute-level error before any routing or upstream call (#5110).
-  // Responses-API requests use `input` (not `messages`) so they are unaffected,
-  // and an absent `messages` field is left to downstream validation.
-  if (
-    Array.isArray((body as { messages?: unknown }).messages) &&
-    (body as { messages: unknown[] }).messages.length === 0
-  ) {
-    log.warn("CHAT", "Rejecting request with empty messages array");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+  // Early guard: an invalid `messages` field is rejected here with a clear
+  // OmniRoute-level 400 before any routing or upstream call (#5110, #6402).
+  // Without this guard, schema-invalid bodies fell through to model resolution
+  // and surfaced as a misleading 404 `model_not_found` from chatHelpers.ts (#6402).
+  // Cases covered:
+  //   - present-but-non-array (null, number, string, object) → 400 (#6402)
+  //   - empty array → 400 ("at least one message is required") (#5110)
+  //   - missing entirely, when the Responses-API `input` discriminator is also
+  //     absent → 400 (#6402). Responses-API requests use `input` (not `messages`)
+  //     and are still unaffected.
+  {
+    const b = body as { messages?: unknown; input?: unknown };
+    if ("messages" in b && !Array.isArray(b.messages)) {
+      log.warn("CHAT", "Rejecting request with non-array messages");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array");
+    }
+    if (Array.isArray(b.messages) && b.messages.length === 0) {
+      log.warn("CHAT", "Rejecting request with empty messages array");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+    }
+    if (!("messages" in b) && !("input" in b)) {
+      log.warn("CHAT", "Rejecting request with missing messages");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array, received undefined");
+    }
   }
 
   // Reject non-string `model` before it reaches downstream code that calls
@@ -385,6 +398,20 @@ export async function handleChat(
   if (!modelStr) {
     log.warn("CHAT", "Missing model");
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
+  }
+
+  // Reject image-generation models routed to /v1/chat/completions (#6457).
+  // Image-only models live in IMAGE_PROVIDERS (open-sse/config/imageRegistry.ts)
+  // and are served by /v1/images/generations. Forwarding them to a chat upstream
+  // yielded confusing raw provider 400s (e.g. HuggingFace: "not a chat model").
+  // getImageModelEntry returns non-null only for models registered in the image
+  // registry — chat-only models (openai/gpt-4o, etc.) resolve to null and pass.
+  if (getImageModelEntry(modelStr)) {
+    log.warn("CHAT", `Rejecting image-generation model on chat endpoint: ${modelStr}`);
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      `Model '${modelStr}' is an image-generation model and cannot be used on /v1/chat/completions. Use POST /v1/images/generations instead.`
+    );
   }
 
   // T04: client-provided external session header has priority over generated fingerprint.
