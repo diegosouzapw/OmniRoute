@@ -691,6 +691,7 @@ export async function updateApiKeyPermissions(
         usageLimitEnabled?: boolean;
         dailyUsageLimitUsd?: number | null;
         weeklyUsageLimitUsd?: number | null;
+        chaosModeEnabled?: boolean;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -1285,6 +1286,7 @@ export async function getApiKeyMetadata(
       usageLimitEnabled: false,
       dailyUsageLimitUsd: null,
       weeklyUsageLimitUsd: null,
+      chaosModeEnabled: false,
     };
   }
 
@@ -1357,6 +1359,9 @@ export async function getApiKeyMetadata(
     ),
     allowUsageCommand: parseAllowUsageCommand(
       (record as JsonRecord).allow_usage_command ?? (record as JsonRecord).allowUsageCommand
+    ),
+    chaosModeEnabled: parseChaosModeEnabled(
+      (record as JsonRecord).chaos_mode_enabled ?? (record as JsonRecord).chaosModeEnabled
     ),
     ...parseApiKeyUsageLimitFields(record as JsonRecord),
   };

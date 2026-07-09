@@ -5,13 +5,13 @@
  * - Enable/disable chaos mode globally
  * - Set default mode (parallel/collaborative)
  * - Override provider models for chaos mode
- * - Set custom system prompt
+ * - Set custom system prompt and max tokens
  * - Configure timeout
  * - Test chaos mode with a simple task
  */
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import * as log from "@/sse/utils/logger";
 
@@ -34,6 +34,7 @@ interface ChaosConfig {
   providerOverrides: ProviderOverride[];
   systemPrompt?: string;
   timeoutMs: number;
+  maxTokens: number;
 }
 
 interface ModelResult {
@@ -62,6 +63,7 @@ const DEFAULT_CONFIG: ChaosConfig = {
   providerOverrides: [],
   systemPrompt: "",
   timeoutMs: 120_000,
+  maxTokens: 4096,
 };
 
 export default function ChaosConfigPage() {
@@ -74,6 +76,17 @@ export default function ChaosConfigPage() {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<ChaosTestResult | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Build a unique list of provider names from active connections for the dropdown
+  const availableProviders = useMemo(() => {
+    const seen = new Set<string>();
+    return providers.filter((p) => {
+      const key = p.provider || p.name || p.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [providers]);
 
   // Fetch current config + providers on mount
   useEffect(() => {
@@ -90,7 +103,65 @@ export default function ChaosConfigPage() {
         }
 
         if (providersRes.ok) {
-          // We'll just rely on provider info from the providers page
+          const data = await providersRes.json();
+          if (data.keys && Array.isArray(data.keys)) {
+            // Extract unique provider info — assume key names include provider info
+            const extracted: ProviderInfo[] = [];
+            const nameSet = new Set<string>();
+            for (const key of data.keys) {
+              const providerName = key.name || key.provider || "";
+              if (providerName && !nameSet.has(providerName.toLowerCase())) {
+                nameSet.add(providerName.toLowerCase());
+                extracted.push({
+                  id: key.id,
+                  name: key.name || providerName,
+                  provider: key.provider || providerName,
+                  defaultModel: key.defaultModel || key.model || null,
+                });
+              }
+            }
+            if (extracted.length > 0) {
+              setProviders(extracted);
+            }
+          }
+        }
+
+        // Also try fetching providers from /api/models or /api/providers
+        try {
+          const modelsRes = await fetch("/api/models");
+          if (modelsRes.ok) {
+            const modelsData = await modelsRes.json();
+            const modelProviders: ProviderInfo[] = [];
+            const seenIds = new Set<string>();
+            const allModels = modelsData?.data || modelsData?.models || [];
+            for (const m of allModels) {
+              const owner = m.owned_by || m.provider || "";
+              if (owner && !seenIds.has(owner.toLowerCase())) {
+                seenIds.add(owner.toLowerCase());
+                modelProviders.push({
+                  id: owner,
+                  name: m.provider_name || owner,
+                  provider: owner,
+                  defaultModel: m.id || null,
+                });
+              }
+            }
+            if (modelProviders.length > 0) {
+              setProviders((prev) => {
+                const merged = [...prev];
+                const existing = new Set(merged.map((p) => p.provider.toLowerCase()));
+                for (const mp of modelProviders) {
+                  if (!existing.has(mp.provider.toLowerCase())) {
+                    merged.push(mp);
+                    existing.add(mp.provider.toLowerCase());
+                  }
+                }
+                return merged;
+              });
+            }
+          }
+        } catch {
+          // /api/models is optional; skip silently
         }
       } catch (err) {
         log.error("chaos", "Failed to load config", err);
@@ -147,12 +218,13 @@ export default function ChaosConfigPage() {
     setTestResult(null);
     setMessage(null);
     try {
-      const res = await fetch("/api/skills/collect/chaos", {
+      const res = await fetch("/api/chaos/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           task: t("testTask"),
           mode: config.defaultMode,
+          maxTokens: config.maxTokens,
         }),
       });
 
@@ -168,7 +240,7 @@ export default function ChaosConfigPage() {
     } finally {
       setTesting(false);
     }
-  }, [config.defaultMode, t]);
+  }, [config.defaultMode, config.maxTokens, t]);
 
   const addOverride = () => {
     setConfig((prev) => ({
@@ -193,6 +265,12 @@ export default function ChaosConfigPage() {
       ...prev,
       providerOverrides: prev.providerOverrides.filter((_, i) => i !== index),
     }));
+  };
+
+  const isOverrideDuplicate = (providerId: string, excludeIndex: number): boolean => {
+    return config.providerOverrides.some(
+      (o, i) => i !== excludeIndex && o.providerId.toLowerCase() === providerId.toLowerCase()
+    );
   };
 
   if (loading) {
@@ -297,6 +375,28 @@ export default function ChaosConfigPage() {
             setConfig((prev) => ({
               ...prev,
               timeoutMs: Math.max(5000, Math.min(600000, Number(e.target.value) || 120000)),
+            }))
+          }
+          className="w-full px-3 py-1.5 rounded-md border border-border bg-surface text-sm text-text-main"
+        />
+      </div>
+
+      {/* Max Tokens */}
+      <div className="p-3 rounded-lg border border-border bg-surface/40">
+        <p className="text-sm font-medium text-text-main">Max Tokens</p>
+        <p className="text-xs text-text-muted mb-2">
+          Maximum tokens per model response. Higher values cost more and take longer.
+        </p>
+        <input
+          type="number"
+          min={256}
+          max={128000}
+          step={256}
+          value={config.maxTokens}
+          onChange={(e) =>
+            setConfig((prev) => ({
+              ...prev,
+              maxTokens: Math.max(256, Math.min(128000, Number(e.target.value) || 4096)),
             }))
           }
           className="w-full px-3 py-1.5 rounded-md border border-border bg-surface text-sm text-text-main"
@@ -429,13 +529,22 @@ export default function ChaosConfigPage() {
             key={idx}
             className="flex items-center gap-2 p-2 rounded-md bg-black/5 dark:bg-white/5"
           >
-            <input
-              type="text"
-              placeholder="Provider ID"
-              value={override.providerId}
-              onChange={(e) => updateOverride(idx, "providerId", e.target.value)}
-              className="flex-1 px-2 py-1 rounded border border-border bg-surface text-xs text-text-main"
-            />
+            {/* Provider dropdown with available options */}
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                list={`provider-list-${idx}`}
+                placeholder="Provider ID (type or select)"
+                value={override.providerId}
+                onChange={(e) => updateOverride(idx, "providerId", e.target.value)}
+                className="w-full px-2 py-1 rounded border border-border bg-surface text-xs text-text-main"
+              />
+              <datalist id={`provider-list-${idx}`}>
+                {availableProviders.map((p) => (
+                  <option key={p.id} value={p.provider} />
+                ))}
+              </datalist>
+            </div>
             <input
               type="text"
               placeholder="Model ID (optional)"
@@ -461,6 +570,26 @@ export default function ChaosConfigPage() {
             </button>
           </div>
         ))}
+
+        {/* Show available providers hint */}
+        {availableProviders.length > 0 && (
+          <details className="text-xs text-text-muted">
+            <summary className="cursor-pointer hover:text-text-main">
+              Available providers ({availableProviders.length})
+            </summary>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {availableProviders.map((p) => (
+                <span
+                  key={p.id}
+                  className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/5"
+                >
+                  {p.provider}
+                  {p.defaultModel && <span className="opacity-60 ml-1">({p.defaultModel})</span>}
+                </span>
+              ))}
+            </div>
+          </details>
+        )}
       </div>
     </div>
   );

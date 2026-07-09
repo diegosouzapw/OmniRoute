@@ -28,6 +28,7 @@ export const chaosConfigSchema = z.object({
     .default([]),
   systemPrompt: z.string().max(10_000).optional(),
   timeoutMs: z.number().int().min(5_000).max(600_000).default(120_000),
+  maxTokens: z.number().int().min(256).max(128_000).default(4096),
 });
 
 export type ChaosConfig = z.infer<typeof chaosConfigSchema>;
@@ -38,6 +39,7 @@ export const DEFAULT_CHAOS_CONFIG: ChaosConfig = {
   providerOverrides: [],
   systemPrompt: undefined,
   timeoutMs: 120_000,
+  maxTokens: 4096,
 };
 
 // ── Persistence ──────────────────────────────────────────────────────────────
