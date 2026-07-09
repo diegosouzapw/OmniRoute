@@ -15,7 +15,17 @@
 
 set -euo pipefail
 
-YAML_FILE="${PROCCOMPOSE_FILE:-proccompose.yaml}"
+resolve_yaml() {
+  local symlink_dir
+  local realpath_dir
+  symlink_dir=$(cd "$(dirname "${BASH_SOURCE[0]}" 2>/dev/null)" 2>/dev/null && pwd)
+  realpath_dir=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null)")" 2>/dev/null && pwd)
+  for d in "$symlink_dir" "$realpath_dir" .; do
+    [[ -f "$d/proccompose.yaml" ]] && { echo "$d/proccompose.yaml"; return 0; }
+  done
+  return 1
+}
+YAML_FILE="${PROCCOMPOSE_FILE:-$(resolve_yaml || echo proccompose.yaml)}"
 PHENO_BIN="${PHENO_BIN:-$HOME/bin/pheno}"
 V4_DIR="${V4_DIR:-$(dirname "$(cd "$(dirname "$0")" && pwd)")}"
 
@@ -24,7 +34,7 @@ err() { printf "\033[1;31m[proccompose ERROR]\033[0m %s\n" "$*" >&2; }
 ok()  { printf "\033[1;32m[proccompose OK]\033[0m %s\n" "$*"; }
 
 if [[ ! -f "$YAML_FILE" ]]; then
-  err "no $YAML_FILE in $(pwd) - copy proccompose.example.yaml and edit"
+  err "no $YAML_FILE found - copy proccompose.example.yaml and edit"
   exit 1
 fi
 
