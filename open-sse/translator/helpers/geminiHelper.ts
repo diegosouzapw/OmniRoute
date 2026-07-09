@@ -185,20 +185,20 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
           doc?.data ||
           doc?.file_data ||
           doc?.fileData;
-        const mimeTypeFallback =
+        const explicitMimeType =
           rec.mime_type ||
           rec.mimeType ||
           rec.media_type ||
           file?.mime_type ||
           file?.mimeType ||
           doc?.mime_type ||
-          doc?.mimeType ||
-          "application/pdf";
+          doc?.mimeType;
         if (typeof rawDataStr === "string" && !rawDataStr.startsWith("http")) {
-          const rawData = rawDataStr.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
+          const dataUrlMatch = rawDataStr.match(/^data:([^;,]+)(?:;[^,]*)?,/);
+          const rawData = rawDataStr.replace(/^data:[^,]+,/, "");
           parts.push({
             inlineData: {
-              mimeType: String(mimeTypeFallback),
+              mimeType: String(explicitMimeType || dataUrlMatch?.[1] || "application/pdf"),
               data: rawData,
             },
           });
