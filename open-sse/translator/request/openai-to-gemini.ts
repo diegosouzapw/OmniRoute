@@ -193,7 +193,13 @@ function openaiToGeminiBase(
   // does not accept these strings directly. "auto" signals "use max reasonable effort"
   // which maps to high. "max"/"xhigh" exceed Gemini's accepted range and are clamped.
   // Port of decolua/9router#2043 by @nguyenxvotanminh3.
-  if (body.reasoning_effort) {
+  // Gemma-4 models reject Gemini's budget-based thinkingConfig with a 400
+  // ("Thinking budget is not supported for this model"). Port of
+  // decolua/9router#2480 by @chy1211 — mirrors the existing guard in
+  // claude-to-gemini.ts.
+  if (model.startsWith("gemma-4")) {
+    // gemma-4 models return - 400: Thinking budget is not supported for this model
+  } else if (body.reasoning_effort) {
     const highBudget = capThinkingBudget(model, 32768);
     const budgetMap: Record<string, number> = {
       low: 1024,
@@ -212,7 +218,7 @@ function openaiToGeminiBase(
   }
   // 2. Claude format: thinking (type: enabled, budget_tokens)
   const thinking = body.thinking as { type?: string; budget_tokens?: number } | undefined;
-  if (thinking?.type === "enabled" && thinking.budget_tokens) {
+  if (!model.startsWith("gemma-4") && thinking?.type === "enabled" && thinking.budget_tokens) {
     result.generationConfig.thinkingConfig = {
       thinkingBudget: thinking.budget_tokens,
       includeThoughts: true,

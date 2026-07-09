@@ -1194,6 +1194,62 @@ test("OpenAI -> Gemini reasoning_effort=high stays within gemini-2.5-flash cap (
   assert.equal(budget, 24576);
 });
 
+// Port of decolua/9router#2480 by @chy1211: Gemma-4 models reject Gemini's
+// budget-based thinkingConfig with a 400 ("Thinking budget is not supported for
+// this model"). The Claude->Gemini path already skips thinkingConfig for
+// gemma-4* models (translator/request/claude-to-gemini.ts); this mirrors that
+// guard on the OpenAI->Gemini path for both the reasoning_effort block and the
+// thinking.budget_tokens block.
+test("OpenAI -> Gemini reasoning_effort is not translated to thinkingConfig for Gemma-4 (#2480)", () => {
+  const result = openaiToGeminiRequest(
+    "gemma-4-31b-it",
+    {
+      messages: [{ role: "user", content: "Solve this complex puzzle" }],
+      reasoning_effort: "high",
+    },
+    false
+  ) as GeminiRequestWithConfig;
+
+  assert.equal(
+    result.generationConfig.thinkingConfig,
+    undefined,
+    "gemma-4 must not receive thinkingConfig (upstream returns 400)"
+  );
+});
+
+test("OpenAI -> Gemini thinking.budget_tokens is not translated to thinkingConfig for Gemma-4 (#2480)", () => {
+  const result = openaiToGeminiRequest(
+    "gemma-4-31b-it",
+    {
+      messages: [{ role: "user", content: "Solve this complex puzzle" }],
+      thinking: { type: "enabled", budget_tokens: 4096 },
+    },
+    false
+  ) as GeminiRequestWithConfig;
+
+  assert.equal(
+    result.generationConfig.thinkingConfig,
+    undefined,
+    "gemma-4 must not receive thinkingConfig (upstream returns 400)"
+  );
+});
+
+test("OpenAI -> Gemini reasoning_effort still maps to thinkingConfig for non-Gemma models (#2480 negative control)", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: "Solve this complex puzzle" }],
+      reasoning_effort: "high",
+    },
+    false
+  ) as GeminiRequestWithConfig;
+
+  assert.ok(
+    result.generationConfig.thinkingConfig,
+    "non-gemma models must still receive thinkingConfig"
+  );
+});
+
 test("OpenAI -> Gemini request maps google_search tool", () => {
   const result = openaiToGeminiRequest(
     "gemini-2.0-flash",
