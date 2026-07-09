@@ -20,6 +20,11 @@ test("isPublicApiRoute keeps cloud read/auth routes public but not cloud write r
 });
 
 test("isPublicApiRoute allows readonly health and require-login bootstrap routes", () => {
+  assert.equal(isPublicApiRoute("/api/health/ping", "GET"), true);
+  assert.equal(isPublicApiRoute("/api/health/ping", "HEAD"), true);
+  assert.equal(isPublicApiRoute("/api/health/ping", "OPTIONS"), true);
+  assert.equal(isPublicApiRoute("/api/health/ping", "DELETE"), false);
+
   assert.equal(isPublicApiRoute("/api/monitoring/health", "GET"), true);
   assert.equal(isPublicApiRoute("/api/monitoring/health", "HEAD"), true);
   assert.equal(isPublicApiRoute("/api/monitoring/health", "OPTIONS"), true);
