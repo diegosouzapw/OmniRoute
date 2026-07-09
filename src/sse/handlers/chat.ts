@@ -55,6 +55,7 @@ import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import { updateCombo } from "@/lib/db/combos";
+import { isModelAllowedForKey } from "@/lib/db/apiKeys";
 import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
@@ -464,6 +465,23 @@ export async function handleChat(
     );
   }
   body = preCallGuardrails.payload;
+  if (body?.model && typeof body.model === "string" && body.model !== modelStr) {
+    const rerouteModel = body.model;
+    // A guardrail (e.g. Vision Bridge auto-reroute) can swap body.model AFTER
+    // enforceApiKeyPolicy already validated modelStr's allowlist/budget above.
+    // Re-check the new target against the same per-key allowlist so a
+    // policy-restricted key cannot be silently routed to an unchecked model.
+    const rerouteAllowed = await isModelAllowedForKey(apiKey, rerouteModel);
+    if (!rerouteAllowed) {
+      log.warn(
+        "POLICY",
+        `Guardrail reroute to "${rerouteModel}" rejected by API key policy (key=${apiKeyInfo?.id || "unknown"}); keeping original model "${modelStr}"`
+      );
+      body = { ...body, model: modelStr };
+    } else {
+      modelStr = rerouteModel;
+    }
+  }
   telemetry.endPhase();
 
   // T08: per-key active session limit (0 = unlimited).
