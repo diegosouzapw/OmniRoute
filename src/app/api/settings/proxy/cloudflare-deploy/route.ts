@@ -16,7 +16,8 @@ import {
 // guard work unchanged. Only the deployment surface differs (Cloudflare Workers
 // API instead of Vercel /v13/deployments).
 
-const CLOUDFLARE_API_BASE = process.env.CLOUDFLARE_API_BASE || "https://api.cloudflare.com/client/v4";
+const CLOUDFLARE_API_BASE =
+  process.env.CLOUDFLARE_API_BASE || "https://api.cloudflare.com/client/v4";
 
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
 
   try {
     // 1. PUT the Worker script — Cloudflare requires multipart/form-data with
-    //    main_module + a metadata blob describing the upload.
+    //    body_part + a metadata blob describing the upload.
     //
     //    Built as a raw Buffer with an explicit boundary rather than a native
     //    `FormData` (#6416): in production `globalThis.fetch` is patched with
@@ -63,14 +64,19 @@ export async function POST(request: Request) {
     //    with `Content-Type: text/plain;charset=UTF-8`, which Cloudflare
     //    rejects with "Content-Type must be one of: application/javascript,
     //    text/javascript, multipart/form-data" — the same class of bug fixed
-    //    for image edits in #3273. ES-module semantics come from `main_module`
-    //    in the metadata part below, not the script part's Content-Type
-    //    (Cloudflare rejects "application/javascript+module" outright, #5128).
+    //    for image edits in #3273.
+    //
+    //    The script part itself must stay `application/javascript` (Cloudflare
+    //    rejects `application/javascript+module`, #5128), but with that MIME the
+    //    uploaded body is parsed as a Service Worker, not an ES module. So the
+    //    metadata must point at the script via `body_part`, not `main_module` —
+    //    otherwise Cloudflare rejects the body with `Unexpected token 'export'`
+    //    when it sees module syntax in a non-module upload (#6496 / #6416).
     const workerScriptUrl = `${CLOUDFLARE_API_BASE}/accounts/${accountId}/workers/scripts/${projectName}`;
     const { headers: uploadHeaders, body: uploadBody } = buildCloudflareWorkerUploadRequest(
       workerScript,
       {
-        main_module: "index.js",
+        body_part: "index.js",
         compatibility_date: "2026-03-20",
         observability: { enabled: true },
       }

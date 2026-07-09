@@ -737,11 +737,6 @@
       "count": 6
     }
   },
-  "tests/unit/chatgpt-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 6
-    }
-  },
   "tests/unit/chipotle-executor.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
@@ -1789,7 +1784,7 @@
   },
   "tests/unit/provider-models-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 58
+      "count": 57
     }
   },
   "tests/unit/provider-models-token-limits.test.ts": {

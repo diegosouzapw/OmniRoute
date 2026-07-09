@@ -15,6 +15,7 @@ import Tooltip from "@/shared/components/Tooltip";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
 import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
+import ReasoningTokenBufferToggle from "./ReasoningTokenBufferToggle";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -217,10 +218,6 @@ function sanitizeComboRuntimeConfig(config) {
   );
 }
 
-// Build the next combo config when a Fusion tuning field changes. Prunes empty /
-// non-finite entries and drops the whole `fusionTuning` object when no field is
-// set, so an empty `{}` is never persisted (sanitizeComboRuntimeConfig keeps any
-// non-null object as-is).
 function updateFusionTuning(config, field, rawValue) {
   const value = rawValue === "" ? undefined : Number(rawValue);
   const next = { ...(config.fusionTuning || {}), [field]: value };
@@ -522,9 +519,7 @@ function getStrategyBadgeClass(strategy) {
 function getI18nOrFallback(t, key, fallback) {
   try {
     if (typeof t.has === "function" && t.has(key)) return t(key);
-  } catch {
-    // Some translations require ICU variables; fallback keeps optional helper text safe.
-  }
+  } catch {}
   return fallback;
 }
 
@@ -1023,7 +1018,6 @@ export default function CombosPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{t("title")}</h1>
@@ -2063,7 +2057,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     }
   }, [builderStage, comboBuilderStages]);
 
-  // DnD state
   const hasPricingForModel = useCallback(
     (modelValue) => {
       const parsed = parseQualifiedModel(modelValue);
@@ -2752,9 +2745,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       saveData.description = null;
     }
 
-    // Include config only if any values are set
     const configToSave = sanitizeComboRuntimeConfig(config);
-    // Add round-robin specific fields to config
     if (strategy === "round-robin") {
       if (config.concurrencyPerModel !== undefined)
         configToSave.concurrencyPerModel = config.concurrencyPerModel;
@@ -3740,7 +3731,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       />
                     </div>
                   </div>
-                  {/* failoverBeforeRetry + maxSetRetries + setRetryDelayMs */}
                   <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
                     <div className="col-span-2">
                       <div className="flex items-center gap-2 py-1">
@@ -3775,6 +3765,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           </span>
                         </Tooltip>
                       </div>
+                    </div>
+                    <div className="col-span-2">
+                      <ReasoningTokenBufferToggle config={config} setConfig={setConfig} t={t} />
                     </div>
                     <div>
                       <FieldLabelWithHelp
@@ -4166,7 +4159,11 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       </div>
                       <div>
                         <FieldLabelWithHelp
-                          label={getI18nOrFallback(t, "fusionStragglerGraceMs", "Straggler grace (ms)")}
+                          label={getI18nOrFallback(
+                            t,
+                            "fusionStragglerGraceMs",
+                            "Straggler grace (ms)"
+                          )}
                           help={getI18nOrFallback(
                             t,
                             "fusionStragglerGraceMsHelp",
@@ -4181,7 +4178,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           value={config.fusionTuning?.stragglerGraceMs ?? ""}
                           placeholder="8000"
                           onChange={(e) =>
-                            setConfig(updateFusionTuning(config, "stragglerGraceMs", e.target.value))
+                            setConfig(
+                              updateFusionTuning(config, "stragglerGraceMs", e.target.value)
+                            )
                           }
                           className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
                         />
@@ -4580,7 +4579,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
             </div>
           )}
 
-          {/* Actions */}
           {isExpertMode ? (
             <div className="flex gap-2 pt-1">
               <Button onClick={onClose} variant="ghost" fullWidth size="sm">
