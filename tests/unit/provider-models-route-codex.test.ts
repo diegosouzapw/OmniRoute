@@ -81,8 +81,11 @@ test.after(async () => {
 test("provider models route discovers live Codex models and preserves static aliases", async () => {
   const connection = await seedCodexConnection({
     accessToken: "codex-access-token",
-    providerSpecificData: { workspaceId: "workspace-123" },
+    providerSpecificData: { chatgptAccountId: "account-123" },
   });
+  await modelsDb.replaceSyncedAvailableModelsForConnection("codex", connection.id, [
+    { id: "stale-codex-model", name: "Stale Codex Model", source: "imported" },
+  ]);
   const seenRequests: Array<Record<string, string | null>> = [];
 
   globalThis.fetch = async (url, init) => {
@@ -124,7 +127,7 @@ test("provider models route discovers live Codex models and preserves static ali
     {
       url: "https://chatgpt.com/backend-api/codex/models?client_version=0.144.0",
       authorization: "Bearer codex-access-token",
-      workspaceId: "workspace-123",
+      workspaceId: "account-123",
       originator: "codex_cli_rs",
       userAgent: "codex-cli/0.144.0 (Windows 10.0.26200; x64)",
     },
@@ -139,6 +142,8 @@ test("provider models route discovers live Codex models and preserves static ali
   assert.ok(syncedIds.has("gpt-5.6"));
   assert.ok(syncedIds.has("gpt-5.5-low"));
   assert.ok(syncedIds.has("gpt-5.4-xhigh"));
+  assert.equal(modelIds.has("stale-codex-model"), false);
+  assert.equal(syncedIds.has("stale-codex-model"), false);
 });
 
 test("provider models route keeps Codex live discovery failures degraded", async () => {

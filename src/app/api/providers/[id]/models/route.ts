@@ -1726,9 +1726,12 @@ export async function GET(
       });
 
       if (liveModels && liveModels.length > 0) {
-        const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
+        const staticCodexCatalog = mergeLocalCatalogModels(
+          getModelsByProviderId("codex") || [],
+          getStaticModelsForProvider("codex") || []
+        );
         return buildApiDiscoveryResponse(
-          mergeCodexLiveModelsWithLocalCatalog(liveModels, localCatalog)
+          mergeCodexLiveModelsWithLocalCatalog(liveModels, staticCodexCatalog)
         );
       }
 

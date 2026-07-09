@@ -182,6 +182,7 @@ export async function fetchCodexDiscoveryModels({
   try {
     const workspaceId =
       toNonEmptyString(providerSpecificData?.workspaceId) ||
+      toNonEmptyString(providerSpecificData?.chatgptAccountId) ||
       toNonEmptyString(providerSpecificData?.accountId);
     const headers: Record<string, string> = {
       ...getCodexDefaultHeaders(),

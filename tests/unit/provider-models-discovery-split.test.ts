@@ -288,7 +288,7 @@ test("codex.fetchCodexDiscoveryModels calls the Codex models endpoint with Codex
   let seenOriginator = "";
   const models = await fetchCodexDiscoveryModels({
     accessToken: "codex-access",
-    providerSpecificData: { workspaceId: "workspace-123" },
+    providerSpecificData: { chatgptAccountId: "account-123" },
     fetchImpl: async (url, init) => {
       seenUrl = url;
       seenAuthorization = init.headers.Authorization;
@@ -301,7 +301,7 @@ test("codex.fetchCodexDiscoveryModels calls the Codex models endpoint with Codex
   assert.equal(CODEX_MODELS_URL, "https://chatgpt.com/backend-api/codex/models");
   assert.equal(seenUrl, buildCodexModelsUrl());
   assert.equal(seenAuthorization, "Bearer codex-access");
-  assert.equal(seenWorkspace, "workspace-123");
+  assert.equal(seenWorkspace, "account-123");
   assert.equal(seenOriginator, "codex_cli_rs");
   assert.deepEqual(
     models?.map((m) => m.id),
