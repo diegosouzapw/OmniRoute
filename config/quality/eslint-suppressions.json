@@ -1784,7 +1784,7 @@
   },
   "tests/unit/provider-models-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 58
+      "count": 57
     }
   },
   "tests/unit/provider-models-token-limits.test.ts": {
