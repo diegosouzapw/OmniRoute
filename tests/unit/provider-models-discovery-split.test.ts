@@ -28,6 +28,7 @@ import {
   buildCodexModelsUrl,
   CODEX_MODELS_URL,
   fetchCodexDiscoveryModels,
+  mergeCodexLiveModelsWithLocalCatalog,
   normalizeCodexModelsResponse,
 } from "../../src/app/api/providers/[id]/models/discovery/codex.ts";
 
@@ -174,6 +175,8 @@ test("codex.normalizeCodexModelsResponse parses the Codex live catalog shape", (
         display_name: "GPT-5.4",
         visibility: "list",
         supported_in_api: true,
+        context_length: 400000,
+        max_output_tokens: 128000,
         service_tiers: [{ id: "priority", name: "Fast" }],
         additional_speed_tiers: ["fast"],
       },
@@ -182,6 +185,8 @@ test("codex.normalizeCodexModelsResponse parses the Codex live catalog shape", (
         display_name: "GPT-5.5",
         visibility: "list",
         supported_in_api: true,
+        max_input_tokens: 272000,
+        top_provider: { max_completion_tokens: 64000 },
       },
       {
         slug: "internal-only",
@@ -199,6 +204,37 @@ test("codex.normalizeCodexModelsResponse parses the Codex live catalog shape", (
       { id: "gpt-5.5", name: "GPT-5.5" },
     ]
   );
+  assert.equal(parsed.find((model) => model.id === "gpt-5.4")?.inputTokenLimit, 400000);
+  assert.equal(parsed.find((model) => model.id === "gpt-5.4")?.outputTokenLimit, 128000);
+  assert.equal(parsed.find((model) => model.id === "gpt-5.5")?.inputTokenLimit, 272000);
+  assert.equal(parsed.find((model) => model.id === "gpt-5.5")?.outputTokenLimit, 64000);
+});
+
+test("codex.mergeCodexLiveModelsWithLocalCatalog preserves static effort aliases", () => {
+  const merged = mergeCodexLiveModelsWithLocalCatalog(
+    [
+      {
+        id: "gpt-5.6",
+        name: "GPT 5.6 Live",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+        inputTokenLimit: 512000,
+      },
+    ],
+    [
+      { id: "gpt-5.6", name: "GPT 5.6 Static", contextLength: 400000 },
+      { id: "gpt-5.6-low", name: "GPT 5.6 Low", contextLength: 400000 },
+    ]
+  );
+
+  assert.deepEqual(
+    merged.map((model) => model.id),
+    ["gpt-5.6", "gpt-5.6-low"]
+  );
+  assert.equal(merged.find((model) => model.id === "gpt-5.6")?.name, "GPT 5.6 Live");
+  assert.equal(merged.find((model) => model.id === "gpt-5.6")?.inputTokenLimit, 512000);
+  assert.equal(merged.find((model) => model.id === "gpt-5.6-low")?.inputTokenLimit, 400000);
 });
 
 test("codex.normalizeCodexModelsResponse drops entries without an id", () => {
@@ -267,7 +303,10 @@ test("codex.fetchCodexDiscoveryModels calls the Codex models endpoint with Codex
   assert.equal(seenAuthorization, "Bearer codex-access");
   assert.equal(seenWorkspace, "workspace-123");
   assert.equal(seenOriginator, "codex_cli_rs");
-  assert.deepEqual(models?.map((m) => m.id), ["gpt-5.6"]);
+  assert.deepEqual(
+    models?.map((m) => m.id),
+    ["gpt-5.6"]
+  );
 });
 
 // ── host wiring guard ────────────────────────────────────────────────────────

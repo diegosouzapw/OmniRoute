@@ -254,7 +254,14 @@ test("provider models route discovers live Codex models and tags them for Respon
           visibility: "hide",
           supported_in_api: true,
         },
-        { slug: "gpt-5.6", display_name: "GPT 5.6", visibility: "list", supported_in_api: true },
+        {
+          slug: "gpt-5.6",
+          display_name: "GPT 5.6",
+          visibility: "list",
+          supported_in_api: true,
+          max_input_tokens: 272000,
+          max_output_tokens: 128000,
+        },
         { id: "", name: "missing-id" },
       ],
     });
@@ -275,18 +282,24 @@ test("provider models route discovers live Codex models and tags them for Respon
       userAgent: "codex-cli/0.142.0 (Windows 10.0.26200; x64)",
     },
   ]);
-  assert.deepEqual(body.models, [
-    {
-      id: "gpt-5.6",
-      name: "GPT 5.6",
-      owned_by: "codex",
-      apiFormat: "responses",
-      supportedEndpoints: ["responses"],
-    },
-  ]);
+  const modelIds = new Set(body.models?.map((model) => model.id));
+  const liveModel = body.models?.find((model) => model.id === "gpt-5.6");
+  const syncedModels = await modelsDb.getSyncedAvailableModelsForConnection("codex", connection.id);
+  const syncedIds = new Set(syncedModels.map((model) => model.id));
+
+  assert.equal(liveModel?.name, "GPT 5.6");
+  assert.equal(liveModel?.inputTokenLimit, 272000);
+  assert.equal(liveModel?.outputTokenLimit, 128000);
+  assert.equal(liveModel?.apiFormat, "responses");
+  assert.deepEqual(liveModel?.supportedEndpoints, ["responses"]);
+  assert.ok(modelIds.has("gpt-5.5-low"));
+  assert.ok(modelIds.has("gpt-5.4-xhigh"));
+  assert.ok(syncedIds.has("gpt-5.6"));
+  assert.ok(syncedIds.has("gpt-5.5-low"));
+  assert.ok(syncedIds.has("gpt-5.4-xhigh"));
 });
 
-test("provider models route marks Codex local fallback as intentional when live discovery fails", async () => {
+test("provider models route keeps Codex live discovery failures degraded", async () => {
   const connection = await seedConnection("codex", {
     authType: "oauth",
     accessToken: "codex-access-token",
@@ -300,9 +313,44 @@ test("provider models route marks Codex local fallback as intentional when live 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "codex");
   assert.equal(body.source, "local_catalog");
-  assert.equal(body.intentional, true);
+  assert.equal(body.intentional, undefined);
   assert.equal(body.warning, "Codex live catalog unavailable — using local catalog");
   assert.ok(body.models.some((model: any) => model.id === "gpt-5.5"));
+});
+
+test("provider models route returns cached Codex models when refresh discovery fails", async () => {
+  const connection = await seedConnection("codex", {
+    authType: "oauth",
+    accessToken: "codex-access-token",
+  });
+  await modelsDb.replaceSyncedAvailableModelsForConnection("codex", connection.id, [
+    {
+      id: "cached-live-codex",
+      name: "Cached Live Codex",
+      source: "imported",
+      apiFormat: "responses",
+      supportedEndpoints: ["responses"],
+    },
+  ]);
+
+  globalThis.fetch = async () => new Response("upstream unavailable", { status: 503 });
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as RouteBody;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "codex");
+  assert.equal(body.source, "cache");
+  assert.equal(body.warning, "Codex live catalog unavailable — using cached catalog");
+  assert.deepEqual(body.models, [
+    {
+      id: "cached-live-codex",
+      name: "Cached Live Codex",
+      source: "imported",
+      apiFormat: "responses",
+      supportedEndpoints: ["responses"],
+    },
+  ]);
 });
 
 test("provider models route retries transient OpenAI-compatible probe failures before succeeding", async () => {

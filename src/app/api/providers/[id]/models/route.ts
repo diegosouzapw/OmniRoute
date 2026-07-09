@@ -97,7 +97,7 @@ import {
   type ProviderModelsConfigEntry,
   PROVIDER_MODELS_CONFIG,
 } from "./discovery/providerModelsConfig";
-import { fetchCodexDiscoveryModels } from "./discovery/codex";
+import { fetchCodexDiscoveryModels, mergeCodexLiveModelsWithLocalCatalog } from "./discovery/codex";
 
 /**
  * GET /api/providers/[id]/models - Get models list from provider
@@ -1726,20 +1726,22 @@ export async function GET(
       });
 
       if (liveModels && liveModels.length > 0) {
-        return buildApiDiscoveryResponse(liveModels);
+        const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
+        return buildApiDiscoveryResponse(
+          mergeCodexLiveModelsWithLocalCatalog(liveModels, localCatalog)
+        );
       }
 
-      const localCatalog = buildLocalCatalogResponse(
-        "Codex live catalog unavailable — using local catalog",
-        true
-      );
-      if (localCatalog) return localCatalog;
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: "Codex live catalog unavailable — using cached catalog",
+        localWarning: "Codex live catalog unavailable — using local catalog",
+      });
+      if (fallback) return fallback;
       return buildResponse({
         provider,
         connectionId,
         models: [],
         source: "local_catalog",
-        intentional: true,
         warning: "Codex live catalog unavailable — using local catalog",
       });
     }
