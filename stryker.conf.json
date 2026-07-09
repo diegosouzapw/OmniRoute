@@ -139,6 +139,7 @@
       "tests/unit/combo-roundrobin-compat-fallback-6238.test.ts",
       "tests/unit/combo-routing-engine.test.ts",
       "tests/unit/combo-rr-fallback-advance-948.test.ts",
+      "tests/unit/combo-rr-sticky-9router.test.ts",
       "tests/unit/combo-scoring-inspector.test.ts",
       "tests/unit/combo-selected-connection-success.test.ts",
       "tests/unit/combo-sessionless-pin-3825.test.ts",
