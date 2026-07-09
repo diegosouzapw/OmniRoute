@@ -47,6 +47,16 @@ describe("RTK grouping config persistence (R5)", () => {
     assert.equal(rtkConfigSchema.safeParse({ groupingThreshold: 1 }).success, false);
   });
 
+  it("accepts enableRenderers on the write schema (GET→PUT round-trip parity)", () => {
+    // GET returns enableRenderers, so the strict write schema must accept it too;
+    // otherwise a read→write round-trip of the config 400s. Regression guard.
+    assert.equal(rtkConfigSchema.safeParse({ enableRenderers: true }).success, true);
+    assert.equal(
+      rtkConfigSchema.safeParse({ ...DEFAULT_RTK_CONFIG }).success,
+      true
+    );
+  });
+
   it("preserves enableGrouping / groupingThreshold through a DB round-trip", async () => {
     const settings = await updateCompressionSettings({
       rtkConfig: { ...DEFAULT_RTK_CONFIG, enableGrouping: true, groupingThreshold: 7 },
