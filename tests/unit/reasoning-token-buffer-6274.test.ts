@@ -5,7 +5,8 @@
  * capable model with a large output cap (e.g. glm-5.2) the #3587 headroom heuristic
  * (`max(current + 1000, ceil(current * 1.5))`) rewrote it to 1001 and forwarded that
  * upstream. A tiny explicit budget below REASONING_BUFFER_MIN_TRIGGER (256) is a
- * probe and must pass through verbatim; genuine budgets keep the #3587 headroom.
+ * probe and must pass through verbatim; genuine budgets keep the #3587 headroom
+ * only when the full headroom fits inside an explicit output cap.
  *
  * Kept standalone against the pure `resolveReasoningBufferedMaxTokens` rather than
  * extending the frozen `combo-routing-engine.test.ts` god-file.
@@ -95,21 +96,19 @@ test("#6274 reasoning buffer does not inflate probe-sized max_tokens", () => {
   );
 });
 
-test("reasoning buffer uses the model output cap only as an upper bound", () => {
-  // No known model output cap: keep the original #3587 calculation instead of disabling
-  // the buffer. max(32000 + 1000, ceil(32000 * 1.5)) = 48000.
+test("reasoning buffer requires an explicit cap and preserves near-cap budgets", () => {
   assert.equal(
     resolveReasoningBufferedMaxTokens("zhipu/glm-5.2-no-output-cap", 32000),
-    48000,
-    "missing model output cap should not disable the existing buffer calculation"
+    null,
+    "missing model output cap should disable heuristic token inflation"
   );
 
-  // Known cap below the heuristic result: clamp to the model capability rather than
-  // falling all the way back to the unbuffered caller value.
+  // Known cap below the heuristic result: preserve the caller's in-range budget
+  // rather than inflating to a value that may reduce response room unexpectedly.
   assert.equal(
     resolveReasoningBufferedMaxTokens("zhipu/glm-5.2-output-cap-40000", 32000),
-    40000,
-    "known model output cap should clamp the buffered calculation"
+    32000,
+    "known model output cap should preserve in-range near-cap budgets"
   );
 
   // Known cap below the caller value still clamps the requested value itself.

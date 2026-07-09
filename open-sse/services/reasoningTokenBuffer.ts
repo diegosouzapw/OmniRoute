@@ -1,4 +1,7 @@
-import { getResolvedModelCapabilities } from "../../src/lib/modelCapabilities.ts";
+import {
+  getExplicitModelOutputCap,
+  getResolvedModelCapabilities,
+} from "../../src/lib/modelCapabilities.ts";
 
 /**
  * Below this caller-supplied `max_tokens`, the request is treated as a probe
@@ -34,13 +37,14 @@ export function resolveReasoningBufferedMaxTokens(
   const capabilities = getResolvedModelCapabilities(modelStr);
   if (capabilities.supportsThinking !== true) return null;
 
+  const maxOutputTokens = toPositiveInteger(getExplicitModelOutputCap(modelStr));
+  if (maxOutputTokens === null) return null;
+  if (current > maxOutputTokens) return maxOutputTokens;
+
   // Issue #6274: a tiny explicit budget is a capability probe, not a reasoning
   // request. Respect it verbatim instead of inflating (e.g. 1 -> 1001).
-  const buffered =
-    current < REASONING_BUFFER_MIN_TRIGGER
-      ? current
-      : Math.max(current + 1000, Math.ceil(current * 1.5));
-  const maxOutputTokens = toPositiveInteger(capabilities.maxOutputTokens);
+  if (current < REASONING_BUFFER_MIN_TRIGGER) return current;
 
-  return maxOutputTokens === null ? buffered : Math.min(buffered, maxOutputTokens);
+  const buffered = Math.max(current + 1000, Math.ceil(current * 1.5));
+  return buffered > maxOutputTokens ? current : buffered;
 }
