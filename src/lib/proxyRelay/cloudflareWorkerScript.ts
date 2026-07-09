@@ -13,7 +13,12 @@
  *  - Strips Host + relay control headers before forwarding upstream.
  *
  * The string template is fed to Cloudflare's PUT /accounts/{id}/workers/scripts/{name}
- * API with main_module=index.js (ESM Workers Modules format).
+ * API as a Service Worker (no ES module export). Cloudflare's multipart upload
+ * API rejects `application/javascript+module` (#5128C) and treats a plain
+ * `application/javascript` script part as a Service Worker regardless of any
+ * `main_module` metadata — `main_module` requires the script to be an actual
+ * ES module (top-level `export`), which Service Worker syntax is not. The
+ * `body_part` metadata field is the correct way to point at a non-ESM script.
  *
  * The OmniRoute variant intentionally diverges from the upstream PR:
  *  - The upstream worker had NO auth check, leaving the deployed workers.dev URL
@@ -105,51 +110,53 @@ function isPrivateHostname(h) {
   return false;
 }
 
-export default {
-  async fetch(request, env, ctx) {
-    const auth = request.headers.get("x-relay-auth");
-    if (auth !== "${relayAuth}") {
-      return new Response("Unauthorized", { status: 401 });
-    }
-    const target = request.headers.get("x-relay-target");
-    if (!target) {
-      return new Response("missing x-relay-target", { status: 400 });
-    }
-    let targetUrl;
-    try { targetUrl = new URL(target); } catch { return new Response("invalid x-relay-target", { status: 400 }); }
-    if (targetUrl.protocol !== "http:" && targetUrl.protocol !== "https:") {
-      return new Response("forbidden x-relay-target protocol", { status: 403 });
-    }
-    if (targetUrl.username || targetUrl.password) {
-      return new Response("forbidden x-relay-target (embedded credentials)", { status: 403 });
-    }
-    if (isPrivateHostname(targetUrl.hostname)) {
-      return new Response("forbidden x-relay-target (private/loopback host)", { status: 403 });
-    }
-    const relayPath = request.headers.get("x-relay-path") || "/";
-    const headers = new Headers(request.headers);
-    ["x-relay-target", "x-relay-path", "x-relay-auth", "host"].forEach((h) => headers.delete(h));
-    const init = {
-      method: request.method,
-      headers,
-    };
-    if (request.method !== "GET" && request.method !== "HEAD") {
-      init.body = request.body;
-      init.duplex = "half";
-    }
-    try {
-      const upstream = await fetch(target.replace(/\\/$/, "") + relayPath, init);
-      return new Response(upstream.body, {
-        status: upstream.status,
-        headers: upstream.headers,
-      });
-    } catch (error) {
-      return new Response(JSON.stringify({ error: error && error.message ? error.message : "relay error" }), {
-        status: 502,
-        headers: { "content-type": "application/json" },
-      });
-    }
-  },
-};
+async function handleRelay(request) {
+  const auth = request.headers.get("x-relay-auth");
+  if (auth !== "${relayAuth}") {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  const target = request.headers.get("x-relay-target");
+  if (!target) {
+    return new Response("missing x-relay-target", { status: 400 });
+  }
+  let targetUrl;
+  try { targetUrl = new URL(target); } catch { return new Response("invalid x-relay-target", { status: 400 }); }
+  if (targetUrl.protocol !== "http:" && targetUrl.protocol !== "https:") {
+    return new Response("forbidden x-relay-target protocol", { status: 403 });
+  }
+  if (targetUrl.username || targetUrl.password) {
+    return new Response("forbidden x-relay-target (embedded credentials)", { status: 403 });
+  }
+  if (isPrivateHostname(targetUrl.hostname)) {
+    return new Response("forbidden x-relay-target (private/loopback host)", { status: 403 });
+  }
+  const relayPath = request.headers.get("x-relay-path") || "/";
+  const headers = new Headers(request.headers);
+  ["x-relay-target", "x-relay-path", "x-relay-auth", "host"].forEach((h) => headers.delete(h));
+  const init = {
+    method: request.method,
+    headers,
+  };
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    init.body = request.body;
+    init.duplex = "half";
+  }
+  try {
+    const upstream = await fetch(target.replace(/\\\\/$/, "") + relayPath, init);
+    return new Response(upstream.body, {
+      status: upstream.status,
+      headers: upstream.headers,
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error && error.message ? error.message : "relay error" }), {
+      status: 502,
+      headers: { "content-type": "application/json" },
+    });
+  }
+}
+
+addEventListener("fetch", (event) => {
+  event.respondWith(handleRelay(event.request));
+});
 `;
 }
