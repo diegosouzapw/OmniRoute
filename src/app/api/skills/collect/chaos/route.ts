@@ -57,25 +57,29 @@ function extractBearerToken(request: Request): string | null {
 
 /**
  * Verify API key has chaos mode enabled.
- * validateApiKey returns:
- *   - false → invalid key
- *   - true  → env key (always has full access)
- *   - JsonRecord with .id → DB key
+ * validateApiKey returns a plain boolean for BOTH the deployment-time env key and a
+ * DB-backed key (see src/lib/db/apiKeys.ts::validateApiKey) — it never returns the
+ * key record, so the env-key/DB-key distinction has to be made via getApiKeyMetadata,
+ * whose synthesized env-key record is tagged `id: "env-key"` (src/lib/db/apiKeys.ts::
+ * getApiKeyMetadata) and always carries "manage" scope.
  */
 async function verifyChaosKey(bearerToken: string): Promise<{ ok: boolean; error?: string }> {
-  const keyInfo = await validateApiKey(bearerToken);
-
-  if (keyInfo === false) {
+  const isValid = await validateApiKey(bearerToken);
+  if (!isValid) {
     return { ok: false, error: "Invalid API key" };
   }
-  if (keyInfo === true) {
-    // Env key has full access
+
+  const metadata = await getApiKeyMetadata(bearerToken);
+  if (!metadata) {
+    return { ok: false, error: "Invalid API key" };
+  }
+
+  // Env key has full access (see getApiKeyMetadata's synthesized "env-key" record).
+  if (metadata.id === "env-key") {
     return { ok: true };
   }
 
-  // DB key — check chaos mode permission
-  const metadata = await getApiKeyMetadata(bearerToken);
-  if (!metadata || !metadata.chaosModeEnabled) {
+  if (!metadata.chaosModeEnabled) {
     return {
       ok: false,
       error: "Chaos Mode is not enabled for this API key. Enable it in API Key settings.",

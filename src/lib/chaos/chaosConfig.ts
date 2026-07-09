@@ -107,3 +107,13 @@ export async function resetChaosConfig(): Promise<ChaosConfig> {
   _configCache = null;
   return DEFAULT_CHAOS_CONFIG;
 }
+
+/**
+ * Invalidate the in-memory config cache without touching persisted settings.
+ * Needed whenever the underlying DB/settings store is reset out-of-band (e.g.
+ * test teardown calling resetDbInstance()) — otherwise getChaosConfig() keeps
+ * serving a stale in-memory value after the store it was read from is gone.
+ */
+export function invalidateChaosConfigCache(): void {
+  _configCache = null;
+}

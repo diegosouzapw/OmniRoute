@@ -36,6 +36,10 @@ const skillsChaosRoute = await import("../../src/app/api/skills/collect/chaos/ro
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
+  // The DB is about to be wiped out from under it — drop the in-memory chaos
+  // config cache too, or getChaosConfig() keeps serving a stale value (e.g. a
+  // prior test's `enabled: true`) after resetDbInstance() below.
+  chaosConfig.invalidateChaosConfigCache();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   delete process.env.INITIAL_PASSWORD;
@@ -134,7 +138,11 @@ test("GET /api/chaos/config — returns defaults, PUT updates, DELETE resets", a
   );
   assert.equal(deleteRes.status, 200);
   const deleteBody = (await deleteRes.json()) as { config: typeof chaosConfig.DEFAULT_CHAOS_CONFIG };
-  assert.deepEqual(deleteBody.config, chaosConfig.DEFAULT_CHAOS_CONFIG);
+  // Same JSON.stringify undefined-key drop as the GET assertion above.
+  assert.deepEqual(
+    deleteBody.config,
+    JSON.parse(JSON.stringify(chaosConfig.DEFAULT_CHAOS_CONFIG))
+  );
 });
 
 test("PUT /api/chaos/config — 400 on schema validation failure", async () => {
