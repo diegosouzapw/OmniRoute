@@ -3,12 +3,12 @@
 ## Project
 
 Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
-with **237 provider entries** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
+with **248 provider entries** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
 with **MCP Server** (94 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
 
-> **Live counts (v3.8.43)**: providers 237 · MCP tools 94 · MCP scopes 30 · A2A skills 6 ·
+> **Live counts (v3.8.47)**: providers 248 · MCP tools 94 · MCP scopes 30 · A2A skills 6 ·
 > open-sse services 134 · routing strategies 17 · auto-combo scoring factors 12 ·
 > DB modules 95 · DB migrations 110 · base tables 17 · search providers 11 ·
 > i18n locales 42. **Refresh with `npm run check:docs-all`.**
@@ -539,7 +539,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Repo navigation                            | [`docs/architecture/REPOSITORY_MAP.md`](docs/architecture/REPOSITORY_MAP.md)                                    |
 | Architecture                               | [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)                                        |
 | Engineering reference                      | [`docs/architecture/CODEBASE_DOCUMENTATION.md`](docs/architecture/CODEBASE_DOCUMENTATION.md)                    |
-| Auto-Combo (12-factor, 17 strategies)      | [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)                                                      |
+| Auto-Combo (12-factor, 18 strategies)      | [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)                                                      |
 | Resilience (3 layers)                      | [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md)                                |
 | Skills                                     | [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md)                                                        |
 | Memory                                     | [`docs/frameworks/MEMORY.md`](docs/frameworks/MEMORY.md)                                                        |
