@@ -4,6 +4,9 @@ import {
 } from "@omniroute/open-sse/config/codexClient.ts";
 
 export const CODEX_MODELS_URL = "https://chatgpt.com/backend-api/codex/models";
+export const CODEX_GITHUB_MODELS_URL =
+  "https://raw.githubusercontent.com/openai/codex/refs/heads/main/codex-rs/models-manager/models.json";
+export const CODEX_GITHUB_CATALOG_CACHE_TTL_MS = 5 * 60 * 1000;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -15,6 +18,9 @@ export type CodexDiscoveryModel = {
   supportedEndpoints: ["responses"];
   inputTokenLimit?: number;
   outputTokenLimit?: number;
+  description?: string;
+  supportsThinking?: boolean;
+  supportsVision?: boolean;
 };
 
 export type CodexModelsFetch = (
@@ -24,6 +30,14 @@ export type CodexModelsFetch = (
     headers: Record<string, string>;
   }
 ) => Promise<Response>;
+
+type CodexGithubCatalogCache = {
+  models: CodexDiscoveryModel[];
+  etag?: string;
+  expiresAt: number;
+};
+
+let codexGithubCatalogCache: CodexGithubCatalogCache | null = null;
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -40,6 +54,30 @@ function firstPositiveNumber(...candidates: unknown[]): number | undefined {
     }
   }
   return undefined;
+}
+
+function parseVersionParts(version: string): number[] | null {
+  const parts = version
+    .trim()
+    .split(".")
+    .map((part) => Number(part));
+  return parts.length > 0 && parts.every((part) => Number.isInteger(part) && part >= 0)
+    ? parts
+    : null;
+}
+
+function compareVersions(left: string, right: string): number {
+  const leftParts = parseVersionParts(left);
+  const rightParts = parseVersionParts(right);
+  if (!leftParts || !rightParts) return 0;
+
+  const length = Math.max(leftParts.length, rightParts.length);
+  for (let index = 0; index < length; index += 1) {
+    const a = leftParts[index] || 0;
+    const b = rightParts[index] || 0;
+    if (a !== b) return a - b;
+  }
+  return 0;
 }
 
 export function buildCodexModelsUrl(clientVersion = getCodexClientVersion()): string {
@@ -63,6 +101,14 @@ function getCodexModelItems(payload: unknown): unknown[] {
 function shouldImportCodexModel(record: JsonRecord): boolean {
   if (toNonEmptyString(record.visibility)?.toLowerCase() === "hide") return false;
   if (record.supported_in_api === false || record.supportedInApi === false) return false;
+
+  const minimalClientVersion =
+    toNonEmptyString(record.minimal_client_version) ||
+    toNonEmptyString(record.minimalClientVersion);
+  if (minimalClientVersion && compareVersions(minimalClientVersion, getCodexClientVersion()) > 0) {
+    return false;
+  }
+
   return true;
 }
 
@@ -93,6 +139,8 @@ export function normalizeCodexModelsResponse(payload: unknown): CodexDiscoveryMo
       record.max_input_tokens,
       record.contextLength,
       record.context_length,
+      record.context_window,
+      record.max_context_window,
       topProvider.context_length,
       limits.input_tokens,
       limits.inputTokenLimit,
@@ -116,10 +164,31 @@ export function normalizeCodexModelsResponse(payload: unknown): CodexDiscoveryMo
       supportedEndpoints: ["responses"],
       ...(typeof inputTokenLimit === "number" ? { inputTokenLimit } : {}),
       ...(typeof outputTokenLimit === "number" ? { outputTokenLimit } : {}),
+      ...(toNonEmptyString(record.description)
+        ? { description: toNonEmptyString(record.description)! }
+        : {}),
+      ...(Array.isArray(record.supported_reasoning_levels) &&
+      record.supported_reasoning_levels.length > 0
+        ? { supportsThinking: true }
+        : {}),
+      ...(Array.isArray(record.input_modalities) &&
+      record.input_modalities.some(
+        (modality) => toNonEmptyString(modality)?.toLowerCase() === "image"
+      )
+        ? { supportsVision: true }
+        : {}),
     });
   }
 
   return Array.from(deduped.values());
+}
+
+export function normalizeCodexGithubCatalogResponse(payload: unknown): CodexDiscoveryModel[] {
+  return normalizeCodexModelsResponse(payload);
+}
+
+export function clearCodexGithubCatalogCacheForTests(): void {
+  codexGithubCatalogCache = null;
 }
 
 type CodexLocalCatalogModel = {
@@ -168,6 +237,17 @@ export function mergeCodexLiveModelsWithLocalCatalog(
   return Array.from(merged.values());
 }
 
+export function enrichCodexModelsFromGithubCatalog(
+  models: CodexDiscoveryModel[],
+  githubCatalogModels: CodexDiscoveryModel[]
+): CodexDiscoveryModel[] {
+  const byId = new Map(githubCatalogModels.map((model) => [model.id, model]));
+  return models.map((model) => {
+    const githubModel = byId.get(model.id);
+    return githubModel ? { ...githubModel, ...model } : model;
+  });
+}
+
 export async function fetchCodexDiscoveryModels({
   accessToken,
   providerSpecificData,
@@ -204,5 +284,57 @@ export async function fetchCodexDiscoveryModels({
     return models.length > 0 ? models : null;
   } catch {
     return null;
+  }
+}
+
+export async function fetchCodexGithubCatalogModels({
+  fetchImpl,
+  now = Date.now(),
+  cacheTtlMs = CODEX_GITHUB_CATALOG_CACHE_TTL_MS,
+}: {
+  fetchImpl: CodexModelsFetch;
+  now?: number;
+  cacheTtlMs?: number;
+}): Promise<CodexDiscoveryModel[] | null> {
+  if (cacheTtlMs > 0 && codexGithubCatalogCache?.expiresAt > now) {
+    return codexGithubCatalogCache.models;
+  }
+
+  try {
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    };
+    if (codexGithubCatalogCache?.etag) {
+      headers["If-None-Match"] = codexGithubCatalogCache.etag;
+    }
+
+    const response = await fetchImpl(CODEX_GITHUB_MODELS_URL, {
+      method: "GET",
+      headers,
+    });
+
+    if (response.status === 304 && codexGithubCatalogCache) {
+      codexGithubCatalogCache = {
+        ...codexGithubCatalogCache,
+        expiresAt: now + cacheTtlMs,
+      };
+      return codexGithubCatalogCache.models;
+    }
+
+    if (!response.ok) return null;
+
+    const models = normalizeCodexGithubCatalogResponse(await response.json());
+    if (models.length === 0) return null;
+
+    const etag = toNonEmptyString(response.headers.get("etag"));
+    codexGithubCatalogCache = {
+      models,
+      ...(etag ? { etag } : {}),
+      expiresAt: now + cacheTtlMs,
+    };
+    return models;
+  } catch {
+    return codexGithubCatalogCache?.models || null;
   }
 }

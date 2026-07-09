@@ -13,6 +13,7 @@ const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
 const providerModelsRoute = await import("../../src/app/api/providers/[id]/models/route.ts");
+const codexDiscovery = await import("../../src/app/api/providers/[id]/models/discovery/codex.ts");
 
 type RouteModel = {
   id: string;
@@ -43,6 +44,7 @@ const originalFetch = globalThis.fetch;
 
 async function resetStorage() {
   globalThis.fetch = originalFetch;
+  codexDiscovery.clearCodexGithubCatalogCacheForTests();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -74,6 +76,7 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   globalThis.fetch = originalFetch;
+  codexDiscovery.clearCodexGithubCatalogCacheForTests();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
@@ -89,14 +92,31 @@ test("provider models route discovers live Codex models and preserves static ali
   const seenRequests: Array<Record<string, string | null>> = [];
 
   globalThis.fetch = async (url, init) => {
+    const requestUrl = String(url);
     const headers = new Headers(init?.headers as HeadersInit | undefined);
     seenRequests.push({
-      url: String(url),
+      url: requestUrl,
       authorization: headers.get("authorization"),
       workspaceId: headers.get("chatgpt-account-id"),
       originator: headers.get("originator"),
       userAgent: headers.get("user-agent"),
     });
+    if (requestUrl.includes("raw.githubusercontent.com/openai/codex")) {
+      return Response.json({
+        models: [
+          {
+            slug: "gpt-5.6",
+            display_name: "GPT 5.6 GitHub",
+            visibility: "list",
+            supported_in_api: true,
+            minimal_client_version: "0.144.0",
+            context_window: 372000,
+            input_modalities: ["text", "image"],
+            supported_reasoning_levels: [{ effort: "low" }, { effort: "high" }],
+          },
+        ],
+      });
+    }
     return Response.json({
       models: [
         { slug: "codex-auto-review", visibility: "hide", supported_in_api: true },
@@ -131,12 +151,21 @@ test("provider models route discovers live Codex models and preserves static ali
       originator: "codex_cli_rs",
       userAgent: "codex-cli/0.144.0 (Windows 10.0.26200; x64)",
     },
+    {
+      url: "https://raw.githubusercontent.com/openai/codex/refs/heads/main/codex-rs/models-manager/models.json",
+      authorization: null,
+      workspaceId: null,
+      originator: null,
+      userAgent: null,
+    },
   ]);
   assert.equal(liveModel?.name, "GPT 5.6");
   assert.equal(liveModel?.inputTokenLimit, 272000);
   assert.equal(liveModel?.outputTokenLimit, 128000);
   assert.equal(liveModel?.apiFormat, "responses");
   assert.deepEqual(liveModel?.supportedEndpoints, ["responses"]);
+  assert.equal(liveModel?.supportsThinking, true);
+  assert.equal(liveModel?.supportsVision, true);
   assert.ok(modelIds.has("gpt-5.5-low"));
   assert.ok(modelIds.has("gpt-5.4-xhigh"));
   assert.ok(syncedIds.has("gpt-5.6"));
@@ -146,20 +175,43 @@ test("provider models route discovers live Codex models and preserves static ali
   assert.equal(syncedIds.has("stale-codex-model"), false);
 });
 
-test("provider models route keeps Codex live discovery failures degraded", async () => {
+test("provider models route uses the GitHub Codex catalog when live discovery fails", async () => {
   const connection = await seedCodexConnection({ accessToken: "codex-access-token" });
+  const seenUrls: string[] = [];
 
-  globalThis.fetch = async () => new Response("upstream unavailable", { status: 503 });
+  globalThis.fetch = async (url) => {
+    const requestUrl = String(url);
+    seenUrls.push(requestUrl);
+    if (requestUrl.includes("raw.githubusercontent.com/openai/codex")) {
+      return Response.json({
+        models: [
+          {
+            slug: "gpt-5.6-sol",
+            display_name: "GPT-5.6-Sol",
+            visibility: "list",
+            supported_in_api: true,
+            minimal_client_version: "0.144.0",
+            context_window: 372000,
+          },
+        ],
+      });
+    }
+    return new Response("upstream unavailable", { status: 503 });
+  };
 
   const response = await callRoute(connection.id, "?refresh=true");
   const body = (await response.json()) as RouteBody;
+  const modelIds = new Set((body.models || []).map((model) => model.id));
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "codex");
-  assert.equal(body.source, "local_catalog");
+  assert.equal(body.source, "api");
   assert.equal(body.intentional, undefined);
-  assert.equal(body.warning, "Codex live catalog unavailable — using local catalog");
-  assert.ok(body.models?.some((model) => model.id === "gpt-5.5"));
+  assert.equal(body.warning, "Codex live catalog unavailable — using GitHub model catalog");
+  assert.ok(seenUrls.some((url) => url.includes("backend-api/codex/models")));
+  assert.ok(seenUrls.some((url) => url.includes("raw.githubusercontent.com/openai/codex")));
+  assert.ok(modelIds.has("gpt-5.6-sol"));
+  assert.ok(modelIds.has("gpt-5.5-low"));
 });
 
 test("provider models route returns cached Codex models when refresh discovery fails", async () => {
@@ -194,10 +246,27 @@ test("provider models route returns cached Codex models when refresh discovery f
   ]);
 });
 
-test("provider models route returns codex gpt-5.4 effort variants in the local catalog", async () => {
+test("provider models route falls back to local Codex catalog when live and GitHub fail", async () => {
+  const connection = await seedCodexConnection({ accessToken: "codex-access-token" });
+
+  globalThis.fetch = async () => new Response("upstream unavailable", { status: 503 });
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as RouteBody;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "codex");
+  assert.equal(body.source, "local_catalog");
+  assert.equal(body.intentional, true);
+  assert.equal(body.warning, "Codex live and GitHub catalogs unavailable — using local catalog");
+  assert.ok(body.models?.some((model) => model.id === "gpt-5.5"));
+});
+
+test("provider models route returns codex gpt-5.4 effort variants when auto-fetch is disabled", async () => {
   const connection = await seedCodexConnection({
     apiKey: null,
     accessToken: "codex-access",
+    providerSpecificData: { autoFetchModels: false },
   });
 
   const response = await callRoute(connection.id);

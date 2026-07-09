@@ -26,9 +26,14 @@ import {
 import { PROVIDER_MODELS_CONFIG } from "../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
 import {
   buildCodexModelsUrl,
+  CODEX_GITHUB_MODELS_URL,
   CODEX_MODELS_URL,
+  clearCodexGithubCatalogCacheForTests,
+  enrichCodexModelsFromGithubCatalog,
   fetchCodexDiscoveryModels,
+  fetchCodexGithubCatalogModels,
   mergeCodexLiveModelsWithLocalCatalog,
+  normalizeCodexGithubCatalogResponse,
   normalizeCodexModelsResponse,
 } from "../../src/app/api/providers/[id]/models/discovery/codex.ts";
 
@@ -141,6 +146,10 @@ test("providerModelsConfig aimlapi.parseResponse keeps only chat-completion mode
 
 // ── codex discovery leaf ────────────────────────────────────────────────────
 
+test.beforeEach(() => {
+  clearCodexGithubCatalogCacheForTests();
+});
+
 test("codex.normalizeCodexModelsResponse maps data/models/map payloads to response models", () => {
   assert.deepEqual(normalizeCodexModelsResponse({ data: [{ id: "gpt-5.5", name: "GPT 5.5" }] }), [
     {
@@ -208,6 +217,86 @@ test("codex.normalizeCodexModelsResponse parses the Codex live catalog shape", (
   assert.equal(parsed.find((model) => model.id === "gpt-5.4")?.outputTokenLimit, 128000);
   assert.equal(parsed.find((model) => model.id === "gpt-5.5")?.inputTokenLimit, 272000);
   assert.equal(parsed.find((model) => model.id === "gpt-5.5")?.outputTokenLimit, 64000);
+});
+
+test("codex.normalizeCodexGithubCatalogResponse parses current client catalog metadata", () => {
+  const parsed = normalizeCodexGithubCatalogResponse({
+    models: [
+      {
+        slug: "gpt-5.6-sol",
+        display_name: "GPT-5.6-Sol",
+        description: "Latest frontier agentic coding model.",
+        visibility: "list",
+        supported_in_api: true,
+        minimal_client_version: "0.144.0",
+        context_window: 372000,
+        input_modalities: ["text", "image"],
+        supported_reasoning_levels: [{ effort: "low" }, { effort: "ultra" }],
+      },
+      {
+        slug: "future-model",
+        display_name: "Future Model",
+        visibility: "list",
+        supported_in_api: true,
+        minimal_client_version: "999.0.0",
+      },
+      {
+        slug: "codex-auto-review",
+        display_name: "Codex Auto Review",
+        visibility: "hide",
+        supported_in_api: true,
+      },
+    ],
+  });
+
+  assert.deepEqual(
+    parsed.map((model) => model.id),
+    ["gpt-5.6-sol"]
+  );
+  assert.equal(parsed[0]?.description, "Latest frontier agentic coding model.");
+  assert.equal(parsed[0]?.inputTokenLimit, 372000);
+  assert.equal(parsed[0]?.supportsThinking, true);
+  assert.equal(parsed[0]?.supportsVision, true);
+});
+
+test("codex.enrichCodexModelsFromGithubCatalog keeps live entitlement list authoritative", () => {
+  const enriched = enrichCodexModelsFromGithubCatalog(
+    [
+      {
+        id: "gpt-5.6-sol",
+        name: "Live Sol",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+      },
+    ],
+    [
+      {
+        id: "gpt-5.6-sol",
+        name: "GitHub Sol",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+        inputTokenLimit: 372000,
+        supportsVision: true,
+      },
+      {
+        id: "gpt-5.6-luna",
+        name: "GitHub Luna",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+      },
+    ]
+  );
+
+  assert.deepEqual(
+    enriched.map((model) => model.id),
+    ["gpt-5.6-sol"]
+  );
+  assert.equal(enriched[0]?.name, "Live Sol");
+  assert.equal(enriched[0]?.inputTokenLimit, 372000);
+  assert.equal(enriched[0]?.supportsVision, true);
 });
 
 test("codex.mergeCodexLiveModelsWithLocalCatalog preserves static effort aliases", () => {
@@ -307,6 +396,93 @@ test("codex.fetchCodexDiscoveryModels calls the Codex models endpoint with Codex
     models?.map((m) => m.id),
     ["gpt-5.6"]
   );
+});
+
+test("codex.fetchCodexGithubCatalogModels fetches the OpenAI Codex repo catalog", async () => {
+  let seenUrl = "";
+  const models = await fetchCodexGithubCatalogModels({
+    fetchImpl: async (url) => {
+      seenUrl = url;
+      return Response.json({
+        models: [
+          {
+            slug: "gpt-5.6-terra",
+            display_name: "GPT-5.6-Terra",
+            visibility: "list",
+            supported_in_api: true,
+            minimal_client_version: "0.144.0",
+          },
+        ],
+      });
+    },
+  });
+
+  assert.equal(
+    CODEX_GITHUB_MODELS_URL,
+    "https://raw.githubusercontent.com/openai/codex/refs/heads/main/codex-rs/models-manager/models.json"
+  );
+  assert.equal(seenUrl, CODEX_GITHUB_MODELS_URL);
+  assert.deepEqual(
+    models?.map((model) => model.id),
+    ["gpt-5.6-terra"]
+  );
+});
+
+test("codex.fetchCodexGithubCatalogModels reuses cached catalog with ETags", async () => {
+  const calls: Array<{ url: string; ifNoneMatch?: string }> = [];
+  const first = await fetchCodexGithubCatalogModels({
+    now: 1000,
+    cacheTtlMs: 100,
+    fetchImpl: async (url, init) => {
+      calls.push({ url, ifNoneMatch: init.headers["If-None-Match"] });
+      return Response.json(
+        {
+          models: [
+            {
+              slug: "gpt-5.6-luna",
+              display_name: "GPT-5.6-Luna",
+              visibility: "list",
+              supported_in_api: true,
+              minimal_client_version: "0.144.0",
+            },
+          ],
+        },
+        { headers: { etag: "catalog-v1" } }
+      );
+    },
+  });
+  const second = await fetchCodexGithubCatalogModels({
+    now: 1050,
+    cacheTtlMs: 100,
+    fetchImpl: async () => {
+      throw new Error("cache hit should not fetch");
+    },
+  });
+  const third = await fetchCodexGithubCatalogModels({
+    now: 1200,
+    cacheTtlMs: 100,
+    fetchImpl: async (url, init) => {
+      calls.push({ url, ifNoneMatch: init.headers["If-None-Match"] });
+      return new Response(null, { status: 304 });
+    },
+  });
+
+  assert.deepEqual(
+    first?.map((model) => model.id),
+    ["gpt-5.6-luna"]
+  );
+  assert.deepEqual(
+    second?.map((model) => model.id),
+    ["gpt-5.6-luna"]
+  );
+  assert.deepEqual(
+    third?.map((model) => model.id),
+    ["gpt-5.6-luna"]
+  );
+  assert.deepEqual(calls, [
+    { url: CODEX_GITHUB_MODELS_URL, ifNoneMatch: undefined },
+    { url: CODEX_GITHUB_MODELS_URL, ifNoneMatch: "catalog-v1" },
+  ]);
 });
 
 // ── host wiring guard ────────────────────────────────────────────────────────
