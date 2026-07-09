@@ -419,6 +419,77 @@ export class KiroService {
   }
 
   /**
+   * List available CodeWhisperer profiles for an access token or long-lived API key.
+   * Some long-lived API keys can call GenerateAssistantResponse but are explicitly
+   * denied on ListAvailableProfiles, so callers must treat an AccessDenied profile
+   * lookup as an optional discovery failure rather than a hard auth failure.
+   */
+  async listAvailableProfiles(accessToken: string, region: string = "us-east-1") {
+    assertValidAwsRegion(region);
+    const endpoint =
+      region === "us-east-1"
+        ? "https://codewhisperer.us-east-1.amazonaws.com"
+        : `https://q.${region}.amazonaws.com`;
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/x-amz-json-1.0",
+        "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
+        Accept: "application/json",
+        tokentype: "API_KEY",
+      },
+      body: JSON.stringify({ maxResults: 10 }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to list profiles: ${error}`);
+    }
+
+    const data = await response.json();
+    const profiles = Array.isArray(data?.profiles) ? data.profiles : [];
+    const arnOf = (profile: any) => profile?.arn || profile?.profileArn || null;
+    const match =
+      profiles.find((profile: any) => String(arnOf(profile) || "").includes(`:${region}:`)) ||
+      profiles[0];
+    return arnOf(match);
+  }
+
+  /**
+   * Normalize a long-lived Kiro/CodeWhisperer API key.
+   */
+  async validateApiKey(apiKey: string, region: string = "us-east-1") {
+    assertValidAwsRegion(region);
+    const accessToken = apiKey.trim();
+    if (!accessToken) {
+      throw new Error("API key is required");
+    }
+
+    let profileArn: string | null = null;
+    try {
+      profileArn = await this.listAvailableProfiles(accessToken, region);
+    } catch (error: any) {
+      const message = String(error?.message || error || "");
+      const isApiKeyProfileDenied =
+        message.includes("AccessDeniedException") &&
+        message.includes("API key authentication is not supported for this operation");
+      if (!isApiKeyProfileDenied) {
+        throw error;
+      }
+    }
+
+    return {
+      accessToken,
+      refreshToken: null,
+      profileArn,
+      region,
+      authMethod: "api_key",
+    };
+  }
+
+  /**
    * Fetch user email from access token (optional, for display)
    */
   extractEmailFromJWT(accessToken: string) {

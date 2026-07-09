@@ -113,17 +113,24 @@ export function buildKiroUsageResult(
 export async function discoverKiroProfileArn(
   accessToken: string,
   usageBaseUrl: string,
-  region: string
+  region: string,
+  authMethod?: string
 ): Promise<string | undefined> {
   try {
+    const isApiKey = authMethod === "api_key";
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/x-amz-json-1.0",
+      "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
+      Accept: "application/json",
+    };
+    if (isApiKey) {
+      headers.tokentype = "API_KEY";
+    }
+
     const response = await fetch(usageBaseUrl, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/x-amz-json-1.0",
-        "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
-        Accept: "application/json",
-      },
+      headers,
       body: JSON.stringify({ maxResults: 10 }),
       // Don't let a hung profile lookup block the usage/quota refresh indefinitely.
       signal: AbortSignal.timeout(10000),
@@ -150,6 +157,11 @@ export async function discoverKiroProfileArn(
  */
 export async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
   try {
+    const authMethod =
+      typeof providerSpecificData?.authMethod === "string"
+        ? providerSpecificData.authMethod
+        : undefined;
+    const isApiKey = authMethod === "api_key";
     let profileArn =
       typeof providerSpecificData?.profileArn === "string"
         ? providerSpecificData.profileArn
@@ -169,60 +181,137 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
       "us-east-1";
     const usageBaseUrl =
       region === "us-east-1" ? CODEWHISPERER_BASE_URL : `https://q.${region}.amazonaws.com`;
+    const qBaseUrl = `https://q.${region}.amazonaws.com`;
 
     // IAM Identity Center logins and kiro-cli imports frequently don't persist a profileArn, which
     // previously caused the quota card to show nothing ("0 used"). Discover it on demand from
     // ListAvailableProfiles (region-matched) so usage still resolves for those accounts.
     if (!profileArn && accessToken) {
-      profileArn = await discoverKiroProfileArn(accessToken, usageBaseUrl, region);
+      profileArn = await discoverKiroProfileArn(accessToken, usageBaseUrl, region, authMethod);
     }
 
-    if (!profileArn) {
+    if (!profileArn && !isApiKey) {
       return { message: "Kiro connected. Profile ARN not available for quota tracking." };
     }
 
-    // Kiro uses AWS CodeWhisperer GetUsageLimits API
+    const authHeaders: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+    };
+    if (isApiKey) {
+      authHeaders.tokentype = "API_KEY";
+    }
+
+    const usageParams = new URLSearchParams({
+      isEmailRequired: "true",
+      origin: "AI_EDITOR",
+      resourceType: "AGENTIC_REQUEST",
+    });
+    const qParams = new URLSearchParams({
+      origin: "AI_EDITOR",
+      ...(profileArn ? { profileArn } : {}),
+      resourceType: "AGENTIC_REQUEST",
+    });
     const payload = {
       origin: "AI_EDITOR",
-      profileArn: profileArn,
+      ...(profileArn ? { profileArn } : {}),
       resourceType: "AGENTIC_REQUEST",
     };
 
-    const response = await fetch(usageBaseUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/x-amz-json-1.0",
-        "x-amz-target": "AmazonCodeWhispererService.GetUsageLimits",
-        Accept: "application/json",
+    const attempts: Array<{
+      name: string;
+      run: () => Promise<Response>;
+    }> = [
+      {
+        name: "codewhisperer-get",
+        run: () =>
+          fetch(`${CODEWHISPERER_BASE_URL}/getUsageLimits?${usageParams.toString()}`, {
+            method: "GET",
+            headers: {
+              ...authHeaders,
+              "x-amz-user-agent": "aws-sdk-js/1.0.0 KiroIDE",
+              "user-agent": "aws-sdk-js/1.0.0 KiroIDE",
+            },
+          }),
       },
-      body: JSON.stringify(payload),
-    });
+      {
+        name: "codewhisperer-post",
+        run: () =>
+          fetch(usageBaseUrl, {
+            method: "POST",
+            headers: {
+              ...authHeaders,
+              "Content-Type": "application/x-amz-json-1.0",
+              "x-amz-target": "AmazonCodeWhispererService.GetUsageLimits",
+            },
+            body: JSON.stringify(payload),
+          }),
+      },
+      {
+        name: "q-get",
+        run: () =>
+          fetch(`${qBaseUrl}/getUsageLimits?${qParams.toString()}`, {
+            method: "GET",
+            headers: authHeaders,
+          }),
+      },
+    ];
 
-    if (!response.ok) {
+    let sawAuthError = false;
+    const errors: string[] = [];
+
+    for (const attempt of attempts) {
+      let response: Response;
+      try {
+        response = await attempt.run();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        errors.push(`${attempt.name}:${message}`);
+        continue;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "");
+        if (response.status === 401 || response.status === 403) {
+          sawAuthError = true;
+        }
+        errors.push(`${attempt.name}:${response.status}${errorText ? `:${errorText}` : ""}`);
+        continue;
+      }
+
+      const data = toRecord(await response.json());
+      return buildKiroUsageResult(data);
+    }
+
+    if (sawAuthError) {
       // Social-auth Kiro accounts (added via /api/oauth/kiro/social-exchange with provider
       // Google or GitHub) use a different token format that AWS CodeWhisperer's GetUsageLimits
       // routinely rejects with 401/403, even when /messages still works. Surface a clear
       // "auth expired, chat may still work" message instead of a generic upstream-error blob
       // so the quota card matches what users with legacy social-auth accounts already see.
       // Inspired by https://github.com/decolua/9router/pull/620.
-      if (
-        (response.status === 401 || response.status === 403) &&
-        isSocialAuthKiroAccount(providerSpecificData)
-      ) {
+      if (isSocialAuthKiroAccount(providerSpecificData)) {
         return {
           message: "Kiro quota API authentication expired. Chat may still work.",
           quotas: {},
         };
       }
-      const errorText = await response.text();
-      throw new Error(`Kiro API error (${response.status}): ${errorText}`);
+      return {
+        message: "Kiro quota API rejected the current token. Chat may still work.",
+        quotas: {},
+      };
     }
 
-    const data = toRecord(await response.json());
-    return buildKiroUsageResult(data);
+    return {
+      message:
+        errors.length > 0
+          ? `Unable to fetch Kiro usage right now. (${errors[errors.length - 1]})`
+          : "Unable to fetch Kiro usage right now.",
+      quotas: {},
+    };
   } catch (error) {
-    throw new Error(`Failed to fetch Kiro usage: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to fetch Kiro usage: ${message}`);
   }
 }
 

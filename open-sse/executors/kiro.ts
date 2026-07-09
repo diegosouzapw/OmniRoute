@@ -196,8 +196,20 @@ export class KiroExecutor extends BaseExecutor {
       "anthropic-beta": "prompt-caching-2024-07-31",
     };
 
-    if (credentials.accessToken) {
-      headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+    const authMethod =
+      typeof credentials.providerSpecificData?.authMethod === "string"
+        ? credentials.providerSpecificData.authMethod
+        : undefined;
+    const isApiKey = authMethod === "api_key";
+    const isExternalIdp = authMethod === "external_idp";
+    const token = isApiKey
+      ? credentials.apiKey || credentials.accessToken
+      : credentials.accessToken;
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+      if (isApiKey) headers["tokentype"] = "API_KEY";
+      if (isExternalIdp) headers["TokenType"] = "EXTERNAL_IDP";
     }
 
     return headers;
@@ -780,6 +792,7 @@ export class KiroExecutor extends BaseExecutor {
   }
 
   async refreshCredentials(credentials: ProviderCredentials, log?: ExecutorLog | null) {
+    if (credentials.providerSpecificData?.authMethod === "api_key") return null;
     if (!credentials.refreshToken) return null;
 
     try {

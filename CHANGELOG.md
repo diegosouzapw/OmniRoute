@@ -11,6 +11,7 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 ### ✨ New Features
 
 - **Provider/model param filters**: config-driven parameter denylist/allowlist per provider/model with auto-learn from upstream 400s (#6649 — thanks @ThongAccount, closes #6625)
+- **Kiro long-lived API key auth**: new `/api/oauth/kiro/api-key` route + `KiroService.validateApiKey` let a Kiro account be linked with a long-lived AWS CodeWhisperer/Kiro API key instead of the interactive OAuth device flow, with live per-account model discovery (`ListAvailableModels`, 5-minute cache) layered over the existing static registry fallback (#6587 — thanks @strangersp)
 
 ### 🐛 Bug Fixes
 
