@@ -39,7 +39,7 @@ import { useModelVisibilityHandlers } from "./hooks/useModelVisibilityHandlers";
 import { useModelCompatState } from "./hooks/useModelCompatState";
 import { useConnectionGate } from "./hooks/useConnectionGate";
 import { useProviderNodeActions } from "./hooks/useProviderNodeActions";
-import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
+import ProviderExtraPanels from "./components/ProviderExtraPanels";
 import ProviderModelsSection from "./components/ProviderModelsSection";
 import CustomModelsSection from "./components/CustomModelsSection";
 import ConnectionsListPanel from "./components/ConnectionsListPanel";
@@ -696,8 +696,8 @@ export default function ProviderDetailPageClient() {
       {/* Search provider info */}
       {isSearchProvider && <SearchProviderCard providerId={providerId} t={t} />}
 
-      {/* Playground panel — rendered for providers that declare serviceKinds */}
-      <ProviderPlaygroundPanel providerId={providerId} />
+      {/* Playground + param filters — extracted to components/ProviderExtraPanels.tsx (#6649) */}
+      <ProviderExtraPanels providerId={providerId} />
 
       {/* Modals — Phase 1t.5: extracted to components/ProviderModalsPanel.tsx */}
       <ProviderModalsPanel

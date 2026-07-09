@@ -1,0 +1,67 @@
+{
+  "name": "langfuse",
+  "version": "1.0.0",
+  "description": "Emits Langfuse generation traces for every LLM completion. Records prompt, response, model, usage, latency, and error details to Langfuse cloud or self-hosted.",
+  "author": "chirag127",
+  "license": "MIT",
+  "main": "index.mjs",
+  "source": "local",
+  "tags": ["observability", "tracing", "langfuse", "monitoring"],
+  "hooks": {
+    "onRequest": true,
+    "onResponse": true,
+    "onError": true
+  },
+  "requires": {
+    "permissions": []
+  },
+  "enabledByDefault": false,
+  "configSchema": {
+    "publicKey": {
+      "type": "string",
+      "default": "",
+      "description": "Langfuse public key (pk-lf-...)"
+    },
+    "secretKey": {
+      "type": "string",
+      "default": "",
+      "description": "Langfuse secret key (sk-lf-...)"
+    },
+    "host": {
+      "type": "string",
+      "default": "https://cloud.langfuse.com",
+      "description": "Langfuse host (cloud.langfuse.com, us.cloud.langfuse.com, or self-hosted URL)"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Emit traces when true; act as a no-op when false"
+    },
+    "sampleRate": {
+      "type": "number",
+      "default": 1.0,
+      "min": 0.0,
+      "max": 1.0,
+      "description": "Fraction of requests to trace (1.0 = all, 0.1 = 10%)"
+    },
+    "flushAt": {
+      "type": "number",
+      "default": 15,
+      "min": 1,
+      "max": 100,
+      "description": "Number of events to buffer before flushing to Langfuse"
+    },
+    "flushInterval": {
+      "type": "number",
+      "default": 10000,
+      "min": 1000,
+      "max": 60000,
+      "description": "Max ms between flushes (in-flight events flushed on timer)"
+    },
+    "redactBody": {
+      "type": "boolean",
+      "default": false,
+      "description": "Redact prompt + completion bodies from traces (metadata still recorded)"
+    }
+  }
+}

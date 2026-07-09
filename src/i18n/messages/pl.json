@@ -952,6 +952,7 @@
     "contextLite": "Lite",
     "contextAggressive": "Aggressive",
     "contextUltra": "Ultra",
+    "contextOmniglyph": "OmniGlyph",
     "contextSettings": "Compression Settings",
     "contextHeadroom": "Headroom",
     "contextSessionDedup": "Session Dedup",

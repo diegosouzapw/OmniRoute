@@ -12,6 +12,7 @@ import { NOAUTH_PROVIDERS, OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/co
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { listModelIntelligence } from "./db/modelIntelligence";
 import { getProviderConnections } from "./db/providers";
+import { getCustomModels } from "./db/models";
 
 export interface ProviderModelScore {
   modelId: string;
@@ -90,12 +91,51 @@ function getFreeProviders() {
   return providers;
 }
 
+/** Minimal shape shared by registry models and user-added custom models. */
+export interface RankableModel {
+  id: string;
+  name: string;
+}
+
 /**
- * Get models for a provider from the registry.
+ * Pure merge: combine a provider's static registry models with its
+ * user-added custom models, de-duplicating by `id` (registry entry wins on
+ * collision — a custom model overriding a known catalog ID keeps the
+ * catalog's richer metadata upstream, only the extra IDs are additive here).
+ *
+ * Exported so the #6368 fix ("custom models missing from Free Provider
+ * Rankings under configured/available filters") can be unit-tested without a
+ * DB: the ranking builder no longer only walks the static registry — it also
+ * folds in whatever the operator configured as a custom model for that
+ * provider, mirroring how #6150's connection-based filters already treat
+ * "configured" as DB/runtime state rather than catalog membership.
  */
-function getProviderModels(providerId: string) {
+export function mergeProviderModels(
+  registryModels: RankableModel[],
+  customModels: RankableModel[]
+): RankableModel[] {
+  if (customModels.length === 0) return registryModels;
+  const seen = new Set(registryModels.map((m) => m.id));
+  const merged = registryModels.slice();
+  for (const custom of customModels) {
+    if (!custom?.id || seen.has(custom.id)) continue;
+    seen.add(custom.id);
+    merged.push({ id: custom.id, name: custom.name || custom.id });
+  }
+  return merged;
+}
+
+/**
+ * Get models for a provider: static registry models plus any user-added
+ * custom models for that provider (#6368 — custom models were previously
+ * invisible to the ranking builder, so they never survived the
+ * configured/available filters even when actually configured+available).
+ */
+async function getProviderModels(providerId: string): Promise<RankableModel[]> {
   const entry = REGISTRY[providerId];
-  return entry?.models ?? [];
+  const registryModels = entry?.models ?? [];
+  const customModels = (await getCustomModels(providerId)) as RankableModel[];
+  return mergeProviderModels(registryModels, Array.isArray(customModels) ? customModels : []);
 }
 
 /**
@@ -282,7 +322,7 @@ export async function computeFreeProviderRankings(
   const rankings: FreeProviderRanking[] = [];
 
   for (const provider of freeProviders) {
-    const models = getProviderModels(provider.id);
+    const models = await getProviderModels(provider.id);
     if (models.length === 0) continue;
 
     const modelScores: ProviderModelScore[] = [];

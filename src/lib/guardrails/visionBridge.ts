@@ -187,9 +187,16 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
     // instead of describing images through an intermediate vision call.
     // This lets a downstream vision model process the image natively.
     if (comboVisionBridgeDecision === "not-combo" && !forceVisionBridge) {
-      // Auto-select the fastest vision-capable model from available providers
-      // without forcing the user's configured description model as fixed target.
-      const bestModel = getBestVisionModel();
+      // Honor an explicit operator override from the Vision Bridge settings tab
+      // (settings.visionBridgeModel) as the fixed reroute target, for consistency
+      // with the combo/describe path below (step 10) which always honors it via
+      // getVisionBridgeConfig. When unset, auto-select the fastest available
+      // vision-capable model from available providers.
+      const configuredModel =
+        typeof settings.visionBridgeModel === "string" && settings.visionBridgeModel.trim()
+          ? settings.visionBridgeModel.trim()
+          : undefined;
+      const bestModel = getBestVisionModel({ fixedModel: configuredModel });
       if (bestModel && bestModel !== model) {
         const modifiedBody = {
           ...(body as Record<string, unknown>),
