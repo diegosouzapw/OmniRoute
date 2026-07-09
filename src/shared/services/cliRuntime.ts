@@ -584,6 +584,16 @@ export const getKnownToolPaths = (toolId: string): string[] => {
       if (localAppData) {
         paths.push(path.join(localAppData, "Programs", "Claude", "claude.exe"));
         paths.push(path.join(localAppData, "claude-code", "claude.exe"));
+        paths.push(
+          path.join(
+            localAppData,
+            "Microsoft",
+            "WinGet",
+            "Packages",
+            "Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe",
+            "claude.exe"
+          )
+        );
       }
     }
 

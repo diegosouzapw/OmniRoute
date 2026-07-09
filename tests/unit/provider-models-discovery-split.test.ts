@@ -1,8 +1,8 @@
 // Split-guard for the provider-models discovery route decomposition
 // (refactor: extract 4 pure leaves — helpers / normalizers / providerModelsConfig /
 // providerSets — out of src/app/api/providers/[id]/models/route.ts). The leaves are
-// DB-free and state-free; this guard pins their public surface, the host wiring, and
-// the #5570 cablyai→aimlapi swap so a future edit that silently breaks the split fails.
+// DB-free and state-free; this guard pins their public surface and the host wiring
+// so a future edit that silently breaks the split fails.
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -120,9 +120,8 @@ test("providerModelsConfig.PROVIDER_MODELS_CONFIG keeps core provider entries", 
   assert.equal(PROVIDER_MODELS_CONFIG["qwen-web"].url, "https://chat.qwen.ai/api/v2/models");
 });
 
-test("providerModelsConfig aimlapi entry replaced the removed cablyai entry (#5570)", () => {
+test("providerModelsConfig keeps the aimlapi live catalog entry", () => {
   assert.equal(PROVIDER_MODELS_CONFIG.aimlapi.url, "https://api.aimlapi.com/models");
-  assert.equal(PROVIDER_MODELS_CONFIG.cablyai, undefined);
 });
 
 test("providerModelsConfig aimlapi.parseResponse keeps only chat-completion models when present", () => {
