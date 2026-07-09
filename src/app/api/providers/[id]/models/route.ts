@@ -1715,6 +1715,7 @@ export async function GET(
 
       const liveModels = await fetchCodexDiscoveryModels({
         accessToken: accessToken || null,
+        providerSpecificData: connection.providerSpecificData,
         fetchImpl: (url, init) =>
           safeOutboundFetch(url, {
             ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,

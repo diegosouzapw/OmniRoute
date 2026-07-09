@@ -25,6 +25,7 @@ import {
 } from "../../src/app/api/providers/[id]/models/discovery/providerSets.ts";
 import { PROVIDER_MODELS_CONFIG } from "../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
 import {
+  buildCodexModelsUrl,
   CODEX_MODELS_URL,
   fetchCodexDiscoveryModels,
   normalizeCodexModelsResponse,
@@ -159,6 +160,47 @@ test("codex.normalizeCodexModelsResponse maps data/models/map payloads to respon
   );
 });
 
+test("codex.normalizeCodexModelsResponse parses the Codex live catalog shape", () => {
+  const parsed = normalizeCodexModelsResponse({
+    models: [
+      {
+        slug: "codex-auto-review",
+        display_name: "Codex Auto Review",
+        visibility: "hide",
+        supported_in_api: true,
+      },
+      {
+        slug: "gpt-5.4",
+        display_name: "GPT-5.4",
+        visibility: "list",
+        supported_in_api: true,
+        service_tiers: [{ id: "priority", name: "Fast" }],
+        additional_speed_tiers: ["fast"],
+      },
+      {
+        slug: "gpt-5.5",
+        display_name: "GPT-5.5",
+        visibility: "list",
+        supported_in_api: true,
+      },
+      {
+        slug: "internal-only",
+        display_name: "Internal Only",
+        visibility: "list",
+        supported_in_api: false,
+      },
+    ],
+  });
+
+  assert.deepEqual(
+    parsed.map((m) => ({ id: m.id, name: m.name })),
+    [
+      { id: "gpt-5.4", name: "GPT-5.4" },
+      { id: "gpt-5.5", name: "GPT-5.5" },
+    ]
+  );
+});
+
 test("codex.normalizeCodexModelsResponse drops entries without an id", () => {
   const parsed = normalizeCodexModelsResponse({ models: [{ name: "" }, { model: "gpt-5.4" }] });
   assert.deepEqual(
@@ -203,20 +245,28 @@ test("codex.fetchCodexDiscoveryModels returns null for missing token, auth failu
   );
 });
 
-test("codex.fetchCodexDiscoveryModels calls the ChatGPT models endpoint with Codex bearer headers", async () => {
+test("codex.fetchCodexDiscoveryModels calls the Codex models endpoint with Codex bearer headers", async () => {
   let seenUrl = "";
   let seenAuthorization = "";
+  let seenWorkspace = "";
+  let seenOriginator = "";
   const models = await fetchCodexDiscoveryModels({
     accessToken: "codex-access",
+    providerSpecificData: { workspaceId: "workspace-123" },
     fetchImpl: async (url, init) => {
       seenUrl = url;
       seenAuthorization = init.headers.Authorization;
-      return Response.json({ models: [{ id: "gpt-5.6", display_name: "GPT 5.6" }] });
+      seenWorkspace = init.headers["chatgpt-account-id"];
+      seenOriginator = init.headers.originator;
+      return Response.json({ models: [{ slug: "gpt-5.6", display_name: "GPT 5.6" }] });
     },
   });
 
-  assert.equal(seenUrl, CODEX_MODELS_URL);
+  assert.equal(CODEX_MODELS_URL, "https://chatgpt.com/backend-api/codex/models");
+  assert.equal(seenUrl, buildCodexModelsUrl());
   assert.equal(seenAuthorization, "Bearer codex-access");
+  assert.equal(seenWorkspace, "workspace-123");
+  assert.equal(seenOriginator, "codex_cli_rs");
   assert.deepEqual(models?.map((m) => m.id), ["gpt-5.6"]);
 });
 

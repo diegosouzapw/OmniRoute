@@ -227,10 +227,13 @@ test("provider models route discovers live Codex models and tags them for Respon
   const connection = await seedConnection("codex", {
     authType: "oauth",
     accessToken: "codex-access-token",
+    providerSpecificData: { workspaceId: "workspace-123" },
   });
   const seenRequests: Array<{
     url: string;
     authorization: string | null;
+    workspaceId: string | null;
+    originator: string | null;
     userAgent: string | null;
   }> = [];
 
@@ -239,11 +242,19 @@ test("provider models route discovers live Codex models and tags them for Respon
     seenRequests.push({
       url: String(url),
       authorization: headers.get("authorization"),
+      workspaceId: headers.get("chatgpt-account-id"),
+      originator: headers.get("originator"),
       userAgent: headers.get("user-agent"),
     });
     return Response.json({
       models: [
-        { id: "gpt-5.6", display_name: "GPT 5.6" },
+        {
+          slug: "codex-auto-review",
+          display_name: "Codex Auto Review",
+          visibility: "hide",
+          supported_in_api: true,
+        },
+        { slug: "gpt-5.6", display_name: "GPT 5.6", visibility: "list", supported_in_api: true },
         { id: "", name: "missing-id" },
       ],
     });
@@ -257,8 +268,10 @@ test("provider models route discovers live Codex models and tags them for Respon
   assert.equal(body.source, "api");
   assert.deepEqual(seenRequests, [
     {
-      url: "https://chatgpt.com/backend-api/models?history_and_training_disabled=false",
+      url: "https://chatgpt.com/backend-api/codex/models?client_version=0.142.0",
       authorization: "Bearer codex-access-token",
+      workspaceId: "workspace-123",
+      originator: "codex_cli_rs",
       userAgent: "codex-cli/0.142.0 (Windows 10.0.26200; x64)",
     },
   ]);
