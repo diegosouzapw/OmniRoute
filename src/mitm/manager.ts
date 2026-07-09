@@ -552,7 +552,12 @@ async function startMitmInternal(
   const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
   if (!fs.existsSync(certPath)) {
     log.info("Generating SSL certificate...");
-    await generateCert();
+    try {
+      await generateCert();
+    } catch (err) {
+      log.error({ err }, "Failed to generate SSL certificate");
+      throw err;
+    }
   }
 
   // 2. Install certificate to system keychain. A failure here must NOT abort the
@@ -576,7 +581,11 @@ async function startMitmInternal(
   // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
   //    all custom hosts with enabled=true. Best-effort — see provisionDnsEntries.
   log.info("Adding DNS entries...");
-  await provisionDnsEntries(sudoPassword);
+  try {
+    await provisionDnsEntries(sudoPassword);
+  } catch (err) {
+    log.error({ err }, "DNS provisioning threw unexpectedly (continuing)");
+  }
 
   // 4. Start MITM server
   log.info("Starting MITM server...");
@@ -619,9 +628,13 @@ async function startMitmInternal(
   const proc = serverProcess;
   serverPid = proc.pid ?? null;
 
-  // Save PID to file
+  // Save PID to file — best-effort, must not orphan spawned child process
   if (serverPid !== null) {
-    fs.writeFileSync(PID_FILE, String(serverPid));
+    try {
+      fs.writeFileSync(PID_FILE, String(serverPid));
+    } catch (err) {
+      log.error({ err, pid: serverPid }, "Failed to write MITM PID file (continuing)");
+    }
   }
 
   // Buffer recent stderr so a startup failure can be reported with its real

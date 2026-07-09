@@ -45,6 +45,7 @@ import CustomModelsSection from "./components/CustomModelsSection";
 import ConnectionsListPanel from "./components/ConnectionsListPanel";
 import CoolingConnectionsPanel from "./components/CoolingConnectionsPanel";
 import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
+import ProviderAccountRoutingCard from "../../settings/components/ProviderAccountRoutingCard";
 import ZedImportCard from "./components/ZedImportCard";
 import ProviderPageHeader from "./components/ProviderPageHeader";
 import CompatibleNodeCard from "./components/CompatibleNodeCard";
@@ -488,6 +489,7 @@ export default function ProviderDetailPageClient() {
       )}
       {!isUpstreamProxyProvider && !isFreeNoAuth && (
         <Card>
+          <ProviderAccountRoutingCard providerKey={providerId} connectionCount={connections.length} />
           <ConnectionsHeaderToolbar
             providerId={providerId}
             providerInfo={providerInfo}
