@@ -6,7 +6,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "seed": "ts-node src/seed.ts",
     "test": "vitest --run --coverage",
-    "check-coverage": "node ./scripts/check-coverage.js"
+    "check-coverage": "node ./scripts/check/check-coverage.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
