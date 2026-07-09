@@ -167,6 +167,9 @@ export default function ChaosConfigPage() {
         const data = await res.json();
         setConfig(data.config);
         setMessage({ type: "success", text: "Config reset to defaults" });
+      } else {
+        const err = await res.json().catch(() => ({ error: "Reset failed" }));
+        setMessage({ type: "error", text: err.error || "Reset failed" });
       }
     } catch {
       setMessage({ type: "error", text: "Failed to reset config" });
