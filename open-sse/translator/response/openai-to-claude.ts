@@ -3,6 +3,7 @@ import { FORMATS } from "../formats.ts";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../request/openai-to-claude.ts";
 import { hasToolCallShim, applyToolCallShimToBuffer } from "../helpers/toolCallShim.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
+import { isAbortFinishReason } from "../../utils/finishReason.ts";
 
 // Helper: stop thinking block if started
 function stopThinkingBlock(state, results) {
@@ -281,7 +282,16 @@ function convertFinishReason(reason) {
     case "tool_calls":
       return "tool_use";
     default:
-      return "end_turn";
+      // Gemini/Antigravity abort reasons (e.g. MALFORMED_FUNCTION_CALL,
+      // UNEXPECTED_TOOL_CALL — see isAbortFinishReason) reach here unrecognized
+      // after the OpenAI hub normalization. Collapsing them to a clean
+      // "end_turn" presents an aborted tool call to the client as a successful
+      // completion (9router#2462 sub-bug #2). Surface them as "tool_use" —
+      // the same non-clean-stop signal already used for real tool_calls above —
+      // so the client does not treat the turn as done. Genuinely unknown future
+      // reasons still fall back to "end_turn" so a benign new value does not
+      // start misreporting every Gemini-family turn as an unfinished tool call.
+      return isAbortFinishReason(reason) ? "tool_use" : "end_turn";
   }
 }
 
