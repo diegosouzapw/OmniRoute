@@ -112,6 +112,7 @@ import {
   recordStickyRoundRobinSuccess,
   getStickyWeightedExecutionKey,
   recordStickyWeightedSuccess,
+  resolveComboStickyRoundRobinLimit,
 } from "./combo/rrState.ts";
 import {
   validateResponseQuality,
@@ -898,10 +899,9 @@ export async function handleComboChat({
     let runtimeStickyTargets: ResolvedComboUnit[] = runtimeUnits;
     if (strategy === "round-robin") {
       const perComboStickyLimit = (config as Record<string, unknown>).stickyRoundRobinLimit;
-      runtimeStickyLimit = clampStickyRoundRobinTargetLimit(
-        perComboStickyLimit !== undefined && perComboStickyLimit !== null
-          ? perComboStickyLimit
-          : (settings as Record<string, unknown> | null)?.stickyRoundRobinLimit
+      runtimeStickyLimit = resolveComboStickyRoundRobinLimit(
+        perComboStickyLimit,
+        settings as Record<string, unknown> | null
       );
       const { startIndex, counter } = getStickyRoundRobinStartIndex(
         combo.name,
@@ -2495,10 +2495,9 @@ async function handleRoundRobinCombo({
   // sticky batching for both account fallback and combo targets. Values <= 1 preserve
   // the historical one-request-per-target rotation.
   const perComboStickyLimit = (config as Record<string, unknown>).stickyRoundRobinLimit;
-  const stickyLimit = clampStickyRoundRobinTargetLimit(
-    perComboStickyLimit !== undefined && perComboStickyLimit !== null
-      ? perComboStickyLimit
-      : (settings as Record<string, unknown> | null)?.stickyRoundRobinLimit
+  const stickyLimit = resolveComboStickyRoundRobinLimit(
+    perComboStickyLimit,
+    settings as Record<string, unknown> | null
   );
   const stickyRoundRobinEnabled = stickyLimit > 1;
   // Exhaustion-aware sticky: if the currently sticky target is no longer
@@ -3032,7 +3031,10 @@ async function handleRoundRobinCombo({
           resilienceSettings.providerCooldown.enabled &&
           provider &&
           provider !== "unknown" &&
-          !(result.status === 500 && hasPerModelQuota(provider, parseModel(modelStr).model || modelStr))
+          !(
+            result.status === 500 &&
+            hasPerModelQuota(provider, parseModel(modelStr).model || modelStr)
+          )
         ) {
           recordProviderCooldown(
             provider,

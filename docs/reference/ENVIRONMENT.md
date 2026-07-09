@@ -990,6 +990,7 @@ Limits and safety knobs applied when the Skills framework (`src/lib/skills/`) ex
 | `SKILLS_SANDBOX_NETWORK_ENABLED`  | `false`                                       | `src/lib/skills/builtins.ts` | Set `1`/`true` to allow outbound network from inside the sandbox. Defaults to **isolated** for safety.             |
 | `SKILLS_ALLOWED_SANDBOX_IMAGES`   | _(empty)_                                     | `src/lib/skills/builtins.ts` | Comma-separated allowlist of container images permitted for sandbox execution. Empty means built-in default only.  |
 | `SKILLS_SANDBOX_DOCKER_IMAGE`     | _(built-in default)_                          | `src/lib/skills/`            | Container image used when spawning a Docker-backed sandbox. Override to pin a custom hardened base image.          |
+| `SKILLS_SANDBOX_RUNTIME`          | `auto`                                        | `src/lib/skills/sandbox.ts`, `src/lib/skills/containerProvider.ts` | Container runtime for skill sandboxing: `auto` \| `docker` \| `apple` \| `wsl` \| `orbstack` \| `podman`. `auto` picks the best installed runtime per host OS (Apple Container/OrbStack on macOS, WSL Container on Windows, Podman on Linux), falling back to Docker. |
 
 > [!CAUTION]
 > Enabling `SKILLS_SANDBOX_NETWORK_ENABLED=true` opens an egress path from arbitrary skill code. Pair with `OUTBOUND_SSRF_GUARD_ENABLED=true` and a strict `CORS_ORIGIN`/proxy policy in shared deployments.

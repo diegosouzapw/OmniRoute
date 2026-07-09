@@ -227,6 +227,68 @@ describe("PassthroughModelRow — render smoke test", () => {
   });
 });
 
+describe("PassthroughModelsSection — catalog model fallback", () => {
+  let container: HTMLElement;
+  let root: ReturnType<typeof createRoot>;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
+  it("renders built-in catalog models even when no models were imported", async () => {
+    const { default: PassthroughModelsSection } =
+      await import("../components/PassthroughModelsSection");
+
+    await act(async () => {
+      root.render(
+        <PassthroughModelsSection
+          providerAlias="synthetic"
+          providerId="synthetic"
+          connectionId=""
+          modelAliases={{}}
+          catalogModels={[
+            {
+              id: "hf:zai-org/GLM-5.2",
+              name: "zai-org/GLM-5.2",
+              aliases: ["syn:large:text"],
+            },
+          ]}
+          availableModels={[]}
+          customModels={[]}
+          description="Synthetic accepts provider-native model IDs."
+          inputLabel="Model ID"
+          inputPlaceholder="hf:zai-org/GLM-5.2"
+          copied={undefined}
+          onCopy={vi.fn()}
+          onSetAlias={vi.fn().mockResolvedValue(undefined)}
+          onDeleteAlias={vi.fn()}
+          t={(k) => k}
+          effectiveModelNormalize={() => false}
+          effectiveModelPreserveDeveloper={() => true}
+          getUpstreamHeadersRecord={() => ({})}
+          saveModelCompatFlags={vi.fn().mockResolvedValue(undefined)}
+          isModelHidden={() => false}
+          onToggleHidden={vi.fn().mockResolvedValue(undefined)}
+          onBulkToggleHidden={vi.fn().mockResolvedValue(undefined)}
+        />
+      );
+    });
+
+    expect(container.textContent).toContain("synthetic/syn:large:text");
+    expect(container.textContent).toContain("syn:large:text");
+    expect(container.textContent).toContain("Built-in");
+  });
+});
+
 describe("ModelVisibilityToolbar — render smoke test", () => {
   let container: HTMLElement;
   let root: ReturnType<typeof createRoot>;

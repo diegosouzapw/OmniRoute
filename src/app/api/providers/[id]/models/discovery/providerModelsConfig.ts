@@ -131,14 +131,6 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || [],
   },
-  glhf: {
-    url: "https://glhf.chat/api/openai/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || data.models || [],
-  },
   aimlapi: {
     // #5570: AI/ML API's live catalog (400+ models) lives at the public,
     // auth-free /models database endpoint (NOT /v1/models). The registry has no
