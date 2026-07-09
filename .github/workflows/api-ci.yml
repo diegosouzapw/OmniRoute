@@ -1,0 +1,34 @@
+name: API CI
+
+on:
+  push:
+    paths:
+      - 'apps/cfo-erp-api/**'
+  pull_request:
+    paths:
+      - 'apps/cfo-erp-api/**'
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/cfo-erp-api
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install deps
+        run: npm ci
+      - name: Run API tests with coverage
+        run: npm test
+      - name: Check coverage thresholds
+        run: node ./scripts/check-coverage.js
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: coverage
