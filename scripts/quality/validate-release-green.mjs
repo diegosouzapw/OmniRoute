@@ -33,11 +33,16 @@
 // orchestration lives in the /green-prs + review-prs flows that call it.
 //
 // Usage:
-//   node scripts/quality/validate-release-green.mjs [--json] [--with-build] [--quick] [--hermetic]
+//   node scripts/quality/validate-release-green.mjs [--json] [--with-build] [--quick] [--full-ci] [--hermetic]
 //     --json        emit machine-readable JSON to stdout (report goes to stderr)
 //     --with-build  also run check:pack-artifact (needs a dist/ build — slow)
 //     --quick       skip the slow unit + vitest + integration suites (drift + fast
 //                   gates only)
+//     --full-ci     ALSO run every static gate declared in ci.yml's gate jobs (lint,
+//                   quality-gate, quality-extended, docs-sync-strict, pr-test-policy) —
+//                   read straight from ci.yml so the set never drifts. Catches the whole
+//                   "static base-red" category the curated list missed (v3.8.46: 11 of 16
+//                   leaked reds). Pair with --quick for the fast "1 command, 0 CI layers" pass.
 //     --hermetic    scrub OMNIROUTE_API_KEY/OMNIROUTE_URL from gate env so live
 //                   tests self-skip exactly like CI (dev machines otherwise run
 //                   them against localhost and produce false-positive reds)
@@ -50,6 +55,7 @@ import { promisify } from "node:util";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parse as parseYaml } from "yaml";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
@@ -139,6 +145,76 @@ export function computeVerdict(results) {
   return { releaseGreen: hardFailures.length === 0, hardFailures, drift };
 }
 
+// ─── --full-ci: reproduce the EXACT ci.yml gate set (P0, v3.8.46 post-mortem) ──
+//
+// WHY: the curated HARD/DRIFT lists above are a hand-maintained SUBSET. The v3.8.46
+// release leaked 11 static/gate base-reds (route-validation:t06, docs-counts --strict,
+// docs-symbols, bundle-size --ratchet, test-masking, …) that the pre-flight never ran
+// because they live only in the ci.yml gate JOBS, not in this script. --full-ci reads
+// ci.yml itself and runs every `npm run check:*` / `npm run lint` from those jobs, so the
+// set stays current as gates are added (no drift between this script and CI). One command
+// → zero CI layers for the whole static category.
+
+/** ci.yml jobs whose npm-run gate steps --full-ci reproduces locally. */
+export const FULL_CI_GATE_JOBS = [
+  "lint",
+  "quality-gate",
+  "quality-extended",
+  "docs-sync-strict",
+  "pr-test-policy",
+];
+
+// Gates that cannot run meaningfully in a local working-tree pre-flight:
+//   • check:pr-evidence  — inspects the open PR body (no PR locally)
+//   • check:codeql-ratchet — queries GitHub's code-scanning alerts for the REMOTE main
+//     branch (CodeQL Default Setup only analyzes main/PRs→main; a local run reflects
+//     post-merge server state the pre-flight can't change). Checked on the release PR.
+export const FULL_CI_SKIP = new Set(["check:pr-evidence", "check:codeql-ratchet"]);
+
+// Gates that need a specific env to behave like CI (else they compare against the wrong base).
+export const FULL_CI_ENV = { "check:test-masking": { GITHUB_BASE_REF: "main" } };
+
+/**
+ * Parse a ci.yml text and return the ordered, de-duplicated list of gate commands to run.
+ * Each entry: { id, job, args:["run", <script>, ...("--" + args)], env }.
+ * Only `npm run lint` and `npm run check:*` steps are taken (build/install/test-run npm
+ * scripts are ignored); a `run: |` block is scanned line-by-line so multi-command steps work.
+ * Exported pure (no side effects) so the extraction has a fixture-driven unit test.
+ */
+export function extractCiGates(
+  yamlText,
+  { jobs = FULL_CI_GATE_JOBS, skip = FULL_CI_SKIP, envMap = FULL_CI_ENV } = {}
+) {
+  const doc = parseYaml(yamlText) || {};
+  const gates = [];
+  const seen = new Set();
+  for (const job of jobs) {
+    const steps = doc?.jobs?.[job]?.steps;
+    if (!Array.isArray(steps)) continue;
+    for (const step of steps) {
+      const runStr = typeof step?.run === "string" ? step.run : "";
+      if (!runStr) continue;
+      for (const rawLine of runStr.split("\n")) {
+        const m = rawLine.trim().match(/^npm run (\S+)(?:\s+--\s+(.+?))?\s*$/);
+        if (!m) continue;
+        const script = m[1];
+        if (script !== "lint" && !script.startsWith("check:")) continue; // gates only
+        if (skip.has(script) || seen.has(script)) continue; // dedup + skip non-local
+        seen.add(script);
+        const extra = m[2] ? m[2].split(/\s+/).filter(Boolean) : [];
+        gates.push({
+          id: script,
+          job,
+          // preserve the `--` so args reach the script (npm run x -- --ratchet)
+          args: extra.length ? ["run", script, "--", ...extra] : ["run", script],
+          env: envMap[script],
+        });
+      }
+    }
+  }
+  return gates;
+}
+
 // ─── Orchestration (only when run directly) ─────────────────────────────────
 
 /**
@@ -217,6 +293,7 @@ async function main() {
   const JSON_OUT = args.has("--json");
   const WITH_BUILD = args.has("--with-build");
   const QUICK = args.has("--quick");
+  const FULL_CI = args.has("--full-ci");
   hermetic = args.has("--hermetic");
 
   const results = [];
@@ -472,6 +549,39 @@ async function main() {
       ok: code === 0,
       detail: code === 0 ? "pass" : firstFailureLine(out),
     });
+  }
+
+  // --full-ci: run every static gate declared in ci.yml's gate jobs (superset of the
+  // curated HARD list above). Combine with --quick to run ONLY these + drift ratchets
+  // (skip the slow suites) — the "1 command, 0 CI layers" pre-flight for the static category.
+  if (FULL_CI) {
+    let gates = [];
+    try {
+      gates = extractCiGates(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8"));
+    } catch (err) {
+      record({
+        id: "full-ci-extract",
+        label: "full-ci: parse .github/workflows/ci.yml",
+        kind: "hard",
+        ok: false,
+        detail: `could not read/parse ci.yml: ${err?.message || err}`,
+      });
+    }
+    const already = new Set(results.map((r) => r.id));
+    process.stderr.write(`\n──── full-ci gates from ci.yml (${gates.length}) ────\n`);
+    for (const g of gates) {
+      // Skip a gate the curated pass already ran with the same id (avoid double-running lint).
+      if (already.has(g.id)) continue;
+      const { code, out } = run(npmCmd, g.args, { env: g.env, timeout: 10 * 60 * 1000 });
+      saveGateLog(`fullci-${g.id.replace(/[^a-z0-9]+/gi, "-")}`, out);
+      record({
+        id: g.id,
+        label: `ci.yml:${g.job} → npm ${g.args.join(" ")}`,
+        kind: "hard",
+        ok: code === 0,
+        detail: code === 0 ? "pass" : firstFailureLine(out),
+      });
+    }
   }
 
   const { releaseGreen, hardFailures, drift } = computeVerdict(results);

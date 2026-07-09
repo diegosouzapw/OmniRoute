@@ -5,5 +5,7 @@ export interface ModelCooldownErrorPayload {
     code: "model_cooldown";
     model?: string;
     reset_seconds: number;
+    retry_after?: string;
+    credentials_cooling?: number;
   };
 }
