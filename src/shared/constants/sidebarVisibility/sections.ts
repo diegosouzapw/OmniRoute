@@ -171,6 +171,14 @@ export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       icon: "bolt",
     },
     {
+      id: "context-omniglyph",
+      href: "/dashboard/context/omniglyph",
+      i18nKey: "contextOmniglyph",
+      labelFallback: "OmniGlyph",
+      subtitleFallback: "Context-as-image",
+      icon: "grain",
+    },
+    {
       id: "compression-studio",
       href: "/dashboard/compression/studio",
       i18nKey: "compressionStudio",

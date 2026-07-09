@@ -57,7 +57,7 @@ New tab for extracting content from a URL via `POST /v1/web/fetch` (created in p
 - Submit → fetch → render `ScrapeResult.tsx`.
 - `ScrapeResult` renders markdown preview + raw toggle.
 - Cap: if response body > **256 KB**, UI shows `(truncated, view raw)` and opens raw in a Monaco modal (D21).
-- Metadata panel: provider (firecrawl/jina-reader/tavily-search), latency, cost, response size, links count.
+- Metadata panel: provider (firecrawl/jina-reader/tavily-search/tinyfish), latency, cost, response size, links count.
 - Uses `useScrapeFetch.ts` hook.
 
 ### Compare Tab
@@ -108,7 +108,7 @@ Runs the same query/URL across up to **4 providers in parallel** (D22):
 | Field                          | Source                                                                                     |
 | ------------------------------ | ------------------------------------------------------------------------------------------ |
 | `id`, `name`                   | `searchRegistry.ts`                                                                        |
-| `kind`                         | `"search"` (12 providers) or `"fetch"` (firecrawl, jina-reader, tavily-search)             |
+| `kind`                         | `"search"` (12 providers) or `"fetch"` (firecrawl, jina-reader, tavily-search, tinyfish)   |
 | `costPerQuery`                 | Registry data                                                                              |
 | `freeMonthlyQuota`             | Registry data                                                                              |
 | `searchTypes` / `fetchFormats` | Registry data                                                                              |
@@ -136,7 +136,7 @@ Only one backend change was needed for this feature:
 
 `src/app/api/search/providers/route.ts` was extended to:
 
-- Include all 3 fetch providers (`firecrawl`, `jina-reader`, `tavily-search`) in the array.
+- Include all 4 fetch providers (`firecrawl`, `jina-reader`, `tavily-search`, `tinyfish`) in the array.
 - Add `kind: "search" | "fetch"` to every item.
 - Add `status: "configured" | "missing" | "rate_limited"` derived from live credential state.
 - Maintain backward compatibility — existing fields (`id`, `name`, etc.) unchanged.

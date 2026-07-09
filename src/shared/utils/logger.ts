@@ -48,6 +48,34 @@ function getTransportCompatibleConfig(): pino.LoggerOptions {
 }
 
 /**
+ * Build a `pino.transport()` worker-thread stream and attach an `error` listener
+ * BEFORE handing it to `pino()`.
+ *
+ * `pino({ transport: {...} })` builds the same stream internally but never listens
+ * for its `error` event. A destination that stops existing mid-run (its directory is
+ * deleted — e.g. a test's tmp `DATA_DIR` removed in `after()`, or an operator wiping
+ * `logs/`) makes the worker's write fail with `ENOENT`; that surfaces as an unlistened
+ * `error` event on the main-thread stream, which Node re-throws as an uncaught
+ * exception (issue #6360 — "resource generated asynchronous activity after the test
+ * ended"). A logger must never crash its host process because its own log file
+ * vanished, so failed writes are dropped (best-effort stderr notice) instead of
+ * escalating.
+ */
+function buildFileTransportStream(targets: NonNullable<pino.TransportMultiOptions["targets"]>) {
+  const stream = pino.transport({ targets });
+  stream.on("error", (err: unknown) => {
+    try {
+      process.stderr.write(
+        `[logger] log transport write failed, dropping log line: ${(err as Error)?.message || err}\n`
+      );
+    } catch {
+      // Nothing more we can do — never let a logging failure crash the process.
+    }
+  });
+  return stream;
+}
+
+/**
  * Build the logger with optional file transport.
  * Uses pino transport targets for all destinations.
  */
@@ -67,49 +95,43 @@ function buildLogger(): pino.Logger {
 
       if (isDev) {
         // Dev: pino-pretty → stdout, JSON → file
-        return pino({
-          ...transportConfig,
-          transport: {
-            targets: [
-              {
-                target: "pino-pretty",
-                options: {
-                  colorize: true,
-                  translateTime: "HH:MM:ss.l",
-                  ignore: "pid,hostname,service",
-                  messageFormat: "[{module}] {msg}",
-                  destination: 1,
-                },
-                level: logLevel,
-              },
-              {
-                target: "pino/file",
-                options: { destination: absLogPath, mkdir: true },
-                level: logLevel,
-              },
-            ],
+        const stream = buildFileTransportStream([
+          {
+            target: "pino-pretty",
+            options: {
+              colorize: true,
+              translateTime: "HH:MM:ss.l",
+              ignore: "pid,hostname,service",
+              messageFormat: "[{module}] {msg}",
+              destination: 1,
+            },
+            level: logLevel,
           },
-        });
+          {
+            target: "pino/file",
+            options: { destination: absLogPath, mkdir: true },
+            level: logLevel,
+          },
+        ]);
+        return pino(transportConfig, stream);
       }
 
       // Production: JSON → stdout + JSON → file
-      return pino({
-        ...transportConfig,
-        transport: {
-          targets: [
-            {
-              target: "pino/file",
-              options: { destination: 1 }, // stdout
-              level: logLevel,
-            },
-            {
-              target: "pino/file",
-              options: { destination: absLogPath, mkdir: true },
-              level: logLevel,
-            },
-          ],
-        },
-      });
+      {
+        const stream = buildFileTransportStream([
+          {
+            target: "pino/file",
+            options: { destination: 1 }, // stdout
+            level: logLevel,
+          },
+          {
+            target: "pino/file",
+            options: { destination: absLogPath, mkdir: true },
+            level: logLevel,
+          },
+        ]);
+        return pino(transportConfig, stream);
+      }
     } catch (err) {
       // Log the actual error for diagnostics (issue #165)
       try {
@@ -123,6 +145,15 @@ function buildLogger(): pino.Logger {
       try {
         const absLogPath = resolve(logConfig.logFilePath);
         const fileDestination = pino.destination({ dest: absLogPath, mkdir: true, sync: true });
+        fileDestination.on("error", (err: unknown) => {
+          try {
+            process.stderr.write(
+              `[logger] sync log destination write failed, dropping log line: ${(err as Error)?.message || err}\n`
+            );
+          } catch {
+            // Nothing more we can do — never let a logging failure crash the process.
+          }
+        });
 
         // Production fallback: JSON to both stdout and file via multistream
         return pino(
