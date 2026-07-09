@@ -138,6 +138,10 @@ case "${1:-help}" in
   logs)      shift; cmd_logs "${@}" ;;
   cutover)   shift; cmd_cutover "${@}" ;;
   rollback)  cmd_cutover 0 ;;
+  install)   cmd_install ;;
+  supervise)  cmd_install ;;
+  restart)    cmd_restart ;;
+  desktop)    cmd_desktop_status ;;
   ssh)       cmd_ssh ;;
   help|*)    cat <<USAGE
 argis - argismonitor v4 master CLI
@@ -149,6 +153,10 @@ USAGE:
   argis expose          expose BFF via Tailscale Funnel + print URL
   argis url             print current BFF URL
   argis status          health snapshot
+  argis install         install launchd supervisor on desktop (auto-restart)
+  argis supervise       alias for install
+  argis restart         restart BFF + kbridge on desktop
+  argis desktop         show launchd services on desktop
   argis logs [bff|gateway|nextjs]   tail logs on desktop
   argis cutover <0|1|10|50|100>    flip OMNI_WEB_STACK_ROLLOUT in all Vercel prod envs
   argis rollback        alias for 'argis cutover 0'
