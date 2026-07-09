@@ -55,9 +55,16 @@ ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 # are reproducible.
 RUN test -f package-lock.json \
   || (echo "package-lock.json is required for reproducible Docker builds" >&2 && exit 1)
+# `npm rebuild <pkg>` re-runs the package's own install script, so under npm 11 +
+# `--ignore-scripts` on the parent `npm ci` it depends on npm's script-allowlist
+# machinery correctly re-enabling that one package's script. Some self-hosted build
+# environments (e.g. Dokploy) hit a broken/incomplete better-sqlite3 native binding
+# from that indirection. Invoking `node-gyp rebuild` directly inside the package
+# directory bypasses npm's script-running layer entirely and is deterministic
+# regardless of npm version or ignore-scripts allowlist behavior.
 RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
   npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
-  && npm rebuild better-sqlite3 \
+  && (cd node_modules/better-sqlite3 && npx --yes node-gyp rebuild) \
   && node -e "require('better-sqlite3')(':memory:').close()"
 
 # Build with Turbopack (stable in Next 16, the repo default). The v3.8.27-era
