@@ -11,6 +11,7 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 ### ✨ New Features
 
 - **Provider/model param filters**: config-driven parameter denylist/allowlist per provider/model with auto-learn from upstream 400s (#6649 — thanks @ThongAccount, closes #6625)
+- **ClinePass dual-auth**: ClinePass now offers both sign-in methods on its dashboard page — OAuth (reusing the Cline WorkOS flow) as the primary "Connect" path, or a pasted BYOK API key via "Manual API key", instead of only the API-key-only provider shipped in #5942. The registry alias was aligned to `cp` (matching the `OAUTH_PROVIDERS` catalog alias) so `<alias>/<modelId>` routing resolves correctly, the OAuth refresh dispatch now routes `clinepass` to the shared Cline refresh flow, and the duplicate API-key-only catalog entry was removed to keep ClinePass listed once. Regression guard: `tests/unit/clinepass-provider.test.ts`. (#6126 — thanks @hajilok)
 
 ### 🐛 Bug Fixes
 

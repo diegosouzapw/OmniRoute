@@ -60,3 +60,26 @@ export function buildClineHeaders(
 
   return headers;
 }
+
+/**
+ * Build headers for a ClinePass request. ClinePass is dual-auth: an OAuth
+ * connection (workos:-prefixed token in `accessToken`) needs the full Cline
+ * client header set from `buildClineHeaders()`; a BYOK API-key connection
+ * (`sk_...` key, #5942) sends the key as a plain Bearer token — no `workos:`
+ * prefix — alongside the Cline identification headers.
+ */
+export function buildClinepassHeaders(
+  credentials: { accessToken?: unknown; apiKey?: unknown } | null | undefined,
+  effectiveKey?: string
+): Record<string, string> {
+  if (credentials?.accessToken) {
+    return buildClineHeaders(credentials.accessToken);
+  }
+  const headers: Record<string, string> = {
+    "HTTP-Referer": "https://cline.bot",
+    "X-Title": "Cline",
+  };
+  const byokKey = effectiveKey || (credentials?.apiKey as string | undefined);
+  if (byokKey) headers.Authorization = `Bearer ${byokKey}`;
+  return headers;
+}

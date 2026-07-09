@@ -247,17 +247,22 @@ export default function ConnectionsHeaderToolbar({
         )}
         {!isCompatible ? (
           <>
-            {isCommandCode ? (
+            {isCommandCode || providerId === "clinepass" ? (
               <>
                 <Button
                   size="sm"
                   icon="open_in_new"
                   loading={
-                    commandCodeAuthState.phase === "starting" ||
-                    commandCodeAuthState.phase === "polling" ||
-                    commandCodeAuthState.phase === "applying"
+                    isCommandCode &&
+                    (commandCodeAuthState.phase === "starting" ||
+                      commandCodeAuthState.phase === "polling" ||
+                      commandCodeAuthState.phase === "applying")
                   }
-                  onClick={() => gateConnectionFlow(handleOpenCommandCodeConnect)}
+                  onClick={() =>
+                    gateConnectionFlow(
+                      isCommandCode ? handleOpenCommandCodeConnect : openPrimaryAddFlow
+                    )
+                  }
                 >
                   Connect
                 </Button>
