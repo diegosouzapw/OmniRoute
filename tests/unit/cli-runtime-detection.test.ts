@@ -9,7 +9,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const { getCliRuntimeStatus, CLI_TOOL_IDS } =
+const { getCliRuntimeStatus, getKnownToolPaths, CLI_TOOL_IDS } =
   await import("../../src/shared/services/cliRuntime.ts");
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -21,6 +21,29 @@ function createTempDir() {
   }
   return fs.mkdtempSync(path.join(testRoot, "cli-test-"));
 }
+
+describe("Claude Code Windows known paths", () => {
+  it("should include the WinGet Anthropic.ClaudeCode install path", () => {
+    const localAppData = process.env.LOCALAPPDATA;
+    const expected = localAppData
+      ? path.join(
+          localAppData,
+          "Microsoft",
+          "WinGet",
+          "Packages",
+          "Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe",
+          "claude.exe"
+        )
+      : null;
+
+    if (process.platform !== "win32" || !expected) return;
+
+    assert.ok(
+      getKnownToolPaths("claude").includes(expected),
+      "Claude Code installed by WinGet should be discoverable without CLI_CLAUDE_BIN"
+    );
+  });
+});
 
 function createFile(dir, name, content) {
   const filePath = path.join(dir, name);
