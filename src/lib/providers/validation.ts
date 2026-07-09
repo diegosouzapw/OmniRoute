@@ -107,11 +107,16 @@ export { isRetryableProxyTarget, isSecurityBlockError } from "./validation/trans
 export async function validateWebCookieProvider({
   provider,
   apiKey,
-  providerSpecificData = {},
-}: any) {
+  providerSpecificData: _providerSpecificData = {},
+}: {
+  provider: string;
+  apiKey?: string;
+  providerSpecificData?: Record<string, unknown>;
+}) {
   try {
     const entry = getRegistryEntry(provider);
-    if (!entry) {
+    const cookieProvider = WEB_COOKIE_PROVIDERS[provider as keyof typeof WEB_COOKIE_PROVIDERS];
+    if (!entry && !cookieProvider) {
       return { valid: false, error: "Provider not found in registry", unsupported: true };
     }
 
@@ -121,9 +126,26 @@ export async function validateWebCookieProvider({
       return { valid: false, error: "Cookie required for web-cookie provider", unsupported: false };
     }
 
+    if (!entry) {
+      // Providers listed in WEB_COOKIE_PROVIDERS without a providerRegistry entry (e.g.
+      // lmarena, gemini-business, poe-web, venice-web, v0-vercel-web) only expose a
+      // marketing website URL, not a real API host. Probing `${website}/models`
+      // does not reliably signal session validity for these —
+      // live verification showed most return redirects or SPA 200s regardless of
+      // cookie validity, which would silently report an expired/garbage cookie as
+      // "OK" (worse than an honest "not supported"). Until each of these providers
+      // has a verified, side-effect-free auth probe against its real API host, report
+      // unsupported instead of a false positive.
+      return {
+        valid: false,
+        error: "Provider validation not supported",
+        unsupported: true,
+      };
+    }
+
     // Attempt a minimal request to check if the session is valid
     // Use /models endpoint or a minimal completion request depending on the provider
-    const baseUrl = entry.baseUrl || "";
+    const baseUrl = normalizeBaseUrl(entry.baseUrl || "");
     const testUrl = `${baseUrl}/models`;
 
     const res = await directHttpsRequest(
@@ -132,6 +154,7 @@ export async function validateWebCookieProvider({
         method: "GET",
         headers: {
           "User-Agent": STANDARD_USER_AGENT,
+          Cookie: cookie,
         },
       },
       10_000
@@ -150,7 +173,7 @@ export async function validateWebCookieProvider({
     // a 401/403 from the /models probe is the only definitive "session expired" signal
     // for web-cookie auth, so a non-auth status is treated as a valid session.
     return { valid: true, error: null, unsupported: false };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return toValidationErrorResult(error);
   }
 }
