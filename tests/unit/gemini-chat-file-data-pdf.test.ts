@@ -23,8 +23,8 @@ test("convertOpenAIContentToParts handles OpenAI chat file.file_data PDFs", () =
     },
   ]) as InlineDataPart[];
 
-  const inline = parts.find((part) => part.inlineData);
-  assert.ok(inline?.inlineData, "file.file_data must produce an inlineData part");
-  assert.equal(inline.inlineData.data, "JVBERi0xLjcKJ");
-  assert.equal(inline.inlineData.mimeType, "application/pdf");
+  const inlineData = parts.find((part) => part.inlineData)?.inlineData;
+  assert.ok(inlineData, "file.file_data must produce an inlineData part");
+  assert.equal(inlineData.data, "JVBERi0xLjcKJ");
+  assert.equal(inlineData.mimeType, "application/pdf");
 });
