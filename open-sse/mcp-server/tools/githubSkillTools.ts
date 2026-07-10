@@ -77,11 +77,13 @@ async function handleInstall(args: z.infer<typeof GitHubSkillsInstallSchema>) {
     try {
       const dest = resolveInstallPath(target, skillName, args.description);
       // In a real implementation, this would clone the repo and copy files.
-      // For now, we return the planned install path as a dry-run result.
+      // For now, we return the planned install path as a dry-run result — matches
+      // the honest `action: "planned"` the REST route (/api/github-skills POST)
+      // reports for the same operation.
       results.push({
         target,
         ok: true,
-        action: "installed",
+        action: "planned",
         destDir: dest,
       });
     } catch (err) {
