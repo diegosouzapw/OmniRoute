@@ -39,4 +39,9 @@ test("humanizeCursorModelId pretty-prints common patterns", () => {
   assert.equal(humanizeCursorModelId("kimi-k2.5"), "Kimi K2.5");
   assert.equal(humanizeCursorModelId("gemini-3.1-pro"), "Gemini 3.1 Pro");
   assert.equal(humanizeCursorModelId("claude-4-sonnet-thinking"), "Claude 4 Sonnet Thinking");
+  // Grok 4.5 uses infix -fast- (unlike GPT's trailing -fast)
+  assert.equal(humanizeCursorModelId("grok-4.5-medium"), "Grok 4.5 Medium");
+  assert.equal(humanizeCursorModelId("grok-4.5-fast-medium"), "Grok 4.5 Fast Medium");
+  assert.equal(humanizeCursorModelId("grok-4.5-xhigh"), "Grok 4.5 XHigh");
+  assert.equal(humanizeCursorModelId("grok-4.5-fast-xhigh"), "Grok 4.5 Fast XHigh");
 });

@@ -106,6 +106,13 @@ export const cursorProvider: RegistryEntry = {
     //
     { id: "grok-4.3", name: "Grok 4.3" },
     //
+    { id: "grok-4.5-medium", name: "Grok 4.5 Medium" },
+    { id: "grok-4.5-fast-medium", name: "Grok 4.5 Fast Medium" },
+    { id: "grok-4.5-high", name: "Grok 4.5 High" },
+    { id: "grok-4.5-fast-high", name: "Grok 4.5 Fast High" },
+    { id: "grok-4.5-xhigh", name: "Grok 4.5 XHigh" },
+    { id: "grok-4.5-fast-xhigh", name: "Grok 4.5 Fast XHigh" },
+    //
     { id: "kimi-k2.5", name: "Kimi K2.5" },
   ],
 };
