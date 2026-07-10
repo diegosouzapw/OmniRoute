@@ -3306,6 +3306,16 @@ export async function handleChatCore({
           console.warn(
             `[provider] Node ${errorConnectionId} project routing error (${statusCode}) — not banning`
           );
+        } else if (errorType === PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND) {
+          // 404 — model/endpoint does not exist upstream. Lock the model so the
+          // retry/backoff loop stops hammering the dead endpoint (which would
+          // otherwise degenerate into a 429 rate-limit storm). Connection stays
+          // active since only the specific model is unavailable. (#6827)
+          const notFoundCooldownMs = COOLDOWN_MS.notFound;
+          lockModel(provider, errorConnectionId, currentModel, "model_not_found", notFoundCooldownMs);
+          console.warn(
+            `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
+          );
         }
       } catch {
         // Best-effort state update; request flow should continue with fallback handling.

@@ -10,6 +10,7 @@ import ClaudeFastModeTab from "../components/ClaudeFastModeTab";
 import MemorySkillsTab from "../components/MemorySkillsTab";
 import ModelsDevSyncTab from "../components/ModelsDevSyncTab";
 import UsageTokenBufferTab from "../components/UsageTokenBufferTab";
+import ModelCapabilityOverridesTab from "../components/ModelCapabilityOverridesTab";
 
 export default function SettingsAiPage() {
   const t = useTranslations("settings");
@@ -24,6 +25,7 @@ export default function SettingsAiPage() {
       <CodexFastTierTab />
       <ClaudeFastModeTab />
       <MemorySkillsTab />
+      <ModelCapabilityOverridesTab />
       <ModelsDevSyncTab />
     </div>
   );

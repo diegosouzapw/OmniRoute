@@ -12,6 +12,8 @@
 //
 // These pure helpers encode the fix and are unit-tested directly.
 
+import { matchesSearch } from "@/shared/utils/turkishText";
+
 /**
  * Resolve the catalog-namespace key used to filter the model list for a provider.
  * - Built-in providers ("openai", "anthropic", …) filter by their id.
@@ -43,4 +45,16 @@ export function pickDefaultModel(
   if (availableModels.length === 0) return null;
   if (currentModel && availableModels.includes(currentModel)) return null;
   return availableModels[0];
+}
+
+/**
+ * Filter the model dropdown list by a free-text search query (#4086 — the raw Playground
+ * model `<select>` had no way to narrow a long list, e.g. 50+ OpenRouter models).
+ * Accent/case-insensitive, Turkish-safe substring match against the model id (see
+ * `matchesSearch` — raw `toLowerCase().includes()` mangles İ/ı). An empty/whitespace query
+ * returns the full list unchanged.
+ */
+export function filterModelsByQuery(models: string[], query: string): string[] {
+  if (!query.trim()) return models;
+  return models.filter((m) => matchesSearch(m, query));
 }

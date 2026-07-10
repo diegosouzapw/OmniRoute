@@ -894,7 +894,9 @@ changing them requires a code edit, not an env var:
 | `CURSOR_STREAM_TIMEOUT_MS`       | `300000`            | `open-sse/executors/cursor.ts`             | Stream idle timeout (ms) for the Cursor executor.                                            |
 | `CURSOR_TOOL_DIRECTIVE`          | enabled (`!== "0"`) | `open-sse/executors/cursor.ts`             | Tool-commit directive that makes composer-2.5 reliably issue tool calls. Set `0` to disable. |
 | `CURSOR_IMAGE_FETCH_TIMEOUT_MS`  | `15000`             | `open-sse/utils/cursorImages.ts`           | Per-image fetch timeout (ms) for remote `image_url` vision input.                            |
-| `CURSOR_STATE_DB_PATH`           | _(probed)_          | `open-sse/utils/cursorVersionDetector.ts`  | Override the Cursor state DB lookup used for version detection.                              |
+| `CURSOR_STATE_DB_PATH`           | _(probed)_          | `open-sse/utils/cursorVersionDetector.ts`  | Override the Cursor IDE state DB lookup used for IDE version detection.                      |
+| `CURSOR_AGENT_CLI_VERSION`       | _(detect / pin)_    | `open-sse/utils/cursorAgentCliVersion.ts`  | Agent CLI build id (`YYYY.MM.DD-<hash>`) for `x-cursor-client-version: cli-…` on Agent Run.   |
+| `CURSOR_DATA_DIR`                | _(probed)_          | `open-sse/utils/cursorAgentCliVersion.ts`  | Override Cursor Agent CLI data dir (`…/versions/<id>`); same var the official agent uses.    |
 | `CURSOR_TOKEN`                   | _(unset)_           | `scripts/ad-hoc/cursor-tap.cjs`            | Direct Cursor bearer token used by developer tooling.                                        |
 | `OMNIROUTE_LOG_REQUEST_SHAPE`    | enabled (`!== "0"`) | `src/app/api/v1/chat/completions/route.ts` | Log content-type/length markers for large chat payloads. Set `"0"` to silence.               |
 | `DEBUG_RESPONSES_SSE_TO_JSON`    | _(unset)_           | `open-sse/handlers/responseTranslator.ts`  | Set `true` to log Responses API SSE→JSON translation details.                                |

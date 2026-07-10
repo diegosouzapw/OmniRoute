@@ -1,6 +1,9 @@
 import { handleAudioSpeech } from "@omniroute/open-sse/handlers/audioSpeech.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
-import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
+import {
+  getProviderCredentialsWithQuotaPreflight,
+  clearRecoveredProviderState,
+} from "@/sse/services/auth";
 import {
   parseSpeechModel,
   getSpeechProvider,
@@ -95,7 +98,7 @@ async function postHandler(request, context) {
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentials(provider);
+    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
     if (!credentials) {
       return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
     }

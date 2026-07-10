@@ -1546,6 +1546,8 @@
     "chartModel": "__MISSING__:Model",
     "chartProvider": "__MISSING__:Provider",
     "chartProviderBreakdown": "__MISSING__:Provider Breakdown",
+    "chartDate": "__MISSING__:Date",
+    "chartRequestsByProviderDate": "__MISSING__:Requests by Provider & Date",
     "filterAllKeys": "__MISSING__:All Keys",
     "filterSearchKeys": "__MISSING__:Search keys…",
     "filterNoKeysMatch": "__MISSING__:No keys match",
