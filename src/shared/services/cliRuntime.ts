@@ -5,7 +5,7 @@ import path from "path";
 import { spawn, execFileSync } from "child_process";
 import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
 import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
-
+import { withSettingsFallback } from "./cliInstallFallback";
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
 
@@ -1085,7 +1085,7 @@ export const getCliRuntimeStatus = async (toolId: string) => {
   const command = located.command;
 
   if (!located.installed) {
-    return {
+    return withSettingsFallback(getCliConfigPaths(toolId)?.settings, {
       installed: false,
       runnable: false,
       command,
@@ -1093,7 +1093,7 @@ export const getCliRuntimeStatus = async (toolId: string) => {
       reason: located.reason || "not_found",
       runtimeMode,
       requiresBinary,
-    };
+    });
   }
 
   if (located.reason === "not_executable") {

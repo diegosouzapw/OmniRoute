@@ -27,6 +27,14 @@
  *   orderTargetsByHeadroom (quotaStrategies.ts), so the open-sse leaf has no
  *   static edge into src/lib/quota. For tests the fetcher is injected via
  *   __setStickinessHeadroomFetcherForTests.
+ * • Terminal-status gate (#6692): headroom alone is orthogonal to account
+ *   availability — a credits_exhausted/banned/expired connection (or one still
+ *   inside its rate-limit window) reports perfectly healthy 5h/weekly
+ *   utilization, so the headroom-only gate kept re-promoting a dead connection
+ *   forever. The connection's testStatus/rateLimitedUntil is now resolved via
+ *   the same dynamic-import-with-injectable-override seam (fail-open on lookup
+ *   errors, mirroring resolveSaturation) and gates the pin alongside headroom.
+ *   For tests the fetcher is injected via __setStickinessConnectionFetcherForTests.
  *
  * No barrel import — consistent with the other combo/* helpers.
  *
@@ -77,6 +85,83 @@ let _fetcherOverride: SaturationFetcher | null = null;
 /** Test-only: inject the saturation fetcher; pass null to restore default. */
 export function __setStickinessHeadroomFetcherForTests(fetcher: SaturationFetcher | null): void {
   _fetcherOverride = fetcher;
+}
+
+// ─── Connection terminal-status gate (#6692) ─────────────────────────────────
+
+/** Minimal connection health shape the terminal-status gate needs. */
+export interface StickyConnectionHealth {
+  testStatus?: string | null;
+  rateLimitedUntil?: string | null;
+}
+
+/**
+ * Injectable connection-health fetcher seam (for unit tests).
+ * Returns StickyConnectionHealth or undefined when unknown/lookup failed.
+ */
+export type ConnectionHealthFetcher = (
+  connectionId: string,
+  provider: string
+) => Promise<StickyConnectionHealth | undefined>;
+
+/** Overrides the default connection-health fetcher for tests; null = use production fetcher. */
+let _connectionFetcherOverride: ConnectionHealthFetcher | null = null;
+
+/** Test-only: inject the connection-health fetcher; pass null to restore default. */
+export function __setStickinessConnectionFetcherForTests(
+  fetcher: ConnectionHealthFetcher | null
+): void {
+  _connectionFetcherOverride = fetcher;
+}
+
+/**
+ * Statuses that mean the account is DURABLY dead, not just transiently rate
+ * limited — mirrors TERMINAL_PIN_STATUSES used by the LKGP/context-cache pin
+ * (combo.ts:558). Duplicated here (rather than imported) so this leaf keeps no
+ * static edge into combo.ts, which itself imports this module.
+ */
+const TERMINAL_STICKY_STATUSES = new Set(["credits_exhausted", "banned", "expired"]);
+
+/**
+ * Resolve the sticky-bound connection's health by fetching its provider_connections
+ * row. Uses the same dynamic-import pattern as resolveSaturation so this leaf has
+ * no static dependency on src/lib/db. Fail-open (undefined) on any error.
+ */
+async function resolveConnectionHealth(
+  connectionId: string,
+  provider: string
+): Promise<StickyConnectionHealth | undefined> {
+  if (_connectionFetcherOverride) return _connectionFetcherOverride(connectionId, provider);
+
+  try {
+    const mod = await import("../../../src/lib/db/providers");
+    const getProviderConnections = mod.getProviderConnections as (
+      filter: Record<string, unknown>
+    ) => Promise<StickyConnectionHealth[]>;
+    const connections = (await getProviderConnections({
+      provider,
+      isActive: true,
+    })) as Array<StickyConnectionHealth & { id?: string }>;
+    return connections.find((c) => c.id === connectionId);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Pure: is the sticky-bound connection durably unhealthy right now? Fail-open
+ * (false) when the connection is unknown — an unresolved lookup must never drop
+ * a healthy pin.
+ */
+export function isStickyConnectionTerminallyUnhealthy(
+  conn: StickyConnectionHealth | undefined,
+  now: number
+): boolean {
+  if (!conn) return false;
+  const status = typeof conn.testStatus === "string" ? conn.testStatus : "";
+  if (TERMINAL_STICKY_STATUSES.has(status)) return true;
+  const rl = conn.rateLimitedUntil ? new Date(String(conn.rateLimitedUntil)).getTime() : 0;
+  return Number.isFinite(rl) && rl > now;
 }
 
 /**
@@ -186,6 +271,17 @@ export function clearStickyBinding(messageHash: string): void {
   stickyMap.delete(messageHash);
 }
 
+/**
+ * Read-only peek at the connectionId currently bound to `messageHash`, without
+ * mutating the store or checking TTL/health. Lets combo.ts's failure paths
+ * confirm a just-failed target is the ACTUAL sticky-bound connection before
+ * calling clearStickyBinding (#6692) — clearing on an unrelated target's
+ * failure would drop a still-healthy pin.
+ */
+export function peekStickyConnectionId(messageHash: string): string | null {
+  return stickyMap.get(messageHash)?.connectionId ?? null;
+}
+
 /** Reset the entire store (for testing). */
 export function clearAllStickyBindings(): void {
   stickyMap.clear();
@@ -228,9 +324,10 @@ export interface ApplyStickinessResult {
  * Algorithm:
  * 1. Derive the message hash from the first user message.
  * 2. Look up the sticky binding for that hash.
- * 3. If found, fetch saturation for that connection.
- * 4. If headroom > threshold → move the matching target to index 0.
- *    Otherwise → clear the binding (rebind on next success).
+ * 3. If found, fetch saturation AND connection health for that connection.
+ * 4. If headroom > threshold AND the connection is not durably unhealthy
+ *    (#6692: terminal testStatus / still rate-limited) → move the matching
+ *    target to index 0. Otherwise → clear the binding (rebind on next success).
  * 5. On any error → fall through unchanged (fail-open).
  *
  * In production the saturation fetcher is resolved via dynamic import of
@@ -272,13 +369,22 @@ export async function applySessionStickiness(
       return { targets: orderedTargets, messageHash, stuck: false };
     }
 
-    // Gate: headroom must be above threshold
+    // Gate: headroom must be above threshold AND the connection must not be
+    // durably unhealthy (#6692 — credits_exhausted/banned/expired/rate-limited
+    // accounts report healthy 5h/weekly utilization, so headroom alone never
+    // catches them).
     const stickyTarget = orderedTargets[stickyIdx];
-    const sat = await resolveSaturation(connectionId, stickyTarget.provider);
+    const [sat, connHealth] = await Promise.all([
+      resolveSaturation(connectionId, stickyTarget.provider),
+      resolveConnectionHealth(connectionId, stickyTarget.provider),
+    ]);
     const headroom = computeHeadroom(sat);
 
-    if (headroom <= STICKINESS_HEADROOM_THRESHOLD) {
-      // Connection saturated — rebind on next success
+    if (
+      headroom <= STICKINESS_HEADROOM_THRESHOLD ||
+      isStickyConnectionTerminallyUnhealthy(connHealth, Date.now())
+    ) {
+      // Connection saturated or durably unhealthy — rebind on next success
       clearStickyBinding(messageHash);
       return { targets: orderedTargets, messageHash, stuck: false };
     }
