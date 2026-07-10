@@ -1,14 +1,14 @@
 ---
 title: "Provider Reference"
 version: 3.8.47
-lastUpdated: 2026-07-09
+lastUpdated: 2026-07-10
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-07-09
+> **Last generated:** 2026-07-10
 
 Total providers: **248**. See category breakdown below.
 
@@ -31,7 +31,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 ---
 
-## OAuth Providers (21)
+## OAuth Providers (22)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -40,6 +40,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `antigravity` | — | Antigravity | OAuth | — | — |
 | `claude` | `cc` | Claude Code | OAuth | — | — |
 | `cline` | `cl` | Cline | OAuth | — | — |
+| `clinepass` | `cp` | ClinePass | OAuth | [link](https://cline.bot/clinepass) | ClinePass is Cline's $9.99/mo subscription bundling 10 open coding models. Sign in with your Cline account (same login as the Cline CLI/IDE), or paste a direct ClinePass API key (app.cline.bot → Settings → API Keys). A ClinePass subscription unlocks the cline-pass/* models. Reuses the Cline WorkOS OAuth flow. |
 | `codebuddy-cn` | `cbcn` | CodeBuddy CN | OAuth | [link](https://copilot.tencent.com) | Tencent CodeBuddy CN (copilot.tencent.com). Sign in via the official CLI device-code flow, or paste a direct API key (sent as Authorization: Bearer). Catalog: GLM / Kimi / MiniMax / DeepSeek / Hunyuan. |
 | `codex` | `cx` | OpenAI Codex | OAuth | — | — |
 | `cursor` | `cu` | Cursor IDE | OAuth | — | — |
@@ -86,7 +87,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `yuanbao-web` | `ybw` | Tencent Yuanbao (Free) | Web cookie | [link](https://yuanbao.tencent.com) | Log in to yuanbao.tencent.com, then paste the full Cookie header (DevTools → Network → any /api request → Request Headers → Cookie). It must contain hy_user and hy_token. |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. |
 
-## API Key Providers (paid / paid-with-free-credits) (167)
+## API Key Providers (paid / paid-with-free-credits) (166)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -117,7 +118,6 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `charm-hyper` | `charm-hyper` | Charm Hyper | API key | [link](https://hyper.charm.land) | 100 free monthly Hypercredits on signup |
 | `chutes` | `chutes` | Chutes.ai | API key, aggregator | [link](https://chutes.ai) | Bearer API key for the Chutes OpenAI-compatible gateway. |
 | `clarifai` | `clarifai` | Clarifai | API key, enterprise | [link](https://docs.clarifai.com) | Use your Clarifai PAT or app-specific API key. OmniRoute targets the OpenAI-compatible endpoint at https://api.clarifai.com/v2/ext/openai/v1 and authenticates with Authorization: Key <token>. |
-| `clinepass` | `clinepass` | ClinePass | API key | [link](https://cline.bot) | — |
 | `cloudflare-ai` | `cf` | Cloudflare Workers AI | API key | [link](https://developers.cloudflare.com/workers-ai) | Requires API Token AND Account ID (found at dash.cloudflare.com) |
 | `codestral` | `codestral` | Codestral | API key | [link](https://mistral.ai) | — |
 | `cohere` | `cohere` | Cohere | API key | [link](https://cohere.com) | Free Trial: 1,000 API calls/month for testing, no credit card required |
