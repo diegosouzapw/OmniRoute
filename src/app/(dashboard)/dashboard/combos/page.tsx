@@ -14,6 +14,7 @@ import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
+import ContextRequirementsEditor from "./ContextRequirementsEditor";
 import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
 import ReasoningTokenBufferToggle from "./ReasoningTokenBufferToggle";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
@@ -4236,6 +4237,30 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                 value={config.responseValidation as ResponseValidationValue | undefined}
                 onChange={(next) => setConfig({ ...config, responseValidation: next })}
                 t={t}
+              />
+            </div>
+          )}
+
+          {/* Context Requirements (#6808) */}
+          {showStrategySection && (
+            <div className="flex flex-col gap-2 p-3 bg-black/[0.02] dark:bg-white/[0.02] rounded-lg border border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="material-symbols-outlined text-[14px] text-primary">
+                  data_usage
+                </span>
+                <p className="text-xs font-medium">Context window requirements</p>
+              </div>
+              <ContextRequirementsEditor
+                value={
+                  config.contextRequirements as
+                    | {
+                        minContextWindow?: number;
+                        preferLargeContext?: boolean;
+                        contextFilterMode?: "strict" | "lenient";
+                      }
+                    | undefined
+                }
+                onChange={(next) => setConfig({ ...config, contextRequirements: next })}
               />
             </div>
           )}
