@@ -71,6 +71,7 @@ export async function POST(request) {
       usageLimitEnabled,
       dailyUsageLimitUsd,
       weeklyUsageLimitUsd,
+      chaosModeEnabled,
     } = validation.data;
 
     // Always get machineId from server
@@ -82,7 +83,8 @@ export async function POST(request) {
       allowUsageCommand === true ||
       usageLimitEnabled === true ||
       dailyUsageLimitUsd !== undefined ||
-      weeklyUsageLimitUsd !== undefined
+      weeklyUsageLimitUsd !== undefined ||
+      chaosModeEnabled === true
     ) {
       await updateApiKeyPermissions(apiKey.id, {
         ...(noLog === true && { noLog: true }),
@@ -90,6 +92,7 @@ export async function POST(request) {
         ...(usageLimitEnabled === true && { usageLimitEnabled: true }),
         ...(dailyUsageLimitUsd !== undefined && { dailyUsageLimitUsd }),
         ...(weeklyUsageLimitUsd !== undefined && { weeklyUsageLimitUsd }),
+        ...(chaosModeEnabled === true && { chaosModeEnabled: true }),
       });
     }
 
@@ -114,6 +117,7 @@ export async function POST(request) {
         usageLimitEnabled: usageLimitEnabled === true,
         dailyUsageLimitUsd: dailyUsageLimitUsd ?? null,
         weeklyUsageLimitUsd: weeklyUsageLimitUsd ?? null,
+        chaosModeEnabled: chaosModeEnabled === true,
         streamDefaultMode: "legacy",
       },
       { status: 201 }

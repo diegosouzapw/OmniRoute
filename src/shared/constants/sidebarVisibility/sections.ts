@@ -516,6 +516,14 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     icon: "share",
   },
   {
+    id: "chaos-config",
+    href: "/dashboard/chaos",
+    i18nKey: "chaosConfig",
+    labelFallback: "Chaos Mode",
+    subtitleFallback: "Multi-model parallel execution",
+    icon: "blender",
+  },
+  {
     id: "skills",
     href: "/dashboard/omni-skills",
     i18nKey: "omniSkills",

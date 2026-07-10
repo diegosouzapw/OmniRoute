@@ -1072,6 +1072,10 @@ test("connectionMatchesProviderCard counts a dual-auth provider's PAT (apikey) c
     true
   );
   assert.equal(
+    connectionMatchesProviderCard({ provider: "kiro", authType: "api_key" }, "kiro", "oauth"),
+    true
+  );
+  assert.equal(
     connectionMatchesProviderCard({ provider: "qoder", authType: "oauth" }, "qoder", "oauth"),
     true
   );

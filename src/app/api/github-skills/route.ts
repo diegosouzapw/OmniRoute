@@ -15,6 +15,7 @@ import { searchGitHubSkills } from "@/lib/skills/githubCollector";
 import { matchesSearch } from "@/shared/utils/turkishText";
 import { validateBody } from "@/shared/validation/helpers";
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 const installSkillSchema = z.object({
   repoName: z.string().min(1),
@@ -25,6 +26,9 @@ const installSkillSchema = z.object({
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const minStars = parseInt(searchParams.get("minStars") ?? "1", 10);
@@ -64,6 +68,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const parsed = validateBody(installSkillSchema, await request.json());
     if (!parsed.success) {
