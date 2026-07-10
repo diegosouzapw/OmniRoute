@@ -22,6 +22,9 @@
  * the hot path — so it is cheap to consult per request and trivially unit-testable.
  */
 
+import { RateLimitReason } from "../config/constants.ts";
+import { COOLDOWN_MS } from "../config/errorConfig.ts";
+
 export interface RotationErrorClassConfig {
   enabled: boolean;
   /** Number of errors of this class (within the window) required before an account is rotated. */
@@ -267,4 +270,121 @@ export function recordErrorAndCheckThreshold(
     return true;
   }
   return false;
+}
+
+// ── accountFallback.ts integration helpers ──────────────────────────────────────────────────
+// These encapsulate the "runtime rotation config" glue that `checkFallbackError` /
+// `applyErrorState` (open-sse/services/accountFallback.ts, a size-frozen file) consult before
+// falling back to their own hardcoded heuristics. Keeping the glue here (rather than inline in
+// accountFallback.ts) keeps that file's line budget stable as this config surface grows.
+
+export interface RotationGateDecision {
+  shouldFallback: boolean;
+  cooldownMs: number;
+  baseCooldownMs?: number;
+  newBackoffLevel?: number;
+  reason?: string;
+}
+
+/**
+ * Evaluates the runtime rotation config gate for a given status BEFORE the engine's own error
+ * classification runs. Returns a decision that should short-circuit `checkFallbackError`
+ * (block fallback, hold pending threshold/window, or force-fallback an opted-in 400), or `null`
+ * when the engine should proceed with its normal heuristics.
+ */
+export function evaluateRotationGate(
+  status: number,
+  rotationCfg: RotationConfig,
+  rotationKey?: string | null
+): RotationGateDecision | null {
+  if (isFallbackBlockedForStatus(status, rotationCfg)) {
+    return { shouldFallback: false, cooldownMs: 0, reason: RateLimitReason.UNKNOWN };
+  }
+  if (
+    rotationKey &&
+    classForStatus(status, rotationCfg) &&
+    !recordErrorAndCheckThreshold(rotationKey, status, rotationCfg)
+  ) {
+    return { shouldFallback: false, cooldownMs: 0, reason: RateLimitReason.UNKNOWN };
+  }
+  if (shouldForceFallbackFor400(status, rotationCfg)) {
+    const overrideMs = rateLimitCooldownOverrideMs(rotationCfg);
+    const cooldownMs = overrideMs ?? COOLDOWN_MS.rateLimit;
+    return {
+      shouldFallback: true,
+      cooldownMs,
+      baseCooldownMs: cooldownMs,
+      newBackoffLevel: 0,
+      reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
+    };
+  }
+  return null;
+}
+
+export interface RotationRateLimitFallback {
+  shouldFallback: true;
+  cooldownMs: number;
+  baseCooldownMs: number;
+  newBackoffLevel: 0;
+  usedUpstreamRetryHint: false;
+  reason: string;
+}
+
+/**
+ * Operator-configured rate-limit cooldown override (no upstream retry hint available). Applies
+ * only to the rate-limit reason so 5xx / capacity errors keep their scaled exponential backoff.
+ * Returns `null` when the reason isn't rate-limit or no override is configured, in which case
+ * the caller should fall through to its own scaled-backoff calculation.
+ */
+export function rotationRateLimitFallback(
+  reason: string,
+  rotationCfg: RotationConfig
+): RotationRateLimitFallback | null {
+  if (reason !== RateLimitReason.RATE_LIMIT_EXCEEDED) return null;
+  const overrideMs = rateLimitCooldownOverrideMs(rotationCfg);
+  if (overrideMs === null) return null;
+  return {
+    shouldFallback: true,
+    cooldownMs: overrideMs,
+    baseCooldownMs: overrideMs,
+    newBackoffLevel: 0,
+    usedUpstreamRetryHint: false,
+    reason,
+  };
+}
+
+/** Combines extractRotationContext + resolveRotationConfig + evaluateRotationGate for an account. */
+export function gateFor(status: number, account?: unknown): RotationGateDecision | null {
+  const { rotationOverrides, rotationKey } = extractRotationContext(account);
+  return evaluateRotationGate(status, resolveRotationConfig(rotationOverrides), rotationKey);
+}
+
+/** Combines extractRotationContext + resolveRotationConfig + rotationRateLimitFallback for an account. */
+export function overrideFor(reason: string, account?: unknown): RotationRateLimitFallback | null {
+  const { rotationOverrides } = extractRotationContext(account);
+  return rotationRateLimitFallback(reason, resolveRotationConfig(rotationOverrides));
+}
+
+/**
+ * Extracts a connection's per-connection rotation overrides and rotation key from its account
+ * state (`providerSpecificData.rotationOverrides` and `id`). Both are optional — absent =>
+ * global env config / count-immediately. `account` is typed `unknown` here because callers pass
+ * a generic `AccountState`-shaped value; this only does structural checks, no behavior change.
+ */
+export function extractRotationContext(account: unknown): {
+  rotationOverrides: Record<string, unknown> | null;
+  rotationKey: string | null;
+} {
+  const rec = account && typeof account === "object" ? (account as Record<string, unknown>) : null;
+  const psd = rec ? rec["providerSpecificData"] : undefined;
+  const rotationOverrides =
+    psd &&
+    typeof psd === "object" &&
+    (psd as Record<string, unknown>).rotationOverrides &&
+    typeof (psd as Record<string, unknown>).rotationOverrides === "object"
+      ? ((psd as Record<string, unknown>).rotationOverrides as Record<string, unknown>)
+      : null;
+  const id = rec ? rec["id"] : undefined;
+  const rotationKey = typeof id === "string" && id.length > 0 ? id : null;
+  return { rotationOverrides, rotationKey };
 }

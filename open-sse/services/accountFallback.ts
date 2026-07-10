@@ -11,16 +11,10 @@ import {
   findMatchingErrorRule,
   matchErrorRuleByText,
   matchErrorRuleByStatus,
+  serviceSupervisorCooldown,
 } from "../config/errorConfig.ts";
 import { getProviderErrorRuleMatch } from "../config/providerErrorRules.ts";
-import {
-  resolveRotationConfig,
-  isFallbackBlockedForStatus,
-  shouldForceFallbackFor400,
-  classForStatus,
-  rateLimitCooldownOverrideMs,
-  recordErrorAndCheckThreshold,
-} from "./rotationConfig.ts";
+import * as rot from "./rotationConfig.ts";
 import { getPassthroughProviders, getProviderCategory } from "../config/providerRegistry.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
@@ -1285,10 +1279,7 @@ export function checkFallbackError(
   headers: Headers | Record<string, string> | null = null,
   profileOverride: ProviderProfile | null = null,
   structuredError?: { code?: string | null; type?: string | null } | null,
-  /** Per-connection rotation overrides (from providerSpecificData.rotationOverrides). Null => use the global env config. */
-  rotationOverrides?: Record<string, unknown> | null,
-  /** Stable key (e.g. connection id) for per-connection threshold/window counting. Null => count-immediately. */
-  rotationKey?: string | null
+  rotation?: { account?: unknown } | null
 ): {
   shouldFallback: boolean;
   cooldownMs: number;
@@ -1308,57 +1299,10 @@ export function checkFallbackError(
    * caller can persist an explicit reset window instead of the engine's scaled cooldown. */
   configuredCooldownMs?: number;
 } {
-  // G-02: detect embedded service supervisor failures (X-Omni-Fallback-Hint: connection_cooldown).
-  // These are NOT upstream AI provider failures — they are local supervisor state changes.
-  // Apply a short 5s connection cooldown without tripping the provider circuit breaker.
-  if (status === 503 && headers) {
-    const hintValue =
-      typeof (headers as Headers).get === "function"
-        ? (headers as Headers).get("x-omni-fallback-hint")
-        : (headers as Record<string, string>)["x-omni-fallback-hint"] ||
-          (headers as Record<string, string>)["X-Omni-Fallback-Hint"];
-    if (typeof hintValue === "string" && hintValue.toLowerCase() === "connection_cooldown") {
-      return {
-        shouldFallback: true,
-        cooldownMs: 5_000,
-        baseCooldownMs: 5_000,
-        newBackoffLevel: 0,
-        reason: "service_not_running",
-        skipProviderBreaker: true,
-      };
-    }
-  }
-
-  // ── Runtime rotation config (operator-managed, e.g. VibeProxy) ─────────────────────────────
-  // Gate account fallback per HTTP status class (429/500/502/400) and, when a threshold > 1 is
-  // configured, only rotate after N errors within the class window. Defaults preserve the engine's
-  // historical behavior (429/500/502 rotate immediately; a plain 400 does not).
-  const rotationCfg = resolveRotationConfig(rotationOverrides);
-  if (isFallbackBlockedForStatus(status, rotationCfg)) {
-    return { shouldFallback: false, cooldownMs: 0, reason: RateLimitReason.UNKNOWN };
-  }
-  // Threshold/window: hold off rotation until N errors of this class occur within the window.
-  if (
-    rotationKey &&
-    classForStatus(status, rotationCfg) &&
-    !recordErrorAndCheckThreshold(rotationKey, status, rotationCfg)
-  ) {
-    return { shouldFallback: false, cooldownMs: 0, reason: RateLimitReason.UNKNOWN };
-  }
-  // Additive: operator opted IN to rotating on 400 (bad request). Treat it like a retryable
-  // rate-limit-ish error (off by default, so a plain 400 keeps returning to the client).
-  if (shouldForceFallbackFor400(status, rotationCfg)) {
-    const overrideMs = rateLimitCooldownOverrideMs(rotationCfg);
-    const cooldownMs = overrideMs ?? COOLDOWN_MS.rateLimit;
-    return {
-      shouldFallback: true,
-      cooldownMs,
-      baseCooldownMs: cooldownMs,
-      newBackoffLevel: 0,
-      reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
-    };
-  }
-
+  const svc = serviceSupervisorCooldown(status, headers);
+  if (svc) return svc;
+  const rg = rot.gateFor(status, rotation?.account);
+  if (rg) return rg;
   const errorStr = (errorText || "").toString();
   const profile = profileOverride ?? (provider ? getProviderProfile(provider) : null);
   const maxBackoffSteps = profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel;
@@ -1447,22 +1391,8 @@ export function checkFallbackError(
       };
     }
 
-    // Operator-configured rate-limit cooldown (no upstream hint available). Applies only to the
-    // rate-limit reason so 5xx / capacity errors keep their scaled exponential backoff.
-    if (reason === RateLimitReason.RATE_LIMIT_EXCEEDED) {
-      const overrideMs = rateLimitCooldownOverrideMs(rotationCfg);
-      if (overrideMs !== null) {
-        return {
-          shouldFallback: true,
-          cooldownMs: overrideMs,
-          baseCooldownMs: overrideMs,
-          newBackoffLevel: 0,
-          usedUpstreamRetryHint: false,
-          reason,
-        };
-      }
-    }
-
+    const ro = rot.overrideFor(reason, rotation?.account);
+    if (ro) return ro;
     const scaled = getScaledBaseCooldown(reason, backoffLevel);
     return {
       shouldFallback: true,
@@ -1842,35 +1772,15 @@ export function resetAccountState<T extends AccountState | null | undefined>(
 export function applyErrorState<T extends AccountState | null | undefined>(
   account: T,
   status: number,
-  errorText: string | null,
-  provider: string | null = null
+  errText: string | null,
+  prov: string | null = null
 ): T | AccountState {
   if (!account) return account;
 
-  const backoffLevel = account.backoffLevel || 0;
-  // Per-connection rotation config (task: VibeProxy's rotation rules mirrored on the backend).
-  // Threshold/window is counted per connection id; overrides come from the connection's
-  // providerSpecificData.rotationOverrides. Both are optional — absent => global env config.
-  const psd = (account as Record<string, unknown>)["providerSpecificData"];
-  const rotationOverrides =
-    psd && typeof psd === "object" && (psd as Record<string, unknown>).rotationOverrides &&
-    typeof (psd as Record<string, unknown>).rotationOverrides === "object"
-      ? ((psd as Record<string, unknown>).rotationOverrides as Record<string, unknown>)
-      : null;
-  const rotationKey =
-    typeof account.id === "string" && (account.id as string).length > 0 ? (account.id as string) : null;
-  const fallbackDecision = checkFallbackError(
-    status,
-    errorText,
-    backoffLevel,
-    null,
-    provider,
-    null,
-    null,
-    null,
-    rotationOverrides,
-    rotationKey
-  );
+  const lvl = account.backoffLevel || 0;
+  const fallbackDecision = checkFallbackError(status, errText, lvl, null, prov, null, null, null, {
+    account,
+  });
   const { cooldownMs, reason } = fallbackDecision;
   const newBackoffLevel =
     "newBackoffLevel" in fallbackDecision ? fallbackDecision.newBackoffLevel : undefined;
@@ -1892,8 +1802,8 @@ export function applyErrorState<T extends AccountState | null | undefined>(
   const nextState: T | AccountState = {
     ...account,
     rateLimitedUntil: effectiveCooldownMs > 0 ? getUnavailableUntil(effectiveCooldownMs) : null,
-    backoffLevel: newBackoffLevel ?? backoffLevel,
-    lastError: { status, message: errorText, timestamp: new Date().toISOString(), reason },
+    backoffLevel: newBackoffLevel ?? lvl,
+    lastError: { status, message: errText, timestamp: new Date().toISOString(), reason },
     status: "error",
   };
 
