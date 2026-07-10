@@ -677,6 +677,69 @@ export {
 } from "./db/apiKeyContextSources";
 export type { ApiKeyContextSource } from "./db/apiKeyContextSources";
 
+export {
+  createProject as createOmniContextProject,
+  getProjectById as getOmniContextProjectById,
+  getProjectBySlug as getOmniContextProjectBySlug,
+  listProjects as listOmniContextProjects,
+  updateProject as updateOmniContextProject,
+  deleteProject as deleteOmniContextProject,
+  addProjectMember as addOmniContextProjectMember,
+  removeProjectMember as removeOmniContextProjectMember,
+  listProjectMembers as listOmniContextProjectMembers,
+  getMembership as getOmniContextMembership,
+  listProjectsForApiKey as listOmniContextProjectsForApiKey,
+} from "./db/omnicontextProjects";
+export type {
+  OmniContextProject,
+  OmniContextProjectMember,
+  CreateProjectInput as CreateOmniContextProjectInput,
+} from "./db/omnicontextProjects";
+
+export {
+  setRepoProjectMapping,
+  getProjectIdForRepo,
+  listRepoMap,
+  deleteRepoMapping,
+} from "./db/omnicontextRepoMap";
+export type { OmniContextRepoMapEntry } from "./db/omnicontextRepoMap";
+
+export { appendAuditEvent, listAuditEvents } from "./db/omnicontextAudit";
+export type {
+  OmniContextAuditEvent,
+  AppendAuditInput as AppendOmniContextAuditInput,
+} from "./db/omnicontextAudit";
+
+export {
+  createArtifact,
+  getArtifactById,
+  listArtifacts,
+  softDeleteArtifact,
+  approveArtifact,
+  searchArtifacts,
+  getStablePrefix,
+} from "./db/omnicontextArtifacts";
+export type {
+  OmniContextArtifact,
+  ArtifactType,
+  CreateArtifactInput,
+  ArtifactSearchHit,
+} from "./db/omnicontextArtifacts";
+
+export {
+  createHandoff,
+  getHandoffById,
+  listHandoffs,
+  resumeHandoff,
+  closeHandoff,
+  formatHandoffMarkdown,
+} from "./db/omnicontextHandoffs";
+export type {
+  OmniContextHandoff,
+  HandoffStatus,
+  CreateHandoffInput,
+} from "./db/omnicontextHandoffs";
+
 export { sumUsageTokensThisMonth } from "./db/usageSummary";
 
 export {
@@ -797,3 +860,10 @@ export { exportProxyLogsSince } from "./db/proxyLogs";
 export { markConnectionRateLimitedUntil, clearConnectionRateLimit } from "./db/providers";
 // Provider param filters — denylist/allowlist config per provider/model (#6625)
 export * from "./db/paramFilters";
+
+// OmniContext Phase 0 foundation
+export * from "./db/omnicontextProjects";
+export * from "./db/omnicontextRepoMap";
+export * from "./db/omnicontextAudit";
+export * from "./db/omnicontextArtifacts";
+export * from "./db/omnicontextHandoffs";

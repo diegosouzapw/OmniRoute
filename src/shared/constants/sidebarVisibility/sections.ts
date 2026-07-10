@@ -509,6 +509,14 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     icon: "psychology",
   },
   {
+    id: "omnicontext",
+    href: "/dashboard/omnicontext",
+    i18nKey: "omnicontext",
+    labelFallback: "OmniContext",
+    subtitleFallback: "Team project context",
+    icon: "account_tree",
+  },
+  {
     id: "agent-skills",
     href: "/dashboard/agent-skills",
     i18nKey: "agentSkills",

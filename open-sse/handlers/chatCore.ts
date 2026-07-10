@@ -1,4 +1,5 @@
 import { injectMemoryAndSkills } from "./chatCore/memorySkillsInjection.ts";
+import { injectOmniContext } from "../services/omnicontext/omnicontextInjection.ts";
 import { resolveChatCoreRequestSetup } from "./chatCore/requestSetup.ts";
 import { buildFailureUsageRecord } from "./chatCore/failureUsage.ts";
 import { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
@@ -955,6 +956,22 @@ export async function handleChatCore({
   }
 
   body = sanitizeChatRequestBody(body, sourceFormat, targetFormat);
+  // OmniContext Continuity inject (Layer A/B) — fail-open; before Memory (Layer D).
+  // Opt-out: `x-omniroute-no-omnicontext: true`. Disabled by default until settings.enabled.
+  {
+    const apiKeyId =
+      typeof (apiKeyInfo as { id?: unknown } | null)?.id === "string"
+        ? ((apiKeyInfo as { id: string }).id as string)
+        : null;
+    const ocResult = await injectOmniContext({
+      body: body as Record<string, unknown>,
+      headers: clientRawRequest?.headers ?? null,
+      apiKeyId,
+      provider,
+      log,
+    });
+    body = ocResult.body as typeof body;
+  }
   // Per-request opt-out: clients that manage their own context send
   // `x-omniroute-no-memory: true` to skip memory+skills injection (a null owner
   // disables both branches in injectMemoryAndSkills). See PRD-2026-06-19-no-memory-header.

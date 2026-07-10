@@ -65,6 +65,7 @@ import {
 } from "./tools/advancedTools.ts";
 import { handlePickFastestModel } from "./tools/pickFastestModel.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
+import { omnicontextTools } from "./tools/omnicontextTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
 import { agentSkillTools } from "./tools/agentSkillTools.ts";
 import { githubSkillTools } from "./tools/githubSkillTools.ts";
@@ -101,6 +102,7 @@ const MCP_ALLOWED_SCOPES = new Set(
 const TOTAL_MCP_TOOL_COUNT =
   MCP_TOOLS.length +
   Object.keys(memoryTools).length +
+  Object.keys(omnicontextTools).length +
   Object.keys(skillTools).length +
   Object.keys(agentSkillTools).length +
   Object.keys(githubSkillTools).length +
@@ -671,6 +673,7 @@ export function createMcpServer(): McpServer {
   const RESERVED_MCP_NAMES = new Set([
     ...MCP_TOOLS.map((t) => t.name),
     ...Object.keys(memoryTools),
+    ...Object.keys(omnicontextTools),
     ...Object.keys(skillTools),
     ...Object.keys(compressionTools),
     ...Object.keys(poolTools),
@@ -1011,6 +1014,39 @@ export function createMcpServer(): McpServer {
           try {
             const parsedArgs = toolDef.inputSchema.parse(args ?? {});
             // @ts-ignore - handler type lost through dynamic Object.values() access
+            const result = await toolDef.handler(parsedArgs, extra);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
+    );
+  });
+
+  // ── OmniContext Tools ──────────────────────────────
+  type OmniContextToolDef = {
+    name: string;
+    description: string;
+    scopes: string[];
+    inputSchema: { parse: (args: unknown) => unknown };
+    handler: (args: unknown, extra: unknown) => Promise<unknown>;
+  };
+  (Object.values(omnicontextTools) as OmniContextToolDef[]).forEach((toolDef) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        // @ts-ignore: dynamic zod access
+        inputSchema: toolDef.inputSchema,
+      },
+      withScopeEnforcement(
+        toolDef.name,
+        async (args, extra) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
             const result = await toolDef.handler(parsedArgs, extra);
             return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
           } catch (err) {
