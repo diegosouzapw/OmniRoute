@@ -41,10 +41,21 @@ const providerNodeIconUrlSchema = z
   })
   .optional();
 
+// #6715: the `apiKey` field is reused as the raw `Cookie:` header value for
+// cookie-based web providers (Gemini Business, Copilot M365, ChatGPT Web,
+// Claude Web, …). Real multi-cookie session headers (many `__Secure-*` entries,
+// large session tokens) legitimately exceed the old 10,000-char cap, so saving
+// a cookie that the provider's own `validate` check (validateProviderApiKeySchema,
+// uncapped) had already accepted failed with HTTP 400 "Too big …<=10000". Raised
+// to a still-bounded ceiling — well under the 10 MB default request-body limit and
+// the unconstrained SQLite TEXT column — so garbage input is still rejected.
+// Same fix shape as #6562 (priority cap raised to 100_000).
+export const MAX_PROVIDER_CREDENTIAL_LENGTH = 100_000;
+
 export const createProviderSchema = z
   .object({
     provider: z.string().min(1).max(100),
-    apiKey: z.string().max(10000).optional(),
+    apiKey: z.string().max(MAX_PROVIDER_CREDENTIAL_LENGTH).optional(),
     name: z.string().min(1).max(200),
     priority: z.number().int().min(1).max(100).optional(),
     globalPriority: z.number().int().min(1).max(100).nullable().optional(),
@@ -91,7 +102,7 @@ export const bulkCreateProviderSchema = z
       .array(
         z.object({
           name: z.string().min(1).max(200),
-          apiKey: z.string().min(1).max(10000),
+          apiKey: z.string().min(1).max(MAX_PROVIDER_CREDENTIAL_LENGTH),
           // Per-key account id — required for cloudflare-ai (enforced in superRefine below).
           accountId: z.string().min(1).max(200).optional(),
         })
@@ -304,7 +315,7 @@ export const updateProviderConnectionSchema = z
     globalPriority: z.union([z.coerce.number().int().min(1).max(100_000), z.null()]).optional(),
     defaultModel: z.union([z.string().max(200), z.null()]).optional(),
     isActive: z.boolean().optional(),
-    apiKey: z.string().max(10000).optional(),
+    apiKey: z.string().max(MAX_PROVIDER_CREDENTIAL_LENGTH).optional(),
     testStatus: z.string().max(50).optional(),
     lastError: z.union([z.string(), z.null()]).optional(),
     lastErrorAt: z.union([z.string(), z.null()]).optional(),

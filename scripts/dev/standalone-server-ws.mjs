@@ -5,11 +5,13 @@ import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { ensurePeerStampToken, wrapRequestListenerWithPeerStamp } from "./peer-stamp.mjs";
 import { maybeHandleWebdav } from "./webdav-handler.mjs";
 import methodGuard from "./http-method-guard.cjs";
+import headResponseGuard from "./head-response-guard.cjs";
 import { resolveTlsOptions, createServerListener } from "./tls-options.mjs";
 
 const originalCreateServer = http.createServer.bind(http);
 const proxiesByPort = new Map();
 const { wrapRequestListenerWithMethodGuard } = methodGuard;
+const { wrapRequestListenerWithHeadResponseGuard } = headResponseGuard;
 
 // Opt-in native HTTPS (#5242). Resolved once at boot: when both OMNIROUTE_TLS_CERT
 // and OMNIROUTE_TLS_KEY point at readable files we terminate TLS on the same
@@ -114,8 +116,12 @@ http.createServer = function createServerWithResponsesWs(...args) {
   const lastFnIdx = args.map((a) => typeof a === "function").lastIndexOf(true);
   if (lastFnIdx >= 0) {
     // Method guard runs before Next because Next 16 rejects TRACE while constructing requests.
-    args[lastFnIdx] = wrapRequestListenerWithMethodGuard(
-      wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(args[lastFnIdx]))
+    // Head-response guard wraps outermost so it sees (and can force-close) every
+    // HEAD request regardless of which inner layer ends up handling it (#6400).
+    args[lastFnIdx] = wrapRequestListenerWithHeadResponseGuard(
+      wrapRequestListenerWithMethodGuard(
+        wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(args[lastFnIdx]))
+      )
     );
   }
 
@@ -134,8 +140,10 @@ http.createServer = function createServerWithResponsesWs(...args) {
     if (eventName === "request" && typeof listener === "function") {
       return originalOn(
         eventName,
-        wrapRequestListenerWithMethodGuard(
-          wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(listener))
+        wrapRequestListenerWithHeadResponseGuard(
+          wrapRequestListenerWithMethodGuard(
+            wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(listener))
+          )
         )
       );
     }
@@ -149,8 +157,10 @@ http.createServer = function createServerWithResponsesWs(...args) {
     if (eventName === "request" && typeof listener === "function") {
       return originalAddListener(
         eventName,
-        wrapRequestListenerWithMethodGuard(
-          wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(listener))
+        wrapRequestListenerWithHeadResponseGuard(
+          wrapRequestListenerWithMethodGuard(
+            wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(listener))
+          )
         )
       );
     }
