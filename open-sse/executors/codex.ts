@@ -1132,7 +1132,11 @@ export class CodexExecutor extends BaseExecutor {
     // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
     // invalid upstream, and translation bugs can leave orphaned/empty tool_choice names.
     normalizeCodexTools(body, {
-      dropImageGeneration: isCodexFreePlan(credentials?.providerSpecificData),
+      // gpt-5.3-codex-spark (and other Spark-scope models) reject image_generation
+      // upstream even on paid-plan accounts, so drop it independent of plan (#6651).
+      dropImageGeneration:
+        isCodexFreePlan(credentials?.providerSpecificData) ||
+        getCodexModelScope(model) === "spark",
       preserveCustomTools: nativeCodexPassthrough,
     });
 
