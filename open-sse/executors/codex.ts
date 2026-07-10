@@ -894,7 +894,9 @@ export class CodexExecutor extends BaseExecutor {
       headers["chatgpt-account-id"] = workspaceId;
     }
     const clientIdentity = credentials?.providerSpecificData?.codexClientIdentity as
-      CodexClientIdentity | null | undefined;
+      | CodexClientIdentity
+      | null
+      | undefined;
 
     // Originator header — identifies the client type to the Codex backend.
     // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
@@ -1001,6 +1003,7 @@ export class CodexExecutor extends BaseExecutor {
       delete body.stream;
       delete body.stream_options;
       delete body.client_metadata;
+      delete body.include;
     } else {
       body.stream = true;
     }
@@ -1174,6 +1177,9 @@ export class CodexExecutor extends BaseExecutor {
       };
     }
     ensureCodexReasoningSummary(body);
+    if (isCompactRequest) {
+      delete body.include;
+    }
     delete body.reasoning_effort;
 
     // Remove unsupported token limit parameters BEFORE the passthrough return.
@@ -1214,7 +1220,9 @@ export class CodexExecutor extends BaseExecutor {
       applyCodexClientMetadata(
         body,
         credentials?.providerSpecificData?.codexClientIdentity as
-          CodexClientIdentity | null | undefined
+          | CodexClientIdentity
+          | null
+          | undefined
       );
     }
 
