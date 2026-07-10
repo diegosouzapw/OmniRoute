@@ -281,7 +281,6 @@ export function assertValidAwsRegion(region: string): string {
 // 2. AWS IAM Identity Center/IDC (Device Code Flow with custom startUrl/region)
 // 3. Google/GitHub Social Login (Authorization Code Flow - manual callback)
 // 4. Import Token (paste refresh token from Kiro IDE)
-// 5. API Key (long-lived CodeWhisperer/Kiro bearer credential)
 export const KIRO_CONFIG = {
   // AWS SSO OIDC endpoints for Builder ID/IDC (Device Code Flow)
   ssoOidcEndpoint: "https://oidc.us-east-1.amazonaws.com",
@@ -311,7 +310,7 @@ export const KIRO_CONFIG = {
     "https://prod.us-east-1.auth.desktop.kiro.dev/oauth/device/authorization",
   socialDevicePollUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/oauth/device/poll",
   // Auth methods
-  authMethods: ["builder-id", "idc", "google", "github", "import", "api-key"],
+  authMethods: ["builder-id", "idc", "google", "github", "import"],
 };
 
 // Cursor OAuth Configuration (Import Token from Cursor IDE)
@@ -485,6 +484,7 @@ export const PROVIDERS = {
   CURSOR: "cursor",
   KILOCODE: "kilocode",
   CLINE: "cline",
+  CLINEPASS: "clinepass",
   WINDSURF: "windsurf",
   DEVIN_CLI: "devin-cli",
   TRAE: "trae",
