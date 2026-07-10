@@ -89,6 +89,24 @@ export const RERANK_PROVIDERS = {
     ],
   },
 
+  // OpenRouter exposes a separate, Cohere-compatible POST /api/v1/rerank endpoint
+  // (not surfaced by its live /v1/models feed, which contains 0 rerank ids — confirmed
+  // by direct curl). Model IDs keep their vendor slash (e.g. "cohere/rerank-4-pro");
+  // parseRerankModel splits on the FIRST slash, so 3-segment ids resolve safely, same
+  // as siliconflow above. Seeded by hand and must be maintained here as OpenRouter adds
+  // more rerank models (#6574).
+  openrouter: {
+    id: "openrouter",
+    baseUrl: "https://openrouter.ai/api/v1/rerank",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "cohere/rerank-4-pro", name: "Cohere Rerank 4 Pro (via OpenRouter)" },
+      { id: "cohere/rerank-4-fast", name: "Cohere Rerank 4 Fast (via OpenRouter)" },
+      { id: "cohere/rerank-v3.5", name: "Cohere Rerank v3.5 (via OpenRouter)" },
+    ],
+  },
+
   // DeepInfra rerank is NOT Cohere-shaped: POST /v1/inference/<MODEL> with {queries:[q],documents}
   // returning {scores:[…]} (one score per document, positional). The `deepinfra` format adapter in
   // open-sse/handlers/rerank.ts builds the per-model URL and maps scores → Cohere results (#5332).
