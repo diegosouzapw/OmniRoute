@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import * as log from "@/sse/utils/logger";
 import {
   DEFAULT_CHAOS_PAGE_CONFIG,
   type ChaosPageConfig,
@@ -85,7 +84,7 @@ export function useChaosConfigData() {
         if (nextConfig) setConfig(nextConfig);
         if (nextProviders.length > 0) setProviders(nextProviders);
       } catch (err) {
-        log.error("chaos", "Failed to load config", err);
+        console.error("[chaos] Failed to load config", err);
       } finally {
         setLoading(false);
       }
