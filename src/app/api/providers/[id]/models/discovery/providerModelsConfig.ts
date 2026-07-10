@@ -260,6 +260,18 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
+  // OpenVecta (https://openvecta.com/) — OpenAI-compatible `/v1/models` returning
+  // { object: "list", data: [{ id, context_length, owned_by, … }, …] }. Bearer
+  // token with the `ov_sk_…` prefix. Same discovery shape as Together AI /
+  // Cerebras / NVIDIA NIM (live-fetch path; registry seed is the offline fallback).
+  openvecta: {
+    url: "https://api.openvecta.com/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => data.data || data.models || [],
+  },
   fireworks: {
     url: "https://api.fireworks.ai/inference/v1/models",
     method: "GET",
