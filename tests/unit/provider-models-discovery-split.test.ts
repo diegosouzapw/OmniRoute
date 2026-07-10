@@ -117,7 +117,7 @@ test("providerSets.isNamedOpenAIStyleProvider matches Set membership", () => {
 
 test("providerModelsConfig.PROVIDER_MODELS_CONFIG keeps core provider entries", () => {
   assert.equal(PROVIDER_MODELS_CONFIG.claude.url, "https://api.anthropic.com/v1/models");
-  assert.equal(PROVIDER_MODELS_CONFIG["qwen-web"].url, "https://chat.qwen.ai/api/v2/models");
+  assert.equal(PROVIDER_MODELS_CONFIG["qwen-web"].url, "https://chat.qwen.ai/api/v2/models/");
 });
 
 test("providerModelsConfig keeps the aimlapi live catalog entry", () => {

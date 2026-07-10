@@ -144,7 +144,7 @@ export async function validateDeepSeekWebProvider({ apiKey }: any) {
 }
 
 // qwen-web has no `modelsUrl` in its registry entry, so the generic OpenAI-compatible
-// validator used to derive a probe URL of `https://chat.qwen.ai/api/v2/models` (via
+// validator used to derive a probe URL of `https://chat.qwen.ai/api/v2/models/` (via
 // addModelsSuffix) — a non-existent path that answers with a 307 redirect, which the
 // outbound guard blocked and the route then mislabeled as an SSRF block (#3288/#3758).
 //
