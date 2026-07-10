@@ -545,6 +545,36 @@ function getContentBlocksFromMessage(
           } else if (url.trim()) {
             blocks.push({ type: "image", source: { type: "url", url } });
           }
+        } else if (part.type === "file" && (part.file?.file_data || part.file?.data)) {
+          // OpenAI Chat Completions file block:
+          // {type:"file", file:{filename, file_data:"data:<mime>;base64,..."}}.
+          // Map PDFs to a Claude document block and image mimes to an image block so the
+          // attachment reaches the model instead of being silently dropped. Claude has no
+          // native video input, so non-pdf/non-image files are skipped here.
+          const fileData = part.file.file_data || part.file.data;
+          const fmatch =
+            typeof fileData === "string" ? fileData.match(/^data:([^;]+);base64,(.+)$/) : null;
+          if (fmatch) {
+            const mediaType = fmatch[1];
+            if (mediaType === "application/pdf") {
+              blocks.push({
+                type: "document",
+                source: { type: "base64", media_type: mediaType, data: fmatch[2] },
+                ...(part.file.filename ? { title: part.file.filename } : {}),
+              });
+            } else if (mediaType.startsWith("image/")) {
+              blocks.push({
+                type: "image",
+                source: { type: "base64", media_type: mediaType, data: fmatch[2] },
+              });
+            }
+          } else if (typeof fileData === "string" && /^https?:\/\//i.test(fileData)) {
+            blocks.push({
+              type: "document",
+              source: { type: "url", url: fileData },
+              ...(part.file.filename ? { title: part.file.filename } : {}),
+            });
+          }
         }
       }
     }
@@ -622,7 +652,12 @@ function getContentBlocksFromMessage(
       (b) => b.type === "thinking" || b.type === "redacted_thinking"
     );
     const hasToolUseBlock = blocks.some((b) => b.type === "tool_use");
-    if (msg.reasoning_content && thinkingEnabledForRequest && hasToolUseBlock && !hasThinkingBlock) {
+    if (
+      msg.reasoning_content &&
+      thinkingEnabledForRequest &&
+      hasToolUseBlock &&
+      !hasThinkingBlock
+    ) {
       blocks.unshift({
         type: "redacted_thinking",
         data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
