@@ -64,6 +64,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "trae",
   "kilocode",
   "cline",
+  "clinepass",
   "windsurf",
   "devin-cli",
   "grok-cli",
@@ -87,6 +88,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   cursor: CURSOR_CONFIG,
   kilocode: KILOCODE_CONFIG,
   cline: CLINE_CONFIG,
+  clinepass: CLINE_CONFIG, // reuses the Cline WorkOS flow (clinepass: cline in providers/index.ts)
   windsurf: WINDSURF_CONFIG,
   "devin-cli": WINDSURF_CONFIG,
   trae: TRAE_CONFIG,
@@ -138,6 +140,7 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   cursor: ["apiEndpoint", "api3Endpoint", "agentEndpoint", "agentNonPrivacyEndpoint", "dbKeys"],
   kilocode: ["apiBaseUrl", "initiateUrl", "pollUrlBase"],
   cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
+  clinepass: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
   windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],

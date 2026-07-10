@@ -1669,6 +1669,7 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
       );
 
     case "cline":
+    case "clinepass": // reuses the Cline WorkOS refresh flow (clinepass: cline)
       return await refreshClineToken(credentials.refreshToken, log, proxyConfig);
 
     case "kimi-coding":
