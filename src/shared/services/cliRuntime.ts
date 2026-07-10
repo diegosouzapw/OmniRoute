@@ -210,6 +210,24 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".config/deepseek-tui/config.toml",
     },
   },
+  omp: {
+    defaultCommand: "omp",
+    envBinKey: "CLI_OMP_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".omp/agent/models.yml",
+    },
+  },
+  letta: {
+    defaultCommand: "letta",
+    envBinKey: "CLI_LETTA_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".letta/lc-local-backend/providers/auth.json",
+    },
+  },
   codewhale: {
     defaultCommand: "codewhale",
     envBinKey: "CLI_CODEWHALE_BIN",
