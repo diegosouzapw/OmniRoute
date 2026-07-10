@@ -55,16 +55,21 @@ export default function EmptyConnectionsPlaceholder({
       <p className="text-sm text-text-muted mb-4">{t("addFirstConnectionHint")}</p>
       {!isCompatible && (
         <div className="flex items-center justify-center gap-2">
-          {isCommandCode ? (
+          {isCommandCode || providerId === "clinepass" ? (
             <>
               <Button
                 icon="open_in_new"
                 loading={
-                  commandCodeAuthState.phase === "starting" ||
-                  commandCodeAuthState.phase === "polling" ||
-                  commandCodeAuthState.phase === "applying"
+                  isCommandCode &&
+                  (commandCodeAuthState.phase === "starting" ||
+                    commandCodeAuthState.phase === "polling" ||
+                    commandCodeAuthState.phase === "applying")
                 }
-                onClick={() => gateConnectionFlow(handleOpenCommandCodeConnect)}
+                onClick={() =>
+                  gateConnectionFlow(
+                    isCommandCode ? handleOpenCommandCodeConnect : openPrimaryAddFlow
+                  )
+                }
               >
                 Connect
               </Button>
