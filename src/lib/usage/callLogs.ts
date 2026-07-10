@@ -123,8 +123,10 @@ async function resolveAccountName(connectionId: string | null | undefined) {
 
   try {
     const { getProviderConnections } = await import("@/lib/localDb");
-    const connections = await getProviderConnections();
-    const conn = connections.find((item) => item.id === connectionId);
+    const all = await getProviderConnections();
+    const conn = (all as Array<{ id?: string; name?: string; email?: string }>).find(
+      (item) => item.id === connectionId
+    );
     if (conn) {
       account = pickDisplayValue(
         [toStringOrNull(conn.name), toStringOrNull(conn.email)],

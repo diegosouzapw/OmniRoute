@@ -104,6 +104,13 @@ const DEFAULT_COMBO_CONFIG = {
     latencyWeight: 0.15,
     cacheTtlMs: 60000,
   },
+  contextRequirements: undefined as
+    | {
+        minContextWindow?: number;
+        preferLargeContext?: boolean;
+        contextFilterMode?: "strict" | "lenient";
+      }
+    | undefined,
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
