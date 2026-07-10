@@ -254,7 +254,7 @@
     "src/shared/components/OAuthModal.tsx": 993,
     "src/shared/components/RequestLoggerV2.tsx": 1629,
     "src/shared/components/analytics/charts.tsx": 1558,
-    "src/shared/constants/cliTools.ts": 915,
+    "src/shared/constants/cliTools.ts": 916,
     "src/shared/constants/pricing.ts": 1662,
     "src/shared/constants/providers.ts": 3276,
     "src/shared/constants/sidebarVisibility.ts": 1198,
