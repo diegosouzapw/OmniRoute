@@ -13,6 +13,14 @@ import {
   matchErrorRuleByStatus,
 } from "../config/errorConfig.ts";
 import { getProviderErrorRuleMatch } from "../config/providerErrorRules.ts";
+import {
+  resolveRotationConfig,
+  isFallbackBlockedForStatus,
+  shouldForceFallbackFor400,
+  classForStatus,
+  rateLimitCooldownOverrideMs,
+  recordErrorAndCheckThreshold,
+} from "./rotationConfig.ts";
 import { getPassthroughProviders, getProviderCategory } from "../config/providerRegistry.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
@@ -1276,7 +1284,11 @@ export function checkFallbackError(
   provider: string | null = null,
   headers: Headers | Record<string, string> | null = null,
   profileOverride: ProviderProfile | null = null,
-  structuredError?: { code?: string | null; type?: string | null } | null
+  structuredError?: { code?: string | null; type?: string | null } | null,
+  /** Per-connection rotation overrides (from providerSpecificData.rotationOverrides). Null => use the global env config. */
+  rotationOverrides?: Record<string, unknown> | null,
+  /** Stable key (e.g. connection id) for per-connection threshold/window counting. Null => count-immediately. */
+  rotationKey?: string | null
 ): {
   shouldFallback: boolean;
   cooldownMs: number;
@@ -1315,6 +1327,36 @@ export function checkFallbackError(
         skipProviderBreaker: true,
       };
     }
+  }
+
+  // ── Runtime rotation config (operator-managed, e.g. VibeProxy) ─────────────────────────────
+  // Gate account fallback per HTTP status class (429/500/502/400) and, when a threshold > 1 is
+  // configured, only rotate after N errors within the class window. Defaults preserve the engine's
+  // historical behavior (429/500/502 rotate immediately; a plain 400 does not).
+  const rotationCfg = resolveRotationConfig(rotationOverrides);
+  if (isFallbackBlockedForStatus(status, rotationCfg)) {
+    return { shouldFallback: false, cooldownMs: 0, reason: RateLimitReason.UNKNOWN };
+  }
+  // Threshold/window: hold off rotation until N errors of this class occur within the window.
+  if (
+    rotationKey &&
+    classForStatus(status, rotationCfg) &&
+    !recordErrorAndCheckThreshold(rotationKey, status, rotationCfg)
+  ) {
+    return { shouldFallback: false, cooldownMs: 0, reason: RateLimitReason.UNKNOWN };
+  }
+  // Additive: operator opted IN to rotating on 400 (bad request). Treat it like a retryable
+  // rate-limit-ish error (off by default, so a plain 400 keeps returning to the client).
+  if (shouldForceFallbackFor400(status, rotationCfg)) {
+    const overrideMs = rateLimitCooldownOverrideMs(rotationCfg);
+    const cooldownMs = overrideMs ?? COOLDOWN_MS.rateLimit;
+    return {
+      shouldFallback: true,
+      cooldownMs,
+      baseCooldownMs: cooldownMs,
+      newBackoffLevel: 0,
+      reason: RateLimitReason.RATE_LIMIT_EXCEEDED,
+    };
   }
 
   const errorStr = (errorText || "").toString();
@@ -1403,6 +1445,22 @@ export function checkFallbackError(
         usedUpstreamRetryHint: true,
         reason,
       };
+    }
+
+    // Operator-configured rate-limit cooldown (no upstream hint available). Applies only to the
+    // rate-limit reason so 5xx / capacity errors keep their scaled exponential backoff.
+    if (reason === RateLimitReason.RATE_LIMIT_EXCEEDED) {
+      const overrideMs = rateLimitCooldownOverrideMs(rotationCfg);
+      if (overrideMs !== null) {
+        return {
+          shouldFallback: true,
+          cooldownMs: overrideMs,
+          baseCooldownMs: overrideMs,
+          newBackoffLevel: 0,
+          usedUpstreamRetryHint: false,
+          reason,
+        };
+      }
     }
 
     const scaled = getScaledBaseCooldown(reason, backoffLevel);
@@ -1790,7 +1848,29 @@ export function applyErrorState<T extends AccountState | null | undefined>(
   if (!account) return account;
 
   const backoffLevel = account.backoffLevel || 0;
-  const fallbackDecision = checkFallbackError(status, errorText, backoffLevel, null, provider);
+  // Per-connection rotation config (task: VibeProxy's rotation rules mirrored on the backend).
+  // Threshold/window is counted per connection id; overrides come from the connection's
+  // providerSpecificData.rotationOverrides. Both are optional — absent => global env config.
+  const psd = (account as Record<string, unknown>)["providerSpecificData"];
+  const rotationOverrides =
+    psd && typeof psd === "object" && (psd as Record<string, unknown>).rotationOverrides &&
+    typeof (psd as Record<string, unknown>).rotationOverrides === "object"
+      ? ((psd as Record<string, unknown>).rotationOverrides as Record<string, unknown>)
+      : null;
+  const rotationKey =
+    typeof account.id === "string" && (account.id as string).length > 0 ? (account.id as string) : null;
+  const fallbackDecision = checkFallbackError(
+    status,
+    errorText,
+    backoffLevel,
+    null,
+    provider,
+    null,
+    null,
+    null,
+    rotationOverrides,
+    rotationKey
+  );
   const { cooldownMs, reason } = fallbackDecision;
   const newBackoffLevel =
     "newBackoffLevel" in fallbackDecision ? fallbackDecision.newBackoffLevel : undefined;
