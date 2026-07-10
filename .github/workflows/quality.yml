@@ -108,7 +108,26 @@ jobs:
           fi
           echo "Running impacted tests:"; echo "$SEL"
           mapfile -t FILES <<< "$SEL"
-          node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${FILES[@]}"
+          # Loader parity with test:unit:ci:shard (#6787): tests/unit/dashboard/** runs
+          # under `--import tsx` (CJS transform — required for ESM-only deep imports like
+          # @lobehub/icons/es/* reached via lobeProviderIcons.ts); everything else under
+          # `--import tsx/esm`. A single tsx/esm invocation false-reds every dashboard
+          # module-shape test the impact map selects ("Unexpected token 'export'").
+          DASH=(); REST=()
+          for f in "${FILES[@]}"; do
+            case "$f" in
+              tests/unit/dashboard/*) DASH+=("$f") ;;
+              *) REST+=("$f") ;;
+            esac
+          done
+          RC=0
+          if [ ${#REST[@]} -gt 0 ]; then
+            node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${REST[@]}" || RC=$?
+          fi
+          if [ ${#DASH[@]} -gt 0 ]; then
+            node --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${DASH[@]}" || RC=$?
+          fi
+          exit $RC
 
   fast-vitest:
     name: Vitest (fast-path)
@@ -130,15 +149,17 @@ jobs:
       - run: npm run test:vitest
 
   fast-unit:
-    name: Unit Tests fast-path (${{ matrix.shard }}/2)
+    name: Unit Tests fast-path (${{ matrix.shard }}/4)
     # Dynamic runner — see fast-gates (own-origin + flag; fork/unset → ubuntu-latest).
-    # This is the heaviest fast-path job (~9min on ubuntu-latest); the 32-core VPS
-    # cuts it to ~2-3min when the flag is on.
+    # This is the heaviest fast-path job; 4-way sharding (was 2) halves the critical
+    # path again (~8.5min → ~4.5min on ubuntu-latest; ~2min on the 8-slot runner box).
+    # Node's native --test-shard=N/total takes any denominator — only this matrix and
+    # the TEST_SHARD env below encode the shard count.
     runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3, 4]
     env:
       JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-lint-api-key-secret-long
@@ -157,7 +178,7 @@ jobs:
       # silenciosamente não rodavam no fast path) e o setupPolyfill não era importado.
       - run: npm run test:unit:ci:shard
         env:
-          TEST_SHARD: ${{ matrix.shard }}/2
+          TEST_SHARD: ${{ matrix.shard }}/4
 
   # ── Pacote 4 (plano mestre testes+CI, aprovado 2026-07-04) ─────────────────────────
   # No-new-warnings por PR via ESLint bulk suppressions nativo (>=9.24). O baseline
