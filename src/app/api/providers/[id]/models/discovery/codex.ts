@@ -112,72 +112,90 @@ function shouldImportCodexModel(record: JsonRecord): boolean {
   return true;
 }
 
+function getCodexModelId(record: JsonRecord): string | null {
+  return (
+    toNonEmptyString(record.slug) || toNonEmptyString(record.id) || toNonEmptyString(record.model)
+  );
+}
+
+function getCodexModelName(record: JsonRecord, id: string): string {
+  return (
+    toNonEmptyString(record.display_name) ||
+    toNonEmptyString(record.displayName) ||
+    toNonEmptyString(record.name) ||
+    toNonEmptyString(record.title) ||
+    id
+  );
+}
+
+function recordSupportsThinking(record: JsonRecord): boolean {
+  return (
+    Array.isArray(record.supported_reasoning_levels) && record.supported_reasoning_levels.length > 0
+  );
+}
+
+function isImageModality(modality: unknown): boolean {
+  return toNonEmptyString(modality)?.toLowerCase() === "image";
+}
+
+function recordSupportsVision(record: JsonRecord): boolean {
+  return Array.isArray(record.input_modalities) && record.input_modalities.some(isImageModality);
+}
+
+function buildCodexDiscoveryModel(record: JsonRecord): CodexDiscoveryModel | null {
+  if (!shouldImportCodexModel(record)) return null;
+
+  const id = getCodexModelId(record);
+  if (!id) return null;
+
+  const topProvider = asRecord(record.top_provider);
+  const limits = asRecord(record.limits);
+  const model: CodexDiscoveryModel = {
+    id,
+    name: getCodexModelName(record, id),
+    owned_by: "codex",
+    apiFormat: "responses",
+    supportedEndpoints: ["responses"],
+  };
+  const inputTokenLimit = firstPositiveNumber(
+    record.inputTokenLimit,
+    record.maxInputTokens,
+    record.max_input_tokens,
+    record.contextLength,
+    record.context_length,
+    record.context_window,
+    record.max_context_window,
+    topProvider.context_length,
+    limits.input_tokens,
+    limits.inputTokenLimit,
+    limits.max_input_tokens
+  );
+  const outputTokenLimit = firstPositiveNumber(
+    record.outputTokenLimit,
+    record.maxOutputTokens,
+    record.max_output_tokens,
+    topProvider.max_completion_tokens,
+    limits.output_tokens,
+    limits.outputTokenLimit,
+    limits.max_output_tokens
+  );
+  const description = toNonEmptyString(record.description);
+
+  if (typeof inputTokenLimit === "number") model.inputTokenLimit = inputTokenLimit;
+  if (typeof outputTokenLimit === "number") model.outputTokenLimit = outputTokenLimit;
+  if (description) model.description = description;
+  if (recordSupportsThinking(record)) model.supportsThinking = true;
+  if (recordSupportsVision(record)) model.supportsVision = true;
+
+  return model;
+}
+
 export function normalizeCodexModelsResponse(payload: unknown): CodexDiscoveryModel[] {
   const deduped = new Map<string, CodexDiscoveryModel>();
 
   for (const item of getCodexModelItems(payload)) {
-    const record = asRecord(item);
-    const topProvider = asRecord(record.top_provider);
-    const limits = asRecord(record.limits);
-    if (!shouldImportCodexModel(record)) continue;
-
-    const id =
-      toNonEmptyString(record.slug) ||
-      toNonEmptyString(record.id) ||
-      toNonEmptyString(record.model);
-    if (!id) continue;
-
-    const name =
-      toNonEmptyString(record.display_name) ||
-      toNonEmptyString(record.displayName) ||
-      toNonEmptyString(record.name) ||
-      toNonEmptyString(record.title) ||
-      id;
-    const inputTokenLimit = firstPositiveNumber(
-      record.inputTokenLimit,
-      record.maxInputTokens,
-      record.max_input_tokens,
-      record.contextLength,
-      record.context_length,
-      record.context_window,
-      record.max_context_window,
-      topProvider.context_length,
-      limits.input_tokens,
-      limits.inputTokenLimit,
-      limits.max_input_tokens
-    );
-    const outputTokenLimit = firstPositiveNumber(
-      record.outputTokenLimit,
-      record.maxOutputTokens,
-      record.max_output_tokens,
-      topProvider.max_completion_tokens,
-      limits.output_tokens,
-      limits.outputTokenLimit,
-      limits.max_output_tokens
-    );
-
-    deduped.set(id, {
-      id,
-      name,
-      owned_by: "codex",
-      apiFormat: "responses",
-      supportedEndpoints: ["responses"],
-      ...(typeof inputTokenLimit === "number" ? { inputTokenLimit } : {}),
-      ...(typeof outputTokenLimit === "number" ? { outputTokenLimit } : {}),
-      ...(toNonEmptyString(record.description)
-        ? { description: toNonEmptyString(record.description)! }
-        : {}),
-      ...(Array.isArray(record.supported_reasoning_levels) &&
-      record.supported_reasoning_levels.length > 0
-        ? { supportsThinking: true }
-        : {}),
-      ...(Array.isArray(record.input_modalities) &&
-      record.input_modalities.some(
-        (modality) => toNonEmptyString(modality)?.toLowerCase() === "image"
-      )
-        ? { supportsVision: true }
-        : {}),
-    });
+    const model = buildCodexDiscoveryModel(asRecord(item));
+    if (model) deduped.set(model.id, model);
   }
 
   return Array.from(deduped.values());
@@ -189,6 +207,55 @@ export function normalizeCodexGithubCatalogResponse(payload: unknown): CodexDisc
 
 export function clearCodexGithubCatalogCacheForTests(): void {
   codexGithubCatalogCache = null;
+}
+
+function getFreshCodexGithubCatalogCache(
+  now: number,
+  cacheTtlMs: number
+): CodexDiscoveryModel[] | null {
+  if (cacheTtlMs > 0 && codexGithubCatalogCache?.expiresAt > now) {
+    return codexGithubCatalogCache.models;
+  }
+  return null;
+}
+
+function buildCodexGithubCatalogHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+  if (codexGithubCatalogCache?.etag) {
+    headers["If-None-Match"] = codexGithubCatalogCache.etag;
+  }
+  return headers;
+}
+
+function getNotModifiedCodexGithubCatalog(
+  response: Response,
+  now: number,
+  cacheTtlMs: number
+): CodexDiscoveryModel[] | null {
+  if (response.status !== 304 || !codexGithubCatalogCache) return null;
+
+  codexGithubCatalogCache = {
+    ...codexGithubCatalogCache,
+    expiresAt: now + cacheTtlMs,
+  };
+  return codexGithubCatalogCache.models;
+}
+
+function storeCodexGithubCatalogCache(
+  models: CodexDiscoveryModel[],
+  response: Response,
+  now: number,
+  cacheTtlMs: number
+): void {
+  const etag = toNonEmptyString(response.headers.get("etag"));
+  codexGithubCatalogCache = {
+    models,
+    ...(etag ? { etag } : {}),
+    expiresAt: now + cacheTtlMs,
+  };
 }
 
 type CodexLocalCatalogModel = {
@@ -296,43 +363,24 @@ export async function fetchCodexGithubCatalogModels({
   now?: number;
   cacheTtlMs?: number;
 }): Promise<CodexDiscoveryModel[] | null> {
-  if (cacheTtlMs > 0 && codexGithubCatalogCache?.expiresAt > now) {
-    return codexGithubCatalogCache.models;
-  }
+  const cachedModels = getFreshCodexGithubCatalogCache(now, cacheTtlMs);
+  if (cachedModels) return cachedModels;
 
   try {
-    const headers: Record<string, string> = {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    };
-    if (codexGithubCatalogCache?.etag) {
-      headers["If-None-Match"] = codexGithubCatalogCache.etag;
-    }
-
     const response = await fetchImpl(CODEX_GITHUB_MODELS_URL, {
       method: "GET",
-      headers,
+      headers: buildCodexGithubCatalogHeaders(),
     });
 
-    if (response.status === 304 && codexGithubCatalogCache) {
-      codexGithubCatalogCache = {
-        ...codexGithubCatalogCache,
-        expiresAt: now + cacheTtlMs,
-      };
-      return codexGithubCatalogCache.models;
-    }
+    const notModifiedModels = getNotModifiedCodexGithubCatalog(response, now, cacheTtlMs);
+    if (notModifiedModels) return notModifiedModels;
 
     if (!response.ok) return null;
 
     const models = normalizeCodexGithubCatalogResponse(await response.json());
     if (models.length === 0) return null;
 
-    const etag = toNonEmptyString(response.headers.get("etag"));
-    codexGithubCatalogCache = {
-      models,
-      ...(etag ? { etag } : {}),
-      expiresAt: now + cacheTtlMs,
-    };
+    storeCodexGithubCatalogCache(models, response, now, cacheTtlMs);
     return models;
   } catch {
     return codexGithubCatalogCache?.models || null;
