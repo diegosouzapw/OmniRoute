@@ -1832,11 +1832,6 @@
       "count": 1
     }
   },
-  "tests/unit/provider-validation-specialty.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 8
-    }
-  },
   "tests/unit/providers-route-managed-catalog.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4

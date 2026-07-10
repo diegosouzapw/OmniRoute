@@ -147,6 +147,17 @@ test("KiroExecutor.buildHeaders includes Kiro-specific auth and metadata", () =>
   assert.ok(headers["Amz-Sdk-Invocation-Id"]);
 });
 
+test("KiroExecutor.buildHeaders marks long-lived Kiro API keys", () => {
+  const executor = new KiroExecutor();
+  const headers = executor.buildHeaders(
+    { apiKey: "kiro-api-key", providerSpecificData: { authMethod: "api_key" } },
+    true
+  );
+
+  assert.equal(headers.Authorization, "Bearer kiro-api-key");
+  assert.equal(headers.tokentype, "API_KEY");
+});
+
 test("KiroExecutor.transformRequest removes the top-level model field", () => {
   const executor = new KiroExecutor();
   const body = {
@@ -382,6 +393,13 @@ test("KiroExecutor.refreshCredentials handles missing and AWS-style refresh toke
 
   try {
     assert.equal(await executor.refreshCredentials({}, null), null);
+    assert.equal(
+      await executor.refreshCredentials(
+        { refreshToken: "ignored", providerSpecificData: { authMethod: "api_key" } },
+        null
+      ),
+      null
+    );
     const result = await executor.refreshCredentials(
       {
         refreshToken: "refresh",
