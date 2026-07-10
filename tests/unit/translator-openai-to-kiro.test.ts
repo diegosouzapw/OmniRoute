@@ -1046,6 +1046,29 @@ test("buildKiroPayload accepts kr/* model ids without the [1m] suffix", () => {
   );
 });
 
+test("buildKiroPayload strips local Kiro selector suffixes before upstream", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("claude-opus-4.8-thinking-agentic", body, true, {});
+  assert.equal(
+    result.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-opus-4.8",
+    "local -thinking/-agentic aliases must not be forwarded to Kiro"
+  );
+  assert.equal(
+    result.additionalModelRequestFields?.output_config?.effort,
+    "high",
+    "the -thinking selector should still request Kiro adaptive thinking"
+  );
+});
+
+test("buildKiroPayload maps auto-kiro selector to Kiro auto upstream id", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("auto-kiro", body, true, {});
+  assert.equal(result.conversationState.currentMessage.userInputMessage.modelId, "auto");
+});
+
 // Regression for upstream decolua/9router PR #2270: the dash->dot normalization's
 // trailing minor-version group must be bounded (1-2 digits), otherwise a
 // date-suffixed Claude model id (e.g. claude-opus-4-20250514) gets corrupted into

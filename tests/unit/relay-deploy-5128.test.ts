@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import vm from "node:vm";
 
 // Regression tests for #5128 — one-click relay deployments (Deno + Cloudflare +
 // Vercel) broken in v3.8.37. Four distinct, independently-reproducible bugs:
@@ -95,9 +96,7 @@ test("#5128C: Cloudflare worker upload sends an accepted script Content-Type", a
       const bodyText = Buffer.isBuffer(init.body)
         ? (init.body as Buffer).toString("utf8")
         : String(init.body);
-      const match = bodyText.match(
-        /name="index\.js"[^]*?Content-Type: ([^\r\n]+)/
-      );
+      const match = bodyText.match(/name="index\.js"[^]*?Content-Type: ([^\r\n]+)/);
       scriptPartContentType = match?.[1];
       // Simulate the CF API rejecting the upload so the route short-circuits
       // without making the follow-up subdomain calls.
@@ -135,6 +134,88 @@ test("#5128C: Cloudflare worker upload sends an accepted script Content-Type", a
     scriptPartContentType === "application/javascript" ||
       scriptPartContentType === "text/javascript",
     `expected an accepted script MIME, got "${scriptPartContentType}"`
+  );
+});
+
+// --------------------------------------------------------------------------
+// E) Cloudflare worker script uses Service Worker syntax with body_part (#6416)
+// --------------------------------------------------------------------------
+test("#6416: Cloudflare worker script body is Service Worker syntax (no top-level export) + metadata uses body_part", async () => {
+  const realFetch = globalThis.fetch;
+  let capturedScriptBody = "";
+  let capturedMetadata: Record<string, unknown> | undefined;
+  globalThis.fetch = (async (input: unknown, init: RequestInit = {}) => {
+    const url = String(input);
+    if (init.method === "PUT" && url.includes("/workers/scripts/") && !url.includes("/subdomain")) {
+      const bodyText = Buffer.isBuffer(init.body)
+        ? (init.body as Buffer).toString("utf8")
+        : String(init.body);
+      const scriptMatch = bodyText.match(
+        /name="index\.js"[^]*?Content-Type: [^\r\n]+\r\n\r\n([^]*?)\r\n--/
+      );
+      const metadataMatch = bodyText.match(
+        /name="metadata"[^]*?Content-Type: application\/json\r\n\r\n([^]*?)\r\n--/
+      );
+      capturedScriptBody = scriptMatch?.[1] ?? "";
+      capturedMetadata = metadataMatch?.[1]
+        ? (JSON.parse(metadataMatch[1]) as Record<string, unknown>)
+        : undefined;
+      return Response.json({ errors: [{ message: "stubbed" }] }, { status: 400 });
+    }
+    return Response.json({ result: {} });
+  }) as unknown as typeof globalThis.fetch;
+
+  try {
+    const route = await import("../../src/app/api/settings/proxy/cloudflare-deploy/route.ts");
+    await route.POST(
+      new Request("http://localhost/api/settings/proxy/cloudflare-deploy", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          accountId: "abcdef0123456789",
+          apiToken: "cf-token-aaaaaaaaaaaaaaaaaaaaaa",
+          projectName: "omniroute-relay",
+        }),
+      })
+    );
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+
+  // The Cloudflare multipart upload API parses `application/javascript` script
+  // parts as Service Workers, so the body must NOT use ES-module syntax
+  // (`export default {...}`). It must register a fetch event listener instead.
+  assert.ok(
+    !/^\s*export\s+default/m.test(capturedScriptBody),
+    "Cloudflare worker script must not use `export default` (#6416 — CF parses non-`+module` MIME types as Service Workers)"
+  );
+  assert.ok(
+    /addEventListener\(\s*["']fetch["']/.test(capturedScriptBody),
+    "Cloudflare worker script must register a fetch event listener"
+  );
+
+  const privateHostnameFnSource = capturedScriptBody.match(
+    /function isPrivateHostname\(h\) \{[\s\S]*?\n\}/
+  )?.[0];
+  assert.ok(privateHostnameFnSource, "emitted worker script should contain isPrivateHostname");
+  const isPrivateHostname = vm.runInNewContext(
+    `${privateHostnameFnSource}; isPrivateHostname;`,
+    {}
+  ) as (host: string) => boolean;
+  assert.equal(isPrivateHostname("[::1]"), true, "bracketed IPv6 loopback must stay blocked");
+  assert.equal(isPrivateHostname("[fd00::1]"), true, "bracketed IPv6 ULA must stay blocked");
+
+  // Metadata must use `body_part` (Service Worker entry) rather than
+  // `main_module` (which requires an actual ES module).
+  assert.equal(
+    capturedMetadata?.body_part,
+    "index.js",
+    "metadata.body_part must point at the script part"
+  );
+  assert.equal(
+    capturedMetadata?.main_module,
+    undefined,
+    "metadata must not use main_module — that requires an ES module script body (#6416)"
   );
 });
 

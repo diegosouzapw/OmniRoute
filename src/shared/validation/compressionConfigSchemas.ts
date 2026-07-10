@@ -61,6 +61,7 @@ export const rtkConfigSchema = z
     groupingThreshold: z.number().int().min(2).max(100).optional(),
     stripCodeComments: z.boolean().optional(),
     preserveDocstrings: z.boolean().optional(),
+    enableRenderers: z.boolean().optional(),
   })
   .strict();
 

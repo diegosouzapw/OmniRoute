@@ -64,6 +64,7 @@ export type CompatByProtocolMap = Partial<
 export type CompatModelRow = {
   id?: string;
   name?: string;
+  /** optional registry aliases for display/import */ aliases?: readonly string[];
   source?: string;
   apiFormat?: string;
   supportedEndpoints?: string[];
@@ -77,7 +78,6 @@ export type CompatModelRow = {
 };
 
 export type CompatModelMap = Map<string, CompatModelRow>;
-
 export type HeaderDraftRow = { id: string; name: string; value: string };
 
 // ---------------------------------------------------------------------------
@@ -85,7 +85,6 @@ export type HeaderDraftRow = { id: string; name: string; value: string };
 // outside the .tsx). Returns the i18n key for a targetFormat value, or null when the
 // value is unknown (the caller then renders the raw value verbatim).
 // ---------------------------------------------------------------------------
-
 const TARGET_FORMAT_BADGE_I18N_KEYS: Record<string, string> = {
   openai: "compatProtocolOpenAI",
   "openai-responses": "compatProtocolOpenAIResponses",

@@ -584,11 +584,16 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 8.0,
       cache_creation: 2.0,
     },
-    // Kiro "Auto" pricing — retained as a fallback price for any legacy "auto"
-    // reference. The "auto-kiro" registry model was removed (Kiro's API has no
-    // "auto" model id — it 400'd "Invalid model"), so its dedicated price key
-    // was dropped with it. See kiro cluster #6112/#6113/#6099.
+    // Kiro "Auto" pricing — retained for both the upstream "auto" id and the
+    // local "auto-kiro" selector. The translator maps auto-kiro back to auto.
     auto: {
+      input: 3.0,
+      output: 15.0,
+      cached: 1.5,
+      reasoning: 15.0,
+      cache_creation: 3.0,
+    },
+    "auto-kiro": {
       input: 3.0,
       output: 15.0,
       cached: 1.5,
