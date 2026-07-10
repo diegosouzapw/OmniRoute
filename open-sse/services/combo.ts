@@ -67,6 +67,8 @@ import { getSessionConnection } from "./sessionManager.ts";
 import {
   applySessionStickiness,
   recordStickyBinding,
+  clearStickyBinding,
+  peekStickyConnectionId,
   resolveDisableSessionStickiness,
 } from "./combo/sessionStickiness.ts";
 import { selectQuotaShareTarget } from "./combo/quotaShareStrategy.ts";
@@ -204,6 +206,26 @@ export {
   resolveNestedComboTargets,
   validateComboDAG,
 } from "./combo/comboStructure.ts";
+
+/**
+ * #6692: release a session-stickiness pin the moment its bound connection is
+ * the one that just failed. applySessionStickiness() only re-checks health on
+ * the NEXT turn (lazily) — without this, a terminal/quality-rejected
+ * connection stays pinned until that lazy recheck fires, and a masked
+ * daily-cap 200-body rejection never trips the lazy recheck's DB-backed
+ * testStatus gate at all (the connection row itself isn't marked unhealthy).
+ * Exported for the two failure branches in handleComboChat + handleRoundRobinCombo.
+ * peekStickyConnectionId guards against clearing an unrelated pin when the
+ * failing target isn't actually the currently sticky-bound connection.
+ */
+export function releaseStickyPinOnFailure(
+  messageHash: string | null | undefined,
+  failedConnectionId: string | null | undefined
+): void {
+  if (!messageHash || !failedConnectionId) return;
+  if (peekStickyConnectionId(messageHash) !== failedConnectionId) return;
+  clearStickyBinding(messageHash);
+}
 
 const DEFAULT_MODEL_P95_MS: Record<string, number> = {
   "grok-4-fast-non-reasoning": 1143,
@@ -1669,6 +1691,10 @@ export async function handleComboChat({
                 "COMBO",
                 `Model ${modelStr} returned 200 but failed quality check: ${quality.reason}`
               );
+              // #6692: a quality-rejected 200 never marks the connection row
+              // unhealthy, so the sticky pin's lazy headroom recheck would never
+              // catch it either — release it here, on the failing response.
+              releaseStickyPinOnFailure(_sticky.messageHash, effectiveConnectionId);
               recordComboRequest(combo.name, modelStr, {
                 success: false,
                 latencyMs: Date.now() - startTime,
@@ -2027,6 +2053,10 @@ export async function handleComboChat({
             exhaustedLogLevel: "info",
             structuredError,
           });
+          // #6692: this connection was just classified as provider/connection-level
+          // exhausted — if it's the currently sticky-bound one, release the pin now
+          // rather than waiting for the next turn's lazy headroom/status recheck.
+          releaseStickyPinOnFailure(_sticky.messageHash, targetWithConnection.connectionId);
 
           // #2101: Prevent infinite fallback loops with 400 Bad Request errors that are genuinely
           // body-specific (malformed JSON, bad format, missing required fields).
@@ -2758,6 +2788,19 @@ async function handleRoundRobinCombo({
               "COMBO-RR",
               `${modelStr} returned 200 but failed quality check: ${quality.reason}`
             );
+            // #6692: same rationale as handleComboChat's quality-fail branch —
+            // a quality-rejected 200 never marks the connection row unhealthy,
+            // so release the sticky pin here rather than on the next turn.
+            {
+              const rrSelectedConnectionId =
+                result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
+                result.headers?.get("x-omniroute-selected-connection-id") ||
+                undefined;
+              releaseStickyPinOnFailure(
+                _rrSessionSticky.messageHash,
+                rrSelectedConnectionId || target.connectionId
+              );
+            }
             recordComboRequest(combo.name, modelStr, {
               success: false,
               latencyMs: Date.now() - startTime,
@@ -2984,6 +3027,8 @@ async function handleRoundRobinCombo({
           exhaustedLogLevel: "debug",
           structuredError,
         });
+        // #6692: mirrors handleComboChat's exhaustion-point release above.
+        releaseStickyPinOnFailure(_rrSessionSticky.messageHash, targetWithConnection.connectionId);
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.
         if (
