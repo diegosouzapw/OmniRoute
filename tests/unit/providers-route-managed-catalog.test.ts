@@ -31,11 +31,11 @@ test.after(() => {
 test("providers route accepts managed local, audio, web-cookie and search providers", async () => {
   const cases = [
     {
-      provider: "glhf",
+      provider: "synthetic",
       body: {
-        provider: "glhf",
-        apiKey: "glhf-key",
-        name: "GLHF Chat",
+        provider: "synthetic",
+        apiKey: "synthetic-key",
+        name: "Synthetic",
       },
     },
     {
@@ -44,14 +44,6 @@ test("providers route accepts managed local, audio, web-cookie and search provid
         provider: "gitlab",
         apiKey: "glpat-test",
         name: "GitLab Duo PAT",
-      },
-    },
-    {
-      provider: "cablyai",
-      body: {
-        provider: "cablyai",
-        apiKey: "cably-key",
-        name: "CablyAI Primary",
       },
     },
     {
@@ -457,9 +449,9 @@ test("DELETE /api/providers batch deletes connections", async () => {
       })
     );
 
-  const r1 = await createReq("glhf", "Conn 1", "key-1");
-  const r2 = await createReq("glhf", "Conn 2", "key-2");
-  const r3 = await createReq("glhf", "Conn 3", "key-3");
+  const r1 = await createReq("synthetic", "Conn 1", "key-1");
+  const r2 = await createReq("synthetic", "Conn 2", "key-2");
+  const r3 = await createReq("synthetic", "Conn 3", "key-3");
   const id1 = (await r1.json()).connection.id;
   const id2 = (await r2.json()).connection.id;
   const id3 = (await r3.json()).connection.id;

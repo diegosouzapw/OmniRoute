@@ -183,6 +183,18 @@ export const updateSettingsSchema = z.object({
   fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
+  /** 9router parity: global combo expansion strategy (fallback vs round-robin). */
+  comboStrategy: z.enum(["fallback", "round-robin"]).optional(),
+  comboStickyRoundRobinLimit: z.number().int().min(1).max(100).optional(),
+  providerStrategies: z
+    .record(
+      z.string().trim().min(1),
+      z.object({
+        fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
+        stickyRoundRobinLimit: z.number().int().min(1).max(1000).optional(),
+      })
+    )
+    .optional(),
   // #6168: global session-stickiness opt-out (per-combo config overrides this).
   disableSessionStickiness: z.boolean().optional(),
   requestRetry: z.number().int().min(0).max(10).optional(),
