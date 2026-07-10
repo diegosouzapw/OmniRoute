@@ -573,7 +573,7 @@ Engines run in pipeline order; each is independently toggleable and configurable
 | 1   | **Session-Dedup** | Drops content repeated across turns (content-addressed, cross-turn) |
 | 2   | **CCR**           | Archives large blocks behind retrieve markers, fetched on demand    |
 | 3   | **RTK**           | Smart tool-result filtering, dedup & truncation (command-aware)     |
-| 4   | **Headroom**      | Lossless tabular compaction of homogeneous JSON arrays (~30%+), via a vendored **[GCF](https://github.com/blackwell-systems/gcf)** codec |
+| 4   | **Headroom**      | Lossless tabular compaction of homogeneous JSON arrays, flat or nested (~30%+), via a vendored **[GCF](https://github.com/blackwell-systems/gcf)** codec (spec v3.2 nested flattening) |
 | 5   | **Relevance**     | Extractive sentence scoring against the last user query             |
 | 6   | **Caveman**       | Rule-based prose compression (~65–75% on output)                    |
 | 7   | **LLMLingua-2**   | ML semantic pruning via MobileBERT ONNX — code-safe, async          |
