@@ -723,6 +723,19 @@ export function getImageModelAliases() {
   return IMAGE_MODEL_ALIASES;
 }
 
+/**
+ * #6457 — precise provider+modelId membership check against the image registry.
+ * Unlike getImageModelEntry() (which also resolves bare aliases and unprefixed
+ * ids by scanning every provider), this only answers "is `modelId` registered
+ * as an image model under this exact `providerId`?" — used by the chat catalog
+ * builder to keep upstream-discovered models (e.g. HuggingFace's live
+ * `/v1/models`, which returns image/diffusion models with no modality field)
+ * out of the chat listing when they are already known image-only models.
+ */
+export function isRegisteredImageModel(providerId, modelId) {
+  return Boolean(findImageModelConfig(providerId, modelId));
+}
+
 export function getImageModelEntry(modelStr) {
   if (!modelStr) return null;
 

@@ -151,6 +151,14 @@ export type ResolvedComboTarget = {
   label: string | null;
   failoverBeforeRetry?: unknown;
   trafficType?: "production" | "shadow";
+  /**
+   * Fingerprint-based account pin resolved from a combo builder composite
+   * connectionId (`${rowId}|fp|${fingerprint}`, see
+   * `expandTargetsByFingerprints` in `./fingerprintExpansion.ts`, #6696).
+   * Set only for fingerprint-provider targets (mimocode/mcode/opencode) that
+   * were pinned to one specific account.
+   */
+  pinnedFingerprint?: string;
 };
 
 export type ShadowRoutingConfig = {

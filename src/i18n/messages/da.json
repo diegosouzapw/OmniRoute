@@ -948,6 +948,7 @@
     "contextLite": "Lite",
     "contextAggressive": "Aggressive",
     "contextUltra": "Ultra",
+    "contextOmniglyph": "OmniGlyph",
     "contextSettings": "Compression Settings",
     "contextHeadroom": "Headroom",
     "contextSessionDedup": "Session Dedup",
@@ -1458,6 +1459,8 @@
     "chartModel": "__MISSING__:Model",
     "chartProvider": "__MISSING__:Provider",
     "chartProviderBreakdown": "__MISSING__:Provider Breakdown",
+    "chartDate": "__MISSING__:Date",
+    "chartRequestsByProviderDate": "__MISSING__:Requests by Provider & Date",
     "filterAllKeys": "__MISSING__:All Keys",
     "filterSearchKeys": "__MISSING__:Search keys…",
     "filterNoKeysMatch": "__MISSING__:No keys match",
@@ -4415,7 +4418,12 @@
     "webNoAuthGuideBody": "{provider} behøver ikke en API-nøgle eller cookie. Gem forbindelsen for at bruge dens gratis webslutpunkt.",
     "webSessionCredentialValidationFailed": "Validering af legitimationsoplysninger for session mislykkedes. Log ind igen, kopier en ny login, og prøv igen.",
     "checkCookie": "Tjek cookie",
-    "checkWebToken": "Tjek token"
+    "checkWebToken": "Tjek token",
+    "filterAll": "Alle",
+    "filterActive": "Aktiv",
+    "filterError": "Fejl",
+    "filterBanned": "Blokeret",
+    "filterCreditsExhausted": "Kreditter opbrugt"
   },
   "settings": {
     "title": "Indstillinger",

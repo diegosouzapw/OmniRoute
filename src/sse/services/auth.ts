@@ -12,7 +12,7 @@ import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
   getQuotaWindowStatus,
-  isAccountQuotaExhausted,
+  isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
 import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import {
@@ -658,7 +658,7 @@ function getP2CConnectionScore(
   requestedModel: string | null = null
 ): { score: number; quotaHeadroomPercent: number | null } {
   const quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
-  const quotaExhausted = isAccountQuotaExhausted(connection.id);
+  const quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
   const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(
     provider,
     connection,
@@ -1377,6 +1377,7 @@ export async function getProviderCredentials(
           lastErrorCode: allBlockedByModelCooldown ? 429 : earliestConn?.errorCode || null,
           cooldownScope: allBlockedByModelCooldown ? "model" : "connection",
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
+          connectionsCount: connections.length,
         };
       }
       const syntheticFallback = await maybeSyntheticNoAuthFallback(
@@ -1437,9 +1438,13 @@ export async function getProviderCredentials(
       };
     }
 
-    // Quota-aware: filter out accounts with exhausted quota
-    const withQuota = policyEligibleConnections.filter((c) => !isAccountQuotaExhausted(c.id));
-    const exhaustedQuota = policyEligibleConnections.filter((c) => isAccountQuotaExhausted(c.id));
+    // Quota-aware: filter out accounts with exhausted quota for the requested scope.
+    const withQuota = policyEligibleConnections.filter(
+      (c) => !isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+    );
+    const exhaustedQuota = policyEligibleConnections.filter((c) =>
+      isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+    );
 
     if (exhaustedQuota.length > 0) {
       log.info(
@@ -1472,7 +1477,13 @@ export async function getProviderCredentials(
 
     const orderedConnections = withQuota;
 
-    const strategy = settings.fallbackStrategy || "fill-first";
+    const providerStrategyOverrides = (settings.providerStrategies || {}) as Record<
+      string,
+      { fallbackStrategy?: string; stickyRoundRobinLimit?: number }
+    >;
+    const providerOverride = providerStrategyOverrides[resolvedId] || {};
+    const strategy =
+      providerOverride.fallbackStrategy || settings.fallbackStrategy || "fill-first";
 
     let connection;
     const affinityConnection = await selectSessionAffinityConnection(
@@ -1493,7 +1504,11 @@ export async function getProviderCredentials(
     if (connection) {
       // Session affinity selected a connection before global sticky routing.
     } else if (strategy === "round-robin") {
-      const stickyLimit = toNumber((settings as Record<string, unknown>).stickyRoundRobinLimit, 3);
+      const stickyLimit = toNumber(
+        providerOverride.stickyRoundRobinLimit ??
+          (settings as Record<string, unknown>).stickyRoundRobinLimit,
+        3
+      );
 
       // If excluding account(s) (fallback scenario), skip sticky logic and go straight to LRU.
       // This prevents same-model retries from getting stuck on a failed account.

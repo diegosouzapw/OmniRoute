@@ -133,6 +133,19 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "Zed stores LLM provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) in the OS keychain. Use the Import button below to discover and import them automatically.",
   },
+  "zed-hosted": {
+    id: "zed-hosted",
+    alias: undefined,
+    name: "Zed Hosted Models",
+    icon: "code_blocks",
+    color: "#101010",
+    textIcon: "ZH",
+    website: "https://zed.dev",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Sign in with your Zed account (native-app sign-in). OmniRoute generates a one-time RSA keypair and opens zed.dev to authorize it — on a remote/headless install, copy the resulting 127.0.0.1 callback URL from your browser's address bar and paste it back here. Distinct from the 'Zed IDE' credential-import entry above: this proxies chat completions through Zed's own hosted model aggregator (cloud.zed.dev), fronting Anthropic/OpenAI/Google/xAI models under your Zed plan.",
+  },
   trae: {
     id: "trae",
     alias: "tr",
@@ -177,6 +190,19 @@ export const OAUTH_PROVIDERS = {
     textIcon: "CL",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
+  },
+  clinepass: {
+    id: "clinepass",
+    alias: "cp",
+    name: "ClinePass",
+    icon: "smart_toy",
+    color: "#9D4EDD",
+    textIcon: "CP",
+    website: "https://cline.bot/clinepass",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "ClinePass is Cline's $9.99/mo subscription bundling 10 open coding models. Sign in with your Cline account (same login as the Cline CLI/IDE), or paste a direct ClinePass API key (app.cline.bot → Settings → API Keys). A ClinePass subscription unlocks the cline-pass/* models. Reuses the Cline WorkOS OAuth flow.",
   },
   windsurf: {
     id: "windsurf",

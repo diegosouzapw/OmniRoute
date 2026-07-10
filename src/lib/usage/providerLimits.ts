@@ -75,6 +75,7 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "vertex",
   "vertex-partner",
   "kimi-coding-apikey",
+  "kiro",
   // Qoder connections are PAT-based (authType "apikey"); the usage fetcher
   // exchanges the PAT for a job token and reads openapi.qoder.sh/user/status.
   "qoder",
@@ -89,12 +90,14 @@ function toProviderLimitsCacheEntry(
   source: SyncSource,
   fetchedAt = new Date().toISOString()
 ): ProviderLimitsCacheEntry {
+  const value = Number(usage.bankedResetCredits);
   return {
     quotas: isRecord(usage.quotas) ? usage.quotas : null,
     plan: usage.plan ?? null,
     message: typeof usage.message === "string" ? usage.message : null,
     fetchedAt,
     source,
+    bankedResetCredits: Number.isFinite(value) ? value : undefined,
   };
 }
 
@@ -185,7 +188,8 @@ export function isSupportedUsageConnection(connection: ProviderConnectionLike | 
 
   if (connection.authType === "oauth") return true;
   return (
-    connection.authType === "apikey" && PROVIDER_LIMITS_APIKEY_PROVIDERS.has(connection.provider)
+    (connection.authType === "apikey" || connection.authType === "api_key") &&
+    PROVIDER_LIMITS_APIKEY_PROVIDERS.has(connection.provider)
   );
 }
 
@@ -876,12 +880,11 @@ export async function fetchAndPersistProviderLimits(
   if (fetchFailed) {
     const previous = getProviderLimitsCache(connectionId);
     if (previous?.quotas && Object.keys(previous.quotas).length > 0) {
-      // utils.tsx parseQuotaData ignores `quotas` if `message` is set — drop
-      // the message so the prior quotas render; surface staleness via _stale.
       const staleUsage: JsonRecord = {
         ...usage,
         quotas: previous.quotas,
         plan: previous.plan ?? usage.plan ?? null,
+        bankedResetCredits: previous.bankedResetCredits,
         message: null,
         _stale: true,
         _staleSince: previous.fetchedAt,
@@ -889,7 +892,6 @@ export async function fetchAndPersistProviderLimits(
       };
       return { connection, usage: staleUsage, cache: previous };
     }
-    // No prior cache; pass the error response through without persisting it.
     return { connection, usage, cache: newCache };
   }
 

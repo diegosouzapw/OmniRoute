@@ -25,6 +25,8 @@ import { SELF_ACCOUNT_QUOTA_SCOPE, SELF_USAGE_SCOPE } from "@/shared/constants/s
 import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { hasProviderQuotaBypassScope } from "@/shared/constants/apiKeyPolicyScopes";
 import { UsageLimitSettings } from "./components/UsageLimitSettings";
+import { ChaosModeAccessToggle } from "./components/ChaosModeAccessToggle";
+import { BypassProviderQuotaToggle } from "./components/BypassProviderQuotaToggle";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -125,6 +127,7 @@ interface ApiKey {
   streamDefaultMode?: StreamDefaultMode;
   disableNonPublicModels?: boolean;
   allowUsageCommand?: boolean;
+  chaosModeEnabled?: boolean;
   usageLimitEnabled?: boolean;
   dailyUsageLimitUsd?: number | null;
   weeklyUsageLimitUsd?: number | null;
@@ -203,6 +206,7 @@ export default function ApiManagerPageClient() {
   const createKeyFormRef = useRef<HTMLDivElement | null>(null);
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [allModels, setAllModels] = useState<Model[]>([]);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
   const [allCombos, setAllCombos] = useState<ComboOption[]>([]);
   const [allConnections, setAllConnections] = useState<ProviderConnection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -320,14 +324,66 @@ export default function ApiManagerPageClient() {
   }, [showAddModal, nameError, scrollCreateKeyFormToTop]);
 
   const fetchModels = async () => {
+    setModelsLoaded(false);
     try {
       const res = await fetch("/v1/models");
       if (res.ok) {
         const data = await res.json();
-        setAllModels(data.data || []);
+        setAllModels(Array.isArray(data.data) ? data.data : []);
+        return;
+      }
+
+      // Fallback for dashboard API-key editing: /v1/models can be protected by
+      // API-key catalog auth, but the dashboard still needs a stable catalog so
+      // users can edit allowedModels. Preserve combo pseudo-models too: /v1/models
+      // lists active combos as owned_by="combo", while /api/models?all=true only
+      // returns the static provider model inventory.
+      const [fallbackRes, combosRes] = await Promise.all([
+        fetch("/api/models?all=true"),
+        fetch("/api/combos"),
+      ]);
+      if (fallbackRes.ok) {
+        const [fallbackData, combosData] = await Promise.all([
+          fallbackRes.json(),
+          combosRes.ok ? combosRes.json() : Promise.resolve({ combos: [] }),
+        ]);
+        const fallbackModels = Array.isArray(fallbackData.models) ? fallbackData.models : [];
+        const comboModels = (Array.isArray(combosData.combos) ? combosData.combos : [])
+          .filter(
+            (combo: any) =>
+              combo?.isActive !== false &&
+              combo?.isHidden !== true &&
+              typeof combo?.name === "string" &&
+              combo.name.trim().length > 0
+          )
+          .map((combo: any) => ({
+            id: combo.name,
+            owned_by: "combo",
+            name: combo.name,
+          }));
+        const modelEntries = fallbackModels
+          .map((m: any) => ({
+            id: typeof m.fullModel === "string" ? m.fullModel : `${m.provider}/${m.model}`,
+            owned_by: typeof m.provider === "string" ? m.provider : "unknown",
+            name: typeof m.alias === "string" ? m.alias : m.model || m.fullModel,
+          }))
+          .filter((m: Model) => typeof m.id === "string" && m.id.length > 0);
+        const seen = new Set<string>();
+        setAllModels(
+          [...comboModels, ...modelEntries].filter((m: Model) => {
+            if (seen.has(m.id)) return false;
+            seen.add(m.id);
+            return true;
+          })
+        );
+      } else {
+        setAllModels([]);
       }
     } catch (error) {
       console.log("Error fetching models:", error);
+      setAllModels([]);
+    } finally {
+      setModelsLoaded(true);
     }
   };
 
@@ -465,7 +521,8 @@ export default function ApiManagerPageClient() {
             const res = await fetch(`/api/keys/${encodeURIComponent(key.id)}/devices`);
             if (!res.ok) return [key.id, 0] as const;
             const data = await res.json();
-            const count = typeof data?.count === "number" && Number.isFinite(data.count) ? data.count : 0;
+            const count =
+              typeof data?.count === "number" && Number.isFinite(data.count) ? data.count : 0;
             return [key.id, count] as const;
           } catch {
             return [key.id, 0] as const;
@@ -738,7 +795,8 @@ export default function ApiManagerPageClient() {
     usageLimitEnabled: boolean,
     dailyUsageLimitUsd: number | null,
     weeklyUsageLimitUsd: number | null,
-    blockedModels: string[]
+    blockedModels: string[],
+    chaosModeEnabled: boolean
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -809,6 +867,7 @@ export default function ApiManagerPageClient() {
           usageLimitEnabled,
           dailyUsageLimitUsd,
           weeklyUsageLimitUsd,
+          chaosModeEnabled,
         }),
       });
 
@@ -1533,6 +1592,7 @@ export default function ApiManagerPageClient() {
           apiKey={editingKey}
           modelsByProvider={filteredModelsByProvider}
           allModels={permissionModels}
+          modelsLoaded={modelsLoaded}
           allCombos={allCombos}
           allConnections={allConnections}
           searchModel={searchModel}
@@ -1552,6 +1612,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey,
   modelsByProvider,
   allModels,
+  modelsLoaded,
   allCombos,
   allConnections,
   searchModel,
@@ -1563,6 +1624,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey: ApiKey;
   modelsByProvider: ProviderGroup[];
   allModels: Model[];
+  modelsLoaded: boolean;
   allCombos: ComboOption[];
   allConnections: ProviderConnection[];
   searchModel: string;
@@ -1589,7 +1651,8 @@ const PermissionsModal = memo(function PermissionsModal({
     usageLimitEnabled: boolean,
     dailyUsageLimitUsd: number | null,
     weeklyUsageLimitUsd: number | null,
-    blockedModels: string[]
+    blockedModels: string[],
+    chaosModeEnabled: boolean
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -1675,6 +1738,7 @@ const PermissionsModal = memo(function PermissionsModal({
   const [usageCommandEnabled, setUsageCommandEnabled] = useState(
     apiKey?.allowUsageCommand === true
   );
+  const [chaosModeEnabled, setChaosModeEnabled] = useState(apiKey?.chaosModeEnabled === true);
   const [usageLimitEnabled, setUsageLimitEnabled] = useState(apiKey?.usageLimitEnabled === true);
   const [dailyUsageLimitUsd, setDailyUsageLimitUsd] = useState(
     typeof apiKey?.dailyUsageLimitUsd === "number" && apiKey.dailyUsageLimitUsd > 0
@@ -1879,7 +1943,8 @@ const PermissionsModal = memo(function PermissionsModal({
       usageLimitEnabled,
       parseUsdLimitInput(dailyUsageLimitUsd),
       parseUsdLimitInput(weeklyUsageLimitUsd),
-      blockedModels
+      blockedModels,
+      chaosModeEnabled
     );
   }, [
     onSave,
@@ -1918,6 +1983,7 @@ const PermissionsModal = memo(function PermissionsModal({
     parseUsdLimitInput,
     blockedClaudeCodeFamilies,
     initialBlockedModels,
+    chaosModeEnabled,
     apiKey?.scopes,
     t,
   ]);
@@ -2024,7 +2090,13 @@ const PermissionsModal = memo(function PermissionsModal({
               allowAll ? "text-green-700 dark:text-green-300" : "text-amber-700 dark:text-amber-300"
             }`}
           >
-            {allowAll ? t("allowAllDesc") : t("restrictDesc", { selectedCount, totalModels })}
+            {allowAll
+              ? t("allowAllDesc")
+              : !modelsLoaded
+                ? t("restrictLoading")
+                : totalModels === 0
+                  ? t("restrictCatalogUnavailable", { selectedCount })
+                  : t("restrictDesc", { selectedCount, totalModels })}
           </p>
         </div>
 
@@ -2501,30 +2573,17 @@ const PermissionsModal = memo(function PermissionsModal({
           />
         </div>
 
+        {/* Chaos Mode Access Toggle */}
+        <ChaosModeAccessToggle
+          enabled={chaosModeEnabled}
+          onToggle={() => setChaosModeEnabled((prev) => !prev)}
+        />
+
         {/* Advanced Provider Quota Policy Override */}
-        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5">
-          <div className="flex flex-col gap-1 pr-2">
-            <p className="text-sm font-medium text-text-main">Bypass provider quota cutoffs</p>
-            <p className="text-xs text-text-muted">
-              Allows this key to ignore upstream provider/account cutoff policy during routing. API
-              key USD quotas still apply.
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={bypassProviderQuotaPolicyEnabled}
-            onClick={() => setBypassProviderQuotaPolicyEnabled((prev) => !prev)}
-            className={`inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
-              bypassProviderQuotaPolicyEnabled
-                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
-                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[14px]">alt_route</span>
-            {bypassProviderQuotaPolicyEnabled ? tc("enabled") : tc("disabled")}
-          </button>
-        </div>
+        <BypassProviderQuotaToggle
+          enabled={bypassProviderQuotaPolicyEnabled}
+          onToggle={() => setBypassProviderQuotaPolicyEnabled((prev) => !prev)}
+        />
 
         {/* Disable Non-Public Models Toggle */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">

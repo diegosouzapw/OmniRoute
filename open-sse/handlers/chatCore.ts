@@ -113,6 +113,7 @@ import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts
 import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
+import { isVisionModelId } from "@/shared/constants/visionModels.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -562,6 +563,10 @@ export async function handleChatCore({
     clientRawRequest,
     provider,
     model,
+    // NEXA fusion-idempotency fix: body.messages feeds the key digest so combo-internal
+    // sub-requests (fusion panel + judge re-enter chatCore sharing the client's headers)
+    // can never collide on the raw Idempotency-Key/x-request-id header key.
+    body,
     effectiveServiceTier,
     startTime,
     log,
@@ -1204,7 +1209,7 @@ export async function handleChatCore({
       // Phase 4A: unified output styles (supersedes cavemanOutputMode via the back-compat shim).
       let outputStyleResult:
         import("../services/compression/outputStyles/apply.ts").OutputStylesResult | null = null;
-      if (config.enabled) {
+      if (config.enabled && compressionHeader?.trim().toLowerCase() !== "off") {
         try {
           const { resolveOutputStyleSelection } =
             await import("../services/compression/outputStyles/backCompat.ts");
@@ -1305,6 +1310,10 @@ export async function handleChatCore({
         const compressionConfig = resolveCacheAwareConfig(config, compressionInputBody, cacheCtx);
         const result = await applyCompressionAsync(compressionInputBody, mode, {
           model: effectiveModel,
+          supportsVision: isVisionModelId(effectiveModel),
+          // Rota direta oficial ('anthropic') vs agregadores: o engine omniglyph
+          // exige 'direct' — agregadores redimensionam imagens (medido 2026-07-06).
+          providerTransport: provider === "anthropic" ? "direct" : "aggregator",
           config: compressionConfig,
           cachingContext: cacheCtx,
           principalId: apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined,
@@ -2107,7 +2116,15 @@ export async function handleChatCore({
   // mode="cliproxyapi": returns the CLIProxyAPI executor instead.
   // mode="fallback": returns a wrapper that tries native first, falls back to CLIProxyAPI on 5xx/network errors.
 
-  const resolveExecutorWithProxy = (prov: string) => resolveExecutorWithProxyFor(prov, log);
+  // #6339: pass the resolved connection's providerSpecificData so a per-connection
+  // cliproxyapiMode="claude-native" override can deep-route this single connection
+  // through CLIProxyAPI regardless of the provider-level upstream_proxy_config mode.
+  const resolveExecutorWithProxy = (prov: string) =>
+    resolveExecutorWithProxyFor(
+      prov,
+      log,
+      (credentials?.providerSpecificData as Record<string, unknown> | null | undefined) ?? null
+    );
 
   // === Quota Share enforcement PRE-hook (B/F7) ===
   // Runs after provider/model/credentials/apiKeyInfo are fully resolved,
@@ -3289,6 +3306,16 @@ export async function handleChatCore({
           console.warn(
             `[provider] Node ${errorConnectionId} project routing error (${statusCode}) — not banning`
           );
+        } else if (errorType === PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND) {
+          // 404 — model/endpoint does not exist upstream. Lock the model so the
+          // retry/backoff loop stops hammering the dead endpoint (which would
+          // otherwise degenerate into a 429 rate-limit storm). Connection stays
+          // active since only the specific model is unavailable. (#6827)
+          const notFoundCooldownMs = COOLDOWN_MS.notFound;
+          lockModel(provider, errorConnectionId, currentModel, "model_not_found", notFoundCooldownMs);
+          console.warn(
+            `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
+          );
         }
       } catch {
         // Best-effort state update; request flow should continue with fallback handling.
@@ -4056,6 +4083,13 @@ export async function handleChatCore({
       requestId: skillRequestId,
       compressionResponseMeta,
     });
+    // #6426: align response body `model` with the `X-OmniRoute-Model` header
+    // (both must be the resolved backend model). Some upstreams (notably legacy
+    // /v1/completions text-completion path) return a body `model` field that
+    // differs from the resolved backend id we advertised in the header, leaving
+    // strict clients unable to reconcile the two. Rewrite body.model to `model`
+    // FIRST, then let #1311 echo override it when the opt-in setting is on.
+    if (typeof model === "string" && model) echoModelInObject(translatedResponse, model);
     // #1311: echo the requested alias/combo name in the non-streaming response model.
     if (echoModel) echoModelInObject(translatedResponse, echoModel);
     return {

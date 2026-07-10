@@ -1,11 +1,10 @@
 import { handleMusicGeneration } from "@omniroute/open-sse/handlers/musicGeneration.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
-import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import {
-  parseMusicModel,
-  getAllMusicModels,
-  getMusicProvider,
-} from "@omniroute/open-sse/config/musicRegistry.ts";
+  getProviderCredentialsWithQuotaPreflight,
+  clearRecoveredProviderState,
+} from "@/sse/services/auth";
+import { parseMusicModel, getMusicProvider } from "@omniroute/open-sse/config/musicRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
@@ -16,12 +15,14 @@ import {
 } from "@/app/api/v1/_shared/rateLimit";
 import {
   failedMediaGenerationResponse,
-  mediaGenerationModelListResponse,
   mediaGenerationOptionsResponse,
   promptRequiredResponse,
   readMediaGenerationBody,
   successfulMediaGenerationResponse,
 } from "@/app/api/v1/_shared/mediaGenerationRoute";
+import { getSpecialtyModelsResponse } from "@/app/api/v1/_shared/specialtyCatalog";
+
+export const dynamic = "force-dynamic";
 
 /**
  * Handle CORS preflight
@@ -33,8 +34,12 @@ export async function OPTIONS() {
 /**
  * GET /v1/music/generations — list available music models
  */
-export async function GET() {
-  return mediaGenerationModelListResponse(getAllMusicModels(), "music");
+export async function GET(request?: Request) {
+  return getSpecialtyModelsResponse(
+    request,
+    "/v1/music/generations",
+    (model) => model.type === "music"
+  );
 }
 
 /**
@@ -70,7 +75,7 @@ async function postHandler(request, context) {
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentials(provider);
+    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,

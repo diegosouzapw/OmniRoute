@@ -43,6 +43,7 @@ import {
   parseNullableTimestamp,
   parseIsBanned,
   parseStreamDefaultMode,
+  parseChaosModeEnabled,
 } from "./apiKeys/rowParsers";
 import type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
 
@@ -95,6 +96,7 @@ interface ApiKeyMetadata {
   usageLimitEnabled: boolean;
   dailyUsageLimitUsd: number | null;
   weeklyUsageLimitUsd: number | null;
+  chaosModeEnabled: boolean;
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -134,6 +136,8 @@ interface ApiKeyRow extends JsonRecord {
   dailyUsageLimitUsd?: unknown;
   weekly_usage_limit_usd?: unknown;
   weeklyUsageLimitUsd?: unknown;
+  chaos_mode_enabled?: unknown;
+  chaosModeEnabled?: unknown;
 }
 
 interface StatementLike<TRow = unknown> {
@@ -180,6 +184,7 @@ interface ApiKeyView extends JsonRecord {
   usageLimitEnabled?: boolean;
   dailyUsageLimitUsd?: number | null;
   weeklyUsageLimitUsd?: number | null;
+  chaosModeEnabled?: boolean;
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -237,7 +242,7 @@ async function deleteRedisAuthCacheEntry(keyHash: unknown): Promise<void> {
   try {
     const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
     if (!isRedisConfigured()) return;
-    const redis = getRedisClient();
+    const redis = await getRedisClient();
     await redis.del(`auth:api_key:${keyHash}`);
   } catch {
     // Redis is an optimization for auth caching; SQLite remains authoritative.
@@ -393,7 +398,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, chaos_mode_enabled, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -446,12 +451,93 @@ export async function getApiKeys() {
       (camelRow as JsonRecord).disableNonPublicModels
     );
     camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
+    camelRow.chaosModeEnabled = parseChaosModeEnabled((camelRow as JsonRecord).chaosModeEnabled);
     Object.assign(camelRow, parseApiKeyUsageLimitFields(camelRow));
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
     return camelRow;
   });
+}
+
+/**
+ * Select an API key for internal OmniRoute operations (combo health checks,
+ * cloud-sync verify pings, etc.).
+ *
+ * Naive selection of `getApiKeys()[0]` is unsafe because the first row is
+ * whatever happened to be inserted first — usually a regular `self:usage`
+ * key with a restricted model allowlist. Internal probes that reuse that
+ * key to call `/v1/chat/completions` then hit
+ *   Model "X" is not allowed for this API key
+ * from `shared/utils/apiKeyPolicy.ts` even when the upstream combo path is
+ * healthy. Likewise, cloud-sync verify pings flip to "disconnected"
+ * because the arbitrary key is rejected upstream.
+ *
+ * Selection rules (first match wins):
+ *   1. Active, non-revoked key whose `scopes` includes "manage"
+ *      (management keys are by policy not subject to model allowlists).
+ *   2. Active, non-revoked key with empty allowedModels (allow-all).
+ *   3. Active, non-revoked key with the most recent `lastUsedAt`.
+ *   4. First active, non-revoked key (legacy fallback — preserves prior
+ *      behavior when no key matches the better rules above).
+ *
+ * The selector is deliberately conservative: it never promotes a revoked,
+ * inactive, or banned key, and it never widens a key's allowedModels.
+ */
+export async function pickApiKeyForInternalUse(
+  purpose:
+    | "combo-health-check"
+    | "cloud-sync-verify"
+    | "internal-probe" = "internal-probe"
+): Promise<string | null> {
+  try {
+    const keys = (await getApiKeys()) as Array<{
+      key?: string;
+      isActive?: boolean;
+      revokedAt?: string | null;
+      isBanned?: boolean;
+      scopes?: string[];
+      allowedModels?: string[];
+      lastUsedAt?: string | number | null;
+    }>;
+
+    const isUsable = (k: (typeof keys)[number]) =>
+      Boolean(k.key) && k.isActive !== false && !k.revokedAt && k.isBanned !== true;
+
+    // 1. Management-scoped key (preferred for any internal probe).
+    const manageKey = keys.find(
+      (k) =>
+        isUsable(k) && Array.isArray(k.scopes) && k.scopes.includes("manage"),
+    );
+    if (manageKey?.key) return manageKey.key;
+
+    // 2. Allow-all key (empty allowedModels means no model restrictions).
+    const allowAllKey = keys.find(
+      (k) =>
+        isUsable(k) &&
+        Array.isArray(k.allowedModels) &&
+        k.allowedModels.length === 0,
+    );
+    if (allowAllKey?.key) return allowAllKey.key;
+
+    // 3. Most recently used (proxy for "the user actually wants this one
+    //    working right now").
+    const byRecency = [...keys]
+      .filter(isUsable)
+      .sort((a, b) => {
+        const aT = typeof a.lastUsedAt === "number" ? a.lastUsedAt : 0;
+        const bT = typeof b.lastUsedAt === "number" ? b.lastUsedAt : 0;
+        return bT - aT;
+      });
+    if (byRecency[0]?.key) return byRecency[0].key;
+
+    // 4. Legacy fallback: first active key. Keeps the function working
+    //    for setups with no managed/allow-all/recently-used key.
+    const firstActive = keys.find(isUsable);
+    return firstActive?.key ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getApiKeyById(id: string) {
@@ -478,6 +564,7 @@ export async function getApiKeyById(id: string) {
     (camelRow as JsonRecord).disableNonPublicModels
   );
   camelRow.allowUsageCommand = parseAllowUsageCommand((camelRow as JsonRecord).allowUsageCommand);
+  camelRow.chaosModeEnabled = parseChaosModeEnabled((camelRow as JsonRecord).chaosModeEnabled);
   Object.assign(camelRow, parseApiKeyUsageLimitFields(camelRow));
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
@@ -604,6 +691,7 @@ export async function updateApiKeyPermissions(
         usageLimitEnabled?: boolean;
         dailyUsageLimitUsd?: number | null;
         weeklyUsageLimitUsd?: number | null;
+        chaosModeEnabled?: boolean;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -642,6 +730,7 @@ export async function updateApiKeyPermissions(
           dailyUsageLimitUsd: (update as { dailyUsageLimitUsd?: number | null }).dailyUsageLimitUsd,
           weeklyUsageLimitUsd: (update as { weeklyUsageLimitUsd?: number | null })
             .weeklyUsageLimitUsd,
+          chaosModeEnabled: (update as { chaosModeEnabled?: boolean }).chaosModeEnabled,
         };
 
   if (
@@ -668,6 +757,7 @@ export async function updateApiKeyPermissions(
     (normalized as Record<string, unknown>).streamDefaultMode === undefined &&
     normalized.disableNonPublicModels === undefined &&
     normalized.allowUsageCommand === undefined &&
+    normalized.chaosModeEnabled === undefined &&
     !hasUsageLimitUpdate(normalized as Record<string, unknown>)
   ) {
     return false;
@@ -701,6 +791,7 @@ export async function updateApiKeyPermissions(
     usageLimitEnabled?: number;
     dailyUsageLimitUsd?: number | null;
     weeklyUsageLimitUsd?: number | null;
+    chaosModeEnabled?: number;
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -802,6 +893,11 @@ export async function updateApiKeyPermissions(
   if (normalized.allowUsageCommand !== undefined) {
     updates.push("allow_usage_command = @allowUsageCommand");
     params.allowUsageCommand = normalized.allowUsageCommand ? 1 : 0;
+  }
+
+  if (normalized.chaosModeEnabled !== undefined) {
+    updates.push("chaos_mode_enabled = @chaosModeEnabled");
+    params.chaosModeEnabled = normalized.chaosModeEnabled ? 1 : 0;
   }
 
   appendUsageLimitUpdates(normalized as Record<string, unknown>, updates, params);
@@ -1046,7 +1142,7 @@ export async function validateApiKey(key: string | null | undefined) {
     try {
       const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
       if (isRedisConfigured()) {
-        const redis = getRedisClient();
+        const redis = await getRedisClient();
         const redisKey = `auth:api_key:${hashedKey}`;
         const redisData = await redis.get(redisKey);
         if (redisData) {
@@ -1099,7 +1195,7 @@ export async function validateApiKey(key: string | null | undefined) {
     try {
       const { getRedisClient, isRedisConfigured } = await import("@/shared/utils/rateLimiter");
       if (isRedisConfigured()) {
-        const redis = getRedisClient();
+        const redis = await getRedisClient();
         const redisKey = `auth:api_key:${hashedKey}`;
         await redis.set(
           redisKey,
@@ -1190,6 +1286,7 @@ export async function getApiKeyMetadata(
       usageLimitEnabled: false,
       dailyUsageLimitUsd: null,
       weeklyUsageLimitUsd: null,
+      chaosModeEnabled: false,
     };
   }
 
@@ -1262,6 +1359,9 @@ export async function getApiKeyMetadata(
     ),
     allowUsageCommand: parseAllowUsageCommand(
       (record as JsonRecord).allow_usage_command ?? (record as JsonRecord).allowUsageCommand
+    ),
+    chaosModeEnabled: parseChaosModeEnabled(
+      (record as JsonRecord).chaos_mode_enabled ?? (record as JsonRecord).chaosModeEnabled
     ),
     ...parseApiKeyUsageLimitFields(record as JsonRecord),
   };

@@ -2,6 +2,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 import { createMDX } from "fumadocs-mdx/next";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { mitmManagerAliasFor } from "./scripts/build/mitm-stub-flag.mjs";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const distDir = process.env.NEXT_DIST_DIR || ".build/next";
@@ -106,10 +107,33 @@ const nextConfig = {
   turbopack: {
     root: projectRoot,
     resolveAlias: {
-      // Point mitm/manager to a stub during build (native child_process/fs can't be bundled)
-      "@/mitm/manager": "./src/mitm/manager.stub.ts",
+      // @/mitm/manager → stub ONLY where the runtime can't run the MITM stack
+      // (Docker sets OMNIROUTE_MITM_STUB=1 — #3390 graceful degradation). The
+      // alias used to be unconditional, which was fine while Docker was the
+      // only Turbopack consumer — but the v3.8.45 bundler-default flip shipped
+      // the stub to every npm/Electron/VPS artifact and broke Agent Bridge
+      // start for all non-Docker users (#6344). See scripts/build/mitm-stub-flag.mjs.
+      ...mitmManagerAliasFor(process.env),
       ...minimalBuildAliases,
     },
+    // src/lib/agentSkills/generator.ts builds its fs base path from a runtime
+    // `outputDir` parameter (`path.join(process.cwd(), outputDir)`), which is
+    // NOT a compile-time literal, so Turbopack's build-time file-tracing
+    // analyzer can't statically narrow the several dynamic readdirSync/rmSync/
+    // readFileSync/writeFileSync call sites a few lines below and falls back
+    // to an "Overly broad patterns... matches N files" warning — once per
+    // Next.js entry point that imports the module (/api/agent-skills/generate,
+    // /api/cli-tools/pi-settings). The fs access is legitimate and bounded
+    // (skills/<id>/SKILL.md, ~48 known IDs), so this is a known-benign,
+    // expected diagnostic — suppress it here rather than fight the analyzer,
+    // mirroring the isNextIntlExtractorDynamicImportWarning precedent below
+    // for the webpack path. (#6582)
+    ignoreIssue: [
+      {
+        path: "**/src/lib/agentSkills/**",
+        description: /Overly broad patterns can lead to build performance issues/,
+      },
+    ],
   },
   output: "standalone",
   compress: true,
@@ -581,6 +605,33 @@ const nextConfig = {
       {
         source: "/v1beta",
         destination: "/api/v1beta",
+      },
+      // Issue #6405 follow-up: unknown root-level paths must return JSON 404,
+      // not the dashboard HTML shell. Rewrite the missing prefixes under /api/*
+      // so they hit the /api/[...omnirouteApiCatchAll] route (#6424) — which
+      // returns application/json with error.type === "not_found". Real /api/*
+      // routes take precedence over the catch-all, so any future
+      // /api/anthropic/*, /api/openai/*, /api/metrics, /api/debug endpoints
+      // still match first.
+      {
+        source: "/anthropic/:path*",
+        destination: "/api/anthropic/:path*",
+      },
+      {
+        source: "/openai/:path*",
+        destination: "/api/openai/:path*",
+      },
+      {
+        source: "/metrics",
+        destination: "/api/metrics",
+      },
+      {
+        source: "/debug",
+        destination: "/api/debug",
+      },
+      {
+        source: "/.env",
+        destination: "/api/.env",
       },
     ];
   },

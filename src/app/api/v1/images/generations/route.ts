@@ -1,14 +1,13 @@
 import { handleImageGeneration } from "@omniroute/open-sse/handlers/imageGeneration.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {
-  getProviderCredentials,
+  getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
   extractApiKey,
   isValidApiKey,
 } from "@/sse/services/auth";
 import {
   parseImageModel,
-  getAllImageModels,
   getImageProvider,
   getImageModelEntry,
 } from "@omniroute/open-sse/config/imageRegistry.ts";
@@ -26,6 +25,9 @@ import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { calculateModalCost } from "@/lib/usage/costCalculator";
 import { generateRequestId } from "@/shared/utils/requestId";
+import { getSpecialtyModelsResponse } from "@/app/api/v1/_shared/specialtyCatalog";
+
+export const dynamic = "force-dynamic";
 
 /**
  * Handle CORS preflight
@@ -42,49 +44,12 @@ export async function OPTIONS() {
 /**
  * GET /v1/images/generations — list available image models
  */
-export async function GET() {
-  const builtInModels = getAllImageModels();
-  const timestamp = Math.floor(Date.now() / 1000);
-
-  const data = builtInModels.map((m) => ({
-    id: m.id,
-    object: "model",
-    created: timestamp,
-    owned_by: m.provider,
-    type: "image",
-    supported_sizes: m.supportedSizes,
-    input_modalities: m.inputModalities || ["text"],
-    output_modalities: ["image"],
-    ...(m.description ? { description: m.description } : {}),
-  }));
-
-  // Include custom models tagged for images
-  try {
-    const customModelsMap = (await getAllCustomModels()) as Record<string, any>;
-    for (const [providerId, models] of Object.entries(customModelsMap)) {
-      if (!Array.isArray(models)) continue;
-      for (const model of models) {
-        if (!model?.id || !Array.isArray(model.supportedEndpoints)) continue;
-        if (!model.supportedEndpoints.includes("images")) continue;
-        const fullId = `${providerId}/${model.id}`;
-        if (data.some((d) => d.id === fullId)) continue;
-        data.push({
-          id: fullId,
-          object: "model",
-          created: timestamp,
-          owned_by: providerId,
-          type: "image",
-          supported_sizes: null,
-          input_modalities: ["text"],
-          output_modalities: ["image"],
-        });
-      }
-    }
-  } catch {}
-
-  return new Response(JSON.stringify({ object: "list", data }), {
-    headers: { "Content-Type": "application/json" },
-  });
+export async function GET(request?: Request) {
+  return getSpecialtyModelsResponse(
+    request,
+    "/v1/images/generations",
+    (model) => model.type === "image"
+  );
 }
 
 /**
@@ -206,7 +171,7 @@ async function postHandler(request, context) {
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentials(provider);
+    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
@@ -222,7 +187,7 @@ async function postHandler(request, context) {
       );
     }
   } else if (isCustomModel) {
-    credentials = await getProviderCredentials(provider);
+    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,

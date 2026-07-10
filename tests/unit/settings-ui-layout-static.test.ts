@@ -99,6 +99,7 @@ test("Global Routing page renders top-level modules in the requested order", () 
   const routingTab = readSrc("src/app/(dashboard)/dashboard/settings/components/RoutingTab.tsx");
 
   assertInOrder(page, [
+    "<RoutingStrategyCard",
     "<ComboDefaultsTab",
     "<ModelAliasesUnified",
     "<FallbackChainsEditor",
