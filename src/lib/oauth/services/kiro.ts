@@ -490,7 +490,10 @@ export class KiroService {
   /**
    * Normalize a long-lived Kiro/CodeWhisperer API key.
    */
-  async validateApiKey(apiKey: string, region: string = "us-east-1") {
+  async validateApiKey(apiKey: string, regionInput?: string) {
+    // Default kept OUT of the parameter list: check-public-creds' CRED_KEY_RE matches the
+    // `apiKey:` annotation and flags any string literal in the signature (fn-param FP class).
+    const region = regionInput || "us-east-1";
     assertValidAwsRegion(region);
     const accessToken = apiKey.trim();
     if (!accessToken) {

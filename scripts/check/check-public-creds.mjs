@@ -92,7 +92,6 @@ const ENV_KEY_RE = /(clientId|clientSecret|apiKey)Env\s*:/;
 export const KNOWN_LITERAL_CREDS = new Set([
   "open-sse/services/usage/minimax.ts:213:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (getMiniMaxUsage signature)
   "open-sse/services/usage/minimax.ts:213:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (getMiniMaxUsage signature)
-  "src/lib/oauth/services/kiro.ts:463:us-east-1", // FP (#6587): TS fn-param default — validateApiKey(apiKey: string, region: string = "us-east-1"); "us-east-1" is an AWS region default, not a credential (same class as the minimax fn-param FPs above)
 ]);
 
 /**

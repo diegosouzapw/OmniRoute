@@ -261,8 +261,14 @@ function buildKiroAuthHeaders(
  */
 async function runKiroUsageAttempts(
   attempts: Array<{ name: string; run: () => Promise<Response> }>
-): Promise<{ data?: JsonRecord; sawAuthError: boolean; errors: string[] }> {
+): Promise<{
+  data?: JsonRecord;
+  sawAuthError: boolean;
+  errors: string[];
+  lastHttpFailure?: string;
+}> {
   let sawAuthError = false;
+  let lastHttpFailure: string | undefined;
   const errors: string[] = [];
   for (const attempt of attempts) {
     let response: Response;
@@ -278,12 +284,13 @@ async function runKiroUsageAttempts(
       if (response.status === 401 || response.status === 403) {
         sawAuthError = true;
       }
+      lastHttpFailure = `Kiro API error (${response.status}): ${errorText}`;
       errors.push(`${attempt.name}:${response.status}${errorText ? `:${errorText}` : ""}`);
       continue;
     }
-    return { data: toRecord(await response.json()), sawAuthError, errors };
+    return { data: toRecord(await response.json()), sawAuthError, errors, lastHttpFailure };
   }
-  return { sawAuthError, errors };
+  return { sawAuthError, errors, lastHttpFailure };
 }
 
 /**
@@ -369,13 +376,15 @@ const attempts = buildKiroUsageAttempts({
       };
     }
 
-    return {
-      message:
-        errors.length > 0
-          ? `Unable to fetch Kiro usage right now. (${errors[errors.length - 1]})`
-          : "Unable to fetch Kiro usage right now.",
-      quotas: {},
-    };
+    // Hard (non-auth) failure keeps the pre-#6587 reject semantics — callers and
+    // tests/unit/usage-service-hardening.test.ts rely on the rejection; prefer the last
+    // HTTP-status failure (most informative) over a network-level error.
+    throw new Error(
+      outcome.lastHttpFailure ||
+        (errors.length > 0
+          ? errors[errors.length - 1]
+          : "no usage endpoint responded")
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to fetch Kiro usage: ${message}`);
