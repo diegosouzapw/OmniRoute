@@ -579,6 +579,26 @@ function convertMessages(messages, tools, model) {
 /** Kiro's accepted reasoning-effort levels (`output_config.effort`). */
 const KIRO_EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max"];
 
+function resolveKiroModelAlias(model: string): { upstream: string; thinking: boolean } {
+  let upstream = String(model || "");
+  let thinking = false;
+
+  if (upstream.endsWith("-agentic")) {
+    upstream = upstream.slice(0, -"-agentic".length);
+  }
+  if (upstream.endsWith("-thinking")) {
+    upstream = upstream.slice(0, -"-thinking".length);
+    thinking = true;
+  }
+  if (upstream === "auto-kiro") {
+    upstream = "auto";
+  }
+
+  upstream = upstream.replace(/^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d{1,2})$/, "$1.$2");
+
+  return { upstream, thinking };
+}
+
 /**
  * Resolve the Kiro effort level for a request, or "" when no reasoning was asked
  * for. Effort sources, in priority order:
@@ -665,10 +685,11 @@ export function buildKiroPayload(model, body, stream, credentials) {
   // The minor group is bounded to 1-2 digits so date-suffixed ids (e.g.
   // claude-opus-4-20250514) are never mistaken for a dash-separated minor
   // version and corrupted into claude-opus-4.20250514 (upstream 9router #2270).
-  const normalizedModel = model.replace(
-    /^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d{1,2})$/,
-    "$1.$2"
-  );
+  // Synthetic Kiro selector variants (`-thinking`, `-agentic`) are local aliases:
+  // strip them before the request leaves OmniRoute so Kiro only receives real
+  // upstream model IDs. We intentionally do not inject an agentic system prompt here.
+  const { upstream: normalizedModel, thinking: modelRequestsThinking } =
+    resolveKiroModelAlias(model);
   const messages = body.messages || [];
   let tools = body.tools || [];
   const maxTokens = body.max_tokens ?? body.max_completion_tokens ?? 32000;
@@ -844,7 +865,8 @@ export function buildKiroPayload(model, body, stream, credentials) {
   //      thinking:{type:"adaptive"} + a clamped max_tokens), forwarded to AWS by
   //      the Kiro executor's transformRequest allowlist — this is the graded
   //      effort lever. Gated on models that advertise thinking support.
-  const kiroEffort = supportsReasoning(normalizedModel) ? resolveKiroEffort(body) : "";
+  const requestedEffort = resolveKiroEffort(body) || (modelRequestsThinking ? "high" : "");
+  const kiroEffort = supportsReasoning(normalizedModel) ? requestedEffort : "";
   if (kiroEffort) {
     // `<thinking_mode>` / `<max_thinking_length>` are Kiro/CodeWhisperer prompt
     // conventions (NOT Anthropic API params); the length is a soft hint (the hard
