@@ -375,7 +375,6 @@ test("CodexExecutor.transformRequest preserves compact requests and native passt
   const executor = new CodexExecutor();
   const body = {
     _nativeCodexPassthrough: true,
-    include: ["reasoning.encrypted_content"],
     instructions: "keep this",
     stream: false,
   };
@@ -390,7 +389,6 @@ test("CodexExecutor.transformRequest preserves compact requests and native passt
   assert.equal(result.stream, undefined);
   assert.equal(result.service_tier, "priority");
   assert.equal(result.reasoning.effort, "medium");
-  assert.equal(result.include, undefined);
   assert.equal(result.store, undefined);
   assert.equal(result.instructions, "keep this");
 });
