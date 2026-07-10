@@ -211,11 +211,15 @@ function openaiToGeminiBase(
     };
   }
   // 2. Claude format: thinking (type: enabled, budget_tokens)
+  // Use an explicit numeric check (not truthy) so an explicit `budget_tokens: 0` — the
+  // natural way to disable thinking — is honored as thinkingBudget 0 instead of being
+  // dropped and falling through to the default injection below (#6813). A zero budget
+  // yields no thoughts, so includeThoughts is only set for a non-zero budget.
   const thinking = body.thinking as { type?: string; budget_tokens?: number } | undefined;
-  if (thinking?.type === "enabled" && thinking.budget_tokens) {
+  if (thinking?.type === "enabled" && typeof thinking.budget_tokens === "number") {
     result.generationConfig.thinkingConfig = {
       thinkingBudget: thinking.budget_tokens,
-      includeThoughts: true,
+      includeThoughts: thinking.budget_tokens !== 0,
     };
   }
 
