@@ -13,6 +13,11 @@
 
 import { toRecord, toNumber } from "./scalars.ts";
 import { type UsageQuota, parseResetTime } from "./quota.ts";
+import {
+  isExternalIdpAuthMethod,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE,
+} from "../kiroExternalIdp.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -153,6 +158,135 @@ export async function discoverKiroProfileArn(
 }
 
 /**
+ * The three GetUsageLimits attempts (regional GET, CodeWhisperer POST, Q GET) tried in
+ * order by getKiroUsage — extracted so the auth-method header variants (api_key
+ * `tokentype`, external_idp `TokenType`) stay in one authHeaders object and the parent
+ * function stays under the function-length gate.
+ */
+function buildKiroUsageAttempts(opts: {
+  authHeaders: Record<string, string>;
+  usageParams: URLSearchParams;
+  qParams: URLSearchParams;
+  payload: Record<string, unknown>;
+  usageBaseUrl: string;
+  qBaseUrl: string;
+}): Array<{ name: string; run: () => Promise<Response> }> {
+  const { authHeaders, usageParams, qParams, payload, usageBaseUrl, qBaseUrl } = opts;
+  return [
+    {
+      name: "codewhisperer-get",
+      run: () =>
+        fetch(`${CODEWHISPERER_BASE_URL}/getUsageLimits?${usageParams.toString()}`, {
+          method: "GET",
+          headers: {
+            ...authHeaders,
+            "x-amz-user-agent": "aws-sdk-js/1.0.0 KiroIDE",
+            "user-agent": "aws-sdk-js/1.0.0 KiroIDE",
+          },
+        }),
+    },
+    {
+      name: "codewhisperer-post",
+      run: () =>
+        fetch(usageBaseUrl, {
+          method: "POST",
+          headers: {
+            ...authHeaders,
+            "Content-Type": "application/x-amz-json-1.0",
+            "x-amz-target": "AmazonCodeWhispererService.GetUsageLimits",
+          },
+          body: JSON.stringify(payload),
+        }),
+    },
+    {
+      name: "q-get",
+      run: () =>
+        fetch(`${qBaseUrl}/getUsageLimits?${qParams.toString()}`, {
+          method: "GET",
+          headers: authHeaders,
+        }),
+    },
+  ];
+}
+
+/**
+ * Enterprise IAM Identity Center accounts are region-bound: the profileArn, token and
+ * endpoint must all match the region. Derive the region from the stored region (preferred)
+ * or the profileArn, then route to the regional Amazon Q endpoint (us-east-1 keeps the
+ * legacy codewhisperer host; codewhisperer.{region} does not resolve for other regions).
+ */
+function resolveKiroUsageEndpoints(providerSpecificData?: JsonRecord, profileArn?: string) {
+  const regionFromArn = profileArn
+    ? profileArn.toLowerCase().match(/^arn:aws:codewhisperer:([a-z0-9-]+):/)?.[1]
+    : undefined;
+  const region =
+    (typeof providerSpecificData?.region === "string" &&
+      providerSpecificData.region.trim().toLowerCase()) ||
+    regionFromArn ||
+    "us-east-1";
+  const usageBaseUrl =
+    region === "us-east-1" ? CODEWHISPERER_BASE_URL : `https://q.${region}.amazonaws.com`;
+  const qBaseUrl = `https://q.${region}.amazonaws.com`;
+  return { region, usageBaseUrl, qBaseUrl };
+}
+
+/**
+ * Base auth headers for the usage endpoints, per auth method: long-lived API keys add
+ * `tokentype: API_KEY`; enterprise / Microsoft Entra (external_idp) org accounts require
+ * `TokenType: EXTERNAL_IDP` for CodeWhisperer to bind the bearer to the profile (without
+ * it GetUsageLimits returns `ValidationException: Invalid ARN`).
+ */
+function buildKiroAuthHeaders(
+  accessToken: string | undefined,
+  isApiKey: boolean,
+  providerSpecificData?: JsonRecord
+): Record<string, string> {
+  const authHeaders: Record<string, string> = {
+    Authorization: `Bearer ${accessToken}`,
+    Accept: "application/json",
+  };
+  if (isApiKey) {
+    authHeaders.tokentype = "API_KEY";
+  }
+  if (isExternalIdpAuthMethod(providerSpecificData?.authMethod)) {
+    authHeaders[KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER] = KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE;
+  }
+  return authHeaders;
+}
+
+/**
+ * Runs the GetUsageLimits attempts in order until one succeeds. Collects per-attempt
+ * errors and whether any endpoint rejected the token (401/403) so getKiroUsage can
+ * pick the right user-facing message — extracted for the function-length gate.
+ */
+async function runKiroUsageAttempts(
+  attempts: Array<{ name: string; run: () => Promise<Response> }>
+): Promise<{ data?: JsonRecord; sawAuthError: boolean; errors: string[] }> {
+  let sawAuthError = false;
+  const errors: string[] = [];
+  for (const attempt of attempts) {
+    let response: Response;
+    try {
+      response = await attempt.run();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      errors.push(`${attempt.name}:${message}`);
+      continue;
+    }
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      if (response.status === 401 || response.status === 403) {
+        sawAuthError = true;
+      }
+      errors.push(`${attempt.name}:${response.status}${errorText ? `:${errorText}` : ""}`);
+      continue;
+    }
+    return { data: toRecord(await response.json()), sawAuthError, errors };
+  }
+  return { sawAuthError, errors };
+}
+
+/**
  * Kiro (AWS CodeWhisperer) Usage
  */
 export async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
@@ -167,21 +301,10 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
         ? providerSpecificData.profileArn
         : undefined;
 
-    // Enterprise IAM Identity Center accounts are region-bound: the profileArn, token and
-    // endpoint must all match the region. Derive the region from the stored region (preferred)
-    // or the profileArn, then route to the regional Amazon Q endpoint (us-east-1 keeps the
-    // legacy codewhisperer host; codewhisperer.{region} does not resolve for other regions).
-    const regionFromArn = profileArn
-      ? profileArn.toLowerCase().match(/^arn:aws:codewhisperer:([a-z0-9-]+):/)?.[1]
-      : undefined;
-    const region =
-      (typeof providerSpecificData?.region === "string" &&
-        providerSpecificData.region.trim().toLowerCase()) ||
-      regionFromArn ||
-      "us-east-1";
-    const usageBaseUrl =
-      region === "us-east-1" ? CODEWHISPERER_BASE_URL : `https://q.${region}.amazonaws.com`;
-    const qBaseUrl = `https://q.${region}.amazonaws.com`;
+    const { region, usageBaseUrl, qBaseUrl } = resolveKiroUsageEndpoints(
+      providerSpecificData,
+      profileArn
+    );
 
     // IAM Identity Center logins and kiro-cli imports frequently don't persist a profileArn, which
     // previously caused the quota card to show nothing ("0 used"). Discover it on demand from
@@ -194,13 +317,7 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
       return { message: "Kiro connected. Profile ARN not available for quota tracking." };
     }
 
-    const authHeaders: Record<string, string> = {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: "application/json",
-    };
-    if (isApiKey) {
-      authHeaders.tokentype = "API_KEY";
-    }
+    const authHeaders = buildKiroAuthHeaders(accessToken, isApiKey, providerSpecificData);
 
     const usageParams = new URLSearchParams({
       isEmailRequired: "true",
@@ -218,70 +335,20 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
       resourceType: "AGENTIC_REQUEST",
     };
 
-    const attempts: Array<{
-      name: string;
-      run: () => Promise<Response>;
-    }> = [
-      {
-        name: "codewhisperer-get",
-        run: () =>
-          fetch(`${CODEWHISPERER_BASE_URL}/getUsageLimits?${usageParams.toString()}`, {
-            method: "GET",
-            headers: {
-              ...authHeaders,
-              "x-amz-user-agent": "aws-sdk-js/1.0.0 KiroIDE",
-              "user-agent": "aws-sdk-js/1.0.0 KiroIDE",
-            },
-          }),
-      },
-      {
-        name: "codewhisperer-post",
-        run: () =>
-          fetch(usageBaseUrl, {
-            method: "POST",
-            headers: {
-              ...authHeaders,
-              "Content-Type": "application/x-amz-json-1.0",
-              "x-amz-target": "AmazonCodeWhispererService.GetUsageLimits",
-            },
-            body: JSON.stringify(payload),
-          }),
-      },
-      {
-        name: "q-get",
-        run: () =>
-          fetch(`${qBaseUrl}/getUsageLimits?${qParams.toString()}`, {
-            method: "GET",
-            headers: authHeaders,
-          }),
-      },
-    ];
+const attempts = buildKiroUsageAttempts({
+      authHeaders,
+      usageParams,
+      qParams,
+      payload,
+      usageBaseUrl,
+      qBaseUrl,
+    });
 
-    let sawAuthError = false;
-    const errors: string[] = [];
-
-    for (const attempt of attempts) {
-      let response: Response;
-      try {
-        response = await attempt.run();
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        errors.push(`${attempt.name}:${message}`);
-        continue;
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => "");
-        if (response.status === 401 || response.status === 403) {
-          sawAuthError = true;
-        }
-        errors.push(`${attempt.name}:${response.status}${errorText ? `:${errorText}` : ""}`);
-        continue;
-      }
-
-      const data = toRecord(await response.json());
-      return buildKiroUsageResult(data);
+    const outcome = await runKiroUsageAttempts(attempts);
+    if (outcome.data) {
+      return buildKiroUsageResult(outcome.data);
     }
+    const { sawAuthError, errors } = outcome;
 
     if (sawAuthError) {
       // Social-auth Kiro accounts (added via /api/oauth/kiro/social-exchange with provider
