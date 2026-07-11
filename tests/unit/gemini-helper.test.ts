@@ -20,7 +20,7 @@ test("DEFAULT_SAFETY_SETTINGS is an array", () => {
 
 test("tryParseJSON parses valid JSON", () => {
   assert.deepEqual(gemini.tryParseJSON('{"a":1}'), { a: 1 });
-  assert.deepEqual(gemini.tryParseJSON('[1,2,3]'), [1, 2, 3]);
+  assert.deepEqual(gemini.tryParseJSON("[1,2,3]"), [1, 2, 3]);
   assert.equal(gemini.tryParseJSON('"hello"'), "hello");
   assert.equal(gemini.tryParseJSON("42"), 42);
   assert.equal(gemini.tryParseJSON("true"), true);
@@ -129,4 +129,38 @@ test("cleanJSONSchemaForAntigravity handles nested schema", () => {
   };
   const result = gemini.cleanJSONSchemaForAntigravity(schema);
   assert.ok(typeof result === "object");
+});
+
+test("convertOpenAIContentToParts maps OpenAI Chat Completions file (PDF) to inlineData", () => {
+  const content = [
+    { type: "text", text: "read this" },
+    {
+      type: "file",
+      file: { filename: "doc.pdf", file_data: "data:application/pdf;base64,JVBERiAtMQ==" },
+    },
+  ];
+  const parts = gemini.convertOpenAIContentToParts(content);
+  const inline = parts.find((p) => p.inlineData);
+  assert.ok(inline, "PDF file part must be converted to inlineData, not dropped");
+  assert.equal(inline.inlineData.mimeType, "application/pdf");
+  assert.equal(inline.inlineData.data, "JVBERiAtMQ==");
+});
+
+test("convertOpenAIContentToParts keeps the real mime for a video file_data", () => {
+  const content = [
+    { type: "file", file: { filename: "clip.mp4", file_data: "data:video/mp4;base64,AAAAIGZ0" } },
+  ];
+  const parts = gemini.convertOpenAIContentToParts(content);
+  const inline = parts.find((p) => p.inlineData);
+  assert.ok(inline, "video file part must be converted to inlineData");
+  assert.equal(inline.inlineData.mimeType, "video/mp4");
+  assert.equal(inline.inlineData.data, "AAAAIGZ0");
+});
+
+test("convertOpenAIContentToParts still maps image_url data URIs (regression)", () => {
+  const content = [{ type: "image_url", image_url: { url: "data:image/png;base64,iVBORw0KGgo=" } }];
+  const parts = gemini.convertOpenAIContentToParts(content);
+  const inline = parts.find((p) => p.inlineData);
+  assert.ok(inline, "image_url must still convert to inlineData");
+  assert.equal(inline.inlineData.mimeType, "image/png");
 });

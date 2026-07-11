@@ -176,7 +176,7 @@ function CompressionPreviewContent({ inputContent = "" }: { inputContent?: strin
 
           {compressionResult.techniquesUsed.length > 0 && (
             <div className="text-xs text-text-muted">
-              <span className="font-semibold">{t("techniques") || "Técnicas:"}</span>{" "}
+              <span className="font-semibold">{t("techniques") || "Techniques:"}</span>{" "}
               {compressionResult.techniquesUsed.join(", ")}
             </div>
           )}

@@ -3706,8 +3706,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.sensenova.cn/v1/chat/completions",
-      "stream": "https://api.sensenova.cn/v1/chat/completions"
+      "nonStream": "https://token.sensenova.cn/v1/chat/completions",
+      "stream": "https://token.sensenova.cn/v1/chat/completions"
     }
   },
   "siliconflow": {

@@ -1459,6 +1459,8 @@
     "chartModel": "Модель",
     "chartProvider": "Провайдер",
     "chartProviderBreakdown": "Розподіл за провайдерами",
+    "chartDate": "__MISSING__:Date",
+    "chartRequestsByProviderDate": "__MISSING__:Requests by Provider & Date",
     "filterAllKeys": "Усі ключі",
     "filterSearchKeys": "Пошук ключів…",
     "filterNoKeysMatch": "Жоден ключ не відповідає",
