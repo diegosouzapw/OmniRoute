@@ -50,7 +50,7 @@ export interface ContainerProvider {
     image: string,
     command: string[],
     sandboxId: string,
-    config: SandboxConfig,
+    config: SandboxConfig
   ): ResolvedContainerCommand;
   /** Build a kill/stop command for a running container. */
   killCommand: string;
@@ -69,8 +69,7 @@ const SANDBOX_NAME = (sandboxId: string) => `omniroute-${sandboxId}`;
  * test mocks on `spawn` (but not `spawnSync`) are not disturbed.
  */
 function probeCommand(binary: string): boolean {
-  const args =
-    process.platform === "win32" ? ["where", binary] : ["which", binary];
+  const args = process.platform === "win32" ? ["where", binary] : ["which", binary];
   const r = childProcess.spawnSync(args[0], args.slice(1), {
     encoding: "utf8",
     stdio: "ignore",
@@ -107,7 +106,7 @@ class DockerProvider implements ContainerProvider {
     image: string,
     command: string[],
     sandboxId: string,
-    config: SandboxConfig,
+    config: SandboxConfig
   ): ResolvedContainerCommand {
     const args = [
       "run",
@@ -115,7 +114,7 @@ class DockerProvider implements ContainerProvider {
       "--name",
       SANDBOX_NAME(sandboxId),
       "--cpus",
-      `${config.cpuLimit / 100}`,
+      `${config.cpuLimit / 1000}`,
       "--memory",
       `${config.memoryLimit}m`,
       "--network",
@@ -164,7 +163,7 @@ class AppleContainerProvider implements ContainerProvider {
     image: string,
     command: string[],
     sandboxId: string,
-    config: SandboxConfig,
+    config: SandboxConfig
   ): ResolvedContainerCommand {
     const args = [
       "run",
@@ -172,7 +171,7 @@ class AppleContainerProvider implements ContainerProvider {
       "--name",
       SANDBOX_NAME(sandboxId),
       "--cpus",
-      `${config.cpuLimit}`,
+      `${config.cpuLimit / 1000}`,
       "--memory",
       `${config.memoryLimit}m`,
       "--network",
@@ -219,7 +218,7 @@ class WslContainerProvider implements ContainerProvider {
     image: string,
     command: string[],
     sandboxId: string,
-    config: SandboxConfig,
+    config: SandboxConfig
   ): ResolvedContainerCommand {
     const args = [
       "run",
@@ -227,7 +226,7 @@ class WslContainerProvider implements ContainerProvider {
       "--name",
       SANDBOX_NAME(sandboxId),
       "--cpus",
-      `${config.cpuLimit}`,
+      `${config.cpuLimit / 1000}`,
       "--memory",
       `${config.memoryLimit}m`,
       "--network",
@@ -270,7 +269,7 @@ class OrbStackProvider implements ContainerProvider {
     image: string,
     command: string[],
     sandboxId: string,
-    config: SandboxConfig,
+    config: SandboxConfig
   ): ResolvedContainerCommand {
     // OrbStack wraps Docker inside a Linux VM.  We invoke the `orbstack`
     // binary which shims `docker` transparently.
@@ -280,7 +279,7 @@ class OrbStackProvider implements ContainerProvider {
       "--name",
       SANDBOX_NAME(sandboxId),
       "--cpus",
-      `${config.cpuLimit}`,
+      `${config.cpuLimit / 1000}`,
       "--memory",
       `${config.memoryLimit}m`,
       "--network",
@@ -323,7 +322,7 @@ class PodmanProvider implements ContainerProvider {
     image: string,
     command: string[],
     sandboxId: string,
-    config: SandboxConfig,
+    config: SandboxConfig
   ): ResolvedContainerCommand {
     const args = [
       "run",
@@ -331,7 +330,7 @@ class PodmanProvider implements ContainerProvider {
       "--name",
       SANDBOX_NAME(sandboxId),
       "--cpus",
-      `${config.cpuLimit / 100}`,
+      `${config.cpuLimit / 1000}`,
       "--memory",
       `${config.memoryLimit}m`,
       "--network",
@@ -374,7 +373,7 @@ export const ALL_PROVIDERS: ContainerProvider[] = [
 ];
 
 export const PROVIDER_BY_ID = new Map<SandboxRuntimeId, ContainerProvider>(
-  ALL_PROVIDERS.map((p) => [p.id, p]),
+  ALL_PROVIDERS.map((p) => [p.id, p])
 );
 
 /** Priority order for auto-detection on each platform. */
@@ -409,17 +408,14 @@ async function runDetection(): Promise<void> {
     ALL_PROVIDERS.map(async (provider) => {
       const ok = await Promise.resolve(provider.detect());
       detectionCache.set(provider.id, ok);
-    }),
+    })
   );
 }
 
-function normaliseRuntimeOverride(
-  raw: string | undefined,
-): SandboxRuntimeId | null {
+function normaliseRuntimeOverride(raw: string | undefined): SandboxRuntimeId | null {
   if (!raw || raw === "auto") return null;
   const lowered = raw.toLowerCase().trim();
-  if (PROVIDER_BY_ID.has(lowered as SandboxRuntimeId))
-    return lowered as SandboxRuntimeId;
+  if (PROVIDER_BY_ID.has(lowered as SandboxRuntimeId)) return lowered as SandboxRuntimeId;
   return null;
 }
 
@@ -440,9 +436,7 @@ export async function resolveProvider(): Promise<ContainerProvider> {
   }
   await detectionInFlight;
 
-  const override = normaliseRuntimeOverride(
-    process.env.SKILLS_SANDBOX_RUNTIME,
-  );
+  const override = normaliseRuntimeOverride(process.env.SKILLS_SANDBOX_RUNTIME);
   if (override) {
     const provider = PROVIDER_BY_ID.get(override)!;
     if (detectionCache.get(provider.id)) return provider;
@@ -469,7 +463,7 @@ export function _resetProviderCacheForTests(): void {
  */
 export function buildKillCommand(
   provider: ContainerProvider,
-  sandboxId: string,
+  sandboxId: string
 ): { command: string; args: string[] } {
   const name = SANDBOX_NAME(sandboxId);
   return {
