@@ -28,6 +28,9 @@ export interface FreeProxyStats {
   lastSyncAt: string | null;
 }
 
+/** Source id → list of error messages from that source's last sync. */
+export type FreeProxySyncErrors = Record<string, string[]>;
+
 type DbRow = Record<string, unknown>;
 
 function mapRow(row: unknown): FreeProxyRecord {
@@ -109,6 +112,8 @@ export async function listFreeProxies(options?: {
   minQuality?: number;
   onlyInPool?: boolean;
   onlyNotInPool?: boolean;
+  search?: string;
+  sortBy?: "quality" | "latency" | "recent";
   limit?: number;
   offset?: number;
 }): Promise<FreeProxyRecord[]> {
@@ -138,8 +143,18 @@ export async function listFreeProxies(options?: {
   if (options?.onlyNotInPool) {
     sql += " AND in_pool = 0";
   }
+  if (options?.search) {
+    sql += " AND host LIKE ?";
+    params.push(`%${options.search}%`);
+  }
 
-  sql += " ORDER BY quality_score DESC, last_validated DESC";
+  const sortClause =
+    options?.sortBy === "latency"
+      ? "ORDER BY latency_ms IS NULL, latency_ms ASC"
+      : options?.sortBy === "recent"
+        ? "ORDER BY last_validated DESC"
+        : "ORDER BY quality_score DESC, last_validated DESC";
+  sql += ` ${sortClause}`;
 
   if (options?.limit) {
     sql += " LIMIT ?";
@@ -161,10 +176,11 @@ export async function countFreeProxies(options?: {
   minQuality?: number;
   onlyInPool?: boolean;
   onlyNotInPool?: boolean;
+  search?: string;
 }): Promise<number> {
   const db = getDbInstance();
   const params: unknown[] = [];
-  let sql = "SELECT COUNT(*) as count FROM free_proxies WHERE 1=1";
+  let sql = "SELECT COUNT(*) AS count FROM free_proxies WHERE 1=1";
 
   if (options?.sources?.length) {
     sql += ` AND source IN (${options.sources.map(() => "?").join(",")})`;
@@ -188,9 +204,14 @@ export async function countFreeProxies(options?: {
   if (options?.onlyNotInPool) {
     sql += " AND in_pool = 0";
   }
+  if (options?.search) {
+    sql += " AND host LIKE ?";
+    params.push(`%${options.search}%`);
+  }
 
-  const row = db.prepare(sql).get(...params) as { count: number };
-  return row.count;
+  const row = db.prepare(sql).get(...params) as DbRow | undefined;
+  const count = row?.count;
+  return typeof count === "number" ? count : Number(count ?? 0);
 }
 
 export async function listFreeProxiesBySource(
@@ -398,4 +419,51 @@ export async function getFreeProxyStats(): Promise<FreeProxyStats> {
     bySource: bySource.map((r) => ({ source: String(r.source), count: Number(r.count) })),
     lastSyncAt: recordedSyncAt ?? derivedSyncAt,
   };
+}
+/**
+ * Persist the most recent per-source sync errors. A successful sync for a
+ * source should call clearFreeProxySyncErrors instead so the stale error
+ * stops showing.
+ */
+export async function recordFreeProxySyncErrors(
+  source: FreeProxySourceId,
+  errors: string[]
+): Promise<void> {
+  const db = getDbInstance();
+  const at = new Date().toISOString();
+  db.prepare(
+    "INSERT OR REPLACE INTO free_proxy_sync_errors (source, errors, updated_at) VALUES (?, ?, ?)"
+  ).run(source, JSON.stringify(errors), at);
+  backupDbFile("pre-write");
+}
+
+/** Clear a source's stored sync error (called on a successful sync). */
+export async function clearFreeProxySyncErrors(source: FreeProxySourceId): Promise<void> {
+  const db = getDbInstance();
+  db.prepare("DELETE FROM free_proxy_sync_errors WHERE source = ?").run(source);
+  backupDbFile("pre-write");
+}
+
+/**
+ * Read all stored per-source sync errors as a plain map. Sources with no
+ * recorded error are omitted, so an empty object means a clean (or un-synced)
+ * state.
+ */
+export async function getFreeProxySyncErrors(): Promise<FreeProxySyncErrors> {
+  const db = getDbInstance();
+  const rows = db.prepare("SELECT source, errors FROM free_proxy_sync_errors").all() as Array<{
+    source: string;
+    errors: string;
+  }>;
+  const out: FreeProxySyncErrors = {};
+  for (const row of rows) {
+    if (!row.source) continue;
+    try {
+      const parsed = JSON.parse(row.errors) as unknown;
+      out[row.source] = Array.isArray(parsed) ? parsed.map(String) : [String(row.errors)];
+    } catch {
+      out[row.source] = [String(row.errors)];
+    }
+  }
+  return out;
 }

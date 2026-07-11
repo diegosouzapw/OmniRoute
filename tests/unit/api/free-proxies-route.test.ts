@@ -12,7 +12,10 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 
 const core = await import("../../../src/lib/db/core.ts");
 const freeProxiesDb = await import("../../../src/lib/db/freeProxies.ts");
+const settingsDb = await import("../../../src/lib/db/settings.ts");
 const listRoute = await import("../../../src/app/api/settings/free-proxies/route.ts");
+
+const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -27,6 +30,8 @@ test.beforeEach(async () => {
 test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) delete process.env.INITIAL_PASSWORD;
+  else process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
 });
 
 function seed(host: string, quality: number, latency: number) {
@@ -89,6 +94,14 @@ test("GET search + limit via query params is reflected in the response", async (
 });
 
 test("GET rejects an unauthenticated request with 401", async () => {
+  // A fresh DB has no configured password, so a loopback/unauthenticated
+  // request is treated as the pre-setup bootstrap path and allowed through
+  // (see `isAuthRequired` in src/shared/utils/apiAuth.ts). Configure a
+  // password + requireLogin so this test actually exercises the auth gate,
+  // matching the pattern used by tests/unit/api/settings-audit.test.ts.
+  process.env.INITIAL_PASSWORD = "free-proxies-route-test-password";
+  await settingsDb.updateSettings({ requireLogin: true });
+
   const res = await listRoute.GET(new Request("http://localhost/api/settings/free-proxies"));
   assert.equal(res.status, 401);
 });

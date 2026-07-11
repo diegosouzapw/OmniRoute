@@ -1,6 +1,5 @@
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
-import type { FreeProxySourceId } from "@/lib/freeProxyProviders/types";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { freeProxyListSchema, freeProxySourceSchema } from "@/shared/validation/freeProxySchemas";
 import {
@@ -8,7 +7,10 @@ import {
   countFreeProxies,
   deleteFreeProxy,
   clearFreeProxiesBySource,
+  getFreeProxyStats,
+  getFreeProxySyncErrors,
 } from "@/lib/localDb";
+import type { FreeProxySourceId } from "@/lib/freeProxyProviders/types";
 
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -21,6 +23,8 @@ export async function GET(request: Request) {
       protocol: searchParams.get("protocol") || undefined,
       country: searchParams.get("country") || undefined,
       minQuality: searchParams.get("minQuality") || undefined,
+      search: searchParams.get("search") || undefined,
+      sortBy: searchParams.get("sortBy") || undefined,
       limit: searchParams.get("limit") || undefined,
       offset: searchParams.get("offset") || undefined,
       onlyNotInPool: searchParams.get("onlyNotInPool") || undefined,
@@ -40,6 +44,8 @@ export async function GET(request: Request) {
       protocol: validation.data.protocol,
       country: validation.data.country,
       minQuality: validation.data.minQuality,
+      search: validation.data.search,
+      sortBy: validation.data.sortBy,
       limit: validation.data.limit,
       offset: validation.data.offset,
       onlyNotInPool: validation.data.onlyNotInPool || undefined,
@@ -50,10 +56,24 @@ export async function GET(request: Request) {
       protocol: validation.data.protocol,
       country: validation.data.country,
       minQuality: validation.data.minQuality,
+      search: validation.data.search,
       onlyNotInPool: validation.data.onlyNotInPool || undefined,
     });
 
-    return Response.json({ items, total });
+    const limit = validation.data.limit ?? 50;
+    const stats = await getFreeProxyStats();
+    const syncErrors = await getFreeProxySyncErrors();
+
+    return Response.json({
+      success: true,
+      data: {
+        proxies: items,
+        total,
+        hasMore: items.length >= limit && total > items.length + (validation.data.offset ?? 0),
+        stats,
+        syncErrors,
+      },
+    });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to list free proxies");
   }
