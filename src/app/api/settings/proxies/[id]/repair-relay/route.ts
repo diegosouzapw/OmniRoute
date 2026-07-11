@@ -73,8 +73,10 @@ export async function POST(
 
     // mode === "recovered": read the still-encrypted blob, decrypt, write plaintext.
     let enc: string | undefined;
+    let existingNotes: Record<string, unknown> = {};
     try {
-      const parsed = JSON.parse(proxy.notes ?? "{}") as { relayAuthEnc?: string };
+      const parsed = JSON.parse(proxy.notes ?? "{}") as Record<string, unknown>;
+      existingNotes = parsed;
       if (typeof parsed.relayAuthEnc === "string") enc = parsed.relayAuthEnc;
     } catch {
       enc = undefined;
@@ -90,7 +92,9 @@ export async function POST(
       });
     }
 
-    await updateProxy(id, { notes: JSON.stringify({ relayAuth: decrypted }) });
+    // Merge relayAuth into existing notes; drop relayAuthEnc since plaintext is now present.
+    const { relayAuthEnc: _dropped, ...rest } = existingNotes as { relayAuthEnc?: unknown };
+    await updateProxy(id, { notes: JSON.stringify({ ...rest, relayAuth: decrypted }) });
     return Response.json({ repaired: true, mode: "recovered" });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to repair relay");
