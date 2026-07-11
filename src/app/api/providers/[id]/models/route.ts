@@ -98,10 +98,10 @@ import {
   PROVIDER_MODELS_CONFIG,
 } from "./discovery/providerModelsConfig";
 import {
+  buildCodexDiscoveryCatalog,
   enrichCodexModelsFromGithubCatalog,
   fetchCodexDiscoveryModels,
   fetchCodexGithubCatalogModels,
-  reconcileCuratedCodexCatalog,
 } from "./discovery/codex";
 
 /**
@@ -1726,29 +1726,30 @@ export async function GET(
     }
 
     if (provider === "codex") {
+      // Auto-merge live/GitHub/local (future-proof discovery), then apply explicit
+      // denylist filters (e.g. drop GPT-5.4 family). Do not gate remote-only IDs.
       const staticCodexCatalog = mergeLocalCatalogModels(
         getModelsByProviderId("codex") || [],
         getStaticModelsForProvider("codex") || []
       );
-      const cachedCatalog = reconcileCuratedCodexCatalog(cachedDiscoveryModels, staticCodexCatalog);
-      const candidateCountPayload = (candidateCount: number) =>
-        candidateCount > 0 ? { discoveredCandidateCount: candidateCount } : {};
-      const cachedIdsMatchCuratedCatalog =
-        cachedDiscoveryModels.length === cachedCatalog.models.length &&
-        cachedDiscoveryModels.every((model, index) => model.id === cachedCatalog.models[index]?.id);
-      const persistReconciledCacheIfNeeded = async () => {
-        if (cachedIdsMatchCuratedCatalog) return;
-        await persistDiscoveredModels(provider, connectionId, cachedCatalog.models);
+      const finalizeCodexCatalog = (remoteModels: typeof cachedDiscoveryModels) =>
+        buildCodexDiscoveryCatalog(remoteModels, staticCodexCatalog);
+      const cachedCatalogModels = finalizeCodexCatalog(cachedDiscoveryModels);
+      const cachedIdsMatchFinalCatalog =
+        cachedDiscoveryModels.length === cachedCatalogModels.length &&
+        cachedDiscoveryModels.every((model, index) => model.id === cachedCatalogModels[index]?.id);
+      const persistFilteredCacheIfNeeded = async () => {
+        if (cachedIdsMatchFinalCatalog) return;
+        await persistDiscoveredModels(provider, connectionId, cachedCatalogModels);
       };
 
       if (!refresh && cachedDiscoveryModels.length > 0) {
-        await persistReconciledCacheIfNeeded();
+        await persistFilteredCacheIfNeeded();
         return buildResponse({
           provider,
           connectionId,
-          models: cachedCatalog.models,
+          models: cachedCatalogModels,
           source: "cache",
-          ...candidateCountPayload(cachedCatalog.candidateModels.length),
         });
       }
 
@@ -1756,7 +1757,7 @@ export async function GET(
         return buildResponse({
           provider,
           connectionId,
-          models: reconcileCuratedCodexCatalog([], staticCodexCatalog).models,
+          models: finalizeCodexCatalog([]),
           source: "local_catalog",
           warning: "Auto-fetch disabled — using local catalog",
         });
@@ -1787,44 +1788,30 @@ export async function GET(
           githubCatalogModels && githubCatalogModels.length > 0
             ? enrichCodexModelsFromGithubCatalog(liveModels, githubCatalogModels)
             : liveModels;
-        const reconciledCatalog = reconcileCuratedCodexCatalog(
-          enrichedLiveModels,
-          staticCodexCatalog
-        );
-        return buildApiDiscoveryResponse(
-          reconciledCatalog.models,
-          undefined,
-          candidateCountPayload(reconciledCatalog.candidateModels.length)
-        );
+        return buildApiDiscoveryResponse(finalizeCodexCatalog(enrichedLiveModels));
       }
 
       if (githubCatalogModels && githubCatalogModels.length > 0) {
-        const reconciledCatalog = reconcileCuratedCodexCatalog(
-          githubCatalogModels,
-          staticCodexCatalog
-        );
         return buildApiDiscoveryResponse(
-          reconciledCatalog.models,
-          "Codex live catalog unavailable — using GitHub model catalog",
-          candidateCountPayload(reconciledCatalog.candidateModels.length)
+          finalizeCodexCatalog(githubCatalogModels),
+          "Codex live catalog unavailable — using GitHub model catalog"
         );
       }
 
       if (cachedDiscoveryModels.length > 0) {
-        await persistReconciledCacheIfNeeded();
+        await persistFilteredCacheIfNeeded();
         return buildResponse({
           provider,
           connectionId,
-          models: cachedCatalog.models,
+          models: cachedCatalogModels,
           source: "cache",
           warning: "Codex live catalog unavailable — using cached catalog",
-          ...candidateCountPayload(cachedCatalog.candidateModels.length),
         });
       }
       return buildResponse({
         provider,
         connectionId,
-        models: reconcileCuratedCodexCatalog([], staticCodexCatalog).models,
+        models: finalizeCodexCatalog([]),
         source: "local_catalog",
         intentional: true,
         warning: "Codex live and GitHub catalogs unavailable — using local catalog",

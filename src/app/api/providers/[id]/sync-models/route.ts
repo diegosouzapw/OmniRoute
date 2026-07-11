@@ -376,9 +376,12 @@ async function fetchProviderModelsForSync(request: Request, connectionId: string
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const start = Date.now();
   const { id } = await params;
+  const requestUrl = new URL(request.url);
   const mode = (
-    new URL(request.url).searchParams.get("mode") === "import" ? "merge" : "sync"
+    requestUrl.searchParams.get("mode") === "import" ? "merge" : "sync"
   ) as ManagedModelImportMode;
+  // quiet=1: boot revalidation path — skip chatty ModelSync console lines
+  const quiet = requestUrl.searchParams.get("quiet") === "1";
   let logProvider = "unknown";
   let channelLabel: string | null = null;
 
@@ -523,7 +526,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const updatedCount = importedChanges.updated;
     const shouldLog = modelChanges.total > 0 || customModelChanges.total > 0;
 
-    if (shouldLog) {
+    if (shouldLog && !quiet) {
       void autoSyncCodexProfilesFromLiveCatalog(request, `model-sync:${logProvider}`)
         .then((syncResult) => {
           if (syncResult.ok) {
@@ -561,6 +564,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             err?.message || err
           );
         });
+    } else if (shouldLog && quiet) {
+      // Still update profiles; suppress console noise from boot revalidation.
+      void autoSyncCodexProfilesFromLiveCatalog(request, `model-sync:${logProvider}`).catch(
+        () => undefined
+      );
+      void autoSyncClaudeProfilesFromLiveCatalog(request, `model-sync:${logProvider}`).catch(
+        () => undefined
+      );
     }
 
     if (shouldLog) {

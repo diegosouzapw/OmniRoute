@@ -196,6 +196,15 @@ export function startModelSyncScheduler(
   const startupDelay = setTimeout(() => runSyncCycle(apiBaseUrl), 5_000);
   startupDelay.unref?.();
 
+  // Codex-only: revalidate catalog only on first-start or app upgrade (not every boot).
+  void import("./codexCatalogRevalidation")
+    .then(({ scheduleCodexCatalogRevalidation }) => {
+      scheduleCodexCatalogRevalidation({ apiBaseUrl });
+    })
+    .catch(() => {
+      // silent
+    });
+
   // Then run on the regular interval
   schedulerTimer = setInterval(() => runSyncCycle(apiBaseUrl), effectiveIntervalMs);
   schedulerTimer.unref?.();

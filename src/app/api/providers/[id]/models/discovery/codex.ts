@@ -284,12 +284,97 @@ function localCatalogModelToCodexDiscoveryModel(
   };
 }
 
+/**
+ * Live/GitHub discovery is the source of truth for "what exists".
+ * Explicit filters (denylist / predicates) are the policy layer for "what we show".
+ * Do NOT reintroduce curated-only allowlisting as the default path (#6862 / #6859).
+ */
+export function mergeCodexLiveModelsWithLocalCatalog(
+  liveModels: CodexDiscoveryModel[],
+  localCatalogModels: CodexLocalCatalogModel[]
+): CodexDiscoveryModel[] {
+  const merged = new Map<string, CodexDiscoveryModel>();
+
+  for (const liveModel of liveModels) {
+    if (!liveModel?.id) continue;
+    merged.set(liveModel.id, liveModel);
+  }
+
+  for (const localModel of localCatalogModels) {
+    if (!localModel.id) continue;
+    const normalizedLocal = localCatalogModelToCodexDiscoveryModel(localModel);
+    const existing = merged.get(localModel.id);
+    merged.set(localModel.id, existing ? { ...normalizedLocal, ...existing } : normalizedLocal);
+  }
+
+  return Array.from(merged.values());
+}
+
+/** Exact model ids dropped after merge (policy, not discovery). */
+export const CODEX_DISCOVERY_EXCLUDED_IDS: ReadonlySet<string> = new Set([
+  // reserved for one-off retired ids that do not share a clean prefix family
+]);
+
+/**
+ * Id prefixes dropped after merge. A model matches when its id equals the prefix
+ * or continues with `-` / `_` / `.` so `gpt-5.4` also matches `gpt-5.4-mini`.
+ * Codex/ChatGPT-adjacent catalogs intentionally hide the GPT-5.4 family while
+ * still auto-including future remote-only Codex ids.
+ */
+export const CODEX_DISCOVERY_EXCLUDED_ID_PREFIXES: readonly string[] = ["gpt-5.4"];
+
+/** Return true to KEEP the model. */
+export type CodexDiscoveryModelFilter = (model: CodexDiscoveryModel) => boolean;
+
+export function isCodexDiscoveryModelExcluded(model: CodexDiscoveryModel): boolean {
+  const id = typeof model?.id === "string" ? model.id.trim().toLowerCase() : "";
+  if (!id) return true;
+  if (CODEX_DISCOVERY_EXCLUDED_IDS.has(id)) return true;
+  for (const prefix of CODEX_DISCOVERY_EXCLUDED_ID_PREFIXES) {
+    const p = prefix.toLowerCase();
+    if (id === p) return true;
+    if (id.startsWith(`${p}-`) || id.startsWith(`${p}_`) || id.startsWith(`${p}.`)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Apply policy filters after discovery merge. Default denylist runs first;
+ * extraFilters are additional keep-predicates (all must pass).
+ */
+export function applyCodexDiscoveryFilters(
+  models: CodexDiscoveryModel[],
+  extraFilters: readonly CodexDiscoveryModelFilter[] = []
+): CodexDiscoveryModel[] {
+  return models.filter((model) => {
+    if (isCodexDiscoveryModelExcluded(model)) return false;
+    return extraFilters.every((keep) => keep(model));
+  });
+}
+
+/** Convenience: merge live/local then apply default (+ optional) filters. */
+export function buildCodexDiscoveryCatalog(
+  remoteModels: CodexDiscoveryModel[],
+  localCatalogModels: CodexLocalCatalogModel[],
+  extraFilters: readonly CodexDiscoveryModelFilter[] = []
+): CodexDiscoveryModel[] {
+  return applyCodexDiscoveryFilters(
+    mergeCodexLiveModelsWithLocalCatalog(remoteModels, localCatalogModels),
+    extraFilters
+  );
+}
+
 export type CuratedCodexCatalogResult = {
   models: CodexDiscoveryModel[];
   candidateModels: CodexDiscoveryModel[];
 };
 
-// Remote catalogs enrich known IDs; the local catalog remains the exposure boundary.
+/**
+ * Optional curated-only view (allowlist). NOT used by the default Codex
+ * discovery route — kept for diagnostics / explicit call sites only.
+ */
 export function reconcileCuratedCodexCatalog(
   remoteModels: CodexDiscoveryModel[],
   curatedModels: CodexLocalCatalogModel[]
