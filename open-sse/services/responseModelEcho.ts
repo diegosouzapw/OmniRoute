@@ -15,6 +15,11 @@
  * Rewrite the top-level `model` field of a parsed response object (Chat Completions
  * JSON or an OpenAI SSE chunk) to `echoModel`. Mutates and returns `obj`. No-op when
  * `echoModel` is falsy or `obj` has no string `model` field.
+ *
+ * #3697: the Responses API nests `model` one level down — `{ type: "response.completed",
+ * response: { model, ... } }` — so also rewrite `obj.response.model` when present. This is
+ * what lets the Codex CLI compatibility shim echo the requested effort-suffixed model id
+ * (e.g. `gpt-5.5-xhigh`) in `response.created`/`response.completed` payloads.
  */
 export function echoModelInObject(obj: unknown, echoModel: string | null | undefined): unknown {
   if (!echoModel) return obj;
@@ -22,6 +27,13 @@ export function echoModelInObject(obj: unknown, echoModel: string | null | undef
     const rec = obj as Record<string, unknown>;
     if (typeof rec.model === "string") {
       rec.model = echoModel;
+    }
+    const nested = rec.response;
+    if (nested && typeof nested === "object" && !Array.isArray(nested)) {
+      const nestedRec = nested as Record<string, unknown>;
+      if (typeof nestedRec.model === "string") {
+        nestedRec.model = echoModel;
+      }
     }
   }
   return obj;
@@ -39,8 +51,22 @@ export function echoModelInSseLine(line: string, echoModel: string | null | unde
   if (!payload || payload === "[DONE]" || payload[0] !== "{") return line;
   try {
     const parsed = JSON.parse(payload) as Record<string, unknown>;
-    if (typeof parsed.model !== "string") return line;
-    parsed.model = echoModel;
+    let changed = false;
+    if (typeof parsed.model === "string") {
+      parsed.model = echoModel;
+      changed = true;
+    }
+    // #3697: Responses API events nest `model` under `response.model` — see
+    // echoModelInObject for the shape.
+    const nested = parsed.response;
+    if (nested && typeof nested === "object" && !Array.isArray(nested)) {
+      const nestedRec = nested as Record<string, unknown>;
+      if (typeof nestedRec.model === "string") {
+        nestedRec.model = echoModel;
+        changed = true;
+      }
+    }
+    if (!changed) return line;
     return `data: ${JSON.stringify(parsed)}`;
   } catch {
     return line;

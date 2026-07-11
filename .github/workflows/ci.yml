@@ -38,12 +38,17 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
       - id: classify
         env:
           EVENT_NAME: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          # Single source of truth: scripts/quality/classify-pr-changes.mjs
+          # (unit-tested). Push/dispatch always enable every lane.
           if [ "$EVENT_NAME" != "pull_request" ]; then
             {
               echo "code=true"
@@ -54,51 +59,18 @@ jobs:
             exit 0
           fi
 
-          code=false
-          docs=false
-          i18n=false
-          workflow=false
-
           git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed-files.txt
-
-          while IFS= read -r file; do
-            case "$file" in
-              .github/workflows/*|.zizmor.yml)
-                workflow=true
-                code=true
-                ;;
-              docs/*|*.md)
-                docs=true
-                ;;
-              src/i18n/*|src/i18n/messages/*|scripts/i18n/*|config/i18n.json)
-                i18n=true
-                code=true
-                ;;
-              src/*|open-sse/*|bin/*|electron/*|tests/*|scripts/*|package.json|package-lock.json|tsconfig*.json|next.config.*|vitest*.config.*|playwright.config.*)
-                code=true
-                ;;
-              db/*|config/*)
-                code=true
-                ;;
-              *)
-                code=true
-                ;;
-            esac
-          done < changed-files.txt
-
-          {
-            echo "code=$code"
-            echo "docs=$docs"
-            echo "i18n=$i18n"
-            echo "workflow=$workflow"
-          } >> "$GITHUB_OUTPUT"
+          node scripts/quality/classify-pr-changes.mjs changed-files.txt >> "$GITHUB_OUTPUT"
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Path filter: pure docs / pure message-catalog PRs skip the code lint bag + typecheck.
+    # Existence reason of this job is code regression; docs/i18n have dedicated jobs.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
     env:
       # tsx gates below (known-symbols, route-guard-membership) import modules that
       # open SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
@@ -116,7 +88,27 @@ jobs:
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run audit:deps
-      - run: npm run lint
+      - name: Restore ESLint file cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            .eslintcache
+            .eslintcache-complexity
+          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
+          restore-keys: |
+            eslint-${{ runner.os }}-
+      # Single ESLint inventory (JSON) — quality-gate reuses the artifact instead of
+      # a second cold full-tree pass for eslintWarnings ratchet counts.
+      - name: ESLint (JSON report)
+        run: npm run lint:json
+      - name: Upload ESLint results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: eslint-results
+          path: .artifacts/eslint-results.json
+          if-no-files-found: warn
+          retention-days: 7
       - run: npm run check:cycles
       - run: npm run check:route-validation:t06
       - run: npm run check:any-budget:t11
@@ -137,16 +129,16 @@ jobs:
       # check:docs-sync is run by the docs-sync-strict job (via check:docs-all) and the
       # husky pre-commit hook; the standalone copy here was redundant (ROI dedup).
       - run: npm run typecheck:core
-      # typecheck:noimplicit:core is a forward-looking gate (noImplicitAny).
-      # Run informationally for now — many pre-existing call sites still need
-      # explicit annotations; track in a dedicated follow-up.
-      - run: npm run typecheck:noimplicit:core
-        continue-on-error: true
+      # typecheck:noimplicit:core dropped from this job (2026-07 optimize):
+      # it was advisory (continue-on-error) and largely subsumed by the blocking
+      # check:type-coverage ratchet in quality-gate. Local: npm run typecheck:noimplicit:core.
 
   quality-gate:
     name: Quality Ratchet
     runs-on: ubuntu-latest
-    needs: test-coverage
+    # needs lint so eslint-results artifact is available (same inventory as the
+    # blocking lint step). Allow lint failure so other ratchets still run.
+    needs: [changes, test-coverage, lint]
     # Run even when test-coverage was SKIPPED/FAILED (e.g. a single flaky Coverage
     # Shard breaks the shard→coverage→ratchet chain). The DETERMINISTIC ratchets
     # (eslint / complexity / cognitive-complexity / duplication / codeql) do NOT need
@@ -155,7 +147,8 @@ jobs:
     # release PR #4854, where the drift cascade only surfaced post-merge in #5029).
     # The coverage.* metrics degrade gracefully: the download is continue-on-error and
     # the ratchet runs with --allow-missing, so absent coverage is skipped, not failed.
-    if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
+    # Path filter: code-only — pure docs/i18n PRs have nothing for these ratchets to guard.
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true' && (needs.lint.result == 'success' || needs.lint.result == 'failure'))) }}
     # security-events: read lets the CodeQL ratchet read open code-scanning alerts
     # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
     permissions:
@@ -170,6 +163,15 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
+      - name: Restore ESLint file cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            .eslintcache
+            .eslintcache-complexity
+          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
+          restore-keys: |
+            eslint-${{ runner.os }}-
       # Coverage mergeada (coverage-summary.json) p/ o ratchet de cobertura.
       # continue-on-error: o artifact pode não existir se a job test-coverage foi
       # SKIPPED (shard flaky). Nesse caso collect-metrics pula coverage.* (ausente sem
@@ -180,6 +182,13 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
+      # Prefer lint job's ESLint JSON (one inventory, two consumers).
+      - name: Download ESLint results
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: eslint-results
+          path: .artifacts/
       - run: npm run quality:collect
       # Catraca: falha se qualquer métrica regredir vs quality-baseline.json (commitado).
       # Hoje: contagem de warnings do ESLint. Fase 4 estende com cobertura (lida do
@@ -201,15 +210,13 @@ jobs:
       # para não pesar no caminho crítico do lint.
       - name: Duplication ratchet
         run: npm run check:duplication
-      - name: Complexity ratchet
-        run: npm run check:complexity
-      # Fase 7 INT: dead-code, cognitive-complexity, type-coverage promovidos de
-      # advisory (quality-extended) para BLOQUEANTES aqui. Os 3 leem seus baseline
-      # de quality-baseline.json e saem 1 em regressão.
+      # Complexity + cognitive: one ESLint walk, two independent baselines (by ruleId).
+      - name: Complexity + cognitive ratchets
+        run: npm run check:complexity-ratchets
+      # Fase 7 INT: dead-code, type-coverage promovidos de advisory (quality-extended)
+      # para BLOQUEANTES aqui. cognitive-complexity is folded into the step above.
       - name: Dead-code ratchet (knip)
         run: npm run check:dead-code
-      - name: Cognitive complexity ratchet (sonarjs)
-        run: npm run check:cognitive-complexity
       - name: Type coverage ratchet
         run: npm run check:type-coverage
       - name: Compression budget ratchet (F2.4 / N4)
@@ -247,9 +254,11 @@ jobs:
   quality-extended:
     name: Quality Gates (Extended)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Path filter: code-only (scanners/ratchets target production surface).
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
     steps:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
       # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
@@ -357,9 +366,11 @@ jobs:
   docs-sync-strict:
     name: Docs Sync (Strict)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Run when docs OR code change: API/route code can break doc/OpenAPI contract gates.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && (needs.changes.outputs.docs == 'true' || needs.changes.outputs.code == 'true')) }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -379,19 +390,20 @@ jobs:
         run: npm run check:openapi-coverage
       - name: OpenAPI security-tier consistency (advisory)
         run: npm run check:openapi-security-tiers
-      - name: OpenAPI spec paths resolve to real routes (anti-hallucination)
-        run: npm run check:openapi-routes
-      - name: Doc /api refs resolve to real routes (anti-hallucination)
-        run: npm run check:docs-symbols
+      # One FS inventory of src/app/api for both anti-hallucination directions.
+      - name: API docs refs (openapi + prose → routes)
+        run: npm run check:api-docs-refs
       - name: i18n translation drift (warn)
         run: node scripts/i18n/check-translation-drift.mjs --warn
 
   docs-lint:
     name: Docs Lint (prose — advisory)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Prose/markdown only — skip when the PR has no doc surface.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.docs == 'true') }}
     # Advisory (warning-first): prose/markdown style must not block merges while the
     # existing doc corpus is brought up to style. Promote to blocking once it converges.
     continue-on-error: true
@@ -418,9 +430,11 @@ jobs:
   i18n-ui-coverage:
     name: i18n UI Coverage
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # UI keys move with dashboard code OR message catalogs.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && (needs.changes.outputs.i18n == 'true' || needs.changes.outputs.code == 'true')) }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -440,9 +454,11 @@ jobs:
   i18n:
     name: i18n Validation (all languages)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Message-catalog / i18n-tooling only — pure code without i18n surface skips this lane.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.i18n == 'true') }}
     continue-on-error: true
     steps:
       - uses: actions/checkout@v7
@@ -961,7 +977,7 @@ jobs:
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
-        uses: actions/cache@v6.1.0
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}

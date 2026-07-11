@@ -26,6 +26,7 @@ import {
   isStripReasoningRequested,
 } from "./chatCore/headers.ts";
 import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
+import { isCodexOriginatedHeaders } from "../config/codexIdentity.ts";
 import { trackDevice, extractIpFromHeaders } from "../services/deviceTracker.ts";
 import { getCombosCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
@@ -763,8 +764,18 @@ export async function handleChatCore({
   // #1311 (opt-in): echo the client-requested alias/combo name in the response `model`
   // field instead of the upstream model, so strict clients (Claude Desktop) that validate
   // response.model === request.model stop rejecting alias/combo requests with a 401.
+  // #3697: always echo it for Codex CLI clients on the Responses API — regardless of the
+  // opt-in setting — since the Codex CLI status line/model button reads `response.model`
+  // to display the active model + reasoning effort (e.g. `gpt-5.5-xhigh`). Detection is by
+  // request headers (originator/User-Agent), not by the routed provider, so it still fires
+  // when `codex/gpt-5.5-xhigh` is routed through a combo to a non-codex upstream.
+  const isCodexResponsesEcho =
+    (isResponsesEndpoint || sourceFormat === FORMATS.OPENAI_RESPONSES) &&
+    isCodexOriginatedHeaders(clientRawRequest?.headers);
   const echoModel =
-    settings.echoRequestedModelName === true && typeof requestedModel === "string" && requestedModel
+    (settings.echoRequestedModelName === true || isCodexResponsesEcho) &&
+    typeof requestedModel === "string" &&
+    requestedModel
       ? requestedModel
       : null;
   const detailedLoggingEnabled =
