@@ -8,6 +8,7 @@ import {
   quotePowerShell,
   runElevatedPowerShell,
 } from "../systemCommands.ts";
+import { ALL_TARGETS } from "../targets/index.ts";
 
 // Legacy Antigravity defaults preserved for backward compat.
 const ANTIGRAVITY_HOSTS = [
@@ -16,6 +17,12 @@ const ANTIGRAVITY_HOSTS = [
   "daily-cloudcode-pa.sandbox.googleapis.com",
   "autopush-cloudcode-pa.sandbox.googleapis.com",
 ];
+
+function resolveHostsForAgent(agentId?: string): string[] {
+  if (!agentId) return ANTIGRAVITY_HOSTS;
+  const target = ALL_TARGETS.find((t) => t.id === agentId);
+  return target?.hosts ?? ANTIGRAVITY_HOSTS;
+}
 
 const IS_WIN = process.platform === "win32";
 const HOSTS_FILE = IS_WIN
@@ -108,9 +115,13 @@ function hasHostEntry(hostsContent: string, hostname: string): boolean {
  * Add /etc/hosts entries for every hostname in `hosts`.
  * Idempotent — existing entries are not duplicated.
  * Complies with Hard Rule #13: no string interpolation in shell commands.
+ *
+ * On Windows, all missing entries are batched into a single elevated PowerShell
+ * invocation so the user gets one UAC prompt instead of one per line.
  */
 export async function addDNSEntries(hosts: string[], sudoPassword: string): Promise<void> {
   const hostsContent = readHostsFile();
+  const missingEntries: string[] = [];
 
   for (const hostname of hosts) {
     const lines = dnsLines(hostname);
@@ -122,29 +133,23 @@ export async function addDNSEntries(hosts: string[], sudoPassword: string): Prom
         return parts.length >= 2 && parts[0] === ip && parts.includes(host);
       });
     });
+    missingEntries.push(...missing);
+  }
 
-    for (const entry of missing) {
-      if (IS_WIN) {
-        // HR#13: build PowerShell command via concat (not template literal) so grep
-        // for `\${` inside script bodies returns zero hits. Values pass through
-        // `quotePowerShell()` for single-quote escaping — safe against injection
-        // since both HOSTS_FILE (OS const) and entry (internal `IP host` string)
-        // are non-user-supplied.
-        const cmd =
-          "Add-Content -LiteralPath " +
-          quotePowerShell(HOSTS_FILE) +
-          " -Value " +
-          quotePowerShell(entry);
-        await runElevatedPowerShell(cmd);
-      } else {
-        // Hard Rule #13: entry is passed as stdin data, not interpolated into the command.
-        await execFileWithPassword(
-          "sudo",
-          ["-S", "tee", "-a", HOSTS_FILE],
-          sudoPassword,
-          `${entry}\n`
-        );
-      }
+  if (missingEntries.length === 0) return;
+
+  if (IS_WIN) {
+    const psHostsFile = quotePowerShell(HOSTS_FILE);
+    const psEntries = missingEntries.map((e) => quotePowerShell(e)).join(", ");
+    const script = "Add-Content -LiteralPath " + psHostsFile + " -Value " + psEntries;
+    await runElevatedPowerShell(script);
+    for (const entry of missingEntries) {
+      console.log(`[DNS] Added entry: ${entry}`);
+    }
+  } else {
+    const data = missingEntries.map((e) => `${e}\n`).join("");
+    await execFileWithPassword("sudo", ["-S", "tee", "-a", HOSTS_FILE], sudoPassword, data);
+    for (const entry of missingEntries) {
       console.log(`[DNS] Added entry: ${entry}`);
     }
   }
@@ -168,46 +173,43 @@ fs.writeFileSync(filePath, filtered.join("\\n").replace(/\\n*$/, "\\n"));
  * Remove /etc/hosts entries for every hostname in `hosts`.
  * Idempotent — silently skips hosts that are not present.
  * Complies with Hard Rule #13: HOSTS_FILE and hostname are passed as argv, not interpolated.
+ *
+ * On Windows, all hostnames are filtered in a single elevated PowerShell
+ * invocation so the user gets one UAC prompt instead of one per host.
  */
 export async function removeDNSEntries(hosts: string[], sudoPassword: string): Promise<void> {
   const hostsContent = readHostsFile();
+  const presentHosts = hosts.filter((h) => hasHostEntry(hostsContent, h));
 
-  for (const hostname of hosts) {
-    if (!hasHostEntry(hostsContent, hostname)) {
-      console.log(`[DNS] Entry for ${hostname} not present — skipping`);
-      continue;
-    }
+  if (presentHosts.length === 0) return;
 
-    try {
-      if (IS_WIN) {
-        // HR#13: build PowerShell script via concat (not template literal) so grep
-        // for `\${` inside script bodies returns zero hits. `psHostsFile` and
-        // `psTargetHost` are quotePowerShell-escaped values (single-quote escape).
-        const psHostsFile = quotePowerShell(HOSTS_FILE);
-        const psTargetHost = quotePowerShell(hostname);
-        const script =
-          "\n          $hostsFile = " +
-          psHostsFile +
-          ";\n          $targetHost = " +
-          psTargetHost +
-          ";\n          $lines = Get-Content -LiteralPath $hostsFile;\n" +
-          "          $filtered = $lines | Where-Object {\n" +
-          "            $parts = ($_ -split '\\s+') | Where-Object { $_ };\n" +
-          "            -not (($parts.Length -ge 2) -and ($parts -contains $targetHost))\n" +
-          "          };\n" +
-          "          Set-Content -LiteralPath $hostsFile -Value $filtered;\n        ";
-        await runElevatedPowerShell(script);
-      } else {
-        // Hard Rule #13: HOSTS_FILE and hostname are argv arguments, not interpolated.
-        await execFileWithPassword(
-          "sudo",
-          ["-S", process.execPath, "-e", REMOVE_HOSTS_ENTRY_SCRIPT, HOSTS_FILE, hostname],
-          sudoPassword
-        );
-      }
+  if (IS_WIN) {
+    const psHostsFile = quotePowerShell(HOSTS_FILE);
+    const psTargets = presentHosts.map((h) => quotePowerShell(h)).join(", ");
+    const script =
+      "$hostsFile = " +
+      psHostsFile +
+      ";\n          $targetHosts = @(" +
+      psTargets +
+      ");\n" +
+      "          $lines = Get-Content -LiteralPath $hostsFile;\n" +
+      "          $filtered = $lines | Where-Object {\n" +
+      "            $part = ($_ -split '\\s+') | Where-Object { $_ };\n" +
+      "            -not ($part.Length -ge 2 -and ($targetHosts -contains $part[1]))\n" +
+      "          };\n" +
+      "          Set-Content -LiteralPath $hostsFile -Value $filtered;\n        ";
+    await runElevatedPowerShell(script);
+    for (const hostname of presentHosts) {
       console.log(`[DNS] Removed entries for ${hostname}`);
-    } catch (error) {
-      throw new Error(`Failed to remove DNS entry for ${hostname}: ${getErrorMessage(error)}`);
+    }
+  } else {
+    for (const hostname of presentHosts) {
+      await execFileWithPassword(
+        "sudo",
+        ["-S", process.execPath, "-e", REMOVE_HOSTS_ENTRY_SCRIPT, HOSTS_FILE, hostname],
+        sudoPassword
+      );
+      console.log(`[DNS] Removed entries for ${hostname}`);
     }
   }
 }
@@ -226,17 +228,19 @@ export function checkDNSEntry(): boolean {
 }
 
 /**
- * Add DNS entries for the Antigravity default hosts.
+ * Add DNS entries for the Antigravity default hosts, or for a specific agent
+ * when `agentId` is provided.
  * Delegates to `addDNSEntries` — backward compat wrapper.
  */
-export async function addDNSEntry(sudoPassword: string): Promise<void> {
-  await addDNSEntries(ANTIGRAVITY_HOSTS, sudoPassword);
+export async function addDNSEntry(sudoPassword: string, agentId?: string): Promise<void> {
+  await addDNSEntries(resolveHostsForAgent(agentId), sudoPassword);
 }
 
 /**
- * Remove DNS entries for the Antigravity default hosts.
+ * Remove DNS entries for the Antigravity default hosts, or for a specific agent
+ * when `agentId` is provided.
  * Delegates to `removeDNSEntries` — backward compat wrapper.
  */
-export async function removeDNSEntry(sudoPassword: string): Promise<void> {
-  await removeDNSEntries(ANTIGRAVITY_HOSTS, sudoPassword);
+export async function removeDNSEntry(sudoPassword: string, agentId?: string): Promise<void> {
+  await removeDNSEntries(resolveHostsForAgent(agentId), sudoPassword);
 }

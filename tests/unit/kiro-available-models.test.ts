@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 
 import {
@@ -6,9 +6,14 @@ import {
   resolveKiroRegion,
   buildKiroModelsEndpoints,
   fetchKiroAvailableModels,
+  clearKiroModelCache,
 } from "../../open-sse/services/kiroModels.ts";
 
 const FALLBACK = [{ id: "auto-kiro", name: "Auto" }, { id: "claude-sonnet-4.6" }];
+
+beforeEach(() => {
+  clearKiroModelCache();
+});
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -70,7 +75,14 @@ test("fetchKiroAvailableModels: simple (Builder ID) account, us-east-1, origin-o
   });
 
   assert.equal(result.source, "api");
-  assert.deepEqual(result.models.map((m) => m.id).sort(), ["auto", "claude-sonnet-4.6"]);
+  assert.deepEqual(result.models.map((m) => m.id).sort(), [
+    "auto",
+    "auto-thinking",
+    "claude-sonnet-4.6",
+    "claude-sonnet-4.6-agentic",
+    "claude-sonnet-4.6-thinking",
+    "claude-sonnet-4.6-thinking-agentic",
+  ]);
   assert.deepEqual(calls, [
     "https://q.us-east-1.amazonaws.com/ListAvailableModels?origin=AI_EDITOR",
   ]);
@@ -94,7 +106,12 @@ test("fetchKiroAvailableModels: IAM Identity Center account, region-matched endp
   assert.equal(result.source, "api");
   assert.deepEqual(
     result.models.map((m) => m.id),
-    ["claude-opus-4.8"]
+    [
+      "claude-opus-4.8",
+      "claude-opus-4.8-thinking",
+      "claude-opus-4.8-agentic",
+      "claude-opus-4.8-thinking-agentic",
+    ]
   );
   assert.equal(
     calls[0],
@@ -125,7 +142,12 @@ test("fetchKiroAvailableModels: retries with profileArn when origin-only fails",
   assert.equal(result.source, "api");
   assert.deepEqual(
     result.models.map((m) => m.id),
-    ["claude-sonnet-4.6"]
+    [
+      "claude-sonnet-4.6",
+      "claude-sonnet-4.6-thinking",
+      "claude-sonnet-4.6-agentic",
+      "claude-sonnet-4.6-thinking-agentic",
+    ]
   );
   // origin-only attempted first, then profileArn retry.
   assert.equal(calls.length, 2);

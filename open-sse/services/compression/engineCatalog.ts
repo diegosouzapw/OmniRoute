@@ -80,6 +80,13 @@ export const ENGINE_CATALOG: Record<string, EngineMeta> = {
     isSingleMode: true,
     description: "Heuristic token pruning (+ optional SLM).",
   },
+  omniglyph: {
+    id: "omniglyph",
+    label: "OmniGlyph",
+    stackPriority: 90,
+    isSingleMode: true,
+    description: "Contexto-como-imagem (Claude Fable 5, rota direta).",
+  },
 };
 
 export const ENGINE_IDS: string[] = Object.values(ENGINE_CATALOG)

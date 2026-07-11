@@ -43,6 +43,7 @@ const COMPRESSION_MODES = new Set<CompressionMode>([
   "ultra",
   "rtk",
   "stacked",
+  "omniglyph",
 ]);
 
 type JsonRecord = Record<string, unknown>;
@@ -259,8 +260,9 @@ function normalizeContextEditingConfig(value: unknown): ContextEditingConfig {
 }
 
 // Engines allowed in the global stackedPipeline setting. MUST stay in sync with the
-// compression-combo KNOWN_ENGINE_IDS (src/lib/db/compressionCombos.ts) — otherwise the
-// global setting silently strips engines the combo path accepts (B-PIPELINE-DIVERGENCE).
+// compression-combo KNOWN_ENGINE_IDS (src/lib/db/compressionCombos.ts) and with
+// stackedPipelineStepSchema / ENGINE_CATALOG — otherwise the global setting silently
+// strips engines the combo path accepts (B-PIPELINE-DIVERGENCE / #6747).
 const STACKED_PIPELINE_ENGINE_IDS = new Set([
   "lite",
   "caveman",
@@ -271,6 +273,8 @@ const STACKED_PIPELINE_ENGINE_IDS = new Set([
   "session-dedup",
   "ccr",
   "llmlingua",
+  "relevance",
+  "omniglyph",
 ]);
 
 export function normalizeStackedPipeline(value: unknown): CompressionPipelineStep[] {
@@ -417,6 +421,7 @@ const SINGLE_MODE_ENGINE: Partial<Record<CompressionMode, string>> = {
   aggressive: "aggressive",
   ultra: "ultra",
   rtk: "rtk",
+  omniglyph: "omniglyph",
 };
 
 function normalizeEngineToggle(value: unknown): EngineToggle | null {
@@ -654,8 +659,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         storedEngines = parseStoredEnginesMap(parsed);
         break;
       case "activeComboId":
-        config.activeComboId =
-          typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
+        config.activeComboId = typeof parsed === "string" && parsed.trim() ? parsed.trim() : null;
         break;
       case "ultraEngine":
         // Phase 4 (B): SLM tier selector. Only the two known values; anything else

@@ -1,5 +1,8 @@
 import { handleOcr } from "@omniroute/open-sse/handlers/ocr.ts";
-import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
+import {
+  getProviderCredentialsWithQuotaPreflight,
+  clearRecoveredProviderState,
+} from "@/sse/services/auth";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { parseOcrModel } from "@omniroute/open-sse/config/ocrRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
@@ -52,7 +55,7 @@ async function postHandler(request, context) {
 
   // Default to mistral if no provider prefix
   const resolvedProvider = provider || "mistral";
-  const credentials = await getProviderCredentials(resolvedProvider);
+  const credentials = await getProviderCredentialsWithQuotaPreflight(resolvedProvider);
   if (!credentials) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,

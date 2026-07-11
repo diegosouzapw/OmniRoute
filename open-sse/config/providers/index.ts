@@ -16,12 +16,12 @@ import { upstageProvider } from "./registry/upstage/index.ts";
 import { nebiusProvider } from "./registry/nebius/index.ts";
 import { fireworksProvider } from "./registry/fireworks/index.ts";
 import { llamagateProvider } from "./registry/llamagate/index.ts";
-import { inclusionaiProvider } from "./registry/inclusionai/index.ts";
 import { glmProvider } from "./registry/glm/index.ts";
 import { glmtProvider } from "./registry/glm/t/index.ts";
 import { glm_cnProvider } from "./registry/glm/cn/index.ts";
 import { traeProvider } from "./registry/trae/index.ts";
 import { muse_spark_webProvider } from "./registry/muse-spark-web/index.ts";
+import { lmarenaProvider } from "./registry/lmarena/index.ts";
 import { kilocodeProvider } from "./registry/kilocode/index.ts";
 import { github_modelsProvider } from "./registry/github/models/index.ts";
 import { githubProvider } from "./registry/github/index.ts";
@@ -77,6 +77,7 @@ import { chipotleProvider } from "./registry/chipotle/index.ts";
 import { freeaiapikeyProvider } from "./registry/freeaiapikey/index.ts";
 import { qwenProvider } from "./registry/qwen/index.ts";
 import { qwen_webProvider } from "./registry/qwen/web/index.ts";
+import { zai_webProvider } from "./registry/zai-web/index.ts";
 import { modalProvider } from "./registry/modal/index.ts";
 import { zenmuxProvider } from "./registry/zenmux/index.ts";
 import { leonardoProvider } from "./registry/leonardo/index.ts";
@@ -88,7 +89,6 @@ import { sensenovaProvider } from "./registry/sensenova/index.ts";
 import { hyperbolicProvider } from "./registry/hyperbolic/index.ts";
 import { lambda_aiProvider } from "./registry/lambda-ai/index.ts";
 import { t3_webProvider } from "./registry/t3-web/index.ts";
-import { klusterProvider } from "./registry/kluster/index.ts";
 import { iflytekProvider } from "./registry/iflytek/index.ts";
 import { crofProvider } from "./registry/crof/index.ts";
 import { moonshotProvider } from "./registry/moonshot/index.ts";
@@ -106,7 +106,6 @@ import { nscaleProvider } from "./registry/nscale/index.ts";
 import { chatgpt_webProvider } from "./registry/chatgpt-web/index.ts";
 import { openrouterProvider } from "./registry/openrouter/index.ts";
 import { orcarouterProvider } from "./registry/orcarouter/index.ts";
-import { glhfProvider } from "./registry/glhf/index.ts";
 import { copilot_webProvider } from "./registry/copilot-web/index.ts";
 import { copilot_m365_webProvider } from "./registry/copilot-m365-web/index.ts";
 import { stepfunProvider } from "./registry/stepfun/index.ts";
@@ -202,12 +201,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   nebius: nebiusProvider,
   fireworks: fireworksProvider,
   llamagate: llamagateProvider,
-  inclusionai: inclusionaiProvider,
   glm: glmProvider,
   glmt: glmtProvider,
   "glm-cn": glm_cnProvider,
   trae: traeProvider,
   "muse-spark-web": muse_spark_webProvider,
+  lmarena: lmarenaProvider,
   kilocode: kilocodeProvider,
   "github-models": github_modelsProvider,
   github: githubProvider,
@@ -263,6 +262,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   freeaiapikey: freeaiapikeyProvider,
   qwen: qwenProvider,
   "qwen-web": qwen_webProvider,
+  "zai-web": zai_webProvider,
   modal: modalProvider,
   zenmux: zenmuxProvider,
   leonardo: leonardoProvider,
@@ -274,7 +274,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   hyperbolic: hyperbolicProvider,
   "lambda-ai": lambda_aiProvider,
   "t3-web": t3_webProvider,
-  kluster: klusterProvider,
   iflytek: iflytekProvider,
   crof: crofProvider,
   moonshot: moonshotProvider,
@@ -292,7 +291,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "chatgpt-web": chatgpt_webProvider,
   openrouter: openrouterProvider,
   orcarouter: orcarouterProvider,
-  glhf: glhfProvider,
   "copilot-web": copilot_webProvider,
   "copilot-m365-web": copilot_m365_webProvider,
   stepfun: stepfunProvider,

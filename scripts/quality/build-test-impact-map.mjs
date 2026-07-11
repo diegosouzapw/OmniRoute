@@ -57,10 +57,14 @@ function sourceDepsOf(entry) {
 // The TIA step runs the selected subset via `node --test`, so it must NOT include
 // vitest files (`.test.tsx`, `open-sse/**/__tests__`, `tests/unit/autoCombo`), nor
 // e2e/integration tests, which can't run under node:test (they 99-false-failed before).
+// Mirror EXACTLY the package.json `test:unit` / `test:unit:ci` globs (incl. memory,
+// usage, combo, dashboard, serial, and *.test.mjs). Drift here → false __RUN_ALL__.
 const testFiles = globSync(
   [
     "tests/unit/*.test.ts",
-    "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,dashboard,db,db-adapters,docs,executors,gamification,guardrails,lib,mcp,runtime,security,services,settings,shared,ui}/**/*.test.ts",
+    "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts",
+    "tests/unit/**/*.test.mjs",
+    "tests/unit/dashboard/**/*.test.ts",
     // Quarentena serial (P0.3): também são node:test — a TIA precisa mapeá-los.
     "tests/unit/serial/**/*.test.ts",
   ],
