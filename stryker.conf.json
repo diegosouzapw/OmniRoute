@@ -241,6 +241,7 @@
       "tests/unit/token-refresh-service.test.ts",
       "tests/unit/tools-filter-anthropic-format.test.ts",
       "tests/unit/tproxy-route.test.ts",
+      "tests/unit/trae-publiccred.test.ts",
       "tests/unit/types-barrel-model-cooldown.test.ts",
       "tests/unit/upstream-retry-hints-toggle.test.ts",
       "tests/unit/usage-service-hardening.test.ts",
