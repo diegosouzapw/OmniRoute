@@ -11,8 +11,10 @@ import {
   findMatchingErrorRule,
   matchErrorRuleByText,
   matchErrorRuleByStatus,
+  serviceSupervisorCooldown,
 } from "../config/errorConfig.ts";
 import { getProviderErrorRuleMatch } from "../config/providerErrorRules.ts";
+import * as rot from "./rotationConfig.ts";
 import { getPassthroughProviders, getProviderCategory } from "../config/providerRegistry.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
@@ -1267,7 +1269,8 @@ export function checkFallbackError(
   provider: string | null = null,
   headers: Headers | Record<string, string> | null = null,
   profileOverride: ProviderProfile | null = null,
-  structuredError?: { code?: string | null; type?: string | null } | null
+  structuredError?: { code?: string | null; type?: string | null } | null,
+  rotation?: { account?: unknown } | null
 ): {
   shouldFallback: boolean;
   cooldownMs: number;
@@ -1287,27 +1290,10 @@ export function checkFallbackError(
    * caller can persist an explicit reset window instead of the engine's scaled cooldown. */
   configuredCooldownMs?: number;
 } {
-  // G-02: detect embedded service supervisor failures (X-Omni-Fallback-Hint: connection_cooldown).
-  // These are NOT upstream AI provider failures — they are local supervisor state changes.
-  // Apply a short 5s connection cooldown without tripping the provider circuit breaker.
-  if (status === 503 && headers) {
-    const hintValue =
-      typeof (headers as Headers).get === "function"
-        ? (headers as Headers).get("x-omni-fallback-hint")
-        : (headers as Record<string, string>)["x-omni-fallback-hint"] ||
-          (headers as Record<string, string>)["X-Omni-Fallback-Hint"];
-    if (typeof hintValue === "string" && hintValue.toLowerCase() === "connection_cooldown") {
-      return {
-        shouldFallback: true,
-        cooldownMs: 5_000,
-        baseCooldownMs: 5_000,
-        newBackoffLevel: 0,
-        reason: "service_not_running",
-        skipProviderBreaker: true,
-      };
-    }
-  }
-
+  const svc = serviceSupervisorCooldown(status, headers);
+  if (svc) return svc;
+  const rg = rot.gateFor(status, rotation?.account);
+  if (rg) return rg;
   const errorStr = (errorText || "").toString();
   const profile = profileOverride ?? (provider ? getProviderProfile(provider) : null);
   const maxBackoffSteps = profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel;
@@ -1396,6 +1382,8 @@ export function checkFallbackError(
       };
     }
 
+    const ro = rot.overrideFor(reason, rotation?.account);
+    if (ro) return ro;
     const scaled = getScaledBaseCooldown(reason, backoffLevel);
     return {
       shouldFallback: true,
@@ -1761,13 +1749,15 @@ export function resetAccountState<T extends AccountState | null | undefined>(
 export function applyErrorState<T extends AccountState | null | undefined>(
   account: T,
   status: number,
-  errorText: string | null,
-  provider: string | null = null
+  errText: string | null,
+  prov: string | null = null
 ): T | AccountState {
   if (!account) return account;
 
-  const backoffLevel = account.backoffLevel || 0;
-  const fallbackDecision = checkFallbackError(status, errorText, backoffLevel, null, provider);
+  const lvl = account.backoffLevel || 0;
+  const fallbackDecision = checkFallbackError(status, errText, lvl, null, prov, null, null, null, {
+    account,
+  });
   const { cooldownMs, reason } = fallbackDecision;
   const newBackoffLevel =
     "newBackoffLevel" in fallbackDecision ? fallbackDecision.newBackoffLevel : undefined;
@@ -1789,8 +1779,8 @@ export function applyErrorState<T extends AccountState | null | undefined>(
   const nextState: T | AccountState = {
     ...account,
     rateLimitedUntil: effectiveCooldownMs > 0 ? getUnavailableUntil(effectiveCooldownMs) : null,
-    backoffLevel: newBackoffLevel ?? backoffLevel,
-    lastError: { status, message: errorText, timestamp: new Date().toISOString(), reason },
+    backoffLevel: newBackoffLevel ?? lvl,
+    lastError: { status, message: errText, timestamp: new Date().toISOString(), reason },
     status: "error",
   };
 

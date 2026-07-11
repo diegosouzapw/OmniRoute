@@ -215,6 +215,7 @@
       "tests/unit/rate-limit-manager.test.ts",
       "tests/unit/rate-limit-queue-timeout-lockout.test.ts",
       "tests/unit/responses-handler.test.ts",
+      "tests/unit/rotation-config-omniroute.test.ts",
       "tests/unit/route-explainability.test.ts",
       "tests/unit/route-guard-middleware-local-only.test.ts",
       "tests/unit/route-guard-plugins-local-only.test.ts",
