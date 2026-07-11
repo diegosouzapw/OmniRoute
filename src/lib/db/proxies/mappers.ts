@@ -1,4 +1,4 @@
-import { decrypt } from "../encryption";
+import { decrypt, looksEncrypted } from "../encryption";
 import type {
   JsonRecord,
   ProxyScope,
@@ -68,6 +68,15 @@ export function extractRelayAuth(notes: unknown): string | undefined {
     if (parsed.relayAuthEnc) {
       const dec = decrypt(parsed.relayAuthEnc);
       if (dec) return dec;
+      // decrypt returned null despite a present blob — warn so operators
+      // know the key changed or went missing. The plaintext fallback below
+      // may still save us (legacy rows that never migrated).
+      if (looksEncrypted(parsed.relayAuthEnc)) {
+        console.warn(
+          `[relay] Failed to decrypt relayAuthEnc for proxy — ` +
+            `STORAGE_ENCRYPTION_KEY may have changed or been unset`
+        );
+      }
     }
     return parsed.relayAuth || undefined;
   } catch {

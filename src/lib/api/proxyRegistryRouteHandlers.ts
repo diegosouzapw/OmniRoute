@@ -94,7 +94,13 @@ export async function handleProxyUpdate(request: Request) {
       });
     }
 
-    const { id, assignment, ...changes } = validation.data;
+    const { id, assignment, ...rawChanges } = validation.data;
+    // Strip keys the client didn't send — .partial() resolves absent fields to
+    // undefined, which would silently overwrite DB values via the spread merge
+    // in updateProxyRow. Only include keys the client explicitly provided.
+    const changes = Object.fromEntries(
+      Object.entries(rawChanges).filter(([_, v]) => v !== undefined)
+    );
     if (assignment) {
       const result = await updateProxyAndAssign(id, changes, assignment);
       if (!result?.proxy) {
