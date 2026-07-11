@@ -56,6 +56,7 @@ export const INTENTIONALLY_INTERNAL = new Set([
   "healthCheck", // db-internal: importado por db/core.ts (runDbHealthCheck)
   "jsonMigration", // intentionally-internal: src/app/api/settings/import-json/route.ts
   "migrationRunner", // db-internal: importado por db/core.ts (runMigrations ao inicializar o DB)
+  "modelCapabilityOverrides", // intentionally-internal: src/app/api/model-capability-overrides/route.ts via import direto "@/lib/db/modelCapabilityOverrides" (#6727 — evita empurrar localDb.ts para o cap de 800 linhas)
   "notion", // intentionally-internal: settings/notion API route + open-sse/mcp-server/tools/notionTools.ts
   "obsidian", // intentionally-internal: src/lib/obsidianSync.ts + settings/obsidian route + MCP obsidianTools.ts
   "optimizationSettings", // db-internal: imported by db/core.ts for SQLite PRAGMA application helpers that require the live adapter

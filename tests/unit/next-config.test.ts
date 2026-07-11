@@ -79,7 +79,10 @@ test("next config declares Turbopack aliases, runtime assets and server external
   const tracingExcludes = nextConfig.outputFileTracingExcludes["/*"];
 
   assert.equal(nextConfig.turbopack.root, process.cwd());
-  assert.equal(nextConfig.turbopack.resolveAlias["@/mitm/manager"], "./src/mitm/manager.stub.ts");
+  // #6344: the @/mitm/manager stub alias is OPT-IN (OMNIROUTE_MITM_STUB=1, Docker only).
+  // A default production build must NOT alias it, or the stub ships to npm/Electron/VPS
+  // artifacts and breaks Agent Bridge start. See the dedicated env-matrix test below.
+  assert.equal(nextConfig.turbopack.resolveAlias["@/mitm/manager"], undefined);
   assert.equal(nextConfig.outputFileTracingRoot, process.cwd());
   assert.ok(tracingIncludes.includes("./src/lib/db/migrations/**/*"));
   assert.ok(
@@ -111,6 +114,25 @@ test("next config declares Turbopack aliases, runtime assets and server external
     "tls",
   ]) {
     assert.ok(serverExternalPackages.has(packageName), `${packageName} should be externalized`);
+  }
+});
+
+test("Turbopack aliases @/mitm/manager to the stub ONLY when OMNIROUTE_MITM_STUB=1 (#6344)", async () => {
+  const original = process.env.OMNIROUTE_MITM_STUB;
+  try {
+    delete process.env.OMNIROUTE_MITM_STUB;
+    const { default: def } = await loadNextConfig("mitm-default");
+    assert.equal(def.turbopack.resolveAlias["@/mitm/manager"], undefined);
+
+    process.env.OMNIROUTE_MITM_STUB = "1";
+    const { default: docker } = await loadNextConfig("mitm-docker");
+    assert.equal(
+      docker.turbopack.resolveAlias["@/mitm/manager"],
+      "./src/mitm/manager.stub.ts"
+    );
+  } finally {
+    if (original === undefined) delete process.env.OMNIROUTE_MITM_STUB;
+    else process.env.OMNIROUTE_MITM_STUB = original;
   }
 });
 
@@ -247,6 +269,23 @@ test("next-intl webpack hook preserves caller config and filters known extractor
     config.ignoreWarnings[0]({ message: "Critical dependency: request is expression" }),
     false
   );
+});
+
+test("turbopack.ignoreIssue suppresses the agentSkills over-bundling warning (#6582)", async () => {
+  // src/lib/agentSkills/generator.ts joins process.cwd() with a runtime
+  // `outputDir` parameter — not a compile-time literal — so Turbopack's
+  // file-tracing analyzer can't narrow it and emits an "Overly broad
+  // patterns..." warning per entry point importing the module. The fs access
+  // is legitimate and bounded, so it's suppressed via turbopack.ignoreIssue
+  // rather than fought. This guards the config shape so the suppression rule
+  // isn't silently dropped in a future edit.
+  const { default: nextConfig } = await loadNextConfig("ignore-issue");
+  const rules = nextConfig.turbopack?.ignoreIssue;
+
+  assert.ok(Array.isArray(rules), "expected turbopack.ignoreIssue to be an array");
+  const agentSkillsRule = rules.find((rule) => String(rule.path).includes("agentSkills"));
+  assert.ok(agentSkillsRule, "expected an ignoreIssue rule targeting src/lib/agentSkills/**");
+  assert.match(String(agentSkillsRule.description), /Overly broad patterns/);
 });
 
 test("optimizePackageImports excludes the internal @omniroute/open-sse workspace (build-OOM guard)", async () => {

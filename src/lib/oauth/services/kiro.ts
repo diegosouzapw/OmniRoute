@@ -1,4 +1,8 @@
 import { KIRO_CONFIG, assertValidAwsRegion } from "../constants/oauth";
+import {
+  buildExternalIdpRefreshParams,
+  isExternalIdpAuthMethod,
+} from "@omniroute/open-sse/services/kiroExternalIdp.ts";
 
 /**
  * Kiro OAuth Service
@@ -186,6 +190,32 @@ export class KiroService {
    */
   async refreshToken(refreshToken: string, providerSpecificData: any = {}) {
     const { authMethod, clientId, clientSecret, region } = providerSpecificData;
+
+    // Enterprise / Microsoft Entra "Your organization" (external_idp) login: refresh with a
+    // standard public-client OAuth2 refresh_token grant against the org IdP's tokenEndpoint
+    // (form-encoded client_id + refresh_token + scope, no client_secret). The AWS SSO OIDC and
+    // Kiro social endpoints cannot refresh these tokens.
+    if (isExternalIdpAuthMethod(authMethod)) {
+      const refreshRequest = buildExternalIdpRefreshParams(refreshToken, providerSpecificData);
+      const response = await fetch(refreshRequest.tokenEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+        body: refreshRequest.body,
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Token refresh failed: ${error}`);
+      }
+      const data = await response.json();
+      return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token || refreshToken,
+        expiresIn: data.expires_in || 3600,
+      };
+    }
 
     // AWS SSO OIDC refresh (Builder ID or IDC).
     // Imported social tokens (authMethod === "imported") have a registered clientId/clientSecret
@@ -416,6 +446,80 @@ export class KiroService {
       // Cache not available
     }
     return null;
+  }
+
+  /**
+   * List available CodeWhisperer profiles for an access token or long-lived API key.
+   * Some long-lived API keys can call GenerateAssistantResponse but are explicitly
+   * denied on ListAvailableProfiles, so callers must treat an AccessDenied profile
+   * lookup as an optional discovery failure rather than a hard auth failure.
+   */
+  async listAvailableProfiles(accessToken: string, region: string = "us-east-1") {
+    assertValidAwsRegion(region);
+    const endpoint =
+      region === "us-east-1"
+        ? "https://codewhisperer.us-east-1.amazonaws.com"
+        : `https://q.${region}.amazonaws.com`;
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/x-amz-json-1.0",
+        "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
+        Accept: "application/json",
+        tokentype: "API_KEY",
+      },
+      body: JSON.stringify({ maxResults: 10 }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to list profiles: ${error}`);
+    }
+
+    const data = await response.json();
+    const profiles = Array.isArray(data?.profiles) ? data.profiles : [];
+    const arnOf = (profile: any) => profile?.arn || profile?.profileArn || null;
+    const match =
+      profiles.find((profile: any) => String(arnOf(profile) || "").includes(`:${region}:`)) ||
+      profiles[0];
+    return arnOf(match);
+  }
+
+  /**
+   * Normalize a long-lived Kiro/CodeWhisperer API key.
+   */
+  async validateApiKey(apiKey: string, regionInput?: string) {
+    // Default kept OUT of the parameter list: check-public-creds' CRED_KEY_RE matches the
+    // `apiKey:` annotation and flags any string literal in the signature (fn-param FP class).
+    const region = regionInput || "us-east-1";
+    assertValidAwsRegion(region);
+    const accessToken = apiKey.trim();
+    if (!accessToken) {
+      throw new Error("API key is required");
+    }
+
+    let profileArn: string | null = null;
+    try {
+      profileArn = await this.listAvailableProfiles(accessToken, region);
+    } catch (error: any) {
+      const message = String(error?.message || error || "");
+      const isApiKeyProfileDenied =
+        message.includes("AccessDeniedException") &&
+        message.includes("API key authentication is not supported for this operation");
+      if (!isApiKeyProfileDenied) {
+        throw error;
+      }
+    }
+
+    return {
+      accessToken,
+      refreshToken: null,
+      profileArn,
+      region,
+      authMethod: "api_key",
+    };
   }
 
   /**

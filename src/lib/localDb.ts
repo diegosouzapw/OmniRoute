@@ -107,6 +107,7 @@ export {
   updateApiKeyPermissions,
   regenerateApiKey,
   isModelAllowedForKey,
+  pickApiKeyForInternalUse,
   clearApiKeyCaches,
   resetApiKeyState,
 } from "./db/apiKeys";
@@ -182,6 +183,11 @@ export {
   getProxyAssignments,
   getProxyWhereUsed,
   assignProxyToScope,
+  addProxyToScopePool,
+  removeProxyFromScopePool,
+  getScopeProxyPool,
+  setScopeRotationStrategy,
+  getScopeRotationStrategy,
   resolveProxyForConnectionFromRegistry,
   resolveProxyForProvider,
   resolveProxyForScopeFromRegistry,
@@ -583,15 +589,15 @@ export {
   markAllMemoriesNeedReindex,
   getMemoryReindexQueue,
   countMemoryReindexPending,
+  type MemoryVecMeta,
 } from "./db/memoryVec";
-
-export type { MemoryVecMeta } from "./db/memoryVec";
 // T-A-F2: AgentBridge state/mappings/bypass + Inspector custom hosts/sessions
 export * from "./db/agentBridgeState";
 export * from "./db/agentBridgeMappings";
 export * from "./db/agentBridgeBypass";
 export * from "./db/inspectorCustomHosts";
 export * from "./db/inspectorSessions";
+export * from "./db/omp";
 // Quota Sharing — Group B (planos 16+22)
 export {
   listPools,
@@ -789,3 +795,5 @@ export { exportProxyLogsSince } from "./db/proxyLogs";
 // only); re-exported here for the historical localDb import contract.
 // ---------------------------------------------------------------------------
 export { markConnectionRateLimitedUntil, clearConnectionRateLimit } from "./db/providers";
+// Provider param filters — denylist/allowlist config per provider/model (#6625)
+export * from "./db/paramFilters";

@@ -27,9 +27,7 @@ import {
 // ---------------------------------------------------------------------------
 // Isolated temp DB for this test suite
 // ---------------------------------------------------------------------------
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-search-providers-catalog-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-search-providers-catalog-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret-search-catalog";
 // Disable dashboard password requirement by default
@@ -54,7 +52,7 @@ const route = await import("../../src/app/api/search/providers/route.ts");
 // linkup, searchapi, youcom, searxng, ollama, zai + duckduckgo-free (added in the
 // v3.8.27 cycle, registry open-sse/config/searchRegistry.ts).
 const EXPECTED_SEARCH_COUNT = 13;
-const EXPECTED_FETCH_COUNT = 3;
+const EXPECTED_FETCH_COUNT = 4;
 const EXPECTED_TOTAL = EXPECTED_SEARCH_COUNT + EXPECTED_FETCH_COUNT;
 
 // ---------------------------------------------------------------------------
@@ -271,11 +269,7 @@ test("search-providers-catalog: back-compat data field has legacy shape", async 
 
   // Legacy shape: { id, object, created, name, search_types }
   assert.ok(Array.isArray(body.data), "`data` array must be present for back-compat");
-  assert.equal(
-    body.data.length,
-    EXPECTED_TOTAL,
-    "data array should have same length as providers"
-  );
+  assert.equal(body.data.length, EXPECTED_TOTAL, "data array should have same length as providers");
 
   for (const item of body.data) {
     assert.ok(typeof item.id === "string", "data item must have id");
@@ -296,6 +290,7 @@ test("search-providers-catalog: fetch providers have correct metadata", async ()
   assert.ok(ids.includes("firecrawl"), "firecrawl must be present");
   assert.ok(ids.includes("jina-reader"), "jina-reader must be present");
   assert.ok(ids.includes("tavily-search"), "tavily-search must be present");
+  assert.ok(ids.includes("tinyfish"), "tinyfish must be present");
 
   const firecrawl = fetchProviders.find((p: { id: string }) => p.id === "firecrawl");
   assert.equal(firecrawl.name, "Firecrawl");
@@ -319,6 +314,14 @@ test("search-providers-catalog: fetch providers have correct metadata", async ()
   const tavily = fetchProviders.find((p: { id: string }) => p.id === "tavily-search");
   assert.equal(tavily.name, "Tavily Extract");
   assert.equal(tavily.costPerQuery, 0.001);
+
+  const tinyfish = fetchProviders.find((p: { id: string }) => p.id === "tinyfish");
+  assert.equal(tinyfish.name, "TinyFish Fetch");
+  assert.equal(tinyfish.costPerQuery, 0);
+  assert.ok(
+    tinyfish.fetchFormats.includes("markdown"),
+    "tinyfish fetchFormats must include markdown"
+  );
 });
 
 test("search-providers-catalog: search providers have correct fields", async () => {
@@ -331,10 +334,7 @@ test("search-providers-catalog: search providers have correct fields", async () 
     assert.ok(typeof item.id === "string", "search item must have id");
     assert.ok(typeof item.name === "string", "search item must have name");
     assert.ok(typeof item.costPerQuery === "number", "search item must have costPerQuery");
-    assert.ok(
-      typeof item.freeMonthlyQuota === "number",
-      "search item must have freeMonthlyQuota"
-    );
+    assert.ok(typeof item.freeMonthlyQuota === "number", "search item must have freeMonthlyQuota");
     assert.ok(Array.isArray(item.searchTypes), "search item must have searchTypes array");
     assert.equal(
       item.configureHref,
@@ -355,9 +355,8 @@ test("search-providers-catalog: response validates against SearchProviderCatalog
   const res = await route.GET(req);
   const body = await res.json();
 
-  const { SearchProviderCatalogResponseSchema } = await import(
-    "../../src/shared/schemas/searchTools.ts"
-  );
+  const { SearchProviderCatalogResponseSchema } =
+    await import("../../src/shared/schemas/searchTools.ts");
 
   const result = SearchProviderCatalogResponseSchema.safeParse({ providers: body.providers });
   assert.ok(

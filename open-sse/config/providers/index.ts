@@ -16,7 +16,6 @@ import { upstageProvider } from "./registry/upstage/index.ts";
 import { nebiusProvider } from "./registry/nebius/index.ts";
 import { fireworksProvider } from "./registry/fireworks/index.ts";
 import { llamagateProvider } from "./registry/llamagate/index.ts";
-import { inclusionaiProvider } from "./registry/inclusionai/index.ts";
 import { glmProvider } from "./registry/glm/index.ts";
 import { glmtProvider } from "./registry/glm/t/index.ts";
 import { glm_cnProvider } from "./registry/glm/cn/index.ts";
@@ -88,7 +87,6 @@ import { sensenovaProvider } from "./registry/sensenova/index.ts";
 import { hyperbolicProvider } from "./registry/hyperbolic/index.ts";
 import { lambda_aiProvider } from "./registry/lambda-ai/index.ts";
 import { t3_webProvider } from "./registry/t3-web/index.ts";
-import { klusterProvider } from "./registry/kluster/index.ts";
 import { iflytekProvider } from "./registry/iflytek/index.ts";
 import { crofProvider } from "./registry/crof/index.ts";
 import { moonshotProvider } from "./registry/moonshot/index.ts";
@@ -106,7 +104,6 @@ import { nscaleProvider } from "./registry/nscale/index.ts";
 import { chatgpt_webProvider } from "./registry/chatgpt-web/index.ts";
 import { openrouterProvider } from "./registry/openrouter/index.ts";
 import { orcarouterProvider } from "./registry/orcarouter/index.ts";
-import { glhfProvider } from "./registry/glhf/index.ts";
 import { copilot_webProvider } from "./registry/copilot-web/index.ts";
 import { copilot_m365_webProvider } from "./registry/copilot-m365-web/index.ts";
 import { stepfunProvider } from "./registry/stepfun/index.ts";
@@ -128,6 +125,7 @@ import { gitlab_duoProvider } from "./registry/gitlab-duo/index.ts";
 import { command_codeProvider } from "./registry/command-code/index.ts";
 import { novitaProvider } from "./registry/novita/index.ts";
 import { windsurfProvider } from "./registry/windsurf/index.ts";
+import { zed_hostedProvider } from "./registry/zed-hosted/index.ts";
 import { nanogptProvider } from "./registry/nanogpt/index.ts";
 import { scalewayProvider } from "./registry/scaleway/index.ts";
 import { agentrouterProvider } from "./registry/agentrouter/index.ts";
@@ -183,6 +181,8 @@ import { sumopodProvider } from "./registry/sumopod/index.ts";
 import { x5labProvider } from "./registry/x5lab/index.ts";
 import { kenariProvider } from "./registry/kenari/index.ts";
 import { requestyProvider } from "./registry/requesty/index.ts";
+import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
+import { hcnsecProvider } from "./registry/hcnsec/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -199,7 +199,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   nebius: nebiusProvider,
   fireworks: fireworksProvider,
   llamagate: llamagateProvider,
-  inclusionai: inclusionaiProvider,
   glm: glmProvider,
   glmt: glmtProvider,
   "glm-cn": glm_cnProvider,
@@ -271,7 +270,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   hyperbolic: hyperbolicProvider,
   "lambda-ai": lambda_aiProvider,
   "t3-web": t3_webProvider,
-  kluster: klusterProvider,
   iflytek: iflytekProvider,
   crof: crofProvider,
   moonshot: moonshotProvider,
@@ -289,7 +287,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "chatgpt-web": chatgpt_webProvider,
   openrouter: openrouterProvider,
   orcarouter: orcarouterProvider,
-  glhf: glhfProvider,
   "copilot-web": copilot_webProvider,
   "copilot-m365-web": copilot_m365_webProvider,
   stepfun: stepfunProvider,
@@ -311,6 +308,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "command-code": command_codeProvider,
   novita: novitaProvider,
   windsurf: windsurfProvider,
+  "zed-hosted": zed_hostedProvider,
   nanogpt: nanogptProvider,
   scaleway: scalewayProvider,
   agentrouter: agentrouterProvider,
@@ -368,4 +366,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   x5lab: x5labProvider,
   kenari: kenariProvider,
   requesty: requestyProvider,
+  digitalocean: digitaloceanProvider,
+  hcnsec: hcnsecProvider,
 };

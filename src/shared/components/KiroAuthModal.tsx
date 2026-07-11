@@ -28,8 +28,11 @@ export default function KiroAuthModal({
   const [idcStartUrl, setIdcStartUrl] = useState("");
   const [idcRegion, setIdcRegion] = useState("us-east-1");
   const [refreshToken, setRefreshToken] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [apiKeyRegion, setApiKeyRegion] = useState("us-east-1");
   const [error, setError] = useState(null);
   const [importing, setImporting] = useState(false);
+  const [importingApiKey, setImportingApiKey] = useState(false);
   const [autoDetecting, setAutoDetecting] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
   // IDC/organization credentials returned by auto-import when the SSO cache token
@@ -123,6 +126,43 @@ export default function KiroAuthModal({
       setError(err.message);
     } finally {
       setImporting(false);
+    }
+  };
+
+  const handleImportApiKey = async () => {
+    if (!apiKey.trim()) {
+      setError("Please enter a Kiro API key");
+      return;
+    }
+
+    setImportingApiKey(true);
+    setError(null);
+
+    try {
+      const res = await fetch(
+        `/api/oauth/kiro/api-key?targetProvider=${encodeURIComponent(providerId)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            apiKey: apiKey.trim(),
+            region: apiKeyRegion.trim() || "us-east-1",
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error?.message || data.error || "API key import failed");
+      }
+
+      onMethodSelect("api-key");
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "API key import failed");
+    } finally {
+      setImportingApiKey(false);
     }
   };
 
@@ -222,6 +262,23 @@ export default function KiroAuthModal({
                   <h3 className="font-semibold mb-1">Import Token</h3>
                   <p className="text-sm text-text-muted">
                     Paste a refresh token exported from {providerLabel}.
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            {/* API Key */}
+            <button
+              onClick={() => handleMethodSelect("api-key")}
+              className="w-full p-4 text-left border border-border rounded-lg hover:bg-sidebar transition-colors"
+            >
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-primary mt-0.5">key</span>
+                <div className="flex-1">
+                  <h3 className="font-semibold mb-1">API Key</h3>
+                  <p className="text-sm text-text-muted">
+                    Paste a long-lived {providerLabel} / CodeWhisperer API key. It is stored as a
+                    bearer credential with no refresh token; profile discovery is best-effort.
                   </p>
                 </div>
               </div>
@@ -417,6 +474,58 @@ export default function KiroAuthModal({
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {/* API Key Import */}
+        {selectedMethod === "api-key" && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                API Key <span className="text-red-500">*</span>
+              </label>
+              <Input
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder={`Paste your ${providerLabel} API key...`}
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-text-muted mt-1">
+                Stored encrypted as a long-lived bearer credential. There is no refresh flow.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">AWS Region</label>
+              <Input
+                value={apiKeyRegion}
+                onChange={(e) => setApiKeyRegion(e.target.value)}
+                placeholder="us-east-1"
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-text-muted mt-1">
+                AWS region for the key (default: us-east-1)
+              </p>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-800">
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Button
+                onClick={handleImportApiKey}
+                fullWidth
+                disabled={importingApiKey || !apiKey.trim()}
+              >
+                {importingApiKey ? "Validating..." : "Validate and Save API Key"}
+              </Button>
+              <Button onClick={handleBack} variant="ghost" fullWidth>
+                Back
+              </Button>
+            </div>
           </div>
         )}
       </div>

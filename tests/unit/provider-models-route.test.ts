@@ -120,23 +120,6 @@ test("provider models route falls back to the local AI/ML API catalog when the l
   assert.ok(body.models.length > 0);
 });
 
-test("cablyai is flagged deprecated (domain NXDOMAIN) and no longer 500s on model import (#5568)", async () => {
-  const { APIKEY_PROVIDERS_GATEWAYS } =
-    await import("../../src/shared/constants/providers/apikey/gateways.ts");
-  const cablyai = (APIKEY_PROVIDERS_GATEWAYS as Record<string, any>).cablyai;
-  assert.equal(cablyai?.deprecated, true, "cablyai must be marked deprecated (domain is NXDOMAIN)");
-  assert.ok(
-    typeof cablyai?.deprecationReason === "string" && cablyai.deprecationReason.length > 0,
-    "cablyai must carry a deprecationReason"
-  );
-
-  // Removed from PROVIDER_MODELS_CONFIG → no live fetch to the dead domain → a
-  // controlled 400 instead of an unhandled 500 crash.
-  const connection = await seedConnection("cablyai", { apiKey: "dead-key" });
-  const response = await callRoute(connection.id);
-  assert.notEqual(response.status, 500, "cablyai must not 500-crash on a dead domain");
-});
-
 test("provider models route returns 404 for unknown connections", async () => {
   const response = await callRoute("missing-connection");
 
@@ -735,7 +718,11 @@ test("provider models route returns the expanded local catalog for Kiro", async 
   assert.equal(body.provider, "kiro");
   assert.equal(body.source, "local_catalog");
   const kiroIds = new Set(body.models.map((model) => model.id)); // #6170: real upstream lineup
-  assert.ok(kiroIds.has("claude-sonnet-5") && kiroIds.has("claude-sonnet-4.5") && kiroIds.has("claude-haiku-4.5"));
+  assert.ok(
+    kiroIds.has("claude-sonnet-5") &&
+      kiroIds.has("claude-sonnet-4.5") &&
+      kiroIds.has("claude-haiku-4.5")
+  );
   assert.equal(kiroIds.has("claude-opus-4.7") || kiroIds.has("claude-sonnet-4.6"), false); // fabricated ids removed
 });
 

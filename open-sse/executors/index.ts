@@ -27,6 +27,7 @@ import { CommandCodeExecutor } from "./commandCode.ts";
 import { GitlabExecutor } from "./gitlab.ts";
 import { NlpCloudExecutor } from "./nlpcloud.ts";
 import { WindsurfExecutor } from "./windsurf.ts";
+import { ZedHostedExecutor } from "./zed-hosted.ts";
 import { DevinCliExecutor } from "./devin-cli.ts";
 import { AuggieExecutor } from "./auggie.ts";
 import { DeepSeekWebExecutor } from "./deepseek-web.ts";
@@ -111,6 +112,7 @@ const executors = {
   "ms-web": new MuseSparkWebExecutor(), // Alias
   windsurf: new WindsurfExecutor(),
   ws: new WindsurfExecutor(), // Alias
+  "zed-hosted": new ZedHostedExecutor(),
   "devin-cli": new DevinCliExecutor(),
   devin: new DevinCliExecutor(), // Alias
   "deepseek-web": new DeepSeekWebWithAutoRefreshExecutor(),
@@ -205,6 +207,7 @@ export { CommandCodeExecutor } from "./commandCode.ts";
 export { GitlabExecutor } from "./gitlab.ts";
 export { NlpCloudExecutor } from "./nlpcloud.ts";
 export { WindsurfExecutor } from "./windsurf.ts";
+export { ZedHostedExecutor } from "./zed-hosted.ts";
 export { DevinCliExecutor } from "./devin-cli.ts";
 export { AuggieExecutor } from "./auggie.ts";
 export { CopilotWebExecutor } from "./copilot-web.ts";

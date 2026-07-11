@@ -30,7 +30,7 @@
 [![50+ Free](https://img.shields.io/badge/50%2B-Free_Tiers-00B894?style=for-the-badge)](#-231-ai-providers--50-free)
 [![1.6B Free Tokens/mo](https://img.shields.io/badge/1.6B-Free_Tokens%2Fmo-00B894?style=for-the-badge)](../../reference/FREE_TIERS.md)
 [![Token Savings](https://img.shields.io/badge/up_to_95%25-Token_Savings-E17055?style=for-the-badge)](#%EF%B8%8F-save-1595-tokens--automatically)
-[![17 Strategies](https://img.shields.io/badge/17-Routing_Strategies-0984E3?style=for-the-badge)](#-combos--the-flagship)
+[![18 Strategies](https://img.shields.io/badge/18-Routing_Strategies-0984E3?style=for-the-badge)](#-combos--the-flagship)
 [![$0 to start](https://img.shields.io/badge/%240-To_Start-FDCB6E?style=for-the-badge&logoColor=black)](#-quick-start)
 
 <br/>

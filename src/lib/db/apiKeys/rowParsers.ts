@@ -47,6 +47,10 @@ export function parseAllowUsageCommand(value: unknown): boolean {
   return value === true || value === 1 || value === "1";
 }
 
+export function parseChaosModeEnabled(value: unknown): boolean {
+  return value === true || value === 1 || value === "1";
+}
+
 export function parseIsActive(value: unknown): boolean {
   // DEFAULT 1 — active unless explicitly set to 0
   if (value === 0 || value === "0" || value === false) return false;

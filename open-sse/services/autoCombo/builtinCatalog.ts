@@ -1,6 +1,9 @@
 import type { AutoVariant } from "./autoPrefix";
 import { VALID_VARIANTS } from "./autoPrefix";
 import { parseAutoSuffix } from "./suffixComposition";
+import { isValidModelFamily, AUTO_FAMILY_IDS } from "./modelFamily";
+
+export { AUTO_FAMILY_IDS };
 
 /**
  * Built-in `auto/*` catalog → AutoVariant resolution.
@@ -78,7 +81,33 @@ export function resolveAutoVariant(modelStr: string, suffix: string): ResolvedAu
  * decide whether an `auto/` model is a valid built-in before materializing it.
  */
 export function isRecognizedBuiltinAuto(modelStr: string, suffix: string): boolean {
-  return resolveAutoVariant(modelStr, suffix).recognized || parseAutoSuffix(suffix).valid;
+  return (
+    resolveAutoVariant(modelStr, suffix).recognized ||
+    parseAutoSuffix(suffix).valid ||
+    isValidModelFamily(suffix)
+  );
+}
+
+/**
+ * #6328 (follow-up to #6495 / #6512): recognize built-in `auto/*` ids whose
+ * intent is paid-tier only, so callers can REMOVE — not just hide — them from
+ * advertised catalogs when the operator opts into `hidePaidModels`.
+ *
+ * Two shapes qualify as paid-tier:
+ *   - flat variants prefixed `auto/pro-*` (e.g. `auto/pro-coding`)
+ *   - suffix variants with the `:pro` tier (e.g. `auto/coding:pro`)
+ *
+ * Non-`pro` `auto/*` ids (auto/coding, auto/best-*, auto/coding:free, …) keep
+ * their advertised status; the candidate-pool filter in `virtualFactory` (#6512)
+ * already excludes paid backends from them at request time. `auto/<family>` ids
+ * are unaffected — the family is a backend selector, not a tier.
+ */
+export function isPaidTierAutoId(autoId: string): boolean {
+  if (typeof autoId !== "string" || !autoId.startsWith("auto/")) return false;
+  const suffix = autoId.slice("auto/".length);
+  if (suffix.startsWith("pro-")) return true;
+  const parsed = parseAutoSuffix(suffix);
+  return parsed.valid && parsed.tier === "pro";
 }
 
 export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
@@ -100,6 +129,16 @@ export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
       category: parsed.category,
       tier: parsed.tier,
     });
+    virtualCombo.name = modelStr;
+    virtualCombo.id = modelStr;
+    return virtualCombo;
+  }
+
+  // #6453: `auto/<family>` (e.g. auto/glm, auto/minimax, auto/zai, auto/mimo,
+  // auto/gemma, auto/llama, auto/gemini) — spans whatever installed backends
+  // currently expose that model family, degrading gracefully as backends rotate.
+  if (isValidModelFamily(suffix)) {
+    const virtualCombo = await createVirtualAutoCombo(undefined, { family: suffix });
     virtualCombo.name = modelStr;
     virtualCombo.id = modelStr;
     return virtualCombo;

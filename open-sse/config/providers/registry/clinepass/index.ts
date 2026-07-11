@@ -1,22 +1,33 @@
 import type { RegistryEntry } from "../../shared.ts";
 
-// ClinePass — Cline's $9.99/mo BYOK API-key gateway (https://cline.bot). Distinct
-// from the OAuth `cline` provider: same host (api.cline.bot) but a plain Bearer
-// API key and the `cline-pass/*` model namespace. Responses are wrapped in a
-// {success, data} envelope — unwrapped by open-sse/utils/clinepassEnvelope.ts.
+// ClinePass — Cline's $9.99/mo gateway (https://cline.bot). Dual-auth: sign in
+// with a Cline account (OAuth, reusing the `cline` WorkOS flow) OR paste a direct
+// BYOK API key. Same host (api.cline.bot) as the OAuth `cline` provider; the
+// `cline-pass/*` model namespace. Responses are wrapped in a {success, data}
+// envelope — unwrapped by open-sse/utils/clinepassEnvelope.ts.
 export const clinepassProvider: RegistryEntry = {
   id: "clinepass",
-  alias: "clinepass",
+  // MUST match the OAUTH_PROVIDERS catalog alias (src/shared/constants/providers/oauth.ts).
+  // The dashboard sends models as `<catalogAlias>/<modelId>` (e.g. "cp/cline-pass/glm-5.2"),
+  // and routing resolves the prefix via ALIAS_TO_PROVIDER_ID (built from this field). If the
+  // registry alias drifts from the catalog alias, the prefix won't resolve, the executor falls
+  // back to PROVIDERS.openai, and requests hit api.openai.com with the ClinePass key → 401.
+  alias: "cp",
   format: "openai",
   executor: "default",
   // ClinePass shares Cline's streaming-only API — a non-streaming request returns
   // "generateText is not implemented" / an empty body. Force upstream streaming;
   // chatCore accumulates the SSE and converts it back to JSON for stream:false
-  // clients. (Same as the sibling `cline` provider.)
+  // clients. (Same as the sibling `cline` provider. #6165.)
   forceStream: true,
   baseUrl: "https://api.cline.bot/api/v1/chat/completions",
-  authType: "apikey",
+  authType: "oauth",
   authHeader: "bearer",
+  oauth: {
+    tokenUrl: "https://api.cline.bot/api/v1/auth/token",
+    refreshUrl: "https://api.cline.bot/api/v1/auth/refresh",
+    authUrl: "https://api.cline.bot/api/v1/auth/authorize",
+  },
   extraHeaders: {
     "HTTP-Referer": "https://cline.bot",
     "X-Title": "Cline",

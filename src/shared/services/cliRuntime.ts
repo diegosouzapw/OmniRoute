@@ -5,7 +5,7 @@ import path from "path";
 import { spawn, execFileSync } from "child_process";
 import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
 import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
-
+import { withSettingsFallback } from "./cliInstallFallback";
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
 
@@ -208,6 +208,24 @@ const CLI_TOOLS: Record<string, any> = {
     healthcheckTimeoutMs: 8000,
     paths: {
       config: ".config/deepseek-tui/config.toml",
+    },
+  },
+  omp: {
+    defaultCommand: "omp",
+    envBinKey: "CLI_OMP_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".omp/agent/models.yml",
+    },
+  },
+  letta: {
+    defaultCommand: "letta",
+    envBinKey: "CLI_LETTA_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".letta/lc-local-backend/providers/auth.json",
     },
   },
   codewhale: {
@@ -533,7 +551,7 @@ const getExtraPaths = () =>
  * Checks npm global prefix, NVM locations, standalone installer paths.
  * Works on all platforms — Windows checks .cmd wrappers, Linux/macOS checks bare names.
  */
-const getKnownToolPaths = (toolId: string): string[] => {
+export const getKnownToolPaths = (toolId: string): string[] => {
   const home = os.homedir();
   const paths: string[] = [];
 
@@ -584,6 +602,16 @@ const getKnownToolPaths = (toolId: string): string[] => {
       if (localAppData) {
         paths.push(path.join(localAppData, "Programs", "Claude", "claude.exe"));
         paths.push(path.join(localAppData, "claude-code", "claude.exe"));
+        paths.push(
+          path.join(
+            localAppData,
+            "Microsoft",
+            "WinGet",
+            "Packages",
+            "Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe",
+            "claude.exe"
+          )
+        );
       }
     }
 
@@ -658,7 +686,7 @@ const getNvmNodePath = (): string | null => {
   return null;
 };
 
-const getLookupEnv = () => {
+export const getLookupEnv = () => {
   const env = { ...process.env };
   const extraPaths = getExtraPaths();
   const basePath = env.PATH || env.Path || "";
@@ -1057,7 +1085,7 @@ export const getCliRuntimeStatus = async (toolId: string) => {
   const command = located.command;
 
   if (!located.installed) {
-    return {
+    return withSettingsFallback(getCliConfigPaths(toolId)?.settings, {
       installed: false,
       runnable: false,
       command,
@@ -1065,7 +1093,7 @@ export const getCliRuntimeStatus = async (toolId: string) => {
       reason: located.reason || "not_found",
       runtimeMode,
       requiresBinary,
-    };
+    });
   }
 
   if (located.reason === "not_executable") {
@@ -1081,7 +1109,7 @@ export const getCliRuntimeStatus = async (toolId: string) => {
   }
 
   const healthcheck = await checkRunnable(
-    located.commandPath,
+    located.commandPath || command || "", // located + executable ⇒ commandPath set
     env,
     Number(tool.healthcheckTimeoutMs || 4000)
   );

@@ -12,6 +12,7 @@ import {
 } from "@/shared/constants/modelSpecs";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
+import { getModelCapabilityOverride } from "@/lib/db/modelCapabilityOverrides";
 import { isVisionModelId } from "@/shared/constants/visionModels";
 
 const TOOL_CALLING_UNSUPPORTED_PATTERNS: string[] = [];
@@ -385,6 +386,12 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     spec?.contextWindow ??
     null;
 
+  const maxTokenOverride =
+    getModelCapabilityOverride(resolved.provider, resolved.model, "max_token") ??
+    (resolved.rawModel && resolved.rawModel !== resolved.model
+      ? getModelCapabilityOverride(resolved.provider, resolved.rawModel, "max_token")
+      : null);
+
   return {
     provider: resolved.provider,
     model: resolved.model,
@@ -412,6 +419,7 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
       synced?.limit_input ??
       contextWindow,
     maxOutputTokens:
+      maxTokenOverride ??
       synced?.limit_output ??
       (typeof registryModel?.maxOutputTokens === "number" ? registryModel.maxOutputTokens : null) ??
       spec?.maxOutputTokens ??
