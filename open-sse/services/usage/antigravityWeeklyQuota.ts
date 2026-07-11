@@ -125,40 +125,49 @@ function slugifyGroupWeeklyKey(displayName: string): string | null {
  * `quotaSummary.groups[]`) since the RPC is undocumented and unversioned by Google.
  */
 export function parseAntigravityWeeklyQuotas(summaryData: unknown): Record<string, UsageQuota> {
-  const root = toRecord(summaryData);
-  const rawGroups = Array.isArray(root.groups)
-    ? root.groups
-    : Array.isArray(toRecord(root.quotaSummary).groups)
-      ? (toRecord(root.quotaSummary).groups as unknown[])
-      : [];
-
   const quotas: Record<string, UsageQuota> = {};
+  for (const groupValue of extractSummaryGroups(summaryData)) {
+    const entry = parseGroupWeeklyQuota(toRecord(groupValue));
+    if (entry) quotas[entry.key] = entry.quota;
+  }
+  return quotas;
+}
 
-  for (const groupValue of rawGroups) {
-    const group = toRecord(groupValue);
-    const buckets = Array.isArray(group.buckets) ? group.buckets : [];
-    const weeklyBucketValue = buckets.find(
-      (b) => b && typeof b === "object" && bucketMatchesWindow(toRecord(b), WEEKLY_KEYWORD)
-    );
-    if (!weeklyBucketValue) continue;
+/** Extracts `groups[]` from either observed response envelope (top-level or nested). */
+function extractSummaryGroups(summaryData: unknown): unknown[] {
+  const root = toRecord(summaryData);
+  if (Array.isArray(root.groups)) return root.groups;
+  const nested = toRecord(root.quotaSummary).groups;
+  return Array.isArray(nested) ? nested : [];
+}
 
-    const weeklyBucket = toRecord(weeklyBucketValue);
-    if (weeklyBucket.disabled === true) continue;
+/** Parses one model-family group into its weekly quota entry, or null when absent/invalid. */
+function parseGroupWeeklyQuota(group: JsonRecord): { key: string; quota: UsageQuota } | null {
+  const buckets = Array.isArray(group.buckets) ? group.buckets : [];
+  const weeklyBucketValue = buckets.find(
+    (b) => b && typeof b === "object" && bucketMatchesWindow(toRecord(b), WEEKLY_KEYWORD)
+  );
+  if (!weeklyBucketValue) return null;
 
-    const key = slugifyGroupWeeklyKey(String(group.displayName || ""));
-    if (!key) continue;
+  const weeklyBucket = toRecord(weeklyBucketValue);
+  if (weeklyBucket.disabled === true) return null;
 
-    const rawFraction = toNumber(weeklyBucket.remainingFraction, -1);
-    if (rawFraction < 0) continue;
+  const key = slugifyGroupWeeklyKey(String(group.displayName || ""));
+  if (!key) return null;
 
-    const remainingFraction = Math.max(0, Math.min(1, rawFraction));
-    const resetAt = parseResetTime(weeklyBucket.resetTime);
-    const isUnlimited = !resetAt && remainingFraction >= 1;
-    const QUOTA_NORMALIZED_BASE = 1000;
-    const total = QUOTA_NORMALIZED_BASE;
-    const remaining = Math.round(total * remainingFraction);
+  const rawFraction = toNumber(weeklyBucket.remainingFraction, -1);
+  if (rawFraction < 0) return null;
 
-    quotas[key] = {
+  const remainingFraction = Math.max(0, Math.min(1, rawFraction));
+  const resetAt = parseResetTime(weeklyBucket.resetTime);
+  const isUnlimited = !resetAt && remainingFraction >= 1;
+  const QUOTA_NORMALIZED_BASE = 1000;
+  const total = QUOTA_NORMALIZED_BASE;
+  const remaining = Math.round(total * remainingFraction);
+
+  return {
+    key,
+    quota: {
       used: isUnlimited ? 0 : Math.max(0, total - remaining),
       total: isUnlimited ? 0 : total,
       resetAt,
@@ -167,10 +176,8 @@ export function parseAntigravityWeeklyQuotas(summaryData: unknown): Record<strin
       fractionReported: true,
       quotaSource: "retrieveUserQuota",
       displayName: String(group.displayName || "").trim() || undefined,
-    };
-  }
-
-  return quotas;
+    },
+  };
 }
 
 /** Fetch + parse in one call — the only entry point `usage/antigravity.ts` needs. */
