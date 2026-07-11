@@ -344,6 +344,20 @@ export async function registerNodejs(): Promise<void> {
     console.warn("[STARTUP] Could not initialize vacuum scheduler (non-fatal):", msg);
   }
 
+  // Warm the model catalog cache at startup so the first request to
+  // GET /v1/models doesn't pay the cold-build cost. Fire-and-forget —
+  // the cache is populated asynchronously and never blocks server-ready.
+  // Non-fatal — if warmup fails, the next request builds fresh.
+  import("@/app/api/v1/models/catalog").then(async ({ getUnifiedModelsResponse }) => {
+    try {
+      await getUnifiedModelsResponse(new Request("http://127.0.0.1/v1/models"));
+      console.log("[STARTUP] Model catalog cache warmed");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn("[STARTUP] Model catalog warmup failed (non-fatal):", msg);
+    }
+  });
+
   if (!isBackgroundServicesDisabled()) {
     try {
       const { bootstrapEmbeddedServices } = await import("@/lib/services/bootstrap");
