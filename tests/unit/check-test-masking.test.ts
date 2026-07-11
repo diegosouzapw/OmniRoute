@@ -330,6 +330,21 @@ test("scanBareTautologies: excludes check-test-masking.test.ts itself", () => {
   assert.deepEqual(scanBareTautologies(files, read), []);
 });
 
+test("scanBareTautologies: excludes sibling gate self-test files (#6634 selfref regression)", () => {
+  // The gate's own regression files (e.g. check-test-masking-selfref-6634.test.ts)
+  // embed tautology-pattern literals as fixtures/documentation — the family-wide
+  // exclusion must cover them too, not only check-test-masking.test.ts itself.
+  const files = ["tests/unit/check-test-masking-selfref-6634.test.ts"];
+  const read = () => `assert.equal(1, 1);`;
+  assert.deepEqual(scanBareTautologies(files, read), []);
+});
+
+test("scanBareTautologies: a non-family file with the pattern is still flagged (exclusion is scoped)", () => {
+  const files = ["tests/unit/some-unrelated.test.ts"];
+  const read = () => `assert.equal(1, 1);`;
+  assert.equal(scanBareTautologies(files, read).length, 1);
+});
+
 test("scanBareTautologies: skips unreadable files instead of throwing", () => {
   const files = ["tests/unit/does-not-exist.test.ts"];
   const read = () => {

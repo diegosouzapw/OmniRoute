@@ -328,9 +328,15 @@ export function partitionDeletedRenamed(nameStatusOutput) {
  * inside a fixture string rather than real assertion code, so any new fixture line
  * self-trips a HARD "new tautology" flag on the gate's own regression-test file.
  * Mirrors the exclusion `scanBareTautologies()` already applies for the same reason.
+ *
+ * The exclusion covers the whole `check-test-masking*` gate self-test family — not
+ * just `check-test-masking.test.ts` but sibling regression files such as
+ * `check-test-masking-selfref-6634.test.ts`, which likewise embed tautology-pattern
+ * literals as fixtures/documentation to prove this gate's own behavior.
  */
+const SELF_TEST_FIXTURE_RE = /(^|\/)check-test-masking(-[\w-]+)?\.test\.tsx?$/;
 function isSelfTestFixtureFile(file) {
-  return file.endsWith("check-test-masking.test.ts");
+  return SELF_TEST_FIXTURE_RE.test(file);
 }
 
 export function evaluateMasking(perFile, assertReductionAllowlist = new Set()) {
@@ -389,7 +395,7 @@ export function scanBareTautologies(testFiles, readFile) {
   const read = readFile || ((f) => fs.readFileSync(f, "utf8"));
   const flags = [];
   for (const file of testFiles || []) {
-    if (file.endsWith("check-test-masking.test.ts")) continue;
+    if (isSelfTestFixtureFile(file)) continue;
     let src;
     try {
       src = read(file);
