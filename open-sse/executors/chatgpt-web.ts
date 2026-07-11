@@ -34,6 +34,7 @@ import {
 } from "../services/chatgptImageCache.ts";
 import { isThinkingCapableModel, resolveChatGptModel } from "./chatgpt-web/models.ts";
 import { cleanChatGptText } from "./chatgpt-web/citations.ts";
+import { resumeChatGptHandoff, type FinalAssistantAnswer } from "./chatgpt-web/handoff.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -1068,6 +1069,7 @@ interface ChatGptStreamEvent {
   conversation_id?: string;
   error?: string | { message?: string; code?: string };
   type?: string;
+  token?: string;
   v?: unknown;
 }
 
@@ -1179,6 +1181,8 @@ interface ContentChunk {
   imageGenAsync?: boolean;
   /** True when ChatGPT handed the turn off to a long-running worker. */
   handoff?: boolean;
+  /** Short-lived conduit token used to resume a Temporary Chat handoff. */
+  resumeToken?: string;
 }
 
 interface ImagePointerRef {
@@ -1237,6 +1241,7 @@ async function* extractContent(
   // WebSocket / polling — caller handles that.
   let imageGenAsync = false;
   let handoff = false;
+  let resumeToken: string | null = null;
 
   for await (const event of readChatGptSseEvents(eventStream, signal)) {
     if (event.error) {
@@ -1250,11 +1255,17 @@ async function* extractContent(
 
     if (event.conversation_id) conversationId = event.conversation_id;
 
+    if (event.type === "resume_conversation_token") {
+      if (typeof event.token === "string" && event.token) resumeToken = event.token;
+      continue;
+    }
+
     if (event.type === "stream_handoff") {
       handoff = true;
       yield {
         conversationId: conversationId ?? undefined,
         handoff: true,
+        resumeToken: resumeToken ?? undefined,
       };
       continue;
     }
@@ -1371,6 +1382,7 @@ async function* extractContent(
     imagePointers: imagePointers.size > 0 ? Array.from(imagePointers.values()) : undefined,
     imageGenAsync,
     handoff,
+    resumeToken: resumeToken ?? undefined,
     done: true,
   };
 }
@@ -1394,13 +1406,6 @@ interface ChatGptDetailMessage {
 
 interface ChatGptConversationDetail {
   mapping?: Record<string, { message?: ChatGptDetailMessage | null }>;
-}
-
-interface FinalAssistantAnswer {
-  text: string;
-  messageId?: string;
-  metadata?: Record<string, unknown>;
-  finished: boolean;
 }
 
 function textFromContentPart(part: unknown): string {
@@ -1653,10 +1658,11 @@ function buildStreamingResponse(
   // stream finishes without an image_asset_pointer. The executor passes a
   // closure here that knows how to poll the conversation endpoint.
   pollAsyncImage: ((conversationId: string) => Promise<ImagePointerRef[]>) | null,
-  // Optional poller for GPT-5.5 Pro's stream_handoff path. Inline text keeps
-  // streaming as-is; once ChatGPT hands off, we append the final assistant
-  // answer fetched from the conversation detail endpoint. Text requests stay
-  // in Temporary Chat, so these polls should not create sidebar/history items.
+  // Native Temporary Chat handoff continuation. ChatGPT provides a short-lived
+  // conduit token, which resumes the turn without saving it to chat history.
+  resumeFinalAnswer:
+    ((conversationId: string, resumeToken: string) => Promise<FinalAssistantAnswer | null>) | null,
+  // Legacy fallback for handoffs that omit the conduit token.
   pollFinalAnswer: ((conversationId: string) => Promise<FinalAssistantAnswer | null>) | null,
   log: { warn?: (tag: string, msg: string) => void } | null,
   signal?: AbortSignal | null
@@ -1686,6 +1692,7 @@ function buildStreamingResponse(
           let imagePointers: ImagePointerRef[] | undefined;
           let imageGenAsync = false;
           let handoff = false;
+          let resumeToken: string | null = null;
           let emittedText = "";
           let polledFinalAnswer: FinalAssistantAnswer | null = null;
           let parentCandidateMessageId: string | null = null;
@@ -1772,6 +1779,7 @@ function buildStreamingResponse(
             if (chunk.conversationId) conversationId = chunk.conversationId;
             if (chunk.messageId) parentCandidateMessageId = chunk.messageId;
             if (chunk.handoff) handoff = true;
+            if (chunk.resumeToken) resumeToken = chunk.resumeToken;
             if (chunk.error) {
               controller.enqueue(
                 encoder.encode(
@@ -1799,6 +1807,7 @@ function buildStreamingResponse(
               imagePointers = chunk.imagePointers;
               imageGenAsync = chunk.imageGenAsync ?? false;
               handoff = handoff || (chunk.handoff ?? false);
+              if (chunk.resumeToken) resumeToken = chunk.resumeToken;
               if (chunk.messageId) parentCandidateMessageId = chunk.messageId;
               break;
             }
@@ -1808,7 +1817,20 @@ function buildStreamingResponse(
             }
           }
 
-          if (pollFinalAnswer && conversationId && handoff) {
+          if (resumeFinalAnswer && conversationId && handoff && resumeToken) {
+            const stopHb = startHeartbeat();
+            try {
+              const resumed = await resumeFinalAnswer(conversationId, resumeToken);
+              if (resumed?.text) {
+                polledFinalAnswer = resumed;
+                if (resumed.messageId) parentCandidateMessageId = resumed.messageId;
+              }
+            } finally {
+              stopHb();
+            }
+          }
+
+          if (!polledFinalAnswer && pollFinalAnswer && conversationId && handoff) {
             const stopHb = startHeartbeat();
             try {
               const polled = await pollFinalAnswer(conversationId);
@@ -1989,6 +2011,8 @@ async function buildNonStreamingResponse(
   currentMsg: string,
   resolver: ImageResolver | null,
   pollAsyncImage: ((conversationId: string) => Promise<ImagePointerRef[]>) | null,
+  resumeFinalAnswer:
+    ((conversationId: string, resumeToken: string) => Promise<FinalAssistantAnswer | null>) | null,
   pollFinalAnswer: ((conversationId: string) => Promise<FinalAssistantAnswer | null>) | null,
   log: { warn?: (tag: string, msg: string) => void } | null,
   signal?: AbortSignal | null
@@ -1998,6 +2022,7 @@ async function buildNonStreamingResponse(
   let imagePointers: ImagePointerRef[] | undefined;
   let imageGenAsync = false;
   let handoff = false;
+  let resumeToken: string | null = null;
   let answerMetadata: Record<string, unknown> | undefined;
   let parentCandidateMessageId: string | null = null;
 
@@ -2005,6 +2030,7 @@ async function buildNonStreamingResponse(
     if (chunk.conversationId) conversationId = chunk.conversationId;
     if (chunk.messageId) parentCandidateMessageId = chunk.messageId;
     if (chunk.handoff) handoff = true;
+    if (chunk.resumeToken) resumeToken = chunk.resumeToken;
     if (chunk.error) {
       return new Response(
         JSON.stringify({
@@ -2019,6 +2045,7 @@ async function buildNonStreamingResponse(
       imagePointers = chunk.imagePointers;
       imageGenAsync = chunk.imageGenAsync ?? false;
       handoff = handoff || (chunk.handoff ?? false);
+      if (chunk.resumeToken) resumeToken = chunk.resumeToken;
       if (chunk.messageId) parentCandidateMessageId = chunk.messageId;
       break;
     }
@@ -2028,7 +2055,22 @@ async function buildNonStreamingResponse(
     }
   }
 
-  if (pollFinalAnswer && conversationId && (handoff || !fullAnswer.trim())) {
+  let resumedAnswer: FinalAssistantAnswer | null = null;
+  if (resumeFinalAnswer && conversationId && handoff && resumeToken) {
+    resumedAnswer = await resumeFinalAnswer(conversationId, resumeToken);
+    if (resumedAnswer?.text) {
+      fullAnswer = resumedAnswer.text;
+      answerMetadata = resumedAnswer.metadata ?? answerMetadata;
+      if (resumedAnswer.messageId) parentCandidateMessageId = resumedAnswer.messageId;
+    }
+  }
+
+  if (
+    !resumedAnswer?.text &&
+    pollFinalAnswer &&
+    conversationId &&
+    (handoff || !fullAnswer.trim())
+  ) {
     const polled = await pollFinalAnswer(conversationId);
     if (polled?.text) {
       fullAnswer = polled.text;
@@ -2816,6 +2858,7 @@ export class ChatGptWebExecutor extends BaseExecutor {
     // browser does on page load. Failures here are non-fatal; the worst case
     // is Sentinel still escalates to Turnstile.
     const sessionId = randomUUID();
+    const turnTraceId = randomUUID();
     const deviceId = deviceIdFor(cookie);
     await runSessionWarmup(
       tokenEntry.accessToken,
@@ -2960,6 +3003,7 @@ export class ChatGptWebExecutor extends BaseExecutor {
       Accept: "text/event-stream",
       Authorization: `Bearer ${tokenEntry.accessToken}`,
       Cookie: buildSessionCookieHeader(cookie),
+      "x-oai-turn-trace-id": turnTraceId,
     };
     if (tokenEntry.accountId) headers["chatgpt-account-id"] = tokenEntry.accountId;
     if (reqs.token) headers["openai-sentinel-chat-requirements-token"] = reqs.token;
@@ -3052,6 +3096,16 @@ export class ChatGptWebExecutor extends BaseExecutor {
     const imageResolver = makeImageResolver(resolverCtx);
     const pollAsyncImage = (conversationId: string) =>
       pollForAsyncImage(conversationId, resolverCtx);
+    const resumeFinalAnswer = (conversationId: string, resumeToken: string) =>
+      resumeChatGptHandoff({
+        conversationId,
+        resumeToken,
+        headers,
+        timeoutMs: configuredProPollTimeoutMs(),
+        signal,
+        log,
+        readContent: extractContent,
+      });
     const pollFinalAnswer = resolvedModel.isPro
       ? (conversationId: string) => pollForFinalAssistantAnswer(conversationId, resolverCtx)
       : null;
@@ -3068,6 +3122,7 @@ export class ChatGptWebExecutor extends BaseExecutor {
         created,
         imageResolver,
         pollAsyncImage,
+        resumeFinalAnswer,
         pollFinalAnswer,
         log,
         signal
@@ -3089,6 +3144,7 @@ export class ChatGptWebExecutor extends BaseExecutor {
         parsed.currentMsg,
         imageResolver,
         pollAsyncImage,
+        resumeFinalAnswer,
         pollFinalAnswer,
         log,
         signal
