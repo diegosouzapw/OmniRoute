@@ -111,33 +111,44 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     state.parseTextualReasoningTags = shouldParseTextualReasoningTags(undefined, chunk.model);
   }
   const parseTextualReasoningTags = state.parseTextualReasoningTags === true;
+  // #3697: remember the upstream-resolved model so response.created/in_progress/completed
+  // can carry a `model` field (the Responses API spec has one; this translator previously
+  // omitted it). Codex CLI compatibility shim (chatCore's echoModel pipeline) rewrites this
+  // field to the client-requested effort-suffixed id for codex-originated requests.
+  if (!state.model && typeof chunk.model === "string" && chunk.model.trim()) {
+    state.model = chunk.model.trim();
+  }
 
   // Emit initial events
   if (!state.started) {
     state.started = true;
     state.responseId = chunk.id ? `resp_${chunk.id}` : state.responseId;
 
+    const createdResponse: Record<string, unknown> = {
+      id: state.responseId,
+      object: "response",
+      created_at: state.created,
+      status: "in_progress",
+      background: false,
+      error: null,
+      output: [],
+    };
+    if (state.model) createdResponse.model = state.model;
     emit("response.created", {
       type: "response.created",
-      response: {
-        id: state.responseId,
-        object: "response",
-        created_at: state.created,
-        status: "in_progress",
-        background: false,
-        error: null,
-        output: [],
-      },
+      response: createdResponse,
     });
 
+    const inProgressResponse: Record<string, unknown> = {
+      id: state.responseId,
+      object: "response",
+      created_at: state.created,
+      status: "in_progress",
+    };
+    if (state.model) inProgressResponse.model = state.model;
     emit("response.in_progress", {
       type: "response.in_progress",
-      response: {
-        id: state.responseId,
-        object: "response",
-        created_at: state.created,
-        status: "in_progress",
-      },
+      response: inProgressResponse,
     });
   }
 
@@ -558,6 +569,11 @@ function sendCompleted(state, emit) {
         : null,
       output,
     };
+
+    // #3697: same model echo as response.created/in_progress above.
+    if (state.model) {
+      response.model = state.model;
+    }
 
     if (state.usage) {
       response.usage = state.usage;

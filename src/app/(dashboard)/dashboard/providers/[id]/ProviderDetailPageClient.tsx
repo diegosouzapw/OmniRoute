@@ -45,6 +45,7 @@ import CustomModelsSection from "./components/CustomModelsSection";
 import ConnectionsListPanel from "./components/ConnectionsListPanel";
 import CoolingConnectionsPanel from "./components/CoolingConnectionsPanel";
 import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
+import ProviderAccountRoutingCard from "../../settings/components/ProviderAccountRoutingCard";
 import ZedImportCard from "./components/ZedImportCard";
 import ProviderPageHeader from "./components/ProviderPageHeader";
 import CompatibleNodeCard from "./components/CompatibleNodeCard";
@@ -82,10 +83,7 @@ export default function ProviderDetailPageClient() {
     isAnthropicCompatibleProvider(providerId) && !isClaudeCodeCompatibleProvider(providerId);
   const isCompatible = isOpenAICompatible || isAnthropicCompatible || isCcCompatible;
   const isAnthropicProtocolCompatible = isAnthropicCompatible || isCcCompatible;
-  // #5420: hide model listing for tool-only providers (web search / web fetch),
-  // not just `-search`-suffixed ids. Declared serviceKinds come from the static
-  // provider catalog (e.g. firecrawl → ["webFetch"]); compatible providers resolve
-  // to null here and fall through to the empty-kinds check (model listing stays on).
+  // #5420: hide model listing for tool-only providers, not just `-search` ids.
   const declaredServiceKinds = (
     resolveDashboardProviderInfo(providerId) as { serviceKinds?: readonly string[] } | null
   )?.serviceKinds;
@@ -223,8 +221,6 @@ export default function ProviderDetailPageClient() {
   // Prefer synced API-discovered models when available, then merge built-ins
   // and user-managed custom models without duplicating IDs.
   const models = useMemo(() => {
-    // Universal: merge built-in registry models with API-synced models and
-    // user-managed custom models for ALL providers (was previously Gemini-only).
     // Synced models keep their full property spread so provider-specific fields
     // (e.g. Gemini's `supportedGenerationMethods`) survive into the table.
     const builtInModels = registryModels.map((model) => ({
@@ -488,6 +484,7 @@ export default function ProviderDetailPageClient() {
       )}
       {!isUpstreamProxyProvider && !isFreeNoAuth && (
         <Card>
+          <ProviderAccountRoutingCard providerKey={providerId} connectionCount={connections.length} />
           <ConnectionsHeaderToolbar
             providerId={providerId}
             providerInfo={providerInfo}

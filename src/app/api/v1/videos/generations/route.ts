@@ -1,7 +1,10 @@
 import { handleVideoGeneration } from "@omniroute/open-sse/handlers/videoGeneration.ts";
 import { resolveVideoCredentialProvider } from "@omniroute/open-sse/handlers/videoGeneration/googleFlow.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
-import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
+import {
+  getProviderCredentialsWithQuotaPreflight,
+  clearRecoveredProviderState,
+} from "@/sse/services/auth";
 import { parseVideoModel, getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -75,7 +78,9 @@ async function postHandler(request, context) {
   // OAuth credential (resolveVideoCredentialProvider maps googleflow → antigravity).
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentials(resolveVideoCredentialProvider(provider));
+    credentials = await getProviderCredentialsWithQuotaPreflight(
+      resolveVideoCredentialProvider(provider)
+    );
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,

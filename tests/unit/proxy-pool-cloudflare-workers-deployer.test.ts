@@ -87,13 +87,22 @@ test("buildCloudflareWorkerScript blocks loopback / RFC1918 / link-local hosts (
   assert.ok(/169\.254|link-local|fe80/.test(src), "blocks link-local hosts");
 });
 
-test("buildCloudflareWorkerScript uses ESM default-export fetch handler (Workers Modules format)", () => {
-  // Cloudflare's PUT /workers/scripts API expects a module-format worker
-  // (main_module = index.js, content-type application/javascript+module).
-  // The handler must be exposed as `export default { fetch }`.
+test("buildCloudflareWorkerScript uses Service Worker syntax, not an ES module (#6416/#6496)", () => {
+  // Cloudflare's PUT /workers/scripts API parses a plain `application/javascript`
+  // script part as Service Worker syntax regardless of any `main_module`
+  // metadata — `main_module` requires the script to actually be an ES module
+  // (top-level `export`), which rejects the upload with "Unexpected token
+  // 'export'" (#6496). The handler must instead register a `fetch` event
+  // listener (`addEventListener("fetch", ...)`), with no top-level `export`.
   const src = buildCloudflareWorkerScript("tok");
-  assert.ok(/export\s+default/.test(src), "must be an ES module (export default)");
-  assert.ok(/fetch\s*\(/.test(src), "must export a fetch handler");
+  assert.ok(
+    !/^\s*export\s+default/m.test(src),
+    "must not be an ES module (no top-level `export default`)"
+  );
+  assert.ok(
+    /addEventListener\(\s*["']fetch["']/.test(src),
+    "must register a fetch event listener (Service Worker syntax)"
+  );
 });
 
 // --------------------------------------------------------------------------

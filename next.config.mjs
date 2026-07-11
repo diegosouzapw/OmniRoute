@@ -116,6 +116,24 @@ const nextConfig = {
       ...mitmManagerAliasFor(process.env),
       ...minimalBuildAliases,
     },
+    // src/lib/agentSkills/generator.ts builds its fs base path from a runtime
+    // `outputDir` parameter (`path.join(process.cwd(), outputDir)`), which is
+    // NOT a compile-time literal, so Turbopack's build-time file-tracing
+    // analyzer can't statically narrow the several dynamic readdirSync/rmSync/
+    // readFileSync/writeFileSync call sites a few lines below and falls back
+    // to an "Overly broad patterns... matches N files" warning — once per
+    // Next.js entry point that imports the module (/api/agent-skills/generate,
+    // /api/cli-tools/pi-settings). The fs access is legitimate and bounded
+    // (skills/<id>/SKILL.md, ~48 known IDs), so this is a known-benign,
+    // expected diagnostic — suppress it here rather than fight the analyzer,
+    // mirroring the isNextIntlExtractorDynamicImportWarning precedent below
+    // for the webpack path. (#6582)
+    ignoreIssue: [
+      {
+        path: "**/src/lib/agentSkills/**",
+        description: /Overly broad patterns can lead to build performance issues/,
+      },
+    ],
   },
   output: "standalone",
   compress: true,

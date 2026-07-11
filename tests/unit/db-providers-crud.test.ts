@@ -142,6 +142,37 @@ test("codex workspace uniqueness uses workspaceId alongside email", async () => 
   ]);
 });
 
+test("codex logins without a workspaceId are not merged on bare email match", async () => {
+  const loginA = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    email: "shared@example.com",
+    accessToken: "token-account-a",
+    refreshToken: "refresh-account-a",
+    providerSpecificData: { chatgptUserId: "user-a" },
+  });
+  const loginB = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    email: "shared@example.com",
+    accessToken: "token-account-b",
+    refreshToken: "refresh-account-b",
+    providerSpecificData: { chatgptUserId: "user-b" },
+  });
+
+  const rows = await providersDb.getProviderConnections({ provider: "codex" });
+
+  // Two distinct Codex accounts sharing an email but lacking a verifiable
+  // workspaceId must NOT collapse into a single row — that would silently
+  // overwrite the first account's token pair on the second login.
+  assert.notEqual(loginB.id, loginA.id);
+  assert.equal(rows.length, 2);
+
+  const rowA = rows.find((row) => row.id === loginA.id);
+  assert.equal(rowA?.accessToken, "token-account-a");
+  assert.equal(rowA?.refreshToken, "refresh-account-a");
+});
+
 test("updateProviderConnection reorders priorities and returns decrypted payloads", async () => {
   const first = await providersDb.createProviderConnection({
     provider: "openai",

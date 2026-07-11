@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2d6a8a">
+  <title>PicoClaw</title>
+  <!-- Body -->
+  <ellipse cx="12" cy="12.5" rx="5.5" ry="6"/>
+  <!-- Head bump -->
+  <ellipse cx="12" cy="7.5" rx="4" ry="3.5"/>
+  <!-- Antennae -->
+  <path d="M9.5 5.5 Q7 2 5.5 2.5" stroke="#2d6a8a" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M14.5 5.5 Q17 2 18.5 2.5" stroke="#2d6a8a" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <circle cx="5.2" cy="2.5" r="1" fill="#2d6a8a"/>
+  <circle cx="18.8" cy="2.5" r="1" fill="#2d6a8a"/>
+  <!-- Left claw -->
+  <path d="M5.5 10 Q2 8.5 2 11 Q2 13.5 5 12.5" fill="#e05c5c"/>
+  <!-- Right claw -->
+  <path d="M18.5 10 Q22 8.5 22 11 Q22 13.5 19 12.5" fill="#e05c5c"/>
+  <!-- Tail segments -->
+  <rect x="10" y="18" width="4" height="2" rx="1"/>
+  <rect x="10.5" y="20" width="3" height="1.5" rx=".75"/>
+  <path d="M10 21.5 Q12 23.5 14 21.5" fill="#2d6a8a"/>
+  <!-- Eyes -->
+  <circle cx="10" cy="7" r="1.8" fill="#fff"/>
+  <circle cx="14" cy="7" r="1.8" fill="#fff"/>
+  <circle cx="10.3" cy="6.8" r="1" fill="#0a1929"/>
+  <circle cx="14.3" cy="6.8" r="1" fill="#0a1929"/>
+  <!-- Chip/circuit pattern on body -->
+  <rect x="10" y="11" width="4" height="3" rx=".8" fill="#1a4a6a" opacity=".5"/>
+  <line x1="11" y1="11" x2="11" y2="14" stroke="#4a9aba" stroke-width=".3" opacity=".6"/>
+  <line x1="13" y1="11" x2="13" y2="14" stroke="#4a9aba" stroke-width=".3" opacity=".6"/>
+  <line x1="10" y1="12.5" x2="14" y2="12.5" stroke="#4a9aba" stroke-width=".3" opacity=".6"/>
+</svg>

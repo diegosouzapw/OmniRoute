@@ -374,6 +374,17 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "Log in to Manus at manus.im. The session cookie will be extracted.",
     { cookieDomain: ".manus.im" }
   ),
+
+  // ── Z.ai Web (#4056) ────────────────────────────────────────
+  config(
+    "zai-web",
+    "Z.ai Web (Free)",
+    "https://chat.z.ai/",
+    "https://chat.z.ai",
+    [{ type: "cookie", name: "token", domain: ".z.ai" }],
+    "Log in to Z.ai at chat.z.ai. The session token will be extracted.",
+    { cookieDomain: ".z.ai" }
+  ),
 ];
 
 // ─── Registry ───────────────────────────────────────────────────────────────

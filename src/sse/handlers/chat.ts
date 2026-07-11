@@ -25,10 +25,7 @@ import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.
 import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
-import {
-  resolveRequestModePack,
-  parseRequestBudgetCap,
-} from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
+import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
 import {
@@ -55,6 +52,7 @@ import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import { updateCombo } from "@/lib/db/combos";
+import { isModelAllowedForKey } from "@/lib/db/apiKeys";
 import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
@@ -464,6 +462,23 @@ export async function handleChat(
     );
   }
   body = preCallGuardrails.payload;
+  if (body?.model && typeof body.model === "string" && body.model !== modelStr) {
+    const rerouteModel = body.model;
+    // A guardrail (e.g. Vision Bridge auto-reroute) can swap body.model AFTER
+    // enforceApiKeyPolicy already validated modelStr's allowlist/budget above.
+    // Re-check the new target against the same per-key allowlist so a
+    // policy-restricted key cannot be silently routed to an unchecked model.
+    const rerouteAllowed = await isModelAllowedForKey(apiKey, rerouteModel);
+    if (!rerouteAllowed) {
+      log.warn(
+        "POLICY",
+        `Guardrail reroute to "${rerouteModel}" rejected by API key policy (key=${apiKeyInfo?.id || "unknown"}); keeping original model "${modelStr}"`
+      );
+      body = { ...body, model: modelStr };
+    } else {
+      modelStr = rerouteModel;
+    }
+  }
   telemetry.endPhase();
 
   // T08: per-key active session limit (0 = unlimited).
@@ -748,17 +763,13 @@ export async function handleChat(
     ]);
     const relayConfig =
       combo.strategy === "context-relay" ? resolveComboConfig(combo, settings) : null;
-    // Per-request Auto-Combo controls (#6023 / #6024 / #6025): steer an `auto`
-    // combo on this single request without mutating its stored config.
-    const requestModeHeader = request.headers.get("x-omniroute-mode")?.trim() || null;
-    const requestBudgetHeader = request.headers.get("x-omniroute-budget")?.trim() || null;
-    const perRequestMode = resolveRequestModePack(requestModeHeader);
-    const perRequestBudgetCap = parseRequestBudgetCap(requestBudgetHeader);
+    // Per-request Auto-Combo controls (#6023 / #6024 / #6025 / #3470): steer an
+    // `auto` combo on this single request without mutating its stored config.
+    const perRequestAutoControls = resolveRequestAutoControls(request.headers);
     const relayOptions =
       combo.strategy === "context-relay" ||
       bypassProviderQuotaPolicy ||
-      perRequestMode.override ||
-      perRequestBudgetCap !== undefined
+      Object.keys(perRequestAutoControls).length > 0
         ? {
             ...(combo.strategy === "context-relay"
               ? {
@@ -767,8 +778,7 @@ export async function handleChat(
                 }
               : {}),
             ...(bypassProviderQuotaPolicy ? { bypassProviderQuotaPolicy: true } : {}),
-            ...(perRequestMode.override ? { mode: requestModeHeader } : {}),
-            ...(perRequestBudgetCap !== undefined ? { budgetCap: perRequestBudgetCap } : {}),
+            ...perRequestAutoControls,
           }
         : undefined;
     telemetry.endPhase();
@@ -889,27 +899,25 @@ export async function handleChat(
 
     // Record telemetry
     recordTelemetry(telemetry);
-    // Log combo failures that bypassed handleChatCore (e.g. all targets skipped by circuit breaker)
+    // Log combo failures that bypassed handleChatCore (e.g. all targets skipped by circuit breaker).
+    // Records BOTH a call_logs row (dashboard/logs) AND a usage_history row attributed to the api key
+    // (success:false) so gate/breaker-rejected traffic is counted per key — support-mesh 2026-07-08.
     if (!response.ok) {
       try {
-        const { saveCallLog } = await import("@/lib/usageDb");
-        saveCallLog({
-          id: undefined,
-          method: "POST",
-          path: clientRawRequest?.endpoint || "/v1/chat/completions",
+        const { recordRejectedRequestUsage } = await import("./rejectedRequestUsage");
+        await recordRejectedRequestUsage({
           status: response.status,
           model: body?.model || resolvedModelStr,
           requestedModel: body?.model || resolvedModelStr,
           provider: "-",
-          connectionId: undefined,
-          duration: Date.now() - (telemetry?.startTime || Date.now()),
-          tokens: {},
+          endpoint: clientRawRequest?.endpoint,
           error: `[${response.status}] Combo "${combo.name}" failed — all targets exhausted`,
           comboName: combo.name,
-          comboStepId: null,
-          comboExecutionKey: null,
+          apiKeyId: apiKeyInfo?.id ?? null,
+          apiKeyName: apiKeyInfo?.name ?? null,
           correlationId: reqId,
-        }).catch(() => {});
+          startTime: telemetry?.startTime,
+        });
       } catch {}
     }
     return withCorrelationId(withSessionHeader(response, sessionId), reqId);
@@ -1113,26 +1121,26 @@ async function handleSingleModelChat(
     ...(bypassReason ? { bypassReason } : {}),
   });
   if (gate) {
-    // Log the rejected request so it appears in /dashboard/logs
+    // Log the rejected request so it appears in /dashboard/logs AND is counted in the
+    // per-api-key usage analytics (usage_history, success:false) — otherwise a key whose
+    // traffic is entirely gate/breaker-rejected shows "zero requests" (support-mesh 2026-07-08).
     try {
-      const { saveCallLog } = await import("@/lib/usageDb");
-      saveCallLog({
-        id: undefined,
-        method: "POST",
-        path: clientRawRequest?.endpoint || "/v1/chat/completions",
+      const { recordRejectedRequestUsage } = await import("./rejectedRequestUsage");
+      await recordRejectedRequestUsage({
         status: gate.status,
         model,
         requestedModel: body?.model || modelStr,
         provider,
-        connectionId: undefined,
-        duration: Date.now() - (telemetry?.startTime || Date.now()),
-        tokens: {},
+        endpoint: clientRawRequest?.endpoint,
         error: `[${gate.status}] Pipeline gate rejected`,
         comboName: isCombo ? comboName : null,
         comboStepId: isCombo ? (runtimeOptions?.comboStepId ?? null) : null,
         comboExecutionKey: isCombo ? (runtimeOptions?.comboExecutionKey ?? null) : null,
+        apiKeyId: apiKeyInfo?.id ?? null,
+        apiKeyName: apiKeyInfo?.name ?? null,
         correlationId: runtimeOptions?.correlationId ?? null,
-      }).catch(() => {});
+        startTime: telemetry?.startTime,
+      });
     } catch {}
     return gate;
   }

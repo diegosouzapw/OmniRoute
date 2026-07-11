@@ -12,8 +12,11 @@ test("provider onboarding catalog exposes API-key and OAuth providers for the wi
 
   assert.ok(apiKeyOptions.some((option) => option.id === "openai"));
   assert.ok(apiKeyOptions.some((option) => option.id === "openrouter"));
+  assert.ok(!apiKeyOptions.some((option) => option.id === "kiro"));
+  assert.ok(!apiKeyOptions.some((option) => option.id === "amazon-q"));
   assert.ok(oauthOptions.some((option) => option.id === "claude"));
   assert.ok(oauthOptions.some((option) => option.id === "kiro"));
+  assert.ok(oauthOptions.some((option) => option.id === "amazon-q"));
   assert.ok(oauthOptions.some((option) => option.id === "cursor"));
   assert.ok(!oauthOptions.some((option) => option.id === "zed"));
   assert.ok(!oauthOptions.some((option) => option.id === "windsurf"));

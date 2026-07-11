@@ -39,6 +39,7 @@ export type CompressionEngineId =
   | "headroom"
   | "ccr"
   | "llmlingua"
+  | "relevance"
   | "omniglyph";
 
 export interface CavemanRule {
