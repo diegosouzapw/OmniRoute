@@ -1,0 +1,16 @@
+-- 120_interception_rules.sql
+-- Documents the interception_rules namespace in the key_value table (#3384).
+-- No schema change — the key_value table already exists.
+-- Key = provider ID, value = JSON with shape:
+--   {
+--     interceptSearch?: boolean,
+--     interceptFetch?: boolean,
+--     fetchBackend?: "firecrawl"|"jina"|"tavily",
+--     fetchProxyUrl?: string,
+--     models?: { [modelId]: { interceptSearch?, interceptFetch?, fetchBackend?, fetchProxyUrl? } }
+--   }
+--
+-- Resolution precedence: per-model rule > provider-level rule > undefined (caller
+-- falls back to the existing native web-search-bypass defaults in webSearchFallback.ts).
+--
+-- See: src/lib/db/interceptionRules.ts

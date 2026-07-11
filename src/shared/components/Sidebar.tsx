@@ -5,9 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
 import { getActiveSidebarHref } from "@/shared/utils/sidebarRouteMatch";
+import { filterSidebarSectionsByQuery } from "@/shared/utils/sidebarSearch";
 import { APP_CONFIG } from "@/shared/constants/appConfig";
 import OmniRouteLogo from "./OmniRouteLogo";
 import Button from "./Button";
+import Input from "./Input";
 import { ConfirmModal } from "./Modal";
 import CloudSyncStatus from "./CloudSyncStatus";
 import { useTranslations } from "next-intl";
@@ -101,6 +103,7 @@ export default function Sidebar({
   );
   const [pinnedSections, setPinnedSections] = useState<Set<SidebarSectionId>>(new Set());
   const [hoveredItem, setHoveredItem] = useState<HoveredItem>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Load persisted state on mount; OmniProxy is pinned by default on first visit
   useEffect(() => {
@@ -265,6 +268,11 @@ export default function Sidebar({
   );
 
   const activeHref = getActiveSidebarHref(pathname, allVisibleItems);
+
+  const isSearching = searchQuery.trim().length > 0;
+  const displaySections = isSearching
+    ? filterSidebarSectionsByQuery(visibleSections, searchQuery)
+    : visibleSections;
 
   // Auto-expand the section containing the active page (without closing others)
   useEffect(() => {
@@ -518,6 +526,21 @@ export default function Sidebar({
           </Link>
         </div>
 
+        {!collapsed && (
+          <div className="px-4 pb-2">
+            <Input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={tc("search")}
+              aria-label={tc("search")}
+              icon="search"
+              className="gap-0"
+              inputClassName="py-1.5 text-xs"
+            />
+          </div>
+        )}
+
         <nav
           aria-label="Main navigation"
           className={cn(
@@ -525,9 +548,12 @@ export default function Sidebar({
             collapsed ? "px-2 space-y-0.5" : "px-3"
           )}
         >
-          {visibleSections.map((section, idx) => {
+          {isSearching && displaySections.length === 0 && (
+            <p className="px-2 py-3 text-xs text-text-muted/60">{tc("noResults")}</p>
+          )}
+          {displaySections.map((section, idx) => {
             const sectionId = section.id as SidebarSectionId;
-            const isExpanded = expandedSections.has(sectionId);
+            const isExpanded = isSearching || expandedSections.has(sectionId);
             const isPinned = pinnedSections.has(sectionId);
             const isFirst = idx === 0;
             const sectionItems = section.children.flatMap((child: any) =>

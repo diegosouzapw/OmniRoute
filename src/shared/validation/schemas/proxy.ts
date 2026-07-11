@@ -14,7 +14,6 @@ import {
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 
-
 export const proxyConfigSchema = z
   .object({
     type: z
@@ -201,6 +200,7 @@ export const PROXY_POOL_ROTATION_STRATEGY_VALUES = [
   "round-robin",
   "random",
   "sticky",
+  "latency",
 ] as const;
 
 // Add/remove one proxy to/from a scope's pool. proxyId is REQUIRED (unlike the

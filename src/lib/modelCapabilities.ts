@@ -341,6 +341,22 @@ function resolveVisionCapability(
   return null;
 }
 
+export function getExplicitModelOutputCap(input: CapabilityInput): number | null {
+  const resolved = resolveCapabilityInput(input);
+  const synced = getSyncedCapabilityForResolved(
+    resolved.provider,
+    resolved.model,
+    resolved.rawModel
+  );
+  if (synced && typeof synced.limit_output === "number") return synced.limit_output;
+
+  const registryModel = getRegistryModel(resolved.provider, resolved.model);
+  if (typeof registryModel?.maxOutputTokens === "number") return registryModel.maxOutputTokens;
+
+  const spec = getStaticSpec(resolved.model, resolved.rawModel);
+  return spec?.maxOutputTokens ?? null;
+}
+
 export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedModelCapabilities {
   const resolved = resolveCapabilityInput(input);
   const spec = getStaticSpec(resolved.model, resolved.rawModel);

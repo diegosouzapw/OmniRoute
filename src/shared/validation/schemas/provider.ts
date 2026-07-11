@@ -208,6 +208,12 @@ export const providerModelMutationSchema = z.object({
   // catalog); they persist as inputTokenLimit / outputTokenLimit.
   max_input_tokens: z.number().int().positive().optional(),
   max_output_tokens: z.number().int().positive().optional(),
+  // #4125: manual context-window override for a specific provider/model. Persisted
+  // via the Feature-5004 `model_context_overrides` table (source="manual") so it wins
+  // over the auto-discovery/static-catalog context window in `getModelContextLimit()`
+  // — fixes the "provider misreports context length" combo-drop case. `null` clears
+  // a previously set override.
+  contextWindowOverride: z.number().int().positive().nullable().optional(),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
   upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),

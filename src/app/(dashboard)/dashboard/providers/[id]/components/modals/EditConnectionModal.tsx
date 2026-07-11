@@ -51,11 +51,7 @@ import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecificData";
-import {
-  isM365TierCapableProvider,
-  normalizeM365TierValue,
-  type M365TierValue,
-} from "./m365Tier";
+import { isM365TierCapableProvider, normalizeM365TierValue, type M365TierValue } from "./m365Tier";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 
@@ -99,6 +95,8 @@ export default function EditConnectionModal({
   const t = useTranslations("providers");
   const notify = useNotificationStore();
   const provider = connection?.provider || providerId;
+  const connectionAuthType = connection?.authType;
+  const connectionProviderSpecificData = connection?.providerSpecificData;
   const showFreeModelsToggle = providerHasFreeModels(provider);
   const [formData, setFormData] = useState({
     name: "",
@@ -134,12 +132,12 @@ export default function EditConnectionModal({
     antigravityClientProfile: "ide",
     blockExtraUsage:
       provider === "claude"
-        ? isClaudeExtraUsageBlockEnabled(provider, connection?.providerSpecificData)
+        ? isClaudeExtraUsageBlockEnabled(provider, connectionProviderSpecificData)
         : false,
-    passthroughModels: connection?.providerSpecificData?.passthroughModels === true,
-    disableCooling: connection?.providerSpecificData?.disableCooling === true,
-    importFreeModelsOnly: connection?.providerSpecificData?.importFreeModelsOnly === true,
-    m365Tier: normalizeM365TierValue(connection?.providerSpecificData?.tier) as M365TierValue,
+    passthroughModels: connectionProviderSpecificData?.passthroughModels === true,
+    disableCooling: connectionProviderSpecificData?.disableCooling === true,
+    importFreeModelsOnly: connectionProviderSpecificData?.importFreeModelsOnly === true,
+    m365Tier: normalizeM365TierValue(connectionProviderSpecificData?.tier) as M365TierValue,
   });
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -169,11 +167,11 @@ export default function EditConnectionModal({
   // providerSpecificData.baseUrl.
   const isConfigurableBaseUrl = isBaseUrlConfigurableProvider(provider);
   const isBaseUrlOverrideEligible =
-    connection?.authType !== "oauth" && isBaseUrlOverrideEligibleProvider(provider);
+    !!connection && connectionAuthType !== "oauth" && isBaseUrlOverrideEligibleProvider(provider);
   const [showBaseUrlOverride, setShowBaseUrlOverride] = useState(
     () =>
-      typeof connection?.providerSpecificData?.baseUrl === "string" &&
-      connection.providerSpecificData.baseUrl.trim().length > 0
+      typeof connectionProviderSpecificData?.baseUrl === "string" &&
+      connectionProviderSpecificData.baseUrl.trim().length > 0
   );
   const usesBaseUrl = isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);

@@ -25,10 +25,7 @@ import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.
 import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
-import {
-  resolveRequestModePack,
-  parseRequestBudgetCap,
-} from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
+import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
 import {
@@ -766,17 +763,13 @@ export async function handleChat(
     ]);
     const relayConfig =
       combo.strategy === "context-relay" ? resolveComboConfig(combo, settings) : null;
-    // Per-request Auto-Combo controls (#6023 / #6024 / #6025): steer an `auto`
-    // combo on this single request without mutating its stored config.
-    const requestModeHeader = request.headers.get("x-omniroute-mode")?.trim() || null;
-    const requestBudgetHeader = request.headers.get("x-omniroute-budget")?.trim() || null;
-    const perRequestMode = resolveRequestModePack(requestModeHeader);
-    const perRequestBudgetCap = parseRequestBudgetCap(requestBudgetHeader);
+    // Per-request Auto-Combo controls (#6023 / #6024 / #6025 / #3470): steer an
+    // `auto` combo on this single request without mutating its stored config.
+    const perRequestAutoControls = resolveRequestAutoControls(request.headers);
     const relayOptions =
       combo.strategy === "context-relay" ||
       bypassProviderQuotaPolicy ||
-      perRequestMode.override ||
-      perRequestBudgetCap !== undefined
+      Object.keys(perRequestAutoControls).length > 0
         ? {
             ...(combo.strategy === "context-relay"
               ? {
@@ -785,8 +778,7 @@ export async function handleChat(
                 }
               : {}),
             ...(bypassProviderQuotaPolicy ? { bypassProviderQuotaPolicy: true } : {}),
-            ...(perRequestMode.override ? { mode: requestModeHeader } : {}),
-            ...(perRequestBudgetCap !== undefined ? { budgetCap: perRequestBudgetCap } : {}),
+            ...perRequestAutoControls,
           }
         : undefined;
     telemetry.endPhase();
