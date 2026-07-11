@@ -399,23 +399,44 @@ async function main() {
   hardCmd("db-rules", "DB rules", npmCmd, ["run", "check:db-rules"]);
   hardCmd("public-creds", "Public creds", npmCmd, ["run", "check:public-creds"]);
 
-  // Cognitive-complexity (drift)
+  // Complexity + cognitive (one ESLint walk; both still recorded as drift)
   {
-    announce("Cognitive complexity (ratchet)");
-    const { out } = run(npmCmd, ["run", "check:cognitive-complexity"]);
-    saveGateLog("cognitive", out);
-    const current = parseCognitiveCount(out);
-    const base = baselineValue("cognitiveComplexity");
-    const over = isDrift(current, base);
+    announce("Complexity + cognitive ratchets (shared ESLint walk)");
+    const { out } = run(npmCmd, ["run", "check:complexity-ratchets"]);
+    saveGateLog("complexity-ratchets", out);
+    const cogCurrent = parseCognitiveCount(out);
+    const cogBase = baselineValue("cognitiveComplexity");
+    const cogOver = isDrift(cogCurrent, cogBase);
+    const cycMatch = /(?:^|\n)complexity=(\d+)/.exec(out);
+    const cycOkMatch = /\[complexity\] OK — (\d+)/.exec(out);
+    const cycRegMatch = /\[complexity\] REGRESSÃO — (\d+)/.exec(out);
+    const cycCurrent = cycMatch
+      ? Number(cycMatch[1])
+      : cycOkMatch
+        ? Number(cycOkMatch[1])
+        : cycRegMatch
+          ? Number(cycRegMatch[1])
+          : null;
+    const cycRegressed = /\[complexity\] REGRESSÃO/.test(out);
     record({
       id: "cognitive-complexity",
       label: "Cognitive complexity (ratchet)",
       kind: "drift",
-      ok: !over,
+      ok: !cogOver,
       detail:
-        current == null
+        cogCurrent == null
           ? "could not parse count"
-          : `${current} vs baseline ${base}${over ? ` (+${current - base} drift → rebaseline at release)` : ""}`,
+          : `${cogCurrent} vs baseline ${cogBase}${cogOver ? ` (+${cogCurrent - cogBase} drift → rebaseline at release)` : ""}`,
+    });
+    record({
+      id: "complexity",
+      label: "Cyclomatic complexity (ratchet)",
+      kind: "drift",
+      ok: !cycRegressed,
+      detail:
+        cycCurrent == null
+          ? firstFailureLine(out) || "measured via check:complexity-ratchets"
+          : `complexity=${cycCurrent} (shared walk with cognitive)${cycRegressed ? " REGRESSED" : ""}`,
     });
   }
 
@@ -457,7 +478,7 @@ async function main() {
   // fast-gates skip and that historically surfaced — one at a time, because the
   // CI Quality Ratchet job is fail-fast — only on the release PR. Running them all
   // here (drift, never blocking) means a single rebaseline pass at release.
-  driftCmd("complexity", "Cyclomatic complexity (ratchet)", npmCmd, ["run", "check:complexity"]);
+  // complexity recorded above with cognitive (check:complexity-ratchets)
   driftCmd("dead-code", "Dead-code (ratchet)", npmCmd, ["run", "check:dead-code"]);
   driftCmd("type-coverage", "Type coverage (ratchet)", npmCmd, ["run", "check:type-coverage"]);
   driftCmd("compression-budget", "Compression budget (ratchet)", npmCmd, [

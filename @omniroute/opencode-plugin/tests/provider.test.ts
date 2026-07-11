@@ -101,7 +101,10 @@ test("models: extracts apiKey from ctx.auth (type=api) and calls fetcher with it
   assert.equal(fetcher.callCount(), 1);
   assert.deepEqual(fetcher.callsBy()[0], ["https://or.example.com/v1", "sk-abc"]);
   assert.equal(Object.keys(out).length, 3);
-  assert.ok(out["opencode-omniroute/claude-primary"]);
+  // #6859: dynamic-hook catalog keys use the unprefixed omnirouteProviderId
+  // ("omniroute"), not the OC-gate-prefixed hook.id ("opencode-omniroute") —
+  // that prefix must never leak into anything OmniRoute's server parses.
+  assert.ok(out["omniroute/claude-primary"]);
 });
 
 test("models: returns {} when ctx.auth is null/undefined/wrong-type/empty-key", async () => {
@@ -152,13 +155,17 @@ test("models: maps a sample /v1/models entry to ModelV2 (sanity)", async () => {
     { fetcher, combosFetcher: async () => [] }
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk-abc") as never });
-  const claude = out["opencode-omniroute/claude-primary"];
+  // #6859: dynamic-hook catalog keys/ids/providerID use the unprefixed
+  // omnirouteProviderId ("omniroute") — the OC-gate prefix ("opencode-")
+  // must stay OC-internal (hook.id / AuthHook.provider) and never leak into
+  // anything OmniRoute's own server parses for credential lookup.
+  const claude = out["omniroute/claude-primary"];
   assert.ok(claude, "claude-primary present");
   // `mapRawModelToModelV2` stamps the provider prefix on the id so OC's
   // static-catalog reader resolves `(providerID, modelID)` from the key.
-  assert.equal(claude.id, "opencode-omniroute/claude-primary");
+  assert.equal(claude.id, "omniroute/claude-primary");
   assert.equal(claude.name, "claude-primary");
-  assert.equal(claude.providerID, "opencode-omniroute");
+  assert.equal(claude.providerID, "omniroute");
   assert.equal(claude.api.id, "openai-compatible");
   assert.equal(claude.api.url, "https://or.example.com/v1");
   assert.equal(claude.api.npm, "@ai-sdk/openai-compatible");

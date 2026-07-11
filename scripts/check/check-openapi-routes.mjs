@@ -10,10 +10,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import * as yaml from "js-yaml";
-import { assertNoStale } from "./lib/allowlist.mjs";
+import { reportStaleEntries } from "./lib/allowlist.mjs";
+import { apiRoot, collectApiRouteUrlPaths } from "./lib/apiRoutes.mjs";
 
 const ROOT = process.cwd();
-const API_ROOT = path.join(ROOT, "src", "app", "api");
 const OPENAPI_PATH = path.join(ROOT, "docs", "openapi.yaml");
 
 // Entradas da spec sem rota real, congeladas para triagem (catraca: bloqueia NOVAS).
@@ -33,51 +33,68 @@ export function findSpecPathsWithoutRoute(specPaths, implPaths) {
   return specPaths.filter((p) => !impl.has(normalizeParams(p)));
 }
 
-function collectRoutePaths(dir) {
-  const paths = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      paths.push(...collectRoutePaths(full));
-    } else if (entry.isFile() && entry.name === "route.ts") {
-      const apiPath = path
-        .dirname(full)
-        .replace(API_ROOT, "")
-        .replace(/\/\[\.\.\.([^\]]+)\]/g, "/{$1}")
-        .replace(/\[([^\]]+)\]/g, "{$1}");
-      paths.push(`/api${apiPath}`);
-    }
+/**
+ * @param {{ root?: string, openapiPath?: string, implPaths?: string[] }} [opts]
+ * @returns {{ ok: boolean, exitCode: number, message: string }}
+ */
+export function runOpenapiRoutesCheck(opts = {}) {
+  const root = opts.root || ROOT;
+  const openapiPath = opts.openapiPath || path.join(root, "docs", "openapi.yaml");
+  if (!fs.existsSync(openapiPath)) {
+    return {
+      ok: false,
+      exitCode: 1,
+      message: `[openapi-routes] FAIL — openapi.yaml não encontrado: ${openapiPath}`,
+    };
   }
-  return paths;
-}
+  if (!fs.existsSync(apiRoot(root))) {
+    return {
+      ok: false,
+      exitCode: 1,
+      message: `[openapi-routes] FAIL — API root not found: ${apiRoot(root)}`,
+    };
+  }
 
-function main() {
-  if (!fs.existsSync(OPENAPI_PATH)) {
-    console.error(`[openapi-routes] FAIL — openapi.yaml não encontrado: ${OPENAPI_PATH}`);
-    process.exit(1);
-  }
-  const raw = yaml.load(fs.readFileSync(OPENAPI_PATH, "utf-8"));
+  const raw = yaml.load(fs.readFileSync(openapiPath, "utf-8"));
   const specPaths = Object.keys(raw.paths || {}).filter((p) => p.startsWith("/api"));
-  const implPaths = collectRoutePaths(API_ROOT);
+  const implPaths = opts.implPaths || collectApiRouteUrlPaths(root);
 
-  // Live orphans BEFORE allowlist filtering (needed for stale-enforcement).
   const liveOrphans = findSpecPathsWithoutRoute(specPaths, implPaths);
-  assertNoStale(KNOWN_STALE_SPEC, liveOrphans, "openapi-routes");
-
+  const stale = reportStaleEntries(KNOWN_STALE_SPEC, liveOrphans, "openapi-routes");
   const orphans = liveOrphans.filter((p) => !KNOWN_STALE_SPEC.has(p));
+
+  const parts = [];
+  if (stale.length) {
+    parts.push(
+      `[openapi-routes] ${stale.length} entrada(s) obsoleta(s) na allowlist ` +
+        `— a violação foi corrigida; REMOVA a entrada para travar a correção:\n` +
+        stale.map((e) => `  ✗ ${e}`).join("\n")
+    );
+  }
   if (orphans.length) {
-    console.error(
+    parts.push(
       `[openapi-routes] ${orphans.length} path(s) documentado(s) sem rota real:\n` +
         orphans.map((p) => "  ✗ " + p).join("\n") +
         `\n  → crie a rota, corrija/remova a entrada na spec, ou adicione a KNOWN_STALE_SPEC com justificativa.`
     );
-    process.exitCode = 1;
   }
-  if (!process.exitCode) {
-    console.log(
-      `[openapi-routes] OK — ${specPaths.length} paths na spec, todos com rota real (${implPaths.length} rotas)`
-    );
+  if (parts.length) {
+    return { ok: false, exitCode: 1, message: parts.join("\n") };
   }
+  return {
+    ok: true,
+    exitCode: 0,
+    message: `[openapi-routes] OK — ${specPaths.length} paths na spec, todos com rota real (${implPaths.length} rotas)`,
+  };
+}
+
+function main() {
+  // Keep assertNoStale side-effect path for CLI parity with other gates when
+  // runOpenapiRoutesCheck is not used alone — here we print structured result.
+  const result = runOpenapiRoutesCheck();
+  if (result.ok) console.log(result.message);
+  else console.error(result.message);
+  process.exit(result.exitCode);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) main();

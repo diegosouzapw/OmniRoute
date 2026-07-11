@@ -51,6 +51,9 @@ const IGNORE_FROM_CODE = new Set([
   "CI",
   "GITHUB_ACTIONS",
   "RUNNER_OS",
+  // Quality-gate harness knobs (optional cache/report paths for CI scripts — not product config).
+  "ESLINT_RESULTS_JSON",
+  "COMPLEXITY_ESLINT_REPORT",
   // Agent environment / system execution paths.
   "PROJECT_ROOT",
   "ARTIFACTS_DIR",

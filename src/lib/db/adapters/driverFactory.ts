@@ -10,6 +10,7 @@ const _require = createRequire(import.meta.url);
 
 declare global {
   var __omnirouteSqlJsAdapters: Map<string, SqliteAdapter> | undefined;
+  var __omnirouteSqlJsInitPromises: Map<string, Promise<SqliteAdapter>> | undefined;
 }
 
 function getSqlJsCache(): Map<string, SqliteAdapter> {
@@ -17,6 +18,20 @@ function getSqlJsCache(): Map<string, SqliteAdapter> {
     globalThis.__omnirouteSqlJsAdapters = new Map();
   }
   return globalThis.__omnirouteSqlJsAdapters;
+}
+
+/**
+ * Cache das Promises de inicialização EM VOO (não resolvidas ainda), por filePath.
+ * Separado de getSqlJsCache() (que só guarda o adapter já resolvido) para que
+ * chamadores concorrentes (BATCH/STARTUP/HealthCheck/ProviderLimitsSync no boot)
+ * compartilhem UMA única leitura+decode do arquivo em vez de cada um chamar
+ * fs.readFileSync + WASM decode independentemente (#6628 — thundering herd).
+ */
+function getSqlJsPendingCache(): Map<string, Promise<SqliteAdapter>> {
+  if (!globalThis.__omnirouteSqlJsInitPromises) {
+    globalThis.__omnirouteSqlJsInitPromises = new Map();
+  }
+  return globalThis.__omnirouteSqlJsInitPromises;
 }
 
 /** Tenta abrir com better-sqlite3 e node:sqlite sincronamente. Retorna null se ambos falharem. */
@@ -75,10 +90,26 @@ export async function preInitSqlJs(filePath: string): Promise<SqliteAdapter> {
     cache.delete(filePath);
   }
 
-  const { createSqlJsAdapter } = await import("./sqljsAdapter");
-  const adapter = await createSqlJsAdapter(filePath);
-  cache.set(filePath, adapter);
-  return adapter;
+  // Share one in-flight load across concurrent callers for the same filePath
+  // (#6628): without this, each of BATCH/STARTUP/HealthCheck/ProviderLimitsSync
+  // independently fs.readFileSync + WASM-decode the same (possibly 300+MB) file
+  // at boot, multiplying peak memory pressure by the number of racing callers.
+  const pending = getSqlJsPendingCache();
+  const inflight = pending.get(filePath);
+  if (inflight) return inflight;
+
+  const initPromise = (async () => {
+    const { createSqlJsAdapter } = await import("./sqljsAdapter");
+    const adapter = await createSqlJsAdapter(filePath);
+    cache.set(filePath, adapter);
+    return adapter;
+  })();
+  pending.set(filePath, initPromise);
+  try {
+    return await initPromise;
+  } finally {
+    pending.delete(filePath);
+  }
 }
 
 /** Retorna adapter sql.js pré-inicializado ou null se ainda não inicializado. */

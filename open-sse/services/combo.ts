@@ -8,6 +8,7 @@
 import {
   checkFallbackError,
   classifyLockoutReason,
+  CONTEXT_OVERFLOW_PATTERNS,
   decayModelFailureCount,
   formatRetryAfter,
   getModelLockoutInfo,
@@ -663,7 +664,12 @@ export function isContextOverflow400(errorText) {
   return (
     /\bcontext.*(?:length_exceeded|too long|overflow|exceeded|window|limit)\b/i.test(errorText) ||
     /exceeds.*context/i.test(errorText) ||
-    /your input exceeds/i.test(errorText)
+    /your input exceeds/i.test(errorText) ||
+    // Reuse accountFallback.ts's CONTEXT_OVERFLOW_PATTERNS (single source of truth)
+    // so wording like Kimi's "exceeded model token limit" — which never says the
+    // literal word "context" — is still recognized as an overflow/fallback-worthy
+    // 400 instead of halting the whole combo (issue #6637).
+    CONTEXT_OVERFLOW_PATTERNS.some((p) => p.test(errorText))
   );
 }
 /** @param {string} errorText */

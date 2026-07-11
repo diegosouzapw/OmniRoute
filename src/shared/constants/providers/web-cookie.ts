@@ -321,6 +321,21 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days.",
   },
+  "zai-web": {
+    id: "zai-web",
+    alias: "zw",
+    name: "Z.ai Web (Free)",
+    icon: "auto_awesome",
+    color: "#2563EB",
+    textIcon: "ZW",
+    website: "https://chat.z.ai",
+    hasFree: true,
+    freeNote:
+      "Free consumer web session — GLM chat models via chat.z.ai. Distinct from the API-key zai/glm providers. No subscription required.",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint: "Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie)",
+  },
 };
 
 /** Resolved public site for a web-session provider (href + display host). */
