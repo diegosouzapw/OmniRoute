@@ -788,7 +788,6 @@ export type {
 // proxy_logs — export query (#3500 slice 4)
 // ---------------------------------------------------------------------------
 export { exportProxyLogsSince } from "./db/proxyLogs";
-
 // ---------------------------------------------------------------------------
 // Per-connection 429 cooldown wrappers (#5957 / #5958 — Issue 1 follow-ups)
 // Logic lives in db/providers/rateLimit.ts (Hard Rule #2 — localDb is re-export
@@ -797,3 +796,4 @@ export { exportProxyLogsSince } from "./db/proxyLogs";
 export { markConnectionRateLimitedUntil, clearConnectionRateLimit } from "./db/providers";
 // Provider param filters — denylist/allowlist config per provider/model (#6625)
 export * from "./db/paramFilters";
+export * from "./db/interceptionRules"; // Per-model web-search/web-fetch interception rules (#3384)
