@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 import SourceToggleBar, {
@@ -17,14 +17,17 @@ type FreePoolStats = {
   lastSyncAt: string | null;
 };
 
+const PER_PAGE = 50;
+const MAX_VISIBLE_PAGES = 7;
+
 export default function FreePoolTab() {
   const t = useTranslations("settings");
   const [proxies, setProxies] = useState<FreeProxyRowData[]>([]);
   const [stats, setStats] = useState<FreePoolStats | null>(null);
   const [disabledSources, setDisabledSources] = useState<Set<SourceId>>(new Set());
-  const [filterProtocol, setFilterProtocol] = useState("");
-  const [filterCountry, setFilterCountry] = useState("");
-  const [minQuality, setMinQuality] = useState("");
+  const [filterProtocol, setFilterProtocolRaw] = useState("");
+  const [filterCountry, setFilterCountryRaw] = useState("");
+  const [minQuality, setMinQualityRaw] = useState("");
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -32,74 +35,63 @@ export default function FreePoolTab() {
   const [bulkProgress, setBulkProgress] = useState<string | null>(null);
   // #5595: per-source sync errors so a "Total: 0" result is never silent.
   const [syncErrors, setSyncErrors] = useState<Record<string, string[]> | null>(null);
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<"quality" | "latency" | "recent">("quality");
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [total, setTotal] = useState<number | null>(null);
-  const offsetRef = useRef(0);
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   // Load persisted disabled-sources from localStorage on mount
   useEffect(() => {
-    setDisabledSources(loadDisabledSources());
+    const saved = loadDisabledSources();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage hydration, runs once
+    if (saved) setDisabledSources(saved);
   }, []);
+  // Wrapper setters that also reset page to 1
+  const setFilterProtocol = (v: string) => {
+    setFilterProtocolRaw(v);
+    setPage(1);
+  };
+  const setFilterCountry = (v: string) => {
+    setFilterCountryRaw(v);
+    setPage(1);
+  };
+  const setMinQuality = (v: string) => {
+    setMinQualityRaw(v);
+    setPage(1);
+  };
 
-  const handleToggleSource = useCallback((source: SourceId) => {
-    setDisabledSources((prev) => {
-      const next = new Set(prev);
-      if (next.has(source)) next.delete(source);
-      else next.add(source);
-      saveDisabledSources(next);
-      return next;
-    });
-  }, []);
-
-  const loadData = useCallback(
-    async (append = false) => {
-      if (append) setLoadingMore(true);
-      else setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        const enabledSources = ALL_SOURCE_IDS.filter((s) => !disabledSources.has(s));
-        if (enabledSources.length < ALL_SOURCE_IDS.length) {
-          params.set("sources", enabledSources.join(","));
-        }
-        if (filterProtocol) params.set("protocol", filterProtocol);
-        if (filterCountry) params.set("country", filterCountry);
-        if (minQuality) params.set("minQuality", minQuality);
-        if (search.trim()) params.set("search", search.trim());
-        if (sortBy) params.set("sortBy", sortBy);
-        params.set("limit", "50");
-        params.set("offset", append ? String(offsetRef.current) : "0");
-
-        const [proxiesRes, statsRes] = await Promise.all([
-          fetch(`/api/settings/free-proxies?${params.toString()}`),
-          append ? null : fetch("/api/settings/free-proxies/stats"),
-        ]);
-        if (proxiesRes.ok) {
-          const data = await proxiesRes.json();
-          const fetched: FreeProxyRowData[] = data.items || [];
-          setProxies((prev) => (append ? [...prev, ...fetched] : fetched));
-          setTotal(typeof data.total === "number" ? data.total : fetched.length);
-          if (append) offsetRef.current += fetched.length;
-        }
-        if (!append && statsRes?.ok) {
-          const data = await statsRes.json();
-          setStats(data.stats || null);
-        }
-      } catch {
-        // surface nothing on transient failure; table keeps last good data
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      const enabledSources = ALL_SOURCE_IDS.filter((s) => !disabledSources.has(s));
+      if (enabledSources.length < ALL_SOURCE_IDS.length) {
+        params.set("sources", enabledSources.join(","));
       }
-    },
-    [disabledSources, filterProtocol, filterCountry, minQuality, search, sortBy]
-  );
+      if (filterProtocol) params.set("protocol", filterProtocol);
+      if (filterCountry) params.set("country", filterCountry);
+      if (minQuality) params.set("minQuality", minQuality);
+      params.set("limit", String(PER_PAGE));
+      params.set("offset", String((page - 1) * PER_PAGE));
 
-  const loadMore = useCallback(() => {
-    void loadData(true);
-  }, [loadData]);
+      const [proxiesRes, statsRes] = await Promise.all([
+        fetch(`/api/settings/free-proxies?${params.toString()}`),
+        fetch("/api/settings/free-proxies/stats"),
+      ]);
+      if (proxiesRes.ok) {
+        const data = await proxiesRes.json();
+        setProxies(data.items || []);
+        setTotal(data.total ?? 0);
+      }
+      if (statsRes.ok) {
+        const data = await statsRes.json();
+        setStats(data.stats || null);
+      }
+    } catch {}
+    setLoading(false);
+  }, [disabledSources, filterProtocol, filterCountry, minQuality, page]);
+
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async data fetch on filter change
     loadData();
   }, [loadData]);
 
@@ -114,17 +106,9 @@ export default function FreePoolTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      // #5595: surface per-source errors the route already returns so a
-      // partial/empty sync explains itself instead of silently showing "Total: 0".
-      const data = await res.json().catch(() => null);
-      if (data?.results) {
-        const errs: Record<string, string[]> = {};
-        for (const [src, r] of Object.entries(
-          data.results as Record<string, { errors?: string[] }>
-        )) {
-          if (Array.isArray(r?.errors) && r.errors.length > 0) errs[src] = r.errors;
-        }
-        if (Object.keys(errs).length > 0) setSyncErrors(errs);
+      const data = await res.json();
+      if (!res.ok) {
+        setSyncErrors(data.errors ?? null);
       }
       await loadData();
     } catch {}
@@ -132,17 +116,20 @@ export default function FreePoolTab() {
   };
 
   const handleAddToPool = async (id: string) => {
-    setAddingIds((prev) => new Set(prev).add(id));
+    setAddingIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
     try {
       const res = await fetch(`/api/settings/free-proxies/${id}/add-to-pool`, {
         method: "POST",
       });
-      // #4878: gate on the parsed body, not just res.ok. The route used to return
-      // a default 200 with { success:false } on a failed connectivity probe, which
-      // flipped the row to "In Pool" optimistically even though nothing was added.
-      const data = await res.json().catch(() => null);
-      if (res.ok && data?.success) {
-        setProxies((prev) => prev.map((p) => (p.id === id ? { ...p, inPool: true } : p)));
+      if (res.ok) {
+        const body = await res.json();
+        if (body.ok !== true) return;
+        // Optimistic: remove from local list since it's now in pool
+        setProxies((prev) => prev.filter((p) => p.id !== id));
       }
     } catch {}
     setAddingIds((prev) => {
@@ -179,42 +166,51 @@ export default function FreePoolTab() {
   };
 
   const notInPoolProxies = proxies.filter((p) => !p.inPool);
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+  // Build visible page range around current page
+  const buildPageRange = (): (number | "ellipsis")[] => {
+    if (totalPages <= MAX_VISIBLE_PAGES) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages: (number | "ellipsis")[] = [];
+    const half = Math.floor(MAX_VISIBLE_PAGES / 2);
+    let start = Math.max(1, page - half);
+    let end = Math.min(totalPages, page + half);
+
+    // Adjust if near start/end
+    if (page - half < 1) {
+      end = Math.min(totalPages, MAX_VISIBLE_PAGES);
+    }
+    if (page + half > totalPages) {
+      start = Math.max(1, totalPages - MAX_VISIBLE_PAGES + 1);
+    }
+
+    if (start > 1) {
+      pages.push(1);
+      if (start > 2) pages.push("ellipsis");
+    }
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < totalPages) {
+      if (end < totalPages - 1) pages.push("ellipsis");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setPage(newPage);
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <SourceToggleBar disabledSources={disabledSources} onToggle={handleToggleSource} />
         <div className="flex gap-2 ml-auto flex-wrap items-center">
-          <input
-            type="text"
-            placeholder={t("proxyFreePoolSearchPlaceholder")}
-            value={search}
-            onChange={(e) => {
-              offsetRef.current = 0;
-              setSearch(e.target.value);
-            }}
-            className="text-xs bg-surface-alt border border-border rounded px-2 py-1 w-40"
-            aria-label={t("proxyFreePoolSearchLabel")}
-          />
-          <select
-            value={sortBy}
-            onChange={(e) => {
-              offsetRef.current = 0;
-              setSortBy(e.target.value as "quality" | "latency" | "recent");
-            }}
-            className="text-xs bg-surface-alt border border-border rounded px-2 py-1"
-            aria-label={t("proxyFreePoolSortLabel")}
-          >
-            <option value="quality">{t("proxyFreePoolSortQuality")}</option>
-            <option value="latency">{t("proxyFreePoolSortLatency")}</option>
-            <option value="recent">{t("proxyFreePoolSortRecent")}</option>
-          </select>
           <select
             value={filterProtocol}
-            onChange={(e) => {
-              offsetRef.current = 0;
-              setFilterProtocol(e.target.value);
-            }}
+            onChange={(e) => setFilterProtocol(e.target.value)}
             className="text-xs bg-surface-alt border border-border rounded px-2 py-1"
             aria-label={t("proxyFreePoolFilterProtocol")}
           >
@@ -229,10 +225,7 @@ export default function FreePoolTab() {
             type="text"
             placeholder={t("proxyFreePoolCountryPlaceholder")}
             value={filterCountry}
-            onChange={(e) => {
-              offsetRef.current = 0;
-              setFilterCountry(e.target.value.toUpperCase().slice(0, 2));
-            }}
+            onChange={(e) => setFilterCountry(e.target.value.toUpperCase().slice(0, 2))}
             className="text-xs bg-surface-alt border border-border rounded px-2 py-1 w-28"
             aria-label={t("proxyFreePoolFilterCountry")}
           />
@@ -240,10 +233,7 @@ export default function FreePoolTab() {
             type="number"
             placeholder={t("proxyFreePoolMinQualityPlaceholder")}
             value={minQuality}
-            onChange={(e) => {
-              offsetRef.current = 0;
-              setMinQuality(e.target.value);
-            }}
+            onChange={(e) => setMinQuality(e.target.value)}
             min={0}
             max={100}
             className="text-xs bg-surface-alt border border-border rounded px-2 py-1 w-24"
@@ -260,11 +250,6 @@ export default function FreePoolTab() {
           <span>
             {t("proxyFreePoolTotal")}: {stats.total}
           </span>
-          {total != null && (
-            <span>
-              {t("proxyFreePoolListTotal")}: {total}
-            </span>
-          )}
           <span>
             {t("proxyFreePoolInPool")}: {stats.inPool}
           </span>
@@ -278,12 +263,6 @@ export default function FreePoolTab() {
               {t("lastSync")}: {new Date(stats.lastSyncAt).toLocaleTimeString()}
             </span>
           )}
-        </div>
-      )}
-
-      {loading && (
-        <div className="text-xs text-text-muted" data-testid="free-pool-loading">
-          {t("loading")}
         </div>
       )}
 
@@ -319,13 +298,6 @@ export default function FreePoolTab() {
             onClick={() => handleBulkAdd(notInPoolProxies.slice(0, 100).map((p) => p.id))}
           >
             {t("proxyFreePoolAddVisible")}
-          </Button>
-        </div>
-      )}
-      {!loading && total != null && proxies.length < total && (
-        <div className="flex justify-center pt-1">
-          <Button size="sm" variant="secondary" onClick={loadMore} disabled={loadingMore}>
-            {loadingMore ? t("loading") : t("proxyFreePoolLoadMore")}
           </Button>
         </div>
       )}
@@ -383,6 +355,55 @@ export default function FreePoolTab() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Page-number pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 pt-2">
+          <button
+            type="button"
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page <= 1}
+            aria-label="Previous page"
+          >
+            &laquo;
+          </button>
+          {buildPageRange().map((p, i) =>
+            p === "ellipsis" ? (
+              <span key={`ellipsis-${i}`} className="px-1 text-text-muted text-xs">
+                ...
+              </span>
+            ) : (
+              <button
+                key={p}
+                type="button"
+                onClick={() => handlePageChange(p)}
+                className={`px-2.5 py-1 text-xs rounded ${
+                  p === page
+                    ? "bg-primary text-white font-medium"
+                    : "hover:bg-black/5 dark:hover:bg-white/5"
+                }`}
+              >
+                {p}
+              </button>
+            )
+          )}
+          <button
+            type="button"
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page >= totalPages}
+            aria-label="Next page"
+          >
+            &raquo;
+          </button>
+        </div>
+      )}
+
+      {/* Per-page summary */}
+      <div className="text-center text-xs text-text-muted">
+        {total > 0
+          ? `Page ${page} of ${totalPages} (${total} total proxies)`
+          : `${total} total proxies`}
       </div>
     </div>
   );
