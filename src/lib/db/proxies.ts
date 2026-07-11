@@ -6,6 +6,7 @@
 import { randomUUID, randomInt } from "crypto";
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
+import { pickByLatency } from "./proxyLatency";
 import type {
   JsonRecord,
   ProxyScope,
@@ -31,8 +32,6 @@ import {
   redactProxySecrets,
 } from "./proxies/mappers";
 export { extractRelayAuth, redactProxySecrets } from "./proxies/mappers";
-
-const PROXY_LATENCY_WINDOW_HOURS = parseInt(process.env.PROXY_LATENCY_WINDOW_HOURS ?? "3", 10);
 
 let proxyRegistryGeneration = 0;
 
@@ -688,23 +687,13 @@ function getOrCreateRotationRow(
   db: ReturnType<typeof getDbInstance>,
   normalizedScope: string,
   rotationScopeId: string
-): {
-  strategy: ProxyRotationStrategy;
-  cursor: number;
-  stickyWindowMinutes: number;
-  rotatedAt: string | null;
-} {
+): { strategy: ProxyRotationStrategy; cursor: number; stickyWindowMinutes: number; rotatedAt: string | null } {
   const row = db
     .prepare(
       "SELECT strategy, cursor, sticky_window_minutes, rotated_at FROM proxy_scope_rotation WHERE scope = ? AND scope_id IS ?"
     )
     .get(normalizedScope, rotationScopeId) as
-    | {
-        strategy?: string;
-        cursor?: number;
-        sticky_window_minutes?: number;
-        rotated_at?: string | null;
-      }
+    | { strategy?: string; cursor?: number; sticky_window_minutes?: number; rotated_at?: string | null }
     | undefined;
 
   if (row) {
@@ -752,44 +741,7 @@ function pickFromCandidates<T>(
     return candidates[randomInt(candidates.length)];
   }
 
-  if (state.strategy === "latency") {
-    const sinceIso = new Date(
-      Date.now() - PROXY_LATENCY_WINDOW_HOURS * 60 * 60 * 1000
-    ).toISOString();
-
-    // Query average latency for all logged proxies in the last N hours
-    const latencyRows = db
-      .prepare(
-        `SELECT proxy_host, proxy_port, AVG(latency_ms) as avg_latency
-         FROM proxy_logs
-         WHERE timestamp >= ?
-         GROUP BY proxy_host, proxy_port`
-      )
-      .all(sinceIso) as Array<{
-      proxy_host: string;
-      proxy_port: number;
-      avg_latency: number | null;
-    }>;
-
-    const latencyMap = new Map<string, number>();
-    for (const r of latencyRows) {
-      if (r.avg_latency !== null && r.avg_latency !== undefined) {
-        latencyMap.set(`${r.proxy_host}:${r.proxy_port}`, r.avg_latency);
-      }
-    }
-
-    const sorted = [...candidates].sort((a, b) => {
-      const pA = a as { host: string; port: number };
-      const pB = b as { host: string; port: number };
-      const keyA = `${pA.host}:${pA.port}`;
-      const keyB = `${pB.host}:${pB.port}`;
-      const latA = latencyMap.has(keyA) ? latencyMap.get(keyA)! : -1;
-      const latB = latencyMap.has(keyB) ? latencyMap.get(keyB)! : -1;
-      return latA - latB;
-    });
-
-    return sorted[0];
-  }
+  if (state.strategy === "latency") return pickByLatency(db, candidates);
 
   if (state.strategy === "sticky") {
     const windowMs = state.stickyWindowMinutes * 60_000;
@@ -800,13 +752,7 @@ function pickFromCandidates<T>(
       cursor = state.cursor + 1;
       db.prepare(
         "UPDATE proxy_scope_rotation SET cursor = ?, rotated_at = ?, updated_at = ? WHERE scope = ? AND scope_id IS ?"
-      ).run(
-        cursor,
-        new Date().toISOString(),
-        new Date().toISOString(),
-        normalizedScope,
-        rotationScopeId
-      );
+      ).run(cursor, new Date().toISOString(), new Date().toISOString(), normalizedScope, rotationScopeId);
     }
     const idx = ((cursor % candidates.length) + candidates.length) % candidates.length;
     return candidates[idx];

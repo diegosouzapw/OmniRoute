@@ -8,6 +8,7 @@ import { ProxyStatusBadge } from "./ProxyStatusBadge";
 import { ProxyHealthCell } from "./ProxyHealthCell";
 import { ProxyBatchActions } from "./ProxyBatchActions";
 import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
+import { POOL_STRATEGY_OPTIONS, isPoolStrategy, type PoolStrategy } from "./proxyStrategyOptions";
 
 type ProxyItem = {
   id: string;
@@ -180,9 +181,7 @@ export default function ProxyRegistryManager() {
   const [poolOpen, setPoolOpen] = useState(false);
   const [poolScope, setPoolScope] = useState("provider");
   const [poolScopeId, setPoolScopeId] = useState("");
-  const [poolStrategy, setPoolStrategy] = useState<"round-robin" | "random" | "sticky" | "latency">(
-    "round-robin"
-  );
+  const [poolStrategy, setPoolStrategy] = useState<PoolStrategy>("round-robin");
   const [poolMembers, setPoolMembers] = useState<string[]>([]);
   const [poolAddProxyId, setPoolAddProxyId] = useState("");
   const [poolLoading, setPoolLoading] = useState(false);
@@ -569,11 +568,7 @@ export default function ProxyRegistryManager() {
         ? payload.members
         : [];
       setPoolMembers(members.map((m) => m.proxyId));
-      setPoolStrategy(
-        ["round-robin", "random", "sticky", "latency"].includes(payload?.strategy)
-          ? payload.strategy
-          : "round-robin"
-      );
+      setPoolStrategy(isPoolStrategy(payload?.strategy) ? payload.strategy : "round-robin");
       setPoolLoaded(true);
     } catch (e: any) {
       setError(e?.message || t("poolLoadFailed"));
@@ -638,9 +633,7 @@ export default function ProxyRegistryManager() {
     }
   };
 
-  const handlePoolStrategyChange = async (
-    strategy: "round-robin" | "random" | "sticky" | "latency"
-  ) => {
+  const handlePoolStrategyChange = async (strategy: PoolStrategy) => {
     const previous = poolStrategy;
     setPoolStrategy(strategy);
     setError(null);
@@ -1193,17 +1186,14 @@ export default function ProxyRegistryManager() {
                 <select
                   className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
                   value={poolStrategy}
-                  onChange={(e) =>
-                    handlePoolStrategyChange(
-                      e.target.value as "round-robin" | "random" | "sticky" | "latency"
-                    )
-                  }
+                  onChange={(e) => handlePoolStrategyChange(e.target.value as PoolStrategy)}
                   data-testid="proxy-registry-pool-strategy"
                 >
-                  <option value="round-robin">{t("strategyRoundRobin")}</option>
-                  <option value="random">{t("strategyRandom")}</option>
-                  <option value="sticky">{t("strategySticky")}</option>
-                  <option value="latency">{t("strategyLatency")}</option>
+                  {POOL_STRATEGY_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {t(opt.labelKey)}
+                    </option>
+                  ))}
                 </select>
                 <p className="text-xs text-text-muted mt-1">{t("poolStrategyHint")}</p>
               </div>

@@ -64,6 +64,7 @@ export const INTENTIONALLY_INTERNAL = new Set([
   "prompts", // DEAD? (production): zero callers de produção encontrados; domínio domain/prompts.ts é independente; testado por tests/integration/proxy-pipeline.test.ts
   "providerNodeSelect", // db-internal: importado só por db/providers.ts (selectProviderNodeForConnection — lógica pura de seleção de provider node split do providers.ts, #4421)
   "providerStats", // intentionally-internal: src/app/api/provider-stats/route.ts
+  "proxyLatency", // intentionally-internal: imported directly by src/lib/db/proxies.ts (anti-barrel, #6798)
   "recovery", // intentionally-internal: bin/cli/runtime.mjs (import() dinâmico) + tests
   "schemaColumns", // db-internal: importado só por db/core.ts (ensureProviderConnections/UsageHistory/CallLogsColumns + hasColumn/hasTable/getTableColumns — schema-column reconciliation split do core.ts, #4948)
   "secrets", // intentionally-internal: src/instrumentation-node.ts (import() dinâmico na inicialização)
