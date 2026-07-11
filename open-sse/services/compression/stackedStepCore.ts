@@ -62,13 +62,27 @@ export function decideStep(
   return { advance: true };
 }
 
+/**
+ * A dispatched step whose engine found nothing eligible (e.g. session-dedup with no repeated
+ * blocks, ccr below its min-chars threshold) returns `stats: null` instead of throwing or
+ * advancing. Left unrecorded, that step vanishes from the pipeline's telemetry with zero trace —
+ * no `engineBreakdown` entry, no warning, no error (#6479, #6491). Surface it as a validation
+ * warning so operators can tell "engine ran but had nothing to do" apart from "engine never ran".
+ */
+function recordNullStatsStep(acc: StackAccumulator, engineId: string): void {
+  acc.validationWarnings.add(`${engineId}: skipped (no eligible content)`);
+}
+
 /** Folds one engine result into the accumulator (telemetry + breakdown entry). */
 export function mergeStackStep(
   acc: StackAccumulator,
   engineId: string,
   result: CompressionResult
 ): void {
-  if (!result.stats) return;
+  if (!result.stats) {
+    recordNullStatsStep(acc, engineId);
+    return;
+  }
   result.stats.techniquesUsed.forEach((technique) => acc.techniques.add(technique));
   result.stats.rulesApplied?.forEach((rule) => acc.rules.add(rule));
   result.stats.rtkRawOutputPointers?.forEach((pointer) => acc.rtkRawOutputPointers.push(pointer));

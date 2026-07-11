@@ -13,6 +13,7 @@ import { getExecutor } from "../../executors/index.ts";
 import { isCliproxyapiDeepModeEnabled } from "../../executors/cliproxyapi.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { getUpstreamProxyConfigCached } from "./comboContextCache.ts";
+import { wrapExecutorWithCliproxyapiModelMapping } from "./cliproxyModelMapping.ts";
 
 type LoggerLike =
   | {
@@ -47,12 +48,20 @@ export async function resolveExecutorWithProxy(
 
   if (cfg.mode === "cliproxyapi") {
     log?.info?.("UPSTREAM_PROXY", `${prov} routed through CLIProxyAPI (passthrough)`);
-    return getExecutor("cliproxyapi");
+    return wrapExecutorWithCliproxyapiModelMapping(
+      getExecutor("cliproxyapi"),
+      cfg.cliproxyapiModelMapping
+    );
   }
 
-  // mode === "fallback": try native first, retry via CLIProxyAPI on specific failures
+  // mode === "fallback": try native first, retry via CLIProxyAPI on specific failures.
+  // The model mapping applies only to the CLIProxyAPI retry leg (proxyExec) — the
+  // native leg must keep seeing the original, unmapped model.
   const nativeExec = getExecutor(prov);
-  const proxyExec = getExecutor("cliproxyapi");
+  const proxyExec = wrapExecutorWithCliproxyapiModelMapping(
+    getExecutor("cliproxyapi"),
+    cfg.cliproxyapiModelMapping
+  );
 
   // Read custom fallback codes from settings. Default: 5xx + 429 + network errors.
   let fallbackCodes: number[] = [429, 500, 502, 503, 504];
