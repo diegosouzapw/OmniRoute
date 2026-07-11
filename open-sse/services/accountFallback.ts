@@ -189,7 +189,10 @@ export const OAUTH_INVALID_TOKEN_SIGNALS = [
 // Context overflow patterns — the prompt exceeds the model's maximum context length.
 // Different providers phrase this differently. Used to decide whether a 400 error
 // should trigger combo fallback (a different model may have a larger context window).
-const CONTEXT_OVERFLOW_PATTERNS = [
+// Exported so combo.ts's isContextOverflow400() guard (open-sse/services/combo.ts)
+// can reuse this single source of truth instead of maintaining its own,
+// independently-drifting pattern list (see issue #6637).
+export const CONTEXT_OVERFLOW_PATTERNS = [
   /\binput is too long\b/i,
   /\binput too long\b/i,
   /\bcontext.*(too long|exceeded|overflow|limit)/i,

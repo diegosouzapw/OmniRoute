@@ -6,6 +6,8 @@
  * default-off; the inflation guard here is an honest DEFAULT-ON check on the FINAL output.
  */
 
+import type { CompressionResult, CompressionStats } from "./types.ts";
+
 export interface PipelineInflationInput {
   /** The verbatim request body before any engine ran. */
   originalBody: Record<string, unknown>;
@@ -42,4 +44,46 @@ export function guardPipelineInflation(input: PipelineInflationInput): PipelineI
     return { body: input.originalBody, inflated: true };
   }
   return { body: input.compressedBody, inflated: false };
+}
+
+/**
+ * Applies the aggregate inflation guard to a finalized stacked-pipeline `stats` object, honoring
+ * the `compressed` loop-level flag (#6480). If the fully-stacked body did not actually shrink
+ * (its token count is >= the original), discards it and returns the verbatim original — safe by
+ * construction, since the original request body is always a valid payload.
+ *
+ * Only meaningful when some step actually advanced `currentBody` (`compressed === true`). When
+ * no step in the pipeline ever produced/advanced a candidate (e.g. a single no-op engine on an
+ * out-of-charter payload), `currentBody` is still reference-identical to `originalBody`, so
+ * tokens are trivially equal — running the guard in that case would mislabel a genuine no-op as
+ * a "reverted" fallback (`fallbackApplied: true` + a misleading warning) even though nothing was
+ * ever computed to revert.
+ */
+export function applyStackedInflationGuard(
+  originalBody: Record<string, unknown>,
+  currentBody: Record<string, unknown>,
+  compressed: boolean,
+  stats: CompressionStats
+): CompressionResult {
+  if (!compressed) return { body: currentBody, compressed, stats };
+
+  const inflation = guardPipelineInflation({
+    originalBody,
+    compressedBody: currentBody,
+    originalTokens: stats.originalTokens,
+    compressedTokens: stats.compressedTokens,
+  });
+  if (!inflation.inflated) return { body: currentBody, compressed, stats };
+
+  const inflatedTokens = stats.compressedTokens;
+  const warnings = new Set(stats.validationWarnings ?? []);
+  warnings.add(
+    `pipeline-inflation-guard: stacked output (${inflatedTokens} tok) did not shrink input ` +
+      `(${stats.originalTokens} tok); reverted to original`
+  );
+  stats.validationWarnings = Array.from(warnings);
+  stats.fallbackApplied = true;
+  stats.compressedTokens = stats.originalTokens;
+  stats.savingsPercent = 0;
+  return { body: inflation.body, compressed: false, stats };
 }
