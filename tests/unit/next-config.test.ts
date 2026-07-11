@@ -271,6 +271,23 @@ test("next-intl webpack hook preserves caller config and filters known extractor
   );
 });
 
+test("turbopack.ignoreIssue suppresses the agentSkills over-bundling warning (#6582)", async () => {
+  // src/lib/agentSkills/generator.ts joins process.cwd() with a runtime
+  // `outputDir` parameter — not a compile-time literal — so Turbopack's
+  // file-tracing analyzer can't narrow it and emits an "Overly broad
+  // patterns..." warning per entry point importing the module. The fs access
+  // is legitimate and bounded, so it's suppressed via turbopack.ignoreIssue
+  // rather than fought. This guards the config shape so the suppression rule
+  // isn't silently dropped in a future edit.
+  const { default: nextConfig } = await loadNextConfig("ignore-issue");
+  const rules = nextConfig.turbopack?.ignoreIssue;
+
+  assert.ok(Array.isArray(rules), "expected turbopack.ignoreIssue to be an array");
+  const agentSkillsRule = rules.find((rule) => String(rule.path).includes("agentSkills"));
+  assert.ok(agentSkillsRule, "expected an ignoreIssue rule targeting src/lib/agentSkills/**");
+  assert.match(String(agentSkillsRule.description), /Overly broad patterns/);
+});
+
 test("optimizePackageImports excludes the internal @omniroute/open-sse workspace (build-OOM guard)", async () => {
   // Regression guard: adding the internal `@omniroute/open-sse` workspace to
   // optimizePackageImports makes Next.js resolve its entire barrel at build

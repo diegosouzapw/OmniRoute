@@ -17,7 +17,7 @@ import {
   CODEX_CHAT_DEFAULT_INSTRUCTIONS,
   CODEX_DEFAULT_INSTRUCTIONS,
 } from "../config/codexInstructions.ts";
-import { PROVIDERS } from "../config/constants.ts";
+import { HTTP_STATUS, PROVIDERS } from "../config/constants.ts";
 import {
   getCodexClientVersion,
   getCodexUserAgent,
@@ -34,6 +34,7 @@ import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer
 import { normalizeCodexVerbosity } from "../services/codexVerbosity.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
+import { errorResponse } from "../utils/error.ts";
 import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
@@ -550,6 +551,145 @@ export function filterNonstandardCodexSse(response: Response): Response {
   });
 }
 
+// ─── Sub-bug #3 of upstream decolua/9router#2452 (@ryanngit) ─────────────────
+// Codex sometimes answers with HTTP 200 and a text/event-stream body whose
+// payload carries a transient "model at capacity" / overloaded error mid-stream,
+// e.g. { "error": { "message": "Selected model is at capacity..." } },
+// server_is_overloaded, or service_unavailable_error. Left as a 200, this looks
+// like a successful response to every caller — no retry, no circuit breaker, no
+// combo/account fallback engages (open-sse/services/accountFallback.ts never
+// sees a failure status). Peek the first few SSE bytes; when a transient-error
+// signature is found, convert the response into a real 503 so account rotation
+// kicks in. Otherwise re-assemble the stream from the peeked prefix + the
+// remaining upstream body so the passthrough stays byte-identical.
+const CODEX_SSE_TRANSIENT_ERROR_PATTERNS = [
+  "selected model is at capacity",
+  "server_is_overloaded",
+  "service_unavailable_error",
+] as const;
+// A capacity/overloaded rejection is delivered as the very first SSE event, so a
+// small peek window is enough — this bounds how much of a legitimate response we
+// buffer before giving up and passing the stream through unchanged.
+const CODEX_SSE_PEEK_MAX_BYTES = 8192;
+
+/**
+ * Best-effort extraction of the human-readable error message from a peeked SSE
+ * chunk, so the resulting 503 body carries something more useful than the raw
+ * pattern that matched. Falls back to the matched pattern when no structured
+ * `data:` payload could be parsed.
+ */
+function extractCodexSseErrorMessage(text: string, fallback: string): string {
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.startsWith("data:")) continue;
+    const data = line.slice("data:".length).trim();
+    if (!data || data === "[DONE]") continue;
+    try {
+      const parsed = JSON.parse(data) as Record<string, unknown>;
+      const directError = parsed.error as Record<string, unknown> | undefined;
+      const nestedError = (parsed.response as Record<string, unknown> | undefined)?.error as
+        | Record<string, unknown>
+        | undefined;
+      const message =
+        (typeof directError?.message === "string" && directError.message) ||
+        (typeof nestedError?.message === "string" && nestedError.message) ||
+        (typeof parsed.message === "string" && parsed.message);
+      if (message) return message;
+    } catch {
+      // Non-JSON SSE data line — keep scanning subsequent lines.
+    }
+  }
+  return fallback;
+}
+
+type CodexSseTransientErrorPeek =
+  | { matched: string; message: string; replacementBody: null }
+  | { matched: null; message: null; replacementBody: ReadableStream<Uint8Array> | null };
+
+/**
+ * Peek the first bytes of a Codex SSE response body looking for a transient
+ * error embedded in an otherwise 200-OK stream. Exported for unit testing.
+ */
+export async function peekCodexSseTransientError(
+  response: Response
+): Promise<CodexSseTransientErrorPeek> {
+  const contentType = response.headers.get("content-type") || "";
+  if (!response.ok || !response.body || !contentType.includes("text/event-stream")) {
+    return { matched: null, message: null, replacementBody: null };
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  const chunks: Uint8Array[] = [];
+  let text = "";
+  let matched: string | null = null;
+
+  try {
+    while (text.length < CODEX_SSE_PEEK_MAX_BYTES) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      text += decoder.decode(value, { stream: true });
+      const lower = text.toLowerCase();
+      const hit = CODEX_SSE_TRANSIENT_ERROR_PATTERNS.find((pattern) => lower.includes(pattern));
+      if (hit) {
+        matched = hit;
+        break;
+      }
+      // A real content/completion event this early means the response is
+      // healthy — stop peeking so we do not needlessly buffer a long stream.
+      if (
+        lower.includes('"type":"response.output_text.delta"') ||
+        lower.includes('"type":"response.completed"')
+      ) {
+        break;
+      }
+    }
+  } catch (err) {
+    console.warn(
+      `[codex] peekCodexSseTransientError: read error, passing stream through: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+  }
+
+  if (matched) {
+    try {
+      await reader.cancel();
+    } catch {
+      // Upstream socket may already be closing; nothing to clean up.
+    }
+    return { matched, message: extractCodexSseErrorMessage(text, matched), replacementBody: null };
+  }
+
+  reader.releaseLock();
+
+  // Re-assemble the stream: peeked prefix chunks, then continue draining the
+  // same underlying body so bytes downstream of the peek window are untouched.
+  const upstreamReader = response.body.getReader();
+  const replacementBody = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const chunk of chunks) controller.enqueue(chunk);
+    },
+    async pull(controller) {
+      const { done, value } = await upstreamReader.read();
+      if (done) {
+        controller.close();
+        return;
+      }
+      controller.enqueue(value);
+    },
+    cancel(reason) {
+      try {
+        upstreamReader.cancel(reason);
+      } catch {
+        // noop — upstream socket may already be closing.
+      }
+    },
+  });
+
+  return { matched: null, message: null, replacementBody };
+}
+
 export function encodeResponseSseEvent(raw: string): { sse: string; terminal: boolean } {
   let eventType = "message";
   let payload = raw;
@@ -662,6 +802,26 @@ export class CodexExecutor extends BaseExecutor {
         const resp = (httpResult as { response?: Response }).response;
         if (resp?.body) {
           (httpResult as { response: Response }).response = filterNonstandardCodexSse(resp);
+        }
+      }
+      const resp = (httpResult as { response?: Response }).response;
+      if (resp) {
+        const peek = await peekCodexSseTransientError(resp);
+        if (peek.matched) {
+          input.log?.warn?.(
+            "RETRY",
+            `CODEX | 200-OK SSE carried transient error "${peek.matched}" — converting to 503 for account fallback`
+          );
+          (httpResult as { response: Response }).response = errorResponse(
+            HTTP_STATUS.SERVICE_UNAVAILABLE,
+            peek.message
+          );
+        } else if (peek.replacementBody) {
+          (httpResult as { response: Response }).response = new Response(peek.replacementBody, {
+            status: resp.status,
+            statusText: resp.statusText,
+            headers: resp.headers,
+          });
         }
       }
       return httpResult;
@@ -894,7 +1054,9 @@ export class CodexExecutor extends BaseExecutor {
       headers["chatgpt-account-id"] = workspaceId;
     }
     const clientIdentity = credentials?.providerSpecificData?.codexClientIdentity as
-      CodexClientIdentity | null | undefined;
+      | CodexClientIdentity
+      | null
+      | undefined;
 
     // Originator header — identifies the client type to the Codex backend.
     // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
@@ -1001,6 +1163,7 @@ export class CodexExecutor extends BaseExecutor {
       delete body.stream;
       delete body.stream_options;
       delete body.client_metadata;
+      delete body.include;
     } else {
       body.stream = true;
     }
@@ -1129,7 +1292,11 @@ export class CodexExecutor extends BaseExecutor {
     // Cursor may include custom tools (e.g. ApplyPatch) that work locally but are
     // invalid upstream, and translation bugs can leave orphaned/empty tool_choice names.
     normalizeCodexTools(body, {
-      dropImageGeneration: isCodexFreePlan(credentials?.providerSpecificData),
+      // gpt-5.3-codex-spark (and other Spark-scope models) reject image_generation
+      // upstream even on paid-plan accounts, so drop it independent of plan (#6651).
+      dropImageGeneration:
+        isCodexFreePlan(credentials?.providerSpecificData) ||
+        getCodexModelScope(model) === "spark",
       preserveCustomTools: nativeCodexPassthrough,
     });
 
@@ -1174,6 +1341,9 @@ export class CodexExecutor extends BaseExecutor {
       };
     }
     ensureCodexReasoningSummary(body);
+    if (isCompactRequest) {
+      delete body.include;
+    }
     delete body.reasoning_effort;
 
     // Remove unsupported token limit parameters BEFORE the passthrough return.
@@ -1214,7 +1384,9 @@ export class CodexExecutor extends BaseExecutor {
       applyCodexClientMetadata(
         body,
         credentials?.providerSpecificData?.codexClientIdentity as
-          CodexClientIdentity | null | undefined
+          | CodexClientIdentity
+          | null
+          | undefined
       );
     }
 

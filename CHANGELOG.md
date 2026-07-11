@@ -30,7 +30,7 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 - **fix(cli):** the dashboard's Claude Code CLI card could report "Not detected"/"Not installed" even when Claude Code was genuinely installed and previously used ([#6701](https://github.com/diegosouzapw/OmniRoute/issues/6701)) — `getCliRuntimeStatus()` (`src/shared/services/cliRuntime.ts`) determined `installed` purely from binary resolution (known install paths + a `where`/`which` PATH search), with no fallback when that lookup fails for reasons unrelated to whether the CLI is actually installed (stale PATH inherited by a long-running/background process, the binary having moved, an install method not yet catalogued, etc.) — even though `~/.claude/settings.json` on disk proves the tool was installed and used before. Upstream 9router's equivalent route already has this exact fallback. A new `withSettingsFallback()` (`src/shared/services/cliInstallFallback.ts`) restores 9router parity: when the binary lookup's own reason is `"not_found"` (never for deliberate security rejections like unsafe/relative env overrides or symlink escapes) and the tool's settings file exists on disk, `installed` now reports `true`. Regression guard: `tests/unit/repro-6701-claude-detect-fallback.test.ts`.
 - **fix(cli):** per-agent AgentBridge DNS toggle was broken for 8 of the 9 supported agents, and a failed MITM startup step could orphan the spawned proxy child — `addDNSEntry`/`removeDNSEntry` (`src/mitm/dns/dnsConfig.ts`) always resolved the legacy Antigravity default hosts regardless of which agent's toggle was flipped, so enabling DNS for Cursor/Codex/Claude Code/etc. silently added only `daily-cloudcode-pa.googleapis.com` while the DB recorded `dns_enabled=true` for the selected agent. Both functions now accept an optional `agentId` and resolve hosts via `ALL_TARGETS`; `POST /api/tools/agent-bridge/agents/[id]/dns` passes the route's `id` through and now returns 404 for an id that doesn't match a known target instead of silently falling back. Separately, `startMitmInternal()` (`src/mitm/manager.ts`) now wraps `generateCert()` (log + rethrow), the `provisionDnsEntries()` call, and the PID-file write in try/catch so a mid-startup failure can't orphan the already-spawned MITM child process. On Windows, `addDNSEntries`/`removeDNSEntries` also batch every missing/present entry into a single elevated PowerShell invocation instead of one UAC prompt per host line. Regression guard: `tests/unit/dns-config-generic.test.ts` (agent-specific resolution + batching), `tests/unit/agent-bridge-dns-route-validation.test.ts` (404 for unknown agent id). ([#6338](https://github.com/diegosouzapw/OmniRoute/pull/6338) — thanks @hamsa0x7)
 - **fix(guardrails):** Vision Bridge's individual-model auto-reroute (route an image-bearing request straight to a vision-capable model instead of describe-then-forward) could bypass a policy-restricted API key's model allowlist/budget ([#6640](https://github.com/diegosouzapw/OmniRoute/pull/6640)) — `VisionBridgeGuardrail.preCall()` (`src/lib/guardrails/visionBridge.ts`) swaps `body.model` to the best available vision-capable model, but that swap happens in the guardrail pipeline AFTER `chat.ts` already called `enforceApiKeyPolicy()` against the ORIGINAL model, so a key scoped to a narrow `allowedModels` list could still execute against an unvetted (and possibly costlier) vision model the reroute picked. `chat.ts` now re-validates any guardrail-driven model change against the same per-key allowlist (`isModelAllowedForKey`) before honoring it, falling back to the original already-approved model when the reroute target is not allowed. The reroute path also now honors an explicit `settings.visionBridgeModel` operator override (previously ignored, unlike the combo/describe path a few lines below it, which already respects it via `getVisionBridgeConfig`). Regression guard: `tests/unit/guardrails/visionBridge.test.ts` (22 tests). (thanks @herjarsa)
-- **fix(auth):** an API key restricted via `allowedModels`/`allowedCombos` could bypass that restriction entirely over the Codex Responses-over-WebSocket bridge ([#6564](https://github.com/diegosouzapw/OmniRoute/issues/6564)) — `prepare()` in `src/app/api/internal/codex-responses-ws/route.ts` authenticated the WS bridge's API key (`authenticate()`/`authorizeWebSocketHandshake()`) and honored `allowedConnections`, but never called `enforceApiKeyPolicy()`, the same model/combo policy gate the HTTP `/v1/responses` path enforces via `handleChat()` — so a key scoped to e.g. `combo/model-1.0` could still reach a direct Codex model like `gpt-5.5` through this transport, as long as an eligible Codex OAuth connection existed. The bridge's WS auth token arrives via query params (`api_key`/`token`/`access_token`), not a normal `Authorization` header, so a new `enforceCodexWsApiKeyPolicy()` builds an equivalent `Request` carrying an explicit `Authorization: Bearer <apiKey>` header and calls `enforceApiKeyPolicy()` against the CLIENT-requested model, before any Codex-specific model remapping or credential selection. Regression guard: `tests/unit/codex-ws-policy-enforcement-6564.test.ts` (a model-restricted key is rejected 403 before reaching credential selection; a combo-restricted key is rejected 403 requesting a disallowed combo; a key that DOES allow the requested model still proceeds past policy).
+- **fix(auth):** an API key restricted via `allowedModels`/`allowedCombos` could bypass that restriction entirely over the Codex Responses-over-WebSocket bridge ([#6564](https://github.com/diegosouzapw/OmniRoute/issues/6564)) — `prepare()` in `src/app/api/internal/codex-responses-ws/route.ts` authenticated the WS bridge's API key (`authenticate()`/`authorizeWebSocketHandshake()`) and honored `allowedConnections`, but never called `enforceApiKeyPolicy()`, the same model/combo policy gate the HTTP `/v1/responses` path enforces via `handleChat()` — so a key scoped to e.g. `combo/model-1.0` could still reach a direct Codex model like `gpt-5.5` through this transport, as long as an eligible Codex OAuth connection existed. The bridge's WS auth token arrives via query params (`api_key`/`token`/`access_token`), not a normal `Authorization` header, so a new `enforceCodexWsApiKeyPolicy()` builds an equivalent `Request` carrying an explicit `Authorization: Bearer <apiKey>` header and calls `enforceApiKeyPolicy()` against the CLIENT-requested model, before any Codex-specific model remapping or credential selection. Regression guard: `tests/unit/codex-ws-policy-enforcement-6564.test.ts` (a model-restricted key is rejected 403 before reaching credential selection; a combo-restricted key is rejected 403 requesting a disallowed combo; a key that DOES allow the requested model still proceeds past policy). (thanks @Squawk7777 for the report and an independent fix via #6565)
 - **fix(security):** loopback-gate `/api/middleware/*` so a leaked JWT over a tunnel can't install or trigger a middleware hook — middleware hooks compile + run arbitrary JS via `new vm.Script` on the request hot path (`src/lib/middleware/registry.ts`), the same RCE class as the already-gated `/api/plugins/*`; `/api/middleware/` is now in `LOCAL_ONLY_API_PREFIXES` so loopback enforcement runs unconditionally before any auth check (Hard Rules #15 + #17). Regression guard: `tests/unit/route-guard-middleware-local-only.test.ts`. ([#6541](https://github.com/diegosouzapw/OmniRoute/pull/6541)) — see PR. (thanks @developerjillur)
 - **fix(startup):** AgentBridge's MITM server no longer fails to start with `ROUTER_API_KEY is required` on a normal install ([#6403](https://github.com/diegosouzapw/OmniRoute/issues/6403)) — `POST /api/tools/agent-bridge/server` resolved the spawned MITM child's router key from only an explicit `apiKey` body field (never sent by the AgentBridge UI — the schema has no such field) and the `ROUTER_API_KEY` env var (unset by default), so `startMitm()` always received `""` and the child hard-exited, even though OmniRoute already had a usable API key in its own DB. A new `resolveRouterApiKey()` now falls back to `pickApiKeyForInternalUse()` (the same DB-backed selector the combo-health-check / cloud-sync internal probes use), resolving in order: explicit key → `ROUTER_API_KEY` env → an existing DB key. Regression guard: `tests/unit/agentbridge-mitm-router-key-6403.test.ts`.
 - **fix(providers):** deploying a Cloudflare relay Worker from Dashboard → System → Proxy pool → Cloudflare relay failed immediately with `Cloudflare Worker upload failed: Content-Type must be one of: application/javascript, text/javascript, multipart/form-data`, even with a valid token/account ([#6416](https://github.com/diegosouzapw/OmniRoute/issues/6416)) — the Worker-script upload built a native `FormData` and let `fetch` derive the multipart Content-Type automatically, but in production `globalThis.fetch` is patched with `node_modules/undici`'s own fetch (`open-sse/utils/proxyFetch.ts`), whose `FormData`/`Request` classes differ from the runtime's global `FormData` (same cross-realm class mismatch already fixed once for image edits in #3273); passing a native `FormData` instance through undici's patched fetch made it serialize the body as the literal string `"[object FormData]"` with `Content-Type: text/plain;charset=UTF-8`, which Cloudflare rejects outright. `buildCloudflareWorkerUploadRequest()` (`src/lib/proxyRelay/cloudflareWorkerScript.ts`) now builds the multipart body as a raw `Buffer` with an explicit boundary and `Content-Type: multipart/form-data; boundary=…` header, accepted verbatim by any fetch implementation. Regression guard: `tests/unit/cloudflare-worker-upload-content-type-6416.test.ts` + updated `tests/unit/relay-deploy-5128.test.ts`.
@@ -83,40 +83,71 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 
 Thanks to everyone whose work landed in v3.8.47:
 
-| Contributor                                                    | PRs / Issues                                                                                 |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| [@anki1kr](https://github.com/anki1kr)                         | #6041, #6078                                                                                 |
-| [@arssnndr](https://github.com/arssnndr)                       | #6163                                                                                        |
-| [@backryun](https://github.com/backryun)                       | #6154, #6235, #6248, #6331                                                                   |
-| [@charleszolot](https://github.com/charleszolot)               | direct commit / report                                                                       |
-| [@chirag127](https://github.com/chirag127)                     | #6145, #6189, #6265, #6328, #6400, #6402, #6404, #6405, #6406, #6407, #6408, #6412, #6414, … |
-| [@developerjillur](https://github.com/developerjillur)         | #6451, #6452, #6541, #6542, #6543, #6545, #6553, #6554, #6558                                |
-| [@dilneiss](https://github.com/dilneiss)                       | #6499                                                                                        |
-| [@DKotsyuba](https://github.com/DKotsyuba)                     | #6193, #6292                                                                                 |
-| [@dtybnrj](https://github.com/dtybnrj)                         | #6349                                                                                        |
-| [@eidoog](https://github.com/eidoog)                           | direct commit / report                                                                       |
-| [@hao3039032](https://github.com/hao3039032)                   | #6351                                                                                        |
-| [@hartmark](https://github.com/hartmark)                       | #6216                                                                                        |
-| [@Iammilansoni](https://github.com/Iammilansoni)               | #6200, #6209, #6245, #6366                                                                   |
-| [@jmengit](https://github.com/jmengit)                         | #6372, #6443                                                                                 |
-| [@jordansilly77-stack](https://github.com/jordansilly77-stack) | #6316                                                                                        |
-| [@JxnLexn](https://github.com/JxnLexn)                         | #6361                                                                                        |
-| [@kanztu](https://github.com/kanztu)                           | #6181                                                                                        |
-| [@karimalsalah](https://github.com/karimalsalah)               | #6291                                                                                        |
-| [@KooshaPari](https://github.com/KooshaPari)                   | #6144, #6166, #6173, #6257                                                                   |
-| [@LuisAlejandroVega](https://github.com/LuisAlejandroVega)     | #6177                                                                                        |
-| [@makcimbx](https://github.com/makcimbx)                       | #6303                                                                                        |
-| [@Moseyuh333](https://github.com/Moseyuh333)                   | #6186                                                                                        |
-| [@pizzav-xyz](https://github.com/pizzav-xyz)                   | #6648                                                                                        |
-| [@rianonehub](https://github.com/rianonehub)                   | #6204                                                                                        |
-| [@serverless83](https://github.com/serverless83)               | #6212                                                                                        |
-| [@shabeer](https://github.com/shabeer)                         | direct commit / report                                                                       |
-| [@swingtempo](https://github.com/swingtempo)                   | #6312                                                                                        |
-| [@Theadd](https://github.com/Theadd)                           | #6195                                                                                        |
-| [@ThongAccount](https://github.com/ThongAccount)               | #6649                                                                                        |
-| [@vinayakkulkarni](https://github.com/vinayakkulkarni)         | #6324, #6332                                                                                 |
-| [@VXNCXNX](https://github.com/VXNCXNX)                         | #6213                                                                                        |
-| [@xz-dev](https://github.com/xz-dev)                           | #6322, #6336                                                                                 |
+| Contributor | PRs / Issues |
+| --- | --- |
+| [@alltomatos](https://github.com/alltomatos) | #6703, #6715, #6756, #6757, #6759, #6813, #6819, #6821 |
+| [@andrewmunsell](https://github.com/andrewmunsell) | #6774, #6779, #6795 |
+| [@AndrianBalanescu](https://github.com/AndrianBalanescu) | #6828, #6829 |
+| [@anhdiepmmk](https://github.com/anhdiepmmk) | direct commit / report |
+| [@anki1kr](https://github.com/anki1kr) | #6041, #6078 |
+| [@arssnndr](https://github.com/arssnndr) | #6163 |
+| [@artickc](https://github.com/artickc) | #6363, #6763 |
+| [@backryun](https://github.com/backryun) | #6154, #6235, #6248, #6280, #6331, #6675 |
+| [@charleszolot](https://github.com/charleszolot) | #6571 |
+| [@chirag127](https://github.com/chirag127) | #6145, #6189, #6265, #6328, #6400, #6402, #6404, #6405, #6406, #6407, #6408, #6412, #6414, #6513, #6515, #6516, #6517, #6519, #6521, #6523, #6525, #6526, #6532, #6534, #6546, #6547, #6548, #6549, #6550, #6551, #6552, #6577, #6643, #6644, #6645, #6646, #6703, #6756, #6757, #6769, #6804 |
+| [@chy1211](https://github.com/chy1211) | direct commit / report |
+| [@developerjillur](https://github.com/developerjillur) | #6451, #6452, #6541, #6542, #6543, #6545, #6553, #6554, #6558 |
+| [@dilneiss](https://github.com/dilneiss) | #6499 |
+| [@DKotsyuba](https://github.com/DKotsyuba) | #6193, #6292 |
+| [@dtybnrj](https://github.com/dtybnrj) | #6349 |
+| [@eidoog](https://github.com/eidoog) | direct commit / report |
+| [@enjoyer-hub](https://github.com/enjoyer-hub) | #6647 |
+| [@hajilok](https://github.com/hajilok) | #6126 |
+| [@hamsa0x7](https://github.com/hamsa0x7) | #6317, #6318, #6338 |
+| [@hao3039032](https://github.com/hao3039032) | #6351 |
+| [@hartmark](https://github.com/hartmark) | #6216 |
+| [@herjarsa](https://github.com/herjarsa) | #6640 |
+| [@Iammilansoni](https://github.com/Iammilansoni) | #6200, #6209, #6245, #6366 |
+| [@ianriizky](https://github.com/ianriizky) | #6072, #6538 |
+| [@itiwant](https://github.com/itiwant) | direct commit / report |
+| [@janeza2](https://github.com/janeza2) | #6308 |
+| [@jmengit](https://github.com/jmengit) | #6372, #6443 |
+| [@jordansilly77-stack](https://github.com/jordansilly77-stack) | #6316 |
+| [@JxnLexn](https://github.com/JxnLexn) | #6335, #6361 |
+| [@kanztu](https://github.com/kanztu) | #6181 |
+| [@karimalsalah](https://github.com/karimalsalah) | #6291 |
+| [@KooshaPari](https://github.com/KooshaPari) | #6144, #6166, #6173, #6257, #6611, #6632 |
+| [@like3213934360-lab](https://github.com/like3213934360-lab) | direct commit / report |
+| [@lucasjustinudin](https://github.com/lucasjustinudin) | direct commit / report |
+| [@LuisAlejandroVega](https://github.com/LuisAlejandroVega) | #6177 |
+| [@makcimbx](https://github.com/makcimbx) | #6303 |
+| [@MikeTuev](https://github.com/MikeTuev) | #6586 |
+| [@Moseyuh333](https://github.com/Moseyuh333) | #6186, #6294, #6728 |
+| [@nowhats-br](https://github.com/nowhats-br) | #6700 |
+| [@oyi77](https://github.com/oyi77) | #6309 |
+| [@Pitchfork-and-Torch](https://github.com/Pitchfork-and-Torch) | #6747, #6791, #6792 |
+| [@pizzav-xyz](https://github.com/pizzav-xyz) | #6648 |
+| [@rafpigna](https://github.com/rafpigna) | #6574 |
+| [@rianonehub](https://github.com/rianonehub) | #6204 |
+| [@ryanngit](https://github.com/ryanngit) | direct commit / report |
+| [@samimozcan](https://github.com/samimozcan) | #6753, #6762 |
+| [@samir-abis](https://github.com/samir-abis) | direct commit / report |
+| [@SeaXen](https://github.com/SeaXen) | #6496, #6678 |
+| [@serverless83](https://github.com/serverless83) | #6212 |
+| [@shabeer](https://github.com/shabeer) | direct commit / report |
+| [@Squawk7777](https://github.com/Squawk7777) | #6565 |
+| [@strangersp](https://github.com/strangersp) | #6587 |
+| [@swingtempo](https://github.com/swingtempo) | #6312 |
+| [@Theadd](https://github.com/Theadd) | #6195 |
+| [@Thinkscape](https://github.com/Thinkscape) | #6635 |
+| [@ThongAccount](https://github.com/ThongAccount) | #6625, #6649 |
+| [@tjengbudi](https://github.com/tjengbudi) | #4009 |
+| [@vinayakkulkarni](https://github.com/vinayakkulkarni) | #6324, #6332 |
+| [@VXNCXNX](https://github.com/VXNCXNX) | #6213 |
+| [@whale9820](https://github.com/whale9820) | direct commit / report |
+| [@Witroch4](https://github.com/Witroch4) | #6753, #6762, #6790 |
+| [@xz-dev](https://github.com/xz-dev) | #6322, #6323, #6330, #6336, #6702, #6727 |
+| [@yinaoxiong](https://github.com/yinaoxiong) | #6805 |
 
 ---
 

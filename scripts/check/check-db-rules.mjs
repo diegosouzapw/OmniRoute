@@ -56,6 +56,7 @@ export const INTENTIONALLY_INTERNAL = new Set([
   "healthCheck", // db-internal: importado por db/core.ts (runDbHealthCheck)
   "jsonMigration", // intentionally-internal: src/app/api/settings/import-json/route.ts
   "migrationRunner", // db-internal: importado por db/core.ts (runMigrations ao inicializar o DB)
+  "modelCapabilityOverrides", // intentionally-internal: src/app/api/model-capability-overrides/route.ts via import direto "@/lib/db/modelCapabilityOverrides" (#6727 — evita empurrar localDb.ts para o cap de 800 linhas)
   "notion", // intentionally-internal: settings/notion API route + open-sse/mcp-server/tools/notionTools.ts
   "obsidian", // intentionally-internal: src/lib/obsidianSync.ts + settings/obsidian route + MCP obsidianTools.ts
   "optimizationSettings", // db-internal: imported by db/core.ts for SQLite PRAGMA application helpers that require the live adapter
@@ -63,6 +64,7 @@ export const INTENTIONALLY_INTERNAL = new Set([
   "prompts", // DEAD? (production): zero callers de produção encontrados; domínio domain/prompts.ts é independente; testado por tests/integration/proxy-pipeline.test.ts
   "providerNodeSelect", // db-internal: importado só por db/providers.ts (selectProviderNodeForConnection — lógica pura de seleção de provider node split do providers.ts, #4421)
   "providerStats", // intentionally-internal: src/app/api/provider-stats/route.ts
+  "proxyLatency", // intentionally-internal: imported directly by src/lib/db/proxies.ts (anti-barrel, #6798)
   "recovery", // intentionally-internal: bin/cli/runtime.mjs (import() dinâmico) + tests
   "schemaColumns", // db-internal: importado só por db/core.ts (ensureProviderConnections/UsageHistory/CallLogsColumns + hasColumn/hasTable/getTableColumns — schema-column reconciliation split do core.ts, #4948)
   "secrets", // intentionally-internal: src/instrumentation-node.ts (import() dinâmico na inicialização)

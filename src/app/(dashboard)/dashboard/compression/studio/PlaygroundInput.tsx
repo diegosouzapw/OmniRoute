@@ -20,7 +20,7 @@ export function PlaygroundInput({ text, onText, active, onToggleActive, onRun, l
       </label>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" data-testid="risk-toggle" checked={riskGate} onChange={onToggleRisk} />
-        Proteger conteúdo sensível (risk-gate)
+        Protect sensitive content (risk-gate)
       </label>
       <label className="flex items-center gap-1 text-xs">
         <input type="checkbox" data-testid="quantum-toggle" checked={quantumLock} onChange={onToggleQuantum} />

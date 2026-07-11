@@ -1542,6 +1542,8 @@
     "chartModel": "Модель",
     "chartProvider": "Поставщик",
     "chartProviderBreakdown": "Разбивка по провайдерам",
+    "chartDate": "__MISSING__:Date",
+    "chartRequestsByProviderDate": "__MISSING__:Requests by Provider & Date",
     "filterAllKeys": "Все ключи",
     "filterSearchKeys": "Поиск ключей…",
     "filterNoKeysMatch": "Нет совпадающих ключей",
