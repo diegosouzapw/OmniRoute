@@ -222,6 +222,7 @@
       "tests/unit/route-guard-private-lan.test.ts",
       "tests/unit/route-guard-provider-login-local-only.test.ts",
       "tests/unit/router-strategies.test.ts",
+      "tests/unit/rule12-error-sanitization-sweep.test.ts",
       "tests/unit/serial/combo-health-autopilot.test.ts",
       "tests/unit/serial/provider-health-autopilot.test.ts",
       "tests/unit/service-combo-metrics.test.ts",
