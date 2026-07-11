@@ -4,7 +4,7 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { requireOmniContextApiKeyId } from "../_auth";
 import { getMembership } from "@/lib/db/omnicontextProjects";
-import { retrieveForProject } from "@/lib/omnicontext/retrieve";
+import { retrieveForProjectCached } from "@/lib/omnicontext/retrieveCached";
 import { buildInjectBlock } from "@/lib/omnicontext/inject";
 import { getOmniContextSettings } from "@/lib/omnicontext/settings";
 import { roleHasPermission } from "@/lib/omnicontext/permissions";
@@ -34,12 +34,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: { message: "Forbidden" } }, { status: 403 });
   }
   try {
-    const retrieved = retrieveForProject({
+    const cached = await retrieveForProjectCached({
       projectId: validation.data.projectId,
       query: validation.data.query,
       limit: validation.data.limit,
       viewerApiKeyId: auth.apiKeyId,
     });
+    if (!cached.result) {
+      return NextResponse.json(
+        {
+          error: { message: "Retrieve unavailable" },
+          skippedReason: cached.skippedReason ?? "error",
+        },
+        { status: 503 }
+      );
+    }
+    const retrieved = cached.result;
     const settings = await getOmniContextSettings();
     const block = buildInjectBlock(
       validation.data.projectId,
@@ -54,6 +64,8 @@ export async function POST(request: NextRequest) {
         rank: h.rank,
       })),
       injectPreview: block,
+      cached: cached.cached,
+      latencyMs: cached.latencyMs,
     });
   } catch (err: unknown) {
     const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));

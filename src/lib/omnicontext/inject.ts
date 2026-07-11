@@ -20,6 +20,11 @@ function section(title: string, body: string): string {
   return `## ${title}\n${trimmed}\n`;
 }
 
+export interface InjectBlockOptions {
+  /** When true, keep stable_prefix under budget (truncate if needed) before dynamic. */
+  preferStablePrefix?: boolean;
+}
+
 /**
  * Build Continuity inject markdown under a token budget.
  * Layer A (stable_prefix) reserved first; then handoff; then ranked dynamic.
@@ -27,10 +32,12 @@ function section(title: string, body: string): string {
 export function buildInjectBlock(
   projectId: string,
   retrieved: RetrieveResult,
-  budgetTokens: number
+  budgetTokens: number,
+  options: InjectBlockOptions = {}
 ): InjectBlock | null {
   if (budgetTokens <= 0) return null;
 
+  const preferStable = options.preferStablePrefix !== false;
   const ranked = rankArtifacts(retrieved.dynamic);
   const parts: string[] = [];
   const artifactIds: string[] = [];
@@ -55,7 +62,24 @@ export function buildInjectBlock(
   };
 
   if (retrieved.stablePrefix) {
-    tryAdd("Stable project conventions", retrieved.stablePrefix.body, retrieved.stablePrefix.id);
+    const title = "Stable project conventions";
+    let body = retrieved.stablePrefix.body;
+    let chunk = section(title, body);
+    let cost = estimateTokens(chunk);
+    if (preferStable && chunk && used + cost > budgetTokens) {
+      const headerCost = estimateTokens(section(title, "x"));
+      const remainChars = Math.max(0, (budgetTokens - used - headerCost) * 4);
+      if (remainChars > 24) {
+        body = `${body.slice(0, remainChars)}…`;
+        chunk = section(title, body);
+        cost = estimateTokens(chunk);
+      }
+    }
+    if (chunk && used + cost <= budgetTokens) {
+      parts.push(chunk);
+      used += cost;
+      artifactIds.push(retrieved.stablePrefix.id);
+    }
   }
 
   if (retrieved.activeHandoff) {

@@ -8,6 +8,7 @@ export interface OmniContextProject {
   slug: string;
   orgId: string | null;
   teamId: string | null;
+  departmentId: string | null;
   retentionDays: number;
   injectEnabled: boolean;
   publishPolicyDefault: string;
@@ -28,6 +29,7 @@ interface ProjectRow {
   slug: string;
   org_id: string | null;
   team_id: string | null;
+  department_id?: string | null;
   retention_days: number;
   inject_enabled: number;
   publish_policy_default: string;
@@ -49,6 +51,7 @@ function rowToProject(row: ProjectRow): OmniContextProject {
     slug: row.slug,
     orgId: row.org_id,
     teamId: row.team_id,
+    departmentId: row.department_id ?? null,
     retentionDays: row.retention_days,
     injectEnabled: row.inject_enabled === 1,
     publishPolicyDefault: row.publish_policy_default,
@@ -71,6 +74,7 @@ export interface CreateProjectInput {
   slug: string;
   orgId?: string | null;
   teamId?: string | null;
+  departmentId?: string | null;
   retentionDays?: number;
   injectEnabled?: boolean;
   publishPolicyDefault?: string;
@@ -81,19 +85,21 @@ export function createProject(input: CreateProjectInput): OmniContextProject {
   const db = getDbInstance();
   const id = input.id?.trim() || randomUUID();
   const now = new Date().toISOString();
+  const policy = input.publishPolicyDefault ?? (input.departmentId ? "review_required" : "auto");
   db.prepare(
     `INSERT INTO omnicontext_projects
-      (id, name, slug, org_id, team_id, retention_days, inject_enabled, publish_policy_default, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      (id, name, slug, org_id, team_id, department_id, retention_days, inject_enabled, publish_policy_default, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
     input.name.trim(),
     input.slug.trim(),
     input.orgId ?? null,
     input.teamId ?? null,
+    input.departmentId ?? null,
     input.retentionDays ?? 90,
     input.injectEnabled === false ? 0 : 1,
-    input.publishPolicyDefault ?? "auto",
+    policy,
     now,
     now
   );

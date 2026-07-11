@@ -15,6 +15,24 @@ const settingsSchema = z.object({
   retrieveTimeoutMs: z.number().int().min(100).max(30000).optional(),
   gitProbeEnabled: z.boolean().optional(),
   autoPublish: z.enum(["off", "confirm", "draft-only"]).optional(),
+  hybridRetrieve: z.boolean().optional(),
+  preferStablePrefix: z.boolean().optional(),
+  backend: z.enum(["native", "remote"]).optional(),
+  remoteBaseUrl: z.string().max(2000).optional(),
+  remoteApiKey: z.string().max(2000).optional(),
+  remoteTimeoutMs: z.number().int().min(100).max(30000).optional(),
+  dlpEnabled: z.boolean().optional(),
+  departmentReviewRequired: z.boolean().optional(),
+  universalHandoff: z
+    .object({
+      enabled: z.boolean().optional(),
+      trigger: z.enum(["always", "on-switch", "on-error"]).optional(),
+      maxMessagesForSummary: z.number().int().min(5).max(100).optional(),
+      handoffModel: z.string().optional(),
+      ttlMinutes: z.number().int().min(1).max(10080).optional(),
+      preserveSystemPrompt: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -50,7 +68,15 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    const settings = await saveOmniContextSettings(validation.data);
+    const partial = validation.data as Record<string, unknown>;
+    if (partial.universalHandoff && typeof partial.universalHandoff === "object") {
+      const current = await getOmniContextSettings();
+      partial.universalHandoff = {
+        ...current.universalHandoff,
+        ...(partial.universalHandoff as object),
+      };
+    }
+    const settings = await saveOmniContextSettings(partial);
     invalidateOmniContextSettingsCache();
     return NextResponse.json(settings);
   } catch (err: unknown) {

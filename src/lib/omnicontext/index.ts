@@ -8,6 +8,8 @@ export type {
   WorkContext,
   ScopeResolution,
   OmniContextSettings,
+  OmniContextBackendMode,
+  UniversalHandoffSettings,
 } from "./types";
 
 export {
@@ -16,6 +18,8 @@ export {
   REPO_HEADER,
   TICKET_HEADER,
   TOOL_HEADER,
+  TEAM_ID_HEADER,
+  DEPARTMENT_HEADER,
 } from "./types";
 
 export {
@@ -45,3 +49,31 @@ export { rankArtifacts } from "./rank";
 export { buildInjectBlock, estimateTokens } from "./inject";
 export { INJECT_LAYER_ORDER, assertInjectOrder } from "./assembler";
 export { bootstrapFromDirectory } from "./bootstrap";
+export { submitFeedback } from "./feedback";
+export type { SubmitFeedbackInput } from "./feedback";
+export { approvePendingArtifact, promoteArtifactToStable } from "./promote";
+export {
+  getOmniContextMetricsSummary,
+  resetOmniContextMetrics,
+  recordInjectSkipped,
+} from "./metrics";
+export type { InjectSkipReason } from "./metrics";
+export {
+  computeRetrieveCacheKey,
+  getRetrieveCacheStats,
+  clearRetrieveCache,
+  invalidateRetrieveCache,
+  OMNICONTEXT_RETRIEVE_CACHE_TTL_MS,
+} from "./cache";
+export { retrieveForProjectCached, getOmniContextRetrieveBreaker } from "./retrieveCached";
+export { retrieveHybrid, indexArtifactEmbedding } from "./hybridRetrieve";
+export { localHashEmbed, LOCAL_EMBED_MODEL } from "./localEmbed";
+export { normalizePointers, formatPointersMarkdown } from "./pointers";
+export type { KnowledgePointer } from "./pointers";
+export { remoteRetrieve, remotePublish, RemoteBackendError } from "./remoteClient";
+export type { RemoteBackendConfig } from "./remoteClient";
+export { defaultDlpHook, runDlpHook, setDlpHook } from "./dlp";
+export { setLegalHold, assertNotOnLegalHold, isLegalHold } from "./legalHold";
+export { syncProjectMembersFromScim } from "./scimSync";
+export { emitOmniContextMetricsWebhook } from "./metricsWebhook";
+export { publishArtifactAsync } from "./publish";

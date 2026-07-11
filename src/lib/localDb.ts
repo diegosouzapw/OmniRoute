@@ -867,3 +867,6 @@ export * from "./db/omnicontextRepoMap";
 export * from "./db/omnicontextAudit";
 export * from "./db/omnicontextArtifacts";
 export * from "./db/omnicontextHandoffs";
+export * from "./db/omnicontextFeedback";
+export * from "./db/omnicontextTeams";
+export * from "./db/omnicontextEmbeddings";

@@ -30,6 +30,8 @@ export interface OmniContextArtifact {
   updatedAt: string;
   expiresAt: string | null;
   staleAfterAt: string | null;
+  departmentId?: string | null;
+  legalHold?: boolean;
 }
 
 export interface CreateArtifactInput {
@@ -48,11 +50,16 @@ export interface CreateArtifactInput {
   supersedesId?: string | null;
   expiresAt?: string | null;
   staleAfterAt?: string | null;
+  departmentId?: string | null;
 }
 
 function mapRow(row: Record<string, unknown> | undefined): OmniContextArtifact | null {
   if (!row) return null;
-  return rowToCamel(row) as OmniContextArtifact;
+  const camel = rowToCamel(row) as OmniContextArtifact & { legalHold?: unknown };
+  if (camel && "legalHold" in camel) {
+    camel.legalHold = camel.legalHold === true || camel.legalHold === 1;
+  }
+  return camel;
 }
 
 export function createArtifact(input: CreateArtifactInput): OmniContextArtifact {
@@ -63,8 +70,9 @@ export function createArtifact(input: CreateArtifactInput): OmniContextArtifact 
     `INSERT INTO omnicontext_artifacts (
       id, project_id, type, title, body, version, supersedes_id, classification,
       trust_tier, publish_policy, status, ticket_id, repo, branch, tags_json,
-      created_by_api_key_id, created_at, updated_at, expires_at, stale_after_at
-    ) VALUES (?, ?, ?, ?, ?, 1, ?, 'internal', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      created_by_api_key_id, created_at, updated_at, expires_at, stale_after_at,
+      department_id, legal_hold
+    ) VALUES (?, ?, ?, ?, ?, 1, ?, 'internal', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`
   ).run(
     id,
     input.projectId,
@@ -83,7 +91,8 @@ export function createArtifact(input: CreateArtifactInput): OmniContextArtifact 
     now,
     now,
     input.expiresAt ?? null,
-    input.staleAfterAt ?? null
+    input.staleAfterAt ?? null,
+    input.departmentId ?? null
   );
   return getArtifactById(id)!;
 }
@@ -123,6 +132,11 @@ export function listArtifacts(params: {
 
 export function softDeleteArtifact(id: string): boolean {
   const db = getDbInstance();
+  const hold = db.prepare(`SELECT legal_hold FROM omnicontext_artifacts WHERE id = ?`).get(id) as
+    { legal_hold?: number } | undefined;
+  if (hold && hold.legal_hold === 1) {
+    throw new Error("Artifact is under legal hold");
+  }
   const result = db
     .prepare(
       `UPDATE omnicontext_artifacts SET status = 'deleted', updated_at = ? WHERE id = ? AND status != 'deleted'`
@@ -169,10 +183,11 @@ export function searchArtifacts(params: {
     }).map((artifact, i) => ({ artifact, rank: 1 / (i + 1) }));
   }
 
-  // Escape FTS5 special chars for safe MATCH
+  // Escape FTS5 special chars for safe MATCH (hyphens are FTS operators)
   const safe = q
     .replace(/["']/g, " ")
-    .replace(/[^\w\s.-]/g, " ")
+    .replace(/-/g, " ")
+    .replace(/[^\w\s.]/g, " ")
     .trim();
   if (!safe) {
     return listArtifacts({
@@ -188,9 +203,9 @@ export function searchArtifacts(params: {
     .map((t) => `${t}*`)
     .join(" OR ");
 
-  const statusClause = params.includeDraft
-    ? `a.status IN ('active', 'pending')`
-    : `a.status = 'active'`;
+  const statusFilter = params.includeDraft
+    ? `status IN ('active', 'pending')`
+    : `status = 'active'`;
 
   try {
     const rows = db
@@ -200,7 +215,7 @@ export function searchArtifacts(params: {
          JOIN omnicontext_artifacts a ON a.rowid = f.rowid
          WHERE omnicontext_artifact_fts MATCH ?
            AND a.project_id = ?
-           AND ${statusClause}
+           AND a.${statusFilter}
          ORDER BY fts_rank
          LIMIT ?`
       )
@@ -221,7 +236,7 @@ export function searchArtifacts(params: {
     const rows = db
       .prepare(
         `SELECT * FROM omnicontext_artifacts
-         WHERE project_id = ? AND ${statusClause}
+         WHERE project_id = ? AND ${statusFilter}
            AND (title LIKE ? OR body LIKE ?)
          ORDER BY updated_at DESC LIMIT ?`
       )

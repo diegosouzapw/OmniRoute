@@ -5,6 +5,7 @@ export type WebhookEvent =
   | "provider.recovered"
   | "quota.exceeded"
   | "combo.switched"
+  | "omnicontext.metrics"
   | "test.ping";
 
 export interface EventDescription {
@@ -65,6 +66,18 @@ export const EVENT_DESCRIPTIONS: Record<WebhookEvent, EventDescription> = {
       fromModel: "gpt-4o",
       toModel: "claude-opus-4-7",
       reason: "provider.error",
+    },
+  },
+  "omnicontext.metrics": {
+    label: "OmniContext Metrics",
+    emoji: "📎",
+    description:
+      "Content-free OmniContext Continuity counters (retrieve/inject/publish/feedback). No artifact bodies.",
+    exampleData: {
+      retrieveTotal: 42,
+      injectOkTotal: 30,
+      injectSkipped: { disabled: 5, low_scope: 2 },
+      publishTotal: 8,
     },
   },
   "test.ping": {

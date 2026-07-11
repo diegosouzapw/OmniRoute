@@ -91,7 +91,9 @@ export function phaseComboSetup(ctx: ComboContext): ComboSetup {
   const universalHandoffConfig = resolveUniversalHandoffConfig(
     (combo.universal_handoff || combo.universalHandoff) as
       Record<string, unknown> | null | undefined,
-    relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
+    (relayOptions?.universalHandoffConfig ||
+      (settings as Record<string, unknown> | null | undefined)?.omnicontextUniversalHandoff ||
+      null) as Record<string, unknown> | null | undefined
   );
 
   // Server-side context cache pinning (rewrites ctx.body when a model is pinned).

@@ -9,6 +9,10 @@ export interface HandoffPayload {
   keyDecisions: string[];
   taskProgress: string;
   activeEntities: string[];
+  /** Phase 2 B1 — approaches already tried (routing handoff, separate from OmniContext). */
+  approachesTried: string[];
+  /** Phase 2 B1 — current blockers. */
+  blockers: string[];
   messageCount: number;
   model: string;
   lastModel?: string;
@@ -65,6 +69,8 @@ function toHandoffPayload(row: unknown): HandoffPayload | null {
     keyDecisions: parseJsonArray(camel.keyDecisions),
     taskProgress: typeof camel.taskProgress === "string" ? camel.taskProgress : "",
     activeEntities: parseJsonArray(camel.activeEntities),
+    approachesTried: parseJsonArray(camel.approachesTried),
+    blockers: parseJsonArray(camel.blockers),
     messageCount: Number.isFinite(Number(camel.messageCount)) ? Number(camel.messageCount) : 0,
     model: typeof camel.model === "string" ? camel.model : "",
     lastModel: typeof camel.lastModel === "string" ? camel.lastModel : undefined,
@@ -84,15 +90,17 @@ export function upsertHandoff(payload: HandoffPayload): void {
   db.prepare(
     `INSERT INTO context_handoffs
       (session_id, combo_name, from_account, summary, key_decisions,
-       task_progress, active_entities, message_count, model, last_model,
+       task_progress, active_entities, approaches_tried, blockers, message_count, model, last_model,
        warning_threshold_pct, generated_at, expires_at, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(session_id, combo_name) DO UPDATE SET
        from_account = excluded.from_account,
        summary = excluded.summary,
        key_decisions = excluded.key_decisions,
        task_progress = excluded.task_progress,
        active_entities = excluded.active_entities,
+       approaches_tried = excluded.approaches_tried,
+       blockers = excluded.blockers,
        message_count = excluded.message_count,
        model = excluded.model,
        last_model = excluded.last_model,
@@ -108,6 +116,8 @@ export function upsertHandoff(payload: HandoffPayload): void {
     JSON.stringify(payload.keyDecisions || []),
     payload.taskProgress,
     JSON.stringify(payload.activeEntities || []),
+    JSON.stringify(payload.approachesTried || []),
+    JSON.stringify(payload.blockers || []),
     payload.messageCount,
     payload.model,
     payload.lastModel || null,

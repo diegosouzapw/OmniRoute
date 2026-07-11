@@ -8,6 +8,20 @@ type OmniSettings = {
   retrieveTimeoutMs: number;
   gitProbeEnabled: boolean;
   autoPublish: string;
+  hybridRetrieve: boolean;
+  preferStablePrefix: boolean;
+  backend: string;
+  remoteBaseUrl: string;
+  dlpEnabled: boolean;
+  departmentReviewRequired: boolean;
+  universalHandoff: {
+    enabled: boolean;
+    trigger: string;
+    maxMessagesForSummary: number;
+    handoffModel: string;
+    ttlMinutes: number;
+    preserveSystemPrompt: boolean;
+  };
 };
 
 type Project = {
@@ -38,7 +52,13 @@ type Handoff = {
   updatedAt: string;
 };
 
-type Tab = "projects" | "artifacts" | "handoffs" | "onboard";
+type Team = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+type Tab = "projects" | "artifacts" | "handoffs" | "onboard" | "teams" | "advanced";
 
 async function apiJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -62,9 +82,13 @@ export default function OmniContextPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [handoffs, setHandoffs] = useState<Handoff[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [tab, setTab] = useState<Tab>("projects");
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [teamName, setTeamName] = useState("");
+  const [teamSlug, setTeamSlug] = useState("");
+  const [assignTeamId, setAssignTeamId] = useState("");
   const [memberKeyId, setMemberKeyId] = useState("");
   const [memberRole, setMemberRole] = useState("member");
   const [publishKeyId, setPublishKeyId] = useState("");
@@ -79,12 +103,14 @@ export default function OmniContextPage() {
 
   const refresh = useCallback(async () => {
     setError(null);
-    const [s, p] = await Promise.all([
+    const [s, p, t] = await Promise.all([
       apiJson<OmniSettings>("/api/omnicontext/settings"),
       apiJson<{ projects: Project[] }>("/api/omnicontext/projects"),
+      apiJson<{ teams: Team[] }>("/api/omnicontext/teams"),
     ]);
     setSettings(s);
     setProjects(p.projects);
+    setTeams(t.teams || []);
   }, []);
 
   const refreshMembers = useCallback(async (projectId: string) => {
@@ -139,6 +165,57 @@ export default function OmniContextPage() {
         body: JSON.stringify({ enabled: !settings.enabled }),
       });
       setSettings(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const patchSettings = async (partial: Record<string, unknown>) => {
+    setBusy(true);
+    try {
+      const next = await apiJson<OmniSettings>("/api/omnicontext/settings", {
+        method: "PUT",
+        body: JSON.stringify(partial),
+      });
+      setSettings(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const createTeam = async () => {
+    setBusy(true);
+    try {
+      await apiJson("/api/omnicontext/teams", {
+        method: "POST",
+        body: JSON.stringify({ name: teamName, slug: teamSlug }),
+      });
+      setTeamName("");
+      setTeamSlug("");
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const assignTeam = async () => {
+    if (!selectedId) return;
+    setBusy(true);
+    try {
+      await apiJson("/api/omnicontext/teams", {
+        method: "PATCH",
+        body: JSON.stringify({
+          projectId: selectedId,
+          teamId: assignTeamId || null,
+        }),
+      });
+      await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -241,6 +318,22 @@ export default function OmniContextPage() {
     }
   };
 
+  const approveOrPromote = async (artifactId: string, action: "approve" | "promote_stable") => {
+    if (!selectedId || !publishKeyId) return;
+    setBusy(true);
+    try {
+      await apiJson(`/api/omnicontext/projects/${selectedId}/artifacts`, {
+        method: "PATCH",
+        body: JSON.stringify({ artifactId, action, apiKeyId: publishKeyId }),
+      });
+      await refreshArtifacts(selectedId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const runBootstrap = async () => {
     if (!selectedId || !publishKeyId || !bootstrapCwd) return;
     setBusy(true);
@@ -261,7 +354,9 @@ export default function OmniContextPage() {
     { id: "projects", label: "Projects" },
     { id: "artifacts", label: "Artifacts" },
     { id: "handoffs", label: "Handoffs" },
+    { id: "teams", label: "Teams" },
     { id: "onboard", label: "Onboard" },
+    { id: "advanced", label: "Advanced" },
   ];
 
   return (
@@ -301,7 +396,8 @@ export default function OmniContextPage() {
           </button>
         </label>
         <p className="text-xs text-text-muted">
-          Git probe default: off. Token budget: {settings?.injectBudgetTokens ?? "—"}
+          Git probe default: off. Token budget: {settings?.injectBudgetTokens ?? "—"} · Backend:{" "}
+          {settings?.backend ?? "native"} · Hybrid: {settings?.hybridRetrieve ? "on" : "off"}
         </p>
       </section>
 
@@ -460,10 +556,37 @@ export default function OmniContextPage() {
               </button>
               <ul className="text-sm space-y-2">
                 {artifacts.map((a) => (
-                  <li key={a.id} className="border-b border-border/40 pb-2 text-text-muted">
-                    <span className="text-text-main font-medium">{a.title}</span>
-                    <span className="ml-2 text-xs">
-                      {a.type} · {a.status} · {a.trustTier}
+                  <li
+                    key={a.id}
+                    className="flex items-center justify-between gap-2 border-b border-border/40 pb-2 text-text-muted"
+                  >
+                    <span>
+                      <span className="text-text-main font-medium">{a.title}</span>
+                      <span className="ml-2 text-xs">
+                        {a.type} · {a.status} · {a.trustTier}
+                      </span>
+                    </span>
+                    <span className="flex gap-2 shrink-0">
+                      {a.status === "pending" ? (
+                        <button
+                          type="button"
+                          disabled={busy || !publishKeyId}
+                          onClick={() => approveOrPromote(a.id, "approve")}
+                          className="text-xs text-text-muted hover:text-text-main disabled:opacity-50"
+                        >
+                          Approve
+                        </button>
+                      ) : null}
+                      {a.trustTier !== "stable" && a.status !== "deleted" ? (
+                        <button
+                          type="button"
+                          disabled={busy || !publishKeyId}
+                          onClick={() => approveOrPromote(a.id, "promote_stable")}
+                          className="text-xs text-text-muted hover:text-text-main disabled:opacity-50"
+                        >
+                          Promote stable
+                        </button>
+                      ) : null}
                     </span>
                   </li>
                 ))}
@@ -571,6 +694,158 @@ export default function OmniContextPage() {
               </button>
             </div>
           )}
+        </section>
+      ) : null}
+
+      {tab === "teams" ? (
+        <section className="rounded-lg border border-border/60 bg-surface/40 p-4 space-y-4">
+          <h2 className="text-sm font-medium text-text-main">Teams</h2>
+          <div className="flex flex-wrap gap-2">
+            <input
+              className="rounded-md border border-border bg-bg px-3 py-2 text-sm"
+              placeholder="Team name"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+            />
+            <input
+              className="rounded-md border border-border bg-bg px-3 py-2 text-sm"
+              placeholder="team-slug"
+              value={teamSlug}
+              onChange={(e) => setTeamSlug(e.target.value)}
+            />
+            <button
+              type="button"
+              disabled={busy || !teamName || !teamSlug}
+              onClick={createTeam}
+              className="rounded-md bg-text-main text-bg px-3 py-2 text-sm font-medium disabled:opacity-50"
+            >
+              Create team
+            </button>
+          </div>
+          <ul className="text-sm space-y-1 text-text-muted">
+            {teams.map((t) => (
+              <li key={t.id}>
+                <span className="text-text-main font-medium">{t.name}</span>
+                <span className="ml-2 text-xs">{t.slug}</span>
+              </li>
+            ))}
+            {teams.length === 0 ? <li>No teams yet.</li> : null}
+          </ul>
+          {selectedId ? (
+            <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-border/40">
+              <span className="text-sm text-text-muted">Assign selected project to</span>
+              <select
+                className="rounded-md border border-border bg-bg px-3 py-2 text-sm"
+                value={assignTeamId}
+                onChange={(e) => setAssignTeamId(e.target.value)}
+              >
+                <option value="">(none)</option>
+                {teams.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={assignTeam}
+                className="rounded-md bg-text-main text-bg px-3 py-2 text-sm font-medium disabled:opacity-50"
+              >
+                Assign
+              </button>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      {tab === "advanced" && settings ? (
+        <section className="rounded-lg border border-border/60 bg-surface/40 p-4 space-y-4">
+          <h2 className="text-sm font-medium text-text-main">Advanced (Phase 2–4)</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex items-center gap-2 text-sm text-text-muted">
+              <input
+                type="checkbox"
+                checked={settings.hybridRetrieve}
+                disabled={busy}
+                onChange={(e) => patchSettings({ hybridRetrieve: e.target.checked })}
+              />
+              Hybrid retrieve (FTS + embeddings)
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text-muted">
+              <input
+                type="checkbox"
+                checked={settings.preferStablePrefix}
+                disabled={busy}
+                onChange={(e) => patchSettings({ preferStablePrefix: e.target.checked })}
+              />
+              Prefer stable prefix in inject budget
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text-muted">
+              <input
+                type="checkbox"
+                checked={settings.dlpEnabled}
+                disabled={busy}
+                onChange={(e) => patchSettings({ dlpEnabled: e.target.checked })}
+              />
+              DLP pre-publish hook
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text-muted">
+              <input
+                type="checkbox"
+                checked={settings.departmentReviewRequired}
+                disabled={busy}
+                onChange={(e) => patchSettings({ departmentReviewRequired: e.target.checked })}
+              />
+              Department → review_required
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text-muted">
+              <input
+                type="checkbox"
+                checked={settings.universalHandoff?.enabled ?? true}
+                disabled={busy}
+                onChange={(e) =>
+                  patchSettings({
+                    universalHandoff: { enabled: e.target.checked },
+                  })
+                }
+              />
+              Universal routing handoff (A4)
+            </label>
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-sm text-text-muted">Backend</span>
+            <select
+              className="rounded-md border border-border bg-bg px-3 py-2 text-sm"
+              value={settings.backend}
+              disabled={busy}
+              onChange={(e) => patchSettings({ backend: e.target.value })}
+            >
+              <option value="native">native</option>
+              <option value="remote">remote</option>
+            </select>
+            <input
+              className="rounded-md border border-border bg-bg px-3 py-2 text-sm min-w-[16rem]"
+              placeholder="Remote base URL"
+              value={settings.remoteBaseUrl || ""}
+              disabled={busy || settings.backend !== "remote"}
+              onBlur={(e) => patchSettings({ remoteBaseUrl: e.target.value })}
+              onChange={(e) => setSettings({ ...settings, remoteBaseUrl: e.target.value })}
+            />
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-sm text-text-muted">Handoff trigger</span>
+            <select
+              className="rounded-md border border-border bg-bg px-3 py-2 text-sm"
+              value={settings.universalHandoff?.trigger || "on-switch"}
+              disabled={busy}
+              onChange={(e) => patchSettings({ universalHandoff: { trigger: e.target.value } })}
+            >
+              <option value="always">always</option>
+              <option value="on-switch">on-switch</option>
+              <option value="on-error">on-error</option>
+            </select>
+          </div>
         </section>
       ) : null}
     </div>

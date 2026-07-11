@@ -10,8 +10,9 @@ import {
   getOmniContextSettings,
   NO_OMNICONTEXT_HEADER,
 } from "@/lib/omnicontext";
-import { retrieveForProject } from "@/lib/omnicontext/retrieve";
 import { buildInjectBlock } from "@/lib/omnicontext/inject";
+import { retrieveForProjectCached } from "@/lib/omnicontext/retrieveCached";
+import { recordInjectOk, recordInjectSkipped } from "@/lib/omnicontext/metrics";
 import { getHeaderValueCaseInsensitive } from "../../handlers/chatCore/headers.ts";
 
 export function isNoOmniContextRequested(
@@ -82,7 +83,6 @@ function placeSystemOrUser(
     return { ...body, messages: [{ role: "system", content: text }, ...messages] };
   }
 
-  // Prefer early system message after any existing leading system (Layer A cache-aligned)
   if (messages[0]?.role === "system") {
     const next = [...messages];
     next.splice(1, 0, { role: "system", content: text });
@@ -91,12 +91,27 @@ function placeSystemOrUser(
   return { ...body, messages: [{ role: "system", content: text }, ...messages] };
 }
 
+function skip(
+  body: Record<string, unknown>,
+  reason: string,
+  extra?: { projectId?: string }
+): {
+  body: Record<string, unknown>;
+  injected: false;
+  reason: string;
+  projectId?: string;
+} {
+  recordInjectSkipped(reason);
+  return { body, injected: false, reason, ...extra };
+}
+
 export interface InjectOmniContextResult {
   body: Record<string, unknown>;
   injected: boolean;
   reason?: string;
   projectId?: string;
   tokensEstimate?: number;
+  cached?: boolean;
 }
 
 /**
@@ -115,15 +130,15 @@ export async function injectOmniContext(params: {
   const { body, headers, apiKeyId, provider, log } = params;
   try {
     if (isNoOmniContextRequested(headers ?? null)) {
-      return { body, injected: false, reason: "opt_out_header" };
+      return skip(body, "opt_out_header");
     }
 
     const settings = await getOmniContextSettings();
     if (!settings.enabled) {
-      return { body, injected: false, reason: "disabled" };
+      return skip(body, "disabled");
     }
     if (!apiKeyId) {
-      return { body, injected: false, reason: "no_api_key" };
+      return skip(body, "no_api_key");
     }
 
     const workContext = await buildWorkContext({
@@ -141,34 +156,42 @@ export async function injectOmniContext(params: {
     });
 
     if (scope.confidence === "low" || !scope.scope.projectId) {
-      return { body, injected: false, reason: "low_scope" };
+      return skip(body, "low_scope");
     }
 
     const projectId = scope.scope.projectId;
     if (!getMembership(projectId, apiKeyId)) {
-      return { body, injected: false, reason: "not_member" };
+      return skip(body, "not_member", { projectId });
     }
 
     const query = extractLastUserQuery(body);
     const timeoutMs = settings.retrieveTimeoutMs;
 
-    const retrieved = await Promise.race([
-      Promise.resolve(
-        retrieveForProject({
-          projectId,
-          query,
-          viewerApiKeyId: apiKeyId,
-        })
-      ),
+    const cachedRetrieve = await Promise.race([
+      retrieveForProjectCached({
+        projectId,
+        query,
+        viewerApiKeyId: apiKeyId,
+      }),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
     ]);
 
-    if (!retrieved) {
+    if (!cachedRetrieve) {
       log?.warn?.("omnicontext.inject.timeout", { projectId, timeoutMs });
-      return { body, injected: false, reason: "timeout" };
+      return skip(body, "timeout", { projectId });
     }
 
-    // Prefer stable/lead_approved for Layer A
+    if (cachedRetrieve.skippedReason === "circuit_open") {
+      log?.warn?.("omnicontext.inject.circuit_open", { projectId });
+      return skip(body, "circuit_open", { projectId });
+    }
+
+    if (!cachedRetrieve.result) {
+      return skip(body, "error", { projectId });
+    }
+
+    const retrieved = cachedRetrieve.result;
+
     if (
       retrieved.stablePrefix &&
       retrieved.stablePrefix.trustTier !== "stable" &&
@@ -178,27 +201,33 @@ export async function injectOmniContext(params: {
       retrieved.stablePrefix = null;
     }
 
-    const block = buildInjectBlock(projectId, retrieved, settings.injectBudgetTokens);
+    const block = buildInjectBlock(projectId, retrieved, settings.injectBudgetTokens, {
+      preferStablePrefix: settings.preferStablePrefix,
+    });
     if (!block) {
-      return { body, injected: false, reason: "empty", projectId };
+      return skip(body, "empty", { projectId });
     }
 
     const nextBody = placeSystemOrUser(body, block.markdown, provider);
+    recordInjectOk(block.tokensEstimate);
     log?.info?.("omnicontext.inject.ok", {
       projectId,
       tokensEstimate: block.tokensEstimate,
       artifactIds: block.artifactIds,
+      cached: cachedRetrieve.cached,
+      latencyMs: cachedRetrieve.latencyMs,
     });
     return {
       body: nextBody,
       injected: true,
       projectId,
       tokensEstimate: block.tokensEstimate,
+      cached: cachedRetrieve.cached,
     };
   } catch (err) {
     log?.warn?.("omnicontext.inject.fail_open", {
       error: err instanceof Error ? err.message : String(err),
     });
-    return { body, injected: false, reason: "error" };
+    return skip(body, "error");
   }
 }

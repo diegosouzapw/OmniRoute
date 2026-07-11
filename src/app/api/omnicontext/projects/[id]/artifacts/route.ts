@@ -4,14 +4,11 @@ import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { getProjectById } from "@/lib/db/omnicontextProjects";
-import {
-  listArtifacts,
-  softDeleteArtifact,
-  approveArtifact,
-  getArtifactById,
-} from "@/lib/db/omnicontextArtifacts";
-import { publishArtifact, PublishError } from "@/lib/omnicontext/publish";
+import { listArtifacts, softDeleteArtifact, getArtifactById } from "@/lib/db/omnicontextArtifacts";
+import { publishArtifactAsync, PublishError } from "@/lib/omnicontext/publish";
+import { approvePendingArtifact, promoteArtifactToStable } from "@/lib/omnicontext/promote";
 import { appendAuditEvent } from "@/lib/db/omnicontextAudit";
+import { invalidateRetrieveCache } from "@/lib/omnicontext/cache";
 
 const publishSchema = z.object({
   type: z.enum(["summary", "decision", "blocker", "snippet", "handoff", "stable_prefix"]),
@@ -70,7 +67,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx) {
   }
 
   try {
-    const result = publishArtifact({
+    const result = await publishArtifactAsync({
       projectId: id,
       apiKeyId: validation.data.apiKeyId,
       type: validation.data.type,
@@ -107,6 +104,7 @@ export async function DELETE(request: NextRequest, ctx: RouteCtx) {
     return NextResponse.json({ error: { message: "Artifact not found" } }, { status: 404 });
   }
   softDeleteArtifact(artifactId);
+  invalidateRetrieveCache();
   appendAuditEvent({
     action: "artifact.delete",
     projectId: id,
@@ -128,23 +126,32 @@ export async function PATCH(request: NextRequest, ctx: RouteCtx) {
   }
   const schema = z.object({
     artifactId: z.string().min(1),
-    action: z.literal("approve"),
+    action: z.enum(["approve", "promote_stable"]),
     apiKeyId: z.string().min(1),
   });
   const validation = validateBody(schema, rawBody);
   if (isValidationFailure(validation)) {
     return NextResponse.json(validation.error, { status: 400 });
   }
-  const art = getArtifactById(validation.data.artifactId);
-  if (!art || art.projectId !== id) {
-    return NextResponse.json({ error: { message: "Artifact not found" } }, { status: 404 });
+  try {
+    const updated =
+      validation.data.action === "approve"
+        ? approvePendingArtifact({
+            projectId: id,
+            artifactId: validation.data.artifactId,
+            apiKeyId: validation.data.apiKeyId,
+          })
+        : promoteArtifactToStable({
+            projectId: id,
+            artifactId: validation.data.artifactId,
+            apiKeyId: validation.data.apiKeyId,
+          });
+    return NextResponse.json({ artifact: updated });
+  } catch (err: unknown) {
+    if (err instanceof PublishError) {
+      return NextResponse.json({ error: { message: err.message } }, { status: err.status });
+    }
+    const message = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: { message } }, { status: 500 });
   }
-  const updated = approveArtifact(validation.data.artifactId, validation.data.apiKeyId);
-  appendAuditEvent({
-    action: "artifact.approve",
-    projectId: id,
-    actorApiKeyId: validation.data.apiKeyId,
-    meta: { artifactId: validation.data.artifactId },
-  });
-  return NextResponse.json({ artifact: updated });
 }

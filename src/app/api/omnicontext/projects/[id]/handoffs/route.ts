@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/omnicontextHandoffs";
 import { appendAuditEvent } from "@/lib/db/omnicontextAudit";
 import { roleHasPermission } from "@/lib/omnicontext/permissions";
+import { normalizePointers } from "@/lib/omnicontext/pointers";
 import type { ProjectRole } from "@/lib/omnicontext/types";
 
 const createSchema = z.object({
@@ -23,6 +24,7 @@ const createSchema = z.object({
   approachesMd: z.string().max(50_000).optional(),
   blockersMd: z.string().max(50_000).optional(),
   nextStepsMd: z.string().max(50_000).optional(),
+  pointers: z.unknown().optional(),
 });
 
 type RouteCtx = { params: Promise<{ id: string }> };
@@ -67,6 +69,7 @@ export async function POST(request: NextRequest, ctx: RouteCtx) {
     return NextResponse.json({ error: { message: "Missing HANDOFF permission" } }, { status: 403 });
   }
   try {
+    const normalizedPointers = normalizePointers(validation.data.pointers);
     const handoff = createHandoff({
       projectId: id,
       goal: validation.data.goal,
@@ -75,6 +78,9 @@ export async function POST(request: NextRequest, ctx: RouteCtx) {
       approachesMd: validation.data.approachesMd,
       blockersMd: validation.data.blockersMd,
       nextStepsMd: validation.data.nextStepsMd,
+      pointers: normalizedPointers.pointers.length
+        ? { items: normalizedPointers.pointers }
+        : undefined,
       fromApiKeyId: validation.data.apiKeyId,
     });
     appendAuditEvent({

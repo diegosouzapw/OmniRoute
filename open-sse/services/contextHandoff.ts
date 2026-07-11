@@ -33,7 +33,9 @@ Generate a JSON object with this exact structure:
   "summary": "A clear, dense summary of what has been discussed and accomplished (max 200 words). Focus on what the AI needs to know to continue seamlessly.",
   "keyDecisions": ["decision1", "decision2"],
   "taskProgress": "Current state of the task: what's done, what's pending, next steps",
-  "activeEntities": ["file1.ts", "feature X", "topic Y"]
+  "activeEntities": ["file1.ts", "feature X", "topic Y"],
+  "approachesTried": ["approach A that failed or was abandoned"],
+  "blockers": ["current blocker 1"]
 }
 
 Important: Return ONLY the JSON object, no markdown, no explanation.`;
@@ -162,6 +164,8 @@ export interface ParsedHandoffContent {
   keyDecisions: string[];
   taskProgress: string;
   activeEntities: string[];
+  approachesTried: string[];
+  blockers: string[];
 }
 
 export function resolveContextRelayConfig(
@@ -230,7 +234,10 @@ function formatMessagesForPrompt(messages: MessageLike[]): string {
     .join("\n\n");
 }
 
-export function selectMessagesForSummary(messages: MessageLike[], maxMessages: number): MessageLike[] {
+export function selectMessagesForSummary(
+  messages: MessageLike[],
+  maxMessages: number
+): MessageLike[] {
   const validMessages = messages.filter((m) => m && typeof m === "object");
   const system = validMessages.filter(
     (m) => typeof m.role === "string" && (m.role === "system" || m.role === "developer")
@@ -309,6 +316,11 @@ export function parseHandoffJSON(content: string): ParsedHandoffContent | null {
         : "";
     const keyDecisions = normalizeStringArray(parsed.keyDecisions, MAX_DECISIONS);
     const activeEntities = normalizeStringArray(parsed.activeEntities, MAX_ENTITIES);
+    const approachesTried = normalizeStringArray(
+      parsed.approachesTried ?? parsed.approaches_tried,
+      MAX_DECISIONS
+    );
+    const blockers = normalizeStringArray(parsed.blockers, MAX_DECISIONS);
 
     if (!summary) return null;
 
@@ -317,6 +329,8 @@ export function parseHandoffJSON(content: string): ParsedHandoffContent | null {
       keyDecisions,
       taskProgress,
       activeEntities,
+      approachesTried,
+      blockers,
     };
   } catch {
     return null;
@@ -425,6 +439,8 @@ async function generateHandoffAsync(options: {
     keyDecisions: parsed.keyDecisions,
     taskProgress: parsed.taskProgress,
     activeEntities: parsed.activeEntities,
+    approachesTried: parsed.approachesTried,
+    blockers: parsed.blockers,
     messageCount: Array.isArray(options.messages) ? options.messages.length : 0,
     model: summaryModel,
     warningThresholdPct: relayConfig.handoffThreshold,
@@ -478,6 +494,8 @@ export function maybeGenerateHandoff(options: {
 export function buildHandoffSystemMessage(payload: HandoffPayload): string {
   const decisions = payload.keyDecisions.map((decision) => `  - ${escapeXml(decision)}`).join("\n");
   const entities = payload.activeEntities.map((entity) => escapeXml(entity)).join(", ");
+  const approaches = (payload.approachesTried || []).map((a) => `  - ${escapeXml(a)}`).join("\n");
+  const blockers = (payload.blockers || []).map((b) => `  - ${escapeXml(b)}`).join("\n");
 
   return `<context_handoff>
 <transfer_reason>Account quota transfer - continuing from previous session</transfer_reason>
@@ -486,6 +504,12 @@ export function buildHandoffSystemMessage(payload: HandoffPayload): string {
 <key_decisions>
 ${decisions}
 </key_decisions>
+<approaches_tried>
+${approaches}
+</approaches_tried>
+<blockers>
+${blockers}
+</blockers>
 <active_context>${entities}</active_context>
 <messages_processed>${payload.messageCount}</messages_processed>
 </context_handoff>
@@ -556,6 +580,8 @@ export function buildUniversalHandoffSystemMessage(
 
   const decisions = payload.keyDecisions.map((d) => `  - ${escapeXml(d)}`).join("\n");
   const entities = payload.activeEntities.map((e) => escapeXml(e)).join(", ");
+  const approaches = (payload.approachesTried || []).map((a) => `  - ${escapeXml(a)}`).join("\n");
+  const blockers = (payload.blockers || []).map((b) => `  - ${escapeXml(b)}`).join("\n");
 
   return `<context_handoff>
 <transfer_reason>${escapedReason}</transfer_reason>
@@ -566,6 +592,12 @@ export function buildUniversalHandoffSystemMessage(
 <key_decisions>
 ${decisions}
 </key_decisions>
+<approaches_tried>
+${approaches}
+</approaches_tried>
+<blockers>
+${blockers}
+</blockers>
 <active_context>${entities}</active_context>
 <messages_processed>${payload.messageCount}</messages_processed>
 </context_handoff>
@@ -662,6 +694,8 @@ async function generateUniversalHandoffAsync(options: {
     keyDecisions: parsed.keyDecisions,
     taskProgress: parsed.taskProgress,
     activeEntities: parsed.activeEntities,
+    approachesTried: parsed.approachesTried,
+    blockers: parsed.blockers,
     messageCount: Array.isArray(options.messages) ? options.messages.length : 0,
     model: summaryModel,
     lastModel: options.prevModel,

@@ -16,7 +16,10 @@ export interface OmniContextHandoff {
   approachesMd: string;
   blockersMd: string;
   nextStepsMd: string;
-  pointersJson: string | null;
+  /** Parsed from pointers_json by rowToCamel (JSON columns drop `_json`). */
+  pointers: Record<string, unknown> | null;
+  /** Raw string when present (compat). */
+  pointersJson?: string | null;
   createdAt: string;
   updatedAt: string;
   closedAt: string | null;
@@ -141,5 +144,23 @@ export function formatHandoffMarkdown(h: OmniContextHandoff): string {
     `## Next steps`,
     h.nextStepsMd || "(none)",
   ];
+  if (h.pointers && typeof h.pointers === "object") {
+    const items = Array.isArray((h.pointers as { items?: unknown }).items)
+      ? ((h.pointers as { items: unknown[] }).items as Array<Record<string, unknown>>)
+      : [];
+    if (items.length) {
+      parts.push("", "## Pointers");
+      for (const item of items) {
+        const kind = typeof item.kind === "string" ? item.kind : "ref";
+        const label =
+          (typeof item.title === "string" && item.title) ||
+          (typeof item.path === "string" && item.path) ||
+          (typeof item.url === "string" && item.url) ||
+          (typeof item.id === "string" && item.id) ||
+          kind;
+        parts.push(`- ${kind}: ${label}`);
+      }
+    }
+  }
   return parts.join("\n");
 }
