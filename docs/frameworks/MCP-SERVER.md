@@ -14,6 +14,24 @@ lastUpdated: 2026-06-28
 
 > Source: [diagrams/mcp-tools-94.mmd](../diagrams/mcp-tools-94.mmd) (regenerate via `npm run docs:render-diagrams`).
 
+## OmniContext (Continuity) tools
+
+Seven Continuity Plane tools are registered from
+`open-sse/mcp-server/tools/omnicontextTools.ts` and counted in
+`TOTAL_MCP_TOOL_COUNT`:
+
+| Tool                                   | Purpose                             |
+| -------------------------------------- | ----------------------------------- |
+| `omniroute_omnicontext_list_projects`  | List projects for the caller        |
+| `omniroute_omnicontext_retrieve`       | Retrieve project artifacts          |
+| `omniroute_omnicontext_publish`        | Publish an artifact                 |
+| `omniroute_omnicontext_handoff_create` | Create a handoff packet             |
+| `omniroute_omnicontext_handoff_action` | Resume / close handoff              |
+| `omniroute_omnicontext_list_handoffs`  | List handoffs                       |
+| `omniroute_omnicontext_bootstrap`      | Bootstrap from AGENTS/CLAUDE/README |
+
+Deep-dive: [`OMNICONTEXT.md`](./OMNICONTEXT.md).
+
 ## Installation
 
 OmniRoute MCP is built-in. Start it with:

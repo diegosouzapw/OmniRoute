@@ -66,8 +66,14 @@ export {
   OMNICONTEXT_RETRIEVE_CACHE_TTL_MS,
 } from "./cache";
 export { retrieveForProjectCached, getOmniContextRetrieveBreaker } from "./retrieveCached";
-export { retrieveHybrid, indexArtifactEmbedding } from "./hybridRetrieve";
+export {
+  retrieveHybrid,
+  retrieveHybridAsync,
+  indexArtifactEmbedding,
+  indexArtifactEmbeddingAsync,
+} from "./hybridRetrieve";
 export { localHashEmbed, LOCAL_EMBED_MODEL } from "./localEmbed";
+export { embedForOmniContext, embedLocalHash } from "./embed";
 export { normalizePointers, formatPointersMarkdown } from "./pointers";
 export type { KnowledgePointer } from "./pointers";
 export { remoteRetrieve, remotePublish, RemoteBackendError } from "./remoteClient";

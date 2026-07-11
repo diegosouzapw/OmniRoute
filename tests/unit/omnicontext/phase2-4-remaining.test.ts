@@ -314,12 +314,14 @@ test("omnicontext.metrics webhook event is registered", () => {
 test("settings normalize Phase 2–4 fields", () => {
   const s = normalizeOmniContextSettings({
     omnicontextHybridRetrieve: true,
+    omnicontextEmbedSource: "memory-auto",
     omnicontextBackend: "remote",
     omnicontextRemoteBaseUrl: "https://wcs.example",
     omnicontextDlpEnabled: true,
     omnicontextUniversalHandoff: { enabled: false, trigger: "always" },
   });
   assert.equal(s.hybridRetrieve, true);
+  assert.equal(s.embedSource, "memory-auto");
   assert.equal(s.backend, "remote");
   assert.equal(s.remoteBaseUrl, "https://wcs.example");
   assert.equal(s.dlpEnabled, true);

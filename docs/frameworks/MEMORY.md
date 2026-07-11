@@ -31,6 +31,12 @@ Memory is **scoped per API key**, not per user — every request authenticated
 with the same API key shares the same memory pool, with optional further
 scoping by `sessionId`.
 
+> **Not OmniContext:** Team-scoped Continuity Plane lives in
+> [`OMNICONTEXT.md`](./OMNICONTEXT.md) (`omnicontext_*` tables). Memory embeddings
+> (`embed()` in `src/lib/memory/embedding/`) can optionally power OmniContext
+> hybrid retrieve when `embedSource: "memory-auto"`, but vectors are stored in
+> `omnicontext_artifact_embeddings`, never in `vec_memories`.
+
 ## Architecture
 
 ```

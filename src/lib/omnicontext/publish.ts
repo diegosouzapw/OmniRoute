@@ -10,7 +10,7 @@ import { roleHasPermission } from "./permissions";
 import { redactForPublish } from "./redact";
 import { invalidateRetrieveCache } from "./cache";
 import { recordPublish } from "./metrics";
-import { indexArtifactEmbedding } from "./hybridRetrieve";
+import { indexArtifactEmbedding, indexArtifactEmbeddingAsync } from "./hybridRetrieve";
 import { runDlpHook } from "./dlp";
 import { getOmniContextSettings } from "./settings";
 import type { ProjectRole, PublishPolicy } from "./types";
@@ -137,7 +137,7 @@ export async function publishArtifactAsync(
 
   const artifact = createArtifact(createInput);
   try {
-    indexArtifactEmbedding(artifact.id);
+    await indexArtifactEmbeddingAsync(artifact.id);
   } catch {
     /* embedding index is best-effort */
   }
@@ -228,6 +228,9 @@ export function publishArtifact(input: PublishArtifactInput): PublishArtifactRes
   const artifact = createArtifact(createInput);
   try {
     indexArtifactEmbedding(artifact.id);
+    void indexArtifactEmbeddingAsync(artifact.id).catch(() => {
+      /* Memory embed upgrade is best-effort; local hash already indexed */
+    });
   } catch {
     /* best-effort */
   }

@@ -3,7 +3,7 @@
  */
 import { getCircuitBreaker } from "@/shared/utils/circuitBreaker";
 import { retrieveForProject, type RetrieveParams, type RetrieveResult } from "./retrieve";
-import { retrieveHybrid } from "./hybridRetrieve";
+import { retrieveHybridAsync } from "./hybridRetrieve";
 import {
   computeRetrieveCacheKey,
   getOrCoalesceRetrieve,
@@ -73,7 +73,7 @@ async function doRetrieve(params: RetrieveParams): Promise<RetrieveResult> {
       activeHandoff: null,
     };
   }
-  if (settings?.hybridRetrieve) return retrieveHybrid(params);
+  if (settings?.hybridRetrieve) return retrieveHybridAsync(params);
   return retrieveForProject(params);
 }
 
@@ -107,7 +107,7 @@ export async function retrieveForProjectCached(
   try {
     const { data, cached } = await getOrCoalesceRetrieve(key, ttlMs, async () => {
       return breaker.execute(async () => {
-        if (options.hybrid === true) return retrieveHybrid(params);
+        if (options.hybrid === true) return retrieveHybridAsync(params);
         if (options.hybrid === false) return retrieveForProject(params);
         return doRetrieve(params);
       });

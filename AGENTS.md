@@ -12,6 +12,9 @@ with **MCP Server** (94 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 > open-sse services 134 · routing strategies 17 · auto-combo scoring factors 12 ·
 > DB modules 95 · DB migrations 110 · base tables 17 · search providers 11 ·
 > i18n locales 42. **Refresh with `npm run check:docs-all`.**
+>
+> Continuity Plane (OmniContext): see [`docs/frameworks/OMNICONTEXT.md`](docs/frameworks/OMNICONTEXT.md)
+> (`src/lib/omnicontext/`, migrations 119–122, 7 MCP tools in `omnicontextTools.ts`).
 
 ## Doc Accuracy Discipline (read before writing any doc)
 
@@ -543,6 +546,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Resilience (3 layers)                      | [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md)                                |
 | Skills                                     | [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md)                                                        |
 | Memory                                     | [`docs/frameworks/MEMORY.md`](docs/frameworks/MEMORY.md)                                                        |
+| OmniContext / Continuity Plane             | [`docs/frameworks/OMNICONTEXT.md`](docs/frameworks/OMNICONTEXT.md)                                              |
 | Cloud agents                               | [`docs/frameworks/CLOUD_AGENT.md`](docs/frameworks/CLOUD_AGENT.md)                                              |
 | Guardrails                                 | [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md)                                                    |
 | Evals                                      | [`docs/frameworks/EVALS.md`](docs/frameworks/EVALS.md)                                                          |

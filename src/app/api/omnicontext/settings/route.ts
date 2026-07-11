@@ -16,6 +16,7 @@ const settingsSchema = z.object({
   gitProbeEnabled: z.boolean().optional(),
   autoPublish: z.enum(["off", "confirm", "draft-only"]).optional(),
   hybridRetrieve: z.boolean().optional(),
+  embedSource: z.enum(["local", "memory-auto"]).optional(),
   preferStablePrefix: z.boolean().optional(),
   backend: z.enum(["native", "remote"]).optional(),
   remoteBaseUrl: z.string().max(2000).optional(),

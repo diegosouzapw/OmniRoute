@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
-import { requireOmniContextApiKeyId } from "../_auth";
+import { requireOmniContextApiKeyId } from "../../_auth";
 import { getOmniContextMetricsSummary } from "@/lib/omnicontext/metrics";
 import { getRetrieveCacheStats } from "@/lib/omnicontext/cache";
 
