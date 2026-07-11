@@ -277,12 +277,12 @@ export function clearHealthCheckLogCache() {
 
 declare global {
   var __omnirouteTokenHC:
-    { initialized: boolean; interval: ReturnType<typeof setInterval> | null } | undefined;
+    | { initialized: boolean; interval: ReturnType<typeof setInterval> | null; sweeping: boolean }
+    | undefined;
 }
-
 function getHCState() {
   if (!globalThis.__omnirouteTokenHC) {
-    globalThis.__omnirouteTokenHC = { initialized: false, interval: null };
+    globalThis.__omnirouteTokenHC = { initialized: false, interval: null, sweeping: false };
   }
   return globalThis.__omnirouteTokenHC;
 }
@@ -322,7 +322,13 @@ export function stopTokenHealthCheck() {
 }
 
 // ── Core sweep ───────────────────────────────────────────────────────────────
-async function sweep() {
+export async function sweep() {
+  const state = getHCState();
+  if (state.sweeping) {
+    log(`${LOG_PREFIX} Sweep skipped — previous sweep still in progress`);
+    return;
+  }
+  state.sweeping = true;
   try {
     const connections = await getProviderConnections({ authType: "oauth" });
 
@@ -341,11 +347,15 @@ async function sweep() {
 
       // Stagger delay between checks to prevent bursting (Issue #1220)
       if (staggerMs > 0 && i < connections.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, staggerMs));
+        const { promise, resolve } = Promise.withResolvers<void>();
+        setTimeout(resolve, staggerMs);
+        await promise;
       }
     }
   } catch (err) {
     logError(`${LOG_PREFIX} Sweep error:`, err.message);
+  } finally {
+    state.sweeping = false;
   }
 }
 
