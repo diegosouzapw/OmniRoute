@@ -32,9 +32,9 @@ import {
   enrichCodexModelsFromGithubCatalog,
   fetchCodexDiscoveryModels,
   fetchCodexGithubCatalogModels,
-  mergeCodexLiveModelsWithLocalCatalog,
   normalizeCodexGithubCatalogResponse,
   normalizeCodexModelsResponse,
+  reconcileCuratedCodexCatalog,
 } from "../../src/app/api/providers/[id]/models/discovery/codex.ts";
 
 // ── helpers leaf ─────────────────────────────────────────────────────────────
@@ -228,7 +228,7 @@ test("codex.normalizeCodexGithubCatalogResponse parses current client catalog me
         description: "Latest frontier agentic coding model.",
         visibility: "list",
         supported_in_api: true,
-        minimal_client_version: "0.142.0",
+        minimal_client_version: "0.144.0",
         context_window: 372000,
         input_modalities: ["text", "image"],
         supported_reasoning_levels: [{ effort: "low" }, { effort: "ultra" }],
@@ -299,31 +299,52 @@ test("codex.enrichCodexModelsFromGithubCatalog keeps live entitlement list autho
   assert.equal(enriched[0]?.supportsVision, true);
 });
 
-test("codex.mergeCodexLiveModelsWithLocalCatalog preserves static effort aliases", () => {
-  const merged = mergeCodexLiveModelsWithLocalCatalog(
+test("codex.reconcileCuratedCodexCatalog separates remote-only candidates from visible models", () => {
+  const result = reconcileCuratedCodexCatalog(
     [
       {
-        id: "gpt-5.6",
-        name: "GPT 5.6 Live",
+        id: "future-codex-model",
+        name: "Future Codex Model",
         owned_by: "codex",
         apiFormat: "responses",
         supportedEndpoints: ["responses"],
-        inputTokenLimit: 512000,
+      },
+      {
+        id: "gpt-5.6-sol",
+        name: "Live Sol",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+        inputTokenLimit: 999999,
+        supportsVision: true,
       },
     ],
     [
-      { id: "gpt-5.6", name: "GPT 5.6 Static", contextLength: 400000 },
-      { id: "gpt-5.6-low", name: "GPT 5.6 Low", contextLength: 400000 },
+      {
+        id: "gpt-5.6-sol",
+        name: "GPT 5.6 Sol",
+        contextLength: 500000,
+        maxInputTokens: 372000,
+        maxOutputTokens: 128000,
+      },
+      { id: "gpt-5.6-sol-low", name: "GPT 5.6 Sol (Low)", contextLength: 500000 },
+      { id: "gpt-5.5", name: "GPT 5.5", contextLength: 400000 },
     ]
   );
 
   assert.deepEqual(
-    merged.map((model) => model.id),
-    ["gpt-5.6", "gpt-5.6-low"]
+    result.models.map((model) => model.id),
+    ["gpt-5.6-sol", "gpt-5.6-sol-low", "gpt-5.5"]
   );
-  assert.equal(merged.find((model) => model.id === "gpt-5.6")?.name, "GPT 5.6 Live");
-  assert.equal(merged.find((model) => model.id === "gpt-5.6")?.inputTokenLimit, 512000);
-  assert.equal(merged.find((model) => model.id === "gpt-5.6-low")?.inputTokenLimit, 400000);
+  assert.deepEqual(
+    result.candidateModels.map((model) => model.id),
+    ["future-codex-model"]
+  );
+  const sol = result.models.find((model) => model.id === "gpt-5.6-sol");
+  assert.equal(sol?.name, "GPT 5.6 Sol");
+  assert.equal(sol?.inputTokenLimit, 372000);
+  assert.equal(sol?.outputTokenLimit, 128000);
+  assert.equal(sol?.supportsVision, true);
 });
 
 test("codex.normalizeCodexModelsResponse drops entries without an id", () => {
@@ -410,7 +431,7 @@ test("codex.fetchCodexGithubCatalogModels fetches the OpenAI Codex repo catalog"
             display_name: "GPT-5.6-Terra",
             visibility: "list",
             supported_in_api: true,
-            minimal_client_version: "0.142.0",
+            minimal_client_version: "0.144.0",
           },
         ],
       });
@@ -443,7 +464,7 @@ test("codex.fetchCodexGithubCatalogModels reuses cached catalog with ETags", asy
               display_name: "GPT-5.6-Luna",
               visibility: "list",
               supported_in_api: true,
-              minimal_client_version: "0.142.0",
+              minimal_client_version: "0.144.0",
             },
           ],
         },

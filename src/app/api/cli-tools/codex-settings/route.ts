@@ -260,7 +260,7 @@ export async function POST(request: Request) {
     parsed._root.model = model;
 
     if (reasoningEffort && reasoningEffort !== "none") {
-      // Optional: low, medium, high
+      // Optional Codex reasoning effort.
       parsed._root.model_reasoning_effort = reasoningEffort;
     } else {
       delete parsed._root.model_reasoning_effort;

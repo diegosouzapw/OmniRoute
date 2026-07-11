@@ -4090,7 +4090,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                         <input
                           type="text"
                           value={config.handoffModel ?? ""}
-                          placeholder="codex/gpt-5.4"
+                          placeholder="codex/gpt-5.6-sol"
                           onChange={(e) =>
                             setConfig({
                               ...config,

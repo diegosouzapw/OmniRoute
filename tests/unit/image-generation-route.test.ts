@@ -69,7 +69,7 @@ test("v1 image models GET exposes image-only modalities for credential-backed im
   assert.deepEqual((byId.get("stability-ai/fast") as any).input_modalities, ["image"]);
 });
 
-test("v1 image models GET hides providers without active credentials", async () => {
+test("v1 image models GET exposes current Codex image models and hides inactive providers", async () => {
   await seedConnection("codex", { apiKey: "codex-key" });
 
   const response = await imageRoute.GET();
@@ -77,7 +77,11 @@ test("v1 image models GET hides providers without active credentials", async () 
   const ids = body.data.map((item) => item.id);
 
   assert.equal(response.status, 200);
-  assert.ok(ids.includes("codex/gpt-5.5"));
+  assert.deepEqual(
+    ids.filter((id) => id.startsWith("codex/")),
+    ["codex/gpt-5.6-sol", "codex/gpt-5.6-terra", "codex/gpt-5.6-luna"]
+  );
+  assert.ok(!ids.includes("codex/gpt-5.5"));
   assert.ok(!ids.includes("openai/gpt-image-2"));
   assert.ok(!ids.some((id: string) => id.startsWith("xai/")));
 });
@@ -147,7 +151,7 @@ test("v1 image edit POST enforces disabled API key policy", async () => {
 
   const formData = new FormData();
   formData.set("prompt", "make the background lighter");
-  formData.set("model", "cgpt-web/gpt-5.3-instant");
+  formData.set("model", "cgpt-web/gpt-5.5");
   formData.set("image", new File([new Uint8Array([1, 2, 3])], "source.png", { type: "image/png" }));
 
   const response = await imageEditRoute.POST(

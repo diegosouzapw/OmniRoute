@@ -848,6 +848,10 @@ async function buildUnifiedModelsResponseCore(
 
         for (const sm of syncedModels) {
           if (!providerSupportsModel(canonicalProviderId, sm.id)) continue;
+          // Codex discovery can detect future models, but only curated IDs are public.
+          if (canonicalProviderId === "codex" && !getRegistryModel(canonicalProviderId, sm.id)) {
+            continue;
+          }
           if (getModelIsHidden(providerId, sm.id)) continue;
           // #6457: some upstream discovery catalogs (e.g. HuggingFace's live
           // `/v1/models`) return image/diffusion models with no modality info,

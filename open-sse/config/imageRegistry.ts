@@ -149,7 +149,11 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authType: "oauth",
     authHeader: "bearer",
     format: "codex-responses",
-    models: [{ id: "gpt-5.5", name: "GPT 5.5 (Codex Image)" }],
+    models: [
+      { id: "gpt-5.6-sol", name: "GPT 5.6 Sol (Codex Image)" },
+      { id: "gpt-5.6-terra", name: "GPT 5.6 Terra (Codex Image)" },
+      { id: "gpt-5.6-luna", name: "GPT 5.6 Luna (Codex Image)" },
+    ],
     supportedSizes: ["1024x1024", "1024x1536", "1536x1024"],
   },
 
@@ -160,7 +164,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authType: "apikey",
     authHeader: "cookie",
     format: "chatgpt-web",
-    models: [{ id: "gpt-5.3-instant", name: "GPT-5.3 Instant (ChatGPT Web Image)" }],
+    models: [{ id: "gpt-5.5", name: "GPT-5.5 Instant (ChatGPT Web Image)" }],
     supportedSizes: ["1024x1024", "1024x1536", "1536x1024"],
   },
 

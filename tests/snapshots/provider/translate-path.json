@@ -28,7 +28,7 @@
       "apiKey": {
         "Accept": "text/event-stream",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.195 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.207 (external, sdk-cli)",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
         "X-Stainless-OS": "MacOS",
@@ -47,7 +47,7 @@
       "nonStream": {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.195 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.207 (external, sdk-cli)",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
         "X-Stainless-OS": "MacOS",
@@ -66,7 +66,7 @@
       "oauth": {
         "Accept": "text/event-stream",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.195 (external, sdk-cli)",
+        "User-Agent": "claude-cli/2.1.207 (external, sdk-cli)",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Lang": "js",
         "X-Stainless-OS": "MacOS",
@@ -713,7 +713,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.195 (external, cli)",
+        "User-Agent": "claude-cli/2.1.207 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
@@ -731,7 +731,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.195 (external, cli)",
+        "User-Agent": "claude-cli/2.1.207 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
@@ -750,7 +750,7 @@
         "Anthropic-Dangerous-Direct-Browser-Access": "true",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
-        "User-Agent": "claude-cli/2.1.195 (external, cli)",
+        "User-Agent": "claude-cli/2.1.207 (external, cli)",
         "X-App": "cli",
         "X-Stainless-Arch": "<ARCH>",
         "X-Stainless-Helper-Method": "stream",
@@ -966,16 +966,16 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.144.0 (<OS>; <ARCH>)",
-        "Version": "0.144.0",
+        "User-Agent": "codex-cli/0.144.1 (<OS>; <ARCH>)",
+        "Version": "0.144.1",
         "X-Codex-Beta-Features": "responses_websockets"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.144.0 (<OS>; <ARCH>)",
-        "Version": "0.144.0",
+        "User-Agent": "codex-cli/0.144.1 (<OS>; <ARCH>)",
+        "Version": "0.144.1",
         "X-Codex-Beta-Features": "responses_websockets"
       },
       "oauth": {
@@ -983,8 +983,8 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "Openai-Beta": "responses=experimental",
-        "User-Agent": "codex-cli/0.144.0 (<OS>; <ARCH>)",
-        "Version": "0.144.0",
+        "User-Agent": "codex-cli/0.144.1 (<OS>; <ARCH>)",
+        "Version": "0.144.1",
         "X-Codex-Beta-Features": "responses_websockets"
       }
     },

@@ -117,8 +117,11 @@ function codexWebSocketUnavailableResponse(): Response {
 export { getCodexModelScope, getCodexRateLimitKey, type CodexQuotaScope };
 
 // Ordered list of effort levels from lowest to highest
-const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
+const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh", "max", "ultra"] as const;
 type EffortLevel = (typeof EFFORT_ORDER)[number];
+const STANDARD_EFFORT_SUFFIXES = ["none", "low", "medium", "high", "xhigh"] as const;
+const GPT_5_6_MAX_ALIAS_MODELS = new Set(["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]);
+const GPT_5_6_ULTRA_ALIAS_MODELS = new Set(["gpt-5.6-sol", "gpt-5.6-terra"]);
 const CODEX_FAST_WIRE_VALUE = "priority";
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 
@@ -127,7 +130,17 @@ function splitCodexReasoningSuffix(model: unknown): {
   effort: EffortLevel | null;
 } {
   const modelId = typeof model === "string" ? model : "";
-  for (const level of EFFORT_ORDER) {
+  const gpt56AliasMatch = /^(gpt-5\.6-(?:sol|terra|luna))-(max|ultra)$/.exec(modelId);
+  if (gpt56AliasMatch) {
+    const [, baseModel, alias] = gpt56AliasMatch;
+    const supportedModels =
+      alias === "ultra" ? GPT_5_6_ULTRA_ALIAS_MODELS : GPT_5_6_MAX_ALIAS_MODELS;
+    if (supportedModels.has(baseModel)) {
+      return { baseModel, effort: alias as EffortLevel };
+    }
+  }
+
+  for (const level of STANDARD_EFFORT_SUFFIXES) {
     if (modelId.endsWith(`-${level}`)) {
       return {
         baseModel: modelId.slice(0, -`-${level}`.length),
@@ -338,10 +351,13 @@ function normalizeServiceTierValue(value: unknown): string | undefined {
 
 /**
  * Maximum reasoning effort allowed per Codex model.
- * Models not listed here default to "xhigh" (unrestricted).
+ * Models not listed here retain the legacy xhigh cap.
  * Update this table when Codex releases new models with different caps.
  */
 const MAX_EFFORT_BY_MODEL: Record<string, EffortLevel> = {
+  "gpt-5.6-sol": "ultra",
+  "gpt-5.6-terra": "ultra",
+  "gpt-5.6-luna": "max",
   "gpt-5.3-codex": "xhigh",
   "gpt-5.1-codex-max": "xhigh",
   "gpt-5-mini": "high",
@@ -370,7 +386,6 @@ const CODEX_DEFAULT_REASONING_SUMMARY = "auto";
 function normalizeEffortValue(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
   const normalized = value.trim().toLowerCase();
-  if (normalized === "max") return "xhigh";
   return normalized || undefined;
 }
 
@@ -587,8 +602,7 @@ function extractCodexSseErrorMessage(text: string, fallback: string): string {
       const parsed = JSON.parse(data) as Record<string, unknown>;
       const directError = parsed.error as Record<string, unknown> | undefined;
       const nestedError = (parsed.response as Record<string, unknown> | undefined)?.error as
-        | Record<string, unknown>
-        | undefined;
+        Record<string, unknown> | undefined;
       const message =
         (typeof directError?.message === "string" && directError.message) ||
         (typeof nestedError?.message === "string" && nestedError.message) ||
@@ -1054,9 +1068,7 @@ export class CodexExecutor extends BaseExecutor {
       headers["chatgpt-account-id"] = workspaceId;
     }
     const clientIdentity = credentials?.providerSpecificData?.codexClientIdentity as
-      | CodexClientIdentity
-      | null
-      | undefined;
+      CodexClientIdentity | null | undefined;
 
     // Originator header — identifies the client type to the Codex backend.
     // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
@@ -1295,8 +1307,7 @@ export class CodexExecutor extends BaseExecutor {
       // gpt-5.3-codex-spark (and other Spark-scope models) reject image_generation
       // upstream even on paid-plan accounts, so drop it independent of plan (#6651).
       dropImageGeneration:
-        isCodexFreePlan(credentials?.providerSpecificData) ||
-        getCodexModelScope(model) === "spark",
+        isCodexFreePlan(credentials?.providerSpecificData) || getCodexModelScope(model) === "spark",
       preserveCustomTools: nativeCodexPassthrough,
     });
 
@@ -1335,9 +1346,11 @@ export class CodexExecutor extends BaseExecutor {
       modelEffort || explicitReasoning || requestReasoningEffort || fallbackReasoningEffort;
 
     if (rawEffort) {
+      const clampedEffort = clampEffort(cleanModel, rawEffort);
       body.reasoning = {
         ...(reasoningRecord || {}),
-        effort: clampEffort(cleanModel, rawEffort),
+        // Ultra coordinates delegation in Codex clients; the upstream wire effort is Max.
+        effort: clampedEffort === "ultra" ? "max" : clampedEffort,
       };
     }
     ensureCodexReasoningSummary(body);
@@ -1384,9 +1397,7 @@ export class CodexExecutor extends BaseExecutor {
       applyCodexClientMetadata(
         body,
         credentials?.providerSpecificData?.codexClientIdentity as
-          | CodexClientIdentity
-          | null
-          | undefined
+          CodexClientIdentity | null | undefined
       );
     }
 

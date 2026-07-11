@@ -284,24 +284,30 @@ function localCatalogModelToCodexDiscoveryModel(
   };
 }
 
-export function mergeCodexLiveModelsWithLocalCatalog(
-  liveModels: CodexDiscoveryModel[],
-  localCatalogModels: CodexLocalCatalogModel[]
-): CodexDiscoveryModel[] {
-  const merged = new Map<string, CodexDiscoveryModel>();
+export type CuratedCodexCatalogResult = {
+  models: CodexDiscoveryModel[];
+  candidateModels: CodexDiscoveryModel[];
+};
 
-  for (const liveModel of liveModels) {
-    merged.set(liveModel.id, liveModel);
-  }
+// Remote catalogs enrich known IDs; the local catalog remains the exposure boundary.
+export function reconcileCuratedCodexCatalog(
+  remoteModels: CodexDiscoveryModel[],
+  curatedModels: CodexLocalCatalogModel[]
+): CuratedCodexCatalogResult {
+  const remoteById = new Map(remoteModels.map((model) => [model.id, model]));
+  const curatedIds = new Set<string>();
+  const models: CodexDiscoveryModel[] = [];
 
-  for (const localModel of localCatalogModels) {
+  for (const localModel of curatedModels) {
     if (!localModel.id) continue;
+    curatedIds.add(localModel.id);
     const normalizedLocal = localCatalogModelToCodexDiscoveryModel(localModel);
-    const existing = merged.get(localModel.id);
-    merged.set(localModel.id, existing ? { ...normalizedLocal, ...existing } : normalizedLocal);
+    const remoteModel = remoteById.get(localModel.id);
+    models.push(remoteModel ? { ...remoteModel, ...normalizedLocal } : normalizedLocal);
   }
 
-  return Array.from(merged.values());
+  const candidateModels = remoteModels.filter((model) => !curatedIds.has(model.id));
+  return { models, candidateModels };
 }
 
 export function enrichCodexModelsFromGithubCatalog(

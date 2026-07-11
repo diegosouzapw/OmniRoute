@@ -79,7 +79,7 @@ function normalizeServiceTier(value: unknown): string {
 }
 
 function stripCodexEffortSuffix(model: string): string {
-  return model.replace(/-(?:xhigh|high|medium|low|none)$/i, "");
+  return model.replace(/-(?:ultra|max|xhigh|high|medium|low|none)$/i, "");
 }
 
 export function getCodexFastCostMultiplier(
@@ -101,6 +101,12 @@ export function getCodexFastCostMultiplier(
 
   const modelKey = stripCodexEffortSuffix(normalizeModelName(String(model || "")).toLowerCase());
   const compactModelKey = modelKey.replace(/-/g, "");
+  if (
+    /^gpt-5\.6-(?:sol|terra|luna)$/.test(modelKey) ||
+    /^gpt5\.6(?:sol|terra|luna)$/.test(compactModelKey)
+  ) {
+    return 1.5;
+  }
   if (modelKey === "gpt-5.5" || compactModelKey === "gpt5.5") return 2.5;
   if (modelKey === "gpt-5.4" || compactModelKey === "gpt5.4") return 2;
   return 1;
@@ -237,7 +243,10 @@ export function computeAudioCost(
   }
   const characters = toNumber(usage.characters, 0);
   if (characters > 0) {
-    const perChar = toNumber(pricing.input_cost_per_character ?? pricing.output_cost_per_character, 0);
+    const perChar = toNumber(
+      pricing.input_cost_per_character ?? pricing.output_cost_per_character,
+      0
+    );
     // Round to 10 decimals to drop binary-FP artifacts (e.g. 0.000015 * 1000).
     if (perChar > 0) return Math.round(perChar * characters * 1e10) / 1e10;
   }
