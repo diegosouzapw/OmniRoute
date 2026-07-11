@@ -68,6 +68,7 @@ const KNOWN_ENGINE_IDS = [
   "ccr",
   "llmlingua",
   "relevance",
+  "omniglyph",
 ];
 
 function normalizePipeline(value: unknown): CompressionPipelineStep[] {
