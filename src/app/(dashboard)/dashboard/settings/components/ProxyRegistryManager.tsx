@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { z } from "zod";
 import { Button, Card, Modal } from "@/shared/components";
 import { useProxyBatchOperations } from "./useProxyBatchOperations";
 import { ProxyStatusBadge } from "./ProxyStatusBadge";
@@ -9,20 +10,7 @@ import { ProxyHealthCell } from "./ProxyHealthCell";
 import { ProxyBatchActions } from "./ProxyBatchActions";
 import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
 import { POOL_STRATEGY_OPTIONS, isPoolStrategy, type PoolStrategy } from "./proxyStrategyOptions";
-
-type ProxyItem = {
-  id: string;
-  name: string;
-  type: string;
-  host: string;
-  port: number;
-  username?: string | null;
-  password?: string | null;
-  region?: string | null;
-  notes?: string | null;
-  status?: string;
-  family?: string;
-};
+import type { ProxyItem } from "./proxyRegistryTypes";
 
 type UsageInfo = {
   count: number;
@@ -155,7 +143,11 @@ function parseBulkImportText(text: string): {
   return { entries, errors, skipped };
 }
 
-export default function ProxyRegistryManager() {
+export default function ProxyRegistryManager({
+  onRedeployRelay,
+}: {
+  onRedeployRelay?: (proxy: ProxyItem) => void;
+} = {}) {
   const t = useTranslations("proxyRegistry");
   const [items, setItems] = useState<ProxyItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -169,6 +161,10 @@ export default function ProxyRegistryManager() {
   const [healthById, setHealthById] = useState<Record<string, HealthInfo>>({});
   const [testById, setTestById] = useState<Record<string, TestResult | null>>({});
   const [testingId, setTestingId] = useState<string | null>(null);
+  const [repairingId, setRepairingId] = useState<string | null>(null);
+  const [repairErrorById, setRepairErrorById] = useState<Record<string, string>>({});
+  const [relayTested, setRelayTested] = useState<number | null>(null);
+  const [relayAlive, setRelayAlive] = useState<number | null>(null);
   const [migrating, setMigrating] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkSaving, setBulkSaving] = useState(false);
@@ -259,6 +255,11 @@ export default function ProxyRegistryManager() {
         setError(data?.error?.message || t("errorLoadFailed"));
         setItems([]);
         return;
+      }
+      const stats = data?.relayProbeStats;
+      if (stats && typeof stats.tested === "number" && typeof stats.alive === "number") {
+        setRelayTested(stats.tested);
+        setRelayAlive(stats.alive);
       }
       const loaded: ProxyItem[] = Array.isArray(data?.items) ? data.items : [];
       setItems(loaded);
@@ -395,6 +396,51 @@ export default function ProxyRegistryManager() {
     }
   };
 
+  const repairRelayResponseSchema = z.object({
+    repaired: z.boolean().optional(),
+    mode: z.enum(["noop", "recovered", "redeploy"]).optional(),
+    error: z.object({ message: z.string() }).optional(),
+  });
+
+  const handleRepairRelay = async (item: ProxyItem) => {
+    if (repairingId || !item.relayInfo?.isRelay) return;
+    setRepairingId(item.id);
+    setRepairErrorById((prev) => {
+      const next = { ...prev };
+      delete next[item.id];
+      return next;
+    });
+    try {
+      const res = await fetch(`/api/settings/proxies/${item.id}/repair-relay`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id }),
+      });
+      const parsed = repairRelayResponseSchema.safeParse(await res.json());
+      const data = parsed.success ? parsed.data : {};
+      if (!res.ok) {
+        if (res.status === 409 && onRedeployRelay) {
+          onRedeployRelay(item);
+          return;
+        }
+        const message =
+          res.status === 409
+            ? t("relayRepairRedeployRequired")
+            : data.error?.message || t("relayRepairFailed");
+        setRepairErrorById((prev) => ({ ...prev, [item.id]: message }));
+        return;
+      }
+      if (data.repaired) {
+        await load();
+      }
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : t("relayRepairFailed");
+      setRepairErrorById((prev) => ({ ...prev, [item.id]: message }));
+    } finally {
+      setRepairingId(null);
+    }
+  };
+
   const handleSave = async () => {
     if (!(form.name || "").trim() || !(form.host || "").trim()) {
       setError(t("errorNameHostRequired"));
@@ -405,6 +451,7 @@ export default function ProxyRegistryManager() {
     setError(null);
 
     const normalizedUsername = (form.username || "").trim();
+
     const normalizedPassword = (form.password || "").trim();
 
     const payload: Record<string, unknown> = {
@@ -808,6 +855,11 @@ export default function ProxyRegistryManager() {
             {error}
           </div>
         )}
+        {relayTested !== null && relayAlive !== null && (
+          <div className="mb-3 px-3 py-2 rounded border border-border/60 bg-surface-alt text-xs text-text-muted">
+            {t("relayProbeSummary", { tested: relayTested, alive: relayAlive })}
+          </div>
+        )}
 
         {loading ? (
           <div className="text-sm text-text-muted">{t("loading")}</div>
@@ -884,6 +936,33 @@ export default function ProxyRegistryManager() {
                           >
                             {t("test")}
                           </Button>
+                          {item.relayInfo?.isRelay &&
+                            (item.relayInfo.repairMode === "redeploy" ||
+                              item.relayInfo.repairMode === "recovered") && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                icon="build"
+                                onClick={() => void handleRepairRelay(item)}
+                                loading={repairingId === item.id}
+                                title={t("relayRepairTooltip")}
+                              >
+                                {t("repair")}
+                              </Button>
+                            )}
+                          {item.relayInfo?.isRelay && item.relayInfo.authMissing && (
+                            <span className="ml-1 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-400">
+                              {t("relayAuthMissing")}
+                            </span>
+                          )}
+                          {repairErrorById[item.id] && (
+                            <span
+                              className="ml-1 text-[10px] text-red-400"
+                              title={repairErrorById[item.id]}
+                            >
+                              {t("relayRepairError")}
+                            </span>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
@@ -1186,7 +1265,9 @@ export default function ProxyRegistryManager() {
                 <select
                   className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
                   value={poolStrategy}
-                  onChange={(e) => handlePoolStrategyChange(e.target.value as PoolStrategy)}
+                  onChange={(e) =>
+                    handlePoolStrategyChange(e.target.value as "round-robin" | "random" | "sticky")
+                  }
                   data-testid="proxy-registry-pool-strategy"
                 >
                   {POOL_STRATEGY_OPTIONS.map((opt) => (

@@ -559,6 +559,7 @@ export type {
 export {
   upsertFreeProxy,
   listFreeProxies,
+  countFreeProxies,
   listFreeProxiesBySource,
   getFreeProxyById,
   markFreeProxyInPool,
@@ -568,9 +569,12 @@ export {
   pruneStaleFreeProxies,
   getFreeProxyStats,
   recordFreeProxySync,
+  recordFreeProxySyncErrors,
+  clearFreeProxySyncErrors,
+  getFreeProxySyncErrors,
 } from "./db/freeProxies";
 
-export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
+export type { FreeProxyRecord, FreeProxyStats, FreeProxySyncErrors } from "./db/freeProxies";
 
 export {
   listPlaygroundPresets,
