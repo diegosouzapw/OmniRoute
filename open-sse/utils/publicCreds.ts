@@ -182,6 +182,8 @@ const EMBEDDED_DEFAULTS = {
     13, 92, 15, 89, 66, 91, 76, 70, 72, 29, 71, 70, 3, 65, 93, 84, 72, 23, 28, 87, 92, 88, 15, 95,
     91, 22, 71, 87, 20, 66, 67, 86, 13, 81, 81, 21,
   ],
+  // Trae Cloud IDE — public oauth client id
+  trae_id: [10, 3, 95, 6, 10, 22, 66, 3, 11, 90, 72, 31, 91, 2],
 } as const;
 
 export type EmbeddedDefaultKey = keyof typeof EMBEDDED_DEFAULTS;
