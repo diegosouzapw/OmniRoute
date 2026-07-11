@@ -109,7 +109,7 @@ export function resolveSpawnArgs(port: number): SpawnArgs {
 
   return {
     command: symlinkPath,
-    args: ["-c", configPath],
+    args: ["--config", configPath],
     env: { ...process.env },
     cwd: CONFIG_DIR,
   };
