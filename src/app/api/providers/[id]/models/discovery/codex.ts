@@ -2,6 +2,13 @@ import {
   getCodexClientVersion,
   getCodexDefaultHeaders,
 } from "@omniroute/open-sse/config/codexClient.ts";
+import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
+
+export {
+  CODEX_DISCOVERY_EXCLUDED_IDS,
+  CODEX_DISCOVERY_EXCLUDED_ID_PREFIXES,
+  isCodexDiscoveryModelExcluded,
+} from "@/shared/services/codexDiscoveryPolicy";
 
 export const CODEX_MODELS_URL = "https://chatgpt.com/backend-api/codex/models";
 export const CODEX_GITHUB_MODELS_URL =
@@ -213,8 +220,9 @@ function getFreshCodexGithubCatalogCache(
   now: number,
   cacheTtlMs: number
 ): CodexDiscoveryModel[] | null {
-  if (cacheTtlMs > 0 && codexGithubCatalogCache?.expiresAt > now) {
-    return codexGithubCatalogCache.models;
+  const cache = codexGithubCatalogCache;
+  if (cacheTtlMs > 0 && cache && cache.expiresAt > now) {
+    return cache.models;
   }
   return null;
 }
@@ -310,35 +318,8 @@ export function mergeCodexLiveModelsWithLocalCatalog(
   return Array.from(merged.values());
 }
 
-/** Exact model ids dropped after merge (policy, not discovery). */
-export const CODEX_DISCOVERY_EXCLUDED_IDS: ReadonlySet<string> = new Set([
-  // reserved for one-off retired ids that do not share a clean prefix family
-]);
-
-/**
- * Id prefixes dropped after merge. A model matches when its id equals the prefix
- * or continues with `-` / `_` / `.` so `gpt-5.4` also matches `gpt-5.4-mini`.
- * Codex/ChatGPT-adjacent catalogs intentionally hide the GPT-5.4 family while
- * still auto-including future remote-only Codex ids.
- */
-export const CODEX_DISCOVERY_EXCLUDED_ID_PREFIXES: readonly string[] = ["gpt-5.4"];
-
 /** Return true to KEEP the model. */
 export type CodexDiscoveryModelFilter = (model: CodexDiscoveryModel) => boolean;
-
-export function isCodexDiscoveryModelExcluded(model: CodexDiscoveryModel): boolean {
-  const id = typeof model?.id === "string" ? model.id.trim().toLowerCase() : "";
-  if (!id) return true;
-  if (CODEX_DISCOVERY_EXCLUDED_IDS.has(id)) return true;
-  for (const prefix of CODEX_DISCOVERY_EXCLUDED_ID_PREFIXES) {
-    const p = prefix.toLowerCase();
-    if (id === p) return true;
-    if (id.startsWith(`${p}-`) || id.startsWith(`${p}_`) || id.startsWith(`${p}.`)) {
-      return true;
-    }
-  }
-  return false;
-}
 
 /**
  * Apply policy filters after discovery merge. Default denylist runs first;

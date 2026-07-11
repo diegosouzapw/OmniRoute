@@ -12,10 +12,7 @@ import { ensurePeerStampToken, stampPeerIp } from "./peer-stamp.mjs";
 import methodGuard from "./http-method-guard.cjs";
 import headResponseGuard from "./head-response-guard.cjs";
 import { ensureNativeSqlite } from "./ensure-native-sqlite.mjs";
-import {
-  isTurbopackCacheCorruption,
-  purgeAllTurbopackCaches,
-} from "./turbopackCacheHeal.mjs";
+import { isTurbopackCacheCorruption, purgeAllTurbopackCaches } from "./turbopackCacheHeal.mjs";
 import { randomUUID } from "node:crypto";
 
 const { maybeHandleDisallowedMethod } = methodGuard;
@@ -71,6 +68,7 @@ for (const [key, value] of Object.entries(mergedEnv)) {
 // '@'` on the `@import "tailwindcss"` line. Force NODE_ENV to track the run
 // mode, exactly like the `next` CLI does.
 process.env.NODE_ENV = dev ? "development" : "production";
+process.env.OMNIROUTE_INTERNAL_SCHEME = "http";
 
 const { dashboardPort } = runtimePorts;
 const hostname = process.env.HOST || "0.0.0.0";
@@ -119,7 +117,8 @@ async function prepareWithHeal() {
   try {
     await nextApp.prepare();
   } catch (error) {
-    const detail = error instanceof Error ? `${error.message}\n${error.stack ?? ""}` : String(error);
+    const detail =
+      error instanceof Error ? `${error.message}\n${error.stack ?? ""}` : String(error);
     if (!useTurbopack || !isTurbopackCacheCorruption(detail)) throw error;
     console.warn(
       "[Next] Turbopack dev cache looks corrupted (Windows mmap / os error 1455 — known upstream bug). Purging and retrying once…"

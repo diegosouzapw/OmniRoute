@@ -62,7 +62,8 @@ test("codex client (originator: codex_exec) receives a top-level `models` array 
     new Request("http://localhost/v1/models?client_version=0.137.0", {
       headers: {
         originator: "codex_exec",
-        "user-agent": "codex_exec/0.137.0 (Ubuntu 24.4.0; x86_64) vscode/3.7.19 (codex_exec; 0.137.0)",
+        "user-agent":
+          "codex_exec/0.137.0 (Ubuntu 24.4.0; x86_64) vscode/3.7.19 (codex_exec; 0.137.0)",
       },
     })
   );
@@ -110,7 +111,7 @@ test("non-codex OpenAI client keeps the unchanged {object,data} shape (no `model
   );
 });
 
-test("v1 models catalog exposes only curated Codex IDs from the discovery cache", async () => {
+test("v1 models catalog exposes remote-only Codex IDs from the discovery cache", async () => {
   const connection = await providersDb.createProviderConnection({
     provider: "codex",
     authType: "oauth",
@@ -133,6 +134,12 @@ test("v1 models catalog exposes only curated Codex IDs from the discovery cache"
       source: "imported",
       supportedEndpoints: ["responses"],
     },
+    {
+      id: "gpt-5.4-mini",
+      name: "Retired GPT-5.4 Mini",
+      source: "imported",
+      supportedEndpoints: ["responses"],
+    },
   ]);
 
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
@@ -143,6 +150,8 @@ test("v1 models catalog exposes only curated Codex IDs from the discovery cache"
 
   assert.equal(response.status, 200);
   assert.equal(ids.has("cx/codex-auto-review"), true);
-  assert.equal(ids.has("cx/future-codex-model"), false);
-  assert.equal(ids.has("codex/future-codex-model"), false);
+  assert.equal(ids.has("cx/future-codex-model"), true);
+  assert.equal(ids.has("codex/future-codex-model"), true);
+  assert.equal(ids.has("cx/gpt-5.4-mini"), false);
+  assert.equal(ids.has("codex/gpt-5.4-mini"), false);
 });

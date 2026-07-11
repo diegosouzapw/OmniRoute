@@ -9,7 +9,9 @@
  * Success log (single line): kill deprecated models complete.
  */
 
-import { isCodexDiscoveryModelExcluded } from "@/app/api/providers/[id]/models/discovery/codex";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
 import {
   getSyncedAvailableModelsForConnection,
   replaceSyncedAvailableModelsForConnection,
@@ -17,45 +19,69 @@ import {
 } from "@/lib/db/models";
 import { getProviderConnections } from "@/lib/db/providers";
 import { getSettings, updateSettings } from "@/lib/db/settings";
-import { getRuntimePorts } from "@/lib/runtime/ports";
 
 export const CODEX_CATALOG_REVALIDATED_VERSION_KEY = "codex_catalog_revalidated_version";
 
 export type CodexCatalogRevalidationReason = "first-start" | "upgrade" | "init";
 
-function defaultInternalBaseUrl(): string {
-  const { dashboardPort } = getRuntimePorts();
-  return (
-    process.env.BASE_URL ||
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    process.env.NEXT_PUBLIC_APP_URL ||
-    `http://127.0.0.1:${dashboardPort}`
-  );
-}
+type AppVersionOptions = {
+  runtimeRoot?: string;
+  packageVersion?: string | null;
+};
 
-function loopbackProbePort(): string {
-  return process.env.OMNIROUTE_PORT || process.env.PORT || String(getRuntimePorts().dashboardPort);
-}
-
-/** Resolve a stable app identity for upgrade detection. */
-export function resolveCodexCatalogAppVersion(env: NodeJS.ProcessEnv = process.env): string {
-  const candidates = [
-    env.OMNIROUTE_BUILD_SHA,
-    env.BUILD_SHA,
-    env.npm_package_version,
-    env.OMNIROUTE_VERSION,
-  ];
-  for (const value of candidates) {
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
+function readNonEmptyTextFile(filePath: string): string | null {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pkg = require("../../../package.json") as { version?: string };
-    if (pkg?.version) return `pkg:${pkg.version}`;
+    const value = readFileSync(filePath, "utf8").trim();
+    return value || null;
   } catch {
-    // ignore
+    return null;
   }
-  return "unknown";
+}
+
+function readInstalledPackageVersion(runtimeRoot: string): string | null {
+  try {
+    const pkg = JSON.parse(readFileSync(path.join(runtimeRoot, "package.json"), "utf8")) as {
+      version?: unknown;
+    };
+    return typeof pkg.version === "string" && pkg.version.trim() ? pkg.version.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Resolve a stable, source-qualified app identity for upgrade detection. */
+export function resolveCodexCatalogAppVersion(
+  env: NodeJS.ProcessEnv = process.env,
+  options: AppVersionOptions = {}
+): string | null {
+  for (const value of [env.OMNIROUTE_BUILD_SHA, env.BUILD_SHA]) {
+    if (typeof value === "string" && value.trim()) return `build:${value.trim()}`;
+  }
+
+  const runtimeRoot = options.runtimeRoot || process.cwd();
+  const buildSha = readNonEmptyTextFile(path.join(runtimeRoot, "BUILD_SHA"));
+  if (buildSha) return `build:${buildSha}`;
+
+  for (const buildIdPath of [
+    path.join(runtimeRoot, ".build", "next", "BUILD_ID"),
+    path.join(runtimeRoot, ".next", "BUILD_ID"),
+  ]) {
+    const buildId = readNonEmptyTextFile(buildIdPath);
+    if (buildId) return `next:${buildId}`;
+  }
+
+  const envPackageVersion = env.npm_package_version || env.OMNIROUTE_VERSION;
+  if (typeof envPackageVersion === "string" && envPackageVersion.trim()) {
+    return `pkg:${envPackageVersion.trim()}`;
+  }
+
+  const hasPackageVersionOverride = Object.prototype.hasOwnProperty.call(options, "packageVersion");
+  const packageVersion = hasPackageVersionOverride
+    ? options.packageVersion
+    : readInstalledPackageVersion(runtimeRoot);
+  return typeof packageVersion === "string" && packageVersion.trim()
+    ? `pkg:${packageVersion.trim()}`
+    : null;
 }
 
 /**
@@ -82,7 +108,7 @@ export function scrubSyncedModelsWithCodexDenylist(models: SyncedAvailableModel[
   const kept: SyncedAvailableModel[] = [];
   for (const model of models) {
     if (!model?.id) continue;
-    if (isCodexDiscoveryModelExcluded({ id: model.id, name: model.name || model.id })) {
+    if (isCodexDiscoveryModelExcluded({ id: model.id })) {
       removedIds.push(model.id);
       continue;
     }
@@ -136,20 +162,27 @@ async function listActiveCodexConnectionIds(): Promise<Array<{ id: string; name?
 }
 
 export async function waitForLoopbackHttpReady(options?: {
+  apiBaseUrl?: string;
   maxWaitMs?: number;
   pollMs?: number;
 }): Promise<void> {
   const maxWaitMs = options?.maxWaitMs ?? 15_000;
   const pollMs = options?.pollMs ?? 50;
-  const port = loopbackProbePort();
+  const { fetchModelSyncInternal, resolveModelSyncInternalBaseUrl } =
+    await import("./modelSyncScheduler");
+  const baseUrl = resolveModelSyncInternalBaseUrl(options?.apiBaseUrl);
   const deadline = Date.now() + maxWaitMs;
   let lastErr: unknown;
 
   while (Date.now() < deadline) {
     try {
-      const res = await fetch(`http://127.0.0.1:${port}/api/providers/__readiness_probe__/models`, {
-        signal: AbortSignal.timeout(1_500),
-      });
+      const res = await fetchModelSyncInternal(
+        `${baseUrl}/api/providers/__readiness_probe__/models`,
+        {
+          redirect: "error",
+          signal: AbortSignal.timeout(1_500),
+        }
+      );
       if (res.status >= 200 && res.status < 600) return;
     } catch (err) {
       lastErr = err;
@@ -165,24 +198,29 @@ export async function waitForLoopbackHttpReady(options?: {
 }
 
 export async function liveResyncCodexConnections(
-  apiBaseUrl: string = defaultInternalBaseUrl()
+  apiBaseUrl?: string
 ): Promise<{ attempted: number; succeeded: number }> {
   const connections = await listActiveCodexConnectionIds();
   if (connections.length === 0) {
     return { attempted: 0, succeeded: 0 };
   }
 
-  const { buildModelSyncInternalHeaders } = await import("./modelSyncScheduler");
-  const base = apiBaseUrl.replace(/\/$/, "");
+  const { buildModelSyncInternalHeaders, fetchModelSyncInternal, resolveModelSyncInternalBaseUrl } =
+    await import("./modelSyncScheduler");
+  const base = resolveModelSyncInternalBaseUrl(apiBaseUrl);
   const results = await Promise.allSettled(
     connections.map(async (conn) => {
-      const res = await fetch(`${base}/api/providers/${conn.id}/sync-models?quiet=1`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...buildModelSyncInternalHeaders(),
-        },
-      });
+      const res = await fetchModelSyncInternal(
+        `${base}/api/providers/${conn.id}/sync-models?quiet=1`,
+        {
+          method: "POST",
+          redirect: "error",
+          headers: {
+            "Content-Type": "application/json",
+            ...buildModelSyncInternalHeaders(),
+          },
+        }
+      );
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
       }
@@ -204,36 +242,124 @@ async function readPreviousVersionMarker(): Promise<string | null> {
   }
 }
 
-async function writeVersionMarker(appVersion: string): Promise<void> {
+async function writeVersionMarker(appVersion: string): Promise<boolean> {
   try {
     await updateSettings({ [CODEX_CATALOG_REVALIDATED_VERSION_KEY]: appVersion });
+    return true;
   } catch {
-    // non-fatal
+    return false;
   }
+}
+
+export type CodexCatalogRevalidationOutcome = {
+  complete: boolean;
+  attempted: number;
+  succeeded: number;
+};
+
+export async function executeCodexCatalogRevalidation(options: {
+  appVersion: string | null;
+  scrub: () => Promise<unknown>;
+  waitForReady: () => Promise<void>;
+  liveResync: () => Promise<{ attempted: number; succeeded: number }>;
+  writeMarker: (appVersion: string) => Promise<boolean>;
+  logSuccess: () => void;
+}): Promise<CodexCatalogRevalidationOutcome> {
+  await options.scrub();
+
+  try {
+    await options.waitForReady();
+  } catch {
+    return { complete: false, attempted: 0, succeeded: 0 };
+  }
+
+  const syncResult = await options.liveResync();
+  if (syncResult.succeeded !== syncResult.attempted) {
+    return { complete: false, ...syncResult };
+  }
+
+  if (!options.appVersion) return { complete: false, ...syncResult };
+  const markerWritten = await options.writeMarker(options.appVersion);
+  if (!markerWritten) return { complete: false, ...syncResult };
+
+  options.logSuccess();
+  return { complete: true, ...syncResult };
+}
+
+type CodexCatalogRevalidationRequest = {
+  apiBaseUrl?: string;
+  reason: CodexCatalogRevalidationReason;
+};
+
+export function createCodexCatalogRevalidationCoordinator(
+  run: (options: CodexCatalogRevalidationRequest) => Promise<void>
+): (options: CodexCatalogRevalidationRequest) => Promise<void> {
+  let activeRun: Promise<void> | null = null;
+  let activeReason: CodexCatalogRevalidationReason | null = null;
+  let queuedInit: CodexCatalogRevalidationRequest | null = null;
+
+  return (options) => {
+    if (activeRun) {
+      if (options.reason === "init" && activeReason !== "init") {
+        queuedInit = options;
+      }
+      return activeRun;
+    }
+
+    activeRun = (async () => {
+      let current: CodexCatalogRevalidationRequest | null = options;
+      let firstError: unknown;
+
+      try {
+        while (current) {
+          activeReason = current.reason;
+          try {
+            await run(current);
+          } catch (error) {
+            firstError ??= error;
+          }
+          current = queuedInit;
+          queuedInit = null;
+        }
+      } finally {
+        activeRun = null;
+        activeReason = null;
+      }
+
+      if (firstError) throw firstError;
+    })();
+
+    return activeRun;
+  };
 }
 
 /**
  * Run scrub + live re-sync for an explicit reason, then mark version.
  * Operator-facing success log is a single line.
  */
-export async function revalidateCodexCatalogs(options?: {
-  apiBaseUrl?: string;
-  reason: CodexCatalogRevalidationReason;
-}): Promise<void> {
+async function performCodexCatalogRevalidation(
+  options: CodexCatalogRevalidationRequest
+): Promise<void> {
   const appVersion = resolveCodexCatalogAppVersion();
+  const { resolveModelSyncInternalBaseUrl } = await import("./modelSyncScheduler");
+  const apiBaseUrl = resolveModelSyncInternalBaseUrl(options.apiBaseUrl);
 
-  await scrubCodexPersistedCatalogs();
+  await executeCodexCatalogRevalidation({
+    appVersion,
+    scrub: scrubCodexPersistedCatalogs,
+    waitForReady: () => waitForLoopbackHttpReady({ apiBaseUrl }),
+    liveResync: () => liveResyncCodexConnections(apiBaseUrl),
+    writeMarker: writeVersionMarker,
+    logSuccess: () => console.log("kill deprecated models complete."),
+  });
+}
 
-  try {
-    await waitForLoopbackHttpReady();
-  } catch {
-    await writeVersionMarker(appVersion);
-    return;
-  }
+const requestCodexCatalogRevalidation = createCodexCatalogRevalidationCoordinator(
+  performCodexCatalogRevalidation
+);
 
-  await liveResyncCodexConnections(options?.apiBaseUrl);
-  await writeVersionMarker(appVersion);
-  console.log("kill deprecated models complete.");
+export function revalidateCodexCatalogs(options: CodexCatalogRevalidationRequest): Promise<void> {
+  return requestCodexCatalogRevalidation(options);
 }
 
 /** Boot path: only first-start or upgrade. */
@@ -242,7 +368,9 @@ export async function revalidateCodexCatalogsOnStartup(options?: {
 }): Promise<void> {
   const appVersion = resolveCodexCatalogAppVersion();
   const previousVersion = await readPreviousVersionMarker();
-  const reason = resolveBootRevalidationReason(previousVersion, appVersion);
+  const reason = appVersion
+    ? resolveBootRevalidationReason(previousVersion, appVersion)
+    : "first-start";
   if (!reason) return;
   await revalidateCodexCatalogs({ apiBaseUrl: options?.apiBaseUrl, reason });
 }

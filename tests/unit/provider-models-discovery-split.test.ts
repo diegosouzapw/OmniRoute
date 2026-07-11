@@ -24,6 +24,7 @@ import {
   isNamedOpenAIStyleProvider,
 } from "../../src/app/api/providers/[id]/models/discovery/providerSets.ts";
 import { PROVIDER_MODELS_CONFIG } from "../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
+import { isCodexDiscoveryModelExcluded as isSharedCodexDiscoveryModelExcluded } from "../../src/shared/services/codexDiscoveryPolicy.ts";
 import {
   applyCodexDiscoveryFilters,
   buildCodexDiscoveryCatalog,
@@ -361,6 +362,15 @@ test("codex discovery filters drop the GPT-5.4 family but keep other remote mode
     filtered.map((model) => model.id),
     ["future-codex-model", "gpt-5.6-sol"]
   );
+});
+
+test("shared Codex discovery policy only matches explicit GPT-5.4 family boundaries", () => {
+  for (const id of ["GPT-5.4", "gpt-5.4-mini", "gpt-5.4_preview", "gpt-5.4.1"]) {
+    assert.equal(isSharedCodexDiscoveryModelExcluded({ id }), true, id);
+  }
+  for (const id of ["gpt-5.40", "gpt-5.4x", "future-codex-model"]) {
+    assert.equal(isSharedCodexDiscoveryModelExcluded({ id }), false, id);
+  }
 });
 
 test("codex.buildCodexDiscoveryCatalog merges then filters in one step", () => {

@@ -118,6 +118,7 @@ export async function GET(
     // Check if we should exclude hidden models (used by MCP tools to prevent hidden model leaks)
     const { searchParams } = new URL(request.url);
     const excludeHidden = searchParams.get("excludeHidden") === "true";
+    const excludeCustom = searchParams.get("excludeCustom") === "true";
     const refresh = searchParams.get("refresh") === "true";
 
     const connection = await getProviderConnectionById(id);
@@ -223,15 +224,19 @@ export async function GET(
     // per-connection route (used by MCP list_models_catalog + the dashboard
     // import view) never did, so custom models were dropped on both the
     // discovery-success and local_catalog paths. Read them once here and fold
-    // them into every models response via buildResponse below (dedup by id).
+    // them into every user-facing models response via buildResponse below
+    // (dedup by id). Internal model-sync discovery opts out because these rows
+    // are a response projection, not provider-discovered models.
     let customModelsForProvider: Array<{ id: string; name?: string }> = [];
-    try {
-      const custom = await getCustomModels(provider);
-      if (Array.isArray(custom)) {
-        customModelsForProvider = custom as Array<{ id: string; name?: string }>;
+    if (!excludeCustom) {
+      try {
+        const custom = await getCustomModels(provider);
+        if (Array.isArray(custom)) {
+          customModelsForProvider = custom as Array<{ id: string; name?: string }>;
+        }
+      } catch {
+        // DB unavailable — proceed without custom models.
       }
-    } catch {
-      // DB unavailable — proceed without custom models.
     }
 
     const mergeCustomModels = (models: any[]) => {
