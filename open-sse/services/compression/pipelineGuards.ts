@@ -25,9 +25,15 @@ export interface PipelineInflationResult {
 }
 
 /**
- * Honest aggregate inflation guard. If the fully-stacked body did not actually shrink — its token
- * count is `>=` the original — the compressed body is discarded and the verbatim original is
- * returned.
+ * Honest aggregate inflation guard. Only genuine INFLATION — the fully-stacked body is strictly
+ * LARGER than the original (`compressedTokens > originalTokens`) — discards the compressed body and
+ * returns the verbatim original.
+ *
+ * A net-zero result (`compressedTokens === originalTokens`) is a NO-OP, not inflation: a structural
+ * engine (e.g. `ccr`, `session-dedup`) that found no candidate returns the body unchanged, so its
+ * token count equals the original. That is zero savings, not a revert — flagging it as inflation
+ * would emit a misleading "did not shrink; reverted to original" warning for an engine that never
+ * touched the payload. Equality therefore must NOT trip the guard.
  *
  * Safe by construction: the only alternative it ever returns is `originalBody`, the unmodified
  * request, which is always a valid payload. A (rare) false trigger therefore can never corrupt a
@@ -38,7 +44,7 @@ export interface PipelineInflationResult {
  */
 export function guardPipelineInflation(input: PipelineInflationInput): PipelineInflationResult {
   const { originalTokens, compressedTokens } = input;
-  if (originalTokens > 0 && compressedTokens >= originalTokens) {
+  if (originalTokens > 0 && compressedTokens > originalTokens) {
     return { body: input.originalBody, inflated: true };
   }
   return { body: input.compressedBody, inflated: false };
