@@ -228,6 +228,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "manus_session"],
   },
+  "zai-web": {
+    kind: "cookie",
+    credentialName: "token",
+    placeholder: "token=... or full Cookie header from chat.z.ai",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "token"],
+  },
   lmarena: {
     kind: "cookie",
     // arena.ai's auth cookie is `arena-auth-prod-v1` (the legacy hint said `session`,
