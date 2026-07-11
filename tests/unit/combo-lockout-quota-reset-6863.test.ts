@@ -85,3 +85,56 @@ test("combo 429 lockout honors parsed upstream quota reset over base cooldown (#
     `lockout must equal the parsed upstream reset (~${parsedResetMs}ms); got ${info!.remainingMs}ms (~${Math.round(info!.remainingMs / 1000)}s)`
   );
 });
+
+test("combo 429 lockout prefers a SHORT parsed reset over the subscription fallback cooldown", async () => {
+  // Review follow-up on #6863: the subscription-quota branch returns
+  // cooldownMs = 1h fallback when useUpstreamRetryHints is off (OAuth default),
+  // while quotaResetHintMs carries the real parsed reset. A max() of the two
+  // would over-lock (1h) — the lockout must follow the parsed value (~45m),
+  // matching the single-model path in src/sse/services/auth.ts.
+  const provider = "claude"; // OAuth category → subscription-quota branch applies
+  const model = "claude-sonnet-4-6";
+  const shortResetMessage =
+    "429: Usage limit reached. Your Claude Pro usage limit resets in 45m0s.";
+
+  const settings = {
+    modelLockout: {
+      enabled: true,
+      errorCodes: [429],
+      baseCooldownMs: 3000,
+      maxCooldownMs: 7_200_000,
+      maxBackoffSteps: 10,
+      useExponentialBackoff: true,
+    },
+  };
+
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "short-reset-combo",
+      strategy: "priority",
+      models: [`${provider}/${model}`],
+      config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
+    },
+    handleSingleModel: async () =>
+      new Response(JSON.stringify({ error: { message: shortResetMessage } }), {
+        status: 429,
+        headers: { "content-type": "application/json" },
+      }),
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings,
+    allCombos: null,
+  });
+
+  const parsedResetMs = parseRetryFromErrorText(shortResetMessage);
+  assert.equal(parsedResetMs, 45 * 60 * 1000, "sanity: reset text must parse to 45m");
+
+  const info = getModelLockoutInfo(provider, "", model);
+  assert.ok(info, "combo 429 must record a model lockout");
+  // Must be the parsed 45m — NOT the 1h subscription fallback (over-lock).
+  assert.ok(
+    info!.remainingMs > parsedResetMs! - 5_000 && info!.remainingMs <= parsedResetMs!,
+    `lockout must follow the parsed 45m reset, not the 1h fallback; got ${info!.remainingMs}ms (~${Math.round(info!.remainingMs / 1000)}s)`
+  );
+});

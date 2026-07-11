@@ -2038,11 +2038,17 @@ export async function handleComboChat({
           const { cooldownMs } = fallbackResult;
           // #6863: a parsed upstream quota reset (e.g. Antigravity "Resets in 92h27m28s")
           // arrives in `quotaResetHintMs` — it bypasses the operator-gated
-          // `useUpstreamRetryHints` connection-cooldown setting, mirroring the
-          // single-model path (src/sse/services/auth.ts). Without it the lockout
-          // falls back to the base cooldown and quota-dead accounts are re-walked
-          // every few seconds for days.
-          const lockoutHintMs = Math.max(cooldownMs, fallbackResult.quotaResetHintMs ?? 0);
+          // `useUpstreamRetryHints` connection-cooldown setting. Mirror the
+          // single-model path (src/sse/services/auth.ts): when the retry hint was
+          // already honored, `cooldownMs` IS the upstream value; otherwise prefer the
+          // parsed quota reset — even when it is SHORTER than the fallback cooldown
+          // (e.g. subscription-quota 1h default vs a real "resets in 10m").
+          // `selectLockoutCooldownMs` still ignores hints at/below the base cooldown,
+          // so absent/tiny hints keep the #1308 exponential-backoff behavior.
+          const lockoutHintMs =
+            fallbackResult.usedUpstreamRetryHint === true
+              ? cooldownMs
+              : (fallbackResult.quotaResetHintMs ?? 0);
           const selectedConnectionId =
             result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
             result.headers?.get("x-omniroute-selected-connection-id") ||
