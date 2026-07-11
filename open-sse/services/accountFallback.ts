@@ -390,6 +390,9 @@ export async function getRuntimeProviderProfile(provider: string | null | undefi
 // ─── Per-Model Lockout Tracking ─────────────────────────────────────────────
 // In-memory map: "provider:connectionId:model" → { reason, until, lockedAt }
 const modelLockouts = new Map<string, ModelLockoutEntry>();
+// Cap prevents unbounded growth under sustained load. Entries beyond this limit
+// are evicted (oldest first, in insertion order) during the periodic cleanup.
+const MODEL_LOCKOUT_EVICTION_CAP = 1000;
 const modelFailureState = new Map<string, ModelFailureState>();
 
 // Aliases (e.g. "cx" → "codex") must share lockout state with their canonical
@@ -467,6 +470,28 @@ function ensureCleanupTimer() {
       const now = Date.now();
       for (const key of modelLockouts.keys()) cleanupModelLockKey(key, now);
       for (const key of modelFailureState.keys()) cleanupModelLockKey(key, now);
+
+      // Evict oldest entries (insertion order) when cap exceeded.
+      // Keeps in-flight failures for active models — only culls excess.
+      if (modelLockouts.size > MODEL_LOCKOUT_EVICTION_CAP) {
+        const overflow = modelLockouts.size - MODEL_LOCKOUT_EVICTION_CAP;
+        let evicted = 0;
+        for (const key of modelLockouts.keys()) {
+          if (evicted >= overflow) break;
+          modelLockouts.delete(key);
+          modelFailureState.delete(key);
+          evicted++;
+        }
+      }
+      if (modelFailureState.size > MODEL_LOCKOUT_EVICTION_CAP) {
+        const overflow = modelFailureState.size - MODEL_LOCKOUT_EVICTION_CAP;
+        let evicted = 0;
+        for (const key of modelFailureState.keys()) {
+          if (evicted >= overflow) break;
+          if (!modelLockouts.has(key)) modelFailureState.delete(key);
+          evicted++;
+        }
+      }
     }, 15_000);
     if (typeof _cleanupTimer === "object" && "unref" in _cleanupTimer) {
       (_cleanupTimer as { unref?: () => void }).unref?.(); // Don't prevent process exit (Node.js only)
