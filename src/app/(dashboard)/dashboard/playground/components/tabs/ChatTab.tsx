@@ -9,7 +9,7 @@ import { useStreamMetrics } from "../../hooks/useStreamMetrics";
 import { getModelPricing } from "@/lib/playground/types";
 import type { ConfigState } from "../StudioConfigPane";
 import type { StreamMetrics } from "@/shared/schemas/playground";
-import { buildReasoningRequestFields } from "../reasoningControls";
+import { buildReasoningRequestFields } from "../reasoningControlUtils";
 
 interface Message {
   role: "system" | "user" | "assistant";

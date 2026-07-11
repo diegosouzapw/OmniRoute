@@ -2566,6 +2566,29 @@
       "stream": "https://api.llm7.io/v1/chat/completions"
     }
   },
+  "lmarena": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://arena.ai/nextjs-api/stream/create-evaluation",
+      "stream": "https://arena.ai/nextjs-api/stream/create-evaluation"
+    }
+  },
   "longcat": {
     "format": "openai",
     "headers": {
@@ -3706,8 +3729,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.sensenova.cn/v1/chat/completions",
-      "stream": "https://api.sensenova.cn/v1/chat/completions"
+      "nonStream": "https://token.sensenova.cn/v1/chat/completions",
+      "stream": "https://token.sensenova.cn/v1/chat/completions"
     }
   },
   "siliconflow": {

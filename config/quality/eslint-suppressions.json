@@ -1502,16 +1502,6 @@
       "count": 1
     }
   },
-  "tests/unit/live-ws-public-url.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 5
-    }
-  },
-  "tests/unit/lmarena-provider.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 9
-    }
-  },
   "tests/unit/lmarena-split-cookie-4271.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1

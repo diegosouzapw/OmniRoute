@@ -110,6 +110,7 @@ export default function QuotaCard({
       />
       <QuotaCardExpanded
         quotas={quotas}
+        providerId={connection.provider}
         loading={loading}
         error={error}
         message={quota?.message ?? null}

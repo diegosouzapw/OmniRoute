@@ -1,4 +1,5 @@
 import { KIRO_CONFIG, AWS_REGION_PATTERN, assertValidAwsRegion } from "../constants/oauth";
+import { discoverKiroProfileArnAcrossRegions } from "@omniroute/open-sse/services/kiroRegion.ts";
 
 export const kiro = {
   config: KIRO_CONFIG,
@@ -8,9 +9,7 @@ export const kiro = {
     const candidateRegion = regionMatch?.[1] || "us-east-1";
     // Region is sourced from KIRO_CONFIG.tokenUrl (trusted constant) but defensively
     // re-validate before letting it influence later fetches (GHSA-6mwv-4mrm-5p3m).
-    const resolvedRegion = AWS_REGION_PATTERN.test(candidateRegion)
-      ? candidateRegion
-      : "us-east-1";
+    const resolvedRegion = AWS_REGION_PATTERN.test(candidateRegion) ? candidateRegion : "us-east-1";
     const registerPayload: {
       clientName: string;
       clientType: string;
@@ -131,45 +130,19 @@ export const kiro = {
   },
   // Enterprise IAM Identity Center accounts require a region-bound Q Developer profileArn on every
   // CodeWhisperer call; without it AWS returns 403 "User is not authorized to make this call". The
-  // device-code flow does not return one, so discover it here via ListAvailableProfiles against the
-  // same regional endpoint the token was issued for. Best-effort: AWS Builder ID accounts have no
-  // profile and this simply yields none; failures never block login.
+  // device-code flow does not return one, so discover it here via ListAvailableProfiles.
+  //
+  // The IdC/token region (`_region`, e.g. eu-north-1) is NOT where the Q Developer profile lives —
+  // AWS only hosts the profile (and its runtime) in us-east-1 / eu-central-1. So probe those
+  // profile regions with the freshly-minted SSO token (which works cross-region against the
+  // profile's home region), NOT q.{idcRegion} which does not resolve. Best-effort: AWS Builder ID
+  // accounts have no profile and this simply yields none; failures never block login.
   postExchange: async (tokenData) => {
     const accessToken = tokenData?.access_token;
     if (!accessToken) return null;
-    const region = String(tokenData?._region || "us-east-1").toLowerCase();
-    // Defensive: tokenData._region came from upstream JSON or extraData
-    // and is interpolated into the runtime host below (GHSA-6mwv-4mrm-5p3m).
-    if (!AWS_REGION_PATTERN.test(region)) return null;
-    const runtimeHost =
-      region === "us-east-1"
-        ? "https://codewhisperer.us-east-1.amazonaws.com"
-        : `https://q.${region}.amazonaws.com`;
-    try {
-      const profRes = await fetch(`${runtimeHost}/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-amz-json-1.0",
-          Accept: "application/json",
-          "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ maxResults: 10 }),
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!profRes.ok) return null;
-      const profData = await profRes.json();
-      const profiles = Array.isArray(profData?.profiles) ? profData.profiles : [];
-      const matched =
-        profiles.find(
-          (p: { arn?: string }) => typeof p?.arn === "string" && p.arn.includes(`:${region}:`)
-        ) || profiles[0];
-      const arn = matched && typeof matched.arn === "string" ? matched.arn : undefined;
-      return arn ? { profileArn: arn } : null;
-    } catch {
-      // Best-effort profile discovery — never block login on it.
-      return null;
-    }
+    const storedRegion = typeof tokenData?._region === "string" ? tokenData._region : undefined;
+    const arn = await discoverKiroProfileArnAcrossRegions(accessToken, storedRegion);
+    return arn ? { profileArn: arn } : null;
   },
   mapTokens: (tokens, extra) => ({
     accessToken: tokens.access_token,

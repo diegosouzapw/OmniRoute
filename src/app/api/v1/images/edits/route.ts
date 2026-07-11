@@ -3,7 +3,10 @@ import {
   handleOpenAIImageEdit,
 } from "@omniroute/open-sse/handlers/imageGeneration.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
-import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
+import {
+  getProviderCredentialsWithQuotaPreflight,
+  clearRecoveredProviderState,
+} from "@/sse/services/auth";
 import { parseImageModel, getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -172,7 +175,7 @@ async function postHandler(request: Request, context) {
 
   // chatgpt-web keeps its conversation-continuation edit flow unchanged.
   if (providerConfig?.format === "chatgpt-web") {
-    const credentials = await getProviderCredentials(
+    const credentials = await getProviderCredentialsWithQuotaPreflight(
       parsed.provider,
       null,
       allowedConnections,
@@ -241,7 +244,7 @@ async function postHandler(request: Request, context) {
     );
   }
 
-  const credentials = await getProviderCredentials(
+  const credentials = await getProviderCredentialsWithQuotaPreflight(
     customProviderId,
     null,
     allowedConnections,

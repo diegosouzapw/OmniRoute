@@ -6,6 +6,7 @@
 import { randomUUID, randomInt } from "crypto";
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
+import { pickByLatency } from "./proxyLatency";
 import type {
   JsonRecord,
   ProxyScope,
@@ -19,10 +20,7 @@ import type {
   LegacyProxyConfig,
   ProxyRotationStrategy,
 } from "./proxies/types";
-import {
-  PROXY_ROTATION_STRATEGIES,
-  DEFAULT_PROXY_ROTATION_STRATEGY,
-} from "./proxies/types";
+import { PROXY_ROTATION_STRATEGIES, DEFAULT_PROXY_ROTATION_STRATEGY } from "./proxies/types";
 import {
   mapProxyRow,
   mapAssignmentRow,
@@ -742,6 +740,8 @@ function pickFromCandidates<T>(
     // crypto.randomInt silences the alert at the source and is unbiased (#6365 follow-up).
     return candidates[randomInt(candidates.length)];
   }
+
+  if (state.strategy === "latency") return pickByLatency(db, candidates);
 
   if (state.strategy === "sticky") {
     const windowMs = state.stickyWindowMinutes * 60_000;

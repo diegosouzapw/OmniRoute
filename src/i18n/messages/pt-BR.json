@@ -1542,6 +1542,8 @@
     "chartModel": "Modelo",
     "chartProvider": "Provedor",
     "chartProviderBreakdown": "Detalhamento por Provedor",
+    "chartDate": "Data",
+    "chartRequestsByProviderDate": "Requisições por Provedor e Data",
     "filterAllKeys": "Todas as Chaves",
     "filterSearchKeys": "Buscar chaves…",
     "filterNoKeysMatch": "Nenhuma chave corresponde",
