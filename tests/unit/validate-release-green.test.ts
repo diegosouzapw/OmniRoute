@@ -275,7 +275,8 @@ test("extractCiGates: the REAL ci.yml yields the base-reds that leaked in v3.8.4
   // never ran them — --full-ci now reproduces every one.
   for (const g of [
     "check:route-validation:t06",
-    "check:docs-symbols",
+    // openapi-routes + docs-symbols collapsed into one FS walk (#6716).
+    "check:api-docs-refs",
     "check:bundle-size",
     "check:test-masking",
     "check:file-size",

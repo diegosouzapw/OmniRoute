@@ -341,8 +341,33 @@ function resolveVisionCapability(
   return null;
 }
 
+/**
+ * Issue #6524: an operator-set `max_token` capability override (see
+ * `src/lib/db/modelCapabilityOverrides.ts`) is the manual escape hatch for a
+ * wrong/stale synced `limit_output` value (e.g. a provider's models.dev catalog
+ * row reporting `limit_output` equal to `limit_context`). It already won over the
+ * synced value in `getResolvedModelCapabilities().maxOutputTokens` — this helper
+ * makes `getExplicitModelOutputCap()` (used by the reasoning-token-buffer clamp)
+ * consult the same override so both read paths agree.
+ */
+function getMaxTokenCapabilityOverride(resolved: {
+  provider: string | null;
+  model: string | null;
+  rawModel: string | null;
+}): number | null {
+  return (
+    getModelCapabilityOverride(resolved.provider, resolved.model, "max_token") ??
+    (resolved.rawModel && resolved.rawModel !== resolved.model
+      ? getModelCapabilityOverride(resolved.provider, resolved.rawModel, "max_token")
+      : null)
+  );
+}
+
 export function getExplicitModelOutputCap(input: CapabilityInput): number | null {
   const resolved = resolveCapabilityInput(input);
+  const maxTokenOverride = getMaxTokenCapabilityOverride(resolved);
+  if (maxTokenOverride !== null) return maxTokenOverride;
+
   const synced = getSyncedCapabilityForResolved(
     resolved.provider,
     resolved.model,
@@ -402,11 +427,7 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     spec?.contextWindow ??
     null;
 
-  const maxTokenOverride =
-    getModelCapabilityOverride(resolved.provider, resolved.model, "max_token") ??
-    (resolved.rawModel && resolved.rawModel !== resolved.model
-      ? getModelCapabilityOverride(resolved.provider, resolved.rawModel, "max_token")
-      : null);
+  const maxTokenOverride = getMaxTokenCapabilityOverride(resolved);
 
   return {
     provider: resolved.provider,

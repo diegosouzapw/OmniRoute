@@ -1,6 +1,6 @@
 declare module "sql.js" {
   export interface SqlJsStatement {
-    bind(values: unknown[]): void;
+    bind(values: unknown[] | Record<string, unknown>): void;
     step(): boolean;
     getAsObject(): Record<string, unknown>;
     free(): void;
