@@ -41,11 +41,17 @@ interface DbLike {
 
 // ──────────────── Provider Connections ────────────────
 
-export async function getProviderConnections(filter: JsonRecord = {}) {
+export async function getProviderConnections(filter: JsonRecord = {}, columns?: string[]) {
   const db = getDbInstance() as unknown as DbLike;
-  let sql = "SELECT * FROM provider_connections";
+  const selectCols = columns?.length ? columns.join(", ") : "*";
+  let sql = `SELECT ${selectCols} FROM provider_connections`;
   const conditions: string[] = [];
   const params: Record<string, unknown> = {};
+
+  if (filter.authType) {
+    conditions.push("auth_type = @authType");
+    params.authType = filter.authType;
+  }
 
   if (filter.provider) {
     conditions.push("provider = @provider");
@@ -617,8 +623,9 @@ export async function clearConnectionErrorIfUnchanged(
   }
 ): Promise<boolean> {
   const db = getDbInstance() as unknown as DbLike;
-  const result = db.prepare(
-    `
+  const result = db
+    .prepare(
+      `
     UPDATE provider_connections SET
       test_status = 'active',
       last_error = NULL,
@@ -634,13 +641,14 @@ export async function clearConnectionErrorIfUnchanged(
       AND IFNULL(last_error_at, '') = ?
       AND IFNULL(rate_limited_until, '') = ?
     `
-  ).run(
-    new Date().toISOString(),
-    id,
-    expected.testStatus ?? "",
-    expected.lastErrorAt ?? "",
-    expected.rateLimitedUntil ?? ""
-  );
+    )
+    .run(
+      new Date().toISOString(),
+      id,
+      expected.testStatus ?? "",
+      expected.lastErrorAt ?? "",
+      expected.rateLimitedUntil ?? ""
+    );
   const applied = (result.changes ?? 0) > 0;
   if (applied) {
     backupDbFile("pre-write");

@@ -235,6 +235,7 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_pc_provider ON provider_connections(provider);
   CREATE INDEX IF NOT EXISTS idx_pc_active ON provider_connections(is_active);
   CREATE INDEX IF NOT EXISTS idx_pc_priority ON provider_connections(provider, priority);
+  CREATE INDEX IF NOT EXISTS idx_pc_auth_active_refresh ON provider_connections(auth_type, is_active, refresh_token);
 
   CREATE TABLE IF NOT EXISTS provider_nodes (
     id TEXT PRIMARY KEY,
@@ -1028,8 +1029,7 @@ export function getDbInstance(): SqliteDatabase {
         let hasData = false;
         try {
           const count = probe.prepare("SELECT COUNT(*) as c FROM provider_connections").get() as
-            | { c: number }
-            | undefined;
+            { c: number } | undefined;
           hasData = Boolean(count && count.c > 0);
         } catch {
           // Table might not exist at all — truly incompatible
