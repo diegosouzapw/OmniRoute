@@ -33,6 +33,8 @@ const EXPIRED_RETRY_MAX = 3; // max retry attempts for expired connections befor
 const EXPIRED_RETRY_BACKOFF_MIN = 5; // backoff between expired retries (minutes)
 const LOG_PREFIX = "[HealthCheck]";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
+const MIN_RESTART_REFRESH_JITTER_MS = 500;
+const MAX_RESTART_REFRESH_JITTER_MS = 5000;
 
 function isBuildProcess(): boolean {
   return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
@@ -322,7 +324,8 @@ export function stopTokenHealthCheck() {
 }
 
 // ── Core sweep ───────────────────────────────────────────────────────────────
-async function sweep() {
+/** @internal exported for testing only */
+export async function sweep() {
   try {
     const connections = await getProviderConnections({ authType: "oauth" });
 
@@ -339,9 +342,14 @@ async function sweep() {
         logError(`${LOG_PREFIX} Error checking ${conn.name || conn.id}:`, err.message);
       }
 
-      // Stagger delay between checks to prevent bursting (Issue #1220)
+      // Stagger + randomized jitter between checks to prevent bursting (Issue #1220)
       if (staggerMs > 0 && i < connections.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, staggerMs));
+        const jitter =
+          MIN_RESTART_REFRESH_JITTER_MS +
+          Math.random() * (MAX_RESTART_REFRESH_JITTER_MS - MIN_RESTART_REFRESH_JITTER_MS);
+        const { promise, resolve } = Promise.withResolvers<void>();
+        setTimeout(resolve, staggerMs + jitter);
+        await promise;
       }
     }
   } catch (err) {
