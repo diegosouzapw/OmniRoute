@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 import SourceToggleBar, {
@@ -32,10 +32,14 @@ export default function FreePoolTab() {
   const [bulkProgress, setBulkProgress] = useState<string | null>(null);
   // #5595: per-source sync errors so a "Total: 0" result is never silent.
   const [syncErrors, setSyncErrors] = useState<Record<string, string[]> | null>(null);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"quality" | "latency" | "recent">("quality");
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [total, setTotal] = useState<number | null>(null);
+  const offsetRef = useRef(0);
 
   // Load persisted disabled-sources from localStorage on mount
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage hydration, runs once
     setDisabledSources(loadDisabledSources());
   }, []);
 
@@ -49,37 +53,53 @@ export default function FreePoolTab() {
     });
   }, []);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      const enabledSources = ALL_SOURCE_IDS.filter((s) => !disabledSources.has(s));
-      if (enabledSources.length < ALL_SOURCE_IDS.length) {
-        params.set("sources", enabledSources.join(","));
-      }
-      if (filterProtocol) params.set("protocol", filterProtocol);
-      if (filterCountry) params.set("country", filterCountry);
-      if (minQuality) params.set("minQuality", minQuality);
-      params.set("limit", "200");
+  const loadData = useCallback(
+    async (append = false) => {
+      if (append) setLoadingMore(true);
+      else setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        const enabledSources = ALL_SOURCE_IDS.filter((s) => !disabledSources.has(s));
+        if (enabledSources.length < ALL_SOURCE_IDS.length) {
+          params.set("sources", enabledSources.join(","));
+        }
+        if (filterProtocol) params.set("protocol", filterProtocol);
+        if (filterCountry) params.set("country", filterCountry);
+        if (minQuality) params.set("minQuality", minQuality);
+        if (search.trim()) params.set("search", search.trim());
+        if (sortBy) params.set("sortBy", sortBy);
+        params.set("limit", "50");
+        params.set("offset", append ? String(offsetRef.current) : "0");
 
-      const [proxiesRes, statsRes] = await Promise.all([
-        fetch(`/api/settings/free-proxies?${params.toString()}`),
-        fetch("/api/settings/free-proxies/stats"),
-      ]);
-      if (proxiesRes.ok) {
-        const data = await proxiesRes.json();
-        setProxies(data.items || []);
+        const [proxiesRes, statsRes] = await Promise.all([
+          fetch(`/api/settings/free-proxies?${params.toString()}`),
+          append ? null : fetch("/api/settings/free-proxies/stats"),
+        ]);
+        if (proxiesRes.ok) {
+          const data = await proxiesRes.json();
+          const fetched: FreeProxyRowData[] = data.items || [];
+          setProxies((prev) => (append ? [...prev, ...fetched] : fetched));
+          setTotal(typeof data.total === "number" ? data.total : fetched.length);
+          if (append) offsetRef.current += fetched.length;
+        }
+        if (!append && statsRes?.ok) {
+          const data = await statsRes.json();
+          setStats(data.stats || null);
+        }
+      } catch {
+        // surface nothing on transient failure; table keeps last good data
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-      if (statsRes.ok) {
-        const data = await statsRes.json();
-        setStats(data.stats || null);
-      }
-    } catch {}
-    setLoading(false);
-  }, [disabledSources, filterProtocol, filterCountry, minQuality]);
+    },
+    [disabledSources, filterProtocol, filterCountry, minQuality, search, sortBy]
+  );
 
+  const loadMore = useCallback(() => {
+    void loadData(true);
+  }, [loadData]);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- async data fetch on filter change
     loadData();
   }, [loadData]);
 
@@ -165,9 +185,36 @@ export default function FreePoolTab() {
       <div className="flex flex-wrap items-center gap-3">
         <SourceToggleBar disabledSources={disabledSources} onToggle={handleToggleSource} />
         <div className="flex gap-2 ml-auto flex-wrap items-center">
+          <input
+            type="text"
+            placeholder={t("proxyFreePoolSearchPlaceholder")}
+            value={search}
+            onChange={(e) => {
+              offsetRef.current = 0;
+              setSearch(e.target.value);
+            }}
+            className="text-xs bg-surface-alt border border-border rounded px-2 py-1 w-40"
+            aria-label={t("proxyFreePoolSearchLabel")}
+          />
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              offsetRef.current = 0;
+              setSortBy(e.target.value as "quality" | "latency" | "recent");
+            }}
+            className="text-xs bg-surface-alt border border-border rounded px-2 py-1"
+            aria-label={t("proxyFreePoolSortLabel")}
+          >
+            <option value="quality">{t("proxyFreePoolSortQuality")}</option>
+            <option value="latency">{t("proxyFreePoolSortLatency")}</option>
+            <option value="recent">{t("proxyFreePoolSortRecent")}</option>
+          </select>
           <select
             value={filterProtocol}
-            onChange={(e) => setFilterProtocol(e.target.value)}
+            onChange={(e) => {
+              offsetRef.current = 0;
+              setFilterProtocol(e.target.value);
+            }}
             className="text-xs bg-surface-alt border border-border rounded px-2 py-1"
             aria-label={t("proxyFreePoolFilterProtocol")}
           >
@@ -182,7 +229,10 @@ export default function FreePoolTab() {
             type="text"
             placeholder={t("proxyFreePoolCountryPlaceholder")}
             value={filterCountry}
-            onChange={(e) => setFilterCountry(e.target.value.toUpperCase().slice(0, 2))}
+            onChange={(e) => {
+              offsetRef.current = 0;
+              setFilterCountry(e.target.value.toUpperCase().slice(0, 2));
+            }}
             className="text-xs bg-surface-alt border border-border rounded px-2 py-1 w-28"
             aria-label={t("proxyFreePoolFilterCountry")}
           />
@@ -190,7 +240,10 @@ export default function FreePoolTab() {
             type="number"
             placeholder={t("proxyFreePoolMinQualityPlaceholder")}
             value={minQuality}
-            onChange={(e) => setMinQuality(e.target.value)}
+            onChange={(e) => {
+              offsetRef.current = 0;
+              setMinQuality(e.target.value);
+            }}
             min={0}
             max={100}
             className="text-xs bg-surface-alt border border-border rounded px-2 py-1 w-24"
@@ -207,6 +260,11 @@ export default function FreePoolTab() {
           <span>
             {t("proxyFreePoolTotal")}: {stats.total}
           </span>
+          {total != null && (
+            <span>
+              {t("proxyFreePoolListTotal")}: {total}
+            </span>
+          )}
           <span>
             {t("proxyFreePoolInPool")}: {stats.inPool}
           </span>
@@ -220,6 +278,12 @@ export default function FreePoolTab() {
               {t("lastSync")}: {new Date(stats.lastSyncAt).toLocaleTimeString()}
             </span>
           )}
+        </div>
+      )}
+
+      {loading && (
+        <div className="text-xs text-text-muted" data-testid="free-pool-loading">
+          {t("loading")}
         </div>
       )}
 
@@ -255,6 +319,13 @@ export default function FreePoolTab() {
             onClick={() => handleBulkAdd(notInPoolProxies.slice(0, 100).map((p) => p.id))}
           >
             {t("proxyFreePoolAddVisible")}
+          </Button>
+        </div>
+      )}
+      {!loading && total != null && proxies.length < total && (
+        <div className="flex justify-center pt-1">
+          <Button size="sm" variant="secondary" onClick={loadMore} disabled={loadingMore}>
+            {loadingMore ? t("loading") : t("proxyFreePoolLoadMore")}
           </Button>
         </div>
       )}
