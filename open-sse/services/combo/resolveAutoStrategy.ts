@@ -1,9 +1,6 @@
 import { unavailableResponse } from "../../utils/error.ts";
 import { selectProvider as selectAutoProvider } from "../autoCombo/engine.ts";
-import {
-  resolveRequestModePack,
-  parseRequestBudgetCap,
-} from "../autoCombo/requestControls.ts";
+import { resolveRequestModePack, parseRequestBudgetCap } from "../autoCombo/requestControls.ts";
 import { selectWithStrategy } from "../autoCombo/routerStrategy.ts";
 import { buildComplexityRoutingHint } from "../autoCombo/complexityRouter";
 import { recordComboIntent } from "../comboMetrics.ts";
@@ -123,7 +120,7 @@ export async function resolveAutoStrategyOrder(
   );
   if (estimatedInputTokens > 0) {
     const filteredByContext = eligibleTargets.filter((target) => {
-      const limit = getModelContextLimitForModelString(target.modelStr);
+      const limit = getModelContextLimitForModelString(target.modelStr, target.provider);
       if (limit === null || limit === undefined) return true; // unknown — include to be safe
       return limit >= estimatedInputTokens;
     });

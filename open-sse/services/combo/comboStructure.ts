@@ -13,7 +13,7 @@
 
 import { getModelContextLimit } from "../../../src/lib/modelCapabilities";
 import { getComboModelString, normalizeComboStep } from "../../../src/lib/combos/steps.ts";
-import { estimateTokens } from "../contextManager.ts";
+import { estimateTokens, previewMessageContent } from "../contextManager.ts";
 import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
 import { parseModel } from "../model.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
@@ -394,17 +394,20 @@ export function resolveNestedComboModels(
  * @param {Array<string>} models - Model strings in "provider/model" format
  * @returns {Array<string>} Sorted model strings (largest context first)
  */
-function sortModelsByContextSize(models: string[]): string[] {
-  const withContext = models.map((modelStr) => {
-    return { modelStr, context: getModelContextLimitForModelString(modelStr) ?? 0 };
+function sortModelsByContextSize(targets: ResolvedComboTarget[]): string[] {
+  const withContext = targets.map((target) => {
+    return {
+      modelStr: target.modelStr,
+      context: getModelContextLimitForModelString(target.modelStr, target.provider) ?? 0,
+    };
   });
   withContext.sort((a, b) => b.context - a.context);
   return withContext.map((e) => e.modelStr);
 }
 
-export function getModelContextLimitForModelString(modelStr: string) {
+export function getModelContextLimitForModelString(modelStr: string, explicitProvider?: string) {
   const parsed = parseModel(modelStr);
-  const provider = parsed.provider || parsed.providerAlias || "unknown";
+  const provider = explicitProvider || parsed.provider || parsed.providerAlias || "unknown";
   const model = parsed.model || modelStr;
   return getModelContextLimit(provider, model);
 }
@@ -438,7 +441,10 @@ function requestRequiresStructuredOutput(body: Record<string, unknown>): boolean
 function estimateRequestInputTokens(body: Record<string, unknown>): number {
   const estimatePayload: Record<string, unknown> = {};
   for (const key of ["messages", "input", "tools", "functions", "response_format"]) {
-    if (body[key] !== undefined) estimatePayload[key] = body[key];
+    if (body[key] !== undefined) {
+      // Redact multimodal content (base64 images) to prevent token estimate inflation
+      estimatePayload[key] = previewMessageContent(body[key]);
+    }
   }
   return Object.keys(estimatePayload).length > 0 ? estimateTokens(estimatePayload) : 0;
 }
@@ -661,11 +667,10 @@ export function filterTargetsByRequestCompatibility(
 
 export function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
   const hasKnownContext = targets.some(
-    (target) => getModelContextLimitForModelString(target.modelStr) != null
+    (target) => getModelContextLimitForModelString(target.modelStr, target.provider) != null
   );
   if (!hasKnownContext) return targets;
-
-  const orderedModels = sortModelsByContextSize(targets.map((target) => target.modelStr));
+  const orderedModels = sortModelsByContextSize(targets);
   const byModel = new Map<string, ResolvedComboTarget[]>();
   for (const target of targets) {
     const queue = byModel.get(target.modelStr) || [];

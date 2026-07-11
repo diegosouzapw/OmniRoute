@@ -57,6 +57,45 @@ export function estimateTokens(text: string | object | null | undefined): number
 }
 
 /**
+ * Preview/redact message content for logging/memory optimization.
+ * Handles multimodal content by truncating base64 image data.
+ * This prevents massive base64 payloads from inflating token estimates
+ * or being retained in memory during request preview.
+ */
+export function previewMessageContent(content: unknown, maxLength = 1000): unknown {
+  if (content === null || content === undefined) return content;
+  if (typeof content === "string")
+    return content.length > maxLength ? content.slice(0, maxLength) + "..." : content;
+  if (Array.isArray(content)) {
+    return content.map((item) => previewMessageContent(item, maxLength));
+  }
+  if (typeof content === "object") {
+    const obj = content as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Redact base64 image data
+      if (
+        (key === "image_url" || key === "data") &&
+        typeof value === "string" &&
+        value.startsWith("data:image/")
+      ) {
+        // Truncate base64 image data
+        result[key] = value.length > 200 ? value.slice(0, 200) + "...[truncated]" : value;
+      } else if (key === "b64_json" && typeof value === "string" && value.length > 200) {
+        // OpenAI image generation base64
+        result[key] = value.slice(0, 200) + "...[truncated]";
+      } else if (typeof value === "object" && value !== null) {
+        result[key] = previewMessageContent(value, maxLength);
+      } else {
+        result[key] = value;
+      }
+    }
+    return result;
+  }
+  return content;
+}
+
+/**
  * Get token limit for a provider/model combination
  * Priority: Env override > models.dev DB > Registry defaultContextLength > DEFAULT_LIMITS
  */
