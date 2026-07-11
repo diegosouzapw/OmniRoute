@@ -337,6 +337,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Reasoning replay                              | `docs/routing/REASONING_REPLAY.md`                      |
 | Skills framework                              | `docs/frameworks/SKILLS.md`                             |
 | Memory system (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                             |
+| OmniContext / Continuity Plane                | `docs/frameworks/OMNICONTEXT.md`                        |
 | Cloud agents                                  | `docs/frameworks/CLOUD_AGENT.md`                        |
 | Guardrails (PII / injection / vision)         | `docs/security/GUARDRAILS.md`                           |
 | Public upstream credentials (Gemini/etc.)     | `docs/security/PUBLIC_CREDS.md`                         |

@@ -27,6 +27,8 @@ tags:
     description: Playground Studio — preset management and prompt improvement
   - name: Memory
     description: Conversational memory management — CRUD, engine status, playground preview, summarization, reindex, and Qdrant settings (plan 21 — v3.8.6). All routes require management auth.
+  - name: OmniContext
+    description: Continuity Plane — team-scoped projects, artifacts, handoffs, settings, SCIM push sync. See docs/frameworks/OMNICONTEXT.md.
   - name: Chat
     description: OpenAI-compatible chat completions
   - name: Messages
@@ -1072,6 +1074,180 @@ paths:
                     type: array
                     items:
                       type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  # ─── OmniContext (Continuity Plane) ───────────────────────────
+  /api/omnicontext/settings:
+    get:
+      tags:
+        - OmniContext
+      summary: Get OmniContext settings
+      description: Continuity Plane settings (enabled, hybridRetrieve, embedSource, remote backend, DLP, etc.). See docs/frameworks/OMNICONTEXT.md.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: OmniContext settings
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      tags:
+        - OmniContext
+      summary: Update OmniContext settings
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                hybridRetrieve:
+                  type: boolean
+                embedSource:
+                  type: string
+                  enum: [local, memory-auto]
+                injectBudgetTokens:
+                  type: integer
+                retrieveTimeoutMs:
+                  type: integer
+                gitProbeEnabled:
+                  type: boolean
+                autoPublish:
+                  type: string
+                  enum: [off, confirm, draft-only]
+                preferStablePrefix:
+                  type: boolean
+                backend:
+                  type: string
+                  enum: [native, remote]
+                remoteBaseUrl:
+                  type: string
+                remoteApiKey:
+                  type: string
+                remoteTimeoutMs:
+                  type: integer
+                dlpEnabled:
+                  type: boolean
+                departmentReviewRequired:
+                  type: boolean
+      responses:
+        "200":
+          description: Updated settings
+        "400":
+          description: Validation error
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/omnicontext/projects:
+    get:
+      tags:
+        - OmniContext
+      summary: List Continuity projects
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Project list
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags:
+        - OmniContext
+      summary: Create Continuity project
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Created project
+        "400":
+          description: Validation error
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/omnicontext/scim/sync:
+    post:
+      tags:
+        - OmniContext
+      summary: SCIM-like membership push sync
+      description: |
+        Operator-pushed membership sync. No live Okta/Entra connector —
+        maps apiKeyId (+ optional externalId/email) onto project members.
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [projectId, actorApiKeyId, members]
+              properties:
+                projectId:
+                  type: string
+                actorApiKeyId:
+                  type: string
+                members:
+                  type: array
+                  items:
+                    type: object
+                    required: [apiKeyId]
+                    properties:
+                      apiKeyId:
+                        type: string
+                      role:
+                        type: string
+                        enum: [member, lead, admin]
+                      externalId:
+                        type: string
+                      email:
+                        type: string
+      responses:
+        "200":
+          description: Sync result (added/skipped/errors)
+        "400":
+          description: Validation error
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Actor lacks MANAGE_MEMBERS
+  /api/omnicontext/metrics:
+    get:
+      tags:
+        - OmniContext
+      summary: OmniContext inject/retrieve metrics summary
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Metrics summary
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v1/omnicontext/retrieve:
+    post:
+      tags:
+        - OmniContext
+      summary: Retrieve Continuity artifacts for a project
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [projectId, query]
+              properties:
+                projectId:
+                  type: string
+                query:
+                  type: string
+                limit:
+                  type: integer
+      responses:
+        "200":
+          description: Retrieve result (stablePrefix, dynamic, activeHandoff)
         "401":
           $ref: "#/components/responses/Unauthorized"
   # ─── Proxy Endpoints ──────────────────────────────────────────

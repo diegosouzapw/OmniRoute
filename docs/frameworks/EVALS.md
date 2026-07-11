@@ -27,6 +27,13 @@ The framework is implemented as:
 - REST endpoints under `/api/evals/*` (management-auth only).
 - A dashboard surface at `Dashboard → Usage → Evals` (`EvalsTab.tsx`).
 
+> **Not Continuity retrieval eval:** OmniContext ships a separate, no-LLM
+> retrieval harness (`src/lib/omnicontext/eval/`) gated by
+> `npm run test:omnicontext:retrieval-eval` / CI job
+> `test-omnicontext-retrieval-eval` (Recall@3 ≥ 0.85). See
+> [`OMNICONTEXT.md`](./OMNICONTEXT.md). Do not confuse it with this golden-set
+> LLM eval framework.
+
 ## Concepts
 
 ### Suite

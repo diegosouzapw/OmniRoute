@@ -65,10 +65,12 @@ test("migration creates omnicontext tables", () => {
 test("settings default enabled false and git probe env off", () => {
   assert.equal(DEFAULT_OMNICONTEXT_SETTINGS.enabled, false);
   assert.equal(DEFAULT_OMNICONTEXT_SETTINGS.gitProbeEnabled, false);
+  assert.equal(DEFAULT_OMNICONTEXT_SETTINGS.embedSource, "local");
   assert.equal(isGitProbeEnvEnabled(), false);
   const normalized = normalizeOmniContextSettings({});
   assert.equal(normalized.enabled, false);
   assert.equal(normalized.gitProbeEnabled, false);
+  assert.equal(normalized.embedSource, "local");
 });
 
 test("create project, add member, list for api key", () => {

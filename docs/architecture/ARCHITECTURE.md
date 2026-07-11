@@ -502,6 +502,14 @@ For the full stealth playbook and operational guidance, see
   - Storage: `webhooks` SQLite table (via `src/lib/db/webhooks.ts`)
   - Dashboard: `/dashboard/webhooks` (subscriptions, secrets, retry history)
   - For event taxonomy and retry semantics, see [`docs/frameworks/WEBHOOKS.md`](../frameworks/WEBHOOKS.md).
+- **OmniContext (Continuity Plane)** — team-scoped project artifacts, handoffs, and
+  fail-open inject / fail-closed publish. Separate from Memory and from combo
+  context sharing.
+  - Domain: `src/lib/omnicontext/`
+  - DB: `src/lib/db/omnicontext*.ts` (migrations `119`–`122`)
+  - Inject: `open-sse/services/omnicontext/omnicontextInjection.ts`
+  - MCP: `open-sse/mcp-server/tools/omnicontextTools.ts` (7 tools)
+  - Deep-dive: [`docs/frameworks/OMNICONTEXT.md`](../frameworks/OMNICONTEXT.md)
 - **Reasoning Cache** — replayable reasoning blocks for providers that emit
   thinking tokens (Claude, GLMT, etc.) so consecutive turns can skip re-thinking.
   - DB layer: `src/lib/db/reasoningCache.ts`

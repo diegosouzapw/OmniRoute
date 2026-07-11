@@ -2,6 +2,7 @@ import { getSettings, updateSettings } from "@/lib/db/settings";
 import type {
   AutoPublishMode,
   OmniContextBackendMode,
+  OmniContextEmbedSource,
   OmniContextSettings,
   UniversalHandoffSettings,
 } from "./types";
@@ -22,6 +23,7 @@ export const DEFAULT_OMNICONTEXT_SETTINGS: OmniContextSettings = {
   gitProbeEnabled: false,
   autoPublish: "off",
   hybridRetrieve: false,
+  embedSource: "local",
   preferStablePrefix: true,
   backend: "native",
   remoteBaseUrl: "",
@@ -51,6 +53,10 @@ function normalizeAutoPublish(value: unknown): AutoPublishMode {
 
 function normalizeBackend(value: unknown): OmniContextBackendMode {
   return value === "remote" ? "remote" : "native";
+}
+
+function normalizeEmbedSource(value: unknown): OmniContextEmbedSource {
+  return value === "memory-auto" ? "memory-auto" : "local";
 }
 
 function normalizeUniversalHandoff(raw: unknown): UniversalHandoffSettings {
@@ -110,6 +116,7 @@ export function normalizeOmniContextSettings(
       rawSettings.omnicontextHybridRetrieve,
       DEFAULT_OMNICONTEXT_SETTINGS.hybridRetrieve
     ),
+    embedSource: normalizeEmbedSource(rawSettings.omnicontextEmbedSource),
     preferStablePrefix: toBoolean(
       rawSettings.omnicontextPreferStablePrefix,
       DEFAULT_OMNICONTEXT_SETTINGS.preferStablePrefix
@@ -158,6 +165,9 @@ export function toOmniContextSettingsUpdates(
   if (settings.autoPublish !== undefined) updates.omnicontextAutoPublish = settings.autoPublish;
   if (settings.hybridRetrieve !== undefined) {
     updates.omnicontextHybridRetrieve = settings.hybridRetrieve;
+  }
+  if (settings.embedSource !== undefined) {
+    updates.omnicontextEmbedSource = settings.embedSource;
   }
   if (settings.preferStablePrefix !== undefined) {
     updates.omnicontextPreferStablePrefix = settings.preferStablePrefix;

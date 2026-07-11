@@ -716,7 +716,31 @@ jobs:
       - run: npm run test:vitest:ui
         continue-on-error: true
 
+  # Continuity / OmniContext retrieval eval — dedicated blocking gate (Recall@3 ≥ 0.85).
+  # Also covered inside test-unit shards; this job fails fast with a named signal.
+  test-omnicontext-retrieval-eval:
+    name: OmniContext retrieval eval
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
+    timeout-minutes: 10
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run test:omnicontext:retrieval-eval
+
   # Node 24/26 compatibility matrices moved to .github/workflows/nightly-compat.yml
+
   # (plano mestre testes+CI, Eixo D2 — they cost ~28% of every heavy run to catch a
   # failure class that rarely originates in a PR; nightly catches it within 24h and
   # the release gate can still exercise them via workflow_dispatch when needed).
@@ -1044,6 +1068,8 @@ jobs:
       - package-artifact
       - electron-package-smoke
       - test-unit
+      - test-vitest
+      - test-omnicontext-retrieval-eval
       - test-coverage
       - sonarqube
       - coverage-pr-comment
@@ -1099,6 +1125,8 @@ jobs:
           echo "| Suite | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Unit | $(status '${{ needs.test-unit.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Vitest | $(status '${{ needs.test-vitest.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| OmniContext retrieval eval | $(status '${{ needs.test-omnicontext-retrieval-eval.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| E2E | $(status '${{ needs.test-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"

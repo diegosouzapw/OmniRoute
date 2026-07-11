@@ -1,7 +1,10 @@
 /**
- * Phase 4 — SSO/SCIM membership sync stub.
- * Maps external IdP subjects onto OmniContext project members.
- * No live IdP calls — operators push a sync payload (or future SCIM endpoint).
+ * Phase 4 — SCIM-like membership sync (push payload stub).
+ *
+ * Maps external IdP subjects onto OmniContext project members via operator-pushed
+ * payloads (`POST /api/omnicontext/scim/sync`). There is **no live Okta/Entra/OIDC
+ * connector** in OmniRoute today — MITM `okta.com` bypass and Kiro/Entra token
+ * import are unrelated. Live IdP pull is deferred until a user directory exists.
  */
 import { addProjectMember, getProjectById, getMembership } from "@/lib/db/omnicontextProjects";
 import { appendAuditEvent } from "@/lib/db/omnicontextAudit";

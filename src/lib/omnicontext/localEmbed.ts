@@ -1,6 +1,7 @@
 /**
  * Deterministic local hash embedding for OmniContext hybrid retrieve.
- * Avoids coupling to Memory's vec_memories store; optional Memory embed() upgrade path.
+ * Default offline path. Opt-in Memory stack via `embedSource: "memory-auto"`
+ * (`src/lib/omnicontext/embed.ts` → Memory `embed()`).
  */
 
 const DIMS = 64;

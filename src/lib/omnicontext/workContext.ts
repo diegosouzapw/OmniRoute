@@ -21,7 +21,7 @@ function headerValue(
   return typeof raw === "string" ? raw.trim() || undefined : undefined;
 }
 
-function parseRepoName(remoteUrl: string | undefined): string | undefined {
+export function parseRepoName(remoteUrl: string | undefined): string | undefined {
   if (!remoteUrl) return undefined;
   const cleaned = remoteUrl.trim().replace(/\.git$/i, "");
   const ssh = cleaned.match(/[:/]([^/]+\/[^/]+)$/);
@@ -38,7 +38,7 @@ function parseRepoName(remoteUrl: string | undefined): string | undefined {
   }
 }
 
-function extractTicket(branch: string | undefined): string | undefined {
+export function extractTicket(branch: string | undefined): string | undefined {
   if (!branch) return undefined;
   const m = branch.match(/\b([A-Z][A-Z0-9]+-\d+)\b/);
   return m?.[1];

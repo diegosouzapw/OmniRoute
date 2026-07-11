@@ -8,6 +8,9 @@ export type AutoPublishMode = "off" | "confirm" | "draft-only";
 
 export type OmniContextBackendMode = "native" | "remote";
 
+/** Embedding source for hybrid retrieve vectors (default local hash). */
+export type OmniContextEmbedSource = "local" | "memory-auto";
+
 export type OmniContextPermission =
   "VIEW" | "PUBLISH" | "HANDOFF" | "MANAGE_MEMBERS" | "APPROVE" | "MANAGE_PROJECT";
 
@@ -57,6 +60,12 @@ export interface OmniContextSettings {
   autoPublish: AutoPublishMode;
   /** Phase 2: FTS + local embedding hybrid retrieve */
   hybridRetrieve: boolean;
+  /**
+   * Embedding backend for hybrid retrieve.
+   * `local` = hash embed (default, offline).
+   * `memory-auto` = Memory `embed()` stack with local-hash fallback.
+   */
+  embedSource: OmniContextEmbedSource;
   /** Phase 2: never truncate stable_prefix before dynamic sections */
   preferStablePrefix: boolean;
   /** Phase 3: native SQLite vs remote Continuity HTTP backend */

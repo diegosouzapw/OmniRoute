@@ -130,6 +130,15 @@ Runs after `build`. Blocks merge on failure.
 | `test:vitest`    | MCP server (94 tools), autoCombo, cache — vitest runner | Yes                                                                        |
 | `test:vitest:ui` | UI component tests — vitest runner                      | **Advisory** (`continue-on-error: true`) — failing until Fase 6A UI triage |
 
+### Job: `test-omnicontext-retrieval-eval`
+
+Blocking Continuity retrieval gate (also covered inside `test-unit` shards). See
+[`docs/frameworks/OMNICONTEXT.md`](../frameworks/OMNICONTEXT.md).
+
+| Suite                             | Validates                                                    | Blocking |
+| --------------------------------- | ------------------------------------------------------------ | -------- |
+| `test:omnicontext:retrieval-eval` | OmniContext Recall@3 ≥ 0.85 + no wrong-project leak (no LLM) | Yes      |
+
 ### Nightly workflows (scheduled, advisory)
 
 These run on a cron schedule (and `workflow_dispatch`), never on PRs. All are advisory.
