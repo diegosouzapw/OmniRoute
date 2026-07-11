@@ -56,6 +56,7 @@ function parseJsonArray<T>(value: unknown, fallback: T[]): T[] {
   }
 }
 
+// Keep in sync with stackedPipelineStepSchema + ENGINE_CATALOG (#6747).
 const KNOWN_ENGINE_IDS = [
   "lite",
   "caveman",
@@ -66,6 +67,7 @@ const KNOWN_ENGINE_IDS = [
   "session-dedup",
   "ccr",
   "llmlingua",
+  "relevance",
 ];
 
 function normalizePipeline(value: unknown): CompressionPipelineStep[] {
@@ -92,8 +94,7 @@ function upgradeLegacySeededDefaultCompressionCombo(): void {
   const row = db
     .prepare("SELECT name, description, pipeline FROM compression_combos WHERE id = ?")
     .get(DEFAULT_COMPRESSION_COMBO_ID) as
-    | { name?: string; description?: string; pipeline?: string }
-    | undefined;
+    { name?: string; description?: string; pipeline?: string } | undefined;
 
   if (!row) return;
 

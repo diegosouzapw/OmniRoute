@@ -173,7 +173,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/providers/{provider}/models",
     method: "GET",
     summary: "List models for a specific provider",
-    description: "Returns only models for the selected provider with provider prefix removed from each model id.",
+    description:
+      "Returns only models for the selected provider with provider prefix removed from each model id.",
     tag: "Models",
     tags: ["Models"],
     requiresAuth: true,
@@ -203,7 +204,8 @@ export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
     path: "/api/v1/ws",
     method: "GET",
     summary: "Chat completion over WebSocket (handshake + upgrade)",
-    description: "OpenAI-compatible chat over a WebSocket connection. `GET` with `?handshake=1` returns the connection descriptor (auth path, message protocol and live-event channels) as JSON; a plain `GET` without an Upgrade returns `426 Upgrade Required`. After upgrading, the client exchanges JSON frames — `{type:\"request\", id, payload:{model, messages}}` to start a completion and `{type:\"cancel\", id}` to abort it. A separate live channel (default port `LIVE_WS_PORT=20129`, path `/live`) streams dashboard events on the `requests`, `combo` and `credentials` topics with a 15s heartbeat. Requires an API key.",
+    description:
+      'OpenAI-compatible chat over a WebSocket connection. `GET` with `?handshake=1` returns the connection descriptor (auth path, message protocol and live-event channels) as JSON; a plain `GET` without an Upgrade returns `426 Upgrade Required`. After upgrading, the client exchanges JSON frames — `{type:"request", id, payload:{model, messages}}` to start a completion and `{type:"cancel", id}` to abort it. A separate live channel (default port `LIVE_WS_PORT=20132`, path `/live`) streams dashboard events on the `requests`, `combo` and `credentials` topics with a 15s heartbeat. Requires an API key.',
     tag: "Chat",
     tags: ["Chat"],
     requiresAuth: true,

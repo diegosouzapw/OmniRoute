@@ -5,12 +5,13 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
-import { capMaxOutputTokens, capThinkingBudget, supportsReasoning } from "@/lib/modelCapabilities";
+import { capMaxOutputTokens, capThinkingBudget } from "@/lib/modelCapabilities";
 import {
   parseToolInput,
   normalizeKiroToolSchema,
   serializeToolResultContent,
 } from "./openai-to-kiro/messageHelpers.ts";
+import { supportsKiroAdaptiveThinking } from "./openai-to-kiro/adaptiveThinking.ts";
 
 /**
  * Anthropic's direct-provider `[1m]` context-1m beta suffix. Kiro is AWS
@@ -858,15 +859,14 @@ export function buildKiroPayload(model, body, stream, credentials) {
   // Thinking mode for Claude models on Kiro (ported from javargasm/pi-kiro).
   // Two coordinated signals steer reasoning on the CodeWhisperer surface:
   //   1. a `<thinking_mode>enabled</thinking_mode><max_thinking_length>N</...>`
-  //      directive prepended to the current user message — makes Claude emit its
-  //      reasoning INLINE as `<thinking>…</thinking>`, which the Kiro executor
-  //      splits back into the OpenAI `reasoning_content` channel (kiroThinking.ts);
+  //      directive prepended to the user message — makes Claude emit reasoning
+  //      INLINE, split back into `reasoning_content` by the executor (kiroThinking.ts);
   //   2. top-level `additionalModelRequestFields` (output_config.effort +
   //      thinking:{type:"adaptive"} + a clamped max_tokens), forwarded to AWS by
-  //      the Kiro executor's transformRequest allowlist — this is the graded
-  //      effort lever. Gated on models that advertise thinking support.
+  //      the Kiro executor's transformRequest allowlist — the graded effort lever,
+  //      gated on Kiro's adaptive-thinking allowlist (#6576), not supportsReasoning().
   const requestedEffort = resolveKiroEffort(body) || (modelRequestsThinking ? "high" : "");
-  const kiroEffort = supportsReasoning(normalizedModel) ? requestedEffort : "";
+  const kiroEffort = supportsKiroAdaptiveThinking(normalizedModel) ? requestedEffort : "";
   if (kiroEffort) {
     // `<thinking_mode>` / `<max_thinking_length>` are Kiro/CodeWhisperer prompt
     // conventions (NOT Anthropic API params); the length is a soft hint (the hard

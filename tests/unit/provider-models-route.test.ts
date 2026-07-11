@@ -540,7 +540,14 @@ test("provider models route returns the local catalog for built-in image provide
   assert.equal(response.status, 200);
   assert.equal(body.provider, "topaz");
   assert.ok(Array.isArray(body.models));
-  assert.deepEqual(body.models, [{ id: "topaz-enhance", name: "topaz-enhance" }]);
+  assert.deepEqual(body.models, [
+    {
+      id: "topaz-enhance",
+      name: "topaz-enhance",
+      apiFormat: "images",
+      supportedEndpoints: ["images"],
+    },
+  ]);
 });
 
 test("provider models route prefers the remote OpenRouter /models API over static image models", async () => {

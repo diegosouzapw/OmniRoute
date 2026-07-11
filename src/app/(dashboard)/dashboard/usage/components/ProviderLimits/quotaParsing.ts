@@ -9,6 +9,17 @@ const CODEX_QUOTA_ORDER: Record<string, number> = {
   gpt_5_3_codex_spark_weekly: 3,
   banked_reset_credits: 4,
 };
+const GLM_FAMILY_PROVIDERS = ["glm", "glm-cn", "glmt", "opencode-go"];
+
+/**
+ * Providers whose quotas already get a deterministic fixed-window order from
+ * sortGlmOrder()/sortCodexOrder() below. Display layers (e.g. QuotaCardExpanded)
+ * must not re-sort these by remaining percentage, or they undo this order (#6687).
+ */
+export function hasFixedQuotaOrder(providerId: string | undefined): boolean {
+  const id = String(providerId || "").toLowerCase();
+  return id === "codex" || GLM_FAMILY_PROVIDERS.includes(id);
+}
 
 function quotaEntries(data: any): Array<[string, any]> {
   return data?.quotas && typeof data.quotas === "object" ? Object.entries(data.quotas) : [];
@@ -190,7 +201,7 @@ function sortProviderModelOrder(provider: string, quotas: any[]) {
 }
 
 function sortGlmOrder(providerId: string, quotas: any[]) {
-  if (!["glm", "glm-cn", "glmt", "opencode-go"].includes(providerId)) return;
+  if (!GLM_FAMILY_PROVIDERS.includes(providerId)) return;
   quotas.sort((a, b) => (GLM_QUOTA_ORDER[a.name] ?? 99) - (GLM_QUOTA_ORDER[b.name] ?? 99));
 }
 

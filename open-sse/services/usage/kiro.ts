@@ -14,6 +14,11 @@
 import { toRecord, toNumber } from "./scalars.ts";
 import { type UsageQuota, parseResetTime } from "./quota.ts";
 import {
+  discoverKiroProfileArnAcrossRegions,
+  kiroRuntimeHost,
+  resolveKiroRuntimeRegion,
+} from "../kiroRegion.ts";
+import {
   isExternalIdpAuthMethod,
   KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER,
   KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE,
@@ -158,10 +163,20 @@ export async function discoverKiroProfileArn(
 }
 
 /**
- * The three GetUsageLimits attempts (regional GET, CodeWhisperer POST, Q GET) tried in
+ * The three GetUsageLimits attempts (CodeWhisperer POST, regional GET, Q GET) tried in
  * order by getKiroUsage — extracted so the auth-method header variants (api_key
  * `tokentype`, external_idp `TokenType`) stay in one authHeaders object and the parent
  * function stays under the function-length gate.
+ *
+ * The POST variant (x-amz-json-1.0 + `x-amz-target: ...GetUsageLimits`) is tried FIRST: it
+ * is the canonical AWS JSON-RPC shape used everywhere else in the Kiro integration
+ * (discoverKiroProfileArn's ListAvailableProfiles call, kiroModels.ts fingerprinting) and,
+ * critically, it is the only variant whose URL is built from the RUNTIME-region-resolved
+ * `usageBaseUrl` (see resolveKiroRuntimeRegion in getKiroUsage) with the profileArn in the
+ * payload — required for cross-region IAM Identity Center accounts (#6099) where the profile
+ * lives in a different region than the IdC/token region. The two GET variants are
+ * best-effort fallbacks (added for #6587 API-key auth) for accounts/regions where the POST
+ * shape is rejected.
  */
 function buildKiroUsageAttempts(opts: {
   authHeaders: Record<string, string>;
@@ -173,18 +188,6 @@ function buildKiroUsageAttempts(opts: {
 }): Array<{ name: string; run: () => Promise<Response> }> {
   const { authHeaders, usageParams, qParams, payload, usageBaseUrl, qBaseUrl } = opts;
   return [
-    {
-      name: "codewhisperer-get",
-      run: () =>
-        fetch(`${CODEWHISPERER_BASE_URL}/getUsageLimits?${usageParams.toString()}`, {
-          method: "GET",
-          headers: {
-            ...authHeaders,
-            "x-amz-user-agent": "aws-sdk-js/1.0.0 KiroIDE",
-            "user-agent": "aws-sdk-js/1.0.0 KiroIDE",
-          },
-        }),
-    },
     {
       name: "codewhisperer-post",
       run: () =>
@@ -199,6 +202,18 @@ function buildKiroUsageAttempts(opts: {
         }),
     },
     {
+      name: "codewhisperer-get",
+      run: () =>
+        fetch(`${CODEWHISPERER_BASE_URL}/getUsageLimits?${usageParams.toString()}`, {
+          method: "GET",
+          headers: {
+            ...authHeaders,
+            "x-amz-user-agent": "aws-sdk-js/1.0.0 KiroIDE",
+            "user-agent": "aws-sdk-js/1.0.0 KiroIDE",
+          },
+        }),
+    },
+    {
       name: "q-get",
       run: () =>
         fetch(`${qBaseUrl}/getUsageLimits?${qParams.toString()}`, {
@@ -207,27 +222,6 @@ function buildKiroUsageAttempts(opts: {
         }),
     },
   ];
-}
-
-/**
- * Enterprise IAM Identity Center accounts are region-bound: the profileArn, token and
- * endpoint must all match the region. Derive the region from the stored region (preferred)
- * or the profileArn, then route to the regional Amazon Q endpoint (us-east-1 keeps the
- * legacy codewhisperer host; codewhisperer.{region} does not resolve for other regions).
- */
-function resolveKiroUsageEndpoints(providerSpecificData?: JsonRecord, profileArn?: string) {
-  const regionFromArn = profileArn
-    ? profileArn.toLowerCase().match(/^arn:aws:codewhisperer:([a-z0-9-]+):/)?.[1]
-    : undefined;
-  const region =
-    (typeof providerSpecificData?.region === "string" &&
-      providerSpecificData.region.trim().toLowerCase()) ||
-    regionFromArn ||
-    "us-east-1";
-  const usageBaseUrl =
-    region === "us-east-1" ? CODEWHISPERER_BASE_URL : `https://q.${region}.amazonaws.com`;
-  const qBaseUrl = `https://q.${region}.amazonaws.com`;
-  return { region, usageBaseUrl, qBaseUrl };
 }
 
 /**
@@ -308,21 +302,30 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
         ? providerSpecificData.profileArn
         : undefined;
 
-    const { region, usageBaseUrl, qBaseUrl } = resolveKiroUsageEndpoints(
-      providerSpecificData,
-      profileArn
-    );
+    const storedRegion =
+      typeof providerSpecificData?.region === "string"
+        ? providerSpecificData.region.trim().toLowerCase()
+        : undefined;
 
-    // IAM Identity Center logins and kiro-cli imports frequently don't persist a profileArn, which
-    // previously caused the quota card to show nothing ("0 used"). Discover it on demand from
-    // ListAvailableProfiles (region-matched) so usage still resolves for those accounts.
+    // Enterprise IAM Identity Center logins and kiro-cli imports frequently don't persist a
+    // profileArn. Discover it by probing the Q Developer PROFILE regions (us-east-1 / eu-central-1)
+    // — NOT the IdC/token region. An IdC in eu-north-1 has no Q runtime host (q.eu-north-1 does not
+    // exist); its profile lives in eu-central-1 (or us-east-1) and the SSO token works cross-region
+    // against it. Without this, the quota card previously showed nothing ("no limits") for such
+    // accounts because the single-region lookup at q.{idcRegion} always failed.
     if (!profileArn && accessToken) {
-      profileArn = await discoverKiroProfileArn(accessToken, usageBaseUrl, region, authMethod);
+      profileArn = await discoverKiroProfileArnAcrossRegions(accessToken, storedRegion);
     }
 
     if (!profileArn && !isApiKey) {
       return { message: "Kiro connected. Profile ARN not available for quota tracking." };
     }
+
+    // The RUNTIME region is the profileArn region (us-east-1 / eu-central-1), never the IdC token
+    // region. Route GetUsageLimits to that region's host so quota resolves for cross-region IdC.
+    const region = resolveKiroRuntimeRegion({ region: storedRegion, profileArn });
+    const usageBaseUrl = region === "us-east-1" ? CODEWHISPERER_BASE_URL : kiroRuntimeHost(region);
+    const qBaseUrl = `https://q.${region}.amazonaws.com`;
 
     const authHeaders = buildKiroAuthHeaders(accessToken, isApiKey, providerSpecificData);
 
@@ -342,7 +345,7 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
       resourceType: "AGENTIC_REQUEST",
     };
 
-const attempts = buildKiroUsageAttempts({
+    const attempts = buildKiroUsageAttempts({
       authHeaders,
       usageParams,
       qParams,

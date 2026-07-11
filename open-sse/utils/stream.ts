@@ -30,9 +30,9 @@ import { STREAM_IDLE_TIMEOUT_MS, FETCH_BODY_TIMEOUT_MS, HTTP_STATUS } from "../c
 import {
   OMIT_STREAMING_CHUNK_MARKER,
   sanitizeStreamingChunk,
-  isResponsesCommentaryMessageItem,
 } from "../handlers/responseSanitizer.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { shouldDropResponsesCommentaryEvent } from "./responsesCommentaryDrop.ts";
 import { buildErrorBody } from "./error.ts";
 import { parseTextualToolCallCandidate, isValidToolCallHeaderPrefix } from "./textualToolCall.ts";
 import { recordToolLatency } from "../services/toolLatencyTracker.ts";
@@ -1308,48 +1308,19 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.type === "error");
 
                 if (isResponsesSSE) {
-                  // #6199 — statefully drop internal commentary-phase output. The
-                  // `response.output_item.added` announces the phase; the follow-up
-                  // delta/done events only carry `item_id`/`output_index`, so we key
-                  // off those. Happy-path (non-commentary) events are untouched.
-                  if (shouldDropResponsesCommentary) {
-                    const responsesEventType = parsed.type as string;
-                    const eventOutputIndex =
-                      typeof parsed.output_index === "number" ? parsed.output_index : null;
-                    const eventItem =
-                      parsed.item && typeof parsed.item === "object" && !Array.isArray(parsed.item)
-                        ? (parsed.item as JsonRecord)
-                        : null;
-                    const eventItemId =
-                      typeof parsed.item_id === "string"
-                        ? parsed.item_id
-                        : eventItem && typeof eventItem.id === "string"
-                          ? eventItem.id
-                          : null;
-
-                    if (
-                      responsesEventType === "response.output_item.added" &&
-                      isResponsesCommentaryMessageItem(parsed.item)
-                    ) {
-                      if (eventItemId) passthroughResponsesCommentaryItemIds.add(eventItemId);
-                      if (eventOutputIndex !== null)
-                        passthroughResponsesCommentaryIndexes.add(eventOutputIndex);
-                      continue;
-                    }
-
-                    const belongsToCommentary =
-                      (eventItemId !== null &&
-                        passthroughResponsesCommentaryItemIds.has(eventItemId)) ||
-                      (eventOutputIndex !== null &&
-                        passthroughResponsesCommentaryIndexes.has(eventOutputIndex));
-                    if (belongsToCommentary) {
-                      if (responsesEventType === "response.output_item.done") {
-                        if (eventItemId) passthroughResponsesCommentaryItemIds.delete(eventItemId);
-                        if (eventOutputIndex !== null)
-                          passthroughResponsesCommentaryIndexes.delete(eventOutputIndex);
-                      }
-                      continue;
-                    }
+                  // #6199/#6561 — statefully drop internal commentary-phase output (see
+                  // ./responsesCommentaryDrop.ts) and clear the buffered `event:` line
+                  // for the same frame, or it flushes alone as an event-only SSE frame.
+                  if (
+                    shouldDropResponsesCommentary &&
+                    shouldDropResponsesCommentaryEvent(
+                      parsed as JsonRecord,
+                      passthroughResponsesCommentaryItemIds,
+                      passthroughResponsesCommentaryIndexes
+                    )
+                  ) {
+                    clearPendingPassthroughEvent();
+                    continue;
                   }
 
                   const responsesIdsNormalized = normalizeResponsesSseIds(parsed as JsonRecord);

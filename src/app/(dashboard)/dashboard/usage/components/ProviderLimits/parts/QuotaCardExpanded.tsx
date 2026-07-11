@@ -11,6 +11,7 @@ import {
 } from "../utils";
 import QuotaMiniBar from "../QuotaMiniBar";
 import { translateUsageOrFallback, type UsageTranslationValues } from "../i18nFallback";
+import { hasFixedQuotaOrder } from "../quotaParsing";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -31,6 +32,18 @@ export function sortQuotasByRemaining(quotas: any[]): any[] {
   );
 }
 
+/**
+ * Pure helper — resolves the display order for a provider's quotas.
+ * Providers with a deterministic fixed-window order (codex, glm family — see
+ * quotaParsing.ts's sortCodexOrder()/sortGlmOrder()) keep the order
+ * parseQuotaData() already established. Every other provider still gets the
+ * remaining-percentage sort. Fixes #6687 (bars re-sorted by % undid the fixed
+ * session/weekly order).
+ */
+export function resolveQuotaDisplayOrder(providerId: string | undefined, quotas: any[]): any[] {
+  return hasFixedQuotaOrder(providerId) ? [...quotas] : sortQuotasByRemaining(quotas);
+}
+
 /** Pure helper — slices the sorted quotas down to the visible window. */
 export function getVisibleQuotas(sortedQuotas: any[], expanded: boolean): any[] {
   return expanded ? sortedQuotas : sortedQuotas.slice(0, DEFAULT_VISIBLE_ROWS);
@@ -38,6 +51,7 @@ export function getVisibleQuotas(sortedQuotas: any[], expanded: boolean): any[] 
 
 interface Props {
   quotas: any[];
+  providerId?: string;
   loading: boolean;
   error: string | null;
   message?: string | null;
@@ -155,6 +169,7 @@ function QuotaDetailRow({ q }: { q: any }) {
 
 export default function QuotaCardExpanded({
   quotas,
+  providerId,
   loading,
   error,
   message,
@@ -174,7 +189,10 @@ export default function QuotaCardExpanded({
     translateUsageOrFallback(t, key, fallback, values);
 
   const [expanded, setExpanded] = useState(false);
-  const sortedQuotas = useMemo(() => sortQuotasByRemaining(quotas), [quotas]);
+  const sortedQuotas = useMemo(
+    () => resolveQuotaDisplayOrder(providerId, quotas),
+    [quotas, providerId]
+  );
   const visibleQuotas = useMemo(
     () => getVisibleQuotas(sortedQuotas, expanded),
     [sortedQuotas, expanded]

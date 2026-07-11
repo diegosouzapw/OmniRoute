@@ -23,6 +23,7 @@ import {
   ServiceTierBreakdown,
   ApiKeyFilterDropdown,
   CustomRangePicker,
+  RequestCountByProviderDateTable,
 } from "./analytics";
 
 // ============================================================================
@@ -403,6 +404,9 @@ export default function UsageAnalytics() {
 
       {/* Provider Breakdown Table */}
       <ProviderTable byProvider={analytics?.byProvider} />
+
+      {/* Request Count by Provider & Date — #4009 (some providers bill per-request) */}
+      <RequestCountByProviderDateTable range={range} />
 
       {/* API Key Table */}
       <ApiKeyTable byApiKey={analytics?.byApiKey} />
