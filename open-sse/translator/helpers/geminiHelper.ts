@@ -172,17 +172,35 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
 
         // 3. Handle raw data strings (e.g. {"type": "file", "data": "JVBER...", "mime_type": "..."}).
         //    Also accept the Responses-API shape {"type":"input_file","file_data":"JVBER...","filename":...}
-        //    so PDFs sent as `input_file` reach Gemini instead of being silently dropped (#2515).
+        //    AND the OpenAI Chat Completions shape
+        //    {"type":"file","file":{"filename":...,"file_data":"data:<mime>;base64,..."}} so PDFs and
+        //    videos reach Gemini instead of being silently dropped (#2515). Gemini reads
+        //    application/pdf and video/* natively via inlineData, exactly like images.
         const file = toRecord(rec.file);
         const doc = toRecord(rec.document);
-        const rawDataStr = rec.data || rec.file_data || file?.data || doc?.data;
-        const mimeTypeFallback =
-          rec.mime_type || rec.media_type || file?.mime_type || doc?.mime_type || "application/pdf";
+        const rawDataStr =
+          rec.data || rec.file_data || file?.data || file?.file_data || doc?.data || doc?.file_data;
         if (typeof rawDataStr === "string" && !rawDataStr.startsWith("http")) {
+          // Prefer the mime embedded in the data: URI (e.g. application/pdf, video/mp4) so
+          // documents and videos are not mislabeled as the fallback; the fallback applies
+          // only to bare base64 that carries no data: prefix.
+          let mimeType =
+            rec.mime_type ||
+            rec.media_type ||
+            file?.mime_type ||
+            doc?.mime_type ||
+            "application/pdf";
+          if (rawDataStr.startsWith("data:")) {
+            const commaIndex = rawDataStr.indexOf(",");
+            if (commaIndex !== -1) {
+              const parsedMime = rawDataStr.substring(5, commaIndex).split(";")[0];
+              if (parsedMime) mimeType = parsedMime;
+            }
+          }
           const rawData = rawDataStr.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
           parts.push({
             inlineData: {
-              mimeType: String(mimeTypeFallback),
+              mimeType: String(mimeType),
               data: rawData,
             },
           });

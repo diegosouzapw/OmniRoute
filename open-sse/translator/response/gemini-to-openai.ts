@@ -729,6 +729,12 @@ export function geminiToOpenAIResponse(chunk, state) {
     // normalizeOpenAICompatibleFinishReasonString lowercases, maps max_tokens→length,
     // and folds Gemini safety reasons (safety/recitation/blocklist/...) → content_filter
     // so downstream clients can distinguish a blocked completion from a normal stop.
+    // Abort reasons (MALFORMED_FUNCTION_CALL, UNEXPECTED_TOOL_CALL, ...) are NOT in
+    // either mapped set, so they surface here unchanged (e.g. raw
+    // "malformed_function_call") rather than being folded into a misleading "stop" —
+    // isAbortFinishReason() (finishReason.ts) is what the openai→claude hub step
+    // uses downstream to recognize this raw value and keep it off a clean end_turn
+    // (9router#2462 sub-bug #2).
     let finishReason = normalizeOpenAICompatibleFinishReasonString(candidate.finishReason);
     if (finishReason === "stop" && state.toolCalls.size > 0) {
       finishReason = "tool_calls";

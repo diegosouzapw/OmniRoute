@@ -694,6 +694,49 @@ export function getEndpointUsageRows(params: EndpointUsageParams = {}): Endpoint
 }
 
 // ---------------------------------------------------------------------------
+// Request count per provider, per date — #4009
+// ---------------------------------------------------------------------------
+
+export interface ProviderDailyUsageRow {
+  date: string;
+  provider: string;
+  requests: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+/**
+ * Per-day, per-provider request counts + token totals from the unified source CTE.
+ * Answers "how many requests did provider X get on date Y" (#4009) — providers that
+ * bill per-request rather than per-token need this breakdown, not just the
+ * per-provider aggregate (`getProviderUsageRows`) or the per-day aggregate
+ * (`getDailyUsage`).
+ */
+export function getProviderDailyUsageRows(
+  unifiedSource: string,
+  params: AnalyticsParams
+): ProviderDailyUsageRow[] {
+  const db = getDbInstance();
+  return db
+    .prepare(
+      `
+      SELECT
+        DATE(timestamp) as date,
+        LOWER(provider) as provider,
+        COUNT(*) as requests,
+        COALESCE(SUM(tokens_input), 0) as promptTokens,
+        COALESCE(SUM(tokens_output), 0) as completionTokens,
+        COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
+      FROM ${unifiedSource} AS _u
+      GROUP BY DATE(timestamp), LOWER(provider)
+      ORDER BY date DESC, requests DESC
+    `
+    )
+    .all(params) as ProviderDailyUsageRow[];
+}
+
+// ---------------------------------------------------------------------------
 // Export-JSON backup — /api/settings/export-json
 // ---------------------------------------------------------------------------
 

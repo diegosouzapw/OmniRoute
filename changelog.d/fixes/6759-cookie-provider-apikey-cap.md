@@ -1,0 +1,1 @@
+- **fix(api):** raised the provider `apiKey` length cap for cookie-based web providers, whose session-cookie credentials legitimately exceed the previous limit (#6715, #6759 — thanks @alltomatos).

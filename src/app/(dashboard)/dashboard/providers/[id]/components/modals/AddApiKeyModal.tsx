@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Badge, Input, Modal, Toggle } from "@/shared/components";
+import { Button, Badge, Input, Modal, Toggle, TALL_MODAL_PROPS } from "@/shared/components";
 import {
   providerAllowsOptionalApiKey,
   supportsBulkApiKey,
@@ -215,27 +215,26 @@ export default function AddApiKeyModal({
         "Session credential validation failed. Sign in again, copy a fresh credential, and try again."
       )
     : t("apiKeyValidationFailed");
-
-  // Normalize the raw credential field(s) into the single value stored as `apiKey`.
-  // command-code providers extract a key from a pasted blob (#5088); Modal joins its
-  // Token ID + Token Secret into `id:secret` (#5446); everyone else uses the field verbatim.
-  const resolveCredentialInput = () => {
-    if (isCommandCode) return extractCommandCodeCredentialInput(formData.apiKey);
-    if (isModal) return combineModalCredential(formData.apiKey, formData.tokenSecret);
-    return formData.apiKey;
-  };
+  const validationBadge = validationResult ? validationBadgeProps(validationResult) : null;
+  // Normalize raw credential field(s) into the single value stored as `apiKey`
+  // (#5088 command-code extract; #5446 Modal id:secret join; else verbatim).
+  const resolveCredentialInput = () =>
+    isCommandCode
+      ? extractCommandCodeCredentialInput(formData.apiKey)
+      : isModal
+        ? combineModalCredential(formData.apiKey, formData.tokenSecret)
+        : formData.apiKey;
 
   const handleValidate = async () => {
     setValidating(true);
     setSaveError(null);
     try {
-      const credentialInput = resolveCredentialInput();
       const res = await fetch("/api/providers/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider,
-          apiKey: credentialInput,
+          apiKey: resolveCredentialInput(),
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
@@ -245,11 +244,10 @@ export default function AddApiKeyModal({
       });
       const data = await res.json();
       const ok = !!data.valid;
-      setValidationResult(ok ? "success" : data.unsupported ? "unsupported" : "failed");
-      // #5088: surface the detailed reason the backend returns (e.g. a TLS/EACCES
-      // environment error for claude-web/chatgpt-web) instead of only a bare
-      // "invalid" badge — otherwise the real cause is hidden and users are stuck.
-      if (!ok && typeof data.error === "string" && data.error) {
+      const unsupported = !!data.unsupported;
+      setValidationResult(ok ? "success" : unsupported ? "unsupported" : "failed");
+      // #5088: surface backend reason (e.g. TLS/EACCES) instead of bare "invalid".
+      if (!ok && !unsupported && typeof data.error === "string" && data.error) {
         setSaveError(data.error);
       }
     } catch {
@@ -444,6 +442,8 @@ export default function AddApiKeyModal({
       isOpen={isOpen}
       title={getAddCredentialModalTitle(t, providerDisplayName, webSessionCredential)}
       onClose={onClose}
+      size="lg"
+      {...TALL_MODAL_PROPS}
     >
       <div className="flex flex-col gap-4">
         {webProviderHostLink && (
@@ -757,9 +757,9 @@ export default function AddApiKeyModal({
                 hint={t("searchEngineIdHint")}
               />
             )}
-            {validationResult && (
-              <Badge variant={validationBadgeProps(validationResult).variant}>
-                {t(validationBadgeProps(validationResult).labelKey)}
+            {validationBadge && (
+              <Badge variant={validationBadge.variant}>
+                {providerText(t, validationBadge.labelKey, validationBadge.fallback)}
               </Badge>
             )}
             {saveError && (

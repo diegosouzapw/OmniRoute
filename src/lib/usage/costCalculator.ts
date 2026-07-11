@@ -37,6 +37,34 @@ export type CostCalculationOptions = {
   flatRateAsZero?: boolean;
 };
 
+/**
+ * xAI reports the exact provider-billed cost of a request in the chat-completions
+ * `usage` object via `cost_in_usd_ticks` (port of decolua/9router#2453, capability
+ * A — @ryanngit). Per the official docs — both
+ * https://docs.x.ai/developers/cost-tracking and the API reference's usage schema
+ * ("TICKS_IN_USD_CENT: i64 = 100_000_000") — there are 10_000_000_000 (1e10) ticks
+ * per USD. Example from the docs: 37756000 ticks ≈ $0.0038.
+ *
+ * NOTE: this divisor is intentionally 1e10, not the 1e12 used by the upstream PR
+ * (which under-reports cost 100x) — verified directly against the xAI docs.
+ */
+const USD_TICKS_PER_DOLLAR = 10_000_000_000;
+
+/**
+ * Extract an exact, provider-reported USD cost from a token/usage record when one
+ * is present, so callers can trust it over the token × pricing estimate. Currently
+ * only xAI's `cost_in_usd_ticks` field is handled — see comment above.
+ */
+function extractExactCostUsd(
+  tokens: Record<string, number | undefined> | null | undefined
+): number | null {
+  const ticks = tokens?.cost_in_usd_ticks;
+  if (typeof ticks === "number" && Number.isFinite(ticks) && ticks >= 0) {
+    return ticks / USD_TICKS_PER_DOLLAR;
+  }
+  return null;
+}
+
 function toNumber(value: unknown, fallback = 0): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim().length > 0) {
@@ -95,7 +123,12 @@ export function computeCostFromPricing(
   tokens: Record<string, number | undefined> | null | undefined,
   options: CostCalculationOptions = {}
 ): number {
-  if (!pricing || !tokens) return 0;
+  if (!tokens) return 0;
+  // Trust an exact, provider-reported cost over the token × pricing estimate
+  // when one is present — works even when no local pricing row exists yet.
+  const exactCostUsd = extractExactCostUsd(tokens);
+  if (exactCostUsd !== null) return exactCostUsd;
+  if (!pricing) return 0;
   // Flat-rate (subscription / cookie-web) providers don't bill per token — their
   // per-token pricing rows exist only for estimation, so display surfaces opt in
   // to show $0 instead of an inflated estimate (#5552).
@@ -137,6 +170,11 @@ export async function calculateCost(
   options: CostCalculationOptions = {}
 ): Promise<number> {
   if (!tokens || !provider || !model) return 0;
+
+  // Short-circuit before any pricing DB lookup when an exact, provider-reported
+  // cost is present (currently xAI's `cost_in_usd_ticks` — see extractExactCostUsd).
+  const exactCostUsd = extractExactCostUsd(tokens);
+  if (exactCostUsd !== null) return exactCostUsd;
 
   try {
     const { getPricingForModel } = await import("@/lib/localDb");

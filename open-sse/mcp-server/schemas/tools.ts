@@ -1093,11 +1093,11 @@ export const compressionStatusTool: McpToolDefinition<
 export const compressionConfigureInput = z.object({
   enabled: z.boolean().optional(),
   strategy: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked", "omniglyph"])
     .optional()
     .describe("Compression mode"),
   autoTriggerMode: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked", "omniglyph"])
     .optional(),
   maxTokens: z
     .number()

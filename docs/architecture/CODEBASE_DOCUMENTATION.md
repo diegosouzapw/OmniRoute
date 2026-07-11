@@ -793,6 +793,20 @@ See [A2A-SERVER.md § Adding a New Skill](../frameworks/A2A-SERVER.md). Skills l
   inference for cross-module boundaries.
 - **Database**: never write raw SQL in routes or handlers — always go through
   `src/lib/db/` modules. Never add logic to `src/lib/localDb.ts`.
+- **DB-entity typing (#3512)**: a function that writes or reads a DB table's
+  row shape should take/return a named TS interface mirroring that table's
+  columns 1:1, not `any` or an inline anonymous type at the call site. Land
+  the interface next to the function (e.g. `export interface UsageEntry` in
+  `src/lib/usage/usageHistory.ts` above `saveRequestUsage`), keep individual
+  fields optional/nullable when different writers populate the row
+  incrementally, and prefer `unknown` over `any` for a field whose shape
+  varies across callers (documented on the field, e.g. `UsageEntry.tokens`
+  accepts both raw provider-shaped usage and the normalized shape). Once a
+  file's `any` count reaches zero this way, add it to the
+  `check:any-budget:t11` allowlist (`scripts/check/check-t11-any-budget.mjs`,
+  `maxAny: 0`) so it can't regress. This is a first-slice convention — the
+  broader "no anonymous `any`" cleanup is iterative across the rest of the
+  codebase.
 - **Errors**: try/catch with specific error types, log with pino context. Never
   silently swallow errors in SSE streams; use abort signals for cleanup.
 - **Security**: never use `eval()` / `new Function()` / implied eval. Validate

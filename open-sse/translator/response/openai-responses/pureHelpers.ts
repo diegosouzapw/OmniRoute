@@ -5,13 +5,20 @@ export function normalizeToolName(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+// Tools whose empty-string/empty-array optional args are safe to strip. Arbitrary
+// tools are left untouched because an empty string/array can be a valid payload.
+// - "Read": Claude Code's Read tool (empty `pages`) — #2937.
+// - "Subagent": Cursor's local subagent tool emits a cloud-only `cloud_base_branch: ""`,
+//   which Cursor rejects unless environment is cloud — ported from decolua/9router#2446.
+const STRIPPABLE_EMPTY_ARG_TOOLS = new Set(["Read", "Subagent"]);
+
 export function stripEmptyOptionalToolArgs(value, toolName) {
   if (value == null) return value;
 
   if (typeof value === "string") {
-    // JSON-string cleanup is intentionally scoped to Claude Code's Read tool.
+    // JSON-string cleanup is intentionally scoped to the allowlisted tools above.
     // For arbitrary tools, empty strings/arrays may be valid user payloads.
-    if (toolName !== "Read") return value;
+    if (!STRIPPABLE_EMPTY_ARG_TOOLS.has(toolName)) return value;
     try {
       const parsed = JSON.parse(value);
       if (Array.isArray(parsed) || typeof parsed !== "object" || parsed === null) return value;

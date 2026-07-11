@@ -16,6 +16,7 @@ import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationMo
 import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
+import { KiroService } from "@/lib/oauth/services/kiro";
 
 import {
   OPENAI_LIKE_FORMATS,
@@ -107,11 +108,16 @@ export { isRetryableProxyTarget, isSecurityBlockError } from "./validation/trans
 export async function validateWebCookieProvider({
   provider,
   apiKey,
-  providerSpecificData = {},
-}: any) {
+  providerSpecificData: _providerSpecificData = {},
+}: {
+  provider: string;
+  apiKey?: string;
+  providerSpecificData?: Record<string, unknown>;
+}) {
   try {
     const entry = getRegistryEntry(provider);
-    if (!entry) {
+    const cookieProvider = WEB_COOKIE_PROVIDERS[provider as keyof typeof WEB_COOKIE_PROVIDERS];
+    if (!entry && !cookieProvider) {
       return { valid: false, error: "Provider not found in registry", unsupported: true };
     }
 
@@ -121,9 +127,26 @@ export async function validateWebCookieProvider({
       return { valid: false, error: "Cookie required for web-cookie provider", unsupported: false };
     }
 
+    if (!entry) {
+      // Providers listed in WEB_COOKIE_PROVIDERS without a providerRegistry entry (e.g.
+      // lmarena, gemini-business, poe-web, venice-web, v0-vercel-web) only expose a
+      // marketing website URL, not a real API host. Probing `${website}/models`
+      // does not reliably signal session validity for these —
+      // live verification showed most return redirects or SPA 200s regardless of
+      // cookie validity, which would silently report an expired/garbage cookie as
+      // "OK" (worse than an honest "not supported"). Until each of these providers
+      // has a verified, side-effect-free auth probe against its real API host, report
+      // unsupported instead of a false positive.
+      return {
+        valid: false,
+        error: "Provider validation not supported",
+        unsupported: true,
+      };
+    }
+
     // Attempt a minimal request to check if the session is valid
     // Use /models endpoint or a minimal completion request depending on the provider
-    const baseUrl = entry.baseUrl || "";
+    const baseUrl = normalizeBaseUrl(entry.baseUrl || "");
     const testUrl = `${baseUrl}/models`;
 
     const res = await directHttpsRequest(
@@ -132,6 +155,7 @@ export async function validateWebCookieProvider({
         method: "GET",
         headers: {
           "User-Agent": STANDARD_USER_AGENT,
+          Cookie: cookie,
         },
       },
       10_000
@@ -150,7 +174,7 @@ export async function validateWebCookieProvider({
     // a 401/403 from the /models probe is the only definitive "session expired" signal
     // for web-cookie auth, so a non-auth status is treated as a valid session.
     return { valid: true, error: null, unsupported: false };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return toValidationErrorResult(error);
   }
 }
@@ -184,6 +208,74 @@ export async function validateBytezProvider({ apiKey, providerSpecificData = {} 
     return bytezValidationResultFromStatus(res.status);
   } catch (error: unknown) {
     return toValidationErrorResult(error);
+  }
+}
+
+async function validateKiroApiKeyRuntimeProbe({
+  apiKey,
+  region,
+  profileArn,
+}: {
+  apiKey: string;
+  region: string;
+  profileArn?: string | null;
+}) {
+  const endpoint =
+    region === "us-east-1"
+      ? "https://codewhisperer.us-east-1.amazonaws.com/generateAssistantResponse"
+      : `https://q.${region}.amazonaws.com/generateAssistantResponse`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  try {
+    const body = {
+      ...(profileArn ? { profileArn } : {}),
+      conversationState: {
+        chatTriggerType: "MANUAL",
+        conversationId: crypto.randomUUID(),
+        currentMessage: {
+          userInputMessage: {
+            content: "ping",
+            modelId: "auto",
+            origin: "AI_EDITOR",
+          },
+        },
+        history: [],
+      },
+      inferenceConfig: {
+        maxTokens: 1,
+      },
+    };
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        tokentype: "API_KEY",
+        "Content-Type": "application/x-amz-json-1.0",
+        "X-Amz-Target": "AmazonCodeWhispererStreamingService.GenerateAssistantResponse",
+        Accept: "application/vnd.amazon.eventstream",
+        "Amz-Sdk-Request": "attempt=1; max=3",
+        "Amz-Sdk-Invocation-Id": crypto.randomUUID(),
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    await res.body?.cancel().catch(() => undefined);
+
+    if (res.ok) {
+      return { valid: true, error: null, method: "kiro_generate_assistant_response" };
+    }
+    if (res.status === 401 || res.status === 403) {
+      return { valid: false, error: "Invalid Kiro API key or AWS region" };
+    }
+    if (res.status === 400 || res.status === 422 || res.status === 429) {
+      return { valid: true, error: null, method: `kiro_generate_assistant_response_${res.status}` };
+    }
+    return { valid: false, error: `Kiro validation failed: ${res.status}` };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -302,9 +394,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     // key to check upstream. The only meaningful validation is confirming the
     // `auggie` binary is installed and runnable on this machine.
     auggie: async () => {
-      const { checkAuggieCliVersion } = await import(
-        "@omniroute/open-sse/executors/auggie.ts"
-      );
+      const { checkAuggieCliVersion } = await import("@omniroute/open-sse/executors/auggie.ts");
       const result = await checkAuggieCliVersion();
       if (!result.ok) {
         return {
@@ -349,6 +439,26 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         return { valid: true, error: null };
       } catch (err: unknown) {
         return toValidationErrorResult(err);
+      }
+    },
+    kiro: async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const region = providerSpecificData?.region || "us-east-1";
+        const credential = await new KiroService().validateApiKey(apiKey, region);
+        if (!credential.profileArn) {
+          return await validateKiroApiKeyRuntimeProbe({
+            apiKey: credential.accessToken,
+            region: credential.region,
+            profileArn: providerSpecificData?.profileArn,
+          });
+        }
+        return {
+          valid: true,
+          error: null,
+          method: "kiro_list_available_profiles",
+        };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
       }
     },
     "command-code": validateCommandCodeProvider,
