@@ -140,6 +140,13 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["http-method-guard.cjs"],
   },
   {
+    // #6608 added this import to standalone-server-ws.mjs; without the copy
+    // the Docker image crashes at boot with ERR_MODULE_NOT_FOUND.
+    label: "HEAD response guard (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "head-response-guard.cjs"],
+    dest: ["head-response-guard.cjs"],
+  },
+  {
     label: "responses-ws-proxy (server-ws.mjs dependency)",
     src: ["scripts", "dev", "responses-ws-proxy.mjs"],
     dest: ["responses-ws-proxy.mjs"],
