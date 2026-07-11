@@ -190,6 +190,7 @@
       "tests/unit/model-lockout-max-cooldown.test.ts",
       "tests/unit/no-memory-header.test.ts",
       "tests/unit/non-streaming-sse-terminal-typescan-4459.test.ts",
+      "tests/unit/nvidia-passthrough-models-6773.test.ts",
       "tests/unit/oauth-providers-config.test.ts",
       "tests/unit/oauth-redirect-uri-mismatch.test.ts",
       "tests/unit/observability-fase04.test.ts",
