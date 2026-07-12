@@ -17,6 +17,11 @@ const COOKIE =
 
 const MODEL = "gemini/gemma-4-26b-a4b-it";
 
+const skip =
+  process.env.RUN_BOUNDARY_LIVE === "1"
+    ? undefined
+    : "RUN_BOUNDARY_LIVE!=1 — skipping live boundary test";
+
 interface SseEvent {
   event: string | null;
   data: Record<string, unknown> | null;
@@ -106,15 +111,15 @@ async function getToolCalls(
 
   const events = await sendResponsesApiStream(body);
 
-  const writeEvents = events.filter(
-    (e) =>
-      e.event === "response.output_item.done" && (e.data as any)?.item?.type === "function_call"
-  );
+  const writeEvents = events.filter((e) => {
+    const item = e.data?.item as { type?: string } | undefined;
+    return e.event === "response.output_item.done" && item?.type === "function_call";
+  });
 
   const results: ToolCallResult[] = [];
 
   for (const evt of writeEvents) {
-    const item = (evt.data as any).item;
+    const item = evt.data?.item as { arguments: string; name: string };
     const rawArgs = item.arguments;
     let parsedArgs: Record<string, unknown>;
     try {
@@ -198,7 +203,7 @@ const WRITE_AND_EXEC_TOOLS = [WRITE_TOOL, EXEC_TOOL];
 
 // ── Tests ──────────────────────────────────────────────────────────────────
 
-test("Gemma4: plain text (hello/world)", async () => {
+test("Gemma4: plain text (hello/world)", { skip }, async () => {
   const results = await getToolCalls(
     "Write a file /tmp/test1.txt with content: hello\\nworld\\ntest",
     WRITE_AND_EXEC_TOOLS
@@ -212,7 +217,7 @@ test("Gemma4: plain text (hello/world)", async () => {
   }
 });
 
-test("Gemma4: short bash script", async () => {
+test("Gemma4: short bash script", { skip }, async () => {
   const bashContent = ["#!/bin/bash", "echo 'Hello World'", "ls -la /tmp", 'echo "Done"'].join(
     "\n"
   );
@@ -231,7 +236,7 @@ test("Gemma4: short bash script", async () => {
   }
 });
 
-test("Gemma4: Python code (the suspected trigger)", async () => {
+test("Gemma4: Python code (the suspected trigger)", { skip }, async () => {
   const pythonContent = [
     "import json",
     "import random",
@@ -261,7 +266,7 @@ test("Gemma4: Python code (the suspected trigger)", async () => {
   }
 });
 
-test("Gemma4: Python with colon patterns (theoretical trigger: `:\\n    `)", async () => {
+test("Gemma4: Python with colon patterns (theoretical trigger: `:\\n    `)", { skip }, async () => {
   // Minimal content that exercises the colon-newline-indent pattern
   const pythonContent = [
     "def foo():",
@@ -295,7 +300,7 @@ test("Gemma4: Python with colon patterns (theoretical trigger: `:\\n    `)", asy
   }
 });
 
-test("Gemma4: Just exec command (heredoc style)", async () => {
+test("Gemma4: Just exec command (heredoc style)", { skip }, async () => {
   const results = await getToolCalls(
     "Write and run: use cat with heredoc to create /tmp/test5.txt with content hello world and then cat it",
     WRITE_AND_EXEC_TOOLS
@@ -309,7 +314,7 @@ test("Gemma4: Just exec command (heredoc style)", async () => {
   }
 });
 
-test("Gemma4: Mixed code (JS + CSS)", async () => {
+test("Gemma4: Mixed code (JS + CSS)", { skip }, async () => {
   const mixedContent = [
     "function greet(name) {",
     "  return `Hello, ${name}!`;",
@@ -346,7 +351,7 @@ test("Gemma4: Mixed code (JS + CSS)", async () => {
   }
 });
 
-test("Gemma4: Simple YAML config", async () => {
+test("Gemma4: Simple YAML config", { skip }, async () => {
   const yamlContent = [
     "server:",
     "  host: 0.0.0.0",
@@ -378,7 +383,7 @@ test("Gemma4: Simple YAML config", async () => {
   }
 });
 
-test("Gemma4: Model-generated content (no prompt content)", async () => {
+test("Gemma4: Model-generated content (no prompt content)", { skip }, async () => {
   // Let the model come up with its own multi-line content
   const results = await getToolCalls(
     "Write a Python script to the file /tmp/test7.py that generates fibonacci numbers up to 100 and saves them to a JSON file. Use the write tool.",
@@ -393,7 +398,7 @@ test("Gemma4: Model-generated content (no prompt content)", async () => {
   }
 });
 
-test("Gemma4: Short single-line content", async () => {
+test("Gemma4: Short single-line content", { skip }, async () => {
   const results = await getToolCalls(
     "Write a file /tmp/test8.txt with content 'just one line'",
     WRITE_AND_EXEC_TOOLS
@@ -404,7 +409,7 @@ test("Gemma4: Short single-line content", async () => {
   }
 });
 
-test("Gemma4: Many short lines (10 simple lines)", async () => {
+test("Gemma4: Many short lines (10 simple lines)", { skip }, async () => {
   const lines = Array.from({ length: 10 }, (_, i) => `Line ${i + 1}: test`).join("\n");
   const results = await getToolCalls(
     "Write a file /tmp/test9.txt with these lines",
@@ -420,7 +425,7 @@ test("Gemma4: Many short lines (10 simple lines)", async () => {
   }
 });
 
-test("Gemma4: Content with JSON-like syntax (potential confusion)", async () => {
+test("Gemma4: Content with JSON-like syntax (potential confusion)", { skip }, async () => {
   const jsonContent = JSON.stringify(
     {
       name: "test",
@@ -449,7 +454,7 @@ test("Gemma4: Content with JSON-like syntax (potential confusion)", async () => 
   }
 });
 
-test("Gemma4: Template literal content (JS with ${})", async () => {
+test("Gemma4: Template literal content (JS with ${})", { skip }, async () => {
   const templateContent = [
     "const name = 'world';",
     "const greeting = `Hello, ${name}!`;",

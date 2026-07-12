@@ -20,9 +20,32 @@ const AUTH = "Bearer sk-7b3a9f0879f9bfcf-4f8870-d0e71799";
 const COOKIE =
   "auth_token=eyJhbGciOiJIUzI1NiJ9.eyJhdXRoZW50aWNhdGVkIjp0cnVlLCJleHAiOjE3ODYwMDc2Mzl9.YjGPcmh50QvtfnRJPXhsillOlJ3HKiCHRPX7kaWe5Y0";
 
+// Only the tests that call the live remote OmniRoute API need this gate — the
+// pure parsing/stopReason-simulation tests at the bottom of the file run locally.
+const skip =
+  process.env.RUN_BOUNDARY_LIVE === "1"
+    ? undefined
+    : "RUN_BOUNDARY_LIVE!=1 — skipping live boundary test";
+
 interface SseEvent {
   event: string | null;
   data: Record<string, unknown> | null;
+}
+
+interface ResponseFunctionCallItem {
+  type: string;
+  name?: string;
+  arguments?: string;
+  call_id?: string;
+}
+
+interface ResponsesJsonBody {
+  status?: string;
+  output?: ResponseFunctionCallItem[];
+}
+
+function eventItem(e: SseEvent): ResponseFunctionCallItem | undefined {
+  return e.data?.item as ResponseFunctionCallItem | undefined;
 }
 
 async function sendResponsesApiStream(body: Record<string, unknown>): Promise<SseEvent[]> {
@@ -95,7 +118,7 @@ async function sendResponsesApiJson(
   return (await response.json()) as Record<string, unknown>;
 }
 
-test("OmniRoute boundary: tool call arguments with newlines survive Responses API (non-streaming)", async () => {
+test("OmniRoute boundary: tool call arguments with newlines survive Responses API (non-streaming)", { skip }, async () => {
   const body = {
     model: "gemini/gemma-4-26b-a4b-it",
     input: [
@@ -129,19 +152,17 @@ test("OmniRoute boundary: tool call arguments with newlines survive Responses AP
     max_output_tokens: 4096,
   };
 
-  const response = await sendResponsesApiJson(body);
+  const response = (await sendResponsesApiJson(body)) as ResponsesJsonBody;
 
-  assert.equal((response as any).status, "completed");
-  assert.ok(Array.isArray((response as any).output), "should have output array");
+  assert.equal(response.status, "completed");
+  assert.ok(Array.isArray(response.output), "should have output array");
 
-  const toolCalls = ((response as any).output as any[]).filter(
-    (item) => item.type === "function_call"
-  );
+  const toolCalls = (response.output || []).filter((item) => item.type === "function_call");
 
   assert.ok(toolCalls.length > 0, "should have at least one function_call");
   assert.equal(toolCalls[0].name, "write");
 
-  const args = JSON.parse(toolCalls[0].arguments);
+  const args = JSON.parse(toolCalls[0].arguments || "{}");
   assert.equal(typeof args.content, "string", "content should be a string");
   assert.ok(args.content.includes("\n"), "content should have actual newlines (0x0A)");
 
@@ -161,7 +182,7 @@ test("OmniRoute boundary: tool call arguments with newlines survive Responses AP
   }
 });
 
-test("OmniRoute boundary: tool call arguments with newlines survive Responses API (streaming)", async () => {
+test("OmniRoute boundary: tool call arguments with newlines survive Responses API (streaming)", { skip }, async () => {
   const body = {
     model: "gemini/gemma-4-26b-a4b-it",
     input: [
@@ -200,30 +221,30 @@ test("OmniRoute boundary: tool call arguments with newlines survive Responses AP
 
   // Find the function call output_item.done event
   const doneEvent = events.find(
-    (e) =>
-      e.event === "response.output_item.done" && (e.data as any)?.item?.type === "function_call"
+    (e) => e.event === "response.output_item.done" && eventItem(e)?.type === "function_call"
   );
   assert.ok(doneEvent, "should have output_item.done for function_call");
 
-  const item = (doneEvent.data as any).item;
+  const item = eventItem(doneEvent as SseEvent) as ResponseFunctionCallItem;
   assert.equal(item.name, "write");
 
-  const args = JSON.parse(item.arguments);
+  const args = JSON.parse(item.arguments || "{}");
   assert.equal(typeof args.content, "string", "content should be a string");
   assert.ok(args.content.includes("\n"), "content should have actual newlines");
 
   // Check completed event
   const completed = events.find((e) => e.event === "response.completed");
   assert.ok(completed, "should have response.completed event");
-  const outputItems = ((completed.data as any).response?.output || []) as any[];
-  const completedFc = outputItems.find((item: any) => item.type === "function_call");
+  const completedResponse = completed?.data?.response as ResponsesJsonBody | undefined;
+  const outputItems = completedResponse?.output || [];
+  const completedFc = outputItems.find((item) => item.type === "function_call");
   assert.ok(completedFc, "completed output should have function_call");
 
-  const completedArgs = JSON.parse(completedFc.arguments);
+  const completedArgs = JSON.parse(completedFc?.arguments || "{}");
   assert.equal(completedArgs.content, args.content, "completed arguments should match done event");
 });
 
-test("OmniRoute boundary: exec tool call arguments survive Responses API", async () => {
+test("OmniRoute boundary: exec tool call arguments survive Responses API", { skip }, async () => {
   const body = {
     model: "gemini/gemma-4-26b-a4b-it",
     input: [
@@ -260,16 +281,15 @@ test("OmniRoute boundary: exec tool call arguments survive Responses API", async
   const events = await sendResponsesApiStream(body);
 
   const doneEvent = events.find(
-    (e) =>
-      e.event === "response.output_item.done" && (e.data as any)?.item?.type === "function_call"
+    (e) => e.event === "response.output_item.done" && eventItem(e)?.type === "function_call"
   );
   assert.ok(doneEvent, "should have function_call");
 
-  const item = (doneEvent.data as any).item;
+  const item = eventItem(doneEvent as SseEvent) as ResponseFunctionCallItem;
   assert.equal(item.name, "exec");
   assert.ok(item.call_id, "should have call_id");
 
-  const args = JSON.parse(item.arguments);
+  const args = JSON.parse(item.arguments || "{}");
   assert.equal(typeof args.command, "string");
   assert.ok(args.command.length > 0, "command should not be empty");
 
@@ -278,7 +298,7 @@ test("OmniRoute boundary: exec tool call arguments survive Responses API", async
   assert.ok(completed, "should have response.completed");
 });
 
-test("OmniRoute boundary: parallel tool calls survive Responses API", async () => {
+test("OmniRoute boundary: parallel tool calls survive Responses API", { skip }, async () => {
   const body = {
     model: "gemini/gemma-4-26b-a4b-it",
     input: [
@@ -316,28 +336,28 @@ test("OmniRoute boundary: parallel tool calls survive Responses API", async () =
   const events = await sendResponsesApiStream(body);
 
   const doneEvents = events.filter(
-    (e) =>
-      e.event === "response.output_item.done" && (e.data as any)?.item?.type === "function_call"
+    (e) => e.event === "response.output_item.done" && eventItem(e)?.type === "function_call"
   );
 
   assert.ok(doneEvents.length >= 1, "should have at least one function_call");
 
   // Check each has valid args
   for (const evt of doneEvents) {
-    const args = JSON.parse((evt.data as any).item.arguments);
+    const args = JSON.parse(eventItem(evt)?.arguments || "{}");
     assert.ok(args.path || args.command, "each tool call should have arguments");
   }
 
   // Verify completed output matches
   const completed = events.find((e) => e.event === "response.completed");
   assert.ok(completed, "should have response.completed");
-  const outputFcs = ((completed.data as any).response?.output || []).filter(
-    (item: any) => item.type === "function_call"
+  const completedResponse = completed?.data?.response as ResponsesJsonBody | undefined;
+  const outputFcs = (completedResponse?.output || []).filter(
+    (item) => item.type === "function_call"
   );
   assert.equal(outputFcs.length, doneEvents.length, "completed output should match count");
 });
 
-test("OmniRoute boundary: tool call through default combo (fill-first)", async () => {
+test("OmniRoute boundary: tool call through default combo (fill-first)", { skip }, async () => {
   const body = {
     model: "default",
     input: [
@@ -374,17 +394,16 @@ test("OmniRoute boundary: tool call through default combo (fill-first)", async (
   const events = await sendResponsesApiStream(body);
 
   const doneEvent = events.find(
-    (e) =>
-      e.event === "response.output_item.done" && (e.data as any)?.item?.type === "function_call"
+    (e) => e.event === "response.output_item.done" && eventItem(e)?.type === "function_call"
   );
   assert.ok(doneEvent, "should have function_call through default combo");
 
-  const args = JSON.parse((doneEvent.data as any).item.arguments);
+  const args = JSON.parse(eventItem(doneEvent as SseEvent)?.arguments || "{}");
   assert.equal(typeof args.command, "string");
   assert.ok(args.command.length > 0);
 });
 
-test("OmniRoute boundary: multi-line Python code survives tool call arguments", async () => {
+test("OmniRoute boundary: multi-line Python code survives tool call arguments", { skip }, async () => {
   const pythonCode = [
     "import json",
     "import random",
@@ -453,11 +472,11 @@ ${pythonCode}`,
   const events = await sendResponsesApiStream(body);
 
   const writeDoneEvent = events.find(
-    (e) => e.event === "response.output_item.done" && (e.data as any)?.item?.name === "write"
+    (e) => e.event === "response.output_item.done" && eventItem(e)?.name === "write"
   );
 
   if (writeDoneEvent) {
-    const args = JSON.parse((writeDoneEvent.data as any).item.arguments);
+    const args = JSON.parse(eventItem(writeDoneEvent)?.arguments || "{}");
     assert.equal(typeof args.content, "string");
     assert.ok(args.content.includes("\n"), "Python code should have newlines");
 
@@ -486,13 +505,12 @@ ${pythonCode}`,
 
   // At minimum, we should have at least one function_call event
   const anyDone = events.find(
-    (e) =>
-      e.event === "response.output_item.done" && (e.data as any)?.item?.type === "function_call"
+    (e) => e.event === "response.output_item.done" && eventItem(e)?.type === "function_call"
   );
   assert.ok(anyDone, "should have at least one function_call");
 });
 
-test("OmniRoute boundary: model responds with proper JSON args when given clear tool defs", async () => {
+test("OmniRoute boundary: model responds with proper JSON args when given clear tool defs", { skip }, async () => {
   // Test that the model can correctly produce tool calls with simple args
   const body = {
     model: "gemini/gemma-4-26b-a4b-it",
@@ -533,18 +551,18 @@ test("OmniRoute boundary: model responds with proper JSON args when given clear 
   const events = await sendResponsesApiStream(body);
 
   const doneEvent = events.find(
-    (e) =>
-      e.event === "response.output_item.done" && (e.data as any)?.item?.type === "function_call"
+    (e) => e.event === "response.output_item.done" && eventItem(e)?.type === "function_call"
   );
 
   if (doneEvent) {
-    const args = JSON.parse((doneEvent.data as any).item.arguments);
+    const rawArguments = eventItem(doneEvent)?.arguments || "{}";
+    const args = JSON.parse(rawArguments);
     assert.equal(typeof args.expression, "string");
     assert.ok(args.expression.includes("2+2") || args.expression.includes("2 + 2"));
 
     // Verify the arguments JSON is valid
     assert.doesNotThrow(() => {
-      JSON.parse((doneEvent.data as any).item.arguments);
+      JSON.parse(rawArguments);
     });
   }
 });

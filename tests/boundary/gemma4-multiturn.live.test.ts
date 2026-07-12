@@ -15,17 +15,51 @@ const COOKIE =
 
 const MODEL = "gemini/gemma-4-26b-a4b-it";
 
+const skip =
+  process.env.RUN_BOUNDARY_LIVE === "1"
+    ? undefined
+    : "RUN_BOUNDARY_LIVE!=1 — skipping live boundary test";
+
 interface Message {
   role: "user" | "assistant" | "developer" | "system";
   content: { type: string; text?: string }[];
+}
+
+interface ToolDef {
+  type: "function";
+  name: string;
+  description: string;
+  parameters: {
+    type: "object";
+    properties: Record<string, { type: string; description?: string }>;
+    required: string[];
+  };
+  strict: true;
+}
+
+interface ResponseOutputItem {
+  type: string;
+  name: string;
+  arguments: string;
+  call_id?: string;
+}
+
+interface ResponseBody {
+  output?: ResponseOutputItem[];
+}
+
+interface ToolArgs {
+  path?: string;
+  content?: string;
+  command?: string;
 }
 
 function contentText(text: string): { type: string; text: string } {
   return { type: "input_text", text };
 }
 
-async function doNonStreaming(messages: Message[], tools: any[]) {
-  const body: any = {
+async function doNonStreaming(messages: Message[], tools: ToolDef[]): Promise<ResponseBody> {
+  const body = {
     model: MODEL,
     input: messages,
     tools,
@@ -44,7 +78,7 @@ async function doNonStreaming(messages: Message[], tools: any[]) {
     body: JSON.stringify(body),
   });
 
-  const data = await r.json();
+  const data = (await r.json()) as ResponseBody;
   return data;
 }
 
@@ -53,7 +87,7 @@ async function analyzeTools(
   filesSoFar: number
 ): Promise<{ ok: boolean; details: string }> {
   const messages: Message[] = [{ role: "user", content: [contentText(content)] }];
-  const tools: any = [
+  const tools: ToolDef[] = [
     {
       type: "function",
       name: "write",
@@ -96,7 +130,7 @@ async function analyzeTools(
       break;
     }
 
-    const toolCalls = response.output.filter((item: any) => item.type === "function_call");
+    const toolCalls = response.output.filter((item) => item.type === "function_call");
 
     if (toolCalls.length === 0) {
       details.push(`Turn ${turn}: No tool calls (text response)`);
@@ -105,7 +139,7 @@ async function analyzeTools(
 
     // Analyze each tool call
     for (const tc of toolCalls) {
-      let args: any;
+      let args: ToolArgs;
       try {
         args = JSON.parse(tc.arguments);
       } catch {
@@ -148,7 +182,7 @@ async function analyzeTools(
     // Add tool results
     const toolResults: Message[] = [];
     for (const tc of toolCalls) {
-      let args: any;
+      let args: ToolArgs;
       try {
         args = JSON.parse(tc.arguments);
       } catch {
@@ -207,12 +241,12 @@ async function analyzeTools(
 
     // Keep tools for next turn
     if (response.output) {
-      const responseItems = response.output.filter((item: any) => item.type === "function_call");
+      const responseItems = response.output.filter((item) => item.type === "function_call");
 
       // Build next conversation
       const newMessages: Message[] = [
         ...messages,
-        ...responseItems.map((ri: any) => ({
+        ...responseItems.map((ri) => ({
           role: "assistant" as const,
           content: [
             {
@@ -233,7 +267,7 @@ async function analyzeTools(
   return { ok: allOk, details: details.join("\n") };
 }
 
-test("Gemma4 multi-turn: write Python in multiple rounds", async () => {
+test("Gemma4 multi-turn: write Python in multiple rounds", { skip }, async () => {
   const prompt = `Do the following steps in order:
 1. Create a Python script at /tmp/mt_data.py that writes a JSON file with timestamp, 3 random numbers, and a greeting.
 2. Run the script and show output.
@@ -249,7 +283,7 @@ Use write and exec tools as needed.`;
   console.log("=== Overall:", result.ok ? "PASS" : "FAIL");
 });
 
-test("Gemma4 multi-turn: just write lots of files", async () => {
+test("Gemma4 multi-turn: just write lots of files", { skip }, async () => {
   // Pure write tool calls to stress the content encoding
   const messages: Message[] = [
     {
@@ -263,7 +297,7 @@ test("Gemma4 multi-turn: just write lots of files", async () => {
     },
   ];
 
-  const tools: any = [
+  const tools: ToolDef[] = [
     {
       type: "function",
       name: "write",
@@ -287,12 +321,12 @@ test("Gemma4 multi-turn: just write lots of files", async () => {
   while (turn < 8) {
     turn++;
     const response = await doNonStreaming(messages, tools);
-    const toolCalls = (response.output || []).filter((item: any) => item.type === "function_call");
+    const toolCalls = (response.output || []).filter((item) => item.type === "function_call");
 
     if (toolCalls.length === 0) break;
 
     for (const tc of toolCalls) {
-      let args: any;
+      let args: ToolArgs;
       try {
         args = JSON.parse(tc.arguments);
       } catch {
@@ -332,7 +366,7 @@ test("Gemma4 multi-turn: just write lots of files", async () => {
       const topic = topics[turn - 1] || "hello world";
       messages.push({
         role: "assistant",
-        content: toolCalls.map((tc: any) => ({
+        content: toolCalls.map((tc) => ({
           type: "tool_use",
           id: tc.call_id || `call_${turn}`,
           name: tc.name,
