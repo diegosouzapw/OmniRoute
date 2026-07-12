@@ -187,8 +187,7 @@ function openaiToGeminiBase(
     result.generationConfig.maxOutputTokens = maxOutputTokens;
   }
 
-  // Thinking / Reasoning support (Google Gemini 2.0+ Thinking models)
-  // 1. OpenAI format: reasoning_effort (low/medium/high/auto/max/xhigh)
+  // 1. OpenAI format: reasoning_effort (none/low/medium/high/auto/max/xhigh)
   // "auto", "max", and "xhigh" are clamped to the high-tier budget because Gemini
   // does not accept these strings directly. "auto" signals "use max reasonable effort"
   // which maps to high. "max"/"xhigh" exceed Gemini's accepted range and are clamped.
@@ -196,6 +195,7 @@ function openaiToGeminiBase(
   if (body.reasoning_effort) {
     const highBudget = capThinkingBudget(model, 32768);
     const budgetMap: Record<string, number> = {
+      none: 0,
       low: 1024,
       medium: getDefaultThinkingBudget(model) || 8192,
       high: highBudget,
@@ -212,28 +212,34 @@ function openaiToGeminiBase(
   }
   // 2. Claude format: thinking (type: enabled, budget_tokens)
   const thinking = body.thinking as { type?: string; budget_tokens?: number } | undefined;
-  if (thinking?.type === "enabled" && thinking.budget_tokens) {
+  if (thinking?.type === "enabled" && typeof thinking.budget_tokens === "number") {
     result.generationConfig.thinkingConfig = {
       thinkingBudget: thinking.budget_tokens,
       includeThoughts: true,
     };
   }
 
-  // 3. Default: all modern Gemini models (2.5+) have thinking capability.
-  // If the client didn't explicitly request thinking (via reasoning_effort or
-  // thinking.type), still set includeThoughts so the upstream marks thought
-  // parts with thought:true. Without this, the model's reasoning leaks into
-  // visible content instead of being routed to reasoning_content by the
-  // response translator. (#4170)
-  if (!result.generationConfig.thinkingConfig) {
+  // 3. Default: only inject thinkingConfig if reasoning_effort or thinking was explicitly provided.
+  // Modern Gemini models (2.5+) support thinking, but we only set includeThoughts when
+  // the client explicitly requested it. This prevents forcing thinking-by-default and
+  // allows users to opt-out completely. Without this, the upstream marks thought parts
+  // with thought:true, but we avoid the cost/latency of reasoning unless requested.
+  // (#4170)
+  if (
+    !result.generationConfig.thinkingConfig &&
+    (body.reasoning_effort !== undefined || body.thinking !== undefined)
+  ) {
     const modelLower = model.toLowerCase();
     if (
       modelLower.includes("gemini") &&
       !modelLower.includes("gemini-1") &&
       (!modelLower.includes("gemini-2.0") || modelLower.includes("thinking"))
     ) {
+      const highBudget = capThinkingBudget(model, 32768);
+      const defaultBudget = getDefaultThinkingBudget(model) || capThinkingBudget(model, 24576);
+      const budget = body.reasoning_effort === "none" ? 0 : defaultBudget;
       result.generationConfig.thinkingConfig = {
-        thinkingBudget: getDefaultThinkingBudget(model) || capThinkingBudget(model, 24576),
+        thinkingBudget: budget,
         includeThoughts: true,
       };
     }
