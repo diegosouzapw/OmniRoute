@@ -90,6 +90,41 @@ test("#6953: thinking block with valid signature is preserved verbatim", () => {
   assert.equal(thinkingBlocks[0].signature, realSig, "valid signature must be preserved verbatim");
 });
 
+test("#6953: thinking block with undefined signature (Claude-format) is preserved with fallback", () => {
+  // Claude-format messages may have thinking blocks without a signature field at all.
+  // These are legitimate and must NOT be stripped — only signature:"" (empty string)
+  // indicates a non-Anthropic synthesized block.
+  const result = openaiToClaudeRequest(
+    "claude-opus-4-8",
+    {
+      messages: [
+        { role: "user", content: "hello" },
+        {
+          role: "assistant",
+          content: [
+            { type: "thinking", thinking: "I already have this" },
+            { type: "text", text: "response" },
+          ],
+        },
+        { role: "user", content: "ok" },
+      ],
+    },
+    false
+  );
+
+  const assistant = result.messages.find((m) => m.role === "assistant");
+  assert.ok(assistant);
+
+  const thinkingBlocks = assistant.content.filter((b) => b && b.type === "thinking");
+  assert.equal(
+    thinkingBlocks.length,
+    1,
+    "thinking block with undefined signature must be preserved"
+  );
+  assert.equal(thinkingBlocks[0].thinking, "I already have this", "thinking content must match");
+  assert.ok(thinkingBlocks[0].signature, "fallback signature must be applied");
+});
+
 test("#6953: redacted_thinking with empty data is stripped", () => {
   const result = openaiToClaudeRequest(
     "claude-opus-4-8",
@@ -151,14 +186,14 @@ test("#6953: combo scenario — codex-sourced thinking block does not block Anth
   const assistant = result.messages.find((m) => m.role === "assistant");
   assert.ok(assistant);
 
-  // No thinking block with empty signature should survive
+  // No thinking block with empty-string signature should survive
   const badThinking = assistant.content.find(
-    (b) => b && (b.type === "thinking" || b.type === "redacted_thinking") && !b.signature && !b.data
+    (b) => b && b.type === "thinking" && b.signature === ""
   );
   assert.equal(
     badThinking,
     undefined,
-    "no thinking/redacted_thinking block with empty signature/data should survive"
+    "no thinking block with empty-string signature should survive"
   );
 
   // Tool use must survive
