@@ -554,7 +554,23 @@ function getContentBlocksFromMessage(
         if (part.type === "text" && part.text) {
           blocks.push({ type: "text", text: part.text });
         } else if (part.type === "thinking" || part.type === "redacted_thinking") {
-          // Preserve thinking blocks with signature
+          // #6953 — thinking blocks with empty/missing signatures come from non-Anthropic
+          // providers (codex/gpt-5.x).  Anthropic rejects replayed `thinking` blocks that
+          // carry a foreign or fabricated signature with HTTP 400.  Fabricating a default
+          // signature (the old behaviour) made the poisoning permanent: once a codex-served
+          // turn introduced a `signature:""` thinking block, every subsequent Anthropic leg
+          // attempt 400'd and the router silently fell back to codex forever.
+          //
+          // Fix: strip thinking blocks whose signature is empty/absent entirely.  The text
+          // content is preserved separately via reasoning_content handling below when needed;
+          // dropping the replay-only block is the same as what a native Claude client does
+          // when it has no valid signature to replay.
+          if (part.type === "thinking" && !part.signature) {
+            continue; // drop — no valid signature to replay
+          }
+          if (part.type === "redacted_thinking" && !part.data) {
+            continue; // drop — redacted_thinking with no data is equally invalid
+          }
           blocks.push({
             ...part,
             signature: part.signature || DEFAULT_THINKING_CLAUDE_SIGNATURE,
@@ -622,7 +638,12 @@ function getContentBlocksFromMessage(
       (b) => b.type === "thinking" || b.type === "redacted_thinking"
     );
     const hasToolUseBlock = blocks.some((b) => b.type === "tool_use");
-    if (msg.reasoning_content && thinkingEnabledForRequest && hasToolUseBlock && !hasThinkingBlock) {
+    if (
+      msg.reasoning_content &&
+      thinkingEnabledForRequest &&
+      hasToolUseBlock &&
+      !hasThinkingBlock
+    ) {
       blocks.unshift({
         type: "redacted_thinking",
         data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
