@@ -4725,7 +4725,11 @@
     "rateLimitOverridesTpdHint": "此连接的每日最大令牌数。覆盖提供商默认值。",
     "rateLimitOverridesTpdLabel": "TPD（令牌/天）",
     "rateLimitOverridesTpmHint": "此连接的每分钟最大令牌数。覆盖提供商默认值。",
-    "rateLimitOverridesTpmLabel": "TPM（令牌/分钟）"
+    "rateLimitOverridesTpmLabel": "TPM（令牌/分钟）",
+    "contextWindowOverrideLabel": "__MISSING__:Context Window Override",
+    "contextWindowOverridePlaceholder": "__MISSING__:e.g. 131072",
+    "contextWindowOverrideHint": "__MISSING__:Manually set this model's real context window (tokens) when the provider misreports it. Wins over auto-detected/catalog values and prevents combo routing from dropping the model.",
+    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens"
   },
   "settings": {
     "title": "设置",

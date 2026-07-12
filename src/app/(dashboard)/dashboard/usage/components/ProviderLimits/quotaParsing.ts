@@ -158,12 +158,39 @@ function parseCodex(data: any) {
   return quotas;
 }
 
+function buildClaudeExtraUsageQuota(extraUsage: any) {
+  const monthlyLimit = Number(extraUsage?.monthly_limit ?? 0);
+  const usedCredits = Number(extraUsage?.used_credits ?? 0);
+  const utilization = Number(extraUsage?.utilization ?? 0);
+  const remainingPercentage = Number.isFinite(utilization)
+    ? Math.max(0, 100 - utilization)
+    : undefined;
+  const remaining = Number.isFinite(monthlyLimit) ? Math.max(0, monthlyLimit - usedCredits) : 0;
+
+  return buildCreditsQuota("extra_usage", remaining, remainingPercentage ?? 100, {
+    used: Number.isFinite(usedCredits) ? usedCredits : 0,
+    total: Number.isFinite(monthlyLimit) ? monthlyLimit : 0,
+    currency: extraUsage?.currency,
+  });
+}
+
+// #6806: some Claude plans (e.g. "default_raven_enterprise") return no
+// five_hour/seven_day utilization windows at all — only a credit-billing
+// extraUsage block — so quotas can be {} while extraUsage still holds real,
+// actionable usage data. Fold it in instead of falling back to "No quota data".
 function parseClaude(data: any) {
   if (data?.message)
     return [{ name: "error", used: 0, total: 0, resetAt: null, message: data.message }];
-  return quotaEntries(data).map(([name, quota]) =>
+
+  const quotas = quotaEntries(data).map(([name, quota]) =>
     normalizeQuotaEntry(name, quota, { isPercentageOnly: true })
   );
+
+  if (data?.extraUsage?.is_enabled) {
+    quotas.push(buildClaudeExtraUsageQuota(data.extraUsage));
+  }
+
+  return quotas;
 }
 
 function parseDeepseekQuota(quotaKey: string, quota: any) {

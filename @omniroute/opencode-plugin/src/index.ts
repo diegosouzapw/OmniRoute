@@ -238,9 +238,26 @@ function trimLeadingDashes(value: string): string {
  */
 export function resolveOmniRoutePluginOptions(
   opts?: OmniRoutePluginOptions
-): Required<Pick<OmniRoutePluginOptions, "providerId" | "displayName" | "modelCacheTtl">> &
-  Pick<OmniRoutePluginOptions, "baseURL" | "features"> {
+): Required<
+  Pick<OmniRoutePluginOptions, "providerId" | "displayName" | "modelCacheTtl">
+> & {
+  /**
+   * #6859: the UNPREFIXED provider id ("omniroute", "omniroute-preprod", …).
+   * `providerId` above is auto-prefixed with "opencode-" ONLY to satisfy OC
+   * 1.17.8+'s native-adapter gate ({openai, anthropic, opencode*}) — that
+   * prefixed value is OC-internal and must be used ONLY for AuthHook.provider
+   * and provider-registration keys (the OC config-hook top-level
+   * `provider.<id>` block). `omnirouteProviderId` MUST be used everywhere an
+   * identifier reaches or represents something OmniRoute's own server parses
+   * (model `id` prefix, `ModelV2.providerID`, combo catalog keys in the
+   * dynamic provider hook) — OmniRoute's `parseModel()` has no alias for
+   * "opencode-<x>", so a prefixed id there is unrecoverable and credential
+   * lookup fails with "No credentials for opencode-<x>".
+   */
+  omnirouteProviderId: string;
+} & Pick<OmniRoutePluginOptions, "baseURL" | "features"> {
   const rawProviderId = opts?.providerId ?? OMNIROUTE_PROVIDER_KEY;
+  const omnirouteProviderId = trimLeadingOpencodePrefix(rawProviderId);
   // OC 1.17.8+ native-adapter gate rejects providerID not in
   // {openai, anthropic, opencode*}. Silently prefix so existing
   // configs (providerId: "omniroute") keep working.
@@ -258,11 +275,24 @@ export function resolveOmniRoutePluginOptions(
       : DEFAULT_MODEL_CACHE_TTL_MS;
   return {
     providerId,
+    omnirouteProviderId,
     displayName,
     modelCacheTtl,
     baseURL: opts?.baseURL,
     features: opts?.features,
   };
+}
+
+/**
+ * Strip a leading "opencode-" prefix (added only for the OC native-adapter
+ * gate — see `resolveOmniRoutePluginOptions`) so the returned id is safe to
+ * embed in anything OmniRoute's own server parses. A user-supplied
+ * `providerId: "opencode-omniroute"` (already prefixed) resolves to the same
+ * unprefixed "omniroute" as the default, matching `providerId`'s own
+ * idempotent-prefix handling above.
+ */
+function trimLeadingOpencodePrefix(rawProviderId: string): string {
+  return rawProviderId.startsWith("opencode-") ? rawProviderId.slice("opencode-".length) : rawProviderId;
 }
 
 /**
@@ -2661,7 +2691,8 @@ export function createOmniRouteProviderHook(
         if (canonicalDedup.has(entry.id)) continue;
         if (usable && !isUsableRawModelId(entry.id, usable, rawEnrichment)) continue;
         const model = mapRawModelToModelV2(entry, {
-          providerId: resolved.providerId,
+          // #6859: server-facing id — NOT the OC-gate-prefixed `resolved.providerId`.
+          providerId: resolved.omnirouteProviderId,
           baseURL,
           apiFormat: resolved.features?.apiFormat,
         });
@@ -2826,7 +2857,8 @@ export function createOmniRouteProviderHook(
           const mapped = mapComboToModelV2(
             combo,
             memberEntries,
-            resolved.providerId,
+            // #6859: server-facing id — NOT the OC-gate-prefixed `resolved.providerId`.
+            resolved.omnirouteProviderId,
             baseURL,
             features.apiFormat
           );
@@ -2845,7 +2877,8 @@ export function createOmniRouteProviderHook(
             }
           }
 
-          const comboKey = buildComboKey(combo, usedComboKeys, resolved.providerId);
+          // #6859: server-facing key — NOT the OC-gate-prefixed `resolved.providerId`.
+          const comboKey = buildComboKey(combo, usedComboKeys, resolved.omnirouteProviderId);
 
           // Collision policy: combos win. Warn ONCE per (cacheKey, comboKey)
           // when overwriting a same-key raw model so the operator can spot
@@ -2947,7 +2980,8 @@ export function createOmniRouteProviderHook(
             },
             status: "active",
             release_date: "",
-            providerID: resolved.providerId,
+            // #6859: server-facing id — NOT the OC-gate-prefixed `resolved.providerId`.
+            providerID: resolved.omnirouteProviderId,
             options: {},
             headers: {},
           };

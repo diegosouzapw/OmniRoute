@@ -14,6 +14,7 @@ export type WebSessionCredentialRequirement =
        * AND the Cookie header, so the one-line cookie hint reads circular).
        */
       hintKey?: string;
+      hintFallback?: string;
     }
   | {
       kind: "none";
@@ -227,18 +228,25 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "manus_session"],
   },
+  "zai-web": {
+    kind: "cookie",
+    credentialName: "token",
+    placeholder: "token=... or full Cookie header from chat.z.ai",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "token"],
+  },
   lmarena: {
     kind: "cookie",
-    // lmarena.ai's auth cookie is `arena-auth-prod-v1` (the legacy hint said `session`,
+    // arena.ai's auth cookie is `arena-auth-prod-v1` (the legacy hint said `session`,
     // which never matched the real cookie name and confused users). #3810
     //
     // #4271: LMArena migrated to Supabase SSR chunked cookies — the single
     // `arena-auth-prod-v1` cookie is now empty and the session is split across
     // `arena-auth-prod-v1.0`, `arena-auth-prod-v1.1`, … Users must paste the FULL
     // Cookie header so the executor can reconstruct the single cookie from chunks.
-    credentialName: "arena-auth-prod-v1",
+    credentialName: "full Cookie header (arena-auth-prod-v1.0 + arena-auth-prod-v1.1)",
     placeholder:
-      "Paste the full Cookie header from lmarena.ai (the session is now split across arena-auth-prod-v1.0, .1, …)",
+      "arena-auth-prod-v1.0=...; arena-auth-prod-v1.1=...; other=value (full Cookie header from arena.ai)",
     acceptsFullCookieHeader: true,
     storageKeys: [
       "cookie",
@@ -247,6 +255,9 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
       "arena-auth-prod-v1.1",
       "session",
     ],
+    hintKey: "lmarenaWebCookieHint",
+    hintFallback:
+      "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403.",
   },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 

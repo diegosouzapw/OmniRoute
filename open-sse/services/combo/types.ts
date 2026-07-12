@@ -70,6 +70,8 @@ export type ComboRelayOptions = {
   mode?: string | null;
   /** Per-request X-OmniRoute-Budget value (hard cost ceiling in USD) — #6023. */
   budgetCap?: number | null;
+  /** Per-request X-OmniRoute-Budget-Fallback value ("cheapest" | "strict") — #3470. */
+  budgetFallback?: "cheapest" | "strict" | null;
   [key: string]: unknown;
 };
 
