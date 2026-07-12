@@ -46,9 +46,13 @@ export default function LogsPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // initial id from URL (synchronously on client) so child can open on mount
-  const initialId =
-    typeof window !== "undefined" ? new URL(window.location.href).searchParams.get("id") : null;
+  // initial id from URL (synchronously on client) so child can open on mount.
+  // Read once via lazy state: window.location lags router.replace() by one
+  // render, so re-reading it on every render flips this prop mid-session and
+  // re-triggers the child's deep-link effect right when the modal closes.
+  const [initialId] = useState(() =>
+    typeof window !== "undefined" ? new URL(window.location.href).searchParams.get("id") : null
+  );
 
   async function handleExport(hours: number) {
     setExporting(true);
