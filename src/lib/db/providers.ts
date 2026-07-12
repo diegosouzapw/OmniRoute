@@ -55,6 +55,10 @@ export async function getProviderConnections(filter: JsonRecord = {}) {
     conditions.push("is_active = @isActive");
     params.isActive = filter.isActive ? 1 : 0;
   }
+  if (filter.authType) {
+    conditions.push("auth_type = @authType");
+    params.authType = filter.authType;
+  }
 
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");

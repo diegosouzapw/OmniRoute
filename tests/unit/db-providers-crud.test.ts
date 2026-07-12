@@ -81,6 +81,34 @@ test("createProviderConnection assigns provider-scoped priorities and supports f
   assert.equal(second.isActive, false);
 });
 
+test("getProviderConnections filters by authType", async () => {
+  const apiKeyConnection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "API Key Connection",
+    apiKey: "sk-apikey",
+  });
+  const oauthConnection = await providersDb.createProviderConnection({
+    provider: "claude",
+    authType: "oauth",
+    email: "oauth@example.com",
+    accessToken: "token-a",
+    refreshToken: "refresh-a",
+  });
+
+  const oauthOnly = await providersDb.getProviderConnections({ authType: "oauth" });
+  const apiKeyOnly = await providersDb.getProviderConnections({ authType: "apikey" });
+
+  assert.deepEqual(
+    oauthOnly.map((connection) => connection.id),
+    [oauthConnection.id]
+  );
+  assert.deepEqual(
+    apiKeyOnly.map((connection) => connection.id),
+    [apiKeyConnection.id]
+  );
+});
+
 test("oauth connections upsert by provider and email instead of duplicating rows", async () => {
   const original = await providersDb.createProviderConnection({
     provider: "claude",
