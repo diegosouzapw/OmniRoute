@@ -101,6 +101,16 @@ export async function getSettings() {
     maxRetryIntervalSec: 30,
     antigravitySignatureCacheMode: "enabled",
     requireLogin: true,
+    // OIDC for dashboard admin gate only (optional). Password remains full fallback.
+    // When enabled + issuer/clientId/clientSecret present, login page shows OIDC button.
+    // Callback mints identical 30d auth_token JWT as password flow.
+    oidcEnabled: false,
+    oidcIssuer: "",
+    oidcClientId: "",
+    oidcClientSecret: "",
+    oidcScopes: ["openid", "profile", "email"],
+    oidcRedirectPath: "/api/auth/oidc/callback",
+    oidcAllowedSubjects: [], // optional sub or email whitelist
     mcpEnabled: false,
     a2aEnabled: false,
     hiddenSidebarItems: [],
