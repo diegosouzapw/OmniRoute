@@ -21,7 +21,10 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import {
+  getProviderOutboundGuard,
+  getProviderValidationGuard,
+} from "@/shared/network/outboundUrlGuard";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
@@ -635,7 +638,11 @@ export async function GET(
         try {
           const response = await safeOutboundFetch(modelsUrl, {
             ...SAFE_OUTBOUND_FETCH_PRESETS.modelsProbe,
-            guard: getProviderOutboundGuard(),
+            // #6939: model-list discovery for local/OpenAI-compatible providers (e.g. LM
+            // Studio on a LAN host) must use the same guard tier as the test-connection path
+            // (getProviderValidationGuard — respects the local-first default) rather than the
+            // stricter outbound guard, which never allows LAN hosts by default.
+            guard: getProviderValidationGuard(),
             proxyConfig: proxy,
             method: "GET",
             headers: isNamedOpenAIStyleProvider(provider)

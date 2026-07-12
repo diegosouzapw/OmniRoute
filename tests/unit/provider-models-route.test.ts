@@ -154,8 +154,12 @@ test("provider models route rejects OpenAI-compatible providers without a base U
   });
 });
 
-test("provider models route blocks private OpenAI-compatible base URLs", async () => {
+// #6939: model-list discovery must match the test-connection guard tier (local-first ON by
+// default allows LAN/loopback hosts) — see provider-models-route-lan-guard.test.ts for the
+// disabled-default (still-blocked) counterpart.
+test("provider models route allows private/LAN OpenAI-compatible base URLs under the local-first default (#6939)", async () => {
   delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
 
   const connection = await seedConnection("openai-compatible-private", {
     apiKey: "sk-openai-compatible",
@@ -172,11 +176,8 @@ test("provider models route blocks private OpenAI-compatible base URLs", async (
 
   const response = await callRoute(connection.id);
 
-  assert.equal(response.status, 400);
-  assert.deepEqual(await response.json(), {
-    error: "Blocked private or local provider URL",
-  });
-  assert.equal(called, false);
+  assert.equal(response.status, 200);
+  assert.equal(called, true);
 });
 
 test("provider models route returns auth failures from OpenAI-compatible upstreams", async () => {
