@@ -253,7 +253,7 @@ export function filterUsageForFormat(usage, targetFormat) {
 export function normalizeUsage(usage) {
   if (!usage || typeof usage !== "object" || Array.isArray(usage)) return null;
 
-  const normalized = {};
+  const normalized: Record<string, number> = {};
   const assignNumber = (key, value) => {
     if (value === undefined || value === null) return;
     const numeric = Number(value);
@@ -271,7 +271,14 @@ export function normalizeUsage(usage) {
   assignNumber("reasoning_tokens", usage?.reasoning_tokens);
   // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A —
   // @ryanngit). Ticks → USD conversion happens in costCalculator.ts, not here.
-  assignNumber("cost_in_usd_ticks", usage?.cost_in_usd_ticks);
+  const exactCostTicks = usage?.cost_in_usd_ticks;
+  if (
+    typeof exactCostTicks === "number" &&
+    Number.isFinite(exactCostTicks) &&
+    exactCostTicks >= 0
+  ) {
+    normalized.cost_in_usd_ticks = exactCostTicks;
+  }
 
   if (Object.keys(normalized).length === 0) return null;
   return normalized;

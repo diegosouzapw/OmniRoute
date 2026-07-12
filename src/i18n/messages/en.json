@@ -8009,7 +8009,7 @@
     "relayProbeSummary": "Relay probes: {alive}/{tested} alive",
     "bulkImport": "Bulk Import",
     "bulkImportTitle": "Bulk Import Proxies",
-    "bulkImportDescription": "Paste proxy profiles one per line. Supported formats: pipe-delimited (NAME|HOST|PORT|…) or auth-less shorthand (HOST:PORT). Existing proxies (same host + port) will be updated.",
+    "bulkImportDescription": "Paste proxy profiles one per line. Supported formats: pipe-delimited (NAME|HOST|PORT|…), shorthand (ip:port, ip:port:user:pass, user:pass@ip:port, user:pass:ip:port, protocol://ip:port, protocol://user:pass@ip:port), or protocol header mode (bare protocol on first line applies to subsequent shorthand lines). Existing proxies (same host + port) will be updated.",
     "bulkImportParse": "Parse",
     "bulkImportImport": "Import {count} Proxies",
     "bulkImportImporting": "Importing...",

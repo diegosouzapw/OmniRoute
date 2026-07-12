@@ -3245,6 +3245,29 @@
       "stream": "https://openrouter.ai/api/v1/chat/completions"
     }
   },
+  "openvecta": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.openvecta.com/v1/chat/completions",
+      "stream": "https://api.openvecta.com/v1/chat/completions"
+    }
+  },
   "orcarouter": {
     "format": "openai",
     "headers": {

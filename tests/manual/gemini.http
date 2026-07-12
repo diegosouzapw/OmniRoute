@@ -2,7 +2,7 @@
 # @name OpenAI Response - Test streaming response
 POST {{omniroute-address}}/v1/responses
 Authorization: Bearer {{OMNIROUTE_API_KEY}}
-Content-Type: text/event-stream
+Content-Type: application/json
 
 {
   "model": "gemini/gemma-4-31b-it",
@@ -25,10 +25,30 @@ Content-Type: text/event-stream
 # @name Gemini Response - Test streaming response
 POST https://generativelanguage.googleapis.com/v1beta/models/gemma-4-31b-it:streamGenerateContent?alt=sse
 x-goog-api-key: {{GEMINI_API_KEY}}
-Content-Type: text/event-stream
+Content-Type: application/json
 
 {
   "model": "gemma-4-31b-it",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Ansver 1+1 only."
+        }
+      ]
+    }
+  ]
+}
+
+###
+# @name Gemini Response - Test streaming response - 26B
+POST https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:streamGenerateContent?alt=sse
+x-goog-api-key: {{GEMINI_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gemma-4-26b-a4b-it",
   "contents": [
     {
       "role": "user",
@@ -72,6 +92,26 @@ Content-Type: application/json
 
 {
   "model": "gemma-4-31b-it",
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Ansver 1+1 only."
+        }
+      ]
+    }
+  ]
+}
+
+###
+# @name Gemini Response - Test non-streaming response - 26B
+POST https://generativelanguage.googleapis.com/v1beta/models/gemma-4-26b-a4b-it:generateContent
+x-goog-api-key: {{GEMINI_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "gemma-4-26b-a4b-it",
   "contents": [
     {
       "role": "user",
@@ -207,6 +247,7 @@ Content-Type: application/json
     }
   ]
 }
+
 ###
 # @name Tool history via OmniRoute — thinking model
 # Same as native test above but with a thinking model (gemini-2.5-flash)
@@ -239,7 +280,6 @@ Content-Type: application/json
     {
       "role": "tool",
       "tool_call_id": "call_abc123",
-      "content": "{\"temperature\": 22, \"conditions\": \"Sunny\", \"humidity\": 45}"
     },
     {
       "role": "assistant",

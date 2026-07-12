@@ -79,6 +79,12 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     // Google Labs async coding agent — single async session, no model selection.
     { id: "jules", name: "Jules (Google Labs coding agent)" },
   ],
+  devin: () => [
+    // Cognition's Devin cloud-agent sessions don't expose per-request model
+    // selection like devin-cli's ACP models do — single non-selectable placeholder
+    // so the "Available Models" UI shows something instead of a hard failure (#6142).
+    { id: "devin", name: "Devin (Cognition cloud agent)" },
+  ],
   "linkup-search": () => [
     // Linkup web search — the "model" is the search depth (docs.linkup.so #5571).
     { id: "standard", name: "Standard (single-iteration agentic search)" },
