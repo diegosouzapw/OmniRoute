@@ -190,6 +190,17 @@ export async function getSettings() {
 }
 
 export async function updateSettings(updates: Record<string, unknown>) {
+  // Detect first-time setup completion before we overwrite settings.
+  let setupJustCompleted = false;
+  if (updates.setupComplete === true) {
+    try {
+      const prev = await getSettings();
+      setupJustCompleted = prev.setupComplete !== true;
+    } catch {
+      setupJustCompleted = true;
+    }
+  }
+
   const db = getDbInstance();
   const insert = db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', ?, ?)"
@@ -219,6 +230,17 @@ export async function updateSettings(updates: Record<string, unknown>) {
       "[HOT_RELOAD] Failed to apply runtime settings after update:",
       error instanceof Error ? error.message : error
     );
+  }
+
+  // Onboarding / setup finished → one-shot Codex catalog revalidation (init case).
+  if (setupJustCompleted) {
+    void import("@/shared/services/codexCatalogRevalidation")
+      .then(({ scheduleCodexCatalogRevalidationAfterInit }) => {
+        scheduleCodexCatalogRevalidationAfterInit();
+      })
+      .catch(() => {
+        // non-fatal
+      });
   }
 
   return nextSettings;

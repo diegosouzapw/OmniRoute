@@ -104,7 +104,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return createErrorResponse({
         status: 500,
         message: "Failed to create proxy in registry",
-        type: "internal_error",
+        type: "server_error",
       });
     }
 

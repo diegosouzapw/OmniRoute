@@ -71,3 +71,23 @@ test("POST /v1/chat/completions with a chat model still reaches routing (guard i
     assert.doesNotMatch(msg, /image-generation model/i, "chat model must not trip the image guard");
   }
 });
+
+test("POST /v1/chat/completions allows a model registered for both chat and image generation", async () => {
+  const request = buildRequest({
+    body: {
+      model: "codex/gpt-5.6-sol",
+      messages: [{ role: "user", content: "hi" }],
+    },
+  });
+
+  const res = await handleChat(request);
+  if (res.status === 400) {
+    const body = (await res.json()) as { error?: { message?: string } };
+    const msg = body?.error?.message || JSON.stringify(body);
+    assert.doesNotMatch(
+      msg,
+      /image-generation model/i,
+      "a model present in the chat catalog must not trip the image-only guard"
+    );
+  }
+});

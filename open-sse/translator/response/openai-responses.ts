@@ -14,9 +14,51 @@ import {
   normalizeUpstreamFailure,
   extractResponsesReasoningSummaryText,
 } from "./openai-responses/pureHelpers.ts";
+import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
 
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
+
+/**
+ * Escape control characters (newlines, tabs, carriage returns) that appear
+ * inside JSON string values, ensuring the resulting string is valid JSON.
+ * This handles upstream providers (e.g. Gemini/Gemma) that emit literal
+ * newlines (0x0A) instead of \n escapes inside tool call argument JSON.
+ * Only escapes characters inside string contexts to avoid double-escaping
+ * already-proper JSON or corrupting structural newlines.
+ */
+function escapeJsonStringValues(json: string): string {
+  let result = "";
+  let inString = false;
+
+  for (let i = 0; i < json.length; i++) {
+    const ch = json[i];
+
+    // Inside a string, skip over escape sequences
+    if (inString && ch === "\\") {
+      result += ch + (json[i + 1] ?? "");
+      i++;
+      continue;
+    }
+
+    // Toggle string state on unescaped double quotes
+    if (ch === '"') {
+      result += ch;
+      inString = !inString;
+      continue;
+    }
+
+    // Escape control characters only inside string values
+    if (inString && (ch === "\n" || ch === "\r" || ch === "\t")) {
+      result += ch === "\n" ? "\\n" : ch === "\r" ? "\\r" : "\\t";
+      continue;
+    }
+
+    result += ch;
+  }
+
+  return result;
+}
 
 /**
  * Translate OpenAI chunk to Responses API events
@@ -52,16 +94,19 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
   }
 
   if (!chunk.choices?.length) {
+    // #6906: a deferred finish_reason (awaitingTrailingUsage, see below) completes here —
+    // the trailing usage-only chunk (choices: [], usage: {...}) is what real
+    // stream_options.include_usage=true upstreams send after finish_reason (see the
+    // "READ THIS" block in stream.ts); state.usage was already captured above.
+    if (state.awaitingTrailingUsage && !state.completedSent) {
+      const { events, emit } = createEventEmitter(state);
+      sendCompleted(state, emit);
+      return events;
+    }
     return [];
   }
 
-  const events = [];
-  const nextSeq = () => ++state.seq;
-
-  const emit = (eventType, data) => {
-    data.sequence_number = nextSeq();
-    events.push({ event: eventType, data });
-  };
+  const { events, emit } = createEventEmitter(state);
 
   const choice = chunk.choices[0];
   const idx = choice.index || 0;
@@ -174,7 +219,13 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     for (const i in state.msgItemAdded) closeMessage(state, emit, i);
     closeReasoning(state, emit);
     for (const i in state.funcCallIds) closeToolCall(state, emit, i);
-    sendCompleted(state, emit);
+    // #6906: usage already captured (same chunk or earlier) completes now; otherwise
+    // defer for a trailing usage-only chunk, handled above and in flushEvents().
+    if (state.usage) {
+      sendCompleted(state, emit);
+    } else {
+      state.awaitingTrailingUsage = true;
+    }
   }
 
   return events;
@@ -408,7 +459,8 @@ function emitToolCall(state, emit, tc) {
   if (tc.function?.arguments) {
     const refCallId = state.funcCallIds[tcIdx] || newCallId;
     const existingArgs = state.funcArgsBuf[tcIdx] || "";
-    const nextArgs = appendToolCallArgumentDelta(existingArgs, tc.function.arguments);
+    const sanitized = escapeJsonStringValues(tc.function.arguments);
+    const nextArgs = appendToolCallArgumentDelta(existingArgs, sanitized);
     const emittedDelta = nextArgs.slice(existingArgs.length);
     state.funcArgsBuf[tcIdx] = nextArgs;
 
@@ -509,13 +561,22 @@ function sendCompleted(state, emit) {
     // emission sequence for stable ordering.
     const output = buildDenseOutput(state);
 
+    // Surface upstream mid-stream errors (e.g. Gemini 503) in the
+    // Responses-API `response.completed` event instead of silently emitting
+    // `status: "completed"`. The error is set by the Gemini-to-OpenAI
+    // translator or the OpenAI-Responses translator itself when the upstream
+    // SSE stream emits a JSON error object after partial content.
+    const upstreamErr = state.upstreamError;
+
     const response: Record<string, unknown> = {
       id: state.responseId,
       object: "response",
       created_at: state.created,
-      status: "completed",
+      status: upstreamErr ? "failed" : "completed",
       background: false,
-      error: null,
+      error: upstreamErr
+        ? { code: String(upstreamErr.status ?? ""), message: upstreamErr.message ?? "" }
+        : null,
       output,
     };
 
@@ -538,12 +599,7 @@ function sendCompleted(state, emit) {
 function flushEvents(state) {
   if (state.completedSent) return [];
 
-  const events = [];
-  const nextSeq = () => ++state.seq;
-  const emit = (eventType, data) => {
-    data.sequence_number = nextSeq();
-    events.push({ event: eventType, data });
-  };
+  const { events, emit } = createEventEmitter(state);
 
   for (const i in state.msgItemAdded) closeMessage(state, emit, i);
   closeReasoning(state, emit);

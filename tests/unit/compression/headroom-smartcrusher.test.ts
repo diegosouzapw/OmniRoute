@@ -88,11 +88,84 @@ describe("tabular encoder round-trip", () => {
     assert.deepEqual(decoded, original);
   });
 
+  it("round-trips deeply nested rows (multi-level objects + array-of-objects) via v3.2 flattening", async () => {
+    const original: Record<string, unknown>[] = Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      meta: { owner: { name: `n-${i}`, team: `t-${i % 2}` }, count: i * 2 },
+      items: [
+        { sku: `s-${i}`, qty: i },
+        { sku: `s2-${i}`, qty: i + 1 },
+      ],
+    }));
+    const encoded = encodeTabular(original);
+    // v3.2 nested flattening emits `>`-prefixed path fields for nested objects.
+    assert.match(encoded, /meta>owner>name/);
+    const decoded = decodeTabular(encoded);
+    // Order-insensitive: flattening may reorder object keys, which is semantically irrelevant.
+    assert.deepEqual(decoded, original);
+  });
+
+  it("round-trips a nested object that is null in some rows without losing the null", async () => {
+    // A null nested object must not be flattened (its leaves would encode absent and
+    // unflatten to a missing key). These must all survive as null, not disappear.
+    const cases: Record<string, unknown>[][] = [
+      [{ id: 0, meta: { a: 1, b: 2 } }, { id: 1, meta: null }, { id: 2, meta: { a: 3, b: 4 } }],
+      [
+        { id: 0, meta: { owner: { name: "a" } } },
+        { id: 1, meta: { owner: null } },
+        { id: 2, meta: { owner: { name: "c" } } },
+      ],
+      [{ id: 0, o: { p: { team: { x: 1 } } } }, { id: 1, o: { p: { team: null } } }],
+    ];
+    for (const original of cases) {
+      assert.deepEqual(decodeTabular(encodeTabular(original)), original);
+    }
+  });
+
   it("encoded form contains an explicit [N] count marker with field declaration", async () => {
     const original = makeRows(25);
     const encoded = encodeTabular(original);
     // GCF uses [N]{fields} format (e.g. [25]{id,name,value,active})
     assert.match(encoded, /\[25\]\{/);
+  });
+});
+
+// ─── 1b. Prototype-pollution safety (v3.2 flatten paths + object parser) ──────
+
+describe("tabular codec — prototype-pollution safety", () => {
+  it("round-trips rows with a literal __proto__ own-key without polluting Object.prototype", async () => {
+    const rows = Array.from({ length: 5 }, (_, i) =>
+      JSON.parse(`{"id":${i},"meta":{"__proto__":{"polluted":true},"real":${i}}}`)
+    );
+    const decoded = decodeTabular(encodeTabular(rows));
+    assert.deepEqual(decoded, rows);
+    assert.equal(({} as Record<string, unknown>).polluted, undefined);
+  });
+
+  it("round-trips a top-level __proto__ column without polluting", async () => {
+    const rows = Array.from({ length: 3 }, (_, i) => JSON.parse(`{"id":${i},"__proto__":"x${i}"}`));
+    const decoded = decodeTabular(encodeTabular(rows));
+    assert.deepEqual(decoded, rows);
+    assert.equal(({} as Record<string, unknown>).x0, undefined);
+  });
+
+  it("does not pollute or throw when decoding hostile GCF with a >__proto__> path column", async () => {
+    const hostile =
+      "```gcf-generic\nGCF profile=generic\n" +
+      '## [1]{id,"a>__proto__>polluted"}\n@0 0|1\n```';
+    decodeTabular(hostile);
+    assert.equal(({} as Record<string, unknown>).polluted, undefined);
+  });
+
+  it("round-trips keys named toString/constructor/valueOf (own-property, not prototype-chain)", async () => {
+    const rows = Array.from({ length: 4 }, (_, i) => ({
+      id: i,
+      toString: `ts${i}`,
+      constructor: `c${i}`,
+      valueOf: i,
+    }));
+    const decoded = decodeTabular(encodeTabular(rows));
+    assert.deepEqual(decoded, rows);
   });
 });
 

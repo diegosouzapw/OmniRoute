@@ -698,6 +698,7 @@ export const CODEX_REASONING_STRENGTH_OPTIONS = [
   { value: "medium", label: "Medium" },
   { value: "high", label: "High" },
   { value: "xhigh", label: "XHigh" },
+  { value: "max", label: "Max" },
 ];
 
 export const CODEX_ACCOUNT_SERVICE_TIER_VALUES: CodexServiceTier[] = [

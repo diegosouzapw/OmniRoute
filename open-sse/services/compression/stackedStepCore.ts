@@ -80,7 +80,20 @@ export function mergeStackStep(
   result: CompressionResult
 ): void {
   if (!result.stats) {
+    // No-op engine (e.g. ccr / session-dedup found no candidate): stats is null so there is no
+    // telemetry to fold, but the engine still RAN — record a zero-savings breakdown entry so its
+    // identity survives. Without this the breakdown stays empty and ensureEngineBreakdown
+    // synthesizes a generic "stacked" 0% node, hiding which engine an operator actually asked for.
+    // Also surface a validation warning so operators can tell "engine ran but had nothing to do"
+    // apart from "engine never ran" (#6479, #6491).
     recordNullStatsStep(acc, engineId);
+    acc.breakdown.push({
+      engine: engineId,
+      originalTokens: 0,
+      compressedTokens: 0,
+      savingsPercent: 0,
+      techniquesUsed: [],
+    });
     return;
   }
   result.stats.techniquesUsed.forEach((technique) => acc.techniques.add(technique));

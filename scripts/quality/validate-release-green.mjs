@@ -96,7 +96,9 @@ export function firstFailureLine(out) {
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
-  const hit = lines.find((l) => /✖|not ok|AssertionError|error TS|FAIL|Error:|REGRESS/i.test(l));
+  const hit = lines.find((l) =>
+    /✖|✗|not ok|AssertionError|error TS|FAIL|Error:|REGRESS/i.test(l)
+  );
   return (hit || lines[lines.length - 1] || "failed").slice(0, 200);
 }
 

@@ -2,6 +2,13 @@ import {
   getCodexClientVersion,
   getCodexDefaultHeaders,
 } from "@omniroute/open-sse/config/codexClient.ts";
+import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
+
+export {
+  CODEX_DISCOVERY_EXCLUDED_IDS,
+  CODEX_DISCOVERY_EXCLUDED_ID_PREFIXES,
+  isCodexDiscoveryModelExcluded,
+} from "@/shared/services/codexDiscoveryPolicy";
 
 export const CODEX_MODELS_URL = "https://chatgpt.com/backend-api/codex/models";
 export const CODEX_GITHUB_MODELS_URL =
@@ -213,8 +220,9 @@ function getFreshCodexGithubCatalogCache(
   now: number,
   cacheTtlMs: number
 ): CodexDiscoveryModel[] | null {
-  if (cacheTtlMs > 0 && codexGithubCatalogCache?.expiresAt > now) {
-    return codexGithubCatalogCache.models;
+  const cache = codexGithubCatalogCache;
+  if (cacheTtlMs > 0 && cache && cache.expiresAt > now) {
+    return cache.models;
   }
   return null;
 }
@@ -284,6 +292,11 @@ function localCatalogModelToCodexDiscoveryModel(
   };
 }
 
+/**
+ * Live/GitHub discovery is the source of truth for "what exists".
+ * Explicit filters (denylist / predicates) are the policy layer for "what we show".
+ * Do NOT reintroduce curated-only allowlisting as the default path (#6862 / #6859).
+ */
 export function mergeCodexLiveModelsWithLocalCatalog(
   liveModels: CodexDiscoveryModel[],
   localCatalogModels: CodexLocalCatalogModel[]
@@ -291,6 +304,7 @@ export function mergeCodexLiveModelsWithLocalCatalog(
   const merged = new Map<string, CodexDiscoveryModel>();
 
   for (const liveModel of liveModels) {
+    if (!liveModel?.id) continue;
     merged.set(liveModel.id, liveModel);
   }
 
@@ -302,6 +316,64 @@ export function mergeCodexLiveModelsWithLocalCatalog(
   }
 
   return Array.from(merged.values());
+}
+
+/** Return true to KEEP the model. */
+export type CodexDiscoveryModelFilter = (model: CodexDiscoveryModel) => boolean;
+
+/**
+ * Apply policy filters after discovery merge. Default denylist runs first;
+ * extraFilters are additional keep-predicates (all must pass).
+ */
+export function applyCodexDiscoveryFilters(
+  models: CodexDiscoveryModel[],
+  extraFilters: readonly CodexDiscoveryModelFilter[] = []
+): CodexDiscoveryModel[] {
+  return models.filter((model) => {
+    if (isCodexDiscoveryModelExcluded(model)) return false;
+    return extraFilters.every((keep) => keep(model));
+  });
+}
+
+/** Convenience: merge live/local then apply default (+ optional) filters. */
+export function buildCodexDiscoveryCatalog(
+  remoteModels: CodexDiscoveryModel[],
+  localCatalogModels: CodexLocalCatalogModel[],
+  extraFilters: readonly CodexDiscoveryModelFilter[] = []
+): CodexDiscoveryModel[] {
+  return applyCodexDiscoveryFilters(
+    mergeCodexLiveModelsWithLocalCatalog(remoteModels, localCatalogModels),
+    extraFilters
+  );
+}
+
+export type CuratedCodexCatalogResult = {
+  models: CodexDiscoveryModel[];
+  candidateModels: CodexDiscoveryModel[];
+};
+
+/**
+ * Optional curated-only view (allowlist). NOT used by the default Codex
+ * discovery route — kept for diagnostics / explicit call sites only.
+ */
+export function reconcileCuratedCodexCatalog(
+  remoteModels: CodexDiscoveryModel[],
+  curatedModels: CodexLocalCatalogModel[]
+): CuratedCodexCatalogResult {
+  const remoteById = new Map(remoteModels.map((model) => [model.id, model]));
+  const curatedIds = new Set<string>();
+  const models: CodexDiscoveryModel[] = [];
+
+  for (const localModel of curatedModels) {
+    if (!localModel.id) continue;
+    curatedIds.add(localModel.id);
+    const normalizedLocal = localCatalogModelToCodexDiscoveryModel(localModel);
+    const remoteModel = remoteById.get(localModel.id);
+    models.push(remoteModel ? { ...remoteModel, ...normalizedLocal } : normalizedLocal);
+  }
+
+  const candidateModels = remoteModels.filter((model) => !curatedIds.has(model.id));
+  return { models, candidateModels };
 }
 
 export function enrichCodexModelsFromGithubCatalog(

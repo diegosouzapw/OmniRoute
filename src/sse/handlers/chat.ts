@@ -34,6 +34,7 @@ import {
 } from "@omniroute/open-sse/config/constants.ts";
 import { getTargetFormat } from "@omniroute/open-sse/services/provider.ts";
 import {
+  getModelsByProviderId,
   getModelTargetFormat,
   PROVIDER_ID_TO_ALIAS,
 } from "@omniroute/open-sse/config/providerModels.ts";
@@ -311,11 +312,7 @@ export async function handleChat(
       }
     }
     if (b.max_tokens !== undefined) {
-      if (
-        typeof b.max_tokens !== "number" ||
-        !Number.isInteger(b.max_tokens) ||
-        b.max_tokens < 1
-      ) {
+      if (typeof b.max_tokens !== "number" || !Number.isInteger(b.max_tokens) || b.max_tokens < 1) {
         return badParam("max_tokens", "must be a positive integer");
       }
     }
@@ -402,9 +399,14 @@ export async function handleChat(
   // Image-only models live in IMAGE_PROVIDERS (open-sse/config/imageRegistry.ts)
   // and are served by /v1/images/generations. Forwarding them to a chat upstream
   // yielded confusing raw provider 400s (e.g. HuggingFace: "not a chat model").
-  // getImageModelEntry returns non-null only for models registered in the image
-  // registry — chat-only models (openai/gpt-4o, etc.) resolve to null and pass.
-  if (getImageModelEntry(modelStr)) {
+  // Models such as Codex GPT-5.5 support both chat and image generation, so an
+  // image-registry match is only image-only when the same provider/model pair is
+  // absent from the chat catalog.
+  const imageModel = getImageModelEntry(modelStr);
+  const isChatCatalogModel = imageModel
+    ? getModelsByProviderId(imageModel.provider).some((model) => model.id === imageModel.model)
+    : false;
+  if (imageModel && !isChatCatalogModel) {
     log.warn("CHAT", `Rejecting image-generation model on chat endpoint: ${modelStr}`);
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,

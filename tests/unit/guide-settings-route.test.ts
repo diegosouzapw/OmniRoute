@@ -224,9 +224,9 @@ test("guide-settings POST preserves existing OpenCode config fields while only u
     body: JSON.stringify({
       baseUrl: "http://my-omni/v1",
       apiKey: "sk-123",
-      models: ["cx/gpt-5.4", "opencode-go/kimi-k2.6"],
+      models: ["cx/gpt-5.6-sol", "opencode-go/kimi-k2.6"],
       modelLabels: {
-        "cx/gpt-5.4": "GPT-5.4",
+        "cx/gpt-5.6-sol": "GPT-5.6 Sol",
         "opencode-go/kimi-k2.6": "Kimi K2.6",
       },
     }),
@@ -252,7 +252,7 @@ test("guide-settings POST preserves existing OpenCode config fields while only u
   assert.equal(content.provider.omniroute.options.baseURL, "http://my-omni/v1");
   assert.ok(content.provider.omniroute.options.apiKey.startsWith("sk-"));
   assert.deepEqual(content.provider.omniroute.models, {
-    "cx/gpt-5.4": { name: "GPT-5.4" },
+    "cx/gpt-5.6-sol": { name: "GPT-5.6 Sol" },
     "opencode-go/kimi-k2.6": { name: "Kimi K2.6" },
   });
 });

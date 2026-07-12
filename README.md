@@ -574,7 +574,7 @@ Engines run in pipeline order; each is independently toggleable and configurable
 | 1   | **Session-Dedup** | Drops content repeated across turns (content-addressed, cross-turn) |
 | 2   | **CCR**           | Archives large blocks behind retrieve markers, fetched on demand    |
 | 3   | **RTK**           | Smart tool-result filtering, dedup & truncation (command-aware)     |
-| 4   | **Headroom**      | Lossless tabular compaction of homogeneous JSON arrays (~30%+)      |
+| 4   | **Headroom**      | Lossless tabular compaction of homogeneous JSON arrays, flat or nested (~30%), via a vendored **GCF** codec (spec v3.2) |
 | 5   | **Relevance**     | Extractive sentence scoring against the last user query             |
 | 6   | **Caveman**       | Rule-based prose compression (~65–75% on output)                    |
 | 7   | **LLMLingua-2**   | ML semantic pruning via MobileBERT ONNX — code-safe, async          |
@@ -1216,7 +1216,7 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 | Project                                                                                        |    ⭐ | How it inspired OmniRoute                                                                                                                                                                                      |
 | ---------------------------------------------------------------------------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[TOON](https://github.com/toon-format/toon)** · toon-format                                  | 24.7k | Token-Oriented Object Notation — its columnar, header-plus-rows model shaped our tabular compaction stage.                                                                                                     |
-| **[GCF – Graph Compact Format](https://github.com/blackwell-systems/gcf)** · Blackwell Systems |    14 | Schema-aware "JSON for LLMs" notation — co-inspired our lossless homogeneous-array compaction with `[N rows]` markers.                                                                                         |
+| **[GCF – Graph Compact Format](https://github.com/blackwell-systems/gcf)** · Blackwell Systems |    14 | First inspired our tabular compaction stage; now its zero-dependency, lossless generic-profile encoder is **vendored directly** as the Headroom codec (MIT, SPDX-marked), current with GCF spec v3.2. |
 | **[token-optimizer-mcp](https://github.com/ooples/token-optimizer-mcp)** · ooples              |   421 | Brotli/SQLite cache + per-session context-delta — inspired our `session-dedup` engine.                                                                                                                         |
 | **[token-savior](https://github.com/Mibayy/token-savior)** · Mibayy                            |  1.0k | Bash-output compaction + MCP profiles — inspired our compression bail-out discipline and MCP tool-manifest reduction.                                                                                          |
 | **[token-saver](https://github.com/ppgranger/token-saver)** · ppgranger                        |   110 | Content-aware, per-file-type output compression with failure-aware bail-out — validated our per-type dispatch and minimum-gain skip.                                                                           |

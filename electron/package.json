@@ -28,7 +28,7 @@
     "electron-updater": "^6.8.9"
   },
   "devDependencies": {
-    "electron": "^42.5.1",
+    "electron": "^43.1.0",
     "electron-builder": "^26.15.3"
   },
   "overrides": {
@@ -42,6 +42,7 @@
     "appId": "online.omniroute.desktop",
     "productName": "OmniRoute",
     "copyright": "Copyright © 2025 OmniRoute",
+    "buildDependenciesFromSource": true,
     "directories": {
       "output": "dist-electron",
       "buildResources": "assets"

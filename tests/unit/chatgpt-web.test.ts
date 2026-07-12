@@ -1245,21 +1245,26 @@ test("Provider registry: chatgpt-web exposes the current ChatGPT Web model catal
   assert.equal(entry.authHeader, "cookie");
 
   const ids = (entry.models || []).map((m) => m.id);
-  // Public OmniRoute ids stay in historical dot form even though ChatGPT's
-  // backend routes use dash-form slugs. Retired GPT-5/GPT-5.1 entries should
-  // stay out of this list.
+  // Retired GPT-5.4 and older entries stay out of the advertised catalog.
   assert.deepEqual(ids, [
-    "gpt-5.5-pro",
+    "gpt-5.6-pro",
+    "gpt-5.6-thinking",
     "gpt-5.5-pro-extended",
+    "gpt-5.5-pro",
     "gpt-5.5-thinking",
     "gpt-5.5",
-    "gpt-5.4-pro",
-    "gpt-5.4-thinking",
-    "gpt-5.4-thinking-mini",
-    "gpt-5.3",
-    "gpt-5.3-mini",
     "o3",
   ]);
+  assert.equal(
+    ids.some((id) => id.startsWith("gpt-5.4")),
+    false
+  );
+
+  const { MODEL_MAP } = await import("../../open-sse/executors/chatgpt-web/models.ts");
+  assert.equal(
+    Object.keys(MODEL_MAP).some((id) => id.startsWith("gpt-5.4") || id.startsWith("gpt-5-4")),
+    false
+  );
 });
 
 test("Executor MODEL_MAP: OmniRoute IDs translate to ChatGPT backend slugs", async () => {
@@ -1268,18 +1273,17 @@ test("Executor MODEL_MAP: OmniRoute IDs translate to ChatGPT backend slugs", asy
   try {
     const cases: Array<[string, string]> = [
       // Public catalog ids.
-      ["gpt-5.3", "gpt-5-3"],
+      ["gpt-5.6-pro", "gpt-5-6-pro"],
+      ["gpt-5.6-thinking", "gpt-5-6-thinking"],
       ["gpt-5.5-thinking", "gpt-5-5-thinking"],
-      ["gpt-5.4-thinking-mini", "gpt-5-4-t-mini"],
       ["gpt-5.5", "gpt-5-5"],
       ["gpt-5.5-pro", "gpt-5-5-pro"],
       ["gpt-5.5-pro-extended", "gpt-5-5-pro"],
-      ["gpt-5.4-pro", "gpt-5-4-pro"],
       ["o3", "o3"],
       // Backend dash-form slugs are still accepted for direct provider/model callers.
       ["gpt-5-3", "gpt-5-3"],
       ["gpt-5-5-thinking", "gpt-5-5-thinking"],
-      ["gpt-5-4-t-mini", "gpt-5-4-t-mini"],
+      ["gpt-5-6-pro", "gpt-5-6-pro"],
       ["gpt-5-5-pro", "gpt-5-5-pro"],
       ["gpt-5-5-pro-extended", "gpt-5-5-pro"],
     ];
@@ -1309,15 +1313,12 @@ test("MODEL_MAP drift guard: every advertised catalog id reaches ChatGPT as a ba
   const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
   const ids = (getRegistryEntry("chatgpt-web")?.models || []).map((m) => m.id);
   const expectedSlugById: Record<string, string> = {
-    "gpt-5.5-pro": "gpt-5-5-pro",
+    "gpt-5.6-pro": "gpt-5-6-pro",
+    "gpt-5.6-thinking": "gpt-5-6-thinking",
     "gpt-5.5-pro-extended": "gpt-5-5-pro",
+    "gpt-5.5-pro": "gpt-5-5-pro",
     "gpt-5.5-thinking": "gpt-5-5-thinking",
     "gpt-5.5": "gpt-5-5",
-    "gpt-5.4-pro": "gpt-5-4-pro",
-    "gpt-5.4-thinking": "gpt-5-4-thinking",
-    "gpt-5.4-thinking-mini": "gpt-5-4-t-mini",
-    "gpt-5.3": "gpt-5-3",
-    "gpt-5.3-mini": "gpt-5-3-mini",
     o3: "o3",
   };
   const m = installMockFetch();
@@ -1466,7 +1467,7 @@ test("thinking_effort: low/medium → PATCH with standard", async () => {
     try {
       const executor = new ChatGptWebExecutor();
       await executor.execute({
-        model: "gpt-5.4-thinking",
+        model: "gpt-5.6-thinking",
         body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: effort },
         stream: false,
         credentials: { apiKey: `cookie-${effort}` },
@@ -1475,7 +1476,7 @@ test("thinking_effort: low/medium → PATCH with standard", async () => {
       });
       assert.equal(m.calls.userConfig, 1, `effort=${effort} should issue exactly one PATCH`);
       assert.match(m.calls.userConfigUrls[0], /thinking_effort=standard/, `${effort} → standard`);
-      assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-4-thinking/);
+      assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-6-thinking/);
     } finally {
       m.restore();
     }
@@ -1501,12 +1502,8 @@ test("thinking_effort: instant model never triggers PATCH even with reasoning_ef
   }
 });
 
-test("thinking_effort: bare chatgpt.com slug (e.g. gpt-5-4-t-mini) passed as model still PATCHes", async () => {
-  // Regression: the abbreviated dash-form slug "gpt-5-4-t-mini" doesn't
-  // carry the literal "thinking" substring, and isn't a key in MODEL_MAP
-  // (only its dot-form alias is), so a substring-only check would silently
-  // skip the PATCH for callers that send the chatgpt.com slug directly.
-  for (const bareSlug of ["gpt-5-4-t-mini", "gpt-5-5-thinking", "o3"]) {
+test("thinking_effort: bare chatgpt.com thinking slugs still PATCH", async () => {
+  for (const bareSlug of ["gpt-5-6-thinking", "gpt-5-5-thinking", "o3"]) {
     reset();
     const m = installMockFetch();
     try {
@@ -1559,7 +1556,7 @@ test("thinking_effort: providerSpecificData.thinkingEffort=extended overrides bo
   try {
     const executor = new ChatGptWebExecutor();
     await executor.execute({
-      model: "gpt-5.4-thinking-mini",
+      model: "gpt-5.6-thinking",
       body: {
         messages: [{ role: "user", content: "hi" }],
         reasoning_effort: "low", // would normally map to standard
@@ -1573,7 +1570,7 @@ test("thinking_effort: providerSpecificData.thinkingEffort=extended overrides bo
       log: null,
     });
     assert.equal(m.calls.userConfig, 1);
-    assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-4-t-mini/);
+    assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-6-thinking/);
     assert.match(m.calls.userConfigUrls[0], /thinking_effort=extended/);
   } finally {
     m.restore();
@@ -1676,12 +1673,12 @@ test("thinking_effort: PATCH failure is non-fatal — conversation request still
   }
 });
 
-test("Image registry: cgpt-web/gpt-5.3-instant routes to ChatGPT Web image handler", async () => {
+test("Image registry: cgpt-web/gpt-5.5 routes to ChatGPT Web image handler", async () => {
   const { parseImageModel, getImageProvider } =
     await import("../../open-sse/config/imageRegistry.ts");
-  const parsed = parseImageModel("cgpt-web/gpt-5.3-instant");
+  const parsed = parseImageModel("cgpt-web/gpt-5.5");
   assert.equal(parsed.provider, "chatgpt-web");
-  assert.equal(parsed.model, "gpt-5.3-instant");
+  assert.equal(parsed.model, "gpt-5.5");
   const provider = getImageProvider(parsed.provider);
   assert.equal(provider.format, "chatgpt-web");
   assert.equal(provider.authHeader, "cookie");

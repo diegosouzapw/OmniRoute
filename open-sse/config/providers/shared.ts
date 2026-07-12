@@ -284,13 +284,27 @@ export const GPT_5_5_CODEX_CAPABILITIES = {
   contextLength: GPT_5_5_CONTEXT_LENGTH,
 } as const;
 
-export const GPT_5_4_CODEX_CAPABILITIES = {
+// Public OpenAI API limits. These differ from the Codex OAuth catalog limits below.
+export const GPT_5_6_API_CAPABILITIES = {
+  toolCalling: true,
+  supportsReasoning: true,
+  supportsVision: true,
+  supportsXHighEffort: true,
+  contextLength: 1050000,
+  maxInputTokens: 922000,
+  maxOutputTokens: 128000,
+} as const;
+
+// Codex's live catalog reports a 372K usable input budget for GPT-5.6.
+// Keep the reserved 128K output budget explicit, matching the GPT-5.5 catalog contract.
+export const GPT_5_6_CODEX_CAPABILITIES = {
   targetFormat: "openai-responses",
   toolCalling: true,
   supportsReasoning: true,
   supportsVision: true,
   supportsXHighEffort: true,
-  contextLength: 200000,
+  contextLength: 500000,
+  maxInputTokens: 372000,
   maxOutputTokens: 128000,
 } as const;
 

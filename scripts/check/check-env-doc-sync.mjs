@@ -148,6 +148,9 @@ const IGNORE_FROM_CODE = new Set([
   // write-build-sha.mjs to stamp dist/BUILD_SHA — injected by the build, never
   // configured by users in .env.
   "OMNIROUTE_BUILD_SHA",
+  // Listener-owned self-fetch transport signal. The HTTP/HTTPS launchers set
+  // this before application imports; it is not user-configurable product env.
+  "OMNIROUTE_INTERNAL_SCHEME",
   // Source typo / placeholder.
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).

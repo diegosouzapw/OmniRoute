@@ -24,7 +24,10 @@ import {
   isNamedOpenAIStyleProvider,
 } from "../../src/app/api/providers/[id]/models/discovery/providerSets.ts";
 import { PROVIDER_MODELS_CONFIG } from "../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
+import { isCodexDiscoveryModelExcluded as isSharedCodexDiscoveryModelExcluded } from "../../src/shared/services/codexDiscoveryPolicy.ts";
 import {
+  applyCodexDiscoveryFilters,
+  buildCodexDiscoveryCatalog,
   buildCodexModelsUrl,
   CODEX_GITHUB_MODELS_URL,
   CODEX_MODELS_URL,
@@ -32,9 +35,11 @@ import {
   enrichCodexModelsFromGithubCatalog,
   fetchCodexDiscoveryModels,
   fetchCodexGithubCatalogModels,
+  isCodexDiscoveryModelExcluded,
   mergeCodexLiveModelsWithLocalCatalog,
   normalizeCodexGithubCatalogResponse,
   normalizeCodexModelsResponse,
+  reconcileCuratedCodexCatalog,
 } from "../../src/app/api/providers/[id]/models/discovery/codex.ts";
 
 // ── helpers leaf ─────────────────────────────────────────────────────────────
@@ -228,7 +233,7 @@ test("codex.normalizeCodexGithubCatalogResponse parses current client catalog me
         description: "Latest frontier agentic coding model.",
         visibility: "list",
         supported_in_api: true,
-        minimal_client_version: "0.142.0",
+        minimal_client_version: "0.144.0",
         context_window: 372000,
         input_modalities: ["text", "image"],
         supported_reasoning_levels: [{ effort: "low" }, { effort: "ultra" }],
@@ -299,31 +304,119 @@ test("codex.enrichCodexModelsFromGithubCatalog keeps live entitlement list autho
   assert.equal(enriched[0]?.supportsVision, true);
 });
 
-test("codex.mergeCodexLiveModelsWithLocalCatalog preserves static effort aliases", () => {
+test("codex.mergeCodexLiveModelsWithLocalCatalog auto-includes remote-only models", () => {
   const merged = mergeCodexLiveModelsWithLocalCatalog(
     [
       {
-        id: "gpt-5.6",
-        name: "GPT 5.6 Live",
+        id: "future-codex-model",
+        name: "Future Codex Model",
         owned_by: "codex",
         apiFormat: "responses",
         supportedEndpoints: ["responses"],
-        inputTokenLimit: 512000,
+      },
+      {
+        id: "gpt-5.6-sol",
+        name: "Live Sol",
+        owned_by: "codex",
+        apiFormat: "responses",
+        supportedEndpoints: ["responses"],
+        inputTokenLimit: 999999,
+        supportsVision: true,
       },
     ],
     [
-      { id: "gpt-5.6", name: "GPT 5.6 Static", contextLength: 400000 },
-      { id: "gpt-5.6-low", name: "GPT 5.6 Low", contextLength: 400000 },
+      {
+        id: "gpt-5.6-sol",
+        name: "GPT 5.6 Sol",
+        contextLength: 500000,
+        maxInputTokens: 372000,
+        maxOutputTokens: 128000,
+      },
+      { id: "gpt-5.6-sol-low", name: "GPT 5.6 Sol (Low)", contextLength: 500000 },
     ]
   );
 
+  const ids = merged.map((model) => model.id);
+  assert.ok(ids.includes("future-codex-model"));
+  assert.ok(ids.includes("gpt-5.6-sol"));
+  assert.ok(ids.includes("gpt-5.6-sol-low"));
+  const sol = merged.find((model) => model.id === "gpt-5.6-sol");
+  // Local catalog enriches known IDs; live fields win on overlap via merge order.
+  assert.equal(sol?.inputTokenLimit, 999999);
+  assert.equal(sol?.supportsVision, true);
+  assert.equal(sol?.outputTokenLimit, 128000);
+});
+
+test("codex discovery filters drop the GPT-5.4 family but keep other remote models", () => {
+  assert.equal(isCodexDiscoveryModelExcluded({ id: "gpt-5.4", name: "x" }), true);
+  assert.equal(isCodexDiscoveryModelExcluded({ id: "gpt-5.4-mini", name: "x" }), true);
+  assert.equal(isCodexDiscoveryModelExcluded({ id: "gpt-5.6-sol", name: "x" }), false);
+
+  const filtered = applyCodexDiscoveryFilters([
+    { id: "gpt-5.4", name: "Retired" },
+    { id: "gpt-5.4-pro", name: "Retired Pro" },
+    { id: "future-codex-model", name: "Future" },
+    { id: "gpt-5.6-sol", name: "Sol" },
+  ]);
   assert.deepEqual(
-    merged.map((model) => model.id),
-    ["gpt-5.6", "gpt-5.6-low"]
+    filtered.map((model) => model.id),
+    ["future-codex-model", "gpt-5.6-sol"]
   );
-  assert.equal(merged.find((model) => model.id === "gpt-5.6")?.name, "GPT 5.6 Live");
-  assert.equal(merged.find((model) => model.id === "gpt-5.6")?.inputTokenLimit, 512000);
-  assert.equal(merged.find((model) => model.id === "gpt-5.6-low")?.inputTokenLimit, 400000);
+});
+
+test("shared Codex discovery policy only matches explicit GPT-5.4 family boundaries", () => {
+  for (const id of ["GPT-5.4", "gpt-5.4-mini", "gpt-5.4_preview", "gpt-5.4.1"]) {
+    assert.equal(isSharedCodexDiscoveryModelExcluded({ id }), true, id);
+  }
+  for (const id of ["gpt-5.40", "gpt-5.4x", "future-codex-model"]) {
+    assert.equal(isSharedCodexDiscoveryModelExcluded({ id }), false, id);
+  }
+});
+
+test("codex.buildCodexDiscoveryCatalog merges then filters in one step", () => {
+  const catalog = buildCodexDiscoveryCatalog(
+    [
+      { id: "gpt-5.4", name: "Retired Live" },
+      { id: "brand-new-codex", name: "Brand New" },
+      {
+        id: "gpt-5.6-sol",
+        name: "Live Sol",
+        inputTokenLimit: 111,
+        supportsVision: true,
+      },
+    ],
+    [
+      {
+        id: "gpt-5.6-sol",
+        name: "GPT 5.6 Sol",
+        maxInputTokens: 372000,
+        maxOutputTokens: 128000,
+      },
+      { id: "gpt-5.6-sol-max", name: "GPT 5.6 Sol Max" },
+    ]
+  );
+  const ids = catalog.map((model) => model.id);
+  assert.ok(ids.includes("brand-new-codex"));
+  assert.ok(ids.includes("gpt-5.6-sol"));
+  assert.ok(ids.includes("gpt-5.6-sol-max"));
+  assert.equal(
+    ids.some((id) => String(id).startsWith("gpt-5.4")),
+    false
+  );
+
+  // Optional curated helper still available for diagnostics only.
+  const curated = reconcileCuratedCodexCatalog(
+    [{ id: "brand-new-codex", name: "Brand New" }],
+    [{ id: "gpt-5.6-sol", name: "GPT 5.6 Sol" }]
+  );
+  assert.deepEqual(
+    curated.models.map((model) => model.id),
+    ["gpt-5.6-sol"]
+  );
+  assert.deepEqual(
+    curated.candidateModels.map((model) => model.id),
+    ["brand-new-codex"]
+  );
 });
 
 test("codex.normalizeCodexModelsResponse drops entries without an id", () => {
@@ -410,7 +503,7 @@ test("codex.fetchCodexGithubCatalogModels fetches the OpenAI Codex repo catalog"
             display_name: "GPT-5.6-Terra",
             visibility: "list",
             supported_in_api: true,
-            minimal_client_version: "0.142.0",
+            minimal_client_version: "0.144.0",
           },
         ],
       });
@@ -443,7 +536,7 @@ test("codex.fetchCodexGithubCatalogModels reuses cached catalog with ETags", asy
               display_name: "GPT-5.6-Luna",
               visibility: "list",
               supported_in_api: true,
-              minimal_client_version: "0.142.0",
+              minimal_client_version: "0.144.0",
             },
           ],
         },

@@ -18,6 +18,7 @@ const { wrapRequestListenerWithHeadResponseGuard } = headResponseGuard;
 // listener Next binds to (so WS `upgrade` / request wrappers keep working over
 // TLS). Absent or misconfigured → null → identical plain-HTTP behavior as before.
 const tlsOptions = resolveTlsOptions(process.env);
+process.env.OMNIROUTE_INTERNAL_SCHEME = tlsOptions ? "https" : "http";
 if (tlsOptions) {
   console.log(`[omniroute][tls] HTTPS enabled — terminating TLS with cert=${tlsOptions.certPath}`);
 }

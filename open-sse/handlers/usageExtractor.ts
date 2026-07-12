@@ -35,8 +35,10 @@ export function extractUsageFromResponse(responseBody, provider) {
       // @ryanngit). Only set the key when present so non-xAI OpenAI-shaped usage
       // (Codex, DeepSeek, etc.) is unaffected. Ticks → USD conversion happens in
       // costCalculator.ts, not here.
-      ...(Number.isFinite(Number(responseBody.usage.cost_in_usd_ticks))
-        ? { cost_in_usd_ticks: Number(responseBody.usage.cost_in_usd_ticks) }
+      ...(typeof responseBody.usage.cost_in_usd_ticks === "number" &&
+      Number.isFinite(responseBody.usage.cost_in_usd_ticks) &&
+      responseBody.usage.cost_in_usd_ticks >= 0
+        ? { cost_in_usd_ticks: responseBody.usage.cost_in_usd_ticks }
         : {}),
     };
   }

@@ -157,7 +157,7 @@ async function postHandler(request: Request, context) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing required field: image");
   }
 
-  const fullModel = model || "cgpt-web/gpt-5.3-instant";
+  const fullModel = model || "cgpt-web/gpt-5.5";
 
   const policy = await enforceApiKeyPolicy(request, fullModel);
   if (policy.rejection) return policy.rejection;
