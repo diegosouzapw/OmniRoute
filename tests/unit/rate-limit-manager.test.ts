@@ -59,6 +59,31 @@ test("rate limit manager bypasses disabled connections and exposes inactive stat
   assert.deepEqual(rateLimitManager.getAllRateLimitStatus(), {});
 });
 
+test("withRateLimit forwards AbortController DOMException without mutating it", async () => {
+  const connectionId = "conn-abort-domexception";
+  const controller = new AbortController();
+  rateLimitManager.enableRateLimitProtection(connectionId);
+
+  const pending = rateLimitManager.withRateLimit(
+    "github-models",
+    connectionId,
+    "microsoft/phi-4-reasoning",
+    async () => {
+      await wait(50);
+      return "late";
+    },
+    controller.signal
+  );
+
+  controller.abort();
+
+  await assert.rejects(pending, (error: unknown) => {
+    assert.ok(error instanceof DOMException);
+    assert.equal(error.name, "AbortError");
+    return true;
+  });
+});
+
 test("rate limit manager handles soft over-limit warnings and normal header learning", async () => {
   rateLimitManager.enableRateLimitProtection("conn-over-limit");
   rateLimitManager.updateFromHeaders(
