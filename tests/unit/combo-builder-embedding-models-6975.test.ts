@@ -9,7 +9,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { isComboSelectable } from "../../src/lib/combos/builderOptions.ts";
+import { isComboSelectable } from "../../src/lib/combos/builderOptions";
 
 test("#6975: embedding-only endpoints are selectable", () => {
   assert.equal(isComboSelectable(["embedding"]), true);
