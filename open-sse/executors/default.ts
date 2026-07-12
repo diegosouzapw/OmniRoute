@@ -786,10 +786,17 @@ export class DefaultExecutor extends BaseExecutor {
     const target = Math.min(MIN_TOKENS, maxOutput);
     const current = body.max_tokens ?? body.max_completion_tokens;
 
+    // #6912: Respect the max_tokens -> max_completion_tokens mapping done in
+    // transformRequest for recent OpenAI models (o1/o3/o4/gpt-5). Writing
+    // body.max_tokens here would re-introduce it alongside max_completion_tokens,
+    // causing API validation errors.
+    const tokenKey =
+      body.max_completion_tokens !== undefined ? "max_completion_tokens" : "max_tokens";
+
     if (typeof current !== "number" || current <= 0) {
-      body.max_tokens = target;
+      body[tokenKey] = target;
     } else if (current < MIN_TOKENS && current < maxOutput) {
-      body.max_tokens = MIN_TOKENS;
+      body[tokenKey] = MIN_TOKENS;
     }
     return body;
   }
