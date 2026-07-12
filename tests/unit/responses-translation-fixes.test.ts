@@ -126,6 +126,60 @@ test("Codex Responses input: null input normalizes to an empty list (not [null])
   assert.deepEqual(body.input, []);
 });
 
+test("Codex Responses input: assistant history normalized to output_text (OpenAI/Codex rejects input_text on assistant turns)", () => {
+  const body: Record<string, unknown> = {
+    input: [
+      {
+        type: "message",
+        role: "assistant",
+        content: [
+          {
+            type: "input_text",
+            text: "Previous assistant answer",
+            annotations: [{ type: "url_citation", url: "https://example.com" }],
+            logprobs: [{ token: "Previous" }],
+            obfuscation: "opaque",
+          },
+          { type: "scoped_content", scope: "internal", content: "Preserve me" },
+        ],
+      },
+      {
+        type: "message",
+        role: "user",
+        content: [
+          { type: "input_image", image_url: "https://example.com/image.png", detail: "high" },
+          { type: "input_file", file_id: "file_123" },
+        ],
+      },
+      { type: "function_call", call_id: "call_123", name: "lookup", arguments: "{}" },
+      { type: "function_call_output", call_id: "call_123", output: "done" },
+    ],
+  };
+
+  normalizeCodexResponsesInput(body);
+
+  assert.deepEqual(body.input, [
+    {
+      type: "message",
+      role: "assistant",
+      content: [
+        { type: "output_text", text: "Previous assistant answer" },
+        { type: "scoped_content", scope: "internal", content: "Preserve me" },
+      ],
+    },
+    {
+      type: "message",
+      role: "user",
+      content: [
+        { type: "input_image", image_url: "https://example.com/image.png", detail: "high" },
+        { type: "input_file", file_id: "file_123" },
+      ],
+    },
+    { type: "function_call", call_id: "call_123", name: "lookup", arguments: "{}" },
+    { type: "function_call_output", call_id: "call_123", output: "done" },
+  ]);
+});
+
 test("Responses→Chat: null input normalizes to an empty list (not [null])", () => {
   assert.deepEqual(normalizeResponsesInputForChat(null), []);
 });
