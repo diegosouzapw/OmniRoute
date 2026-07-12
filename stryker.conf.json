@@ -118,6 +118,7 @@
       "tests/unit/combo-499-abort.test.ts",
       "tests/unit/combo-account-allowlist-3266.test.ts",
       "tests/unit/combo-auto-candidate-expansion.test.ts",
+      "tests/unit/combo-breaker-429.test.ts",
       "tests/unit/combo-cache-invalidation.test.ts",
       "tests/unit/combo-config.test.ts",
       "tests/unit/combo-context-relay.test.ts",
