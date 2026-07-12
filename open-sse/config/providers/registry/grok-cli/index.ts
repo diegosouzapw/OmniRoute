@@ -15,13 +15,25 @@ export const grok_cliProvider: RegistryEntry = {
       id: "grok-build",
       name: "Grok Build",
       contextLength: 256000,
-      unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
+      unsupportedParams: [
+        "presencePenalty",
+        "frequencyPenalty",
+        "logprobs",
+        "topLogprobs",
+        "reasoningEffort",
+      ],
     },
     {
       id: "grok-composer-2.5-fast",
       name: "Grok Composer 2.5 Fast",
       contextLength: 200000,
-      unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
+      unsupportedParams: [
+        "presencePenalty",
+        "frequencyPenalty",
+        "logprobs",
+        "topLogprobs",
+        "reasoningEffort",
+      ],
     },
   ],
   oauth: {
