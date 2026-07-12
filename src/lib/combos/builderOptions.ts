@@ -155,9 +155,19 @@ function toStringArray(value: unknown): string[] | undefined {
   return normalized.length > 0 ? normalized : undefined;
 }
 
-function isChatCapable(supportedEndpoints: string[] | undefined): boolean {
+/**
+ * Determine whether a model should appear in the combo builder picker.
+ *
+ * Issue #6975: models whose only endpoint is "embedding" were silently filtered
+ * out, making it impossible to build embedding combos from the UI.  The combo
+ * runtime already supports embedding steps (see `dimensions` override in
+ * `createComboSchema`), so we accept both "chat" and "embedding" endpoints.
+ * Models with no endpoint metadata default to visible (preserves prior behavior
+ * for built-in/legacy models).
+ */
+export function isComboSelectable(supportedEndpoints: string[] | undefined): boolean {
   if (!supportedEndpoints || supportedEndpoints.length === 0) return true;
-  return supportedEndpoints.includes("chat");
+  return supportedEndpoints.includes("chat") || supportedEndpoints.includes("embedding");
 }
 
 function getSourcePriority(source: BuilderModelSource): number {
@@ -305,7 +315,7 @@ function addModelOption(
   const modelId = toStringOrNull(input.id);
   if (!modelId) return;
   if (getModelIsHidden(providerId, modelId)) return;
-  if (!isChatCapable(input.supportedEndpoints)) return;
+  if (!isComboSelectable(input.supportedEndpoints)) return;
 
   const nextSourcePriority = getSourcePriority(input.source);
   const existing = modelMap.get(modelId);
@@ -554,9 +564,8 @@ export async function getComboBuilderOptions(): Promise<ComboBuilderOptionsPaylo
       customModels
     );
 
-    const normalizedConnections = expandConnectionOptions(providerConnections).sort(
-      compareConnections
-    );
+    const normalizedConnections =
+      expandConnectionOptions(providerConnections).sort(compareConnections);
 
     const activeConnectionCount = normalizedConnections.filter(
       (connection) => connection.isActive
