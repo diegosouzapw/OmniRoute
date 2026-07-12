@@ -187,6 +187,12 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     ],
   },
 
+  // #6976 — OpenRouter serves embeddings via a dedicated OpenAI-compatible
+  // /api/v1/embeddings endpoint (omitted from /v1/models, so this catalog is
+  // curated rather than live-discovered). Ids verified against the API
+  // reference (not the display-name collections page) at refresh time:
+  // https://openrouter.ai/docs/api/reference/embeddings and
+  // https://openrouter.ai/collections/embedding-models
   openrouter: {
     id: "openrouter",
     baseUrl: "https://openrouter.ai/api/v1/embeddings",
@@ -204,9 +210,29 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
         dimensions: 3072,
       },
       {
-        id: "openai/text-embedding-ada-002",
-        name: "Text Embedding Ada 002 (OpenRouter)",
-        dimensions: 1536,
+        id: "qwen/qwen3-embedding-8b",
+        name: "Qwen3 Embedding 8B (OpenRouter)",
+        dimensions: 4096,
+      },
+      {
+        id: "qwen/qwen3-embedding-4b",
+        name: "Qwen3 Embedding 4B (OpenRouter)",
+        dimensions: 2560,
+      },
+      {
+        id: "baai/bge-m3",
+        name: "BGE-M3 (OpenRouter)",
+        dimensions: 1024,
+      },
+      {
+        id: "mistralai/mistral-embed-2312",
+        name: "Mistral Embed (OpenRouter)",
+        dimensions: 1024,
+      },
+      {
+        id: "google/gemini-embedding-001",
+        name: "Gemini Embedding 001 (OpenRouter)",
+        dimensions: 768,
       },
     ],
   },
