@@ -354,14 +354,31 @@ export async function handleFusionChat({
     // surviving panel answer, rather than silently substituting the panel
     // member for the configured judge (issue #6455). The judge still adds
     // value reviewing/polishing a lone source per its documented contract.
+  }
+
+  // Resolve the judge that ACTUALLY runs synthesis. An explicit judgeModel is
+  // honored as configured (operator intent — kept even if it was down during
+  // fan-out; that's the operator's choice). With NO explicit judge the judge
+  // defaulted to panel[0] — but panel[0] may have FAILED fan-out (timeout /
+  // rate-limit / dropped straggler → it lands in `failures`, not `answers`).
+  // Handing synthesis to a dead panel[0] sinks the whole request despite a
+  // healthy quorum — exactly the case fusion exists to tolerate. So pick a
+  // SURVIVOR: prefer panel[0] when it survived, otherwise the first survivor.
+  const effectiveJudge = hasExplicitJudge
+    ? judge
+    : answers.some((a) => a.model === panel[0])
+      ? panel[0]
+      : answers[0].model;
+
+  if (answers.length === 1) {
     log.info(
       "FUSION",
-      `Only ${answers[0].model} succeeded — judging single answer with ${judge}`
+      `Only ${answers[0].model} succeeded — judging single answer with ${effectiveJudge}`
     );
   }
 
   // 4. Judge analyzes + writes one final answer (streams to client if requested).
   const judgeBody = appendUserTurn(body, buildJudgePrompt(answers));
-  log.info("FUSION", `Judging ${answers.length} answers with ${judge}`);
-  return handleSingleModel(judgeBody, judge);
+  log.info("FUSION", `Judging ${answers.length} answers with ${effectiveJudge}`);
+  return handleSingleModel(judgeBody, effectiveJudge);
 }
