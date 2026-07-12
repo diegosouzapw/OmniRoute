@@ -108,6 +108,7 @@
       "tests/unit/cli-simulate.test.ts",
       "tests/unit/cline-response-envelope.test.ts",
       "tests/unit/clinepass-provider.test.ts",
+      "tests/unit/cliproxyapi-model-mapping-dispatch.test.ts",
       "tests/unit/codex-failover.test.ts",
       "tests/unit/codex-quota-selection-hydration.test.ts",
       "tests/unit/codex-session-affinity-reset-aware-5903.test.ts",
