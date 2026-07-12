@@ -31,7 +31,10 @@ import {
   sanitizeStreamingChunk,
 } from "../handlers/responseSanitizer.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
-import { shouldDropResponsesCommentaryEvent } from "./responsesCommentaryDrop.ts";
+import {
+  shouldDropResponsesCommentaryEvent,
+  createTranslateCommentaryFilter,
+} from "./responsesCommentaryDrop.ts";
 import { buildErrorBody } from "./error.ts";
 import { parseTextualToolCallCandidate, isValidToolCallHeaderPrefix } from "./textualToolCall.ts";
 import { recordToolLatency } from "../services/toolLatencyTracker.ts";
@@ -707,6 +710,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   // item id + output_index here and drop every matching follow-up event.
   const passthroughResponsesCommentaryItemIds = new Set<string>();
   const passthroughResponsesCommentaryIndexes = new Set<number>();
+  const dropCommentary = createTranslateCommentaryFilter(targetFormat);
   // #5786 — highest Responses-API `sequence_number` already forwarded on this stream.
   // The Responses API guarantees a strictly increasing sequence_number, so any event at
   // or below this watermark is an upstream reconnect/retry replay and must be dropped —
@@ -1931,6 +1935,8 @@ export function createSSEStream(options: StreamOptions = {}) {
           ) {
             continue;
           }
+
+          if (shouldDropResponsesCommentary && dropCommentary(parsed as JsonRecord)) continue;
 
           providerPayloadCollector.push(parsed);
 

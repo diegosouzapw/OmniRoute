@@ -10,6 +10,7 @@
 // config/quality/file-size-baseline.json) so the #6561 fix (clearing the
 // buffered `event:` line alongside every drop) does not grow that file.
 import { isResponsesCommentaryMessageItem } from "../handlers/responseSanitizer.ts";
+import { FORMATS } from "../translator/formats.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -95,4 +96,15 @@ export function shouldDropResponsesCommentaryEvent(
       commentaryIndexes
     )
   );
+}
+
+// #6952 — TRANSLATE-mode chunk loop was missing this filter (only PASSTHROUGH
+// had it wired), so commentary-phase text leaked into the client. Own Sets +
+// the `targetFormat` gate, closed over so stream.ts (frozen) stays a one-liner.
+export function createTranslateCommentaryFilter(targetFormat: string | undefined) {
+  const commentaryItemIds = new Set<string>();
+  const commentaryIndexes = new Set<number>();
+  const applies = targetFormat === FORMATS.OPENAI_RESPONSES;
+  return (parsed: JsonRecord): boolean =>
+    applies && shouldDropResponsesCommentaryEvent(parsed, commentaryItemIds, commentaryIndexes);
 }
