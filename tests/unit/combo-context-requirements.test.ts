@@ -1,21 +1,14 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { z } from "zod";
+import { comboRuntimeConfigSchema } from "@/shared/validation/schemas/combo";
 
-// Test the context requirements schema extension
+// Test the context requirements schema extension against the real
+// comboRuntimeConfigSchema export, so this test catches drift if the
+// production schema changes shape.
 describe("Combo Context Requirements", () => {
   describe("Schema Validation", () => {
     it("should accept valid minContextWindow", () => {
-      const schema = z.object({
-        contextRequirements: z
-          .object({
-            minContextWindow: z.coerce.number().int().min(0).max(10_000_000).optional(),
-            preferLargeContext: z.boolean().optional(),
-            contextFilterMode: z.enum(["strict", "lenient"]).optional(),
-          })
-          .strict()
-          .optional(),
-      });
+      const schema = comboRuntimeConfigSchema;
 
       const valid = [
         { contextRequirements: { minContextWindow: 8192 } },
@@ -33,14 +26,7 @@ describe("Combo Context Requirements", () => {
     });
 
     it("should reject invalid minContextWindow", () => {
-      const schema = z.object({
-        contextRequirements: z
-          .object({
-            minContextWindow: z.coerce.number().int().min(0).max(10_000_000).optional(),
-          })
-          .strict()
-          .optional(),
-      });
+      const schema = comboRuntimeConfigSchema;
 
       const invalid = [
         { contextRequirements: { minContextWindow: -1 } },
@@ -55,14 +41,7 @@ describe("Combo Context Requirements", () => {
     });
 
     it("should accept valid preferLargeContext boolean", () => {
-      const schema = z.object({
-        contextRequirements: z
-          .object({
-            preferLargeContext: z.boolean().optional(),
-          })
-          .strict()
-          .optional(),
-      });
+      const schema = comboRuntimeConfigSchema;
 
       const valid = [
         { contextRequirements: { preferLargeContext: true } },
@@ -77,14 +56,7 @@ describe("Combo Context Requirements", () => {
     });
 
     it("should accept valid contextFilterMode", () => {
-      const schema = z.object({
-        contextRequirements: z
-          .object({
-            contextFilterMode: z.enum(["strict", "lenient"]).optional(),
-          })
-          .strict()
-          .optional(),
-      });
+      const schema = comboRuntimeConfigSchema;
 
       const valid = [
         { contextRequirements: { contextFilterMode: "strict" } },
@@ -99,14 +71,7 @@ describe("Combo Context Requirements", () => {
     });
 
     it("should reject invalid contextFilterMode", () => {
-      const schema = z.object({
-        contextRequirements: z
-          .object({
-            contextFilterMode: z.enum(["strict", "lenient"]).optional(),
-          })
-          .strict()
-          .optional(),
-      });
+      const schema = comboRuntimeConfigSchema;
 
       const invalid = [
         { contextRequirements: { contextFilterMode: "invalid" } },
@@ -120,16 +85,7 @@ describe("Combo Context Requirements", () => {
     });
 
     it("should accept combined context requirements", () => {
-      const schema = z.object({
-        contextRequirements: z
-          .object({
-            minContextWindow: z.coerce.number().int().min(0).max(10_000_000).optional(),
-            preferLargeContext: z.boolean().optional(),
-            contextFilterMode: z.enum(["strict", "lenient"]).optional(),
-          })
-          .strict()
-          .optional(),
-      });
+      const schema = comboRuntimeConfigSchema;
 
       const input = {
         contextRequirements: {
