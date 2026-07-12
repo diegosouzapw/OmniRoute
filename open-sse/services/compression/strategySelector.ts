@@ -855,7 +855,10 @@ function runStackedCompression(
     }
     // Respect the registry enabled flag: a step naming a disabled engine is skipped, so an
     // operator can turn an engine off (setEngineEnabled) without editing every pipeline.
-    if (getEngineEntry(step.engine)?.enabled === false) continue;
+    if (getEngineEntry(step.engine)?.enabled === false) {
+      acc.validationWarnings.add(`${step.engine}: skipped (engine disabled in registry)`);
+      continue;
+    }
     // T02: when the per-engine breaker is OPEN, skip this step (verbatim body kept — fail-open).
     if (breakerOn && !canRunEngine(step.engine, breaker)) {
       acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);
@@ -957,7 +960,10 @@ async function runStackedCompressionAsync(
       continue;
     }
     // Respect the registry enabled flag (same as the sync loop) — keep both in lockstep.
-    if (getEngineEntry(step.engine)?.enabled === false) continue;
+    if (getEngineEntry(step.engine)?.enabled === false) {
+      acc.validationWarnings.add(`${step.engine}: skipped (engine disabled in registry)`);
+      continue;
+    }
     // T02: skip an engine whose breaker is OPEN (verbatim body kept — fail-open). Lockstep w/ sync.
     if (breakerOn && !canRunEngine(step.engine, breaker)) {
       acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);

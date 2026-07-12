@@ -137,7 +137,8 @@ function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): b
 
 function getNoAuthCandidates(
   excludedProviders: Set<string>,
-  blockedProviders: Set<string>
+  blockedProviders: Set<string>,
+  disabledNoAuthProviders: Set<string>
 ): VirtualAutoComboCandidate[] {
   const registry = getProviderRegistry();
   const candidates: VirtualAutoComboCandidate[] = [];
@@ -150,6 +151,15 @@ function getNoAuthCandidates(
     if (
       blockedProviders.has(providerId) ||
       (typeof providerDef.alias === "string" && blockedProviders.has(providerDef.alias))
+    )
+      continue;
+    // #6557: a no-auth provider with its OWN provider_connections row explicitly
+    // disabled (isActive=false, the toggle on the main Providers grid card once an
+    // Account/fingerprint exists) must not be routed to, even though it has no
+    // entry in the separate `settings.blockedProviders` list.
+    if (
+      disabledNoAuthProviders.has(providerId) ||
+      (typeof providerDef.alias === "string" && disabledNoAuthProviders.has(providerDef.alias))
     )
       continue;
 
@@ -232,12 +242,23 @@ export async function createVirtualAutoCombo(
   variant: AutoVariant | undefined,
   spec?: AutoComboSpec
 ): Promise<VirtualAutoCombo> {
-  const [connections, settings] = await Promise.all([
+  const [connections, disabledNoAuthConnections, settings] = await Promise.all([
     getProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
+    // #6557: no-auth providers (opencode/mimocode/etc.) don't get an isActive
+    // filter applied above since their credential is synthetic, but a real
+    // provider_connections row CAN exist for them (created via "Add Account")
+    // and its own isActive=false must gate the auto-combo pool too — not just
+    // the separate settings.blockedProviders list.
+    getProviderConnections({ isActive: false }) as Promise<VirtualFactoryConn[]>,
     getSettings().catch(() => ({}) as Record<string, unknown>),
   ]);
   const blockedProviders = new Set(
     Array.isArray(settings.blockedProviders) ? (settings.blockedProviders as string[]) : []
+  );
+  const disabledNoAuthProviders = new Set(
+    disabledNoAuthConnections
+      .filter((conn) => conn.provider in NOAUTH_PROVIDERS)
+      .map((conn) => conn.provider)
   );
   const hiddenModelsMap = getHiddenModelsByProvider();
 
@@ -272,7 +293,11 @@ export async function createVirtualAutoCombo(
   }
 
   candidatePool.push(
-    ...getNoAuthCandidates(new Set(validConnections.map((conn) => conn.provider)), blockedProviders)
+    ...getNoAuthCandidates(
+      new Set(validConnections.map((conn) => conn.provider)),
+      blockedProviders,
+      disabledNoAuthProviders
+    )
   );
 
   // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
