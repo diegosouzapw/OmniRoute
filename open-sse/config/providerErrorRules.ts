@@ -104,6 +104,35 @@ function buildOpencodeRules(): ProviderErrorRule[] {
   ];
 }
 
+// ─── Cloudflare Workers AI ────────────────────────────────────────────────
+// Free tier = 10,000 Neurons/day, shared across the WHOLE account
+// (docs/reference/FREE_TIERS.md; official: developers.cloudflare.com/
+// workers-ai/platform/errors/). The exhaustion body doesn't match any
+// QUOTA_PATTERNS keyword (src/shared/utils/classify429.ts) so it falls
+// through to rate_limit and gets retried every ~60s against a budget that
+// only resets at UTC midnight.
+//
+// Scope note: `scope: "connection"` (not "provider") for the same reason as
+// Opencode above — the neuron budget is per-account, and a single OmniRoute
+// connection maps to one Cloudflare account. Multiple connections under the
+// same provider name would mean multiple accounts, each with its own budget.
+function buildCloudflareAiRules(): ProviderErrorRule[] {
+  return [
+    {
+      id: "cloudflare-ai-daily-neuron-allocation",
+      match: ({ status, body }) => {
+        if (status !== 429) return null;
+        const text = JSON.stringify(body ?? "").toLowerCase();
+        if (!text.includes("daily free allocation")) return null;
+        // No cooldownMs: recordModelLockoutFailure already sets
+        // quota_exhausted without one to "next UTC midnight" — exactly this
+        // budget's real reset semantics.
+        return { reason: "quota_exhausted", scope: "connection" };
+      },
+    },
+  ];
+}
+
 // ─── Minimax ────────────────────────────────────────────────────────────────
 // Minimax returns per-model quota info via custom headers. The body is generic
 // "rate limit exceeded" so we MUST read the headers. Other models on the same
@@ -141,6 +170,7 @@ export const providerRuleRegistry = new Map<string, ProviderErrorRule[]>([
   ["opencode-cli", buildOpencodeRules()],
   ["minimax", buildMinimaxRules()],
   ["minimax-passthrough", buildMinimaxRules()],
+  ["cloudflare-ai", buildCloudflareAiRules()],
 ]);
 
 /**
@@ -194,7 +224,9 @@ export function getProviderErrorRuleMatch(
  */
 export function parseResetCountdownMs(text: string): number | null {
   if (typeof text !== "string" || text.length === 0) return null;
-  const match = text.match(/resets?\s+in\s+(\d+)\s+(day|days|hour|hours|minute|minutes|second|seconds)\b/);
+  const match = text.match(
+    /resets?\s+in\s+(\d+)\s+(day|days|hour|hours|minute|minutes|second|seconds)\b/
+  );
   if (!match) return null;
   const n = Number(match[1]);
   if (!Number.isFinite(n) || n <= 0) return null;

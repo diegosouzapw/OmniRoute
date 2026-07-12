@@ -83,6 +83,50 @@ test("S2b: provider error rules match canonical-cased plain header records", asy
   assert.equal(minimaxMatch.scope, "model");
 });
 
+test("S2c: Cloudflare Workers AI daily neuron exhaustion → QUOTA_EXHAUSTED with connection scope", async () => {
+  // Cloudflare's free tier is a 10,000-Neurons/day budget shared across the
+  // WHOLE account. The exhaustion body doesn't contain "quota"/"limit"/
+  // "exceed"/"credit" so it would otherwise fall through to the default
+  // RATE_LIMIT_EXCEEDED and get retried every ~60s against a budget that
+  // only resets at UTC midnight.
+  const { getProviderErrorRuleMatch } = await import("../../open-sse/config/providerErrorRules.ts");
+
+  const match = getProviderErrorRuleMatch(
+    "cloudflare-ai",
+    429,
+    {},
+    {
+      errors: [
+        {
+          message:
+            "AiError: AiError: you have used up your daily free allocation of 10,000 neurons, please upgrade to Cloudflare's Workers Paid plan if you would like to continue usage.",
+          code: 4006,
+        },
+      ],
+      success: false,
+    }
+  );
+  assert.ok(match, "cloudflare-ai must have a rule matching the daily neuron allocation body");
+  assert.equal(match.reason, "quota_exhausted");
+  assert.equal(
+    match.scope,
+    "connection",
+    "Cloudflare's neuron budget is account-wide, so the lock must scope to the connection, not a single model"
+  );
+
+  // A 429 without the exhaustion wording (a real transient rate-limit) must
+  // NOT match — this rule is specific to the daily-allocation body.
+  const noMatch = getProviderErrorRuleMatch(
+    "cloudflare-ai",
+    429,
+    {},
+    {
+      errors: [{ message: "Too many requests, please retry shortly.", code: 3040 }],
+    }
+  );
+  assert.equal(noMatch, null, "a generic 429 without the exhaustion wording must not match");
+});
+
 test("S3: Regression — provider with no rules falls back to global ERROR_RULES unchanged", () => {
   // A provider not in the registry (e.g. "unknown-vendor") must NOT cause
   // classifyError to crash or return a different result. It must behave

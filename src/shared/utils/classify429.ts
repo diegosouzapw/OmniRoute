@@ -53,6 +53,15 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /individual quota reached/i,
   /enable overages/i,
   /INSUFFICIENT_G1_CREDITS_BALANCE/i,
+
+  // Cloudflare Workers AI daily neuron budget exhaustion ("you have used up
+  // your daily free allocation of 10,000 neurons, please upgrade to
+  // Cloudflare's Workers Paid plan..."). No "quota"/"limit"/"exceed"/"credit"
+  // substring, so none of the patterns above match it. This is the primary
+  // provider-specific rule in providerErrorRules.ts (scope: "connection");
+  // this entry is defense-in-depth for classify429FromError callers that
+  // bypass provider rule matching.
+  /daily free allocation/i,
 ];
 
 /**
