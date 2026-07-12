@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
-import { getPluginByName, updatePluginConfig } from "@/lib/db/plugins";
-import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { getPluginByName, updatePluginConfig } from "@/lib/db/plugins";
+import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 
 export async function OPTIONS() {
   return handleCorsOptions();
@@ -41,7 +41,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
   const { name } = await params;
-  const body = await request.json();
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(buildErrorBody(400, "Invalid JSON body"), {
+      status: 400,
+      headers: CORS_HEADERS,
+    });
+  }
 
   const schema = z.object({
     config: z.record(z.string(), z.unknown()),
