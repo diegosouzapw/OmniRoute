@@ -218,6 +218,7 @@
       "tests/unit/quota-policy-generalization.test.ts",
       "tests/unit/quota-pool-log-route.test.ts",
       "tests/unit/quota-streaming-consumption-usd.test.ts",
+      "tests/unit/qwen-web-content-array-serialization.test.ts",
       "tests/unit/rate-limit-enhanced.test.ts",
       "tests/unit/rate-limit-manager.test.ts",
       "tests/unit/rate-limit-queue-timeout-lockout.test.ts",
