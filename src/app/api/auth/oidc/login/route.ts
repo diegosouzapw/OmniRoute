@@ -46,7 +46,9 @@ export async function GET(request: Request) {
   // Discover authorization_endpoint
   let authEndpoint = `${issuer}/authorize`;
   try {
-    const wellKnownResp = await fetch(`${issuer}/.well-known/openid-configuration`);
+    const wellKnownResp = await fetch(`${issuer}/.well-known/openid-configuration`, {
+      signal: AbortSignal.timeout(5000),
+    });
     if (wellKnownResp.ok) {
       const data: unknown = await wellKnownResp.json();
       if (data && typeof data === "object" && "authorization_endpoint" in data) {
@@ -71,7 +73,8 @@ export async function GET(request: Request) {
   url.searchParams.set("client_id", clientId);
   url.searchParams.set("redirect_uri", redirectUri);
   url.searchParams.set("scope", scope);
-  url.searchParams.set("state", state);
+  const isHttpsRequest = scheme === "https";
+  const useSecureCookie = process.env.AUTH_COOKIE_SECURE === "true" || isHttpsRequest;
 
   const res = NextResponse.redirect(url.toString());
   res.cookies.set("oidc_state", state, {
@@ -79,7 +82,7 @@ export async function GET(request: Request) {
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 10,
-    secure: process.env.AUTH_COOKIE_SECURE === "true",
+    secure: useSecureCookie,
   });
   return res;
 }

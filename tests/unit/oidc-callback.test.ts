@@ -51,6 +51,7 @@ function makeTestCookieStore() {
 
 test.beforeEach(async () => {
   await resetStorage();
+  callbackRoute.oidcCallbackInternals.clearJwksCache?.();
   callbackRoute.oidcCallbackInternals.getCookieStore = async () => makeTestCookieStore();
 });
 

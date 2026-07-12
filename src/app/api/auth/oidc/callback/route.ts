@@ -6,7 +6,23 @@ import { cookies } from "next/headers";
 // Mirrors the pattern in src/app/api/auth/login/route.ts
 export const oidcCallbackInternals = {
   getCookieStore: cookies,
+  clearJwksCache() {
+    for (const k of Object.keys(jwksClientsCache)) {
+      delete jwksClientsCache[k];
+    }
+  },
 };
+// Cache JWKS clients globally to reuse retrieved keys and avoid fetching JWKS on every login request.
+const jwksClientsCache: Record<string, ReturnType<typeof createRemoteJWKSet>> = {};
+
+function getJwksClient(jwksUri: string) {
+  let client = jwksClientsCache[jwksUri];
+  if (!client) {
+    client = createRemoteJWKSet(new URL(jwksUri));
+    jwksClientsCache[jwksUri] = client;
+  }
+  return client;
+}
 
 /**
  * GET /api/auth/oidc/callback
@@ -82,7 +98,9 @@ export async function GET(request: Request) {
   let tokenEndpoint = `${issuer}/token`;
   let jwksUri = `${issuer}/jwks`;
   try {
-    const wellKnownResp = await fetch(`${issuer}/.well-known/openid-configuration`);
+    const wellKnownResp = await fetch(`${issuer}/.well-known/openid-configuration`, {
+      signal: AbortSignal.timeout(5000),
+    });
     if (wellKnownResp.ok) {
       const data: unknown = await wellKnownResp.json();
       if (data && typeof data === "object") {
@@ -104,17 +122,29 @@ export async function GET(request: Request) {
     client_secret: clientSecret,
   });
 
-  const tokenResp = await fetch(tokenEndpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: tokenParams.toString(),
-  });
+  let tokenResp: Response;
+  try {
+    tokenResp = await fetch(tokenEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: tokenParams.toString(),
+      signal: AbortSignal.timeout(10000),
+    });
+  } catch {
+    return NextResponse.redirect(`${originEarly}/login?oidc_error=token_exchange`);
+  }
 
   if (!tokenResp.ok) {
     return NextResponse.redirect(`${originEarly}/login?oidc_error=token_exchange`);
   }
 
-  const tokenData: unknown = await tokenResp.json();
+  let tokenData: unknown;
+  try {
+    tokenData = await tokenResp.json();
+  } catch {
+    return NextResponse.redirect(`${originEarly}/login?oidc_error=token_response`);
+  }
+
   if (!tokenData || typeof tokenData !== "object") {
     return NextResponse.redirect(`${originEarly}/login?oidc_error=token_response`);
   }
@@ -127,7 +157,7 @@ export async function GET(request: Request) {
 
   // Validate ID token
   try {
-    const JWKS = createRemoteJWKSet(new URL(jwksUri));
+    const JWKS = getJwksClient(jwksUri);
     const { payload } = await jwtVerify(idToken, JWKS, {
       issuer,
       audience: clientId,
@@ -141,7 +171,13 @@ export async function GET(request: Request) {
         typeof (payload as Record<string, unknown>).email === "string"
           ? ((payload as Record<string, unknown>).email as string)
           : "";
-      const ok = allowed.some((v: unknown) => typeof v === "string" && (v === sub || v === email));
+      const ok = allowed.some((v: unknown) => {
+        if (typeof v !== "string") return false;
+        if (v === sub) return true;
+        const vLower = v.toLowerCase();
+        const emailLower = email ? email.toLowerCase() : "";
+        return vLower === emailLower;
+      });
       if (!ok) {
         return NextResponse.redirect(`${originEarly}/login?oidc_error=subject_not_allowed`);
       }
