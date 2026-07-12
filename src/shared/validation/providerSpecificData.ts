@@ -13,7 +13,7 @@ function isHttpUrl(value: string): boolean {
   }
 }
 
-const CODEX_REASONING_EFFORT_VALUES = new Set(["none", "low", "medium", "high", "xhigh"]);
+const CODEX_REASONING_EFFORT_VALUES = new Set(["none", "low", "medium", "high", "xhigh", "max"]);
 const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["default", "priority", "fast", "flex"]);
 
 export function validateProviderSpecificData(
@@ -131,7 +131,7 @@ export function validateProviderSpecificData(
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
-            "providerSpecificData.requestDefaults.reasoningEffort must be one of none, low, medium, high, xhigh",
+            "providerSpecificData.requestDefaults.reasoningEffort must be one of none, low, medium, high, xhigh, max",
           path: ["requestDefaults", "reasoningEffort"],
         });
       }

@@ -10,6 +10,15 @@ function normalizeCodexMessageContentPart(part: unknown, role: string): unknown 
 
   const record = { ...(part as JsonRecord) };
   if (record.type === "text") record.type = textPartTypeForRole(role);
+  // Assistant history in the Responses API must use `output_text` (or `refusal`),
+  // never `input_text` (which is user-only). codex-cli sends assistant turns as
+  // `input_text`; normalize them so the Codex/OpenAI backend accepts the replay.
+  if (role === "assistant" && (record.type === "input_text" || record.type === "text")) {
+    record.type = "output_text";
+    delete record.annotations;
+    delete record.logprobs;
+    delete record.obfuscation;
+  }
   return record;
 }
 

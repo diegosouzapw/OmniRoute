@@ -3,7 +3,11 @@ import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/e
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { freeProxySyncSchema } from "@/shared/validation/freeProxySchemas";
 import { getEnabledProviders, getProvider } from "@/lib/freeProxyProviders";
-import { recordFreeProxySync } from "@/lib/localDb";
+import {
+  recordFreeProxySync,
+  clearFreeProxySyncErrors,
+  recordFreeProxySyncErrors,
+} from "@/lib/localDb";
 import type { FreeProxyProvider, FreeProxySourceId } from "@/lib/freeProxyProviders/types";
 
 let _providersOverrideForTests: FreeProxyProvider[] | null = null;
@@ -51,16 +55,19 @@ export async function POST(request: Request) {
     for (const provider of providers) {
       try {
         results[provider.id] = await provider.sync();
+        await clearFreeProxySyncErrors(provider.id);
       } catch (error) {
         // #5595: isolate per-source failures so one provider throwing doesn't
         // abort the whole sync — the other sources still populate the pool and
         // the failure is surfaced in `results` instead of a blanket 500.
+        const errorMessage = error instanceof Error ? error.message : String(error);
         results[provider.id] = {
           fetched: 0,
           added: 0,
           updated: 0,
-          errors: [error instanceof Error ? error.message : String(error)],
+          errors: [errorMessage],
         };
+        await recordFreeProxySyncErrors(provider.id, [errorMessage]);
       }
     }
 

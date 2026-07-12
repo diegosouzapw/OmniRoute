@@ -559,6 +559,7 @@ export type {
 export {
   upsertFreeProxy,
   listFreeProxies,
+  countFreeProxies,
   listFreeProxiesBySource,
   getFreeProxyById,
   markFreeProxyInPool,
@@ -568,9 +569,12 @@ export {
   pruneStaleFreeProxies,
   getFreeProxyStats,
   recordFreeProxySync,
+  recordFreeProxySyncErrors,
+  clearFreeProxySyncErrors,
+  getFreeProxySyncErrors,
 } from "./db/freeProxies";
 
-export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";
+export type { FreeProxyRecord, FreeProxyStats, FreeProxySyncErrors } from "./db/freeProxies";
 
 export {
   listPlaygroundPresets,
@@ -589,15 +593,15 @@ export {
   markAllMemoriesNeedReindex,
   getMemoryReindexQueue,
   countMemoryReindexPending,
+  type MemoryVecMeta,
 } from "./db/memoryVec";
-
-export type { MemoryVecMeta } from "./db/memoryVec";
 // T-A-F2: AgentBridge state/mappings/bypass + Inspector custom hosts/sessions
 export * from "./db/agentBridgeState";
 export * from "./db/agentBridgeMappings";
 export * from "./db/agentBridgeBypass";
 export * from "./db/inspectorCustomHosts";
 export * from "./db/inspectorSessions";
+export * from "./db/omp";
 // Quota Sharing — Group B (planos 16+22)
 export {
   listPools,
@@ -788,10 +792,13 @@ export type {
 // proxy_logs — export query (#3500 slice 4)
 // ---------------------------------------------------------------------------
 export { exportProxyLogsSince } from "./db/proxyLogs";
-
 // ---------------------------------------------------------------------------
 // Per-connection 429 cooldown wrappers (#5957 / #5958 — Issue 1 follow-ups)
 // Logic lives in db/providers/rateLimit.ts (Hard Rule #2 — localDb is re-export
 // only); re-exported here for the historical localDb import contract.
 // ---------------------------------------------------------------------------
 export { markConnectionRateLimitedUntil, clearConnectionRateLimit } from "./db/providers";
+// Provider param filters — denylist/allowlist config per provider/model (#6625)
+export * from "./db/paramFilters";
+export * from "./db/interceptionRules"; // Per-model web-search/web-fetch interception rules (#3384)
+export * from "./db/relayProbeStats"; // Relay probe latency/health stats (#6909)

@@ -5,9 +5,15 @@ const {
   buildOpenAIStoreSessionId,
   ensureOpenAIStoreSessionFallback,
   getClaudeCodeCompatibleRequestDefaults,
+  normalizeCodexReasoningEffort,
   normalizeProviderSpecificData,
   sanitizeProviderSpecificDataForResponse,
 } = await import("../../src/lib/providers/requestDefaults.ts");
+
+test("Codex request defaults accept max but leave ultra to the Codex client", () => {
+  assert.equal(normalizeCodexReasoningEffort("max"), "max");
+  assert.equal(normalizeCodexReasoningEffort("ultra"), undefined);
+});
 
 test("buildOpenAIStoreSessionId normalizes external and generated session ids", () => {
   assert.equal(

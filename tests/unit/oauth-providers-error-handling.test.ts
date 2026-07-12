@@ -109,7 +109,51 @@ test("P1: GitHub Copilot sub-token is refreshed by tokenHealthCheck", async () =
 test("P1: tokenHealthCheck checks copilotTokenExpiresAt before refreshing", async () => {
   const src = await read("src/lib/tokenHealthCheck.ts");
   assert.match(src, /copilotTokenExpiresAt/, "must check copilotTokenExpiresAt");
-  assert.match(src, /conn\.provider\s*===\s*["']github["']/, "must be gated on github provider");
+  assert.match(src, /toLowerCase\(\)\s*===\s*["']github["']/, "must be gated on github provider");
+});
+
+// ─── P1: case-insensitive provider comparisons (regression for #6947) ────────
+//
+// tokenHealthCheck.checkConnection() gates two decisions on `conn.provider`:
+//   1. ROTATING_REFRESH_PROVIDERS.has(conn.provider) — skips the fixed-interval
+//      refresh sweep for single-use-refresh-token providers (codex/openai/etc).
+//   2. conn.provider === "github" — gates the Copilot sub-token refresh.
+// Both membership tests were case-sensitive while `conn.provider` can be stored
+// in mixed case (e.g. "OpenAI", "Github"), silently disabling the guard. These
+// assertions are scoped to the exact statement (not a whole-file scan), so they
+// fail against the unfixed source — verified against
+// `git show origin/release/v3.8.47:src/lib/tokenHealthCheck.ts` (lines 535/758).
+
+test("P1: ROTATING_REFRESH_PROVIDERS.has() normalizes conn.provider case before lookup", async () => {
+  const src = await read("src/lib/tokenHealthCheck.ts");
+  const assignMatch = src.match(
+    /const\s+isRotatingProvider\s*=\s*ROTATING_REFRESH_PROVIDERS\.has\(\s*([\s\S]{0,80}?)\s*\);/
+  );
+  assert.ok(assignMatch, "isRotatingProvider assignment not found");
+  const arg = assignMatch[1];
+  assert.match(
+    arg,
+    /String\(\s*conn\.provider\s*\|\|\s*["']["']\s*\)\.toLowerCase\(\)/,
+    "ROTATING_REFRESH_PROVIDERS.has() must lowercase-normalize conn.provider before the lookup " +
+      "(bare `conn.provider` fails for 'OpenAI'/'Github' since the Set is all-lowercase)"
+  );
+});
+
+test("P1: GitHub Copilot sub-token guard normalizes conn.provider case", async () => {
+  const src = await read("src/lib/tokenHealthCheck.ts");
+  // Scope the match to the Copilot sub-token refresh block via its own comment,
+  // not an arbitrary occurrence elsewhere in the file.
+  const blockMatch = src.match(
+    /GitHub Copilot sub-token refresh[\s\S]{0,600}?if\s*\(([\s\S]{0,80}?)\)\s*\{/
+  );
+  assert.ok(blockMatch, "Copilot sub-token refresh block not found");
+  const condition = blockMatch[1];
+  assert.match(
+    condition,
+    /String\(\s*conn\.provider\s*\|\|\s*["']["']\s*\)\.toLowerCase\(\)\s*===\s*["']github["']/,
+    "the Copilot sub-token refresh guard must lowercase-normalize conn.provider before comparing " +
+      "to 'github' (bare `conn.provider === \"github\"` fails for mixed-case values like 'Github')"
+  );
 });
 
 // ─── P2: Google invalid_grant ─────────────────────────────────────────────────

@@ -323,3 +323,26 @@ test("muse-spark-web: empty latestUserContent (no `user` role) falls back to fre
     globalThis.fetch = original;
   }
 });
+
+test(
+  "muse-spark-web: outgoing variables must NOT declare 'attachments' " +
+    "(AttachmentInput type removed upstream, regression for #6935)",
+  async () => {
+    __resetMuseSparkConversationCacheForTesting();
+    const executor = new MuseSparkWebExecutor();
+    const original = globalThis.fetch;
+    const { fetchFn, captured } = captureFetch(() => metaAiSseResponse("pong"));
+    globalThis.fetch = fetchFn;
+    try {
+      await executor.execute(executeInputs([{ role: "user", content: "hi" }]));
+      const sentVars = (captured[0].body as { variables: Record<string, unknown> }).variables;
+      assert.equal(
+        Object.prototype.hasOwnProperty.call(sentVars, "attachments"),
+        false,
+        "variables must omit 'attachments' entirely — Meta removed AttachmentInput from schema"
+      );
+    } finally {
+      globalThis.fetch = original;
+    }
+  }
+);

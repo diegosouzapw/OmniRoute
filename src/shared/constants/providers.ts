@@ -71,8 +71,6 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "laozhang",
   "vercel-ai-gateway",
   "agentrouter",
-  "glhf",
-  "cablyai",
   "thebai",
   "fenayai",
   "empower",

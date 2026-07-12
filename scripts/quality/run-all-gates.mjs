@@ -32,14 +32,14 @@ const GATES = [
   { name: "check:public-creds", cmd: ["node", "scripts/check/check-public-creds.mjs"] },
   { name: "check:error-helper", cmd: ["node", "scripts/check/check-error-helper.mjs"] },
   { name: "check:fetch-targets", cmd: ["node", "scripts/check/check-fetch-targets.mjs"] },
-  { name: "check:openapi-routes", cmd: ["node", "scripts/check/check-openapi-routes.mjs"] },
+  { name: "check:api-docs-refs", cmd: ["node", "scripts/check/check-api-docs-refs.mjs"] },
   { name: "check:deps", cmd: ["node", "scripts/check/check-deps.mjs"] },
 
   // Group C — moderate (<15s)
   { name: "check:db-rules", cmd: ["node", "scripts/check/check-db-rules.mjs"] },
   { name: "check:file-size", cmd: ["node", "scripts/check/check-file-size.mjs"] },
-  { name: "check:complexity", cmd: ["node", "scripts/check/check-complexity.mjs"] },
-  { name: "check:docs-symbols", cmd: ["node", "scripts/check/check-docs-symbols.mjs"] },
+  { name: "check:complexity-ratchets", cmd: ["node", "scripts/check/check-complexity-ratchets.mjs"] },
+  // docs-symbols folded into check:api-docs-refs (Group B)
   { name: "check:known-symbols", cmd: ["node", "--import", "tsx", "scripts/check/check-known-symbols.ts"] },
   { name: "check:route-guard-membership", cmd: ["node", "--import", "tsx", "scripts/check/check-route-guard-membership.ts"] },
   { name: "check:test-discovery", cmd: ["node", "scripts/check/check-test-discovery.mjs"] },

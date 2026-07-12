@@ -58,6 +58,31 @@ test("T28: qwen registry uses native chat.qwen.ai base URL", () => {
   );
 });
 
+test("T28: lmarena registry seeds Direct-chat Text/search; image models in IMAGE_PROVIDERS", async () => {
+  const { IMAGE_PROVIDERS } = await import("../../open-sse/config/imageRegistry.ts");
+  const lmarenaIds = REGISTRY.lmarena.models.map((m) => m.id);
+  const imageIds = (IMAGE_PROVIDERS.lmarena?.models || []).map((m: { id: string }) => m.id);
+
+  // Chat registry: Text + Search only (not Image thrash)
+  assert.ok(lmarenaIds.length >= 40 && lmarenaIds.length < 60);
+  assert.ok(lmarenaIds.includes("gemini-3.1-pro-preview"));
+  assert.ok(lmarenaIds.includes("gemini-3.5-flash-high"));
+  assert.ok(lmarenaIds.includes("claude-sonnet-5"));
+  assert.ok(!lmarenaIds.includes("flux-2-pro"), "image models must not live in chat registry");
+
+  // Image registry: Direct-chat Image category
+  assert.ok(imageIds.length >= 20);
+  assert.ok(imageIds.includes("flux-2-pro") || imageIds.includes("flux-2-dev"));
+  assert.ok(IMAGE_PROVIDERS.lmarena, "lmarena must be an IMAGE_PROVIDERS key");
+
+  // publicName collision → category-suffixed catalog id (chat side)
+  assert.ok(lmarenaIds.includes("grok-4.3/text") || lmarenaIds.includes("grok-4.3/search"));
+
+  const resolved = await getModelInfoCore("lma/gemini-3.1-pro-preview", {});
+  assert.equal(resolved.provider, "lmarena");
+  assert.equal(resolved.model, "gemini-3.1-pro-preview");
+});
+
 test("T28: vertex catalog includes partner models when vertex executor is available", () => {
   const vertexIds = REGISTRY.vertex.models.map((m) => m.id);
 

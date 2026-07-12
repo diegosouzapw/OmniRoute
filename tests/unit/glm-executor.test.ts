@@ -181,7 +181,7 @@ test("GlmExecutor separates OpenAI-compatible coding headers from Anthropic head
   assert.equal(anthropicHeaders["anthropic-version"], "2023-06-01");
   assert.match(anthropicHeaders["anthropic-beta"], /claude-code-20250219/);
   assert.equal(anthropicHeaders["anthropic-dangerous-direct-browser-access"], "true");
-  assert.match(anthropicHeaders["User-Agent"], /^claude-cli\/2\.1\.195 \(external, sdk-cli\)$/);
+  assert.match(anthropicHeaders["User-Agent"], /^claude-cli\/2\.1\.207 \(external, sdk-cli\)$/);
   assert.equal(anthropicHeaders["X-Stainless-Lang"], "js");
   assert.equal(anthropicHeaders["X-Stainless-Runtime"], "node");
 });

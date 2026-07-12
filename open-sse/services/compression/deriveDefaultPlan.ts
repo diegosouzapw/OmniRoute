@@ -8,6 +8,7 @@ const SINGLE_MODE_OF: Record<string, string> = {
   aggressive: "aggressive",
   ultra: "ultra",
   rtk: "rtk",
+  omniglyph: "omniglyph",
 };
 
 export type CompressionSource =

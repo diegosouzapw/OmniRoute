@@ -13,12 +13,14 @@
  * - applySessionStickiness: no user message → normal ordering, no crash
  * - applySessionStickiness: different hashes → can map to different connections
  * - applySessionStickiness: saturation fetch error → fail-open
- * - recordStickyBinding / clearStickyBinding lifecycle
+ * - applySessionStickiness: terminal connection status / rateLimitedUntil → rebind (#6692)
+ * - recordStickyBinding / clearStickyBinding / peekStickyConnectionId lifecycle
  */
 
 import test from "node:test";
 import assert from "node:assert/strict";
 import type { HeadroomSaturation } from "../../open-sse/services/combo/headroomRanking.ts";
+import type { StickyConnectionHealth } from "../../open-sse/services/combo/sessionStickiness.ts";
 
 const mod = await import("../../open-sse/services/combo/sessionStickiness.ts");
 const {
@@ -27,7 +29,9 @@ const {
   recordStickyBinding,
   clearStickyBinding,
   clearAllStickyBindings,
+  peekStickyConnectionId,
   __setStickinessHeadroomFetcherForTests,
+  __setStickinessConnectionFetcherForTests,
   STICKINESS_HEADROOM_THRESHOLD,
 } = mod;
 
@@ -51,16 +55,26 @@ function injectSat(sat: HeadroomSaturation | undefined): void {
   __setStickinessHeadroomFetcherForTests(async (_id: string) => sat);
 }
 
+function injectConnectionHealth(byId: Record<string, StickyConnectionHealth | undefined>): void {
+  __setStickinessConnectionFetcherForTests(async (connectionId: string) => byId[connectionId]);
+}
+
 // ─── Test lifecycle ───────────────────────────────────────────────────────────
 
 test.beforeEach(() => {
   clearAllStickyBindings();
   // Default: healthy connection (headroom = 0.5)
   injectSat({ util5h: 0.3, util7d: 0.2 });
+  // Default: unknown to the connection-health fetcher (fail-open, never terminal).
+  // Without this override every test would hit the real dynamic-import → DB path
+  // (resolveConnectionHealth's production branch), which is slow and non-deterministic
+  // for a unit suite that otherwise makes zero DB calls.
+  injectConnectionHealth({});
 });
 
 test.after(() => {
   __setStickinessHeadroomFetcherForTests(null);
+  __setStickinessConnectionFetcherForTests(null);
 });
 
 // ─── deriveMessageHash ───────────────────────────────────────────────────────
@@ -319,4 +333,106 @@ test("messageHash is returned in result even when no binding exists", async () =
   assert.equal(r.stuck, false);
   assert.ok(r.messageHash !== null, "hash should be derivable and returned");
   assert.match(r.messageHash!, /^[a-f0-9]{16}$/);
+});
+
+// ─── Terminal connection-status gate (#6692) ─────────────────────────────────
+//
+// Root cause: headroom (5h/weekly usage %) is orthogonal to account
+// availability — a credits_exhausted/banned/expired connection, or one still
+// inside its rateLimitedUntil cooldown, reports perfectly healthy headroom,
+// so the pre-fix headroom-only gate re-promoted a durably dead connection
+// forever. See tests/unit/repro-6692-sticky-terminal.test.ts for the full
+// end-to-end repro.
+
+test("#6692: credits_exhausted sticky connection is rebound even with full headroom", async () => {
+  injectSat({ util5h: 0.0, util7d: 0.0 }); // full headroom — would pass the old gate
+  injectConnectionHealth({ "conn-A": { testStatus: "credits_exhausted" } });
+
+  const targets = [makeTarget("conn-A"), makeTarget("conn-B")];
+  const messages = [{ role: "user", content: "Terminal status test" }];
+  const hash = deriveMessageHash(messages)!;
+  recordStickyBinding(hash, "conn-A");
+
+  const result = await applySessionStickiness(targets, messages);
+  assert.equal(result.stuck, false, "credits_exhausted must release the pin");
+
+  // Binding must actually be cleared (not just skipped this call).
+  assert.equal(peekStickyConnectionId(hash), null);
+});
+
+test("#6692: banned / expired statuses also release the pin", async () => {
+  for (const status of ["banned", "expired"]) {
+    clearAllStickyBindings();
+    injectSat({ util5h: 0.0, util7d: 0.0 });
+    injectConnectionHealth({ "conn-A": { testStatus: status } });
+
+    const targets = [makeTarget("conn-A"), makeTarget("conn-B")];
+    const messages = [{ role: "user", content: `Status ${status}` }];
+    const hash = deriveMessageHash(messages)!;
+    recordStickyBinding(hash, "conn-A");
+
+    const result = await applySessionStickiness(targets, messages);
+    assert.equal(result.stuck, false, `${status} must release the pin`);
+  }
+});
+
+test("#6692: connection still inside rateLimitedUntil window releases the pin", async () => {
+  injectSat({ util5h: 0.0, util7d: 0.0 });
+  const future = new Date(Date.now() + 60_000).toISOString();
+  injectConnectionHealth({ "conn-A": { rateLimitedUntil: future } });
+
+  const targets = [makeTarget("conn-A"), makeTarget("conn-B")];
+  const messages = [{ role: "user", content: "Cooling down" }];
+  const hash = deriveMessageHash(messages)!;
+  recordStickyBinding(hash, "conn-A");
+
+  const result = await applySessionStickiness(targets, messages);
+  assert.equal(result.stuck, false, "an in-window rateLimitedUntil must release the pin");
+});
+
+test("#6692: rateLimitedUntil in the past does NOT release the pin", async () => {
+  injectSat({ util5h: 0.0, util7d: 0.0 });
+  const past = new Date(Date.now() - 60_000).toISOString();
+  injectConnectionHealth({ "conn-A": { rateLimitedUntil: past } });
+
+  const targets = [makeTarget("conn-A"), makeTarget("conn-B")];
+  const messages = [{ role: "user", content: "Cooldown expired" }];
+  const hash = deriveMessageHash(messages)!;
+  recordStickyBinding(hash, "conn-A");
+
+  const result = await applySessionStickiness(targets, messages);
+  assert.ok(result.stuck, "an expired rateLimitedUntil must not block reuse");
+  assert.equal(result.targets[0].connectionId, "conn-A");
+});
+
+test("#6692: connection-health fetch error → fail-open (pin preserved)", async () => {
+  injectSat({ util5h: 0.0, util7d: 0.0 });
+  __setStickinessConnectionFetcherForTests(async () => {
+    throw new Error("db unavailable");
+  });
+
+  const targets = [makeTarget("conn-A"), makeTarget("conn-B")];
+  const messages = [{ role: "user", content: "Fetch error path" }];
+  const hash = deriveMessageHash(messages)!;
+  recordStickyBinding(hash, "conn-A");
+
+  // The production resolveConnectionHealth catches internally and returns
+  // undefined (never throws) — mirrors resolveSaturation's own internal
+  // try/catch. This test injects a THROWING override to prove
+  // applySessionStickiness's outer try/catch also fails open end-to-end
+  // (same behavior as the existing "saturation fetch error" case above:
+  // total fail-open/no-op, never a crash).
+  const result = await applySessionStickiness(targets, messages);
+  assert.equal(result.stuck, false, "a connection-health fetch error must fail open, not crash");
+});
+
+test("peekStickyConnectionId: reflects the current binding without mutating it", () => {
+  const messages = [{ role: "user", content: "Peek test" }];
+  const hash = deriveMessageHash(messages)!;
+
+  assert.equal(peekStickyConnectionId(hash), null, "no binding yet");
+  recordStickyBinding(hash, "conn-peek");
+  assert.equal(peekStickyConnectionId(hash), "conn-peek");
+  // Peeking again must not clear or otherwise mutate the binding.
+  assert.equal(peekStickyConnectionId(hash), "conn-peek");
 });

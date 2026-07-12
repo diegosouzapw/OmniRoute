@@ -114,6 +114,7 @@ export const compressionModeSchema = z.enum([
   "ultra",
   "rtk",
   "stacked",
+  "omniglyph",
 ]);
 
 export const comboCompressionOverrideSchema = z.union([z.literal(""), compressionModeSchema]);
@@ -229,6 +230,18 @@ export const comboRuntimeConfigSchema = z
       })
       .strict()
       .optional(),
+    // Context window requirements for combo target filtering and sorting.
+    // minContextWindow: filters out models with context windows below this threshold.
+    // preferLargeContext: sorts remaining targets by context size (descending).
+    // contextFilterMode: "strict" excludes unknown-context models, "lenient" includes them.
+    contextRequirements: z
+      .object({
+        minContextWindow: z.coerce.number().int().min(0).max(10_000_000).optional(),
+        preferLargeContext: z.boolean().optional(),
+        contextFilterMode: z.enum(["strict", "lenient"]).optional(),
+      })
+      .strict()
+      .optional(),
   })
   .passthrough()
   .transform((config) => {
@@ -278,7 +291,11 @@ export const createComboSchema = z.object({
   // the `dimensions` field (and translated to `outputDimensionality` for Gemini).
   // Stored as a string to match the OpenAI API convention; coerced to number
   // by the embedding handler. Leave unset to use each model's default.
-  dimensions: z.string().regex(/^\d+$/, "dimensions must be a positive integer string").optional().nullable(),
+  dimensions: z
+    .string()
+    .regex(/^\d+$/, "dimensions must be a positive integer string")
+    .optional()
+    .nullable(),
 });
 
 export const updateComboDefaultsSchema = z
@@ -328,7 +345,11 @@ export const updateComboSchema = z
     context_cache_protection: z.boolean().optional(),
     context_length: z.number().int().min(1000).max(2000000).optional().nullable(),
     compressionOverride: comboCompressionOverrideSchema.optional(),
-    dimensions: z.string().regex(/^\d+$/, "dimensions must be a positive integer string").optional().nullable(),
+    dimensions: z
+      .string()
+      .regex(/^\d+$/, "dimensions must be a positive integer string")
+      .optional()
+      .nullable(),
   })
   .superRefine((value, ctx) => {
     if (

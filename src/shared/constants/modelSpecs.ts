@@ -65,7 +65,32 @@ const AUTHORITATIVE_PROVIDER_CONTEXT_WINDOWS = new Map<string, number>([
   ["zenmux/z-ai/glm-5.2-free", 1000000],
 ]);
 
+const GPT_5_6_MODEL_SPEC = {
+  maxOutputTokens: 128000,
+  contextWindow: 1050000,
+  supportsThinking: true,
+  supportsTools: true,
+  supportsVision: true,
+} satisfies ModelSpec;
+
 export const MODEL_SPECS: Record<string, ModelSpec> = {
+  "gpt-5.6": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-5.6"],
+  },
+  "gpt-5.6-sol": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-5.6-sol"],
+  },
+  "gpt-5.6-terra": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-5.6-terra"],
+  },
+  "gpt-5.6-luna": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-5.6-luna"],
+  },
+
   "gpt-5.5": {
     maxOutputTokens: 128000,
     contextWindow: 1050000,

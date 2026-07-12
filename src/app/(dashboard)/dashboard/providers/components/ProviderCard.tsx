@@ -42,6 +42,15 @@ const KIND_LABEL: Record<string, string> = {
   music: "Music",
 };
 
+/** Maps a compatible-provider `apiType` to its `KIND_LABEL` key (#6936: non-chat
+ * apiTypes — audio/embeddings/image — were falling through to the "Chat" badge). */
+const COMPATIBLE_API_TYPE_KIND: Record<string, string> = {
+  "audio-transcriptions": "stt",
+  "audio-speech": "tts",
+  "images-generations": "image",
+  embeddings: "embedding",
+};
+
 interface ProviderCardProps {
   providerId: string;
   provider: {
@@ -319,7 +328,10 @@ export default function ProviderCard({
                 ))}
                 {isCompatible && (
                   <Badge variant="default" size="sm">
-                    {provider.apiType === "responses" ? t("responses") : t("chat")}
+                    {provider.apiType === "responses"
+                      ? t("responses")
+                      : (KIND_LABEL[COMPATIBLE_API_TYPE_KIND[provider.apiType ?? ""] ?? ""] ??
+                        t("chat"))}
                   </Badge>
                 )}
                 {isCcCompatible && (
