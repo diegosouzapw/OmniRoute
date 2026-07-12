@@ -116,6 +116,24 @@ const nextConfig = {
       ...mitmManagerAliasFor(process.env),
       ...minimalBuildAliases,
     },
+    // src/lib/agentSkills/generator.ts builds its fs base path from a runtime
+    // `outputDir` parameter (`path.join(process.cwd(), outputDir)`), which is
+    // NOT a compile-time literal, so Turbopack's build-time file-tracing
+    // analyzer can't statically narrow the several dynamic readdirSync/rmSync/
+    // readFileSync/writeFileSync call sites a few lines below and falls back
+    // to an "Overly broad patterns... matches N files" warning — once per
+    // Next.js entry point that imports the module (/api/agent-skills/generate,
+    // /api/cli-tools/pi-settings). The fs access is legitimate and bounded
+    // (skills/<id>/SKILL.md, ~48 known IDs), so this is a known-benign,
+    // expected diagnostic — suppress it here rather than fight the analyzer,
+    // mirroring the isNextIntlExtractorDynamicImportWarning precedent below
+    // for the webpack path. (#6582)
+    ignoreIssue: [
+      {
+        path: "**/src/lib/agentSkills/**",
+        description: /Overly broad patterns can lead to build performance issues/,
+      },
+    ],
   },
   output: "standalone",
   compress: true,
@@ -587,6 +605,33 @@ const nextConfig = {
       {
         source: "/v1beta",
         destination: "/api/v1beta",
+      },
+      // Issue #6405 follow-up: unknown root-level paths must return JSON 404,
+      // not the dashboard HTML shell. Rewrite the missing prefixes under /api/*
+      // so they hit the /api/[...omnirouteApiCatchAll] route (#6424) — which
+      // returns application/json with error.type === "not_found". Real /api/*
+      // routes take precedence over the catch-all, so any future
+      // /api/anthropic/*, /api/openai/*, /api/metrics, /api/debug endpoints
+      // still match first.
+      {
+        source: "/anthropic/:path*",
+        destination: "/api/anthropic/:path*",
+      },
+      {
+        source: "/openai/:path*",
+        destination: "/api/openai/:path*",
+      },
+      {
+        source: "/metrics",
+        destination: "/api/metrics",
+      },
+      {
+        source: "/debug",
+        destination: "/api/debug",
+      },
+      {
+        source: "/.env",
+        destination: "/api/.env",
       },
     ];
   },

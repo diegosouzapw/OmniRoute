@@ -108,6 +108,7 @@ export const PROVIDER_MAX_TOKENS: Record<string, number> = {
   openai: 16384, // GPT-4/4o standard
   anthropic: 65536, // Claude models
   gemini: 65536, // Gemini Studio
+  sensenova: 65536, // SenseNova Token Plan rejects MaxTokens outside [1, 65536]
 };
 
 export const DEFAULT_PROVIDER_MAX_TOKENS = 32000;

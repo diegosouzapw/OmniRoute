@@ -47,16 +47,16 @@ export default function QuotaCardGrid({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="columns-1 2xl:columns-2 gap-6 [column-fill:_balance]">
       {[...groups.entries()].map(([provider, conns]) => (
-        <div key={provider} className="flex flex-col gap-3">
+        <div key={provider} className="flex flex-col gap-3 break-inside-avoid mb-6">
           <h3 className="text-sm font-semibold text-text-main flex items-center gap-2">
             {providerLabels[provider] || provider}
             <span className="text-xs font-normal text-text-muted">
               ({conns.length} account{conns.length !== 1 ? "s" : ""})
             </span>
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             {conns.map((conn) => (
               <QuotaCard
                 key={conn.id}

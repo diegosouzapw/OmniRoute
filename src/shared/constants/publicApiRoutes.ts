@@ -17,9 +17,17 @@ const PUBLIC_API_ROUTE_PREFIXES = [
   // The handler enforces its own auth via extractUsageCommandApiKey/isValidApiKey
   // and the allowUsageCommand flag — it must not be gated by management auth.
   "/api/usage/om-usage",
+  // Chaos Mode external dispatch endpoint (POST /api/skills/collect/chaos).
+  // This entry only bypasses the dashboard requireLogin (cookie) gate — the
+  // handler enforces its own Bearer-token auth (validateApiKey +
+  // chaosModeEnabled check) before doing any work. See src/app/api/skills/
+  // collect/chaos/route.ts. Do not widen this prefix to cover other
+  // /api/skills/collect/* routes without the same per-handler auth.
+  "/api/skills/collect/chaos",
 ];
 
 const PUBLIC_READONLY_API_ROUTE_PREFIXES = [
+  "/api/health/ping",
   "/api/monitoring/health",
   "/api/settings/require-login",
 ];

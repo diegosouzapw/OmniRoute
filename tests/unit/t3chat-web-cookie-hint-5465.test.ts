@@ -57,6 +57,27 @@ test("t3-web requirement now carries the hintKey override (#5465)", () => {
   assert.equal(req.hintKey, "t3ChatWebCookieHint");
 });
 
+test("lmarena add-credential hint uses dedicated copy (not generic single-cookie), full header intent", () => {
+  // Intent-only: product copy may mention CF/reCAPTCHA/chunk shorthand; do not freeze wording.
+  const t = makeTranslator({
+    webCookieCredentialHint:
+      "Required cookie: {credential}. Paste the Cookie header value from your own signed-in {provider} web session. Do not include the Cookie: prefix.",
+  });
+
+  const requirement = WEB_SESSION_CREDENTIAL_REQUIREMENTS["lmarena"];
+  const hint = getWebSessionCredentialHint(t, requirement, "Arena", false);
+
+  assert.equal(requirement.hintKey, "lmarenaWebCookieHint");
+  assert.ok(requirement.credentialName && /arena-auth-prod-v1/i.test(requirement.credentialName));
+  assert.ok(hint && hint.length > 0, "dedicated hintFallback/i18n must resolve");
+  assert.ok(/full cookie header/i.test(hint), "must ask for the full Cookie header");
+  assert.ok(/arena-auth-prod-v1/i.test(hint), "must reference Arena auth cookies");
+  assert.ok(
+    !hint.startsWith("Required cookie:"),
+    "must not fall back to the generic cookie template"
+  );
+});
+
 test("cookie providers without a hintKey still use the generic hint (#5465 regression guard)", () => {
   const t = makeTranslator({
     webCookieCredentialHint:

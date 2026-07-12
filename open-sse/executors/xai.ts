@@ -1,5 +1,6 @@
 import { BaseExecutor, type ProviderCredentials } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -49,6 +50,24 @@ function asRecord(value: unknown): JsonRecord | null {
 export class XaiExecutor extends BaseExecutor {
   constructor() {
     super("xai", PROVIDERS.xai);
+  }
+
+  /**
+   * Port of decolua/9router#2439 (author: @ryanngit): xAI ships a native
+   * `/v1/responses` endpoint alongside `/v1/chat/completions`. Models tagged
+   * `targetFormat: "openai-responses"` in the registry (currently
+   * grok-4.20-multi-agent-0309, per upstream) resolve to that endpoint instead
+   * of the default chat-completions bridge. The per-model registry tag is the
+   * single source of truth — it also drives chatCore's body translation — so
+   * the URL stays in lockstep with the translated body, mirroring the gh
+   * executor's targetFormat-driven routing (9router#102) and the "openai"
+   * -pro heuristic in open-sse/executors/default.ts.
+   */
+  buildUrl(model: string, _stream: boolean, _urlIndex = 0) {
+    if (getModelTargetFormat("xai", model) === "openai-responses") {
+      return this.config.responsesBaseUrl || this.config.baseUrl;
+    }
+    return this.config.baseUrl;
   }
 
   transformRequest(

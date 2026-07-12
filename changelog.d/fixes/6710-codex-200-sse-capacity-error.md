@@ -1,0 +1,1 @@
+- **fix(codex):** detect "model at capacity"/overloaded errors embedded in a 200-OK SSE stream and surface them as a real error so account fallback rotates, instead of passing them through as a successful response. (thanks @ryanngit)

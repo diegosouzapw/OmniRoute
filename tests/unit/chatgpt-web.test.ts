@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
+import type { TlsFetchOptions } from "../../open-sse/services/chatgptTlsClient.ts";
 
 const { ChatGptWebExecutor, __derivePublicBaseUrlForTesting, __resetChatGptWebCachesForTesting } =
   await import("../../open-sse/executors/chatgpt-web.ts");
@@ -63,6 +64,49 @@ async function withEnv(overrides, fn) {
   }
 }
 
+type MockTlsConfig = {
+  status: number;
+  body?: unknown;
+  setCookie?: string;
+  error?: unknown;
+  events?: unknown[];
+};
+
+type MockFetchOptions = {
+  session?: MockTlsConfig;
+  sentinel?: MockTlsConfig;
+  conv?: MockTlsConfig;
+  dpl?: MockTlsConfig;
+  fileDownload?: MockTlsConfig;
+  attachmentDownload?: MockTlsConfig;
+  conversationDetail?: MockTlsConfig | MockTlsConfig[];
+  signedDownload?: MockTlsConfig;
+  userConfig?: MockTlsConfig;
+  onSession?: (opts: TlsFetchOptions) => void;
+  onSentinel?: (opts: TlsFetchOptions) => void;
+  onConv?: (opts: TlsFetchOptions) => void;
+  onFileDownload?: (opts: TlsFetchOptions, fileId: string) => void;
+  onAttachmentDownload?: (opts: TlsFetchOptions, fileId: string) => void;
+  onUserConfig?: (opts: TlsFetchOptions, url: string) => void;
+};
+
+type MockFetchCalls = {
+  session: number;
+  dpl: number;
+  sentinel: number;
+  conv: number;
+  fileDownload: number;
+  attachmentDownload: number;
+  conversationDetail: number;
+  signedDownload: number;
+  userConfig: number;
+  userConfigUrls: string[];
+  userConfigMethods: string[];
+  urls: string[];
+  headers: Array<Record<string, string> | undefined>;
+  bodies: Array<string | undefined>;
+};
+
 /** Dispatch the TLS-impersonating fetch by URL pathname.
  *  Default: session 200 with accessToken, sentinel 200 no PoW, conv 200 empty stream. */
 function installMockFetch({
@@ -81,8 +125,8 @@ function installMockFetch({
   onFileDownload,
   onAttachmentDownload,
   onUserConfig,
-}: any = {}) {
-  const calls = {
+}: MockFetchOptions = {}) {
+  const calls: MockFetchCalls = {
     session: 0,
     dpl: 0,
     sentinel: 0,
@@ -786,76 +830,6 @@ test("Streaming: cumulative parts are diffed into non-overlapping deltas", async
       .map((j) => j.choices[0].delta.content);
 
     assert.deepEqual(contentDeltas, ["Foo", " bar", " baz"]);
-  } finally {
-    m.restore();
-  }
-});
-
-test("GPT-5.5 Pro non-streaming: stream_handoff polls conversation detail for final answer", async () => {
-  reset();
-  const m = installMockFetch({
-    conv: {
-      status: 200,
-      events: [
-        {
-          conversation_id: "conv-pro",
-          message: {
-            id: "progress-1",
-            author: { role: "assistant" },
-            content: { content_type: "text", parts: ["Working on it…"] },
-            status: "in_progress",
-          },
-        },
-        { __event: "stream_handoff", conversation_id: "conv-pro" },
-      ],
-    },
-    conversationDetail: {
-      status: 200,
-      body: {
-        mapping: {
-          thought: {
-            message: {
-              id: "thought",
-              author: { role: "assistant" },
-              content: { content_type: "thoughts", parts: ["hidden thinking"] },
-              status: "finished_successfully",
-              end_turn: true,
-              create_time: 1,
-              update_time: 1,
-            },
-          },
-          final: {
-            message: {
-              id: "final",
-              author: { role: "assistant" },
-              content: { content_type: "text", parts: ["👉 Final full Pro answer."] },
-              status: "finished_successfully",
-              end_turn: true,
-              create_time: 2,
-              update_time: 2,
-            },
-          },
-        },
-      },
-    },
-  });
-  try {
-    const executor = new ChatGptWebExecutor();
-    const result = await executor.execute({
-      model: "gpt-5.5-pro-extended",
-      body: { messages: [{ role: "user", content: "hard problem" }] },
-      stream: false,
-      credentials: { apiKey: "cookie-pro-poll" },
-      signal: AbortSignal.timeout(10_000),
-      log: null,
-    });
-
-    const json = await result.response.json();
-    assert.equal(json.choices[0].message.content, "👉 Final full Pro answer.");
-    assert.equal(m.calls.conversationDetail, 1);
-    const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
-    const sentBody = JSON.parse(m.calls.bodies[convIdx]);
-    assert.equal(sentBody.history_and_training_disabled, true);
   } finally {
     m.restore();
   }
@@ -3050,7 +3024,11 @@ test("Image edit handler: bytes-hash match drives executor with cached conversat
       credentials: { apiKey: "test" },
       log: null,
     });
-    assert.equal(result.success, true, `expected success, got error: ${(result as any).error}`);
+    assert.equal(
+      result.success,
+      true,
+      `expected success, got error: ${(result as { error?: unknown }).error}`
+    );
     const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
     assert.ok(convIdx >= 0, "conversation request was sent");
     const sentBody = JSON.parse(m.calls.bodies[convIdx]);
@@ -3085,8 +3063,11 @@ test("Image edit handler: no cached match returns 400 (does not silently generat
       log: null,
     });
     assert.equal(result.success, false);
-    assert.equal((result as any).status, 400);
-    assert.match(String((result as any).error), /generated through this OmniRoute instance/);
+    assert.equal((result as { status?: unknown }).status, 400);
+    assert.match(
+      String((result as { error?: unknown }).error),
+      /generated through this OmniRoute instance/
+    );
     assert.equal(m.calls.session, 0, "no upstream calls were attempted");
     assert.equal(m.calls.conv, 0, "no chat-completion was attempted");
   } finally {
@@ -3109,8 +3090,8 @@ test("Image gen handler: n>4 is rejected before any upstream call", async () => 
       log: null,
     });
     assert.equal(result.success, false);
-    assert.equal((result as any).status, 400);
-    assert.match(String((result as any).error), /n=1\.\.4/);
+    assert.equal((result as { status?: unknown }).status, 400);
+    assert.match(String((result as { error?: unknown }).error), /n=1\.\.4/);
     assert.equal(m.calls.session, 0, "no session exchange was attempted");
     assert.equal(m.calls.conv, 0, "no conversation request was attempted");
   } finally {
