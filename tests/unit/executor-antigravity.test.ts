@@ -149,10 +149,45 @@ test("AntigravityExecutor.transformRequest normalizes model, project and content
   assert.equal(generationConfig.topK, 40);
   assert.equal(generationConfig.topP, 1.0);
   assert.deepEqual(result.request.toolConfig, {
-    functionCallingConfig: { mode: "VALIDATED" },
+    functionCallingConfig: { mode: "VALIDATED", includeServerSideToolInvocations: true },
   });
   assert.deepEqual(result.request.contents[0].parts, [{ text: "keep me" }]);
   assert.equal(result.request.contents[1].role, "user");
+});
+
+test("AntigravityExecutor.transformRequest includes includeServerSideToolInvocations when tools are present", async () => {
+  const executor = new AntigravityExecutor();
+  const body = {
+    request: {
+      contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      tools: [{ functionDeclarations: [{ name: "search" }] }],
+    },
+  };
+
+  const result = await executor.transformRequest("antigravity/gemini-3.1-pro", body, true, {
+    projectId: "project-1",
+  });
+
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+  assert.deepEqual(result.request.toolConfig, {
+    functionCallingConfig: { mode: "VALIDATED", includeServerSideToolInvocations: true },
+  });
+});
+
+test("AntigravityExecutor.transformRequest does not include includeServerSideToolInvocations when no tools", async () => {
+  const executor = new AntigravityExecutor();
+  const body = {
+    request: {
+      contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+    },
+  };
+
+  const result = await executor.transformRequest("antigravity/gemini-3.1-pro", body, true, {
+    projectId: "project-1",
+  });
+
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+  assert.equal(result.request.toolConfig, undefined);
 });
 
 test("AntigravityExecutor.transformRequest strips thinking config for Cloud Code models that do not support reasoning", async () => {

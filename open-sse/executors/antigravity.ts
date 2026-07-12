@@ -704,7 +704,7 @@ export class AntigravityExecutor extends BaseExecutor {
       safetySettings: getAntigravitySafetySettings(normalizedRequest?.safetySettings),
       toolConfig:
         Array.isArray(normalizedRequest?.tools) && normalizedRequest.tools.length > 0
-          ? { functionCallingConfig: { mode: "VALIDATED" } }
+          ? { functionCallingConfig: { mode: "VALIDATED", includeServerSideToolInvocations: true } }
           : normalizedRequest?.toolConfig,
     };
 

@@ -562,9 +562,7 @@ export class DefaultExecutor extends BaseExecutor {
       withDefaults &&
       typeof withDefaults === "object" &&
       !Array.isArray(withDefaults) &&
-      (this.provider === "cerebras" ||
-        this.provider === "mistral" ||
-        this.provider === "nvidia") &&
+      (this.provider === "cerebras" || this.provider === "mistral" || this.provider === "nvidia") &&
       Object.prototype.hasOwnProperty.call(withDefaults, "client_metadata")
     ) {
       const withoutClientMetadata = { ...(withDefaults as Record<string, unknown>) };
@@ -732,10 +730,10 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
-    // ClinePass reasoning models burn all of max_tokens on the thinking phase
+    // Reasoning models burn all of max_tokens on the thinking phase
     // when the budget is too small, leaving content empty (finish_reason:
     // "length"). Bump max_tokens to a safe floor when reasoning is enabled and
-    // the budget is undersized. CLINEPASS-GATED — no-op for every other provider.
+    // the budget is undersized. Applies to all providers (#6912).
     if (typeof withDefaults === "object" && withDefaults !== null) {
       this.ensureThinkingBudget(withDefaults as Record<string, unknown>, model);
     }
@@ -760,12 +758,11 @@ export class DefaultExecutor extends BaseExecutor {
     return withDefaults;
   }
 
-  // ClinePass / OpenRouter-style thinking models leave content empty when the
+  // Reasoning models (ClinePass, OpenRouter, etc.) leave content empty when the
   // reasoning budget consumes all of max_tokens. Bump max_tokens to a safe
-  // minimum only when reasoning is enabled and the budget is undersized.
-  // CLINEPASS-GATED: returns early for every other provider.
+  // minimum when reasoning is enabled and the budget is undersized.
   ensureThinkingBudget(body: Record<string, unknown>, model: string): Record<string, unknown> {
-    if (!body || this.provider !== "clinepass") return body;
+    if (!body) return body;
 
     const outboundModel = typeof body.model === "string" ? body.model : model;
     const entry = getRegistryEntry(this.provider);
