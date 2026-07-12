@@ -67,7 +67,7 @@ function buildOpenAIResponse(text = "ok") {
 }
 
 async function invokeChatCore({ body, provider, model, endpoint = "/v1/chat/completions" }) {
-  const calls: any[] = [];
+  const calls: Array<{ url: string; headers: Record<string, string>; parsedBody: unknown }> = [];
 
   globalThis.fetch = async (url, init = {}) => {
     const headers = toPlainHeaders(init.headers);
@@ -100,7 +100,7 @@ async function invokeChatCore({ body, provider, model, endpoint = "/v1/chat/comp
       comboStrategy: null,
       onCredentialsRefreshed: null,
       onRequestSuccess: null,
-    } as any);
+    } as unknown as Parameters<typeof handleChatCore>[0]);
 
     return { result, calls, call: calls.at(-1) };
   } finally {
