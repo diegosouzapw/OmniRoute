@@ -2099,6 +2099,16 @@ export async function handleChatCore({
       delete translatedBody.max_tokens;
       log?.debug?.("PARAMS", `Renamed max_tokens to max_completion_tokens for ${model}`);
     }
+  } else if (translatedBody.max_completion_tokens !== undefined) {
+    // Symmetric case (#6912): some providers/models (e.g. Volcengine Ark /
+    // DeepSeek) only document the legacy `max_tokens` field and silently
+    // ignore an unrecognized `max_completion_tokens`, so a client sending the
+    // newer field alone would have it dropped upstream with no cap applied.
+    if (translatedBody.max_tokens === undefined) {
+      translatedBody.max_tokens = translatedBody.max_completion_tokens;
+    }
+    delete translatedBody.max_completion_tokens;
+    log?.debug?.("PARAMS", `Renamed max_completion_tokens to max_tokens for ${model}`);
   }
 
   // OpenAI's `store` parameter is not supported by most compatible providers and breaks them
