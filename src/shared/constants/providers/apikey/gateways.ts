@@ -14,8 +14,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://hyper.charm.land",
     hasFree: true,
     freeNote: "100 free monthly Hypercredits on signup",
-    apiHint:
-      "Create an API key at https://hyper.charm.land, then paste it here as a Bearer token.",
+    apiHint: "Create an API key at https://hyper.charm.land, then paste it here as a Bearer token.",
   },
   agentrouter: {
     id: "agentrouter",
@@ -41,20 +40,6 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     authHint:
       "Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint.",
     apiHint: "Create or copy an API key from Command Code, then paste it here as a Bearer token.",
-  },
-  clinepass: {
-    id: "clinepass",
-    alias: "clinepass",
-    name: "ClinePass",
-    icon: "vpn_key",
-    color: "#5B9BD5",
-    textIcon: "CP",
-    passthroughModels: true,
-    website: "https://cline.bot",
-    notice: {
-      text: "ClinePass is Cline's paid BYOK gateway ($9.99/mo). Bring your own Cline API key; requests hit api.cline.bot with the cline-pass/* model namespace.",
-      apiKeyUrl: "https://app.cline.bot/settings/api-keys",
-    },
   },
   openrouter: {
     id: "openrouter",
@@ -275,23 +260,6 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Works without API key (use 'unused' as key). Get free token at token.llm7.io for higher limits.",
   },
-  kluster: {
-    id: "kluster",
-    alias: "kluster",
-    name: "Kluster AI",
-    icon: "hub",
-    color: "#8B5CF6",
-    textIcon: "KL",
-    website: "https://kluster.ai",
-    hasFree: false,
-    freeNote: "Discontinued 2026 — kluster.ai sunset (2026-06-09); no free tier.",
-    apiHint: "Get API key at https://kluster.ai/dashboard/api-keys",
-    subscriptionRisk: true,
-    riskNoticeVariant: "deprecated",
-    deprecated: true,
-    deprecationReason:
-      "kluster.ai shut down (2026-06-09); api.kluster.ai no longer resolves (sweep 2026-06-19). Use another OpenAI-compatible provider.",
-  },
   llamagate: {
     id: "llamagate",
     alias: "llamagate",
@@ -390,40 +358,6 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "LZ",
     website: "https://api.laozhang.ai",
     passthroughModels: true,
-  },
-  glhf: {
-    id: "glhf",
-    alias: "glhf",
-    name: "GLHF Chat",
-    icon: "hub",
-    color: "#10B981",
-    textIcon: "GH",
-    website: "https://glhf.chat",
-    authHint: "Bearer API key for the GLHF OpenAI-compatible gateway.",
-    hasFree: false,
-    freeNote: "Discontinued 2026 — glhf.chat free beta ended; no free tier.",
-    passthroughModels: true,
-    subscriptionRisk: true,
-    riskNoticeVariant: "deprecated",
-    deprecated: true,
-    deprecationReason:
-      "glhf.chat shut down (2026); its api.laf.run gateway no longer serves the catalog (sweep 2026-06-19).",
-  },
-  cablyai: {
-    id: "cablyai",
-    alias: "cablyai",
-    name: "CablyAI",
-    icon: "hub",
-    color: "#FF4081",
-    textIcon: "CA",
-    website: "https://cablyai.com",
-    authHint: "Bearer API key for the CablyAI OpenAI-compatible gateway.",
-    passthroughModels: true,
-    subscriptionRisk: true,
-    riskNoticeVariant: "deprecated",
-    deprecated: true,
-    deprecationReason:
-      "cablyai.com no longer resolves (DNS NXDOMAIN, verified 2026-06-30) — the domain is gone and every request fails with a DNS error (#5568).",
   },
   thebai: {
     id: "thebai",

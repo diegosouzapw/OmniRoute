@@ -191,6 +191,19 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
   },
+  clinepass: {
+    id: "clinepass",
+    alias: "cp",
+    name: "ClinePass",
+    icon: "smart_toy",
+    color: "#9D4EDD",
+    textIcon: "CP",
+    website: "https://cline.bot/clinepass",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "ClinePass is Cline's $9.99/mo subscription bundling 10 open coding models. Sign in with your Cline account (same login as the Cline CLI/IDE), or paste a direct ClinePass API key (app.cline.bot → Settings → API Keys). A ClinePass subscription unlocks the cline-pass/* models. Reuses the Cline WorkOS OAuth flow.",
+  },
   windsurf: {
     id: "windsurf",
     alias: "ws",

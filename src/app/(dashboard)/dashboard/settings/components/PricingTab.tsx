@@ -437,10 +437,6 @@ export default function PricingTab() {
     }
   }, [loadData, showStatus, t]);
 
-  const selectProviderFilter = useCallback((alias: string) => {
-    setSelectedProvider((previous) => (previous === alias ? null : alias));
-  }, []);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">

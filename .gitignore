@@ -233,3 +233,12 @@ omniroute.md
 # mise configuration
 mise.toml
 _artifacts/
+.claude-flow/
+
+# ESLint file cache (npm run lint --cache / complexity ratchets)
+.eslintcache
+.eslintcache-complexity
+
+
+# CI/local quality artifacts (eslint-results.json, etc.)
+.artifacts/

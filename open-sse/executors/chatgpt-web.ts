@@ -33,6 +33,7 @@ import {
   type ChatGptImageConversationContext,
 } from "../services/chatgptImageCache.ts";
 import { isThinkingCapableModel, resolveChatGptModel } from "./chatgpt-web/models.ts";
+import { cleanChatGptText } from "./chatgpt-web/citations.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -1165,6 +1166,7 @@ interface ContentChunk {
   answer?: string;
   conversationId?: string;
   messageId?: string;
+  metadata?: Record<string, unknown>;
   error?: string;
   done?: boolean;
   /** Image asset pointers seen on the current message (e.g. file-service://file-abc). */
@@ -1226,6 +1228,7 @@ async function* extractContent(
   let conversationId: string | null = null;
   let currentId: string | null = null;
   let currentParts = "";
+  let currentMetadata: Record<string, unknown> | undefined;
   let emittedLen = 0;
   let isLive = false;
   // Dedupe pointers across echoes / repeated events. Order-preserving Set.
@@ -1270,7 +1273,8 @@ async function* extractContent(
     // on a tool-role message (handled below).
     if (event.type === "server_ste_metadata") {
       const meta = (event as Record<string, unknown>).metadata as
-        Record<string, unknown> | undefined;
+        | Record<string, unknown>
+        | undefined;
       if (meta && meta.turn_use_case === "image gen") {
         imageGenAsync = true;
       }
@@ -1295,8 +1299,13 @@ async function* extractContent(
     if (id && id !== currentId) {
       currentId = id;
       currentParts = "";
+      currentMetadata = undefined;
       emittedLen = 0;
       isLive = false;
+    }
+
+    if (m.metadata && typeof m.metadata === "object") {
+      currentMetadata = m.metadata;
     }
 
     if (status === "in_progress") {
@@ -1337,6 +1346,7 @@ async function* extractContent(
         answer: currentParts,
         conversationId: conversationId ?? undefined,
         messageId: currentId ?? undefined,
+        metadata: currentMetadata,
       };
     }
   }
@@ -1350,6 +1360,7 @@ async function* extractContent(
       answer: currentParts,
       conversationId: conversationId ?? undefined,
       messageId: currentId ?? undefined,
+      metadata: currentMetadata,
     };
   }
 
@@ -1358,6 +1369,7 @@ async function* extractContent(
     answer: currentParts,
     conversationId: conversationId ?? undefined,
     messageId: currentId ?? undefined,
+    metadata: currentMetadata,
     imagePointers: imagePointers.size > 0 ? Array.from(imagePointers.values()) : undefined,
     imageGenAsync,
     handoff,
@@ -1389,6 +1401,7 @@ interface ChatGptConversationDetail {
 interface FinalAssistantAnswer {
   text: string;
   messageId?: string;
+  metadata?: Record<string, unknown>;
   finished: boolean;
 }
 
@@ -1433,12 +1446,17 @@ function extractFinalAssistantAnswer(
       (finished && (!best.finished || sort >= best.sort)) ||
       (!finished && !best.finished && sort >= best.sort)
     ) {
-      best = { text, messageId: message.id, finished, sort };
+      best = { text, messageId: message.id, metadata: message.metadata, finished, sort };
     }
   }
 
   if (!best) return null;
-  return { text: best.text, messageId: best.messageId, finished: best.finished };
+  return {
+    text: best.text,
+    messageId: best.messageId,
+    metadata: best.metadata,
+    finished: best.finished,
+  };
 }
 
 function delayWithAbort(ms: number, signal?: AbortSignal | null): Promise<void> {
@@ -1587,10 +1605,7 @@ type ImageResolver = (
  * "no image was produced". Escalated mesh report: image visible in the ChatGPT
  * chat but returned to OmniRoute as a bare "completed without image markdown".
  */
-export function detectImageResolutionFailure(
-  pointerCount: number,
-  resolvedCount: number
-): boolean {
+export function detectImageResolutionFailure(pointerCount: number, resolvedCount: number): boolean {
   return pointerCount > 0 && resolvedCount === 0;
 }
 
@@ -1674,13 +1689,12 @@ function buildStreamingResponse(
           let imageGenAsync = false;
           let handoff = false;
           let emittedText = "";
-          let polledFinalAnswer = "";
+          let polledFinalAnswer: FinalAssistantAnswer | null = null;
           let parentCandidateMessageId: string | null = null;
 
-          const emitTextDelta = (content: string): void => {
-            const cleaned = cleanChatGptText(content);
-            if (!cleaned) return;
-            emittedText += cleaned;
+          const emitRenderedDelta = (content: string): void => {
+            if (!content) return;
+            emittedText += content;
             controller.enqueue(
               encoder.encode(
                 sseChunk({
@@ -1692,7 +1706,7 @@ function buildStreamingResponse(
                   choices: [
                     {
                       index: 0,
-                      delta: { content: cleaned },
+                      delta: { content },
                       finish_reason: null,
                       logprobs: null,
                     },
@@ -1702,14 +1716,29 @@ function buildStreamingResponse(
             );
           };
 
-          const appendFinalAnswer = (text: string): void => {
-            const cleaned = cleanChatGptText(text);
+          const emitRenderedAnswer = (
+            rawText: string,
+            metadata?: Record<string, unknown>
+          ): void => {
+            const rendered = cleanChatGptText(rawText, metadata);
+            if (!rendered || rendered.length <= emittedText.length) return;
+            if (!rendered.startsWith(emittedText)) {
+              // We cannot retract bytes already streamed. This should be rare;
+              // it mainly protects clients if ChatGPT rewrites earlier text.
+              const common = commonPrefixLength(rendered, emittedText);
+              if (common < emittedText.length) return;
+            }
+            emitRenderedDelta(rendered.slice(emittedText.length));
+          };
+
+          const appendFinalAnswer = (text: string, metadata?: Record<string, unknown>): void => {
+            const cleaned = cleanChatGptText(text, metadata);
             const finalTrimmed = cleaned.trim();
             if (!finalTrimmed) return;
             const emittedTrimmed = emittedText.trim();
             if (emittedTrimmed === finalTrimmed || emittedTrimmed.endsWith(finalTrimmed)) return;
             const prefix = emittedTrimmed && !emittedText.endsWith("\n") ? "\n\n" : "";
-            emitTextDelta(`${prefix}${cleaned}`);
+            emitRenderedDelta(`${prefix}${cleaned}`);
           };
 
           // Heartbeat: long async work (Pro polling, WebSocket image-gen,
@@ -1776,8 +1805,8 @@ function buildStreamingResponse(
               break;
             }
 
-            if (chunk.delta) {
-              emitTextDelta(chunk.delta);
+            if (chunk.answer) {
+              emitRenderedAnswer(chunk.answer, chunk.metadata);
             }
           }
 
@@ -1786,7 +1815,7 @@ function buildStreamingResponse(
             try {
               const polled = await pollFinalAnswer(conversationId);
               if (polled?.text) {
-                polledFinalAnswer = polled.text;
+                polledFinalAnswer = polled;
                 if (polled.messageId) parentCandidateMessageId = polled.messageId;
               }
             } finally {
@@ -1795,7 +1824,7 @@ function buildStreamingResponse(
           }
 
           if (polledFinalAnswer) {
-            appendFinalAnswer(polledFinalAnswer);
+            appendFinalAnswer(polledFinalAnswer.text, polledFinalAnswer.metadata);
           }
 
           // Async image_gen ends the SSE with a "Processing image..."
@@ -1971,6 +2000,7 @@ async function buildNonStreamingResponse(
   let imagePointers: ImagePointerRef[] | undefined;
   let imageGenAsync = false;
   let handoff = false;
+  let answerMetadata: Record<string, unknown> | undefined;
   let parentCandidateMessageId: string | null = null;
 
   for await (const chunk of extractContent(eventStream, signal)) {
@@ -1987,24 +2017,29 @@ async function buildNonStreamingResponse(
     }
     if (chunk.done) {
       fullAnswer = chunk.answer || fullAnswer;
+      answerMetadata = chunk.metadata ?? answerMetadata;
       imagePointers = chunk.imagePointers;
       imageGenAsync = chunk.imageGenAsync ?? false;
       handoff = handoff || (chunk.handoff ?? false);
       if (chunk.messageId) parentCandidateMessageId = chunk.messageId;
       break;
     }
-    if (chunk.answer) fullAnswer = chunk.answer;
+    if (chunk.answer) {
+      fullAnswer = chunk.answer;
+      answerMetadata = chunk.metadata ?? answerMetadata;
+    }
   }
 
   if (pollFinalAnswer && conversationId && (handoff || !fullAnswer.trim())) {
     const polled = await pollFinalAnswer(conversationId);
     if (polled?.text) {
       fullAnswer = polled.text;
+      answerMetadata = polled.metadata ?? answerMetadata;
       if (polled.messageId) parentCandidateMessageId = polled.messageId;
     }
   }
 
-  fullAnswer = cleanChatGptText(fullAnswer);
+  fullAnswer = cleanChatGptText(fullAnswer, answerMetadata);
 
   // Async image gen: SSE ended with "Processing image..." — poll for the
   // final pointer the same way the streaming path does.
@@ -2683,7 +2718,8 @@ export class ChatGptWebExecutor extends BaseExecutor {
     clientHeaders,
   }: ExecuteInput) {
     const messages = (body as Record<string, unknown> | null)?.messages as
-      Array<Record<string, unknown>> | undefined;
+      | Array<Record<string, unknown>>
+      | undefined;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return {
         response: errorResponse(400, "Missing or empty messages array"),
@@ -3073,15 +3109,11 @@ export class ChatGptWebExecutor extends BaseExecutor {
   }
 }
 
-// Strip ChatGPT's internal entity markup. The browser renders these as proper
-// inline citations / chips via JS; for a plain text completion we just want
-// the human-readable form.
-//   entity["city","Paris","capital of France"]  →  Paris
-//   entity["…","value", …]                       →  value
-const ENTITY_RE = /entity\["[^"]*","([^"]*)"[^\]]*\]/g;
-
-function cleanChatGptText(text: string): string {
-  return text.replace(ENTITY_RE, "$1");
+function commonPrefixLength(a: string, b: string): number {
+  const n = Math.min(a.length, b.length);
+  let i = 0;
+  while (i < n && a.charCodeAt(i) === b.charCodeAt(i)) i++;
+  return i;
 }
 
 function stringToStream(text: string): ReadableStream<Uint8Array> {

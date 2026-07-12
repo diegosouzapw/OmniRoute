@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { compareTr } from "@/shared/utils/turkishText";
-import type { ModelReasoningCapabilities } from "@/app/(dashboard)/dashboard/playground/components/reasoningControls";
+import type { ModelReasoningCapabilities } from "@/app/(dashboard)/dashboard/playground/components/reasoningControlUtils";
 
 /**
  * Prefix-based format→model matching, used to pick a smart default

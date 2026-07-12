@@ -44,7 +44,7 @@ import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { buildClineHeaders } from "@/shared/utils/clineAuth";
+import { buildClineHeaders, buildClinepassHeaders } from "@/shared/utils/clineAuth";
 import {
   normalizeHerokuChatUrl,
   normalizeDatabricksChatUrl,
@@ -368,6 +368,9 @@ export class DefaultExecutor extends BaseExecutor {
       case "zai":
       case "glm-coding-apikey":
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
+        break;
+      case "clinepass": // dual-auth (OAuth or BYOK) — see buildClinepassHeaders()
+        Object.assign(headers, buildClinepassHeaders(credentials, effectiveKey));
         break;
       case "cline":
         // Cline's API requires the bearer token prefixed with `workos:` plus a

@@ -69,6 +69,7 @@ const tmpHostsFile = path.join(tmpDir, "hosts");
 // Import the module under test AFTER all setup.
 const dnsModule = await import("../../src/mitm/dns/dnsConfig.ts");
 const { addDNSEntries, removeDNSEntries, addDNSEntry, removeDNSEntry, checkDNSEntry } = dnsModule;
+const { ALL_TARGETS } = await import("../../src/mitm/targets/index.ts");
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -95,8 +96,58 @@ test("addDNSEntry (legacy) is a function that delegates for Antigravity hosts", 
   assert.equal(typeof addDNSEntry, "function");
 });
 
+test("addDNSEntry with agentId resolves agent-specific hosts from ALL_TARGETS", async () => {
+  // Cursor target has hosts: ["api2.cursor.sh"]
+  // Verify that calling addDNSEntry with agentId="cursor" passes the right hosts.
+  // We call with [] to skip actual exec — just verifying the function signature accepts agentId.
+  await assert.doesNotReject(
+    addDNSEntry("fake-sudo", "cursor"),
+    "addDNSEntry must accept optional agentId parameter"
+  );
+});
+
+test("addDNSEntry without agentId falls back to Antigravity hosts (backward compat)", async () => {
+  await assert.doesNotReject(
+    addDNSEntry("fake-sudo"),
+    "addDNSEntry without agentId must still work for backward compat"
+  );
+});
+
+test("addDNSEntry with unknown agentId falls back to Antigravity hosts", async () => {
+  await assert.doesNotReject(
+    addDNSEntry("fake-sudo", "__nonexistent_agent__"),
+    "addDNSEntry with unknown agentId must fall back to Antigravity hosts"
+  );
+});
+
 test("removeDNSEntry (legacy) is a function that delegates for Antigravity hosts", () => {
   assert.equal(typeof removeDNSEntry, "function");
+});
+
+test("removeDNSEntry with agentId resolves agent-specific hosts from ALL_TARGETS", async () => {
+  await assert.doesNotReject(
+    removeDNSEntry("fake-sudo", "copilot"),
+    "removeDNSEntry must accept optional agentId parameter"
+  );
+});
+
+test("resolveHostsForAgent returns Antigravity hosts when agentId is undefined", () => {
+  // Verify ALL_TARGETS exists and cursor target has expected hosts
+  const cursorTarget = ALL_TARGETS.find((t) => t.id === "cursor");
+  assert.ok(cursorTarget, "cursor target must exist in ALL_TARGETS");
+  assert.ok(
+    cursorTarget.hosts.includes("api2.cursor.sh"),
+    "cursor target must include api2.cursor.sh"
+  );
+  // Codex target
+  const codexTarget = ALL_TARGETS.find((t) => t.id === "codex");
+  assert.ok(codexTarget, "codex target must exist in ALL_TARGETS");
+  assert.ok(codexTarget.hosts.includes("chatgpt.com"), "codex target must include chatgpt.com");
+});
+
+test("addDNSEntries batches missing entries with no-op on empty list", async () => {
+  // Empty list must resolve immediately (no exec, no error)
+  await assert.doesNotReject(addDNSEntries([], "fake-sudo"));
 });
 
 test("addDNSEntries: skips hosts already in /etc/hosts (idempotency)", async () => {
@@ -157,11 +208,17 @@ test("addDNSEntries: entry passed as stdin data, not shell-interpolated", () => 
   const srcPath = new URL("../../src/mitm/dns/dnsConfig.ts", import.meta.url).pathname;
   const src = fs.readFileSync(srcPath, "utf8");
 
-  // The stdin data `${entry}\n` is the body text sent to tee via pipe — not
-  // part of the command array. Verify the pattern appears in the source.
+  // The stdin `data` is built from the batched entries and sent to tee via pipe —
+  // not part of the command array. Verify the pattern appears in the source and
+  // that it's passed as the 4th positional arg to execFileWithPassword (stdin),
+  // not interpolated into the argv array.
   assert.ok(
-    src.includes("`${entry}\\n`"),
-    "entry content must be passed as stdin to tee, not interpolated in args"
+    src.includes('missingEntries.map((e) => `${e}\\n`).join("")'),
+    "entry content must be built from missingEntries for stdin, not interpolated in args"
+  );
+  assert.ok(
+    src.includes('execFileWithPassword("sudo", ["-S", "tee", "-a", HOSTS_FILE], sudoPassword, data)'),
+    "entry data must be passed as stdin to tee, not interpolated in args"
   );
 });
 

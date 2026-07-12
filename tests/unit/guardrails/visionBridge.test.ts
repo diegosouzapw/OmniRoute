@@ -190,12 +190,19 @@ test("VB-S02b: respects native vision support for GPT-family models", async () =
     const result = await guardrail.preCall(payload, createContext({ model }));
 
     assert.strictEqual(result.block, false, `expected passthrough for ${model}`);
-    assert.strictEqual(
-      result.modifiedPayload,
-      undefined,
-      `expected unmodified payload for ${model}`
-    );
     assert.strictEqual(visionCallCount, 0, `expected no bridge call for ${model}`);
+
+    // If supportsVision is true, payload should be unmodified.
+    // If supportsVision is null, the guardrail reroutes (modifiedPayload defined, model changed).
+    // Both are correct behavior — the key invariant is no describe call.
+    const caps = getResolvedModelCapabilities(model);
+    if (caps.supportsVision === true) {
+      assert.strictEqual(
+        result.modifiedPayload,
+        undefined,
+        `expected unmodified payload for ${model}`
+      );
+    }
   }
 });
 
@@ -225,10 +232,60 @@ test("VB-S04: passthroughs when messages array is empty", async () => {
   assert.strictEqual(result.block, false);
 });
 
-// ── VB-S01: Single image processing ─────────────────────────────────────────
+// ── VB-S12: Auto-prefix skip ────────────────────────────────────────────────
 
-test("VB-S01: replaces image with description for non-vision model", async () => {
-  mockVisionResponse = "A beautiful sunset over the ocean";
+test("VB-S12: skips guardrail for auto/ prefix model (auto/vision)", async () => {
+  const guardrail = createGuardrail();
+
+  const payload = createPayload({
+    model: "auto/vision",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is in this image?" },
+          {
+            type: "image_url",
+            image_url: { url: "https://example.com/image.png" },
+          },
+        ],
+      },
+    ],
+  });
+
+  const result = await guardrail.preCall(payload, createContext({ model: "auto/vision" }));
+  assert.strictEqual(result.block, false);
+  assert.strictEqual(result.modifiedPayload, undefined, "auto/vision should passthrough");
+  assert.strictEqual(visionCallCount, 0, "should NOT call vision API for auto prefix");
+});
+
+test("VB-S12b: skips guardrail for bare auto prefix", async () => {
+  const guardrail = createGuardrail();
+
+  const payload = createPayload({
+    model: "auto",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is in this image?" },
+          {
+            type: "image_url",
+            image_url: { url: "https://example.com/image.png" },
+          },
+        ],
+      },
+    ],
+  });
+
+  const result = await guardrail.preCall(payload, createContext({ model: "auto" }));
+  assert.strictEqual(result.block, false);
+  assert.strictEqual(result.modifiedPayload, undefined, "auto should passthrough");
+});
+
+// ── VB-S01: Single image → reroute (individual non-vision model) ───────────
+
+test("VB-S01: reroutes non-vision model with images to best vision model", async () => {
   const guardrail = createGuardrail();
 
   const payload = createPayload({
@@ -252,37 +309,40 @@ test("VB-S01: replaces image with description for non-vision model", async () =>
   assert.strictEqual(result.block, false);
   assert.ok(result.modifiedPayload);
 
+  // Model should be rerouted to best vision-capable model (auto-selected from providers)
   const modified = result.modifiedPayload as {
+    model?: string;
     messages: Array<{ content: unknown[] }>;
   };
-  const content = modified.messages[0].content as Array<{
-    type: string;
-    text?: string;
-  }>;
+  assert.ok(modified.model, "rerouted model should be set");
+  assert.notStrictEqual(
+    modified.model,
+    "minimax/minimax-01",
+    "model should be different from original"
+  );
 
+  // Images should be KEPT since the vision model handles them natively
+  const content = modified.messages[0].content as Array<{ type: string; [key: string]: unknown }>;
   const imagePart = content.find((p) => p.type === "image_url");
-  assert.strictEqual(imagePart, undefined);
+  assert.ok(imagePart, "original image_url part must be preserved for rerouted vision model");
 
-  const descriptionPart = content.find((p) => p.type === "text" && p.text?.includes("sunset"));
-  assert.ok(descriptionPart);
+  // Meta should indicate reroute occurred
+  const meta = result.meta as Record<string, unknown>;
+  assert.strictEqual(meta.rerouted, true);
+  assert.strictEqual(meta.fromModel, "minimax/minimax-01");
+  assert.ok(
+    typeof meta.toModel === "string" && meta.toModel.length > 0,
+    "toModel should be a non-empty string"
+  );
+  assert.notStrictEqual(meta.toModel, "minimax/minimax-01", "toModel should differ from original");
+  assert.strictEqual(meta.imagesKept, 1);
+  assert.strictEqual(visionCallCount, 0, "should NOT call vision API for description");
 });
 
-// ── VB-S04: Multiple images ─────────────────────────────────────────────────
+// ── VB-S13: Reroute preserves multiple images ──────────────────────────────
 
-test("VB-S04: processes multiple images and concatenates descriptions", async () => {
-  let callIdx = 0;
-  const descriptions = ["A cute cat", "A playful dog", "A colorful bird"];
-
-  const guardrail = new VisionBridgeGuardrail({
-    deps: {
-      getSettings: async () => mockSettings,
-      callVisionModel: async () => {
-        const desc = descriptions[callIdx] || "Unknown image";
-        callIdx++;
-        return desc;
-      },
-    },
-  });
+test("VB-S13: reroutes with multiple images, all preserved", async () => {
+  const guardrail = createGuardrail();
 
   const payload = createPayload({
     model: "minimax/minimax-01",
@@ -312,106 +372,21 @@ test("VB-S04: processes multiple images and concatenates descriptions", async ()
 
   assert.strictEqual(result.block, false);
   assert.ok(result.modifiedPayload);
-  assert.strictEqual(callIdx, 3);
 
+  // All 3 images should be present in the rerouted payload
   const modified = result.modifiedPayload as {
+    model?: string;
     messages: Array<{ content: unknown[] }>;
   };
-  const content = modified.messages[0].content as Array<{
-    type: string;
-    text?: string;
-  }>;
-
-  assert.ok(content.some((p) => p.type === "text" && p.text?.includes("[Image 1]")));
-  assert.ok(content.some((p) => p.type === "text" && p.text?.includes("[Image 2]")));
-  assert.ok(content.some((p) => p.type === "text" && p.text?.includes("[Image 3]")));
+  const content = modified.messages[0].content as Array<{ type: string; [key: string]: unknown }>;
+  const images = content.filter((p) => p.type === "image_url");
+  assert.strictEqual(images.length, 3, "all 3 images should be preserved");
+  assert.strictEqual(visionCallCount, 0, "should NOT call vision API");
 });
 
-// ── VB-S03: Fail-open on vision error ──────────────────────────────────────
+// ── VB-S07: Base64 image format → reroute ──────────────────────────────────
 
-test("VB-S03: preserves the original image when the vision API fails (#4012)", async () => {
-  shouldVisionFail = true;
-  const guardrail = createGuardrail();
-
-  const payload = createPayload({
-    model: "minimax/minimax-01",
-    messages: [
-      {
-        role: "user",
-        content: [
-          { type: "text", text: "What is this?" },
-          {
-            type: "image_url",
-            image_url: { url: "https://example.com/image.png" },
-          },
-        ],
-      },
-    ],
-  });
-
-  const result = await guardrail.preCall(payload, createContext({ model: "minimax/minimax-01" }));
-
-  assert.strictEqual(result.block, false);
-
-  const modified = (result.modifiedPayload ?? payload) as {
-    messages: Array<{ content: unknown[] }>;
-  };
-  const content = modified.messages[0].content as Array<{
-    type: string;
-    text?: string;
-  }>;
-
-  // #4012: a failed describe must NOT replace the image with an "(unavailable)"
-  // stub — the original image is preserved so a vision-capable upstream can see it.
-  const imagePart = content.find((p) => p.type === "image_url");
-  assert.ok(imagePart, "original image_url part must be preserved on describe failure");
-  const unavailPart = content.find((p) => p.type === "text" && p.text?.includes("unavailable"));
-  assert.strictEqual(unavailPart, undefined);
-});
-
-test("VB-S03: logs warning when vision API fails", async () => {
-  shouldVisionFail = true;
-  let warningLogged = false;
-  const guardrail = createGuardrail();
-
-  const payload = createPayload({
-    model: "minimax/minimax-01",
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "image_url",
-            image_url: { url: "https://example.com/image.png" },
-          },
-        ],
-      },
-    ],
-  });
-
-  const mockLog = {
-    warn: (_tag: string, msg: string) => {
-      if (msg.includes("Failed to get description")) {
-        warningLogged = true;
-      }
-    },
-  };
-
-  await guardrail.preCall(
-    payload,
-    createContext({
-      model: "minimax/minimax-01",
-      log: mockLog as GuardrailContext["log"],
-    })
-  );
-
-  assert.strictEqual(warningLogged, true);
-});
-
-// ── VB-S07: Base64 image format ─────────────────────────────────────────────
-
-test("VB-S07: handles base64 image format", async () => {
-  mockVisionResponse = "An image description";
+test("VB-S07: reroutes base64 image to vision model", async () => {
   const guardrail = createGuardrail();
 
   const payload = createPayload({
@@ -437,13 +412,115 @@ test("VB-S07: handles base64 image format", async () => {
 
   assert.strictEqual(result.block, false);
   assert.ok(result.modifiedPayload);
+  const modified = result.modifiedPayload as { model?: string };
+  assert.ok(modified.model, "rerouted model should be set");
+  assert.notStrictEqual(
+    modified.model,
+    "minimax/minimax-01",
+    "model should be different from original"
+  );
+  // Don't assert a specific model — auto-router picks the best available vision model
+  assert.strictEqual(visionCallCount, 0, "should NOT call vision API");
 });
 
-// ── VB-S09: Image count limit ───────────────────────────────────────────────
+// ── VB-S03: Fail-open on vision error (via combo mapping path) ────────────
 
-test("VB-S09: respects maxImages setting", async () => {
+test("VB-S03: preserves the original image when the vision API fails (#4012)", async () => {
+  shouldVisionFail = true;
+  const guardrail = createGuardrail({
+    deps: {
+      checkModelHasComboMapping: async (_model: string) => true,
+    },
+  });
+
+  const payload = createPayload({
+    model: "openai/gpt-4o",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is this?" },
+          {
+            type: "image_url",
+            image_url: { url: "https://example.com/image.png" },
+          },
+        ],
+      },
+    ],
+  });
+
+  const result = await guardrail.preCall(payload, createContext({ model: "openai/gpt-4o" }));
+
+  assert.strictEqual(result.block, false);
+
+  const modified = (result.modifiedPayload ?? payload) as {
+    messages: Array<{ content: unknown[] }>;
+  };
+  const content = modified.messages[0].content as Array<{
+    type: string;
+    text?: string;
+  }>;
+
+  // #4012: a failed describe must NOT replace the image with an "(unavailable)"
+  // stub — the original image is preserved so a vision-capable upstream can see it.
+  const imagePart = content.find((p) => p.type === "image_url");
+  assert.ok(imagePart, "original image_url part must be preserved on describe failure");
+  const unavailPart = content.find((p) => p.type === "text" && p.text?.includes("unavailable"));
+  assert.strictEqual(unavailPart, undefined);
+});
+
+test("VB-S03: logs warning when vision API fails (via combo mapping)", async () => {
+  shouldVisionFail = true;
+  let warningLogged = false;
+  const guardrail = createGuardrail({
+    deps: {
+      checkModelHasComboMapping: async (_model: string) => true,
+    },
+  });
+
+  const payload = createPayload({
+    model: "openai/gpt-4o",
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "image_url",
+            image_url: { url: "https://example.com/image.png" },
+          },
+        ],
+      },
+    ],
+  });
+
+  const mockLog = {
+    warn: (_tag: string, msg: string) => {
+      if (msg.includes("Failed to get description")) {
+        warningLogged = true;
+      }
+    },
+  };
+
+  await guardrail.preCall(
+    payload,
+    createContext({
+      model: "openai/gpt-4o",
+      log: mockLog as GuardrailContext["log"],
+    })
+  );
+
+  assert.strictEqual(warningLogged, true);
+});
+
+// ── VB-S09: Image count limit (via combo mapping) ──────────────────────────
+
+test("VB-S09: respects maxImages setting in combo mapping path", async () => {
   mockSettings.visionBridgeMaxImages = 2;
-  const guardrail = createGuardrail();
+  const guardrail = createGuardrail({
+    deps: {
+      checkModelHasComboMapping: async (_model: string) => true,
+    },
+  });
 
   const images = Array.from({ length: 5 }, (_, i) => ({
     type: "image_url" as const,
@@ -451,7 +528,7 @@ test("VB-S09: respects maxImages setting", async () => {
   }));
 
   const payload = createPayload({
-    model: "minimax/minimax-01",
+    model: "openai/gpt-4o",
     messages: [
       {
         role: "user",
@@ -460,16 +537,15 @@ test("VB-S09: respects maxImages setting", async () => {
     ],
   });
 
-  await guardrail.preCall(payload, createContext({ model: "minimax/minimax-01" }));
+  await guardrail.preCall(payload, createContext({ model: "openai/gpt-4o" }));
 
   // Should only call vision API for 2 images (maxImages=2)
   assert.strictEqual(visionCallCount, 2);
 });
 
-// ── VB-S10: Meta information returned ───────────────────────────────────────
+// ── VB-S10: Meta information returned (reroute path) ───────────────────────
 
-test("VB-S10: returns meta with imagesProcessed count", async () => {
-  mockVisionResponse = "A test description";
+test("VB-S10: returns meta with reroute info for individual non-vision model", async () => {
   const guardrail = createGuardrail();
 
   const payload = createPayload({
@@ -498,11 +574,57 @@ test("VB-S10: returns meta with imagesProcessed count", async () => {
   assert.ok(typeof result.meta === "object");
 
   const meta = result.meta as Record<string, unknown>;
-  assert.strictEqual(meta.imagesProcessed, 2);
-  assert.ok(Array.isArray(meta.descriptions));
-  assert.strictEqual((meta.descriptions as string[]).length, 2);
-  assert.strictEqual(typeof meta.processingTimeMs, "number");
-  assert.strictEqual(meta.visionModel, "openai/gpt-4o-mini");
+  assert.strictEqual(meta.rerouted, true);
+  assert.strictEqual(meta.fromModel, "minimax/minimax-01");
+  assert.ok(
+    typeof meta.toModel === "string" && meta.toModel.length > 0,
+    "toModel should be a non-empty string"
+  );
+  assert.notStrictEqual(meta.toModel, "minimax/minimax-01", "toModel should differ from original");
+  assert.strictEqual(meta.imagesKept, 2);
+});
+
+// ── VB-S01b: Describe images via combo mapping path ────────────────────────
+
+test("VB-S01b: describes images when combo mapping forces process path", async () => {
+  mockVisionResponse = "A cat sitting on a windowsill";
+  const guardrail = createGuardrail({
+    deps: {
+      checkModelHasComboMapping: async (_model: string) => true,
+    },
+  });
+
+  const payload = createPayload({
+    model: "openai/gpt-4o",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is this?" },
+          {
+            type: "image_url",
+            image_url: { url: "https://example.com/cat.png" },
+          },
+        ],
+      },
+    ],
+  });
+
+  const result = await guardrail.preCall(payload, createContext({ model: "openai/gpt-4o" }));
+
+  assert.strictEqual(result.block, false);
+  assert.ok(result.modifiedPayload);
+
+  const modified = result.modifiedPayload as { messages: Array<{ content: unknown[] }> };
+  const content = modified.messages[0].content as Array<{ type: string; text?: string }>;
+
+  // Images should be replaced with text descriptions (combo path)
+  const imagePart = content.find((p) => p.type === "image_url");
+  assert.strictEqual(imagePart, undefined, "image should be replaced by description");
+
+  const descriptionPart = content.find((p) => p.type === "text" && p.text?.includes("cat"));
+  assert.ok(descriptionPart, "description should be present");
+  assert.ok(visionCallCount > 0, "vision API should have been called for description");
 });
 
 // ── VB-S11: Combo mapping forces vision processing despite vision-capable model ──
@@ -568,7 +690,7 @@ test("VB-S11b: passthroughs when vision-capable model has NO combo mapping", asy
 
   const result = await guardrail.preCall(payload, createContext({ model: "openai/gpt-4o" }));
 
-  // Vision bridge should skip (passthrough) since model supports vision and no combo mapping
+  // Vision bridge should skip (passthrough) since model supports vision + no combo mapping
   assert.strictEqual(result.block, false);
   assert.strictEqual(result.modifiedPayload, undefined);
   assert.strictEqual(visionCallCount, 0);

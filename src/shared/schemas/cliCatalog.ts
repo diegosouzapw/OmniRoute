@@ -63,4 +63,7 @@ export const CliCatalogSchema = z.record(CliCatalogEntrySchema);
 // +1 (2026-07-02): "codewhale" added as a dual entry alongside "deepseek-tui"
 // (CodeWhale is the actively-maintained successor to DeepSeek TUI).
 export const EXPECTED_CODE_COUNT = 20;
-export const EXPECTED_AGENT_COUNT = 6;
+// +2 (#6318): "omp" (Oh My Pi) and "letta" (Letta CLI) added as agent entries.
+// Note: #6318 originally also shipped duplicate "pi"/"jcode"/"codewhale" entries —
+// those tools were already delivered by a separate PR, so only omp+letta landed here.
+export const EXPECTED_AGENT_COUNT = 8;

@@ -4,7 +4,14 @@ import { getUpstreamProxyConfig } from "@/lib/localDb";
  * Module-level cache for upstream proxy config (shared across all requests).
  * 10s TTL prevents per-request DB lookups while staying fresh enough for setting changes.
  */
-const _proxyConfigCache = new Map<string, { mode: string; enabled: boolean; ts: number }>();
+type UpstreamProxyConfigCacheEntry = {
+  mode: string;
+  enabled: boolean;
+  cliproxyapiModelMapping: Record<string, unknown> | null;
+  ts: number;
+};
+
+const _proxyConfigCache = new Map<string, UpstreamProxyConfigCacheEntry>();
 const PROXY_CONFIG_CACHE_TTL = 10_000;
 
 /**
@@ -55,9 +62,14 @@ export async function getUpstreamProxyConfigCached(providerId: string) {
   const cached = _proxyConfigCache.get(providerId);
   if (cached && Date.now() - cached.ts < PROXY_CONFIG_CACHE_TTL) return cached;
   const cfg = await getUpstreamProxyConfig(providerId).catch(() => null);
-  const result = cfg
-    ? { mode: cfg.mode, enabled: cfg.enabled, ts: Date.now() }
-    : { mode: "native" as const, enabled: false, ts: Date.now() };
+  const result: UpstreamProxyConfigCacheEntry = cfg
+    ? {
+        mode: cfg.mode,
+        enabled: cfg.enabled,
+        cliproxyapiModelMapping: cfg.cliproxyapiModelMapping ?? null,
+        ts: Date.now(),
+      }
+    : { mode: "native" as const, enabled: false, cliproxyapiModelMapping: null, ts: Date.now() };
   _proxyConfigCache.set(providerId, result);
   return result;
 }

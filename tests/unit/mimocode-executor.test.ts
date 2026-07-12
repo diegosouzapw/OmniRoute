@@ -485,3 +485,143 @@ describe("mimocode per-account proxy", () => {
     assert.strictEqual((testExec as any).proxyUrlMap.get(fp), "socks5://second.proxy:1080");
   });
 });
+
+// #2101/#4976 regression guard: a 400 from MiMoCode must be classified by body text
+// before deciding whether to rotate accounts. A rate-limit-style 400 (throttling
+// disguised as a 400, #4976) is rotation-worthy; a genuinely malformed 400 (#2101)
+// must fail fast on the FIRST account instead of being retried identically on every
+// account (which would waste N round-trips, cooldown every account, and hide the
+// real upstream diagnostic behind a generic "all accounts exhausted" error).
+interface TestAccountState {
+  fingerprint: string;
+  jwt: string;
+  expiresAt: number;
+  cooldownUntil: number;
+  consecutiveFails: number;
+}
+
+interface ExecutorAccountAccess {
+  accounts: TestAccountState[];
+  nextAccountIdx: number;
+}
+
+function accountAccess(exec: MimocodeExecutor): ExecutorAccountAccess {
+  return exec as unknown as ExecutorAccountAccess;
+}
+
+describe("mimocode 400 classification (#2101/#4976)", () => {
+  function makeJwt(): string {
+    const header = Buffer.from(JSON.stringify({ alg: "none" })).toString("base64url");
+    const payload = Buffer.from(
+      JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 })
+    ).toString("base64url");
+    return `${header}.${payload}.sig`;
+  }
+
+  function twoAccountExecutor(): MimocodeExecutor {
+    const exec = new MimocodeExecutor();
+    const access = accountAccess(exec);
+    access.accounts = [
+      { fingerprint: "acct-a", jwt: "", expiresAt: 0, cooldownUntil: 0, consecutiveFails: 0 },
+      { fingerprint: "acct-b", jwt: "", expiresAt: 0, cooldownUntil: 0, consecutiveFails: 0 },
+    ];
+    access.nextAccountIdx = 0;
+    return exec;
+  }
+
+  it("rotates to the next account on a rate-limit-text 400 (#4976)", async () => {
+    const testExec = twoAccountExecutor();
+    let chatCalls = 0;
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async (url: unknown) => {
+      const urlStr = String(url);
+      if (urlStr.includes("/api/free-ai/bootstrap")) {
+        return new Response(JSON.stringify({ jwt: makeJwt() }), { status: 200 });
+      }
+      if (urlStr.includes("/api/free-ai/openai/chat")) {
+        chatCalls++;
+        if (chatCalls === 1) {
+          // MiMoCode's non-standard rate-limit signal on a 400 status (#4976).
+          return new Response(
+            JSON.stringify({
+              error: { message: "Detected high-frequency non-compliant requests from you." },
+            }),
+            { status: 400 }
+          );
+        }
+        return new Response(JSON.stringify({ id: "ok", choices: [] }), { status: 200 });
+      }
+      throw new Error(`unexpected fetch: ${urlStr}`);
+    }) as typeof fetch;
+
+    try {
+      const result = await testExec.execute({
+        model: "mimo-auto",
+        body: { messages: [{ role: "user", content: "hi" }], stream: false },
+        stream: false,
+        signal: null,
+        credentials: {},
+        log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
+      });
+
+      assert.strictEqual(chatCalls, 2, "should retry on the next account after the 400");
+      assert.strictEqual(result.response.status, 200);
+      const acctA = accountAccess(testExec).accounts[0];
+      assert.ok(acctA.cooldownUntil > Date.now(), "first account should be in cooldown");
+      assert.strictEqual(acctA.consecutiveFails, 1);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("fails fast without rotating on a malformed/generic 400 (#2101)", async () => {
+    const testExec = twoAccountExecutor();
+    let chatCalls = 0;
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async (url: unknown) => {
+      const urlStr = String(url);
+      if (urlStr.includes("/api/free-ai/bootstrap")) {
+        return new Response(JSON.stringify({ jwt: makeJwt() }), { status: 200 });
+      }
+      if (urlStr.includes("/api/free-ai/openai/chat")) {
+        chatCalls++;
+        return new Response(
+          JSON.stringify({ error: { message: "Invalid field: foo is not a recognized field" } }),
+          { status: 400 }
+        );
+      }
+      throw new Error(`unexpected fetch: ${urlStr}`);
+    }) as typeof fetch;
+
+    try {
+      const result = await testExec.execute({
+        model: "mimo-auto",
+        body: { messages: [{ role: "user", content: "hi" }], stream: false },
+        stream: false,
+        signal: null,
+        credentials: {},
+        log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
+      });
+
+      assert.strictEqual(chatCalls, 1, "must NOT rotate to another account on a malformed 400");
+      const acctA = accountAccess(testExec).accounts[0];
+      assert.strictEqual(acctA.cooldownUntil, 0, "malformed 400 must not trigger cooldown");
+      assert.strictEqual(acctA.consecutiveFails, 0);
+
+      const response = result.response;
+      assert.strictEqual(response.status, 400);
+      const parsed = (await response.json()) as { error: { message: string; code?: string } };
+      assert.notStrictEqual(
+        parsed.error.code,
+        "NO_ACCOUNTS",
+        "must surface the real upstream 400, not a generic exhaustion error"
+      );
+      assert.ok(
+        parsed.error.message.toLowerCase().includes("invalid field"),
+        `expected the real upstream diagnostic in the error message, got: ${parsed.error.message}`
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});
