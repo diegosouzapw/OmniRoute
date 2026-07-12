@@ -35,6 +35,7 @@ import { shouldDropResponsesCommentaryEvent } from "./responsesCommentaryDrop.ts
 import { buildErrorBody } from "./error.ts";
 import { parseTextualToolCallCandidate, isValidToolCallHeaderPrefix } from "./textualToolCall.ts";
 import { recordToolLatency } from "../services/toolLatencyTracker.ts";
+import { extractToolSchemaMap } from "../translator/response/openai-responses/toolSchemas.ts";
 import {
   generateSessionId,
   markToolFinish,
@@ -150,6 +151,8 @@ type TranslateState = ReturnType<typeof initState> & {
   accumulatedContent?: string;
   /** Accumulated reasoning content (separate from content) */
   accumulatedReasoning?: string;
+  /** #6951 — per-tool JSON Schema (from request `tools[]`), keyed by tool name. */
+  toolSchemas?: Map<string, Record<string, unknown>> | null;
   upstreamError?: {
     status: number;
     type: string;
@@ -684,6 +687,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           suppressThinkClose,
           accumulatedContent: "",
           accumulatedReasoning: "",
+          toolSchemas: extractToolSchemaMap(body),
         }
       : null;
 

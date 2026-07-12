@@ -12,17 +12,89 @@ export function normalizeToolName(value) {
 //   which Cursor rejects unless environment is cloud — ported from decolua/9router#2446.
 const STRIPPABLE_EMPTY_ARG_TOOLS = new Set(["Read", "Subagent"]);
 
-export function stripEmptyOptionalToolArgs(value, toolName) {
+// Deep-equal for JSON-shaped values (schema `default` comparison). Cheap and safe:
+// tool args are always JSON-serializable, so a stringify comparison is exact.
+function jsonValuesEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch {
+    return false;
+  }
+}
+
+function hasUsableSchema(schema) {
+  return !!(schema && typeof schema === "object" && !Array.isArray(schema));
+}
+
+function schemaProperties(schema) {
+  return hasUsableSchema(schema) && schema.properties && typeof schema.properties === "object"
+    ? schema.properties
+    : null;
+}
+
+function schemaRequiredSet(schema) {
+  return new Set(hasUsableSchema(schema) && Array.isArray(schema.required) ? schema.required : []);
+}
+
+function isEmptyToolArgValue(entry) {
+  return entry === "" || (Array.isArray(entry) && entry.length === 0);
+}
+
+// True when `entry` strictly equals the property's declared JSON Schema `default` — an
+// emitted value indistinguishable from omission, safe to drop for any tool.
+function matchesSchemaDefault(propSchema, entry) {
+  if (!propSchema || !Object.prototype.hasOwnProperty.call(propSchema, "default")) return false;
+  return jsonValuesEqual(entry, propSchema.default);
+}
+
+// True when `entry` is empty and either the tool is on the legacy allowlist, or the
+// schema declares this property but does not mark it `required` (generalized #6951 rule).
+function isDroppableEmptyEntry(entry, propSchema, required, key, allowlisted) {
+  if (!isEmptyToolArgValue(entry)) return false;
+  return allowlisted || (propSchema != null && !required.has(key));
+}
+
+function stripEmptyOptionalToolArgsObject(value, toolName, schema) {
+  const properties = schemaProperties(schema);
+  const required = schemaRequiredSet(schema);
+  const allowlisted = STRIPPABLE_EMPTY_ARG_TOOLS.has(toolName);
+
+  const cleaned = { ...value };
+  for (const [key, entry] of Object.entries(cleaned)) {
+    const propSchema = properties ? properties[key] : null;
+    if (
+      matchesSchemaDefault(propSchema, entry) ||
+      isDroppableEmptyEntry(entry, propSchema, required, key, allowlisted)
+    ) {
+      delete cleaned[key];
+    }
+  }
+  return cleaned;
+}
+
+// #6951 — Responses API strict mode forces every tool property into `required`, so the
+// model always emits *some* value for "optional" params (no first-class optional).
+// When the tool's JSON Schema is available (`schema`, from the request's `tools[]`),
+// normalization becomes schema-aware instead of allowlist-only:
+//   - drop-if-default: value strictly equals the property's declared `default`.
+//   - drop-if-empty (generalized): empty string/array for a property that is declared
+//     in `schema.properties` but absent from `schema.required` — any tool, not just the
+//     Read/Subagent allowlist above.
+// Without a schema, behavior is unchanged (allowlist + empty-only), preserving existing
+// callers that only pass (value, toolName).
+export function stripEmptyOptionalToolArgs(value, toolName, schema) {
   if (value == null) return value;
 
   if (typeof value === "string") {
-    // JSON-string cleanup is intentionally scoped to the allowlisted tools above.
-    // For arbitrary tools, empty strings/arrays may be valid user payloads.
-    if (!STRIPPABLE_EMPTY_ARG_TOOLS.has(toolName)) return value;
+    // JSON-string cleanup runs for allowlisted tools, or for any tool once a schema is
+    // supplied (schema-aware normalization is not restricted to the allowlist).
+    if (!hasUsableSchema(schema) && !STRIPPABLE_EMPTY_ARG_TOOLS.has(toolName)) return value;
     try {
       const parsed = JSON.parse(value);
       if (Array.isArray(parsed) || typeof parsed !== "object" || parsed === null) return value;
-      const cleaned = stripEmptyOptionalToolArgs(parsed, toolName);
+      const cleaned = stripEmptyOptionalToolArgs(parsed, toolName, schema);
       return JSON.stringify(cleaned ?? {});
     } catch {
       return value;
@@ -31,13 +103,7 @@ export function stripEmptyOptionalToolArgs(value, toolName) {
 
   if (Array.isArray(value) || typeof value !== "object") return value;
 
-  const cleaned = { ...value };
-  for (const [key, entry] of Object.entries(cleaned)) {
-    if (entry === "" || (Array.isArray(entry) && entry.length === 0)) {
-      delete cleaned[key];
-    }
-  }
-  return cleaned;
+  return stripEmptyOptionalToolArgsObject(value, toolName, schema);
 }
 
 export function normalizeOutputIndex(outputIndex) {

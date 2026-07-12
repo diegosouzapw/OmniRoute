@@ -847,6 +847,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     const currentIndex = state.toolCallIndex; // capture before increment
     const callId = item.call_id || state.currentToolCallId || fallbackToolCallId();
     const toolName = normalizeToolName(item.name);
+    const toolSchema = state.toolSchemas?.get(toolName);
 
     if (state.currentToolCallDeferred) {
       state.currentToolCallDeferred = false;
@@ -859,7 +860,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
 
       state.toolCallIndex++;
 
-      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName);
+      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName, toolSchema);
 
       const argsStr =
         argsToEmit != null
@@ -901,7 +902,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
 
     // Only emit if arguments exist in the done event AND they weren't already streamed via deltas
     if (item.arguments != null && !buffered) {
-      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName);
+      const argsToEmit = stripEmptyOptionalToolArgs(item.arguments, toolName, toolSchema);
 
       const argsStr = typeof argsToEmit === "string" ? argsToEmit : JSON.stringify(argsToEmit);
       if (argsStr) {
