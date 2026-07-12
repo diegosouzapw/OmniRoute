@@ -1,1 +1,0 @@
-- **feat(xai):** route xAI clients to Grok's native `/v1/responses` endpoint instead of the chat-completions bridge. (thanks @ryanngit)
