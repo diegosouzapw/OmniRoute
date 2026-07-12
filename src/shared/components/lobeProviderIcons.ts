@@ -338,6 +338,7 @@ const LOBE_PROVIDER_ALIASES = {
   codestral: "Mistral",
   codex: "Codex",
   "codex-cloud": "Codex",
+  cohere: "Cohere",
   comfyui: "ComfyUI",
   copilot: "GithubCopilot",
   "copilot-m365-web": "Copilot",
