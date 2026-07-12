@@ -611,6 +611,9 @@ test("OpenAI -> Responses: parallel tool calls with mixed content survive transl
         },
       ],
     },
+    // #6906: real providers may send no separate usage chunk at all — the stream-end
+    // flush is what finalizes response.completed in that case.
+    null,
   ]);
 
   const doneEvents = events.filter(

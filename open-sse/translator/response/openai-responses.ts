@@ -14,6 +14,7 @@ import {
   normalizeUpstreamFailure,
   extractResponsesReasoningSummaryText,
 } from "./openai-responses/pureHelpers.ts";
+import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
 
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
@@ -93,16 +94,19 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
   }
 
   if (!chunk.choices?.length) {
+    // #6906: a deferred finish_reason (awaitingTrailingUsage, see below) completes here —
+    // the trailing usage-only chunk (choices: [], usage: {...}) is what real
+    // stream_options.include_usage=true upstreams send after finish_reason (see the
+    // "READ THIS" block in stream.ts); state.usage was already captured above.
+    if (state.awaitingTrailingUsage && !state.completedSent) {
+      const { events, emit } = createEventEmitter(state);
+      sendCompleted(state, emit);
+      return events;
+    }
     return [];
   }
 
-  const events = [];
-  const nextSeq = () => ++state.seq;
-
-  const emit = (eventType, data) => {
-    data.sequence_number = nextSeq();
-    events.push({ event: eventType, data });
-  };
+  const { events, emit } = createEventEmitter(state);
 
   const choice = chunk.choices[0];
   const idx = choice.index || 0;
@@ -215,7 +219,13 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     for (const i in state.msgItemAdded) closeMessage(state, emit, i);
     closeReasoning(state, emit);
     for (const i in state.funcCallIds) closeToolCall(state, emit, i);
-    sendCompleted(state, emit);
+    // #6906: usage already captured (same chunk or earlier) completes now; otherwise
+    // defer for a trailing usage-only chunk, handled above and in flushEvents().
+    if (state.usage) {
+      sendCompleted(state, emit);
+    } else {
+      state.awaitingTrailingUsage = true;
+    }
   }
 
   return events;
@@ -589,12 +599,7 @@ function sendCompleted(state, emit) {
 function flushEvents(state) {
   if (state.completedSent) return [];
 
-  const events = [];
-  const nextSeq = () => ++state.seq;
-  const emit = (eventType, data) => {
-    data.sequence_number = nextSeq();
-    events.push({ event: eventType, data });
-  };
+  const { events, emit } = createEventEmitter(state);
 
   for (const i in state.msgItemAdded) closeMessage(state, emit, i);
   closeReasoning(state, emit);

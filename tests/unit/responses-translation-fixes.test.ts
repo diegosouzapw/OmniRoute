@@ -458,7 +458,10 @@ test("Chat→Responses streaming: completed event includes accumulated output", 
 
   // Finish
   const finishChunk = { choices: [{ index: 0, delta: {}, finish_reason: "stop" }] };
-  const events = openaiToOpenAIResponsesResponse(finishChunk, state);
+  openaiToOpenAIResponsesResponse(finishChunk, state);
+  // #6906: no usage was ever sent for this stream, so response.completed is deferred
+  // until the stream-end flush (no trailing usage-only chunk will ever arrive).
+  const events = openaiToOpenAIResponsesResponse(null, state);
   const completedEvent = events.find((e) => e.event === "response.completed");
   assert.ok(completedEvent.data.response.output, "completed should have output");
   assert.ok(completedEvent.data.response.output.length > 0, "output should not be empty");
