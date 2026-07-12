@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
+import ModelLeaderboard from "./ModelLeaderboard";
 
 interface ProviderModelScore {
   modelId: string;
@@ -308,6 +309,11 @@ export default function FreeProviderRankingsPage() {
           )}
         </>
       )}
+
+      {/* LiveBench Model Leaderboard */}
+      <div className="mt-4">
+        <ModelLeaderboard />
+      </div>
     </div>
   );
 }
