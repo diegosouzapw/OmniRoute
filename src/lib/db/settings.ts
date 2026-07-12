@@ -11,6 +11,7 @@ import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/ste
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 import { DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE } from "@/shared/constants/responsesPreviousResponseId";
 import { type JsonRecord, toRecord } from "./settings/shared";
+import { resolveNoAuthSharedProviderProxy } from "./settings/noAuthProxyFallback";
 
 type ProxyValue = JsonRecord | string | null;
 type ProxyResolutionResult = {
@@ -558,6 +559,19 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
       };
       cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
       return result;
+    }
+  }
+
+  // Step 8.5 (#6272): no-auth providers (mimocode, opencode, ...) share a single
+  // synthetic connectionId that never matches a `provider_connections` row, so
+  // `connectionRecord` above is null and Steps 5-8 (which require it) never run for
+  // them — a provider-level proxy assigned to a no-auth provider was silently
+  // ignored. Best-effort fallback: scan the known no-auth provider ids directly.
+  if (!connectionRecord) {
+    const noAuthFallback = await resolveNoAuthSharedProviderProxy(config.providers);
+    if (noAuthFallback) {
+      cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, noAuthFallback);
+      return noAuthFallback;
     }
   }
 

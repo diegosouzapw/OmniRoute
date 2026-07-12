@@ -276,9 +276,8 @@ export async function registerNodejs(): Promise<void> {
     // without this the dashboard mode (auto/custom/adaptive) silently reverts to
     // the passthrough default on every restart. Previously this was only wired into
     // the unused `server-init.ts`, so it never ran in production.
-    const { hydrateThinkingBudgetConfig } = await import(
-      "@omniroute/open-sse/services/thinkingBudget.ts"
-    );
+    const { hydrateThinkingBudgetConfig } =
+      await import("@omniroute/open-sse/services/thinkingBudget.ts");
     if (hydrateThinkingBudgetConfig(settings)) {
       console.log("[STARTUP] Thinking-Budget config restored from settings");
     }
@@ -441,7 +440,7 @@ export async function registerNodejs(): Promise<void> {
       console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
     }
 
-    // Real-time dashboard WebSocket daemon (port 20129): powers Combo Studio Live,
+    // Real-time dashboard WebSocket daemon (port 20132): powers Combo Studio Live,
     // the Home live-pulse, and Live Compression. liveServer.ts auto-starts the
     // daemon on import (gated by OMNIROUTE_ENABLE_LIVE_WS, default ON) — but NOTHING
     // imported it in the packaged standalone/PM2 runtime. Only the unused

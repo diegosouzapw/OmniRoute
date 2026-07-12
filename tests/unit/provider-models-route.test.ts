@@ -540,7 +540,14 @@ test("provider models route returns the local catalog for built-in image provide
   assert.equal(response.status, 200);
   assert.equal(body.provider, "topaz");
   assert.ok(Array.isArray(body.models));
-  assert.deepEqual(body.models, [{ id: "topaz-enhance", name: "topaz-enhance" }]);
+  assert.deepEqual(body.models, [
+    {
+      id: "topaz-enhance",
+      name: "topaz-enhance",
+      apiFormat: "images",
+      supportedEndpoints: ["images"],
+    },
+  ]);
 });
 
 test("provider models route prefers the remote OpenRouter /models API over static image models", async () => {
@@ -681,27 +688,6 @@ test("provider models route returns the updated local catalog for GitHub Copilot
     body.models.some((model) => model.id === "gpt-5.1"),
     false
   );
-});
-
-test("provider models route returns codex gpt-5.4 effort variants in the local catalog", async () => {
-  const connection = await seedConnection("codex", {
-    authType: "oauth",
-    apiKey: null,
-    accessToken: "codex-access",
-  });
-
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
-  const modelIds = new Set((body.models || []).map((model: any) => model.id));
-
-  assert.equal(response.status, 200);
-  assert.equal(body.provider, "codex");
-  assert.equal(body.source, "local_catalog");
-  assert.ok(modelIds.has("gpt-5.4"));
-  assert.ok(modelIds.has("gpt-5.4-low"));
-  assert.ok(modelIds.has("gpt-5.4-medium"));
-  assert.ok(modelIds.has("gpt-5.4-high"));
-  assert.ok(modelIds.has("gpt-5.4-xhigh"));
 });
 
 test("provider models route returns the expanded local catalog for Kiro", async () => {

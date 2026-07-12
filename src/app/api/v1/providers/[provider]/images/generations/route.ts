@@ -2,7 +2,7 @@ import { handleImageGeneration } from "@omniroute/open-sse/handlers/imageGenerat
 import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import {
-  getProviderCredentials,
+  getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
   extractApiKey,
   isValidApiKey,
@@ -68,7 +68,7 @@ export async function POST(request, { params }) {
     );
   }
 
-  const credentials = await getProviderCredentials(rawProvider);
+  const credentials = await getProviderCredentialsWithQuotaPreflight(rawProvider);
   if (!credentials) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,

@@ -269,6 +269,9 @@ export function normalizeUsage(usage) {
   assignNumber("cache_creation_input_tokens", usage?.cache_creation_input_tokens);
   assignNumber("cached_tokens", usage?.cached_tokens);
   assignNumber("reasoning_tokens", usage?.reasoning_tokens);
+  // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A —
+  // @ryanngit). Ticks → USD conversion happens in costCalculator.ts, not here.
+  assignNumber("cost_in_usd_ticks", usage?.cost_in_usd_ticks);
 
   if (Object.keys(normalized).length === 0) return null;
   return normalized;
@@ -387,6 +390,8 @@ export function extractUsage(chunk) {
         chunk.usage.completion_tokens_details?.reasoning_tokens ??
         chunk.usage.output_tokens_details?.reasoning_tokens ??
         chunk.usage.reasoning_tokens,
+      // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A).
+      cost_in_usd_ticks: chunk.usage.cost_in_usd_ticks,
     });
   }
 

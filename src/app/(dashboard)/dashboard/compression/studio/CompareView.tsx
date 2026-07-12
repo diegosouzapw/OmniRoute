@@ -115,7 +115,7 @@ export function CompareView({ text }: CompareViewProps) {
       </div>
       <table className="w-full text-xs">
         <thead>
-          <tr className="text-left opacity-60"><th>Engine</th><th>Savings</th><th>Retenção</th><th>Out tok</th><th>Fidelidade</th></tr>
+          <tr className="text-left opacity-60"><th>Engine</th><th>Savings</th><th>Retention</th><th>Out tok</th><th>Fidelity</th></tr>
         </thead>
         <tbody>
           {rows.map((r) => {

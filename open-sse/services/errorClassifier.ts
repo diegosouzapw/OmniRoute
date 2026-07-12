@@ -76,6 +76,7 @@ export const PROVIDER_ERROR_TYPES = {
   CONTEXT_OVERFLOW: "context_overflow",
   OAUTH_INVALID_TOKEN: "oauth_invalid_token",
   EMPTY_CONTENT: "empty_content",
+  MODEL_NOT_FOUND: "model_not_found",
 };
 
 export const CONTEXT_OVERFLOW_SIGNALS = [
@@ -142,6 +143,15 @@ export function classifyProviderError(
       return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
     }
     return PROVIDER_ERROR_TYPES.RATE_LIMITED;
+  }
+
+  // 404 — model or endpoint not found. Without classification the error
+  // falls through to `return null`, so no cooldown/lockout is applied and the
+  // retry/backoff loop keeps hammering the dead endpoint until the upstream
+  // rate-limits it (404 + 429 storm). Classify as MODEL_NOT_FOUND so the model
+  // gets locked via the cooldown layer and retries stop. (#6827)
+  if (statusCode === 404) {
+    return PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND;
   }
 
   if (statusCode === 401) {

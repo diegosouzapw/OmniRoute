@@ -122,7 +122,11 @@ export function buildJudgePrompt(answers: Array<{ text: string }>): string {
     "",
     "Do NOT mention that multiple models were used, and do NOT refer to the sources. Produce ONE authoritative final answer addressed directly to the user.",
     "",
-    "First, internally analyze the panel along these dimensions: consensus (points most sources agree on — treat as higher-confidence), contradictions (where they disagree — resolve with your own judgment), partial coverage, unique insights only one source surfaced, and blind spots every source missed. Then write the best possible final answer grounded in that analysis — more complete and correct than any single response, with no filler.",
+    "First, internally analyze the panel along these dimensions: consensus (points most sources agree on — usually higher-confidence, but NOT automatically correct), contradictions (where they disagree — resolve with your own judgment), partial coverage, unique insights only one source surfaced, and blind spots every source missed.",
+    "",
+    "You are not a vote-counter, and the panel is not a ceiling — treat it as strong evidence, not as the limit of what you may say. Apply your OWN reasoning and knowledge as a full participant: if the consensus is wrong, incomplete, or outdated, override it and state what is correct; if every source missed something you know, add it; if a lone source is right against the majority, side with it. Do not water down a correct answer to match panel agreement. The only hard limit is honesty — do not assert facts you are not confident about.",
+    "",
+    "Then write the best possible final answer — more complete and correct than any single response, and than the panel as a whole — with no filler.",
     "",
     "=== PANEL RESPONSES ===",
     panel,
@@ -350,14 +354,31 @@ export async function handleFusionChat({
     // surviving panel answer, rather than silently substituting the panel
     // member for the configured judge (issue #6455). The judge still adds
     // value reviewing/polishing a lone source per its documented contract.
+  }
+
+  // Resolve the judge that ACTUALLY runs synthesis. An explicit judgeModel is
+  // honored as configured (operator intent — kept even if it was down during
+  // fan-out; that's the operator's choice). With NO explicit judge the judge
+  // defaulted to panel[0] — but panel[0] may have FAILED fan-out (timeout /
+  // rate-limit / dropped straggler → it lands in `failures`, not `answers`).
+  // Handing synthesis to a dead panel[0] sinks the whole request despite a
+  // healthy quorum — exactly the case fusion exists to tolerate. So pick a
+  // SURVIVOR: prefer panel[0] when it survived, otherwise the first survivor.
+  const effectiveJudge = hasExplicitJudge
+    ? judge
+    : answers.some((a) => a.model === panel[0])
+      ? panel[0]
+      : answers[0].model;
+
+  if (answers.length === 1) {
     log.info(
       "FUSION",
-      `Only ${answers[0].model} succeeded — judging single answer with ${judge}`
+      `Only ${answers[0].model} succeeded — judging single answer with ${effectiveJudge}`
     );
   }
 
   // 4. Judge analyzes + writes one final answer (streams to client if requested).
   const judgeBody = appendUserTurn(body, buildJudgePrompt(answers));
-  log.info("FUSION", `Judging ${answers.length} answers with ${judge}`);
-  return handleSingleModel(judgeBody, judge);
+  log.info("FUSION", `Judging ${answers.length} answers with ${effectiveJudge}`);
+  return handleSingleModel(judgeBody, effectiveJudge);
 }

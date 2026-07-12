@@ -1,7 +1,18 @@
+---
+title: "Design System & Visual Identity"
+lastUpdated: 2026-07-11
+---
+
 # OmniRoute — Design System & Visual Identity
 
-> **Status:** standardization plan. **Phases 1–3 are implemented in this PR** (grid, primitives, status-color centralization, mono token, and the DataTable token migration). The DataTable migration is **faithful** — dark stays byte-identical (the new `--table-*` dark values equal the old hardcoded rgba); light is fixed (it was buggy always-dark via dead `var()` fallbacks). **⚠️ Wants a visual pass before merge** (light-theme tables + the secondary-text shift `#888`→`--color-text-muted`). **Phase 4 is now largely done too** (C6 focus-ring → accent, C7 Checkbox/Textarea primitives, C9 `cn()`→tailwind-merge); only the selective C8 hex-sweep remains. Note several remaining "hardcoded" hex are _intentional_ (always-dark console terminal, ReactFlow SVG strokes) and must NOT be swept. **Phase 5 (D4 + D8): the grid now reaches every standalone screen** (login/auth/error/legal/status/onboarding — their opaque `bg-bg` full-screen wrappers were hiding it) **and the dashboard content shell is fluid up to 4K** (`max-w-7xl` → `max-w-[3840px]`) so it follows the viewport on large monitors instead of centering with wide side gutters. **Phase 6 (D9): data tables are now opaque surfaces** so the grid no longer bleeds through their rows — card-less tables paint `bg-surface`, and the two log tables' semi-transparent `bg-black/5` tint (which tailwind-merge let win over the Card's `bg-surface`) is removed. The grid size itself is already correct (32px, identical to the site); a "bigger" grid on a running instance is a stale build, not code.
-> **Date:** 2026-06-16 · **Scope:** unify the OmniRoute dashboard (`src/`) with the marketing site (`_mono_repo/omnirouteSite/`) into **one visual identity** — same graph-paper grid background, same color tokens, standardized components.
+> **Status:** reference — the standardization described here is **implemented** (phases 1–6: grid wallpaper, primitives, status-color centralization, mono token, DataTable token migration, focus-ring → accent, Checkbox/Textarea primitives, `cn()` → tailwind-merge, grid on every standalone screen, fluid 4K content shell, opaque data-table surfaces). This document is the canonical description of the dashboard's design tokens, components, and conventions; the phase framing below is kept as the rationale for each decision.
+> **Scope:** the OmniRoute dashboard (`src/`) and the marketing site (`_mono_repo/omnirouteSite/`) share **one visual identity** — same graph-paper grid background (32px), same color tokens, standardized components.
+>
+> Practical notes for maintainers:
+>
+> - Several remaining hardcoded hex values are **intentional** (always-dark console terminal, ReactFlow SVG strokes) and must **NOT** be swept into tokens.
+> - A "bigger" grid on a running instance is a stale build, not code — the grid size is 32px, identical to the site.
+> - Dark-theme `--table-*` values are byte-identical to the pre-migration hardcoded rgba; light theme was fixed (it was buggy always-dark via dead `var()` fallbacks).
 
 ---
 

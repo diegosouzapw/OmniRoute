@@ -21,6 +21,7 @@ import { glmtProvider } from "./registry/glm/t/index.ts";
 import { glm_cnProvider } from "./registry/glm/cn/index.ts";
 import { traeProvider } from "./registry/trae/index.ts";
 import { muse_spark_webProvider } from "./registry/muse-spark-web/index.ts";
+import { lmarenaProvider } from "./registry/lmarena/index.ts";
 import { kilocodeProvider } from "./registry/kilocode/index.ts";
 import { github_modelsProvider } from "./registry/github/models/index.ts";
 import { githubProvider } from "./registry/github/index.ts";
@@ -76,6 +77,7 @@ import { chipotleProvider } from "./registry/chipotle/index.ts";
 import { freeaiapikeyProvider } from "./registry/freeaiapikey/index.ts";
 import { qwenProvider } from "./registry/qwen/index.ts";
 import { qwen_webProvider } from "./registry/qwen/web/index.ts";
+import { zai_webProvider } from "./registry/zai-web/index.ts";
 import { modalProvider } from "./registry/modal/index.ts";
 import { zenmuxProvider } from "./registry/zenmux/index.ts";
 import { leonardoProvider } from "./registry/leonardo/index.ts";
@@ -204,6 +206,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "glm-cn": glm_cnProvider,
   trae: traeProvider,
   "muse-spark-web": muse_spark_webProvider,
+  lmarena: lmarenaProvider,
   kilocode: kilocodeProvider,
   "github-models": github_modelsProvider,
   github: githubProvider,
@@ -259,6 +262,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   freeaiapikey: freeaiapikeyProvider,
   qwen: qwenProvider,
   "qwen-web": qwen_webProvider,
+  "zai-web": zai_webProvider,
   modal: modalProvider,
   zenmux: zenmuxProvider,
   leonardo: leonardoProvider,
