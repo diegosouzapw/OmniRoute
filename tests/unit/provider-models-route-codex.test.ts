@@ -109,7 +109,7 @@ test("provider models route discovers live Codex models and preserves static ali
             display_name: "GPT 5.6 GitHub",
             visibility: "list",
             supported_in_api: true,
-            minimal_client_version: "0.142.0",
+            minimal_client_version: "0.144.0",
             context_window: 372000,
             input_modalities: ["text", "image"],
             supported_reasoning_levels: [{ effort: "low" }, { effort: "high" }],
@@ -145,11 +145,11 @@ test("provider models route discovers live Codex models and preserves static ali
   assert.equal(body.source, "api");
   assert.deepEqual(seenRequests, [
     {
-      url: "https://chatgpt.com/backend-api/codex/models?client_version=0.142.0",
+      url: "https://chatgpt.com/backend-api/codex/models?client_version=0.144.0",
       authorization: "Bearer codex-access-token",
       workspaceId: "account-123",
       originator: "codex_cli_rs",
-      userAgent: "codex-cli/0.142.0 (Windows 10.0.26200; x64)",
+      userAgent: "codex-cli/0.144.0 (Windows 10.0.26200; x64)",
     },
     {
       url: "https://raw.githubusercontent.com/openai/codex/refs/heads/main/codex-rs/models-manager/models.json",
@@ -190,7 +190,7 @@ test("provider models route uses the GitHub Codex catalog when live discovery fa
             display_name: "GPT-5.6-Sol",
             visibility: "list",
             supported_in_api: true,
-            minimal_client_version: "0.142.0",
+            minimal_client_version: "0.144.0",
             context_window: 372000,
           },
         ],

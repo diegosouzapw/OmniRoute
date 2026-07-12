@@ -17,6 +17,11 @@ import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 import { KiroService } from "@/lib/oauth/services/kiro";
+import { usesCcWireImage } from "@omniroute/open-sse/services/ccWireImageBuiltins.ts";
+import {
+  buildProviderHeaders,
+  buildProviderUrl,
+} from "@omniroute/open-sse/services/provider.ts";
 
 import {
   OPENAI_LIKE_FORMATS,
@@ -45,6 +50,7 @@ import {
   validateCopilotWebProvider,
   validateT3WebProvider,
   validateJulesProvider,
+  validateDevinCloudAgentProvider,
   validateInnerAiProvider,
 } from "./validation/webProvidersB";
 import {
@@ -390,6 +396,10 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       }
     },
     jules: validateJulesProvider,
+    // "devin" is the Cognition cloud-agent provider (distinct from the "devin-cli"
+    // LLM/ACP provider, which is already registered in providerRegistry). Wired here
+    // for parity with the "jules" cloud-agent entry above — see #6142.
+    devin: validateDevinCloudAgentProvider,
     // auggie is a fully local, credential-less CLI passthrough — there is no API
     // key to check upstream. The only meaningful validation is confirming the
     // `auggie` binary is installed and runnable on this machine.
@@ -820,6 +830,27 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     }
 
     if (entry.format === "claude") {
+      // Built-in CC-wire-image providers (e.g. agentrouter, #6056/#6255) gate
+      // their WAF on the dynamic Claude-Code fingerprint (User-Agent,
+      // `?beta=true` chat path, anthropic-beta/x-app/X-Stainless-* headers).
+      // The real chat-request path already routes through
+      // buildProviderUrl/buildProviderHeaders for this; the validation probe
+      // must use the SAME wire image or a genuinely valid key gets 403'd as
+      // "unauthorized client detected" (#6377).
+      if (usesCcWireImage(provider)) {
+        const requestBaseUrl = buildProviderUrl(provider, modelId, true, { baseUrl });
+        const requestHeaders = buildProviderHeaders(provider, { apiKey }, true);
+
+        return await validateAnthropicLikeProvider({
+          apiKey,
+          baseUrl: requestBaseUrl,
+          modelId,
+          headers: requestHeaders,
+          providerSpecificData,
+          isLocal,
+        });
+      }
+
       const requestBaseUrl = `${baseUrl}${entry.urlSuffix || ""}`;
       const requestHeaders = {
         ...(entry.headers || {}),
