@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { getSettings } from "@/lib/localDb";
+import { getSettings, updateSettings } from "@/lib/localDb";
 import { SignJWT, jwtVerify, createRemoteJWKSet } from "jose";
 import { cookies } from "next/headers";
+// Test seam (static) — allows tests to inject a cookie store and capture the minted auth_token.
+// Mirrors the pattern in src/app/api/auth/login/route.ts
+export const oidcCallbackInternals = {
+  getCookieStore: cookies,
+};
 
 /**
  * GET /api/auth/oidc/callback
@@ -14,16 +19,27 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const returnedState = url.searchParams.get("state");
+  // Compute origin early so ALL redirects (including error cases) are absolute.
+  // Required by Next.js 16 in some test/runtime contexts and keeps behavior consistent with success path.
+  const forwardedProtoEarly = (request.headers.get("x-forwarded-proto") || "")
+    .split(",")[0]
+    .trim()
+    .toLowerCase();
+  const reqUrlEarly = new URL(request.url);
+  const schemeEarly =
+    forwardedProtoEarly === "https" || reqUrlEarly.protocol === "https:" ? "https" : "http";
+  const hostEarly = request.headers.get("host") || request.headers.get("Host") || reqUrlEarly.host;
+  const originEarly = `${schemeEarly}://${hostEarly}`;
 
   if (!code || !returnedState) {
-    return NextResponse.redirect("/login?oidc_error=missing_code");
+    return NextResponse.redirect(`${originEarly}/login?oidc_error=missing_code`);
   }
 
-  // Validate state from cookie
-  const cookieStore = await cookies();
+  // Validate state from cookie (via seam so tests can capture)
+  const cookieStore = await oidcCallbackInternals.getCookieStore();
   const storedState = cookieStore.get("oidc_state")?.value;
   if (!storedState || storedState !== returnedState) {
-    return NextResponse.redirect("/login?oidc_error=invalid_state");
+    return NextResponse.redirect(`${originEarly}/login?oidc_error=invalid_state`);
   }
 
   // Clear state cookie
@@ -48,7 +64,7 @@ export async function GET(request: Request) {
       : "/api/auth/oidc/callback";
 
   if (!enabled || !issuer || !clientId || !clientSecret) {
-    return NextResponse.redirect("/login?oidc_error=not_configured");
+    return NextResponse.redirect(`${originEarly}/login?oidc_error=not_configured`);
   }
 
   // Compute absolute redirect_uri matching what we sent
@@ -95,18 +111,18 @@ export async function GET(request: Request) {
   });
 
   if (!tokenResp.ok) {
-    return NextResponse.redirect("/login?oidc_error=token_exchange");
+    return NextResponse.redirect(`${originEarly}/login?oidc_error=token_exchange`);
   }
 
   const tokenData: unknown = await tokenResp.json();
   if (!tokenData || typeof tokenData !== "object") {
-    return NextResponse.redirect("/login?oidc_error=token_response");
+    return NextResponse.redirect(`${originEarly}/login?oidc_error=token_response`);
   }
 
   const td = tokenData as Record<string, unknown>;
   const idToken = typeof td.id_token === "string" ? td.id_token : undefined;
   if (!idToken) {
-    return NextResponse.redirect("/login?oidc_error=no_id_token");
+    return NextResponse.redirect(`${originEarly}/login?oidc_error=no_id_token`);
   }
 
   // Validate ID token
@@ -127,16 +143,24 @@ export async function GET(request: Request) {
           : "";
       const ok = allowed.some((v: unknown) => typeof v === "string" && (v === sub || v === email));
       if (!ok) {
-        return NextResponse.redirect("/login?oidc_error=subject_not_allowed");
+        return NextResponse.redirect(`${originEarly}/login?oidc_error=subject_not_allowed`);
       }
     }
   } catch {
-    return NextResponse.redirect("/login?oidc_error=id_token_invalid");
+    return NextResponse.redirect(`${originEarly}/login?oidc_error=id_token_invalid`);
   }
 
+  // Mark instance as bootstrapped on first successful OIDC dashboard login.
+  // Mirrors CLI password setup so pure-OIDC instances don't get stuck
+  // showing "no password / run onboarding" screens.
+  try {
+    await updateSettings({ setupComplete: true });
+  } catch {
+    // non-fatal — login can still proceed
+  }
   // Mint the exact same dashboard session JWT as password login
   if (!process.env.JWT_SECRET) {
-    return NextResponse.redirect("/login?oidc_error=server_misconfigured");
+    return NextResponse.redirect(`${originEarly}/login?oidc_error=server_misconfigured`);
   }
 
   const forceSecureCookie = process.env.AUTH_COOKIE_SECURE === "true";
@@ -150,7 +174,7 @@ export async function GET(request: Request) {
     .setExpirationTime("30d")
     .sign(new TextEncoder().encode(process.env.JWT_SECRET || ""));
 
-  const store = await cookies();
+  const store = await oidcCallbackInternals.getCookieStore();
   store.set("auth_token", jwt, {
     httpOnly: true,
     secure: useSecureCookie,
