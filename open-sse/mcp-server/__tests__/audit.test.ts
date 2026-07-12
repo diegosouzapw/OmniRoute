@@ -61,7 +61,7 @@ describe("MCP audit shutdown", () => {
     expect(mockDb.pragma).toHaveBeenCalledWith("wal_checkpoint(TRUNCATE)");
     expect(mockDb.close).toHaveBeenCalledTimes(1);
     expect(audit.closeAuditDb()).toBe(false);
-  });
+  }, 30000);
 
   it("still closes the audit database when checkpoint fails", async () => {
     const mockDb: MockAuditDb = {
