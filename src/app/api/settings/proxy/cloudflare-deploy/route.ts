@@ -5,7 +5,10 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { cloudflareDeploySchema } from "@/shared/validation/freeProxySchemas";
 import { createProxy } from "@/lib/localDb";
 import { encrypt } from "@/lib/db/encryption";
-import { buildCloudflareWorkerScript } from "@/lib/proxyRelay/cloudflareWorkerScript";
+import {
+  buildCloudflareWorkerScript,
+  buildCloudflareWorkerUploadRequest,
+} from "@/lib/proxyRelay/cloudflareWorkerScript";
 
 // Port of upstream decolua/9router PR #1360 — Cloudflare Workers proxy relay.
 // Architecture mirrors src/app/api/settings/proxy/vercel-deploy/route.ts so the
@@ -13,7 +16,8 @@ import { buildCloudflareWorkerScript } from "@/lib/proxyRelay/cloudflareWorkerSc
 // guard work unchanged. Only the deployment surface differs (Cloudflare Workers
 // API instead of Vercel /v13/deployments).
 
-const CLOUDFLARE_API_BASE = process.env.CLOUDFLARE_API_BASE || "https://api.cloudflare.com/client/v4";
+const CLOUDFLARE_API_BASE =
+  process.env.CLOUDFLARE_API_BASE || "https://api.cloudflare.com/client/v4";
 
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -49,37 +53,39 @@ export async function POST(request: Request) {
 
   try {
     // 1. PUT the Worker script — Cloudflare requires multipart/form-data with
-    //    main_module + a metadata blob describing the upload.
+    //    body_part + a metadata blob describing the upload.
+    //
+    //    Built as a raw Buffer with an explicit boundary rather than a native
+    //    `FormData` (#6416): in production `globalThis.fetch` is patched with
+    //    `node_modules/undici`'s own fetch (see `open-sse/utils/proxyFetch.ts`),
+    //    whose `FormData` class differs from the runtime's global `FormData`.
+    //    Passing a native `FormData` instance through that patched fetch makes
+    //    undici serialize the body as the literal string `"[object FormData]"`
+    //    with `Content-Type: text/plain;charset=UTF-8`, which Cloudflare
+    //    rejects with "Content-Type must be one of: application/javascript,
+    //    text/javascript, multipart/form-data" — the same class of bug fixed
+    //    for image edits in #3273.
+    //
+    //    The script part itself must stay `application/javascript` (Cloudflare
+    //    rejects `application/javascript+module`, #5128), but with that MIME the
+    //    uploaded body is parsed as a Service Worker, not an ES module. So the
+    //    metadata must point at the script via `body_part`, not `main_module` —
+    //    otherwise Cloudflare rejects the body with `Unexpected token 'export'`
+    //    when it sees module syntax in a non-module upload (#6496 / #6416).
     const workerScriptUrl = `${CLOUDFLARE_API_BASE}/accounts/${accountId}/workers/scripts/${projectName}`;
-    const formData = new FormData();
-    formData.append(
-      "index.js",
-      // Cloudflare's script-upload API only accepts application/javascript,
-      // text/javascript, or multipart/form-data for the script part and rejects
-      // "application/javascript+module" outright (#5128). ES-module semantics
-      // come from `main_module` in the metadata blob below, not this MIME type.
-      new Blob([workerScript], { type: "application/javascript" }),
-      "index.js"
-    );
-    formData.append(
-      "metadata",
-      new Blob(
-        [
-          JSON.stringify({
-            main_module: "index.js",
-            compatibility_date: "2026-03-20",
-            observability: { enabled: true },
-          }),
-        ],
-        { type: "application/json" }
-      ),
-      "metadata.json"
+    const { headers: uploadHeaders, body: uploadBody } = buildCloudflareWorkerUploadRequest(
+      workerScript,
+      {
+        body_part: "index.js",
+        compatibility_date: "2026-03-20",
+        observability: { enabled: true },
+      }
     );
 
     const uploadRes = await fetch(workerScriptUrl, {
       method: "PUT",
-      headers: { Authorization: `Bearer ${apiToken}` },
-      body: formData,
+      headers: { Authorization: `Bearer ${apiToken}`, ...uploadHeaders },
+      body: uploadBody,
     });
 
     if (!uploadRes.ok) {

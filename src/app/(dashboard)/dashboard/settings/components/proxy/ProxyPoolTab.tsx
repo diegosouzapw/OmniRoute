@@ -6,6 +6,7 @@ import ProxyRegistryManager from "../ProxyRegistryManager";
 import VercelRelayModal from "./VercelRelayModal";
 import DenoRelayModal from "./DenoRelayModal";
 import CloudflareRelayModal from "./CloudflareRelayModal";
+import type { ProxyItem } from "../proxyRegistryTypes";
 
 export default function ProxyPoolTab() {
   const t = useTranslations("settings");
@@ -40,6 +41,11 @@ export default function ProxyPoolTab() {
 
   const handleCloudflareDeployed = (_poolProxyId: string, relayUrl: string) => {
     alert(`${t("cloudflareRelaySuccess")}: ${relayUrl}`);
+  };
+  const handleRedeployRelay = (proxy: ProxyItem) => {
+    if (proxy.type === "vercel") setVercelModalOpen(true);
+    else if (proxy.type === "deno") setDenoModalOpen(true);
+    else if (proxy.type === "cloudflare") setCloudflareModalOpen(true);
   };
 
   return (
@@ -116,7 +122,7 @@ export default function ProxyPoolTab() {
           </div>
         </div>
       )}
-      <ProxyRegistryManager />
+      <ProxyRegistryManager onRedeployRelay={handleRedeployRelay} />
       <VercelRelayModal
         isOpen={vercelModalOpen}
         onClose={() => setVercelModalOpen(false)}

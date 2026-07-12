@@ -97,7 +97,12 @@ jobs:
           set +e
           # --hermetic: scrub live-test trigger vars (self-hosted runner may carry
           # operator env; hosted ignores the unknown flag before #6300 lands).
-          node scripts/quality/validate-release-green.mjs --json --with-build --hermetic \
+          # --full-ci: ALSO run every static gate from ci.yml's gate jobs (lint,
+          # quality-gate, quality-extended, docs-sync-strict, pr-test-policy). PRs into
+          # release/** only get the fast-gates, so these accrue silently and explode in
+          # layers on the release PR (v3.8.46: 11 static base-reds leaked). Running them
+          # nightly opens the tracking issue the moment one lands, not at release time.
+          node scripts/quality/validate-release-green.mjs --json --with-build --hermetic --full-ci \
             1> release-green.json 2> release-green.log
           echo "exit=$?" >> "$GITHUB_OUTPUT"
           echo "------- report -------"
@@ -137,7 +142,7 @@ jobs:
 
       - name: Upload report artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-green-report
           path: |

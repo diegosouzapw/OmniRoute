@@ -56,6 +56,7 @@ test("primary sidebar items place limits after cache", () => {
       "context-lite",
       "context-aggressive",
       "context-ultra",
+      "context-omniglyph",
       "compression-studio",
       "cli-code",
       "cli-agents",
@@ -92,6 +93,7 @@ test("context sidebar section sits between primary and cli", () => {
       { id: "context-lite", href: "/dashboard/context/lite" },
       { id: "context-aggressive", href: "/dashboard/context/aggressive" },
       { id: "context-ultra", href: "/dashboard/context/ultra" },
+      { id: "context-omniglyph", href: "/dashboard/context/omniglyph" },
     ]
   );
 });

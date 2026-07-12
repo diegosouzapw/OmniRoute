@@ -1046,6 +1046,29 @@ test("buildKiroPayload accepts kr/* model ids without the [1m] suffix", () => {
   );
 });
 
+test("buildKiroPayload strips local Kiro selector suffixes before upstream", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("claude-sonnet-5-thinking-agentic", body, true, {});
+  assert.equal(
+    result.conversationState.currentMessage.userInputMessage.modelId,
+    "claude-sonnet-5",
+    "local -thinking/-agentic aliases must not be forwarded to Kiro"
+  );
+  assert.equal(
+    result.additionalModelRequestFields?.output_config?.effort,
+    "high",
+    "the -thinking selector should still request Kiro adaptive thinking"
+  );
+});
+
+test("buildKiroPayload maps auto-kiro selector to Kiro auto upstream id", () => {
+  const body = { messages: [{ role: "user", content: "Hello" }] };
+
+  const result = buildKiroPayload("auto-kiro", body, true, {});
+  assert.equal(result.conversationState.currentMessage.userInputMessage.modelId, "auto");
+});
+
 // Regression for upstream decolua/9router PR #2270: the dash->dot normalization's
 // trailing minor-version group must be bounded (1-2 digits), otherwise a
 // date-suffixed Claude model id (e.g. claude-opus-4-20250514) gets corrupted into
@@ -1098,7 +1121,7 @@ test("buildKiroPayload enables thinking mode for Claude models via reasoning_eff
     max_tokens: 64000,
   };
 
-  const result = buildKiroPayload("claude-opus-4.8", body, false, null);
+  const result = buildKiroPayload("claude-sonnet-5", body, false, null); // only Kiro model accepting adaptive thinking (#6576)
 
   assert.ok(result.additionalModelRequestFields, "additionalModelRequestFields must be set");
   assert.deepEqual(result.additionalModelRequestFields.thinking, {
@@ -1126,7 +1149,7 @@ test("buildKiroPayload drops temperature when thinking is enabled", () => {
     temperature: 0.5,
   };
 
-  const result = buildKiroPayload("claude-opus-4.8", body, false, null);
+  const result = buildKiroPayload("claude-sonnet-5", body, false, null);
 
   assert.ok(result.additionalModelRequestFields, "thinking must be enabled");
   assert.equal(
@@ -1157,7 +1180,7 @@ test("buildKiroPayload maps body.thinking budget_tokens to effort level", () => 
     thinking: { type: "enabled", budget_tokens: 50000 },
   };
 
-  const result = buildKiroPayload("claude-opus-4.7", body, false, null);
+  const result = buildKiroPayload("claude-sonnet-5", body, false, null);
 
   assert.ok(result.additionalModelRequestFields, "thinking must be enabled from budget_tokens");
   assert.equal(result.additionalModelRequestFields.output_config.effort, "high");
@@ -1189,7 +1212,7 @@ test("buildKiroPayload maps reasoning_effort to the same Kiro effort level (no +
 
 test("buildKiroPayload reads effort from Anthropic output_config.effort", () => {
   const result = buildKiroPayload(
-    "claude-opus-4.8",
+    "claude-sonnet-5",
     { messages: [{ role: "user", content: "hard" }], output_config: { effort: "xhigh" } },
     false,
     null
@@ -1201,7 +1224,7 @@ test("buildKiroPayload reads effort from Anthropic output_config.effort", () => 
 
 test("buildKiroPayload defaults adaptive thinking (no effort) to high", () => {
   const result = buildKiroPayload(
-    "claude-opus-4.8",
+    "claude-sonnet-5",
     { messages: [{ role: "user", content: "hard" }], thinking: { type: "adaptive" } },
     false,
     null
@@ -1216,7 +1239,7 @@ test("buildKiroPayload defaults adaptive thinking (no effort) to high", () => {
 
 test("buildKiroPayload drops both temperature and top_p when thinking is enabled", () => {
   const result = buildKiroPayload(
-    "claude-opus-4.8",
+    "claude-sonnet-5",
     {
       messages: [{ role: "user", content: "hard" }],
       reasoning_effort: "high",

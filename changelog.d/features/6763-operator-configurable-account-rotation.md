@@ -1,0 +1,1 @@
+- **feat(resilience):** operator-configurable account rotation policy — a new `rotationConfig` layer lets operators tune how connections rotate on failure, wired into `accountFallback` (#6763 — thanks @artickc).

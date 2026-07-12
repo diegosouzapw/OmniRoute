@@ -255,3 +255,61 @@ test("OpenAI -> Claude (non-passthrough): built-in web_search IS still converted
   const toolNames = tools.map((t) => (t.function ? t.function.name : t.name));
   assert.ok(toolNames.includes(OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME));
 });
+
+// ── #3384: per-model interceptSearch override wins over every native-bypass default ──
+
+test("#3384 interceptSearchOverride=true forces interception even on the Claude->Claude bypass path", () => {
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "claude",
+      sourceFormat: "claude",
+      targetFormat: "claude",
+      nativeCodexPassthrough: false,
+      interceptSearchOverride: true,
+    }),
+    false,
+    "explicit interceptSearch:true must NOT bypass, overriding the native Claude passthrough"
+  );
+});
+
+test("#3384 interceptSearchOverride=false forces native passthrough even for a standard provider", () => {
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "openai",
+      sourceFormat: "openai",
+      targetFormat: "openai",
+      nativeCodexPassthrough: false,
+      interceptSearchOverride: false,
+    }),
+    true,
+    "explicit interceptSearch:false must bypass even though OpenAI->OpenAI has no native default bypass"
+  );
+});
+
+test("#3384 interceptSearchOverride=undefined falls through to the existing native-bypass defaults", () => {
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "claude",
+      sourceFormat: "claude",
+      targetFormat: "claude",
+      nativeCodexPassthrough: false,
+      interceptSearchOverride: undefined,
+    }),
+    true,
+    "no override configured — default Claude->Claude bypass still applies"
+  );
+});
+
+test("#3384 end-to-end: interceptSearchOverride=true converts the tool on the Claude->Claude bypass path", () => {
+  const inputBody = { tools: [{ type: "web_search" }] };
+  const { fallback } = prepareWebSearchFallbackBody(inputBody, {
+    provider: "claude",
+    sourceFormat: "claude",
+    targetFormat: "claude",
+    nativeCodexPassthrough: false,
+    interceptSearchOverride: true,
+  });
+
+  assert.equal(fallback.enabled, true);
+  assert.equal(fallback.toolName, OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME);
+});

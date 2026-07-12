@@ -1,0 +1,1 @@
+- fix(api): recognize OpenRouter reasoning/reasoning_details in non-streaming OpenAI-to-Claude conversion (#6623)

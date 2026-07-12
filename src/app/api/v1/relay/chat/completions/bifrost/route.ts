@@ -176,7 +176,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const rateCheck = checkRateLimit(token.id);
+    const rateCheck = checkRateLimit(token.id, token);
     if (!rateCheck.allowed) {
       recordRelayUsage(token.id, {
         requestId: request.headers.get("x-request-id") || undefined,

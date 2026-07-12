@@ -21,6 +21,7 @@
 
 import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
+import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 
 // Bailian quota hosts (international / china fallback)
 const BAILIAN_QUOTA_HOSTS = {
@@ -256,6 +257,8 @@ export async function fetchBailianQuota(
 
   try {
     const url = getQuotaUrl();
+    // #6911: space concurrent upstream quota fetches (mirrors codexQuotaFetcher.ts).
+    await throttleQuotaFetch();
     const response = await fetch(url, {
       method: "POST",
       headers,
@@ -273,6 +276,8 @@ export async function fetchBailianQuota(
           ? url
           : `${BAILIAN_QUOTA_HOSTS.china}${BAILIAN_QUOTA_PATH}`;
 
+        // #6911: space this fallback fetch too — it is still a genuine upstream call.
+        await throttleQuotaFetch();
         const retryResponse = await fetch(chinaUrl, {
           method: "POST",
           headers,

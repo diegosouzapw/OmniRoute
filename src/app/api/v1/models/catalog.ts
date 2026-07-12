@@ -12,7 +12,10 @@ import {
 import { extractAliasBackedModels } from "./aliasBackedModels";
 import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
-import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry";
+import {
+  getAllImageModels,
+  isRegisteredImageModel,
+} from "@omniroute/open-sse/config/imageRegistry";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
 import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry";
 import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry";
@@ -26,6 +29,7 @@ import {
   AUTO_SUFFIX_VARIANTS,
   AUTO_FAMILY_IDS,
   createBuiltinAutoCombo,
+  isPaidTierAutoId,
 } from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
 import { getModelCatalogCacheVersion } from "@/lib/db/readCache";
@@ -77,6 +81,7 @@ import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./ca
 import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
 import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
+import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
 
 // Public API of this module is preserved after the catalog helper extraction:
 // `isVisionModelId` (vision-detection-consistency.test.ts) and
@@ -649,6 +654,11 @@ async function buildUnifiedModelsResponseCore(
       ...AUTO_FAMILY_IDS,
     ]) {
       if (blockedProviders.has("auto") || listedIds.has(autoId)) continue; // #5192
+      // #6328 (follow-up to #6495 / #6512): REMOVE — not just hide — paid-tier
+      // auto/* ids (auto/pro-* + auto/*:pro) from the advertised catalog when the
+      // operator opts into hidePaidModels. The candidate-pool filter in
+      // virtualFactory (#6512) still gates request-time routing for the rest.
+      if (hidePaid && isPaidTierAutoId(autoId)) continue;
       listedIds.add(autoId);
       const baseAutoEntry = {
         id: autoId,
@@ -754,7 +764,8 @@ async function buildUnifiedModelsResponseCore(
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
         if (getModelIsHidden(canonicalProviderId, model.id)) continue;
-        if (shouldHidePaid(canonicalProviderId, model.id, (model as any).pricing)) continue;
+        if (shouldHidePaid(canonicalProviderId, model.id, (model as { pricing?: unknown }).pricing))
+          continue;
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
@@ -842,7 +853,29 @@ async function buildUnifiedModelsResponseCore(
 
         for (const sm of syncedModels) {
           if (!providerSupportsModel(canonicalProviderId, sm.id)) continue;
+          if (canonicalProviderId === "codex" && isCodexDiscoveryModelExcluded(sm)) {
+            continue;
+          }
           if (getModelIsHidden(providerId, sm.id)) continue;
+          // #6457: some upstream discovery catalogs (e.g. HuggingFace's live
+          // `/v1/models`) return image/diffusion models with no modality info,
+          // so `endpoints` below would default to ["chat"] and misrepresent
+          // them as chat-capable. Skip any synced model that is already a
+          // registered image model for this provider — getAllImageModels()
+          // below adds the correctly-typed `type: "image"` entry instead.
+          if (
+            isRegisteredImageModel(canonicalProviderId, sm.id) ||
+            isRegisteredImageModel(providerId, sm.id)
+          ) {
+            continue;
+          }
+          // #6328: apply hidePaidModels to synced provider rows too. Synced rows
+          // rarely carry pricing metadata, so shouldHidePaid() falls through to
+          // the FREE_MODEL_IDS_BY_PROVIDER catalog — providers with a curated
+          // free roster show only those; providers with none fall through to
+          // hide-all via providerHasFreeModels() === false.
+          if (shouldHidePaid(canonicalProviderId, sm.id, (sm as { pricing?: unknown }).pricing))
+            continue;
 
           const registryEntry = REGISTRY[providerId];
           const displayModelId =
@@ -1200,6 +1233,13 @@ async function buildUnifiedModelsResponseCore(
           if (!modelId) continue;
           if (model.isHidden === true) continue;
           if (getModelIsHidden(canonicalProviderId, modelId)) continue;
+          // #6328: apply hidePaidModels to user-defined custom rows too.
+          // Custom entries do not carry pricing, so shouldHidePaid() decides
+          // via FREE_MODEL_IDS_BY_PROVIDER — matches synced/PROVIDER_MODELS.
+          if (
+            shouldHidePaid(canonicalProviderId, modelId, (model as { pricing?: unknown }).pricing)
+          )
+            continue;
           // noAuth providers have no connection rows; keep auth providers gated. (#2798/#3200)
           const isNoAuthProvider = isNoAuthProviderKey(canonicalProviderId, providerId, alias);
           if (
@@ -1325,6 +1365,10 @@ async function buildUnifiedModelsResponseCore(
         }
 
         if (getModelIsHidden(canonicalProviderId, modelId)) continue;
+        // #6328: apply hidePaidModels to alias-backed rows too. Alias mappings
+        // point at providerKey/modelId with no pricing, so shouldHidePaid()
+        // decides via the FREE_MODEL_IDS_BY_PROVIDER catalog tier.
+        if (shouldHidePaid(canonicalProviderId, modelId)) continue;
 
         const aliasId = `${alias}/${modelId}`;
         const rawPrefixedId = `${providerKey}/${modelId}`;
@@ -1393,6 +1437,11 @@ async function buildUnifiedModelsResponseCore(
         const modelId = typeof model.id === "string" ? model.id : null;
         if (!modelId) continue;
         if (getModelIsHidden(canonicalProviderId, modelId)) continue;
+        // #6328: apply hidePaidModels to managed-fallback rows too. Compatible
+        // provider fallbacks lack pricing; shouldHidePaid() decides via the
+        // FREE_MODEL_IDS_BY_PROVIDER catalog tier.
+        if (shouldHidePaid(canonicalProviderId, modelId, (model as { pricing?: unknown }).pricing))
+          continue;
         if (!hasEligibleConnectionForModel([conn], modelId)) continue;
 
         const aliasId = `${alias}/${modelId}`;

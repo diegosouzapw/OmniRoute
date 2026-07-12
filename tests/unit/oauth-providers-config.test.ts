@@ -64,6 +64,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "trae",
   "kilocode",
   "cline",
+  "clinepass",
   "windsurf",
   "devin-cli",
   "grok-cli",
@@ -71,6 +72,13 @@ const EXPECTED_PROVIDER_KEYS = [
   "zed",
   "zed-hosted",
 ];
+
+const browserUrl = "http://localhost:20128/callback";
+const publicBaseEnv = {
+  NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+  ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
+  ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
+};
 
 const EXPECTED_CONFIG_BY_PROVIDER = {
   claude: CLAUDE_CONFIG,
@@ -87,6 +95,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   cursor: CURSOR_CONFIG,
   kilocode: KILOCODE_CONFIG,
   cline: CLINE_CONFIG,
+  clinepass: CLINE_CONFIG, // reuses the Cline WorkOS flow (clinepass: cline in providers/index.ts)
   windsurf: WINDSURF_CONFIG,
   "devin-cli": WINDSURF_CONFIG,
   trae: TRAE_CONFIG,
@@ -95,6 +104,17 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   zed: ZED_CONFIG,
   "zed-hosted": ZED_HOSTED_CONFIG,
 };
+
+const KIRO_REQUIRED_FIELDS = [
+  "registerClientUrl",
+  "deviceAuthUrl",
+  "tokenUrl",
+  "socialAuthEndpoint",
+  "socialLoginUrl",
+  "socialTokenUrl",
+  "socialRefreshUrl",
+  "authMethods",
+];
 
 const REQUIRED_FIELDS_BY_PROVIDER = {
   claude: ["authorizeUrl", "tokenUrl", "redirectUri", "scopes", "clientId"],
@@ -115,29 +135,12 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
     "codeChallengeMethod",
     "clientId",
   ],
-  kiro: [
-    "registerClientUrl",
-    "deviceAuthUrl",
-    "tokenUrl",
-    "socialAuthEndpoint",
-    "socialLoginUrl",
-    "socialTokenUrl",
-    "socialRefreshUrl",
-    "authMethods",
-  ],
-  "amazon-q": [
-    "registerClientUrl",
-    "deviceAuthUrl",
-    "tokenUrl",
-    "socialAuthEndpoint",
-    "socialLoginUrl",
-    "socialTokenUrl",
-    "socialRefreshUrl",
-    "authMethods",
-  ],
+  kiro: KIRO_REQUIRED_FIELDS,
+  "amazon-q": KIRO_REQUIRED_FIELDS,
   cursor: ["apiEndpoint", "api3Endpoint", "agentEndpoint", "agentNonPrivacyEndpoint", "dbKeys"],
   kilocode: ["apiBaseUrl", "initiateUrl", "pollUrlBase"],
   cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
+  clinepass: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
   windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
@@ -336,10 +339,6 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
   assert.equal(clineUrl.origin, "https://api.cline.bot");
 });
 
-// zed-hosted's buildAuthUrl deliberately returns an object (authUrl + codeVerifier +
-// redirectUri) instead of a bare string — generateAuthData() in providers.ts special-
-// cases this shape to thread an RSA private-key verifier through the existing PKCE
-// codeVerifier slot (see src/lib/oauth/providers/zed-hosted.ts header comment).
 test("zed-hosted buildAuthUrl returns {authUrl, codeVerifier, redirectUri} carrying a fresh RSA keypair", () => {
   const built = PROVIDERS["zed-hosted"].buildAuthUrl(ZED_HOSTED_CONFIG);
   assert.equal(typeof built, "object");
@@ -358,8 +357,6 @@ test("generateAuthData honors an object-returning buildAuthUrl (zed-hosted) with
   assert.ok(zedAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
   assert.ok(zedAuthData.redirectUri.startsWith("http://127.0.0.1:"));
 
-  // A string-returning provider (cline) must still get the plain PKCE codeVerifier,
-  // not be affected by the object-return branch added for zed-hosted.
   const clineAuthData = oauthHelpers.generateAuthData("cline", "http://localhost:20128/callback");
   assert.equal(typeof clineAuthData.authUrl, "string");
   assert.equal(clineAuthData.redirectUri, "http://localhost:20128/callback");
@@ -367,15 +364,10 @@ test("generateAuthData honors an object-returning buildAuthUrl (zed-hosted) with
   assert.ok(!clineAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
 });
 
-// Regression for #3861: GitLab Duo needs an operator-registered OAuth client_id.
-// When it's missing, buildAuthUrl must return null (like Qoder) so the authorize route
-// can surface a clear "configure it" message — it previously THREW, which the route
-// swallowed into an opaque "Internal server error" 500 at the Add Connection step.
 test("gitlab-duo buildAuthUrl returns null (not throw) when client_id is unconfigured (#3861)", () => {
-  const redirectUri = "http://localhost:20128/callback";
   const unconfigured = PROVIDERS["gitlab-duo"].buildAuthUrl(
     { ...GITLAB_DUO_CONFIG, clientId: "" },
-    redirectUri,
+    browserUrl,
     "state-x",
     "challenge-y"
   );
@@ -383,22 +375,14 @@ test("gitlab-duo buildAuthUrl returns null (not throw) when client_id is unconfi
 
   // Configured: returns a real authorize URL carrying the client_id + PKCE challenge.
   const configured = new URL(
-    PROVIDERS["gitlab-duo"].buildAuthUrl(GITLAB_DUO_CONFIG, redirectUri, "state-x", "challenge-y")
+    PROVIDERS["gitlab-duo"].buildAuthUrl(GITLAB_DUO_CONFIG, browserUrl, "state-x", "challenge-y")
   );
   assert.equal(configured.searchParams.get("client_id"), GITLAB_DUO_CONFIG.clientId);
   assert.equal(configured.searchParams.get("code_challenge"), "challenge-y");
 });
 
 test("custom Google OAuth credentials switch Antigravity remote callbacks to NEXT_PUBLIC_BASE_URL", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri(
-    "antigravity",
-    "http://localhost:20128/callback",
-    {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/",
-      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
-      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
-    }
-  );
+  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", browserUrl, publicBaseEnv);
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
 });
@@ -407,32 +391,28 @@ test("custom Google OAuth callbacks preserve the requested callback path and que
   const redirectUri = resolveBrowserOAuthRedirectUri(
     "antigravity",
     "http://127.0.0.1:20128/auth/callback?source=popup",
-    {
-      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/base",
-      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
-      ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
-    }
+    { ...publicBaseEnv, NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/base" }
   );
 
   assert.equal(redirectUri, "https://omniroute.example.com/base/auth/callback?source=popup");
 });
 
 test("custom Google OAuth credentials switch IPv6 loopback callbacks to public base URL", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://[::1]:20128/callback", {
-    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
-    ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
-    ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
-  });
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://[::1]:20128/callback",
+    publicBaseEnv
+  );
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
 });
 
 test("custom Google OAuth callbacks default root loopback paths to callback path", () => {
-  const redirectUri = resolveBrowserOAuthRedirectUri("antigravity", "http://127.0.0.1:20128", {
-    NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
-    ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
-    ANTIGRAVITY_OAUTH_CLIENT_SECRET: "custom-antigravity-secret",
-  });
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://127.0.0.1:20128",
+    publicBaseEnv
+  );
 
   assert.equal(redirectUri, "https://omniroute.example.com/callback");
 });

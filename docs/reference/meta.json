@@ -6,6 +6,7 @@
     "ENVIRONMENT",
     "FEATURE_FLAGS",
     "FREE_TIERS",
+    "FREE_PROXIES_API",
     "PROVIDER_REFERENCE"
   ]
 }

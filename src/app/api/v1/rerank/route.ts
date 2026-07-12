@@ -1,5 +1,8 @@
 import { handleRerank } from "@omniroute/open-sse/handlers/rerank.ts";
-import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
+import {
+  getProviderCredentialsWithQuotaPreflight,
+  clearRecoveredProviderState,
+} from "@/sse/services/auth";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { parseRerankModel, getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
@@ -102,7 +105,7 @@ async function postHandler(request, context) {
 
   if (provider) {
     // Cloud provider matched
-    const credentials = await getProviderCredentials(provider);
+    const credentials = await getProviderCredentialsWithQuotaPreflight(provider);
     if (!credentials) {
       return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
     }
@@ -132,7 +135,7 @@ async function postHandler(request, context) {
     const localProvider = localProviders.find((p) => p.id === prefix);
 
     if (localProvider) {
-      const credentials = await getProviderCredentials(localProvider.providerId);
+      const credentials = await getProviderCredentialsWithQuotaPreflight(localProvider.providerId);
       if (!credentials) {
         return errorResponse(
           HTTP_STATUS.BAD_REQUEST,

@@ -599,9 +599,32 @@ test("Chat -> Responses maps reasoning_effort into Responses reasoning", () => {
     null
   );
 
-  assert.deepEqual((result as any).reasoning, { effort: "low" });
+  // Effort-only chat requests now default `summary: "auto"` + the encrypted
+  // reasoning include so Responses-API upstreams stream thinking back to the
+  // chat client (previously the summary was empty and no think was visible).
+  assert.deepEqual((result as any).reasoning, { effort: "low", summary: "auto" });
+  assert.deepEqual((result as Record<string, unknown>).include, ["reasoning.encrypted_content"]);
   assert.equal((result as any).reasoning_effort, undefined);
   assert.equal((result as any).store, false);
+});
+
+test("Chat -> Responses does not default a reasoning summary for reasoning_effort none", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.3-codex-spark",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      reasoning_effort: "none",
+    },
+    false,
+    null
+  );
+
+  const record = result as Record<string, unknown>;
+  const reasoning = record.reasoning as Record<string, unknown> | undefined;
+  if (reasoning !== undefined) {
+    assert.equal(reasoning.summary, undefined);
+  }
+  assert.equal(record.include, undefined);
 });
 
 test("Chat -> Responses normalizes reasoning_effort max to xhigh", () => {
@@ -615,7 +638,7 @@ test("Chat -> Responses normalizes reasoning_effort max to xhigh", () => {
     null
   );
 
-  assert.deepEqual((result as any).reasoning, { effort: "xhigh" });
+  assert.deepEqual((result as any).reasoning, { effort: "xhigh", summary: "auto" });
   assert.equal((result as any).reasoning_effort, undefined);
 });
 

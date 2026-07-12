@@ -49,6 +49,19 @@ function targetFormatLabel(value: string, t: (key: string) => string): string {
   return key ? t(key) : value;
 }
 
+/**
+ * #4125: parse the free-text "Context Window Override" field. Blank → no override
+ * (`value: null`, not an error). A non-empty value must be a positive whole number of
+ * tokens; anything else is rejected. Pulled out of saveEdit so its own branching stays
+ * off that handler's cyclomatic complexity.
+ */
+function parseContextWindowOverrideInput(raw: string): { value: number | null; invalid: boolean } {
+  const trimmed = raw.trim();
+  if (!trimmed) return { value: null, invalid: false };
+  if (!/^\d+$/.test(trimmed) || Number(trimmed) <= 0) return { value: null, invalid: true };
+  return { value: Number(trimmed), invalid: false };
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -82,6 +95,9 @@ export default function CustomModelsSection({
   const [newTargetFormat, setNewTargetFormat] = useState("");
   const [savingModelId, setSavingModelId] = useState<string | null>(null);
   const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
+  // #4125: manual context-window override (Feature 5004 table) — free text so the
+  // field can be left blank (no override) without fighting a number input's "0".
+  const [editingContextWindowOverride, setEditingContextWindowOverride] = useState("");
 
   const customMap = useMemo(() => buildCompatMap(customModels), [customModels]);
   const overrideMap = useMemo(() => buildCompatMap(modelCompatOverrides), [modelCompatOverrides]);
@@ -183,6 +199,9 @@ export default function CustomModelsSection({
         : ["chat"]
     );
     setEditingTargetFormat(model.targetFormat || "");
+    setEditingContextWindowOverride(
+      typeof model.contextWindowOverride === "number" ? String(model.contextWindowOverride) : ""
+    );
   };
 
   const cancelEdit = () => {
@@ -190,6 +209,7 @@ export default function CustomModelsSection({
     setEditingApiFormat("chat-completions");
     setEditingEndpoints(["chat"]);
     setEditingTargetFormat("");
+    setEditingContextWindowOverride("");
     setSavingModelId(null);
   };
 
@@ -225,13 +245,10 @@ export default function CustomModelsSection({
     }
   };
 
-  const saveEdit = async (modelId: string) => {
-    if (!editingModelId || editingModelId !== modelId) return;
-    if (!editingEndpoints.length) {
-      notify.error("Select at least one supported endpoint");
-      return;
-    }
-
+  // Split out of saveEdit (which only validates + delegates) so the #4125 context-window
+  // validation stays a single early-return in the caller instead of adding a branch to
+  // this already-large PUT/fetch/error-handling body.
+  const performSaveEdit = async (modelId: string, contextWindowOverride: number | null) => {
     setSavingModelId(modelId);
     try {
       const model = customModels.find((m) => m.id === modelId);
@@ -249,6 +266,8 @@ export default function CustomModelsSection({
           // as optional. Sending an empty string would fail Zod's enum check,
           // so we omit it entirely when the user picks "Default (auto)".
           ...(editingTargetFormat ? { targetFormat: editingTargetFormat } : {}),
+          // #4125: manual context-window override — number to set, null to clear.
+          contextWindowOverride,
         }),
       });
 
@@ -269,6 +288,22 @@ export default function CustomModelsSection({
     } finally {
       setSavingModelId(null);
     }
+  };
+
+  const saveEdit = async (modelId: string) => {
+    if (!editingModelId || editingModelId !== modelId) return;
+    if (!editingEndpoints.length) {
+      notify.error("Select at least one supported endpoint");
+      return;
+    }
+
+    const contextOverride = parseContextWindowOverrideInput(editingContextWindowOverride);
+    if (contextOverride.invalid) {
+      notify.error(t("contextWindowOverrideInvalid"));
+      return;
+    }
+
+    await performSaveEdit(modelId, contextOverride.value);
   };
 
   return (
@@ -439,6 +474,14 @@ export default function CustomModelsSection({
                         {`→ ${targetFormatLabel(model.targetFormat, t)}`}
                       </span>
                     )}
+                    {typeof model.contextWindowOverride === "number" && (
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/15 text-orange-400 font-medium"
+                        title={t("contextWindowOverrideHint")}
+                      >
+                        {`🪟 ${model.contextWindowOverride.toLocaleString()}`}
+                      </span>
+                    )}
                     {model.supportedEndpoints?.includes("embeddings") && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-medium">
                         {`📐 ${t("supportedEndpointEmbeddings")}`}
@@ -520,6 +563,20 @@ export default function CustomModelsSection({
                             <option value="gemini">{t("targetFormatGemini")}</option>
                             <option value="antigravity">{t("targetFormatAntigravity")}</option>
                           </select>
+                        </div>
+                        <div className="w-[10rem] shrink-0 min-w-0">
+                          <label className="text-xs text-text-muted mb-1 block">
+                            {t("contextWindowOverrideLabel")}
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={editingContextWindowOverride}
+                            onChange={(e) => setEditingContextWindowOverride(e.target.value)}
+                            placeholder={t("contextWindowOverridePlaceholder")}
+                            title={t("contextWindowOverrideHint")}
+                            className="w-full px-2.5 py-2 text-xs border border-border rounded-lg bg-background text-text-main focus:outline-none focus:border-primary"
+                          />
                         </div>
                         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 overflow-x-auto overflow-y-visible [scrollbar-width:thin]">
                           <span className="text-xs text-text-muted shrink-0">

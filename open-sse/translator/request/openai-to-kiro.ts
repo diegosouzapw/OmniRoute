@@ -5,12 +5,13 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
-import { capMaxOutputTokens, capThinkingBudget, supportsReasoning } from "@/lib/modelCapabilities";
+import { capMaxOutputTokens, capThinkingBudget } from "@/lib/modelCapabilities";
 import {
   parseToolInput,
   normalizeKiroToolSchema,
   serializeToolResultContent,
 } from "./openai-to-kiro/messageHelpers.ts";
+import { supportsKiroAdaptiveThinking } from "./openai-to-kiro/adaptiveThinking.ts";
 
 /**
  * Anthropic's direct-provider `[1m]` context-1m beta suffix. Kiro is AWS
@@ -579,6 +580,26 @@ function convertMessages(messages, tools, model) {
 /** Kiro's accepted reasoning-effort levels (`output_config.effort`). */
 const KIRO_EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max"];
 
+function resolveKiroModelAlias(model: string): { upstream: string; thinking: boolean } {
+  let upstream = String(model || "");
+  let thinking = false;
+
+  if (upstream.endsWith("-agentic")) {
+    upstream = upstream.slice(0, -"-agentic".length);
+  }
+  if (upstream.endsWith("-thinking")) {
+    upstream = upstream.slice(0, -"-thinking".length);
+    thinking = true;
+  }
+  if (upstream === "auto-kiro") {
+    upstream = "auto";
+  }
+
+  upstream = upstream.replace(/^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d{1,2})$/, "$1.$2");
+
+  return { upstream, thinking };
+}
+
 /**
  * Resolve the Kiro effort level for a request, or "" when no reasoning was asked
  * for. Effort sources, in priority order:
@@ -665,10 +686,11 @@ export function buildKiroPayload(model, body, stream, credentials) {
   // The minor group is bounded to 1-2 digits so date-suffixed ids (e.g.
   // claude-opus-4-20250514) are never mistaken for a dash-separated minor
   // version and corrupted into claude-opus-4.20250514 (upstream 9router #2270).
-  const normalizedModel = model.replace(
-    /^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d{1,2})$/,
-    "$1.$2"
-  );
+  // Synthetic Kiro selector variants (`-thinking`, `-agentic`) are local aliases:
+  // strip them before the request leaves OmniRoute so Kiro only receives real
+  // upstream model IDs. We intentionally do not inject an agentic system prompt here.
+  const { upstream: normalizedModel, thinking: modelRequestsThinking } =
+    resolveKiroModelAlias(model);
   const messages = body.messages || [];
   let tools = body.tools || [];
   const maxTokens = body.max_tokens ?? body.max_completion_tokens ?? 32000;
@@ -837,14 +859,14 @@ export function buildKiroPayload(model, body, stream, credentials) {
   // Thinking mode for Claude models on Kiro (ported from javargasm/pi-kiro).
   // Two coordinated signals steer reasoning on the CodeWhisperer surface:
   //   1. a `<thinking_mode>enabled</thinking_mode><max_thinking_length>N</...>`
-  //      directive prepended to the current user message — makes Claude emit its
-  //      reasoning INLINE as `<thinking>…</thinking>`, which the Kiro executor
-  //      splits back into the OpenAI `reasoning_content` channel (kiroThinking.ts);
+  //      directive prepended to the user message — makes Claude emit reasoning
+  //      INLINE, split back into `reasoning_content` by the executor (kiroThinking.ts);
   //   2. top-level `additionalModelRequestFields` (output_config.effort +
   //      thinking:{type:"adaptive"} + a clamped max_tokens), forwarded to AWS by
-  //      the Kiro executor's transformRequest allowlist — this is the graded
-  //      effort lever. Gated on models that advertise thinking support.
-  const kiroEffort = supportsReasoning(normalizedModel) ? resolveKiroEffort(body) : "";
+  //      the Kiro executor's transformRequest allowlist — the graded effort lever,
+  //      gated on Kiro's adaptive-thinking allowlist (#6576), not supportsReasoning().
+  const requestedEffort = resolveKiroEffort(body) || (modelRequestsThinking ? "high" : "");
+  const kiroEffort = supportsKiroAdaptiveThinking(normalizedModel) ? requestedEffort : "";
   if (kiroEffort) {
     // `<thinking_mode>` / `<max_thinking_length>` are Kiro/CodeWhisperer prompt
     // conventions (NOT Anthropic API params); the length is a soft hint (the hard

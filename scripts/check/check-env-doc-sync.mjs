@@ -51,6 +51,9 @@ const IGNORE_FROM_CODE = new Set([
   "CI",
   "GITHUB_ACTIONS",
   "RUNNER_OS",
+  // Quality-gate harness knobs (optional cache/report paths for CI scripts — not product config).
+  "ESLINT_RESULTS_JSON",
+  "COMPLEXITY_ESLINT_REPORT",
   // Agent environment / system execution paths.
   "PROJECT_ROOT",
   "ARTIFACTS_DIR",
@@ -145,6 +148,9 @@ const IGNORE_FROM_CODE = new Set([
   // write-build-sha.mjs to stamp dist/BUILD_SHA — injected by the build, never
   // configured by users in .env.
   "OMNIROUTE_BUILD_SHA",
+  // Listener-owned self-fetch transport signal. The HTTP/HTTPS launchers set
+  // this before application imports; it is not user-configurable product env.
+  "OMNIROUTE_INTERNAL_SCHEME",
   // Source typo / placeholder.
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).
