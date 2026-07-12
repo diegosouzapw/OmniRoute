@@ -132,6 +132,7 @@ import {
   waitForCooldownAwareRetry,
 } from "../services/cooldownAwareRetry";
 import { constrainConnectionsToQuota, resolveQuotaKeyScope } from "../../lib/quota/quotaKey";
+import { checkConnectionCapacity } from "../utils/backpressure";
 
 registerCodexQuotaFetcher();
 
@@ -221,6 +222,12 @@ export async function handleChat(
   // Pipeline: Start request telemetry
   const reqId = correlationId || generateRequestId();
   const telemetry = new RequestTelemetry(reqId);
+
+  const backpressure = checkConnectionCapacity();
+  if (backpressure.shouldReject) {
+    log.warn("BACKPRESSURE", "Rejecting request: at connection limit");
+    return backpressure.response;
+  }
 
   let body;
   try {
