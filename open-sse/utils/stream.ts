@@ -644,7 +644,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   // tools can query performance.getEntriesByType("mark") filtered by name.
   let bodySize = 0;
   try {
-    bodySize = body ? new TextEncoder().encode(JSON.stringify(body)).length : 0;
+    bodySize = body ? Buffer.byteLength(JSON.stringify(body), "utf8") : 0;
   } catch {
     /* body may not be JSON-serialisable (e.g. FormData, Blob) — metric stays 0 */
   }

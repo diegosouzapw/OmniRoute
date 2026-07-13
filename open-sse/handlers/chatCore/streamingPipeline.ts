@@ -72,6 +72,9 @@ export function assembleStreamingPipeline(
   },
   deps: StreamingPipelineDeps = DEFAULT_DEPS
 ) {
+  performance.clearMarks(PIPELINE_START);
+  performance.clearMarks(PIPELINE_END);
+  performance.clearMeasures(PIPELINE_MEASURE);
   performance.mark(PIPELINE_START);
   // ── Phase 9.3: Progress tracking (opt-in) ──
   const progressEnabled = deps.wantsProgress(args.clientRawRequestHeaders);
