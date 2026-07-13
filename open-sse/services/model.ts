@@ -502,11 +502,15 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
   const nonOpenAIProviders = providers.filter((p) => p !== "openai");
 
   // Bare model IDs from Codex CLI do not preserve OmniRoute's `cx/` prefix.
-  // Prefer the subscription-backed Codex route only when the static registry or
-  // the active connection's synchronized catalog proves Codex supports the model.
-  // This replaces version-specific GPT preference sets and automatically covers
-  // newly synchronized models such as gpt-5.6-sol.
-  if (activeProviders?.has("codex") && providers.includes("codex")) {
+  // Route overlapping models through Codex only for Codex-only installations;
+  // when OpenAI is also active, preserve the historical OpenAI default below.
+  // Models advertised only by an active synced Codex catalog still reach the
+  // single-candidate path, covering future models without version-specific sets.
+  if (
+    activeProviders?.has("codex") &&
+    !activeProviders.has("openai") &&
+    providers.includes("codex")
+  ) {
     return {
       provider: "codex",
       model: resolveInferredProviderModel("codex", modelId),

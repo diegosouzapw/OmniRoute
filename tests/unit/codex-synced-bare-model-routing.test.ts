@@ -60,9 +60,19 @@ test("bare synchronized Codex model routes through the active Codex connection",
   assert.equal(info.model, FUTURE_CODEX_MODEL);
 });
 
-test("Codex wins when active Codex and OpenAI connections advertise the same bare model", async () => {
+test("OpenAI remains the historical default when both providers advertise the bare model", async () => {
   await seedSyncedModel("codex", FUTURE_CODEX_MODEL);
   await seedSyncedModel("openai", FUTURE_CODEX_MODEL);
+
+  const info = await getModelInfoCore(FUTURE_CODEX_MODEL, null);
+
+  assert.equal(info.provider, "openai");
+  assert.equal(info.model, FUTURE_CODEX_MODEL);
+});
+
+test("Codex is inferred when only its active catalog advertises the model", async () => {
+  await seedSyncedModel("codex", FUTURE_CODEX_MODEL);
+  await seedConnection("openai");
 
   const info = await getModelInfoCore(FUTURE_CODEX_MODEL, null);
 
@@ -89,13 +99,13 @@ test("inactive Codex synchronized models do not influence bare-model routing", a
   assert.equal(info.model, FUTURE_CODEX_MODEL);
 });
 
-test("Codex wins for overlapping static models when both providers are active", async () => {
+test("OpenAI remains the historical default for overlapping static models", async () => {
   await seedConnection("codex");
   await seedConnection("openai");
 
   const info = await getModelInfoCore("gpt-5.5", null);
 
-  assert.equal(info.provider, "codex");
+  assert.equal(info.provider, "openai");
   assert.equal(info.model, "gpt-5.5");
 });
 
