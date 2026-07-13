@@ -222,7 +222,7 @@
     "src/app/(dashboard)/dashboard/settings/components/CompressionSettingsTab.tsx": 974,
     "src/app/(dashboard)/dashboard/settings/components/MemorySkillsTab.tsx": 898,
     "src/app/(dashboard)/dashboard/settings/components/PricingTab.tsx": 1012,
-    "src/app/(dashboard)/dashboard/settings/components/ProxyRegistryManager.tsx": 1449,
+    "src/app/(dashboard)/dashboard/settings/components/ProxyRegistryManager.tsx": 1461,
     "src/app/(dashboard)/dashboard/settings/components/ResilienceTab.tsx": 1183,
     "src/app/(dashboard)/dashboard/settings/components/RoutingTab.tsx": 1629,
     "src/app/(dashboard)/dashboard/settings/components/SystemStorageTab.tsx": 1924,

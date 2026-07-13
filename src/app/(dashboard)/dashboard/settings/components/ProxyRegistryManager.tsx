@@ -131,6 +131,18 @@ export default function ProxyRegistryManager({
   const [poolLoading, setPoolLoading] = useState(false);
   const [poolLoaded, setPoolLoaded] = useState(false);
   const [poolSaving, setPoolSaving] = useState(false);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
+  const [bulkImportText, setBulkImportText] = useState(BULK_IMPORT_TEMPLATE);
+  const [bulkImportParsed, setBulkImportParsed] = useState<ParsedProxyEntry[]>([]);
+  const [bulkImportErrors, setBulkImportErrors] = useState<ParseError[]>([]);
+  const [bulkImportSkipped, setBulkImportSkipped] = useState(0);
+  const [bulkImportParsedOnce, setBulkImportParsedOnce] = useState(false);
+  const [bulkImporting, setBulkImporting] = useState(false);
+  const [bulkImportResult, setBulkImportResult] = useState<{
+    created: number;
+    updated: number;
+    failed: number;
+  } | null>(null);
 
   const editingId = useMemo(() => form.id || "", [form.id]);
 

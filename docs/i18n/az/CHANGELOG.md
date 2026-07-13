@@ -66,7 +66,7 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 
 ### 🐛 Bug Fixes
 
-- **fix(dashboard):** the Proxy Registry pool modal crashed the settings page at runtime (`ReferenceError: poolLoaded is not defined`) — #6909's refactor deleted the `poolLoaded`/`poolSaving` state declarations while their 8 usages remained (caught by the release E2E; `typecheck:core` does not cover dashboard TSX). (thanks @diegosouzapw)
+- **fix(dashboard):** the Proxy Registry settings page crashed at runtime (`ReferenceError: poolLoaded/bulkImportOpen is not defined`) — the #6625/#6909 hook-extraction refactors deleted 10 state declarations (`poolLoaded`, `poolSaving`, and the 8-member bulk-import family) while ~30 usages remained; all restored (caught by the release E2E; `typecheck:core` does not cover dashboard TSX — follow-up #7021). (thanks @diegosouzapw)
 
 - **fix(combo):** `comboStickyRoundRobinLimit` now defaults to inherit (`null`) instead of `1` — the literal default silently shadowed the documented batched round-robin rotation (`stickyRoundRobinLimit: 3`), flipping every round-robin combo to per-request alternation (#6678 follow-up, caught by the release CI). (thanks @diegosouzapw)
 - **fix(ws):** the standalone LiveWS startup script exited 0 without ever listening — its bootstrapped child re-spawned with the import-suppressor `OMNIROUTE_ENABLE_LIVE_WS=0` and then honored it as an operator disable (#6072 follow-up, caught by the release CI). (thanks @diegosouzapw)
