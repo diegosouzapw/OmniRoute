@@ -133,13 +133,17 @@ test("curated Copilot allowlist contains the final approved model ids only", () 
       "claude-opus-4.8-fast",
       "claude-opus-4.8",
       "claude-opus-4.7",
-      "claude-sonnet-4.6",
+      "claude-opus-4.6",
       "claude-opus-4.5",
       "claude-sonnet-5",
+      "claude-sonnet-4.6",
       "claude-sonnet-4.5",
       "claude-haiku-4.5",
       "gemini-3.1-pro-preview",
       "gemini-3.5-flash",
+      "gpt-5.6-sol",
+      "gpt-5.6-terra",
+      "gpt-5.6-luna",
       "gpt-5.5",
       "gpt-5.4",
       "gpt-5.4-mini",
@@ -152,6 +156,24 @@ test("curated Copilot allowlist contains the final approved model ids only", () 
       "mai-code-1-flash",
       "oswe-vscode-prime",
     ]
+  );
+});
+
+test("newly approved Copilot models survive live and fallback discovery", async () => {
+  const expected = ["claude-opus-4.6", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"];
+  const live = parseGitHubCopilotModels({ data: expected.map((id) => ({ id, name: id })) });
+  assert.deepEqual(
+    live.map((model) => model.id),
+    expected
+  );
+
+  const fallback = await fetchGitHubCopilotModels({
+    token: "",
+    fallbackModels: expected.map((id) => ({ id, name: id })),
+  });
+  assert.deepEqual(
+    fallback.models.map((model) => model.id),
+    expected
   );
 });
 
