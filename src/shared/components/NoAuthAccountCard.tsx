@@ -10,6 +10,7 @@ interface NoAuthAccountCardProps {
   providerId: string;
   providerName: string;
   generateAccountId: () => string;
+  generateApiKey?: () => Promise<string>;
   dataKey?: string;
   description?: string;
   addLabel?: string;
@@ -88,6 +89,7 @@ export default function NoAuthAccountCard({
   providerId,
   providerName,
   generateAccountId,
+  generateApiKey,
   dataKey = "fingerprints",
   description = "Ready to use — no signup needed. Add accounts for rate-limit rotation.",
   addLabel = "Add Account",
@@ -165,6 +167,7 @@ export default function NoAuthAccountCard({
     setAdding(true);
     try {
       const accountId = generateAccountId();
+      const apiKey = generateApiKey ? await generateApiKey() : undefined;
       if (connections.length === 0) {
         const res = await fetch("/api/providers", {
           method: "POST",
@@ -172,10 +175,14 @@ export default function NoAuthAccountCard({
           body: JSON.stringify({
             provider: providerId,
             name: `${providerName} Account 1`,
+            ...(apiKey ? { apiKey } : {}),
             providerSpecificData: { [dataKey]: [accountId] },
           }),
         });
-        if (!res.ok) throw new Error("Failed to create connection");
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error || `Failed to create connection (${res.status})`);
+        }
       } else {
         const updated = [...allAccountIds, accountId];
         const res = await fetch(`/api/providers/${conn.id}`, {

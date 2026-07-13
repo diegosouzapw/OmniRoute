@@ -31,6 +31,7 @@ export const FREE_APIKEY_PROVIDER_IDS = new Set([
   "qoder",
   "mimocode",
   "opencode",
+  "dahl",
   // codebuddy-cn is OAuth-primary but the Tencent gateway also accepts a direct
   // API key (Authorization: Bearer). Admit it through the same managed-provider
   // gate so POST /api/providers accepts the dual-auth shape.

@@ -8,6 +8,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 const ACCOUNT_PROVIDER_NAMES: Record<string, string> = {
   mimocode: "MiMoCode",
   opencode: "OpenCode",
+  dahl: "Dahl",
 };
 
 interface NoAuthProviderControlsProps {
@@ -88,6 +89,18 @@ export default function NoAuthProviderControls({
         providerId={providerId}
         providerName={accountProviderName}
         generateAccountId={() => crypto.randomUUID().replace(/-/g, "")}
+        generateApiKey={
+          providerId === "dahl"
+            ? async () => {
+                const res = await fetch("/api/dahl/tokens", { method: "POST" });
+                const data = await res.json();
+                if (!res.ok || !data.token) {
+                  throw new Error(data?.error || "Failed to create Dahl token");
+                }
+                return data.token as string;
+              }
+            : undefined
+        }
         enabled={enabled}
         savingEnabled={savingEnabled}
         onEnabledChange={handleEnabledChange}

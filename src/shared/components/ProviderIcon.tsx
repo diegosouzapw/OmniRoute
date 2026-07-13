@@ -86,6 +86,7 @@ const KNOWN_PNGS = new Set([
   "piapi",
   "predibase",
   "reka",
+  "dahl",
 ]);
 const KNOWN_SVGS = new Set([
   "apikey",
@@ -161,7 +162,10 @@ const ProviderIcon = memo(function ProviderIcon({
   // without requiring `images.remotePatterns` allow-listing for arbitrary domains.
   if (trimmedSrc && !remoteSrcFailed) {
     return (
-      <span className={className} style={{ display: "inline-flex", alignItems: "center", ...style }}>
+      <span
+        className={className}
+        style={{ display: "inline-flex", alignItems: "center", ...style }}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element -- operator-supplied remote URL, not a static/known asset */}
         <img
           src={trimmedSrc}

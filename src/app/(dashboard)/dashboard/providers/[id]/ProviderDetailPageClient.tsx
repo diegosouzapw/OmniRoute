@@ -9,6 +9,7 @@ import { Card, Button, CardSkeleton } from "@/shared/components";
 import {
   NOAUTH_PROVIDERS,
   getProviderAlias,
+  getProviderById,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
@@ -218,7 +219,9 @@ export default function ProviderDetailPageClient() {
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const providerAlias = getProviderAlias(providerId);
-  const isFreeNoAuth = NOAUTH_PROVIDERS[providerId]?.noAuth === true;
+  const isFreeNoAuth =
+    NOAUTH_PROVIDERS[providerId]?.noAuth === true ||
+    getProviderById(providerId)?.managedAccount === true;
   const registryModels = getModelsByProviderId(providerId);
   // Prefer synced API-discovered models when available, then merge built-ins
   // and user-managed custom models without duplicating IDs.
