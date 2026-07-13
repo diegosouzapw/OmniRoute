@@ -822,7 +822,7 @@ test("CodexExecutor.transformRequest passes GPT 5.6 Luna xhigh reasoning through
   const reasoning = getRecord(sanitized.reasoning);
 
   assert.equal(sanitized.model, "gpt-5.6-luna");
-  assert.deepEqual(reasoning, { effort: "xhigh", summary: "detailed" });
+  assert.deepEqual(reasoning, { effort: "xhigh", summary: "detailed", context: "all_turns" });
   assert.deepEqual(sanitized.include, [
     "code_interpreter_call.outputs",
     "reasoning.encrypted_content",
