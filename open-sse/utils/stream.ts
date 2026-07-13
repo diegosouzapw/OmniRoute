@@ -183,8 +183,8 @@ function appendBoundedText(current: string, next: string): string {
   if (!next) return current;
   // Avoid allocating `current + next` when already at/above limit — slide the window instead.
   if (current.length >= STREAM_SUMMARY_TEXT_LIMIT) {
-    const keep =
-      STREAM_SUMMARY_TEXT_LIMIT > next.length ? STREAM_SUMMARY_TEXT_LIMIT - next.length : 0;
+    const keep = STREAM_SUMMARY_TEXT_LIMIT - next.length;
+    if (keep <= 0) return next.slice(-STREAM_SUMMARY_TEXT_LIMIT);
     return current.slice(-keep) + next;
   }
   const combined = current + next;
