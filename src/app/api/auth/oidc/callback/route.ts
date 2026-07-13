@@ -185,10 +185,7 @@ export async function GET(request: Request) {
   } catch {
     return NextResponse.redirect(`${originEarly}/login?oidc_error=id_token_invalid`);
   }
-
-  // Mark instance as bootstrapped on first successful OIDC dashboard login.
-  // Mirrors CLI password setup so pure-OIDC instances don't get stuck
-  // showing "no password / run onboarding" screens.
+  // First successful OIDC login marks setupComplete (like password bootstrap).
   try {
     await updateSettings({ setupComplete: true });
   } catch {

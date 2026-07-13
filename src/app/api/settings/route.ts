@@ -60,6 +60,8 @@ const SECURITY_IMPACTING_KEYS = [
   "localOnlyManageScopeBypassPrefixes",
   "requireLogin",
   "newPassword",
+  "oidcEnabled",
+  "oidcClientSecret",
 ] as const;
 
 /**
@@ -237,21 +239,39 @@ export async function PATCH(request: Request) {
     }
     const body: typeof validation.data & { password?: string } = { ...validation.data };
 
-    // Sanitize model lockout settings: clamp values to valid bounds so that
-    // stale DB values or hand-crafted requests don't bypass range validation.
+    // Sanitize model lockout settings: clamp values to valid bounds.
     if (body.modelLockout) {
       body.modelLockout = resolveModelLockoutSettings({
         modelLockout: body.modelLockout as Record<string, unknown>,
       }) as typeof body.modelLockout;
     }
 
-    // Security-impacting gate (T-011, spec AC-4 / AC-5). Computed from the
+    if (body.oidcEnabled === true) {
+      const current = await getSettings();
+      const subjects = Array.isArray(body.oidcAllowedSubjects)
+        ? (body.oidcAllowedSubjects as unknown[])
+        : ((current.oidcAllowedSubjects as unknown[] | undefined) ?? []);
+      const hasAtLeastOne = subjects.some((s) => typeof s === "string" && s.trim().length > 0);
+      if (!hasAtLeastOne) {
+        emitSettingsFailureAudit(request, actor, "OIDC_ALLOWED_SUBJECTS_REQUIRED", attemptedKeys);
+        return NextResponse.json(
+          {
+            error: {
+              code: "OIDC_ALLOWED_SUBJECTS_REQUIRED",
+              message:
+                "oidcAllowedSubjects must contain at least one subject or email when oidcEnabled is true",
+            },
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // VALIDATED body so we never trip on stray unknown keys. If any security
     // key is present, require currentPassword + verify against the stored
     // bcrypt hash. Dedupes with the previous inline newPassword reauth — the
     // password is verified at most once per PATCH.
     const touchedSecurityKeys = SECURITY_IMPACTING_KEYS.filter((k) => k in validation.data);
-    let storedPasswordHash = "";
     if (touchedSecurityKeys.length > 0) {
       const settings = await getSettings();
       // Lazy-hash any plaintext INITIAL_PASSWORD migration BEFORE we read the
