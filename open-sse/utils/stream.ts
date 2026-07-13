@@ -639,6 +639,16 @@ export function createSSEStream(options: StreamOptions = {}) {
     dropResponsesCommentary,
   } = options;
   const signatureNamespace = connectionId;
+  // Request-body-size metric (for monitoring payload size distribution & correlation with TTFT).
+  // The size is JSON-serialised byte count; stored as a performance mark detail so monitoring
+  // tools can query performance.getEntriesByType("mark") filtered by name.
+  let bodySize = 0;
+  try {
+    bodySize = body ? new TextEncoder().encode(JSON.stringify(body)).length : 0;
+  } catch {
+    /* body may not be JSON-serialisable (e.g. FormData, Blob) — metric stays 0 */
+  }
+  if (bodySize > 0) performance.mark("omni-request-body-size", { detail: bodySize });
 
   // Drop internal commentary-phase Responses output before forwarding (#6199).
   // Explicit option wins; otherwise read the feature flag (default on). Resolved
