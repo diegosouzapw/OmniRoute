@@ -40,6 +40,16 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN last_used_at TEXT");
       console.log("[DB] Added provider_connections.last_used_at column");
     }
+    // CREATE TABLE IF NOT EXISTS cannot fill holes in partial legacy schemas. Later data
+    // migrations read these original-schema fields, so restore them before migrations run.
+    if (!columnNames.has("provider_specific_data")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN provider_specific_data TEXT");
+      console.log("[DB] Added provider_connections.provider_specific_data column");
+    }
+    if (!columnNames.has("default_model")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN default_model TEXT");
+      console.log("[DB] Added provider_connections.default_model column");
+    }
     if (!columnNames.has("group")) {
       db.exec('ALTER TABLE provider_connections ADD COLUMN "group" TEXT');
       console.log('[DB] Added provider_connections."group" column');

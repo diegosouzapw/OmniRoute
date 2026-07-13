@@ -2844,25 +2844,31 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "AWS-SDK-JS/3.0.0 kiro-ide/1.0.0",
+        "User-Agent": "aws-sdk-js/1.0.0 KiroIDE-1.0.116",
         "X-Amz-Target": "AmazonCodeWhispererStreamingService.GenerateAssistantResponse",
-        "X-Amz-User-Agent": "aws-sdk-js/3.0.0 kiro-ide/1.0.0"
+        "X-Amz-User-Agent": "aws-sdk-js/1.0.0 KiroIDE-1.0.116",
+        "x-amzn-codewhisperer-optout": "true",
+        "x-amzn-kiro-agent-mode": "vibe"
       },
       "nonStream": {
         "Accept": "application/vnd.amazon.eventstream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "AWS-SDK-JS/3.0.0 kiro-ide/1.0.0",
+        "User-Agent": "aws-sdk-js/1.0.0 KiroIDE-1.0.116",
         "X-Amz-Target": "AmazonCodeWhispererStreamingService.GenerateAssistantResponse",
-        "X-Amz-User-Agent": "aws-sdk-js/3.0.0 kiro-ide/1.0.0"
+        "X-Amz-User-Agent": "aws-sdk-js/1.0.0 KiroIDE-1.0.116",
+        "x-amzn-codewhisperer-optout": "true",
+        "x-amzn-kiro-agent-mode": "vibe"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "AWS-SDK-JS/3.0.0 kiro-ide/1.0.0",
+        "User-Agent": "aws-sdk-js/1.0.0 KiroIDE-1.0.116",
         "X-Amz-Target": "AmazonCodeWhispererStreamingService.GenerateAssistantResponse",
-        "X-Amz-User-Agent": "aws-sdk-js/3.0.0 kiro-ide/1.0.0"
+        "X-Amz-User-Agent": "aws-sdk-js/1.0.0 KiroIDE-1.0.116",
+        "x-amzn-codewhisperer-optout": "true",
+        "x-amzn-kiro-agent-mode": "vibe"
       }
     },
     "url": {
