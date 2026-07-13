@@ -1,9 +1,7 @@
 type JsonRecord = Record<string, unknown>;
 type SanitizeResponsesInputOptions = {
   dropInternalAssistantMessages?: boolean;
-  contentMode?: "standard" | "responses-lite";
 };
-type ResponsesInputContentMode = NonNullable<SanitizeResponsesInputOptions["contentMode"]>;
 const INTERNAL_ASSISTANT_PHASES = new Set(["commentary"]);
 const SERVER_ITEM_ID_PREFIX_BY_TYPE: Record<string, string> = {
   function_call: "fc_",
@@ -86,27 +84,11 @@ function sanitizeContentPart(part: unknown, role: string): unknown {
   return part;
 }
 
-function sanitizeMessageContent(
-  record: JsonRecord,
-  contentMode: ResponsesInputContentMode
-): JsonRecord {
+function sanitizeMessageContent(record: JsonRecord): JsonRecord {
   if (!Array.isArray(record.content)) return record;
 
   const role = typeof record.role === "string" ? record.role.toLowerCase() : "";
-  const content = record.content.map((part) => {
-    const recordPart = toRecord(part);
-    if (contentMode === "responses-lite" && role === "assistant") {
-      if (recordPart?.type === "image_url") {
-        const url = imageUrlToText(recordPart.image_url);
-        const next: JsonRecord = { type: "input_image", image_url: url };
-        const image = toRecord(recordPart.image_url);
-        if (image?.detail !== undefined) next.detail = image.detail;
-        return next;
-      }
-      if (recordPart?.type === "input_image") return part;
-    }
-    return sanitizeContentPart(part, role);
-  });
+  const content = record.content.map((part) => sanitizeContentPart(part, role));
   return { ...record, content };
 }
 
@@ -122,13 +104,13 @@ function sanitizeOutputContent(record: JsonRecord): JsonRecord {
   return { ...record, output };
 }
 
-function sanitizeInputItem(item: unknown, contentMode: ResponsesInputContentMode): unknown {
+function sanitizeInputItem(item: unknown): unknown {
   const record = toRecord(item);
   if (!record) return item;
 
   let next = sanitizeInputItemId(record);
   if (isResponsesMessageItem(next)) {
-    next = sanitizeMessageContent(next, contentMode);
+    next = sanitizeMessageContent(next);
   }
   next = sanitizeOutputContent(next);
   if (
@@ -147,7 +129,6 @@ export function sanitizeResponsesInputItems(
   options: SanitizeResponsesInputOptions = {}
 ): unknown[] {
   const dropInternalAssistantMessages = options.dropInternalAssistantMessages ?? true;
-  const contentMode = options.contentMode ?? "standard";
   const sanitized: unknown[] = [];
 
   for (const item of items) {
@@ -157,7 +138,7 @@ export function sanitizeResponsesInputItems(
     }
 
     const cloned = clone ? structuredClone(item) : item;
-    sanitized.push(sanitizeInputItem(cloned, contentMode));
+    sanitized.push(sanitizeInputItem(cloned));
   }
 
   return sanitized;

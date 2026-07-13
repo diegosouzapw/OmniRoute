@@ -78,9 +78,7 @@ test("normalizes user image_url content parts to input_image", () => {
     {
       type: "message",
       role: "user",
-      content: [
-        { type: "image_url", image_url: { url: "https://example.com/u.png", detail: "high" } },
-      ],
+      content: [{ type: "image_url", image_url: { url: "https://example.com/u.png", detail: "high" } }],
     },
   ];
   const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
@@ -109,34 +107,6 @@ test("normalizes assistant image content parts to output_text", () => {
     content: [
       { type: "output_text", text: "[Image: https://example.com/a.png]" },
       { type: "output_text", text: "[Image: https://example.com/b.png]" },
-    ],
-  });
-});
-
-test("keeps assistant image content as input_image in Responses-Lite mode", () => {
-  const items = [
-    {
-      type: "message",
-      role: "assistant",
-      content: [
-        { type: "image_url", image_url: { url: "https://example.com/a.png", detail: "high" } },
-        { type: "input_image", image_url: "https://example.com/b.png" },
-      ],
-    },
-  ];
-  const result = sanitizeResponsesInputItems(items, true, {
-    contentMode: "responses-lite",
-  }) as Array<Record<string, unknown>>;
-  assert.deepEqual(result[0], {
-    type: "message",
-    role: "assistant",
-    content: [
-      {
-        type: "input_image",
-        image_url: "https://example.com/a.png",
-        detail: "high",
-      },
-      { type: "input_image", image_url: "https://example.com/b.png" },
     ],
   });
 });

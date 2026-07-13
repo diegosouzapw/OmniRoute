@@ -1,45 +1,19 @@
 type JsonRecord = Record<string, unknown>;
 
-export interface CodexResponsesInputNormalizationOptions {
-  contentMode?: "standard" | "responses-lite";
-}
-
-type CodexResponsesContentMode = NonNullable<
-  CodexResponsesInputNormalizationOptions["contentMode"]
->;
-
-function textPartTypeForRole(
-  role: string,
-  contentMode: CodexResponsesContentMode
-): "input_text" | "output_text" {
-  if (contentMode === "responses-lite") return "input_text";
+function textPartTypeForRole(role: string): "input_text" | "output_text" {
   return role === "assistant" ? "output_text" : "input_text";
 }
 
-function normalizeCodexMessageContentPart(
-  part: unknown,
-  role: string,
-  contentMode: CodexResponsesContentMode
-): unknown {
-  if (typeof part === "string") {
-    return { type: textPartTypeForRole(role, contentMode), text: part };
-  }
+function normalizeCodexMessageContentPart(part: unknown, role: string): unknown {
+  if (typeof part === "string") return { type: textPartTypeForRole(role), text: part };
   if (!part || typeof part !== "object" || Array.isArray(part)) return part;
 
   const record = { ...(part as JsonRecord) };
-  if (record.type === "text") record.type = textPartTypeForRole(role, contentMode);
-  // Responses-Lite accepts input content types even when the item has an assistant role.
-  // Standard Responses uses the inverse contract for assistant replay (`output_text`).
-  if (contentMode === "responses-lite" && record.type === "output_text") {
-    record.type = "input_text";
-    delete record.annotations;
-    delete record.logprobs;
-    delete record.obfuscation;
-  }
+  if (record.type === "text") record.type = textPartTypeForRole(role);
   // Assistant history in the Responses API must use `output_text` (or `refusal`),
   // never `input_text` (which is user-only). codex-cli sends assistant turns as
   // `input_text`; normalize them so the Codex/OpenAI backend accepts the replay.
-  if (contentMode === "standard" && role === "assistant" && record.type === "input_text") {
+  if (role === "assistant" && (record.type === "input_text" || record.type === "text")) {
     record.type = "output_text";
     delete record.annotations;
     delete record.logprobs;
@@ -48,27 +22,20 @@ function normalizeCodexMessageContentPart(
   return record;
 }
 
-function buildCodexMessageContent(
-  item: JsonRecord,
-  role: string,
-  contentMode: CodexResponsesContentMode
-): unknown[] {
+function buildCodexMessageContent(item: JsonRecord, role: string): unknown[] {
   if (Array.isArray(item.content)) {
-    return item.content.map((part) => normalizeCodexMessageContentPart(part, role, contentMode));
+    return item.content.map((part) => normalizeCodexMessageContentPart(part, role));
   }
   if (typeof item.content === "string") {
-    return [{ type: textPartTypeForRole(role, contentMode), text: item.content }];
+    return [{ type: textPartTypeForRole(role), text: item.content }];
   }
   if (typeof item.text === "string") {
-    return [{ type: textPartTypeForRole(role, contentMode), text: item.text }];
+    return [{ type: textPartTypeForRole(role), text: item.text }];
   }
   return [];
 }
 
-function normalizeCodexResponsesInputItem(
-  itemValue: unknown,
-  contentMode: CodexResponsesContentMode
-): unknown {
+function normalizeCodexResponsesInputItem(itemValue: unknown): unknown {
   if (typeof itemValue === "string") {
     return { type: "message", role: "user", content: [{ type: "input_text", text: itemValue }] };
   }
@@ -80,38 +47,29 @@ function normalizeCodexResponsesInputItem(
   const type = typeof item.type === "string" ? item.type : "";
 
   if (!type && item.content === undefined && typeof item.text === "string") {
-    return {
-      type: "message",
-      role,
-      content: [{ type: textPartTypeForRole(role, contentMode), text: item.text }],
-    };
+    return { type: "message", role, content: [{ type: textPartTypeForRole(role), text: item.text }] };
   }
 
   if (!type && role) item.type = "message";
   if (item.type === "message" || (!type && item.content !== undefined)) {
     item.role = role;
-    item.content = buildCodexMessageContent(item, role, contentMode);
+    item.content = buildCodexMessageContent(item, role);
     item.type = "message";
   }
 
   return item;
 }
 
-export function normalizeCodexResponsesInput(
-  body: JsonRecord,
-  options: CodexResponsesInputNormalizationOptions = {}
-): void {
-  const contentMode = options.contentMode ?? "standard";
+export function normalizeCodexResponsesInput(body: JsonRecord): void {
   if (Array.isArray(body.input)) {
-    body.input = body.input.map((item) => normalizeCodexResponsesInputItem(item, contentMode));
+    body.input = body.input.map(normalizeCodexResponsesInputItem);
     return;
   }
 
   // undefined → leave as-is; null → empty list (not [null], which would surface a bogus
   // item downstream); anything else → wrap the single item.
   if (body.input === undefined) return;
-  body.input =
-    body.input === null ? [] : [normalizeCodexResponsesInputItem(body.input, contentMode)];
+  body.input = body.input === null ? [] : [normalizeCodexResponsesInputItem(body.input)];
 }
 
 function normalizeResponsesInputItemForChat(value: unknown): unknown {
