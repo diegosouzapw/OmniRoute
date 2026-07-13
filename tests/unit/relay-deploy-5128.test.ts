@@ -4,7 +4,6 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { runInNewContext } from "node:vm";
 
 // Regression tests for #5128 — one-click relay deployments (Deno + Cloudflare +
 // Vercel) broken in v3.8.37. Four distinct, independently-reproducible bugs:
@@ -195,35 +194,46 @@ test("#6416: Cloudflare worker script body is Service Worker syntax (no top-leve
     "Cloudflare worker script must register a fetch event listener"
   );
 
-  const parseCheck = spawnSync(
-    process.execPath,
-    [
-      "--input-type=module",
-      "-e",
-      'try { new Function(process.env.WORKER_SRC || ""); } catch (error) { console.error(error?.message || String(error)); process.exit(1); }',
-    ],
-    {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cf-worker-"));
+  const tempFile = path.join(tempDir, "worker.js");
+  try {
+    fs.writeFileSync(tempFile, capturedScriptBody, "utf8");
+    const parseCheck = spawnSync(process.execPath, ["--check", tempFile], {
       encoding: "utf8",
-      env: { ...process.env, WORKER_SRC: capturedScriptBody },
+    });
+
+    assert.equal(
+      parseCheck.status,
+      0,
+      `Cloudflare worker script must be syntactically valid JavaScript (stderr: ${parseCheck.stderr.trim()})`
+    );
+
+    const privateHostnameFnSource = capturedScriptBody.match(
+      /function isPrivateHostname\(h\) \{[\s\S]*?\n\}/
+    )?.[0];
+    assert.ok(privateHostnameFnSource, "emitted worker script should contain isPrivateHostname");
+
+    const assertionScript = `${privateHostnameFnSource}
+if (!isPrivateHostname("[::1]")) throw new Error("bracketed IPv6 loopback must stay blocked");
+if (!isPrivateHostname("[fd00::1]")) throw new Error("bracketed IPv6 ULA must stay blocked");
+`;
+    fs.writeFileSync(tempFile, assertionScript, "utf8");
+    const runCheck = spawnSync(process.execPath, [tempFile], {
+      encoding: "utf8",
+    });
+
+    assert.equal(
+      runCheck.status,
+      0,
+      `Cloudflare worker script assertions failed (stderr: ${runCheck.stderr.trim()})`
+    );
+  } finally {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {
+      /* best effort */
     }
-  );
-
-  assert.equal(
-    parseCheck.status,
-    0,
-    `Cloudflare worker script must be syntactically valid JavaScript (stderr: ${parseCheck.stderr.trim()})`
-  );
-
-  const privateHostnameFnSource = capturedScriptBody.match(
-    /function isPrivateHostname\(h\) \{[\s\S]*?\n\}/
-  )?.[0];
-  assert.ok(privateHostnameFnSource, "emitted worker script should contain isPrivateHostname");
-  const isPrivateHostname = runInNewContext(
-    `${privateHostnameFnSource}; isPrivateHostname;`,
-    {}
-  ) as (host: string) => boolean;
-  assert.equal(isPrivateHostname("[::1]"), true, "bracketed IPv6 loopback must stay blocked");
-  assert.equal(isPrivateHostname("[fd00::1]"), true, "bracketed IPv6 ULA must stay blocked");
+  }
 
   // Metadata must use `body_part` (Service Worker entry) rather than
   // `main_module` (which requires an actual ES module).
