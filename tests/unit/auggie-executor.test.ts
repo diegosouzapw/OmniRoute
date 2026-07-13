@@ -385,3 +385,105 @@ test("buildUrl/buildHeaders/transformRequest match the CLI-passthrough shape", (
   assert.deepEqual(executor.buildHeaders(), {});
   assert.equal(executor.transformRequest(), null);
 });
+
+// ─── initAuggieModels / resolveAuggieModel auto-fetch ────────────────────
+
+test("initAuggieModels discovers models from `auggie model list` output", async () => {
+  const { initAuggieModels, resolveAuggieModel, __resetAuggieModels } = await import(
+    "@omniroute/open-sse/executors/auggie"
+  );
+  __resetAuggieModels(); // wipe stale cache from previous tests
+  const bin = writeFakeBin(
+    "fake-auggie-list.sh",
+    `printf '[new-model-alpha]\\nignored\\n[new-model-beta]'`
+  );
+  const prevBin = process.env.AUGGIE_BIN;
+  process.env.AUGGIE_BIN = bin;
+  try {
+    await initAuggieModels();
+    const r = resolveAuggieModel("new-model-alpha");
+    assert.deepEqual(r, { ok: true, model: "new-model-alpha" });
+  } finally {
+    if (prevBin === undefined) delete process.env.AUGGIE_BIN;
+    else process.env.AUGGIE_BIN = prevBin;
+    __resetAuggieModels(); // restore for subsequent tests
+  }
+});
+
+test("execute() spawns a model discovered via auto-fetch", async () => {
+  const { __resetAuggieModels } = await import(
+    "@omniroute/open-sse/executors/auggie"
+  );
+  __resetAuggieModels();
+  const bin = writeFakeBin(
+    "fake-auggie-autofetch.sh",
+    [
+      `case "$*" in`,
+      `  *model\\ list*)`,
+      `    printf '[auto-discovered-model]'`,
+      `    exit 0`,
+      `    ;;`,
+      `  *)`,
+      `    printf 'auto-ok'`,
+      `    ;;`,
+      `esac`,
+    ].join("\n")
+  );
+  const prevBin = process.env.AUGGIE_BIN;
+  process.env.AUGGIE_BIN = bin;
+  try {
+    const executor = new AuggieExecutor();
+    const { response } = await executor.execute({
+      model: "auto-discovered-model",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {} as never,
+    });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.choices[0].message.content, "auto-ok");
+  } finally {
+    if (prevBin === undefined) delete process.env.AUGGIE_BIN;
+    else process.env.AUGGIE_BIN = prevBin;
+    __resetAuggieModels();
+  }
+});
+
+test("initAuggieModels failure does not block execute() for a known model", async () => {
+  const { __resetAuggieModels } = await import(
+    "@omniroute/open-sse/executors/auggie"
+  );
+  __resetAuggieModels();
+  const bin = writeFakeBin(
+    "fake-auggie-crash.sh",
+    [
+      `case "$*" in`,
+      `  *model\\ list*)`,
+      `    exit 1  # crash on model list so init fails`,
+      `    ;;`,
+      `  *)`,
+      `    printf 'known-model-ok'`,
+      `    ;;`,
+      `esac`,
+    ].join("\n")
+  );
+  const prevBin = process.env.AUGGIE_BIN;
+  process.env.AUGGIE_BIN = bin;
+  try {
+    const executor = new AuggieExecutor();
+    const { response } = await executor.execute({
+      model: "haiku4.5",  // static-registry model, should work regardless
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {} as never,
+    });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.choices[0].message.content, "known-model-ok");
+  } finally {
+    if (prevBin === undefined) delete process.env.AUGGIE_BIN;
+    else process.env.AUGGIE_BIN = prevBin;
+    __resetAuggieModels();
+  }
+});
+
