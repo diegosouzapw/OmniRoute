@@ -96,6 +96,16 @@ export function processAntigravitySSEPayload(
             collected.textContent += part.text;
           }
         }
+        // Native Gemini function calls. Non-streaming responses (and some
+        // streaming ones) carry the tool call as `part.functionCall` rather than
+        // the textual `[Tool call: ...]` markdown. Without this, a tool-only
+        // response produced empty content and a 502 Provider error (#7037).
+        if (part.functionCall && typeof part.functionCall.name === "string") {
+          addAntigravityTextualToolCall(collected, {
+            name: part.functionCall.name,
+            args: part.functionCall.args ?? {},
+          });
+        }
       }
     }
     if (candidate?.finishReason) {
