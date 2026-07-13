@@ -11,7 +11,7 @@ import { syncToCloud } from "@/lib/cloudSync";
 import { validateCompositeTiersConfig } from "@/lib/combos/compositeTiers";
 import { normalizeComboModels } from "@/lib/combos/steps";
 import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/combo.ts";
-import { createComboSchema } from "@/shared/validation/schemas";
+import { createComboSchema, paginationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
@@ -23,18 +23,19 @@ export async function GET(request: Request) {
   if (authError) return authError;
 
   try {
-    const url = new URL(request.url);
-    const limitValue = url.searchParams.get("limit");
-    const offsetValue = url.searchParams.get("offset");
-    const parsedLimit = limitValue ? Number.parseInt(limitValue, 10) : undefined;
-    const parsedOffset = offsetValue ? Number.parseInt(offsetValue, 10) : undefined;
-    const limit =
-      Number.isInteger(parsedLimit) && parsedLimit && parsedLimit > 0 ? parsedLimit : undefined;
-    const offset =
-      Number.isInteger(parsedOffset) && parsedOffset && parsedOffset > 0 ? parsedOffset : undefined;
+    const { searchParams } = new URL(request.url);
+    const raw = {
+      offset: searchParams.get("offset") || undefined,
+      limit: searchParams.get("limit") || undefined,
+    };
+    const validation = validateBody(paginationSchema, raw);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
 
+    const range = validation.data;
     const total = getCombosCount();
-    const rawCombos = await getCombos(limit, offset);
+    const rawCombos = await getCombos(range.limit, range.offset);
     const combos = rawCombos.map((combo) => ({
       ...combo,
       computed_context_length: computeComboContextLength(combo, rawCombos),
