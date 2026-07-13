@@ -13,6 +13,7 @@ import {
   normalizeOutputIndex,
   normalizeUpstreamFailure,
   extractResponsesReasoningSummaryText,
+  ensureVisibleResponsesReasoningSummary,
 } from "./openai-responses/pureHelpers.ts";
 import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
 
@@ -1070,6 +1071,7 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
       !(state.reasoningItemsWithDelta instanceof Set && state.reasoningItemsWithDelta.size > 0);
     if (emittedForItem || emittedWithoutItemId) return null;
 
+    ensureVisibleResponsesReasoningSummary(item);
     const summaryText = extractResponsesReasoningSummaryText(item);
     if (!summaryText) return null;
     return buildResponsesReasoningDeltaChunk(state, summaryText);

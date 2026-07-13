@@ -53,6 +53,10 @@ import {
 } from "./responsesStreamHelpers.ts";
 import { processBufferedPassthroughLine } from "./passthroughTailProcessor.ts";
 import {
+  ensureVisibleResponsesReasoningSummary as ensureVisibleResponsesReasoningItemSummary,
+  extractResponsesReasoningSummaryText,
+} from "../translator/response/openai-responses/pureHelpers.ts";
+import {
   getAnyReasoningValue,
   getReadableReasoningValue,
   getUnsupportedReasoningValue,
@@ -1006,47 +1010,12 @@ export function createSSEStream(options: StreamOptions = {}) {
     return responseId !== null && outputIndex !== null ? `${responseId}:${outputIndex}` : null;
   };
 
-  const getResponsesReasoningSummaryText = (item: Record<string, unknown>): string => {
-    return Array.isArray(item.summary)
-      ? item.summary
-          .map((part) => {
-            if (!part || typeof part !== "object" || Array.isArray(part)) {
-              return "";
-            }
-            return typeof (part as Record<string, unknown>).text === "string"
-              ? ((part as Record<string, unknown>).text as string)
-              : "";
-          })
-          .join("")
-      : "";
-  };
-
   const ensureVisibleResponsesReasoningSummary = (payload: Record<string, unknown>): boolean => {
     const item =
       payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
         ? (payload.item as Record<string, unknown>)
         : null;
-    if (!item || item.type !== "reasoning") {
-      return false;
-    }
-
-    if (getResponsesReasoningSummaryText(item)) {
-      return false;
-    }
-
-    const hasEncryptedReasoning =
-      typeof item.encrypted_content === "string" && item.encrypted_content.length > 0;
-    if (!hasEncryptedReasoning) {
-      return false;
-    }
-
-    item.summary = [
-      {
-        type: "summary_text",
-        text: "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted state. OmniRoute cannot recover the private reasoning text.",
-      },
-    ];
-    return true;
+    return ensureVisibleResponsesReasoningItemSummary(item);
   };
 
   const emitSyntheticResponsesReasoningSummary = (
@@ -1061,8 +1030,8 @@ export function createSSEStream(options: StreamOptions = {}) {
       return;
     }
 
-    ensureVisibleResponsesReasoningSummary(payload);
-    const visibleSummary = getResponsesReasoningSummaryText(item);
+    ensureVisibleResponsesReasoningItemSummary(item);
+    const visibleSummary = extractResponsesReasoningSummaryText(item);
 
     if (!visibleSummary) {
       return;

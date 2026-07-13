@@ -163,3 +163,21 @@ export function extractResponsesReasoningSummaryText(item) {
     )
     .join("");
 }
+
+const ENCRYPTED_REASONING_SUMMARY =
+  "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted state. OmniRoute cannot recover the private reasoning text.";
+
+export function ensureVisibleResponsesReasoningSummary(item) {
+  if (
+    !item ||
+    item.type !== "reasoning" ||
+    extractResponsesReasoningSummaryText(item) ||
+    typeof item.encrypted_content !== "string" ||
+    item.encrypted_content.length === 0
+  ) {
+    return false;
+  }
+
+  item.summary = [{ type: "summary_text", text: ENCRYPTED_REASONING_SUMMARY }];
+  return true;
+}
