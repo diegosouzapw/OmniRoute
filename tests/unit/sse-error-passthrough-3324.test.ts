@@ -130,22 +130,22 @@ test("parseSSEToOpenAIResponse still returns null for an error-only SSE (boundar
   assert.equal(parseSSEToOpenAIResponse(rawSSE, "fallback-model"), null);
 });
 
-// ─── PART 1: windsurf instruction text references the IDE command-palette flow ─
+// ─── PART 1: Devin Desktop instruction text references the command-palette flow ─
 
-test("PART 1: windsurf authHint references the `Windsurf: Provide Auth Token` command", () => {
+test("PART 1: Devin Desktop authHint references the copy-key command", () => {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  // After the providers.ts oauth-constants split, the windsurf authHint moved to
+  // After the providers.ts oauth-constants split, the Devin Desktop authHint moved to
   // src/shared/constants/providers/oauth.ts.
   const providers = readFileSync(
     path.join(here, "../../src/shared/constants/providers/oauth.ts"),
     "utf8"
   );
 
-  // The windsurf authHint must lead with the IDE command-palette flow.
+  // The Devin Desktop authHint must lead with the command-palette flow.
   assert.match(
     providers,
-    /Windsurf: Provide Auth Token/,
-    "providers.ts windsurf authHint should reference the `Windsurf: Provide Auth Token` command"
+    /Devin: Copy API Key to Clipboard/,
+    "providers.ts Devin Desktop authHint should reference the copy-key command"
   );
 });
 
@@ -158,7 +158,7 @@ test("PART 1: oauth route 410 errors reference the IDE command-palette flow", ()
 
   assert.match(
     route,
-    /Windsurf: Provide Auth Token/,
-    "oauth route should direct users to the `Windsurf: Provide Auth Token` command"
+    /Devin: Copy API Key to Clipboard/,
+    "oauth route should direct users to the Devin Desktop copy-key command"
   );
 });

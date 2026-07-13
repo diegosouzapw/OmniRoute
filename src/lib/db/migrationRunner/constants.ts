@@ -69,6 +69,24 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "059",
     toName: "manifest_routing",
   },
+  {
+    fromVersion: "123",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "126",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    fromVersion: "124",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "126",
+    toName: "windsurf_to_devin_desktop",
+  },
+  {
+    fromVersion: "125",
+    fromName: "windsurf_to_devin_desktop",
+    toVersion: "126",
+    toName: "windsurf_to_devin_desktop",
+  },
 ] as const;
 
 export const LEGACY_VERSION_SLOT_MIGRATIONS = [

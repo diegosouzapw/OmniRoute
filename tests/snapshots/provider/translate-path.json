@@ -1419,6 +1419,29 @@
       "stream": "devin://acp/stdio"
     }
   },
+  "devin-desktop": {
+    "format": "windsurf",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://server.codeium.com",
+      "stream": "https://server.codeium.com"
+    }
+  },
   "dgrid": {
     "format": "openai",
     "headers": {
@@ -2272,8 +2295,8 @@
       }
     },
     "url": {
-      "nonStream": "https://cli-chat-proxy.grok.com/v1/chat/completions",
-      "stream": "https://cli-chat-proxy.grok.com/v1/chat/completions"
+      "nonStream": "https://cli-chat-proxy.grok.com/v1/responses",
+      "stream": "https://cli-chat-proxy.grok.com/v1/responses"
     }
   },
   "grok-web": {
@@ -4876,29 +4899,6 @@
     "url": {
       "nonStream": "https://api.inference.wandb.ai/v1/chat/completions",
       "stream": "https://api.inference.wandb.ai/v1/chat/completions"
-    }
-  },
-  "windsurf": {
-    "format": "windsurf",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json"
-      }
-    },
-    "url": {
-      "nonStream": "https://server.self-serve.windsurf.com",
-      "stream": "https://server.self-serve.windsurf.com"
     }
   },
   "x5lab": {

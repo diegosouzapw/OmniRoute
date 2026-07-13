@@ -224,7 +224,7 @@ const KNOWN_SVGS = new Set([
   "voyage",
   "wafer",
   "wandb",
-  "windsurf",
+  "devin-desktop",
   "x5lab",
   "xai",
   "xinference",
