@@ -346,7 +346,7 @@
     "size-limit": "^12.1.0",
     "tailwindcss": "^4.3.0",
     "type-coverage": "^2.29.7",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "typescript-eslint": "^8.59.4",
     "vitest": "^4.1.7",
     "wait-on": "^9.0.10",
