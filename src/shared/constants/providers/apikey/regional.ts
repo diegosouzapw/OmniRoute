@@ -369,4 +369,16 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     passthroughModels: true,
     authHint: "Get API key at api.hcnsec.cn",
   },
+  agnes: {
+    id: "agnes",
+    alias: "agnes",
+    name: "Agnes AI",
+    icon: "auto_awesome",
+    color: "#10B981",
+    textIcon: "AG",
+    website: "https://agnes-ai.com",
+    hasFree: true,
+    freeNote: "Permanently free API - no credit card required.",
+    authHint: "Get API key at agnes-ai.com",
+  },
 };

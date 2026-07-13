@@ -116,6 +116,7 @@ import { gitlawbProvider } from "./registry/gitlawb/index.ts";
 import { liquidProvider } from "./registry/liquid/index.ts";
 import { deepinfraProvider } from "./registry/deepinfra/index.ts";
 import { agyProvider } from "./registry/agy/index.ts";
+import { agnesProvider } from "./registry/agnes/index.ts";
 import { udioProvider } from "./registry/udio/index.ts";
 import { longcatProvider } from "./registry/longcat/index.ts";
 import { vertex_partnerProvider } from "./registry/vertex/partner/index.ts";
@@ -302,6 +303,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   liquid: liquidProvider,
   deepinfra: deepinfraProvider,
   agy: agyProvider,
+  agnes: agnesProvider,
   udio: udioProvider,
   longcat: longcatProvider,
   "vertex-partner": vertex_partnerProvider,
