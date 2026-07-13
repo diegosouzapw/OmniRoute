@@ -8,7 +8,7 @@ import {
 } from "@/shared/constants/providers";
 import { generateId } from "@/shared/utils";
 import { isCcCompatibleProviderEnabled } from "@/shared/utils/featureFlags";
-import { createProviderNodeSchema } from "@/shared/validation/schemas";
+import { createProviderNodeSchema, paginationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { validateProviderNodeBaseUrl } from "./urlGuard";
 
@@ -62,14 +62,18 @@ function sanitizeClaudeCodeCompatibleBaseUrl(baseUrl: string) {
     .replace(/\/(?:v\d+\/)?messages(?:\?[^#]*)?$/i, "");
 }
 
-// GET /api/provider-nodes - List all provider nodes
 export async function GET(request?: Request) {
   try {
     const url = new URL(request?.url ?? "http://localhost/api/provider-nodes");
-    const limitValue = url.searchParams.get("limit");
-    const offsetValue = url.searchParams.get("offset");
-    const parsedLimit = limitValue ? Number.parseInt(limitValue, 10) : undefined;
-    const parsedOffset = offsetValue ? Number.parseInt(offsetValue, 10) : undefined;
+    const raw = {
+      offset: url.searchParams.get("offset") || undefined,
+      limit: url.searchParams.get("limit") || undefined,
+    };
+    const validation = validateBody(paginationSchema, raw);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+    const { limit: parsedLimit, offset: parsedOffset } = validation.data;
     const limit =
       Number.isInteger(parsedLimit) && parsedLimit && parsedLimit > 0 ? parsedLimit : undefined;
     const offset =

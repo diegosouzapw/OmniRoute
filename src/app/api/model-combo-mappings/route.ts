@@ -4,10 +4,12 @@
  * POST — Create a new mapping
  */
 
-import { NextResponse } from "next/server";
 import { z } from "zod";
+import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createModelComboMapping, getModelComboMappings } from "@/lib/localDb";
+import { paginationSchema } from "@/shared/validation/schemas";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { validatedJsonBody } from "@/shared/validation/helpers";
 
 const createMappingSchema = z.object({
@@ -24,8 +26,15 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const limit = searchParams.has("limit") ? Number(searchParams.get("limit")) : undefined;
-    const offset = searchParams.has("offset") ? Number(searchParams.get("offset")) : 0;
+    const raw = {
+      offset: searchParams.get("offset") || undefined,
+      limit: searchParams.get("limit") || undefined,
+    };
+    const validation = validateBody(paginationSchema, raw);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+    const { limit, offset } = validation.data;
     const result = await getModelComboMappings(limit !== undefined ? { limit, offset } : undefined);
     return NextResponse.json({ mappings: result.items, total: result.total });
   } catch (error) {
