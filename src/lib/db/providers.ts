@@ -108,11 +108,20 @@ const PROVIDER_CONNECTIONS_COLUMNS = new Set([
  * projected reads (`columns` passed) bypass the raw-row cache — the cache
  * key doesn't account for projection, so a projected read could otherwise
  * poison the cache for a subsequent full-row read of the same filter.
+ *
+ * When `limit`/`offset` are provided, the cache is also bypassed since
+ * the cache key doesn't account for pagination.
  */
-export async function getProviderConnections(filter: JsonRecord = {}, columns?: string[]) {
-  const raw = columns?.length
-    ? await getRawProviderConnections(filter, columns)
-    : await getCachedRawProviderConnections(filter);
+export async function getProviderConnections(
+  filter: JsonRecord = {},
+  limit?: number,
+  offset?: number,
+  columns?: string[],
+) {
+  const useCache = !columns?.length && limit === undefined && offset === undefined;
+  const raw = useCache
+    ? await getCachedRawProviderConnections(filter)
+    : await getRawProviderConnections(filter, limit, offset, columns);
   return raw.map(createLazyRowProxy);
 }
 
@@ -126,11 +135,15 @@ export async function getProviderConnections(filter: JsonRecord = {}, columns?: 
  * 10k+ connections are filtered in JS but only 1 needs its apiKey
  * decrypted.
  *
- * @param filter.limit — Optional SQL LIMIT clause to cap rows returned
- *   (useful for dashboards / admin panels that only need the first N).
- *   Not a column filter — extracted before building WHERE conditions.
+ * @param limit — Optional SQL LIMIT clause to cap rows returned
+ * @param offset — Optional SQL OFFSET for pagination
  */
-export async function getRawProviderConnections(filter: JsonRecord = {}, columns?: string[]) {
+export async function getRawProviderConnections(
+  filter: JsonRecord = {},
+  limit?: number,
+  offset?: number,
+  columns?: string[],
+) {
   const db = getDbInstance() as unknown as DbLike;
   let selectCols = "*";
   if (columns?.length) {
@@ -161,15 +174,16 @@ export async function getRawProviderConnections(filter: JsonRecord = {}, columns
     params.authType = filter.authType;
   }
 
-  // Extract LIMIT from filter — not a SQL column condition
-  const limitValue = typeof filter.limit === "number" ? filter.limit : undefined;
+
 
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");
   }
   sql += " ORDER BY priority ASC, updated_at DESC";
-  if (limitValue !== undefined) {
-    sql += " LIMIT " + limitValue;
+  if (limit !== undefined) {
+    sql += " LIMIT @limit OFFSET @offset";
+    params.limit = limit;
+    params.offset = offset ?? 0;
   }
 
   const rows = db.prepare(sql).all(params);
@@ -184,6 +198,33 @@ export async function getRawProviderConnections(filter: JsonRecord = {}, columns
     );
   });
  }
+
+export function getProviderConnectionsCount(filter: JsonRecord = {}): number {
+  const db = getDbInstance() as unknown as DbLike;
+  let sql = "SELECT count(*) as cnt FROM provider_connections";
+  const conditions: string[] = [];
+  const params: Record<string, unknown> = {};
+
+  if (filter.provider) {
+    conditions.push("provider = @provider");
+    params.provider = filter.provider;
+  }
+  if (filter.isActive !== undefined) {
+    conditions.push("is_active = @isActive");
+    params.isActive = filter.isActive ? 1 : 0;
+  }
+  if (filter.authType) {
+    conditions.push("auth_type = @authType");
+    params.authType = filter.authType;
+  }
+
+  if (conditions.length > 0) {
+    sql += " WHERE " + conditions.join(" AND ");
+  }
+
+  const row = db.prepare(sql).get(params) as { cnt: number };
+  return row.cnt;
+}
 
 export async function getProviderConnectionById(id: string) {
   const db = getDbInstance() as unknown as DbLike;
@@ -1038,6 +1079,7 @@ export function getGheCopilotHosts(): string[] {
 
 export {
   getProviderNodes,
+  getProviderNodesCount,
   getProviderNodeById,
   resolveProviderNodeForConnection,
   createProviderNode,
