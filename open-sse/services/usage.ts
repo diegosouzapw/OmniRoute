@@ -533,6 +533,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "deepseek",
   "opencode",
   "opencode-zen",
+  "ollama-cloud",
   "xiaomi-mimo",
   "xai",
   "vertex",
