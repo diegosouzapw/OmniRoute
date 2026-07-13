@@ -257,10 +257,59 @@ test("getKiroUsage: eu-north-1 IdC account resolves quota via the eu-central-1 p
     assert.equal(result.quotas!.credit.total, 1000);
     // GetUsageLimits must have gone to the eu-central-1 runtime host, never q.eu-north-1.
     assert.ok(
-      requested.some((r) => r.includes("GetUsageLimits") && r.includes("eu-central-1")),
+      requested.some(
+        (r) =>
+          (r.includes("GetUsageLimits") || r.includes("Get-Usage-Limits")) &&
+          r.includes("eu-central-1")
+      ),
       `GetUsageLimits should hit eu-central-1, got: ${JSON.stringify(requested)}`
     );
     assert.ok(requested.every((r) => !r.includes("eu-north-1")));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("getKiroUsage prefers the native Kiro management control plane", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests: Array<{ url: string; headers: Headers }> = [];
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    requests.push({ url: String(input), headers: new Headers(init?.headers) });
+    return new Response(
+      JSON.stringify({
+        subscriptionInfo: { subscriptionTitle: "Kiro Free" },
+        usageBreakdownList: [
+          {
+            resourceType: "CREDIT",
+            currentUsageWithPrecision: 2,
+            usageLimitWithPrecision: 50,
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    const result = (await getKiroUsage("social-token", {
+      authMethod: "social",
+      provider: "Github",
+      profileArn: EU_CENTRAL_ARN,
+    })) as { plan?: string; quotas?: Record<string, { used: number; total: number }> };
+
+    assert.equal(result.plan, "Kiro Free");
+    assert.equal(result.quotas?.credit.used, 2);
+    assert.equal(
+      requests[0].url,
+      "https://management.eu-central-1.kiro.dev/Get-Usage-Limits?" +
+        "profileArn=arn%3Aaws%3Acodewhisperer%3Aeu-central-1%3A820374639727%3Aprofile%2FRX4VNUHGHGAQ&" +
+        "origin=AI_EDITOR&resourceType=AGENTIC_REQUEST&isEmailRequired=true"
+    );
+    assert.match(
+      requests[0].headers.get("user-agent") || "",
+      /api\/kirocontrolplanebearer#1\.0\.0/
+    );
+    assert.match(requests[0].headers.get("user-agent") || "", /KiroIDE-1\.0\.116-/);
   } finally {
     globalThis.fetch = originalFetch;
   }

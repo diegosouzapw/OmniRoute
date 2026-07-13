@@ -131,10 +131,8 @@ test("discoverKiroProfileArn returns undefined for empty profiles or non-ok resp
   }
 });
 
-// Regression: when a Kiro account added via Google/GitHub social-auth (authMethod "imported"
-// with provider "Google" or "Github" — set by /api/oauth/kiro/social-exchange/route.ts) has its
-// token rejected by the AWS CodeWhisperer quota API (401/403), surface a clear "auth expired,
-// chat may still work" message instead of throwing a generic upstream-error blob.
+// Regression: both legacy social imports (`imported`) and current Kiro IDE imports (`social`)
+// must surface the same useful quota-auth message when the runtime token still works.
 test("getKiroUsage returns a friendly auth-expired message for social-auth Kiro on 401/403", async () => {
   const originalFetch = globalThis.fetch;
   // First call (ListAvailableProfiles for ARN discovery) succeeds with an ARN so we proceed
@@ -159,17 +157,20 @@ test("getKiroUsage returns a friendly auth-expired message for social-auth Kiro 
     });
   }) as typeof fetch;
   try {
-    const result = (await getKiroUsage("social-tok", {
-      authMethod: "imported",
-      provider: "Google",
-    })) as { message?: string; quotas?: Record<string, unknown> };
-    assert.ok(result, "should resolve, not throw");
-    assert.ok(
-      typeof result.message === "string" && /authentication expired/i.test(result.message),
-      `expected an auth-expired message, got: ${JSON.stringify(result)}`
-    );
-    assert.deepEqual(result.quotas ?? {}, {});
-    assert.ok(callIdx >= 2, "GetUsageLimits should have been called after profile discovery");
+    for (const authMethod of ["imported", "social"]) {
+      callIdx = 0;
+      const result = (await getKiroUsage("social-tok", {
+        authMethod,
+        provider: "Google",
+      })) as { message?: string; quotas?: Record<string, unknown> };
+      assert.ok(result, "should resolve, not throw");
+      assert.ok(
+        typeof result.message === "string" && /authentication expired/i.test(result.message),
+        `expected an auth-expired message for ${authMethod}, got: ${JSON.stringify(result)}`
+      );
+      assert.deepEqual(result.quotas ?? {}, {});
+      assert.ok(callIdx >= 2, "GetUsageLimits should have been called after profile discovery");
+    }
   } finally {
     globalThis.fetch = originalFetch;
   }

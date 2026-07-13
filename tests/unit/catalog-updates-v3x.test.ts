@@ -89,27 +89,13 @@ test("Sonnet 5 catalog exposes claude-sonnet-5 across cc/kiro/anthropic/blackbox
   assert.equal(kiroSonnet5Price.output, 15.0);
 });
 
-test("Kiro catalog does NOT expose Claude Opus (fabricated — Kiro upstream has no Opus)", () => {
-  // Kiro's real upstream never served any Opus model; the Opus 4.8/4.7/4.6 ids had been
-  // copied into the Kiro registry from OmniRoute's Anthropic catalog and returned upstream
-  // 400 "Invalid model. Please select a different model". #6170 removed them.
+test("Kiro fallback catalog exposes the curated Claude lineup", () => {
   const ids = new Set(getModelsByProviderId("kiro").map((model) => model.id));
 
-  assert.equal(
-    ids.has("claude-opus-4.8"),
-    false,
-    "kiro must NOT expose claude-opus-4.8 (fabricated)"
-  );
-  assert.equal(
-    ids.has("claude-opus-4.7"),
-    false,
-    "kiro must NOT expose claude-opus-4.7 (fabricated)"
-  );
-  assert.equal(
-    ids.has("claude-opus-4.6"),
-    false,
-    "kiro must NOT expose claude-opus-4.6 (fabricated)"
-  );
+  assert.ok(ids.has("claude-opus-4.8"));
+  assert.ok(ids.has("claude-opus-4.7"));
+  assert.ok(ids.has("claude-opus-4.6"));
+  assert.ok(ids.has("claude-sonnet-4.6"));
 });
 
 test("Every Kiro registry model resolves a non-zero pricing row (no $0.00 usage)", async () => {
@@ -131,15 +117,13 @@ test("Every Kiro registry model resolves a non-zero pricing row (no $0.00 usage)
     );
   }
 
-  // Regression guard: Kiro's real Sonnet is 4.5 (the "4.6" id was fabricated — #6170) and
-  // must carry Sonnet-tier pricing ($3/$15).
-  const sonnet45 = getPricingForModel("kiro", "claude-sonnet-4.5") as {
+  const sonnet46 = getPricingForModel("kiro", "claude-sonnet-4.6") as {
     input: number;
     output: number;
   } | null;
-  assert.ok(sonnet45, "kiro pricing must include claude-sonnet-4.5");
-  assert.equal(sonnet45?.input, 3.0);
-  assert.equal(sonnet45?.output, 15.0);
+  assert.ok(sonnet46, "kiro pricing must include claude-sonnet-4.6");
+  assert.equal(sonnet46?.input, 3.0);
+  assert.equal(sonnet46?.output, 15.0);
 });
 
 test("Every OpenAI registry model resolves a non-zero pricing row (alias: openai)", async () => {

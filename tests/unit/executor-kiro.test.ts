@@ -1,10 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createRequire } from "node:module";
 
 import { KiroExecutor } from "../../open-sse/executors/kiro.ts";
 import { hasStreamReadinessSignal } from "../../open-sse/utils/streamReadiness.ts";
 
 const textEncoder = new TextEncoder();
+const { machineIdSync } = createRequire(import.meta.url)("node-machine-id") as {
+  machineIdSync: () => string;
+};
 
 function crc32(buf) {
   const table = new Uint32Array(256);
@@ -139,12 +143,39 @@ test("KiroExecutor.transformEventStreamToSSE emits an early role-only start chun
 
 test("KiroExecutor.buildHeaders includes Kiro-specific auth and metadata", () => {
   const executor = new KiroExecutor();
-  const headers = executor.buildHeaders({ accessToken: "kiro-token" }, true);
+  const headers = executor.buildHeaders(
+    {
+      accessToken: "kiro-token",
+      providerSpecificData: {
+        profileArn: "arn:aws:codewhisperer:us-east-1:123:profile/ABC",
+      },
+    },
+    true
+  );
 
   assert.equal(headers.Authorization, "Bearer kiro-token");
-  assert.equal(headers["anthropic-beta"], "prompt-caching-2024-07-31");
-  assert.equal(headers["x-amzn-bedrock-cache-control"], "enable");
+  assert.match(headers["User-Agent"], /aws-sdk-js\/1\.0\.0/);
+  assert.match(headers["User-Agent"], /api\/kiroruntime#1\.0\.0/);
+  assert.match(headers["User-Agent"], /KiroIDE-1\.0\.116-[a-f0-9]{64}$/);
+  assert.match(headers["X-Amz-User-Agent"], /KiroIDE-1\.0\.116-[a-f0-9]{64}$/);
+  assert.equal(headers["x-amzn-kiro-agent-mode"], "vibe");
+  assert.equal(headers["x-amzn-codewhisperer-optout"], "true");
+  assert.equal(headers["anthropic-beta"], undefined);
+  assert.equal(headers["x-amzn-bedrock-cache-control"], undefined);
   assert.ok(headers["Amz-Sdk-Invocation-Id"]);
+});
+
+test("KiroExecutor.buildHeaders uses the same native machine id as Kiro IDE", () => {
+  const executor = new KiroExecutor();
+  const headers = executor.buildHeaders(
+    {
+      accessToken: "kiro-token",
+      providerSpecificData: { kiroMachineId: "00000000-0000-0000-0000-000000000000" },
+    },
+    true
+  );
+
+  assert.ok(headers["User-Agent"].endsWith(`KiroIDE-1.0.116-${machineIdSync()}`));
 });
 
 test("KiroExecutor.buildHeaders marks long-lived Kiro API keys", () => {
@@ -337,6 +368,7 @@ test("KiroExecutor.execute returns upstream errors directly and transforms succe
   const executor = new KiroExecutor();
   const originalFetch = globalThis.fetch;
   const rawResponse = new Response("ok", { status: 200 });
+  const requestedUrls: string[] = [];
   let transformed = null;
   executor.transformEventStreamToSSE = (response, model) => {
     transformed = { response, model };
@@ -346,7 +378,10 @@ test("KiroExecutor.execute returns upstream errors directly and transforms succe
     });
   };
 
-  globalThis.fetch = async () => new Response("upstream error", { status: 429 });
+  globalThis.fetch = async (input) => {
+    requestedUrls.push(String(input));
+    return new Response("upstream error", { status: 429 });
+  };
   try {
     const errorResult = await executor.execute({
       model: "kiro-model",
@@ -355,6 +390,7 @@ test("KiroExecutor.execute returns upstream errors directly and transforms succe
       credentials: { accessToken: "kiro-token" },
     });
     assert.equal(errorResult.response.status, 429);
+    assert.equal(errorResult.url, "https://runtime.us-east-1.kiro.dev/generateAssistantResponse");
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -371,6 +407,26 @@ test("KiroExecutor.execute returns upstream errors directly and transforms succe
     assert.equal(successResult.response.status, 200);
     assert.equal(transformed.response, rawResponse);
     assert.equal(transformed.model, "kiro-model");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  const amazonQExecutor = new KiroExecutor("amazon-q");
+  globalThis.fetch = async (input) => {
+    requestedUrls.push(String(input));
+    return new Response("upstream error", { status: 429 });
+  };
+  try {
+    const legacyResult = await amazonQExecutor.execute({
+      model: "kiro-model",
+      body: { conversationState: {} },
+      stream: true,
+      credentials: { accessToken: "kiro-token" },
+    });
+    assert.equal(
+      legacyResult.url,
+      "https://codewhisperer.us-east-1.amazonaws.com/generateAssistantResponse"
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }

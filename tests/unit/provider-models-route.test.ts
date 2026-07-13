@@ -715,13 +715,9 @@ test("provider models route returns the expanded local catalog for Kiro", async 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "kiro");
   assert.equal(body.source, "local_catalog");
-  const kiroIds = new Set(body.models.map((model) => model.id)); // #6170: real upstream lineup
-  assert.ok(
-    kiroIds.has("claude-sonnet-5") &&
-      kiroIds.has("claude-sonnet-4.5") &&
-      kiroIds.has("claude-haiku-4.5")
-  );
-  assert.equal(kiroIds.has("claude-opus-4.7") || kiroIds.has("claude-sonnet-4.6"), false); // fabricated ids removed
+  assert.ok(body.models.some((model) => model.id === "claude-opus-4.8"));
+  assert.ok(body.models.some((model) => model.id === "claude-sonnet-5"));
+  assert.ok(body.models.some((model) => model.id === "claude-sonnet-4.6"));
 });
 
 test("provider models route returns the local catalog for new built-in chat-openai-compat providers", async () => {

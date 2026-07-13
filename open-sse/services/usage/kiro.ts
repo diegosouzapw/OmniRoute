@@ -11,18 +11,21 @@
  * getKiroUsage into __testing. Behavior-preserving move.
  */
 
-import { toRecord, toNumber } from "./scalars.ts";
-import { type UsageQuota, parseResetTime } from "./quota.ts";
-import {
-  discoverKiroProfileArnAcrossRegions,
-  kiroRuntimeHost,
-  resolveKiroRuntimeRegion,
-} from "../kiroRegion.ts";
+import { v4 as uuidv4 } from "uuid";
+
+import { buildKiroClientHeaders } from "../kiroClientProfile.ts";
 import {
   isExternalIdpAuthMethod,
   KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER,
   KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE,
 } from "../kiroExternalIdp.ts";
+import {
+  discoverKiroProfileArnAcrossRegions,
+  kiroRuntimeHost,
+  resolveKiroRuntimeRegion,
+} from "../kiroRegion.ts";
+import { type UsageQuota, parseResetTime } from "./quota.ts";
+import { toRecord, toNumber } from "./scalars.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -163,7 +166,8 @@ export async function discoverKiroProfileArn(
 }
 
 /**
- * The three GetUsageLimits attempts (CodeWhisperer POST, regional GET, Q GET) tried in
+ * The native Kiro management request followed by the three legacy GetUsageLimits attempts
+ * (CodeWhisperer POST, regional GET, Q GET) tried in
  * order by getKiroUsage — extracted so the auth-method header variants (api_key
  * `tokentype`, external_idp `TokenType`) stay in one authHeaders object and the parent
  * function stays under the function-length gate.
@@ -180,14 +184,37 @@ export async function discoverKiroProfileArn(
  */
 function buildKiroUsageAttempts(opts: {
   authHeaders: Record<string, string>;
+  managementUrl?: string;
+  managementHeaders?: Record<string, string>;
   usageParams: URLSearchParams;
   qParams: URLSearchParams;
   payload: Record<string, unknown>;
   usageBaseUrl: string;
   qBaseUrl: string;
 }): Array<{ name: string; run: () => Promise<Response> }> {
-  const { authHeaders, usageParams, qParams, payload, usageBaseUrl, qBaseUrl } = opts;
+  const {
+    authHeaders,
+    managementUrl,
+    managementHeaders,
+    usageParams,
+    qParams,
+    payload,
+    usageBaseUrl,
+    qBaseUrl,
+  } = opts;
   return [
+    ...(managementUrl
+      ? [
+          {
+            name: "kiro-management-get",
+            run: () =>
+              fetch(managementUrl, {
+                method: "GET",
+                headers: managementHeaders,
+              }),
+          },
+        ]
+      : []),
     {
       name: "codewhisperer-post",
       run: () =>
@@ -246,6 +273,62 @@ function buildKiroAuthHeaders(
     authHeaders[KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER] = KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE;
   }
   return authHeaders;
+}
+
+function createKiroUsageAttempts(opts: {
+  accessToken?: string;
+  authHeaders: Record<string, string>;
+  isApiKey: boolean;
+  profileArn?: string;
+  providerSpecificData?: JsonRecord;
+  region: string;
+}): Array<{ name: string; run: () => Promise<Response> }> {
+  const { accessToken, authHeaders, isApiKey, profileArn, providerSpecificData, region } = opts;
+  const usageParams = new URLSearchParams({
+    isEmailRequired: "true",
+    origin: "AI_EDITOR",
+    resourceType: "AGENTIC_REQUEST",
+  });
+  const qParams = new URLSearchParams({
+    origin: "AI_EDITOR",
+    ...(profileArn ? { profileArn } : {}),
+    resourceType: "AGENTIC_REQUEST",
+  });
+  const payload = {
+    origin: "AI_EDITOR",
+    ...(profileArn ? { profileArn } : {}),
+    resourceType: "AGENTIC_REQUEST",
+  };
+  const managementParams = new URLSearchParams({
+    ...(profileArn ? { profileArn } : {}),
+    origin: "AI_EDITOR",
+    resourceType: "AGENTIC_REQUEST",
+    isEmailRequired: "true",
+  });
+  const managementUrl =
+    profileArn && !isApiKey
+      ? `https://management.${region}.kiro.dev/Get-Usage-Limits?${managementParams}`
+      : undefined;
+  const managementHeaders = managementUrl
+    ? {
+        ...authHeaders,
+        ...buildKiroClientHeaders(providerSpecificData, accessToken || "", "control-plane"),
+        "amz-sdk-request": "attempt=1; max=1",
+        "amz-sdk-invocation-id": uuidv4(),
+      }
+    : undefined;
+  const usageBaseUrl = region === "us-east-1" ? CODEWHISPERER_BASE_URL : kiroRuntimeHost(region);
+
+  return buildKiroUsageAttempts({
+    authHeaders,
+    managementUrl,
+    managementHeaders,
+    usageParams,
+    qParams,
+    payload,
+    usageBaseUrl,
+    qBaseUrl: `https://q.${region}.amazonaws.com`,
+  });
 }
 
 /**
@@ -324,34 +407,14 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
     // The RUNTIME region is the profileArn region (us-east-1 / eu-central-1), never the IdC token
     // region. Route GetUsageLimits to that region's host so quota resolves for cross-region IdC.
     const region = resolveKiroRuntimeRegion({ region: storedRegion, profileArn });
-    const usageBaseUrl = region === "us-east-1" ? CODEWHISPERER_BASE_URL : kiroRuntimeHost(region);
-    const qBaseUrl = `https://q.${region}.amazonaws.com`;
-
     const authHeaders = buildKiroAuthHeaders(accessToken, isApiKey, providerSpecificData);
-
-    const usageParams = new URLSearchParams({
-      isEmailRequired: "true",
-      origin: "AI_EDITOR",
-      resourceType: "AGENTIC_REQUEST",
-    });
-    const qParams = new URLSearchParams({
-      origin: "AI_EDITOR",
-      ...(profileArn ? { profileArn } : {}),
-      resourceType: "AGENTIC_REQUEST",
-    });
-    const payload = {
-      origin: "AI_EDITOR",
-      ...(profileArn ? { profileArn } : {}),
-      resourceType: "AGENTIC_REQUEST",
-    };
-
-    const attempts = buildKiroUsageAttempts({
+    const attempts = createKiroUsageAttempts({
+      accessToken,
       authHeaders,
-      usageParams,
-      qParams,
-      payload,
-      usageBaseUrl,
-      qBaseUrl,
+      isApiKey,
+      profileArn,
+      providerSpecificData,
+      region,
     });
 
     const outcome = await runKiroUsageAttempts(attempts);
@@ -384,9 +447,7 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
     // HTTP-status failure (most informative) over a network-level error.
     throw new Error(
       outcome.lastHttpFailure ||
-        (errors.length > 0
-          ? errors[errors.length - 1]
-          : "no usage endpoint responded")
+        (errors.length > 0 ? errors[errors.length - 1] : "no usage endpoint responded")
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -395,14 +456,14 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
 }
 
 /**
- * Was this Kiro connection added via the Google/GitHub social-auth device flow
- * (POST /api/oauth/kiro/social-exchange)? That route persists
- * `{ authMethod: "imported", provider: "Google" | "Github" }` on the connection.
- * Builder-ID / IDC / kiro-cli imports use different markers and should keep the
- * existing throw-on-failure behavior.
+ * Was this Kiro connection added via Google/GitHub social auth? The legacy
+ * social-exchange route persists `imported`, while current Kiro IDE auto-import
+ * preserves the upstream `social` marker.
  */
 function isSocialAuthKiroAccount(providerSpecificData?: JsonRecord): boolean {
-  if (!providerSpecificData || providerSpecificData.authMethod !== "imported") return false;
+  if (!providerSpecificData) return false;
+  const authMethod = String(providerSpecificData.authMethod || "").toLowerCase();
+  if (authMethod !== "imported" && authMethod !== "social") return false;
   const provider =
     typeof providerSpecificData.provider === "string"
       ? providerSpecificData.provider.toLowerCase()

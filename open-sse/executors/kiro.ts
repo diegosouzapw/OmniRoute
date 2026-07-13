@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+
 import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
@@ -6,7 +8,9 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
-import { v4 as uuidv4 } from "uuid";
+import { KIRO_STREAMING_TARGET } from "../config/providerHeaderProfiles.ts";
+import { buildKiroClientHeaders } from "../services/kiroClientProfile.ts";
+import { kiroRuntimeHost, resolveKiroRuntimeRegion } from "../services/kiroRegion.ts";
 import { refreshKiroToken } from "../services/tokenRefresh.ts";
 import {
   isExternalIdpAuthMethod,
@@ -19,7 +23,6 @@ import {
   type KiroThinkingState,
 } from "./kiroThinking.ts";
 import { ByteQueue, TEXT_ENCODER, parseEventFrame } from "./kiro/eventstream.ts";
-import { kiroRuntimeHost, resolveKiroRuntimeRegion } from "../services/kiroRegion.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -189,10 +192,13 @@ export class KiroExecutor extends BaseExecutor {
     void stream;
     const headers = {
       ...this.config.headers,
+      ...buildKiroClientHeaders(
+        credentials.providerSpecificData,
+        credentials.accessToken || credentials.apiKey || "",
+        "runtime"
+      ),
       "Amz-Sdk-Request": "attempt=1; max=3",
       "Amz-Sdk-Invocation-Id": uuidv4(),
-      "x-amzn-bedrock-cache-control": "enable",
-      "anthropic-beta": "prompt-caching-2024-07-31",
     };
 
     const authMethod =
@@ -263,12 +269,21 @@ export class KiroExecutor extends BaseExecutor {
     log,
     upstreamExtraHeaders,
   }: ExecuteInput) {
-    // Route to the region-specific CodeWhisperer/Amazon Q endpoint. Enterprise IAM Identity
-    // Center accounts (e.g. eu-central-1) are rejected by the default us-east-1 host; only the
-    // regional endpoint accepts the region-bound token + profileArn.
+    // Current Kiro IDE accounts use the regional native runtime. Keep the legacy
+    // CodeWhisperer/Amazon Q host for Amazon Q and long-lived Kiro API keys.
     const region = resolveKiroRegion(credentials);
-    const url = `${kiroRuntimeHost(region)}/generateAssistantResponse`;
+    const authMethod = credentials.providerSpecificData?.authMethod;
+    const useLegacyRuntime = this.provider === "amazon-q" || authMethod === "api_key";
+    const baseUrl = useLegacyRuntime
+      ? kiroRuntimeHost(region)
+      : `https://runtime.${region}.kiro.dev`;
+    const url = `${baseUrl}/generateAssistantResponse`;
     const headers = this.buildHeaders(credentials, stream);
+    if (useLegacyRuntime) {
+      headers["X-Amz-Target"] = KIRO_STREAMING_TARGET;
+    } else {
+      delete headers["X-Amz-Target"];
+    }
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
     const transformedBody = await this.transformRequest(model, body, stream, credentials);
 

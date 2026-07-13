@@ -25,7 +25,13 @@ function jsonResponse(body: unknown, status = 200): Response {
 test("parseKiroModels reads CodeWhisperer ListAvailableModels shape", () => {
   const models = parseKiroModels({
     models: [
-      { modelId: "auto", modelName: "Auto" },
+      {
+        modelId: "auto",
+        modelName: "Auto",
+        description: "Automatically selects a model",
+        rateMultiplier: 1,
+        tokenLimits: { maxInputTokens: 1_000_000, maxOutputTokens: 64_000 },
+      },
       { modelId: "claude-sonnet-4.6", modelName: "Claude Sonnet 4.6" },
       { modelId: "claude-sonnet-4.6" }, // duplicate id is ignored
       { modelName: "no id" }, // missing id is skipped
@@ -38,6 +44,11 @@ test("parseKiroModels reads CodeWhisperer ListAvailableModels shape", () => {
   );
   assert.equal(models[1].name, "Claude Sonnet 4.6");
   assert.equal(models[0].owned_by, "kiro");
+  assert.equal(models[0].contextLength, 1_000_000);
+  assert.equal(models[0].inputTokenLimit, 1_000_000);
+  assert.equal(models[0].outputTokenLimit, 64_000);
+  assert.equal(models[0].rateMultiplier, 1);
+  assert.equal(models[0].description, "Automatically selects a model");
 });
 
 test("resolveKiroRegion prefers stored region, then profileArn, else us-east-1", () => {
@@ -50,11 +61,13 @@ test("resolveKiroRegion prefers stored region, then profileArn, else us-east-1",
   assert.equal(resolveKiroRegion(null), "us-east-1");
 });
 
-test("buildKiroModelsEndpoints is region-matched with a us-east-1 fallback", () => {
+test("buildKiroModelsEndpoints prefers Kiro management and retains Amazon Q fallbacks", () => {
   assert.deepEqual(buildKiroModelsEndpoints("us-east-1"), [
+    "https://management.us-east-1.kiro.dev/List-Available-Models",
     "https://q.us-east-1.amazonaws.com/ListAvailableModels",
   ]);
   assert.deepEqual(buildKiroModelsEndpoints("eu-central-1"), [
+    "https://management.eu-central-1.kiro.dev/List-Available-Models",
     "https://q.eu-central-1.amazonaws.com/ListAvailableModels",
     "https://q.us-east-1.amazonaws.com/ListAvailableModels",
   ]);
@@ -62,8 +75,10 @@ test("buildKiroModelsEndpoints is region-matched with a us-east-1 fallback", () 
 
 test("fetchKiroAvailableModels: simple (Builder ID) account, us-east-1, origin-only", async () => {
   const calls: string[] = [];
-  const fetchImpl = (async (url: string) => {
+  let requestHeaders = new Headers();
+  const fetchImpl = (async (url: string, init?: RequestInit) => {
     calls.push(url);
+    requestHeaders = new Headers(init?.headers);
     return jsonResponse({ models: [{ modelId: "claude-sonnet-4.6" }, { modelId: "auto" }] });
   }) as unknown as typeof fetch;
 
@@ -75,17 +90,14 @@ test("fetchKiroAvailableModels: simple (Builder ID) account, us-east-1, origin-o
   });
 
   assert.equal(result.source, "api");
-  assert.deepEqual(result.models.map((m) => m.id).sort(), [
-    "auto",
-    "auto-thinking",
-    "claude-sonnet-4.6",
-    "claude-sonnet-4.6-agentic",
-    "claude-sonnet-4.6-thinking",
-    "claude-sonnet-4.6-thinking-agentic",
-  ]);
+  assert.deepEqual(result.models.map((m) => m.id).sort(), ["auto", "claude-sonnet-4.6"]);
   assert.deepEqual(calls, [
-    "https://q.us-east-1.amazonaws.com/ListAvailableModels?origin=AI_EDITOR",
+    "https://management.us-east-1.kiro.dev/List-Available-Models?origin=AI_EDITOR",
   ]);
+  assert.match(requestHeaders.get("user-agent") || "", /api\/kirocontrolplanebearer#1\.0\.0/);
+  assert.match(requestHeaders.get("user-agent") || "", /KiroIDE-1\.0\.116-/);
+  assert.match(requestHeaders.get("x-amz-user-agent") || "", /KiroIDE-1\.0\.116-/);
+  assert.doesNotMatch(requestHeaders.get("user-agent") || "", /os\/windows#10\.0\.26200/);
 });
 
 test("fetchKiroAvailableModels: IAM Identity Center account, region-matched endpoint", async () => {
@@ -106,20 +118,15 @@ test("fetchKiroAvailableModels: IAM Identity Center account, region-matched endp
   assert.equal(result.source, "api");
   assert.deepEqual(
     result.models.map((m) => m.id),
-    [
-      "claude-opus-4.8",
-      "claude-opus-4.8-thinking",
-      "claude-opus-4.8-agentic",
-      "claude-opus-4.8-thinking-agentic",
-    ]
+    ["claude-opus-4.8"]
   );
   assert.equal(
     calls[0],
-    "https://q.eu-central-1.amazonaws.com/ListAvailableModels?origin=AI_EDITOR"
+    "https://management.eu-central-1.kiro.dev/List-Available-Models?origin=AI_EDITOR"
   );
 });
 
-test("fetchKiroAvailableModels: retries with profileArn when origin-only fails", async () => {
+test("fetchKiroAvailableModels: sends a stored profileArn on the first management request", async () => {
   const calls: string[] = [];
   const fetchImpl = (async (url: string) => {
     calls.push(url);
@@ -142,17 +149,11 @@ test("fetchKiroAvailableModels: retries with profileArn when origin-only fails",
   assert.equal(result.source, "api");
   assert.deepEqual(
     result.models.map((m) => m.id),
-    [
-      "claude-sonnet-4.6",
-      "claude-sonnet-4.6-thinking",
-      "claude-sonnet-4.6-agentic",
-      "claude-sonnet-4.6-thinking-agentic",
-    ]
+    ["claude-sonnet-4.6"]
   );
-  // origin-only attempted first, then profileArn retry.
-  assert.equal(calls.length, 2);
-  assert.ok(calls[0].endsWith("?origin=AI_EDITOR"));
-  assert.ok(calls[1].includes("profileArn=arn%3Aaws%3Acodewhisperer"));
+  assert.equal(calls.length, 1);
+  assert.ok(calls[0].startsWith("https://management.us-east-1.kiro.dev/"));
+  assert.ok(calls[0].includes("profileArn=arn%3Aaws%3Acodewhisperer"));
 });
 
 test("fetchKiroAvailableModels: falls back to static catalog when no token", async () => {

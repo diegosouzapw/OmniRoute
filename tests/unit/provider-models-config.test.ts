@@ -89,9 +89,7 @@ test("GitHub Copilot registry reflects the current supported model lineup", () =
 
   assert.deepEqual(ids, [...GITHUB_COPILOT_MODEL_ALLOWLIST]);
   assert.equal(getModelTargetFormat("gh", "gpt-5.3-codex"), "openai-responses");
-  // "claude-opus-4.6" is not a real Copilot model id (unlike claude-sonnet-4.6);
-  // it never appears in the registry, so its target format stays null.
-  assert.equal(getModelTargetFormat("gh", "claude-opus-4.6"), null);
+  assert.equal(getModelTargetFormat("gh", "claude-opus-4.6"), "claude");
   // Claude models route through Copilot's Anthropic-native /v1/messages shim
   // (executors/github.ts) — the only endpoint that surfaces prompt-cache token
   // counts for Claude and avoids a lossy tool_use/tool_result round-trip through
@@ -110,19 +108,17 @@ test("GitHub Copilot registry reflects the current supported model lineup", () =
   assert.equal(ids.includes("gemini-3-flash-preview"), false);
 });
 
-test("Kiro registry exposes the current CLI model lineup with context windows", () => {
+test("Kiro registry exposes the curated IDE fallback lineup with context windows", () => {
   const kiroModels = getProviderModels("kr");
   const byId = new Map(kiroModels.map((model) => [model.id, model]));
 
-  // Kiro's real upstream Claude lineup (#6170): Sonnet 5 / Sonnet 4.5 / Haiku 4.5.
-  // The Opus 4.x and Sonnet 4.6 ids were fabricated (copied from the Anthropic
-  // catalog) and returned upstream 400 "Invalid model" — removed.
+  assert.ok(byId.has("claude-opus-4.8"));
+  assert.ok(byId.has("claude-opus-4.7"));
+  assert.ok(byId.has("claude-opus-4.6"));
   assert.ok(byId.has("claude-sonnet-5"));
   assert.equal(byId.get("claude-sonnet-5")?.contextLength, 1000000);
-  assert.ok(byId.has("claude-sonnet-4.5"));
+  assert.ok(byId.has("claude-sonnet-4.6"));
   assert.ok(byId.has("claude-haiku-4.5"));
-  assert.equal(byId.has("claude-opus-4.7"), false);
-  assert.equal(byId.has("claude-sonnet-4.6"), false);
   assert.equal(byId.has("claude-sonnet-4-6"), false);
   assert.equal(byId.has("claude-haiku-4-5"), false);
 });
