@@ -1,1 +1,0 @@
-- perf(api): relay chat-completions routes now thread the already-fetched `RelayToken` into `checkRateLimit`, skipping a redundant `SELECT * FROM relay_tokens WHERE id = ?` re-query on every request (#6930)
