@@ -63,8 +63,11 @@ export async function GET(request: Request): Promise<Response> {
   if (authError) return authError;
 
   try {
-    const presets = listPlaygroundPresets();
-    return new Response(JSON.stringify({ presets }), {
+    const { searchParams } = new URL(request.url);
+    const limit = searchParams.has("limit") ? Number(searchParams.get("limit")) : undefined;
+    const offset = searchParams.has("offset") ? Number(searchParams.get("offset")) : 0;
+    const result = listPlaygroundPresets(limit !== undefined ? { limit, offset } : undefined);
+    return new Response(JSON.stringify({ presets: result.items, total: result.total }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...CORS_HEADERS },
     });

@@ -23,9 +23,12 @@ export async function GET(request: Request) {
   if (authError) return authError;
 
   try {
-    const mappings = await getModelComboMappings();
-    return NextResponse.json({ mappings });
-  } catch (error: any) {
+    const { searchParams } = new URL(request.url);
+    const limit = searchParams.has("limit") ? Number(searchParams.get("limit")) : undefined;
+    const offset = searchParams.has("offset") ? Number(searchParams.get("offset")) : 0;
+    const result = await getModelComboMappings(limit !== undefined ? { limit, offset } : undefined);
+    return NextResponse.json({ mappings: result.items, total: result.total });
+  } catch (error) {
     console.error("Failed to list model-combo mappings:", error);
     return NextResponse.json({ error: "Failed to list model-combo mappings" }, { status: 500 });
   }

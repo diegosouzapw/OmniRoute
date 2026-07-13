@@ -237,17 +237,30 @@ function getAssignmentRow(
   return row ? mapAssignmentRow(row) : null;
 }
 
-export async function listProxies(options?: { includeSecrets?: boolean }) {
-  const includeSecrets = options?.includeSecrets === true;
-  const db = getDbInstance();
-  const rows = db
-    .prepare(
-      "SELECT id, name, type, host, port, username, password, region, notes, status, source, family, created_at, updated_at FROM proxy_registry ORDER BY datetime(updated_at) DESC, name ASC"
-    )
-    .all();
+interface CountResult {
+  cnt: number;
+}
 
+export async function listProxies(options?: {
+  includeSecrets?: boolean;
+  limit?: number;
+  offset?: number;
+}) {
+  const includeSecrets = options?.includeSecrets === true;
+  const limit = options?.limit;
+  const offset = options?.offset ?? 0;
+  const db = getDbInstance();
+  let sql =
+    "SELECT id, name, type, host, port, username, password, region, notes, status, source, family, created_at, updated_at FROM proxy_registry ORDER BY datetime(updated_at) DESC, name ASC";
+  const params: unknown[] = [];
+  if (limit !== undefined) {
+    sql += " LIMIT ? OFFSET ?";
+    params.push(limit, offset);
+  }
+  const rows = db.prepare(sql).all(...params) as unknown[];
+  const total = db.prepare<CountResult>("SELECT count(*) as cnt FROM proxy_registry").get()!.cnt;
   const proxies = rows.map(mapProxyRow);
-  return includeSecrets ? proxies : proxies.map(redactProxySecrets);
+  return { items: includeSecrets ? proxies : proxies.map(redactProxySecrets), total };
 }
 
 export async function getProxyById(id: string, options?: { includeSecrets?: boolean }) {
