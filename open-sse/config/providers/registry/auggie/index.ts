@@ -16,10 +16,10 @@ export const auggieProvider: RegistryEntry = {
   defaultContextLength: 200000,
   models: [
     // ── Anthropic Claude ────────────────────────────────────────────────
+    { id: "sonnet4.6", name: "Sonnet 4.6", contextLength: 200000 },
     { id: "fable-5", name: "Claude Fable 5", contextLength: 200000 },
     { id: "haiku4.5", name: "Haiku 4.5", contextLength: 200000 },
     { id: "sonnet4.5", name: "Sonnet 4.5", contextLength: 200000 },
-    { id: "sonnet4.6", name: "Sonnet 4.6", contextLength: 200000 },
     { id: "sonnet4.6-500k", name: "Sonnet 4.6 (500K)", contextLength: 500000 },
     { id: "sonnet5-high", name: "Claude Sonnet 5", contextLength: 200000 },
     { id: "sonnet5-500k", name: "Claude Sonnet 5 (500K)", contextLength: 500000 },
