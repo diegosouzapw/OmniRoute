@@ -181,6 +181,12 @@ const STREAM_SUMMARY_TEXT_LIMIT = 64 * 1024;
 
 function appendBoundedText(current: string, next: string): string {
   if (!next) return current;
+  // Avoid allocating `current + next` when already at/above limit — slide the window instead.
+  if (current.length >= STREAM_SUMMARY_TEXT_LIMIT) {
+    const keep =
+      STREAM_SUMMARY_TEXT_LIMIT > next.length ? STREAM_SUMMARY_TEXT_LIMIT - next.length : 0;
+    return current.slice(-keep) + next;
+  }
   const combined = current + next;
   if (combined.length <= STREAM_SUMMARY_TEXT_LIMIT) return combined;
   return combined.slice(-STREAM_SUMMARY_TEXT_LIMIT);
@@ -189,6 +195,16 @@ function appendBoundedText(current: string, next: string): string {
 function parseTextualToolCallFromContent(text: unknown): { name: string; args: unknown } | null {
   const candidate = parseTextualToolCallCandidate(text);
   return candidate?.kind === "complete" ? { name: candidate.name, args: candidate.args } : null;
+}
+
+/** Per-chunk recursive check for meaningful delta content. Hoisted to avoid closure re-allocation in hot-path. */
+function hasActiveDeltaValue(value: unknown): boolean {
+  if (typeof value === "string") return value.length > 0;
+  if (Array.isArray(value)) return value.some((entry) => hasActiveDeltaValue(entry));
+  if (value && typeof value === "object") {
+    return Object.values(value).some((entry) => hasActiveDeltaValue(entry));
+  }
+  return value !== null && value !== undefined;
 }
 
 function containsTextualToolCallCandidate(text: unknown): boolean {
@@ -1153,13 +1169,14 @@ export function createSSEStream(options: StreamOptions = {}) {
 
       transform(chunk, controller) {
         if (streamTimedOut) return;
-        lastChunkTime = Date.now();
+        const now = Date.now();
+        lastChunkTime = now;
         const text = decoder.decode(chunk, { stream: true });
         buffer += text;
         reqLogger?.appendProviderChunk?.(text);
-
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+        const nlIdx = buffer.lastIndexOf("\n");
+        const lines = nlIdx >= 0 ? buffer.slice(0, nlIdx).split("\n") : [];
+        if (nlIdx >= 0) buffer = buffer.slice(nlIdx + 1);
 
         for (const line of multilineSseDataLineNormalizer.normalize(lines)) {
           const trimmed = line.trim();
@@ -1262,15 +1279,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                 // bootstrap chunk (assistant role + empty content) before emitting proper
                 // `response.*` events. That chunk is invalid on /v1/responses and breaks strict
                 // clients like OpenCode, so drop it only for Responses-native consumers.
-                const hasActiveDeltaValue = (value: unknown): boolean => {
-                  if (typeof value === "string") return value.length > 0;
-                  if (Array.isArray(value))
-                    return value.some((entry) => hasActiveDeltaValue(entry));
-                  if (value && typeof value === "object") {
-                    return Object.values(value).some((entry) => hasActiveDeltaValue(entry));
-                  }
-                  return value !== null && value !== undefined;
-                };
 
                 const isEmptyAssistantBootstrapChunkForResponsesClient =
                   clientExpectsResponsesStream &&
@@ -1738,7 +1746,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // T18: Track if we saw tool calls & accumulate for call log
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {
                     passthroughHasToolCalls = true;
-                    lastToolCallChunkTime = Date.now();
+                    lastToolCallChunkTime = now;
                     for (const tc of delta.tool_calls) {
                       // Note: sanitizeStreamingChunk above already coerces non-string
                       // tool_call IDs, but this defensive check catches edge cases
@@ -1787,7 +1795,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                       const lastChunkTs = lastToolCallChunkTime;
                       if (toolTs || lastChunkTs) {
                         contentAfterToolSeen = true;
-                        const now = Date.now();
                         try {
                           recordToolLatency(
                             provider || "unknown",
@@ -1824,7 +1831,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   const isFinishChunk = parsed.choices?.[0]?.finish_reason;
 
                   if (isFinishChunk && passthroughHasToolCalls) {
-                    toolFinishTime = Date.now();
+                    toolFinishTime = now;
                     try {
                       markToolFinish(sessionId);
                     } catch {}
@@ -1949,10 +1956,10 @@ export function createSSEStream(options: StreamOptions = {}) {
           }
 
           if (parsed.choices?.[0]?.delta?.tool_calls) {
-            lastToolCallChunkTime = Date.now();
+            lastToolCallChunkTime = now;
           }
           if (parsed.choices?.[0]?.finish_reason === "tool_calls") {
-            toolFinishTime = Date.now();
+            toolFinishTime = now;
             try {
               markToolFinish(sessionId);
             } catch {}
@@ -2063,7 +2070,6 @@ export function createSSEStream(options: StreamOptions = {}) {
             const lastChunkTs = lastToolCallChunkTime;
             if (toolTs || lastChunkTs) {
               contentAfterToolSeen = true;
-              const now = Date.now();
               try {
                 recordToolLatency(
                   provider || "unknown",

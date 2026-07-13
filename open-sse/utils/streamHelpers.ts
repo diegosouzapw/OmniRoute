@@ -432,8 +432,8 @@ export function fixInvalidId(parsed: Record<string, unknown>): boolean {
 // Remove null perf_metrics from usage (common across formats)
 function cleanPerfMetrics(data: unknown): unknown {
   if (isRecord(data) && isRecord(data.usage) && data.usage.perf_metrics === null) {
-    const { perf_metrics, ...usageWithoutPerf } = data.usage;
-    return { ...data, usage: usageWithoutPerf };
+    // Mutate in-place to avoid spread copy per chunk — data is ephemeral, used only for serialization.
+    delete data.usage.perf_metrics;
   }
   return data;
 }
