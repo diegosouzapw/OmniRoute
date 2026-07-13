@@ -124,19 +124,12 @@ const GPT_5_6_MAX_ALIAS_MODELS = new Set(["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5
 const GPT_5_6_ULTRA_ALIAS_MODELS = new Set(["gpt-5.6-sol", "gpt-5.6-terra"]);
 const CODEX_FAST_WIRE_VALUE = "priority";
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
-const CODEX_RESPONSES_LITE_HEADER = "x-openai-internal-codex-responses-lite";
-const CODEX_RESPONSES_LITE_WS_METADATA_KEY =
-  "ws_request_header_x_openai_internal_codex_responses_lite";
-
-function stripCodexProviderPrefix(model: unknown): string {
-  return typeof model === "string" ? model.trim().replace(/^(?:codex|cx)\//i, "") : "";
-}
 
 function splitCodexReasoningSuffix(model: unknown): {
   baseModel: string;
   effort: EffortLevel | null;
 } {
-  const modelId = stripCodexProviderPrefix(model);
+  const modelId = typeof model === "string" ? model : "";
   const gpt56AliasMatch = /^(gpt-5\.6-(?:sol|terra|luna))-(max|ultra)$/.exec(modelId);
   if (gpt56AliasMatch) {
     const [, baseModel, alias] = gpt56AliasMatch;
@@ -160,10 +153,6 @@ function splitCodexReasoningSuffix(model: unknown): {
 
 export function getCodexUpstreamModel(model: unknown): string {
   return splitCodexReasoningSuffix(model).baseModel;
-}
-
-export function usesCodexResponsesLiteInput(model: unknown): boolean {
-  return /^gpt-5\.6-(?:sol|terra|luna)$/.test(getCodexUpstreamModel(model));
 }
 
 /**
@@ -822,12 +811,6 @@ export class CodexExecutor extends BaseExecutor {
     const nextInput = { ...input, credentials };
 
     if (!isCodexResponsesWebSocketRequired(nextInput.model, nextInput.credentials)) {
-      if (usesCodexResponsesLiteInput(nextInput.model)) {
-        nextInput.upstreamExtraHeaders = {
-          ...nextInput.upstreamExtraHeaders,
-          [CODEX_RESPONSES_LITE_HEADER]: "true",
-        };
-      }
       const httpResult = await super.execute(nextInput);
       if (codexDropNonstandardEvents()) {
         const resp = (httpResult as { response?: Response }).response;
@@ -859,9 +842,7 @@ export class CodexExecutor extends BaseExecutor {
     }
 
     const url = CODEX_RESPONSES_WS_URL;
-    const headers = normalizeCodexWsHeaders(
-      this.buildHeaders(nextInput.credentials, true, null, nextInput.model)
-    );
+    const headers = normalizeCodexWsHeaders(this.buildHeaders(nextInput.credentials, true));
     mergeUpstreamExtraHeaders(headers, nextInput.upstreamExtraHeaders);
 
     const transformedBody = (await this.transformRequest(
@@ -1075,19 +1056,9 @@ export class CodexExecutor extends BaseExecutor {
    * Always request event-stream from upstream, even when client requested stream=false.
    * Includes chatgpt-account-id header for strict workspace binding.
    */
-  buildHeaders(
-    credentials: ProviderCredentials,
-    stream = true,
-    clientHeaders?: Record<string, string> | null,
-    model?: string
-  ) {
+  buildHeaders(credentials: ProviderCredentials, stream = true) {
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
-    const headers = super.buildHeaders(
-      credentials,
-      isCompactRequest ? false : true,
-      clientHeaders,
-      model
-    );
+    const headers = super.buildHeaders(credentials, isCompactRequest ? false : true);
     headers.Version = getCodexClientVersion();
     setUserAgentHeader(headers, getCodexUserAgent());
 
@@ -1102,9 +1073,6 @@ export class CodexExecutor extends BaseExecutor {
     // Originator header — identifies the client type to the Codex backend.
     // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
     headers["originator"] = "codex_cli_rs";
-    if (usesCodexResponsesLiteInput(model)) {
-      headers[CODEX_RESPONSES_LITE_HEADER] = "true";
-    }
 
     // session_id header — enables prompt cache affinity on the Codex backend.
     // The official Codex client sets this to conversation_id (a stable UUID per session).
@@ -1264,15 +1232,11 @@ export class CodexExecutor extends BaseExecutor {
       }));
     }
 
-    const codexInputContentMode = usesCodexResponsesLiteInput(body.model ?? model)
-      ? "responses-lite"
-      : "standard";
-    normalizeCodexResponsesInput(body, { contentMode: codexInputContentMode });
+    normalizeCodexResponsesInput(body);
 
     if (Array.isArray(body.input)) {
       body.input = sanitizeResponsesInputItems(body.input, false, {
         dropInternalAssistantMessages: !nativeCodexPassthrough,
-        contentMode: codexInputContentMode,
       });
     }
     repairMissingCodexFunctionCallOutputs(body);
@@ -1390,9 +1354,6 @@ export class CodexExecutor extends BaseExecutor {
       };
     }
     ensureCodexReasoningSummary(body);
-    if (codexInputContentMode === "responses-lite" && body.reasoning) {
-      (body.reasoning as Record<string, unknown>).context = "all_turns";
-    }
     if (isCompactRequest) {
       delete body.include;
     }
@@ -1438,18 +1399,6 @@ export class CodexExecutor extends BaseExecutor {
         credentials?.providerSpecificData?.codexClientIdentity as
           CodexClientIdentity | null | undefined
       );
-      if (codexInputContentMode === "responses-lite") {
-        const existingClientMetadata =
-          body.client_metadata &&
-          typeof body.client_metadata === "object" &&
-          !Array.isArray(body.client_metadata)
-            ? (body.client_metadata as Record<string, unknown>)
-            : {};
-        body.client_metadata = {
-          ...existingClientMetadata,
-          [CODEX_RESPONSES_LITE_WS_METADATA_KEY]: "true",
-        };
-      }
     }
 
     // Delete session_id and conversation_id from the body.
