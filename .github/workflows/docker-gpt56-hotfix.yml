@@ -1,0 +1,58 @@
+name: Publish GPT-5.6 Responses-Lite Hotfix
+
+on:
+  push:
+    branches:
+      - dev/gpt56-responses-lite-hotfix
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-gpt56-responses-lite-hotfix
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: ghcr.io/jxnlexn/omniroute
+
+jobs:
+  build:
+    name: Build and publish linux/amd64 image
+    if: github.repository == 'JxnLexn/OmniRoute'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push hotfix image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: runner-base
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:gpt56-responses-lite
+            ${{ env.IMAGE_NAME }}:gpt56-responses-lite-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.description=Temporary GPT-5.6 Responses-Lite compatibility hotfix
+          cache-from: type=gha,scope=gpt56-responses-lite-amd64
+          cache-to: type=gha,scope=gpt56-responses-lite-amd64,mode=max
