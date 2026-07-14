@@ -46,6 +46,18 @@ queue_rules:
     merge_method: squash
 
 pull_request_rules:
+  # AUTO-ENQUEUE trigger — queue_conditions alone only define ELIGIBILITY in current
+  # Mergify semantics (without this rule the PR sits at "use @Mergifyio queue",
+  # observed live on PR #7175). The conditions mirror queue_conditions on purpose.
+  - name: queue on owner-applied label
+    conditions:
+      - base~=^release/v\d+\.\d+\.\d+$
+      - label=queue
+      - -draft
+      - -conflict
+    actions:
+      queue:
+        name: release
   - name: clean up the queue label after merge
     conditions:
       - merged
