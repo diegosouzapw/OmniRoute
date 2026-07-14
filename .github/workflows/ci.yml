@@ -611,10 +611,19 @@ jobs:
       - run: npm run check:pack-artifact
 
   electron-package-smoke:
-    name: Electron Package Smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
+    name: Electron Package Smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     needs: build
+    # WS1.5 (v3.8.49 plan): the Electron rebuild/spawn path previously executed for
+    # the FIRST time on the release tag — the v3.8.48 Windows bug (npx.cmd spawned
+    # without shell, CVE-2024-27980 behavior change) could only surface at release.
+    # windows-latest runs prepare:bundle (the ABI rebuild + spawn plan) per release
+    # PR; ubuntu keeps the full pack + headless smoke.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     env:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -640,9 +649,15 @@ jobs:
         working-directory: electron
         run: npm install --no-audit --no-fund
       - name: Pack Electron app
+        if: runner.os == 'Linux'
         working-directory: electron
         run: npm run pack
+      - name: Prepare Electron standalone (Windows ABI rebuild + spawn path)
+        if: runner.os == 'Windows'
+        working-directory: electron
+        run: npm run prepare:bundle
       - name: Smoke packaged Electron app
+        if: runner.os == 'Linux'
         env:
           ELECTRON_SMOKE_TIMEOUT_MS: 60000
         run: xvfb-run -a npm run electron:smoke:packaged
