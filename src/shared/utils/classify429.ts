@@ -53,6 +53,14 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /individual quota reached/i,
   /enable overages/i,
   /INSUFFICIENT_G1_CREDITS_BALANCE/i,
+
+  // Cloudflare Workers AI free tier: "you have used up your daily free
+  // allocation of 10,000 neurons" (workers-ai error 4006). It is a daily
+  // account-wide quota, not a rate-limit — misclassification locked the
+  // connection for only ~5s and retried every ~60s against a budget that
+  // only resets at UTC midnight. Defense-in-depth for the classify429FromError
+  // path (the providerErrorRules entry is the primary fix). (OmniRoute #6980)
+  /daily free allocation/i,
 ];
 
 /**
