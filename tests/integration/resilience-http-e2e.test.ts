@@ -9,6 +9,8 @@ import net from "node:net";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import { postChat, warmUpChatRoute } from "./resilienceHttpTestHelpers.ts";
+
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-resilience-http-e2e-"));
 const DASHBOARD_PORT = await getFreePort();
 const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -418,60 +420,6 @@ async function getJson(url: string) {
   const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
   const json = (await response.json()) as any;
   return { response, json };
-}
-
-class NonJsonChatResponseError extends Error {
-  readonly status: number;
-
-  constructor(response: Response, text: string) {
-    const contentType = response.headers.get("content-type") || "unknown";
-    const bodyPreview = text.replace(/\s+/g, " ").trim().slice(0, 500);
-    super(
-      `Chat endpoint returned non-JSON response (HTTP ${response.status}, ${contentType}): ${bodyPreview}`
-    );
-    this.name = "NonJsonChatResponseError";
-    this.status = response.status;
-  }
-}
-
-async function postChat(baseUrl: string, model: string, content: string) {
-  const response = await fetch(`${baseUrl}/api/v1/chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model,
-      stream: false,
-      messages: [{ role: "user", content }],
-    }),
-    signal: AbortSignal.timeout(20_000),
-  });
-  const text = await response.text();
-  let json: unknown = {};
-  if (text) {
-    try {
-      json = JSON.parse(text);
-    } catch {
-      throw new NonJsonChatResponseError(response, text);
-    }
-  }
-  return { response, json };
-}
-
-async function warmUpChatRoute(baseUrl: string, model: string, content: string) {
-  const maxAttempts = 3;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    try {
-      const result = await postChat(baseUrl, model, content);
-      if (result.response.status < 500 || attempt === maxAttempts) return result;
-    } catch (error) {
-      if (!(error instanceof NonJsonChatResponseError) || attempt === maxAttempts) throw error;
-    }
-
-    await sleep(attempt * 500);
-  }
-
-  throw new Error("Chat route warm-up exhausted without a response");
 }
 
 const relay = createFakeOpenAiRelay();
