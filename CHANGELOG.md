@@ -6,10 +6,6 @@
 
 ## [3.8.49] — TBD
 
-### 🐛 Bug Fixes
-
-- **fix(executors):** forward agent-supplied `X-Session-ID`/`X-Title` metadata headers to upstream providers — previously dropped for every client outside the `x-opencode-*` allowlist. (thanks @chitholian)
-
 ---
 
 ## [3.8.48] — 2026-07-13
