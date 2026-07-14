@@ -1,0 +1,1 @@
+- **CI**: E2E matrix shards are now duration-balanced (LPT bin-packing over `config/quality/e2e-timings.json`) instead of Playwright's count-based `--shard` — measured skew was 14× (24m47s vs 1m47s), making E2E the CI critical path; the balancer self-verifies that every spec lands in exactly one shard and falls back to plain `--shard` on any inconsistency

@@ -33,6 +33,7 @@ jobs:
       docs: ${{ steps.classify.outputs.docs }}
       i18n: ${{ steps.classify.outputs.i18n }}
       workflow: ${{ steps.classify.outputs.workflow }}
+      testsOnly: ${{ steps.classify.outputs.testsOnly }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -124,6 +125,11 @@ jobs:
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
       - run: npm run check:tracked-artifacts
+      # WS1.7 (v3.8.49 plan): Dockerfile lint (hadolint, pinned by digest).
+      # failure-threshold=error keeps the 5 pre-existing warnings (DL3008/DL3003/
+      # DL3016 version pinning / WORKDIR) visible without blocking; any ERROR fails.
+      - name: hadolint (Dockerfile)
+        run: docker run --rm -i hadolint/hadolint@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e hadolint --failure-threshold error - < Dockerfile
       - run: npm run check:lockfile
       - run: npm run check:licenses
       # check:docs-sync is run by the docs-sync-strict job (via check:docs-all) and the
@@ -148,7 +154,7 @@ jobs:
     # The coverage.* metrics degrade gracefully: the download is continue-on-error and
     # the ratchet runs with --allow-missing, so absent coverage is skipped, not failed.
     # Path filter: code-only — pure docs/i18n PRs have nothing for these ratchets to guard.
-    if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true' && (needs.lint.result == 'success' || needs.lint.result == 'failure'))) }}
+    if: ${{ !cancelled() && !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true' && (needs.lint.result == 'success' || needs.lint.result == 'failure'))) }}
     # security-events: read lets the CodeQL ratchet read open code-scanning alerts
     # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
     permissions:
@@ -258,7 +264,7 @@ jobs:
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
     # Path filter: code-only (scanners/ratchets target production surface).
-    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true')) }}
     steps:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
       # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
@@ -609,12 +615,26 @@ jobs:
       - name: Assert dist/server.js exists
         run: test -f dist/server.js || (echo "dist/server.js missing — build:cli did not assemble correctly" && exit 1)
       - run: npm run check:pack-artifact
+      # WS1.2 (#7065 class): pack the real tarball, install it into a clean prefix and
+      # BOOT it to a healthy /api/monitoring/health — the gate that structure checks
+      # cannot provide (3 releases shipped boot-crashing tarballs with green lists).
+      - name: Boot-smoke the packed tarball
+        run: npm run check:pack-boot
 
   electron-package-smoke:
-    name: Electron Package Smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
+    name: Electron Package Smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     needs: build
+    # WS1.5 (v3.8.49 plan): the Electron rebuild/spawn path previously executed for
+    # the FIRST time on the release tag — the v3.8.48 Windows bug (npx.cmd spawned
+    # without shell, CVE-2024-27980 behavior change) could only surface at release.
+    # windows-latest runs prepare:bundle (the ABI rebuild + spawn plan) per release
+    # PR; ubuntu keeps the full pack + headless smoke.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     env:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -640,9 +660,15 @@ jobs:
         working-directory: electron
         run: npm install --no-audit --no-fund
       - name: Pack Electron app
+        if: runner.os == 'Linux'
         working-directory: electron
         run: npm run pack
+      - name: Prepare Electron standalone (Windows ABI rebuild + spawn path)
+        if: runner.os == 'Windows'
+        working-directory: electron
+        run: npm run prepare:bundle
       - name: Smoke packaged Electron app
+        if: runner.os == 'Linux'
         env:
           ELECTRON_SMOKE_TIMEOUT_MS: 60000
         run: xvfb-run -a npm run electron:smoke:packaged
@@ -741,7 +767,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: test-unit
-    if: ${{ !cancelled() && needs.test-unit.result == 'success' }}
+    if: ${{ !cancelled() && needs.test-unit.result == 'success' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -789,6 +815,7 @@ jobs:
             --merge-async \
             --reporter=text-summary \
             --reporter=json-summary \
+            --reporter=lcov \
             --exclude=tests/** \
             --exclude=**/*.test.* \
             --check-coverage \
@@ -810,6 +837,18 @@ jobs:
               > coverage/coverage-report.md
           fi
           cat coverage/coverage-report.md >> "$GITHUB_STEP_SUMMARY"
+      # WS5.6 (D7, v3.8.49 plan): patch coverage on the PR diff via Codecov —
+      # informational during calibration (codecov.yml sets informational: true);
+      # promote to blocking only after ~2 weeks without false blocks. The lcov
+      # reporter above also fixes coverage/lcov.info being silently absent
+      # (if-no-files-found: warn) — Sonar consumes the same file.
+      - name: Upload coverage to Codecov (informational)
+        if: always()
+        uses: codecov/codecov-action@04b047e8bb82a0c002c8312c1c880fbc6a999d45 # v5
+        with:
+          files: coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
       - name: Upload coverage artifacts
         if: always()
         uses: actions/upload-artifact@v7
@@ -960,7 +999,12 @@ jobs:
     # ~33%. Playwright browser is cached across runs (~1.5min saved per shard).
     # Heavy shard target: ≤20min (was ~40min). Timeout 45min to cover slow runners.
     timeout-minutes: 45
-    needs: build
+    needs: [build, changes]
+    # WS3.1 hotfix fast-lane: the 9-shard E2E matrix is the CI critical path (~25min).
+    # It skips for (a) PRs labeled `hotfix` (entry policy in docs/ops/RELEASE_CHECKLIST.md:
+    # production-broken only, full-suite evidence from the previous green run linked in the
+    # PR) and (b) tests-only diffs outside tests/e2e/ (cannot change the served app).
+    if: ${{ needs.changes.outputs.testsOnly != 'true' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
     strategy:
       fail-fast: false
       matrix:
@@ -995,7 +1039,23 @@ jobs:
       - name: Extract Next.js build artifact
         run: |
           tar -xzf /tmp/e2e-build.tar.gz
-      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/9
+      # WS4.1: duration-balanced shards (LPT over config/quality/e2e-timings.json).
+      # Measured skew of plain --shard was 14× (24m47s vs 1m47s) — E2E was the CI
+      # critical path. The balancer self-verifies completeness and exits non-zero on
+      # any inconsistency, falling back to plain --shard (never fewer specs).
+      - name: Run E2E tests (duration-balanced shard)
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          if FILES=$(node scripts/quality/balance-e2e-shards.mjs "$SHARD" 9); then
+            if [ -z "$FILES" ]; then echo "[e2e-balance] shard $SHARD has no files"; exit 0; fi
+            echo "[e2e-balance] shard $SHARD runs:"; echo "$FILES"
+            # shellcheck disable=SC2086 — FILES is our own newline-separated path list
+            npx playwright test $(echo "$FILES" | tr '\n' ' ')
+          else
+            echo "[e2e-balance] balancer unavailable — plain --shard fallback"
+            npx playwright test tests/e2e/*.spec.ts --shard="$SHARD"/9
+          fi
 
   test-integration:
     name: Integration Tests (${{ matrix.shard }}/2)
