@@ -18,10 +18,15 @@ STATUS=0
 echo "[janitor] $(date -u +%FT%TZ) start"
 
 # 1) Sweep stale runner temp/work leftovers (>24h — no legitimate job runs that long).
+# Hardened for a root cron on world-writable paths: never follow a symlinked base
+# (a compromised runner could plant one), -P + -xdev so the sweep cannot traverse
+# out of the filesystem, and patterns narrowed to names OUR tooling creates
+# (no generic tmp* — unrelated system temp files are out of scope).
 for base in /tmp /home/*/actions-runner*/_work/_temp; do
   [ -d "$base" ] || continue
-  find "$base" -maxdepth 1 \( -name 'runner-*' -o -name 'tmp*' -o -name 'omniroute-pack-boot-*' \) \
-    -mmin +$((WORK_DIR_MAX_AGE_HOURS * 60)) -exec rm -rf {} + 2>/dev/null || true
+  [ -L "$base" ] && { echo "[janitor] skip symlinked base: $base"; continue; }
+  find -P "$base" -xdev -maxdepth 1 \( -name 'runner-*' -o -name 'omniroute-*' \) \
+    ! -type l -mmin +$((WORK_DIR_MAX_AGE_HOURS * 60)) -exec rm -rf {} + 2>/dev/null || true
 done
 echo "[janitor] stale temp sweep done"
 
