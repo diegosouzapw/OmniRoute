@@ -292,18 +292,27 @@ describe("MemoriesTab", () => {
   });
 
   it("calls DELETE when delete confirmed", async () => {
-    const mockFetch = vi.fn();
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        data: MOCK_MEMORIES,
-        total: 2,
-        totalPages: 1,
-        stats: { total: 2, tokensUsed: 0, hitRate: 0, cacheStats: { hits: 0, misses: 0 } },
-      }),
+    // MemoriesTab fires two independent fetches on mount: an immediate health
+    // check (/api/memory/health) and a 300ms-debounced memories list fetch
+    // (/api/memory?...). A call-order-dependent mock (mockResolvedValueOnce +
+    // fallback) is fragile here because the health check resolves first and
+    // would consume the "once" response meant for the list. Key off the URL
+    // instead, like the rest of this file's fetch mocks do.
+    const mockFetch = vi.fn((url: string) => {
+      if (typeof url === "string" && url.startsWith("/api/memory?")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: MOCK_MEMORIES,
+            total: 2,
+            totalPages: 1,
+            stats: { total: 2, tokensUsed: 0, hitRate: 0, cacheStats: { hits: 0, misses: 0 } },
+          }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
     });
-    mockFetch.mockResolvedValue({ ok: true, json: async () => ({}) });
-    globalThis.fetch = mockFetch;
+    globalThis.fetch = mockFetch as unknown as typeof fetch;
     const { default: MemoriesTab } = await import(
       "../../../src/app/(dashboard)/dashboard/memory/components/tabs/MemoriesTab"
     );
