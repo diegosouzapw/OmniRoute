@@ -34,10 +34,11 @@ interface QuotaCardProps {
   providerLabel: string;
   onRefresh: () => void;
   onOpenCutoff: () => void;
-  onRedeemResetCredit?: () => void;
+  onOpenResetCredits?: () => void;
   onToggleActive: (nextActive: boolean) => void;
   togglingActive: boolean;
   redeemingResetCredit?: boolean;
+  loadingResetCredits?: boolean;
 }
 
 export default function QuotaCard({
@@ -50,10 +51,11 @@ export default function QuotaCard({
   providerLabel,
   onRefresh,
   onOpenCutoff,
-  onRedeemResetCredit,
+  onOpenResetCredits,
   onToggleActive,
   togglingActive,
   redeemingResetCredit = false,
+  loadingResetCredits = false,
 }: QuotaCardProps) {
   const isActive = connection.isActive ?? true;
   const [costModalOpen, setCostModalOpen] = useState(false);
@@ -119,11 +121,12 @@ export default function QuotaCard({
         onRefresh={onRefresh}
         onOpenCutoff={onOpenCutoff}
         onOpenCost={() => setCostModalOpen(true)}
-        onRedeemResetCredit={onRedeemResetCredit}
+        onOpenResetCredits={onOpenResetCredits}
         canEditCutoff={canEditCutoff}
         hasCutoffOverrides={hasOverrides}
         canRedeemResetCredit={canRedeemResetCredit}
         redeemingResetCredit={redeemingResetCredit}
+        loadingResetCredits={loadingResetCredits}
       />
       <ProviderUsdCostModal
         isOpen={costModalOpen}
