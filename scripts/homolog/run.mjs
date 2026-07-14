@@ -19,7 +19,9 @@ if (!BASE || !process.env.HOMOLOG_ADMIN_PASSWORD) {
   process.exit(2);
 }
 fs.rmSync("homolog-report", { recursive: true, force: true });
-fs.mkdirSync("homolog-report", { recursive: true });
+// raw/ fica FORA do merge CTRF: `ctrf merge` tenta mesclar qualquer *.json com
+// chave "results" e quebra no output cru do promptfoo.
+fs.mkdirSync("homolog-report/raw", { recursive: true });
 const layers = []; // {name, ok, detail}
 const record = (name, ok, detail = "") => {
   layers.push({ name, ok, detail });
@@ -89,12 +91,12 @@ try {
         "-c",
         "homolog-report/promptfooconfig.yaml",
         "-o",
-        "homolog-report/promptfoo.json",
+        "homolog-report/raw/promptfoo.json",
         "--no-cache",
       ],
       { encoding: "utf8", env: process.env }
     );
-    const pfOut = JSON.parse(fs.readFileSync("homolog-report/promptfoo.json", "utf8"));
+    const pfOut = JSON.parse(fs.readFileSync("homolog-report/raw/promptfoo.json", "utf8"));
     const pfCtrf = promptfooToCtrf(pfOut);
     fs.writeFileSync("homolog-report/providers-ctrf.json", JSON.stringify(pfCtrf, null, 2));
     record(

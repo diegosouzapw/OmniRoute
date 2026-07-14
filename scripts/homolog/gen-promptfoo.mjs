@@ -38,13 +38,13 @@ const config = {
   // de emitir o "OK" literal — icontains seria falso-positivo de quebra.
   tests: [{ assert: [{ type: "javascript", value: "typeof output === 'string'" }] }],
 };
-fs.mkdirSync("homolog-report", { recursive: true });
+fs.mkdirSync("homolog-report/raw", { recursive: true });
 fs.writeFileSync(
   path.join("homolog-report", "promptfooconfig.yaml"),
   JSON.stringify(config, null, 2) // promptfoo aceita JSON como config YAML-compatível
 );
 fs.writeFileSync(
-  path.join("homolog-report", "provider-misses.json"),
+  path.join("homolog-report", "raw", "provider-misses.json"),
   JSON.stringify(missing, null, 2)
 );
 console.log(
