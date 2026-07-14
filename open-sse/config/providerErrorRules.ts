@@ -130,6 +130,30 @@ function buildMinimaxRules(): ProviderErrorRule[] {
   ];
 }
 
+// ─── Cloudflare Workers AI ───────────────────────────────────────────────
+// Free tier = 10,000 Neurons/day, shared across the WHOLE account
+// (docs/reference/FREE_TIERS.md; official: developers.cloudflare.com/
+// workers-ai/platform/errors/, code 4006). The exhaustion body
+// ("you have used up your daily free allocation of 10,000 neurons, please
+// upgrade to Cloudflare's Workers Paid plan…") doesn't match any QUOTA_PATTERNS
+// keyword, so it fell through to RATE_LIMIT_EXCEEDED (~5s cooldown) and the
+// combo kept retrying every model on the same provider until UTC midnight.
+// Scope "connection": the upstream quota is per-account (same reasoning as the
+// opencode rules — see Issue #2). (OmniRoute issue #6980)
+function buildCloudflareAiRules(): ProviderErrorRule[] {
+  return [
+    {
+      id: "cloudflare-ai-daily-neuron-allocation",
+      match: ({ status, body }) => {
+        if (status !== 429) return null;
+        const text = JSON.stringify(body ?? "").toLowerCase();
+        if (!text.includes("daily free allocation")) return null;
+        return { reason: "quota_exhausted", scope: "connection" };
+      },
+    },
+  ];
+}
+
 /**
  * Global registry. Provider name → ordered list of rules (first match wins).
  * Add new providers here; the matcher in classifyError will pick them up
@@ -141,6 +165,7 @@ export const providerRuleRegistry = new Map<string, ProviderErrorRule[]>([
   ["opencode-cli", buildOpencodeRules()],
   ["minimax", buildMinimaxRules()],
   ["minimax-passthrough", buildMinimaxRules()],
+  ["cloudflare-ai", buildCloudflareAiRules()],
 ]);
 
 /**
