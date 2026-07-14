@@ -64,6 +64,24 @@ test("issue-agent run accepts only recorded-triage mode", async () => {
   assert.equal(body.error, "Unsupported issue-agent mode");
 });
 
+test("issue-agent run rejects invalid recorded-triage field types", async () => {
+  const response = await POST(
+    new Request("http://localhost/api/issue-agent/runs", {
+      method: "POST",
+      body: JSON.stringify({ mode: "recorded-triage", dryRun: "true" }),
+    })
+  );
+  const body = await json(response);
+  const error = body.error as Record<string, unknown>;
+  const details = error.details as Array<Record<string, unknown>>;
+
+  assert.equal(response.status, 400);
+  assert.equal(error.message, "Invalid request");
+  assert.deepEqual(details, [
+    { field: "dryRun", message: "Invalid input: expected boolean, received string" },
+  ]);
+});
+
 test("issue-agent run is disabled by default", async () => {
   const previous = process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
   delete process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
