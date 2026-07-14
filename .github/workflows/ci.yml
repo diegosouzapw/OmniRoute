@@ -33,6 +33,7 @@ jobs:
       docs: ${{ steps.classify.outputs.docs }}
       i18n: ${{ steps.classify.outputs.i18n }}
       workflow: ${{ steps.classify.outputs.workflow }}
+      testsOnly: ${{ steps.classify.outputs.testsOnly }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -148,7 +149,7 @@ jobs:
     # The coverage.* metrics degrade gracefully: the download is continue-on-error and
     # the ratchet runs with --allow-missing, so absent coverage is skipped, not failed.
     # Path filter: code-only — pure docs/i18n PRs have nothing for these ratchets to guard.
-    if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true' && (needs.lint.result == 'success' || needs.lint.result == 'failure'))) }}
+    if: ${{ !cancelled() && !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true' && (needs.lint.result == 'success' || needs.lint.result == 'failure'))) }}
     # security-events: read lets the CodeQL ratchet read open code-scanning alerts
     # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
     permissions:
@@ -258,7 +259,7 @@ jobs:
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
     # Path filter: code-only (scanners/ratchets target production surface).
-    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true')) }}
     steps:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
       # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
@@ -741,7 +742,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: test-unit
-    if: ${{ !cancelled() && needs.test-unit.result == 'success' }}
+    if: ${{ !cancelled() && needs.test-unit.result == 'success' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -960,7 +961,12 @@ jobs:
     # ~33%. Playwright browser is cached across runs (~1.5min saved per shard).
     # Heavy shard target: ≤20min (was ~40min). Timeout 45min to cover slow runners.
     timeout-minutes: 45
-    needs: build
+    needs: [build, changes]
+    # WS3.1 hotfix fast-lane: the 9-shard E2E matrix is the CI critical path (~25min).
+    # It skips for (a) PRs labeled `hotfix` (entry policy in docs/ops/RELEASE_CHECKLIST.md:
+    # production-broken only, full-suite evidence from the previous green run linked in the
+    # PR) and (b) tests-only diffs outside tests/e2e/ (cannot change the served app).
+    if: ${{ needs.changes.outputs.testsOnly != 'true' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
     strategy:
       fail-fast: false
       matrix:
