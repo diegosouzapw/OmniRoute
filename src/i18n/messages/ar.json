@@ -948,6 +948,7 @@
     "contextLite": "Lite",
     "contextAggressive": "Aggressive",
     "contextUltra": "Ultra",
+    "contextOmniglyph": "OmniGlyph",
     "contextSettings": "Compression Settings",
     "contextHeadroom": "Headroom",
     "contextSessionDedup": "Session Dedup",
@@ -1458,6 +1459,8 @@
     "chartModel": "__MISSING__:Model",
     "chartProvider": "__MISSING__:Provider",
     "chartProviderBreakdown": "__MISSING__:Provider Breakdown",
+    "chartDate": "__MISSING__:Date",
+    "chartRequestsByProviderDate": "__MISSING__:Requests by Provider & Date",
     "filterAllKeys": "__MISSING__:All Keys",
     "filterSearchKeys": "__MISSING__:Search keys…",
     "filterNoKeysMatch": "__MISSING__:No keys match",
@@ -4420,7 +4423,11 @@
     "filterActive": "نشط",
     "filterError": "خطأ",
     "filterBanned": "محظور",
-    "filterCreditsExhausted": "نفدت الأرصدة"
+    "filterCreditsExhausted": "نفدت الأرصدة",
+    "contextWindowOverrideLabel": "__MISSING__:Context Window Override",
+    "contextWindowOverridePlaceholder": "__MISSING__:e.g. 131072",
+    "contextWindowOverrideHint": "__MISSING__:Manually set this model's real context window (tokens) when the provider misreports it. Wins over auto-detected/catalog values and prevents combo routing from dropping the model.",
+    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens"
   },
   "settings": {
     "title": "الإعدادات",

@@ -11,6 +11,7 @@ import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/ste
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 import { DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE } from "@/shared/constants/responsesPreviousResponseId";
 import { type JsonRecord, toRecord } from "./settings/shared";
+import { resolveNoAuthSharedProviderProxy } from "./settings/noAuthProxyFallback";
 
 type ProxyValue = JsonRecord | string | null;
 type ProxyResolutionResult = {
@@ -97,6 +98,9 @@ export async function getSettings() {
     tailscaleUrl: "",
     stickyRoundRobinLimit: 3,
     disableSessionStickiness: false,
+    comboStrategy: "fallback",
+    comboStickyRoundRobinLimit: null, // null = inherit stickyRoundRobinLimit (a literal default here shadows the documented batched-rotation default of 3 — #6678 regression caught by the v3.8.47 release CI)
+    providerStrategies: {},
     requestRetry: 3,
     maxRetryIntervalSec: 30,
     antigravitySignatureCacheMode: "enabled",
@@ -186,6 +190,17 @@ export async function getSettings() {
 }
 
 export async function updateSettings(updates: Record<string, unknown>) {
+  // Detect first-time setup completion before we overwrite settings.
+  let setupJustCompleted = false;
+  if (updates.setupComplete === true) {
+    try {
+      const prev = await getSettings();
+      setupJustCompleted = prev.setupComplete !== true;
+    } catch {
+      setupJustCompleted = true;
+    }
+  }
+
   const db = getDbInstance();
   const insert = db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', ?, ?)"
@@ -215,6 +230,17 @@ export async function updateSettings(updates: Record<string, unknown>) {
       "[HOT_RELOAD] Failed to apply runtime settings after update:",
       error instanceof Error ? error.message : error
     );
+  }
+
+  // Onboarding / setup finished → one-shot Codex catalog revalidation (init case).
+  if (setupJustCompleted) {
+    void import("@/shared/services/codexCatalogRevalidation")
+      .then(({ scheduleCodexCatalogRevalidationAfterInit }) => {
+        scheduleCodexCatalogRevalidationAfterInit();
+      })
+      .catch(() => {
+        // non-fatal
+      });
   }
 
   return nextSettings;
@@ -555,6 +581,19 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
       };
       cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
       return result;
+    }
+  }
+
+  // Step 8.5 (#6272): no-auth providers (mimocode, opencode, ...) share a single
+  // synthetic connectionId that never matches a `provider_connections` row, so
+  // `connectionRecord` above is null and Steps 5-8 (which require it) never run for
+  // them — a provider-level proxy assigned to a no-auth provider was silently
+  // ignored. Best-effort fallback: scan the known no-auth provider ids directly.
+  if (!connectionRecord) {
+    const noAuthFallback = await resolveNoAuthSharedProviderProxy(config.providers);
+    if (noAuthFallback) {
+      cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, noAuthFallback);
+      return noAuthFallback;
     }
   }
 

@@ -98,6 +98,34 @@ test("provider validation routes require management authentication before readin
   }
 });
 
+test("provider param-filters route requires management authentication on GET/PUT/DELETE (#6649)", () => {
+  const routePath = "src/app/api/providers/[id]/param-filters/route.ts";
+  const content = fs.readFileSync(routePath, "utf8");
+
+  assert.ok(content.includes('from "@/lib/api/requireManagementAuth"'));
+
+  // GET, PUT, and DELETE must each gate on requireManagementAuth() before
+  // touching the param filter config.
+  const handlers = ["GET", "PUT", "DELETE"];
+  for (const handler of handlers) {
+    const handlerStart = content.indexOf(`export async function ${handler}(`);
+    assert.ok(handlerStart >= 0, `${routePath} is missing a ${handler} handler`);
+    const nextHandlerStart = content.indexOf("export async function", handlerStart + 1);
+    const handlerBody = content.slice(
+      handlerStart,
+      nextHandlerStart === -1 ? content.length : nextHandlerStart
+    );
+    assert.ok(
+      handlerBody.includes("const authError = await requireManagementAuth(request);"),
+      `${routePath} ${handler} handler must call requireManagementAuth(request)`
+    );
+    assert.ok(
+      handlerBody.includes("if (authError) return authError;"),
+      `${routePath} ${handler} handler must short-circuit on authError`
+    );
+  }
+});
+
 test("Antigravity CLI (agy) credential import routes require management authentication before reading the body", () => {
   // Routes that parse a JSON body — auth MUST run before request.json().
   const jsonBodyRoutes = [
@@ -221,6 +249,7 @@ test("management routes sanitize error.message before returning it to clients", 
     "src/app/api/evals/[suiteId]/route.ts",
     "src/app/api/providers/[id]/models/route.ts",
     "src/app/api/providers/[id]/sync-models/route.ts",
+    "src/app/api/providers/[id]/param-filters/route.ts",
     "src/app/api/sessions/route.ts",
     "src/app/api/storage/health/route.ts",
     "src/app/api/sync/cloud/route.ts",

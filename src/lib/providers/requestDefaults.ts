@@ -5,7 +5,14 @@ import { normalizeExcludedModelPatterns } from "@/domain/connectionModelRules";
 import { normalizeRoutingTags } from "@/domain/tagRouter";
 import { normalizeOpenRouterPreset } from "@/shared/constants/openRouterPreset";
 
-export const CODEX_REASONING_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh"] as const;
+export const CODEX_REASONING_EFFORT_VALUES = [
+  "none",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const;
 
 export type CodexReasoningEffort = (typeof CODEX_REASONING_EFFORT_VALUES)[number];
 

@@ -10,9 +10,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import * as yaml from "js-yaml";
+import { apiRoot, collectApiRouteUrlPaths } from "./lib/apiRoutes.mjs";
 
 const ROOT = process.cwd();
-const API_ROOT = path.join(ROOT, "src", "app", "api");
+const API_ROOT = apiRoot(ROOT);
 const OPENAPI_PATH = path.join(ROOT, "docs", "openapi.yaml");
 // Floor recorded on 2026-05-26 for release/v3.8.4: 137/365 routes documented.
 // The original ≥99% target tracks the OpenAPI audit follow-up (#2701);
@@ -20,30 +21,6 @@ const OPENAPI_PATH = path.join(ROOT, "docs", "openapi.yaml");
 // middleware/hooks, etc.) is documented, the gate enforces "no regressions"
 // instead of the absolute target. Raise this back to 99 once the backlog clears.
 const THRESHOLD = 36;
-
-function collectRoutePaths(dir) {
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  const paths = [];
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      paths.push(...collectRoutePaths(fullPath));
-      continue;
-    }
-    if (entry.isFile() && entry.name === "route.ts") {
-      const apiPath = path
-        .dirname(fullPath)
-        .replace(API_ROOT, "")
-        .replace(/\[([^\]]+)\]/g, "{$1}");
-      paths.push(`/api${apiPath}`);
-    }
-  }
-  return paths;
-}
-
-function normalizePath(p) {
-  return p.replace(/\/\[\.\.\.([^\]]+)\]/g, "/{$1}").replace(/\[([^\]]+)\]/g, "{$1}");
-}
 
 if (!fs.existsSync(API_ROOT)) {
   console.error(`[openapi-coverage] FAIL — API root not found: ${API_ROOT}`);
@@ -55,7 +32,7 @@ if (!fs.existsSync(OPENAPI_PATH)) {
   process.exit(1);
 }
 
-const implementedPaths = collectRoutePaths(API_ROOT).map(normalizePath).sort();
+const implementedPaths = collectApiRouteUrlPaths(ROOT).sort((a, b) => a.localeCompare(b));
 const raw = yaml.load(fs.readFileSync(OPENAPI_PATH, "utf-8"));
 const documentedPaths = new Set(Object.keys(raw.paths || {}));
 

@@ -38,6 +38,29 @@ const POLICIES: Record<RouteClass, RoutePolicy> = {
   MANAGEMENT: managementPolicy,
 };
 
+let staleDashboardJwtWarningEmitted = false;
+
+function isStaleDashboardJwtError(error: unknown): boolean {
+  const code =
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as { code?: unknown }).code === "string"
+      ? (error as { code: string }).code
+      : "";
+
+  if (
+    code === "ERR_JWS_SIGNATURE_VERIFICATION_FAILED" ||
+    code === "ERR_JWT_EXPIRED" ||
+    code === "ERR_JWS_INVALID" ||
+    code === "ERR_JWT_CLAIM_VALIDATION_FAILED"
+  ) {
+    return true;
+  }
+
+  return error instanceof Error && error.message.includes("signature verification failed");
+}
+
 function stampSubject(headers: Headers, subject: AuthSubject): void {
   headers.set(AUTHZ_HEADER_AUTH_KIND, subject.kind);
   headers.set(AUTHZ_HEADER_AUTH_ID, subject.id);
@@ -144,6 +167,15 @@ async function refreshDashboardSessionIfNeeded(
       path: "/",
     });
   } catch (error) {
+    if (isStaleDashboardJwtError(error)) {
+      response.cookies.delete("auth_token");
+      if (!staleDashboardJwtWarningEmitted) {
+        staleDashboardJwtWarningEmitted = true;
+        console.warn("[Authz] Dropped stale dashboard session cookie during auto-refresh");
+      }
+      return;
+    }
+
     console.error("[Authz] JWT auto-refresh failed:", error);
   }
 }

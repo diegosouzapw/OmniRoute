@@ -26,12 +26,54 @@ function recordToHeaderRows(rec: Record<string, string>, genId: () => string): H
   return entries.map(([name, value]) => ({ id: genId(), name, value }));
 }
 
+function parseCommaList(text: string): string[] {
+  return text
+    ? text
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+}
+
+interface ParamFilterConfigLike {
+  block?: string[];
+  allow?: string[];
+  models?: Record<string, unknown>;
+  autoLearn?: boolean;
+}
+
+// Builds the PUT body for the model-level block/allow save. Extracted so the
+// caller's async handler stays simple — this is pure payload-shaping logic.
+function buildModelParamFilterPayload(
+  current: ParamFilterConfigLike | null | undefined,
+  modelId: string,
+  blockText: string,
+  allowText: string
+) {
+  const updatedModels: Record<string, unknown> = { ...(current?.models ?? {}) };
+  const block = parseCommaList(blockText);
+  const allow = parseCommaList(allowText);
+  if (block.length > 0 || allow.length > 0) {
+    updatedModels[modelId] = { block, allow };
+  } else {
+    delete updatedModels[modelId];
+  }
+  return {
+    block: current?.block ?? [],
+    allow: current?.allow ?? [],
+    models: Object.keys(updatedModels).length > 0 ? updatedModels : undefined,
+    autoLearn: current?.autoLearn ?? false,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
 
 export interface ModelCompatPopoverProps {
   t: (key: string) => string;
+  providerId: string;
+  modelId: string;
   effectiveModelNormalize: (protocol: string) => boolean;
   effectiveModelPreserveDeveloper: (protocol: string) => boolean;
   getUpstreamHeadersRecord: (protocol: string) => Record<string, string>;
@@ -65,6 +107,10 @@ export default function ModelCompatPopover({
   const [open, setOpen] = useState(false);
   const [protocol, setProtocol] = useState<string>(MODEL_COMPAT_PROTOCOL_KEYS[0]);
   const [headerRows, setHeaderRows] = useState<HeaderDraftRow[]>([]);
+  const [blockText, setBlockText] = useState("");
+  const [allowText, setAllowText] = useState("");
+  const [paramDirty, setParamDirty] = useState(false);
+  const [paramSaving, setParamSaving] = useState(false);
   const [valuePeekRowId, setValuePeekRowId] = useState<string | null>(null);
   const [valueFocusRowId, setValueFocusRowId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -117,6 +163,44 @@ export default function ModelCompatPopover({
     // inline callback every render (would wipe in-progress edits).
     // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
   }, [open, protocol]);
+
+  // Load model-level block/allow from param-filters API
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/providers/${providerId}/param-filters`);
+        const data = await res.json();
+        const modelCfg = data?.models?.[modelId];
+        setBlockText(modelCfg ? (modelCfg.block ?? []).join(", ") : "");
+        setAllowText(modelCfg ? (modelCfg.allow ?? []).join(", ") : "");
+      } catch {
+        setBlockText("");
+        setAllowText("");
+      }
+      setParamDirty(false);
+    })();
+  }, [open]);
+
+  const saveModelParamFilters = useCallback(async () => {
+    if (!paramDirty) return;
+    setParamSaving(true);
+    try {
+      const res = await fetch(`/api/providers/${providerId}/param-filters`);
+      const current = await res.json();
+      const payload = buildModelParamFilterPayload(current, modelId, blockText, allowText);
+      await fetch(`/api/providers/${providerId}/param-filters`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      setParamDirty(false);
+    } catch {
+      // Silently ignore save error
+    } finally {
+      setParamSaving(false);
+    }
+  }, [paramDirty, blockText, allowText]);
 
   useEffect(() => {
     setValuePeekRowId(null);
@@ -264,6 +348,48 @@ export default function ModelCompatPopover({
                     disabled={disabled}
                   />
                 )}
+              </div>
+
+              {/* Param filters — model-level block/allow (#6625) */}
+              <div className="mt-4 space-y-2.5">
+                <label className="block text-[11px] font-semibold text-text-main">
+                  {t("compatParamFiltersLabel") ?? "Param Filters"}
+                </label>
+                <div>
+                  <input
+                    type="text"
+                    value={blockText}
+                    onChange={(e) => {
+                      setBlockText(e.target.value);
+                      setParamDirty(true);
+                    }}
+                    onBlur={() => saveModelParamFilters()}
+                    placeholder="thinking, … (comma-separated)"
+                    disabled={disabled}
+                    className="mb-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-mono text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-900"
+                  />
+                  <p className="text-[10px] text-text-muted">
+                    {t("compatBlockedParamsHint") ?? "Blocked params (stripped from requests)"}
+                    {paramSaving && " ● saving…"}
+                  </p>
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    value={allowText}
+                    onChange={(e) => {
+                      setAllowText(e.target.value);
+                      setParamDirty(true);
+                    }}
+                    onBlur={() => saveModelParamFilters()}
+                    placeholder="reasoning, … (comma-separated)"
+                    disabled={disabled}
+                    className="mb-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-mono text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-900"
+                  />
+                  <p className="text-[10px] text-text-muted">
+                    {t("compatAllowedParamsHint") ?? "Allowed params (re-added after deny)"}
+                  </p>
+                </div>
               </div>
 
               <div className="mt-4 rounded-lg border-2 border-zinc-200 bg-zinc-100 p-3 dark:border-zinc-600 dark:bg-zinc-900">

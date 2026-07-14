@@ -55,6 +55,68 @@ export function computeUncovered(commits, changelogRefs) {
   return { covered, uncovered };
 }
 
+// Subdirectories that hold changelog.d fragments (fragments-first, #6783).
+const FRAGMENT_DIRS = ["features", "fixes", "maintenance"];
+
+/**
+ * Read the leading `<N>-` PR/issue number from a changelog.d fragment filename.
+ * Some fragments (e.g. 6708, 6709) carry NO `#N` in their body, so the filename is the only
+ * place the PR number appears — it must still count as covering that PR.
+ * @param {string} filename  bare name or a path ending in the fragment file
+ * @returns {number|null}
+ */
+export function fragmentFilenameRef(filename) {
+  const base = String(filename).replace(/^.*[\\/]/, "");
+  const m = base.match(/^(\d+)-/);
+  return m ? Number(m[1]) : null;
+}
+
+/**
+ * Collect every ref "covered" by changelog.d fragments: the leading `<N>-` of each fragment
+ * filename PLUS every `#N` inside its body.
+ * @param {{name:string, body:string}[]} fragments
+ * @returns {Set<number>}
+ */
+export function fragmentRefs(fragments) {
+  const refs = new Set();
+  for (const f of fragments || []) {
+    const fromName = fragmentFilenameRef(f.name);
+    if (fromName != null) refs.add(fromName);
+    for (const m of String(f.body || "").matchAll(/#(\d+)/g)) refs.add(Number(m[1]));
+  }
+  return refs;
+}
+
+/**
+ * Union of the CHANGELOG scan window refs and the changelog.d fragment refs. Since fragments-first
+ * (#6783) a merged PR's changelog entry usually lives in a fragment and is only folded into
+ * CHANGELOG.md at release time, so scanning CHANGELOG.md alone reports fragment-covered commits as
+ * uncovered (#6857).
+ * @param {string} changelog
+ * @param {string} version
+ * @param {{name:string, body:string}[]} fragments
+ * @returns {Set<number>}
+ */
+export function collectChangelogRefs(changelog, version, fragments) {
+  const refs = changelogRefWindow(changelog, version);
+  for (const r of fragmentRefs(fragments)) refs.add(r);
+  return refs;
+}
+
+/** Read all changelog.d fragment files (name + body) from disk under `root`. */
+export function readChangelogFragments(root) {
+  const out = [];
+  for (const sub of FRAGMENT_DIRS) {
+    const dir = path.join(root, "changelog.d", sub);
+    if (!fs.existsSync(dir)) continue;
+    for (const name of fs.readdirSync(dir)) {
+      if (!name.endsWith(".md") || name === "README.md") continue;
+      out.push({ name, body: fs.readFileSync(path.join(dir, name), "utf8") });
+    }
+  }
+  return out;
+}
+
 /** Read every #N in the version's CHANGELOG section + the [Unreleased] section. */
 export function changelogRefWindow(changelog, version) {
   const esc = version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -85,7 +147,8 @@ function main(argv) {
       })
     : [];
   const changelog = fs.readFileSync(path.join(ROOT, "CHANGELOG.md"), "utf8");
-  const refs = changelogRefWindow(changelog, version);
+  const fragments = readChangelogFragments(ROOT);
+  const refs = collectChangelogRefs(changelog, version, fragments);
   const { covered, uncovered } = computeUncovered(commits, refs);
 
   if (jsonOut) {

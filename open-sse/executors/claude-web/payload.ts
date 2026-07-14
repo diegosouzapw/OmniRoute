@@ -153,6 +153,36 @@ export function getDefaultPersonalizedStyle(): ClaudeWebRequestPayload["personal
 }
 
 /**
+ * Detect whether an OpenAI-shape request body signals a desire for
+ * reasoning / extended thinking — a top-level `reasoning_effort` string,
+ * a Responses-API-style `reasoning.effort`, or a native Claude
+ * `thinking: { type: "enabled" }` passthrough. Mirrors the same
+ * effort-extraction shape used by `sanitizeReasoningEffortForProvider`
+ * (open-sse/executors/base/reasoningEffort.ts) so a client already setting
+ * reasoning_effort for other providers gets the same signal here.
+ *
+ * Before this, `transformToClaude` hardcoded `thinking_mode: "off"` —
+ * Claude Web could never be asked for extended thinking, and any
+ * `thinking_delta` reasoning the upstream might otherwise emit was moot
+ * because it was never requested in the first place (#6662).
+ */
+export function wantsExtendedThinking(body: Record<string, unknown>): boolean {
+  const reasoning =
+    body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
+      ? (body.reasoning as Record<string, unknown>)
+      : null;
+  const effort = body.reasoning_effort ?? reasoning?.effort;
+  if (typeof effort === "string" && effort.trim() && effort.toLowerCase() !== "none") {
+    return true;
+  }
+  const thinking = body.thinking;
+  if (thinking && typeof thinking === "object" && !Array.isArray(thinking)) {
+    if ((thinking as Record<string, unknown>).type === "enabled") return true;
+  }
+  return false;
+}
+
+/**
  * Transform OpenAI format to Claude Web format
  */
 export function transformToClaude(
@@ -189,7 +219,7 @@ export function transformToClaude(
     files: [],
     sync_sources: [],
     rendering_mode: "messages",
-    thinking_mode: "off",
+    thinking_mode: wantsExtendedThinking(body) ? "on" : "off",
     create_conversation_params: {
       name: "",
       model: model || DEFAULT_CLAUDE_MODEL,
@@ -204,13 +234,24 @@ export function transformToClaude(
 }
 
 /**
- * Transform Claude Web response to OpenAI format
+ * Transform Claude Web response to OpenAI format.
+ *
+ * `kind` selects which delta field carries `claudeContent`: `"content"`
+ * (default, preserves the original call sites) or `"reasoning"` — the
+ * latter maps Claude's `thinking_delta` text onto `delta.reasoning_content`,
+ * the same field the real-Anthropic-API translator uses
+ * (open-sse/translator/response/claude-to-openai.ts) so downstream clients
+ * (Claude Code, Cursor, etc.) render it as the thinking panel instead of
+ * silently dropping it (#6662).
  */
 export function transformFromClaude(
   claudeContent: string,
   model: string,
-  stopReason?: string
+  stopReason?: string,
+  kind: "content" | "reasoning" = "content"
 ): Record<string, unknown> {
+  const delta: Record<string, string> =
+    kind === "reasoning" ? { reasoning_content: claudeContent } : { content: claudeContent };
   return {
     id: `chatcmpl-${Date.now()}`,
     object: "chat.completion.chunk",
@@ -219,9 +260,7 @@ export function transformFromClaude(
     choices: [
       {
         index: 0,
-        delta: {
-          content: claudeContent,
-        },
+        delta,
         finish_reason: stopReason === "end_turn" ? "stop" : null,
         logprobs: null,
       },

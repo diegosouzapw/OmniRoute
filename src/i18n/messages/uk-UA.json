@@ -948,6 +948,7 @@
     "contextLite": "Lite",
     "contextAggressive": "Aggressive",
     "contextUltra": "Ultra",
+    "contextOmniglyph": "OmniGlyph",
     "contextSettings": "Compression Settings",
     "contextHeadroom": "Headroom",
     "contextSessionDedup": "Session Dedup",
@@ -1458,6 +1459,8 @@
     "chartModel": "Модель",
     "chartProvider": "Провайдер",
     "chartProviderBreakdown": "Розподіл за провайдерами",
+    "chartDate": "__MISSING__:Date",
+    "chartRequestsByProviderDate": "__MISSING__:Requests by Provider & Date",
     "filterAllKeys": "Усі ключі",
     "filterSearchKeys": "Пошук ключів…",
     "filterNoKeysMatch": "Жоден ключ не відповідає",
@@ -4420,7 +4423,11 @@
     "filterActive": "Активні",
     "filterError": "Помилка",
     "filterBanned": "Заблоковано",
-    "filterCreditsExhausted": "Кредити вичерпано"
+    "filterCreditsExhausted": "Кредити вичерпано",
+    "contextWindowOverrideLabel": "__MISSING__:Context Window Override",
+    "contextWindowOverridePlaceholder": "__MISSING__:e.g. 131072",
+    "contextWindowOverrideHint": "__MISSING__:Manually set this model's real context window (tokens) when the provider misreports it. Wins over auto-detected/catalog values and prevents combo routing from dropping the model.",
+    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens"
   },
   "settings": {
     "title": "Налаштування",

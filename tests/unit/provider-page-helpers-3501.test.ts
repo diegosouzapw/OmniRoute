@@ -172,8 +172,7 @@ test("getProtoSlice returns custom compat over override", () => {
 
 test("CODEX_REASONING_STRENGTH_OPTIONS has expected values", () => {
   const values = CODEX_REASONING_STRENGTH_OPTIONS.map((o) => o.value);
-  assert.ok(values.includes("none"));
-  assert.ok(values.includes("high"));
+  assert.deepEqual(values, ["none", "low", "medium", "high", "xhigh", "max"]);
 });
 
 test("CODEX_ACCOUNT_SERVICE_TIER_VALUES contains expected tiers", () => {

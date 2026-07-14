@@ -215,7 +215,7 @@ export async function POST(request: Request) {
     }
 
     // 2b. Per-token rate limit check
-    const rateCheck = checkRateLimit(token.id);
+    const rateCheck = checkRateLimit(token.id, token);
     if (!rateCheck.allowed) {
       recordRelayUsage(token.id, {
         requestId: request.headers.get("x-request-id") || undefined,
@@ -303,8 +303,7 @@ export async function POST(request: Request) {
       bifrostFallbackReason = bifrostDecision.fallbackReason;
     }
     if (bifrostDecision.tryBifrost) {
-      const cooldown =
-        backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
+      const cooldown = backend === "auto" ? getActiveBifrostCooldown(bifrostConfig.baseUrl) : null;
       if (cooldown) {
         bifrostFallbackReason = `bifrost-cooldown; remaining=${cooldown.remainingMs}`;
       } else {

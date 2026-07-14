@@ -61,14 +61,28 @@ test("permissions modal switch buttons declare button type", () => {
     selfServiceBlock.match(/<button\s+type="button"\s+role="switch"/g) ?? []
   ).length;
 
-  // Self-service Visibility block has 5 switches: own-usage visibility,
-  // shared-account quota visibility, disable-non-public-models (#3041), the
-  // per-key local usage command allowance (#4034), and the API-key provider
-  // quota-policy bypass scope (#5731).
+  // Self-service Visibility block has 4 inline switches: own-usage visibility,
+  // shared-account quota visibility, disable-non-public-models (#3041), and the
+  // per-key local usage command allowance (#4034). The API-key provider
+  // quota-policy bypass scope (#5731) and the Chaos Mode access scope (#6728)
+  // were extracted into dedicated toggle components (asserted below).
   // The invariant is that every switch declares type="button"
   // (typedSwitchButtonCount === switchButtonCount) to avoid implicit submit.
-  assert.equal(switchButtonCount, 5);
-  assert.equal(typedSwitchButtonCount, 5);
+  assert.equal(switchButtonCount, 4);
+  assert.equal(typedSwitchButtonCount, 4);
+
+  // The extracted toggle components keep the same invariant.
+  for (const rel of [
+    "src/app/(dashboard)/dashboard/api-manager/components/BypassProviderQuotaToggle.tsx",
+    "src/app/(dashboard)/dashboard/api-manager/components/ChaosModeAccessToggle.tsx",
+  ]) {
+    const componentSource = fs.readFileSync(path.join(repoRoot, rel), "utf8");
+    const compSwitches = (componentSource.match(/role="switch"/g) ?? []).length;
+    const compTyped = (componentSource.match(/<button\s+type="button"\s+role="switch"/g) ?? [])
+      .length;
+    assert.ok(compSwitches >= 1, `${rel} must render a switch`);
+    assert.equal(compTyped, compSwitches, `${rel}: every switch declares type="button"`);
+  }
 });
 
 test("permissions modal exposes Claude Code default wildcard model", () => {

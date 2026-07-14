@@ -306,6 +306,7 @@ export default function ProviderModelsSection({
         <PassthroughModelsSection
           providerAlias={providerAlias}
           modelAliases={modelAliases}
+          catalogModels={models}
           availableModels={syncedAvailableModels}
           customModels={modelMeta.customModels}
           description={passthroughDescription}

@@ -68,7 +68,7 @@ test("#4279 combo stops at the first body-specific 400 instead of trying every t
 
   const result = await handleComboChat({
     body: { model: "test", messages: [{ role: "user", content: "hi" }] },
-    combo: makeCombo(["codex/gpt-5.2", "codex/gpt-5.3-codex", "codex/gpt-5.4"]),
+    combo: makeCombo(["codex/gpt-5.2", "codex/gpt-5.3-codex", "codex/gpt-5.6-sol"]),
     handleSingleModel,
     log,
     settings: {},

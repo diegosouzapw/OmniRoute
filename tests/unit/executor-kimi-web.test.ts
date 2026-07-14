@@ -9,6 +9,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 const mod = await import("../../open-sse/executors/kimi-web.ts");
+const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
 
 describe("KimiWebExecutor", () => {
   it("can be instantiated", () => {
@@ -76,6 +77,24 @@ describe("resolveModelConfig", () => {
     const cfg = resolveModelConfig("k2d6-agent");
     assert.equal(cfg.scenario, "SCENARIO_K2D5");
     assert.equal(cfg.thinking, false);
+  });
+});
+
+describe("kimi-web catalog", () => {
+  it("lists only currently supported non-agent web models", () => {
+    const models = getModelsByProviderId("kimi-web");
+    assert.deepEqual(
+      models.map((model) => ({ id: model.id, name: model.name })),
+      [
+        { id: "k2d6", name: "K2.6 Instant" },
+        { id: "k2d6-thinking", name: "K2.6 Thinking" },
+      ]
+    );
+    assert.ok(models.find((model) => model.id === "k2d6-thinking")?.supportsReasoning);
+    assert.ok(!models.some((model) => model.id.includes("agent")));
+    assert.ok(
+      !models.some((model) => ["kimi-default", "kimi-k2.6", "kimi-128k"].includes(model.id))
+    );
   });
 });
 

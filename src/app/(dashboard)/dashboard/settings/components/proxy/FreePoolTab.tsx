@@ -17,14 +17,17 @@ type FreePoolStats = {
   lastSyncAt: string | null;
 };
 
+const PER_PAGE = 50;
+const MAX_VISIBLE_PAGES = 7;
+
 export default function FreePoolTab() {
   const t = useTranslations("settings");
   const [proxies, setProxies] = useState<FreeProxyRowData[]>([]);
   const [stats, setStats] = useState<FreePoolStats | null>(null);
   const [disabledSources, setDisabledSources] = useState<Set<SourceId>>(new Set());
-  const [filterProtocol, setFilterProtocol] = useState("");
-  const [filterCountry, setFilterCountry] = useState("");
-  const [minQuality, setMinQuality] = useState("");
+  const [filterProtocol, setFilterProtocolRaw] = useState("");
+  const [filterCountry, setFilterCountryRaw] = useState("");
+  const [minQuality, setMinQualityRaw] = useState("");
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -32,22 +35,29 @@ export default function FreePoolTab() {
   const [bulkProgress, setBulkProgress] = useState<string | null>(null);
   // #5595: per-source sync errors so a "Total: 0" result is never silent.
   const [syncErrors, setSyncErrors] = useState<Record<string, string[]> | null>(null);
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   // Load persisted disabled-sources from localStorage on mount
   useEffect(() => {
+    const saved = loadDisabledSources();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage hydration, runs once
-    setDisabledSources(loadDisabledSources());
+    if (saved) setDisabledSources(saved);
   }, []);
-
-  const handleToggleSource = useCallback((source: SourceId) => {
-    setDisabledSources((prev) => {
-      const next = new Set(prev);
-      if (next.has(source)) next.delete(source);
-      else next.add(source);
-      saveDisabledSources(next);
-      return next;
-    });
-  }, []);
+  // Wrapper setters that also reset page to 1
+  const setFilterProtocol = (v: string) => {
+    setFilterProtocolRaw(v);
+    setPage(1);
+  };
+  const setFilterCountry = (v: string) => {
+    setFilterCountryRaw(v);
+    setPage(1);
+  };
+  const setMinQuality = (v: string) => {
+    setMinQualityRaw(v);
+    setPage(1);
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -60,7 +70,8 @@ export default function FreePoolTab() {
       if (filterProtocol) params.set("protocol", filterProtocol);
       if (filterCountry) params.set("country", filterCountry);
       if (minQuality) params.set("minQuality", minQuality);
-      params.set("limit", "200");
+      params.set("limit", String(PER_PAGE));
+      params.set("offset", String((page - 1) * PER_PAGE));
 
       const [proxiesRes, statsRes] = await Promise.all([
         fetch(`/api/settings/free-proxies?${params.toString()}`),
@@ -69,6 +80,7 @@ export default function FreePoolTab() {
       if (proxiesRes.ok) {
         const data = await proxiesRes.json();
         setProxies(data.items || []);
+        setTotal(data.total ?? 0);
       }
       if (statsRes.ok) {
         const data = await statsRes.json();
@@ -76,7 +88,7 @@ export default function FreePoolTab() {
       }
     } catch {}
     setLoading(false);
-  }, [disabledSources, filterProtocol, filterCountry, minQuality]);
+  }, [disabledSources, filterProtocol, filterCountry, minQuality, page]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- async data fetch on filter change
@@ -94,17 +106,9 @@ export default function FreePoolTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      // #5595: surface per-source errors the route already returns so a
-      // partial/empty sync explains itself instead of silently showing "Total: 0".
-      const data = await res.json().catch(() => null);
-      if (data?.results) {
-        const errs: Record<string, string[]> = {};
-        for (const [src, r] of Object.entries(
-          data.results as Record<string, { errors?: string[] }>
-        )) {
-          if (Array.isArray(r?.errors) && r.errors.length > 0) errs[src] = r.errors;
-        }
-        if (Object.keys(errs).length > 0) setSyncErrors(errs);
+      const data = await res.json();
+      if (!res.ok) {
+        setSyncErrors(data.errors ?? null);
       }
       await loadData();
     } catch {}
@@ -112,17 +116,20 @@ export default function FreePoolTab() {
   };
 
   const handleAddToPool = async (id: string) => {
-    setAddingIds((prev) => new Set(prev).add(id));
+    setAddingIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
     try {
       const res = await fetch(`/api/settings/free-proxies/${id}/add-to-pool`, {
         method: "POST",
       });
-      // #4878: gate on the parsed body, not just res.ok. The route used to return
-      // a default 200 with { success:false } on a failed connectivity probe, which
-      // flipped the row to "In Pool" optimistically even though nothing was added.
-      const data = await res.json().catch(() => null);
-      if (res.ok && data?.success) {
-        setProxies((prev) => prev.map((p) => (p.id === id ? { ...p, inPool: true } : p)));
+      if (res.ok) {
+        const body = await res.json();
+        if (body.ok !== true) return;
+        // Optimistic: remove from local list since it's now in pool
+        setProxies((prev) => prev.filter((p) => p.id !== id));
       }
     } catch {}
     setAddingIds((prev) => {
@@ -159,6 +166,42 @@ export default function FreePoolTab() {
   };
 
   const notInPoolProxies = proxies.filter((p) => !p.inPool);
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+  // Build visible page range around current page
+  const buildPageRange = (): (number | "ellipsis")[] => {
+    if (totalPages <= MAX_VISIBLE_PAGES) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages: (number | "ellipsis")[] = [];
+    const half = Math.floor(MAX_VISIBLE_PAGES / 2);
+    let start = Math.max(1, page - half);
+    let end = Math.min(totalPages, page + half);
+
+    // Adjust if near start/end
+    if (page - half < 1) {
+      end = Math.min(totalPages, MAX_VISIBLE_PAGES);
+    }
+    if (page + half > totalPages) {
+      start = Math.max(1, totalPages - MAX_VISIBLE_PAGES + 1);
+    }
+
+    if (start > 1) {
+      pages.push(1);
+      if (start > 2) pages.push("ellipsis");
+    }
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < totalPages) {
+      if (end < totalPages - 1) pages.push("ellipsis");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setPage(newPage);
+  };
 
   return (
     <div className="space-y-4">
@@ -312,6 +355,55 @@ export default function FreePoolTab() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Page-number pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 pt-2">
+          <button
+            type="button"
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page <= 1}
+            aria-label="Previous page"
+          >
+            &laquo;
+          </button>
+          {buildPageRange().map((p, i) =>
+            p === "ellipsis" ? (
+              <span key={`ellipsis-${i}`} className="px-1 text-text-muted text-xs">
+                ...
+              </span>
+            ) : (
+              <button
+                key={p}
+                type="button"
+                onClick={() => handlePageChange(p)}
+                className={`px-2.5 py-1 text-xs rounded ${
+                  p === page
+                    ? "bg-primary text-white font-medium"
+                    : "hover:bg-black/5 dark:hover:bg-white/5"
+                }`}
+              >
+                {p}
+              </button>
+            )
+          )}
+          <button
+            type="button"
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page >= totalPages}
+            aria-label="Next page"
+          >
+            &raquo;
+          </button>
+        </div>
+      )}
+
+      {/* Per-page summary */}
+      <div className="text-center text-xs text-text-muted">
+        {total > 0
+          ? `Page ${page} of ${totalPages} (${total} total proxies)`
+          : `${total} total proxies`}
       </div>
     </div>
   );

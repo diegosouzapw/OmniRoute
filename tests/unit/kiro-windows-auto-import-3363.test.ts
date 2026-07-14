@@ -24,6 +24,7 @@ const core = await import("../../src/lib/db/core.ts");
 const { GET } = await import("../../src/app/api/oauth/kiro/auto-import/route.ts");
 
 const ORIGINAL_HOME = process.env.HOME;
+const ORIGINAL_USERPROFILE = process.env.USERPROFILE;
 const ORIGINAL_APPDATA = process.env.APPDATA;
 const ORIGINAL_FETCH = globalThis.fetch;
 
@@ -37,12 +38,21 @@ test.beforeEach(() => {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   // Override HOME so homedir() returns a temp dir where no kiro-cli DB exists.
   process.env.HOME = tmpHome;
+  // On Windows os.homedir() reads USERPROFILE (not HOME), so isolate it too —
+  // otherwise the probe reads the real ~/.aws/sso/cache and can find an actual
+  // (e.g. external_idp organization) Kiro login on the test host.
+  process.env.USERPROFILE = tmpHome;
   // Ensure APPDATA is unset by default; individual tests that need it set it.
   delete process.env.APPDATA;
 });
 
 test.afterEach(() => {
   process.env.HOME = ORIGINAL_HOME;
+  if (ORIGINAL_USERPROFILE !== undefined) {
+    process.env.USERPROFILE = ORIGINAL_USERPROFILE;
+  } else {
+    delete process.env.USERPROFILE;
+  }
   if (ORIGINAL_APPDATA !== undefined) {
     process.env.APPDATA = ORIGINAL_APPDATA;
   } else {

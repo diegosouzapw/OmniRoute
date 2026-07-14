@@ -480,7 +480,7 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | 变量 | 默认值 | 何时更新 |
 | --- | --- | --- |
-| `CLAUDE_USER_AGENT` | `claude-cli/2.1.195 (external, cli)` | Anthropic 发布新的 CLI 版本时 |
+| `CLAUDE_USER_AGENT` | `claude-cli/2.1.207 (external, cli)` | Anthropic 发布新的 CLI 版本时 |
 | `CLAUDE_DISABLE_TOOL_NAME_CLOAK` | `false` | `executors/base.ts` + `executors/cliproxyapi.ts` | 设为 `1`/`true` 可将第三方测试工具的工具名称原封不动地转发到 Anthropic 的两条绑定路径上（原生 OAuth 和 CLIProxyAPI）。默认情况下 executor 会将非 Claude Code 的工具名称确定性别名化（Claude Code 存在规范映射的用规范映射，否则用 PascalCase），并通过 `_toolNameMap` 在响应中还原，从而确保带 snake_case 工具的测试工具不会被视为指纹化第三方客户端而被拒绝。仅供调试。 |
 | `CODEX_USER_AGENT` | `codex-cli/0.142.0 (Windows 10.0.26200; x64)` | OpenAI 更新 Codex CLI 时 |
 | `CODEX_CLIENT_VERSION` | `0.131.0` | 独立于完整 UA 字符串覆盖 Codex 客户端版本 |

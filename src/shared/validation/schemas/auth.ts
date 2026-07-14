@@ -193,6 +193,16 @@ export const kiroImportSchema = z.object({
   clientSecret: z.string().optional(),
   authMethod: z.string().optional(),
   profileArn: z.string().optional(),
+  // External IdP ("Your organization" / Microsoft Entra) token fields — present
+  // when authMethod === "external_idp". The token is refreshed via a public-client
+  // OAuth2 grant against `tokenEndpoint` using `clientId` + `scopes` (no secret).
+  tokenEndpoint: z.string().optional(),
+  scopes: z.union([z.string(), z.array(z.string())]).optional(),
+});
+
+export const kiroApiKeyImportSchema = z.object({
+  apiKey: z.string().trim().min(1, "API key is required"),
+  region: z.string().trim().default("us-east-1"),
 });
 
 export const zedImportSchema = z.object({

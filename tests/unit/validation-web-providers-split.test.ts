@@ -25,7 +25,7 @@ test("webProvidersA exposes its six validators (deepseek/qwen/grok/chatgpt/perpl
   }
 });
 
-test("webProvidersB exposes its eight validators (muse-spark/adapta/claude/gemini/copilot/t3/jules/inner-ai)", () => {
+test("webProvidersB exposes its nine validators (muse-spark/adapta/claude/gemini/copilot/t3/jules/devin/inner-ai)", () => {
   for (const name of [
     "validateMuseSparkWebProvider",
     "validateAdaptaWebProvider",
@@ -34,6 +34,7 @@ test("webProvidersB exposes its eight validators (muse-spark/adapta/claude/gemin
     "validateCopilotWebProvider",
     "validateT3WebProvider",
     "validateJulesProvider",
+    "validateDevinCloudAgentProvider",
     "validateInnerAiProvider",
   ]) {
     assert.equal(typeof (B as Record<string, unknown>)[name], "function", `B missing ${name}`);

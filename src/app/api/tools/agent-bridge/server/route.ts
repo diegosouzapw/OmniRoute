@@ -13,6 +13,28 @@ import { resolveMitmDataDir } from "@/mitm/dataDir";
 import path from "path";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
+import { pickApiKeyForInternalUse } from "@/lib/localDb";
+
+/**
+ * Resolve the OmniRoute API key the spawned MITM child (`server.cjs`) uses to
+ * authenticate its own outbound calls back to `/v1/chat/completions`
+ * (`ROUTER_API_KEY` env — see `src/mitm/manager.ts::startMitmInternal`).
+ *
+ * Historically this only checked an explicit `apiKey` request field (never
+ * sent by the AgentBridge UI — `AgentBridgeServerActionSchema` has no
+ * `apiKey` field) and the `ROUTER_API_KEY` process env var (unset unless an
+ * operator manually exports it). On a normal install neither is ever set, so
+ * `startMitm()` always received `""` and the MITM child exited with
+ * "ROUTER_API_KEY required" even though OmniRoute already had a usable key in
+ * its own DB (#6403). Falls back to the same DB-backed selector used by the
+ * combo-health-check / cloud-sync-verify internal probes.
+ */
+export async function resolveRouterApiKey(rawApiKey: string): Promise<string> {
+  if (rawApiKey) return rawApiKey;
+  if (process.env.ROUTER_API_KEY) return process.env.ROUTER_API_KEY;
+  const picked = await pickApiKeyForInternalUse("internal-probe");
+  return picked ?? "";
+}
 
 export async function POST(request: Request): Promise<Response> {
   let body: unknown;
@@ -35,11 +57,12 @@ export async function POST(request: Request): Promise<Response> {
   const raw = body as Record<string, unknown>;
   const sudoPassword =
     typeof raw.sudoPassword === "string" ? raw.sudoPassword : (getCachedPassword() ?? "");
-  const apiKey = typeof raw.apiKey === "string" ? raw.apiKey : (process.env.ROUTER_API_KEY ?? "");
+  const rawApiKey = typeof raw.apiKey === "string" ? raw.apiKey : "";
 
   try {
     if (action === "start") {
       if (sudoPassword) setCachedPassword(sudoPassword);
+      const apiKey = await resolveRouterApiKey(rawApiKey);
       const { startMitm } = await import("@/mitm/manager.runtime");
       const result = await startMitm(apiKey, sudoPassword);
       return Response.json({ ok: true, ...result });
@@ -61,6 +84,7 @@ export async function POST(request: Request): Promise<Response> {
       }
       // stopMitm calls clearCachedPassword() internally, so re-cache after stop
       if (sudoPassword || pwd) setCachedPassword(sudoPassword || pwd);
+      const apiKey = await resolveRouterApiKey(rawApiKey);
       const result = await startMitm(apiKey, sudoPassword || pwd);
       return Response.json({ ok: true, ...result });
     }

@@ -220,22 +220,32 @@ test("GET /api/usage/analytics does not report flex savings for non-Codex provid
   assert.equal(flexTier.usageSavingsTokens, 0);
 });
 
-test("GET /api/usage/analytics applies Codex GPT-5.4 Fast multiplier", async () => {
+test("GET /api/usage/analytics applies Codex GPT-5.6 Sol Fast multiplier", async () => {
   await localDb.updatePricing({
-    codex: { "gpt-5.4": { input: 5, output: 30 } },
+    codex: { "gpt-5.6-sol": { input: 5, output: 30 } },
   });
   const db = core.getDbInstance();
   db.prepare(
     `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, service_tier, timestamp)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run("codex", "gpt-5.4", "codex-fast", 1000, 500, 1, 250, "priority", new Date().toISOString());
+  ).run(
+    "codex",
+    "gpt-5.6-sol",
+    "codex-fast",
+    1000,
+    500,
+    1,
+    250,
+    "priority",
+    new Date().toISOString()
+  );
 
   const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
   const body = await response.json();
 
   assert.equal(response.status, 200);
-  assertClose(body.summary.totalCost, 0.04);
-  assertClose(body.summary.fastCost, 0.04);
+  assertClose(body.summary.totalCost, 0.03);
+  assertClose(body.summary.fastCost, 0.03);
 });
 
 test("GET /api/usage/analytics maps Codex auto-review usage to GPT-5.5 pricing", async () => {

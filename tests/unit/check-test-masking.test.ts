@@ -5,6 +5,8 @@ import {
   countTautologies,
   countSkips,
   countExtendedTautologies,
+  countBareTautologies,
+  scanBareTautologies,
   evaluateMasking,
   evaluateDeletedFiles,
   partitionDeletedRenamed,
@@ -265,6 +267,90 @@ test("countExtendedTautologies: handles whitespace variants", () => {
     assert.equal( 1,  1 );
   `;
   assert.equal(countExtendedTautologies(src), 2);
+});
+
+// ─── #6404: bare tautologies (absolute floor scan, no PR diff needed) ───────
+
+test("countBareTautologies: detects expect(true).toBe(true)", () => {
+  const src = `expect(true).toBe(true);`;
+  assert.equal(countBareTautologies(src), 1);
+});
+
+test("countBareTautologies: detects assert.equal(1, 1) and assert.strictEqual(1, 1)", () => {
+  assert.equal(countBareTautologies(`assert.equal(1, 1);`), 1);
+  assert.equal(countBareTautologies(`assert.strictEqual(1, 1);`), 1);
+});
+
+test("countBareTautologies: does NOT count assert.ok(true) (governed separately)", () => {
+  // Unlike countExtendedTautologies, the absolute scan deliberately excludes
+  // assert.ok(true) — it has many pre-existing, verified-legitimate uses
+  // (try/catch fallbacks) across the codebase and stays on the lenient,
+  // new-occurrence-only diff subcheck instead of an always-on floor.
+  const src = `assert.ok(true);`;
+  assert.equal(countBareTautologies(src), 0);
+});
+
+test("countBareTautologies: returns 0 for real assertions", () => {
+  const src = `
+    expect(result).toBe(42);
+    assert.equal(a, b);
+    assert.ok(someCondition);
+  `;
+  assert.equal(countBareTautologies(src), 0);
+});
+
+test("scanBareTautologies: flags a file containing the #6404 pattern (RED)", () => {
+  const files = ["tests/unit/ui/playground-api-tab.test.tsx"];
+  const read = () => `
+    it("does something", async () => {
+      // If button is disabled (no model selected), test still passes
+      expect(true).toBe(true);
+    });
+  `;
+  const flags = scanBareTautologies(files, read);
+  assert.equal(flags.length, 1);
+  assert.match(flags[0], /playground-api-tab\.test\.tsx/);
+});
+
+test("scanBareTautologies: a real assertion in the same spot is clean (GREEN)", () => {
+  const files = ["tests/unit/ui/playground-api-tab.test.tsx"];
+  const read = () => `
+    it("sends SSE stream request and accumulates response", async () => {
+      const responseEditor = editors[1];
+      expect(responseEditor.value).toContain("Hello!");
+    });
+  `;
+  const flags = scanBareTautologies(files, read);
+  assert.deepEqual(flags, []);
+});
+
+test("scanBareTautologies: excludes check-test-masking.test.ts itself", () => {
+  const files = ["tests/unit/check-test-masking.test.ts"];
+  const read = () => `expect(true).toBe(true);`;
+  assert.deepEqual(scanBareTautologies(files, read), []);
+});
+
+test("scanBareTautologies: excludes sibling gate self-test files (#6634 selfref regression)", () => {
+  // The gate's own regression files (e.g. check-test-masking-selfref-6634.test.ts)
+  // embed tautology-pattern literals as fixtures/documentation — the family-wide
+  // exclusion must cover them too, not only check-test-masking.test.ts itself.
+  const files = ["tests/unit/check-test-masking-selfref-6634.test.ts"];
+  const read = () => `assert.equal(1, 1);`;
+  assert.deepEqual(scanBareTautologies(files, read), []);
+});
+
+test("scanBareTautologies: a non-family file with the pattern is still flagged (exclusion is scoped)", () => {
+  const files = ["tests/unit/some-unrelated.test.ts"];
+  const read = () => `assert.equal(1, 1);`;
+  assert.equal(scanBareTautologies(files, read).length, 1);
+});
+
+test("scanBareTautologies: skips unreadable files instead of throwing", () => {
+  const files = ["tests/unit/does-not-exist.test.ts"];
+  const read = () => {
+    throw new Error("ENOENT");
+  };
+  assert.deepEqual(scanBareTautologies(files, read), []);
 });
 
 test("evaluateMasking: new extended tautology is flagged", () => {

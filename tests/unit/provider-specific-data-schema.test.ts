@@ -117,6 +117,22 @@ test("provider schemas accept Codex default priority and flex service tiers", ()
   }
 });
 
+test("provider schemas accept max but reject ultra as a server-side Codex default", () => {
+  const max = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      requestDefaults: { reasoningEffort: "max" },
+    },
+  });
+  const ultra = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      requestDefaults: { reasoningEffort: "ultra" },
+    },
+  });
+
+  assert.equal(max.success, true);
+  assert.equal(ultra.success, false);
+});
+
 test("provider schemas reject unknown Codex service tiers", () => {
   const created = createProviderSchema.safeParse({
     provider: "codex",
