@@ -609,6 +609,11 @@ jobs:
       - name: Assert dist/server.js exists
         run: test -f dist/server.js || (echo "dist/server.js missing — build:cli did not assemble correctly" && exit 1)
       - run: npm run check:pack-artifact
+      # WS1.2 (#7065 class): pack the real tarball, install it into a clean prefix and
+      # BOOT it to a healthy /api/monitoring/health — the gate that structure checks
+      # cannot provide (3 releases shipped boot-crashing tarballs with green lists).
+      - name: Boot-smoke the packed tarball
+        run: npm run check:pack-boot
 
   electron-package-smoke:
     name: Electron Package Smoke
