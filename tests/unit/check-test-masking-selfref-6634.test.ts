@@ -19,7 +19,6 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 
 import {
   countTautologies,
@@ -29,28 +28,16 @@ import {
 
 const FILE = "tests/unit/check-test-masking.test.ts";
 
-function git(args: string[]): string {
-  return execFileSync("git", args, { encoding: "utf8" });
-}
-
-test("#6634: check-test-masking.test.ts's own tautology fixtures must not self-flag as weakening", (t) => {
-  // origin/main predates the #6404 fixtures (countBareTautologies/scanBareTautologies
-  // tests) that legitimately embed tautology-pattern literals as string fixtures.
-  // Shallow/single-ref checkouts (GitHub-hosted runners) have no origin/main —
-  // fetch it on demand; skip (never fail) when the ref is unreachable offline.
-  let baseSrc: string;
-  try {
-    baseSrc = git(["show", "origin/main:" + FILE]);
-  } catch {
-    try {
-      git(["fetch", "--depth=1", "origin", "main"]);
-      baseSrc = git(["show", "origin/main:" + FILE]);
-    } catch {
-      t.skip("origin/main unavailable (shallow checkout, offline) — nothing to compare against");
-      return;
-    }
-  }
-  const headSrc = git(["show", "HEAD:" + FILE]);
+test("#6634: check-test-masking.test.ts's own tautology fixtures must not self-flag as weakening", () => {
+  // Model the pre-#6404 source and the fixture literals added by #6404 directly.
+  // This must be checkout-independent: Actions only fetches the PR base ref, not
+  // origin/main, so reading a remote ref made the unit shard fail before testing
+  // the masking behavior.
+  const baseSrc = "";
+  const headSrc = `
+    const bare = "expect(true).toBe(true);";
+    const equal = "assert.equal(1, 1);";
+  `;
 
   const perFile = [
     {
