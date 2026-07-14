@@ -1,16 +1,16 @@
-name: Publish GPT-5.6 Responses-Lite Hotfix
+name: Publish OmniRoute main image
 
 on:
   push:
     branches:
-      - dev/gpt56-responses-lite-hotfix
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: docker-gpt56-responses-lite-hotfix
+  group: docker-main-image
   cancel-in-progress: true
 
 env:
@@ -19,7 +19,7 @@ env:
 jobs:
   build:
     name: Build and publish linux/amd64 image
-    if: github.repository == 'JxnLexn/OmniRoute'
+    if: github.repository == 'JxnLexn/OmniRoute' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -40,7 +40,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push hotfix image
+      - name: Build and push main image
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
@@ -48,11 +48,11 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}:gpt56-responses-lite
-            ${{ env.IMAGE_NAME }}:gpt56-responses-lite-${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:main
+            ${{ env.IMAGE_NAME }}:main-${{ github.sha }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.description=Temporary GPT-5.6 Responses-Lite compatibility hotfix
-          cache-from: type=gha,scope=gpt56-responses-lite-amd64
-          cache-to: type=gha,scope=gpt56-responses-lite-amd64,mode=max
+            org.opencontainers.image.description=OmniRoute main branch image
+          cache-from: type=gha,scope=main-amd64
+          cache-to: type=gha,scope=main-amd64,mode=max
