@@ -132,6 +132,12 @@ const IGNORE_FROM_CODE = new Set([
   "QA_LOCALES",
   "QA_REPORT_SUFFIX",
   "QA_ROUTES",
+  // Post-publish verifier (scripts/release/verify-published.mjs): env passed INTO the
+  // clean Docker container script (Hard Rule #13 env-option pattern) — release tooling
+  // internals, never OmniRoute runtime config.
+  "VERIFY_DEADLINE_S",
+  "VERIFY_PORT",
+  "VERIFY_VERSION",
   // Doctor diagnostic flags (no runtime behavior yet — placeholders).
   "OMNIROUTE_DOCTOR_HOST",
   "OMNIROUTE_DOCTOR_LIVENESS_URL",
