@@ -15,6 +15,17 @@ export interface ProviderPluginManifestClientOptions {
   signal?: AbortSignal | null;
 }
 
+export interface CachedProviderPluginManifest {
+  etag: string;
+  manifest: ProviderPluginManifest;
+}
+
+export interface ProviderPluginManifestFetchResult {
+  etag?: string;
+  manifest: ProviderPluginManifest;
+  modified: boolean;
+}
+
 export { PROVIDER_PLUGIN_MANIFEST_ENV, PROVIDER_PLUGIN_MANIFEST_PATH };
 
 export function resolveProviderPluginManifestUrl(
@@ -32,12 +43,37 @@ export function resolveProviderPluginManifestUrl(
 export async function fetchProviderPluginManifest(
   options: ProviderPluginManifestClientOptions = {}
 ): Promise<ProviderPluginManifest> {
+  return (await fetchProviderPluginManifestWithCache(options)).manifest;
+}
+
+export async function fetchProviderPluginManifestWithCache(
+  options: ProviderPluginManifestClientOptions & {
+    cachedManifest?: CachedProviderPluginManifest | null;
+  } = {}
+): Promise<ProviderPluginManifestFetchResult> {
   const fetcher = options.fetchImpl ?? fetch;
   const url = resolveProviderPluginManifestUrl(options);
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (options.cachedManifest?.etag) {
+    headers["If-None-Match"] = options.cachedManifest.etag;
+  }
   const response = await fetcher(url, {
-    headers: { Accept: "application/json" },
+    headers,
     signal: options.signal ?? undefined,
   });
+
+  if (response.status === 304) {
+    if (!options.cachedManifest) {
+      throw new Error(
+        "Provider plugin manifest request returned HTTP 304 without a cached manifest"
+      );
+    }
+    return {
+      manifest: options.cachedManifest.manifest,
+      etag: options.cachedManifest.etag,
+      modified: false,
+    };
+  }
 
   if (!response.ok) {
     throw new Error(`Provider plugin manifest request failed: HTTP ${response.status}`);
@@ -48,7 +84,11 @@ export async function fetchProviderPluginManifest(
     throw new Error("Provider plugin manifest response is not schemaVersion 1");
   }
 
-  return manifest;
+  return {
+    manifest,
+    ...(response.headers.get("ETag") ? { etag: response.headers.get("ETag")! } : {}),
+    modified: true,
+  };
 }
 
 export function getProviderPluginManifestEntryForModelFromManifest(

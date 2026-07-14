@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   fetchProviderPluginManifest,
+  fetchProviderPluginManifestWithCache,
   fetchProviderPluginManifestEntryForModel,
   getProviderPluginManifestEntryForModelFromManifest,
   PROVIDER_PLUGIN_MANIFEST_ENV,
@@ -26,11 +27,11 @@ test("provider plugin manifest client resolves explicit and env URLs first", () 
 
   assert.equal(
     resolveProviderPluginManifestUrl({ manifestUrl: "http://explicit.example/manifest" }),
-    "http://explicit.example/manifest",
+    "http://explicit.example/manifest"
   );
   assert.equal(
     resolveProviderPluginManifestUrl({ baseUrl: "http://local.example:20128/" }),
-    "http://env.example/manifest",
+    "http://env.example/manifest"
   );
 });
 
@@ -41,11 +42,11 @@ test("provider plugin manifest client resolves base and default local URLs", () 
 
   assert.equal(
     resolveProviderPluginManifestUrl({ baseUrl: "http://127.0.0.1:20128/" }),
-    `http://127.0.0.1:20128${PROVIDER_PLUGIN_MANIFEST_PATH}`,
+    `http://127.0.0.1:20128${PROVIDER_PLUGIN_MANIFEST_PATH}`
   );
   assert.equal(
     resolveProviderPluginManifestUrl(),
-    `http://0.0.0.0:20129${PROVIDER_PLUGIN_MANIFEST_PATH}`,
+    `http://0.0.0.0:20129${PROVIDER_PLUGIN_MANIFEST_PATH}`
   );
 });
 
@@ -80,7 +81,7 @@ test("provider plugin manifest client rejects failed HTTP and malformed response
       manifestUrl: "http://sidecar.local/manifest",
       fetchImpl: async () => new Response("nope", { status: 503 }),
     }),
-    /HTTP 503/,
+    /HTTP 503/
   );
 
   await assert.rejects(
@@ -88,7 +89,34 @@ test("provider plugin manifest client rejects failed HTTP and malformed response
       manifestUrl: "http://sidecar.local/manifest",
       fetchImpl: async () => new Response(JSON.stringify({ providers: [] }), { status: 200 }),
     }),
-    /schemaVersion 1/,
+    /schemaVersion 1/
+  );
+});
+
+test("provider plugin manifest client reuses a cached manifest after a conditional 304", async () => {
+  const manifest: ProviderPluginManifest = {
+    schemaVersion: 1,
+    generatedFrom: "open-sse/config/providers",
+    providers: [],
+  };
+  let requestHeaders: HeadersInit | undefined;
+
+  const result = await fetchProviderPluginManifestWithCache({
+    cachedManifest: { etag: '"manifest-v1"', manifest },
+    fetchImpl: async (_url, init) => {
+      requestHeaders = init?.headers;
+      return new Response(null, { status: 304 });
+    },
+  });
+
+  assert.deepEqual(result, { etag: '"manifest-v1"', manifest, modified: false });
+  assert.equal((requestHeaders as Record<string, string>)["If-None-Match"], '"manifest-v1"');
+
+  await assert.rejects(
+    fetchProviderPluginManifestWithCache({
+      fetchImpl: async () => new Response(null, { status: 304 }),
+    }),
+    /304 without a cached manifest/
   );
 });
 
@@ -130,21 +158,21 @@ test("provider plugin manifest client resolves model entries from fetched manife
 
   assert.equal(
     getProviderPluginManifestEntryForModelFromManifest(manifest, "openai/gpt-4.1")?.id,
-    "openai",
+    "openai"
   );
   assert.equal(
     getProviderPluginManifestEntryForModelFromManifest(manifest, "claude/claude-sonnet-4.6")?.id,
-    "anthropic",
+    "anthropic"
   );
   assert.equal(
     getProviderPluginManifestEntryForModelFromManifest(manifest, "gpt-4.1")?.id,
-    "openai",
+    "openai"
   );
   assert.equal(
     await fetchProviderPluginManifestEntryForModel("missing-model", {
       manifestUrl: "http://sidecar.local/manifest",
       fetchImpl,
     }),
-    null,
+    null
   );
 });
