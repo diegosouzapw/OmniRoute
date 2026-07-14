@@ -283,7 +283,7 @@ export default function OnboardingWizard() {
             {currentStep.id === "welcome" && (
               <div className="text-center space-y-4">
                 <p className="text-text-muted">{t("welcomeDesc")}</p>
-                <div className="grid grid-cols-3 gap-3 mt-6">
+                <div className="mt-6 grid grid-cols-3 gap-3 items-stretch">
                   {[
                     { icon: "swap_horiz", label: t("multiProvider") },
                     { icon: "monitoring", label: t("usageTracking") },
@@ -291,12 +291,14 @@ export default function OnboardingWizard() {
                   ].map((f) => (
                     <div
                       key={f.icon}
-                      className="bg-white/[0.03] rounded-xl p-3 text-center border border-white/[0.06]"
+                      className="h-full bg-white/[0.03] rounded-xl p-3 text-center border border-white/[0.06]"
                     >
-                      <span className="material-symbols-outlined text-primary text-[24px] mb-1 block">
-                        {f.icon}
-                      </span>
-                      <span className="text-xs text-text-muted">{f.label}</span>
+                      <div className="flex h-full flex-col items-center justify-center">
+                        <span className="material-symbols-outlined text-primary text-[24px] mb-1 block">
+                          {f.icon}
+                        </span>
+                        <span className="text-xs text-text-muted">{f.label}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
