@@ -133,7 +133,7 @@ test("createPassthroughStreamWithLogger synthesizes reasoning summary events fro
   assert.match(result, /event: response\.output_item\.done/);
 });
 
-test("createPassthroughStreamWithLogger shows a placeholder for encrypted reasoning items", async () => {
+test("createPassthroughStreamWithLogger preserves encrypted reasoning without a fake summary", async () => {
   const transform = createPassthroughStreamWithLogger(
     "codex",
     null,
@@ -169,9 +169,10 @@ test("createPassthroughStreamWithLogger shows a placeholder for encrypted reason
     result += decoder.decode(value);
   }
 
-  assert.match(result, /event: response\.reasoning_summary_text\.delta/);
-  assert.match(result, /Codex is reasoning/);
-  assert.match(result, /"summary":\[\{"type":"summary_text","text":"Codex is reasoning/);
+  assert.doesNotMatch(result, /response\.reasoning_summary/);
+  assert.doesNotMatch(result, /Codex is reasoning/);
+  assert.match(result, /"encrypted_content":"enc_opaque_state"/);
+  assert.doesNotMatch(result, /"summary":/);
   assert.match(result, /event: response\.output_item\.done/);
 });
 
