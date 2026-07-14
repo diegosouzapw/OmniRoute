@@ -528,7 +528,7 @@ test("OpenAI -> Cloud Code Gemini applies native request defaults", () => {
   ) as any;
 
   assert.equal(request.model, "gemini-3-flash-preview");
-  assert.equal(request.generationConfig.thinkingConfig.includeThoughts, true);
+  assert.equal(request.generationConfig.thinkingConfig.includeThoughts, false);
   assert.equal(request.generationConfig.topK, undefined);
   assert.equal(request.contents.at(-1).parts[0].text, "Hello");
 });
