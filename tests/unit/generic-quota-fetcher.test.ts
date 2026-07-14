@@ -114,3 +114,12 @@ test("registerGenericQuotaFetchers registers Claude, GLM, and OpenCode Go via th
   // which would couple this test to chat.ts startup wiring. The skip list
   // semantics are exercised by the source code review.
 });
+
+test("convertUsageToQuotaInfo skips Antigravity quota entries with an unknown fraction", () => {
+  const result = convertUsageToQuotaInfo({
+    quotas: {
+      gemini: { fractionReported: false, resetAt: "2026-05-14T20:00:00Z" },
+    },
+  });
+  assert.equal(result, null);
+});

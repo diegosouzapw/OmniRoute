@@ -2,7 +2,7 @@
  * Tests for open-sse/services/usage.ts — Antigravity quota parsing.
  *
  * Verifies that remainingFraction is correctly parsed:
- * - undefined → 0% remaining (exhausted quota)
+ * - undefined → unknown quota (not exhausted)
  * - 0 → 0% remaining (exhausted quota, explicit)
  * - 1.0 → 100% remaining (full quota)
  * - 1.0 without resetTime → unlimited (e.g. tab-completion)
@@ -28,7 +28,7 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
     projectId: undefined,
   };
 
-  it("defaults to 0% remaining when remainingFraction is undefined", async () => {
+  it("treats a missing remainingFraction as unknown rather than exhausted", async () => {
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async () =>
       ({
@@ -53,9 +53,10 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
       if ("quotas" in result) {
         const quota = result.quotas["gemini-3.5-flash-high"];
         assert.ok(quota, "should have quota for gemini-3.5-flash-high");
-        assert.equal(quota.remainingPercentage, 0, "remaining should be 0%");
+        assert.equal(quota.remainingPercentage, undefined, "unknown quota must not become 0%");
+        assert.equal(quota.fractionReported, false, "missing fraction should be marked unknown");
         assert.equal(quota.unlimited, false, "should not be unlimited");
-        assert.equal(quota.used > 0, true, "used should be > 0 when quota is exhausted");
+        assert.equal(quota.used, 0, "unknown quota must not report usage");
       }
     } finally {
       globalThis.fetch = originalFetch;
