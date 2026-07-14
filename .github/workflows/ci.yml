@@ -726,11 +726,10 @@ jobs:
       # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
       # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
       - run: npm run test:vitest
-      # vitest:ui is RED today (14 fails — UI component drift accumulated while the
-      # suite never ran in CI). Informational until the Fase 6A triage (2026-06-16+)
-      # fixes the components/tests; then drop continue-on-error to make it blocking.
+      # vitest:ui went back to 870/870 green in the v3.8.49 quality plan (WS6.1,
+      # PR #7127 — 69 fails triaged: matchMedia polyfill, node:test→vitest migration,
+      # CompareTab D22 cap). Promoted to BLOCKING per the plan's post-merge step.
       - run: npm run test:vitest:ui
-        continue-on-error: true
 
   # Node 24/26 compatibility matrices moved to .github/workflows/nightly-compat.yml
   # (plano mestre testes+CI, Eixo D2 — they cost ~28% of every heavy run to catch a
