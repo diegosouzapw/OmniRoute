@@ -6,8 +6,6 @@
 
 ## [3.8.49] — TBD
 
-- **fix(cli):** the runtime self-heal now verifies a cached `better-sqlite3` native binary actually loads for the running Node before trusting it — the old check only inspected the file's magic bytes (ELF/Mach-O/PE header), so a binary built for a different Node ABI passed validation and segfaulted the process on first use instead of triggering a rebuild. (thanks @mrprohack)
-
 ---
 
 ## [3.8.48] — 2026-07-13
