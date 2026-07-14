@@ -420,6 +420,20 @@ async function getJson(url: string) {
   return { response, json };
 }
 
+class NonJsonChatResponseError extends Error {
+  readonly status: number;
+
+  constructor(response: Response, text: string) {
+    const contentType = response.headers.get("content-type") || "unknown";
+    const bodyPreview = text.replace(/\s+/g, " ").trim().slice(0, 500);
+    super(
+      `Chat endpoint returned non-JSON response (HTTP ${response.status}, ${contentType}): ${bodyPreview}`
+    );
+    this.name = "NonJsonChatResponseError";
+    this.status = response.status;
+  }
+}
+
 async function postChat(baseUrl: string, model: string, content: string) {
   const response = await fetch(`${baseUrl}/api/v1/chat/completions`, {
     method: "POST",
@@ -432,8 +446,32 @@ async function postChat(baseUrl: string, model: string, content: string) {
     signal: AbortSignal.timeout(20_000),
   });
   const text = await response.text();
-  const json = text ? JSON.parse(text) : {};
+  let json: unknown = {};
+  if (text) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      throw new NonJsonChatResponseError(response, text);
+    }
+  }
   return { response, json };
+}
+
+async function warmUpChatRoute(baseUrl: string, model: string, content: string) {
+  const maxAttempts = 3;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const result = await postChat(baseUrl, model, content);
+      if (result.response.status < 500 || attempt === maxAttempts) return result;
+    } catch (error) {
+      if (!(error instanceof NonJsonChatResponseError) || attempt === maxAttempts) throw error;
+    }
+
+    await sleep(attempt * 500);
+  }
+
+  throw new Error("Chat route warm-up exhausted without a response");
 }
 
 const relay = createFakeOpenAiRelay();
@@ -536,7 +574,7 @@ test.before(async () => {
 
   await patchResilience(app.baseUrl, buildResilienceConfig());
 
-  const warmup = await postChat(app.baseUrl, "p2/test-model", "warm up chat route");
+  const warmup = await warmUpChatRoute(app.baseUrl, "p2/test-model", "warm up chat route");
   assert.equal(warmup.response.status, 200, JSON.stringify(warmup.json));
   relay.resetState(TOKENS.p2);
 });
@@ -642,7 +680,11 @@ test.skip("wait-for-cooldown honors upstream Retry-After when enabled", async ()
     })
   );
   relay.resetState(TOKENS.p3);
-  const warmup = await postChat(app.baseUrl, "p3/test-model", "warm provider-specific route");
+  const warmup = await warmUpChatRoute(
+    app.baseUrl,
+    "p3/test-model",
+    "warm provider-specific route"
+  );
   assert.equal(warmup.response.status, 200, JSON.stringify(warmup.json));
   relay.resetState(TOKENS.p3, [
     buildError(429, "rate limited, retry after 1 second", { "Retry-After": "1" }),
@@ -678,7 +720,11 @@ test.skip("connection cooldown can ignore upstream Retry-After and use the confi
     })
   );
   relay.resetState(TOKENS.p4);
-  const warmup = await postChat(app.baseUrl, "p4/test-model", "warm provider-specific route");
+  const warmup = await warmUpChatRoute(
+    app.baseUrl,
+    "p4/test-model",
+    "warm provider-specific route"
+  );
   assert.equal(warmup.response.status, 200, JSON.stringify(warmup.json));
   relay.resetState(TOKENS.p4, [
     buildError(429, "rate limited, retry after 30 seconds", { "Retry-After": "30" }),
