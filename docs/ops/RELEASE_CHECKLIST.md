@@ -37,6 +37,28 @@ npm run test:e2e           # optional but recommended
 /capture-release-evidences-cc
 ```
 
+## Hotfix Fast-Lane (label `hotfix`)
+
+A PR labeled `hotfix` skips the heavy CI matrix (9-shard E2E, coverage ratchet,
+quality-gate, quality-extended) and keeps the fast, high-signal gates: build,
+unit shards, integration, vitest, lint/typecheck, docs-sync, `check:pack-artifact`
+and the tarball boot-smoke (`check:pack-boot`). Target: green in ≤15min instead of ~33min.
+
+**Entry policy — all four required (modeled on Chromium/VS Code/Node emergency lanes):**
+
+1. **Severity**: production is broken — a published artifact crashes on boot / a
+   security fix / every user of the release is affected. "Important" is not "broken".
+2. **Authority**: only the repository owner applies the `hotfix` label. The label IS
+   the approval — never self-serve on a campaign PR.
+3. **Evidence**: the PR body links the previous fully-green heavy run (the suite the
+   skipped jobs would re-validate) plus the fix's own failing-then-passing test.
+4. **Scope**: cherry-pick-only — the minimal fix, no refactors, no ride-alongs.
+
+The skipped coverage/ratchet surface is re-validated by the next full run on the
+release branch (continuous release-green) — the lane skips WAITING, never validation.
+Tests-only diffs (all files under `tests/`, none under `tests/e2e/`) skip the E2E
+matrix automatically, without any label.
+
 ## Detailed Checklist
 
 ### Pre-release

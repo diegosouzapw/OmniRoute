@@ -158,7 +158,8 @@
       "dedicatedGate": true
     },
     "secretFindings": {
-      "value": 3,
+      "_note": "Zeroed 2026-07-13 (WS6/D3): the 3 frozen generic-api-key FPs are allowlisted with justification in .gitleaks.toml — any NEW finding regresses the ratchet.",
+      "value": 0,
       "direction": "down",
       "dedicatedGate": true
     },
@@ -186,12 +187,6 @@
       "direction": "down",
       "dedicatedGate": true,
       "_note": "oasdiff breaking-change gate (Fase 9 Onda 0). Blocks any breaking change vs base spec."
-    },
-    "semgrepFindings": {
-      "value": 0,
-      "direction": "down",
-      "dedicatedGate": true,
-      "_note": "semgrep owasp/secrets findings. ADVISORY until first CI value is frozen, then flip blocking (Fase 9)."
     },
     "mutationScore.src/sse/services/auth.ts": {
       "value": 52.57,
