@@ -135,6 +135,13 @@ jobs:
       # check:docs-sync is run by the docs-sync-strict job (via check:docs-all) and the
       # husky pre-commit hook; the standalone copy here was redundant (ROI dedup).
       - run: npm run typecheck:core
+      # #7033: typecheck:core's curated file allowlist does not cover
+      # src/app/(dashboard) TSX (and next.config.mjs sets ignoreBuildErrors:
+      # true, so `next build` never type-checks it either) — orphaned
+      # identifiers there (see #6625/#6909) were invisible to CI. This gate
+      # runs tsc scoped to the dashboard tree against a frozen baseline of
+      # pre-existing errors; only NEW errors fail it.
+      - run: npm run check:dashboard-typecheck
       # typecheck:noimplicit:core dropped from this job (2026-07 optimize):
       # it was advisory (continue-on-error) and largely subsumed by the blocking
       # check:type-coverage ratchet in quality-gate. Local: npm run typecheck:noimplicit:core.
