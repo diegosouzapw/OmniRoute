@@ -143,6 +143,20 @@ jobs:
       - run: npm run check:complexity-ratchets
       - name: Typecheck (core)
         run: npm run typecheck:core
+      # WS4.2 (v3.8.49 plan): TypeScript 7 native-compiler SHADOW — advisory only.
+      # TS7 went GA 2026-07-08 with 8-12x type-check speedups; its Compiler API only
+      # arrives in 7.1, so typescript-eslint / type-coverage / Stryker stay on 6.x
+      # (the hybrid is the officially documented pattern). Isolated npx on purpose:
+      # installing an alias package could collide node_modules/.bin/tsc with 6.x.
+      # Promote to the blocking gate after ~1 week of parity with the step above.
+      - name: Typecheck (core) — TS7 native shadow (advisory)
+        continue-on-error: true
+        run: |
+          RC=0
+          START=$(date +%s)
+          npx -y -p typescript@7 tsc --pretty false -p tsconfig.typecheck-core.json || RC=$?
+          echo "[ts7-shadow] exit=$RC elapsed=$(( $(date +%s) - START ))s — the 6.x step above stays authoritative"
+          exit $RC
       # TIA: build the impact map at runtime (gitignored, ~21MB) and run only the
       # unit tests impacted by this PR's changed files. On hub/unmapped changes the
       # selector returns __RUN_ALL__ — full-suite authority is the parallel
