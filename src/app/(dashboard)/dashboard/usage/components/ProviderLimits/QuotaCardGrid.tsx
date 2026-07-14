@@ -47,7 +47,7 @@ export default function QuotaCardGrid({
   }
 
   return (
-    <div className="columns-1 2xl:columns-2 gap-6 [column-fill:_balance]">
+    <div className="columns-1 gap-6 [column-fill:_balance]">
       {[...groups.entries()].map(([provider, conns]) => (
         <div key={provider} className="flex flex-col gap-3 break-inside-avoid mb-6">
           <h3 className="text-sm font-semibold text-text-main flex items-center gap-2">
