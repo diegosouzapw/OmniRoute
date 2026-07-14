@@ -1,0 +1,1 @@
+- **Release tooling**: `sync-next-cycle.mjs` now runs `validate-release-green --quick` on the merged tree BEFORE pushing the parallel-cycle sync-back — the one write path to the release branch that had no CI gate; a red merged tree stays local instead of turning the whole PR queue red (`--skip-green-gate` is the documented emergency hatch)
