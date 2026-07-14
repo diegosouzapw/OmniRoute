@@ -27,7 +27,7 @@ function matchesEtag(ifNoneMatch: string | null, etag: string): boolean {
     ifNoneMatch
       ?.split(",")
       .map((value) => value.trim())
-      .some((value) => value === "*" || value === etag)
+      .some((value) => value === "*" || value === etag || value === `W/${etag}`)
   );
 }
 

@@ -27,3 +27,16 @@ test("provider plugin manifest supports conditional sidecar refreshes", async ()
   assert.equal(response.headers.get("ETag"), etag);
   assert.equal(await response.text(), "");
 });
+
+test("provider plugin manifest accepts weak conditional validators", async () => {
+  const initial = await GET(new Request("http://localhost/api/v1/provider-plugin-manifest"));
+  const etag = initial.headers.get("ETag");
+
+  const response = await GET(
+    new Request("http://localhost/api/v1/provider-plugin-manifest", {
+      headers: { "If-None-Match": `W/${etag}` },
+    })
+  );
+
+  assert.equal(response.status, 304);
+});
