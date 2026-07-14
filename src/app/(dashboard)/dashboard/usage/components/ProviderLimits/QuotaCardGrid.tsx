@@ -56,7 +56,7 @@ export default function QuotaCardGrid({
               ({conns.length} account{conns.length !== 1 ? "s" : ""})
             </span>
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-3">
             {conns.map((conn) => (
               <QuotaCard
                 key={conn.id}
