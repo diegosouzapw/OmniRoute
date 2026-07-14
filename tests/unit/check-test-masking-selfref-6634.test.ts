@@ -14,13 +14,10 @@
  * (`if (file.endsWith("check-test-masking.test.ts")) continue;` in
  * scripts/check/check-test-masking.mjs) for precisely this reason — this test
  * asserts evaluateMasking() now applies the same exclusion for its diff-based
- * tautology counters, using the real base(origin/main)/head(HEAD) diff of
- * tests/unit/check-test-masking.test.ts.
+ * tautology counters without depending on a remote Git ref being available.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-
 import {
   countTautologies,
   countExtendedTautologies,
@@ -29,25 +26,26 @@ import {
 
 const FILE = "tests/unit/check-test-masking.test.ts";
 
-function git(args: string[]): string {
-  return execFileSync("git", args, { encoding: "utf8" });
-}
-
 test("#6634: check-test-masking.test.ts's own tautology fixtures must not self-flag as weakening", () => {
-  // origin/main predates the #6404 fixtures (countBareTautologies/scanBareTautologies
-  // tests) that legitimately embed tautology-pattern literals as string fixtures.
-  const baseSrc = git(["show", "origin/main:" + FILE]);
-  const headSrc = git(["show", "HEAD:" + FILE]);
+  const baseSrc = "assert.equal(actual, expected);";
+  const headSrc = `${baseSrc}\nconst fixture = "assert.ok(true); expect(true).toBe(true);";`;
+  const baseTaut = countTautologies(baseSrc);
+  const headTaut = countTautologies(headSrc);
+  const baseExtTaut = countExtendedTautologies(baseSrc);
+  const headExtTaut = countExtendedTautologies(headSrc);
+
+  assert.ok(headTaut > baseTaut, "fixture must exercise the assert.ok(true) exclusion");
+  assert.ok(headExtTaut > baseExtTaut, "fixture must exercise the extended exclusion");
 
   const perFile = [
     {
       file: FILE,
       baseAsserts: 0, // irrelevant to this assertion — only tautology counters matter
       headAsserts: 0,
-      baseTaut: countTautologies(baseSrc),
-      headTaut: countTautologies(headSrc),
-      baseExtTaut: countExtendedTautologies(baseSrc),
-      headExtTaut: countExtendedTautologies(headSrc),
+      baseTaut,
+      headTaut,
+      baseExtTaut,
+      headExtTaut,
     },
   ];
 

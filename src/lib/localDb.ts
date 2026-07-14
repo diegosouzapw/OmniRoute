@@ -67,7 +67,6 @@ export {
   getModelIsHidden,
   setModelIsHidden,
   getHiddenModelsByProvider,
-
   // Synced Available Models
   getSyncedAvailableModels,
   getAllSyncedAvailableModels,
