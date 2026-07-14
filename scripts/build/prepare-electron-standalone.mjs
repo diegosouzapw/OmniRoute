@@ -177,6 +177,7 @@ assembleStandalone({
   outDir: ELECTRON_STANDALONE_DIR,
   projectRoot: ROOT,
   sanitizePaths: true,
+  patchTurbopackChunks: true,
   copyNatives: true,
   // #6724/#6594: dereference Turbopack hashed-module symlinks — inside the packaged
   // app they would point at the build machine's absolute paths and break on install.
@@ -193,9 +194,10 @@ removeGeneratedElectronArtifacts();
 // so it cannot shadow the rebuilt one.
 rebuildBetterSqlite3ForElectron(join(ELECTRON_STANDALONE_DIR, "node_modules"));
 removeNativeModules(join(ELECTRON_STANDALONE_DIR, "node_modules"), ["keytar"]);
-removeNativeModules(join(ELECTRON_STANDALONE_DIR, ".next", "node_modules"), [
+removeNativeModules(join(ELECTRON_STANDALONE_DIR, NEXT_DIST_DIR, "node_modules"), [
   "better-sqlite3",
   "keytar",
+  "sqlite-vec",
 ]);
 
 console.log(
