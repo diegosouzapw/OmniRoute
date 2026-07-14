@@ -274,7 +274,12 @@ export default function OnboardingWizard() {
             >
               {currentStep.icon}
             </span>
-            <h2 className="text-2xl font-bold text-text-main mb-1">{currentStep.title}</h2>
+            <h2 className="text-2xl font-bold text-text-main">{currentStep.title}</h2>
+            {currentStep.id === "tiers" && (
+              <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-text-muted text-balance">
+                {t("tier.subtitle")}
+              </p>
+            )}
           </div>
 
           {/* Step Content */}

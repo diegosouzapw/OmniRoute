@@ -3604,8 +3604,11 @@
     "connectionError": "Verbindungsfehler. Bitte versuchen Sie es erneut.",
     "provider": "Anbieter",
     "apiKeyHelp": "Ein API-Schlüssel ist ein Passwort für KI-Dienste. Holen Sie sich eines von der Website Ihres Anbieters (z. B. platform.openai.com, console.anthropic.com).",
+    "tiers": "Stufen",
     "tier": {
       "subtitle": "OmniRoute organisiert Anbieter in drei Ebenen, sodass beim Routing zuerst der zuverlässigste und kostengünstigste Pfad bevorzugt wird.",
+      "flowCaption": "Anfragen laufen zuerst über Ihre Abo-Kontingente, dann über günstige Pay-per-Token-Anbieter und anschließend über Free-Tier-Anbieter — automatisch, ohne Konfiguration.",
+      "afterSetup": "nach der Einrichtung.",
       "tier1": {
         "label": "Premium-Kunden",
         "description": "Erstklassige CLIs mit nativen Authentifizierungsflüssen und Argumentationsmodellen."

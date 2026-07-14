@@ -75,6 +75,7 @@
   "homepage": "https://omniroute.online",
   "scripts": {
     "dev": "node --max-old-space-size=8192 scripts/dev/run-next.mjs dev",
+    "dev:local": "node scripts/dev/dev-local.mjs",
     "prebuild:docs": "node scripts/docs/gen-openapi-module.mjs",
     "gen:provider-reference": "bun scripts/docs/gen-provider-reference.ts",
     "bench:compression": "bun scripts/compression/benchmark.ts",
