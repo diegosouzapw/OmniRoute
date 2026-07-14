@@ -23,6 +23,7 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
+import { isRequestScopedUpstreamFailure } from "@omniroute/open-sse/services/combo/comboPredicates.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
@@ -83,6 +84,7 @@ import {
   withCorrelationId,
 } from "./chatHelpers";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
+import { getComboFailureLogError } from "./comboFailureLogging";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
@@ -914,13 +916,14 @@ export async function handleChat(
     if (!response.ok) {
       try {
         const { recordRejectedRequestUsage } = await import("./rejectedRequestUsage");
+        const comboFailureError = await getComboFailureLogError(response, combo.name);
         await recordRejectedRequestUsage({
           status: response.status,
           model: body?.model || resolvedModelStr,
           requestedModel: body?.model || resolvedModelStr,
           provider: "-",
           endpoint: clientRawRequest?.endpoint,
-          error: `[${response.status}] Combo "${combo.name}" failed — all targets exhausted`,
+          error: comboFailureError,
           comboName: combo.name,
           apiKeyId: apiKeyInfo?.id ?? null,
           apiKeyName: apiKeyInfo?.name ?? null,
@@ -1730,6 +1733,10 @@ async function handleSingleModelChat(
         result.errorCode === "client_disconnected" ||
         result.errorType === "client_disconnected" ||
         (is401 && hasExtraKeys) ||
+        isRequestScopedUpstreamFailure({
+          code: result.errorCode,
+          type: result.errorType,
+        }) ||
         isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider);
 
       const { shouldFallback, cooldownMs } = skipConnectionDisable
@@ -1783,6 +1790,10 @@ async function handleSingleModelChat(
       if (
         !forceLiveComboTest &&
         !isCombo &&
+        !isRequestScopedUpstreamFailure({
+          code: result.errorCode,
+          type: result.errorType,
+        }) &&
         PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
       ) {
         breaker._onFailure();

@@ -122,7 +122,11 @@ import {
   formatProviderError,
   sanitizeErrorMessage,
 } from "../utils/error.ts";
-import { reportMalformed200, detectMalformedNonStream } from "../utils/diagnostics.ts";
+import {
+  reportMalformed200,
+  detectMalformedNonStream,
+  describeMalformedNonStream,
+} from "../utils/diagnostics.ts";
 import {
   checkTokenLimits,
   recordTokenUsage,
@@ -3339,7 +3343,13 @@ export async function handleChatCore({
           // otherwise degenerate into a 429 rate-limit storm). Connection stays
           // active since only the specific model is unavailable. (#6827)
           const notFoundCooldownMs = COOLDOWN_MS.notFound;
-          lockModel(provider, errorConnectionId, currentModel, "model_not_found", notFoundCooldownMs);
+          lockModel(
+            provider,
+            errorConnectionId,
+            currentModel,
+            "model_not_found",
+            notFoundCooldownMs
+          );
           console.warn(
             `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
           );
@@ -4025,7 +4035,11 @@ export async function handleChatCore({
         connectionId,
         status: `FAILED ${HTTP_STATUS.BAD_GATEWAY}`,
       }).catch(() => {});
-      const malformedMessage = `[${provider}/${model}] returned an empty response (no usable choices/output)`;
+      const malformed = describeMalformedNonStream(translatedResponse, malformedTranslatedReason);
+      const malformedMessage = `[${provider}/${model}] ${malformed.message}`;
+      const malformedClientBody = buildErrorBody(HTTP_STATUS.BAD_GATEWAY, malformedMessage);
+      malformedClientBody.error.code = malformed.code;
+      malformedClientBody.error.type = malformed.type;
       persistAttemptLogs({
         status: HTTP_STATUS.BAD_GATEWAY,
         tokens: usage,
@@ -4034,14 +4048,20 @@ export async function handleChatCore({
         providerResponse: looksLikeSSE
           ? { _streamed: true, _format: "sse-json", summary: responseBody }
           : responseBody,
-        clientResponse: buildErrorBody(HTTP_STATUS.BAD_GATEWAY, malformedMessage),
+        clientResponse: malformedClientBody,
         claudeCacheMeta: claudePromptCacheLogMeta,
         claudeCacheUsageMeta: cacheUsageLogMeta,
         cacheSource: "upstream",
       });
       persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "malformed_translated_response");
       trackPendingRequest(model, provider, pendingConnId, false);
-      return createErrorResult(HTTP_STATUS.BAD_GATEWAY, malformedMessage);
+      return createErrorResult(
+        HTTP_STATUS.BAD_GATEWAY,
+        malformedMessage,
+        null,
+        malformed.code,
+        malformed.type
+      );
     }
 
     // ── Phase 9.1: Cache store (non-streaming, temp=0) ──

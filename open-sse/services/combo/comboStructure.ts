@@ -418,6 +418,14 @@ type RequestCompatibilityRequirements = {
   requiredContextTokens: number;
 };
 
+export type KnownContextOverflow = {
+  estimatedInputTokens: number;
+  requestedOutputTokens: number;
+  requiredContextTokens: number;
+  maxKnownContextTokens: number;
+  targetCount: number;
+};
+
 function getPositiveTokenCount(value: unknown): number {
   const count = Number(value);
   return Number.isFinite(count) && count > 0 ? Math.ceil(count) : 0;
@@ -486,11 +494,62 @@ function exceedsKnownOutputLimit(
   return maxOutputTokens < requestedOutputTokens;
 }
 
-function getKnownContextLimit(capabilities: {
+function getKnownContextLimit(
+  capabilities: {
+    maxInputTokens?: number | null;
+    contextWindow?: number | null;
+  },
+  requestedOutputTokens = 0
+): number | null {
+  const limits: number[] = [];
+  if (capabilities.maxInputTokens != null) {
+    limits.push(capabilities.maxInputTokens + requestedOutputTokens);
+  }
+  if (capabilities.contextWindow != null) {
+    limits.push(capabilities.contextWindow);
+  }
+  return limits.length > 0 ? Math.min(...limits) : null;
+}
+
+function getLegacyKnownContextLimit(capabilities: {
   maxInputTokens?: number | null;
   contextWindow?: number | null;
 }): number | null {
   return capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
+}
+
+/**
+ * Return a hard context-overflow decision only when every target has a known
+ * context limit and every one of those limits is too small for the request.
+ * Unknown metadata deliberately keeps the legacy fail-open behavior.
+ */
+export function getKnownContextOverflow(
+  targets: ResolvedComboTarget[],
+  body: Record<string, unknown>
+): KnownContextOverflow | null {
+  if (targets.length === 0) return null;
+  const requirements = deriveRequestCompatibilityRequirements(body);
+  if (requirements.requiredContextTokens <= 0) return null;
+
+  const limits = targets.map((target) =>
+    getKnownContextLimit(
+      getResolvedModelCapabilities(target.modelStr),
+      requirements.requestedOutputTokens
+    )
+  );
+  if (limits.some((limit) => limit === null)) return null;
+
+  const knownLimits = limits as number[];
+  const maxKnownContextTokens = Math.max(...knownLimits);
+  if (maxKnownContextTokens >= requirements.requiredContextTokens) return null;
+
+  return {
+    estimatedInputTokens: requirements.estimatedInputTokens,
+    requestedOutputTokens: requirements.requestedOutputTokens,
+    requiredContextTokens: requirements.requiredContextTokens,
+    maxKnownContextTokens,
+    targetCount: targets.length,
+  };
 }
 
 function hasKnownCompatibleContextLimit(
@@ -499,7 +558,7 @@ function hasKnownCompatibleContextLimit(
 ): boolean {
   if (requiredContextTokens <= 0) return false;
   const capabilities = getResolvedModelCapabilities(target.modelStr);
-  const contextLimit = getKnownContextLimit(capabilities);
+  const contextLimit = getLegacyKnownContextLimit(capabilities);
   return contextLimit !== null && contextLimit >= requiredContextTokens;
 }
 
@@ -539,7 +598,7 @@ function getTargetCompatibilityFailures(
     failures.push("output_tokens");
   }
 
-  const contextLimit = getKnownContextLimit(capabilities);
+  const contextLimit = getKnownContextLimit(capabilities, requirements.requestedOutputTokens);
   if (
     requirements.requiredContextTokens > 0 &&
     contextLimit !== null &&

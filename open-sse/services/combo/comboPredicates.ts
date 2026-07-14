@@ -150,13 +150,31 @@ export function shouldRecordProviderBreakerFailure(args: {
   status: number;
   sameProviderNext: boolean;
   skipProviderBreaker?: boolean;
+  requestScopedFailure?: boolean;
 }): boolean {
   return (
     !args.isStreamReadinessFailure &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(args.status) &&
     !args.sameProviderNext &&
-    !args.skipProviderBreaker
+    !args.skipProviderBreaker &&
+    !args.requestScopedFailure
   );
+}
+
+const REQUEST_SCOPED_UPSTREAM_ERROR_CODES = new Set([
+  "context_length_exceeded",
+  "upstream_empty_response",
+  "upstream_response_failed",
+]);
+
+/** Request/model-specific failures must not poison provider-wide resilience state. */
+export function isRequestScopedUpstreamFailure(error?: {
+  code?: string | null;
+  type?: string | null;
+}): boolean {
+  const code = typeof error?.code === "string" ? error.code.toLowerCase() : "";
+  const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
+  return REQUEST_SCOPED_UPSTREAM_ERROR_CODES.has(code) || type === "context_length_exceeded";
 }
 
 export function resolveDelayMs(value: unknown, fallback: number): number {
