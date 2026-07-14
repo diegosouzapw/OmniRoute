@@ -4855,7 +4855,9 @@
     "doubaoWebDesc": "通過 dola.com 訪問字節跳動 AI 聊天",
     "overrideBaseUrlAdvanced": "__MISSING__:Advanced: override base URL",
     "overrideBaseUrlHint": "__MISSING__:Advanced: point this built-in provider at a custom endpoint. Leave blank to use the default.",
-    "bulkAddFormatHintCloudflare": "__MISSING__:One key per line. Format: name|accountId|apiKey (Cloudflare account ID + API token)."
+    "bulkAddFormatHintCloudflare": "__MISSING__:One key per line. Format: name|accountId|apiKey (Cloudflare account ID + API token).",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "設定",

@@ -97,7 +97,10 @@ export async function addCustomModel(
   targetFormat?: string,
   // #1294: optional per-model token limits supplied from the "add custom model"
   // form. Persisted under the same keys the /v1/models catalog reads back.
-  tokenLimits: { inputTokenLimit?: number; outputTokenLimit?: number } = {}
+  tokenLimits: { inputTokenLimit?: number; outputTokenLimit?: number } = {},
+  // #1904: optional manual vision-capability override for the "add custom model"
+  // form — read back by getCustomVisionCapabilityFields() in the /v1/models catalog.
+  supportsVision?: boolean
 ) {
   const db = getDbInstance();
   const row = db
@@ -122,6 +125,7 @@ export async function addCustomModel(
     ...(tokenLimits.outputTokenLimit != null
       ? { outputTokenLimit: tokenLimits.outputTokenLimit }
       : {}),
+    ...(typeof supportsVision === "boolean" ? { supportsVision } : {}),
   };
   models.push(model);
   db.prepare(
@@ -642,6 +646,17 @@ export async function updateCustomModel(
       delete next.preserveOpenAIDeveloperRole;
     } else {
       next.preserveOpenAIDeveloperRole = Boolean(updates.preserveOpenAIDeveloperRole);
+    }
+  }
+  // #1904: manual vision-capability override — `null` clears back to the
+  // id-based heuristic in getCustomVisionCapabilityFields(); true/false persists
+  // an explicit override so self-hosted backends that don't self-report an
+  // image modality can still be flagged vision-capable (or downgraded).
+  if (Object.prototype.hasOwnProperty.call(updates, "supportsVision")) {
+    if (updates.supportsVision === null) {
+      delete next.supportsVision;
+    } else {
+      next.supportsVision = Boolean(updates.supportsVision);
     }
   }
   if (updates.compatByProtocol !== undefined) {
