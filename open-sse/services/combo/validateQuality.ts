@@ -80,8 +80,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-function isStreamingUpstreamError(parsed: Record<string, unknown>, eventType: string): boolean {
+function isStreamingUpstreamError(parsed: unknown, eventType: string): boolean {
   if (eventType === "response.failed" || eventType === "error") return true;
+  if (!isRecord(parsed)) return false;
   if (parsed.error != null) return true;
 
   const nestedResponse = isRecord(parsed.response) ? parsed.response : null;
