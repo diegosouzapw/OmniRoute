@@ -40,6 +40,17 @@ test("issue-agent run rejects invalid JSON", async () => {
   assert.equal(body.error, "Invalid JSON body");
 });
 
+test("issue-agent run rejects invalid request field types", async () => {
+  const response = await POST(
+    new Request("http://localhost/api/issue-agent/runs", {
+      method: "POST",
+      body: JSON.stringify({ mode: 42 }),
+    })
+  );
+
+  assert.equal(response.status, 400);
+});
+
 test("issue-agent run accepts only recorded-triage mode", async () => {
   const response = await POST(
     new Request("http://localhost/api/issue-agent/runs", {

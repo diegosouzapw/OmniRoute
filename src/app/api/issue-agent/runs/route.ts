@@ -1,32 +1,22 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { appendIssueAgentAuditRecord } from "@/lib/issueAgent/audit";
 import { normalizeGitHubIssueExport } from "@/lib/issueAgent/githubExport";
 import { createRecordedTriageRun } from "@/lib/issueAgent/recordedTriage";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-interface IssueAgentRunRequest {
-  mode?: string;
-  issueUrl?: string;
-  dryRun?: boolean;
-  recordedContext?: unknown;
-  githubExport?: unknown;
-}
+const issueAgentRunRequestSchema = z.object({
+  mode: z.string().optional(),
+  issueUrl: z.string().optional(),
+  dryRun: z.boolean().optional(),
+  recordedContext: z.unknown().optional(),
+  githubExport: z.unknown().optional(),
+});
 
 const ENABLED_VALUES = new Set(["1", "true", "yes", "on"]);
 
 function isIssueAgentEnabled(): boolean {
   return ENABLED_VALUES.has((process.env.OMNIROUTE_ISSUE_AGENT_ENABLED ?? "").toLowerCase());
-}
-
-function parseRunRequest(value: unknown): IssueAgentRunRequest {
-  if (!value || typeof value !== "object") return {};
-  const row = value as Record<string, unknown>;
-  return {
-    mode: typeof row.mode === "string" ? row.mode : undefined,
-    issueUrl: typeof row.issueUrl === "string" ? row.issueUrl : undefined,
-    dryRun: typeof row.dryRun === "boolean" ? row.dryRun : undefined,
-    recordedContext: row.recordedContext,
-    githubExport: row.githubExport,
-  };
 }
 
 export async function GET() {
@@ -46,7 +36,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = parseRunRequest(body);
+  const validation = validateBody(issueAgentRunRequestSchema, body);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+
+  const parsed = validation.data;
   if (parsed.mode !== "recorded-triage") {
     return NextResponse.json(
       { error: "Unsupported issue-agent mode", supportedModes: ["recorded-triage"] },
