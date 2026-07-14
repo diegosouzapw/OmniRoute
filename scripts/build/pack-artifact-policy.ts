@@ -160,6 +160,12 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/head-response-guard.cjs",
   "dist/webdav-handler.mjs",
   "bin/cli/program.mjs",
+  // Direct imports of bin/omniroute.mjs — bin/cli/ is only an allowlist PREFIX, so a
+  // file vanishing from the tarball never fails the unexpected-paths check; only these
+  // required entries make its absence loud (#7065 class; derived + enforced by
+  // tests/unit/pack-artifact-entrypoint-closures.test.ts).
+  "bin/cli/data-dir.mjs",
+  "bin/cli/utils/storageKeyProvision.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
