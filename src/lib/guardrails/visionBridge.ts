@@ -92,6 +92,67 @@ export interface VisionBridgeDependencies {
   ) => Promise<string>;
   /** Override combo-target vision check — return true to force processing, false to skip. */
   checkModelHasComboMapping?: (model: string) => Promise<boolean>;
+  /**
+   * Whether a model string has a usable active credential (true/false).
+   * Return `null` when indeterminate (no DB / error) so callers can fail-open.
+   */
+  hasUsableCredentials?: (model: string) => Promise<boolean | null>;
+}
+
+/**
+ * True when a provider connection can actually authenticate upstream.
+ * `noauth` with no real API key is NOT usable (opencode-zen free tier often
+ * surfaces as noauth and then 401 "Missing API key").
+ */
+export function isProviderConnectionUsable(connection: {
+  authType?: string | null;
+  apiKey?: string | null;
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  idToken?: string | null;
+  testStatus?: string | null;
+}): boolean {
+  const status = String(connection.testStatus || "").toLowerCase();
+  if (status === "disabled" || status === "banned" || status === "expired") {
+    return false;
+  }
+  const auth = String(connection.authType || "").toLowerCase();
+  const hasKey = typeof connection.apiKey === "string" && connection.apiKey.trim().length > 0;
+  if (auth === "noauth" || auth === "none" || auth === "") {
+    // Free/noauth only counts when a real key is still present.
+    return hasKey;
+  }
+  if (auth === "apikey" || auth === "cookie") {
+    return hasKey;
+  }
+  if (auth === "oauth" || auth === "access_token" || auth === "external_idp") {
+    return Boolean(
+      (connection.refreshToken && String(connection.refreshToken).trim()) ||
+        (connection.accessToken && String(connection.accessToken).trim()) ||
+        (connection.idToken && String(connection.idToken).trim()) ||
+        hasKey
+    );
+  }
+  return hasKey;
+}
+
+/**
+ * Resolve whether `provider/model` has at least one usable active connection.
+ * Returns `null` when the credential store is unavailable (unit tests / early boot).
+ */
+export async function hasUsableCredentialsForModel(model: string): Promise<boolean | null> {
+  const provider = typeof model === "string" ? model.split("/")[0]?.trim() : "";
+  if (!provider) return null;
+  try {
+    const { getProviderConnections } = await import("@/lib/db/providers");
+    const connections = await getProviderConnections({ provider, isActive: true });
+    if (!Array.isArray(connections)) return null;
+    // Empty active set is a definitive "no" only when the table is readable.
+    if (connections.length === 0) return false;
+    return connections.some((c: any) => isProviderConnectionUsable(c));
+  } catch {
+    return null;
+  }
 }
 
 export class VisionBridgeGuardrail extends BaseGuardrail {
@@ -183,37 +244,66 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       return { block: false };
     }
 
-    // 9. Individual non-combo model with images → REROUTE to best vision-capable model
+    // 9. Individual non-combo model with images → optionally REROUTE to best vision-capable model
     // instead of describing images through an intermediate vision call.
-    // This lets a downstream vision model process the image natively.
+    //
+    // CRITICAL (VibeProxy combo / explicit provider models):
+    // When the original model already has usable credentials (e.g. combo target
+    // zai/glm-5.2), NEVER whole-request-reroute to another provider. Auto-select
+    // prefers opencode-* (priority 0) even when only a broken noauth connection
+    // exists, which produced: HTTP log zai → Guardrail reroute → opencode-zen 401
+    // "Missing API key" while the combo UI still showed body=zai. Fall through to
+    // the image-describe path so the user's chosen model still answers.
     if (comboVisionBridgeDecision === "not-combo" && !forceVisionBridge) {
-      // Honor an explicit operator override from the Vision Bridge settings tab
-      // (settings.visionBridgeModel) as the fixed reroute target, for consistency
-      // with the combo/describe path below (step 10) which always honors it via
-      // getVisionBridgeConfig. When unset, auto-select the fastest available
-      // vision-capable model from available providers.
-      const configuredModel =
-        typeof settings.visionBridgeModel === "string" && settings.visionBridgeModel.trim()
-          ? settings.visionBridgeModel.trim()
-          : undefined;
-      const bestModel = getBestVisionModel({ fixedModel: configuredModel });
-      if (bestModel && bestModel !== model) {
-        const modifiedBody = {
-          ...(body as Record<string, unknown>),
-          model: bestModel,
-        };
-        return {
-          block: false,
-          modifiedPayload: modifiedBody as unknown,
-          meta: {
-            rerouted: true,
-            fromModel: model,
-            toModel: bestModel,
-            imagesKept: imageParts.length,
-          },
-        };
+      const checkCreds =
+        this.deps.hasUsableCredentials ?? hasUsableCredentialsForModel;
+      const originalUsable = await checkCreds(model);
+
+      if (originalUsable === true) {
+        // Keep the credentialed model; describe images below if needed.
+        context.log?.debug?.(
+          "VISION_BRIDGE",
+          `Skipping whole-request vision reroute; keeping credentialed model ${model}`
+        );
+      } else {
+        // Honor an explicit operator override from the Vision Bridge settings tab
+        // (settings.visionBridgeModel) as the fixed reroute target, for consistency
+        // with the combo/describe path below (step 10) which always honors it via
+        // getVisionBridgeConfig. When unset, auto-select the fastest available
+        // vision-capable model from available providers.
+        const configuredModel =
+          typeof settings.visionBridgeModel === "string" && settings.visionBridgeModel.trim()
+            ? settings.visionBridgeModel.trim()
+            : undefined;
+        const bestModel = getBestVisionModel({ fixedModel: configuredModel });
+        if (bestModel && bestModel !== model) {
+          const bestUsable = await checkCreds(bestModel);
+          // Only block the reroute when we KNOW the target is unusable (false).
+          // `null` (no DB / tests) fails open so existing unit tests keep working.
+          if (bestUsable === false) {
+            context.log?.warn?.(
+              "VISION_BRIDGE",
+              `Vision reroute target ${bestModel} has no usable credentials; describing images instead of hijacking ${model}`
+            );
+          } else {
+            const modifiedBody = {
+              ...(body as Record<string, unknown>),
+              model: bestModel,
+            };
+            return {
+              block: false,
+              modifiedPayload: modifiedBody as unknown,
+              meta: {
+                rerouted: true,
+                fromModel: model,
+                toModel: bestModel,
+                imagesKept: imageParts.length,
+              },
+            };
+          }
+        }
       }
-      // Fall through: if no vision model found, describe images as text instead
+      // Fall through: describe images as text (or no-op if describe path can't run)
     }
 
     // 10. Get configuration

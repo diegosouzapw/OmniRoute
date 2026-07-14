@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
 import { normalizeReasoningRequest } from "@/shared/reasoning/effortStandardization";
-import { resolveRoutingModel } from "./resolveRoutingModel";
+import { alignBodyModelWithRouting, resolveRoutingModel } from "./resolveRoutingModel";
 import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
@@ -368,6 +368,21 @@ export async function handleChat(
   // resolveRoutingModel). The resolved model still passes through
   // enforceApiKeyPolicy below, so it cannot bypass per-key allowlists.
   let modelStr = resolveRoutingModel(request, body);
+  // Align body.model with the routing model immediately. Without this, the
+  // post-guardrail block below treats "body.model !== modelStr" as a vision-
+  // bridge reroute and silently restores the original body model — undoing
+  // X-Route-Model (e.g. header zai/glm-5.2 + body opencode-zen/gpt-5.4 → 401
+  // Missing API key while HTTP logs still show zai).
+  {
+    const aligned = alignBodyModelWithRouting(body, modelStr);
+    body = aligned.body;
+    if (aligned.aligned) {
+      log.info(
+        "ROUTING",
+        `Aligned body.model to routing model: ${aligned.previousModel || "(none)"} → ${modelStr}`
+      );
+    }
+  }
 
   // Count messages (support both messages[] and input[] formats)
   const msgCount = body.messages?.length || body.input?.length || 0;
@@ -470,8 +485,17 @@ export async function handleChat(
       preCallGuardrails.message || "Request rejected: suspicious content detected"
     );
   }
+  // Snapshot model BEFORE applying the guardrail payload so we only treat a
+  // genuine guardrail mutation (e.g. Vision Bridge) as a reroute — not a stale
+  // body.model that never matched X-Route-Model / the aligned routing model.
+  const modelBeforeGuardrails =
+    typeof body?.model === "string" && body.model.length > 0 ? body.model : modelStr;
   body = preCallGuardrails.payload;
-  if (body?.model && typeof body.model === "string" && body.model !== modelStr) {
+  if (
+    body?.model &&
+    typeof body.model === "string" &&
+    body.model !== modelBeforeGuardrails
+  ) {
     const rerouteModel = body.model;
     // A guardrail (e.g. Vision Bridge auto-reroute) can swap body.model AFTER
     // enforceApiKeyPolicy already validated modelStr's allowlist/budget above.
@@ -485,8 +509,18 @@ export async function handleChat(
       );
       body = { ...body, model: modelStr };
     } else {
+      log.info("ROUTING", `Guardrail model reroute: ${modelBeforeGuardrails} → ${rerouteModel}`);
       modelStr = rerouteModel;
     }
+  } else if (
+    // Guardrails returned a payload whose model drifted from modelStr without
+    // changing from the pre-guardrail value (should not happen after align),
+    // or stripped model — keep body.model glued to modelStr.
+    modelStr &&
+    typeof body?.model === "string" &&
+    body.model !== modelStr
+  ) {
+    body = { ...body, model: modelStr };
   }
   telemetry.endPhase();
 
@@ -529,7 +563,15 @@ export async function handleChat(
   // Apply hook mutations
   body = hookCtx.body as any;
   if (hookCtx.model && hookCtx.model !== modelStr) {
+    log.info("ROUTING", `Hook model override: ${modelStr} → ${hookCtx.model}`);
     modelStr = hookCtx.model;
+    // Keep body.model in lockstep so later stages don't re-read a stale body model.
+    if (typeof body?.model !== "string" || body.model !== modelStr) {
+      body = { ...body, model: modelStr };
+    }
+  } else if (modelStr && typeof body?.model === "string" && body.model !== modelStr) {
+    // Hook rewrote body without updating model — restore the routing model.
+    body = { ...body, model: modelStr };
   }
 
   // Short-circuit if a hook returned a direct response
