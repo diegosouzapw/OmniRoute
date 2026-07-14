@@ -995,7 +995,23 @@ jobs:
       - name: Extract Next.js build artifact
         run: |
           tar -xzf /tmp/e2e-build.tar.gz
-      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/9
+      # WS4.1: duration-balanced shards (LPT over config/quality/e2e-timings.json).
+      # Measured skew of plain --shard was 14× (24m47s vs 1m47s) — E2E was the CI
+      # critical path. The balancer self-verifies completeness and exits non-zero on
+      # any inconsistency, falling back to plain --shard (never fewer specs).
+      - name: Run E2E tests (duration-balanced shard)
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          if FILES=$(node scripts/quality/balance-e2e-shards.mjs "$SHARD" 9); then
+            if [ -z "$FILES" ]; then echo "[e2e-balance] shard $SHARD has no files"; exit 0; fi
+            echo "[e2e-balance] shard $SHARD runs:"; echo "$FILES"
+            # shellcheck disable=SC2086 — FILES is our own newline-separated path list
+            npx playwright test $(echo "$FILES" | tr '\n' ' ')
+          else
+            echo "[e2e-balance] balancer unavailable — plain --shard fallback"
+            npx playwright test tests/e2e/*.spec.ts --shard="$SHARD"/9
+          fi
 
   test-integration:
     name: Integration Tests (${{ matrix.shard }}/2)
