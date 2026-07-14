@@ -1,4 +1,22 @@
-import ts from "typescript";
+import { createRequire } from "module";
+
+// `typescript` is a devDependency. Requiring it at module top-level (the old
+// code did `import ts from "typescript"`) crashed every Compression Context
+// page after a production-lean deploy (`npm prune --omit=dev`) removed it.
+// Lazily resolve it on first use and gracefully skip TS-aware comment
+// stripping when it is unavailable — compression still works, just less
+// aggressively on code blocks. (OmniRoute issue #7096)
+let _tsModule: typeof import("typescript") | null | undefined;
+function getTsModule(): typeof import("typescript") | null {
+  if (_tsModule !== undefined) return _tsModule;
+  try {
+    const require = createRequire(import.meta.url);
+    _tsModule = require("typescript");
+  } catch {
+    _tsModule = null;
+  }
+  return _tsModule;
+}
 
 export type CodeLanguage =
   | "javascript"
@@ -60,6 +78,13 @@ export function detectCodeLanguage(text: string): CodeLanguage {
  * JSX expression-container comments are never corrupted.
  */
 function stripJsTsComments(text: string, preserveDocstrings: boolean): string {
+  const ts = getTsModule();
+  if (!ts) {
+    // typescript devDependency not installed (e.g. `npm prune --omit=dev`).
+    // Skip TS-aware comment stripping; the caller still applies empty-line /
+    // whitespace collapsing, so compression keeps working on the plain path.
+    return text;
+  }
   const source = ts.createSourceFile(
     "snippet.tsx",
     text,
