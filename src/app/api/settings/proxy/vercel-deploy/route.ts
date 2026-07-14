@@ -98,6 +98,43 @@ export default async function handler(req) {
  */
 export const __buildRelayFunctionForTest = buildRelayFunction;
 
+/**
+ * Disable Vercel project SSO/Deployment Protection so the relay is publicly
+ * reachable. The PATCH response was previously fired-and-forgotten
+ * (`.catch(() => {})`, no `res.ok` check) — if Vercel rejects or no-ops the
+ * request (plan does not allow disabling protection, an under-scoped token,
+ * etc.), the relay still got saved and activated as a healthy proxy pool,
+ * and later requests through it failed with an undiagnosed
+ * `403 Access denied` from Vercel's own deployment protection. Callers must
+ * now check `.ok` and surface the failure instead of assuming success.
+ */
+async function disableSsoProtection(
+  vercelApiBase: string,
+  projectId: string,
+  token: string
+): Promise<{ ok: boolean; status?: number }> {
+  try {
+    const res = await fetch(`${vercelApiBase}/v9/projects/${projectId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ssoProtection: null }),
+    });
+    return { ok: res.ok, status: res.status };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/**
+ * Test-only hook exposing `disableSsoProtection` so the regression test can
+ * assert the PATCH response is checked instead of silently swallowed. Not
+ * part of the route contract.
+ */
+export const __disableSsoProtectionForTest = disableSsoProtection;
+
 async function pollDeployment(deploymentApiUrl: string, token: string): Promise<"READY" | "ERROR"> {
   for (let i = 0; i < POLL_MAX_ATTEMPTS; i++) {
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
@@ -208,16 +245,22 @@ export async function POST(request: Request) {
       });
     }
 
-    // Disable Vercel SSO protection so the relay is publicly accessible
+    // Disable Vercel SSO protection so the relay is publicly accessible.
+    // The PATCH response is checked — if Vercel rejects/no-ops it (plan
+    // doesn't allow disabling protection, under-scoped token, etc.) the
+    // relay is still deployed and saved, but the caller is warned so a
+    // later `403 Access denied` can be diagnosed as Vercel-side deployment
+    // protection rather than an upstream provider rejection.
+    let ssoProtectionWarning: string | undefined;
     if (deployment.projectId) {
-      await fetch(`${VERCEL_API_BASE}/v9/projects/${deployment.projectId}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ssoProtection: null }),
-      }).catch(() => {});
+      const ssoResult = await disableSsoProtection(VERCEL_API_BASE, deployment.projectId, token);
+      if (!ssoResult.ok) {
+        ssoProtectionWarning =
+          "Could not disable Vercel Deployment Protection (SSO) for this project" +
+          (ssoResult.status ? ` (status ${ssoResult.status})` : "") +
+          ". Requests through this relay may fail with a 403 Access denied from " +
+          "Vercel until protection is disabled manually in the Vercel dashboard.";
+      }
     }
 
     // Poll until READY
@@ -254,6 +297,7 @@ export async function POST(request: Request) {
       success: true,
       relayUrl: `https://${deployment.url}`,
       poolProxyId: poolProxy?.id,
+      ...(ssoProtectionWarning ? { ssoProtectionWarning } : {}),
     });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Vercel deploy failed");
