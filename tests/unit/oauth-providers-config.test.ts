@@ -118,7 +118,6 @@ const KIRO_REQUIRED_FIELDS = [
   "socialRefreshUrl",
   "authMethods",
 ];
-
 const REQUIRED_FIELDS_BY_PROVIDER = {
   claude: ["authorizeUrl", "tokenUrl", "redirectUri", "scopes", "clientId"],
   codex: ["authorizeUrl", "tokenUrl", "scope", "clientId"],
@@ -145,13 +144,8 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   kilocode: ["apiBaseUrl", "initiateUrl", "pollUrlBase"],
   cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
   clinepass: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
-  "devin-desktop": [
-    "apiServerUrl",
-    "inferenceUrl",
-    "firebaseTokenUrl",
-    "ideName",
-    "defaultVersion",
-  ],
+  // prettier-ignore
+  "devin-desktop": ["apiServerUrl", "inferenceUrl", "firebaseTokenUrl", "ideName", "defaultVersion"],
   "devin-cli": ["apiServerUrl", "inferenceUrl", "firebaseTokenUrl", "ideName", "defaultVersion"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
   // prettier-ignore

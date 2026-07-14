@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { resolvePlaywrightProxy } from "../../open-sse/services/browserPool.ts";
 
 describe("resolvePlaywrightProxy", () => {
@@ -83,5 +84,15 @@ describe("resolvePlaywrightProxy", () => {
       },
     });
     assert.strictEqual(capturedKey, "gemini-web");
+  });
+
+  it("allows a scoped context key to use its stable provider key for proxy lookup", () => {
+    const source = readFileSync(
+      new URL("../../open-sse/services/browserPool.ts", import.meta.url),
+      "utf8"
+    );
+
+    assert.match(source, /resolvePlaywrightProxy\(options\.proxyProviderKey \?\? key\)/);
+    assert.doesNotMatch(source, /Evicted stale context:["']?,?\s*key/);
   });
 });

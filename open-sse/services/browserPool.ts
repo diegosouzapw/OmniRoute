@@ -9,7 +9,7 @@
  * so the server rejects the request.
  *
  * This pool keeps one Chromium instance warm and serves "browser contexts"
- * (one per provider) on demand. Each context owns one or more pages; the
+ * (one per caller-defined isolation key) on demand. Each context owns one or more pages; the
  * caller is expected to be polite (one page per request, close on done).
  *
  * The pool prefers `cloakbrowser` (npm) when available — its binary-level
@@ -38,6 +38,7 @@ export interface BrowserPoolContextOptions {
   locale?: string;
   timezone?: string;
   preferCloakbrowser?: boolean;
+  proxyProviderKey?: string;
 }
 
 export interface PooledContext {
@@ -149,8 +150,7 @@ function evictStaleContexts(): void {
   for (const [key, pooled] of state.contexts) {
     if (now - pooled.lastUsed > CONTEXT_TTL_MS) {
       console.log(
-        "[BrowserPool] Evicted stale context:",
-        key,
+        "[BrowserPool] Evicted stale context",
         "(idle",
         ((now - pooled.lastUsed) / 1000).toFixed(0) + "s)"
       );
@@ -329,7 +329,10 @@ export async function acquireBrowserContext(
   if (pending) return pending;
 
   const createPromise = (async (): Promise<PooledContext> => {
-    const [browser, proxy] = await Promise.all([launchBrowser(), resolvePlaywrightProxy(key)]);
+    const [browser, proxy] = await Promise.all([
+      launchBrowser(),
+      resolvePlaywrightProxy(options.proxyProviderKey ?? key),
+    ]);
     const isStealth = state.cloakLaunch !== null;
     const context = await browser.newContext({
       userAgent: options.userAgent || DEFAULT_USER_AGENT,

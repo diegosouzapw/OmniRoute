@@ -2295,8 +2295,8 @@
       }
     },
     "url": {
-      "nonStream": "https://cli-chat-proxy.grok.com/v1/responses",
-      "stream": "https://cli-chat-proxy.grok.com/v1/responses"
+      "nonStream": "https://cli-chat-proxy.grok.com/v1/chat/completions",
+      "stream": "https://cli-chat-proxy.grok.com/v1/chat/completions"
     }
   },
   "grok-web": {

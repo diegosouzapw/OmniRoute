@@ -9,10 +9,10 @@ import Database from "better-sqlite3";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const migrationPath = path.join(
   __dirname,
-  "../../src/lib/db/migrations/126_windsurf_to_devin_desktop.sql"
+  "../../src/lib/db/migrations/133_windsurf_to_devin_desktop.sql"
 );
 
-test("migration 126 for the Devin Desktop provider exists", () => {
+test("migration 133 for the Devin Desktop provider exists", () => {
   assert.equal(fs.existsSync(migrationPath), true);
 });
 
@@ -124,7 +124,7 @@ function rows(db: Database.Database, table: string): unknown[] {
   return db.prepare(`SELECT * FROM ${table} ORDER BY 1, 2`).all();
 }
 
-test("migration 126 moves current settings safely and preserves historical records", () => {
+test("migration 133 moves current settings safely and preserves historical records", () => {
   const migration = fs.readFileSync(migrationPath, "utf8");
   const db = createDb();
   db.exec(`

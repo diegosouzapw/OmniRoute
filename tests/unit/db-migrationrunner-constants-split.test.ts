@@ -70,8 +70,8 @@ describe("migrationRunner/constants — exact small-table snapshots", () => {
 // ── large tables — count + shape + spot-checks (corruption guard) ─────────────
 
 describe("migrationRunner/constants — large-table integrity", () => {
-  it("RENAMED_MIGRATION_COMPATIBILITY has 13 well-formed entries", () => {
-    assert.equal(RENAMED_MIGRATION_COMPATIBILITY.length, 13);
+  it("RENAMED_MIGRATION_COMPATIBILITY has 17 well-formed entries", () => {
+    assert.equal(RENAMED_MIGRATION_COMPATIBILITY.length, 17);
     for (const e of RENAMED_MIGRATION_COMPATIBILITY) {
       assert.equal(typeof e.fromVersion, "string");
       assert.equal(typeof e.fromName, "string");
@@ -96,9 +96,9 @@ describe("migrationRunner/constants — large-table integrity", () => {
     );
     assert.deepEqual(
       devin.map((e) => e.fromVersion),
-      ["123", "124", "125"]
+      ["123", "124", "125", "126", "127", "128", "131"]
     );
-    assert.ok(devin.every((e) => e.toVersion === "126"));
+    assert.ok(devin.every((e) => e.toVersion === "133"));
   });
 
   it("PHYSICAL_SCHEMA_SENTINELS has 15 well-formed entries incl. the newest 064", () => {

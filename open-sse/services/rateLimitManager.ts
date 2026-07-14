@@ -582,21 +582,13 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
       const abortPromise = new Promise<never>((_, reject) => {
         const onAbort = () => {
           const reason = signal.reason;
-          // Build a fresh Error rather than mutating `reason` in place: the
-          // default abort reason (when `controller.abort()` is called with no
-          // argument, e.g. modelTestRunner's timeout path) is a native
-          // DOMException, whose `name` is a read-only getter — assigning
-          // `err.name = "AbortError"` on it throws `TypeError: Cannot set
-          // property name of [object DOMException] which has only a getter`,
-          // which then surfaces as an unhandled rejection instead of the
-          // intended "slow"/timeout result.
-          const message =
-            reason instanceof Error
-              ? reason.message
-              : typeof reason === "string"
-                ? reason
-                : "The operation was aborted";
-          const err = new Error(message);
+          // Preserve native Error reasons (including AbortController's
+          // read-only DOMException) instead of mutating or wrapping them.
+          if (reason instanceof Error) {
+            reject(reason);
+            return;
+          }
+          const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
           err.name = "AbortError";
           if (reason !== undefined) {
             (err as Error & { cause?: unknown }).cause = reason;

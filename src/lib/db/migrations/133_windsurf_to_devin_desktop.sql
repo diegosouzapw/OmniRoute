@@ -1,4 +1,4 @@
--- 126_windsurf_to_devin_desktop.sql
+-- 133_windsurf_to_devin_desktop.sql
 -- Migrate current provider configuration from the retired public Windsurf id
 -- to Devin Desktop. Historical request and usage records are intentionally
 -- preserved under the provider identity that existed when they were written.

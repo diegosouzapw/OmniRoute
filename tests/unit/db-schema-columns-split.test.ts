@@ -92,7 +92,9 @@ test("ensureProviderConnectionsColumns restores base columns required by later m
     db.exec(`
       CREATE TABLE provider_connections (
         id TEXT PRIMARY KEY,
-        provider TEXT NOT NULL
+        provider TEXT NOT NULL,
+        auth_type TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1
       )
     `);
     assert.equal(hasColumn(db, "provider_connections", "provider_specific_data"), false);

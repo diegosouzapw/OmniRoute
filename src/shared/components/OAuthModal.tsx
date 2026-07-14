@@ -2,20 +2,21 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
+import {
+  looksLikeCodexSessionJson,
+  parseCodexSessionJson,
+} from "@/lib/oauth/utils/codexSessionImport";
+import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
+import { buildPkceLoopbackMismatchWarning } from "@/lib/oauth/utils/pkceLoopbackWarning";
+import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
+import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
+import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
+
 import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
 import LinkifiedText from "./LinkifiedText";
 import { OAuthDeviceCodePanel, OAuthManualInputPanel } from "./OAuthModalPanels";
-import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
-import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
-import {
-  looksLikeCodexSessionJson,
-  parseCodexSessionJson,
-} from "@/lib/oauth/utils/codexSessionImport";
-import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
-import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
-import { buildPkceLoopbackMismatchWarning } from "@/lib/oauth/utils/pkceLoopbackWarning";
 
 export { formatDeviceCodeRemaining } from "./OAuthModalPanels";
 
