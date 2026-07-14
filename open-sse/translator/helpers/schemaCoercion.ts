@@ -24,6 +24,18 @@ const NUMERIC_SCHEMA_FIELDS = [
   "multipleOf",
 ] as const;
 
+// Fix (9router#1556): OpenAI/Codex's Responses API rejects JSON Schema `pattern`
+// values that use regex lookaround (lookahead/lookbehind) with
+// "Invalid JSON schema: regex lookaround is not supported.". IDE/SDK agent
+// harnesses commonly emit lookahead patterns (e.g. `^(?=.*@).+$`), so any
+// `pattern` field containing `(?=`, `(?!`, `(?<=`, or `(?<!` must be dropped
+// before the schema reaches the Codex/OpenAI upstream.
+const REGEX_LOOKAROUND_PATTERN = /\(\?<?[=!]/;
+
+function hasUnsupportedRegexLookaround(pattern: unknown): boolean {
+  return typeof pattern === "string" && REGEX_LOOKAROUND_PATTERN.test(pattern);
+}
+
 function isPlainObject(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -79,6 +91,11 @@ export function coerceSchemaNumericFields(schema: unknown): unknown {
   // Fix #1782: Strip 'default' property to prevent upstream models from eagerly injecting optional fields
   if ("default" in result) {
     delete result.default;
+  }
+
+  // Fix (9router#1556): drop unsupported regex lookaround from `pattern`.
+  if (hasUnsupportedRegexLookaround(result.pattern)) {
+    delete result.pattern;
   }
 
   for (const field of NUMERIC_SCHEMA_FIELDS) {
@@ -138,6 +155,82 @@ export function coerceSchemaNumericFields(schema: unknown): unknown {
   }
 
   keepOpaqueObjectSchemasOpen(result);
+
+  return result;
+}
+
+/**
+ * Strip regex `pattern` constraints that use lookaround (lookahead/lookbehind),
+ * which OpenAI/Codex's Responses API rejects outright with a 400
+ * ("Invalid JSON schema: regex lookaround is not supported."). Walks the same
+ * JSON Schema shape as `coerceSchemaNumericFields` (properties, items,
+ * anyOf/oneOf/allOf, $defs/definitions, etc). See 9router#1556.
+ */
+export function stripUnsupportedRegexPatterns(schema: unknown): unknown {
+  if (Array.isArray(schema)) {
+    return schema.map((entry) => stripUnsupportedRegexPatterns(entry));
+  }
+  if (!isPlainObject(schema)) return schema;
+
+  const result: JsonRecord = { ...schema };
+
+  if (hasUnsupportedRegexLookaround(result.pattern)) {
+    delete result.pattern;
+  }
+
+  if (isPlainObject(result.properties)) {
+    result.properties = Object.fromEntries(
+      Object.entries(result.properties).map(([key, value]) => [
+        key,
+        stripUnsupportedRegexPatterns(value),
+      ])
+    );
+  }
+  if (isPlainObject(result.patternProperties)) {
+    result.patternProperties = Object.fromEntries(
+      Object.entries(result.patternProperties).map(([key, value]) => [
+        key,
+        stripUnsupportedRegexPatterns(value),
+      ])
+    );
+  }
+  if (isPlainObject(result.definitions)) {
+    result.definitions = Object.fromEntries(
+      Object.entries(result.definitions).map(([key, value]) => [
+        key,
+        stripUnsupportedRegexPatterns(value),
+      ])
+    );
+  }
+  if (isPlainObject(result.$defs)) {
+    result.$defs = Object.fromEntries(
+      Object.entries(result.$defs).map(([key, value]) => [
+        key,
+        stripUnsupportedRegexPatterns(value),
+      ])
+    );
+  }
+  if (result.items !== undefined) {
+    result.items = stripUnsupportedRegexPatterns(result.items);
+  }
+  if (result.additionalProperties && typeof result.additionalProperties === "object") {
+    result.additionalProperties = stripUnsupportedRegexPatterns(result.additionalProperties);
+  }
+  if (Array.isArray(result.prefixItems)) {
+    result.prefixItems = result.prefixItems.map((entry) => stripUnsupportedRegexPatterns(entry));
+  }
+  if (Array.isArray(result.anyOf)) {
+    result.anyOf = result.anyOf.map((entry) => stripUnsupportedRegexPatterns(entry));
+  }
+  if (Array.isArray(result.oneOf)) {
+    result.oneOf = result.oneOf.map((entry) => stripUnsupportedRegexPatterns(entry));
+  }
+  if (Array.isArray(result.allOf)) {
+    result.allOf = result.allOf.map((entry) => stripUnsupportedRegexPatterns(entry));
+  }
+  if (isPlainObject(result.not)) {
+    result.not = stripUnsupportedRegexPatterns(result.not);
+  }
 
   return result;
 }
