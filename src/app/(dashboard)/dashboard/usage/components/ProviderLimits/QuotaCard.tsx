@@ -89,9 +89,7 @@ export default function QuotaCard({
   const hasStaleData = !!quota?.stale;
   const displayRefreshedAt = quota?.stale?.since || refreshedAt;
   const canEditCutoff = quotas.some((q: any) => q && typeof q.name === "string" && !q.isCredits);
-  const canRedeemResetCredit =
-    connection.provider === "codex" &&
-    quotas.some((q: any) => q?.isResetCredits && Number(q.creditCount ?? q.remaining ?? 0) > 0);
+  const canRedeemResetCredit = connection.provider === "codex" && hasAvailableResetCredits(quotas);
 
   return (
     <Card
@@ -136,5 +134,11 @@ export default function QuotaCard({
         accountLabel={accountLabel}
       />
     </Card>
+  );
+}
+
+function hasAvailableResetCredits(quotas: any[]): boolean {
+  return quotas.some(
+    (quota: any) => quota?.isResetCredits && Number(quota.creditCount ?? quota.remaining ?? 0) > 0
   );
 }
