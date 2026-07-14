@@ -42,6 +42,18 @@ test("parseCognitiveCount reads the gate's count (en + pt)", () => {
   assert.equal(parseCognitiveCount("no number"), null);
 });
 
+test("parseCognitiveCount ignores the cyclomatic section in combined ratchet output (#7009)", () => {
+  // The shared ESLint walk emits the cyclomatic block (2056) BEFORE the cognitive
+  // block (890). A loose /(\d+)\s+violações/ match previously grabbed 2056 and faked
+  // a +1166 cognitive drift. The parser must return the cognitive count (890).
+  const combined =
+    "[complexity] OK — 2056 violações (baseline 2056)\n" +
+    "cognitiveComplexity=890\n" +
+    "[cognitive-complexity] 890 function(s) exceed the cognitive-complexity threshold (15).\n" +
+    "[cognitive-complexity] OK — 890 violações (baseline 890)";
+  assert.equal(parseCognitiveCount(combined), 890);
+});
+
 test("isDrift flags only growth past the committed baseline (down-direction ratchets)", () => {
   assert.equal(isDrift(3900, 3867), true); // grew → drift
   assert.equal(isDrift(3867, 3867), false); // equal → ok
