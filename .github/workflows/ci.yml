@@ -124,6 +124,11 @@ jobs:
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
       - run: npm run check:tracked-artifacts
+      # WS1.7 (v3.8.49 plan): Dockerfile lint (hadolint, pinned by digest).
+      # failure-threshold=error keeps the 5 pre-existing warnings (DL3008/DL3003/
+      # DL3016 version pinning / WORKDIR) visible without blocking; any ERROR fails.
+      - name: hadolint (Dockerfile)
+        run: docker run --rm -i hadolint/hadolint@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e hadolint --failure-threshold error - < Dockerfile
       - run: npm run check:lockfile
       - run: npm run check:licenses
       # check:docs-sync is run by the docs-sync-strict job (via check:docs-all) and the
