@@ -154,6 +154,30 @@ test("normalizes nested output_text parts to input_text", () => {
   });
 });
 
+test("normalizes nested refusal parts to input_text", () => {
+  const items = [
+    {
+      type: "function_call_output",
+      call_id: "call_3",
+      output: [
+        {
+          type: "refusal",
+          refusal: "I can't help with that.",
+          annotations: [],
+          logprobs: [],
+          obfuscation: "opaque",
+        },
+      ],
+    },
+  ];
+  const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
+  assert.deepEqual(result[0], {
+    type: "function_call_output",
+    call_id: "call_3",
+    output: [{ type: "input_text", text: "I can't help with that." }],
+  });
+});
+
 test("normalizes function_call_output image output parts to input_image", () => {
   const items = [
     {

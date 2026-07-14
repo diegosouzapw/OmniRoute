@@ -674,9 +674,9 @@ jobs:
           # This shard includes Git-backed regression tests that compare files
           # against origin/main. A shallow detached PR checkout has no remote
           # tracking ref, so those tests fail before exercising their behavior.
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Fetch main comparison ref
-        run: git fetch --no-tags origin main:refs/remotes/origin/main
+        run: git fetch --no-tags --depth=1 origin main:refs/remotes/origin/main
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}

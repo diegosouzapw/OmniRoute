@@ -100,11 +100,15 @@ function sanitizeNestedOutputPart(part: unknown): unknown {
   // input content-part types even when the enclosing item originated from an
   // assistant/tool response. Converting an image placeholder to output_text
   // here makes Codex reject the request with the inverse 400.
-  if (record.type === "output_text") {
+  if (record.type === "output_text" || record.type === "refusal") {
     const next: JsonRecord = { ...record, type: "input_text" };
+    if (typeof next.text !== "string") {
+      next.text = typeof record.refusal === "string" ? record.refusal : "";
+    }
     delete next.annotations;
     delete next.logprobs;
     delete next.obfuscation;
+    delete next.refusal;
     return next;
   }
 
