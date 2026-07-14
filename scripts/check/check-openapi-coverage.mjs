@@ -32,7 +32,7 @@ if (!fs.existsSync(OPENAPI_PATH)) {
   process.exit(1);
 }
 
-const implementedPaths = collectApiRouteUrlPaths(ROOT).sort();
+const implementedPaths = collectApiRouteUrlPaths(ROOT).sort((a, b) => a.localeCompare(b));
 const raw = yaml.load(fs.readFileSync(OPENAPI_PATH, "utf-8"));
 const documentedPaths = new Set(Object.keys(raw.paths || {}));
 

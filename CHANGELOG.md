@@ -4,6 +4,19 @@
 
 ---
 
+## [3.8.48] — 2026-07-13
+
+> ⚠️ **Hotfix release.** The published npm package for 3.8.47 crashed on every boot ([#7065](https://github.com/diegosouzapw/OmniRoute/issues/7065)) and was deprecated — **3.8.48 is the first installable release of the v3.8.47 cycle**, so everything listed under [3.8.47] below ships here.
+
+### 🐛 Bug Fixes
+
+- **fix(build):** ship `dist/head-response-guard.cjs` in the npm tarball — the prepublish prune allowlist lacked it, so every `omniroute` boot of the published 3.8.47 crashed with `ERR_MODULE_NOT_FOUND` (3rd occurrence of this class after tls-options/3.8.41); now allowlisted, enforced by `check:pack-artifact`, and guarded by a closure test that derives every `server-ws.mjs` sibling import ([#7065](https://github.com/diegosouzapw/OmniRoute/issues/7065), [#7040](https://github.com/diegosouzapw/OmniRoute/issues/7040))
+- **fix(build):** Electron Windows packaging — the better-sqlite3 Electron-ABI rebuild now spawns `npx.cmd` through a shell (Node's CVE-2024-27980 hardening made the shell-less spawn fail with `status null` on Windows runners, breaking the v3.8.47 desktop build)
+- **fix(ci):** Sonar quality gate zeroed on new code — the coverage lcov now reaches the scanner at `coverage/lcov.info` (it read 0% on every scan), the async `isCloudEnabled()` gate in the Kiro auto-import route is awaited (cloud sync ran even when disabled), the dead `structuredClone` fallback in the reasoning-split clone is a real JSON fallback, the codex executor handles the async `reader.cancel()` rejection, deterministic `localeCompare` sorts, a path-traversal guard in `classify-pr-changes.mjs`, and the Docker better-sqlite3 rebuild uses npm's bundled node-gyp instead of `npx --yes`
+- **chore(ci):** the Sonar quality gate is informational (`sonar.qualitygate.wait=false`) while the org's SonarCloud plan cannot associate the tuned "OmniRoute way" gate (coverage ≥60 aligned with the repo floor)
+
+---
+
 ## [3.8.47] — 2026-07-13
 
 _Living section — bullets land here as PRs merge into `release/v3.8.47` (parallel-cycle model; cycle opened at the v3.8.46 release freeze). Finalized at the v3.8.47 release._
@@ -189,7 +202,7 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 - **fix(resilience):** a combo step "pinned" to one fingerprint account (mimocode/mcode/opencode multi-account providers) never actually resolved to that account, so it couldn't fail over when the pinned account was depleted ([#6696](https://github.com/diegosouzapw/OmniRoute/issues/6696), relates #6612) — the combo builder UI encodes an account pin as a composite connectionId (`${rowId}|fp|${fingerprint}`, `src/lib/combos/builderOptions.ts`), but `expandTargetsByFingerprints()` (`open-sse/services/combo/fingerprintExpansion.ts`) looked that composite string up directly in `connectionById` (keyed by real DB row ids), got `undefined`, and passed the target through unchanged, still carrying the bogus composite id — so downstream credential resolution could never match it either. `expandTargetsByFingerprints()` now splits the `|fp|` composite id back into the real connection row id + the pinned fingerprint (new `splitFingerprintPin()` helper) before any lookup, resolving the target to the real connectionId (with the pinned fingerprint carried on the new `pinnedFingerprint` field) instead of the inert composite string. Regression guard: `tests/unit/combo-fingerprint-pin-6696.test.ts`.
 - **fix(api):** Responses passthrough emitted event-only SSE frames (no `data:` line) for every dropped commentary event, breaking the OpenAI Python SDK's `sse.json()` parser ([#6561](https://github.com/diegosouzapw/OmniRoute/issues/6561)), follow-up to #6199/#6232 — the commentary-drop `continue;` branches in `open-sse/utils/stream.ts` skipped the `data:` line for a dropped commentary event but never cleared the already-buffered `event:` line for that same frame, so the next blank line flushed the stale `event:` line alone. Both drop sites now call `clearPendingPassthroughEvent()` before `continue`, discarding the buffered prefix along with the dropped payload; the commentary-drop decision itself was extracted into a new `open-sse/utils/responsesCommentaryDrop.ts` so the fix does not grow the frozen `stream.ts`. Regression guard: `tests/unit/responses-commentary-event-frame-6561.test.ts` (realistic `event:\ndata:\n\n` frames — the existing #6199 test only used bare `data:` lines and never exercised this path).
 - **fix(compression):** `/api/compression/preview`'s top-level `originalTokens`/`compressedTokens` diverged from `engineBreakdown[0]`'s counts for the same single-engine run (tiktoken outer counts vs the `JSON.stringify(...).length/4` estimate per engine), worst on small inputs. A new `reconcileSingleEngineTokens()` overwrites the single-engine breakdown entry with the outer, more accurate figures; multi-step pipeline breakdowns are left untouched ([#6488](https://github.com/diegosouzapw/OmniRoute/issues/6488)). Regression guard: `tests/unit/compression/preview-outer-engine-token-reconcile-6488.test.ts`.
-- **fix(resilience):** account selection could pick an account already out of quota upstream on every credentialed route except `chat`/`codex` ([#6686](https://github.com/diegosouzapw/OmniRoute/issues/6686)) — `getProviderCredentials()` (`src/sse/services/auth.ts`) only skips a connection when a *local cache* already flags it exhausted (`isQuotaExhaustedForRequest`/`src/domain/quotaCache.ts`); it never itself calls the registered upstream `QuotaFetcher`. Only `getProviderCredentialsWithQuotaPreflight()` performs that live upstream check, and it was wired into exactly 2 call sites (`src/sse/handlers/chat.ts`, `src/app/api/internal/codex-responses-ws/route.ts`) — every other credentialed route (`rerank`, `images/generations`, `images/edits`, `audio/transcriptions|speech|translations`, `videos/generations`, `music/generations`, `ocr`, `providers/[provider]/embeddings`, `providers/[provider]/images/generations`, `web/fetch`, `moderations`, `search`) called the plain, cache-only selector, so an account whose cache entry was never populated (e.g. its first request landed on one of these routes) could be selected even at 0% quota remaining. Those 14 call sites now go through `getProviderCredentialsWithQuotaPreflight()` instead, matching chat/codex coverage. Regression guard: `tests/unit/issue-6686-quota-preflight-coverage.test.ts` (static check that none of the routes call the plain selector anymore + a behavioral check that the preflight-aware selector blocks a 100%-used account).
+- **fix(resilience):** account selection could pick an account already out of quota upstream on every credentialed route except `chat`/`codex` ([#6686](https://github.com/diegosouzapw/OmniRoute/issues/6686)) — `getProviderCredentials()` (`src/sse/services/auth.ts`) only skips a connection when a _local cache_ already flags it exhausted (`isQuotaExhaustedForRequest`/`src/domain/quotaCache.ts`); it never itself calls the registered upstream `QuotaFetcher`. Only `getProviderCredentialsWithQuotaPreflight()` performs that live upstream check, and it was wired into exactly 2 call sites (`src/sse/handlers/chat.ts`, `src/app/api/internal/codex-responses-ws/route.ts`) — every other credentialed route (`rerank`, `images/generations`, `images/edits`, `audio/transcriptions|speech|translations`, `videos/generations`, `music/generations`, `ocr`, `providers/[provider]/embeddings`, `providers/[provider]/images/generations`, `web/fetch`, `moderations`, `search`) called the plain, cache-only selector, so an account whose cache entry was never populated (e.g. its first request landed on one of these routes) could be selected even at 0% quota remaining. Those 14 call sites now go through `getProviderCredentialsWithQuotaPreflight()` instead, matching chat/codex coverage. Regression guard: `tests/unit/issue-6686-quota-preflight-coverage.test.ts` (static check that none of the routes call the plain selector anymore + a behavioral check that the preflight-aware selector blocks a 100%-used account).
 - **fix(api):** `reasoning_content` (extended-thinking text) was silently dropped from `/v1/chat/completions` SSE on the `claude-web` and `v0-vercel-web` executors ([#6662](https://github.com/diegosouzapw/OmniRoute/issues/6662)) — every chunk builder in both adapters hardcoded `delta: { content: ... }` with no reasoning path, unlike the established pattern already used by `default.ts`/`deepseek-web.ts`/`bedrock.ts` and the real-Anthropic-API `claude-to-openai.ts` translator (`thinking_delta` → `reasoning_content`). `v0-vercel-web.ts` now forwards an upstream `delta.reasoning_content` field (streaming and non-streaming) the same way `deepseek-web.ts` does. `claude-web.ts`'s `buildClaudeStreamingResponse` now maps a `content_block_start`(`type: "thinking"`)/`content_block_delta`(`delta.thinking`) pair onto `delta.reasoning_content`, and `claude-web/payload.ts`'s `transformToClaude()` no longer hardcodes `thinking_mode: "off"` — a new `wantsExtendedThinking()` derives it from the request's `reasoning_effort`/`reasoning.effort`/`thinking.type` signal, so extended thinking can actually be requested. Regression guard: `tests/unit/issue-6662-repro.test.ts` (RED→GREEN for both adapters).
 - **fix(api):** the compression config PUT schema now accepts `enableRenderers` for the RTK engine instead of rejecting the documented option (#6703, #6757 — thanks @alltomatos, with an independent duplicate fix from @chirag127 via #6756).
 - **fix(api):** raised the provider `apiKey` length cap for cookie-based web providers, whose session-cookie credentials legitimately exceed the previous limit (#6715, #6759 — thanks @alltomatos).
@@ -259,70 +272,68 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 - **docs:** refresh `llm.txt` to the current project state (248 providers, 94 MCP tools / 30 scopes, 18 routing strategies, 12-factor Auto-Combo scoring, v3.8.47) and sync its 42 i18n mirrors; move the implemented design-system plan from the repo root to `docs/architecture/DESIGN_SYSTEM.md` rewritten as a reference doc.
 - **chore(security):** scrub hardcoded live-instance credentials (API key + auth cookie + host URL) from the `tests/boundary/*.live.test.ts` files landed via #6786 — they now read `OMNIROUTE_TEST_BASE` / `OMNIROUTE_TEST_BEARER` / `OMNIROUTE_TEST_COOKIE` from the environment and stay gated behind `RUN_BOUNDARY_LIVE=1`.
 
-
-
 ### 🙌 Contributors
 
 Thanks to everyone whose work landed in v3.8.47:
 
-| Contributor | PRs / Issues |
-| --- | --- |
-| [@AgentKiller45](https://github.com/AgentKiller45) | #6863, #6866 |
-| [@alltomatos](https://github.com/alltomatos) | #6703, #6715, #6756, #6757, #6759, #6813, #6819, #6821 |
-| [@andrewmunsell](https://github.com/andrewmunsell) | #6774, #6779, #6795 |
-| [@AndrianBalanescu](https://github.com/AndrianBalanescu) | #6828, #6829 |
-| [@anhdiepmmk](https://github.com/anhdiepmmk) | direct commit / report |
-| [@artickc](https://github.com/artickc) | #6363, #6763 |
-| [@backryun](https://github.com/backryun) | #6280, #6675, #6862 |
-| [@blackwell-systems](https://github.com/blackwell-systems) | #6838 |
-| [@brick30llc-ctrl](https://github.com/brick30llc-ctrl) | #6944 |
-| [@charleszolot](https://github.com/charleszolot) | #6571 |
-| [@chirag127](https://github.com/chirag127) | #6402, #6458, #6460, #6461, #6463, #6515, #6519, #6523, #6534, #6546, #6577, #6643, #6644, #6645, #6646, #6769, #6804, #6868, #6869, #6870, #6871, #6883 |
-| [@chy1211](https://github.com/chy1211) | direct commit / report |
-| [@crochabe-cyber](https://github.com/crochabe-cyber) | #4013 |
-| [@deadcoder0904](https://github.com/deadcoder0904) | #6665 |
-| [@developerjillur](https://github.com/developerjillur) | direct commit / report |
-| [@eidoog](https://github.com/eidoog) | direct commit / report |
-| [@enjoyer-hub](https://github.com/enjoyer-hub) | #6647 |
-| [@gdevenyi](https://github.com/gdevenyi) | direct commit / report |
-| [@growab](https://github.com/growab) | #6867 |
-| [@hajilok](https://github.com/hajilok) | #6126, #6833 |
-| [@hamsa0x7](https://github.com/hamsa0x7) | #6317, #6318, #6338 |
-| [@herjarsa](https://github.com/herjarsa) | direct commit / report |
-| [@iamraydoan](https://github.com/iamraydoan) | #6798 |
-| [@ianriizky](https://github.com/ianriizky) | #6072, #6538 |
-| [@itiwant](https://github.com/itiwant) | direct commit / report |
-| [@janeza2](https://github.com/janeza2) | #6308 |
-| [@JxnLexn](https://github.com/JxnLexn) | #6776 |
-| [@KooshaPari](https://github.com/KooshaPari) | #6611, #6632, #6856 |
-| [@like3213934360-lab](https://github.com/like3213934360-lab) | direct commit / report |
-| [@lucasjustinudin](https://github.com/lucasjustinudin) | direct commit / report |
-| [@lunkerchen](https://github.com/lunkerchen) | #6320 |
-| [@MikeTuev](https://github.com/MikeTuev) | #6586, #6830 |
-| [@Moseyuh333](https://github.com/Moseyuh333) | #6294, #6728 |
-| [@nowhats-br](https://github.com/nowhats-br) | direct commit / report |
-| [@oyi77](https://github.com/oyi77) | #6907, #6926, #6929, #6946 |
-| [@Pitchfork-and-Torch](https://github.com/Pitchfork-and-Torch) | #6747, #6791, #6792 |
-| [@pizzav-xyz](https://github.com/pizzav-xyz) | #6648 |
-| [@quanturbo](https://github.com/quanturbo) | #6780 |
-| [@rafaumeu](https://github.com/rafaumeu) | #6813 |
-| [@rafpigna](https://github.com/rafpigna) | #6574 |
-| [@rucciva](https://github.com/rucciva) | #4125 |
-| [@rushsinging](https://github.com/rushsinging) | #6807 |
-| [@ryanngit](https://github.com/ryanngit) | direct commit / report |
-| [@samir-abis](https://github.com/samir-abis) | direct commit / report |
-| [@SeaXen](https://github.com/SeaXen) | direct commit / report |
-| [@shabeer](https://github.com/shabeer) | direct commit / report |
-| [@Squawk7777](https://github.com/Squawk7777) | #6565 |
-| [@strangersp](https://github.com/strangersp) | #6587 |
-| [@Thinkscape](https://github.com/Thinkscape) | direct commit / report |
-| [@ThongAccount](https://github.com/ThongAccount) | #6625, #6649 |
-| [@tjengbudi](https://github.com/tjengbudi) | #4009 |
-| [@whale9820](https://github.com/whale9820) | direct commit / report |
-| [@Witroch4](https://github.com/Witroch4) | #6753, #6762, #6790 |
-| [@xz-dev](https://github.com/xz-dev) | #6323, #6330, #6702, #6714, #6727 |
-| [@yinaoxiong](https://github.com/yinaoxiong) | #6805 |
-| [@diegosouzapw](https://github.com/diegosouzapw) | maintainer |
+| Contributor                                                    | PRs / Issues                                                                                                                                             |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [@AgentKiller45](https://github.com/AgentKiller45)             | #6863, #6866                                                                                                                                             |
+| [@alltomatos](https://github.com/alltomatos)                   | #6703, #6715, #6756, #6757, #6759, #6813, #6819, #6821                                                                                                   |
+| [@andrewmunsell](https://github.com/andrewmunsell)             | #6774, #6779, #6795                                                                                                                                      |
+| [@AndrianBalanescu](https://github.com/AndrianBalanescu)       | #6828, #6829                                                                                                                                             |
+| [@anhdiepmmk](https://github.com/anhdiepmmk)                   | direct commit / report                                                                                                                                   |
+| [@artickc](https://github.com/artickc)                         | #6363, #6763                                                                                                                                             |
+| [@backryun](https://github.com/backryun)                       | #6280, #6675, #6862                                                                                                                                      |
+| [@blackwell-systems](https://github.com/blackwell-systems)     | #6838                                                                                                                                                    |
+| [@brick30llc-ctrl](https://github.com/brick30llc-ctrl)         | #6944                                                                                                                                                    |
+| [@charleszolot](https://github.com/charleszolot)               | #6571                                                                                                                                                    |
+| [@chirag127](https://github.com/chirag127)                     | #6402, #6458, #6460, #6461, #6463, #6515, #6519, #6523, #6534, #6546, #6577, #6643, #6644, #6645, #6646, #6769, #6804, #6868, #6869, #6870, #6871, #6883 |
+| [@chy1211](https://github.com/chy1211)                         | direct commit / report                                                                                                                                   |
+| [@crochabe-cyber](https://github.com/crochabe-cyber)           | #4013                                                                                                                                                    |
+| [@deadcoder0904](https://github.com/deadcoder0904)             | #6665                                                                                                                                                    |
+| [@developerjillur](https://github.com/developerjillur)         | direct commit / report                                                                                                                                   |
+| [@eidoog](https://github.com/eidoog)                           | direct commit / report                                                                                                                                   |
+| [@enjoyer-hub](https://github.com/enjoyer-hub)                 | #6647                                                                                                                                                    |
+| [@gdevenyi](https://github.com/gdevenyi)                       | direct commit / report                                                                                                                                   |
+| [@growab](https://github.com/growab)                           | #6867                                                                                                                                                    |
+| [@hajilok](https://github.com/hajilok)                         | #6126, #6833                                                                                                                                             |
+| [@hamsa0x7](https://github.com/hamsa0x7)                       | #6317, #6318, #6338                                                                                                                                      |
+| [@herjarsa](https://github.com/herjarsa)                       | direct commit / report                                                                                                                                   |
+| [@iamraydoan](https://github.com/iamraydoan)                   | #6798                                                                                                                                                    |
+| [@ianriizky](https://github.com/ianriizky)                     | #6072, #6538                                                                                                                                             |
+| [@itiwant](https://github.com/itiwant)                         | direct commit / report                                                                                                                                   |
+| [@janeza2](https://github.com/janeza2)                         | #6308                                                                                                                                                    |
+| [@JxnLexn](https://github.com/JxnLexn)                         | #6776                                                                                                                                                    |
+| [@KooshaPari](https://github.com/KooshaPari)                   | #6611, #6632, #6856                                                                                                                                      |
+| [@like3213934360-lab](https://github.com/like3213934360-lab)   | direct commit / report                                                                                                                                   |
+| [@lucasjustinudin](https://github.com/lucasjustinudin)         | direct commit / report                                                                                                                                   |
+| [@lunkerchen](https://github.com/lunkerchen)                   | #6320                                                                                                                                                    |
+| [@MikeTuev](https://github.com/MikeTuev)                       | #6586, #6830                                                                                                                                             |
+| [@Moseyuh333](https://github.com/Moseyuh333)                   | #6294, #6728                                                                                                                                             |
+| [@nowhats-br](https://github.com/nowhats-br)                   | direct commit / report                                                                                                                                   |
+| [@oyi77](https://github.com/oyi77)                             | #6907, #6926, #6929, #6946                                                                                                                               |
+| [@Pitchfork-and-Torch](https://github.com/Pitchfork-and-Torch) | #6747, #6791, #6792                                                                                                                                      |
+| [@pizzav-xyz](https://github.com/pizzav-xyz)                   | #6648                                                                                                                                                    |
+| [@quanturbo](https://github.com/quanturbo)                     | #6780                                                                                                                                                    |
+| [@rafaumeu](https://github.com/rafaumeu)                       | #6813                                                                                                                                                    |
+| [@rafpigna](https://github.com/rafpigna)                       | #6574                                                                                                                                                    |
+| [@rucciva](https://github.com/rucciva)                         | #4125                                                                                                                                                    |
+| [@rushsinging](https://github.com/rushsinging)                 | #6807                                                                                                                                                    |
+| [@ryanngit](https://github.com/ryanngit)                       | direct commit / report                                                                                                                                   |
+| [@samir-abis](https://github.com/samir-abis)                   | direct commit / report                                                                                                                                   |
+| [@SeaXen](https://github.com/SeaXen)                           | direct commit / report                                                                                                                                   |
+| [@shabeer](https://github.com/shabeer)                         | direct commit / report                                                                                                                                   |
+| [@Squawk7777](https://github.com/Squawk7777)                   | #6565                                                                                                                                                    |
+| [@strangersp](https://github.com/strangersp)                   | #6587                                                                                                                                                    |
+| [@Thinkscape](https://github.com/Thinkscape)                   | direct commit / report                                                                                                                                   |
+| [@ThongAccount](https://github.com/ThongAccount)               | #6625, #6649                                                                                                                                             |
+| [@tjengbudi](https://github.com/tjengbudi)                     | #4009                                                                                                                                                    |
+| [@whale9820](https://github.com/whale9820)                     | direct commit / report                                                                                                                                   |
+| [@Witroch4](https://github.com/Witroch4)                       | #6753, #6762, #6790                                                                                                                                      |
+| [@xz-dev](https://github.com/xz-dev)                           | #6323, #6330, #6702, #6714, #6727                                                                                                                        |
+| [@yinaoxiong](https://github.com/yinaoxiong)                   | #6805                                                                                                                                                    |
+| [@diegosouzapw](https://github.com/diegosouzapw)               | maintainer                                                                                                                                               |
 
 ---
 

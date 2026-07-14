@@ -840,10 +840,14 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      # The upload strips the common `coverage/` prefix, so the artifact root holds
+      # lcov.info directly — download into coverage/ so it lands at coverage/lcov.info,
+      # where sonar.javascript.lcov.reportPaths expects it (path: . left the Sonar
+      # new-code coverage at 0% every scan).
       - uses: actions/download-artifact@v8
         with:
           name: coverage-report
-          path: .
+          path: coverage/
       - name: Explain SonarQube skip
         if: ${{ github.event_name != 'pull_request' || env.SONAR_TOKEN == '' || env.SONAR_HOST_URL == '' }}
         run: |

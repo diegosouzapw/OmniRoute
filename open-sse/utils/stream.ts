@@ -1710,7 +1710,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     const reasoningChunk =
                       typeof structuredClone === "function"
                         ? structuredClone(parsed)
-                        : structuredClone(parsed);
+                        : JSON.parse(JSON.stringify(parsed));
                     const rDelta = reasoningChunk.choices[0].delta;
                     delete rDelta.content;
                     reasoningChunk.choices[0].finish_reason = null;

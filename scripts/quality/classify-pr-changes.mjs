@@ -91,8 +91,17 @@ function main() {
   const listPath = process.argv[2];
   let files;
   if (listPath && listPath !== "-") {
+    // Both CI callers pass a workspace-relative file (changed-files.txt); confine
+    // the argument to the working directory so a stray/hostile path can never
+    // read outside the checkout (path-traversal guard).
+    const resolved = path.resolve(process.cwd(), listPath);
+    const rel = path.relative(process.cwd(), resolved);
+    if (rel.startsWith("..") || path.isAbsolute(rel)) {
+      console.error(`[classify-pr-changes] list path escapes the workspace: ${listPath}`);
+      process.exit(1);
+    }
     files = fs
-      .readFileSync(listPath, "utf8")
+      .readFileSync(resolved, "utf8")
       .split(/\r?\n/)
       .map((s) => s.trim())
       .filter(Boolean);
