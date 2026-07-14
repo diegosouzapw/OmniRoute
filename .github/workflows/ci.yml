@@ -789,6 +789,7 @@ jobs:
             --merge-async \
             --reporter=text-summary \
             --reporter=json-summary \
+            --reporter=lcov \
             --exclude=tests/** \
             --exclude=**/*.test.* \
             --check-coverage \
@@ -810,6 +811,18 @@ jobs:
               > coverage/coverage-report.md
           fi
           cat coverage/coverage-report.md >> "$GITHUB_STEP_SUMMARY"
+      # WS5.6 (D7, v3.8.49 plan): patch coverage on the PR diff via Codecov —
+      # informational during calibration (codecov.yml sets informational: true);
+      # promote to blocking only after ~2 weeks without false blocks. The lcov
+      # reporter above also fixes coverage/lcov.info being silently absent
+      # (if-no-files-found: warn) — Sonar consumes the same file.
+      - name: Upload coverage to Codecov (informational)
+        if: always()
+        uses: codecov/codecov-action@04b047e8bb82a0c002c8312c1c880fbc6a999d45 # v5
+        with:
+          files: coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
       - name: Upload coverage artifacts
         if: always()
         uses: actions/upload-artifact@v7
