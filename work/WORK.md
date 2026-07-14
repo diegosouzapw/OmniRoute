@@ -1,3 +1,114 @@
+[Civis:blocked | quality manifest stale | powers/bevy repairs required]
+
+# Civis Work Ledger
+
+## Governing Scope And Current Evidence (2026-07-14)
+
+This top section is the sole active control plane for this file. Scope is Civis only. No
+OmniRoute, Tracera, AgilePlus, DesktopDeploy, Vercel, or other polyrepo lane below the archive
+marker may set Civis priority, state, ownership, or release readiness.
+
+- `.ci/quality-manifest.json` attests stale SHA `5066ab663...` while the recorded Civis HEAD is
+  `4706ac1b8`; regenerate it only after current quality gates pass.
+- PR #1382 remains gated pending current Civis verification evidence.
+- `civ-voxel` pins `KooshaPari/phenotype-gfx` at `7ed27211554f`; local dependency checkout dirt is
+  not evidence against the immutable pin.
+- `crates/powers/src/registry.rs` contains incompatible `PowerRegistry` models. Preserve the
+  66-power catalog, 37 Live powers, public APIs, serialization, and consumer behavior in repair.
+- Civis commit `facc1f822` is not merge-ready: `clients/bevy-ref/src/bin/bevy_window.rs` retains a
+  stray `}` near the recorded line 1632 and requires a superseding validated repair.
+- All evidence above is a revalidation queue, not an `ok` claim. An active task closes only with
+  a dated command, CI URL, PR, commit, or exact path recorded in this governing section.
+
+## Active Civis Tasks
+
+- [ ] CV001 Record the current Civis branch, HEAD, and worktree status.
+- [ ] CV002 Inventory Civis linked worktrees without modifying them.
+- [ ] CV003 Identify protected staged and untracked Civis paths.
+- [ ] CV004 Verify the active PR #1382 head and base SHAs.
+- [ ] CV005 Capture current PR #1382 checks and review state.
+- [ ] CV006 Compare the quality-manifest SHA with current Civis HEAD.
+- [ ] CV007 Document every quality-manifest input and generator command.
+- [ ] CV008 Run the quality-manifest verifier before regeneration.
+- [ ] CV009 Classify each current Civis quality-gate failure.
+- [ ] CV010 Assign an owner and exit condition to every blocking failure.
+- [ ] CV011 Reproduce the powers registry compiler failure in isolation.
+- [ ] CV012 Map all `PowerRegistry` definitions and consumers.
+- [ ] CV013 Select the canonical static registry model from current APIs.
+- [ ] CV014 Remove the divergent registry model without compatibility shims.
+- [ ] CV015 Preserve all 66 required powers in the repaired catalog.
+- [ ] CV016 Preserve the 37 required Live powers in the repaired catalog.
+- [ ] CV017 Preserve registry lookup and iteration public APIs.
+- [ ] CV018 Preserve power serialization and deserialization contracts.
+- [ ] CV019 Preserve synergy module reachability from registry consumers.
+- [ ] CV020 Preserve cooldown module reachability from registry consumers.
+- [ ] CV021 Add a test asserting the 66-power catalog count.
+- [ ] CV022 Add a test asserting the 37 Live-power count.
+- [ ] CV023 Add representative registry lookup tests.
+- [ ] CV024 Add registry serialization round-trip tests.
+- [ ] CV025 Add consumer-level tests for synergy behavior.
+- [ ] CV026 Add consumer-level tests for cooldown behavior.
+- [ ] CV027 Reject registry repairs that weaken oracle thresholds.
+- [ ] CV028 Run focused powers crate formatting checks.
+- [ ] CV029 Run focused powers crate lint checks.
+- [ ] CV030 Run focused powers crate tests.
+- [ ] CV031 Reproduce the Bevy window parse failure at current HEAD.
+- [ ] CV032 Inspect the recorded stray brace near line 1632.
+- [ ] CV033 Compare `facc1f822` with its parent and current Civis HEAD.
+- [ ] CV034 Create a superseding isolated Bevy window repair.
+- [ ] CV035 Preserve all Bevy window event handlers during repair.
+- [ ] CV036 Preserve Bevy window state transitions during repair.
+- [ ] CV037 Run rustfmt on the repaired Bevy window source.
+- [ ] CV038 Run focused Bevy reference-client compilation.
+- [ ] CV039 Run focused Bevy reference-client tests.
+- [ ] CV040 Record why `facc1f822` must not merge unchanged.
+- [ ] CV041 Verify the phenotype-voxel git pin resolves at `7ed27211554f`.
+- [ ] CV042 Build `phenotype-voxel` at the pinned revision.
+- [ ] CV043 Build `civ-voxel` against the immutable pin.
+- [ ] CV044 Build `civ-engine` after voxel dependencies pass.
+- [ ] CV045 Build the Civis server after engine gates pass.
+- [ ] CV046 Build Civis protocol crates after engine gates pass.
+- [ ] CV047 Build Civis Bevy clients after server and protocol gates pass.
+- [ ] CV048 Record the exact dependency build order and results.
+- [ ] CV049 Verify no local phenotype-gfx dirt affects pinned builds.
+- [ ] CV050 Audit Cargo.lock changes for intentional dependency movement.
+- [ ] CV051 Run workspace metadata validation.
+- [ ] CV052 Run workspace formatting validation without bulk rewrites.
+- [ ] CV053 Split formatting debt into independently reviewable batches.
+- [ ] CV054 Validate the single-file `civ-watch` formatting batch.
+- [ ] CV055 Run focused clippy for every touched crate.
+- [ ] CV056 Run focused tests for every touched crate.
+- [ ] CV057 Run the authoritative Civis workspace build gate.
+- [ ] CV058 Run the authoritative Civis workspace test gate.
+- [ ] CV059 Run the authoritative Civis workspace lint gate.
+- [ ] CV060 Scan touched Civis files for secrets and credential leakage.
+- [ ] CV061 Audit touched error paths for sensitive data leakage.
+- [ ] CV062 Check touched Rust modules remain within file-size policy.
+- [ ] CV063 Review all changed public APIs for unintended breakage.
+- [ ] CV064 Verify generated files match their source generators.
+- [ ] CV065 Regenerate the quality manifest only after green gates.
+- [ ] CV066 Re-run the manifest verifier against regenerated output.
+- [ ] CV067 Confirm the regenerated manifest attests current HEAD.
+- [ ] CV068 Attach dated command evidence for each green gate.
+- [ ] CV069 Re-run PR #1382 checks on the verified commit.
+- [ ] CV070 Resolve or explicitly gate every remaining PR #1382 failure.
+- [ ] CV071 Review PR #1382 diff for scope and unrelated churn.
+- [ ] CV072 Review PR #1382 for generated artifact correctness.
+- [ ] CV073 Review PR #1382 for dependency and supply-chain risk.
+- [ ] CV074 Record commit and PR links for each validated slice.
+- [ ] CV075 Ensure each slice has an accountable owner and exit condition.
+- [ ] CV076 Merge only slices with current green evidence.
+- [ ] CV077 Verify post-merge Civis default-branch checks.
+- [ ] CV078 Record residual Civis blockers without promoting them to `ok`.
+- [ ] CV079 Publish the Civis-only release-readiness decision.
+- [ ] CV080 Close the Civis ledger only after owner acceptance and green CI.
+
+## Parked Polyrepo Archive
+
+Everything below this disclaimer is preserved historical multi-repo evidence. It is parked,
+non-governing, and inactive: its brackets, tasks, WBS rows, status protocol, and release claims
+must not alter the Civis-only scope or active task state above.
+
 [OmniRoute:✓, Tracera:◐, AgilePlus:○, DesktopDeploy:✗, Vercel:◐]
 
 This fixed sponsor cockpit bracket is a skim line only; it is not an exhaustive ownership or
@@ -79,9 +190,9 @@ ROOT-WORK-HANDOFF
 
 | lane                       | state | next owner action                                                           |
 | -------------------------- | ----- | --------------------------------------------------------------------------- |
-| OmniRoute                  | ok    | retain isolated repair evidence; rerun remote checks when adopted           |
+| OmniRoute                  | wip   | retain isolated repair evidence; rerun remote checks when adopted           |
 | AgilePlus cockpit          | wip   | fresh proper worktree at `418e597`; finish cargo check and route tests      |
-| review loop                | ok    | focused final-cycle test passes 1/1 in `/private/tmp/agileplus-review`      |
+| review loop                | wip   | focused final-cycle test passes 1/1 in `/private/tmp/agileplus-review`      |
 | Civis                      | !     | repair stale manifest/verification drift, regenerate only after green gates |
 | Tracera / BytePort / pheno | ~     | preserve dirty owned trees; audit one lane at a time                        |
 
@@ -229,8 +340,9 @@ WBS-007 (Civis manifest repair) -> PR1382 verification
 
 ## Evidence Log
 
-The records below are historical evidence. Every new or changed governing state requires its own
-dated Evidence Log record under the consolidated Status Protocol at the end of this ledger.
+Earlier records below remain historical context. Current session records support the governing
+`ORG-P0..ORG-P5` rows. Every new or changed governing state requires its own dated Evidence Log
+record under the consolidated Status Protocol at the end of this ledger.
 
 | timestamp_utc        | event_id        | lane            | state | evidence                                                  | operator |
 | -------------------- | --------------- | --------------- | ----- | --------------------------------------------------------- | -------- |
@@ -238,6 +350,9 @@ dated Evidence Log record under the consolidated Status Protocol at the end of t
 | 2026-07-12T23:31:15Z | EVT-6855-CUTOFF | OmniRoute #6855 | defer | updated `2026-07-12T01:45:53Z`; `mergeable_state=dirty`   | root     |
 | 2026-07-12T23:31:15Z | EVT-6794-CUTOFF | OmniRoute #6794 | defer | updated `2026-07-12T12:55:34Z`; `mergeable_state=clean`   | root     |
 | 2026-07-12T23:31:15Z | EVT-QUEUE-EMPTY | OmniRoute queue | defer | no open non-draft PR older than 48h                       | root     |
+| 2026-07-14T06:58:21Z | EVT-OMNI-SCOPED-QUALITY | OmniRoute quality | wip | commits `2daf05a66`, `0e70c560`; cwd `/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/.worktrees/omni-quality-gates`: `npm exec --yes tsx -- --test tests/unit/db-migration-legacy-slots.test.ts tests/unit/db-migrationrunner-constants-split.test.ts` passes 8/8, `node scripts/check/check-migration-numbering.mjs` reports 120 migrations and 0 duplicates, and `npm run check:db-rules` passes; aggregate fast scan is not rerun and five other failure classes remain open | OmniRoute owner |
+| 2026-07-14T06:58:21Z | EVT-AGILE-TRACEABILITY | AgilePlus traceability | wip | commits `5012517`, `2914790`, `32f6641`, `0f9f237`; cwd `/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus/.claude/worktrees/codex-traceability`: `actionlint .github/workflows/agileplus-traceability.yml`, `yamllint .github/workflows/agileplus-traceability.yml`, and `git diff --check 5012517^ 0f9f237` pass; net change adds the pinned traceability workflow and deletes the echo stub | AgilePlus owner |
+| 2026-07-14T06:58:21Z | EVT-AGILE-022-BLOCKED | AgilePlus governance | blocked | cwd `/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus/.claude/worktrees/codex-traceability`: `python3 tooling/governance_index.py --check-schema` reports `kitty-specs/022-batch13-repo-remediation missing plan.md`; `git log --all --oneline -- kitty-specs/022-batch13-repo-remediation/plan.md` finds only the temporary add/remove in `5012517` and `2914790`, not an authoritative source | AgilePlus owner |
 
 ## Current Slice Evidence (2026-07-12)
 
@@ -269,10 +384,10 @@ CI can be re-run.
 
 | id | phase | state | owner | depends_on | evidence | exit |
 | -- | ----- | ----- | ----- | ---------- | -------- | ---- |
-| ORG-P0 | inventory/freshness | wip | root manager | - | `git worktree list --porcelain`; `git -C OmniRoute status --short`; `git -C AgilePlus status --short`; recovery rows `WTR-001..004` | all active repository status, branch, worktree, and freshness records are current |
+| ORG-P0 | inventory/freshness | wip | root manager | - | `cd /Users/kooshapari/CodeProjects/Phenotype/repos && git worktree list --porcelain && git -C OmniRoute status --short && git -C AgilePlus status --short`; recovery rows `WTR-001..004` | all active repository status, branch, worktree, and freshness records are current |
 | ORG-P1 | status/evidence schema | wip | root manager | ORG-P0 | `work/WORK.md`; `rg -n -e "ORG-P[0-5]" -e "Status Protocol" -e "Evidence Log" work/WORK.md` | every tracked lane has a machine-recheckable owner, dependency, evidence, and exit condition |
-| ORG-P2 | QA/gap matrix | wip | QA owner | ORG-P1 | `OmniRoute/scripts/quality/run-all-gates.mjs`; `npm --prefix OmniRoute run quality:scan:fast` | all P0/P1 gaps have a current command or CI result and a recorded disposition |
-| ORG-P3 | PR/CI/router corpus/cockpit/C0-C10/AgilePlus FR gaps | blocked | OmniRoute, Civis, AgilePlus owners | ORG-P2 | `npm --prefix OmniRoute run quality:scan:fast`; `AgilePlus/tooling/governance_index.py --check-schema`; `AgilePlus/.github/workflows/fr-coverage.yml`; `Civis/.ci/quality-manifest.json`; PR #1382 | PR and CI corpus refreshed; router/cockpit C0-C10 and FR gaps have verified owners and exits |
+| ORG-P2 | QA/gap matrix | wip | QA owner | ORG-P1 | `EVT-OMNI-SCOPED-QUALITY`: scoped migration and DB rules pass at `2daf05a66` / `0e70c560`; aggregate fast scan remains unverified with five other failure classes open | run `cd /Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/.worktrees/omni-quality-gates && npm run quality:scan:fast`, then give every remaining P0/P1 failure class a current disposition |
+| ORG-P3 | PR/CI/router corpus/cockpit/C0-C10/AgilePlus FR gaps | blocked | OmniRoute, Civis, AgilePlus owners | ORG-P2 | `EVT-AGILE-TRACEABILITY` records scoped workflow checks; `EVT-AGILE-022-BLOCKED` records the missing authoritative plan; `Civis/.ci/quality-manifest.json`; PR #1382 | PR and CI corpus refreshed; router/cockpit C0-C10 and FR gaps have verified owners and exits |
 | ORG-P4 | machine sync | blocked | platform owner | ORG-P3 | `work/agileplus-work.db`; reproducible read/write check while writer-coordinated | safe writer-coordinated sync completes and records a reproducible read/write check |
 | ORG-P5 | release handoff | hold | release owner | ORG-P3, ORG-P4 | governing `ORG-P0..ORG-P4` evidence; PR #1382; dated Evidence Log records | handoff contains only current green commands/CI, PR links, and owner acceptance |
 
@@ -280,9 +395,9 @@ CI can be re-run.
 
 | gap_id | surface | state | evidence | owner | exit |
 | ------ | ------- | ----- | -------- | ----- | ---- |
-| GAP-ORG-001 | OmniRoute quality scan | wip | `OmniRoute/scripts/quality/run-all-gates.mjs`; `npm --prefix OmniRoute run quality:scan:fast` reported 12 pass / 7 fail, including migration-prefix and `localDb` findings | OmniRoute owner | rerun after scoped remediation; attach current passing or triaged failing output |
-| GAP-ORG-002 | AgilePlus governance and planning | blocked | `AgilePlus/tooling/governance_index.py --check-schema` identifies missing `022` plan | AgilePlus owner | add and validate the required plan, then record validator output |
-| GAP-ORG-003 | AgilePlus traceability | blocked | `AgilePlus/.github/workflows/fr-coverage.yml`; FR-024-4, FR-024-5, FR-024-7, and FR-024-8 remain gaps | AgilePlus owner | implement/verify workflows and map each FR to current test or command evidence |
+| GAP-ORG-001 | OmniRoute quality scan | wip | commits `2daf05a66`, `0e70c560`; focused legacy migration/constants tests pass 8/8, migration numbering reports 120 migrations / 0 duplicates, and `check:db-rules` passes; aggregate fast scan is unverified and five other failure classes remain open | OmniRoute owner | run `cd /Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/.worktrees/omni-quality-gates && npm run quality:scan:fast`; attach current results and resolve or triage all remaining failures |
+| GAP-ORG-002 | AgilePlus governance and planning | blocked | `EVT-AGILE-022-BLOCKED`: spec `022` lacks authoritative `plan.md`; repository history finds no source beyond the temporary add/remove in `5012517` and `2914790` | AgilePlus owner | obtain an authoritative plan from its owner, then add it and rerun the schema validator; do not synthesize one |
+| GAP-ORG-003 | AgilePlus traceability | wip | commits `5012517`, `2914790`, `32f6641`, `0f9f237` net-add the SHA-pinned traceability workflow and delete the echo stub; actionlint, yamllint, and range diff checks pass | AgilePlus owner | run the pinned workflow in CI and map every remaining FR gap to current test or command evidence |
 | GAP-ORG-004 | AgilePlus machine sync | blocked | `work/agileplus-work.db` is `SQLITE_BUSY`; writer ownership is active | platform owner | coordinate with the writer, then run a non-contentious sync/readback check |
 | GAP-ORG-005 | Civis PR/manifest | blocked | `Civis/.ci/quality-manifest.json` is stale; PR #1382 remains unresolved | Civis owner | regenerate/verify the manifest only after current quality gates pass and refresh PR evidence |
 | GAP-ORG-006 | router corpus and cockpit C0-C10 | wip | `OmniRoute/scripts/quality/run-all-gates.mjs`; `AgilePlus/.github/workflows/fr-coverage.yml`; no current corpus/cockpit C0-C10 result is recorded | OmniRoute and AgilePlus owners | record current corpus/cockpit coverage, failures, and accountable exits |
