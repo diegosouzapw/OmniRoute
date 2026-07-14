@@ -40,6 +40,8 @@ ROOT-WORK-HANDOFF
 |  |- game dependency              [ok] phenotype-gfx::phenotype-voxel pinned at 7ed27211554f
 |  |- build order                  [ok] phenotype-voxel -> civ-voxel -> civ-engine -> server/protocol/bevy
 |  `- first source gate            [!] duplicate incompatible PowerRegistry models in crates/powers/src/registry.rs
+|  |- bevy window repair            [ok] isolated commit facc1f822; targeted check/test pass
+|  `- powers registry repair        [wip] retain static origin-main model; remove divergent Vec model
 |- POLYREPO-CONTAINMENT            [ok] current root preserved; staged unrelated work not touched
 `- NEXT                           [wip] rehydrate isolated lanes, validate, then publish only green work
 ```
@@ -62,6 +64,9 @@ ROOT-WORK-HANDOFF
   dependency. It is pinned by `civ-voxel` at `7ed27211554f`; local `phenotype-gfx` Cargo.lock
   dirt cannot affect the immutable source. The active failure is in-tree: duplicate `PowerRegistry`
   models and redefined types in `crates/powers/src/registry.rs` introduced after known-green state.
+- Isolated Civis commit `facc1f822` repairs BOM/duplicate declarations and missing structure in
+  `clients/bevy-ref/src/bin/bevy_window.rs`; its targeted Bevy check/test and security hook pass.
+  Workspace-wide formatting remains an independent pre-existing gate.
 
 ## Ownership / Next Actions
 
