@@ -1,6 +1,9 @@
-# OmniRoute / Phenotype Work Ledger
+[OmniRoute:✓, Tracera:◐, AgilePlus:○, DesktopDeploy:✗, Vercel:◐]
 
-[Civis:◐, phenotype-gfx:?, game-deps:?, OmniRoute:P, AgilePlus:P, Tracera:P]
+This fixed sponsor cockpit bracket is a skim line only; it is not an exhaustive ownership or
+status source. The governing organization status is the `ORG-P0..ORG-P5` control plane below.
+
+# OmniRoute / Phenotype Work Ledger
 
 Canonical polyrepo handoff for the long-horizon AgilePlus/Phenotype DAG. Preserve unrelated dirty
 trees; use isolated worktrees for overlapping implementation; update this file instead of creating
@@ -11,13 +14,14 @@ parallel handoff ledgers.
 Advance dashboard cleanup, cockpit bridge automation, lifecycle/review-loop regression coverage,
 targeted validation, dirty-tree containment, commit preparation, and handoff/push when feasible.
 
-## Scope Override (2026-07-13)
+## Cross-Project Governance (2026-07-13)
 
-Sponsor direction: focus exclusively on Civis and the active gaming-development dependency graph
-attached to it. OmniRoute, AgilePlus, Tracera, BytePort, and other unrelated lanes are parked;
-preserve their dirty worktrees without new implementation or cleanup. The active critical path is
-Civis verification, stale quality-manifest repair, game-dependency build order, and publication
-readiness.
+Sponsor direction is governed across the active OmniRoute, Tracera, AgilePlus, DesktopDeploy,
+Vercel, and Civis dependencies. The cockpit bracket intentionally names only its fixed sponsor
+skim lanes; Civis remains governed through `ORG-P3` and `GAP-ORG-005`, rather than being added to
+that bracket. `ORG-P0..ORG-P5` is the sole organization control plane for prioritization, state,
+and release decisions. Older execution WBS, gap, current-slice, and recovery tables below are
+subordinate evidence records; they cannot independently promote, demote, or release a lane.
 
 ## Live DAG (2026-07-12)
 
@@ -33,6 +37,9 @@ ROOT-WORK-HANDOFF
 |  |- implementation               [ok] 9d16bba delay seam + Pending -> Approved final-cycle test
 |  `- validation                    [ok] isolated manifest repair 0f306f6; focused test green
 |- CIVIS                          [!] quality manifest SHA stale; PR1382/core verification needs repair
+|  |- game dependency              [ok] phenotype-gfx::phenotype-voxel pinned at 7ed27211554f
+|  |- build order                  [ok] phenotype-voxel -> civ-voxel -> civ-engine -> server/protocol/bevy
+|  `- first source gate            [!] duplicate incompatible PowerRegistry models in crates/powers/src/registry.rs
 |- POLYREPO-CONTAINMENT            [ok] current root preserved; staged unrelated work not touched
 `- NEXT                           [wip] rehydrate isolated lanes, validate, then publish only green work
 ```
@@ -51,6 +58,10 @@ ROOT-WORK-HANDOFF
   `0f306f6` supplies the missing `tonic-build` declaration. Full filter remains slow by design.
 - Civis manager audit reports `.ci/quality-manifest.json` attests stale SHA `5066ab663...` while
   HEAD is `4706ac1b8`; PR1382 remains gated. Disposable Civis verification worktrees were removed.
+- Civis dependency audit confirms `KooshaPari/phenotype-gfx` is the sole active external gaming
+  dependency. It is pinned by `civ-voxel` at `7ed27211554f`; local `phenotype-gfx` Cargo.lock
+  dirt cannot affect the immutable source. The active failure is in-tree: duplicate `PowerRegistry`
+  models and redefined types in `crates/powers/src/registry.rs` introduced after known-green state.
 
 ## Ownership / Next Actions
 
@@ -162,10 +173,13 @@ evidence here; they must preserve protected staged work and close their child se
 - [ ] T074 Mark unresolved external/runtime gates as `[wip]`, not `[ok]`.
 - [ ] T075 Start the next unblocked task automatically on the following session.
 
-## Machine-Traceable WBS
+## Historical Execution WBS (Subordinate Evidence)
 
-The rows below are the active control plane. `state` is one of `todo|wip|ok|blocked|defer|hold`;
-`evidence` must be a command, PR, commit, or file that can be rechecked without chat history.
+These pre-organization rows remain historical execution evidence. They are subordinate to the
+governing `ORG-P0..ORG-P5` rows and the consolidated Status Protocol. `preserve` and
+`reclaim-pending` are recovery-only exceptional states; map them to governing `hold` and `wip`,
+respectively, before any organization-level transition. `todo`, `wip`, `ok`, `blocked`, `defer`,
+and `hold` otherwise have the meanings defined in the governing protocol.
 
 | id      | phase       | owner             | state   | depends_on        | deliverable                          | evidence                                         | next_transition                                           |
 | ------- | ----------- | ----------------- | ------- | ----------------- | ------------------------------------ | ------------------------------------------------ | --------------------------------------------------------- |
@@ -199,14 +213,10 @@ WBS-007 (Civis manifest repair) -> PR1382 verification
 | GAP-006 | review loop        | nested workspace is complete                       | `blocked`     | P1                        | focused Cargo test                                | review-loop owner                           | manifests restored and test passes                   |
 | GAP-007 | Civis              | attested SHA equals verified HEAD                  | `blocked`     | quality-manifest verifier | Civis owner                                       | regenerated manifest and green quality gate |
 
-## Status Protocol
-
-Agents must update the row for every transition and append a dated evidence line in this file.
-`ok` requires current command output; `blocked` requires the blocker and the next external action;
-`defer` records an intentional cutoff or dependency hold; `hold` records review/security risk.
-No row may move to `ok` from historical evidence alone.
-
 ## Evidence Log
+
+The records below are historical evidence. Every new or changed governing state requires its own
+dated Evidence Log record under the consolidated Status Protocol at the end of this ledger.
 
 | timestamp_utc        | event_id        | lane            | state | evidence                                                  | operator |
 | -------------------- | --------------- | --------------- | ----- | --------------------------------------------------------- | -------- |
@@ -226,13 +236,7 @@ No row may move to `ok` from historical evidence alone.
 | T057 | wip     | `Tracera/vercel.json` builds `frontend` only and contains no backend function rewrites.                                                                                | document frontend-only scope or add a verified serverless adapter                      |
 | T033 | wip     | `omniroute-rust` exposes Axum TCP HTTP/SSE; no Unix socket, gRPC, WebSocket, or GraphQL implementation was found.                                                      | add transport decision record and benchmark plan before claiming enterprise throughput |
 
-### Machine transition rule
-
-An agent may change a row only by adding a dated evidence line containing a re-runnable command,
-commit, PR, or file path. `blocked` means a concrete repository or external prerequisite is named;
-it does not authorize speculative edits in a dirty worktree.
-
-## Worktree Recovery Evidence (2026-07-13)
+## Worktree Recovery Evidence (Subordinate/Historical, 2026-07-13)
 
 | id      | state           | evidence                                                                                                                                                                                                                                                  | next transition                                                                                                        |
 | ------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
@@ -240,3 +244,44 @@ it does not authorize speculative edits in a dirty worktree.
 | WTR-002 | preserve        | `repos/OmniRoute/.worktrees/fix-5976-ci-rescue` contains more than 200 tracked deletions under `docs/i18n`; no fork PR covers it.                                                                                                                         | snapshot and publish a recoverable branch before resolving or removing any content.                                    |
 | WTR-003 | preserve        | `repos/OmniRoute/.claude/worktrees/land-pr016` is a detached, conflicted worktree with `UU open-sse/executors/base.ts`; its HEAD duplicates `qgate-reusable`.                                                                                             | capture the conflict state or resolve it in a dedicated recovery worktree before cleanup.                              |
 | WTR-004 | reclaim-pending | `feat-cc-responses-parity`, `feat-omniroute-qgate`, `fix-untracked-files`, `reconcile-prep`, and `rebase-pr016` map to merged PRs #174, #219, #211, #212, and #221; none is eligible for deletion until commit containment and clean status are verified. | prove containment, remove generated residue where applicable, then reclaim the worktree and branch metadata.           |
+
+## Org Ledger Refresh (2026-07-13)
+
+This refresh supersedes no implementation evidence. It records the organization-level control
+plane and downgrades unverified claims to `wip`, `blocked`, or `hold` until current commands or
+CI can be re-run.
+
+### Org WBS
+
+| id | phase | state | owner | depends_on | evidence | exit |
+| -- | ----- | ----- | ----- | ---------- | -------- | ---- |
+| ORG-P0 | inventory/freshness | wip | root manager | - | `git worktree list --porcelain`; `git -C OmniRoute status --short`; `git -C AgilePlus status --short`; recovery rows `WTR-001..004` | all active repository status, branch, worktree, and freshness records are current |
+| ORG-P1 | status/evidence schema | wip | root manager | ORG-P0 | `work/WORK.md`; `rg -n "ORG-P[0-5]|Status Protocol|Evidence Log" work/WORK.md` | every tracked lane has a machine-recheckable owner, dependency, evidence, and exit condition |
+| ORG-P2 | QA/gap matrix | wip | QA owner | ORG-P1 | `OmniRoute/scripts/quality/run-all-gates.mjs`; `npm run quality:scan:fast` | all P0/P1 gaps have a current command or CI result and a recorded disposition |
+| ORG-P3 | PR/CI/router corpus/cockpit/C0-C10/AgilePlus FR gaps | blocked | OmniRoute, Civis, AgilePlus owners | ORG-P2 | `npm run quality:scan:fast`; `AgilePlus/tooling/governance_index.py --check-schema`; `AgilePlus/.github/workflows/fr-coverage.yml`; `Civis/.ci/quality-manifest.json`; PR #1382 | PR and CI corpus refreshed; router/cockpit C0-C10 and FR gaps have verified owners and exits |
+| ORG-P4 | machine sync | blocked | platform owner | ORG-P3 | `work/agileplus-work.db`; reproducible read/write check while writer-coordinated | safe writer-coordinated sync completes and records a reproducible read/write check |
+| ORG-P5 | release handoff | hold | release owner | ORG-P3, ORG-P4 | governing `ORG-P0..ORG-P4` evidence; PR #1382; dated Evidence Log records | handoff contains only current green commands/CI, PR links, and owner acceptance |
+
+### Gap / QA Evidence (2026-07-13)
+
+| gap_id | surface | state | evidence | owner | exit |
+| ------ | ------- | ----- | -------- | ----- | ---- |
+| GAP-ORG-001 | OmniRoute quality scan | wip | `OmniRoute/scripts/quality/run-all-gates.mjs`; `npm run quality:scan:fast` reported 12 pass / 7 fail, including migration-prefix and `localDb` findings | OmniRoute owner | rerun after scoped remediation; attach current passing or triaged failing output |
+| GAP-ORG-002 | AgilePlus governance and planning | blocked | `AgilePlus/tooling/governance_index.py --check-schema` identifies missing `022` plan | AgilePlus owner | add and validate the required plan, then record validator output |
+| GAP-ORG-003 | AgilePlus traceability | blocked | `AgilePlus/.github/workflows/fr-coverage.yml`; FR-024-4, FR-024-5, FR-024-7, and FR-024-8 remain gaps | AgilePlus owner | implement/verify workflows and map each FR to current test or command evidence |
+| GAP-ORG-004 | AgilePlus machine sync | blocked | `work/agileplus-work.db` is `SQLITE_BUSY`; writer ownership is active | platform owner | coordinate with the writer, then run a non-contentious sync/readback check |
+| GAP-ORG-005 | Civis PR/manifest | blocked | `Civis/.ci/quality-manifest.json` is stale; PR #1382 remains unresolved | Civis owner | regenerate/verify the manifest only after current quality gates pass and refresh PR evidence |
+| GAP-ORG-006 | router corpus and cockpit C0-C10 | wip | `OmniRoute/scripts/quality/run-all-gates.mjs`; `AgilePlus/.github/workflows/fr-coverage.yml`; no current corpus/cockpit C0-C10 result is recorded | OmniRoute and AgilePlus owners | record current corpus/cockpit coverage, failures, and accountable exits |
+
+### Status Protocol (Governing, 2026-07-13)
+
+This is the sole state-transition protocol. A transition is valid only when both its governing
+`ORG-P0..ORG-P5` row and a dated Evidence Log record are updated in the same ledger change. Each
+record must include a machine-recheckable command, CI URL, PR ID, commit, or exact repository path.
+`ok` requires current command or CI evidence; historical commits, prior chat, and stale manifests
+may establish context but cannot establish `ok`. `blocked` names the concrete prerequisite and the
+responsible next action. `hold` is an intentional release, review, or security gate. `defer` is an
+intentional dated cutoff. `todo` is unstarted work and `wip` is active work. `preserve` and
+`reclaim-pending` are exceptional subordinate recovery labels only, never governing organization
+states; normalize them to `hold` and `wip` before recording an `ORG-P*` transition. A blocked row
+does not authorize speculative edits in a dirty worktree.
