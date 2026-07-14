@@ -9,6 +9,8 @@ import net from "node:net";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import { postChat, warmUpChatRoute } from "./resilienceHttpTestHelpers.ts";
+
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-resilience-http-e2e-"));
 const DASHBOARD_PORT = await getFreePort();
 const REPO_ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -420,22 +422,6 @@ async function getJson(url: string) {
   return { response, json };
 }
 
-async function postChat(baseUrl: string, model: string, content: string) {
-  const response = await fetch(`${baseUrl}/api/v1/chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model,
-      stream: false,
-      messages: [{ role: "user", content }],
-    }),
-    signal: AbortSignal.timeout(20_000),
-  });
-  const text = await response.text();
-  const json = text ? JSON.parse(text) : {};
-  return { response, json };
-}
-
 const relay = createFakeOpenAiRelay();
 let app:
   | {
@@ -536,7 +522,7 @@ test.before(async () => {
 
   await patchResilience(app.baseUrl, buildResilienceConfig());
 
-  const warmup = await postChat(app.baseUrl, "p2/test-model", "warm up chat route");
+  const warmup = await warmUpChatRoute(app.baseUrl, "p2/test-model", "warm up chat route");
   assert.equal(warmup.response.status, 200, JSON.stringify(warmup.json));
   relay.resetState(TOKENS.p2);
 });
@@ -642,7 +628,11 @@ test.skip("wait-for-cooldown honors upstream Retry-After when enabled", async ()
     })
   );
   relay.resetState(TOKENS.p3);
-  const warmup = await postChat(app.baseUrl, "p3/test-model", "warm provider-specific route");
+  const warmup = await warmUpChatRoute(
+    app.baseUrl,
+    "p3/test-model",
+    "warm provider-specific route"
+  );
   assert.equal(warmup.response.status, 200, JSON.stringify(warmup.json));
   relay.resetState(TOKENS.p3, [
     buildError(429, "rate limited, retry after 1 second", { "Retry-After": "1" }),
@@ -678,7 +668,11 @@ test.skip("connection cooldown can ignore upstream Retry-After and use the confi
     })
   );
   relay.resetState(TOKENS.p4);
-  const warmup = await postChat(app.baseUrl, "p4/test-model", "warm provider-specific route");
+  const warmup = await warmUpChatRoute(
+    app.baseUrl,
+    "p4/test-model",
+    "warm provider-specific route"
+  );
   assert.equal(warmup.response.status, 200, JSON.stringify(warmup.json));
   relay.resetState(TOKENS.p4, [
     buildError(429, "rate limited, retry after 30 seconds", { "Retry-After": "30" }),
