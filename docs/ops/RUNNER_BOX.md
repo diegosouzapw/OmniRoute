@@ -8,7 +8,7 @@ The self-hosted pool (`self-hosted, omni-release` labels) runs on the 16 GB box 
 `192.168.0.113`. Two failure modes recurred on release days and were, until v3.8.49,
 manual discipline; the **janitor script codifies them** (WS3.3 of the quality plan):
 
-1. **Orphaned temp/work dirs** filling the disk → `SQLITE_FULL` mid-job.
+1. **Orphaned temp/work dirs** filling the disk → disk-full SQLite errors mid-job.
 2. **>4 concurrent runners** → OOM-killed jobs (8-wide killed jobs twice on the
    v3.8.47 release day; 4-wide is the proven ceiling).
 
@@ -22,8 +22,8 @@ sudo chmod +x /opt/omniroute-ops/runner-janitor.sh
 ```
 
 What it does every 30min: sweeps runner temp leftovers older than 24h, alerts at
-≥85% root-disk usage, and alerts when more than `MAX_ACTIVE_RUNNERS` (default 4)
-`Runner.Listener` processes are up. Alerts land in `/var/log/runner-janitor.log`
+≥85% root-disk usage, and alerts when more than the runner ceiling (default 4, tunable
+via the script's own environment) of `Runner.Listener` processes are up. Alerts land in `/var/log/runner-janitor.log`
 with a non-zero exit (grep for `⚠`).
 
 ## Operating rules
