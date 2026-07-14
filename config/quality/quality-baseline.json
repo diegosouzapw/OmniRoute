@@ -42,7 +42,7 @@
       "tightenSlack": 5
     },
     "coverage.branches": {
-      "value": 73,
+      "value": 78.11,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 5
