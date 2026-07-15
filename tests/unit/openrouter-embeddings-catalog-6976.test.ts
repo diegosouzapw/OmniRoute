@@ -15,6 +15,10 @@ const staticModels = await import("../../src/lib/providers/staticModels.ts");
 
 const originalFetch = globalThis.fetch;
 
+/** Shape of the /api/providers/[id]/models discovery payload asserted below. */
+type DiscoveredModel = { id: string; name?: string };
+type ModelsResponseBody = { source: string; models: DiscoveredModel[] };
+
 async function resetStorage() {
   globalThis.fetch = originalFetch;
   core.resetDbInstance();
@@ -87,11 +91,11 @@ test("live discovery merges curated embeddings into the response even when /v1/m
     });
 
   const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ModelsResponseBody;
 
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
-  const ids = body.models.map((m: any) => m.id);
+  const ids = body.models.map((m) => m.id);
   // Chat model from the live /v1/models fetch is preserved.
   assert.ok(ids.includes("anthropic/claude-sonnet-5"));
   // RED before the Step 2 merge: the live discovery success path (buildApiDiscoveryResponse)
@@ -115,9 +119,9 @@ test("live discovery dedups: a model already present in the live catalog is not 
     });
 
   const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ModelsResponseBody;
 
-  const bgeEntries = body.models.filter((m: any) => m.id === "baai/bge-m3");
+  const bgeEntries = body.models.filter((m) => m.id === "baai/bge-m3");
   assert.equal(bgeEntries.length, 1, "baai/bge-m3 must appear exactly once");
   assert.equal(bgeEntries[0].name, "BGE-M3 (live)", "live entry wins over the curated duplicate");
 });
