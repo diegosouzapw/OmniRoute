@@ -347,8 +347,15 @@ test("GET /api/usage/analytics does not double-count raw and aggregated rows", a
   const db = core.getDbInstance();
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
+  // The raw/aggregated split boundary is retention.usageHistory (365 days by
+  // default — see cleanupUsageHistory in src/lib/db/cleanup.ts, which rolls up
+  // and deletes usage_history rows using that exact setting). Read it live
+  // instead of hardcoding 30 days so this fixture stays valid regardless of
+  // the configured retention window.
+  const { getUserDatabaseSettings } = await import("../../src/lib/db/databaseSettings.ts");
+  const rawRetentionDays = getUserDatabaseSettings().retention.usageHistory;
   const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - 30);
+  cutoffDate.setDate(cutoffDate.getDate() - rawRetentionDays);
   const olderDate = new Date(cutoffDate);
   olderDate.setDate(olderDate.getDate() - 1);
   const olderDateStr = olderDate.toISOString().split("T")[0];

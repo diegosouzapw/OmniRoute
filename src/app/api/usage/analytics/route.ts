@@ -346,15 +346,9 @@ export async function GET(request: Request) {
       }
     }
 
-    // Compute the raw-data cutoff: rows older than this may have been rolled up to
-    // daily_usage_summary and deleted from usage_history.
+    // Raw-data cutoff: must match cleanupUsageHistory's rollup/delete boundary —
+    // retention.usageHistory (src/lib/db/cleanup.ts), NOT aggregation.rawDataRetentionDays.
     const dbSettings = getUserDatabaseSettings();
-    // The raw-data cutoff MUST match the actual rollup/delete boundary used by
-    // cleanupUsageHistory (src/lib/db/cleanup.ts), which is driven by
-    // retention.usageHistory — NOT aggregation.rawDataRetentionDays.
-    // Using rawDataRetentionDays (default 7 per migration 046) creates a gap:
-    // analytics floors raw data at day-7 while cleanup doesn't roll up until
-    // day-30, so the window [day-30, day-7) is excluded from BOTH UNION legs.
     const rawRetentionDays = dbSettings.retention?.usageHistory ?? 30;
     const rawCutoff = new Date();
     rawCutoff.setDate(rawCutoff.getDate() - rawRetentionDays);
