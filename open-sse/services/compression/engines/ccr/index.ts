@@ -132,6 +132,7 @@ export interface CcrStoreStats {
  */
 const ccrStore = new Map<string, CcrEntry>();
 const retrievalCounts = new Map<string, number>();
+const principalBytesMap = new Map<string, number>();
 let ccrTotalBytes = 0;
 type CcrLifecycleCounters = CcrStoreStats["lifecycle"];
 const lifecycleByPrincipal = new Map<string, CcrLifecycleCounters>();
@@ -183,6 +184,12 @@ function removeEntry(key: string, reason?: "expired" | "capacity"): boolean {
   if (!entry) return false;
   ccrStore.delete(key);
   ccrTotalBytes = Math.max(0, ccrTotalBytes - entry.bytes);
+  const remainingPrincipalBytes = Math.max(
+    0,
+    (principalBytesMap.get(entry.principalId) ?? 0) - entry.bytes
+  );
+  if (remainingPrincipalBytes === 0) principalBytesMap.delete(entry.principalId);
+  else principalBytesMap.set(entry.principalId, remainingPrincipalBytes);
   const counters = mutableLifecycleCounters(entry.principalId);
   if (reason === "expired") counters.expiredEvictions++;
   if (reason === "capacity") counters.capacityEvictions++;
@@ -195,12 +202,18 @@ function purgeExpired(now = Date.now()): void {
   }
 }
 
-function principalBytes(principalId: string): number {
-  let bytes = 0;
-  for (const entry of ccrStore.values()) {
-    if (entry.principalId === principalId) bytes += entry.bytes;
+function getActiveEntry(key: string, now = Date.now()): CcrEntry | null {
+  const entry = ccrStore.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt <= now) {
+    removeEntry(key, "expired");
+    return null;
   }
-  return bytes;
+  return entry;
+}
+
+function principalBytes(principalId: string): number {
+  return principalBytesMap.get(principalId) ?? 0;
 }
 
 function evictOldestMatching(predicate: (entry: CcrEntry) => boolean): boolean {
@@ -306,6 +319,7 @@ export function tryStoreBlock(
   };
   ccrStore.set(key, entry);
   ccrTotalBytes += bytes;
+  principalBytesMap.set(owner, principalBytes(owner) + bytes);
   return { stored: true, hash, metadata: publicMetadata(entry) };
 }
 
@@ -325,8 +339,7 @@ export function storeBlock(
  */
 export function retrieveBlock(hash: string, principalId?: string, now = Date.now()): string | null {
   const key = buildStoreKey(hash, principalId);
-  purgeExpired(now);
-  const entry = ccrStore.get(key);
+  const entry = getActiveEntry(key, now);
   if (!entry) return null;
   entry.lastAccessedAt = now;
   ccrStore.delete(key);
@@ -387,6 +400,7 @@ export function resolveRetrievalRampFactor(env: NodeJS.ProcessEnv = process.env)
 export function resetCcrStore(): void {
   ccrStore.clear();
   retrievalCounts.clear();
+  principalBytesMap.clear();
   ccrTotalBytes = 0;
   lifecycleByPrincipal.clear();
 }
@@ -396,8 +410,7 @@ export function inspectCcrBlock(
   principalId?: string,
   now = Date.now()
 ): CcrEntryMetadata | null {
-  purgeExpired(now);
-  const entry = ccrStore.get(buildStoreKey(hash, principalId));
+  const entry = getActiveEntry(buildStoreKey(hash, principalId), now);
   return entry ? publicMetadata(entry) : null;
 }
 
@@ -409,11 +422,13 @@ export function listCcrBlocks(
   const owner = principalId ?? ANON;
   const offset = Math.max(0, Math.floor(options.offset ?? 0));
   const limit = Math.max(1, Math.min(100, Math.floor(options.limit ?? 25)));
-  const all = Array.from(ccrStore.values())
-    .filter((entry) => entry.principalId === owner)
-    .reverse();
+  const all: CcrEntryMetadata[] = [];
+  for (const entry of ccrStore.values()) {
+    if (entry.principalId === owner) all.push(publicMetadata(entry));
+  }
+  all.reverse();
   return {
-    entries: all.slice(offset, offset + limit).map(publicMetadata),
+    entries: all.slice(offset, offset + limit),
     total: all.length,
     offset,
     limit,
@@ -421,8 +436,7 @@ export function listCcrBlocks(
   };
 }
 
-export function deleteCcrBlock(hash: string, principalId?: string, now = Date.now()): boolean {
-  purgeExpired(now);
+export function deleteCcrBlock(hash: string, principalId?: string, _now = Date.now()): boolean {
   return removeEntry(buildStoreKey(hash, principalId));
 }
 

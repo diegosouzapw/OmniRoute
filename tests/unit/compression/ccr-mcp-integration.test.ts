@@ -65,6 +65,19 @@ describe("CCR in-memory store contract", () => {
     assert.equal(ccr.getCcrStoreStats("tenant-a", 61_000).lifecycle.expiredEvictions, 1);
   });
 
+  it("expires only the requested entry on hot-path reads", () => {
+    const expired = ccr.tryStoreBlock("expired", "tenant-a", { ttlSeconds: 60, now: 1_000 });
+    const active = ccr.tryStoreBlock("active", "tenant-b", { ttlSeconds: 120, now: 1_000 });
+    assert.equal(expired.stored, true);
+    assert.equal(active.stored, true);
+    if (!expired.stored || !active.stored) return;
+
+    assert.equal(ccr.retrieveBlock(active.hash, "tenant-b", 61_000), "active");
+    assert.equal(ccr.getCcrStoreStats("tenant-a", 60_999).lifecycle.expiredEvictions, 0);
+    assert.equal(ccr.inspectCcrBlock(expired.hash, "tenant-a", 61_000), null);
+    assert.equal(ccr.getCcrStoreStats("tenant-a", 61_000).lifecycle.expiredEvictions, 1);
+  });
+
   it("rejects blocks above the UTF-8 byte limit", () => {
     const result = ccr.tryStoreBlock("ü".repeat(ccr.MAX_CCR_BLOCK_BYTES), "tenant-a");
     assert.deepEqual(result.stored, false);
@@ -86,6 +99,16 @@ describe("CCR in-memory store contract", () => {
     assert.equal(stats.entries, 8);
     assert.equal(ccr.inspectCcrBlock(hashes[0], "tenant-a", 10), null);
     assert.ok(stats.lifecycle.capacityEvictions >= 1);
+  });
+
+  it("releases principal byte budget when an entry is deleted", () => {
+    const content = "x".repeat(ccr.MAX_CCR_BLOCK_BYTES);
+    const stored = ccr.tryStoreBlock(content, "tenant-a", { now: 1 });
+    assert.equal(stored.stored, true);
+    if (!stored.stored) return;
+    assert.equal(ccr.getCcrStoreStats("tenant-a", 1).bytes, ccr.MAX_CCR_BLOCK_BYTES);
+    assert.equal(ccr.deleteCcrBlock(stored.hash, "tenant-a", 1), true);
+    assert.equal(ccr.getCcrStoreStats("tenant-a", 1).bytes, 0);
   });
 
   it("keeps all read, list, inspect, delete, and stats operations principal-isolated", () => {
