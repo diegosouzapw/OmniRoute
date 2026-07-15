@@ -132,7 +132,6 @@ import {
 } from "./combo/validateQuality.ts";
 import {
   resolveComboCooldownWaitDecision,
-  shouldWaitForComboCooldown,
   ResolveComboCooldownDecisionResult,
 } from "./combo/comboCooldownRetry.ts";
 import {
@@ -2574,36 +2573,36 @@ export async function handleComboChat({
         // attempts, budget). MAX_GLOBAL_ATTEMPTS still bounds total dispatches.
         // Available to ALL combo strategies (not just quota-share).
         if (comboCooldownWaitEnabled && status === 429) {
-          let decision: ResolveComboCooldownDecisionResult;
-
-          if (strategy === "quota-share") {
-            // Full decision with per-target model lockout lookup.
-            decision = resolveComboCooldownWaitDecision({
-              targets: orderedTargets,
-              earliestRetryAfter,
-              attempt: comboCooldownAttempt,
-              budgetLeftMs: comboCooldownBudgetLeftMs,
-              settings: resilienceSettings.comboCooldownWait,
-              lookupLock: (provider, connectionId) => {
-                const rawModel = parseModel(orderedTargets[0]?.modelStr ?? "").model || "";
-                return getModelLockoutInfo(provider, connectionId, rawModel);
-              },
-              computeWaitMs: (retryAfter) => computeClosestRetryAfter(retryAfter).waitMs,
-            });
-          } else {
-            // Non-quota-share combos (priority, weighted, round-robin, etc.):
-            // no per-connection model lockout tracking, so use the
-            // earliestRetryAfter directly with a "rate_limit" reason.
-            const rawWaitMs = computeClosestRetryAfter(earliestRetryAfter).waitMs;
-            const result = shouldWaitForComboCooldown({
-              reason: "rate_limit",
-              waitMs: rawWaitMs,
-              attempt: comboCooldownAttempt,
-              budgetLeftMs: comboCooldownBudgetLeftMs,
-              settings: resilienceSettings.comboCooldownWait,
-            });
-            decision = { ...result, reason: "rate_limit" };
-          }
+          // ONE decision path for EVERY strategy. The reason that drives the
+          // wait is always the target's REAL model-lockout reason, resolved
+          // through the helper's allow-list — never a hardcoded literal.
+          //
+          // SECURITY (see comboCooldownRetry.ts header): the allow-list is the
+          // PRIMARY barrier and `maxWaitMs` only the SECOND one. Hardcoding
+          // reason:"rate_limit" for non-quota-share strategies would drop the
+          // primary barrier and leave only the ceiling — which does NOT cover a
+          // quota_exhausted lock carrying a SHORT upstream retry-after (e.g.
+          // 3s < maxWaitMs): the combo would wait, redispatch against a model
+          // locked until midnight, and burn the attempt. Model lockouts are
+          // recorded for all strategies (recordModelLockoutFailure above is not
+          // gated on quota-share), so the real reason is always available.
+          const decision: ResolveComboCooldownDecisionResult = resolveComboCooldownWaitDecision({
+            targets: orderedTargets,
+            earliestRetryAfter,
+            attempt: comboCooldownAttempt,
+            budgetLeftMs: comboCooldownBudgetLeftMs,
+            settings: resilienceSettings.comboCooldownWait,
+            // Key each lookup on the TARGET's own model: quota-share combos are
+            // single-model/multi-account (so this is identical to the previous
+            // orderedTargets[0] behavior), but heterogeneous combos carry a
+            // different model per target.
+            lookupLock: (provider, connectionId, target) => {
+              const rawModel = parseModel(target?.modelStr ?? "").model || "";
+              if (!rawModel) return null;
+              return getModelLockoutInfo(provider, connectionId, rawModel);
+            },
+            computeWaitMs: (retryAfter) => computeClosestRetryAfter(retryAfter).waitMs,
+          });
 
           if (decision.wait) {
             log.info(

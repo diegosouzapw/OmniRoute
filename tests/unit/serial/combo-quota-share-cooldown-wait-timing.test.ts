@@ -68,10 +68,10 @@ function jsonResponse(status: number, body: Record<string, unknown>) {
   });
 }
 
-function rateLimitResponse(status: number) {
+function rateLimitResponse(status: number, retryAfterMs: number = RETRY_AFTER_MS) {
   return jsonResponse(status, {
     error: { message: `rate limited (${status})` },
-    retryAfter: new Date(Date.now() + RETRY_AFTER_MS).toISOString(),
+    retryAfter: new Date(Date.now() + retryAfterMs).toISOString(),
   });
 }
 
@@ -172,6 +172,65 @@ test("non quota-share (priority): short 429 cooldown → waits and re-dispatches
   assert.ok(
     elapsed >= RETRY_AFTER_MS - 50,
     `expected to have waited out the cooldown, only ${elapsed}ms elapsed`
+  );
+});
+
+test("non quota-share (priority): a quota_exhausted lock drives the decision with a SHORT wait → NO wait (the reason allow-list is the PRIMARY barrier; the maxWaitMs ceiling does NOT cover this)", async () => {
+  // THE regression guard for the two-barrier policy documented in
+  // comboCooldownRetry.ts ("SECURITY — quota_exhausted must be excluded" /
+  // "The small maxWaitMs ceiling is the second barrier").
+  //
+  // Barrier 1 = the reason allow-list. Barrier 2 = the maxWaitMs ceiling.
+  // This scenario is engineered so ONLY barrier 1 can stop the wait:
+  //   - modelLockout.errorCodes is [403] ONLY, so model-a's 429 crystallizes
+  //     status 429 (the sole status that opens the cooldown-wait branch) WITHOUT
+  //     recording a competing `rate_limit` lock.
+  //   - model-b's 403 records the only lock in play: `quota_exhausted`. It is
+  //     therefore the lock resolveComboCooldownWaitDecision picks, so its reason
+  //     is what drives the decision.
+  //   - The resulting wait is SHORT (well under maxWaitMs=5000), so barrier 2
+  //     lets it through. Only the allow-list can reject it.
+  //
+  // With the reason hardcoded to "rate_limit" (as the non-quota-share path did
+  // before), barrier 1 is gone and this exact input waits + redispatches against
+  // a quota-exhausted model — verified: the same test yields 6 dispatches.
+  const calls: string[] = [];
+  const handleSingleModel = async (_body: unknown, modelStr: string) => {
+    calls.push(modelStr);
+    return modelStr === "openai/gpt-4" ? rateLimitResponse(429) : rateLimitResponse(403);
+  };
+
+  const res = await handleComboChat({
+    body: { model: "openai/gpt-4" },
+    combo: {
+      name: "priority-quota-exhausted-short-wait",
+      strategy: "priority",
+      models: ["openai/gpt-4", "anthropic/claude-3-5-sonnet"],
+      config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0, maxSetRetries: 0 },
+    },
+    handleSingleModel,
+    isModelAvailable: async () => true,
+    log: createLog() as never,
+    settings: {
+      modelLockout: {
+        ...shortModelLockoutSettings().modelLockout,
+        // 429 deliberately excluded: only the 403 records a lock, so the
+        // quota_exhausted reason is unambiguously the one under test.
+        errorCodes: [403],
+      },
+    },
+    allCombos: null,
+  });
+
+  assert.equal(res.status, 429, "the crystallized 429 must be propagated, not retried");
+  // Deterministic proof (no wall-clock dependency, so it cannot flake under
+  // CI-runner contention): each target is dispatched EXACTLY ONCE. Had the wait
+  // fired, the whole set loop would re-run — maxAttempts=2 within the 8s budget
+  // produces 6 dispatches, not 2.
+  assert.deepEqual(
+    calls,
+    ["openai/gpt-4", "anthropic/claude-3-5-sonnet"],
+    "a quota_exhausted lock must NOT trigger a wait+redispatch, even when the wait would be short enough to clear the maxWaitMs ceiling"
   );
 });
 
