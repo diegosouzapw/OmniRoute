@@ -41,7 +41,14 @@ queue_rules:
     # is intentionally NOT a condition here: the owner-applied `queue` label IS the
     # approval in this repo's single-maintainer model (see governance header).
     merge_conditions:
-      - "#check-failure=0"
+      # "Zero failures" — EXCEPT the advisory dast-smoke: it is continue-on-error by
+      # design and its GH-hosted CLI build hangs recurrently (drafts #7184/#7221 were
+      # dequeued solely by it). Any OTHER failure still blocks (anti-fail-open kept).
+      - or:
+          - "#check-failure=0"
+          - and:
+              - "#check-failure=1"
+              - check-failure=dast-smoke
       - "#check-pending=0"
       - "#check-success>=1"
       - check-success=Merge integrity (changelog + generated skills)
