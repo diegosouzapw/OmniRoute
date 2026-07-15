@@ -58,6 +58,13 @@ function buildResponsesTextParts(content: unknown): unknown[] {
   if (Array.isArray(content)) {
     const parts: unknown[] = [];
     for (const partValue of content) {
+      // A bare string inside the content array is a real text instruction
+      // (e.g. a harness-injected system reminder), not a structured part.
+      // Silently dropping it lost the instruction (#6954 follow-up).
+      if (typeof partValue === "string") {
+        parts.push({ type: "input_text", text: partValue });
+        continue;
+      }
       const part = toRecord(partValue);
       if (part.type === "text" || typeof part.text === "string") {
         parts.push({ type: "input_text", text: toString(part.text) });
