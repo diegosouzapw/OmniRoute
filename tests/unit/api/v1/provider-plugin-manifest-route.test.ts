@@ -127,10 +127,16 @@ test("provider plugin manifest route injects providers absent from upstream regi
   const nineRouterEntry = getProvider(withModels, "9router");
   assert.ok(nineRouterEntry);
   assert.ok(hasModel(nineRouterEntry, "9router/injected-model"));
+  assert.equal(nineRouterEntry.passthroughModels, true);
+  assert.equal(nineRouterEntry.endpoints?.modelsUrl, "/v1/models");
+  assert.equal(nineRouterEntry.format, "openai");
 
   const cliproxyEntry = getProvider(withModels, "cliproxyapi");
   assert.ok(cliproxyEntry);
   assert.ok(hasModel(cliproxyEntry, "cliproxyapi/proxy-model"));
+  assert.equal(cliproxyEntry.passthroughModels, true);
+  assert.equal(cliproxyEntry.endpoints?.modelsUrl, "/v1/models");
+  assert.equal(cliproxyEntry.format, "openai");
 });
 
 test("provider plugin manifest route skips unavailable service models", async () => {
