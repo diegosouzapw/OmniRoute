@@ -1,0 +1,1 @@
+- **CI**: quality.yml draft guards now also match Mergify speculative merge-queue PRs (`mergify/merge-queue/*` heads are drafts by design) — without this every queued batch failed its anchor check in 2s and dequeued
