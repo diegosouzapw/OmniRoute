@@ -45,10 +45,9 @@ queue_rules:
       - "#check-pending=0"
       - "#check-success>=1"
       - check-success=Merge integrity (changelog + generated skills)
-    # Batching: validate up to 10 queued PRs together (the manual train's sweet spot);
-    # don't hold a lone PR hostage waiting for siblings.
-    batch_size: 10
-    batch_max_wait_time: 5 min
+    # NO batching: 'Merge Queue Batch' requires a paid Mergify tier (live finding
+    # 2026-07-15 — the queue command fails with "Cannot use Merge Queue batch" on
+    # the free plan). Serial queue (1 PR at a time) still automates the train.
     # Squash keeps the one-commit-per-PR history the CHANGELOG reconciliation expects.
     merge_method: squash
 
