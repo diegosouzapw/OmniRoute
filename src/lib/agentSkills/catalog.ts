@@ -68,6 +68,7 @@ export const CLI_SKILL_IDS: readonly string[] = [
   "cli-eval",
   "cli-plugins-skills",
   "cli-setup",
+  "cli-skill-collector",
 ] as const;
 
 // ── Module-scope cache ──────────────────────────────────────────────────────

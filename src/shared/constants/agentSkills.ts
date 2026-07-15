@@ -428,6 +428,15 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     area: "cli-setup",
     icon: "build",
   },
+  {
+    id: "cli-skill-collector",
+    name: "CLI: Agent Skill Collector",
+    description:
+      "Detect installed CLI coding tools (Claude Code, Codex, Cursor, Copilot, Cline and more), search GitHub for matching agent skills, and install them to the detected tools via OmniRoute's built-in APIs.",
+    category: "cli",
+    area: "cli-setup",
+    icon: "extension",
+  },
 
   // ── Config Skills ────────────────────────────────────────────────────────────
 
