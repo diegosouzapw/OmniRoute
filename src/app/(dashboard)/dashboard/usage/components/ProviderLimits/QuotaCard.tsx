@@ -3,7 +3,14 @@
 import { useMemo, useState } from "react";
 import Card from "@/shared/components/Card";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
-import { normalizePlanTier, resolvePlanValue, worstStatus, type CardStatus } from "./utils";
+import {
+  normalizePlanTier,
+  resolvePlanValue,
+  worstStatus,
+  filterQuotasByVisibility,
+  getHiddenQuotaRows,
+  type CardStatus,
+} from "./utils";
 import QuotaCardHeader from "./parts/QuotaCardHeader";
 import QuotaCardExpanded from "./parts/QuotaCardExpanded";
 import ProviderUsdCostModal from "./ProviderUsdCostModal";
@@ -38,6 +45,10 @@ interface QuotaCardProps {
   onToggleActive: (nextActive: boolean) => void;
   togglingActive: boolean;
   redeemingResetCredit?: boolean;
+  /** Per-operator quota row visibility (upstream 9router#2371 port). */
+  quotaVisibility?: Record<string, { hidden?: string[] }>;
+  onHideQuota?: (quota: any) => void;
+  onShowQuota?: (quota: any) => void;
 }
 
 export default function QuotaCard({
@@ -54,10 +65,21 @@ export default function QuotaCard({
   onToggleActive,
   togglingActive,
   redeemingResetCredit = false,
+  quotaVisibility,
+  onHideQuota,
+  onShowQuota,
 }: QuotaCardProps) {
   const isActive = connection.isActive ?? true;
   const [costModalOpen, setCostModalOpen] = useState(false);
-  const quotas = quota?.quotas ?? EMPTY_QUOTAS;
+  const rawQuotas = quota?.quotas ?? EMPTY_QUOTAS;
+  const quotas = useMemo(
+    () => filterQuotasByVisibility(connection.provider, rawQuotas, quotaVisibility),
+    [connection.provider, rawQuotas, quotaVisibility]
+  );
+  const hiddenQuotaRows = useMemo(
+    () => getHiddenQuotaRows(connection.provider, rawQuotas, quotaVisibility),
+    [connection.provider, rawQuotas, quotaVisibility]
+  );
   const cardStatus = useMemo<CardStatus>(() => worstStatus(quotas), [quotas]);
   const tierMeta = useMemo(
     () =>
@@ -120,6 +142,9 @@ export default function QuotaCard({
         onOpenCutoff={onOpenCutoff}
         onOpenCost={() => setCostModalOpen(true)}
         onRedeemResetCredit={onRedeemResetCredit}
+        hiddenQuotaRows={hiddenQuotaRows}
+        onHideQuota={onHideQuota}
+        onShowQuota={onShowQuota}
         canEditCutoff={canEditCutoff}
         hasCutoffOverrides={hasOverrides}
         canRedeemResetCredit={canRedeemResetCredit}

@@ -18,6 +18,10 @@ interface Props {
   onToggleActive: (id: string, nextActive: boolean) => void;
   togglingActiveId: string | null;
   redeemingResetCreditId?: string | null;
+  /** Per-operator quota row visibility (upstream 9router#2371 port). */
+  quotaVisibility?: Record<string, { hidden?: string[] }>;
+  onHideQuota?: (provider: string, quota: any) => void;
+  onShowQuota?: (provider: string, quota: any) => void;
 }
 
 export default function QuotaCardGrid({
@@ -35,6 +39,9 @@ export default function QuotaCardGrid({
   onToggleActive,
   togglingActiveId,
   redeemingResetCreditId = null,
+  quotaVisibility,
+  onHideQuota,
+  onShowQuota,
 }: Props) {
   if (connections.length === 0) return null;
 
@@ -73,6 +80,9 @@ export default function QuotaCardGrid({
                 onToggleActive={(nextActive) => onToggleActive(conn.id, nextActive)}
                 togglingActive={togglingActiveId === conn.id}
                 redeemingResetCredit={redeemingResetCreditId === conn.id}
+                quotaVisibility={quotaVisibility}
+                onHideQuota={onHideQuota ? (q) => onHideQuota(conn.provider, q) : undefined}
+                onShowQuota={onShowQuota ? (q) => onShowQuota(conn.provider, q) : undefined}
               />
             ))}
           </div>
