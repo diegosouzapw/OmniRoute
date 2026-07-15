@@ -409,21 +409,13 @@ export function getModelContextLimitForModelString(modelStr: string) {
   return getModelContextLimit(provider, model);
 }
 
-type RequestCompatibilityRequirements = {
+export type RequestCompatibilityRequirements = {
   requiresTools: boolean;
   requiresVision: boolean;
   requiresStructuredOutput: boolean;
   estimatedInputTokens: number;
   requestedOutputTokens: number;
   requiredContextTokens: number;
-};
-
-export type KnownContextOverflow = {
-  estimatedInputTokens: number;
-  requestedOutputTokens: number;
-  requiredContextTokens: number;
-  maxKnownContextTokens: number;
-  targetCount: number;
 };
 
 function getPositiveTokenCount(value: unknown): number {
@@ -443,10 +435,22 @@ function requestRequiresStructuredOutput(body: Record<string, unknown>): boolean
   return type === "json_object" || type === "json_schema";
 }
 
+// #7177: an empty array/object (e.g. a default `messages: []` some combo entrypoints inject
+// when the caller sent none) has no real content — counting it would charge a few phantom
+// "structural" tokens (JSON.stringify braces/brackets) toward the estimate, which is enough
+// to falsely trip the exact-boundary known-context-overflow check for a request that has no
+// actual input at all.
+function hasEstimableContent(value: unknown): boolean {
+  if (value === undefined || value === null) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object") return Object.keys(value).length > 0;
+  return true;
+}
+
 function estimateRequestInputTokens(body: Record<string, unknown>): number {
   const estimatePayload: Record<string, unknown> = {};
   for (const key of ["messages", "input", "tools", "functions", "response_format"]) {
-    if (body[key] !== undefined) estimatePayload[key] = body[key];
+    if (hasEstimableContent(body[key])) estimatePayload[key] = body[key];
   }
   return Object.keys(estimatePayload).length > 0 ? estimateTokens(estimatePayload) : 0;
 }
@@ -468,7 +472,7 @@ function valueContainsImagePart(value: unknown, depth = 0): boolean {
   return Object.values(value).some((entry) => valueContainsImagePart(entry, depth + 1));
 }
 
-function deriveRequestCompatibilityRequirements(
+export function deriveRequestCompatibilityRequirements(
   body: Record<string, unknown>
 ): RequestCompatibilityRequirements {
   const estimatedInputTokens = estimateRequestInputTokens(body);
@@ -494,7 +498,7 @@ function exceedsKnownOutputLimit(
   return maxOutputTokens < requestedOutputTokens;
 }
 
-function getKnownContextLimit(
+export function getKnownContextLimit(
   capabilities: {
     maxInputTokens?: number | null;
     contextWindow?: number | null;
@@ -516,40 +520,6 @@ function getLegacyKnownContextLimit(capabilities: {
   contextWindow?: number | null;
 }): number | null {
   return capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
-}
-
-/**
- * Return a hard context-overflow decision only when every target has a known
- * context limit and every one of those limits is too small for the request.
- * Unknown metadata deliberately keeps the legacy fail-open behavior.
- */
-export function getKnownContextOverflow(
-  targets: ResolvedComboTarget[],
-  body: Record<string, unknown>
-): KnownContextOverflow | null {
-  if (targets.length === 0) return null;
-  const requirements = deriveRequestCompatibilityRequirements(body);
-  if (requirements.requiredContextTokens <= 0) return null;
-
-  const limits = targets.map((target) =>
-    getKnownContextLimit(
-      getResolvedModelCapabilities(target.modelStr),
-      requirements.requestedOutputTokens
-    )
-  );
-  if (limits.some((limit) => limit === null)) return null;
-
-  const knownLimits = limits as number[];
-  const maxKnownContextTokens = Math.max(...knownLimits);
-  if (maxKnownContextTokens >= requirements.requiredContextTokens) return null;
-
-  return {
-    estimatedInputTokens: requirements.estimatedInputTokens,
-    requestedOutputTokens: requirements.requestedOutputTokens,
-    requiredContextTokens: requirements.requiredContextTokens,
-    maxKnownContextTokens,
-    targetCount: targets.length,
-  };
 }
 
 function hasKnownCompatibleContextLimit(

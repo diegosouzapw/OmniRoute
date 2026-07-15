@@ -183,6 +183,27 @@ test("known context overflow reports the largest target limit", () => {
   assert.equal(overflow.targetCount, 2);
 });
 
+test("#7177 an empty messages array is not counted as real content at an exact-boundary limit", () => {
+  // Regression: some combo entrypoints default a caller-omitted `messages` to `[]`. The
+  // estimator used to JSON.stringify whatever keys were merely *present* on the body,
+  // so an empty array still contributed a few phantom "structural" tokens (JSON braces/
+  // brackets), which was enough to trip a false-positive overflow when max_tokens exactly
+  // equals the target's context window (a common config where limit_input === limit_output
+  // === limit_context) even though there is no real input to account for.
+  saveModelsDevCapabilities({
+    "unit-known-context": {
+      exact: capabilityEntry(4_096),
+    },
+  });
+
+  const overflow = getKnownContextOverflow([target("unit-known-context/exact")], {
+    messages: [],
+    max_tokens: 4_096,
+  });
+
+  assert.equal(overflow, null);
+});
+
 test("unknown context metadata keeps overflow detection fail-open", () => {
   saveModelsDevCapabilities({
     "unit-known-context": {

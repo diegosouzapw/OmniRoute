@@ -138,6 +138,7 @@ import {
   shouldSkipForPredictedTtft,
   shouldRecordProviderBreakerFailure,
   isRequestScopedUpstreamFailure,
+  shouldSkipConnDisable,
   resolveDelayMs,
   comboModelNotFoundResponse,
   isStreamReadinessFailureErrorBody,
@@ -157,12 +158,12 @@ import { attemptCompatRejectedFallback } from "./combo/comboCompatFallback.ts";
 import { applyContextRequirements } from "./combo/contextRequirements.ts";
 import {
   filterTargetsByRequestCompatibility,
-  getKnownContextOverflow,
   resolveComboRuntimeUnits,
   resolveComboTargets,
   resolveWeightedTargets,
   resolveWeightedStepGroups,
 } from "./combo/comboStructure.ts";
+import { getKnownContextOverflow } from "./combo/knownContextOverflow.ts";
 import {
   QUOTA_SOFT_DEPRIORITIZE_FACTOR,
   setCandidateQuotaSoftPenalty,
@@ -204,6 +205,7 @@ export {
   shouldSkipForPredictedTtft,
   shouldRecordProviderBreakerFailure,
   isRequestScopedUpstreamFailure,
+  shouldSkipConnDisable,
 };
 export { resolveShadowTargets, scheduleShadowRouting };
 export { preScreenTargets };

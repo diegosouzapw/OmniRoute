@@ -8,6 +8,7 @@
 
 import { errorResponse } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
+import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldownClassification.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
@@ -175,6 +176,29 @@ export function isRequestScopedUpstreamFailure(error?: {
   const code = typeof error?.code === "string" ? error.code.toLowerCase() : "";
   const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
   return REQUEST_SCOPED_UPSTREAM_ERROR_CODES.has(code) || type === "context_length_exceeded";
+}
+
+/**
+ * #7177: whether handleSingleModelChat should skip the connection-level cooldown
+ * (markAccountUnavailable) for a failed attempt — client disconnects, a 401 when the
+ * connection has extra keys to rotate through, a known request-scoped upstream failure
+ * (e.g. context overflow — not a connection health signal), or our own self-inflicted
+ * timeout all mean the connection itself is healthy and should not be cooled down.
+ */
+export function shouldSkipConnDisable(
+  result: { status: number; errorCode?: string | null; errorType?: string | null },
+  is401: boolean,
+  hasExtraKeys: boolean,
+  provider: string
+): boolean {
+  return (
+    result.status === 499 ||
+    result.errorCode === "client_disconnected" ||
+    result.errorType === "client_disconnected" ||
+    (is401 && hasExtraKeys) ||
+    isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) ||
+    isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider)
+  );
 }
 
 export function resolveDelayMs(value: unknown, fallback: number): number {
