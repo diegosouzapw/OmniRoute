@@ -17,6 +17,13 @@
 #   • Fallback path if Mergify misbehaves or the OSS plan changes: the manual
 #     merge-train runbook (docs/ops/MERGE_TRAIN.md) — remove labels, proceed by hand.
 
+# Auto-enqueue (current Mergify model, 2026): auto_merge_conditions in
+# merge_protections_settings — the rules-based queue action / autoqueue path is
+# deprecated (EOL 2026-07-16). The owner-applied `queue` label IS the approval.
+merge_protections_settings:
+  auto_merge_conditions:
+    - label = queue
+
 queue_rules:
   - name: release
     # Any current or future release branch — the reason GitHub's native queue was
@@ -46,18 +53,6 @@ queue_rules:
     merge_method: squash
 
 pull_request_rules:
-  # AUTO-ENQUEUE trigger — queue_conditions alone only define ELIGIBILITY in current
-  # Mergify semantics (without this rule the PR sits at "use @Mergifyio queue",
-  # observed live on PR #7175). The conditions mirror queue_conditions on purpose.
-  - name: queue on owner-applied label
-    conditions:
-      - base~=^release/v\d+\.\d+\.\d+$
-      - label=queue
-      - -draft
-      - -conflict
-    actions:
-      queue:
-        name: release
   - name: clean up the queue label after merge
     conditions:
       - merged
