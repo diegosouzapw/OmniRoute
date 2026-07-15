@@ -1,6 +1,7 @@
 // CLI Tools configuration
 import { getClaudeCodeDefaultModels } from "@omniroute/open-sse/config/providerRegistry";
 import type { CliCatalogEntry } from "@/shared/schemas/cliCatalog";
+import { GROK_BUILD_CLI_TOOL } from "@/shared/constants/cliToolsGrokBuild";
 
 const _cc = getClaudeCodeDefaultModels();
 
@@ -540,7 +541,6 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     acpSpawnable: false,
     baseUrlSupport: "full",
   },
-
   // ── Code entries — aider ──────────────────────────────────────────────────
   aider: {
     id: "aider",
@@ -567,7 +567,6 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
 aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     },
   },
-
   // ── Code entries — forge ──────────────────────────────────────────────────
   forge: {
     id: "forge",
@@ -584,22 +583,7 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     defaultCommand: "forge",
   },
 
-  // ── Code entries — grok-build ─────────────────────────────────────────────
-  "grok-build": {
-    id: "grok-build",
-    name: "Grok Build",
-    icon: "terminal",
-    color: "#1DA1F2",
-    description: "xAI Grok Build TUI coding agent — custom provider via ~/.grok/config.toml",
-    docsUrl: "https://x.ai/cli",
-    configType: "custom",
-    category: "code",
-    vendor: "xAI",
-    acpSpawnable: false,
-    baseUrlSupport: "full",
-    defaultCommand: "grok",
-  },
-
+  "grok-build": GROK_BUILD_CLI_TOOL,
   // ── Code entries — cursor-cli ─────────────────────────────────────────────
   "cursor-cli": {
     id: "cursor-cli",
