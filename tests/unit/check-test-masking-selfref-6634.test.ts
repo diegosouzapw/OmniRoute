@@ -14,53 +14,24 @@
  * (`if (file.endsWith("check-test-masking.test.ts")) continue;` in
  * scripts/check/check-test-masking.mjs) for precisely this reason — this test
  * asserts evaluateMasking() now applies the same exclusion for its diff-based
- * tautology counters, using the real base(origin/main)/head(HEAD) diff of
- * tests/unit/check-test-masking.test.ts.
+ * tautology counters using deterministic synthetic base/head counter inputs,
+ * without depending on Git history or remote refs.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 
-import {
-  countTautologies,
-  countExtendedTautologies,
-  evaluateMasking,
-} from "../../scripts/check/check-test-masking.mjs";
+import { evaluateMasking } from "../../scripts/check/check-test-masking.mjs";
 
-const FILE = "tests/unit/check-test-masking.test.ts";
-
-function git(args: string[]): string {
-  return execFileSync("git", args, { encoding: "utf8" });
-}
-
-test("#6634: check-test-masking.test.ts's own tautology fixtures must not self-flag as weakening", (t) => {
-  // origin/main predates the #6404 fixtures (countBareTautologies/scanBareTautologies
-  // tests) that legitimately embed tautology-pattern literals as string fixtures.
-  // Shallow/single-ref checkouts (GitHub-hosted runners) have no origin/main —
-  // fetch it on demand; skip (never fail) when the ref is unreachable offline.
-  let baseSrc: string;
-  try {
-    baseSrc = git(["show", "origin/main:" + FILE]);
-  } catch {
-    try {
-      git(["fetch", "--depth=1", "origin", "main"]);
-      baseSrc = git(["show", "origin/main:" + FILE]);
-    } catch {
-      t.skip("origin/main unavailable (shallow checkout, offline) — nothing to compare against");
-      return;
-    }
-  }
-  const headSrc = git(["show", "HEAD:" + FILE]);
-
+test("#6634: check-test-masking.test.ts's own tautology fixtures must not self-flag as weakening", () => {
   const perFile = [
     {
-      file: FILE,
-      baseAsserts: 0, // irrelevant to this assertion — only tautology counters matter
+      file: "tests/unit/check-test-masking.test.ts",
+      baseAsserts: 0,
       headAsserts: 0,
-      baseTaut: countTautologies(baseSrc),
-      headTaut: countTautologies(headSrc),
-      baseExtTaut: countExtendedTautologies(baseSrc),
-      headExtTaut: countExtendedTautologies(headSrc),
+      baseTaut: 0,
+      headTaut: 1,
+      baseExtTaut: 0,
+      headExtTaut: 1,
     },
   ];
 
@@ -69,10 +40,7 @@ test("#6634: check-test-masking.test.ts's own tautology fixtures must not self-f
   assert.deepEqual(
     flags,
     [],
-    "check-test-masking.test.ts's own literal tautology fixtures (added for #6404) must be " +
-      "excluded from the diff-based weakening check the same way scanBareTautologies() already " +
-      "excludes this file from the absolute-floor scan — otherwise the gate's own regression " +
-      "test permanently self-flags as a HARD release-green failure whenever new fixtures are added."
+    "check-test-masking.test.ts's exclusion must not depend on Git history or remote refs."
   );
 });
 
