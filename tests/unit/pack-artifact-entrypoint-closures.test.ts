@@ -56,6 +56,16 @@ function localImports(filePath: string): string[] {
   return [...new Set(patterns.flatMap((re) => [...src.matchAll(re)].map((m) => m[1])))];
 }
 
+/** Parent-relative specifiers (../) in a wrapper file — ALWAYS a packaging bug. */
+export function parentRelativeImports(src: string): string[] {
+  const patterns = [
+    /from\s+["'](\.\.\/[^"']+)["']/g,
+    /import\(\s*["'](\.\.\/[^"']+)["']\s*\)/g,
+    /require\(\s*["'](\.\.\/[^"']+)["']\s*\)/g,
+  ];
+  return [...new Set(patterns.flatMap((re) => [...src.matchAll(re)].map((m) => m[1])))];
+}
+
 // Wrappers that ship in the npm channel are exactly those whose dest survives the prune.
 // Wrappers intentionally outside the npm tarball (e.g. healthcheck.mjs, Docker-only) are
 // excluded: their imports live or die with them, consistently.
@@ -122,4 +132,21 @@ test("every bin/omniroute.mjs local import is enforced by check:pack-artifact", 
     [],
     `add bin/<file> to PACK_ARTIFACT_REQUIRED_PATHS: ${missing.join(", ")}`
   );
+});
+
+test("no npm-shipped wrapper uses a parent-relative (../) import — it escapes the package after the dist-root copy", () => {
+  // 2026-07-15 live incident: standalone-server-ws.mjs imported
+  // ../../src/shared/utils/runtimeTimeouts.ts (merged in #7191); copied to the dist
+  // root, the specifier resolved to node_modules/src/... OUTSIDE the package and
+  // every boot of the packed tarball crashed with ERR_MODULE_NOT_FOUND (#7065
+  // class — caught by check:pack-boot). Wrapper dependencies must be SIBLINGS
+  // (./x.mjs) with their own EXTRA_MODULE_ENTRIES copy + pack allowlist entry.
+  for (const wrapper of npmShippedWrappers()) {
+    const escaping = parentRelativeImports(fs.readFileSync(path.join(ROOT, wrapper.src), "utf8"));
+    assert.deepEqual(
+      escaping,
+      [],
+      `${wrapper.src} has package-escaping imports: ${escaping.join(", ")} — extract to a sibling module instead`
+    );
+  }
 });
