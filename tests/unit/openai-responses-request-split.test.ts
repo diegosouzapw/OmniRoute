@@ -98,3 +98,26 @@ test("mid-conversation system turns are preserved as developer-role input items 
   assert.ok(!assistantText.includes("Available agent types"));
   assert.ok(!assistantText.includes("Reminder: stay concise."));
 });
+
+test("mid-conversation system content as an array with a bare string survives (#6954 follow-up)", async () => {
+  const mod = await import("../../open-sse/translator/request/openai-responses.ts");
+  const out = mod.openaiToOpenAIResponsesRequest(
+    "gpt-5.5",
+    {
+      messages: [
+        { role: "system", content: "Base instructions." },
+        { role: "user", content: "Hi" },
+        { role: "system", content: ["Remember to be concise."] },
+      ],
+    },
+    true,
+    null
+  ) as Record<string, unknown>;
+  const input = out.input as Array<Record<string, unknown>>;
+  const devItems = input.filter((i) => i.role === "developer");
+  assert.equal(devItems.length, 1, "array-form system turn should become a developer item");
+  assert.deepEqual(
+    (devItems[0].content as Array<Record<string, unknown>>).map((c) => c.text),
+    ["Remember to be concise."]
+  );
+});
