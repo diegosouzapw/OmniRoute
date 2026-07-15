@@ -5,15 +5,22 @@ import { resolveMitmDataDir } from "./dataDir.ts";
 import { removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
 import { provisionDnsEntries } from "./dns/provision.ts";
 import { generateCert } from "./cert/generate.ts";
-import { installCertResult, uninstallCert } from "./cert/install.ts";
+import { installCertResult } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
-import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
 import { getUserBypassPatterns } from "@/lib/db/agentBridgeBypass.ts";
 import { configureUpstreamCa } from "./upstreamTrust.ts";
 import { createLogger } from "@/shared/utils/logger.ts";
+import {
+  buildRepairPlan,
+  collectManagedHosts,
+  performRepairSteps,
+  type RepairPlan,
+} from "./repair.ts";
+
+export { buildRepairPlan, collectManagedHosts, type RepairPlan };
 
 const log = createLogger("mitm-manager");
 
@@ -231,107 +238,19 @@ function isProcessAlive(pid: number): boolean {
 }
 
 /**
- * Enumerate every hostname OmniRoute may have written to /etc/hosts during
- * startMitm(): the full agent-target registry plus all custom hosts. Removal
- * via removeDNSEntries() is idempotent (absent entries are skipped), so this
- * set is intentionally over-inclusive — a host that was never spoofed costs
- * nothing to "remove", but a host we forget to list leaks machine-wide.
- * (Gap 8 — clean-stop DNS leak.)
- */
-export function collectManagedHosts(): string[] {
-  const hosts = new Set<string>();
-  for (const target of ALL_TARGETS) {
-    for (const h of target.hosts) hosts.add(h);
-  }
-  try {
-    for (const ch of listCustomHosts()) hosts.add(ch.host);
-  } catch (err) {
-    log.error({ err }, "collectManagedHosts: failed to read custom hosts (continuing)");
-  }
-  return [...hosts];
-}
-
-export interface RepairPlan {
-  dnsHostsToRemove: string[];
-  removeCert: boolean;
-  revertSystemProxy: boolean;
-}
-
-/**
- * Pure description of what a repair must undo. Separated from repairMitm() so
- * the enumeration is unit-testable without touching the OS or requiring sudo.
- * (Gap 7.)
- */
-export function buildRepairPlan(): RepairPlan {
-  return {
-    dnsHostsToRemove: collectManagedHosts(),
-    removeCert: true,
-    revertSystemProxy: true,
-  };
-}
-
-/**
- * Best-effort revert of an applied system proxy. The applied state lives
- * in-memory (captureState), so this only succeeds within the same process that
- * applied it; after a crash the previousState is gone and this is a no-op. DNS
- * + cert teardown are always reversible because they read on-disk state.
- */
-async function revertSystemProxyIfApplied(): Promise<boolean> {
-  try {
-    const { getSystemProxyState, clearSystemProxy } = await import("@/lib/inspector/captureState");
-    const state = getSystemProxyState();
-    if (!state.applied || !state.previousState) return false;
-    const { revert } = await import("./inspector/systemProxyConfig.ts");
-    await revert(state.previousState);
-    clearSystemProxy();
-    return true;
-  } catch (err) {
-    log.error({ err }, "revertSystemProxyIfApplied failed (continuing)");
-    return false;
-  }
-}
-
-/**
  * Undo every system mutation startMitm() may have made, WITHOUT requiring the
  * MITM server to be running. Safe to call when state is already clean (every
  * step is idempotent). Used by: the /repair route, the CLI cleanup subcommand,
  * and the stale-PID auto-repair on app startup. (Gap 7 — the application-layer
- * analogue of ProxyBridge's destructor + `--cleanup`.)
+ * analogue of ProxyBridge's destructor + `--cleanup`.) Steps 1-3 (DNS, cert,
+ * system-proxy) are delegated to `./repair.ts::performRepairSteps()`; the PID
+ * file + in-memory session cleanup below stays here since it touches this
+ * module's private state.
  */
 export async function repairMitm(sudoPassword: string): Promise<{ repaired: string[] }> {
-  const plan = buildRepairPlan();
-  const repaired: string[] = [];
+  const repaired = await performRepairSteps(sudoPassword);
 
-  // 1. DNS — remove every host we may have spoofed (idempotent, reads /etc/hosts).
-  try {
-    await removeDNSEntry(sudoPassword);
-    if (plan.dnsHostsToRemove.length > 0) {
-      await removeDNSEntries(plan.dnsHostsToRemove, sudoPassword);
-    }
-    repaired.push("dns");
-  } catch (err) {
-    log.error({ err }, "repairMitm: DNS cleanup failed (continuing)");
-  }
-
-  // 2. Certificate — uninstall the MITM root CA from the trust store.
-  if (plan.removeCert) {
-    try {
-      const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
-      if (fs.existsSync(certPath)) {
-        await uninstallCert(sudoPassword, certPath);
-        repaired.push("cert");
-      }
-    } catch (err) {
-      log.error({ err }, "repairMitm: cert removal failed (continuing)");
-    }
-  }
-
-  // 3. System proxy — best-effort revert if applied in this process.
-  if (plan.revertSystemProxy) {
-    if (await revertSystemProxyIfApplied()) repaired.push("system-proxy");
-  }
-
-  // 4. Stale PID file.
+  // Stale PID file.
   try {
     if (fs.existsSync(PID_FILE)) fs.unlinkSync(PID_FILE);
   } catch {
