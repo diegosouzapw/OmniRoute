@@ -2218,7 +2218,17 @@
     "copilotToolCalling": "টুল কলিং",
     "copilotPasteInto": "এতে পেস্ট করুন:",
     "wireApiChatCompletions": "চ্যাট সমাপ্তি (/চ্যাট/সম্পূর্ণতা)",
-    "wireApiResponses": "প্রতিক্রিয়া API (/প্রতিক্রিয়া)"
+    "wireApiResponses": "প্রতিক্রিয়া API (/প্রতিক্রিয়া)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "Combos",

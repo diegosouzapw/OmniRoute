@@ -2218,7 +2218,17 @@
     "copilotToolCalling": "टूल कॉलिंग",
     "copilotPasteInto": "इसमें चिपकाएँ:",
     "wireApiChatCompletions": "चैट पूर्णताएँ (/चैट/पूर्णियाँ)",
-    "wireApiResponses": "प्रतिक्रियाएँ एपीआई (/प्रतिक्रियाएँ)"
+    "wireApiResponses": "प्रतिक्रियाएँ एपीआई (/प्रतिक्रियाएँ)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "संयोजन",

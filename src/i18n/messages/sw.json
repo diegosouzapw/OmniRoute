@@ -2218,7 +2218,17 @@
     "copilotToolCalling": "Kupiga simu kwa zana",
     "copilotPasteInto": "Bandika kwenye:",
     "wireApiChatCompletions": "Kukamilika kwa Gumzo (/kuzungumza/kukamilika)",
-    "wireApiResponses": "API ya majibu (/majibu)"
+    "wireApiResponses": "API ya majibu (/majibu)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "Combos",

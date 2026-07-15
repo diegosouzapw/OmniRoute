@@ -2218,7 +2218,17 @@
     "copilotToolCalling": "Gọi công cụ",
     "copilotPasteInto": "Dán vào:",
     "wireApiChatCompletions": "Số lần hoàn thành trò chuyện (/chat/hoàn thành)",
-    "wireApiResponses": "API phản hồi (/ phản hồi)"
+    "wireApiResponses": "API phản hồi (/ phản hồi)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "Combo",

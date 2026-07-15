@@ -2218,7 +2218,17 @@
     "copilotToolCalling": "Alət çağırışı",
     "copilotPasteInto": "Yapışdırın:",
     "wireApiChatCompletions": "Söhbət Tamamlamaları (/chat/tamamlamalar)",
-    "wireApiResponses": "Responses API (/cavablar)"
+    "wireApiResponses": "Responses API (/cavablar)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "Combos",

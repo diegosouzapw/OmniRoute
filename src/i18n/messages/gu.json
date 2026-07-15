@@ -2218,7 +2218,17 @@
     "copilotToolCalling": "ટૂલ કૉલિંગ",
     "copilotPasteInto": "આમાં પેસ્ટ કરો:",
     "wireApiChatCompletions": "ચેટ પૂર્ણતા (/ચેટ/પૂર્ણતા)",
-    "wireApiResponses": "પ્રતિભાવ API (/પ્રતિસાદો)"
+    "wireApiResponses": "પ્રતિભાવ API (/પ્રતિસાદો)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "Combos",

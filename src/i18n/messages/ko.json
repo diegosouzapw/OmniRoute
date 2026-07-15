@@ -2320,7 +2320,17 @@
     "copilotToolCalling": "도구 호출",
     "copilotPasteInto": "다음 위치에 붙여넣습니다.",
     "wireApiChatCompletions": "채팅 완료(/chat/completions)",
-    "wireApiResponses": "응답 API(/responses)"
+    "wireApiResponses": "응답 API(/responses)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "콤보",

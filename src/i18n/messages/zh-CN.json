@@ -2303,7 +2303,17 @@
     "copilotToolCalling": "工具调用",
     "copilotPasteInto": "粘贴到：",
     "wireApiChatCompletions": "聊天完成 (/chat/completions)",
-    "wireApiResponses": "响应 API (/responses)"
+    "wireApiResponses": "响应 API (/responses)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "组合",

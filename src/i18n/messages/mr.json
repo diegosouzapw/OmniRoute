@@ -2320,7 +2320,17 @@
     "copilotToolCalling": "टूल कॉलिंग",
     "copilotPasteInto": "यामध्ये पेस्ट करा:",
     "wireApiChatCompletions": "चॅट पूर्णता (/चॅट/पूर्णता)",
-    "wireApiResponses": "प्रतिसाद API (/प्रतिसाद)"
+    "wireApiResponses": "प्रतिसाद API (/प्रतिसाद)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "Combos",

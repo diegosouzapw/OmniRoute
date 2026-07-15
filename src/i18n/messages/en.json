@@ -2050,6 +2050,16 @@
     "saveMappings": "Save Mappings",
     "mappingsSaved": "Mappings saved!",
     "failedSaveMappings": "Failed to save mappings",
+    "reasoningEffort": "Reasoning effort for {model}",
+    "reasoningEffortDefault": "Default",
+    "reasoningEffortHint": "Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "None",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "xhigh": "XHigh"
+    },
     "howItWorks": "How it works:",
     "antigravityHowWorksDesc": "Antigravity sends requests to Google's endpoint. MITM intercepts and redirects them to OmniRoute.",
     "antigravityStep1": "1. Start MITM to route requests through OmniRoute.",

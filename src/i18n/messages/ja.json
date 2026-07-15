@@ -2320,7 +2320,17 @@
     "copilotToolCalling": "ツール呼び出し",
     "copilotPasteInto": "以下に貼り付けます:",
     "wireApiChatCompletions": "チャットの完了 (/chat/completions)",
-    "wireApiResponses": "レスポンス API (/responses)"
+    "wireApiResponses": "レスポンス API (/responses)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "コンボ",
