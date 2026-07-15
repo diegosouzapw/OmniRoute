@@ -4,51 +4,35 @@
  * domain_cost_history, compression_cache_stats, xp_audit_log, and
  * compression_run_telemetry had no retention cleanup, causing unbounded
  * DB growth and OOM crashes on relays with heavy traffic.
+ *
+ * These tests call the REAL cleanup functions against the real DB adapter
+ * (seeded with test data in the isolated DATA_DIR that --import isolateDataDir.ts
+ * provides). If the production DELETE logic breaks, these tests WILL fail.
+ *
+ * No mocking — the setupPolyfill + isolateDataDir bootstrap already gives us a
+ * fresh SQLite DB with the production schema.
  */
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import Database from "better-sqlite3";
-import { mkdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
 
-const TEST_DIR = join(tmpdir(), `omniroute-test-6848-${Date.now()}`);
+// Import the real functions — they use getDbInstance() which resolves to the
+// isolated test DB created by isolateDataDir.ts + setupPolyfill.ts.
+const {
+  cleanupDomainCostHistory,
+  cleanupCompressionCacheStats,
+  cleanupXpAuditLog,
+  cleanupCompressionRunTelemetry,
+} = await import("../../src/lib/db/cleanup.ts");
 
-function createTestDb(): Database.Database {
-  mkdirSync(TEST_DIR, { recursive: true });
-  const db = new Database(join(TEST_DIR, "test.db"));
+const { getDbInstance } = await import("../../src/lib/db/core.ts");
 
+const DAY = 86_400; // seconds
+
+/** Ensure compression_run_telemetry table exists (created lazily in production). */
+function ensureTelemetryTable(): void {
+  const db = getDbInstance()!;
   db.exec(`
-    CREATE TABLE IF NOT EXISTS domain_cost_history (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      api_key_id TEXT NOT NULL,
-      cost REAL NOT NULL,
-      timestamp INTEGER NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS compression_cache_stats (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      provider TEXT NOT NULL,
-      model TEXT NOT NULL DEFAULT '',
-      compression_mode TEXT NOT NULL,
-      cache_control_present INTEGER NOT NULL DEFAULT 0,
-      estimated_cache_hit INTEGER NOT NULL DEFAULT 0,
-      tokens_saved_compression INTEGER NOT NULL DEFAULT 0,
-      tokens_saved_caching INTEGER NOT NULL DEFAULT 0,
-      net_savings INTEGER NOT NULL DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS xp_audit_log (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      api_key_id TEXT NOT NULL,
-      action TEXT NOT NULL,
-      xp_earned INTEGER NOT NULL,
-      metadata TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
     CREATE TABLE IF NOT EXISTS compression_run_telemetry (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       timestamp INTEGER NOT NULL,
@@ -63,192 +47,135 @@ function createTestDb(): Database.Database {
       output_styles TEXT,
       output_style_bypass TEXT,
       output_tokens INTEGER
-    );
+    )
   `);
-
-  return db;
 }
 
-const DAY = 86_400; // seconds
+// ─── Tests ───────────────────────────────────────────────────────────────
 
-test("#6848 domain_cost_history: deletes rows older than retention window", () => {
-  const db = createTestDb();
-  try {
-    const now = Math.floor(Date.now() / 1000);
+test("#6848 cleanupDomainCostHistory: deletes rows older than retention window", async () => {
+  const db = getDbInstance()!;
+  const now = Math.floor(Date.now() / 1000);
+  const insert = db.prepare(
+    "INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)"
+  );
 
-    db.prepare(
-      "INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)"
-    ).run("key1", 1.0, now - 40 * DAY);
-    db.prepare(
-      "INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)"
-    ).run("key1", 2.0, now - 40 * DAY);
-    db.prepare(
-      "INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)"
-    ).run("key1", 3.0, now - 40 * DAY);
-    db.prepare(
-      "INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)"
-    ).run("key1", 4.0, now - 5 * DAY);
-    db.prepare(
-      "INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)"
-    ).run("key1", 5.0, now - 5 * DAY);
+  // 3 old (40 days ago), 2 recent (5 days ago)
+  insert.run("key1", 1.0, now - 40 * DAY);
+  insert.run("key1", 2.0, now - 40 * DAY);
+  insert.run("key1", 3.0, now - 40 * DAY);
+  insert.run("key1", 4.0, now - 5 * DAY);
+  insert.run("key1", 5.0, now - 5 * DAY);
 
-    const cutoff = now - 30 * DAY;
-    const result = db.prepare("DELETE FROM domain_cost_history WHERE timestamp < ?").run(cutoff);
+  const result = await cleanupDomainCostHistory();
 
-    assert.strictEqual(result.changes, 3);
+  assert.strictEqual(result.deleted, 3);
+  assert.strictEqual(result.errors, 0);
 
-    const remaining = db.prepare("SELECT COUNT(*) as count FROM domain_cost_history").get() as {
-      count: number;
-    };
-    assert.strictEqual(remaining.count, 2);
-  } finally {
-    db.close();
-    rmSync(TEST_DIR, { recursive: true, force: true });
-  }
+  const remaining = db.prepare("SELECT COUNT(*) as cnt FROM domain_cost_history").get() as {
+    cnt: number;
+  };
+  assert.strictEqual(remaining.cnt, 2);
 });
 
-test("#6848 compression_cache_stats: deletes rows older than retention window", () => {
-  const db = createTestDb();
-  try {
-    const oldDate = new Date(Date.now() - 40 * DAY * 1000).toISOString();
-    const recentDate = new Date(Date.now() - 5 * DAY * 1000).toISOString();
+test("#6848 cleanupCompressionCacheStats: deletes rows older than retention window", async () => {
+  const db = getDbInstance()!;
+  const oldDate = new Date(Date.now() - 40 * DAY * 1000).toISOString();
+  const recentDate = new Date(Date.now() - 5 * DAY * 1000).toISOString();
+  const insert = db.prepare(
+    "INSERT INTO compression_cache_stats (provider, compression_mode, created_at) VALUES (?, ?, ?)"
+  );
 
-    db.prepare(
-      "INSERT INTO compression_cache_stats (provider, compression_mode, created_at) VALUES (?, ?, ?)"
-    ).run("openai", "auto", oldDate);
-    db.prepare(
-      "INSERT INTO compression_cache_stats (provider, compression_mode, created_at) VALUES (?, ?, ?)"
-    ).run("openai", "auto", oldDate);
-    db.prepare(
-      "INSERT INTO compression_cache_stats (provider, compression_mode, created_at) VALUES (?, ?, ?)"
-    ).run("anthropic", "auto", recentDate);
+  insert.run("openai", "auto", oldDate);
+  insert.run("openai", "auto", oldDate);
+  insert.run("anthropic", "auto", recentDate);
 
-    const cutoff = new Date(Date.now() - 30 * DAY * 1000).toISOString();
-    const result = db
-      .prepare("DELETE FROM compression_cache_stats WHERE created_at < ?")
-      .run(cutoff);
+  const result = await cleanupCompressionCacheStats();
 
-    assert.strictEqual(result.changes, 2);
+  assert.strictEqual(result.deleted, 2);
+  assert.strictEqual(result.errors, 0);
 
-    const remaining = db.prepare("SELECT COUNT(*) as count FROM compression_cache_stats").get() as {
-      count: number;
-    };
-    assert.strictEqual(remaining.count, 1);
-  } finally {
-    db.close();
-    rmSync(TEST_DIR, { recursive: true, force: true });
-  }
+  const remaining = db.prepare("SELECT COUNT(*) as cnt FROM compression_cache_stats").get() as {
+    cnt: number;
+  };
+  assert.strictEqual(remaining.cnt, 1);
 });
 
-test("#6848 xp_audit_log: deletes rows older than retention window", () => {
-  const db = createTestDb();
-  try {
-    const oldDate = new Date(Date.now() - 40 * DAY * 1000).toISOString();
-    const recentDate = new Date(Date.now() - 5 * DAY * 1000).toISOString();
+test("#6848 cleanupXpAuditLog: deletes rows older than retention window", async () => {
+  const db = getDbInstance()!;
+  const oldDate = new Date(Date.now() - 40 * DAY * 1000).toISOString();
+  const recentDate = new Date(Date.now() - 5 * DAY * 1000).toISOString();
+  const insert = db.prepare(
+    "INSERT INTO xp_audit_log (api_key_id, action, xp_earned, created_at) VALUES (?, ?, ?, ?)"
+  );
 
-    db.prepare(
-      "INSERT INTO xp_audit_log (api_key_id, action, xp_earned, created_at) VALUES (?, ?, ?, ?)"
-    ).run("key1", "login", 10, oldDate);
-    db.prepare(
-      "INSERT INTO xp_audit_log (api_key_id, action, xp_earned, created_at) VALUES (?, ?, ?, ?)"
-    ).run("key1", "login", 10, oldDate);
-    db.prepare(
-      "INSERT INTO xp_audit_log (api_key_id, action, xp_earned, created_at) VALUES (?, ?, ?, ?)"
-    ).run("key1", "login", 10, oldDate);
-    db.prepare(
-      "INSERT INTO xp_audit_log (api_key_id, action, xp_earned, created_at) VALUES (?, ?, ?, ?)"
-    ).run("key1", "login", 10, recentDate);
+  insert.run("key1", "login", 10, oldDate);
+  insert.run("key1", "login", 10, oldDate);
+  insert.run("key1", "login", 10, oldDate);
+  insert.run("key1", "login", 10, recentDate);
 
-    const cutoff = new Date(Date.now() - 30 * DAY * 1000).toISOString();
-    const result = db.prepare("DELETE FROM xp_audit_log WHERE created_at < ?").run(cutoff);
+  const result = await cleanupXpAuditLog();
 
-    assert.strictEqual(result.changes, 3);
+  assert.strictEqual(result.deleted, 3);
+  assert.strictEqual(result.errors, 0);
 
-    const remaining = db.prepare("SELECT COUNT(*) as count FROM xp_audit_log").get() as {
-      count: number;
-    };
-    assert.strictEqual(remaining.count, 1);
-  } finally {
-    db.close();
-    rmSync(TEST_DIR, { recursive: true, force: true });
-  }
+  const remaining = db.prepare("SELECT COUNT(*) as cnt FROM xp_audit_log").get() as { cnt: number };
+  assert.strictEqual(remaining.cnt, 1);
 });
 
-test("#6848 compression_run_telemetry: deletes rows older than retention window", () => {
-  const db = createTestDb();
-  try {
-    const now = Math.floor(Date.now() / 1000);
+test("#6848 cleanupCompressionRunTelemetry: deletes rows older than retention window", async () => {
+  ensureTelemetryTable();
+  const db = getDbInstance()!;
+  const now = Math.floor(Date.now() / 1000);
+  const insert = db.prepare(
+    "INSERT INTO compression_run_telemetry (timestamp, tokens_before, tokens_after) VALUES (?, ?, ?)"
+  );
 
-    db.prepare(
-      "INSERT INTO compression_run_telemetry (timestamp, tokens_before, tokens_after) VALUES (?, ?, ?)"
-    ).run(now - 40 * DAY, 1000, 500);
-    db.prepare(
-      "INSERT INTO compression_run_telemetry (timestamp, tokens_before, tokens_after) VALUES (?, ?, ?)"
-    ).run(now - 40 * DAY, 2000, 800);
-    db.prepare(
-      "INSERT INTO compression_run_telemetry (timestamp, tokens_before, tokens_after) VALUES (?, ?, ?)"
-    ).run(now - 5 * DAY, 1500, 600);
+  insert.run(now - 40 * DAY, 1000, 500);
+  insert.run(now - 40 * DAY, 2000, 800);
+  insert.run(now - 5 * DAY, 1500, 600);
 
-    const cutoff = now - 30 * DAY;
-    const result = db
-      .prepare("DELETE FROM compression_run_telemetry WHERE timestamp < ?")
-      .run(cutoff);
+  const result = await cleanupCompressionRunTelemetry();
 
-    assert.strictEqual(result.changes, 2);
+  assert.strictEqual(result.deleted, 2);
+  assert.strictEqual(result.errors, 0);
 
-    const remaining = db
-      .prepare("SELECT COUNT(*) as count FROM compression_run_telemetry")
-      .get() as { count: number };
-    assert.strictEqual(remaining.count, 1);
-  } finally {
-    db.close();
-    rmSync(TEST_DIR, { recursive: true, force: true });
-  }
+  const remaining = db.prepare("SELECT COUNT(*) as cnt FROM compression_run_telemetry").get() as {
+    cnt: number;
+  };
+  assert.strictEqual(remaining.cnt, 1);
 });
 
-test("#6848 no rows deleted when all data is within retention", () => {
-  const db = createTestDb();
-  try {
-    const now = Math.floor(Date.now() / 1000);
-    const recentISO = new Date().toISOString();
+test("#6848 no rows deleted when all data is within retention window (calls all 4 real functions)", async () => {
+  ensureTelemetryTable();
+  const db = getDbInstance()!;
+  const now = Math.floor(Date.now() / 1000);
+  const recentISO = new Date().toISOString();
 
-    db.prepare(
-      "INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)"
-    ).run("k", 1, now - DAY);
-    db.prepare(
-      "INSERT INTO compression_cache_stats (provider, compression_mode, created_at) VALUES (?, ?, ?)"
-    ).run("p", "auto", recentISO);
-    db.prepare(
-      "INSERT INTO xp_audit_log (api_key_id, action, xp_earned, created_at) VALUES (?, ?, ?, ?)"
-    ).run("k", "a", 5, recentISO);
-    db.prepare(
-      "INSERT INTO compression_run_telemetry (timestamp, tokens_before, tokens_after) VALUES (?, ?, ?)"
-    ).run(now - DAY, 100, 50);
+  db.prepare("INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)").run(
+    "k",
+    1,
+    now - DAY
+  );
+  db.prepare(
+    "INSERT INTO compression_cache_stats (provider, compression_mode, created_at) VALUES (?, ?, ?)"
+  ).run("p", "auto", recentISO);
+  db.prepare(
+    "INSERT INTO xp_audit_log (api_key_id, action, xp_earned, created_at) VALUES (?, ?, ?, ?)"
+  ).run("k", "a", 5, recentISO);
+  db.prepare(
+    "INSERT INTO compression_run_telemetry (timestamp, tokens_before, tokens_after) VALUES (?, ?, ?)"
+  ).run(now - DAY, 100, 50);
 
-    const cutoffEpoch = now - 30 * DAY;
-    const cutoffISO = new Date(Date.now() - 30 * DAY * 1000).toISOString();
+  const r1 = await cleanupDomainCostHistory();
+  const r2 = await cleanupCompressionCacheStats();
+  const r3 = await cleanupXpAuditLog();
+  const r4 = await cleanupCompressionRunTelemetry();
 
-    assert.strictEqual(
-      db.prepare("DELETE FROM domain_cost_history WHERE timestamp < ?").run(cutoffEpoch).changes,
-      0
-    );
-    assert.strictEqual(
-      db.prepare("DELETE FROM compression_cache_stats WHERE created_at < ?").run(cutoffISO).changes,
-      0
-    );
-    assert.strictEqual(
-      db.prepare("DELETE FROM xp_audit_log WHERE created_at < ?").run(cutoffISO).changes,
-      0
-    );
-    assert.strictEqual(
-      db.prepare("DELETE FROM compression_run_telemetry WHERE timestamp < ?").run(cutoffEpoch)
-        .changes,
-      0
-    );
-  } finally {
-    db.close();
-    rmSync(TEST_DIR, { recursive: true, force: true });
-  }
+  assert.strictEqual(r1.deleted, 0);
+  assert.strictEqual(r2.deleted, 0);
+  assert.strictEqual(r3.deleted, 0);
+  assert.strictEqual(r4.deleted, 0);
 });
 
 test("#6848 DEFAULT_DATABASE_SETTINGS has new retention keys", async () => {
