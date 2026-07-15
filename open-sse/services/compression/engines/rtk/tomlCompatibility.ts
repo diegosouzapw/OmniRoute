@@ -60,6 +60,14 @@ const fileSchema = z
 
 type ParsedFilter = z.infer<typeof filterSchema>;
 
+function arrayOrEmpty<T>(value: T[] | undefined): T[] {
+  return value ?? [];
+}
+
+function numberOrZero(value: number | undefined): number {
+  return value ?? 0;
+}
+
 export interface RtkTomlTestOutcome {
   filterId: string;
   testName: string;
@@ -166,18 +174,18 @@ function toDefinition(
     matchPatterns: [],
     category: categoryFor(name, filter.match_command),
     priority: 50,
-    stripPatterns: filter.strip_lines_matching ?? [],
-    keepPatterns: filter.keep_lines_matching ?? [],
+    stripPatterns: arrayOrEmpty(filter.strip_lines_matching),
+    keepPatterns: arrayOrEmpty(filter.keep_lines_matching),
     priorityPatterns: [],
     collapsePatterns: [],
     stripAnsi: filter.strip_ansi ?? false,
-    replace: filter.replace ?? [],
-    matchOutput: filter.match_output ?? [],
-    truncateLineAt: filter.truncate_lines_at ?? 0,
+    replace: arrayOrEmpty(filter.replace),
+    matchOutput: arrayOrEmpty(filter.match_output),
+    truncateLineAt: numberOrZero(filter.truncate_lines_at),
     onEmpty: filter.on_empty ?? "",
     filterStderr: false,
     deduplicate: false,
-    maxLines: filter.max_lines ?? 0,
+    maxLines: numberOrZero(filter.max_lines),
     preserveHead: 0,
     preserveTail: 0,
     rtkTomlHeadLines: filter.head_lines,

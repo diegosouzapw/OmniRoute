@@ -117,43 +117,52 @@ function projectFiltersTrusted(
 
 function collectFilterSources(options: RtkFilterLoadOptions = {}): FilterSource[] {
   const sources: FilterSource[] = [];
+  if (options.customFiltersEnabled !== false) {
+    collectProjectFilterSources(sources, options);
+    collectGlobalFilterSources(sources);
+  }
+  collectBuiltinFilterSources(sources);
+  return sources;
+}
+
+function collectProjectFilterSources(sources: FilterSource[], options: RtkFilterLoadOptions): void {
   const projectCandidates = [
     { path: path.join(process.cwd(), ".rtk", "filters.toml"), format: "rtk-toml-v1" as const },
     { path: path.join(process.cwd(), ".rtk", "filters.json"), format: "omniroute-json" as const },
   ];
-  if (options.customFiltersEnabled !== false) {
-    for (const candidate of projectCandidates) {
-      if (!fs.existsSync(candidate.path)) continue;
-      const trusted = projectFiltersTrusted(candidate.path, options.trustProjectFilters === true);
-      if (trusted === true) {
-        sources.push({ source: "project", ...candidate, trusted: true });
-      } else {
-        diagnostics.push({
-          source: "project",
-          format: candidate.format,
-          path: candidate.path,
-          level: "warning",
-          message:
-            trusted === "changed"
-              ? "Project RTK filters changed after trust and were skipped"
-              : "Project RTK filters are untrusted and were skipped",
-        });
-      }
+  for (const candidate of projectCandidates) {
+    if (!fs.existsSync(candidate.path)) continue;
+    const trusted = projectFiltersTrusted(candidate.path, options.trustProjectFilters === true);
+    if (trusted === true) {
+      sources.push({ source: "project", ...candidate, trusted: true });
+      continue;
     }
+    diagnostics.push({
+      source: "project",
+      format: candidate.format,
+      path: candidate.path,
+      level: "warning",
+      message:
+        trusted === "changed"
+          ? "Project RTK filters changed after trust and were skipped"
+          : "Project RTK filters are untrusted and were skipped",
+    });
   }
+}
 
+function collectGlobalFilterSources(sources: FilterSource[]): void {
   const globalCandidates = [
     { path: path.join(getDataDir(), "rtk", "filters.toml"), format: "rtk-toml-v1" as const },
     { path: path.join(getDataDir(), "rtk", "filters.json"), format: "omniroute-json" as const },
   ];
-  if (options.customFiltersEnabled !== false) {
-    for (const candidate of globalCandidates) {
-      if (fs.existsSync(candidate.path)) {
-        sources.push({ source: "global", ...candidate, trusted: true });
-      }
+  for (const candidate of globalCandidates) {
+    if (fs.existsSync(candidate.path)) {
+      sources.push({ source: "global", ...candidate, trusted: true });
     }
   }
+}
 
+function collectBuiltinFilterSources(sources: FilterSource[]): void {
   const builtinDir = getFiltersDir();
   if (fs.existsSync(builtinDir)) {
     let builtinFiles: string[] = [];
@@ -177,8 +186,6 @@ function collectFilterSources(options: RtkFilterLoadOptions = {}): FilterSource[
       });
     }
   }
-
-  return sources;
 }
 
 function parseFilterFile(source: FilterSource): RtkFilterDefinition[] {
