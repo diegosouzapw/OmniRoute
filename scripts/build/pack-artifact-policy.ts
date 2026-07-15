@@ -166,6 +166,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   // tests/unit/pack-artifact-entrypoint-closures.test.ts).
   "bin/cli/data-dir.mjs",
   "bin/cli/utils/storageKeyProvision.mjs",
+  "bin/cli/utils/versionFastPath.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
