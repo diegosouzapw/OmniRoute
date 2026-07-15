@@ -80,19 +80,22 @@ function classifyBudgetStopped(body: unknown): boolean {
 
 function classifyErrorMessage(body: unknown): string | undefined {
   if (body == null) return undefined;
-  if (typeof body === "string") return body.trim() || undefined;
+  if (typeof body === "string") {
+    const trimmed = body.trim();
+    return trimmed || undefined;
+  }
 
-  if (typeof body === "object") {
-    const raw = body as Record<string, unknown>;
-    if (typeof raw.error === "string" && raw.error.trim()) return raw.error;
-    if (typeof raw.message === "string" && raw.message.trim()) return raw.message;
-    const nested =
-      typeof raw.error === "object" && raw.error !== null
-        ? (raw.error as Record<string, unknown>)
-        : undefined;
-    if (nested) {
-      if (typeof nested.message === "string" && nested.message.trim()) return nested.message;
-      if (typeof nested.error === "string" && nested.error.trim()) return nested.error;
+  if (typeof body !== "object") return undefined;
+
+  const raw = body as Record<string, unknown>;
+  const nested =
+    typeof raw.error === "object" && raw.error !== null ? (raw.error as Record<string, unknown>) : undefined;
+  const candidates = [raw.error, raw.message, nested?.message, nested?.error];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "string") {
+      const trimmed = candidate.trim();
+      if (trimmed) return trimmed;
     }
   }
 

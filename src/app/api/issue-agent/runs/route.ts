@@ -7,6 +7,7 @@ import { createRecordedTriageRun } from "@/lib/issueAgent/recordedTriage";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import type { RecordedTriageExecutionInput, RecordedTriageChatCompletion } from "@/lib/issueAgent/execution";
+import type { RecordedTriageRun } from "@/lib/issueAgent/recordedTriage";
 
 const issueAgentRunRequestSchema = z.object({
   mode: z.string().optional(),
@@ -109,29 +110,38 @@ export async function POST(request: Request) {
       error: completion.terminalError,
     });
 
-    const responseStatus =
-      completion.terminalState === "timed_out"
-        ? 408
-        : completion.terminalState === "budget_stopped"
-          ? 429
-          : completion.status;
-
-    return NextResponse.json(
-      {
-        ...run,
-        runner: "omniroute-chat-completions",
-        state: completion.terminalState,
-        completionStatus: completion.completionStatus,
-        terminalState: completion.terminalState,
-        terminalError: completion.terminalError,
-        timedOutMs: completion.timedOutMs,
-        auditPath: runningAudit.path,
-        completion: completion.body,
-      },
-      { status: responseStatus }
-    );
+    const response = buildIssueAgentRunResponse(run, completion, runningAudit.path);
+    return NextResponse.json(response.body, { status: response.status });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid issue-agent request";
     return NextResponse.json({ error: message }, { status: 400 });
   }
+}
+
+function buildIssueAgentRunResponse(
+  run: RecordedTriageRun,
+  completion: RecordedTriageChatCompletion,
+  runningAuditPath: string
+) {
+  const status =
+    completion.terminalState === "timed_out"
+      ? 408
+      : completion.terminalState === "budget_stopped"
+        ? 429
+        : completion.status;
+
+  return {
+    body: {
+      ...run,
+      runner: "omniroute-chat-completions",
+      state: completion.terminalState,
+      completionStatus: completion.completionStatus,
+      terminalState: completion.terminalState,
+      terminalError: completion.terminalError,
+      timedOutMs: completion.timedOutMs,
+      auditPath: runningAuditPath,
+      completion: completion.body,
+    },
+    status,
+  };
 }
