@@ -1,0 +1,1 @@
+- fix(dashboard): implement missing `handleToggleSource` callback on the Free Pool tab so the page no longer crashes with a `ReferenceError` (#7161)

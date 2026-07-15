@@ -105,7 +105,9 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
   // alphabetically (bin/ < dist/ < scripts/ < src/), minus the paths present
   // above (dist/server.js, bin/omniroute.mjs, package.json, the postinstall scripts).
   assert.deepEqual(missingPaths, [
+    "bin/cli/data-dir.mjs",
     "bin/cli/program.mjs",
+    "bin/cli/utils/storageKeyProvision.mjs",
     "bin/mcp-server.mjs",
     "bin/nodeRuntimeSupport.mjs",
     "dist/head-response-guard.cjs",

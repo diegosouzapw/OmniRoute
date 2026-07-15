@@ -1,0 +1,1 @@
+- fix(providers): reject chat-completions requests for cloud-agent-only providers like jules instead of silently mis-routing them to OpenAI's endpoint (#6699)

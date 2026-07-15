@@ -1,0 +1,1 @@
+- **Providers**: yuanbao-web no longer forwards a foreign single cookie pair upstream — `buildYuanbaoCookie` only trusts `hy_user`/`hy_token` extractions the input explicitly names, so a missing session token now fails fast with the local 401 guidance instead of a live Tencent round-trip
