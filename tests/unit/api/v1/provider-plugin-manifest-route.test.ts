@@ -33,17 +33,20 @@ test("provider plugin manifest route handles CORS preflight", async () => {
   assert.equal(response.headers.get("Access-Control-Allow-Headers"), "*");
 });
 
-test("provider plugin manifest route can inject service models with a custom reader", () => {
+test("provider plugin manifest route injects service models with a custom reader", async () => {
   const manifest = generateProviderPluginManifest() as ProviderPluginManifest;
-  const withModels = injectServiceModelsIntoManifest(manifest, (toolName: string): ServiceModel[] => {
-    if (toolName === "9router") {
-      return [{ id: "gpt-test", name: "9Router Test" }];
+  const withModels = await injectServiceModelsIntoManifest(
+    manifest,
+    (toolName: string): ServiceModel[] => {
+      if (toolName === "9router") {
+        return [{ id: "gpt-test", name: "9Router Test" }];
+      }
+      if (toolName === "cliproxyapi") {
+        return [{ id: "model-clone", name: "Cliproxy Test", available: false }];
+      }
+      return [];
     }
-    if (toolName === "cliproxyapi") {
-      return [{ id: "model-clone", name: "Cliproxy Test", available: false }];
-    }
-    return [];
-  });
+  );
 
   const nineRouterEntry = withModels.providers.find((provider) => provider.id === "9router");
   assert.ok(nineRouterEntry);
@@ -52,4 +55,43 @@ test("provider plugin manifest route can inject service models with a custom rea
   const clipEntry = withModels.providers.find((provider) => provider.id === "cliproxyapi");
   assert.ok(clipEntry);
   assert.ok(!clipEntry?.models.some((model) => model.id === "cliproxyapi/model-clone"));
+});
+
+test("provider plugin manifest route injects only when 9router exposure is enabled", async () => {
+  const manifest = generateProviderPluginManifest() as ProviderPluginManifest;
+  const withModels = await injectServiceModelsIntoManifest(
+    manifest,
+    (toolName: string): ServiceModel[] => {
+      if (toolName === "9router") {
+        return [{ id: "gpt-test", name: "9Router Test" }];
+      }
+      return [];
+    },
+    (toolName: string): boolean => (toolName === "9router" ? false : true)
+  );
+
+  const nineRouterEntry = withModels.providers.find((provider) => provider.id === "9router");
+  assert.ok(nineRouterEntry);
+  assert.equal(
+    nineRouterEntry?.models.some((model) => model.id === "9router/gpt-test"),
+    false
+  );
+});
+
+test("provider plugin manifest route injects for cliproxy regardless of exposure toggle", async () => {
+  const manifest = generateProviderPluginManifest() as ProviderPluginManifest;
+  const withModels = await injectServiceModelsIntoManifest(
+    manifest,
+    (toolName: string): ServiceModel[] => {
+      if (toolName === "cliproxyapi") {
+        return [{ id: "model-clone", name: "Cliproxy Test" }];
+      }
+      return [];
+    },
+    (toolName: string): boolean => (toolName === "9router" ? false : true)
+  );
+
+  const clipEntry = withModels.providers.find((provider) => provider.id === "cliproxyapi");
+  assert.ok(clipEntry);
+  assert.ok(clipEntry?.models.some((model) => model.id === "cliproxyapi/model-clone"));
 });

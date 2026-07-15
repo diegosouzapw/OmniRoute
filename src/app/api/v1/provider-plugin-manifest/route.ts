@@ -5,8 +5,10 @@ import {
   type ProviderPluginModel,
 } from "@omniroute/open-sse/config/providerPluginManifest.ts";
 import { getServiceModels, type ServiceModel } from "@/lib/db/serviceModels";
+import { getServiceRow } from "@/lib/db/versionManager";
 
 const SERVICE_BACKEND_PLUGIN_IDS = new Set(["9router", "cliproxyapi"]);
+const SERVICE_BACKEND_EXPOSURE_REQUIRED = new Set(["9router"]);
 const SERVICE_MODEL_CACHE_HEADERS = {
   ...CORS_HEADERS,
   "Content-Type": "application/json",
@@ -60,14 +62,32 @@ function pickServiceModels(
   return [...unique.values()];
 }
 
-export function injectServiceModelsIntoManifest(
+async function shouldExposeServiceModels(toolName: string): Promise<boolean> {
+  if (!SERVICE_BACKEND_EXPOSURE_REQUIRED.has(toolName)) return true;
+
+  const row = await getServiceRow(toolName);
+  if (!row) return true;
+  return row.providerExpose;
+}
+
+export async function injectServiceModelsIntoManifest(
   manifest: ProviderPluginManifest,
-  reader: (toolName: string) => ServiceModel[] = getServiceModels
-): ProviderPluginManifest {
-  const providers = manifest.providers.map((provider) => {
+  reader: (toolName: string) => ServiceModel[] = getServiceModels,
+  exposeReader?: (toolName: string) => Promise<boolean> | boolean
+): Promise<ProviderPluginManifest> {
+  const providers = await Promise.all(
+    manifest.providers.map(async (provider) => {
     if (!SERVICE_BACKEND_PLUGIN_IDS.has(provider.id)) return provider;
 
     try {
+      const shouldExpose = exposeReader
+        ? Boolean(await exposeReader(provider.id))
+        : await shouldExposeServiceModels(provider.id);
+
+      if (!shouldExpose) {
+        return provider;
+      }
+
       const models = pickServiceModels(provider.id, reader);
       if (models.length === 0) return provider;
 
@@ -84,7 +104,8 @@ export function injectServiceModelsIntoManifest(
     } catch {
       return provider;
     }
-  });
+    })
+  );
 
   return {
     ...manifest,
@@ -104,7 +125,7 @@ export async function OPTIONS() {
 
 export async function GET() {
   const manifest = generateProviderPluginManifest();
-  const manifestWithServiceModels = injectServiceModelsIntoManifest(manifest);
+  const manifestWithServiceModels = await injectServiceModelsIntoManifest(manifest);
 
   return new Response(JSON.stringify(manifestWithServiceModels), {
     headers: JSON_HEADERS,
