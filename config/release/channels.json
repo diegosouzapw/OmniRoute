@@ -1,0 +1,285 @@
+{
+  "$schema": "./channels.schema.json",
+  "version": 1,
+  "description": "OmniRoute release channel taxonomy. Defines all pre-release and stable channels, their stability order, the CI gates each requires before promotion, versioning scheme, and auto-trigger rules. Edited by the release automation; read by the trigger evaluator, channel resolver, and promotion workflows.",
+
+  "channels": {
+    "nightly": {
+      "stability": 0,
+      "label": "Nightly",
+      "prerelease": true,
+      "persistent": false,
+      "description": "Automated build from main HEAD. Most primitive/unstable channel. Produced by the 24hr timer or the 5k-LOC-delta trigger. No human approval required.",
+      "versionScheme": {
+        "format": "{base}-nightly.{date}.{shortSha}",
+        "example": "3.8.44-nightly.20260712.a1b2c3d",
+        "baseSource": "package.json version (patch-level, stripped of any existing prerelease tag)",
+        "date": "YYYYMMDD",
+        "shortSha": "git rev-parse --short HEAD (7 chars)"
+      },
+      "npmDistTag": "nightly",
+      "dockerTag": "nightly",
+      "githubPrerelease": true,
+      "requiredGates": {
+        "blocking": ["build"],
+        "advisory": []
+      },
+      "maxAgeHours": 72,
+      "retention": "latest 3 per base version"
+    },
+
+    "canary": {
+      "stability": 1,
+      "label": "Canary",
+      "prerelease": true,
+      "persistent": false,
+      "description": "Automated build promoted from nightly when unit + vitest + integration pass. Still highly unstable; used for early smoke testing against real providers.",
+      "versionScheme": {
+        "format": "{base}-canary.{date}.{shortSha}",
+        "example": "3.8.44-canary.20260712.a1b2c3d",
+        "baseSource": "package.json version (patch-level)",
+        "date": "YYYYMMDD",
+        "shortSha": "git rev-parse --short HEAD (7 chars)"
+      },
+      "npmDistTag": "canary",
+      "dockerTag": "canary",
+      "githubPrerelease": true,
+      "requiredGates": {
+        "blocking": ["build", "unit", "vitest", "integration"],
+        "advisory": ["mutation", "property", "schemathesis"]
+      },
+      "maxAgeHours": 168,
+      "retention": "latest 5 per base version"
+    },
+
+    "alpha": {
+      "stability": 2,
+      "label": "Alpha",
+      "prerelease": true,
+      "persistent": true,
+      "description": "Feature-incomplete or unstable preview. Promoted from canary when E2E + security tests pass. Persists past stable as a rolling alpha track for the next minor/major.",
+      "versionScheme": {
+        "format": "{base}-alpha.{n}",
+        "example": "3.9.0-alpha.1",
+        "baseSource": "next minor or major from package.json (bumped by release manager)",
+        "n": "monotonically incrementing per base, starting at 1"
+      },
+      "npmDistTag": "alpha",
+      "dockerTag": "alpha",
+      "githubPrerelease": true,
+      "requiredGates": {
+        "blocking": ["build", "unit", "vitest", "integration", "e2e", "security"],
+        "advisory": ["mutation", "property", "schemathesis", "resilience", "llm-security"]
+      },
+      "maxAgeHours": null,
+      "retention": "all releases (persistent channel)"
+    },
+
+    "beta": {
+      "stability": 3,
+      "label": "Beta",
+      "prerelease": true,
+      "persistent": true,
+      "description": "Feature-complete but may have known bugs. Promoted from alpha when resilience + LLM-security gates pass. Persists past stable as a rolling beta track.",
+      "versionScheme": {
+        "format": "{base}-beta.{n}",
+        "example": "3.9.0-beta.1",
+        "baseSource": "matches the alpha base (frozen at feature-complete)",
+        "n": "monotonically incrementing per base, starting at 1"
+      },
+      "npmDistTag": "beta",
+      "dockerTag": "beta",
+      "githubPrerelease": true,
+      "requiredGates": {
+        "blocking": ["build", "unit", "vitest", "integration", "e2e", "security", "resilience", "llm-security"],
+        "advisory": ["mutation", "property", "schemathesis", "chaos", "fuzz", "perf", "load"]
+      },
+      "maxAgeHours": null,
+      "retention": "all releases (persistent channel)"
+    },
+
+    "rc": {
+      "stability": 4,
+      "label": "Release Candidate",
+      "prerelease": true,
+      "persistent": false,
+      "description": "Release candidate. Promoted from beta when chaos + fuzz + perf + load gates pass. Candidate for stable promotion.",
+      "versionScheme": {
+        "format": "{base}-rc.{n}",
+        "example": "3.9.0-rc.1",
+        "baseSource": "frozen target version (the version that will become stable)",
+        "n": "monotonically incrementing per base, starting at 1"
+      },
+      "npmDistTag": "next",
+      "dockerTag": "rc",
+      "githubPrerelease": true,
+      "requiredGates": {
+        "blocking": [
+          "build", "unit", "vitest", "integration", "e2e", "security",
+          "resilience", "llm-security", "chaos", "fuzz", "perf", "load"
+        ],
+        "advisory": ["mutation", "property", "schemathesis", "cross-platform", "a11y"]
+      },
+      "maxAgeHours": null,
+      "retention": "all RCs for the target version until stable ships"
+    },
+
+    "stable": {
+      "stability": 5,
+      "label": "Stable",
+      "prerelease": false,
+      "persistent": true,
+      "description": "Production release. Promoted from RC by explicit human approval (workflow_dispatch). Claims npm @latest and Docker :latest.",
+      "versionScheme": {
+        "format": "{base}",
+        "example": "3.9.0",
+        "baseSource": "matches the RC base (the frozen target version)"
+      },
+      "npmDistTag": "latest",
+      "dockerTag": "latest",
+      "githubPrerelease": false,
+      "requiredGates": {
+        "blocking": [
+          "build", "unit", "vitest", "integration", "e2e", "security",
+          "resilience", "llm-security", "chaos", "fuzz", "perf", "load",
+          "cross-platform", "a11y", "release-green"
+        ],
+        "advisory": ["mutation", "property", "schemathesis"]
+      },
+      "maxAgeHours": null,
+      "retention": "all releases (permanent)"
+    }
+  },
+
+  "promotionOrder": ["nightly", "canary", "alpha", "beta", "rc", "stable"],
+
+  "autoTrigger": {
+    "description": "Automated release build trigger for the most primitive/unstable channel (nightly). Fires when ANY of these conditions are met. The specific channel is then determined by which CI gates pass (see channel resolver).",
+    "conditions": {
+      "timeBased": {
+        "description": "Fire if no release (of any channel) has been published in this many hours.",
+        "maxHoursSinceLastRelease": 24
+      },
+      "codeDeltaBased": {
+        "description": "Fire if the diff since the last release adds or removes >= this many lines.",
+        "addedLinesThreshold": 5000,
+        "removedLinesThreshold": 5000
+      }
+    },
+    "schedule": {
+      "cron": "0 7 * * *",
+      "description": "Daily at 07:00 UTC — checks time-based and code-delta conditions. The code-delta condition is also checked on every push to main."
+    }
+  },
+
+  "gates": {
+    "build": {
+      "description": "Next.js production build succeeds, dist/server.js exists, pack-artifact clean",
+      "workflow": "ci.yml",
+      "jobs": ["build", "package-artifact"],
+      "advisory": false
+    },
+    "unit": {
+      "description": "Unit tests (8 shards, Node 24)",
+      "workflow": "ci.yml",
+      "jobs": ["test-unit"],
+      "advisory": false
+    },
+    "vitest": {
+      "description": "Vitest (MCP server, autoCombo, cache)",
+      "workflow": "ci.yml",
+      "jobs": ["test-vitest"],
+      "advisory": false
+    },
+    "integration": {
+      "description": "Integration tests (2 shards)",
+      "workflow": "ci.yml",
+      "jobs": ["test-integration"],
+      "advisory": false
+    },
+    "e2e": {
+      "description": "Playwright E2E tests (9 shards)",
+      "workflow": "ci.yml",
+      "jobs": ["test-e2e"],
+      "advisory": false
+    },
+    "security": {
+      "description": "Security test suite",
+      "workflow": "ci.yml",
+      "jobs": ["test-security"],
+      "advisory": false
+    },
+    "release-green": {
+      "description": "Full release-green validation (typecheck, lint, db-rules, docs, unit, vitest, integration, pack-artifact)",
+      "workflow": "nightly-release-green.yml",
+      "jobs": ["release-green"],
+      "advisory": false
+    },
+    "resilience": {
+      "description": "Heap-growth gate, chaos fault injection, k6 soak",
+      "workflow": "nightly-resilience.yml",
+      "jobs": ["heap", "chaos", "k6-soak"],
+      "advisory": false
+    },
+    "llm-security": {
+      "description": "promptfoo injection guard, garak probes",
+      "workflow": "nightly-llm-security.yml",
+      "jobs": ["promptfoo-guard", "garak"],
+      "advisory": false
+    },
+    "mutation": {
+      "description": "Stryker mutation testing (9 parallel batches, advisory — expensive)",
+      "workflow": "nightly-mutation.yml",
+      "jobs": ["stryker"],
+      "advisory": true
+    },
+    "property": {
+      "description": "fast-check property-based tests (2000 runs, random seed)",
+      "workflow": "nightly-property.yml",
+      "jobs": ["property-random-seed"],
+      "advisory": true
+    },
+    "schemathesis": {
+      "description": "OpenAPI contract fuzz (schemathesis, advisory)",
+      "workflow": "nightly-schemathesis.yml",
+      "jobs": ["schemathesis"],
+      "advisory": true
+    },
+    "chaos": {
+      "description": "Chaos engineering drill (pod kill + latency injection)",
+      "workflow": "chaos-weekly.yml",
+      "jobs": ["chaos"],
+      "advisory": true
+    },
+    "fuzz": {
+      "description": "cargo-fuzz build + list (Rust fuzz targets)",
+      "workflow": "fuzz-weekly.yml",
+      "jobs": ["fuzz"],
+      "advisory": true
+    },
+    "perf": {
+      "description": "cargo-bench performance baseline",
+      "workflow": "perf-weekly.yml",
+      "jobs": ["perf"],
+      "advisory": true
+    },
+    "load": {
+      "description": "k6 load test",
+      "workflow": "k6-load-test.yml",
+      "jobs": ["k6"],
+      "advisory": true
+    },
+    "cross-platform": {
+      "description": "CLI build + unit tests on ubuntu/macos/windows",
+      "workflow": "cross-platform.yml",
+      "jobs": ["build-cli", "test-unit"],
+      "advisory": true
+    },
+    "a11y": {
+      "description": "axe accessibility suite (Playwright)",
+      "workflow": "nightly-resilience.yml",
+      "jobs": ["a11y"],
+      "advisory": true
+    }
+  }
+}

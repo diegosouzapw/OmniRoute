@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "incremental": false
+  },
+  "include": [
+    "src/lib/db/*.ts",
+    "src/lib/db/**/*.ts",
+    "open-sse/handlers/*.ts",
+    "open-sse/mcp-server/*.ts",
+    "open-sse/mcp-server/**/*.ts",
+    "src/shared/validation/*.ts",
+    "src/shared/constants/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "app.__qa_backup",
+    "vscode-extension"
+  ]
+}

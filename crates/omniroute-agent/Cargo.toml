@@ -1,0 +1,60 @@
+[package]
+name = "omniroute-agent"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "OmniRoute node health agent — system metrics collection, health scoring, Prometheus export"
+
+[[bin]]
+name = "omniroute-agent"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+
+# HTTP server
+axum = { workspace = true }
+
+# System metrics
+sysinfo = { workspace = true }
+
+# Prometheus metrics
+prometheus = { workspace = true }
+
+# Serialization + errors
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# CLI args
+clap = { workspace = true }
+
+# Time
+chrono = { workspace = true }
+
+# Optional GPU support
+nvml-wrapper = { workspace = true, optional = true }
+
+# Linux-only: procfs for per-process metrics and /proc/diskstats
+[target.'cfg(target_os = "linux")'.dependencies]
+procfs = { workspace = true }
+
+[features]
+default = []
+gpu = ["dep:nvml-wrapper"]
+
+[dev-dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }
+
+[lints]
+workspace = true

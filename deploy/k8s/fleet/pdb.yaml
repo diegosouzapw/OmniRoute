@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: omniroute-pdb
+  namespace: omniroute-fleet
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/component: fleet
+spec:
+  minAvailable: "50%"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: omniroute

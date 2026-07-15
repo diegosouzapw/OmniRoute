@@ -1,0 +1,281 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "OmniRouteTray-arm64-apple-macosx28.0-debug.exe":
+    ["<OmniRouteTray-arm64-apple-macosx28.0-debug.exe>"]
+  "OmniRouteTray-arm64-apple-macosx28.0-debug.module":
+    ["<OmniRouteTray-arm64-apple-macosx28.0-debug.module>"]
+  "PackageStructure": ["<PackageStructure>"]
+  "main":
+    [
+      "<OmniRouteTray-arm64-apple-macosx28.0-debug.exe>",
+      "<OmniRouteTray-arm64-apple-macosx28.0-debug.module>",
+    ]
+  "test":
+    [
+      "<OmniRouteTray-arm64-apple-macosx28.0-debug.exe>",
+      "<OmniRouteTray-arm64-apple-macosx28.0-debug.module>",
+    ]
+default: "main"
+nodes:
+  "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git", ".build"]
+  "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray":
+    is-mutated: true
+commands:
+  "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray-entitlement.plist":
+    tool: write-auxiliary-file
+    inputs: ["<entitlement-plist>", "<com.apple.security.get-task-allow>"]
+    outputs:
+      [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray-entitlement.plist",
+      ]
+    description: "Write auxiliary file /Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray-entitlement.plist"
+
+  "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/sources":
+    tool: write-auxiliary-file
+    inputs:
+      [
+        "<sources-file-list>",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/AppDelegate.swift",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/ServerManager.swift",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/SettingsView.swift",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/main.swift",
+      ]
+    outputs:
+      [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/sources",
+      ]
+    description: "Write auxiliary file /Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/sources"
+
+  "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.product/Objects.LinkFileList":
+    tool: write-auxiliary-file
+    inputs:
+      [
+        "<link-file-list>",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main.swift.o",
+      ]
+    outputs:
+      [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.product/Objects.LinkFileList",
+      ]
+    description: "Write auxiliary file /Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.product/Objects.LinkFileList"
+
+  "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt":
+    tool: write-auxiliary-file
+    inputs:
+      [
+        "<swift-get-version>",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      ]
+    outputs:
+      [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt",
+      ]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+
+  "<OmniRouteTray-arm64-apple-macosx28.0-debug.exe>":
+    tool: phony
+    inputs: ["<OmniRouteTray-arm64-apple-macosx28.0-debug.exe-CodeSigning>"]
+    outputs: ["<OmniRouteTray-arm64-apple-macosx28.0-debug.exe>"]
+
+  "<OmniRouteTray-arm64-apple-macosx28.0-debug.module>":
+    tool: phony
+    inputs:
+      [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/Modules/OmniRouteTray.swiftmodule",
+      ]
+    outputs: ["<OmniRouteTray-arm64-apple-macosx28.0-debug.module>"]
+
+  "C.OmniRouteTray-arm64-apple-macosx28.0-debug.exe":
+    tool: shell
+    inputs:
+      [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.product/Objects.LinkFileList",
+      ]
+    outputs:
+      [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray",
+      ]
+    description: "Linking ./.build/arm64-apple-macosx/debug/OmniRouteTray"
+    args:
+      [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+        "-L",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug",
+        "-o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray",
+        "-module-name",
+        "OmniRouteTray",
+        "-Xlinker",
+        "-no_warn_duplicate_libraries",
+        "-emit-executable",
+        "-Xlinker",
+        "-alias",
+        "-Xlinker",
+        "_OmniRouteTray_main",
+        "-Xlinker",
+        "_main",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "@loader_path",
+        "@/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.product/Objects.LinkFileList",
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-Xlinker",
+        "-add_ast_path",
+        "-Xlinker",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/Modules/OmniRouteTray.swiftmodule",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+      ]
+
+  "C.OmniRouteTray-arm64-apple-macosx28.0-debug.exe-entitlements":
+    tool: shell
+    inputs:
+      [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray-entitlement.plist",
+      ]
+    outputs: ["<OmniRouteTray-arm64-apple-macosx28.0-debug.exe-CodeSigning>"]
+    description: "Applying debug entitlements to ./.build/arm64-apple-macosx/debug/OmniRouteTray"
+    args:
+      [
+        "codesign",
+        "--force",
+        "--sign",
+        "-",
+        "--entitlements",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray-entitlement.plist",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray",
+      ]
+
+  "C.OmniRouteTray-arm64-apple-macosx28.0-debug.module":
+    tool: shell
+    inputs:
+      [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/AppDelegate.swift",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/ServerManager.swift",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/SettingsView.swift",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/main.swift",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/sources",
+      ]
+    outputs:
+      [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/Modules/OmniRouteTray.swiftmodule",
+      ]
+    description: "Compiling Swift Module 'OmniRouteTray' (4 sources)"
+    args:
+      [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+        "-module-name",
+        "OmniRouteTray",
+        "-emit-dependencies",
+        "-emit-module",
+        "-emit-module-path",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/Modules/OmniRouteTray.swiftmodule",
+        "-output-file-map",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/output-file-map.json",
+        "-incremental",
+        "-c",
+        "@/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/sources",
+        "-I",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/Modules",
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "OmniRouteTray_main",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "macos_tray",
+      ]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs:
+      [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Package.swift",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Package.resolved",
+      ]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true

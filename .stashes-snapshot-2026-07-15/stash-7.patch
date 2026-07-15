@@ -1,0 +1,50 @@
+[1mdiff --git a/src/lib/images/imageRouteModel.ts b/src/lib/images/imageRouteModel.ts[m
+[1mindex b3461a648..669c27b56 100644[m
+[1m--- a/src/lib/images/imageRouteModel.ts[m
+[1m+++ b/src/lib/images/imageRouteModel.ts[m
+[36m@@ -75,18 +75,21 @@[m [mexport async function resolveSingleImageComboTarget(name: string): Promise<strin[m
+  */[m
+ export async function resolveImageRouteModel(modelStr: string): Promise<string> {[m
+   if (typeof modelStr !== "string" || !modelStr.trim()) return modelStr;[m
+[32m+[m[32m  const parsedModel = parseImageModel(modelStr);[m
+[32m+[m[32m  const hasSlash = modelStr.includes("/");[m
+[32m+[m
+[32m+[m[32m  // 1. Bare model name: resolve to its single combo target when safe.[m
+[32m+[m[32m  //    Codex bare models are reserved to avoid shadowing `gpt-5.5`-style aliases used[m
+[32m+[m[32m  //    across image + responses flows.[m
+[32m+[m[32m  if (!hasSlash) {[m
+[32m+[m[32m    if (parsedModel.provider === "codex") return modelStr;[m
+ [m
+[31m-  // 1. Bare combo/alias name (no slash): resolve to its single image target, then[m
+[31m-  //    prefix-resolve that target (it may itself be a `prefix/model` custom id).[m
+[31m-  //    This intentionally precedes built-in aliases so user combos can shadow names[m
+[31m-  //    like `gpt-image-2`; explicit `provider/model` ids still bypass this branch.[m
+[31m-  if (!modelStr.includes("/")) {[m
+     const target = await resolveSingleImageComboTarget(modelStr);[m
+     if (target && target !== modelStr) return resolveImageModelPrefix(target);[m
+   }[m
+ [m
+   // 2. Built-in image model (alias or provider/model) — leave untouched.[m
+[31m-  if (parseImageModel(modelStr).provider) return modelStr;[m
+[32m+[m[32m  if (parsedModel.provider) return modelStr;[m
+ [m
+   if (!modelStr.includes("/")) return modelStr;[m
+ [m
+[1mdiff --git a/tests/unit/image-routes-combo-edits-3214-3215.test.ts b/tests/unit/image-routes-combo-edits-3214-3215.test.ts[m
+[1mindex 7224aaf0c..c71a5c08e 100644[m
+[1m--- a/tests/unit/image-routes-combo-edits-3214-3215.test.ts[m
+[1m+++ b/tests/unit/image-routes-combo-edits-3214-3215.test.ts[m
+[36m@@ -123,6 +123,13 @@[m [mtest("resolveImageRouteModel lets bare combos shadow built-in image aliases", as[m
+   assert.equal(await resolveImageRouteModel("openai/gpt-image-2"), "openai/gpt-image-2");[m
+ });[m
+ [m
+[32m+[m[32mtest("resolveImageRouteModel keeps codex bare aliases over same-name combos", async () => {[m
+[32m+[m[32m  await createCombo({ name: "gpt-5.5", models: ["myimg/gpt-5.5"], strategy: "priority" });[m
+[32m+[m
+[32m+[m[32m  assert.equal(await resolveSingleImageComboTarget("gpt-5.5"), "myimg/gpt-5.5");[m
+[32m+[m[32m  assert.equal(await resolveImageRouteModel("gpt-5.5"), "gpt-5.5");[m
+[32m+[m[32m});[m
+[32m+[m
+ test("resolveImageRouteModel leaves built-in / already-resolved ids untouched", async () => {[m
+   assert.equal([m
+     await resolveImageRouteModel("cgpt-web/gpt-5.3-instant"),[m

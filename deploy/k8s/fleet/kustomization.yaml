@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: omniroute-fleet
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/component: fleet
+resources:
+  - namespace.yaml
+  - service-account.yaml
+  - scaled-object.yaml
+  - vpa.yaml
+  - pdb.yaml

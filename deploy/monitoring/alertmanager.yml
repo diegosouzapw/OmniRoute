@@ -1,0 +1,46 @@
+route:
+  group_by: ["alertname", "severity"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: "default"
+  routes:
+    - match:
+        severity: critical
+      receiver: "pagerduty-critical"
+      repeat_interval: 10m
+    - match:
+        severity: warning
+      receiver: "slack-warning"
+    - match:
+        severity: info
+      receiver: "slack-info"
+
+receivers:
+  - name: "default"
+    slack_configs:
+      - channel: "#omniroute-alerts"
+        title: "{{ .GroupLabels.alertname }}"
+        text: "{{ .CommonAnnotations.description }}"
+        send_resolved: true
+
+  - name: "pagerduty-critical"
+    pagerduty_configs:
+      - routing_key: "${PAGERDUTY_ROUTING_KEY}"
+        severity: critical
+        description: "{{ .GroupLabels.alertname }}"
+        client: "OmniRoute"
+
+  - name: "slack-warning"
+    slack_configs:
+      - channel: "#omniroute-warnings"
+        title: "⚠️ {{ .GroupLabels.alertname }}"
+        text: "{{ .CommonAnnotations.description }}"
+        send_resolved: true
+
+  - name: "slack-info"
+    slack_configs:
+      - channel: "#omniroute-info"
+        title: "ℹ️ {{ .GroupLabels.alertname }}"
+        text: "{{ .CommonAnnotations.description }}"
+        send_resolved: false

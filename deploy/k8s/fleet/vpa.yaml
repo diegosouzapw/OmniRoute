@@ -1,0 +1,25 @@
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: omniroute-vpa
+  namespace: omniroute-fleet
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/component: fleet
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: omniroute
+  updatePolicy:
+    updateMode: "Off" # Recommendation only (manual apply)
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 200m
+          memory: 256Mi
+        maxAllowed:
+          cpu: 4000m
+          memory: 4096Mi
+        controlledResources: ["cpu", "memory"]

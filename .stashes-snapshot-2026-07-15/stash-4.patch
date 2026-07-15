@@ -1,0 +1,15 @@
+[1mdiff --git a/open-sse/services/combo.ts b/open-sse/services/combo.ts[m
+[1mindex 4aaec19b3..8e70dc063 100644[m
+[1m--- a/open-sse/services/combo.ts[m
+[1m+++ b/open-sse/services/combo.ts[m
+[36m@@ -2410,10 +2410,6 @@[m [mexport async function handleComboChat({[m
+             !isTokenLimitBreach &&[m
+             [408, 429, 500, 502, 503, 504].includes(result.status);[m
+           if (retry < maxRetries && isTransient && !providerExhausted) {[m
+[31m-            // The auth layer (handleSingleModelChat) may have already recorded a[m
+[31m-            // model lockout for this provider:model (e.g. on 500 server_error).[m
+[31m-            // Check before retrying — retrying a locked model wastes an upstream[m
+[31m-            // call and extends the cooldown. Let the combo try the next target.[m
+             if ([m
+               provider &&[m
+               rawModel &&[m

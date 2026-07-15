@@ -1,0 +1,341 @@
+[1mdiff --git a/.env.example b/.env.example[m
+[1mindex 214f84dd6..8dd5b2ecd 100644[m
+[1m--- a/.env.example[m
+[1m+++ b/.env.example[m
+[36m@@ -624,6 +624,12 @@[m [mNEXT_PUBLIC_ENABLE_SOCKS5_PROXY=true[m
+ # Path to substrate driver binary. When unset, uses `cargo run -q -p driver-cli --`.[m
+ # SUBSTRATE_BIN=/path/to/substrate/driver-cli[m
+ [m
+[32m+[m[32m# Substrate HTTP server URL for MCP dispatch tools (dispatch/plan/health).[m
+[32m+[m[32m# Used by: open-sse/mcp-server/tools/dispatchTools.ts[m
+[32m+[m[32m# Start substrate HTTP driver: cd repos/substrate && cargo run -p driver-http[m
+[32m+[m[32m# Default port: 8000. Leave unset to disable MCP dispatch tools.[m
+[32m+[m[32m# SUBSTRATE_HTTP_URL=http://localhost:8000[m
+[32m+[m
+ # Model catalog sync interval in hours.[m
+ # Used by: src/shared/services/modelSyncScheduler.ts — periodic model refresh.[m
+ # Default: 24[m
+[1mdiff --git a/deploy/docker-compose.scale.yml b/deploy/docker-compose.scale.yml[m
+[1mindex e4f46b044..5ab491b39 100644[m
+[1m--- a/deploy/docker-compose.scale.yml[m
+[1m+++ b/deploy/docker-compose.scale.yml[m
+[36m@@ -2,7 +2,7 @@[m [mversion: '3.9'[m
+ [m
+ services:[m
+   loadbalancer:[m
+[31m-    image: caddy:2-latest[m
+[32m+[m[32m    image: caddy:2[m
+     container_name: omniroute-lb[m
+     ports:[m
+       - "20128:20128"[m
+[36m@@ -10,6 +10,11 @@[m [mservices:[m
+       - ./Caddyfile:/etc/caddy/Caddyfile:ro[m
+     environment:[m
+       - CADDY_ADMIN=:2019[m
+[32m+[m[32m      - CADDY_PORT=20128[m
+[32m+[m[32m      - CADDY_API_UPSTREAM=omniroute-1:3000[m
+[32m+[m[32m      - CADDY_API_HEALTH_URI=/v1/models[m
+[32m+[m[32m      - CADDY_UI_UPSTREAMS=omniroute-1:3000 omniroute-2:3000 omniroute-3:3000[m
+[32m+[m[32m      - CADDY_UI_HEALTH_URI=/v1/models[m
+     restart: always[m
+     depends_on:[m
+       - omniroute-1[m
+[1mdiff --git a/docker-compose.prod.yml b/docker-compose.prod.yml[m
+[1mindex b442de5f1..a679854e8 100644[m
+[1m--- a/docker-compose.prod.yml[m
+[1m+++ b/docker-compose.prod.yml[m
+[36m@@ -27,6 +27,24 @@[m
+ # ──────────────────────────────────────────────────────────────────────[m
+ [m
+ services:[m
+[32m+[m[32m  # ── Gateway: Caddy canonical front door ───────────────────────────[m
+[32m+[m[32m  loadbalancer:[m
+[32m+[m[32m    image: docker.io/library/caddy:2[m
+[32m+[m[32m    container_name: omniroute-lb-prod[m
+[32m+[m[32m    restart: unless-stopped[m
+[32m+[m[32m    ports:[m
+[32m+[m[32m      - "${PROD_CADDY_PORT:-20130}:20128"[m
+[32m+[m[32m    volumes:[m
+[32m+[m[32m      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro[m
+[32m+[m[32m    environment:[m
+[32m+[m[32m      - CADDY_PORT=20128[m
+[32m+[m[32m      - CADDY_API_UPSTREAM=${CADDY_API_UPSTREAM:-omniroute-prod:20129}[m
+[32m+[m[32m      - CADDY_API_HEALTH_URI=${CADDY_API_HEALTH_URI:-/v1/models}[m
+[32m+[m[32m      - CADDY_UI_UPSTREAMS=${CADDY_UI_UPSTREAMS:-omniroute-prod:20128}[m
+[32m+[m[32m      - CADDY_UI_HEALTH_URI=${CADDY_UI_HEALTH_URI:-/v1/models}[m
+[32m+[m[32m    depends_on:[m
+[32m+[m[32m      - omniroute-prod[m
+[32m+[m
+   # ── Redis (Rate Limiter Backend) ──────────────────────────────────[m
+   redis:[m
+     image: redis:8.6.2-alpine[m
+[36m@@ -61,9 +79,9 @@[m [mservices:[m
+       - API_HOST=${API_HOST:-0.0.0.0}[m
+       - HOSTNAME=0.0.0.0[m
+       - DATA_DIR=/app/data[m
+[31m-    ports:[m
+[31m-      - "${PROD_DASHBOARD_PORT:-20130}:${DASHBOARD_PORT:-${PORT:-20128}}"[m
+[31m-      - "${PROD_API_PORT:-20131}:${API_PORT:-20129}"[m
+[32m+[m[32m    expose:[m
+[32m+[m[32m      - "${DASHBOARD_PORT:-${PORT:-20128}}"[m
+[32m+[m[32m      - "${API_PORT:-20129}"[m
+     volumes:[m
+       - omniroute-prod-data:/app/data[m
+     healthcheck:[m
+[1mdiff --git a/docker-compose.yml b/docker-compose.yml[m
+[1mindex 256064452..cb97395ff 100644[m
+[1m--- a/docker-compose.yml[m
+[1m+++ b/docker-compose.yml[m
+[36m@@ -48,6 +48,27 @@[m [mx-common: &common[m
+     start_period: 15s[m
+ [m
+ services:[m
+[32m+[m[32m  # ── Gateway: Caddy canonical front door ───────────────────────────[m
+[32m+[m[32m  loadbalancer:[m
+[32m+[m[32m    image: docker.io/library/caddy:2[m
+[32m+[m[32m    container_name: omniroute-lb[m
+[32m+[m[32m    restart: unless-stopped[m
+[32m+[m[32m    ports:[m
+[32m+[m[32m      - "${CADDY_PORT:-20128}:20128"[m
+[32m+[m[32m    volumes:[m
+[32m+[m[32m      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro[m
+[32m+[m[32m    environment:[m
+[32m+[m[32m      - CADDY_PORT=20128[m
+[32m+[m[32m      - CADDY_API_UPSTREAM=${CADDY_API_UPSTREAM:-omniroute-base:20129}[m
+[32m+[m[32m      - CADDY_API_HEALTH_URI=${CADDY_API_HEALTH_URI:-/v1/models}[m
+[32m+[m[32m      - CADDY_UI_UPSTREAMS=${CADDY_UI_UPSTREAMS:-omniroute-base:20128}[m
+[32m+[m[32m      - CADDY_UI_HEALTH_URI=${CADDY_UI_HEALTH_URI:-/v1/models}[m
+[32m+[m[32m    profiles:[m
+[32m+[m[32m      - base[m
+[32m+[m[32m      - web[m
+[32m+[m[32m      - cli[m
+[32m+[m[32m      - host[m
+[32m+[m
+   # ── Redis (Rate Limiter Backend) ──────────────────────────────────[m
+   redis:[m
+     image: docker.io/library/redis:7-alpine[m
+[36m@@ -72,9 +93,9 @@[m [mservices:[m
+       context: .[m
+       target: runner-base[m
+     image: omniroute:base[m
+[31m-    ports:[m
+[31m-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"[m
+[31m-      - "${API_PORT:-20129}:${API_PORT:-20129}"[m
+[32m+[m[32m    expose:[m
+[32m+[m[32m      - "${DASHBOARD_PORT:-20128}"[m
+[32m+[m[32m      - "${API_PORT:-20129}"[m
+     profiles:[m
+       - base[m
+ [m
+[36m@@ -89,9 +110,9 @@[m [mservices:[m
+       context: .[m
+       target: runner-web[m
+     image: omniroute:web[m
+[31m-    ports:[m
+[31m-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"[m
+[31m-      - "${API_PORT:-20129}:${API_PORT:-20129}"[m
+[32m+[m[32m    expose:[m
+[32m+[m[32m      - "${DASHBOARD_PORT:-20128}"[m
+[32m+[m[32m      - "${API_PORT:-20129}"[m
+     profiles:[m
+       - web[m
+ [m
+[36m@@ -103,9 +124,9 @@[m [mservices:[m
+       context: .[m
+       target: runner-cli[m
+     image: omniroute:cli[m
+[31m-    ports:[m
+[31m-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"[m
+[31m-      - "${API_PORT:-20129}:${API_PORT:-20129}"[m
+[32m+[m[32m    expose:[m
+[32m+[m[32m      - "${DASHBOARD_PORT:-20128}"[m
+[32m+[m[32m      - "${API_PORT:-20129}"[m
+     volumes:[m
+       - ./data:/app/data[m
+       - /var/run/docker.sock:/var/run/docker.sock[m
+[36m@@ -122,9 +143,9 @@[m [mservices:[m
+       context: .[m
+       target: runner-base[m
+     image: omniroute:base[m
+[31m-    ports:[m
+[31m-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"[m
+[31m-      - "${API_PORT:-20129}:${API_PORT:-20129}"[m
+[32m+[m[32m    expose:[m
+[32m+[m[32m      - "${DASHBOARD_PORT:-20128}"[m
+[32m+[m[32m      - "${API_PORT:-20129}"[m
+     environment:[m
+       - DATA_DIR=/app/data[m
+       - PORT=${PORT:-20128}[m
+[1mdiff --git a/next.config.mjs b/next.config.mjs[m
+[1mindex 24bbc30de..860ea6364 100644[m
+[1m--- a/next.config.mjs[m
+[1m+++ b/next.config.mjs[m
+[36m@@ -1,6 +1,6 @@[m
+ import createNextIntlPlugin from "next-intl/plugin";[m
+ import { createMDX } from "fumadocs-mdx/next";[m
+[31m-import { dirname } from "node:path";[m
+[32m+[m[32mimport { dirname, join } from "node:path";[m
+ import { fileURLToPath } from "node:url";[m
+ [m
+ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");[m
+[36m@@ -227,11 +227,21 @@[m [mconst nextConfig = {[m
+     // TODO: Re-enable after fixing all sub-component useTranslations scope issues[m
+     ignoreBuildErrors: true,[m
+   },[m
+[31m-  webpack(config, { webpack }) {[m
+[32m+[m[32m  webpack(config, { webpack, isServer }) {[m
+     config.ignoreWarnings = [[m
+       ...(config.ignoreWarnings || []),[m
+       isNextIntlExtractorDynamicImportWarning,[m
+     ];[m
+[32m+[m[32m    if (isServer) {[m
+[32m+[m[32m      config.resolve = config.resolve || {};[m
+[32m+[m[32m      config.resolve.alias = {[m
+[32m+[m[32m        ...(config.resolve.alias || {}),[m
+[32m+[m[32m        "monaco-editor/esm/vs/editor/editor.api": join([m
+[32m+[m[32m          projectRoot,[m
+[32m+[m[32m          "src/shared/components/monaco-server.stub.ts"[m
+[32m+[m[32m        ),[m
+[32m+[m[32m      };[m
+[32m+[m[32m    }[m
+     config.optimization = config.optimization || {};[m
+     config.optimization.splitChunks = {[m
+       ...config.optimization.splitChunks,[m
+[1mdiff --git a/src/app/(dashboard)/dashboard/search-tools/components/ResultsPanel.tsx b/src/app/(dashboard)/dashboard/search-tools/components/ResultsPanel.tsx[m
+[1mindex 62293805e..7f5630734 100644[m
+[1m--- a/src/app/(dashboard)/dashboard/search-tools/components/ResultsPanel.tsx[m
+[1m+++ b/src/app/(dashboard)/dashboard/search-tools/components/ResultsPanel.tsx[m
+[36m@@ -2,9 +2,11 @@[m
+ [m
+ import { useState } from "react";[m
+ import Link from "next/link";[m
+[32m+[m[32mimport dynamic from "next/dynamic";[m
+ import { useTranslations } from "next-intl";[m
+ import { Badge } from "@/shared/components";[m
+[31m-import Editor from "@/shared/components/MonacoEditor";[m
+[32m+[m
+[32m+[m[32mconst Editor = dynamic(() => import("@/shared/components/MonacoEditor"), { ssr: false });[m
+ [m
+ interface SearchResult {[m
+   title: string;[m
+[1mdiff --git a/src/app/(dashboard)/dashboard/translator/components/advanced/RawJsonPanel.tsx b/src/app/(dashboard)/dashboard/translator/components/advanced/RawJsonPanel.tsx[m
+[1mindex 200670dd1..73f2491e9 100644[m
+[1m--- a/src/app/(dashboard)/dashboard/translator/components/advanced/RawJsonPanel.tsx[m
+[1m+++ b/src/app/(dashboard)/dashboard/translator/components/advanced/RawJsonPanel.tsx[m
+[36m@@ -1,13 +1,15 @@[m
+ "use client";[m
+ [m
+ import { useState, useCallback, useEffect, useMemo } from "react";[m
+[32m+[m[32mimport dynamic from "next/dynamic";[m
+ import { useTranslations } from "next-intl";[m
+ import { Card, Button, Select, Badge } from "@/shared/components";[m
+ import Collapsible from "@/shared/components/Collapsible";[m
+[31m-import Editor from "@/shared/components/MonacoEditor";[m
+ import { getExampleTemplates, FORMAT_META, FORMAT_OPTIONS } from "../../exampleTemplates";[m
+ import type { AdvancedAccordionProps } from "../../types";[m
+ [m
+[32m+[m[32mconst Editor = dynamic(() => import("@/shared/components/MonacoEditor"), { ssr: false });[m
+[32m+[m
+ /** Props specific to RawJsonPanel (extends shared accordion props). */[m
+ export interface RawJsonPanelProps extends Omit<AdvancedAccordionProps, "slug"> {[m
+   slug?: AdvancedAccordionProps["slug"];[m
+[1mdiff --git a/src/app/api/compression/budget/route.ts b/src/app/api/compression/budget/route.ts[m
+[1mindex bb26fca0b..4d1c161c0 100644[m
+[1m--- a/src/app/api/compression/budget/route.ts[m
+[1m+++ b/src/app/api/compression/budget/route.ts[m
+[36m@@ -1,5 +1,12 @@[m
+[31m-import { NextRequest, NextResponse } from 'next/server';[m
+[31m-import { getDefaultThinkingBudget, topUpThinkingBudget } from '@omniroute/open-sse/services/thinkingBudget';[m
+[32m+[m[32mimport { NextRequest, NextResponse } from 'next/server';[m
+[32m+[m[32mimport { capThinkingBudget, getDefaultThinkingBudget } from '@/lib/modelCapabilities';[m
+[32m+[m[32mimport { z } from 'zod';[m
+[32m+[m
+[32m+[m[32mconst topUpThinkingBudgetSchema = z.object({[m
+[32m+[m[32m  currentBudget: z.number(),[m
+[32m+[m[32m  model: z.string().optional(),[m
+[32m+[m[32m  additionalTokens: z.number(),[m
+[32m+[m[32m});[m
+ [m
+ export async function GET(request: NextRequest) {[m
+   try {[m
+[36m@@ -15,19 +22,19 @@[m [mexport async function GET(request: NextRequest) {[m
+   }[m
+ }[m
+ [m
+[31m-export async function POST(request: NextRequest) {[m
+[31m-  try {[m
+[31m-    const body = await request.json();[m
+[31m-    const { currentBudget, model, additionalTokens } = body;[m
+[31m-    if (typeof currentBudget !== 'number' || typeof additionalTokens !== 'number') {[m
+[31m-      return NextResponse.json([m
+[31m-        { error: 'currentBudget and additionalTokens are required numbers' },[m
+[31m-        { status: 400 }[m
+[31m-      );[m
+[31m-    }[m
+[31m-    const budget = topUpThinkingBudget(currentBudget, model, additionalTokens);[m
+[31m-    return NextResponse.json({ budget });[m
+[31m-  } catch (error) {[m
+[32m+[m[32mexport async function POST(request: NextRequest) {[m
+[32m+[m[32m  try {[m
+[32m+[m[32m    const parsed = topUpThinkingBudgetSchema.safeParse(await request.json());[m
+[32m+[m[32m    if (!parsed.success) {[m
+[32m+[m[32m      return NextResponse.json([m
+[32m+[m[32m        { error: 'currentBudget and additionalTokens are required numbers' },[m
+[32m+[m[32m        { status: 400 }[m
+[32m+[m[32m      );[m
+[32m+[m[32m    }[m
+[32m+[m[32m    const { currentBudget, model, additionalTokens } = parsed.data;[m
+[32m+[m[32m    const budget = capThinkingBudget(model ?? '', currentBudget + additionalTokens);[m
+[32m+[m[32m    return NextResponse.json({ budget });[m
+[32m+[m[32m  } catch (error) {[m
+     return NextResponse.json([m
+       { error: error instanceof Error ? error.message : 'Failed to top up thinking budget' },[m
+       { status: 500 }[m
+[1mdiff --git a/src/app/api/virtual-keys/route.ts b/src/app/api/virtual-keys/route.ts[m
+[1mindex 044a4b6f8..3b76ae1e6 100644[m
+[1m--- a/src/app/api/virtual-keys/route.ts[m
+[1m+++ b/src/app/api/virtual-keys/route.ts[m
+[36m@@ -17,6 +17,26 @@[m [mimport {[m
+ } from "@/lib/db/virtualKeys";[m
+ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";[m
+ import * as log from "@/sse/utils/logger";[m
+[32m+[m[32mimport { z } from "zod";[m
+[32m+[m
+[32m+[m[32mconst mintVirtualKeySchema = z[m
+[32m+[m[32m  .object({[m
+[32m+[m[32m    tenantId: z.string().min(1).optional(),[m
+[32m+[m[32m    tenant_id: z.string().min(1).optional(),[m
+[32m+[m[32m    label: z.string().optional(),[m
+[32m+[m[32m    allowedModels: z.array(z.string()).optional(),[m
+[32m+[m[32m    allowed_models: z.array(z.string()).optional(),[m
+[32m+[m[32m    maxCostUsd: z.number().nonnegative().nullable().optional(),[m
+[32m+[m[32m    max_cost_usd: z.number().nonnegative().nullable().optional(),[m
+[32m+[m[32m    maxRpd: z.number().int().nonnegative().nullable().optional(),[m
+[32m+[m[32m    max_rpd: z.number().int().nonnegative().nullable().optional(),[m
+[32m+[m[32m    expiresAt: z.string().min(1).nullable().optional(),[m
+[32m+[m[32m    expires_at: z.string().min(1).nullable().optional(),[m
+[32m+[m[32m  })[m
+[32m+[m[32m  .refine((body) => Boolean(body.tenantId ?? body.tenant_id), {[m
+[32m+[m[32m    message: "tenantId is required",[m
+[32m+[m[32m    path: ["tenantId"],[m
+[32m+[m[32m  });[m
+ [m
+ function asString(value: unknown): string | null {[m
+   return typeof value === "string" && value.length > 0 ? value : null;[m
+[36m@@ -91,7 +111,15 @@[m [mexport async function POST(request: Request) {[m
+   if (!rawBody || typeof rawBody !== "object") {[m
+     return NextResponse.json({ error: "Body must be a JSON object" }, { status: 400 });[m
+   }[m
+[31m-  const body = rawBody as Record<string, unknown>;[m
+[32m+[m[32m  const parsed = mintVirtualKeySchema.safeParse(rawBody);[m
+[32m+[m[32m  if (!parsed.success) {[m
+[32m+[m[32m    const firstIssue = parsed.error.issues[0];[m
+[32m+[m[32m    return NextResponse.json([m
+[32m+[m[32m      { error: firstIssue?.message ?? "Invalid virtual key body" },[m
+[32m+[m[32m      { status: 400 },[m
+[32m+[m[32m    );[m
+[32m+[m[32m  }[m
+[32m+[m[32m  const body = parsed.data;[m
+ [m
+   const tenantId = asString(body["tenantId"] ?? body["tenant_id"]);[m
+   if (!tenantId) {[m

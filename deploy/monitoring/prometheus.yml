@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "omniroute"
+    static_configs:
+      - targets: ["localhost:8080"]
+    metrics_path: /metrics
+    scheme: http
+    # Rate limit metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: "omniroute-{{ .Instance }}"
+
+  - job_name: "omniroute-node"
+    static_configs:
+      - targets: ["localhost:9464"] # Node.js process metrics via Node exporter sidecar
+    metrics_path: /metrics
+    scheme: http

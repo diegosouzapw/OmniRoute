@@ -1,0 +1,1009 @@
+[1mdiff --git a/.env.example b/.env.example[m
+[1mindex c881b80c4..62577e939 100644[m
+[1m--- a/.env.example[m
+[1m+++ b/.env.example[m
+[36m@@ -1668,3 +1668,5 @@[m [mQUOTA_STORE_DRIVER=sqlite              # sqlite | redis[m
+ # Redis image used by the 1-click Redis launcher. Default: redis:7-alpine.[m
+ # Override to redis:8-alpine or a private registry mirror as needed.[m
+ # OMNIROUTE_REDIS_IMAGE=[m
+[32m+[m[32m# Optional data-plane Unix socket override for the routed runtime.[m
+[32m+[m[32m# OMNIROUTE_DATA_PLANE_SOCKET=[m
+[1mdiff --git a/Cargo.toml b/Cargo.toml[m
+[1mindex d261ea4c6..a2a111192 100644[m
+[1m--- a/Cargo.toml[m
+[1m+++ b/Cargo.toml[m
+[36m@@ -1,6 +1,7 @@[m
+ [workspace][m
+ resolver = "2"[m
+ members = [[m
+[32m+[m[32m    "crates/omniroute-agent",[m
+     "crates/omniroute-core",[m
+     "crates/omniroute-provider",[m
+     "crates/omniroute-runtime",[m
+[36m@@ -58,6 +59,15 @@[m [mpercent-encoding = "2"[m
+ bytes = "1"[m
+ once_cell = "1"[m
+ [m
+[32m+[m[32m# Agent crate deps[m
+[32m+[m[32maxum = "0.8"[m
+[32m+[m[32msysinfo = "0.33"[m
+[32m+[m[32mprocfs = "0.17"[m
+[32m+[m[32mprometheus = { version = "0.13", features = ["process"] }[m
+[32m+[m[32mtokio-stream = "0.1"[m
+[32m+[m[32mclap = { version = "4", features = ["derive"] }[m
+[32m+[m[32mnvml-wrapper = "0.12"[m
+[32m+[m
+ # Observability (runtime-only)[m
+ opentelemetry = "0.28"[m
+ opentelemetry_sdk = { version = "0.28", features = ["rt-tokio"] }[m
+[1mdiff --git a/crates/omniroute-core/src/types.rs b/crates/omniroute-core/src/types.rs[m
+[1mindex b13b36972..28a3feadc 100644[m
+[1m--- a/crates/omniroute-core/src/types.rs[m
+[1m+++ b/crates/omniroute-core/src/types.rs[m
+[36m@@ -85,7 +85,7 @@[m [mpub fn new(model: impl Into<String>, user_message: impl Into<String>) -> Self {[m
+ }[m
+ [m
+ /// A single message in a chat conversation.[m
+[31m-#[derive(Debug, Clone, Serialize, Deserialize)][m
+[32m+[m[32m#[derive(Debug, Clone, Serialize, Deserialize, Default)][m
+ pub struct ChatMessage {[m
+     /// `"system"`, `"user"`, `"assistant"`, `"tool"`.[m
+     pub role: String,[m
+[36m@@ -166,7 +166,7 @@[m [mpub struct ToolFunction {[m
+ }[m
+ [m
+ /// A tool call emitted by the assistant in a non-streaming response.[m
+[31m-#[derive(Debug, Clone, Serialize, Deserialize)][m
+[32m+[m[32m#[derive(Debug, Clone, Serialize, Deserialize, Default)][m
+ pub struct ToolCall {[m
+     /// Unique call ID (used to address the `"tool"` response).[m
+     pub id: String,[m
+[36m@@ -178,7 +178,7 @@[m [mpub struct ToolCall {[m
+ }[m
+ [m
+ /// Function invocation payload for a [`ToolCall`].[m
+[31m-#[derive(Debug, Clone, Serialize, Deserialize)][m
+[32m+[m[32m#[derive(Debug, Clone, Serialize, Deserialize, Default)][m
+ pub struct ToolCallFunction {[m
+     /// Function name (e.g. `"get_weather"`).[m
+     pub name: String,[m
+[36m@@ -209,7 +209,7 @@[m [mpub struct ChatResponse {[m
+ }[m
+ [m
+ /// One completion choice inside a [`ChatResponse`].[m
+[31m-#[derive(Debug, Clone, Serialize, Deserialize)][m
+[32m+[m[32m#[derive(Debug, Clone, Serialize, Deserialize, Default)][m
+ pub struct Choice {[m
+     /// Index in the `choices` array (0-based).[m
+     pub index: usize,[m
+[36m@@ -235,7 +235,7 @@[m [mpub struct Usage {[m
+ /// For streaming, the runtime emits a sequence of `StreamChunk`s with[m
+ /// `done: false`, then one with `done: true`, then closes the SSE channel.[m
+ /// The `done: true` chunk is encoded as `data: [DONE]\n\n`.[m
+[31m-#[derive(Debug, Clone, Serialize, Deserialize)][m
+[32m+[m[32m#[derive(Debug, Clone, Serialize, Deserialize, Default)][m
+ pub struct StreamChunk {[m
+     /// Response ID (matches the first non-`done` chunk).[m
+     pub id: String,[m
+[36m@@ -297,7 +297,7 @@[m [mpub fn push_choice(mut self, index: usize, delta: ChatMessage) -> Self {[m
+ }[m
+ [m
+ /// One streaming delta inside a [`StreamChunk`].[m
+[31m-#[derive(Debug, Clone, Serialize, Deserialize)][m
+[32m+[m[32m#[derive(Debug, Clone, Serialize, Deserialize, Default)][m
+ pub struct StreamChoice {[m
+     /// Index in the `choices` array (0-based).[m
+     pub index: usize,[m
+[36m@@ -309,7 +309,7 @@[m [mpub struct StreamChoice {[m
+ }[m
+ [m
+ /// Error body emitted in a [`StreamChunk`] (mid-stream) or non-streaming response.[m
+[31m-#[derive(Debug, Clone, Serialize, Deserialize)][m
+[32m+[m[32m#[derive(Debug, Clone, Serialize, Deserialize, Default)][m
+ pub struct ApiError {[m
+     /// Human-readable error message.[m
+     pub message: String,[m
+[1mdiff --git a/crates/omniroute-provider/Cargo.toml b/crates/omniroute-provider/Cargo.toml[m
+[1mindex 70dae399b..ce1eb8714 100644[m
+[1m--- a/crates/omniroute-provider/Cargo.toml[m
+[1m+++ b/crates/omniroute-provider/Cargo.toml[m
+[36m@@ -18,6 +18,7 @@[m [mtracing = { workspace = true }[m
+ chrono = { workspace = true }[m
+ url = { workspace = true }[m
+ futures-util = { workspace = true }[m
+[32m+[m[32mbytes = "1"[m
+ [m
+ [dev-dependencies][m
+ tokio = { workspace = true }[m
+[1mdiff --git a/crates/omniroute-provider/src/lib.rs b/crates/omniroute-provider/src/lib.rs[m
+[1mindex 39ec40b1c..ed98e1106 100644[m
+[1m--- a/crates/omniroute-provider/src/lib.rs[m
+[1m+++ b/crates/omniroute-provider/src/lib.rs[m
+[36m@@ -17,10 +17,12 @@[m
+ [m
+ pub mod anthropic;[m
+ pub mod gemini;[m
+[32m+[m[32mpub mod ollama;[m
+ pub mod openai;[m
+ pub mod registry;[m
+ [m
+ pub use anthropic::{AnthropicProvider, ProviderInit as AnthropicProviderInit};[m
+ pub use gemini::{GeminiProvider, ProviderInit as GeminiProviderInit};[m
+[32m+[m[32mpub use ollama::OllamaProvider;[m
+ pub use openai::{OpenAIProvider, ProviderInit};[m
+ pub use registry::{ProviderConfig, ProviderRegistryBuilder, register_defaults_from_env};[m
+\ No newline at end of file[m
+[1mdiff --git a/crates/omniroute-runtime/src/bin/routed.rs b/crates/omniroute-runtime/src/bin/routed.rs[m
+[1mindex e04653e58..c93d898ab 100644[m
+[1m--- a/crates/omniroute-runtime/src/bin/routed.rs[m
+[1m+++ b/crates/omniroute-runtime/src/bin/routed.rs[m
+[36m@@ -26,6 +26,7 @@[m
+ [m
+ use omniroute_core::{Context, Credentials, ProviderRegistry};[m
+ use omniroute_provider::openai::{OpenAIProvider, ProviderInit};[m
+[32m+[m[32muse omniroute_provider::ollama::OllamaProvider;[m
+ use omniroute_provider::register_defaults_from_env;[m
+ use omniroute_runtime::server::Server;[m
+ [m
+[36m@@ -57,6 +58,16 @@[m [masync fn main() {[m
+             }[m
+             Err(e) => tracing::warn!(%e, "failed to register openai"),[m
+         }[m
+[32m+[m[32m        // Wire Ollama on default endpoint if not explicitly disabled.[m
+[32m+[m[32m        let ollama_base = std::env::var("OLLAMA_BASE_URL")[m
+[32m+[m[32m            .unwrap_or_else(|_| "http://localhost:11434".into());[m
+[32m+[m[32m        match OllamaProvider::new(&ollama_base) {[m
+[32m+[m[32m            Ok(p) => {[m
+[32m+[m[32m                reg.register(p);[m
+[32m+[m[32m                tracing::info!("registered ollama provider at {ollama_base}");[m
+[32m+[m[32m            }[m
+[32m+[m[32m            Err(e) => tracing::warn!(%e, "failed to register ollama"),[m
+[32m+[m[32m        }[m
+         reg[m
+     } else {[m
+         // fall back to env-based registration for multi-provider setups[m
+[1mdiff --git a/docs/reference/ENVIRONMENT.md b/docs/reference/ENVIRONMENT.md[m
+[1mindex ce8613a65..4fc90bf97 100644[m
+[1m--- a/docs/reference/ENVIRONMENT.md[m
+[1m+++ b/docs/reference/ENVIRONMENT.md[m
+[36m@@ -1023,6 +1023,8 @@[m [m### Docs translation pipeline[m
+ [m
+ ---[m
+ [m
+[32m+[m[32m| `OMNIROUTE_DATA_PLANE_SOCKET` | _(auto)_ | `open-sse/services/udsRouter.ts` | Overrides the data-plane Unix socket path used by the routed runtime. |[m
+[32m+[m
+ ## Audit: Removed / Dead Variables[m
+ [m
+ The following variables appeared in previous versions of `.env.example` but have **no runtime references** in the current codebase. They have been removed:[m
+[1mdiff --git a/open-sse/services/combo.ts b/open-sse/services/combo.ts[m
+[1mindex d3535fe05..740189104 100644[m
+[1m--- a/open-sse/services/combo.ts[m
+[1m+++ b/open-sse/services/combo.ts[m
+[36m@@ -125,6 +125,7 @@[m [mimport {[m
+   sortTargetsByUsage,[m
+   orderTargetsByPowerOfTwoChoices,[m
+ } from "./combo/targetSorters.ts";[m
+[32m+[m[32mimport { orderTargetsByConsistentHash } from "./combo/consistentHashStrategy.ts";[m
+ import {[m
+   filterTargetsByRequestCompatibility,[m
+   getModelContextLimitForModelString,[m
+[36m@@ -894,6 +895,17 @@[m [mexport async function handleComboChat({[m
+   } else if (strategy === "p2c") {[m
+     orderedTargets = orderTargetsByPowerOfTwoChoices(orderedTargets, combo.name);[m
+     log.info("COMBO", `Power-of-two-choices ordering: selected ${orderedTargets[0]?.modelStr}`);[m
+[32m+[m[32m  } else if (strategy === "consistent-hash") {[m
+[32m+[m[32m    orderedTargets = orderTargetsByConsistentHash(orderedTargets, {[m
+[32m+[m[32m      sessionId: body?.session_id as string | undefined,[m
+[32m+[m[32m      provider: typeof body?.model === "string"[m
+[32m+[m[32m        ? (body.model as string).split("/")[0][m
+[32m+[m[32m        : undefined,[m
+[32m+[m[32m      model: typeof body?.model === "string"[m
+[32m+[m[32m        ? (body.model as string)[m
+[32m+[m[32m        : undefined,[m
+[32m+[m[32m    });[m
+[32m+[m[32m    log.info("COMBO", `Consistent-hash routing: ${orderedTargets[0]?.modelStr} selected for session`);[m
+   } else if (strategy === "least-used") {[m
+     orderedTargets = sortTargetsByUsage(orderedTargets, combo.name);[m
+     log.info("COMBO", `Least-used ordering: ${orderedTargets[0]?.modelStr} has fewest requests`);[m
+[1mdiff --git a/scripts/check/check-env-doc-sync.mjs b/scripts/check/check-env-doc-sync.mjs[m
+[1mindex e5681bdb1..abb4645e3 100644[m
+[1m--- a/scripts/check/check-env-doc-sync.mjs[m
+[1m+++ b/scripts/check/check-env-doc-sync.mjs[m
+[36m@@ -149,6 +149,7 @@[m [mconst IGNORE_FROM_CODE = new Set([[m
+   // XDG standard data directory — set by OS/desktop session, not OmniRoute config.[m
+   // Read by setup-open-code.mjs to locate platform-specific OpenCode data dir.[m
+   "XDG_DATA_HOME",[m
+[32m+[m[32m  "XDG_RUNTIME_DIR",[m
+   // Test-only override: points setup-open-code.mjs at a fixture plugin dir without[m
+   // requiring the real bundled plugin to be built.[m
+   "OMNIROUTE_OPENCODE_PLUGIN_DIR",[m
+[1mdiff --git a/src/lib/cloudSync.ts b/src/lib/cloudSync.ts[m
+[1mindex c26459f71..3de6bf912 100644[m
+[1m--- a/src/lib/cloudSync.ts[m
+[1m+++ b/src/lib/cloudSync.ts[m
+[36m@@ -70,7 +70,7 @@[m [mexport function verifyCloudSignature(rawBody: string, sigHeader: string | null):[m
+   }[m
+ }[m
+ [m
+[31m-export async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_SYNC_TIMEOUT_MS) {[m
+[32m+[m[32mexport async function fetchWithTimeout(url: string | URL, options?: RequestInit, timeoutMs: number = CLOUD_SYNC_TIMEOUT_MS) {[m
+   const controller = new AbortController();[m
+   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);[m
+   try {[m
+[36m@@ -85,7 +85,7 @@[m [mexport async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_SYNC[m
+  * @param {string} machineId[m
+  * @param {string|null} createdKey - Key created during enable[m
+  */[m
+[31m-export async function syncToCloud(machineId, createdKey = null) {[m
+[32m+[m[32mexport async function syncToCloud(machineId: string, createdKey: string | null = null) {[m
+   if (!CLOUD_URL) {[m
+     return { error: "NEXT_PUBLIC_CLOUD_URL is not configured" };[m
+   }[m
+[36m@@ -107,7 +107,7 @@[m [mexport async function syncToCloud(machineId, createdKey = null) {[m
+       }),[m
+     });[m
+   } catch (error) {[m
+[31m-    const isTimeout = error?.name === "AbortError";[m
+[32m+[m[32m    const isTimeout = (error as Error)?.name === "AbortError";[m
+     return { error: isTimeout ? "Cloud sync timeout" : "Cloud sync request failed" };[m
+   }[m
+ [m
+[1mdiff --git a/src/lib/db/adapters/sqljsAdapter.ts b/src/lib/db/adapters/sqljsAdapter.ts[m
+[1mindex 0d2ea317d..482adb78e 100644[m
+[1m--- a/src/lib/db/adapters/sqljsAdapter.ts[m
+[1m+++ b/src/lib/db/adapters/sqljsAdapter.ts[m
+[36m@@ -6,7 +6,8 @@[m [mimport type { SqliteAdapter, PreparedStatement, RunResult } from "./types";[m
+ const SAVE_DEBOUNCE_MS = 100;[m
+ const CHECKPOINT_INTERVAL_MS = 60_000;[m
+ [m
+[31m-let _sqlJsLib: Awaited<ReturnType<(typeof import("sql.js"))["default"]>> | null = null;[m
+[32m+[m[32m// eslint-disable-next-line @typescript-eslint/no-explicit-any[m
+[32m+[m[32mlet _sqlJsLib: any = null;[m
+ [m
+ function resolveSqlJsWasmPath(): string {[m
+   const candidatePaths = [[m
+[36m@@ -31,14 +32,15 @@[m [mfunction resolveSqlJsWasmPath(): string {[m
+   return candidatePaths[0];[m
+ }[m
+ [m
+[31m-async function loadSqlJs(): Promise<typeof _sqlJsLib> {[m
+[32m+[m[32masync function loadSqlJs(): Promise<any> {[m
+   if (_sqlJsLib) return _sqlJsLib;[m
+[31m-  const initSqlJs = ((await import("sql.js")) as { default: (typeof import("sql.js"))["default"] })[m
+[31m-    .default;[m
+[32m+[m[32m  // @ts-ignore - sql.js has no type declarations; @ts-expect-error would fire in non-strict mode[m
+[32m+[m[32m  // eslint-disable-next-line @typescript-eslint/no-explicit-any[m
+[32m+[m[32m  const initSqlJs: any = await import("sql.js");[m
+   const wasmPath = resolveSqlJsWasmPath();[m
+ [m
+[31m-  _sqlJsLib = await initSqlJs({[m
+[31m-    locateFile(fileName) {[m
+[32m+[m[32m  _sqlJsLib = await (initSqlJs as any)({[m
+[32m+[m[32m    locateFile(fileName: string) {[m
+       if (fileName === "sql-wasm.wasm") {[m
+         return wasmPath;[m
+       }[m
+[1mdiff --git a/src/lib/db/compressionAnalytics.ts b/src/lib/db/compressionAnalytics.ts[m
+[1mindex ee63e7f2b..4ecaa7482 100644[m
+[1m--- a/src/lib/db/compressionAnalytics.ts[m
+[1m+++ b/src/lib/db/compressionAnalytics.ts[m
+[36m@@ -220,7 +220,7 @@[m [mexport function insertCompressionEngineBreakdown(rows: CompressionEngineBreakdow[m
+        (timestamp, request_id, engine, original_tokens, compressed_tokens, tokens_saved, duration_ms)[m
+      VALUES (?, ?, ?, ?, ?, ?, ?)`[m
+   );[m
+[31m-  const insertAll = db.transaction((items: CompressionEngineBreakdownRow[]) => {[m
+[32m+[m[32m  const insertAll = db.transaction(((items: CompressionEngineBreakdownRow[]) => {[m
+     for (const r of items) {[m
+       stmt.run([m
+         r.timestamp,[m
+[36m@@ -232,7 +232,7 @@[m [mexport function insertCompressionEngineBreakdown(rows: CompressionEngineBreakdow[m
+         r.duration_ms ?? null[m
+       );[m
+     }[m
+[31m-  });[m
+[32m+[m[32m  }) as (...args: unknown[]) => void) as (items: CompressionEngineBreakdownRow[]) => void;[m
+   insertAll(rows);[m
+ }[m
+ [m
+[1mdiff --git a/src/lib/db/core.ts b/src/lib/db/core.ts[m
+[1mindex 334557cba..188d1aa8e 100644[m
+[1m--- a/src/lib/db/core.ts[m
+[1m+++ b/src/lib/db/core.ts[m
+[36m@@ -1720,7 +1720,7 @@[m [mfunction migrateFromJson(db: SqliteDatabase, jsonPath: string) {[m
+       }[m
+     }[m
+   } catch (err) {[m
+[31m-    console.error("[DB] Migration from db.json failed:", err.message);[m
+[32m+[m[32m    console.error("[DB] Migration from db.json failed:", (err as Error).message);[m
+   }[m
+ }[m
+ [m
+[1mdiff --git a/src/lib/db/discovery.ts b/src/lib/db/discovery.ts[m
+[1mindex 4a4a638ee..d38ada446 100644[m
+[1m--- a/src/lib/db/discovery.ts[m
+[1m+++ b/src/lib/db/discovery.ts[m
+[36m@@ -5,7 +5,7 @@[m
+  */[m
+ [m
+ import { getDbInstance } from "./core";[m
+[31m-import { logger } from "../../open-sse/utils/logger";[m
+[32m+[m[32mimport { logger } from "@omniroute/open-sse/utils/logger";[m
+ [m
+ const log = logger("DB_DISCOVERY");[m
+ [m
+[1mdiff --git a/src/lib/db/domainState.ts b/src/lib/db/domainState.ts[m
+[1mindex 093355a28..a3548b2ce 100644[m
+[1m--- a/src/lib/db/domainState.ts[m
+[1m+++ b/src/lib/db/domainState.ts[m
+[36m@@ -391,12 +391,12 @@[m [mexport function batchSaveCostEntries([m
+     "INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)"[m
+   );[m
+   const tx = db.transaction([m
+[31m-    (rows: Array<{ apiKeyId: string; cost: number; timestamp: number }>) => {[m
+[32m+[m[32m    ((rows: Array<{ apiKeyId: string; cost: number; timestamp: number }>) => {[m
+       for (const entry of rows) {[m
+         stmt.run(entry.apiKeyId, entry.cost, entry.timestamp);[m
+       }[m
+[31m-    }[m
+[31m-  );[m
+[32m+[m[32m    }) as (...args: unknown[]) => void[m
+[32m+[m[32m  ) as (...args: unknown[]) => void;[m
+ [m
+   tx(entries);[m
+ }[m
+[1mdiff --git a/src/lib/db/settings.ts b/src/lib/db/settings.ts[m
+[1mindex 9791a0d22..da19caaeb 100644[m
+[1m--- a/src/lib/db/settings.ts[m
+[1m+++ b/src/lib/db/settings.ts[m
+[36m@@ -71,6 +71,14 @@[m [mfunction toRecord(value: unknown): JsonRecord {[m
+   return value && typeof value === "object" ? (value as JsonRecord) : {};[m
+ }[m
+ [m
+[32m+[m[32mfunction safeParseJsonValue(rawValue: string): unknown {[m
+[32m+[m[32m  try {[m
+[32m+[m[32m    return JSON.parse(rawValue);[m
+[32m+[m[32m  } catch {[m
+[32m+[m[32m    return undefined;[m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[32m+[m
+ function toProxyMap(value: unknown): ProxyMap {[m
+   return value && typeof value === "object" ? (value as ProxyMap) : {};[m
+ }[m
+[36m@@ -153,7 +161,14 @@[m [mexport async function getSettings() {[m
+     const key = typeof record.key === "string" ? record.key : null;[m
+     const rawValue = typeof record.value === "string" ? record.value : null;[m
+     if (!key || rawValue === null) continue;[m
+[31m-    settings[key] = JSON.parse(rawValue);[m
+[32m+[m[32m    const parsedValue = safeParseJsonValue(rawValue);[m
+[32m+[m[32m    if (parsedValue === undefined) {[m
+[32m+[m[32m      console.warn([m
+[32m+[m[32m        `[DB] Skipping malformed settings value for key '${key}' in namespace 'settings'`[m
+[32m+[m[32m      );[m
+[32m+[m[32m      continue;[m
+[32m+[m[32m    }[m
+[32m+[m[32m    settings[key] = parsedValue;[m
+   }[m
+ [m
+   // Auto-complete onboarding for pre-configured deployments (Docker/VM)[m
+[1mdiff --git a/src/lib/embeddings/service.ts b/src/lib/embeddings/service.ts[m
+[1mindex 7c445fe2c..9a645b407 100644[m
+[1m--- a/src/lib/embeddings/service.ts[m
+[1m+++ b/src/lib/embeddings/service.ts[m
+[36m@@ -82,7 +82,12 @@[m [mexport async function createEmbeddingResponse([m
+             });[m
+           },[m
+           isModelAvailable: undefined,[m
+[31m-          log,[m
+[32m+[m[32m          log: log as unknown as {[m
+[32m+[m[32m          info: (...args: unknown[]) => void;[m
+[32m+[m[32m          warn: (...args: unknown[]) => void;[m
+[32m+[m[32m          debug: (...args: unknown[]) => void;[m
+[32m+[m[32m          error: (...args: unknown[]) => void;[m
+[32m+[m[32m        },[m
+           settings,[m
+           allCombos: allCombos as any,[m
+           relayOptions: undefined,[m
+[36m@@ -197,7 +202,7 @@[m [mexport async function createEmbeddingResponse([m
+     // only reads apiKey/accessToken, both present at runtime. Bridge the wider[m
+     // selection type to the handler's narrow credential shape.[m
+     credentials: credentials as { apiKey?: string; accessToken?: string } | null,[m
+[31m-    log,[m
+[32m+[m[32m    log: log as unknown as { info: (...args: unknown[]) => void; error: (...args: unknown[]) => void },[m
+     resolvedProvider: providerConfig,[m
+     resolvedModel,[m
+     clientRawRequest: options.clientRawRequest || null,[m
+[1mdiff --git a/src/lib/guardrails/promptInjection.ts b/src/lib/guardrails/promptInjection.ts[m
+[1mindex 6530e2155..d99a8e0c5 100644[m
+[1m--- a/src/lib/guardrails/promptInjection.ts[m
+[1m+++ b/src/lib/guardrails/promptInjection.ts[m
+[36m@@ -124,11 +124,11 @@[m [mfunction emitGuardrailLog([m
+   if (typeof target !== "function") return;[m
+ [m
+   if (logger === console) {[m
+[31m-    target.call(logger, message, meta || "");[m
+[32m+[m[32m    Reflect.apply(target, logger, [message, meta ?? ""]);[m
+     return;[m
+   }[m
+ [m
+[31m-  target.call(logger, "GUARDRAIL", message, meta);[m
+[32m+[m[32m  Reflect.apply(target, logger, ["GUARDRAIL", message, meta]);[m
+ }[m
+ [m
+ function getMode(options: PromptInjectionGuardrailOptions) {[m
+[36m@@ -182,11 +182,11 @@[m [mexport function evaluatePromptInjection([m
+     .map(normalizePatternEntry)[m
+     .filter(Boolean);[m
+ [m
+[31m-  const sanitizerResult = sanitizeRequest(body, {[m
+[32m+[m[32m  const sanitizerResult = sanitizeRequest(body as Record<string, unknown>, {[m
+     info() {},[m
+     warn() {},[m
+[31m-  } as Console);[m
+[31m-  const contents = extractMessageContents(body);[m
+[32m+[m[32m  } as unknown as { [key: string]: (...args: any[]) => void });[m
+[32m+[m[32m  const contents = extractMessageContents(body as Record<string, unknown>);[m
+   // Bound the custom-pattern scan to the first 16 KB, matching detectInjection's[m
+   // cap inside sanitizeRequest above (hot-path perf, #3932 / #4041). Injection[m
+   // directives sit near the top; scanning the full join buys only CPU/GC.[m
+[36m@@ -197,7 +197,7 @@[m [mexport function evaluatePromptInjection([m
+       : joinedContents;[m
+   const customDetections = detectWithPatterns(scanText, patterns);[m
+   const existingDetections = new Set([m
+[31m-    sanitizerResult.detections.map((d: Detection) => `${d.pattern}:${d.match}:${d.severity}`)[m
+[32m+[m[32m    ((sanitizerResult.detections ?? []) as Detection[]).map((d: Detection) => `${d.pattern}:${d.match}:${d.severity}`)[m
+   );[m
+ [m
+   for (const detection of customDetections) {[m
+[36m@@ -210,7 +210,7 @@[m [mexport function evaluatePromptInjection([m
+   const result = {[m
+     detections: sanitizerResult.detections as Detection[],[m
+     flagged: sanitizerResult.detections.length > 0 || sanitizerResult.piiDetections.length > 0,[m
+[31m-    piiDetections: sanitizerResult.piiDetections,[m
+[32m+[m[32m    piiDetections: sanitizerResult.piiDetections as Array<{ count: number; type: string }>,[m
+   };[m
+ [m
+   if (!result.flagged) {[m
+[1mdiff --git a/src/lib/guardrails/visionBridge.ts b/src/lib/guardrails/visionBridge.ts[m
+[1mindex 1c721b8cd..55d235491 100644[m
+[1m--- a/src/lib/guardrails/visionBridge.ts[m
+[1m+++ b/src/lib/guardrails/visionBridge.ts[m
+[36m@@ -37,7 +37,7 @@[m [masync function getComboVisionBridgeDecision(model: string): Promise<ComboVisionB[m
+     if (!combo) {[m
+       const mapping = await resolveComboForModel(model);[m
+       if (!mapping) return "not-combo";[m
+[31m-      const comboName = mapping.comboName ?? mapping.name ?? null;[m
+[32m+[m[32m      const comboName = (mapping as Record<string, string | null>).comboName ?? (mapping as Record<string, string | null>).name ?? null;[m
+       if (!comboName) return "not-combo";[m
+       combo = await getComboByName(comboName);[m
+     }[m
+[1mdiff --git a/src/lib/idempotencyLayer.ts b/src/lib/idempotencyLayer.ts[m
+[1mindex 628541cb8..c2dae223c 100644[m
+[1m--- a/src/lib/idempotencyLayer.ts[m
+[1m+++ b/src/lib/idempotencyLayer.ts[m
+[36m@@ -18,7 +18,8 @@[m [mconst DEFAULT_WINDOW_MS = 5000;[m
+ const idempotencyStore = new Map();[m
+ [m
+ // Periodic cleanup every 30s[m
+[31m-let cleanupInterval;[m
+[32m+[m[32m/** @type {ReturnType<typeof setInterval> | undefined} */[m
+[32m+[m[32mlet cleanupInterval: ReturnType<typeof setInterval> | undefined;[m
+ [m
+ function ensureCleanup() {[m
+   if (cleanupInterval) return;[m
+[36m@@ -30,7 +31,6 @@[m [mfunction ensureCleanup() {[m
+       }[m
+     }[m
+   }, 30000);[m
+[31m-  // Don't prevent process exit[m
+   if (cleanupInterval.unref) cleanupInterval.unref();[m
+ }[m
+ [m
+[36m@@ -39,9 +39,9 @@[m [mfunction ensureCleanup() {[m
+  * @param {Headers|object} headers[m
+  * @returns {string|null}[m
+  */[m
+[31m-export function getIdempotencyKey(headers) {[m
+[32m+[m[32mexport function getIdempotencyKey(headers: Headers | Record<string, string> | null | undefined): string | null {[m
+   if (!headers) return null;[m
+[31m-  const get = typeof headers.get === "function" ? (k) => headers.get(k) : (k) => headers[k];[m
+[32m+[m[32m  const get: (k: string) => string | undefined = typeof (headers as Headers).get === "function" ? (k: string) => (headers as Headers).get(k) ?? undefined : (k: string) => (headers as Record<string, string>)[k];[m
+   return get("idempotency-key") || get("x-request-id") || null;[m
+ }[m
+ [m
+[36m@@ -50,7 +50,7 @@[m [mexport function getIdempotencyKey(headers) {[m
+  * @param {string} key[m
+  * @returns {{ response: object, status: number }|null}[m
+  */[m
+[31m-export function checkIdempotency(key) {[m
+[32m+[m[32mexport function checkIdempotency(key: string): { response: object; status: number } | null {[m
+   if (!key) return null;[m
+   const entry = idempotencyStore.get(key);[m
+   if (!entry) return null;[m
+[36m@@ -68,7 +68,7 @@[m [mexport function checkIdempotency(key) {[m
+  * @param {number} status - HTTP status code[m
+  * @param {number} [windowMs=5000] - Dedup window in ms[m
+  */[m
+[31m-export function saveIdempotency(key, response, status, windowMs = DEFAULT_WINDOW_MS) {[m
+[32m+[m[32mexport function saveIdempotency(key: string, response: object, status: number, windowMs: number = DEFAULT_WINDOW_MS): void {[m
+   if (!key) return;[m
+   ensureCleanup();[m
+   idempotencyStore.set(key, {[m
+[1mdiff --git a/src/lib/localDb.ts b/src/lib/localDb.ts[m
+[1mindex eee2234a1..f91858ae6 100755[m
+[1m--- a/src/lib/localDb.ts[m
+[1m+++ b/src/lib/localDb.ts[m
+[36m@@ -748,3 +748,44 @@[m [mexport type {[m
+ // proxy_logs — export query (#3500 slice 4)[m
+ // ---------------------------------------------------------------------------[m
+ export { exportProxyLogsSince } from "./db/proxyLogs";[m
+[32m+[m
+[32m+[m[32m// ---------------------------------------------------------------------------[m
+[32m+[m[32m// Fleet Management — nodes, config, scaling policies, alert rules[m
+[32m+[m[32m// ---------------------------------------------------------------------------[m
+[32m+[m[32mexport {[m
+[32m+[m[32m  getFleetNode,[m
+[32m+[m[32m  listFleetNodes,[m
+[32m+[m[32m  createFleetNode,[m
+[32m+[m[32m  updateFleetNode,[m
+[32m+[m[32m  deleteFleetNode,[m
+[32m+[m[32m  recordHeartbeat,[m
+[32m+[m[32m  getFleetNodeCount,[m
+[32m+[m[32m  getFleetNodesByStatus,[m
+[32m+[m[32m} from "./db/fleetNodes";[m
+[32m+[m[32mexport type { FleetNode, CreateFleetNodeParams, UpdateFleetNodeParams } from "./db/fleetNodes";[m
+[32m+[m
+[32m+[m[32mexport {[m
+[32m+[m[32m  getLatestFleetConfig,[m
+[32m+[m[32m  createFleetConfig,[m
+[32m+[m[32m  listFleetConfigHistory,[m
+[32m+[m[32m  updateFleetConfigStatus,[m
+[32m+[m[32m} from "./db/fleetConfig";[m
+[32m+[m[32mexport type { FleetConfig, CreateFleetConfigParams } from "./db/fleetConfig";[m
+[32m+[m
+[32m+[m[32mexport {[m
+[32m+[m[32m  getScalingPolicy,[m
+[32m+[m[32m  listScalingPolicies,[m
+[32m+[m[32m  createScalingPolicy,[m
+[32m+[m[32m  updateScalingPolicy,[m
+[32m+[m[32m  deleteScalingPolicy,[m
+[32m+[m[32m} from "./db/scalingPolicies";[m
+[32m+[m[32mexport type { ScalingPolicy, CreateScalingPolicyParams, UpdateScalingPolicyParams } from "./db/scalingPolicies";[m
+[32m+[m
+[32m+[m[32mexport {[m
+[32m+[m[32m  getAlertRule,[m
+[32m+[m[32m  listAlertRules,[m
+[32m+[m[32m  createAlertRule,[m
+[32m+[m[32m  updateAlertRule,[m
+[32m+[m[32m  deleteAlertRule,[m
+[32m+[m[32m} from "./db/alertRules";[m
+[32m+[m[32mexport type { AlertRule, CreateAlertRuleParams, UpdateAlertRuleParams } from "./db/alertRules";[m
+[1mdiff --git a/src/lib/providers/codexFastTier.ts b/src/lib/providers/codexFastTier.ts[m
+[1mindex 9fe973e46..686c45c64 100644[m
+[1m--- a/src/lib/providers/codexFastTier.ts[m
+[1m+++ b/src/lib/providers/codexFastTier.ts[m
+[36m@@ -90,7 +90,7 @@[m [mexport function getCodexEffectiveServiceTier([m
+   // Dashboard global modes are explicit overrides; use "none" to preserve the[m
+   // per-connection requestDefaults.serviceTier value.[m
+   if (globalServiceMode === true) return "priority";[m
+[31m-  if (globalServiceMode && globalServiceMode !== false && globalServiceMode !== "none") {[m
+[32m+[m[32m  if (globalServiceMode && globalServiceMode !== "none") {[m
+     return globalServiceMode;[m
+   }[m
+   return getCodexConnectionServiceTier(providerSpecificData);[m
+[1mdiff --git a/src/lib/search/executeWebSearch.ts b/src/lib/search/executeWebSearch.ts[m
+[1mindex 2cf065dc0..f848e480d 100644[m
+[1m--- a/src/lib/search/executeWebSearch.ts[m
+[1m+++ b/src/lib/search/executeWebSearch.ts[m
+[36m@@ -203,7 +203,7 @@[m [mexport async function executeWebSearch([m
+       .filter((provider) => supportsSearchType(provider, searchType))[m
+       .sort((a, b) => a.costPerQuery - b.costPerQuery)[m
+       .map((provider) => provider.id)[m
+[31m-      .filter((providerId) => providerId !== providerConfig.id);[m
+[32m+[m[32m      .filter((providerId) => providerConfig && providerId !== providerConfig.id);[m
+ [m
+     for (const providerId of otherIds) {[m
+       const creds = await resolveSearchCredentials(providerId);[m
+[1mdiff --git a/src/lib/semanticCache.ts b/src/lib/semanticCache.ts[m
+[1mindex 041084467..e00d881d0 100644[m
+[1m--- a/src/lib/semanticCache.ts[m
+[1m+++ b/src/lib/semanticCache.ts[m
+[36m@@ -116,7 +116,7 @@[m [mfunction getMemoryCache() {[m
+  * @param {string} [apiKeyId] - API key ID for per-key isolation (prevents cross-user cache hits)[m
+  * @returns {string} hex signature[m
+  */[m
+[31m-export function generateSignature(model, conversation, temperature = 0, topP = 1, apiKeyId?: string) {[m
+[32m+[m[32mexport function generateSignature(model: string, conversation: unknown, temperature: number = 0, topP: number = 1, apiKeyId?: string): string {[m
+   const payload = JSON.stringify({[m
+     model,[m
+     messages: normalizeConversation(conversation),[m
+[36m@@ -167,7 +167,7 @@[m [mfunction normalizeConversation(conversation: unknown) {[m
+  * @param {string} signature[m
+  * @returns {object|null} Cached response or null[m
+  */[m
+[31m-export function getCachedResponse(signature) {[m
+[32m+[m[32mexport function getCachedResponse(signature: string): object | null {[m
+   // 1. Check memory cache[m
+   const memResult = getMemoryCache().get(signature);[m
+   if (memResult) {[m
+[36m@@ -224,7 +224,7 @@[m [mexport function getCachedResponse(signature) {[m
+  * @param {number} tokensSaved - Estimated tokens saved[m
+  * @param {number} [ttlMs] - TTL in ms (default: 1 hour)[m
+  */[m
+[31m-export function setCachedResponse(signature, model, response, tokensSaved = 0, ttlMs = 3600000) {[m
+[32m+[m[32mexport function setCachedResponse(signature: string, model: string, response: object, tokensSaved: number = 0, ttlMs: number = 3600000): void {[m
+   const ttl = parseInt(process.env.SEMANTIC_CACHE_TTL_MS || String(ttlMs), 10);[m
+ [m
+   // 1. Memory cache[m
+[36m@@ -408,7 +408,7 @@[m [mexport function getCacheStats() {[m
+  * Requires explicit numeric `temperature: 0` — omitted temperature is NOT cached[m
+  * because the provider default may be non-deterministic (e.g. random/creative tasks).[m
+  */[m
+[31m-export function isCacheableForRead(body, headers) {[m
+[32m+[m[32mexport function isCacheableForRead(body: Record<string, unknown>, headers: Record<string, string | undefined>): boolean {[m
+   if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {[m
+     return false;[m
+   }[m
+[36m@@ -422,7 +422,7 @@[m [mexport function isCacheableForRead(body, headers) {[m
+  * Requires explicit `temperature: 0` — omitted temperature is NOT cacheable[m
+  * because the provider default may be non-deterministic.[m
+  */[m
+[31m-export function isCacheableForWrite(body, headers) {[m
+[32m+[m[32mexport function isCacheableForWrite(body: Record<string, unknown>, headers: Record<string, string | undefined>): boolean {[m
+   if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {[m
+     return false;[m
+   }[m
+[1mdiff --git a/src/lib/skills/builtins.ts b/src/lib/skills/builtins.ts[m
+[1mindex aec85ed25..d0e6ce32e 100644[m
+[1m--- a/src/lib/skills/builtins.ts[m
+[1m+++ b/src/lib/skills/builtins.ts[m
+[36m@@ -286,7 +286,7 @@[m [mexport const builtinSkills: Record<string, SkillHandler> = {[m
+       body:[m
+         normalizedMethod === "GET" || normalizedMethod === "HEAD"[m
+           ? undefined[m
+[31m-          : normalizeBody(body, headers),[m
+[32m+[m[32m          : (normalizeBody(body, headers) as BodyInit),[m
+       timeoutMs: normalizePositiveInteger(timeoutMs, 10_000, 60_000),[m
+       allowRedirect: false,[m
+       retry: false,[m
+[1mdiff --git a/src/lib/sseTextTransform.ts b/src/lib/sseTextTransform.ts[m
+[1mindex d33ed8d6b..59363eaa4 100644[m
+[1m--- a/src/lib/sseTextTransform.ts[m
+[1m+++ b/src/lib/sseTextTransform.ts[m
+[36m@@ -282,7 +282,7 @@[m [mexport function createSseTextTransform([m
+   };[m
+ [m
+   return new TransformStream({[m
+[31m-    transform(chunk, controller) {[m
+[32m+[m[32m    transform(chunk: Uint8Array, controller: TransformStreamDefaultController<Uint8Array>) {[m
+       try {[m
+         const chunkStr = decoder.decode(chunk, { stream: true });[m
+         lineBuffer += chunkStr;[m
+[36m@@ -296,7 +296,7 @@[m [mexport function createSseTextTransform([m
+         let context = "[REDACTED_DUE_TO_PII]";[m
+         if (!err?.message?.startsWith("[PII]")) {[m
+           if (typeof chunk === "string") {[m
+[31m-            context = chunk.slice(0, 200);[m
+[32m+[m[32m            context = (chunk as string).slice(0, 200);[m
+           } else if (chunk instanceof Uint8Array) {[m
+             context = fallbackDecoder.decode(chunk.slice(0, 200));[m
+           } else {[m
+[36m@@ -309,7 +309,7 @@[m [mexport function createSseTextTransform([m
+         controller.error(err);[m
+       }[m
+     },[m
+[31m-    flush(controller) {[m
+[32m+[m[32m    flush(controller: TransformStreamDefaultController<Uint8Array>) {[m
+       if (errored) return;[m
+       try {[m
+         const remaining = decoder.decode() + lineBuffer;[m
+[1mdiff --git a/src/lib/streamingPiiTransform.ts b/src/lib/streamingPiiTransform.ts[m
+[1mindex 3d9eb381f..a26eb3fa2 100644[m
+[1m--- a/src/lib/streamingPiiTransform.ts[m
+[1m+++ b/src/lib/streamingPiiTransform.ts[m
+[36m@@ -18,7 +18,7 @@[m [mexport function createPiiSseTransform(options?: PiiTransformOptions): TransformS[m
+         toolArgs: "",[m
+         partialJson: "",[m
+       };[m
+[31m-      choiceBuffers.set(index, buf);[m
+[32m+[m[32m      choiceBuffers.set(key, buf);[m
+     }[m
+     return buf;[m
+   };[m
+[1mdiff --git a/src/lib/usage/completedRequestDetails.ts b/src/lib/usage/completedRequestDetails.ts[m
+[1mindex b9d06649b..e37774acf 100644[m
+[1m--- a/src/lib/usage/completedRequestDetails.ts[m
+[1m+++ b/src/lib/usage/completedRequestDetails.ts[m
+[36m@@ -95,7 +95,7 @@[m [mexport function maybeEnrichCompletedDetail(updated: PendingRequestDetail, connec[m
+       try {[m
+         console.warn([m
+           "[usageHistory] failed to enrich completed detail from artifacts:",[m
+[31m-          e && (e.message || e)[m
+[32m+[m[32m          e && ((e as Error).message || e)[m
+         );[m
+       } catch {}[m
+     }[m
+[1mdiff --git a/src/lib/usage/providerLimits.ts b/src/lib/usage/providerLimits.ts[m
+[1mindex 49ffb333b..cc721838c 100644[m
+[1m--- a/src/lib/usage/providerLimits.ts[m
+[1m+++ b/src/lib/usage/providerLimits.ts[m
+[36m@@ -474,7 +474,8 @@[m [masync function syncClaudeExtraUsageStateIfNeeded([m
+   return {[m
+     ...connection,[m
+     ...update,[m
+[31m-  };[m
+[32m+[m[32m    isActive: connection.isActive ?? true,[m
+[32m+[m[32m  } as ProviderConnectionLike;[m
+ }[m
+ [m
+ /** Persist Antigravity tier from live loadCodeAssist on quota refresh (not only OAuth). */[m
+[1mdiff --git a/src/shared/constants/colors.ts b/src/shared/constants/colors.ts[m
+[1mindex bb5163088..df71616d3 100644[m
+[1m--- a/src/shared/constants/colors.ts[m
+[1m+++ b/src/shared/constants/colors.ts[m
+[36m@@ -11,7 +11,7 @@[m
+ // Provider Colors (used across all logger components)[m
+ // ═══════════════════════════════════════════[m
+ [m
+[31m-export const PROVIDER_COLORS = {[m
+[32m+[m[32mexport const PROVIDER_COLORS: Record<string, { bg: string; text: string; label: string }> = {[m
+   github: { bg: "#6e40c9", text: "#fff", label: "GitHub" },[m
+   kiro: { bg: "#FF9900", text: "#000", label: "Kiro" },[m
+   antigravity: { bg: "#4285F4", text: "#fff", label: "AG" },[m
+[36m@@ -29,7 +29,7 @@[m [mexport const PROVIDER_COLORS = {[m
+ // Protocol Colors (RequestLoggerV2)[m
+ // ═══════════════════════════════════════════[m
+ [m
+[31m-export const PROTOCOL_COLORS = {[m
+[32m+[m[32mexport const PROTOCOL_COLORS: Record<string, { bg: string; text: string; label: string }> = {[m
+   openai: { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Chat" },[m
+   "openai-responses": { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Responses" },[m
+   claude: { bg: "#D97757", text: "#fff", label: "Claude" },[m
+[36m@@ -38,12 +38,12 @@[m [mexport const PROTOCOL_COLORS = {[m
+   bypass: { bg: "#6B7280", text: "#fff", label: "Bypass" },[m
+ };[m
+ [m
+[31m-const PROTOCOL_KEY_ALIASES = {[m
+[32m+[m[32mconst PROTOCOL_KEY_ALIASES: Record<string, string> = {[m
+   "openai-chat": "openai",[m
+   "openai-response": "openai-responses",[m
+ };[m
+ [m
+[31m-function normalizeProtocolKey(protocol) {[m
+[32m+[m[32mfunction normalizeProtocolKey(protocol: string) {[m
+   return PROTOCOL_KEY_ALIASES[protocol] || protocol;[m
+ }[m
+ [m
+[36m@@ -96,7 +96,7 @@[m [mexport const MODEL_COLORS = [[m
+  * @param {number} index[m
+  * @returns {string} Hex color[m
+  */[m
+[31m-export function getModelColor(index) {[m
+[32m+[m[32mexport function getModelColor(index: number) {[m
+   return MODEL_COLORS[index % MODEL_COLORS.length];[m
+ }[m
+ [m
+[36m@@ -109,7 +109,7 @@[m [mexport function getModelColor(index) {[m
+  * @param {number} status - HTTP status code[m
+  * @returns {{ bg: string, text: string }}[m
+  */[m
+[31m-export function getHttpStatusStyle(status) {[m
+[32m+[m[32mexport function getHttpStatusStyle(status: number) {[m
+   if (status >= 200 && status < 300) return { bg: "#059669", text: "#fff" };[m
+   if (status >= 400 && status < 500) return { bg: "#D97706", text: "#fff" };[m
+   if (status >= 500) return { bg: "#DC2626", text: "#fff" };[m
+[36m@@ -122,7 +122,7 @@[m [mexport function getHttpStatusStyle(status) {[m
+  * @param {string} status - Status string ("success", "error", "timeout")[m
+  * @returns {{ bg: string, text: string }}[m
+  */[m
+[31m-export function getProxyStatusStyle(status) {[m
+[32m+[m[32mexport function getProxyStatusStyle(status: string) {[m
+   if (status === "success") return { bg: "#059669", text: "#fff" };[m
+   if (status === "error") return { bg: "#DC2626", text: "#fff" };[m
+   if (status === "timeout") return { bg: "#D97706", text: "#fff" };[m
+[36m@@ -134,7 +134,7 @@[m [mexport function getProxyStatusStyle(status) {[m
+  * @param {string} provider - Provider key[m
+  * @returns {{ bg: string, text: string, label: string }}[m
+  */[m
+[31m-export function getProviderColor(provider) {[m
+[32m+[m[32mexport function getProviderColor(provider: string) {[m
+   return ([m
+     PROVIDER_COLORS[provider] || {[m
+       bg: "#374151",[m
+[36m@@ -144,17 +144,11 @@[m [mexport function getProviderColor(provider) {[m
+   );[m
+ }[m
+ [m
+[31m-/**[m
+[31m- * Get default fallback for a protocol color lookup.[m
+[31m- * @param {string} protocol - Protocol key[m
+[31m- * @param {string} fallbackProvider - Provider key to use as a secondary protocol key[m
+[31m- * @returns {{ bg: string, text: string, label: string }}[m
+[31m- */[m
+[31m-export function getProtocolColor(protocol, fallbackProvider) {[m
+[32m+[m[32mexport function getProtocolColor(protocol: string, fallbackProvider?: string) {[m
+   const normalized = normalizeProtocolKey(protocol);[m
+   return ([m
+     PROTOCOL_COLORS[normalized] ||[m
+[31m-    PROTOCOL_COLORS[fallbackProvider] || {[m
+[32m+[m[32m    (fallbackProvider ? PROTOCOL_COLORS[fallbackProvider] : undefined) || {[m
+       bg: "#6B7280",[m
+       text: "#fff",[m
+       label: (protocol || fallbackProvider || "-").toUpperCase(),[m
+[1mdiff --git a/src/shared/constants/models.ts b/src/shared/constants/models.ts[m
+[1mindex 759528070..550ae6b99 100644[m
+[1m--- a/src/shared/constants/models.ts[m
+[1m+++ b/src/shared/constants/models.ts[m
+[36m@@ -25,7 +25,7 @@[m [mconst PASSTHROUGH_PROVIDERS = new Set([m
+ );[m
+ [m
+ // Wrap isValidModel with passthrough providers[m
+[31m-export function isValidModel(aliasOrId, modelId) {[m
+[32m+[m[32mexport function isValidModel(aliasOrId: string, modelId: string) {[m
+   if (isOpenAICompatibleProvider(aliasOrId)) return true;[m
+   if (isAnthropicCompatibleProvider(aliasOrId)) return true;[m
+   if (PASSTHROUGH_PROVIDERS.has(aliasOrId)) return true;[m
+[1mdiff --git a/src/shared/constants/routingStrategies.ts b/src/shared/constants/routingStrategies.ts[m
+[1mindex 18e35e3d4..316a03606 100644[m
+[1m--- a/src/shared/constants/routingStrategies.ts[m
+[1m+++ b/src/shared/constants/routingStrategies.ts[m
+[36m@@ -3,6 +3,7 @@[m [mexport const ROUTING_STRATEGY_VALUES = [[m
+   "weighted",[m
+   "round-robin",[m
+   "context-relay",[m
+[32m+[m[32m  "consistent-hash",[m
+   "fill-first",[m
+   "p2c",[m
+   "random",[m
+[36m@@ -93,6 +94,13 @@[m [mexport const ROUTING_STRATEGIES: RoutingStrategyOption[] = [[m
+     settingsDescKey: "contextRelayDesc",[m
+     icon: "sync_alt",[m
+   },[m
+[32m+[m[32m  {[m
+[32m+[m[32m    value: "consistent-hash",[m
+[32m+[m[32m    labelKey: "consistentHash",[m
+[32m+[m[32m    combosDescKey: "consistentHashDesc",[m
+[32m+[m[32m    settingsDescKey: "consistentHashDesc",[m
+[32m+[m[32m    icon: "hash",[m
+[32m+[m[32m  },[m
+   {[m
+     value: "fill-first",[m
+     labelKey: "fillFirst",[m
+[1mdiff --git a/src/shared/schemas/cliCatalog.ts b/src/shared/schemas/cliCatalog.ts[m
+[1mindex 6fb8f0acb..70199a705 100644[m
+[1m--- a/src/shared/schemas/cliCatalog.ts[m
+[1m+++ b/src/shared/schemas/cliCatalog.ts[m
+[36m@@ -16,7 +16,7 @@[m [mexport const CliCatalogEntrySchema = z.object({[m
+   description: z.string().min(1),[m
+   docsUrl: z.string().min(1),[m
+   configType: z.enum(["env", "custom", "guide", "custom-builder", "mitm"]),[m
+[31m-  envVars: z.record(z.string()).optional(),[m
+[32m+[m[32m  envVars: z.record(z.string(), z.string()).optional(),[m
+   modelAliases: z.array(z.string()).optional(),[m
+   settingsFile: z.string().optional(),[m
+   defaultCommand: z.string().optional(),[m
+[36m@@ -59,7 +59,7 @@[m [mexport const CliCatalogEntrySchema = z.object({[m
+ [m
+ export type CliCatalogEntry = z.infer<typeof CliCatalogEntrySchema>;[m
+ [m
+[31m-export const CliCatalogSchema = z.record(CliCatalogEntrySchema);[m
+[32m+[m[32mexport const CliCatalogSchema = z.record(z.string(), CliCatalogEntrySchema);[m
+ [m
+ /** Cardinalidade obrigatória (Plano §3.1/§3.2 + D15). */[m
+ export const EXPECTED_CODE_COUNT = 19;[m
+[1mdiff --git a/src/shared/utils/inputSanitizer.ts b/src/shared/utils/inputSanitizer.ts[m
+[1mindex 51e21bf1d..4810a05a8 100644[m
+[1m--- a/src/shared/utils/inputSanitizer.ts[m
+[1m+++ b/src/shared/utils/inputSanitizer.ts[m
+[36m@@ -128,10 +128,10 @@[m [mfunction getConfig() {[m
+  * @param {Object} body[m
+  * @returns {string[]}[m
+  */[m
+[31m-function extractMessageContents(body) {[m
+[31m-  const contents = [];[m
+[32m+[m[32mfunction extractMessageContents(body: Record<string, unknown>): string[] {[m
+[32m+[m[32m  const contents: string[] = [];[m
+ [m
+[31m-  const messages = body.messages || body.input || [];[m
+[32m+[m[32m  const messages = (body.messages || body.input || []) as any[];[m
+   for (const msg of messages) {[m
+     if (typeof msg === "string") {[m
+       contents.push(msg);[m
+[36m@@ -180,8 +180,8 @@[m [mfunction extractMessageContents(body) {[m
+  * @param {string} text[m
+  * @returns {Array<{pattern: string, severity: string, match: string}>}[m
+  */[m
+[31m-function detectInjection(text) {[m
+[31m-  const detections = [];[m
+[32m+[m[32mfunction detectInjection(text: string): Array<{pattern: string; severity: string; match: string}> {[m
+[32m+[m[32m  const detections: Array<{pattern: string; severity: string; match: string}> = [];[m
+   // Bound the regex scan to the first 16 KB — see MAX_INJECTION_SCAN_BYTES[m
+   // (hot-path perf, #3932 / #4041). Slice before the loop so each pattern only[m
+   // ever scans the capped prefix, never the full (possibly hundreds of KB) body.[m
+[36m@@ -206,8 +206,8 @@[m [mfunction detectInjection(text) {[m
+  * @param {boolean} redact - If true, replaces PII with placeholders[m
+  * @returns {{ text: string, detections: Array<{type: string, count: number}> }}[m
+  */[m
+[31m-function processPII(text, redact = false) {[m
+[31m-  const detections = [];[m
+[32m+[m[32mfunction processPII(text: string, redact = false): { text: string; detections: Array<{type: string; count: number}> } {[m
+[32m+[m[32m  const detections: Array<{type: string; count: number}> = [];[m
+   let processed = text;[m
+ [m
+   for (const rule of PII_PATTERNS) {[m
+[36m@@ -230,14 +230,14 @@[m [mfunction processPII(text, redact = false) {[m
+  * @param {Object} [logger] - Logger instance (defaults to console)[m
+  * @returns {SanitizeResult}[m
+  */[m
+[31m-export function sanitizeRequest(body, logger = console) {[m
+[32m+[m[32mexport function sanitizeRequest(body: Record<string, unknown>, logger: { [key: string]: (...args: any[]) => void } = console as unknown as { [key: string]: (...args: any[]) => void }) {[m
+   const config = getConfig();[m
+ [m
+[31m-  const result = {[m
+[32m+[m[32m  const result: { blocked: boolean; modified: boolean; detections: unknown[]; piiDetections: unknown[]; sanitizedBody: Record<string, unknown> | null } = {[m
+     blocked: false,[m
+     modified: false,[m
+[31m-    detections: [],[m
+[31m-    piiDetections: [],[m
+[32m+[m[32m    detections: [] as unknown[],[m
+[32m+[m[32m    piiDetections: [] as unknown[],[m
+     sanitizedBody: null,[m
+   };[m
+ [m
+[36m@@ -292,9 +292,9 @@[m [mexport function sanitizeRequest(body, logger = console) {[m
+  * @param {Object} body[m
+  * @returns {Object}[m
+  */[m
+[31m-function redactBody(body) {[m
+[31m-  const clone = JSON.parse(JSON.stringify(body));[m
+[31m-  const messages = clone.messages || clone.input || [];[m
+[32m+[m[32mfunction redactBody(body: Record<string, unknown>): Record<string, unknown> {[m
+[32m+[m[32m  const clone: Record<string, unknown> = JSON.parse(JSON.stringify(body));[m
+[32m+[m[32m  const messages = (clone.messages || clone.input || []) as any[];[m
+ [m
+   for (const msg of messages) {[m
+     if (typeof msg.content === "string") {[m
+[1mdiff --git a/src/shared/utils/resolveOmniRouteBaseUrl.ts b/src/shared/utils/resolveOmniRouteBaseUrl.ts[m
+[1mindex 3f4c18f33..496ba3254 100644[m
+[1m--- a/src/shared/utils/resolveOmniRouteBaseUrl.ts[m
+[1m+++ b/src/shared/utils/resolveOmniRouteBaseUrl.ts[m
+[36m@@ -12,7 +12,7 @@[m [mfunction normalizeBaseUrl(value?: string): string | null {[m
+   return trimmed.replace(/\/+$/, "");[m
+ }[m
+ [m
+[31m-export function resolveOmniRouteBaseUrl(env: OmniRouteBaseUrlEnv = process.env): string {[m
+[32m+[m[32mexport function resolveOmniRouteBaseUrl(env: OmniRouteBaseUrlEnv = process.env as OmniRouteBaseUrlEnv): string {[m
+   return ([m
+     normalizeBaseUrl(env.OMNIROUTE_BASE_URL) ||[m
+     normalizeBaseUrl(env.BASE_URL) ||[m
+[1mdiff --git a/tests/unit/db-settings-crud.test.ts b/tests/unit/db-settings-crud.test.ts[m
+[1mindex 1cb644451..0abc59751 100644[m
+[1m--- a/tests/unit/db-settings-crud.test.ts[m
+[1m+++ b/tests/unit/db-settings-crud.test.ts[m
+[36m@@ -377,6 +377,26 @@[m [mtest("settings and pricing readers skip malformed rows while merging surviving l[m
+   }[m
+ });[m
+ [m
+[32m+[m[32mtest("getSettings skips malformed JSON rows and still returns valid defaults", async () => {[m
+[32m+[m[32m  const db = core.getDbInstance();[m
+[32m+[m
+[32m+[m[32m  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run([m
+[32m+[m[32m    "settings",[m
+[32m+[m[32m    "requireLogin",[m
+[32m+[m[32m    "{invalid-json"[m
+[32m+[m[32m  );[m
+[32m+[m[32m  db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run([m
+[32m+[m[32m    "settings",[m
+[32m+[m[32m    "cloudEnabled",[m
+[32m+[m[32m    JSON.stringify(false)[m
+[32m+[m[32m  );[m
+[32m+[m
+[32m+[m[32m  const settings = await settingsDb.getSettings();[m
+[32m+[m
+[32m+[m[32m  assert.equal(settings.requireLogin, true);[m
+[32m+[m[32m  assert.equal(settings.cloudEnabled, false);[m
+[32m+[m[32m});[m
+[32m+[m
+ test("proxy config migrates legacy strings and supports bulk merge updates", async () => {[m
+   const db = core.getDbInstance();[m
+ [m

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: omniroute-fleet
+  labels:
+    app.kubernetes.io/name: omniroute
+    app.kubernetes.io/component: fleet

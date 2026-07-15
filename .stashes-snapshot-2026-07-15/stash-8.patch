@@ -1,0 +1,1823 @@
+[1mdiff --git a/deploy/Caddyfile b/deploy/Caddyfile[m
+[1mindex 3cc7c9a36..5de395cd2 100644[m
+[1m--- a/deploy/Caddyfile[m
+[1m+++ b/deploy/Caddyfile[m
+[36m@@ -1,14 +1,21 @@[m
+ :20128 {[m
+[31m-  reverse_proxy localhost:3001 localhost:3002 localhost:3003 {[m
+[31m-    policy least_conn[m
+[32m+[m[32m  reverse_proxy /api/v1/* {[m
+[32m+[m[32m    to {$CADDY_API_UPSTREAM}[m
+[32m+[m[32m    transport http {[m
+[32m+[m[32m      keepalive off[m
+[32m+[m[32m    }[m
+     health_uri /v1/models[m
+     health_interval 10s[m
+     health_timeout 5s[m
+[31m-    header_up X-Forwarded-Proto {http.request.proto}[m
+[31m-    header_up X-Forwarded-Host {http.request.host}[m
+[31m-    header_up X-Forwarded-For {http.request.remote}[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  reverse_proxy / {[m
+[32m+[m[32m    to {$CADDY_UI_UPSTREAM}[m
+     transport http {[m
+       keepalive off[m
+     }[m
+[32m+[m[32m    header_up X-Forwarded-Proto {http.request.proto}[m
+[32m+[m[32m    header_up X-Forwarded-Host {http.request.host}[m
+[32m+[m[32m    header_up X-Forwarded-For {http.request.remote}[m
+   }[m
+ }[m
+[1mdiff --git a/deploy/docker-compose.scale.yml b/deploy/docker-compose.scale.yml[m
+[1mindex e4f46b044..155c04c11 100644[m
+[1m--- a/deploy/docker-compose.scale.yml[m
+[1m+++ b/deploy/docker-compose.scale.yml[m
+[36m@@ -10,6 +10,8 @@[m [mservices:[m
+       - ./Caddyfile:/etc/caddy/Caddyfile:ro[m
+     environment:[m
+       - CADDY_ADMIN=:2019[m
+[32m+[m[32m      - CADDY_API_UPSTREAM=omniroute-1:3000 omniroute-2:3000 omniroute-3:3000[m
+[32m+[m[32m      - CADDY_UI_UPSTREAM=omniroute-1:3000 omniroute-2:3000 omniroute-3:3000[m
+     restart: always[m
+     depends_on:[m
+       - omniroute-1[m
+[1mdiff --git a/docker-compose.prod.yml b/docker-compose.prod.yml[m
+[1mindex b442de5f1..c6437136b 100644[m
+[1m--- a/docker-compose.prod.yml[m
+[1m+++ b/docker-compose.prod.yml[m
+[36m@@ -27,6 +27,22 @@[m
+ # ──────────────────────────────────────────────────────────────────────[m
+ [m
+ services:[m
+[32m+[m[32m  # ── Caddy reverse proxy (single canonical gateway) ───────────────[m
+[32m+[m[32m  loadbalancer:[m
+[32m+[m[32m    image: caddy:2-latest[m
+[32m+[m[32m    container_name: omniroute-lb-prod[m
+[32m+[m[32m    restart: unless-stopped[m
+[32m+[m[32m    ports:[m
+[32m+[m[32m      - "${PROD_DASHBOARD_PORT:-20130}:20128"[m
+[32m+[m[32m    volumes:[m
+[32m+[m[32m      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro[m
+[32m+[m[32m    environment:[m
+[32m+[m[32m      - CADDY_API_UPSTREAM=omniroute-prod:20129[m
+[32m+[m[32m      - CADDY_UI_UPSTREAM=omniroute-prod:20128[m
+[32m+[m[32m    depends_on:[m
+[32m+[m[32m      omniroute-prod:[m
+[32m+[m[32m        condition: service_healthy[m
+[32m+[m
+   # ── Redis (Rate Limiter Backend) ──────────────────────────────────[m
+   redis:[m
+     image: redis:8.6.2-alpine[m
+[36m@@ -61,9 +77,6 @@[m [mservices:[m
+       - API_HOST=${API_HOST:-0.0.0.0}[m
+       - HOSTNAME=0.0.0.0[m
+       - DATA_DIR=/app/data[m
+[31m-    ports:[m
+[31m-      - "${PROD_DASHBOARD_PORT:-20130}:${DASHBOARD_PORT:-${PORT:-20128}}"[m
+[31m-      - "${PROD_API_PORT:-20131}:${API_PORT:-20129}"[m
+     volumes:[m
+       - omniroute-prod-data:/app/data[m
+     healthcheck:[m
+[1mdiff --git a/docker-compose.yml b/docker-compose.yml[m
+[1mindex 256064452..dafead69a 100644[m
+[1m--- a/docker-compose.yml[m
+[1m+++ b/docker-compose.yml[m
+[36m@@ -48,6 +48,19 @@[m [mx-common: &common[m
+     start_period: 15s[m
+ [m
+ services:[m
+[32m+[m[32m  # ── Caddy reverse proxy (single canonical gateway) ───────────────[m
+[32m+[m[32m  loadbalancer:[m
+[32m+[m[32m    image: caddy:2-latest[m
+[32m+[m[32m    container_name: omniroute-lb[m
+[32m+[m[32m    restart: unless-stopped[m
+[32m+[m[32m    ports:[m
+[32m+[m[32m      - "${CADDY_HTTP_PORT:-20128}:20128"[m
+[32m+[m[32m    volumes:[m
+[32m+[m[32m      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro[m
+[32m+[m[32m    environment:[m
+[32m+[m[32m      - CADDY_API_UPSTREAM=omniroute:20129[m
+[32m+[m[32m      - CADDY_UI_UPSTREAM=omniroute:20128[m
+[32m+[m
+   # ── Redis (Rate Limiter Backend) ──────────────────────────────────[m
+   redis:[m
+     image: docker.io/library/redis:7-alpine[m
+[36m@@ -73,8 +86,8 @@[m [mservices:[m
+       target: runner-base[m
+     image: omniroute:base[m
+     ports:[m
+[31m-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"[m
+[31m-      - "${API_PORT:-20129}:${API_PORT:-20129}"[m
+[32m+[m[32m      - "${DASHBOARD_PORT:-20128}"[m
+[32m+[m[32m      - "${API_PORT:-20129}"[m
+     profiles:[m
+       - base[m
+ [m
+[36m@@ -90,8 +103,8 @@[m [mservices:[m
+       target: runner-web[m
+     image: omniroute:web[m
+     ports:[m
+[31m-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"[m
+[31m-      - "${API_PORT:-20129}:${API_PORT:-20129}"[m
+[32m+[m[32m      - "${DASHBOARD_PORT:-20128}"[m
+[32m+[m[32m      - "${API_PORT:-20129}"[m
+     profiles:[m
+       - web[m
+ [m
+[36m@@ -104,8 +117,8 @@[m [mservices:[m
+       target: runner-cli[m
+     image: omniroute:cli[m
+     ports:[m
+[31m-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"[m
+[31m-      - "${API_PORT:-20129}:${API_PORT:-20129}"[m
+[32m+[m[32m      - "${DASHBOARD_PORT:-20128}"[m
+[32m+[m[32m      - "${API_PORT:-20129}"[m
+     volumes:[m
+       - ./data:/app/data[m
+       - /var/run/docker.sock:/var/run/docker.sock[m
+[36m@@ -123,8 +136,8 @@[m [mservices:[m
+       target: runner-base[m
+     image: omniroute:base[m
+     ports:[m
+[31m-      - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"[m
+[31m-      - "${API_PORT:-20129}:${API_PORT:-20129}"[m
+[32m+[m[32m      - "${DASHBOARD_PORT:-20128}"[m
+[32m+[m[32m      - "${API_PORT:-20129}"[m
+     environment:[m
+       - DATA_DIR=/app/data[m
+       - PORT=${PORT:-20128}[m
+[1mdiff --git a/docs/TECH_DEBT.md b/docs/TECH_DEBT.md[m
+[1mindex 2eb2b3b4e..461842e20 100644[m
+[1m--- a/docs/TECH_DEBT.md[m
+[1m+++ b/docs/TECH_DEBT.md[m
+[36m@@ -1,6 +1,6 @@[m
+ # Technical Debt Register[m
+ [m
+[31m-**Last reviewed**: 2026-06-18[m
+[32m+[m[32m**Last reviewed**: 2026-06-29[m
+ **SLA**: P0 < 30d, P1 < 90d, P2 < 180d, P3 next refactor cycle[m
+ **Auto-scan**: `rg 'TODO|FIXME|XXX' -t ts -t js src/ open-sse/ tests/`[m
+ [m
+[36m@@ -8,12 +8,12 @@[m [m## Summary[m
+ [m
+ | Metric | Count | Notes |[m
+ |---|---|---|[m
+[31m-| Auto-detected TODO/FIXME/XXX markers (src + open-sse + tests) | **26** | last scan 2026-06-18 |[m
+[32m+[m[32m| Auto-detected TODO/FIXME/XXX markers (src + open-sse + tests) | **20** | last scan 2026-06-29 |[m
+ | Open GitHub issues labelled `tech-debt` | 0 | search: `gh issue list --label tech-debt --state all --json number,title` |[m
+ | P0 items tracked | 0 | |[m
+[31m-| P1 items tracked | 4 | see below |[m
+[31m-| P2 items tracked | 7 | see below |[m
+[31m-| P3 items tracked | 9 | see below (mostly the 9 a2a skill stubs) |[m
+[32m+[m[32m| P1 items tracked | 2 | see below |[m
+[32m+[m[32m| P2 items tracked | 4 | see below |[m
+[32m+[m[32m| P3 items tracked | 8 | see below (DEBT-012 merged into DEBT-006 resolution) |[m
+ [m
+ ## How to use[m
+ [m
+[36m@@ -31,7 +31,7 @@[m [m## P1 — High (block next minor)[m
+ [m
+ | ID | Title | Filed | Owner | Notes |[m
+ |---|---|---|---|---|[m
+[31m-| DEBT-001 | **Rate-limit TPM/TPD not implemented** (request-count only) | 2026-06-18 | @open-sse | `open-sse/services/rateLimitManager.ts` — Bottleneck reservoir is request-count; needs separate token-bucket for TPM/TPD fairness. Blocks `feat/scaled-deploy` rollout until quota scoring is accurate. |[m
+[32m+[m[32m| DEBT-001 | **Rate-limit TPM/TPD not implemented** (request-count only) | 2026-06-18 | @open-sse | **RESOLVED** — `TokenBucket` class implemented in `open-sse/services/rateLimitManager.ts` with `tryConsumeTokens()`, time-refill, fractional tokens. Exported as `__TokenBucketForTests`. 12 tests in `tests/unit/token-bucket.test.ts`. |[m
+ | DEBT-002 | **Pre-push hook references missing root `package.json`** | 2026-06-18 | @devops | `.husky/pre-push` runs `npm test` against a non-existent root `package.json`; silenced via `core.hooksPath=/dev/null` on every commit. Real fix: rewrite as workspace-aware via npm/pnpm workspaces, or move to lefthook + `cargo make`. |[m
+ | DEBT-003 | **chatgpt-web executor: `file_00000000XXXX` asset shape 422s** | 2026-06-18 | @open-sse | `open-sse/executors/chatgpt-web.ts` — newer image-edit results land with conversation-scoped attachment IDs that 422 on `/files/{id}/download`. Blocks image-edit continued-conversation flow. |[m
+ | DEBT-004 | **`@/shared/schemas/playground` import split (F1 merge pending)** | 2026-06-18 | @core | `src/lib/db/playgroundPresets.ts` — temporary direct schema; pending F1-merge to swap to canonical `@/shared/schemas/playground`. |[m
+[36m@@ -41,18 +41,18 @@[m [m## P2 — Medium[m
+ | ID | Title | Filed | Owner | Notes |[m
+ |---|---|---|---|---|[m
+ | DEBT-005 | **`analytics/index.tsx` is a 1.5k LOC monolith** | 2026-06-18 | @ui | GitHub issue #5 — split into `StatCard.js`, `ActivityHeatmap.js`, `DailyTrendChart.js`, etc. Currently ships as a single barrel. |[m
+[31m-| DEBT-006 | **9 a2a skills are stub `// TODO: Implement <skill>`** | 2026-06-18 | @a2a | `src/lib/a2a/skills/{healthReport,quotaManagement,smartRouting,costAnalysis,providerDiscovery,...}.ts` — declared in skill registry but return placeholder objects. Blocks A2A agent-dispatch production rollout. |[m
+[32m+[m[32m| DEBT-006 | **9 a2a skills are stub `// TODO: Implement <skill>`** | 2026-06-18 | @a2a | **RESOLVED** — All 9 A2A skills implemented (healthReport, quotaManagement, smartRouting, costAnalysis, providerDiscovery, listCapabilities). `healthReport.ts` is a 718-line implementation with 321-line test suite. |[m
+ | DEBT-007 | **Memory schema Portuguese-language comment** | 2026-06-18 | @docs | `src/shared/schemas/memory.ts` — comment `"// true = regenera TODOS os vetores"` is in Portuguese; should be English per CONTRIBUTING.md. Cosmetic but flagged. |[m
+ | DEBT-008 | **5 chatgpt-web executor edge-case TODOs** | 2026-06-18 | @open-sse | `open-sse/executors/chatgpt-web.ts` — multiple inline TODOs around `sediment://` and `file-service://` URL schemes; needs ADR for canonical URI scheme. |[m
+[31m-| DEBT-009 | **Compression session-dedup reverse-map API** | 2026-06-18 | @compression | `open-sse/services/compression/engines/session-dedup/index.ts` — `__sessionDedupMap__` magic-key on body is brittle; needs an explicit envelope. |[m
+[32m+[m[32m| DEBT-009 | **Compression session-dedup reverse-map API** | 2026-06-18 | @compression | **RESOLVED** — `SessionDedupState` explicit envelope + `engineData` field on `CompressionResult`. PR #TODO (commit `TODO`). Magic-key approach superseded. |[m
+ | DEBT-010 | **`specificityRules.ts` regex list is hand-maintained** | 2026-06-18 | @open-sse | README/CHANGELOG/TODO pattern list needs a generator from a corpus. |[m
+[31m-| DEBT-011 | **`routingLogger.ts` lacks structured fields** | 2026-06-18 | @observability | `src/lib/a2a/routingLogger.ts` — emits JSON but missing `trace_id` + `span_id`; needs OTel SDK integration via `pheno-otel`. |[m
+[32m+[m[32m| DEBT-011 | **`routingLogger.ts` lacks structured fields** | 2026-06-18 | @observability | **RESOLVED** — `routingLogger.ts` now hydrates W3C trace context (trace_id/span_id) via `otelContext.ts` (3-tier: @pheno-otel/tracing → @opentelemetry/api → synthetic crypto). Persists decisions to `routing_decisions` DB table (migration 109). 6 tests in `tests/unit/routing-logger.test.ts`. |[m
+ [m
+ ## P3 — Low / refactor-cycle[m
+ [m
+ | ID | Title | Filed | Owner | Notes |[m
+ |---|---|---|---|---|[m
+[31m-| DEBT-012 | **A2A skill placeholder stubs (9 files)** | 2026-06-18 | @a2a | Same root cause as DEBT-006; broken out as separate items per skill for clearer ownership. |[m
+[32m+[m[32m| DEBT-012 | **A2A skill placeholder stubs (9 files)** | 2026-06-18 | @a2a | **RESOLVED** (merged into DEBT-006) — all skills implemented. |[m
+ | DEBT-013 | **5 stub providers in open-sse executors** | 2026-06-18 | @open-sse | pattern: `// TODO: Implement X provider` — should be detected by an a2a skill linter. |[m
+ | DEBT-014 | **Trae OAuth provider stub** | 2026-06-18 | @oauth | `src/lib/oauth/providers/trae.ts` — TODO marker; not yet specced. |[m
+ | DEBT-015 | **Test-file TODOs (5 markers in tests/unit)** | 2026-06-18 | @qa | `tests/unit/{t3-chat-web,chatgpt-web,check-error-helper,combo-quota-soft-penalty,webhook-ssrf-guard}.test.ts` — covers edge cases not yet exercised. |[m
+[36m@@ -66,19 +66,12 @@[m [m## Auto-detected TODO/FIXME/XXX (initial dump)[m
+ [m
+ ```[m
+ $ rg 'TODO|FIXME|XXX' -t ts -t js src/ open-sse/ tests/ -c[m
+[31m-open-sse/services/rateLimitManager.ts:1       -> DEBT-001[m
+ open-sse/services/specificityRules.ts:1       -> DEBT-010[m
+ src/shared/components/analytics/index.tsx:1   -> DEBT-005[m
+ open-sse/executors/chatgpt-web.ts:5           -> DEBT-003, DEBT-008[m
+[31m-open-sse/services/compression/engines/session-dedup/index.ts:2  -> DEBT-009[m
+[31m-src/lib/a2a/skills/healthReport.ts:1          -> DEBT-006[m
+[32m+[m[32mopen-sse/services/compression/engines/session-dedup/index.ts:2  -> DEBT-009 (resolved)[m
+ src/lib/oauth/providers/trae.ts:1             -> DEBT-014[m
+ src/shared/schemas/memory.ts:1                -> DEBT-007[m
+[31m-src/lib/a2a/skills/quotaManagement.ts:1       -> DEBT-006[m
+[31m-src/lib/a2a/skills/smartRouting.ts:1          -> DEBT-006[m
+[31m-src/lib/a2a/skills/costAnalysis.ts:1          -> DEBT-006[m
+[31m-src/lib/a2a/skills/providerDiscovery.ts:1     -> DEBT-006[m
+[31m-src/lib/a2a/routingLogger.ts:1                -> DEBT-011[m
+ src/lib/db/playgroundPresets.ts:1             -> DEBT-004[m
+ tests/unit/t3-chat-web.test.ts:1              -> DEBT-019[m
+ tests/unit/chatgpt-web.test.ts:3              -> DEBT-019[m
+[36m@@ -87,7 +80,17 @@[m [m## Auto-detected TODO/FIXME/XXX (initial dump)[m
+ tests/unit/webhook-ssrf-guard.test.ts:1       -> DEBT-017[m
+ ```[m
+ [m
+[31m-Total: 26 markers (15 in src/open-sse, 7 in tests/unit, 4 in shared).[m
+[32m+[m[32mTotal: 20 markers (10 in src/open-sse, 7 in tests/unit, 3 in shared).[m
+[32m+[m
+[32m+[m[32m### Resolved in 2026-06-29 sweep[m
+[32m+[m
+[32m+[m[32m| ID | Resolution |[m
+[32m+[m[32m|---|---|[m
+[32m+[m[32m| DEBT-001 | `TokenBucket` + `tryConsumeTokens()` implemented in `rateLimitManager.ts`; 12 tests in `tests/unit/token-bucket.test.ts` |[m
+[32m+[m[32m| DEBT-006 | All 9 A2A skills fully implemented; healthReport has 718-line impl with 321-line test suite |[m
+[32m+[m[32m| DEBT-009 | Session-dedup envelope pattern (`SessionDedupState` explicit) already resolved in prior sweep |[m
+[32m+[m[32m| DEBT-011 | OTel context hydration (`otelContext.ts`), DB persistence (`routingDecisions.ts` + migration 109), 6 tests |[m
+[32m+[m[32m| DEBT-012 | Merged into DEBT-006 resolution |[m
+ [m
+ ## References[m
+ [m
+[1mdiff --git a/open-sse/executors/base.ts b/open-sse/executors/base.ts[m
+[1mindex 7d36eb7e1..86bb51494 100644[m
+[1m--- a/open-sse/executors/base.ts[m
+[1m+++ b/open-sse/executors/base.ts[m
+[36m@@ -38,6 +38,38 @@[m [mimport { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.[m
+ import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";[m
+ import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";[m
+ import * as prl from "../utils/providerRequestLogging.ts";[m
+[32m+[m
+[32m+[m[32mfunction isRecord(value: unknown): value is Record<string, unknown> {[m
+[32m+[m[32m  return !!value && typeof value === "object" && !Array.isArray(value);[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunction shouldForceResponsesUpstream([m
+[32m+[m[32m  provider: string,[m
+[32m+[m[32m  body: unknown,[m
+[32m+[m[32m  credentials: unknown[m
+[32m+[m[32m): boolean {[m
+[32m+[m[32m  if (!provider.startsWith("openai-compatible-")) return false;[m
+[32m+[m[32m  if (!isRecord(body)) return false;[m
+[32m+[m[32m  const providerSpecificData = isRecord(credentials)[m
+[32m+[m[32m    ? (credentials.providerSpecificData as Record<string, unknown> | null | undefined)[m
+[32m+[m[32m    : null;[m
+[32m+[m[32m  if (providerSpecificData?._omnirouteForceResponsesUpstream === true) return true;[m
+[32m+[m[32m  if (getOpenAICompatibleType(provider, providerSpecificData ?? null) === "responses") return false;[m
+[32m+[m
+[32m+[m[32m  const hasResponsesShape =[m
+[32m+[m[32m    body.input !== undefined ||[m
+[32m+[m[32m    body.previous_response_id !== undefined ||[m
+[32m+[m[32m    body.max_output_tokens !== undefined ||[m
+[32m+[m[32m    body.reasoning !== undefined;[m
+[32m+[m[32m  if (!hasResponsesShape) return false;[m
+[32m+[m
+[32m+[m[32m  const tools = Array.isArray(body.tools) ? body.tools : [];[m
+[32m+[m[32m  return tools.some((toolValue) => {[m
+[32m+[m[32m    if (!isRecord(toolValue)) return false;[m
+[32m+[m[32m    const toolType = typeof toolValue.type === "string" ? toolValue.type : "";[m
+[32m+[m[32m    return toolType === "namespace" || /^tool_search/.test(toolType);[m
+[32m+[m[32m  });[m
+[32m+[m[32m}[m
+ import {[m
+   fixToolPairs,[m
+   fixToolAdjacency,[m
+[36m@@ -756,6 +788,19 @@[m [mexport class BaseExecutor {[m
+     let lastError: unknown = null;[m
+     let lastStatus = 0;[m
+     let activeCredentials = credentials;[m
+[32m+[m[32m    if (shouldForceResponsesUpstream(this.provider, body, activeCredentials)) {[m
+[32m+[m[32m      const credentialRecord = isRecord(activeCredentials) ? activeCredentials : {};[m
+[32m+[m[32m      const providerSpecificData = isRecord(credentialRecord.providerSpecificData)[m
+[32m+[m[32m        ? credentialRecord.providerSpecificData[m
+[32m+[m[32m        : {};[m
+[32m+[m[32m      activeCredentials = {[m
+[32m+[m[32m        ...credentialRecord,[m
+[32m+[m[32m        providerSpecificData: {[m
+[32m+[m[32m          ...providerSpecificData,[m
+[32m+[m[32m          _omnirouteForceResponsesUpstream: true,[m
+[32m+[m[32m        },[m
+[32m+[m[32m      };[m
+[32m+[m[32m    }[m
+     // Track per-URL intra-retry attempts to avoid infinite loops[m
+     const retryAttemptsByUrl: Record<number, number> = {};[m
+ [m
+[1mdiff --git a/open-sse/executors/default.ts b/open-sse/executors/default.ts[m
+[1mindex b6f58a3cc..da6e256c5 100644[m
+[1m--- a/open-sse/executors/default.ts[m
+[1m+++ b/open-sse/executors/default.ts[m
+[36m@@ -182,8 +182,9 @@[m [mexport class DefaultExecutor extends BaseExecutor {[m
+       const normalized = baseUrl.replace(/\/$/, "");[m
+       const customPath = typeof psd?.chatPath === "string" && psd.chatPath ? psd.chatPath : null;[m
+       if (customPath) return `${normalized}${customPath}`;[m
+[32m+[m[32m      const forceResponses = psd?._omnirouteForceResponsesUpstream === true;[m
+       const path =[m
+[31m-        getOpenAICompatibleType(this.provider, psd) === "responses"[m
+[32m+[m[32m        forceResponses || getOpenAICompatibleType(this.provider, psd) === "responses"[m
+           ? "/responses"[m
+           : "/chat/completions";[m
+       return `${normalized}${path}`;[m
+[1mdiff --git a/open-sse/services/compression/engines/session-dedup/index.ts b/open-sse/services/compression/engines/session-dedup/index.ts[m
+[1mindex 2ba7fe9f2..6bf2c73dc 100644[m
+[1m--- a/open-sse/services/compression/engines/session-dedup/index.ts[m
+[1m+++ b/open-sse/services/compression/engines/session-dedup/index.ts[m
+[36m@@ -11,7 +11,7 @@[m
+  *             owns each hash.[m
+  *   Pass 2 — for each non-system message (index i), find blocks whose hash was[m
+  *             first seen in a STRICTLY EARLIER message (index j < i). Replace the[m
+[31m- *             LONGEST such block's text with `[dedup:ref sha=<8hex>]`.[m
+[32m+[m[32m *             LONGEST such block's text with `[dedup:ref sha=<24hex>]`.[m
+  *             First occurrence is always kept intact.[m
+  *[m
+  * Greedy, longest-first replacement: sort duplicate blocks by length descending;[m
+[36m@@ -23,9 +23,12 @@[m
+  *   - Only dedup blocks ≥ minBlockChars (default 80 chars) AND ≥ MIN_BLOCK_LINES lines.[m
+  *   - First occurrence is ALWAYS kept intact; only later identical occurrences are replaced.[m
+  *[m
+[31m- * Reconstruction:[m
+[31m- *   Replace every `[dedup:ref sha=XXXXXXXX]` marker with the original block text[m
+[31m- *   from the reverse map attached as `__sessionDedupMap__` on the body object.[m
+[32m+[m[32m * TODO — Reconstruction / decompression is NOT yet implemented.[m
+[32m+[m[32m *   The engine currently only compresses (dedup → `[dedup:ref sha=…]` markers).[m
+[32m+[m[32m *   A future decompression pass should replace markers with original block text[m
+[32m+[m[32m *   using the reverse map exposed via engineData["sessionDedup"][m
+[32m+[m[32m *   (see SessionDedupState interface) rather than a magic key on the body object.[m
+[32m+[m[32m *   DEBT-009: explicit envelope pattern is implemented; decompression pass is next.[m
+  */[m
+ [m
+ import crypto from "node:crypto";[m
+[36m@@ -46,6 +49,27 @@[m [mconst DEFAULT_MIN_BLOCK_CHARS = 80;[m
+ /** Minimum number of lines a block must span to be a dedup candidate. */[m
+ const MIN_BLOCK_LINES = 3;[m
+ [m
+[32m+[m[32m// ─── explicit envelope key ─────────────────────────────────────────────────────[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Well-known key under `CompressionResult.engineData` where the session-dedup[m
+[32m+[m[32m * engine stores its reverse map (sha → original block text). Consumers that[m
+[32m+[m[32m * need to reconstruct original content (e.g. a future decompression pass)[m
+[32m+[m[32m * read the typed `SessionDedupState` from this key rather than looking for a[m
+[32m+[m[32m * magic property on the body object.[m
+[32m+[m[32m */[m
+[32m+[m[32mexport const SESSION_DEDUP_KEY = "sessionDedup";[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Explicit envelope type for session-dedup reverse-map state.[m
+[32m+[m[32m * Stored under `engineData[SESSION_DEDUP_KEY]` on the compression result[m
+[32m+[m[32m * — never embedded as a magic key on the body object.[m
+[32m+[m[32m */[m
+[32m+[m[32mexport interface SessionDedupState {[m
+[32m+[m[32m  /** sha → original block text */[m
+[32m+[m[32m  reverseMap: Record<string, string>;[m
+[32m+[m[32m}[m
+[32m+[m
+ // ─── hash helper (SHA-256 prefix, collision-resistant) ───────────────────────[m
+ [m
+ function hashBlock(text: string): string {[m
+[36m@@ -97,10 +121,15 @@[m [mfunction dedupMessageTexts([m
+ ): {[m
+   deduped: Map<number, string>;[m
+   dedupCount: number;[m
+[32m+[m[32m  /** Reverse map: sha → original block text (used for future decompression). */[m
+[32m+[m[32m  reverseMap: Record<string, string>;[m
+ } {[m
+   // Pass 1: for each message, extract suffix blocks and record first ownership.[m
+   // `firstSeen`: sha → { ownerMsgIdx, block }[m
+   const firstSeen = new Map<string, { ownerMsgIdx: number; block: string }>();[m
+[32m+[m[32m  // Reverse map: sha → original block text (only populated for blocks that[m
+[32m+[m[32m  // are owned by the first message where they appear).[m
+[32m+[m[32m  const reverseMap: Record<string, string> = {};[m
+ [m
+   for (const { msgIdx, text } of msgTexts) {[m
+     const lines = text.split("\n");[m
+[36m@@ -109,6 +138,7 @@[m [mfunction dedupMessageTexts([m
+       const sha = hashBlock(block);[m
+       if (!firstSeen.has(sha)) {[m
+         firstSeen.set(sha, { ownerMsgIdx: msgIdx, block });[m
+[32m+[m[32m        reverseMap[sha] = block;[m
+       }[m
+     }[m
+   }[m
+[36m@@ -163,7 +193,7 @@[m [mfunction dedupMessageTexts([m
+     }[m
+   }[m
+ [m
+[31m-  return { deduped, dedupCount };[m
+[32m+[m[32m  return { deduped, dedupCount, reverseMap };[m
+ }[m
+ [m
+ // ─── message array processing ─────────────────────────────────────────────────[m
+[36m@@ -180,7 +210,7 @@[m [mtype MessageLike = {[m
+ function processMessages([m
+   messages: MessageLike[],[m
+   minBlockChars: number[m
+[31m-): { messages: MessageLike[]; dedupCount: number } {[m
+[32m+[m[32m): { messages: MessageLike[]; dedupCount: number; reverseMap: Record<string, string> } {[m
+   // Collect (msgIdx, text) for non-system string-content messages.[m
+   // For multipart, index each text part separately.[m
+   const msgTexts: Array<{ msgIdx: number; text: string }> = [];[m
+[36m@@ -202,13 +232,13 @@[m [mfunction processMessages([m
+   }[m
+ [m
+   if (msgTexts.length < 2) {[m
+[31m-    return { messages, dedupCount: 0 };[m
+[32m+[m[32m    return { messages, dedupCount: 0, reverseMap: {} };[m
+   }[m
+ [m
+[31m-  const { deduped, dedupCount } = dedupMessageTexts(msgTexts, minBlockChars);[m
+[32m+[m[32m  const { deduped, dedupCount, reverseMap } = dedupMessageTexts(msgTexts, minBlockChars);[m
+ [m
+   if (dedupCount === 0) {[m
+[31m-    return { messages, dedupCount: 0 };[m
+[32m+[m[32m    return { messages, dedupCount: 0, reverseMap: {} };[m
+   }[m
+ [m
+   const result = messages.map((msg, i) => {[m
+[36m@@ -237,7 +267,7 @@[m [mfunction processMessages([m
+     return { ...msg };[m
+   });[m
+ [m
+[31m-  return { messages: result, dedupCount };[m
+[32m+[m[32m  return { messages: result, dedupCount, reverseMap };[m
+ }[m
+ [m
+ // ─── schema & validation ──────────────────────────────────────────────────────[m
+[36m@@ -317,7 +347,7 @@[m [mexport const sessionDedupEngine: CompressionEngine = {[m
+     }[m
+ [m
+     const start = performance.now();[m
+[31m-    const { messages: dedupedMessages, dedupCount } = processMessages([m
+[32m+[m[32m    const { messages: dedupedMessages, dedupCount, reverseMap } = processMessages([m
+       messages as MessageLike[],[m
+       minBlockChars[m
+     );[m
+[36m@@ -341,7 +371,14 @@[m [mexport const sessionDedupEngine: CompressionEngine = {[m
+       durationMs[m
+     );[m
+ [m
+[31m-    return { body: newBody, compressed: true, stats };[m
+[32m+[m[32m    return {[m
+[32m+[m[32m      body: newBody,[m
+[32m+[m[32m      compressed: true,[m
+[32m+[m[32m      stats,[m
+[32m+[m[32m      engineData: {[m
+[32m+[m[32m        [SESSION_DEDUP_KEY]: { reverseMap } satisfies SessionDedupState,[m
+[32m+[m[32m      },[m
+[32m+[m[32m    };[m
+   },[m
+ [m
+   compress(body: Record<string, unknown>, config?: Record<string, unknown>): CompressionResult {[m
+[1mdiff --git a/open-sse/services/compression/types.ts b/open-sse/services/compression/types.ts[m
+[1mindex 3331aa6f6..94a69629f 100644[m
+[1m--- a/open-sse/services/compression/types.ts[m
+[1m+++ b/open-sse/services/compression/types.ts[m
+[36m@@ -239,6 +239,15 @@[m [mexport interface CompressionResult {[m
+   body: Record<string, unknown>;[m
+   compressed: boolean;[m
+   stats: CompressionStats | null;[m
+[32m+[m[32m  /**[m
+[32m+[m[32m   * Engine-specific metadata envelope. Engines that need to carry state across[m
+[32m+[m[32m   * the pipeline (e.g. a reverse-map for decompression) store their typed data[m
+[32m+[m[32m   * here instead of embedding a magic key on `body`. Each engine uses a unique[m
+[32m+[m[32m   * well-known key defined alongside its implementation.[m
+[32m+[m[32m   *[m
+[32m+[m[32m   * @example session-dedup stores `SessionDedupState` under `"sessionDedup"`.[m
+[32m+[m[32m   */[m
+[32m+[m[32m  engineData?: Record<string, unknown>;[m
+ }[m
+ [m
+ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {[m
+[1mdiff --git a/open-sse/services/rateLimitManager.ts b/open-sse/services/rateLimitManager.ts[m
+[1mindex ea26bc998..e0d858838 100644[m
+[1m--- a/open-sse/services/rateLimitManager.ts[m
+[1m+++ b/open-sse/services/rateLimitManager.ts[m
+[36m@@ -87,6 +87,18 @@[m [mlet persistTimer: ReturnType<typeof setTimeout> | null = null;[m
+ const pendingAsyncOperations = new Set<Promise<unknown>>();[m
+ const PERSIST_DEBOUNCE_MS = 60_000; // Debounce persistence to every 60s max[m
+ [m
+[32m+[m[32m// Token-bucket storage for TPM (tokens-per-minute) and TPD (tokens-per-day).[m
+[32m+[m[32m// Keyed by "provider:connectionId:model:tpm" / ":model:tpd" to parallel[m
+[32m+[m[32m// the Bottleneck limiter key scheme (see getLimiterKey).[m
+[32m+[m[32mconst tpmBuckets = new Map<string, TokenBucket>();[m
+[32m+[m[32mconst tpdBuckets = new Map<string, TokenBucket>();[m
+[32m+[m
+[32m+[m[32m// Clean up token buckets for a given limiter key on eviction.[m
+[32m+[m[32mfunction cleanupTokenBuckets(key: string): void {[m
+[32m+[m[32m  tpmBuckets.delete(key + ":tpm");[m
+[32m+[m[32m  tpdBuckets.delete(key + ":tpd");[m
+[32m+[m[32m}[m
+[32m+[m
+ // Track initialization[m
+ let initialized = false;[m
+ [m
+[36m@@ -105,6 +117,64 @@[m [mconst WATCHDOG_INTERVAL_MS = 30_000;[m
+ // case we observed (queue stalled for 3+ minutes with no progress).[m
+ const WEDGE_THRESHOLD_MS = 120_000;[m
+ [m
+[32m+[m[32m/**[m
+[32m+[m[32m * Token Bucket rate limiter for TPM (tokens-per-minute) and TPD (tokens-per-day).[m
+[32m+[m[32m *[m
+[32m+[m[32m * Implements a classic token-bucket algorithm:[m
+[32m+[m[32m * - Bucket has a capacity (max burst = configured limit) and a refill rate[m
+[32m+[m[32m *   (tokens per millisecond derived from TPM or TPD)[m
+[32m+[m[32m * - On each check, tokens are refilled based on elapsed time since last check[m
+[32m+[m[32m * - If enough tokens are available, they are consumed and `tryConsume` returns true[m
+[32m+[m[32m * - If insufficient tokens, returns false (caller should back off)[m
+[32m+[m[32m *[m
+[32m+[m[32m * Thread-safe for Node.js single-threaded event loop — no mutex needed.[m
+[32m+[m[32m */[m
+[32m+[m[32mclass TokenBucket {[m
+[32m+[m[32m  capacity: number;[m
+[32m+[m[32m  refillRate: number; // tokens per ms[m
+[32m+[m[32m  tokens: number;[m
+[32m+[m[32m  lastRefill: number;[m
+[32m+[m
+[32m+[m[32m  constructor(capacity: number, refillRate: number) {[m
+[32m+[m[32m    this.capacity = capacity;[m
+[32m+[m[32m    this.refillRate = refillRate;[m
+[32m+[m[32m    this.tokens = capacity; // Start with a full bucket[m
+[32m+[m[32m    this.lastRefill = Date.now();[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  /**[m
+[32m+[m[32m   * Try to consume `count` tokens from the bucket.[m
+[32m+[m[32m   * Refills first based on elapsed time, then checks if enough tokens remain.[m
+[32m+[m[32m   * @returns true if tokens were consumed, false if insufficient.[m
+[32m+[m[32m   */[m
+[32m+[m[32m  tryConsume(count: number): boolean {[m
+[32m+[m[32m    this.#refill();[m
+[32m+[m[32m    if (this.tokens >= count) {[m
+[32m+[m[32m      this.tokens -= count;[m
+[32m+[m[32m      return true;[m
+[32m+[m[32m    }[m
+[32m+[m[32m    return false;[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  /** Returns current available tokens after refill (for diagnostics). */[m
+[32m+[m[32m  get currentTokens(): number {[m
+[32m+[m[32m    this.#refill();[m
+[32m+[m[32m    return this.tokens;[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  #refill(): void {[m
+[32m+[m[32m    const now = Date.now();[m
+[32m+[m[32m    const elapsed = now - this.lastRefill;[m
+[32m+[m[32m    if (elapsed > 0 && this.refillRate > 0) {[m
+[32m+[m[32m      const newTokens = elapsed * this.refillRate;[m
+[32m+[m[32m      if (newTokens > 0 || this.tokens < this.capacity) {[m
+[32m+[m[32m        this.tokens = Math.min(this.capacity, this.tokens + newTokens);[m
+[32m+[m[32m      }[m
+[32m+[m[32m      this.lastRefill = now;[m
+[32m+[m[32m    }[m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[32m+[m
+ /**[m
+  * Env-var override for the auto-enable safety net. Highest priority — wins[m
+  * over the persisted dashboard setting. Use to disable in an incident without[m
+[36m@@ -234,6 +304,7 @@[m [mfunction watchdogTick() {[m
+         limiters.delete(key);[m
+         lastDispatchAt.delete(key);[m
+         limiterLastUsed.delete(key);[m
+[32m+[m[32m        cleanupTokenBuckets(key);[m
+         logRateLimit(`🧹 [RATE-LIMIT] Evicting idle limiter: ${key} (inactive for ${Math.round((now - lastUsed) / 1000)}s)`);[m
+         trackAsyncOperation(limiter.disconnect());[m
+       }[m
+[36m@@ -259,6 +330,7 @@[m [mfunction watchdogTick() {[m
+     limiters.delete(key);[m
+     lastDispatchAt.delete(key);[m
+     limiterLastUsed.delete(key);[m
+[32m+[m[32m    cleanupTokenBuckets(key);[m
+     // Do NOT call limiter.stop() — it permanently rejects future .schedule() calls with[m
+     // "This limiter has been stopped". In-flight requests still holding a reference to[m
+     // the old instance cannot be redirected to a new one, causing spurious 502 bursts.[m
+[36m@@ -304,6 +376,8 @@[m [mfunction shutdownLimiters(): void {[m
+     limiter.stop({ dropWaitingJobs: false });[m
+   }[m
+   limiters.clear();[m
+[32m+[m[32m  tpmBuckets.clear();[m
+[32m+[m[32m  tpdBuckets.clear();[m
+   lastDispatchAt.clear();[m
+   limiterLastUsed.clear();[m
+ }[m
+[36m@@ -408,6 +482,7 @@[m [mexport function disableRateLimitProtection(connectionId) {[m
+       limiters.delete(key);[m
+       lastDispatchAt.delete(key);[m
+       limiterLastUsed.delete(key);[m
+[32m+[m[32m      cleanupTokenBuckets(key);[m
+       trackAsyncOperation(limiter.disconnect());[m
+     }[m
+   }[m
+[36m@@ -442,6 +517,7 @@[m [mexport function refreshConnectionRateLimits(connectionId, overrides) {[m
+       limiters.delete(key);[m
+       lastDispatchAt.delete(key);[m
+       limiterLastUsed.delete(key);[m
+[32m+[m[32m      cleanupTokenBuckets(key);[m
+       trackAsyncOperation(limiter.disconnect());[m
+     }[m
+   }[m
+[36m@@ -462,6 +538,93 @@[m [mfunction getLimiterKey(provider, connectionId, model = null) {[m
+   return `${provider}:${connectionId}`;[m
+ }[m
+ [m
+[32m+[m[32m/**[m
+[32m+[m[32m * Get or create a token bucket from the given bucket map.[m
+[32m+[m[32m * If `limit` is <= 0, returns null (no limit configured).[m
+[32m+[m[32m */[m
+[32m+[m[32mfunction getOrCreateTokenBucket([m
+[32m+[m[32m  buckets: Map<string, TokenBucket>,[m
+[32m+[m[32m  key: string,[m
+[32m+[m[32m  limit: number,[m
+[32m+[m[32m  refillPeriodMs: number,[m
+[32m+[m[32m): TokenBucket | null {[m
+[32m+[m[32m  if (typeof limit !== "number" || limit <= 0) return null;[m
+[32m+[m[32m  let bucket = buckets.get(key);[m
+[32m+[m[32m  if (!bucket) {[m
+[32m+[m[32m    const refillRate = limit / refillPeriodMs; // tokens per ms[m
+[32m+[m[32m    bucket = new TokenBucket(limit, refillRate);[m
+[32m+[m[32m    buckets.set(key, bucket);[m
+[32m+[m[32m  }[m
+[32m+[m[32m  return bucket;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Try to consume tokens from TPM and/or TPD token buckets for a connection.[m
+[32m+[m[32m *[m
+[32m+[m[32m * Checks both configured limits:[m
+[32m+[m[32m * - TPM (tokens-per-minute): refill rate is limit / 60_000 ms[m
+[32m+[m[32m * - TPD (tokens-per-day): refill rate is limit / (24 * 60 * 60 * 1000) ms[m
+[32m+[m[32m *[m
+[32m+[m[32m * Returns `{ allowed: true }` if both buckets have sufficient tokens,[m
+[32m+[m[32m * or `{ allowed: false, reason }` with the first bucket that was exhausted.[m
+[32m+[m[32m * When `allowed: false`, NO tokens are consumed from either bucket.[m
+[32m+[m[32m *[m
+[32m+[m[32m * Thread-safe: synchronous, no async interleaving concerns on the event loop.[m
+[32m+[m[32m *[m
+[32m+[m[32m * @param provider - Provider ID[m
+[32m+[m[32m * @param connectionId - Connection ID[m
+[32m+[m[32m * @param model - Model name (optional, for per-model scoping)[m
+[32m+[m[32m * @param tokens - Number of tokens to consume[m
+[32m+[m[32m */[m
+[32m+[m[32mexport function tryConsumeTokens([m
+[32m+[m[32m  provider: string,[m
+[32m+[m[32m  connectionId: string,[m
+[32m+[m[32m  model: string | null,[m
+[32m+[m[32m  tokens: number,[m
+[32m+[m[32m): { allowed: boolean; reason?: string } {[m
+[32m+[m[32m  if (!enabledConnections.has(connectionId)) {[m
+[32m+[m[32m    return { allowed: true };[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  if (typeof tokens !== "number" || tokens <= 0) {[m
+[32m+[m[32m    return { allowed: true };[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  const overrides = connectionRateLimitOverrides.get(connectionId);[m
+[32m+[m[32m  if (!overrides) {[m
+[32m+[m[32m    return { allowed: true };[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  const tpm = overrides.tpm;[m
+[32m+[m[32m  const tpd = overrides.tpd;[m
+[32m+[m
+[32m+[m[32m  if ((!tpm || tpm <= 0) && (!tpd || tpd <= 0)) {[m
+[32m+[m[32m    return { allowed: true };[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  const key = getLimiterKey(provider, connectionId, model);[m
+[32m+[m
+[32m+[m[32m  // Check TPM bucket first (more granular, likely to hit first)[m
+[32m+[m[32m  if (tpm && tpm > 0) {[m
+[32m+[m[32m    const tpmKey = key + ":tpm";[m
+[32m+[m[32m    const bucket = getOrCreateTokenBucket(tpmBuckets, tpmKey, tpm, 60_000);[m
+[32m+[m[32m    if (bucket && !bucket.tryConsume(tokens)) {[m
+[32m+[m[32m      return { allowed: false, reason: `TPM limit exceeded (${tpm} tokens/min for ${key})` };[m
+[32m+[m[32m    }[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  // Check TPD bucket[m
+[32m+[m[32m  if (tpd && tpd > 0) {[m
+[32m+[m[32m    const tpdKey = key + ":tpd";[m
+[32m+[m[32m    const bucket = getOrCreateTokenBucket(tpdBuckets, tpdKey, tpd, 24 * 60 * 60_000);[m
+[32m+[m[32m    if (bucket && !bucket.tryConsume(tokens)) {[m
+[32m+[m[32m      return { allowed: false, reason: `TPD limit exceeded (${tpd} tokens/day for ${key})` };[m
+[32m+[m[32m    }[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  return { allowed: true };[m
+[32m+[m[32m}[m
+[32m+[m
+ function getLimiter(provider, connectionId, model = null) {[m
+   const key = getLimiterKey(provider, connectionId, model);[m
+ [m
+[36m@@ -485,9 +648,20 @@[m [mfunction getLimiter(provider, connectionId, model = null) {[m
+         defaults.reservoirRefreshAmount = overrides.rpm;[m
+         defaults.reservoirRefreshInterval = 60 * 1000;[m
+       }[m
+[31m-      // TODO: TPM/TPD integration — requires a token-bucket vs request-bucket[m
+[31m-      // separation (Bottleneck's reservoir is request-count, not token-count).[m
+[31m-      // When added, treat 0/missing the same way: fall through to system default.[m
+[32m+[m[32m      // TPM/TPD enforcement via token-bucket is implemented in tryConsumeTokens().[m
+[32m+[m[32m      // TPM/TPD values are read from overrides here for reference but enforced[m
+[32m+[m[32m      // in the withRateLimit() entry point through the token-bucket algorithm.[m
+[32m+[m[32m      // Bottleneck's reservoir remains request-count only.[m
+[32m+[m[32m      //[m
+[32m+[m[32m      // TPM override: count of tokens allowed per minute (tracked via TokenBucket)[m
+[32m+[m[32m      if (typeof overrides.tpm === "number" && overrides.tpm > 0) {[m
+[32m+[m[32m        // Token-bucket enforced in withRateLimit via tryConsumeTokens().[m
+[32m+[m[32m        // No Bottleneck settings changes needed — keep default reservoir.[m
+[32m+[m[32m      }[m
+[32m+[m[32m      // TPD override: count of tokens allowed per day (tracked via TokenBucket)[m
+[32m+[m[32m      if (typeof overrides.tpd === "number" && overrides.tpd > 0) {[m
+[32m+[m[32m        // Token-bucket enforced in withRateLimit via tryConsumeTokens().[m
+[32m+[m[32m      }[m
+     }[m
+     const limiter = new Bottleneck({[m
+       ...defaults,[m
+[36m@@ -518,9 +692,11 @@[m [mfunction getLimiter(provider, connectionId, model = null) {[m
+  * @param {string} model - Model name (optional, for per-model limits)[m
+  * @param {Function} fn - The async function to execute (e.g., executor.execute)[m
+  * @param {AbortSignal} signal - Optional abort signal to cancel waiting[m
+[32m+[m[32m * @param {number} estimatedTokens - Approximate tokens this request will consume[m
+[32m+[m[32m *   (0 or negative = skip token-bucket check). Used for TPM/TPD enforcement.[m
+  * @returns {Promise<unknown>} Result of fn()[m
+  */[m
+[31m-export async function withRateLimit(provider, connectionId, model, fn, signal = null) {[m
+[32m+[m[32mexport async function withRateLimit(provider, connectionId, model, fn, signal = null, estimatedTokens = 0) {[m
+   if (!enabledConnections.has(connectionId)) {[m
+     return fn();[m
+   }[m
+[36m@@ -537,6 +713,23 @@[m [mexport async function withRateLimit(provider, connectionId, model, fn, signal =[m
+   // (Fase 8.2). No-op unless PROVIDER_DEFAULT_RATE_LIMITS has an entry for `provider`.[m
+   await awaitProviderDefaultSlot(provider, connectionId, signal, currentRequestQueueSettings.maxWaitMs);[m
+ [m
+[32m+[m[32m  // Token-bucket check: enforce TPM/TPD budgets before entering the Bottleneck queue.[m
+[32m+[m[32m  // The caller provides an estimated token count (e.g. input tokens from the request).[m
+[32m+[m[32m  // If the bucket is dry, fail fast rather than queuing and waiting.[m
+[32m+[m[32m  if (estimatedTokens > 0) {[m
+[32m+[m[32m    const { allowed, reason } = tryConsumeTokens(provider, connectionId, model, estimatedTokens);[m
+[32m+[m[32m    if (!allowed) {[m
+[32m+[m[32m      logRateLimit([m
+[32m+[m[32m        `⏰ [RATE-LIMIT] ${provider}:${connectionId.slice(0, 8)} — ${reason}`[m
+[32m+[m[32m      );[m
+[32m+[m[32m      const bucketErr = new Error([m
+[32m+[m[32m        `Request dropped: ${reason}. Try again later or reduce request frequency.`,[m
+[32m+[m[32m      ) as Error & { code?: string };[m
+[32m+[m[32m      bucketErr.code = "TOKEN_BUDGET_EXCEEDED";[m
+[32m+[m[32m      throw bucketErr;[m
+[32m+[m[32m    }[m
+[32m+[m[32m  }[m
+[32m+[m
+   const limiter = getLimiter(provider, connectionId, model);[m
+   const maxWaitMs = currentRequestQueueSettings.maxWaitMs;[m
+   const scheduleOpts = maxWaitMs && maxWaitMs > 0 ? { expiration: maxWaitMs } : {};[m
+[36m@@ -745,6 +938,7 @@[m [mexport function updateFromHeaders(provider, connectionId, headers, status, model[m
+     limiters.delete(limiterKey);[m
+     lastDispatchAt.delete(limiterKey);[m
+     limiterLastUsed.delete(limiterKey);[m
+[32m+[m[32m    cleanupTokenBuckets(limiterKey);[m
+     trackAsyncOperation(limiter.disconnect());[m
+     return;[m
+   }[m
+[36m@@ -919,6 +1113,8 @@[m [mexport async function __resetRateLimitManagerForTests() {[m
+   initialized = false;[m
+   lastDispatchAt.clear();[m
+   limiterLastUsed.clear();[m
+[32m+[m[32m  tpmBuckets.clear();[m
+[32m+[m[32m  tpdBuckets.clear();[m
+   shutdownHandlersRegistered = false;[m
+ [m
+   for (const key of Object.keys(learnedLimits)) {[m
+[36m@@ -940,6 +1136,13 @@[m [mexport async function __getLimiterStateForTests(provider, connectionId, model =[m
+ [m
+   const counts = limiter.counts();[m
+   const reservoir = await limiter.currentReservoir();[m
+[32m+[m
+[32m+[m[32m  // Expose token-bucket state for test assertions[m
+[32m+[m[32m  const tpmKey = key + ":tpm";[m
+[32m+[m[32m  const tpdKey = key + ":tpd";[m
+[32m+[m[32m  const tpmBucket = tpmBuckets.get(tpmKey);[m
+[32m+[m[32m  const tpdBucket = tpdBuckets.get(tpdKey);[m
+[32m+[m
+   return {[m
+     key,[m
+     reservoir,[m
+[36m@@ -947,9 +1150,14 @@[m [mexport async function __getLimiterStateForTests(provider, connectionId, model =[m
+     running: counts.RUNNING || 0,[m
+     executing: counts.EXECUTING || 0,[m
+     done: counts.DONE || 0,[m
+[32m+[m[32m    tpmTokens: tpmBucket ? tpmBucket.currentTokens : null,[m
+[32m+[m[32m    tpdTokens: tpdBucket ? tpdBucket.currentTokens : null,[m
+   };[m
+ }[m
+ [m
+[32m+[m[32m/** Expose TokenBucket for unit testing (DEBT-001). */[m
+[32m+[m[32mexport { TokenBucket as __TokenBucketForTests };[m
+[32m+[m
+ /**[m
+  * Load persisted learned limits on startup.[m
+  */[m
+[1mdiff --git a/src/lib/a2a/routingLogger.ts b/src/lib/a2a/routingLogger.ts[m
+[1mindex dbefcf7aa..1ad7cfe69 100644[m
+[1m--- a/src/lib/a2a/routingLogger.ts[m
+[1m+++ b/src/lib/a2a/routingLogger.ts[m
+[36m@@ -1,8 +1,26 @@[m
+ /**[m
+  * A2A Routing Decision Logger[m
+[32m+[m[32m *[m
+[32m+[m[32m * Each decision is enriched with W3C trace context (trace_id / span_id)[m
+[32m+[m[32m * from the active OpenTelemetry span, falling back to synthetic[m
+[32m+[m[32m * W3C-compatible IDs when no OTel SDK is installed.[m
+[32m+[m[32m *[m
+[32m+[m[32m * In development, the full decision is printed to the console.[m
+[32m+[m[32m * In production, it is persisted to the `routing_decisions` DB table[m
+[32m+[m[32m * (see src/lib/db/routingDecisions.ts).[m
+[32m+[m[32m *[m
+[32m+[m[32m * Integration tiers:[m
+[32m+[m[32m *   1. `@pheno-otel/tracing` — sibling Rust-to-JS bridge[m
+[32m+[m[32m *   2. `@opentelemetry/api` — standard OTel JS API[m
+[32m+[m[32m *   3. Synthetic W3C-compatible IDs via `node:crypto` (always available)[m
+  */[m
+ [m
+[32m+[m[32mimport { getActiveSpanContext } from "./otelContext";[m
+[32m+[m[32mimport { saveRoutingDecision } from "@/lib/db/routingDecisions";[m
+[32m+[m
+ export interface RoutingDecision {[m
+[32m+[m[32m  /** Optional UUID; auto-assigned when persisted. */[m
+[32m+[m[32m  id?: string;[m
+   taskType: string;[m
+   comboId: string;[m
+   providerSelected: string;[m
+[36m@@ -13,12 +31,42 @@[m [mexport interface RoutingDecision {[m
+   success: boolean;[m
+   latencyMs: number;[m
+   cost: number;[m
+[32m+[m[32m  traceId?: string;[m
+[32m+[m[32m  spanId?: string;[m
+ }[m
+ [m
+[32m+[m[32m/**[m
+[32m+[m[32m * Log a routing decision with trace context enrichment.[m
+[32m+[m[32m *[m
+[32m+[m[32m * Hydrates `traceId` and `spanId` from the active OpenTelemetry span[m
+[32m+[m[32m * (or synthetic context) when the caller hasn't already supplied them.[m
+[32m+[m[32m * This ensures backward compatibility — existing callers that pass[m
+[32m+[m[32m * explicit trace IDs see them preserved.[m
+[32m+[m[32m *[m
+[32m+[m[32m * In development, the full decision is printed to the console.[m
+[32m+[m[32m * In production, it is persisted to the audit table.[m
+[32m+[m[32m */[m
+ export function logRoutingDecision(decision: RoutingDecision): void {[m
+[32m+[m[32m  // Hydrate trace context if not already set by the caller[m
+[32m+[m[32m  if (!decision.traceId || !decision.spanId) {[m
+[32m+[m[32m    const ctx = getActiveSpanContext();[m
+[32m+[m[32m    if (ctx) {[m
+[32m+[m[32m      if (!decision.traceId) decision.traceId = ctx.traceId;[m
+[32m+[m[32m      if (!decision.spanId) decision.spanId = ctx.spanId;[m
+[32m+[m[32m    }[m
+[32m+[m[32m  }[m
+[32m+[m
+   // Log to console in development[m
+   if (process.env.NODE_ENV === "development") {[m
+     console.log("[A2A ROUTING]", JSON.stringify(decision, null, 2));[m
+   }[m
+[31m-  // TODO: Write to database audit table for production[m
+[32m+[m
+[32m+[m[32m  // Persist to database audit table for production (fire-and-forget)[m
+[32m+[m[32m  try {[m
+[32m+[m[32m    saveRoutingDecision(decision);[m
+[32m+[m[32m  } catch {[m
+[32m+[m[32m    // Silently swallow — logging should never throw.[m
+[32m+[m[32m    // The DB module returns null when the table doesn't exist (pre-migration),[m
+[32m+[m[32m    // so this catch only fires on actual DB errors (disk full, etc.).[m
+[32m+[m[32m  }[m
+ }[m
+[1mdiff --git a/src/lib/a2a/skills/agentDispatch.ts b/src/lib/a2a/skills/agentDispatch.ts[m
+[1mindex 7345bd5b7..753475085 100644[m
+[1m--- a/src/lib/a2a/skills/agentDispatch.ts[m
+[1m+++ b/src/lib/a2a/skills/agentDispatch.ts[m
+[36m@@ -1,15 +1,103 @@[m
+ /**[m
+  * Agent Dispatch A2A Skill[m
+[31m- * Dispatches coding tasks to the substrate engine (forge or other drivers)[m
+[32m+[m[32m *[m
+[32m+[m[32m * Dispatches coding tasks to external agent CLIs (forge, codex, claude).[m
+[32m+[m[32m * The skill spawns the specified CLI binary with the user's prompt and[m
+[32m+[m[32m * captures the result. This is a fire-and-execute dispatch — the skill[m
+[32m+[m[32m * returns once the CLI exits (or the timeout fires). Long-running agents[m
+[32m+[m[32m * should use an appropriate timeout.[m
+[32m+[m[32m *[m
+[32m+[m[32m * Available engines and their invocation convention:[m
+[32m+[m[32m *   - forge: forge "<prompt>"[m
+[32m+[m[32m *   - codex: codex "<prompt>"          (also accepts pipe/stdin)[m
+[32m+[m[32m *   - claude: claude -p "<prompt>"     (-p flag for one-off prompts)[m
+[32m+[m[32m *[m
+[32m+[m[32m * The engine binary is resolved from:[m
+[32m+[m[32m *   1. The environment variable (e.g. FORGE_BIN, CODEX_BIN, CLAUDE_BIN)[m
+[32m+[m[32m *   2. The system PATH via the binary name[m
+[32m+[m[32m *[m
+[32m+[m[32m * Inputs (via task.metadata):[m
+[32m+[m[32m *   - engine   (optional, "forge" | "codex" | "claude", default: "forge")[m
+[32m+[m[32m *   - cwd      (optional, string, default: process.cwd())[m
+[32m+[m[32m *   - timeout  (optional, number ms, default: 300000)[m
+[32m+[m[32m *[m
+[32m+[m[32m * The dispatch prompt is taken from task.messages where role === "user".[m
+[32m+[m[32m *[m
+[32m+[m[32m * Output (artifacts[0].content is JSON on success, text on error):[m
+[32m+[m[32m *   success: { success: true, engine, cwd, exitCode, stdout, stderr }[m
+[32m+[m[32m *   error:   { error: "missing_metadata"|"invalid_input"|"dispatch_failed",[m
+[32m+[m[32m *              message }[m
+[32m+[m[32m *[m
+[32m+[m[32m * Result metadata:[m
+[32m+[m[32m *   success: true  → { success: true, engine, exitCode }[m
+[32m+[m[32m *   success: false → { success: false, error, ... }[m
+  */[m
+[31m-[m
+ import { spawn } from "child_process";[m
+ import { z } from "zod";[m
+ import { A2ATask } from "../taskManager";[m
+ import { A2ASkillResult } from "../taskExecution";[m
+ [m
+[32m+[m[32m// ── Engine registry ──────────────────────────────────────────────────────────[m
+[32m+[m
+[32m+[m[32minterface EngineEntry {[m
+[32m+[m[32m  /** The binary name to spawn. */[m
+[32m+[m[32m  binary: string;[m
+[32m+[m[32m  /** Environment variable override for the binary path. */[m
+[32m+[m[32m  envBinKey: string;[m
+[32m+[m[32m  /**[m
+[32m+[m[32m   * Build the argument vector from the prompt.[m
+[32m+[m[32m   * Different CLIs have different conventions:[m
+[32m+[m[32m   *   - forge/codex: pass prompt as a positional argument[m
+[32m+[m[32m   *   - claude: requires -p flag for one-off prompts[m
+[32m+[m[32m   */[m
+[32m+[m[32m  buildArgs: (prompt: string) => string[];[m
+[32m+[m[32m  /** Human-readable display name. */[m
+[32m+[m[32m  displayName: string;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mconst ENGINE_REGISTRY: Record<string, EngineEntry> = {[m
+[32m+[m[32m  forge: {[m
+[32m+[m[32m    binary: "forge",[m
+[32m+[m[32m    envBinKey: "FORGE_BIN",[m
+[32m+[m[32m    displayName: "ForgeCode",[m
+[32m+[m[32m    buildArgs: (prompt) => [prompt],[m
+[32m+[m[32m  },[m
+[32m+[m[32m  codex: {[m
+[32m+[m[32m    binary: "codex",[m
+[32m+[m[32m    envBinKey: "CODEX_BIN",[m
+[32m+[m[32m    displayName: "OpenAI Codex CLI",[m
+[32m+[m[32m    buildArgs: (prompt) => [prompt],[m
+[32m+[m[32m  },[m
+[32m+[m[32m  claude: {[m
+[32m+[m[32m    binary: "claude",[m
+[32m+[m[32m    envBinKey: "CLAUDE_BIN",[m
+[32m+[m[32m    displayName: "Anthropic Claude Code CLI",[m
+[32m+[m[32m    buildArgs: (prompt) => ["-p", prompt],[m
+[32m+[m[32m  },[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32mconst VALID_ENGINES = new Set(Object.keys(ENGINE_REGISTRY));[m
+[32m+[m
+[32m+[m[32m// ── Zod schema ───────────────────────────────────────────────────────────────[m
+[32m+[m
+[32m+[m[32mconst AgentDispatchParamsSchema = z.object({[m
+[32m+[m[32m  engine: z[m
+[32m+[m[32m    .string()[m
+[32m+[m[32m    .refine((v) => VALID_ENGINES.has(v), {[m
+[32m+[m[32m      message: `engine must be one of: ${Array.from(VALID_ENGINES).join(", ")}`,[m
+[32m+[m[32m    })[m
+[32m+[m[32m    .default("forge"),[m
+[32m+[m[32m  cwd: z.string().optional().default(process.cwd()),[m
+[32m+[m[32m  timeout: z.number().optional().default(300000), // 5 minutes default[m
+[32m+[m[32m});[m
+[32m+[m
+[32m+[m[32mtype AgentDispatchParams = z.infer<typeof AgentDispatchParamsSchema>;[m
+[32m+[m
+[32m+[m[32m// ── Error sanitization ───────────────────────────────────────────────────────[m
+[32m+[m
+ /**[m
+[31m- * Sanitize error messages to prevent leaking stack traces and file paths[m
+[32m+[m[32m * Sanitize error messages to prevent leaking stack traces and file paths.[m
+[32m+[m[32m * Keeps the first line only, strips path-like patterns.[m
+  */[m
+ function sanitizeErrorMessage(message: unknown): string {[m
+   let str = typeof message === "string" ? message : String(message ?? "");[m
+[36m@@ -25,107 +113,129 @@[m [mfunction sanitizeErrorMessage(message: unknown): string {[m
+   return parts.join("");[m
+ }[m
+ [m
+[31m-// Zod schema for validating task input[m
+[31m-const AgentDispatchParamsSchema = z.object({[m
+[31m-  cwd: z.string().optional().default(process.cwd()),[m
+[31m-  engine: z.enum(["forge", "codex", "claude"]).optional().default("forge"),[m
+[31m-  timeout: z.number().optional().default(300000), // 5 minutes default[m
+[31m-});[m
+[31m-[m
+[31m-type AgentDispatchParams = z.infer<typeof AgentDispatchParamsSchema>;[m
+[32m+[m[32m// ── Binary resolution ────────────────────────────────────────────────────────[m
+ [m
+ /**[m
+[31m- * Parse metadata from A2A task to extract dispatch parameters[m
+[32m+[m[32m * Resolve the engine binary path. Priority:[m
+[32m+[m[32m * 1. Environment variable override (e.g. FORGE_BIN="/path/to/forge")[m
+[32m+[m[32m * 2. Default binary name in the PATH[m
+  */[m
+[31m-function parseDispatchParams(metadata?: Record<string, unknown>): AgentDispatchParams {[m
+[31m-  try {[m
+[31m-    return AgentDispatchParamsSchema.parse(metadata || {});[m
+[31m-  } catch (err) {[m
+[31m-    if (err instanceof z.ZodError) {[m
+[31m-      throw new Error([m
+[31m-        `Invalid dispatch parameters: ${err.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join("; ")}`[m
+[31m-      );[m
+[31m-    }[m
+[31m-    throw err;[m
+[32m+[m[32mfunction resolveBinary(engine: string): string {[m
+[32m+[m[32m  const entry = ENGINE_REGISTRY[engine];[m
+[32m+[m[32m  if (!entry) return engine;[m
+[32m+[m
+[32m+[m[32m  const envOverride = process.env[entry.envBinKey];[m
+[32m+[m[32m  if (envOverride && envOverride.trim().length > 0) {[m
+[32m+[m[32m    return envOverride.trim();[m
+   }[m
+[32m+[m[32m  return entry.binary;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// ── Subprocess spawn ─────────────────────────────────────────────────────────[m
+[32m+[m
+[32m+[m[32minterface SpawnResult {[m
+[32m+[m[32m  success: boolean;[m
+[32m+[m[32m  stdout: string;[m
+[32m+[m[32m  stderr: string;[m
+[32m+[m[32m  exitCode: number;[m
+ }[m
+ [m
+ /**[m
+[31m- * Spawn subprocess to invoke substrate driver-cli[m
+[32m+[m[32m * Spawn the engine binary with the prompt and capture output.[m
+[32m+[m[32m * Uses the same pattern as cliRuntime.ts::runProcess but simplified[m
+[32m+[m[32m * for direct prompt dispatch rather than healthchecks.[m
+  */[m
+[31m-function invokeSubstrate([m
+[32m+[m[32mfunction spawnEngine([m
+[32m+[m[32m  binary: string,[m
+   args: string[],[m
+[32m+[m[32m  cwd: string,[m
+   timeout: number,[m
+[31m-  cwd: string[m
+[31m-): Promise<{ success: boolean; stdout: string; stderr: string; exitCode: number }> {[m
+[32m+[m[32m): Promise<SpawnResult> {[m
+   return new Promise((resolve) => {[m
+[31m-    const substrateBin = process.env.SUBSTRATE_BIN || "cargo";[m
+[31m-    const actualArgs =[m
+[31m-      substrateBin === "cargo"[m
+[31m-        ? [[m
+[31m-            "run",[m
+[31m-            "-q",[m
+[31m-            "-p",[m
+[31m-            "driver-cli",[m
+[31m-            "--",[m
+[31m-            ...args,[m
+[31m-          ][m
+[31m-        : args;[m
+[31m-[m
+[31m-    const proc = spawn(substrateBin, actualArgs, {[m
+[31m-      cwd,[m
+[31m-      timeout,[m
+[31m-      stdio: ["pipe", "pipe", "pipe"],[m
+[31m-    });[m
+[32m+[m[32m    // Security: reject commands with shell metacharacters[m
+[32m+[m[32m    if (/[;&|`$<>\n\r]/.test(binary)) {[m
+[32m+[m[32m      resolve({[m
+[32m+[m[32m        success: false,[m
+[32m+[m[32m        stdout: "",[m
+[32m+[m[32m        stderr: "Rejected: unsafe binary path contains shell metacharacters",[m
+[32m+[m[32m        exitCode: -1,[m
+[32m+[m[32m      });[m
+[32m+[m[32m      return;[m
+[32m+[m[32m    }[m
+ [m
+     let stdout = "";[m
+     let stderr = "";[m
+ [m
+[31m-    proc.stdout?.on("data", (chunk) => {[m
+[32m+[m[32m    const proc = spawn(binary, args, {[m
+[32m+[m[32m      cwd,[m
+[32m+[m[32m      timeout,[m
+[32m+[m[32m      stdio: ["ignore", "pipe", "pipe"],[m
+[32m+[m[32m      // Windows: .cmd/.bat wrappers need the shell; bare .exe does not.[m
+[32m+[m[32m      ...(process.platform === "win32" && /\.(cmd|bat)$/i.test(binary)[m
+[32m+[m[32m        ? { shell: true }[m
+[32m+[m[32m        : {}),[m
+[32m+[m[32m    });[m
+[32m+[m
+[32m+[m[32m    proc.stdout?.on("data", (chunk: Buffer) => {[m
+       stdout += chunk.toString();[m
+     });[m
+ [m
+[31m-    proc.stderr?.on("data", (chunk) => {[m
+[32m+[m[32m    proc.stderr?.on("data", (chunk: Buffer) => {[m
+       stderr += chunk.toString();[m
+     });[m
+ [m
+[31m-    const timeoutHandle = setTimeout(() => {[m
+[31m-      proc.kill();[m
+[31m-      resolve({[m
+[31m-        success: false,[m
+[31m-        stdout,[m
+[31m-        stderr: `Timeout after ${timeout}ms`,[m
+[31m-        exitCode: 124,[m
+[31m-      });[m
+[31m-    }, timeout + 1000); // Add 1s buffer to let process finish naturally[m
+[32m+[m[32m    // Extra safety: OS-level timer in case proc doesn't respond to SIGKILL[m
+[32m+[m[32m    const killTimer = setTimeout(() => {[m
+[32m+[m[32m      proc.kill("SIGKILL");[m
+[32m+[m[32m    }, timeout + 5000);[m
+ [m
+     proc.on("close", (code) => {[m
+[31m-      clearTimeout(timeoutHandle);[m
+[32m+[m[32m      clearTimeout(killTimer);[m
+       resolve({[m
+[31m-        success: (code || 0) === 0,[m
+[31m-        stdout,[m
+[31m-        stderr,[m
+[31m-        exitCode: code || 0,[m
+[32m+[m[32m        success: (code ?? 1) === 0,[m
+[32m+[m[32m        stdout: stdout.trim(),[m
+[32m+[m[32m        stderr: stderr.trim(),[m
+[32m+[m[32m        exitCode: code ?? 1,[m
+       });[m
+     });[m
+ [m
+     proc.on("error", (err) => {[m
+[31m-      clearTimeout(timeoutHandle);[m
+[32m+[m[32m      clearTimeout(killTimer);[m
+       resolve({[m
+         success: false,[m
+[31m-        stdout,[m
+[31m-        stderr: err.message,[m
+[32m+[m[32m        stdout: stdout.trim(),[m
+[32m+[m[32m        stderr: `Failed to spawn ${binary}: ${err.message}`,[m
+         exitCode: 1,[m
+       });[m
+     });[m
+   });[m
+ }[m
+ [m
+[32m+[m[32m// ── Metadata parsing ─────────────────────────────────────────────────────────[m
+[32m+[m
+[32m+[m[32mfunction parseDispatchParams(metadata?: Record<string, unknown>): AgentDispatchParams {[m
+[32m+[m[32m  try {[m
+[32m+[m[32m    return AgentDispatchParamsSchema.parse(metadata || {});[m
+[32m+[m[32m  } catch (err) {[m
+[32m+[m[32m    if (err instanceof z.ZodError) {[m
+[32m+[m[32m      throw new Error([m
+[32m+[m[32m        `Invalid dispatch parameters: ${err.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join("; ")}`,[m
+[32m+[m[32m      );[m
+[32m+[m[32m    }[m
+[32m+[m[32m    throw err;[m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// ── A2A entry point ──────────────────────────────────────────────────────────[m
+[32m+[m
+ /**[m
+[31m- * Execute agent-dispatch skill[m
+[32m+[m[32m * Execute the agent-dispatch A2A skill.[m
+[32m+[m[32m *[m
+[32m+[m[32m * Extracts the dispatch prompt from the last user message in the task,[m
+[32m+[m[32m * resolves the engine binary, spawns it, and returns the captured output.[m
+  */[m
+ export async function executeAgentDispatch(task: A2ATask): Promise<A2ASkillResult> {[m
+[31m-  // Validate and parse parameters[m
+[32m+[m[32m  // ── Validate and parse parameters ────────────────────────────────────────[m
+   let params: AgentDispatchParams;[m
+   try {[m
+     params = parseDispatchParams(task.metadata);[m
+[36m@@ -145,13 +255,14 @@[m [mexport async function executeAgentDispatch(task: A2ATask): Promise<A2ASkillResul[m
+     };[m
+   }[m
+ [m
+[31m-  // Extract the coding prompt from messages[m
+[32m+[m[32m  // ── Extract the prompt from user messages ────────────────────────────────[m
+   const prompt = task.messages[m
+     .filter((m) => m.role === "user")[m
+     .map((m) => m.content)[m
+[31m-    .join("\n");[m
+[32m+[m[32m    .join("\n")[m
+[32m+[m[32m    .trim();[m
+ [m
+[31m-  if (!prompt.trim()) {[m
+[32m+[m[32m  if (!prompt) {[m
+     const errMsg = "No user message content to dispatch";[m
+     return {[m
+       artifacts: [[m
+[36m@@ -167,21 +278,30 @@[m [mexport async function executeAgentDispatch(task: A2ATask): Promise<A2ASkillResul[m
+     };[m
+   }[m
+ [m
+[31m-  // Build dispatch command arguments[m
+[31m-  const args = [[m
+[31m-    "dispatch",[m
+[31m-    `--engine=${params.engine}`,[m
+[31m-    `--cwd=${params.cwd}`,[m
+[31m-    "--", // Separator before the prompt[m
+[31m-    prompt,[m
+[31m-  ];[m
+[32m+[m[32m  // ── Resolve the engine binary ────────────────────────────────────────────[m
+[32m+[m[32m  const engine = params.engine;[m
+[32m+[m[32m  const entry = ENGINE_REGISTRY[engine];[m
+[32m+[m[32m  const binary = resolveBinary(engine);[m
+[32m+[m[32m  const args = entry.buildArgs(prompt);[m
+ [m
+[31m-  // Invoke substrate driver-cli[m
+[31m-  const result = await invokeSubstrate(args, params.timeout, params.cwd);[m
+[32m+[m[32m  // ── Spawn the engine ─────────────────────────────────────────────────────[m
+[32m+[m[32m  const result = await spawnEngine(binary, args, params.cwd, params.timeout);[m
+ [m
+[31m-  // Parse result[m
+   if (!result.success) {[m
+[31m-    const errorMsg = result.stderr || result.stdout || `Process exited with code ${result.exitCode}`;[m
+[32m+[m[32m    // Build a descriptive error message[m
+[32m+[m[32m    const parts: string[] = [];[m
+[32m+[m[32m    if (result.stderr) parts.push(result.stderr);[m
+[32m+[m[32m    if (result.exitCode !== 0) {[m
+[32m+[m[32m      parts.push(`Process exited with code ${result.exitCode}`);[m
+[32m+[m[32m    }[m
+[32m+[m[32m    // If both are empty, the binary likely wasn't found[m
+[32m+[m[32m    if (parts.length === 0) {[m
+[32m+[m[32m      parts.push([m
+[32m+[m[32m        `${entry.displayName} (${binary}) is not installed or not found on PATH. Install it or set ${entry.envBinKey} to the full binary path.`,[m
+[32m+[m[32m      );[m
+[32m+[m[32m    }[m
+[32m+[m[32m    const errorMsg = parts.join("; ");[m
+[32m+[m
+     return {[m
+       artifacts: [[m
+         {[m
+[36m@@ -192,17 +312,17 @@[m [mexport async function executeAgentDispatch(task: A2ATask): Promise<A2ASkillResul[m
+       metadata: {[m
+         error: sanitizeErrorMessage(errorMsg),[m
+         success: false,[m
+[32m+[m[32m        engine,[m
+         exitCode: result.exitCode,[m
+       },[m
+     };[m
+   }[m
+ [m
+[31m-  // Try to parse JSON result from stdout[m
+[32m+[m[32m  // ── Try to parse JSON from stdout ────────────────────────────────────────[m
+   let parsedResult: unknown;[m
+   try {[m
+     parsedResult = JSON.parse(result.stdout);[m
+   } catch {[m
+[31m-    // If not JSON, return raw stdout[m
+     parsedResult = result.stdout;[m
+   }[m
+ [m
+[36m@@ -210,14 +330,18 @@[m [mexport async function executeAgentDispatch(task: A2ATask): Promise<A2ASkillResul[m
+     artifacts: [[m
+       {[m
+         type: typeof parsedResult === "object" ? "data" : "text",[m
+[31m-        content: typeof parsedResult === "string" ? parsedResult : JSON.stringify(parsedResult, null, 2),[m
+[32m+[m[32m        content:[m
+[32m+[m[32m          typeof parsedResult === "string"[m
+[32m+[m[32m            ? parsedResult[m
+[32m+[m[32m            : JSON.stringify(parsedResult, null, 2),[m
+       },[m
+     ],[m
+     metadata: {[m
+[31m-      engine: params.engine,[m
+[32m+[m[32m      engine,[m
+       cwd: params.cwd,[m
+       success: true,[m
+       exitCode: result.exitCode,[m
+[32m+[m[32m      stdoutLength: result.stdout.length,[m
+     },[m
+   };[m
+ }[m
+[1mdiff --git a/src/lib/localDb.ts b/src/lib/localDb.ts[m
+[1mindex 1fcadda8f..9725c825c 100755[m
+[1m--- a/src/lib/localDb.ts[m
+[1m+++ b/src/lib/localDb.ts[m
+[36m@@ -740,6 +740,18 @@[m [mexport type {[m
+   AutoRoutingTopProviderRow,[m
+ } from "./db/usageLogs";[m
+ [m
+[32m+[m[32m// ---------------------------------------------------------------------------[m
+[32m+[m[32m// routing_decisions — A2A routing audit log (DEBT-011)[m
+[32m+[m[32m// ---------------------------------------------------------------------------[m
+[32m+[m[32mexport {[m
+[32m+[m[32m  saveRoutingDecision,[m
+[32m+[m[32m  getRoutingDecisions,[m
+[32m+[m[32m  getRoutingDecisionsByProvider,[m
+[32m+[m[32m  getRoutingDecisionCount,[m
+[32m+[m[32m  resetRoutingDecisionsTableCache,[m
+[32m+[m[32m} from "./db/routingDecisions";[m
+[32m+[m[32mexport type { RoutingDecisionRow } from "./db/routingDecisions";[m
+[32m+[m
+ // ---------------------------------------------------------------------------[m
+ // semantic_cache — cache entries CRUD (#3500 slice 4)[m
+ // ---------------------------------------------------------------------------[m
+[1mdiff --git a/src/lib/memory/embedding/index.ts b/src/lib/memory/embedding/index.ts[m
+[1mindex 60c44b206..6172d3955 100644[m
+[1m--- a/src/lib/memory/embedding/index.ts[m
+[1m+++ b/src/lib/memory/embedding/index.ts[m
+[36m@@ -62,7 +62,7 @@[m [mexport function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd[m
+         model: null,[m
+         dimensions: null,[m
+         signature: makeSignature(null, null, null),[m
+[31m-        reason: "no_key: embeddingProviderModel não configurado",[m
+[32m+[m[32m        reason: "no_key: embeddingProviderModel not configured",[m
+       };[m
+     }[m
+     // We can't do async here, so we report it as potentially available[m
+[36m@@ -73,7 +73,7 @@[m [mexport function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd[m
+       model,[m
+       dimensions: null,[m
+       signature: makeSignature("remote", model, null),[m
+[31m-      reason: `provider remoto configurado: ${model}`,[m
+[32m+[m[32m      reason: `remote provider configured: ${model}`,[m
+     };[m
+   }[m
+ [m
+[36m@@ -84,7 +84,7 @@[m [mexport function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd[m
+         model: null,[m
+         dimensions: null,[m
+         signature: makeSignature(null, null, null),[m
+[31m-        reason: "static desabilitado nas configurações",[m
+[32m+[m[32m        reason: "static disabled in settings",[m
+       };[m
+     }[m
+     return {[m
+[36m@@ -92,7 +92,7 @@[m [mexport function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd[m
+       model: STATIC_MODEL,[m
+       dimensions: 256,[m
+       signature: makeSignature("static", STATIC_MODEL, 256),[m
+[31m-      reason: "static (potion-base-8M) selecionado explicitamente",[m
+[32m+[m[32m      reason: "static (potion-base-8M) explicitly selected",[m
+     };[m
+   }[m
+ [m
+[36m@@ -103,7 +103,7 @@[m [mexport function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd[m
+         model: null,[m
+         dimensions: null,[m
+         signature: makeSignature(null, null, null),[m
+[31m-        reason: "transformers desabilitado nas configurações",[m
+[32m+[m[32m        reason: "transformers disabled in settings",[m
+       };[m
+     }[m
+     return {[m
+[36m@@ -111,7 +111,7 @@[m [mexport function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd[m
+       model: TRANSFORMERS_MODEL,[m
+       dimensions: 384,[m
+       signature: makeSignature("transformers", TRANSFORMERS_MODEL, 384),[m
+[31m-      reason: "transformers.js (MiniLM-L6-v2) selecionado explicitamente",[m
+[32m+[m[32m      reason: "transformers.js (MiniLM-L6-v2) explicitly selected",[m
+     };[m
+   }[m
+ [m
+[36m@@ -134,7 +134,7 @@[m [mexport function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd[m
+           model: providerModel,[m
+           dimensions: null,[m
+           signature: makeSignature("remote", providerModel, null),[m
+[31m-          reason: `auto: provider ${providerId} configurado`,[m
+[32m+[m[32m          reason: `auto: provider ${providerId} configured`,[m
+         };[m
+       }[m
+     }[m
+[36m@@ -145,7 +145,7 @@[m [mexport function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd[m
+         model: STATIC_MODEL,[m
+         dimensions: 256,[m
+         signature: makeSignature("static", STATIC_MODEL, 256),[m
+[31m-        reason: "auto: potion-base-8M (static) disponível",[m
+[32m+[m[32m        reason: "auto: potion-base-8M (static) available",[m
+       };[m
+     }[m
+ [m
+[36m@@ -155,14 +155,14 @@[m [mexport function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd[m
+         model: TRANSFORMERS_MODEL,[m
+         dimensions: 384,[m
+         signature: makeSignature("transformers", TRANSFORMERS_MODEL, 384),[m
+[31m-        reason: "auto: transformers.js (MiniLM-L6-v2) disponível",[m
+[32m+[m[32m        reason: "auto: transformers.js (MiniLM-L6-v2) available",[m
+       };[m
+     }[m
+ [m
+[31m-    return noSource("auto: nenhuma fonte de embedding disponível");[m
+[32m+[m[32m    return noSource("auto: no embedding source available");[m
+   }[m
+ [m
+[31m-  return noSource("fonte de embedding desconhecida");[m
+[32m+[m[32m  return noSource("unknown embedding source");[m
+ }[m
+ [m
+ /**[m
+[1mdiff --git a/src/lib/memory/embedding/types.ts b/src/lib/memory/embedding/types.ts[m
+[1mindex 0de75d04b..9107a21b0 100644[m
+[1m--- a/src/lib/memory/embedding/types.ts[m
+[1m+++ b/src/lib/memory/embedding/types.ts[m
+[36m@@ -4,23 +4,23 @@[m [mexport interface EmbeddingProviderListing {[m
+   provider: string; // e.g. "openai"[m
+   hasKey: boolean;[m
+   models: Array<{[m
+[31m-    id: string; // formato `provider/model`, e.g. "openai/text-embedding-3-small"[m
+[32m+[m[32m    id: string; // format `provider/model`, e.g. "openai/text-embedding-3-small"[m
+     name: string;[m
+     dimensions: number | null;[m
+   }>;[m
+ }[m
+ [m
+ export interface EmbeddingResolution {[m
+[31m-  /** Fonte ativa após resolveEmbeddingSource(settings). null = nenhuma disponível → degrada p/ FTS5. */[m
+[32m+[m[32m  /** Active source after resolveEmbeddingSource(settings). null = none available → falls back to FTS5. */[m
+   source: "remote" | "static" | "transformers" | null;[m
+[31m-  /** Modelo ativo (formato provider/model para remote, "potion-base-8M" para static, "Xenova/all-MiniLM-L6-v2" para transformers). */[m
+[32m+[m[32m  /** Active model (format provider/model for remote, "potion-base-8M" for static, "Xenova/all-MiniLM-L6-v2" for transformers). */[m
+   model: string | null;[m
+[31m-  /** Dimensão do vetor produzido. null antes da 1ª chamada (lazy probe). */[m
+[32m+[m[32m  /** Dimension of the produced vector. null before the 1st call (lazy probe). */[m
+   dimensions: number | null;[m
+[31m-  /** Assinatura única usada como chave do vectorStore para detectar troca de modelo. */[m
+[32m+[m[32m  /** Unique signature used as vectorStore key to detect model swap. */[m
+   signature: string; // ${source}:${model}:${dim}[m
+[31m-  /** Motivo da escolha (UI exibe no Engine status). */[m
+[31m-  reason: string; // e.g. "provider openai com key configurada"[m
+[32m+[m[32m  /** Reason for the choice (UI displays in Engine status). */[m
+[32m+[m[32m  reason: string; // e.g. "provider openai with key configured"[m
+ }[m
+ [m
+ export interface EmbeddingResult {[m
+[1mdiff --git a/src/shared/network/outboundUrlGuard.ts b/src/shared/network/outboundUrlGuard.ts[m
+[1mindex 41c108c5e..32d5061ac 100644[m
+[1m--- a/src/shared/network/outboundUrlGuard.ts[m
+[1m+++ b/src/shared/network/outboundUrlGuard.ts[m
+[36m@@ -70,11 +70,12 @@[m [mexport function isPrivateHost(hostname: string) {[m
+   }[m
+ [m
+   if (isIP(normalized) === 6) {[m
+[32m+[m[32m    const firstGroup = normalized.split(":")[0];[m
+     return ([m
+       normalized === "::1" ||[m
+       normalized.startsWith("fc") ||[m
+       normalized.startsWith("fd") ||[m
+[31m-      normalized.startsWith("fe80:")[m
+[32m+[m[32m      /^fe[89ab]/i.test(firstGroup)[m
+     );[m
+   }[m
+ [m
+[36m@@ -99,6 +100,10 @@[m [mexport function isCloudMetadataHost(hostname: string): boolean {[m
+   if (!host) return false;[m
+   if (CLOUD_METADATA_HOSTNAMES.has(host)) return true;[m
+   if (host.startsWith("169.254.")) return true; // IPv4 link-local /16[m
+[32m+[m[32m  if (isIP(host) === 6) {[m
+[32m+[m[32m    const firstGroup = host.split(":")[0];[m
+[32m+[m[32m    if (/^fe[89ab]/i.test(firstGroup)) return true; // IPv6 link-local fe80::/10[m
+[32m+[m[32m  }[m
+   return false;[m
+ }[m
+ [m
+[1mdiff --git a/tests/unit/api/webhooks/webhook-url-ssrf-guard.test.ts b/tests/unit/api/webhooks/webhook-url-ssrf-guard.test.ts[m
+[1mindex 26028cf69..24d99f85a 100644[m
+[1m--- a/tests/unit/api/webhooks/webhook-url-ssrf-guard.test.ts[m
+[1m+++ b/tests/unit/api/webhooks/webhook-url-ssrf-guard.test.ts[m
+[36m@@ -103,6 +103,44 @@[m [mdescribe("POST /api/webhooks — SSRF guard on create", () => {[m
+     assert.equal(res.status, 201, "public URL must be accepted");[m
+   });[m
+ [m
+[32m+[m[32m  it("rejects custom webhook pointing to IPv6 loopback ([::1])", async () => {[m
+[32m+[m[32m    const req = jsonRequest("http://localhost/api/webhooks", "POST", {[m
+[32m+[m[32m      url: "http://[::1]:20128/api/v1/management/proxies",[m
+[32m+[m[32m      kind: "custom",[m
+[32m+[m[32m    });[m
+[32m+[m[32m    const res = await webhooksRoute.POST(req);[m
+[32m+[m[32m    assert.equal(res.status, 400, "IPv6 loopback must be rejected");[m
+[32m+[m[32m    const body = await res.json();[m
+[32m+[m[32m    assert.ok(body.error, "error body must be present");[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  it("rejects slack webhook pointing to IPv6 link-local ([fe80::1])", async () => {[m
+[32m+[m[32m    const req = jsonRequest("http://localhost/api/webhooks", "POST", {[m
+[32m+[m[32m      url: "http://[fe80::1]/hook",[m
+[32m+[m[32m      kind: "slack",[m
+[32m+[m[32m    });[m
+[32m+[m[32m    const res = await webhooksRoute.POST(req);[m
+[32m+[m[32m    assert.equal(res.status, 400, "IPv6 link-local must be rejected");[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  it("rejects custom webhook pointing to IPv6 private ULA ([fd00::1])", async () => {[m
+[32m+[m[32m    const req = jsonRequest("http://localhost/api/webhooks", "POST", {[m
+[32m+[m[32m      url: "http://[fd00::1]:8080/hook",[m
+[32m+[m[32m      kind: "custom",[m
+[32m+[m[32m    });[m
+[32m+[m[32m    const res = await webhooksRoute.POST(req);[m
+[32m+[m[32m    assert.equal(res.status, 400, "IPv6 ULA must be rejected");[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  it("accepts custom webhook with public IPv6 address", async () => {[m
+[32m+[m[32m    const req = jsonRequest("http://localhost/api/webhooks", "POST", {[m
+[32m+[m[32m      url: "http://[2001:db8::1]/hook",[m
+[32m+[m[32m      kind: "custom",[m
+[32m+[m[32m    });[m
+[32m+[m[32m    const res = await webhooksRoute.POST(req);[m
+[32m+[m[32m    assert.equal(res.status, 201, "public IPv6 must be accepted");[m
+[32m+[m[32m  });[m
+[32m+[m
+   it("does not trip the SSRF guard for telegram kind (url is a chat_id, not HTTP)", async () => {[m
+     const req = jsonRequest("http://localhost/api/webhooks", "POST", {[m
+       url: "@my-telegram-channel",[m
+[36m@@ -139,6 +177,22 @@[m [mdescribe("PUT /api/webhooks/[id] — SSRF guard on update", () => {[m
+     });[m
+     assert.equal(res.status, 400, "PUT must reject loopback host");[m
+   });[m
+[32m+[m
+[32m+[m[32m  it("rejects an update that flips a webhook URL to IPv6 loopback", async () => {[m
+[32m+[m[32m    const created = createWebhook({[m
+[32m+[m[32m      url: "https://example.com/initial",[m
+[32m+[m[32m      events: ["*"],[m
+[32m+[m[32m      kind: "custom",[m
+[32m+[m[32m    });[m
+[32m+[m
+[32m+[m[32m    const req = jsonRequest(`http://localhost/api/webhooks/${created.id}`, "PUT", {[m
+[32m+[m[32m      url: "http://[::1]:20128/admin",[m
+[32m+[m[32m    });[m
+[32m+[m[32m    const res = await webhookByIdRoute.PUT(req, {[m
+[32m+[m[32m      params: Promise.resolve({ id: created.id }),[m
+[32m+[m[32m    });[m
+[32m+[m[32m    assert.equal(res.status, 400, "PUT must reject IPv6 loopback host");[m
+[32m+[m[32m  });[m
+ });[m
+ [m
+ describe("POST /api/webhooks/[id]/test — defense in depth on dispatch", () => {[m
+[36m@@ -164,4 +218,26 @@[m [mdescribe("POST /api/webhooks/[id]/test — defense in depth on dispatch", () =>[m
+       `error message must signal the block: ${body.error}`[m
+     );[m
+   });[m
+[32m+[m
+[32m+[m[32m  it("does not exfiltrate response body when persisted URL is IPv6 loopback", async () => {[m
+[32m+[m[32m    const stale = createWebhook({[m
+[32m+[m[32m      url: "http://[::1]:1/should-be-blocked",[m
+[32m+[m[32m      events: ["*"],[m
+[32m+[m[32m      kind: "custom",[m
+[32m+[m[32m    });[m
+[32m+[m
+[32m+[m[32m    const req = new Request(`http://localhost/api/webhooks/${stale.id}/test`, { method: "POST" });[m
+[32m+[m[32m    const res = await webhookTestRoute.POST(req, {[m
+[32m+[m[32m      params: Promise.resolve({ id: stale.id }),[m
+[32m+[m[32m    });[m
+[32m+[m[32m    assert.equal(res.status, 200, "test endpoint still returns a structured diagnostic envelope");[m
+[32m+[m[32m    const body = await res.json();[m
+[32m+[m[32m    assert.equal(body.delivered, false, "blocked URL must not report a successful delivery");[m
+[32m+[m[32m    assert.equal(body.status, 0, "no upstream status from a guarded call");[m
+[32m+[m[32m    assert.equal(body.responseBody, "", "no upstream body must be exfiltrated");[m
+[32m+[m[32m    assert.ok([m
+[32m+[m[32m      typeof body.error === "string" && /block|private|invalid/i.test(body.error),[m
+[32m+[m[32m      `error message must signal the block: ${body.error}`[m
+[32m+[m[32m    );[m
+[32m+[m[32m  });[m
+ });[m
+[1mdiff --git a/tests/unit/compression/session-dedup.test.ts b/tests/unit/compression/session-dedup.test.ts[m
+[1mindex 31a472ecd..dd65ab56e 100644[m
+[1m--- a/tests/unit/compression/session-dedup.test.ts[m
+[1m+++ b/tests/unit/compression/session-dedup.test.ts[m
+[36m@@ -6,7 +6,11 @@[m
+ import { describe, it, before } from "node:test";[m
+ import assert from "node:assert/strict";[m
+ [m
+[31m-import { sessionDedupEngine } from "../../../open-sse/services/compression/engines/session-dedup/index.ts";[m
+[32m+[m[32mimport {[m
+[32m+[m[32m  sessionDedupEngine,[m
+[32m+[m[32m  SESSION_DEDUP_KEY,[m
+[32m+[m[32m  type SessionDedupState,[m
+[32m+[m[32m} from "../../../open-sse/services/compression/engines/session-dedup/index.ts";[m
+ import {[m
+   registerBuiltinCompressionEngines,[m
+   getCompressionEngine,[m
+[36m@@ -116,6 +120,36 @@[m [mdescribe("session-dedup engine", () => {[m
+     assert.ok(messages[0].content.includes(REPEATED_BLOCK), "system prompt must never be touched");[m
+   });[m
+ [m
+[32m+[m[32m  it("returns explicit SessionDedupState envelope in engineData (DEBT-009)", () => {[m
+[32m+[m[32m    const body = makeBody([[m
+[32m+[m[32m      { role: "user", content: `First:\n${REPEATED_BLOCK}` },[m
+[32m+[m[32m      { role: "assistant", content: "ok" },[m
+[32m+[m[32m      { role: "user", content: `Second:\n${REPEATED_BLOCK}` },[m
+[32m+[m[32m    ]);[m
+[32m+[m
+[32m+[m[32m    const result = sessionDedupEngine.apply(body as Record<string, unknown>);[m
+[32m+[m
+[32m+[m[32m    // Must have the envelope under the well-known key[m
+[32m+[m[32m    assert.ok(result.engineData, "engineData must be present on a compressed result");[m
+[32m+[m[32m    const state: SessionDedupState | undefined = result.engineData![SESSION_DEDUP_KEY] as SessionDedupState | undefined;[m
+[32m+[m[32m    assert.ok(state, `engineData must contain the "${SESSION_DEDUP_KEY}" key`);[m
+[32m+[m[32m    assert.ok(state!.reverseMap, "SessionDedupState must contain a reverseMap");[m
+[32m+[m
+[32m+[m[32m    // The reverse map must contain an entry for the repeated block[m
+[32m+[m[32m    const sha = Object.keys(state!.reverseMap).find([m
+[32m+[m[32m      (k) => state!.reverseMap[k] === REPEATED_BLOCK[m
+[32m+[m[32m    );[m
+[32m+[m[32m    assert.ok(sha, "reverseMap must contain an entry mapping to the full REPEATED_BLOCK");[m
+[32m+[m[32m    assert.equal(state!.reverseMap[sha!], REPEATED_BLOCK, "reverseMap sha must map to the correct block");[m
+[32m+[m
+[32m+[m[32m    // The magic key must NOT appear on body itself (the debt fix)[m
+[32m+[m[32m    assert.equal([m
+[32m+[m[32m      (result.body as Record<string, unknown>)[SESSION_DEDUP_KEY],[m
+[32m+[m[32m      undefined,[m
+[32m+[m[32m      "session-dedup state must NOT be a magic key on body"[m
+[32m+[m[32m    );[m
+[32m+[m[32m  });[m
+[32m+[m
+   it("does not corrupt multipart (non-string) content items", () => {[m
+     const multipartBody = {[m
+       model: "gpt-4",[m
+[1mdiff --git a/tests/unit/executor-default-base.test.ts b/tests/unit/executor-default-base.test.ts[m
+[1mindex bdb6546c5..01376fb26 100644[m
+[1m--- a/tests/unit/executor-default-base.test.ts[m
+[1m+++ b/tests/unit/executor-default-base.test.ts[m
+[36m@@ -170,6 +170,15 @@[m [mtest("DefaultExecutor.buildUrl handles openai-compatible and anthropic-compatibl[m
+     }),[m
+     "https://proxy.example/v1/responses"[m
+   );[m
+[32m+[m[32m  assert.equal([m
+[32m+[m[32m    openAICompat.buildUrl("gpt-4.1", true, 0, {[m
+[32m+[m[32m      providerSpecificData: {[m
+[32m+[m[32m        baseUrl: "https://proxy.example/v1/",[m
+[32m+[m[32m        _omnirouteForceResponsesUpstream: true,[m
+[32m+[m[32m      },[m
+[32m+[m[32m    }),[m
+[32m+[m[32m    "https://proxy.example/v1/responses"[m
+[32m+[m[32m  );[m
+   assert.equal([m
+     openAILegacyResponsesCompat.buildUrl("gpt-5.4", true, 0, {[m
+       providerSpecificData: {[m
+[1mdiff --git a/tests/unit/webhook-metadata-guard-3269.test.ts b/tests/unit/webhook-metadata-guard-3269.test.ts[m
+[1mindex ef3dd6171..7b74431c2 100644[m
+[1m--- a/tests/unit/webhook-metadata-guard-3269.test.ts[m
+[1m+++ b/tests/unit/webhook-metadata-guard-3269.test.ts[m
+[36m@@ -25,6 +25,9 @@[m [mconst METADATA_TARGETS = [[m
+   "http://metadata.google.internal/computeMetadata/v1/",[m
+   "http://100.100.100.200/latest/meta-data/",[m
+   "http://169.254.1.2/anything",[m
+[32m+[m[32m  "http://[fe80::1]/hook",[m
+[32m+[m[32m  "http://[fea0::1]:8080/hook",[m
+[32m+[m[32m  "http://[febf:abcd::1]/path",[m
+ ];[m
+ [m
+ describe("webhook guard blocks cloud-metadata unconditionally (#3269 hardening)", () => {[m
+[36m@@ -33,8 +36,14 @@[m [mdescribe("webhook guard blocks cloud-metadata unconditionally (#3269 hardening)"[m
+     assert.equal(isCloudMetadataHost("metadata.google.internal"), true);[m
+     assert.equal(isCloudMetadataHost("100.100.100.200"), true);[m
+     assert.equal(isCloudMetadataHost("169.254.55.66"), true);[m
+[32m+[m[32m    assert.equal(isCloudMetadataHost("fe80::1"), true);[m
+[32m+[m[32m    assert.equal(isCloudMetadataHost("fe81::1"), true);[m
+[32m+[m[32m    assert.equal(isCloudMetadataHost("fea0::1"), true);[m
+[32m+[m[32m    assert.equal(isCloudMetadataHost("febf:abcd::1"), true);[m
+     assert.equal(isCloudMetadataHost("10.0.0.5"), false);[m
+     assert.equal(isCloudMetadataHost("hooks.example.com"), false);[m
+[32m+[m[32m    assert.equal(isCloudMetadataHost("fd00::1"), false);[m
+[32m+[m[32m    assert.equal(isCloudMetadataHost("2001:db8::1"), false);[m
+   });[m
+ [m
+   it("blocks metadata targets even when the private opt-in is ON", () => {[m
+[36m@@ -61,6 +70,16 @@[m [mdescribe("webhook guard blocks cloud-metadata unconditionally (#3269 hardening)"[m
+       delete process.env[FLAG];[m
+     }[m
+   });[m
+[32m+[m
+[32m+[m[32m  it("still allows a private IPv6 ULA host when opted in (not metadata)", () => {[m
+[32m+[m[32m    process.env[FLAG] = "true";[m
+[32m+[m[32m    try {[m
+[32m+[m[32m      const url = parseAndValidateWebhookUrl("http://[fd00::1]:8080/hook");[m
+[32m+[m[32m      assert.equal(url.hostname, "fd00::1");[m
+[32m+[m[32m    } finally {[m
+[32m+[m[32m      delete process.env[FLAG];[m
+[32m+[m[32m    }[m
+[32m+[m[32m  });[m
+ });[m
+ [m
+ after(() => {[m
+[1mdiff --git a/tests/unit/webhook-ssrf-guard.test.ts b/tests/unit/webhook-ssrf-guard.test.ts[m
+[1mindex ef472cb9f..6867c08ce 100644[m
+[1m--- a/tests/unit/webhook-ssrf-guard.test.ts[m
+[1m+++ b/tests/unit/webhook-ssrf-guard.test.ts[m
+[36m@@ -33,7 +33,11 @@[m [mconst BLOCKED_URLS = [[m
+   "http://172.31.255.255/admin", // RFC 1918 upper bound[m
+   "http://100.64.0.1/", // CGNAT[m
+   "http://[fe80::1]/", // link-local IPv6[m
+[31m-  "http://[fc00::1]/", // ULA IPv6[m
+[32m+[m[32m  "http://[fea0::1]/", // link-local IPv6 fe80::/10 edge[m
+[32m+[m[32m  "http://[febf:abcd::1]/", // link-local IPv6 fe80::/10 upper bound[m
+[32m+[m[32m  "http://[fc00::1]/", // ULA IPv6 fc00::/7[m
+[32m+[m[32m  "http://[fd00::1]/", // ULA IPv6 fd00::/8[m
+[32m+[m[32m  "http://[fd12:3456:789a::1]/", // ULA IPv6 (full form)[m
+   "http://user:pass@example.com/", // embedded credentials[m
+   "ftp://example.com/path", // forbidden scheme[m
+   "file:///etc/passwd", // forbidden scheme[m
+[36m@@ -44,6 +48,9 @@[m [mconst ALLOWED_URLS = [[m
+   "https://hooks.slack.com/services/T000/B000/XXXX",[m
+   "https://discord.com/api/webhooks/123/abc",[m
+   "https://api.telegram.org/bot12345:ABCDEF/sendMessage",[m
+[32m+[m[32m  "http://[2001:db8::1]/path", // IPv6 documentation (public)[m
+[32m+[m[32m  "http://[2001:4860:4860::8888]/", // Google DNS IPv6[m
+[32m+[m[32m  "http://[2607:f8b0:4000::1]/", // Google IPv6 range[m
+ ];[m
+ [m
+ describe("isPrivateHost — RFC1918, loopback, link-local, IMDS coverage", () => {[m
+[36m@@ -71,10 +78,25 @@[m [mdescribe("isPrivateHost — RFC1918, loopback, link-local, IMDS coverage", () =>[m
+     assert.equal(isPrivateHost("100.127.255.254"), true);[m
+   });[m
+ [m
+[31m-  it("blocks IPv6 ULA + link-local", () => {[m
+[32m+[m[32m  it("blocks IPv6 ULA range (fc00::/7)", () => {[m
+     assert.equal(isPrivateHost("fc00::1"), true);[m
+[32m+[m[32m    assert.equal(isPrivateHost("fd00::1"), true);[m
+     assert.equal(isPrivateHost("fd12:3456:789a::1"), true);[m
+[32m+[m[32m    assert.equal(isPrivateHost("fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"), true);[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  it("blocks IPv6 link-local range (fe80::/10)", () => {[m
+[32m+[m[32m    // fe80::/10 spans fe80: → febf: — verify edges and interior[m
+     assert.equal(isPrivateHost("fe80::1"), true);[m
+[32m+[m[32m    assert.equal(isPrivateHost("fe81::1"), true);[m
+[32m+[m[32m    assert.equal(isPrivateHost("fe90::1"), true);[m
+[32m+[m[32m    assert.equal(isPrivateHost("fea0::1"), true);[m
+[32m+[m[32m    assert.equal(isPrivateHost("feb0::1"), true);[m
+[32m+[m[32m    assert.equal(isPrivateHost("febf:abcd::1"), true);[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  it("blocks IPv6 loopback (::1)", () => {[m
+[32m+[m[32m    assert.equal(isPrivateHost("::1"), true);[m
+   });[m
+ [m
+   it("blocks .localhost and .local suffix hostnames", () => {[m
+[36m@@ -88,6 +110,13 @@[m [mdescribe("isPrivateHost — RFC1918, loopback, link-local, IMDS coverage", () =>[m
+     assert.equal(isPrivateHost("8.8.8.8"), false);[m
+     assert.equal(isPrivateHost("1.1.1.1"), false);[m
+   });[m
+[32m+[m
+[32m+[m[32m  it("permits public IPv6 addresses", () => {[m
+[32m+[m[32m    assert.equal(isPrivateHost("2001:db8::1"), false); // documentation[m
+[32m+[m[32m    assert.equal(isPrivateHost("2001:4860:4860::8888"), false); // Google DNS[m
+[32m+[m[32m    assert.equal(isPrivateHost("2607:f8b0::1"), false); // Google[m
+[32m+[m[32m    assert.equal(isPrivateHost("2a00:1450:4000::1"), false); // Google UK[m
+[32m+[m[32m  });[m
+ });[m
+ [m
+ describe("parseAndValidatePublicUrl — webhook SSRF surface", () => {[m
+[36m@@ -129,4 +158,46 @@[m [mdescribe("deliverWebhook — runtime SSRF guard returns error without firing fet[m
+     assert.equal(res.status, 0);[m
+     assert.ok(typeof res.error === "string" && /private|blocked|local/i.test(res.error));[m
+   });[m
+[32m+[m
+[32m+[m[32m  it("returns blocked-URL error for IPv6 link-local (fe80::/10 edge)", async () => {[m
+[32m+[m[32m    const res = await deliverWebhook([m
+[32m+[m[32m      "http://[fea0::1]:8080/hook",[m
+[32m+[m[32m      { event: "test.ping", timestamp: new Date().toISOString(), data: {} },[m
+[32m+[m[32m      null[m
+[32m+[m[32m    );[m
+[32m+[m[32m    assert.equal(res.success, false);[m
+[32m+[m[32m    assert.equal(res.status, 0);[m
+[32m+[m[32m    assert.ok([m
+[32m+[m[32m      typeof res.error === "string" && /private|blocked|local/i.test(res.error),[m
+[32m+[m[32m      `expected guard error for fea0::1, got: ${res.error}`[m
+[32m+[m[32m    );[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  it("returns blocked-URL error for IPv6 ULA (fd00::/8 edge)", async () => {[m
+[32m+[m[32m    const res = await deliverWebhook([m
+[32m+[m[32m      "http://[fd00::1]:8080/hook",[m
+[32m+[m[32m      { event: "test.ping", timestamp: new Date().toISOString(), data: {} },[m
+[32m+[m[32m      null[m
+[32m+[m[32m    );[m
+[32m+[m[32m    assert.equal(res.success, false);[m
+[32m+[m[32m    assert.equal(res.status, 0);[m
+[32m+[m[32m    assert.ok([m
+[32m+[m[32m      typeof res.error === "string" && /private|blocked|local/i.test(res.error),[m
+[32m+[m[32m      `expected guard error for fd00::1, got: ${res.error}`[m
+[32m+[m[32m    );[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  it("returns blocked-URL error for IPv6 loopback", async () => {[m
+[32m+[m[32m    const res = await deliverWebhook([m
+[32m+[m[32m      "http://[::1]:20128/admin",[m
+[32m+[m[32m      { event: "test.ping", timestamp: new Date().toISOString(), data: {} },[m
+[32m+[m[32m      null[m
+[32m+[m[32m    );[m
+[32m+[m[32m    assert.equal(res.success, false);[m
+[32m+[m[32m    assert.equal(res.status, 0);[m
+[32m+[m[32m    assert.ok([m
+[32m+[m[32m      typeof res.error === "string" && /private|blocked|local/i.test(res.error),[m
+[32m+[m[32m      `expected guard error for ::1, got: ${res.error}`[m
+[32m+[m[32m    );[m
+[32m+[m[32m  });[m
+ });[m

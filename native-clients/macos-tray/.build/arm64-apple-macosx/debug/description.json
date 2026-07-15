@@ -1,0 +1,300 @@
+{
+  "builtTestProducts": [],
+  "copyCommands": {},
+  "explicitTargetDependencyImportCheckingMode": {
+    "none": {}
+  },
+  "generatedSourceTargetSet": [],
+  "pluginDescriptions": [],
+  "swiftCommands": {
+    "C.OmniRouteTray-arm64-apple-macosx28.0-debug.module": {
+      "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/sources",
+      "importPath": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/Modules",
+      "inputs": [
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/AppDelegate.swift"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/ServerManager.swift"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/SettingsView.swift"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/main.swift"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/sources"
+        }
+      ],
+      "isLibrary": false,
+      "moduleName": "OmniRouteTray",
+      "moduleOutputPath": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/Modules/OmniRouteTray.swiftmodule",
+      "objects": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView.swift.o",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main.swift.o"
+      ],
+      "otherArguments": [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "OmniRouteTray_main",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "macos_tray"
+      ],
+      "outputFileMapPath": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/output-file-map.json",
+      "outputs": [
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate.swift.o"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager.swift.o"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView.swift.o"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main.swift.o"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/Modules/OmniRouteTray.swiftmodule"
+        }
+      ],
+      "prepareForIndexing": false,
+      "sources": [
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/AppDelegate.swift",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/ServerManager.swift",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/SettingsView.swift",
+        "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/main.swift"
+      ],
+      "tempsPath": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build",
+      "wholeModuleOptimization": false
+    }
+  },
+  "swiftFrontendCommands": {},
+  "swiftTargetScanArgs": {
+    "OmniRouteTray": [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "OmniRouteTray",
+      "-package-name",
+      "macos_tray",
+      "-c",
+      "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/AppDelegate.swift",
+      "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/ServerManager.swift",
+      "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/SettingsView.swift",
+      "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/main.swift",
+      "-I",
+      "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "OmniRouteTray_main",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "macos_tray",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap": {
+    "OmniRouteTray": []
+  },
+  "testDiscoveryCommands": {},
+  "testEntryPointCommands": {},
+  "traitConfiguration": {
+    "default": {}
+  },
+  "writeCommands": {
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray-entitlement.plist": {
+      "alwaysOutOfDate": false,
+      "inputs": [
+        {
+          "kind": "virtual",
+          "name": "<entitlement-plist>"
+        },
+        {
+          "kind": "virtual",
+          "name": "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray-entitlement.plist"
+    },
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/sources": {
+      "alwaysOutOfDate": false,
+      "inputs": [
+        {
+          "kind": "virtual",
+          "name": "<sources-file-list>"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/AppDelegate.swift"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/ServerManager.swift"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/SettingsView.swift"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/main.swift"
+        }
+      ],
+      "outputFilePath": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/sources"
+    },
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.product/Objects.LinkFileList": {
+      "alwaysOutOfDate": false,
+      "inputs": [
+        {
+          "kind": "virtual",
+          "name": "<link-file-list>"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate.swift.o"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager.swift.o"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView.swift.o"
+        },
+        {
+          "kind": "file",
+          "name": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main.swift.o"
+        }
+      ],
+      "outputFilePath": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.product/Objects.LinkFileList"
+    },
+    "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt": {
+      "alwaysOutOfDate": true,
+      "inputs": [
+        {
+          "kind": "virtual",
+          "name": "<swift-get-version>"
+        },
+        {
+          "kind": "file",
+          "name": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

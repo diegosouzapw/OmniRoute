@@ -1,0 +1,33 @@
+{
+  "": {
+    "swift-dependencies": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/master.swiftdeps"
+  },
+  "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/AppDelegate.swift": {
+    "dependencies": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate.d",
+    "object": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate.swift.o",
+    "swiftmodule": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate~partial.swiftmodule",
+    "swift-dependencies": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate.swiftdeps",
+    "diagnostics": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/AppDelegate.dia"
+  },
+  "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/ServerManager.swift": {
+    "dependencies": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager.d",
+    "object": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager.swift.o",
+    "swiftmodule": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager.swiftdeps",
+    "diagnostics": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/ServerManager.dia"
+  },
+  "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/SettingsView.swift": {
+    "dependencies": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView.d",
+    "object": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView.swift.o",
+    "swiftmodule": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView~partial.swiftmodule",
+    "swift-dependencies": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView.swiftdeps",
+    "diagnostics": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/SettingsView.dia"
+  },
+  "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/Sources/OmniRouteTray/main.swift": {
+    "dependencies": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main.d",
+    "object": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main.swift.o",
+    "swiftmodule": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main.swiftdeps",
+    "diagnostics": "/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/native-clients/macos-tray/.build/arm64-apple-macosx/debug/OmniRouteTray.build/main.dia"
+  }
+}

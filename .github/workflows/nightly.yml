@@ -1,0 +1,92 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 06:00 UTC daily
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: write
+
+env:
+  CI_NODE_VERSION: "24"
+
+jobs:
+  mutation:
+    name: Mutation Testing (Nightly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - name: Run Stryker mutation tests
+        run: npm run test:mutation
+        env:
+          JWT_SECRET: ci-mutation-secret-with-sufficient-length
+          API_KEY_SECRET: ci-mutation-api-key-secret
+          DISABLE_SQLITE_AUTO_BACKUP: "true"
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          retention-days: 30
+
+  flake-detection:
+    name: Flake Detection (10x repeat)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        iteration: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - name: Run unit tests (iteration ${{ matrix.iteration }}/10)
+        run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 tests/unit/*.test.ts
+        env:
+          JWT_SECRET: ci-flake-secret-${{ matrix.iteration }}
+          API_KEY_SECRET: ci-flake-api-key-secret
+          DISABLE_SQLITE_AUTO_BACKUP: "true"
+        continue-on-error: true
+      - name: Upload flake log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: flake-iteration-${{ matrix.iteration }}
+          path: /tmp/omniroute-flake-*.log
+          retention-days: 14
+
+  compression-bench:
+    name: Compression Benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run bench
