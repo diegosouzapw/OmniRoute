@@ -201,6 +201,15 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".jcode/config.json",
     },
   },
+  "grok-build": {
+    defaultCommand: "grok",
+    envBinKey: "CLI_GROK_BUILD_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      config: ".grok/config.toml",
+    },
+  },
   "deepseek-tui": {
     defaultCommand: "deepseek-tui",
     envBinKey: "CLI_DEEPSEEK_TUI_BIN",

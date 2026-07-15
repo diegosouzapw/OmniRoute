@@ -584,6 +584,22 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     defaultCommand: "forge",
   },
 
+  // ── Code entries — grok-build ─────────────────────────────────────────────
+  "grok-build": {
+    id: "grok-build",
+    name: "Grok Build",
+    icon: "terminal",
+    color: "#1DA1F2",
+    description: "xAI Grok Build TUI coding agent — custom provider via ~/.grok/config.toml",
+    docsUrl: "https://x.ai/cli",
+    configType: "custom",
+    category: "code",
+    vendor: "xAI",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    defaultCommand: "grok",
+  },
+
   // ── Code entries — cursor-cli ─────────────────────────────────────────────
   "cursor-cli": {
     id: "cursor-cli",
