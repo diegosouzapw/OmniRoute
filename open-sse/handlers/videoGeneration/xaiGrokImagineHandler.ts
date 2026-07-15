@@ -28,6 +28,155 @@ interface XaiVideoLog {
   error: (scope: string, message: string) => void;
 }
 
+/** Map the OmniRoute video body onto xAI's create-job payload. */
+function buildXaiVideoPayload(model: string, prompt: string, body: XaiVideoBody) {
+  const payload: Record<string, unknown> = { model, prompt };
+  if (typeof body.image === "string") payload.image = body.image;
+  if (body.duration != null) payload.duration = Number(body.duration);
+  if (typeof body.aspect_ratio === "string") payload.aspect_ratio = body.aspect_ratio;
+  if (typeof body.resolution === "string") payload.resolution = body.resolution;
+  return payload;
+}
+
+/** POST the create-job request; resolves to the request_id or a ready error message. */
+async function createXaiVideoJob({
+  baseUrl,
+  token,
+  payload,
+  log,
+}: {
+  baseUrl: string;
+  token: string;
+  payload: Record<string, unknown>;
+  log?: XaiVideoLog | null;
+}): Promise<{ requestId?: string; error?: string }> {
+  const createRes = await fetch(`${baseUrl}/generations`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  const createData = await createRes.json().catch(() => ({}));
+  const requestId = createData?.request_id;
+  if (requestId) return { requestId: String(requestId) };
+
+  const errorMessage =
+    createData?.error?.message ||
+    createData?.message ||
+    "xAI video generation did not return request_id";
+  if (log) {
+    log.error("VIDEO", `xAI createJob failed: ${JSON.stringify(createData)}`);
+  }
+  return { error: String(errorMessage) };
+}
+
+type XaiPollOutcome =
+  | { terminal: "done"; videoUrl?: string }
+  | { terminal: "failed"; error?: unknown }
+  | { terminal: "timeout"; lastStatus: string };
+
+/**
+ * Poll statusUrl/{request_id} until a terminal status or the deadline.
+ * Date.now() is read only in the loop condition, so the caller keeps full
+ * control over the timeout budget it computed from its own startTime.
+ */
+async function pollXaiVideoJob({
+  statusUrl,
+  requestId,
+  token,
+  deadline,
+  pollIntervalMs,
+}: {
+  statusUrl: string;
+  requestId: string;
+  token: string;
+  deadline: number;
+  pollIntervalMs: number;
+}): Promise<XaiPollOutcome> {
+  let lastStatus = "pending";
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    const pollRes = await fetch(`${statusUrl}/${requestId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const pollData = await pollRes.json().catch(() => ({}));
+    lastStatus = pollData?.status || "pending";
+
+    if (lastStatus === "done") return { terminal: "done", videoUrl: pollData?.video?.url };
+    if (lastStatus === "failed") return { terminal: "failed", error: pollData?.error };
+    // pending / processing → keep polling
+  }
+  return { terminal: "timeout", lastStatus };
+}
+
+/** Resolve the request knobs (timeouts, credential, endpoints, prompt) from the call. */
+function resolveXaiVideoOptions(
+  body: XaiVideoBody,
+  providerConfig: { baseUrl: string; statusUrl?: string },
+  credentials?: { apiKey?: string; accessToken?: string } | null
+) {
+  const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
+  return {
+    timeoutMs: Number(body.timeout_ms) > 0 ? Number(body.timeout_ms) : 300000,
+    pollIntervalMs: Number(body.poll_interval_ms) > 0 ? Number(body.poll_interval_ms) : 2500,
+    token: credentials?.apiKey || credentials?.accessToken,
+    baseUrl,
+    statusUrl: (providerConfig.statusUrl || baseUrl).replace(/\/$/, ""),
+    prompt: typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? ""),
+  };
+}
+
+/** Map a terminal poll outcome onto the OpenAI-like video response (or an error). */
+function buildXaiVideoResponse({
+  outcome,
+  requestId,
+  provider,
+  model,
+  startTime,
+}: {
+  outcome: XaiPollOutcome;
+  requestId: string;
+  provider: string;
+  model: string;
+  startTime: number;
+}) {
+  if (outcome.terminal === "failed") {
+    return { success: false, status: 502, error: String(outcome.error || "xAI video job failed") };
+  }
+
+  if (outcome.terminal === "timeout") {
+    return {
+      success: false,
+      status: 504,
+      error: `xAI video job ${requestId} timed out (status: ${outcome.lastStatus})`,
+    };
+  }
+
+  if (!outcome.videoUrl) {
+    return { success: false, status: 502, error: "xAI video job done but no video.url" };
+  }
+
+  saveCallLog({
+    method: "POST",
+    path: "/v1/videos/generations",
+    status: 200,
+    model: `${provider}/${model}`,
+    provider,
+    duration: Date.now() - startTime,
+    responseBody: { videos_count: 1 },
+  }).catch(() => {});
+
+  return {
+    success: true,
+    data: {
+      created: Math.floor(Date.now() / 1000),
+      data: [{ url: outcome.videoUrl, format: "mp4" }],
+    },
+  };
+}
+
 export async function handleXaiVideoGeneration({
   model,
   provider,
@@ -44,100 +193,46 @@ export async function handleXaiVideoGeneration({
   log?: XaiVideoLog | null;
 }) {
   const startTime = Date.now();
-  const timeoutMs = Number(body.timeout_ms) > 0 ? Number(body.timeout_ms) : 300000;
-  const pollIntervalMs = Number(body.poll_interval_ms) > 0 ? Number(body.poll_interval_ms) : 2500;
-  const token = credentials?.apiKey || credentials?.accessToken;
-  const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
-  const statusUrl = (providerConfig.statusUrl || baseUrl).replace(/\/$/, "");
-  const prompt = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
+  const { timeoutMs, pollIntervalMs, token, baseUrl, statusUrl, prompt } = resolveXaiVideoOptions(
+    body,
+    providerConfig,
+    credentials
+  );
 
   if (!token) {
     return { success: false, status: 401, error: "xAI API key is required" };
   }
-
-  const payload: Record<string, unknown> = { model, prompt };
-  if (typeof body.image === "string") payload.image = body.image;
-  if (body.duration != null) payload.duration = Number(body.duration);
-  if (typeof body.aspect_ratio === "string") payload.aspect_ratio = body.aspect_ratio;
-  if (typeof body.resolution === "string") payload.resolution = body.resolution;
 
   if (log) {
     log.info("VIDEO", `${provider}/${model} (xai-video) | prompt: "${prompt.slice(0, 60)}..."`);
   }
 
   try {
-    // Step 1: create async job
-    const createRes = await fetch(`${baseUrl}/generations`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
+    const created = await createXaiVideoJob({
+      baseUrl,
+      token,
+      payload: buildXaiVideoPayload(model, prompt, body),
+      log,
     });
-    const createData = await createRes.json().catch(() => ({}));
-    const requestId = createData?.request_id;
-    if (!requestId) {
-      const errorMessage =
-        createData?.error?.message ||
-        createData?.message ||
-        "xAI video generation did not return request_id";
-      if (log) {
-        log.error("VIDEO", `xAI createJob failed: ${JSON.stringify(createData)}`);
-      }
-      return { success: false, status: 502, error: String(errorMessage) };
+    if (!created.requestId) {
+      return { success: false, status: 502, error: created.error };
     }
 
-    // Step 2: poll statusUrl/{request_id} until terminal
-    const deadline = startTime + timeoutMs;
-    let lastStatus = "pending";
-    while (Date.now() < deadline) {
-      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-      const pollRes = await fetch(`${statusUrl}/${requestId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const pollData = await pollRes.json().catch(() => ({}));
-      lastStatus = pollData?.status || "pending";
+    const outcome = await pollXaiVideoJob({
+      statusUrl,
+      requestId: created.requestId,
+      token,
+      deadline: startTime + timeoutMs,
+      pollIntervalMs,
+    });
 
-      if (lastStatus === "done") {
-        const videoUrl = pollData?.video?.url;
-        if (!videoUrl) {
-          return {
-            success: false,
-            status: 502,
-            error: "xAI video job done but no video.url",
-          };
-        }
-        saveCallLog({
-          method: "POST",
-          path: "/v1/videos/generations",
-          status: 200,
-          model: `${provider}/${model}`,
-          provider,
-          duration: Date.now() - startTime,
-          responseBody: { videos_count: 1 },
-        }).catch(() => {});
-        return {
-          success: true,
-          data: {
-            created: Math.floor(Date.now() / 1000),
-            data: [{ url: videoUrl, format: "mp4" }],
-          },
-        };
-      }
-
-      if (lastStatus === "failed") {
-        const errorMessage = pollData?.error || "xAI video job failed";
-        return { success: false, status: 502, error: String(errorMessage) };
-      }
-      // pending / processing → keep polling
-    }
-
-    return {
-      success: false,
-      status: 504,
-      error: `xAI video job ${requestId} timed out (status: ${lastStatus})`,
-    };
+    return buildXaiVideoResponse({
+      outcome,
+      requestId: created.requestId,
+      provider,
+      model,
+      startTime,
+    });
   } catch (err: unknown) {
     return {
       success: false,
