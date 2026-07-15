@@ -1426,6 +1426,17 @@ export async function handleComboChat({
   let comboCooldownAttempt = 0;
   let comboCooldownBudgetLeftMs = resilienceSettings.comboCooldownWait.budgetMs;
 
+  // Global combo timeout: when set (>0), limits total wall-clock time the combo
+  // spends iterating through targets. After each target completes, if elapsed time
+  // exceeds comboTimeoutMs, remaining targets are skipped and a 504 with aggregated
+  // error diagnostics is returned. 0 = disabled (backward-compatible, unlimited).
+  const comboTimeoutMs = config.comboTimeoutMs || 0;
+  const comboStartTime = Date.now();
+  let comboExpired = false;
+  // Accumulator for per-model error details across targets in the current set try.
+  // Reset at the start of each set retry (same lifecycle as lastError/recordedAttempts).
+  let comboErrors: Array<{ model: string; status: number; error: string }> = [];
+
   // FASE 2.1: per-connection concurrency limit for quota-share. The gating in
   // selectQuotaShareTarget is fail-open and cannot hard-limit a single-connection
   // pool, so we serialize concurrent requests to the selected account through a
@@ -1466,6 +1477,7 @@ export async function handleComboChat({
       const startTime = Date.now();
       let fallbackCount = 0;
       let recordedAttempts = 0;
+      comboErrors = [];
 
       // QA P0: assemble a sanitized diagnostic trace from the state already in scope
       // (pool size + this set-try's exhausted providers/connections + attempt order +
@@ -2240,6 +2252,7 @@ export async function handleComboChat({
             });
             recordedAttempts++;
             lastError = errorText || String(result.status);
+            comboErrors.push({ model: modelStr, status: result.status, error: errorText || String(result.status) });
             if (!lastStatus) lastStatus = result.status;
             if (i > 0) fallbackCount++;
             log.warn("COMBO", `Model ${modelStr} failed with body-specific error, stopping combo`);
@@ -2333,6 +2346,7 @@ export async function handleComboChat({
           });
           recordedAttempts++;
           lastError = errorText || String(result.status);
+          comboErrors.push({ model: modelStr, status: result.status, error: errorText || String(result.status) });
           if (!lastStatus) lastStatus = result.status;
           if (i > 0) fallbackCount++;
           // Wire combo failures into the resilience dashboard (model-level lockout)
@@ -2405,7 +2419,7 @@ export async function handleComboChat({
       };
 
       for (let i = 0; i < orderedTargets.length; i++) {
-        if (anySuccess) break;
+        if (anySuccess || comboExpired) break;
 
         const abortController = new AbortController();
         abortControllers.set(i, abortController);
@@ -2450,6 +2464,17 @@ export async function handleComboChat({
         } else {
           await Promise.race([task, globalPromise]);
         }
+
+        // Global combo timeout check: after each target completes, stop trying
+        // further targets if the total elapsed time exceeds comboTimeoutMs.
+        if (!anySuccess && comboTimeoutMs > 0 && Date.now() - comboStartTime >= comboTimeoutMs) {
+          comboExpired = true;
+          log.info(
+            "COMBO",
+            `Combo global timeout (${comboTimeoutMs}ms) reached after ` +
+              `${i + 1}/${orderedTargets.length} targets (${recordedAttempts} attempted) — stopping`
+          );
+        }
       }
 
       if (!anySuccess && runningTasks.size > 0) {
@@ -2458,6 +2483,40 @@ export async function handleComboChat({
 
       if (anySuccess) {
         return await globalPromise;
+      }
+
+      // Global combo timeout: return aggregated error immediately, skipping set retries.
+      if (comboExpired) {
+        const summary = comboErrors
+          .slice(0, 5)
+          .map((e) => `${e.model} (${e.status})`)
+          .join(", ");
+        const msg =
+          `Combo global timeout (${comboTimeoutMs}ms) after ${recordedAttempts}/${orderedTargets.length} targets` +
+          (comboErrors.length > 0
+            ? ` | tried: ${summary}${comboErrors.length > 5 ? `... (+${comboErrors.length - 5})` : ""}`
+            : "");
+        const latencyMs = Date.now() - startTime;
+        if (recordedAttempts === 0) {
+          recordComboRequest(combo.name, null, {
+            success: false,
+            latencyMs,
+            fallbackCount,
+            strategy,
+          });
+        }
+        notifyWebhookEvent("request.failed", {
+          combo: combo.name,
+          reason: "COMBO_TIMEOUT",
+          latencyMs,
+          fallbackCount,
+        });
+        return errorResponseWithComboDiagnostics(
+          504,
+          msg,
+          buildComboDiag("combo_timeout"),
+          { code: "COMBO_TIMEOUT", type: "server_error" }
+        );
       }
 
       // All models failed in this set try
@@ -2495,7 +2554,18 @@ export async function handleComboChat({
       }
 
       const status = lastStatus;
-      const msg = lastError || "All combo models unavailable";
+      // Build aggregated error message with per-model failure details for diagnostics.
+      const comboErrorSummary =
+        comboErrors.length > 0
+          ? " [" +
+            comboErrors
+              .slice(0, 5)
+              .map((e) => `${e.model} (${e.status})`)
+              .join(", ") +
+            (comboErrors.length > 5 ? `... (+${comboErrors.length - 5})` : "") +
+            "]"
+          : "";
+      const msg = (lastError || "All combo models unavailable") + comboErrorSummary;
 
       if (earliestRetryAfter) {
         // Cooldown-aware retry: instead of crystallizing the 429/503, wait out
