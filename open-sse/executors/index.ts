@@ -170,8 +170,26 @@ const executors = {
 
 const defaultCache = new Map();
 
+// #6699 — providers that exist ONLY as Cloud Agent task-API entries
+// (CLOUD_AGENT_PROVIDERS / staticModels "Available Models" catalog) and have no
+// chat-completions REGISTRY entry anywhere in open-sse/. Without this guard,
+// getExecutor() silently falls through to DefaultExecutor's
+// `PROVIDERS[provider] || PROVIDERS.openai` fallback, sending the user's real
+// provider key to OpenAI's endpoint (mislabeled as coming from the provider the
+// user actually selected). Starting with just "jules" (the reported case);
+// "devin" and "codex-cloud" share the same structural gap and are left for a
+// follow-up once their own chat-routing behavior is confirmed.
+const CHAT_UNSUPPORTED_CLOUD_AGENT_PROVIDERS = new Set(["jules"]);
+
 export function getExecutor(provider) {
   if (executors[provider]) return executors[provider];
+  if (CHAT_UNSUPPORTED_CLOUD_AGENT_PROVIDERS.has(provider)) {
+    const err = new Error(
+      `Provider "${provider}" is a cloud-agent provider and does not support direct chat completions; use the Cloud Agents task API instead.`
+    );
+    (err as Error & { status?: number }).status = 400;
+    throw err;
+  }
   if (!defaultCache.has(provider)) defaultCache.set(provider, new DefaultExecutor(provider));
   return defaultCache.get(provider);
 }

@@ -139,6 +139,16 @@ export default function FreePoolTab() {
     });
   };
 
+  const handleToggleSource = (source: SourceId) => {
+    setDisabledSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(source)) next.delete(source);
+      else next.add(source);
+      saveDisabledSources(next);
+      return next;
+    });
+  };
+
   const handleToggleSelect = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
