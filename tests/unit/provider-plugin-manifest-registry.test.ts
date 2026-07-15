@@ -24,6 +24,11 @@ test("provider plugin manifest registry resolves providers by alias", () => {
   assert.equal(byAlias.id, withAlias.id);
 });
 
+test("provider plugin manifest registry includes embedded service backends", () => {
+  assert.ok(getProviderPluginManifestEntry("9router"));
+  assert.ok(getProviderPluginManifestEntry("cliproxyapi"));
+});
+
 test("provider plugin manifest registry uses alias for provider-prefix model lookups", () => {
   const manifest = generateProviderPluginManifest();
   const withAlias = manifest.providers.find((provider) => provider.alias);
