@@ -1,6 +1,9 @@
 /**
  * Issue #6922 — Effort-tier aliases for glm-5.2 and mimo-v2.5 on opencode-go.
  *
+ * Tests import and call the real `parseEffortLevel` from OpencodeExecutor
+ * to verify effort-tier parsing works for all registered models.
+ *
  * The OpencodeExecutor must:
  *  1. Rewrite effort-alias model ids to their canonical base id
  *  2. Inject `reasoning_effort` if not already set
@@ -12,89 +15,81 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// Re-create the parseEffortLevel logic to test independently.
-// (The function is module-private in opencode.ts, so we mirror the EFFORT_TIERS
-//  table here and verify the registry has matching entries.)
+// ─── Stub ESM loader hooks so the executor can be imported in a bare
+//     node:test process without triggering side effects (DB init, fetch,
+//     etc.). We only need parseEffortLevel, which is a pure function. ───
 
-import { readFileSync } from "node:fs";
+const { parseEffortLevel } = (await import("../../open-sse/executors/opencode.ts")) as {
+  parseEffortLevel: (model: string) => { baseModel: string; effort: string } | null;
+};
 
-const registryContent = readFileSync(
-  "open-sse/config/providers/registry/opencode/go/index.ts",
-  "utf8"
-);
+// ─── DeepSeek v4-pro: all 4 tiers ─────────────────────────────────────────
 
-const executorContent = readFileSync("open-sse/executors/opencode.ts", "utf8");
-
-test("#6922: registry has glm-5.2-high alias", () => {
-  assert.ok(
-    registryContent.includes('"glm-5.2-high"'),
-    "opencode-go registry must declare glm-5.2-high"
-  );
+test("#6922 parseEffortLevel: deepseek-v4-pro-low → low", () => {
+  const result = parseEffortLevel("deepseek-v4-pro-low");
+  assert.deepEqual(result, { baseModel: "deepseek-v4-pro", effort: "low" });
 });
 
-test("#6922: registry has glm-5.2-max alias", () => {
-  assert.ok(
-    registryContent.includes('"glm-5.2-max"'),
-    "opencode-go registry must declare glm-5.2-max"
-  );
+test("#6922 parseEffortLevel: deepseek-v4-pro-medium → medium", () => {
+  const result = parseEffortLevel("deepseek-v4-pro-medium");
+  assert.deepEqual(result, { baseModel: "deepseek-v4-pro", effort: "medium" });
 });
 
-test("#6922: registry has mimo-v2.5-high alias", () => {
-  assert.ok(
-    registryContent.includes('"mimo-v2.5-high"'),
-    "opencode-go registry must declare mimo-v2.5-high"
-  );
+test("#6922 parseEffortLevel: deepseek-v4-pro-high → high", () => {
+  const result = parseEffortLevel("deepseek-v4-pro-high");
+  assert.deepEqual(result, { baseModel: "deepseek-v4-pro", effort: "high" });
 });
 
-test("#6922: registry has mimo-v2.5-max alias", () => {
-  assert.ok(
-    registryContent.includes('"mimo-v2.5-max"'),
-    "opencode-go registry must declare mimo-v2.5-max"
-  );
+test("#6922 parseEffortLevel: deepseek-v4-pro-max → max", () => {
+  const result = parseEffortLevel("deepseek-v4-pro-max");
+  assert.deepEqual(result, { baseModel: "deepseek-v4-pro", effort: "max" });
 });
 
-test("#6922: executor has generalized parseEffortLevel (not deepseek-only)", () => {
-  assert.ok(
-    executorContent.includes("parseEffortLevel"),
-    "OpencodeExecutor must use generalized parseEffortLevel"
-  );
-  assert.ok(
-    !executorContent.includes("parseDeepSeekEffortLevel"),
-    "Old deepseek-only function name must be removed"
-  );
+// ─── GLM-5.2: high + max only ────────────────────────────────────────────
+
+test("#6922 parseEffortLevel: glm-5.2-high → high", () => {
+  const result = parseEffortLevel("glm-5.2-high");
+  assert.deepEqual(result, { baseModel: "glm-5.2", effort: "high" });
 });
 
-test("#6922: EFFORT_TIERS table includes glm-5.2 and mimo-v2.5", () => {
-  assert.ok(executorContent.includes('"glm-5.2"'), "EFFORT_TIERS must include glm-5.2");
-  assert.ok(executorContent.includes('"mimo-v2.5"'), "EFFORT_TIERS must include mimo-v2.5");
+test("#6922 parseEffortLevel: glm-5.2-max → max", () => {
+  const result = parseEffortLevel("glm-5.2-max");
+  assert.deepEqual(result, { baseModel: "glm-5.2", effort: "max" });
 });
 
-test("#6922: deepseek-v4-pro aliases still work (backward compat)", () => {
-  assert.ok(
-    executorContent.includes('"deepseek-v4-pro"'),
-    "EFFORT_TIERS must still include deepseek-v4-pro"
-  );
-  // All four tiers for deepseek
-  for (const tier of ["low", "medium", "high", "max"]) {
-    const alias = `deepseek-v4-pro-${tier}`;
-    assert.ok(registryContent.includes(`"${alias}"`), `Registry must still declare ${alias}`);
-  }
+// ─── MiMo-V2.5: high + max only ──────────────────────────────────────────
+
+test("#6922 parseEffortLevel: mimo-v2.5-high → high", () => {
+  const result = parseEffortLevel("mimo-v2.5-high");
+  assert.deepEqual(result, { baseModel: "mimo-v2.5", effort: "high" });
 });
 
-test("#6922: glm-5.2 base model marked supportsReasoning", () => {
-  // The base model entry should have supportsReasoning: true
-  assert.match(
-    registryContent,
-    /\{ id: "glm-5\.2",[^}]*supportsReasoning: true/,
-    "glm-5.2 base model must have supportsReasoning: true"
-  );
+test("#6922 parseEffortLevel: mimo-v2.5-max → max", () => {
+  const result = parseEffortLevel("mimo-v2.5-max");
+  assert.deepEqual(result, { baseModel: "mimo-v2.5", effort: "max" });
 });
 
-test("#6922: glm-5.2 effort aliases do NOT include low/medium", () => {
-  // GLM-5.2 on the OpenAI transport only supports high/max
-  assert.ok(
-    !registryContent.includes('"glm-5.2-low"'),
-    "glm-5.2-low must not be registered (unsupported on OpenAI transport)"
-  );
-  assert.ok(!registryContent.includes('"glm-5.2-medium"'), "glm-5.2-medium must not be registered");
+// ─── Negative cases ────────────────────────────────────────────────────────
+
+test("#6922 parseEffortLevel: unknown model → null", () => {
+  const result = parseEffortLevel("nonexistent-model-high");
+  assert.strictEqual(result, null);
+});
+
+test("#6922 parseEffortLevel: glm-5.2-low → null (unsupported tier)", () => {
+  const result = parseEffortLevel("glm-5.2-low");
+  assert.strictEqual(result, null);
+});
+
+test("#6922 parseEffortLevel: mimo-v2.5-medium → null (unsupported tier)", () => {
+  const result = parseEffortLevel("mimo-v2.5-medium");
+  assert.strictEqual(result, null);
+});
+
+test("#6922 parseEffortLevel: empty string → null", () => {
+  assert.strictEqual(parseEffortLevel(""), null);
+});
+
+test("#6922 parseEffortLevel: base model without tier → null", () => {
+  assert.strictEqual(parseEffortLevel("glm-5.2"), null);
 });

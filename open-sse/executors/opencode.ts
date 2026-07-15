@@ -61,7 +61,7 @@ const EFFORT_TIERS: Record<string, readonly string[]> = {
  *      "glm-5.2-high"         → { baseModel: "glm-5.2", effort: "high" }
  * Returns null if the model doesn't match any known effort-tier pattern.
  */
-function parseEffortLevel(model: string): { baseModel: string; effort: string } | null {
+export function parseEffortLevel(model: string): { baseModel: string; effort: string } | null {
   const m = String(model || "");
   for (const [baseModel, levels] of Object.entries(EFFORT_TIERS)) {
     for (const level of levels) {
