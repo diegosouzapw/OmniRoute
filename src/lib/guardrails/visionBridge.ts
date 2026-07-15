@@ -104,34 +104,46 @@ export interface VisionBridgeDependencies {
  * `noauth` with no real API key is NOT usable (opencode-zen free tier often
  * surfaces as noauth and then 401 "Missing API key").
  */
-export function isProviderConnectionUsable(connection: {
+type ProviderConnectionLike = {
   authType?: string | null;
   apiKey?: string | null;
   accessToken?: string | null;
   refreshToken?: string | null;
   idToken?: string | null;
   testStatus?: string | null;
-}): boolean {
+};
+
+const TERMINAL_CONNECTION_STATUSES = new Set(["disabled", "banned", "expired"]);
+// Free/noauth only counts when a real key is still present; apikey/cookie need the same.
+const KEY_ONLY_AUTH_TYPES = new Set(["noauth", "none", "", "apikey", "cookie"]);
+const TOKEN_AUTH_TYPES = new Set(["oauth", "access_token", "external_idp"]);
+
+function hasNonEmptyString(value: unknown): boolean {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function hasOAuthCredential(connection: ProviderConnectionLike): boolean {
+  return (
+    hasNonEmptyString(connection.refreshToken) ||
+    hasNonEmptyString(connection.accessToken) ||
+    hasNonEmptyString(connection.idToken)
+  );
+}
+
+export function isProviderConnectionUsable(connection: ProviderConnectionLike): boolean {
   const status = String(connection.testStatus || "").toLowerCase();
-  if (status === "disabled" || status === "banned" || status === "expired") {
+  if (TERMINAL_CONNECTION_STATUSES.has(status)) {
     return false;
   }
+
   const auth = String(connection.authType || "").toLowerCase();
-  const hasKey = typeof connection.apiKey === "string" && connection.apiKey.trim().length > 0;
-  if (auth === "noauth" || auth === "none" || auth === "") {
-    // Free/noauth only counts when a real key is still present.
+  const hasKey = hasNonEmptyString(connection.apiKey);
+
+  if (KEY_ONLY_AUTH_TYPES.has(auth)) {
     return hasKey;
   }
-  if (auth === "apikey" || auth === "cookie") {
-    return hasKey;
-  }
-  if (auth === "oauth" || auth === "access_token" || auth === "external_idp") {
-    return Boolean(
-      (connection.refreshToken && String(connection.refreshToken).trim()) ||
-        (connection.accessToken && String(connection.accessToken).trim()) ||
-        (connection.idToken && String(connection.idToken).trim()) ||
-        hasKey
-    );
+  if (TOKEN_AUTH_TYPES.has(auth)) {
+    return hasOAuthCredential(connection) || hasKey;
   }
   return hasKey;
 }
