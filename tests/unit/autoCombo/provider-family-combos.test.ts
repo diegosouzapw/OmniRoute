@@ -123,7 +123,12 @@ describe("auto/<family> materialization (#6453)", () => {
     assert.equal(combo.id, "auto/glm");
     assert.equal(combo.strategy, "auto");
     const providerIds = combo.models.map((m) => m.providerId).sort();
-    assert.deepEqual(providerIds, ["glm", "zai"]);
+    // Includes the always-on `auggie` no-auth candidate: its registry (v0.32.0 CLI
+    // model ids) advertises a literal "glm-5.2" model, and — same as the
+    // "degrades gracefully" test below documents for opencode/minimax — a
+    // no-auth backend that genuinely serves a family model IS a legitimate
+    // member of the family pool, not just credentialed provider_connections rows.
+    assert.deepEqual(providerIds, ["auggie", "glm", "zai"]);
     assert.ok(combo.models.every((m) => m.model.endsWith("glm-5.2")));
   });
 
