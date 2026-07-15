@@ -4,7 +4,11 @@ import test from "node:test";
 import type { SqliteAdapter } from "../../../src/lib/db/adapters/types.ts";
 import { getDatabaseStats } from "../../../src/lib/db/stats.ts";
 
-function createAdapter(virtualTableError = "no such module: vec0"): SqliteAdapter {
+function createAdapter(
+  virtualTableError = "no such module: vec0",
+  regularRow: { count: number } | undefined = { count: 3 },
+  returnUndefinedRegularRow = false
+): SqliteAdapter {
   return {
     driver: "better-sqlite3",
     open: true,
@@ -18,7 +22,7 @@ function createAdapter(virtualTableError = "no such module: vec0"): SqliteAdapte
         return { all: () => [{ name: "regular" }, { name: "vec_memories" }] } as never;
       }
       if (sql.includes('COUNT(*) as count FROM "regular"')) {
-        return { get: () => ({ count: 3 }) } as never;
+        return { get: () => (returnUndefinedRegularRow ? undefined : regularRow) } as never;
       }
       if (sql.includes('COUNT(*) as count FROM "vec_memories"')) {
         throw new Error(virtualTableError);
@@ -55,4 +59,10 @@ test("database stats do not mask unrelated table errors", () => {
   assert.throws(() => getDatabaseStats(createAdapter("database disk image is malformed")), {
     message: "database disk image is malformed",
   });
+});
+
+test("database stats tolerate an undefined COUNT result", () => {
+  const stats = getDatabaseStats(createAdapter("no such module: vec0", { count: 3 }, true));
+
+  assert.equal(stats.tables[0]?.rowCount, 0);
 });

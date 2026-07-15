@@ -40,10 +40,9 @@ export function getDatabaseStats(db: SqliteAdapter = getDbInstance()): DatabaseS
     let rowCount = 0;
     try {
       const quotedName = `"${table.name.replaceAll('"', '""')}"`;
-      const row = db.prepare(`SELECT COUNT(*) as count FROM ${quotedName}`).get() as {
-        count: number;
-      };
-      rowCount = row.count;
+      const row = db.prepare(`SELECT COUNT(*) as count FROM ${quotedName}`).get() as
+        { count: number } | undefined;
+      rowCount = row?.count ?? 0;
     } catch (error) {
       if (!(error instanceof Error) || !error.message.startsWith("no such module:")) {
         throw error;
