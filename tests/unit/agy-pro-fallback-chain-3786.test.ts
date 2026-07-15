@@ -347,3 +347,76 @@ test("(#3786) a non-pro model that 400s does NOT trigger the fallback chain", as
     globalThis.fetch = originalFetch;
   }
 });
+
+test("(#3786) mixed: first 400 + last throws returns firstResult (original 400) instead of throwing", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  seedAntigravityVersionCache("2026.04.17-test");
+  const modelsTried: string[] = [];
+
+  globalThis.fetch = (async (_url: string, init?: RequestInit) => {
+    const m = envelopeModel(init);
+    modelsTried.push(m);
+    if (m === "gemini-3.1-pro-high") return make400(m);
+    // Second and third candidates throw
+    throw new Error(`connection reset on ${m}`);
+  }) as typeof fetch;
+
+  try {
+    const result = await executor.execute({
+      model: "antigravity/gemini-3.1-pro-high",
+      body: { request: { contents: [] } },
+      stream: false,
+      credentials: { accessToken: "token", projectId: "project-1" },
+      log: { debug() {}, warn() {}, info() {} },
+    });
+
+    // Returns the original 400 from firstResult, not a thrown error.
+    assert.equal(result.response.status, 400, "should return first candidate's 400");
+    const payload = (await result.response.json()) as ErrorPayload;
+    assert.ok(payload.error, "must carry an error object");
+    assert.equal(typeof payload.error.message, "string");
+    assert.ok(!payload.error.message.includes("at /"), "no raw stack trace (hard rule #12)");
+    // All candidates tried (executeOnce retries internally, so duplicates are expected).
+    assert.ok(modelsTried.includes("gemini-3.1-pro-high"), "first candidate tried");
+    assert.ok(modelsTried.includes("gemini-pro-agent"), "second candidate tried");
+    assert.ok(modelsTried.includes("gemini-3-pro-high"), "third candidate tried");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("(#3786) AbortError from standard Error (not DOMException) propagates immediately", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  seedAntigravityVersionCache("2026.04.17-test");
+  // Signal is NOT aborted -- this exercises the new Error.name === "AbortError" path.
+  const controller = new AbortController();
+
+  globalThis.fetch = (async (_url: string, _init?: RequestInit) => {
+    // Simulate a polyfill/test env that throws standard Error with name AbortError
+    const err = new Error("The operation was aborted");
+    err.name = "AbortError";
+    throw err;
+  }) as typeof fetch;
+
+  try {
+    await assert.rejects(
+      () =>
+        executor.execute({
+          model: "antigravity/gemini-3.1-pro-high",
+          body: { request: { contents: [] } },
+          stream: false,
+          credentials: { accessToken: "token", projectId: "project-1" },
+          signal: controller.signal,
+          log: { debug() {}, warn() {}, info() {} },
+        }),
+      (err: Error) => {
+        assert.equal(err.name, "AbortError", "must propagate as AbortError");
+        return true;
+      }
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
