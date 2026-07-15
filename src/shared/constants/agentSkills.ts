@@ -245,7 +245,7 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     icon: "hub",
   },
 
-  // ── CLI Skills (20) ──────────────────────────────────────────────────────────
+  // ── CLI Skills (21) ──────────────────────────────────────────────────────────
 
   {
     id: "cli-serve",
@@ -427,6 +427,18 @@ export const CURATED_SKILLS: CuratedSkillEntry[] = [
     category: "cli",
     area: "cli-setup",
     icon: "build",
+  },
+  {
+    id: "cli-skill-collector",
+    name: "CLI: Skill Collector",
+    description:
+      "Detect installed CLI coding tools (Claude Code, Codex, Cursor, Copilot, Cline, Hermes, " +
+      "OpenCode, etc.), search GitHub for matching agent skills, and plan their installation " +
+      "into the detected tools' skill directories.",
+    category: "cli",
+    area: "cli-skill-collector",
+    icon: "search",
+    isNew: true,
   },
 
   // ── Config Skills ────────────────────────────────────────────────────────────

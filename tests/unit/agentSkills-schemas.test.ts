@@ -136,8 +136,8 @@ test("AgentSkillSchema — .parse throws on invalid input", () => {
 test("SkillCoverageSchema — valid coverage parses successfully", () => {
   const input = {
     api: { have: 23, total: 23 },
-    cli: { have: 20, total: 20 },
-    totalSkills: 42,
+    cli: { have: 21, total: 21 },
+    totalSkills: 44,
     generatedAt: new Date().toISOString(),
   };
   const result = SkillCoverageSchema.safeParse(input);
@@ -147,7 +147,7 @@ test("SkillCoverageSchema — valid coverage parses successfully", () => {
 test("SkillCoverageSchema — wrong total literal (api.total=21) fails", () => {
   const input = {
     api: { have: 21, total: 21 },
-    cli: { have: 20, total: 20 },
+    cli: { have: 21, total: 21 },
     totalSkills: 41,
     generatedAt: new Date().toISOString(),
   };
@@ -169,7 +169,7 @@ test("SkillCoverageSchema — wrong total literal (cli.total=19) fails", () => {
 test("SkillCoverageSchema — invalid datetime fails", () => {
   const input = {
     api: { have: 23, total: 23 },
-    cli: { have: 20, total: 20 },
+    cli: { have: 21, total: 21 },
     totalSkills: 42,
     generatedAt: "not-a-date",
   };
@@ -180,7 +180,7 @@ test("SkillCoverageSchema — invalid datetime fails", () => {
 test("SkillCoverageSchema — negative have value fails", () => {
   const input = {
     api: { have: -1, total: 23 },
-    cli: { have: 20, total: 20 },
+    cli: { have: 21, total: 21 },
     totalSkills: 42,
     generatedAt: new Date().toISOString(),
   };

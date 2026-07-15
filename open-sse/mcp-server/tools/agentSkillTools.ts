@@ -73,7 +73,7 @@ export const agentSkillTools = {
   omniroute_agent_skills_coverage: {
     name: "omniroute_agent_skills_coverage",
     description:
-      "Returns the current SKILL.md coverage stats: how many of the 22 API skills and 20 CLI skills have generated SKILL.md files on the filesystem vs the catalog total.",
+      "Returns the current SKILL.md coverage stats: how many of the 22 API skills and 21 CLI skills have generated SKILL.md files on the filesystem vs the catalog total.",
     inputSchema: AgentSkillsCoverageSchema,
     handler: async (_args: z.infer<typeof AgentSkillsCoverageSchema>) => {
       const coverage: SkillCoverage = computeCoverage();

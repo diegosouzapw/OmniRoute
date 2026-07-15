@@ -1,0 +1,1 @@
+- fix(skills): register the orphaned `cli-skill-collector` id in the Agent Skills catalog (`CLI_SKILL_IDS`) — the directory shipped by #6294 was never catalog-registered, failing `agent-skills-content` integration coverage; catalog now correctly reports 21 CLI / 44 API+CLI / 45 total skills (#7020)

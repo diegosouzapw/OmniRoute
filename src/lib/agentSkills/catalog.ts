@@ -1,5 +1,5 @@
 /**
- * catalog.ts — single source of truth for the 43-entry Agent Skills catalog.
+ * catalog.ts — single source of truth for the 44-entry Agent Skills catalog.
  *
  * Consumers: REST routes (/api/agent-skills/*), MCP tools, A2A skill, Generator.
  * Do NOT import this from UI components directly — use the REST API instead.
@@ -46,7 +46,7 @@ export const API_SKILL_IDS: readonly string[] = [
 /** Config skill IDs. */
 export const CONFIG_SKILL_IDS: readonly string[] = ["config-codex-cli"] as const;
 
-/** 20 canonical CLI skill IDs, in spec order. */
+/** 21 canonical CLI skill IDs, in spec order. */
 export const CLI_SKILL_IDS: readonly string[] = [
   "cli-serve",
   "cli-health",
@@ -68,6 +68,7 @@ export const CLI_SKILL_IDS: readonly string[] = [
   "cli-eval",
   "cli-plugins-skills",
   "cli-setup",
+  "cli-skill-collector",
 ] as const;
 
 // ── Module-scope cache ──────────────────────────────────────────────────────
@@ -93,7 +94,7 @@ function deriveCatalog(): AgentSkill[] {
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Returns the full catalog (43 entries). Cached in module scope after first call.
+ * Returns the full catalog (44 entries). Cached in module scope after first call.
  * Safe to call multiple times — re-derives only after `refreshCatalog()`.
  */
 export function getCatalog(): AgentSkill[] {
@@ -149,7 +150,7 @@ export function computeCoverage(): SkillCoverage {
 
   return {
     api: { have: apiHave, total: 23 },
-    cli: { have: cliHave, total: 20 },
+    cli: { have: cliHave, total: 21 },
     config: { have: configHave, total: configTotal },
     totalSkills: apiHave + cliHave + configHave,
     generatedAt: new Date().toISOString(),

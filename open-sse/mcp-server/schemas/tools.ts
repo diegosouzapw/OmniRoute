@@ -1342,7 +1342,7 @@ export const agentSkillsListOutput = z.object({
   count: z.number(),
   coverage: z.object({
     api: z.object({ have: z.number(), total: z.literal(22) }),
-    cli: z.object({ have: z.number(), total: z.literal(20) }),
+    cli: z.object({ have: z.number(), total: z.literal(21) }),
     totalSkills: z.number(),
     generatedAt: z.string(),
   }),
@@ -1410,7 +1410,7 @@ export const agentSkillsCoverageInput = z.object({}).describe("No parameters req
 
 export const agentSkillsCoverageOutput = z.object({
   api: z.object({ have: z.number(), total: z.literal(22) }),
-  cli: z.object({ have: z.number(), total: z.literal(20) }),
+  cli: z.object({ have: z.number(), total: z.literal(21) }),
   totalSkills: z.number(),
   generatedAt: z.string(),
 });
@@ -1421,7 +1421,7 @@ export const agentSkillsCoverageTool: McpToolDefinition<
 > = {
   name: "omniroute_agent_skills_coverage",
   description:
-    "Returns the current SKILL.md coverage stats: how many of the 22 API skills and 20 CLI skills have generated SKILL.md files on the filesystem vs the catalog total.",
+    "Returns the current SKILL.md coverage stats: how many of the 22 API skills and 21 CLI skills have generated SKILL.md files on the filesystem vs the catalog total.",
   inputSchema: agentSkillsCoverageInput,
   outputSchema: agentSkillsCoverageOutput,
   scopes: ["read:catalog"],

@@ -56,8 +56,8 @@ function makeAgentSkills(): AgentSkill[] {
 
 const FULL_COVERAGE: SkillCoverage = {
   api: { have: 22, total: 22 },
-  cli: { have: 20, total: 20 },
-  totalSkills: 42,
+  cli: { have: 21, total: 21 },
+  totalSkills: 43,
   generatedAt: new Date().toISOString(),
 };
 

@@ -28,7 +28,7 @@ export type SkillArea =
   | "github-skills"
   // Config skills
   | "config-codex-cli"
-  // CLI families (20)
+  // CLI families (21)
   | "cli-serve"
   | "cli-health"
   | "cli-providers"
@@ -48,7 +48,8 @@ export type SkillArea =
   | "cli-batches"
   | "cli-eval"
   | "cli-plugins-skills"
-  | "cli-setup";
+  | "cli-setup"
+  | "cli-skill-collector";
 
 export interface AgentSkill {
   id: string; // canonical id (e.g. "omni-providers", "cli-serve")
@@ -67,7 +68,7 @@ export interface AgentSkill {
 
 export interface SkillCoverage {
   api: { have: number; total: 23 };
-  cli: { have: number; total: 20 };
+  cli: { have: number; total: 21 };
   config: { have: number; total: number };
   totalSkills: number; // sum
   generatedAt: string; // ISO datetime

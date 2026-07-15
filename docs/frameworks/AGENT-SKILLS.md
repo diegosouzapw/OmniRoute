@@ -175,7 +175,7 @@ See [A2A-SERVER.md](./A2A-SERVER.md) for protocol details.
 | `omni-version-manager` | version-manager | Version and update management       |
 | `omni-inference`       | inference       | Direct inference / completions      |
 
-### CLI Skills (20)
+### CLI Skills (21)
 
 | ID                   | Area               | CLI Command Root        |
 | :------------------- | :----------------- | :---------------------- |
@@ -199,6 +199,7 @@ See [A2A-SERVER.md](./A2A-SERVER.md) for protocol details.
 | `cli-eval`           | cli-eval           | `omniroute eval`        |
 | `cli-plugins-skills` | cli-plugins-skills | `omniroute plugins`     |
 | `cli-setup`          | cli-setup          | `omniroute setup`       |
+| `cli-skill-collector` | cli-skill-collector | _(REST workflow — no CLI subcommand)_ |
 
 ---
 
