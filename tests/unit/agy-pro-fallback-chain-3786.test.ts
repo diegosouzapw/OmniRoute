@@ -190,6 +190,136 @@ test("(#3786) happy path: first id 200 makes exactly ONE upstream call (zero ext
   }
 });
 
+// ---------------------------------------------------------------------------
+// Behavioral: executor catches exceptions and continues the fallback chain
+// ---------------------------------------------------------------------------
+
+test("(#3786) exception on first candidate (timeout) falls through to second candidate returning 200", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  seedAntigravityVersionCache("2026.04.17-test");
+  const modelsTried: string[] = [];
+
+  globalThis.fetch = (async (_url: string, init?: RequestInit) => {
+    const m = envelopeModel(init);
+    modelsTried.push(m);
+    if (m === "gemini-3.1-pro-high") throw new Error("upstream timeout after 30000ms");
+    return makeSuccessSSE();
+  }) as typeof fetch;
+
+  try {
+    const result = await executor.execute({
+      model: "antigravity/gemini-3.1-pro-high",
+      body: { request: { contents: [] } },
+      stream: false,
+      credentials: { accessToken: "token", projectId: "project-1" },
+      log: { debug() {}, warn() {}, info() {} },
+    });
+    const payload = (await result.response.json()) as ChatCompletionPayload;
+
+    assert.equal(result.response.status, 200, "second candidate should succeed after first threw");
+    assert.equal(payload.choices[0].message.content, "OK");
+    // First candidate retried internally (URL-level retries on throw), then second succeeded.
+    assert.equal(modelsTried[0], "gemini-3.1-pro-high", "first call targets first candidate");
+    assert.ok(modelsTried.includes("gemini-pro-agent"), "must eventually try second candidate");
+    assert.ok(
+      modelsTried.lastIndexOf("gemini-3.1-pro-high") < modelsTried.indexOf("gemini-pro-agent"),
+      "first candidate exhausted before second tried"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("(#3786) all candidates throw exceptions -- error includes 'chain exhausted'", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  seedAntigravityVersionCache("2026.04.17-test");
+  const modelsTried: string[] = [];
+
+  globalThis.fetch = (async (_url: string, init?: RequestInit) => {
+    const m = envelopeModel(init);
+    modelsTried.push(m);
+    throw new Error(`timeout on ${m}`);
+  }) as typeof fetch;
+
+  try {
+    await assert.rejects(
+      () =>
+        executor.execute({
+          model: "antigravity/gemini-3.1-pro-high",
+          body: { request: { contents: [] } },
+          stream: false,
+          credentials: { accessToken: "token", projectId: "project-1" },
+          log: { debug() {}, warn() {}, info() {} },
+        }),
+      (err: Error) => {
+        assert.ok(
+          err.message.includes("chain exhausted"),
+          `error must mention chain exhausted, got: ${err.message}`
+        );
+        assert.ok(
+          err.message.includes("timeout on"),
+          `error must include last error message, got: ${err.message}`
+        );
+        return true;
+      }
+    );
+    // All 3 candidates tried (each retries internally on throw).
+    assert.ok(modelsTried.includes("gemini-3.1-pro-high"), "tried first candidate");
+    assert.ok(modelsTried.includes("gemini-pro-agent"), "tried second candidate");
+    assert.ok(modelsTried.includes("gemini-3-pro-high"), "tried third candidate");
+    // Ordering: all first-candidate attempts before second, etc.
+    const lastFirst = modelsTried.lastIndexOf("gemini-3.1-pro-high");
+    const firstSecond = modelsTried.indexOf("gemini-pro-agent");
+    const lastSecond = modelsTried.lastIndexOf("gemini-pro-agent");
+    const firstThird = modelsTried.indexOf("gemini-3-pro-high");
+    assert.ok(lastFirst < firstSecond, "first candidate exhausted before second tried");
+    assert.ok(lastSecond < firstThird, "second candidate exhausted before third tried");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("(#3786) mixed path: 400 on first, exception on second, 200 on third", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  seedAntigravityVersionCache("2026.04.17-test");
+  const modelsTried: string[] = [];
+
+  globalThis.fetch = (async (_url: string, init?: RequestInit) => {
+    const m = envelopeModel(init);
+    modelsTried.push(m);
+    if (m === "gemini-3.1-pro-high") return make400(m);
+    if (m === "gemini-pro-agent") throw new Error("connection reset");
+    return makeSuccessSSE();
+  }) as typeof fetch;
+
+  try {
+    const result = await executor.execute({
+      model: "antigravity/gemini-3.1-pro-high",
+      body: { request: { contents: [] } },
+      stream: false,
+      credentials: { accessToken: "token", projectId: "project-1" },
+      log: { debug() {}, warn() {}, info() {} },
+    });
+    const payload = (await result.response.json()) as ChatCompletionPayload;
+
+    assert.equal(result.response.status, 200, "third candidate should succeed");
+    assert.equal(payload.choices[0].message.content, "OK");
+    // First candidate (400, no retry) -> second candidate (throws, retried internally) -> third (200).
+    assert.equal(modelsTried[0], "gemini-3.1-pro-high", "first call targets first candidate");
+    assert.ok(modelsTried.includes("gemini-pro-agent"), "second candidate attempted");
+    assert.ok(modelsTried.includes("gemini-3-pro-high"), "third candidate reached");
+    assert.ok(
+      modelsTried.lastIndexOf("gemini-pro-agent") < modelsTried.indexOf("gemini-3-pro-high"),
+      "second candidate exhausted before third tried"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("(#3786) a non-pro model that 400s does NOT trigger the fallback chain", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;

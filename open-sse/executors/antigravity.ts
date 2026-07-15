@@ -1059,7 +1059,22 @@ export class AntigravityExecutor extends BaseExecutor {
     let firstResult: Awaited<ReturnType<AntigravityExecutor["executeOnce"]>> | null = null;
     for (let i = 0; i < chain.length; i++) {
       const candidate = chain[i];
-      const result = await this.executeOnce(input, candidate);
+      let result: Awaited<ReturnType<AntigravityExecutor["executeOnce"]>>;
+      try {
+        result = await this.executeOnce(input, candidate);
+      } catch (error) {
+        if (i < chain.length - 1) {
+          input.log?.debug?.(
+            "AG_PRO_FALLBACK",
+            `Exception on "${candidate}" (${error instanceof Error ? error.message : String(error)}) -- retrying with next Pro candidate "${chain[i + 1]}"`
+          );
+          continue;
+        }
+        // Last candidate also threw -- wrap all-failed context.
+        throw new Error(
+          `Pro fallback chain exhausted (all ${chain.length} candidates threw). Last error: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // Success (or any non-400) on a candidate → return immediately.
       if (result.response.status !== HTTP_STATUS.BAD_REQUEST) {
