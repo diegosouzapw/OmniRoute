@@ -68,6 +68,10 @@ vi.mock("@/shared/components/MonacoEditor", () => ({
 
 vi.mock("@/shared/constants/providers", () => ({
   ALIAS_TO_ID: {},
+  AI_PROVIDERS: {},
+  OPENAI_COMPATIBLE_PREFIX: "openai-compatible-",
+  ANTHROPIC_COMPATIBLE_PREFIX: "anthropic-compatible-",
+  CLAUDE_CODE_COMPATIBLE_PREFIX: "anthropic-compatible-cc-",
 }));
 
 vi.mock("@/shared/utils/maskEmail", () => ({
