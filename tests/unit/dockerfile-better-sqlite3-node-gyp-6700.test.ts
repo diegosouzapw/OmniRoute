@@ -44,7 +44,7 @@ test("#6700 builder stage compiles better-sqlite3 via a direct node-gyp rebuild,
 
   assert.match(
     stage,
-    /cd node_modules\/better-sqlite3\s*&&\s*npx\s+(--yes\s+)?node-gyp rebuild/,
+    /cd node_modules\/better-sqlite3\s*(\\\s*)?&&\s*(npx\s+(--yes\s+)?node-gyp|node \/usr\/local\/lib\/node_modules\/npm\/node_modules\/node-gyp\/bin\/node-gyp\.js) rebuild/,
     "builder stage must compile better-sqlite3 by invoking node-gyp directly inside its " +
       "package directory (bypasses npm's rebuild-script indirection)"
   );
@@ -64,7 +64,7 @@ test("#6700 the better-sqlite3 rebuild happens after `npm ci --ignore-scripts` a
   const stage = lines.slice(start, end).filter((l) => !l.trim().startsWith("#"));
 
   const ignoreScriptsIdx = stage.findIndex((l) => /npm ci\b.*--ignore-scripts/.test(l));
-  const rebuildIdx = stage.findIndex((l) => /node-gyp rebuild/.test(l));
+  const rebuildIdx = stage.findIndex((l) => /node-gyp(\.js)? rebuild/.test(l));
   const smokeLoadIdx = stage.findIndex((l) =>
     /node -e ".*require\('better-sqlite3'\)\(':memory:'\)\.close\(\)"/.test(l)
   );

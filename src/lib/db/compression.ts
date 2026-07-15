@@ -28,6 +28,8 @@ import {
   type RtkConfig,
   type UltraConfig,
 } from "@omniroute/open-sse/services/compression/types.ts";
+import { DEFAULT_CONTEXT_BUDGET } from "@omniroute/open-sse/services/compression/adaptiveCompression/types.ts";
+import { normalizeContextBudgetConfig } from "./compressionContextBudget";
 import {
   isPreserveSystemPromptMode,
   normalizePreserveSystemPromptMode,
@@ -550,6 +552,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     stackedPipeline: normalizeStackedPipeline(undefined),
     aggressive: normalizeAggressiveConfig(undefined),
     ultra: normalizeUltraConfig(undefined),
+    contextBudget: normalizeContextBudgetConfig(undefined),
     contextEditing: { ...DEFAULT_CONTEXT_EDITING_CONFIG },
     engines: {},
     activeComboId: null,
@@ -651,6 +654,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "ultra":
       case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
+        break;
+      case "contextBudget":
+        config.contextBudget = normalizeContextBudgetConfig(parsed);
         break;
       case "contextEditing":
         config.contextEditing = normalizeContextEditingConfig(parsed);
