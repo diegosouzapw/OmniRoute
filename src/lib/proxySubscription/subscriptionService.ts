@@ -325,7 +325,7 @@ async function fetchSubscriptionContent(url: string): Promise<string> {
 }
 
 /** Fetch + parse + sync nodes into proxy_registry, then (if enabled) (re)bind. */
-export async function syncSubscription(id: string): Promise<SyncResult> {
+async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
   const sub = await getSubscriptionById(id);
   if (!sub) {
     return { subscriptionId: id, nodes: 0, needsCore: 0, boundProxies: 0, status: "error", error: "not found", applied: false };
@@ -346,6 +346,13 @@ export async function syncSubscription(id: string): Promise<SyncResult> {
   const keptIds: string[] = [];
   let warning: string | null = null;
 
+  // The upsert loop + stale-removal are the multi-write section. upsertProxy /
+  // deleteProxyById each run their own internal db.transaction, so each write
+  // is atomic, and a re-sync is idempotent (self-heals partial state). A single
+  // outer db.transaction around `await` calls would NOT be atomic under
+  // better-sqlite3, so instead we guard against an unexpected DB error so a
+  // half-completed sync can never be left flagged "ok".
+  try {
   // Directly-usable nodes → upsert into the registry as a pool.
   for (const node of parsed.nodes) {
     const upserted = await upsertProxy({
@@ -416,6 +423,11 @@ export async function syncSubscription(id: string): Promise<SyncResult> {
       }
     }
   }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await updateSubscriptionStatus(id, "error", `Sync write failed: ${msg}`, null);
+    return { subscriptionId: id, nodes: 0, needsCore: 0, boundProxies: 0, status: "error", error: msg, applied: false };
+  }
 
   const lastNodes = redactedNodeSummary(parsed);
 
@@ -456,6 +468,22 @@ export async function syncSubscription(id: string): Promise<SyncResult> {
     error,
     applied,
   };
+}
+
+// Deduplicate concurrent syncs for the same subscription. A manual refresh and
+// the scheduled ticker can otherwise fire `syncSubscription` for the same id at
+// the same time and race on the upsert / stale-removal writes.
+const syncInFlight = new Map<string, Promise<SyncResult>>();
+
+/** Public entry point: de-dupes concurrent syncs, then runs the unsafe body. */
+export async function syncSubscription(id: string): Promise<SyncResult> {
+  const existing = syncInFlight.get(id);
+  if (existing) return existing;
+  const run = syncSubscriptionUnsafe(id).finally(() => {
+    syncInFlight.delete(id);
+  });
+  syncInFlight.set(id, run);
+  return run;
 }
 
 async function updateSubscriptionStatus(
