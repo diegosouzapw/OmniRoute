@@ -155,7 +155,7 @@ export async function validateWebCookieProvider({
     const baseUrl = normalizeBaseUrl(entry.baseUrl || "");
     const testUrl = `${baseUrl}/models`;
 
-    const res = await directHttpsRequest(
+    const res = await validationRead(
       testUrl,
       {
         method: "GET",
@@ -164,7 +164,7 @@ export async function validateWebCookieProvider({
           Cookie: cookie,
         },
       },
-      10_000
+      isLocalProvider(provider)
     );
 
     if (res.status === 401 || res.status === 403) {
