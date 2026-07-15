@@ -304,7 +304,7 @@ test("codex.enrichCodexModelsFromGithubCatalog keeps live entitlement list autho
   assert.equal(enriched[0]?.supportsVision, true);
 });
 
-test("codex.mergeCodexLiveModelsWithLocalCatalog preserves the pinned GPT-5.6 token contract", () => {
+test("codex.mergeCodexLiveModelsWithLocalCatalog merges capacity limits conservatively (smaller wins)", () => {
   const merged = mergeCodexLiveModelsWithLocalCatalog(
     [
       {
@@ -348,13 +348,17 @@ test("codex.mergeCodexLiveModelsWithLocalCatalog preserves the pinned GPT-5.6 to
   assert.ok(ids.includes("gpt-5.6-sol-low"));
   const sol = merged.find((model) => model.id === "gpt-5.6-sol");
   assert.equal(sol?.name, "Live Sol");
-  assert.equal(sol?.inputTokenLimit, 372000);
+  // Live (272000) is SMALLER than the pinned contract (372000) here — the
+  // smaller value wins so OmniRoute never promises more context than the
+  // live account can actually serve (#7012).
+  assert.equal(sol?.inputTokenLimit, 272000);
   assert.equal(sol?.supportsVision, true);
+  // Output limit is pinned-only (live has none) — passes through unchanged.
   assert.equal(sol?.outputTokenLimit, 128000);
   assert.equal(
     merged.find((model) => model.id === "gpt-5.5")?.inputTokenLimit,
-    300000,
-    "legacy Codex models should retain live-discovery precedence"
+    272000,
+    "capacity limits merge conservatively for all Codex models, not only the pinned GPT-5.6 ids — the smaller of live (300000) vs. pinned (272000) wins"
   );
 });
 
