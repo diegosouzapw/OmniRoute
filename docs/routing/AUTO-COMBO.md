@@ -212,8 +212,15 @@ a single final answer from all panel responses. Ported from upstream `decolua/9r
 
 How it works:
 
-1. **Fan-out** — the prompt is sent to every panel model at once, forced non-streaming
-   with tools stripped (the judge needs complete prose to synthesize).
+0. **Tool-bearing bypass** — a request that carries a non-empty `tools` array with
+   `tool_choice` not explicitly `"none"` skips the panel entirely: it routes directly to
+   a single model (the configured judge, or `panel[0]`) with `tools`/`tool_choice`
+   passed through unmodified. Panel members have no tool access and the judge's
+   synthesis directive discourages tool-call emission, so agentic/tool-calling clients
+   get a real tool-call decision instead of synthesized prose (#6771).
+1. **Fan-out** (non-tool-bearing requests only) — the prompt is sent to every panel
+   model at once, forced non-streaming with tools stripped (the judge needs complete
+   prose to synthesize).
 2. **Quorum-grace collection** — as soon as `minPanel` answers arrive, a short grace
    timer starts for the stragglers, then fusion proceeds with whatever was collected.
    This caps the slowest model's penalty on wall time, bounded by a hard timeout.
