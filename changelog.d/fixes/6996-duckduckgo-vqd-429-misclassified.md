@@ -1,0 +1,1 @@
+- fix(providers): DuckDuckGo AI Chat executor propagates the real upstream status (429 rate limit with `Retry-After`) instead of misclassifying VQD-token acquisition failures as a hardcoded 503 (#6996)
