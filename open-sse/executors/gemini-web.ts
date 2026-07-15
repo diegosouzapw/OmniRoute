@@ -112,12 +112,15 @@ function parseCookies(raw: string): Array<{ name: string; value: string }> {
  *   [["wrb.fr", null, "<JSON string>"]]
  *
  * The JSON string contains nested array: inner[4][0][1] = ["text chunks"].
- * We concatenate text from every wrb.fr line because Gemini can split one
- * assistant answer across multiple StreamGenerate chunks.
+ * Each wrb.fr line is a CUMULATIVE snapshot of the whole answer generated so
+ * far (not an independent delta), so we keep only the text from the LAST
+ * frame that yields non-empty text instead of concatenating every frame —
+ * concatenating would reproduce the same growing text with each snapshot
+ * (see #7163).
  */
 export function parseStreamResponse(raw: string): string {
   const lines = raw.split("\n");
-  const textChunks: string[] = [];
+  let lastText = "";
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
@@ -133,12 +136,12 @@ export function parseStreamResponse(raw: string): string {
       const responseArray = inner?.[4]?.[0]?.[1];
       if (!Array.isArray(responseArray)) continue;
       const text = responseArray.filter((c: unknown) => typeof c === "string").join("");
-      if (text) textChunks.push(text);
+      if (text) lastText = text;
     } catch {
       // Skip unparseable lines
     }
   }
-  return textChunks.join("");
+  return lastText;
 }
 
 function readCredentialString(value: unknown): string {

@@ -111,28 +111,13 @@ async function flush() {
 // ── Tests ─────────────────────────────────────────────────────────────────
 
 describe("CompressionHub", () => {
-  it("renders the master switch, mode selector, and the layered pipeline", async () => {
-    setupFetchMock({ enabled: true, mode: "stacked", pipeline: [{ engine: "rtk" }] });
-    const { default: CompressionHub } =
-      await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
-
-    let container!: HTMLElement;
-    await act(async () => {
-      container = mountInContainer(<CompressionHub />);
-    });
-    await flush();
-
-    const text = container.textContent ?? "";
-    expect(text).toContain("Compression Hub");
-    expect(text).toContain("Token Saver");
-    expect(text).toContain("Stacked");
-    // Active pipeline engine (from the default combo) renders
-    expect(text).toContain("RTK");
-    // Inactive engines from the catalog render too
-    expect(text).toContain("Caveman");
-    // Active-pipeline callout shows when enabled && stacked
-    expect(text).toContain("Layer pipeline is active");
-  });
+  // NOTE: the master Token Saver toggle, mode selector, and layered-pipeline
+  // preview this describe block used to assert on were removed by the Phase 2
+  // Hub redesign (see the "Phase 2" comment at the top of CompressionHub.tsx —
+  // the Hub is now a thin overview with just an active-profile selector + the
+  // Context Editing toggle). That redesign, including the explicit assertion
+  // that the master toggle/mode selector/reorder buttons no longer render, is
+  // covered by compressionHub-active-selector.test.tsx.
 
   it("INVARIANT #1: no per-layer control issues a PUT/POST to /api/context/combos/default", { timeout: 20000 }, async () => {
     const comboWrites: { method: string }[] = [];
@@ -185,22 +170,6 @@ describe("CompressionHub", () => {
     }
 
     expect(comboWrites).toHaveLength(0);
-  });
-
-  it("shows the activation warning when Token Saver is off", async () => {
-    setupFetchMock({ enabled: false, mode: "off", pipeline: [] });
-    const { default: CompressionHub } =
-      await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
-
-    let container!: HTMLElement;
-    await act(async () => {
-      container = mountInContainer(<CompressionHub />);
-    });
-    await flush();
-
-    const text = container.textContent ?? "";
-    expect(text).toContain("Enable Token Saver");
-    expect(text).toContain("only run in Stacked mode");
   });
 });
 

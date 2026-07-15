@@ -1,7 +1,7 @@
 /**
  * Tests for useVirtualList — virtualizes 1000+ items without rendering all
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 
 const ESTIMATED_ROW_HEIGHT = 48;
