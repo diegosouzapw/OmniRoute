@@ -5591,6 +5591,7 @@
     "webSearchRouteTitle": "__MISSING__:Web search routing",
     "webSearchRouteDesc": "__MISSING__:When a request includes a native web_search tool, route the whole request to this model instead of the default — useful for providers that don't implement Anthropic's web_search server tool. Leave blank to disable.",
     "webSearchRoutePlaceholder": "__MISSING__:e.g. openrouter,anthropic/claude-3.5-sonnet",
+    "paidModelPatternWarning": "Este padrão corresponde apenas a modelos pagos — habilite modelos pagos ou ajuste o padrão.",
     "clearLkgpCache": "Clear LKGP Cache",
     "lkgpCacheCleared": "LKGP cache cleared successfully",
     "lkgpCacheClearFailed": "Failed to clear LKGP cache",
