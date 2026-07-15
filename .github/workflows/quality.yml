@@ -143,6 +143,10 @@ jobs:
       - run: npm run check:complexity-ratchets
       - name: Typecheck (core)
         run: npm run typecheck:core
+      # #7033: dashboard-scoped typecheck gate — src/app/(dashboard) TSX is not
+      # covered by typecheck:core's curated allowlist. See check-dashboard-typecheck.mjs.
+      - name: Typecheck (dashboard)
+        run: npm run check:dashboard-typecheck
       # WS4.2 (v3.8.49 plan): TypeScript 7 native-compiler SHADOW — advisory only.
       # TS7 went GA 2026-07-08 with 8-12x type-check speedups; its Compiler API only
       # arrives in 7.1, so typescript-eslint / type-coverage / Stryker stay on 6.x
@@ -226,7 +230,18 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - run: npm run test:vitest
+      # WS5.2/5.3: JUnit feeds Trunk Flaky Tests — the fast-path runs on EVERY PR,
+      # which is where flaky-detection volume actually comes from (ci.yml's heavy
+      # jobs only run on the release PR). Advisory upload, own-origin only.
+      - run: npm run test:vitest -- --reporter=default --reporter=junit --outputFile.junit=trunk-junit/vitest-fastpath.xml
+      - name: Upload test results to Trunk (advisory)
+        if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        continue-on-error: true
+        uses: trunk-io/analytics-uploader@385f1ccdf345b4532dc4b6c665dd432b702b8e28 # v2.1.2
+        with:
+          junit-paths: trunk-junit/**/*.xml
+          org-slug: omniroute
+          token: ${{ secrets.TRUNK_TOKEN }}
 
   fast-unit:
     name: Unit Tests fast-path (${{ matrix.shard }}/4)
