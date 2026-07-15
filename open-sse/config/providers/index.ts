@@ -151,6 +151,7 @@ import { gigachatProvider } from "./registry/gigachat/index.ts";
 import { devin_cliProvider } from "./registry/devin-cli/index.ts";
 import { auggieProvider } from "./registry/auggie/index.ts";
 import { chutesProvider } from "./registry/chutes/index.ts";
+import { chenzkProvider } from "./registry/chenzk/index.ts";
 import { factoryProvider } from "./registry/factory/index.ts";
 import { databricksProvider } from "./registry/databricks/index.ts";
 import { rekaProvider } from "./registry/reka/index.ts";
@@ -336,6 +337,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "devin-cli": devin_cliProvider,
   auggie: auggieProvider,
   chutes: chutesProvider,
+  chenzk: chenzkProvider,
   factory: factoryProvider,
   databricks: databricksProvider,
   reka: rekaProvider,
