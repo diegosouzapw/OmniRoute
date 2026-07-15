@@ -63,16 +63,17 @@ test("#2822 opencode-go/qwen3.6-plus deve ter supportsVision !== true", () => {
   );
 });
 
-// #3328 — o oposto do #2822: MiniMax M3 (opencode) É multimodal (verificado
-// empiricamente: descreve imagens base64 via o upstream opencode). Deve ter
-// supportsVision: true para não ser barrado/strippado em requests com imagem.
-test("#3328 opencode/minimax-m3-free deve ter supportsVision: true", () => {
+// #3328 — o oposto do #2822: MiniMax M3 (opencode) era multimodal (verificado
+// empiricamente: descrevia imagens base64 via o upstream opencode). #6998:
+// minimax-m3-free foi deslistado do free tier da OpenCode Zen (401 "not
+// supported") em 2026-07-14 e removido do catálogo estático — este teste
+// agora confirma a remoção.
+test("#6998 opencode/minimax-m3-free não deve mais estar registrado (deslistado upstream)", () => {
   const model = getModel("opencode", "minimax-m3-free");
-  assert.ok(model, "minimax-m3-free deve estar registrado em opencode");
-  assert.strictEqual(
-    model.supportsVision,
-    true,
-    "opencode/minimax-m3-free é multimodal — supportsVision deve ser true"
+  assert.equal(
+    model,
+    undefined,
+    "opencode/minimax-m3-free foi deslistado do free tier da OpenCode Zen (#6998)"
   );
 });
 

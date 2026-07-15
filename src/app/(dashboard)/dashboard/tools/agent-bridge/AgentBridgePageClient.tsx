@@ -147,7 +147,7 @@ export default function AgentBridgePageClient({
       setActionError(null);
       try {
         const res = await fetch(`/api/tools/agent-bridge/agents/${agentId}/dns`, {
-          method: "PUT",
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ enabled }),
         });

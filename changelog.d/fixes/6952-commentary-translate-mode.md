@@ -1,0 +1,1 @@
+- fix(sse): drop internal commentary-phase Responses output in TRANSLATE-mode streams, not just PASSTHROUGH — codex/Responses-upstream routes translated into another client format (e.g. Claude Code) no longer leak duplicate prose and narrated tool-call arguments into the client text channel (#6952)
