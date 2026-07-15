@@ -5,10 +5,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { getProviderErrorRuleMatch } = await import(
-  "../../open-sse/config/providerErrorRules.ts"
-);
-const { classify429 } = await import("../../src/shared/utils/classify429.ts");
+import { getProviderErrorRuleMatch } from "../../open-sse/config/providerErrorRules.ts";
+import { classify429 } from "../../src/shared/utils/classify429.ts";
 
 const CLOUDFLARE_BODY = {
   errors: [
