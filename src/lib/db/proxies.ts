@@ -258,7 +258,9 @@ export async function listProxies(options?: {
     params.push(limit, offset);
   }
   const rows = db.prepare(sql).all(...params) as unknown[];
-  const total = db.prepare<CountResult>("SELECT count(*) as cnt FROM proxy_registry").get()!.cnt;
+  const total = (
+    db.prepare("SELECT count(*) as cnt FROM proxy_registry").get() as CountResult
+  ).cnt;
   const proxies = rows.map(mapProxyRow);
   return { items: includeSecrets ? proxies : proxies.map(redactProxySecrets), total };
 }

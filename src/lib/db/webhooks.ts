@@ -65,7 +65,7 @@ export function getWebhooks(options?: { limit?: number; offset?: number }): {
     params.push(limit, offset);
   }
   const rows = db.prepare(sql).all(...params) as WebhookRow[];
-  const total = db.prepare<CountResult>("SELECT count(*) as cnt FROM webhooks").get()!.cnt;
+  const total = (db.prepare("SELECT count(*) as cnt FROM webhooks").get() as CountResult).cnt;
   return { webhooks: rows.map(rowToWebhook), total };
 }
 
