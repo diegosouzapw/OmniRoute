@@ -44,6 +44,19 @@ import { parseSubscription, redactedNodeSummary, type ParsedSubscription } from 
 export type ProxySubscriptionMode = "global" | "rule";
 export type ProxySubscriptionStatus = "ok" | "error" | "empty";
 
+/** Stable, language-neutral error codes stored in the subscription `error`
+ * column (as JSON) so the dashboard can localize them via i18n instead of
+ * showing server-side strings. */
+export type ProxySubscriptionErrorCode =
+  | "LOCAL_CORE_ENDPOINT_INVALID"
+  | "NEEDS_CORE_NOT_CONFIGURED"
+  | "NO_USABLE_NODES";
+
+/** Encode a user-facing error as `{ code, detail? }` for i18n on the client. */
+export function subscriptionErrorCode(code: ProxySubscriptionErrorCode, detail?: string): string {
+  return JSON.stringify(detail ? { code, detail } : { code });
+}
+
 export interface ProxySubscriptionRecord {
   id: string;
   name: string;
@@ -388,13 +401,13 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
         });
         if (upserted.proxy?.id) keptIds.push(upserted.proxy.id);
       } catch {
-        warning = "本地内核端点格式无效，已忽略 SS/VMess/Trojan/VLESS 节点。";
+        warning = subscriptionErrorCode("LOCAL_CORE_ENDPOINT_INVALID");
       }
     } else {
-      warning = parsed.needsCore
+      const nodes = parsed.needsCore
         .map((n) => `${n.rawProtocol}://${n.host ?? ""}${n.port ? ":" + n.port : ""}`)
         .join(", ");
-      warning = `订阅包含需本地内核的节点（${warning}）。配置“本地内核 SOCKS5 端点”后即可使用，当前这些节点未被路由。`;
+      warning = subscriptionErrorCode("NEEDS_CORE_NOT_CONFIGURED", nodes);
     }
   }
 
@@ -436,7 +449,7 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
   let error: string | null = warning;
   if (keptIds.length === 0) {
     status = "error";
-    error = warning || "订阅未解析出任何可用节点（http/https/socks5 或带本地内核端点的 SS/VMess 等）。";
+    error = warning || subscriptionErrorCode("NO_USABLE_NODES");
   } else if (warning) {
     status = "ok";
   } else {
