@@ -33,10 +33,23 @@ function git(args: string[]): string {
   return execFileSync("git", args, { encoding: "utf8" });
 }
 
-test("#6634: check-test-masking.test.ts's own tautology fixtures must not self-flag as weakening", () => {
+test("#6634: check-test-masking.test.ts's own tautology fixtures must not self-flag as weakening", (t) => {
   // origin/main predates the #6404 fixtures (countBareTautologies/scanBareTautologies
   // tests) that legitimately embed tautology-pattern literals as string fixtures.
-  const baseSrc = git(["show", "origin/main:" + FILE]);
+  // Shallow/single-ref checkouts (GitHub-hosted runners) have no origin/main —
+  // fetch it on demand; skip (never fail) when the ref is unreachable offline.
+  let baseSrc: string;
+  try {
+    baseSrc = git(["show", "origin/main:" + FILE]);
+  } catch {
+    try {
+      git(["fetch", "--depth=1", "origin", "main"]);
+      baseSrc = git(["show", "origin/main:" + FILE]);
+    } catch {
+      t.skip("origin/main unavailable (shallow checkout, offline) — nothing to compare against");
+      return;
+    }
+  }
   const headSrc = git(["show", "HEAD:" + FILE]);
 
   const perFile = [

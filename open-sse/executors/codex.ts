@@ -694,7 +694,7 @@ export async function peekCodexSseTransientError(
     },
     cancel(reason) {
       try {
-        upstreamReader.cancel(reason);
+        upstreamReader.cancel(reason).catch(() => {});
       } catch {
         // noop — upstream socket may already be closing.
       }

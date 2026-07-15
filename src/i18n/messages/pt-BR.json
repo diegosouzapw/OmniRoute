@@ -6224,7 +6224,15 @@
     "routingStrategySubtitle": "Compatível com 9router: round-robin de contas, limites de fixação e rotação de combo",
     "routingStrategyTitle": "Estratégia de Roteamento",
     "searchModelOverrideTargets": "Buscar provedor/modelo...",
-    "selectedModel": "Modelo selecionado"
+    "selectedModel": "Modelo selecionado",
+    "proxyFreePoolSearchPlaceholder": "Buscar host…",
+    "proxyFreePoolSearchLabel": "Buscar proxies do pool gratuito",
+    "proxyFreePoolSortLabel": "Ordenar por",
+    "proxyFreePoolSortQuality": "Qualidade",
+    "proxyFreePoolSortLatency": "Latência",
+    "proxyFreePoolSortRecent": "Mais recentes",
+    "proxyFreePoolListTotal": "{count} proxies no total",
+    "proxyFreePoolLoadMore": "Carregar mais"
   },
   "contextRtk": {
     "title": "Motor RTK",
@@ -8036,7 +8044,15 @@
     "poolAddMember": "Adicionar",
     "poolAddFailed": "Falha ao adicionar o proxy ao pool",
     "poolSelectProxy": "Selecionar um proxy…",
-    "strategyLatency": "Otimizado por latência"
+    "strategyLatency": "Otimizado por latência",
+    "repair": "Reparar",
+    "relayAuthMissing": "auth ausente",
+    "poolSaveFailed": "Falha ao salvar a atribuição do pool",
+    "relayRepairTooltip": "Recupera a autenticação do relay no lugar. Se o token for irrecuperável (ex.: após rotação da chave de criptografia), faça o redeploy do relay.",
+    "relayRepairRedeployRequired": "Autenticação do relay irrecuperável — faça o redeploy do relay para gravar um token novo.",
+    "relayRepairFailed": "Falha ao reparar o relay",
+    "relayRepairError": "falha no reparo",
+    "relayProbeSummary": "Probes do relay: {alive}/{tested} ativos"
   },
   "playground": {
     "title": "Title",
