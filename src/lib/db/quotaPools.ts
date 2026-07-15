@@ -299,25 +299,32 @@ export function getPoolsByGroup(groupId: string, limit?: number, offset?: number
 
 /**
  * List all quota pools with their allocations.
+ *
+ * When pagination is requested (limit > 0), returns {items, total}.
+ * Otherwise returns a plain array for backward compatibility.
  */
-export function listPools(options?: { limit?: number; offset?: number }): {
-  items: QuotaPool[];
-  total: number;
-} {
+export function listPools(options?: {
+  limit?: number;
+  offset?: number;
+}): QuotaPool[] | { items: QuotaPool[]; total: number } {
   const limit = options?.limit;
   const offset = options?.offset;
-  let sql =
-    "SELECT id, connection_id, name, group_id, created_at FROM quota_pools ORDER BY created_at ASC";
-  const params: unknown[] = [];
   const hasLimit = limit !== undefined && limit > 0;
+  if (!hasLimit) {
+    const rows = getDb()
+      .prepare<PoolRow>(
+        "SELECT id, connection_id, name, group_id, created_at FROM quota_pools ORDER BY created_at ASC"
+      )
+      .all();
+    return batchBuildPools(rows);
+  }
+  let sql =
+    "SELECT id, connection_id, name, group_id, created_at FROM quota_pools ORDER BY created_at ASC LIMIT ?";
+  const params: unknown[] = [limit];
   const hasOffset = offset !== undefined && offset > 0;
-  if (hasLimit || hasOffset) {
-    sql += " LIMIT ?";
-    params.push(hasLimit ? limit : -1);
-    if (hasOffset) {
-      sql += " OFFSET ?";
-      params.push(offset);
-    }
+  if (hasOffset) {
+    sql += " OFFSET ?";
+    params.push(offset);
   }
   const rows = getDb()
     .prepare<PoolRow>(sql)

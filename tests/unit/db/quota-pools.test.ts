@@ -55,8 +55,8 @@ test("listPools without limit/offset returns all pools", () => {
   insertPool("p1", "Alpha", "c1");
   insertPool("p2", "Beta", "c2");
   const result = qp.listPools();
-  assert.equal(result.total, 2);
-  assert.equal(result.items.length, 2);
+  assert.ok(Array.isArray(result));
+  assert.equal(result.length, 2);
 });
 
 test("listPools with limit returns ≤ limit items, total unchanged", () => {
@@ -83,16 +83,16 @@ test("listPools with only offset (no limit) ignores offset", () => {
   insertPool("p2", "Beta", "c2");
   // offset without limit — should not add OFFSET clause (was a bug)
   const result = qp.listPools({ offset: 1 });
-  assert.equal(result.total, 2);
-  assert.equal(result.items.length, 2);
+  assert.ok(Array.isArray(result));
+  assert.equal(result.length, 2);
 });
 
 test("listPools with zero limit treated as no limit", () => {
   insertPool("p1", "Alpha", "c1");
   // limit=0 is invalid in SQL — code treats it as "no limit"
   const result = qp.listPools({ limit: 0 });
-  assert.equal(result.total, 1);
-  assert.equal(result.items.length, 1);
+  assert.ok(Array.isArray(result));
+  assert.equal(result.length, 1);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -127,10 +127,6 @@ test("getPoolsByGroup with empty group returns []", () => {
   assert.deepEqual(items, []);
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// batchBuildPools — allocations loaded in batch
-// ─────────────────────────────────────────────────────────────────────────────
-
 test("batchBuildPools loads allocations in single query", () => {
   const db = getDbInstance();
   db.prepare(
@@ -141,9 +137,9 @@ test("batchBuildPools loads allocations in single query", () => {
   ).run("p1", "ak_test", 1, 100);
 
   const result = qp.listPools();
-  assert.equal(result.items.length, 1);
-  assert.equal(result.total, 1);
-  const pool = result.items[0];
+  assert.ok(Array.isArray(result));
+  assert.equal(result.length, 1);
+  const pool = result[0];
   assert.equal(pool.name, "PoolA");
   assert.ok(pool.allocations !== undefined);
 });
