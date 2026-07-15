@@ -4,10 +4,11 @@ import {
   setBackgroundDegradationConfig,
   resetStats,
 } from "@omniroute/open-sse/services/backgroundTaskDetector.ts";
-import { updateSettings } from "@/lib/db/settings";
+import { getSettings, updateSettings } from "@/lib/db/settings";
 import { jsonObjectSchema, resetStatsActionSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { isPaidModelTarget } from "@/shared/utils/freeModels";
 
 /**
  * GET /api/settings/background-degradation
@@ -52,7 +53,30 @@ export async function PUT(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const config = validation.data;
+    const config = validation.data as { degradationMap?: Record<string, string> };
+
+    // #6540: reject a paid-only degradation "to" target when hidePaidModels
+    // is on. Only the "to" side is checked — "from" is a detection trigger
+    // key, not an invocation target, so a paid "from" is never blocked.
+    if (config.degradationMap && typeof config.degradationMap === "object") {
+      const currentSettings: any = await getSettings();
+      if (currentSettings?.hidePaidModels === true) {
+        for (const to of Object.values(config.degradationMap)) {
+          if (typeof to === "string" && isPaidModelTarget(to) === "paid") {
+            return NextResponse.json(
+              {
+                error: {
+                  code: "PAID_MODEL_TARGET_BLOCKED",
+                  message:
+                    "This field cannot target a paid-only model while 'Hide paid models' is enabled.",
+                },
+              },
+              { status: 400 }
+            );
+          }
+        }
+      }
+    }
 
     setBackgroundDegradationConfig(config);
 
