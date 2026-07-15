@@ -3,7 +3,8 @@
  * is guarded and unit-testable without spawning the MITM server (#6127 / #6198).
  */
 
-import { addDNSEntry, addDNSEntries } from "./dnsConfig.ts";
+import { addDNSEntry, addDNSEntries, isSudoAvailable } from "./dnsConfig.ts";
+import { isRoot } from "../systemCommands.ts";
 import { ALL_TARGETS } from "../targets/index.ts";
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
 import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
@@ -23,6 +24,8 @@ export interface DnsProvisionDeps {
   addHostsDns?: (hosts: string[], sudoPassword: string) => Promise<void>;
   getAgentStates?: () => ReturnType<typeof getAllAgentBridgeStates>;
   listEnabledCustomHosts?: () => ReturnType<typeof listCustomHosts>;
+  /** Return true if privileged host-file writes are possible (sudo or root). */
+  canElevate?: () => boolean;
   logger?: DnsProvisionLogger;
 }
 
@@ -50,7 +53,24 @@ export async function provisionDnsEntries(
   const getAgentStates = deps.getAgentStates ?? getAllAgentBridgeStates;
   const listEnabledCustomHosts =
     deps.listEnabledCustomHosts ?? (() => listCustomHosts({ enabledOnly: true }));
+  const canElevate = deps.canElevate ?? (() => isSudoAvailable() || isRoot());
   const logger = deps.logger ?? defaultLog;
+
+  // Explicit opt-out: skip all DNS modification when the env var is set.
+  if (process.env.SKIP_ANTIGRAVITY_DNS === "true") {
+    logger.info("Skipping DNS entries - SKIP_ANTIGRAVITY_DNS=true");
+    return;
+  }
+
+  // In containers (USER node, no sudo installed, not root) we cannot write
+  // to /etc/hosts. Rather than attempting sudo and swallowing the error,
+  // detect the condition up-front and bail out with a clear message.
+  if (!canElevate()) {
+    logger.info(
+      "Skipping DNS entries - sudo not available and not running as root (likely a container)"
+    );
+    return;
+  }
 
   // Antigravity default hosts.
   try {
