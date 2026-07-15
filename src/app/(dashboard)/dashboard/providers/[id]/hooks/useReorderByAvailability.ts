@@ -18,9 +18,11 @@
 import { useState } from "react";
 import { sortConnectionsByAvailability } from "../components/connectionRowHelpers";
 import type { ConnectionRowConnection } from "../components/ConnectionRow";
-import { useNotificationStore } from "@/store/notificationStore";
 
-type NotifyStore = ReturnType<typeof useNotificationStore>;
+/** Minimal surface of the notification store this hook needs. */
+interface ReorderNotifier {
+  error: (message: string) => void;
+}
 
 export interface UseReorderByAvailabilityParams {
   connections: ConnectionRowConnection[];
@@ -30,7 +32,7 @@ export interface UseReorderByAvailabilityParams {
       | ((prev: ConnectionRowConnection[]) => ConnectionRowConnection[])
   ) => void;
   fetchConnections: () => Promise<void>;
-  notify: NotifyStore;
+  notify: ReorderNotifier;
   t: (key: string, params?: Record<string, unknown>) => string;
 }
 
