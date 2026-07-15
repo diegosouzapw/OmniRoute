@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, readFileSync, rmSync } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { assembleStandalone } from "./assembleStandalone.mjs";
-import { buildRebuildSpawnPlan } from "./electronRebuildPlan.mjs";
+import { removeNativeModules } from "./lib/removeNativeModules.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -67,19 +67,6 @@ function removeGeneratedElectronArtifacts() {
 
   for (const dir of generatedDirs) {
     rmSync(dir, { recursive: true, force: true });
-  }
-}
-
-// --- Electron-UNIQUE: remove native modules for electron-builder ABI rebuild ---
-
-function removeNativeModules(baseDir, prefixes = ["keytar"]) {
-  if (!existsSync(baseDir)) return;
-  const dirs = readdirSync(baseDir);
-  for (const dir of dirs) {
-    if (prefixes.some((p) => dir.startsWith(p))) {
-      const fullPath = join(baseDir, dir);
-      rmSync(fullPath, { recursive: true, force: true });
-    }
   }
 }
 
