@@ -159,6 +159,24 @@ export function coerceSchemaNumericFields(schema: unknown): unknown {
   return result;
 }
 
+// Sub-schema maps keyed by property name (each value is itself walked recursively).
+const REGEX_STRIP_OBJECT_MAP_FIELDS = [
+  "properties",
+  "patternProperties",
+  "definitions",
+  "$defs",
+] as const;
+
+// Sub-schema lists (each entry is itself walked recursively).
+const REGEX_STRIP_ARRAY_MAP_FIELDS = ["prefixItems", "anyOf", "oneOf", "allOf"] as const;
+
+/** Recursively strips unsupported regex lookaround from every value of an object map field. */
+function stripRegexFromObjectMap(record: JsonRecord): JsonRecord {
+  return Object.fromEntries(
+    Object.entries(record).map(([key, value]) => [key, stripUnsupportedRegexPatterns(value)])
+  );
+}
+
 /**
  * Strip regex `pattern` constraints that use lookaround (lookahead/lookbehind),
  * which OpenAI/Codex's Responses API rejects outright with a 400
@@ -178,55 +196,25 @@ export function stripUnsupportedRegexPatterns(schema: unknown): unknown {
     delete result.pattern;
   }
 
-  if (isPlainObject(result.properties)) {
-    result.properties = Object.fromEntries(
-      Object.entries(result.properties).map(([key, value]) => [
-        key,
-        stripUnsupportedRegexPatterns(value),
-      ])
-    );
+  for (const field of REGEX_STRIP_OBJECT_MAP_FIELDS) {
+    if (isPlainObject(result[field])) {
+      result[field] = stripRegexFromObjectMap(result[field]);
+    }
   }
-  if (isPlainObject(result.patternProperties)) {
-    result.patternProperties = Object.fromEntries(
-      Object.entries(result.patternProperties).map(([key, value]) => [
-        key,
-        stripUnsupportedRegexPatterns(value),
-      ])
-    );
+
+  for (const field of REGEX_STRIP_ARRAY_MAP_FIELDS) {
+    if (Array.isArray(result[field])) {
+      result[field] = (result[field] as unknown[]).map((entry) =>
+        stripUnsupportedRegexPatterns(entry)
+      );
+    }
   }
-  if (isPlainObject(result.definitions)) {
-    result.definitions = Object.fromEntries(
-      Object.entries(result.definitions).map(([key, value]) => [
-        key,
-        stripUnsupportedRegexPatterns(value),
-      ])
-    );
-  }
-  if (isPlainObject(result.$defs)) {
-    result.$defs = Object.fromEntries(
-      Object.entries(result.$defs).map(([key, value]) => [
-        key,
-        stripUnsupportedRegexPatterns(value),
-      ])
-    );
-  }
+
   if (result.items !== undefined) {
     result.items = stripUnsupportedRegexPatterns(result.items);
   }
   if (result.additionalProperties && typeof result.additionalProperties === "object") {
     result.additionalProperties = stripUnsupportedRegexPatterns(result.additionalProperties);
-  }
-  if (Array.isArray(result.prefixItems)) {
-    result.prefixItems = result.prefixItems.map((entry) => stripUnsupportedRegexPatterns(entry));
-  }
-  if (Array.isArray(result.anyOf)) {
-    result.anyOf = result.anyOf.map((entry) => stripUnsupportedRegexPatterns(entry));
-  }
-  if (Array.isArray(result.oneOf)) {
-    result.oneOf = result.oneOf.map((entry) => stripUnsupportedRegexPatterns(entry));
-  }
-  if (Array.isArray(result.allOf)) {
-    result.allOf = result.allOf.map((entry) => stripUnsupportedRegexPatterns(entry));
   }
   if (isPlainObject(result.not)) {
     result.not = stripUnsupportedRegexPatterns(result.not);
