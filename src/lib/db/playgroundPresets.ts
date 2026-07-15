@@ -57,10 +57,8 @@ function rowToItem(row: PlaygroundPresetRow): PlaygroundPresetListItem {
  * Returns all presets ordered by created_at descending (newest first).
  * Accepts optional limit/offset for pagination.
  */
-export function listPlaygroundPresets(options?: { limit?: number; offset?: number }): {
-  items: PlaygroundPresetListItem[];
-  total: number;
-} {
+export function listPlaygroundPresets(options?: { limit?: number; offset?: number }):
+  PlaygroundPresetListItem[] | { items: PlaygroundPresetListItem[]; total: number } {
   const db = getDbInstance();
   const limit = options?.limit;
   const offset = options?.offset ?? 0;
@@ -74,7 +72,10 @@ export function listPlaygroundPresets(options?: { limit?: number; offset?: numbe
   const totalRow = db.prepare("SELECT count(*) as cnt FROM playground_presets").get() as {
     cnt: number;
   };
-  return { items: rows.map(rowToItem), total: totalRow.cnt };
+  if (limit !== undefined || offset > 0) {
+    return { items: rows.map(rowToItem), total: totalRow.cnt };
+  }
+  return rows.map(rowToItem);
 }
 
 /**

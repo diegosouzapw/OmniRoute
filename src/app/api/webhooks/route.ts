@@ -50,11 +50,12 @@ export async function GET(request: Request) {
       limit !== undefined || offset !== undefined ? { limit, offset } : undefined
     );
     // Mask secrets in listing
-    const masked = result.webhooks.map((w) => ({
+    const paged = Array.isArray(result) ? { webhooks: result, total: result.length } : result;
+    const masked = paged.webhooks.map((w) => ({
       ...w,
       secret: w.secret ? `${w.secret.slice(0, 10)}...` : null,
     }));
-    return NextResponse.json({ webhooks: masked, total: result.total });
+    return NextResponse.json({ webhooks: masked, total: paged.total });
   } catch (error: any) {
     return NextResponse.json(
       { error: sanitizeErrorMessage(error) || "Failed to list webhooks" },

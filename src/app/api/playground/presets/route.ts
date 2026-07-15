@@ -69,7 +69,8 @@ export async function GET(request: Request): Promise<Response> {
     const result = listPlaygroundPresets(
       limit !== undefined || offset !== undefined ? { limit, offset } : undefined
     );
-    return new Response(JSON.stringify({ presets: result.items, total: result.total }), {
+    const paged = Array.isArray(result) ? { items: result, total: result.length } : result;
+    return new Response(JSON.stringify({ presets: paged.items, total: paged.total }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...CORS_HEADERS },
     });

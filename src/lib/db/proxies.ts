@@ -255,7 +255,10 @@ export async function listProxies(options?: {
   const rows = db.prepare(sql).all(...params) as unknown[];
   const total = db.prepare<CountResult>("SELECT count(*) as cnt FROM proxy_registry").get()!.cnt;
   const proxies = rows.map(mapProxyRow);
-  return { items: includeSecrets ? proxies : proxies.map(redactProxySecrets), total };
+  if (limit !== undefined) {
+    return { items: includeSecrets ? proxies : proxies.map(redactProxySecrets), total };
+  }
+  return includeSecrets ? proxies : proxies.map(redactProxySecrets);
 }
 
 export async function getProxyById(id: string, options?: { includeSecrets?: boolean }) {

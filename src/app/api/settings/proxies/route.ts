@@ -28,7 +28,8 @@ export async function GET(request: Request) {
     // redeploy). The secrets themselves never leave the server — we redact each
     // row before responding and only surface the derived relayInfo booleans.
     const rawProxies = await listProxies({ includeSecrets: true });
-    const items = rawProxies.items.map((p) => ({
+    const rawItems = Array.isArray(rawProxies) ? rawProxies : rawProxies.items;
+    const items = rawItems.map((p) => ({
       ...redactProxySecrets(p),
       relayInfo: {
         isRelay: isRelayProxyType(p.type),
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
     }));
     return Response.json({
       items,
-      total: rawProxies.total,
+      total: Array.isArray(rawProxies) ? rawProxies.length : rawProxies.total,
       // #5890: coarse relay health pulse for the dashboard — how many relay
       // probes have run, and how many came back alive.
       relayProbeStats: getRelayProbeStats(),

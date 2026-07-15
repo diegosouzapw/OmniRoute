@@ -29,7 +29,8 @@ export async function GET(request: Request) {
     const result = await getModelComboMappings(
       limit !== undefined || offset !== undefined ? { limit, offset } : undefined
     );
-    return NextResponse.json({ mappings: result.items, total: result.total });
+    const paged = Array.isArray(result) ? { items: result, total: result.length } : result;
+    return NextResponse.json({ mappings: paged.items, total: paged.total });
   } catch (error) {
     console.error("Failed to list model-combo mappings:", error);
     return NextResponse.json({ error: "Failed to list model-combo mappings" }, { status: 500 });

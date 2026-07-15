@@ -51,10 +51,8 @@ interface CountResult {
   cnt: number;
 }
 
-export function getWebhooks(options?: { limit?: number; offset?: number }): {
-  webhooks: Webhook[];
-  total: number;
-} {
+export function getWebhooks(options?: { limit?: number; offset?: number }):
+  Webhook[] | { webhooks: Webhook[]; total: number } {
   const db = getDbInstance();
   const limit = options?.limit;
   const offset = options?.offset ?? 0;
@@ -66,7 +64,10 @@ export function getWebhooks(options?: { limit?: number; offset?: number }): {
   }
   const rows = db.prepare(sql).all(...params) as WebhookRow[];
   const total = db.prepare<CountResult>("SELECT count(*) as cnt FROM webhooks").get()!.cnt;
-  return { webhooks: rows.map(rowToWebhook), total };
+  if (limit !== undefined || offset > 0) {
+    return { webhooks: rows.map(rowToWebhook), total };
+  }
+  return rows.map(rowToWebhook);
 }
 
 export function getWebhook(id: string): Webhook | null {
