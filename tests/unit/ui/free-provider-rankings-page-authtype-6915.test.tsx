@@ -29,7 +29,7 @@ vi.mock("next-intl", () => ({
 // ── Import component after mocks ──────────────────────────────────────────────
 
 const { default: FreeProviderRankingsPage } = await import(
-  "../../src/app/(dashboard)/dashboard/free-provider-rankings/page"
+  "@/app/(dashboard)/dashboard/free-provider-rankings/page"
 );
 
 // ── Fixture data ──────────────────────────────────────────────────────────────
