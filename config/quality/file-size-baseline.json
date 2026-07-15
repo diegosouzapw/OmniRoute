@@ -192,8 +192,7 @@
     "open-sse/translator/request/openai-to-kiro.ts": 912,
     "open-sse/translator/response/openai-responses.ts": 1092,
     "open-sse/utils/cursorAgentProtobuf.ts": 1521,
-    "_rebaseline_2026_07_15_7066_stream_drift": "PR #7066 (perf/p1-fixes) CI reconciliation: open-sse/utils/stream.ts 2801->2802 (+1 = additional stream drift since initial 2796->2801 bump).",
-    "open-sse/utils/stream.ts": 2802,
+    "open-sse/utils/stream.ts": 2796,
     "src/app/(dashboard)/dashboard/HomePageClient.tsx": 1385,
     "src/app/(dashboard)/dashboard/analytics/ComboHealthTab.tsx": 1028,
     "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx": 3120,
@@ -402,6 +401,5 @@
   "_rebaseline_2026_07_07_6534_chirag": "PR #6534 (@chirag127) own growth: open-sse/services/compression/strategySelector.ts ->1025. Owner-approved rebaseline. Frozen.",
   "_rebaseline_2026_07_08_6556_omniglyph_mode": "PR #6556 (omniglyph engine) own growth: open-sse/services/compression/strategySelector.ts 1025->1043 (+18 at the existing mode-dispatch chokepoints). Two single-mode branches (sync no-op + async resolve via the engine registry, mirroring the rtk single-mode pattern, B-MODE-ENGINE-DECOUPLE) plus the optional providerTransport field threaded through the three options types (gates transport-sensitive engines). The engine itself lives in engines/omniglyphAdapter.ts (<cap); the residual is cohesive dispatch/type wiring not extractable without hiding the dispatch boundary, mirroring the prior compression rebaselines (#5243/#5286/phase4b/#6534). Covered by tests/unit/compression/omniglyph-*.test.ts (22). Structural shrink of this file tracked in #3501.",
   "_rebaseline_2026_07_07_6546_chirag": "PR #6546 (@chirag127) own growth: src/sse/handlers/chatHelpers.ts ->876. Owner-approved rebaseline. Frozen.",
-  "_rebaseline_2026_07_07_6525_chirag_image_guard": "PR #6525 (@chirag127, #6457) own growth: chat.ts ->1778 (reject image-only models on /v1/chat/completions; stacks on #6515). Owner-approved. Frozen.",
-  "_rebaseline_2026_07_15_perf_p1_fixes": "PR #7066 (perf/p1-fixes) own growth: open-sse/utils/stream.ts 2796->2801 (+5). da7b1e2b2: perf hoist Date.now, hoist hasActiveDeltaValue, avoid per-chunk buffer.split (+27/-21 net +6, partly offset by simplification of conditional expressions). df89846cb: fix appendBoundedText slice offset when keep is zero (+/-, 0 net). Net +5 is the minimum growth for the value-hoisting optimizations at the SSE dispatch chokepoint."
+  "_rebaseline_2026_07_07_6525_chirag_image_guard": "PR #6525 (@chirag127, #6457) own growth: chat.ts ->1778 (reject image-only models on /v1/chat/completions; stacks on #6515). Owner-approved. Frozen."
 }

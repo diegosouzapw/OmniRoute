@@ -18,6 +18,8 @@ import {
   fixInvalidId,
   formatSSE,
   unwrapGeminiChunk,
+  appendBoundedText,
+  hasActiveDeltaValue,
 } from "./streamHelpers.ts";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { buildOmniRouteSseMetadataComment } from "@/domain/omnirouteResponseMeta";
@@ -177,34 +179,9 @@ function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
-const STREAM_SUMMARY_TEXT_LIMIT = 64 * 1024;
-
-function appendBoundedText(current: string, next: string): string {
-  if (!next) return current;
-  // Avoid allocating `current + next` when already at/above limit — slide the window instead.
-  if (current.length >= STREAM_SUMMARY_TEXT_LIMIT) {
-    const keep = STREAM_SUMMARY_TEXT_LIMIT - next.length;
-    if (keep <= 0) return next.slice(-STREAM_SUMMARY_TEXT_LIMIT);
-    return current.slice(-keep) + next;
-  }
-  const combined = current + next;
-  if (combined.length <= STREAM_SUMMARY_TEXT_LIMIT) return combined;
-  return combined.slice(-STREAM_SUMMARY_TEXT_LIMIT);
-}
-
 function parseTextualToolCallFromContent(text: unknown): { name: string; args: unknown } | null {
   const candidate = parseTextualToolCallCandidate(text);
   return candidate?.kind === "complete" ? { name: candidate.name, args: candidate.args } : null;
-}
-
-/** Per-chunk recursive check for meaningful delta content. Hoisted to avoid closure re-allocation in hot-path. */
-function hasActiveDeltaValue(value: unknown): boolean {
-  if (typeof value === "string") return value.length > 0;
-  if (Array.isArray(value)) return value.some((entry) => hasActiveDeltaValue(entry));
-  if (value && typeof value === "object") {
-    return Object.values(value).some((entry) => hasActiveDeltaValue(entry));
-  }
-  return value !== null && value !== undefined;
 }
 
 function containsTextualToolCallCandidate(text: unknown): boolean {
