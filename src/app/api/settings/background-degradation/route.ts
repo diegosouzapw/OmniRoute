@@ -11,6 +11,23 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isPaidModelTarget } from "@/shared/utils/freeModels";
 
 /**
+ * #6540: is any degradation "to" target a paid-only model while hidePaidModels is on?
+ * Only the "to" side is checked — "from" is a detection trigger key, not an invocation
+ * target, so a paid "from" is never blocked. Fails open on "unknown" (aliases/combo
+ * names), mirroring the settings/combo-defaults routes.
+ */
+async function hasBlockedPaidTarget(
+  degradationMap: Record<string, string> | undefined
+): Promise<boolean> {
+  if (!degradationMap || typeof degradationMap !== "object") return false;
+  const currentSettings: any = await getSettings();
+  if (currentSettings?.hidePaidModels !== true) return false;
+  return Object.values(degradationMap).some(
+    (to) => typeof to === "string" && isPaidModelTarget(to) === "paid"
+  );
+}
+
+/**
  * GET /api/settings/background-degradation
  * Returns the current background degradation configuration.
  */
@@ -55,27 +72,17 @@ export async function PUT(request: Request) {
     }
     const config = validation.data as { degradationMap?: Record<string, string> };
 
-    // #6540: reject a paid-only degradation "to" target when hidePaidModels
-    // is on. Only the "to" side is checked — "from" is a detection trigger
-    // key, not an invocation target, so a paid "from" is never blocked.
-    if (config.degradationMap && typeof config.degradationMap === "object") {
-      const currentSettings: any = await getSettings();
-      if (currentSettings?.hidePaidModels === true) {
-        for (const to of Object.values(config.degradationMap)) {
-          if (typeof to === "string" && isPaidModelTarget(to) === "paid") {
-            return NextResponse.json(
-              {
-                error: {
-                  code: "PAID_MODEL_TARGET_BLOCKED",
-                  message:
-                    "This field cannot target a paid-only model while 'Hide paid models' is enabled.",
-                },
-              },
-              { status: 400 }
-            );
-          }
-        }
-      }
+    if (await hasBlockedPaidTarget(config.degradationMap)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "PAID_MODEL_TARGET_BLOCKED",
+            message:
+              "This field cannot target a paid-only model while 'Hide paid models' is enabled.",
+          },
+        },
+        { status: 400 }
+      );
     }
 
     setBackgroundDegradationConfig(config);
