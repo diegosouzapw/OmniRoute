@@ -38,3 +38,11 @@ test("#7078 key/value string form still parsed", () => {
   assert.equal(parts.accessToken, "KV");
   assert.equal(parts.chathubPath, "user@tenant");
 });
+
+test("#7078 m365.cloud.microsoft with explicit :443 port still extracts (hostname, not host)", () => {
+  const raw =
+    "wss://m365.cloud.microsoft:443/m365Copilot/Chathub/user@tenant?access_token=TOKENPORT";
+  const parts = extract(raw);
+  assert.equal(parts.accessToken, "TOKENPORT");
+  assert.equal(parts.chathubPath, "user@tenant");
+});
