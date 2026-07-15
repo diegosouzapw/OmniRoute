@@ -4,6 +4,7 @@ import {
   listSubscriptions,
   createSubscription,
   startSubscriptionScheduler,
+  redactSubscriptionUrl,
   type ProxySubscriptionPayload,
 } from "@/lib/proxySubscription";
 
@@ -23,7 +24,9 @@ export async function GET(request: Request) {
     // ticker is running (idempotent; no-op in test env).
     startSubscriptionScheduler();
     const items = await listSubscriptions();
-    return Response.json({ items });
+    // Redact credentials in the subscription URL before sending to the client.
+    const safe = items.map((it) => ({ ...it, url: redactSubscriptionUrl(it.url) }));
+    return Response.json({ items: safe });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to list proxy subscriptions");
   }
@@ -74,7 +77,7 @@ export async function POST(request: Request) {
       return Response.json({ error: parsed.error }, { status: 400 });
     }
     const created = await createSubscription(parsed);
-    return Response.json(created, { status: 201 });
+    return Response.json({ ...created, url: redactSubscriptionUrl(created.url) }, { status: 201 });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to create proxy subscription");
   }
