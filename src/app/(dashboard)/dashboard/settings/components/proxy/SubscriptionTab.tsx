@@ -44,6 +44,26 @@ const EMPTY_FORM: FormState = {
   enabled: true,
 };
 
+// Protocols that cannot be forwarded directly by OmniRoute — they require a
+// local sing-box / clash core. Direct nodes carry `type`; core-needed nodes
+// in the redacted summary carry only `rawProtocol` (no `type`).
+const NEEDS_CORE_PROTOCOLS = new Set([
+  "ss",
+  "vmess",
+  "trojan",
+  "vless",
+  "tuic",
+  "hysteria",
+  "wireguard",
+]);
+
+function isNeedsCoreNode(n: unknown): boolean {
+  if (!n || typeof n !== "object") return false;
+  const r = n as Record<string, unknown>;
+  if (typeof r.type === "string") return false;
+  return typeof r.rawProtocol === "string" && NEEDS_CORE_PROTOCOLS.has(r.rawProtocol);
+}
+
 export default function SubscriptionTab() {
   const [subs, setSubs] = useState<SubscriptionRecord[]>([]);
   const [providers, setProviders] = useState<ProviderOption[]>([]);
@@ -382,7 +402,10 @@ export default function SubscriptionTab() {
         {!loading && subs.length === 0 && (
           <p className="text-sm text-text-muted">还没有任何订阅。点击「新增订阅」开始吧。</p>
         )}
-        {subs.map((sub) => (
+        {subs.map((sub) => {
+          const needsCoreNodes = (sub.lastNodes ?? []).filter(isNeedsCoreNode);
+          const showCoreHint = needsCoreNodes.length > 0 && !sub.localCoreEndpoint;
+          return (
           <div
             key={sub.id}
             className="rounded-lg border border-border bg-surface p-3 flex flex-col gap-2"
@@ -411,8 +434,37 @@ export default function SubscriptionTab() {
                 {sub.error && (
                   <p className="text-xs text-amber-600 mt-1 break-words">{sub.error}</p>
                 )}
+                {showCoreHint && (
+                  <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 space-y-1.5">
+                    <p className="font-medium">
+                      该订阅有 {needsCoreNodes.length} 个节点需要本地代理内核（SS / VMess / Trojan / VLESS 等），当前未被路由。
+                    </p>
+                    <p>
+                      这些协议无法被 OmniRoute 直接转发。请在本机启动一个 <code>sing-box</code> 或{" "}
+                      <code>clash（Clash.Meta）</code> 内核，并把它暴露为一个 SOCKS5/HTTP 端点，然后在「编辑」中填入该端点（仅接受 127.0.0.1 / localhost）。
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <code className="rounded bg-surface px-2 py-1 border border-border">socks5://127.0.0.1:2080</code>
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard?.writeText("socks5://127.0.0.1:2080")}
+                        className="px-2 py-1 rounded border border-border hover:border-primary/50"
+                      >
+                        复制
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => startEdit(sub)}
+                        className="px-2 py-1 rounded border border-border hover:border-primary/50"
+                      >
+                        去配置
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <p className="text-xs text-text-muted mt-1">
                   节点数：{sub.lastNodes?.length ?? 0}
+                  {needsCoreNodes.length > 0 ? `（${needsCoreNodes.length} 个需本地内核）` : ""}
                   {sub.lastFetchedAt ? ` · 上次同步：${sub.lastFetchedAt}` : ""}
                 </p>
               </div>
@@ -456,7 +508,7 @@ export default function SubscriptionTab() {
               </div>
             </div>
           </div>
-        ))}
+        ); })}
       </div>
     </div>
   );
