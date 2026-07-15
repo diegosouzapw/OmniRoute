@@ -109,8 +109,10 @@ function isToolOutputItem(value: unknown): boolean {
   return (
     item.role === "tool" ||
     item.role === "function" ||
+    item.role === "tool_result" ||
     item.type === "function_call_output" ||
-    item.type === "computer_call_output"
+    item.type === "computer_call_output" ||
+    item.type === "tool_result"
   );
 }
 

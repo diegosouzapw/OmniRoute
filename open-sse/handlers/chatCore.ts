@@ -1370,10 +1370,13 @@ export async function handleChatCore({
         let result: CompressionResult;
         if (compressionConfig.liveZone?.enabled === true) {
           const { applyLiveZoneCompression } = await import("../services/compression/liveZone.ts");
-          const explicitSessionId = getHeaderValueCaseInsensitive(
-            clientRawRequest?.headers ?? null,
-            "x-omniroute-session-id"
-          );
+          const explicitSessionId =
+            clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
+              ? clientRawRequest.headers.get("x-omniroute-session-id")
+              : getHeaderValueCaseInsensitive(
+                  clientRawRequest?.headers ?? null,
+                  "x-omniroute-session-id"
+                );
           const liveZoneSessionId =
             explicitSessionId ||
             generateSessionId(compressionInputBody, {
@@ -3388,7 +3391,13 @@ export async function handleChatCore({
           // otherwise degenerate into a 429 rate-limit storm). Connection stays
           // active since only the specific model is unavailable. (#6827)
           const notFoundCooldownMs = COOLDOWN_MS.notFound;
-          lockModel(provider, errorConnectionId, currentModel, "model_not_found", notFoundCooldownMs);
+          lockModel(
+            provider,
+            errorConnectionId,
+            currentModel,
+            "model_not_found",
+            notFoundCooldownMs
+          );
           console.warn(
             `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
           );

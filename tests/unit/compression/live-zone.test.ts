@@ -218,6 +218,22 @@ describe("cache-aligned live-zone compression", () => {
     assert.deepEqual((result.body.input as unknown[])[1], functionCall);
   });
 
+  it("compresses tool_result roles and types in the live zone", async () => {
+    const calls: Array<Record<string, unknown>> = [];
+    const compress = toolCompressor(calls);
+    const first = { input: [{ role: "user", content: "hello" }] };
+    await applyLiveZoneCompression(first, options, compress);
+    const roleOutput = { role: "tool_result", content: "role output" };
+    const typeOutput = { type: "tool_result", content: "type output" };
+    await applyLiveZoneCompression(
+      { input: [...first.input, roleOutput, typeOutput] },
+      options,
+      compress
+    );
+
+    assert.deepEqual(calls[1].input, [roleOutput, typeOutput]);
+  });
+
   it("bypasses live-zone reuse when a global hard budget is configured", async () => {
     const calls: Array<Record<string, unknown>> = [];
     const compress = toolCompressor(calls);

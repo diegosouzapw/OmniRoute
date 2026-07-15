@@ -5757,6 +5757,8 @@
     "compressionPreserveSystemAlways": "Always",
     "compressionPreserveSystemWhenNoCache": "When no cache",
     "compressionPreserveSystemNever": "Never",
+    "compressionLiveZoneTitle": "Cache-aligned Live Zone",
+    "compressionLiveZoneDesc": "Keep the compressed conversation prefix stable and process only newly appended items.",
     "compressionCavemanConfig": "Caveman Engine Configuration",
     "compressionCavemanConfigDesc": "Fine-tune the rule-based compression engine",
     "compressionCavemanPanelHint": "Its on/off and level are set in the panel:",

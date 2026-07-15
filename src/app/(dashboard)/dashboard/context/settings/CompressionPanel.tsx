@@ -99,26 +99,26 @@ function normalizeEngines(raw: unknown): Record<string, EngineToggle> {
 function LiveZoneToggle({
   enabled,
   saving,
-  uiLang,
   onChange,
 }: {
   enabled: boolean;
   saving: boolean;
-  uiLang: string;
   onChange: (enabled: boolean) => void;
 }) {
-  const label = uiLang === "de" ? "Cache-ausgerichtete Live Zone" : "Cache-aligned Live Zone";
-  const description =
-    uiLang === "de"
-      ? "Hält den komprimierten Gesprächspräfix stabil und verarbeitet nur neu angehängte Einträge."
-      : "Keep the compressed conversation prefix stable and process only newly appended items.";
+  const t = useTranslations("settings");
   return (
     <label className="flex items-center justify-between gap-4">
       <span className="space-y-0.5">
-        <span className="block text-sm text-text-muted">{label}</span>
-        <span className="block text-xs text-text-muted">{description}</span>
+        <span className="block text-sm text-text-muted">{t("compressionLiveZoneTitle")}</span>
+        <span className="block text-xs text-text-muted">{t("compressionLiveZoneDesc")}</span>
       </span>
-      <Toggle size="sm" checked={enabled} onChange={onChange} disabled={saving} ariaLabel={label} />
+      <Toggle
+        size="sm"
+        checked={enabled}
+        onChange={onChange}
+        disabled={saving}
+        ariaLabel={t("compressionLiveZoneTitle")}
+      />
     </label>
   );
 }
@@ -504,7 +504,6 @@ export default function CompressionPanel() {
         <LiveZoneToggle
           enabled={config.liveZone?.enabled === true}
           saving={saving}
-          uiLang={uiLang}
           onChange={(enabled) => save({ liveZone: { enabled } })}
         />
       </div>

@@ -5142,6 +5142,8 @@
     "compressionAutoTrigger": "Auto-Trigger Threshold",
     "compressionCacheTTL": "Cache TTL",
     "compressionPreserveSystem": "Preserve System Prompt",
+    "compressionLiveZoneTitle": "Cache-ausgerichtete Live Zone",
+    "compressionLiveZoneDesc": "Hält den komprimierten Gesprächspräfix stabil und verarbeitet nur neu angehängte Einträge.",
     "compressionCavemanConfig": "Caveman Engine Configuration",
     "compressionCavemanConfigDesc": "Fine-tune the rule-based compression engine",
     "compressionRoles": "Compress Message Roles",
