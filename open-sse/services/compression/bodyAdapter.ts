@@ -96,6 +96,10 @@ function restoreCustomToolOutput(nextContent: unknown, originalOutput: unknown):
   return fromChatContent(nextContent, originalOutput);
 }
 
+function responsesToolOutputField(item: ResponsesItem): "output" | "content" {
+  return item.output !== null && item.output !== undefined ? "output" : "content";
+}
+
 function responsesItemToMessage(item: ResponsesItem): MessageLike | null {
   const type = typeof item.type === "string" ? item.type : "message";
   if (!RESPONSES_MESSAGE_TYPES.has(type)) return null;
@@ -131,12 +135,14 @@ function responsesItemToMessage(item: ResponsesItem): MessageLike | null {
 function messageToResponsesItem(message: MessageLike, originalItem: ResponsesItem): ResponsesItem {
   const type = typeof originalItem.type === "string" ? originalItem.type : "message";
   if (type === "function_call_output" || type === "custom_tool_call_output") {
+    const outputField = responsesToolOutputField(originalItem);
+    const originalOutput = originalItem[outputField];
     return {
       ...originalItem,
-      output:
+      [outputField]:
         type === "custom_tool_call_output"
-          ? restoreCustomToolOutput(message.content, originalItem.output)
-          : fromChatContent(message.content, originalItem.output),
+          ? restoreCustomToolOutput(message.content, originalOutput)
+          : fromChatContent(message.content, originalOutput),
     };
   }
 

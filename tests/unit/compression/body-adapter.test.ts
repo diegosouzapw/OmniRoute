@@ -124,6 +124,46 @@ describe("compression body adapter", () => {
     assert.deepEqual(restoredOutput.metadata, { exitCode: 0 });
   });
 
+  it("restores custom tool output to content when that was the source field", () => {
+    const repeatedOutput = Array.from({ length: 20 }, () => "same noisy line").join("\n");
+    const body = {
+      input: [
+        {
+          type: "custom_tool_call_output",
+          call_id: "call_exec_2",
+          content: repeatedOutput,
+        },
+      ],
+    };
+
+    const result = applyRtkCompression(body);
+    const input = result.body.input as Array<Record<string, unknown>>;
+
+    assert.equal(result.compressed, true);
+    assert.match(input[0].content as string, /\[rtk:dropped/);
+    assert.ok(!("output" in input[0]), "restore must not add a conflicting output field");
+  });
+
+  it("restores function call output to content when that was the source field", () => {
+    const repeatedOutput = Array.from({ length: 20 }, () => "same noisy line").join("\n");
+    const body = {
+      input: [
+        {
+          type: "function_call_output",
+          call_id: "call_2",
+          content: repeatedOutput,
+        },
+      ],
+    };
+
+    const result = applyRtkCompression(body);
+    const input = result.body.input as Array<Record<string, unknown>>;
+
+    assert.equal(result.compressed, true);
+    assert.match(input[0].content as string, /\[rtk:dropped/);
+    assert.ok(!("output" in input[0]), "restore must not add a conflicting output field");
+  });
+
   it("restores compressed array output on Responses function_call_output items", () => {
     const repeatedOutput = Array.from({ length: 20 }, () => "same noisy line").join("\n");
     const body = {
