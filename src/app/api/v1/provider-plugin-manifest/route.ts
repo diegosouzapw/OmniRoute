@@ -3,6 +3,7 @@ import { generateProviderPluginManifest } from "@omniroute/open-sse/config/provi
 import { getServiceRow } from "@/lib/db/versionManager";
 import { getServiceModels, type ServiceModel } from "@/lib/db/serviceModels";
 import {
+  SERVICE_BACKEND_MANIFEST_TEMPLATE,
   SERVICE_BACKEND_PLUGIN_IDS,
   getServiceToolFromPluginId,
   isServiceBackendPluginId,
@@ -16,32 +17,10 @@ import type {
 const SERVICE_BACKEND_EXPOSURE_REQUIRED = new Set(SERVICE_BACKEND_PLUGIN_IDS);
 const SERVICE_BACKEND_PLUGIN_ID_SET = new Set<string>(SERVICE_BACKEND_PLUGIN_IDS);
 
-const SERVICE_BACKEND_PROVIDER_TEMPLATE: Record<
-  string,
-  Pick<ProviderPluginManifestEntry, "format" | "executor" | "auth" | "endpoints" | "capabilities" | "passthroughModels" | "sidecar">
-> = {
-  "9router": {
-    format: "openai",
-    executor: "default",
-    auth: { type: "none", header: "authorization" },
-    endpoints: { modelsUrl: "/v1/models" },
-    capabilities: [],
-    passthroughModels: true,
-    sidecar: { eligible: false, reasons: ["runtime provider"] },
-  },
-  cliproxyapi: {
-    format: "openai",
-    executor: "default",
-    auth: { type: "none", header: "authorization" },
-    endpoints: { modelsUrl: "/v1/models" },
-    capabilities: ["passthrough-models"],
-    passthroughModels: true,
-    sidecar: { eligible: false, reasons: ["runtime provider"] },
-  },
-};
-
 function createServiceManifestTemplate(providerId: string): ProviderPluginManifestEntry | null {
-  const entry = SERVICE_BACKEND_PROVIDER_TEMPLATE[providerId];
+  const entry = SERVICE_BACKEND_MANIFEST_TEMPLATE[
+    providerId as keyof typeof SERVICE_BACKEND_MANIFEST_TEMPLATE
+  ];
   if (!entry) return null;
 
   return {
