@@ -48,7 +48,8 @@ export type SkillArea =
   | "cli-batches"
   | "cli-eval"
   | "cli-plugins-skills"
-  | "cli-setup";
+  | "cli-setup"
+  | "cli-skill-collector";
 
 export interface AgentSkill {
   id: string; // canonical id (e.g. "omni-providers", "cli-serve")
