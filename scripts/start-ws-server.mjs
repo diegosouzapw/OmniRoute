@@ -59,9 +59,14 @@ export function buildSidecarSpawn(scriptUrl, env = process.env) {
 }
 
 async function main() {
+  // The operator disable gate only applies to the OUTER invocation: the bootstrapped
+  // child is re-spawned with OMNIROUTE_ENABLE_LIVE_WS="0" purely to stop liveServer.ts
+  // auto-starting on import (this script owns startup), so honoring the gate there
+  // made the standalone script exit 0 without ever listening (#6072 regression).
   if (
-    process.env.OMNIROUTE_ENABLE_LIVE_WS === "0" ||
-    process.env.OMNIROUTE_ENABLE_LIVE_WS?.toLowerCase() === "false"
+    process.env[BOOTSTRAPPED_ENV] !== "1" &&
+    (process.env.OMNIROUTE_ENABLE_LIVE_WS === "0" ||
+      process.env.OMNIROUTE_ENABLE_LIVE_WS?.toLowerCase() === "false")
   ) {
     console.log("[LiveWS] Disabled via OMNIROUTE_ENABLE_LIVE_WS");
     process.exit(0);

@@ -5070,7 +5070,7 @@
     "strategy": "Strategy",
     "preserveClientCache": "Preserve Client Cache",
     "enabled": "Enabled",
-    "loading": "Loading...",
+    "loading": "Loading…",
     "saving": "Saving...",
     "save": "Save",
     "circuitBreaker": "Circuit Breaker",
@@ -5244,7 +5244,6 @@
     "proxyFreePoolSortRecent": "Recently validated",
     "proxyFreePoolListTotal": "Listed",
     "proxyFreePoolLoadMore": "Load more",
-    "loading": "Loading…",
     "close": "Close",
     "cancel": "Cancel",
     "globalLabel": "Global",
@@ -8052,7 +8051,8 @@
     "poolAddLabel": "Add a proxy",
     "poolAddMember": "Add",
     "poolAddFailed": "Failed to add the proxy to the pool",
-    "poolSelectProxy": "Select a proxy…"
+    "poolSelectProxy": "Select a proxy…",
+    "poolSaveFailed": "Failed to save pool assignment"
   },
   "playground": {
     "title": "Model Playground",

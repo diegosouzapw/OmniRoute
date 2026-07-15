@@ -96,7 +96,7 @@ export async function preInitSqlJs(filePath: string): Promise<SqliteAdapter> {
   // at boot, multiplying peak memory pressure by the number of racing callers.
   const pending = getSqlJsPendingCache();
   const inflight = pending.get(filePath);
-  if (inflight) return inflight;
+  if (inflight !== undefined) return inflight;
 
   const initPromise = (async () => {
     const { createSqlJsAdapter } = await import("./sqljsAdapter");

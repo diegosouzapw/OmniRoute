@@ -499,7 +499,7 @@ async function saveAndRespond(
           ...record,
         } as any);
       }
-      if (isCloudEnabled()) {
+      if (await isCloudEnabled()) {
         const machineId = await getConsistentMachineId();
         await syncToCloud(machineId).catch(() => {});
       }
@@ -616,7 +616,7 @@ async function saveAndRespond(
       } as any);
     }
 
-    if (isCloudEnabled()) {
+    if (await isCloudEnabled()) {
       const machineId = await getConsistentMachineId();
       await syncToCloud(machineId).catch(() => {});
     }

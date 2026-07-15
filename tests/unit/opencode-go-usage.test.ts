@@ -1,8 +1,24 @@
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
+
+// The OpenCode Go quota-by-API-key path is opt-in only (see #7022 — there is no
+// working default quota endpoint, so OMNIROUTE_OPENCODE_GO_QUOTA_URL must be set
+// explicitly by the operator). The module reads this env var once at import time,
+// so it has to be set BEFORE the dynamic import below for the opt-in tests in this
+// file (which simulate an operator who configured the URL) to exercise the fetch path.
+const ORIGINAL_OPENCODE_GO_QUOTA_URL = process.env.OMNIROUTE_OPENCODE_GO_QUOTA_URL;
+process.env.OMNIROUTE_OPENCODE_GO_QUOTA_URL = "https://api.z.ai/api/monitor/usage/quota/limit";
 
 const usage = await import("../../open-sse/services/usage.ts");
 const { USAGE_SUPPORTED_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
+
+after(() => {
+  if (ORIGINAL_OPENCODE_GO_QUOTA_URL === undefined) {
+    delete process.env.OMNIROUTE_OPENCODE_GO_QUOTA_URL;
+  } else {
+    process.env.OMNIROUTE_OPENCODE_GO_QUOTA_URL = ORIGINAL_OPENCODE_GO_QUOTA_URL;
+  }
+});
 
 test("USAGE_SUPPORTED_PROVIDERS includes opencode-go", () => {
   assert.ok(
@@ -298,7 +314,8 @@ test("getUsageForProvider returns message for invalid OpenCode Go API keys", asy
     })) as { message: string };
     assert.equal(
       result.message,
-      "OpenCode Go API key is valid for chat/models but cannot read quota from the Z.AI quota API. " +
+      "OpenCode Go API key is valid for chat/models but cannot read quota from the configured " +
+        "OMNIROUTE_OPENCODE_GO_QUOTA_URL endpoint. " +
         "Set OPENCODE_GO_WORKSPACE_ID and OPENCODE_GO_AUTH_COOKIE to enable dashboard quota scraping."
     );
   } finally {
@@ -342,7 +359,8 @@ test("getUsageForProvider returns message when OpenCode Go quota API returns 200
     })) as { message: string };
     assert.equal(
       result.message,
-      "OpenCode Go API key is valid for chat/models but cannot read quota from the Z.AI quota API. " +
+      "OpenCode Go API key is valid for chat/models but cannot read quota from the configured " +
+        "OMNIROUTE_OPENCODE_GO_QUOTA_URL endpoint. " +
         "Set OPENCODE_GO_WORKSPACE_ID and OPENCODE_GO_AUTH_COOKIE to enable dashboard quota scraping."
     );
   } finally {
