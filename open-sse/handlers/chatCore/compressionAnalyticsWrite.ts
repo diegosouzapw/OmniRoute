@@ -36,6 +36,12 @@ type WriteOpts = {
 
 type RtkPointer = { id?: string | null; bytes?: number | null };
 
+type CalculateCost = typeof import("@/lib/usage/costCalculator").calculateCost;
+
+type WriteDependencies = {
+  calculateCost?: CalculateCost;
+};
+
 function buildRtkPointerFields(rtkPointers: RtkPointer[]) {
   return {
     rtk_raw_output_pointer: rtkPointers[0]?.id ?? null,
@@ -124,7 +130,10 @@ export function writeCompressionSkip(opts: WriteOpts, skipReason: string): Promi
   })();
 }
 
-export function writeCompressionAnalytics(opts: WriteOpts): Promise<void> {
+export function writeCompressionAnalytics(
+  opts: WriteOpts,
+  dependencies: WriteDependencies = {}
+): Promise<void> {
   return (async () => {
     try {
       const { insertCompressionAnalyticsRow, insertCompressionEngineBreakdown } =
@@ -134,7 +143,8 @@ export function writeCompressionAnalytics(opts: WriteOpts): Promise<void> {
       const rtkPointers = (stats.rtkRawOutputPointers ?? []) as RtkPointer[];
       let estimatedUsdSaved = 0;
       try {
-        const { calculateCost } = await import("@/lib/usage/costCalculator");
+        const calculateCost =
+          dependencies.calculateCost ?? (await import("@/lib/usage/costCalculator")).calculateCost;
         estimatedUsdSaved = await calculateCost(
           opts.provider ?? "",
           opts.effectiveModel ?? "",
