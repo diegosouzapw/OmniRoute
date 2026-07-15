@@ -3,18 +3,29 @@
  *
  * Extracted from tests/unit/combo-quota-share-cooldown-wait.test.ts (#6803).
  *
- * These two scenarios assert a wall-clock ceiling (`elapsed < 1500`) around a
- * handleComboChat() call that also performs real SQLite I/O (test.beforeEach
- * does fs.rmSync+fs.mkdirSync + core.resetDbInstance()). Under CI-runner
- * CPU/IO contention (multiple concurrent sibling shard jobs) this ceiling can
- * be exceeded even though the functional behavior (no wait, single dispatch)
- * is correct — this is a "did NOT wait out a cooldown" ceiling, not a
- * behavior-under-test assertion, so it is timing-sensitive by nature.
+ * The quota_exhausted scenario below asserts a wall-clock ceiling
+ * (`elapsed < 10000`) around a handleComboChat() call that also performs real
+ * SQLite I/O (test.beforeEach does fs.rmSync+fs.mkdirSync +
+ * core.resetDbInstance()). Under CI-runner CPU/IO contention (multiple
+ * concurrent sibling shard jobs) this ceiling can be exceeded even though the
+ * functional behavior (no wait, single dispatch) is correct — this is a "did
+ * NOT wait out a cooldown" ceiling, not a behavior-under-test assertion, so it
+ * is timing-sensitive by nature.
  *
  * Running these in tests/unit/serial/ (--test-concurrency=1, see
  * package.json's test:unit:serial) removes the intra-suite parallelism that
  * was the dominant source of contention, matching the repo's established
  * remedy pattern for this class of test.
+ *
+ * The non-quota-share (priority) scenario was UPDATED for the "universal
+ * cooldown-aware retry" change: comboCooldownWait is no longer gated on
+ * `strategy === "quota-share"` — every combo strategy now waits out a SHORT
+ * transient 429 and re-dispatches (using a "rate_limit" reason and the
+ * earliest retry-after hint directly, since non quota-share strategies have no
+ * per-connection model-lockout tracking to consult). It used to assert the
+ * OPPOSITE (immediate propagation, no wait) — that assertion is now testing
+ * dead behavior, so it was rewritten to assert the new intended behavior
+ * instead of being deleted or weakened.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -62,6 +73,10 @@ function rateLimitResponse(status: number) {
     error: { message: `rate limited (${status})` },
     retryAfter: new Date(Date.now() + RETRY_AFTER_MS).toISOString(),
   });
+}
+
+function okResponse() {
+  return jsonResponse(200, { id: "ok", choices: [{ message: { content: "recovered" } }] });
 }
 
 function comboOf(strategy: string) {
@@ -127,11 +142,17 @@ test("quota-share: 403 quota_exhausted → NO wait, error propagated immediately
   assert.ok(elapsed < 10000, `quota_exhausted must not wait out a cooldown, but ${elapsed}ms elapsed`);
 });
 
-test("non quota-share (priority): 429 propagated immediately, NO wait", async () => {
+test("non quota-share (priority): short 429 cooldown → waits and re-dispatches (2nd pass 200)", async () => {
   let calls = 0;
   const handleSingleModel = async () => {
     calls += 1;
-    return rateLimitResponse(429);
+    // 1st dispatch: transient 429 with a short retry-after hint. 2nd dispatch
+    // (after the universal cooldown wait): success. Priority combos have no
+    // per-connection model-lockout tracking, so this exercises the
+    // `shouldWaitForComboCooldown({ reason: "rate_limit", ... })` path fed
+    // directly by the earliest retry-after hint (not resolveComboCooldownWaitDecision's
+    // per-target lock lookup, which stays quota-share-only).
+    return calls === 1 ? rateLimitResponse(429) : okResponse();
   };
 
   const startedAt = Date.now();
@@ -146,8 +167,34 @@ test("non quota-share (priority): 429 propagated immediately, NO wait", async ()
   });
   const elapsed = Date.now() - startedAt;
 
-  assert.equal(res.status, 429, "priority combo must propagate the 429 unchanged");
-  assert.equal(calls, 1, "priority combo must NOT wait+redispatch");
-  // Widened from 1500ms (#6803) — see the sibling test above for rationale.
-  assert.ok(elapsed < 10000, `priority combo must not wait out a cooldown, but ${elapsed}ms elapsed`);
+  assert.equal(res.status, 200, "expected the retried dispatch to succeed with 200");
+  assert.equal(calls, 2, "expected exactly one wait+redispatch (2 upstream calls)");
+  assert.ok(
+    elapsed >= RETRY_AFTER_MS - 50,
+    `expected to have waited out the cooldown, only ${elapsed}ms elapsed`
+  );
+});
+
+test("non quota-share (priority) with comboCooldownWait disabled → 429 propagated, NO wait", async () => {
+  let calls = 0;
+  const handleSingleModel = async () => {
+    calls += 1;
+    return rateLimitResponse(429);
+  };
+
+  const res = await handleComboChat({
+    body: { model: "openai/gpt-4" },
+    combo: { ...comboOf("priority"), name: "priority-combo-disabled" },
+    handleSingleModel,
+    isModelAvailable: async () => true,
+    log: createLog() as never,
+    settings: {
+      ...shortModelLockoutSettings(),
+      resilienceSettings: { comboCooldownWait: { enabled: false } },
+    },
+    allCombos: null,
+  });
+
+  assert.equal(res.status, 429, "disabled feature must propagate the 429 unchanged");
+  assert.equal(calls, 1, "disabled feature must NOT wait+redispatch");
 });
