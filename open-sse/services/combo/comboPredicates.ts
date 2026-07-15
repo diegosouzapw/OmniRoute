@@ -9,6 +9,7 @@
 import { errorResponse } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
 import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldownClassification.ts";
+import { isLocalStreamLifecycleError } from "@/shared/utils/circuitBreaker";
 import type { ResolvedComboTarget } from "./types.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
@@ -194,7 +195,12 @@ export function isRequestScopedUpstreamFailure(error?: {
  * accounts the plugin would refuse identically.
  */
 export function shouldSkipConnDisable(
-  result: { status: number; errorCode?: string | null; errorType?: string | null },
+  result: {
+    status: number;
+    errorCode?: string | null;
+    errorType?: string | null;
+    error?: unknown;
+  },
   is401: boolean,
   hasExtraKeys: boolean,
   provider: string
@@ -203,6 +209,9 @@ export function shouldSkipConnDisable(
     result.status === 499 ||
     result.errorCode === "client_disconnected" ||
     result.errorType === "client_disconnected" ||
+    // Client abort surfaced as a bare error (no statusCode → defaults to 502):
+    // a local lifecycle event, not a provider failure (#4602 policy).
+    isLocalStreamLifecycleError(result.error) ||
     result.errorCode === "plugin_block" ||
     result.errorType === "plugin_block" ||
     (is401 && hasExtraKeys) ||
