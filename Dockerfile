@@ -62,9 +62,13 @@ RUN test -f package-lock.json \
 # from that indirection. Invoking `node-gyp rebuild` directly inside the package
 # directory bypasses npm's script-running layer entirely and is deterministic
 # regardless of npm version or ignore-scripts allowlist behavior.
+# node-gyp comes from npm's own bundled copy (deterministic, already in the image)
+# instead of `npx --yes`, which would install an arbitrary registry version
+# on-demand and run its lifecycle scripts (Sonar docker:S6505).
 RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
   npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
-  && (cd node_modules/better-sqlite3 && npx --yes node-gyp rebuild) \
+  && (cd node_modules/better-sqlite3 \
+      && node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild) \
   && node -e "require('better-sqlite3')(':memory:').close()"
 
 # Build with Turbopack (stable in Next 16, the repo default). The v3.8.27-era
