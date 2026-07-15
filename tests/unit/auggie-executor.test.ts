@@ -349,7 +349,7 @@ test("execute() aborts a long-running CLI process instead of hanging (streaming)
     const executor = new AuggieExecutor();
     const controller = new AbortController();
     const { response } = await executor.execute({
-      model: "claude-sonnet-4.6",
+      model: "sonnet4.6",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: true,
       credentials: {} as never,
