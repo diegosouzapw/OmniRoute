@@ -73,64 +73,84 @@ export function createOpenAIStreamingChunks(completeResponse) {
 }
 
 /**
+ * Reconstruct the Claude `content` array from the content_block_start/delta
+ * events emitted for a synthetic (one-shot) response. The translator always
+ * starts `message_start.message.content` empty and streams blocks in via
+ * separate events, so the blocks have to be replayed and merged by index.
+ */
+function buildClaudeContentBlocks(chunks) {
+  const blockMap = new Map();
+  for (const chunk of chunks) {
+    if (chunk?.type === "content_block_start" && typeof chunk.index === "number") {
+      blockMap.set(chunk.index, { ...(chunk.content_block || {}) });
+    }
+    if (chunk?.type === "content_block_delta" && typeof chunk.index === "number") {
+      const current = blockMap.get(chunk.index) || { type: "text", text: "" };
+      if (chunk.delta?.type === "text_delta") {
+        current.type = current.type || "text";
+        current.text = `${current.text || ""}${chunk.delta.text || ""}`;
+      }
+      blockMap.set(chunk.index, current);
+    }
+  }
+  return [...blockMap.entries()].sort((a, b) => a[0] - b[0]).map(([, block]) => block);
+}
+
+/** Apply the trailing message_delta's usage/stop fields onto the merged message. */
+function applyClaudeMessageDelta(mergedMessage, messageStart, messageDelta) {
+  const startUsage = messageStart.message.usage;
+  const deltaUsage = messageDelta?.usage;
+  if (startUsage || deltaUsage) {
+    mergedMessage.usage = {
+      ...(startUsage || {}),
+      ...(deltaUsage || {}),
+    };
+  }
+  if (messageDelta?.delta?.stop_reason !== undefined) {
+    mergedMessage.stop_reason = messageDelta.delta.stop_reason;
+  }
+  if (messageDelta?.delta?.stop_sequence !== undefined) {
+    mergedMessage.stop_sequence = messageDelta.delta.stop_sequence;
+  }
+}
+
+/**
+ * Reconstruct the final Claude message from a synthetic bypass response's
+ * chunk stream — taking the raw `message_start.message` would return an
+ * empty `content: []`. Falls back to `fallback` (the raw last chunk) when
+ * the stream never completed or never carried a `message_start`.
+ */
+function mergeClaudeChunks(chunks, fallback) {
+  const messageStop = chunks.find((c) => c.type === "message_stop");
+  if (!messageStop) return fallback;
+
+  const messageStart = chunks.find((c) => c.type === "message_start");
+  if (!messageStart?.message) return fallback;
+
+  const messageDelta = chunks.find((c) => c.type === "message_delta");
+  const mergedMessage = {
+    ...messageStart.message,
+    content: buildClaudeContentBlocks(chunks),
+  };
+  applyClaudeMessageDelta(mergedMessage, messageStart, messageDelta);
+  return mergedMessage;
+}
+
+/**
  * Merge translated chunks into a final response object (for non-streaming
  * callers). For most formats the last chunk is already complete. Claude
  * format is chunk-oriented even for "one-shot" synthetic responses, so the
- * final message has to be reconstructed from content_block_start/delta
- * events — taking the raw message_start.message would return an empty
- * `content: []` (the translator always starts it empty and streams blocks
- * in via separate events).
+ * final message has to be reconstructed — see mergeClaudeChunks() above.
  */
 export function mergeChunksToResponse(chunks, sourceFormat) {
   if (!chunks || chunks.length === 0) {
     return createOpenAIResponse("unknown");
   }
 
-  let finalChunk = chunks[chunks.length - 1];
+  const finalChunk = chunks[chunks.length - 1];
 
   if (sourceFormat === FORMATS.CLAUDE) {
-    const messageStop = chunks.find((c) => c.type === "message_stop");
-    if (messageStop) {
-      const messageDelta = chunks.find((c) => c.type === "message_delta");
-      const messageStart = chunks.find((c) => c.type === "message_start");
-
-      if (messageStart?.message) {
-        finalChunk = { ...messageStart.message, content: [] };
-
-        const blockMap = new Map();
-        for (const chunk of chunks) {
-          if (chunk?.type === "content_block_start" && typeof chunk.index === "number") {
-            blockMap.set(chunk.index, { ...(chunk.content_block || {}) });
-          }
-          if (chunk?.type === "content_block_delta" && typeof chunk.index === "number") {
-            const current = blockMap.get(chunk.index) || { type: "text", text: "" };
-            if (chunk.delta?.type === "text_delta") {
-              current.type = current.type || "text";
-              current.text = `${current.text || ""}${chunk.delta.text || ""}`;
-            }
-            blockMap.set(chunk.index, current);
-          }
-        }
-        finalChunk.content = [...blockMap.entries()]
-          .sort((a, b) => a[0] - b[0])
-          .map(([, block]) => block);
-
-        const startUsage = messageStart.message.usage;
-        const deltaUsage = messageDelta?.usage;
-        if (startUsage || deltaUsage) {
-          finalChunk.usage = {
-            ...(startUsage || {}),
-            ...(deltaUsage || {}),
-          };
-        }
-        if (messageDelta?.delta?.stop_reason !== undefined) {
-          finalChunk.stop_reason = messageDelta.delta.stop_reason;
-        }
-        if (messageDelta?.delta?.stop_sequence !== undefined) {
-          finalChunk.stop_sequence = messageDelta.delta.stop_sequence;
-        }
-      }
-    }
+    return mergeClaudeChunks(chunks, finalChunk);
   }
 
   return finalChunk;
