@@ -736,6 +736,22 @@ export function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; us
 }
 
 /**
+ * Codex subscription plan label (e.g. "Plus", "Pro", "Team"), persisted on the
+ * connection's providerSpecificData.chatgptPlanType at OAuth import time (see
+ * src/lib/oauth/services/codexImport.ts). Returns "" when the connection is
+ * not Codex or the value is missing/blank — callers gate rendering on that.
+ */
+export function getCodexPlanLabel(isCodex: boolean, providerSpecificData: unknown): string {
+  if (!isCodex) return "";
+  const record =
+    providerSpecificData && typeof providerSpecificData === "object"
+      ? (providerSpecificData as Record<string, unknown>)
+      : {};
+  const raw = record.chatgptPlanType;
+  return typeof raw === "string" ? raw.trim() : "";
+}
+
+/**
  * UI adapter around the canonical getCodexRequestDefaults from requestDefaults.ts.
  * Adds the "medium" fallback for reasoningEffort required by the connection form.
  */
