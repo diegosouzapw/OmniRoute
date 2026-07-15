@@ -14,6 +14,10 @@ process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
 const { prepareUpstreamBody } = await import("../../open-sse/handlers/chatCore/upstreamBody.ts");
+const { translateRequest } = await import("../../open-sse/translator/index.ts");
+const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+const { setParamFilterConfig, deleteParamFilterConfig } =
+  await import("../../src/lib/db/paramFilters.ts");
 
 before(async () => {
   await coreDb.ensureDbInitialized();
@@ -44,6 +48,146 @@ test("leaves the model untouched when it already matches", async () => {
     credentials: null,
   });
   assert.equal(out.model, "model-a");
+});
+
+test("strips Codex GPT-5 verbosity after routing resolves to opencode-go/GLM", async () => {
+  const translatedBody = {
+    model: "glm-5.2",
+    messages: [{ role: "user", content: "hi" }],
+    verbosity: "low",
+  };
+  const out = await prepareUpstreamBody({
+    translatedBody,
+    modelToCall: "glm-5.2",
+    provider: "opencode-go",
+    targetFormat: "openai",
+    credentials: null,
+  });
+
+  assert.equal(out.verbosity, undefined);
+  assert.equal(translatedBody.verbosity, "low", "translated caller body must not be mutated");
+});
+
+test("Codex Responses routing keeps reasoning effort while dropping GPT-only verbosity", async () => {
+  const translated = translateRequest(
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.OPENAI,
+    "glm-5.2",
+    {
+      model: "gpt-5.2",
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      reasoning: { effort: "low", summary: "auto" },
+      text: { verbosity: "low" },
+    },
+    true,
+    null,
+    "opencode-go"
+  ) as Record<string, unknown>;
+
+  assert.equal(translated.reasoning_effort, "low");
+  assert.equal(translated.verbosity, "low");
+
+  const outbound = await prepareUpstreamBody({
+    translatedBody: translated,
+    modelToCall: "glm-5.2",
+    provider: "opencode-go",
+    targetFormat: FORMATS.OPENAI,
+    credentials: null,
+  });
+
+  assert.equal(outbound.reasoning_effort, "low");
+  assert.equal(outbound.verbosity, undefined);
+});
+
+test("Codex Responses reasoning effort is translated to Claude thinking for z.ai", () => {
+  const translated = translateRequest(
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.CLAUDE,
+    "glm-5.2",
+    {
+      model: "gpt-5.2",
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      reasoning: { effort: "low" },
+      text: { verbosity: "low" },
+    },
+    true,
+    null,
+    "zai"
+  ) as Record<string, unknown>;
+
+  assert.deepEqual(translated.thinking, { type: "enabled", budget_tokens: 1024 });
+  assert.equal(translated.reasoning_effort, undefined);
+  assert.equal(translated.verbosity, undefined);
+});
+
+test("resolved-target sanitation preserves Ollama Cloud reasoning effort", async () => {
+  const outbound = await prepareUpstreamBody({
+    translatedBody: {
+      model: "glm-5.2",
+      messages: [{ role: "user", content: "hi" }],
+      reasoning_effort: "max",
+      verbosity: "low",
+    },
+    modelToCall: "glm-5.2",
+    provider: "ollama-cloud",
+    targetFormat: FORMATS.OPENAI,
+    credentials: null,
+  });
+
+  assert.equal(outbound.reasoning_effort, "max");
+  assert.equal(outbound.verbosity, undefined);
+});
+
+test("strips nested Responses text.verbosity for a non-GPT routed target", async () => {
+  const out = await prepareUpstreamBody({
+    translatedBody: {
+      model: "glm-5.2",
+      input: "hi",
+      text: { verbosity: "low", format: { type: "text" } },
+    },
+    modelToCall: "glm-5.2",
+    provider: "ollama-cloud",
+    targetFormat: "openai-responses",
+    credentials: null,
+  });
+
+  assert.deepEqual(out.text, { format: { type: "text" } });
+});
+
+test("preserves verbosity when the resolved target is actually GPT-5", async () => {
+  const out = await prepareUpstreamBody({
+    translatedBody: { model: "gpt-5.2", messages: [], verbosity: "low" },
+    modelToCall: "gpt-5.2",
+    provider: "openai",
+    targetFormat: "openai",
+    credentials: null,
+  });
+
+  assert.equal(out.verbosity, "low");
+});
+
+test("applies provider parameter filters at the universal target boundary", async () => {
+  setParamFilterConfig("opencode-go", {
+    block: ["source_only_control"],
+    allow: [],
+    autoLearn: false,
+  });
+  try {
+    const out = await prepareUpstreamBody({
+      translatedBody: {
+        model: "glm-5.2",
+        messages: [],
+        source_only_control: true,
+      },
+      modelToCall: "glm-5.2",
+      provider: "opencode-go",
+      targetFormat: "openai",
+      credentials: null,
+    });
+    assert.equal(out.source_only_control, undefined);
+  } finally {
+    deleteParamFilterConfig("opencode-go");
+  }
 });
 
 // PR #5563: the `effectiveToolLimit < MAX_TOOLS_LIMIT` gate was removed from
