@@ -5849,6 +5849,7 @@
     "proxyPoolTab": "代理池",
     "freePoolTab": "免费泳池",
     "proxyDocumentationTab": "文档",
+    "proxySubscriptionsTab": "订阅代理",
     "perKeyProxyEnabled": "启用按密钥代理分配",
     "perKeyProxyEnabledDesc": "启用后，每个提供商连接可以使用自己的代理分配",
     "proxyPool": "代理池",
