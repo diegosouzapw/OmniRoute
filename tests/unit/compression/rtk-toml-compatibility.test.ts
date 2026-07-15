@@ -55,6 +55,15 @@ afterEach(() => {
 });
 
 describe("RTK TOML schema v1 compatibility", () => {
+  it("reports a safe location for invalid TOML syntax", () => {
+    assert.throws(
+      () => parseRtkTomlV1("not = [valid"),
+      (error: unknown) =>
+        error instanceof RtkTomlCompatibilityError &&
+        error.publicMessage === "invalid TOML syntax (line 1, column 8)"
+    );
+  });
+
   it("parses the official declarative fields and passes inline tests", () => {
     const result = parseRtkTomlV1(SAMPLE);
 

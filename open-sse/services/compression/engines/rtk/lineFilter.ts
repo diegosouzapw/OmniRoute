@@ -63,13 +63,15 @@ function applyRtkTomlLineLimits(
   const tail = filter.rtkTomlTailLines;
   const total = lines.length;
 
-  if (head !== undefined && tail !== undefined && total > head + tail) {
-    lines = [
-      ...lines.slice(0, head),
-      `... (${total - head - tail} lines omitted)`,
-      ...(tail > 0 ? lines.slice(-tail) : []),
-    ];
-    appliedRules.push(`${filter.id}:rtk-head-tail`);
+  if (head !== undefined && tail !== undefined) {
+    if (total > head + tail) {
+      lines = [
+        ...lines.slice(0, head),
+        `... (${total - head - tail} lines omitted)`,
+        ...(tail > 0 ? lines.slice(-tail) : []),
+      ];
+      appliedRules.push(`${filter.id}:rtk-head-tail`);
+    }
   } else if (head !== undefined && total > head) {
     lines = [...lines.slice(0, head), `... (${total - head} lines omitted)`];
     appliedRules.push(`${filter.id}:rtk-head`);

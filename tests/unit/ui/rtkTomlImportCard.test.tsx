@@ -37,6 +37,12 @@ async function click(element: Element | null) {
   await act(async () => (element as HTMLElement).click());
 }
 
+async function selectFile(container: HTMLElement, file: File) {
+  const input = container.querySelector("[data-testid='rtk-toml-file']") as HTMLInputElement;
+  Object.defineProperty(input, "files", { configurable: true, value: [file] });
+  await act(async () => input.dispatchEvent(new Event("change", { bubbles: true })));
+}
+
 beforeEach(() => {
   (
     globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -152,5 +158,22 @@ describe("RtkTomlImportCard", () => {
     expect(result).toContain("tomlValidationFailed");
     expect(result).toContain("tomlTestFailed");
     expect(result).not.toContain("tomlValidationPassed");
+  });
+
+  it("rejects oversized files before reading them", async () => {
+    const container = mount(<RtkTomlImportCard />);
+    await setTextarea(container, "existing content");
+    const file = new File([new Uint8Array(1024 * 1024 + 1)], "filters.toml");
+    const text = vi.spyOn(file, "text");
+
+    await selectFile(container, file);
+
+    expect(text).not.toHaveBeenCalled();
+    expect(container.querySelector("[data-testid='rtk-toml-error']")?.textContent).toContain(
+      "tomlFileReadError"
+    );
+    expect(
+      (container.querySelector("[data-testid='rtk-toml-content']") as HTMLTextAreaElement).value
+    ).toBe("existing content");
   });
 });

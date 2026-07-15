@@ -200,6 +200,13 @@ function comparable(value: string): string {
   return value.replace(/\n+$/g, "");
 }
 
+function tomlSyntaxLocation(error: unknown): string {
+  if (typeof error !== "object" || error === null) return "";
+  const { line, column } = error as { line?: unknown; column?: unknown };
+  if (!Number.isSafeInteger(line) || !Number.isSafeInteger(column)) return "";
+  return ` (line ${line}, column ${column})`;
+}
+
 export function parseRtkTomlV1(content: string): RtkTomlCompatibilityResult {
   if (Buffer.byteLength(content, "utf8") > MAX_TOML_BYTES) {
     throw compatibilityError(`file exceeds the ${MAX_TOML_BYTES}-byte limit`);
@@ -208,8 +215,8 @@ export function parseRtkTomlV1(content: string): RtkTomlCompatibilityResult {
   let raw: unknown;
   try {
     raw = parseToml(content);
-  } catch {
-    throw compatibilityError("invalid TOML syntax");
+  } catch (error) {
+    throw compatibilityError(`invalid TOML syntax${tomlSyntaxLocation(error)}`);
   }
 
   const parsed = fileSchema.safeParse(raw);

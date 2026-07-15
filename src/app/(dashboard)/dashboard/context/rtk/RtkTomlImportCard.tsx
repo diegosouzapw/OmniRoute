@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
+const RTK_TOML_MAX_BYTES = 1024 * 1024;
+
 interface ImportFilterSummary {
   id: string;
   description: string;
@@ -209,6 +211,10 @@ export default function RtkTomlImportCard({ onInstalled }: RtkTomlImportCardProp
   async function loadFile(file: File | undefined) {
     if (!file) return;
     setError(null);
+    if (file.size > RTK_TOML_MAX_BYTES) {
+      setError(t("tomlFileReadError"));
+      return;
+    }
     try {
       setContent(await file.text());
       setResult(null);
