@@ -5810,6 +5810,7 @@
     "retentionCallLogs": "Registros de chamadas (dias)",
     "retentionUsageHistory": "Histórico de uso (dias)",
     "retentionMemoryEntries": "Entradas de memória (dias)",
+    "retentionXpAuditLog": "Log de Auditoria de XP (dias)",
     "saveRetentionSettings": "__MISSING__:Save retention settings",
     "storageAutoVacuumMode": "Modo de vácuo automático",
     "storageScheduledVacuum": "Vácuo programado",

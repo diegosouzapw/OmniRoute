@@ -5949,6 +5949,7 @@
     "retentionCallLogs": "Call Logs (days)",
     "retentionUsageHistory": "Usage History (days)",
     "retentionMemoryEntries": "Memory Entries (days)",
+    "retentionXpAuditLog": "XP Audit Log (days)",
     "saveRetentionSettings": "Save retention settings",
     "storageAutoVacuumMode": "Auto Vacuum Mode",
     "storageScheduledVacuum": "Scheduled Vacuum",
