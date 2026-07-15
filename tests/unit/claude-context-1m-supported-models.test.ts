@@ -12,7 +12,10 @@ function parseSupportedModels(): string[] {
     path.join(REPO_ROOT, "open-sse/services/claudeCodeCompatible.ts"),
     "utf8"
   );
-  const match = src.match(/CONTEXT_1M_SUPPORTED_MODELS\s*=\s*\[([\s\S]*?)\]/);
+  // Strip type annotations before matching to handle `const X: string[] = [...]`
+  const match = src
+    .replace(/:\s*\w+(\[\])?/, "")
+    .match(/CONTEXT_1M_SUPPORTED_MODELS\s*=\s*\[([\s\S]*?)\]/);
   if (!match) throw new Error("CONTEXT_1M_SUPPORTED_MODELS not found in source");
   return match[1]
     .split(",")
@@ -49,7 +52,9 @@ function parseClaudeRegistryModels(): Array<{
     const arrayStart = src.indexOf("[", modelsStart);
     if (arrayStart === -1) continue;
 
-    // Extract individual model objects using brace counting
+    // Extract individual model objects using brace counting.
+    // Skips any non-model nested braces by requiring both id and contextLength
+    // in the same brace-delimited block.
     let braceDepth = 0;
     let objStart = -1;
     const modelBlocks: string[] = [];
@@ -89,6 +94,16 @@ function isModel1mSupported(modelId: string, supportedModels: string[]): boolean
   const normalized = modelId.replace(/:.*$/, "").toLowerCase();
   return supportedModels.some((s) => normalized === s || normalized.startsWith(`${s}-`));
 }
+
+// ─── Sanity: parser must find at least one model ───
+
+test("parser finds at least one Claude model in the registry", () => {
+  const models = parseClaudeRegistryModels();
+  assert.ok(
+    models.length > 0,
+    "parseClaudeRegistryModels returned 0 models — check that open-sse/config/providers/registry/claude/ exists and contains model definitions"
+  );
+});
 
 // ─── Forward: every high-context Claude model must be in the allowlist ───
 
