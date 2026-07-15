@@ -1423,6 +1423,7 @@ export async function handleChatCore({
               cavemanOutputModeIntensity,
               log,
             });
+            await compressionAnalyticsWritePromise;
           } else {
             // Compression was attempted (mode active, engines ran) but produced no
             // recordable saving — e.g. a Stacked RTK→Caveman pipeline on already-compact
@@ -1445,6 +1446,7 @@ export async function handleChatCore({
               },
               "no_savings"
             );
+            await compressionAnalyticsWritePromise;
           }
 
           if (result.compressed) {
@@ -1474,6 +1476,7 @@ export async function handleChatCore({
           cavemanOutputModeIntensity,
           log,
         });
+        await compressionAnalyticsWritePromise;
       }
       emitOutputStyleTelemetry({
         outputStyleResult,
@@ -3339,7 +3342,13 @@ export async function handleChatCore({
           // otherwise degenerate into a 429 rate-limit storm). Connection stays
           // active since only the specific model is unavailable. (#6827)
           const notFoundCooldownMs = COOLDOWN_MS.notFound;
-          lockModel(provider, errorConnectionId, currentModel, "model_not_found", notFoundCooldownMs);
+          lockModel(
+            provider,
+            errorConnectionId,
+            currentModel,
+            "model_not_found",
+            notFoundCooldownMs
+          );
           console.warn(
             `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
           );
