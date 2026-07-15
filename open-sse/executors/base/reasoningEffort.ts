@@ -48,6 +48,66 @@ function isNvidiaGlm52(provider: string, model: string | undefined): boolean {
   return provider === "nvidia" && NVIDIA_GLM_52_PATTERN.test(model || "");
 }
 
+type NvidiaGlm52EffortInfo = {
+  reasoning: Record<string, unknown> | null;
+  effortStr: string;
+};
+
+/** Pulls a normalized (lowercased) effort string out of top-level or nested `reasoning.effort`. */
+function extractNvidiaGlm52Effort(b: Record<string, unknown>): NvidiaGlm52EffortInfo | null {
+  const reasoning =
+    b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
+      ? (b.reasoning as Record<string, unknown>)
+      : null;
+  const effort = b.reasoning_effort ?? reasoning?.effort;
+  if (effort === undefined) return null;
+
+  const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
+  if (!effortStr) return null;
+
+  return { reasoning, effortStr };
+}
+
+/** Builds `chat_template_kwargs.enable_thinking`, or null when the existing kwargs shape is unusable. */
+function buildNvidiaGlm52TemplateKwargs(
+  rawTemplateKwargs: unknown,
+  effortStr: string
+): Record<string, unknown> | null {
+  if (
+    rawTemplateKwargs !== undefined &&
+    (!rawTemplateKwargs ||
+      typeof rawTemplateKwargs !== "object" ||
+      Array.isArray(rawTemplateKwargs))
+  ) {
+    return null;
+  }
+
+  const templateKwargs = {
+    ...((rawTemplateKwargs as Record<string, unknown> | undefined) ?? {}),
+  };
+  if (!Object.prototype.hasOwnProperty.call(templateKwargs, "enable_thinking")) {
+    templateKwargs.enable_thinking = effortStr !== "none";
+  }
+  return templateKwargs;
+}
+
+/** Returns a copy of `b` with `reasoning_effort`/`reasoning.effort` replaced by `templateKwargs`. */
+function withNvidiaGlm52TemplateKwargs(
+  b: Record<string, unknown>,
+  templateKwargs: Record<string, unknown>,
+  reasoning: Record<string, unknown> | null
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...b, chat_template_kwargs: templateKwargs };
+  delete next.reasoning_effort;
+  if (reasoning) {
+    const nextReasoning = { ...reasoning };
+    delete nextReasoning.effort;
+    if (Object.keys(nextReasoning).length === 0) delete next.reasoning;
+    else next.reasoning = nextReasoning;
+  }
+  return next;
+}
+
 /**
  * Map OmniRoute's reasoning-effort inputs onto the binary thinking switch exposed by
  * NVIDIA's hosted GLM-5.2 chat template. This runs before DefaultExecutor's unsupported
@@ -64,45 +124,13 @@ export function mapNvidiaGlm52ReasoningParams(
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
 
   const b = body as Record<string, unknown>;
-  const reasoning =
-    b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
-      ? (b.reasoning as Record<string, unknown>)
-      : null;
-  const effort = b.reasoning_effort ?? reasoning?.effort;
-  if (effort === undefined) return body;
+  const info = extractNvidiaGlm52Effort(b);
+  if (!info) return body;
 
-  const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
-  if (!effortStr) return body;
+  const templateKwargs = buildNvidiaGlm52TemplateKwargs(b.chat_template_kwargs, info.effortStr);
+  if (!templateKwargs) return body;
 
-  const rawTemplateKwargs = b.chat_template_kwargs;
-  if (
-    rawTemplateKwargs !== undefined &&
-    (!rawTemplateKwargs ||
-      typeof rawTemplateKwargs !== "object" ||
-      Array.isArray(rawTemplateKwargs))
-  ) {
-    return body;
-  }
-
-  const templateKwargs = {
-    ...((rawTemplateKwargs as Record<string, unknown> | undefined) ?? {}),
-  };
-  if (!Object.prototype.hasOwnProperty.call(templateKwargs, "enable_thinking")) {
-    templateKwargs.enable_thinking = effortStr !== "none";
-  }
-
-  const next: Record<string, unknown> = {
-    ...b,
-    chat_template_kwargs: templateKwargs,
-  };
-  delete next.reasoning_effort;
-  if (reasoning) {
-    const nextReasoning = { ...reasoning };
-    delete nextReasoning.effort;
-    if (Object.keys(nextReasoning).length === 0) delete next.reasoning;
-    else next.reasoning = nextReasoning;
-  }
-
+  const next = withNvidiaGlm52TemplateKwargs(b, templateKwargs, info.reasoning);
   log?.info?.(
     "REASONING_SANITIZE",
     `nvidia/${model || ""}: mapped reasoning effort to enable_thinking`
