@@ -143,6 +143,10 @@ jobs:
       - run: npm run check:complexity-ratchets
       - name: Typecheck (core)
         run: npm run typecheck:core
+      # #7033: dashboard-scoped typecheck gate — src/app/(dashboard) TSX is not
+      # covered by typecheck:core's curated allowlist. See check-dashboard-typecheck.mjs.
+      - name: Typecheck (dashboard)
+        run: npm run check:dashboard-typecheck
       # WS4.2 (v3.8.49 plan): TypeScript 7 native-compiler SHADOW — advisory only.
       # TS7 went GA 2026-07-08 with 8-12x type-check speedups; its Compiler API only
       # arrives in 7.1, so typescript-eslint / type-coverage / Stryker stay on 6.x
