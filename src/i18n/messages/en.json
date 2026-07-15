@@ -5640,7 +5640,7 @@
     "purgeLogsFailed": "Failed to purge logs",
     "logsDeleted": "{count, plural, =0 {No expired logs purged} one {Purged # expired log} other {Purged # expired logs}}",
     "resetUsageData": "Reset Usage Data",
-    "resetUsageDataDesc": "Select how far back you want to delete usage data. This action cannot be undone.",
+    "resetUsageDataDesc": "Select how far back you want to delete usage, request logs, and analytics data. Provider configuration, connections, API keys, combos, and settings are preserved. This action cannot be undone.",
     "resetUsagePeriod_5m": "5 minutes",
     "resetUsagePeriod_1h": "1 hour",
     "resetUsagePeriod_3h": "3 hours",
