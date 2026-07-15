@@ -17,7 +17,7 @@
 //    instead of the plan captured at login.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { getCodexPlanLabel } from "@/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers";
+import { getCodexPlanLabel } from "@/app/(dashboard)/dashboard/providers/[id]/codexPlanLabel";
 import { resolvePlanValue } from "@/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils";
 
 test("getCodexPlanLabel returns the trimmed chatgptPlanType for codex connections", () => {

@@ -17,10 +17,10 @@ import {
 } from "@/lib/providers/codexFastTier";
 import {
   normalizeCodexLimitPolicy,
-  getCodexPlanLabel,
   providerText,
   ERROR_TYPE_LABELS,
 } from "../providerPageHelpers";
+import { getCodexPlanLabel } from "../codexPlanLabel";
 
 // ---------------------------------------------------------------------------
 // Types (exported so the client can reference them without re-importing)
