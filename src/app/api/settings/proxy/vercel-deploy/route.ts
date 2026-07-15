@@ -135,6 +135,55 @@ async function disableSsoProtection(
  */
 export const __disableSsoProtectionForTest = disableSsoProtection;
 
+/**
+ * Builds the sanitized error response for a rejected Vercel deployment
+ * request. Extracted from POST to keep the handler's cognitive complexity
+ * within the ratchet — parses the canonical `{ error: { message } } }` shape
+ * and never forwards raw upstream error text (may contain project IDs, team
+ * slugs, deployment hashes or internal Vercel error strings).
+ */
+async function buildDeployErrorResponse(deployRes: Response) {
+  let upstreamMessage = "Vercel API rejected the deployment";
+  try {
+    const parsed = (await deployRes.json().catch(() => null)) as {
+      error?: { message?: string };
+    } | null;
+    const candidate = parsed?.error?.message;
+    if (typeof candidate === "string" && candidate.trim()) {
+      upstreamMessage = candidate.trim().slice(0, 200);
+    }
+  } catch {
+    /* fall through to generic message */
+  }
+  return createErrorResponse({
+    status: deployRes.status,
+    message: `Vercel deployment failed: ${upstreamMessage}`,
+    type: "upstream_error",
+  });
+}
+
+/**
+ * Disables Vercel SSO/Deployment Protection for the deployed project and
+ * returns a caller-facing warning when it could not be disabled. Extracted
+ * from POST to keep the handler's cognitive complexity within the ratchet.
+ * See `disableSsoProtection` doc comment for the bug this guards against.
+ */
+async function resolveSsoProtectionWarning(
+  projectId: string | undefined,
+  vercelApiBase: string,
+  token: string
+): Promise<string | undefined> {
+  if (!projectId) return undefined;
+  const ssoResult = await disableSsoProtection(vercelApiBase, projectId, token);
+  if (ssoResult.ok) return undefined;
+  return (
+    "Could not disable Vercel Deployment Protection (SSO) for this project" +
+    (ssoResult.status ? ` (status ${ssoResult.status})` : "") +
+    ". Requests through this relay may fail with a 403 Access denied from " +
+    "Vercel until protection is disabled manually in the Vercel dashboard."
+  );
+}
+
 async function pollDeployment(deploymentApiUrl: string, token: string): Promise<"READY" | "ERROR"> {
   for (let i = 0; i < POLL_MAX_ATTEMPTS; i++) {
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
@@ -208,27 +257,9 @@ export async function POST(request: Request) {
     });
 
     if (!deployRes.ok) {
-      // Avoid forwarding 200 bytes of raw Vercel error text — it may contain
-      // project IDs, team slugs, deployment hashes or internal Vercel error
-      // strings. Parse the canonical { error: { message } } shape and surface
-      // only the human-readable message (or a generic fallback).
-      let upstreamMessage = "Vercel API rejected the deployment";
-      try {
-        const parsed = (await deployRes.json().catch(() => null)) as {
-          error?: { message?: string };
-        } | null;
-        const candidate = parsed?.error?.message;
-        if (typeof candidate === "string" && candidate.trim()) {
-          upstreamMessage = candidate.trim().slice(0, 200);
-        }
-      } catch {
-        /* fall through to generic message */
-      }
-      return createErrorResponse({
-        status: deployRes.status,
-        message: `Vercel deployment failed: ${upstreamMessage}`,
-        type: "upstream_error",
-      });
+      // Avoid forwarding raw Vercel error text — it may contain project IDs,
+      // team slugs, deployment hashes or internal Vercel error strings.
+      return buildDeployErrorResponse(deployRes);
     }
 
     const deployment = (await deployRes.json()) as {
@@ -251,17 +282,11 @@ export async function POST(request: Request) {
     // relay is still deployed and saved, but the caller is warned so a
     // later `403 Access denied` can be diagnosed as Vercel-side deployment
     // protection rather than an upstream provider rejection.
-    let ssoProtectionWarning: string | undefined;
-    if (deployment.projectId) {
-      const ssoResult = await disableSsoProtection(VERCEL_API_BASE, deployment.projectId, token);
-      if (!ssoResult.ok) {
-        ssoProtectionWarning =
-          "Could not disable Vercel Deployment Protection (SSO) for this project" +
-          (ssoResult.status ? ` (status ${ssoResult.status})` : "") +
-          ". Requests through this relay may fail with a 403 Access denied from " +
-          "Vercel until protection is disabled manually in the Vercel dashboard.";
-      }
-    }
+    const ssoProtectionWarning = await resolveSsoProtectionWarning(
+      deployment.projectId,
+      VERCEL_API_BASE,
+      token
+    );
 
     // Poll until READY
     const deploymentApiUrl = `${VERCEL_API_BASE}/v13/deployments/${deployment.id}`;
