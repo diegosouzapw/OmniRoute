@@ -382,7 +382,11 @@ export async function computeFreeProviderRankings(
   // limit slice, so `limit` counts providers that survive the filter.
   let filtered = rankings;
   if (opts.configuredOnly || opts.availableOnly) {
-    const connections = (await getProviderConnections({ isActive: true })) as ConnectionState[];
+    // `getProviderConnections` returns a loose JsonRecord[]; ConnectionState is a
+    // structural subset of it, so TS needs the explicit `unknown` hop (TS2352).
+    const connections = (await getProviderConnections({
+      isActive: true,
+    })) as unknown as ConnectionState[];
     filtered = filterFreeProviderRankings(rankings, connections, opts);
   }
 
