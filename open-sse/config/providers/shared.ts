@@ -409,9 +409,10 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   "v0-vercel": buildModels(["v0-1.0-md", "v0-1.5-lg", "v0-1.5-md"]),
   morph: [
     ...buildModels(["morph-v3-large", "morph-v3-fast"]),
+    { id: "morph-glm52-744b", name: "GLM-5.2 744B (Morph)", contextLength: 1048576 },
     { id: "morph-qwen35-397b", name: "Qwen 3.5 397B (Morph)", contextLength: 262144 },
-    { id: "morph-minimax27-230b", name: "MiniMax M2.7 (Morph)", contextLength: 200704 },
     { id: "morph-qwen36-27b", name: "Qwen 3.6 27B (Morph)", contextLength: 131072 },
+    { id: "morph-minimax3-428b", name: "MiniMax M3 (Morph)", contextLength: 262144 },
     { id: "morph-dsv4flash", name: "DeepSeek V4 Flash (Morph)", contextLength: 1048576 },
   ],
   "featherless-ai": buildModels(["featherless-ai/Qwerky-72B", "featherless-ai/Qwerky-QwQ-32B"]),
