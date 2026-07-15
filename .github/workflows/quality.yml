@@ -62,7 +62,7 @@ jobs:
   docs-gates:
     name: Docs Gates (fast-path)
     needs: changes
-    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && (needs.changes.outputs.docs == 'true' || needs.changes.outputs.code == 'true')) }}
+    if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && (needs.changes.outputs.docs == 'true' || needs.changes.outputs.code == 'true')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -82,7 +82,7 @@ jobs:
     name: Fast Quality Gates
     needs: changes
     # Code surface only — pure docs/i18n PRs skip this bag (docs-gates covers docs).
-    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
+    if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
     # Dynamic runner (same rule as ci.yml): use the self-hosted VPS pool only when the
     # release captain has USE_VPS_RUNNER=true AND this is not a fork PR (own-origin
     # branches only — a fork PR must never execute on the LAN runner). Var unset/false
@@ -210,7 +210,7 @@ jobs:
   fast-vitest:
     name: Vitest (fast-path)
     needs: changes
-    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
+    if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
     # Dynamic runner — see fast-gates (own-origin + flag; fork/unset → ubuntu-latest).
     runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     env:
@@ -231,7 +231,7 @@ jobs:
   fast-unit:
     name: Unit Tests fast-path (${{ matrix.shard }}/4)
     needs: changes
-    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
+    if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
     # Dynamic runner — see fast-gates (own-origin + flag; fork/unset → ubuntu-latest).
     # This is the heaviest fast-path job; 4-way sharding (was 2, #6781) halves the
     # critical path again (~8.5min → ~4.5min on ubuntu-latest; ~2min on the 8-slot
@@ -277,7 +277,7 @@ jobs:
   lint-guard:
     name: No new ESLint warnings
     needs: changes
-    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
+    if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
     runs-on: ubuntu-latest
     continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     steps:
@@ -316,7 +316,7 @@ jobs:
   merge-integrity:
     name: Merge integrity (changelog + generated skills)
     # Always on non-draft PRs — CHANGELOG/skills can break on docs-only merges too.
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) }}
     runs-on: ubuntu-latest
     continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     env:
