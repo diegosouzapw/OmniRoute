@@ -639,6 +639,72 @@ async function startMitmInternal(
 }
 
 /**
+ * DNS teardown step of stopMitm() (#1809) — split out purely to keep
+ * stopMitm()'s own cyclomatic complexity under the repo's ratchet; behavior
+ * is unchanged from the original inline implementation.
+ */
+async function removeStopDnsEntries(
+  deps: {
+    removeDNSEntry: (sudoPassword: string) => Promise<void>;
+    removeDNSEntries: (hosts: string[], sudoPassword: string) => Promise<void>;
+    collectManagedHosts: () => string[];
+  },
+  sudoPassword: string
+): Promise<void> {
+  log.info("Removing DNS entries...");
+  await deps.removeDNSEntry(sudoPassword);
+  try {
+    const managed = deps.collectManagedHosts();
+    if (managed.length > 0) {
+      await deps.removeDNSEntries(managed, sudoPassword);
+    }
+  } catch (err) {
+    log.error({ err }, "Failed to remove managed DNS entries during stop (continuing)");
+  }
+}
+
+/**
+ * Kill the MITM server process during stop — either the in-memory
+ * `serverProcess` handle or, if that's gone, the PID recorded in `PID_FILE`.
+ * Split out of stopMitm() purely to keep that function's complexity under
+ * the repo's ratchet; behavior is unchanged from the original inline
+ * implementation.
+ */
+async function killMitmServerProcessOnStop(): Promise<void> {
+  const proc = serverProcess;
+  if (proc && !proc.killed) {
+    log.info("Stopping MITM server...");
+    proc.kill("SIGTERM");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!proc.killed) {
+      proc.kill("SIGKILL");
+    }
+    serverProcess = null;
+    serverPid = null;
+    return;
+  }
+
+  // Fallback: kill by PID file
+  try {
+    if (fs.existsSync(PID_FILE)) {
+      const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
+      if (savedPid && isProcessAlive(savedPid)) {
+        log.info({ pid: savedPid }, "Killing MITM server by PID...");
+        process.kill(savedPid, "SIGTERM");
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (isProcessAlive(savedPid)) {
+          process.kill(savedPid, "SIGKILL");
+        }
+      }
+    }
+  } catch {
+    // Ignore
+  }
+  serverProcess = null;
+  serverPid = null;
+}
+
+/**
  * Stop MITM proxy
  *
  * Ordering is deliberate and load-bearing (#1809 — "connect ECONNREFUSED
@@ -667,54 +733,12 @@ export async function stopMitm(
     collectManagedHosts: _depsOverride?.collectManagedHosts ?? collectManagedHosts,
   };
 
-  // 1. Remove DNS entries FIRST — Antigravity defaults PLUS every agent +
-  //    custom host that startMitm() may have spoofed. removeDNSEntries is
-  //    idempotent, so over-inclusion is safe; under-inclusion leaks
-  //    /etc/hosts lines that hijack resolution machine-wide after stop
-  //    (Gap 8). Doing this before the process kill closes the ECONNREFUSED
-  //    window described above (#1809).
-  log.info("Removing DNS entries...");
-  await deps.removeDNSEntry(sudoPassword);
-  try {
-    const managed = deps.collectManagedHosts();
-    if (managed.length > 0) {
-      await deps.removeDNSEntries(managed, sudoPassword);
-    }
-  } catch (err) {
-    log.error({ err }, "Failed to remove managed DNS entries during stop (continuing)");
-  }
+  // 1. Remove DNS entries FIRST — see function doc + module doc above for why
+  //    this must happen before the process kill (#1809, Gap 8).
+  await removeStopDnsEntries(deps, sudoPassword);
 
   // 2. Kill server process (in-memory or from PID file)
-  const proc = serverProcess;
-  if (proc && !proc.killed) {
-    log.info("Stopping MITM server...");
-    proc.kill("SIGTERM");
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    if (!proc.killed) {
-      proc.kill("SIGKILL");
-    }
-    serverProcess = null;
-    serverPid = null;
-  } else {
-    // Fallback: kill by PID file
-    try {
-      if (fs.existsSync(PID_FILE)) {
-        const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
-        if (savedPid && isProcessAlive(savedPid)) {
-          log.info({ pid: savedPid }, "Killing MITM server by PID...");
-          process.kill(savedPid, "SIGTERM");
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          if (isProcessAlive(savedPid)) {
-            process.kill(savedPid, "SIGKILL");
-          }
-        }
-      }
-    } catch {
-      // Ignore
-    }
-    serverProcess = null;
-    serverPid = null;
-  }
+  await killMitmServerProcessOnStop();
 
   // 3. Clean up
   clearCachedPassword(); // Clear password from memory when proxy stops
