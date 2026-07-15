@@ -1,4 +1,5 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { mapNvidiaGlm52ReasoningParams } from "./base/reasoningEffort.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 
@@ -708,7 +709,12 @@ export class DefaultExecutor extends BaseExecutor {
     if (typeof withDefaults === "object" && withDefaults !== null) {
       const bodyRecord = withDefaults as Record<string, unknown>;
       const outboundModel = typeof bodyRecord.model === "string" ? bodyRecord.model : model;
-      stripUnsupportedParams(this.provider, outboundModel, bodyRecord);
+      withDefaults = mapNvidiaGlm52ReasoningParams(
+        bodyRecord,
+        this.provider,
+        outboundModel
+      ) as typeof withDefaults;
+      stripUnsupportedParams(this.provider, outboundModel, withDefaults as Record<string, unknown>);
     }
 
     // Apply modelIdPrefix from RegistryEntry (e.g. "accounts/fireworks/models/")
