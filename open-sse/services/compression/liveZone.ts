@@ -21,6 +21,16 @@ interface LiveZoneEntry {
   bytes: number;
 }
 
+interface LiveZoneContext {
+  field: "messages" | "input";
+  key: string;
+  rawItems: unknown[];
+  rawItemDigests: string[];
+  rawStableFieldsDigest: string;
+  ttlMs: number;
+  now: number;
+}
+
 const MAX_ENTRIES = 100;
 const MAX_ENTRY_BYTES = 2 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 32 * 1024 * 1024;
@@ -220,6 +230,134 @@ function withLiveZoneStats(
   };
 }
 
+function hasGlobalHardBudget(variant: unknown): boolean {
+  if (!variant || typeof variant !== "object") return false;
+  const config = (variant as Record<string, unknown>).config;
+  if (!config || typeof config !== "object") return false;
+  const record = config as Record<string, unknown>;
+  return record.targetTokens != null || record.targetRatio != null;
+}
+
+function resolveLiveZoneContext(
+  body: Record<string, unknown>,
+  options: LiveZoneOptions
+): LiveZoneContext | null {
+  const field = sequenceField(body);
+  const key = field ? makeKey(options, field) : null;
+  if (!field || !key) return null;
+
+  const rawItems = body[field] as unknown[];
+  const rawItemDigests = rawItems.map(digest);
+  if (rawItemDigests.some((value) => value === null)) return null;
+  const rawStableFieldsDigest = digest(pickStableFields(body));
+  if (!rawStableFieldsDigest) return null;
+  const ttlMinutes = Math.min(60, Math.max(1, options.ttlMinutes ?? DEFAULT_TTL_MINUTES));
+  const now = Date.now();
+  return {
+    field,
+    key,
+    rawItems,
+    rawItemDigests: rawItemDigests as string[],
+    rawStableFieldsDigest,
+    ttlMs: ttlMinutes * 60_000,
+    now,
+  };
+}
+
+async function compressAndStore(
+  body: Record<string, unknown>,
+  context: LiveZoneContext,
+  compress: (body: Record<string, unknown>) => Promise<CompressionResult>
+): Promise<CompressionResult> {
+  const result = await compress(body);
+  store(
+    context.key,
+    context.rawItemDigests,
+    context.rawStableFieldsDigest,
+    result,
+    context.field,
+    context.now,
+    context.ttlMs
+  );
+  return result;
+}
+
+async function compressLiveToolOutputs(
+  body: Record<string, unknown>,
+  field: "messages" | "input",
+  liveItems: unknown[],
+  previousStats: CompressionStats | null,
+  compress: (body: Record<string, unknown>) => Promise<CompressionResult>
+): Promise<{ liveResult: CompressionResult; transformedLive: unknown[] } | null> {
+  const transformedLive = cloneItems(liveItems);
+  if (!transformedLive) return null;
+  const liveToolIndexes = liveItems.flatMap((item, index) =>
+    isToolOutputItem(item) ? [index] : []
+  );
+  if (liveToolIndexes.length === 0) {
+    return { liveResult: { body, compressed: false, stats: previousStats }, transformedLive };
+  }
+
+  const liveToolItems = liveToolIndexes.map((index) => liveItems[index]);
+  const liveResult = await compress({ ...body, [field]: liveToolItems });
+  const transformed = liveResult.body[field];
+  if (!Array.isArray(transformed) || transformed.length !== liveToolItems.length) {
+    return { liveResult: { body, compressed: false, stats: null }, transformedLive };
+  }
+  for (let index = 0; index < liveToolIndexes.length; index++) {
+    transformedLive[liveToolIndexes[index]] = transformed[index];
+  }
+  return { liveResult, transformedLive };
+}
+
+async function reuseLiveZoneEntry(
+  body: Record<string, unknown>,
+  context: LiveZoneContext,
+  previous: LiveZoneEntry,
+  compress: (body: Record<string, unknown>) => Promise<CompressionResult>
+): Promise<CompressionResult> {
+  entries.delete(context.key);
+  previous.lastAccess = context.now;
+  entries.set(context.key, previous);
+
+  const frozenItems = previous.rawItemDigests.length;
+  const liveItems = context.rawItems.slice(frozenItems);
+  const frozenPrefix = cloneItems(previous.transformedPrefix);
+  if (!frozenPrefix) return compress(body);
+  const live = await compressLiveToolOutputs(
+    body,
+    context.field,
+    liveItems,
+    previous.stats,
+    compress
+  );
+  if (!live) return compress(body);
+  const restoredBody = restoreStableFields(live.liveResult.body, previous.transformedStableFields);
+  if (!restoredBody) return compress(body);
+  const combinedBody = {
+    ...restoredBody,
+    [context.field]: [...frozenPrefix, ...live.transformedLive],
+  };
+  const combinedResult = withLiveZoneStats(
+    body,
+    { ...live.liveResult, body: combinedBody },
+    frozenItems,
+    liveItems.length
+  );
+  if (entries.get(context.key) === previous) {
+    store(
+      context.key,
+      context.rawItemDigests,
+      context.rawStableFieldsDigest,
+      combinedResult,
+      context.field,
+      Date.now(),
+      context.ttlMs
+    );
+  }
+  return combinedResult;
+}
+
 /**
  * Reuses the byte-identical transformed prefix from the previous request in a session and runs
  * compression only over newly appended messages/input items. Any changed prefix, missing identity,
@@ -231,96 +369,20 @@ export async function applyLiveZoneCompression(
   compress: (body: Record<string, unknown>) => Promise<CompressionResult>
 ): Promise<CompressionResult> {
   // A global hard budget needs the complete history to make correct keep/drop decisions.
-  const variantConfig =
-    options.variant && typeof options.variant === "object"
-      ? (options.variant as Record<string, unknown>).config
-      : null;
-  if (
-    variantConfig &&
-    typeof variantConfig === "object" &&
-    ((variantConfig as Record<string, unknown>).targetTokens != null ||
-      (variantConfig as Record<string, unknown>).targetRatio != null)
-  ) {
-    return compress(body);
-  }
-  const field = sequenceField(body);
-  const key = field ? makeKey(options, field) : null;
-  if (!field || !key) return compress(body);
-
-  const rawItems = body[field] as unknown[];
-  const rawItemDigests = rawItems.map(digest);
-  if (rawItemDigests.some((value) => value === null)) return compress(body);
-  const rawStableFieldsDigest = digest(pickStableFields(body));
-  if (!rawStableFieldsDigest) return compress(body);
-  const ttlMinutes = Math.min(60, Math.max(1, options.ttlMinutes ?? DEFAULT_TTL_MINUTES));
-  const ttlMs = ttlMinutes * 60_000;
-  const now = Date.now();
-  prune(now);
-  const previous = entries.get(key);
+  if (hasGlobalHardBudget(options.variant)) return compress(body);
+  const context = resolveLiveZoneContext(body, options);
+  if (!context) return compress(body);
+  prune(context.now);
+  const previous = entries.get(context.key);
 
   if (
     !previous ||
-    previous.rawStableFieldsDigest !== rawStableFieldsDigest ||
-    !hasExactRawPrefix(rawItemDigests as string[], previous)
+    previous.rawStableFieldsDigest !== context.rawStableFieldsDigest ||
+    !hasExactRawPrefix(context.rawItemDigests, previous)
   ) {
-    const result = await compress(body);
-    store(key, rawItemDigests as string[], rawStableFieldsDigest, result, field, now, ttlMs);
-    return result;
+    return compressAndStore(body, context, compress);
   }
-
-  // LRU touch. Deleting/re-inserting also makes deterministic oldest-first eviction cheap.
-  entries.delete(key);
-  previous.lastAccess = now;
-  entries.set(key, previous);
-
-  const frozenItems = previous.rawItemDigests.length;
-  const liveItems = rawItems.slice(frozenItems);
-  const frozenPrefix = cloneItems(previous.transformedPrefix);
-  if (!frozenPrefix) return compress(body);
-  let liveResult: CompressionResult;
-  let transformedLive = cloneItems(liveItems);
-  if (!transformedLive) return compress(body);
-  const liveToolIndexes = liveItems.flatMap((item, index) =>
-    isToolOutputItem(item) ? [index] : []
-  );
-  if (liveToolIndexes.length === 0) {
-    liveResult = { body, compressed: false, stats: previous.stats };
-  } else {
-    const liveToolItems = liveToolIndexes.map((index) => liveItems[index]);
-    const liveBody = { ...body, [field]: liveToolItems };
-    liveResult = await compress(liveBody);
-    const transformed = liveResult.body[field];
-    if (!Array.isArray(transformed) || transformed.length !== liveToolItems.length) {
-      liveResult = { body, compressed: false, stats: null };
-    } else {
-      for (let index = 0; index < liveToolIndexes.length; index++) {
-        transformedLive[liveToolIndexes[index]] = transformed[index];
-      }
-    }
-  }
-  const restoredBody = restoreStableFields(liveResult.body, previous.transformedStableFields);
-  if (!restoredBody) return compress(body);
-  const combinedBody = { ...restoredBody, [field]: [...frozenPrefix, ...transformedLive] };
-  const combinedResult = withLiveZoneStats(
-    body,
-    { ...liveResult, body: combinedBody },
-    frozenItems,
-    liveItems.length
-  );
-
-  // Do not let a concurrent divergent request overwrite the winning session branch.
-  if (entries.get(key) === previous) {
-    store(
-      key,
-      rawItemDigests as string[],
-      rawStableFieldsDigest,
-      combinedResult,
-      field,
-      Date.now(),
-      ttlMs
-    );
-  }
-  return combinedResult;
+  return reuseLiveZoneEntry(body, context, previous, compress);
 }
 
 export function resetLiveZoneCache(): void {
