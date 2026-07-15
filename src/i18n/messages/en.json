@@ -5182,6 +5182,13 @@
     "freePoolTab": "Free Pool",
     "proxyDocumentationTab": "Documentation",
     "proxySubscriptionsTab": "Subscriptions",
+    "proxySubscription": {
+      "error": {
+        "LOCAL_CORE_ENDPOINT_INVALID": "Local proxy-core endpoint is invalid; SS/VMess/Trojan/VLESS nodes were ignored.",
+        "NEEDS_CORE_NOT_CONFIGURED": "This subscription has nodes that need a local proxy core (SS/VMess/Trojan/VLESS); they are not routed until you configure the local-core SOCKS5 endpoint.",
+        "NO_USABLE_NODES": "Subscription yielded no usable nodes (http/https/socks5 or nodes with a local core endpoint)."
+      }
+    },
     "bulkHealthcheck": "Bulk Healthcheck",
     "bulkHealthcheckDesc": "Test all configured proxies against a target URL to find which ones work.",
     "healthcheckTesting": "Testing...",
