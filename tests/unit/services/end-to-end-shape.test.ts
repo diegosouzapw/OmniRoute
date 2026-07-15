@@ -316,7 +316,7 @@ describe("9router — response shapes", () => {
 
 describe("cliproxy — response shapes", () => {
   describe("GET /api/services/cliproxy/status", () => {
-    it("200 response has ServiceStatus shape plus installedVersion and updateAvailable", async () => {
+    it("200 response has ServiceStatus shape plus installedVersion, updateAvailable, and providerExpose", async () => {
       const { GET } =
         await import("../../../src/app/api/services/cliproxy/status/route.ts?t=shape-cliproxy-status-1");
       const res = await GET();
@@ -328,6 +328,7 @@ describe("cliproxy — response shapes", () => {
       assert.ok("installedVersion" in b, "cliproxy status must include installedVersion");
       assert.ok("updateAvailable" in b, "cliproxy status must include updateAvailable");
       assert.ok("autoStart" in b, "cliproxy status must include autoStart");
+      assert.ok("providerExpose" in b, "cliproxy status must include providerExpose");
       assert.ok(typeof b.updateAvailable === "boolean", "updateAvailable must be boolean");
     });
   });
@@ -496,6 +497,9 @@ describe("Cross-service shape consistency", () => {
       assert.ok(key in b1, `9router status missing key: ${key}`);
       assert.ok(key in b2, `cliproxy status missing key: ${key}`);
     }
+
+    assert.ok("providerExpose" in b1, "9router status missing providerExpose");
+    assert.ok("providerExpose" in b2, "cliproxy status missing providerExpose");
   });
 
   it("stop routes for both services return { tool, state } at minimum", async () => {

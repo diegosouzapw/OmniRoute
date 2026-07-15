@@ -78,7 +78,7 @@ test("provider plugin manifest route injects only when 9router exposure is enabl
   );
 });
 
-test("provider plugin manifest route injects for cliproxy regardless of exposure toggle", async () => {
+test("provider plugin manifest route injects for cliproxy when exposure is enabled", async () => {
   const manifest = generateProviderPluginManifest() as ProviderPluginManifest;
   const withModels = await injectServiceModelsIntoManifest(
     manifest,
@@ -88,10 +88,53 @@ test("provider plugin manifest route injects for cliproxy regardless of exposure
       }
       return [];
     },
-    (toolName: string): boolean => (toolName === "9router" ? false : true)
+    (toolName: string): boolean => (toolName === "9router" ? true : true)
   );
 
   const clipEntry = withModels.providers.find((provider) => provider.id === "cliproxyapi");
   assert.ok(clipEntry);
-  assert.ok(clipEntry?.models.some((model) => model.id === "cliproxyapi/model-clone"));
+  assert.equal(
+    clipEntry?.models.some((model) => model.id === "cliproxyapi/model-clone"),
+    true
+  );
+});
+
+test("provider plugin manifest route skips cliproxy models when exposure is disabled", async () => {
+  const manifest = generateProviderPluginManifest() as ProviderPluginManifest;
+  const withModels = await injectServiceModelsIntoManifest(
+    manifest,
+    (toolName: string): ServiceModel[] => {
+      if (toolName === "cliproxyapi") {
+        return [{ id: "model-clone", name: "Cliproxy Test" }];
+      }
+      return [];
+    },
+    () => true
+  );
+
+  const withModelsDisabled = await injectServiceModelsIntoManifest(
+    manifest,
+    (toolName: string): ServiceModel[] => {
+      if (toolName === "cliproxyapi") {
+        return [{ id: "model-clone", name: "Cliproxy Test" }];
+      }
+      return [];
+    },
+    (toolName: string): boolean => (toolName === "cliproxyapi" ? false : true)
+  );
+
+  const clipEntry = withModels.providers.find((provider) => provider.id === "cliproxyapi");
+  const clipEntryDisabled = withModelsDisabled.providers.find(
+    (provider) => provider.id === "cliproxyapi"
+  );
+  assert.ok(clipEntry);
+  assert.equal(
+    clipEntry?.models.some((model) => model.id === "cliproxyapi/model-clone"),
+    true
+  );
+  assert.ok(clipEntryDisabled);
+  assert.equal(
+    clipEntryDisabled?.models.some((model) => model.id === "cliproxyapi/model-clone"),
+    false
+  );
 });

@@ -72,4 +72,43 @@ describe("provider plugin manifest DB-driven exposure", () => {
     assert.ok(provider);
     assert.equal(provider?.models.some((model) => model.id === "9router/a-model"), false);
   });
+
+  it("injects cliproxyapi models when cliproxy row is missing providerExpose", async () => {
+    const manifest = generateProviderPluginManifest();
+    const result = await injectServiceModelsIntoManifest(manifest, () => [{ id: "b-model" }]);
+
+    const provider = result.providers.find((entry) => entry.id === "cliproxyapi");
+    assert.ok(provider);
+    assert.equal(provider?.models.some((model) => model.id === "cliproxyapi/b-model"), true);
+  });
+
+  it("injects cliproxyapi models when cliproxy providerExpose is true", async () => {
+    await upsertVersionManagerTool({ tool: "cliproxy", status: "stopped" });
+    await updateVersionManagerTool("cliproxy", { providerExpose: true });
+
+    const manifest = generateProviderPluginManifest();
+    const result = await injectServiceModelsIntoManifest(manifest, () => [{ id: "b-model" }]);
+
+    const row = await getServiceRow("cliproxy");
+    assert.equal(row?.providerExpose, true);
+
+    const provider = result.providers.find((entry) => entry.id === "cliproxyapi");
+    assert.ok(provider);
+    assert.equal(provider?.models.some((model) => model.id === "cliproxyapi/b-model"), true);
+  });
+
+  it("skips cliproxyapi models when cliproxy providerExpose is false", async () => {
+    await upsertVersionManagerTool({ tool: "cliproxy", status: "stopped" });
+    await updateVersionManagerTool("cliproxy", { providerExpose: false });
+
+    const manifest = generateProviderPluginManifest();
+    const result = await injectServiceModelsIntoManifest(manifest, () => [{ id: "b-model" }]);
+
+    const row = await getServiceRow("cliproxy");
+    assert.equal(row?.providerExpose, false);
+
+    const provider = result.providers.find((entry) => entry.id === "cliproxyapi");
+    assert.ok(provider);
+    assert.equal(provider?.models.some((model) => model.id === "cliproxyapi/b-model"), false);
+  });
 });

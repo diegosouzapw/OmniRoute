@@ -8,7 +8,11 @@ import { getServiceModels, type ServiceModel } from "@/lib/db/serviceModels";
 import { getServiceRow } from "@/lib/db/versionManager";
 
 const SERVICE_BACKEND_PLUGIN_IDS = new Set(["9router", "cliproxyapi"]);
-const SERVICE_BACKEND_EXPOSURE_REQUIRED = new Set(["9router"]);
+const SERVICE_BACKEND_EXPOSURE_REQUIRED = new Set(["9router", "cliproxyapi"]);
+const SERVICE_BACKEND_EXPOSURE_TOOL_BY_PLUGIN_ID = new Map<string, string>([
+  ["9router", "9router"],
+  ["cliproxyapi", "cliproxy"],
+]);
 const SERVICE_MODEL_CACHE_HEADERS = {
   ...CORS_HEADERS,
   "Content-Type": "application/json",
@@ -65,7 +69,8 @@ function pickServiceModels(
 async function shouldExposeServiceModels(toolName: string): Promise<boolean> {
   if (!SERVICE_BACKEND_EXPOSURE_REQUIRED.has(toolName)) return true;
 
-  const row = await getServiceRow(toolName);
+  const serviceTool = SERVICE_BACKEND_EXPOSURE_TOOL_BY_PLUGIN_ID.get(toolName) ?? toolName;
+  const row = await getServiceRow(serviceTool);
   if (!row) return true;
   return row.providerExpose;
 }
