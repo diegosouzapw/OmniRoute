@@ -173,3 +173,53 @@ test("deleteSubscription unbinds and removes its proxy rows", async () => {
   const subRow = db.prepare("SELECT 1 FROM proxy_subscriptions WHERE id='s4'").get();
   assert.equal(subRow, undefined);
 });
+
+test("global→rule switch re-evaluates binding: drops global, binds the selected provider scope", async () => {
+  await reset();
+  const db = core.getDbInstance();
+
+  // Seed a proxy node directly (avoids a network fetch for this part).
+  await proxies.createProxy({
+    name: "node5",
+    type: "http",
+    host: "10.0.0.5",
+    port: 8080,
+    source: "subscription",
+    subscriptionId: "s5",
+    status: "active",
+  });
+
+  // Start in GLOBAL mode and bind the pool to the global scope.
+  insertSubscription(db, "s5", "global", { enabled: true });
+  await sub.applySubscription("s5");
+
+  const before = await proxies.resolveProxyForConnectionFromRegistry("connAny");
+  assert.ok(before, "global mode should resolve the node for any connection");
+  assert.equal(before?.proxy.host, "10.0.0.5");
+
+  // Switch to RULE mode targeting provider provA. updateSubscription must
+  // detach the previous global binding (unapplySubscription) and re-bind the
+  // pool to the selected provider scope. Stub fetch so syncSubscription's
+  // re-fetch returns a body that keeps node5 around.
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async () => ({
+    ok: true,
+    text: async () =>
+      "proxies:\n  - name: node5\n    type: http\n    server: 10.0.0.5\n    port: 8080\n",
+  })) as unknown as typeof fetch;
+  try {
+    await sub.updateSubscription("s5", { mode: "rule", ruleProviders: ["provA"] });
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+
+  // The global binding must be gone.
+  const afterGlobal = await proxies.resolveProxyForConnectionFromRegistry("connAny");
+  assert.equal(afterGlobal, null, "global binding should be dropped after switching to rule mode");
+
+  // The provider-scope binding must now resolve the node.
+  db.prepare("INSERT INTO provider_connections (id, provider) VALUES (?,?)").run("connA", "provA");
+  const afterRule = await proxies.resolveProxyForConnectionFromRegistry("connA");
+  assert.ok(afterRule, "rule mode should bind the node to provider provA");
+  assert.equal(afterRule?.proxy.host, "10.0.0.5");
+});
