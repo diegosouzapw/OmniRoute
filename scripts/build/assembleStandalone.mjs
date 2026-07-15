@@ -136,6 +136,11 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["peer-stamp.mjs"],
   },
   {
+    label: "main-server timeouts (server-ws.mjs dependency, #7003/#7065-class)",
+    src: ["scripts", "dev", "main-server-timeouts.mjs"],
+    dest: ["main-server-timeouts.mjs"],
+  },
+  {
     label: "HTTP method guard (server-ws.mjs dependency)",
     src: ["scripts", "dev", "http-method-guard.cjs"],
     dest: ["http-method-guard.cjs"],
