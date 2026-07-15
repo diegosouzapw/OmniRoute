@@ -13,6 +13,7 @@ import { providerHonorsOpenAIFormatCacheControl } from "../utils/cacheControlPol
 import {
   coerceToolSchemas,
   injectEmptyReasoningContentForToolCalls,
+  injectOptionalEnumOmissionForTools,
   sanitizeToolDescriptions,
 } from "./helpers/schemaCoercion.ts";
 import { getRequestTranslator, getResponseTranslator } from "./registry.ts";
@@ -338,6 +339,9 @@ export function translateRequest(
   if (result.tools !== undefined) {
     result.tools = coerceToolSchemas(result.tools);
     result.tools = sanitizeToolDescriptions(result.tools);
+    if (targetFormat === FORMATS.OPENAI_RESPONSES) {
+      result.tools = injectOptionalEnumOmissionForTools(result.tools);
+    }
   }
 
   if (targetFormat === FORMATS.OPENAI && result.messages && Array.isArray(result.messages)) {

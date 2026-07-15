@@ -209,6 +209,72 @@ export function coerceToolSchemas(tools: unknown): unknown {
   });
 }
 
+// #7023 — Responses API strict mode forces every "optional" tool property into
+// `required`, so a model that intends to OMIT an optional enum property (no declared
+// `default`) must still emit a concrete value (e.g. Agent.isolation:"remote"). Neither
+// #6992 op (drop-if-default / drop-if-empty) can catch this, so we widen such properties
+// to accept `null` on the request side (OpenAI's own documented nullable-union idiom for
+// this exact strict-mode limitation) and drop the key response-side when the model emits
+// `null` (see pureHelpers.ts::isDroppableNullEntry). Scope: top-level
+// `properties[key].enum` only — does not recurse into `items`/`anyOf`/`oneOf` branches
+// (no real-world case beyond Agent.isolation is documented; extend with a concrete repro).
+function shouldInjectNullOmission(key: string, propSchema: unknown, required: Set<string>): boolean {
+  return (
+    isPlainObject(propSchema) &&
+    Array.isArray(propSchema.enum) &&
+    !required.has(key) &&
+    !hasOwn(propSchema, "default")
+  );
+}
+
+function widenPropertyForNullOmission(propSchema: JsonRecord): JsonRecord {
+  const widened: JsonRecord = { ...propSchema };
+  const enumValues = propSchema.enum as unknown[];
+  widened.enum = enumValues.includes(null) ? enumValues : [...enumValues, null];
+  if (typeof propSchema.type === "string") {
+    widened.type = [propSchema.type, "null"];
+  } else if (Array.isArray(propSchema.type) && !propSchema.type.includes("null")) {
+    widened.type = [...propSchema.type, "null"];
+  }
+  const note = "null = omit this parameter";
+  widened.description =
+    typeof propSchema.description === "string" && propSchema.description.length > 0
+      ? `${propSchema.description} (${note})`
+      : note;
+  return widened;
+}
+
+export function injectOptionalEnumOmissionSentinel(schema: unknown): unknown {
+  if (!isPlainObject(schema) || !isPlainObject(schema.properties)) return schema;
+
+  const required = new Set(Array.isArray(schema.required) ? schema.required : []);
+  let changed = false;
+  const nextProperties: JsonRecord = { ...schema.properties };
+
+  for (const [key, propSchema] of Object.entries(schema.properties)) {
+    if (!shouldInjectNullOmission(key, propSchema, required)) continue;
+    nextProperties[key] = widenPropertyForNullOmission(propSchema as JsonRecord);
+    changed = true;
+  }
+
+  if (!changed) return schema;
+  return { ...schema, properties: nextProperties };
+}
+
+export function injectOptionalEnumOmissionForTools(tools: unknown): unknown {
+  if (!Array.isArray(tools)) return tools;
+
+  return tools.map((tool) => {
+    if (!isPlainObject(tool)) return tool;
+
+    const result: JsonRecord = { ...tool };
+    if ("parameters" in result && !isPlainObject(result.function)) {
+      result.parameters = injectOptionalEnumOmissionSentinel(result.parameters);
+    }
+    return result;
+  });
+}
+
 export function sanitizeToolDescriptions(tools: unknown): unknown {
   if (!Array.isArray(tools)) return tools;
   return tools.map((tool) => sanitizeToolDescription(tool));
