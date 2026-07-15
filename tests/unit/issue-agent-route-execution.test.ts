@@ -217,3 +217,69 @@ test("issue-agent live triage maps timeouts into timed_out terminal with 408 sta
     issueAgentRoute.issueAgentRouteExecutor.executeRecordedTriageChatCompletion = originalExecutor;
   }
 });
+
+test("issue-agent GET reports enabled/disabled state", async () => {
+  process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = "1";
+
+  const enabledResponse = await issueAgentRoute.GET();
+  const enabledBody = (await enabledResponse.json()) as Record<string, unknown>;
+
+  assert.equal(enabledResponse.status, 200);
+  assert.equal(enabledBody.enabled, true);
+  assert.deepEqual(enabledBody.supportedModes, ["recorded-triage"]);
+
+  process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = "0";
+  const disabledResponse = await issueAgentRoute.GET();
+  const disabledBody = (await disabledResponse.json()) as Record<string, unknown>;
+
+  assert.equal(disabledResponse.status, 200);
+  assert.equal(disabledBody.enabled, false);
+});
+
+test("issue-agent POST rejects invalid JSON and unsupported modes", async () => {
+  const invalidJsonResponse = await issueAgentRoute.POST(
+    new Request("http://localhost/api/issue-agent/runs", {
+      method: "POST",
+      body: "{this is not valid json",
+    })
+  );
+  const invalidJsonBody = (await invalidJsonResponse.json()) as Record<string, unknown>;
+
+  assert.equal(invalidJsonResponse.status, 400);
+  assert.equal(invalidJsonBody.error, "Invalid JSON body");
+
+  const unsupportedModeResponse = await issueAgentRoute.POST(
+    new Request("http://localhost/api/issue-agent/runs", {
+      method: "POST",
+      body: JSON.stringify({
+        mode: "realtime",
+        dryRun: true,
+      }),
+    })
+  );
+  const unsupportedModeBody = (await unsupportedModeResponse.json()) as Record<string, unknown>;
+
+  assert.equal(unsupportedModeResponse.status, 400);
+  assert.equal(unsupportedModeBody.error, "Unsupported issue-agent mode");
+  assert.deepEqual(unsupportedModeBody.supportedModes as string[], ["recorded-triage"]);
+});
+
+test("issue-agent POST blocks when feature flag is disabled", async () => {
+  process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = "0";
+
+  const response = await issueAgentRoute.POST(
+    new Request("http://localhost/api/issue-agent/runs", {
+      method: "POST",
+      body: JSON.stringify({
+        mode: "recorded-triage",
+        dryRun: true,
+      }),
+    })
+  );
+  const body = (await response.json()) as Record<string, unknown>;
+
+  assert.equal(response.status, 403);
+  assert.equal(body.enabled, false);
+  assert.equal(body.error, "Issue Agent execution is disabled");
+  assert.equal(body.requiredEnv, "OMNIROUTE_ISSUE_AGENT_ENABLED=true");
+});
