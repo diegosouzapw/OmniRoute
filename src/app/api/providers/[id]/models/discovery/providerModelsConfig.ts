@@ -148,11 +148,14 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
       const out: Record<string, string> = { ...wire };
       // Keep AgentRouter's own x-api-key auth scheme (#6056); the CC helper
       // adds a Bearer Authorization we must not send.
-      delete out.Authorization;
+      for (const key of Object.keys(out)) {
+        if (key.toLowerCase() === "authorization") delete out[key];
+      }
       if (token) out["x-api-key"] = token;
       return out;
     },
-    parseResponse: (data: any) => data?.data || data?.models || [],
+    parseResponse: (data: any) =>
+      Array.isArray(data) ? data : (data?.data || data?.models || []),
   },
   openai: {
     url: "https://api.openai.com/v1/models",
