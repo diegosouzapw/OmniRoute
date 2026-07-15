@@ -25,6 +25,18 @@ test("filterActiveConnections returns an empty list for invalid input", () => {
   assert.deepEqual(filterActiveConnections(null), []);
 });
 
+test("filterActiveConnections drops nullish entries instead of passing them through", () => {
+  // A nullish element must not survive: callers read properties off the
+  // result (e.g. `connection.testStatus`) and would throw a TypeError.
+  const active = { id: "active", isActive: true };
+
+  assert.deepEqual(filterActiveConnections([null, active, undefined]), [active]);
+  assert.doesNotThrow(() => filterUsableConnections([null, undefined]));
+  assert.deepEqual(filterUsableConnections([null, { id: "ok", testStatus: "active" }]), [
+    { id: "ok", testStatus: "active" },
+  ]);
+});
+
 test("filterUsableConnections applies the isActive gate before the testStatus gate", () => {
   // Regression for the exact bug: a disabled connection with a stale
   // "active" testStatus must NOT survive the combined filter that

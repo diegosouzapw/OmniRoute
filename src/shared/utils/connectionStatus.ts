@@ -16,13 +16,14 @@ export interface ConnectionActiveFlag {
 /**
  * Filters out connections that have been explicitly disabled
  * (`isActive === false`). Connections without an `isActive` field are
- * treated as active for backward compatibility.
+ * treated as active for backward compatibility. Nullish entries are
+ * dropped so callers can safely read properties off the result.
  */
 export function filterActiveConnections<T extends ConnectionActiveFlag>(
   connections: T[] | null | undefined
 ): T[] {
   if (!Array.isArray(connections)) return [];
-  return connections.filter((connection) => connection?.isActive !== false);
+  return connections.filter((connection) => !!connection && connection.isActive !== false);
 }
 
 /**
