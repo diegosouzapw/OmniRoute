@@ -9036,7 +9036,14 @@
     "colScore": "__MISSING__:Score",
     "colAvgScore": "__MISSING__:Avg Score",
     "colModels": "__MISSING__:Models",
-    "colType": "__MISSING__:Type"
+    "colType": "__MISSING__:Type",
+    "typeAll": "__MISSING__:All Types",
+    "typeNoauth": "__MISSING__:No Signup",
+    "typeOauth": "__MISSING__:OAuth Login",
+    "typeApikey": "__MISSING__:API Key",
+    "sortTypeFirst": "__MISSING__:Easiest first",
+    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   },
   "disabled": "Disabilitato",
   "discovery": {

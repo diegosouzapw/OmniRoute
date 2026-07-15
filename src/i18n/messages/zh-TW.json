@@ -9047,7 +9047,14 @@
     "configuredOnly": "__MISSING__:Configured Only",
     "configuredOnlyHint": "__MISSING__:Show only providers with active connections",
     "noConfiguredProviders": "__MISSING__:No configured providers found. Add a provider connection first.",
-    "colConfigured": "__MISSING__:Status"
+    "colConfigured": "__MISSING__:Status",
+    "typeAll": "__MISSING__:All Types",
+    "typeNoauth": "__MISSING__:No Signup",
+    "typeOauth": "__MISSING__:OAuth Login",
+    "typeApikey": "__MISSING__:API Key",
+    "sortTypeFirst": "__MISSING__:Easiest first",
+    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   },
   "discovery": {
     "title": "__MISSING__:Provider Discovery",

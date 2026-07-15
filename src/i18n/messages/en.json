@@ -9162,7 +9162,14 @@
     "configuredOnly": "Configured Only",
     "configuredOnlyHint": "Show only providers with active connections",
     "noConfiguredProviders": "No configured providers found. Add a provider connection first.",
-    "colConfigured": "Status"
+    "colConfigured": "Status",
+    "typeAll": "All Types",
+    "typeNoauth": "No Signup",
+    "typeOauth": "OAuth Login",
+    "typeApikey": "API Key",
+    "sortTypeFirst": "Easiest first",
+    "sortTypeFirstHelp": "Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   },
   "discovery": {
     "title": "Provider Discovery",

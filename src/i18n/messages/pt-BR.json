@@ -9162,7 +9162,14 @@
     "configuredOnly": "Somente configurados",
     "configuredOnlyHint": "Mostrar apenas provedores com conexões ativas",
     "noConfiguredProviders": "Nenhum provedor configurado encontrado. Adicione uma conexão de provedor primeiro.",
-    "colConfigured": "Status"
+    "colConfigured": "Status",
+    "typeAll": "__MISSING__:All Types",
+    "typeNoauth": "__MISSING__:No Signup",
+    "typeOauth": "__MISSING__:OAuth Login",
+    "typeApikey": "__MISSING__:API Key",
+    "sortTypeFirst": "__MISSING__:Easiest first",
+    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   },
   "discovery": {
     "title": "Descoberta de provedores",
