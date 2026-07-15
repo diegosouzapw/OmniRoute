@@ -31,6 +31,7 @@ import {
   pollComfyResult,
   fetchComfyOutput,
   extractComfyOutputFiles,
+  resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { sanitizeErrorMessage } from "../utils/error.ts";
@@ -67,7 +68,16 @@ export async function handleVideoGeneration({ body, credentials, log }) {
   }
 
   if (providerConfig.format === "comfyui") {
-    return handleComfyUIVideoGeneration({ model, provider, providerConfig, body, log });
+    return handleComfyUIVideoGeneration({
+      model,
+      provider,
+      providerConfig: {
+        ...providerConfig,
+        baseUrl: resolveComfyUiBaseUrl(credentials, providerConfig.baseUrl),
+      },
+      body,
+      log,
+    });
   }
 
   if (providerConfig.format === "sdwebui-video") {

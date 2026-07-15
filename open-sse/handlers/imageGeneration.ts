@@ -39,6 +39,7 @@ import {
   pollComfyResult,
   fetchComfyOutput,
   extractComfyOutputFiles,
+  resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
 import { FetchTimeoutError, fetchWithTimeout, getConfiguredTimeout } from "@/shared/utils/fetchTimeout";
@@ -486,7 +487,16 @@ export async function handleImageGeneration({
   }
 
   if (providerConfig.format === "comfyui") {
-    return handleComfyUIImageGeneration({ model, provider, providerConfig, body, log });
+    return handleComfyUIImageGeneration({
+      model,
+      provider,
+      providerConfig: {
+        ...providerConfig,
+        baseUrl: resolveComfyUiBaseUrl(credentials, providerConfig.baseUrl),
+      },
+      body,
+      log,
+    });
   }
 
   if (providerConfig.format === "codex-responses") {

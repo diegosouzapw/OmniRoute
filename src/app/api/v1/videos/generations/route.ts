@@ -90,6 +90,14 @@ async function postHandler(request, context) {
     if (isAllRateLimitedCredentials(credentials)) {
       return rateLimitedProviderResponse(provider, credentials);
     }
+  } else if (providerConfig && providerConfig.authType === "none") {
+    // #6928: best-effort per-connection base-URL override lookup for local
+    // no-auth media providers (ComfyUI). Never hard-fails when no connection
+    // exists — local providers must keep working with zero configuration.
+    const localCredentials = await getProviderCredentialsWithQuotaPreflight(provider);
+    if (localCredentials && !isAllRateLimitedCredentials(localCredentials)) {
+      credentials = localCredentials;
+    }
   }
 
   const result = await handleVideoGeneration({ body, credentials, log });

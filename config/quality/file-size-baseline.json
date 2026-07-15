@@ -1,4 +1,5 @@
 {
+  "_rebaseline_2026_07_14_6928_comfyui_baseurl_override": "Issue #6928 own growth: open-sse/handlers/videoGeneration.ts 1265->1275 (+10 = resolveComfyUiBaseUrl import + expanding the comfyui dispatch call into a multi-line object literal so the per-connection providerSpecificData.baseUrl override — same storage convention self-hosted chat providers use — is threaded through to handleComfyUIVideoGeneration; Prettier's 100-char width forces the multi-line form), src/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers.ts 1053->1054 (+1 = comfyui added to CONFIGURABLE_BASE_URL_PROVIDERS/DEFAULT_PROVIDER_BASE_URLS/getProviderBaseUrlPlaceholder so the Add/Edit connection modals render an editable base-URL field for ComfyUI, mirroring self-hosted chat providers). The identical dispatch pattern was also applied to imageGeneration.ts and musicGeneration.ts, both well under their frozen caps. Covered by tests/unit/comfyui-baseurl-override-6928.test.ts (resolver unit tests + handler-level fetch-mock overrides for image/video/music) and the new provider-page-helpers-3501.test.ts assertion.",
   "_rebaseline_2026_07_07_v3846_proxy_insecure_random": "PR #6580 (v3.8.46 post-release closing fix): proxies.ts 1173->1177 (+4) — o fix de segurança CodeQL #698/#699 troca Math.random por crypto.randomInt no random rotation strategy (#6365) e adiciona 4 linhas de comentário explicando por que (a seleção flui para credenciais do proxy). Crescimento irreducivel do proprio fix; frozen so encolhe daqui.",
   "_rebaseline_2026_07_07_v3846_release_close": "Release v3.8.46 Phase 0 (generate-release) — drift de ciclo absorvido no fechamento (fast-gates PR->release nao rodam check:file-size). PROD god-files crescidos por merges do ciclo (nao meus; DECOMPOR idealmente, debt #3501): proxies.ts 1060->1173, chat.ts 1681->1751, ApiManagerPageClient.tsx 3058->3120, ProxyRegistryManager.tsx 1125->1437 (feature de proxy). TEST frozen: models-catalog-route.test.ts 1600->1605 (+5 do fix#2 do captain, #6408 catalogo cache), vscode-token-routes.test.ts 1212->1285 (cycle drift + os asserts effort_tiers/supportsThinking do #6241 alinhados no release-PR-CI base-red), que adiciona o import + 2 chamadas do hook __resetCatalogBuilderRunsForTest existente no setup (harness, sem asserts). Shrink estrutural rastreado no roadmap #3501.",
   "_rebaseline_2026_07_04_v3844_release_close": "Release v3.8.44 Phase 0 (generate-release): drift de ciclo absorvido no fechamento, medido no tip 415d159c8 (fast-gates PR->release nao rodam check:file-size). oauth/[provider]/[action]/route.ts 924->960 (#6054 zed keychain-import 400 gracioso; PR #6158 aberto extrai o guard e restaura o freeze — quando mergear, o frozen so encolhe), providerLimits.ts 982->998 (#6139 TOCTOU quota recovery + #6128), chat.ts 1647->1662 (#6057 per-request Auto-Combo X-OmniRoute-Mode/Budget + #6097), auth.ts 2405->2426 (#6139 + #6090 quota preflight lockouts + #5943 codex session affinity). Crescimento irreducivel em chokepoints existentes, coberto por testes por-PR; shrink estrutural rastreado no roadmap #3501.",
@@ -162,7 +163,7 @@
     "open-sse/handlers/responseSanitizer.ts": 1139,
     "open-sse/handlers/search.ts": 1546,
     "open-sse/handlers/sseParser.ts": 830,
-    "open-sse/handlers/videoGeneration.ts": 1265,
+    "open-sse/handlers/videoGeneration.ts": 1275,
     "open-sse/mcp-server/schemas/tools.ts": 1497,
     "open-sse/mcp-server/server.ts": 1555,
     "open-sse/mcp-server/tools/advancedTools.ts": 1120,
@@ -213,7 +214,7 @@
     "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderConnections.ts": 954,
     "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderModels.ts": 155,
     "src/app/(dashboard)/dashboard/providers/[id]/hooks/useProviderSettings.ts": 264,
-    "src/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers.ts": 1053,
+    "src/app/(dashboard)/dashboard/providers/[id]/providerPageHelpers.ts": 1054,
     "src/app/(dashboard)/dashboard/providers/components/onboarding/ProviderOnboardingWizard.tsx": 912,
     "src/app/(dashboard)/dashboard/providers/page.tsx": 1927,
     "src/app/(dashboard)/dashboard/runtime/RuntimePageClient.tsx": 1201,
