@@ -66,6 +66,7 @@ interface CompressionConfig {
   // The panel currently surfaces the computed target read-only; mode/policy editors are a
   // follow-up (the load/save path does not yet populate this field).
   contextBudget?: ContextBudgetConfig;
+  liveZone?: { enabled: boolean };
 }
 
 const CAVEMAN_OUTPUT_LEVELS: CavemanIntensity[] = ["lite", "full", "ultra"];
@@ -80,6 +81,7 @@ const DEFAULT_CONFIG: CompressionConfig = {
   outputStyles: [],
   ultraEngine: "heuristic",
   ultraSlmPrewarm: false,
+  liveZone: { enabled: false },
 };
 
 function normalizeEngines(raw: unknown): Record<string, EngineToggle> {
@@ -478,6 +480,26 @@ export default function CompressionPanel() {
             <option value="whenNoCache">{t("compressionPreserveSystemWhenNoCache")}</option>
             <option value="never">{t("compressionPreserveSystemNever")}</option>
           </select>
+        </label>
+        <label className="flex items-center justify-between gap-4">
+          <span className="space-y-0.5">
+            <span className="block text-sm text-text-muted">
+              {uiLang === "de" ? "Cache-ausgerichtete Live Zone" : "Cache-aligned Live Zone"}
+            </span>
+            <span className="block text-xs text-text-muted">
+              {uiLang === "de"
+                ? "Hält den komprimierten Gesprächspräfix stabil und verarbeitet nur neu angehängte Einträge."
+                : "Keep the compressed conversation prefix stable and process only newly appended items."}
+            </span>
+          </span>
+          <Toggle
+            size="sm"
+            checked={config.liveZone?.enabled === true}
+            onChange={(enabled) => save({ liveZone: { enabled } })}
+            ariaLabel={
+              uiLang === "de" ? "Cache-ausgerichtete Live Zone" : "Cache-aligned Live Zone"
+            }
+          />
         </label>
       </div>
     </Card>
