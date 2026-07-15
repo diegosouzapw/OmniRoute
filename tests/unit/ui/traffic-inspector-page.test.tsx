@@ -1,7 +1,7 @@
 /**
  * Smoke tests for Traffic Inspector page structure and constants
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 
 describe("Traffic Inspector page smoke tests", () => {
