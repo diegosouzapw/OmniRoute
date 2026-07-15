@@ -709,11 +709,7 @@ export class DefaultExecutor extends BaseExecutor {
     if (typeof withDefaults === "object" && withDefaults !== null) {
       const bodyRecord = withDefaults as Record<string, unknown>;
       const outboundModel = typeof bodyRecord.model === "string" ? bodyRecord.model : model;
-      withDefaults = mapNvidiaGlm52ReasoningParams(
-        bodyRecord,
-        this.provider,
-        outboundModel
-      ) as typeof withDefaults;
+      withDefaults = mapNvidiaGlm52ReasoningParams(bodyRecord, this.provider, outboundModel);
       stripUnsupportedParams(this.provider, outboundModel, withDefaults as Record<string, unknown>);
     }
 
