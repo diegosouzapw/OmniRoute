@@ -2093,16 +2093,19 @@ export async function handleChatCore({
     log
   );
 
-  // GPT-5.x reasoning models (raw openai Chat Completions) also reject function `tools`
-  // combined with an active `reasoning_effort`: HTTP 400 "Function tools with
-  // reasoning_effort are not supported ... Please use /v1/responses instead." Unlike the
-  // openai-compatible-* MCP/tool_search shape (forceResponsesUpstream.ts), the plain
-  // `openai` provider always stays on /chat/completions, so strip the reasoning fields
-  // here instead of rerouting. Port of 9router#2540.
+  // GPT-5.x reasoning models on the raw openai Chat Completions surface reject function
+  // `tools` combined with an active `reasoning_effort`: HTTP 400 "Function tools with
+  // reasoning_effort are not supported ... Please use /v1/responses instead." This used to
+  // be true for every GPT-5.x model on the plain `openai` provider, but #7242 (targetFormat
+  // "openai-responses" on GPT_5_6_API_CAPABILITIES) now routes the GPT-5.6 family to
+  // /v1/responses instead, which accepts tools + reasoning natively — so the strip must not
+  // fire there. Pass the already-resolved `targetFormat` so the guard gates on the actual
+  // upstream surface for this request instead of a model-name list. Port of 9router#2540.
   translatedBody = stripGpt5ReasoningWhenTools(
     translatedBody,
     provider,
     finalModelToUpstream,
+    targetFormat,
     log
   );
 
