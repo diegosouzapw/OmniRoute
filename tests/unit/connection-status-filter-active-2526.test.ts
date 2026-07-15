@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { filterActiveConnections } from "@/shared/utils/connectionStatus";
+import { filterActiveConnections, filterUsableConnections } from "@/shared/utils/connectionStatus";
 
 // Ported from decolua/9router#2526 — the combos builder listed provider
 // connections the user had explicitly disabled, because the page only
@@ -25,23 +25,26 @@ test("filterActiveConnections returns an empty list for invalid input", () => {
   assert.deepEqual(filterActiveConnections(null), []);
 });
 
-test("combos page fetchData filter mirrors filterActiveConnections + testStatus gate", () => {
+test("filterUsableConnections applies the isActive gate before the testStatus gate", () => {
   // Regression for the exact bug: a disabled connection with a stale
-  // "active" testStatus must NOT survive the combined filter used in
-  // src/app/(dashboard)/dashboard/combos/page.tsx fetchData().
+  // "active" testStatus must NOT survive the combined filter that
+  // src/app/(dashboard)/dashboard/combos/page.tsx fetchData() calls.
   const connections = [
     { id: "healthy", isActive: true, testStatus: "active" },
+    { id: "healthy-success", isActive: true, testStatus: "success" },
     { id: "disabled-but-stale-status", isActive: false, testStatus: "active" },
     { id: "disabled-success-status", isActive: false, testStatus: "success" },
     { id: "enabled-not-tested", isActive: true, testStatus: "untested" },
+    { id: "legacy-no-isActive", testStatus: "active" },
   ];
 
-  const result = filterActiveConnections(connections).filter(
-    (c) => c.testStatus === "active" || c.testStatus === "success"
-  );
-
   assert.deepEqual(
-    result.map((c) => c.id),
-    ["healthy"]
+    filterUsableConnections(connections).map((c) => c.id),
+    ["healthy", "healthy-success", "legacy-no-isActive"]
   );
+});
+
+test("filterUsableConnections returns an empty list for invalid input", () => {
+  assert.deepEqual(filterUsableConnections(undefined), []);
+  assert.deepEqual(filterUsableConnections(null), []);
 });

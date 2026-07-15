@@ -13,7 +13,7 @@ import Modal from "@/shared/components/Modal";
 import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
-import { filterActiveConnections } from "@/shared/utils/connectionStatus";
+import { filterUsableConnections } from "@/shared/utils/connectionStatus";
 import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
 import { useComboProxyAssignments } from "./useComboProxyAssignments";
 import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
@@ -771,10 +771,7 @@ export default function CombosPage() {
 
       if (combosRes.ok) setCombos((combosData.combos || []).filter((c) => !c.isHidden));
       if (providersRes.ok) {
-        const active = filterActiveConnections(providersData.connections || []).filter(
-          (c) => c.testStatus === "active" || c.testStatus === "success"
-        );
-        setActiveProviders(active);
+        setActiveProviders(filterUsableConnections(providersData.connections || []));
       }
       if (metricsRes.ok) setMetrics(metricsData.metrics || {});
       setProviderNodes(nodesData.nodes || []);

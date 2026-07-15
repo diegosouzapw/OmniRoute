@@ -24,3 +24,17 @@ export function filterActiveConnections<T extends ConnectionActiveFlag>(
   if (!Array.isArray(connections)) return [];
   return connections.filter((connection) => connection?.isActive !== false);
 }
+
+/**
+ * Filters connections down to the ones a builder UI can actually route to:
+ * enabled (`isActive !== false`) AND last tested healthy ("active"/"success").
+ * Both gates must be applied together — filtering on `testStatus` alone keeps
+ * disabled connections that carry a stale healthy status.
+ */
+export function filterUsableConnections<T extends ConnectionActiveFlag>(
+  connections: T[] | null | undefined
+): T[] {
+  return filterActiveConnections(connections).filter(
+    (connection) => connection.testStatus === "active" || connection.testStatus === "success"
+  );
+}
