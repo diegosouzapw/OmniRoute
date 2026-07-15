@@ -211,6 +211,35 @@ function hashContent(text: string): string {
   return crypto.createHash("sha256").update(text).digest("hex").slice(0, 24);
 }
 
+function rejectStore(
+  hash: string,
+  owner: string,
+  reason: Exclude<StoreCcrBlockResult, { stored: true }>["reason"]
+): StoreCcrBlockResult {
+  mutableLifecycleCounters(owner).rejectedStores++;
+  return { stored: false, hash, reason };
+}
+
+function enforcePrincipalBudget(owner: string, bytes: number): boolean {
+  while (
+    principalBytes(owner) + bytes > MAX_CCR_PRINCIPAL_BYTES &&
+    evictOldestMatching((entry) => entry.principalId === owner)
+  ) {
+    // Evict the owner's least-recently-used entries until this block fits.
+  }
+  return principalBytes(owner) + bytes <= MAX_CCR_PRINCIPAL_BYTES;
+}
+
+function enforceGlobalBudget(bytes: number): boolean {
+  while (
+    (ccrStore.size >= MAX_CCR_ENTRIES || ccrTotalBytes + bytes > MAX_CCR_GLOBAL_BYTES) &&
+    evictOldestMatching(() => true)
+  ) {
+    // Enforce both entry and global byte caps with LRU eviction.
+  }
+  return ccrTotalBytes + bytes <= MAX_CCR_GLOBAL_BYTES;
+}
+
 /**
  * Store a block in the CCR store under the given principal.
  * Returns the 24-hex content hash (for embedding in the marker).
@@ -237,30 +266,15 @@ export function tryStoreBlock(
 
   const bytes = Buffer.byteLength(text, "utf8");
   if (bytes > MAX_CCR_BLOCK_BYTES) {
-    mutableLifecycleCounters(owner).rejectedStores++;
-    return { stored: false, hash, reason: "block_too_large" };
+    return rejectStore(hash, owner, "block_too_large");
   }
 
-  while (
-    principalBytes(owner) + bytes > MAX_CCR_PRINCIPAL_BYTES &&
-    evictOldestMatching((entry) => entry.principalId === owner)
-  ) {
-    // Evict the owner's least-recently-used entries until this block fits.
-  }
-  if (principalBytes(owner) + bytes > MAX_CCR_PRINCIPAL_BYTES) {
-    mutableLifecycleCounters(owner).rejectedStores++;
-    return { stored: false, hash, reason: "principal_budget_exceeded" };
+  if (!enforcePrincipalBudget(owner, bytes)) {
+    return rejectStore(hash, owner, "principal_budget_exceeded");
   }
 
-  while (
-    (ccrStore.size >= MAX_CCR_ENTRIES || ccrTotalBytes + bytes > MAX_CCR_GLOBAL_BYTES) &&
-    evictOldestMatching(() => true)
-  ) {
-    // Enforce both entry and global byte caps with LRU eviction.
-  }
-  if (ccrTotalBytes + bytes > MAX_CCR_GLOBAL_BYTES) {
-    mutableLifecycleCounters(owner).rejectedStores++;
-    return { stored: false, hash, reason: "global_budget_exceeded" };
+  if (!enforceGlobalBudget(bytes)) {
+    return rejectStore(hash, owner, "global_budget_exceeded");
   }
 
   const ttlSeconds = normalizeTtlSeconds(options.ttlSeconds);
