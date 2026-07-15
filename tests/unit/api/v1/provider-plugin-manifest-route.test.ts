@@ -109,6 +109,30 @@ test("provider plugin manifest route injects service models with a custom reader
   assert.ok(hasModel(cliproxyEntry, "cliproxyapi/model-clone"));
 });
 
+test("provider plugin manifest route injects providers absent from upstream registry", async () => {
+  const manifest = generateProviderPluginManifest();
+  const withModels = await injectServiceModelsIntoManifest(
+    manifest,
+    (toolName: string): ServiceModel[] => {
+      if (toolName === "9router") {
+        return [{ id: "injected-model", name: "Runtime Model", available: true }];
+      }
+      if (toolName === "cliproxyapi") {
+        return [{ id: "proxy-model", name: "Proxy Model", available: true }];
+      }
+      return [];
+    }
+  );
+
+  const nineRouterEntry = getProvider(withModels, "9router");
+  assert.ok(nineRouterEntry);
+  assert.ok(hasModel(nineRouterEntry, "9router/injected-model"));
+
+  const cliproxyEntry = getProvider(withModels, "cliproxyapi");
+  assert.ok(cliproxyEntry);
+  assert.ok(hasModel(cliproxyEntry, "cliproxyapi/proxy-model"));
+});
+
 test("provider plugin manifest route skips unavailable service models", async () => {
   const manifest = withServicePluginEntries(generateProviderPluginManifest());
   const withModels = await injectServiceModelsIntoManifest(

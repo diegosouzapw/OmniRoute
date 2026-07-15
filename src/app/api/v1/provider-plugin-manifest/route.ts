@@ -15,6 +15,47 @@ const SERVICE_BACKEND_EXPOSURE_TOOL_BY_PLUGIN_ID = new Map<string, string>([
   ["cliproxyapi", "cliproxy"],
 ]);
 
+const SERVICE_BACKEND_PROVIDER_TEMPLATE: Record<
+  string,
+  Pick<ProviderPluginManifestEntry, "format" | "executor" | "auth" | "endpoints" | "capabilities" | "passthroughModels" | "sidecar">
+> = {
+  "9router": {
+    format: "openai",
+    executor: "default",
+    auth: { type: "none", header: "authorization" },
+    endpoints: { modelsUrl: "/v1/models" },
+    capabilities: [],
+    passthroughModels: true,
+    sidecar: { eligible: false, reasons: ["runtime provider"] },
+  },
+  cliproxyapi: {
+    format: "openai",
+    executor: "default",
+    auth: { type: "none", header: "authorization" },
+    endpoints: { modelsUrl: "/v1/models" },
+    capabilities: ["passthrough-models"],
+    passthroughModels: true,
+    sidecar: { eligible: false, reasons: ["runtime provider"] },
+  },
+};
+
+function createServiceManifestTemplate(providerId: string): ProviderPluginManifestEntry | null {
+  const entry = SERVICE_BACKEND_PROVIDER_TEMPLATE[providerId];
+  if (!entry) return null;
+
+  return {
+    id: providerId,
+    format: entry.format,
+    executor: entry.executor,
+    auth: entry.auth,
+    endpoints: entry.endpoints,
+    capabilities: [...entry.capabilities],
+    passthroughModels: entry.passthroughModels,
+    models: [],
+    sidecar: entry.sidecar,
+  };
+}
+
 const SERVICE_MODEL_CACHE_HEADERS = {
   ...CORS_HEADERS,
   "Content-Type": "application/json",
@@ -81,8 +122,17 @@ export async function injectServiceModelsIntoManifest(
   reader: (toolName: string) => ServiceModel[] = getServiceModels,
   exposeReader?: (toolName: string) => Promise<boolean> | boolean
 ): Promise<ProviderPluginManifest> {
-  const providers = await Promise.all(
-    manifest.providers.map(async (provider) => {
+  const providers: ProviderPluginManifestEntry[] = [...manifest.providers];
+  for (const providerId of SERVICE_BACKEND_PLUGIN_IDS) {
+    const exists = providers.some((provider) => provider.id === providerId);
+    if (exists) continue;
+
+    const template = createServiceManifestTemplate(providerId);
+    if (template) providers.push(template);
+  }
+
+  const providersWithServiceModels = await Promise.all(
+    providers.map(async (provider) => {
       if (!shouldInjectBackendPluginModels(provider)) return provider;
 
       try {
@@ -112,7 +162,7 @@ export async function injectServiceModelsIntoManifest(
 
   return {
     ...manifest,
-    providers,
+    providers: providersWithServiceModels,
   };
 }
 
