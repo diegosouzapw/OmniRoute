@@ -84,7 +84,7 @@ export interface CcrEntryMetadata {
   retrievalCount: number;
 }
 
-type CcrEntry = CcrEntryMetadata & {
+type CcrEntry = Omit<CcrEntryMetadata, "retrievalCount"> & {
   principalId: string;
   content: string;
 };
@@ -131,6 +131,7 @@ export interface CcrStoreStats {
  * Using a compound key scopes data to the principal that stored it.
  */
 const ccrStore = new Map<string, CcrEntry>();
+const retrievalCounts = new Map<string, number>();
 let ccrTotalBytes = 0;
 type CcrLifecycleCounters = CcrStoreStats["lifecycle"];
 const lifecycleByPrincipal = new Map<string, CcrLifecycleCounters>();
@@ -162,7 +163,19 @@ function mutableLifecycleCounters(principalId: string): CcrLifecycleCounters {
 
 function publicMetadata(entry: CcrEntry): CcrEntryMetadata {
   const { principalId: _principalId, content: _content, ...metadata } = entry;
-  return metadata;
+  return {
+    ...metadata,
+    retrievalCount: retrievalCounts.get(buildStoreKey(entry.hash, entry.principalId)) ?? 0,
+  };
+}
+
+function setRetrievalCount(key: string, count: number): void {
+  if (!retrievalCounts.has(key) && retrievalCounts.size >= MAX_CCR_ENTRIES) {
+    const oldestKey = retrievalCounts.keys().next().value;
+    if (oldestKey !== undefined) retrievalCounts.delete(oldestKey);
+  }
+  retrievalCounts.delete(key);
+  retrievalCounts.set(key, count);
 }
 
 function removeEntry(key: string, reason?: "expired" | "capacity"): boolean {
@@ -290,7 +303,6 @@ export function tryStoreBlock(
     createdAt: now,
     lastAccessedAt: now,
     expiresAt: now + ttlSeconds * 1000,
-    retrievalCount: 0,
   };
   ccrStore.set(key, entry);
   ccrTotalBytes += bytes;
@@ -327,9 +339,7 @@ export function retrieveBlock(hash: string, principalId?: string, now = Date.now
  */
 export function recordRetrieval(hash: string, principalId?: string): void {
   const key = buildStoreKey(hash, principalId);
-  purgeExpired();
-  const entry = ccrStore.get(key);
-  if (entry) entry.retrievalCount++;
+  setRetrievalCount(key, (retrievalCounts.get(key) ?? 0) + 1);
 }
 
 /**
@@ -339,8 +349,7 @@ export function recordRetrieval(hash: string, principalId?: string): void {
  */
 export function shouldSkipCompression(hash: string, principalId?: string): boolean {
   const key = buildStoreKey(hash, principalId);
-  purgeExpired();
-  return (ccrStore.get(key)?.retrievalCount ?? 0) >= RETRIEVAL_THRESHOLD;
+  return (retrievalCounts.get(key) ?? 0) >= RETRIEVAL_THRESHOLD;
 }
 
 /**
@@ -357,8 +366,7 @@ export function effectiveMinChars(
   principalId: string | undefined,
   rampFactor: number
 ): number {
-  purgeExpired();
-  const count = ccrStore.get(buildStoreKey(hash, principalId))?.retrievalCount ?? 0;
+  const count = retrievalCounts.get(buildStoreKey(hash, principalId)) ?? 0;
   if (count >= RETRIEVAL_THRESHOLD) return Number.POSITIVE_INFINITY;
   if (count <= 0 || rampFactor <= 1) return baseMinChars;
   // Linear ramp: count=1 → base·rampFactor; count=2 → base·(1 + 2·(rampFactor−1)); …
@@ -378,6 +386,7 @@ export function resolveRetrievalRampFactor(env: NodeJS.ProcessEnv = process.env)
  */
 export function resetCcrStore(): void {
   ccrStore.clear();
+  retrievalCounts.clear();
   ccrTotalBytes = 0;
   lifecycleByPrincipal.clear();
 }
