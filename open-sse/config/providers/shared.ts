@@ -107,6 +107,10 @@ export interface RegistryEntry {
   /** Override base URL used only for API key validation (e.g., opencode-go validates on zen/v1) */
   testKeyBaseUrl?: string;
   responsesBaseUrl?: string;
+  /** Anthropic-native /v1/messages endpoint (e.g. GitHub Copilot's shim) used
+   *  for models tagged `targetFormat: "claude"` on an otherwise openai-format
+   *  provider — see registry/github/index.ts. */
+  messagesUrl?: string;
   urlSuffix?: string;
   urlBuilder?: (base: string, model: string, stream: boolean) => string;
   authType: string;
@@ -174,6 +178,7 @@ export interface LegacyProvider {
   baseUrl?: string;
   baseUrls?: string[];
   responsesBaseUrl?: string;
+  messagesUrl?: string;
   headers?: Record<string, string>;
   requestDefaults?: ProviderRequestDefaults;
   clientId?: string;
