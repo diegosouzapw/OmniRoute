@@ -226,6 +226,7 @@
       "tests/unit/responses-handler.test.ts",
       "tests/unit/rotation-config-omniroute.test.ts",
       "tests/unit/route-explainability.test.ts",
+      "tests/unit/route-guard-grok-build-settings-local-only.test.ts",
       "tests/unit/route-guard-middleware-local-only.test.ts",
       "tests/unit/route-guard-plugins-local-only.test.ts",
       "tests/unit/route-guard-private-lan.test.ts",
