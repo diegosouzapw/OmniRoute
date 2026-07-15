@@ -592,6 +592,25 @@ export async function pruneStaleSyncedAvailableModelsForProvider(
   return Number(result.changes || 0);
 }
 
+/**
+ * Apply a tri-state boolean override from `updates` onto `next`:
+ * field absent → keep whatever `next` already carries; explicit `null` → clear
+ * the override (callers fall back to their heuristic); anything else → persist
+ * the coerced boolean.
+ */
+function applyTriStateBooleanOverride(
+  next: JsonRecord,
+  updates: Record<string, unknown>,
+  field: string
+): void {
+  if (!Object.prototype.hasOwnProperty.call(updates, field)) return;
+  if (updates[field] === null) {
+    delete next[field];
+    return;
+  }
+  next[field] = Boolean(updates[field]);
+}
+
 export async function updateCustomModel(
   providerId: string,
   modelId: string,
@@ -641,24 +660,10 @@ export async function updateCustomModel(
       : {}),
     ...(updates.isHidden !== undefined ? { isHidden: Boolean(updates.isHidden) } : {}),
   };
-  if (Object.prototype.hasOwnProperty.call(updates, "preserveOpenAIDeveloperRole")) {
-    if (updates.preserveOpenAIDeveloperRole === null) {
-      delete next.preserveOpenAIDeveloperRole;
-    } else {
-      next.preserveOpenAIDeveloperRole = Boolean(updates.preserveOpenAIDeveloperRole);
-    }
-  }
+  applyTriStateBooleanOverride(next, updates, "preserveOpenAIDeveloperRole");
   // #1904: manual vision-capability override — `null` clears back to the
-  // id-based heuristic in getCustomVisionCapabilityFields(); true/false persists
-  // an explicit override so self-hosted backends that don't self-report an
-  // image modality can still be flagged vision-capable (or downgraded).
-  if (Object.prototype.hasOwnProperty.call(updates, "supportsVision")) {
-    if (updates.supportsVision === null) {
-      delete next.supportsVision;
-    } else {
-      next.supportsVision = Boolean(updates.supportsVision);
-    }
-  }
+  // id-based heuristic in getCustomVisionCapabilityFields().
+  applyTriStateBooleanOverride(next, updates, "supportsVision");
   if (updates.compatByProtocol !== undefined) {
     if (mergedCompat && compatByProtocolHasEntries(mergedCompat)) {
       next.compatByProtocol = mergedCompat;
