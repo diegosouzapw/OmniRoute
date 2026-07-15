@@ -27,7 +27,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import type { ConnectionRowConnection } from "../components/ConnectionRow";
 import { normalizeCodexLimitPolicy } from "../providerPageHelpers";
-import { sortConnectionsByAvailability } from "../components/connectionRowHelpers";
+import { useReorderByAvailability } from "./useReorderByAvailability";
 
 // Max connection ids accepted per bulk request — mirrors API-side cap.
 const MAX_BULK_IDS = 100;
@@ -162,9 +162,6 @@ export function useProviderConnections(
 
   // ── token refresh state ─────────────────────────────────────────────────
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
-
-  // ── reorder-by-availability state ───────────────────────────────────────
-  const [reorderingByAvailability, setReorderingByAvailability] = useState(false);
 
   // ────────────────────────────────────────────────────────────────────────
   // Fetch helpers
@@ -613,39 +610,15 @@ export function useProviderConnections(
     }
   };
 
-  /**
-   * Reorder every connection for this provider by availability: connections
-   * whose effective status is active/success move to the top, the rest move
-   * to the bottom, each group keeping its existing relative order (stable
-   * sort — see `sortConnectionsByAvailability`). Persists the new order as
-   * sequential `priority` values via the same PUT endpoint `handleSwapPriority`
-   * already uses, then re-fetches from the server so the UI never runs ahead
-   * of persisted state on a partial failure (#2558 upstream: fzrilsh).
-   */
-  const handleReorderByAvailability = async () => {
-    if (reorderingByAvailability || (connections as any[]).length < 2) return;
-    setReorderingByAvailability(true);
-    const sorted = sortConnectionsByAvailability(connections as any[]);
-    setConnections(sorted as ConnectionRowConnection[]);
-    try {
-      await Promise.all(
-        sorted.map((conn: any, idx: number) =>
-          fetch(`/api/providers/${conn.id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ priority: idx }),
-          })
-        )
-      );
-      await fetchConnections();
-    } catch (error) {
-      console.log("Error reordering connections by availability:", error);
-      notify.error(t("reorderByAvailabilityError"));
-      await fetchConnections();
-    } finally {
-      setReorderingByAvailability(false);
-    }
-  };
+  // Reorder-by-availability toolbar action — extracted to its own hook
+  // (see useReorderByAvailability.ts) to keep this file under the file-size cap.
+  const { reorderingByAvailability, handleReorderByAvailability } = useReorderByAvailability({
+    connections,
+    setConnections,
+    fetchConnections,
+    notify,
+    t,
+  });
 
   // ────────────────────────────────────────────────────────────────────────
   // Selection handlers
