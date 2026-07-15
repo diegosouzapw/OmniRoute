@@ -127,6 +127,13 @@ export const COLLECTORS = [
     glob: "tests/e2e/protocol-clients.test.ts",
     sources: ["scripts/dev/run-protocol-clients-tests.mjs"],
   },
+  // Playwright — suíte de homologação real (npm run homolog, L4 UI): run.mjs invoca
+  // `playwright test -c tests/homolog/ui/playwright.config.ts` (testMatch **/*.spec.ts).
+  {
+    glob: "tests/homolog/ui/*.spec.ts",
+    sources: ["scripts/homolog/run.mjs"],
+    anchors: { "scripts/homolog/run.mjs": "tests/homolog/ui/playwright.config.ts" },
+  },
 ];
 
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

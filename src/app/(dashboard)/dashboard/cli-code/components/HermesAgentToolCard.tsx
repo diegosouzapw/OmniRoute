@@ -47,6 +47,10 @@ export default function HermesAgentToolCard({
   const [previewYaml, setPreviewYaml] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [firstSetupAt, setFirstSetupAt] = useState<string | null>(null);
+  // Model aliases drive the passthrough provider groups (OpenRouter, Requesty,
+  // DGrid, AgentRouter, Charm Hyper, ...) in ModelSelectModal — without them,
+  // those providers never surface in the Hermes Agent role picker (#7151).
+  const [modelAliases, setModelAliases] = useState({});
 
   // Track whether we have already seeded from batchStatus on this expand
   const seededFromBatchRef = useRef(false);
@@ -109,7 +113,18 @@ export default function HermesAgentToolCard({
       });
     }
     loadCurrentConfig();
+    fetchModelAliases();
   }, [isExpanded, batchStatus, loadCurrentConfig]);
+
+  const fetchModelAliases = async () => {
+    try {
+      const res = await fetch("/api/models/alias");
+      const data = await res.json();
+      if (res.ok) setModelAliases(data.aliases || {});
+    } catch (error) {
+      console.warn("Error fetching model aliases:", error);
+    }
+  };
 
   const setRoleSelection = (roleId: string, model: string, provider = "OmniRoute") => {
     setSelections((prev) => ({ ...prev, [roleId]: { model, provider } }));
@@ -522,6 +537,7 @@ export default function HermesAgentToolCard({
         showCombos={true}
         activeProviders={activeProviders}
         alwaysIncludeProviders={HERMES_AGENT_ZERO_CONFIG_PROVIDERS}
+        modelAliases={modelAliases}
       />
     </Card>
   );
