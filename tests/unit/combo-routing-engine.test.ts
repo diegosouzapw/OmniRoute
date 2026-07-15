@@ -870,6 +870,10 @@ test("handleComboChat preserves the first failure status but surfaces the last e
   assert.equal(payload.error.message, "fail:model-b [model-a (500), model-b (429)]");
 });
 
+interface ComboErrorPayload {
+  error: { code?: string; message: string };
+}
+
 test("handleComboChat global comboTimeoutMs stops iterating remaining targets and returns 504 with aggregated diagnostics", async () => {
   const calls: string[] = [];
   const result = await handleComboChat({
@@ -884,7 +888,7 @@ test("handleComboChat global comboTimeoutMs stops iterating remaining targets an
       // must stop instead of trying model-b/model-c.
       config: { maxRetries: 0, comboTimeoutMs: 1 },
     },
-    handleSingleModel: async (_body: any, modelStr: any) => {
+    handleSingleModel: async (_body: unknown, modelStr: string) => {
       calls.push(modelStr);
       // A tiny real delay guarantees Date.now() advances past the 1ms ceiling
       // before the post-target timeout check runs.
@@ -894,11 +898,10 @@ test("handleComboChat global comboTimeoutMs stops iterating remaining targets an
     isModelAvailable: async () => true,
     log: createLog(),
     settings: null,
-    relayOptions: null as any,
     allCombos: null,
   });
 
-  const payload = (await result.json()) as any;
+  const payload = (await result.json()) as ComboErrorPayload;
 
   assert.equal(result.status, 504);
   assert.equal(payload.error.code, "COMBO_TIMEOUT");
@@ -917,7 +920,7 @@ test("handleComboChat comboTimeoutMs=0 (default) never trips the global timeout,
       models: ["model-a", "model-b"],
       config: { maxRetries: 0 }, // comboTimeoutMs defaults to 0 (disabled)
     },
-    handleSingleModel: async (_body: any, modelStr: any) => {
+    handleSingleModel: async (_body: unknown, modelStr: string) => {
       calls.push(modelStr);
       if (modelStr === "model-a") return errorResponse(500, "fail:model-a");
       return okResponse();
@@ -925,7 +928,6 @@ test("handleComboChat comboTimeoutMs=0 (default) never trips the global timeout,
     isModelAvailable: async () => true,
     log: createLog(),
     settings: null,
-    relayOptions: null as any,
     allCombos: null,
   });
 
