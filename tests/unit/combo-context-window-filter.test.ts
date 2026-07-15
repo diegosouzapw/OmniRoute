@@ -254,3 +254,26 @@ test("input-only maxInputTokens still rejects when the input itself exceeds the 
     ["unit-7039-too-small/huge"]
   );
 });
+
+test("maxInputTokens defaulting to contextWindow still rejects when input + output exceeds the total window (#7039 follow-up)", () => {
+  // Shared-window model where maxInputTokens equals the total window size.
+  // The input alone fits the input cap, but input + output overflows the
+  // window, so the target must be rejected instead of passing on the input cap.
+  saveModelsDevCapabilities({
+    "unit-7039-window": {
+      "shared-window": capabilityEntryWithLimits(400_000, 400_000, 200_000),
+      huge: capabilityEntryWithLimits(1_000_000, 1_000_000, 500_000),
+    },
+  });
+
+  const out = filterTargetsByRequestCompatibility(
+    [target("unit-7039-window/shared-window"), target("unit-7039-window/huge")],
+    { messages: [{ role: "user", content: "x".repeat(350_000 * 4) }], max_tokens: 100_000 },
+    noopLog
+  );
+
+  assert.deepEqual(
+    out.map((entry) => entry.modelStr),
+    ["unit-7039-window/huge"]
+  );
+});
