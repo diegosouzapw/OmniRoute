@@ -1063,6 +1063,10 @@ export class AntigravityExecutor extends BaseExecutor {
       try {
         result = await this.executeOnce(input, candidate);
       } catch (error) {
+        // Abort signal (user disconnect) — propagate immediately, do not retry.
+        if (input.signal?.aborted || (error instanceof DOMException && error.name === "AbortError")) {
+          throw error;
+        }
         if (i < chain.length - 1) {
           input.log?.debug?.(
             "AG_PRO_FALLBACK",
