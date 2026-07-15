@@ -535,3 +535,19 @@ export function releaseQualityClone(
   if (clone === original) return;
   void quality.clonedResponse?.body?.cancel().catch(() => {});
 }
+
+/**
+ * Cancel every response branch after a failed quality check when the caller is
+ * discarding the upstream response and falling back to another target.
+ *
+ * Streaming validation cancels its reader, but a reader on a `Response.clone()`
+ * tee cannot cancel the shared source until the untouched original branch is
+ * cancelled too. Best-effort cancellation of both branches also releases an
+ * unread quality clone for non-streaming failures.
+ */
+export function releaseRejectedQualityResponse(clone: Response, original: Response): void {
+  if (clone !== original) {
+    void clone.body?.cancel().catch(() => {});
+  }
+  void original.body?.cancel().catch(() => {});
+}

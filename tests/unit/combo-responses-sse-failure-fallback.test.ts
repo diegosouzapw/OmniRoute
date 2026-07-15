@@ -99,6 +99,68 @@ test("combo advances to the next target after a pre-content Responses SSE failur
   assert.match(await result.text(), /fallback ok/);
 });
 
+test("combo cancels a discarded upstream stream after a pre-content Responses SSE failure", async () => {
+  let resolvePrimaryCancelled: (() => void) | undefined;
+  const primaryCancelled = new Promise<void>((resolve) => {
+    resolvePrimaryCancelled = resolve;
+  });
+  const primary = new Response(
+    new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(encoder.encode(failedResponsesSse()));
+      },
+      cancel() {
+        resolvePrimaryCancelled?.();
+      },
+    }),
+    { status: 200, headers: { "Content-Type": "text/event-stream" } }
+  );
+  const healthy = [
+    "event: response.output_text.delta",
+    `data: ${JSON.stringify({ type: "response.output_text.delta", delta: "fallback ok" })}`,
+    "",
+    "",
+  ].join("\n");
+
+  const result = await handleComboChat({
+    body: { stream: true, messages: [{ role: "user", content: "hello" }] },
+    combo: {
+      name: "responses-sse-failure-cancellation",
+      strategy: "priority",
+      models: [
+        { model: "openai/primary", weight: 0 },
+        { model: "openai/secondary", weight: 0 },
+      ],
+      config: { maxRetries: 0, retryDelayMs: 0 },
+    },
+    handleSingleModel: async (_body: unknown, model: string) =>
+      model.endsWith("/primary") ? primary : sseResponse(healthy),
+    isModelAvailable: async () => true,
+    log: silentLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: null as never,
+  });
+
+  assert.equal(result.ok, true);
+  assert.match(await result.text(), /fallback ok/);
+
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      primaryCancelled,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error("discarded primary stream was not cancelled")),
+          250
+        );
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+});
+
 test("streaming quality still replays normal Responses lifecycle and content", async () => {
   const body = [
     "event: response.created",
