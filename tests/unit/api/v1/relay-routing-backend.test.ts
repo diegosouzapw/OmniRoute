@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   getBifrostRoutingConfig,
   getRoutingFallbackHeader,
@@ -151,4 +152,27 @@ test("relay routing backend strict bifrost bypasses manifest eligibility", () =>
     })),
     { tryBifrost: true }
   );
+});
+
+test("automatic relay keeps the Bifrost timeout active until an SSE stream finalizes", () => {
+  const routeSource = readFileSync(
+    new URL("../../../../src/app/api/v1/relay/chat/completions/route.ts", import.meta.url),
+    "utf8"
+  );
+  const forwardToBifrost = routeSource.slice(
+    routeSource.indexOf("async function forwardToBifrost"),
+    routeSource.indexOf("export async function OPTIONS")
+  );
+  const streamBranch = forwardToBifrost.slice(
+    forwardToBifrost.indexOf("if (wantsStream && upstream.body)"),
+    forwardToBifrost.indexOf("clearTimeout(tid);\n    recordUsage(")
+  );
+
+  assert.match(
+    streamBranch,
+    /finalizeReadableStream\(upstream\.body, \(error\) => \{\s*clearTimeout\(tid\)/
+  );
+  assert.match(streamBranch, /const statusCode = timedOut \? 504 : upstream\.status/);
+  assert.match(streamBranch, /error && backend === "auto"/);
+  assert.match(streamBranch, /recordBifrostFailure\(/);
 });
