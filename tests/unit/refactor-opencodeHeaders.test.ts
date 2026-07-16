@@ -116,6 +116,43 @@ describe("forwardOpencodeClientHeaders – x-opencode-* headers", () => {
   });
 });
 
+// ── agent metadata headers (X-Session-ID / X-Title) — 9router#2413 ─────────
+// Non-OpenCode agent clients (e.g. custom providers) commonly send X-Session-ID
+// and X-Title for upstream request tracking/attribution. These were previously
+// dropped for every client outside the x-opencode-* allowlist.
+
+describe("forwardOpencodeClientHeaders – X-Session-ID / X-Title", () => {
+  it("forwards X-Session-ID from client headers", () => {
+    const headers = h();
+    const clientHeaders = { "X-Session-ID": "sess-xyz" };
+    forwardOpencodeClientHeaders(headers, clientHeaders);
+    assert.equal(headers["x-session-id"], "sess-xyz");
+  });
+
+  it("forwards X-Title from client headers", () => {
+    const headers = h();
+    const clientHeaders = { "X-Title": "My Agent" };
+    forwardOpencodeClientHeaders(headers, clientHeaders);
+    assert.equal(headers["x-title"], "My Agent");
+  });
+
+  it("matches X-Session-ID / X-Title case-insensitively", () => {
+    const headers = h();
+    const clientHeaders = { "x-session-id": "sess-lower", "x-title": "lower title" };
+    forwardOpencodeClientHeaders(headers, clientHeaders);
+    assert.equal(headers["x-session-id"], "sess-lower");
+    assert.equal(headers["x-title"], "lower title");
+  });
+
+  it("still does NOT forward unrelated unknown headers", () => {
+    const headers = h();
+    const clientHeaders = { "X-Session-ID": "sess-1", "X-Random-Other": "nope" };
+    forwardOpencodeClientHeaders(headers, clientHeaders);
+    assert.equal(headers["x-session-id"], "sess-1");
+    assert.equal(headers["X-Random-Other"], undefined);
+  });
+});
+
 // ── synthesizeRequestId ─────────────────────────────────────────────────────
 
 describe("forwardOpencodeClientHeaders – synthesizeRequestId", () => {
