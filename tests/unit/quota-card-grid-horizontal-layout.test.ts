@@ -6,8 +6,11 @@
 // the shipped JSX structure and grouping logic directly:
 //  1. Grouping still produces one header per distinct provider with the
 //     correct account count ("N account(s)").
-//  2. The per-group card grid starts multi-column (`grid-cols-2`), not
-//     single-column, so cards fill horizontal space sooner.
+//  2. The per-group card grid keeps a single-column mobile fallback
+//     (`grid-cols-1`) below the `sm:` breakpoint (restored by #7072 after
+//     PR #6815 dropped it and clipped labels on phone-width viewports),
+//     while still going multi-column (`sm:grid-cols-2`) from `sm:` up so
+//     cards fill horizontal space sooner on larger screens.
 //  3. Provider groups themselves flow into multiple columns on wide screens
 //     (`columns-*`) instead of an unconditional vertical `flex flex-col`
 //     stack.
@@ -104,14 +107,14 @@ test("QuotaCardGrid (#3520) — outer container flows groups into multiple colum
   assert.notEqual(outerClassName, "flex flex-col gap-6");
 });
 
-test("QuotaCardGrid (#3520) — per-group card grid starts multi-column (grid-cols-2), not single-column", () => {
+test("QuotaCardGrid (#3520/#7072) — per-group card grid keeps a mobile grid-cols-1 fallback and goes multi-column from sm: up", () => {
   const classNames = extractDivClassNames(COMPONENT_PATH);
   const cardGridClassName = classNames.find(
     (c) => /\bgrid\b/.test(c) && /grid-cols-/.test(c)
   );
   assert.ok(cardGridClassName, "expected to find the per-group card grid's className");
-  assert.match(cardGridClassName!, /\bgrid-cols-2\b/);
-  assert.doesNotMatch(cardGridClassName!, /\bgrid-cols-1\b/);
+  assert.match(cardGridClassName!, /\bgrid-cols-1\b/);
+  assert.match(cardGridClassName!, /\bsm:grid-cols-2\b/);
 });
 
 test("QuotaCardGrid (#3520) — early-returns null when there are no connections", () => {
