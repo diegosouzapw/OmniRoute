@@ -123,6 +123,7 @@ export default function ProviderDetailPageClient() {
     handleDelete,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
+    handleToggleQuotaVisibility,
     handleToggleClaudeExtraUsage,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
@@ -484,7 +485,10 @@ export default function ProviderDetailPageClient() {
       )}
       {!isUpstreamProxyProvider && !isFreeNoAuth && (
         <Card>
-          <ProviderAccountRoutingCard providerKey={providerId} connectionCount={connections.length} />
+          <ProviderAccountRoutingCard
+            providerKey={providerId}
+            connectionCount={connections.length}
+          />
           <ConnectionsHeaderToolbar
             providerId={providerId}
             providerInfo={providerInfo}
@@ -581,6 +585,7 @@ export default function ProviderDetailPageClient() {
                 handleDelete={handleDelete}
                 handleUpdateConnectionStatus={handleUpdateConnectionStatus}
                 handleToggleRateLimit={handleToggleRateLimit}
+                handleToggleQuotaVisibility={handleToggleQuotaVisibility}
                 handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
                 handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
                 handleToggleCodexLimit={handleToggleCodexLimit}

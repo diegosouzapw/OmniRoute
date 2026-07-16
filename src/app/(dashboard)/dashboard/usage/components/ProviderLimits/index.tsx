@@ -28,6 +28,7 @@ import { formatAutoRefreshCountdown } from "./formatters";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 import { compareTr } from "@/shared/utils/turkishText";
 import { fetchWithTimeout } from "@/shared/utils/fetchTimeout";
+import { isProviderQuotaVisible } from "@/shared/utils/providerQuotaVisibility";
 
 // Bound the two first-paint requests so a stalled connection cannot wedge
 // `initialLoading` on `true` and freeze the quota page on its skeleton forever
@@ -516,6 +517,7 @@ export default function ProviderLimits({
     () =>
       connections.filter(
         (conn) =>
+          isProviderQuotaVisible(conn) &&
           USAGE_SUPPORTED_PROVIDERS.includes(conn.provider) &&
           (conn.authType === "oauth" || conn.authType === "apikey")
       ),

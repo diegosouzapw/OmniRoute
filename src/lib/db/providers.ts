@@ -316,6 +316,7 @@ export async function createProviderConnection(data: JsonRecord) {
     updatedAt: now,
     proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true),
     perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false),
+    quotaVisible: normalizeBooleanColumn(data.quotaVisible, true),
   };
 
   // Optional fields
@@ -347,6 +348,7 @@ export async function createProviderConnection(data: JsonRecord) {
     "maxConcurrent",
     "proxyEnabled",
     "perKeyProxyEnabled",
+    "quotaVisible",
     "quotaWindowThresholds",
     "rateLimitOverrides",
     "healthCheckInterval",
@@ -405,7 +407,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       last_tested, api_key, id_token, provider_specific_data,
       expires_in, display_name, global_priority, default_model,
       token_type, consecutive_use_count, rate_limit_protection, last_used_at, "group", max_concurrent,
-      proxy_enabled, per_key_proxy_enabled, quota_window_thresholds_json, rate_limit_overrides_json,
+      proxy_enabled, per_key_proxy_enabled, quota_visible, quota_window_thresholds_json, rate_limit_overrides_json,
       created_at, updated_at
     ) VALUES (
       @id, @provider, @authType, @name, @email, @priority, @isActive,
@@ -416,7 +418,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       @lastTested, @apiKey, @idToken, @providerSpecificData,
       @expiresIn, @displayName, @globalPriority, @defaultModel,
       @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @group, @maxConcurrent,
-      @proxyEnabled, @perKeyProxyEnabled, @quotaWindowThresholdsJson, @rateLimitOverridesJson,
+      @proxyEnabled, @perKeyProxyEnabled, @quotaVisible, @quotaWindowThresholdsJson, @rateLimitOverridesJson,
       @createdAt, @updatedAt
     )
   `
@@ -463,6 +465,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     maxConcurrent: conn.maxConcurrent ?? null,
     proxyEnabled: normalizeBooleanColumn(conn.proxyEnabled, true) ? 1 : 0,
     perKeyProxyEnabled: normalizeBooleanColumn(conn.perKeyProxyEnabled, false) ? 1 : 0,
+    quotaVisible: normalizeBooleanColumn(conn.quotaVisible, true) ? 1 : 0,
     quotaWindowThresholdsJson: serializeJsonField(conn.quotaWindowThresholds),
     rateLimitOverridesJson: serializeJsonField(conn.rateLimitOverrides),
     createdAt: conn.createdAt,
@@ -494,6 +497,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       quota_window_thresholds_json = @quotaWindowThresholdsJson,
       proxy_enabled = @proxyEnabled,
       per_key_proxy_enabled = @perKeyProxyEnabled,
+      quota_visible = @quotaVisible,
       rate_limit_overrides_json = @rateLimitOverridesJson,
       updated_at = @updatedAt
     WHERE id = @id
@@ -542,6 +546,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     quotaWindowThresholdsJson: serializeJsonField(data.quotaWindowThresholds),
     proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true) ? 1 : 0,
     perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
+    quotaVisible: normalizeBooleanColumn(data.quotaVisible, true) ? 1 : 0,
     rateLimitOverridesJson: serializeJsonField(data.rateLimitOverrides),
     updatedAt: now,
   });
@@ -617,8 +622,9 @@ export async function clearConnectionErrorIfUnchanged(
   }
 ): Promise<boolean> {
   const db = getDbInstance() as unknown as DbLike;
-  const result = db.prepare(
-    `
+  const result = db
+    .prepare(
+      `
     UPDATE provider_connections SET
       test_status = 'active',
       last_error = NULL,
@@ -634,13 +640,14 @@ export async function clearConnectionErrorIfUnchanged(
       AND IFNULL(last_error_at, '') = ?
       AND IFNULL(rate_limited_until, '') = ?
     `
-  ).run(
-    new Date().toISOString(),
-    id,
-    expected.testStatus ?? "",
-    expected.lastErrorAt ?? "",
-    expected.rateLimitedUntil ?? ""
-  );
+    )
+    .run(
+      new Date().toISOString(),
+      id,
+      expected.testStatus ?? "",
+      expected.lastErrorAt ?? "",
+      expected.rateLimitedUntil ?? ""
+    );
   const applied = (result.changes ?? 0) > 0;
   if (applied) {
     backupDbFile("pre-write");

@@ -40,6 +40,7 @@ type ConnectionsListPanelProps = {
   handleDelete: (id: string) => void;
   handleUpdateConnectionStatus: (id: string, isActive: boolean) => void;
   handleToggleRateLimit: (id: string, enabled: boolean) => void;
+  handleToggleQuotaVisibility: (id: string, visible: boolean) => void;
   handleToggleClaudeExtraUsage: (id: string, enabled: boolean) => void;
   handleToggleCliproxyapiMode: (id: string, enabled: boolean) => void;
   handleToggleCodexLimit: (id: string, type: "use5h" | "useWeekly", enabled: boolean) => void;
@@ -97,6 +98,7 @@ export default function ConnectionsListPanel({
   handleDelete,
   handleUpdateConnectionStatus,
   handleToggleRateLimit,
+  handleToggleQuotaVisibility,
   handleToggleClaudeExtraUsage,
   handleToggleCliproxyapiMode,
   handleToggleCodexLimit,
@@ -331,6 +333,7 @@ export default function ConnectionsListPanel({
                 onMoveDown={() => handleSwapPriority(conn, sorted[index + 1])}
                 onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
                 onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                onToggleQuotaVisibility={(visible) => handleToggleQuotaVisibility(conn.id, visible)}
                 onToggleClaudeExtraUsage={(enabled) =>
                   handleToggleClaudeExtraUsage(conn.id, enabled)
                 }
@@ -498,6 +501,9 @@ export default function ConnectionsListPanel({
                     onMoveDown={() => handleSwapPriority(conn, sorted[sorted.indexOf(conn) + 1])}
                     onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
                     onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                    onToggleQuotaVisibility={(visible) =>
+                      handleToggleQuotaVisibility(conn.id, visible)
+                    }
                     onToggleClaudeExtraUsage={(enabled) =>
                       handleToggleClaudeExtraUsage(conn.id, enabled)
                     }

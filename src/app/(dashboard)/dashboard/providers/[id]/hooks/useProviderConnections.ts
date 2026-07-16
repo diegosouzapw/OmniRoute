@@ -26,7 +26,7 @@ import { useTranslations } from "next-intl";
 import { useNotificationStore } from "@/store/notificationStore";
 import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import type { ConnectionRowConnection } from "../components/ConnectionRow";
-import { normalizeCodexLimitPolicy } from "../providerPageHelpers";
+import { normalizeCodexLimitPolicy, providerText } from "../providerPageHelpers";
 
 // Max connection ids accepted per bulk request — mirrors API-side cap.
 const MAX_BULK_IDS = 100;
@@ -69,8 +69,7 @@ export interface UseProviderConnectionsReturn {
   setBatchTestResults: (r: BatchTestResults) => void;
   setConnections: (
     updater:
-      | ConnectionRowConnection[]
-      | ((prev: ConnectionRowConnection[]) => ConnectionRowConnection[])
+      ConnectionRowConnection[] | ((prev: ConnectionRowConnection[]) => ConnectionRowConnection[])
   ) => void;
   setProviderNode: (node: any) => void;
 
@@ -82,6 +81,7 @@ export interface UseProviderConnectionsReturn {
   handleDelete: (connectionId: string) => Promise<void>;
   handleUpdateConnectionStatus: (id: string, isActive: boolean) => Promise<void>;
   handleToggleRateLimit: (connectionId: string, enabled: boolean) => Promise<void>;
+  handleToggleQuotaVisibility: (connectionId: string, visible: boolean) => Promise<void>;
   handleToggleClaudeExtraUsage: (connectionId: string, enabled: boolean) => Promise<void>;
   handleToggleCodexLimit: (connectionId: string, field: string, enabled: boolean) => Promise<void>;
   handleToggleCliproxyapiMode: (connectionId: string, enabled: boolean) => Promise<void>;
@@ -357,6 +357,36 @@ export function useProviderConnections(
       }
     } catch (error) {
       console.error("Error toggling rate limit:", error);
+    }
+  };
+
+  const handleToggleQuotaVisibility = async (connectionId: string, visible: boolean) => {
+    try {
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quotaVisible: visible }),
+      });
+      if (!res.ok) {
+        notify.error(
+          providerText(
+            t,
+            "quotaVisibilityUpdateFailed",
+            "Failed to update Provider Quota visibility"
+          )
+        );
+        return;
+      }
+      setConnections((prev) =>
+        prev.map((connection) =>
+          connection.id === connectionId ? { ...connection, quotaVisible: visible } : connection
+        )
+      );
+    } catch (error) {
+      console.error("Error toggling provider quota visibility:", error);
+      notify.error(
+        providerText(t, "quotaVisibilityUpdateFailed", "Failed to update Provider Quota visibility")
+      );
     }
   };
 
@@ -898,6 +928,7 @@ export function useProviderConnections(
     handleDelete,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
+    handleToggleQuotaVisibility,
     handleToggleClaudeExtraUsage,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,

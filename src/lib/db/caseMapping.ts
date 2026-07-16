@@ -37,7 +37,8 @@ export function rowToCamel(row: unknown): JsonRecord | null {
       camelKey === "isActive" ||
       camelKey === "rateLimitProtection" ||
       camelKey === "proxyEnabled" ||
-      camelKey === "perKeyProxyEnabled"
+      camelKey === "perKeyProxyEnabled" ||
+      camelKey === "quotaVisible"
     ) {
       result[camelKey] = v === 1 || v === true;
     } else if (camelKey === "providerSpecificData" && typeof v === "string") {

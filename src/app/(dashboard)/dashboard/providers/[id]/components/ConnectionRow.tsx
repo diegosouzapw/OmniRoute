@@ -43,6 +43,7 @@ export interface ConnectionRowConnection {
   authType?: string;
   proxyEnabled?: boolean;
   perKeyProxyEnabled?: boolean;
+  quotaVisible?: boolean;
 }
 
 export interface ConnectionRowProps {
@@ -59,6 +60,7 @@ export interface ConnectionRowProps {
   onMoveDown: () => void;
   onToggleActive: (isActive?: boolean) => void | Promise<void>;
   onToggleRateLimit: (enabled?: boolean) => void;
+  onToggleQuotaVisibility?: (visible: boolean) => void;
   onToggleClaudeExtraUsage?: (enabled?: boolean) => void;
   onToggleCodex5h?: (enabled?: boolean) => void;
   onToggleCodexWeekly?: (enabled?: boolean) => void;
@@ -342,6 +344,7 @@ export default function ConnectionRow({
   onMoveDown,
   onToggleActive,
   onToggleRateLimit,
+  onToggleQuotaVisibility,
   onToggleClaudeExtraUsage,
   onToggleCodex5h,
   onToggleCodexWeekly,
@@ -442,6 +445,7 @@ export default function ConnectionRow({
 
   const statusPresentation = getStatusPresentation(connection, effectiveStatus, isCooldown, t);
   const rateLimitEnabled = !!connection.rateLimitProtection;
+  const quotaVisible = connection.quotaVisible !== false;
   const codexPolicy =
     connection.providerSpecificData &&
     typeof connection.providerSpecificData === "object" &&
@@ -612,6 +616,52 @@ export default function ConnectionRow({
               <span className="material-symbols-outlined text-[13px]">shield</span>
               {rateLimitEnabled ? t("rateLimitProtected") : t("rateLimitUnprotected")}
             </button>
+            {onToggleQuotaVisibility && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  type="button"
+                  onClick={() => onToggleQuotaVisibility(!quotaVisible)}
+                  aria-pressed={quotaVisible}
+                  aria-label={
+                    quotaVisible
+                      ? providerText(
+                          t,
+                          "hideConnectionFromProviderQuota",
+                          "Hide this account from Provider Quota"
+                        )
+                      : providerText(
+                          t,
+                          "showConnectionInProviderQuota",
+                          "Show this account in Provider Quota"
+                        )
+                  }
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    quotaVisible
+                      ? "bg-sky-500/15 text-sky-500 hover:bg-sky-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title={
+                    quotaVisible
+                      ? providerText(
+                          t,
+                          "hideConnectionFromProviderQuota",
+                          "Hide this account from Provider Quota"
+                        )
+                      : providerText(
+                          t,
+                          "showConnectionInProviderQuota",
+                          "Show this account in Provider Quota"
+                        )
+                  }
+                >
+                  <span className="material-symbols-outlined text-[13px]">
+                    {quotaVisible ? "visibility" : "visibility_off"}
+                  </span>
+                  {providerText(t, "providerQuotaShort", "Quota")}
+                </button>
+              </>
+            )}
             {isClaude && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
