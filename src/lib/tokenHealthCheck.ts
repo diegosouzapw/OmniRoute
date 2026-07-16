@@ -25,6 +25,7 @@ import {
   refreshCopilotToken,
 } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const TICK_MS = 60 * 1000; // sweep interval: every 60 seconds
@@ -38,14 +39,6 @@ function isBuildProcess(): boolean {
   return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
 }
 
-function isAutomatedTestProcess(): boolean {
-  return (
-    typeof process !== "undefined" &&
-    (process.env.NODE_ENV === "test" ||
-      process.env.VITEST !== undefined ||
-      process.argv.some((arg) => arg.includes("test")))
-  );
-}
 
 function getConnectionLogLabel(conn: { name?: string; email?: string; id?: string }): string {
   return pickMaskedDisplayValue([conn.name, conn.email], conn.id || "-");
