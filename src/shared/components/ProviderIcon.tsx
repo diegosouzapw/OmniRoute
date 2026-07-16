@@ -278,6 +278,8 @@ const THEMED_SVGS: Record<string, { light: string; dark: string }> = {
 };
 
 const PROVIDER_ICON_ALIASES: Record<string, string> = {
+  "opencode-go": "opencode",
+  "opencode-zen": "opencode",
   "poe-web": "poe",
 };
 

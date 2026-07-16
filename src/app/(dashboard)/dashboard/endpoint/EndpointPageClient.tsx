@@ -1250,7 +1250,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
         options={ENDPOINT_TABS}
         value={activeEndpointTab}
         onChange={(value) => setActiveEndpointTab(value as EndpointTab)}
-        aria-label="Endpoint sections"
+        aria-label={t("endpointSections")}
         className="w-fit"
       />
 

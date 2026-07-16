@@ -136,9 +136,11 @@ export default function FeatureFlagsGrid() {
         (f) =>
           debouncedSearch === "" ||
           matchesSearch(f.key, debouncedSearch) ||
-          matchesSearch(f.description, debouncedSearch)
+          matchesSearch(f.description, debouncedSearch) ||
+          (t.has(`definitions.${f.key}.description`) &&
+            matchesSearch(t(`definitions.${f.key}.description`), debouncedSearch))
       );
-  }, [flags, debouncedSearch, category]);
+  }, [flags, debouncedSearch, category, t]);
 
   const handleToggle = useCallback(
     async (key: string, newValue: string) => {

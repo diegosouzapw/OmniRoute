@@ -3,6 +3,51 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
+const ENGINE_TRANSLATIONS: Record<string, string> = {
+  loading: "Loading…",
+  loadFailed: "Failed to load engine information.",
+  engineNotFound: 'Engine "{engine}" not found.',
+  saveFailed: "Failed to save configuration.",
+  previewFailed: "Preview failed.",
+  previewSample: "Preview sample",
+  panelPointerPrefix: "Turn this layer on or off and set its level in",
+  compressionSettings: "Compression Settings",
+  panelPointerSuffix: ". This page edits its detailed configuration only.",
+  configuration: "Configuration",
+  noAdditionalConfiguration: "No additional configuration.",
+  save: "Save",
+  saving: "Saving…",
+  globalSettingsOnly: "Configured globally.",
+  preview: "Preview",
+  previewInput: "Preview input",
+  processing: "Processing…",
+  originalTokens: "Original tokens",
+  compressedTokens: "Compressed tokens",
+  savings: "Savings",
+  original: "Original",
+  compressed: "Compressed",
+  diff: "Diff",
+  last7Days: "Last 7 days",
+  noDataYet: "No data yet",
+  runs: "Runs",
+  tokensSaved: "Tokens saved",
+  averageSavings: "Average savings",
+};
+
+vi.mock("next-intl", () => ({
+  useLocale: () => "en",
+  useTranslations: () => translateEngineMessage,
+}));
+
+const translateEngineMessage = (key: string, values?: Record<string, unknown>) => {
+  const template = ENGINE_TRANSLATIONS[key] ?? key;
+  return Object.entries(values ?? {}).reduce(
+    (text, [name, value]) => text.replaceAll(`{${name}}`, String(value)),
+    template
+  );
+};
+translateEngineMessage.has = (key: string) => Object.hasOwn(ENGINE_TRANSLATIONS, key);
+
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 const containers: HTMLElement[] = [];

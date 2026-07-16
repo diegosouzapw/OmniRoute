@@ -910,7 +910,27 @@
     "wizardValidationErrorCount": "Phát hiện {count} lỗi",
     "wizardValidationDuplicateIds": "Phát hiện custom_id trùng lặp:",
     "wizardValidationFirstErrors": "Các lỗi (hiển thị {count} lỗi đầu):",
-    "wizardValidationLine": "Dòng {line}"
+    "wizardValidationLine": "Dòng {line}",
+    "selectOption": "Chọn một tùy chọn",
+    "previousPage": "Trang trước",
+    "nextPage": "Trang sau",
+    "allProvidersAdded": "Đã thêm tất cả nhà cung cấp",
+    "noProvidersFound": "Không tìm thấy nhà cung cấp",
+    "batchFileDetailLoadError": "Lỗi khi tải nội dung tập tin",
+    "batchFilesCount": "{count} tập tin",
+    "batchFilesAllPurposes": "Tất cả mục đích",
+    "batchFilesFilename": "Tên tập tin",
+    "batchFilesPurpose": "Mục đích",
+    "batchFilesExpires": "Hết hạn",
+    "batchFilesNoneFound": "Không tìm thấy tập tin nào",
+    "batchFilesNeverExpires": "Không bao giờ",
+    "batchFileInUseByActiveBatch": "Tập tin đang được một lô hoạt động sử dụng",
+    "batchFilePurpose": {
+      "batch": "Đầu vào lô",
+      "batch-output": "Đầu ra lô",
+      "fine-tune": "Tinh chỉnh",
+      "assistants": "Trợ lý"
+    }
   },
   "sidebar": {
     "home": "Trang chủ",
@@ -1999,7 +2019,20 @@
     "routeFallbackTimelineSubtitle": "Suy ra từ nhật ký lệnh gọi đã lưu quanh yêu cầu này",
     "routeRecommendations": "Khuyến nghị",
     "routeLimitations": "Giới hạn",
-    "routeNoKnownLimitations": "Không có giới hạn đã biết cho phần giải thích này."
+    "routeNoKnownLimitations": "Không có giới hạn đã biết cho phần giải thích này.",
+    "activitySummary": "{active} ngày hoạt động · {tokens} token · {days} ngày",
+    "activityCellTitle": "{date}: {tokens} token",
+    "activityLess": "Ít hơn",
+    "activityMore": "Nhiều hơn",
+    "chartApiKeyBreakdown": "Phân tích chi tiết khóa API",
+    "chartApiKey": "Khóa API",
+    "mostActiveDay": "Ngày hoạt động nhiều nhất",
+    "datedTokenCount": "{date} · {tokens} token",
+    "noDataLast7Days": "Không có dữ liệu trong 7 ngày qua",
+    "requestTokenSummary": "{requests} yêu cầu · {tokens} token",
+    "chartByAccount": "Theo tài khoản",
+    "chartByApiKey": "Theo khóa API",
+    "unknownApiKey": "Khóa API không xác định"
   },
   "apiManager": {
     "title": "Khóa API",
@@ -2083,7 +2116,7 @@
     "dayFri": "Th 6",
     "daySat": "Th 7",
     "allowAll": "Cho phép tất cả",
-    "restrict": "Hạn chế",
+    "restrict": "Giới hạn",
     "allowAllInfo": "Khóa này có thể truy cập tất cả các mô hình hiện có.",
     "restrictInfo": "Khóa này có thể truy cập {selected} trong số {total} mô hình.",
     "selected": "{count} đã chọn",
@@ -2168,7 +2201,17 @@
     "normalKeysSection": "Khóa thông thường",
     "quotaKeysSection": "Khóa hạn mức",
     "quotaPill": "HẠN MỨC",
-    "quotaModeOnly": "qtSd-only"
+    "quotaModeOnly": "qtSd-only",
+    "maxActiveSessionsDescription": "0 = không giới hạn. Trả về 429 khi khóa này vượt quá số phiên sticky đồng thời.",
+    "throttleDelay": "Độ trễ điều tiết",
+    "throttleDelayDescription": "Thêm độ trễ cố định trước khi định tuyến yêu cầu của khóa này. 0 = không làm chậm.",
+    "expandClaudeCodeFamilies": "Mở rộng các họ Claude Code",
+    "removeClaudeCodeDefault": "Xóa mặc định Claude Code",
+    "allowedCombos": "Combo được phép",
+    "allCombosAllowed": "Khóa này có thể sử dụng mọi combo.",
+    "restrictedComboCount": "Được giới hạn ở {count} combo.",
+    "bypassProviderQuota": "Bỏ qua ngưỡng hạn ngạch nhà cung cấp",
+    "bypassProviderQuotaDescription": "Cho phép khóa này bỏ qua chính sách ngưỡng của nhà cung cấp/tài khoản thượng nguồn khi định tuyến. Hạn ngạch USD của khóa API vẫn được áp dụng."
   },
   "auditLog": {
     "title": "Nhật ký kiểm tra",
@@ -2272,7 +2315,10 @@
     "downloadFormat": "Tải xuống {format}",
     "noTextReturned": "Không có văn bản trả về",
     "wordTimestamps": "Mốc thời gian từng từ ({count} từ)",
-    "providerCount": "{count} nhà cung cấp"
+    "providerCount": "{count} nhà cung cấp",
+    "imageToText": "Chuyển hình ảnh thành văn bản",
+    "imageToTextComingSoon": "Playground chuyển hình ảnh thành văn bản trực tiếp sẽ khả dụng khi <code>/api/v1/images/understanding</code> được triển khai.",
+    "disabled": "Đã tắt"
   },
   "search": {
     "searchQuery": "Truy vấn tìm kiếm",
@@ -2412,7 +2458,26 @@
     "sharedResult": "Kết quả trùng",
     "overlapSummary": "{first} so với {second}: trùng {overlap}",
     "compareEmptyTitle": "Chọn nhà cung cấp và nhập truy vấn để so sánh",
-    "compareEmptyDescription": "Kết quả sẽ được hiển thị song song kèm độ trễ, chi phí và mức trùng lặp URL"
+    "compareEmptyDescription": "Kết quả sẽ được hiển thị song song kèm độ trễ, chi phí và mức trùng lặp URL",
+    "embedding": "Embedding",
+    "embeddingSample": "Xin chào thế giới!",
+    "image": "Hình ảnh",
+    "imageSample": "Phong cảnh yên bình với núi non lúc hoàng hôn",
+    "music": "Âm nhạc",
+    "musicSample": "Piano jazz sôi động với bộ gõ nhẹ",
+    "noAudioUrl": "Phản hồi không có URL âm thanh: {response}",
+    "documentUrl": "URL tài liệu",
+    "fileTooLarge25Mb": "Tập tin quá lớn — tối đa 25 MB",
+    "selectAudioFirst": "Vui lòng chọn tập tin âm thanh trước.",
+    "speechToText": "Chuyển giọng nói thành văn bản",
+    "chooseFile": "Chọn tập tin…",
+    "audioFormats25Mb": "mp3, wav, m4a, ogg, flac — tối đa 25 MB",
+    "textToSpeech": "Chuyển văn bản thành giọng nói",
+    "ttsSample": "Xin chào, đây là nội dung kiểm tra chuyển văn bản thành giọng nói.",
+    "video": "Video",
+    "videoSample": "Video tua nhanh mây trôi trên dãy núi",
+    "webFetch": "Tải nội dung web",
+    "webSearchSample": "Cổng AI OmniRoute là gì?"
   },
   "cliTools": {
     "title": "Công cụ CLI",
@@ -2839,7 +2904,7 @@
     "copilotReloadInstruction": "Sau đó tải lại VS Code và nhập khóa API khi được yêu cầu.",
     "wireApiChatCompletions": "Chat Completions (/chat/completions)",
     "wireApiResponses": "Responses API (/responses)",
-    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffort": "Mức suy luận",
     "reasoningEffortDefault": "__MISSING__:Default",
     "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
     "reasoningEffortTier": {
@@ -2848,7 +2913,18 @@
       "medium": "__MISSING__:Medium",
       "high": "__MISSING__:High",
       "xhigh": "__MISSING__:XHigh"
-    }
+    },
+    "effortNone": "Không dùng",
+    "effortLow": "Thấp",
+    "effortMedium": "Trung bình",
+    "effortHigh": "Cao",
+    "effortExtraHigh": "Rất cao",
+    "effortMax": "Tối đa",
+    "effortUltra": "Ultra",
+    "wireApi": "Wire API",
+    "modelAliases": "Bí danh mô hình",
+    "addModel": "Thêm mô hình",
+    "routeModelPlaceholder": "Định tuyến {model} tới..."
   },
   "combos": {
     "title": "Combo",
@@ -3393,7 +3469,10 @@
     "playgroundErrorCount": "Lỗi ({count})",
     "playgroundEmptyHint": "Chọn một combo và nhấp <strong>Mô phỏng tuyến</strong> để xem đường định tuyến.",
     "playgroundNoCombosYet": "Chưa cấu hình combo nào.",
-    "playgroundCreateFirst": "Tạo combo trước"
+    "playgroundCreateFirst": "Tạo combo trước",
+    "nestedComboFlatten": "Làm phẳng combo lồng nhau",
+    "nestedComboExecute": "Thực thi combo lồng nhau dưới dạng mục tiêu",
+    "effectiveRoutingShare": "Tỷ lệ định tuyến hiệu dụng (trọng số ÷ tổng)"
   },
   "costs": {
     "title": "Chi phí",
@@ -3742,7 +3821,41 @@
     "obsidianWebdavUrl": "URL WebDAV",
     "obsidianUsername": "Tên người dùng",
     "obsidianPassword": "Mật khẩu",
-    "obsidianTailscaleHint": "Dùng IP Tailscale thay cho localhost khi kết nối từ di động. Cả hai thiết bị phải cùng mạng Tailscale."
+    "obsidianTailscaleHint": "Dùng IP Tailscale thay cho localhost khi kết nối từ di động. Cả hai thiết bị phải cùng mạng Tailscale.",
+    "endpointSections": "Các phần endpoint",
+    "badgeLocal": "CỤC BỘ",
+    "badgeProtected": "ĐƯỢC BẢO VỆ",
+    "badgeInternal": "NỘI BỘ",
+    "catalogLoadFailed": "Yêu cầu danh mục API thất bại với HTTP {status}",
+    "catalogLoadFailedGeneric": "Không thể tải danh mục API",
+    "apiKeysLoadFailed": "Không thể tải khóa API ({status})",
+    "apiKeysLoadFailedGeneric": "Không thể tải khóa API",
+    "apiKeyRevealDisabled": "Tính năng hiển thị khóa API đang tắt (ALLOW_API_KEY_REVEAL). Hãy thay đổi trong trang Cờ tính năng hoặc dán khóa API thủ công.",
+    "apiKeyRevealFailed": "Không thể hiển thị khóa API ({status})",
+    "apiKeyRevealInvalid": "Phản hồi hiển thị khóa API không hợp lệ",
+    "apiKeyRequired": "Endpoint này yêu cầu khóa API.",
+    "requestFailed": "Yêu cầu thất bại ({status})",
+    "errorStatus": "Lỗi",
+    "catalogStats": "{endpoints} endpoint trong {categories} danh mục",
+    "catalogUnavailableDescription": "Không thể tải đặc tả OpenAPI.",
+    "openJsonResponse": "Mở phản hồi JSON",
+    "all": "Tất cả",
+    "more": "+{count} mục khác",
+    "showInternalTooltip": "Hiện hoặc ẩn các tuyến nội bộ (mặc định bị ẩn)",
+    "bearerAuth": "Xác thực Bearer",
+    "requestBody": "Nội dung yêu cầu",
+    "close": "Đóng",
+    "tryIt": "Dùng thử",
+    "example": "Ví dụ",
+    "apiKey": "Khóa API",
+    "switchToSelection": "Chuyển sang lựa chọn",
+    "enterManually": "Nhập thủ công",
+    "pasteApiKey": "Dán khóa API tại đây",
+    "noActiveApiKeys": "Không tìm thấy khóa API đang hoạt động. Hãy chuyển sang nhập thủ công để dán khóa.",
+    "requestBodyJson": "Nội dung yêu cầu (JSON)",
+    "sending": "Đang gửi...",
+    "sendRequest": "Gửi yêu cầu",
+    "dataSchemas": "Lược đồ dữ liệu"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -4171,7 +4284,17 @@
     "uploadJson": "Tải JSON lên",
     "cancel": "Hủy",
     "installSkill": "Cài đặt kỹ năng",
-    "delete": "Xóa"
+    "delete": "Xóa",
+    "selectSkillToInspect": "Chọn một skill ở bên trái để kiểm tra.",
+    "schemaTab": "Schema",
+    "handlerTab": "Handler",
+    "inputSchema": "Schema đầu vào",
+    "outputSchema": "Schema đầu ra",
+    "handlerCode": "Mã handler",
+    "handlerUnavailable": "Không có handler",
+    "runTestPlaceholder": "Chạy kiểm tra (chưa triển khai)",
+    "setModeAria": "Đặt chế độ {mode}",
+    "uninstallSkill": "Gỡ cài đặt skill"
   },
   "health": {
     "title": "Trạng thái hệ thống",
@@ -4286,7 +4409,28 @@
     "issueCount": "{count} sự cố",
     "score": "Điểm số",
     "lastRequest": "Yêu cầu gần nhất",
-    "lastError": "Lỗi gần nhất"
+    "lastError": "Lỗi gần nhất",
+    "databaseHealthDescription": "Chẩn đoán và sửa các dòng hạn ngạch/miền lỗi thời cùng các tham chiếu combo bị hỏng.",
+    "status": "Trạng thái",
+    "attentionNeeded": "Cần chú ý",
+    "repairs": "Mục đã sửa",
+    "repairing": "Đang sửa...",
+    "runAutoRepair": "Chạy tự động sửa",
+    "repairBackupCreated": "Đã tạo bản sao lưu trước khi sửa dữ liệu.",
+    "sessionActivity": "Hoạt động phiên",
+    "activeCount": "{count} đang hoạt động",
+    "requestCount": "{count} yêu cầu",
+    "idleSeconds": "nhàn rỗi {count} giây",
+    "ageSeconds": "đã tồn tại {count} giây",
+    "quotaMonitors": "Trình giám sát hạn ngạch",
+    "alerting": "Đang cảnh báo",
+    "errors": "Lỗi",
+    "degradationFull": "Đầy đủ",
+    "degradationReduced": "Giảm bớt",
+    "degradationMinimal": "Tối thiểu",
+    "degradationDefault": "Mặc định",
+    "sinceTime": "Từ {time}",
+    "retryIn": "thử lại sau {duration}"
   },
   "telemetry": {
     "title": "Dữ liệu đo từ xa của hệ thống",
@@ -4440,7 +4584,20 @@
     "consoleViewer": {
       "fetchFailed": "Không thể tải nhật ký",
       "copyFailed": "Không thể sao chép mục nhật ký",
-      "copyLogEntry": "Sao chép mục nhật ký"
+      "copyLogEntry": "Sao chép mục nhật ký",
+      "filterByLevel": "Lọc theo cấp độ nhật ký",
+      "searchPlaceholder": "Tìm kiếm nhật ký…",
+      "searchAria": "Tìm kiếm các mục nhật ký",
+      "disableAutoScroll": "Tắt tự động cuộn",
+      "enableAutoScroll": "Bật tự động cuộn",
+      "autoScroll": "Tự động cuộn",
+      "entryCount": "{count} mục",
+      "lastHour": "1 giờ gần đây",
+      "updatedAt": "Cập nhật lúc {time}",
+      "fileLoggingRequired": "Hãy đảm bảo ứng dụng đang ghi nhật ký vào tập tin (APP_LOG_TO_FILE=true)",
+      "consoleAria": "Nhật ký bảng điều khiển ứng dụng",
+      "applicationConsole": "Bảng điều khiển ứng dụng",
+      "emptyFileLoggingHint": "Hãy đặt APP_LOG_TO_FILE=true trong tập tin .env"
     },
     "cleanHistoryButton": "Xóa lịch sử",
     "cleanHistoryTitle": "Xóa lịch sử nhật ký?",
@@ -5191,12 +5348,12 @@
     "weeklyShort": "Hàng tuần",
     "xiaomiMimoBaseUrlHint": "Gợi ý URL cơ sở Xiaomi Mimo",
     "zedImportButton": "Nhập từ Zed",
-    "zedImportFailed": "Nhập từ Zed thất bại",
+    "zedImportFailed": "Không thể nhập từ Zed",
     "zedImportHint": "Gợi ý nhập từ Zed",
     "zedImportNetworkError": "Lỗi mạng khi nhập từ Zed",
     "zedImportNone": "Không có dữ liệu nhập từ Zed",
-    "zedImportSuccess": "Nhập từ Zed thành công",
-    "zedImporting": "Đang nhập từ Zed",
+    "zedImportSuccess": "Đã nhập {credentials} thông tin xác thực từ Zed cho {providers} nhà cung cấp",
+    "zedImporting": "Đang nhập…",
     "freeTierProviders": "Nhà cung cấp có gói miễn phí",
     "freeTierLabel": "Có gói miễn phí",
     "freeTierProvidersDesc": "Các nhà cung cấp có gói miễn phí — một số yêu cầu đăng ký khóa API, số khác hoàn toàn không cần thông tin xác thực.",
@@ -5494,7 +5651,231 @@
     "overrideBaseUrlAdvanced": "Nâng cao: ghi đè URL cơ sở",
     "overrideBaseUrlHint": "Nâng cao: trỏ nhà cung cấp tích hợp này đến một endpoint tùy chỉnh. Để trống để sử dụng mặc định.",
     "bulkAddFormatHintCloudflare": "Mỗi dòng một khóa. Định dạng: name|accountId|apiKey (Cloudflare account ID + API token).",
-    "lmarenaWebCookieHint": "Mở arena.ai, đăng nhập, sau đó sao chép toàn bộ header Cookie từ một yêu cầu mạng. Bao gồm arena-auth-prod-v1.0 và arena-auth-prod-v1.1 (và các phần tiếp theo nếu có), ưu tiên kèm theo cf_clearance. Không chỉ dán cookie arena-auth-prod-v1 trống. Tùy chọn: providerSpecificData.recaptchaV3Token nếu create-evaluation vẫn trả về 403."
+    "lmarenaWebCookieHint": "Mở arena.ai, đăng nhập, sau đó sao chép toàn bộ header Cookie từ một yêu cầu mạng. Bao gồm arena-auth-prod-v1.0 và arena-auth-prod-v1.1 (và các phần tiếp theo nếu có), ưu tiên kèm theo cf_clearance. Không chỉ dán cookie arena-auth-prod-v1 trống. Tùy chọn: providerSpecificData.recaptchaV3Token nếu create-evaluation vẫn trả về 403.",
+    "globalCodexServiceMode": "Chế độ dịch vụ Codex toàn cục",
+    "connect": "Kết nối",
+    "manualApiKey": "Khóa API thủ công",
+    "addPat": "Thêm PAT",
+    "experimentalOauth": "OAuth thử nghiệm",
+    "importAuth": "Nhập thông tin xác thực",
+    "importGrokAuth": "Nhập thông tin xác thực Grok Build",
+    "zedImportTitle": "Nhập từ chùm khóa Zed",
+    "zedImportDescription": "Phát hiện thông tin xác thực nhà cung cấp AI (OpenAI, Anthropic, Google, Mistral, xAI) do Zed IDE lưu trong chùm khóa hệ điều hành và nhập thành các kết nối. Máy này phải cài đặt Zed IDE.",
+    "zedNoCredentials": "Không tìm thấy thông tin xác thực Zed trong chùm khóa",
+    "zedUnsupportedCredentials": "Tìm thấy {count} thông tin xác thực trong chùm khóa nhưng không có mục nào khớp với nhà cung cấp được hỗ trợ",
+    "zedManualTitle": "Nhập token thủ công",
+    "zedManualDescription": "Dùng cách này khi OmniRoute chạy trong Docker hoặc không thể truy cập chùm khóa. Dán khóa API mà Zed lưu tại <path>~/.config/zed/settings.json</path>, hoặc sao chép từ bảng cài đặt Zed AI.",
+    "zedPasteApiKey": "Dán khóa API…",
+    "zedSaving": "Đang lưu…",
+    "zedImportAction": "Nhập",
+    "zedManualImportFailed": "Không thể nhập thủ công",
+    "zedManualImportSuccess": "Đã nhập token {provider} từ Zed",
+    "grokImportTitle": "Nhập thông tin xác thực Grok Build",
+    "grokImportDescription": "Nhập tệp Grok Build <authPath>~/.grok/auth.json</authPath>. Bạn có thể lấy tệp bằng cách chạy <command>grok login</command> trong terminal.",
+    "grokUploadFile": "Tải tệp lên",
+    "grokPasteJson": "Dán JSON",
+    "grokInvalidAuth": "Đây không phải tệp auth.json Grok Build hợp lệ. Cần một đối tượng có khóa chứa JWT.",
+    "grokParseFailed": "Không thể phân tích JSON",
+    "grokImportFailed": "Không thể nhập thông tin xác thực Grok Build",
+    "grokImportSuccess": "Đã nhập kết nối Grok Build thành công",
+    "grokValidToken": "Đã phát hiện token Grok Build hợp lệ",
+    "grokRefreshIncluded": "Có refresh token — đã bật tự động gia hạn token",
+    "grokRefreshMissing": "Không tìm thấy refresh token — cần nhập lại khi token hết hạn",
+    "grokConnectionName": "Tên kết nối (không bắt buộc)",
+    "grokSaving": "Đang lưu…",
+    "grokSaveConnection": "Lưu kết nối",
+    "compatBlockedParamsPlaceholder": "thinking, … (phân cách bằng dấu phẩy)",
+    "compatAllowedParamsPlaceholder": "reasoning, … (phân cách bằng dấu phẩy)",
+    "compatSaving": "đang lưu…",
+    "paramFiltersBlockedPlaceholder": "thinking, reasoning_budget, … (phân cách bằng dấu phẩy)",
+    "paramFiltersAllowedPlaceholder": "reasoning, … (phân cách bằng dấu phẩy)",
+    "customGatewayNamePlaceholder": "Gateway của tôi",
+    "inherit": "Kế thừa",
+    "claudeImportEntryName": "mục {number}",
+    "claudeImportParseError": "lỗi phân tích cú pháp",
+    "claudeImportNoValidEntries": "Không có mục hợp lệ để nhập",
+    "onboardingProviderDescriptions": {
+      "360ai": "Lấy khóa API tại ai.360.cn",
+      "agentrouter": "Nhận 200 USD tín dụng miễn phí tại https://agentrouter.org/register — không cần thẻ tín dụng.",
+      "aimlapi": "Gói miễn phí đã tạm dừng (2026) — AI/ML API hiện chỉ tính phí theo mức sử dụng (nạp tối thiểu 20 USD); không còn tín dụng miễn phí định kỳ.",
+      "ai21": "10 USD tín dụng dùng thử khi đăng ký (có hiệu lực 3 tháng), không cần thẻ tín dụng",
+      "alibaba": "Kết nối Alibaba bằng khóa API.",
+      "alibaba-cn": "Kết nối Alibaba (China) bằng khóa API.",
+      "bailian-coding-plan": "Kết nối Alibaba Coding Plan bằng khóa API.",
+      "bedrock": "Tích hợp Bedrock gốc: khám phá mô hình dùng các mô hình nền tảng và hồ sơ suy luận Bedrock, còn trò chuyện dùng API Bedrock Runtime Converse/ConverseStream theo khu vực.",
+      "anthropic": "Kết nối Anthropic bằng khóa API.",
+      "api-airforce": "Lấy khóa API của bạn từ https://panel.api.airforce — OpenAI-compatible endpoint at https://api.airforce/v1",
+      "arcee-ai": "Lấy khóa API tại arcee.ai",
+      "azure-ai": "Foundry dùng giao diện OpenAI v1 với tên deployment làm mô hình. OmniRoute chuẩn hóa URL tài nguyên gốc thành các endpoint trò chuyện v1 và /models.",
+      "azure-openai": "Dùng khóa API Azure OpenAI của bạn. URL cơ sở phải là endpoint tài nguyên, ví dụ https://my-resource.openai.azure.com.",
+      "bai": "Khóa API Bearer cho cổng LLM tương thích OpenAI của b.ai (khác TheB.AI). Tạo khóa tại https://docs.b.ai, rồi dùng https://api.b.ai/v1 làm URL cơ sở tương thích OpenAI.",
+      "baichuan": "Lấy khóa API tại platform.baichuan-ai.com",
+      "baidu": "Lấy khóa API tại console.bce.baidu.com",
+      "qianfan": "Dùng khóa API Qianfan từ Baidu AI Cloud. Endpoint mặc định tương thích OpenAI v2.",
+      "baseten": "30 USD tín dụng dùng thử miễn phí cho suy luận GPU",
+      "bazaarlink": "Tạo khóa API miễn phí tại https://bazaarlink.ai — mô hình 'auto:free' định tuyến tới suy luận không tính phí. Mọi mô hình dùng định dạng provider/model-name, ví dụ xiaomi/mimo-v2.5-pro.",
+      "black-forest-labs": "Kết nối Black Forest Labs bằng khóa API.",
+      "blackbox": "Gói miễn phí: trò chuyện cơ bản không giới hạn cùng Minimax-M2.5, không cần thẻ tín dụng",
+      "bluesminds": "Lấy khóa API tại https://www.bluesminds.com — endpoint tương thích OpenAI tại https://api.bluesminds.com/v1 kèm tín dụng miễn phí hằng ngày. Mô hình VIP (Claude Opus 4.5, Gemini 2.5 Pro) tiêu thụ tín dụng pi.",
+      "byteplus": "Kết nối BytePlus ModelArk bằng khóa API.",
+      "bytez": "1 USD tín dụng miễn phí, làm mới mỗi 4 tuần",
+      "cerebras": "Dùng thử miễn phí: 1 triệu token/ngày, 30 nghìn TPM, 5 RPM — không cần thẻ tín dụng.",
+      "charm-hyper": "Tạo khóa API tại https://hyper.charm.land, rồi dán vào đây dưới dạng token Bearer.",
+      "chutes": "Khóa API Bearer cho cổng Chutes tương thích OpenAI.",
+      "clarifai": "Clarifai cung cấp trò chuyện, Responses và /models tương thích OpenAI tại /v2/ext/openai/v1. Mô hình công khai/cộng đồng thường yêu cầu PAT; khóa theo phạm vi ứng dụng chỉ dùng được cho tài nguyên trong ứng dụng đó.",
+      "cloudflare-ai": "Yêu cầu cả API Token VÀ Account ID (xem tại dash.cloudflare.com)",
+      "codestral": "Kết nối Codestral bằng khóa API.",
+      "cohere": "Dùng thử miễn phí: 1.000 lệnh gọi API/tháng để kiểm thử, không cần thẻ tín dụng",
+      "command-code": "Tạo hoặc sao chép khóa API từ Command Code, rồi dán vào đây dưới dạng token Bearer.",
+      "coze": "Lấy khóa API tại coze.com/open/api",
+      "crof": "Kết nối CrofAI bằng khóa API.",
+      "databricks": "Kết nối Databricks bằng khóa API.",
+      "datarobot": "Cổng mặc định lập danh mục mô hình đang hoạt động từ /genai/llmgw/catalog/. URL deployment cũng được hỗ trợ cho yêu cầu trò chuyện trực tiếp tương thích OpenAI.",
+      "deepinfra": "Tín dụng đăng ký miễn phí để kiểm thử API và khám phá mô hình",
+      "deepseek": "5 triệu token miễn phí khi đăng ký — không cần thẻ tín dụng",
+      "dgrid": "Tạo khóa API DGrid tại https://dgrid.ai, rồi dùng https://api.dgrid.ai/v1 làm URL cơ sở tương thích OpenAI.",
+      "dify": "Lấy khóa API từ instance Dify của bạn.",
+      "digitalocean": "Kết nối DigitalOcean bằng khóa API.",
+      "dit": "dit.ai (Distributed Intelligence Trade) là router/cổng tương thích OpenAI với giá động theo từng yêu cầu, cung cấp /v1/chat/completions tại https://api.dit.ai/v1. OmniRoute dùng giao thức OpenAI; số liệu chi tiêu/tiết kiệm nằm trong bảng điều khiển dit.ai.",
+      "doubao": "Lấy khóa API tại console.volcengine.com",
+      "empower": "Empower cung cấp trò chuyện tương thích OpenAI tại https://app.empower.dev/api/v1, hỗ trợ gọi công cụ trên empower-functions.",
+      "factory": "Lấy khóa API Factory tại https://app.factory.ai/settings/api-keys, rồi dán dưới dạng token Bearer. Endpoint tương thích OpenAI: https://api.factory.ai/v1.",
+      "fal-ai": "Kết nối Fal.ai bằng khóa API.",
+      "featherless-ai": "Có gói miễn phí — không cần thẻ tín dụng",
+      "fenayai": "Khóa API Bearer cho cổng FenayAI tương thích OpenAI.",
+      "firecrawl": "Kết nối Firecrawl bằng khóa API.",
+      "fireworks": "1 USD tín dụng khởi đầu miễn phí khi đăng ký để kiểm thử API",
+      "freeaiapikey": "Proxy API giảm giá cho hơn 40 mô hình, gồm GPT-5, Claude Opus 4.6, Claude Sonnet 4.6 và Qwen 3.5. Lấy khóa API tại https://freeaiapikey.com/dashboard. URL cơ sở: https://freeaiapikey.com/v1.",
+      "freemodel-dev": "Nhận 300 USD tín dụng API miễn phí tại https://freemodel.dev — không cần thông tin thanh toán. Endpoint tương thích OpenAI. Có GPT-5.4 và GPT-5.5.",
+      "friendliai": "Gói miễn phí cho suy luận serverless — không cần thẻ tín dụng",
+      "gemini": "Miễn phí vĩnh viễn: 1.500 yêu cầu/ngày cho Gemini 2.5 Flash — không cần thẻ tín dụng, lấy khóa tại aistudio.google.com",
+      "gigachat": "Kết nối GigaChat (Sber) bằng khóa API.",
+      "github-models": "Tạo GitHub PAT với phạm vi 'models: read' tại github.com/settings/tokens",
+      "gitlab": "Personal access token GitLab cho API Code Suggestions công khai. Cấu hình URL cơ sở tự lưu trữ khi không dùng gitlab.com.",
+      "gitlawb-gmi": "Lấy khóa API của bạn từ Gitlawb Opengateway dashboard.",
+      "gitlawb": "Lấy khóa API của bạn từ Gitlawb Opengateway dashboard.",
+      "glm": "Kết nối GLM Coding bằng khóa API.",
+      "glm-cn": "Kết nối GLM Coding (China) bằng khóa API.",
+      "glmt": "Hồ sơ GLM đặt sẵn với ngân sách token cao hơn, bật thinking và thời gian chờ dài hơn.",
+      "getgoapi": "Kết nối GoAPI bằng khóa API.",
+      "groq": "Gói miễn phí: 30 RPM / 14,4 nghìn RPD — không cần thẻ tín dụng",
+      "hackclub": "Đăng nhập bằng tài khoản Hack Club tại ai.hackclub.com.",
+      "haiper": "Lấy khóa API tại haiper.ai/haiper-api",
+      "heroku": "Kết nối Heroku AI bằng khóa API.",
+      "hcnsec": "Lấy khóa API tại api.hcnsec.cn",
+      "huggingface": "API suy luận miễn phí cho hàng nghìn mô hình (Whisper, VITS, SDXL…)",
+      "hyperbolic": "1–5 USD tín dụng dùng thử khi đăng ký suy luận serverless",
+      "watsonx": "Cổng mô hình watsonx cung cấp /chat/completions và /models tương thích OpenAI trong /ml/gateway/v1.",
+      "ideogram": "Lấy khóa API tại ideogram.ai/docs/api",
+      "iflytek": "Lấy khóa API tại console.xfyun.cn",
+      "inference-net": "25 USD tín dụng miễn phí khi đăng ký và có các khoản tài trợ nghiên cứu",
+      "jina-ai": "Khóa API Bearer cho API xếp hạng lại của Jina AI.",
+      "jina-reader": "Kết nối Jina Reader bằng khóa API.",
+      "kenari": "Kenari cung cấp endpoint chat completions tương thích OpenAI tại https://kenari.id/v1/chat/completions cùng danh mục /v1/models trực tiếp gồm Claude, GPT, DeepSeek, GLM, Kimi và nhiều mô hình khác. OmniRoute dùng giao thức OpenAI và liệt kê mô hình qua passthrough.",
+      "kie": "Kết nối KIE.AI bằng khóa API.",
+      "kilo-gateway": "Kết nối Kilo Gateway bằng khóa API.",
+      "kimi": "Kết nối Kimi bằng khóa API.",
+      "kimi-coding-apikey": "Kết nối Kimi Coding (API Key) bằng khóa API.",
+      "lambda-ai": "Kết nối Lambda AI bằng khóa API.",
+      "laozhang": "Kết nối LaoZhang AI bằng khóa API.",
+      "leonardo": "Lấy khóa API tại leonardo.ai/developer",
+      "liquid": "Lấy khóa API tại liquid.ai",
+      "llamagate": "Kết nối LlamaGate bằng khóa API.",
+      "llm7": "Hoạt động không cần khóa API (dùng 'unused' làm khóa). Lấy token miễn phí tại token.llm7.io để có giới hạn cao hơn.",
+      "longcat": "Miễn phí: cấp một lần 10 triệu token sau khi đăng ký và xác minh KYC (LongCat-2.0). Chỉ cấp một lần — không phải hạn mức định kỳ hằng ngày/hằng tháng.",
+      "maritalk": "Kết nối Maritalk bằng khóa API.",
+      "meta-llama": "Kết nối Meta Llama API bằng khóa API.",
+      "minimax-cn": "Kết nối Minimax (China) bằng khóa API.",
+      "minimax": "Kết nối Minimax Coding bằng khóa API.",
+      "mistral": "Gói Experiment miễn phí: truy cập mọi mô hình với giới hạn tốc độ, không cần thẻ tín dụng",
+      "modal": "Modal thường phục vụ ứng dụng tương thích OpenAI do người dùng tự lưu trữ trên /v1. OmniRoute sẽ thăm dò /v1/models và định tuyến trò chuyện tới /v1/chat/completions.",
+      "modelscope": "Gói miễn phí qua ModelScope API-Inference — yêu cầu tài khoản Alibaba.",
+      "monsterapi": "Lấy khóa API tại monsterapi.ai",
+      "moonshot": "Kết nối Moonshot AI bằng khóa API.",
+      "morph": "Gói miễn phí: 250 nghìn tín dụng/tháng, 0 USD",
+      "nanogpt": "Kết nối NanoGPT bằng khóa API.",
+      "nebius": "Khoảng 1 USD tín dụng dùng thử khi đăng ký để kiểm thử API",
+      "nlpcloud": "NLP Cloud dùng API chatbot độc quyền thay cho OpenAI chat/completions. OmniRoute chuyển đổi message OpenAI thành input/context/history và cung cấp danh mục cục bộ các mô hình chatbot được hỗ trợ.",
+      "nomic": "Lấy khóa API tại atlas.nomic.ai",
+      "nous-research": "Nous cung cấp giao diện /v1 tương thích OpenAI với danh mục /models từ xa lớn. Endpoint /chat/completions yêu cầu khóa API hợp lệ để suy luận bằng chương trình.",
+      "novita": "0,50 USD tín dụng dùng thử khi đăng ký (có hiệu lực khoảng 1 năm)",
+      "nscale": "5 USD tín dụng miễn phí khi đăng ký để kiểm thử suy luận",
+      "nube": "Kết nối Nube.sh bằng khóa API.",
+      "nvidia": "Quyền truy cập dev miễn phí: khoảng 40 RPM, hơn 70 mô hình (Kimi K2.5, GLM 4.7, DeepSeek V3.2...)",
+      "oci": "OCI cung cấp các endpoint trò chuyện và Responses tương thích OpenAI. Project ID là tùy chọn trong OmniRoute nhưng có thể bắt buộc cho Responses và quy trình agent.",
+      "ollama-cloud": "Kết nối Ollama Cloud bằng khóa API.",
+      "openadapter": "OpenAdapter cung cấp endpoint chat completions tương thích OpenAI tại https://api.openadapter.in/v1/chat/completions, tổng hợp hơn 70 mô hình mã nguồn mở (DeepSeek, Qwen, Kimi, MiniMax, GLM, Llama, Mistral, …). OmniRoute dùng giao thức OpenAI.",
+      "openai": "Kết nối OpenAI bằng khóa API.",
+      "opencode-go": "Kết nối OpenCode Go bằng khóa API.",
+      "opencode-zen": "Kết nối OpenCode Zen bằng khóa API.",
+      "openrouter": "Mô hình miễn phí 0 USD/token với hậu tố :free — 20 RPM / 200 RPD",
+      "openvecta": "Tín dụng miễn phí khi đăng ký để suy luận tương thích OpenAI trên LLM, embedding và mô hình reasoning",
+      "orcarouter": "Tạo khóa API (bắt đầu bằng sk-orca-) tại https://www.orcarouter.ai, rồi dán dưới dạng token Bearer. Endpoint tương thích OpenAI: https://api.orcarouter.ai/v1.",
+      "ovhcloud": "Kết nối OVHcloud AI bằng khóa API.",
+      "perplexity": "Kết nối Perplexity bằng khóa API.",
+      "piapi": "Kết nối PiAPI bằng khóa API.",
+      "pioneer": "75 USD tín dụng sử dụng miễn phí — không cần thẻ tín dụng",
+      "poe": "Poe cung cấp trò chuyện và Responses tương thích OpenAI tại https://api.poe.com/v1, kèm kiểm tra số dư có xác thực tại /usage/current_balance.",
+      "pollinations": "Gói miễn phí không cần khóa: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning. Mô hình cao cấp (claude, gemini, midijourney) yêu cầu khóa API Pollinations từ enter.pollinations.ai.",
+      "publicai": "Yêu cầu khóa API — nhận tín dụng một lần khi đăng ký, sau đó trả phí",
+      "puter": "Lấy token tại puter.com/dashboard → Copy Auth Token",
+      "qiniu": "Tạo khóa API suy luận Qiniu AI tại https://portal.qiniu.com/ai-inference/api-key, rồi dán dưới dạng token Bearer. Endpoint tương thích OpenAI tại https://api.qnaigc.com/v1, làm proxy cho DeepSeek, Claude, Kimi và nhiều mô hình khác sau một khóa.",
+      "recraft": "Kết nối Recraft bằng khóa API.",
+      "reka": "Reka Chat tương thích OpenAI trên /v1. OmniRoute thăm dò /v1/models và định tuyến trò chuyện tới /v1/chat/completions.",
+      "requesty": "Tạo khóa API tại https://app.requesty.ai, rồi dán dưới dạng token Bearer. Endpoint tương thích OpenAI tại https://router.requesty.ai/v1, kèm danh mục /v1/models trực tiếp.",
+      "runwayml": "Tạo video Runway hoạt động theo tác vụ. OmniRoute gửi tác vụ chuyển văn bản hoặc hình ảnh thành video, thăm dò /v1/tasks/[id], rồi chuẩn hóa đầu ra hoàn tất về phản hồi /v1/videos/generations kiểu OpenAI.",
+      "sambanova": "5 USD tín dụng miễn phí khi đăng ký (có hiệu lực 30 ngày), không cần thẻ tín dụng",
+      "sap": "Khám phá mô hình dùng /v2/lm/scenarios/foundation-models/models trên AI_API_URL. Yêu cầu trò chuyện dùng deploymentUrl/chat/completions và yêu cầu AI-Resource-Group.",
+      "scaleway": "1 triệu token miễn phí cho tài khoản mới — tuân thủ EU/GDPR (Paris), Qwen3 235B và Llama 70B",
+      "sensenova": "Lấy khóa API tại platform.sensenova.cn",
+      "siliconflow": "1 USD tín dụng miễn phí cùng các mô hình miễn phí vĩnh viễn sau khi xác minh danh tính",
+      "snowflake": "Kết nối Snowflake Cortex bằng khóa API.",
+      "sparkdesk": "Lấy khóa API tại console.xfyun.cn",
+      "stability-ai": "Kết nối Stability AI bằng khóa API.",
+      "stepfun": "Lấy khóa API tại platform.stepfun.com",
+      "sumopod": "SumoPod cung cấp endpoint chat completions tương thích OpenAI tại https://ai.sumopod.com/v1/chat/completions cùng danh mục /v1/models trực tiếp. OmniRoute dùng giao thức OpenAI và liệt kê mô hình qua passthrough.",
+      "suno": "Dán cookie phiên từ suno.ai (xác thực Clerk)",
+      "synthetic": "Kết nối Synthetic bằng khóa API.",
+      "tencent": "Lấy khóa API tại console.cloud.tencent.com",
+      "thebai": "Khóa API Bearer cho cổng TheB.AI tương thích OpenAI.",
+      "tinyfish": "X-API-Key từ agent.tinyfish.ai/api-keys",
+      "together": "Kết nối Together AI bằng khóa API.",
+      "tokenrouter": "TokenRouter cung cấp endpoint chat completions tương thích OpenAI tại https://api.tokenrouter.com/v1/chat/completions cùng danh mục /v1/models hoạt động. OmniRoute dùng giao thức OpenAI.",
+      "topaz": "Kết nối Topaz bằng khóa API.",
+      "udio": "Dán cookie phiên từ udio.com (xác thực Supabase)",
+      "uncloseai": "Không yêu cầu xác thực. API chấp nhận mọi chuỗi không rỗng làm khóa để nhận dạng.",
+      "upstage": "Kết nối Upstage bằng khóa API.",
+      "v0-vercel": "Kết nối v0 (Vercel) bằng khóa API.",
+      "venice": "Kết nối Venice.ai bằng khóa API.",
+      "vercel-ai-gateway": "Kết nối Vercel AI Gateway bằng khóa API.",
+      "vertex": "Cung cấp Service Account JSON hoặc OAuth access_token",
+      "vertex-partner": "Cung cấp cùng Service Account JSON được dùng cho các mô hình đối tác Vertex AI.",
+      "volcengine": "Kết nối Volcengine bằng khóa API.",
+      "voyage-ai": "Khóa API Bearer cho các API embedding và xếp hạng lại của Voyage AI.",
+      "wafer": "Lấy khóa API từ https://wafer.ai",
+      "wandb": "Kết nối Weights & Biases Inference bằng khóa API.",
+      "x5lab": "X5Lab cung cấp endpoint chat completions tương thích OpenAI tại https://api.x5lab.dev/v1/chat/completions cùng danh mục /v1/models trực tiếp. OmniRoute dùng giao thức OpenAI và liệt kê mô hình qua passthrough.",
+      "xai": "Kết nối xAI (Grok) bằng khóa API.",
+      "xiaomi-mimo": "Kết nối Xiaomi MiMo bằng khóa API.",
+      "yi": "Lấy khóa API tại platform.lingyiwanwu.com",
+      "zai": "Lấy khóa API từ https://open.bigmodel.cn/usercenter/apikeys",
+      "zenmux": "ZenMux cung cấp endpoint chat completions tương thích OpenAI tại /api/v1/chat/completions, cùng các giao diện Anthropic Messages (/api/anthropic/v1/messages) và Google Gemini (/api/vertex-ai). OmniRoute dùng giao thức OpenAI.",
+      "galadriel": "Kết nối Galadriel bằng khóa API.",
+      "predibase": "25 USD tín dụng dùng thử miễn phí (có hiệu lực 30 ngày)",
+      "amazon-q": "Dùng cùng AWS Builder ID hoặc luồng refresh-token đã nhập như Kiro, nhưng giữ các kết nối Amazon Q riêng biệt.",
+      "antigravity": "Kết nối Antigravity bằng luồng OAuth hiện có.",
+      "agy": "Nhập đăng nhập Antigravity CLI (`agy`) (dán/tải lên tập tin token), tự phát hiện đăng nhập CLI cục bộ hoặc đăng nhập bằng Google. Dùng chung backend Antigravity (gồm các mô hình Claude).",
+      "claude": "Kết nối Claude Code bằng luồng OAuth hiện có.",
+      "cline": "Kết nối Cline bằng luồng OAuth hiện có.",
+      "cursor": "Kết nối Cursor IDE bằng luồng OAuth hiện có.",
+      "github": "Kết nối GitHub Copilot bằng luồng OAuth hiện có.",
+      "gitlab-duo": "Ứng dụng OAuth với phạm vi ai_features + read_user. Cấu hình GITLAB_DUO_OAUTH_CLIENT_ID và tùy chọn GITLAB_DUO_OAUTH_CLIENT_SECRET trên instance OmniRoute này.",
+      "kilocode": "Kết nối Kilo Code bằng luồng OAuth hiện có.",
+      "kimi-coding": "Kết nối Kimi Coding bằng luồng OAuth hiện có.",
+      "kiro": "Gói miễn phí: 50 tín dụng/tháng (khoảng 25–100 nghìn token). ⚠️ Điều khoản Kiro cấm sử dụng proxy/harness của bên thứ ba.",
+      "codex": "Kết nối OpenAI Codex bằng luồng OAuth hiện có.",
+      "qwen": "Kết nối Qwen Code bằng luồng OAuth hiện có."
+    }
   },
   "settings": {
     "title": "Cài đặt",
@@ -6948,7 +7329,79 @@
     "modelCooldownsClearFailed": "Không thể xóa các thời gian chờ",
     "modelCooldownsReactivateAll": "Kích hoạt lại tất cả",
     "modelCooldownsReasonRemaining": "lý do: {reason} • còn lại: {remaining}",
-    "modelCooldownsReactivate": "Kích hoạt lại"
+    "modelCooldownsReactivate": "Kích hoạt lại",
+    "proxyToggleSources": "Bật hoặc tắt các nguồn proxy",
+    "proxyFreePoolTesting": "Đang kiểm tra proxy...",
+    "proxyFreePoolBulkResult": "Đã thêm {succeeded}, thất bại {failed}",
+    "proxyFreePoolPageSummary": "Trang {page}/{totalPages} (tổng cộng {total} proxy)",
+    "proxyFreePoolTotalSummary": "Tổng cộng {total} proxy",
+    "pricingCoverage": "Độ phủ",
+    "pricingAuth": "Xác thực",
+    "pricingSort": "Sắp xếp",
+    "pricingAll": "Tất cả",
+    "pricingAuthUnknown": "Không xác định",
+    "pricingMostModels": "Nhiều mô hình nhất",
+    "pricingHighestCoverage": "Độ phủ cao nhất",
+    "pricingLowestCoverage": "Độ phủ thấp nhất",
+    "pricingNameAscending": "Tên (A–Z)",
+    "pricingCoverageGaps": "Thiếu dữ liệu giá",
+    "pricingClearFilters": "Xóa bộ lọc",
+    "pricingShowingProviders": "Đang hiển thị {visible}/{total}",
+    "pricingFilteredFrom": "(đã lọc từ {count})",
+    "pricingShowMoreProviders": "Hiển thị thêm {count} mục (còn {remaining})",
+    "backupRetentionSaved": "Đã lưu thời hạn giữ bản sao lưu.",
+    "backupRetentionSaveFailed": "Không thể lưu thời hạn giữ bản sao lưu",
+    "backupCleanupSuccess": "Đã xóa {backups} bộ sao lưu và {files} tệp.",
+    "backupCleanupFailed": "Không thể dọn dẹp bản sao lưu cơ sở dữ liệu",
+    "purgeQuotaSnapshotsSuccess": "Đã xóa {count} ảnh chụp nhanh hạn ngạch",
+    "purgeQuotaSnapshotsFailed": "Không thể xóa ảnh chụp nhanh hạn ngạch",
+    "purgeCallLogsSuccess": "Đã xóa {count} nhật ký cuộc gọi",
+    "purgeCallLogsFailed": "Không thể xóa nhật ký cuộc gọi",
+    "purgeDetailedLogsSuccess": "Đã xóa {count} nhật ký chi tiết",
+    "purgeDetailedLogsFailed": "Không thể xóa nhật ký chi tiết",
+    "vacuumCompleted": "Đã hoàn tất VACUUM",
+    "vacuumFailed": "VACUUM thất bại",
+    "jsonExportFailed": "Xuất JSON thất bại",
+    "invalidJsonFileType": "Loại tệp không hợp lệ. Chỉ cho phép tệp .json.",
+    "legacyJsonImportSuccess": "Đã nhập JSON kiểu cũ thành công!",
+    "jsonImportFailed": "Không thể nhập JSON",
+    "jsonImportError": "Đã xảy ra lỗi khi nhập JSON",
+    "storageOptimizationSettings": "Cài đặt tối ưu hóa",
+    "storageJournalModeNone": "Không dùng",
+    "storageJournalModeFull": "Toàn bộ",
+    "storageJournalModeIncremental": "Tăng dần",
+    "storageVacuumNever": "Không bao giờ",
+    "storageVacuumDaily": "Hàng ngày",
+    "storageVacuumWeekly": "Hàng tuần",
+    "storageVacuumMonthly": "Hàng tháng",
+    "storageCacheSizeKb": "Kích thước cache (KB)",
+    "storageOptimizeOnStartup": "Tối ưu hóa khi khởi động",
+    "storageSaveOptimization": "Lưu cài đặt tối ưu hóa",
+    "storageCompressionAggregation": "Cài đặt nén và tổng hợp",
+    "storageEnableAggregation": "Bật tổng hợp dữ liệu",
+    "storageRawDataRetention": "Thời hạn giữ dữ liệu thô (ngày)",
+    "storageGranularity": "Độ chi tiết",
+    "storageHourly": "Theo giờ",
+    "storageDaily": "Theo ngày",
+    "storageWeekly": "Theo tuần",
+    "storageSaveAggregation": "Lưu cài đặt tổng hợp",
+    "exportJson": "Xuất JSON",
+    "importJson": "Nhập JSON",
+    "manualVacuum": "Chạy VACUUM thủ công",
+    "purgeQuotaSnapshots": "Xóa ảnh chụp nhanh hạn ngạch",
+    "purgeCallLogs": "Xóa nhật ký cuộc gọi",
+    "purgeDetailedLogs": "Xóa nhật ký chi tiết",
+    "modelLockoutLoadFailed": "Không thể tải cài đặt khóa mô hình",
+    "modelLockoutSaveFailed": "Không thể lưu cài đặt khóa mô hình",
+    "modelLockoutLoading": "Đang tải cài đặt khóa mô hình...",
+    "modelLockoutBaseRangeError": "Cooldown cơ sở phải nằm trong khoảng 5.000ms đến 600.000ms",
+    "modelLockoutMaxRangeError": "Cooldown tối đa phải nằm trong khoảng 5.000ms đến 3.600.000ms",
+    "modelLockoutOrderError": "Cooldown tối đa phải lớn hơn hoặc bằng cooldown cơ sở",
+    "modelLockoutStepsRangeError": "Số bước backoff tối đa phải nằm trong khoảng 0 đến 20",
+    "removeErrorCode": "Xóa mã {code}",
+    "addErrorCode": "Thêm mã lỗi...",
+    "suggestions": "Gợi ý:",
+    "modelLockoutMaxCooldownHint": "≥ cooldown cơ sở — 3.600.000ms"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -7614,7 +8067,23 @@
     "compressionEmptyHint": "Điền vào trường nhập liệu trên tab Translate (Điều khiển đơn giản hoặc JSON gốc) để bật tính năng xem trước.",
     "compressionModeLabel": "Chế độ nén",
     "compressionPreviewButton": "Xem trước nén",
-    "compressionPreviewing": "Đang xem trước…"
+    "compressionPreviewing": "Đang xem trước…",
+    "loading": "Đang tải…",
+    "compressionOriginal": "Ban đầu",
+    "compressionCompressed": "Đã nén",
+    "compressionSaved": "Đã tiết kiệm",
+    "compressionDuration": "Thời lượng",
+    "pipelineStepsAria": "Các bước trong quy trình",
+    "copyIntermediateJson": "Sao chép JSON trung gian",
+    "copyOutputJson": "Sao chép JSON đầu ra",
+    "compressionPreviewFailed": "Không thể xem trước kết quả nén",
+    "tokens": "token",
+    "pauseAutoRefresh": "Tạm dừng tự động làm mới",
+    "resumeAutoRefresh": "Tiếp tục tự động làm mới",
+    "live": "Trực tiếp",
+    "copyInput": "Sao chép đầu vào",
+    "copyOutput": "Sao chép đầu ra",
+    "streamTransformFailed": "Không thể chuyển đổi luồng"
   },
   "usage": {
     "title": "Mức sử dụng",
@@ -7971,7 +8440,50 @@
     "accountActivated": "Đã kích hoạt tài khoản",
     "accountDeactivated": "Đã vô hiệu hóa tài khoản",
     "toggleActiveFailed": "Không thể cập nhật trạng thái tài khoản",
-    "percentUsed": "Đã dùng {pct}%"
+    "percentUsed": "Đã dùng {pct}%",
+    "usdCost": "Chi phí USD",
+    "budgetPageTitle": "Ngân sách",
+    "budgetPageDescription": "Đặt giới hạn chi tiêu hằng ngày, hằng tuần và hằng tháng cho từng khóa API.",
+    "budgetTemplateStorageHint": "{count} mẫu · chỉnh sửa qua localStorage:",
+    "budgetAboveLimitShort": "vượt giới hạn ⚠",
+    "budgetOnTrackShort": "đúng tiến độ",
+    "budgetAtOrAboveWarning": "≥ ngưỡng cảnh báo",
+    "budgetTemplates": "Mẫu",
+    "budgetSelectKeysFirst": "Hãy chọn khóa trước khi áp dụng",
+    "budgetApplyToSelected": "Áp dụng cho {count} khóa đã chọn",
+    "budgetSelectedTemplateHint": "Đã chọn {count} khóa · nhấp vào một mẫu để áp dụng",
+    "budgetTemplateMonthlyAmount": "{amount} US$/tháng",
+    "budgetTemplateDailyAmount": "{amount} US$/ngày",
+    "budgetNoKeysSelected": "Chưa chọn khóa nào",
+    "budgetTemplateApplied": "Đã áp dụng \"{template}\" cho {count} khóa",
+    "budgetTemplateApplyFailed": "Không thể áp dụng mẫu",
+    "budgetTemplateNames": {
+      "tpl-prod": "Production",
+      "tpl-dev": "Phát triển",
+      "tpl-ci": "CI"
+    },
+    "budgetStatus": {
+      "all": "Tất cả",
+      "blocked": "Bị chặn",
+      "alerting": "Đang cảnh báo",
+      "warning": "Cảnh báo",
+      "safe": "An toàn",
+      "no-limit": "Không giới hạn"
+    },
+    "budgetColumnKey": "Khóa",
+    "budgetColumnToday": "Hôm nay",
+    "budgetColumnMonth": "Tháng",
+    "budgetColumnStatus": "Trạng thái",
+    "budgetProjection": "Dự kiến",
+    "budgetAboveMonthlyLimit": "⚠ vượt {limit}/tháng",
+    "budgetCostBreakdown30d": "Phân tích chi phí (30 ngày)",
+    "budgetLimits": "Giới hạn",
+    "budgetResetDaily": "Hằng ngày",
+    "budgetResetWeekly": "Hằng tuần",
+    "budgetResetMonthly": "Hằng tháng",
+    "budgetNextReset": "Lần đặt lại tiếp theo",
+    "budgetHardCapComingSoon": "Chính sách giới hạn cứng và cảnh báo qua email sắp được hỗ trợ",
+    "unknownProvider": "Nhà cung cấp không xác định"
   },
   "modals": {
     "waitingAuth": "Đang chờ ủy quyền",
@@ -8594,7 +9106,21 @@
     "statusCancelled": "Đã hủy",
     "repositoryName": "Tên kho lưu trữ",
     "repositoryUrl": "URL kho lưu trữ",
-    "branch": "Nhánh"
+    "branch": "Nhánh",
+    "agentDescriptions": {
+      "jules": "Tác nhân lập trình tự chủ của Google",
+      "devin": "Kỹ sư phần mềm AI của Cognition",
+      "codexCloud": "Tác nhân lập trình trên đám mây của OpenAI",
+      "cursorCloud": "Background / Cloud Agents của Cursor (dùng khóa API chính thức)"
+    },
+    "activityTypes": {
+      "plan": "Kế hoạch",
+      "command": "Lệnh",
+      "code_change": "Thay đổi mã nguồn",
+      "message": "Tin nhắn",
+      "error": "Lỗi",
+      "completion": "Hoàn tất"
+    }
   },
   "templateNames": {
     "simple-chat": "Trò chuyện đơn giản",
@@ -9006,7 +9532,9 @@
     "poolAddMember": "Thêm",
     "poolAddFailed": "Không thể thêm proxy vào nhóm",
     "poolSelectProxy": "Chọn một proxy…",
-    "poolSaveFailed": "Không thể lưu mục gán nhóm proxy"
+    "poolSaveFailed": "Không thể lưu mục gán nhóm proxy",
+    "selectAllProxies": "Chọn tất cả proxy",
+    "selectProxy": "Chọn {name}"
   },
   "playground": {
     "title": "Khu thử nghiệm mô hình",
@@ -9258,7 +9786,30 @@
     "assistant": "Trợ lý",
     "errorLabel": "Lỗi",
     "requestFailed": "Yêu cầu thất bại",
-    "stop": "Dừng"
+    "stop": "Dừng",
+    "fileTooLarge25Mb": "Tệp quá lớn. Kích thước tối đa là 25 MB.",
+    "selectAudioFirst": "Hãy chọn tệp âm thanh trước.",
+    "speechToText": "Chuyển giọng nói thành văn bản",
+    "chooseFile": "Chọn tệp",
+    "audioFormats25Mb": "MP3, WAV, M4A, OGG hoặc FLAC · Tối đa 25 MB",
+    "musicSample": "Một bản nhạc ambient nhẹ nhàng với piano ấm và tiếng dây êm dịu",
+    "noAudioUrl": "Phản hồi không chứa URL âm thanh: {response}",
+    "music": "Âm nhạc",
+    "embeddingSample": "OmniRoute định tuyến yêu cầu AI qua nhiều nhà cung cấp.",
+    "embedding": "Vector nhúng",
+    "imageSample": "Một thành phố tương lai lúc hoàng hôn với ánh sáng điện ảnh",
+    "image": "Hình ảnh",
+    "ttsSample": "Xin chào từ OmniRoute. Đây là bài kiểm tra chuyển văn bản thành giọng nói.",
+    "textToSpeech": "Chuyển văn bản thành giọng nói",
+    "videoSample": "Một chiếc máy bay giấy bay qua thành phố tương lai",
+    "video": "Video",
+    "webFetch": "Tải nội dung web",
+    "webSearchSample": "OmniRoute là gì?",
+    "webSearch": "Tìm kiếm web",
+    "documentUrl": "URL tài liệu",
+    "browserAudioUnsupported": "Trình duyệt của bạn không hỗ trợ âm thanh.",
+    "browserVideoUnsupported": "Trình duyệt của bạn không hỗ trợ video.",
+    "searchResultFallback": "Kết quả {number}"
   },
   "requestLogger": {
     "recording": "Đang ghi",
@@ -9584,7 +10135,11 @@
     "deleteGroupConfirm": "Xóa nhóm này? Các pool của nhóm phải được gán lại hoặc loại bỏ trước.",
     "deleteGroupHasPools": "Nhóm này vẫn còn các pool — hãy gán lại hoặc xóa chúng trước.",
     "ungroupedTitle": "Chưa phân nhóm",
-    "ungroupedHint": "Các pool này chưa được gán cho một nhóm mà hệ thống nhận diện. Hãy chỉnh sửa một pool để chuyển pool đó vào một nhóm hợp lệ."
+    "ungroupedHint": "Các pool này chưa được gán cho một nhóm mà hệ thống nhận diện. Hãy chỉnh sửa một pool để chuyển pool đó vào một nhóm hợp lệ.",
+    "weightPercent": "Trọng số %",
+    "apiKeyColumn": "Khóa API",
+    "weightColumn": "Trọng số",
+    "fairShareShort": "công bằng"
   },
   "plugins": {
     "title": "Plugin",
@@ -9906,7 +10461,8 @@
       "goNow": "Đi ngay",
       "message": "MITM Proxy hiện nằm trong AgentBridge.",
       "title": "Trang này đã được di chuyển"
-    }
+    },
+    "unknownError": "Lỗi không xác định"
   },
   "trafficInspector": {
     "title": "Traffic Inspector",
@@ -10247,7 +10803,185 @@
     "regenerateError": "Không thể tạo lại các kỹ năng.",
     "mcpPrompt": "Thêm endpoint MCP này vào agent để cung cấp 37 công cụ OmniRoute.",
     "a2aPrompt": "Đăng ký Agent Card này với bộ điều phối để bật khả năng ủy quyền tác vụ A2A.",
-    "refresh": "Làm mới"
+    "refresh": "Làm mới",
+    "catalog": {
+      "omni-auth": {
+        "name": "Xác thực",
+        "description": "Quản lý xác thực bằng khóa API và token phiên. Bắt đầu tại đây để xác thực yêu cầu bằng token Bearer, lấy cookie phiên và cấu hình yêu cầu đăng nhập cho API OmniRoute."
+      },
+      "omni-providers": {
+        "name": "Nhà cung cấp",
+        "description": "Quản lý kết nối nhà cung cấp, khóa API, luồng OAuth và kiểm tra kết nối qua REST API. Liệt kê, thêm, cập nhật, xóa và kiểm tra hơn 160 tích hợp AI như OpenAI, Anthropic và Gemini."
+      },
+      "omni-models": {
+        "name": "Mô hình",
+        "description": "Truy vấn các mô hình AI khả dụng trên mọi nhà cung cấp đã cấu hình. Liệt kê mô hình, phân giải bí danh và duyệt toàn bộ danh mục gồm các biến thể riêng của từng nhà cung cấp."
+      },
+      "omni-combos-routing": {
+        "name": "Combo & định tuyến",
+        "description": "Tạo và quản lý combo định tuyến với 14 chiến lược như ưu tiên, trọng số, round-robin và Auto-combo. Cấu hình chuỗi dự phòng, kiểm tra kết quả định tuyến và lấy số liệu combo."
+      },
+      "omni-api-keys": {
+        "name": "Khóa API",
+        "description": "Tạo, liệt kê, xoay vòng và thu hồi khóa API OmniRoute. Kiểm soát phạm vi, giới hạn chi tiêu và thời hạn theo khóa. Khóa bảo vệ quyền truy cập các endpoint proxy và quản lý."
+      },
+      "omni-usage-logs": {
+        "name": "Sử dụng & nhật ký",
+        "description": "Truy cập nhật ký lệnh gọi chi tiết và phân tích sử dụng. Lọc theo nhà cung cấp, mô hình, thời gian, trạng thái và chi phí; xuất nhật ký và tổng hợp token trên mọi kết nối."
+      },
+      "omni-budget": {
+        "name": "Ngân sách & giới hạn tần suất",
+        "description": "Cấu hình giới hạn chi tiêu, hạn ngạch token và chính sách giới hạn tần suất theo khóa API hoặc toàn cục. Xem mức tiêu thụ và áp dụng kiểm soát chi phí giữa các nhà cung cấp."
+      },
+      "omni-settings": {
+        "name": "Cài đặt",
+        "description": "Đọc và cập nhật cài đặt ứng dụng toàn cục: system prompt, ngân sách thinking, bộ lọc IP, quy tắc payload, mặc định combo và cấu hình bắt buộc đăng nhập."
+      },
+      "omni-proxies": {
+        "name": "Cấu hình proxy",
+        "description": "Cấu hình proxy HTTP/HTTPS/SOCKS cho yêu cầu tới nhà cung cấp thượng nguồn. Đặt quy tắc theo nhà cung cấp hoặc toàn cục, kiểm tra kết nối và quản lý xoay vòng proxy."
+      },
+      "omni-cache": {
+        "name": "Cache",
+        "description": "Quản lý cache phản hồi LLM. Xem số liệu cache, xóa mục, cấu hình chính sách TTL và điều khiển ngưỡng cache theo độ tương đồng ngữ nghĩa."
+      },
+      "omni-compression": {
+        "name": "Nén",
+        "description": "Cấu hình RTK cho đầu ra lệnh, Caveman cho văn xuôi và các chế độ nén xếp chồng. Quản lý gói ngôn ngữ, quy tắc tùy chỉnh và kiểm tra nén prompt giúp giảm 60–90% token."
+      },
+      "omni-context-rtk": {
+        "name": "Context & RTK",
+        "description": "Cấu hình bộ lọc RTK, quy tắc kỹ thuật context và cài đặt chuyển tiếp context. Kiểm tra nén bằng mẫu prompt thật và quản lý pipeline biến đổi context."
+      },
+      "omni-resilience": {
+        "name": "Khả năng phục hồi & giám sát",
+        "description": "Giám sát tình trạng nhà cung cấp, trạng thái circuit breaker, độ trễ p50/p95/p99 và cảnh báo ngân sách. Xem cooldown kết nối và khóa mô hình theo thời gian thực."
+      },
+      "omni-cli-tools": {
+        "name": "Công cụ CLI",
+        "description": "Quản lý các tích hợp công cụ CLI được cung cấp qua API. Liệt kê, cấu hình và gọi plugin CLI mở rộng bề mặt tự động hóa của OmniRoute."
+      },
+      "omni-tunnels": {
+        "name": "Tunnel",
+        "description": "Tạo và quản lý tunnel bảo mật như ngrok, Cloudflare Tunnel và tunnel tùy chỉnh để đưa OmniRoute lên internet hoặc chia sẻ quyền truy cập với agent từ xa và pipeline CI."
+      },
+      "omni-sync-cloud": {
+        "name": "Đồng bộ đám mây",
+        "description": "Đồng bộ cấu hình OmniRoute, kết nối nhà cung cấp và cài đặt tới/từ lưu trữ đám mây. Quản lý xác thực cloud worker và đích sao lưu từ xa."
+      },
+      "omni-db-backups": {
+        "name": "Cơ sở dữ liệu & sao lưu",
+        "description": "Kích hoạt sao lưu hệ thống, khôi phục từ tập tin sao lưu và quản lý vòng đời SQLite. Hỗ trợ xuất, nhập và chiến lược snapshot gia tăng."
+      },
+      "omni-webhooks": {
+        "name": "Webhook",
+        "description": "Đăng ký, liệt kê, kiểm tra và xóa endpoint webhook. Cấu hình đăng ký sự kiện như request.completed, provider.error, budget.exceeded và quản lý thử gửi lại."
+      },
+      "omni-mcp": {
+        "name": "Máy chủ MCP",
+        "description": "Kết nối máy chủ MCP OmniRoute với 37 công cụ và 3 transport SSE/stdio/HTTP. Bao phủ định tuyến, cache, nén, bộ nhớ, skill, nhà cung cấp và kiểm toán trong 16 phạm vi quyền."
+      },
+      "omni-agents-a2a": {
+        "name": "Agent & giao thức A2A",
+        "description": "Tương tác với OmniRoute qua giao thức agent-to-agent JSON-RPC 2.0. Có 6 skill A2A: smart-routing, quota-management, provider-discovery, cost-analysis, health-report và list-capabilities."
+      },
+      "omni-version-manager": {
+        "name": "Trình quản lý phiên bản",
+        "description": "Cài đặt, khởi động, dừng, khởi động lại và cập nhật dịch vụ nhúng như 9Router và CLIProxyAPI. Giám sát trạng thái, lấy nhật ký và cấu hình tự khởi động cho endpoint cục bộ."
+      },
+      "omni-inference": {
+        "name": "Suy luận (tương thích OpenAI)",
+        "description": "Các endpoint suy luận cốt lõi tương thích OpenAI: chat completions, embedding, hình ảnh, âm thanh TTS/STT, kiểm duyệt, rerank và Responses API. Đây là bề mặt tích hợp chính cho agent AI."
+      },
+      "cli-serve": {
+        "name": "CLI: Phục vụ",
+        "description": "Khởi động, dừng và khởi động lại máy chủ OmniRoute từ CLI. Quản lý daemon, cổng, tự phục hồi, tích hợp khay hệ thống và lối tắt mở bảng điều khiển."
+      },
+      "cli-health": {
+        "name": "CLI: Tình trạng",
+        "description": "Kiểm tra tình trạng máy chủ, thành phần và số liệu trực tiếp từ CLI. Chạy `health`, `health components` và `health watch` để xem circuit breaker và trạng thái nhà cung cấp theo thời gian thực."
+      },
+      "cli-providers": {
+        "name": "CLI: Nhà cung cấp",
+        "description": "Quản lý kết nối nhà cung cấp từ CLI: liệt kê nhà cung cấp khả dụng/đã cấu hình, thêm, kiểm tra, test-all, xác thực, xoay khóa API và xem số liệu theo nhà cung cấp."
+      },
+      "cli-keys": {
+        "name": "CLI: Khóa API",
+        "description": "Tạo, liệt kê, xoay vòng và thu hồi khóa API OmniRoute từ CLI. Quản lý luồng OAuth để xác thực nhà cung cấp, đồng thời xem phạm vi và thời hạn khóa."
+      },
+      "cli-models": {
+        "name": "CLI: Mô hình",
+        "description": "Truy vấn mô hình AI khả dụng, liệt kê bí danh và duyệt toàn bộ danh mục từ CLI. Lọc theo nhà cung cấp, tìm theo khả năng và phân giải biến thể tên mô hình."
+      },
+      "cli-chat": {
+        "name": "CLI: Trò chuyện",
+        "description": "Gửi chat completions, truyền phản hồi và mở phiên REPL tương tác từ CLI. Hỗ trợ mọi nhà cung cấp OmniRoute, định tuyến combo và cấu hình system prompt."
+      },
+      "cli-routing": {
+        "name": "CLI: Định tuyến & combo",
+        "description": "Tạo, liệt kê, cập nhật và xóa combo định tuyến từ CLI. Kiểm tra chiến lược, xem số liệu combo và cấu hình chuỗi dự phòng theo cách tương tác."
+      },
+      "cli-resilience": {
+        "name": "CLI: Phục hồi & hạn ngạch",
+        "description": "Xem và quản lý circuit breaker, cooldown kết nối, giới hạn hạn ngạch và mức backoff từ CLI. Đặt lại nhà cung cấp bị kẹt và cấu hình ngưỡng phục hồi."
+      },
+      "cli-compression": {
+        "name": "CLI: Nén",
+        "description": "Cấu hình và kiểm tra nén prompt từ CLI. Quản lý bộ lọc RTK, quy tắc Caveman, chế độ nén xếp chồng và xem trước đầu ra nén bằng prompt thật."
+      },
+      "cli-contexts": {
+        "name": "CLI: Context & phiên",
+        "description": "Quản lý cấu hình kỹ thuật context, bộ lọc RTK và phiên hội thoại từ CLI. Áp dụng cài đặt chuyển tiếp context và xem các pipeline context đang hoạt động."
+      },
+      "cli-cost-usage": {
+        "name": "CLI: Chi phí & sử dụng",
+        "description": "Xem phân tích chi phí, mức dùng token và nhật ký lệnh gọi từ CLI. Lọc theo nhà cung cấp, mô hình hoặc ngày; xuất báo cáo và xem chi tiêu theo kết nối."
+      },
+      "cli-mcp": {
+        "name": "CLI: MCP",
+        "description": "Xem trạng thái máy chủ MCP, liệt kê công cụ và phạm vi đã đăng ký, chạy lệnh gọi công cụ và quản lý nhật ký kiểm toán MCP từ CLI."
+      },
+      "cli-a2a": {
+        "name": "CLI: Giao thức A2A",
+        "description": "Tương tác với máy chủ A2A OmniRoute từ CLI. Gửi tác vụ, xem lịch sử thực thi skill và kiểm tra tương tác giao thức agent-to-agent JSON-RPC 2.0."
+      },
+      "cli-tunnel": {
+        "name": "CLI: Tunnel",
+        "description": "Khởi động và dừng kết nối tunnel như ngrok, Cloudflare và tùy chỉnh từ CLI. Xem URL tunnel hoạt động, cấu hình xác thực và kiểm tra khả năng truy cập bên ngoài."
+      },
+      "cli-backup-sync": {
+        "name": "CLI: Sao lưu & đồng bộ",
+        "description": "Sao lưu và khôi phục dữ liệu OmniRoute từ CLI. Tạo snapshot gia tăng, đồng bộ lên đám mây, quản lý lịch sao lưu và khôi phục từ tập tin lưu trữ."
+      },
+      "cli-policy-audit": {
+        "name": "CLI: Chính sách & kiểm toán",
+        "description": "Xem nhật ký kiểm toán, quản lý chính sách truy cập, dữ liệu telemetry và lịch sử yêu cầu từ CLI. Lọc theo loại sự kiện, người dùng hoặc thời gian cho quy trình tuân thủ."
+      },
+      "cli-batches": {
+        "name": "CLI: Lô & tập tin",
+        "description": "Gửi và giám sát tác vụ suy luận theo lô từ CLI. Tải lên, quản lý tập tin xử lý lô, lấy kết quả và tích hợp pipeline lô với CI/CD."
+      },
+      "cli-eval": {
+        "name": "CLI: Đánh giá",
+        "description": "Tạo và chạy bộ đánh giá, theo dõi benchmark trực tiếp, xem scorecard, so sánh hiệu năng mô hình và tích hợp lượt đánh giá với quy trình CI từ CLI."
+      },
+      "cli-plugins-skills": {
+        "name": "CLI: Plugin, skill & bộ nhớ",
+        "description": "Quản lý Omni Skills (liệt kê, cài đặt, kiểm tra, xóa), plugin (tạo, cấu hình) và bộ nhớ bền vững (tìm kiếm, thêm, xóa) từ CLI."
+      },
+      "cli-setup": {
+        "name": "CLI: Thiết lập & cấu hình",
+        "description": "Chạy thiết lập ban đầu, cấu hình CLI toàn cục, quản lý biến môi trường, kiểm tra cập nhật và cấu hình tự khởi động bằng các lệnh setup/config."
+      },
+      "config-codex-cli": {
+        "name": "Cấu hình: Codex CLI",
+        "description": "Quy trình từng bước để agent cấu hình OpenAI Codex CLI trên Linux, macOS hoặc Windows dùng OmniRoute làm backend tương thích OpenAI. Tự phát hiện hệ điều hành/shell, ghi config.toml cùng 7 hồ sơ, đặt biến môi trường và xác minh."
+      },
+      "omni-github-skills": {
+        "name": "Khám phá skill trên GitHub",
+        "description": "Tìm kiếm, chấm điểm, quét và nhập skill agent từ kho GitHub có SKILL.md, CLAUDE.md, .cursorrules hoặc tập tin tương tự. Khám phá hơn 160 danh mục, đánh giá độ liên quan, kiểm tra mã độc/secret viết cứng và cài vào Hermes, Claude Code, Gemini CLI hoặc OpenCode."
+      }
+    }
   },
   "discovery": {
     "title": "Khám phá nhà cung cấp",
@@ -10619,7 +11353,141 @@
     "confirmResetOverrides": "Đặt lại toàn bộ {count} ghi đè DB?",
     "resetting": "Đang đặt lại...",
     "confirmReset": "Xác nhận đặt lại",
-    "definitions": {}
+    "definitions": {
+      "REQUIRE_API_KEY": {
+        "description": "Yêu cầu khóa API cho mọi yêu cầu gửi đến."
+      },
+      "INPUT_SANITIZER_ENABLED": {
+        "description": "Làm sạch dữ liệu đầu vào cho mọi yêu cầu."
+      },
+      "INJECTION_GUARD_MODE": {
+        "description": "Đặt chế độ bảo vệ khỏi prompt injection."
+      },
+      "PII_REDACTION_ENABLED": {
+        "description": "Che thông tin nhận dạng cá nhân trong yêu cầu."
+      },
+      "PII_RESPONSE_SANITIZATION": {
+        "description": "Làm sạch thông tin nhận dạng cá nhân trong phản hồi của nhà cung cấp."
+      },
+      "PII_RESPONSE_SANITIZATION_MODE": {
+        "description": "Chọn cách xử lý PII trong phản hồi: che dữ liệu sẽ thay thế PII, cảnh báo chỉ ghi nhật ký, chặn sẽ từ chối phản hồi và tắt sẽ vô hiệu hóa việc làm sạch."
+      },
+      "OUTBOUND_SSRF_GUARD_ENABLED": {
+        "description": "Chặn yêu cầu gửi ra các dải IP riêng tư hoặc nội bộ."
+      },
+      "ALLOW_API_KEY_REVEAL": {
+        "description": "Cho phép người dùng bảng điều khiển đã xác thực xem khóa API đã lưu thay vì chỉ thấy giá trị được che."
+      },
+      "ENABLE_TLS_FINGERPRINT": {
+        "description": "Bật chế độ ẩn dấu vân tay TLS."
+      },
+      "ONEPROXY_ENABLED": {
+        "description": "Bật chuyển tiếp yêu cầu qua 1proxy."
+      },
+      "PROXY_AUTO_SELECT_ENABLED": {
+        "description": "Khi kết nối chưa được gán proxy, tự động chọn proxy hoạt động đầu tiên trong danh sách. Mặc định tắt vì nếu bật, một proxy trong danh sách có thể trở thành đường dự phòng toàn cục cho mọi lưu lượng (#3332)."
+      },
+      "OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK": {
+        "description": "Cho phép luồng OAuth và xác thực nhà cung cấp bỏ qua proxy đã ghim khi kiểm tra khả năng kết nối proxy thất bại. Mặc định tắt vì có thể làm thay đổi IP đầu ra của tài khoản."
+      },
+      "MITM_DISABLE_TLS_VERIFY": {
+        "description": "Tắt xác minh chứng chỉ TLS cho proxy MITM."
+      },
+      "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS": {
+        "description": "Cho phép URL nhà cung cấp trỏ đến mạng riêng tư hoặc nội bộ."
+      },
+      "OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS": {
+        "description": "Cho phép thêm và xác thực nhà cung cấp trên localhost, LAN và các dải IP riêng. Tính năng này cần cho mô hình tương thích OpenAI chạy cục bộ và được bật mặc định. Các endpoint metadata đám mây như 169.254.169.254 vẫn luôn bị chặn."
+      },
+      "ENABLE_CC_COMPATIBLE_PROVIDER": {
+        "description": "Bật chế độ nhà cung cấp tương thích với Claude Code."
+      },
+      "TOOL_POLICY_MODE": {
+        "description": "Đặt chế độ thực thi chính sách sử dụng công cụ."
+      },
+      "RATE_LIMIT_AUTO_ENABLE": {
+        "description": "Tự động bật giới hạn tốc độ dựa trên kiểu sử dụng."
+      },
+      "ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE": {
+        "description": "Cho phép nhiều kết nối trên mỗi node tương thích."
+      },
+      "RESPONSES_PASSTHROUGH_DROP_COMMENTARY": {
+        "description": "Loại các mục đầu ra thuộc giai đoạn commentary nội bộ khỏi luồng chuyển tiếp Responses API trước khi gửi tới ứng dụng khách. Tắt cờ này để nhận nguyên dữ liệu commentary từ thượng nguồn."
+      },
+      "OMNIROUTE_MCP_ENFORCE_SCOPES": {
+        "description": "Thực thi giới hạn phạm vi khi truy cập công cụ MCP."
+      },
+      "OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS": {
+        "description": "Nén mô tả công cụ MCP để giảm lượng token sử dụng."
+      },
+      "OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS": {
+        "description": "Bật xử lý tác vụ nền trong runtime."
+      },
+      "OMNIROUTE_DISABLE_BACKGROUND_SERVICES": {
+        "description": "Tắt mọi dịch vụ nền, bao gồm làm mới hạn ngạch và đồng bộ hóa."
+      },
+      "OMNIROUTE_RTK_TRUST_PROJECT_FILTERS": {
+        "description": "Tin cậy các bộ lọc RTK cấp dự án mà không cần xác thực."
+      },
+      "OMNIROUTE_ENABLE_LIVE_WS": {
+        "description": "Khởi chạy máy chủ WebSocket thời gian thực của bảng điều khiển trên cổng loopback 20132 khi import. Đặt cờ thành 0 hoặc false để tắt. Muốn mở trong LAN còn phải đặt LIVE_WS_HOST=0.0.0.0 và LIVE_WS_ALLOWED_ORIGINS."
+      },
+      "OMNIROUTE_CODEX_WS_ENABLED": {
+        "description": "Cho phép Codex dùng giao thức Responses qua WebSocket. Khi tắt, Codex sẽ dự phòng bằng HTTP Responses."
+      },
+      "OMNIROUTE_EMERGENCY_FALLBACK": {
+        "description": "Định tuyến yêu cầu đã cạn ngân sách đến nhà cung cấp và mô hình miễn phí dự phòng khẩn cấp."
+      },
+      "STREAM_RECOVERY_ENABLED": {
+        "description": "Tự động thử lại sớm các luồng SSE thượng nguồn bị cắt trước khi byte phản hồi nào được gửi tới ứng dụng khách."
+      },
+      "STREAM_RECOVERY_MIDSTREAM_ENABLED": {
+        "description": "Cho phép khôi phục luồng bằng cách yêu cầu lại và ghép phản hồi sau khi dữ liệu đã bắt đầu được gửi tới ứng dụng khách."
+      },
+      "MODEL_CATALOG_INCLUDE_NAMES": {
+        "description": "Thêm trường tên dễ đọc vào phản hồi /v1/models. Tắt với các ứng dụng khách chỉ chấp nhận ID mô hình."
+      },
+      "MODELS_CATALOG_PREFIX_MODE": {
+        "description": "Điều khiển tiền tố ID mô hình trong /v1/models: song song xuất cả bí danh và tiền tố chính thức, bí danh chỉ xuất tiền tố ngắn, còn chính thức chỉ xuất ID nhà cung cấp đầy đủ."
+      },
+      "ARENA_ELO_SYNC_ENABLED": {
+        "description": "Định kỳ đồng bộ điểm ELO từ bảng xếp hạng Arena AI để xếp hạng năng lực mô hình."
+      },
+      "CLI_COMPAT_ALL": {
+        "description": "Bật chế độ tương thích cho mọi ứng dụng khách CLI."
+      },
+      "MODEL_ALIAS_COMPAT_ENABLED": {
+        "description": "Bật lớp tương thích bí danh mô hình."
+      },
+      "PRICING_SYNC_ENABLED": {
+        "description": "Tự động đồng bộ dữ liệu giá. Biến môi trường PRICING_SYNC_ENABLED cũng phải được đặt thành true."
+      },
+      "OMNIROUTE_AUTO_SYNC_CODEX_PROFILES": {
+        "description": "Sau khi đồng bộ mô hình nhà cung cấp, tạo lại các hồ sơ ~/.codex/*.config.toml từ danh mục trực tiếp. Không bao giờ thay đổi cấu hình Codex đang hoạt động hoặc cấu hình mặc định. Tính năng này mặc định tắt."
+      },
+      "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
+        "description": "Sau khi đồng bộ mô hình nhà cung cấp, tạo lại các hồ sơ Claude Code tại ~/.claude/profiles/<name>/settings.json từ danh mục trực tiếp. Không bao giờ thay đổi cấu hình Claude đang hoạt động hoặc cấu hình mặc định. Tính năng này mặc định tắt."
+      },
+      "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
+        "description": "Tắt endpoint kiểm tra tình trạng của phiên bản cục bộ."
+      },
+      "OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK": {
+        "description": "Tắt kiểm tra tình trạng xác thực token."
+      },
+      "SKILLS_SANDBOX_NETWORK_ENABLED": {
+        "description": "Cho phép môi trường sandbox của kỹ năng truy cập mạng."
+      }
+    },
+    "enumValues": {
+      "off": "Tắt",
+      "warn": "Cảnh báo",
+      "block": "Chặn",
+      "redact": "Che dữ liệu",
+      "disabled": "Vô hiệu hóa",
+      "dual": "Song song",
+      "alias": "Bí danh",
+      "canonical": "Chính thức"
+    }
   },
   "comboControl": {
     "title": "Trung tâm điều khiển combo",
@@ -10829,6 +11697,151 @@
       "clearStaleError": "Xóa trạng thái lỗi cũ",
       "reactivateConnection": "Kích hoạt lại kết nối",
       "clearModelLockout": "Xóa khóa mô hình"
+    }
+  },
+  "compressionEngineConfig": {
+    "loading": "Đang tải…",
+    "loadFailed": "Không thể tải thông tin bộ máy.",
+    "engineNotFound": "Không tìm thấy bộ máy \"{engine}\".",
+    "saveFailed": "Không thể lưu cấu hình.",
+    "previewFailed": "Không thể tạo bản xem trước.",
+    "panelPointerPrefix": "Bật, tắt và đặt cấp độ cho lớp này trong",
+    "compressionSettings": "Cài đặt nén",
+    "panelPointerSuffix": ". Trang này chỉ chỉnh sửa cấu hình chi tiết của lớp.",
+    "configuration": "Cấu hình",
+    "noAdditionalConfiguration": "Không có cấu hình bổ sung.",
+    "save": "Lưu",
+    "saving": "Đang lưu…",
+    "globalSettingsOnly": "Lớp này dùng cấu hình toàn cục; hiện chưa có cấu hình ghi đè riêng cho từng bộ máy để lưu tại đây.",
+    "preview": "Xem trước",
+    "previewInput": "Nội dung xem trước",
+    "processing": "Đang xử lý…",
+    "previewSample": "Con cáo nâu nhanh nhẹn nhảy qua chú chó lười. Đây là tin nhắn mẫu dùng để xem trước quá trình nén. Nội dung đủ dài để thể hiện lượng token tiết kiệm được.",
+    "originalTokens": "Token ban đầu",
+    "compressedTokens": "Token sau khi nén",
+    "savings": "Mức tiết kiệm",
+    "original": "Ban đầu",
+    "compressed": "Đã nén",
+    "diff": "Khác biệt",
+    "last7Days": "7 ngày qua",
+    "noDataYet": "Chưa có dữ liệu",
+    "runs": "Số lượt chạy",
+    "tokensSaved": "Token đã tiết kiệm",
+    "averageSavings": "Mức tiết kiệm trung bình",
+    "diffLabels": {
+      "change": "Thay đổi",
+      "added": "Đã thêm",
+      "removed": "Đã loại bỏ",
+      "modified": "Đã sửa"
+    },
+    "engines": {
+      "headroom": {
+        "name": "Headroom SmartCrusher",
+        "description": "Nén không mất dữ liệu các mảng JSON đồng nhất thành dạng bảng kèm dấu mốc số hàng rõ ràng."
+      },
+      "session-dedup": {
+        "name": "Session Dedup",
+        "description": "Khử trùng lặp các khối giữa nhiều lượt bằng dấu mốc nội dung có thể khôi phục."
+      },
+      "ccr": {
+        "name": "CCR",
+        "description": "Dùng dấu mốc truy xuất theo địa chỉ nội dung cho các khối ngữ cảnh lặp lại."
+      },
+      "llmlingua": {
+        "name": "LLMLingua-2 (Lược bỏ theo ngữ nghĩa)",
+        "description": "Phân loại token theo ngữ nghĩa bằng ONNX. Chỉ nén văn xuôi; khối mã và các cấu trúc cần giữ nguyên được bảo vệ. Khi mô hình hoặc worker lỗi, dữ liệu vẫn được chuyển tiếp nguyên vẹn."
+      },
+      "lite": {
+        "name": "Lite",
+        "description": "Giảm nhanh khoảng trắng, kết quả công cụ và URL hình ảnh."
+      },
+      "aggressive": {
+        "name": "Aggressive",
+        "description": "Tóm tắt, nén kết quả công cụ và làm cũ nội dung theo từng bước."
+      },
+      "ultra": {
+        "name": "Ultra",
+        "description": "Lược bỏ token theo kinh nghiệm, có thể dự phòng bằng SLM cục bộ."
+      }
+    },
+    "fields": {
+      "minBlockChars": {
+        "label": "Số ký tự tối thiểu của khối",
+        "description": "Số ký tự tối thiểu để một khối hậu tố trở thành ứng viên khử trùng lặp."
+      },
+      "fuzzy": {
+        "label": "Khử trùng lặp gần đúng",
+        "description": "Khi bật, tin nhắn giống khoảng 85% trở lên so với tin nhắn trước sẽ được thay bằng dấu mốc CCR có thể khôi phục."
+      },
+      "minChars": {
+        "label": "Số ký tự tối thiểu của khối",
+        "description": "Số ký tự tối thiểu để một khối trở thành ứng viên CCR."
+      },
+      "retrievalRampFactor": {
+        "label": "Hệ số tăng theo truy xuất (H8)",
+        "description": "Quy định mức độ chống nén của các khối được truy xuất thường xuyên. Mỗi lần truy xuất trước đó làm tăng tuyến tính kích thước khối tối thiểu hiệu dụng; giá trị 1 sẽ tắt cơ chế tăng."
+      },
+      "model": {
+        "label": "Mô hình"
+      },
+      "minTokens": {
+        "label": "Số token tối thiểu"
+      },
+      "compressionRate": {
+        "label": "Tỷ lệ nén"
+      },
+      "modelPath": {
+        "label": "Đường dẫn mô hình"
+      },
+      "minRows": {
+        "label": "Số hàng tối thiểu để nén",
+        "description": "Số hàng tối thiểu trong một mảng JSON đồng nhất để kích hoạt nén dạng bảng. Mặc định: 8."
+      },
+      "preserveSystemPrompt": {
+        "label": "Giữ nguyên prompt hệ thống"
+      },
+      "summarizerEnabled": {
+        "label": "Bật trình tóm tắt"
+      },
+      "maxTokensPerMessage": {
+        "label": "Số token tối đa mỗi tin nhắn"
+      },
+      "minSavingsThreshold": {
+        "label": "Ngưỡng tiết kiệm tối thiểu"
+      },
+      "minScoreThreshold": {
+        "label": "Ngưỡng điểm tối thiểu"
+      },
+      "slmFallbackToAggressive": {
+        "label": "Dự phòng bằng Aggressive"
+      },
+      "intensity": {
+        "label": "Cường độ"
+      },
+      "minMessageLength": {
+        "label": "Độ dài tin nhắn tối thiểu"
+      }
+    },
+    "engineFields": {
+      "llmlingua": {
+        "compressionRate": {
+          "label": "Tỷ lệ nén (tỷ lệ giữ lại)"
+        },
+        "modelPath": {
+          "label": "Đường dẫn mô hình (ghi đè ngoại tuyến)"
+        }
+      }
+    },
+    "options": {
+      "model": {
+        "tinybert": "TinyBERT (57 MB, nhanh — mặc định)",
+        "bert-base": "BERT-base (710 MB, độ chính xác cao hơn)"
+      },
+      "intensity": {
+        "lite": "Lite",
+        "full": "Đầy đủ",
+        "ultra": "Ultra"
+      }
     }
   }
 }

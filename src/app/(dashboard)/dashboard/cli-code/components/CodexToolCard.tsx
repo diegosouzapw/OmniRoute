@@ -673,7 +673,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                       onChange={(e) =>
                         setModelMappings({ ...modelMappings, [defaultModel]: e.target.value })
                       }
-                      placeholder={`Route ${defaultModel} to...`}
+                      placeholder={t("routeModelPlaceholder", { model: defaultModel })}
                       className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
                     />
                     {modelMappings[defaultModel] && (

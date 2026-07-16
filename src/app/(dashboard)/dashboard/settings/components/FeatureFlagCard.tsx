@@ -155,7 +155,7 @@ export default function FeatureFlagCard({
             >
               {(flag.enumValues ?? []).map((val) => (
                 <option key={val} value={val} className="bg-card text-text-primary">
-                  {val}
+                  {t.has(`enumValues.${val}`) ? t(`enumValues.${val}`) : val}
                 </option>
               ))}
             </select>

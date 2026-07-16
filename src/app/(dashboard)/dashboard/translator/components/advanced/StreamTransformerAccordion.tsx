@@ -206,7 +206,10 @@ export default function StreamTransformerAccordion({
 
       setTransformedSse(data.transformed || "");
     } catch (err) {
-      const raw = err instanceof Error ? err.message : "Failed to transform stream";
+      const raw =
+        err instanceof Error
+          ? err.message
+          : translateOrFallback("streamTransformFailed", "Failed to transform stream");
       // Defence-in-depth: strip any accidental stack-trace suffix.
       setError(raw.replace(/\s+at\s+\/.*/g, ""));
     } finally {

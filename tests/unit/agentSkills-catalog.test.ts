@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import en from "../../src/i18n/messages/en.json" with { type: "json" };
+import vi from "../../src/i18n/messages/vi.json" with { type: "json" };
+
 // Dynamic imports to pick up ESM modules with tsx
 const {
   getCatalog,
@@ -64,6 +67,24 @@ test("all skills have non-empty name and description", () => {
   for (const skill of getCatalog()) {
     assert.ok(skill.name.length > 0, `Skill ${skill.id} has empty name`);
     assert.ok(skill.description.length > 0, `Skill ${skill.id} has empty description`);
+  }
+});
+
+test("all agent skills have complete English and Vietnamese catalog copy", () => {
+  for (const skill of getCatalog()) {
+    assert.ok(en.agentSkills.catalog[skill.id]?.name?.trim(), `Missing English name: ${skill.id}`);
+    assert.ok(
+      en.agentSkills.catalog[skill.id]?.description?.trim(),
+      `Missing English description: ${skill.id}`
+    );
+    assert.ok(
+      vi.agentSkills.catalog[skill.id]?.name?.trim(),
+      `Missing Vietnamese name: ${skill.id}`
+    );
+    assert.ok(
+      vi.agentSkills.catalog[skill.id]?.description?.trim(),
+      `Missing Vietnamese description: ${skill.id}`
+    );
   }
 });
 

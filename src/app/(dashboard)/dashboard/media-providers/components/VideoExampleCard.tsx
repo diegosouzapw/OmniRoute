@@ -22,7 +22,7 @@ function extractError(data: unknown): string | null {
   return null;
 }
 
-function VideoResultRenderer(data: unknown) {
+function VideoResultRenderer(data: unknown, unsupportedText: string) {
   if (!data || typeof data !== "object") {
     return <pre className="text-xs p-3 text-text-main">{JSON.stringify(data, null, 2)}</pre>;
   }
@@ -38,7 +38,7 @@ function VideoResultRenderer(data: unknown) {
     return (
       <div className="p-3">
         <video controls src={videoUrl} className="max-w-full rounded-lg border border-border">
-          Your browser does not support video.
+          {unsupportedText}
         </video>
       </div>
     );
@@ -53,7 +53,7 @@ export function VideoExampleCard({ providerId }: Props) {
 
   const firstModel = models[0]?.id ?? "";
   const [model, setModel] = useState<string>("");
-  const [prompt, setPrompt] = useState<string>("A time-lapse of clouds over a mountain range");
+  const [prompt, setPrompt] = useState<string>(() => t("videoSample"));
   const [running, setRunning] = useState<boolean>(false);
   const [result, setResult] = useState<{ data: unknown; latencyMs: number } | undefined>();
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +96,7 @@ export function VideoExampleCard({ providerId }: Props) {
         setResult({ data, latencyMs });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      setError(err instanceof Error ? err.message : t("requestFailed"));
     } finally {
       setRunning(false);
     }
@@ -106,14 +106,14 @@ export function VideoExampleCard({ providerId }: Props) {
 
   return (
     <PlaygroundCard
-      kindLabel="Video"
+      kindLabel={t("video")}
       apiEndpoint={ENDPOINT_PATH}
       onRun={handleRun}
       curlSnippet={curlSnippet}
       running={running}
       result={result}
       error={error}
-      resultRenderer={VideoResultRenderer}
+      resultRenderer={(data) => VideoResultRenderer(data, t("browserVideoUnsupported"))}
     >
       {/* Model */}
       <div>
@@ -137,7 +137,7 @@ export function VideoExampleCard({ providerId }: Props) {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           rows={2}
-          placeholder="A time-lapse of clouds over a mountain range"
+          placeholder={t("videoSample")}
           className="w-full rounded-md border border-border bg-bg-subtle text-sm px-2 py-1.5 text-text-main focus:outline-none focus:ring-1 focus:ring-primary resize-none"
         />
       </div>

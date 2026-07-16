@@ -121,34 +121,29 @@ function projectEndOfMonth(monthlyCost: number, now = new Date()): number {
   return burnRate * daysInMonth;
 }
 
-const STATUS_META: Record<StatusKey, { label: string; tone: string; bg: string; dot: string }> = {
-  all: { label: "All", tone: "text-text-main", bg: "bg-bg-subtle", dot: "var(--color-text-muted)" },
+const STATUS_META: Record<StatusKey, { tone: string; bg: string; dot: string }> = {
+  all: { tone: "text-text-main", bg: "bg-bg-subtle", dot: "var(--color-text-muted)" },
   blocked: {
-    label: "Blocked",
     tone: "text-red-400",
     bg: "bg-red-500/10 border-red-500/30",
     dot: "#ef4444",
   },
   alerting: {
-    label: "Alerting",
     tone: "text-amber-400",
     bg: "bg-amber-500/10 border-amber-500/30",
     dot: "#f59e0b",
   },
   warning: {
-    label: "Warning",
     tone: "text-yellow-400",
     bg: "bg-yellow-500/10 border-yellow-500/30",
     dot: "#eab308",
   },
   safe: {
-    label: "Safe",
     tone: "text-emerald-400",
     bg: "bg-emerald-500/10 border-emerald-500/30",
     dot: "#22c55e",
   },
   "no-limit": {
-    label: "No limit",
     tone: "text-text-muted",
     bg: "bg-bg-subtle border-border",
     dot: "var(--color-text-muted)",
@@ -185,6 +180,13 @@ export default function BudgetTab() {
     return DEFAULT_TEMPLATES;
   });
   const [breakdownCache, setBreakdownCache] = useState<Record<string, ProviderBreakdown[]>>({});
+  const templateName = useCallback(
+    (template: Template) => {
+      const key = `budgetTemplateNames.${template.id}`;
+      return t.has(key) ? t(key) : template.name;
+    },
+    [t]
+  );
 
   const formatCurrency = useCallback(
     (value: number | undefined | null) =>
@@ -238,33 +240,37 @@ export default function BudgetTab() {
   }, []);
 
   useEffect(() => {
-    void loadAll();
+    const timer = window.setTimeout(() => void loadAll(), 0);
+    return () => window.clearTimeout(timer);
   }, [loadAll]);
 
-  const fetchBreakdown = useCallback(async (apiKeyId: string) => {
-    try {
-      const r = await fetch(`/api/usage/analytics?range=30d&apiKeyIds=${apiKeyId}`);
-      if (!r.ok) return;
-      const data = await r.json();
-      const arr = Array.isArray(data?.byProvider) ? data.byProvider : [];
-      const total =
-        arr.reduce((s: number, p: any) => s + Number(p?.totalCost ?? p?.cost ?? 0), 0) || 0;
-      const breakdown: ProviderBreakdown[] = arr
-        .map((p: any) => {
-          const cost = Number(p?.totalCost ?? p?.cost ?? 0);
-          return {
-            provider: String(p?.provider ?? "unknown"),
-            cost,
-            pct: total > 0 ? (cost / total) * 100 : 0,
-          };
-        })
-        .filter((p: ProviderBreakdown) => p.cost > 0)
-        .sort((a: ProviderBreakdown, b: ProviderBreakdown) => b.cost - a.cost);
-      setBreakdownCache((prev) => ({ ...prev, [apiKeyId]: breakdown }));
-    } catch {
-      /* breakdown is best-effort */
-    }
-  }, []);
+  const fetchBreakdown = useCallback(
+    async (apiKeyId: string) => {
+      try {
+        const r = await fetch(`/api/usage/analytics?range=30d&apiKeyIds=${apiKeyId}`);
+        if (!r.ok) return;
+        const data = await r.json();
+        const arr = Array.isArray(data?.byProvider) ? data.byProvider : [];
+        const total =
+          arr.reduce((s: number, p: any) => s + Number(p?.totalCost ?? p?.cost ?? 0), 0) || 0;
+        const breakdown: ProviderBreakdown[] = arr
+          .map((p: any) => {
+            const cost = Number(p?.totalCost ?? p?.cost ?? 0);
+            return {
+              provider: String(p?.provider ?? t("unknownProvider")),
+              cost,
+              pct: total > 0 ? (cost / total) * 100 : 0,
+            };
+          })
+          .filter((p: ProviderBreakdown) => p.cost > 0)
+          .sort((a: ProviderBreakdown, b: ProviderBreakdown) => b.cost - a.cost);
+        setBreakdownCache((prev) => ({ ...prev, [apiKeyId]: breakdown }));
+      } catch {
+        /* breakdown is best-effort */
+      }
+    },
+    [t]
+  );
 
   // ── Derived data ─────────────────────────────────────────────────────────
 
@@ -364,7 +370,7 @@ export default function BudgetTab() {
   const applyTemplateToSelected = useCallback(
     async (template: Template) => {
       if (selectedIds.size === 0) {
-        notify.error("No keys selected");
+        notify.error(t("budgetNoKeysSelected"));
         return;
       }
       setSaving(true);
@@ -386,24 +392,29 @@ export default function BudgetTab() {
             })
           )
         );
-        notify.success(`Applied "${template.name}" to ${selectedIds.size} keys`);
+        notify.success(
+          t("budgetTemplateApplied", {
+            template: templateName(template),
+            count: selectedIds.size,
+          })
+        );
         setSelectedIds(new Set());
         await loadAll();
       } catch {
-        notify.error("Failed to apply template");
+        notify.error(t("budgetTemplateApplyFailed"));
       } finally {
         setSaving(false);
       }
     },
-    [loadAll, notify, selectedIds]
+    [loadAll, notify, selectedIds, t, templateName]
   );
 
   // ── Effects ──────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (expandedKeyId && !breakdownCache[expandedKeyId]) {
-      fetchBreakdown(expandedKeyId);
-    }
+    if (!expandedKeyId || breakdownCache[expandedKeyId]) return;
+    const timer = window.setTimeout(() => void fetchBreakdown(expandedKeyId), 0);
+    return () => window.clearTimeout(timer);
   }, [expandedKeyId, breakdownCache, fetchBreakdown]);
 
   // ── Render ───────────────────────────────────────────────────────────────
@@ -447,14 +458,12 @@ export default function BudgetTab() {
               <span className="material-symbols-outlined text-[22px] text-primary">
                 account_balance_wallet
               </span>
-              Budget
+              {t("budgetPageTitle")}
             </h2>
-            <p className="text-text-muted text-xs mt-0.5">
-              Set daily/weekly/monthly spend limits per API key
-            </p>
+            <p className="text-text-muted text-xs mt-0.5">{t("budgetPageDescription")}</p>
           </div>
           <span className="text-[11px] text-text-muted">
-            {templates.length} templates · edit via localStorage:{" "}
+            {t("budgetTemplateStorageHint", { count: templates.length })}{" "}
             <code className="text-text-main">{LS_TEMPLATES}</code>
           </span>
         </div>
@@ -466,7 +475,7 @@ export default function BudgetTab() {
             label={t("budgetKpiProjEom")}
             value={formatCurrency(stats.projectionEom)}
             tone={projectionOverBudget ? "amber" : undefined}
-            hint={projectionOverBudget ? "above limit ⚠" : "on track"}
+            hint={projectionOverBudget ? t("budgetAboveLimitShort") : t("budgetOnTrackShort")}
           />
           <KpiBlock
             label={t("budgetKpiBlocked")}
@@ -477,7 +486,7 @@ export default function BudgetTab() {
             label={t("budgetKpiAtRisk")}
             value={String(stats.counts.alerting)}
             tone={stats.counts.alerting > 0 ? "amber" : undefined}
-            hint="≥ warning"
+            hint={t("budgetAtOrAboveWarning")}
           />
           <KpiBlock
             label={t("budgetKpiActiveKeys")}
@@ -534,7 +543,7 @@ export default function BudgetTab() {
                   {key !== "all" && (
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: meta.dot }} />
                   )}
-                  <span>{meta.label}</span>
+                  <span>{t(`budgetStatus.${key}`)}</span>
                   <span className="opacity-70">{count}</span>
                 </button>
               );
@@ -545,7 +554,7 @@ export default function BudgetTab() {
         {templates.length > 0 && (
           <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
             <span className="text-text-muted font-semibold uppercase tracking-wide mr-1">
-              Templates:
+              {t("budgetTemplates")}:
             </span>
             {templates.map((tpl) => (
               <button
@@ -555,21 +564,23 @@ export default function BudgetTab() {
                 disabled={selectedIds.size === 0 || saving}
                 title={
                   selectedIds.size === 0
-                    ? "Select keys first to apply"
-                    : `Apply to ${selectedIds.size} selected key(s)`
+                    ? t("budgetSelectKeysFirst")
+                    : t("budgetApplyToSelected", { count: selectedIds.size })
                 }
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-border bg-bg-subtle text-text-main hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 <span>{tpl.emoji}</span>
-                <span>{tpl.name}</span>
+                <span>{templateName(tpl)}</span>
                 <span className="text-text-muted">
-                  {tpl.monthlyLimitUsd ? `$${tpl.monthlyLimitUsd}/mo` : `$${tpl.dailyLimitUsd}/d`}
+                  {tpl.monthlyLimitUsd
+                    ? t("budgetTemplateMonthlyAmount", { amount: tpl.monthlyLimitUsd })
+                    : t("budgetTemplateDailyAmount", { amount: tpl.dailyLimitUsd })}
                 </span>
               </button>
             ))}
             {selectedIds.size > 0 && (
               <span className="text-text-muted ml-2">
-                {selectedIds.size} selected · click a template to apply
+                {t("budgetSelectedTemplateHint", { count: selectedIds.size })}
               </span>
             )}
           </div>
@@ -600,13 +611,13 @@ export default function BudgetTab() {
             />
           </div>
           <div></div>
-          <div>Key</div>
-          <div className="text-right">Today</div>
-          <div className="text-right">Month</div>
+          <div>{t("budgetColumnKey")}</div>
+          <div className="text-right">{t("budgetColumnToday")}</div>
+          <div className="text-right">{t("budgetColumnMonth")}</div>
           <div className="text-right">{t("budgetColDailyLim")}</div>
           <div className="text-right">{t("budgetColMonthlyLim")}</div>
           <div className="text-right">{t("budgetColUsedPct")}</div>
-          <div className="text-center">Status</div>
+          <div className="text-center">{t("budgetColumnStatus")}</div>
         </div>
 
         {visibleRows.length === 0 ? (
@@ -703,6 +714,7 @@ function BudgetRow({
   onSave: (payload: any) => void;
   saving: boolean;
 }) {
+  const t = useTranslations("usage");
   const status = statusOf(row);
   const meta = STATUS_META[status];
   const today = row.budget?.totalCostToday || 0;
@@ -780,7 +792,7 @@ function BudgetRow({
           <span
             className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold border ${meta.bg} ${meta.tone}`}
           >
-            {meta.label.toUpperCase()}
+            {t(`budgetStatus.${status}`).toUpperCase()}
           </span>
         </div>
       </div>
@@ -857,7 +869,7 @@ function BudgetRowExpanded({
         <div className="rounded-md border border-border/40 bg-bg-base/30 p-3">
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-[11px] uppercase tracking-wide font-bold text-text-muted">
-              Projection
+              {t("budgetProjection")}
             </h4>
             <span className="text-[10px] text-text-muted">{t("budgetLinearExtrapolation")}</span>
           </div>
@@ -876,7 +888,9 @@ function BudgetRowExpanded({
               >
                 {formatCurrency(projection)}
                 {projectionOver && (
-                  <span className="text-[11px] ml-1.5">⚠ above ${monthly}/mo</span>
+                  <span className="text-[11px] ml-1.5">
+                    {t("budgetAboveMonthlyLimit", { limit: formatCurrency(monthly) })}
+                  </span>
                 )}
               </div>
             </div>
@@ -886,7 +900,7 @@ function BudgetRowExpanded({
         <div className="rounded-md border border-border/40 bg-bg-base/30 p-3">
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-[11px] uppercase tracking-wide font-bold text-text-muted">
-              Cost breakdown (30d)
+              {t("budgetCostBreakdown30d")}
             </h4>
             <span className="text-[10px] text-text-muted">{t("budgetByProvider")}</span>
           </div>
@@ -922,7 +936,7 @@ function BudgetRowExpanded({
 
       <div className="rounded-md border border-border/40 bg-bg-base/30 p-3">
         <h4 className="text-[11px] uppercase tracking-wide font-bold text-text-muted mb-3">
-          Limits
+          {t("budgetLimits")}
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
           <Input
@@ -971,9 +985,9 @@ function BudgetRowExpanded({
               }
               className="w-full px-2 py-1.5 rounded border border-border bg-bg-base text-sm"
             >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
+              <option value="daily">{t("budgetResetDaily")}</option>
+              <option value="weekly">{t("budgetResetWeekly")}</option>
+              <option value="monthly">{t("budgetResetMonthly")}</option>
             </select>
           </div>
           <Input
@@ -983,7 +997,7 @@ function BudgetRowExpanded({
             onChange={(e) => setForm({ ...form, resetTime: e.target.value })}
           />
           <div className="text-[10px] text-text-muted">
-            Next reset:{" "}
+            {t("budgetNextReset")}:{" "}
             <span className="font-mono">{formatDateTime(row.budget?.budgetResetAt)}</span>
           </div>
         </div>
@@ -1005,9 +1019,7 @@ function BudgetRowExpanded({
           >
             {t("saveLimits")}
           </Button>
-          <span className="text-[10px] text-text-muted">
-            💡 Hard-cap policy and email alerts coming soon
-          </span>
+          <span className="text-[10px] text-text-muted">💡 {t("budgetHardCapComingSoon")}</span>
         </div>
       </div>
     </div>

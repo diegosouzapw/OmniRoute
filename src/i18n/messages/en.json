@@ -4,11 +4,14 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "loading": "Loading...",
+    "selectOption": "Select an option",
     "error": "An error occurred",
     "success": "Success",
     "confirm": "Are you sure?",
     "refresh": "Refresh",
     "close": "Close",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
     "capsLockOn": "Caps Lock is on",
     "dismissNotification": "Dismiss notification",
     "toggleColumns": "Toggle columns",
@@ -760,8 +763,23 @@
     "batchFileDetailCopyId": "Copy ID",
     "batchFileDetailClose": "Close",
     "batchFileDetailFailedToLoad": "Failed to load file contents",
+    "batchFileDetailLoadError": "Error loading file contents",
     "batchFilesListSearchPlaceholder": "Search by ID or filename…",
     "batchFilesListFilesTable": "Files",
+    "batchFilesCount": "{count, plural, one {# file} other {# files}}",
+    "batchFilesAllPurposes": "All purposes",
+    "batchFilesFilename": "Filename",
+    "batchFilesPurpose": "Purpose",
+    "batchFilesExpires": "Expires",
+    "batchFilesNoneFound": "No files found",
+    "batchFilesNeverExpires": "Never",
+    "batchFileInUseByActiveBatch": "File in use by an active batch",
+    "batchFilePurpose": {
+      "batch": "Batch input",
+      "batch-output": "Batch output",
+      "fine-tune": "Fine-tuning",
+      "assistants": "Assistants"
+    },
     "batchPageLoadingMore": "Loading more…",
     "recommended": "Recommended",
     "understand": "I understand",
@@ -1723,6 +1741,19 @@
     "chartModelUsageOverTime": "Model Usage Over Time",
     "chartNoData": "No data",
     "chartWeekly": "Weekly",
+    "activitySummary": "{active} active days · {tokens} tokens · {days} days",
+    "activityCellTitle": "{date}: {tokens} tokens",
+    "activityLess": "Less",
+    "activityMore": "More",
+    "chartApiKeyBreakdown": "API Key Breakdown",
+    "chartApiKey": "API Key",
+    "mostActiveDay": "Most Active Day",
+    "datedTokenCount": "{date} · {tokens} tokens",
+    "noDataLast7Days": "No data in the last 7 days",
+    "requestTokenSummary": "{requests} requests · {tokens} tokens",
+    "chartByAccount": "By Account",
+    "chartByApiKey": "By API Key",
+    "unknownApiKey": "Unknown API key",
     "chartModelBreakdown": "Model Breakdown",
     "chartModel": "Model",
     "chartProvider": "Provider",
@@ -2138,6 +2169,15 @@
     "restrictDesc": "This key can access {selectedCount} of {totalModels} models.",
     "selectedCount": "{count} selected",
     "maxActiveSessions": "Max Active Sessions",
+    "maxActiveSessionsDescription": "0 = unlimited. Return 429 when this key exceeds concurrent sticky sessions.",
+    "throttleDelay": "Throttle Delay",
+    "throttleDelayDescription": "Add a fixed delay before requests for this key are routed. 0 = no slowdown.",
+    "expandClaudeCodeFamilies": "Expand Claude Code families",
+    "removeClaudeCodeDefault": "Remove Claude Code default",
+    "allowedCombos": "Allowed Combos",
+    "restrict": "Restrict",
+    "allCombosAllowed": "This key can use any combo.",
+    "restrictedComboCount": "Restricted to {count, plural, one {# combo} other {# combos}}.",
     "apiManagerCustomRateLimits": "Custom Rate Limits",
     "apiManagerCustomRateLimitsDesc": "Override global default limits. Leave empty to use defaults.",
     "apiManagerRateLimitRequestsPlaceholder": "Requests",
@@ -2170,6 +2210,8 @@
     "disableNonPublicModelsDesc": "Reject requests for models that are not discovered or not marked as public in the provider catalog",
     "normalKeysSection": "Normal keys",
     "quotaKeysSection": "Quota keys",
+    "bypassProviderQuota": "Bypass provider quota cutoffs",
+    "bypassProviderQuotaDescription": "Allows this key to ignore upstream provider/account cutoff policy during routing. API key USD quotas still apply.",
     "quotaPill": "QUOTA",
     "quotaModeOnly": "qtSd-only"
   },
@@ -2229,6 +2271,9 @@
     "loading": "Loading...",
     "suggestedModels": "Suggested models from provider",
     "imageGeneration": "Image Generation",
+    "imageToText": "Image to Text",
+    "imageToTextComingSoon": "The inline Image-to-Text playground will be available when <code>/api/v1/images/understanding</code> is implemented.",
+    "disabled": "Disabled",
     "videoGeneration": "Video Generation",
     "musicGeneration": "Music Generation",
     "textToSpeech": "Text to Speech",
@@ -2400,6 +2445,26 @@
     "httpError": "Error {status}",
     "failed": "Failed",
     "requestFailed": "Request failed",
+    "embedding": "Embedding",
+    "embeddingSample": "Hello, world!",
+    "image": "Image",
+    "imageSample": "A serene landscape with mountains at sunset",
+    "music": "Music",
+    "musicSample": "Upbeat jazz piano with light percussion",
+    "noAudioUrl": "No audio URL in response: {response}",
+    "documentUrl": "Document URL",
+    "fileTooLarge25Mb": "File too large — max 25 MB",
+    "selectAudioFirst": "Please select an audio file first.",
+    "speechToText": "Speech to Text",
+    "chooseFile": "Choose file…",
+    "audioFormats25Mb": "mp3, wav, m4a, ogg, flac — max 25 MB",
+    "textToSpeech": "Text to Speech",
+    "ttsSample": "Hello, this is a text-to-speech test.",
+    "video": "Video",
+    "videoSample": "A time-lapse of clouds over a mountain range",
+    "webFetch": "Web Fetch",
+    "webSearch": "Web Search",
+    "webSearchSample": "What is OmniRoute AI gateway?",
     "noActiveProviderDescription": "No active search provider. Configure one in Providers.",
     "configureProviders": "Configure providers",
     "compareQuery": "Query to compare",
@@ -2444,6 +2509,18 @@
     "configureEndpoint": "Configure Endpoint",
     "instructions": "Instructions",
     "modelMapping": "Model Mapping",
+    "reasoningEffort": "Reasoning effort",
+    "effortNone": "None",
+    "effortLow": "Low",
+    "effortMedium": "Medium",
+    "effortHigh": "High",
+    "effortExtraHigh": "Extra high",
+    "effortMax": "Max",
+    "effortUltra": "Ultra",
+    "wireApi": "Wire API",
+    "modelAliases": "Model aliases",
+    "addModel": "Add model",
+    "routeModelPlaceholder": "Route {model} to...",
     "baseUrl": "Base URL",
     "apiKey": "API Key",
     "configured": "Configured",
@@ -3169,6 +3246,9 @@
     "budgetCapLabel": "Budget Cap (USD / request)",
     "budgetCapPlaceholder": "No limit",
     "advancedWeightsTitle": "Advanced: Scoring Weights",
+    "nestedComboFlatten": "Flatten nested combos",
+    "nestedComboExecute": "Execute nested combos as targets",
+    "effectiveRoutingShare": "Effective routing share (weight ÷ total)",
     "weightQuota": "Quota",
     "weightHealth": "Health",
     "weightCostInv": "Cost",
@@ -3684,6 +3764,40 @@
     "apiEndpointsSearchPlaceholder": "Search endpoints...",
     "apiEndpointsRequiresAuth": "Requires auth",
     "apiEndpointsNoMatch": "No endpoints match your filter",
+    "endpointSections": "Endpoint sections",
+    "badgeLocal": "LOCAL",
+    "badgeProtected": "PROTECTED",
+    "badgeInternal": "INTERNAL",
+    "catalogLoadFailed": "API catalog request failed with HTTP {status}",
+    "catalogLoadFailedGeneric": "Failed to load API catalog",
+    "apiKeysLoadFailed": "Failed to load API keys ({status})",
+    "apiKeysLoadFailedGeneric": "Failed to load API keys",
+    "apiKeyRevealDisabled": "API key reveal is disabled (ALLOW_API_KEY_REVEAL). Change it on the Feature Flags page or paste an API key manually.",
+    "apiKeyRevealFailed": "Failed to reveal API key ({status})",
+    "apiKeyRevealInvalid": "API key reveal returned an invalid response",
+    "apiKeyRequired": "An API key is required for this endpoint.",
+    "requestFailed": "Request failed ({status})",
+    "errorStatus": "Error",
+    "catalogStats": "{endpoints} endpoints across {categories} categories",
+    "catalogUnavailableDescription": "The OpenAPI specification could not be loaded.",
+    "openJsonResponse": "Open JSON response",
+    "all": "All",
+    "more": "+{count} more",
+    "showInternalTooltip": "Show or hide internal routes (hidden by default)",
+    "bearerAuth": "Bearer Auth",
+    "requestBody": "Request Body",
+    "close": "Close",
+    "tryIt": "Try It",
+    "example": "Example",
+    "apiKey": "API Key",
+    "switchToSelection": "Switch to Selection",
+    "enterManually": "Enter Manually",
+    "pasteApiKey": "Paste your API key here",
+    "noActiveApiKeys": "No active API keys found. Toggle manual entry to paste one.",
+    "requestBodyJson": "Request Body (JSON)",
+    "sending": "Sending...",
+    "sendRequest": "Send Request",
+    "dataSchemas": "Data Schemas",
     "vscodeAliasTitle": "VS Code Token Alias",
     "vscodeAliasDescriptionReady": "Ready-to-paste compatibility URLs using the /api/v1/vscode/TOKEN/... endpoint.",
     "vscodeAliasDescriptionError": "Showing placeholder URLs because CLI keys could not be loaded in this session.",
@@ -4108,6 +4222,16 @@
     "description": "Manage and monitor AI skills",
     "skillsTab": "Skills",
     "executionsTab": "Executions",
+    "selectSkillToInspect": "Select a skill on the left to inspect.",
+    "schemaTab": "Schema",
+    "handlerTab": "Handler",
+    "inputSchema": "Input Schema",
+    "outputSchema": "Output Schema",
+    "handlerCode": "Handler Code",
+    "handlerUnavailable": "Handler not available",
+    "runTestPlaceholder": "Run test (placeholder)",
+    "setModeAria": "Set mode {mode}",
+    "uninstallSkill": "Uninstall skill",
     "sandboxTab": "Sandbox",
     "loading": "Loading skills...",
     "noSkills": "No skills found",
@@ -4251,6 +4375,27 @@
     "throttleStatus": "Throttle: {value}",
     "lastHeaderUpdate": "Header update: {age}",
     "databaseHealth": "Database Health",
+    "databaseHealthDescription": "Diagnose and repair stale quota/domain rows and broken combo references.",
+    "status": "Status",
+    "attentionNeeded": "Attention needed",
+    "repairs": "Repairs",
+    "repairing": "Repairing...",
+    "runAutoRepair": "Run Auto-Repair",
+    "repairBackupCreated": "A repair backup was created before mutating.",
+    "sessionActivity": "Session Activity",
+    "activeCount": "{count} active",
+    "requestCount": "{count, plural, one {# request} other {# requests}}",
+    "idleSeconds": "{count}s idle",
+    "ageSeconds": "{count}s age",
+    "quotaMonitors": "Quota Monitors",
+    "alerting": "Alerting",
+    "errors": "Errors",
+    "degradationFull": "Full",
+    "degradationReduced": "Reduced",
+    "degradationMinimal": "Minimal",
+    "degradationDefault": "Default",
+    "sinceTime": "Since {time}",
+    "retryIn": "retry in {duration}",
     "stickyBoundSessions": "Sticky-bound sessions",
     "sessionsByApiKey": "Sessions by API key",
     "noActiveSessionsTracked": "No active sessions tracked yet.",
@@ -4447,7 +4592,20 @@
     "consoleViewer": {
       "fetchFailed": "Failed to fetch logs",
       "copyFailed": "Failed to copy log entry",
-      "copyLogEntry": "Copy log entry"
+      "copyLogEntry": "Copy log entry",
+      "filterByLevel": "Filter by log level",
+      "searchPlaceholder": "Search logs…",
+      "searchAria": "Search log entries",
+      "disableAutoScroll": "Disable auto-scroll",
+      "enableAutoScroll": "Enable auto-scroll",
+      "autoScroll": "Auto-scroll",
+      "entryCount": "{count, plural, one {# entry} other {# entries}}",
+      "lastHour": "Last 1h",
+      "updatedAt": "Updated {time}",
+      "fileLoggingRequired": "Make sure the application is writing logs to a file (APP_LOG_TO_FILE=true)",
+      "consoleAria": "Application console logs",
+      "applicationConsole": "Application Console",
+      "emptyFileLoggingHint": "Ensure APP_LOG_TO_FILE=true is set in your .env file"
     },
     "compressionLogTitle": "Compression Log",
     "compressionLogEmpty": "No compressed requests yet. Compression stats will appear here when requests are processed with compression enabled.",
@@ -5367,13 +5525,45 @@
     "webCookieProviders": "Web Cookie Providers",
     "weeklyShort": "Weekly Short",
     "xiaomiMimoBaseUrlHint": "Xiaomi Mimo Base Url Hint",
-    "zedImportButton": "Zed Import Button",
-    "zedImportFailed": "Zed Import Failed",
+    "globalCodexServiceMode": "Global Codex service mode",
+    "connect": "Connect",
+    "manualApiKey": "Manual API key",
+    "addPat": "Add PAT",
+    "experimentalOauth": "Experimental OAuth",
+    "importAuth": "Import auth",
+    "importGrokAuth": "Import Grok Build auth",
+    "zedImportTitle": "Import from Zed Keychain",
+    "zedImportDescription": "Discover AI provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) stored by Zed IDE in the OS keychain and import them as connections. Zed IDE must be installed on this machine.",
+    "zedImportButton": "Import from Zed",
+    "zedImportFailed": "Zed import failed",
     "zedImportHint": "Zed Import Hint",
     "zedImportNetworkError": "Zed Import Network Error",
     "zedImportNone": "Zed Import None",
-    "zedImportSuccess": "Zed Import Success",
-    "zedImporting": "Zed Importing",
+    "zedImportSuccess": "Imported {credentials} credential(s) from Zed for {providers} provider(s)",
+    "zedImporting": "Importing…",
+    "zedNoCredentials": "No Zed credentials found in the keychain",
+    "zedUnsupportedCredentials": "Found {count} keychain credential(s), but none matched supported providers",
+    "zedManualTitle": "Manual Token Import",
+    "zedManualDescription": "Use this when OmniRoute runs in Docker or the keychain is unavailable. Paste the API key that Zed stored under <path>~/.config/zed/settings.json</path>, or copy it from the Zed AI settings panel.",
+    "zedPasteApiKey": "Paste API key…",
+    "zedSaving": "Saving…",
+    "zedImportAction": "Import",
+    "zedManualImportFailed": "Manual import failed",
+    "zedManualImportSuccess": "Imported {provider} token from Zed",
+    "grokImportTitle": "Import Grok Build Auth",
+    "grokImportDescription": "Import your Grok Build <authPath>~/.grok/auth.json</authPath> file. You can get it by running <command>grok login</command> in your terminal.",
+    "grokUploadFile": "Upload file",
+    "grokPasteJson": "Paste JSON",
+    "grokInvalidAuth": "This is not a valid Grok Build auth.json file. Expected an object with a key containing a JWT.",
+    "grokParseFailed": "Could not parse JSON",
+    "grokImportFailed": "Failed to import Grok Build auth",
+    "grokImportSuccess": "Grok Build connection imported successfully",
+    "grokValidToken": "Valid Grok Build token detected",
+    "grokRefreshIncluded": "Refresh token included — automatic token renewal is enabled",
+    "grokRefreshMissing": "No refresh token found — re-import after the token expires",
+    "grokConnectionName": "Connection name (optional)",
+    "grokSaving": "Saving…",
+    "grokSaveConnection": "Save Connection",
     "freeTierProviders": "Free Tier Providers",
     "freeTierLabel": "Free tier available",
     "freeTierProvidersDesc": "Providers with free tiers — some require an API key signup, others need no credentials at all.",
@@ -5390,6 +5580,16 @@
     "providerDetailPathAutoDetectedAllOs": "Path is auto-detected per OS (Linux/Mac/Windows).",
     "providerDetailMyClaudeAccountPlaceholder": "My Claude account",
     "providerDetailPathAutoDetected": "Path is auto-detected per OS (Linux/Mac).",
+    "compatBlockedParamsPlaceholder": "thinking, … (comma-separated)",
+    "compatAllowedParamsPlaceholder": "reasoning, … (comma-separated)",
+    "compatSaving": "saving…",
+    "paramFiltersBlockedPlaceholder": "thinking, reasoning_budget, … (comma-separated)",
+    "paramFiltersAllowedPlaceholder": "reasoning, … (comma-separated)",
+    "customGatewayNamePlaceholder": "My Gateway",
+    "inherit": "Inherit",
+    "claudeImportEntryName": "entry {number}",
+    "claudeImportParseError": "parse error",
+    "claudeImportNoValidEntries": "No valid entries to import",
     "webFetch": "Web Fetch",
     "webFetchTooltip": "Providers that extract content from web URLs (HTML → Markdown, scrape, screenshot)",
     "webFetchProvidersHeading": "Web Fetch Providers",
@@ -5475,6 +5675,188 @@
     "onboardingConnectProvider": "Connect {provider}",
     "onboardingOAuthFlowDescription": "OmniRoute will open the existing OAuth flow for this provider. After login, the wizard reloads the saved connection and runs the same connection test as the provider page.",
     "onboardingStartOAuthFlow": "Start OAuth flow",
+    "onboardingProviderDescriptions": {
+      "360ai": "Get API key at ai.360.cn",
+      "agentrouter": "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
+      "aimlapi": "Free tier paused (2026) — AI/ML API is now pay-as-you-go only (min $20 top-up); no recurring free credits.",
+      "ai21": "$10 trial credits on signup (valid 3 months), no credit card required",
+      "alibaba": "Connect Alibaba with an API key.",
+      "alibaba-cn": "Connect Alibaba (China) with an API key.",
+      "bailian-coding-plan": "Connect Alibaba Coding Plan with an API key.",
+      "bedrock": "Native Bedrock integration: model discovery uses Bedrock foundation models and inference profiles, while chat uses the regional Bedrock Runtime Converse/ConverseStream APIs.",
+      "anthropic": "Connect Anthropic with an API key.",
+      "api-airforce": "Get your API key from https://panel.api.airforce — OpenAI-compatible endpoint at https://api.airforce/v1",
+      "arcee-ai": "Get API key at arcee.ai",
+      "azure-ai": "Foundry uses the OpenAI v1 surface with deployment names as models. OmniRoute normalizes root resource URLs to the v1 chat and /models endpoints.",
+      "azure-openai": "Use your Azure OpenAI API key. Base URL should be your resource endpoint, for example https://my-resource.openai.azure.com.",
+      "bai": "Bearer API key for the b.ai OpenAI-compatible LLM gateway (distinct from TheB.AI). Create a key at https://docs.b.ai, then use https://api.b.ai/v1 as the OpenAI-compatible base URL.",
+      "baichuan": "Get API key at platform.baichuan-ai.com",
+      "baidu": "Get API key at console.bce.baidu.com",
+      "qianfan": "Use a Qianfan API key from Baidu AI Cloud. The default endpoint is OpenAI-compatible v2.",
+      "baseten": "$30 free trial credits for GPU inference",
+      "bazaarlink": "Create a free API key at https://bazaarlink.ai — model 'auto:free' routes to zero-cost inference. All models use the provider/model-name format, e.g. xiaomi/mimo-v2.5-pro.",
+      "black-forest-labs": "Connect Black Forest Labs with an API key.",
+      "blackbox": "Free tier: unlimited basic chat plus Minimax-M2.5, no credit card required",
+      "bluesminds": "Get your API key at https://www.bluesminds.com — OpenAI-compatible endpoint at https://api.bluesminds.com/v1 with free daily credits. VIP models (Claude Opus 4.5, Gemini 2.5 Pro) consume pi credits.",
+      "byteplus": "Connect BytePlus ModelArk with an API key.",
+      "bytez": "$1 free credits, refreshes every 4 weeks",
+      "cerebras": "Free Trial: 1M tokens/day, 30K TPM, 5 RPM — no credit card.",
+      "charm-hyper": "Create an API key at https://hyper.charm.land, then paste it here as a Bearer token.",
+      "chutes": "Bearer API key for the Chutes OpenAI-compatible gateway.",
+      "clarifai": "Clarifai exposes OpenAI-compatible chat, responses and /models on /v2/ext/openai/v1. Public/community models typically require a PAT; app-scoped keys only work for resources inside that app.",
+      "cloudflare-ai": "Requires API Token AND Account ID (found at dash.cloudflare.com)",
+      "codestral": "Connect Codestral with an API key.",
+      "cohere": "Free Trial: 1,000 API calls/month for testing, no credit card required",
+      "command-code": "Create or copy an API key from Command Code, then paste it here as a Bearer token.",
+      "coze": "Get API key at coze.com/open/api",
+      "crof": "Connect CrofAI with an API key.",
+      "databricks": "Connect Databricks with an API key.",
+      "datarobot": "The default gateway catalogs active models from /genai/llmgw/catalog/. Deployment URLs are also supported for direct OpenAI-compatible chat requests.",
+      "deepinfra": "Free signup credits for API testing and model exploration",
+      "deepseek": "5M free tokens on signup - no credit card required",
+      "dgrid": "Create a DGrid API key at https://dgrid.ai, then use https://api.dgrid.ai/v1 as the OpenAI-compatible base URL.",
+      "dify": "Get API key from your Dify instance.",
+      "digitalocean": "Connect DigitalOcean with an API key.",
+      "dit": "dit.ai (Distributed Intelligence Trade) is an OpenAI-compatible router/gateway with dynamic per-request pricing, exposing /v1/chat/completions at https://api.dit.ai/v1. OmniRoute uses the OpenAI protocol; spend/savings analytics live in the dit.ai dashboard.",
+      "doubao": "Get API key at console.volcengine.com",
+      "empower": "Empower exposes OpenAI-compatible chat on https://app.empower.dev/api/v1 with tool-calling support on empower-functions.",
+      "factory": "Get your Factory API key at https://app.factory.ai/settings/api-keys, then paste it as a Bearer token. OpenAI-compatible endpoint at https://api.factory.ai/v1.",
+      "fal-ai": "Connect Fal.ai with an API key.",
+      "featherless-ai": "Free tier available — no credit card required",
+      "fenayai": "Bearer API key for the FenayAI OpenAI-compatible gateway.",
+      "firecrawl": "Connect Firecrawl with an API key.",
+      "fireworks": "$1 free starter credits on signup for API testing",
+      "freeaiapikey": "Discounted API proxy for 40+ models including GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Get your API key at https://freeaiapikey.com/dashboard. Base URL: https://freeaiapikey.com/v1.",
+      "freemodel-dev": "Get $300 free API credits at https://freemodel.dev — no payment info required. OpenAI-compatible endpoint. GPT-5.4 and GPT-5.5 models available.",
+      "friendliai": "Free tier for serverless inference — no credit card required",
+      "gemini": "Free forever: 1,500 req/day for Gemini 2.5 Flash — no credit card, get key at aistudio.google.com",
+      "gigachat": "Connect GigaChat (Sber) with an API key.",
+      "github-models": "Create a GitHub PAT with 'models: read' scope at github.com/settings/tokens",
+      "gitlab": "GitLab personal access token for the public Code Suggestions API. Configure a self-hosted base URL when not using gitlab.com.",
+      "gitlawb-gmi": "Get your API key from Gitlawb Opengateway dashboard.",
+      "gitlawb": "Get your API key from Gitlawb Opengateway dashboard.",
+      "glm": "Connect GLM Coding with an API key.",
+      "glm-cn": "Connect GLM Coding (China) with an API key.",
+      "glmt": "Preset GLM profile with higher token budget, thinking enabled, and longer timeout.",
+      "getgoapi": "Connect GoAPI with an API key.",
+      "groq": "Free tier: 30 RPM / 14.4K RPD — no credit card",
+      "hackclub": "Sign in with your Hack Club account at ai.hackclub.com.",
+      "haiper": "Get API key at haiper.ai/haiper-api",
+      "heroku": "Connect Heroku AI with an API key.",
+      "hcnsec": "Get API key at api.hcnsec.cn",
+      "huggingface": "Free Inference API for thousands of models (Whisper, VITS, SDXL…)",
+      "hyperbolic": "$1-5 trial credits on signup for serverless inference",
+      "watsonx": "The watsonx model gateway exposes OpenAI-compatible /chat/completions and /models under /ml/gateway/v1.",
+      "ideogram": "Get API key at ideogram.ai/docs/api",
+      "iflytek": "Get API key at console.xfyun.cn",
+      "inference-net": "$25 free credits on signup plus research grants available",
+      "jina-ai": "Bearer API key for the Jina AI rerank API.",
+      "jina-reader": "Connect Jina Reader with an API key.",
+      "kenari": "Kenari exposes an OpenAI-compatible chat completions endpoint at https://kenari.id/v1/chat/completions, plus a live /v1/models catalog covering Claude, GPT, DeepSeek, GLM, Kimi and more. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
+      "kie": "Connect KIE.AI with an API key.",
+      "kilo-gateway": "Connect Kilo Gateway with an API key.",
+      "kimi": "Connect Kimi with an API key.",
+      "kimi-coding-apikey": "Connect Kimi Coding (API Key) with an API key.",
+      "lambda-ai": "Connect Lambda AI with an API key.",
+      "laozhang": "Connect LaoZhang AI with an API key.",
+      "leonardo": "Get API key at leonardo.ai/developer",
+      "liquid": "Get API key at liquid.ai",
+      "llamagate": "Connect LlamaGate with an API key.",
+      "llm7": "Works without API key (use 'unused' as key). Get free token at token.llm7.io for higher limits.",
+      "longcat": "Free: one-time 10M-token grant after account signup + KYC verification (LongCat-2.0). One-time only — not a recurring daily/monthly allowance.",
+      "maritalk": "Connect Maritalk with an API key.",
+      "meta-llama": "Connect Meta Llama API with an API key.",
+      "minimax-cn": "Connect Minimax (China) with an API key.",
+      "minimax": "Connect Minimax Coding with an API key.",
+      "mistral": "Free Experiment tier: rate-limited access to all models, no credit card required",
+      "modal": "Modal commonly serves user-hosted OpenAI-compatible apps on /v1. OmniRoute will probe /v1/models and route chat traffic to /v1/chat/completions.",
+      "modelscope": "Free tier via ModelScope API-Inference — Alibaba account required.",
+      "monsterapi": "Get API key at monsterapi.ai",
+      "moonshot": "Connect Moonshot AI with an API key.",
+      "morph": "Free tier: 250K credits/month, $0",
+      "nanogpt": "Connect NanoGPT with an API key.",
+      "nebius": "~$1 trial credits on signup for API testing",
+      "nlpcloud": "NLP Cloud uses a proprietary chatbot API instead of OpenAI chat/completions. OmniRoute adapts OpenAI messages to input/context/history and exposes a local catalog of supported chatbot models.",
+      "nomic": "Get API key at atlas.nomic.ai",
+      "nous-research": "Nous exposes an OpenAI-compatible /v1 surface with a large remote /models catalog. The /chat/completions endpoint requires a valid API key for programmatic inference.",
+      "novita": "$0.50 trial credits on signup (valid about 1 year)",
+      "nscale": "$5 free credits on signup for inference testing",
+      "nube": "Connect Nube.sh with an API key.",
+      "nvidia": "Free dev access: ~40 RPM, 70+ models (Kimi K2.5, GLM 4.7, DeepSeek V3.2...)",
+      "oci": "OCI exposes OpenAI-compatible chat and responses endpoints. Project ID is optional in OmniRoute but may be required for Responses and agentic workflows.",
+      "ollama-cloud": "Connect Ollama Cloud with an API key.",
+      "openadapter": "OpenAdapter exposes an OpenAI-compatible chat completions endpoint at https://api.openadapter.in/v1/chat/completions, aggregating 70+ open-source models (DeepSeek, Qwen, Kimi, MiniMax, GLM, Llama, Mistral, …). OmniRoute uses the OpenAI protocol.",
+      "openai": "Connect OpenAI with an API key.",
+      "opencode-go": "Connect OpenCode Go with an API key.",
+      "opencode-zen": "Connect OpenCode Zen with an API key.",
+      "openrouter": "Free models at $0/token with :free suffix - 20 RPM / 200 RPD",
+      "openvecta": "Free credits on signup for OpenAI-compatible inference across LLMs, embeddings, and reasoning models",
+      "orcarouter": "Create an API key (starts with sk-orca-) at https://www.orcarouter.ai, then paste it as a Bearer token. OpenAI-compatible endpoint at https://api.orcarouter.ai/v1.",
+      "ovhcloud": "Connect OVHcloud AI with an API key.",
+      "perplexity": "Connect Perplexity with an API key.",
+      "piapi": "Connect PiAPI with an API key.",
+      "pioneer": "$75 free usage credits — no credit card required",
+      "poe": "Poe exposes OpenAI-compatible chat and responses on https://api.poe.com/v1, with authenticated balance checks on /usage/current_balance.",
+      "pollinations": "Free keyless tier: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning. Premium models (claude, gemini, midijourney) require a Pollinations API key from enter.pollinations.ai.",
+      "publicai": "Requires an API key — one-time signup credit, then paid",
+      "puter": "Get token at puter.com/dashboard → Copy Auth Token",
+      "qiniu": "Create a Qiniu AI inference API key at https://portal.qiniu.com/ai-inference/api-key, then paste it here as a Bearer token. OpenAI-compatible endpoint at https://api.qnaigc.com/v1, proxying DeepSeek, Claude, Kimi and more behind one key.",
+      "recraft": "Connect Recraft with an API key.",
+      "reka": "Reka Chat is OpenAI-compatible on /v1. OmniRoute probes /v1/models and routes chat traffic to /v1/chat/completions.",
+      "requesty": "Create an API key at https://app.requesty.ai, then paste it here as a Bearer token. OpenAI-compatible endpoint at https://router.requesty.ai/v1, with a live /v1/models catalog.",
+      "runwayml": "Runway video generation is task-based. OmniRoute submits text-to-video or image-to-video jobs, polls /v1/tasks/[id], and normalizes the finished video outputs back into the OpenAI-like /v1/videos/generations response.",
+      "sambanova": "$5 free credits on signup (30-day validity), no credit card required",
+      "sap": "Model discovery uses /v2/lm/scenarios/foundation-models/models on AI_API_URL. Chat requests use deploymentUrl/chat/completions and require AI-Resource-Group.",
+      "scaleway": "1M free tokens for new accounts — EU/GDPR compliant (Paris), Qwen3 235B & Llama 70B",
+      "sensenova": "Get API key at platform.sensenova.cn",
+      "siliconflow": "$1 free credits plus permanently free models after identity verification",
+      "snowflake": "Connect Snowflake Cortex with an API key.",
+      "sparkdesk": "Get API key at console.xfyun.cn",
+      "stability-ai": "Connect Stability AI with an API key.",
+      "stepfun": "Get API key at platform.stepfun.com",
+      "sumopod": "SumoPod exposes an OpenAI-compatible chat completions endpoint at https://ai.sumopod.com/v1/chat/completions, plus a live /v1/models catalog. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
+      "suno": "Paste session cookie from suno.ai (Clerk auth)",
+      "synthetic": "Connect Synthetic with an API key.",
+      "tencent": "Get API key at console.cloud.tencent.com",
+      "thebai": "Bearer API key for the TheB.AI OpenAI-compatible gateway.",
+      "tinyfish": "X-API-Key from agent.tinyfish.ai/api-keys",
+      "together": "Connect Together AI with an API key.",
+      "tokenrouter": "TokenRouter exposes an OpenAI-compatible chat completions endpoint at https://api.tokenrouter.com/v1/chat/completions, plus a working /v1/models catalog. OmniRoute uses the OpenAI protocol.",
+      "topaz": "Connect Topaz with an API key.",
+      "udio": "Paste session cookie from udio.com (Supabase auth)",
+      "uncloseai": "No auth required. API accepts any non-empty string as key for identification.",
+      "upstage": "Connect Upstage with an API key.",
+      "v0-vercel": "Connect v0 (Vercel) with an API key.",
+      "venice": "Connect Venice.ai with an API key.",
+      "vercel-ai-gateway": "Connect Vercel AI Gateway with an API key.",
+      "vertex": "Provide Service Account JSON or OAuth access_token",
+      "vertex-partner": "Provide the same Service Account JSON used for Vertex AI partner models.",
+      "volcengine": "Connect Volcengine with an API key.",
+      "voyage-ai": "Bearer API key for Voyage AI embeddings and rerank APIs.",
+      "wafer": "API key from https://wafer.ai",
+      "wandb": "Connect Weights & Biases Inference with an API key.",
+      "x5lab": "X5Lab exposes an OpenAI-compatible chat completions endpoint at https://api.x5lab.dev/v1/chat/completions, plus a live /v1/models catalog. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
+      "xai": "Connect xAI (Grok) with an API key.",
+      "xiaomi-mimo": "Connect Xiaomi MiMo with an API key.",
+      "yi": "Get API key at platform.lingyiwanwu.com",
+      "zai": "API key from https://open.bigmodel.cn/usercenter/apikeys",
+      "zenmux": "ZenMux exposes an OpenAI-compatible chat completions endpoint at /api/v1/chat/completions, plus Anthropic Messages (/api/anthropic/v1/messages) and Google Gemini (/api/vertex-ai) protocol surfaces. OmniRoute uses the OpenAI protocol.",
+      "galadriel": "Connect Galadriel with an API key.",
+      "predibase": "$25 free trial credits (30-day validity)",
+      "amazon-q": "Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.",
+      "antigravity": "Connect Antigravity with the existing OAuth flow.",
+      "agy": "Import your Antigravity CLI (`agy`) login (paste/upload its token file), auto-detect a local CLI login, or sign in with Google. Shares the Antigravity backend (incl. Claude models).",
+      "claude": "Connect Claude Code with the existing OAuth flow.",
+      "cline": "Connect Cline with the existing OAuth flow.",
+      "cursor": "Connect Cursor IDE with the existing OAuth flow.",
+      "github": "Connect GitHub Copilot with the existing OAuth flow.",
+      "gitlab-duo": "OAuth application with ai_features + read_user scopes. Configure GITLAB_DUO_OAUTH_CLIENT_ID and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET on this OmniRoute instance.",
+      "kilocode": "Connect Kilo Code with the existing OAuth flow.",
+      "kimi-coding": "Connect Kimi Coding with the existing OAuth flow.",
+      "kiro": "Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use.",
+      "codex": "Connect OpenAI Codex with the existing OAuth flow.",
+      "qwen": "Connect Qwen Code with the existing OAuth flow."
+    },
     "passthroughModelsDescription": "{provider} accepts provider-native model IDs. Import from /models or add custom IDs for routing.",
     "bedrockModelsDescription": "Amazon Bedrock models are scoped by AWS region. Import from /models or add Bedrock model IDs enabled in the selected region.",
     "bedrockModelPlaceholder": "anthropic.claude-sonnet-4-6",
@@ -5883,6 +6265,11 @@
     "proxyFreePoolQuality": "Quality",
     "proxyFreePoolLatency": "Latency",
     "proxyFreePoolEmpty": "No proxies found. Click Sync All to fetch from sources.",
+    "proxyToggleSources": "Toggle proxy sources",
+    "proxyFreePoolTesting": "Testing proxies...",
+    "proxyFreePoolBulkResult": "{succeeded} added, {failed} failed",
+    "proxyFreePoolPageSummary": "Page {page} of {totalPages} ({total} total proxies)",
+    "proxyFreePoolTotalSummary": "{total} total proxies",
     "proxyFreePoolSearchPlaceholder": "Search host…",
     "proxyFreePoolSearchLabel": "Search proxies by host",
     "proxyFreePoolSortLabel": "Sort proxies",
@@ -6087,6 +6474,10 @@
     "comboDefaultsGuideHint1": "Keep retries low in low-latency flows; increase timeout only for long generation tasks.",
     "comboDefaultsGuideHint2": "Use provider overrides when one provider needs different timeout/retry behavior than global defaults.",
     "globalComboConfig": "Global combo configuration",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "allProvidersAdded": "All providers added",
+    "noProvidersFound": "No providers found",
     "defaultStrategy": "Default Strategy",
     "defaultStrategyDesc": "Applied to new combos without explicit strategy and synced to global account fallback routing",
     "comboStrategyAria": "Combo strategy",
@@ -6212,6 +6603,20 @@
     "errorDuringImport": "An error occurred during import",
     "modelPricing": "Model Pricing",
     "modelPricingDesc": "Configure cost rates per model • All rates in $/1M tokens",
+    "pricingCoverage": "Coverage",
+    "pricingAuth": "Auth",
+    "pricingSort": "Sort",
+    "pricingAll": "All",
+    "pricingAuthUnknown": "Unknown",
+    "pricingMostModels": "Most models",
+    "pricingHighestCoverage": "Highest coverage",
+    "pricingLowestCoverage": "Lowest coverage",
+    "pricingNameAscending": "Name (A–Z)",
+    "pricingCoverageGaps": "Coverage gaps",
+    "pricingClearFilters": "Clear filters",
+    "pricingShowingProviders": "Showing {visible} of {total}",
+    "pricingFilteredFrom": "(filtered from {count})",
+    "pricingShowMoreProviders": "Show {count} more ({remaining} remaining)",
     "modelOverridesTitle": "Model Overrides",
     "modelOverridesDesc": "Override provider/model capabilities used by routing and request shaping. Targets use the same provider/model form as combos.",
     "searchModelOverrideTargets": "Search provider/model...",
@@ -6590,6 +6995,23 @@
     "resilienceDefault": "Default",
     "storageDatabaseBackupRetention": "Database backup retention",
     "storageDatabaseBackups": "Database backups",
+    "backupRetentionSaved": "Backup retention saved.",
+    "backupRetentionSaveFailed": "Failed to save backup retention",
+    "backupCleanupSuccess": "Deleted {backups} backup set(s) and {files} file(s).",
+    "backupCleanupFailed": "Failed to clean database backups",
+    "purgeQuotaSnapshotsSuccess": "Purged {count} quota snapshots",
+    "purgeQuotaSnapshotsFailed": "Failed to purge quota snapshots",
+    "purgeCallLogsSuccess": "Purged {count} call logs",
+    "purgeCallLogsFailed": "Failed to purge call logs",
+    "purgeDetailedLogsSuccess": "Purged {count} detailed logs",
+    "purgeDetailedLogsFailed": "Failed to purge detailed logs",
+    "vacuumCompleted": "VACUUM completed",
+    "vacuumFailed": "VACUUM failed",
+    "jsonExportFailed": "JSON export failed",
+    "invalidJsonFileType": "Invalid file type. Only .json files are allowed.",
+    "legacyJsonImportSuccess": "Legacy JSON imported successfully!",
+    "jsonImportFailed": "Failed to import JSON",
+    "jsonImportError": "Error during JSON import",
     "storagePurgeData": "Purge Data",
     "storagePurgeDataDesc": "Immediately delete all records without applying retention checks. Use with caution.",
     "storageRetentionCleanup": "Retention Settings",
@@ -6610,6 +7032,31 @@
     "storageScheduledVacuum": "Scheduled Vacuum",
     "storageVacuumHour": "Vacuum Hour (0-23)",
     "storagePageSize": "Page Size (bytes)",
+    "storageOptimizationSettings": "Optimization Settings",
+    "storageJournalModeNone": "None",
+    "storageJournalModeFull": "Full",
+    "storageJournalModeIncremental": "Incremental",
+    "storageVacuumNever": "Never",
+    "storageVacuumDaily": "Daily",
+    "storageVacuumWeekly": "Weekly",
+    "storageVacuumMonthly": "Monthly",
+    "storageCacheSizeKb": "Cache Size (KB)",
+    "storageOptimizeOnStartup": "Optimize on Startup",
+    "storageSaveOptimization": "Save Optimization Settings",
+    "storageCompressionAggregation": "Compression & Aggregation Settings",
+    "storageEnableAggregation": "Enable Data Aggregation",
+    "storageRawDataRetention": "Raw Data Retention (days)",
+    "storageGranularity": "Granularity",
+    "storageHourly": "Hourly",
+    "storageDaily": "Daily",
+    "storageWeekly": "Weekly",
+    "storageSaveAggregation": "Save Aggregation Settings",
+    "exportJson": "Export JSON",
+    "importJson": "Import JSON",
+    "manualVacuum": "Manual VACUUM",
+    "purgeQuotaSnapshots": "Purge Quota Snapshots",
+    "purgeCallLogs": "Purge Call Logs",
+    "purgeDetailedLogs": "Purge Detailed Logs",
     "storageDatabaseSize": "Database Size",
     "storagePageCount": "Page Count",
     "storageFreelistCount": "Freelist Count",
@@ -6967,6 +7414,18 @@
     "cloudflareRelayDeployFailed": "Deploy failed",
     "modelLockout": "Model Lockout",
     "modelLockoutPageDescription": "Configure which HTTP error codes trigger per-model lockout and control the cooldown behavior.",
+    "modelLockoutLoadFailed": "Failed to load model lockout settings",
+    "modelLockoutSaveFailed": "Failed to save model lockout settings",
+    "modelLockoutLoading": "Loading model lockout settings...",
+    "modelLockoutBaseRangeError": "Base Cooldown must be between 5,000ms and 600,000ms",
+    "modelLockoutMaxRangeError": "Max Cooldown must be between 5,000ms and 3,600,000ms",
+    "modelLockoutOrderError": "Max Cooldown must be greater than or equal to Base Cooldown",
+    "modelLockoutStepsRangeError": "Max Backoff Steps must be between 0 and 20",
+    "resetDefaults": "Reset defaults",
+    "removeErrorCode": "Remove {code}",
+    "addErrorCode": "Add error code...",
+    "suggestions": "Suggestions:",
+    "modelLockoutMaxCooldownHint": "≥ Base Cooldown — 3,600,000ms",
     "modelLockoutEnabled": "Enable Model Lockout",
     "modelLockoutEnabledDescription": "When enabled, models that fail with configured error codes are temporarily locked to prevent retry loops.",
     "modelLockoutErrorCodes": "Error Codes",
@@ -7065,6 +7524,119 @@
     "tomlTestFailed": "Failed",
     "tomlImportError": "Could not process the RTK TOML file.",
     "tomlFileReadError": "Could not read the selected TOML file."
+  },
+  "compressionEngineConfig": {
+    "loading": "Loading…",
+    "loadFailed": "Failed to load engine information.",
+    "engineNotFound": "Engine \"{engine}\" not found.",
+    "saveFailed": "Failed to save configuration.",
+    "previewFailed": "Preview failed.",
+    "panelPointerPrefix": "Turn this layer on or off and set its level in",
+    "compressionSettings": "Compression Settings",
+    "panelPointerSuffix": ". This page edits its detailed configuration only.",
+    "configuration": "Configuration",
+    "noAdditionalConfiguration": "No additional configuration.",
+    "save": "Save",
+    "saving": "Saving…",
+    "globalSettingsOnly": "This layer is configured by the global settings; there is no per-engine override to save here yet.",
+    "preview": "Preview",
+    "previewInput": "Preview input",
+    "processing": "Processing…",
+    "previewSample": "The quick brown fox jumps over the lazy dog. This is a sample message used to preview compression. It contains enough text to show meaningful token savings.",
+    "originalTokens": "Original tokens",
+    "compressedTokens": "Compressed tokens",
+    "savings": "Savings",
+    "original": "Original",
+    "compressed": "Compressed",
+    "diff": "Diff",
+    "last7Days": "Last 7 days",
+    "noDataYet": "No data yet",
+    "runs": "Runs",
+    "tokensSaved": "Tokens saved",
+    "averageSavings": "Average savings",
+    "diffLabels": {
+      "change": "Change",
+      "added": "Added",
+      "removed": "Removed",
+      "modified": "Modified"
+    },
+    "engines": {
+      "headroom": {
+        "name": "Headroom SmartCrusher",
+        "description": "Lossless tabular compaction of homogeneous JSON arrays with explicit row-count markers."
+      },
+      "session-dedup": {
+        "name": "Session Dedup",
+        "description": "Cross-turn block deduplication with recoverable content markers."
+      },
+      "ccr": {
+        "name": "CCR",
+        "description": "Content-addressed retrieval markers for repeated context blocks."
+      },
+      "llmlingua": {
+        "name": "LLMLingua-2 (Semantic Pruning)",
+        "description": "ONNX-based semantic token classification. Compresses prose only; code blocks and preserved constructs are protected. Fails open on model or worker errors."
+      },
+      "lite": {
+        "name": "Lite",
+        "description": "Fast whitespace, tool-result and image URL reduction."
+      },
+      "aggressive": {
+        "name": "Aggressive",
+        "description": "Summarization, tool-result compression and progressive aging."
+      },
+      "ultra": {
+        "name": "Ultra",
+        "description": "Heuristic token pruning with an optional local SLM fallback."
+      }
+    },
+    "fields": {
+      "minBlockChars": {
+        "label": "Minimum block characters",
+        "description": "Minimum character count for a suffix block to be a deduplication candidate."
+      },
+      "fuzzy": {
+        "label": "Fuzzy near-duplicate deduplication",
+        "description": "Opt in to replace whole messages that are at least about 85% similar to an earlier message with a recoverable CCR marker."
+      },
+      "minChars": {
+        "label": "Minimum block characters",
+        "description": "Minimum character count for a block to be a CCR candidate."
+      },
+      "retrievalRampFactor": {
+        "label": "Retrieval ramp factor (H8)",
+        "description": "Controls how strongly frequently retrieved blocks resist compression. Each prior retrieval raises the effective minimum block size linearly; 1 disables the ramp."
+      },
+      "model": { "label": "Model" },
+      "minTokens": { "label": "Minimum tokens (floor)" },
+      "compressionRate": { "label": "Compression rate" },
+      "modelPath": { "label": "Model path" },
+      "minRows": {
+        "label": "Minimum rows to compact",
+        "description": "Minimum rows in a homogeneous JSON array required to trigger tabular compaction. Default: 8."
+      },
+      "preserveSystemPrompt": { "label": "Preserve system prompt" },
+      "summarizerEnabled": { "label": "Enable summarizer" },
+      "maxTokensPerMessage": { "label": "Maximum tokens per message" },
+      "minSavingsThreshold": { "label": "Minimum savings threshold" },
+      "minScoreThreshold": { "label": "Minimum score threshold" },
+      "slmFallbackToAggressive": { "label": "Fall back to Aggressive" },
+      "intensity": { "label": "Intensity" },
+      "minMessageLength": { "label": "Minimum message length" }
+    },
+    "engineFields": {
+      "llmlingua": {
+        "compressionRate": { "label": "Compression rate (keep ratio)" },
+        "modelPath": { "label": "Model path (offline override)" }
+      }
+    },
+    "options": {
+      "model": {
+        "tinybert": "TinyBERT (57 MB, fast — default)",
+        "bert-base": "BERT-base (710 MB, higher accuracy)"
+      },
+      "intensity": { "lite": "Lite", "full": "Full", "ultra": "Ultra" }
+    }
   },
   "contextCombos": {
     "title": "Compression Combos",
@@ -7528,6 +8100,14 @@
     "translationFailed": "Translation failed: {error}",
     "pipelineDebugger": "Pipeline Debugger",
     "translationPipeline": "Translation Pipeline",
+    "loading": "Loading…",
+    "compressionOriginal": "Original",
+    "compressionCompressed": "Compressed",
+    "compressionSaved": "Saved",
+    "compressionDuration": "Duration",
+    "pipelineStepsAria": "Pipeline steps",
+    "copyIntermediateJson": "Copy intermediate JSON",
+    "copyOutputJson": "Copy output JSON",
     "pipelineVisualization": "Pipeline visualization",
     "pipelineVisualizationHint": "Send a message to see how your request flows through detection → translation → provider call.",
     "chatTesterDescription": "Send messages as a specific client format and inspect each step of the translation pipeline.",
@@ -7665,7 +8245,15 @@
     "compressionEmptyHint": "Fill in the input field on the Translate tab (Simple Controls or Raw JSON) to enable the preview.",
     "compressionModeLabel": "Compression mode",
     "compressionPreviewButton": "Preview Compression",
-    "compressionPreviewing": "Previewing…"
+    "compressionPreviewing": "Previewing…",
+    "compressionPreviewFailed": "Compression preview failed",
+    "tokens": "tokens",
+    "pauseAutoRefresh": "Pause auto-refresh",
+    "resumeAutoRefresh": "Resume auto-refresh",
+    "live": "Live",
+    "copyInput": "Copy input",
+    "copyOutput": "Copy output",
+    "streamTransformFailed": "Failed to transform stream"
   },
   "usage": {
     "title": "Usage",
@@ -7860,6 +8448,7 @@
     "unlimitedLabel": "Unlimited",
     "refreshing": "Refreshing",
     "resetsIn": "Resets in",
+    "usdCost": "USD Cost",
     "editCutoffs": "Edit cutoffs",
     "forceRefresh": "Refresh now",
     "resetCreditsLabel": "Reset credits",
@@ -8011,6 +8600,38 @@
     "budgetKpiBlocked": "Blocked",
     "budgetKpiAtRisk": "At risk",
     "budgetKpiActiveKeys": "Active keys",
+    "budgetPageTitle": "Budget",
+    "budgetPageDescription": "Set daily, weekly, and monthly spending limits for each API key.",
+    "budgetTemplateStorageHint": "{count, plural, one {# template} other {# templates}} · edit via localStorage:",
+    "budgetAboveLimitShort": "above limit ⚠",
+    "budgetOnTrackShort": "on track",
+    "budgetAtOrAboveWarning": "≥ warning threshold",
+    "budgetTemplates": "Templates",
+    "budgetSelectKeysFirst": "Select keys first to apply",
+    "budgetApplyToSelected": "Apply to {count, plural, one {# selected key} other {# selected keys}}",
+    "budgetSelectedTemplateHint": "{count, plural, one {# selected} other {# selected}} · click a template to apply",
+    "budgetTemplateMonthlyAmount": "${amount}/month",
+    "budgetTemplateDailyAmount": "${amount}/day",
+    "budgetNoKeysSelected": "No keys selected",
+    "budgetTemplateApplied": "Applied \"{template}\" to {count, plural, one {# key} other {# keys}}",
+    "budgetTemplateApplyFailed": "Failed to apply template",
+    "budgetTemplateNames": {
+      "tpl-prod": "Production",
+      "tpl-dev": "Development",
+      "tpl-ci": "CI"
+    },
+    "budgetStatus": {
+      "all": "All",
+      "blocked": "Blocked",
+      "alerting": "Alerting",
+      "warning": "Warning",
+      "safe": "Safe",
+      "no-limit": "No limit"
+    },
+    "budgetColumnKey": "Key",
+    "budgetColumnToday": "Today",
+    "budgetColumnMonth": "Month",
+    "budgetColumnStatus": "Status",
     "budgetSearchKeysPlaceholder": "Search keys...",
     "budgetSortPctUsed": "Sort: % Used ↓",
     "budgetSortTodayDollar": "Sort: Today $ ↓",
@@ -8026,6 +8647,16 @@
     "budgetThisMonthSoFar": "This month so far",
     "budgetProjectedEndOfMonth": "Projected end of month",
     "budgetByProvider": "by provider",
+    "budgetProjection": "Projection",
+    "budgetAboveMonthlyLimit": "⚠ above {limit}/month",
+    "budgetCostBreakdown30d": "Cost breakdown (30 days)",
+    "budgetLimits": "Limits",
+    "budgetResetDaily": "Daily",
+    "budgetResetWeekly": "Weekly",
+    "budgetResetMonthly": "Monthly",
+    "budgetNextReset": "Next reset",
+    "budgetHardCapComingSoon": "Hard-cap policy and email alerts are coming soon",
+    "unknownProvider": "Unknown provider",
     "budgetDailyDollar": "Daily $",
     "budgetWeeklyDollar": "Weekly $",
     "budgetMonthlyDollar": "Monthly $",
@@ -8659,7 +9290,21 @@
     "statusCancelled": "Cancelled",
     "repositoryName": "Repository name",
     "repositoryUrl": "Repository URL",
-    "branch": "Branch"
+    "branch": "Branch",
+    "agentDescriptions": {
+      "jules": "Google's autonomous coding agent",
+      "devin": "Cognition's AI software engineer",
+      "codexCloud": "OpenAI's cloud-based coding agent",
+      "cursorCloud": "Cursor's Background / Cloud Agents (official API key)"
+    },
+    "activityTypes": {
+      "plan": "Plan",
+      "command": "Command",
+      "code_change": "Code change",
+      "message": "Message",
+      "error": "Error",
+      "completion": "Completion"
+    }
   },
   "templateNames": {
     "simple-chat": "Simple Chat",
@@ -8945,6 +9590,8 @@
     "errorResetFailed": "Failed to reset pricing"
   },
   "proxyRegistry": {
+    "selectAllProxies": "Select all proxies",
+    "selectProxy": "Select {name}",
     "title": "Proxy Registry",
     "description": "Store reusable proxies and track assignments.",
     "importLegacy": "Import Legacy",
@@ -9311,6 +9958,29 @@
     "duration": "Duration",
     "question": "Question",
     "audioFile": "Audio file",
+    "fileTooLarge25Mb": "The file is too large. Maximum size: 25 MB.",
+    "selectAudioFirst": "Select an audio file first.",
+    "speechToText": "Speech to Text",
+    "chooseFile": "Choose file",
+    "audioFormats25Mb": "MP3, WAV, M4A, OGG or FLAC · Maximum 25 MB",
+    "musicSample": "A calm ambient track with warm piano and soft strings",
+    "noAudioUrl": "The response did not include an audio URL: {response}",
+    "music": "Music",
+    "embeddingSample": "OmniRoute routes AI requests across multiple providers.",
+    "embedding": "Embedding",
+    "imageSample": "A futuristic city at sunset, cinematic lighting",
+    "image": "Image",
+    "ttsSample": "Hello from OmniRoute. This is a text-to-speech test.",
+    "textToSpeech": "Text to Speech",
+    "videoSample": "A paper airplane flying over a futuristic city",
+    "video": "Video",
+    "webFetch": "Web Fetch",
+    "webSearchSample": "What is OmniRoute?",
+    "webSearch": "Web Search",
+    "documentUrl": "Document URL",
+    "browserAudioUnsupported": "Your browser does not support audio.",
+    "browserVideoUnsupported": "Your browser does not support video.",
+    "searchResultFallback": "Result {number}",
     "noKeysFound": "No API keys found. Add one in the Keys section.",
     "exampleLabel": "Example",
     "latency": "{ms}ms",
@@ -9518,6 +10188,7 @@
     "moreSuffix": "+{count} more"
   },
   "quotaShare": {
+    "weightPercent": "Weight %",
     "title": "Quota Sharing",
     "description": "Share provider quotas across API keys with % limits",
     "newPool": "New pool",
@@ -9540,6 +10211,9 @@
     "capLabel": "cap {value}",
     "notTrackedYet": "(not tracked yet)",
     "policy": "Policy",
+    "apiKeyColumn": "API Key",
+    "weightColumn": "Weight",
+    "fairShareShort": "fair",
     "policyHard": "hard",
     "policySoft": "soft",
     "policyBurst": "burst",
@@ -9898,6 +10572,7 @@
     "quickLinks": "Quick links",
     "quickLinkProviders": "Configure providers",
     "quickLinkInspector": "View traffic in Traffic Inspector",
+    "unknownError": "Unknown error",
     "maintenanceTitle": "Maintenance & Diagnostics",
     "maintenanceSubtitle": "Self-test the capture pipeline, undo leftover system state, and move your setup between machines.",
     "orphanedStateWarning": "A previous session left system state behind (DNS spoof, CA, or system proxy). Run Repair to clean it up.",
@@ -10263,6 +10938,184 @@
     "cliCodeRedirectCta": "Open CLI Code"
   },
   "agentSkills": {
+    "catalog": {
+      "omni-auth": {
+        "name": "Authentication",
+        "description": "Manage API key authentication and session tokens. Start here to authenticate requests via Bearer token, obtain session cookies, and configure login requirements for the OmniRoute API."
+      },
+      "omni-providers": {
+        "name": "Providers",
+        "description": "Manage provider connections, API keys, OAuth flows, and connection tests via the REST API. List, add, update, remove, and test AI provider integrations (OpenAI, Anthropic, Gemini, and 160+)."
+      },
+      "omni-models": {
+        "name": "Models",
+        "description": "Query available AI models across all configured providers. List models, resolve model aliases, and browse the full model catalog including provider-specific variants."
+      },
+      "omni-combos-routing": {
+        "name": "Combos & Routing",
+        "description": "Create and manage routing combos with 14 strategies (priority, weighted, round-robin, Auto-combo, etc.). Configure fallback chains, test routing outcomes, and retrieve combo metrics."
+      },
+      "omni-api-keys": {
+        "name": "API Keys",
+        "description": "Create, list, rotate, and revoke OmniRoute API keys. Control per-key scopes, spending limits, and expiration. Keys gate access to all proxy and management endpoints."
+      },
+      "omni-usage-logs": {
+        "name": "Usage & Logs",
+        "description": "Access detailed call logs and usage analytics. Filter by provider, model, time range, status, and cost. Export logs and aggregate token usage across all connections."
+      },
+      "omni-budget": {
+        "name": "Budget & Rate Limits",
+        "description": "Configure spending limits, token quotas, and rate-limit policies per API key or globally. Inspect current consumption and enforce cost controls across providers."
+      },
+      "omni-settings": {
+        "name": "Settings",
+        "description": "Read and update global application settings: system prompts, thinking budget, IP filters, payload rules, combo defaults, and require-login configuration."
+      },
+      "omni-proxies": {
+        "name": "Proxy Configuration",
+        "description": "Configure HTTP/HTTPS/SOCKS proxies for upstream provider requests. Set per-provider or global proxy rules, test connectivity, and manage proxy rotation."
+      },
+      "omni-cache": {
+        "name": "Cache",
+        "description": "Manage the LLM response cache. View cache statistics, clear entries, configure TTL policies, and control semantic-similarity caching thresholds."
+      },
+      "omni-compression": {
+        "name": "Compression",
+        "description": "Configure RTK (command output), Caveman (prose), and stacked compression modes. Manage language packs, custom rules, and test prompt compression reducing tokens by 60–90%."
+      },
+      "omni-context-rtk": {
+        "name": "Context & RTK",
+        "description": "Configure RTK filters, context engineering rules, and context relay settings. Test compression with real prompt samples and manage context transformation pipelines."
+      },
+      "omni-resilience": {
+        "name": "Resilience & Monitoring",
+        "description": "Monitor provider health, circuit-breaker states, p50/p95/p99 latency metrics, and budget guard alerts. Inspect connection cooldowns and model lockouts in real time."
+      },
+      "omni-cli-tools": {
+        "name": "CLI Tools",
+        "description": "Manage CLI tool integrations exposed via the API. List, configure, and invoke CLI tool plugins that extend OmniRoute's automation surface."
+      },
+      "omni-tunnels": {
+        "name": "Tunnels",
+        "description": "Create and manage secure tunnels (ngrok, Cloudflare Tunnel, custom) to expose OmniRoute to the internet or share access with remote agents and CI pipelines."
+      },
+      "omni-sync-cloud": {
+        "name": "Cloud Sync",
+        "description": "Synchronise OmniRoute configuration, provider connections, and settings to/from cloud storage. Manage cloud worker authentication and remote backup targets."
+      },
+      "omni-db-backups": {
+        "name": "Database & Backups",
+        "description": "Trigger system backups, restore from backup files, and manage the SQLite database lifecycle. Supports export, import, and incremental snapshot strategies."
+      },
+      "omni-webhooks": {
+        "name": "Webhooks",
+        "description": "Register, list, test, and remove webhook endpoints. Configure event subscriptions (request.completed, provider.error, budget.exceeded, etc.) and manage delivery retries."
+      },
+      "omni-mcp": {
+        "name": "MCP Server",
+        "description": "Connect to the OmniRoute MCP server (37 tools, 3 transports: SSE/stdio/HTTP). Covers routing, cache, compression, memory, skills, providers, and audit tools across 16 permission scopes."
+      },
+      "omni-agents-a2a": {
+        "name": "Agents & A2A Protocol",
+        "description": "Interact with OmniRoute via JSON-RPC 2.0 agent-to-agent protocol. 6 built-in A2A skills: smart-routing, quota-management, provider-discovery, cost-analysis, health-report, list-capabilities."
+      },
+      "omni-version-manager": {
+        "name": "Version Manager",
+        "description": "Install, start, stop, restart, and update embedded services (9Router, CLIProxyAPI). Monitor service status, retrieve logs, and configure auto-start for local-only service endpoints."
+      },
+      "omni-inference": {
+        "name": "Inference (OpenAI-compatible)",
+        "description": "The core OpenAI-compatible inference endpoints: chat completions, embeddings, images, audio (TTS/STT), moderations, rerank, and the Responses API. The primary integration surface for AI agents."
+      },
+      "cli-serve": {
+        "name": "CLI: Serve",
+        "description": "Start, stop, and restart the OmniRoute server from the CLI. Manage daemon mode, port configuration, auto-recovery, system tray integration, and the dashboard open shortcut."
+      },
+      "cli-health": {
+        "name": "CLI: Health",
+        "description": "Check server health, component status, and live metrics from the CLI. Run `health`, `health components`, and `health watch` for a real-time dashboard of circuit breakers and provider status."
+      },
+      "cli-providers": {
+        "name": "CLI: Providers",
+        "description": "Manage provider connections from the CLI: list available/configured providers, add, test, test-all, validate, rotate API keys, and view per-provider metrics."
+      },
+      "cli-keys": {
+        "name": "CLI: API Keys",
+        "description": "Create, list, rotate, and revoke OmniRoute API keys from the CLI. Manage OAuth flows for provider authentication and inspect key scopes and expiration."
+      },
+      "cli-models": {
+        "name": "CLI: Models",
+        "description": "Query available AI models, list model aliases, and browse the full model catalog from the CLI. Filter by provider, search by capability, and resolve model name variants."
+      },
+      "cli-chat": {
+        "name": "CLI: Chat",
+        "description": "Send chat completions, stream responses, and start an interactive REPL session from the CLI. Supports all OmniRoute providers, combo routing, and system prompt configuration."
+      },
+      "cli-routing": {
+        "name": "CLI: Routing & Combos",
+        "description": "Create, list, update, and delete routing combos from the CLI. Test routing strategies, inspect combo metrics, and configure fallback chains interactively."
+      },
+      "cli-resilience": {
+        "name": "CLI: Resilience & Quotas",
+        "description": "Inspect and manage circuit-breaker states, connection cooldowns, quota limits, and backoff levels from the CLI. Reset stuck providers and configure resilience thresholds."
+      },
+      "cli-compression": {
+        "name": "CLI: Compression",
+        "description": "Configure and test prompt compression from the CLI. Manage RTK filters, Caveman rules, stacked compression modes, and preview compression output with real prompts."
+      },
+      "cli-contexts": {
+        "name": "CLI: Contexts & Sessions",
+        "description": "Manage context engineering configurations, RTK filter sets, and conversation sessions from the CLI. Apply context-relay settings and inspect active context pipelines."
+      },
+      "cli-cost-usage": {
+        "name": "CLI: Cost & Usage",
+        "description": "View cost breakdowns, token usage, and call logs from the CLI. Filter by provider, model, or date range. Export usage reports and inspect per-connection spending."
+      },
+      "cli-mcp": {
+        "name": "CLI: MCP",
+        "description": "Inspect the MCP server status, list registered tools and scopes, run tool invocations, and manage MCP audit logs from the CLI."
+      },
+      "cli-a2a": {
+        "name": "CLI: A2A Protocol",
+        "description": "Interact with the OmniRoute A2A server from the CLI. Send tasks, inspect skill execution history, and test the JSON-RPC 2.0 agent-to-agent protocol interactively."
+      },
+      "cli-tunnel": {
+        "name": "CLI: Tunnels",
+        "description": "Start and stop tunnel connections (ngrok, Cloudflare, custom) from the CLI. Inspect active tunnel URLs, configure authentication, and test external reachability."
+      },
+      "cli-backup-sync": {
+        "name": "CLI: Backup & Sync",
+        "description": "Backup and restore OmniRoute data from the CLI. Trigger incremental snapshots, sync to cloud storage, manage backup schedules, and restore from archive files."
+      },
+      "cli-policy-audit": {
+        "name": "CLI: Policy & Audit",
+        "description": "Inspect audit logs, manage access policies, view telemetry data, and review request history from the CLI. Filter by event type, user, or time range for compliance workflows."
+      },
+      "cli-batches": {
+        "name": "CLI: Batches & Files",
+        "description": "Submit and monitor batch inference jobs from the CLI. Upload and manage files for batch processing, retrieve results, and integrate batch pipelines with CI/CD workflows."
+      },
+      "cli-eval": {
+        "name": "CLI: Evals",
+        "description": "Create and run evaluation suites, watch live benchmark progress, view scorecards, compare model performance, and integrate eval runs with CI workflows from the CLI."
+      },
+      "cli-plugins-skills": {
+        "name": "CLI: Plugins, Skills & Memory",
+        "description": "Manage Omni Skills (list, install, test, remove), plugins (create, configure), and persistent memory (search, add, clear) from the CLI."
+      },
+      "cli-setup": {
+        "name": "CLI: Setup & Config",
+        "description": "Run initial setup, configure global CLI settings, manage environment variables, check for updates, and configure autostart via the CLI setup and config commands."
+      },
+      "config-codex-cli": {
+        "name": "Config: Codex CLI",
+        "description": "Step-by-step agent workflow to configure the OpenAI Codex CLI on any machine (Linux, macOS, Windows) to use OmniRoute as an OpenAI-compatible backend. Detects OS and shell, writes config.toml and 7 named profiles, sets environment variables, and verifies the setup."
+      },
+      "omni-github-skills": {
+        "name": "GitHub Skill Discovery",
+        "description": "Search, score, scan, and import agent skills from GitHub repositories that contain SKILL.md, CLAUDE.md, .cursorrules, and similar agent skill files. Discover community skills across 160+ provider categories, evaluate relevance with heuristic scoring, check for malware or hardcoded secrets, and install into Hermes, Claude Code, Gemini CLI, or OpenCode agent directories."
+      }
+    },
     "pageTitle": "Agent Skills",
     "pageSubtitle": "Teach your agent to operate OmniRoute — 22 API areas + 20 CLI families",
     "conceptCard": {
@@ -10640,7 +11493,127 @@
     "confirmResetOverrides": "Reset all {count} DB override(s)?",
     "resetting": "Resetting...",
     "confirmReset": "Confirm Reset",
-    "definitions": {}
+    "enumValues": {
+      "off": "Off",
+      "warn": "Warn",
+      "block": "Block",
+      "redact": "Redact",
+      "disabled": "Disabled",
+      "dual": "Dual",
+      "alias": "Alias",
+      "canonical": "Canonical"
+    },
+    "definitions": {
+      "REQUIRE_API_KEY": { "description": "Require an API key for all incoming requests." },
+      "INPUT_SANITIZER_ENABLED": { "description": "Enable input sanitization for all requests." },
+      "INJECTION_GUARD_MODE": { "description": "Set the prompt-injection guard mode." },
+      "PII_REDACTION_ENABLED": {
+        "description": "Redact personally identifiable information from requests."
+      },
+      "PII_RESPONSE_SANITIZATION": {
+        "description": "Sanitize personally identifiable information in provider responses."
+      },
+      "PII_RESPONSE_SANITIZATION_MODE": {
+        "description": "Choose how response PII is handled: redact replaces it, warn only logs it, block rejects the response, and off disables sanitization."
+      },
+      "OUTBOUND_SSRF_GUARD_ENABLED": {
+        "description": "Block outbound requests to private or internal IP ranges."
+      },
+      "ALLOW_API_KEY_REVEAL": {
+        "description": "Allow authenticated dashboard users to reveal stored API keys instead of seeing masked values only."
+      },
+      "ENABLE_TLS_FINGERPRINT": { "description": "Enable TLS fingerprint stealth mode." },
+      "ONEPROXY_ENABLED": { "description": "Enable request proxying through 1proxy." },
+      "PROXY_AUTO_SELECT_ENABLED": {
+        "description": "When no proxy is assigned to a connection, automatically select the first working registry proxy. Off by default because otherwise one registry proxy becomes a global fallback for all traffic (#3332)."
+      },
+      "OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK": {
+        "description": "Allow OAuth and provider-validation flows to bypass a pinned proxy when proxy reachability checks fail. Off by default because this can change the account egress IP."
+      },
+      "MITM_DISABLE_TLS_VERIFY": {
+        "description": "Disable TLS certificate verification for the MITM proxy."
+      },
+      "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS": {
+        "description": "Allow provider URLs that point to private or internal networks."
+      },
+      "OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS": {
+        "description": "Allow providers on localhost, LAN, and private IP ranges. This is required for local OpenAI-compatible models and enabled by default. Cloud-metadata endpoints such as 169.254.169.254 remain blocked."
+      },
+      "ENABLE_CC_COMPATIBLE_PROVIDER": {
+        "description": "Enable Claude Code-compatible provider mode."
+      },
+      "TOOL_POLICY_MODE": { "description": "Set the tool-use policy enforcement mode." },
+      "RATE_LIMIT_AUTO_ENABLE": {
+        "description": "Automatically enable rate limiting based on usage patterns."
+      },
+      "ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE": {
+        "description": "Allow multiple connections for each compatibility node."
+      },
+      "RESPONSES_PASSTHROUGH_DROP_COMMENTARY": {
+        "description": "Remove internal commentary-phase output items from Responses API passthrough streams before forwarding them to clients. Disable this flag to receive raw upstream commentary."
+      },
+      "OMNIROUTE_MCP_ENFORCE_SCOPES": {
+        "description": "Enforce scope restrictions for MCP tool access."
+      },
+      "OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS": {
+        "description": "Compress MCP tool descriptions to reduce token usage."
+      },
+      "OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS": {
+        "description": "Enable background-task processing at runtime."
+      },
+      "OMNIROUTE_DISABLE_BACKGROUND_SERVICES": {
+        "description": "Disable all background services, including quota refresh and synchronization."
+      },
+      "OMNIROUTE_RTK_TRUST_PROJECT_FILTERS": {
+        "description": "Trust project-level RTK filters without validation."
+      },
+      "OMNIROUTE_ENABLE_LIVE_WS": {
+        "description": "Start the real-time dashboard WebSocket server on import at loopback port 20132. Set the flag to 0 or false to disable it. LAN exposure also requires LIVE_WS_HOST=0.0.0.0 and LIVE_WS_ALLOWED_ORIGINS."
+      },
+      "OMNIROUTE_CODEX_WS_ENABLED": {
+        "description": "Allow Codex to use Responses over WebSocket. When disabled, Codex falls back to HTTP Responses."
+      },
+      "OMNIROUTE_EMERGENCY_FALLBACK": {
+        "description": "Route budget-exhausted requests to the emergency free fallback provider and model."
+      },
+      "STREAM_RECOVERY_ENABLED": {
+        "description": "Retry truncated upstream SSE streams transparently before any response bytes reach the client."
+      },
+      "STREAM_RECOVERY_MIDSTREAM_ENABLED": {
+        "description": "Allow stream recovery to request the response again and stitch it after bytes have already reached the client."
+      },
+      "MODEL_CATALOG_INCLUDE_NAMES": {
+        "description": "Include display-friendly name fields in /v1/models responses. Disable this for clients that accept model IDs only."
+      },
+      "MODELS_CATALOG_PREFIX_MODE": {
+        "description": "Control model-ID prefixes in /v1/models: dual emits alias and canonical prefixes, alias emits short prefixes only, and canonical emits full provider IDs only."
+      },
+      "ARENA_ELO_SYNC_ENABLED": {
+        "description": "Periodically synchronize Arena AI leaderboard ELO data for model-intelligence rankings."
+      },
+      "CLI_COMPAT_ALL": { "description": "Enable compatibility mode for all CLI clients." },
+      "MODEL_ALIAS_COMPAT_ENABLED": {
+        "description": "Enable the model-alias compatibility layer."
+      },
+      "PRICING_SYNC_ENABLED": {
+        "description": "Synchronize pricing data automatically. The PRICING_SYNC_ENABLED environment variable must also be true."
+      },
+      "OMNIROUTE_AUTO_SYNC_CODEX_PROFILES": {
+        "description": "After provider-model synchronization, regenerate ~/.codex/*.config.toml profiles from the live catalog. This never changes the active or default Codex configuration and is off by default."
+      },
+      "OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES": {
+        "description": "After provider-model synchronization, regenerate ~/.claude/profiles/<name>/settings.json profiles from the live catalog. This never changes the active or default Claude configuration and is off by default."
+      },
+      "OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK": {
+        "description": "Disable the local instance health-check endpoint."
+      },
+      "OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK": {
+        "description": "Disable the token-validation health check."
+      },
+      "SKILLS_SANDBOX_NETWORK_ENABLED": {
+        "description": "Enable network access in the skills sandbox."
+      }
+    }
   },
   "comboControl": {
     "title": "Combo Control Center",

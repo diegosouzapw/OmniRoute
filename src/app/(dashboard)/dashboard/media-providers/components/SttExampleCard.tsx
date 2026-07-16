@@ -71,7 +71,7 @@ export function SttExampleCard({ providerId }: Props) {
     const selected = e.target.files?.[0] ?? null;
     setFileError(null);
     if (selected && selected.size > MAX_FILE_SIZE_BYTES) {
-      setFileError("File too large — max 25 MB");
+      setFileError(t("fileTooLarge25Mb"));
       setFile(null);
       return;
     }
@@ -80,7 +80,7 @@ export function SttExampleCard({ providerId }: Props) {
 
   const handleRun = async () => {
     if (!file) {
-      setError("Please select an audio file first.");
+      setError(t("selectAudioFirst"));
       return;
     }
     setRunning(true);
@@ -109,7 +109,7 @@ export function SttExampleCard({ providerId }: Props) {
         setResult({ data, latencyMs });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      setError(err instanceof Error ? err.message : t("requestFailed"));
     } finally {
       setRunning(false);
     }
@@ -119,7 +119,7 @@ export function SttExampleCard({ providerId }: Props) {
 
   return (
     <PlaygroundCard
-      kindLabel="Speech to Text"
+      kindLabel={t("speechToText")}
       apiEndpoint={ENDPOINT_PATH}
       onRun={handleRun}
       curlSnippet={curlSnippet}
@@ -153,7 +153,7 @@ export function SttExampleCard({ providerId }: Props) {
             className="inline-flex items-center gap-1.5 text-xs rounded-md border border-border bg-bg-subtle px-3 py-1.5 text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <span className="material-symbols-outlined text-[14px]">upload_file</span>
-            {file ? file.name : "Choose file…"}
+            {file ? file.name : t("chooseFile")}
           </button>
           {file && (
             <span className="text-xs text-text-muted">{Math.round(file.size / 1024)}KB</span>
@@ -167,7 +167,7 @@ export function SttExampleCard({ providerId }: Props) {
           onChange={handleFileChange}
         />
         {fileError && <p className="text-xs text-red-400 mt-1">{fileError}</p>}
-        <p className="text-xs text-text-muted mt-1">mp3, wav, m4a, ogg, flac — max 25 MB</p>
+        <p className="text-xs text-text-muted mt-1">{t("audioFormats25Mb")}</p>
       </div>
     </PlaygroundCard>
   );

@@ -133,7 +133,13 @@ export function CompactStatGrid({ sections }: { sections: CompactStatSection[] }
 
 export function ActivityHeatmap({ activityMap }) {
   const t = useTranslations("analytics");
+  const locale = useLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const monthFormatter = useMemo(() => createDateFormatter(locale, { month: "short" }), [locale]);
+  const weekdayFormatter = useMemo(
+    () => createDateFormatter(locale, { weekday: "short" }),
+    [locale]
+  );
 
   const cells = useMemo(() => {
     const today = new Date();
@@ -184,27 +190,18 @@ export function ActivityHeatmap({ activityMap }) {
       if (firstDay) {
         const m = new Date(firstDay.date).getMonth();
         if (m !== lastMonth) {
-          const monthNames = [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-          ];
-          labels.push({ weekIdx, label: monthNames[m] });
+          labels.push({ weekIdx, label: monthFormatter.format(new Date(2024, m, 1)) });
           lastMonth = m;
         }
       }
     });
     return labels;
-  }, [weeks]);
+  }, [monthFormatter, weeks]);
+
+  const weekdayLabels = useMemo(
+    () => [1, 3, 5].map((day) => weekdayFormatter.format(new Date(2024, 0, 7 + day))),
+    [weekdayFormatter]
+  );
 
   function getCellColor(value) {
     if (!value || value === 0) return "bg-white/[0.04]";
@@ -222,9 +219,13 @@ export function ActivityHeatmap({ activityMap }) {
           {t("overview")}
         </h3>
         <span className="text-xs text-text-muted">
-          {Object.keys(activityMap || {}).length} active days ·{" "}
-          {fmt(Object.values(activityMap || {}).reduce((a: number, b: number) => a + b, 0))} tokens
-          · 365 days
+          {t("activitySummary", {
+            active: Object.keys(activityMap || {}).length,
+            tokens: fmt(
+              Object.values(activityMap || {}).reduce((a: number, b: number) => a + b, 0)
+            ),
+            days: 365,
+          })}
         </span>
       </div>
 
@@ -249,11 +250,11 @@ export function ActivityHeatmap({ activityMap }) {
           <div className="flex gap-[3px]">
             <div className="flex flex-col gap-[3px] shrink-0 text-[10px] text-text-muted pr-1 sticky left-0 z-10 bg-surface">
               <span className="h-[10px]"></span>
-              <span className="h-[10px] leading-[10px]">Mon</span>
+              <span className="h-[10px] leading-[10px]">{weekdayLabels[0]}</span>
               <span className="h-[10px]"></span>
-              <span className="h-[10px] leading-[10px]">Wed</span>
+              <span className="h-[10px] leading-[10px]">{weekdayLabels[1]}</span>
               <span className="h-[10px]"></span>
-              <span className="h-[10px] leading-[10px]">Fri</span>
+              <span className="h-[10px] leading-[10px]">{weekdayLabels[2]}</span>
               <span className="h-[10px]"></span>
             </div>
 
@@ -262,7 +263,11 @@ export function ActivityHeatmap({ activityMap }) {
                 {week.map((day, di) => (
                   <div
                     key={di}
-                    title={day ? `${day.date}: ${fmtFull(day.value)} tokens` : ""}
+                    title={
+                      day
+                        ? t("activityCellTitle", { date: day.date, tokens: fmtFull(day.value) })
+                        : ""
+                    }
                     className={`w-[10px] h-[10px] rounded-[2px] ${day ? getCellColor(day.value) : "bg-transparent"}`}
                   />
                 ))}
@@ -273,13 +278,13 @@ export function ActivityHeatmap({ activityMap }) {
       </div>
 
       <div className="flex items-center gap-1 mt-2 ml-6 text-[10px] text-text-muted">
-        <span>Less</span>
+        <span>{t("activityLess")}</span>
         <div className="w-[10px] h-[10px] rounded-[2px] bg-white/[0.04]" />
         <div className="w-[10px] h-[10px] rounded-[2px] bg-primary/20" />
         <div className="w-[10px] h-[10px] rounded-[2px] bg-primary/40" />
         <div className="w-[10px] h-[10px] rounded-[2px] bg-primary/60" />
         <div className="w-[10px] h-[10px] rounded-[2px] bg-primary/90" />
-        <span>More</span>
+        <span>{t("activityMore")}</span>
       </div>
     </Card>
   );
@@ -334,7 +339,7 @@ export function ApiKeyTable({ byApiKey }) {
     return (
       <Card className="p-4 flex-1">
         <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
-          API Key Breakdown
+          {t("chartApiKeyBreakdown")}
         </h3>
         <div className="text-center text-text-muted text-sm py-8">{t("chartNoData")}</div>
       </Card>
@@ -345,7 +350,7 @@ export function ApiKeyTable({ byApiKey }) {
     <Card className="overflow-hidden">
       <div className="p-4 border-b border-border flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">
-          API Key Breakdown
+          {t("chartApiKeyBreakdown")}
         </h3>
         <input
           type="text"
@@ -363,7 +368,8 @@ export function ApiKeyTable({ byApiKey }) {
                 className="px-4 py-2.5 text-left cursor-pointer group"
                 onClick={() => toggleSort("apiKeyName")}
               >
-                API Key <SortIndicator active={sortBy === "apiKeyName"} sortOrder={sortOrder} />
+                {t("chartApiKey")}{" "}
+                <SortIndicator active={sortBy === "apiKeyName"} sortOrder={sortOrder} />
               </th>
               <th
                 className="px-4 py-2.5 text-right cursor-pointer group"
@@ -444,6 +450,7 @@ export function ApiKeyTable({ byApiKey }) {
 }
 
 export function MostActiveDay7d({ activityMap }) {
+  const t = useTranslations("analytics");
   const locale = useLocale();
   const weekdayFormatter = useMemo(
     () => createDateFormatter(locale, { weekday: "long" }),
@@ -485,7 +492,7 @@ export function MostActiveDay7d({ activityMap }) {
         className="text-xs font-semibold uppercase tracking-wider mb-2"
         style={{ color: "var(--color-text-muted)" }}
       >
-        Most Active Day
+        {t("mostActiveDay")}
       </h3>
       {data ? (
         <>
@@ -493,12 +500,12 @@ export function MostActiveDay7d({ activityMap }) {
             {data.weekday}
           </span>
           <span className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>
-            {data.label} · {fmt(data.tokens)} tokens
+            {t("datedTokenCount", { date: data.label, tokens: fmt(data.tokens) })}
           </span>
         </>
       ) : (
         <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-          No data in the last 7 days
+          {t("noDataLast7Days")}
         </span>
       )}
     </Card>
@@ -561,7 +568,7 @@ export function WeeklySquares7d({ activityMap }) {
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}
           >
             <div
-              title={`${d.dateLabel}: ${fmtFull(d.val)} tokens`}
+              title={t("activityCellTitle", { date: d.dateLabel, tokens: fmtFull(d.val) })}
               style={{
                 width: 36,
                 height: 36,
@@ -750,6 +757,7 @@ function getServiceTierCostClass(serviceTier) {
 
 export function ServiceTierBreakdown({ byServiceTier, summary }) {
   const t = useTranslations("costs") as TranslationFn;
+  const tAnalytics = useTranslations("analytics");
   const data = useMemo(() => byServiceTier || [], [byServiceTier]);
   const totalRequests = Number(summary?.totalRequests || 0);
   const totalCost = Number(summary?.totalCost || 0);
@@ -807,7 +815,10 @@ export function ServiceTierBreakdown({ byServiceTier, summary }) {
                   <div>
                     <div className="text-sm font-semibold text-text-main">{tierLabel}</div>
                     <div className="text-xs text-text-muted">
-                      {fmtFull(tier.requests)} requests · {fmt(tier.totalTokens)} tokens
+                      {tAnalytics("requestTokenSummary", {
+                        requests: fmtFull(tier.requests),
+                        tokens: fmt(tier.totalTokens),
+                      })}
                       {usageSavingsText}
                     </div>
                   </div>

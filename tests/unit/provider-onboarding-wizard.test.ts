@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import en from "../../src/i18n/messages/en.json" with { type: "json" };
+import vi from "../../src/i18n/messages/vi.json" with { type: "json" };
+
 const catalog =
   await import("../../src/app/(dashboard)/dashboard/providers/components/onboarding/providerOnboardingCatalog.ts");
 const api =
@@ -25,6 +28,28 @@ test("provider onboarding catalog exposes API-key and OAuth providers for the wi
 
   assert.ok(apiKeyOptions.every((option) => option.authKind === "apikey"));
   assert.ok(oauthOptions.every((option) => option.authKind === "oauth"));
+});
+
+test("every provider onboarding option has complete English and Vietnamese descriptions", () => {
+  const options = [
+    ...catalog.getWizardApiKeyProviderOptions(),
+    ...catalog.getWizardOAuthProviderOptions(),
+  ];
+  const englishDescriptions = en.providers.onboardingProviderDescriptions;
+  const vietnameseDescriptions = vi.providers.onboardingProviderDescriptions;
+
+  assert.deepEqual(
+    options.filter((option) => !englishDescriptions[option.id]?.trim()).map((option) => option.id),
+    []
+  );
+  assert.deepEqual(
+    options
+      .filter((option) => !vietnameseDescriptions[option.id]?.trim())
+      .map((option) => option.id),
+    []
+  );
+  assert.equal(Object.keys(englishDescriptions).length, options.length);
+  assert.equal(Object.keys(vietnameseDescriptions).length, options.length);
 });
 
 test("provider onboarding option filter matches id, name, alias, and description", () => {

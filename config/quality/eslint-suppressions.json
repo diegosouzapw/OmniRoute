@@ -179,19 +179,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient.tsx": {
-    "no-restricted-syntax": {
-      "count": 3
-    }
-  },
-  "src/app/(dashboard)/dashboard/api-manager/ApiManagerPageClient.tsx": {
-    "no-restricted-syntax": {
-      "count": 2
-    },
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/cli-agents/CliAgentsPageClient.tsx": {
     "no-restricted-syntax": {
       "count": 4
@@ -204,11 +191,6 @@
   },
   "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts": {
     "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/media-providers/components/ImageExampleCard.tsx": {
-    "@next/next/no-img-element": {
       "count": 1
     }
   },
@@ -237,11 +219,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/settings/components/ModelLockoutCard.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/settings/components/SessionInfoCard.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
@@ -250,11 +227,6 @@
   "src/app/(dashboard)/dashboard/tools/agent-bridge/components/AgentList.tsx": {
     "no-restricted-syntax": {
       "count": 3
-    }
-  },
-  "src/app/(dashboard)/dashboard/tools/agent-bridge/components/ModelSelectorModal.tsx": {
-    "no-restricted-syntax": {
-      "count": 2
     }
   },
   "src/app/api/services/[name]/logs/route.ts": {

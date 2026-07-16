@@ -949,7 +949,7 @@ export default function EditConnectionModal({
                       min={0}
                       value={formData.rpm}
                       onChange={(e) => setFormData({ ...formData, rpm: e.target.value })}
-                      placeholder="Inherit"
+                      placeholder={t("inherit")}
                       hint={t("rateLimitOverridesRpmHint")}
                     />
                     <Input
@@ -958,7 +958,7 @@ export default function EditConnectionModal({
                       min={0}
                       value={formData.tpm}
                       onChange={(e) => setFormData({ ...formData, tpm: e.target.value })}
-                      placeholder="Inherit"
+                      placeholder={t("inherit")}
                       hint={t("rateLimitOverridesTpmHint")}
                     />
                     <Input
@@ -967,7 +967,7 @@ export default function EditConnectionModal({
                       min={0}
                       value={formData.tpd}
                       onChange={(e) => setFormData({ ...formData, tpd: e.target.value })}
-                      placeholder="Inherit"
+                      placeholder={t("inherit")}
                       hint={t("rateLimitOverridesTpdHint")}
                     />
                     <Input
@@ -976,7 +976,7 @@ export default function EditConnectionModal({
                       min={0}
                       value={formData.minTime}
                       onChange={(e) => setFormData({ ...formData, minTime: e.target.value })}
-                      placeholder="Inherit"
+                      placeholder={t("inherit")}
                       hint={t("rateLimitOverridesMinTimeHint")}
                     />
                     <Input
@@ -987,7 +987,7 @@ export default function EditConnectionModal({
                       onChange={(e) =>
                         setFormData({ ...formData, rateLimitMaxConcurrent: e.target.value })
                       }
-                      placeholder="Inherit"
+                      placeholder={t("inherit")}
                       hint={t("rateLimitOverridesMaxConcurrentHint")}
                     />
                   </div>

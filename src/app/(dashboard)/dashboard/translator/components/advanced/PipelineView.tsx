@@ -30,7 +30,8 @@ const DEMO_STEPS: PipelineStep[] = [
     name: "Client Request",
     description: "Request received in client format",
     format: "claude",
-    content: '{\n  "model": "claude-sonnet-4-20250514",\n  "messages": [\n    { "role": "user", "content": "Hello!" }\n  ]\n}',
+    content:
+      '{\n  "model": "claude-sonnet-4-20250514",\n  "messages": [\n    { "role": "user", "content": "Hello!" }\n  ]\n}',
     status: "done",
   },
   {
@@ -46,7 +47,8 @@ const DEMO_STEPS: PipelineStep[] = [
     name: "OpenAI Intermediate",
     description: "Translated to OpenAI hub format",
     format: "openai",
-    content: '{\n  "model": "claude-sonnet-4-20250514",\n  "messages": [\n    { "role": "user", "content": "Hello!" }\n  ],\n  "stream": true\n}',
+    content:
+      '{\n  "model": "claude-sonnet-4-20250514",\n  "messages": [\n    { "role": "user", "content": "Hello!" }\n  ],\n  "stream": true\n}',
     status: "pending",
   },
   {
@@ -54,7 +56,8 @@ const DEMO_STEPS: PipelineStep[] = [
     name: "Provider Format",
     description: "Translated to provider target format",
     format: "gemini",
-    content: '{\n  "model": "gemini-2.5-flash",\n  "contents": [\n    { "role": "user", "parts": [{ "text": "Hello!" }] }\n  ]\n}',
+    content:
+      '{\n  "model": "gemini-2.5-flash",\n  "contents": [\n    { "role": "user", "parts": [{ "text": "Hello!" }] }\n  ]\n}',
     status: "pending",
   },
   {
@@ -62,14 +65,15 @@ const DEMO_STEPS: PipelineStep[] = [
     name: "Provider Response",
     description: "Streaming response from provider",
     format: "openai",
-    content: "data: {\"choices\":[{\"delta\":{\"content\":\"Hello! How can I help you today?\"}}]}\ndata: [DONE]",
+    content:
+      'data: {"choices":[{"delta":{"content":"Hello! How can I help you today?"}}]}\ndata: [DONE]',
     status: "pending",
   },
 ];
 
 /** Maps step status to badge variant. */
 function statusVariant(
-  status: PipelineStep["status"],
+  status: PipelineStep["status"]
 ): "default" | "primary" | "success" | "error" | "warning" | "info" {
   switch (status) {
     case "active":
@@ -130,10 +134,12 @@ export default function PipelineView({
 
   // Sync forceOpen changes from parent after mount.
   useEffect(() => {
-    if (forceOpen && !open) {
+    if (!forceOpen || open) return;
+    const openFromDeepLink = setTimeout(() => {
       setOpen(true);
       setHasOpened(true);
-    }
+    }, 0);
+    return () => clearTimeout(openFromDeepLink);
   }, [forceOpen, open]);
 
   const handleOpenChange = useCallback(
@@ -142,7 +148,7 @@ export default function PipelineView({
       if (next) setHasOpened(true);
       onOpenChange?.(next);
     },
-    [onOpenChange],
+    [onOpenChange]
   );
 
   const steps = pipelineSteps ?? DEMO_STEPS;
@@ -181,23 +187,24 @@ export default function PipelineView({
             {/* Demo badge when showing placeholder data */}
             {!pipelineSteps && (
               <div className="flex items-center gap-2 text-xs text-text-muted px-1">
-                <span
-                  className="material-symbols-outlined text-[14px]"
-                  aria-hidden="true"
-                >
+                <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                   info
                 </span>
                 <span>
                   {tr(
                     "pipelineVisualizationHint",
-                    "Envie um request pelo Chat Tester para ver o pipeline em tempo real. Abaixo: exemplo estático.",
+                    "Envie um request pelo Chat Tester para ver o pipeline em tempo real. Abaixo: exemplo estático."
                   )}
                 </span>
               </div>
             )}
 
             {/* Step list */}
-            <div className="space-y-1" role="list" aria-label="Pipeline steps">
+            <div
+              className="space-y-1"
+              role="list"
+              aria-label={tr("pipelineStepsAria", "Pipeline steps")}
+            >
               {steps.map((step, i) => {
                 const meta = (step.format && FORMAT_META[step.format]) ?? {
                   label: step.format ?? "unknown",
