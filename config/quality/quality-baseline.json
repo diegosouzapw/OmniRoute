@@ -27,22 +27,22 @@
       "eps": 0
     },
     "coverage.statements": {
-      "value": 76.5,
+      "value": 80.8,
       "direction": "up",
       "tightenSlack": 5
     },
     "coverage.lines": {
-      "value": 76.5,
+      "value": 80.8,
       "direction": "up",
       "tightenSlack": 5
     },
     "coverage.functions": {
-      "value": 82,
+      "value": 86.44,
       "direction": "up",
       "tightenSlack": 5
     },
     "coverage.branches": {
-      "value": 73,
+      "value": 78.1,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 5
@@ -54,43 +54,43 @@
       "tightenSlack": 10
     },
     "coverage.combo.lines": {
-      "value": 80,
+      "value": 85.42,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.accountFallback.lines": {
-      "value": 88,
+      "value": 96.78,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.auth.lines": {
-      "value": 90,
+      "value": 92.55,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.routeGuard.lines": {
-      "value": 94,
+      "value": 98.73,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.error.lines": {
-      "value": 88,
+      "value": 92.13,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.publicCreds.lines": {
-      "value": 92,
+      "value": 99.07,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.circuitBreaker.lines": {
-      "value": 92,
+      "value": 95.09,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
