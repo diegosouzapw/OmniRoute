@@ -38,8 +38,8 @@ export const gheCopilot = {
     }
     return await response.json();
   },
-  pollToken: async (config: any, deviceCode: string) => {
-    const gheUrl = normalizeGheUrl(config.gheUrl);
+  pollToken: async (config: any, deviceCode: string, _codeVerifier?: string, extraData?: any) => {
+    const gheUrl = normalizeGheUrl(extraData?.gheUrl || config.gheUrl);
     const response = await fetch(`${gheUrl}/login/oauth/access_token`, {
       method: "POST",
       headers: {
@@ -84,7 +84,7 @@ export const gheCopilot = {
       },
     });
     const userInfo = userRes.ok ? await userRes.json() : {};
-    return { copilotToken, userInfo };
+    return { copilotToken, userInfo, gheUrl: extra?.gheUrl };
   },
   mapTokens: (tokens: any, extra?: any) => ({
     accessToken: tokens.access_token,
