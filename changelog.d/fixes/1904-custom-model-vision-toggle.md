@@ -1,0 +1,1 @@
+- **fix(dashboard):** the "Custom Models" add/edit form now has a "Vision capable" toggle so a custom OpenAI-compatible model can be manually flagged as vision-capable when the provider's discovery metadata doesn't report an image input modality (thanks @nguyenphi37)

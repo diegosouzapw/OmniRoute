@@ -4820,7 +4820,9 @@
     "kimiWebLabel": "__MISSING__:Kimi Web",
     "kimiWebDesc": "__MISSING__:Moonshot AI consumer chat via www.kimi.com (international, Connect-RPC API)",
     "doubaoWebLabel": "Dola Web",
-    "doubaoWebDesc": "dola.com을 통한 ByteDance AI 채팅"
+    "doubaoWebDesc": "dola.com을 통한 ByteDance AI 채팅",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "설정",
