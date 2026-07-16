@@ -3,6 +3,19 @@
  * Pure data; merged by apikey/index.ts via spread (god-file decomposition; semantic split).
  */
 export const APIKEY_PROVIDERS_GATEWAYS = {
+  chenzk: {
+    id: "chenzk",
+    alias: "chenzk",
+    name: "Chenzk API",
+    icon: "router",
+    color: "#0F766E",
+    textIcon: "CZ",
+    website: "https://chenzk.top",
+    passthroughModels: true,
+    apiHint:
+      "Create an API key at https://chenzk.top, then paste it here as a Bearer token. " +
+      "OpenAI-compatible endpoints: https://chenzk.top/v1/chat/completions and https://chenzk.top/v1/models.",
+  },
   "charm-hyper": {
     id: "charm-hyper",
     alias: "charm-hyper",
