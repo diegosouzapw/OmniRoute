@@ -150,16 +150,8 @@ type TestAllEntryStatus = "ok" | "error" | "slow";
  * model failed (unlike the single-model ▶ test).
  *
  * Auto-hide policy: when `autoHideFailed` is on, only NON-TRANSIENT failures are
- * hidden. Transient failures (rate-limited, timeout) are surfaced as 'error' on
- * the row icon but NOT hidden, because:
- *   - The provider may have been temporarily throttled during a parallel batch
- *     (a single Test All across 10+ models routinely trips per-account rate
- *     limits on subscription-tier APIs).
- *   - The model itself is not broken — a retry seconds later would succeed.
- *   - Hidden state persists across server restarts and silently removes the
- *     model from `/v1/models`, so a transient blip turns into a permanent
- *     catalog gap that the user can only recover from by editing the DB or
- *     hand-toggling each row.
+ * hidden. Transient failures remain visible because the model may still be healthy
+ * and hidden state persists across restarts, removing it from `/v1/models`.
  *
  * Genuine failures (`status:"error"` without a transient flag — e.g. upstream
  * 400 "invalid model", schema mismatch, auth failure) ARE still auto-hidden,
