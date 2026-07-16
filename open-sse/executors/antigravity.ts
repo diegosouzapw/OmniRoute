@@ -13,6 +13,7 @@ import {
   PROVIDERS,
   OAUTH_ENDPOINTS,
   HTTP_STATUS,
+  FETCH_TIMEOUT_MS,
   STREAM_READINESS_TIMEOUT_MS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
 } from "../config/constants.ts";
@@ -948,7 +949,11 @@ export class AntigravityExecutor extends BaseExecutor {
     const decoder = new TextDecoder();
     const logger = log || undefined;
 
-    const SSE_COLLECT_TIMEOUT_MS = 120_000;
+    // Guard against indefinite hangs when the upstream sends headers but
+    // stalls on the body.  Inherit the global FETCH_TIMEOUT_MS (default 600 s,
+    // overridable via env) so reasoning-heavy models (gemini-3.1-pro-high on
+    // large prompts) are not killed by a hardcoded 120 s ceiling.
+    const SSE_COLLECT_TIMEOUT_MS = FETCH_TIMEOUT_MS;
 
     const collect = async () => {
       const collected: AntigravityCollectedStream = {
