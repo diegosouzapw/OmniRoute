@@ -7401,7 +7401,11 @@
     "removeErrorCode": "Xóa mã {code}",
     "addErrorCode": "Thêm mã lỗi...",
     "suggestions": "Gợi ý:",
-    "modelLockoutMaxCooldownHint": "≥ cooldown cơ sở — 3.600.000ms"
+    "modelLockoutMaxCooldownHint": "≥ cooldown cơ sở — 3.600.000ms",
+    "moveUp": "Di chuyển lên",
+    "moveDown": "Di chuyển xuống",
+    "allProvidersAdded": "Đã thêm tất cả nhà cung cấp",
+    "noProvidersFound": "Không tìm thấy nhà cung cấp"
   },
   "contextRtk": {
     "title": "RTK Engine",
