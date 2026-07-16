@@ -1591,6 +1591,34 @@ export class AntigravityExecutor extends BaseExecutor {
           };
         }
 
+        // #2461: a non-ok upstream response (e.g. 403) must never be piped through the
+        // streaming pass-through below as if it were an SSE body. Google occasionally
+        // returns non-UTF8/binary error bodies (observed: gzip-magic-byte payloads) for
+        // 403s on this endpoint; reading/forwarding those raw bytes corrupts the
+        // client-visible error message. Mirror the non-streaming branch above and build
+        // a sanitized JSON error via buildAntigravityUpstreamError (hard rule #12)
+        // instead of streaming unknown bytes straight through.
+        if (!response.ok) {
+          const rawBody = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          const errorBody = buildAntigravityUpstreamError(
+            response.status,
+            response.statusText,
+            rawBody
+          );
+          return {
+            response: new Response(JSON.stringify(errorBody), {
+              status: response.status,
+              headers: { "Content-Type": "application/json" },
+            }),
+            url,
+            headers: finalHeaders,
+            transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+          };
+        }
+
         // Streaming path: wrap the response body in a pass-through TransformStream
         // that extracts remainingCredits from the final SSE chunk(s) without
         // consuming the stream. The client receives the unmodified SSE data.
