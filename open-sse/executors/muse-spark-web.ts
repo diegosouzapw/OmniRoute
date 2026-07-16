@@ -1,24 +1,14 @@
 import { createHash } from "node:crypto";
 import WebSocket from "ws";
 
-import {
-  BaseExecutor,
-  mergeAbortSignals,
-  mergeUpstreamExtraHeaders,
-  type ExecuteInput,
-} from "./base.ts";
-import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 import {
   normalizeSessionCookieHeader,
   normalizeSessionCookieHeaders,
 } from "@/lib/providers/webCookieAuth";
-import {
-  type ParsedMetaAiResponse,
-  isRecord,
-  parseMetaAiResponseText,
-} from "./muse-spark-web/response-parser.ts";
+import { type ParsedMetaAiResponse, isRecord } from "./muse-spark-web/response-parser.ts";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
 // Meta rebranded the chat product from "Abra" to "Ecto"; the session cookie
