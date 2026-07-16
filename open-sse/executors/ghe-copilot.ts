@@ -60,13 +60,13 @@ export class GheCopilotExecutor extends GithubExecutor {
   override transformRequest(model: string, body: any, stream: boolean, credentials: any): any {
     const bareModel = this.stripPrefix(model);
     const transformed = super.transformRequest(bareModel, body, stream, credentials);
-    if (transformed && typeof transformed === "object" && typeof transformed.model === "string") {
-      transformed.model = this.stripPrefix(transformed.model);
-    }
-    // GHE Copilot proxy rejects `stream: false` ("stream": false is not supported).
-    // Only forward the flag when actually streaming; omit it otherwise.
-    if (transformed && typeof transformed === "object" && !stream && "stream" in transformed) {
-      delete transformed.stream;
+    if (transformed && typeof transformed === "object") {
+      if (typeof transformed.model === "string") {
+        transformed.model = this.stripPrefix(transformed.model);
+      }
+      // GHE Copilot proxy is streaming-only: force stream:true upstream
+      // (chatCore drains the SSE back to JSON for non-stream clients).
+      transformed.stream = true;
     }
     return transformed;
   }

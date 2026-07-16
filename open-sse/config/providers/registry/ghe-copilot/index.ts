@@ -10,6 +10,10 @@ export const gheCopilotProvider: RegistryEntry = {
   alias: "ghe-copilot",
   format: "openai",
   executor: "ghe-copilot",
+  // GHE Copilot proxy is streaming-only: it rejects `stream: false` (and an
+  // absent stream flag). forceStream makes chatCore send stream:true upstream
+  // and drain the SSE back into a single JSON response for non-stream clients.
+  forceStream: true,
   baseUrl: "https://api.githubcopilot.com/chat/completions",
   responsesBaseUrl: "https://api.githubcopilot.com/responses",
   authType: "oauth",
