@@ -61,12 +61,31 @@ export function validateProviderSpecificData(
   if (!data) return;
 
   const gheUrl = data.gheUrl;
-  if (gheUrl !== undefined && (typeof gheUrl !== "string" || !isHttpUrl(gheUrl))) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "providerSpecificData.gheUrl must be a valid http(s) URL",
-      path: ["gheUrl"],
-    });
+  if (gheUrl !== undefined) {
+    if (typeof gheUrl !== "string") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "providerSpecificData.gheUrl must be a string",
+        path: ["gheUrl"],
+      });
+    } else {
+      try {
+        const parsed = new URL(gheUrl);
+        if (parsed.protocol !== "https:") {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "providerSpecificData.gheUrl must use HTTPS",
+            path: ["gheUrl"],
+          });
+        }
+      } catch {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "providerSpecificData.gheUrl must be a valid HTTPS URL",
+          path: ["gheUrl"],
+        });
+      }
+    }
   }
 
   const baseUrl = data.baseUrl;
