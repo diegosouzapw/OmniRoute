@@ -9,6 +9,7 @@ import {
   type ModelCategory,
 } from "@/domain/assessment/types";
 import { validateBody } from "@/shared/validation/helpers";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const assessor = new Assessor(
   process.env.OMNIROUTe_API_KEY ?? process.env.API_KEY ?? "",
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
+      { error: sanitizeErrorMessage(error instanceof Error ? error.message : "Unknown error") },
       { status: 500 }
     );
   }

@@ -5,6 +5,8 @@
  * Each provider has its own request format and endpoint.
  */
 
+import { LMARENA_DIRECT_IMAGE_MODELS } from "./providers/registry/lmarena/directModels.ts";
+
 interface ImageModelEntry {
   id: string;
   name: string;
@@ -147,7 +149,11 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authType: "oauth",
     authHeader: "bearer",
     format: "codex-responses",
-    models: [{ id: "gpt-5.5", name: "GPT 5.5 (Codex Image)" }],
+    models: [
+      { id: "gpt-5.6-sol", name: "GPT 5.6 Sol (Codex Image)" },
+      { id: "gpt-5.6-terra", name: "GPT 5.6 Terra (Codex Image)" },
+      { id: "gpt-5.6-luna", name: "GPT 5.6 Luna (Codex Image)" },
+    ],
     supportedSizes: ["1024x1024", "1024x1536", "1536x1024"],
   },
 
@@ -158,7 +164,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authType: "apikey",
     authHeader: "cookie",
     format: "chatgpt-web",
-    models: [{ id: "gpt-5.3-instant", name: "GPT-5.3 Instant (ChatGPT Web Image)" }],
+    models: [{ id: "gpt-5.5", name: "GPT-5.5 Instant (ChatGPT Web Image)" }],
     supportedSizes: ["1024x1024", "1024x1536", "1536x1024"],
   },
 
@@ -576,7 +582,11 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authHeader: "bearer",
     format: "nvidia-nim",
     models: [
-      { id: "black-forest-labs/flux.1-dev", name: "FLUX.1 Dev", inputModalities: ["text", "image"] },
+      {
+        id: "black-forest-labs/flux.1-dev",
+        name: "FLUX.1 Dev",
+        inputModalities: ["text", "image"],
+      },
       { id: "black-forest-labs/flux.1-schnell", name: "FLUX.1 Schnell" },
       {
         id: "black-forest-labs/flux.1-kontext-dev",
@@ -624,6 +634,20 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
       { id: "stabilityai/stable-diffusion-xl-base-1.0", name: "Stable Diffusion XL (HF)" },
     ],
     supportedSizes: ["1024x1024"],
+  },
+
+  // Arena (formerly LMArena) Direct-chat Image category (static scrape 2026-07-09).
+  // Not listed in the chat registry — image catalog only. Generation path still
+  // uses cookie session auth via the lmarena provider connection (stable wire id).
+  lmarena: {
+    id: "lmarena",
+    alias: "lma",
+    baseUrl: "https://arena.ai/nextjs-api/stream/create-evaluation",
+    authType: "apikey",
+    authHeader: "cookie",
+    format: "openai",
+    models: LMARENA_DIRECT_IMAGE_MODELS,
+    supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
   },
 };
 
@@ -721,6 +745,19 @@ export function getAllImageModels(): ImageCatalogModelEntry[] {
 
 export function getImageModelAliases() {
   return IMAGE_MODEL_ALIASES;
+}
+
+/**
+ * #6457 — precise provider+modelId membership check against the image registry.
+ * Unlike getImageModelEntry() (which also resolves bare aliases and unprefixed
+ * ids by scanning every provider), this only answers "is `modelId` registered
+ * as an image model under this exact `providerId`?" — used by the chat catalog
+ * builder to keep upstream-discovered models (e.g. HuggingFace's live
+ * `/v1/models`, which returns image/diffusion models with no modality field)
+ * out of the chat listing when they are already known image-only models.
+ */
+export function isRegisteredImageModel(providerId, modelId) {
+  return Boolean(findImageModelConfig(providerId, modelId));
 }
 
 export function getImageModelEntry(modelStr) {

@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { SearchProviderCatalogItem } from "@/shared/schemas/searchTools";
 
+const MAX_COMPARE_PROVIDERS = 4; // D22: cap at 4 providers running in parallel
+
 export interface CompareResult {
   provider: string;
   latency: number;
@@ -69,12 +71,15 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
   const toggleProvider = useCallback((id: string) => {
     setSelectedProviderIds((prev) => {
       if (prev.includes(id)) return prev.filter((p) => p !== id);
+      if (prev.length >= MAX_COMPARE_PROVIDERS) return prev;
       return [...prev, id];
     });
   }, []);
 
   const selectAll = useCallback(() => {
-    setSelectedProviderIds(activeSearchProviders.map((p) => p.id));
+    setSelectedProviderIds(
+      activeSearchProviders.slice(0, MAX_COMPARE_PROVIDERS).map((p) => p.id)
+    );
   }, [activeSearchProviders]);
 
   const clearAll = useCallback(() => {
@@ -230,7 +235,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
           </button>
         </div>
 
-        {/* Provider picker — no cap */}
+        {/* Provider picker — capped at MAX_COMPARE_PROVIDERS (D22) */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <p className="text-[10px] text-text-muted">
@@ -253,9 +258,15 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
               </button>
             </div>
           </div>
+          {selectedProviderIds.length >= MAX_COMPARE_PROVIDERS && (
+            <p className="text-warning text-[10px] mb-2">
+              Maximum of {MAX_COMPARE_PROVIDERS} providers can be compared at once.
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             {activeSearchProviders.map((p) => {
               const selected = selectedProviderIds.includes(p.id);
+              const atCap = !selected && selectedProviderIds.length >= MAX_COMPARE_PROVIDERS;
               return (
                 <button
                   key={p.id}
@@ -264,8 +275,10 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
                     selected
                       ? "bg-primary/15 text-primary border-primary/30"
                       : "text-text-muted border-border hover:text-text-main hover:border-primary/30",
+                    atCap ? "opacity-40 cursor-not-allowed" : "",
                   ].join(" ")}
                   onClick={() => toggleProvider(p.id)}
+                  disabled={atCap}
                   data-testid={`provider-toggle-${p.id}`}
                   aria-pressed={selected}
                 >

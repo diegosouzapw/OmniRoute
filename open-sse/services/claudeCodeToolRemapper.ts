@@ -57,14 +57,41 @@ function trackToolName(
   getRequestToolNameMap(body).set(titleCaseName, originalName);
 }
 
+/**
+ * Names of Anthropic server-side tools declared in this request's tools[].
+ * A server tool's `name` is a reserved literal validated against its `type`
+ * (web_search_20250305 ⇒ "web_search", bash_20250124 ⇒ "bash", …), so every
+ * rewrite below must leave both the declaration AND any history/tool_choice
+ * reference to it untouched — renaming only one side produces
+ * `Tool 'WebSearch' not found in provided tools` (history renamed, tools[]
+ * preserved) or `tools.N.<type>.name: Input should be '<literal>'` (tools[]
+ * renamed).
+ */
+function collectServerToolNames(tools: unknown): Set<string> {
+  const names = new Set<string>();
+  if (!Array.isArray(tools)) return names;
+  for (const tool of tools) {
+    const t = tool as Record<string, unknown> | null;
+    if (t && isAnthropicServerToolType(t.type) && typeof t.name === "string") {
+      names.add(t.name);
+    }
+  }
+  return names;
+}
+
 export function remapToolNamesInRequest(body: Record<string, unknown>): boolean {
   let hasLowercase = false;
   let hasTitleCase = false;
+  const serverToolNames = collectServerToolNames(body.tools);
 
   // Remap tool definitions
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
   if (Array.isArray(tools)) {
     for (const tool of tools) {
+      if (!tool) continue;
+      // Server tools (bash_20250124 / web_search_20250305 / …) keep their
+      // type-bound literal name.
+      if (isAnthropicServerToolType(tool.type)) continue;
       const name = String(tool.name || "");
       if (TOOL_RENAME_MAP[name]) {
         const mapped = TOOL_RENAME_MAP[name];
@@ -85,6 +112,7 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
       if (!Array.isArray(content)) continue;
       for (const block of content) {
         if (block.type === "tool_use" && typeof block.name === "string") {
+          if (serverToolNames.has(block.name)) continue;
           const mapped = TOOL_RENAME_MAP[block.name];
           if (mapped) {
             const originalName = block.name;
@@ -101,7 +129,11 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
 
   // Remap tool_choice
   const toolChoice = body.tool_choice as Record<string, unknown> | undefined;
-  if (toolChoice?.type === "tool" && typeof toolChoice.name === "string") {
+  if (
+    toolChoice?.type === "tool" &&
+    typeof toolChoice.name === "string" &&
+    !serverToolNames.has(toolChoice.name)
+  ) {
     const mapped = TOOL_RENAME_MAP[toolChoice.name];
     if (mapped) {
       const originalName = toolChoice.name;
@@ -248,6 +280,11 @@ export function cloakThirdPartyToolNames(
   const shouldCloak = (name: string): boolean =>
     needsThirdPartyCloak(name) && !(options?.skip ? options.skip(name) : false);
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
+  // Reserved literal names of declared server tools — never cloaked, neither
+  // in tools[] (guarded below) nor in message-history / tool_choice references
+  // (renaming only the reference yields "Tool 'WebSearch' not found in
+  // provided tools").
+  const serverToolNames = collectServerToolNames(tools);
 
   const used = new Set<string>();
   if (Array.isArray(tools)) {
@@ -274,7 +311,9 @@ export function cloakThirdPartyToolNames(
     // subagents->SubDispatch, session_status->CheckStatus, webfetch->WebFetch, …
     // Then harness-canonical (read_file->Read), then a generic PascalCase.
     const base =
-      TOOL_RENAME_MAP[original] ?? HARNESS_CANONICAL_MAP[original] ?? toPascalCaseToolName(original);
+      TOOL_RENAME_MAP[original] ??
+      HARNESS_CANONICAL_MAP[original] ??
+      toPascalCaseToolName(original);
     let alias = base;
     let suffix = 2;
     while (alias !== original && used.has(alias)) {
@@ -315,6 +354,7 @@ export function cloakThirdPartyToolNames(
         if (
           block?.type === "tool_use" &&
           typeof block.name === "string" &&
+          !serverToolNames.has(block.name) &&
           shouldCloak(block.name)
         ) {
           changed = true;
@@ -330,6 +370,7 @@ export function cloakThirdPartyToolNames(
   if (
     toolChoice?.type === "tool" &&
     typeof toolChoice.name === "string" &&
+    !serverToolNames.has(toolChoice.name) &&
     shouldCloak(toolChoice.name)
   ) {
     body.tool_choice = { ...toolChoice, name: aliasFor(toolChoice.name) };

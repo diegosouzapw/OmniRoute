@@ -174,6 +174,18 @@ export function cloakAntigravityToolPayload<T extends JsonRecord>(
         ...preservedTools,
         { functionDeclarations: [...cloakedDeclarations, ...decoys] },
       ];
+
+      // The decoy tools mimic real Antigravity IDE built-in agent tools (search_web,
+      // browser_subagent, read_url_content, generate_image), whose names match the
+      // server-side "Built-in tools" categories Gemini 3's Cloud Code backend
+      // recognizes. A genuine Antigravity client always pairs those declarations with
+      // this opt-in flag; without it, mixing them with custom function declarations
+      // gets rejected upstream (#6914).
+      const existingToolConfig = asRecord(nextRequest.toolConfig) ?? {};
+      nextRequest.toolConfig = {
+        ...existingToolConfig,
+        includeServerSideToolInvocations: true,
+      };
       changed = true;
     }
   }

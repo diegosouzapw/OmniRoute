@@ -4,6 +4,9 @@
  */
 import {
   GPT_5_5_PRICING,
+  GPT_5_6_LUNA_PRICING,
+  GPT_5_6_SOL_PRICING,
+  GPT_5_6_TERRA_PRICING,
   CLAUDE_FABLE_5_PRICING,
   CLAUDE_OPUS_4_PRICING,
   CLAUDE_SONNET_4_PRICING,
@@ -14,13 +17,16 @@ import {
 
 export const DEFAULT_PRICING_FRONTIER = {
   openai: {
+    "gpt-5.6": GPT_5_6_SOL_PRICING,
+    "gpt-5.6-sol": GPT_5_6_SOL_PRICING,
+    "gpt-5.6-terra": GPT_5_6_TERRA_PRICING,
+    "gpt-5.6-luna": GPT_5_6_LUNA_PRICING,
     "gpt-5.5": GPT_5_5_PRICING,
     // The -pro tier mirrors its base family pricing until OpenAI publishes a
     // distinct pro rate; without these rows the openai provider's gpt-5.x-pro
     // models (in the registry) resolved to $0 and tripped the catalog pricing gate.
     "gpt-5.5-pro": GPT_5_5_PRICING,
-    // gpt-5.4 family (public API tier; mirrors the codex 5.4 tier for the
-    // base/mini, with a lower nano tier). Without these rows the openai
+    // gpt-5.4 family (public API tier, with a lower nano tier). Without these rows the openai
     // provider's gpt-5.4* models resolved to $0.
     "gpt-5.4": {
       input: 5.0,

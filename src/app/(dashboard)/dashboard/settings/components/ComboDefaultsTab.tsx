@@ -292,8 +292,7 @@ export default function ComboDefaultsTab() {
 
   // Filtered provider list — excludes already-added ones, filtered by search query
   const filteredProviders = availableProviders.filter(
-    (p) =>
-      !providerOverrides[p.provider] && matchesSearch(p.provider, searchQuery)
+    (p) => !providerOverrides[p.provider] && matchesSearch(p.provider, searchQuery)
   );
 
   const handleDropdownKeyDown = (e: React.KeyboardEvent) => {
@@ -637,7 +636,7 @@ export default function ComboDefaultsTab() {
               label={translateOrFallback(t, "contextRelaySummaryModel", "Summary Model")}
               type="text"
               value={comboDefaults.handoffModel ?? ""}
-              placeholder="codex/gpt-5.4"
+              placeholder="codex/gpt-5.6-sol"
               onChange={(e) =>
                 setComboDefaults((prev) => ({
                   ...prev,

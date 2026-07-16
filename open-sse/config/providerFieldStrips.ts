@@ -22,6 +22,26 @@ export function findOffendingField(bodyText: string): string | null {
   return null;
 }
 
+/**
+ * Regex to extract an unsupported parameter name from upstream 400 error text.
+ * Matches:
+ *   - "Unsupported parameter(s): thinking"
+ *   - "Unsupported parameter: max_tokens"
+ *   - "Unsupported parameter 'reasoning_budget'"
+ */
+export const UNSUPPORTED_PARAM_RE =
+  /unsupported\s+parameter\w*(?:\s*\(s\))?[:\s]+["'`]?(\w+)["'`]?/i;
+
+/**
+ * Extract a single unsupported parameter name from a 400 error body,
+ * or null if the error does not match the known pattern.
+ */
+export function detectUnsupportedParam(bodyText: string): string | null {
+  if (typeof bodyText !== "string" || !bodyText) return null;
+  const match = UNSUPPORTED_PARAM_RE.exec(bodyText);
+  return match?.[1] ?? null;
+}
+
 /** Immutably drop request fields Groq rejects with a 400. */
 export function stripGroqUnsupportedFields<T extends Record<string, unknown>>(body: T): T {
   if (!body || typeof body !== "object") return body;

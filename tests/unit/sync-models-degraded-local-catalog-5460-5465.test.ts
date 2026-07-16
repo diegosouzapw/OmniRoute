@@ -19,6 +19,15 @@ test("isDegradedLocalCatalog: intentional local-only catalog is NOT a degraded f
   );
   // Case-insensitive on source.
   assert.equal(isDegradedLocalCatalog({ source: "LOCAL_CATALOG", intentional: true }), false);
+  assert.equal(
+    isDegradedLocalCatalog({
+      source: "local_catalog",
+      intentional: true,
+      warning: "Codex live and GitHub catalogs unavailable — using local catalog",
+    }),
+    false,
+    "Codex's intentional local fallback must import normally"
+  );
 });
 
 test("isDegradedLocalCatalog: a degraded remote-fetch fallback IS a failure (502)", () => {

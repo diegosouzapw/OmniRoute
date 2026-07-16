@@ -26,3 +26,4 @@ export { DailyTrendChart, ModelOverTimeChart } from "./rechartsUsageCharts";
 
 export { default as ApiKeyFilterDropdown } from "./ApiKeyFilterDropdown";
 export { default as CustomRangePicker } from "./CustomRangePicker";
+export { default as RequestCountByProviderDateTable } from "./RequestCountByProviderDateTable";

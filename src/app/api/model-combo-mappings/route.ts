@@ -4,11 +4,11 @@
  * POST — Create a new mapping
  */
 
-import { z } from "zod";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { getModelComboMappings, createModelComboMapping } from "@/lib/localDb";
-import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+import { createModelComboMapping, getModelComboMappings } from "@/lib/localDb";
+import { validatedJsonBody } from "@/shared/validation/helpers";
 
 const createMappingSchema = z.object({
   pattern: z.string().min(1, "Pattern is required").max(500),
@@ -36,13 +36,12 @@ export async function POST(request: Request) {
   if (authError) return authError;
 
   try {
-    const rawBody = await request.json();
-    const validation = validateBody(createMappingSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+    const parsed = await validatedJsonBody(request, createMappingSchema);
+    if (!parsed.success) {
+      return parsed.response;
     }
 
-    const { data } = validation;
+    const { data } = parsed;
     const mapping = await createModelComboMapping({
       pattern: data.pattern.trim(),
       comboId: data.comboId,

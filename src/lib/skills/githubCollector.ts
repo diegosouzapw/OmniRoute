@@ -37,7 +37,7 @@ export interface ScanFinding {
 export interface SkillInstallResult {
   target: string;
   ok: boolean;
-  action: "installed" | "already_up_to_date" | "skipped" | "error";
+  action: "installed" | "planned" | "already_up_to_date" | "skipped" | "error";
   error?: string;
   destDir?: string;
 }

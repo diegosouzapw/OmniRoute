@@ -15,10 +15,32 @@
  * A fuzzy suffix/prefix-overlap heuristic must NOT be used here: it silently
  * drops bytes from legitimate incremental deltas (turning `ll` into `l`, `xx`
  * into `x`), which trades a visible duplication bug for a silent truncation bug.
+ *
+ * A third, non-conformant shape some upstreams emit (#6459): the FULL
+ * `arguments` value delivered as an already-parsed JSON object/array instead
+ * of a JSON-encoded string (violates the OpenAI streaming contract, but seen
+ * from some Anthropic-shape-passthrough backends). Treating that as "not a
+ * string" and silently discarding it left `tool_use.input` empty upstream —
+ * or, when a caller re-serialized the buffer with plain string coercion
+ * instead of JSON, rendered literally as `[object Object]` in the client
+ * transcript. JSON.stringify it into a proper fragment instead of dropping it.
  */
+function normalizeIncomingFragment(incoming: unknown): string {
+  if (typeof incoming === "string") return incoming;
+  if (incoming == null) return "";
+  if (typeof incoming === "object") {
+    try {
+      return JSON.stringify(incoming);
+    } catch {
+      return "";
+    }
+  }
+  return "";
+}
+
 export function appendToolCallArgumentDelta(current: unknown, incoming: unknown): string {
   const existing = typeof current === "string" ? current : "";
-  const next = typeof incoming === "string" ? incoming : "";
+  const next = normalizeIncomingFragment(incoming);
 
   if (!existing) return next;
   if (!next) return existing;

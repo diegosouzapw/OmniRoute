@@ -1,0 +1,1 @@
+- **CI**: the Electron Package Smoke job now runs a Windows leg that executes `prepare:bundle` (the native ABI rebuild + spawn plan) per release PR — the v3.8.48 Windows bug (`npx.cmd` spawned without shell) could previously only surface on the release tag, its first-ever execution
