@@ -70,6 +70,23 @@ export function isIpLiteral(host: string): boolean {
 }
 
 /**
+ * True if ANY resolved address is in a blocked (internal) range. Used after
+ * DNS resolution: a hostname may resolve to MULTIPLE records (e.g. both a
+ * public and a private IP). Checking only the first record would let an
+ * attacker reach an internal service via a hostname that also has a public
+ * record — so we refuse if any resolved address is internal. `family` follows
+ * the `dns` module convention (4 = IPv4, 6 = IPv6; missing ⇒ treat as v4).
+ */
+export function isAnyResolvedAddressBlocked(
+  addrs: ReadonlyArray<{ address: string; family?: number }>
+): boolean {
+  return addrs.some(({ address, family }) => {
+    const fam = family === 6 ? 6 : 4;
+    return fam === 6 ? isIpv6Blocked(address) : isIpv4Blocked(address);
+  });
+}
+
+/**
  * Structural check (no DNS). True only if the scheme is allowed AND, when the
  * host is an IP literal, it is not in a blocked range. Hostnames pass the
  * structural check — they are resolved and re-checked at fetch time.
