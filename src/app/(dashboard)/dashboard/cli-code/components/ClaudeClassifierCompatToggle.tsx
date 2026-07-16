@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 type CompatMode = "off" | "auto" | "always";
 
@@ -27,6 +28,7 @@ function isCompatMode(value: unknown): value is CompatMode {
  * every Claude-format request. Cycles off → auto → always via the existing /api/settings PATCH.
  */
 export default function ClaudeClassifierCompatToggle() {
+  const t = useTranslations("cliTools");
   const [mode, setMode] = useState<CompatMode>("off");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -41,11 +43,11 @@ export default function ClaudeClassifierCompatToggle() {
       setMode(isCompatMode(data?.claudeClassifierCompat) ? data.claudeClassifierCompat : "off");
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load setting");
+      setError(err instanceof Error ? err.message : t("classifierCompatLoadFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     load();
@@ -66,30 +68,31 @@ export default function ClaudeClassifierCompatToggle() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
     } catch (err) {
       setMode(previous); // revert on failure
-      setError(err instanceof Error ? err.message : "Failed to save");
+      setError(err instanceof Error ? err.message : t("failedSave"));
     } finally {
       setSaving(false);
     }
-  }, [mode]);
+  }, [mode, t]);
 
   return (
     <div className="rounded-lg border border-border bg-surface/40 p-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h4 className="text-xs font-semibold text-text-main">Auto-permission classifier compat</h4>
+          <h4 className="text-xs font-semibold text-text-main">{t("classifierCompatTitle")}</h4>
           <p className="text-xs text-text-muted">
-            Short-circuit Claude Code&apos;s <code>--permission-mode auto</code> security classifier
-            with a synthetic allow, so fallback routes don&apos;t fail closed. Off by default.
+            {t.rich("classifierCompatDescription", {
+              code: (chunks) => <code>{chunks}</code>,
+            })}
           </p>
         </div>
         <button
           type="button"
           onClick={cycle}
           disabled={loading || saving}
-          title="Cycle off → auto → always"
+          title={t("classifierCompatCycle")}
           className={`shrink-0 rounded border px-3 py-1.5 text-xs font-medium uppercase tracking-wide transition-colors disabled:opacity-50 ${MODE_STYLES[mode]}`}
         >
-          {mode}
+          {t(`classifierCompatMode.${mode}`)}
         </button>
       </div>
       {error ? <p className="mt-2 text-xs text-red-500">{error}</p> : null}

@@ -1,6 +1,7 @@
 "use client";
 
 import type { CompressionRunModel, CompressionEngineStep } from "./compressionFlowModel";
+import { useTranslations } from "next-intl";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ function fmt(n: number): string {
 // ── Row ───────────────────────────────────────────────────────────────────
 
 function StepRow({ step, maxTokens }: { step: CompressionEngineStep; maxTokens: number }) {
+  const t = useTranslations("compressionStudio");
   const skipped = step.originalTokens === step.compressedTokens;
   const color = skipped ? "#6b7280" : savingsColor(step.savingsPercent);
   const barWidthIn = maxTokens > 0 ? (step.originalTokens / maxTokens) * 100 : 100;
@@ -38,7 +40,9 @@ function StepRow({ step, maxTokens }: { step: CompressionEngineStep; maxTokens: 
           {step.engine}
         </span>
         {skipped && (
-          <span className="ml-1.5 text-[10px] text-muted bg-muted/10 px-1 rounded">skip</span>
+          <span className="ml-1.5 text-[10px] text-muted bg-muted/10 px-1 rounded">
+            {t("skipped")}
+          </span>
         )}
       </div>
 
@@ -103,19 +107,22 @@ export interface WaterfallInspectorProps {
  * Plain divs — no ReactFlow.
  */
 export function WaterfallInspector({ run, className = "" }: WaterfallInspectorProps) {
+  const t = useTranslations("compressionStudio");
   const maxTokens = run.originalTokens;
 
   return (
     <div className={`flex flex-col ${className}`} data-testid="waterfall-inspector">
       {/* Header — INPUT */}
       <div className="flex items-center gap-3 py-2 border-b border-border font-semibold text-xs text-muted">
-        <span className="w-28 shrink-0 text-primary">⌁ INPUT</span>
+        <span className="w-28 shrink-0 text-primary">⌁ {t("input")}</span>
         <div className="flex-1">
           <div className="h-2 rounded-full bg-muted/30 overflow-hidden">
             <div className="h-full w-full rounded-full bg-muted/50" />
           </div>
         </div>
-        <span className="w-36 shrink-0 text-right">{fmt(run.originalTokens)} tokens</span>
+        <span className="w-36 shrink-0 text-right">
+          {t("tokenCount", { count: run.originalTokens })}
+        </span>
       </div>
 
       {/* Steps */}
@@ -125,7 +132,7 @@ export function WaterfallInspector({ run, className = "" }: WaterfallInspectorPr
 
       {/* Footer — OUTPUT */}
       <div className="flex items-center gap-3 py-2 border-t border-border mt-1">
-        <span className="w-28 shrink-0 text-xs font-semibold text-green-500">✦ OUTPUT</span>
+        <span className="w-28 shrink-0 text-xs font-semibold text-green-500">✦ {t("output")}</span>
         <div className="flex-1">
           <div className="h-2 rounded-full bg-border/30 overflow-hidden">
             <div
@@ -136,7 +143,7 @@ export function WaterfallInspector({ run, className = "" }: WaterfallInspectorPr
         </div>
         <div className="w-36 shrink-0 text-right">
           <div className="text-xs font-semibold text-green-500">
-            {fmt(run.compressedTokens)} tokens
+            {t("tokenCount", { count: run.compressedTokens })}
           </div>
           <div
             className="text-[11px] font-bold"
@@ -151,7 +158,7 @@ export function WaterfallInspector({ run, className = "" }: WaterfallInspectorPr
       {/* Summary bar */}
       <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-border/10 mt-2 text-[11px] text-muted">
         <span>
-          {fmt(run.originalTokens)} → {fmt(run.compressedTokens)} tok
+          {fmt(run.originalTokens)} → {fmt(run.compressedTokens)} {t("tokenShort")}
         </span>
         <span className="text-green-500 font-bold">−{run.savingsPercent.toFixed(1)}%</span>
         {run.comboId && <span className="font-mono opacity-70">{run.comboId}</span>}

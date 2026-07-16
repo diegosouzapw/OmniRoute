@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Toggle, Input } from "@/shared/components";
 
 function isValidUrl(value: string): boolean {
@@ -19,6 +20,7 @@ interface FallbackSettings {
 }
 
 export function CliproxyConnectionPanel() {
+  const t = useTranslations("embeddedServices");
   const [settings, setSettings] = useState<FallbackSettings>({
     cliproxyapi_fallback_enabled: false,
     cliproxyapi_url: "http://127.0.0.1:8317",
@@ -48,30 +50,33 @@ export function CliproxyConnectionPanel() {
       .catch(() => setLoaded(true));
   }, []);
 
-  const saveSetting = useCallback(async (key: string, value: boolean | string) => {
-    if (key === "cliproxyapi_url" && typeof value === "string" && value.trim() !== "") {
-      if (!isValidUrl(value)) {
-        setMsg({ ok: false, text: "Invalid URL — must start with http:// or https://" });
-        return;
+  const saveSetting = useCallback(
+    async (key: string, value: boolean | string) => {
+      if (key === "cliproxyapi_url" && typeof value === "string" && value.trim() !== "") {
+        if (!isValidUrl(value)) {
+          setMsg({ ok: false, text: t("invalidUrl") });
+          return;
+        }
       }
-    }
-    setSaving(true);
-    setMsg(null);
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [key]: value }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setSettings((prev) => ({ ...prev, [key]: value }));
-      setMsg({ ok: true, text: "Saved" });
-    } catch {
-      setMsg({ ok: false, text: "Failed to save setting" });
-    } finally {
-      setSaving(false);
-    }
-  }, []);
+      setSaving(true);
+      setMsg(null);
+      try {
+        const res = await fetch("/api/settings", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ [key]: value }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setSettings((prev) => ({ ...prev, [key]: value }));
+        setMsg({ ok: true, text: t("saved") });
+      } catch {
+        setMsg({ ok: false, text: t("saveFailed") });
+      } finally {
+        setSaving(false);
+      }
+    },
+    [t]
+  );
 
   if (!loaded) return null;
 
@@ -82,10 +87,8 @@ export function CliproxyConnectionPanel() {
           <span className="material-symbols-outlined text-indigo-500 text-xl">swap_horiz</span>
         </div>
         <div>
-          <h3 className="font-medium text-sm">Fallback Routing</h3>
-          <p className="text-xs text-text-muted">
-            Retry failed provider requests through CLIProxyAPI
-          </p>
+          <h3 className="font-medium text-sm">{t("fallbackRouting")}</h3>
+          <p className="text-xs text-text-muted">{t("fallbackRoutingDescription")}</p>
         </div>
       </div>
 
@@ -106,7 +109,7 @@ export function CliproxyConnectionPanel() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <label className="text-sm">Enable fallback</label>
+          <label className="text-sm">{t("enableFallback")}</label>
           <Toggle
             checked={settings.cliproxyapi_fallback_enabled}
             onChange={(v) => saveSetting("cliproxyapi_fallback_enabled", v)}
@@ -117,7 +120,7 @@ export function CliproxyConnectionPanel() {
         {settings.cliproxyapi_fallback_enabled && (
           <>
             <div>
-              <label className="text-xs text-text-muted mb-1.5 block">CLIProxyAPI URL</label>
+              <label className="text-xs text-text-muted mb-1.5 block">{t("cliproxyUrl")}</label>
               <Input
                 value={settings.cliproxyapi_url}
                 onChange={(e) => saveSetting("cliproxyapi_url", e.target.value)}
@@ -125,9 +128,7 @@ export function CliproxyConnectionPanel() {
               />
             </div>
             <div>
-              <label className="text-xs text-text-muted mb-1.5 block">
-                Fallback status codes (comma-separated)
-              </label>
+              <label className="text-xs text-text-muted mb-1.5 block">{t("fallbackCodes")}</label>
               <Input
                 value={settings.cliproxyapi_fallback_codes}
                 onChange={(e) => saveSetting("cliproxyapi_fallback_codes", e.target.value)}

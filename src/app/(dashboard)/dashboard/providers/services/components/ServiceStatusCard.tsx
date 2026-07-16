@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/shared/components";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { useServiceStatus } from "../hooks/useServiceStatus";
 
@@ -24,6 +25,7 @@ interface ServiceStatusCardProps {
 }
 
 export function ServiceStatusCard({ name }: ServiceStatusCardProps) {
+  const t = useTranslations("embeddedServices");
   const { data, isLoading, error } = useServiceStatus(name);
 
   if (isLoading && !data) {
@@ -44,15 +46,26 @@ export function ServiceStatusCard({ name }: ServiceStatusCardProps) {
 
   if (!data) return null;
 
+  const stateKey =
+    {
+      running: "stateRunning",
+      stopped: "stateStopped",
+      starting: "stateStarting",
+      stopping: "stateStopping",
+      error: "stateError",
+      not_installed: "stateNotInstalled",
+      unknown: "stateUnknown",
+    }[data.state] ?? "stateUnknown";
+
   return (
     <Card padding="md">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-2 min-w-0">
           <StateDot state={data.state} health={data.health} />
           <div className="min-w-0">
-            <p className="text-sm font-medium capitalize">{data.state}</p>
+            <p className="text-sm font-medium">{t(stateKey)}</p>
             <p className="text-xs text-text-muted truncate">
-              port {data.port}
+              {t("port", { port: data.port })}
               {data.pid ? ` · PID ${data.pid}` : ""}
             </p>
           </div>

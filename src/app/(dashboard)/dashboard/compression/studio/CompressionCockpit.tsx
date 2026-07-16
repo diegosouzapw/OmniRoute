@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { NodeTypes } from "@xyflow/react";
 import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
 import { EngineNode } from "./nodes/EngineNode";
@@ -91,14 +92,15 @@ function ViewButton({
 // ── Empty state ───────────────────────────────────────────────────────────
 
 function EmptyState() {
+  const t = useTranslations("compressionStudio");
   return (
     <div
       className="flex flex-col items-center justify-center h-full gap-3 text-muted"
       data-testid="compression-cockpit-empty"
     >
       <span className="text-3xl opacity-40">⌁</span>
-      <p className="text-sm">No compression run available.</p>
-      <p className="text-xs opacity-60">Live data arrives via the WS compression channel.</p>
+      <p className="text-sm">{t("noRun")}</p>
+      <p className="text-xs opacity-60">{t("liveDataHint")}</p>
     </div>
   );
 }
@@ -129,6 +131,7 @@ export interface CompressionCockpitProps {
  * component WS-free and unit-testable with a static run.
  */
 export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
+  const t = useTranslations("compressionStudio");
   // Canvas (A2, ReactFlow) is the default; Waterfall (A1) is a plain-div list view of the same run.
   const [view, setView] = useState<CockpitView>("canvas");
 
@@ -193,29 +196,29 @@ export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
         />
         <div className="ml-auto flex items-center gap-2">
           {/* View toggle: ReactFlow canvas (A2) ↔ waterfall list (A1) */}
-          <div className="flex items-center gap-1" role="group" aria-label="Cockpit view">
+          <div className="flex items-center gap-1" role="group" aria-label={t("cockpitView")}>
             <ViewButton
-              label="Canvas"
+              label={t("canvas")}
               testId="cockpit-view-canvas"
               active={view === "canvas"}
               onClick={() => setView("canvas")}
             />
             <ViewButton
-              label="Waterfall"
+              label={t("waterfall")}
               testId="cockpit-view-waterfall"
               active={view === "waterfall"}
               onClick={() => setView("waterfall")}
             />
           </div>
           <span className="text-[11px] text-muted">
-            {fmt(run.originalTokens)} → {fmt(run.compressedTokens)} tok
+            {fmt(run.originalTokens)} → {fmt(run.compressedTokens)} {t("tokenShort")}
           </span>
           <span className="text-xs font-bold" style={{ color: "#22c55e" }}>
             −{run.savingsPercent.toFixed(1)}%
           </span>
           {isComplete && view === "canvas" && (
             <span className="text-[10px] px-1.5 py-0.5 rounded border border-border text-muted">
-              replay done
+              {t("replayDone")}
             </span>
           )}
         </div>
@@ -244,14 +247,14 @@ export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
           <button
             onClick={isPlaying ? pause : play}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-border text-xs hover:bg-border/30 transition-colors"
-            aria-label={isPlaying ? "Pause replay" : "Play replay"}
+            aria-label={isPlaying ? t("pauseReplay") : t("playReplay")}
           >
-            {isPlaying ? "⏸ Pause" : "▷ Replay"}
+            {isPlaying ? `⏸ ${t("pause")}` : `▷ ${t("replay")}`}
           </button>
           <button
             onClick={reset}
             className="px-2 py-1 rounded border border-border text-xs text-muted hover:bg-border/30 transition-colors"
-            aria-label="Reset replay"
+            aria-label={t("resetReplay")}
           >
             ⟳
           </button>
@@ -262,7 +265,10 @@ export function CompressionCockpit({ run: runProp }: CompressionCockpitProps) {
           </div>
           {displayRun && currentFrame && (
             <span className="ml-auto text-[11px] text-muted">
-              step {displayRun?.steps.length ?? 0}/{run.steps.length}
+              {t("stepProgress", {
+                current: displayRun?.steps.length ?? 0,
+                total: run.steps.length,
+              })}
             </span>
           )}
         </div>

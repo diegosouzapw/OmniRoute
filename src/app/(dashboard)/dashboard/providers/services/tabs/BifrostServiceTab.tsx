@@ -12,10 +12,7 @@ export function BifrostServiceTab() {
     <div className="space-y-4">
       <ServiceStatusCard name={NAME} />
       <ServiceLifecycleButtons name={NAME} />
-      <AutoStartToggle
-        name={NAME}
-        description="Launch Bifrost automatically when OmniRoute starts"
-      />
+      <AutoStartToggle name={NAME} />
       <ServiceLogsPanel name={NAME} />
     </div>
   );
