@@ -12,6 +12,13 @@ import {
   getNodeRuntimeWarning as getCliNodeRuntimeWarning,
 } from "../../bin/nodeRuntimeSupport.mjs";
 
+// Read package.json to verify engines.node matches SUPPORTED_NODE_RANGE
+import packageJson from "../../package.json" assert { type: "json" };
+
+test("SUPPORTED_NODE_RANGE matches package.json engines.node", () => {
+  assert.equal(packageJson.engines.node, SUPPORTED_NODE_RANGE);
+});
+
 test("parseNodeVersion normalizes v-prefixed versions", () => {
   assert.deepEqual(parseNodeVersion("v22.22.2"), {
     raw: "v22.22.2",
