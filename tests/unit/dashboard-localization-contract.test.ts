@@ -142,3 +142,58 @@ test("CLI cards use packaged brand icons whenever an asset exists", () => {
   assert.match(card, /tool\.imageDark \|\| tool\.imageLight/);
   assert.match(card, /tool\.imageLight \|\| tool\.imageDark/);
 });
+
+test("changelog and settings breadcrumbs use localized labels", () => {
+  const changelog = [
+    readSource("src/app/(dashboard)/dashboard/changelog/page.tsx"),
+    readSource("src/app/(dashboard)/dashboard/changelog/components/NewsViewer.tsx"),
+    readSource("src/app/(dashboard)/dashboard/changelog/components/ChangelogViewer.tsx"),
+  ].join("\n");
+  for (const rawText of [
+    'label: "News"',
+    'label: "Changelog"',
+    "No new announcements at this time.",
+    "Could not load the changelog.",
+    "View Full History on GitHub",
+  ]) {
+    assert.equal(changelog.includes(rawText), false, `raw changelog copy: ${rawText}`);
+  }
+
+  const breadcrumbs = readSource("src/shared/components/Breadcrumbs.tsx");
+  assert.match(breadcrumbs, /general: "general"/);
+  assert.match(breadcrumbs, /"feature-flags": "featureFlags"/);
+});
+
+test("production audit regressions stay localized and provider icons stay bounded", () => {
+  const costs = readSource("src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx");
+  assert.match(costs, /formatWeekdayLabel\(row\.day, locale\)/);
+  assert.equal(costs.includes("} tokens`"), false);
+
+  const storage = [
+    readSource("src/app/(dashboard)/dashboard/settings/components/SystemStorageTab.tsx"),
+    readSource("src/app/(dashboard)/dashboard/settings/components/DatabaseBackupRetentionCard.tsx"),
+  ].join("\n");
+  for (const rawText of [
+    ">Database Statistics<",
+    "Automatic SQLite backups are stored",
+    ">Keep latest backups<",
+    ">Save retention<",
+  ]) {
+    assert.equal(storage.includes(rawText), false, `raw storage copy: ${rawText}`);
+  }
+
+  const endpoint = readSource("src/app/(dashboard)/dashboard/endpoint/EndpointPageClient.tsx");
+  for (const rawText of [
+    'label: "Context Sources"',
+    ">Active Endpoints<",
+    ">Running<",
+    ">Tunnels<",
+    ">Not configured<",
+  ]) {
+    assert.equal(endpoint.includes(rawText), false, `raw endpoint copy: ${rawText}`);
+  }
+
+  const security = readSource("src/app/(dashboard)/dashboard/settings/components/SecurityTab.tsx");
+  assert.match(security, /<ProviderIcon/);
+  assert.equal(security.includes('{isBlocked ? "block" : provider.icon}'), false);
+});

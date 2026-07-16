@@ -721,7 +721,7 @@ export default function SystemStorageTab() {
             <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
               analytics
             </span>
-            Database Statistics
+            {t("storageDatabaseStatistics")}
           </h4>
           <Button
             variant="outline"
@@ -732,7 +732,7 @@ export default function SystemStorageTab() {
             <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
               refresh
             </span>
-            Refresh
+            {t("refresh")}
           </Button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -757,7 +757,7 @@ export default function SystemStorageTab() {
             <p className="text-sm font-semibold">
               {dbSettings.stats.lastVacuumAt
                 ? new Date(dbSettings.stats.lastVacuumAt).toLocaleString(locale)
-                : "Never"}
+                : t("never")}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]">
@@ -765,7 +765,7 @@ export default function SystemStorageTab() {
             <p className="text-sm font-semibold">
               {dbSettings.stats.lastOptimizationAt
                 ? new Date(dbSettings.stats.lastOptimizationAt).toLocaleString(locale)
-                : "Never"}
+                : t("never")}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]">
@@ -776,7 +776,7 @@ export default function SystemStorageTab() {
               ) : dbSettings.stats.integrityCheck === "error" ? (
                 <span className="text-red-500">{t("storageIntegrityError")}</span>
               ) : (
-                "Not checked"
+                t("storageIntegrityNotChecked")
               )}
             </p>
           </div>

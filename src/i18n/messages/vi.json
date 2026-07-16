@@ -1668,7 +1668,15 @@
     "tools": "Công cụ",
     "agentBridge": "Agent Bridge",
     "trafficInspector": "Traffic Inspector",
-    "usage": "Mức sử dụng"
+    "usage": "Mức sử dụng",
+    "general": "Lưu trữ",
+    "appearance": "Giao diện",
+    "ai": "Cài đặt AI",
+    "routing": "Định tuyến",
+    "resilience": "Khả năng phục hồi",
+    "advanced": "Nâng cao",
+    "accessTokens": "Token truy cập",
+    "featureFlags": "Cờ tính năng"
   },
   "home": {
     "quickStart": "Bắt đầu nhanh",
@@ -3670,7 +3678,7 @@
     "modelsCount": "{count, plural, one {# mô hình} other {# mô hình}}",
     "sectionTitle": "Giao diện tích hợp",
     "sectionDescription": "API tương thích với OpenAI và các endpoint của giao thức vận hành",
-    "tabApis": "API tương thích với OpenAI",
+    "tabApis": "API",
     "tabProtocols": "Giao thức",
     "tabsAria": "Các phần của endpoint",
     "protocolsTitle": "Giao thức",
@@ -3855,7 +3863,17 @@
     "requestBodyJson": "Nội dung yêu cầu (JSON)",
     "sending": "Đang gửi...",
     "sendRequest": "Gửi yêu cầu",
-    "dataSchemas": "Lược đồ dữ liệu"
+    "dataSchemas": "Lược đồ dữ liệu",
+    "tabMcp": "MCP",
+    "tabA2a": "A2A",
+    "tabContextSources": "Nguồn ngữ cảnh",
+    "activeEndpoints": "Endpoint đang hoạt động",
+    "activeLocal": "Cục bộ",
+    "activeCloud": "Cloud",
+    "copyUrlTitle": "Sao chép {url}",
+    "statusRunning": "Đang chạy",
+    "tunnels": "Đường hầm",
+    "activeTunnelCount": "{active} / {total} đang hoạt động"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",
@@ -7405,7 +7423,19 @@
     "moveUp": "Di chuyển lên",
     "moveDown": "Di chuyển xuống",
     "allProvidersAdded": "Đã thêm tất cả nhà cung cấp",
-    "noProvidersFound": "Không tìm thấy nhà cung cấp"
+    "noProvidersFound": "Không tìm thấy nhà cung cấp",
+    "storageBackupRetentionDescription": "Các bản sao lưu SQLite tự động được lưu trong",
+    "storageBackupRetentionHelp": "Cấu hình số ảnh chụp nhanh cần giữ và tùy chọn xóa các bản sao lưu cũ hơn số ngày đã chọn.",
+    "storageBackupCount": "{count} bản sao lưu",
+    "storageBackupMaximum": "Tối đa {count}",
+    "storageBackupAgeRetention": "Lưu giữ {count} ngày",
+    "storageBackupAgeRetentionOff": "Đã tắt lưu giữ theo tuổi",
+    "storageBackupKeepLatest": "Giữ các bản sao lưu mới nhất",
+    "storageBackupDeleteOlderThan": "Xóa bản sao lưu cũ hơn (ngày)",
+    "storageBackupSaveRetention": "Lưu thời hạn giữ",
+    "storageBackupCleanOld": "Dọn bản sao lưu cũ",
+    "storageDatabaseStatistics": "Thống kê cơ sở dữ liệu",
+    "storageIntegrityNotChecked": "Chưa kiểm tra"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -11847,5 +11877,16 @@
         "ultra": "Ultra"
       }
     }
+  },
+  "changelogPage": {
+    "newsTab": "Tin tức",
+    "changelogTab": "Lịch sử thay đổi",
+    "loading": "Đang tải lịch sử thay đổi...",
+    "announcementsLoadFailed": "Không thể tải thông báo. Vui lòng thử lại sau.",
+    "noAnnouncements": "Hiện chưa có thông báo mới.",
+    "learnMore": "Tìm hiểu thêm",
+    "changelogLoadFailed": "Không thể tải lịch sử thay đổi. Vui lòng thử lại sau.",
+    "retry": "Thử lại",
+    "viewFullHistory": "Xem toàn bộ lịch sử trên GitHub"
   }
 }
