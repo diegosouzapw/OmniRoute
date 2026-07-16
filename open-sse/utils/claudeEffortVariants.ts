@@ -73,7 +73,9 @@ export function formatClaudeEffortLabel(level: string): string {
  * `rejectsThinkingDisabled` models — Fable 5 / Sonnet 5 are adaptive-only (they
  * reject `thinking:{type:"disabled"}`) yet still take a reasoning effort.
  */
-export function shouldExposeClaudeEffortVariants(model: CatalogModelEntry): boolean {
+export function shouldExposeClaudeEffortVariants(
+  model: CatalogModelEntry
+): model is CatalogModelEntry & { id: string } {
   if (!model || typeof model !== "object") return false;
   const id = model.id;
   if (typeof id !== "string" || id.length === 0) return false;
@@ -135,7 +137,7 @@ export function appendClaudeEffortVariants<T extends CatalogModelEntry>(
   const variants: T[] = [];
   for (const model of models) {
     if (!shouldExposeClaudeEffortVariants(model)) continue;
-    const rawId = model.id as string;
+    const rawId = model.id;
     const qualifiedId = aliasToCanonical ? normalizeProviderPrefix(rawId, aliasToCanonical) : rawId;
     const slash = qualifiedId.indexOf("/");
     const providerId = slash >= 0 ? qualifiedId.slice(0, slash) : "";
