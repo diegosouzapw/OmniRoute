@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { buildComboTestRequestBody, extractComboTestResponseText, extractComboTestStreamText } =
-  await import("../../src/lib/combos/testHealth.ts");
+const {
+  buildComboTestRequestBody,
+  extractComboTestResponseText,
+  extractComboTestStreamResult,
+  extractComboTestStreamText,
+} = await import("../../src/lib/combos/testHealth.ts");
 
 test("combo test helper builds a realistic smoke payload", () => {
   const originalRandom = Math.random;
@@ -38,6 +42,16 @@ test("combo test helper ignores keepalives and extracts streamed model content",
       'data: {"choices":[{"delta":{"content":"K"}}]}\n\ndata: [DONE]\n\n'
   );
   assert.equal(text, "OK");
+});
+
+test("combo test helper preserves streamed upstream errors", () => {
+  const result = extractComboTestStreamResult(
+    'data: {"error":{"message":"Rate limit exceeded","code":"429"}}\n\n'
+  );
+  assert.deepEqual(result, {
+    text: "",
+    error: { message: "Rate limit exceeded", statusCode: 429 },
+  });
 });
 
 test("combo test helper extracts text from chat-completions responses", () => {

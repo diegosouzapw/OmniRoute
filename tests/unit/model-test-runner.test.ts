@@ -125,7 +125,7 @@ test("extractModelTestResponseText accepts JSON when a streaming probe is ignore
     { headers: { "content-type": "Application/JSON; charset=utf-8" } }
   );
 
-  assert.equal(await extractModelTestResponseText(response, true), "OK");
+  assert.deepEqual(await extractModelTestResponseText(response, true), { text: "OK" });
 });
 
 test("extractModelTestResponseText extracts content from SSE responses", async () => {
@@ -136,5 +136,17 @@ test("extractModelTestResponseText extracts content from SSE responses", async (
     }
   );
 
-  assert.equal(await extractModelTestResponseText(response, true), "OK");
+  assert.deepEqual(await extractModelTestResponseText(response, true), { text: "OK" });
+});
+
+test("extractModelTestResponseText preserves SSE error status for transient classification", async () => {
+  const response = new Response(
+    'data: {"error":{"message":"Rate limit exceeded","status":429}}\n\n',
+    { headers: { "content-type": "text/event-stream" } }
+  );
+
+  assert.deepEqual(await extractModelTestResponseText(response, true), {
+    text: "",
+    error: { message: "Rate limit exceeded", statusCode: 429 },
+  });
 });

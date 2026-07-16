@@ -5,7 +5,7 @@ import { POST as postRerank } from "@/app/api/v1/rerank/route";
 import {
   buildComboTestRequestBody,
   extractComboTestResponseText,
-  extractComboTestStreamText,
+  extractComboTestStreamResult,
 } from "@/lib/combos/testHealth";
 import { getCustomModels } from "@/lib/localDb";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
@@ -212,19 +212,33 @@ export interface SingleModelTestResult {
   httpStatus: number;
   error?: string;
   rateLimited?: boolean;
+  isTransient?: boolean;
   isTimeout?: boolean;
   retryAfter?: number;
 }
 
+export type ModelTestResponseText = {
+  text: string;
+  error?: { message: string; statusCode?: number };
+};
+
 export async function extractModelTestResponseText(
   response: Response,
   streamChat: boolean
-): Promise<string> {
+): Promise<ModelTestResponseText> {
   const contentType = (response.headers.get("content-type") || "").toLowerCase();
   if (streamChat && !contentType.includes("application/json")) {
-    return extractComboTestStreamText(await response.text());
+    return extractComboTestStreamResult(await response.text());
   }
-  return extractComboTestResponseText(await response.json());
+  return { text: extractComboTestResponseText(await response.json()) };
+}
+
+function isRateLimitMessage(message: string): boolean {
+  return /rate[ -]?limit|too many requests|quota exceeded/i.test(message);
+}
+
+function isBotBlockMessage(message: string): boolean {
+  return /cloudflare|bot management|recaptcha|cf-chl|just a moment/i.test(message);
 }
 
 /**
@@ -339,7 +353,7 @@ export async function runSingleModelTest(
       error: getErrorMessage(error),
     };
   }
-  const latencyMs = Date.now() - startTime;
+  let latencyMs = Date.now() - startTime;
 
   if (timedOut) {
     clearTimeout(timeoutHandle);
@@ -379,21 +393,40 @@ export async function runSingleModelTest(
 
   if (res.ok) {
     let responseText = "";
+    let streamError: ModelTestResponseText["error"];
     try {
-      responseText = await extractModelTestResponseText(
+      const parsedResponse = await extractModelTestResponseText(
         res,
         !isEmbedding && !isRerank && streamChat
       );
+      responseText = parsedResponse.text;
+      streamError = parsedResponse.error;
     } catch {
       responseText = "";
     } finally {
       clearTimeout(timeoutHandle);
     }
+    latencyMs = Date.now() - startTime;
+    if (streamError) {
+      const error = sanitizeErrorMessage(streamError.message) || "Upstream stream failed";
+      const rateLimited = streamError.statusCode === 429 || isRateLimitMessage(error);
+      const isBotBlock = streamError.statusCode === 403 || isBotBlockMessage(error);
+      return {
+        modelId: fullModelStr,
+        status: rateLimited ? "rate_limited" : "error",
+        latencyMs,
+        ...(streamError.statusCode !== undefined ? { statusCode: streamError.statusCode } : {}),
+        httpStatus: streamError.statusCode ?? 502,
+        error,
+        ...(rateLimited ? { rateLimited: true } : {}),
+        ...(rateLimited || isBotBlock ? { isTransient: true } : {}),
+      };
+    }
     if (timedOut && !responseText) {
       return {
         modelId: fullModelStr,
         status: "slow",
-        latencyMs: Date.now() - startTime,
+        latencyMs,
         httpStatus: 504,
         error: `No model output within ${Math.round(effectiveTimeoutMs / 1000)}s`,
         isTimeout: true,

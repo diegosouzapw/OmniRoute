@@ -145,14 +145,48 @@ export function buildComboTestRequestBody(
   };
 }
 
-export function extractComboTestStreamText(streamBody: string): string {
+export type ComboTestStreamResult = {
+  text: string;
+  error?: { message: string; statusCode?: number };
+};
+
+function extractStreamError(body: JsonRecord): ComboTestStreamResult["error"] {
+  const error = asRecord(body.error);
+  const message =
+    typeof error.message === "string"
+      ? error.message.trim()
+      : typeof body.message === "string"
+        ? body.message.trim()
+        : "";
+  if (!message) return undefined;
+
+  const status = error.status ?? error.statusCode ?? error.code ?? body.status ?? body.statusCode;
+  const statusCode =
+    typeof status === "number"
+      ? status
+      : typeof status === "string" && /^\d+$/.test(status)
+        ? Number(status)
+        : undefined;
+  return {
+    message,
+    ...(Number.isInteger(statusCode) ? { statusCode } : {}),
+  };
+}
+
+export function extractComboTestStreamResult(streamBody: string): ComboTestStreamResult {
   const collected: string[] = [];
+  let streamError: ComboTestStreamResult["error"];
   for (const line of streamBody.split(/\r?\n/)) {
     if (!line.startsWith("data:")) continue;
     const payload = line.slice(5).trim();
     if (!payload || payload === "[DONE]") continue;
     try {
       const body = JSON.parse(payload);
+      const error = extractStreamError(asRecord(body));
+      if (error) {
+        streamError = error;
+        continue;
+      }
       const direct = extractComboTestResponseText(body);
       if (direct) collected.push(direct);
       for (const choice of Array.isArray(body?.choices) ? body.choices : []) {
@@ -167,7 +201,11 @@ export function extractComboTestStreamText(streamBody: string): string {
       // prove that the model is healthy.
     }
   }
-  return collected.join("").trim();
+  return { text: collected.join("").trim(), ...(streamError ? { error: streamError } : {}) };
+}
+
+export function extractComboTestStreamText(streamBody: string): string {
+  return extractComboTestStreamResult(streamBody).text;
 }
 
 export function extractComboTestResponseText(responseBody: unknown): string {

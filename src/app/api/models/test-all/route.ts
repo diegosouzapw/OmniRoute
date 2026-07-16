@@ -47,6 +47,7 @@ export interface BatchTestResultEntry {
   error?: string;
   statusCode?: number;
   rateLimited?: boolean;
+  isTransient?: boolean;
   hidden?: boolean;
   isTimeout?: boolean;
 }
@@ -62,6 +63,7 @@ function toBatchEntry(
   if (result.error !== undefined) entry.error = result.error;
   if (result.statusCode !== undefined) entry.statusCode = result.statusCode;
   if (result.rateLimited === true) entry.rateLimited = true;
+  if (result.isTransient === true) entry.isTransient = true;
   if (result.isTimeout === true) entry.isTimeout = true;
   return entry;
 }
@@ -185,7 +187,13 @@ export async function POST(request: Request) {
       consecutiveBotBlocks = 0;
     }
 
-    if (autoHideFailed && entry.status === "error" && !entry.rateLimited && !entry.isTimeout) {
+    if (
+      autoHideFailed &&
+      entry.status === "error" &&
+      !entry.rateLimited &&
+      !entry.isTimeout &&
+      !entry.isTransient
+    ) {
       try {
         await setModelIsHidden(providerId, modelId, true);
         entry.hidden = true;
