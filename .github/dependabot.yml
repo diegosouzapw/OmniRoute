@@ -24,6 +24,15 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "eslint-config-next"
         update-types: ["version-update:semver-major"]
+      # typescript majors are peer-blocked by typescript-eslint, which pins a hard
+      # upper bound (8.64.0 → peerDependencies.typescript ">=4.8.4 <6.1.0"). A TS 7
+      # bump therefore violates the peer and takes down the whole toolchain at once —
+      # #7068 grouped it with 6 harmless bumps and turned Build + Lint + Quality Ratchet
+      # + Unit (6/8, 8/8) + Integration (1/2, 2/2) + dast-smoke red in one shot, blocking
+      # the innocuous updates riding along with it. Un-ignore once typescript-eslint
+      # widens the peer, and migrate TS majors intentionally (own PR, own CI run).
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
       # jscpd v5 is a Rust rewrite (native binary, no Node.js programmatic API).
       # scripts/check/check-duplication.mjs is deliberately pinned to jscpd@4 (it
       # parses jscpd-report.json against a frozen baseline). A v5 major would break

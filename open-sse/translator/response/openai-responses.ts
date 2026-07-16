@@ -12,7 +12,7 @@ import {
   stripEmptyOptionalToolArgs,
   normalizeOutputIndex,
   normalizeUpstreamFailure,
-  extractResponsesReasoningSummaryText,
+  getVisibleResponsesReasoningSummaryText,
 } from "./openai-responses/pureHelpers.ts";
 import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
 
@@ -1070,7 +1070,11 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
       !(state.reasoningItemsWithDelta instanceof Set && state.reasoningItemsWithDelta.size > 0);
     if (emittedForItem || emittedWithoutItemId) return null;
 
-    const summaryText = extractResponsesReasoningSummaryText(item);
+    // #7095/#7176 reconciliation: computed WITHOUT mutating `item`, so an
+    // encrypted-only reasoning item (and its `encrypted_content`) is never
+    // rewritten with a fabricated `summary` — the placeholder only feeds this
+    // synthetic client-facing delta chunk.
+    const summaryText = getVisibleResponsesReasoningSummaryText(item);
     if (!summaryText) return null;
     return buildResponsesReasoningDeltaChunk(state, summaryText);
   }

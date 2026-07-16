@@ -37,7 +37,6 @@ export type PassthroughTailProcessorContext = {
   appendPassthroughReasoning: (value: string) => void;
   getResponsesReasoningKey: (payload: Record<string, unknown>) => string | null;
   markResponsesReasoningSummarySeen: (key: string) => void;
-  ensureVisibleResponsesReasoningSummary: (payload: Record<string, unknown>) => boolean;
   emitSyntheticResponsesReasoningSummary: (payload: Record<string, unknown>) => void;
   passthroughResponsesOutputItems: unknown[];
   passthroughResponsesPendingFunctionCalls: Map<string, JsonRecord>;
@@ -136,12 +135,8 @@ function handleResponsesTailPayload(
     }
   }
   if (parsed.type === "response.output_item.done" && parsed.item) {
-    const reasoningSummaryInjected = context.ensureVisibleResponsesReasoningSummary(parsed);
     context.emitSyntheticResponsesReasoningSummary(parsed);
     pushUniqueResponsesOutputItems(context.passthroughResponsesOutputItems, [parsed.item]);
-    if (reasoningSummaryInjected) {
-      output = `data: ${JSON.stringify(parsed)}\n\n`;
-    }
     const item = asRecord(parsed.item);
     if (item.type === "function_call") {
       const pendingKey = getFunctionCallPendingKey(item);
