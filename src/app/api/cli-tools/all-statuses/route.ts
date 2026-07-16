@@ -92,6 +92,7 @@ export async function GET(request: Request): Promise<Response> {
   if (authError) return authError;
 
   try {
+    const forceRefresh = new URL(request.url).searchParams.get("refresh") === "true";
     const toolIds = Object.keys(CLI_TOOLS);
     const statuses: ToolBatchStatusMap = {};
 
@@ -117,7 +118,7 @@ export async function GET(request: Request): Promise<Response> {
     await Promise.allSettled(
       toolIds.map(async (toolId) => {
         const mtimeMs = mtimesMap[toolId] ?? 0;
-        const cached = getCached(toolId, mtimeMs);
+        const cached = forceRefresh ? null : getCached(toolId, mtimeMs);
 
         if (cached) {
           statuses[toolId] = cached;
@@ -153,14 +154,13 @@ export async function GET(request: Request): Promise<Response> {
 
           // Try to extract endpoint from config file
           const configPath = getCliPrimaryConfigPath(toolId);
-          const endpoint = configPath
-            ? await extractEndpointFromConfig(toolId, configPath)
-            : null;
+          const endpoint = configPath ? await extractEndpointFromConfig(toolId, configPath) : null;
 
           const result: ToolBatchStatus = {
             detection: {
               installed: runtime.installed,
               runnable: runtime.runnable,
+              version: (runtime as Record<string, unknown>).version as string | undefined,
               command: runtime.command ?? undefined,
               commandPath: (runtime as Record<string, unknown>).commandPath as string | undefined,
               reason: runtime.reason ?? undefined,
@@ -203,8 +203,11 @@ export async function GET(request: Request): Promise<Response> {
     return NextResponse.json(statuses);
   } catch (err) {
     logger.error({ err }, "Unexpected error in /api/cli-tools/all-statuses");
-    return NextResponse.json(buildErrorBody(500, err instanceof Error ? err.message : String(err)), {
-      status: 500,
-    });
+    return NextResponse.json(
+      buildErrorBody(500, err instanceof Error ? err.message : String(err)),
+      {
+        status: 500,
+      }
+    );
   }
 }
