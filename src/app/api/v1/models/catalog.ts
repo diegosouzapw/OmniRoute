@@ -11,6 +11,7 @@ import {
 } from "@/lib/localDb";
 import { extractAliasBackedModels } from "./aliasBackedModels";
 import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
+import { appendClaudeEffortVariants } from "@omniroute/open-sse/utils/claudeEffortVariants";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
 import {
   getAllImageModels,
@@ -1507,6 +1508,16 @@ async function buildUnifiedModelsResponseCore(
         finalModels = filtered;
       }
     }
+
+    // Advertise Claude reasoning-effort variants (claude/<model>-{low,medium,high[,xhigh]}).
+    // Derived from the already key-filtered list so a variant only appears when its real
+    // model is permitted. Runs before the no-thinking pass: the gateway already routes these
+    // suffixed ids (claudeEffortVariant.ts), this just makes them selectable in catalog-only
+    // clients (OpenCode) that can't set a reasoning_effort config the way VS Code does.
+    finalModels = appendClaudeEffortVariants(
+      finalModels,
+      prefixMode === "canonical" ? aliasToProviderId : undefined
+    );
 
     // Advertise no-thinking gateway variants (Fase 8.1). Derived from the already
     // key-filtered list, so a variant only appears when its real model is permitted.
