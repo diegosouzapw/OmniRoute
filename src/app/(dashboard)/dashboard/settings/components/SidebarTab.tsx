@@ -248,6 +248,37 @@ function ItemRow({ item, hiddenSet, onToggleItem, getLabel }: ItemRowProps) {
       )}
     </div>
   );
+    function GroupItemVisibilityControl({
+      item,
+      hiddenSet,
+      onToggleItem,
+    }: {
+      item: SidebarItemDefinition;
+      hiddenSet: Set<HideableSidebarItemId>;
+      onToggleItem: (id: HideableSidebarItemId) => void;
+    }) {
+      const tSidebar = useTranslations("sidebar");
+      if (isHideableSidebarItemId(item.id)) {
+        return (
+          <Toggle
+            size="sm"
+            checked={!hiddenSet.has(item.id)}
+            onChange={() => onToggleItem(item.id)}
+          />
+        );
+      }
+
+      return (
+        <span
+          className="material-symbols-outlined text-[16px] text-text-muted/40"
+          title={tSidebar("cannotHide")}
+          aria-label={tSidebar("alwaysVisible")}
+        >
+          lock
+        </span>
+      );
+    }
+
 }
 
 // ─── Group row (items inside group, no sub-DnD) ───────────────────────────────
@@ -269,7 +300,6 @@ function GroupRow({
   onToggleGroupLabel,
   getLabel,
 }: GroupRowProps) {
-  const tSidebar = useTranslations("sidebar");
   const [open, setOpen] = useState(true);
   const groupId = group.id as HideableSidebarGroupId;
   const canToggleSeparator = HIDEABLE_SIDEBAR_GROUP_IDS.includes(groupId);
@@ -320,24 +350,11 @@ function GroupRow({
                 </span>
                 <p className="text-sm font-medium truncate">{getLabel(item.i18nKey, item.id)}</p>
               </div>
-              {isHideableSidebarItemId(item.id) ? (
-                <Toggle
-                  size="sm"
-                  checked={!hiddenSet.has(item.id)}
-                  onChange={() => {
-                    const hideableId = isHideableSidebarItemId(item.id) ? item.id : null;
-                    if (hideableId !== null) onToggleItem(hideableId);
-                  }}
-                />
-              ) : (
-                <span
-                  className="material-symbols-outlined text-[16px] text-text-muted/40"
-                  title={tSidebar("cannotHide")}
-                  aria-label={tSidebar("alwaysVisible")}
-                >
-                  lock
-                </span>
-              )}
+              <GroupItemVisibilityControl
+                item={item}
+                hiddenSet={hiddenSet}
+                onToggleItem={onToggleItem}
+              />
             </div>
           ))}
         </div>
