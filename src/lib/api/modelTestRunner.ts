@@ -216,6 +216,17 @@ export interface SingleModelTestResult {
   retryAfter?: number;
 }
 
+export async function extractModelTestResponseText(
+  response: Response,
+  streamChat: boolean
+): Promise<string> {
+  const contentType = (response.headers.get("content-type") || "").toLowerCase();
+  if (streamChat && !contentType.includes("application/json")) {
+    return extractComboTestStreamText(await response.text());
+  }
+  return extractComboTestResponseText(await response.json());
+}
+
 /**
  * Run a single model test. When `connectionId` is provided, wraps the
  * upstream call with `withRateLimit` (Bottleneck). Returns a plain
@@ -369,17 +380,16 @@ export async function runSingleModelTest(
   if (res.ok) {
     let responseText = "";
     try {
-      if (!isEmbedding && !isRerank && streamChat) {
-        responseText = extractComboTestStreamText(await res.text());
-      } else {
-        responseText = extractComboTestResponseText(await res.json());
-      }
+      responseText = await extractModelTestResponseText(
+        res,
+        !isEmbedding && !isRerank && streamChat
+      );
     } catch {
       responseText = "";
     } finally {
       clearTimeout(timeoutHandle);
     }
-    if (timedOut) {
+    if (timedOut && !responseText) {
       return {
         modelId: fullModelStr,
         status: "slow",

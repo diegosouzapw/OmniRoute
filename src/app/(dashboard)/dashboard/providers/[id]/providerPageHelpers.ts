@@ -137,6 +137,7 @@ export interface TestAllModelOutcome {
   status: "ok" | "error";
   shouldHide: boolean;
 }
+type TestAllEntryStatus = "ok" | "error" | "slow";
 
 /**
  * Decide a model's per-row test status (the green/red icon) and whether it should
@@ -166,9 +167,7 @@ export interface TestAllModelOutcome {
  */
 export function evaluateTestAllEntry(
   entry:
-    | { status?: "ok" | "error" | "slow"; rateLimited?: boolean; isTimeout?: boolean }
-    | null
-    | undefined,
+    { status?: TestAllEntryStatus; rateLimited?: boolean; isTimeout?: boolean } | null | undefined,
   autoHideFailed: boolean
 ): TestAllModelOutcome {
   const ok = entry?.status === "ok";

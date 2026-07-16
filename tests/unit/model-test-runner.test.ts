@@ -4,6 +4,7 @@ import {
   parseRetryAfterHeader,
   detectTestKind,
   extractProviderErrorMessage,
+  extractModelTestResponseText,
   resolveModelTestTimeoutMs,
 } from "@/lib/api/modelTestRunner.ts";
 
@@ -116,4 +117,24 @@ test("resolveModelTestTimeoutMs extends Dola Pro model checks", () => {
 test("resolveModelTestTimeoutMs leaves ordinary models unchanged", () => {
   assert.equal(resolveModelTestTimeoutMs("doubao-web", "dola-speed", 10_000), 10_000);
   assert.equal(resolveModelTestTimeoutMs("openai", "dola-pro", 10_000), 10_000);
+});
+
+test("extractModelTestResponseText accepts JSON when a streaming probe is ignored upstream", async () => {
+  const response = new Response(
+    JSON.stringify({ choices: [{ message: { role: "assistant", content: "OK" } }] }),
+    { headers: { "content-type": "Application/JSON; charset=utf-8" } }
+  );
+
+  assert.equal(await extractModelTestResponseText(response, true), "OK");
+});
+
+test("extractModelTestResponseText extracts content from SSE responses", async () => {
+  const response = new Response(
+    'data: {"choices":[{"delta":{"content":"OK"}}]}\n\ndata: [DONE]\n',
+    {
+      headers: { "content-type": "text/event-stream" },
+    }
+  );
+
+  assert.equal(await extractModelTestResponseText(response, true), "OK");
 });
