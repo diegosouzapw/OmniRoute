@@ -340,6 +340,14 @@
       "native": "中文 (简体)",
       "english": "Chinese (Simplified)",
       "flag": "🇨🇳"
+    },
+    {
+      "code": "zh-TW",
+      "label": "ZH-TW",
+      "name": "中文 (繁體)",
+      "native": "中文 (繁體)",
+      "english": "Chinese (Traditional)",
+      "flag": "🇹🇼"
     }
   ]
 }

@@ -4,6 +4,19 @@ import { extractApiKey } from "@/sse/services/auth.ts";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 
+const HANDSHAKE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+function isWsHandshake(ctx: PolicyContext): boolean {
+  if (ctx.classification.normalizedPath !== "/api/v1/ws") return false;
+  if (!HANDSHAKE_METHODS.has(ctx.request.method.toUpperCase())) return false;
+
+  try {
+    return new URL(ctx.request.url, "http://localhost").searchParams.get("handshake") === "1";
+  } catch {
+    return false;
+  }
+}
+
 function extractBearer(request: Request): string | null {
   const raw = request.headers.get("authorization") ?? request.headers.get("Authorization");
   const xApiKey = request.headers.get("x-api-key") ?? request.headers.get("X-Api-Key");
@@ -37,6 +50,13 @@ export const clientApiPolicy: RoutePolicy = {
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
     const bearer = extractBearer(ctx.request as Request);
     if (!bearer) {
+      // The WS descriptor handshake is a metadata read; the route handler
+      // performs the actual wsAuth/dashboard/API-key decision and returns the
+      // protocol details the browser needs before opening the socket.
+      if (isWsHandshake(ctx)) {
+        return allow({ kind: "anonymous", id: "ws-handshake" });
+      }
+
       if (await isDashboardSessionAuthenticated(ctx.request)) {
         return allow({ kind: "dashboard_session", id: "dashboard" });
       }

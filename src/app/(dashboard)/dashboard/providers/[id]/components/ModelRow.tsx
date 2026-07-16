@@ -285,6 +285,7 @@ export interface ModelRowProps {
 export default function ModelRow({
   model,
   fullModel,
+  provider,
   alias,
   copied,
   onCopy,
@@ -445,6 +446,8 @@ export default function ModelRow({
         )}
         <ModelCompatPopover
           t={t}
+          providerId={provider}
+          modelId={model.id}
           effectiveModelNormalize={(p) => effectiveModelNormalize(model.id, p)}
           effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(model.id, p)}
           getUpstreamHeadersRecord={getUpstreamHeadersRecord}

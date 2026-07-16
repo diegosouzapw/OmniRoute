@@ -444,7 +444,10 @@ test("handleChat uses the emergency fallback model on budget exhaustion", async 
   assert.equal(seenBodies.length, 2);
   assert.equal(seenBodies[1].model, "openai/gpt-oss-120b");
   assert.equal(seenBodies[1].max_tokens, 4096);
-  assert.equal(seenBodies[1].max_completion_tokens, 4096);
+  // nvidia supports the legacy `max_tokens` field (#6912 symmetric normalization in
+  // chatCore.ts), so the redundant `max_completion_tokens` is renamed away rather than
+  // sent alongside it — only one output-token field reaches the upstream request.
+  assert.equal(seenBodies[1].max_completion_tokens, undefined);
   assert.equal(json.choices[0].message.content, "Emergency fallback answered");
 });
 

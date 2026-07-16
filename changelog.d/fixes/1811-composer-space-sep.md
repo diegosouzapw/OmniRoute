@@ -1,0 +1,1 @@
+- **fix(sse):** Cursor Composer/Auto tool calls that separate the arg name and value with a space instead of a newline (e.g. `path /Users/.../test`) no longer produce empty-valued, malformed argument keys, fixing silent no-op Write/tool calls. (thanks @way-art)

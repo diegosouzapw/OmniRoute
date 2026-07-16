@@ -1,0 +1,1 @@
+- fix(mcp): de-duplicate `TOTAL_MCP_TOOL_COUNT` by tool name instead of double-counting collections (#6854)

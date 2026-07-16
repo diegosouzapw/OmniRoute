@@ -123,3 +123,31 @@ test("i18n resync also propagates the FINALIZED [prevVersion] section into the m
     "syncs the shipped (finalized) section — without this all 42 mirrors keep it as TBD"
   );
 });
+
+// WS0.3 (v3.8.49 quality plan): the captain's sync-back push is the one write path
+// with NO CI gate — the merged tree must pass release-green --quick BEFORE the push,
+// or the whole PR queue inherits a red tip (G1). --skip-green-gate is the documented
+// emergency escape hatch (pre-existing tip reds verified by hand).
+
+test("greenGateArgs returns the quick release-green command by default", async () => {
+  const { greenGateArgs } = await import("../../scripts/release/sync-next-cycle.mjs");
+  assert.deepEqual(greenGateArgs(["node", "script", "3.8.49"]), [
+    "scripts/quality/validate-release-green.mjs",
+    "--quick",
+  ]);
+});
+
+test("greenGateArgs returns null only with the explicit --skip-green-gate flag", async () => {
+  const { greenGateArgs } = await import("../../scripts/release/sync-next-cycle.mjs");
+  assert.equal(greenGateArgs(["node", "script", "3.8.49", "--skip-green-gate"]), null);
+  assert.notEqual(greenGateArgs(["node", "script", "3.8.49", "--other"]), null);
+});
+
+test("sync-next-cycle gates the push on release-green (source guard)", () => {
+  const src = readFileSync(SCRIPT_PATH, "utf8");
+  const mainIdx = src.indexOf("function main()");
+  const gateCallIdx = src.indexOf("greenGateArgs(process.argv)", mainIdx);
+  const pushIdx = src.indexOf('git(["push", "origin", BRANCH]');
+  assert.ok(gateCallIdx > mainIdx, "main() must call greenGateArgs(process.argv)");
+  assert.ok(pushIdx > gateCallIdx, "the release-green gate must run BEFORE the push");
+});

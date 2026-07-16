@@ -12,7 +12,10 @@ import {
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "@/shared/constants/models";
 import { getSyncStatus, getSyncedCapability } from "@/lib/modelsDevSync";
-import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization";
+import {
+  CANONICAL_EFFORT_VALUES,
+  extendCodexGpt56EffortValues,
+} from "@/shared/reasoning/effortStandardization";
 
 const MODEL_METADATA_SCHEMA_VERSION = "model-metadata-v1";
 
@@ -296,7 +299,13 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
           thinking: metadata.capabilities.supportsThinking,
           supportsThinking: metadata.capabilities.supportsThinking,
           ...(metadata.capabilities.supportsThinking
-            ? { effort_tiers: [...CANONICAL_EFFORT_VALUES] }
+            ? {
+                effort_tiers: extendCodexGpt56EffortValues(
+                  metadata.provider,
+                  metadata.model,
+                  CANONICAL_EFFORT_VALUES
+                ),
+              }
             : {}),
         }
       : {}),

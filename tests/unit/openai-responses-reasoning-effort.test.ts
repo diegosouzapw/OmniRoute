@@ -68,5 +68,5 @@ test("Chat -> Responses already wraps reasoning_effort into reasoning.effort", (
       {}
     )
   );
-  assert.deepEqual(out.reasoning, { effort: "high" });
+  assert.deepEqual(out.reasoning, { effort: "high", summary: "auto" });
 });

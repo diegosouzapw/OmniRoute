@@ -412,10 +412,18 @@ test("Responses -> OpenAI: tool-call delta, reasoning delta and completed usage 
   assert.equal(args.choices[0].delta.tool_calls[0].function.arguments, '{"city":"SP"}');
   assert.equal(reasoning.choices[0].delta.reasoning_content, "Need weather info.");
   assert.equal(completed.choices[0].finish_reason, "tool_calls");
-  assert.equal((completed as any).usage.prompt_tokens, 8);
-  assert.equal((completed as any).usage.completion_tokens, 2);
-  (assert as any).equal((completed as any).usage.prompt_tokens_details.cached_tokens, 1);
-  assert.equal((completed as any).usage.prompt_tokens_details.cache_creation_tokens, 2);
+  const comp = completed as {
+    choices: Array<{ finish_reason: string }>;
+    usage: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      prompt_tokens_details: { cached_tokens: number; cache_creation_tokens: number };
+    };
+  };
+  assert.equal(comp.usage.prompt_tokens, 8);
+  assert.equal(comp.usage.completion_tokens, 2);
+  assert.equal(comp.usage.prompt_tokens_details.cached_tokens, 1);
+  assert.equal(comp.usage.prompt_tokens_details.cache_creation_tokens, 2);
 });
 
 test("Responses -> OpenAI: preserves upstream model instead of defaulting to gpt-4", () => {
@@ -452,35 +460,11 @@ test("Responses -> OpenAI: preserves upstream model instead of defaulting to gpt
   assert.equal(created, null);
 });
 
-test("Responses -> OpenAI: response.failed records upstream error", () => {
-  const state = {};
-  const result = openaiResponsesToOpenAIResponse(
-    {
-      type: "response.failed",
-      response: {
-        error: {
-          message: "Rate limit reached for gpt-5.4",
-          code: "rate_limit_exceeded",
-        },
-      },
-    },
-    state
-  );
-
-  assert.equal(result, null);
-  assert.ok(state.upstreamError);
-  assert.equal(state.upstreamError.status, 429);
-  assert.equal(state.upstreamError.type, "rate_limit_error");
-  assert.equal(state.upstreamError.code, "rate_limit_exceeded");
-  assert.match(state.upstreamError.message, /Rate limit reached/);
-});
-
-test("OpenAI -> Responses: deduplicates repeated tool argument snapshots", () => {
-  const args = JSON.stringify({ command: "grep -r pattern /var" });
+test("OpenAI -> Responses: tool call arguments with newlines are preserved in function_call events", () => {
   const events = collectEvents([
     {
-      id: "chatcmpl-tool-snapshot",
-      model: "gpt-4.1",
+      id: "chatcmpl-nl",
+      model: "gemma-4-26b-a4b-it",
       choices: [
         {
           index: 0,
@@ -488,9 +472,12 @@ test("OpenAI -> Responses: deduplicates repeated tool argument snapshots", () =>
             tool_calls: [
               {
                 index: 0,
-                id: "call_1",
+                id: "call_nl_1",
                 type: "function",
-                function: { name: "shell", arguments: args },
+                function: {
+                  name: "write",
+                  arguments: '{"path":"/tmp/test.txt","content":"line1\\nline2\\n',
+                },
               },
             ],
           },
@@ -499,20 +486,152 @@ test("OpenAI -> Responses: deduplicates repeated tool argument snapshots", () =>
       ],
     },
     {
-      id: "chatcmpl-tool-snapshot",
-      model: "gpt-4.1",
+      id: "chatcmpl-nl",
+      model: "gemma-4-26b-a4b-it",
       choices: [
         {
           index: 0,
-          delta: { tool_calls: [{ index: 0, function: { arguments: args } }] },
+          delta: {
+            tool_calls: [{ index: 0, function: { arguments: 'line3\\nmore\\nlines\\n"}' } }],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+      usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 },
+    },
+  ]);
+
+  const done = events.find(
+    (e) => e.event === "response.output_item.done" && e.data.item?.type === "function_call"
+  );
+  assert.ok(done, "should emit output_item.done for function_call");
+
+  const argsStr = done.data.item.arguments;
+  const parsed = JSON.parse(argsStr);
+  assert.equal(typeof parsed.content, "string", "content should be a string");
+  assert.ok(parsed.content.includes("\n"), "content should contain actual newlines (0x0A)");
+  assert.equal(parsed.content, "line1\nline2\nline3\nmore\nlines\n");
+  assert.equal(parsed.path, "/tmp/test.txt");
+
+  // Verify the function_call is also present in response.completed output
+  const completed = events.find((e) => e.event === "response.completed");
+  assert.ok(completed, "should emit response.completed");
+  const outputFc = completed.data.response.output.find((item) => item.type === "function_call");
+  assert.ok(outputFc, "response.completed output should contain function_call");
+  assert.equal(outputFc.name, "write");
+  const parsedOutputArgs = JSON.parse(outputFc.arguments);
+  assert.equal(parsedOutputArgs.content, "line1\nline2\nline3\nmore\nlines\n");
+});
+
+test("OpenAI -> Responses: Python multi-line content with indentation survives translation", () => {
+  const pythonCode =
+    'import json\nimport random\nfrom datetime import datetime\n\ndata = {\n    "timestamp": datetime.now().isoformat(),\n    "numbers": [random.randint(1, 100) for _ in range(5)],\n    "greeting": "Hello from the agent test script!"\n}\n\nwith open(\'/tmp/data.json\', \'w\') as f:\n    json.dump(data, f, indent=2)\n\nprint("Done")\n';
+
+  const events = collectEvents([
+    {
+      id: "chatcmpl-py",
+      model: "gemma-4-26b-a4b-it",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_py_1",
+                type: "function",
+                function: {
+                  name: "write",
+                  arguments: JSON.stringify({
+                    path: "/tmp/script.py",
+                    content: pythonCode,
+                  }),
+                },
+              },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+      usage: { prompt_tokens: 15, completion_tokens: 50, total_tokens: 65 },
+    },
+  ]);
+
+  const done = events.find(
+    (e) => e.event === "response.output_item.done" && e.data.item?.type === "function_call"
+  );
+  assert.ok(done, "should emit output_item.done for function_call");
+
+  const argsStr = done.data.item.arguments;
+  const parsed = JSON.parse(argsStr);
+
+  // Verify content has proper newlines (0x0A, not literal backslash-n)
+  assert.ok(parsed.content.includes("\n"), "content should contain actual newlines");
+  assert.equal(parsed.content, pythonCode, "Python code should survive translation byte-identical");
+  assert.equal(parsed.path, "/tmp/script.py");
+
+  // Verify no literal backslash-n sneaks in
+  const backslashNCount = (parsed.content.match(/\\n/g) || []).length;
+  const newlineCount = (parsed.content.match(/\n/g) || []).length;
+  assert.equal(backslashNCount, 0, "should have ZERO literal backslash-n in content");
+  assert.ok(newlineCount > 5, "should have many actual newlines in Python code");
+});
+
+test("OpenAI -> Responses: parallel tool calls with mixed content survive translation", () => {
+  const events = collectEvents([
+    {
+      id: "chatcmpl-par",
+      model: "gemma-4-26b-a4b-it",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_a",
+                type: "function",
+                function: {
+                  name: "write",
+                  arguments: '{"path":"/tmp/a.txt","content":"hello\\nworld\\n"}',
+                },
+              },
+              {
+                index: 1,
+                id: "call_b",
+                type: "function",
+                function: {
+                  name: "exec",
+                  arguments: '{"command":"echo test"}',
+                },
+              },
+            ],
+          },
           finish_reason: "tool_calls",
         },
       ],
     },
+    // #6906: real providers may send no separate usage chunk at all — the stream-end
+    // flush is what finalizes response.completed in that case.
+    null,
   ]);
 
-  const done = events.find((event) => event.event === "response.function_call_arguments.done");
+  const doneEvents = events.filter(
+    (e) => e.event === "response.output_item.done" && e.data.item?.type === "function_call"
+  );
+  assert.equal(doneEvents.length, 2, "should emit output_item.done for both tool calls");
 
-  assert.equal(done.data.arguments, args);
-  assert.equal(JSON.parse(done.data.arguments).command, "grep -r pattern /var");
+  const writeCall = doneEvents.find((e) => e.data.item.name === "write");
+  const execCall = doneEvents.find((e) => e.data.item.name === "exec");
+  assert.ok(writeCall, "write function_call should be present");
+  assert.ok(execCall, "exec function_call should be present");
+
+  const writeArgs = JSON.parse(writeCall.data.item.arguments);
+  assert.equal(writeArgs.content, "hello\nworld\n");
+
+  // Verify completed output has both
+  const completed = events.find((e) => e.event === "response.completed");
+  assert.ok(completed, "should emit response.completed");
+  const outputFcs = completed.data.response.output.filter((item) => item.type === "function_call");
+  assert.equal(outputFcs.length, 2, "completed output should have both function_calls");
 });

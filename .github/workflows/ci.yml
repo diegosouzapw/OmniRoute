@@ -33,17 +33,23 @@ jobs:
       docs: ${{ steps.classify.outputs.docs }}
       i18n: ${{ steps.classify.outputs.i18n }}
       workflow: ${{ steps.classify.outputs.workflow }}
+      testsOnly: ${{ steps.classify.outputs.testsOnly }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           persist-credentials: false
           fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
       - id: classify
         env:
           EVENT_NAME: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          # Single source of truth: scripts/quality/classify-pr-changes.mjs
+          # (unit-tested). Push/dispatch always enable every lane.
           if [ "$EVENT_NAME" != "pull_request" ]; then
             {
               echo "code=true"
@@ -54,51 +60,18 @@ jobs:
             exit 0
           fi
 
-          code=false
-          docs=false
-          i18n=false
-          workflow=false
-
           git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed-files.txt
-
-          while IFS= read -r file; do
-            case "$file" in
-              .github/workflows/*|.zizmor.yml)
-                workflow=true
-                code=true
-                ;;
-              docs/*|*.md)
-                docs=true
-                ;;
-              src/i18n/*|src/i18n/messages/*|scripts/i18n/*|config/i18n.json)
-                i18n=true
-                code=true
-                ;;
-              src/*|open-sse/*|bin/*|electron/*|tests/*|scripts/*|package.json|package-lock.json|tsconfig*.json|next.config.*|vitest*.config.*|playwright.config.*)
-                code=true
-                ;;
-              db/*|config/*)
-                code=true
-                ;;
-              *)
-                code=true
-                ;;
-            esac
-          done < changed-files.txt
-
-          {
-            echo "code=$code"
-            echo "docs=$docs"
-            echo "i18n=$i18n"
-            echo "workflow=$workflow"
-          } >> "$GITHUB_OUTPUT"
+          node scripts/quality/classify-pr-changes.mjs changed-files.txt >> "$GITHUB_OUTPUT"
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Path filter: pure docs / pure message-catalog PRs skip the code lint bag + typecheck.
+    # Existence reason of this job is code regression; docs/i18n have dedicated jobs.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true') }}
     env:
       # tsx gates below (known-symbols, route-guard-membership) import modules that
       # open SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
@@ -116,7 +89,27 @@ jobs:
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run audit:deps
-      - run: npm run lint
+      - name: Restore ESLint file cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            .eslintcache
+            .eslintcache-complexity
+          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
+          restore-keys: |
+            eslint-${{ runner.os }}-
+      # Single ESLint inventory (JSON) — quality-gate reuses the artifact instead of
+      # a second cold full-tree pass for eslintWarnings ratchet counts.
+      - name: ESLint (JSON report)
+        run: npm run lint:json
+      - name: Upload ESLint results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: eslint-results
+          path: .artifacts/eslint-results.json
+          if-no-files-found: warn
+          retention-days: 7
       - run: npm run check:cycles
       - run: npm run check:route-validation:t06
       - run: npm run check:any-budget:t11
@@ -132,21 +125,33 @@ jobs:
       - run: npm run check:route-guard-membership
       - run: npm run check:test-discovery
       - run: npm run check:tracked-artifacts
+      # WS1.7 (v3.8.49 plan): Dockerfile lint (hadolint, pinned by digest).
+      # failure-threshold=error keeps the 5 pre-existing warnings (DL3008/DL3003/
+      # DL3016 version pinning / WORKDIR) visible without blocking; any ERROR fails.
+      - name: hadolint (Dockerfile)
+        run: docker run --rm -i hadolint/hadolint@sha256:27086352fd5e1907ea2b934eb1023f217c5ae087992eb59fde121dce9c9ff21e hadolint --failure-threshold error - < Dockerfile
       - run: npm run check:lockfile
       - run: npm run check:licenses
       # check:docs-sync is run by the docs-sync-strict job (via check:docs-all) and the
       # husky pre-commit hook; the standalone copy here was redundant (ROI dedup).
       - run: npm run typecheck:core
-      # typecheck:noimplicit:core is a forward-looking gate (noImplicitAny).
-      # Run informationally for now — many pre-existing call sites still need
-      # explicit annotations; track in a dedicated follow-up.
-      - run: npm run typecheck:noimplicit:core
-        continue-on-error: true
+      # #7033: typecheck:core's curated file allowlist does not cover
+      # src/app/(dashboard) TSX (and next.config.mjs sets ignoreBuildErrors:
+      # true, so `next build` never type-checks it either) — orphaned
+      # identifiers there (see #6625/#6909) were invisible to CI. This gate
+      # runs tsc scoped to the dashboard tree against a frozen baseline of
+      # pre-existing errors; only NEW errors fail it.
+      - run: npm run check:dashboard-typecheck
+      # typecheck:noimplicit:core dropped from this job (2026-07 optimize):
+      # it was advisory (continue-on-error) and largely subsumed by the blocking
+      # check:type-coverage ratchet in quality-gate. Local: npm run typecheck:noimplicit:core.
 
   quality-gate:
     name: Quality Ratchet
     runs-on: ubuntu-latest
-    needs: test-coverage
+    # needs lint so eslint-results artifact is available (same inventory as the
+    # blocking lint step). Allow lint failure so other ratchets still run.
+    needs: [changes, test-coverage, lint]
     # Run even when test-coverage was SKIPPED/FAILED (e.g. a single flaky Coverage
     # Shard breaks the shard→coverage→ratchet chain). The DETERMINISTIC ratchets
     # (eslint / complexity / cognitive-complexity / duplication / codeql) do NOT need
@@ -155,7 +160,8 @@ jobs:
     # release PR #4854, where the drift cascade only surfaced post-merge in #5029).
     # The coverage.* metrics degrade gracefully: the download is continue-on-error and
     # the ratchet runs with --allow-missing, so absent coverage is skipped, not failed.
-    if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
+    # Path filter: code-only — pure docs/i18n PRs have nothing for these ratchets to guard.
+    if: ${{ !cancelled() && !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true' && (needs.lint.result == 'success' || needs.lint.result == 'failure'))) }}
     # security-events: read lets the CodeQL ratchet read open code-scanning alerts
     # via `gh api .../code-scanning/alerts`. contents: read keeps checkout working.
     permissions:
@@ -170,6 +176,15 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
+      - name: Restore ESLint file cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            .eslintcache
+            .eslintcache-complexity
+          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
+          restore-keys: |
+            eslint-${{ runner.os }}-
       # Coverage mergeada (coverage-summary.json) p/ o ratchet de cobertura.
       # continue-on-error: o artifact pode não existir se a job test-coverage foi
       # SKIPPED (shard flaky). Nesse caso collect-metrics pula coverage.* (ausente sem
@@ -180,6 +195,13 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
+      # Prefer lint job's ESLint JSON (one inventory, two consumers).
+      - name: Download ESLint results
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: eslint-results
+          path: .artifacts/
       - run: npm run quality:collect
       # Catraca: falha se qualquer métrica regredir vs quality-baseline.json (commitado).
       # Hoje: contagem de warnings do ESLint. Fase 4 estende com cobertura (lida do
@@ -201,15 +223,13 @@ jobs:
       # para não pesar no caminho crítico do lint.
       - name: Duplication ratchet
         run: npm run check:duplication
-      - name: Complexity ratchet
-        run: npm run check:complexity
-      # Fase 7 INT: dead-code, cognitive-complexity, type-coverage promovidos de
-      # advisory (quality-extended) para BLOQUEANTES aqui. Os 3 leem seus baseline
-      # de quality-baseline.json e saem 1 em regressão.
+      # Complexity + cognitive: one ESLint walk, two independent baselines (by ruleId).
+      - name: Complexity + cognitive ratchets
+        run: npm run check:complexity-ratchets
+      # Fase 7 INT: dead-code, type-coverage promovidos de advisory (quality-extended)
+      # para BLOQUEANTES aqui. cognitive-complexity is folded into the step above.
       - name: Dead-code ratchet (knip)
         run: npm run check:dead-code
-      - name: Cognitive complexity ratchet (sonarjs)
-        run: npm run check:cognitive-complexity
       - name: Type coverage ratchet
         run: npm run check:type-coverage
       - name: Compression budget ratchet (F2.4 / N4)
@@ -247,9 +267,11 @@ jobs:
   quality-extended:
     name: Quality Gates (Extended)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Path filter: code-only (scanners/ratchets target production surface).
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'hotfix') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.code == 'true')) }}
     steps:
       # fetch-depth: 0 — the OpenAPI breaking-change gate (oasdiff) reads the base
       # spec via `git show <base_ref>:docs/openapi.yaml`; a shallow clone
@@ -357,9 +379,11 @@ jobs:
   docs-sync-strict:
     name: Docs Sync (Strict)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Run when docs OR code change: API/route code can break doc/OpenAPI contract gates.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && (needs.changes.outputs.docs == 'true' || needs.changes.outputs.code == 'true')) }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -379,19 +403,20 @@ jobs:
         run: npm run check:openapi-coverage
       - name: OpenAPI security-tier consistency (advisory)
         run: npm run check:openapi-security-tiers
-      - name: OpenAPI spec paths resolve to real routes (anti-hallucination)
-        run: npm run check:openapi-routes
-      - name: Doc /api refs resolve to real routes (anti-hallucination)
-        run: npm run check:docs-symbols
+      # One FS inventory of src/app/api for both anti-hallucination directions.
+      - name: API docs refs (openapi + prose → routes)
+        run: npm run check:api-docs-refs
       - name: i18n translation drift (warn)
         run: node scripts/i18n/check-translation-drift.mjs --warn
 
   docs-lint:
     name: Docs Lint (prose — advisory)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Prose/markdown only — skip when the PR has no doc surface.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.docs == 'true') }}
     # Advisory (warning-first): prose/markdown style must not block merges while the
     # existing doc corpus is brought up to style. Promote to blocking once it converges.
     continue-on-error: true
@@ -418,9 +443,11 @@ jobs:
   i18n-ui-coverage:
     name: i18n UI Coverage
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # UI keys move with dashboard code OR message catalogs.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && (needs.changes.outputs.i18n == 'true' || needs.changes.outputs.code == 'true')) }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -440,9 +467,11 @@ jobs:
   i18n:
     name: i18n Validation (all languages)
     runs-on: ubuntu-latest
+    needs: changes
     # P3 (plano mestre): a release-PR viva fica DRAFT o ciclo inteiro — jobs pesados pulam
     # drafts (ciclo v3.8.44: 123 runs pesados re-disparados por merges na release, 88 cancelados).
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    # Message-catalog / i18n-tooling only — pure code without i18n surface skips this lane.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false && needs.changes.outputs.i18n == 'true') }}
     continue-on-error: true
     steps:
       - uses: actions/checkout@v7
@@ -593,12 +622,26 @@ jobs:
       - name: Assert dist/server.js exists
         run: test -f dist/server.js || (echo "dist/server.js missing — build:cli did not assemble correctly" && exit 1)
       - run: npm run check:pack-artifact
+      # WS1.2 (#7065 class): pack the real tarball, install it into a clean prefix and
+      # BOOT it to a healthy /api/monitoring/health — the gate that structure checks
+      # cannot provide (3 releases shipped boot-crashing tarballs with green lists).
+      - name: Boot-smoke the packed tarball
+        run: npm run check:pack-boot
 
   electron-package-smoke:
-    name: Electron Package Smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
+    name: Electron Package Smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     needs: build
+    # WS1.5 (v3.8.49 plan): the Electron rebuild/spawn path previously executed for
+    # the FIRST time on the release tag — the v3.8.48 Windows bug (npx.cmd spawned
+    # without shell, CVE-2024-27980 behavior change) could only surface at release.
+    # windows-latest runs prepare:bundle (the ABI rebuild + spawn plan) per release
+    # PR; ubuntu keeps the full pack + headless smoke.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     env:
       JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -624,9 +667,21 @@ jobs:
         working-directory: electron
         run: npm install --no-audit --no-fund
       - name: Pack Electron app
+        if: runner.os == 'Linux'
         working-directory: electron
         run: npm run pack
+      # ADVISORY while the new Windows leg matures (repo convention, dast-smoke
+      # precedent): its first-ever real run (2026-07-15, run 29457533565) died in
+      # 0.7s with the error swallowed by pwsh — bash shell captures stderr and
+      # continue-on-error keeps the heavy gate green while we harden it (#7336).
+      - name: Prepare Electron standalone (Windows ABI rebuild + spawn path)
+        if: runner.os == 'Windows'
+        working-directory: electron
+        continue-on-error: true
+        shell: bash
+        run: npm run prepare:bundle 2>&1
       - name: Smoke packaged Electron app
+        if: runner.os == 'Linux'
         env:
           ELECTRON_SMOKE_TIMEOUT_MS: 60000
         run: xvfb-run -a npm run electron:smoke:packaged
@@ -709,12 +764,23 @@ jobs:
       - uses: ./.github/actions/npm-ci-retry
       # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
       # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
-      - run: npm run test:vitest
-      # vitest:ui is RED today (14 fails — UI component drift accumulated while the
-      # suite never ran in CI). Informational until the Fase 6A triage (2026-06-16+)
-      # fixes the components/tests; then drop continue-on-error to make it blocking.
-      - run: npm run test:vitest:ui
+      # WS5.2/5.3 (v3.8.49 plan): JUnit output feeds Trunk Flaky Tests (advisory upload
+      # below). node:test stays OUT of the first wave (fd1-sensitive reporter stream).
+      - run: npm run test:vitest -- --reporter=default --reporter=junit --outputFile.junit=trunk-junit/vitest-mcp.xml
+      # vitest:ui went back to 870/870 green in the v3.8.49 quality plan (WS6.1,
+      # PR #7127 — 69 fails triaged: matchMedia polyfill, node:test→vitest migration,
+      # CompareTab D22 cap). Promoted to BLOCKING per the plan's post-merge step.
+      - run: npm run test:vitest:ui -- --reporter=default --reporter=junit --outputFile.junit=trunk-junit/vitest-ui.xml
+      # Trunk Flaky Tests upload — advisory (never blocks), own-origin only (fork PRs
+      # have no TRUNK_TOKEN). Pinned by SHA (tag v2.1.2).
+      - name: Upload test results to Trunk (advisory)
+        if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         continue-on-error: true
+        uses: trunk-io/analytics-uploader@385f1ccdf345b4532dc4b6c665dd432b702b8e28 # v2.1.2
+        with:
+          junit-paths: trunk-junit/**/*.xml
+          org-slug: omniroute
+          token: ${{ secrets.TRUNK_TOKEN }}
 
   # Node 24/26 compatibility matrices moved to .github/workflows/nightly-compat.yml
   # (plano mestre testes+CI, Eixo D2 — they cost ~28% of every heavy run to catch a
@@ -723,9 +789,12 @@ jobs:
   test-coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 10min was sized before #7114 added the lcov reporter (Codecov/Sonar need it);
+    # merging 8 shard JSONs + text+json+lcov now takes ~10-12min — three consecutive
+    # release-tip runs died at exactly 10m as job-timeout "cancelled" (2026-07-15/16).
+    timeout-minutes: 20
     needs: test-unit
-    if: ${{ !cancelled() && needs.test-unit.result == 'success' }}
+    if: ${{ !cancelled() && needs.test-unit.result == 'success' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -773,6 +842,7 @@ jobs:
             --merge-async \
             --reporter=text-summary \
             --reporter=json-summary \
+            --reporter=lcov \
             --exclude=tests/** \
             --exclude=**/*.test.* \
             --check-coverage \
@@ -794,6 +864,18 @@ jobs:
               > coverage/coverage-report.md
           fi
           cat coverage/coverage-report.md >> "$GITHUB_STEP_SUMMARY"
+      # WS5.6 (D7, v3.8.49 plan): patch coverage on the PR diff via Codecov —
+      # informational during calibration (codecov.yml sets informational: true);
+      # promote to blocking only after ~2 weeks without false blocks. The lcov
+      # reporter above also fixes coverage/lcov.info being silently absent
+      # (if-no-files-found: warn) — Sonar consumes the same file.
+      - name: Upload coverage to Codecov (informational)
+        if: always()
+        uses: codecov/codecov-action@04b047e8bb82a0c002c8312c1c880fbc6a999d45 # v5
+        with:
+          files: coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
       - name: Upload coverage artifacts
         if: always()
         uses: actions/upload-artifact@v7
@@ -818,10 +900,14 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      # The upload strips the common `coverage/` prefix, so the artifact root holds
+      # lcov.info directly — download into coverage/ so it lands at coverage/lcov.info,
+      # where sonar.javascript.lcov.reportPaths expects it (path: . left the Sonar
+      # new-code coverage at 0% every scan).
       - uses: actions/download-artifact@v8
         with:
           name: coverage-report
-          path: .
+          path: coverage/
       - name: Explain SonarQube skip
         if: ${{ github.event_name != 'pull_request' || env.SONAR_TOKEN == '' || env.SONAR_HOST_URL == '' }}
         run: |
@@ -940,7 +1026,12 @@ jobs:
     # ~33%. Playwright browser is cached across runs (~1.5min saved per shard).
     # Heavy shard target: ≤20min (was ~40min). Timeout 45min to cover slow runners.
     timeout-minutes: 45
-    needs: build
+    needs: [build, changes]
+    # WS3.1 hotfix fast-lane: the 9-shard E2E matrix is the CI critical path (~25min).
+    # It skips for (a) PRs labeled `hotfix` (entry policy in docs/ops/RELEASE_CHECKLIST.md:
+    # production-broken only, full-suite evidence from the previous green run linked in the
+    # PR) and (b) tests-only diffs outside tests/e2e/ (cannot change the served app).
+    if: ${{ needs.changes.outputs.testsOnly != 'true' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
     strategy:
       fail-fast: false
       matrix:
@@ -961,7 +1052,7 @@ jobs:
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
-        uses: actions/cache@v6.1.0
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -975,7 +1066,33 @@ jobs:
       - name: Extract Next.js build artifact
         run: |
           tar -xzf /tmp/e2e-build.tar.gz
-      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/9
+      # WS4.1: duration-balanced shards (LPT over config/quality/e2e-timings.json).
+      # Measured skew of plain --shard was 14× (24m47s vs 1m47s) — E2E was the CI
+      # critical path. The balancer self-verifies completeness and exits non-zero on
+      # any inconsistency, falling back to plain --shard (never fewer specs).
+      - name: Run E2E tests (duration-balanced shard)
+        env:
+          SHARD: ${{ matrix.shard }}
+          PLAYWRIGHT_JUNIT_OUTPUT_NAME: junit-e2e-results.xml
+        run: |
+          if FILES=$(node scripts/quality/balance-e2e-shards.mjs "$SHARD" 9); then
+            if [ -z "$FILES" ]; then echo "[e2e-balance] shard $SHARD has no files"; exit 0; fi
+            echo "[e2e-balance] shard $SHARD runs:"; echo "$FILES"
+            # shellcheck disable=SC2086 — FILES is our own newline-separated path list
+            npx playwright test $(echo "$FILES" | tr '\n' ' ') --reporter=line,junit
+          else
+            echo "[e2e-balance] balancer unavailable — plain --shard fallback"
+            npx playwright test tests/e2e/*.spec.ts --shard="$SHARD"/9 --reporter=line,junit
+          fi
+      # WS5.2/5.3: Trunk Flaky Tests upload — advisory, own-origin only, SHA-pinned.
+      - name: Upload test results to Trunk (advisory)
+        if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        continue-on-error: true
+        uses: trunk-io/analytics-uploader@385f1ccdf345b4532dc4b6c665dd432b702b8e28 # v2.1.2
+        with:
+          junit-paths: junit-e2e-results.xml
+          org-slug: omniroute
+          token: ${{ secrets.TRUNK_TOKEN }}
 
   test-integration:
     name: Integration Tests (${{ matrix.shard }}/2)

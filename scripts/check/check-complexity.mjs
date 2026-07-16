@@ -1,19 +1,17 @@
 #!/usr/bin/env node
 // scripts/check/check-complexity.mjs
-// Catraca de complexidade de código. Roda o ESLint sobre src+open-sse usando um config
-// flat STANDALONE (eslint.complexity.config.mjs) que liga APENAS duas regras CORE do
-// ESLint — `complexity` (ciclomática) e `max-lines-per-function` (tamanho de função) —
-// e compara a contagem total de violações contra um baseline congelado
-// (complexity-baseline.json). Falha se a contagem SUBIR. Completa a dimensão
-// "complexity" do snapshot de qualidade, ao lado de duplicação/tamanho-de-arquivo.
-//
-// O config dedicado evita poluir a contagem de warnings do lint principal (ratcheada
-// em exatamente 3482): este gate roda isolado, com seu próprio par de regras. --update
-// ratcheta (a contagem só pode CAIR).
+// Catraca de complexidade de código (cyclomatic + max-lines-per-function).
+// Shares one ESLint walk with cognitive-complexity via complexityEslintReport.mjs
+// / eslint.complexity-ratchets.config.mjs. Counts by ruleId so cognitive
+// violations never inflate this baseline.
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
+import {
+  ESLINT_ARGS,
+  countComplexityViolations,
+  getComplexityEslintReport,
+} from "./complexityEslintReport.mjs";
 
 const ROOT = process.cwd();
 const BASELINE_PATH = path.resolve(
@@ -22,24 +20,9 @@ const BASELINE_PATH = path.resolve(
     : path.join(ROOT, "config/quality/complexity-baseline.json")
 );
 const UPDATE = process.argv.includes("--update");
-const CONFIG_PATH = path.join(ROOT, "eslint.complexity.config.mjs");
-// Exported for the gate's own unit test (tests/unit/build/check-complexity.test.ts), which
-// locks the scan scope to the one documented in eslint.complexity.config.mjs `files` and in
-// complexity-baseline.json. The positional paths MUST match that scope (src+open-sse+electron+bin)
-// — ESLint flat config only walks the directories passed here, so a `files` glob for bin/electron
-// is inert unless the directory is also passed as a positional argument.
-export const ESLINT_ARGS = [
-  "eslint",
-  "--no-config-lookup",
-  "--config",
-  CONFIG_PATH,
-  "--format",
-  "json",
-  "src",
-  "open-sse",
-  "electron",
-  "bin",
-];
+
+// Re-export for tests that lock scan scope (src+open-sse+electron+bin).
+export { ESLINT_ARGS };
 
 /** Avalia a contagem atual de violações contra o baseline. */
 export function evaluateComplexity(current, baseline) {
@@ -50,20 +33,7 @@ export function evaluateComplexity(current, baseline) {
 }
 
 function measureComplexityCount() {
-  let stdout;
-  try {
-    stdout = execFileSync("npx", ["--yes", ...ESLINT_ARGS], {
-      encoding: "utf8",
-      maxBuffer: 64 * 1024 * 1024,
-    });
-  } catch (err) {
-    // ESLint sai com código !=0 quando há erros (e nossas regras são "error"); o relatório
-    // JSON ainda vai no stdout. Só relançamos se não houver stdout parseável.
-    stdout = err.stdout ? String(err.stdout) : "";
-    if (!stdout.trim()) throw err;
-  }
-  const report = JSON.parse(stdout);
-  return report.reduce((sum, file) => sum + file.errorCount, 0);
+  return countComplexityViolations(getComplexityEslintReport());
 }
 
 function main() {

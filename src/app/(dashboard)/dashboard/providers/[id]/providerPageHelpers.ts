@@ -64,6 +64,7 @@ export type CompatByProtocolMap = Partial<
 export type CompatModelRow = {
   id?: string;
   name?: string;
+  /** optional registry aliases for display/import */ aliases?: readonly string[];
   source?: string;
   apiFormat?: string;
   supportedEndpoints?: string[];
@@ -74,10 +75,10 @@ export type CompatModelRow = {
   upstreamHeaders?: Record<string, string>;
   compatByProtocol?: CompatByProtocolMap;
   /** #2905: per-model upstream wire-format override. */ targetFormat?: string;
+  /** #4125: manual context-window override (tokens), when set. */ contextWindowOverride?: number;
 };
 
 export type CompatModelMap = Map<string, CompatModelRow>;
-
 export type HeaderDraftRow = { id: string; name: string; value: string };
 
 // ---------------------------------------------------------------------------
@@ -85,7 +86,6 @@ export type HeaderDraftRow = { id: string; name: string; value: string };
 // outside the .tsx). Returns the i18n key for a targetFormat value, or null when the
 // value is unknown (the caller then renders the raw value verbatim).
 // ---------------------------------------------------------------------------
-
 const TARGET_FORMAT_BADGE_I18N_KEYS: Record<string, string> = {
   openai: "compatProtocolOpenAI",
   "openai-responses": "compatProtocolOpenAIResponses",
@@ -120,20 +120,16 @@ export function providerText(
   return fallback;
 }
 
-/**
- * #5442 — Badge variant + i18n label key for an add-credential validation result.
- * A provider with no live validator returns `unsupported` (Save still succeeds);
- * previously the modal only had success/failed states, so it rendered a red
- * "Invalid" badge for those providers even though saving worked (LMArena, PiAPI…).
- * "unsupported" now maps to a neutral `info` badge ("N/A"), not "Invalid".
- */
+/** #5442 — badge for add-credential validation; unsupported → neutral N/A (not red Invalid). */
 export function validationBadgeProps(result: string): {
   variant: "success" | "error" | "info";
   labelKey: string;
+  fallback: string;
 } {
-  if (result === "success") return { variant: "success", labelKey: "valid" };
-  if (result === "unsupported") return { variant: "info", labelKey: "notApplicable" };
-  return { variant: "error", labelKey: "invalid" };
+  if (result === "success") return { variant: "success", labelKey: "valid", fallback: "Valid" };
+  if (result === "unsupported")
+    return { variant: "info", labelKey: "notApplicable", fallback: "N/A" };
+  return { variant: "error", labelKey: "invalid", fallback: "Invalid" };
 }
 
 /** A single model's outcome from a `/api/models/test-all` response. */
@@ -441,7 +437,8 @@ export function getWebSessionCredentialHint(
     return providerText(
       t,
       requirement.hintKey,
-      "Open the provider's web session in DevTools, copy the required credential(s), and paste them in the fields below.",
+      requirement.hintFallback ??
+        "Open the provider's web session in DevTools, copy the required credential(s), and paste them in the fields below.",
       values
     );
   }
@@ -701,6 +698,7 @@ export const CODEX_REASONING_STRENGTH_OPTIONS = [
   { value: "medium", label: "Medium" },
   { value: "high", label: "High" },
   { value: "xhigh", label: "XHigh" },
+  { value: "max", label: "Max" },
 ];
 
 export const CODEX_ACCOUNT_SERVICE_TIER_VALUES: CodexServiceTier[] = [
