@@ -64,11 +64,18 @@ function shouldUseBrowserBacked(): boolean {
 interface DuckDuckGoVqdHeaders {
   vqd4: string | null;
   vqdHash1: string | null;
+  // #6996: the real upstream HTTP status of the VQD-acquisition attempt (null when
+  // no request was made / a network error was thrown). Lets execute() distinguish a
+  // retryable 429 rate-limit from a genuine 5xx instead of collapsing both to 503.
+  status: number | null;
+  retryAfter: string | null;
 }
 
 interface DuckDuckGoAuthHeaders {
   vqd4: string | null;
   vqdHash1: string | null;
+  status: number | null;
+  retryAfter: string | null;
 }
 
 interface DuckDuckGoModelCapabilities {
@@ -369,10 +376,13 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
     const isStreaming = stream !== false;
     const upstreamHeaders = upstreamExtraHeaders || {};
 
-    const errorResponse = (status: number, message: string): Response =>
+    const errorResponse = (status: number, message: string, retryAfter?: string | null): Response =>
       new Response(JSON.stringify({ error: { message } }), {
         status,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(retryAfter ? { "Retry-After": retryAfter } : {}),
+        },
       });
 
     if (messages.length === 0) {
@@ -468,6 +478,19 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
       const vqdHeaders = await this.acquireAuthHeaders(mergedSignal);
       if (!vqdHeaders.vqd4 && !vqdHeaders.vqdHash1) {
         clearTimeout(timeout);
+        // #6996: surface the real upstream status instead of a hardcoded 503 so a
+        // 429 rate-limit gets a connection-cooldown, not a whole-provider circuit
+        // breaker trip (see CLAUDE.md "Provider Circuit Breaker" — only
+        // 408/500/502/503/504 should trip it, not 429). Any other non-2xx status
+        // (403 anti-bot challenge, genuine 5xx, or a thrown network error where
+        // status is null) keeps the existing 503 fallback.
+        if (vqdHeaders.status === 429) {
+          return errorResponse(
+            429,
+            "Failed to acquire VQD token: upstream rate limited",
+            vqdHeaders.retryAfter
+          );
+        }
         return errorResponse(503, "Failed to acquire VQD token");
       }
 
@@ -555,16 +578,25 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
       });
       this.rememberResponseCookies(resp);
 
-      if (!resp.ok) return { vqd4: null, vqdHash1: null };
+      if (!resp.ok) {
+        return {
+          vqd4: null,
+          vqdHash1: null,
+          status: resp.status,
+          retryAfter: resp.headers.get("Retry-After"),
+        };
+      }
       return {
         vqd4: resp.headers.get("x-vqd-4"),
         vqdHash1: resp.headers.get("x-vqd-hash-1"),
+        status: resp.status,
+        retryAfter: null,
       };
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         throw error;
       }
-      return { vqd4: null, vqdHash1: null };
+      return { vqd4: null, vqdHash1: null, status: null, retryAfter: null };
     }
   }
 
@@ -576,6 +608,8 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         return {
           vqd4: null,
           vqdHash1: await solveDuckDuckGoChallenge(challenge, FAKE_HEADERS["User-Agent"]),
+          status: null,
+          retryAfter: null,
         };
       } catch (error) {
         void error;
@@ -588,6 +622,8 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         return {
           vqd4: headers.vqd4,
           vqdHash1: await solveDuckDuckGoChallenge(headers.vqdHash1, FAKE_HEADERS["User-Agent"]),
+          status: headers.status,
+          retryAfter: headers.retryAfter,
         };
       } catch (error) {
         void error;

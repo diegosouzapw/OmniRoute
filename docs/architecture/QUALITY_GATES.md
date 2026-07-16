@@ -46,6 +46,7 @@ Runs on every PR to `main`. Blocks merge on failure.
 | `check:docs-sync`              | CHANGELOG version, OpenAPI version, and `llm.txt` are in sync                                                                                                      | Yes                                      |
 | `typecheck:core`               | TypeScript compilation without errors (advisory warnings only)                                                                                                     | Yes                                      |
 | `typecheck:noimplicit:core`    | Strict `noImplicitAny` — forward-looking; many pre-existing call sites still need annotations                                                                      | **Advisory** (`continue-on-error: true`) |
+| `check:dashboard-typecheck`    | `tsc` scoped to `src/app/(dashboard)/**` (#7033) — `typecheck:core`'s curated 27-file allowlist does not include any dashboard TSX, and `next build` never type-checks it either (`next.config.mjs` sets `ignoreBuildErrors: true`), so orphaned-identifier regressions there (#6625/#6909) were invisible to CI. Diffs against a frozen per-file/per-TS-code count baseline (`config/quality/dashboard-typecheck-baseline.json`, same stale-enforcement pattern as `check:known-symbols`) — only NEW errors beyond the baselined count fail the gate; ratchet down with `--update` when a pre-existing error is fixed. | Yes                                      |
 
 ### Job: `quality-gate`
 
@@ -172,6 +173,31 @@ metric without updating the baseline will be caught by `--require-tighten` (Fase
 pending implementation).
 
 ---
+
+## Test Retry Policy (WS5.4, v3.8.49)
+
+Retry is per-runner, never a global blanket — a blanket retry converts real regressions
+into invisible flakes:
+
+| Runner | Policy | Why |
+| --- | --- | --- |
+| Playwright (e2e) | `retries: 1` in CI only, with `trace: on-first-retry` | Browser/network timing is genuinely nondeterministic; one retry with a trace turns a flake into a diagnosable artifact |
+| Vitest | NO global retry. A proven-flaky test gets an explicit per-test retry (visible in the diff, reviewed in PR) | Keeps the quarantine list in the repo, never opaque |
+| node:test (unit) | NO retry, ever | A flaky unit test is a bug in the test — fix it, don't re-roll it |
+
+Target SLOs once flake telemetry lands (WS5.2/5.3): <1% flake rate per test
+("fix now" threshold), ≥95% pass rate per pipeline. Industry reference values —
+recalibrate against our own measurements.
+
+## Release-Level Ratchet Drift (WS5.5, v3.8.49)
+
+When a ratchet (file-size, complexity, eslint warnings) regresses on the PURE release
+tip — i.e. the COMBINATION of merges regressed it, and no single PR reproduces the
+regression on its own branch — the fix belongs to the **release captain, once, on the
+release branch**: prefer extraction/refactor; rebaseline only with the documented
+justification entry. Never push combination drift onto a contributor PR, and never
+rebaseline per-PR (that hides real regressions). Discriminate first: reproduce the
+red against the pure tip in a probe worktree before assuming your PR caused it.
 
 ## Allowlist Policy
 
