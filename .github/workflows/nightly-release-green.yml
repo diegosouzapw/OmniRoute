@@ -22,7 +22,7 @@ name: Release-Green (continuous)
 
 on:
   push:
-    branches: ["release/v*"]
+    branches: ["release/v*", "main"]
     paths:
       - "src/**"
       - "open-sse/**"
@@ -61,6 +61,9 @@ env:
 jobs:
   release-green:
     name: Validate active release branch
+    # On a push, only run for release/* pushes — a push to main is handled by the
+    # main-green job below. Schedule/dispatch always run (they validate the highest release).
+    if: ${{ github.event_name != 'push' || startsWith(github.ref_name, 'release/') }}
     # Dynamic runner: with USE_VPS_RUNNER=true (release window / on-demand pre-flight)
     # this runs on the dedicated VPS runner — clean env (no operator OMNIROUTE_API_KEY,
     # no local noauth CLIs => zero machine-specific false positives) and no contention.
@@ -200,4 +203,101 @@ jobs:
           path: |
             release-green.json
             release-green.log
+          if-no-files-found: ignore
+
+  # Companion arm for `main`. Under the parallel-cycle model, main only receives merged
+  # work at the release squash — so a gate/infra fix that lands only on release leaves
+  # main red the whole cycle, and repo-wide gates (CodeQL alert count, ratchet baselines)
+  # turn EVERY PR into main red on a check unrelated to its diff. This detects that and
+  # opens a "🔴 main not green" tracking issue. The PREVENTION is the companion-PR reflex
+  # (Hard Rule #21 area / _shared/merge-gates.md §8); this is the automated backstop.
+  main-green:
+    name: Validate main branch
+    # On a push, only run for a push to main — a push to release/* is handled by
+    # release-green above. Schedule/dispatch always run (they also sweep main).
+    if: ${{ github.event_name != 'push' || github.ref_name == 'main' }}
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-release"]')) || 'ubuntu-latest' }}
+    env:
+      JWT_SECRET: ci-nightly-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-nightly-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main # literal — no injection surface; scheduled runs default to the repo default branch (a release/v*), so pin main explicitly
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+
+      - uses: ./.github/actions/npm-ci-retry
+
+      - name: Main-green validation
+        id: validate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set +e
+          # push (a merge into main) → --quick fast HARD gates; schedule/dispatch → full sweep.
+          if [ "$EVENT_NAME" = "push" ]; then
+            MODE="--quick"
+          else
+            MODE="--with-build --full-ci"
+          fi
+          echo "[main-green] mode: $MODE (event: $EVENT_NAME)"
+          # shellcheck disable=SC2086 — MODE is an intentional flag list
+          node scripts/quality/validate-release-green.mjs --json --hermetic $MODE \
+            1> main-green.json 2> main-green.log
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+          echo "------- report -------"
+          cat main-green.log
+
+      - name: Open / update tracking issue on HARD failure
+        if: steps.validate.outputs.exit != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          TITLE="🔴 main branch not green"
+          {
+            echo "The **main-green** validation found HARD failures on \`main\`."
+            echo ""
+            echo "Because \`main\` only receives merged work at the release squash, a gate/infra"
+            echo "fix that landed only on the release branch leaves \`main\` broken for the whole"
+            echo "cycle — and repo-wide gates (CodeQL alert count, ratchet baselines) then turn"
+            echo "**every open PR into main** red on a check unrelated to its diff. The fix is a"
+            echo "companion PR \`--base main\` carrying the release-side fix (see"
+            echo "\`_shared/merge-gates.md\` §8), NOT chasing each contributor PR."
+            echo ""
+            echo "**Run:** ${RUN_URL} (mode: ${EVENT_NAME})"
+            echo ""
+            echo '```'
+            sed -n '/──────── verdict ────────/,$p' main-green.log || tail -40 main-green.log
+            echo '```'
+            echo ""
+            echo "_Ratchet drift (eslint warnings / cognitive-complexity / file-size) is expected mid-cycle and did NOT, on its own, open this issue._"
+          } > issue-body.md
+
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file issue-body.md
+            echo "Updated existing issue #$EXISTING"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file issue-body.md
+          fi
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: main-green-report
+          path: |
+            main-green.json
+            main-green.log
           if-no-files-found: ignore
