@@ -60,6 +60,15 @@ export function validateProviderSpecificData(
 ): void {
   if (!data) return;
 
+  const gheUrl = data.gheUrl;
+  if (gheUrl !== undefined && (typeof gheUrl !== "string" || !isHttpUrl(gheUrl))) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.gheUrl must be a valid http(s) URL",
+      path: ["gheUrl"],
+    });
+  }
+
   const baseUrl = data.baseUrl;
   if (baseUrl !== undefined && (typeof baseUrl !== "string" || !isHttpUrl(baseUrl))) {
     ctx.addIssue({

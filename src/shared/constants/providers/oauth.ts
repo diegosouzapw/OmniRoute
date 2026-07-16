@@ -3,6 +3,17 @@
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
 export const OAUTH_PROVIDERS = {
+  "ghe-copilot": {
+    id: "ghe-copilot",
+    alias: "ghe-copilot",
+    name: "GitHub Enterprise Copilot",
+    icon: "code",
+    color: "#10B981",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Enter your GHE instance URL (e.g., https://ghe.company.com) in provider settings, then authenticate via device flow.",
+  },
   "grok-cli": {
     id: "grok-cli",
     alias: "gc",
