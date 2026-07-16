@@ -259,7 +259,12 @@ export async function GET(
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
     console.error("OAuth GET error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    // Surface the SANITIZED upstream reason instead of a generic 500 that hides WHY the flow failed.
+    // device-code providers (qwen → qwen.ai, codebuddy-cn → copilot.tencent.com) throw a descriptive
+    // message ("Device code request failed: …", "CodeBuddy state request failed (403)") that was being
+    // swallowed, so a geo-block / upstream outage looked identical to a real server bug in the UI.
+    const detail = sanitizeErrorMessage(error instanceof Error ? error.message : String(error));
+    return NextResponse.json({ error: detail || "Internal server error" }, { status: 500 });
   }
 }
 
