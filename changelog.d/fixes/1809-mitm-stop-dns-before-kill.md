@@ -1,0 +1,1 @@
+- **fix(cli):** `stopMitm()` now removes /etc/hosts DNS-spoof entries before killing the MITM server process, closing the window where a client's DNS still resolved a target host to `127.0.0.1` while nothing was listening there — the cause of `connect ECONNREFUSED 127.0.0.1:443` right after stopping the MITM proxy (thanks @dionisius95).
