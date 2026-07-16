@@ -1,6 +1,7 @@
 type JsonRecord = Record<string, unknown>;
 
 const COMBO_TEST_MAX_TOKENS = 2048;
+const STREAMING_MODEL_TEST_MAX_TOKENS = 64;
 const COMBO_TEST_OPERAND_MIN = 10000;
 const COMBO_TEST_OPERAND_RANGE = 90000;
 
@@ -118,7 +119,11 @@ function buildComboTestPrompt() {
   return `Calculate ${left}+${right}, and reply with the result only.`;
 }
 
-export function buildComboTestRequestBody(modelStr: string, isEmbedding: boolean = false) {
+export function buildComboTestRequestBody(
+  modelStr: string,
+  isEmbedding: boolean = false,
+  options: { stream?: boolean; maxTokens?: number } = {}
+) {
   if (isEmbedding) {
     return {
       model: modelStr,
@@ -133,9 +138,36 @@ export function buildComboTestRequestBody(modelStr: string, isEmbedding: boolean
     messages: [{ role: "user", content: buildComboTestPrompt() }],
     // Give reasoning-heavy models enough headroom to finish the request and
     // still emit a visible answer without immediate truncation.
-    max_tokens: COMBO_TEST_MAX_TOKENS,
-    stream: false,
+    max_tokens:
+      options.maxTokens ??
+      (options.stream ? STREAMING_MODEL_TEST_MAX_TOKENS : COMBO_TEST_MAX_TOKENS),
+    stream: options.stream ?? false,
   };
+}
+
+export function extractComboTestStreamText(streamBody: string): string {
+  const collected: string[] = [];
+  for (const line of streamBody.split(/\r?\n/)) {
+    if (!line.startsWith("data:")) continue;
+    const payload = line.slice(5).trim();
+    if (!payload || payload === "[DONE]") continue;
+    try {
+      const body = JSON.parse(payload);
+      const direct = extractComboTestResponseText(body);
+      if (direct) collected.push(direct);
+      for (const choice of Array.isArray(body?.choices) ? body.choices : []) {
+        const delta = asRecord(choice?.delta);
+        const content = extractTextFromContent(delta.content);
+        const reasoning = extractReasoningText(delta);
+        if (content) collected.push(content);
+        else if (reasoning) collected.push(reasoning);
+      }
+    } catch {
+      // Ignore malformed/non-JSON SSE events; a later valid event can still
+      // prove that the model is healthy.
+    }
+  }
+  return collected.join("").trim();
 }
 
 export function extractComboTestResponseText(responseBody: unknown): string {

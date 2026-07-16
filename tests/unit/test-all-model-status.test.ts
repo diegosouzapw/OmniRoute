@@ -54,6 +54,13 @@ test("rate-limited / timeout failures show 'error' but are NOT auto-hidden", () 
   });
 });
 
+test("slow batch probes remain visible and unconfirmed", () => {
+  assert.deepEqual(evaluateTestAllEntry({ status: "slow", isTimeout: true }, true), {
+    status: "error",
+    shouldHide: false,
+  });
+});
+
 test("missing / null / empty entry is treated as a failure", () => {
   for (const entry of [undefined, null, {}]) {
     const out = evaluateTestAllEntry(entry, true);

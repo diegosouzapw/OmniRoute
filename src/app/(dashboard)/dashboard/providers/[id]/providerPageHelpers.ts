@@ -165,7 +165,10 @@ export interface TestAllModelOutcome {
  * which is the intended use of the toggle.
  */
 export function evaluateTestAllEntry(
-  entry: { status?: "ok" | "error"; rateLimited?: boolean; isTimeout?: boolean } | null | undefined,
+  entry:
+    | { status?: "ok" | "error" | "slow"; rateLimited?: boolean; isTimeout?: boolean }
+    | null
+    | undefined,
   autoHideFailed: boolean
 ): TestAllModelOutcome {
   const ok = entry?.status === "ok";

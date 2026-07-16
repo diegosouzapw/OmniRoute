@@ -2,7 +2,11 @@ import { randomUUID } from "node:crypto";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/route";
 import { POST as postRerank } from "@/app/api/v1/rerank/route";
-import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
+import {
+  buildComboTestRequestBody,
+  extractComboTestResponseText,
+  extractComboTestStreamText,
+} from "@/lib/combos/testHealth";
 import { getCustomModels } from "@/lib/localDb";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
@@ -12,6 +16,7 @@ const DEFAULT_TEST_TIMEOUT_MS = 10_000;
 const DOLA_PRO_TEST_TIMEOUT_MS = 90_000;
 const DOUBAO_WEB_PROVIDER_ID = "doubao-web";
 const SLOW_WEB_TEST_MODELS = new Set(["dola-pro"]);
+const STREAMING_CHAT_TEST_MAX_TOKENS = 64;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -195,11 +200,12 @@ export interface RunSingleModelTestOptions {
   modelId: string;
   connectionId?: string;
   timeoutMs?: number;
+  streamChat?: boolean;
 }
 
 export interface SingleModelTestResult {
   modelId: string;
-  status: "ok" | "error" | "rate_limited";
+  status: "ok" | "error" | "rate_limited" | "slow";
   latencyMs: number;
   responseText?: string;
   statusCode?: number;
@@ -219,7 +225,13 @@ export interface SingleModelTestResult {
 export async function runSingleModelTest(
   options: RunSingleModelTestOptions
 ): Promise<SingleModelTestResult> {
-  const { providerId, modelId, connectionId, timeoutMs = DEFAULT_TEST_TIMEOUT_MS } = options;
+  const {
+    providerId,
+    modelId,
+    connectionId,
+    timeoutMs = DEFAULT_TEST_TIMEOUT_MS,
+    streamChat = true,
+  } = options;
 
   let fullModelStr = modelId;
   if (!fullModelStr.includes("/")) {
@@ -242,7 +254,10 @@ export async function runSingleModelTest(
         top_n: 1,
         return_documents: false,
       }
-    : buildComboTestRequestBody(fullModelStr, isEmbedding);
+    : buildComboTestRequestBody(fullModelStr, isEmbedding, {
+        stream: !isEmbedding && streamChat,
+        maxTokens: !isEmbedding && streamChat ? STREAMING_CHAT_TEST_MAX_TOKENS : undefined,
+      });
 
   // Per-model AbortController. We track whether the timeout fired so we can
   // distinguish "rate-limit queue aborted" (withRateLimit threw AbortError
@@ -287,10 +302,10 @@ export async function runSingleModelTest(
       if (timedOut) {
         return {
           modelId: fullModelStr,
-          status: "error",
+          status: "slow",
           latencyMs,
-          httpStatus: 500,
-          error: `Timeout (${Math.round(effectiveTimeoutMs / 1000)}s)`,
+          httpStatus: 504,
+          error: `No model output within ${Math.round(effectiveTimeoutMs / 1000)}s`,
           isTimeout: true,
         };
       }
@@ -313,9 +328,19 @@ export async function runSingleModelTest(
       error: getErrorMessage(error),
     };
   }
-  clearTimeout(timeoutHandle);
-
   const latencyMs = Date.now() - startTime;
+
+  if (timedOut) {
+    clearTimeout(timeoutHandle);
+    return {
+      modelId: fullModelStr,
+      status: "slow",
+      latencyMs,
+      httpStatus: 504,
+      error: `No model output within ${Math.round(effectiveTimeoutMs / 1000)}s`,
+      isTimeout: true,
+    };
+  }
 
   if (res.status === 429) {
     const retryAfter = parseRetryAfterHeader(res.headers.get("retry-after"));
@@ -327,7 +352,7 @@ export async function runSingleModelTest(
     } catch {
       errorMsg = res.statusText || errorMsg;
     }
-    return {
+    const result: SingleModelTestResult = {
       modelId: fullModelStr,
       status: "rate_limited",
       latencyMs,
@@ -337,17 +362,33 @@ export async function runSingleModelTest(
       rateLimited: true,
       ...(retryAfter !== undefined ? { retryAfter } : {}),
     };
+    clearTimeout(timeoutHandle);
+    return result;
   }
 
   if (res.ok) {
-    let responseBody = null;
+    let responseText = "";
     try {
-      responseBody = await res.json();
+      if (!isEmbedding && !isRerank && streamChat) {
+        responseText = extractComboTestStreamText(await res.text());
+      } else {
+        responseText = extractComboTestResponseText(await res.json());
+      }
     } catch {
-      responseBody = null;
+      responseText = "";
+    } finally {
+      clearTimeout(timeoutHandle);
     }
-
-    const responseText = extractComboTestResponseText(responseBody);
+    if (timedOut) {
+      return {
+        modelId: fullModelStr,
+        status: "slow",
+        latencyMs: Date.now() - startTime,
+        httpStatus: 504,
+        error: `No model output within ${Math.round(effectiveTimeoutMs / 1000)}s`,
+        isTimeout: true,
+      };
+    }
     if (isRerank) {
       return {
         modelId: fullModelStr,
@@ -382,6 +423,8 @@ export async function runSingleModelTest(
     errorMsg = extractProviderErrorMessage(errBody, res.statusText);
   } catch {
     errorMsg = res.statusText;
+  } finally {
+    clearTimeout(timeoutHandle);
   }
   return {
     modelId: fullModelStr,
