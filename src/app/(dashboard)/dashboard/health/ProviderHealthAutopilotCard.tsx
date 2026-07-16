@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { getProviderDisplayName } from "@/lib/display/names";
 import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
@@ -20,6 +21,7 @@ type AutopilotAction = {
 
 type AutopilotIssue = {
   id: string;
+  kind: string;
   severity: "info" | "warning" | "critical";
   title: string;
   recommendation: string;
@@ -85,21 +87,83 @@ function getErrorMessage(payload: unknown, fallback: string): string {
   return fallback;
 }
 
-function formatConnectionEvidence(issue: AutopilotIssue): string | null {
+function formatConnectionEvidence(
+  issue: AutopilotIssue,
+  t: ReturnType<typeof useTranslations>
+): string | null {
   const evidence = issue.evidence || {};
   const parts: string[] = [];
   if (typeof evidence.label === "string") parts.push(evidence.label);
   if (typeof evidence.remainingMs === "number" && evidence.remainingMs > 0) {
-    parts.push(`remaining ${Math.ceil(evidence.remainingMs / 1000)}s`);
+    parts.push(t("remainingSeconds", { seconds: Math.ceil(evidence.remainingMs / 1000) }));
   }
   if (typeof evidence.errorCode === "string" || typeof evidence.errorCode === "number") {
-    parts.push(`code ${evidence.errorCode}`);
+    parts.push(t("errorCode", { code: String(evidence.errorCode) }));
   }
   if (typeof evidence.lastErrorType === "string") parts.push(evidence.lastErrorType);
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
+function issueText(
+  issue: AutopilotIssue,
+  field: "title" | "recommendation",
+  t: ReturnType<typeof useTranslations>
+) {
+  const label = typeof issue.evidence?.label === "string" ? issue.evidence.label : "";
+  const model = issue.target.model ?? "";
+  const status = typeof issue.evidence?.status === "string" ? issue.evidence.status : "";
+  const keys: Record<string, { title: string; recommendation: string }> = {
+    provider_circuit_open: {
+      title: "issue.circuitOpenTitle",
+      recommendation: "issue.circuitOpenRecommendation",
+    },
+    provider_circuit_half_open: {
+      title: "issue.circuitRecoveryTitle",
+      recommendation: "issue.circuitRecoveryRecommendation",
+    },
+    terminal_connection_error: {
+      title: "issue.terminalTitle",
+      recommendation: "issue.terminalRecommendation",
+    },
+    connection_cooldown: {
+      title: "issue.cooldownTitle",
+      recommendation: "issue.cooldownRecommendation",
+    },
+    stale_connection_error: {
+      title: "issue.staleErrorTitle",
+      recommendation: "issue.staleErrorRecommendation",
+    },
+    inactive_connection: {
+      title: "issue.inactiveTitle",
+      recommendation: "issue.inactiveRecommendation",
+    },
+    model_lockout: {
+      title: "issue.modelLockoutTitle",
+      recommendation: "issue.modelLockoutRecommendation",
+    },
+    quota_monitor_warning: {
+      title: "issue.quotaTitle",
+      recommendation: "issue.quotaRecommendation",
+    },
+  };
+  const key = keys[issue.kind]?.[field];
+  return key ? t(key, { label, model, status }) : issue[field];
+}
+
+function actionLabel(action: AutopilotAction, t: ReturnType<typeof useTranslations>) {
+  const keys: Record<string, string> = {
+    clear_provider_breaker: "action.resetProviderBreaker",
+    clear_connection_cooldown: "action.clearConnectionCooldown",
+    deactivate_connection: "action.disableConnection",
+    clear_stale_connection_error: "action.clearStaleError",
+    reactivate_connection: "action.reactivateConnection",
+    clear_model_lockout: "action.clearModelLockout",
+  };
+  return keys[action.type] ? t(keys[action.type]) : action.label;
+}
+
 export default function ProviderHealthAutopilotCard() {
+  const t = useTranslations("providerHealthAutopilot");
   const nodeMap = useProviderNodeMap();
   const [report, setReport] = useState<AutopilotReport | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,11 +181,11 @@ export default function ProviderHealthAutopilotCard() {
       setReport(json);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load autopilot report");
+      setError(err instanceof Error ? err.message : t("loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void load();
@@ -137,7 +201,12 @@ export default function ProviderHealthAutopilotCard() {
 
   const applyAction = useCallback(
     async (issue: AutopilotIssue, action: AutopilotAction) => {
-      if (action.requiresConfirmation && !confirm(`${action.label}?\n\n${issue.recommendation}`)) {
+      const localizedAction = actionLabel(action, t);
+      const localizedRecommendation = issueText(issue, "recommendation", t);
+      if (
+        action.requiresConfirmation &&
+        !confirm(`${localizedAction}?\n\n${localizedRecommendation}`)
+      ) {
         return;
       }
 
@@ -156,15 +225,15 @@ export default function ProviderHealthAutopilotCard() {
         });
         const json = await res.json();
         if (!res.ok) throw new Error(getErrorMessage(json, `HTTP ${res.status}`));
-        setMessage(`${action.label} applied.`);
+        setMessage(t("actionApplied", { action: localizedAction }));
         await load();
       } catch (err) {
-        setMessage(err instanceof Error ? err.message : "Autopilot action failed");
+        setMessage(err instanceof Error ? err.message : t("actionFailed"));
       } finally {
         setBusyAction(null);
       }
     },
-    [load]
+    [load, t]
   );
 
   return (
@@ -176,10 +245,8 @@ export default function ProviderHealthAutopilotCard() {
               <span className="material-symbols-outlined text-[18px]">health_and_safety</span>
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-text-main">Provider Health Autopilot</h2>
-              <p className="text-sm text-text-muted">
-                Finds unstable providers, account cooldowns, stale errors, and safe manual fixes.
-              </p>
+              <h2 className="text-lg font-semibold text-text-main">{t("title")}</h2>
+              <p className="text-sm text-text-muted">{t("description")}</p>
             </div>
           </div>
         </div>
@@ -188,7 +255,7 @@ export default function ProviderHealthAutopilotCard() {
           disabled={loading}
           className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main transition-colors hover:bg-surface/80 disabled:opacity-50"
         >
-          Refresh
+          {t("refresh")}
         </button>
       </div>
 
@@ -196,21 +263,23 @@ export default function ProviderHealthAutopilotCard() {
         <div
           className={`rounded-xl border px-3 py-2 ${STATUS_STYLES[report?.status || "healthy"]}`}
         >
-          <p className="text-xs uppercase tracking-wide opacity-80">Status</p>
-          <p className="text-lg font-semibold capitalize">{report?.status || "loading"}</p>
+          <p className="text-xs uppercase tracking-wide opacity-80">{t("status")}</p>
+          <p className="text-lg font-semibold capitalize">
+            {t(`state.${report?.status || "loading"}`)}
+          </p>
         </div>
         <div className="rounded-xl border border-border bg-bg-subtle px-3 py-2">
-          <p className="text-xs uppercase tracking-wide text-text-muted">Issues</p>
+          <p className="text-xs uppercase tracking-wide text-text-muted">{t("issues")}</p>
           <p className="text-lg font-semibold text-text-main">{report?.summary.issueCount ?? 0}</p>
         </div>
         <div className="rounded-xl border border-border bg-bg-subtle px-3 py-2">
-          <p className="text-xs uppercase tracking-wide text-text-muted">Actions</p>
+          <p className="text-xs uppercase tracking-wide text-text-muted">{t("actions")}</p>
           <p className="text-lg font-semibold text-text-main">
             {report?.summary.actionableCount ?? 0}
           </p>
         </div>
         <div className="rounded-xl border border-border bg-bg-subtle px-3 py-2">
-          <p className="text-xs uppercase tracking-wide text-text-muted">Connections</p>
+          <p className="text-xs uppercase tracking-wide text-text-muted">{t("connections")}</p>
           <p className="text-lg font-semibold text-text-main">
             {report?.summary.connectionCount ?? 0}
           </p>
@@ -228,11 +297,9 @@ export default function ProviderHealthAutopilotCard() {
           {error}
         </div>
       ) : loading && !report ? (
-        <p className="mt-4 text-sm text-text-muted">Loading provider recommendations...</p>
+        <p className="mt-4 text-sm text-text-muted">{t("loadingRecommendations")}</p>
       ) : topProviders.length === 0 ? (
-        <p className="mt-4 text-sm text-text-muted">
-          No provider health recommendations right now.
-        </p>
+        <p className="mt-4 text-sm text-text-muted">{t("noRecommendations")}</p>
       ) : (
         <div className="mt-4 space-y-3">
           {topProviders.map((provider) => (
@@ -246,10 +313,13 @@ export default function ProviderHealthAutopilotCard() {
                     {resolveProviderName(provider.provider, nodeMap)}
                   </h3>
                   <p className="text-xs text-text-muted">
-                    score {(provider.score * 100).toFixed(0)}% · active{" "}
-                    {provider.signals.connections.active}/{provider.signals.connections.total} ·{" "}
-                    cooldown {provider.signals.connections.cooldown} · model lockouts{" "}
-                    {provider.signals.modelLockouts}
+                    {t("providerMetrics", {
+                      score: (provider.score * 100).toFixed(0),
+                      active: provider.signals.connections.active,
+                      total: provider.signals.connections.total,
+                      cooldown: provider.signals.connections.cooldown,
+                      lockouts: provider.signals.modelLockouts,
+                    })}
                   </p>
                 </div>
                 <span
@@ -261,7 +331,7 @@ export default function ProviderHealthAutopilotCard() {
                         : "border-green-500/20 bg-green-500/10 text-green-300"
                   }`}
                 >
-                  {provider.state}
+                  {t(`providerState.${provider.state}`)}
                 </span>
               </div>
 
@@ -279,14 +349,18 @@ export default function ProviderHealthAutopilotCard() {
                             <span
                               className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${SEVERITY_STYLES[issue.severity]}`}
                             >
-                              {issue.severity}
+                              {t(`severity.${issue.severity}`)}
                             </span>
-                            <p className="text-sm font-medium text-text-main">{issue.title}</p>
+                            <p className="text-sm font-medium text-text-main">
+                              {issueText(issue, "title", t)}
+                            </p>
                           </div>
-                          <p className="mt-1 text-xs text-text-muted">{issue.recommendation}</p>
-                          {formatConnectionEvidence(issue) && (
+                          <p className="mt-1 text-xs text-text-muted">
+                            {issueText(issue, "recommendation", t)}
+                          </p>
+                          {formatConnectionEvidence(issue, t) && (
                             <p className="mt-1 text-xs text-text-muted">
-                              {formatConnectionEvidence(issue)}
+                              {formatConnectionEvidence(issue, t)}
                             </p>
                           )}
                         </div>
@@ -301,7 +375,7 @@ export default function ProviderHealthAutopilotCard() {
                                   disabled={busy || Boolean(busyAction)}
                                   className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
                                 >
-                                  {busy ? "Applying..." : action.label}
+                                  {busy ? t("applying") : actionLabel(action, t)}
                                 </button>
                               );
                             })}

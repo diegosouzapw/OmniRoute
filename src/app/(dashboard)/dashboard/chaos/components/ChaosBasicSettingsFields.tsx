@@ -26,7 +26,7 @@ function ChaosSystemPromptField({
         onChange={(e) => onChange(e.target.value)}
         rows={3}
         className="w-full px-3 py-1.5 rounded-md border border-border bg-surface text-sm text-text-main resize-y"
-        placeholder="Optional: override the default chaos mode system prompt..."
+        placeholder={t("systemPromptPlaceholder")}
       />
     </div>
   );
@@ -69,7 +69,7 @@ export function ChaosBasicSettingsFields({
           <span className="material-symbols-outlined text-[14px]">
             {settings.enabled ? "toggle_on" : "toggle_off"}
           </span>
-          {settings.enabled ? "Enabled" : "Disabled"}
+          {settings.enabled ? t("enabled") : t("disabled")}
         </button>
       </div>
 
@@ -94,10 +94,8 @@ export function ChaosBasicSettingsFields({
 
       {/* Max Tokens */}
       <div className="p-3 rounded-lg border border-border bg-surface/40">
-        <p className="text-sm font-medium text-text-main">Max Tokens</p>
-        <p className="text-xs text-text-muted mb-2">
-          Maximum tokens per model response. Higher values cost more and take longer.
-        </p>
+        <p className="text-sm font-medium text-text-main">{t("maxTokens")}</p>
+        <p className="text-xs text-text-muted mb-2">{t("maxTokensDesc")}</p>
         <input
           type="number"
           min={256}

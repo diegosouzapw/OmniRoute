@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import type { CliCatalogEntry } from "@/shared/schemas/cliCatalog";
 import type { ToolBatchStatus } from "@/shared/types/cliBatchStatus";
 import CliStatusBadge from "@/app/(dashboard)/dashboard/cli-code/components/CliStatusBadge";
+import { useTheme } from "@/shared/hooks/useTheme";
 import { cn } from "@/shared/utils/cn";
 
 export interface CliToolCardProps {
@@ -23,19 +24,22 @@ export default function CliToolCard({
 }: CliToolCardProps) {
   const t = useTranslations("cliCommon");
   const tTools = useTranslations("cliTools");
+  const { isDark } = useTheme();
   const installed = batchStatus?.detection.installed ?? false;
   const configStatus = batchStatus?.config.status ?? null;
   const version = batchStatus?.detection.version ?? t("card.versionNotFound");
   const endpoint = batchStatus?.config.endpoint ?? null;
+  const imageSrc =
+    tool.image || (isDark ? tool.imageDark || tool.imageLight : tool.imageLight || tool.imageDark);
 
   const showInstallChips = !installed && tool.configType !== "guide";
 
   const title = (
     <div className="flex items-center gap-2.5">
       {/* Icon / image */}
-      {tool.image ? (
+      {imageSrc ? (
         <Image
-          src={tool.image}
+          src={imageSrc}
           alt={tool.name}
           width={32}
           height={32}

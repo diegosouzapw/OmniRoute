@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import Button from "@/shared/components/Button";
 import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
@@ -42,19 +43,20 @@ interface Combo {
 // ── Status helpers ───────────────────────────────────────────────────────────
 
 function StatusTag({ status }: { status: TargetSimulation["status"] }) {
+  const t = useTranslations("combos");
   const map: Record<
     TargetSimulation["status"],
-    { label: string; variant: "success" | "error" | "warning" | "info" }
+    { labelKey: string; variant: "success" | "error" | "warning" | "info" }
   > = {
-    available: { label: "Available", variant: "success" },
-    no_quota: { label: "No Quota", variant: "error" },
-    degraded: { label: "Degraded", variant: "warning" },
-    error: { label: "Error", variant: "error" },
-    unknown: { label: "Unknown", variant: "info" },
+    available: { labelKey: "playgroundStatusAvailable", variant: "success" },
+    no_quota: { labelKey: "playgroundStatusNoQuota", variant: "error" },
+    degraded: { labelKey: "playgroundStatusDegraded", variant: "warning" },
+    error: { labelKey: "playgroundStatusError", variant: "error" },
+    unknown: { labelKey: "playgroundStatusUnknown", variant: "info" },
   };
   return (
     <Badge variant={map[status].variant} size="sm">
-      {map[status].label}
+      {t(map[status].labelKey)}
     </Badge>
   );
 }
@@ -62,6 +64,7 @@ function StatusTag({ status }: { status: TargetSimulation["status"] }) {
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function ComboPlaygroundClient() {
+  const t = useTranslations("combos");
   const [combos, setCombos] = useState<Combo[]>([]);
   const [selectedComboId, setSelectedComboId] = useState("");
   const [promptTokens, setPromptTokens] = useState(500);
@@ -99,34 +102,32 @@ export default function ComboPlaygroundClient() {
       else setResult(data);
     } catch {
       setResult({
-        comboName: "Error",
+        comboName: t("playgroundStatusError"),
         strategy: "-",
         targets: [],
         totalEstimatedCost: 0,
         totalEstimatedLatencyMs: 0,
         warnings: [],
-        errors: ["Network error during simulation"],
+        errors: [t("playgroundNetworkError")],
       });
     } finally {
       setLoading(false);
     }
-  }, [selectedComboId, promptTokens]);
+  }, [selectedComboId, promptTokens, t]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Combo Playground</h1>
-          <p className="text-sm text-text-muted mt-1">
-            Simulate how requests will be routed through your combos
-          </p>
+          <h1 className="text-xl font-bold">{t("playgroundTitle")}</h1>
+          <p className="text-sm text-text-muted mt-1">{t("playgroundDescription")}</p>
         </div>
       </div>
 
       {/* Configuration Panel */}
       <Card>
         <div className="p-4 space-y-4">
-          <h2 className="text-sm font-semibold">Configuration</h2>
+          <h2 className="text-sm font-semibold">{t("playgroundConfiguration")}</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Combo Selector */}
@@ -137,10 +138,12 @@ export default function ComboPlaygroundClient() {
                 value={selectedComboId}
                 onChange={(e) => setSelectedComboId(e.target.value)}
               >
-                {combos.length === 0 && <option value="">No combos configured</option>}
+                {combos.length === 0 && (
+                  <option value="">{t("playgroundNoCombosConfigured")}</option>
+                )}
                 {combos.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name} ({c.strategy}, {c.isActive ? "active" : "inactive"})
+                    {c.name} ({c.strategy}, {c.isActive ? t("active") : t("inactive")})
                   </option>
                 ))}
               </select>
@@ -149,7 +152,7 @@ export default function ComboPlaygroundClient() {
             {/* Prompt Tokens */}
             <div>
               <label className="block text-sm font-medium mb-1">
-                Estimated Prompt Tokens: <strong>{promptTokens}</strong>
+                {t("playgroundEstimatedPromptTokens")}: <strong>{promptTokens}</strong>
               </label>
               <input
                 type="range"
@@ -168,7 +171,7 @@ export default function ComboPlaygroundClient() {
           </div>
 
           <Button onClick={simulate} disabled={loading || combos.length === 0}>
-            {loading ? "Simulating..." : "Simulate Route"}
+            {loading ? t("playgroundSimulating") : t("playgroundSimulateRoute")}
           </Button>
         </div>
       </Card>
@@ -180,16 +183,18 @@ export default function ComboPlaygroundClient() {
           <Card>
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold">Routing Path</h2>
+                <h2 className="text-sm font-semibold">{t("playgroundRoutingPath")}</h2>
                 <div className="flex items-center gap-3 text-sm">
                   <span className="text-text-muted">
-                    Strategy: <strong>{result.strategy}</strong>
+                    {t("playgroundStrategy")}: <strong>{result.strategy}</strong>
                   </span>
                   <span className="text-text-muted">
-                    Est. Cost: <strong>${result.totalEstimatedCost.toFixed(6)}</strong>
+                    {t("playgroundEstimatedCost")}:{" "}
+                    <strong>${result.totalEstimatedCost.toFixed(6)}</strong>
                   </span>
                   <span className="text-text-muted">
-                    Est. Latency: <strong>{result.totalEstimatedLatencyMs.toFixed(0)}ms</strong>
+                    {t("playgroundEstimatedLatency")}:{" "}
+                    <strong>{result.totalEstimatedLatencyMs.toFixed(0)}ms</strong>
                   </span>
                 </div>
               </div>
@@ -216,10 +221,12 @@ export default function ComboPlaygroundClient() {
                             />
                           </svg>
                           {result.strategy === "priority" && (
-                            <span className="text-[10px]">fallback</span>
+                            <span className="text-[10px]">{t("playgroundFallback")}</span>
                           )}
                           {result.strategy === "weighted" && (
-                            <span className="text-[10px]">weight {t.rank}</span>
+                            <span className="text-[10px]">
+                              {t("playgroundWeight", { value: t.rank })}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -272,7 +279,7 @@ export default function ComboPlaygroundClient() {
             <Card>
               <div className="p-4 space-y-2">
                 <h3 className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
-                  Warnings ({result.warnings.length})
+                  {t("playgroundWarningCount", { count: result.warnings.length })}
                 </h3>
                 {result.warnings.map((w, i) => (
                   <p key={i} className="text-sm text-text-muted flex items-start gap-2">
@@ -288,7 +295,7 @@ export default function ComboPlaygroundClient() {
             <Card>
               <div className="p-4 space-y-2">
                 <h3 className="text-sm font-semibold text-red-600 dark:text-red-400">
-                  Errors ({result.errors.length})
+                  {t("playgroundErrorCount", { count: result.errors.length })}
                 </h3>
                 {result.errors.map((e, i) => (
                   <p key={i} className="text-sm text-red-500 flex items-start gap-2">
@@ -307,7 +314,9 @@ export default function ComboPlaygroundClient() {
         <Card>
           <div className="p-8 text-center">
             <p className="text-text-muted">
-              Select a combo and click <strong>Simulate Route</strong> to see the routing path.
+              {t.rich("playgroundEmptyHint", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
           </div>
         </Card>
@@ -317,9 +326,9 @@ export default function ComboPlaygroundClient() {
         <Card>
           <div className="p-8 text-center">
             <p className="text-text-muted">
-              No combos configured yet.{" "}
+              {t("playgroundNoCombosYet")}{" "}
               <Link href="/dashboard/combos" className="text-primary hover:underline">
-                Create one first
+                {t("playgroundCreateFirst")}
               </Link>
               .
             </p>

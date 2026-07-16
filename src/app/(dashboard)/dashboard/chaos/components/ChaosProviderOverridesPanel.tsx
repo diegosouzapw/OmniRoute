@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 export interface ChaosProviderInfo {
   id: string;
   name: string;
@@ -28,6 +30,7 @@ function ChaosProviderOverrideRow({
   onUpdate: UpdateOverride;
   onRemove: (index: number) => void;
 }) {
+  const t = useTranslations("chaosConfig");
   return (
     <div className="flex items-center gap-2 p-2 rounded-md bg-black/5 dark:bg-white/5">
       {/* Provider dropdown with available options */}
@@ -35,7 +38,7 @@ function ChaosProviderOverrideRow({
         <input
           type="text"
           list={`provider-list-${index}`}
-          placeholder="Provider ID (type or select)"
+          placeholder={t("providerIdPlaceholder")}
           value={override.providerId}
           onChange={(e) => onUpdate(index, "providerId", e.target.value)}
           className="w-full px-2 py-1 rounded border border-border bg-surface text-xs text-text-main"
@@ -48,7 +51,7 @@ function ChaosProviderOverrideRow({
       </div>
       <input
         type="text"
-        placeholder="Model ID (optional)"
+        placeholder={t("modelIdPlaceholder")}
         value={override.modelId || ""}
         onChange={(e) => onUpdate(index, "modelId", e.target.value)}
         className="flex-1 px-2 py-1 rounded border border-border bg-surface text-xs text-text-main"
@@ -60,7 +63,7 @@ function ChaosProviderOverrideRow({
           override.enabled ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"
         }`}
       >
-        {override.enabled ? "ON" : "OFF"}
+        {override.enabled ? t("on") : t("off")}
       </button>
       <button
         type="button"
@@ -73,12 +76,17 @@ function ChaosProviderOverrideRow({
   );
 }
 
-function ChaosAvailableProvidersHint({ availableProviders }: { availableProviders: ChaosProviderInfo[] }) {
+function ChaosAvailableProvidersHint({
+  availableProviders,
+}: {
+  availableProviders: ChaosProviderInfo[];
+}) {
+  const t = useTranslations("chaosConfig");
   if (availableProviders.length === 0) return null;
   return (
     <details className="text-xs text-text-muted">
       <summary className="cursor-pointer hover:text-text-main">
-        Available providers ({availableProviders.length})
+        {t("availableProviders", { count: availableProviders.length })}
       </summary>
       <div className="mt-1 flex flex-wrap gap-1">
         {availableProviders.map((p) => (
@@ -116,6 +124,7 @@ export function ChaosProviderOverridesPanel({
   onUpdate: UpdateOverride;
   onRemove: (index: number) => void;
 }) {
+  const t = useTranslations("chaosConfig");
   return (
     <div className="p-3 rounded-lg border border-border bg-surface/40 space-y-3">
       <div className="flex items-center justify-between">
@@ -134,9 +143,7 @@ export function ChaosProviderOverridesPanel({
       </div>
 
       {overrides.length === 0 && (
-        <p className="text-xs text-text-muted italic">
-          No overrides — all active providers will participate with their default models
-        </p>
+        <p className="text-xs text-text-muted italic">{t("noProviderOverrides")}</p>
       )}
 
       {overrides.map((override, idx) => (

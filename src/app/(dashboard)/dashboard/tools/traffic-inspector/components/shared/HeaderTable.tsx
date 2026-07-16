@@ -1,32 +1,34 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface HeaderTableProps {
   headers: Record<string, string>;
 }
 
 export function HeaderTable({ headers }: HeaderTableProps) {
+  const t = useTranslations("trafficInspector");
   const [masked, setMasked] = useState(true);
   const SENSITIVE = /authorization|cookie|x-api-key|bearer/i;
 
   return (
     <div>
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-xs text-text-muted">Sensitive headers</span>
+        <span className="text-xs text-text-muted">{t("sensitiveHeaders")}</span>
         <button
           type="button"
           onClick={() => setMasked((m) => !m)}
           className="text-xs text-blue-400 hover:text-blue-300 focus-ring rounded"
         >
-          {masked ? "Show" : "Hide"}
+          {masked ? t("show") : t("hide")}
         </button>
       </div>
       <table className="w-full text-xs font-mono border-collapse bg-surface">
         <thead>
           <tr className="border-b border-border">
-            <th className="text-left px-2 py-1 text-text-muted font-medium">Name</th>
-            <th className="text-left px-2 py-1 text-text-muted font-medium">Value</th>
+            <th className="text-left px-2 py-1 text-text-muted font-medium">{t("name")}</th>
+            <th className="text-left px-2 py-1 text-text-muted font-medium">{t("value")}</th>
           </tr>
         </thead>
         <tbody>

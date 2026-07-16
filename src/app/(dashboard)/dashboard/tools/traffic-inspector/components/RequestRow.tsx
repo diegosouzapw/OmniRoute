@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import type { InterceptedRequest } from "@/mitm/inspector/types";
 import { ContextColorBar } from "./shared/ContextColorBar";
@@ -41,6 +42,7 @@ function formatTime(iso: string): string {
 }
 
 export function RequestRow({ request, selected, onClick, onSameContext, style }: RequestRowProps) {
+  const t = useTranslations("trafficInspector");
   const pathShort = request.path.length > 32 ? `…${request.path.slice(-30)}` : request.path;
   const sc = statusColor(request.status);
 
@@ -60,11 +62,11 @@ export function RequestRow({ request, selected, onClick, onSameContext, style }:
       <ContextColorBar contextKey={request.contextKey} />
       <div className="flex-1 min-w-0 px-2 py-1.5">
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-text-muted shrink-0 font-mono">{formatTime(request.timestamp)}</span>
-          <span className="font-mono font-medium text-text-main shrink-0">{request.method}</span>
-          <span className={cn("font-mono font-bold shrink-0", sc)}>
-            {String(request.status)}
+          <span className="text-text-muted shrink-0 font-mono">
+            {formatTime(request.timestamp)}
           </span>
+          <span className="font-mono font-medium text-text-main shrink-0">{request.method}</span>
+          <span className={cn("font-mono font-bold shrink-0", sc)}>{String(request.status)}</span>
           <span className="text-text-muted shrink-0">{formatSize(request.responseSize)}</span>
           <span className="shrink-0">
             <AgentEmoji agentId={request.agent} />
@@ -86,7 +88,7 @@ export function RequestRow({ request, selected, onClick, onSameContext, style }:
           <button
             type="button"
             className="text-[10px] text-text-muted font-mono opacity-60 hover:opacity-100 hover:text-blue-400 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
-            title="Filter by this context"
+            title={t("filterByContext")}
             onClick={(e) => {
               e.stopPropagation();
               onSameContext?.(request.contextKey as string);

@@ -9,7 +9,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   claude: {
     id: "claude",
     name: "Claude Code",
-    icon: "terminal",
+    image: "/providers/claude.svg",
     color: "#D97757",
     description: "Anthropic Claude Code CLI — ANTHROPIC_BASE_URL points to OmniRoute",
     docsUrl: "https://docs.anthropic.com/en/docs/claude-code/overview",
@@ -71,6 +71,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   codex: {
     id: "codex",
     name: "OpenAI Codex CLI",
+    image: "/providers/codex.svg",
     color: "#10A37F",
     description: "OpenAI Codex CLI — OpenAI-compatible base URL targets OmniRoute",
     docsUrl: "https://github.com/openai/codex",
@@ -144,6 +145,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   cline: {
     id: "cline",
     name: "Cline",
+    image: "/providers/cline.svg",
     color: "#00D1B2",
     description: "Cline — open-source VS Code coding agent with OpenAI-compatible base URL",
     docsUrl: "https://docs.cline.bot/",
@@ -402,7 +404,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   qwen: {
     id: "qwen",
     name: "Qwen Code",
-    icon: "psychology",
+    image: "/providers/qwen.svg",
     color: "#10B981",
     description:
       "Alibaba Qwen Code CLI — supports OpenAI, Anthropic & Gemini providers via OmniRoute",
@@ -588,7 +590,7 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
   "cursor-cli": {
     id: "cursor-cli",
     name: "Cursor Agent CLI",
-    icon: "terminal",
+    image: "/providers/cursor.svg",
     color: "#000000",
     description: "Cursor Agent CLI — headless agent mode with custom provider endpoint",
     docsUrl: "https://docs.cursor.com/advanced/api",
@@ -612,7 +614,7 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
   roo: {
     id: "roo",
     name: "Roo Code",
-    icon: "terminal",
+    image: "/providers/roocode.svg",
     color: "#7C3AED",
     description: "Roo Code AI Assistant — VS Code extension with OpenAI-compatible custom base URL",
     docsUrl: "https://docs.roocode.com/",
@@ -655,7 +657,7 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
   "deepseek-tui": {
     id: "deepseek-tui",
     name: "DeepSeek TUI",
-    icon: "terminal",
+    image: "/providers/deepseek.svg",
     color: "#4F46E5",
     description: "DeepSeek TUI — Rust-based coding agent CLI with OPENAI_BASE_URL support",
     docsUrl: "https://github.com/hunterbown/deepseek-tui",
