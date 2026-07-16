@@ -96,7 +96,7 @@
       "tightenSlack": 10
     },
     "openapiCoverage.pct": {
-      "value": 38.0,
+      "value": 38,
       "direction": "up",
       "eps": 0.5,
       "_tighten_2026_07_04_v3844_release": "36.9 -> 39.3 (aperto exigido pelo --require-tighten no PR de release #5925). A cobertura OpenAPI melhorou no ciclo (9 rotas documentadas em 8fb020676 + as rotas novas de #5939/#5817/#6034/#5998 documentadas junto das features). 39.3 = valor medido pelo CI Quality Ratchet no run 28708141003 (tip 00c55afcb).",
@@ -158,7 +158,8 @@
       "dedicatedGate": true
     },
     "secretFindings": {
-      "value": 3,
+      "_note": "Zeroed 2026-07-13 (WS6/D3): the 3 frozen generic-api-key FPs are allowlisted with justification in .gitleaks.toml — any NEW finding regresses the ratchet.",
+      "value": 0,
       "direction": "down",
       "dedicatedGate": true
     },
@@ -186,12 +187,6 @@
       "direction": "down",
       "dedicatedGate": true,
       "_note": "oasdiff breaking-change gate (Fase 9 Onda 0). Blocks any breaking change vs base spec."
-    },
-    "semgrepFindings": {
-      "value": 0,
-      "direction": "down",
-      "dedicatedGate": true,
-      "_note": "semgrep owasp/secrets findings. ADVISORY until first CI value is frozen, then flip blocking (Fase 9)."
     },
     "mutationScore.src/sse/services/auth.ts": {
       "value": 52.57,

@@ -17,13 +17,6 @@
 #   • Fallback path if Mergify misbehaves or the OSS plan changes: the manual
 #     merge-train runbook (docs/ops/MERGE_TRAIN.md) — remove labels, proceed by hand.
 
-# Auto-enqueue (current Mergify model, 2026): auto_merge_conditions in
-# merge_protections_settings — the rules-based queue action / autoqueue path is
-# deprecated (EOL 2026-07-16). The owner-applied `queue` label IS the approval.
-merge_protections_settings:
-  auto_merge_conditions:
-    - label = queue
-
 queue_rules:
   - name: release
     # Any current or future release branch — the reason GitHub's native queue was
@@ -41,20 +34,14 @@ queue_rules:
     # is intentionally NOT a condition here: the owner-applied `queue` label IS the
     # approval in this repo's single-maintainer model (see governance header).
     merge_conditions:
-      # "Zero failures" — EXCEPT the advisory dast-smoke: it is continue-on-error by
-      # design and its GH-hosted CLI build hangs recurrently (drafts #7184/#7221 were
-      # dequeued solely by it). Any OTHER failure still blocks (anti-fail-open kept).
-      - or:
-          - "#check-failure=0"
-          - and:
-              - "#check-failure=1"
-              - check-failure=dast-smoke
+      - "#check-failure=0"
       - "#check-pending=0"
       - "#check-success>=1"
       - check-success=Merge integrity (changelog + generated skills)
-    # NO batching: 'Merge Queue Batch' requires a paid Mergify tier (live finding
-    # 2026-07-15 — the queue command fails with "Cannot use Merge Queue batch" on
-    # the free plan). Serial queue (1 PR at a time) still automates the train.
+    # Batching: validate up to 10 queued PRs together (the manual train's sweet spot);
+    # don't hold a lone PR hostage waiting for siblings.
+    batch_size: 10
+    batch_max_wait_time: 5 min
     # Squash keeps the one-commit-per-PR history the CHANGELOG reconciliation expects.
     merge_method: squash
 

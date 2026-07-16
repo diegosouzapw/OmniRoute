@@ -41,6 +41,7 @@ import {
   isSubscriptionQuotaText,
   buildSubscriptionQuotaFallback,
   buildWeeklyQuotaFallback,
+  buildSessionQuotaFallback,
 } from "./quotaTextCooldowns.ts";
 import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
 
@@ -1454,6 +1455,12 @@ export function checkFallbackError(
     }
     const weeklyResult = buildWeeklyQuotaFallback(errorStr);
     if (weeklyResult) return weeklyResult;
+    // Issue #7071 (session usage cap) is the same sibling gap as #3709 above —
+    // runs UNCONDITIONALLY for the same reason: apikey-category providers
+    // like ollama-cloud are excluded from the oauth-only shouldUseQuotaSignal
+    // gate.
+    const sessionResult = buildSessionQuotaFallback(errorStr);
+    if (sessionResult) return sessionResult;
 
     const quotaResetHintMs = parseRetryFromErrorText(errorStr);
     if (
