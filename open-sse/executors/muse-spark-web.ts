@@ -1,4 +1,5 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { Buffer } from "node:buffer";
 import WebSocket from "ws";
 
 import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
@@ -1347,8 +1348,36 @@ export class MuseSparkWebExecutor extends BaseExecutor {
 
     const prompt = cached ? parsedHistory.latestUserContent : parsedHistory.foldedPrompt;
     const cookieHeader = selectMetaAiCookieHeader(credentials);
+    const modelInfo = getMuseSparkModelInfo(model);
     const templateB64 = cached ? META_WS_CHAT_TEMPLATE_B64 : META_WS_HOME_TEMPLATE_B64;
 
+    // Step 1: GraphQL warmup initialises the conversation on Meta's side
+    const warmupResult = await graphqlPost(
+      META_AI_WARMUP_DOC_ID,
+      { conversationId: conversationContext.conversationId },
+      cookieHeader,
+      "Warmup"
+    );
+    if (!warmupResult.ok) {
+      evictContinuationIfNeeded(cached, continuationCacheKey);
+      log?.error?.("MUSE-SPARK-WEB", `Warmup failed: ${warmupResult.error}`);
+      return errorResult(502, warmupResult.error, "meta_ai_warmup_failed", {}, body);
+    }
+
+    // Step 2: GraphQL mode switch sets the conversation's reasoning level
+    const modeResult = await graphqlPost(
+      META_AI_MODE_SWITCH_DOC_ID,
+      { input: { conversationId: conversationContext.conversationId, mode: modelInfo.mode } },
+      cookieHeader,
+      "Mode switch"
+    );
+    if (!modeResult.ok) {
+      evictContinuationIfNeeded(cached, continuationCacheKey);
+      log?.error?.("MUSE-SPARK-WEB", `Mode switch failed: ${modeResult.error}`);
+      return errorResult(502, modeResult.error, "meta_ai_mode_switch_failed", {}, body);
+    }
+
+    // Step 3: Send message via WebSocket
     const wsResult = await wsChat(
       prompt,
       conversationContext.conversationId,
