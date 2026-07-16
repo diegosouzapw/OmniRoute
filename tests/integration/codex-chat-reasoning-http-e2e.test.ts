@@ -179,8 +179,9 @@ async function startRouteServer() {
       });
       await bridgeRouteResponse(await chatRoute.POST(request), outgoing);
     } catch (error) {
+      // Mock route bridge: surface the message, never the raw stack (js/stack-trace-exposure).
       outgoing.writeHead(500, { "content-type": "text/plain" });
-      outgoing.end(error instanceof Error ? error.stack : String(error));
+      outgoing.end(error instanceof Error ? error.message : String(error));
     }
   });
 
