@@ -160,7 +160,7 @@ export function collectCompactableArrays(
     while ((m = regex.exec(text)) !== null) pushIfCompactable(m[1].trim());
   };
   for (const msg of messages) {
-    if (msg.role === "system") continue;
+    if (msg.role === "system" || msg.role === "developer") continue;
     if (typeof msg.content === "string") scanText(msg.content);
     else if (Array.isArray(msg.content)) {
       for (const part of msg.content) {
@@ -218,8 +218,12 @@ export function crushMessages(
   let changed = false;
 
   const result = messages.map((msg): MessageLike => {
-    // Guard: never touch system messages
-    if (msg.role === "system") return { ...msg };
+    // Guard: never touch system messages. "developer" is the Responses-API equivalent of
+    // "system" used by newer models (e.g. Codex CLI, see open-sse/executors/codex.ts) and
+    // carries the same kind of instructions/tool-schema content — compacting a JSON array
+    // embedded there (e.g. an update_plan example) can corrupt the model's tool-calling
+    // instructions (9router#2132: broke Codex CLI plan mode).
+    if (msg.role === "system" || msg.role === "developer") return { ...msg };
 
     if (typeof msg.content === "string") {
       const crushed = crushText(msg.content, minRows);
