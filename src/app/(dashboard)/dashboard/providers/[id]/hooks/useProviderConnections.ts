@@ -26,7 +26,8 @@ import { useTranslations } from "next-intl";
 import { useNotificationStore } from "@/store/notificationStore";
 import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import type { ConnectionRowConnection } from "../components/ConnectionRow";
-import { normalizeCodexLimitPolicy, providerText } from "../providerPageHelpers";
+import { normalizeCodexLimitPolicy } from "../providerPageHelpers";
+import { useProviderQuotaVisibility } from "./useProviderQuotaVisibility";
 
 // Max connection ids accepted per bulk request — mirrors API-side cap.
 const MAX_BULK_IDS = 100;
@@ -128,6 +129,7 @@ export function useProviderConnections(
 
   // ── core state ──────────────────────────────────────────────────────────
   const [connections, setConnections] = useState<ConnectionRowConnection[]>([]);
+  const handleToggleQuotaVisibility = useProviderQuotaVisibility(setConnections, notify, t);
   const [providerNode, setProviderNode] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -357,36 +359,6 @@ export function useProviderConnections(
       }
     } catch (error) {
       console.error("Error toggling rate limit:", error);
-    }
-  };
-
-  const handleToggleQuotaVisibility = async (connectionId: string, visible: boolean) => {
-    try {
-      const res = await fetch(`/api/providers/${connectionId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quotaVisible: visible }),
-      });
-      if (!res.ok) {
-        notify.error(
-          providerText(
-            t,
-            "quotaVisibilityUpdateFailed",
-            "Failed to update Provider Quota visibility"
-          )
-        );
-        return;
-      }
-      setConnections((prev) =>
-        prev.map((connection) =>
-          connection.id === connectionId ? { ...connection, quotaVisible: visible } : connection
-        )
-      );
-    } catch (error) {
-      console.error("Error toggling provider quota visibility:", error);
-      notify.error(
-        providerText(t, "quotaVisibilityUpdateFailed", "Failed to update Provider Quota visibility")
-      );
     }
   };
 

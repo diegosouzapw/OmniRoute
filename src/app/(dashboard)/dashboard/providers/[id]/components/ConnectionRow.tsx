@@ -16,6 +16,7 @@ import {
   type CodexGlobalServiceMode,
 } from "@/lib/providers/codexFastTier";
 import { normalizeCodexLimitPolicy, providerText, ERROR_TYPE_LABELS } from "../providerPageHelpers";
+import ProviderQuotaVisibilityToggle from "./ProviderQuotaVisibilityToggle";
 
 // ---------------------------------------------------------------------------
 // Types (exported so the client can reference them without re-importing)
@@ -617,50 +618,10 @@ export default function ConnectionRow({
               {rateLimitEnabled ? t("rateLimitProtected") : t("rateLimitUnprotected")}
             </button>
             {onToggleQuotaVisibility && (
-              <>
-                <span className="text-text-muted/30 select-none">|</span>
-                <button
-                  type="button"
-                  onClick={() => onToggleQuotaVisibility(!quotaVisible)}
-                  aria-pressed={quotaVisible}
-                  aria-label={
-                    quotaVisible
-                      ? providerText(
-                          t,
-                          "hideConnectionFromProviderQuota",
-                          "Hide this account from Provider Quota"
-                        )
-                      : providerText(
-                          t,
-                          "showConnectionInProviderQuota",
-                          "Show this account in Provider Quota"
-                        )
-                  }
-                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
-                    quotaVisible
-                      ? "bg-sky-500/15 text-sky-500 hover:bg-sky-500/25"
-                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
-                  }`}
-                  title={
-                    quotaVisible
-                      ? providerText(
-                          t,
-                          "hideConnectionFromProviderQuota",
-                          "Hide this account from Provider Quota"
-                        )
-                      : providerText(
-                          t,
-                          "showConnectionInProviderQuota",
-                          "Show this account in Provider Quota"
-                        )
-                  }
-                >
-                  <span className="material-symbols-outlined text-[13px]">
-                    {quotaVisible ? "visibility" : "visibility_off"}
-                  </span>
-                  {providerText(t, "providerQuotaShort", "Quota")}
-                </button>
-              </>
+              <ProviderQuotaVisibilityToggle
+                visible={quotaVisible}
+                onToggle={onToggleQuotaVisibility}
+              />
             )}
             {isClaude && (
               <>
