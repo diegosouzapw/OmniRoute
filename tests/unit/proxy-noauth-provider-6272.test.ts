@@ -49,3 +49,24 @@ test("control: resolveProxyForConnection('noauth', ...) still honors the GLOBAL 
   assert.equal(resolved?.proxy?.host, "10.0.0.1");
   assert.equal(resolved?.level, "global");
 });
+
+test("resolveProxyForConnection keeps provider-level no-auth proxies isolated", async () => {
+  core.getDbInstance();
+  await settingsDb.deleteProxyForLevel("global", null);
+  await settingsDb.setProxyForLevel("provider", "mimocode", {
+    type: "http",
+    host: "127.0.0.2",
+    port: 8889,
+  });
+  await settingsDb.setProxyForLevel("provider", "theoldllm", {
+    type: "http",
+    host: "127.0.0.3",
+    port: 8890,
+  });
+
+  const mimocode = await settingsDb.resolveProxyForConnection("noauth", undefined, "mimocode");
+  const theOldLlm = await settingsDb.resolveProxyForConnection("noauth", undefined, "theoldllm");
+
+  assert.equal(mimocode?.proxy?.host, "127.0.0.2");
+  assert.equal(theOldLlm?.proxy?.host, "127.0.0.3");
+});

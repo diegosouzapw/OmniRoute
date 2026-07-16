@@ -88,23 +88,20 @@ export default function NoAuthProviderControls({
   );
 
   const accountProviderName = ACCOUNT_PROVIDER_NAMES[providerId];
+  const host = providerProxy?.host;
   const providerProxyControl = (
     <button
       type="button"
       onClick={onConfigureProviderProxy}
       className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-all ${
-        providerProxy?.host
+        host
           ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
-          : "bg-black/[0.03] text-text-muted/50 hover:bg-black/[0.06] hover:text-text-muted dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+          : "bg-black/3 text-text-muted/50 hover:bg-black/6 hover:text-text-muted dark:bg-white/3 dark:hover:bg-white/6"
       }`}
-      title={
-        providerProxy?.host
-          ? t("providerProxyTitleConfigured", { host: providerProxy.host })
-          : t("providerProxyConfigureHint")
-      }
+      title={host ? t("providerProxyTitleConfigured", { host }) : t("providerProxyConfigureHint")}
     >
       <span className="material-symbols-outlined text-[14px]">vpn_lock</span>
-      {providerProxy?.host || t("providerProxy")}
+      <span className="max-w-30 truncate">{host || t("providerProxy")}</span>
     </button>
   );
 

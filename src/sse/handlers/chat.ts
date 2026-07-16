@@ -1371,7 +1371,7 @@ async function handleSingleModelChat(
           refreshedCredentials
         );
       }
-      const proxyInfo = await safeResolveProxy(credentials.connectionId, apiKeyInfo?.id);
+      const proxyInfo = await safeResolveProxy(credentials.connectionId, apiKeyInfo?.id, provider);
       // #5217: sink for the proxy the executor pins internally (e.g. OpencodeExecutor
       // rotation) so the egress log below reflects the real egress, not "direct".
       const appliedProxySink: { proxy: unknown } = { proxy: null };
