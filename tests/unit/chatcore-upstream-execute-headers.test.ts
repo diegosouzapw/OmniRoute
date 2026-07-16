@@ -64,7 +64,40 @@ test("fast-mode header is NOT set for non-claude providers even with fast settin
 });
 
 test("returns a plain object (no per-model extra headers configured for unknown models)", () => {
-  const h = buildUpstreamHeadersForExecute({ ...base, modelToCall: "totally-unknown", effectiveModel: "x" });
+  const h = buildUpstreamHeadersForExecute({
+    ...base,
+    modelToCall: "totally-unknown",
+    effectiveModel: "x",
+  });
   assert.equal(typeof h, "object");
   assert.equal(h[CPA_FORCE_FAST_MODE_HEADER], undefined);
+});
+
+test("strict per-key cache mode disables OpenRouter response cache", () => {
+  const h = buildUpstreamHeadersForExecute({
+    ...base,
+    provider: "openrouter",
+    disableProviderCache: true,
+  });
+  assert.equal(h["X-OpenRouter-Cache"], "false");
+});
+
+test("strict per-key cache mode disables cache for an OpenRouter-backed dynamic node", () => {
+  const h = buildUpstreamHeadersForExecute({
+    ...base,
+    provider: "anthropic-compatible-node-id",
+    providerBaseUrl: "https://openrouter.ai/api/v1",
+    disableProviderCache: true,
+  });
+  assert.equal(h["X-OpenRouter-Cache"], "false");
+});
+
+test("explicit node cache strategy disables OpenRouter cache without relying on provider id", () => {
+  const h = buildUpstreamHeadersForExecute({
+    ...base,
+    provider: "custom-compatible-node",
+    providerCacheDisableStrategy: "openrouter_header",
+    disableProviderCache: true,
+  });
+  assert.equal(h["X-OpenRouter-Cache"], "false");
 });

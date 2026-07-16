@@ -100,9 +100,11 @@ function backfillQwenOAuthUser(
 async function injectPromptCacheKey(
   bodyToSend: Body,
   provider: string | null | undefined,
-  targetFormat: string
+  targetFormat: string,
+  disableProviderCache: boolean
 ): Promise<Body> {
   if (
+    !disableProviderCache &&
     targetFormat === FORMATS.OPENAI &&
     providerSupportsCaching(provider) &&
     !bodyToSend.prompt_cache_key &&
@@ -125,6 +127,7 @@ export async function prepareUpstreamBody(opts: {
   targetFormat: string;
   credentials: CredentialsLike;
   bypassDefaultToolLimit?: boolean;
+  disableProviderCache?: boolean;
   log?: LoggerLike;
 }): Promise<Body> {
   const {
@@ -134,6 +137,7 @@ export async function prepareUpstreamBody(opts: {
     targetFormat,
     credentials,
     bypassDefaultToolLimit = false,
+    disableProviderCache = false,
     log,
   } = opts;
 
@@ -162,7 +166,7 @@ export async function prepareUpstreamBody(opts: {
 
   bodyToSend = truncateToolList(bodyToSend, provider, bypassDefaultToolLimit ?? false, log);
   bodyToSend = backfillQwenOAuthUser(bodyToSend, provider, credentials, log);
-  bodyToSend = await injectPromptCacheKey(bodyToSend, provider, targetFormat);
+  bodyToSend = await injectPromptCacheKey(bodyToSend, provider, targetFormat, disableProviderCache);
 
   return bodyToSend;
 }

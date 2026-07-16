@@ -14,9 +14,8 @@ const core = await import("../../src/lib/db/core.ts");
 // Seeding the real cache (no mock.module under the Stryker tap-runner) lets us drive the
 // HIT branch deterministically: setCachedResponse populates the in-memory cache that
 // getCachedResponse checks first, so the signature checkSemanticCache rebuilds resolves.
-const { generateSignature, setCachedResponse, clearCache } = await import(
-  "../../src/lib/semanticCache.ts"
-);
+const { generateSignature, setCachedResponse, clearCache } =
+  await import("../../src/lib/semanticCache.ts");
 const { OMNIROUTE_RESPONSE_HEADERS } = await import("../../src/shared/constants/headers.ts");
 const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
 const { formatOmniRouteCost } = await import("../../src/domain/omnirouteResponseMeta.ts");
@@ -148,7 +147,11 @@ function makeHitArgs(overrides: Record<string, unknown> = {}) {
   const debugCalls: unknown[][] = [];
   const args = {
     semanticCacheEnabled: true,
-    body: { model: "gpt-4o", messages: [{ role: "user", content: "cached query" }], temperature: 0 },
+    body: {
+      model: "gpt-4o",
+      messages: [{ role: "user", content: "cached query" }],
+      temperature: 0,
+    },
     clientRawRequest: { headers: {} },
     model: "gpt-4o",
     provider: "openai",
@@ -198,7 +201,11 @@ test("checkSemanticCache returns a non-streaming JSON HIT with cache headers + l
     usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
   };
   const { args, persistCalls, convertedCalls, debugCalls } = makeHitArgs({
-    body: { model: "gpt-4o", messages: [{ role: "user", content: "hit query one" }], temperature: 0 },
+    body: {
+      model: "gpt-4o",
+      messages: [{ role: "user", content: "hit query one" }],
+      temperature: 0,
+    },
     stream: false,
   });
   seedHit(args, cached);
@@ -228,7 +235,34 @@ test("checkSemanticCache returns a non-streaming JSON HIT with cache headers + l
   assert.equal(logged.cacheSource, "semantic", "persisted cacheSource is 'semantic'");
   assert.deepEqual(logged.responseBody, cached, "persisted responseBody is the cached object");
   assert.deepEqual(logged.clientResponse, cached, "persisted clientResponse is the cached object");
-  assert.deepEqual(logged.tokens, cached.usage, "persisted tokens come from cached.usage");
+  assert.deepEqual(
+    logged.tokens,
+    {
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      total_tokens: 0,
+      input_tokens: 0,
+      output_tokens: 0,
+      cache_read_input_tokens: 0,
+      cache_creation_input_tokens: 0,
+      reasoning_tokens: 0,
+    },
+    "semantic HIT persists zero billable tokens"
+  );
+  assert.deepEqual(logged.semanticCacheUsageMeta, {
+    status: "hit",
+    isolationScope: "local",
+    scopeId: null,
+    avoidedUsage: cached.usage,
+  });
+  assert.deepEqual(logged.cacheResult, {
+    source: "semantic",
+    status: "hit",
+    scope: "local",
+    scopeId: null,
+    avoidedInputTokens: 10,
+    avoidedOutputTokens: 5,
+  });
   assert.equal(logged.providerRequest, null);
   assert.equal(logged.providerResponse, null);
 
@@ -251,7 +285,11 @@ test("checkSemanticCache returns a streaming SSE HIT (text/event-stream) when st
     usage: { prompt_tokens: 3, completion_tokens: 4, total_tokens: 7 },
   };
   const { args, persistCalls } = makeHitArgs({
-    body: { model: "gpt-4o", messages: [{ role: "user", content: "hit query stream" }], temperature: 0 },
+    body: {
+      model: "gpt-4o",
+      messages: [{ role: "user", content: "hit query stream" }],
+      temperature: 0,
+    },
     stream: true,
   });
   seedHit(args, cached);
@@ -279,7 +317,11 @@ test("checkSemanticCache HITs even when the cached body has no usage (cost falls
   const cached = {
     id: "chatcmpl-cached-no-usage",
     choices: [
-      { index: 0, message: { role: "assistant", content: "no-usage answer" }, finish_reason: "stop" },
+      {
+        index: 0,
+        message: { role: "assistant", content: "no-usage answer" },
+        finish_reason: "stop",
+      },
     ],
   };
   const { args, persistCalls } = makeHitArgs({
@@ -305,7 +347,16 @@ test("checkSemanticCache HITs even when the cached body has no usage (cost falls
     "no usage -> zero responseCost header"
   );
   assert.equal(persistCalls.length, 1);
-  assert.equal(persistCalls[0].tokens, undefined, "no usage -> persisted tokens is undefined");
+  assert.deepEqual(persistCalls[0].tokens, {
+    prompt_tokens: 0,
+    completion_tokens: 0,
+    total_tokens: 0,
+    input_tokens: 0,
+    output_tokens: 0,
+    cache_read_input_tokens: 0,
+    cache_creation_input_tokens: 0,
+    reasoning_tokens: 0,
+  });
 });
 
 // ─── Cache-HIT cost reporting (PRD-2026-06-19-cache-hit-cost-reporting) ───────
@@ -388,7 +439,18 @@ test("checkSemanticCache isolates HITs per apiKeyId (no cross-key cache sharing)
   assert.equal(missB, null, "keyB must NOT resolve keyA's cached entry (per-key isolation)");
 
   // keyA itself still gets a HIT.
-  const { args: argsA2 } = makeHitArgs({ body: sharedBody(), apiKeyId: "keyA" });
+  const { args: argsA2, persistCalls: persistCallsA } = makeHitArgs({
+    body: sharedBody(),
+    apiKeyId: "keyA",
+  });
   const hitA = await checkSemanticCache(argsA2 as Parameters<typeof checkSemanticCache>[0]);
   assert.ok(hitA, "keyA must resolve its own cached entry");
+  assert.deepEqual(persistCallsA[0].cacheResult, {
+    source: "semantic",
+    status: "hit",
+    scope: "api_key",
+    scopeId: "keyA",
+    avoidedInputTokens: 5,
+    avoidedOutputTokens: 5,
+  });
 });

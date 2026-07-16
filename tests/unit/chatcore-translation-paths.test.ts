@@ -1214,6 +1214,43 @@ test("chatCore logs chat completions endpoint as OpenAI protocol", async () => {
   assert.equal(logEntry.sourceFormat, FORMATS.OPENAI);
 });
 
+test("cache:isolated API keys strip provider cache hints and disable OpenRouter response cache", async () => {
+  const { call, result } = await invokeChatCore({
+    provider: "openrouter",
+    model: "openai/gpt-4o-mini",
+    endpoint: "/v1/chat/completions",
+    apiKeyInfo: {
+      id: "smartpack-key-1",
+      name: "Smartpack key",
+      scopes: ["self:usage", "cache:isolated"],
+    },
+    body: {
+      model: "openrouter/openai/gpt-4o-mini",
+      stream: false,
+      temperature: 0.7,
+      prompt_cache_key: "client-controlled-shared-namespace",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "strict cache isolation",
+              cache_control: { type: "ephemeral" },
+            },
+          ],
+        },
+      ],
+    },
+    responseFormat: "openai",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(call.headers["X-OpenRouter-Cache"], "false");
+  assert.equal(JSON.stringify(call.body).includes("prompt_cache_key"), false);
+  assert.equal(JSON.stringify(call.body).includes("cache_control"), false);
+});
+
 test("chatCore surfaces translation errors with explicit status codes", async () => {
   register(
     FORMATS.OPENAI_RESPONSES,
@@ -1604,6 +1641,21 @@ test("chatCore returns a semantic cache HIT for repeated deterministic requests"
   });
   assert.ok(semanticLog, "expected semantic cache HIT to be persisted in call logs");
   assert.equal(semanticLog.cacheSource, "semantic");
+  assert.equal(semanticLog.contractVersion, 1);
+  assert.deepEqual(semanticLog.tokens, {
+    in: 0,
+    out: 0,
+    cacheRead: 0,
+    cacheWrite: 0,
+    reasoning: 0,
+    compressed: null,
+  });
+  assert.equal(semanticLog.cacheResult.source, "semantic");
+  assert.equal(semanticLog.cacheResult.status, "hit");
+  assert.equal(semanticLog.cacheResult.scope, "local");
+  assert.equal(semanticLog.cacheResult.scopeId, null);
+  assert.ok(semanticLog.cacheResult.avoidedInputTokens >= 4);
+  assert.equal(semanticLog.cacheResult.avoidedOutputTokens, 2);
   assert.equal(semanticLog.path, "/v1/chat/completions");
   assert.equal(semanticLog.status, 200);
 });

@@ -307,6 +307,7 @@ import { generateRequestId } from "@/shared/utils/requestId";
 import { extractFacts } from "@/lib/memory/extraction";
 import { handleToolCallExecution } from "@/lib/skills/interception";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
+import { hasIsolatedCacheScope } from "@/shared/constants/selfServiceScopes";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import {
   buildClaudeCodeCompatibleRequest,
@@ -755,6 +756,8 @@ export async function handleChatCore({
   const noLogEnabled = apiKeyInfo?.noLog === true;
   // Consolidate settings reads — fetch once, reuse throughout the request
   const settings = cachedSettings ?? (await getCachedSettings());
+  const disableProviderCache =
+    settings.promptCacheEnabled === false || hasIsolatedCacheScope(apiKeyInfo?.scopes);
   // Opt-in tool-source diagnostics (#1825): summarize the request's tool definitions
   // (count + MCP/hosted/client source breakdown + first names) as a single debug line.
   if (settings.logToolSources === true) {
@@ -841,6 +844,18 @@ export async function handleChatCore({
     typeof credentials.providerSpecificData.customUserAgent === "string"
       ? credentials.providerSpecificData.customUserAgent.trim()
       : "";
+  const providerBaseUrl =
+    credentials?.providerSpecificData &&
+    typeof credentials.providerSpecificData === "object" &&
+    typeof credentials.providerSpecificData.baseUrl === "string"
+      ? credentials.providerSpecificData.baseUrl.trim()
+      : "";
+  const providerCacheDisableStrategy =
+    credentials?.providerSpecificData &&
+    typeof credentials.providerSpecificData === "object" &&
+    typeof credentials.providerSpecificData.providerCacheDisableStrategy === "string"
+      ? credentials.providerSpecificData.providerCacheDisableStrategy.trim()
+      : "";
 
   // Upstream extra-header building extracted to chatCore/upstreamExecuteHeaders.ts (#3501); bind the
   // per-request inputs once and delegate so the existing call sites stay byte-identical.
@@ -854,6 +869,9 @@ export async function handleChatCore({
       sourceFormat,
       connectionCustomUserAgent,
       settings,
+      disableProviderCache,
+      providerBaseUrl,
+      providerCacheDisableStrategy,
     });
 
   // Default to false unless client explicitly sets stream: true (OpenAI spec compliant)
@@ -1650,14 +1668,16 @@ export async function handleChatCore({
   // Determine if we should preserve client-side cache_control headers
   // Fetch settings from DB to get user preference
   const cacheControlMode = await getCacheControlSettings().catch(() => "auto" as const);
-  const preserveCacheControl = shouldPreserveCacheControl({
-    userAgent,
-    isCombo,
-    comboStrategy,
-    targetProvider: provider,
-    targetFormat,
-    settings: { alwaysPreserveClientCache: cacheControlMode },
-  });
+  const preserveCacheControl =
+    !disableProviderCache &&
+    shouldPreserveCacheControl({
+      userAgent,
+      isCombo,
+      comboStrategy,
+      targetProvider: provider,
+      targetFormat,
+      settings: { alwaysPreserveClientCache: cacheControlMode },
+    });
 
   if (preserveCacheControl) {
     log?.debug?.(
@@ -2284,6 +2304,7 @@ export async function handleChatCore({
         credentials,
         log,
         bypassDefaultToolLimit: isOpencodeClient,
+        disableProviderCache,
       });
 
       updatePendingScope(pendingScope, {
@@ -2384,6 +2405,7 @@ export async function handleChatCore({
                           onCredentialsRefreshed,
                           skipUpstreamRetry,
                           contextEditing: { enabled: contextEditingEnabled },
+                          disableProviderCache,
                         })
                       ),
                   });
@@ -2630,6 +2652,7 @@ export async function handleChatCore({
                               onCredentialsRefreshed,
                               skipUpstreamRetry,
                               contextEditing: { enabled: contextEditingEnabled },
+                              disableProviderCache,
                             })
                           ),
                       });
@@ -3125,6 +3148,7 @@ export async function handleChatCore({
             onCredentialsRefreshed,
             skipUpstreamRetry: isCombo,
             contextEditing: { enabled: contextEditingEnabled },
+            disableProviderCache,
           })
         );
 
@@ -3339,7 +3363,13 @@ export async function handleChatCore({
           // otherwise degenerate into a 429 rate-limit storm). Connection stays
           // active since only the specific model is unavailable. (#6827)
           const notFoundCooldownMs = COOLDOWN_MS.notFound;
-          lockModel(provider, errorConnectionId, currentModel, "model_not_found", notFoundCooldownMs);
+          lockModel(
+            provider,
+            errorConnectionId,
+            currentModel,
+            "model_not_found",
+            notFoundCooldownMs
+          );
           console.warn(
             `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
           );

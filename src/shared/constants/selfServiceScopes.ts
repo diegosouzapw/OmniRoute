@@ -1,5 +1,6 @@
 export const SELF_USAGE_SCOPE = "self:usage";
 export const SELF_ACCOUNT_QUOTA_SCOPE = "self:account-quota";
+export const ISOLATED_CACHE_SCOPE = "cache:isolated";
 
 export const DEFAULT_SELF_SERVICE_SCOPES = [SELF_USAGE_SCOPE] as const;
 
@@ -9,6 +10,10 @@ export function hasSelfUsageScope(scopes: readonly string[] | null | undefined):
 
 export function hasSelfAccountQuotaScope(scopes: readonly string[] | null | undefined): boolean {
   return Array.isArray(scopes) && scopes.includes(SELF_ACCOUNT_QUOTA_SCOPE);
+}
+
+export function hasIsolatedCacheScope(scopes: readonly string[] | null | undefined): boolean {
+  return Array.isArray(scopes) && scopes.includes(ISOLATED_CACHE_SCOPE);
 }
 
 export function normalizeSelfServiceScopesForCreate(

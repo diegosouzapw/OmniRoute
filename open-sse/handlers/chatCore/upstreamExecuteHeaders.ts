@@ -11,7 +11,10 @@
 
 import { getModelUpstreamExtraHeaders } from "@/lib/db/models";
 import { resolveModelAlias } from "../../services/modelDeprecation.ts";
-import { CPA_FORCE_FAST_MODE_HEADER, shouldRequestClaudeFastMode } from "@/lib/providers/claudeFastMode";
+import {
+  CPA_FORCE_FAST_MODE_HEADER,
+  shouldRequestClaudeFastMode,
+} from "@/lib/providers/claudeFastMode";
 
 export function buildUpstreamHeadersForExecute(opts: {
   modelToCall: string;
@@ -22,6 +25,9 @@ export function buildUpstreamHeadersForExecute(opts: {
   sourceFormat: string;
   connectionCustomUserAgent: string;
   settings: unknown;
+  disableProviderCache?: boolean;
+  providerBaseUrl?: string;
+  providerCacheDisableStrategy?: string;
 }): Record<string, string> {
   const {
     modelToCall,
@@ -32,6 +38,9 @@ export function buildUpstreamHeadersForExecute(opts: {
     sourceFormat,
     connectionCustomUserAgent,
     settings,
+    disableProviderCache = false,
+    providerBaseUrl = "",
+    providerCacheDisableStrategy = "",
   } = opts;
 
   const upstreamHeaders: Record<string, string> =
@@ -53,6 +62,27 @@ export function buildUpstreamHeadersForExecute(opts: {
     if ("user-agent" in upstreamHeaders) {
       upstreamHeaders["user-agent"] = connectionCustomUserAgent;
     }
+  }
+
+  const isOpenRouterBacked =
+    provider === "openrouter" ||
+    providerCacheDisableStrategy === "openrouter_header" ||
+    (() => {
+      try {
+        const hostname = new URL(providerBaseUrl).hostname.toLowerCase();
+        return hostname === "openrouter.ai" || hostname.endsWith(".openrouter.ai");
+      } catch {
+        return false;
+      }
+    })();
+
+  if (disableProviderCache && isOpenRouterBacked) {
+    for (const headerName of Object.keys(upstreamHeaders)) {
+      if (headerName.toLowerCase() === "x-openrouter-cache") {
+        delete upstreamHeaders[headerName];
+      }
+    }
+    upstreamHeaders["X-OpenRouter-Cache"] = "false";
   }
 
   // Claude Fast Mode opt-in. When enabled in Settings > AI AND the target provider is the canonical

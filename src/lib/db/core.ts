@@ -325,6 +325,15 @@ const SCHEMA_SQL = `
     tokens_reasoning INTEGER DEFAULT NULL,
     tokens_compressed INTEGER DEFAULT NULL,
     cache_source TEXT DEFAULT "upstream",
+    cache_status TEXT DEFAULT NULL,
+    cache_scope TEXT DEFAULT NULL,
+    cache_scope_id TEXT DEFAULT NULL,
+    cache_avoided_input_tokens INTEGER DEFAULT NULL,
+    cache_avoided_output_tokens INTEGER DEFAULT NULL,
+    billing_contract_version INTEGER NOT NULL DEFAULT 1,
+    routed_model_id TEXT DEFAULT NULL,
+    provider_model_id TEXT DEFAULT NULL,
+    billing_model_id TEXT DEFAULT NULL,
     request_type TEXT,
     source_format TEXT,
     target_format TEXT,
@@ -1028,8 +1037,7 @@ export function getDbInstance(): SqliteDatabase {
         let hasData = false;
         try {
           const count = probe.prepare("SELECT COUNT(*) as c FROM provider_connections").get() as
-            | { c: number }
-            | undefined;
+            { c: number } | undefined;
           hasData = Boolean(count && count.c > 0);
         } catch {
           // Table might not exist at all — truly incompatible
@@ -1083,7 +1091,11 @@ export function getDbInstance(): SqliteDatabase {
       // V8 heap (sql.js loads the whole file into WASM memory). Throwing
       // immediately gives the user a clear "increase --max-old-space-size"
       // signal instead of silently renaming a perfectly good DB.
-      if (/out of memory|allocation failure|Array buffer allocation failed|allocation failed/i.test(message)) {
+      if (
+        /out of memory|allocation failure|Array buffer allocation failed|allocation failed/i.test(
+          message
+        )
+      ) {
         // Cycle-breaker (#6835): the OOM path never renames the file away,
         // so it never trips the generic probe-failed/restore cap above. Cap
         // it independently after 3 consecutive OOM failures (same threshold

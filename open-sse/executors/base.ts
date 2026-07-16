@@ -92,6 +92,7 @@ export {
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
 import { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
+import { stripProviderCacheControls } from "../utils/providerCacheIsolation.ts";
 // Reasoning-effort sanitation extracted to a pure leaf; re-exported for external
 // importers (mimoThinking service + tests) that import it from "./base.ts".
 export { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
@@ -174,6 +175,8 @@ export type ExecuteInput = {
    * `context_management.clear_tool_uses` strategy so the provider clears stale
    * tool-use blocks server-side. Honored only on the genuine `claude` path. */
   contextEditing?: { enabled: boolean } | null;
+  /** Strip provider-side prompt-cache hints from the final upstream payload. */
+  disableProviderCache?: boolean;
 };
 
 export type CountTokensInput = {
@@ -580,6 +583,7 @@ export class BaseExecutor {
       skipUpstreamRetry = false,
       onCredentialsRefreshed,
       contextEditing,
+      disableProviderCache = false,
     } = input;
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
@@ -1157,6 +1161,10 @@ export class BaseExecutor {
             "CONTEXT_EDITING",
             "Delegated context editing on — attached clear_tool_uses to the Claude request"
           );
+        }
+
+        if (disableProviderCache) {
+          transformedBody = stripProviderCacheControls(transformedBody);
         }
 
         let bodyString = JSON.stringify(transformedBody);

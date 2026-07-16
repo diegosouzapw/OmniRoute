@@ -13,6 +13,7 @@
 import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { logAuditEvent } from "@/lib/compliance";
 import { saveCallLog } from "@/lib/usageDb";
+import { hasIsolatedCacheScope } from "@/shared/constants/selfServiceScopes";
 import { cloneBoundedChatLogPayload, truncateForLog } from "./logTruncation.ts";
 import { attachLogMeta } from "./cacheUsageMeta.ts";
 
@@ -26,7 +27,18 @@ export type PersistAttemptLogsArgs = {
   clientResponse?: unknown;
   claudeCacheMeta?: Record<string, unknown>;
   claudeCacheUsageMeta?: Record<string, unknown>;
+  semanticCacheUsageMeta?: Record<string, unknown>;
   cacheSource?: "upstream" | "semantic";
+  cacheResult?: {
+    source: string;
+    status: string;
+    scope: string;
+    scopeId: string | null;
+    avoidedInputTokens: number;
+    avoidedOutputTokens: number;
+  };
+  routedModelId?: string | null;
+  billingModelId?: string | null;
 };
 
 export type PersistAttemptLogsContext = {
@@ -48,7 +60,14 @@ export type PersistAttemptLogsContext = {
   comboStepId: unknown;
   comboExecutionKey: unknown;
   tokensCompressed: unknown;
-  apiKeyInfo: { id?: string | null; name?: string | null } | null | undefined;
+  apiKeyInfo:
+    | {
+        id?: string | null;
+        name?: string | null;
+        scopes?: string[] | null;
+      }
+    | null
+    | undefined;
   noLogEnabled: unknown;
   correlationId?: string | null;
   modelPinned?: boolean;
@@ -56,6 +75,39 @@ export type PersistAttemptLogsContext = {
 
 function toConnectionId(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function toNonEmptyString(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function extractObservedProviderModelId(...values: unknown[]): string | null {
+  const seen = new WeakSet<object>();
+  const visit = (value: unknown, depth: number): string | null => {
+    if (!value || typeof value !== "object" || depth > 5) return null;
+    if (seen.has(value as object)) return null;
+    seen.add(value as object);
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const found = visit(item, depth + 1);
+        if (found) return found;
+      }
+      return null;
+    }
+    const record = value as Record<string, unknown>;
+    const direct = toNonEmptyString(record.model);
+    if (direct) return direct;
+    for (const key of ["response", "data", "summary", "message", "providerResponse"]) {
+      const found = visit(record[key], depth + 1);
+      if (found) return found;
+    }
+    return null;
+  };
+  for (const value of values) {
+    const found = visit(value, 0);
+    if (found) return found;
+  }
+  return null;
 }
 
 function buildAccountRotationMeta(
@@ -85,7 +137,11 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     clientResponse,
     claudeCacheMeta,
     claudeCacheUsageMeta,
+    semanticCacheUsageMeta,
     cacheSource,
+    cacheResult,
+    routedModelId,
+    billingModelId,
   } = args;
   const {
     provider,
@@ -190,6 +246,7 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
             }
           : null,
         claudePromptCacheUsage: claudeCacheUsageMeta,
+        semanticCache: semanticCacheUsageMeta,
       })
     ),
     error: error || null,
@@ -200,6 +257,11 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     comboExecutionKey,
     tokensCompressed,
     cacheSource: cacheSource === "semantic" ? "semantic" : "upstream",
+    cacheResult,
+    billingContractVersion: hasIsolatedCacheScope(apiKeyInfo?.scopes) ? 2 : 1,
+    routedModelId: routedModelId ?? null,
+    providerModelId: extractObservedProviderModelId(providerResponse, responseBody),
+    billingModelId: billingModelId ?? null,
     apiKeyId: apiKeyInfo?.id || null,
     apiKeyName: apiKeyInfo?.name || null,
     noLog: noLogEnabled,

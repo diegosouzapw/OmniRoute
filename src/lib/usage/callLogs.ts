@@ -71,6 +71,15 @@ type CallLogSummaryRow = {
   tokens_reasoning: number | null;
   tokens_compressed: number | null;
   cache_source: string | null;
+  cache_status: string | null;
+  cache_scope: string | null;
+  cache_scope_id: string | null;
+  cache_avoided_input_tokens: number | null;
+  cache_avoided_output_tokens: number | null;
+  billing_contract_version: number | null;
+  routed_model_id: string | null;
+  provider_model_id: string | null;
+  billing_model_id: string | null;
   request_type: string | null;
   source_format: string | null;
   target_format: string | null;
@@ -170,6 +179,21 @@ function applyNodePrefix(
     return nodePrefix + "/" + requestedModel.slice(provider.length + 1);
   }
   return requestedModel;
+}
+
+function billingComponents(row: CallLogSummaryRow) {
+  const cacheRead = Math.max(0, toNumber(row.tokens_cache_read));
+  const cacheWrite = Math.max(0, toNumber(row.tokens_cache_creation));
+  const reasoning = Math.max(0, toNumber(row.tokens_reasoning));
+  const inputUncached = Math.max(0, toNumber(row.tokens_in) - cacheRead - cacheWrite);
+  const output = Math.max(0, toNumber(row.tokens_out) - reasoning);
+  return [
+    { type: "input_uncached", quantity: inputUncached, cacheTtlSeconds: null },
+    { type: "output", quantity: output, cacheTtlSeconds: null },
+    { type: "reasoning", quantity: reasoning, cacheTtlSeconds: null },
+    { type: "cache_read", quantity: cacheRead, cacheTtlSeconds: null },
+    { type: "cache_write", quantity: cacheWrite, cacheTtlSeconds: 300 },
+  ].filter((component) => component.quantity > 0);
 }
 function buildArtifact(
   logEntry: {
@@ -475,14 +499,54 @@ function mapSummaryRow(row: CallLogSummaryRow) {
   const detailState = normalizeDetailState(row.detail_state);
   const provider = row.provider;
   const nodePrefix = row.provider_node_prefix ?? null;
+  const requestedModel = applyNodePrefix(row.requested_model, provider, nodePrefix);
+  const contractVersion = row.billing_contract_version === 2 ? 2 : 1;
+  const cacheRead = Math.max(0, toNumber(row.tokens_cache_read));
+  const cacheWrite = Math.max(0, toNumber(row.tokens_cache_creation));
+  const hasCacheResult = Boolean(row.cache_status) || row.cache_source === "semantic";
+  const cacheResult = hasCacheResult
+    ? {
+        source: row.cache_source === "semantic" ? "semantic" : "provider_prompt",
+        status: row.cache_status || "hit",
+        scope: row.cache_scope || (row.api_key_id ? "api_key" : "none"),
+        scopeId: row.cache_scope_id || row.api_key_id || null,
+        avoidedInputTokens: toNumber(row.cache_avoided_input_tokens),
+        avoidedOutputTokens: toNumber(row.cache_avoided_output_tokens),
+      }
+    : contractVersion === 2
+      ? cacheRead > 0 || cacheWrite > 0
+        ? {
+            source: "provider_prompt",
+            status: cacheRead > 0 ? "hit" : "write",
+            // An unexpected implicit provider cache is shared by the upstream
+            // credential until the provider proves a downstream-key namespace.
+            // ai-service must quarantine this scope instead of charging it.
+            scope: "upstream_credential",
+            scopeId: row.connection_id,
+            avoidedInputTokens: 0,
+            avoidedOutputTokens: 0,
+          }
+        : {
+            source: "none",
+            status: "miss",
+            scope: "api_key",
+            scopeId: row.api_key_id,
+            avoidedInputTokens: 0,
+            avoidedOutputTokens: 0,
+          }
+      : null;
   return {
+    contractVersion,
     id: row.id,
     timestamp: row.timestamp,
     method: row.method,
     path: row.path,
     status: toNumber(row.status),
     model: row.model,
-    requestedModel: applyNodePrefix(row.requested_model, provider, nodePrefix),
+    requestedModel,
+    routedModelId: row.routed_model_id || requestedModel,
+    providerModelId: row.provider_model_id,
+    billingModelId: row.billing_model_id,
     provider,
     account: row.resolved_account || row.account,
     connectionId: row.connection_id,
@@ -496,6 +560,8 @@ function mapSummaryRow(row: CallLogSummaryRow) {
       compressed: row.tokens_compressed != null ? toNumber(row.tokens_compressed) : null,
     },
     cacheSource: row.cache_source || "upstream",
+    cacheResult,
+    billingComponents: contractVersion === 2 ? billingComponents(row) : null,
     requestType: row.request_type,
     sourceFormat: row.source_format,
     targetFormat: row.target_format,
@@ -593,6 +659,22 @@ export async function saveCallLog(entry: any) {
       reasoningChars: reasoningObservation.chars,
       tokensCompressed: entry.tokensCompressed != null ? toNumber(entry.tokensCompressed) : null,
       cacheSource: entry.cacheSource === "semantic" ? "semantic" : "upstream",
+      cacheStatus: toStringOrNull(entry.cacheResult?.status),
+      cacheScope: toStringOrNull(entry.cacheResult?.scope),
+      cacheScopeId: toStringOrNull(entry.cacheResult?.scopeId),
+      cacheAvoidedInputTokens: entry.cacheResult
+        ? toNumber(entry.cacheResult.avoidedInputTokens)
+        : null,
+      cacheAvoidedOutputTokens: entry.cacheResult
+        ? toNumber(entry.cacheResult.avoidedOutputTokens)
+        : null,
+      billingContractVersion: entry.billingContractVersion === 2 ? 2 : 1,
+      routedModelId:
+        toStringOrNull(entry.routedModelId) ||
+        resolvedRequestedModel ||
+        toStringOrNull(entry.model),
+      providerModelId: toStringOrNull(entry.providerModelId),
+      billingModelId: toStringOrNull(entry.billingModelId),
       requestType: entry.requestType || null,
       sourceFormat: entry.sourceFormat || null,
       targetFormat: entry.targetFormat || null,
@@ -648,7 +730,10 @@ export async function saveCallLog(entry: any) {
         account, connection_id, duration, tokens_in, tokens_out,
         tokens_cache_read, tokens_cache_creation, tokens_reasoning, tokens_compressed,
         reasoning_source, reasoning_chars,
-        cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
+        cache_source, cache_status, cache_scope, cache_scope_id,
+        cache_avoided_input_tokens, cache_avoided_output_tokens,
+        billing_contract_version, routed_model_id, provider_model_id, billing_model_id,
+        request_type, source_format, target_format, api_key_id, api_key_name,
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary,
@@ -659,12 +744,69 @@ export async function saveCallLog(entry: any) {
         @account, @connectionId, @duration, @tokensIn, @tokensOut,
         @tokensCacheRead, @tokensCacheCreation, @tokensReasoning, @tokensCompressed,
         @reasoningSource, @reasoningChars,
-        @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
+        @cacheSource, @cacheStatus, @cacheScope, @cacheScopeId,
+        @cacheAvoidedInputTokens, @cacheAvoidedOutputTokens,
+        @billingContractVersion, @routedModelId, @providerModelId, @billingModelId,
+        @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
         @correlationId, @modelPinned
       )
+      ON CONFLICT(id) DO UPDATE SET
+        method = excluded.method,
+        path = excluded.path,
+        status = excluded.status,
+        model = excluded.model,
+        requested_model = excluded.requested_model,
+        provider = excluded.provider,
+        account = excluded.account,
+        connection_id = excluded.connection_id,
+        duration = excluded.duration,
+        tokens_in = excluded.tokens_in,
+        tokens_out = excluded.tokens_out,
+        tokens_cache_read = excluded.tokens_cache_read,
+        tokens_cache_creation = excluded.tokens_cache_creation,
+        tokens_reasoning = excluded.tokens_reasoning,
+        tokens_compressed = excluded.tokens_compressed,
+        reasoning_source = excluded.reasoning_source,
+        reasoning_chars = excluded.reasoning_chars,
+        cache_source = excluded.cache_source,
+        cache_status = excluded.cache_status,
+        cache_scope = excluded.cache_scope,
+        cache_scope_id = excluded.cache_scope_id,
+        cache_avoided_input_tokens = excluded.cache_avoided_input_tokens,
+        cache_avoided_output_tokens = excluded.cache_avoided_output_tokens,
+        billing_contract_version = excluded.billing_contract_version,
+        routed_model_id = excluded.routed_model_id,
+        provider_model_id = excluded.provider_model_id,
+        billing_model_id = excluded.billing_model_id,
+        request_type = excluded.request_type,
+        source_format = excluded.source_format,
+        target_format = excluded.target_format,
+        api_key_id = excluded.api_key_id,
+        api_key_name = excluded.api_key_name,
+        combo_name = excluded.combo_name,
+        combo_step_id = excluded.combo_step_id,
+        combo_execution_key = excluded.combo_execution_key,
+        error_summary = excluded.error_summary,
+        detail_state = excluded.detail_state,
+        artifact_relpath = excluded.artifact_relpath,
+        artifact_size_bytes = excluded.artifact_size_bytes,
+        artifact_sha256 = excluded.artifact_sha256,
+        has_request_body = excluded.has_request_body,
+        has_response_body = excluded.has_response_body,
+        has_pipeline_details = excluded.has_pipeline_details,
+        request_summary = excluded.request_summary,
+        correlation_id = excluded.correlation_id,
+        model_pinned = excluded.model_pinned
+      WHERE excluded.duration > call_logs.duration
+         OR (
+           excluded.duration = call_logs.duration
+           AND excluded.status >= 200
+           AND excluded.status < 400
+           AND (call_logs.status < 200 OR call_logs.status >= 400)
+         )
     `
     ).run({
       ...logEntry,

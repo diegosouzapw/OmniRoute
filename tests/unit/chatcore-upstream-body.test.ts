@@ -135,3 +135,15 @@ test("never injects prompt_cache_key when the target format is not OpenAI", asyn
   });
   assert.equal(out.prompt_cache_key, undefined);
 });
+
+test("strict per-key cache mode does not inject prompt_cache_key", async () => {
+  const out = await prepareUpstreamBody({
+    translatedBody: { model: "gpt-4o", messages: [{ role: "user", content: "hi" }] },
+    modelToCall: "gpt-4o",
+    provider: "openai",
+    targetFormat: "openai",
+    credentials: null,
+    disableProviderCache: true,
+  });
+  assert.equal(out.prompt_cache_key, undefined);
+});
