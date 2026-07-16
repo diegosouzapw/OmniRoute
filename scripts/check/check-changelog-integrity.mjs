@@ -26,12 +26,15 @@
 //     env ALLOW_CHANGELOG_REMOVALS=1  report-only (never fails)
 
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const CHANGELOG = "CHANGELOG.md";
+const FRAGMENTS_DIR = "changelog.d";
+const FRAGMENT_SECTIONS = ["features", "fixes", "maintenance"];
+const FRAGMENT_SKIP = new Set(["README.md", ".gitkeep"]);
 
 /** Extract the set of bullet lines (trimmed) from a CHANGELOG text. */
 export function extractBullets(text) {
@@ -56,6 +59,49 @@ export function findLostBullets(baseText, headText) {
   return lost;
 }
 
+/**
+ * Validate changelog FRAGMENTS (changelog.d/<section>/*.md — see changelog.d/README.md).
+ * A fragment must be a well-formed markdown bullet ("- ...") with no merge-conflict
+ * markers, and must live in a known section dir. Returns [{file, error}]. Pure over
+ * the filesystem — unit-tested via a tmp root.
+ */
+export function findInvalidFragments(root = ROOT) {
+  const invalid = [];
+  const base = join(root, FRAGMENTS_DIR);
+  if (!existsSync(base)) return invalid;
+  const entries = readdirSync(base, { withFileTypes: true });
+  for (const entry of entries) {
+    if (entry.isFile()) {
+      if (!FRAGMENT_SKIP.has(entry.name)) {
+        invalid.push({
+          file: `${FRAGMENTS_DIR}/${entry.name}`,
+          error: `fragments live in a section dir (${FRAGMENT_SECTIONS.join("|")}), not at changelog.d root`,
+        });
+      }
+      continue;
+    }
+    if (!FRAGMENT_SECTIONS.includes(entry.name)) {
+      invalid.push({
+        file: `${FRAGMENTS_DIR}/${entry.name}/`,
+        error: `unknown section dir (expected ${FRAGMENT_SECTIONS.join("|")})`,
+      });
+      continue;
+    }
+    for (const f of readdirSync(join(base, entry.name))) {
+      if (FRAGMENT_SKIP.has(f) || !f.endsWith(".md")) continue;
+      const file = `${FRAGMENTS_DIR}/${entry.name}/${f}`;
+      const text = readFileSync(join(base, entry.name, f), "utf8");
+      const firstContent = text.split("\n").find((l) => l.trim().length > 0);
+      if (!firstContent) invalid.push({ file, error: "empty fragment" });
+      else if (!firstContent.trimStart().startsWith("- "))
+        invalid.push({ file, error: 'fragment must start with a markdown bullet ("- ")' });
+      else if (/^(<{7}|={7}|>{7})/m.test(text))
+        invalid.push({ file, error: "fragment contains merge-conflict markers" });
+    }
+  }
+  return invalid;
+}
+
 function git(args) {
   return execFileSync("git", args, { cwd: ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
 }
@@ -77,6 +123,16 @@ function resolveBaseRef() {
 }
 
 function main() {
+  // Fragment well-formedness first (changelog.d/ — the fragments pattern makes the
+  // eat-guard below structurally unnecessary for PRs that stop editing CHANGELOG.md).
+  const invalidFragments = findInvalidFragments();
+  if (invalidFragments.length > 0) {
+    console.error(`[changelog-integrity] ${invalidFragments.length} invalid changelog fragment(s):`);
+    for (const { file, error } of invalidFragments) console.error(`  ✗ ${file}: ${error}`);
+    console.error("\nSee changelog.d/README.md for the fragment convention.");
+    return 1;
+  }
+
   const baseRef = resolveBaseRef();
   if (!baseRef) {
     console.log("[changelog-integrity] SKIP — could not resolve a base ref (offline/fresh clone).");

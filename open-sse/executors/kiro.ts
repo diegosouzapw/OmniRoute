@@ -9,11 +9,17 @@ import { PROVIDERS } from "../config/constants.ts";
 import { v4 as uuidv4 } from "uuid";
 import { refreshKiroToken } from "../services/tokenRefresh.ts";
 import {
+  isExternalIdpAuthMethod,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER,
+  KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE,
+} from "../services/kiroExternalIdp.ts";
+import {
   splitInlineThinking,
   flushPendingThinking,
   type KiroThinkingState,
 } from "./kiroThinking.ts";
 import { ByteQueue, TEXT_ENCODER, parseEventFrame } from "./kiro/eventstream.ts";
+import { kiroRuntimeHost, resolveKiroRuntimeRegion } from "../services/kiroRegion.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -147,35 +153,28 @@ function ensureKiroUsage(state: KiroStreamState) {
 }
 
 /**
- * Resolve the AWS region for a Kiro/CodeWhisperer connection. Enterprise AWS IAM Identity
- * Center accounts are region-bound: the access token, the Q Developer profile ARN and the
- * runtime endpoint must all match the region the IdC instance lives in (e.g. eu-central-1).
- * A request signed for one region is rejected by another ("bearer token is invalid"), and a
- * regional profileArn sent to us-east-1 fails with "Improperly formed request". Falls back to
- * the region embedded in the profileArn, then us-east-1 (the AWS Builder ID default).
+ * Resolve the RUNTIME AWS region for a Kiro/CodeWhisperer connection.
+ *
+ * The runtime region is the region of the Amazon Q Developer profile (embedded in the
+ * profileArn — always us-east-1 or eu-central-1), NOT the IAM Identity Center / OIDC token
+ * region. An enterprise IdC instance may live in eu-north-1 (or any region), but the Q Developer
+ * profile that serves generateAssistantResponse only exists in us-east-1 / eu-central-1, so a
+ * runtime call must target the profileArn's region — routing to q.{idcRegion}.amazonaws.com
+ * (a host that does not exist) is what caused "no limits + 502 on every request". Delegates to
+ * the shared resolver (profileArn region → valid stored profile region → us-east-1). The IdC
+ * token region is used only for oidc.{region} token mint/refresh, elsewhere.
  */
 export function resolveKiroRegion(
   credentials: { providerSpecificData?: unknown } | null | undefined
 ): string {
-  const psd = (credentials?.providerSpecificData || {}) as Record<string, unknown>;
-  const region = typeof psd.region === "string" ? psd.region.trim().toLowerCase() : "";
-  if (region) return region;
-  const arn = typeof psd.profileArn === "string" ? psd.profileArn.toLowerCase() : "";
-  const match = arn.match(/^arn:aws:codewhisperer:([a-z0-9-]+):/);
-  return match ? match[1] : "us-east-1";
+  return resolveKiroRuntimeRegion(
+    (credentials?.providerSpecificData || {}) as { region?: unknown; profileArn?: unknown }
+  );
 }
 
-/**
- * CodeWhisperer/Amazon Q runtime host for a region. us-east-1 keeps the legacy
- * codewhisperer.us-east-1 host (AWS Builder ID); other regions use the regional Amazon Q
- * endpoint q.{region}.amazonaws.com — codewhisperer.{region}.amazonaws.com does not resolve
- * for non-us-east-1 regions.
- */
-export function kiroRuntimeHost(region: string): string {
-  return region === "us-east-1"
-    ? "https://codewhisperer.us-east-1.amazonaws.com"
-    : `https://q.${region}.amazonaws.com`;
-}
+// Re-exported from the shared region module so existing importers (and tests) that pull
+// kiroRuntimeHost from this executor keep working.
+export { kiroRuntimeHost };
 
 /**
  * KiroExecutor - Executor for Kiro AI (AWS CodeWhisperer)
@@ -196,8 +195,29 @@ export class KiroExecutor extends BaseExecutor {
       "anthropic-beta": "prompt-caching-2024-07-31",
     };
 
-    if (credentials.accessToken) {
-      headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+    const authMethod =
+      typeof credentials.providerSpecificData?.authMethod === "string"
+        ? credentials.providerSpecificData.authMethod
+        : undefined;
+    const isApiKey = authMethod === "api_key";
+    const token = isApiKey
+      ? credentials.apiKey || credentials.accessToken
+      : credentials.accessToken;
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+      // Long-lived Kiro/CodeWhisperer API keys authenticate with `tokentype: API_KEY`.
+      if (isApiKey) headers["tokentype"] = "API_KEY";
+
+      // Enterprise / Microsoft Entra "Your organization" (external_idp) logins send an
+      // org-IdP-issued access token. CodeWhisperer only binds it to the Amazon Q Developer
+      // profile when the request carries `TokenType: EXTERNAL_IDP`; without it every call
+      // returns `ValidationException: Invalid ARN <clientId>` (the service falls back to the
+      // token's client id as the resource ARN). AWS SSO (Builder ID / IDC) and social tokens
+      // must NOT send this header, so it is gated on the persisted authMethod.
+      if (isExternalIdpAuthMethod(authMethod)) {
+        headers[KIRO_EXTERNAL_IDP_TOKEN_TYPE_HEADER] = KIRO_EXTERNAL_IDP_TOKEN_TYPE_VALUE;
+      }
     }
 
     return headers;
@@ -780,6 +800,7 @@ export class KiroExecutor extends BaseExecutor {
   }
 
   async refreshCredentials(credentials: ProviderCredentials, log?: ExecutorLog | null) {
+    if (credentials.providerSpecificData?.authMethod === "api_key") return null;
     if (!credentials.refreshToken) return null;
 
     try {

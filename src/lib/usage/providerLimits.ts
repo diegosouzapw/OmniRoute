@@ -75,6 +75,7 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "vertex",
   "vertex-partner",
   "kimi-coding-apikey",
+  "kiro",
   // Qoder connections are PAT-based (authType "apikey"); the usage fetcher
   // exchanges the PAT for a job token and reads openapi.qoder.sh/user/status.
   "qoder",
@@ -187,7 +188,8 @@ export function isSupportedUsageConnection(connection: ProviderConnectionLike | 
 
   if (connection.authType === "oauth") return true;
   return (
-    connection.authType === "apikey" && PROVIDER_LIMITS_APIKEY_PROVIDERS.has(connection.provider)
+    (connection.authType === "apikey" || connection.authType === "api_key") &&
+    PROVIDER_LIMITS_APIKEY_PROVIDERS.has(connection.provider)
   );
 }
 

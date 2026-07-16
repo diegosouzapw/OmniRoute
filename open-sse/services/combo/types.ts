@@ -70,6 +70,8 @@ export type ComboRelayOptions = {
   mode?: string | null;
   /** Per-request X-OmniRoute-Budget value (hard cost ceiling in USD) — #6023. */
   budgetCap?: number | null;
+  /** Per-request X-OmniRoute-Budget-Fallback value ("cheapest" | "strict") — #3470. */
+  budgetFallback?: "cheapest" | "strict" | null;
   [key: string]: unknown;
 };
 
@@ -151,6 +153,14 @@ export type ResolvedComboTarget = {
   label: string | null;
   failoverBeforeRetry?: unknown;
   trafficType?: "production" | "shadow";
+  /**
+   * Fingerprint-based account pin resolved from a combo builder composite
+   * connectionId (`${rowId}|fp|${fingerprint}`, see
+   * `expandTargetsByFingerprints` in `./fingerprintExpansion.ts`, #6696).
+   * Set only for fingerprint-provider targets (mimocode/mcode/opencode) that
+   * were pinned to one specific account.
+   */
+  pinnedFingerprint?: string;
 };
 
 export type ShadowRoutingConfig = {

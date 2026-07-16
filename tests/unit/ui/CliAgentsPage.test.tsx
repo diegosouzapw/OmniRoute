@@ -54,12 +54,18 @@ const { default: CliAgentsPageClient } = await import(
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-/** 6 agent tool ids from the catalog (§3.2 of plan-14) */
+/**
+ * Agent tool ids from the catalog (§3.2 of plan-14, category: "agent" in
+ * src/shared/constants/cliTools.ts). "omp" and "letta" were added to the
+ * catalog after plan-14 shipped, bringing the count from 6 to 8.
+ */
 const AGENT_IDS = [
   "openclaw",
   "hermes-agent",
   "goose",
   "interpreter",
+  "omp",
+  "letta",
   "warp",
   "agent-deck",
 ] as const;
@@ -144,9 +150,9 @@ describe("CliAgentsPageClient", () => {
     expect(container.textContent).toContain("pageTitle");
   }, 15000);
 
-  it("2. renders exactly 6 agent tool cards", async () => {
+  it("2. renders exactly 8 agent tool cards", async () => {
     const container = await renderPage();
-    expect(countAgentCards(container)).toBe(6);
+    expect(countAgentCards(container)).toBe(8);
   }, 15000);
 
   it("3. search filter — 'hermes' shows 1 card (hermes-agent)", async () => {

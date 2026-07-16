@@ -11,7 +11,7 @@
  * streaming endpoint — is a separate upstream/stealth concern, still open.)
  *
  * Fix: add a `qwen-web` PROVIDER_MODELS_CONFIG entry pointing at the public
- * `https://chat.qwen.ai/api/v2/models` endpoint, parsing the
+ * `https://chat.qwen.ai/api/v2/models/` endpoint, parsing the
  * `{ data: { data: [{ id, name, owned_by }] } }` shape.
  */
 import test from "node:test";
@@ -45,7 +45,7 @@ interface ModelsBody {
   source?: string;
 }
 
-const QWEN_WEB_MODELS_URL = "https://chat.qwen.ai/api/v2/models";
+const QWEN_WEB_MODELS_URL = "https://chat.qwen.ai/api/v2/models/";
 
 test("#3931 qwen-web model discovery fetches the public /api/v2/models catalog", async () => {
   await resetStorage();
@@ -83,7 +83,11 @@ test("#3931 qwen-web model discovery fetches the public /api/v2/models catalog",
     assert.equal(response.status, 200);
     const body = (await response.json()) as ModelsBody;
     assert.equal(body.provider, "qwen-web");
-    assert.equal(body.source, "api", "should serve the live qwen-web catalog, not local_catalog/empty");
+    assert.equal(
+      body.source,
+      "api",
+      "should serve the live qwen-web catalog, not local_catalog/empty"
+    );
     assert.ok(fetchedUrl, `should have probed ${QWEN_WEB_MODELS_URL}`);
     const ids = body.models.map((m) => m.id);
     assert.ok(ids.includes("qwen3-max"), `live ids missing: ${ids.join(",")}`);

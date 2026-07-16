@@ -12,7 +12,14 @@ const {
   isDrift,
   computeVerdict,
   classifyRunError,
+  extractCiGates,
+  FULL_CI_SKIP,
 } = mod;
+
+const extract = extractCiGates as (
+  yamlText: string,
+  opts?: { jobs?: string[]; skip?: Set<string>; envMap?: Record<string, Record<string, string>> }
+) => { id: string; job: string; args: string[]; env?: Record<string, string> }[];
 
 test("eslintCounts sums errors + warnings across files", () => {
   const parsed = [
@@ -176,4 +183,105 @@ test("pre-flight runs the slow suites CONCURRENTLY (v3.8.45 perf — was ~1h ser
   }
   // Each still saves its per-gate log for red diagnosis without a re-run.
   assert.match(src, /slow\.forEach\([\s\S]*?saveGateLog\(g\.id/, "each slow gate persists its log");
+});
+
+// ─── --full-ci gate extraction (P0, v3.8.46 post-mortem) ─────────────────────
+
+const CI_FIXTURE = `
+name: CI
+jobs:
+  lint:
+    steps:
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run check:route-validation:t06
+  quality-extended:
+    steps:
+      - name: Bundle size
+        run: npm run check:bundle-size -- --ratchet
+      - name: Build
+        run: npm run build
+  docs-sync-strict:
+    steps:
+      - run: |
+          npm run check:docs-all
+          npm run check:docs-symbols
+  pr-test-policy:
+    steps:
+      - run: npm run check:test-masking
+      - run: npm run check:pr-evidence
+  quality-gate:
+    steps:
+      - run: npm run check:codeql-ratchet
+  test-unit:
+    steps:
+      - run: npm run test:unit
+`;
+
+test("extractCiGates: pulls npm-run gate steps from the ci.yml gate jobs only", () => {
+  const gates = extract(CI_FIXTURE);
+  const ids = gates.map((g) => g.id);
+  // gate scripts from the target jobs are present…
+  assert.ok(ids.includes("lint"), "lint gate");
+  assert.ok(ids.includes("check:route-validation:t06"), "colon-suffixed gate id survives");
+  assert.ok(ids.includes("check:bundle-size"), "quality-extended gate");
+  assert.ok(ids.includes("check:test-masking"), "pr-test-policy gate");
+  // …a `run: |` multi-line block is scanned line-by-line…
+  assert.ok(ids.includes("check:docs-all") && ids.includes("check:docs-symbols"), "multi-line run");
+  // …and NON-gate steps + jobs outside the gate set are ignored.
+  assert.ok(!ids.includes("build") && !ids.some((i) => i.startsWith("test:")), "no build/test-run");
+  assert.equal(gates.find((g) => g.job === "test-unit"), undefined, "test-unit job is not scanned");
+});
+
+test("extractCiGates: preserves `-- <args>` so ratchet flags reach the script", () => {
+  const g = extract(CI_FIXTURE).find((x) => x.id === "check:bundle-size");
+  assert.deepEqual(g?.args, ["run", "check:bundle-size", "--", "--ratchet"]);
+  const plain = extract(CI_FIXTURE).find((x) => x.id === "lint");
+  assert.deepEqual(plain?.args, ["run", "lint"], "no `--` when the step has no extra args");
+});
+
+test("extractCiGates: skips the non-local gates (pr-evidence, codeql-ratchet)", () => {
+  const ids = extract(CI_FIXTURE).map((g) => g.id);
+  assert.ok(!ids.includes("check:pr-evidence"), "pr-evidence needs a PR body — skipped");
+  assert.ok(!ids.includes("check:codeql-ratchet"), "codeql-ratchet is a remote-main check — skipped");
+  assert.ok(FULL_CI_SKIP.has("check:pr-evidence") && FULL_CI_SKIP.has("check:codeql-ratchet"));
+});
+
+test("extractCiGates: attaches GITHUB_BASE_REF=main env to test-masking + de-dups", () => {
+  const gates = extract(CI_FIXTURE + "\n  lint2:\n    steps:\n      - run: npm run lint\n", {
+    jobs: [
+      "lint",
+      "lint2",
+      "quality-extended",
+      "docs-sync-strict",
+      "pr-test-policy",
+      "quality-gate",
+    ],
+  });
+  const tm = gates.find((g) => g.id === "check:test-masking");
+  assert.deepEqual(tm?.env, { GITHUB_BASE_REF: "main" }, "test-masking compares against main");
+  // `lint` declared in two jobs appears once (dedup by script id).
+  assert.equal(gates.filter((g) => g.id === "lint").length, 1, "de-duplicated across jobs");
+});
+
+test("extractCiGates: the REAL ci.yml yields the base-reds that leaked in v3.8.46", async () => {
+  const fs = await import("node:fs");
+  const yaml = fs.readFileSync(
+    new URL("../../.github/workflows/ci.yml", import.meta.url),
+    "utf8"
+  );
+  const ids = new Set(extract(yaml).map((g) => g.id));
+  // The exact gates that leaked to the v3.8.46 release PR because the pre-flight
+  // never ran them — --full-ci now reproduces every one.
+  for (const g of [
+    "check:route-validation:t06",
+    // openapi-routes + docs-symbols collapsed into one FS walk (#6716).
+    "check:api-docs-refs",
+    "check:bundle-size",
+    "check:test-masking",
+    "check:file-size",
+  ]) {
+    assert.ok(ids.has(g), `real ci.yml must expose ${g} to --full-ci`);
+  }
+  assert.ok(ids.size >= 20, "the real gate set is substantial (>= 20 static gates)");
 });

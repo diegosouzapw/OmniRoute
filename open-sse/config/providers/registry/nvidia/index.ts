@@ -8,6 +8,13 @@ export const nvidiaProvider: RegistryEntry = {
   baseUrl: "https://integrate.api.nvidia.com/v1/chat/completions",
   authType: "apikey",
   authHeader: "bearer",
+  // #6773: nvidia multiplexes 17 models from 9 different upstream vendors
+  // (z-ai/, minimaxai/, deepseek-ai/, qwen/, mistralai/, stepfun-ai/,
+  // moonshotai/, openai/, nvidia/) behind ONE connection — mark it passthrough
+  // so a single stale/renamed model's 404 locks out only that model instead
+  // of cooling down the whole connection (see accountFallback.ts
+  // hasPerModelQuota doc comment; matches modelscope/synthetic/kilo-gateway).
+  passthroughModels: true,
   models: [
     // #6108: z-ai/glm-5.1 EOL'd 2026-07-02 (direct probe returns 410) — dropped.
     { id: "z-ai/glm-5.2", name: "GLM 5.2" },

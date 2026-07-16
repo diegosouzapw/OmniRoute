@@ -1,0 +1,1 @@
+- **fix(dashboard):** the onboarding tier-flow diagram rendered broken — its SVGs lived in the repo-root `images/` (not a served path); moved to `public/images/` so Next.js serves them (#6538 — thanks @ianriizky).

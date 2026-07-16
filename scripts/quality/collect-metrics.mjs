@@ -23,21 +23,41 @@ const out = {};
 // bruto (que driftava +41/+88 por ciclo e era rebaselinado às cegas na release).
 // O aperto do estoque acontece via --prune-suppressions na release.
 function eslintCounts() {
-  let stdout;
-  const args = ["eslint", ".", "--format", "json"];
-  if (fs.existsSync(path.join(cwd, "config/quality/eslint-suppressions.json"))) {
-    args.push("--suppressions-location", "config/quality/eslint-suppressions.json");
+  // Prefer a precomputed JSON report (same existence reason as lint job: inventory
+  // of net-new warnings vs suppressions). Avoids a second cold full-tree ESLint
+  // when CI/local already produced the report.
+  const cached = path.resolve(
+    cwd,
+    process.env.ESLINT_RESULTS_JSON || path.join(".artifacts", "eslint-results.json")
+  );
+  let results;
+  if (fs.existsSync(cached)) {
+    results = JSON.parse(fs.readFileSync(cached, "utf8"));
+  } else {
+    let stdout;
+    const eslintBin = path.join(
+      cwd,
+      "node_modules",
+      ".bin",
+      process.platform === "win32" ? "eslint.cmd" : "eslint"
+    );
+    const args = [".", "--format", "json", "--cache", "--cache-location", ".eslintcache"];
+    if (fs.existsSync(path.join(cwd, "config/quality/eslint-suppressions.json"))) {
+      args.push("--suppressions-location", "config/quality/eslint-suppressions.json");
+    }
+    try {
+      // Prefer local bin (Windows-safe .cmd); shell only when needed for the shim.
+      stdout = execFileSync(eslintBin, args, {
+        encoding: "utf8",
+        maxBuffer: 256 * 1024 * 1024,
+        shell: process.platform === "win32",
+      });
+    } catch (e) {
+      // eslint sai com código != 0 quando há errors; o JSON ainda vem no stdout
+      stdout = e.stdout?.toString() || "[]";
+    }
+    results = JSON.parse(stdout);
   }
-  try {
-    stdout = execFileSync("npx", args, {
-      encoding: "utf8",
-      maxBuffer: 256 * 1024 * 1024,
-    });
-  } catch (e) {
-    // eslint sai com código != 0 quando há errors; o JSON ainda vem no stdout
-    stdout = e.stdout?.toString() || "[]";
-  }
-  const results = JSON.parse(stdout);
   out.eslintWarnings = results.reduce((n, r) => n + (r.warningCount || 0), 0);
   out.eslintErrors = results.reduce((n, r) => n + (r.errorCount || 0), 0);
 }

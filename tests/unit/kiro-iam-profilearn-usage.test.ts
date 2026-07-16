@@ -67,6 +67,31 @@ test("discoverKiroProfileArn prefers the region-matched profile ARN", async () =
   }
 });
 
+test("discoverKiroProfileArn sends tokentype for API-key auth", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (_url: string, init?: RequestInit) => {
+    const headers = init?.headers as Record<string, string>;
+    assert.equal(headers.tokentype, "API_KEY");
+    return new Response(
+      JSON.stringify({
+        profiles: [{ arn: "arn:aws:codewhisperer:us-east-1:1:profile/APIKEY" }],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  }) as typeof fetch;
+  try {
+    const arn = await discoverKiroProfileArn(
+      "api-key",
+      "https://codewhisperer.us-east-1.amazonaws.com",
+      "us-east-1",
+      "api_key"
+    );
+    assert.equal(arn, "arn:aws:codewhisperer:us-east-1:1:profile/APIKEY");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("discoverKiroProfileArn falls back to the first profile when no region match", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async () =>
@@ -75,7 +100,11 @@ test("discoverKiroProfileArn falls back to the first profile when no region matc
       { status: 200, headers: { "Content-Type": "application/json" } }
     )) as typeof fetch;
   try {
-    const arn = await discoverKiroProfileArn("tok", "https://q.eu-west-1.amazonaws.com", "eu-west-1");
+    const arn = await discoverKiroProfileArn(
+      "tok",
+      "https://q.eu-west-1.amazonaws.com",
+      "eu-west-1"
+    );
     assert.equal(arn, "arn:aws:codewhisperer:us-east-1:1:profile/X");
   } finally {
     globalThis.fetch = originalFetch;
@@ -114,7 +143,9 @@ test("getKiroUsage returns a friendly auth-expired message for social-auth Kiro 
   let callIdx = 0;
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
     callIdx += 1;
-    const target = String((init?.headers as Record<string, string> | undefined)?.["x-amz-target"] || "");
+    const target = String(
+      (init?.headers as Record<string, string> | undefined)?.["x-amz-target"] || ""
+    );
     if (target.endsWith("ListAvailableProfiles")) {
       return new Response(
         JSON.stringify({ profiles: [{ arn: "arn:aws:codewhisperer:us-east-1:1:profile/SOCIAL" }] }),
@@ -144,25 +175,52 @@ test("getKiroUsage returns a friendly auth-expired message for social-auth Kiro 
   }
 });
 
-// IAM Identity Center / Builder-ID accounts must keep the existing throw-on-failure behavior so
-// transient upstream errors don't get silently masked as "auth expired".
-test("getKiroUsage still throws on 401/403 for non-social Kiro accounts (Builder-ID/IDC)", async () => {
+test("getKiroUsage sends tokentype for API-key quota requests", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
-    const target = String((init?.headers as Record<string, string> | undefined)?.["x-amz-target"] || "");
-    if (target.endsWith("ListAvailableProfiles")) {
-      return new Response(
-        JSON.stringify({ profiles: [{ arn: "arn:aws:codewhisperer:us-east-1:1:profile/BID" }] }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
-    }
+    const headers = init?.headers as Record<string, string>;
+    assert.equal(headers.tokentype, "API_KEY");
+    return new Response(
+      JSON.stringify({
+        usageBreakdownList: [
+          {
+            resourceType: "AGENTIC_REQUEST",
+            currentUsageWithPrecision: 1,
+            usageLimitWithPrecision: 10,
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  }) as typeof fetch;
+  try {
+    const result = (await getKiroUsage("api-key", {
+      authMethod: "api_key",
+      profileArn: "arn:aws:codewhisperer:us-east-1:1:profile/APIKEY",
+      region: "us-east-1",
+    })) as { quotas?: Record<string, { used: number }> };
+    assert.equal(result.quotas?.agentic_request.used, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("getKiroUsage returns a friendly rejected-token message on repeated 401/403", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async () => {
     return new Response("denied", { status: 401 });
   }) as typeof fetch;
   try {
-    await assert.rejects(
-      () => getKiroUsage("builder-tok", { authMethod: "builder-id" }),
-      /Failed to fetch Kiro usage/i
+    const result = (await getKiroUsage("builder-tok", {
+      authMethod: "builder-id",
+      profileArn: "arn:aws:codewhisperer:us-east-1:1:profile/BID",
+    })) as { message?: string; quotas?: Record<string, unknown> };
+    assert.match(
+      result.message || "",
+      /quota API rejected the current token/i,
+      `expected friendly rejected-token message, got: ${JSON.stringify(result)}`
     );
+    assert.deepEqual(result.quotas ?? {}, {});
   } finally {
     globalThis.fetch = originalFetch;
   }

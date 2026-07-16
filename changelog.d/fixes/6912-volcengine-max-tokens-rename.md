@@ -1,0 +1,1 @@
+- fix(sse): rename client-sent `max_completion_tokens` to `max_tokens` for providers/models that only accept the legacy field (e.g. Volcengine Ark / DeepSeek), mirroring the existing reverse rename from #1961 (#6912)

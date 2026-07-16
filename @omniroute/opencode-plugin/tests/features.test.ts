@@ -376,7 +376,8 @@ test("provider hook: enrichment fetcher called when features.enrichment !== fals
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk") as never });
   assert.equal(called, 1, "enrichment fetcher called once");
-  const m = out["opencode-omniroute/claude-sonnet-4-6"];
+  // #6859: dynamic-hook catalog keys use the unprefixed omnirouteProviderId.
+  const m = out["omniroute/claude-sonnet-4-6"];
   assert.equal(m.name, "Claude Sonnet 4.6", "enrichment name overlay applied");
   assert.equal(m.cost.input, 3, "enrichment pricing applied");
   assert.equal(m.cost.output, 15);
@@ -402,7 +403,7 @@ test("provider hook: enrichment fetcher NOT called when features.enrichment:fals
   const out = await hook.models!({} as never, { auth: apiAuth("sk") as never });
   assert.equal(called, 0, "enrichment fetcher NOT called when gated off");
   assert.equal(
-    out["opencode-omniroute/claude-sonnet-4-6"].name,
+    out["omniroute/claude-sonnet-4-6"].name,
     "claude-sonnet-4-6",
     "raw id preserved"
   );
@@ -463,7 +464,7 @@ test("provider hook: compression metadata fetcher called when opted in", async (
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk") as never });
   assert.equal(called, 1, "compression metadata fetcher called");
-  const combo = out["opencode-omniroute/claude-primary"];
+  const combo = out["omniroute/claude-primary"];
   assert.ok(combo, "combo entry present");
   assert.match(
     combo.name,

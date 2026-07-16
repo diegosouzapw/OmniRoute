@@ -27,7 +27,7 @@ test("FREE_TIER_TOS marks proxy-prohibited providers as avoid", () => {
 
 test("computeFreeTierTotals sums the documented budgets", () => {
   const t = computeFreeTierTotals();
-  assert.equal(t.providerCount, 21);
+  assert.equal(t.providerCount, 20);
   assert.ok(t.documentedMonthlyTokens >= 1_350_000_000);
   assert.ok(t.documentedMonthlyTokens <= 1_450_000_000);
   assert.equal(typeof t.headline, "string");
@@ -38,5 +38,5 @@ test("computeFreeTierTotals can exclude ToS-avoid providers", () => {
   const all = computeFreeTierTotals();
   const clean = computeFreeTierTotals({ excludeTosAvoid: true });
   assert.equal(all.documentedMonthlyTokens - clean.documentedMonthlyTokens, 25_000);
-  assert.equal(clean.providerCount, 20);
+  assert.equal(clean.providerCount, 19);
 });

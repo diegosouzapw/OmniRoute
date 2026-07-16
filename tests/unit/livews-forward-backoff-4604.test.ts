@@ -6,7 +6,7 @@ import {
   __resetLiveWsForwardingState,
 } from "../../open-sse/handlers/chatCore/telemetryHelpers.ts";
 
-// #4604 — In single-port Docker deployments the live-WS sidecar (port 20129) is
+// #4604 — In single-port Docker deployments the live-WS sidecar (port 20132) is
 // not running, but forwardDashboardEventToLiveWs POSTed to it on every compression
 // event. Because the global fetch is proxyFetch, each ECONNREFUSED logged a
 // "[ProxyFetch] Undici dispatcher failed" warning — 272 times in 42 minutes. The
@@ -35,7 +35,7 @@ test("backs off after consecutive failures and stops calling fetch", async () =>
   let calls = 0;
   const fail = async () => {
     calls++;
-    throw new Error("connect ECONNREFUSED 127.0.0.1:20129");
+    throw new Error("connect ECONNREFUSED 127.0.0.1:20132");
   };
   const clock = makeClock();
   // First N attempts go through (and fail); after the threshold the forwarder

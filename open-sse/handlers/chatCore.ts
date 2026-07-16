@@ -26,6 +26,7 @@ import {
   isStripReasoningRequested,
 } from "./chatCore/headers.ts";
 import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
+import { isCodexOriginatedHeaders } from "../config/codexIdentity.ts";
 import { trackDevice, extractIpFromHeaders } from "../services/deviceTracker.ts";
 import { getCombosCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
@@ -113,6 +114,7 @@ import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts
 import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
 import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
+import { isVisionModelId } from "@/shared/constants/visionModels.ts";
 import {
   buildErrorBody,
   createErrorResult,
@@ -295,6 +297,7 @@ import {
 import { resolveBackgroundTaskRedirect } from "./chatCore/backgroundRedirect.ts";
 import type { CompressionConfig, CompressionPipelineStep } from "../services/compression/types.ts";
 import { prepareWebSearchFallbackBody } from "../services/webSearchFallback.ts";
+import { resolveInterceptSearch } from "@/lib/db/interceptionRules";
 import {
   resolveExplicitStreamAlias,
   resolveStreamFlag,
@@ -562,6 +565,10 @@ export async function handleChatCore({
     clientRawRequest,
     provider,
     model,
+    // NEXA fusion-idempotency fix: body.messages feeds the key digest so combo-internal
+    // sub-requests (fusion panel + judge re-enter chatCore sharing the client's headers)
+    // can never collide on the raw Idempotency-Key/x-request-id header key.
+    body,
     effectiveServiceTier,
     startTime,
     log,
@@ -726,12 +733,17 @@ export async function handleChatCore({
   // Initialize rate limit settings from persisted DB (once, lazy)
   await initializeRateLimits();
 
+  // #3384: per-model interception rule (src/lib/db/interceptionRules.ts) overrides the
+  // native-bypass defaults below when the operator explicitly configured it for this
+  // provider/model pair; undefined falls through to the existing bypass logic.
+  const interceptSearchOverride = resolveInterceptSearch(provider, effectiveModel);
   const { body: bodyWithWebSearchFallback, fallback: webSearchFallbackPlan } =
     prepareWebSearchFallbackBody(body as Record<string, unknown>, {
       provider,
       sourceFormat,
       targetFormat,
       nativeCodexPassthrough,
+      interceptSearchOverride,
     });
   if (webSearchFallbackPlan.enabled) {
     body = bodyWithWebSearchFallback as typeof body;
@@ -752,8 +764,18 @@ export async function handleChatCore({
   // #1311 (opt-in): echo the client-requested alias/combo name in the response `model`
   // field instead of the upstream model, so strict clients (Claude Desktop) that validate
   // response.model === request.model stop rejecting alias/combo requests with a 401.
+  // #3697: always echo it for Codex CLI clients on the Responses API — regardless of the
+  // opt-in setting — since the Codex CLI status line/model button reads `response.model`
+  // to display the active model + reasoning effort (e.g. `gpt-5.5-xhigh`). Detection is by
+  // request headers (originator/User-Agent), not by the routed provider, so it still fires
+  // when `codex/gpt-5.5-xhigh` is routed through a combo to a non-codex upstream.
+  const isCodexResponsesEcho =
+    (isResponsesEndpoint || sourceFormat === FORMATS.OPENAI_RESPONSES) &&
+    isCodexOriginatedHeaders(clientRawRequest?.headers);
   const echoModel =
-    settings.echoRequestedModelName === true && typeof requestedModel === "string" && requestedModel
+    (settings.echoRequestedModelName === true || isCodexResponsesEcho) &&
+    typeof requestedModel === "string" &&
+    requestedModel
       ? requestedModel
       : null;
   const detailedLoggingEnabled =
@@ -1204,7 +1226,7 @@ export async function handleChatCore({
       // Phase 4A: unified output styles (supersedes cavemanOutputMode via the back-compat shim).
       let outputStyleResult:
         import("../services/compression/outputStyles/apply.ts").OutputStylesResult | null = null;
-      if (config.enabled) {
+      if (config.enabled && compressionHeader?.trim().toLowerCase() !== "off") {
         try {
           const { resolveOutputStyleSelection } =
             await import("../services/compression/outputStyles/backCompat.ts");
@@ -1305,6 +1327,10 @@ export async function handleChatCore({
         const compressionConfig = resolveCacheAwareConfig(config, compressionInputBody, cacheCtx);
         const result = await applyCompressionAsync(compressionInputBody, mode, {
           model: effectiveModel,
+          supportsVision: isVisionModelId(effectiveModel),
+          // Rota direta oficial ('anthropic') vs agregadores: o engine omniglyph
+          // exige 'direct' — agregadores redimensionam imagens (medido 2026-07-06).
+          providerTransport: provider === "anthropic" ? "direct" : "aggregator",
           config: compressionConfig,
           cachingContext: cacheCtx,
           principalId: apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined,
@@ -2073,6 +2099,16 @@ export async function handleChatCore({
       delete translatedBody.max_tokens;
       log?.debug?.("PARAMS", `Renamed max_tokens to max_completion_tokens for ${model}`);
     }
+  } else if (translatedBody.max_completion_tokens !== undefined) {
+    // Symmetric case (#6912): some providers/models (e.g. Volcengine Ark /
+    // DeepSeek) only document the legacy `max_tokens` field and silently
+    // ignore an unrecognized `max_completion_tokens`, so a client sending the
+    // newer field alone would have it dropped upstream with no cap applied.
+    if (translatedBody.max_tokens === undefined) {
+      translatedBody.max_tokens = translatedBody.max_completion_tokens;
+    }
+    delete translatedBody.max_completion_tokens;
+    log?.debug?.("PARAMS", `Renamed max_completion_tokens to max_tokens for ${model}`);
   }
 
   // OpenAI's `store` parameter is not supported by most compatible providers and breaks them
@@ -3296,6 +3332,16 @@ export async function handleChatCore({
           });
           console.warn(
             `[provider] Node ${errorConnectionId} project routing error (${statusCode}) — not banning`
+          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND) {
+          // 404 — model/endpoint does not exist upstream. Lock the model so the
+          // retry/backoff loop stops hammering the dead endpoint (which would
+          // otherwise degenerate into a 429 rate-limit storm). Connection stays
+          // active since only the specific model is unavailable. (#6827)
+          const notFoundCooldownMs = COOLDOWN_MS.notFound;
+          lockModel(provider, errorConnectionId, currentModel, "model_not_found", notFoundCooldownMs);
+          console.warn(
+            `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
           );
         }
       } catch {

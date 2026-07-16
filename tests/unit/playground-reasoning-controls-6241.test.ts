@@ -4,7 +4,7 @@ import {
   resolveReasoningControls,
   buildReasoningRequestFields,
   type ReasoningControlSpec,
-} from "../../src/app/(dashboard)/dashboard/playground/components/reasoningControls.ts";
+} from "../../src/app/(dashboard)/dashboard/playground/components/reasoningControlUtils.ts";
 import { CANONICAL_EFFORT_VALUES } from "../../src/shared/reasoning/effortStandardization.ts";
 
 // #6241: the Playground effort selector + thinking toggle read a model's `supportsThinking` /

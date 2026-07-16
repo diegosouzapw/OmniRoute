@@ -1,8 +1,12 @@
-import { unavailableResponse } from "../../utils/error.ts";
-import { selectProvider as selectAutoProvider } from "../autoCombo/engine.ts";
+import { errorResponse, unavailableResponse } from "../../utils/error.ts";
+import {
+  BudgetExceededError,
+  selectProvider as selectAutoProvider,
+} from "../autoCombo/engine.ts";
 import {
   resolveRequestModePack,
   parseRequestBudgetCap,
+  parseRequestBudgetFallback,
 } from "../autoCombo/requestControls.ts";
 import { selectWithStrategy } from "../autoCombo/routerStrategy.ts";
 import { buildComplexityRoutingHint } from "../autoCombo/complexityRouter";
@@ -58,6 +62,8 @@ export interface ResolveAutoStrategyDeps {
     mode?: string | null;
     /** Per-request X-OmniRoute-Budget value in USD (#6023). */
     budgetCap?: number | null;
+    /** Per-request X-OmniRoute-Budget-Fallback value ("cheapest" | "strict") — #3470. */
+    budgetFallback?: "cheapest" | "strict" | null;
   } | null;
   resilienceSettings: ResilienceSettings;
   log: ComboLogger;
@@ -157,25 +163,29 @@ export async function resolveAutoStrategyOrder(
     weights,
     explorationRate,
     budgetCap: configBudgetCap,
+    budgetFallback: configBudgetFallback,
     modePack: configModePack,
     resetWindowConfig,
     slaPolicy,
   } = parseAutoConfig(combo, eligibleTargets);
 
-  // Per-request overrides (#6023 / #6024 / #6025): X-OmniRoute-Budget and
-  // X-OmniRoute-Mode headers (threaded via relayOptions) take precedence over
-  // the combo's stored config for this single request. Unknown/garbage header
-  // values are ignored so the saved config is preserved.
+  // Per-request overrides (#6023 / #6024 / #6025 / #3470): X-OmniRoute-Budget,
+  // X-OmniRoute-Budget-Fallback and X-OmniRoute-Mode headers (threaded via
+  // relayOptions) take precedence over the combo's stored config for this single
+  // request. Unknown/garbage header values are ignored so the saved config is
+  // preserved.
   const requestBudgetCap = parseRequestBudgetCap(relayOptions?.budgetCap);
   const budgetCap = requestBudgetCap ?? configBudgetCap;
+  const requestBudgetFallback = parseRequestBudgetFallback(relayOptions?.budgetFallback);
+  const budgetFallback = requestBudgetFallback ?? configBudgetFallback;
   const requestModePack = resolveRequestModePack(relayOptions?.mode);
   const modePack = requestModePack.override ? requestModePack.modePack : configModePack;
-  if (requestModePack.override || requestBudgetCap !== undefined) {
+  if (requestModePack.override || requestBudgetCap !== undefined || requestBudgetFallback !== undefined) {
     log.debug?.(
       "COMBO",
       `Auto strategy: per-request controls applied (mode=${
         requestModePack.override ? (requestModePack.modePack ?? "balanced") : "—"
-      }, budgetCap=${requestBudgetCap ?? "—"})`
+      }, budgetCap=${requestBudgetCap ?? "—"}, budgetFallback=${requestBudgetFallback ?? "—"})`
     );
   }
 
@@ -256,20 +266,32 @@ export async function resolveAutoStrategyOrder(
     }
 
     if (!selectedProvider || !selectedModel) {
-      const selection = selectAutoProvider(
-        {
-          id: combo.id || combo.name,
-          name: combo.name,
-          type: "auto",
-          candidatePool,
-          weights,
-          modePack,
-          budgetCap,
-          explorationRate,
-        },
-        routableCandidates,
-        taskType
-      );
+      let selection;
+      try {
+        selection = selectAutoProvider(
+          {
+            id: combo.id || combo.name,
+            name: combo.name,
+            type: "auto",
+            candidatePool,
+            weights,
+            modePack,
+            budgetCap,
+            budgetFallback,
+            explorationRate,
+          },
+          routableCandidates,
+          taskType
+        );
+      } catch (err) {
+        // #3470: `budgetFallback: "strict"` refuses to select when every candidate
+        // exceeds `budgetCap` — surface a clear cost-exceeds-budget response
+        // instead of letting it propagate as an unhandled 500.
+        if (err instanceof BudgetExceededError) {
+          return { earlyResponse: errorResponse(402, err.message) };
+        }
+        throw err;
+      }
       selectedProvider = selection.provider;
       selectedModel = selection.model;
       selectionReason = `score=${selection.score.toFixed(3)}${selection.isExploration ? " (exploration)" : ""}`;
