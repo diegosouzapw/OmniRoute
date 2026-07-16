@@ -167,11 +167,18 @@ type TestAllEntryStatus = "ok" | "error" | "slow";
  */
 export function evaluateTestAllEntry(
   entry:
-    { status?: TestAllEntryStatus; rateLimited?: boolean; isTimeout?: boolean } | null | undefined,
+    | {
+        status?: TestAllEntryStatus;
+        rateLimited?: boolean;
+        isTimeout?: boolean;
+        isTransient?: boolean;
+      }
+    | null
+    | undefined,
   autoHideFailed: boolean
 ): TestAllModelOutcome {
   const ok = entry?.status === "ok";
-  const transient = Boolean(entry?.rateLimited || entry?.isTimeout);
+  const transient = [entry?.rateLimited, entry?.isTimeout, entry?.isTransient].some(Boolean);
   return {
     status: ok ? "ok" : "error",
     // Hide only persistent failures. Transient (rate-limited, timeout) are

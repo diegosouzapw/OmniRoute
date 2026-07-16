@@ -173,6 +173,30 @@ function extractStreamError(body: JsonRecord): ComboTestStreamResult["error"] {
   };
 }
 
+function extractStreamPayload(payload: string): ComboTestStreamResult | undefined {
+  try {
+    const body = JSON.parse(payload);
+    const error = extractStreamError(asRecord(body));
+    if (error) return { text: "", error };
+
+    const collected: string[] = [];
+    const direct = extractComboTestResponseText(body);
+    if (direct) collected.push(direct);
+    for (const choice of Array.isArray(body?.choices) ? body.choices : []) {
+      const delta = asRecord(choice?.delta);
+      const content = extractTextFromContent(delta.content);
+      const reasoning = extractReasoningText(delta);
+      if (content) collected.push(content);
+      else if (reasoning) collected.push(reasoning);
+    }
+    return { text: collected.join("") };
+  } catch {
+    // Ignore malformed/non-JSON SSE events; a later valid event can still
+    // prove that the model is healthy.
+    return undefined;
+  }
+}
+
 export function extractComboTestStreamResult(streamBody: string): ComboTestStreamResult {
   const collected: string[] = [];
   let streamError: ComboTestStreamResult["error"];
@@ -180,26 +204,10 @@ export function extractComboTestStreamResult(streamBody: string): ComboTestStrea
     if (!line.startsWith("data:")) continue;
     const payload = line.slice(5).trim();
     if (!payload || payload === "[DONE]") continue;
-    try {
-      const body = JSON.parse(payload);
-      const error = extractStreamError(asRecord(body));
-      if (error) {
-        streamError = error;
-        continue;
-      }
-      const direct = extractComboTestResponseText(body);
-      if (direct) collected.push(direct);
-      for (const choice of Array.isArray(body?.choices) ? body.choices : []) {
-        const delta = asRecord(choice?.delta);
-        const content = extractTextFromContent(delta.content);
-        const reasoning = extractReasoningText(delta);
-        if (content) collected.push(content);
-        else if (reasoning) collected.push(reasoning);
-      }
-    } catch {
-      // Ignore malformed/non-JSON SSE events; a later valid event can still
-      // prove that the model is healthy.
-    }
+    const result = extractStreamPayload(payload);
+    if (!result) continue;
+    if (result.error) streamError = result.error;
+    else if (result.text) collected.push(result.text);
   }
   return { text: collected.join("").trim(), ...(streamError ? { error: streamError } : {}) };
 }

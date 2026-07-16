@@ -47,6 +47,10 @@ test("rate-limited / timeout failures show 'error' but are NOT auto-hidden", () 
     status: "error",
     shouldHide: false,
   });
+  assert.deepEqual(evaluateTestAllEntry({ status: "error", isTransient: true }, true), {
+    status: "error",
+    shouldHide: false,
+  });
   // Toggle off → still not hidden, of course.
   assert.deepEqual(evaluateTestAllEntry({ status: "error", rateLimited: true }, false), {
     status: "error",
