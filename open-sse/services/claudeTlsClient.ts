@@ -344,7 +344,19 @@ function toHeaders(raw: Record<string, string[]>): Headers {
 // to a file path, terminating when the upstream sends `streamOutputEOFSymbol`.
 // We tail the file from a worker and surface the bytes as a ReadableStream.
 
-async function tlsFetchStreaming(
+// Cap for the bounded fallback read of a non-SSE error body straight from the
+// streaming temp file (mirrors the 2048-byte cap executors/claude-web.ts
+// already applies when reading error bodies) — avoids buffering an unbounded
+// error page into memory. See #7134.
+const MAX_ERROR_BODY_BYTES = 16 * 1024;
+
+/**
+ * Exported for tests (issue #7134): allows injecting a fake `client` so the
+ * non-SSE error-body fallback path can be exercised without
+ * `--experimental-test-module-mocks`, matching the DI pattern already used
+ * by `__setTlsFetchOverrideForTesting` for the outer `tlsFetchClaude`.
+ */
+export async function tlsFetchStreaming(
   client: { request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike> },
   url: string,
   requestOptions: Record<string, unknown>,
@@ -417,11 +429,22 @@ async function tlsFetchStreaming(
     const r = await requestPromise.catch(
       (e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike
     );
+    // tls-client-node's `streamOutputPath` mode writes the response body to
+    // the temp file chunk-by-chunk and does NOT also populate the resolved
+    // response's in-memory `body` field (confirmed against
+    // node_modules/tls-client-node/dist/response.js) — so for every non-SSE,
+    // non-2xx claude-web response (400/403/429/500 with a real JSON/HTML
+    // error), `r.body` is empty even though the real bytes are sitting in
+    // `path` (we just peeked them above). Prefer `r.body` when it IS
+    // populated (some native-client modes do fill it in); otherwise fall
+    // back to a bounded read of the temp file so the real upstream error
+    // detail reaches the caller instead of being silently discarded. #7134
+    const text = r.body || (await readFirstBytes(path, MAX_ERROR_BODY_BYTES).catch(() => ""));
     await cleanupTempPath(path);
     return {
       status: r.status,
       headers: toHeaders(r.headers),
-      text: r.body,
+      text,
       body: null,
     };
   }

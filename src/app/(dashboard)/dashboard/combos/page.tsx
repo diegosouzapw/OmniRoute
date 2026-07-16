@@ -14,6 +14,7 @@ import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
+import { useComboProxyAssignments } from "./useComboProxyAssignments";
 import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
 import ReasoningTokenBufferToggle from "./ReasoningTokenBufferToggle";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
@@ -681,6 +682,7 @@ export default function CombosPage() {
   const notify = useNotificationStore();
   const [proxyTargetCombo, setProxyTargetCombo] = useState(null);
   const [proxyConfig, setProxyConfig] = useState(null);
+  const { comboProxyAssignedIds, fetchComboProxyAssignments } = useComboProxyAssignments();
   const [providerNodes, setProviderNodes] = useState([]);
   const [showUsageGuide, setShowUsageGuide] = useState(true);
   const [recentlyCreatedCombo, setRecentlyCreatedCombo] = useState("");
@@ -1210,7 +1212,7 @@ export default function CombosPage() {
                 onTest={() => handleTestCombo(combo)}
                 testing={testingCombo === combo.name}
                 onProxy={() => setProxyTargetCombo(combo)}
-                hasProxy={!!proxyConfig?.combos?.[combo.id]}
+                hasProxy={comboProxyAssignedIds.has(combo.id) || !!proxyConfig?.combos?.[combo.id]}
                 onToggle={() => handleToggleCombo(combo)}
                 dragDisabled={savingComboOrder || activeFilter !== "all" || combos.length < 2}
                 isDragged={comboDragIndex === index}
@@ -1260,7 +1262,7 @@ export default function CombosPage() {
       {proxyTargetCombo && (
         <ProxyConfigModal
           isOpen={!!proxyTargetCombo}
-          onClose={() => setProxyTargetCombo(null)}
+          onClose={() => (setProxyTargetCombo(null), fetchComboProxyAssignments())}
           level="combo"
           levelId={proxyTargetCombo.id}
           levelLabel={proxyTargetCombo.name}
