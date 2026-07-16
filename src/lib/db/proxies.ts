@@ -31,6 +31,11 @@ import {
   coerceProxyPayload,
   redactProxySecrets,
 } from "./proxies/mappers";
+import { isGlobalProxyEnabled, PROXY_ALIVE_PREDICATE } from "./proxies/guards";
+export {
+  hasBlockingProxyAssignment,
+  hasBlockingProxyAssignmentForProvider,
+} from "./proxies/guards";
 export { extractRelayAuth, redactProxySecrets } from "./proxies/mappers";
 
 let proxyRegistryGeneration = 0;
@@ -822,25 +827,6 @@ export async function deleteProxyById(id: string, options?: { force?: boolean })
 // usable so a working proxy is never stranded; only known-dead states are
 // excluded so a dead proxy stops being handed out (every request would
 // otherwise pay the timeout or leak out the host IP).
-const PROXY_ALIVE_PREDICATE =
-  "(p.status IS NULL OR LOWER(p.status) NOT IN ('inactive','error','disabled','dead','down'))";
-
-function isGlobalProxyEnabled(db: ReturnType<typeof getDbInstance>): boolean {
-  try {
-    const row = db
-      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'proxyEnabled'")
-      .get() as { value?: string } | undefined;
-    if (!row?.value) return true;
-    try {
-      return JSON.parse(row.value) !== false;
-    } catch {
-      return true;
-    }
-  } catch {
-    return true;
-  }
-}
-
 // Resolve one scope's alive pool to a single proxy via its rotation strategy.
 // Returns the standard registry resolution shape, or null when the pool is empty
 // or every member is dead (preserving the #6246 fail-closed contract — a dead
@@ -921,92 +907,6 @@ export async function resolveProxyForScopeFromRegistry(scope: string, scopeId?: 
     const msg = error instanceof Error ? error.message : String(error);
     if (msg.includes("no such table")) return null;
     throw error;
-  }
-}
-
-/**
- * #6246 fail-closed guard. Returns true when a connection would egress DIRECTLY
- * ONLY because its ASSIGNED proxy (account/provider/global scope) is dead/inactive
- * — i.e. the request must be BLOCKED, not silently sent on the real IP.
- *
- * Callers use this after `resolveProxyForConnection` returns a direct result: if
- * the operator assigned a proxy but every assigned proxy is dead, leaking the IP
- * is worse than failing the request. An explicit "proxy off" (global or per
- * connection) is a deliberate direct choice and is NOT treated as a leak. Read-only
- * and best-effort: any DB error fails OPEN (returns false) so a guard never breaks
- * the request path.
- */
-export function hasBlockingProxyAssignment(connectionId: string): boolean {
-  try {
-    const db = getDbInstance();
-
-    // Explicit global "proxy off" → direct is intended, never a leak.
-    const globalRow = db
-      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'proxyEnabled'")
-      .get() as { value?: string } | undefined;
-    if (globalRow?.value) {
-      try {
-        if (JSON.parse(globalRow.value) === false) return false;
-      } catch {
-        /* malformed → treat as enabled */
-      }
-    }
-
-    // Explicit per-connection "proxy off" → direct is intended.
-    const conn = db
-      .prepare("SELECT provider, proxy_enabled FROM provider_connections WHERE id = ?")
-      .get(connectionId) as { provider?: string | null; proxy_enabled?: number } | undefined;
-    if (conn && conn.proxy_enabled === 0) return false;
-    const provider = conn?.provider ?? null;
-
-    // A proxy is assigned to this connection at some scope, but every assigned
-    // proxy is dead (the alive filter would have resolved a live one already).
-    const dead = db
-      .prepare(
-        `SELECT 1 FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id
-           WHERE ((a.scope = 'account' AND a.scope_id = ?)
-               OR (a.scope = 'provider' AND a.scope_id = ?)
-               OR (a.scope = 'global'))
-             AND NOT ${PROXY_ALIVE_PREDICATE}
-           LIMIT 1`
-      )
-      .get(connectionId, provider);
-    return !!dead;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * #7380 fail-closed guard for providers without a connection row. Returns true
- * when a provider/global proxy assignment exists but all assigned proxies are
- * known dead. Explicitly disabling proxying globally is an intentional direct
- * choice and therefore never blocks.
- */
-export function hasBlockingProxyAssignmentForProvider(providerId: string): boolean {
-  try {
-    const db = getDbInstance();
-    if (!isGlobalProxyEnabled(db)) return false;
-
-    const assignments = db
-      .prepare(
-        `SELECT
-           EXISTS(
-             SELECT 1 FROM proxy_assignments a
-             WHERE ((a.scope = 'provider' AND a.scope_id = ?)
-                 OR a.scope = 'global')
-           ) AS assigned,
-           EXISTS(
-             SELECT 1 FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id
-             WHERE ((a.scope = 'provider' AND a.scope_id = ?)
-                 OR a.scope = 'global')
-               AND ${PROXY_ALIVE_PREDICATE}
-           ) AS dead`
-      )
-      .get(providerId, providerId) as { assigned?: number; dead?: number } | undefined;
-    return assignments?.assigned === 1 && assignments.dead === 0;
-  } catch {
-    return false;
   }
 }
 
