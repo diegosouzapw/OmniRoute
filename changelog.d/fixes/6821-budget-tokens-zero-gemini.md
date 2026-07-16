@@ -1,0 +1,1 @@
+- **fix(providers):** an explicit `thinking.budget_tokens: 0` is now honored in the OpenAI→Gemini transform (thinking disabled) instead of being treated as unset (#6813, #6821 — thanks @alltomatos).
