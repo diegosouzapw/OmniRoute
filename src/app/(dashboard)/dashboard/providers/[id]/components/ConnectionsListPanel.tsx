@@ -7,6 +7,7 @@ import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import { readBooleanToggle, providerCountText } from "../providerPageHelpers";
 import { compareTr } from "@/shared/utils/turkishText";
 import type { CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
+import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
 
 type ConnectionsListPanelProps = {
   connections: ConnectionRowConnection[];
@@ -68,6 +69,14 @@ type ConnectionsListPanelProps = {
   t: any; // ProviderMessageTranslator
 };
 
+function quotaVisibilityHandler(
+  supported: boolean,
+  connectionId: string,
+  toggle: (id: string, visible: boolean) => void
+) {
+  return supported ? (visible: boolean) => toggle(connectionId, visible) : undefined;
+}
+
 export default function ConnectionsListPanel({
   connections,
   providerId,
@@ -125,6 +134,7 @@ export default function ConnectionsListPanel({
   t,
 }: ConnectionsListPanelProps) {
   const sorted = [...connections].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+  const quotaSupported = supportsProviderQuota(providerId);
   const hasAnyTag = sorted.some((c) => c.providerSpecificData?.tag as string | undefined);
   const allSelected = selectedIds.size === connections.length && connections.length > 0;
   const someSelected = selectedIds.size > 0 && selectedIds.size < connections.length;
@@ -333,7 +343,11 @@ export default function ConnectionsListPanel({
                 onMoveDown={() => handleSwapPriority(conn, sorted[index + 1])}
                 onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
                 onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
-                onToggleQuotaVisibility={(visible) => handleToggleQuotaVisibility(conn.id, visible)}
+                onToggleQuotaVisibility={quotaVisibilityHandler(
+                  quotaSupported,
+                  conn.id,
+                  handleToggleQuotaVisibility
+                )}
                 onToggleClaudeExtraUsage={(enabled) =>
                   handleToggleClaudeExtraUsage(conn.id, enabled)
                 }
@@ -501,9 +515,11 @@ export default function ConnectionsListPanel({
                     onMoveDown={() => handleSwapPriority(conn, sorted[sorted.indexOf(conn) + 1])}
                     onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
                     onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
-                    onToggleQuotaVisibility={(visible) =>
-                      handleToggleQuotaVisibility(conn.id, visible)
-                    }
+                    onToggleQuotaVisibility={quotaVisibilityHandler(
+                      quotaSupported,
+                      conn.id,
+                      handleToggleQuotaVisibility
+                    )}
                     onToggleClaudeExtraUsage={(enabled) =>
                       handleToggleClaudeExtraUsage(conn.id, enabled)
                     }
