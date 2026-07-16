@@ -1056,7 +1056,7 @@ async function wsChat(
 
     ws.onopen = () => {
       ws.send(buildWsIntroFrame(conversationId));
-      ws.send(buildWsPromptFrame(prompt, conversationId, { templateB64 }));
+      ws.send(buildWsPromptFrame(prompt, conversationId, { templateB64, requestId }));
     };
 
     ws.onmessage = (event) => {
@@ -1315,14 +1315,24 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       return errorResult(400, "Empty query after processing messages", "invalid_request", {}, body);
     }
 
-    const authorization =
-      typeof credentials.providerSpecificData?.authorization === "string"
-        ? credentials.providerSpecificData.authorization.trim()
-        : "";
+    // Extract the WebSocket auth token (ecto1:...) from provider-specific data
+    // or from the apiKey field itself (user can paste both in the cookie field).
+    let authorization: string;
+    if (
+      typeof credentials.providerSpecificData?.authorization === "string" &&
+      credentials.providerSpecificData.authorization
+    ) {
+      authorization = credentials.providerSpecificData.authorization.trim();
+    } else if (typeof credentials.apiKey === "string") {
+      const match = credentials.apiKey.match(/ecto1:[^\s;]+/i);
+      authorization = match ? match[0].trim() : "";
+    } else {
+      authorization = "";
+    }
     if (!authorization) {
       return errorResult(
         400,
-        "Missing Authorization for Meta AI WebSocket — set credentials.providerSpecificData.authorization to your ecto1 auth token.",
+        "Missing Authorization for Meta AI WebSocket — your cookie must include an ecto1:... auth token.",
         "missing_authorization",
         {},
         body
