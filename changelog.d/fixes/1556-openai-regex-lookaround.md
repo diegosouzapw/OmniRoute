@@ -1,0 +1,1 @@
+- **fix(codex):** strip regex `pattern` lookaround (lookahead/lookbehind) from tool JSON Schemas on the Codex/OpenAI native passthrough path — previously only the translated-request path coerced tool schemas, so a `pattern` like `^(?=.*@).+$` reached OpenAI unmodified and was rejected with `regex lookaround is not supported`. (thanks @evinjohnn) (#7100)
