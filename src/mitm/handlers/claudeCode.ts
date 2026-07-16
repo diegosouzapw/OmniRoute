@@ -17,7 +17,7 @@ export class ClaudeCodeHandler extends MitmHandlerBase {
     req: IncomingMessage,
     res: ServerResponse,
     body: Buffer,
-    mappedModel: string,
+    mappedModel: string
   ): Promise<void> {
     const startedAt = this.now();
     const intercepted = await this.hookBufferStart(req, body, mappedModel);
@@ -25,6 +25,14 @@ export class ClaudeCodeHandler extends MitmHandlerBase {
     try {
       const payload = JSON.parse(body.toString());
       payload.model = mappedModel;
+
+      // Strip trailing assistant prefill to prevent "This model does not support assistant message prefill" upstream error
+      if (Array.isArray(payload.messages) && payload.messages.length > 0) {
+        const lastMsg = payload.messages[payload.messages.length - 1];
+        if (lastMsg && lastMsg.role === "assistant") {
+          payload.messages.pop();
+        }
+      }
 
       const upstreamStart = this.now();
       const upstream = await this.fetchRouter(payload, "/v1/messages", req.headers);
