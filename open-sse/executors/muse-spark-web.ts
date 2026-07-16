@@ -1066,15 +1066,6 @@ async function wsChat(
     ws.onopen = () => {
       ws.send(buildWsIntroFrame(conversationId));
       ws.send(buildWsPromptFrame(prompt, conversationId, { templateB64 }));
-      // Close shortly after sending to settle the connection if no data arrives
-      // (server streams back and then closes; mock always has no data).
-      setTimeout(() => {
-        try {
-          ws.close();
-        } catch {
-          /* ignore */
-        }
-      }, 50);
     };
 
     ws.onmessage = (event) => {

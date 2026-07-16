@@ -32,6 +32,20 @@ class MockWebSocket {
 
   send(data: Uint8Array | string) {
     this.sentData.push(data);
+    // When a prompt frame (type 0x0d) is sent, simulate a response + close
+    if (data instanceof Uint8Array && data.length > 0 && data[0] === 0x0d) {
+      setTimeout(() => {
+        this.onmessage?.({
+          data: JSON.stringify({
+            type: "full",
+            response: {
+              sections: [{ view_model: { primitive: { text: "pong" } } }],
+            },
+          }),
+        });
+        setTimeout(() => this.close(), 5);
+      }, 5);
+    }
   }
 
   close() {
