@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 const { syncEnv } = (await import("../../scripts/dev/sync-env.mjs")) as {
-  syncEnv: (opts?: { rootDir?: string; quiet?: boolean; scope?: string }) => {
+  syncEnv: (opts?: { rootDir?: string; envDir?: string; quiet?: boolean; scope?: string }) => {
     created: boolean;
     added: number;
   };
@@ -183,5 +183,25 @@ test("syncEnv oauth scope only copies oauth defaults", () => {
     assert.doesNotMatch(envContent, /^Provider User-Agent Overrides/m);
   } finally {
     fs.rmSync(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("syncEnv reads defaults from the package root and writes to a separate data directory", () => {
+  const rootDir = createTempRoot();
+  const envDir = createTempRoot();
+
+  try {
+    writeOauthEnvExample(rootDir);
+
+    const result = syncEnv({ rootDir, envDir, quiet: true, scope: "oauth" });
+    const envContent = fs.readFileSync(path.join(envDir, ".env"), "utf8");
+
+    assert.deepEqual(result, { created: true, added: 2 });
+    assert.equal(fs.existsSync(path.join(rootDir, ".env")), false);
+    assert.match(envContent, /^CLAUDE_OAUTH_CLIENT_ID=claude-default$/m);
+    assert.match(envContent, /^CODEX_OAUTH_CLIENT_ID=codex-default$/m);
+  } finally {
+    fs.rmSync(rootDir, { recursive: true, force: true });
+    fs.rmSync(envDir, { recursive: true, force: true });
   }
 });

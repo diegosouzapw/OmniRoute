@@ -12,7 +12,7 @@
  *   - Skips commented lines from .env.example
  */
 
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
@@ -190,10 +190,11 @@ function parseExampleEntries(content, scope = "full") {
   return entries;
 }
 
-export function getEnvSyncPlan({ rootDir, scope = "full" } = {}) {
+export function getEnvSyncPlan({ rootDir, envDir, scope = "full" } = {}) {
   const root = resolveRootDir(rootDir);
+  const targetDir = envDir ? resolve(envDir) : root;
   const envExamplePath = join(root, ".env.example");
-  const envPath = join(root, ".env");
+  const envPath = join(targetDir, ".env");
 
   if (!existsSync(envExamplePath)) {
     return {
@@ -256,11 +257,12 @@ function replaceBlankSecret(content, key, value) {
   return pattern.test(content) ? content.replace(pattern, `${key}=${value}`) : content;
 }
 
-export function syncEnv({ rootDir, quiet = false, scope = "full" } = {}) {
+export function syncEnv({ rootDir, envDir, quiet = false, scope = "full" } = {}) {
   const log = quiet ? () => {} : (message) => process.stderr.write(`[sync-env] ${message}\n`);
   const root = resolveRootDir(rootDir);
+  const targetDir = envDir ? resolve(envDir) : root;
   const envExamplePath = join(root, ".env.example");
-  const envPath = join(root, ".env");
+  const envPath = join(targetDir, ".env");
 
   if (!existsSync(envExamplePath)) {
     log("⚠️  .env.example not found — skipping sync");
@@ -270,6 +272,7 @@ export function syncEnv({ rootDir, quiet = false, scope = "full" } = {}) {
   const exampleEntries = parseExampleEntries(readFileSync(envExamplePath, "utf8"), scope);
 
   if (!existsSync(envPath)) {
+    mkdirSync(targetDir, { recursive: true });
     if (scope === "full") {
       copyFileSync(envExamplePath, envPath);
 
@@ -310,7 +313,7 @@ export function syncEnv({ rootDir, quiet = false, scope = "full" } = {}) {
       return { created: true, added: exampleEntries.size };
     }
 
-    const { missingEntries } = getEnvSyncPlan({ rootDir: root, scope });
+    const { missingEntries } = getEnvSyncPlan({ rootDir: root, envDir: targetDir, scope });
     const content = [
       "# ── Auto-added by sync-env (oauth defaults) ──",
       ...missingEntries.map((entry) => `${entry.key}=${entry.value}`),
@@ -321,7 +324,7 @@ export function syncEnv({ rootDir, quiet = false, scope = "full" } = {}) {
     return { created: true, added: missingEntries.length };
   }
 
-  const { missingEntries } = getEnvSyncPlan({ rootDir: root, scope });
+  const { missingEntries } = getEnvSyncPlan({ rootDir: root, envDir: targetDir, scope });
 
   if (missingEntries.length === 0) {
     log("✅ .env is up to date (0 keys added)");
