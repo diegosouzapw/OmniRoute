@@ -177,6 +177,10 @@ assembleStandalone({
   outDir: ELECTRON_STANDALONE_DIR,
   projectRoot: ROOT,
   sanitizePaths: true,
+  // Next can emit hashed external package names in instrumentation chunks.
+  // The standalone dependency tree contains the canonical package names, so
+  // normalize those imports before electron-builder copies the bundle.
+  patchTurbopackChunks: true,
   copyNatives: true,
 });
 
