@@ -474,6 +474,52 @@ export function filterHiddenModelQuotas(
   });
 }
 
+// --- Per-user quota row visibility (upstream 9router#2371 port) ---------
+// Distinct from collectHiddenQuotaModelIds()/filterHiddenModelQuotas() above:
+// those hide rows for models the ADMIN marked isHidden/isDeleted in the model
+// catalog. These hide rows the OPERATOR clicked "hide" on for their own view
+// (persisted per-provider in settings.quotaVisibility), independent of model
+// catalog state — e.g. temporarily decluttering a quota card without editing
+// the catalog. Both mechanisms can apply to the same row.
+
+/** Stable identity for a quota row: prefer modelKey (survives displayName i18n), fall back to name. */
+export function getQuotaVisibilityKey(quota: any): string {
+  if (!quota || typeof quota !== "object") return "";
+  return String(quota.modelKey || quota.name || "").trim();
+}
+
+function getProviderHiddenQuotaSet(
+  provider: string,
+  quotaVisibility: Record<string, { hidden?: string[] }> | undefined
+): Set<string> {
+  const hidden = quotaVisibility?.[provider]?.hidden;
+  return new Set(Array.isArray(hidden) ? hidden.map(String) : []);
+}
+
+/** Returns quotas for `provider` with any operator-hidden rows removed. */
+export function filterQuotasByVisibility(
+  provider: string,
+  quotas: any[] = [],
+  quotaVisibility: Record<string, { hidden?: string[] }> = {}
+): any[] {
+  if (!Array.isArray(quotas) || quotas.length === 0) return [];
+  const hidden = getProviderHiddenQuotaSet(provider, quotaVisibility);
+  if (hidden.size === 0) return quotas;
+  return quotas.filter((quota) => !hidden.has(getQuotaVisibilityKey(quota)));
+}
+
+/** Returns the subset of `quotas` for `provider` the operator hid (for the "Hidden: …" chip row). */
+export function getHiddenQuotaRows(
+  provider: string,
+  quotas: any[] = [],
+  quotaVisibility: Record<string, { hidden?: string[] }> = {}
+): any[] {
+  if (!Array.isArray(quotas) || quotas.length === 0) return [];
+  const hidden = getProviderHiddenQuotaSet(provider, quotaVisibility);
+  if (hidden.size === 0) return [];
+  return quotas.filter((quota) => hidden.has(getQuotaVisibilityKey(quota)));
+}
+
 // --- Provider dropdown filter (PR #769 port) -----------------------------
 // Pure helpers extracted from <ProviderLimits/> so the filter+dropdown logic
 // can be exercised by unit tests without rendering React. Keep them free of

@@ -12,6 +12,7 @@ import {
   calculatePercentage,
   matchesProviderFilter,
   buildProviderOptions,
+  getQuotaVisibilityKey,
 } from "./utils";
 import Card from "@/shared/components/Card";
 import { CardSkeleton } from "@/shared/components/Loading";
@@ -199,6 +200,12 @@ export default function ProviderLimits({
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
+  // Per-operator quota row visibility (upstream 9router#2371 port). Keyed by
+  // provider id → { hidden: [<quota visibility key>] }, persisted server-side
+  // via PATCH /api/settings so it survives refresh/reload.
+  const [quotaVisibility, setQuotaVisibility] = useState<Record<string, { hidden?: string[] }>>(
+    {}
+  );
   const resetCreditRedemption = useCodexResetCreditRedemption(
     tr,
     setErrors,
@@ -319,6 +326,76 @@ export default function ProviderLimits({
       }
     },
     [notify, tr]
+  );
+
+  // Load persisted per-operator quota row visibility once on mount. Best
+  // effort — a fetch failure just leaves every row visible (safe default).
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/settings", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((s) => {
+        if (alive) setQuotaVisibility(s?.quotaVisibility || {});
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const persistQuotaVisibility = useCallback(
+    async (
+      next: Record<string, { hidden?: string[] }>,
+      previous: Record<string, { hidden?: string[] }>
+    ) => {
+      setQuotaVisibility(next);
+      try {
+        const response = await fetch("/api/settings", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ quotaVisibility: next }),
+        });
+        if (!response.ok) throw new Error("Failed to update quota visibility");
+      } catch {
+        setQuotaVisibility(previous);
+        notify.error(tr("quotaVisibilityUpdateFailed", "Failed to update quota visibility"));
+      }
+    },
+    [notify, tr]
+  );
+
+  const handleHideQuota = useCallback(
+    (provider: string, quotaRow: any) => {
+      const key = getQuotaVisibilityKey(quotaRow);
+      if (!provider || !key) return;
+      const previous = quotaVisibility;
+      const providerVisibility = previous[provider] || {};
+      const hidden = new Set(providerVisibility.hidden || []);
+      hidden.add(key);
+      const next = {
+        ...previous,
+        [provider]: { ...providerVisibility, hidden: [...hidden] },
+      };
+      persistQuotaVisibility(next, previous);
+    },
+    [quotaVisibility, persistQuotaVisibility]
+  );
+
+  const handleShowQuota = useCallback(
+    (provider: string, quotaRow: any) => {
+      const key = getQuotaVisibilityKey(quotaRow);
+      if (!provider || !key) return;
+      const previous = quotaVisibility;
+      const providerVisibility = previous[provider] || {};
+      const hidden = new Set(providerVisibility.hidden || []);
+      hidden.delete(key);
+      const next = {
+        ...previous,
+        [provider]: { ...providerVisibility, hidden: [...hidden] },
+      };
+      persistQuotaVisibility(next, previous);
+    },
+    [quotaVisibility, persistQuotaVisibility]
   );
 
   const applyCachedQuotaState = useCallback(
@@ -1037,6 +1114,9 @@ export default function ProviderLimits({
           onRedeemResetCredit={resetCreditRedemption.redeemCodexResetCredit}
           onToggleActive={handleToggleActive}
           togglingActiveId={togglingActiveId}
+          quotaVisibility={quotaVisibility}
+          onHideQuota={handleHideQuota}
+          onShowQuota={handleShowQuota}
           redeemingResetCreditId={resetCreditRedemption.redeemingResetCreditId}
         />
       </div>
