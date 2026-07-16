@@ -6,12 +6,12 @@ import {
   getSectionItems,
   normalizeHiddenSidebarItems,
   type SidebarSectionId,
-} from "../../src/shared/constants/sidebarVisibility";
+} from "../../../src/shared/constants/sidebarVisibility";
 import {
   expandActiveSection,
   hydrateExpandedSections,
   toggleExpandedSection,
-} from "../../src/shared/utils/sidebarExpansionState";
+} from "../../../src/shared/utils/sidebarExpansionState";
 
 describe("sidebar proxy expansion", () => {
   it("proxy navigation is always present and cannot be hidden by legacy settings", () => {
