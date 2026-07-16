@@ -18,7 +18,7 @@ const ANTIGRAVITY_HOSTS = [
   "autopush-cloudcode-pa.sandbox.googleapis.com",
 ];
 
-function resolveHostsForAgent(agentId?: string): string[] {
+export function resolveHostsForAgent(agentId?: string): string[] {
   if (!agentId) return ANTIGRAVITY_HOSTS;
   const target = ALL_TARGETS.find((t) => t.id === agentId);
   return target?.hosts ?? ANTIGRAVITY_HOSTS;
