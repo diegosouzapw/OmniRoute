@@ -28,7 +28,10 @@ import {
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
-import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
+import {
+  fetchGitHubCopilotModels,
+  fetchGheCopilotModels,
+} from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
 import {
   buildGlmCodingHeaders,
@@ -1461,6 +1464,46 @@ export async function GET(
         models: discovery.models,
         source: "local_catalog",
         warning: "Copilot models API unavailable — using local catalog",
+      });
+    }
+
+    if (provider === "ghe-copilot") {
+      // GHE Copilot exposes a per-enterprise model catalog at
+      // <copilotProxyUrl>/models. The IDs are enterprise-specific (no static
+      // allowlist applies), so discover them live from the connection's
+      // copilotProxyUrl with the Copilot bearer token.
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const psd = asRecord(connection.providerSpecificData);
+      const copilotToken =
+        toNonEmptyString(psd.copilotToken) || toNonEmptyString(accessToken) || null;
+      const copilotProxyUrl = toNonEmptyString(psd.copilotProxyUrl) || null;
+
+      const models = await fetchGheCopilotModels({
+        proxyUrl: copilotProxyUrl,
+        token: copilotToken,
+        fetchImpl: (url, init) => fetch(url as string, init as RequestInit),
+      });
+
+      if (models.length > 0) {
+        return buildApiDiscoveryResponse(models);
+      }
+
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: "GHE Copilot models API unavailable — using cached catalog",
+        localWarning: "GHE Copilot models API unavailable — using local catalog",
+      });
+      if (fallback) return fallback;
+      return buildResponse({
+        provider,
+        connectionId,
+        models: [],
+        source: "local_catalog",
+        warning: "GHE Copilot models API unavailable — using local catalog",
       });
     }
 
