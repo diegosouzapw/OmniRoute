@@ -49,20 +49,30 @@ async function main(): Promise<void> {
     return;
   }
 
-  const response = await fetch(NVIDIA_MODELS_URL, {
-    headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!response.ok) {
-    console.error(`NVIDIA model catalog returned HTTP ${response.status}.`);
+  let liveIds: string[] = [];
+  try {
+    const response = await fetch(NVIDIA_MODELS_URL, {
+      headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!response.ok) {
+      console.error(`NVIDIA model catalog returned HTTP ${response.status}.`);
+      process.exitCode = 2;
+      return;
+    }
+
+    const body = (await response.json()) as { data?: Array<{ id?: unknown }> } | null;
+    liveIds = (body && Array.isArray(body.data) ? body.data : [])
+      .map((model) => model?.id)
+      .filter((id): id is string => typeof id === "string");
+  } catch (error) {
+    console.error(
+      "Failed to fetch or parse NVIDIA model catalog:",
+      error instanceof Error ? error.message : error
+    );
     process.exitCode = 2;
     return;
   }
-
-  const body = (await response.json()) as { data?: Array<{ id?: unknown }> };
-  const liveIds = (Array.isArray(body.data) ? body.data : [])
-    .map((model) => model?.id)
-    .filter((id): id is string => typeof id === "string");
   const documentedFreeIds = FREE_MODEL_BUDGETS.filter((model) => model.provider === "nvidia").map(
     (model) => model.modelId
   );
