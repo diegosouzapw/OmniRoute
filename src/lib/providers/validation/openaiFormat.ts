@@ -459,6 +459,31 @@ export async function validateOpenAICompatibleProvider({ apiKey, providerSpecifi
       };
     }
 
+    // #2032: a 404 on the chat probe commonly means the requested model id
+    // does not exist at this provider (OpenAI-compatible `model_not_found`,
+    // e.g. Featherless/OpenRouter-style `vendor/model` typos). Credentials
+    // are still valid (the endpoint responded), but silently passing this
+    // hides the bad model id from the user until a real request later trips
+    // the per-model lockout — surface it as a warning at Check time instead.
+    if (chatRes.status === 404) {
+      let modelNotFoundDetail = "";
+      try {
+        const body: any = await chatRes.json();
+        const err = body?.error;
+        if (typeof err?.message === "string" && err.message.trim()) {
+          modelNotFoundDetail = `: ${err.message.trim()}`;
+        }
+      } catch {
+        // Non-JSON or unreadable body — fall through with the generic warning.
+      }
+      return {
+        valid: true,
+        error: null,
+        method: "inference_available",
+        warning: `Model ID may not exist at this provider (404)${modelNotFoundDetail}`,
+      };
+    }
+
     // 4xx other than auth (e.g. 400 bad model, 422) usually means auth passed
     if (chatRes.status >= 400 && chatRes.status < 500) {
       return {
