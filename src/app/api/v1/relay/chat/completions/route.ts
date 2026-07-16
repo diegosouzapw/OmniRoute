@@ -65,6 +65,7 @@ async function forwardToBifrost(
   body: unknown,
   token: RelayToken,
   config: BifrostRoutingConfig,
+  backend: ReturnType<typeof resolveRelayRoutingBackend>,
   startTime: number,
   clientIp: string,
   userAgent: string | null
@@ -77,6 +78,8 @@ async function forwardToBifrost(
     "x-relay-client-ip": clientIp,
     ...getProviderPluginManifestHeader(new URL(request.url).origin),
   };
+  const requestId = request.headers.get("x-request-id");
+  if (requestId) upstreamHeaders["x-request-id"] = requestId;
   if (config.apiKey) {
     upstreamHeaders.Authorization = `Bearer ${config.apiKey}`;
   }
@@ -95,7 +98,6 @@ async function forwardToBifrost(
       body: JSON.stringify(body),
       signal: ac.signal,
     });
-    clearTimeout(tid);
 
     const headers = new Headers(upstream.headers);
     headers.set("X-Routed-By", "bifrost");
@@ -107,14 +109,24 @@ async function forwardToBifrost(
 
     if (wantsStream && upstream.body) {
       const stream = finalizeReadableStream(upstream.body, (error) => {
+        clearTimeout(tid);
+        const statusCode = timedOut ? 504 : upstream.status;
+        if (error && backend === "auto") {
+          recordBifrostFailure(
+            config.baseUrl,
+            timedOut
+              ? `Bifrost sidecar stream timed out after ${config.timeoutMs}ms`
+              : "bifrost-stream-error"
+          );
+        }
         recordUsage(
           token.id,
           request,
           startTime,
           clientIp,
           userAgent,
-          error || upstream.status >= 500 ? "error" : "success",
-          upstream.status
+          error || statusCode >= 500 ? "error" : "success",
+          statusCode
         );
       });
 
@@ -124,6 +136,7 @@ async function forwardToBifrost(
       });
     }
 
+    clearTimeout(tid);
     recordUsage(
       token.id,
       request,
@@ -313,6 +326,7 @@ export async function POST(request: Request) {
             parsedBody,
             token,
             bifrostConfig,
+            backend,
             startTime,
             clientIp,
             userAgent
