@@ -49,11 +49,14 @@ function buildAuthHeader(providerConfig, token) {
       ),
     };
   }
-  // Voyage AI is Cohere-compatible except it rejects top_n with HTTP 400 (#7350).
-  // Strip top_n and pass through everything else.
+  // Voyage AI is Cohere-compatible except it uses top_k instead of top_n (#7350).
+  // Map top_n → top_k so the user's requested limit is preserved.
   if (providerConfig.format === "voyage") {
-    const { top_n: _top_n, ...rest } = body;
-    return rest;
+    const { top_n, ...rest } = body;
+    return {
+      ...rest,
+      ...(typeof top_n === "number" && top_n > 0 ? { top_k: top_n } : {}),
+    };
   }
   // Default: Cohere-compatible format (used by Together, Fireworks, Cohere, SiliconFlow)
   return body;
@@ -96,6 +99,24 @@ function buildAuthHeader(providerConfig, token) {
     return {
       id: `rerank-${Date.now()}`,
       results: topN ? scored.slice(0, topN) : scored,
+      meta: {
+        api_version: { version: "2" },
+        billed_units: { search_units: 1 },
+      },
+    };
+  }
+  // Voyage AI returns {data:[…]} (not results[]), each item has document as a raw string
+  // (not {text:string}), and no Cohere-style meta block. Map to Cohere format (#7350).
+  if (providerConfig.format === "voyage") {
+    const returnDocuments = options.return_documents !== false;
+    const results = (data.data || data.results || []).map((r) => ({
+      index: r.index,
+      relevance_score: r.relevance_score || 0,
+      ...(returnDocuments && r.document != null ? { document: { text: String(r.document) } } : {}),
+    }));
+    return {
+      id: data.id != null ? String(data.id) : `rerank-${Date.now()}`,
+      results,
       meta: {
         api_version: { version: "2" },
         billed_units: { search_units: 1 },
