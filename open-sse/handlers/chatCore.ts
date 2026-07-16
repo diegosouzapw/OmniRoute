@@ -138,6 +138,7 @@ import {
   STREAM_READINESS_TIMEOUT_MS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
   STREAM_RECOVERY,
+  DEFAULT_MAX_TOKENS,
 } from "../config/constants.ts";
 import { createRecoverableStream, makeContinuationBody } from "../services/streamRecovery.ts";
 import {
@@ -1632,7 +1633,8 @@ export async function handleChatCore({
   const outputBudget = enforceOutputTokenBudget(
     body as Record<string, unknown>,
     finalEstimatedInputTokens,
-    finalContextLimit
+    finalContextLimit,
+    targetFormat === FORMATS.CLAUDE && sourceFormat !== FORMATS.CLAUDE ? DEFAULT_MAX_TOKENS : 0
   );
   if (!outputBudget.ok) {
     const message =

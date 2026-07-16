@@ -54,3 +54,13 @@ test("accepts a missing request body when output budget remains", () => {
     adjustedFields: [],
   });
 });
+
+test("rejects when a Claude target's default output budget does not fit", () => {
+  const result = enforceOutputTokenBudget({}, 70_000, 128_000, 64_000);
+
+  assert.deepEqual(result, {
+    ok: false,
+    estimatedInputTokens: 70_000,
+    contextLimit: 128_000,
+  });
+});

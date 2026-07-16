@@ -31,6 +31,13 @@ function getOutputTokenAdjustment(
   return capped === value ? null : { field, value: capped };
 }
 
+function hasTranslatorOutputTokenLimit(body: Record<string, unknown>): boolean {
+  return ["max_tokens", "max_completion_tokens"].some((field) => {
+    const value = body[field];
+    return typeof value === "number" && Number.isFinite(value) && value > 0;
+  });
+}
+
 function adjustOutputTokenFields(
   body: Record<string, unknown>,
   availableOutputTokens: number
@@ -62,10 +69,12 @@ function adjustOutputTokenFields(
 export function enforceOutputTokenBudget(
   body: Record<string, unknown> | null | undefined,
   estimatedInputTokens: number,
-  contextLimit: number
+  contextLimit: number,
+  defaultOutputTokens = 0
 ): OutputTokenBudgetResult {
   const normalizedInputTokens = Math.max(0, Math.ceil(estimatedInputTokens));
   const normalizedContextLimit = Math.max(1, Math.floor(contextLimit));
+  const normalizedDefaultOutputTokens = Math.max(0, Math.floor(defaultOutputTokens));
   const availableOutputTokens = normalizedContextLimit - normalizedInputTokens;
 
   if (availableOutputTokens < 1) {
@@ -77,11 +86,29 @@ export function enforceOutputTokenBudget(
   }
 
   if (!body) {
+    if (normalizedDefaultOutputTokens > availableOutputTokens) {
+      return {
+        ok: false,
+        estimatedInputTokens: normalizedInputTokens,
+        contextLimit: normalizedContextLimit,
+      };
+    }
     return {
       ok: true,
       body: {},
       availableOutputTokens,
       adjustedFields: [],
+    };
+  }
+
+  if (
+    normalizedDefaultOutputTokens > availableOutputTokens &&
+    !hasTranslatorOutputTokenLimit(body)
+  ) {
+    return {
+      ok: false,
+      estimatedInputTokens: normalizedInputTokens,
+      contextLimit: normalizedContextLimit,
     };
   }
 
