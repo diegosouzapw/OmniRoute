@@ -1468,10 +1468,11 @@ export async function GET(
     }
 
     if (provider === "ghe-copilot") {
-      // GHE Copilot exposes a per-enterprise model catalog at
-      // <copilotProxyUrl>/models. The IDs are enterprise-specific (no static
-      // allowlist applies), so discover them live from the connection's
-      // copilotProxyUrl with the Copilot bearer token.
+      // GHE Copilot exposes a per-enterprise chat model catalog at
+      // <copilotApiUrl>/models (endpoints.api from the token endpoint) — NOT the
+      // proxy host, which only serves NES/autocomplete models. The IDs are
+      // enterprise-specific (no static allowlist applies), so discover them live
+      // from copilotApiUrl with the Copilot bearer token.
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
 
@@ -1481,10 +1482,14 @@ export async function GET(
       const psd = asRecord(connection.providerSpecificData);
       const copilotToken =
         toNonEmptyString(psd.copilotToken) || toNonEmptyString(accessToken) || null;
-      const copilotProxyUrl = toNonEmptyString(psd.copilotProxyUrl) || null;
+      // endpoints.api serves the real chat model catalog; endpoints.proxy only
+      // has NES/autocomplete models. Prefer the api host, fall back to proxy for
+      // legacy connections that predate copilotApiUrl capture.
+      const copilotApiUrl =
+        toNonEmptyString(psd.copilotApiUrl) || toNonEmptyString(psd.copilotProxyUrl) || null;
 
       const models = await fetchGheCopilotModels({
-        proxyUrl: copilotProxyUrl,
+        apiUrl: copilotApiUrl,
         token: copilotToken,
         fetchImpl: (url, init) => fetch(url as string, init as RequestInit),
       });

@@ -88,6 +88,10 @@ export const gheCopilot = {
       copilotToken,
       userInfo,
       gheUrl: extra?.gheUrl,
+      // endpoints.api → chat/completions + /models catalog (real chat models).
+      // endpoints.proxy → NES/autocomplete only. Capture both; chat + discovery
+      // use the api host.
+      copilotApiUrl: copilotToken?.endpoints?.api,
       copilotProxyUrl: copilotToken?.endpoints?.proxy,
     };
   },
@@ -97,6 +101,7 @@ export const gheCopilot = {
     expiresIn: tokens.expires_in,
     providerSpecificData: {
       gheUrl: extra?.gheUrl,
+      copilotApiUrl: extra?.copilotApiUrl || extra?.copilotToken?.endpoints?.api,
       copilotProxyUrl: extra?.copilotProxyUrl || extra?.copilotToken?.endpoints?.proxy,
       copilotToken: extra?.copilotToken?.token,
       copilotTokenExpiresAt: extra?.copilotToken?.expires_at,

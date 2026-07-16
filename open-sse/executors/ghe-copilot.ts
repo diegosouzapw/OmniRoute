@@ -19,12 +19,19 @@ export class GheCopilotExecutor extends GithubExecutor {
    * Appends /chat/completions if not already present.
    */
   private getChatCompletionsBase(credentials: ProviderCredentials | null): string {
-    // Prefer the dynamic proxy host returned by the GHE token endpoint
-    // (endpoints.proxy). Fall back to the static gheUrl/chat/completions path.
+    // The GHE token endpoint returns TWO hosts:
+    //   endpoints.api   → copilotApiUrl   (chat/completions + the /models catalog)
+    //   endpoints.proxy → copilotProxyUrl (NES / autocomplete / instant-apply only)
+    // Chat MUST go to the api host. The proxy host only serves the completion
+    // models (copilot-nes-*, instant-apply, suggestions) and 404s/errors for
+    // real chat models. Prefer copilotApiUrl, fall back to copilotProxyUrl for
+    // legacy connections, then the static gheUrl/chat/completions path.
     const psd = credentials?.providerSpecificData as Record<string, any> | undefined;
-    const proxy = typeof psd?.copilotProxyUrl === "string" ? psd.copilotProxyUrl : undefined;
-    if (proxy) {
-      const base = proxy.replace(/\/+$/, "");
+    const apiOrProxy =
+      (typeof psd?.copilotApiUrl === "string" ? psd.copilotApiUrl : undefined) ||
+      (typeof psd?.copilotProxyUrl === "string" ? psd.copilotProxyUrl : undefined);
+    if (apiOrProxy) {
+      const base = apiOrProxy.replace(/\/+$/, "");
       return base.endsWith("/chat/completions") ? base : `${base}/chat/completions`;
     }
     const gheUrl = psd?.gheUrl as string | undefined;
@@ -180,6 +187,7 @@ export class GheCopilotExecutor extends GithubExecutor {
               ...credentials?.providerSpecificData,
               copilotToken: copilotResult.token,
               copilotTokenExpiresAt: copilotResult.expiresAt,
+              copilotApiUrl: copilotResult.endpoints?.api,
               copilotProxyUrl: copilotResult.endpoints?.proxy,
               gheUrl: credentials?.providerSpecificData?.gheUrl,
             },
@@ -199,6 +207,7 @@ export class GheCopilotExecutor extends GithubExecutor {
           ...credentials?.providerSpecificData,
           copilotToken: copilotResult.token,
           copilotTokenExpiresAt: copilotResult.expiresAt,
+          copilotApiUrl: copilotResult.endpoints?.api,
           copilotProxyUrl: copilotResult.endpoints?.proxy,
           gheUrl: credentials?.providerSpecificData?.gheUrl,
         },
