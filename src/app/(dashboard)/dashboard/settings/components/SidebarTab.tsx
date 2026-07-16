@@ -223,6 +223,38 @@ function isHideableSidebarItemId(id: SidebarItemId): id is HideableSidebarItemId
   return HIDEABLE_SIDEBAR_ITEM_IDS.includes(id as HideableSidebarItemId);
 }
 
+function GroupItemVisibilityControl({
+  item,
+  hiddenSet,
+  onToggleItem,
+}: {
+  item: SidebarItemDefinition;
+  hiddenSet: Set<HideableSidebarItemId>;
+  onToggleItem: (id: HideableSidebarItemId) => void;
+}) {
+  const tSidebar = useTranslations("sidebar");
+  const hideableId = isHideableSidebarItemId(item.id) ? item.id : null;
+  if (hideableId !== null) {
+    return (
+      <Toggle
+        size="sm"
+        checked={!hiddenSet.has(hideableId)}
+        onChange={() => onToggleItem(hideableId)}
+      />
+    );
+  }
+
+  return (
+    <span
+      className="material-symbols-outlined text-[16px] text-text-muted/40"
+      title={tSidebar("cannotHide")}
+      aria-label={tSidebar("alwaysVisible")}
+    >
+      lock
+    </span>
+  );
+}
+
 function ItemRow({ item, hiddenSet, onToggleItem, getLabel }: ItemRowProps) {
   const tSidebar = useTranslations("sidebar");
   const hideableId = isHideableSidebarItemId(item.id) ? item.id : null;
@@ -248,37 +280,6 @@ function ItemRow({ item, hiddenSet, onToggleItem, getLabel }: ItemRowProps) {
       )}
     </div>
   );
-    function GroupItemVisibilityControl({
-      item,
-      hiddenSet,
-      onToggleItem,
-    }: {
-      item: SidebarItemDefinition;
-      hiddenSet: Set<HideableSidebarItemId>;
-      onToggleItem: (id: HideableSidebarItemId) => void;
-    }) {
-      const tSidebar = useTranslations("sidebar");
-      if (isHideableSidebarItemId(item.id)) {
-        return (
-          <Toggle
-            size="sm"
-            checked={!hiddenSet.has(item.id)}
-            onChange={() => onToggleItem(item.id)}
-          />
-        );
-      }
-
-      return (
-        <span
-          className="material-symbols-outlined text-[16px] text-text-muted/40"
-          title={tSidebar("cannotHide")}
-          aria-label={tSidebar("alwaysVisible")}
-        >
-          lock
-        </span>
-      );
-    }
-
 }
 
 // ─── Group row (items inside group, no sub-DnD) ───────────────────────────────
