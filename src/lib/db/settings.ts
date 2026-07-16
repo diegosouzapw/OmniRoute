@@ -541,33 +541,46 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
       }
     }
 
-    // Step 7: Legacy combo-level (only if proxy_enabled)
-    if (connectionProxyEnabled && config.combos && Object.keys(config.combos).length > 0) {
+    // Step 7: Combo-level (only if proxy_enabled). For every combo whose model
+    // list references this connection's provider, check the modern registry
+    // (proxy_assignments, scope='combo') first — this is the assignment the
+    // dashboard's Combo "Set Proxy" modal actually writes to (#7149, where the
+    // registry write path and this read path had diverged, leaving combo-level
+    // proxy assignment completely inert). Fall back to the legacy in-memory
+    // combos map for any pre-existing legacy data.
+    if (connectionProvider && connectionProxyEnabled) {
       const combos = db.prepare("SELECT id, data FROM combos").all();
       for (const comboRow of combos) {
         const comboRecord = toRecord(comboRow);
         const comboId = typeof comboRecord.id === "string" ? comboRecord.id : null;
-        if (comboId && config.combos[comboId]) {
-          try {
-            const comboRaw = typeof comboRecord.data === "string" ? comboRecord.data : null;
-            if (!comboRaw) continue;
-            const combo = toRecord(JSON.parse(comboRaw));
-            const comboModels = Array.isArray(combo.models) ? combo.models : [];
-            const usesProvider = comboModels.some(
-              (entry) => getComboModelProvider(entry) === connectionProvider
-            );
-            if (usesProvider) {
-              const result = {
-                proxy: withFamilyDefault(config.combos[comboId]),
-                level: "combo",
-                levelId: comboId,
-              };
-              cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
-              return result;
-            }
-          } catch {
-            // Ignore malformed combo records during proxy resolution.
+        if (!comboId) continue;
+        try {
+          const comboRaw = typeof comboRecord.data === "string" ? comboRecord.data : null;
+          if (!comboRaw) continue;
+          const combo = toRecord(JSON.parse(comboRaw));
+          const comboModels = Array.isArray(combo.models) ? combo.models : [];
+          const usesProvider = comboModels.some(
+            (entry) => getComboModelProvider(entry) === connectionProvider
+          );
+          if (!usesProvider) continue;
+
+          const registryCombo = await resolveProxyForScopeFromRegistry("combo", comboId);
+          if (registryCombo?.proxy) {
+            cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, registryCombo);
+            return registryCombo;
           }
+
+          if (config.combos?.[comboId]) {
+            const result = {
+              proxy: withFamilyDefault(config.combos[comboId]),
+              level: "combo",
+              levelId: comboId,
+            };
+            cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+            return result;
+          }
+        } catch {
+          // Ignore malformed combo records during proxy resolution.
         }
       }
     }
