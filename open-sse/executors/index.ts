@@ -166,6 +166,8 @@ const executors = {
   zmf: new ZenmuxFreeExecutor(), // Alias for zenmux-free
   auggie: new AuggieExecutor(),
   xai: new XaiExecutor(),
+  "xai-oauth": new XaiExecutor("xai-oauth"),
+  xao: new XaiExecutor("xai-oauth"),
 };
 
 const defaultCache = new Map();

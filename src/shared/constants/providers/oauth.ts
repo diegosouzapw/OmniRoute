@@ -3,6 +3,19 @@
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
 export const OAUTH_PROVIDERS = {
+  "xai-oauth": {
+    id: "xai-oauth",
+    alias: "xao",
+    name: "xAI OAuth (Grok)",
+    icon: "auto_awesome",
+    color: "#1DA1F2",
+    textIcon: "XA",
+    website: "https://x.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Sign in with xAI to use api.x.ai models such as Grok 4.5. This is separate from Grok Build JWT sessions, which use cli-chat-proxy.grok.com and grok-build model aliases.",
+  },
   "grok-cli": {
     id: "grok-cli",
     alias: "gc",
