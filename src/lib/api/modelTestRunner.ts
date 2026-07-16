@@ -210,6 +210,27 @@ export interface SingleModelTestResult {
   retryAfter?: number;
 }
 
+export function createModelTestTimeoutError(timeoutMs: number): Error {
+  const error = new Error(`Model test timed out after ${timeoutMs}ms`);
+  error.name = "TimeoutError";
+  return error;
+}
+
+function buildModelTestTimeoutResult(
+  modelId: string,
+  latencyMs: number,
+  timeoutMs: number
+): SingleModelTestResult {
+  return {
+    modelId,
+    status: "error",
+    latencyMs,
+    httpStatus: 504,
+    error: `Timeout (${Math.round(timeoutMs / 1000)}s)`,
+    isTimeout: true,
+  };
+}
+
 /**
  * Run a single model test. When `connectionId` is provided, wraps the
  * upstream call with `withRateLimit` (Bottleneck). Returns a plain
@@ -251,7 +272,7 @@ export async function runSingleModelTest(
   let timedOut = false;
   const timeoutHandle = setTimeout(() => {
     timedOut = true;
-    controller.abort();
+    controller.abort(createModelTestTimeoutError(effectiveTimeoutMs));
   }, effectiveTimeoutMs);
 
   const runInner = async (signal: AbortSignal): Promise<Response> => {
@@ -283,17 +304,10 @@ export async function runSingleModelTest(
     clearTimeout(timeoutHandle);
     const latencyMs = Date.now() - startTime;
     const errorName = getErrorName(error);
+    if (timedOut) {
+      return buildModelTestTimeoutResult(fullModelStr, latencyMs, effectiveTimeoutMs);
+    }
     if (errorName === "AbortError") {
-      if (timedOut) {
-        return {
-          modelId: fullModelStr,
-          status: "error",
-          latencyMs,
-          httpStatus: 500,
-          error: `Timeout (${Math.round(effectiveTimeoutMs / 1000)}s)`,
-          isTimeout: true,
-        };
-      }
       // AbortError without timeout = withRateLimit queue rejection / abort.
       // Surface as rate_limited so the batch endpoint can stop the loop.
       return {
@@ -316,6 +330,13 @@ export async function runSingleModelTest(
   clearTimeout(timeoutHandle);
 
   const latencyMs = Date.now() - startTime;
+
+  // chatCore converts upstream failures into a Response. Preserve the local
+  // controller's more precise timeout diagnosis instead of surfacing the
+  // converted 499/504 response as a generic provider failure.
+  if (timedOut) {
+    return buildModelTestTimeoutResult(fullModelStr, latencyMs, effectiveTimeoutMs);
+  }
 
   if (res.status === 429) {
     const retryAfter = parseRetryAfterHeader(res.headers.get("retry-after"));

@@ -4,6 +4,7 @@ import {
   parseRetryAfterHeader,
   detectTestKind,
   extractProviderErrorMessage,
+  createModelTestTimeoutError,
   resolveModelTestTimeoutMs,
 } from "@/lib/api/modelTestRunner.ts";
 
@@ -116,4 +117,10 @@ test("resolveModelTestTimeoutMs extends Dola Pro model checks", () => {
 test("resolveModelTestTimeoutMs leaves ordinary models unchanged", () => {
   assert.equal(resolveModelTestTimeoutMs("doubao-web", "dola-speed", 10_000), 10_000);
   assert.equal(resolveModelTestTimeoutMs("openai", "dola-pro", 10_000), 10_000);
+});
+
+test("createModelTestTimeoutError preserves a distinct timeout reason", () => {
+  const error = createModelTestTimeoutError(20_000);
+  assert.equal(error.name, "TimeoutError");
+  assert.equal(error.message, "Model test timed out after 20000ms");
 });
