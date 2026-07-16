@@ -283,7 +283,7 @@ export default function FreePoolTab() {
             </span>
           )}
           {stats.lastSyncAt && (
-            <span>
+            <span suppressHydrationWarning>
               {translateOrFallback("lastSync", "Last sync")}:{" "}
               {new Date(stats.lastSyncAt).toLocaleTimeString()}
             </span>
