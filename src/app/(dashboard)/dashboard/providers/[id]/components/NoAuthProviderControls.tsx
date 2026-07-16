@@ -90,7 +90,7 @@ export default function NoAuthProviderControls({
   const accountProviderName = ACCOUNT_PROVIDER_NAMES[providerId];
   const host = providerProxy?.host;
   const providerProxyControl =
-    providerId === "veoaifree-web" ? null : (
+    providerId === "veoaifree-web" || providerId === "auggie" ? null : (
       <button
         type="button"
         onClick={onConfigureProviderProxy}

@@ -23,7 +23,7 @@ export function isGlobalProxyEnabled(db: ReturnType<typeof getDbInstance>): bool
  * #6246 fail-closed guard for a connection with an assigned dead proxy pool.
  * Explicitly disabling proxying globally or for the connection allows direct egress.
  */
-export function hasBlockingProxyAssignment(connectionId: string): boolean {
+export function hasBlockingProxyAssignment(connectionId: string, providerId?: string): boolean {
   try {
     const db = getDbInstance();
     if (!isGlobalProxyEnabled(db)) return false;
@@ -32,7 +32,7 @@ export function hasBlockingProxyAssignment(connectionId: string): boolean {
       .prepare("SELECT provider, proxy_enabled FROM provider_connections WHERE id = ?")
       .get(connectionId) as { provider?: string | null; proxy_enabled?: number } | undefined;
     if (conn && conn.proxy_enabled === 0) return false;
-    const provider = conn?.provider ?? null;
+    const provider = conn?.provider ?? providerId ?? null;
     const dead = db
       .prepare(
         `SELECT 1 FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id
