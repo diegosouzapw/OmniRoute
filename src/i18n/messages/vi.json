@@ -1424,7 +1424,11 @@
     "updateAvailableDesc": "Một phiên bản mới có sẵn. Nhấn vào đây để cập nhật.",
     "updateStarted": "Đã bắt đầu cập nhật...",
     "reloadingPageAutomatically": "Đang tải lại trang tự động...",
-    "providerTopology": "Cấu trúc liên kết của nhà cung cấp"
+    "providerTopology": "Cấu trúc liên kết của nhà cung cấp",
+    "providerTopologyDesc": "Các nhà cung cấp đã kết nối đang định tuyến qua OmniRoute theo thời gian thực",
+    "providerTopologyActive": "Đang hoạt động",
+    "providerTopologyRecent": "Gần đây",
+    "providerTopologyError": "Lỗi"
   },
   "analytics": {
     "title": "Phân tích",

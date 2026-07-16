@@ -36,19 +36,20 @@ export function HomeProviderTopologySection({
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-base font-semibold">{t("providerTopology")}</h2>
-          <p className="text-xs text-text-muted">
-            Connected providers routing through OmniRoute in real time
-          </p>
+          <p className="text-xs text-text-muted">{t("providerTopologyDesc")}</p>
         </div>
         <div className="flex items-center gap-3 text-[11px] text-text-muted">
           <span className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-green-500" /> Active
+            <span className="size-2 rounded-full bg-green-500" />
+            {t("providerTopologyActive")}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-amber-500" /> Recent
+            <span className="size-2 rounded-full bg-amber-500" />
+            {t("providerTopologyRecent")}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-red-500" /> Error
+            <span className="size-2 rounded-full bg-red-500" />
+            {t("providerTopologyError")}
           </span>
         </div>
       </div>

@@ -1513,7 +1513,11 @@
     "updateAvailableDesc": "A new version is available. Click to update.",
     "updateStarted": "Update started...",
     "reloadingPageAutomatically": "Reloading page automatically...",
-    "providerTopology": "Provider Topology"
+    "providerTopology": "Provider Topology",
+    "providerTopologyDesc": "Connected providers routing through OmniRoute in real time",
+    "providerTopologyActive": "Active",
+    "providerTopologyRecent": "Recent",
+    "providerTopologyError": "Error"
   },
   "analytics": {
     "title": "Analytics",
