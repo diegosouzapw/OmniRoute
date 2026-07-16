@@ -11,6 +11,7 @@ export interface ProviderRiskNoticeFields {
 }
 
 import { NOAUTH_PROVIDERS } from "./providers/noauth";
+export { supportsNoAuthProviderProxy } from "./providers/noauth";
 import { OAUTH_PROVIDERS } from "./providers/oauth";
 import { WEB_COOKIE_PROVIDERS, resolveWebProviderHost } from "./providers/web-cookie";
 export { resolveWebProviderHost };
