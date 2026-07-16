@@ -104,21 +104,26 @@ test("provisionDnsEntries: happy path calls the default step and does not log er
   assert.equal(spy.errorCalls.length, 0, "no error logs on the happy path");
 });
 
-test("provisionDnsEntries: SKIP_ANTIGRAVITY_DNS=true skips all DNS steps", async () => {
+test("provisionDnsEntries: SKIP_ANTIGRAVITY_DNS=true skips ALL DNS steps (default + agents + custom)", async () => {
   const prev = process.env.SKIP_ANTIGRAVITY_DNS;
   process.env.SKIP_ANTIGRAVITY_DNS = "true";
   try {
     const spy = makeSpyLogger();
     let defaultCalled = false;
+    let hostsCalled = false;
     await provisionDnsEntries("pw", {
       addDefaultDns: async () => {
         defaultCalled = true;
       },
-      getAgentStates: () => [],
-      listEnabledCustomHosts: () => [],
+      addHostsDns: async () => {
+        hostsCalled = true;
+      },
+      getAgentStates: () => [{ dns_enabled: true, agent_id: "antigravity" }] as never,
+      listEnabledCustomHosts: () => [{ host: "custom.example.com" }] as never,
       logger: spy.logger,
     });
     assert.ok(!defaultCalled, "default DNS step must NOT be called when SKIP_ANTIGRAVITY_DNS=true");
+    assert.ok(!hostsCalled, "addHostsDns must NOT be called when SKIP_ANTIGRAVITY_DNS=true");
     assert.equal(spy.errorCalls.length, 0, "no errors expected");
     assert.ok(
       spy.infoCalls.some(
@@ -136,19 +141,49 @@ test("provisionDnsEntries: SKIP_ANTIGRAVITY_DNS=true skips all DNS steps", async
   }
 });
 
-test("provisionDnsEntries: canElevate() returning false skips all DNS steps (container scenario)", async () => {
+test("provisionDnsEntries: SKIP_ANTIGRAVITY_DNS=false does NOT skip DNS steps", async () => {
+  const prev = process.env.SKIP_ANTIGRAVITY_DNS;
+  process.env.SKIP_ANTIGRAVITY_DNS = "false";
+  try {
+    const spy = makeSpyLogger();
+    let defaultCalled = false;
+    await provisionDnsEntries("pw", {
+      addDefaultDns: async () => {
+        defaultCalled = true;
+      },
+      getAgentStates: () => [],
+      listEnabledCustomHosts: () => [],
+      logger: spy.logger,
+    });
+    assert.ok(defaultCalled, "default DNS step must be called when SKIP_ANTIGRAVITY_DNS=false");
+    assert.equal(spy.errorCalls.length, 0, "no errors expected");
+  } finally {
+    if (prev === undefined) {
+      delete process.env.SKIP_ANTIGRAVITY_DNS;
+    } else {
+      process.env.SKIP_ANTIGRAVITY_DNS = prev;
+    }
+  }
+});
+
+test("provisionDnsEntries: canElevate()=false skips ALL DNS steps (default + agents + custom)", async () => {
   const spy = makeSpyLogger();
   let defaultCalled = false;
+  let hostsCalled = false;
   await provisionDnsEntries("pw", {
     addDefaultDns: async () => {
       defaultCalled = true;
     },
+    addHostsDns: async () => {
+      hostsCalled = true;
+    },
     canElevate: () => false,
-    getAgentStates: () => [],
-    listEnabledCustomHosts: () => [],
+    getAgentStates: () => [{ dns_enabled: true, agent_id: "antigravity" }] as never,
+    listEnabledCustomHosts: () => [{ host: "custom.example.com" }] as never,
     logger: spy.logger,
   });
   assert.ok(!defaultCalled, "default DNS step must NOT be called when canElevate() is false");
+  assert.ok(!hostsCalled, "addHostsDns must NOT be called when canElevate() is false");
   assert.equal(spy.errorCalls.length, 0, "no errors expected");
   assert.ok(
     spy.infoCalls.some(
@@ -163,11 +198,13 @@ test("provisionDnsEntries: canElevate() returning true proceeds with DNS provisi
   let defaultCalled = false;
   let agentCalled = false;
   let customCalled = false;
+  const capturedPasswords: string[] = [];
   await provisionDnsEntries("pw", {
     addDefaultDns: async () => {
       defaultCalled = true;
     },
-    addHostsDns: async (hosts: string[]) => {
+    addHostsDns: async (hosts: string[], sudoPassword: string) => {
+      capturedPasswords.push(sudoPassword);
       if (hosts.some((h) => h.includes("googleapis.com"))) agentCalled = true;
       if (hosts.includes("custom.example.com")) customCalled = true;
     },
@@ -180,4 +217,10 @@ test("provisionDnsEntries: canElevate() returning true proceeds with DNS provisi
   assert.ok(agentCalled, "agent DNS step must be called when canElevate() is true");
   assert.ok(customCalled, "custom DNS step must be called when canElevate() is true");
   assert.equal(spy.errorCalls.length, 0, "no errors expected on happy path");
+  // Verify sudoPassword is passed through to addHostsDns.
+  assert.equal(capturedPasswords.length, 2, "addHostsDns called twice (agents + custom)");
+  assert.ok(
+    capturedPasswords.every((p) => p === "pw"),
+    "sudoPassword must be forwarded to addHostsDns"
+  );
 });
