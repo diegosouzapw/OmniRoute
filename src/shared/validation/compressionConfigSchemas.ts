@@ -266,6 +266,32 @@ export const engineToggleSchema = z.object({
   level: z.string().optional(),
 });
 
+export const contextBudgetModeSchema = z.enum(["floor", "replace-autotrigger", "off"]);
+export const contextBudgetPolicySchema = z.enum(["reserve-output", "percentage", "absolute"]);
+
+export const contextBudgetLadderStageSchema = z
+  .object({
+    engine: z.string().trim().min(1),
+    intensity: z.string().optional(),
+  })
+  .strict();
+
+// Adaptive context-budget "dial" (#7005): the compute engine shipped in PR #4716 but was
+// never wired to this update schema, so any PUT containing `contextBudget` was rejected
+// with 400. Mirrors ContextBudgetConfig (open-sse/services/compression/adaptiveCompression/
+// types.ts) and the `.strict()` pattern used by ultraConfigSchema/aggressiveConfigSchema.
+export const contextBudgetConfigSchema = z
+  .object({
+    mode: contextBudgetModeSchema.optional(),
+    policy: contextBudgetPolicySchema.optional(),
+    outputReserve: z.number().int().min(0).optional(),
+    safetyMargin: z.number().int().min(0).optional(),
+    pct: z.number().min(0).max(1).optional(),
+    absoluteBudget: z.number().int().min(0).optional(),
+    ladderOverride: z.array(contextBudgetLadderStageSchema).optional(),
+  })
+  .strict();
+
 export const compressionSettingsUpdateSchema = z
   .object({
     enabled: z.boolean().optional(),
@@ -286,6 +312,7 @@ export const compressionSettingsUpdateSchema = z
     languageConfig: languageConfigSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
     ultra: ultraConfigSchema.optional(),
+    contextBudget: contextBudgetConfigSchema.optional(),
     contextEditing: contextEditingConfigSchema.optional(),
     engines: z.record(z.string(), engineToggleSchema).optional(),
     enginesExplicit: z.boolean().optional(),

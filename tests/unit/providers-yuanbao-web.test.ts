@@ -71,6 +71,13 @@ async function readStreamText(res: Response): Promise<string> {
 }
 
 test("missing hy_token cookie returns a 401 auth error", async () => {
+  // Hermetic: the 401 must come from the executor's own cookie validation, never
+  // from the real upstream — on GitHub-hosted runners the Tencent endpoint is
+  // unreachable and a live call turns this into a 71s 502 false-negative.
+  const original = globalThis.fetch;
+  globalThis.fetch = (async () => {
+    throw new Error("network disabled in this test — executor must reject before fetching");
+  }) as typeof fetch;
   const exec = new YuanbaoWebExecutor();
   const { response } = await exec.execute({
     model: "deepseek-v3",
@@ -84,6 +91,7 @@ test("missing hy_token cookie returns a 401 auth error", async () => {
   assert.match(body.error.message, /hy_user|hy_token|session cookie/);
   // Never leak stack traces.
   assert.ok(!body.error.message.includes("at /"));
+  globalThis.fetch = original;
 });
 
 test("streaming request translates think/text events into OpenAI chunks", async () => {
