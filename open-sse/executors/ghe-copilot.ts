@@ -19,72 +19,85 @@ export class GheCopilotExecutor extends GithubExecutor {
    * Appends /chat/completions if not already present.
    */
   private getChatCompletionsBase(credentials: ProviderCredentials | null): string {
-    const gheUrl = credentials?.providerSpecificData?.gheUrl as string | undefined;
+    // Prefer the dynamic proxy host returned by the GHE token endpoint
+    // (endpoints.proxy). Fall back to the static gheUrl/chat/completions path.
+    const psd = credentials?.providerSpecificData as Record<string, any> | undefined;
+    const proxy = typeof psd?.copilotProxyUrl === "string" ? psd.copilotProxyUrl : undefined;
+    if (proxy) {
+      const base = proxy.replace(/\/+$/, "");
+      return base.endsWith("/chat/completions") ? base : `${base}/chat/completions`;
+    }
+    const gheUrl = psd?.gheUrl as string | undefined;
     if (!gheUrl) {
       throw new Error("GHE Copilot executor requires gheUrl in providerSpecificData");
     }
-    // Ensure it ends with /chat/completions
-    if (gheUrl.endsWith("/chat/completions")) {
-      return gheUrl;
-    }
-    // If it's just the base (e.g., https://ghe.company.com), append the path
-    return `${gheUrl.replace(/\/$/, "")}/chat/completions`;
+    const base = gheUrl.replace(/\/$/, "");
+    return base.endsWith("/chat/completions") ? base : `${base}/chat/completions`;
   }
 
   /**
-   * Derive the responses API base URL from gheUrl.
+   * Strip the `ghe-copilot/` provider prefix from a model id so the upstream
+   * GHE Copilot proxy receives the bare id (e.g. `gpt-5-mini`).
    */
-  private getResponsesBase(credentials: ProviderCredentials | null): string {
-    const gheUrl = credentials?.providerSpecificData?.gheUrl as string | undefined;
-    if (!gheUrl) {
-      throw new Error("GHE Copilot executor requires gheUrl in providerSpecificData");
-    }
-    const chatBase = this.getChatCompletionsBase(credentials);
-    return chatBase.replace(/\/chat\/completions\/?$/, "/responses");
+  private stripPrefix(model: string): string {
+    return typeof model === "string" && model.startsWith("ghe-copilot/")
+      ? model.slice("ghe-copilot/".length)
+      : model;
   }
 
   override buildUrl(model: string, stream: boolean, urlIndex = 0, credentials: ProviderCredentials | null = null): string {
-    const targetFormat = getModelTargetFormat("gh", model);
-    
-    // GHE requires gheUrl in credentials - throw if not provided
-    const gheUrl = credentials?.providerSpecificData?.gheUrl as string | undefined;
-    if (!gheUrl) {
-      throw new Error("GHE Copilot executor requires gheUrl in providerSpecificData");
-    }
-    
-    // Reuse the same logic as GithubExecutor but with GHE base URLs
-    if (
-      (targetFormat === "openai-responses" || /codex/i.test(model)) &&
-      this.supportsResponsesEndpoint(model)
-    ) {
-      return this.getResponsesBase(credentials);
-    }
+    // GHE Copilot proxy only reliably serves /chat/completions. Route every
+    // model there (including ones flagged openai-responses) and let the
+    // Responses→Chat transformer handle the format. Going to /responses on the
+    // GHE proxy returns a bare 404 ("404 page not found").
     return this.getChatCompletionsBase(credentials);
+  }
+
+  /**
+   * Strip the `ghe-copilot/` provider prefix from the model before sending to
+   * the upstream GHE Copilot proxy, which expects bare model ids.
+   */
+  override transformRequest(model: string, body: any, stream: boolean, credentials: any): any {
+    const bareModel = this.stripPrefix(model);
+    const transformed = super.transformRequest(bareModel, body, stream, credentials);
+    if (transformed && typeof transformed === "object" && typeof transformed.model === "string") {
+      transformed.model = this.stripPrefix(transformed.model);
+    }
+    return transformed;
   }
 
   override async refreshCopilotToken(
     githubAccessToken: string,
     log?: { info?: (cat: string, msg: string) => void; error?: (cat: string, msg: string) => void },
     credentials?: ProviderCredentials | null
-  ): Promise<{ token: string; expiresAt: string | number } | null> {
+  ): Promise<{ token: string; expiresAt: string | number; endpoints?: { proxy?: string; api?: string } } | null> {
     const gheUrl = credentials?.providerSpecificData?.gheUrl as string | undefined;
     if (!gheUrl) return null;
 
     try {
       const baseUrl = gheUrl.replace(/\/chat\/completions\/?$/, "").replace(/\/responses\/?$/, "");
-      const tokenUrl = `${baseUrl}/copilot_internal/v2/token`;
-      
+      const tokenUrl = `${baseUrl}/api/v3/copilot_internal/v2/token`;
+
       const response = await fetch(tokenUrl, {
         headers: {
           Authorization: `Bearer ${githubAccessToken}`,
           Accept: "application/json",
         },
       });
-      
+
       if (!response.ok) return null;
       const data = await response.json();
       log?.info?.("TOKEN", "GHE Copilot token refreshed");
-      return { token: data.token, expiresAt: data.expires_at };
+      // GHE returns a dynamic `endpoints` object; the chat/responses proxy host
+      // lives at endpoints.proxy (NOT a static path on the GHE web host).
+      const endpoints = data.endpoints
+        ? { proxy: data.endpoints.proxy, api: data.endpoints.api }
+        : undefined;
+      return {
+        token: data.token,
+        expiresAt: data.expires_at,
+        ...(endpoints ? { endpoints } : {}),
+      };
     } catch (error) {
       log?.error?.("TOKEN", `GHE Copilot refresh error: ${error.message}`);
       return null;
@@ -139,6 +152,55 @@ export class GheCopilotExecutor extends GithubExecutor {
       log?.error?.("TOKEN", `GHE GitHub refresh error: ${error.message}`);
       return null;
     }
+  }
+
+  /**
+   * Refresh credentials and capture the GHE Copilot proxy URL (endpoints.proxy)
+   * returned by the token endpoint, storing it in providerSpecificData so
+   * buildUrl routes chat/responses traffic to the correct enterprise host.
+   */
+  override async refreshCredentials(credentials: any, log?: any) {
+    let copilotResult = await this.refreshCopilotToken(credentials?.accessToken, log, credentials);
+
+    if (!copilotResult && credentials?.refreshToken) {
+      const githubTokens = await this.refreshGitHubToken(credentials.refreshToken, log, credentials);
+      if (githubTokens?.accessToken) {
+        copilotResult = await this.refreshCopilotToken(githubTokens.accessToken, log, credentials);
+        if (copilotResult) {
+          return {
+            ...githubTokens,
+            copilotToken: copilotResult.token,
+            copilotTokenExpiresAt: copilotResult.expiresAt,
+            providerSpecificData: {
+              ...credentials?.providerSpecificData,
+              copilotToken: copilotResult.token,
+              copilotTokenExpiresAt: copilotResult.expiresAt,
+              copilotProxyUrl: copilotResult.endpoints?.proxy,
+              gheUrl: credentials?.providerSpecificData?.gheUrl,
+            },
+          };
+        }
+        return githubTokens;
+      }
+    }
+
+    if (copilotResult) {
+      return {
+        accessToken: credentials?.accessToken,
+        refreshToken: credentials?.refreshToken,
+        copilotToken: copilotResult.token,
+        copilotTokenExpiresAt: copilotResult.expiresAt,
+        providerSpecificData: {
+          ...credentials?.providerSpecificData,
+          copilotToken: copilotResult.token,
+          copilotTokenExpiresAt: copilotResult.expiresAt,
+          copilotProxyUrl: copilotResult.endpoints?.proxy,
+          gheUrl: credentials?.providerSpecificData?.gheUrl,
+        },
+      };
+    }
+
+    return null;
   }
 }
 

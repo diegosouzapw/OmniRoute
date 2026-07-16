@@ -66,7 +66,7 @@ export const gheCopilot = {
   },
   postExchange: async (tokens: any, extra?: any) => {
     const gheUrl = normalizeGheUrl(extra?.gheUrl);
-    const copilotRes = await fetch(`${gheUrl}/copilot_internal/v2/token`, {
+    const copilotRes = await fetch(`${gheUrl}/api/v3/copilot_internal/v2/token`, {
       headers: {
         Authorization: `Bearer ${tokens.access_token}`,
         Accept: "application/json",
@@ -84,7 +84,12 @@ export const gheCopilot = {
       },
     });
     const userInfo = userRes.ok ? await userRes.json() : {};
-    return { copilotToken, userInfo, gheUrl: extra?.gheUrl };
+    return {
+      copilotToken,
+      userInfo,
+      gheUrl: extra?.gheUrl,
+      copilotProxyUrl: copilotToken?.endpoints?.proxy,
+    };
   },
   mapTokens: (tokens: any, extra?: any) => ({
     accessToken: tokens.access_token,
@@ -92,6 +97,7 @@ export const gheCopilot = {
     expiresIn: tokens.expires_in,
     providerSpecificData: {
       gheUrl: extra?.gheUrl,
+      copilotProxyUrl: extra?.copilotProxyUrl || extra?.copilotToken?.endpoints?.proxy,
       copilotToken: extra?.copilotToken?.token,
       copilotTokenExpiresAt: extra?.copilotToken?.expires_at,
       githubUserId: extra?.userInfo?.id,

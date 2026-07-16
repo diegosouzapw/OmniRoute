@@ -95,7 +95,6 @@ export const gheCopilotProvider: RegistryEntry = {
     {
       id: "gpt-5.4",
       name: "GPT-5.4",
-      targetFormat: "openai-responses",
       supportsXHighEffort: true,
       contextLength: 1050000,
       maxOutputTokens: 128000,
@@ -103,21 +102,18 @@ export const gheCopilotProvider: RegistryEntry = {
     {
       id: "gpt-5.4-mini",
       name: "GPT-5.4 mini",
-      targetFormat: "openai-responses",
       contextLength: 400000,
       maxOutputTokens: 128000,
     },
     {
       id: "gpt-5.3-codex",
       name: "GPT-5.3-Codex",
-      targetFormat: "openai-responses",
       contextLength: 400000,
       maxOutputTokens: 128000,
     },
     {
       id: "gpt-5-mini",
       name: "GPT-5 mini",
-      targetFormat: "openai-responses",
       contextLength: 264000,
       maxOutputTokens: 64000,
     },
@@ -143,14 +139,12 @@ export const gheCopilotProvider: RegistryEntry = {
     {
       id: "mai-code-1-flash",
       name: "MAI-Code-1-Flash",
-      targetFormat: "openai-responses",
       contextLength: 256000,
       maxOutputTokens: 128000,
     },
     {
       id: "oswe-vscode-prime",
       name: "Raptor mini",
-      targetFormat: "openai-responses",
       contextLength: 264000,
       maxOutputTokens: 64000,
     },

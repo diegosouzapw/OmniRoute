@@ -39,6 +39,11 @@
       "count": 14
     }
   },
+  "open-sse/executors/ghe-copilot.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
+    }
+  },
   "open-sse/executors/opencode.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
