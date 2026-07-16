@@ -54,6 +54,91 @@ function extractEnvelopeErrorText(json: Record<string, unknown>): string | null 
   return parts.length > 0 ? parts.join(" ") : null;
 }
 
+/** Mutable lifecycle flags threaded through {@link applySseLifecycleEvent}. */
+interface SseLifecycleFlags {
+  hasMessageStart: boolean;
+  hasContentBlock: boolean;
+  hasRealContent: boolean;
+  hasLifecycleEnd: boolean;
+}
+
+/** Read `parsed.<key>` as a nested object bag, or null when absent/not an object. */
+function asObject(parsed: Record<string, unknown>, key: string): Record<string, unknown> | null {
+  const value = parsed[key];
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+}
+
+/**
+ * A content_block_start is real signal only for tool_use / redacted_thinking —
+ * a tool call is meaningful even before its input_json_delta arrives. text and
+ * thinking blocks routinely open empty; keep peeking for a delta instead.
+ */
+function contentBlockStartIsRealSignal(parsed: Record<string, unknown>): boolean {
+  const blockType = asObject(parsed, "content_block")?.type;
+  return blockType === "tool_use" || blockType === "redacted_thinking";
+}
+
+/**
+ * A content_block_delta is real signal when it carries non-empty text/thinking,
+ * or any input_json_delta fragment — even an empty-string first chunk proves a
+ * tool_use block is actively streaming its arguments.
+ */
+function contentBlockDeltaIsRealSignal(parsed: Record<string, unknown>): boolean {
+  const delta = asObject(parsed, "delta");
+  if (!delta) return false;
+  const deltaType = typeof delta.type === "string" ? delta.type : "";
+  if (deltaType === "input_json_delta") return true;
+  if (deltaType !== "text_delta" && deltaType !== "thinking_delta") return false;
+  const text = delta.text ?? delta.thinking;
+  return typeof text === "string" && text.length > 0;
+}
+
+/** A message_delta closes the lifecycle once it carries a stop_reason. */
+function messageDeltaEndsLifecycle(parsed: Record<string, unknown>): boolean {
+  return asObject(parsed, "delta")?.stop_reason != null;
+}
+
+/**
+ * Apply a single parsed Claude SSE event to the peeked lifecycle `flags`
+ * (mutated in place). Extracted from `parseAccumulatedSse`'s inline switch to
+ * keep that function under the complexity/line ratchets — logic unchanged.
+ *
+ * Returns true once REAL content (not just an empty content_block_start) is
+ * detected — the caller should stop peeking and treat the stream as non-empty.
+ */
+function applySseLifecycleEvent(
+  eventType: string,
+  parsed: Record<string, unknown>,
+  flags: SseLifecycleFlags
+): boolean {
+  switch (eventType) {
+    case "message_start":
+      flags.hasMessageStart = true;
+      return false;
+    case "content_block_start":
+      flags.hasContentBlock = true;
+      if (!contentBlockStartIsRealSignal(parsed)) return false;
+      flags.hasRealContent = true;
+      return true;
+    case "content_block_delta":
+      flags.hasContentBlock = true;
+      if (!contentBlockDeltaIsRealSignal(parsed)) return false;
+      flags.hasRealContent = true;
+      return true;
+    case "content_block_stop":
+      flags.hasContentBlock = true;
+      return false;
+    case "message_stop":
+      flags.hasLifecycleEnd = true;
+      return false;
+    case "message_delta":
+      if (messageDeltaEndsLifecycle(parsed)) flags.hasLifecycleEnd = true;
+      return false;
+    default:
+      return false;
+  }
+}
+
 function responsesApiOutputHasContent(output: unknown): boolean {
   return (
     Array.isArray(output) &&
@@ -125,9 +210,22 @@ export async function validateResponseQuality(
     let decodedSoFar = "";
 
     // SSE lifecycle state.
-    let hasMessageStart = false;
-    let hasContentBlock = false;
-    let hasLifecycleEnd = false;
+    //
+    // #1382: hasContentBlock only means "a content_block_* event was observed"
+    // — it does NOT mean the block carried usable content. A content_block_start
+    // for a text/thinking block routinely opens with empty text (real content
+    // arrives via subsequent content_block_delta events); some upstreams
+    // (reported: DeepSeek/GLM via claude→openai translation on tool-heavy
+    // requests) open and close such a block without ever emitting a delta.
+    // hasRealContent tracks whether we've actually seen usable output: a
+    // tool_use/redacted_thinking block start (self-evidently real, even before
+    // any delta), or a delta carrying non-empty text/thinking/tool-input.
+    const sse: SseLifecycleFlags = {
+      hasMessageStart: false,
+      hasContentBlock: false,
+      hasRealContent: false,
+      hasLifecycleEnd: false,
+    };
     let anyContentFound = false;
     let sawAnyBytes = false;
     const sseLineNormalizer = createSSEDataLineNormalizer();
@@ -138,8 +236,9 @@ export async function validateResponseQuality(
      * flags in the closure. The last (potentially incomplete) line is kept in
      * `decodedSoFar` for the next iteration.
      *
-     * Returns true when a content_block_* event is detected — the caller
-     * should stop peeking and treat the stream as non-empty.
+     * Returns true once REAL content (not just an empty content_block_start)
+     * is detected — the caller should stop peeking and treat the stream as
+     * non-empty.
      */
     function parseAccumulatedSse(): boolean {
       const lines = decodedSoFar.split(/\r?\n/);
@@ -177,32 +276,8 @@ export async function validateResponseQuality(
           return true;
         }
 
-        switch (eventType) {
-          case "message_start":
-            hasMessageStart = true;
-            break;
-          case "content_block_start":
-          case "content_block_delta":
-          case "content_block_stop":
-            hasContentBlock = true;
-            // Signal caller to stop buffering immediately.
-            return true;
-          case "message_stop":
-            hasLifecycleEnd = true;
-            break;
-          case "message_delta": {
-            const delta = parsed.delta;
-            if (
-              delta &&
-              typeof delta === "object" &&
-              (delta as Record<string, unknown>).stop_reason != null
-            ) {
-              hasLifecycleEnd = true;
-            }
-            break;
-          }
-          default:
-            break;
+        if (applySseLifecycleEvent(eventType, parsed, sse)) {
+          return true;
         }
       }
       return false;
@@ -258,11 +333,17 @@ export async function validateResponseQuality(
           if (decodedSoFar.trim()) decodedSoFar += "\n\n";
           parseAccumulatedSse();
 
-          if (hasMessageStart && hasLifecycleEnd && !hasContentBlock) {
-            // Complete Claude lifecycle with zero content blocks → failover.
+          if (sse.hasMessageStart && sse.hasLifecycleEnd && !sse.hasRealContent) {
+            // Complete Claude lifecycle with zero content blocks, or with
+            // content_block_start/stop pairs that never carried real text/
+            // thinking/tool_use content (#1382 — tool-heavy claude→openai
+            // requests against upstreams like DeepSeek/GLM can "complete" a
+            // lifecycle around an empty block) → failover.
             log.warn?.(
               "COMBO",
-              "Streaming Claude response has complete lifecycle but zero content blocks (content_filter?) — marking as invalid for combo failover"
+              sse.hasContentBlock
+                ? "Streaming Claude response has complete lifecycle but its content block(s) carried no usable text/tool_use — marking as invalid for combo failover"
+                : "Streaming Claude response has complete lifecycle but zero content blocks (content_filter?) — marking as invalid for combo failover"
             );
             return { valid: false, reason: "streaming empty content block" };
           }
@@ -273,7 +354,7 @@ export async function validateResponseQuality(
           // (an explicit `data: [DONE]`, ping/metadata events, an incomplete
           // Claude lifecycle) keep the pass-through contract (#3399/#3685):
           // those are handled by the stream-readiness timeout, not failover.
-          if (!anyContentFound && !hasContentBlock && !sawAnyBytes) {
+          if (!anyContentFound && !sse.hasContentBlock && !sawAnyBytes) {
             log.warn?.(
               "COMBO",
               "Streaming response ended with no recognized content — marking as invalid for combo failover"
