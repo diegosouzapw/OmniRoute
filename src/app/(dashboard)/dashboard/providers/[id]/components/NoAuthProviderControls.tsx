@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { NoAuthAccountCard, NoAuthProviderCard } from "@/shared/components";
 import { getProviderAlias } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -19,6 +20,7 @@ export default function NoAuthProviderControls({
   providerId,
   providerName,
 }: NoAuthProviderControlsProps) {
+  const t = useTranslations("noAuthProvider");
   const notify = useNotificationStore();
   const [blockedProviders, setBlockedProviders] = useState<string[]>([]);
   const [savingEnabled, setSavingEnabled] = useState(false);
@@ -67,18 +69,22 @@ export default function NoAuthProviderControls({
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data?.error?.message || data?.error || "Failed to update provider");
+          throw new Error(data?.error?.message || data?.error || t("updateProviderFailed"));
         }
         setBlockedProviders(Array.isArray(data.blockedProviders) ? data.blockedProviders : next);
-        notify.success(`${providerName} ${nextEnabled ? "enabled" : "disabled"}`);
+        notify.success(
+          nextEnabled
+            ? t("providerEnabled", { provider: providerName })
+            : t("providerDisabled", { provider: providerName })
+        );
       } catch (error) {
         setBlockedProviders(previous);
-        notify.error(error instanceof Error ? error.message : "Failed to update provider");
+        notify.error(error instanceof Error ? error.message : t("updateProviderFailed"));
       } finally {
         setSavingEnabled(false);
       }
     },
-    [blockedProviders, notify, providerAlias, providerId, providerName]
+    [blockedProviders, notify, providerAlias, providerId, providerName, t]
   );
 
   const accountProviderName = ACCOUNT_PROVIDER_NAMES[providerId];

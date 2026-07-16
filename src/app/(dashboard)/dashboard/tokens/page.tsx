@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 
 interface TokenLedgerEntry {
@@ -36,6 +36,7 @@ interface ServerConnection {
 
 export default function TokensPage() {
   const t = useTranslations("common");
+  const locale = useLocale();
   // Balance & History
   const [balance, setBalance] = useState(0);
   const [history, setHistory] = useState<TokenLedgerEntry[]>([]);
@@ -56,6 +57,7 @@ export default function TokensPage() {
   const [inviteMaxUses, setInviteMaxUses] = useState("1");
   const [inviteLoading, setInviteLoading] = useState(false);
   const [newInviteCode, setNewInviteCode] = useState<string | null>(null);
+  const [inviteError, setInviteError] = useState("");
 
   // Redeem
   const [redeemCode, setRedeemCode] = useState("");
@@ -70,9 +72,9 @@ export default function TokensPage() {
   const [serverUrl, setServerUrl] = useState("");
   const [serverApiKey, setServerApiKey] = useState("");
   const [serverLoading, setServerLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
 
   const fetchData = useCallback(async () => {
-    setHistoryLoading(true);
     try {
       const [transferRes, inviteRes, serverRes] = await Promise.all([
         fetch("/api/gamification/transfer"),
@@ -101,7 +103,11 @@ export default function TokensPage() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    const loadTimer = window.setTimeout(() => {
+      void fetchData();
+    }, 0);
+
+    return () => window.clearTimeout(loadTimer);
   }, [fetchData]);
 
   const handleTransfer = async (e: React.FormEvent) => {
@@ -122,18 +128,21 @@ export default function TokensPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setTransferMsg({ type: "success", text: `Transfer successful (${data.idempotencyKey})` });
+        setTransferMsg({
+          type: "success",
+          text: t("tokensTransferSuccess", { idempotencyKey: data.idempotencyKey }),
+        });
         setToApiKeyId("");
         setAmount("");
         setReason("");
         await fetchData();
       } else {
-        setTransferMsg({ type: "error", text: data.error || "Transfer failed" });
+        setTransferMsg({ type: "error", text: data.error || t("tokensTransferFailed") });
       }
     } catch (err) {
       setTransferMsg({
         type: "error",
-        text: err instanceof Error ? err.message : "Transfer failed",
+        text: err instanceof Error ? err.message : t("tokensTransferFailed"),
       });
     } finally {
       setTransferLoading(false);
@@ -143,6 +152,7 @@ export default function TokensPage() {
   const handleCreateInvite = async () => {
     setInviteLoading(true);
     setNewInviteCode(null);
+    setInviteError("");
 
     try {
       const res = await fetch("/api/gamification/invite", {
@@ -157,20 +167,26 @@ export default function TokensPage() {
       if (res.ok) {
         setNewInviteCode(data.code);
         await fetchData();
+      } else {
+        setInviteError(data.error || t("tokensCreateInviteFailed"));
       }
-    } catch {
-      // silent fail
+    } catch (error) {
+      setInviteError(error instanceof Error ? error.message : t("tokensCreateInviteFailed"));
     } finally {
       setInviteLoading(false);
     }
   };
 
   const handleRevokeInvite = async (inviteId: string) => {
+    setInviteError("");
     try {
-      await fetch(`/api/gamification/invite?id=${inviteId}`, { method: "DELETE" });
+      const response = await fetch(`/api/gamification/invite?id=${inviteId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error(t("tokensRevokeInviteFailed"));
       await fetchData();
-    } catch {
-      // silent fail
+    } catch (error) {
+      setInviteError(error instanceof Error ? error.message : t("tokensRevokeInviteFailed"));
     }
   };
 
@@ -189,15 +205,20 @@ export default function TokensPage() {
       if (res.ok) {
         setRedeemMsg({
           type: "success",
-          text: `Redeemed! Server: ${data.serverUrl || "connected"}`,
+          text: t("tokensRedeemSuccess", {
+            server: data.serverUrl || t("connected"),
+          }),
         });
         setRedeemCode("");
         await fetchData();
       } else {
-        setRedeemMsg({ type: "error", text: data.error || "Redeem failed" });
+        setRedeemMsg({ type: "error", text: data.error || t("tokensRedeemFailed") });
       }
     } catch (err) {
-      setRedeemMsg({ type: "error", text: err instanceof Error ? err.message : "Redeem failed" });
+      setRedeemMsg({
+        type: "error",
+        text: err instanceof Error ? err.message : t("tokensRedeemFailed"),
+      });
     } finally {
       setRedeemLoading(false);
     }
@@ -206,6 +227,7 @@ export default function TokensPage() {
   const handleConnectServer = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerLoading(true);
+    setServerError("");
 
     try {
       const res = await fetch("/api/gamification/servers", {
@@ -218,20 +240,27 @@ export default function TokensPage() {
         setServerUrl("");
         setServerApiKey("");
         await fetchData();
+      } else {
+        const data = await res.json().catch(() => null);
+        setServerError(data?.error || t("tokensConnectServerFailed"));
       }
-    } catch {
-      // silent fail
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : t("tokensConnectServerFailed"));
     } finally {
       setServerLoading(false);
     }
   };
 
   const handleDisconnectServer = async (serverId: string) => {
+    setServerError("");
     try {
-      await fetch(`/api/gamification/servers?id=${serverId}`, { method: "DELETE" });
+      const response = await fetch(`/api/gamification/servers?id=${serverId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error(t("tokensDisconnectServerFailed"));
       await fetchData();
-    } catch {
-      // silent fail
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : t("tokensDisconnectServerFailed"));
     }
   };
 
@@ -242,7 +271,7 @@ export default function TokensPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-text-muted">{t("tokensTokenBalance")}</p>
-            <p className="text-4xl font-bold mt-1">{balance.toLocaleString()}</p>
+            <p className="text-4xl font-bold mt-1">{balance.toLocaleString(locale)}</p>
           </div>
           <div className="text-6xl opacity-20">🪙</div>
         </div>
@@ -266,7 +295,7 @@ export default function TokensPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-text-muted mb-1">Amount</label>
+              <label className="block text-sm text-text-muted mb-1">{t("tokensAmount")}</label>
               <input
                 type="number"
                 value={amount}
@@ -306,7 +335,7 @@ export default function TokensPage() {
             disabled={transferLoading || !toApiKeyId || !amount}
             className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors justify-self-start"
           >
-            {transferLoading ? "Sending..." : "Send Tokens"}
+            {transferLoading ? t("tokensSending") : t("tokensSendTokens")}
           </button>
         </form>
       </Card>
@@ -314,7 +343,7 @@ export default function TokensPage() {
       {/* Transaction History */}
       <Card title={t("tokensTransactionHistory")} icon="history">
         {historyLoading ? (
-          <div className="text-center py-8 text-text-muted">Loading...</div>
+          <div className="text-center py-8 text-text-muted">{t("loading")}</div>
         ) : history.length === 0 ? (
           <div className="text-center py-8 text-text-muted">{t("tokensNoTransactionsYet")}</div>
         ) : (
@@ -322,12 +351,12 @@ export default function TokensPage() {
             <table className="w-full">
               <thead>
                 <tr className="text-left text-sm text-text-muted border-b border-border">
-                  <th className="pb-3 font-medium">Type</th>
-                  <th className="pb-3 font-medium">From</th>
-                  <th className="pb-3 font-medium">To</th>
-                  <th className="pb-3 font-medium text-right">Amount</th>
-                  <th className="pb-3 font-medium">Reason</th>
-                  <th className="pb-3 font-medium text-right">Date</th>
+                  <th className="pb-3 font-medium">{t("type")}</th>
+                  <th className="pb-3 font-medium">{t("tokensFrom")}</th>
+                  <th className="pb-3 font-medium">{t("tokensTo")}</th>
+                  <th className="pb-3 font-medium text-right">{t("tokensAmount")}</th>
+                  <th className="pb-3 font-medium">{t("tokensReason")}</th>
+                  <th className="pb-3 font-medium text-right">{t("tokensDate")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -343,7 +372,7 @@ export default function TokensPage() {
                               : "bg-emerald-500/10 text-emerald-400"
                           }`}
                         >
-                          {isSent ? "Sent" : "Received"}
+                          {isSent ? t("tokensSent") : t("tokensReceived")}
                         </span>
                       </td>
                       <td className="py-3 text-sm font-mono">
@@ -354,11 +383,11 @@ export default function TokensPage() {
                         className={`py-3 text-right font-mono ${isSent ? "text-red-400" : "text-emerald-400"}`}
                       >
                         {isSent ? "-" : "+"}
-                        {entry.amount.toLocaleString()}
+                        {entry.amount.toLocaleString(locale)}
                       </td>
                       <td className="py-3 text-sm text-text-muted">{entry.reason || "-"}</td>
                       <td className="py-3 text-right text-sm text-text-muted">
-                        {new Date(entry.createdAt).toLocaleDateString()}
+                        {new Date(entry.createdAt).toLocaleDateString(locale)}
                       </td>
                     </tr>
                   );
@@ -388,14 +417,19 @@ export default function TokensPage() {
               disabled={inviteLoading}
               className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
             >
-              {inviteLoading ? "Creating..." : "Create Invite"}
+              {inviteLoading ? t("tokensCreatingInvite") : t("tokensCreateInvite")}
             </button>
           </div>
 
           {newInviteCode && (
             <div className="p-3 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm">
-              Invite code created: <span className="font-mono font-bold">{newInviteCode}</span>
+              {t("tokensInviteCreated")}:{" "}
+              <span className="font-mono font-bold">{newInviteCode}</span>
             </div>
+          )}
+
+          {inviteError && (
+            <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm">{inviteError}</div>
           )}
 
           {/* Redeem */}
@@ -419,7 +453,7 @@ export default function TokensPage() {
               disabled={redeemLoading || !redeemCode}
               className="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 transition-colors"
             >
-              {redeemLoading ? "Redeeming..." : "Redeem"}
+              {redeemLoading ? t("tokensRedeeming") : t("tokensRedeem")}
             </button>
           </form>
 
@@ -448,16 +482,18 @@ export default function TokensPage() {
                     <div>
                       <span className="font-mono font-bold">{inv.code}</span>
                       <span className="text-xs text-text-muted ml-3">
-                        {inv.useCount}/{inv.maxUses} uses
+                        {t("tokensInviteUses", { used: inv.useCount, max: inv.maxUses })}
                       </span>
-                      {inv.revokedAt && <span className="text-xs text-red-400 ml-2">REVOKED</span>}
+                      {inv.revokedAt && (
+                        <span className="text-xs text-red-400 ml-2">{t("tokensRevoked")}</span>
+                      )}
                     </div>
                     {!inv.revokedAt && (
                       <button
                         onClick={() => handleRevokeInvite(inv.id)}
                         className="text-xs px-2 py-1 rounded text-red-400 hover:bg-red-500/10 transition-colors"
                       >
-                        Revoke
+                        {t("tokensRevoke")}
                       </button>
                     )}
                   </div>
@@ -503,13 +539,17 @@ export default function TokensPage() {
               disabled={serverLoading || !serverName || !serverUrl || !serverApiKey}
               className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors justify-self-start"
             >
-              {serverLoading ? "Connecting..." : "Connect Server"}
+              {serverLoading ? t("tokensConnecting") : t("tokensConnectServer")}
             </button>
           </form>
 
+          {serverError && (
+            <div className="p-3 rounded-lg bg-red-500/10 text-red-400 text-sm">{serverError}</div>
+          )}
+
           {servers.length === 0 ? (
             <div className="text-center py-6 text-text-muted text-sm">
-              No servers connected. Connect to a community server to share leaderboards.
+              {t("tokensNoServersConnected")}
             </div>
           ) : (
             <div className="space-y-2">
@@ -530,7 +570,9 @@ export default function TokensPage() {
                               : "bg-gray-500/10 text-gray-400"
                         }`}
                       >
-                        {server.status}
+                        {t.has(`tokensServerStatus.${server.status}`)
+                          ? t(`tokensServerStatus.${server.status}`)
+                          : server.status}
                       </span>
                     </div>
                     <p className="text-xs text-text-muted mt-1 truncate">{server.url}</p>
@@ -539,7 +581,9 @@ export default function TokensPage() {
                     )}
                     {server.lastSyncAt && (
                       <p className="text-xs text-text-muted mt-1">
-                        Last sync: {new Date(server.lastSyncAt).toLocaleString()}
+                        {t("tokensLastSync", {
+                          date: new Date(server.lastSyncAt).toLocaleString(locale),
+                        })}
                       </p>
                     )}
                   </div>
@@ -547,7 +591,7 @@ export default function TokensPage() {
                     onClick={() => handleDisconnectServer(server.id)}
                     className="text-xs px-3 py-1.5 rounded text-red-400 hover:bg-red-500/10 transition-colors ml-4"
                   >
-                    Disconnect
+                    {t("tokensDisconnect")}
                   </button>
                 </div>
               ))}

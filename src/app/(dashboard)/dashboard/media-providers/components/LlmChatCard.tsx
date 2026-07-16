@@ -245,7 +245,11 @@ export function LlmChatCard({
         setMessages((prev) => {
           const next = [...prev];
           const last = next[next.length - 1];
-          next[next.length - 1] = { ...last, role: "assistant", content: `[Error: ${errMsg}]` };
+          next[next.length - 1] = {
+            ...last,
+            role: "assistant",
+            content: `[${t("errorLabel")}: ${errMsg}]`,
+          };
           return next;
         });
         return;
@@ -312,11 +316,15 @@ export function LlmChatCard({
         // Cancelled by user — leave partial message
         return;
       }
-      const msg = err instanceof Error ? err.message : "Request failed";
+      const msg = err instanceof Error ? err.message : t("requestFailed");
       setMessages((prev) => {
         const next = [...prev];
         const last = next[next.length - 1];
-        next[next.length - 1] = { ...last, role: "assistant", content: `[Error: ${msg}]` };
+        next[next.length - 1] = {
+          ...last,
+          role: "assistant",
+          content: `[${t("errorLabel")}: ${msg}]`,
+        };
         return next;
       });
     } finally {
@@ -325,7 +333,7 @@ export function LlmChatCard({
       // Refocus textarea so user can keep typing
       requestAnimationFrame(() => textareaRef.current?.focus());
     }
-  }, [input, streaming, selectedKey, keys, providerId, qualifiedModel, messages]);
+  }, [input, streaming, selectedKey, keys, providerId, qualifiedModel, messages, t]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -400,7 +408,7 @@ export function LlmChatCard({
                 onChange={(e) => setSelectedKey(e.target.value)}
                 className="rounded-md border border-border bg-bg-subtle text-xs px-2 py-1 text-text-main focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                <option value="">(default)</option>
+                <option value="">{t("defaultKey")}</option>
                 {keys.map((k) => (
                   <option key={k.id} value={k.key}>
                     {k.name ?? k.id}
@@ -416,7 +424,7 @@ export function LlmChatCard({
               onClick={handleClear}
               className="text-xs text-text-muted hover:text-text-primary transition-colors"
             >
-              Clear
+              {t("clear")}
             </button>
           )}
         </div>
@@ -439,17 +447,17 @@ export function LlmChatCard({
             <div className="size-10 rounded-full bg-accent/10 flex items-center justify-center">
               <span className="material-symbols-outlined text-accent text-[22px]">forum</span>
             </div>
-            <p className="text-sm text-text-muted">Send a message to start the conversation</p>
-            <p className="text-[11px] text-text-muted/70">
-              Shift+Enter for newline · Enter to send
-            </p>
+            <p className="text-sm text-text-muted">{t("emptyConversation")}</p>
+            <p className="text-[11px] text-text-muted/70">{t("sendHint")}</p>
           </div>
         ) : (
           <div className="mx-auto flex max-w-3xl flex-col divide-y divide-border/60">
             {messages.map((msg, i) => {
               const isUser = msg.role === "user";
               const isError =
-                !isUser && typeof msg.content === "string" && msg.content.startsWith("[Error");
+                !isUser &&
+                typeof msg.content === "string" &&
+                msg.content.startsWith(`[${t("errorLabel")}`);
               return (
                 <div
                   key={i}
@@ -480,7 +488,7 @@ export function LlmChatCard({
                   <div className="flex flex-col gap-1 min-w-0 flex-1">
                     <div className="flex items-baseline gap-2 min-w-0">
                       <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium shrink-0">
-                        {isUser ? "You" : isError ? "Error" : "Assistant"}
+                        {isUser ? t("you") : isError ? t("errorLabel") : t("assistant")}
                       </span>
                       {!isUser && !isError && msg.model && (
                         <span
@@ -525,7 +533,7 @@ export function LlmChatCard({
           <button
             type="button"
             onClick={handleStop}
-            title="Stop"
+            title={t("stop")}
             className="size-8 flex items-center justify-center rounded-md border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[18px]">stop</span>
