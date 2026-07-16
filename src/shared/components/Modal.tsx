@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useId } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import Button from "./Button";
 
@@ -40,6 +41,7 @@ export default function Modal({
   bodyClassName,
   compactHeader = false,
 }: ModalProps) {
+  const t = useTranslations("common");
   const titleId = useId();
   const dialogRef = useRef(null);
 
@@ -186,7 +188,7 @@ export default function Modal({
             {showCloseButton && (
               <button
                 onClick={onClose}
-                aria-label="Close"
+                aria-label={t("close")}
                 className="p-1.5 rounded-lg text-text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors shrink-0"
               >
                 <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
@@ -218,26 +220,31 @@ export function ConfirmModal({
   isOpen,
   onClose,
   onConfirm,
-  title = "Confirm",
+  title,
   message,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  confirmText,
+  cancelText,
   variant = "danger",
   loading = false,
 }) {
+  const t = useTranslations("common");
+  const resolvedTitle = title ?? t("confirmTitle");
+  const resolvedConfirmText = confirmText ?? t("confirmAction");
+  const resolvedCancelText = cancelText ?? t("cancel");
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
+      title={resolvedTitle}
       size="sm"
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={loading}>
-            {cancelText}
+            {resolvedCancelText}
           </Button>
           <Button variant={variant as any} onClick={onConfirm} loading={loading}>
-            {confirmText}
+            {resolvedConfirmText}
           </Button>
         </>
       }

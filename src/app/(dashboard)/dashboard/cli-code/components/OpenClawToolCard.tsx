@@ -282,7 +282,7 @@ export default function OpenClawToolCard({
         <div className="flex items-center gap-3">
           <div className="size-8 flex items-center justify-center shrink-0">
             <Image
-              src="/providers/openclaw.png"
+              src="/providers/openclaw.svg"
               alt={tool.name}
               width={32}
               height={32}
@@ -345,11 +345,7 @@ export default function OpenClawToolCard({
                 deployments where the CLI lives on the user's machine,
                 not on the server. Upstream report: #579.
               */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowManualConfigModal(true)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => setShowManualConfigModal(true)}>
                 <span className="material-symbols-outlined text-[14px] mr-1">content_copy</span>
                 {t("manualConfig")}
               </Button>

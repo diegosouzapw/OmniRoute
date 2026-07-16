@@ -13,22 +13,36 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 const PATH_LABELS = {
-  dashboard: "Dashboard",
-  providers: "Providers",
-  combos: "Combos",
-  settings: "Settings",
-  logs: "Logs",
-  "audit-log": "Audit Log",
-  console: "Console",
-  logger: "Logger",
-  translator: "Translator",
-  playground: "Playground",
-  add: "Add",
-  edit: "Edit",
-  keys: "API Keys",
-  models: "Models",
+  dashboard: "dashboard",
+  providers: "providers",
+  combos: "combos",
+  settings: "settings",
+  logs: "logs",
+  "audit-log": "auditLog",
+  console: "console",
+  logger: "logger",
+  translator: "translator",
+  playground: "playground",
+  add: "add",
+  edit: "edit",
+  keys: "apiKeys",
+  models: "models",
+  "cli-code": "cliCode",
+  "cli-agents": "cliAgents",
+  "acp-agents": "acpAgents",
+  endpoint: "endpoint",
+  "api-manager": "apiManager",
+  context: "context",
+  compression: "compression",
+  services: "services",
+  analytics: "analytics",
+  costs: "costs",
+  health: "health",
+  runtime: "runtime",
+  webhooks: "webhooks",
 };
 
 /**
@@ -36,24 +50,26 @@ const PATH_LABELS = {
  * @param {string} segment
  * @returns {string}
  */
-function getLabel(segment) {
-  return PATH_LABELS[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+function getLabel(segment, t) {
+  const key = PATH_LABELS[segment];
+  return key ? t(key) : segment.charAt(0).toUpperCase() + segment.slice(1);
 }
 
 export default function Breadcrumbs() {
   const pathname = usePathname();
+  const t = useTranslations("breadcrumbs");
   if (!pathname || pathname === "/dashboard") return null;
 
   const segments = pathname.split("/").filter(Boolean);
   const crumbs = segments.map((seg, idx) => ({
-    label: getLabel(seg),
+    label: getLabel(seg, t),
     href: "/" + segments.slice(0, idx + 1).join("/"),
     isLast: idx === segments.length - 1,
   }));
 
   return (
     <nav
-      aria-label="Breadcrumb"
+      aria-label={t("ariaLabel")}
       style={{
         display: "flex",
         alignItems: "center",

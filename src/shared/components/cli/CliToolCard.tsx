@@ -22,9 +22,10 @@ export default function CliToolCard({
   hasActiveProviders,
 }: CliToolCardProps) {
   const t = useTranslations("cliCommon");
+  const tTools = useTranslations("cliTools");
   const installed = batchStatus?.detection.installed ?? false;
   const configStatus = batchStatus?.config.status ?? null;
-  const version = batchStatus?.detection.version ?? "not found";
+  const version = batchStatus?.detection.version ?? t("card.versionNotFound");
   const endpoint = batchStatus?.config.endpoint ?? null;
 
   const showInstallChips = !installed && tool.configType !== "guide";
@@ -58,7 +59,9 @@ export default function CliToolCard({
             {version}
           </span>
         </div>
-        <p className="text-xs text-text-muted line-clamp-1 mt-0.5">{tool.description}</p>
+        <p className="text-xs text-text-muted line-clamp-1 mt-0.5">
+          {tTools(`toolDescriptions.${tool.id}`)}
+        </p>
       </div>
       <span className="material-symbols-outlined text-[18px] text-text-muted flex-shrink-0">
         chevron_right
@@ -124,10 +127,10 @@ export default function CliToolCard({
         {showInstallChips && (
           <>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-black/5 dark:bg-white/5 text-text-muted">
-              📋 Manual config
+              📋 {t("card.manualConfig")}
             </span>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-black/5 dark:bg-white/5 text-text-muted">
-              ⬇ Install
+              ⬇ {t("card.installGuide")}
             </span>
           </>
         )}

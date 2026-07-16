@@ -98,7 +98,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   openclaw: {
     id: "openclaw",
     name: "Open Claw",
-    image: "/providers/openclaw.png",
+    image: "/providers/openclaw.svg",
     color: "#FF6B35",
     description: "Open Claw — open-source multi-backend agent CLI (OSS, P. Steinberger)",
     docsUrl: "/docs?section=cli-tools&tool=openclaw",
@@ -112,7 +112,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   cursor: {
     id: "cursor",
     name: "Cursor",
-    image: "/providers/cursor.png",
+    image: "/providers/cursor.svg",
     color: "#000000",
     // Cursor App routes via its own cloud server — local base URL not supported.
     // Use cursor-cli entry for headless/agent CLI mode with custom endpoint.
@@ -171,7 +171,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   continue: {
     id: "continue",
     name: "Continue",
-    image: "/providers/continue.png",
+    image: "/providers/continue.svg",
     color: "#7C3AED",
     description: "Continue — open-source AI coding assistant with full provider config",
     docsUrl: "https://docs.continue.dev/",
@@ -242,7 +242,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   copilot: {
     id: "copilot",
     name: "GitHub Copilot",
-    image: "/providers/copilot.png",
+    image: "/providers/copilot.svg",
     color: "#1F6FEB",
     // D-nota: copilot suporta COPILOT_PROVIDER_BASE_URL desde v1.0.19+
     description: "GitHub Copilot Chat — VS Code extension with COPILOT_PROVIDER_BASE_URL support",
