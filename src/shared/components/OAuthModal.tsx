@@ -54,6 +54,7 @@ export default function OAuthModal({
   const [error, setError] = useState(null);
   const [isDeviceCode, setIsDeviceCode] = useState(false);
   const [deviceData, setDeviceData] = useState(null);
+  const [gheUrl, setGheUrl] = useState("");
   const [polling, setPolling] = useState(false);
   // API-key paste mode: for providers that accept a token directly (windsurf, devin-cli)
   const [showPasteToken, setShowPasteToken] = useState(
@@ -263,9 +264,10 @@ export default function OAuthModal({
     try {
       setError(null);
 
-      // Device code flow (GitHub, Qwen, Kiro, Kimi Coding, KiloCode)
+      // Device code flow (GitHub, Qwen, Kiro, Kimi Coding, KiloCode, GHE Copilot)
       if (
         provider === "github" ||
+        provider === "ghe-copilot" ||
         provider === "qwen" ||
         provider === "kiro" ||
         provider === "amazon-q" ||
@@ -275,6 +277,12 @@ export default function OAuthModal({
       ) {
         setIsDeviceCode(true);
         setStep("waiting");
+
+        // GHE Copilot needs the enterprise URL collected first (see ghe-config step)
+        if (provider === "ghe-copilot" && !gheUrl.trim()) {
+          setStep("ghe-config");
+          return;
+        }
 
         const deviceCodeUrl = new URL(`/api/oauth/${provider}/device-code`, window.location.origin);
         if (
@@ -289,6 +297,9 @@ export default function OAuthModal({
           if (typeof idc.region === "string" && idc.region.trim()) {
             deviceCodeUrl.searchParams.set("region", idc.region.trim());
           }
+        }
+        if (provider === "ghe-copilot" && gheUrl.trim()) {
+          deviceCodeUrl.searchParams.set("gheUrl", gheUrl.trim());
         }
 
         const res = await fetch(deviceCodeUrl.toString());
@@ -312,7 +323,9 @@ export default function OAuthModal({
                 _clientSecret: data._clientSecret,
                 _region: data._region,
               }
-            : null;
+            : provider === "ghe-copilot" && gheUrl.trim()
+              ? { gheUrl: gheUrl.trim() }
+              : null;
         startPolling(data.device_code, data.codeVerifier, data.interval || 5, extraData);
         return;
       }
@@ -475,6 +488,7 @@ export default function OAuthModal({
     onSuccess,
     reauthConnection,
     idcConfig,
+    gheUrl,
   ]);
 
   // Reset guard when modal closes
@@ -789,6 +803,37 @@ export default function OAuthModal({
         {/* OAuth flow steps — hidden when paste-token mode is active */}
         {(!supportsTokenPaste || !showPasteToken) && (
           <>
+            {/* GHE Copilot: collect the GitHub Enterprise base URL before starting */}
+            {provider === "ghe-copilot" && step === "ghe-config" && (
+              <div className="flex flex-col gap-3">
+                <p className="text-sm text-text-muted">
+                  Enter the base URL of your GitHub Enterprise instance (e.g.{" "}
+                  <code className="font-mono">https://ghe.yourcompany.com</code>).
+                </p>
+                <Input
+                  value={gheUrl}
+                  onChange={(e) => setGheUrl(e.target.value)}
+                  placeholder="https://ghe.yourcompany.com"
+                  label="GitHub Enterprise URL"
+                  type="url"
+                />
+                <Button
+                  onClick={() => {
+                    if (!gheUrl.trim()) {
+                      setError("GitHub Enterprise URL is required");
+                      return;
+                    }
+                    startOAuthFlow();
+                  }}
+                  fullWidth
+                  disabled={!gheUrl.trim()}
+                >
+                  Connect
+                </Button>
+                {error && <p className="text-sm text-red-500">{error}</p>}
+              </div>
+            )}
+
             {/* Waiting Step (Localhost - popup mode) */}
             {step === "waiting" && !isDeviceCode && (
               <div className="text-center py-6">
