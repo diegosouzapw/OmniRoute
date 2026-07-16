@@ -63,6 +63,11 @@ export class GheCopilotExecutor extends GithubExecutor {
     if (transformed && typeof transformed === "object" && typeof transformed.model === "string") {
       transformed.model = this.stripPrefix(transformed.model);
     }
+    // GHE Copilot proxy rejects `stream: false` ("stream": false is not supported).
+    // Only forward the flag when actually streaming; omit it otherwise.
+    if (transformed && typeof transformed === "object" && !stream && "stream" in transformed) {
+      delete transformed.stream;
+    }
     return transformed;
   }
 
