@@ -97,6 +97,7 @@ test("xAI OAuth executor rotates refresh tokens", async () => {
     assert.equal(String(input), XAI_OAUTH_CONFIG.tokenUrl);
     const body = init?.body as URLSearchParams;
     assert.equal(body.get("grant_type"), "refresh_token");
+    assert.equal(body.get("client_id"), XAI_OAUTH_CONFIG.clientId);
     assert.equal(body.get("refresh_token"), "old-refresh");
     return Response.json({
       access_token: "new-access",
