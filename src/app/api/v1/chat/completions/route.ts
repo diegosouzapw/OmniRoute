@@ -5,7 +5,10 @@ import { generateRequestId } from "@/shared/utils/requestId";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
-import { withEarlyStreamKeepalive } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
+import {
+  OPENAI_KEEPALIVE_FRAME,
+  withEarlyStreamKeepalive,
+} from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 import { checkChatAdmission } from "@/shared/middleware/chatBodyAdmission";
 import {
@@ -132,6 +135,7 @@ export async function POST(request) {
       {
         signal: request.signal,
         thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
+        keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
         extraHeaders: { "X-Correlation-Id": reqId },
       }
     );

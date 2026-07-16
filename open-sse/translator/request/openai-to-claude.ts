@@ -592,7 +592,24 @@ function getContentBlocksFromMessage(
         if (part.type === "text" && part.text) {
           blocks.push({ type: "text", text: part.text });
         } else if (part.type === "thinking" || part.type === "redacted_thinking") {
-          // Preserve thinking blocks with signature
+          // #6953 — thinking blocks with signature:"" (empty string) come from non-Anthropic
+          // providers (codex/gpt-5.x).  Anthropic rejects replayed `thinking` blocks that
+          // carry a foreign or fabricated signature with HTTP 400.  Fabricating a default
+          // signature (the old behaviour) made the poisoning permanent: once a codex-served
+          // turn introduced a `signature:""` thinking block, every subsequent Anthropic leg
+          // attempt 400'd and the router silently fell back to codex forever.
+          //
+          // Fix: strip thinking blocks whose signature is the empty string — that explicit
+          // empty value is the hallmark of a synthesized block from a non-Anthropic provider.
+          // Thinking blocks with `signature: undefined` (field absent) are legitimate Claude-
+          // format messages and fall through to the DEFAULT_THINKING_CLAUDE_SIGNATURE fallback
+          // as before.
+          if (part.type === "thinking" && part.signature === "") {
+            continue; // drop — synthesized by non-Anthropic provider, no valid signature
+          }
+          if (part.type === "redacted_thinking" && part.data === "") {
+            continue; // drop — same: empty data from non-Anthropic provider
+          }
           blocks.push({
             ...part,
             signature: part.signature || DEFAULT_THINKING_CLAUDE_SIGNATURE,
