@@ -106,8 +106,13 @@ function buildPrompt(messages: Array<Record<string, unknown>>): string {
 /** Build the `hy_source=web; hy_user=...; hy_token=...` cookie from the pasted header. */
 function buildYuanbaoCookie(rawApiKey: string): { cookie: string; hasToken: boolean } {
   const raw = stripCookieInputPrefix(rawApiKey || "");
-  const hyUser = extractCookieValue(raw, "hy_user");
-  const hyToken = extractCookieValue(raw, "hy_token");
+  // Guard the extractCookieValue bare-value fallback: for input that is a single
+  // FOREIGN pair (e.g. "some_other=abc") the helper returns the whole string, which
+  // used to fool this validation into forwarding garbage upstream (the request only
+  // failed when Tencent replied 401 — a live-network dependency). Yuanbao needs the
+  // two distinct cookies, so only trust an extraction the input explicitly names.
+  const hyUser = raw.includes("hy_user=") ? extractCookieValue(raw, "hy_user") : null;
+  const hyToken = raw.includes("hy_token=") ? extractCookieValue(raw, "hy_token") : null;
 
   if (hyUser && hyToken) {
     return { cookie: `hy_source=web; hy_user=${hyUser}; hy_token=${hyToken}`, hasToken: true };

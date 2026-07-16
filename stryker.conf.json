@@ -182,6 +182,7 @@
       "tests/unit/issue-6343-v0-web-alias-collision.test.ts",
       "tests/unit/issue-6638-ollama-quota.test.ts",
       "tests/unit/issue-6686-quota-preflight-coverage.test.ts",
+      "tests/unit/issue-7071-ollama-session-quota.test.ts",
       "tests/unit/livews-forward-backoff-4604.test.ts",
       "tests/unit/management-auth-hardening.test.ts",
       "tests/unit/mark-account-unavailable-numeric-epoch-guard.test.ts",

@@ -46,6 +46,7 @@ export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/services/compression/engines/llmlingua/onnxWorker.js",
   "package.json",
   "peer-stamp.mjs",
+  "main-server-timeouts.mjs",
   "responses-ws-proxy.mjs",
   "scripts/dev/sync-env.mjs",
   "scripts/dev/tls-options.mjs",
@@ -152,6 +153,7 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/server-ws.mjs",
   "dist/responses-ws-proxy.mjs",
   "dist/peer-stamp.mjs",
+  "dist/main-server-timeouts.mjs",
   "dist/http-method-guard.cjs",
   // #5452: regression guard — make check:pack-artifact fail loudly if the TLS
   // opt-in sidecar (imported by dist/server-ws.mjs) ever vanishes from the tarball.
@@ -160,6 +162,12 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "dist/head-response-guard.cjs",
   "dist/webdav-handler.mjs",
   "bin/cli/program.mjs",
+  // Direct imports of bin/omniroute.mjs — bin/cli/ is only an allowlist PREFIX, so a
+  // file vanishing from the tarball never fails the unexpected-paths check; only these
+  // required entries make its absence loud (#7065 class; derived + enforced by
+  // tests/unit/pack-artifact-entrypoint-closures.test.ts).
+  "bin/cli/data-dir.mjs",
+  "bin/cli/utils/storageKeyProvision.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",

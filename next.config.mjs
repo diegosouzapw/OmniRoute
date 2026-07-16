@@ -128,9 +128,23 @@ const nextConfig = {
     // expected diagnostic — suppress it here rather than fight the analyzer,
     // mirroring the isNextIntlExtractorDynamicImportWarning precedent below
     // for the webpack path. (#6582)
+    // open-sse/services/compression/ruleLoader.ts and
+    // .../engines/rtk/filterLoader.ts both define an identical
+    // getModuleDir() helper that walks up directories via
+    // path.resolve(anchor) + fs.existsSync(...) in a loop with a
+    // non-literal argument — the same dynamic-path fs access pattern as
+    // the agentSkills case above, but not covered by that narrower
+    // allowlist glob, so the "Overly broad patterns..." warning kept
+    // firing (610 times, once per entry point transitively importing the
+    // compression module). Same known-benign, bounded fs access;
+    // suppressed here rather than fought. (#7051, follow-up to #6582)
     ignoreIssue: [
       {
         path: "**/src/lib/agentSkills/**",
+        description: /Overly broad patterns can lead to build performance issues/,
+      },
+      {
+        path: "**/open-sse/services/compression/**",
         description: /Overly broad patterns can lead to build performance issues/,
       },
     ],
