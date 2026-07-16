@@ -5,15 +5,22 @@ import { resolveMitmDataDir } from "./dataDir.ts";
 import { removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
 import { provisionDnsEntries } from "./dns/provision.ts";
 import { generateCert } from "./cert/generate.ts";
-import { installCertResult, uninstallCert } from "./cert/install.ts";
+import { installCertResult } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
-import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
 import { getUserBypassPatterns } from "@/lib/db/agentBridgeBypass.ts";
 import { configureUpstreamCa } from "./upstreamTrust.ts";
 import { createLogger } from "@/shared/utils/logger.ts";
+import {
+  buildRepairPlan,
+  collectManagedHosts,
+  performRepairSteps,
+  type RepairPlan,
+} from "./repair.ts";
+
+export { buildRepairPlan, collectManagedHosts, type RepairPlan };
 
 const log = createLogger("mitm-manager");
 
@@ -56,6 +63,17 @@ export function interpretMitmStartupError(stderr: string, port: number): string 
 // Store server process
 let serverProcess: ChildProcess | null = null;
 let serverPid: number | null = null;
+
+/**
+ * Test-only seam: install a fake server process (and pid) so stopMitm() can be
+ * exercised without spawning a real MITM child. Not part of the public API —
+ * only intended for unit tests that need to assert stopMitm()'s DNS/kill
+ * ordering (#1809). No-op in production code paths.
+ */
+export function __setServerProcessForTest(proc: ChildProcess | null, pid: number | null): void {
+  serverProcess = proc;
+  serverPid = pid;
+}
 
 // Set while startMitm() is in flight, from the guard check through spawn.
 // Guards a TOCTOU race: the "already running" check above only trips once
@@ -220,107 +238,19 @@ function isProcessAlive(pid: number): boolean {
 }
 
 /**
- * Enumerate every hostname OmniRoute may have written to /etc/hosts during
- * startMitm(): the full agent-target registry plus all custom hosts. Removal
- * via removeDNSEntries() is idempotent (absent entries are skipped), so this
- * set is intentionally over-inclusive — a host that was never spoofed costs
- * nothing to "remove", but a host we forget to list leaks machine-wide.
- * (Gap 8 — clean-stop DNS leak.)
- */
-export function collectManagedHosts(): string[] {
-  const hosts = new Set<string>();
-  for (const target of ALL_TARGETS) {
-    for (const h of target.hosts) hosts.add(h);
-  }
-  try {
-    for (const ch of listCustomHosts()) hosts.add(ch.host);
-  } catch (err) {
-    log.error({ err }, "collectManagedHosts: failed to read custom hosts (continuing)");
-  }
-  return [...hosts];
-}
-
-export interface RepairPlan {
-  dnsHostsToRemove: string[];
-  removeCert: boolean;
-  revertSystemProxy: boolean;
-}
-
-/**
- * Pure description of what a repair must undo. Separated from repairMitm() so
- * the enumeration is unit-testable without touching the OS or requiring sudo.
- * (Gap 7.)
- */
-export function buildRepairPlan(): RepairPlan {
-  return {
-    dnsHostsToRemove: collectManagedHosts(),
-    removeCert: true,
-    revertSystemProxy: true,
-  };
-}
-
-/**
- * Best-effort revert of an applied system proxy. The applied state lives
- * in-memory (captureState), so this only succeeds within the same process that
- * applied it; after a crash the previousState is gone and this is a no-op. DNS
- * + cert teardown are always reversible because they read on-disk state.
- */
-async function revertSystemProxyIfApplied(): Promise<boolean> {
-  try {
-    const { getSystemProxyState, clearSystemProxy } = await import("@/lib/inspector/captureState");
-    const state = getSystemProxyState();
-    if (!state.applied || !state.previousState) return false;
-    const { revert } = await import("./inspector/systemProxyConfig.ts");
-    await revert(state.previousState);
-    clearSystemProxy();
-    return true;
-  } catch (err) {
-    log.error({ err }, "revertSystemProxyIfApplied failed (continuing)");
-    return false;
-  }
-}
-
-/**
  * Undo every system mutation startMitm() may have made, WITHOUT requiring the
  * MITM server to be running. Safe to call when state is already clean (every
  * step is idempotent). Used by: the /repair route, the CLI cleanup subcommand,
  * and the stale-PID auto-repair on app startup. (Gap 7 — the application-layer
- * analogue of ProxyBridge's destructor + `--cleanup`.)
+ * analogue of ProxyBridge's destructor + `--cleanup`.) Steps 1-3 (DNS, cert,
+ * system-proxy) are delegated to `./repair.ts::performRepairSteps()`; the PID
+ * file + in-memory session cleanup below stays here since it touches this
+ * module's private state.
  */
 export async function repairMitm(sudoPassword: string): Promise<{ repaired: string[] }> {
-  const plan = buildRepairPlan();
-  const repaired: string[] = [];
+  const repaired = await performRepairSteps(sudoPassword);
 
-  // 1. DNS — remove every host we may have spoofed (idempotent, reads /etc/hosts).
-  try {
-    await removeDNSEntry(sudoPassword);
-    if (plan.dnsHostsToRemove.length > 0) {
-      await removeDNSEntries(plan.dnsHostsToRemove, sudoPassword);
-    }
-    repaired.push("dns");
-  } catch (err) {
-    log.error({ err }, "repairMitm: DNS cleanup failed (continuing)");
-  }
-
-  // 2. Certificate — uninstall the MITM root CA from the trust store.
-  if (plan.removeCert) {
-    try {
-      const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
-      if (fs.existsSync(certPath)) {
-        await uninstallCert(sudoPassword, certPath);
-        repaired.push("cert");
-      }
-    } catch (err) {
-      log.error({ err }, "repairMitm: cert removal failed (continuing)");
-    }
-  }
-
-  // 3. System proxy — best-effort revert if applied in this process.
-  if (plan.revertSystemProxy) {
-    if (await revertSystemProxyIfApplied()) repaired.push("system-proxy");
-  }
-
-  // 4. Stale PID file.
+  // Stale PID file.
   try {
     if (fs.existsSync(PID_FILE)) fs.unlinkSync(PID_FILE);
   } catch {
@@ -709,11 +639,38 @@ async function startMitmInternal(
 }
 
 /**
- * Stop MITM proxy
- * @param {string} sudoPassword - Sudo password for DNS cleanup
+ * DNS teardown step of stopMitm() (#1809) — split out purely to keep
+ * stopMitm()'s own cyclomatic complexity under the repo's ratchet; behavior
+ * is unchanged from the original inline implementation.
  */
-export async function stopMitm(sudoPassword: string): Promise<{ running: false; pid: null }> {
-  // 1. Kill server process (in-memory or from PID file)
+async function removeStopDnsEntries(
+  deps: {
+    removeDNSEntry: (sudoPassword: string) => Promise<void>;
+    removeDNSEntries: (hosts: string[], sudoPassword: string) => Promise<void>;
+    collectManagedHosts: () => string[];
+  },
+  sudoPassword: string
+): Promise<void> {
+  log.info("Removing DNS entries...");
+  await deps.removeDNSEntry(sudoPassword);
+  try {
+    const managed = deps.collectManagedHosts();
+    if (managed.length > 0) {
+      await deps.removeDNSEntries(managed, sudoPassword);
+    }
+  } catch (err) {
+    log.error({ err }, "Failed to remove managed DNS entries during stop (continuing)");
+  }
+}
+
+/**
+ * Kill the MITM server process during stop — either the in-memory
+ * `serverProcess` handle or, if that's gone, the PID recorded in `PID_FILE`.
+ * Split out of stopMitm() purely to keep that function's complexity under
+ * the repo's ratchet; behavior is unchanged from the original inline
+ * implementation.
+ */
+async function killMitmServerProcessOnStop(): Promise<void> {
   const proc = serverProcess;
   if (proc && !proc.killed) {
     log.info("Stopping MITM server...");
@@ -724,41 +681,64 @@ export async function stopMitm(sudoPassword: string): Promise<{ running: false; 
     }
     serverProcess = null;
     serverPid = null;
-  } else {
-    // Fallback: kill by PID file
-    try {
-      if (fs.existsSync(PID_FILE)) {
-        const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
-        if (savedPid && isProcessAlive(savedPid)) {
-          log.info({ pid: savedPid }, "Killing MITM server by PID...");
-          process.kill(savedPid, "SIGTERM");
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          if (isProcessAlive(savedPid)) {
-            process.kill(savedPid, "SIGKILL");
-          }
-        }
-      }
-    } catch {
-      // Ignore
-    }
-    serverProcess = null;
-    serverPid = null;
+    return;
   }
 
-  // 2. Remove DNS entries — Antigravity defaults PLUS every agent + custom host
-  //    that startMitm() may have spoofed. removeDNSEntries is idempotent, so
-  //    over-inclusion is safe; under-inclusion leaks /etc/hosts lines that
-  //    hijack resolution machine-wide after stop (Gap 8).
-  log.info("Removing DNS entries...");
-  await removeDNSEntry(sudoPassword);
+  // Fallback: kill by PID file
   try {
-    const managed = collectManagedHosts();
-    if (managed.length > 0) {
-      await removeDNSEntries(managed, sudoPassword);
+    if (fs.existsSync(PID_FILE)) {
+      const savedPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
+      if (savedPid && isProcessAlive(savedPid)) {
+        log.info({ pid: savedPid }, "Killing MITM server by PID...");
+        process.kill(savedPid, "SIGTERM");
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (isProcessAlive(savedPid)) {
+          process.kill(savedPid, "SIGKILL");
+        }
+      }
     }
-  } catch (err) {
-    log.error({ err }, "Failed to remove managed DNS entries during stop (continuing)");
+  } catch {
+    // Ignore
   }
+  serverProcess = null;
+  serverPid = null;
+}
+
+/**
+ * Stop MITM proxy
+ *
+ * Ordering is deliberate and load-bearing (#1809 — "connect ECONNREFUSED
+ * 127.0.0.1:443" after stop). DNS entries MUST be removed BEFORE the server
+ * process is killed: if the process dies first, any client whose DNS still
+ * resolves the target host to 127.0.0.1 (from startMitm()'s spoof) but whose
+ * MITM listener is already dead gets ECONNREFUSED against a dead port for the
+ * whole window between the two steps. Removing DNS first closes that window —
+ * once /etc/hosts no longer points at 127.0.0.1, clients fall back to real
+ * resolution regardless of when the listener actually goes away. This mirrors
+ * the DNS-first ordering already used by repairMitm() and handleExitCleanup().
+ * @param {string} sudoPassword - Sudo password for DNS cleanup
+ * @param _depsOverride - optional dependency override, used in tests for DI.
+ */
+export async function stopMitm(
+  sudoPassword: string,
+  _depsOverride?: {
+    removeDNSEntry?: (sudoPassword: string) => Promise<void>;
+    removeDNSEntries?: (hosts: string[], sudoPassword: string) => Promise<void>;
+    collectManagedHosts?: () => string[];
+  }
+): Promise<{ running: false; pid: null }> {
+  const deps = {
+    removeDNSEntry: _depsOverride?.removeDNSEntry ?? removeDNSEntry,
+    removeDNSEntries: _depsOverride?.removeDNSEntries ?? removeDNSEntries,
+    collectManagedHosts: _depsOverride?.collectManagedHosts ?? collectManagedHosts,
+  };
+
+  // 1. Remove DNS entries FIRST — see function doc + module doc above for why
+  //    this must happen before the process kill (#1809, Gap 8).
+  await removeStopDnsEntries(deps, sudoPassword);
+
+  // 2. Kill server process (in-memory or from PID file)
+  await killMitmServerProcessOnStop();
 
   // 3. Clean up
   clearCachedPassword(); // Clear password from memory when proxy stops
