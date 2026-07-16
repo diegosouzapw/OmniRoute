@@ -3,23 +3,25 @@ import type { ProviderCredentials, ExecuteInput } from "./base.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 
 export class GheCopilotExecutor extends GithubExecutor {
-  constructor(config: Record<string, unknown>) {
-    // Ensure gheUrl is in config
-    super({
+  constructor(config?: Record<string, unknown>) {
+    super("ghe-copilot", {
+      format: "openai",
+      baseUrl: "https://api.githubcopilot.com/chat/completions",
+      responsesBaseUrl: "https://api.githubcopilot.com/responses",
+      authType: "oauth",
+      authHeader: "bearer",
       ...config,
-      baseUrl: config.gheUrl,
-      responsesBaseUrl: config.gheUrl?.replace(/\/chat\/completions\/?$/, "/responses"),
     });
   }
 
   /**
-   * Derive the base URL for chat/completions from gheUrl.
+   * Derive the base URL for chat/completions from gheUrl in providerSpecificData.
    * Appends /chat/completions if not already present.
    */
-  private getChatCompletionsBase(): string {
-    const gheUrl = this.config.gheUrl;
+  private getChatCompletionsBase(credentials: ProviderCredentials | null): string {
+    const gheUrl = credentials?.providerSpecificData?.gheUrl as string | undefined;
     if (!gheUrl) {
-      throw new Error("GHE Copilot executor requires gheUrl in config");
+      throw new Error("GHE Copilot executor requires gheUrl in providerSpecificData");
     }
     // Ensure it ends with /chat/completions
     if (gheUrl.endsWith("/chat/completions")) {
@@ -32,34 +34,40 @@ export class GheCopilotExecutor extends GithubExecutor {
   /**
    * Derive the responses API base URL from gheUrl.
    */
-  private getResponsesBase(): string {
-    const gheUrl = this.config.gheUrl;
+  private getResponsesBase(credentials: ProviderCredentials | null): string {
+    const gheUrl = credentials?.providerSpecificData?.gheUrl as string | undefined;
     if (!gheUrl) {
-      throw new Error("GHE Copilot executor requires gheUrl in config");
+      throw new Error("GHE Copilot executor requires gheUrl in providerSpecificData");
     }
-    const chatBase = this.getChatCompletionsBase();
+    const chatBase = this.getChatCompletionsBase(credentials);
     return chatBase.replace(/\/chat\/completions\/?$/, "/responses");
   }
 
-  override buildUrl(model: string, stream: boolean, urlIndex = 0): string {
-    const targetFormat = (this as { getModelTargetFormat?: (provider: string, model: string) => string }).getModelTargetFormat?.("gh", model) 
-      || getModelTargetFormat("gh", model);
+  override buildUrl(model: string, stream: boolean, urlIndex = 0, credentials: ProviderCredentials | null = null): string {
+    const targetFormat = getModelTargetFormat("gh", model);
+    
+    // GHE requires gheUrl in credentials - throw if not provided
+    const gheUrl = credentials?.providerSpecificData?.gheUrl as string | undefined;
+    if (!gheUrl) {
+      throw new Error("GHE Copilot executor requires gheUrl in providerSpecificData");
+    }
     
     // Reuse the same logic as GithubExecutor but with GHE base URLs
     if (
       (targetFormat === "openai-responses" || /codex/i.test(model)) &&
       this.supportsResponsesEndpoint(model)
     ) {
-      return this.config.responsesBaseUrl || this.getResponsesBase();
+      return this.getResponsesBase(credentials);
     }
-    return this.config.baseUrl || this.getChatCompletionsBase();
+    return this.getChatCompletionsBase(credentials);
   }
 
   override async refreshCopilotToken(
     githubAccessToken: string,
-    log?: { info?: (cat: string, msg: string) => void; error?: (cat: string, msg: string) => void }
+    log?: { info?: (cat: string, msg: string) => void; error?: (cat: string, msg: string) => void },
+    credentials?: ProviderCredentials | null
   ): Promise<{ token: string; expiresAt: string | number } | null> {
-    const gheUrl = this.config.gheUrl;
+    const gheUrl = credentials?.providerSpecificData?.gheUrl as string | undefined;
     if (!gheUrl) return null;
 
     try {
@@ -85,13 +93,14 @@ export class GheCopilotExecutor extends GithubExecutor {
 
   override async refreshGitHubToken(
     refreshToken: string,
-    log?: { info?: (cat: string, msg: string) => void; error?: (cat: string, msg: string) => void }
+    log?: { info?: (cat: string, msg: string) => void; error?: (cat: string, msg: string) => void },
+    credentials?: ProviderCredentials | null
   ): Promise<{
     accessToken: string;
     refreshToken: string;
     expiresIn: number;
   } | null> {
-    const gheUrl = this.config.gheUrl;
+    const gheUrl = credentials?.providerSpecificData?.gheUrl as string | undefined;
     if (!gheUrl) return null;
 
     try {
