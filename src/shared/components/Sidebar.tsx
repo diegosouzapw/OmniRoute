@@ -108,6 +108,7 @@ export default function Sidebar({
   );
   const [pinnedSections, setPinnedSections] = useState<Set<SidebarSectionId>>(new Set());
   const [sidebarExpansionLoaded, setSidebarExpansionLoaded] = useState(false);
+  const skipInitialActiveExpansion = useRef(false);
   const [hoveredItem, setHoveredItem] = useState<HoveredItem>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -131,6 +132,7 @@ export default function Sidebar({
     const initialPinned = new Set<SidebarSectionId>(storedPinned);
     const initialExpanded = hydrateExpandedSections(storedExpanded, initialPinned);
 
+    skipInitialActiveExpansion.current = storedExpanded.length === 0;
     setExpandedSections(initialExpanded);
     setPinnedSections(initialPinned);
     setSidebarExpansionLoaded(true);
@@ -280,6 +282,10 @@ export default function Sidebar({
   // Keep the active page visible while preserving accordion semantics for unpinned sections.
   useEffect(() => {
     if (collapsed || !sidebarExpansionLoaded) return;
+    if (skipInitialActiveExpansion.current) {
+      skipInitialActiveExpansion.current = false;
+      return;
+    }
     for (const section of visibleSections) {
       const sectionItems = section.children.flatMap((child: any) =>
         child.type === "group" ? child.items : [child]
