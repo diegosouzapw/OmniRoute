@@ -116,6 +116,19 @@ async function startServer() {
     startBudgetResetJob();
     startReasoningCacheCleanupJob();
     startCleanupScheduler();
+    // Credential health scheduler: periodically re-probe provider connections so a
+    // recovered web-session/key flips test_status back to active without a manual
+    // re-test (fixes providers going red on startup). The module was never wired into
+    // the serve runtime, so its boot sweep never ran. Non-fatal + dynamic import — it
+    // statically pulls the provider test route, and self-guards (disabled under
+    // test/build and via OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK).
+    try {
+      const { initCredentialHealthCheck } = await import("./lib/credentialHealth/scheduler");
+      initCredentialHealthCheck();
+      startupLog.info("Credential health scheduler started");
+    } catch (err) {
+      startupLog.warn({ err }, "Credential health scheduler could not start (non-fatal)");
+    }
     startRuntimeConfigHotReload();
     startupLog.info("Server started with cloud sync initialized");
 
