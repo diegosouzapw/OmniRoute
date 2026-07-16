@@ -4820,7 +4820,9 @@
     "kimiWebLabel": "Kimi Web",
     "kimiWebDesc": "Чат Moonshot AI через www.kimi.com (международная версия, Connect-RPC API)",
     "doubaoWebLabel": "Doubao Web",
-    "doubaoWebDesc": "Чат AI ByteDance через doubao.com"
+    "doubaoWebDesc": "Чат AI ByteDance через doubao.com",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "Настройки",

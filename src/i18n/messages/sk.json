@@ -4820,7 +4820,9 @@
     "kimiWebLabel": "__MISSING__:Kimi Web",
     "kimiWebDesc": "__MISSING__:Moonshot AI consumer chat via www.kimi.com (international, Connect-RPC API)",
     "doubaoWebLabel": "__MISSING__:Doubao Web",
-    "doubaoWebDesc": "__MISSING__:ByteDance AI chat via doubao.com"
+    "doubaoWebDesc": "__MISSING__:ByteDance AI chat via doubao.com",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "Nastavenia",
