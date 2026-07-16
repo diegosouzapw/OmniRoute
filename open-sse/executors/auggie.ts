@@ -45,6 +45,24 @@ const AUGGIE_URL = "auggie://cli/stdio";
 // models without a code update.
 const AUGGIE_MODEL_ALLOWLIST: ReadonlySet<string> = new Set(auggieProvider.models.map((m) => m.id));
 const DEFAULT_AUGGIE_MODEL = auggieProvider.models[0]?.id ?? "claude-sonnet-4.6";
+// ─── Model alias map (backward compat for saved combos) ─────────────────────
+// Old model IDs from before the v0.32.0 registry update; each maps to the
+// equivalent v0.32.0 ID so existing combos continue to work after the rename.
+const AUGGIE_MODEL_ALIASES: ReadonlyMap<string, string> = new Map([
+  // Claude
+  ["claude-sonnet-4.6", "sonnet4.6"],
+  ["claude-sonnet-4.6-thinking", "sonnet4.6"],
+  ["claude-opus-4.6", "opus4.6"],
+  ["claude-haiku-4.5", "haiku4.5"],
+  // Gemini
+  ["gemini-3.1-pro", "gemini-3.1-pro-preview"],
+  ["gemini-3.0-flash", "gemini-3.1-pro-preview"],
+  // GPT-5.x (high/medium split was synthetic — v0.32.0 has a single ID per version)
+  ["gpt-5.5-high", "gpt5.5"],
+  ["gpt-5.5-medium", "gpt5.5"],
+  ["gpt-5.4-high", "gpt5.4"],
+  ["gpt-5.4-medium", "gpt5.4"],
+]);
 
 /**
  * Live model cache populated by `initAuggieModels()`.
@@ -145,6 +163,10 @@ export function resolveAuggieModel(model: unknown): AuggieModelResolution {
       error: `Invalid Auggie model "${requested}": model must not start with "-".`,
     };
   }
+  // Backward-compat alias: resolve old model IDs → v0.32.0 equivalents.
+  // This lets saved combos referencing the old names keep working.
+  const requestedAlias = AUGGIE_MODEL_ALIASES[requested];
+  if (requestedAlias) return { ok: true, model: requestedAlias };
   // Static registry — always authoritative for the shipped set.
   if (AUGGIE_MODEL_ALLOWLIST.has(requested)) return { ok: true, model: requested };
   // Live-discovered models (if loaded) extend the static list.
