@@ -120,7 +120,10 @@ interface TheOldLlmFetchDependencies {
   resolveProxy: () => Promise<TheOldLlmProxy>;
   runWithProxy: <T>(proxy: TheOldLlmProxy, request: () => Promise<T>) => Promise<T>;
   fetch: typeof fetch;
+  hasBlockingProxyAssignment?: () => boolean;
 }
+
+class TheOldLlmProxyUnavailableError extends Error {}
 
 export function generateRequestToken(): string {
   const n = Date.now();
@@ -148,18 +151,22 @@ export async function fetchTheOldLlmWithProviderProxy(
 ): Promise<Response> {
   let deps = dependencies;
   if (!deps) {
-    const [{ resolveProxyForProvider }, { runWithProxyContext }] = await Promise.all([
-      import("../../src/lib/db/proxies"),
-      import("../utils/proxyFetch.ts"),
-    ]);
+    const [
+      { resolveProxyForProvider, hasBlockingProxyAssignmentForProvider },
+      { runWithProxyContext },
+    ] = await Promise.all([import("../../src/lib/db/proxies"), import("../utils/proxyFetch.ts")]);
     deps = {
       resolveProxy: () => resolveProxyForProvider("theoldllm"),
       runWithProxy: runWithProxyContext,
       fetch: globalThis.fetch,
+      hasBlockingProxyAssignment: () => hasBlockingProxyAssignmentForProvider("theoldllm"),
     };
   }
 
   const proxy = await deps.resolveProxy();
+  if (!proxy && deps.hasBlockingProxyAssignment?.()) {
+    throw new TheOldLlmProxyUnavailableError("No active proxy is available for The Old LLM");
+  }
   return deps.runWithProxy(proxy, () =>
     deps.fetch(API_URL, {
       method: "POST",
@@ -273,6 +280,34 @@ function buildVercelMitigationError(): string {
   });
 }
 
+function buildProxyUnavailableError(): string {
+  return JSON.stringify({
+    error: {
+      message:
+        "The Old LLM proxy assignment has no active proxies. Configure or enable a proxy and retry.",
+      type: "proxy_unavailable",
+      code: "THEOLDLLM_PROXY_UNAVAILABLE",
+    },
+  });
+}
+
+async function fetchUpstreamWithRetry(
+  reqBody: Record<string, unknown>,
+  signal: AbortSignal | null | undefined,
+  log: ExecuteInput["log"]
+): Promise<{ response: Response; body: string; vercelMitigated: boolean }> {
+  let response = await directFetch(reqBody, signal);
+  let body = await response.text();
+  let vercelMitigated = isVercelMitigationResponse(response, body);
+  if (!vercelMitigated && isTokenRejected(response.status, body)) {
+    log?.warn?.("THEOLDLLM", `Token rejected (${response.status}), retrying with fresh token…`);
+    response = await directFetch(reqBody, signal);
+    body = await response.text();
+    vercelMitigated = isVercelMitigationResponse(response, body);
+  }
+  return { response, body, vercelMitigated };
+}
+
 // ── Executor ──────────────────────────────────────────────────────────────
 
 export class TheOldLlmExecutor extends BaseExecutor {
@@ -299,6 +334,15 @@ export class TheOldLlmExecutor extends BaseExecutor {
     return body;
   }
 
+  private executionResult(input: ExecuteInput, response: Response, body: unknown) {
+    return {
+      response,
+      url: API_URL,
+      headers: this.buildHeaders(input.credentials),
+      transformedBody: body,
+    };
+  }
+
   async testConnection(
     _credentials: ProviderCredentials,
     _signal?: AbortSignal | null,
@@ -313,7 +357,8 @@ export class TheOldLlmExecutor extends BaseExecutor {
         },
         _signal
       );
-      if (!resp.ok && isVercelMitigationResponse(resp, await resp.text())) {
+      const body = await resp.text();
+      if (!resp.ok && isVercelMitigationResponse(resp, body)) {
         log?.warn?.(
           "THEOLDLLM",
           "Vercel blocked this egress IP; configure a residential provider proxy"
@@ -359,61 +404,55 @@ export class TheOldLlmExecutor extends BaseExecutor {
         stream: true,
       };
 
-      let upstream = await directFetch(reqBody, signal);
-      let finalBody = await upstream.text();
-
-      let vercelMitigated = isVercelMitigationResponse(upstream, finalBody);
-      if (!vercelMitigated && isTokenRejected(upstream.status, finalBody)) {
-        log?.warn?.("THEOLDLLM", `Token rejected (${upstream.status}), retrying with fresh token…`);
-        upstream = await directFetch(reqBody, signal);
-        finalBody = await upstream.text();
-        vercelMitigated = isVercelMitigationResponse(upstream, finalBody);
-      }
+      const {
+        response: upstream,
+        body: finalBody,
+        vercelMitigated,
+      } = await fetchUpstreamWithRetry(reqBody, signal, log);
 
       if (upstream.status === 200 && finalBody) {
         const payload = stream ? finalBody : buildChatCompletion(parseSseContent(finalBody), model);
-        return {
-          response: new Response(encoder.encode(payload), {
+        return this.executionResult(
+          input,
+          new Response(encoder.encode(payload), {
             status: 200,
             headers: {
               "Content-Type": stream ? "text/event-stream" : "application/json",
               "Cache-Control": "no-cache",
             },
           }),
-          url: API_URL,
-          headers: this.buildHeaders(input.credentials),
-          transformedBody: body,
-        };
+          body
+        );
       }
 
       const errorPayload = vercelMitigated
         ? buildVercelMitigationError()
         : buildErrorResponse(upstream.status, finalBody);
-      return {
-        response: new Response(encoder.encode(errorPayload), {
+      return this.executionResult(
+        input,
+        new Response(encoder.encode(errorPayload), {
           status: upstream.status,
           headers: { "Content-Type": "application/json" },
         }),
-        url: API_URL,
-        headers: this.buildHeaders(input.credentials),
-        transformedBody: body,
-      };
+        body
+      );
     } catch (err) {
+      const proxyUnavailable = err instanceof TheOldLlmProxyUnavailableError;
       const msg = err instanceof Error ? err.message : String(err);
       log?.error?.("THEOLDLLM", `Executor error: ${msg}`);
-      return {
-        response: new Response(
-          encoder.encode(
-            JSON.stringify({
-              error: { message: msg, type: "upstream_error", code: "EXECUTOR_ERROR" },
-            })
-          ),
-          { status: 502, headers: { "Content-Type": "application/json" } }
-        ),
-        url: API_URL,
-        headers: this.buildHeaders(input.credentials),
-        transformedBody: body,
-      };
+      const errorPayload = proxyUnavailable
+        ? buildProxyUnavailableError()
+        : JSON.stringify({
+            error: { message: msg, type: "upstream_error", code: "EXECUTOR_ERROR" },
+          });
+      return this.executionResult(
+        input,
+        new Response(encoder.encode(errorPayload), {
+          status: proxyUnavailable ? 503 : 502,
+          headers: { "Content-Type": "application/json" },
+        }),
+        body
+      );
     }
   }
 }

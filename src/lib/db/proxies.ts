@@ -825,6 +825,22 @@ export async function deleteProxyById(id: string, options?: { force?: boolean })
 const PROXY_ALIVE_PREDICATE =
   "(p.status IS NULL OR LOWER(p.status) NOT IN ('inactive','error','disabled','dead','down'))";
 
+function isGlobalProxyEnabled(db: ReturnType<typeof getDbInstance>): boolean {
+  try {
+    const row = db
+      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'proxyEnabled'")
+      .get() as { value?: string } | undefined;
+    if (!row?.value) return true;
+    try {
+      return JSON.parse(row.value) !== false;
+    } catch {
+      return true;
+    }
+  } catch {
+    return true;
+  }
+}
+
 // Resolve one scope's alive pool to a single proxy via its rotation strategy.
 // Returns the standard registry resolution shape, or null when the pool is empty
 // or every member is dead (preserving the #6246 fail-closed contract — a dead
@@ -956,6 +972,39 @@ export function hasBlockingProxyAssignment(connectionId: string): boolean {
       )
       .get(connectionId, provider);
     return !!dead;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * #7380 fail-closed guard for providers without a connection row. Returns true
+ * when a provider/global proxy assignment exists but all assigned proxies are
+ * known dead. Explicitly disabling proxying globally is an intentional direct
+ * choice and therefore never blocks.
+ */
+export function hasBlockingProxyAssignmentForProvider(providerId: string): boolean {
+  try {
+    const db = getDbInstance();
+    if (!isGlobalProxyEnabled(db)) return false;
+
+    const assignments = db
+      .prepare(
+        `SELECT
+           EXISTS(
+             SELECT 1 FROM proxy_assignments a
+             WHERE ((a.scope = 'provider' AND a.scope_id = ?)
+                 OR a.scope = 'global')
+           ) AS assigned,
+           EXISTS(
+             SELECT 1 FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id
+             WHERE ((a.scope = 'provider' AND a.scope_id = ?)
+                 OR a.scope = 'global')
+               AND ${PROXY_ALIVE_PREDICATE}
+           ) AS dead`
+      )
+      .get(providerId, providerId) as { assigned?: number; dead?: number } | undefined;
+    return assignments?.assigned === 1 && assignments.dead === 0;
   } catch {
     return false;
   }
@@ -1127,6 +1176,9 @@ export async function bulkAssignProxyToScope(
  */
 export async function resolveProxyForProvider(providerId: string) {
   try {
+    const db = getDbInstance();
+    if (!isGlobalProxyEnabled(db)) return null;
+
     // Resolve by specificity across both storage backends. The GUI Custom tab
     // still writes provider/global proxies to the legacy config, while Saved
     // Proxy uses the registry. A registry-global fallback must not shadow a
