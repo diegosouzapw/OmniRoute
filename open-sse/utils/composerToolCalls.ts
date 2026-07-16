@@ -126,15 +126,28 @@ function parseInnerCall(body: string): { name: string; arguments: string } | nul
   const args: Record<string, unknown> = {};
   for (const seg of segments) {
     if (!seg) continue;
-    // Each segment is `arg_name\nvalue\n...`. The arg name is the first
-    // line; everything after the first newline is the value (verbatim,
-    // including additional newlines).
+    // Each segment is normally `arg_name\nvalue\n...`: the arg name is the
+    // first line, everything after the first newline is the value
+    // (verbatim, including additional newlines). Some live Composer/Auto
+    // captures instead separate the arg name and value with a single space
+    // on the same line (no newline at all in the segment) — fall back to
+    // splitting on the first whitespace boundary in that case so the value
+    // isn't swallowed into an empty-valued, space-containing "arg name".
     const idxNl = seg.indexOf("\n");
     let argName: string;
     let argValue: string;
     if (idxNl < 0) {
-      argName = seg.trim();
-      argValue = "";
+      const idxSp = seg.search(/\s/);
+      if (idxSp < 0) {
+        argName = seg.trim();
+        argValue = "";
+      } else {
+        argName = seg.slice(0, idxSp).trim();
+        // Unlike the newline-delimited form, a space-delimited value has no
+        // multi-line content to preserve — trim the trailing whitespace left
+        // over from the boundary with the next `<｜tool▁sep｜>` marker.
+        argValue = seg.slice(idxSp + 1).trim();
+      }
     } else {
       argName = seg.slice(0, idxNl).trim();
       argValue = seg.slice(idxNl + 1);

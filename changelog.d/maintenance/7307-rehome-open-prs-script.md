@@ -1,0 +1,1 @@
+- **chore(release):** add `scripts/release/rehome-open-prs.mjs` — the Phase 0a.0b PR re-home, scripted with a read-back after every retarget. `gh pr edit --base` exits 0 without applying (v3.8.42), `gh pr list` silently caps at 30, and the v3.8.49 freeze had 148 open PRs to move — none of which a hand-run loop survives reliably.
