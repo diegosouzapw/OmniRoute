@@ -27,10 +27,14 @@ const appleSvg = readFileSync(join(publicDir, "apple-touch-icon.svg"));
 
 // favicon.svg is authored on a 32×32 viewBox; scale density so each target
 // size is rendered from the vector instead of upscaling a small raster.
-const renderPng = (svg, viewBox, size) =>
+// Palette quantization (8-bit, ≤256 colors) is only applied where asked:
+// it keeps the ICO frames tiny, but measurably clips the antialiased
+// gradient on large standalone PNGs (1242 → 253 distinct colors at 512px),
+// so those stay truecolor.
+const renderPng = (svg, viewBox, size, usePalette = false) =>
   sharp(svg, { density: 72 * (size / viewBox) })
     .resize(size, size)
-    .png({ compressionLevel: 9, palette: true, effort: 10 })
+    .png({ compressionLevel: 9, palette: usePalette, effort: 10 })
     .toBuffer();
 
 // ICO container with PNG-compressed frames (identical layout to the icon the
@@ -60,7 +64,7 @@ function buildIco(frames) {
 const icoSizes = [16, 32, 48, 64, 96, 128, 256];
 const frames = [];
 for (const size of icoSizes) {
-  frames.push({ size, png: await renderPng(faviconSvg, 32, size) });
+  frames.push({ size, png: await renderPng(faviconSvg, 32, size, true) });
 }
 writeFileSync(join(publicDir, "favicon.ico"), buildIco(frames));
 
