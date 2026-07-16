@@ -783,7 +783,10 @@ jobs:
   test-coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 10min was sized before #7114 added the lcov reporter (Codecov/Sonar need it);
+    # merging 8 shard JSONs + text+json+lcov now takes ~10-12min — three consecutive
+    # release-tip runs died at exactly 10m as job-timeout "cancelled" (2026-07-15/16).
+    timeout-minutes: 20
     needs: test-unit
     if: ${{ !cancelled() && needs.test-unit.result == 'success' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
     env:
