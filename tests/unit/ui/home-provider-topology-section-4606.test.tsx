@@ -65,8 +65,8 @@ it("renders the topology card and forwards providers to ProviderTopology", () =>
   const topology = container.querySelector("[data-testid='provider-topology']");
   expect(topology).not.toBeNull();
   expect(topology?.getAttribute("data-providers")).toBe("2");
-  expect(container.textContent).toContain("providerTopologyDesc");
-  expect(container.textContent).toContain("providerTopologyActive");
-  expect(container.textContent).toContain("providerTopologyRecent");
-  expect(container.textContent).toContain("providerTopologyError");
+  expect(container.textContent).toContain("activeError");
+  expect(container.textContent).toContain("active");
+  expect(container.textContent).toContain("recent");
+  expect(container.textContent).toContain("modelStatusError");
 });

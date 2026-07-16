@@ -1475,10 +1475,6 @@
     "omniSkillsDescription": "Install and manage sandbox skills for automated prompt and tool execution"
   },
   "home": {
-    "providerTopologyDesc": "Connected providers routing through OmniRoute in real time",
-    "providerTopologyActive": "Active",
-    "providerTopologyRecent": "Recent",
-    "providerTopologyError": "Error",
     "quickStart": "Quick Start",
     "quickStartDesc": "Get up and running in 4 steps. Connect providers, route models, monitor everything.",
     "fullDocs": "Full Docs",

@@ -27,35 +27,42 @@ export function HomeProviderTopologySection({
   enabled?: boolean;
 }) {
   const t = useTranslations("home");
+  const tCommon = useTranslations("common");
+  const tSettings = useTranslations("settings");
+  const tAnalytics = useTranslations("analytics");
   // #4596: gate the live-WS connection so it only opens while the topology
   // section is actually shown on the home page.
   const { activeRequests: liveActiveRequests } = useLiveRequests({ enabled });
+  const activeRequests = selectActiveRequests(liveActiveRequests);
+  const activeProviderCount = new Set(activeRequests.map(({ provider }) => provider)).size;
 
   return (
     <Card>
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-base font-semibold">{t("providerTopology")}</h2>
-          <p className="text-xs text-text-muted">{t("providerTopologyDesc")}</p>
+          <p className="text-xs text-text-muted">
+            {t("activeError", { active: activeProviderCount, errors: errorProvider ? 1 : 0 })}
+          </p>
         </div>
         <div className="flex items-center gap-3 text-[11px] text-text-muted">
           <span className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-green-500" />
-            {t("providerTopologyActive")}
+            {tCommon("active")}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-amber-500" />
-            {t("providerTopologyRecent")}
+            {tSettings("recent")}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-red-500" />
-            {t("providerTopologyError")}
+            {tAnalytics("modelStatusError")}
           </span>
         </div>
       </div>
       <ProviderTopology
         providers={providers}
-        activeRequests={selectActiveRequests(liveActiveRequests)}
+        activeRequests={activeRequests}
         lastProvider={lastProvider}
         errorProvider={errorProvider}
       />

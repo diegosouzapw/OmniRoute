@@ -1386,10 +1386,6 @@
     "oneProxyDescription": "Configure 1Proxy settings for advanced proxy chaining"
   },
   "home": {
-    "providerTopologyDesc": "Các nhà cung cấp đã kết nối đang định tuyến qua OmniRoute theo thời gian thực",
-    "providerTopologyActive": "Đang hoạt động",
-    "providerTopologyRecent": "Gần đây",
-    "providerTopologyError": "Lỗi",
     "quickStart": "Bắt đầu nhanh",
     "quickStartDesc": "Hãy đứng dậy và chạy trong 4 bước. Kết nối nhà cung cấp, mô hình định tuyến, giám sát mọi thứ.",
     "fullDocs": "Tài liệu đầy đủ",
