@@ -3917,7 +3917,9 @@
         "label": "Reserva e especialidade",
         "description": "Endpoints hospedados localmente ou especializados usados como substitutos."
       },
-      "configure": "Configurar provedores"
+      "configure": "Configurar provedores",
+      "flowCaption": "As requisições passam primeiro pelas suas cotas de assinatura, depois pelos provedores baratos por token e, por fim, pelos provedores gratuitos — automático, sem configuração.",
+      "afterSetup": "após a configuração."
     },
     "tierFlowDiagramAlt": "Diagrama de fallback de 3 camadas do OmniRoute",
     "apiKeyMgmt": "Ger. de Chaves API"
