@@ -90,6 +90,7 @@ export interface AccountProxyConfig {
     port: number;
     username?: string;
     password?: string;
+    relayAuth?: string;
   } | null;
 }
 

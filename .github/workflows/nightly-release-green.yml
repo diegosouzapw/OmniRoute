@@ -1,11 +1,18 @@
-name: Nightly Release-Green
+name: Release-Green (continuous)
 
 # Solution D — continuous, NON-BLOCKING drift signal for the active release branch.
 #
 # WHY: the full gate (ci.yml) only runs on the release PR (PR → main), so reds
 # accrue silently on release/** and explode — in layers — at release time. This
-# nightly reproduces the release-equivalent validation on the active release branch
-# HEAD and, when there are HARD failures, opens/updates a single tracking issue.
+# workflow reproduces the release-equivalent validation on the release branch and,
+# when there are HARD failures, opens/updates a single tracking issue.
+#
+# WS5.1 (v3.8.49 quality plan) — two modes:
+#   push to release/v* (code paths) → --quick (fast HARD gates, ~5-8min). Catches the
+#     captain's direct pushes (sync-back — the one ungated write path) AND the merged
+#     COMBINATION right after every PR merge, attributing the offending push range in
+#     the issue. Base-red MTTD drops from ≤24h to ≤~15min after the offending push.
+#   schedule (3×/day) → full --with-build --full-ci (the deep sweep incl. build+suites).
 #
 # It is NOT a required status check and never touches a contributor PR — it only
 # reports. Ratchet drift (eslint warnings / cognitive-complexity / file-size) is
@@ -14,8 +21,23 @@ name: Nightly Release-Green
 # package-artifact) flip the issue open.
 
 on:
+  push:
+    branches: ["release/v*", "main"]
+    paths:
+      - "src/**"
+      - "open-sse/**"
+      - "bin/**"
+      - "electron/**"
+      - "scripts/**"
+      - "tests/**"
+      - "config/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig*.json"
   schedule:
-    - cron: "23 5 * * *" # 05:23 UTC daily — off-peak, distinct from other nightlies
+    - cron: "23 5 * * *" # full sweep — off-peak, distinct from other nightlies
+    - cron: "23 12 * * *" # full sweep — midday (WS5.1: 3×/day instead of 1×)
+    - cron: "23 18 * * *" # full sweep — evening
   workflow_dispatch:
     inputs:
       branch:
@@ -28,7 +50,9 @@ permissions:
   issues: write
 
 concurrency:
-  group: nightly-release-green
+  # push storms during merge campaigns collapse to the newest commit per branch;
+  # scheduled full sweeps keep their own single lane.
+  group: release-green-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -37,6 +61,9 @@ env:
 jobs:
   release-green:
     name: Validate active release branch
+    # On a push, only run for release/* pushes — a push to main is handled by the
+    # main-green job below. Schedule/dispatch always run (they validate the highest release).
+    if: ${{ github.event_name != 'push' || startsWith(github.ref_name, 'release/') }}
     # Dynamic runner: with USE_VPS_RUNNER=true (release window / on-demand pre-flight)
     # this runs on the dedicated VPS runner — clean env (no operator OMNIROUTE_API_KEY,
     # no local noauth CLIs => zero machine-specific false positives) and no contention.
@@ -56,10 +83,15 @@ jobs:
         id: branch
         env:
           INPUT_BRANCH: ${{ github.event.inputs.branch }}
+          EVENT_NAME: ${{ github.event_name }}
+          PUSHED_REF: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           if [ -n "${INPUT_BRANCH:-}" ]; then
             TARGET="$INPUT_BRANCH"
+          elif [ "$EVENT_NAME" = "push" ]; then
+            # validate exactly what was pushed, not the highest branch
+            TARGET="$PUSHED_REF"
           else
             # highest release/vX.Y.Z by semver among remote branches
             TARGET=$(git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/release/v*' \
@@ -93,16 +125,26 @@ jobs:
 
       - name: Release-green validation (full)
         id: validate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set +e
           # --hermetic: scrub live-test trigger vars (self-hosted runner may carry
           # operator env; hosted ignores the unknown flag before #6300 lands).
-          # --full-ci: ALSO run every static gate from ci.yml's gate jobs (lint,
-          # quality-gate, quality-extended, docs-sync-strict, pr-test-policy). PRs into
-          # release/** only get the fast-gates, so these accrue silently and explode in
-          # layers on the release PR (v3.8.46: 11 static base-reds leaked). Running them
-          # nightly opens the tracking issue the moment one lands, not at release time.
-          node scripts/quality/validate-release-green.mjs --json --with-build --hermetic --full-ci \
+          # push → --quick: fast HARD gates only (~5-8min), per-merge signal.
+          # schedule/dispatch → --with-build --full-ci: ALSO run every static gate from
+          # ci.yml's gate jobs (lint, quality-gate, quality-extended, docs-sync-strict,
+          # pr-test-policy) + build + full suites. PRs into release/** only get the
+          # fast-gates, so these accrue silently and explode in layers on the release PR
+          # (v3.8.46: 11 static base-reds leaked).
+          if [ "$EVENT_NAME" = "push" ]; then
+            MODE="--quick"
+          else
+            MODE="--with-build --full-ci"
+          fi
+          echo "[release-green] mode: $MODE (event: $EVENT_NAME)"
+          # shellcheck disable=SC2086 — MODE is an intentional flag list
+          node scripts/quality/validate-release-green.mjs --json --hermetic $MODE \
             1> release-green.json 2> release-green.log
           echo "exit=$?" >> "$GITHUB_OUTPUT"
           echo "------- report -------"
@@ -114,15 +156,28 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TARGET: ${{ steps.branch.outputs.target }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.event.after }}
         run: |
           set -euo pipefail
           TITLE="🔴 Release branch not green: ${TARGET}"
           {
-            echo "The nightly **release-green** validation found HARD failures on \`${TARGET}\`."
+            echo "The **release-green** validation found HARD failures on \`${TARGET}\`."
             echo "These are real defects that would block the release PR — fix them in the"
             echo "originating PR branch (via co-authorship), not by demanding it from contributors."
             echo ""
-            echo "**Run:** ${RUN_URL}"
+            echo "**Run:** ${RUN_URL} (mode: ${EVENT_NAME})"
+            # WS5.1 attribution: on push events the offending change IS this push's range
+            # (one merge per push in the normal queue), so name it — no bisect needed.
+            if [ "$EVENT_NAME" = "push" ] && [ -n "${BEFORE_SHA:-}" ] && \
+               git cat-file -e "$BEFORE_SHA" 2>/dev/null; then
+              echo ""
+              echo "**Offending push range** (\`${BEFORE_SHA:0:9}..${AFTER_SHA:0:9}\`):"
+              echo '```'
+              git log --no-decorate --oneline "${BEFORE_SHA}..${AFTER_SHA}" | head -20
+              echo '```'
+            fi
             echo ""
             echo '```'
             sed -n '/──────── verdict ────────/,$p' release-green.log || tail -40 release-green.log
@@ -148,4 +203,101 @@ jobs:
           path: |
             release-green.json
             release-green.log
+          if-no-files-found: ignore
+
+  # Companion arm for `main`. Under the parallel-cycle model, main only receives merged
+  # work at the release squash — so a gate/infra fix that lands only on release leaves
+  # main red the whole cycle, and repo-wide gates (CodeQL alert count, ratchet baselines)
+  # turn EVERY PR into main red on a check unrelated to its diff. This detects that and
+  # opens a "🔴 main not green" tracking issue. The PREVENTION is the companion-PR reflex
+  # (Hard Rule #21 area / _shared/merge-gates.md §8); this is the automated backstop.
+  main-green:
+    name: Validate main branch
+    # On a push, only run for a push to main — a push to release/* is handled by
+    # release-green above. Schedule/dispatch always run (they also sweep main).
+    if: ${{ github.event_name != 'push' || github.ref_name == 'main' }}
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-release"]')) || 'ubuntu-latest' }}
+    env:
+      JWT_SECRET: ci-nightly-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-nightly-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main # literal — no injection surface; scheduled runs default to the repo default branch (a release/v*), so pin main explicitly
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+
+      - uses: ./.github/actions/npm-ci-retry
+
+      - name: Main-green validation
+        id: validate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set +e
+          # push (a merge into main) → --quick fast HARD gates; schedule/dispatch → full sweep.
+          if [ "$EVENT_NAME" = "push" ]; then
+            MODE="--quick"
+          else
+            MODE="--with-build --full-ci"
+          fi
+          echo "[main-green] mode: $MODE (event: $EVENT_NAME)"
+          # shellcheck disable=SC2086 — MODE is an intentional flag list
+          node scripts/quality/validate-release-green.mjs --json --hermetic $MODE \
+            1> main-green.json 2> main-green.log
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+          echo "------- report -------"
+          cat main-green.log
+
+      - name: Open / update tracking issue on HARD failure
+        if: steps.validate.outputs.exit != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          TITLE="🔴 main branch not green"
+          {
+            echo "The **main-green** validation found HARD failures on \`main\`."
+            echo ""
+            echo "Because \`main\` only receives merged work at the release squash, a gate/infra"
+            echo "fix that landed only on the release branch leaves \`main\` broken for the whole"
+            echo "cycle — and repo-wide gates (CodeQL alert count, ratchet baselines) then turn"
+            echo "**every open PR into main** red on a check unrelated to its diff. The fix is a"
+            echo "companion PR \`--base main\` carrying the release-side fix (see"
+            echo "\`_shared/merge-gates.md\` §8), NOT chasing each contributor PR."
+            echo ""
+            echo "**Run:** ${RUN_URL} (mode: ${EVENT_NAME})"
+            echo ""
+            echo '```'
+            sed -n '/──────── verdict ────────/,$p' main-green.log || tail -40 main-green.log
+            echo '```'
+            echo ""
+            echo "_Ratchet drift (eslint warnings / cognitive-complexity / file-size) is expected mid-cycle and did NOT, on its own, open this issue._"
+          } > issue-body.md
+
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file issue-body.md
+            echo "Updated existing issue #$EXISTING"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file issue-body.md
+          fi
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: main-green-report
+          path: |
+            main-green.json
+            main-green.log
           if-no-files-found: ignore

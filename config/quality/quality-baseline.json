@@ -27,22 +27,22 @@
       "eps": 0
     },
     "coverage.statements": {
-      "value": 76.5,
+      "value": 80.8,
       "direction": "up",
       "tightenSlack": 5
     },
     "coverage.lines": {
-      "value": 76.5,
+      "value": 80.8,
       "direction": "up",
       "tightenSlack": 5
     },
     "coverage.functions": {
-      "value": 82,
+      "value": 86.44,
       "direction": "up",
       "tightenSlack": 5
     },
     "coverage.branches": {
-      "value": 73,
+      "value": 78.1,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 5
@@ -54,49 +54,49 @@
       "tightenSlack": 10
     },
     "coverage.combo.lines": {
-      "value": 80,
+      "value": 85.42,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.accountFallback.lines": {
-      "value": 88,
+      "value": 96.78,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.auth.lines": {
-      "value": 90,
+      "value": 92.55,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.routeGuard.lines": {
-      "value": 94,
+      "value": 98.73,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.error.lines": {
-      "value": 88,
+      "value": 92.13,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.publicCreds.lines": {
-      "value": 92,
+      "value": 99.07,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "coverage.circuitBreaker.lines": {
-      "value": 92,
+      "value": 95.09,
       "direction": "up",
       "eps": 1.5,
       "tightenSlack": 10
     },
     "openapiCoverage.pct": {
-      "value": 38.0,
+      "value": 38,
       "direction": "up",
       "eps": 0.5,
       "_tighten_2026_07_04_v3844_release": "36.9 -> 39.3 (aperto exigido pelo --require-tighten no PR de release #5925). A cobertura OpenAPI melhorou no ciclo (9 rotas documentadas em 8fb020676 + as rotas novas de #5939/#5817/#6034/#5998 documentadas junto das features). 39.3 = valor medido pelo CI Quality Ratchet no run 28708141003 (tip 00c55afcb).",
@@ -158,7 +158,8 @@
       "dedicatedGate": true
     },
     "secretFindings": {
-      "value": 3,
+      "_note": "Zeroed 2026-07-13 (WS6/D3): the 3 frozen generic-api-key FPs are allowlisted with justification in .gitleaks.toml — any NEW finding regresses the ratchet.",
+      "value": 0,
       "direction": "down",
       "dedicatedGate": true
     },
@@ -186,12 +187,6 @@
       "direction": "down",
       "dedicatedGate": true,
       "_note": "oasdiff breaking-change gate (Fase 9 Onda 0). Blocks any breaking change vs base spec."
-    },
-    "semgrepFindings": {
-      "value": 0,
-      "direction": "down",
-      "dedicatedGate": true,
-      "_note": "semgrep owasp/secrets findings. ADVISORY until first CI value is frozen, then flip blocking (Fase 9)."
     },
     "mutationScore.src/sse/services/auth.ts": {
       "value": 52.57,
