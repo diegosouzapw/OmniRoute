@@ -49,7 +49,15 @@ function asArray(value: unknown): unknown[] {
 }
 
 function markdownLinkText(value: string): string {
-  return value.replace(/\[/g, "\\[").replace(/\]/g, "\\]").replace(/\n/g, " ").trim();
+  // Escape the backslash first — otherwise a label ending in (or containing) a
+  // backslash leaks past the `[…]` escaping and breaks the generated link, e.g.
+  // `[Path C:\](url)` where the trailing `\` escapes the closing bracket.
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\[/g, "\\[")
+    .replace(/\]/g, "\\]")
+    .replace(/\n/g, " ")
+    .trim();
 }
 
 function markdownUrl(value: string): string {

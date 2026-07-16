@@ -15,6 +15,10 @@
  *
  * The waits use a real (short) cooldown so the real setTimeout in
  * waitForCooldownAwareRetry elapses fast and the model lock expires naturally.
+ *
+ * Scenarios 2 and 4 assert a wall-clock ceiling and were extracted to
+ * tests/unit/serial/combo-quota-share-cooldown-wait-timing.test.ts (#6803) —
+ * see that file's header for why.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -131,33 +135,12 @@ test("quota-share: short 429 cooldown → waits and re-dispatches (2nd pass 200)
   );
 });
 
-test("quota-share: 403 quota_exhausted → NO wait, error propagated immediately", async () => {
-  let calls = 0;
-  const handleSingleModel = async () => {
-    calls += 1;
-    return rateLimitResponse(403);
-  };
-
-  const startedAt = Date.now();
-  const res = await handleComboChat({
-    body: { model: "openai/gpt-4" },
-    combo: comboOf("quota-share"),
-    handleSingleModel,
-    isModelAvailable: async () => true,
-    log: createLog() as never,
-    settings: shortModelLockoutSettings(),
-    allCombos: null,
-  });
-  const elapsed = Date.now() - startedAt;
-
-  assert.notEqual(res.status, 200, "quota_exhausted must not be retried into a success");
-  // The real signal that the cooldown wait did NOT fire: a single upstream
-  // dispatch (no redispatch). The 403 lock cooldown is multi-second, so the
-  // wait — had it fired — would dominate the elapsed time; assert we stayed far
-  // below that (loose bound; the first combo dispatch pays DB/import overhead).
-  assert.equal(calls, 1, "quota_exhausted must NOT trigger a wait+redispatch");
-  assert.ok(elapsed < 1500, `quota_exhausted must not wait out a cooldown, but ${elapsed}ms elapsed`);
-});
+// NOTE: "quota-share: 403 quota_exhausted → NO wait" and "non quota-share
+// (priority): 429 propagated immediately, NO wait" were extracted to
+// tests/unit/serial/combo-quota-share-cooldown-wait-timing.test.ts (#6803) —
+// both assert a wall-clock ceiling that flaked under CI-runner load; the
+// serial dir (--test-concurrency=1) removes the intra-suite contention that
+// caused it.
 
 test("quota-share: client abort during the wait → 499", async () => {
   const controller = new AbortController();
@@ -183,30 +166,6 @@ test("quota-share: client abort during the wait → 499", async () => {
   });
 
   assert.equal(res.status, 499, "abort during the cooldown wait must return 499");
-});
-
-test("non quota-share (priority): 429 propagated immediately, NO wait", async () => {
-  let calls = 0;
-  const handleSingleModel = async () => {
-    calls += 1;
-    return rateLimitResponse(429);
-  };
-
-  const startedAt = Date.now();
-  const res = await handleComboChat({
-    body: { model: "openai/gpt-4" },
-    combo: { ...comboOf("priority"), name: "priority-combo" },
-    handleSingleModel,
-    isModelAvailable: async () => true,
-    log: createLog() as never,
-    settings: shortModelLockoutSettings(),
-    allCombos: null,
-  });
-  const elapsed = Date.now() - startedAt;
-
-  assert.equal(res.status, 429, "priority combo must propagate the 429 unchanged");
-  assert.equal(calls, 1, "priority combo must NOT wait+redispatch");
-  assert.ok(elapsed < 1500, `priority combo must not wait out a cooldown, but ${elapsed}ms elapsed`);
 });
 
 test("quota-share with comboCooldownWait disabled → 429 propagated, NO wait", async () => {

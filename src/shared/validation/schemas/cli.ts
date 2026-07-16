@@ -68,7 +68,7 @@ export const cliModelConfigSchema = z.object({
   baseUrl: z.string().trim().min(1, "baseUrl and model are required"),
   apiKey: z.string().nullable().optional(),
   model: z.string().trim().min(1, "baseUrl and model are required"),
-  reasoningEffort: z.enum(["none", "low", "medium", "high", "xhigh"]).optional(),
+  reasoningEffort: z.enum(["none", "low", "medium", "high", "xhigh", "max", "ultra"]).optional(),
   wireApi: z.enum(["chat", "responses"]).optional(),
   modelMappings: z.record(z.string().trim().min(1), z.string().trim().min(1)).optional(),
 });

@@ -21,6 +21,7 @@ import { glmtProvider } from "./registry/glm/t/index.ts";
 import { glm_cnProvider } from "./registry/glm/cn/index.ts";
 import { traeProvider } from "./registry/trae/index.ts";
 import { muse_spark_webProvider } from "./registry/muse-spark-web/index.ts";
+import { lmarenaProvider } from "./registry/lmarena/index.ts";
 import { kilocodeProvider } from "./registry/kilocode/index.ts";
 import { github_modelsProvider } from "./registry/github/models/index.ts";
 import { githubProvider } from "./registry/github/index.ts";
@@ -76,6 +77,7 @@ import { chipotleProvider } from "./registry/chipotle/index.ts";
 import { freeaiapikeyProvider } from "./registry/freeaiapikey/index.ts";
 import { qwenProvider } from "./registry/qwen/index.ts";
 import { qwen_webProvider } from "./registry/qwen/web/index.ts";
+import { zai_webProvider } from "./registry/zai-web/index.ts";
 import { modalProvider } from "./registry/modal/index.ts";
 import { zenmuxProvider } from "./registry/zenmux/index.ts";
 import { leonardoProvider } from "./registry/leonardo/index.ts";
@@ -103,6 +105,7 @@ import { uncloseaiProvider } from "./registry/uncloseai/index.ts";
 import { nscaleProvider } from "./registry/nscale/index.ts";
 import { chatgpt_webProvider } from "./registry/chatgpt-web/index.ts";
 import { openrouterProvider } from "./registry/openrouter/index.ts";
+import { openvectaProvider } from "./registry/openvecta/index.ts";
 import { orcarouterProvider } from "./registry/orcarouter/index.ts";
 import { copilot_webProvider } from "./registry/copilot-web/index.ts";
 import { copilot_m365_webProvider } from "./registry/copilot-m365-web/index.ts";
@@ -204,6 +207,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "glm-cn": glm_cnProvider,
   trae: traeProvider,
   "muse-spark-web": muse_spark_webProvider,
+  lmarena: lmarenaProvider,
   kilocode: kilocodeProvider,
   "github-models": github_modelsProvider,
   github: githubProvider,
@@ -259,6 +263,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   freeaiapikey: freeaiapikeyProvider,
   qwen: qwenProvider,
   "qwen-web": qwen_webProvider,
+  "zai-web": zai_webProvider,
   modal: modalProvider,
   zenmux: zenmuxProvider,
   leonardo: leonardoProvider,
@@ -286,6 +291,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   nscale: nscaleProvider,
   "chatgpt-web": chatgpt_webProvider,
   openrouter: openrouterProvider,
+  openvecta: openvectaProvider,
   orcarouter: orcarouterProvider,
   "copilot-web": copilot_webProvider,
   "copilot-m365-web": copilot_m365_webProvider,

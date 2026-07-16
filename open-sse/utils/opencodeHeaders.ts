@@ -13,6 +13,15 @@ const OPENCODE_HEADER_KEYS = [
 ] as const;
 
 /**
+ * Common agent-metadata headers used by non-OpenCode clients (custom agents/
+ * providers) for upstream request tracking and attribution. Forwarded the same
+ * way as the x-opencode-* set: case-insensitive lookup, client value wins.
+ * Added for 9router#2413 — these were previously dropped for every client
+ * outside the OpenCode allowlist.
+ */
+const AGENT_METADATA_HEADER_KEYS = ["x-session-id", "x-title"] as const;
+
+/**
  * Case-insensitive lookup for a header in a headers record.
  */
 function findHeader(headers: Record<string, string>, name: string): string | undefined {
@@ -26,6 +35,8 @@ function findHeader(headers: Record<string, string>, name: string): string | und
  * 1. Forwards User-Agent from clientHeaders via `setUserAgentHeader()`
  * 2. Forwards x-opencode-session, x-opencode-request, x-opencode-project,
  *    x-opencode-client headers (case-insensitive match)
+ * 3. Forwards x-session-id, x-title agent-metadata headers (case-insensitive
+ *    match) — common conventions used by non-OpenCode agent clients (9router#2413)
  *
  * @param headers - The outbound headers record to mutate
  * @param clientHeaders - The client-provided headers to forward from
@@ -54,6 +65,14 @@ export function forwardOpencodeClientHeaders(
 
   // 2. Forward x-opencode-* metadata headers
   for (const headerName of OPENCODE_HEADER_KEYS) {
+    const value = findHeader(clientHeaders, headerName);
+    if (value) {
+      headers[headerName] = value;
+    }
+  }
+
+  // 2b. Forward agent-metadata headers (x-session-id, x-title) — 9router#2413
+  for (const headerName of AGENT_METADATA_HEADER_KEYS) {
     const value = findHeader(clientHeaders, headerName);
     if (value) {
       headers[headerName] = value;

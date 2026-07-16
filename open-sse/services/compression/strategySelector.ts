@@ -13,7 +13,7 @@ import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
 import { ultraCompress, ultraCompressHeuristic } from "./ultra.ts";
 import { createCompressionStats } from "./stats.ts";
-import { guardPipelineInflation } from "./pipelineGuards.ts";
+import { applyStackedInflationGuard } from "./pipelineGuards.ts";
 import {
   resolvePipelineBreakerConfig,
   canRunEngine,
@@ -762,30 +762,10 @@ function finalizeStackedResult(
     });
   }
 
-  // T02 / H1: honest aggregate inflation guard. If the fully-stacked body did not actually shrink
-  // (its token count is >= the original), discard it and return the verbatim original — safe by
-  // construction, since the original request body is always a valid payload.
-  const inflation = guardPipelineInflation({
-    originalBody,
-    compressedBody: currentBody,
-    originalTokens: stats.originalTokens,
-    compressedTokens: stats.compressedTokens,
-  });
-  if (inflation.inflated) {
-    const inflatedTokens = stats.compressedTokens;
-    const warnings = new Set(stats.validationWarnings ?? []);
-    warnings.add(
-      `pipeline-inflation-guard: stacked output (${inflatedTokens} tok) did not shrink input ` +
-        `(${stats.originalTokens} tok); reverted to original`
-    );
-    stats.validationWarnings = Array.from(warnings);
-    stats.fallbackApplied = true;
-    stats.compressedTokens = stats.originalTokens;
-    stats.savingsPercent = 0;
-    return { body: inflation.body, compressed: false, stats };
-  }
-
-  return { body: currentBody, compressed, stats };
+  // T02 / H1 / #6480: honest aggregate inflation guard, gated on the loop-level `compressed`
+  // flag so a pipeline where nothing ever advanced isn't mislabeled as a reverted fallback.
+  // See `applyStackedInflationGuard` in `pipelineGuards.ts` for the full rationale.
+  return applyStackedInflationGuard(originalBody, currentBody, compressed, stats);
 }
 
 // ── Shared per-step helpers (used by the sync + async stacked loops; keep them in lockstep) ──
@@ -875,7 +855,10 @@ function runStackedCompression(
     }
     // Respect the registry enabled flag: a step naming a disabled engine is skipped, so an
     // operator can turn an engine off (setEngineEnabled) without editing every pipeline.
-    if (getEngineEntry(step.engine)?.enabled === false) continue;
+    if (getEngineEntry(step.engine)?.enabled === false) {
+      acc.validationWarnings.add(`${step.engine}: skipped (engine disabled in registry)`);
+      continue;
+    }
     // T02: when the per-engine breaker is OPEN, skip this step (verbatim body kept — fail-open).
     if (breakerOn && !canRunEngine(step.engine, breaker)) {
       acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);
@@ -977,7 +960,10 @@ async function runStackedCompressionAsync(
       continue;
     }
     // Respect the registry enabled flag (same as the sync loop) — keep both in lockstep.
-    if (getEngineEntry(step.engine)?.enabled === false) continue;
+    if (getEngineEntry(step.engine)?.enabled === false) {
+      acc.validationWarnings.add(`${step.engine}: skipped (engine disabled in registry)`);
+      continue;
+    }
     // T02: skip an engine whose breaker is OPEN (verbatim body kept — fail-open). Lockstep w/ sync.
     if (breakerOn && !canRunEngine(step.engine, breaker)) {
       acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);

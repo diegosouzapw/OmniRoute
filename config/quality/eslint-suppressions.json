@@ -131,7 +131,7 @@
   },
   "open-sse/services/compression/engines/headroom/gcf/decode_generic.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 18
+      "count": 22
     }
   },
   "open-sse/services/compression/engines/headroom/gcf/scalar.ts": {
@@ -410,11 +410,6 @@
   "tests/integration/live-gemini-workload.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
-    }
-  },
-  "tests/integration/liveGeminiShared.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
     }
   },
   "tests/integration/llama-cpp-provider.test.ts": {
@@ -1059,7 +1054,7 @@
   },
   "tests/unit/combo-strategy-fallbacks.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 35
+      "count": 33
     }
   },
   "tests/unit/combo-stream-readiness-fallback.test.ts": {
@@ -1502,16 +1497,6 @@
       "count": 1
     }
   },
-  "tests/unit/live-ws-public-url.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 5
-    }
-  },
-  "tests/unit/lmarena-provider.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 9
-    }
-  },
   "tests/unit/lmarena-split-cookie-4271.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -1784,7 +1769,7 @@
   },
   "tests/unit/provider-models-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 57
+      "count": 55
     }
   },
   "tests/unit/provider-models-token-limits.test.ts": {
@@ -2237,11 +2222,6 @@
       "count": 75
     }
   },
-  "tests/unit/translator-resp-openai-responses.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 5
-    }
-  },
   "tests/unit/translator-resp-openai-to-claude.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 14
@@ -2324,7 +2304,7 @@
   },
   "tests/unit/vscode-token-routes.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 76
+      "count": 65
     }
   },
   "tests/unit/web-runtime-env.test.ts": {

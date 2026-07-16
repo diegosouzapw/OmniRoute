@@ -1,0 +1,1 @@
+- fix(oauth): tokenHealthCheck now lowercase-normalizes `conn.provider` before checking `ROTATING_REFRESH_PROVIDERS.has()` and the GitHub Copilot sub-token refresh guard, so mixed-case provider values (e.g. "OpenAI", "Github") no longer bypass the rotating-refresh-token skip or the Copilot sub-token refresh (#6947)

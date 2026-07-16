@@ -11,6 +11,7 @@ import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/ste
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 import { DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE } from "@/shared/constants/responsesPreviousResponseId";
 import { type JsonRecord, toRecord } from "./settings/shared";
+import { resolveNoAuthSharedProviderProxy } from "./settings/noAuthProxyFallback";
 
 type ProxyValue = JsonRecord | string | null;
 type ProxyResolutionResult = {
@@ -98,7 +99,7 @@ export async function getSettings() {
     stickyRoundRobinLimit: 3,
     disableSessionStickiness: false,
     comboStrategy: "fallback",
-    comboStickyRoundRobinLimit: 1,
+    comboStickyRoundRobinLimit: null, // null = inherit stickyRoundRobinLimit (a literal default here shadows the documented batched-rotation default of 3 — #6678 regression caught by the v3.8.47 release CI)
     providerStrategies: {},
     requestRetry: 3,
     maxRetryIntervalSec: 30,
@@ -189,6 +190,17 @@ export async function getSettings() {
 }
 
 export async function updateSettings(updates: Record<string, unknown>) {
+  // Detect first-time setup completion before we overwrite settings.
+  let setupJustCompleted = false;
+  if (updates.setupComplete === true) {
+    try {
+      const prev = await getSettings();
+      setupJustCompleted = prev.setupComplete !== true;
+    } catch {
+      setupJustCompleted = true;
+    }
+  }
+
   const db = getDbInstance();
   const insert = db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', ?, ?)"
@@ -218,6 +230,17 @@ export async function updateSettings(updates: Record<string, unknown>) {
       "[HOT_RELOAD] Failed to apply runtime settings after update:",
       error instanceof Error ? error.message : error
     );
+  }
+
+  // Onboarding / setup finished → one-shot Codex catalog revalidation (init case).
+  if (setupJustCompleted) {
+    void import("@/shared/services/codexCatalogRevalidation")
+      .then(({ scheduleCodexCatalogRevalidationAfterInit }) => {
+        scheduleCodexCatalogRevalidationAfterInit();
+      })
+      .catch(() => {
+        // non-fatal
+      });
   }
 
   return nextSettings;
@@ -518,33 +541,46 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
       }
     }
 
-    // Step 7: Legacy combo-level (only if proxy_enabled)
-    if (connectionProxyEnabled && config.combos && Object.keys(config.combos).length > 0) {
+    // Step 7: Combo-level (only if proxy_enabled). For every combo whose model
+    // list references this connection's provider, check the modern registry
+    // (proxy_assignments, scope='combo') first — this is the assignment the
+    // dashboard's Combo "Set Proxy" modal actually writes to (#7149, where the
+    // registry write path and this read path had diverged, leaving combo-level
+    // proxy assignment completely inert). Fall back to the legacy in-memory
+    // combos map for any pre-existing legacy data.
+    if (connectionProvider && connectionProxyEnabled) {
       const combos = db.prepare("SELECT id, data FROM combos").all();
       for (const comboRow of combos) {
         const comboRecord = toRecord(comboRow);
         const comboId = typeof comboRecord.id === "string" ? comboRecord.id : null;
-        if (comboId && config.combos[comboId]) {
-          try {
-            const comboRaw = typeof comboRecord.data === "string" ? comboRecord.data : null;
-            if (!comboRaw) continue;
-            const combo = toRecord(JSON.parse(comboRaw));
-            const comboModels = Array.isArray(combo.models) ? combo.models : [];
-            const usesProvider = comboModels.some(
-              (entry) => getComboModelProvider(entry) === connectionProvider
-            );
-            if (usesProvider) {
-              const result = {
-                proxy: withFamilyDefault(config.combos[comboId]),
-                level: "combo",
-                levelId: comboId,
-              };
-              cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
-              return result;
-            }
-          } catch {
-            // Ignore malformed combo records during proxy resolution.
+        if (!comboId) continue;
+        try {
+          const comboRaw = typeof comboRecord.data === "string" ? comboRecord.data : null;
+          if (!comboRaw) continue;
+          const combo = toRecord(JSON.parse(comboRaw));
+          const comboModels = Array.isArray(combo.models) ? combo.models : [];
+          const usesProvider = comboModels.some(
+            (entry) => getComboModelProvider(entry) === connectionProvider
+          );
+          if (!usesProvider) continue;
+
+          const registryCombo = await resolveProxyForScopeFromRegistry("combo", comboId);
+          if (registryCombo?.proxy) {
+            cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, registryCombo);
+            return registryCombo;
           }
+
+          if (config.combos?.[comboId]) {
+            const result = {
+              proxy: withFamilyDefault(config.combos[comboId]),
+              level: "combo",
+              levelId: comboId,
+            };
+            cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+            return result;
+          }
+        } catch {
+          // Ignore malformed combo records during proxy resolution.
         }
       }
     }
@@ -558,6 +594,19 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
       };
       cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
       return result;
+    }
+  }
+
+  // Step 8.5 (#6272): no-auth providers (mimocode, opencode, ...) share a single
+  // synthetic connectionId that never matches a `provider_connections` row, so
+  // `connectionRecord` above is null and Steps 5-8 (which require it) never run for
+  // them — a provider-level proxy assigned to a no-auth provider was silently
+  // ignored. Best-effort fallback: scan the known no-auth provider ids directly.
+  if (!connectionRecord) {
+    const noAuthFallback = await resolveNoAuthSharedProviderProxy(config.providers);
+    if (noAuthFallback) {
+      cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, noAuthFallback);
+      return noAuthFallback;
     }
   }
 

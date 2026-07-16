@@ -636,7 +636,7 @@ export default function ComboDefaultsTab() {
               label={translateOrFallback(t, "contextRelaySummaryModel", "Summary Model")}
               type="text"
               value={comboDefaults.handoffModel ?? ""}
-              placeholder="codex/gpt-5.4"
+              placeholder="codex/gpt-5.6-sol"
               onChange={(e) =>
                 setComboDefaults((prev) => ({
                   ...prev,

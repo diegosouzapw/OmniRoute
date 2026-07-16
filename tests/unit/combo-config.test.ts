@@ -369,7 +369,7 @@ test("resolveComboConfig tolerates invalid or missing inputs and falls back to d
 test("createComboSchema accepts context-relay strategy with handoff config", () => {
   const parsed = createComboSchema.parse({
     name: "codex-relay",
-    models: ["codex/gpt-5.4"],
+    models: ["codex/gpt-5.6-sol"],
     strategy: "context-relay",
     config: {
       handoffThreshold: 0.85,
@@ -443,7 +443,7 @@ test("createComboSchema accepts structured combo steps with pinned connection an
         kind: "model",
         id: "step-codex-a",
         providerId: "codex",
-        model: "gpt-5.4",
+        model: "gpt-5.6-sol",
         connectionId: "conn-codex-a",
         weight: 10,
       },
@@ -472,14 +472,14 @@ test("createComboSchema accepts composite tiers that reference normalized combo 
         kind: "model",
         id: "step-primary",
         providerId: "codex",
-        model: "gpt-5.4",
+        model: "gpt-5.6-sol",
         connectionId: "conn-codex-a",
       },
       {
         kind: "model",
         id: "step-backup",
         providerId: "codex",
-        model: "gpt-5.4",
+        model: "gpt-5.6-sol",
         connectionId: "conn-codex-b",
       },
     ],

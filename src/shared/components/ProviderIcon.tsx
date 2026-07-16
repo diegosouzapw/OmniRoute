@@ -7,12 +7,13 @@
  * 0. If `src` is set (operator-supplied remote icon URL, #2166), render it — this always
  *    wins over the resolution below. On load error, falls back to
  *    `fallbackText`/`fallbackColor` (a colored text badge) if provided, otherwise falls
- *    through to steps 1-5.
- * 1. Try /providers/{id}.svg (local SVG assets — fastest, cached separately from JS bundle)
- * 2. Try @lobehub/icons direct React components (no @lobehub/ui peer runtime)
- * 3. Fall back to thesvg.org CDN (external SVG)
- * 4. Fall back to /providers/{id}.png (legacy static assets)
- * 5. Fall back to a generic AI icon
+ *    through to steps 1-6.
+ * 1. Theme-aware static SVGs (`THEMED_SVGS`, e.g. arena-light/dark for lmarena)
+ * 2. Try /providers/{id}.svg (local SVG assets — fastest, cached separately from JS bundle)
+ * 3. Try @lobehub/icons direct React components (no @lobehub/ui peer runtime)
+ * 4. Fall back to thesvg.org CDN (external SVG)
+ * 5. Fall back to /providers/{id}.png (legacy static assets)
+ * 6. Fall back to a generic AI icon
  *
  * Usage:
  *   <ProviderIcon providerId="openai" size={24} />
@@ -22,6 +23,8 @@
 
 import { createElement, memo, useState } from "react";
 import Image from "next/image";
+
+import { useTheme } from "@/shared/hooks/useTheme";
 
 import { getLobeProviderIcon } from "./lobeProviderIcons";
 
@@ -56,10 +59,12 @@ const KNOWN_SVGS = new Set([
   "360ai",
   "alibaba",
   "anthropic",
+  "api-airforce",
   "apikey",
   "arcee",
   "arcee-ai",
   "assemblyai",
+  "auggie",
   "aws",
   "azure",
   "azureai",
@@ -68,10 +73,16 @@ const KNOWN_SVGS = new Set([
   "bailian",
   "baseten",
   "bazaarlink",
+  "bluesminds",
   "brave",
   "brave-search",
+  "byteplus",
+  "bytez",
   "cartesia",
   "cerebras",
+  "charm-hyper",
+  "chipotle",
+  "chutes",
   "clarifai",
   "claude",
   "claude-web",
@@ -84,47 +95,66 @@ const KNOWN_SVGS = new Set([
   "continue",
   "copilot",
   "coze",
+  "crof",
   "cursor",
   "deepgram",
   "deepinfra",
   "deepseek",
+  "dgrid",
   "dify",
+  "digitalocean",
+  "dit",
   "docker-model-runner",
   "doubao",
   "droid",
+  "duckduckgo-web",
   "elevenlabs",
   "exa",
+  "factory",
   "fal",
   "fireworks",
+  "freeaiapikey",
+  "freemodel-dev",
   "friendli",
+  "galadriel",
   "gemini",
   "gitlab",
   "gitlab-duo",
+  "gitlawb",
+  "gitlawb-gmi",
   "google",
   "grok",
   "groq",
+  "hackclub",
+  "haiper",
+  "hcnsec",
   "heroku",
   "huggingchat",
   "huggingface",
   "hyperbolic",
   "ibm",
+  "ideogram",
   "iflytek",
   "inclusionai",
   "inference",
   "inworld",
+  "kenari",
   "kilo-gateway",
   "kilocode",
   "kimi",
   "kiro",
   "krutrim",
   "lambda",
+  "leonardo",
   "liquid",
+  "llm7",
   "longcat",
   "meta",
   "metaai",
   "minimax",
   "mistral",
   "modal",
+  "modelscope",
   "monsterapi",
   "moonshot",
   "morph",
@@ -132,27 +162,34 @@ const KNOWN_SVGS = new Set([
   "nlpcloud",
   "nomic",
   "novita",
+  "nube",
   "nvidia",
   "oauth",
   "oci",
   "ollama",
+  "openadapter",
   "openai",
   "openclaw",
   "opencode",
   "openrouter",
+  "orcarouter",
   "ovhcloud",
   "perplexity",
   "phind",
   "picoclaw",
+  "pioneer",
   "playht",
   "poe",
   "pollinations",
   "poolside",
+  "publicai",
   "puter",
   "qianfan",
+  "qiniu",
   "qwen",
   "recraft",
   "replicate",
+  "requesty",
   "roocode",
   "runway",
   "sambanova",
@@ -165,25 +202,37 @@ const KNOWN_SVGS = new Set([
   "snowflake",
   "sparkdesk",
   "stepfun",
+  "sumopod",
   "suno",
   "synthetic",
+  "t3-web",
   "tavily",
   "tencent",
+  "theoldllm",
+  "tokenrouter",
   "topazlabs",
   "trae",
   "udio",
+  "uncloseai",
   "upstage",
   "v0",
+  "veoaifree-web",
   "vercel",
   "vllm",
   "volcengine",
   "voyage",
+  "wafer",
   "wandb",
   "windsurf",
+  "x5lab",
   "xai",
   "xinference",
   "yi",
   "youcom-search",
+  "yuanbao-web",
+  "zed-hosted",
+  "zenmux",
+  "zenmux-free",
   "zhipu",
 ]);
 
@@ -216,6 +265,18 @@ const KNOWN_PNGS = new Set([
   "zeroclaw",
 ]);
 
+const THEMED_SVGS: Record<string, { light: string; dark: string }> = {
+  // Arena (formerly LMArena) — wire id stays `lmarena`; alias `lma` also accepted.
+  lmarena: {
+    light: "/providers/arena-light.svg",
+    dark: "/providers/arena-dark.svg",
+  },
+  lma: {
+    light: "/providers/arena-light.svg",
+    dark: "/providers/arena-dark.svg",
+  },
+};
+
 const ProviderIcon = memo(function ProviderIcon({
   providerId,
   size = 24,
@@ -227,18 +288,22 @@ const ProviderIcon = memo(function ProviderIcon({
   fallbackText,
   fallbackColor,
 }: ProviderIconProps) {
+  const { isDark } = useTheme();
   const normalizedId = providerId.toLowerCase();
   const lobeIcon = getLobeProviderIcon(normalizedId, type);
+  const themedSvg = THEMED_SVGS[normalizedId];
   const hasSvg = KNOWN_SVGS.has(normalizedId);
   const hasPng = KNOWN_PNGS.has(normalizedId);
 
   const [failedAssets, setFailedAssets] = useState<Record<string, true>>({});
   const [remoteSrcFailed, setRemoteSrcFailed] = useState(false);
+  const themedKey = `${normalizedId}:themed`;
   const svgKey = `${normalizedId}:svg`;
   const pngKey = `${normalizedId}:png`;
   const theSvgKey = `${normalizedId}:thesvg`;
 
   const trimmedSrc = typeof src === "string" ? src.trim() : "";
+  const themedFailed = failedAssets[themedKey];
   const svgFailed = failedAssets[svgKey];
   const theSvgFailed = failedAssets[theSvgKey];
   const pngFailed = failedAssets[pngKey];
@@ -287,7 +352,28 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  // Tier 1: Local SVG — fastest, cached separately from the JS bundle
+  // Tier 1: Theme-aware local SVGs (e.g. Arena light/dark)
+  if (themedSvg && !themedFailed) {
+    const themedSrc = isDark ? themedSvg.dark : themedSvg.light;
+    return (
+      <span
+        className={className}
+        style={{ display: "inline-flex", alignItems: "center", ...style }}
+      >
+        <Image
+          src={themedSrc}
+          alt={providerId}
+          width={size}
+          height={size}
+          style={{ objectFit: "contain" }}
+          onError={() => setFailedAssets((current) => ({ ...current, [themedKey]: true }))}
+          unoptimized
+        />
+      </span>
+    );
+  }
+
+  // Tier 2: Local SVG — fastest, cached separately from the JS bundle
   if (hasSvg && !svgFailed) {
     return (
       <span
@@ -307,7 +393,7 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  // Tier 2: LobeHub npm icons — only when no local SVG (or SVG failed to load)
+  // Tier 3: LobeHub npm icons — only when no local SVG (or SVG failed to load)
   if (lobeIcon) {
     return (
       <span
@@ -323,7 +409,7 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  // Tier 3: thesvg.org CDN — external SVG fallback for unknown providers
+  // Tier 4: thesvg.org CDN — external SVG fallback for unknown providers
   if (!theSvgFailed) {
     return (
       <span
@@ -343,7 +429,7 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  // Tier 4: Local PNG — last resort before generic icon
+  // Tier 5: Local PNG — last resort before generic icon
   if (hasPng && !pngFailed) {
     return (
       <span
@@ -363,7 +449,7 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  // Tier 5: Generic AI icon
+  // Tier 6: Generic AI icon
   return (
     <span className={className} style={{ display: "inline-flex", alignItems: "center", ...style }}>
       <GenericProviderIcon size={size} />

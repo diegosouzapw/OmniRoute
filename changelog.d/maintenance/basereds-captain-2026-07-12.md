@@ -1,0 +1,1 @@
+- chore(quality): restore no-explicit-any severity to error (silently downgraded by #6786, broke 439 bulk suppressions), fix 2 unsuppressed anys in repro-6912 test, allowlist migration gap 121, freeze-bump stream.ts/ProxyRegistryManager/tokenHealthCheck (combined-merge drift)

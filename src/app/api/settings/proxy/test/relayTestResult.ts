@@ -10,7 +10,21 @@ export interface RelayTestResult {
   latencyMs: number;
   proxyUrl: string;
   error?: string;
+  relay?: RelayAwareness;
 }
+
+// Echoed from the relay response headers so the dashboard can show which
+// backend actually answered, how many hops it tried, and whether it fell back.
+export interface RelayAwareness {
+  url: string | null;
+  mode: string | null;
+  attempts: number | null;
+  fallback: boolean | null;
+}
+
+// Minimal header accessor so both the DOM `Headers` type and undici's
+// `IncomingHttpHeaders` (which only exposes `.get(name)`) can be passed in.
+type HeaderAccessor = { get(name: string): string | null };
 
 export function buildRelayTestResult(input: {
   statusCode: number;
@@ -18,6 +32,7 @@ export function buildRelayTestResult(input: {
   latencyMs: number;
   relayUrl: string;
   relayAuthPresent: boolean;
+  relayResponseHeaders?: HeaderAccessor;
 }): RelayTestResult {
   const { statusCode, publicIp, latencyMs, relayUrl, relayAuthPresent } = input;
   const success = statusCode === 200;
@@ -30,6 +45,23 @@ export function buildRelayTestResult(input: {
         : " — no relay auth token was found; redeploy the relay, or check for a STORAGE_ENCRYPTION_KEY rotation";
     }
     result.error = error;
+  } else if (input.relayResponseHeaders) {
+    result.relay = parseRelayAwareness(input.relayResponseHeaders);
   }
   return result;
+}
+
+function parseRelayAwareness(headers: HeaderAccessor): RelayAwareness {
+  const read = (name: string): string | null => {
+    const value = headers.get(name);
+    return value === null ? null : value;
+  };
+  const attemptsRaw = read("x-relay-attempts");
+  const fallbackRaw = read("x-relay-fallback");
+  return {
+    url: read("x-relay-url"),
+    mode: read("x-relay-mode"),
+    attempts: attemptsRaw === null ? null : Number(attemptsRaw) || null,
+    fallback: fallbackRaw === null ? null : fallbackRaw === "true",
+  };
 }

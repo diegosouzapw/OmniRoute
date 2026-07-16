@@ -1,5 +1,6 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
+import { isAbortFinishReason } from "../../utils/finishReason.ts";
 
 /**
  * Direct Gemini → Claude response translator.
@@ -178,6 +179,14 @@ export function geminiToClaudeResponse(chunk, state) {
       // reason has already been emitted to the client — this is unavoidable in
       // SSE streaming. Map to end_turn (Claude has no "content blocked" reason).
       stopReason = "end_turn";
+    } else if (isAbortFinishReason(reason)) {
+      // Aborted/malformed tool call (e.g. MALFORMED_FUNCTION_CALL,
+      // UNEXPECTED_TOOL_CALL). Surface as tool_use rather than a clean end_turn
+      // so the client sees the turn did not complete normally. Same fix as the
+      // hub path (openai-to-claude.ts) — this direct Gemini→Claude translator is
+      // the one Claude Code hits through an antigravity/Gemini-routed model.
+      // Port of decolua/9router#2462 by @anhdiepmmk.
+      stopReason = "tool_use";
     } else {
       stopReason = "end_turn";
     }

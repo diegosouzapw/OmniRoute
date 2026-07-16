@@ -22,10 +22,10 @@ test("[1m] suffix: works with provider prefix", () => {
 });
 
 test("parseModel trims provider prefix and model id", () => {
-  const result = parseModel("  cx / gpt-5.4  ");
+  const result = parseModel("  cx / gpt-5.6-sol  ");
   assert.strictEqual(result.providerAlias, "cx");
   assert.strictEqual(result.provider, "codex");
-  assert.strictEqual(result.model, "gpt-5.4");
+  assert.strictEqual(result.model, "gpt-5.6-sol");
 });
 
 test("parseModel treats exact slashful model ids as models, not provider prefixes", () => {

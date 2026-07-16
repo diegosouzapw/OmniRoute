@@ -45,16 +45,19 @@ test.afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 
-// ── lmarena (no registry entry, falls back to WEB_COOKIE_PROVIDERS) ──
+// ── lmarena (#6280: gained a REAL providerRegistry entry — left the fallback class) ──
+// Before #6280 lmarena had no registry entry, so this suite asserted the unsupported
+// fallback. The Arena modernization added a real registry entry (registry/lmarena/),
+// so validateWebCookieProvider now takes the probe path (directHttpsRequest against the
+// registry baseUrl — which deliberately bypasses this suite's fetch mock, so the probe
+// itself cannot be unit-asserted here). What this suite still guards for lmarena: its
+// classification out of the no-registry fallback.
 
-test("lmarena validation is unsupported (no verified auth probe) and makes no network call", async () => {
-  const result = await validateProviderApiKey({
-    provider: "lmarena",
-    apiKey: "test-lmarena-cookie",
-  });
-  assert.strictEqual(result.valid, false);
-  assert.equal(result.unsupported, true);
-  assert.equal(fetchCalls.length, 0, "must not probe the marketing website");
+test("lmarena has a registry entry — no longer the no-registry unsupported fallback", async () => {
+  const { getRegistryEntry } = await import("@omniroute/open-sse/config/providerRegistry.ts");
+  const entry = getRegistryEntry("lmarena");
+  assert.ok(entry, "lmarena must have a providerRegistry entry (#6280 Arena modernization)");
+  assert.ok(entry.baseUrl, "the probe path requires a real baseUrl on the registry entry");
 });
 
 test("lmarena validation rejects empty cookie before checking support", async () => {

@@ -16,7 +16,10 @@ import {
 } from "@omniroute/open-sse/services/compression/diffHelper";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { countTextTokens } from "@/shared/utils/tiktokenCounter";
-import { ensureEngineBreakdown } from "@omniroute/open-sse/services/compression/engineBreakdown";
+import {
+  ensureEngineBreakdown,
+  reconcileSingleEngineTokens,
+} from "@omniroute/open-sse/services/compression/engineBreakdown";
 import { summarizeEncoderCandidates } from "@omniroute/open-sse/services/compression/engines/headroom/encoderComparison";
 import { DEFAULT_MIN_ROWS } from "@omniroute/open-sse/services/compression/engines/headroom/smartcrusher";
 
@@ -217,7 +220,14 @@ export async function POST(req: Request) {
     const tokensSaved = Math.max(0, originalTokens - compressedTokens);
     const savingsPct = originalTokens > 0 ? Math.round((tokensSaved / originalTokens) * 100) : 0;
     const techniquesUsed: string[] = result.stats?.techniquesUsed ?? [];
-    const engineBreakdown = result.stats ? ensureEngineBreakdown(result.stats) : [];
+    const engineBreakdown = result.stats
+      ? reconcileSingleEngineTokens(
+          ensureEngineBreakdown(result.stats),
+          originalTokens,
+          compressedTokens,
+          savingsPct
+        )
+      : [];
     const diff = buildCompressionPreviewDiff(
       originalText,
       compressedText,

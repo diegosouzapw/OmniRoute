@@ -232,8 +232,13 @@ export default function ModelSelectModal({
       const isCustomProvider =
         isOpenAICompatibleProvider(providerId) || isAnthropicCompatibleProvider(providerId);
 
-      // Get user-added custom models for this provider (if any)
-      const providerCustomModels = customModels[providerId] || [];
+      // Get user-added custom models for this provider (if any), excluding
+      // any explicitly hidden by the operator (#7156 — the legacy picker
+      // must respect the same isHidden flag the Precision Builder and
+      // /v1/models catalog already honor).
+      const providerCustomModels = (customModels[providerId] || []).filter(
+        (cm) => !cm.isHidden
+      );
 
       if (providerInfo.passthroughModels) {
         // Passthrough aliases are stored prefixed by the canonical providerId

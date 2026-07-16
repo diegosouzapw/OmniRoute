@@ -12,11 +12,9 @@ import { ensurePeerStampToken, stampPeerIp } from "./peer-stamp.mjs";
 import methodGuard from "./http-method-guard.cjs";
 import headResponseGuard from "./head-response-guard.cjs";
 import { ensureNativeSqlite } from "./ensure-native-sqlite.mjs";
-import {
-  isTurbopackCacheCorruption,
-  purgeAllTurbopackCaches,
-} from "./turbopackCacheHeal.mjs";
+import { isTurbopackCacheCorruption, purgeAllTurbopackCaches } from "./turbopackCacheHeal.mjs";
 import { randomUUID } from "node:crypto";
+import { getMainServerTimeoutConfig } from "./main-server-timeouts.mjs";
 
 const { maybeHandleDisallowedMethod } = methodGuard;
 const { wrapRequestListenerWithHeadResponseGuard } = headResponseGuard;
@@ -71,6 +69,7 @@ for (const [key, value] of Object.entries(mergedEnv)) {
 // '@'` on the `@import "tailwindcss"` line. Force NODE_ENV to track the run
 // mode, exactly like the `next` CLI does.
 process.env.NODE_ENV = dev ? "development" : "production";
+process.env.OMNIROUTE_INTERNAL_SCHEME = "http";
 
 const { dashboardPort } = runtimePorts;
 const hostname = process.env.HOST || "0.0.0.0";
@@ -119,7 +118,8 @@ async function prepareWithHeal() {
   try {
     await nextApp.prepare();
   } catch (error) {
-    const detail = error instanceof Error ? `${error.message}\n${error.stack ?? ""}` : String(error);
+    const detail =
+      error instanceof Error ? `${error.message}\n${error.stack ?? ""}` : String(error);
     if (!useTurbopack || !isTurbopackCacheCorruption(detail)) throw error;
     console.warn(
       "[Next] Turbopack dev cache looks corrupted (Windows mmap / os error 1455 — known upstream bug). Purging and retrying once…"
@@ -154,6 +154,15 @@ async function start() {
       return requestHandler(req, res);
     })
   );
+  // Node's http.Server default keepAliveTimeout (5_000ms) races pooled
+  // keep-alive HTTP clients that idle longer than that between requests (e.g.
+  // the JVM java.net.http.HttpClient used by JetBrains AI Assistant), which
+  // reuse a socket the server already tore down and get 0 response bytes back
+  // (#7003). Raise both timeouts well above any realistic client idle-pool
+  // window, mirroring src/lib/apiBridgeServer.ts's pattern.
+  const mainServerTimeouts = getMainServerTimeoutConfig();
+  server.keepAliveTimeout = mainServerTimeouts.keepAliveTimeoutMs;
+  server.headersTimeout = mainServerTimeouts.headersTimeoutMs;
   server.on("upgrade", async (req, socket, head) => {
     try {
       const responsesWsHandled = await responsesWsProxy.handleUpgrade(req, socket, head);

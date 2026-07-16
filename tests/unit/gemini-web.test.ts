@@ -266,15 +266,20 @@ test("#2832: GeminiWebExecutor catch block sanitizes Playwright launch errors (i
 
 // ─── StreamGenerate parsing ─────────────────────────────────────────────────
 
-test("parseStreamResponse concatenates Gemini Web text from multiple wrb.fr chunks", () => {
+test("parseStreamResponse keeps only the final cumulative StreamGenerate snapshot (no duplication) — regression for #7163", () => {
   const makeChunk = (text: string) => {
     const inner = new Array(80).fill(null);
     inner[4] = [[null, [text]]];
     return `[["wrb.fr", null, ${JSON.stringify(JSON.stringify(inner))}]]`;
   };
 
-  const raw = `)]}'\n10\n${makeChunk("First ")}\n5\n${makeChunk("chunk")}`;
-  assert.equal(parseStreamResponse(raw), "First chunk");
+  // Gemini's StreamGenerate frames are CUMULATIVE snapshots: each later frame
+  // repeats the full answer generated so far, not just the new characters.
+  const frame1 = "Hello!";
+  const frame2 = "Hello! How can I";
+  const frame3 = "Hello! How can I help you out today?";
+  const raw = `)]}'\n10\n${makeChunk(frame1)}\n5\n${makeChunk(frame2)}\n5\n${makeChunk(frame3)}`;
+  assert.equal(parseStreamResponse(raw), frame3);
 });
 
 test("parseStreamResponse ignores wrb.fr lines whose first entry is not an array", () => {

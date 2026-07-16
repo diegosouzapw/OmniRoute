@@ -8,6 +8,7 @@
 import {
   checkFallbackError,
   classifyLockoutReason,
+  CONTEXT_OVERFLOW_PATTERNS,
   decayModelFailureCount,
   formatRetryAfter,
   getModelLockoutInfo,
@@ -152,6 +153,7 @@ import {
 } from "./combo/providerWildcard.ts";
 import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouting.ts";
 import { attemptCompatRejectedFallback } from "./combo/comboCompatFallback.ts";
+import { applyContextRequirements } from "./combo/contextRequirements.ts";
 import {
   filterTargetsByRequestCompatibility,
   resolveComboRuntimeUnits,
@@ -663,7 +665,12 @@ export function isContextOverflow400(errorText) {
   return (
     /\bcontext.*(?:length_exceeded|too long|overflow|exceeded|window|limit)\b/i.test(errorText) ||
     /exceeds.*context/i.test(errorText) ||
-    /your input exceeds/i.test(errorText)
+    /your input exceeds/i.test(errorText) ||
+    // Reuse accountFallback.ts's CONTEXT_OVERFLOW_PATTERNS (single source of truth)
+    // so wording like Kimi's "exceeded model token limit" — which never says the
+    // literal word "context" — is still recognized as an overflow/fallback-worthy
+    // 400 instead of halting the whole combo (issue #6637).
+    CONTEXT_OVERFLOW_PATTERNS.some((p) => p.test(errorText))
   );
 }
 /** @param {string} errorText */
@@ -1205,6 +1212,7 @@ export async function handleComboChat({
   orderedTargets = _sticky.targets;
   orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
   orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
+  orderedTargets = applyContextRequirements(orderedTargets, config.contextRequirements, log);
 
   // Task-aware reordering: only active for strategies ["smart","task","task-aware","task_aware","auto"].
   // Additive — does not affect any of the other 15 strategies.
@@ -2030,6 +2038,19 @@ export async function handleComboChat({
             structuredError
           );
           const { cooldownMs } = fallbackResult;
+          // #6863: a parsed upstream quota reset (e.g. Antigravity "Resets in 92h27m28s")
+          // arrives in `quotaResetHintMs` — it bypasses the operator-gated
+          // `useUpstreamRetryHints` connection-cooldown setting. Mirror the
+          // single-model path (src/sse/services/auth.ts): when the retry hint was
+          // already honored, `cooldownMs` IS the upstream value; otherwise prefer the
+          // parsed quota reset — even when it is SHORTER than the fallback cooldown
+          // (e.g. subscription-quota 1h default vs a real "resets in 10m").
+          // `selectLockoutCooldownMs` still ignores hints at/below the base cooldown,
+          // so absent/tiny hints keep the #1308 exponential-backoff behavior.
+          const lockoutHintMs =
+            fallbackResult.usedUpstreamRetryHint === true
+              ? cooldownMs
+              : (fallbackResult.quotaResetHintMs ?? 0);
           const selectedConnectionId =
             result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
             result.headers?.get("x-omniroute-selected-connection-id") ||
@@ -2155,9 +2176,9 @@ export async function handleComboChat({
                   mlSettings.baseCooldownMs,
                   profile,
                   {
-                    // #1308: honor a long upstream reset (e.g. "Resets in 160h") over
+                    // #1308/#6863: honor a long upstream reset (e.g. "Resets in 160h") over
                     // the short base cooldown / exponential backoff when present.
-                    exactCooldownMs: selectLockoutCooldownMs(cooldownMs, mlSettings),
+                    exactCooldownMs: selectLockoutCooldownMs(lockoutHintMs, mlSettings),
                     maxCooldownMs: mlSettings.maxCooldownMs,
                   }
                 );
@@ -2198,8 +2219,8 @@ export async function handleComboChat({
                 mlSettings.baseCooldownMs,
                 profile,
                 {
-                  // #1308: honor a long upstream reset over base/exponential cooldown.
-                  exactCooldownMs: selectLockoutCooldownMs(cooldownMs, mlSettings),
+                  // #1308/#6863: honor a long upstream reset over base/exponential cooldown.
+                  exactCooldownMs: selectLockoutCooldownMs(lockoutHintMs, mlSettings),
                   maxCooldownMs: mlSettings.maxCooldownMs,
                 }
               );
@@ -2499,9 +2520,7 @@ async function handleRoundRobinCombo({
   // runtime-unavailable, we must reconsider these before returning 503, instead of
   // permanently dropping a compat-rejected-but-healthy provider.
   const compatKeptSet = new Set(filteredTargets);
-  const compatRejectedTargets = evalRankedTargets.filter(
-    (target) => !compatKeptSet.has(target)
-  );
+  const compatRejectedTargets = evalRankedTargets.filter((target) => !compatKeptSet.has(target));
   const modelCount = filteredTargets.length;
   if (modelCount === 0) {
     return comboModelNotFoundResponse("Round-robin combo has no executable targets");
