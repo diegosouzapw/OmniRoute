@@ -4427,7 +4427,9 @@
     "contextWindowOverrideLabel": "__MISSING__:Context Window Override",
     "contextWindowOverridePlaceholder": "__MISSING__:e.g. 131072",
     "contextWindowOverrideHint": "__MISSING__:Manually set this model's real context window (tokens) when the provider misreports it. Wins over auto-detected/catalog values and prevents combo routing from dropping the model.",
-    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens"
+    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "Configuración",

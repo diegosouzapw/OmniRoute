@@ -4854,7 +4854,9 @@
     "compatibleDefaultModelHint": "Inserisci l'ID modello esattamente come lo aspetta il tuo endpoint compatibile. Questo modello verrà salvato come default della connessione.",
     "compatibleDefaultModelLabel": "Modello Predefinito",
     "iconUrlHint": "Opzionale. URL dell'immagine mostrata come icona di questo provider.",
-    "iconUrlLabel": "URL Icona"
+    "iconUrlLabel": "URL Icona",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "Impostazioni",
