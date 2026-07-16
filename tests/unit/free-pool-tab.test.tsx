@@ -2,6 +2,7 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import deMessages from "../../src/i18n/messages/de.json";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -91,6 +92,36 @@ afterEach(() => {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("FreePoolTab source toggles", () => {
+  it("has every render-critical German translation", () => {
+    const requiredKeys = [
+      "freePoolTab",
+      "proxyFreePoolFilterProtocol",
+      "proxyFreePoolProtocol",
+      "proxyFreePoolCountryPlaceholder",
+      "proxyFreePoolFilterCountry",
+      "proxyFreePoolMinQualityPlaceholder",
+      "proxyFreePoolMinQualityLabel",
+      "proxyFreePoolSyncAll",
+      "proxyFreePoolTotal",
+      "proxyFreePoolInPool",
+      "proxyFreePoolAvgQuality",
+      "proxyFreePoolSelected",
+      "proxyFreePoolAddSelected",
+      "proxyFreePoolAddVisible",
+      "proxyFreePoolSource",
+      "proxyFreePoolHostPort",
+      "proxyFreePoolType",
+      "proxyFreePoolCountry",
+      "proxyFreePoolQuality",
+      "proxyFreePoolLatency",
+      "proxyFreePoolEmpty",
+    ] as const;
+
+    for (const key of requiredKeys) {
+      expect(deMessages.settings[key], `missing settings.${key}`).toBeTruthy();
+    }
+  });
+
   it("renders a toggle group with exactly 4 buttons", async () => {
     const el = renderTab();
     await waitForCondition(() => el.querySelector("[role='group']") !== null);
