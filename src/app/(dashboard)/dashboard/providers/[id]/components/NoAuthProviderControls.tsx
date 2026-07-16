@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { NoAuthAccountCard, NoAuthProviderCard } from "@/shared/components";
 import { getProviderAlias } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useTranslations } from "next-intl";
 
 const ACCOUNT_PROVIDER_NAMES: Record<string, string> = {
   mimocode: "MiMoCode",
@@ -13,13 +14,18 @@ const ACCOUNT_PROVIDER_NAMES: Record<string, string> = {
 interface NoAuthProviderControlsProps {
   providerId: string;
   providerName: string;
+  providerProxy?: { host?: string | null } | null;
+  onConfigureProviderProxy: () => void;
 }
 
 export default function NoAuthProviderControls({
   providerId,
   providerName,
+  providerProxy,
+  onConfigureProviderProxy,
 }: NoAuthProviderControlsProps) {
   const notify = useNotificationStore();
+  const t = useTranslations("providers");
   const [blockedProviders, setBlockedProviders] = useState<string[]>([]);
   const [savingEnabled, setSavingEnabled] = useState(false);
   const providerAlias = getProviderAlias(providerId);
@@ -82,6 +88,26 @@ export default function NoAuthProviderControls({
   );
 
   const accountProviderName = ACCOUNT_PROVIDER_NAMES[providerId];
+  const providerProxyControl = (
+    <button
+      type="button"
+      onClick={onConfigureProviderProxy}
+      className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-all ${
+        providerProxy?.host
+          ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
+          : "bg-black/[0.03] text-text-muted/50 hover:bg-black/[0.06] hover:text-text-muted dark:bg-white/[0.03] dark:hover:bg-white/[0.06]"
+      }`}
+      title={
+        providerProxy?.host
+          ? t("providerProxyTitleConfigured", { host: providerProxy.host })
+          : t("providerProxyConfigureHint")
+      }
+    >
+      <span className="material-symbols-outlined text-[14px]">vpn_lock</span>
+      {providerProxy?.host || t("providerProxy")}
+    </button>
+  );
+
   if (accountProviderName) {
     return (
       <NoAuthAccountCard
@@ -91,6 +117,7 @@ export default function NoAuthProviderControls({
         enabled={enabled}
         savingEnabled={savingEnabled}
         onEnabledChange={handleEnabledChange}
+        providerProxyControl={providerProxyControl}
       />
     );
   }
@@ -100,6 +127,7 @@ export default function NoAuthProviderControls({
       enabled={enabled}
       saving={savingEnabled}
       onEnabledChange={handleEnabledChange}
+      providerProxyControl={providerProxyControl}
     />
   );
 }

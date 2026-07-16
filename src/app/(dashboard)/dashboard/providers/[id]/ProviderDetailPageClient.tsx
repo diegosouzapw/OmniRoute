@@ -480,11 +480,22 @@ export default function ProviderDetailPageClient() {
         <NoAuthProviderControls
           providerId={providerId}
           providerName={providerInfo?.name || providerId}
+          providerProxy={proxyConfig?.providers?.[providerId]}
+          onConfigureProviderProxy={() =>
+            setProxyTarget({
+              level: "provider",
+              id: providerId,
+              label: providerInfo?.name || providerId,
+            })
+          }
         />
       )}
       {!isUpstreamProxyProvider && !isFreeNoAuth && (
         <Card>
-          <ProviderAccountRoutingCard providerKey={providerId} connectionCount={connections.length} />
+          <ProviderAccountRoutingCard
+            providerKey={providerId}
+            connectionCount={connections.length}
+          />
           <ConnectionsHeaderToolbar
             providerId={providerId}
             providerInfo={providerInfo}
