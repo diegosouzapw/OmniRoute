@@ -1,4 +1,8 @@
-export const OUTPUT_TOKEN_FIELDS = ["max_tokens", "max_completion_tokens"] as const;
+export const OUTPUT_TOKEN_FIELDS = [
+  "max_tokens",
+  "max_completion_tokens",
+  "max_output_tokens",
+] as const;
 
 export type OutputTokenBudgetResult =
   | {
@@ -13,6 +17,38 @@ export type OutputTokenBudgetResult =
       contextLimit: number;
     };
 
+type OutputTokenAdjustment = { field: string; value?: number; remove?: boolean };
+
+function getOutputTokenAdjustment(
+  field: string,
+  value: unknown,
+  availableOutputTokens: number
+): OutputTokenAdjustment | null {
+  if (typeof value !== "number") return null;
+  if (!Number.isFinite(value) || value <= 0) return { field, remove: true };
+
+  const capped = Math.min(Math.floor(value), availableOutputTokens);
+  return capped === value ? null : { field, value: capped };
+}
+
+function adjustOutputTokenFields(
+  body: Record<string, unknown>,
+  availableOutputTokens: number
+): Pick<Extract<OutputTokenBudgetResult, { ok: true }>, "body" | "adjustedFields"> {
+  const adjustments = OUTPUT_TOKEN_FIELDS.map((field) =>
+    getOutputTokenAdjustment(field, body[field], availableOutputTokens)
+  ).filter((adjustment): adjustment is OutputTokenAdjustment => adjustment !== null);
+  if (adjustments.length === 0) return { body, adjustedFields: [] };
+
+  const nextBody = { ...body };
+  for (const adjustment of adjustments) {
+    if (adjustment.remove) delete nextBody[adjustment.field];
+    else nextBody[adjustment.field] = adjustment.value;
+  }
+
+  return { body: nextBody, adjustedFields: adjustments.map(({ field }) => field) };
+}
+
 /**
  * Enforce the target model's context budget immediately before translation.
  *
@@ -24,7 +60,7 @@ export type OutputTokenBudgetResult =
  * invalid numeric limits are removed.
  */
 export function enforceOutputTokenBudget(
-  body: Record<string, unknown>,
+  body: Record<string, unknown> | null | undefined,
   estimatedInputTokens: number,
   contextLimit: number
 ): OutputTokenBudgetResult {
@@ -40,27 +76,15 @@ export function enforceOutputTokenBudget(
     };
   }
 
-  let nextBody = body;
-  const adjustedFields: string[] = [];
-  for (const field of OUTPUT_TOKEN_FIELDS) {
-    const value = nextBody[field];
-    if (typeof value !== "number") continue;
-
-    const normalized = Number.isFinite(value) && value > 0 ? Math.floor(value) : null;
-    if (normalized === null) {
-      if (nextBody === body) nextBody = { ...body };
-      delete nextBody[field];
-      adjustedFields.push(field);
-      continue;
-    }
-
-    const capped = Math.min(normalized, availableOutputTokens);
-    if (capped !== value) {
-      if (nextBody === body) nextBody = { ...body };
-      nextBody[field] = capped;
-      adjustedFields.push(field);
-    }
+  if (!body) {
+    return {
+      ok: true,
+      body: {},
+      availableOutputTokens,
+      adjustedFields: [],
+    };
   }
 
-  return { ok: true, body: nextBody, availableOutputTokens, adjustedFields };
+  const adjusted = adjustOutputTokenFields(body, availableOutputTokens);
+  return { ok: true, ...adjusted, availableOutputTokens };
 }

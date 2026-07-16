@@ -35,3 +35,22 @@ test("removes non-positive numeric output limits before upstream dispatch", () =
   assert.equal("max_tokens" in result.body, false);
   assert.equal("max_completion_tokens" in result.body, false);
 });
+
+test("caps max_output_tokens to the target's remaining context", () => {
+  const result = enforceOutputTokenBudget({ max_output_tokens: 12_000 }, 127_000, 128_000);
+
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.equal(result.body.max_output_tokens, 1_000);
+});
+
+test("accepts a missing request body when output budget remains", () => {
+  const result = enforceOutputTokenBudget(null, 1_000, 128_000);
+
+  assert.deepEqual(result, {
+    ok: true,
+    body: {},
+    availableOutputTokens: 127_000,
+    adjustedFields: [],
+  });
+});

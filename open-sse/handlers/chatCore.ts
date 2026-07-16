@@ -1618,11 +1618,16 @@ export async function handleChatCore({
   // filtering is advisory and may preserve an all-incompatible pool; this is the
   // hard boundary that prevents a too-large prompt (or a negative token budget)
   // from reaching an OpenAI-compatible upstream such as NVIDIA NIM.
-  const finalCompressionBody = adaptBodyForCompression(body as Record<string, unknown>).body;
+  const finalCompressionBody = body
+    ? adaptBodyForCompression(body as Record<string, unknown>).body
+    : null;
   const finalMessages =
     finalCompressionBody?.messages || body?.contents || body?.request?.contents || [];
   const finalEstimatedInputTokens =
-    estimateTokens(finalMessages) + (Array.isArray(body?.tools) ? estimateTokens(body.tools) : 0);
+    estimateTokens(finalMessages) +
+    (Array.isArray(body?.tools) ? estimateTokens(body.tools) : 0) +
+    estimateTokens(body?.system) +
+    estimateTokens(body?.instructions);
   const finalContextLimit = getTokenLimit(provider, effectiveModel);
   const outputBudget = enforceOutputTokenBudget(
     body as Record<string, unknown>,
