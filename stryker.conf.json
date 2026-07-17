@@ -167,6 +167,7 @@
       "tests/unit/custom-model-target-format.test.ts",
       "tests/unit/db-reset-module-state.test.ts",
       "tests/unit/domain-persistence.test.ts",
+      "tests/unit/edgetts-provider.test.ts",
       "tests/unit/embeddings-auth.test.ts",
       "tests/unit/error-classification.test.ts",
       "tests/unit/error-message-sanitization.test.ts",
