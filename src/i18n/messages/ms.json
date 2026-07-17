@@ -2832,6 +2832,8 @@
     "range7d": "7 Hari",
     "range30d": "30 Hari",
     "range90d": "90 Hari",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "Sepanjang Masa",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",

@@ -2731,6 +2731,8 @@
     "range7d": "7 Tage",
     "range30d": "30 Tage",
     "range90d": "90 Tage",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "Alle Zeit",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",

@@ -2726,6 +2726,8 @@
     "range7d": "7 дни",
     "range30d": "30 дни",
     "range90d": "90 дни",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "Всички времена",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",

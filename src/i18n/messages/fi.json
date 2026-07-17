@@ -2726,6 +2726,8 @@
     "range7d": "7 päivää",
     "range30d": "30 päivää",
     "range90d": "90 päivää",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "Kaikki aika",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",

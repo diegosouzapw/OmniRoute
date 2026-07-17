@@ -2832,6 +2832,8 @@
     "range7d": "7일",
     "range30d": "30일",
     "range90d": "90일",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "모든 시간",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",

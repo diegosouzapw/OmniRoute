@@ -2863,6 +2863,8 @@
     "range7d": "7D",
     "range30d": "30D",
     "range90d": "90D",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "Tudo",
     "spend30d": "Gasto 30D",
     "activeModels": "Modelos Ativos",

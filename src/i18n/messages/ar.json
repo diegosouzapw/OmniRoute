@@ -2726,6 +2726,8 @@
     "range7d": "7 أيام",
     "range30d": "30 يوما",
     "range90d": "90 يوما",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "كل الوقت",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",

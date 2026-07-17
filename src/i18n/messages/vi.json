@@ -2726,6 +2726,8 @@
     "range7d": "7 ngày",
     "range30d": "30 ngày",
     "range90d": "90 ngày",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "mọi lúc",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",

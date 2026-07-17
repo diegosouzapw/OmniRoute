@@ -2811,6 +2811,8 @@
     "range7d": "7 天",
     "range30d": "30 天",
     "range90d": "90 天",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "全部时间",
     "spend30d": "30 天支出",
     "activeModels": "活跃 Model",

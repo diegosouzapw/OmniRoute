@@ -2726,6 +2726,8 @@
     "range7d": "7 nap",
     "range30d": "30 nap",
     "range90d": "90 nap",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "Minden idők",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",
