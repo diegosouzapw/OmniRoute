@@ -9,6 +9,7 @@ import { ideogramProvider } from "./registry/ideogram/index.ts";
 import { friendliaiProvider } from "./registry/friendliai/index.ts";
 import { sunoProvider } from "./registry/suno/index.ts";
 import { adapta_webProvider } from "./registry/adapta-web/index.ts";
+import { notion_webProvider } from "./registry/notion-web/index.ts";
 import { anthropicProvider } from "./registry/anthropic/index.ts";
 import { sambanovaProvider } from "./registry/sambanova/index.ts";
 import { puterProvider } from "./registry/puter/index.ts";
@@ -197,6 +198,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   friendliai: friendliaiProvider,
   suno: sunoProvider,
   "adapta-web": adapta_webProvider,
+  "notion-web": notion_webProvider,
   anthropic: anthropicProvider,
   sambanova: sambanovaProvider,
   puter: puterProvider,

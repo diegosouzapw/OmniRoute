@@ -3009,6 +3009,29 @@
       "stream": "https://api.nlpcloud.io/v1/chat/completions"
     }
   },
+  "notion-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://www.notion.so/api/v3/runInferenceTranscript",
+      "stream": "https://www.notion.so/api/v3/runInferenceTranscript"
+    }
+  },
   "nous-research": {
     "format": "openai",
     "headers": {

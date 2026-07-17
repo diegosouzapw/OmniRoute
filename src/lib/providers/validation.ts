@@ -52,6 +52,7 @@ import {
   validateJulesProvider,
   validateDevinCloudAgentProvider,
   validateInnerAiProvider,
+  validateNotionWebProvider,
 } from "./validation/webProvidersB";
 import {
   validateHerokuProvider,
@@ -532,6 +533,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "adapta-web": validateAdaptaWebProvider,
     "claude-web": validateClaudeWebProvider,
     "gemini-web": validateGeminiWebProvider,
+    "notion-web": validateNotionWebProvider,
     "copilot-m365-web": validateCopilotM365WebProvider,
     "copilot-web": validateCopilotWebProvider,
     "t3-web": validateT3WebProvider,

@@ -486,6 +486,57 @@ export async function validateDevinCloudAgentProvider({ apiKey }: { apiKey: stri
   }
 }
 
+// ── Notion AI Web (Unofficial/Experimental) cookie validator ──
+// #6758: no public Notion inference API exists; validate by probing a stable,
+// low-privilege authenticated Notion endpoint (getSpaces) with the session
+// cookie rather than the experimental runInferenceTranscript endpoint itself
+// (a live inference call is expensive and unnecessary just to confirm the
+// session is valid).
+export async function validateNotionWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const raw = String(apiKey || "").trim();
+    if (!raw) {
+      return { valid: false, error: "Paste your token_v2 cookie value from notion.so" };
+    }
+
+    const cookieHeader = raw.includes("=") ? raw : `token_v2=${raw}`;
+
+    const response = await validationWrite("https://www.notion.so/api/v3/getSpaces", {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Cookie: cookieHeader,
+          Origin: "https://www.notion.so",
+          Referer: "https://www.notion.so/",
+        },
+        providerSpecificData
+      ),
+      body: "{}",
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid or expired token_v2 cookie — re-paste from notion.so DevTools → Cookies",
+      };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Notion unavailable (${response.status})` };
+    }
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Notion validation failed (${response.status})` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateInnerAiProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     const raw = typeof apiKey === "string" ? apiKey.trim() : "";
