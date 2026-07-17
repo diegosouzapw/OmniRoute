@@ -205,6 +205,19 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     format: "dashscope-video",
     models: [{ id: "wan2.7-t2v", name: "Wan 2.7 T2V" }],
   },
+
+  xai: {
+    id: "xai",
+    // xAI Grok Imagine async video-generation API. Reuses the stored xai
+    // provider Bearer apiKey (same credential the image-generation "xai"
+    // entry in imageRegistry.ts already uses) — no separate credential flow.
+    baseUrl: "https://api.x.ai/v1/videos",
+    statusUrl: "https://api.x.ai/v1/videos",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "xai-video",
+    models: [{ id: "grok-imagine-video", name: "Grok Imagine Video" }],
+  },
 };
 
 /**

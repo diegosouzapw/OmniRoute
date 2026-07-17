@@ -214,6 +214,12 @@ export const providerModelMutationSchema = z.object({
   // — fixes the "provider misreports context length" combo-drop case. `null` clears
   // a previously set override.
   contextWindowOverride: z.number().int().positive().nullable().optional(),
+  // #1904: manual vision-capability override for custom OpenAI-compatible models whose
+  // upstream discovery metadata does not self-report an image input modality (many
+  // self-hosted/local backends). Mirrors the auto-discovery `supportsVision` field so
+  // the same flag flows through `getCustomVisionCapabilityFields()` in the /v1/models
+  // catalog. `null` clears a manual override back to the id-based heuristic.
+  supportsVision: z.boolean().nullable().optional(),
   normalizeToolCallId: z.boolean().optional(),
   preserveOpenAIDeveloperRole: z.boolean().nullable().optional(),
   upstreamHeaders: upstreamHeadersRecordSchema.nullable().optional(),
