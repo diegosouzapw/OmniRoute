@@ -2,7 +2,11 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_DISPLAY_BASE_URL } from "../useDisplayBaseUrl";
+import {
+  DEFAULT_DISPLAY_BASE_URL,
+  isPublicDisplayBaseUrl,
+  resolveDisplayBaseUrl,
+} from "../useDisplayBaseUrl";
 
 const cleanupCallbacks: Array<() => void> = [];
 
@@ -61,6 +65,54 @@ describe("useDisplayBaseUrl", () => {
     // Env still wins after mount
     expect(container.querySelector('[data-testid="value"]')?.textContent).toBe(
       "https://example.com"
+    );
+  });
+
+  it("classifies public domains separately from local and private addresses", () => {
+    expect(isPublicDisplayBaseUrl("https://api.example.com")).toBe(true);
+    expect(isPublicDisplayBaseUrl("http://localhost:20128")).toBe(false);
+    expect(isPublicDisplayBaseUrl("http://192.168.1.25:20128")).toBe(false);
+    expect(isPublicDisplayBaseUrl("http://100.88.4.55:20128")).toBe(false);
+    expect(isPublicDisplayBaseUrl("http://[::1]:20128")).toBe(false);
+  });
+
+  it("keeps a configured public URL when the browser is on a local address", () => {
+    expect(resolveDisplayBaseUrl("https://api.example.com/", "http://localhost:20128")).toBe(
+      "https://api.example.com"
+    );
+  });
+
+  it("prefers the currently reachable public origin over another configured URL", () => {
+    expect(resolveDisplayBaseUrl("https://old.example.com", "https://api.example.com/")).toBe(
+      "https://api.example.com"
+    );
+  });
+
+  it("prefers a public browser origin over a loopback build-time value", async () => {
+    vi.stubEnv("NEXT_PUBLIC_BASE_URL", "http://localhost:20128");
+    vi.stubGlobal("location", { origin: "https://api.example.com" });
+
+    const { useDisplayBaseUrl } = await import("../useDisplayBaseUrl");
+    const container = makeContainer();
+    const root = createRoot(container);
+
+    function C() {
+      const url = useDisplayBaseUrl();
+      return <span data-testid="value">{url}</span>;
+    }
+
+    act(() => {
+      root.render(<C />);
+    });
+
+    expect(container.querySelector('[data-testid="value"]')?.textContent).toBe(
+      DEFAULT_DISPLAY_BASE_URL
+    );
+
+    await act(async () => {});
+
+    expect(container.querySelector('[data-testid="value"]')?.textContent).toBe(
+      "https://api.example.com"
     );
   });
 

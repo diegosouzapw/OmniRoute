@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, Button, Input, Modal, CardSkeleton, SegmentedControl } from "@/shared/components";
 import Toggle from "@/shared/components/Toggle";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
-import { useDisplayBaseUrl } from "@/shared/hooks";
+import { isPublicDisplayBaseUrl, useDisplayBaseUrl } from "@/shared/hooks";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
 import { getProviderDisplayName } from "@/lib/display/names";
 import { useTranslations } from "next-intl";
@@ -19,12 +19,7 @@ const CLOUD_ACTION_TIMEOUT_MS = 15000;
 
 type TranslationValues = Record<string, string | number | boolean | Date>;
 type CloudflaredTunnelPhase =
-  | "unsupported"
-  | "not_installed"
-  | "stopped"
-  | "starting"
-  | "running"
-  | "error";
+  "unsupported" | "not_installed" | "stopped" | "starting" | "running" | "error";
 
 type CloudflaredTunnelStatus = {
   supported: boolean;
@@ -43,12 +38,7 @@ type CloudflaredTunnelStatus = {
 };
 
 type TailscaleTunnelPhase =
-  | "unsupported"
-  | "not_installed"
-  | "needs_login"
-  | "stopped"
-  | "running"
-  | "error";
+  "unsupported" | "not_installed" | "needs_login" | "stopped" | "running" | "error";
 
 type TailscaleTunnelStatus = {
   supported: boolean;
@@ -70,13 +60,7 @@ type TailscaleTunnelStatus = {
 };
 
 type NgrokTunnelPhase =
-  | "unsupported"
-  | "not_installed"
-  | "stopped"
-  | "needs_auth"
-  | "starting"
-  | "running"
-  | "error";
+  "unsupported" | "not_installed" | "stopped" | "needs_auth" | "starting" | "running" | "error";
 
 type NgrokTunnelStatus = {
   supported: boolean;
@@ -187,6 +171,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const [ngrokToken, setNgrokToken] = useState("");
   const [showNgrokTunnel, setShowNgrokTunnel] = useState(true);
   const [expandedTunnel, setExpandedTunnel] = useState<string | null>(null);
+  const [localApiUrl, setLocalApiUrl] = useState("http://localhost:20128/v1");
   const [lanUrls, setLanUrls] = useState<string[]>([]);
   const [tailscaleIpUrl, setTailscaleIpUrl] = useState<string | null>(null);
   const [activeEndpointTab, setActiveEndpointTab] = useState<EndpointTab>("apis");
@@ -335,6 +320,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           if (res.ok) {
             const data = await res.json();
             if (mounted) {
+              if (data.localUrl) setLocalApiUrl(data.localUrl);
               setLanUrls(data.lanUrls ?? []);
               if (data.tailscaleIpUrl) setTailscaleIpUrl(data.tailscaleIpUrl);
             }
@@ -1080,7 +1066,8 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   }, [fetchTailscaleStatus, handleTailscaleEnable, tailscalePassword, translateOrFallback]);
 
   const displayBaseUrl = useDisplayBaseUrl();
-  const baseUrl = `${displayBaseUrl}/v1`;
+  const displayApiUrl = `${displayBaseUrl}/v1`;
+  const publicDisplayApiUrl = isPublicDisplayBaseUrl(displayBaseUrl) ? displayApiUrl : null;
   const normalizedCloudBaseUrl = cloudBaseUrl
     ? resolvedMachineId && !cloudBaseUrl.endsWith(`/${resolvedMachineId}`)
       ? `${cloudBaseUrl}/${resolvedMachineId}`
@@ -1097,13 +1084,9 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
     );
   }
 
-  // Use new format endpoint (machineId embedded in key)
-  const currentEndpoint = cloudEnabled && cloudEndpointNew ? cloudEndpointNew : baseUrl;
-
-  const activeUrls = [
-    { label: "Local", url: baseUrl, key: "active_local" },
-    ...(cloudEnabled && cloudEndpointNew
-      ? [{ label: "Cloud", url: cloudEndpointNew, key: "active_cloud" }]
+  const activeTunnelUrls = [
+    ...(publicDisplayApiUrl
+      ? [{ label: t("tierPublic"), url: publicDisplayApiUrl, key: "active_public" }]
       : []),
     ...(cloudflaredStatus?.running && cloudflaredStatus.apiUrl
       ? [{ label: "Cloudflare", url: cloudflaredStatus.apiUrl, key: "active_cf" }]
@@ -1121,6 +1104,21 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
       ? [{ label: "ngrok", url: ngrokStatus.apiUrl, key: "active_ngrok" }]
       : []),
   ];
+  const preferredTunnelUrl = activeTunnelUrls[0]?.url ?? null;
+  const currentEndpoint =
+    preferredTunnelUrl ??
+    (cloudEnabled && cloudEndpointNew ? cloudEndpointNew : null) ??
+    displayApiUrl;
+  const activeUrls = [
+    ...activeTunnelUrls,
+    ...(cloudEnabled && cloudEndpointNew
+      ? [{ label: "Cloud", url: cloudEndpointNew, key: "active_cloud" }]
+      : []),
+    { label: "Local", url: localApiUrl, key: "active_local" },
+  ].filter(
+    (candidate, index, candidates) =>
+      candidates.findIndex((other) => other.url === candidate.url) === index
+  );
   const visibleTunnelCount = [showCloudflaredTunnel, showTailscaleFunnel, showNgrokTunnel].filter(
     Boolean
   ).length;
@@ -1357,7 +1355,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               Running
             </span>
             <button
-              onClick={() => void copy(baseUrl, "endpoint_url")}
+              onClick={() => void copy(localApiUrl, "endpoint_url")}
               className="shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-border/70 text-text-muted hover:text-text hover:border-border transition-colors"
             >
               <span className="material-symbols-outlined text-[14px]">
