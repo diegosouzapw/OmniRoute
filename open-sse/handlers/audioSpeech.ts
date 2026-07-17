@@ -23,6 +23,7 @@ import { kieExecutor } from "../executors/kie.ts";
 import { vertexGenerateSpeech } from "../executors/vertexMedia.ts";
 import { handleAwsPollySpeech } from "../executors/awsPollyTts.ts";
 import { handleEdgeTtsSpeech } from "../executors/edgeTts.ts";
+import { GttsUpstreamError, normalizeGttsLang, synthesizeGtts } from "../executors/gtts.ts";
 import { errorResponse } from "../utils/error.ts";
 import { audioStreamResponse, upstreamErrorResponse } from "../utils/audioResponse.ts";
 import {
@@ -726,6 +727,28 @@ async function handleTortoiseSpeech(providerConfig, body) {
 }
 
 /**
+ * Handle gTTS TTS (local no-auth, Google Translate batchexecute RPC).
+ * `voice` doubles as the language code since gTTS has no voice concept —
+ * defaults to English when omitted or unrecognized.
+ */
+async function handleGttsSpeech(body) {
+  try {
+    const audio = await synthesizeGtts({
+      text: body.input,
+      lang: normalizeGttsLang(body.voice),
+    });
+    return new Response(audio, {
+      status: 200,
+      headers: { ...CORS_HEADERS, "Content-Type": "audio/mpeg" },
+    });
+  } catch (err) {
+    const status = err instanceof GttsUpstreamError ? err.status : 502;
+    const message = err instanceof Error ? err.message : "gTTS synthesis failed";
+    return errorResponse(status, message);
+  }
+}
+
+/**
  * Handle audio speech (TTS) request
  *
  * @param {Object} options
@@ -761,7 +784,7 @@ export async function handleAudioSpeech({
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, kie, aws-polly, xiaomi-mimo, edgetts, coqui, tortoise, qwen`
+      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, kie, aws-polly, xiaomi-mimo, edgetts, gtts, coqui, tortoise, qwen`
     );
   }
 
@@ -828,6 +851,10 @@ export async function handleAudioSpeech({
 
     if (providerConfig.format === "edgetts") {
       return handleEdgeTtsSpeech(body, clientIp);
+    }
+
+    if (providerConfig.format === "gtts") {
+      return handleGttsSpeech(body);
     }
 
     if (providerConfig.format === "xiaomi-mimo-tts") {

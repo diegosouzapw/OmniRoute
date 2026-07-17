@@ -189,6 +189,21 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
       { id: "fusion", name: "Fusion ASR" },
     ],
   },
+
+  speechmatics: {
+    id: "speechmatics",
+    // POST https://asr.api.speechmatics.com/v2/jobs — async batch workflow:
+    // submit multipart job (audio + JSON config) → poll → fetch transcript.
+    // Auth: Authorization: Bearer <api-key>
+    // Free tier: 8 hours/month, no credit card required.
+    // Streaming (WebSocket real-time) mode is out of scope for v1 — batch only.
+    baseUrl: "https://asr.api.speechmatics.com/v2/jobs",
+    authType: "apikey",
+    authHeader: "bearer",
+    async: true,
+    format: "speechmatics",
+    models: [{ id: "universal-2", name: "Universal-2" }],
+  },
 };
 
 /**
@@ -458,6 +473,20 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "ja-JP-NanamiNeural", name: "Nanami (JA-JP, Female)" },
       { id: "zh-CN-XiaoxiaoNeural", name: "Xiaoxiao (ZH-CN, Female)" },
     ],
+  },
+
+  gtts: {
+    id: "gtts",
+    // Google Translate TTS — reverse-engineered, no API key required.
+    // POST batchexecute RPC (unlike the deprecated GET /translate_tts) —
+    // handled by open-sse/executors/gtts.ts, dispatched via the "gtts" format.
+    // No official SLA; per-IP rate-limited by Google without notice.
+    baseUrl: "https://translate.google.com/_/TranslateWebserverUi/data/batchexecute",
+    authType: "none",
+    authHeader: "none",
+    format: "gtts",
+    supportedFormats: ["mp3"],
+    models: [{ id: "default", name: "Google Translate TTS (Free)" }],
   },
 
   "xiaomi-mimo": {

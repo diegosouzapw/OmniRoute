@@ -532,6 +532,103 @@ async function handleRevAiTranscription(providerConfig, file, modelId, token) {
 }
 
 /**
+ * Speechmatics operating point (accuracy tier). Only "universal-2" is
+ * registered today; any other model id passes straight through so the
+ * registry can grow without a matching code change here.
+ */
+function speechmaticsOperatingPoint(modelId: string): string {
+  return modelId === "universal-2" ? "enhanced" : modelId;
+}
+
+/**
+ * Fetch and return the finished Speechmatics transcript once a job reaches
+ * the "done" state.
+ */
+async function fetchSpeechmaticsTranscript(jobUrl, authHeaders) {
+  const transcriptRes = await fetch(`${jobUrl}/transcript?format=txt`, {
+    headers: { ...authHeaders, Accept: "text/plain" },
+  });
+  if (!transcriptRes.ok) {
+    return upstreamErrorResponse(transcriptRes, await transcriptRes.text());
+  }
+  const text = await transcriptRes.text();
+  return Response.json({ text: text || "" }, { headers: { ...CORS_HEADERS } });
+}
+
+function speechmaticsJobErrorMessage(result): string {
+  const errors = result?.job?.errors;
+  const first = Array.isArray(errors) ? errors[0] : null;
+  return first?.message || "Speechmatics transcription failed";
+}
+
+/**
+ * Poll a submitted Speechmatics job until it reaches a terminal state
+ * (max 120s), then fetch its transcript.
+ */
+async function pollSpeechmaticsJob(jobUrl, authHeaders) {
+  const maxWait = 120_000;
+  const start = Date.now();
+
+  while (Date.now() - start < maxWait) {
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const pollRes = await fetch(jobUrl, { headers: authHeaders });
+    if (!pollRes.ok) continue;
+
+    const result = await pollRes.json();
+    const status = result?.job?.status;
+
+    if (status === "done") {
+      return fetchSpeechmaticsTranscript(jobUrl, authHeaders);
+    }
+
+    if (status === "rejected") {
+      return errorResponse(500, speechmaticsJobErrorMessage(result));
+    }
+  }
+
+  return errorResponse(504, "Speechmatics transcription timed out after 120s");
+}
+
+/**
+ * Handle Speechmatics transcription (async batch: submit multipart job → poll → fetch transcript)
+ *
+ * Speechmatics batch mode accepts the audio file directly in the job-submission
+ * multipart body (field "data_file") alongside a JSON "config" field describing
+ * the requested transcription options. Streaming (real-time WebSocket) mode is
+ * out of scope for v1 — this handler only implements batch (REST) transcription.
+ */
+async function handleSpeechmaticsTranscription(providerConfig, file, modelId, token) {
+  const authHeaders = buildAuthHeaders(providerConfig, token);
+  const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
+
+  // Step 1: submit the job — multipart body with "data_file" (audio) + "config" (JSON)
+  const config = JSON.stringify({
+    type: "transcription",
+    transcription_config: { operating_point: speechmaticsOperatingPoint(modelId) },
+  });
+  const { body, contentType } = await buildMultipartBody(file, { config }, "data_file");
+
+  const submitRes = await fetch(baseUrl, {
+    method: "POST",
+    headers: { ...authHeaders, "Content-Type": contentType },
+    body,
+  });
+
+  if (!submitRes.ok) {
+    return upstreamErrorResponse(submitRes, await submitRes.text());
+  }
+
+  const { id: jobId } = await submitRes.json();
+  if (!jobId) {
+    return errorResponse(502, "Speechmatics did not return a job id");
+  }
+
+  // Step 2: poll for completion (max 120s)
+  return pollSpeechmaticsJob(`${baseUrl}/${jobId}`, authHeaders);
+}
+
+/**
  * Handle audio transcription request
  *
  * @param {Object} options
@@ -573,7 +670,7 @@ export async function handleAudioTranscription({
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No transcription provider found for model "${model}". Available: openai, groq, deepgram, assemblyai, nvidia, huggingface, qwen, gladia, rev-ai`
+      `No transcription provider found for model "${model}". Available: openai, groq, deepgram, assemblyai, nvidia, huggingface, qwen, gladia, rev-ai, speechmatics`
     );
   }
 
@@ -637,6 +734,10 @@ export async function handleAudioTranscription({
 
   if (providerConfig.format === "rev-ai") {
     return handleRevAiTranscription(providerConfig, file, modelId, token);
+  }
+
+  if (providerConfig.format === "speechmatics") {
+    return handleSpeechmaticsTranscription(providerConfig, file, modelId, token);
   }
 
   // Default: OpenAI/Groq/Qwen3-compatible multipart proxy
