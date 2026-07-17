@@ -65,6 +65,7 @@ import { cohereProvider } from "./registry/cohere/index.ts";
 import { cursorProvider } from "./registry/cursor/index.ts";
 import { volcengineProvider } from "./registry/volcengine/index.ts";
 import { hackclubProvider } from "./registry/hackclub/index.ts";
+import { freetheaiProvider } from "./registry/freetheai/index.ts";
 import { tencentProvider } from "./registry/tencent/index.ts";
 import { cozeProvider } from "./registry/coze/index.ts";
 import { ai21Provider } from "./registry/ai21/index.ts";
@@ -254,6 +255,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   cursor: cursorProvider,
   volcengine: volcengineProvider,
   hackclub: hackclubProvider,
+  freetheai: freetheaiProvider,
   tencent: tencentProvider,
   coze: cozeProvider,
   ai21: ai21Provider,
