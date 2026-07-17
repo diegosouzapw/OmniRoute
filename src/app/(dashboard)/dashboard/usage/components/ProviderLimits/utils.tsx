@@ -304,6 +304,25 @@ export function normalizePlanTier(plan) {
 
 // === Card Grid Helpers (T7) =================================================
 
+// Card action-availability derivations. Extracted from QuotaCard so its
+// `.some(...)` predicate branches don't count against the component's
+// cyclomatic-complexity budget.
+export function computeCanEditCutoff(quotas: any[]): boolean {
+  return quotas.some((q: any) => q && typeof q.name === "string" && !q.isCredits);
+}
+
+export function computeCanRedeemResetCredit(provider: string, quotas: any[]): boolean {
+  return (
+    provider === "codex" &&
+    quotas.some((q: any) => q?.isResetCredits && Number(q.creditCount ?? q.remaining ?? 0) > 0)
+  );
+}
+
+export function hasQuotaCutoffOverrides(connection: any): boolean {
+  const overrides = (connection.quotaWindowThresholds as Record<string, number> | null) || null;
+  return !!overrides && Object.keys(overrides).length > 0;
+}
+
 export const STATUS_EMOJI = {
   critical: "🔴",
   alert: "🟡",

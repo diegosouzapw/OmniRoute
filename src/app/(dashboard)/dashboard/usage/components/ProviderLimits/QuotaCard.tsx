@@ -9,6 +9,9 @@ import {
   worstStatus,
   filterQuotasByVisibility,
   getHiddenQuotaRows,
+  computeCanEditCutoff,
+  computeCanRedeemResetCredit,
+  hasQuotaCutoffOverrides,
   type CardStatus,
 } from "./utils";
 import QuotaCardHeader from "./parts/QuotaCardHeader";
@@ -104,14 +107,11 @@ export default function QuotaCard({
     [connection, emailsVisible]
   );
 
-  const overrides = (connection.quotaWindowThresholds as Record<string, number> | null) || null;
-  const hasOverrides = !!overrides && Object.keys(overrides).length > 0;
+  const hasOverrides = hasQuotaCutoffOverrides(connection);
   const hasStaleData = !!quota?.stale;
   const displayRefreshedAt = quota?.stale?.since || refreshedAt;
-  const canEditCutoff = quotas.some((q: any) => q && typeof q.name === "string" && !q.isCredits);
-  const canRedeemResetCredit =
-    connection.provider === "codex" &&
-    quotas.some((q: any) => q?.isResetCredits && Number(q.creditCount ?? q.remaining ?? 0) > 0);
+  const canEditCutoff = computeCanEditCutoff(quotas);
+  const canRedeemResetCredit = computeCanRedeemResetCredit(connection.provider, quotas);
 
   return (
     <Card

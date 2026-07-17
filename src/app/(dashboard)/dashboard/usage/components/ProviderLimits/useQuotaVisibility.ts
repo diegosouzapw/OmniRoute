@@ -29,7 +29,7 @@ export function useQuotaVisibility(tr: Translate, notify: NotifyLike) {
     let alive = true;
     fetch("/api/settings", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : {}))
-      .then((s) => {
+      .then((s: { quotaVisibility?: QuotaVisibilityMap }) => {
         if (alive) setQuotaVisibility(s?.quotaVisibility || {});
       })
       .catch(() => {});
