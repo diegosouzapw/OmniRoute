@@ -1,7 +1,7 @@
 /**
  * PROBE for issue #6772 — custom OpenAI-compat <connId>/<listedModelId> 400s when the
  * connection has a user-defined `prefix` and the listed model id (from /api/models)
- * already carries that prefix baked in ("fta/vova/gpt-5.5").
+ * already carries that prefix baked in ("zzq6772/vova/gpt-5.5").
  *
  * Root cause hypothesis: in src/sse/services/model.ts getModelInfo(), when a client
  * addresses the connection by its raw internal node id (`<connId>/...`), the matching
@@ -25,7 +25,10 @@ const modelsDb = await import("../../src/lib/db/models.ts");
 const { getModelInfo } = await import("../../src/sse/services/model.ts");
 
 const CONN_ID = "openai-compatible-chat-97b0e595-probe6772";
-const PREFIX = "fta";
+// Must be a token that is NOT a registered provider id/alias, or the resolver routes to
+// that provider before the custom-node lookup. "fta" was fine until #7602 (FreeTheAi) claimed
+// it as an alias — see gateways.ts / freetheai/index.ts. Pick a collision-free placeholder.
+const PREFIX = "zzq6772";
 const RAW_MODEL_ID = "vova/gpt-5.5"; // upstream's own model id already has a slash
 
 test.before(async () => {
@@ -53,7 +56,7 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("#6772 baseline: bare alias form `fta/vova/gpt-5.5` resolves to the raw model id", async () => {
+test("#6772 baseline: bare alias form `zzq6772/vova/gpt-5.5` resolves to the raw model id", async () => {
   const info = (await getModelInfo(`${PREFIX}/${RAW_MODEL_ID}`)) as {
     provider?: string;
     model?: string;
