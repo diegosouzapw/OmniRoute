@@ -294,7 +294,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `tavily-search` | `tavily-search` | Tavily Search | Search | [link](https://tavily.com) | API key from app.tavily.com (format: tvly-...) |
 | `youcom-search` | `youcom-search` | You.com Search | Search | [link](https://you.com/business/api/) | X-API-Key from the You.com platform dashboard |
 
-## Audio-only Providers (7)
+## Audio-only Providers (8)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -303,6 +303,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `cartesia` | `cartesia` | Cartesia | Audio | [link](https://cartesia.ai) | — |
 | `deepgram` | `dg` | Deepgram | Audio | [link](https://deepgram.com) | — |
 | `elevenlabs` | `el` | ElevenLabs | Audio | [link](https://elevenlabs.io) | — |
+| `gladia` | `gladia` | Gladia | Audio | [link](https://gladia.io) | — |
 | `inworld` | `inworld` | Inworld | Audio | [link](https://inworld.ai) | — |
 | `playht` | `playht` | PlayHT | Audio | [link](https://play.ht) | — |
 

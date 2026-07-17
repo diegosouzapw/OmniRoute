@@ -159,6 +159,22 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
       { id: "elevenlabs/audio-isolation", name: "ElevenLabs Audio Isolation" },
     ],
   },
+
+  gladia: {
+    id: "gladia",
+    // POST https://api.gladia.io/v2/pre-recorded — async workflow: upload → submit → poll
+    // Auth: x-gladia-key: <API_KEY> (custom header, not a standard Bearer/Token scheme)
+    // Free tier: 10 hours/month, no credit card required
+    baseUrl: "https://api.gladia.io/v2/pre-recorded",
+    authType: "apikey",
+    authHeader: "x-gladia-key",
+    async: true,
+    format: "gladia",
+    models: [
+      { id: "solaria-1", name: "Solaria 1" },
+      { id: "solaria-mini", name: "Solaria Mini" },
+    ],
+  },
 };
 
 /**
