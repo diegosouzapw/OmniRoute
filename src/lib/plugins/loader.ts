@@ -317,7 +317,13 @@ export async function loadPlugin(
  * Uses allowlist approach — only pass explicitly safe vars.
  */
 function getFilteredEnv(permissions: Permission[]): Record<string, string> {
-  const safeKeys = ["PATH", "HOME", "USER", "LANG", "LC_ALL", "NODE_ENV"];
+  // SystemRoot/windir are not optional on Windows: node aborts during
+  // InitializeOncePerProcessInternal ("Assertion failed: ncrypto::CSPRNG") before
+  // running any script, because its CSPRNG lives under %SystemRoot%. Without these
+  // the child dies instantly, every hook times out, and — hooks being fail-open —
+  // plugins silently stop applying. They carry no secrets.
+  const platformKeys = process.platform === "win32" ? ["SystemRoot", "windir"] : [];
+  const safeKeys = ["PATH", "HOME", "USER", "LANG", "LC_ALL", "NODE_ENV", ...platformKeys];
   const extendedSafeKeys = [...safeKeys, "PORT", "HOSTNAME", "TZ", "TMPDIR"];
   const allowedKeys = permissions.includes("env") ? extendedSafeKeys : safeKeys;
   const env: Record<string, string> = {};
