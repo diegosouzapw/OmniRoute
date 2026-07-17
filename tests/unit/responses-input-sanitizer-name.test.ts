@@ -78,7 +78,9 @@ test("normalizes user image_url content parts to input_image", () => {
     {
       type: "message",
       role: "user",
-      content: [{ type: "image_url", image_url: { url: "https://example.com/u.png", detail: "high" } }],
+      content: [
+        { type: "image_url", image_url: { url: "https://example.com/u.png", detail: "high" } },
+      ],
     },
   ];
   const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
@@ -143,4 +145,20 @@ test("normalizes function_call_output image output parts to input_image", () => 
     output: [{ type: "input_image", image_url: "https://example.com/tool.png" }],
   });
   assert.equal(JSON.stringify(result).includes('"type":"image_url"'), false);
+});
+
+test("preserves custom_tool_call_output input content parts", () => {
+  const items = [
+    {
+      type: "custom_tool_call_output",
+      call_id: "call_2",
+      output: [
+        { type: "input_text", text: "image tool output" },
+        { type: "input_image", image_url: "data:image/png;base64,AAAA" },
+      ],
+    },
+  ];
+  const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
+  assert.deepEqual(result[0], items[0]);
+  assert.equal(JSON.stringify(result).includes('"type":"output_text"'), false);
 });

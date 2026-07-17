@@ -99,7 +99,10 @@ function sanitizeOutputContent(record: JsonRecord): JsonRecord {
   // Responses input. In that shape OpenAI validates `input[n].output[m].type`
   // against output content part types, so legacy Chat-style `image_url` parts
   // must be normalized here too, not only in message.content.
-  const role = record.type === "function_call_output" ? "user" : "assistant";
+  const role =
+    record.type === "function_call_output" || record.type === "custom_tool_call_output"
+      ? "user"
+      : "assistant";
   const output = record.output.map((part) => sanitizeContentPart(part, role));
   return { ...record, output };
 }
