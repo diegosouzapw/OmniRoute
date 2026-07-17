@@ -7,6 +7,7 @@
 
 import { LMARENA_DIRECT_IMAGE_MODELS } from "./providers/registry/lmarena/directModels.ts";
 import { KIE_IMAGE_MODELS } from "./providers/registry/kie/imageModels.ts";
+import { FREEPIK_IMAGE_PROVIDER } from "./providers/registry/freepik/index.ts";
 
 interface ImageModelEntry {
   id: string;
@@ -365,6 +366,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     ],
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
   },
+  freepik: FREEPIK_IMAGE_PROVIDER,
   sdwebui: {
     id: "sdwebui",
     baseUrl: "http://localhost:7860/sdapi/v1/txt2img",
