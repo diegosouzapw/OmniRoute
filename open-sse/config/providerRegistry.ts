@@ -39,6 +39,9 @@ export function generateLegacyProviders(): Record<string, LegacyProvider> {
     if (entry.responsesBaseUrl) {
       p.responsesBaseUrl = entry.responsesBaseUrl;
     }
+    if (entry.messagesUrl) {
+      p.messagesUrl = entry.messagesUrl;
+    }
     if (entry.requestDefaults) {
       p.requestDefaults = entry.requestDefaults;
     }

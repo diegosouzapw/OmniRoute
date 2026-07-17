@@ -15,7 +15,12 @@ import {
   getCodexEffectiveServiceTier,
   type CodexGlobalServiceMode,
 } from "@/lib/providers/codexFastTier";
-import { normalizeCodexLimitPolicy, providerText, ERROR_TYPE_LABELS } from "../providerPageHelpers";
+import {
+  normalizeCodexLimitPolicy,
+  providerText,
+  ERROR_TYPE_LABELS,
+} from "../providerPageHelpers";
+import { getCodexPlanLabel } from "../codexPlanLabel";
 
 // ---------------------------------------------------------------------------
 // Types (exported so the client can reference them without re-importing)
@@ -499,6 +504,7 @@ export default function ConnectionRow({
   const claudeBlockExtraUsageEnabled = isClaude
     ? isClaudeExtraUsageBlockEnabled("claude", connection.providerSpecificData)
     : false;
+  const codexPlanLabel = getCodexPlanLabel(!!isCodex, connection.providerSpecificData);
   const cliproxyapiDeepMode = !!cliproxyapiEnabled;
 
   return (
@@ -540,6 +546,11 @@ export default function ConnectionRow({
             <Badge variant={statusPresentation.statusVariant as any} size="sm" dot>
               {statusPresentation.statusLabel}
             </Badge>
+            {codexPlanLabel && (
+              <Badge variant="primary" size="sm" className="capitalize">
+                {codexPlanLabel}
+              </Badge>
+            )}
             {/* T12: Token expiry status indicator (state-driven, no Date.now in render) */}
             {/* #5836: the red "Token Expired" badge is TERMINAL-only — for OAuth
                refresh-capable providers (Antigravity/Gemini) the access token lapses

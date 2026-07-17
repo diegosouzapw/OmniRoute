@@ -79,7 +79,6 @@ test("fusion: fans out to the panel then routes a synthesis turn to the judge", 
     body: {
       messages: [{ role: "user", content: "Q" }],
       stream: true,
-      tools: [{ name: "x" }],
     },
     combo: fusionCombo(["p/a", "p/b", "p/c"], { judgeModel: "p/judge" }),
     handleSingleModel,
