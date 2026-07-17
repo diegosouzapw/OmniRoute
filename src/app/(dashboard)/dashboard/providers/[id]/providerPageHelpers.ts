@@ -222,6 +222,7 @@ export const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "snowflake",
   "searxng-search",
   "petals",
+  "comfyui",
 ]);
 
 export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
@@ -232,6 +233,7 @@ export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   siliconflow: "https://api.siliconflow.com/v1",
   "searxng-search": "http://localhost:8888/search",
   petals: "https://chat.petals.dev/api/v1/generate",
+  comfyui: "http://localhost:8188",
 };
 
 export function getLocalProviderMetadata(providerId?: string | null) {
@@ -313,6 +315,7 @@ export function getProviderBaseUrlPlaceholder(providerId?: string | null) {
       return "https://my-resource.openai.azure.com";
     case "bailian-coding-plan":
     case "xiaomi-mimo":
+    case "comfyui":
       return getProviderBaseUrlDefault(providerId);
     case "siliconflow":
       return "https://api.siliconflow.cn/v1";

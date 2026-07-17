@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Button, Input, Toggle } from "@/shared/components";
+import { Card, Button, Input, ModelSelectField, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
 import { matchesSearch } from "@/shared/utils/turkishText";
 import FusionDefaultsFields from "./FusionDefaultsFields";
@@ -632,15 +632,14 @@ export default function ComboDefaultsTab() {
               }
               className="text-sm"
             />
-            <Input
+            <ModelSelectField
               label={translateOrFallback(t, "contextRelaySummaryModel", "Summary Model")}
-              type="text"
               value={comboDefaults.handoffModel ?? ""}
               placeholder="codex/gpt-5.6-sol"
-              onChange={(e) =>
+              onChange={(v) =>
                 setComboDefaults((prev) => ({
                   ...prev,
-                  handoffModel: e.target.value,
+                  handoffModel: v,
                 }))
               }
               className="text-sm"

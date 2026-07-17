@@ -1,18 +1,10 @@
 /**
  * Video Generation Handler
  *
- * Handles POST /v1/videos/generations requests.
- * Proxies to upstream video generation providers.
- *
- * Supported provider formats:
- * - ComfyUI: submit AnimateDiff/SVD workflow → poll → fetch video
- * - SD WebUI: POST to AnimateDiff extension endpoint
- *
- * Response format (OpenAI-like):
- * {
- *   "created": 1234567890,
- *   "data": [{ "b64_json": "...", "format": "mp4" }]
- * }
+ * Handles POST /v1/videos/generations requests. Proxies to upstream video
+ * generation providers (ComfyUI AnimateDiff/SVD, SD WebUI AnimateDiff, and
+ * more — see the per-format handlers below). Response format (OpenAI-like):
+ * { "created": 1234567890, "data": [{ "b64_json": "...", "format": "mp4" }] }
  */
 
 import { getVideoProvider, parseVideoModel } from "../config/videoRegistry.ts";
@@ -21,6 +13,7 @@ import { vertexGenerateVideo } from "../executors/vertexMedia.ts";
 import { handleGoogleFlowVideoGeneration } from "./videoGeneration/googleFlowHandler.ts";
 import { handleDeepinfraVideoGeneration } from "./videoGeneration/deepinfraHandler.ts";
 import { handleLeonardoVideoGeneration } from "./videoGeneration/leonardoHandler.ts";
+import { handleXaiVideoGeneration } from "./videoGeneration/xaiGrokImagineHandler.ts";
 import { getExecutor } from "../executors/index.ts";
 import { isJsonObject, parseKieResultJson } from "../utils/kieTask.ts";
 import {
@@ -33,6 +26,7 @@ import {
   pollComfyResult,
   fetchComfyOutput,
   extractComfyOutputFiles,
+  resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { sanitizeErrorMessage } from "../utils/error.ts";
@@ -69,7 +63,16 @@ export async function handleVideoGeneration({ body, credentials, log }) {
   }
 
   if (providerConfig.format === "comfyui") {
-    return handleComfyUIVideoGeneration({ model, provider, providerConfig, body, log });
+    return handleComfyUIVideoGeneration({
+      model,
+      provider,
+      providerConfig: {
+        ...providerConfig,
+        baseUrl: resolveComfyUiBaseUrl(credentials, providerConfig.baseUrl),
+      },
+      body,
+      log,
+    });
   }
 
   if (providerConfig.format === "sdwebui-video") {
@@ -123,6 +126,10 @@ export async function handleVideoGeneration({ body, credentials, log }) {
       credentials,
       log,
     });
+  }
+
+  if (providerConfig.format === "xai-video") {
+    return handleXaiVideoGeneration({ model, provider, providerConfig, body, credentials, log });
   }
 
   return {

@@ -27,6 +27,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import type { ConnectionRowConnection } from "../components/ConnectionRow";
 import { normalizeCodexLimitPolicy } from "../providerPageHelpers";
+import { useReorderByAvailability } from "./useReorderByAvailability";
 
 // Max connection ids accepted per bulk request — mirrors API-side cap.
 const MAX_BULK_IDS = 100;
@@ -93,6 +94,8 @@ export interface UseProviderConnectionsReturn {
   handleRetestConnection: (connectionId: string) => Promise<void>;
   handleRefreshToken: (connectionId: string) => Promise<void>;
   handleSwapPriority: (conn1: any, conn2: any) => Promise<void>;
+  handleReorderByAvailability: () => Promise<void>;
+  reorderingByAvailability: boolean;
 
   // Batch handlers
   handleBatchSetActive: (isActive: boolean) => Promise<void>;
@@ -607,6 +610,16 @@ export function useProviderConnections(
     }
   };
 
+  // Reorder-by-availability toolbar action — extracted to its own hook
+  // (see useReorderByAvailability.ts) to keep this file under the file-size cap.
+  const { reorderingByAvailability, handleReorderByAvailability } = useReorderByAvailability({
+    connections,
+    setConnections,
+    fetchConnections,
+    notify,
+    t,
+  });
+
   // ────────────────────────────────────────────────────────────────────────
   // Selection handlers
   // ────────────────────────────────────────────────────────────────────────
@@ -880,6 +893,7 @@ export function useProviderConnections(
     connProxyMap,
     cpaProviderEnabled,
     refreshingId,
+    reorderingByAvailability,
 
     // Setters
     setPage,
@@ -906,6 +920,7 @@ export function useProviderConnections(
     handleRetestConnection,
     handleRefreshToken,
     handleSwapPriority,
+    handleReorderByAvailability,
 
     // Batch handlers
     handleBatchSetActive,

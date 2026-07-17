@@ -792,7 +792,13 @@ export interface ModelLatencyStatsEntry {
  * Used by auto-combo routing to incorporate real-world latency and reliability.
  */
 export async function getModelLatencyStats(
-  options: { windowHours?: number; minSamples?: number; maxRows?: number } = {}
+  options: {
+    windowHours?: number;
+    minSamples?: number;
+    maxRows?: number;
+    provider?: string;
+    model?: string;
+  } = {}
 ): Promise<Record<string, ModelLatencyStatsEntry>> {
   const windowHours =
     Number.isFinite(Number(options.windowHours)) && Number(options.windowHours) > 0
@@ -817,19 +823,28 @@ export async function getModelLatencyStats(
     latency_ms: number | null;
   };
 
+  const conditions = ["timestamp >= @sinceIso", "provider IS NOT NULL", "model IS NOT NULL"];
+  const queryParams: Record<string, unknown> = { sinceIso, maxRows };
+  if (options.provider) {
+    conditions.push("provider = @provider");
+    queryParams.provider = options.provider;
+  }
+  if (options.model) {
+    conditions.push("model = @model");
+    queryParams.model = options.model;
+  }
+
   const rows = db
     .prepare(
       `
       SELECT provider, model, success, latency_ms
       FROM usage_history
-      WHERE timestamp >= @sinceIso
-        AND provider IS NOT NULL
-        AND model IS NOT NULL
+      WHERE ${conditions.join(" AND ")}
       ORDER BY timestamp DESC
       LIMIT @maxRows
     `
     )
-    .all({ sinceIso, maxRows }) as LatencyRow[];
+    .all(queryParams) as LatencyRow[];
 
   const grouped = new Map<
     string,
