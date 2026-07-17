@@ -742,7 +742,7 @@ const checkExplicitPath = async (commandPath: string) => {
   }
 };
 
-const locateCommand = async (command: string, env: Record<string, string | undefined>) => {
+export const locateCommand = async (command: string, env: Record<string, string | undefined>) => {
   if (!command) {
     return { installed: false, commandPath: null, reason: "missing_command" };
   }
