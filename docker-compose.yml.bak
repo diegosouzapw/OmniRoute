@@ -1,0 +1,59 @@
+services:
+  redis:
+    image: docker.io/library/redis:7-alpine
+    container_name: omniroute-redis
+    restart: unless-stopped
+    networks:
+      - dockernet
+    volumes:
+      - redis-data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  omniroute:
+    image: diegosouzapw/omniroute:latest
+    container_name: omniroute
+    restart: unless-stopped
+    stop_grace_period: 40s
+    networks:
+      - dockernet
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - JWT_SECRET=6E1dyjMlUIZzIMvN5sH+3/dEzgm99HpxLKtjcAzFg1m3x17wZyF31U2i6rlYJZaF
+      - API_KEY_SECRET=3b6888cbf398a151972f193402cd193caba6ce926f20040537b82c5efcbcf964
+      - INITIAL_PASSWORD=CHANGEME
+      - DATA_DIR=/app/data
+      - REDIS_URL=redis://redis:6379
+      - PORT=20128
+      - NODE_ENV=production
+      - CONTAINER_HOST=docker
+      - AUTH_COOKIE_SECURE=false
+      - ALLOW_API_KEY_REVEAL=true
+      - OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS=true
+      - OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS=true
+      - BASE_URL=http://omniroute:20128
+      - NEXT_PUBLIC_BASE_URL=http://omniroute:20128
+    volumes:
+      - omniroute-data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.mjs"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+networks:
+  dockernet:
+    external: true
+
+volumes:
+  redis-data:
+    name: omniroute-redis-data
+  omniroute-data:
+    name: omniroute-data

@@ -784,6 +784,10 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     state.currentToolCallArgsBuffer = ""; // reset per-call arg buffer
     state.currentToolCallDeferred = false;
 
+    // Track this call_id so response.completed doesn't synthesize a duplicate
+    if (!state.toolCallIdsSeen) state.toolCallIdsSeen = new Set();
+    if (state.currentToolCallId) state.toolCallIdsSeen.add(state.currentToolCallId);
+
     const toolName = normalizeToolName(item.name);
     if (!toolName) {
       // Some Responses providers briefly emit placeholder/empty tool names.
@@ -862,6 +866,10 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     const callId = item.call_id || state.currentToolCallId || fallbackToolCallId();
     const toolName = normalizeToolName(item.name);
     const toolSchema = state.toolSchemas?.get(toolName);
+
+    // Track this call_id so response.completed doesn't synthesize a duplicate
+    if (!state.toolCallIdsSeen) state.toolCallIdsSeen = new Set();
+    if (callId) state.toolCallIdsSeen.add(callId);
 
     if (state.currentToolCallDeferred) {
       state.currentToolCallDeferred = false;
@@ -1002,7 +1010,13 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     // agent loop for downstream Chat Completions clients.
     // ---------------------------------------------------------------------------
     const outputItems = Array.isArray(data.response?.output) ? data.response.output : [];
-    const functionCallItems = outputItems.filter((item) => item?.type === "function_call");
+    // Filter out function_call items whose call_ids were already tracked via
+    // incremental events (output_item.added → .done). This prevents double-emission
+    // when the provider streams incrementally AND response.completed echoes the same
+    // function_call items in its output[] snapshot.
+    const functionCallItems = outputItems.filter(
+      (item) => item?.type === "function_call" && !state.toolCallIdsSeen?.has(item.call_id)
+    );
 
     if (functionCallItems.length > 0 && !state.finishReasonSent) {
       const synthesizedChunks: Record<string, unknown>[] = [];

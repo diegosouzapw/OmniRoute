@@ -801,3 +801,123 @@ test("Responses -> OpenAI: response.completed with function_call in output[] set
   assert.equal(result[0].choices[0].delta.role, "assistant");
   assert.equal(state.roleEmitted, true);
 });
+
+test("Responses -> OpenAI: incremental tool call events + response.completed snapshot does NOT double-emit", () => {
+  // Regression test: when a provider streams incrementally (output_item.added ->
+  // function_call_arguments.delta -> output_item.done) and then response.completed
+  // echoes the same function_call items in its output[] snapshot, we must NOT
+  // synthesize a second set of tool call chunks for already-seen call_ids.
+  const state = {};
+
+  // Phase 1: incremental events for call_a (identical to real streaming provider)
+  const added = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_a", name: "read_file" },
+    },
+    state
+  );
+  assert.ok(added, "should emit header chunk for incremental tool call");
+  assert.equal(added.choices[0].delta.tool_calls[0].id, "call_a");
+
+  const args = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.function_call_arguments.delta",
+      delta: '{"path":"/tmp/a"}',
+    },
+    state
+  );
+  assert.ok(args, "should emit args delta chunk");
+
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: {
+        type: "function_call",
+        call_id: "call_a",
+        name: "read_file",
+        arguments: { path: "/tmp/a" },
+      },
+    },
+    state
+  );
+
+  // Phase 2: incremental events for call_b
+  const addedB = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.added",
+      item: { type: "function_call", call_id: "call_b", name: "write_file" },
+    },
+    state
+  );
+  assert.ok(addedB);
+
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.function_call_arguments.delta",
+      delta: '{"path":"/tmp/b","content":"hello"}',
+    },
+    state
+  );
+
+  openaiResponsesToOpenAIResponse(
+    {
+      type: "response.output_item.done",
+      item: {
+        type: "function_call",
+        call_id: "call_b",
+        name: "write_file",
+        arguments: { path: "/tmp/b", content: "hello" },
+      },
+    },
+    state
+  );
+
+  // Phase 3: response.completed echoes BOTH call_a and call_b in output[]
+  // This is the test: the guard should skip synthesis since both call_ids were
+  // already tracked via the incremental events above.
+  const completed = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.completed",
+      response: {
+        id: "resp_combined",
+        status: "completed",
+        model: "deepseek-v4",
+        output: [
+          {
+            type: "function_call",
+            call_id: "call_a",
+            name: "read_file",
+            arguments: { path: "/tmp/a" },
+          },
+          {
+            type: "function_call",
+            call_id: "call_b",
+            name: "write_file",
+            arguments: { path: "/tmp/b", content: "hello" },
+          },
+        ],
+        usage: {
+          input_tokens: 10,
+          output_tokens: 5,
+          total_tokens: 15,
+        },
+      },
+    },
+    state
+  );
+
+  // response.completed should return a single chunk (not array of chunks)
+  // because both call_ids were already seen — no synthesis needed.
+  assert.ok(!Array.isArray(completed), "should NOT return array — no synthesis for seen call_ids");
+  assert.equal(
+    completed.choices[0].finish_reason,
+    "tool_calls",
+    "finish_reason should still be tool_calls"
+  );
+  assert.equal(completed.usage.prompt_tokens, 10);
+  assert.equal(completed.usage.completion_tokens, 5);
+
+  // toolCallIndex should be 2 (two tool calls were processed via incremental events)
+  assert.equal(state.toolCallIndex, 2, "toolCallIndex should reflect both incremental tool calls");
+});
