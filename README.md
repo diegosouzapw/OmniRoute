@@ -255,14 +255,7 @@ All **18** strategies — mix & match per combo step:
 | 🚦 **Policy**            | `hard` (block over share) · `soft` (deprioritize) · `burst` (use idle headroom) |
 | 🧱 **Cap**               | absolute ceiling per key, independent of mode                                   |
 
-```
-Pool "team-codex"   ·   1 Codex Pro account   ·   3 keys   ·   5-hour window
-  ├─ alice    weight 50  ██████████░░░░░░░░░░   ≤ 50% of the shared 5h quota
-  ├─ bob      weight 30  ██████░░░░░░░░░░░░░░   ≤ 30%
-  └─ ci-bot   weight 20  ████░░░░░░░░░░░░░░░░   ≤ 20%
-Generous mode (<50% pool used) → idle shares are lent out
-Strict mode  (≥50% pool used)  → each key held to its fair share
-```
+<img src="./docs/diagrams/pool-fair-share.svg" width="100%" alt="OmniRoute key pool 'team-codex': one Codex Pro account shared by 3 keys over a 5-hour window. alice weight 50 (up to 50% of the shared 5h quota), bob weight 30, ci-bot weight 20. In generous mode (under 50% pool used) idle shares are lent out; once the pool crosses 50% strict mode holds each key to its fair share."/>
 
 <sub>Enforced in the hot path **before** the request leaves OmniRoute, with per-(key, model) caps + session stickiness for prompt-cache integrity (now with a per-combo / global disable toggle). 📖 [Quota Sharing Engine](docs/routing/QUOTA_SHARE.md)</sub>
 
@@ -276,14 +269,7 @@ Strict mode  (≥50% pool used)  → each key held to its fair share
 | 💤 **Connection cooldown** | one account / key | Skips a rate-limited key while other keys keep serving                     |
 | 🎯 **Model lockout**       | provider + model  | Quarantines just one quota-limited model, not the whole connection         |
 
-```
-Combo: "always-on"                         Strategy: priority
-  1. cc/claude-opus-4-7   ← subscription (use it fully)
-  2. cx/gpt-5.5           ← second subscription
-  3. glm/glm-5.1          ← cheap backup ($0.5/1M)
-  4. kr/claude-sonnet-4.5 ← FREE, unlimited (never fails)
-Result: 4 layers of fallback = zero downtime
-```
+<img src="./docs/diagrams/combo-always-on.svg" width="100%" alt="OmniRoute combo 'always-on' with priority strategy: requests go to 1. cc/claude-opus-4-7 (subscription, use it fully); on failure fall through to 2. cx/gpt-5.5 (second subscription), then 3. glm/glm-5.1 (cheap backup at $0.5/1M), then 4. kr/claude-sonnet-4.5 (free, unlimited, never fails). Result: 4 layers of fallback = zero downtime."/>
 
 <sub>📖 [Auto-Combo Engine](docs/routing/AUTO-COMBO.md) · [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
