@@ -44,10 +44,14 @@ export interface LoadedPlugin {
 
 const PLUGIN_HOST_SCRIPT = `
 import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 const require = createRequire(import.meta.url);
 
+// pathToFileURL: on Windows a bare absolute path ("C:\\\\...") makes import()
+// throw ERR_UNSUPPORTED_ESM_URL_SCHEME ("C:" is parsed as a URL scheme), so no
+// plugin could ever load. file:// URLs work on every platform.
 const pluginPath = process.argv[2];
-const plugin = await import(pluginPath);
+const plugin = await import(pathToFileURL(pluginPath).href);
 const exports = plugin.default || plugin;
 
 // Send ready signal
