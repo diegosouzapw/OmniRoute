@@ -105,6 +105,7 @@ export const VIDEO_PROVIDER_IDS = new Set([
   "replicate",
   "haiper",
   "leonardo",
+  "novita",
 ]);
 
 // IDE Providers: editors with built-in AI subscription (separate section in UI).
