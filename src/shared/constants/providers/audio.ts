@@ -68,4 +68,13 @@ export const AUDIO_ONLY_PROVIDERS = {
     authHint:
       "Use AWS Secret Access Key as API key; set providerSpecificData.accessKeyId and optional region.",
   },
+  "rev-ai": {
+    id: "rev-ai",
+    alias: "revai",
+    name: "Rev AI",
+    icon: "record_voice_over",
+    color: "#FF5C35",
+    textIcon: "RV",
+    website: "https://www.rev.ai",
+  },
 };

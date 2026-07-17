@@ -159,6 +159,20 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
       { id: "elevenlabs/audio-isolation", name: "ElevenLabs Audio Isolation" },
     ],
   },
+
+  "rev-ai": {
+    id: "rev-ai",
+    baseUrl: "https://api.rev.ai/speechtotext/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    async: true,
+    format: "rev-ai",
+    models: [
+      { id: "machine", name: "Reverb ASR" },
+      { id: "low_cost", name: "Low-Cost ASR" },
+      { id: "fusion", name: "Fusion ASR" },
+    ],
+  },
 };
 
 /**
@@ -402,6 +416,31 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "cartesia/sonic-2", name: "Cartesia Sonic 2" },
       { id: "hexgrad/Kokoro-82M", name: "Kokoro 82M" },
       { id: "canopylabs/orpheus-3b-0.1-ft", name: "Orpheus 3B" },
+    ],
+  },
+
+  edgetts: {
+    id: "edgetts",
+    // Microsoft Edge "Read Aloud" — reverse-engineered, no API key required.
+    // WebSocket transport (unlike every other entry here) — handled by
+    // open-sse/executors/edgeTts.ts, dispatched via the "edgetts" format.
+    baseUrl: "wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1",
+    authType: "none",
+    authHeader: "none",
+    format: "edgetts",
+    supportedFormats: ["mp3"],
+    models: [
+      { id: "en-US-AriaNeural", name: "Aria (EN-US, Female)" },
+      { id: "en-US-GuyNeural", name: "Guy (EN-US, Male)" },
+      { id: "en-GB-SoniaNeural", name: "Sonia (EN-GB, Female)" },
+      { id: "en-GB-RyanNeural", name: "Ryan (EN-GB, Male)" },
+      { id: "es-ES-ElviraNeural", name: "Elvira (ES-ES, Female)" },
+      { id: "pt-BR-FranciscaNeural", name: "Francisca (PT-BR, Female)" },
+      { id: "pt-BR-AntonioNeural", name: "Antonio (PT-BR, Male)" },
+      { id: "fr-FR-DeniseNeural", name: "Denise (FR-FR, Female)" },
+      { id: "de-DE-KatjaNeural", name: "Katja (DE-DE, Female)" },
+      { id: "ja-JP-NanamiNeural", name: "Nanami (JA-JP, Female)" },
+      { id: "zh-CN-XiaoxiaoNeural", name: "Xiaoxiao (ZH-CN, Female)" },
     ],
   },
 

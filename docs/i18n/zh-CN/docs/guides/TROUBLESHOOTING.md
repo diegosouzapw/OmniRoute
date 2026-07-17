@@ -30,7 +30,7 @@ OmniRoute 常见问题及解决方案。
 | "401 Unauthorized"      | 凭据有误                  | 检查 API 密钥或通过 OAuth 重新认证                                                                |
 | "429 Too Many Requests" | 触发速率限制              | 等待 1 分钟，或接入更多服务商                                                                     |
 
-**还是不行？** 请参阅下方的[详细故障排除](#详细故障排除)，或前往 [Discord](https://discord.gg/EkzRkpzKYt) 提问。
+**还是不行？** 请参阅下方的[详细故障排除](#详细故障排除)，或前往 [Discord](https://discord.gg/U47eFqAXCn) 提问。
 
 ---
 
