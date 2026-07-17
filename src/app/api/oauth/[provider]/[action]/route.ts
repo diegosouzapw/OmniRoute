@@ -36,6 +36,7 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { keychainImportOnlyGuard } from "./keychainImportOnly";
+import { buildRemoteOAuthHint } from "./remoteOAuthHint";
 
 // Use globalThis to persist callback server state across Next.js HMR reloads
 if (!globalThis.__codexCallbackState) {
@@ -242,7 +243,7 @@ export async function GET(
     }
 
     if (action === "start-callback-server") {
-      return await handleStartCallbackServer(provider, searchParams);
+      return await handleStartCallbackServer(provider, searchParams, request);
     }
 
     if (action === "public-link-status") {
@@ -268,7 +269,11 @@ export async function GET(
  * Codex uses fixed port 1455; Windsurf/Devin CLI use a random free port (port 0).
  * Returns the auth URL and stores codeVerifier for later exchange.
  */
-async function handleStartCallbackServer(provider: string, searchParams: URLSearchParams) {
+async function handleStartCallbackServer(
+  provider: string,
+  searchParams: URLSearchParams,
+  request?: Request
+) {
   if (!PKCE_CALLBACK_PROVIDERS.has(provider)) {
     return NextResponse.json(
       { error: `Callback server not supported for provider: ${provider}` },
@@ -323,11 +328,23 @@ async function handleStartCallbackServer(provider: string, searchParams: URLSear
       }
     }, 300000);
 
+    // #7523: the PKCE callback server listens on the SERVER's loopback
+    // (localhost:PORT). When the operator drives the OAuth flow from a
+    // *different* machine (OmniRoute running on a remote host/VPS), the
+    // provider redirects the browser to the operator's own localhost:PORT,
+    // not the server's — so the final confirmation screen hangs forever.
+    // Detect a non-loopback Host and surface the reverse-tunnel instruction
+    // (or steer to the paste/import flow) instead of a silent hang.
+    const hostHeader =
+      request?.headers.get("x-forwarded-host") || request?.headers.get("host") || null;
+    const remoteHint = buildRemoteOAuthHint(hostHeader, port);
+
     return NextResponse.json({
       authUrl: authData.authUrl,
       codeVerifier: authData.codeVerifier,
       redirectUri,
       serverPort: port,
+      ...remoteHint,
     });
   } catch (error) {
     console.error("OAuth start-callback-server error:", error);

@@ -67,6 +67,20 @@ test("codex test probes the real /responses endpoint and treats 400 as 'auth ok'
   const headers = (calls[0].init?.headers ?? {}) as Record<string, string>;
   assert.equal(headers.Authorization, "Bearer fake-codex-token");
   assert.ok(calls[0].init?.body, "must send a minimal body so the endpoint returns 400 (not 405)");
+
+  // #7521: the probe model must be one ChatGPT-account sessions actually support.
+  // "gpt-5.3-codex" is rejected outright for ChatGPT accounts ("The 'gpt-5.3-codex'
+  // model is not supported when using Codex with a ChatGPT account."), which also
+  // returns 400 — masking a bad token behind the same status code as a good one and
+  // making the Test button always report success. Assert the probe body carries a
+  // supported model instead.
+  const parsedBody = JSON.parse(String(calls[0].init?.body));
+  assert.equal(parsedBody.model, "gpt-5.5", "probe must use a ChatGPT-account-supported model");
+  assert.notEqual(
+    parsedBody.model,
+    "gpt-5.3-codex",
+    "probe must not use the codex-only model ChatGPT accounts reject (#7521)"
+  );
 });
 
 test("codex test reports invalid when the endpoint returns 401 (port PR#347)", async (t) => {

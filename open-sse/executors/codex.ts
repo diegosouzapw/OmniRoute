@@ -675,11 +675,13 @@ export async function peekCodexSseTransientError(
     return { matched, message: extractCodexSseErrorMessage(text, matched), replacementBody: null };
   }
 
-  reader.releaseLock();
-
   // Re-assemble the stream: peeked prefix chunks, then continue draining the
-  // same underlying body so bytes downstream of the peek window are untouched.
-  const upstreamReader = response.body.getReader();
+  // SAME reader we already hold. The previous code called reader.releaseLock()
+  // and then response.body.getReader() a second time — but re-acquiring a reader
+  // on an already-disturbed body throws "Response body is already used" on
+  // undici (every non-stream Codex request 502'd, then got mis-classified as a
+  // 60s rate limit). Keep the original reader; never touch response.body again.
+  const upstreamReader = reader;
   const replacementBody = new ReadableStream<Uint8Array>({
     start(controller) {
       for (const chunk of chunks) controller.enqueue(chunk);
