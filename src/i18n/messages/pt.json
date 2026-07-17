@@ -8961,7 +8961,7 @@
     "colScore": "__MISSING__:Score",
     "colAvgScore": "__MISSING__:Avg Score",
     "colModels": "__MISSING__:Models",
-    "colType": "__MISSING__:Type"
+    "colType": "Type"
   },
   "reasoningRouting": {
     "title": "Reasoning routing policies",
@@ -9039,13 +9039,13 @@
       "remove": "Remove",
       "set": "Set fixed value"
     },
-    "colType": "__MISSING__:Type",
-    "typeAll": "__MISSING__:All Types",
-    "typeNoauth": "__MISSING__:No Signup",
-    "typeOauth": "__MISSING__:OAuth Login",
-    "typeApikey": "__MISSING__:API Key",
-    "sortTypeFirst": "__MISSING__:Easiest first",
-    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
-    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
+    "colType": "Type",
+    "typeAll": "All Types",
+    "typeNoauth": "No Signup",
+    "typeOauth": "OAuth Login",
+    "typeApikey": "API Key",
+    "sortTypeFirst": "Easiest first",
+    "sortTypeFirstHelp": "Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   }
 }
