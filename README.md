@@ -137,9 +137,9 @@
 - **Plus the un-countable** — permanently-free, no-token-cap providers (SiliconFlow, Z.AI GLM-Flash, Kilo, OpenCode Zen…) and a **$10 OpenRouter top-up** that unlocks **+24M/mo**, both surfaced separately so they never inflate the headline.
 - **Per-model breakdown**, **live used / remaining** for the current month, and a transparent **terms flag** per provider.
 
-![Free-Tier Budget card (preview mockup)](docs/screenshots/free-tier-budget-card.svg)
+<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute free-tier budget card: ~1.6B free tokens per month steady, up to ~2.1B in the first month with signup credits, from the documented free tiers of 40+ provider pools / 500+ models behind one endpoint. Honest pool-deduped math — each shared pool counted once (counting every rate limit 24/7 would read ~10B; not published), 15 providers ToS-flagged so you decide. Budget bar of the 21 countable free pools with per-model grid (Mistral Large 3 1B, GPT-4o mini 150M, LongCat 150M, Gemini 2.5 Flash 60M … Auto 25K), ~616M one-time first-month signup credits (vertex 300M, agentrouter 200M, predibase 25M, together 25M, glm-cn 20M, doubao 15M, ai21 10M, deepseek 5M, hyperbolic 5M), plus permanently-free no-token-cap providers (SiliconFlow, Z.AI GLM-Flash, Kilo, OpenCode Zen, baidu …) and a $10 OpenRouter top-up unlocking +24M/mo — surfaced separately so they never inflate the headline. Live used/remaining on /dashboard/free-tiers."/>
 
-> Preview mockup — a real screenshot lands once the `/dashboard/free-tiers` page is validated. Full methodology (pool dedupe, credit tiers, provider terms): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
+> Animated summary of the live `/dashboard/free-tiers` page. Full methodology (pool dedupe, credit tiers, provider terms): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
 
 <br/>
 
