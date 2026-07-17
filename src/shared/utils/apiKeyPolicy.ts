@@ -320,6 +320,9 @@ async function validateStandardRoutingTarget(
   const hasModelRestrictions =
     (apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) ||
     apiKeyInfo.disableNonPublicModels === true;
+  if (!requestedComboName && hasModelRestrictions && modelStr.startsWith("auto/")) {
+    requestedComboName = modelStr;
+  }
   if (!requestedComboName && hasModelRestrictions) {
     try {
       requestedComboName = await resolveRequestedComboName(modelStr);

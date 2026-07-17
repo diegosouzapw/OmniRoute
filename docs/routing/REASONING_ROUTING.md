@@ -1,78 +1,74 @@
 # Reasoning Routing
 
-Reasoning-Routing-Regeln ergänzen das bestehende Modell- und Combo-Routing. Wenn keine aktive
-Regel passt, bleibt die bisherige Thinking-, Suffix-, Verbindungsdefault- und
-Provider-Übersetzungslogik unverändert.
+Reasoning routing rules extend the existing model and combo routing. When no active rule matches,
+the existing thinking, suffix, connection-default, and provider-translation behavior remains
+unchanged.
 
-## Verwaltung
+## Management
 
-Die Regelverwaltung befindet sich unter **Settings → Global Routing**. Im API-Key-Editor steht
-dieselbe Verwaltung gefiltert auf den ausgewählten Schlüssel zur Verfügung.
+Rule management is available under **Settings → Global Routing**. The API-key editor provides the
+same management UI filtered to the selected key.
 
-Die Management-API wird von diesen realen Routen bereitgestellt:
+The management API is exposed by these routes:
 
-- `GET` und `POST` unter `/api/settings/reasoning-routing-rules`
-- `GET`, `PATCH` und `DELETE` unter `/api/settings/reasoning-routing-rules/[id]`
-- `POST` unter `/api/settings/reasoning-routing-rules/simulate`
+- `GET` and `POST` at `/api/settings/reasoning-routing-rules`
+- `GET`, `PATCH`, and `DELETE` at `/api/settings/reasoning-routing-rules/[id]`
+- `POST` at `/api/settings/reasoning-routing-rules/simulate`
 
-Alle Routen verwenden `requireManagementAuth`. Die Eingaben werden mit den Schemas in
-`src/shared/validation/schemas/reasoningRouting.ts` validiert. Der Simulator führt keinen
-Upstream-Aufruf aus.
+All routes use `requireManagementAuth`. Inputs are validated with the schemas in
+`src/shared/validation/schemas/reasoningRouting.ts`. The simulator never makes an upstream call.
 
-## Regelauflösung
+## Rule Resolution
 
-Die frühe Auswertung wählt genau eine Regel. Die Ebenen werden in dieser Reihenfolge geprüft:
+The early evaluation selects exactly one rule. Scopes are checked in this order:
 
 1. `apiKey`
 2. `combo`
 3. `model`
 4. `global`
 
-Innerhalb einer Ebene entscheidet zuerst die höhere `priority`, dann ein exakter Modelltreffer
-vor einem Glob-Muster und anschließend stabil `createdAt` und `id`. `requestTags` stammen
-ausschließlich aus `metadata.tags` und verwenden `any`- oder `all`-Matching.
+Within a scope, higher `priority` wins first, followed by an exact model match over a glob pattern,
+then stable `createdAt` and `id` ordering. `requestTags` are read exclusively from `metadata.tags`
+and support `any` or `all` matching.
 
-Eine `connection`-Regel wird nur ausgewertet, wenn keine frühe Regel gewonnen hat und bereits
-eine konkrete Provider-Verbindung ausgewählt wurde. Sie darf nur Effort und Budget ändern.
+A `connection` rule is evaluated only when no early rule won and a concrete provider connection has
+already been selected. It may change effort and budget only.
 
-## Effort und Budget
+## Effort and Budget
 
-`sourceEffort` akzeptiert `any`, `missing`, `none`, `low`, `medium`, `high`, `xhigh`, `max` und
-`ultra`. `missing` bedeutet, dass der Request weder einen diskreten Effort noch ein
-Thinking-Toggle oder Thinking-Budget enthält. Ein reines Budgetsignal wird daher nur von
-`any` erfasst.
+`sourceEffort` accepts `any`, `missing`, `none`, `low`, `medium`, `high`, `xhigh`, `max`, and
+`ultra`. `missing` means that the request contains neither a discrete effort nor a thinking toggle
+or thinking budget. A budget-only signal is therefore matched only by `any`.
 
-`effortMode` hat drei Varianten:
+`effortMode` has three variants:
 
-- `inherit` übernimmt den Client-Effort und kann trotzdem das Modell oder eine Combo ändern.
-- `default` setzt `targetEffort` nur, wenn kein explizites Reasoning-Signal vorhanden ist.
-- `force` ersetzt den diskreten Effort durch `targetEffort`.
+- `inherit` keeps the client effort while still allowing the model or combo to change.
+- `default` sets `targetEffort` only when no explicit reasoning signal is present.
+- `force` replaces the discrete effort with `targetEffort`.
 
-`budgetAction` ist unabhängig davon `preserve`, `remove` oder `set`. `force` mit `none` entfernt
-alle erkannten Effort- und Budgetfelder. `none` zusammen mit `set` ist ungültig.
+Independently, `budgetAction` can be `preserve`, `remove`, or `set`. `force` with `none` removes
+all recognized effort and budget fields. `none` together with `set` is invalid.
 
-Für bekannte inkompatible Modelle wird der Request vor dem Upstream abgelehnt. Bei Combo-Zielen
-werden inkompatible Einträge entfernt; bleibt kein Eintrag übrig, antwortet der Request mit
-Status `400`. Unbekannte Capability-Daten erzeugen eine Warnung und lassen die Regel aktiv.
+Requests targeting known-incompatible models are rejected before the upstream call. For combo
+targets, incompatible entries are removed; if none remain, the request returns status `400`.
+Unknown capability data produces a warning and leaves the rule active.
 
-## Sicherheit und Transporte
+## Security and Transports
 
-Das Quell- und Zielmodell beziehungsweise die Quell- und Ziel-Combo bleiben an die vorhandene
-API-Key-Policy gebunden. Eine Reasoning-Regel erweitert keine Modell-, Combo- oder
-Quota-Berechtigung.
+The source and target model, or source and target combo, remain subject to the existing API-key
+policy. A reasoning rule never expands model, combo, or quota permissions.
 
-Die Engine ist in Chat Completions, Responses, Anthropic Messages und dem internen
-Codex-WebSocket-Pfad eingebunden. Der WebSocket-Pfad akzeptiert nur Codex-Zielmodelle;
-Combo-Ziele sind dort nicht ausführbar. Die Regelentscheidung wird ohne Secrets im vorhandenen
-Route Trace gespeichert.
+The engine is integrated into Chat Completions, Responses, Anthropic Messages, and the internal
+Codex WebSocket path. The WebSocket path accepts Codex target models only; combo targets cannot be
+executed there. The rule decision is stored in the existing route trace without secrets.
 
-## Persistenz
+## Persistence
 
-Die Migration `src/lib/db/migrations/123_reasoning_routing_rules.sql` erstellt die Tabelle
-`reasoning_routing_rules`. Regeln referenzieren gespeicherte API-Keys, Combos und
-Provider-Verbindungen. Löschungen räumen zugehörige Regeln auf. Der DB-Zugriff in
-`src/lib/db/reasoningRoutingRules.ts` hält ein invalidierbares Cache-Abbild für den Request-Pfad.
+The migration `src/lib/db/migrations/124_reasoning_routing_rules.sql` creates the
+`reasoning_routing_rules` table. Rules reference stored API keys, combos, and provider connections.
+Deletes clean up related rules. The database access layer in
+`src/lib/db/reasoningRoutingRules.ts` maintains an invalidatable cache for the request path.
 
-Regeln werden in SQLite-Backups, dem vollständigen DB-Export und dem Config-Sync-Bundle
-berücksichtigt. `reconcileReasoningRulesForSync` deaktiviert importierte Regeln mit fehlenden
-Referenzen und meldet dafür Konflikte.
+Rules are included in SQLite backups, the full database export, and the config-sync bundle.
+`reconcileReasoningRulesForSync` disables imported rules with missing references and reports those
+conflicts.
