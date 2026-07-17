@@ -1,0 +1,1 @@
+- **feat(sse):** add native xAI Grok Imagine video generation provider — `xai/grok-imagine-video` on `/v1/videos/generations` using your own xAI key, instead of only via the kie proxy market. (thanks @anndev-69)

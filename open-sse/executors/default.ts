@@ -52,6 +52,7 @@ import {
   normalizeGigachatChatUrl,
 } from "@/lib/providers/validation/urlHelpers";
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
+import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -242,10 +243,9 @@ export class DefaultExecutor extends BaseExecutor {
         return normalizeOpenAIChatUrl(baseUrl);
       }
       case "zai":
-      case "glm-coding-apikey": {
-        const zaiBaseUrl = this.resolveBaseUrl(credentials);
-        return `${zaiBaseUrl}?beta=true`;
-      }
+      case "glm-coding-apikey":
+        // #7364: format override extracted to zaiFormatOverride.ts (file-size ratchet).
+        return resolveZaiUrl(credentials, (fallback) => this.resolveBaseUrl(credentials, fallback));
       case "claude":
       case "glm":
       case "glmt":

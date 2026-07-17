@@ -4,6 +4,9 @@
  * OmniRoute CLI entry point.
  *
  * Special bypasses (handled before Commander):
+ *   --version / -V (alone)    Fast-path: print the version and exit, skipping the
+ *                             tsx/esm + polyfill imports, env-file loading, and
+ *                             Commander's ~70-command registration entirely.
  *   --mcp                     Start MCP server over stdio
  *   reset-encrypted-columns   Recovery tool for broken encrypted credentials
  *   reset-password            Reset the admin/management password
@@ -19,16 +22,32 @@ import { isNativeBinaryCompatible } from "../scripts/build/native-binary-compat.
 import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSupport.mjs";
 import { getDefaultDataDir } from "./cli/data-dir.mjs";
 import { shouldProvisionStorageKey } from "./cli/utils/storageKeyProvision.mjs";
+import { isVersionFastPath } from "./cli/utils/versionFastPath.mjs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const ROOT = join(__dirname, "..");
+
+// Fast-path a bare `--version`/`-V` query BEFORE the tsx/esm registration, the
+// polyfill import, env-file loading, or Commander's command registration (~70
+// modules — DB, providers, OAuth, etc.) run. None of that work is needed to answer
+// "what version is this" — mirrors upstream 9router PR #2414 (fast-path help/version
+// ahead of expensive self-heal hooks), adapted to OmniRoute's Commander CLI where the
+// equivalent expensive work is eager command registration rather than npm-install-based
+// runtime self-healing. `--help` is intentionally NOT fast-pathed here: its output is
+// generated dynamically from every registered subcommand, so skipping registration
+// would truncate the help text instead of just speeding it up.
+if (isVersionFastPath(process.argv)) {
+  const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+  console.log(pkg.version);
+  process.exit(0);
+}
 
 // Register tsx so dynamic imports of .ts source files (referenced as .js per
 // TypeScript conventions) resolve correctly. The build never emits .js for
 // src/lib/cli-helper/, so tsx handles the .ts → .js resolution at runtime.
 await import("tsx/esm");
 await import("../open-sse/utils/setupPolyfill.ts");
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const ROOT = join(__dirname, "..");
 
 // MCP stdio transport uses stdout exclusively for JSON-RPC messages.
 // Redirect console.log/warn to stderr early (before loadEnvFile and DB init)

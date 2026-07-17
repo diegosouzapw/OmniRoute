@@ -1,7 +1,7 @@
 ---
 title: "Diagrams"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.49
+lastUpdated: 2026-07-17
 ---
 
 # Diagrams
@@ -20,6 +20,16 @@ Mermaid sources (`.mmd`) and exported SVGs for OmniRoute v3.8.0 architecture flo
 | [cloud-agent-flow.mmd](./cloud-agent-flow.mmd)       | [SVG](./exported/cloud-agent-flow.svg)    | docs/frameworks/CLOUD_AGENT.md                                                 |
 | [authz-pipeline.mmd](./authz-pipeline.mmd)           | [SVG](./exported/authz-pipeline.svg)      | docs/architecture/AUTHZ_GUIDE.md                                               |
 | [db-schema-overview.mmd](./db-schema-overview.mmd)   | [SVG](./exported/db-schema-overview.svg)  | docs/architecture/CODEBASE_DOCUMENTATION.md                                    |
+
+## Hand-authored animated diagrams
+
+Not every diagram comes from a `.mmd` source. Hand-authored SVGs live at this
+directory's root and animate with SMIL only (no JS, no external fonts), so they play
+inside GitHub's `<img>` sandbox:
+
+| File                                     | Used in          | Notes                                                                        |
+| ---------------------------------------- | ---------------- | ---------------------------------------------------------------------------- |
+| [tier-cascade.svg](./tier-cascade.svg)   | README.md (root) | Animated 4-tier auto-fallback cascade (16s loop, 4 acts). Edit the SVG directly — there is no `.mmd` source. |
 
 ## How to update
 

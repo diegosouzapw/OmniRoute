@@ -20,6 +20,7 @@ import {
   verifyManagementPassword,
 } from "@/lib/auth/managementPassword";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { isPaidModelTarget } from "@/shared/utils/freeModels";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance";
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 import { isCliTokenAuthValid } from "@/lib/middleware/cliTokenAuth";
@@ -291,6 +292,30 @@ export async function PATCH(request: Request) {
               },
             },
             { status: 401 }
+          );
+        }
+      }
+    }
+
+    // #6540: reject a paid-only webSearchRouteModel target when hidePaidModels
+    // is on. Business-rule check (needs an async DB read), so it runs after
+    // Zod shape validation rather than as a Zod .refine(). Fails open on
+    // "unknown" (aliases/combo names) — only a positively-identified paid
+    // catalog entry is blocked.
+    if (typeof body.webSearchRouteModel === "string" && body.webSearchRouteModel.trim() !== "") {
+      const currentSettings = await getSettings();
+      if ((currentSettings as Record<string, unknown>)?.hidePaidModels === true) {
+        if (isPaidModelTarget(body.webSearchRouteModel) === "paid") {
+          emitSettingsFailureAudit(request, actor, "PAID_MODEL_TARGET_BLOCKED", attemptedKeys);
+          return NextResponse.json(
+            {
+              error: {
+                code: "PAID_MODEL_TARGET_BLOCKED",
+                message:
+                  "This field cannot target a paid-only model while 'Hide paid models' is enabled.",
+              },
+            },
+            { status: 400 }
           );
         }
       }

@@ -519,7 +519,7 @@ jobs:
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
       - name: Fetch base branch
-        run: git fetch --no-tags origin "${GITHUB_BASE_REF}" --depth=1
+        run: git fetch --no-tags origin "${GITHUB_BASE_REF}"
       - name: Validate source changes include tests
         run: node scripts/check/check-pr-test-policy.mjs --summary-file .artifacts/pr-test-policy.md
       # Anti test-masking: flag net assert removal / new assert.ok(true) in changed tests.
