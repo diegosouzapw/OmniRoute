@@ -1,10 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { createProviderConnection } from "@/lib/db/providers";
 import {
   parseRetryAfterHeader,
   detectTestKind,
   extractProviderErrorMessage,
   extractModelTestResponseText,
+  runSingleModelTest,
   resolveModelTestTimeoutMs,
 } from "@/lib/api/modelTestRunner.ts";
 
@@ -149,4 +151,55 @@ test("extractModelTestResponseText preserves SSE error status for transient clas
     text: "",
     error: { message: "Rate limit exceeded", statusCode: 429 },
   });
+});
+
+test("runSingleModelTest preserves slow timeout after chatCore converts AbortError to a Response", async () => {
+  const connection = await createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "model-test-timeout-regression",
+    apiKey: "sk-model-test-timeout-regression",
+    isActive: true,
+    testStatus: "active",
+  });
+  const originalFetch = globalThis.fetch;
+  let upstreamSignal: AbortSignal | null = null;
+  let upstreamCalled = false;
+
+  globalThis.fetch = async (_input, init = {}) => {
+    upstreamCalled = true;
+    upstreamSignal = (init.signal as AbortSignal | null | undefined) ?? null;
+    return new Promise<Response>((_resolve, reject) => {
+      let fallbackTimer: ReturnType<typeof setTimeout>;
+      const rejectOnAbort = () => {
+        clearTimeout(fallbackTimer);
+        reject(new DOMException("The operation was aborted", "AbortError"));
+      };
+      fallbackTimer = setTimeout(rejectOnAbort, 1_500);
+
+      if (upstreamSignal?.aborted) {
+        rejectOnAbort();
+      } else {
+        upstreamSignal?.addEventListener("abort", rejectOnAbort, { once: true });
+      }
+    });
+  };
+
+  try {
+    const result = await runSingleModelTest({
+      providerId: "openai",
+      modelId: "gpt-4o",
+      connectionId: String(connection.id),
+      timeoutMs: 1_000,
+    });
+
+    assert.equal(upstreamCalled, true);
+    assert.ok(upstreamSignal, "the chat completion request should receive an abort signal");
+    assert.equal(result.status, "slow");
+    assert.equal(result.httpStatus, 504);
+    assert.equal(result.isTimeout, true);
+    assert.equal(result.error, "No model output within 1s");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
