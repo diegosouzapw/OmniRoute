@@ -170,6 +170,17 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "1024x1536", "1536x1024"],
   },
 
+  "microsoft-designer-web": {
+    id: "microsoft-designer-web",
+    alias: "msdesigner",
+    baseUrl: "https://designerapp.officeapps.live.com/designerapp/DallE.ashx?action=GetDallEImagesCogSci",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "designer-web",
+    models: [{ id: "dall-e-3", name: "DALL-E 3 (Microsoft Designer Web)" }],
+    supportedSizes: ["1024x1024", "1792x1024", "1024x1792"],
+  },
+
   xai: {
     id: "xai",
     baseUrl: "https://api.x.ai/v1/images/generations",

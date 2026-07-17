@@ -64,6 +64,7 @@ import {
   CHATGPT_WEB_IMAGE_ID_RE,
 } from "./imageGeneration/providers/chatgptWeb.ts";
 import { handleNvidiaNimImageGeneration } from "./imageGeneration/providers/nvidiaNim.ts";
+import { handleDesignerWebImageGeneration } from "./imageGeneration/providers/designerWeb.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
 
 
@@ -459,6 +460,17 @@ export async function handleImageGeneration({
       log,
       signal,
       clientHeaders,
+    });
+  }
+
+  if (providerConfig.format === "designer-web") {
+    return handleDesignerWebImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
     });
   }
 

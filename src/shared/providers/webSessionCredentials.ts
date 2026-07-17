@@ -109,6 +109,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: false,
     storageKeys: ["token", "access_token", "accessToken"],
   },
+  "microsoft-designer-web": {
+    kind: "token",
+    credentialName: "access_token",
+    placeholder: "access_token=... (Authorization: Bearer header from the DallE.ashx request)",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "access_token", "accessToken"],
+  },
   "copilot-m365-web": {
     kind: "token",
     credentialName: "access_token + chathubPath",
