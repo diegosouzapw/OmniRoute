@@ -37,8 +37,8 @@ const vietnameseByKey = new Map(vietnameseMessages.map((entry) => [entry.key, en
 
 test("Vietnamese locale has complete key parity with English", () => {
   assert.deepEqual(
-    vietnameseMessages.map((entry) => entry.key),
-    englishMessages.map((entry) => entry.key)
+    vietnameseMessages.map((entry) => entry.key).sort(),
+    englishMessages.map((entry) => entry.key).sort()
   );
 });
 
