@@ -159,6 +159,20 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
       { id: "elevenlabs/audio-isolation", name: "ElevenLabs Audio Isolation" },
     ],
   },
+
+  "rev-ai": {
+    id: "rev-ai",
+    baseUrl: "https://api.rev.ai/speechtotext/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    async: true,
+    format: "rev-ai",
+    models: [
+      { id: "machine", name: "Reverb ASR" },
+      { id: "low_cost", name: "Low-Cost ASR" },
+      { id: "fusion", name: "Fusion ASR" },
+    ],
+  },
 };
 
 /**
