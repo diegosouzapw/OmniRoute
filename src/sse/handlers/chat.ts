@@ -1727,6 +1727,13 @@ async function handleSingleModelChat(
       // Our own timeout fired on a slow upstream; don't cool down a healthy account.
       const skipConnectionDisable =
         result.status === 499 ||
+        // A plugin refused the request — our own policy, not a provider fault. Banning
+        // the account here would let a working security plugin destroy the connection it
+        // protects: one block bans the provider for every later request, valid ones
+        // included. It also stops the pointless retry across other accounts, since the
+        // plugin would refuse those identically.
+        result.errorType === "plugin_block" ||
+        result.errorCode === "plugin_block" ||
         result.errorCode === "client_disconnected" ||
         result.errorType === "client_disconnected" ||
         (is401 && hasExtraKeys) ||

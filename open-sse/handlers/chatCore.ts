@@ -458,6 +458,12 @@ export async function handleChatCore({
     return {
       success: false,
       status: 403,
+      // Label the source: this 403 is our own policy decision, not the provider
+      // rejecting us. Unlabelled, it is indistinguishable from a real upstream 403
+      // and gets the connection banned. Matches the type already sent to the client
+      // in pluginOnRequest.ts.
+      errorType: "plugin_block",
+      errorCode: "plugin_block",
       error: "Request blocked by plugin",
       response: pluginGate.response,
     };
@@ -3339,7 +3345,13 @@ export async function handleChatCore({
           // otherwise degenerate into a 429 rate-limit storm). Connection stays
           // active since only the specific model is unavailable. (#6827)
           const notFoundCooldownMs = COOLDOWN_MS.notFound;
-          lockModel(provider, errorConnectionId, currentModel, "model_not_found", notFoundCooldownMs);
+          lockModel(
+            provider,
+            errorConnectionId,
+            currentModel,
+            "model_not_found",
+            notFoundCooldownMs
+          );
           console.warn(
             `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
           );
