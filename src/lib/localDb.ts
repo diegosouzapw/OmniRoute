@@ -312,7 +312,7 @@ export type { FileRecord } from "./db/files";
 export type { BatchItemCheckpoint, BatchRecord } from "./db/batches";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
-export * from "./reasoningRouting/db";
+export * from "./db/reasoningRoutingRules";
 export {
   // Webhooks
   getWebhooks,
