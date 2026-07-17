@@ -1600,6 +1600,29 @@
       "stream": "https://api.freemodel.dev/v1/chat/completions"
     }
   },
+  "freetheai": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.freetheai.xyz/v1/chat/completions",
+      "stream": "https://api.freetheai.xyz/v1/chat/completions"
+    }
+  },
   "friendliai": {
     "format": "openai",
     "headers": {
