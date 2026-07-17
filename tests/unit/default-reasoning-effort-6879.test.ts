@@ -137,3 +137,70 @@ test("a lane known to reject reasoning_effort still drops it downstream (delete-
   const stripped = stripUnsupportedParams("github", "claude-3-5-sonnet", body);
   assert.equal("reasoning_effort" in stripped, false);
 });
+
+// ---------------------------------------------------------------------------
+// #7631: the same-format /v1/responses lane (source === target === OPENAI_RESPONSES)
+// skips translateRequest's hub-and-spoke translation block entirely, so a stray
+// top-level `reasoning_effort` (set upstream by applyNoThinkingAlias on the OpenAI
+// path, before model-format resolution knows the target lane is Responses-native)
+// must still be promoted into the Responses-shaped `reasoning.effort`, or thinking
+// suppression silently does not take effect on that lane.
+// ---------------------------------------------------------------------------
+
+test("7631: translateRequest promotes a stray top-level reasoning_effort into reasoning.effort on the same-format OPENAI_RESPONSES lane", async () => {
+  const { translateRequest } = await import("../../open-sse/translator/index.ts");
+  const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+
+  const body: Record<string, unknown> = {
+    model: "gpt-5.1-codex",
+    input: [{ type: "message", role: "user", content: [{ type: "input_text", text: "hi" }] }],
+    reasoning_effort: "none",
+  };
+
+  const result = translateRequest(
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.OPENAI_RESPONSES,
+    "gpt-5.1-codex",
+    body
+  );
+
+  assert.equal("reasoning_effort" in result, false);
+  assert.deepEqual(result.reasoning, { effort: "none" });
+});
+
+test("7631: same-format OPENAI_RESPONSES lane leaves an explicit reasoning object untouched (no double-promotion)", async () => {
+  const { translateRequest } = await import("../../open-sse/translator/index.ts");
+  const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+
+  const body: Record<string, unknown> = {
+    model: "gpt-5.1-codex",
+    input: [{ type: "message", role: "user", content: [{ type: "input_text", text: "hi" }] }],
+    reasoning: { effort: "high", summary: "auto" },
+  };
+
+  const result = translateRequest(
+    FORMATS.OPENAI_RESPONSES,
+    FORMATS.OPENAI_RESPONSES,
+    "gpt-5.1-codex",
+    body
+  );
+
+  assert.deepEqual(result.reasoning, { effort: "high", summary: "auto" });
+  assert.equal("reasoning_effort" in result, false);
+});
+
+test("7631: cross-format openai -> openai-responses promotion is unchanged (no regression)", async () => {
+  const { translateRequest } = await import("../../open-sse/translator/index.ts");
+  const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+
+  const body: Record<string, unknown> = {
+    model: "gpt-5.1-codex",
+    messages: [{ role: "user", content: "hi" }],
+    reasoning_effort: "none",
+  };
+
+  const result = translateRequest(FORMATS.OPENAI, FORMATS.OPENAI_RESPONSES, "gpt-5.1-codex", body);
+
+  assert.equal("reasoning_effort" in result, false);
+  assert.deepEqual(result.reasoning, { effort: "none" });
+});
