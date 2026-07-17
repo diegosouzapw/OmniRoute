@@ -128,6 +128,8 @@ const RANGE_OPTIONS: Array<{ value: CostRange; labelKey: string }> = [
   { value: "7d", labelKey: "range7d" },
   { value: "30d", labelKey: "range30d" },
   { value: "90d", labelKey: "range90d" },
+  { value: "180d", labelKey: "range180d" },
+  { value: "365d", labelKey: "range365d" },
   { value: "all", labelKey: "rangeAll" },
 ];
 
