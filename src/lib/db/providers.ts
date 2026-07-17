@@ -621,8 +621,9 @@ export async function clearConnectionErrorIfUnchanged(
   }
 ): Promise<boolean> {
   const db = getDbInstance() as unknown as DbLike;
-  const result = db.prepare(
-    `
+  const result = db
+    .prepare(
+      `
     UPDATE provider_connections SET
       test_status = 'active',
       last_error = NULL,
@@ -638,13 +639,14 @@ export async function clearConnectionErrorIfUnchanged(
       AND IFNULL(last_error_at, '') = ?
       AND IFNULL(rate_limited_until, '') = ?
     `
-  ).run(
-    new Date().toISOString(),
-    id,
-    expected.testStatus ?? "",
-    expected.lastErrorAt ?? "",
-    expected.rateLimitedUntil ?? ""
-  );
+    )
+    .run(
+      new Date().toISOString(),
+      id,
+      expected.testStatus ?? "",
+      expected.lastErrorAt ?? "",
+      expected.rateLimitedUntil ?? ""
+    );
   const applied = (result.changes ?? 0) > 0;
   if (applied) {
     backupDbFile("pre-write");
@@ -806,6 +808,42 @@ export function autoMigrateLegacyEncryptedConnections(): number {
   }
 
   return migratedCount;
+}
+
+export function getGheCopilotHosts(): string[] {
+  const hosts = new Set<string>();
+  try {
+    const db = getDbInstance();
+    const rows = db
+      .prepare(
+        "SELECT provider_specific_data FROM provider_connections WHERE provider = 'ghe-copilot' AND is_active = 1"
+      )
+      .all() as { provider_specific_data: string | null }[];
+    for (const row of rows) {
+      if (!row.provider_specific_data) continue;
+      try {
+        const psd = JSON.parse(row.provider_specific_data);
+        const urls = [psd.gheUrl, psd.copilotApiUrl, psd.copilotProxyUrl];
+        for (const urlStr of urls) {
+          if (typeof urlStr === "string" && urlStr.trim()) {
+            try {
+              const url = new URL(urlStr);
+              if (url.hostname) {
+                hosts.add(url.hostname.toLowerCase());
+              }
+            } catch {
+              // Ignore invalid URLs
+            }
+          }
+        }
+      } catch {
+        // Ignore JSON parse errors
+      }
+    }
+  } catch (err) {
+    console.error("[DB] getGheCopilotHosts: failed to read GHE Copilot connections", err);
+  }
+  return [...hosts];
 }
 
 // ──────────────── Re-exports from leaf modules ────────────────

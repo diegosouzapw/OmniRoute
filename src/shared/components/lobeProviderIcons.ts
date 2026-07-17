@@ -371,6 +371,7 @@ const LOBE_PROVIDER_ALIASES = {
   github: "GithubCopilot",
   "github-models": "Github",
   "github-copilot": "GithubCopilot",
+  "ghe-copilot": "GithubCopilot",
   glm: "Zhipu",
   "glm-cn": "Zhipu",
   glmt: "Zhipu",

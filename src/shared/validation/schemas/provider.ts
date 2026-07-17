@@ -93,6 +93,21 @@ export const createProviderSchema = z
         path: ["providerSpecificData", "cx"],
       });
     }
+
+    const gheUrl =
+      data.providerSpecificData && typeof data.providerSpecificData === "object"
+        ? (data.providerSpecificData as Record<string, unknown>).gheUrl
+        : undefined;
+    if (
+      data.provider === "ghe-copilot" &&
+      (typeof gheUrl !== "string" || gheUrl.trim().length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "GitHub Enterprise URL (gheUrl) is required",
+        path: ["providerSpecificData", "gheUrl"],
+      });
+    }
   });
 
 export const bulkCreateProviderSchema = z
@@ -130,6 +145,19 @@ export const bulkCreateProviderSchema = z
           code: z.ZodIssueCode.custom,
           message: "Programmable Search Engine ID (cx) is required",
           path: ["providerSpecificData", "cx"],
+        });
+      }
+    }
+    if (data.provider === "ghe-copilot") {
+      const gheUrl =
+        data.providerSpecificData && typeof data.providerSpecificData === "object"
+          ? (data.providerSpecificData as Record<string, unknown>).gheUrl
+          : undefined;
+      if (typeof gheUrl !== "string" || gheUrl.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "GitHub Enterprise URL (gheUrl) is required",
+          path: ["providerSpecificData", "gheUrl"],
         });
       }
     }

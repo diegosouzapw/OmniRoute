@@ -1,4 +1,5 @@
-import { GITHUB_CONFIG } from "../constants/oauth";
+import { GHE_COPILOT_CONFIG } from "../constants/oauth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 /**
  * GHE Copilot OAuth provider.
@@ -17,7 +18,7 @@ function normalizeGheUrl(value: unknown): string {
 }
 
 export const gheCopilot = {
-  config: GITHUB_CONFIG,
+  config: GHE_COPILOT_CONFIG,
   flowType: "device_code" as const,
   requestDeviceCode: async (config: any) => {
     const gheUrl = normalizeGheUrl(config.gheUrl);
@@ -57,7 +58,7 @@ export const gheCopilot = {
       data = await response.json();
     } catch (e) {
       const text = await response.text();
-      data = { error: "invalid_response", error_description: text };
+      data = { error: "invalid_response", error_description: sanitizeErrorMessage(text) };
     }
     return {
       ok: response.ok,
@@ -70,8 +71,8 @@ export const gheCopilot = {
       headers: {
         Authorization: `Bearer ${tokens.access_token}`,
         Accept: "application/json",
-        "X-GitHub-Api-Version": GITHUB_CONFIG.apiVersion,
-        "User-Agent": GITHUB_CONFIG.userAgent,
+        "X-GitHub-Api-Version": GHE_COPILOT_CONFIG.apiVersion,
+        "User-Agent": GHE_COPILOT_CONFIG.userAgent,
       },
     });
     const copilotToken = copilotRes.ok ? await copilotRes.json() : {};
@@ -79,8 +80,8 @@ export const gheCopilot = {
       headers: {
         Authorization: `Bearer ${tokens.access_token}`,
         Accept: "application/json",
-        "X-GitHub-Api-Version": GITHUB_CONFIG.apiVersion,
-        "User-Agent": GITHUB_CONFIG.userAgent,
+        "X-GitHub-Api-Version": GHE_COPILOT_CONFIG.apiVersion,
+        "User-Agent": GHE_COPILOT_CONFIG.userAgent,
       },
     });
     const userInfo = userRes.ok ? await userRes.json() : {};

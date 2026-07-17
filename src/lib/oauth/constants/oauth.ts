@@ -244,6 +244,22 @@ export const GITHUB_CONFIG = {
   editorPluginVersion: GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
 };
 
+// GitHub Enterprise (GHE) Copilot OAuth Configuration (Device Code Flow)
+export const GHE_COPILOT_CONFIG = {
+  clientId:
+    process.env.GHE_COPILOT_OAUTH_CLIENT_ID ||
+    resolvePublicCred("github_copilot_id", "GITHUB_OAUTH_CLIENT_ID"),
+  deviceCodeUrl: "", // Derived dynamically in provider flow
+  tokenUrl: "", // Derived dynamically in provider flow
+  userInfoUrl: "", // Derived dynamically in provider flow
+  scopes: "read:user",
+  apiVersion: GITHUB_COPILOT_API_VERSION,
+  copilotTokenUrl: "", // Derived dynamically in provider flow
+  userAgent: GITHUB_COPILOT_CHAT_USER_AGENT,
+  editorVersion: GITHUB_COPILOT_EDITOR_VERSION,
+  editorPluginVersion: GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
+};
+
 const GITLAB_DUO_ENDPOINTS = buildGitLabOAuthEndpoints(GITLAB_DUO_DEFAULT_BASE_URL);
 
 export const GITLAB_DUO_CONFIG = {

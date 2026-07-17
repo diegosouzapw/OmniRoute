@@ -575,7 +575,8 @@ export async function POST(
         );
       } else if (provider === "ghe-copilot") {
         // GHE Copilot needs gheUrl threaded through poll → postExchange
-        const gheUrl = body.gheUrl || (extraData && extraData.gheUrl);
+        const gheUrl =
+          extraData && typeof extraData === "object" ? (extraData as any).gheUrl : undefined;
         result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode, null, gheUrl ? { gheUrl } : undefined)
         );

@@ -7,6 +7,7 @@ import { addDNSEntry, addDNSEntries } from "./dnsConfig.ts";
 import { ALL_TARGETS } from "../targets/index.ts";
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
 import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
+import { getGheCopilotHosts } from "@/lib/db/providers.ts";
 import { createLogger } from "@/shared/utils/logger.ts";
 
 const defaultLog = createLogger("mitm-dns-provision");
@@ -68,6 +69,9 @@ export async function provisionDnsEntries(
       const target = ALL_TARGETS.find((t) => t.id === state.agent_id);
       if (target) {
         agentHostsToAdd.push(...target.hosts);
+        if (target.id === "ghe-copilot") {
+          agentHostsToAdd.push(...getGheCopilotHosts());
+        }
       }
     }
     if (agentHostsToAdd.length > 0) {

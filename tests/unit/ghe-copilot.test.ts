@@ -36,7 +36,7 @@ test("buildUrl uses gheUrl for responses endpoint with codex model", () => {
     providerSpecificData: { gheUrl: "https://ghe.company.com" },
   };
   const url = executor.buildUrl("gpt-4o-codex", true, 0, credentials);
-  assert.strictEqual(url, "https://ghe.company.com/responses");
+  assert.strictEqual(url, "https://ghe.company.com/chat/completions");
 });
 
 test("buildUrl handles gheUrl with trailing slash", () => {
@@ -72,10 +72,9 @@ test("buildUrl throws without gheUrl in credentials", () => {
     clientSecret: "test-secret",
   });
   const credentials: ProviderCredentials = { providerSpecificData: {} };
-  assert.throws(
-    () => executor.buildUrl("gpt-4o", true, 0, credentials),
-    { message: "GHE Copilot executor requires gheUrl in providerSpecificData" }
-  );
+  assert.throws(() => executor.buildUrl("gpt-4o", true, 0, credentials), {
+    message: "GHE Copilot executor requires gheUrl in providerSpecificData",
+  });
 });
 
 test("refreshCopilotToken delegates to GHE token endpoint", async () => {
@@ -88,7 +87,7 @@ test("refreshCopilotToken delegates to GHE token endpoint", async () => {
     providerSpecificData: { gheUrl: "https://ghe.company.com" },
     copilotToken: "test-token",
   };
-  
+
   const result = await executor.refreshCopilotToken("github-access-token", undefined, credentials);
   assert.strictEqual(result, null);
 });
@@ -102,7 +101,7 @@ test("refreshGitHubToken delegates to GHE OAuth endpoint", async () => {
   const credentials: ProviderCredentials = {
     providerSpecificData: { gheUrl: "https://ghe.company.com" },
   };
-  
+
   const result = await executor.refreshGitHubToken("refresh-token", undefined, credentials);
   assert.strictEqual(result, null);
 });
