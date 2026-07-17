@@ -58,6 +58,7 @@ export const IMAGE_ONLY_PROVIDER_IDS = new Set([
   "black-forest-labs",
   "recraft",
   "topaz",
+  "segmind",
 ]);
 
 export const AGGREGATOR_PROVIDER_IDS = new Set([
@@ -105,6 +106,7 @@ export const VIDEO_PROVIDER_IDS = new Set([
   "replicate",
   "haiper",
   "leonardo",
+  "segmind",
 ]);
 
 // IDE Providers: editors with built-in AI subscription (separate section in UI).

@@ -7,6 +7,7 @@
 
 import { parseModelFromRegistry, getAllModelsFromRegistry } from "./registryUtils.ts";
 import { RUNWAYML_SUPPORTED_VIDEO_MODELS } from "./runway.ts";
+import { SEGMIND_VIDEO_MODELS } from "./providers/registry/segmind/videoModels.ts";
 
 interface VideoModel {
   id: string;
@@ -204,6 +205,18 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     authHeader: "bearer",
     format: "dashscope-video",
     models: [{ id: "wan2.7-t2v", name: "Wan 2.7 T2V" }],
+  },
+
+  // Segmind video generation (#6656). Same `POST /v1/{model}` REST shape as
+  // the image registry entry (imageRegistry.ts) — x-api-key auth, raw video
+  // bytes response — routed through the dedicated "segmind" format handler.
+  segmind: {
+    id: "segmind",
+    baseUrl: "https://api.segmind.com/v1",
+    authType: "apikey",
+    authHeader: "x-api-key",
+    format: "segmind",
+    models: SEGMIND_VIDEO_MODELS,
   },
 };
 

@@ -6,7 +6,7 @@
 
 # 🚀 OmniRoute — The Free AI Gateway
 
-### Never stop coding. Connect every AI tool to **250 providers** — **90+ free** — through one endpoint.
+### Never stop coding. Connect every AI tool to **251 providers** — **90+ free** — through one endpoint.
 
 **Plug Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini. Auto-fallback.**
 <br/>
@@ -149,11 +149,11 @@
 
 </div>
 
-> One endpoint. **250 providers.** Never stop building — and let OmniRoute pick the cheapest one that works.
+> One endpoint. **251 providers.** Never stop building — and let OmniRoute pick the cheapest one that works.
 
 <table>
   <tr>
-    <td width="33%" valign="top"><b>🚫 Never hit limits</b><br/><sub>Auto-fallback across 250 providers in milliseconds. Quota out? Next provider takes over — zero downtime.</sub></td>
+    <td width="33%" valign="top"><b>🚫 Never hit limits</b><br/><sub>Auto-fallback across 251 providers in milliseconds. Quota out? Next provider takes over — zero downtime.</sub></td>
     <td width="33%" valign="top"><b>💸 Save up to 95% tokens</b><br/><sub>RTK + Caveman stacked compression cuts 15–95% of eligible tokens (~89% avg on tool-heavy sessions).</sub></td>
     <td width="33%" valign="top"><b>🆓 $0 to start</b><br/><sub>90+ providers with a free tier, 11 free <i>forever</i> (Kiro, Qoder, Pollinations, LongCat…). No card needed.</sub></td>
   </tr>
@@ -314,7 +314,7 @@ Result: 4 layers of fallback = zero downtime
 
 | Feature                                | OmniRoute                                                           | Other routers |
 | -------------------------------------- | ------------------------------------------------------------------- | ------------- |
-| 🌐 Providers                           | **250**                                                             | 20–100        |
+| 🌐 Providers                           | **251**                                                             | 20–100        |
 | 🆓 Free providers                      | **90+ (11 free forever)**                                           | 1–5           |
 | 🔀 Routing strategies                  | **18** (priority, weighted, cost-optimized, context-relay, fusion…) | 1–3           |
 | 🗜️ Token compression                   | **RTK + Caveman stacked (15–95%)**                                  | None / 20–40% |
@@ -399,7 +399,7 @@ Result: 4 layers of fallback = zero downtime
 
 </div>
 
-> The most complete catalog of any open-source router: **250 providers**, **90+ with a free tier**, **11 free forever**.
+> The most complete catalog of any open-source router: **251 providers**, **90+ with a free tier**, **11 free forever**.
 
 <div align="center">
 
@@ -907,7 +907,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 **Will I be charged by OmniRoute?** No — it's free, open-source software on your machine. You only pay paid providers directly. OmniRoute has no billing system.
 **Are FREE providers really unlimited?** Mostly — Qoder, Pollinations, LongCat, and Cloudflare are free with no per-account credit cap. Kiro is free too but capped at ~50 credits/month per account. Stack multiple free providers in a combo and auto-fallback keeps you serving for $0.
 **Will compression hurt quality?** No — it only compresses the **input**; code, URLs, JSON are always protected.
-**Does it work where AI is blocked?** Yes — 3-level proxy + 1proxy marketplace reach all 250 providers.
+**Does it work where AI is blocked?** Yes — 3-level proxy + 1proxy marketplace reach all 251 providers.
 
 📖 [User Guide](docs/guides/USER_GUIDE.md) · [API Reference](docs/reference/API_REFERENCE.md) · [Environment Config](docs/reference/ENVIRONMENT.md)
 
