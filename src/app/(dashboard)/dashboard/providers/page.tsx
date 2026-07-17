@@ -13,6 +13,10 @@ import {
 import { partitionNoAuthEntriesByBlocked } from "@/shared/utils/noAuthProviders";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
+import {
+  isProviderConnectionConnected,
+  isProviderConnectionErrored,
+} from "@/shared/utils/providerConnectionStatus";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -25,6 +29,7 @@ import {
   filterConfiguredProviderEntries,
   shouldFilterProviderEntriesForDisplayMode,
   shouldShowFirstProviderHint,
+  shouldShowProviderSection,
   upsertProviderNodeById,
   loadProviderPageData,
 } from "./providerPageUtils";
@@ -199,7 +204,6 @@ export default function ProvidersPage() {
   // search and configured-only. null = no serviceKind filter.
   const [activeServiceKind, setActiveServiceKind] = useState<string | null>(null);
   const notify = useNotificationStore();
-  const hasSearchQuery = searchQuery.trim().length > 0 || modelSearchQuery.trim().length > 0;
   const sectionCategoryAliases: Record<string, string> = {
     cloud: "cloudagent",
     noauth: "no-auth",
@@ -208,9 +212,7 @@ export default function ProvidersPage() {
   };
   const showSection = (category: string) => {
     const normalizedCategory = sectionCategoryAliases[category] ?? category;
-    if (showFreeOnly) return normalizedCategory === "free";
-    if (hasSearchQuery && !activeCategory) return normalizedCategory !== "free";
-    return !activeCategory || activeCategory === normalizedCategory;
+    return shouldShowProviderSection(normalizedCategory, activeCategory, showFreeOnly);
   };
   const t = useTranslations("providers");
   const tc = useTranslations("common");
@@ -324,22 +326,13 @@ export default function ProvidersPage() {
       connectionMatchesProviderCard(c, providerId, authType)
     );
 
-    // Helper: check if connection is effectively active (cooldown expired)
-    const getEffectiveStatus = (conn) => {
-      const isCooldown =
-        conn.rateLimitedUntil && new Date(conn.rateLimitedUntil).getTime() > Date.now();
-      return conn.testStatus === "unavailable" && !isCooldown ? "active" : conn.testStatus;
-    };
+    const connected = providerConnections.filter((connection) =>
+      isProviderConnectionConnected(connection)
+    ).length;
 
-    const connected = providerConnections.filter((c) => {
-      const status = getEffectiveStatus(c);
-      return status === "active" || status === "success";
-    }).length;
-
-    const errorConns = providerConnections.filter((c) => {
-      const status = getEffectiveStatus(c);
-      return status === "error" || status === "expired" || status === "unavailable";
-    });
+    const errorConns = providerConnections.filter((connection) =>
+      isProviderConnectionErrored(connection)
+    );
 
     const error = errorConns.length;
     const total = providerConnections.length;

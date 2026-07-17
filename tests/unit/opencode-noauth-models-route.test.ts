@@ -8,6 +8,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-opencode-
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsRoute = await import("../../src/app/api/providers/[id]/models/route.ts");
 
 test.after(() => {
@@ -73,11 +74,51 @@ test("models route fetches live models from modelsUrl for noAuth provider with m
     assert.equal(response.status, 200);
     const body = await response.json();
     assert.equal(body.provider, "opencode");
-    assert.equal(body.source, "upstream", "should report source as 'upstream' when live fetch succeeds");
+    assert.equal(
+      body.source,
+      "upstream",
+      "should report source as 'upstream' when live fetch succeeds"
+    );
     assert.ok(Array.isArray(body.models), "models should be an array");
     const ids = body.models.map((m: { id: string }) => m.id);
     assert.ok(ids.includes("live-model-alpha"), "should include live model alpha");
     assert.ok(ids.includes("live-model-beta"), "should include live model beta");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("metadata-only no-auth connection row still uses public model discovery", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "opencode",
+    authType: "apikey",
+    name: "opencode-metadata",
+    isActive: true,
+    testStatus: "unknown",
+    providerSpecificData: {
+      fingerprints: [{ id: "fingerprint-1" }],
+      accountProxies: [],
+    },
+  });
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url: string | URL) => {
+    if (String(url) === "https://opencode.ai/zen/v1/models") {
+      return Response.json({ data: LIVE_MODEL_LIST });
+    }
+    return new Response("unexpected", { status: 500 });
+  };
+
+  try {
+    const response = await modelsRoute.GET(
+      new Request(`http://localhost/api/providers/${connection.id}/models`),
+      { params: { id: connection.id } }
+    );
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.provider, "opencode");
+    assert.equal(body.connectionId, connection.id);
+    assert.equal(body.source, "upstream");
+    assert.ok(body.models.some((model: { id: string }) => model.id === "live-model-alpha"));
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -124,7 +165,11 @@ test("models route falls back to local_catalog when live modelsUrl fetch returns
     assert.equal(response.status, 200);
     const body = await response.json();
     assert.equal(body.provider, "opencode");
-    assert.equal(body.source, "local_catalog", "should fall back to local_catalog when upstream returns non-OK");
+    assert.equal(
+      body.source,
+      "local_catalog",
+      "should fall back to local_catalog when upstream returns non-OK"
+    );
     assert.ok(Array.isArray(body.models) && body.models.length > 0, "should have catalog models");
   } finally {
     globalThis.fetch = originalFetch;

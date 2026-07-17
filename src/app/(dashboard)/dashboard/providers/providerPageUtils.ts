@@ -69,6 +69,20 @@ export function shouldShowFirstProviderHint(
   return connectionCount === 0 && !searchQuery?.trim();
 }
 
+export function shouldShowProviderSection(
+  category: string,
+  activeCategory: string | null,
+  showFreeOnly: boolean
+): boolean {
+  if (showFreeOnly) return category === "free";
+  if (activeCategory) return activeCategory === category;
+
+  // Free and Web Fetch are cross-cutting views assembled from providers that
+  // already belong to a primary section. Rendering them in the default view
+  // duplicates cards; they remain available through their summary filters.
+  return category !== "free" && category !== "webfetch";
+}
+
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
 
 const OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS = new Set(["kiro", "amazon-q"]);
