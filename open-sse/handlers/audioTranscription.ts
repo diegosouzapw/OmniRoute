@@ -10,6 +10,7 @@ import { Buffer } from "node:buffer";
  * - OpenAI/Groq/Qwen3: standard multipart form-data proxy
  * - Deepgram: raw binary audio POST with model via query param
  * - AssemblyAI: async workflow (upload → submit → poll)
+ * - Gladia: async workflow (upload → submit pre-recorded job → poll result_url)
  * - Nvidia NIM: multipart POST, transform response to { text }
  * - HuggingFace Inference: POST raw binary to /models/{model_id}
  */
@@ -268,6 +269,67 @@ async function handleAssemblyAITranscription(providerConfig, file, modelId, toke
 }
 
 /**
+ * Handle Gladia transcription (async: upload file → submit pre-recorded job → poll result_url)
+ */
+async function handleGladiaTranscription(providerConfig, file, modelId, token) {
+  const authHeaders = buildAuthHeaders(providerConfig, token);
+
+  // Step 1: Upload the audio file (multipart/form-data)
+  const { body: uploadBody, contentType: uploadCT } = await buildMultipartBody(file, {});
+  const uploadRes = await fetch("https://api.gladia.io/v2/upload", {
+    method: "POST",
+    headers: { ...authHeaders, "Content-Type": uploadCT },
+    body: uploadBody,
+  });
+
+  if (!uploadRes.ok) {
+    return upstreamErrorResponse(uploadRes, await uploadRes.text());
+  }
+
+  const { audio_url } = await uploadRes.json();
+
+  // Step 2: Submit the pre-recorded transcription job
+  const submitRes = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: { ...authHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({ audio_url, model: modelId }),
+  });
+
+  if (!submitRes.ok) {
+    return upstreamErrorResponse(submitRes, await submitRes.text());
+  }
+
+  const { result_url: resultUrl } = await submitRes.json();
+  if (!resultUrl) {
+    return errorResponse(502, "Gladia did not return a result_url");
+  }
+
+  // Step 3: Poll for completion (max 120s)
+  const maxWait = 120_000;
+  const start = Date.now();
+
+  while (Date.now() - start < maxWait) {
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const pollRes = await fetch(resultUrl, { headers: authHeaders });
+    if (!pollRes.ok) continue;
+
+    const result = await pollRes.json();
+
+    if (result.status === "done") {
+      const text = result.result?.transcription?.full_transcript || "";
+      return Response.json({ text }, { headers: { ...CORS_HEADERS } });
+    }
+
+    if (result.status === "error") {
+      return errorResponse(500, result.error_code || result.error || "Gladia transcription failed");
+    }
+  }
+
+  return errorResponse(504, "Gladia transcription timed out after 120s");
+}
+
+/**
  * Handle Nvidia NIM transcription
  * Multipart POST, transform response to { text }
  */
@@ -511,7 +573,7 @@ export async function handleAudioTranscription({
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No transcription provider found for model "${model}". Available: openai, groq, deepgram, assemblyai, nvidia, huggingface, qwen, rev-ai`
+      `No transcription provider found for model "${model}". Available: openai, groq, deepgram, assemblyai, nvidia, huggingface, qwen, gladia, rev-ai`
     );
   }
 
@@ -555,6 +617,10 @@ export async function handleAudioTranscription({
 
   if (providerConfig.format === "assemblyai") {
     return handleAssemblyAITranscription(providerConfig, file, modelId, token);
+  }
+
+  if (providerConfig.format === "gladia") {
+    return handleGladiaTranscription(providerConfig, file, modelId, token);
   }
 
   if (providerConfig.format === "nvidia-asr") {

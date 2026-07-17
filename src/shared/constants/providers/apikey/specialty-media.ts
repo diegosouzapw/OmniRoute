@@ -83,6 +83,18 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
     website: "https://ideogram.ai",
     authHint: "Get API key at ideogram.ai/docs/api",
   },
+  freepik: {
+    id: "freepik",
+    alias: "fpk",
+    name: "Freepik (Mystic)",
+    icon: "image",
+    color: "#1B9E7F",
+    textIcon: "FP",
+    website: "https://freepik.com",
+    authHint: "Get API key at freepik.com/developers (Mystic image endpoint)",
+    hasFree: true,
+    freeNote: "One-time ~€5 API credit for new accounts; pay-per-use afterward.",
+  },
   suno: {
     id: "suno",
     alias: "suno",

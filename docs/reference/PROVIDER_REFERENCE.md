@@ -10,7 +10,7 @@ lastUpdated: 2026-07-17
 > Regenerate with: `npm run gen:provider-reference`
 > **Last generated:** 2026-07-17
 
-Total providers: **253**. See category breakdown below.
+Total providers: **256**. See category breakdown below.
 
 ## Categories
 
@@ -198,7 +198,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `nlpcloud` | `nlpc` | NLP Cloud | API key | [link](https://docs.nlpcloud.com) | Use your NLP Cloud API key in Authorization: Token <key>. OmniRoute targets the chatbot endpoint on https://api.nlpcloud.io/v1/gpu/<model>/chatbot by default. |
 | `nomic` | `nomic` | Nomic | API key | [link](https://nomic.ai) | Get API key at atlas.nomic.ai |
 | `nous-research` | `nous` | Nous Research | API key | [link](https://portal.nousresearch.com/help) | Use your Nous Portal API key. OmniRoute targets the official OpenAI-compatible inference endpoint at https://inference-api.nousresearch.com/v1. |
-| `novita` | `novita` | Novita AI | API key, aggregator | [link](https://novita.ai) | $0.50 trial credits on signup (valid about 1 year) |
+| `novita` | `novita` | Novita AI | API key, video, aggregator | [link](https://novita.ai) | $0.50 trial credits on signup (valid about 1 year) |
 | `nscale` | `nscale` | nScale | API key | [link](https://nscale.com) | $5 free credits on signup for inference testing |
 | `nube` | `nube` | Nube.sh | API key | [link](https://nube.sh) | — |
 | `nvidia` | `nvidia` | NVIDIA NIM | API key | [link](https://build.nvidia.com) | Free dev access: ~40 RPM, 70+ models (Kimi K2.5, GLM 4.7, DeepSeek V3.2...) |
@@ -297,7 +297,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `tavily-search` | `tavily-search` | Tavily Search | Search | [link](https://tavily.com) | API key from app.tavily.com (format: tvly-...) |
 | `youcom-search` | `youcom-search` | You.com Search | Search | [link](https://you.com/business/api/) | X-API-Key from the You.com platform dashboard |
 
-## Audio-only Providers (7)
+## Audio-only Providers (9)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -306,8 +306,10 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `cartesia` | `cartesia` | Cartesia | Audio | [link](https://cartesia.ai) | — |
 | `deepgram` | `dg` | Deepgram | Audio | [link](https://deepgram.com) | — |
 | `elevenlabs` | `el` | ElevenLabs | Audio | [link](https://elevenlabs.io) | — |
+| `gladia` | `gladia` | Gladia | Audio | [link](https://gladia.io) | — |
 | `inworld` | `inworld` | Inworld | Audio | [link](https://inworld.ai) | — |
 | `playht` | `playht` | PlayHT | Audio | [link](https://play.ht) | — |
+| `rev-ai` | `revai` | Rev AI | Audio | [link](https://www.rev.ai) | — |
 
 ## Upstream Proxy Providers (2)
 

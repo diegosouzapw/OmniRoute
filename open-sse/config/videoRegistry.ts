@@ -223,6 +223,22 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     models: [{ id: "wan2.7-t2v", name: "Wan 2.7 T2V" }],
   },
 
+  novita: {
+    id: "novita",
+    // Novita's async video APIs are per-model: the model id IS the submit path
+    // segment (`/v3/async/<model>`), all sharing one task-result poll endpoint.
+    // Reuses the stored novita provider Bearer apiKey — no separate credential flow.
+    baseUrl: "https://api.novita.ai/v3/async",
+    statusUrl: "https://api.novita.ai/v3/async/task-result",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "novita-video",
+    models: [
+      { id: "wan-t2v", name: "Wan 2.1 Text-to-Video" },
+      { id: "kling-v1.6-t2v", name: "Kling V1.6 Text-to-Video" },
+    ],
+  },
+
   xai: {
     id: "xai",
     // xAI Grok Imagine async video-generation API. Reuses the stored xai

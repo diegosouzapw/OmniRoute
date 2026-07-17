@@ -68,6 +68,16 @@ export const AUDIO_ONLY_PROVIDERS = {
     authHint:
       "Use AWS Secret Access Key as API key; set providerSpecificData.accessKeyId and optional region.",
   },
+  gladia: {
+    id: "gladia",
+    alias: "gladia",
+    name: "Gladia",
+    icon: "record_voice_over",
+    color: "#6425FE",
+    textIcon: "GL",
+    website: "https://gladia.io",
+  },
+
   "rev-ai": {
     id: "rev-ai",
     alias: "revai",
