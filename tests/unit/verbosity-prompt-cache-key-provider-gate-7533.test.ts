@@ -98,3 +98,44 @@ test("#7533: fields are also stripped when no credentials/provider is supplied a
   assert.equal(out.verbosity, undefined);
   assert.equal(out.prompt_cache_key, undefined);
 });
+
+// --- #517 regression guard: the provider gate must not starve Codex of its cache key ---
+
+test("#517 (guard): prompt_cache_key survives the downgrade for the 'codex' provider", () => {
+  // /v1/responses runs EVERY request through this downgrade (handleResponsesCore ->
+  // convertResponsesApiFormat) regardless of provider, and codex is an OpenAI-operated
+  // upstream (chatgpt.com/backend-api/codex). Gating #7533 on provider === "openai"
+  // alone stripped the key here and silently re-broke the Codex prompt-cache affinity
+  // that #517 exists to protect.
+  const out = asRecord(
+    openaiResponsesToOpenAIRequest(
+      "gpt-5.5",
+      {
+        model: "gpt-5.5",
+        input: [{ role: "user", content: "hello" }],
+        prompt_cache_key: "session-abc-123",
+      },
+      false,
+      { provider: "codex" }
+    )
+  );
+
+  assert.equal(out.prompt_cache_key, "session-abc-123");
+});
+
+test("#517 (guard): verbosity also survives for the 'codex' provider", () => {
+  const out = asRecord(
+    openaiResponsesToOpenAIRequest(
+      "gpt-5.5",
+      {
+        model: "gpt-5.5",
+        input: [{ role: "user", content: "hello" }],
+        text: { verbosity: "high" },
+      },
+      false,
+      { provider: "codex" }
+    )
+  );
+
+  assert.equal(out.verbosity, "high");
+});

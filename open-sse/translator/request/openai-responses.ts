@@ -82,11 +82,19 @@ export function openaiResponsesToOpenAIRequest(
   // #7533: `verbosity` and `prompt_cache_key` are GPT-5/OpenAI-only Chat Completions
   // parameters. A strict-protocol non-OpenAI upstream (NVIDIA confirmed by the reporter;
   // likely also GLM/Kimi/Deepseek direct endpoints) 400s on unrecognized top-level
-  // parameters, so they must only survive the downgrade when the destination is
-  // actually OpenAI. Scoped narrowly to the "openai" provider id — the exact scenario
-  // #517 needed prompt_cache_key preserved for — rather than guessing at which other
-  // OpenAI-compatible passthroughs (e.g. Azure OpenAI) should also qualify.
-  const isOpenAIDestination = toString(credentialRecord.provider) === "openai";
+  // parameters, so they must only survive the downgrade when the destination really is
+  // an OpenAI-operated endpoint.
+  //
+  // Allowlist, NOT a denylist: over-stripping costs a cache hit, over-preserving costs a
+  // hard 400. `codex` is in the list because it IS an OpenAI upstream
+  // (chatgpt.com/backend-api/codex) and is precisely the destination #517 needed
+  // `prompt_cache_key` preserved for — /v1/responses runs every request through this
+  // downgrade (handleResponsesCore -> convertResponsesApiFormat) regardless of provider,
+  // so gating on "openai" alone silently re-broke Codex prompt caching. Other
+  // OpenAI-compatible passthroughs (e.g. Azure OpenAI) are deliberately NOT assumed in —
+  // add them only with evidence that the endpoint accepts these fields.
+  const OPENAI_PARAM_DESTINATIONS = new Set(["openai", "codex"]);
+  const isOpenAIDestination = OPENAI_PARAM_DESTINATIONS.has(toString(credentialRecord.provider));
 
   // GPT-5 verbosity: Responses `text.verbosity` → Chat Completions top-level `verbosity`.
   // Chat has no `text` wrapper, so carry the level across and drop the Responses-only
