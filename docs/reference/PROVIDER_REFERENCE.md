@@ -10,7 +10,7 @@ lastUpdated: 2026-07-17
 > Regenerate with: `npm run gen:provider-reference`
 > **Last generated:** 2026-07-17
 
-Total providers: **259**. See category breakdown below.
+Total providers: **264**. See category breakdown below.
 
 ## Categories
 
@@ -90,7 +90,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `zai-web` | `zw` | Z.ai Web (Free) | Web cookie | [link](https://chat.z.ai) | Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie) |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. |
 
-## API Key Providers (paid / paid-with-free-credits) (172)
+## API Key Providers (paid / paid-with-free-credits) (177)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -149,6 +149,11 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `freepik` | `fpk` | Freepik (Mystic) | API key, image | [link](https://freepik.com) | Get API key at freepik.com/developers (Mystic image endpoint) |
 | `freetheai` | `fta` | FreeTheAi | API key, aggregator | [link](https://freetheai.xyz) | Join the FreeTheAi Discord to get your free API key. |
 | `friendliai` | `friendli` | FriendliAI | API key | [link](https://friendli.ai) | Free tier for serverless inference — no credit card required |
+| `g4f-gemini` | `g4fgem` | g4f.space — Gemini | API key, aggregator | [link](https://g4f.space) | No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits. |
+| `g4f-groq` | `g4fgroq` | g4f.space — Groq | API key, aggregator | [link](https://g4f.space) | No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits. |
+| `g4f-nvidia` | `g4fnv` | g4f.space — NVIDIA | API key, aggregator | [link](https://g4f.space) | No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits. |
+| `g4f-ollama` | `g4foll` | g4f.space — Ollama | API key, aggregator | [link](https://g4f.space) | No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits. |
+| `g4f-pollinations` | `g4fpol` | g4f.space — Pollinations | API key, aggregator | [link](https://g4f.space) | No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits. |
 | `galadriel` | `galadriel` | Galadriel | API key | [link](https://galadriel.com) | ⚠️ **DEPRECATED.** api.galadriel.ai no longer resolves (sweep 2026-06-19); the inference API appears discontinued. |
 | `gemini` | `gemini` | Gemini (Google AI Studio) | API key | [link](https://aistudio.google.com) | Free forever: 1,500 req/day for Gemini 2.5 Flash — no credit card, get key at aistudio.google.com |
 | `getgoapi` | `ggo` | GoAPI | API key, aggregator | [link](https://api.getgoapi.com) | — |
