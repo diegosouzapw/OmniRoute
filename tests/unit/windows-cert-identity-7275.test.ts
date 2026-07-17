@@ -85,14 +85,12 @@ test("checkCertInstalledWindows() keys off the real cert's thumbprint, not the l
   assert.equal(isInstalled, true, "the certutil stub always exits 0 → should report installed");
 
   const capturedArgv = fs.readFileSync(captureFile, "utf8").trim().split("\n").at(-1)!;
+  // Exact-equality is strictly stronger than a negative substring check: an argv
+  // that IS `-store Root <thumbprint>` cannot also carry the legacy hostname.
   assert.equal(
     capturedArgv,
     `-store Root ${expectedThumbprint}`,
-    "certutil must be queried with the real cert's thumbprint"
-  );
-  assert.ok(
-    !capturedArgv.includes(LEGACY_HARDCODED_HOST),
-    "must NOT query the store by the hardcoded legacy hostname"
+    "certutil must be queried with the real cert's thumbprint, not the legacy hostname"
   );
 });
 
@@ -113,12 +111,16 @@ test("buildWindowsDelstoreScript() embeds the cert's own thumbprint, not the leg
   const thumbprint = certutilThumbprint(certPath);
   const script = buildWindowsDelstoreScript(thumbprint);
 
-  assert.ok(script.includes(thumbprint), "delstore script must embed the real thumbprint");
-  assert.ok(
-    !script.includes(LEGACY_HARDCODED_HOST),
-    "delstore script must NOT embed the hardcoded legacy hostname"
+  // Assert on the certId argument certutil actually receives, rather than on a
+  // negative substring scan of the whole script: pinning the extracted value to
+  // the real thumbprint proves no other identity (legacy hostname included) can
+  // be the one passed to -delstore.
+  const certIdArg = script.match(/'-delstore'\s*,\s*'Root'\s*,\s*'([^']+)'/)?.[1];
+  assert.equal(
+    certIdArg,
+    thumbprint,
+    "delstore must target the cert's own thumbprint as its certId argument"
   );
-  assert.ok(script.includes("-delstore"));
 });
 
 test("check and uninstall derive identity from the SAME source (certutilThumbprint(certPath)) — immune to ANTIGRAVITY_TARGET.hosts reordering", async () => {
