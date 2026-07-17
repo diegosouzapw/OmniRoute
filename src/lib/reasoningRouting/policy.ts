@@ -70,26 +70,99 @@ function splitGenericEffortSuffix(model: string): {
   model: string;
   effort: ReasoningEffort | null;
 } {
+  const claude = model.toLowerCase().includes("claude") ? splitClaudeEffortSuffix(model) : null;
+  if (claude?.effort) return { model: claude.baseModel, effort: claude.effort };
+  return splitCodexEffortSuffix(model) ?? { model, effort: null };
+}
+
+function supportsCodexSuffix(candidate: string, normalizedBase: string): boolean {
+  if (candidate === "max") return /^gpt-5\.6-(?:sol|terra|luna)$/.test(normalizedBase);
+  if (candidate === "ultra") return /^gpt-5\.6-(?:sol|terra)$/.test(normalizedBase);
+  return true;
+}
+
+function splitCodexEffortSuffix(model: string): { model: string; effort: ReasoningEffort } | null {
   const lower = model.toLowerCase();
-  if (lower.includes("claude")) {
-    const claude = splitClaudeEffortSuffix(model);
-    if (claude.effort) return { model: claude.baseModel, effort: claude.effort };
-  }
   for (const candidate of ["ultra", "xhigh", "medium", "high", "none", "low", "max"] as const) {
-    if (lower.endsWith(`-${candidate}`)) {
-      const baseModel = model.slice(0, -(candidate.length + 1));
-      const normalizedBase = baseModel.toLowerCase().replace(/^(?:codex|cx)\//, "");
-      const codexModel = /^gpt-[\w.-]+$/.test(normalizedBase);
-      const supportsExtended =
-        candidate === "max"
-          ? /^gpt-5\.6-(?:sol|terra|luna)$/.test(normalizedBase)
-          : candidate === "ultra"
-            ? /^gpt-5\.6-(?:sol|terra)$/.test(normalizedBase)
-            : true;
-      if (codexModel && supportsExtended) return { model: baseModel, effort: candidate };
+    if (!lower.endsWith(`-${candidate}`)) continue;
+    const baseModel = model.slice(0, -(candidate.length + 1));
+    const normalizedBase = baseModel.toLowerCase().replace(/^(?:codex|cx)\//, "");
+    if (/^gpt-[\w.-]+$/.test(normalizedBase) && supportsCodexSuffix(candidate, normalizedBase)) {
+      return { model: baseModel, effort: candidate };
     }
   }
-  return { model, effort: null };
+  return null;
+}
+
+function firstDefinedEffort(
+  body: JsonRecord,
+  reasoning: JsonRecord,
+  thinking: JsonRecord,
+  thinkingConfig: JsonRecord,
+  suffixEffort: ReasoningEffort | null
+): ReasoningEffort | null {
+  const output = asRecord(body.output_config);
+  const values = [
+    effort(reasoning.effort),
+    effort(body.reasoning_effort),
+    effort(body.reasoningEffort),
+    effort(body.effort),
+    effort(output.effort),
+    thinkingLevelEffort(body.thinkingLevel),
+    thinkingLevelEffort(body.thinking_level),
+    thinkingLevelEffort(thinkingConfig.thinkingLevel ?? thinkingConfig.thinking_level),
+    body.thinking === false || thinking.type === "disabled" ? "none" : null,
+    suffixEffort,
+  ];
+  return values.find((value): value is ReasoningEffort => value !== null) ?? null;
+}
+
+function hasNumericField(record: JsonRecord, key: string): boolean {
+  return typeof record[key] === "number";
+}
+
+function detectThinkingBudget(
+  body: JsonRecord,
+  reasoning: JsonRecord,
+  thinking: JsonRecord,
+  thinkingConfig: JsonRecord
+): boolean {
+  return [
+    [thinking, "budget_tokens"],
+    [thinking, "budgetTokens"],
+    [reasoning, "budget_tokens"],
+    [reasoning, "budgetTokens"],
+    [reasoning, "max_tokens"],
+    [body, "thinking_budget"],
+    [body, "thinkingBudget"],
+    [thinkingConfig, "thinkingBudget"],
+    [thinkingConfig, "thinking_budget"],
+  ].some(([record, key]) => hasNumericField(record, key));
+}
+
+function hasReasoningSignal(
+  body: JsonRecord,
+  reasoning: JsonRecord,
+  thinkingConfig: JsonRecord,
+  explicitEffort: ReasoningEffort | null,
+  hasBudget: boolean
+): boolean {
+  return (
+    explicitEffort !== null ||
+    [
+      body.thinking,
+      body.thinkingLevel,
+      body.thinking_level,
+      reasoning.effort,
+      body.reasoning_effort,
+      body.reasoningEffort,
+      body.effort,
+      asRecord(body.output_config).effort,
+      thinkingConfig.thinkingLevel,
+      thinkingConfig.thinking_level,
+    ].some((value) => value !== undefined) ||
+    hasBudget
+  );
 }
 
 export function extractReasoningIntent(
@@ -105,45 +178,26 @@ export function extractReasoningIntent(
   const thinkingConfig = asRecord(
     generationConfig.thinkingConfig ?? generationConfig.thinking_config
   );
-  const explicitEffort =
-    effort(reasoning.effort) ??
-    effort(body.reasoning_effort) ??
-    effort(body.reasoningEffort) ??
-    effort(body.effort) ??
-    effort(asRecord(body.output_config).effort) ??
-    thinkingLevelEffort(body.thinkingLevel) ??
-    thinkingLevelEffort(body.thinking_level) ??
-    thinkingLevelEffort(thinkingConfig.thinkingLevel ?? thinkingConfig.thinking_level) ??
-    (body.thinking === false || thinking.type === "disabled" ? "none" : null) ??
-    suffixed.effort;
-  const hasThinkingBudget =
-    typeof thinking.budget_tokens === "number" ||
-    typeof thinking.budgetTokens === "number" ||
-    typeof reasoning.budget_tokens === "number" ||
-    typeof reasoning.budgetTokens === "number" ||
-    typeof reasoning.max_tokens === "number" ||
-    typeof body.thinking_budget === "number" ||
-    typeof body.thinkingBudget === "number" ||
-    typeof thinkingConfig.thinkingBudget === "number" ||
-    typeof thinkingConfig.thinking_budget === "number";
-  const hasReasoningSignal =
-    explicitEffort !== null ||
-    body.thinking !== undefined ||
-    body.thinkingLevel !== undefined ||
-    body.thinking_level !== undefined ||
-    reasoning.effort !== undefined ||
-    body.reasoning_effort !== undefined ||
-    body.reasoningEffort !== undefined ||
-    body.effort !== undefined ||
-    asRecord(body.output_config).effort !== undefined ||
-    thinkingConfig.thinkingLevel !== undefined ||
-    thinkingConfig.thinking_level !== undefined ||
-    hasThinkingBudget;
+  const explicitEffort = firstDefinedEffort(
+    body,
+    reasoning,
+    thinking,
+    thinkingConfig,
+    suffixed.effort
+  );
+  const hasThinkingBudget = detectThinkingBudget(body, reasoning, thinking, thinkingConfig);
+  const hasReasoningSignalValue = hasReasoningSignal(
+    body,
+    reasoning,
+    thinkingConfig,
+    explicitEffort,
+    hasThinkingBudget
+  );
   return {
     model: suffixed.model,
     effort: explicitEffort,
-    sourceEffort: explicitEffort ?? (hasReasoningSignal ? "signal" : "missing"),
-    hasReasoningSignal,
+    sourceEffort: explicitEffort ?? (hasReasoningSignalValue ? "signal" : "missing"),
+    hasReasoningSignal: hasReasoningSignalValue,
     hasThinkingBudget,
   };
 }
@@ -221,7 +275,7 @@ function capabilityFor(
   return capabilities.supportsThinking === null ? ("unknown" as const) : ("supported" as const);
 }
 
-export async function resolveReasoningRoutingRule(input: {
+type RoutingInput = {
   sourceModel: string;
   sourceModelAliases?: string[];
   sourceEffort: Exclude<ReasoningSourceEffort, "any"> | "signal";
@@ -233,91 +287,134 @@ export async function resolveReasoningRoutingRule(input: {
   requestTags?: string[];
   connectionOnly?: boolean;
   capabilityModel?: string | null;
-}): Promise<ReasoningRuleDecision | null> {
-  const rules = await getReasoningRoutingRules({ enabledOnly: true });
-  const candidates = rules.filter((rule) => {
-    if (input.connectionOnly ? rule.scope !== "connection" : rule.scope === "connection")
-      return false;
-    if (rule.scope === "apiKey" && rule.apiKeyId !== input.apiKeyId) return false;
-    if (rule.scope === "combo" && rule.comboId !== input.comboId) return false;
-    if (rule.scope === "connection" && rule.connectionId !== input.connectionId) return false;
-    if (rule.sourceEffort !== "any" && rule.sourceEffort !== input.sourceEffort) return false;
-    return (
-      [input.sourceModel, ...(input.sourceModelAliases ?? [])].some((model) =>
-        modelMatches(rule, model)
-      ) && tagsMatch(rule, input.requestTags ?? [])
-    );
-  });
-  candidates.sort(
-    (a, b) =>
-      SCOPE_RANK[b.scope] - SCOPE_RANK[a.scope] ||
-      b.priority - a.priority ||
-      Number(
-        [input.sourceModel, ...(input.sourceModelAliases ?? [])].some((model) =>
-          isExactModelMatch(b, model)
-        )
-      ) -
-        Number(
-          [input.sourceModel, ...(input.sourceModelAliases ?? [])].some((model) =>
-            isExactModelMatch(a, model)
-          )
-        ) ||
-      a.createdAt.localeCompare(b.createdAt) ||
-      a.id.localeCompare(b.id)
+};
+
+function inputModels(input: RoutingInput): string[] {
+  return [input.sourceModel, ...(input.sourceModelAliases ?? [])];
+}
+
+function scopeMatches(rule: ReasoningRoutingRule, input: RoutingInput): boolean {
+  if (input.connectionOnly ? rule.scope !== "connection" : rule.scope === "connection") {
+    return false;
+  }
+  if (rule.scope === "apiKey" && rule.apiKeyId !== input.apiKeyId) return false;
+  if (rule.scope === "combo" && rule.comboId !== input.comboId) return false;
+  if (rule.scope === "connection" && rule.connectionId !== input.connectionId) return false;
+  return rule.sourceEffort === "any" || rule.sourceEffort === input.sourceEffort;
+}
+
+function ruleMatches(rule: ReasoningRoutingRule, input: RoutingInput): boolean {
+  return (
+    scopeMatches(rule, input) &&
+    inputModels(input).some((model) => modelMatches(rule, model)) &&
+    tagsMatch(rule, input.requestTags ?? [])
   );
+}
+
+function exactMatchScore(rule: ReasoningRoutingRule, input: RoutingInput): number {
+  return Number(inputModels(input).some((model) => isExactModelMatch(rule, model)));
+}
+
+function compareRules(input: RoutingInput) {
+  return (a: ReasoningRoutingRule, b: ReasoningRoutingRule) =>
+    SCOPE_RANK[b.scope] - SCOPE_RANK[a.scope] ||
+    b.priority - a.priority ||
+    exactMatchScore(b, input) - exactMatchScore(a, input) ||
+    a.createdAt.localeCompare(b.createdAt) ||
+    a.id.localeCompare(b.id);
+}
+
+function resolveTargetModel(
+  rule: ReasoningRoutingRule,
+  sourceModel: string,
+  combo: JsonRecord | null
+) {
+  if (combo) return typeof combo.name === "string" ? combo.name : rule.targetComboId;
+  return rule.targetKind === "model" && rule.targetModel ? rule.targetModel : sourceModel;
+}
+
+async function resolveTarget(rule: ReasoningRoutingRule, sourceModel: string) {
+  if (rule.targetKind !== "combo" || !rule.targetComboId) {
+    return { targetCombo: null, targetModel: resolveTargetModel(rule, sourceModel, null) };
+  }
+  const targetCombo = (await getComboById(rule.targetComboId)) as JsonRecord | null;
+  if (!targetCombo) throw new Error("Reasoning routing target combo does not exist");
+  return { targetCombo, targetModel: resolveTargetModel(rule, sourceModel, targetCombo) };
+}
+
+function resolveTargetEffort(
+  rule: ReasoningRoutingRule,
+  input: RoutingInput
+): ReasoningEffort | null {
+  const inherits =
+    rule.effortMode === "inherit" || (rule.effortMode === "default" && input.hasReasoningSignal);
+  if (!inherits) return rule.targetEffort;
+  return input.sourceEffort === "missing" || input.sourceEffort === "signal"
+    ? null
+    : input.sourceEffort;
+}
+
+function resolveCapability(
+  targetCombo: JsonRecord | null,
+  targetModel: string,
+  targetEffort: ReasoningEffort | null,
+  requiresReasoning: boolean
+): { capability: ReasoningRuleDecision["capability"]; warnings: string[] } {
+  if (!targetCombo) {
+    return {
+      capability: capabilityFor(targetModel, targetEffort, requiresReasoning),
+      warnings: [],
+    };
+  }
+  const models = Array.isArray(targetCombo.models) ? targetCombo.models : [];
+  const statuses = models.map((entry) => {
+    const record = asRecord(entry);
+    const model =
+      typeof entry === "string"
+        ? entry
+        : typeof record.model === "string"
+          ? String(record.model)
+          : null;
+    return model ? capabilityFor(model, targetEffort, requiresReasoning) : "unknown";
+  });
+  const capability =
+    statuses.length > 0 && statuses.every((status) => status === "unsupported")
+      ? "unsupported"
+      : statuses.some((status) => status === "unknown")
+        ? "unknown"
+        : "supported";
+  const unsupportedCount = statuses.filter((status) => status === "unsupported").length;
+  const warnings =
+    unsupportedCount > 0 && capability !== "unsupported"
+      ? [`${unsupportedCount} incompatible combo target(s) will be skipped`]
+      : [];
+  return { capability, warnings };
+}
+
+export async function resolveReasoningRoutingRule(
+  input: RoutingInput
+): Promise<ReasoningRuleDecision | null> {
+  const rules = await getReasoningRoutingRules({ enabledOnly: true });
+  const candidates = rules.filter((rule) => ruleMatches(rule, input)).sort(compareRules(input));
   const rule = candidates[0];
   if (!rule) return null;
 
-  let targetCombo: JsonRecord | null = null;
-  let targetModel = input.sourceModel;
-  if (rule.targetKind === "model" && rule.targetModel) targetModel = rule.targetModel;
-  if (rule.targetKind === "combo" && rule.targetComboId) {
-    targetCombo = (await getComboById(rule.targetComboId)) as JsonRecord | null;
-    if (!targetCombo) throw new Error("Reasoning routing target combo does not exist");
-    targetModel = typeof targetCombo.name === "string" ? targetCombo.name : rule.targetComboId;
-  }
-  const targetEffort =
-    rule.effortMode === "inherit" || (rule.effortMode === "default" && input.hasReasoningSignal)
-      ? input.sourceEffort === "missing" || input.sourceEffort === "signal"
-        ? null
-        : input.sourceEffort
-      : rule.targetEffort;
+  const { targetCombo, targetModel } = await resolveTarget(rule, input.sourceModel);
+  const targetEffort = resolveTargetEffort(rule, input);
   const budgetAction = targetEffort === "none" ? "remove" : rule.budgetAction;
   const requiresReasoning =
     targetEffort !== "none" &&
     (Boolean(targetEffort) ||
       budgetAction === "set" ||
       (budgetAction === "preserve" && input.hasThinkingBudget === true));
-  let capability: ReasoningRuleDecision["capability"];
-  const warnings: string[] = [];
-  if (targetCombo) {
-    const models = Array.isArray(targetCombo.models) ? targetCombo.models : [];
-    const statuses = models.map((entry) => {
-      const model =
-        typeof entry === "string"
-          ? entry
-          : typeof asRecord(entry).model === "string"
-            ? String(asRecord(entry).model)
-            : null;
-      return model ? capabilityFor(model, targetEffort, requiresReasoning) : "unknown";
-    });
-    capability =
-      statuses.length > 0 && statuses.every((status) => status === "unsupported")
-        ? "unsupported"
-        : statuses.some((status) => status === "unknown")
-          ? "unknown"
-          : "supported";
-    const unsupportedCount = statuses.filter((status) => status === "unsupported").length;
-    if (unsupportedCount > 0 && capability !== "unsupported") {
-      warnings.push(`${unsupportedCount} incompatible combo target(s) will be skipped`);
-    }
-  } else {
-    capability = capabilityFor(
-      input.capabilityModel || targetModel,
-      targetEffort,
-      requiresReasoning
-    );
-  }
+  const capabilityResult = resolveCapability(
+    targetCombo,
+    input.capabilityModel || targetModel,
+    targetEffort,
+    requiresReasoning
+  );
+  const capability = capabilityResult.capability;
+  const warnings = capabilityResult.warnings;
   if (capability === "unknown") warnings.push("Reasoning capability could not be verified");
   return {
     rule,

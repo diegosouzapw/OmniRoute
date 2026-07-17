@@ -38,16 +38,6 @@ import {
   getModelTargetFormat,
   PROVIDER_ID_TO_ALIAS,
 } from "@omniroute/open-sse/config/providerModels.ts";
-import type { AutoVariant } from "@omniroute/open-sse/services/autoCombo/autoPrefix.ts";
-import {
-  AUTO_TEMPLATE_VARIANTS,
-  VALID_AUTO_VARIANTS,
-} from "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts";
-import {
-  parseAutoSuffix,
-  type AutoCategory,
-  type AutoTier,
-} from "@omniroute/open-sse/services/autoCombo/suffixComposition.ts";
 import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
@@ -83,17 +73,17 @@ import {
   withCorrelationId,
 } from "./chatHelpers";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
-import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
 import {
-  attachReasoningRuleDirective,
   extractReasoningIntent,
-  filterComboForReasoningDecision,
-  resolveReasoningSourceModels,
-  resolveReasoningRoutingRule,
   type ExtractedReasoningIntent,
   type ReasoningRuleDecision,
 } from "@/lib/reasoningRouting/policy";
-import { resolveRequestRoutingTags } from "@/domain/tagRouter";
+import {
+  applyConnectionReasoningRule,
+  applyReasoningRouting,
+  filterReasoningCombo,
+} from "./reasoningRouting";
+import { createVirtualAutoCombo, resolveAutoRoutingState } from "./autoRouting";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
@@ -592,130 +582,24 @@ export async function handleChat(
 
   // Explicit reasoning-routing policies are the final model-routing layer before
   // combo/provider resolution. Existing behavior is untouched when no rule matches.
-  const requestedComboForReasoning = await getComboForModel(reasoningIntent.model);
-  let reasoningSourceAliases: string[] = [];
-  if (!requestedComboForReasoning) {
-    const sourceModels = await resolveReasoningSourceModels(reasoningIntent.model, getModelInfo);
-    reasoningIntent.model = sourceModels.normalized;
-    reasoningSourceAliases = sourceModels.aliases;
-  }
-  const requestRoutingTags = resolveRequestRoutingTags(body);
   let reasoningDecision: ReasoningRuleDecision | null = null;
-  try {
-    reasoningDecision = await resolveReasoningRoutingRule({
-      sourceModel: reasoningIntent.model,
-      sourceModelAliases: reasoningSourceAliases,
-      sourceEffort: reasoningIntent.sourceEffort,
-      hasReasoningSignal: reasoningIntent.hasReasoningSignal,
-      hasThinkingBudget: reasoningIntent.hasThinkingBudget,
-      apiKeyId: apiKeyInfo?.id ?? null,
-      comboId:
-        requestedComboForReasoning && typeof requestedComboForReasoning.id === "string"
-          ? requestedComboForReasoning.id
-          : null,
-      requestTags: requestRoutingTags.tags,
-    });
-  } catch (error) {
-    log.error("REASONING_ROUTE", "Failed to resolve reasoning routing policy", { error });
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Reasoning routing policy could not be resolved");
-  }
-  if (reasoningDecision) {
-    if (reasoningDecision.capability === "unsupported" && !reasoningDecision.targetCombo) {
-      return errorResponse(
-        HTTP_STATUS.BAD_REQUEST,
-        `Reasoning effort '${reasoningDecision.targetEffort}' is not supported by the configured target`
-      );
-    }
-    const targetRejection = await validateApiKeyRoutingTarget(
-      request,
-      policy.apiKey,
-      apiKeyInfo,
-      reasoningDecision.targetModel
-    );
-    if (targetRejection) {
-      log.warn(
-        "REASONING_ROUTE",
-        `Rule ${reasoningDecision.rule.id} target rejected by API key policy`
-      );
-      return targetRejection;
-    }
-    resolvedModelStr = reasoningDecision.targetModel;
-    body = attachReasoningRuleDirective(body, reasoningDecision);
-    log.info(
-      "REASONING_ROUTE",
-      `Rule ${reasoningDecision.rule.id}: ${reasoningDecision.sourceModel}/${reasoningDecision.sourceEffort} → ${resolvedModelStr}/${reasoningDecision.targetEffort || "inherit"}`
-    );
-    for (const warning of reasoningDecision.warnings) {
-      log.warn("REASONING_ROUTE", `Rule ${reasoningDecision.rule.id}: ${warning}`);
-    }
-  }
+  let requestRoutingTags: { tags: string[] } = { tags: [] };
+  const reasoningRouting = await applyReasoningRouting({
+    request,
+    body,
+    modelStr: resolvedModelStr,
+    policy,
+    apiKeyInfo,
+    reasoningIntent,
+  });
+  if (reasoningRouting.response) return reasoningRouting.response;
+  body = reasoningRouting.body;
+  resolvedModelStr = reasoningRouting.modelStr;
+  reasoningDecision = reasoningRouting.reasoningDecision;
+  requestRoutingTags = reasoningRouting.requestRoutingTags;
 
-  // ── Zero-Config Auto-Routing (auto and auto/ prefix) ────────────────────────
-  // If the model ID is "auto" or starts with "auto/", bypass DB combo lookup
-  // entirely and generate a virtual auto-combo on-the-fly from connected providers.
-  let autoVariant: AutoVariant | undefined;
-  // #4235 Phase B: `auto/<category>:<tier>` overlay (e.g. auto/coding:fast, auto/vision).
-  let autoSpec: { category?: AutoCategory; tier?: AutoTier } | undefined;
-  let isAutoRouting = resolvedModelStr === "auto" || resolvedModelStr.startsWith("auto/");
-  let recognizedBuiltInAuto = resolvedModelStr === "auto";
-  if (Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, resolvedModelStr)) {
-    recognizedBuiltInAuto = true;
-    autoVariant = AUTO_TEMPLATE_VARIANTS[resolvedModelStr];
-  } else if (resolvedModelStr.startsWith("auto/")) {
-    const suffix = resolvedModelStr.slice(5);
-    if (VALID_AUTO_VARIANTS.has(suffix as AutoVariant)) {
-      recognizedBuiltInAuto = true;
-    } else {
-      const parsedSuffix = parseAutoSuffix(suffix);
-      if (parsedSuffix.valid) {
-        recognizedBuiltInAuto = true;
-        autoSpec = { category: parsedSuffix.category, tier: parsedSuffix.tier };
-      }
-    }
-  }
-
-  if (isAutoRouting) {
-    // C2: Enforce autoRoutingEnabled setting.
-    // Issue #2346: `getSettings` was never imported in this module; only
-    // `getCachedSettings` is. Calling the bare name caused a ReferenceError
-    // on every auto-routed request. The cached variant has the same shape
-    // and benefits the auto-routing hot path.
-    const settings = await getCachedSettings().catch(() => ({}) as Record<string, unknown>);
-    if (settings?.autoRoutingEnabled === false) {
-      return errorResponse(
-        HTTP_STATUS.BAD_REQUEST,
-        "Auto routing is disabled. Enable it in Settings > Routing."
-      );
-    }
-
-    try {
-      const { parseAutoPrefix } =
-        await import("@omniroute/open-sse/services/autoCombo/autoPrefix.ts");
-      const parsed = parseAutoPrefix(resolvedModelStr);
-      if (parsed.valid) {
-        if (!Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, resolvedModelStr)) {
-          autoVariant = parsed.variant;
-        }
-        // C3: Apply autoRoutingDefaultVariant from settings when bare "auto" is used
-        if (
-          resolvedModelStr === "auto" &&
-          autoVariant === undefined &&
-          settings?.autoRoutingDefaultVariant
-        ) {
-          autoVariant = settings.autoRoutingDefaultVariant as AutoVariant;
-        }
-        log.info(
-          "AUTO",
-          `Zero-config routing variant: ${autoVariant || "default"} (model=${resolvedModelStr})`
-        );
-      } else if (!autoSpec) {
-        log.warn("AUTO", `Invalid auto prefix format: ${resolvedModelStr}`);
-      }
-    } catch (err) {
-      log.error("AUTO", "Failed to load auto-prefix parser", { err });
-    }
-  }
-  // ────────────────────────────────────────────────────────────────────────────
+  const autoRouting = await resolveAutoRoutingState(resolvedModelStr);
+  if (autoRouting.response) return autoRouting.response;
 
   // Check if model is a combo (has multiple models with fallback)
   telemetry.startPhase("resolve");
@@ -735,46 +619,14 @@ export async function handleChat(
     }
   }
 
-  // Auto-prefix short-circuit: if a recognized auto/ prefix was detected, replace combo with virtual one
-  if (isAutoRouting && combo === null) {
-    if (!recognizedBuiltInAuto) {
-      return errorResponse(
-        HTTP_STATUS.BAD_REQUEST,
-        `Model '${resolvedModelStr}' is not a valid combo or provider. Unknown built-in auto combo.`
-      );
-    }
-
-    try {
-      const { createVirtualAutoCombo } =
-        await import("@omniroute/open-sse/services/autoCombo/virtualFactory.ts");
-      const virtualCombo = await createVirtualAutoCombo(autoVariant, autoSpec);
-      virtualCombo.name = resolvedModelStr;
-      virtualCombo.id = resolvedModelStr;
-      combo = virtualCombo;
-      log.info(
-        "AUTO",
-        `Virtual auto-combo created: ${combo.name} (${virtualCombo.candidatePool?.length || 0} candidates)`
-      );
-    } catch (err) {
-      log.error("AUTO", "Failed to create virtual auto-combo", { err });
-    }
-  }
+  const virtualCombo = await createVirtualAutoCombo(autoRouting, combo);
+  if (virtualCombo instanceof Response) return virtualCombo;
+  combo = virtualCombo;
   if (combo) {
     if (reasoningDecision) {
-      const filtered = filterComboForReasoningDecision(combo, reasoningDecision);
-      if (!filtered.combo) {
-        return errorResponse(
-          HTTP_STATUS.BAD_REQUEST,
-          "Reasoning routing policy leaves no compatible combo target"
-        );
-      }
-      combo = filtered.combo;
-      if (filtered.removed.length > 0) {
-        log.warn(
-          "REASONING_ROUTE",
-          `Rule ${reasoningDecision.rule.id} skipped ${filtered.removed.length} incompatible combo target(s)`
-        );
-      }
+      const filtered = filterReasoningCombo(combo, reasoningDecision);
+      if (filtered instanceof Response) return filtered;
+      combo = filtered;
     }
     log.info(
       "CHAT",
@@ -1421,30 +1273,18 @@ async function handleSingleModelChat(
       let requestBody =
         effectiveModel !== model ? { ...body, model: `${provider}/${effectiveModel}` } : body;
       if (!runtimeOptions.reasoningDecision && runtimeOptions.reasoningIntent) {
-        const connectionDecision = await resolveReasoningRoutingRule({
-          sourceModel: runtimeOptions.reasoningIntent.model,
-          sourceEffort: runtimeOptions.reasoningIntent.sourceEffort,
-          hasReasoningSignal: runtimeOptions.reasoningIntent.hasReasoningSignal,
-          hasThinkingBudget: runtimeOptions.reasoningIntent.hasThinkingBudget,
-          apiKeyId: apiKeyInfo?.id ?? null,
-          connectionId: credentials.connectionId,
-          requestTags: runtimeOptions.reasoningRequestTags ?? [],
-          connectionOnly: true,
-          capabilityModel: `${provider}/${effectiveModel}`,
+        const connectionRouting = await applyConnectionReasoningRule({
+          requestBody,
+          provider,
+          effectiveModel,
+          credentials,
+          apiKeyInfo,
+          reasoningIntent: runtimeOptions.reasoningIntent,
+          reasoningDecision: runtimeOptions.reasoningDecision,
+          requestRoutingTags: runtimeOptions.reasoningRequestTags,
         });
-        if (connectionDecision) {
-          if (connectionDecision.capability === "unsupported") {
-            return errorResponse(
-              HTTP_STATUS.BAD_REQUEST,
-              `Reasoning effort '${connectionDecision.targetEffort}' is not supported by the selected connection model`
-            );
-          }
-          requestBody = attachReasoningRuleDirective(requestBody, connectionDecision);
-          log.info(
-            "REASONING_ROUTE",
-            `Connection rule ${connectionDecision.rule.id} applied to ${credentials.connectionId}`
-          );
-        }
+        if (connectionRouting.response) return connectionRouting.response;
+        requestBody = connectionRouting.body;
       }
       let injectedHandoff = null;
       if (

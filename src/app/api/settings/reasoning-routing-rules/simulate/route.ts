@@ -14,24 +14,47 @@ import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
 import { getModelInfo } from "@/sse/services/model";
 import { resolveCodexWsModelInfo } from "@/app/api/internal/codex-responses-ws/modelResolution";
 
-export async function POST(request: Request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
-  const parsed = await validatedJsonBody(request, simulateReasoningRoutingSchema);
-  if (!parsed.success) return parsed.response;
-  const { model, effort, thinkingBudgetTokens, apiKeyId, requestTags, transport } = parsed.data;
-  const apiKey = apiKeyId ? await getApiKeyById(apiKeyId) : null;
-  if (apiKeyId && !apiKey) {
-    return NextResponse.json(buildErrorBody(404, "API key not found"), { status: 404 });
+async function resolveSimulationSourceModels(model: string, transport: string, combo: unknown) {
+  if (combo) return { normalized: model, aliases: [] };
+  return resolveReasoningSourceModels(model, (value) =>
+    transport === "codex-ws" ? resolveCodexWsModelInfo(value, getModelInfo) : getModelInfo(value)
+  );
+}
+
+function simulationErrors(
+  decision: Awaited<ReturnType<typeof resolveReasoningRoutingRule>>,
+  transportError: string | null,
+  permissionError: string | null
+) {
+  return [
+    ...(decision?.capability === "unsupported"
+      ? ["The configured effort is not supported by the target model"]
+      : []),
+    ...(transportError ? [transportError] : []),
+    ...(permissionError ? [permissionError] : []),
+  ];
+}
+
+async function readPermissionError(targetRejection: Response | null): Promise<string | null> {
+  if (!targetRejection) return null;
+  try {
+    const payload = await targetRejection.json();
+    return payload?.error?.message || payload?.error || "The API key cannot access the target";
+  } catch {
+    return "The API key cannot access the target";
   }
-  const combo = await getComboForModel(model);
-  const sourceModels = combo
-    ? { normalized: model, aliases: [] }
-    : await resolveReasoningSourceModels(model, (value) =>
-        transport === "codex-ws"
-          ? resolveCodexWsModelInfo(value, getModelInfo)
-          : getModelInfo(value)
-      );
+}
+
+async function resolveSimulationDecision(
+  model: string,
+  effort: string,
+  thinkingBudgetTokens: number | undefined,
+  apiKey: { id?: string } | null,
+  requestTags: string[],
+  transport: string,
+  combo: { id?: unknown } | null
+) {
+  const sourceModels = await resolveSimulationSourceModels(model, transport, combo);
   const decision = await resolveReasoningRoutingRule({
     sourceModel: sourceModels.normalized,
     sourceModelAliases: sourceModels.aliases,
@@ -43,6 +66,29 @@ export async function POST(request: Request) {
     comboId: typeof combo?.id === "string" ? combo.id : null,
     requestTags,
   });
+  return { decision, sourceModels };
+}
+
+export async function POST(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+  const parsed = await validatedJsonBody(request, simulateReasoningRoutingSchema);
+  if (!parsed.success) return parsed.response;
+  const { model, effort, thinkingBudgetTokens, apiKeyId, requestTags, transport } = parsed.data;
+  const apiKey = apiKeyId ? await getApiKeyById(apiKeyId) : null;
+  if (apiKeyId && !apiKey) {
+    return NextResponse.json(buildErrorBody(404, "API key not found"), { status: 404 });
+  }
+  const combo = await getComboForModel(model);
+  const { decision } = await resolveSimulationDecision(
+    model,
+    effort,
+    thinkingBudgetTokens,
+    apiKey,
+    requestTags,
+    transport,
+    combo
+  );
   const transportError =
     decision && transport === "codex-ws" ? validateCodexWsDecision(decision) : null;
   const targetRejection = decision
@@ -53,25 +99,10 @@ export async function POST(request: Request) {
         decision.targetModel
       )
     : null;
-  let permissionError: string | null = null;
-  if (targetRejection) {
-    try {
-      const payload = await targetRejection.json();
-      permissionError =
-        payload?.error?.message || payload?.error || "The API key cannot access the target";
-    } catch {
-      permissionError = "The API key cannot access the target";
-    }
-  }
+  const permissionError = await readPermissionError(targetRejection);
   return NextResponse.json({
     matched: !!decision,
     decision,
-    errors: [
-      ...(decision?.capability === "unsupported"
-        ? ["The configured effort is not supported by the target model"]
-        : []),
-      ...(transportError ? [transportError] : []),
-      ...(permissionError ? [permissionError] : []),
-    ],
+    errors: simulationErrors(decision, transportError, permissionError),
   });
 }

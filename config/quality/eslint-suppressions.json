@@ -337,11 +337,6 @@
       "count": 2
     }
   },
-  "tests/integration/_chatPipelineHarness.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 8
-    }
-  },
   "tests/integration/_comboRoutingHarness.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
