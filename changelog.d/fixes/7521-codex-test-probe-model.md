@@ -1,0 +1,1 @@
+- Fixed the Codex connection **Test** button always reporting success for ChatGPT-account tokens: the probe used `gpt-5.3-codex`, a codex-only model ChatGPT accounts reject with a 400 — the same status the probe treats as "auth OK", so a bad token was indistinguishable from a good one. It now probes with `gpt-5.5`, a model ChatGPT-account sessions actually support (#7521).

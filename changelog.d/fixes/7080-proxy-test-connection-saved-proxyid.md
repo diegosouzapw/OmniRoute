@@ -1,0 +1,1 @@
+- fix(dashboard): include proxyId when testing a saved registry proxy so SOCKS5/auth credentials are loaded (#7080)

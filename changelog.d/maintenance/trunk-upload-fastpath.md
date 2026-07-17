@@ -1,0 +1,1 @@
+- **CI**: the fast-path Vitest job (every PR) now also emits JUnit and uploads to Trunk Flaky Tests — the heavy-gate uploads alone (release PR only) would never accumulate flaky-detection volume

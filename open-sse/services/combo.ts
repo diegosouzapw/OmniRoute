@@ -146,6 +146,7 @@ import {
 } from "./combo/comboPredicates.ts";
 import { applyComboTargetExhaustion } from "./combo/targetExhaustion.ts";
 import { executeRuntimeUnitCombo } from "./combo/runtimeUnits.ts";
+import { extractFusionPanelSpec, buildFusionHandleSingleModel } from "./combo/fusionPanel.ts";
 import { isRecord } from "./combo/comboData.ts";
 import {
   expandProviderWildcardsInCombo,
@@ -818,20 +819,47 @@ export async function handleComboChat({
     );
   }
   if (strategy === "fusion") {
-    const fusionModels = (combo.models || [])
-      .map((m) => {
-        if (typeof m === "string") return m;
-        if (m && typeof m === "object") {
-          const obj = m as Record<string, unknown>;
-          if (typeof obj.model === "string") return obj.model;
-        }
-        return null;
-      })
-      .filter((m): m is string => Boolean(m));
+    const { panel: fusionModels, comboRefUnits } = extractFusionPanelSpec(
+      combo.models || [],
+      combo.name,
+      allCombos
+    );
+    // Untyped like the existing `nestingContext` further down — `nesting` is
+    // already `ComboNestingContext | null` per HandleComboChatOptions, no new
+    // import needed.
+    const fusionNesting = nesting || {
+      depth: 0,
+      maxDepth: clampComboDepth(config.maxComboDepth),
+      visitedComboNames: [combo.name],
+      rootComboName: combo.name,
+      attemptBudget: { count: 0, limit: MAX_GLOBAL_ATTEMPTS },
+    };
+    const fusionHandleSingleModel =
+      comboRefUnits.size > 0
+        ? buildFusionHandleSingleModel({
+            handleSingleModel: handleSingleModelWithTimeout,
+            comboRefUnits,
+            allCombos,
+            nesting: fusionNesting,
+            baseOptions: {
+              body,
+              combo,
+              handleSingleModel,
+              isModelAvailable,
+              log,
+              settings,
+              allCombos,
+              relayOptions,
+              signal,
+              apiKeyAllowedConnections,
+            },
+            runCombo: handleComboChat,
+          })
+        : handleSingleModelWithTimeout;
     return handleFusionChat({
       body,
       models: fusionModels,
-      handleSingleModel: handleSingleModelWithTimeout,
+      handleSingleModel: fusionHandleSingleModel,
       log,
       comboName: combo.name,
       judgeModel,

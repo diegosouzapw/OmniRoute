@@ -193,7 +193,7 @@ export const updateSettingsSchema = z.object({
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
   /** 9router parity: global combo expansion strategy (fallback vs round-robin). */
   comboStrategy: z.enum(["fallback", "round-robin"]).optional(),
-  comboStickyRoundRobinLimit: z.number().int().min(1).max(100).optional(),
+  comboStickyRoundRobinLimit: z.number().int().min(1).max(100).nullable().optional(),
   providerStrategies: z
     .record(
       z.string().trim().min(1),
@@ -387,6 +387,7 @@ export const databaseSettingsSchema = z
       callLogs: z.number().int().min(1).max(3650),
       usageHistory: z.number().int().min(1).max(3650),
       memoryEntries: z.number().int().min(1).max(3650),
+      xpAuditLog: z.number().int().min(1).max(365),
       autoCleanupEnabled: z.boolean(),
     }),
 

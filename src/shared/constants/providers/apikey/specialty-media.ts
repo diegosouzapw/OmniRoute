@@ -218,6 +218,18 @@ export const APIKEY_PROVIDERS_SPECIALTY = {
     passthroughModels: true,
     authHint: "Get API key at atlas.nomic.ai",
   },
+  mixedbread: {
+    id: "mixedbread",
+    alias: "mxbai",
+    name: "Mixedbread AI",
+    icon: "hub",
+    color: "#F59E0B",
+    textIcon: "MB",
+    website: "https://www.mixedbread.com",
+    hasFree: true,
+    freeNote: "Free-tier API key via signup, no credit card required.",
+    authHint: "Bearer API key for the Mixedbread embeddings API.",
+  },
   firecrawl: {
     id: "firecrawl",
     alias: "fc",
