@@ -21,6 +21,7 @@ import { hasThinkingConfig, normalizeThinkingConfig } from "../services/provider
 import { applyThinkingBudget } from "../services/thinkingBudget.ts";
 import { getResolvedModelCapabilities, supportsReasoning } from "../services/modelCapabilities.ts";
 import { normalizeRoles } from "../services/roleNormalizer.ts";
+import { hoistLeadingSystemMessage } from "./helpers/strictSystemHoist.ts";
 import {
   lookupReasoning,
   recordReplay,
@@ -196,6 +197,21 @@ export function translateRequest(
       targetFormat,
       preserveDeveloperRole
     );
+  }
+
+  // #7293: hoist any system message at index > 0 onto index 0 for providers that reject
+  // a non-first system role (systemMessageMustBeFirst() — same source of truth as the
+  // memory-injection half, #6135/PR#6225). Runs for every path — including same-format
+  // (OpenAI→OpenAI) passthrough, where none of the format-specific translators below
+  // execute — so a client-injected mid-array system message (OpenCode/Kilo Code style
+  // clients) is still normalized before reaching the upstream. No-op for non-strict
+  // providers and for already-compliant requests (prompt-cache prefix stability).
+  if (
+    targetFormat === FORMATS.OPENAI &&
+    result.messages &&
+    Array.isArray(result.messages)
+  ) {
+    result.messages = hoistLeadingSystemMessage(result.messages, provider);
   }
 
   // If same format, skip translation steps
