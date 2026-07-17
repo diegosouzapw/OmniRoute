@@ -4,9 +4,15 @@ import {
   getProviderAuditTarget,
   summarizeProviderConnectionForAudit,
 } from "@/lib/compliance/providerAudit";
-import { createProviderConnection, getProviderNodeById, isCloudEnabled } from "@/models";
+import {
+  createProviderConnection,
+  getProviderConnections,
+  getProviderNodeById,
+  isCloudEnabled,
+} from "@/models";
 import { isAnthropicCompatibleProvider, isOpenAICompatibleProvider } from "@/shared/constants/providers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { resolveBulkNameCollisions } from "@/shared/utils/bulkApiKeyParser";
 import { syncToCloud } from "@/lib/cloudSync";
 import { bulkImportProviderSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -109,6 +115,44 @@ async function importOneEntry(
   return { created: safe };
 }
 
+/**
+ * #2587 / #6836 — mirrors the guard in POST /api/providers/bulk: createProviderConnection
+ * upserts apikey connections BY NAME, so an imported row whose (provider, name) collides
+ * with an already-saved connection — or with an earlier row in the SAME import batch —
+ * would silently REPLACE that connection's apiKey/priority instead of inserting a new
+ * one, while the response still reported it as a fresh "created" success. Unlike /bulk
+ * (single provider per request), one import batch can span many DIFFERENT providers, so
+ * collisions are resolved per-provider: existing connection names are fetched once per
+ * distinct provider in the batch, then `resolveBulkNameCollisions` gap-fills a free
+ * "<name> <n>" suffix for every entry so each one reaches createProviderConnection as a
+ * genuine insert.
+ */
+async function resolveImportNameCollisions(entries: ImportEntry[]): Promise<ImportEntry[]> {
+  const indicesByProvider = new Map<string, number[]>();
+  entries.forEach((entry, index) => {
+    const indices = indicesByProvider.get(entry.provider) || [];
+    indices.push(index);
+    indicesByProvider.set(entry.provider, indices);
+  });
+
+  const resolved: ImportEntry[] = [...entries];
+  for (const [provider, indices] of indicesByProvider) {
+    const existingConnections = await getProviderConnections({ provider, authType: "apikey" });
+    const existingNames = existingConnections
+      .map((c) => (typeof c.name === "string" ? c.name : null))
+      .filter((n): n is string => !!n);
+
+    const providerEntries = indices.map((i) => ({ name: entries[i].name }));
+    const resolvedProviderEntries = resolveBulkNameCollisions(providerEntries, existingNames);
+
+    indices.forEach((originalIndex, i) => {
+      resolved[originalIndex] = { ...entries[originalIndex], name: resolvedProviderEntries[i].name };
+    });
+  }
+
+  return resolved;
+}
+
 async function syncToCloudIfEnabled() {
   try {
     const cloudEnabled = await isCloudEnabled();
@@ -143,12 +187,13 @@ export async function POST(request: Request) {
   }
 
   const { entries, validateKeys } = validation.data;
+  const resolvedEntries = await resolveImportNameCollisions(entries);
 
   const created: Array<Record<string, unknown>> = [];
   const errors: Array<{ index: number; name: string; provider: string; message: string }> = [];
 
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
+  for (let i = 0; i < resolvedEntries.length; i++) {
+    const entry = resolvedEntries[i];
     try {
       const result = await importOneEntry(entry, !!validateKeys);
       if ("error" in result) {
