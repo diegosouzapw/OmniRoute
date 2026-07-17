@@ -35,6 +35,23 @@ export const NOAUTH_PROVIDERS = {
     freeNote: "Free — anonymous access to multiple AI models via DuckDuckGo.",
     authHint: "No credentials required — DuckDuckGo AI Chat is anonymous and free.",
   },
+  "felo-web": {
+    id: "felo-web",
+    alias: "felo",
+    name: "Felo",
+    icon: "travel_explore",
+    color: "#5B7FFF",
+    textIcon: "FL",
+    website: "https://felo.ai",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["llm"],
+    freeNote: "Free — anonymous access to Felo's chat/search-agent aggregator. No API key.",
+    authHint: "No credentials required — Felo is a free, no-signup chat/search aggregator.",
+    notice: {
+      text: "Felo uses a reverse-engineered public endpoint (no official API). No signup or API key needed. Behavior may change without notice if Felo updates its frontend.",
+    },
+  },
   theoldllm: {
     id: "theoldllm",
     alias: "tllm",

@@ -1485,6 +1485,29 @@
       "stream": "https://api.featherless.ai/v1/chat/completions"
     }
   },
+  "felo-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://felo.ai/api-proxy/main/search/threads",
+      "stream": "https://felo.ai/api-proxy/main/search/threads"
+    }
+  },
   "fireworks": {
     "format": "openai",
     "headers": {

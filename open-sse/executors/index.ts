@@ -38,6 +38,7 @@ import { CopilotWebExecutor } from "./copilot-web.ts";
 import { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
 import { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 import { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
+import { FeloWebExecutor } from "./felo-web.ts";
 import { T3ChatWebExecutor } from "./t3-chat-web.ts";
 import { ClaudeWebExecutor } from "./claude-web.ts";
 import { InnerAiExecutor } from "./inner-ai.ts";
@@ -127,6 +128,8 @@ const executors = {
   "veo-free": new VeoAIFreeWebExecutor(), // Alias
   "duckduckgo-web": new DuckDuckGoWebExecutor(),
   ddgw: new DuckDuckGoWebExecutor(), // Alias
+  "felo-web": new FeloWebExecutor(),
+  felo: new FeloWebExecutor(), // Alias
   "t3-web": new T3ChatWebExecutor(),
   t3chat: new T3ChatWebExecutor(), // Alias
   "inner-ai": new InnerAiExecutor(),
@@ -235,6 +238,7 @@ export { CopilotWebExecutor } from "./copilot-web.ts";
 export { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
 export { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 export { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
+export { FeloWebExecutor } from "./felo-web.ts";
 export { ClaudeWebExecutor } from "./claude-web.ts";
 export { DeepSeekWebExecutor } from "./deepseek-web.ts";
 export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
