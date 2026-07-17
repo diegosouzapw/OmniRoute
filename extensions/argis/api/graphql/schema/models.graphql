@@ -1,0 +1,108 @@
+# Model-related types
+
+type Model {
+  id: ID!
+  name: String!
+  provider: Provider!
+  displayName: String!
+  description: String
+  
+  # Capabilities
+  capabilities: [Capability!]!
+  contextWindow: Int!
+  maxOutputTokens: Int
+  
+  # Pricing (per 1M tokens)
+  inputPrice: Float64!
+  outputPrice: Float64!
+  
+  # Availability
+  available: Boolean!
+  deprecated: Boolean!
+  deprecationDate: Time
+  
+  # Performance metrics (cached/aggregated)
+  metrics: ModelMetrics
+  
+  # Usage stats
+  usageStats: ModelUsageStats
+  
+  # Related models (same family)
+  relatedModels: [Model!]!
+  
+  # Version info
+  version: String
+  releaseDate: Time
+  
+  # Metadata
+  metadata: JSON
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type ModelMetrics {
+  # Latency percentiles in ms
+  latencyP50: Float64!
+  latencyP90: Float64!
+  latencyP99: Float64!
+  
+  # Throughput
+  tokensPerSecond: Float64!
+  requestsPerMinute: Float64!
+  
+  # Quality
+  errorRate: Float64!
+  qualityScore: Float64
+  
+  # Time window for these metrics
+  window: String!
+  updatedAt: Time!
+}
+
+type ModelUsageStats {
+  totalRequests: Int!
+  totalTokens: Int!
+  totalCost: Float64!
+  
+  # Time window
+  period: String!
+  
+  # Breakdown
+  byTaskType: [TaskTypeUsage!]!
+  byDomain: [DomainUsage!]!
+}
+
+type TaskTypeUsage {
+  taskType: String!
+  requests: Int!
+  tokens: Int!
+}
+
+type DomainUsage {
+  domain: String!
+  requests: Int!
+  tokens: Int!
+}
+
+type ModelConnection {
+  nodes: [Model!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+# Model comparison type for benchmarks
+type ModelComparison {
+  models: [Model!]!
+  metric: MetricType!
+  values: [Float64!]!
+  winner: Model
+  significance: Float64
+}
+

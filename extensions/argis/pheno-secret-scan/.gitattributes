@@ -1,0 +1,30 @@
+* text=auto
+*.rs text eol=lf
+*.py text
+*.ts text
+*.tsx text
+*.js text
+*.jsx text
+*.go text
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.mp4 binary
+*.mov binary
+*.pdf binary
+*.ico binary
+*.icns binary
+*.lock text
+Cargo.lock text
+package-lock.json text
+pnpm-lock.yaml text
+bun.lockb binary
+yarn.lock text
+*.md text
+*.mdx text
+*.yml text
+*.yaml text
+*.toml text
+*.json text
+*.sh text eol=lf

@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package bifrost.slm.v1;
+
+option go_package = "github.com/kooshapari/bifrost-extensions/api/connect/gen/slm/v1;slmv1";
+
+// RouterSLM provides intelligent model routing decisions
+service RouterSLM {
+  // Route makes a routing decision for a given request
+  rpc Route(RouteRequest) returns (RouteResponse);
+  
+  // RouteStream provides streaming routing with chain-of-thought reasoning
+  rpc RouteStream(RouteRequest) returns (stream RouteChunk);
+  
+  // RouteBatch processes multiple routing requests efficiently
+  rpc RouteBatch(RouteBatchRequest) returns (RouteBatchResponse);
+}
+
+// RouteRequest contains the information needed to make a routing decision
+message RouteRequest {
+  // The user's prompt/message content
+  string prompt = 1;
+  
+  // Optional conversation history for context
+  repeated Message history = 2;
+  
+  // Requested capabilities (e.g., "code", "reasoning", "creative")
+  repeated string capabilities = 3;
+  
+  // Cost constraint (0-1, where 0 = cheapest, 1 = best regardless of cost)
+  float cost_preference = 4;
+  
+  // Latency constraint in milliseconds (0 = no constraint)
+  int32 max_latency_ms = 5;
+  
+  // Provider preferences or exclusions
+  ProviderConstraints provider_constraints = 6;
+  
+  // Session ID for learning/personalization
+  string session_id = 7;
+  
+  // User ID for personalization
+  string user_id = 8;
+  
+  // Project context
+  string project_id = 9;
+}
+
+message Message {
+  string role = 1;    // "user", "assistant", "system"
+  string content = 2;
+}
+
+message ProviderConstraints {
+  repeated string preferred = 1;  // Prefer these providers
+  repeated string excluded = 2;   // Never use these providers
+  bool allow_fallback = 3;        // Allow fallback to other providers
+}
+
+// RouteResponse contains the routing decision
+message RouteResponse {
+  // Selected model ID
+  string model_id = 1;
+  
+  // Provider for the model
+  string provider = 2;
+  
+  // Confidence score (0-1)
+  float confidence = 3;
+  
+  // Reasoning for the decision
+  string reasoning = 4;
+  
+  // Alternative models ranked by suitability
+  repeated ModelCandidate alternatives = 5;
+  
+  // Estimated cost for this request
+  CostEstimate cost_estimate = 6;
+  
+  // Decision metadata
+  RouteMetadata metadata = 7;
+}
+
+message ModelCandidate {
+  string model_id = 1;
+  string provider = 2;
+  float score = 3;
+  string reason = 4;
+}
+
+message CostEstimate {
+  float input_cost = 1;      // Estimated input token cost
+  float output_cost = 2;     // Estimated output token cost
+  float total_cost = 3;      // Total estimated cost
+  string currency = 4;       // Currency (default: USD)
+}
+
+message RouteMetadata {
+  // Which routing strategies contributed
+  repeated string strategies_used = 1;  // e.g., ["mirt", "semantic", "arch"]
+  
+  // Byzantine ensemble voting results
+  map<string, float> voter_scores = 2;
+  
+  // Task classification result
+  string task_type = 3;
+  
+  // Domain classification result  
+  string domain = 4;
+  
+  // Latency of routing decision in ms
+  int32 routing_latency_ms = 5;
+}
+
+// RouteChunk is used for streaming routing responses
+message RouteChunk {
+  oneof chunk {
+    // Reasoning step during chain-of-thought
+    ReasoningStep reasoning_step = 1;
+    
+    // Final routing decision
+    RouteResponse final_decision = 2;
+  }
+}
+
+message ReasoningStep {
+  string step_name = 1;   // e.g., "task_classification", "capability_matching"
+  string content = 2;     // The reasoning content
+  float progress = 3;     // Progress (0-1)
+}
+
+// Batch routing
+message RouteBatchRequest {
+  repeated RouteRequest requests = 1;
+}
+
+message RouteBatchResponse {
+  repeated RouteResponse responses = 1;
+}
+

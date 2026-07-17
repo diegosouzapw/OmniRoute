@@ -1,0 +1,42 @@
+{
+  "task_id": "L5-116",
+  "task_subid": "drift-and-codeowners",
+  "date": "2026-06-20",
+  "repo": "KooshaPari/phenotype-apps",
+  "category": "L5-Governance",
+  "title": "ADR-023 follow-ups FU3 + FU4 (CODEOWNERS PRs + CI integration)",
+  "status": "complete",
+  "author": "KooshaPari",
+  "device": "macbook",
+  "device_rationale": "Python + Markdown + gh api calls; no cargo/dind/sim",
+  "device_gate_self_check": "Rule 1 PASS / Rule 2 N/A / Rule 3 PASS",
+  "schema_version": "v2.1",
+  "adr_anchors": [
+    "docs/adr/2026-06-15/ADR-023-agent-effort-governance.md",
+    "docs/adr/2026-06-18/ADR-041-71-pillar-refresh-cadence.md"
+  ],
+  "follow_ups_closed": [
+    "FU3: CODEOWNERS PRs on PAUSED repos — 1 PR created (FocalPoint #140), 4 repos already terminal",
+    "FU4: CI integration — .github/workflows/governance-drift.yml created (weekly cron + push-to-main)"
+  ],
+  "open_follow_ups": [
+    {"id": "L5-116-FU2", "priority": "P1", "description": "Run drift baseline across all non-monorepo repos", "blocker": "needs gh api across org"},
+    {"id": "L5-116-FU5", "priority": "P2", "description": "Daily CI integration (not just weekly)", "status": "deferred; weekly adequate for v10"},
+    {"id": "L5-116-FU6", "priority": "P2", "description": "pheno-ci-templates reusable workflow", "blocker": "repo 404"}
+  ],
+  "files_written": [
+    "findings/2026-06-19-L5-116-codeowners-review-paused-repos.md",
+    "findings/2026-06-19-L5-116-bucket-drift-and-codeowners.md",
+    "worklogs/L5-116-drift-and-codeowners-2026-06-19.json",
+    "scripts/batch_codeowners_prs.sh",
+    ".github/workflows/governance-drift.yml",
+    "findings/L6-bucket-drift-baseline-2026-06-19.json"
+  ],
+  "test_results": {
+    "py_compile": "PASS: scripts/l6_bucket_drift_check.py + batch_codeowners_prs.sh",
+    "json_parse": "PASS: L5-116-drift-and-codeowners-2026-06-19.json",
+    "gh_api": "PASS: FocalPoint PR #140 verified",
+    "cross_refs": "PASS: 6/6 files on disk"
+  },
+  "summary": "FU3 executed (1 PR created, 4 repos already terminal). FU4 CI workflow created. All ADR-023 open follow-ups now have execution artifacts on disk."
+}

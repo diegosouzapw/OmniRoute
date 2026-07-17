@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "name": "bifrost-promptadapter",
+  "env": {
+    "REDIS_URL": {
+      "description": "Redis connection URL (use Upstash free tier)",
+      "required": true
+    },
+    "LOG_LEVEL": {
+      "default": "INFO"
+    }
+  },
+  "functions": {
+    "api/adapt.py": {
+      "runtime": "python3.11",
+      "memory": 1024,
+      "maxDuration": 60
+    },
+    "api/optimize.py": {
+      "runtime": "python3.11",
+      "memory": 1024,
+      "maxDuration": 120
+    },
+    "api/health.py": {
+      "runtime": "python3.11",
+      "memory": 128,
+      "maxDuration": 10
+    }
+  },
+  "routes": [
+    {
+      "src": "/v1/adapt",
+      "dest": "/api/adapt.py",
+      "methods": ["POST"]
+    },
+    {
+      "src": "/v1/optimize",
+      "dest": "/api/optimize.py",
+      "methods": ["POST"]
+    },
+    {
+      "src": "/health",
+      "dest": "/api/health.py",
+      "methods": ["GET"]
+    }
+  ],
+  "buildCommand": "pip install -r requirements.txt",
+  "outputDirectory": ".",
+  "framework": "python"
+}
+

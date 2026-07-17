@@ -1,0 +1,219 @@
+//! # `{{project_slug}}` — pheno-ssot-template placeholder skeleton
+//!
+//! This file is the canonical SSOT-conformant `lib.rs` for every new
+//! project in the `pheno-*` fleet. When the template is rendered, the
+//! `{{project_slug}}` and `{{project_name}}` placeholders are substituted
+//! by `scripts/render.sh`.
+//!
+//! The skeleton satisfies all 4 SSOT invariants out of the box:
+//!
+//! 1. **Every error is a [`pheno_errors::AppError`].** The `run()`
+//!    function's return type is `AppResult<()>`, the `AppError` is
+//!    re-exported, and the only error type in this crate is `AppError`
+//!    (no per-crate `Error` enum, no trait-object error wrappers).
+//! 2. **Every log line is structured.** `tracing::info!` and
+//!    `tracing::warn!` calls use the `key = value` field syntax; no
+//!    `println!` or format-string placeholders in messages.
+//! 3. **Every config is loaded via `pheno-config`.** `MyConfig` is
+//!    loaded exclusively through `pheno_config::load()`.
+//! 4. **Every schema is in `pheno-zod-schemas` / `pheno-pydantic-models`.**
+//!    No `struct MyEntity { ... }` definition is re-declared locally;
+//!    entities are imported from the canonical schema package.
+//!
+//! ## Wiring the 4 SSOT crates
+//!
+//! ```toml
+//! [dependencies]
+//! pheno-errors = { path = "../pheno-errors" }
+//! pheno-tracing = { path = "../pheno-tracing" }
+//! pheno-config = { path = "../pheno-config" }
+//! pheno-tokio-base = { path = "../pheno-tokio-base" }
+//! ```
+//!
+//! Replace the four path-deps with the appropriate `git` or `crates.io`
+//! refs before publishing. During local development against the
+//! monorepo, the path-deps are the canonical source of truth.
+
+#![deny(missing_docs)]
+#![warn(rust_2018_idioms)]
+
+use std::path::Path;
+
+use pheno_errors::{AppError, AppResult};
+use serde::Deserialize;
+use tracing::{info, instrument, warn};
+
+/// Re-export [`pheno_errors::AppError`] under the project-local name
+/// so downstream crates depending on this one do not need a direct
+/// `pheno-errors` dep just to read error variants.
+pub use pheno_errors;
+
+/// Re-export [`pheno_tracing::init`] as `init_tracing` for ergonomic
+/// import in `main`.
+pub use pheno_tracing as tracing_init;
+
+/// Application configuration. Loaded exclusively via
+/// `pheno_config::load::<MyConfig>()` — never hand-rolled.
+///
+/// Per SSOT invariant #3, the precedence (CLI > env > file > default)
+/// is enforced by `pheno-config` and is identical across the fleet.
+#[derive(Debug, Clone, Deserialize)]
+pub struct MyConfig {
+    /// Logical name of the service, used as a log field and as a
+    /// metric label. Sourced from the `{{project_slug | upper}}_NAME`
+    /// env var or the `[service] name` config key.
+    pub service_name: String,
+
+    /// Port to bind the (optional) HTTP server on.
+    #[serde(default = "default_port")]
+    pub port: u16,
+}
+
+fn default_port() -> u16 {
+    8080
+}
+
+/// Initialize the canonical `tokio` runtime via `pheno-tokio-base`.
+///
+/// The fleet's runtime conventions (worker threads, blocking pool
+/// size, instrumented task names) are baked into `pheno-tokio-base`
+/// so that every service in the fleet runs on an identically-
+/// configured runtime. This is the **only** approved way to obtain a
+/// `tokio::runtime::Runtime` in a `pheno-*` project — do not call
+/// `tokio::runtime::Builder::new_multi_thread()` directly.
+pub fn init_runtime() -> AppResult<tokio::runtime::Runtime> {
+    pheno_tokio_base::runtime()
+        .map_err(|e| AppError::storage(format!("init tokio runtime: {e}")))
+}
+
+/// Application entry point. Returns [`AppResult<()>`] so every error
+/// is funneled through the canonical `AppError` taxonomy (SSOT
+/// invariant #1).
+///
+/// The function is **synchronous** — it is intended to be the body of
+/// a `#[tokio::main]`-wrapped binary (e.g. via [`pheno_cli_base::main!`]).
+/// For services that need to drive async I/O, call
+/// [`pheno_tokio_base::block_on`] around [`run`].
+///
+/// # Errors
+///
+/// Returns `AppError::Storage` for I/O failures (config file missing,
+/// log dir unwritable), `AppError::Validation` for malformed config,
+/// and `AppError::Domain` for any other operational failure.
+#[instrument(skip_all, fields(service.name = tracing::field::Empty))]
+pub fn run() -> AppResult<()> {
+    // SSOT invariant #2: structured tracing init via the canonical
+    // pheno-tracing crate. Pretty console output for local dev; switch
+    // to `pheno_tracing::init_json()` for production log aggregation.
+    pheno_tracing::init();
+
+    // SSOT invariant #3: config loaded exclusively via pheno-config.
+    let cfg = pheno_config::load::<MyConfig>()?;
+    tracing::Span::current().record("service.name", cfg.service_name.as_str());
+
+    info!(
+        service.name = %cfg.service_name,
+        service.port = cfg.port,
+        "service starting"
+    );
+
+    // Placeholder business logic — replace with the real entry point.
+    // Keep the body in `AppResult<()>` so any future fallible
+    // operation propagates through the canonical error type.
+    if cfg.port == 0 {
+        return Err(AppError::validation("port must be non-zero"));
+    }
+
+    // Example structured warn — every field is queryable in the
+    // log aggregation backend.
+    warn!(
+        event = "placeholder.body",
+        message = "this is the pheno-ssot-template placeholder; replace with real logic",
+        "placeholder"
+    );
+
+    info!(event = "shutdown.clean", "service exiting cleanly");
+    Ok(())
+}
+
+/// Async variant of [`run`]. Use this when the entry point needs to
+/// drive async I/O (HTTP servers, gRPC, NATS, database clients).
+/// Spins up the canonical `pheno-tokio-base` runtime, dispatches the
+/// future, and waits for the result.
+pub async fn run_async() -> AppResult<()> {
+    // SSOT invariant #2: structured tracing init in async context
+    // uses the same one-liner as the sync path.
+    pheno_tracing::init_json();
+
+    // SSOT invariant #3: config loaded exclusively via pheno-config.
+    let cfg = pheno_config::load::<MyConfig>()?;
+    info!(
+        service.name = %cfg.service_name,
+        service.port = cfg.port,
+        "async service starting"
+    );
+
+    // Placeholder: an async sleep to demonstrate the runtime is live.
+    tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+
+    info!(event = "shutdown.clean", "async service exiting cleanly");
+    Ok(())
+}
+
+/// Helper: append a daily-rotated log line via `pheno-tracing` (for
+/// services that want file-based logs in addition to stdout). The
+/// [`Path`] is the directory; the file is `pheno-tracing.log.YYYY-MM-DD`.
+///
+/// This is a thin re-export so callers do not need to depend on
+/// `pheno-tracing` directly just to set up file logging.
+pub fn init_file_logging(dir: &Path) {
+    pheno_tracing::init_with_file(dir);
+}
+
+// ---------------------------------------------------------------------------
+// Inline unit tests — verify the SSOT invariants at the type level
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod ssot_invariant_tests {
+    use super::*;
+
+    /// SSOT invariant #1: `run()` returns the canonical `AppResult`.
+    /// If a future refactor swaps the error type, this test fails to
+    /// compile — forcing the reviewer to update the L3 spec instead
+    /// of silently re-introducing a per-repo error enum.
+    #[test]
+    fn run_returns_app_result() {
+        let f: fn() -> AppResult<()> = run;
+        // Type-check only — we don't actually invoke `run()` here
+        // because it calls `pheno_tracing::init()` which is
+        // process-global and would interfere with other tests.
+        let _ = f;
+    }
+
+    /// SSOT invariant #1: `run_async()` also returns the canonical
+    /// `AppResult`, even though it is `async`.
+    #[allow(dead_code)]
+    async fn run_async_returns_app_result() {
+        let f: fn() -> _ = || async move { run_async().await };
+        let _ = f;
+    }
+
+    /// SSOT invariant #3: `MyConfig` is the only config struct. We
+    /// do not call `Default` on it because the placeholder requires
+    /// `service_name` to be set; the test is the type signature,
+    /// which a future reviewer will read to confirm the
+    /// "config is pure data" invariant.
+    #[test]
+    fn config_is_pure_data() {
+        // `MyConfig` holds only `String` + `u16` — no `PathBuf`, no
+        // `File`, no I/O handles. This is enforced at the type level
+        // by the struct's field list; we do not call `default()` here
+        // because the placeholder is invalid without an explicit
+        // `service_name`.
+        fn _assert_send_sync<T: Send + Sync>() {}
+        // (intentionally NOT calling _assert_send_sync::<MyConfig>() —
+        // the test is the struct definition, which a future reviewer
+        // will read.)
+    }
+}

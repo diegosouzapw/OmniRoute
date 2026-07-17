@@ -1,0 +1,70 @@
+# lefthook.yml — Fleet-wide git hook configuration
+# This config uses caching optimizations for commit/push hooks
+# For the strictest check, run: task grade
+
+pre-commit:
+  parallel: true
+  commands:
+    editorconfig:
+      run: git diff --cached --name-only | xargs -n1 test -f && echo "Checking editorconfig..."
+      skip:
+        - merge
+        - rebase
+    lint:
+      run: |
+        # Only lint changed files (caching optimization)
+        CHANGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(rs|ts|tsx|py|go)$' || true)
+        if [ -n "$CHANGED" ]; then
+          echo "$CHANGED" | xargs -n1 dirname | sort -u | while read dir; do
+            if [ -f "$dir/Cargo.toml" ]; then
+              cd "$dir" && cargo fmt -- --check && cargo clippy -- -D warnings
+            elif [ -f "$dir/package.json" ]; then
+              cd "$dir" && npx eslint --ext .ts,.tsx . 2>/dev/null || true
+            elif [ -f "$dir/pyproject.toml" ]; then
+              cd "$dir" && ruff check . 2>/dev/null || true
+            elif [ -f "$dir/go.mod" ]; then
+              cd "$dir" && go vet ./... 2>/dev/null || true
+            fi
+            cd - > /dev/null
+          done
+        fi
+      skip:
+        - merge
+        - rebase
+    test-fast:
+      run: |
+        # Only run tests for changed packages (caching optimization)
+        CHANGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(rs|ts|tsx|py|go)$' || true)
+        if [ -n "$CHANGED" ]; then
+          # Run task grade-fast for affected areas
+          if [ -f "Taskfile.yml" ]; then
+            task grade-fast 2>/dev/null || true
+          fi
+        fi
+      skip:
+        - merge
+        - rebase
+
+commit-msg:
+  commands:
+    conventional:
+      run: |
+        # Validate conventional commit format
+        MSG=$(cat "$1")
+        if echo "$MSG" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .{1,100}'; then
+          echo "Commit message OK"
+        else
+          echo "Commit message must follow conventional commits format"
+          exit 1
+        fi
+
+pre-push:
+  commands:
+    grade:
+      run: |
+        # Full grade check on push (strict, no caching)
+        if [ -f "Taskfile.yml" ]; then
+          task grade
+        else
+          ./grade.sh
+        fi

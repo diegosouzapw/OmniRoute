@@ -1,0 +1,31 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 100
+
+[*.{rs,py,go,ts,js}]
+indent_style = tab
+indent_size = 2
+
+[*.{yml,yaml,json,md}]
+indent_style = tab
+indent_size = 2
+
+[*.{toml,ini,cfg}]
+indent_style = tab
+indent_size = 2
+
+[*.sh]
+indent_style = tab
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+
+[*.proto]
+indent_style = tab
+indent_size = 2

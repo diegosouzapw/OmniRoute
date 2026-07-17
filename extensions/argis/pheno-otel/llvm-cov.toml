@@ -1,0 +1,22 @@
+# llvm-cov.toml — cargo-llvm-cov configuration for pheno-otel
+# ADR-040 quality gate: 80% lib-tier coverage threshold.
+# Consumed by `cargo llvm-cov` (used in the `coverage` job of ci.yml).
+# Mirrors the lib/SDK 80% gate from the 71-pillar audit (DX L32, OO L62).
+
+# Default flags applied to every `cargo llvm-cov` invocation.
+# `--all-features` : exercise feature-gated code paths (none currently, but
+# pinned so future features are covered by default).
+default_flags = ["--all-features"]
+
+# Threshold enforcement — ADR-040 lib tier = 80% lines / 75% branches / 80% fns.
+# Matches the gate consumed by the `coverage` CI job (codecov/codecov-action@v4
+# honours project-coverage-fail-threshold when configured on the codecov side).
+[threshold]
+lines    = 80
+branches = 75
+functions = 80
+
+# Report output conventions (CI uploads lcov.info to codecov).
+[output]
+lcov = "lcov.info"
+summary = "target/llvm-cov/summary.txt"

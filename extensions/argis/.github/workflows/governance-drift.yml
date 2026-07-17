@@ -1,0 +1,46 @@
+name: Governance Drift Check (ADR-023)
+
+on:
+  schedule:
+    # Weekly: Monday 09:00 PDT (16:00 UTC) per ADR-041 refresh cadence
+    - cron: '0 16 * * 1'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bucket-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+        with:
+          python-version: '3.12'
+      - name: Run L6 bucket-drift check
+        id: drift
+        continue-on-error: true
+        run: |
+          python3 scripts/l6_bucket_drift_check.py \
+            --out findings/L6-bucket-drift-ci-$(date +%Y-%m-%d).json \
+            2>&1 | tee /tmp/drift-output.txt
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          echo "exceptions=$(grep -c 'DRIFT' /tmp/drift-output.txt || true)" >> $GITHUB_OUTPUT
+      - name: Report drifts
+        if: steps.drift.outputs.exceptions != '0'
+        run: |
+          echo "::warning title=Bucket Drift Detected::$(cat /tmp/drift-output.txt | grep 'DRIFT' | head -10)"
+      - name: Upload baseline
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: bucket-drift-baseline
+          path: findings/L6-bucket-drift-ci-*.json
+          retention-days: 30

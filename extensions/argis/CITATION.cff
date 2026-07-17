@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "argis-extensions"
+authors:
+  - family-names: "Pari"
+    given-names: "Koosha"
+    affiliation: "Phenotype"
+repository-code: "https://github.com/KooshaPari/argis-extensions"
+url: "https://phenotype.space"
+license: "MIT OR Apache-2.0"

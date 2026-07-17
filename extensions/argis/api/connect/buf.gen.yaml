@@ -1,0 +1,20 @@
+# buf.gen.yaml - Code generation configuration
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/kooshapari/bifrost-extensions/api/connect/gen
+plugins:
+  # Generate Go protobuf code
+  - remote: buf.build/protocolbuffers/go
+    out: gen
+    opt:
+      - paths=source_relative
+  
+  # Generate Connect-Go code (gRPC-compatible)
+  - remote: buf.build/connectrpc/go
+    out: gen
+    opt:
+      - paths=source_relative
+

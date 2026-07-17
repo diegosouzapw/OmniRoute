@@ -1,0 +1,55 @@
+# ---------------------------------------------------------------------------
+# pheno-secret-scan — pre-commit hooks manifest (L3 #60)
+#
+# This file is the local hook config consumed by `pre-commit` (the
+# pre-commit.com framework). It mirrors the GitHub Actions workflow in
+# .github/workflows/secret-scan.yml but runs locally before a commit
+# reaches the remote — a fast feedback loop for developers who already
+# have `pre-commit` installed.
+#
+# Usage (in a consumer repo):
+#
+#     # 1. Add pheno-secret-scan as a submodule, copy the file in, or
+#     #    point pre-commit at the upstream URL:
+#     #    repos:
+#     #      - repo: https://github.com/KooshaPari/pheno-secret-scan
+#     #        rev: v0.1.0
+#     #        hooks:
+#     #          - id: trufflehog
+#     #            args: [--no-verification]
+#
+#     # 2. Or copy the hook block from this file into the consumer's
+#     #    existing .pre-commit-config.yaml.
+#
+# Hook id: `trufflehog`
+#  * entry: invokes `trufflehog` via docker run, so the host doesn't
+#    need a pre-installed TruffleHog binary.
+#  * language: system — pre-commit will check that `docker` is on PATH
+#  * pass_filenames: false — TruffleHog scans the whole repo, not the
+#    staged fileset (this is a deliberate choice; see README.md)
+#  * args: passes --no-verification on every commit hook to keep the
+#    pre-commit loop fast (verified secrets are caught by the CI
+#    workflow, which is the source of truth)
+# ---------------------------------------------------------------------------
+
+- id: trufflehog
+  name: TruffleHog secret scan
+  description: |
+    Scan the working tree for committed credentials with TruffleHog.
+    Uses --no-verification locally (fast) — verified scanning is
+    performed by the .github/workflows/secret-scan.yml CI workflow.
+  entry: bash -c 'docker run --rm -v "$(pwd):/repo:ro" -w /repo trufflesecurity/trufflehog:latest git file:///repo --since-commit HEAD --no-verification --no-update'
+  language: system
+  pass_filenames: false
+  stages: [pre-commit]
+  args: [--no-verification]
+  require_serial: false
+  # Skip vendored / generated / large-binary trees by default. Override
+  # in the consumer's .pre-commit-config.yaml via `exclude:` if needed.
+  exclude: |
+    (?x)^(
+      vendor/.*|
+      target/.*|
+      node_modules/.*|
+      .*\.lock
+    )$

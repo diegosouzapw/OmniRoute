@@ -1,0 +1,32 @@
+{
+  "schema_version": "v2.1",
+  "task_id": "L5-121",
+  "task_subid": "monday-refresh-prep",
+  "title": "71-Pillar Monday refresh template pre-stage",
+  "date": "2026-06-20",
+  "device": "macbook",
+  "device_rationale": "one 170-line template, one 24-line finding, one 38-line worklog — stdlib only, no cargo/dind/sim",
+  "status": "complete",
+  "author": "KooshaPari",
+  "files_written": [
+    "findings/71-pillar-refresh-template.md",
+    "findings/2026-06-20-L5-121-monday-refresh-prep.md",
+    "worklogs/L5-121-monday-refresh-prep-2026-06-20.json"
+  ],
+  "adr_anchors": ["ADR-024", "ADR-041"],
+  "summary": {
+    "deliverables": [
+      "findings/71-pillar-refresh-template.md — 170-line reusable scorecard for any repo"
+    ],
+    "open_follow_ups": [
+      "2026-06-22: run Monday sweep — copy template per active repo, populate scores, roll up org-wide"
+    ]
+  },
+  "device_gate_self_check": {
+    "rule_1_device_fit": "PASS — 3 files, ~230 total lines, python3 markdown only",
+    "rule_2_app_triage": "N/A — governance prep, no app repo touched",
+    "rule_3_substrate": "PASS — findings/ directory, monorepo-native",
+    "rule_3_1_quality_bar": "PASS — template has structured placeholders, schema ref, delta tracking"
+  },
+  "commit_sha": null
+}

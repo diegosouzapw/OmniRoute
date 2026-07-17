@@ -1,0 +1,30 @@
+# `pheno-worklog-schema`
+
+> Parse, validate, and emit `WORKLOG.md` files in the v2.1 schema (11 columns, ADR-025).
+
+## Docs
+
+- [README](README.md): what / when / when not
+- [SPEC](SPEC.md): schema + API surface + quickstart
+- [AGENTS](AGENTS.md): substrate scope + cross-references
+- [v2.1 schema table](AGENTS.md#schema--v21-canonical): 11 columns including `device:`
+
+## Reference
+
+- [ADR-025 (v2.1 bump)](https://example.com/phenotype-apps/docs/adr/2026-06-17/ADR-025-adr-015-v2-1.md): the 11th `device:` column
+- [ADR-030 (extended v2.1)](https://example.com/phenotype-apps/docs/adr/2026-06-17/ADR-030-pheno-worklog-schema-v2-1.md): full spec
+- [ADR-032 (decision)](https://example.com/phenotype-apps/docs/adr/2026-06-17/ADR-032-pheno-worklog-schema-decision.md): primitive lib, not duplicate of AgilePlus
+
+## Releases
+
+- [CHANGELOG](CHANGELOG.md): Keep a Changelog format
+- [WORKLOG](WORKLOG.md): dogfooded v2.1 schema
+
+## Source
+
+- [Repo](https://github.com/KooshaPari/phenotype-apps/tree/main/pheno-worklog-schema): governance + meta-bundle path in the monorepo
+- [src/](src/pheno_worklog_schema/): executable Python source
+
+## Examples
+
+- [quickstart](examples/quickstart.py): 5-line demo

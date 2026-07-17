@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  promptadapter:
+    build: .
+    ports:
+      - "8090:8090"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - LM_PROVIDER=openai
+      - LM_MODEL=gpt-4o-mini
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+

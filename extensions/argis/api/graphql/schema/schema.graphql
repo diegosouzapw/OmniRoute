@@ -1,0 +1,193 @@
+# GraphQL Schema for Bifrost Extensions
+# Query layer for model registry, benchmarks, and provider status
+
+
+# GraphQL Schema for Bifrost Extensions
+# Query layer for model registry, benchmarks, and provider status
+
+
+type Query {
+  # Model queries
+  models(
+    provider: String
+    capabilities: [Capability!]
+    available: Boolean
+    limit: Int = 100
+    offset: Int = 0
+  ): ModelConnection!
+  
+  model(id: ID!): Model
+  
+  # Usage analytics
+  usage(
+    timeframe: Timeframe!
+    groupBy: [GroupByField!]
+    filters: UsageFilters
+  ): UsageReport!
+  
+  # Routing history
+  routingHistory(
+    sessionId: String
+    userId: String
+    limit: Int = 100
+    offset: Int = 0
+  ): RoutingHistoryConnection!
+  
+  # Policy queries
+  policies(
+    type: PolicyType
+    active: Boolean
+  ): [Policy!]!
+  
+  policy(id: ID!): Policy
+}
+
+type Mutation {
+  # Model management
+  updateModelStatus(id: ID!, available: Boolean!): Model!
+  
+  # Policy management
+  createPolicy(input: PolicyInput!): Policy!
+  updatePolicy(id: ID!, input: PolicyInput!): Policy!
+  activatePolicy(id: ID!): Policy!
+  deactivatePolicy(id: ID!): Policy!
+  
+  # Benchmark management
+  createBenchmark(input: BenchmarkInput!): Benchmark!
+  
+  # Provider account management
+  refreshProviderToken(providerId: ID!, accountId: ID!): Account!
+}
+
+type Subscription {
+  # Model availability changes
+  modelAvailability(providers: [ID!]): ModelAvailabilityEvent!
+  
+  # Routing events (for debugging/monitoring)
+  routingEvents(sessionId: String): RoutingEvent!
+  
+  # Usage updates
+  usageUpdates(interval: Int = 60): UsageUpdate!
+}
+
+# Enums
+enum Capability {
+  TEXT_GENERATION
+  CODE_GENERATION
+  REASONING
+  MATH
+  CREATIVE
+  VISION
+  AUDIO
+  EMBEDDINGS
+  FUNCTION_CALLING
+  STRUCTURED_OUTPUT
+}
+
+enum MetricType {
+  LATENCY_P50
+  LATENCY_P90
+  LATENCY_P99
+  THROUGHPUT
+  ERROR_RATE
+  TOKEN_COST
+  QUALITY_SCORE
+  TASK_SUCCESS
+}
+
+enum Timeframe {
+  HOUR
+  DAY
+  WEEK
+  MONTH
+  QUARTER
+  YEAR
+  CUSTOM
+}
+
+enum GroupByField {
+  PROVIDER
+  MODEL
+  USER
+  PROJECT
+  TASK_TYPE
+  DOMAIN
+}
+
+enum PolicyType {
+  ROUTING
+  COST_LIMIT
+  RATE_LIMIT
+  FALLBACK
+  PREFERENCE
+}
+
+enum ProviderStatus {
+  HEALTHY
+  DEGRADED
+  DOWN
+  RATE_LIMITED
+  UNKNOWN
+}
+
+type ModelAvailabilityEvent {
+  model: Model!
+  available: Boolean!
+  reason: String
+  timestamp: Time!
+}
+
+
+
+
+
+scalar Time
+scalar Date
+scalar DateTime
+scalar JSON
+enum Map { VALUE }
+scalar Any
+
+scalar Float64
+scalar Float32
+scalar Int64
+scalar Int32
+
+# Account type
+type Account {
+  id: ID!
+  name: String!
+  email: String!
+  providers: [Provider!]!
+  keys: [Key!]!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+# Key type
+type Key {
+  id: ID!
+  name: String!
+  provider: Provider!
+  value: String!
+  isActive: Boolean!
+  createdAt: Time!
+}
+
+# BenchmarkConnection type
+type BenchmarkConnection {
+  edges: [BenchmarkEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type BenchmarkEdge {
+  node: Benchmark!
+  cursor: String!
+}
+
+# DateRangeInput type
+input DateRangeInput {
+  startDate: DateTime
+  endDate: DateTime
+}

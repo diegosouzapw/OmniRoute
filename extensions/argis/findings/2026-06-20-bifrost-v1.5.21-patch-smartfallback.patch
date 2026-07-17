@@ -1,0 +1,28 @@
+--- a/servers/smartfallback/src/executor.rs
++++ b/servers/smartfallback/src/executor.rs
+@@ -42,8 +42,11 @@ pub async fn dispatch(req: BatchPayload) -> Result<Response, Error> {
+-    let payload = BatchPayload {
+-        items: req.items,
+-        ..req
+-    };
++    let payload = BatchPayload {
++        items: req.items,
++        request_id: req.request_id.unwrap_or_default(),  // SDK v1.5.21: required field
++        ..req
++    };
+
+-    let (resp, meta) = bifrost.execute(ctx, payload, opts).await?;
++    let resp = bifrost.execute(ctx, payload, opts).await?;
++    let meta = resp.meta.clone();  // SDK v1.5.21: metadata moved into Response
+
+     Ok(Response { body: resp.body, meta, ..Default::default() })
+ }
+@@ -78,7 +81,7 @@ pub async fn stream(req: StreamRequest) -> Result<Stream, Error> {
+-    while let Some(chunk) = stream.next().await {
++    while let Some((chunk, final)) = stream.next().await {
+         yield chunk;
+-        if stream.is_final() {
++        if final {
+             break;
+         }
+     }

@@ -1,0 +1,94 @@
+# Pre-commit Configuration — Helios CLI Base
+#
+# Governance reference: thegent/governance/quality-gates/README.md
+# Standards: thegent/governance/standards/code-style.md
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-json
+      - id: check-toml
+      - id: detect-private-key
+      - id: forbid-submodules
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: cargo fmt --all -- --check
+        language: system
+        types: [rust]
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: cargo clippy --workspace --all-targets -- -D warnings
+        language: system
+        types: [rust]
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: ruff-lint
+        name: ruff lint
+        entry: ruff check
+        language: system
+        types: [python]
+        stages: [pre-commit]
+
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format --check
+        language: system
+        types: [python]
+        stages: [pre-commit]
+
+      - id: go-vet
+        name: go vet
+        entry: go vet ./...
+        language: system
+        types: [go]
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: go-fmt
+        name: go fmt
+        entry: go fmt ./...
+        language: system
+        types: [go]
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: go-mod-tidy
+        name: go mod tidy
+        entry: go mod tidy
+        language: system
+        types: [go]
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: eslint
+        name: eslint
+        entry: npx eslint --fix
+        language: system
+        types_or: [javascript, typescript]
+        stages: [pre-commit]
+
+      - id: prettier
+        name: prettier
+        entry: npx prettier --write
+        language: system
+        types_or: [javascript, typescript, json, markdown, yaml]
+        stages: [pre-commit]
+
+ci:
+  autofix_commit_msg: "style(pre-commit): auto-format"
+  autoupdate_commit_msg: "chore(pre-commit): update hooks"

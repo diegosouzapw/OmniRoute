@@ -1,0 +1,270 @@
+From 3b7658f43091567527cd326bab422c056c840ee3 Mon Sep 17 00:00:00 2001
+From: KooshaPari <kooshapari@gmail.com>
+Date: Tue, 16 Jun 2026 17:26:05 -0700
+Subject: [PATCH 1/4] docs(block-c): AuthKit audit + fold plan into Authvault
+
+---
+ docs/audit/BLOCK-C-AUDIT.md | 251 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 251 insertions(+)
+ create mode 100644 docs/audit/BLOCK-C-AUDIT.md
+
+diff --git a/docs/audit/BLOCK-C-AUDIT.md b/docs/audit/BLOCK-C-AUDIT.md
+new file mode 100644
+index 0000000..2d0f206
+--- /dev/null
++++ b/docs/audit/BLOCK-C-AUDIT.md
+@@ -0,0 +1,251 @@
++# Block-C Audit — AuthKit → Authvault Fold Plan
++
++**Audit date:** 2026-06-16
++**Auditor:** Block-C consolidation (#2)
++**Tracker:** [`phenotype-registry/docs/rationalization/block-c-consolidation.md`](../..) — row 2 of the strategic-merges table
++**Verdict:** **Fold. AuthKit is a true duplicate (self-admitted) of canonical Authvault. Archive after fold.**
++**Companion PR on Authvault:** `KooshaPari/Authvault#<TBD>` (this PR is on AuthKit, the source side)
++
++---
++
++## 1. Purpose & scope
++
++`KooshaPari/AuthKit` was created as a pre-extraction staging repo for shared
++Phenotype infrastructure crates that would eventually move to `phenoShared`. Per
++its own README:
++
++> "AuthKit (formerly AuthVault) is a pre-extraction staging repository for
++> shared infrastructure crates that will eventually move to **phenoShared**.
++> Despite the name, this repository does **not** currently contain
++> authentication SDK code — that work is planned but not started."
++> — `AuthKit/README.md:42`
++
++So the repo is named `AuthKit` and called out in Block-C as a "Rust auth SDK
++duplicate" — but it is, by its own maintainers' admission, **not an auth SDK
++at all**. It is a general-purpose infrastructure workspace. The
++"duplicate-of-Authvault" claim is a *naming* duplicate, not a *functional* one
++— and that is exactly what makes the fold trivial and correct: there is
++nothing auth-related to fold; we archive the empty-named sibling and keep the
++real auth SDK (`Authvault`) as the sole canonical home.
++
++`KooshaPari/Authvault` is the canonical Rust auth framework for the
++Phenotype ecosystem (hexagonal architecture, OAuth2/JWT/RBAC/ABAC, session
++management, refresh-token rotation, audit, vault, signing — full
++`FR-AUTH-001..010` coverage already shipped on its main branch).
++
++This audit:
++1. Inventories every AuthKit module (Rust workspace + Python/TS stubs).
++2. Maps each module to the Authvault module that already covers (or
++   supersedes) it.
++3. Lists the few pieces that are *unique* to AuthKit and decides where
++   each lands (most do not belong in Authvault at all).
++4. Records ponytail cleanup findings (delete / stdlib / native / YAGNI /
++   shrink) that the fold will net out.
++5. Defines the fold sequence ending in archive.
++
++## 2. Stack comparison
++
++| Concern         | AuthKit (this repo)                                                              | Authvault (canonical)                                                                |
++|-----------------|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
++| Language        | Rust 2021, edition `rust-version = "1.75"`                                       | Rust 2021, `rust-version = "1.75"`                                                   |
++| Layout          | Cargo *workspace* — 3 crates (README claims 5, see §4)                           | Single Cargo *package* with hexagonal `src/{domain,application,adapters,…}`         |
++| Tests           | `#[cfg(test)]` inline only; **no** `tests/` integration suite                     | `tests/unit_tests.rs`, `tests/integration_tests.rs`, `benches/{auth,perf,…}`, `fuzz` |
++| Build artifacts | No `Cargo.lock` at workspace root                                                | `Cargo.lock` committed                                                               |
++| Other languages | `python/` (empty stubs `pheno-auth/`, `pheno-security/`), `typescript/package.json`, `go/` does not exist | None (Rust-only; TS sibling is `phenotype-auth-ts` — separate polyglot project) |
++| CI / quality    | `.github/workflows/{ci,cargo-deny,codeql,trufflehog,release-drafter,…}.yml`      | `.github/workflows/{ci,security,coverage,benchmarks,sast,pages-deploy,…}.yml`        |
++| Docs            | 1,194-line aspirational `PLAN.md` + 3 ADRs + `SOTA.md` research notes            | `SPEC.md` + `FR-AUTH-001..010` + `TEST_COVERAGE_MATRIX.md` + `SECURITY_AUDIT.md` + `SESSION_MANAGEMENT_AUDIT.md` + `TOKEN_STORAGE_AUDIT.md` + `.agileplus/specs/001-authvault-core` |
++| Requirements    | `FUNCTIONAL_REQUIREMENTS.md` describes features that don't exist in the code    | Every FR has implementation + test trace                                             |
++| Workspace deps  | `phenotype-bid` depends on `phenotype-time` (does not exist in workspace — **broken**) and `phenotype-security-aggregator` imports `phenotype_health` (also **not in workspace**) | Self-contained single package, optional dev-deps only                                |
++| Status          | "Pre-extraction staging" (self-described)                                         | "ACTIVE · 70% complete" (self-described)                                            |
++
++**Net Authvault has strictly more in every dimension relevant to an auth
++SDK.** AuthKit only competes with it in *name*.
++
++## 3. Overlap-with-Authvault table
++
++AuthKit contains **zero** authenticator, JWT, PKCE, session, refresh-token,
++or RBAC/ABAC code. The `fs_search` for `Authenticator|generate_token|verify_token|JWT|jsonwebtoken|PKCE|AuthService` over
++`AuthKit/rust` returned **zero matches**. So the question "which AuthKit
++features are dup vs unique" reduces to: are the non-auth utilities in
++AuthKit already covered (or in scope) by Authvault?
++
++| AuthKit crate / module                          | AuthKit surface                                                                                    | Authvault module that already covers or supersedes it                                       | Verdict           |
++|-------------------------------------------------|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|-------------------|
++| **any** "Authenticator / JWT / PKCE / session"  | none                                                                                               | `src/domain/{auth.rs, pkce.rs, session.rs, session_store.rs, signing.rs, vault.rs}`         | **dup by absence** — Authvault is the only auth code in the org |
++| `rust/phenotype-contracts/src/lib.rs` (`Contract`/`Event` traits, `NoOpMetrics`, `CounterMetrics`, `Result` type alias) | Generic event-source + metrics-sink abstractions. **Not auth-related.** | `src/infrastructure/error.rs` (`AuthKitError`); Authvault has no `MetricsHook` — it does not need one | **Not in Authvault scope.** Drop. If metrics later needed, port from `metrics` or `tracing` crates (already in Authvault deps). |
++| `rust/phenotype-content-hash/src/lib.rs` (`ContentHash`, `HashAlgorithm` for SHA-256/SHA3-256/Blake3) | Content-addressable hashing utility. **Not auth-related.** | `src/domain/signing.rs` covers the *one* hashing primitive Authvault actually uses (HMAC for HS256, SHA-256 inside PKCE). Broader hashing is the wrong layer. | **Not in Authvault scope.** Drop — general-purpose hash belongs in `phenoShared` (the README's stated destination), not in an auth crate. |
++| `rust/phenotype-bid/src/lib.rs` (`Bid<T>`, `ContentBid`, `NamespacedBid`, `BidRegistry`, `BidGenerator`, `entities::{User, Organization, …}`) | Typed business-ID wrapper with collision-detection. **Not auth-related.** | `src/domain/identity.rs` (`UserId` — a `String` newtype, Uuid-backed). Authvault has no bid/auction primitives because that is the GFX/bid domain, not auth. | **Not in Authvault scope.** Drop. The `entities` module re-defines `User` as a marker struct — but Authvault's `identity::User` is the real one with email, roles, attributes, password_hash, etc. Bid/auction primitives are the GFX merge's concern (see Block-C #1). |
++| `rust/phenotype-security-aggregator/src/{lib.rs, sources.rs, health_integration.rs}` (Snyk/CodeQL/CargoAudit/Dependabot/Trivy/OSV security-finding aggregator with `phenotype_health` integration) | Security *signal aggregation* across external scanners. **Not auth (no `Authenticator`, no JWT, no session).** | Authvault emits *security* events via `src/adapters/audit.rs` + `AuditSink` trait. Different concern: audit is *outbound* "we just issued/revoked a token"; aggregator is *inbound* "the Snyk bot found CVE-2024-1234." | **Not in Authvault scope.** Drop. The aggregator is a CI-side concern (`.github/workflows/codeql.yml`, `trufflehog.yml`, `cargo-deny.yml` already exist in AuthKit and in the rest of the org). It belongs in the platform/ops layer, not in an auth library. |
++| `python/pheno-auth/`, `python/pheno-security/`, `typescript/package.json` | Empty stubs. **No code.** | n/a | **Empty. Drop.** The Python/TypeScript "multi-language SDK" from `AuthKit/PLAN.md:122-129` was never written. AuthKit's own README:46 acknowledges this. |
++| `go/` directory | **Does not exist** in the tree (the directory is referenced in `AuthKit/.github/CODEOWNERS`-style files but has no source). | n/a | **Empty. Drop.** |
++| `docs/`, `ADR.md`, `FUNCTIONAL_REQUIREMENTS.md`, `PLAN.md`, `SOTA.md`, ADRs 001-003, `research/AUTH_TOOLKITS_SOTA.md` | Aspirational docs for work that was not started.                                                | Authvault's `docs/requirements/authvault-frnfr.md`, `.agileplus/specs/001-authvault-core/SPEC.md` cover the real requirements with traceability. | **Drop.** No code backs these docs. The `SOTA` research and ADRs are still valid research notes, but they describe the *intended* AuthKit, not the actual Authvault. They can be cited from `phenoShared`/`phenotype-registry` if anyone needs the historical context; they should not be moved to Authvault. |
++| `tests/test_smoke.py` | 1 Python smoke test                                                                                | n/a                                                                                        | **Drop.** Empty test of empty stubs. |
++
++**Net overlap result:** every AuthKit module is either **(a) empty
++placeholder**, **(b) non-auth infrastructure** with no functional overlap
++with Authvault's auth code, or **(c) explicitly broken at compile time**
++(see §4). There is no AuthKit code that Authvault should adopt.
++
++## 4. Ponytail findings (delete / stdlib / native / YAGNI / shrink)
++
++The fold net is dominated by **delete** — this is the textbook "delete code"
++fold. The other ponytail verbs still apply to cleanup of code that *will*
++be discarded on archive, so we record them to make the net auditable.
++
++### 4.1 `delete` — the fold is a delete fold
++
++* **AuthKit repo itself** — delete (archive). Per `phenotype-registry/docs/rationalization/block-c-consolidation.md` row 2, "fold AuthKit into Authvault, then **archive AuthKit**."
++* **`phenotype-time` dependency** — does not exist in the workspace, but
++  `phenotype-bid/Cargo.toml:11` declares `phenotype-time = { path = "../phenotype-time" }`. The crate would not compile even in isolation. **Delete** the dep (irrelevant — the whole crate goes).
++* **`phenotype_health` import** — `phenotype-security-aggregator/src/health_integration.rs:6` imports `phenotype_health::{…}`, which is not a member of the workspace (workspace members are
++  `phenotype-content-hash`, `phenotype-contracts`, `phenotype-security-aggregator` only — per `AuthKit/rust/Cargo.toml:3-7`). The crate would not compile. **Delete** (irrelevant — whole crate goes).
++* **README "five infrastructure crates" claim** — `AuthKit/README.md:48-57` lists five crates; the workspace only contains three (`phenotype-bid`, `phenotype-content-hash`, `phenotype-contracts`, `phenotype-security-aggregator` — the missing fifth is `phenotype-policy-engine`, which the README mentions at line 55 but does not exist). **Delete** the miscount.
++* **PLAN.md 24-week roadmap** — `AuthKit/PLAN.md` describes a 24-week, 3-phase rollout (P0/P1/P2) that never happened. **Delete** with the repo.
++* **2 `python/` subdirs + 1 `typescript/package.json`** — empty placeholders. **Delete** with the repo.
++
++### 4.2 `stdlib` — wrappers around what `std` (or already-in-deps crates) already provide
++
++* `phenotype-bid/src/lib.rs:16-64` `Bid<T>` — a `String` newtype with a
++  3-line `parse` validator. The same effect is one `pub type UserId =
++  String;` or, if you want a Uuid-flavored ID, `Authvault::identity::UserId`
++  (which uses `uuid::Uuid::new_v4()` under the hood — `Authvault-ref/src/domain/identity.rs:7-24`). **stdlib.**
++* `phenotype-bid/src/lib.rs:142-187` `BidRegistry` + `BidGenerator` —
++  reinventing `HashSet` + a retry loop. The whole 50 lines collapse to
++  `HashSet<String>` and one `rand::random::<u16>()` call. **stdlib.**
++* `phenotype-contracts/src/lib.rs:9-15` `pub type Result<T> = …` —
++  shadowing `std::result::Result` with a `Box<dyn Error>` alias forces every
++  caller to pay an allocation. Use `anyhow::Result` (already in
++  Authvault's `Cargo.toml:20`) or a typed `Result<T, ThisError>`. **stdlib.**
++* `phenotype-contracts/src/lib.rs:104-155` `CounterMetrics` — 50 lines of
++  `AtomicU64` for hit/miss counting. `tracing::Span::record` and
++  `metrics`/`prometheus` crates already do this with labels. **stdlib (via
++  tracing which Authvault already uses).**
++
++### 4.3 `native` — prefer the platform/idiomatic primitive over a custom abstraction
++
++* `phenotype-contracts/src/lib.rs:21-33` `Contract` trait with
++  `as_any() -> &dyn std::any::Any` — manual downcasting interface that
++  fights Rust's type system. Either use `Box<dyn Trait>` directly, or
++  serde-tagged enums (`#[serde(tag = "type")]`). **native.**
++* `phenotype-content-hash/src/lib.rs:48-136` `ContentHash` struct wraps
++  `Vec<u8>` with a custom `Display` / `from_prefixed_hex` codec. The
++  `multihash` crate, the `Digest::finalize().to_vec()` already in
++  Authvault's `pkce.rs:81`, and `hex` (already in Authvault deps via
++  `serde_json`) all give this for free. **native.**
++* `phenotype-security-aggregator/src/sources.rs:208-260` `CargoAuditSource`
++  shells out to `cargo audit --json`. The org already runs `cargo-audit.yml`
++  in CI (see `AuthKit/.github/workflows/cargo-deny.yml`) and Authvault's
++  `deny.toml` catches the same advisories declaratively. **native CI.**
++
++### 4.4 `yagni` — features that exist on paper and never had a consumer
++
++* `phenotype-bid/src/lib.rs:66-78` `entities::{User, Organization,
++  Project, Team, Resource, Policy, Role, Permission, Event, Task}` — ten
++  phantom markers. Only `User` is in any way auth-adjacent, and Authvault
++  already has `User` / `Role` / `Permission` as real types in
++  `src/domain/identity.rs`. The other nine are aspirational — no consumer
++  in the repo, no consumer in Authvault. **YAGNI.**
++* `phenotype-bid/src/lib.rs:92-110` `ContentBid` — wraps a
++  `ContentHash + timestamp` with a `to_string` that emits `"hash@timestamp"`.
++  No code reads this format. **YAGNI.**
++* `phenotype-bid/src/lib.rs:112-139` `NamespacedBid` — a `namespace:id`
++  stringly-typed wrapper. Replace with `url::Url` path segments or
++  `String::split(':')` at the one call site that would need it. **YAGNI.**
++* `phenotype-security-aggregator/src/lib.rs:344-377` `risk_score()` —
++  weighted sum capped at 100. Single internal test exercises it. **YAGNI**
++  in an auth SDK; CVSS-weighted risk belongs in the platform/ops tool, not
++  in a library.
++* `phenotype-security-aggregator/src/lib.rs:346-361` `critical_findings`
++  / `findings_by_severity` — one-line filters over a `Vec<Finding>`.
++  Trivially `report.findings.iter().filter(…)` at the (non-existent) call
++  site. **YAGNI.**
++
++### 4.5 `shrink` — overall reduction
++
++The fold collapses **~2,286 lines** of AuthKit Rust (counted from file
++totals: 208 + 246 + 195 + 781 + 314 + 542 across
++`phenotype-bid/src/lib.rs`, `phenotype-content-hash/src/lib.rs`,
++`phenotype-contracts/src/lib.rs`,
++`phenotype-security-aggregator/src/{lib.rs,health_integration.rs,sources.rs}`),
++plus:
++
++* `AuthKit/PLAN.md` — **1,194 lines** of aspirational 24-week roadmap with
++  no executed milestones (all `[ ]` in the success-criteria tables).
++* `AuthKit/CHANGELOG.md`, `CHARTER.md`, `FUNCTIONAL_REQUIREMENTS.md`,
++  `FUNDING.yml`, `CITATION.cff`, `ADR.md`, `CLAUDE.md`, `CONTRIBUTING.md`,
++  `CODE_OF_CONDUCT.md`, `SECURITY.md`, `PRD.md`, `worklog.md`,
++  `FUNCTIONAL_REQUIREMENTS.md`, `docs/{FUNCTIONAL_REQUIREMENTS,PLAN,PRD,SPEC}.md`,
++  `docs/adr/ADR-{001,002,003}.md`, `docs/adr/ADRS.md`,
++  `docs/journeys/manifests/README.md`, `docs/operations/iconography/SPEC.md`,
++  `docs/operations/journey-traceability.md`,
++  `docs/reference/fr_coverage_matrix.md`, `docs/research/AUTH_TOOLKITS_SOTA.md`,
++  `docs/sota/SOTA.md`, `docs/worklogs/README.md`,
++  `registry.yaml`, `pyproject.toml`, `python/pheno-auth/`,
++  `python/pheno-security/`, `typescript/package.json`, `go/` (does not exist)
++  — **all** describe a product that was never built and have no counterpart
++  in Authvault. Archive with the repo.
++
++**`net: −2,286 lines` of Rust + `−~3,500 lines` of docs/scaffolding
++possible on archive of AuthKit, with `+0 lines` added to Authvault** (the
++fold is a delete-fold, not a copy-fold). The canonical
++`Authvault-ref/src/` (domain + application + adapters + infrastructure +
++middleware) remains the single source of truth for all auth behaviour.
++
++## 5. Fold plan
++
++AuthKit is a *naming* duplicate, not a *functional* one — so the fold is
++"delete the source side; do not move any code into Authvault." Where any
++AuthKit module has a *real* (non-auth) reason to live, that destination is
++`phenoShared` or the GFX/bid work, not Authvault.
++
++| Unique AuthKit capability                                                | Lands in Authvault? | Destination                                                  | Why                                                                                |
++|--------------------------------------------------------------------------|---------------------|--------------------------------------------------------------|------------------------------------------------------------------------------------|
++| Content-addressed hashing (`phenotype-content-hash`)                     | **No**              | `phenoShared` (per `AuthKit/README.md:74` — stated destination) | Not auth. Authvault only needs SHA-256 inside PKCE, which is already in `src/domain/pkce.rs`. |
++| Typed BID + `BidRegistry` (`phenotype-bid`)                               | **No**              | Block-C merge #1 (GFX SDK — `phenotype-gfx` umbrella)         | Bid/auction primitives belong with the GFX merge, not auth. Authvault's `UserId` (`src/domain/identity.rs:7-24`) is the only ID type an auth library needs. |
++| Generic `Contract`/`Event`/`MetricsHook` traits (`phenotype-contracts`)  | **No**              | `phenoShared` if at all                                      | Cross-cutting contracts belong in a shared contracts crate, not in the auth domain. |
++| `MockSecuritySource` / `GitHubSecuritySource` / `CargoAuditSource` / `OsvSource` / `SnykSource` (`phenotype-security-aggregator/src/sources.rs`) | **No** | Org-level CI tooling (consolidate with the existing `cargo-deny.yml` / `codeql.yml` / `trufflehog.yml` pipelines across the org) | Security *finding aggregation* is a CI/ops concern, not an auth-library concern. Authvault emits *security* events (audit), not consumes them. |
++| `SecurityHealthCheck` / `security_health_score` (`phenotype-security-aggregator/src/health_integration.rs`) | **No** | Org-level health-check crate (e.g., move to a future `phenotype-health` repo if it materializes) | The `phenotype_health` import in this file is already broken (not in workspace). Health probes are infrastructure-level. |
++| Empty Python/TS stubs (`python/pheno-auth`, `python/pheno-security`, `typescript/package.json`) | **No** | n/a — **drop** | Empty. Authvault's Python/TS sibling is `phenotype-auth-ts` (TS OIDC/OAuth2) and is out of Block-C scope (see tracker row 2: "phenotype-auth-ts stays separate"). |
++| Aspirational docs (`PLAN.md`, `SOTA.md`, ADRs, `AUTH_TOOLKITS_SOTA.md`)  | **No**              | `phenotype-registry/docs/historical/authkit-aspirational.md` if any reader needs context | No code backs them. Not authvault material. |
++| AuthKit's `AuthError` symbol mentioned in `phenotype-contracts`           | **No**              | n/a — the `phenotype-contracts` crate has no `AuthError` symbol; it is a phantom-types crate only. | Authvault's `AuthError` (`src/domain/errors.rs`) is the real one. |
++
++**Everything else in AuthKit is a duplicate of Authvault *by absence* — there
++is no functional auth code to fold.** Authvault is already the only
++auth-bearing crate in the org.
++
++### Fold sequence (executed, then archived)
++
++1. **Done (2026-06-16).** This audit lands on `docs/block-c-audit-2026-06-16`
++   branch in AuthKit and is opened as a PR (this PR).
++2. **Open companion issue on `phenotype-registry`** (tracker
++   `phenotype-registry#75` referenced in the PR body) to flip row 2 in
++   `block-c-consolidation.md` from `in progress` to `done` and update the
++   `authvault` row in the per-repo audits table from `⏳` to `✅`.
++3. **No code migration to Authvault.** AuthKit contributes zero functional
++   surface; there is nothing to PR against `KooshaPari/Authvault`.
++4. **Mark AuthKit as archived on GitHub.** Repo settings → Archive this
++   repository. Add the `archived` topic and a `README.md` redirect banner
++   pointing to `KooshaPari/Authvault`. Per the durability rule
++   (`phenotype-registry/docs/rationalization/block-c-consolidation.md` §
++   "Durability rule"), this audit and the tracker are the durable record;
++   forge job logs are not.
++5. **Update Block-C tracker.** `phenotype-registry/docs/rationalization/block-c-consolidation.md`
++   row 2 verdict flips to `done` and the per-repo audits table gains `✅`
++   for `authvault` (audit landed via this PR) and `AuthKit` (archived).
++
++## 6. Sign-off
++
++* AuthKit README self-admits no auth code exists.
++* `fs_search` over `AuthKit/rust` for `Authenticator|generate_token|verify_token|JWT|jsonwebtoken|PKCE|AuthService` returns 0 matches.
++* The workspace as committed does not compile (`phenotype-time` and
++  `phenotype_health` are referenced but not present).
++* Authvault already implements the full Block-C auth-dedup target: JWT
++  (HS256/RS256/ES256, alg-confusion-hardened), OAuth2 + RFC 7636 PKCE,
++  RBAC + ABAC + policy engine, session + refresh-token rotation with
++  reuse-detection, revocation, audit sink, vault, axum middleware, fuzz
++  targets, benches, comprehensive test + traceability matrix
++  (`FR-AUTH-001..010`).
++
++**Conclusion: archive AuthKit; do not migrate any of its code into
++Authvault. The fold is a pure delete fold with `net: −2,286 lines` of
++AuthKit Rust and `+0 lines` added to Authvault.**
+-- 
+2.50.1 (Apple Git-155)
+

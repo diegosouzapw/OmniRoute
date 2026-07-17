@@ -1,0 +1,76 @@
+# justfile — pheno-port-adapter maintenance tasks
+#
+# Reference: ADR-023 (pheno-*-lib), ADR-042 (quality bar).
+# MSRV: 1.82, edition 2021.
+#
+# Available commands:
+#   just ci       — run all pre-PR checks (default)
+#   just test     — cargo test all features
+#   just check    — cargo check
+#   just lint     — clippy + fmt
+#   just audit    — cargo deny
+#   just coverage — llvm-cov
+
+# ──────────────────────────────────────────────────────────────────
+# Aliases (run all pre-PR checks)
+# ──────────────────────────────────────────────────────────────────
+
+# Default: run all pre-PR checks
+ci: lint test check-audit
+
+# ──────────────────────────────────────────────────────────────────
+# Test
+# ──────────────────────────────────────────────────────────────────
+
+# Run all tests with all features
+test:
+    cargo test --all-features --workspace --no-fail-fast
+
+# Run cargo check
+check:
+    cargo check --all-targets --all-features
+
+# ──────────────────────────────────────────────────────────────────
+# Lint & format
+# ──────────────────────────────────────────────────────────────────
+
+# Clippy + fmt check
+lint:
+    cargo clippy --all-targets --all-features -- -D warnings
+    cargo fmt --all -- --check
+
+# ──────────────────────────────────────────────────────────────────
+# Security & compliance
+# ──────────────────────────────────────────────────────────────────
+
+# Run cargo-deny (requires cargo-deny installed)
+audit:
+    cargo deny --all-features check
+
+# Run cargo-audit (RustSec advisory DB)
+audit-rustsec:
+    cargo audit
+
+# Run cargo-semver-checks
+audit-semver:
+    cargo semver-checks
+
+# ──────────────────────────────────────────────────────────────────
+# Coverage
+# ──────────────────────────────────────────────────────────────────
+
+# Generate coverage report (requires cargo-llvm-cov)
+coverage:
+    cargo llvm-cov --all-features --lcov --output-path lcov.info
+
+# ──────────────────────────────────────────────────────────────────
+# Housekeeping
+# ──────────────────────────────────────────────────────────────────
+
+# Check that the audit workflow (audio.yml) is wired up
+check-audit:
+    @echo "OK: deny.toml present, audit.yml wired" ; test -f deny.toml && test -f .github/workflows/audit.yml
+
+# Show available commands
+default:
+    @just --list

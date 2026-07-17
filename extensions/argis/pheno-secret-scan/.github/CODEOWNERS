@@ -1,0 +1,23 @@
+# pheno-secret-scan CODEOWNERS
+# Fleet tier-0 governance (DAG stage 4)
+#
+# Each line maps a path glob to one or more owners (team @handle or
+# individual GitHub username). The last matching pattern takes precedence.
+#
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: security/infra team reviews everything
+* @KooshaPari
+
+# Workflows and CI config owned by the platform team
+.github/workflows/ @KooshaPari
+
+# Pre-commit hooks and allowlist — changes require security review
+.pre-commit-hooks.yaml @KooshaPari
+.trufflehog-allowlist.txt @KooshaPari
+
+# Governance and policy files owned by the fleet lead
+Justfile @KooshaPari
+deny.toml @KooshaPari
+.gitattributes @KooshaPari
+CODEOWNERS @KooshaPari

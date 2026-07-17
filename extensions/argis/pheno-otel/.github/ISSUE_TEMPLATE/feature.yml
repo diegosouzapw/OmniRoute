@@ -1,0 +1,71 @@
+name: Feature request
+description: Suggest a new feature for pheno-otel
+title: "[feat] "
+labels: ["enhancement", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please describe the use case and
+        proposed API.
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What problem are you solving? Why does the current API not work?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API
+      description: Sketch of the proposed API surface
+      placeholder: |
+        ```rust
+        pub fn init_with_retry(
+            service_name: &str,
+            endpoint: &str,
+            max_retries: u32,
+        ) -> Result<TelemetryGuard, OtelError>
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you consider? Why is this better?
+    validations:
+      required: false
+
+  - type: textarea
+    id: compat
+    attributes:
+      label: Backwards-compatibility analysis
+      description: Will this break existing consumers? How will we migrate?
+    validations:
+      required: true
+
+  - type: input
+    id: adr
+    attributes:
+      label: Related ADR or research
+      description: Link to any relevant ADR, finding, or worklog
+      placeholder: "docs/adr/2026-06-20/ADR-XXX.md"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submit checklist
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am willing to submit a PR implementing this feature
+          required: false

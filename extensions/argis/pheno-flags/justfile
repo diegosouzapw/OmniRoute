@@ -1,0 +1,93 @@
+# pheno-flags — recipe index
+# ADR-029 + ADR-023: every pheno-* substrate ships a justfile.
+
+# --- defaults ---------------------------------------------------------------
+set shell := ["bash", "-uc"]
+set dotenv-load
+set positional-arguments
+
+# --- discovery --------------------------------------------------------------
+
+# Print every public recipe (default).
+_default:
+    @just --list --unsorted
+
+# Conventional help alias.
+help: _default
+
+# --- formatting & lint ------------------------------------------------------
+
+# `cargo fmt --check` + `cargo clippy -- -D warnings`.
+lint:
+    cargo fmt --check
+    cargo clippy --all-targets --all-features -- -D warnings
+
+# Auto-format in place.
+format:
+    cargo fmt
+    cargo fix --allow-dirty --allow-staged
+
+# --- test -------------------------------------------------------------------
+
+# Run unit + doc tests.
+test:
+    cargo test --all-features
+
+# Run tests with coverage; fails under the 80 % gate (ADR-023 Rule 3.1).
+coverage:
+    cargo llvm-cov --html --fail-under-lines 80
+
+# --- security ---------------------------------------------------------------
+
+# `cargo audit` with strict gate; fails CI on any advisory.
+audit:
+    cargo audit --deny warnings
+
+# Static analysis (`RUSTSEC`, deprecated APIs).
+check:
+    cargo check --all-targets --all-features
+    cargo udeps --all-targets
+
+# --- SSOT -------------------------------------------------------------------
+
+# Validate the meta-bundle (ADR-023 Rule 3.1).
+validate:
+    @test -f AGENTS.md       || { echo "missing AGENTS.md"; exit 1; }
+    @test -f llms.txt        || { echo "missing llms.txt"; exit 1; }
+    @test -f CHANGELOG.md    || { echo "missing CHANGELOG.md"; exit 1; }
+    @test -f Cargo.toml      || { echo "missing Cargo.toml"; exit 1; }
+    @test -f src/lib.rs      || { echo "missing src/lib.rs"; exit 1; }
+    @echo "pheno-flags meta-bundle OK"
+
+# --- build ------------------------------------------------------------------
+
+# Debug build.
+build:
+    cargo build
+
+# Release build with locked deps.
+release:
+    cargo build --release --locked
+
+# --- release ----------------------------------------------------------------
+
+# Cut a release commit and tag (does not push).
+tag version:
+    @test "{{version}}" != "" || { echo "usage: just tag <version>"; exit 1; }
+    sed -i.bak 's/^version = ".*"/version = "{{version}}"/' Cargo.toml
+    rm -f Cargo.toml.bak
+    cargo check
+    git add Cargo.toml CHANGELOG.md
+    git commit -m "chore(release): v{{version}}"
+    git tag -a "v{{version}}" -m "v{{version}}"
+    @echo "tagged v{{version}} (run 'git push --follow-tags' to publish)"
+
+# --- fleet-wide -------------------------------------------------------------
+
+# Show pinned dependency tree (one line per crate).
+deps:
+    cargo tree --depth 1
+
+# Run a CI-like local check (lint + test + audit).
+ci: lint test audit
+    @echo "pheno-flags CI OK"

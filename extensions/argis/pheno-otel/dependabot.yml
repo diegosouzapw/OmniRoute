@@ -1,0 +1,60 @@
+# dependabot.yml — weekly dependency updates
+#
+# Reference: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+#
+# Per ADR-027 + ADR-042, dependabot updates are reviewed weekly and gated
+# by the 71-pillar audit refresh (Monday 09:00 PDT).
+
+version: 2
+
+# ─── Cargo dependencies ──────────────────────────────────────────────────────
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/FocalPoint/pheno-otel/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "KooshaPari"
+    labels:
+      - "dependencies"
+      - "cargo"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    # Group related updates to reduce PR noise
+    groups:
+      opentelemetry:
+        patterns:
+          - "opentelemetry"
+          - "opentelemetry-*"
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+# ─── GitHub Actions ─────────────────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "KooshaPari"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+
+# ─── Cargo (governance path) ─────────────────────────────────────────────────
+# This path has no Cargo.toml (governance meta-bundle only); the real
+# Cargo.toml is in FocalPoint/pheno-otel/. Dep updates are scoped there.

@@ -1,0 +1,20 @@
+[package]
+name = "pheno-port-adapter"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+
+[workspace]
+
+[dependencies]
+thiserror = "2.0"
+# Canonical OTLP wire-format export substrate (ADR-037).
+# `pheno-port-adapter` uses `pheno-otel` to surface
+# connection-lifecycle spans (connect/disconnect/error) to OTLP/HTTP
+# collectors when wired into a wider observability stack (per
+# ADR-023 Rule 3.1: every substrate ships observability).
+pheno-otel = { path = "../pheno-otel" }
+
+[dev-dependencies]
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

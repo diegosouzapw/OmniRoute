@@ -1,0 +1,104 @@
+{
+  "version": "2.1",
+  "id": "L5-128",
+  "session": "2026-06-20-v14-T1-cargo-deps-graph",
+  "device": "macbook",
+  "epoch": "2026-06-20T23:59:00Z",
+  "date": "2026-06-20",
+  "type": "chore(plan_track)",
+  "plan_ref": "plans/2026-06-20-v14-71-pillar-cycle-3-p0.md (Track T1)",
+  "pillar_ref": "L3 (deps graph)",
+  "pillar_score_before": 1,
+  "pillar_score_after": 3,
+  "branch": "chore/v14-T1-cargo-deps-graph-2026-06-20",
+  "branch_tip": "833291c10586ade07875097436c491fb1082ad75",
+  "merge_commit": "5261ae86e9bb5a706714d846da5d2e75da3bd4c0",
+  "merged_at": "2026-06-21T06:43:30Z",
+  "pr_url": "https://github.com/KooshaPari/argis-extensions/pull/118",
+  "pr_number": 118,
+  "pr_state": "MERGED",
+  "repository": "KooshaPari/argis-extensions",
+  "base_branch": "main",
+  "head_branch": "chore/v14-T1-cargo-deps-graph-2026-06-20",
+  "summary": "Implements v14 plan Track T1: adds scripts/cargo-deps-graph.sh (40 lines, bash -n clean) and a cargo-deps-graph CI job to each of the 3 Rust crates currently on origin/main (pheno-errors, pheno-otel, pheno-port-adapter). Each job invokes the script, produces target/deps-graph.svg, and uploads it as a GitHub Actions artifact via actions/upload-artifact@v4.",
+  "files_changed": [
+    "scripts/cargo-deps-graph.sh (NEW, +40)",
+    "pheno-errors/.github/workflows/ci.yml (+20)",
+    "pheno-otel/.github/workflows/ci.yml (+18)",
+    "pheno-port-adapter/.github/workflows/ci.yml (+16)"
+  ],
+  "files_changed_count": 4,
+  "insertions": 94,
+  "deletions": 0,
+  "commit_message": "chore(v14): T1 cargo-deps SVG per crate (L3 pillar score 1→3)",
+  "actions": [
+    {
+      "id": "T1-S1",
+      "type": "code(script)",
+      "surface": "scripts/cargo-deps-graph.sh",
+      "rationale": "Per-track T1 spec: 40-line bash wrapper that runs `cargo install cargo-deps --locked` if missing, generates an intra-crate deps SVG with `cargo deps --no-deps --format svg --manifest-path <crate>/Cargo.toml > target/deps-graph.svg`, and exits non-zero on failure. Strict mode + set -euo pipefail + trap."
+    },
+    {
+      "id": "T1-S2",
+      "type": "ci(workflow)",
+      "surface": "pheno-errors/.github/workflows/ci.yml",
+      "rationale": "Added `cargo-deps-graph` job between fmt and coverage. 4 steps: checkout (pinned SHA), rust-toolchain stable, run script with `pheno-errors` arg, upload SVG as artifact `pheno-errors-deps-graph`."
+    },
+    {
+      "id": "T1-S3",
+      "type": "ci(workflow)",
+      "surface": "pheno-port-adapter/.github/workflows/ci.yml",
+      "rationale": "Same job inserted between fmt and coverage. Uses floating @v4 tags (matches existing convention in this file) for upload-artifact."
+    },
+    {
+      "id": "T1-S4",
+      "type": "ci(workflow)",
+      "surface": "pheno-otel/.github/workflows/ci.yml",
+      "rationale": "Same job inserted between msrv and coverage. Uses pinned SHA + comments matching the existing SHA-pin convention in this file."
+    }
+  ],
+  "observations": {
+    "scope_reality_vs_plan": "Plan called for 11 fleet crates. After `git ls-tree origin/main` + `find -name Cargo.toml` on origin/main, only 3 Rust crates exist in argis-extensions today (pheno-errors, pheno-otel, pheno-port-adapter). The remaining 8 names in the plan (pheno-flags, pheno-cli-base, pheno-pydantic-models, pheno-llms-txt, pheno-mcp-router, etc.) have no Cargo.toml on origin/main — they exist only as pheno-* Go subdirectories without Cargo manifests, or live in other repos. Therefore T1 was scoped down to the 3 Rust crates that actually have a Cargo.toml on origin/main. Full plan fulfillment requires the other crates to be Rust-ified in a later wave.",
+    "crate_inventory_on_origin_main": {
+      "with_cargo_toml": ["pheno-errors", "pheno-otel", "pheno-port-adapter"],
+      "pheno_dirs_without_cargo_toml_or_src_cargo": ["pheno-flags", "pheno-cli-base", "pheno-pydantic-models", "pheno-llms-txt", "pheno-mcp-router", "pheno-scaffold-kit", "pheno-secret-scan", "pheno-ssot-template", "pheno-vibecoding-guard", "pheno-worklog-schema"]
+    },
+    "script_validation": {
+      "bash_n_syntax_check": "PASS (exit 0)",
+      "line_count": 40,
+      "shebang": "#!/usr/bin/env bash",
+      "strict_mode": "set -euo pipefail",
+      "command_used": "cargo deps --no-deps --format svg --manifest-path <crate>/Cargo.toml"
+    },
+    "yaml_validation": {
+      "method": "ruby -ryaml -e YAML.load_file(f) on all 3 modified ci.yml files",
+      "result": "3/3 parse OK"
+    },
+    "pillar_impact": {
+      "L3_before": 1,
+      "L3_after": 3,
+      "delta": 2,
+      "rationale": "L3 (deps graph) measures whether each Rust crate has a machine-generated dependency graph artifact in CI. Before: 0/3 crates had any deps graph. After: 3/3 have a CI job that emits + uploads an SVG. Score moves from 1 (no graph) to 3 (CI-generated, artifact-uploaded)."
+    },
+    "git_workflow": {
+      "worktree_path": "/private/tmp/v14-T1-deps-graph-A",
+      "branch_created_from": "origin/main",
+      "parallel_branch_untouched": "feat/v12-08-figment-cascade-2026-06-20 (orchestrator's working branch — left untouched as required)",
+      "push": "OK (origin set upstream)",
+      "pr_open": "OK via gh CLI"
+    }
+  },
+  "next_wave_hooks": {
+    "v14_T2_track": "chore/v14-T2-cargo-config-2026-06-20 already on origin — no overlap",
+    "v14_T3_track": "chore/v14-T3-perf-budget-2026-06-20 already on origin — no overlap",
+    "v14_T4_plus": "If more Rust crates land on main (the other 8 pheno-* names), T1 must be re-opened to add the CI job to each new crate. Track via `git ls-tree origin/main | grep Cargo.toml` as the source of truth.",
+    "blockers": "None — script + 3 CI jobs merged in single commit 833291c. cargo-deps binary install (~2-3 min) is the dominant CI cost; budgeted via 15-min timeout."
+  },
+  "artifacts": {
+    "worklog_this": "worklogs/L5-128-v14-T1-cargo-deps-2026-06-20.json",
+    "worklog_repo_copy": "argis-extensions/worklogs/L5-128-v14-T1-cargo-deps-2026-06-20.json",
+    "pr": "https://github.com/KooshaPari/argis-extensions/pull/118",
+    "branch_tip_sha": "833291c10586ade07875097436c491fb1082ad75"
+  },
+  "status": "complete"
+}

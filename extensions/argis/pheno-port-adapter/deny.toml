@@ -1,0 +1,64 @@
+# deny.toml — cargo-deny configuration for pheno-port-adapter
+#
+# Reference: ADR-023 Rule 3.1 (lib/SDK quality bar).
+# MSRV: 1.82
+#
+# Sections:
+#   [advisories] — vulnerability DB ignore/exemptions
+#   [licenses]   — allowed / denied license list
+#   [bans]       — crate blacklist (duplicates, yanked, specific crates)
+#   [sources]    — allowed source registries
+
+[advisories]
+db-path = "~/.cargo/advisory-dbs"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+vulnerability = "deny"
+unmaintained = "warn"
+notice = "warn"
+unsound = "deny"
+yanked = "deny"
+ignore = []
+
+[licenses]
+unlicensed = "deny"
+allow-osi-freedoms = true
+copyleft = "deny"
+default = "deny"
+confidence = 0.8
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "ISC",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "Unicode-DFS-2016",
+    "Unlicense",
+    "Zlib",
+    "0BSD",
+]
+
+[[licenses.clarify]]
+name = "adler2"
+expression = "0BSD OR MIT OR Apache-2.0"
+license-files = [
+    { path = "LICENSE-0BSD", hash = 0x12345678 },
+]
+
+[licenses.private]
+ignore = false
+registrations = {}
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+deny = []
+skip = []
+skip-tree = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-org = { github = ["KooshaPari"] }
+allow-git = []

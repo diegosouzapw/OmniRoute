@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  fmt:
+    name: Format (rustfmt)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@e3f78fd1f6c2a43286e5ef3a13eea2e72ed23e1f # stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy (${{ matrix.rust }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: [stable, 1.82.0]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@e3f78fd1f6c2a43286e5ef3a13eea2e72ed23e1f
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy
+      - uses: Swatinem/rust-cache@779680da715d629b86a86f9a2e2c439d7e8a065a # v2
+        with:
+          workspaces: |
+            .
+      - run: cargo clippy --all-targets --all-features --locked -- -D warnings
+
+  test:
+    name: Test (${{ matrix.os }} / ${{ matrix.rust }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        rust: [stable, 1.82.0]
+        exclude:
+          - os: macos-latest
+            rust: 1.82.0
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@e3f78fd1f6c2a43286e5ef3a13eea2e72ed23e1f
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@779680da715d629b86a86f9a2e2c439d7e8a065a
+        with:
+          workspaces: |
+            .
+      - name: Install Linux deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev protobuf-compiler
+      - name: Install macOS deps
+        if: runner.os == 'macOS'
+        run: |
+          brew install protobuf
+      - run: cargo test --all-features --locked
+      - run: cargo test --doc --locked
+
+  msrv:
+    name: MSRV (1.82.0)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@e3f78fd1f6c2a43286e5ef3a13eea2e72ed23e1f
+        with:
+          toolchain: 1.82.0
+      - uses: Swatinem/rust-cache@779680da715d629b86a86f9a2e2c439d7e8a065a
+        with:
+          workspaces: |
+            .
+      - run: cargo build --locked --all-features
+      - run: cargo test --locked --all-features
+
+  coverage:
+    name: Coverage (cargo-llvm-cov)
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@e3f78fd1f6c2a43286e5ef3a13eea2e72ed23e1f
+        with:
+          toolchain: stable
+      - uses: taiki-e/install-action@c4a6e6e4d23a26c70fa63efde26efe43b3a18497
+        with:
+          tool: cargo-llvm-cov
+      - uses: Swatinem/rust-cache@779680da715d629b86a86f9a2e2c439d7e8a065a
+        with:
+          workspaces: |
+            .
+      - run: cargo llvm-cov --all-features --locked --lcov --output-path lcov.info
+      - name: Check coverage gate (≥80% lib, per ADR-040)
+        run: |
+          COVERAGE=$(cargo llvm-cov report --summary-only | grep "^Filename" -A 1000 | awk '/^TOTAL/ {print $NF}' | tr -d '%')
+          echo "Coverage: $COVERAGE%"
+          awk -v c="$COVERAGE" 'BEGIN { exit !(c+0 >= 80) }' \
+            || (echo "::error::Coverage $COVERAGE% < 80% required (ADR-040)" && exit 1)
+      - uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v4
+        with:
+          files: lcov.info
+          fail_ci_if_error: false

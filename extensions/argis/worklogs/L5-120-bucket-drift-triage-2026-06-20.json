@@ -1,0 +1,32 @@
+{
+  "task_id": "L5-120",
+  "task_subid": "bucket-drift-triage",
+  "date": "2026-06-20",
+  "repo": "KooshaPari/phenotype-apps",
+  "category": "L5-Governance",
+  "title": "ADR-023 FU2 — L6 bucket-drift triage across all monitored repos",
+  "status": "complete",
+  "author": "KooshaPari",
+  "device": "macbook",
+  "device_rationale": "Python analysis of existing baseline JSON; no builds or sims",
+  "device_gate_self_check": "Rule 1 PASS / Rule 2 N/A / Rule 3 PASS",
+  "schema_version": "v2.1",
+  "adr_anchors": [
+    "docs/adr/2026-06-15/ADR-023-agent-effort-governance.md",
+    "docs/adr/2026-06-18/ADR-041-71-pillar-refresh-cadence.md"
+  ],
+  "follow_ups_closed": [
+    "FU2: Drift triage across 7 monitored repos — 36 drifts analyzed, zero actionable"
+  ],
+  "open_follow_ups": [
+    {"id": "L5-116-FU5", "priority": "P2", "description": "Daily CI integration (not just weekly)", "status": "deferred; weekly adequate for v10"},
+    {"id": "L5-116-FU6", "priority": "P2", "description": "pheno-ci-templates reusable workflow", "blocker": "repo 404"}
+  ],
+  "files_written": [
+    "findings/2026-06-20-L6-bucket-drift-triage.md",
+    "findings/L6-bucket-drift-baseline-2026-06-20.json",
+    "worklogs/L5-120-bucket-drift-triage-2026-06-20.json"
+  ],
+  "summary": "FU2 complete. 36 drifts across 7 repos analyzed. Zero actionable — all pre-ADR-023 stale branches (34) or CONDITIONAL-compliant (2). No heavy_work_on_macbook drifts. Device-fit gate verified working.",
+  "bucket_change": null
+}

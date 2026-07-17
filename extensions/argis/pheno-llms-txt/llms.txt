@@ -1,0 +1,29 @@
+# `pheno-llms-txt`
+
+> Generate the v1-spec [`llms.txt`](https://llmstxt.org) index file for any Python project.
+
+## Docs
+
+- [README](README.md): what / when / when not
+- [SPEC](SPEC.md): format spec + API surface + quickstart
+- [AGENTS](AGENTS.md): substrate scope + cross-references
+
+## Reference
+
+- [llms.txt spec](https://llmstxt.org): the format we emit
+- [ADR-023 (substrate)](https://example.com/phenotype-apps/docs/adr/2026-06-15/ADR-023-agent-effort-governance.md): lib substrate placement rule
+- [ADR-040 (coverage)](https://example.com/phenotype-apps/docs/adr/2026-06-18/ADR-040-test-coverage-gates-per-tier.md): 80% lib gate
+
+## Releases
+
+- [CHANGELOG](CHANGELOG.md): Keep a Changelog format
+- [WORKLOG](WORKLOG.md): v2.1 schema (Date | Task ID | Layer | Action | Files | Notes | device)
+
+## Source
+
+- [Repo](https://github.com/KooshaPari/phenotype-apps/tree/main/pheno-llms-txt): governance + meta-bundle path in the monorepo
+- [src/](src/pheno_llms_txt/): executable Python source
+
+## Examples
+
+- [quickstart](examples/quickstart.py): 5-line demo

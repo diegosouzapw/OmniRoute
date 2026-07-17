@@ -1,0 +1,9 @@
+{
+  "project_name": "{{ cookiecutter.repo_name }}",
+  "summary": "{{ cookiecutter.description }}",
+  "sections": [
+    {"title": "Docs", "links": [["README", "https://example.com/{{ cookiecutter.repo_name }}/README.md"]]},
+    {"title": "Reference", "links": [["SPEC", "https://example.com/{{ cookiecutter.repo_name }}/SPEC.md"]]},
+    {"title": "Releases", "links": [["CHANGELOG", "https://example.com/{{ cookiecutter.repo_name }}/CHANGELOG.md"]]}
+  ]
+}

@@ -1,0 +1,88 @@
+# cargo-deny configuration for pheno-otel
+#
+# Reference: https://embarkstudios.github.io/cargo-deny/
+#
+# Gates:
+#   - advisories:  known vulnerabilities (RUSTSEC)
+#   - bans:        disallowed crates (forbidden APIs, banned deps)
+#   - sources:     allowed registries (crates.io + KooshaPari mirror)
+#   - licenses:    allowed licenses (MIT / Apache-2.0 / BSD / etc.)
+
+# ─── Global ─────────────────────────────────────────────────────────────────
+[graph]
+all-features = false
+no-default-features = false
+
+# ─── Advisories ─────────────────────────────────────────────────────────────
+[advisories]
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+yanked = "warn"
+ignore = [
+    # Add temporary ignore entries here with a JIRA/issue link and expiry date.
+    # Example: "RUSTSEC-2024-0001" = { reason = "patched in 0.2.3, awaiting release", expiry = "2026-09-01" }
+]
+
+# ─── Bans ───────────────────────────────────────────────────────────────────
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+allow = [
+    # Allowed std / first-party crates
+]
+deny = [
+    # Banned patterns
+    { name = "openssl", version = "<0.10.70" },  # CVEs in older releases
+    { name = "chrono", version = "<0.4.31" },    # CVE-2020-26235
+]
+skip = [
+    # Skip workspace-only patterns
+]
+skip-tree = [
+    # Skip entire dep trees (use sparingly)
+]
+
+# ─── Sources ────────────────────────────────────────────────────────────────
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = [
+    "https://github.com/rust-lang/crates.io-index",
+]
+allow-git = [
+    # Add KooshaPari mirror URLs here when in use
+    # "https://github.com/KooshaPari/pheno-*",
+]
+
+# ─── Licenses ───────────────────────────────────────────────────────────────
+[licenses]
+version = 2
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "CC0-1.0",
+    "MPL-2.0",
+    "OpenSSL",
+    "Unicode-2.0",
+]
+confidence-threshold = 0.8
+exceptions = [
+    # Add per-crate license exceptions here with rationale
+]
+
+# ─── SPDX ──────────────────────────────────────────────────────────────────
+[spdx]
+version = 3
+expression = true
+
+# ─── Output ─────────────────────────────────────────────────────────────────
+[output]
+feature-depth = 1

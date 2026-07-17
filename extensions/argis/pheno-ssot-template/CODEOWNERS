@@ -1,0 +1,12 @@
+# CODEOWNERS — default owner for every path in the repo.
+#
+# GitHub looks for CODEOWNERS at the root, .github/, or docs/ — root
+# is the canonical location. The single-catch-all rule below makes
+# every PR require @KooshaPari's review.
+#
+# Per-language and per-subdir rules can be added as the project grows;
+# see pheno-ssot-template/README.md or the L2 #30 governance baseline
+# (worklogs/l2-30-governance-2026-06-11.json) for the per-repo
+# drill-down patterns used elsewhere in the fleet.
+
+* @KooshaPari

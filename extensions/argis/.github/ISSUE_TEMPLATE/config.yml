@@ -1,0 +1,11 @@
+# argis-extensions — issue chooser
+# Disables the default blank-issue option so contributors pick a structured template.
+# Directs security reports to the private advisory channel (per SECURITY.md).
+blank_issues_enabled: false
+contact_links:
+  - name: Security Advisories
+    url: https://github.com/KooshaPari/argis-extensions/security/advisories/new
+    about: Please report security vulnerabilities privately. Do not open a public issue.
+  - name: Discussions
+    url: https://github.com/KooshaPari/argis-extensions/discussions
+    about: For questions, ideas, and community support.

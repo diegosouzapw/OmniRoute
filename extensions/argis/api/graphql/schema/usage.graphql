@@ -1,0 +1,141 @@
+# Usage and analytics types
+
+type UsageReport {
+  # Time range
+  timeframe: Timeframe!
+  startTime: Time!
+  endTime: Time!
+  
+  # Totals
+  totalRequests: Int!
+  totalTokens: Int!
+  totalCost: Float64!
+  
+  # Breakdowns
+  byProvider: [ProviderUsage!]!
+  byModel: [ModelUsage!]!
+  byUser: [UserUsage!]
+  byProject: [ProjectUsage!]
+  byTaskType: [TaskTypeBreakdown!]!
+  
+  # Time series
+  timeSeries: [UsageDataPoint!]!
+  
+  # Trends
+  trends: UsageTrends
+}
+
+type ProviderUsage {
+  provider: Provider!
+  requests: Int!
+  tokens: Int!
+  cost: Float64!
+  errorRate: Float64!
+  avgLatencyMs: Float64!
+}
+
+type ModelUsage {
+  model: Model!
+  requests: Int!
+  inputTokens: Int!
+  outputTokens: Int!
+  cost: Float64!
+  avgLatencyMs: Float64!
+}
+
+type UserUsage {
+  userId: String!
+  requests: Int!
+  tokens: Int!
+  cost: Float64!
+  topModels: [String!]!
+}
+
+type ProjectUsage {
+  projectId: String!
+  requests: Int!
+  tokens: Int!
+  cost: Float64!
+  topModels: [String!]!
+}
+
+type TaskTypeBreakdown {
+  taskType: String!
+  requests: Int!
+  tokens: Int!
+  cost: Float64!
+  topModels: [String!]!
+}
+
+type UsageDataPoint {
+  timestamp: Time!
+  requests: Int!
+  tokens: Int!
+  cost: Float64!
+  latencyP50: Float64!
+  latencyP99: Float64!
+  errorRate: Float64!
+}
+
+type UsageTrends {
+  requestsChange: Float64!   # Percentage change
+  tokensChange: Float64!
+  costChange: Float64!
+  period: String!            # Comparison period
+}
+
+# Filters for usage queries
+input UsageFilters {
+  providers: [ID!]
+  models: [ID!]
+  users: [String!]
+  projects: [String!]
+  taskTypes: [String!]
+  minCost: Float64
+  maxCost: Float64
+  startTime: Time
+  endTime: Time
+}
+
+# Real-time usage subscription
+type UsageUpdate {
+  timestamp: Time!
+  
+  # Current rates
+  requestsPerMinute: Float64!
+  tokensPerMinute: Float64!
+  costPerHour: Float64!
+  
+  # Active sessions
+  activeSessions: Int!
+  
+  # Top current models
+  topModels: [ModelUsage!]!
+  
+  # Alerts
+  alerts: [UsageAlert!]!
+}
+
+type UsageAlert {
+  id: ID!
+  type: AlertType!
+  severity: AlertSeverity!
+  message: String!
+  timestamp: Time!
+  metadata: JSON
+}
+
+enum AlertType {
+  COST_THRESHOLD
+  RATE_LIMIT_WARNING
+  ERROR_SPIKE
+  LATENCY_SPIKE
+  QUOTA_WARNING
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+

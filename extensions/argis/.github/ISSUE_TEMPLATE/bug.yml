@@ -1,0 +1,30 @@
+name: Bug Report
+description: Report something that is not working
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Description
+        Describe the bug clearly.
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: What should happen
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: What actually happens

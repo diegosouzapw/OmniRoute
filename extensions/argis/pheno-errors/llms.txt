@@ -1,0 +1,70 @@
+<!--
+  llms.txt for pheno-errors — LLM-friendly content discovery index.
+  Spec: https://llmstxt.org/  (curated plain-text file at project root; "robots.txt for LLMs").
+  Per ADR-042 element 7 + pheno-llms-txt (T20.7) v2 schema.
+  Cross-references SPEC.md, WORKLOG.md, CHANGELOG.md.
+-->
+
+# pheno-errors
+
+> Canonical typed-error substrate for the pheno-* fleet. Defines `AppError` enum (thiserror 2.x aligned, per ADR-038) with `#[from]` conversions for `std::io::Error`, `serde_json::Error`, and `reqwest::Error`. Surfaces structured error context via `pheno-otel` `OtlpError` mirror. Consumed by every pheno-* substrate crate that returns typed errors across module boundaries.
+
+## Documentation
+
+- [README.md](README.md): quickstart, install, when to use, when NOT to use.
+- [AGENTS.md](AGENTS.md): project overview, conventions, governance for AI agents.
+- [SPEC.md](SPEC.md): canonical 1-page specification (AppError variants + #[from] conversions).
+- [WORKLOG.md](WORKLOG.md): change history (ADR-025 v2.1 schema, 11 columns including `device:` field).
+- [CHANGELOG.md](CHANGELOG.md): release notes, semver, breaking changes.
+- [STATUS.md](STATUS.md): weekly-refresh status doc with 71-pillar scorecard.
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute (Conventional Commits, 80% coverage gate).
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): Contributor Covenant 2.1.
+- [SECURITY.md](SECURITY.md): vulnerability disclosure policy.
+
+## Optional
+
+- [LICENSE-MIT](LICENSE-MIT): MIT license text.
+- [LICENSE-APACHE](LICENSE-APACHE): Apache 2.0 license text.
+- [Cargo.toml](Cargo.toml): package manifest (v0.1.0). MSRV 1.75, edition 2021, `thiserror = "2"`, `serde = "1.0"`, empty `[workspace]`.
+- [deny.toml](deny.toml): cargo-deny configuration.
+- [llvm-cov.toml](llvm-cov.toml): 80% lib coverage threshold (ADR-040).
+- [Justfile](Justfile): task runner (build, test, clippy, fmt, coverage, audit, release).
+- [src/lib.rs](src/lib.rs): `AppError` enum + `Result<T>` type alias + 5 inline unit tests.
+- [examples/otel_quickstart.rs](examples/otel_quickstart.rs): demonstrate error context flow through pheno-otel span.
+- [scripts/coverage.sh](scripts/coverage.sh): cargo-llvm-cov driver with 80% fail-under-lines (ADR-040).
+- [.github/workflows/ci.yml](.github/workflows/ci.yml): test + clippy + fmt + MSRV + coverage.
+- [.github/workflows/audit.yml](.github/workflows/audit.yml): cargo-deny + cargo-audit weekly.
+
+## Sibling substrates (fleet)
+
+- `pheno-otel` — canonical OTLP wire-format export (ADR-037); `OtlpError` mirrors this crate's error shape.
+- `pheno-context` — request context propagation; errors carry correlation IDs.
+- `pheno-config` — typed config loader; `ConfigError` converts via `#[from]`.
+- `pheno-port-adapter` — hexagonal L4 Port/Adapter; `Adapter::connect()` returns `AppError`.
+
+## ADRs (governance)
+
+- ADR-023 (Agent-effort governance): substrate placement + Rule 3.1 quality bar.
+- ADR-038 (Hexagonal L4 Port/Adapter policy): `AppError` follows the same envelope shape as `OtlpError`.
+- ADR-040 (Test coverage gates per tier): 80% lib/SDK gate.
+- ADR-042 (Substrate quality bar): 7-element quality bar.
+- ADR-025 (worklog v2.1 schema bump): `device:` field.
+- ADR-030 (pheno-worklog-schema v2.1): 4 `device:` values pinned.
+- ADR-041 (71-pillar refresh cadence): weekly probe cadence.
+- ADR-027 (Git LFS 3-tier policy): `.gitattributes` LFS policy.
+
+## See also
+
+- [pheno-otel/llms.txt](../pheno-otel/llms.txt): sibling OTLP substrate.
+- [pheno-port-adapter/llms.txt](../pheno-port-adapter/llms.txt): sibling hexagonal L4 substrate.
+- [findings/71-pillar-2026-06-17.md](../../findings/71-pillar-2026-06-17.md): 71-pillar scorecard.
+- [findings/71-pillar-2026-06-17-schema.md](../../findings/71-pillar-2026-06-17-schema.md): 71-pillar framework schema.
+- [pheno-worklog-schema v2.1](../../pheno-worklog-schema/SPEC-v2.1.md): worklog validator CLI.
+
+<!--
+  Template notes (v2 schema — ADR-024):
+  - 5-line quickstart: Title + 1-sentence tagline + When to use + When NOT to use + 3 examples.
+  - When to use: any cross-module error boundary in a pheno-* crate.
+  - When NOT to use: panics, unrecoverable invariants (use std::process::exit), or binary CLIs (use anyhow).
+  - 3 examples: AppError::Config { from std::io }, AppError::Parse { from serde_json }, Result<T> alias.
+-->

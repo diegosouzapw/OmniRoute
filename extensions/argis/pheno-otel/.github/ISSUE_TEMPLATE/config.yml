@@ -1,0 +1,52 @@
+name: Config / governance change
+description: Update repo config, governance docs, or CI/CD
+title: "[config] "
+labels: ["governance", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for changes to governance, CI, configs, or repo hygiene.
+
+  - type: textarea
+    id: change
+    attributes:
+      label: What changes
+      description: What governance / config / CI files are being changed and why?
+    validations:
+      required: true
+
+  - type: textarea
+    id: adr-link
+    attributes:
+      label: Related ADR (if any)
+      description: |
+        Per ADR-023 Rule 3.1, governance changes should reference the
+        relevant ADR (ADR-012, ADR-023, ADR-025, ADR-040, etc.).
+      placeholder: "ADR-040 (test coverage gates)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact assessment
+      description: |
+        Does this change require consumer action? Does it change CI behavior?
+        Does it lock a new SHA / version?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submit checklist
+      options:
+        - label: I have read AGENTS.md and CONTRIBUTING.md
+          required: true
+        - label: I have verified the change with `just check` locally
+          required: true
+        - label: I have updated CHANGELOG.md (if user-facing)
+          required: false

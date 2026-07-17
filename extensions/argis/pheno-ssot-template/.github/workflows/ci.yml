@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+# Cancel any in-flight run for the same ref; we only care about the
+# latest commit on a branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only token by default; jobs that need more override per-step.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: cargo test (MSRV)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Install Rust (MSRV ${{ vars.RUST_MSRV || '1.75' }})
+        uses: dtolnay/rust-toolchain@29eef336baff0bc7e02a46cb6b88fa9b9b6e2375  # stable
+        with:
+          toolchain: ${{ vars.RUST_MSRV || '1.75' }}
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@42dc69e1d56f1c7c15873638ca4c7065e5fb9c2e  # v2
+        with:
+          cache-on-failure: true
+
+      - name: cargo test
+        run: cargo test --all-features --workspace --no-fail-fast
+
+  clippy:
+    name: cargo clippy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@29eef336baff0bc7e02a46cb6b88fa9b9b6e2375  # stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@42dc69e1d56f1c7c15873638ca4c7065e5fb9c2e  # v2
+        with:
+          cache-on-failure: true
+
+      - name: cargo clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  fmt:
+    name: cargo fmt --check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@29eef336baff0bc7e02a46cb6b88fa9b9b6e2375  # stable
+        with:
+          toolchain: stable
+          components: rustfmt
+
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check

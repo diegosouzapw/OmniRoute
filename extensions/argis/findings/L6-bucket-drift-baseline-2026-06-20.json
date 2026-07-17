@@ -1,0 +1,274 @@
+{
+  "schema_version": "l6-bucket-drift/v1",
+  "generated_at": "2026-06-20T08:26:15Z",
+  "source": "/Users/kooshapari/CodeProjects/Phenotype/repos/scripts/l6_bucket_drift_check.py",
+  "adr_anchor": "docs/adr/2026-06-15/ADR-023-agent-effort-governance.md",
+  "paused_repos": [
+    "AtomsBot",
+    "AtomsBot-2nd",
+    "AtomsBot-wtrees",
+    "QuadSGM",
+    "focalpoint"
+  ],
+  "conditional_repos": [
+    "Dino",
+    "WSM"
+  ],
+  "worklog_scanned": "worklogs/L5-101-app-governance-2026-06-15.json",
+  "drift_count": 36,
+  "drift": [
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "focalpoint",
+      "branch": "chore/l5-88-readme-agents-2026-06-11",
+      "upstream": "origin/main",
+      "commits_ahead": 3
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "focalpoint",
+      "branch": "chore/security-scan-bundle-2026-06-20",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "focalpoint",
+      "branch": "chore/tier-0-hygiene-2026-06-19",
+      "upstream": "origin/chore/tier-0-hygiene-2026-06-19",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "focalpoint",
+      "branch": "chore/v3-audit-and-100-task-dag-2026-06-10",
+      "upstream": "origin/main",
+      "commits_ahead": 3
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "focalpoint",
+      "branch": "fix/focalpoint-observably-vendor",
+      "upstream": "origin/main",
+      "commits_ahead": 9
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "QuadSGM",
+      "branch": "chore/pin-actions",
+      "upstream": "origin/main",
+      "commits_ahead": 4
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "QuadSGM",
+      "branch": "chore/shell-hygiene",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "QuadSGM",
+      "branch": "chore/workflow-hygiene-20260606-QuadSGM",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "QuadSGM",
+      "branch": "fix/quadsgm-version-align",
+      "upstream": "origin/fix/quadsgm-version-align",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "QuadSGM",
+      "branch": "main",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot-wtrees",
+      "branch": "chore/tier-0-hygiene-orch-v10-028",
+      "upstream": "origin/chore/tier-0-hygiene-orch-v10-028",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot-wtrees",
+      "branch": "fix/parse-worklog-v2-1-header-format-strictness",
+      "upstream": "origin/main",
+      "commits_ahead": 477
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot-2nd",
+      "branch": "chore/tier-0-hygiene-orch-v10-028",
+      "upstream": "origin/chore/tier-0-hygiene-orch-v10-028",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot-2nd",
+      "branch": "fix/parse-worklog-v2-1-header-format-strictness",
+      "upstream": "origin/main",
+      "commits_ahead": 477
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "Dino",
+      "branch": "feat/drift-detector-ci-2026-06-18",
+      "upstream": "origin/feat/drift-detector-ci-2026-06-18",
+      "commits_ahead": 2
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "Dino",
+      "branch": "main",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/2nd-hygiene-2026-06-08",
+      "upstream": "origin/chore/2nd-hygiene-2026-06-08",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/3rd-hygiene-2026-06-08",
+      "upstream": "origin/chore/3rd-hygiene-2026-06-08",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/5th-hygiene-2026-06-08",
+      "upstream": "origin/chore/5th-hygiene-2026-06-08",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/atomsbot-deps-audit-fix",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/audit-safe-workflows-0605-r2",
+      "upstream": "origin/chore/audit-safe-workflows-0605-r2",
+      "commits_ahead": 5
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/audit-safe-workflows-0605-r3b",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/editorconfig-align",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/gitignore-adopt-node-2026-06-11",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/hygiene-bundle",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/manifest-fix",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/readme-identity",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/standard-files-2026-06-08",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/tier-0-hygiene-2026-06-19",
+      "upstream": "origin/main",
+      "commits_ahead": 7
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/workflow-hygiene-ubuntu-24",
+      "upstream": "origin/main",
+      "commits_ahead": 17
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "chore/worklog-seed-AtomsBot",
+      "upstream": "origin/main",
+      "commits_ahead": 2
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "docs/work-state-2026-06-08",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "fix/cargo-deny-upload-conditional-20260605",
+      "upstream": "origin/main",
+      "commits_ahead": 3
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "fix/release-drafter-config-20260605",
+      "upstream": "origin/main",
+      "commits_ahead": 1
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "fix/trufflehog-setup-go-sha-20260605",
+      "upstream": "origin/main",
+      "commits_ahead": 3
+    },
+    {
+      "kind": "paused_repo_active_branch",
+      "repo": "AtomsBot",
+      "branch": "main",
+      "upstream": "origin/main",
+      "commits_ahead": 7
+    }
+  ],
+  "clean": false
+}

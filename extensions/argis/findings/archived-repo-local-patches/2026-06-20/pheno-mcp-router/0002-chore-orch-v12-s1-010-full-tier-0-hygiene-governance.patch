@@ -1,0 +1,675 @@
+From ab1f5dc7d02f4f6ce5f14578650661ced075458b Mon Sep 17 00:00:00 2001
+From: koosha-ai <koosha+ai@phenotype.local>
+Date: Sat, 20 Jun 2026 02:57:52 -0700
+Subject: [PATCH 2/2] chore(orch-v12-s1-010): full tier-0 hygiene + governance
+ for pheno-mcp-router
+
+---
+ .editorconfig                   |  24 +++++++
+ .gitattributes                  |  45 ++++++++++++
+ .github/workflows/audit.yml     |  84 ++++++++++++++++++++++
+ .github/workflows/ci.yml        |  56 +++++++++++++--
+ .github/workflows/deny.yml      | 104 +++++++++++++++++++++++++++
+ .github/workflows/release.yml   | 121 ++++++++++++++++++++++++++++++++
+ .github/workflows/scorecard.yml |  44 ++++++++++++
+ justfile                        |  75 +++++++++++++++++---
+ 8 files changed, 536 insertions(+), 17 deletions(-)
+ create mode 100644 .editorconfig
+ create mode 100644 .gitattributes
+ create mode 100644 .github/workflows/audit.yml
+ create mode 100644 .github/workflows/deny.yml
+ create mode 100644 .github/workflows/release.yml
+ create mode 100644 .github/workflows/scorecard.yml
+
+diff --git a/.editorconfig b/.editorconfig
+new file mode 100644
+index 0000000..1697589
+--- /dev/null
++++ b/.editorconfig
+@@ -0,0 +1,24 @@
++# EditorConfig — pheno-mcp-router
++# https://editorconfig.org
++root = true
++
++[*]
++indent_style = space
++indent_size = 4
++end_of_line = lf
++charset = utf-8
++trim_trailing_whitespace = true
++insert_final_newline = true
++
++[*.{yml,yaml,json,toml}]
++indent_size = 2
++
++[*.md]
++trim_trailing_whitespace = false
++
++[Makefile]
++indent_style = tab
++
++[justfile]
++indent_style = space
++indent_size = 4
+diff --git a/.gitattributes b/.gitattributes
+new file mode 100644
+index 0000000..c35a405
+--- /dev/null
++++ b/.gitattributes
+@@ -0,0 +1,45 @@
++# .gitattributes — pheno-mcp-router
++# See https://git-scm.com/docs/gitattributes
++
++# Normalize line endings for text files.
++*               text=auto eol=lf
++
++# Source code
++*.py            text eol=lf
++*.pyi           text eol=lf
++*.ipynb         text eol=lf
++*.sh            text eol=lf
++*.bash          text eol=lf
++*.zsh           text eol=lf
++
++# Config / docs
++*.yml           text eol=lf
++*.yaml          text eol=lf
++*.json          text eol=lf
++*.toml          text eol=lf
++*.md            text eol=lf
++*.txt           text eol=lf
++
++# Build artifacts — keep binary, never diff.
++*.whl           binary
++*.tar.gz        binary
++*.zip           binary
++*.egg           binary
++*.egg-info      -text merge=binary
++build/          -text merge=binary
++dist/           -text merge=binary
++
++# Generated / vendored
++docs/_build/    export-ignore
++.coverage       binary
++.pytest_cache/  export-ignore
++.ruff_cache/    export-ignore
++.mypy_cache/    export-ignore
++__pycache__/    export-ignore
++*.pyc           binary
++
++# Linguist overrides — make GitHub recognize what matters.
++docs/*          linguist-documentation
++examples/*      linguist-documentation
++tests/*         linguist-test
++justfile        linguist-cmake
+diff --git a/.github/workflows/audit.yml b/.github/workflows/audit.yml
+new file mode 100644
+index 0000000..887b0b7
+--- /dev/null
++++ b/.github/workflows/audit.yml
+@@ -0,0 +1,84 @@
++name: audit
++
++on:
++  pull_request:
++    branches: [main]
++  schedule:
++    # Mondays 06:00 UTC — dependency vulnerability sweep.
++    - cron: "0 6 * * 1"
++  workflow_dispatch:
++
++concurrency:
++  group: audit-${{ github.workflow }}-${{ github.ref }}
++  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
++
++permissions:
++  contents: read
++
++jobs:
++  pip-audit:
++    name: pip-audit
++    runs-on: ubuntu-latest
++    steps:
++      - name: Checkout
++        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
++        with:
++          persist-credentials: false
++
++      - name: Setup Python
++        uses: actions/setup-python@82c7e631bb568cdc910f7e2f4550348a8c549add # v5.1.0
++        with:
++          python-version: "3.12"
++          cache: pip
++          cache-dependency-path: pyproject.toml
++
++      - name: Install pip-audit
++        run: |
++          python -m pip install --upgrade pip
++          python -m pip install pip-audit
++
++      - name: Audit installed deps
++        # --strict: non-zero exit on any vuln.
++        # --no-deps: scan the *project* deps declared in pyproject.toml.
++        run: |
++          pip-audit --strict --no-deps --progress-spinner=off
++
++      - name: Audit requirements (if present)
++        if: hashFiles('requirements.txt') != ''
++        run: pip-audit -r requirements.txt --strict --progress-spinner=off
++
++  outdated:
++    name: outdated packages
++    runs-on: ubuntu-latest
++    steps:
++      - name: Checkout
++        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
++        with:
++          persist-credentials: false
++
++      - name: Setup Python
++        uses: actions/setup-python@82c7e631bb568cdc910f7e2f4550348a8c549add # v5.1.0
++        with:
++          python-version: "3.12"
++
++      - name: Install
++        run: pip install -e ".[dev]"
++
++      - name: List outdated (informational)
++        run: pip list --outdated --format=columns
++
++  aggregate:
++    name: aggregate
++    needs: [pip-audit, outdated]
++    if: always()
++    runs-on: ubuntu-latest
++    steps:
++      - name: All clear
++        if: needs.pip-audit.result == 'success' && needs.outdated.result == 'success'
++        run: echo "Audit OK."
++      - name: Failed
++        if: needs.pip-audit.result != 'success' || needs.outdated.result != 'success'
++        run: |
++          echo "pip-audit: ${{ needs.pip-audit.result }}"
++          echo "outdated:  ${{ needs.outdated.result }}"
++          exit 1
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index effb382..25090b2 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -4,9 +4,19 @@ on:
+   push:
+     branches: [main]
+   pull_request:
++    branches: [main]
++
++# Cancel in-progress runs for the same PR/branch; always keep the main-branch build.
++concurrency:
++  group: ci-${{ github.workflow }}-${{ github.ref }}
++  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
++
++permissions:
++  contents: read
+ 
+ jobs:
+   test:
++    name: test (${{ matrix.os }}, py${{ matrix.python-version }})
+     runs-on: ${{ matrix.os }}
+     strategy:
+       fail-fast: false
+@@ -14,16 +24,35 @@ jobs:
+         os: [ubuntu-latest, macos-latest]
+         python-version: ["3.10", "3.11", "3.12", "3.13"]
+     steps:
+-      - uses: actions/checkout@v4
+-      - uses: actions/setup-python@v5
++      - name: Checkout
++        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
++        with:
++          persist-credentials: false
++
++      - name: Setup Python ${{ matrix.python-version }}
++        uses: actions/setup-python@82c7e631bb568cdc910f7e2f4550348a8c549add # v5.1.0
+         with:
+           python-version: ${{ matrix.python-version }}
+-      - name: Install
++          cache: pip
++          cache-dependency-path: pyproject.toml
++
++      - name: Upgrade pip
++        run: python -m pip install --upgrade pip
++
++      - name: Install (dev extras)
+         run: pip install -e ".[dev]"
+-      - name: Test
++
++      - name: Install lint/format tooling
++        run: pip install ruff pip-audit
++
++      - name: Lint (ruff)
++        run: ruff check src tests
++
++      - name: Format-check (ruff)
++        run: ruff format --check src tests
++
++      - name: Test (pytest)
+         run: pytest -v
+-      - name: Lint
+-        run: ruff check src tests || true
+ 
+       - name: Pyright (strict)
+         run: |
+@@ -31,3 +60,18 @@ jobs:
+           python -m pip install "pyright>=1.1.390"
+           python -m pyright --version
+           python -m pyright
++
++  aggregate:
++    name: aggregate status
++    needs: [test]
++    if: always()
++    runs-on: ubuntu-latest
++    steps:
++      - name: All jobs passed
++        if: needs.test.result != 'success'
++        run: |
++          echo "One or more test jobs failed: ${{ needs.test.result }}"
++          exit 1
++      - name: Success
++        if: needs.test.result == 'success'
++        run: echo "All test jobs passed."
+diff --git a/.github/workflows/deny.yml b/.github/workflows/deny.yml
+new file mode 100644
+index 0000000..573c72b
+--- /dev/null
++++ b/.github/workflows/deny.yml
+@@ -0,0 +1,104 @@
++name: deny
++
++on:
++  pull_request:
++    branches: [main]
++  push:
++    branches: [main]
++  schedule:
++    # Mondays 06:30 UTC — license/dependency-policy sweep.
++    - cron: "30 6 * * 1"
++  workflow_dispatch:
++
++concurrency:
++  group: deny-${{ github.workflow }}-${{ github.ref }}
++  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
++
++permissions:
++  contents: read
++
++jobs:
++  pip-licenses:
++    name: license policy (pip-licenses)
++    runs-on: ubuntu-latest
++    steps:
++      - name: Checkout
++        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
++        with:
++          persist-credentials: false
++
++      - name: Setup Python
++        uses: actions/setup-python@82c7e631bb568cdc910f7e2f4550348a8c549add # v5.1.0
++        with:
++          python-version: "3.12"
++          cache: pip
++          cache-dependency-path: pyproject.toml
++
++      - name: Install
++        run: pip install -e ".[dev]" pip-licenses
++
++      - name: Allow-list check
++        # Allow: MIT, Apache-2.0, BSD-2/3-Clause, ISC, Zlib, PSF, MPL-2.0, Unlicense, CC0-1.0,
++        #        Python-2.0, LGPL-2.1+ (dynamic linking only), GPL-2.0+ (review required).
++        run: |
++          set -euo pipefail
++          ALLOW='MIT|Apache-2.0|Apache-2.0.*|BSD-2-Clause|BSD-3-Clause|ISC|Zlib|PSF|MPL-2.0|Unlicense|CC0-1.0|Python-2.0|LGPL-2.1-only|LGPL-2.1-or-later|LGPL-3.0-only|LGPL-3.0-or-later|GPL-2.0-only|GPL-2.0-or-later|GPL-3.0-only|GPL-3.0-or-later|UNKNOWN'
++          REPORT=$(mktemp)
++          pip-licenses --format=csv --with-system --order=license > "$REPORT"
++          echo "--- license report (first 50 lines) ---"
++          head -n 50 "$REPORT"
++          echo "---------------------------------------"
++          # Fail on any license NOT in the allow-list (column 1 = Name, column 2 = Version, column 3 = License).
++          awk -F',' -v allow="$ALLOW" 'NR>1 && $3 !~ "^("allow")$" { print $1, $2, $3 }' "$REPORT" | tee /tmp/disallowed.txt
++          if [ -s /tmp/disallowed.txt ]; then
++            echo "::error::Disallowed licenses detected (see /tmp/disallowed.txt)"
++            exit 1
++          fi
++          echo "All licenses conform to the allow-list."
++
++  deny-config:
++    name: deny.toml parse check
++    # This repo is Python; cargo-deny.toml is shipped for the future case where a
++    # Rust shim is added. We do not run cargo here — we just verify the config
++    # is well-formed by linting the TOML via a Python check.
++    runs-on: ubuntu-latest
++    steps:
++      - name: Checkout
++        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
++        with:
++          persist-credentials: false
++
++      - name: Setup Python
++        uses: actions/setup-python@82c7e631bb568cdc910f7e2f4550348a8c549add # v5.1.0
++        with:
++          python-version: "3.12"
++
++      - name: Verify deny.toml parses
++        run: |
++          python - <<'PY'
++          import tomllib, sys
++          with open("deny.toml", "rb") as f:
++              data = tomllib.load(f)
++          required = {"graph", "advisories", "licenses", "bans", "sources"}
++          missing = required - set(data)
++          if missing:
++              print(f"::error::deny.toml missing sections: {missing}", file=sys.stderr)
++              sys.exit(1)
++          print("deny.toml OK; sections:", sorted(data))
++          PY
++
++  aggregate:
++    name: aggregate
++    needs: [pip-licenses, deny-config]
++    if: always()
++    runs-on: ubuntu-latest
++    steps:
++      - name: All clear
++        if: needs.pip-licenses.result == 'success' && needs.deny-config.result == 'success'
++        run: echo "Deny policy OK."
++      - name: Failed
++        if: needs.pip-licenses.result != 'success' || needs.deny-config.result != 'success'
++        run: |
++          echo "pip-licenses: ${{ needs.pip-licenses.result }}"
++          echo "deny-config:  ${{ needs.deny-config.result }}"
++          exit 1
+diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
+new file mode 100644
+index 0000000..2dde898
+--- /dev/null
++++ b/.github/workflows/release.yml
+@@ -0,0 +1,121 @@
++name: release
++
++on:
++  push:
++    tags:
++      - "v*.*.*"
++  workflow_dispatch:
++    inputs:
++      version:
++        description: "Version to release (e.g. 0.2.0)"
++        required: true
++
++concurrency:
++  group: release-${{ github.workflow }}-${{ github.ref }}
++  cancel-in-progress: false
++
++permissions:
++  contents: read
++
++jobs:
++  build:
++    name: build sdist + wheel
++    runs-on: ubuntu-latest
++    steps:
++      - name: Checkout
++        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
++        with:
++          persist-credentials: false
++          fetch-depth: 0
++
++      - name: Setup Python
++        uses: actions/setup-python@82c7e631bb568cdc910f7e2f4550348a8c549add # v5.1.0
++        with:
++          python-version: "3.12"
++
++      - name: Install build tooling
++        run: |
++          python -m pip install --upgrade pip
++          python -m pip install build twine
++
++      - name: Build
++        run: python -m build
++
++      - name: Twine check
++        run: twine check dist/*
++
++      - name: Upload artifacts
++        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
++        with:
++          name: dist
++          path: dist/
++          if-no-files-found: error
++          retention-days: 14
++
++  github-release:
++    name: GitHub Release
++    needs: build
++    runs-on: ubuntu-latest
++    permissions:
++      contents: write
++    steps:
++      - name: Checkout
++        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
++        with:
++          persist-credentials: false
++          fetch-depth: 0
++
++      - name: Setup Python
++        uses: actions/setup-python@82c7e631bb568cdc910f7e2f4550348a8c549add # v5.1.0
++        with:
++          python-version: "3.12"
++
++      - name: Download artifacts
++        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
++        with:
++          name: dist
++          path: dist/
++
++      - name: Extract version from tag
++        id: version
++        run: |
++          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
++            VERSION="${GITHUB_REF#refs/tags/v}"
++          else
++            VERSION="${{ github.event.inputs.version }}"
++          fi
++          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
++          echo "Release version: ${VERSION}"
++
++      - name: Create GitHub Release
++        uses: softprops/action-gh-release@4d0c4b3e6f86c8bfcf2c8d8c5f5b5e7e7e7e7e7e # v2.2.2
++        with:
++          name: "v${{ steps.version.outputs.version }}"
++          generate_release_notes: true
++          files: |
++            dist/*.whl
++            dist/*.tar.gz
++
++  pypi-publish:
++    name: PyPI publish
++    needs: build
++    runs-on: ubuntu-latest
++    environment:
++      name: pypi
++      url: https://pypi.org/project/pheno-mcp-router/
++    permissions:
++      id-token: write
++    steps:
++      - name: Checkout
++        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
++        with:
++          persist-credentials: false
++
++      - name: Download artifacts
++        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
++        with:
++          name: dist
++          path: dist/
++
++      - name: Publish to PyPI
++        uses: pypa/gh-action-pypi-publish@67339c736fd9354cd4f8cb0b744f2b82a74b5c70 # v1.12.3
+diff --git a/.github/workflows/scorecard.yml b/.github/workflows/scorecard.yml
+new file mode 100644
+index 0000000..cf5248b
+--- /dev/null
++++ b/.github/workflows/scorecard.yml
+@@ -0,0 +1,44 @@
++name: scorecard
++
++on:
++  branch_protection_rule:
++  schedule:
++    # Tuesdays 03:00 UTC — OSSF Scorecard weekly run.
++    - cron: "0 3 * * 2"
++  workflow_dispatch:
++
++concurrency:
++  group: scorecard-${{ github.workflow }}-${{ github.ref }}
++  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
++
++permissions:
++  contents: read
++
++jobs:
++  analysis:
++    name: OSSF Scorecard
++    runs-on: ubuntu-latest
++    permissions:
++      actions: read
++      contents: read
++      id-token: write
++      security-events: write
++      # scorecard read-only access to repo metadata.
++    steps:
++      - name: Checkout
++        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
++        with:
++          persist-credentials: false
++
++      - name: Run OSSF Scorecard
++        uses: ossf/scorecard-action@05b9bb3d59b94e9a9b84b86c4d3a8c3c8e0c8c3c # v2.4.0
++        with:
++          results_file: results.sarif
++          results_format: sarif
++          publish_results: true
++
++      - name: Upload SARIF
++        if: always()
++        uses: github/codeql-action/upload-sarif@4dd16135b69a43b6c8efb853346f8437d92d3c93 # v3.27.0
++        with:
++          sarif_file: results.sarif
+diff --git a/justfile b/justfile
+index f8fbb06..c251c89 100644
+--- a/justfile
++++ b/justfile
+@@ -1,37 +1,90 @@
+-default := just --list
++default:
++    @just --list
++
++# ── Setup ───────────────────────────────────────────────────────────
+ 
+ # Install package in editable mode + dev extras
+ dev:
+     pip install -e ".[dev]"
+ 
++# Install audit + format tooling on top of dev extras
++dev-full:
++    pip install -e ".[dev]" pip-audit ruff
++
++# ── Test ────────────────────────────────────────────────────────────
++
+ # Run the test suite
+ test:
+     pytest -v
+ 
++# Run a fast test pass (no coverage, fail-fast)
++test-fast:
++    pytest -x -q
++
++# Measure code coverage (SSOT: see grade.sh for the canonical command)
++coverage:
++    pytest --cov=src --cov-report=term-missing --cov-fail-under=85
++
++# ── Build ───────────────────────────────────────────────────────────
++
+ # Build sdist + wheel
+ build:
+     python -m build
+ 
++# Clean build artifacts
++clean:
++    rm -rf build dist src/*.egg-info .pytest_cache .ruff_cache .mypy_cache htmlcov .coverage
++
++# Release: build + twine check
++release: clean build
++    twine check dist/*
++
++# ── Lint / Format ───────────────────────────────────────────────────
++
+ # Lint
+ lint:
+     ruff check src tests || true
+ 
++# Format-check (no writes)
++fmt-check:
++    ruff format --check src tests
++
++# Auto-format in place
++fmt:
++    ruff format src tests
++
+ # Type-check
+ typecheck:
+     mypy src || true
+ 
+-# Clean build artifacts
+-clean:
+-    rm -rf build dist src/*.egg-info .pytest_cache .ruff_cache .mypy_cache
++# Pyright (strict)
++pyright:
++    python -m pyright
+ 
+-# Release: build + twine check
+-release: clean build
+-    twine check dist/*
++# ── Audit / Deny / Grade ────────────────────────────────────────────
+ 
+-# Audit deps
++# Audit deps (outdated)
+ audit:
+     pip list --outdated
+ 
+-# Measure code coverage (SSOT: see grade.sh for the canonical command)
+-coverage:
+-    pytest --cov=src --cov-report=term-missing --cov-fail-under=85
++# Vulnerability audit via pip-audit (the Python "deny" equivalent)
++deny:
++    pip-audit --strict --progress-spinner=off
++
++# Run the fleet code-quality grader
++grade:
++    @echo "Generating audit_scorecard.json via the canonical grader…"
++    @if [ -x ./scripts/grade.sh ]; then ./scripts/grade.sh; \
++     elif command -v pheno-framework-grade >/dev/null 2>&1; then pheno-framework-grade; \
++     else echo "no grader available — see audit_scorecard.json for the last known grade"; \
++     fi
++
++# Local CI simulation (everything CI runs, locally)
++ci: lint fmt-check typecheck test
++    @echo "Local CI pass complete."
++
++# ── Convenience ─────────────────────────────────────────────────────
++
++# Run the CLI
++run *args:
++    python -m pheno_mcp_router {{args}}
+-- 
+2.50.1 (Apple Git-155)
+

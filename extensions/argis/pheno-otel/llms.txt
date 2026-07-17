@@ -1,0 +1,92 @@
+<!--
+  llms.txt for pheno-otel — LLM-friendly content discovery index.
+  Spec: https://llmstxt.org/  (curated plain-text file at project root; "robots.txt for LLMs").
+  Per ADR-042 element 7 + pheno-llms-txt (T20.7) v8 template.
+  Cross-references SPEC.md (T20.2), WORKLOG.md (T20.5), CHANGELOG.md (T20.6).
+-->
+
+# pheno-otel
+
+> Canonical OTLP wire-format export substrate for the pheno-* fleet. Defines the `OtlpPort` trait (hexagonal Port side, per ADR-038) and ships `StdoutExporter` + `HttpExporter` (in-tree Adapter impls) per ADR-037. Sibling to `pheno-tracing` (ADR-036): `pheno-tracing` produces spans, `pheno-otel` exports them. Consumed by every pheno-* substrate crate that needs to ship telemetry off-host, and by the polyglot SDKs (`phenotype-go-sdk`, `phenotype-python-sdk`).
+
+## Documentation
+
+- [README.md](README.md): quickstart, install, when to use, when NOT to use.
+- [AGENTS.md](AGENTS.md): project overview, conventions, governance for AI agents. Per-repo template (v11); cites ADR-023, ADR-037, ADR-038, ADR-042, ADR-040, ADR-036.
+- [SPEC.md](SPEC.md): canonical 1-page specification (what / why / how / interface / status; per ADR-042 element 1). Cites the `OtlpPort` trait + `Adapter` impl pattern (ADR-038) and the `HttpExporter` + `StdoutExporter` consumer example.
+- [WORKLOG.md](WORKLOG.md): change history (ADR-025 v2.1 schema, 11 columns including `device:` field). Validator: `pheno-worklog-schema` v2.1.
+- [CHANGELOG.md](CHANGELOG.md): release notes, semver, breaking changes. Keep a Changelog 1.1.0.
+- [STATUS.md](STATUS.md): weekly-refresh status doc with honest 71-pillar scorecard (~49/213 = 23%, Tier 0) and Factory AI Agent Readiness level 0 (Functional). Per ADR-041 + ADR-026.
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute. Branch prefixes, Conventional Commits, PR template, 80% lib coverage gate (ADR-040), pattern conformance (ADR-038).
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): Contributor Covenant 2.1.
+- [SECURITY.md](SECURITY.md): vulnerability disclosure policy.
+
+## Optional
+
+- [LICENSE-MIT](LICENSE-MIT): MIT license text (Copyright Koosha Pari 2026).
+- [LICENSE-APACHE](LICENSE-APACHE): Apache 2.0 license text.
+- [Cargo.toml](Cargo.toml): package manifest (v0.1.0). MSRV 1.75, edition 2021, `thiserror = "2"`, `serde = "1.0"`, empty `[workspace]` (standalone crate).
+- [deny.toml](deny.toml): cargo-deny configuration (advisories + bans + sources + licenses).
+- [llvm-cov.toml](llvm-cov.toml): 80% lib coverage threshold (ADR-040).
+- [Justfile](Justfile): task runner (`build`, `test`, `clippy`, `fmt`, `coverage`, `audit`, `release`).
+- [.editorconfig](.editorconfig): editor formatting conventions.
+- [.gitattributes](.gitattributes): line endings + LFS policy per ADR-027.
+- [src/lib.rs](src/lib.rs): `OtlpPort` trait + `ExportHandle` opaque struct + `OtlpError` enum (4 variants) + 7 inline `MockExporter` unit tests.
+- [src/exporters/mod.rs](src/exporters/mod.rs): exporters module root + `ExporterConfig` shared struct.
+- [src/exporters/stdout.rs](src/exporters/stdout.rs): `StdoutExporter` (writes OTLP/JSON to stderr; 6 inline tests).
+- [src/exporters/http.rs](src/exporters/http.rs): `HttpExporter` (POSTs OTLP/JSON to OTLP/HTTP endpoint; `traces()` / `metrics()` / `logs()` constructors; 10 inline tests).
+- [.github/workflows/ci.yml](.github/workflows/ci.yml): test + clippy + fmt + MSRV + coverage (cargo-llvm-cov → codecov).
+- [.github/workflows/audit.yml](.github/workflows/audit.yml): cargo-deny + cargo-audit + TruffleHog (weekly Mon 06:00 UTC).
+- [.github/workflows/deny.yml](.github/workflows/deny.yml): cargo-deny check on push/PR.
+- [.github/workflows/scorecard.yml](.github/workflows/scorecard.yml): OpenSSF Scorecard (weekly Mon 12:00 UTC).
+- [.github/workflows/release.yml](.github/workflows/release.yml): tag-triggered release pipeline.
+- [.github/workflows/lint.yml](.github/workflows/lint.yml): YAML lint (yamllint relaxed).
+- [.github/dependabot.yml](.github/dependabot.yml): daily cargo + weekly github-actions updates.
+- [.github/CODEOWNERS](.github/CODEOWNERS): ownership table (default @KooshaPari).
+- [.github/ISSUE_TEMPLATE/bug.yml](.github/ISSUE_TEMPLATE/bug.yml): bug report template.
+- [.github/ISSUE_TEMPLATE/feature.yml](.github/ISSUE_TEMPLATE/feature.yml): feature request template.
+- [.github/ISSUE_TEMPLATE/config.yml](.github/ISSUE_TEMPLATE/config.yml): config / question template.
+- [.github/ISSUE_TEMPLATE/security.yml](.github/ISSUE_TEMPLATE/security.yml): security report template.
+- [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md): PR template.
+
+## Sibling substrates (fleet)
+
+- `pheno-tracing` — canonical observability substrate (ADR-036); produces the spans `pheno-otel` exports. **Direct upstream dependency.**
+- `pheno-port-adapter` — canonical hexagonal L4 Port/Adapter primitive (ADR-038); `pheno-otel` follows the same `Port` trait + `Adapter` impl shape.
+- `pheno-context` — request context propagation (correlation IDs flow through `ExportHandle`).
+- `pheno-errors` — `thiserror`-aligned error envelope; `OtlpError` follows the same derive pattern.
+- `pheno-config` — typed config loader (`ExporterConfig` could be loaded from `pheno-config` cascade in the future).
+- `pheno-flags`, `pheno-cli-base`, `pheno-agents-md`, `pheno-cargo-template` — 4 of the 22 pheno-* substrate crates migrating to the `Port` trait + `Adapter` impl shape per ADR-038.
+- `phenotype-go-sdk` / `phenotype-python-sdk` — polyglot substrate mirrors for non-Rust consumers.
+
+## ADRs (governance)
+
+- [ADR-023 (Agent-effort governance)](../../docs/adr/2026-06-18/ADR-023-agent-effort-governance.md): substrate placement + Rule 3.1 quality bar.
+- [ADR-037 (pheno-mcp-router substrate canonical)](../../docs/adr/2026-06-18/ADR-037-pheno-mcp-router-substrate-canonical.md): analogous substrate-assignment ADR; this crate is the **OTLP export substrate** in the same family.
+- [ADR-036 (pheno-tracing canonical)](../../docs/adr/2026-06-18/ADR-036-pheno-tracing-canonical.md): sibling substrate; produces what this crate exports.
+- [ADR-038 (Hexagonal L4 Port/Adapter policy)](../../docs/adr/2026-06-18/ADR-038-hexagonal-port-adapter-l4-policy.md): **canonical pattern contract; this crate follows `Port` trait + `Adapter` impl**.
+- [ADR-042 (Substrate quality bar)](../../docs/adr/2026-06-18/ADR-042-substrate-quality-bar.md): 7-element quality bar (this meta-bundle closes elements 1-7).
+- [ADR-040 (Test coverage gates per tier)](../../docs/adr/2026-06-18/ADR-040-test-coverage-gates-per-tier.md): 80% lib/SDK gate.
+- [ADR-025 (worklog v2.1 schema bump)](../../docs/adr/2026-06-18/ADR-025-worklog-v2-1-schema-bump.md): `device:` field.
+- [ADR-030 (pheno-worklog-schema v2.1)](../../docs/adr/2026-06-18/ADR-030-pheno-worklog-schema-v2-1.md): 4 `device:` values pinned.
+- [ADR-041 (71-pillar refresh cadence)](../../docs/adr/2026-06-18/ADR-041-71-pillar-refresh-cadence.md): weekly probe cadence.
+- [ADR-026 (Factory AI Agent Readiness)](../../docs/adr/2026-06-18/ADR-026-factory-ai-agent-readiness.md): external cross-cutting standard.
+- [ADR-027 (Git LFS 3-tier policy)](../../docs/adr/2026-06-18/ADR-027-git-lfs-3-tier-policy.md): `.gitattributes` LFS policy.
+
+## See also
+
+- [findings/71-pillar-2026-06-17.md § 1.x](../../findings/71-pillar-2026-06-17.md): 71-pillar scorecard (this crate scored ~49/213 = 23%, Tier 0).
+- [findings/71-pillar-2026-06-17-schema.md](../../findings/71-pillar-2026-06-17-schema.md): 71-pillar framework schema (ADR-024).
+- [findings/71-pillar-2026-06-17-mapping.md](../../findings/71-pillar-2026-06-17-mapping.md): L1-L30 → L1-L71 crosswalk.
+- [pheno-worklog-schema v2.1](../../pheno-worklog-schema/SPEC-v2.1.md): worklog validator CLI.
+- [pheno-ci-templates](https://github.com/KooshaPari/pheno-ci-templates): CI gate templates (per ADR-042 element 6).
+- [OpenTelemetry specification](https://opentelemetry.io/docs/specs/otlp/): the wire format this crate exports.
+
+<!--
+  Template notes:
+  - Format is fixed by llmstxt.org: H1 title, > blockquote summary, ## sections with bullet lists.
+  - Each bullet MUST be [filename](path): one-line summary — the colon is part of the spec.
+  - List the meta-bundle files first (AGENTS.md, README.md, SPEC.md, WORKLOG.md, CHANGELOG.md, STATUS.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md), then topic-specific docs.
+  - License under "Optional" so LLMs can skip it.
+  - Update cadence: re-audit on every release. CI lint: pheno-ci-templates/llms-txt-lint.yml (T20.7 follow-up).
+-->

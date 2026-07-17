@@ -1,0 +1,102 @@
+<!--
+  llms.txt for pheno-port-adapter — LLM-friendly content discovery index.
+  Spec: https://llmstxt.org/  (curated plain-text file at project root; "robots.txt for LLMs").
+  Per ADR-042 element 7 + pheno-llms-txt (T20.7) v8 template (5-line quickstart + non-scope + 3 examples).
+  Cross-references SPEC.md (T20.2), WORKLOG.md (T20.5), CHANGELOG.md (T20.6).
+-->
+
+# pheno-port-adapter
+
+> Canonical hexagonal L4 Port/Adapter reference implementation for the pheno-* fleet. Defines the `PortAdapter` trait (Port side, ADR-038) and ships `TcpAdapter` + `UnixAdapter` (in-tree Adapter impls) + `MockAdapter` (test-only). Per ADR-014 + ADR-038, 19 of 22 pheno-* substrate Rust crates are migrating to this `Port` trait + `Adapter` impl shape. Sibling to `pheno-config` (typed config; `Connection::id` is consumed from endpoint strings) and `pheno-errors` (`AdapterError` mirrors the `AppError` 5-variant shape).
+
+## Quickstart (5 lines)
+
+```rust
+use pheno_port_adapter::adapters::tcp::TcpAdapter;
+use pheno_port_adapter::adapters::unix::UnixAdapter;
+use pheno_port_adapter::PortAdapter;
+let tcp = TcpAdapter::new();
+let unix = UnixAdapter::new();
+let _ = tcp.connect("127.0.0.1:9000").expect("connect");
+let _ = unix.connect("/tmp/agent.sock").expect("unix connect");
+```
+
+## When to use
+
+- You need a `Port` trait + `Adapter` impl contract per ADR-038 (hexagonal L4).
+- You want one canonical `TcpAdapter` / `UnixAdapter` to back any pheno-* service's connection-lifecycle layer.
+- You need a `MockAdapter` for hermetic in-process tests (no real sockets).
+
+## When NOT to use
+
+- You need async I/O — adapters are sync; wrap with `tokio::task::spawn_blocking` if needed.
+- You need TLS — pair with `tokio-rustls` or `native-tls`; this crate only does plain TCP / Unix sockets.
+- You need HTTP — pair with `reqwest` or `hyper`; `pheno-port-adapter` is the lower-level Port layer.
+
+## 3 examples (illustrative)
+
+1. **`TcpAdapter::connect()` smoke test** — `src/adapters/tcp.rs` + 5 inline unit tests cover the happy path, DNS failure, and timeout.
+2. **`MockAdapter` for hermetic tests** — `src/lib.rs` ships a `MockAdapter` impl that returns a pre-canned `Connection` without touching the network; used by every pheno-* service's `tests/` integration suite.
+3. **`pheno-otel` OTLP span on connect** — `examples/otel_quickstart.rs` calls `TcpAdapter::new()` and exports the resulting `Connection` handle through `pheno_otel::StdoutExporter` (ADR-037).
+
+## Documentation
+
+- [README.md](README.md): quickstart, install, when to use, when NOT to use.
+- [AGENTS.md](AGENTS.md): project overview, conventions, governance for AI agents. Per-repo template (v11); cites ADR-023, ADR-038, ADR-042, ADR-040.
+- [SPEC.md](SPEC.md): canonical 1-page specification (what / why / how / interface / status; per ADR-042 element 1). Cites the `Port` trait + `Adapter` impl pattern (ADR-038).
+- [WORKLOG.md](WORKLOG.md): change history (ADR-025 v2.1 schema, 11 columns including `device:` field). Validator: `pheno-worklog-schema` v2.1.
+- [CHANGELOG.md](CHANGELOG.md): release notes, semver, breaking changes. Keep a Changelog 1.1.0.
+- [STATUS.md](STATUS.md): weekly-refresh status doc with honest 71-pillar scorecard (Tier 0) and Factory AI Agent Readiness level 0 (Functional). Per ADR-041 + ADR-026.
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to contribute. Branch prefixes, Conventional Commits, PR template, 80% lib coverage gate (ADR-040), pattern conformance (ADR-038).
+
+## Optional
+
+- [LICENSE-MIT](LICENSE-MIT): MIT license text (Copyright Koosha Pari 2026).
+- [Cargo.toml](Cargo.toml): package manifest (v0.1.0). MSRV 1.82, edition 2021, `thiserror = "2.0"`, `pheno-otel = { path = "../pheno-otel" }` (ADR-037), empty `[workspace]` (standalone crate).
+- [llvm-cov.toml](llvm-cov.toml): 80% lib coverage threshold (ADR-040).
+- [scripts/coverage.sh](scripts/coverage.sh): cargo-llvm-cov coverage gate runner.
+- [src/lib.rs](src/lib.rs): `PortAdapter` trait + `AdapterError` enum + `Connection` opaque handle + 5 inline `MockAdapter` unit tests.
+- [src/adapters/mod.rs](src/adapters/mod.rs): adapters module root.
+- [src/adapters/tcp.rs](src/adapters/tcp.rs): TCP transport adapter (sync; `std::net::TcpStream`).
+- [src/adapters/unix.rs](src/adapters/unix.rs): Unix-domain socket adapter (sync; `std::os::unix::net::UnixStream`).
+- [examples/otel_quickstart.rs](examples/otel_quickstart.rs): `pheno-otel` OTLP exporter wiring (ADR-037 × ADR-038).
+
+## Sibling substrates (fleet)
+
+- `pheno-config` — typed config loader (consumes `Connection` ID in endpoint strings).
+- `pheno-context` — request context propagation (correlation IDs flow through `Connection`).
+- `pheno-tracing` — canonical observability substrate (ADR-036); `pheno-port-adapter` adopts the `tracing` feature flag for OTLP smoke test.
+- `pheno-otel` — OTLP exporter (consumes `pheno-port-adapter`'s connection-lifecycle spans).
+- `pheno-errors` — `thiserror`-aligned error envelope; `AdapterError` follows the same derive pattern.
+- `pheno-flags`, `pheno-cli-base`, `pheno-agents-md`, `pheno-cargo-template` — 4 of the 19 ad-hoc crates migrating to the `Port` trait + `Adapter` impl shape per ADR-038 adoption matrix.
+
+## ADRs (governance)
+
+- [ADR-014 (Hexagonal L4 ports)](../../docs/adr/2026-06-18/ADR-014-hexagonal-l4-ports.md): predecessor — original Port trait + Adapter impl pattern.
+- [ADR-023 (Agent-effort governance)](../../docs/adr/2026-06-15/ADR-023-agent-effort-governance.md): substrate placement + Rule 3.1 quality bar.
+- [ADR-038 (Hexagonal L4 Port/Adapter policy)](../../docs/adr/2026-06-18/ADR-038-hexagonal-port-adapter-l4-policy.md): **canonical pattern contract; this crate is the reference impl**.
+- [ADR-042 (Substrate quality bar)](../../docs/adr/2026-06-18/ADR-042-substrate-quality-bar.md): 7-element quality bar (this meta-bundle closes elements 1 + 7).
+- [ADR-040 (Test coverage gates per tier)](../../docs/adr/2026-06-18/ADR-040-test-coverage-gates-per-tier.md): 80% lib/SDK gate.
+- [ADR-036 (pheno-tracing canonical)](../../docs/adr/2026-06-18/ADR-036-pheno-tracing-canonical.md): observability substrate.
+- [ADR-025 (worklog v2.1 schema bump)](../../docs/adr/2026-06-17/ADR-025-adr-015-v2-1.md): `device:` field.
+- [ADR-030 (pheno-worklog-schema v2.1)](../../docs/adr/2026-06-17/ADR-030-pheno-worklog-schema-v2-1.md): 4 `device:` values pinned.
+- [ADR-041 (71-pillar refresh cadence)](../../docs/adr/2026-06-18/ADR-041-71-pillar-refresh-cadence.md): weekly probe cadence.
+- [ADR-026 (Factory AI Agent Readiness)](../../docs/adr/2026-06-17/ADR-026-factory-ai-agent-readiness.md): external cross-cutting standard.
+
+## See also
+
+- [findings/71-pillar-2026-06-17.md § 1.x](../../findings/71-pillar-2026-06-17.md): 71-pillar scorecard for this crate (Tier 0).
+- [findings/71-pillar-2026-06-17-schema.md](../../findings/71-pillar-2026-06-17-schema.md): 71-pillar framework schema (ADR-024).
+- [plans/2026-06-18-v8-dag-stable.md § 3.7](../../plans/2026-06-18-v8-dag-stable.md): T15.4 (`pheno-port-adapter` meta-bundle + tests).
+- [pheno-worklog-schema v2.1](../../pheno-worklog-schema/SPEC-v2.1.md): worklog validator CLI.
+- [pheno-ci-templates](https://github.com/KooshaPari/pheno-ci-templates): CI gate templates (per ADR-042 element 6).
+
+<!--
+  Template notes:
+  - Format is fixed by llmstxt.org: H1 title, > blockquote summary, ## sections with bullet lists.
+  - Each bullet MUST be [filename](path): one-line summary — the colon is part of the spec.
+  - Per ADR-024 + v8 plan T20.7: 5-line quickstart + non-scope + 3 examples structure.
+  - List the meta-bundle files first (AGENTS.md, README.md, SPEC.md, WORKLOG.md, CHANGELOG.md, STATUS.md, CONTRIBUTING.md), then topic-specific docs.
+  - License under "Optional" so LLMs can skip it.
+  - Update cadence: re-audit on every release. CI lint: pheno-ci-templates/llms-txt-lint.yml (T20.7 follow-up).
+-->

@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pheno-scaffold-kit"
+version = "0.1.0"
+description = "Python scaffolding template for pheno-* repos (framework substrate, ADR-023)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT OR Apache-2.0"}
+authors = [
+    {name = "KooshaPari", email = "koosha@phenotype.local"},
+]
+keywords = ["scaffold", "template", "cookiecutter", "phenotype"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Code Generators",
+]
+dependencies = [
+    "structlog>=24.1.0",     # ADR-036B: pheno-tracing mirror
+    "cookiecutter>=2.6.0",   # Cookiecutter template engine
+    "click>=8.1.7",          # CLI
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+pheno-scaffold-kit = "pheno_scaffold_kit.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/KooshaPari/phenotype-apps"
+Issues = "https://github.com/KooshaPari/phenotype-apps/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pheno_scaffold_kit*"]
+
+[tool.setuptools.package-data]
+pheno_scaffold_kit = ["py.typed", "../templates/**/*"]
+
+# === ruff (per ADR-039, replaces deny.toml for Python) ===
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = [".venv", "build", "dist", "templates"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+"templates/**/*" = ["ALL"]
+
+# === pytest (coverage gate per ADR-040, framework tier 70%) ===
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+
+[tool.coverage.run]
+source = ["src/pheno_scaffold_kit"]
+branch = true
+
+[tool.coverage.report]
+# ADR-040: 70% framework gate
+fail_under = 70
+show_missing = true
+skip_covered = false

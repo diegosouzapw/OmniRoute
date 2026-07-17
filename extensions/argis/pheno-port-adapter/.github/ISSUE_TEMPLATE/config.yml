@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: pheno-port-adapter Discussion
+    url: https://github.com/KooshaPari/phenotype-apps/discussions
+    about: Please ask and answer questions here before opening an issue.

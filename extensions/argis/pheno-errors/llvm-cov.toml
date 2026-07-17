@@ -1,0 +1,16 @@
+# pheno-errors cargo-llvm-cov configuration.
+#
+# Run via scripts/coverage.sh (uses cargo-llvm-cov which produces source-based
+# coverage accurate to +/- 1%). Default coverage gate for `pheno-*-lib` is 80%
+# per ADR-040 (test-coverage-gates-per-tier).
+
+[run]
+# Use source-based coverage (more accurate than instrumented).
+# Default to false to keep regular `cargo test` fast.
+instrument-coverage = false
+
+[report]
+# Emit a textual summary to stdout.
+# Summary threshold: 80% per ADR-040 (lib tier).
+fail-under-lines = 80
+exclude-from-coverage = ["tests/*", "examples/*", "benches/*"]

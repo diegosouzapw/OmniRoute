@@ -1,0 +1,201 @@
+syntax = "proto3";
+
+package bifrost.health.v1;
+
+option go_package = "github.com/kooshapari/bifrost-extensions/api/connect/gen/health/v1;healthv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+// HealthService provides health checking and monitoring
+service HealthService {
+  // Check performs a health check on a specific service
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+  
+  // Watch streams health status updates
+  rpc Watch(WatchRequest) returns (stream HealthCheckResponse);
+  
+  // ListServices returns all monitored services
+  rpc ListServices(ListServicesRequest) returns (ListServicesResponse);
+  
+  // GetMetrics returns service metrics
+  rpc GetMetrics(GetMetricsRequest) returns (GetMetricsResponse);
+}
+
+message HealthCheckRequest {
+  // Service to check (empty = all services)
+  string service = 1;
+  
+  // Include detailed diagnostics
+  bool include_details = 2;
+}
+
+message HealthCheckResponse {
+  ServingStatus status = 1;
+  string service = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  
+  // Detailed status per component
+  repeated ComponentHealth components = 4;
+  
+  // Overall health message
+  string message = 5;
+}
+
+enum ServingStatus {
+  SERVING_STATUS_UNSPECIFIED = 0;
+  SERVING_STATUS_SERVING = 1;
+  SERVING_STATUS_NOT_SERVING = 2;
+  SERVING_STATUS_DEGRADED = 3;
+  SERVING_STATUS_UNKNOWN = 4;
+}
+
+message ComponentHealth {
+  string name = 1;
+  ServingStatus status = 2;
+  string message = 3;
+  google.protobuf.Duration latency = 4;
+  map<string, string> details = 5;
+}
+
+message WatchRequest {
+  // Services to watch (empty = all)
+  repeated string services = 1;
+  
+  // Minimum interval between updates
+  google.protobuf.Duration interval = 2;
+}
+
+message ListServicesRequest {}
+
+message ListServicesResponse {
+  repeated ServiceInfo services = 1;
+}
+
+message ServiceInfo {
+  string name = 1;
+  string version = 2;
+  ServingStatus status = 3;
+  google.protobuf.Timestamp last_check = 4;
+  google.protobuf.Duration uptime = 5;
+}
+
+message GetMetricsRequest {
+  string service = 1;
+  google.protobuf.Duration window = 2;  // Time window for metrics
+}
+
+message GetMetricsResponse {
+  string service = 1;
+  ServiceMetrics metrics = 2;
+}
+
+message ServiceMetrics {
+  // Request metrics
+  int64 total_requests = 1;
+  int64 successful_requests = 2;
+  int64 failed_requests = 3;
+  
+  // Latency percentiles in milliseconds
+  LatencyMetrics latency = 4;
+  
+  // Throughput
+  double requests_per_second = 5;
+  
+  // Resource usage
+  ResourceMetrics resources = 6;
+}
+
+message LatencyMetrics {
+  double p50 = 1;
+  double p90 = 2;
+  double p95 = 3;
+  double p99 = 4;
+  double avg = 5;
+}
+
+message ResourceMetrics {
+  double cpu_percent = 1;
+  int64 memory_bytes = 2;
+  int64 goroutines = 3;
+  int64 open_connections = 4;
+}
+
+// ProviderHealthService monitors LLM provider health
+service ProviderHealthService {
+  // CheckProvider checks a specific LLM provider
+  rpc CheckProvider(CheckProviderRequest) returns (CheckProviderResponse);
+  
+  // WatchProviders streams provider health updates
+  rpc WatchProviders(WatchProvidersRequest) returns (stream ProviderHealthEvent);
+  
+  // ListProviders returns all monitored providers
+  rpc ListProviders(ListProvidersRequest) returns (ListProvidersResponse);
+}
+
+message CheckProviderRequest {
+  string provider = 1;  // e.g., "openai", "anthropic", "google"
+  bool include_models = 2;
+}
+
+message CheckProviderResponse {
+  string provider = 1;
+  ProviderStatus status = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  repeated ModelHealth models = 4;
+  string message = 5;
+  
+  // Rate limit info
+  RateLimitInfo rate_limit = 6;
+}
+
+enum ProviderStatus {
+  PROVIDER_STATUS_UNSPECIFIED = 0;
+  PROVIDER_STATUS_HEALTHY = 1;
+  PROVIDER_STATUS_DEGRADED = 2;
+  PROVIDER_STATUS_DOWN = 3;
+  PROVIDER_STATUS_RATE_LIMITED = 4;
+  PROVIDER_STATUS_UNKNOWN = 5;
+}
+
+message ModelHealth {
+  string model_id = 1;
+  bool available = 2;
+  double avg_latency_ms = 3;
+  double error_rate = 4;
+  string status_message = 5;
+}
+
+message RateLimitInfo {
+  int32 remaining = 1;
+  int32 limit = 2;
+  google.protobuf.Timestamp reset_at = 3;
+}
+
+message WatchProvidersRequest {
+  repeated string providers = 1;
+  google.protobuf.Duration interval = 2;
+}
+
+message ProviderHealthEvent {
+  string provider = 1;
+  ProviderStatus previous_status = 2;
+  ProviderStatus current_status = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  string reason = 5;
+}
+
+message ListProvidersRequest {}
+
+message ListProvidersResponse {
+  repeated ProviderInfo providers = 1;
+}
+
+message ProviderInfo {
+  string name = 1;
+  ProviderStatus status = 2;
+  int32 model_count = 3;
+  int32 available_models = 4;
+  google.protobuf.Timestamp last_check = 5;
+}
+

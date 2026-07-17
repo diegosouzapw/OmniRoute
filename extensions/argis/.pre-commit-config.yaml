@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: quality-checks
+        name: quality-checks
+        entry: task ci
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: pre-push-checks
+        name: pre-push-checks
+        entry: task security
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

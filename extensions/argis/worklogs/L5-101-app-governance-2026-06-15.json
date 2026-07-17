@@ -1,0 +1,26 @@
+{
+  "task_id": "L5-101",
+  "date": "2026-06-15",
+  "repo": "KooshaPari/phenotype-monorepo",
+  "category": "L5-Governance",
+  "layer": "L5",
+  "title": "Agent-effort governance: device-fit gate, app-level repo triage, substrate placement (ADR-023)",
+  "status": "complete",
+  "author": "KooshaPari",
+  "device": "macbook",
+  "device_rationale": "Governance doc work — no cargo, no docker, no ios-sim, no Unity. Fits Rule 1.",
+  "schema_version": "v2.1",
+  "adr_anchors": [
+    "docs/adr/2026-06-15/ADR-023-agent-effort-governance.md"
+  ],
+  "files_written": [
+    "docs/adr/2026-06-15/ADR-023-agent-effort-governance.md",
+    "worklogs/L5-101-app-governance-2026-06-15.json",
+    "findings/2026-06-15-L5-101-app-governance.md"
+  ],
+  "verification": [
+    "ADR-023 file on disk and parses",
+    "Worklog v2.1 validates",
+    "SSOT.md references ADR-023"
+  ]
+}

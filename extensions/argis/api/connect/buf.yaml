@@ -1,0 +1,16 @@
+# buf.yaml - Buf configuration for proto management
+version: v2
+modules:
+  - path: proto
+    name: buf.build/kooshapari/bifrost
+lint:
+  use:
+    - DEFAULT
+  except:
+    - PACKAGE_VERSION_SUFFIX
+breaking:
+  use:
+    - FILE
+deps:
+  - buf.build/googleapis/googleapis
+

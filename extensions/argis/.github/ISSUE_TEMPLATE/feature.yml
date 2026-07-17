@@ -1,0 +1,21 @@
+name: Feature Request
+description: Suggest a new feature
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Description
+        Describe the feature you'd like.
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      placeholder: Why is this needed
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      placeholder: How should it work

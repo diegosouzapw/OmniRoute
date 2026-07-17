@@ -1,0 +1,58 @@
+# Dependabot configuration for pheno-otel
+#
+# Per ADR-042 (security audit cadence), weekly dependency updates keep
+# the advisory surface small and the bump diff easy to review.
+
+version: 2
+
+# ─── Cargo ───────────────────────────────────────────────────────────────────
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "cargo"
+    groups:
+      opentelemetry:
+        patterns:
+          - "opentelemetry*"
+      tracing:
+        patterns:
+          - "tracing*"
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    ignore:
+      # Ignore major version bumps (require manual review)
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+# ─── GitHub Actions ─────────────────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      actions:
+        patterns:
+          - "*"

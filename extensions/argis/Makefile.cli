@@ -1,0 +1,84 @@
+.PHONY: cli-build cli-install cli-test cli-clean cli-release cli-help
+
+# Build variables
+CLI_NAME := bifrost
+CLI_VERSION := 1.0.0
+CLI_MAIN := ./cmd/bifrost
+BUILD_DIR := ./bin
+DIST_DIR := ./dist
+
+# Platform-specific builds
+PLATFORMS := darwin/amd64 darwin/arm64 linux/amd64 linux/arm64 windows/amd64
+
+cli-help:
+	@echo "Bifrost CLI Build Commands"
+	@echo "=========================="
+	@echo "  make cli-build       - Build CLI for current platform"
+	@echo "  make cli-install     - Install CLI globally"
+	@echo "  make cli-test        - Run CLI tests"
+	@echo "  make cli-clean       - Clean build artifacts"
+	@echo "  make cli-release     - Build for all platforms"
+	@echo "  make cli-help        - Show this help message"
+
+cli-build:
+	@echo "Building Bifrost CLI..."
+	@mkdir -p $(BUILD_DIR)
+	@go build -o $(BUILD_DIR)/$(CLI_NAME) \
+		-ldflags="-X main.Version=$(CLI_VERSION)" \
+		$(CLI_MAIN)
+	@echo "✓ Built: $(BUILD_DIR)/$(CLI_NAME)"
+
+cli-install: cli-build
+	@echo "Installing Bifrost CLI..."
+	@go install -ldflags="-X main.Version=$(CLI_VERSION)" $(CLI_MAIN)
+	@echo "✓ Installed: bifrost"
+	@echo "  Run 'bifrost --help' to get started"
+
+cli-test:
+	@echo "Testing Bifrost CLI..."
+	@go test -v ./cmd/bifrost/cli/...
+	@echo "✓ Tests passed"
+
+cli-clean:
+	@echo "Cleaning build artifacts..."
+	@rm -rf $(BUILD_DIR) $(DIST_DIR)
+	@echo "✓ Cleaned"
+
+cli-release:
+	@echo "Building Bifrost CLI for all platforms..."
+	@mkdir -p $(DIST_DIR)
+	@for platform in $(PLATFORMS); do \
+		GOOS=$$(echo $$platform | cut -d/ -f1); \
+		GOARCH=$$(echo $$platform | cut -d/ -f2); \
+		OUTPUT=$(DIST_DIR)/$(CLI_NAME)-$(CLI_VERSION)-$$GOOS-$$GOARCH; \
+		if [ "$$GOOS" = "windows" ]; then OUTPUT=$${OUTPUT}.exe; fi; \
+		echo "  Building $$GOOS/$$GOARCH..."; \
+		GOOS=$$GOOS GOARCH=$$GOARCH go build -o $$OUTPUT \
+			-ldflags="-X main.Version=$(CLI_VERSION)" $(CLI_MAIN); \
+	done
+	@echo "✓ Built all platforms in $(DIST_DIR)"
+
+cli-run:
+	@$(BUILD_DIR)/$(CLI_NAME) $(ARGS)
+
+cli-version:
+	@$(BUILD_DIR)/$(CLI_NAME) version
+
+cli-init:
+	@$(BUILD_DIR)/$(CLI_NAME) init
+
+cli-server:
+	@$(BUILD_DIR)/$(CLI_NAME) server $(ARGS)
+
+cli-deploy:
+	@$(BUILD_DIR)/$(CLI_NAME) deploy $(ARGS)
+
+cli-config:
+	@$(BUILD_DIR)/$(CLI_NAME) config $(ARGS)
+
+cli-plugin:
+	@$(BUILD_DIR)/$(CLI_NAME) plugin $(ARGS)
+
+cli-dataset:
+	@$(BUILD_DIR)/$(CLI_NAME) dataset $(ARGS)
+

@@ -1,0 +1,51 @@
+name: Lint
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+# Cancel any in-flight run for the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only token by default; jobs that need more override per-step.
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@00cae500b08db9312d46a1b1ea78f3bcdbabe3f0  # 2.0.0
+        env:
+          SHELLCHECK_OPTS: -e SC1091,SC2155
+        with:
+          scandir: ./scripts
+
+  yamllint:
+    name: YAML lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Run yamllint
+        uses: ibiqlik/action-yamllint@2576378a8e339169678c9933640c1e12829a6b73  # v3.1
+        with:
+          config_data: |
+            extends: relaxed
+            rules:
+              line-length: disable
+              trailing-spaces: enable
+              brackets: {min-spaces-inside: 0, max-spaces-inside: 1}

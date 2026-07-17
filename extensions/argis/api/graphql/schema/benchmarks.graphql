@@ -1,0 +1,75 @@
+# Benchmark and evaluation data
+
+type BenchmarkResult {
+  id: ID!
+  modelId: ID!
+  model: Model!
+  metrics: [Metric!]!
+  createdAt: Time!
+  completedAt: Time
+}
+
+type Metric {
+  name: String!
+  value: Float!
+  unit: String
+  metadata: Map
+}
+
+type BenchmarkRun {
+  id: ID!
+  benchmarkId: ID!
+  status: BenchmarkStatus!
+  results: [BenchmarkResult!]!
+  startedAt: Time!
+  completedAt: Time
+  error: String
+}
+
+enum BenchmarkStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+input BenchmarkFilter {
+  modelIds: [ID!]
+  metrics: [String!]
+  dateRange: DateRange
+  status: BenchmarkStatus
+}
+
+input DateRange {
+  start: Time!
+  end: Time!
+}
+
+extend type Query {
+  benchmarks(filter: BenchmarkFilter): [BenchmarkResult!]!
+  benchmark(id: ID!): BenchmarkResult
+  benchmarkRuns(benchmarkId: ID!): [BenchmarkRun!]!
+}
+
+extend type Subscription {
+  benchmarkProgress(benchmarkId: ID!): BenchmarkRun!
+}
+
+# Scalar for arbitrary key-value data
+
+# Benchmark type (referenced in queries)
+type Benchmark {
+  id: ID!
+  name: String!
+  status: BenchmarkStatus!
+  results: [BenchmarkResult!]!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+# BenchmarkInput type
+input BenchmarkInput {
+  name: String!
+  config: Map
+}

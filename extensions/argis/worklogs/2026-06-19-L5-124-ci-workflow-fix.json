@@ -1,0 +1,27 @@
+{
+  "id": "L5-124",
+  "date": "2026-06-19",
+  "type": "resume",
+  "summary": "Repaired corrupted CI workflow SHA pins and Go template syntax",
+  "files_changed": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/scorecard.yml"
+  ],
+  "commit": "e0d73d6600",
+  "branch": "main",
+  "repository": "KooshaPari/phenotype-apps",
+  "findings": {
+    "root_cause": "SHA-pin tool appended API error responses to action version fields and corrupted Go template expressions",
+    "corruption_pattern": "actions/checkout@SHA@{\"message\":\"Not Found\"}... and $123var125 instead of ${{ var }}",
+    "files_fixed": 3,
+    "total_corruptions_removed": 44,
+    "verification": "0 corruptions remain across all 3 fixed files"
+  },
+  "next_actions": [
+    "Remove stale dependabot configs referencing ${{ matrix.go-version }} in deny.yml and other workflow files across the fleet",
+    "Verify CI run on next push to phenotype-apps main",
+    "Apply same fix pattern to other repos with corrupted workflows"
+  ],
+  "status": "complete"
+}

@@ -1,0 +1,43 @@
+name: Audit
+
+on:
+  schedule:
+    # Weekly Monday 09:00 PDT (16:00 UTC) per ADR-041
+    - cron: "0 16 * * 1"
+  workflow_dispatch:
+
+jobs:
+  cargo-audit:
+    name: cargo audit (RUSTSEC)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@e3f78fd1f6c2a43286e5ef3a13eea2e72ed23e1f
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@779680da715d629b86a86f9a2e2c439d7e8a065a
+        with:
+          workspaces: |
+            .
+      - uses: taiki-e/install-action@c4a6e6e4d23a26c70fa63efde26efe43b3a18497
+        with:
+          tool: cargo-audit
+      - run: cargo audit
+
+  71-pillar:
+    name: 71-pillar refresh (ADR-041)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Run 71-pillar scoring
+        run: |
+          echo "71-pillar refresh placeholder (ADR-041 cadence)."
+          echo "Scorecard tool: pheno-drift-detector / pheno-framework-lint."
+          echo "Run on: $(date -u)"
+          # TODO(orch-v11-100): wire pheno-drift-detector CLI
+      - name: Upload scorecard delta
+        uses: actions/upload-artifact@65c4c4a301dbfc281a38b4066f460083d4cc41ad # v4
+        with:
+          name: 71-pillar-scorecard
+          path: findings/71-pillar-*.md
+          if-no-files-found: warn

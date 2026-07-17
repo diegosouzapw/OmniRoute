@@ -1,0 +1,81 @@
+# Git ignore for pheno-otel (Rust + IDEs + OS)
+#
+# Per ADR-027 Tier 3 policy, this is a NEVER-LFS file. Patterns are kept
+# minimal and explicit; LFS opt-ins go in .gitattributes, not here.
+
+# ─── Rust / Cargo ──────────────────────────────────────────────────────────
+/target
+**/*.rs.bk
+Cargo.lock.bak
+
+# Cargo home (per ADR-023, monorepo may use shared CARGO_HOME)
+.cargo/
+Cargo.lock.tera
+
+# ─── Coverage / test artifacts ──────────────────────────────────────────────
+/coverage/
+**/*.gcno
+**/*.gcda
+**/*.gcov
+*.lcov
+.coverage
+htmlcov/
+
+# ─── IDEs / editors ─────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# vim
+*.vim
+
+# emacs
+\#*\#
+.\#*
+
+# IntelliJ
+*.iml
+*.iws
+*.ipr
+
+# ─── OS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ─── Secrets / local env (Tier 3: never-track) ──────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+secrets/
+.local/
+
+# ─── Build / generated ──────────────────────────────────────────────────────
+/dist/
+/build/
+*.o
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+
+# ─── Dependency directories (vendored, etc.) ───────────────────────────────
+vendor/
+node_modules/
+
+# ─── Logs ───────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Cache ──────────────────────────────────────────────────────────────────
+.cache/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/

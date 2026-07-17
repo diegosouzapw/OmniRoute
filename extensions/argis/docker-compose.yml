@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  promptadapter:
+    build:
+      context: ./services/promptadapter
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ${HOME}/.claude:/root/.claude:ro
+      - ${HOME}/.cursor:/root/.cursor:ro
+      - ${HOME}/.terminal-bench:/root/.terminal-bench:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  researchintel:
+    build:
+      context: ./services/researchintel
+      dockerfile: Dockerfile
+    ports:
+      - "8091:8091"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - PROMPTADAPTER_URL=http://promptadapter:8090
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      promptadapter:
+        condition: service_healthy
+    volumes:
+      - research_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  redis_data:
+  research_data:
+
+networks:
+  default:
+    name: bifrost-network
+

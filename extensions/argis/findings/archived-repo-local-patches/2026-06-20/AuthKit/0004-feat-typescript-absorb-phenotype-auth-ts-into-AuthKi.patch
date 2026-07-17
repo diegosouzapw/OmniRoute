@@ -1,0 +1,2272 @@
+From f3c2a3813e0695ed4c2b96897ba21525fb060a7b Mon Sep 17 00:00:00 2001
+From: KooshaPari <42529354+KooshaPari@users.noreply.github.com>
+Date: Thu, 18 Jun 2026 02:02:41 -0700
+Subject: [PATCH 4/4] feat(typescript): absorb @phenotype/auth-ts into AuthKit
+ (ADR-022) (#120)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Source: KooshaPari/phenotype-auth-ts (ARCHIVED.md target = libs/auth-ts)
+Target: KooshaPari/AuthKit/typescript/packages/auth-ts/ (existing npm
+workspace, workspaces: ["packages/*"] — auth-ts becomes the second package
+alongside the polyglot SDK).
+
+Integrated content (805 LOC across 12 .ts files + 3 test files):
+  src/index.ts              barrel re-export
+  src/domain/                Token, Claims, Errors (DDD bounded context)
+  src/ports/                 TokenProvider, TokenStore, TokenVerifier (hexagonal)
+  src/adapters/              MemoryTokenStore, PlaceholderJwtVerifier
+  tests/core.test.ts         169 LOC
+  tests/token.contract.test.ts 278 LOC (CDD contract tests)
+  tests/phenotype-ts-utils.test.ts 82 LOC
+  docs/ + adr/               full VitePress doc site + ADR-001 architecture
+
+Quality: hexagonal architecture (ports & adapters), DDD-style domain
+models, PoLA-compliant error messages, vitest BDD/CDD test suite.
+No code modifications needed — package is well-formed and self-contained.
+
+Kilo audit #144 verdict: PRESERVE → ABSORBED. Original repo will be
+archived after this PR merges (gh token lacks delete_repo scope; the
+4 manual `gh repo delete` commands are documented in the notes file).
+
+Refs: ADR-022 (config consolidation), ADR-023 (substrate placement),
+findings/2026-06-17-L5-104-dmouse92-to-kooshapari.md (migration matrix).
+
+Co-authored-by: KooshaPari <kooshapari@local>
+---
+ typescript/packages/auth-ts/.editorconfig     |  15 +
+ typescript/packages/auth-ts/.gitignore        |  44 +++
+ typescript/packages/auth-ts/.nvmrc            |   1 +
+ .../packages/auth-ts/.pre-commit-config.yaml  |  17 ++
+ typescript/packages/auth-ts/ADR.md            |  51 ++++
+ typescript/packages/auth-ts/CHANGELOG.md      |  75 +++++
+ typescript/packages/auth-ts/CITATION.cff      |  10 +
+ typescript/packages/auth-ts/CODEOWNERS        |   2 +
+ .../auth-ts/FUNCTIONAL_REQUIREMENTS.md        |  42 +++
+ typescript/packages/auth-ts/FUNDING.yml       |   2 +
+ typescript/packages/auth-ts/LICENSE           |  21 ++
+ typescript/packages/auth-ts/PRD.md            |  43 +++
+ typescript/packages/auth-ts/README.md         | 233 +++++++++++++++
+ .../auth-ts/adr/ADR-001-architecture.md       |  32 ++
+ .../auth-ts/docs/.vitepress/config.mts        |  21 ++
+ .../auth-ts/docs/.vitepress/theme/custom.css  |   6 +
+ .../auth-ts/docs/.vitepress/theme/index.ts    |   6 +
+ .../auth-ts/docs/.vitepress/theme/style.css   |  37 +++
+ .../auth-ts/docs/FUNCTIONAL_REQUIREMENTS.md   |  63 ++++
+ .../packages/auth-ts/docs/getting-started.md  |  53 ++++
+ typescript/packages/auth-ts/docs/index.md     |  22 ++
+ .../auth-ts/docs/journeys/manifests/README.md |   1 +
+ .../docs/operations/iconography/SPEC.md       |   6 +
+ .../docs/operations/journey-traceability.md   | 121 ++++++++
+ .../docs/reference/fr_coverage_matrix.md      |  13 +
+ typescript/packages/auth-ts/package.json      |  32 ++
+ typescript/packages/auth-ts/renovate.json5    |   3 +
+ .../packages/auth-ts/sonar-project.properties |   2 +
+ .../auth-ts/src/adapters/jwt-provider.ts      |  41 +++
+ .../src/adapters/memory-token-store.ts        |  39 +++
+ .../packages/auth-ts/src/domain/claims.ts     |  12 +
+ .../packages/auth-ts/src/domain/errors.ts     |  49 +++
+ .../packages/auth-ts/src/domain/token.ts      |  65 ++++
+ typescript/packages/auth-ts/src/index.ts      |  17 ++
+ .../packages/auth-ts/src/ports/index.ts       |  36 +++
+ .../packages/auth-ts/tests/core.test.ts       | 169 +++++++++++
+ .../auth-ts/tests/phenotype-ts-utils.test.ts  |  82 ++++++
+ .../auth-ts/tests/token.contract.test.ts      | 278 ++++++++++++++++++
+ .../packages/auth-ts/tools/Export-Brand.ps1   |  99 +++++++
+ typescript/packages/auth-ts/tsconfig.json     |  24 ++
+ typescript/packages/auth-ts/worklog.md        |  16 +
+ 41 files changed, 1901 insertions(+)
+ create mode 100644 typescript/packages/auth-ts/.editorconfig
+ create mode 100644 typescript/packages/auth-ts/.gitignore
+ create mode 100644 typescript/packages/auth-ts/.nvmrc
+ create mode 100644 typescript/packages/auth-ts/.pre-commit-config.yaml
+ create mode 100644 typescript/packages/auth-ts/ADR.md
+ create mode 100644 typescript/packages/auth-ts/CHANGELOG.md
+ create mode 100644 typescript/packages/auth-ts/CITATION.cff
+ create mode 100644 typescript/packages/auth-ts/CODEOWNERS
+ create mode 100644 typescript/packages/auth-ts/FUNCTIONAL_REQUIREMENTS.md
+ create mode 100644 typescript/packages/auth-ts/FUNDING.yml
+ create mode 100644 typescript/packages/auth-ts/LICENSE
+ create mode 100644 typescript/packages/auth-ts/PRD.md
+ create mode 100644 typescript/packages/auth-ts/README.md
+ create mode 100644 typescript/packages/auth-ts/adr/ADR-001-architecture.md
+ create mode 100644 typescript/packages/auth-ts/docs/.vitepress/config.mts
+ create mode 100644 typescript/packages/auth-ts/docs/.vitepress/theme/custom.css
+ create mode 100644 typescript/packages/auth-ts/docs/.vitepress/theme/index.ts
+ create mode 100644 typescript/packages/auth-ts/docs/.vitepress/theme/style.css
+ create mode 100644 typescript/packages/auth-ts/docs/FUNCTIONAL_REQUIREMENTS.md
+ create mode 100644 typescript/packages/auth-ts/docs/getting-started.md
+ create mode 100644 typescript/packages/auth-ts/docs/index.md
+ create mode 100644 typescript/packages/auth-ts/docs/journeys/manifests/README.md
+ create mode 100644 typescript/packages/auth-ts/docs/operations/iconography/SPEC.md
+ create mode 100644 typescript/packages/auth-ts/docs/operations/journey-traceability.md
+ create mode 100644 typescript/packages/auth-ts/docs/reference/fr_coverage_matrix.md
+ create mode 100644 typescript/packages/auth-ts/package.json
+ create mode 100644 typescript/packages/auth-ts/renovate.json5
+ create mode 100644 typescript/packages/auth-ts/sonar-project.properties
+ create mode 100644 typescript/packages/auth-ts/src/adapters/jwt-provider.ts
+ create mode 100644 typescript/packages/auth-ts/src/adapters/memory-token-store.ts
+ create mode 100644 typescript/packages/auth-ts/src/domain/claims.ts
+ create mode 100644 typescript/packages/auth-ts/src/domain/errors.ts
+ create mode 100644 typescript/packages/auth-ts/src/domain/token.ts
+ create mode 100644 typescript/packages/auth-ts/src/index.ts
+ create mode 100644 typescript/packages/auth-ts/src/ports/index.ts
+ create mode 100644 typescript/packages/auth-ts/tests/core.test.ts
+ create mode 100644 typescript/packages/auth-ts/tests/phenotype-ts-utils.test.ts
+ create mode 100644 typescript/packages/auth-ts/tests/token.contract.test.ts
+ create mode 100644 typescript/packages/auth-ts/tools/Export-Brand.ps1
+ create mode 100644 typescript/packages/auth-ts/tsconfig.json
+ create mode 100644 typescript/packages/auth-ts/worklog.md
+
+diff --git a/typescript/packages/auth-ts/.editorconfig b/typescript/packages/auth-ts/.editorconfig
+new file mode 100644
+index 0000000..4f7f9d6
+--- /dev/null
++++ b/typescript/packages/auth-ts/.editorconfig
+@@ -0,0 +1,15 @@
++# EditorConfig is awesome: https://EditorConfig.org
++root = true
++
++[*]
++charset = utf-8
++end_of_line = lf
++insert_final_newline = true
++trim_trailing_whitespace = true
++
++[*.{md,json,yaml,yml}]
++trim_trailing_whitespace = false
++
++[*.{js,ts,json}]
++indent_style = space
++indent_size = 2
+diff --git a/typescript/packages/auth-ts/.gitignore b/typescript/packages/auth-ts/.gitignore
+new file mode 100644
+index 0000000..bea70b7
+--- /dev/null
++++ b/typescript/packages/auth-ts/.gitignore
+@@ -0,0 +1,44 @@
++# Phenotype-org standard .gitignore — Node
++# Source: https://github.com/KooshaPari/phenotype-tooling/blob/main/templates/gitignore-node
++
++node_modules/
++dist/
++*.tsbuildinfo
++
++# ===== Standard auto-generated hygiene ignores (do not edit manually) =====
++.DS_Store
++.env
++.env.*
++!.env.example
++target/
++build/
++coverage/
++.pytest_cache/
++__pycache__/
++.mypy_cache/
++.ruff_cache/
++.venv/
++venv/
++# ===== End standard hygiene ignores =====
++
++# --- adopted from phenotype-tooling/templates/gitignore-node ---
++.cache/
++.eslintcache
++.idea/
++.npm/
++.parcel-cache/
++.pnp
++.pnp.js
++.vscode/
++*.log
++*.swp
++/build/
++/coverage/
++/dist/
++/out/
++lerna-debug.log*
++npm-debug.log*
++pnpm-debug.log*
++Thumbs.db
++yarn-debug.log*
++yarn-error.log*
+diff --git a/typescript/packages/auth-ts/.nvmrc b/typescript/packages/auth-ts/.nvmrc
+new file mode 100644
+index 0000000..209e3ef
+--- /dev/null
++++ b/typescript/packages/auth-ts/.nvmrc
+@@ -0,0 +1 @@
++20
+diff --git a/typescript/packages/auth-ts/.pre-commit-config.yaml b/typescript/packages/auth-ts/.pre-commit-config.yaml
+new file mode 100644
+index 0000000..50467a0
+--- /dev/null
++++ b/typescript/packages/auth-ts/.pre-commit-config.yaml
+@@ -0,0 +1,17 @@
++repos:
++  - repo: https://github.com/pre-commit/pre-commit-hooks
++    rev: v5.0.0
++    hooks:
++      - id: trailing-whitespace
++      - id: end-of-file-fixer
++      - id: check-yaml
++      - id: check-toml
++      - id: check-merge-conflict
++      - id: check-added-large-files
++        args: ["--maxkb=500"]
++  - repo: https://github.com/compilerla/conventional-pre-commit
++    rev: v4.0.0
++    hooks:
++      - id: conventional-pre-commit
++        stages: [commit-msg]
++        args: [feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert]
+diff --git a/typescript/packages/auth-ts/ADR.md b/typescript/packages/auth-ts/ADR.md
+new file mode 100644
+index 0000000..c70a036
+--- /dev/null
++++ b/typescript/packages/auth-ts/ADR.md
+@@ -0,0 +1,51 @@
++# Architecture Decision Records — phenotype-auth-ts
++
++## ADR-001 — jose as JWT Implementation
++
++**Status:** Accepted  
++**Date:** 2026-03-27
++
++### Context
++Several Node.js JWT libraries exist (jsonwebtoken, jose, fast-jwt). `jose` supports modern algorithms (EdDSA, ES256), JWKS, and runs in both Node.js and edge runtimes.
++
++### Decision
++Use `jose` (v5+) as the JWT implementation backend in the JwtTokenProvider and JwtTokenVerifier adapters.
++
++### Consequences
++- Supports RS256, ES256, EdDSA, and symmetric algorithms.
++- Works in Cloudflare Workers and other edge environments.
++- `jsonwebtoken` is NOT used; migration from it is straightforward.
++
++---
++
++## ADR-002 — Discriminated Union for AuthError
++
++**Status:** Accepted  
++**Date:** 2026-03-27
++
++### Context
++Auth errors have distinct handling: expired tokens need refresh, revoked tokens need re-login, invalid tokens need 400 responses. A generic `Error` loses this distinction.
++
++### Decision
++Define `AuthError` as a TypeScript discriminated union with variants: `TokenExpired`, `TokenRevoked`, `TokenInvalid`, `TokenNotFound`, `Unauthorized`.
++
++### Consequences
++- Callers use exhaustive switch/match on error variants.
++- TypeScript narrows the type in each branch.
++
++---
++
++## ADR-003 — Hexagonal Ports for Adapter Swappability
++
++**Status:** Accepted  
++**Date:** 2026-03-27
++
++### Context
++Production uses JWT + Redis token store. Tests use in-memory store. The domain should not know which is active.
++
++### Decision
++`TokenProvider`, `TokenStore`, and `TokenVerifier` are TypeScript interfaces (ports). All domain services receive them via dependency injection.
++
++### Consequences
++- Swapping to an opaque-token provider requires only a new adapter.
++- No domain code imports `jose`, `redis`, or any infrastructure library.
+diff --git a/typescript/packages/auth-ts/CHANGELOG.md b/typescript/packages/auth-ts/CHANGELOG.md
+new file mode 100644
+index 0000000..da00dc2
+--- /dev/null
++++ b/typescript/packages/auth-ts/CHANGELOG.md
+@@ -0,0 +1,75 @@
++# Changelog
++
++All notable changes to this project will be documented in this file.
++
++## 📚 Documentation
++- Docs: add real spec docs (PRD, FR, ADR) (#5)
++
++* docs: add PRD.md
++
++* docs: add FUNCTIONAL_REQUIREMENTS.md
++
++* docs: add ADR.md (`3e195bc`)
++- Docs: add VitePress docsite with Mermaid support (#4)
++
++* docs: add VitePress docsite with Mermaid support
++
++* chore: add bun lockfile for docs dependencies
++
++---------
++
++Co-authored-by: Claude Code <claude@anthropic.com> (`8de1ff9`)
++- Docs: add real ADR.md and PRD.md from TypeScript source analysis (#3)
++
++ADR: 6 decisions covering hexagonal architecture, ESM modules, OAuth2
++error hierarchy, Vitest, TTL expiry, and ISP port segregation.
++PRD: 5 epics covering domain model, error types, port interfaces,
++reference adapters, and package distribution.
++
++Co-authored-by: Claude Code <claude@anthropic.com> (`b8fdad3`)
++- Docs: add CLAUDE.md with development guidelines (`5183d71`)
++## ✨ Features
++- Feat: finalize phenotype-auth-ts auth ports and adapters (`65c334d`)
++- Feat: comprehensive xDD test suite with BDD/TDD/contract tests
++
++xDD Methodologies Applied:
++- TDD: Red-green-refactor test cycle
++- BDD: Given-When-Then scenario format
++- CDD: Contract tests for port interfaces
++- DDD: Domain models with error handling
++- Property-Based: Invariant tests
++
++Tests:
++- TokenProvider contract tests
++- TokenStore contract tests
++- TokenVerifier contract tests
++- Authentication flow BDD scenarios
++- Property-based claim validation
++
++Structure:
++- src/domain/ - Domain models and errors
++- src/ports/ - Port interfaces
++- src/adapters/ - Adapter implementations
++- tests/ - Contract and BDD tests (`5a1f91c`)
++## 🔨 Other
++- Chore(ci): adopt phenotype-tooling quality-gate + fr-coverage (`7ea90c3`)
++- Chore: add Taskfile.yml with standard tasks (#2)
++
++Co-authored-by: Claude Code <claude@anthropic.com> (`8e4be3d`)
++- Chore: add ARCHIVED.md marker (`51ff73c`)
++- Chore: add governance files (`dbdc512`)
++- Chore: add architecture decision record
++
++ADR-001: TypeScript auth patterns architecture
++
++xDD: TDD, BDD, DDD, CDD, SOLID (`dc0f7d7`)
++- Initial commit: phenotype-auth-ts with OAuth2/OIDC patterns
++
++xDD Methodologies:
++- TDD: Jest unit tests
++- BDD: Given-When-Then scenarios
++- DDD: Auth domain models
++- CDD: Token verification contracts
++
++ADR:
++- adr/ADR-001-architecture.md (`67c2db2`)
+\ No newline at end of file
+diff --git a/typescript/packages/auth-ts/CITATION.cff b/typescript/packages/auth-ts/CITATION.cff
+new file mode 100644
+index 0000000..5482b23
+--- /dev/null
++++ b/typescript/packages/auth-ts/CITATION.cff
+@@ -0,0 +1,10 @@
++cff-version: 1.2.0
++message: "If you use this software, please cite it as below."
++title: "phenotype-auth-ts"
++authors:
++  - family-names: "Pari"
++    given-names: "Koosha"
++    affiliation: "Phenotype"
++repository-code: "https://github.com/KooshaPari/phenotype-auth-ts"
++url: "https://phenotype.space"
++license: "MIT OR Apache-2.0"
+diff --git a/typescript/packages/auth-ts/CODEOWNERS b/typescript/packages/auth-ts/CODEOWNERS
+new file mode 100644
+index 0000000..009b678
+--- /dev/null
++++ b/typescript/packages/auth-ts/CODEOWNERS
+@@ -0,0 +1,2 @@
++# Catch-all
++*       @KooshaPari
+diff --git a/typescript/packages/auth-ts/FUNCTIONAL_REQUIREMENTS.md b/typescript/packages/auth-ts/FUNCTIONAL_REQUIREMENTS.md
+new file mode 100644
+index 0000000..4a8d16f
+--- /dev/null
++++ b/typescript/packages/auth-ts/FUNCTIONAL_REQUIREMENTS.md
+@@ -0,0 +1,42 @@
++# Functional Requirements — phenotype-auth-ts
++
++## FR-DOMAIN — Domain Model
++
++| ID | Requirement |
++|----|-------------|
++| FR-DOMAIN-001 | The system SHALL define AccessToken, RefreshToken, and TokenClaims types. |
++| FR-DOMAIN-002 | The system SHALL define an AuthError discriminated union covering all error cases. |
++| FR-DOMAIN-003 | Token expiry SHALL be a first-class value object, not a raw number. |
++| FR-DOMAIN-004 | The system SHALL support token revocation as a domain operation. |
++
++## FR-PORTS — Ports
++
++| ID | Requirement |
++|----|-------------|
++| FR-PORTS-001 | The system SHALL define a TokenProvider port with issue() and refresh() methods. |
++| FR-PORTS-002 | The system SHALL define a TokenStore port with save(), find(), and revoke() methods. |
++| FR-PORTS-003 | The system SHALL define a TokenVerifier port with verify() returning TokenClaims. |
++
++## FR-ADAPT — Adapters
++
++| ID | Requirement |
++|----|-------------|
++| FR-ADAPT-001 | The system SHALL provide a MemoryTokenStore adapter for development and testing. |
++| FR-ADAPT-002 | The system SHALL provide a JwtTokenProvider adapter using the jose library. |
++| FR-ADAPT-003 | The system SHALL provide a JwtTokenVerifier adapter that validates signature and expiry. |
++
++## FR-FLOW — Auth Flows
++
++| ID | Requirement |
++|----|-------------|
++| FR-FLOW-001 | The system SHALL support the OAuth2 authorization code flow with PKCE. |
++| FR-FLOW-002 | The system SHALL support the client credentials flow. |
++| FR-FLOW-003 | The system SHALL support token refresh with rotation. |
++
++## FR-MW — Middleware
++
++| ID | Requirement |
++|----|-------------|
++| FR-MW-001 | The system SHALL provide Express/Fastify middleware for bearer token extraction and verification. |
++| FR-MW-002 | The middleware SHALL inject typed user claims into the request context on success. |
++| FR-MW-003 | The middleware SHALL return 401 with a structured error body on verification failure. |
+diff --git a/typescript/packages/auth-ts/FUNDING.yml b/typescript/packages/auth-ts/FUNDING.yml
+new file mode 100644
+index 0000000..b070f11
+--- /dev/null
++++ b/typescript/packages/auth-ts/FUNDING.yml
+@@ -0,0 +1,2 @@
++# Funding configuration
++github: KooshaPari
+diff --git a/typescript/packages/auth-ts/LICENSE b/typescript/packages/auth-ts/LICENSE
+new file mode 100644
+index 0000000..86e8df2
+--- /dev/null
++++ b/typescript/packages/auth-ts/LICENSE
+@@ -0,0 +1,21 @@
++MIT License
++
++Copyright (c) 2024 Koosha Pari
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
+diff --git a/typescript/packages/auth-ts/PRD.md b/typescript/packages/auth-ts/PRD.md
+new file mode 100644
+index 0000000..077d105
+--- /dev/null
++++ b/typescript/packages/auth-ts/PRD.md
+@@ -0,0 +1,43 @@
++# PRD — phenotype-auth-ts
++
++## Overview
++
++`phenotype-auth-ts` provides TypeScript OAuth2/OIDC authentication patterns using hexagonal architecture. It defines domain types, ports (`TokenProvider`, `TokenStore`, `TokenVerifier`), and swappable adapters including an in-memory token store and a JWT provider.
++
++## Goals
++
++- Supply a reusable, framework-agnostic auth layer for TypeScript Phenotype services.
++- Enable adapter swap between JWT, opaque tokens, and session-based auth without domain changes.
++- Enforce token validation, expiry, and revocation as first-class domain concerns.
++
++## Epics
++
++### E1 — Token Domain Model
++- E1.1 Define `AccessToken`, `RefreshToken`, `TokenClaims` types.
++- E1.2 Define `AuthError` discriminated union for all error cases.
++- E1.3 Token expiry and revocation as value objects.
++
++### E2 — Ports
++- E2.1 `TokenProvider`: issue and refresh tokens.
++- E2.2 `TokenStore`: store and retrieve tokens by ID.
++- E2.3 `TokenVerifier`: verify and decode a token into claims.
++
++### E3 — Adapters
++- E3.1 `MemoryTokenStore`: in-memory store for testing and dev.
++- E3.2 `PlaceholderJwtVerifier`: skeleton for real JWT verification.
++- E3.3 Production `JwtTokenProvider` using `jose` library.
++
++### E4 — OAuth2/OIDC Flows
++- E4.1 Authorization code flow with PKCE.
++- E4.2 Client credentials flow for service-to-service auth.
++- E4.3 Token refresh flow with rotation.
++
++### E5 — Middleware Integration
++- E5.1 Express/Fastify middleware that extracts and verifies bearer tokens.
++- E5.2 Typed `request.user` injection after successful verification.
++
++## Acceptance Criteria
++
++- A token issued by JwtTokenProvider is verifiable by JwtTokenVerifier.
++- An expired token returns AuthError.TokenExpired, not a generic error.
++- Swapping MemoryTokenStore for a Redis adapter requires no domain code changes.
+diff --git a/typescript/packages/auth-ts/README.md b/typescript/packages/auth-ts/README.md
+new file mode 100644
+index 0000000..337f73a
+--- /dev/null
++++ b/typescript/packages/auth-ts/README.md
+@@ -0,0 +1,233 @@
++<!-- AI-DD-META:START -->
++<!-- This repository is planned, maintained, and managed by AI Agents only. -->
++<!-- Slop issues are expected and intentionally present as part of an HITL-less -->
++<!-- /minimized AI-DD metaproject of learning, refining, and building brute-force -->
++<!-- training for both agents and the human operator. -->
++![Downloads](https://img.shields.io/github/downloads/KooshaPari/phenotype-auth-ts/total?style=flat-square&label=downloads&color=blue)
++![GitHub release](https://img.shields.io/github/v/release/KooshaPari/phenotype-auth-ts?style=flat-square&label=release)
++![License](https://img.shields.io/github/license/KooshaPari/phenotype-auth-ts?style=flat-square)
++![AI-Slop](https://img.shields.io/badge/AI--DD-Slop%20Expected-orange?style=flat-square)
++![AI-Only-Maintained](https://img.shields.io/badge/Planned%20%26%20Maintained%20by-AI%20Agents%20Only-red?style=flat-square)
++![HITL-less](https://img.shields.io/badge/HITL--less%20AI--DD-metaproject-yellow?style=flat-square)
++
++> ⚠️ **AI-Agent-Only Repository**
++>
++> This repo is **planned, maintained, and managed exclusively by AI Agents**.
++> Slop issues, rough edges, and AI artifacts are **expected and intentionally
++> present** as part of an **HITL-less / minimized AI-DD** metaproject focused
++> on learning, refining, and brute-force training both the agents and the
++> human operator. Bug reports and contributions are still welcome, but please
++> expect AI-generated code, comments, and documentation throughout.
++<!-- AI-DD-META:END -->
++# phenotype-auth-ts
++
++> Canonical auth umbrella: `Authvault`. This repository is mirrored there at `typescript/phenotype-auth-ts/`.
++
++TypeScript authentication and authorization library for Phenotype services. Provides OAuth 2.0, OIDC, API key, and WebAuthn support with hexagonal architecture enabling easy testing and flexible token/session management.
++
++## Overview
++
++**phenotype-auth-ts** is the official TypeScript authentication library for the Phenotype platform. Built with hexagonal architecture (domain layer, ports, and adapters), it provides flexible, testable authentication and authorization patterns that work seamlessly in browsers, Node.js, and edge runtimes.
++
++**Core Mission**: Enable secure, flexible authentication in TypeScript applications with minimal boilerplate while maintaining clear separation between domain logic, abstractions, and implementation details.
++
++## Technology Stack
++
++- **Language**: TypeScript (strict mode)
++- **Authentication Protocols**: OAuth 2.0, OpenID Connect (OIDC), API Key, WebAuthn
++- **Runtimes**: Node.js, browsers (with polyfills), edge runtimes (Cloudflare Workers)
++- **Build**: esbuild for bundling, TypeScript compiler for types
++- **Testing**: Jest with TypeScript support
++- **Architecture**: Hexagonal (ports and adapters pattern)
++
++## Key Features
++
++- **OAuth 2.0 / OIDC**: Full protocol support with Authorization Code, PKCE flows
++- **API Key Authentication**: Simple key-based auth with rotation support
++- **WebAuthn**: Passwordless authentication via biometrics and security keys
++- **Token Management**: JWT parsing, validation, refresh logic
++- **Session Management**: In-memory and persistent session stores
++- **Hexagonal Architecture**: Domain layer, ports (interfaces), and swappable adapters
++- **Type Safety**: Full TypeScript strict mode compliance
++- **Cross-Runtime**: Works in browsers, Node.js, and edge environments
++
++## Quick Start
++
++```bash
++# Clone and explore
++git clone <repo-url>
++cd phenotype-auth-ts
++
++# Review governance and architecture
++cat CLAUDE.md          # Project governance
++cat adr/ADR-001-architecture.md  # Architecture decision records
++
++# Install dependencies
++npm install
++
++# Run tests
++npm test
++
++# Build library
++npm run build
++
++# Lint and format
++npm run lint
++npm run format
++```
++
++## Project Structure
++
++```
++phenotype-auth-ts/
++├── src/
++│   ├── domain/
++│   │   ├── token.ts           # Token domain types
++│   │   ├── claims.ts          # JWT claims and payloads
++│   │   ├── session.ts         # Session domain entity
++│   │   ├── errors.ts          # Domain-specific errors
++│   │   └── index.ts           # Domain exports
++│   ├── ports/
++│   │   ├── tokenProvider.ts   # Output port: token creation
++│   │   ├── tokenStore.ts      # Output port: token persistence
++│   │   ├── tokenVerifier.ts   # Output port: token validation
++│   │   ├── sessionStore.ts    # Output port: session persistence
++│   │   └── index.ts           # Port exports
++│   ├── adapters/
++│   │   ├── memory/
++│   │   │   ├── memoryTokenStore.ts   # In-memory token storage
++│   │   │   └── memorySessionStore.ts # In-memory sessions
++│   │   ├── jwt/
++│   │   │   ├── jwtProvider.ts       # JWT token provider
++│   │   │   ├── jwtVerifier.ts       # JWT verification
++│   │   │   └── jwks.ts              # JWKS endpoint integration
++│   │   ├── oauth/
++│   │   │   ├── authorizationCode.ts # OAuth2 Authorization Code flow
++│   │   │   ├── pkce.ts              # PKCE support
++│   │   │   └── tokenExchange.ts     # Token endpoint handling
++│   │   ├── oidc/
++│   │   │   ├── discoveryClient.ts   # OIDC discovery integration
++│   │   │   ├── userInfo.ts          # UserInfo endpoint handling
++│   │   │   └── idTokenVerifier.ts   # ID token validation
++│   │   ├── webauthn/
++│   │   │   ├── credentialManager.ts # WebAuthn credential management
++│   │   │   └── verifier.ts          # WebAuthn verification
++│   │   └── apiKey/
++│   │       ├── keyValidator.ts      # API key validation
++│   │       └── keyRotation.ts       # Key rotation logic
++│   ├── application/
++│   │   ├── authService.ts     # Main auth service (use case orchestrator)
++│   │   ├── sessionManager.ts  # Session management use case
++│   │   └── tokenManager.ts    # Token lifecycle management
++│   └── index.ts               # Public API exports
++├── adr/
++│   ├── ADR-001-architecture.md      # Hexagonal architecture
++│   ├── ADR-002-token-flow.md        # Token lifecycle
++│   └── ADR-003-adapter-selection.md # Adapter selection guide
++├── examples/
++│   ├── oauth2-flow.ts         # OAuth 2.0 Authorization Code example
++│   ├── jwt-validation.ts      # JWT validation example
++│   ├── api-key-auth.ts        # API key authentication example
++│   ├── webauthn-register.ts   # WebAuthn registration flow
++│   └── custom-adapter.ts      # Custom adapter implementation
++├── tests/
++│   ├── unit/
++│   │   ├── domain/
++│   │   ├── adapters/
++│   │   └── application/
++│   ├── integration/
++│   │   ├── oauth-flow.test.ts
++│   │   └── webauthn.test.ts
++│   └── fixtures/
++├── docs/
++│   ├── ARCHITECTURE.md        # Detailed architecture guide
++│   ├── OAUTH2_GUIDE.md        # OAuth 2.0 integration guide
++│   ├── OIDC_GUIDE.md          # OpenID Connect guide
++│   ├── JWT_GUIDE.md           # JWT handling guide
++│   ├── WEBAUTHN_GUIDE.md      # WebAuthn guide
++│   ├── CUSTOM_ADAPTERS.md     # Creating custom adapters
++│   └── MIGRATION.md           # Migration guide
++├── package.json
++├── tsconfig.json
++├── jest.config.js
++├── .eslintrc.json
++└── README.md
++```
++
++## Hexagonal Architecture Overview
++
++```
++Domain Layer (core business logic)
++├── Token (entity)
++├── Claims (value object)
++├── Session (aggregate)
++└── Errors (domain exceptions)
++        ↓
++Ports Layer (abstractions/interfaces)
++├── TokenProvider (output port)
++├── TokenStore (output port)
++├── TokenVerifier (output port)
++└── SessionStore (output port)
++        ↓
++Adapters Layer (implementation)
++├── Memory (in-memory storage)
++├── JWT (token provider/verifier)
++├── OAuth (protocol handler)
++├── OIDC (protocol handler)
++├── WebAuthn (credential handler)
++└── API Key (key validator)
++```
++
++## Usage Examples
++
++### OAuth 2.0 with PKCE
++
++```typescript
++import { AuthService } from '@phenotype/auth-ts';
++import { JwtVerifier } from '@phenotype/auth-ts/adapters/jwt';
++import { MemoryTokenStore } from '@phenotype/auth-ts/adapters/memory';
++
++const authService = new AuthService({
++  tokenVerifier: new JwtVerifier({ issuer: 'https://auth.example.com' }),
++  tokenStore: new MemoryTokenStore(),
++});
++
++// Initiate OAuth flow
++const authUrl = authService.initiateOAuth({
++  clientId: 'my-app',
++  redirectUri: 'http://localhost:3000/callback',
++  scopes: ['openid', 'profile'],
++  usePkce: true,
++});
++```
++
++### API Key Authentication
++
++```typescript
++import { ApiKeyValidator } from '@phenotype/auth-ts/adapters/apiKey';
++
++const validator = new ApiKeyValidator();
++const isValid = await validator.validate('sk_live_abc123xyz');
++```
++
++### WebAuthn Registration
++
++```typescript
++import { CredentialManager } from '@phenotype/auth-ts/adapters/webauthn';
++
++const credMgr = new CredentialManager();
++const challenge = await credMgr.createRegistrationChallenge('user@example.com');
++const credential = await credMgr.verifyRegistration(challenge, response);
++```
++
++## Related Phenotype Projects
++
++- **AuthKit**: Unified auth backend (phenotype-auth-ts provides client SDKs)
++- **phenotype-ops-mcp**: MCP server for auth management and configuration
++- **cloud**: Multi-tenant platform (primary auth-ts consumer)
++- **PhenoLibs**: Shared utilities and error handling
++- **AgilePlus**: Work tracking (integrates auth-ts for user identity)
++
++## License
++
++MIT
+diff --git a/typescript/packages/auth-ts/adr/ADR-001-architecture.md b/typescript/packages/auth-ts/adr/ADR-001-architecture.md
+new file mode 100644
+index 0000000..9f48277
+--- /dev/null
++++ b/typescript/packages/auth-ts/adr/ADR-001-architecture.md
+@@ -0,0 +1,32 @@
++# ADR-001: Architecture Decision - TypeScript Auth Patterns
++
++## Status
++Accepted
++
++## Context
++Building OAuth2/OIDC authentication patterns for TypeScript applications.
++
++## Decision
++We will implement authentication following these principles:
++
++- **Token validation**: Verify JWTs without external calls (local validation)
++- **Refresh token flow**: Automatic token refresh with retry logic
++- **Type-safe tokens**: Zod schemas for token claims
++- **Adapter pattern**: Pluggable HTTP client and cache backends
++
++## Consequences
++### Positive
++- Type-safe token handling with compile-time guarantees
++- Testable domain logic with mocked adapters
++- No external calls for token validation (performance)
++
++### Negative
++- Token rotation requires cache invalidation
++- Complexity in retry logic
++
++## xDD Methodologies Applied
++- TDD: Jest unit tests for all token operations
++- BDD: Given-When-Then scenarios for auth flows
++- DDD: Auth domain with bounded context
++- CDD: Contract tests for token adapter
++- SOLID: Interface segregation for HTTP, Cache
+diff --git a/typescript/packages/auth-ts/docs/.vitepress/config.mts b/typescript/packages/auth-ts/docs/.vitepress/config.mts
+new file mode 100644
+index 0000000..183a773
+--- /dev/null
++++ b/typescript/packages/auth-ts/docs/.vitepress/config.mts
+@@ -0,0 +1,21 @@
++import { withMermaid } from 'vitepress-plugin-mermaid'
++
++export default withMermaid({
++  title: 'phenotype-auth-ts',
++  description: 'TypeScript OAuth2 / OIDC authentication patterns with hexagonal architecture',
++  appearance: 'dark',
++  lastUpdated: true,
++  themeConfig: {
++    nav: [{ text: 'Home', link: '/' }],
++    sidebar: [
++      {
++        text: 'Guide',
++        items: [
++          { text: 'Getting Started', link: '/getting-started' },
++        ],
++      },
++    ],
++    search: { provider: 'local' },
++  },
++  mermaid: { theme: 'dark' },
++})
+diff --git a/typescript/packages/auth-ts/docs/.vitepress/theme/custom.css b/typescript/packages/auth-ts/docs/.vitepress/theme/custom.css
+new file mode 100644
+index 0000000..21d3ade
+--- /dev/null
++++ b/typescript/packages/auth-ts/docs/.vitepress/theme/custom.css
+@@ -0,0 +1,6 @@
++:root {
++  --vp-c-brand-1: #7c6af7;
++  --vp-c-brand-2: #6457e0;
++  --vp-c-brand-3: #5348cc;
++}
++
+diff --git a/typescript/packages/auth-ts/docs/.vitepress/theme/index.ts b/typescript/packages/auth-ts/docs/.vitepress/theme/index.ts
+new file mode 100644
+index 0000000..ab232d7
+--- /dev/null
++++ b/typescript/packages/auth-ts/docs/.vitepress/theme/index.ts
+@@ -0,0 +1,6 @@
++import DefaultTheme from "vitepress/theme"
++import "./style.css"
++import "./custom.css"
++
++export default DefaultTheme
++
+diff --git a/typescript/packages/auth-ts/docs/.vitepress/theme/style.css b/typescript/packages/auth-ts/docs/.vitepress/theme/style.css
+new file mode 100644
+index 0000000..7e3a2eb
+--- /dev/null
++++ b/typescript/packages/auth-ts/docs/.vitepress/theme/style.css
+@@ -0,0 +1,37 @@
++/* impeccable CSS baseline github.com/pbakaus/impeccable */
++* {
++  box-sizing: border-box;
++}
++
++*::before,
++*::after {
++  box-sizing: border-box;
++}
++
++html {
++  -webkit-font-smoothing: antialiased;
++  -moz-osx-font-smoothing: grayscale;
++  text-rendering: optimizeLegibility;
++}
++
++img,
++video {
++  max-width: 100%;
++  height: auto;
++}
++
++input,
++button,
++textarea,
++select {
++  font: inherit;
++}
++
++h1,
++h2,
++h3,
++h4,
++h5,
++h6 {
++  overflow-wrap: break-word;
++}
+diff --git a/typescript/packages/auth-ts/docs/FUNCTIONAL_REQUIREMENTS.md b/typescript/packages/auth-ts/docs/FUNCTIONAL_REQUIREMENTS.md
+new file mode 100644
+index 0000000..f2e61ac
+--- /dev/null
++++ b/typescript/packages/auth-ts/docs/FUNCTIONAL_REQUIREMENTS.md
+@@ -0,0 +1,63 @@
++# Functional Requirements
++
++Specification document for PHENOTYPE_AUTH_TS module.
++
++## Overview
++
++This document enumerates the functional requirements that guide implementation, testing, and
++quality validation for this project. Each FR has an assigned identifier for cross-reference
++in tests, PRs, and architectural documentation.
++
++## Functional Requirements
++
++### FR-PHENOTYPE_AUTH_TS-003
++
++**Description:** Authentication and authorization
++
++**Status:** SCAFFOLD
++
++**Test Traces:** (pending implementation)
++
++---
++
++### FR-PHENOTYPE_AUTH_TS-004
++
++**Description:** Caching layer with TTL support
++
++**Status:** SCAFFOLD
++
++**Test Traces:** (pending implementation)
++
++---
++
++### FR-PHENOTYPE_AUTH_TS-006
++
++**Description:** Persistent data storage
++
++**Status:** SCAFFOLD
++
++**Test Traces:** (pending implementation)
++
++---
++
++### FR-PHENOTYPE_AUTH_TS-007
++
++**Description:** User interface components
++
++**Status:** SCAFFOLD
++
++**Test Traces:** (pending implementation)
++
++---
++
++## Traceability
++
++All tests MUST reference at least one FR using this marker:
++
++```rust
++// Traces to: FR-<REPOID>-NNN
++#[test]
++fn test_feature_name() { }
++```
++
++Every FR must have at least one corresponding test. Use the pattern above to link test to requirement.
+diff --git a/typescript/packages/auth-ts/docs/getting-started.md b/typescript/packages/auth-ts/docs/getting-started.md
+new file mode 100644
+index 0000000..e709d00
+--- /dev/null
++++ b/typescript/packages/auth-ts/docs/getting-started.md
+@@ -0,0 +1,53 @@
++# Getting Started
++
++## Installation
++
++```bash
++npm install
++npm run build
++```
++
++## Usage
++
++```typescript
++import { MemoryTokenStore } from './adapters/MemoryTokenStore'
++import { PlaceholderJwtVerifier } from './adapters/PlaceholderJwtVerifier'
++
++const store = new MemoryTokenStore()
++const verifier = new PlaceholderJwtVerifier()
++
++// Store a token
++await store.save({ accessToken: 'my-token', expiresAt: Date.now() + 3600_000 })
++
++// Verify a token
++const claims = await verifier.verify('my-token')
++```
++
++## Architecture
++
++```mermaid
++graph TD
++    A[Application] --> B[TokenProvider Port]
++    A --> C[TokenStore Port]
++    A --> D[TokenVerifier Port]
++    B --> E[JWT Provider Adapter]
++    C --> F[MemoryTokenStore Adapter]
++    C --> G[RedisTokenStore Adapter]
++    D --> H[PlaceholderJwtVerifier]
++    D --> I[JWKS Verifier Adapter]
++```
++
++## Layout
++
++| Path | Role |
++|------|------|
++| `src/domain/` | Token types, claims, errors |
++| `src/ports/` | `TokenProvider`, `TokenStore`, `TokenVerifier` |
++| `src/adapters/` | `MemoryTokenStore`, `PlaceholderJwtVerifier` |
++
++## Testing
++
++```bash
++npm test
++npm run typecheck
++```
+diff --git a/typescript/packages/auth-ts/docs/index.md b/typescript/packages/auth-ts/docs/index.md
+new file mode 100644
+index 0000000..ff9bbb8
+--- /dev/null
++++ b/typescript/packages/auth-ts/docs/index.md
+@@ -0,0 +1,22 @@
++---
++layout: home
++
++hero:
++  name: phenotype-auth-ts
++  text: OAuth2 / OIDC Authentication
++  tagline: TypeScript authentication patterns with hexagonal architecture — swappable adapters for any token store or JWT provider.
++  actions:
++    - theme: brand
++      text: Get Started
++      link: /getting-started
++
++features:
++  - title: Hexagonal Architecture
++    details: Domain types, ports, and adapters cleanly separated for maximum testability.
++  - title: OAuth2 / OIDC
++    details: Standard authentication flows with first-class TypeScript types.
++  - title: Swappable Adapters
++    details: Memory token store and placeholder JWT verifier — swap for production implementations.
++  - title: Token Management
++    details: Full token lifecycle — issue, verify, refresh, and revoke.
++---
+diff --git a/typescript/packages/auth-ts/docs/journeys/manifests/README.md b/typescript/packages/auth-ts/docs/journeys/manifests/README.md
+new file mode 100644
+index 0000000..424d933
+--- /dev/null
++++ b/typescript/packages/auth-ts/docs/journeys/manifests/README.md
+@@ -0,0 +1 @@
++# Journey Manifests
+diff --git a/typescript/packages/auth-ts/docs/operations/iconography/SPEC.md b/typescript/packages/auth-ts/docs/operations/iconography/SPEC.md
+new file mode 100644
+index 0000000..e82e267
+--- /dev/null
++++ b/typescript/packages/auth-ts/docs/operations/iconography/SPEC.md
+@@ -0,0 +1,6 @@
++# Iconography Standard
++
++Implements the [phenotype-infra iconography standard](https://github.com/kooshapari/phenotype-infra/blob/main/docs/governance/iconography-standard.md).
++
++Three styles: Fluent (stroke), Material (filled+outlined), Liquid Glass (blur).
++All icons: 24×24 SVG, `currentColor`, `role="img"`, `aria-label`.
+diff --git a/typescript/packages/auth-ts/docs/operations/journey-traceability.md b/typescript/packages/auth-ts/docs/operations/journey-traceability.md
+new file mode 100644
+index 0000000..031b223
+--- /dev/null
++++ b/typescript/packages/auth-ts/docs/operations/journey-traceability.md
+@@ -0,0 +1,121 @@
++# Journey Traceability Standard
++
++- **Status:** Draft
++- **Date:** 2026-04-30
++
++## Purpose
++
++Every repo in the Phenotype ecosystem should carry visible journey evidence for
++the flows it documents. A journey is not just prose. It is a traceable bundle of:
++
++- the page that explains the flow
++- keyframe images that show the important states
++- a recording that shows the full interaction
++- metadata that ties the evidence back to a repo, run, and purpose
++
++This standard makes those artifacts consistent across repos so docs, audits, and
++handoffs all point to the same evidence shape.
++
++## Canonical Pattern
++
++Use the hwLedger pattern as the reference implementation:
++
++- `ShotGallery` for keyframes
++- `RecordingEmbed` for the full recording
++- `cli-journeys/keyframes/<journey>/frame-###.png` for frame assets
++- a stable `tape` id for the recording reference
++- renderer components sourced from `phenotype-journeys`
++
++If a repo vendors the viewer package, keep that vendoring pattern documented in
++the repo itself so the journey page remains reproducible.
++
++Example:
++
++```md
++<ShotGallery
++  title="plan - help, run, and VRAM breakdown"
++  :shots='[
++    {"src":"/cli-journeys/keyframes/plan-help/frame-005.png","caption":"hwledger plan --help"},
++    {"src":"/cli-journeys/keyframes/plan-deepseek/frame-003.png","caption":"Typical plan output: VRAM breakdown + architecture detection"}
++  ]' />
++
++<RecordingEmbed tape="plan-deepseek" kind="cli" caption="CLI plan: DeepSeek-V3 -> live architecture detection + colored VRAM bands" />
++```
++
++## Required Artifacts
++
++Each documented journey should include:
++
++1. A short page section describing the user intent and expected outcome.
++2. At least one `ShotGallery` block when the journey has visible UI or CLI
++   state transitions.
++3. At least one `RecordingEmbed` when the flow is worth replaying end-to-end.
++4. Stable asset names that can be re-used from docs, audits, and changelogs.
++5. A link back to the repo or work item that produced the evidence.
++
++## Asset Layout
++
++Recommended storage pattern:
++
++- keyframes under `/cli-journeys/keyframes/<journey>/frame-###.png`
++- recordings referenced by stable tape id, for example `plan-deepseek`
++- doc pages colocated with the feature docs that explain the journey
++
++If a repo does not have a docs-site, use the equivalent canonical docs folder
++and keep the same naming rules.
++
++## Metadata Contract
++
++Every journey page should carry enough context for later traceability:
++
++- repo name
++- journey id
++- flow name
++- owner or team
++- related issue, ADR, PR, or worklog reference
++- capture date
++- environment used for the capture
++
++Keep this data close to the journey page so it is visible with the evidence.
++
++## Minimum Acceptance Criteria
++
++A repo is considered to have journey traceability only when:
++
++- the repo docs include the flow narrative and the evidence bundle
++- the keyframes show the important state transitions, not just the happy path
++- the recording can be replayed or re-embedded from the stable tape id
++- the docs point to the source of truth for the capture, not just a screenshot dump
++
++## Adoption Checklist
++
++For each repo:
++
++1. Identify the top user-visible or operator-visible flows.
++2. Add one journey page per flow in the repo docs.
++3. Capture keyframes for the important states.
++4. Record a replay and register its tape id.
++5. Add the evidence to the docs page with `ShotGallery` and `RecordingEmbed`.
++6. Link the page from the repo README or docs index.
++
++## Suggested Rollout Order
++
++Start where the docs surface is already central:
++
++1. `phenodocs` - docs hub; highest leverage for propagating the standard.
++2. `PhenoHandbook` - patterns registry; good home for reusable journey examples.
++3. `PhenoProject` - workspace-level docs and worklogs.
++4. Product repos with active docs sites or docs portals.
++5. Smaller repos and supporting tools after the central hubs are covered.
++
++## Exceptions
++
++If a journey cannot yet be captured, document the blocker explicitly and link the
++open issue or missing dependency. Do not silently omit the evidence.
++
++## Related
++
++- `docs/governance/agent-local-parity.md`
++- `docs/governance/security-policy.md`
++- `hwLedger/docs-site/reference/cli.md`
++- `hwLedger/vendor/phenotype-journeys/README.md`
+diff --git a/typescript/packages/auth-ts/docs/reference/fr_coverage_matrix.md b/typescript/packages/auth-ts/docs/reference/fr_coverage_matrix.md
+new file mode 100644
+index 0000000..f6d2a0f
+--- /dev/null
++++ b/typescript/packages/auth-ts/docs/reference/fr_coverage_matrix.md
+@@ -0,0 +1,13 @@
++# FR-to-Test Traceability Matrix
++
++## Summary
++
++- **Total FRs:** 0
++- **Covered (≥1 test):** 0
++- **Missing (0 tests):** 0
++- **Orphan tests:** 0
++
++## Coverage Matrix
++
++| FR ID | Description | Test Files | Status |
++|-------|-------------|-----------|--------|
+diff --git a/typescript/packages/auth-ts/package.json b/typescript/packages/auth-ts/package.json
+new file mode 100644
+index 0000000..fa1f342
+--- /dev/null
++++ b/typescript/packages/auth-ts/package.json
+@@ -0,0 +1,32 @@
++{
++  "name": "@phenotype/auth-ts",
++  "packageManager": "npm@10.8.2",
++  "version": "0.1.0",
++  "private": true,
++  "type": "module",
++  "main": "./dist/index.js",
++  "types": "./dist/index.d.ts",
++  "scripts": {
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "build": "tsc -p tsconfig.json",
++    "typecheck": "tsc -p tsconfig.json --noEmit",
++    "docs:dev": "vitepress dev docs",
++    "docs:build": "vitepress build docs",
++    "docs:preview": "vitepress preview docs"
++  },
++  "devDependencies": {
++    "mermaid": "^11.15.0",
++    "phenotype-ts-utils": "github:KooshaPari/phenotype-ts-utils#v0.1.0",
++    "typescript": "^6.0.3",
++    "vitepress": "^1.6.4",
++    "vitepress-plugin-mermaid": "^2.0.17",
++    "vitest": "^4.1.7",
++    "vue": "^3.5.35"
++  },
++  "overrides": {
++    "esbuild": "^0.25.0",
++    "uuid": "^14.0.0",
++    "vite": "^8.0.14"
++  }
++}
+diff --git a/typescript/packages/auth-ts/renovate.json5 b/typescript/packages/auth-ts/renovate.json5
+new file mode 100644
+index 0000000..698b22d
+--- /dev/null
++++ b/typescript/packages/auth-ts/renovate.json5
+@@ -0,0 +1,3 @@
++{
++  extends: ["config:base"],
++}
+diff --git a/typescript/packages/auth-ts/sonar-project.properties b/typescript/packages/auth-ts/sonar-project.properties
+new file mode 100644
+index 0000000..1495e3e
+--- /dev/null
++++ b/typescript/packages/auth-ts/sonar-project.properties
+@@ -0,0 +1,2 @@
++sonar.organization=kooshapari
++sonar.projectKey=KooshaPari_phenotype-auth-ts
+diff --git a/typescript/packages/auth-ts/src/adapters/jwt-provider.ts b/typescript/packages/auth-ts/src/adapters/jwt-provider.ts
+new file mode 100644
+index 0000000..9e805db
+--- /dev/null
++++ b/typescript/packages/auth-ts/src/adapters/jwt-provider.ts
+@@ -0,0 +1,41 @@
++/**
++ * Placeholder JWT verification adapter — swap for jose/jwks in production.
++ */
++
++import type { JwtClaims } from '../domain/claims';
++import type { ClaimsValidationOptions, TokenVerifier } from '../ports';
++import { AuthErrors } from '../domain/errors';
++
++export class PlaceholderJwtVerifier implements TokenVerifier {
++  async verify(_token: string): Promise<JwtClaims> {
++    throw AuthErrors.INVALID_TOKEN();
++  }
++
++  async validateClaims(
++    claims: JwtClaims,
++    options: ClaimsValidationOptions
++  ): Promise<boolean> {
++    const required = options.requiredClaims ?? [];
++    for (const key of required) {
++      if (claims[key] === undefined && claims[key as keyof JwtClaims] === undefined) {
++        throw AuthErrors.MISSING_CLAIM(key);
++      }
++    }
++    if (options.expectedIssuer && claims.iss !== options.expectedIssuer) {
++      throw AuthErrors.INVALID_CLAIM('iss', options.expectedIssuer);
++    }
++    const aud = claims.aud;
++    if (options.expectedAudience !== undefined) {
++      const expected = options.expectedAudience;
++      const ok = Array.isArray(aud)
++        ? aud.some((a) =>
++            Array.isArray(expected) ? expected.includes(a) : a === expected
++          )
++        : aud === expected || (Array.isArray(expected) && expected.includes(aud as string));
++      if (!ok) {
++        throw AuthErrors.INVALID_CLAIM('aud', String(expected));
++      }
++    }
++    return true;
++  }
++}
+diff --git a/typescript/packages/auth-ts/src/adapters/memory-token-store.ts b/typescript/packages/auth-ts/src/adapters/memory-token-store.ts
+new file mode 100644
+index 0000000..a35ac3b
+--- /dev/null
++++ b/typescript/packages/auth-ts/src/adapters/memory-token-store.ts
+@@ -0,0 +1,39 @@
++/**
++ * In-memory TokenStore for tests and dev.
++ */
++
++import type { Token } from '../domain/token';
++import type { TokenStore } from '../ports';
++
++type Entry = { token: unknown; expiryMs: number };
++
++export class MemoryTokenStore implements TokenStore {
++  private readonly data = new Map<string, Entry>();
++
++  async save(key: string, token: unknown, ttlSeconds: number): Promise<void> {
++    const expiryMs = Date.now() + ttlSeconds * 1000;
++    this.data.set(key, { token, expiryMs });
++  }
++
++  async get(key: string): Promise<unknown | null> {
++    const entry = this.data.get(key);
++    if (!entry) return null;
++    if (Date.now() > entry.expiryMs) {
++      this.data.delete(key);
++      return null;
++    }
++    return entry.token;
++  }
++
++  async delete(key: string): Promise<void> {
++    this.data.delete(key);
++  }
++}
++
++/** Narrow unknown to Token when callers expect it. */
++export function asToken(value: unknown): Token | null {
++  if (!value || typeof value !== 'object') return null;
++  const o = value as Record<string, unknown>;
++  if (typeof o.accessToken !== 'string' || typeof o.tokenType !== 'string') return null;
++  return value as Token;
++}
+diff --git a/typescript/packages/auth-ts/src/domain/claims.ts b/typescript/packages/auth-ts/src/domain/claims.ts
+new file mode 100644
+index 0000000..c515f26
+--- /dev/null
++++ b/typescript/packages/auth-ts/src/domain/claims.ts
+@@ -0,0 +1,12 @@
++/**
++ * JWT / OIDC-style claims (domain).
++ */
++
++export interface JwtClaims {
++  readonly sub?: string;
++  readonly iss?: string;
++  readonly aud?: string | string[];
++  readonly exp?: number;
++  readonly iat?: number;
++  readonly [claim: string]: unknown;
++}
+diff --git a/typescript/packages/auth-ts/src/domain/errors.ts b/typescript/packages/auth-ts/src/domain/errors.ts
+new file mode 100644
+index 0000000..81ec376
+--- /dev/null
++++ b/typescript/packages/auth-ts/src/domain/errors.ts
+@@ -0,0 +1,49 @@
++/**
++ * Domain models for authentication.
++ *
++ * xDD Methodologies:
++ * - DDD: Domain-driven design with bounded context
++ * - PoLA: Descriptive error messages
++ */
++
++export class AuthError extends Error {
++  constructor(
++    message: string,
++    public readonly code: string,
++    public readonly statusCode: number = 401
++  ) {
++    super(message);
++    this.name = 'AuthError';
++  }
++}
++
++// Domain errors following PoLA (Principle of Least Astonishment)
++export const AuthErrors = {
++  INVALID_TOKEN: () =>
++    new AuthError('Token is invalid or malformed', 'INVALID_TOKEN', 401),
++
++  TOKEN_EXPIRED: () =>
++    new AuthError('Token has expired', 'TOKEN_EXPIRED', 401),
++
++  TOKEN_NOT_YET_VALID: () =>
++    new AuthError('Token is not yet valid', 'TOKEN_NOT_YET_VALID', 401),
++
++  INVALID_SIGNATURE: () =>
++    new AuthError('Token signature verification failed', 'INVALID_SIGNATURE', 401),
++
++  MISSING_CLAIM: (claim: string) =>
++    new AuthError(`Token missing required claim: ${claim}`, 'MISSING_CLAIM', 401),
++
++  INVALID_CLAIM: (claim: string, expected: string) =>
++    new AuthError(`Claim ${claim} must be ${expected}`, 'INVALID_CLAIM', 401),
++
++  INSUFFICIENT_SCOPE: (required: string[], actual: string[]) =>
++    new AuthError(
++      `Insufficient scope. Required: ${required.join(', ')}, Actual: ${actual.join(', ')}`,
++      'INSUFFICIENT_SCOPE',
++      403
++    ),
++
++  PROVIDER_ERROR: (message: string) =>
++    new AuthError(`Auth provider error: ${message}`, 'PROVIDER_ERROR', 502),
++} as const;
+diff --git a/typescript/packages/auth-ts/src/domain/token.ts b/typescript/packages/auth-ts/src/domain/token.ts
+new file mode 100644
+index 0000000..a2aa560
+--- /dev/null
++++ b/typescript/packages/auth-ts/src/domain/token.ts
+@@ -0,0 +1,65 @@
++/**
++ * Token domain models.
++ *
++ * Following hexagonal architecture principles.
++ */
++
++export interface Token {
++  readonly accessToken: string;
++  readonly tokenType: string;
++  readonly expiresAt: number;
++  readonly refreshToken?: string;
++  readonly scope?: string;
++}
++
++export interface TokenRequest {
++  readonly grantType: 'client_credentials' | 'password' | 'refresh_token' | 'authorization_code';
++  readonly clientId: string;
++  readonly clientSecret?: string;
++  readonly username?: string;
++  readonly password?: string;
++  readonly code?: string;
++  readonly redirectUri?: string;
++  readonly refreshToken?: string;
++}
++
++export interface TokenResponse {
++  readonly accessToken: string;
++  readonly tokenType: string;
++  readonly expiresIn: number;
++  readonly refreshToken?: string;
++  readonly scope?: string;
++  readonly idToken?: string;
++}
++
++export class TokenError extends Error {
++  constructor(
++    message: string,
++    public readonly code: string,
++    public readonly statusCode: number,
++    public readonly context?: Record<string, unknown>
++  ) {
++    super(message);
++    this.name = 'TokenError';
++  }
++
++  static invalidRequest(message: string, context?: Record<string, unknown>) {
++    return new TokenError(message, 'invalid_request', 400, context);
++  }
++
++  static invalidClient(message: string, context?: Record<string, unknown>) {
++    return new TokenError(message, 'invalid_client', 401, context);
++  }
++
++  static invalidGrant(message: string, context?: Record<string, unknown>) {
++    return new TokenError(message, 'invalid_grant', 400, context);
++  }
++
++  static unauthorizedClient(message: string, context?: Record<string, unknown>) {
++    return new TokenError(message, 'unauthorized_client', 403, context);
++  }
++
++  static unsupportedGrantType(message: string, context?: Record<string, unknown>) {
++    return new TokenError(message, 'unsupported_grant_type', 400, context);
++  }
++}
+diff --git a/typescript/packages/auth-ts/src/index.ts b/typescript/packages/auth-ts/src/index.ts
+new file mode 100644
+index 0000000..d0fc3f7
+--- /dev/null
++++ b/typescript/packages/auth-ts/src/index.ts
+@@ -0,0 +1,17 @@
++/**
++ * phenotype-auth-ts
++ *
++ * TypeScript OAuth2/OIDC authentication patterns.
++ *
++ * xDD Methodologies:
++ * - TDD: Test-driven with Vitest
++ * - BDD: Scenario-based tests
++ * - CDD: Contract tests for adapters
++ */
++
++export * from './domain/token';
++export * from './domain/claims';
++export * from './domain/errors';
++export * from './ports';
++export { MemoryTokenStore, asToken } from './adapters/memory-token-store';
++export { PlaceholderJwtVerifier } from './adapters/jwt-provider';
+diff --git a/typescript/packages/auth-ts/src/ports/index.ts b/typescript/packages/auth-ts/src/ports/index.ts
+new file mode 100644
+index 0000000..39d0af4
+--- /dev/null
++++ b/typescript/packages/auth-ts/src/ports/index.ts
+@@ -0,0 +1,36 @@
++/**
++ * Outbound / inbound ports for auth (hexagonal).
++ */
++
++import type { TokenRequest, TokenResponse } from '../domain/token';
++import type { JwtClaims } from '../domain/claims';
++
++export type { TokenRequest, TokenResponse };
++
++/** Issues and refreshes tokens (outbound to IdP). */
++export interface TokenProvider {
++  requestToken(req: TokenRequest): Promise<TokenResponse>;
++  refreshToken?(refreshToken: string): Promise<TokenResponse>;
++}
++
++/** Persists tokens by key with TTL (outbound). */
++export interface TokenStore {
++  save(key: string, token: unknown, ttlSeconds: number): Promise<void>;
++  get(key: string): Promise<unknown | null>;
++  delete(key: string): Promise<void>;
++}
++
++/** Validates JWTs and claim shapes (outbound crypto / JWKS). */
++export interface ClaimsValidationOptions {
++  readonly requiredClaims?: string[];
++  readonly expectedIssuer?: string;
++  readonly expectedAudience?: string | string[];
++}
++
++export interface TokenVerifier {
++  verify(token: string): Promise<JwtClaims>;
++  validateClaims?(
++    claims: JwtClaims,
++    options: ClaimsValidationOptions
++  ): Promise<boolean>;
++}
+diff --git a/typescript/packages/auth-ts/tests/core.test.ts b/typescript/packages/auth-ts/tests/core.test.ts
+new file mode 100644
+index 0000000..ad83fed
+--- /dev/null
++++ b/typescript/packages/auth-ts/tests/core.test.ts
+@@ -0,0 +1,169 @@
++import { describe, expect, it } from 'vitest';
++import {
++  AuthError,
++  AuthErrors,
++  MemoryTokenStore,
++  PlaceholderJwtVerifier,
++  TokenError,
++  asToken,
++} from '../src';
++
++describe('TokenError', () => {
++  it('creates typed invalid request errors', () => {
++    const error = TokenError.invalidRequest('bad request', { field: 'grantType' });
++
++    expect(error).toBeInstanceOf(TokenError);
++    expect(error.message).toBe('bad request');
++    expect(error.code).toBe('invalid_request');
++    expect(error.statusCode).toBe(400);
++    expect(error.context).toEqual({ field: 'grantType' });
++  });
++
++  it('creates typed invalid client errors', () => {
++    const error = TokenError.invalidClient('bad client');
++
++    expect(error.code).toBe('invalid_client');
++    expect(error.statusCode).toBe(401);
++  });
++
++  it('creates the remaining OAuth error variants', () => {
++    expect(TokenError.invalidGrant('bad grant').code).toBe('invalid_grant');
++    expect(TokenError.unauthorizedClient('no access').statusCode).toBe(403);
++    expect(TokenError.unsupportedGrantType('unsupported').code).toBe(
++      'unsupported_grant_type'
++    );
++  });
++});
++
++describe('AuthErrors', () => {
++  it('creates descriptive auth errors', () => {
++    const error = AuthErrors.MISSING_CLAIM('sub');
++
++    expect(error).toBeInstanceOf(AuthError);
++    expect(error.code).toBe('MISSING_CLAIM');
++    expect(error.statusCode).toBe(401);
++    expect(error.message).toContain('sub');
++  });
++
++  it('formats insufficient scope errors', () => {
++    const error = AuthErrors.INSUFFICIENT_SCOPE(['read', 'write'], ['read']);
++
++    expect(error.code).toBe('INSUFFICIENT_SCOPE');
++    expect(error.statusCode).toBe(403);
++    expect(error.message).toContain('Required: read, write');
++    expect(error.message).toContain('Actual: read');
++  });
++
++  it('creates the remaining standard auth errors', () => {
++    expect(AuthErrors.INVALID_TOKEN().code).toBe('INVALID_TOKEN');
++    expect(AuthErrors.TOKEN_EXPIRED().code).toBe('TOKEN_EXPIRED');
++    expect(AuthErrors.TOKEN_NOT_YET_VALID().code).toBe('TOKEN_NOT_YET_VALID');
++    expect(AuthErrors.INVALID_SIGNATURE().code).toBe('INVALID_SIGNATURE');
++    expect(AuthErrors.PROVIDER_ERROR('boom').statusCode).toBe(502);
++  });
++});
++
++describe('MemoryTokenStore', () => {
++  it('stores, retrieves, and deletes tokens', async () => {
++    const store = new MemoryTokenStore();
++    const token = { accessToken: 'abc', tokenType: 'Bearer', expiresAt: Date.now() + 60_000 };
++
++    await store.save('session-1', token, 60);
++
++    expect(await store.get('session-1')).toEqual(token);
++
++    await store.delete('session-1');
++
++    expect(await store.get('session-1')).toBeNull();
++  });
++
++  it('expires tokens after ttl', async () => {
++    const store = new MemoryTokenStore();
++
++    await store.save('session-2', { accessToken: 'expired', tokenType: 'Bearer' }, -1);
++
++    expect(await store.get('session-2')).toBeNull();
++  });
++});
++
++describe('asToken', () => {
++  it('narrows valid token shapes', () => {
++    const token = { accessToken: 'abc', tokenType: 'Bearer', expiresAt: 123 };
++
++    expect(asToken(token)).toEqual(token);
++  });
++
++  it('rejects invalid token shapes', () => {
++    expect(asToken({ accessToken: 'abc' })).toBeNull();
++    expect(asToken(null)).toBeNull();
++  });
++});
++
++describe('PlaceholderJwtVerifier', () => {
++  it('always rejects verification', async () => {
++    const verifier = new PlaceholderJwtVerifier();
++
++    await expect(verifier.verify('token')).rejects.toMatchObject({
++      code: 'INVALID_TOKEN',
++      statusCode: 401,
++    });
++  });
++
++  it('validates required claims, issuer, and audience', async () => {
++    const verifier = new PlaceholderJwtVerifier();
++
++    await expect(
++      verifier.validateClaims(
++        {
++          sub: 'user-1',
++          iss: 'https://issuer.example.com',
++          aud: ['client-a', 'client-b'],
++        },
++        {
++          requiredClaims: ['sub', 'iss', 'aud'],
++          expectedIssuer: 'https://issuer.example.com',
++          expectedAudience: 'client-b',
++        }
++      )
++    ).resolves.toBe(true);
++  });
++
++  it('accepts expected audience arrays', async () => {
++    const verifier = new PlaceholderJwtVerifier();
++
++    await expect(
++      verifier.validateClaims(
++        {
++          sub: 'user-1',
++          iss: 'https://issuer.example.com',
++          aud: 'client-b',
++        },
++        {
++          expectedAudience: ['client-a', 'client-b'],
++        }
++      )
++    ).resolves.toBe(true);
++  });
++
++  it('rejects missing and mismatched claims', async () => {
++    const verifier = new PlaceholderJwtVerifier();
++
++    await expect(
++      verifier.validateClaims(
++        { iss: 'https://issuer.example.com', aud: 'client-a' },
++        { requiredClaims: ['sub'] }
++      )
++    ).rejects.toMatchObject({
++      code: 'MISSING_CLAIM',
++    });
++
++    await expect(
++      verifier.validateClaims(
++        { sub: 'user-1', iss: 'https://issuer.example.com', aud: 'client-a' },
++        { expectedIssuer: 'https://other.example.com' }
++      )
++    ).rejects.toMatchObject({
++      code: 'INVALID_CLAIM',
++    });
++  });
++});
+diff --git a/typescript/packages/auth-ts/tests/phenotype-ts-utils.test.ts b/typescript/packages/auth-ts/tests/phenotype-ts-utils.test.ts
+new file mode 100644
+index 0000000..0aa6972
+--- /dev/null
++++ b/typescript/packages/auth-ts/tests/phenotype-ts-utils.test.ts
+@@ -0,0 +1,82 @@
++/**
++ * phenotype-ts-utils adoption smoke tests.
++ *
++ * Verifies that the @phenotype/auth-ts repo can import and use the
++ * shared `phenotype-ts-utils` library. These are intentionally simple —
++ * the real value is in (a) the dep-resolves-cleanly guarantee and
++ * (b) showing other repos that the integration is straightforward.
++ *
++ * See https://github.com/KooshaPari/phenotype-ts-utils/releases/tag/v0.1.0
++ */
++import { describe, expect, it } from 'vitest';
++import {
++  cn,
++  truncate,
++  formatDate,
++  deepMerge,
++  uniqueBy,
++  groupBy,
++} from 'phenotype-ts-utils';
++
++describe('phenotype-ts-utils: cn', () => {
++  it('joins truthy class names and drops falsy', () => {
++    expect(cn('a', 'b', 'c')).toBe('a b c');
++    expect(cn('btn', undefined, null, false, 'is-active')).toBe('btn is-active');
++  });
++});
++
++describe('phenotype-ts-utils: truncate', () => {
++  it('truncates a long string with default suffix', () => {
++    expect(truncate('a'.repeat(100), 10)).toBe('aaaaaaa...');
++  });
++
++  it('returns input unchanged when within maxLen', () => {
++    expect(truncate('short', 80)).toBe('short');
++  });
++});
++
++describe('phenotype-ts-utils: formatDate', () => {
++  it('formats a Date as ISO by default', () => {
++    const d = new Date(Date.UTC(2025, 5, 15, 0, 0, 0));
++    expect(formatDate(d)).toBe('2025-06-15');
++  });
++});
++
++describe('phenotype-ts-utils: deepMerge', () => {
++  it('merges nested objects recursively', () => {
++    const a = { jwt: { alg: 'HS256', ttl: 3600 } };
++    const b = { jwt: { alg: 'RS256', aud: 'phenotype' } };
++    expect(deepMerge(a, b)).toEqual({
++      jwt: { alg: 'RS256', ttl: 3600, aud: 'phenotype' },
++    });
++  });
++});
++
++describe('phenotype-ts-utils: array helpers', () => {
++  it('uniqueBy dedupes by a key', () => {
++    const tokens = [
++      { id: 'a', scope: 'read' },
++      { id: 'b', scope: 'write' },
++      { id: 'a', scope: 'admin' },
++    ];
++    expect(uniqueBy(tokens, (t) => t.id)).toEqual([
++      { id: 'a', scope: 'read' },
++      { id: 'b', scope: 'write' },
++    ]);
++  });
++
++  it('groupBy buckets by a key', () => {
++    const items = [
++      { scope: 'read', v: 1 },
++      { scope: 'write', v: 2 },
++      { scope: 'read', v: 3 },
++    ];
++    expect(groupBy(items, (i) => i.scope)).toEqual({
++      read: [
++        { scope: 'read', v: 1 },
++        { scope: 'read', v: 3 },
++      ],
++      write: [{ scope: 'write', v: 2 }],
++    });
++  });
++});
+diff --git a/typescript/packages/auth-ts/tests/token.contract.test.ts b/typescript/packages/auth-ts/tests/token.contract.test.ts
+new file mode 100644
+index 0000000..aaeec72
+--- /dev/null
++++ b/typescript/packages/auth-ts/tests/token.contract.test.ts
+@@ -0,0 +1,278 @@
++/**
++ * Token BDD Contract Tests
++ *
++ * xDD Methodologies:
++ * - TDD: Red-green-refactor cycle
++ * - BDD: Given-When-Then scenario format
++ * - CDD: Contract tests for Token interfaces
++ */
++
++import { describe, it, expect, vi } from 'vitest';
++import type { TokenProvider, TokenStore, TokenVerifier } from '../src/ports';
++
++// ============================================================================
++// BDD Contract Tests for Token Ports
++// ============================================================================
++
++describe('TokenProvider Contract', () => {
++  // Given-When-Then format for BDD
++
++  describe('requestToken', () => {
++    it('BDD: Given valid credentials, When requesting token, Then token is returned', async () => {
++      const mockProvider: TokenProvider = {
++        requestToken: vi.fn().mockResolvedValue({
++          accessToken: 'test-token',
++          tokenType: 'Bearer',
++          expiresIn: 3600,
++          scope: 'read write',
++        }),
++      };
++
++      const result = await mockProvider.requestToken({
++        grantType: 'client_credentials',
++        clientId: 'test-client',
++        clientSecret: 'test-secret',
++      });
++
++      expect(result.accessToken).toBe('test-token');
++      expect(result.tokenType).toBe('Bearer');
++      expect(result.expiresIn).toBe(3600);
++    });
++
++    it('BDD: Given invalid credentials, When requesting token, Then error is thrown', async () => {
++      const mockProvider: TokenProvider = {
++        requestToken: vi.fn().mockRejectedValue(
++          new Error('Invalid client credentials')
++        ),
++      };
++
++      await expect(
++        mockProvider.requestToken({
++          grantType: 'client_credentials',
++          clientId: 'bad-client',
++          clientSecret: 'bad-secret',
++        })
++      ).rejects.toThrow('Invalid client credentials');
++    });
++  });
++
++  describe('refreshToken', () => {
++    it('BDD: Given valid refresh token, When refreshing, Then new token is returned', async () => {
++      const mockProvider: TokenProvider = {
++        requestToken: vi.fn(),
++        refreshToken: vi.fn().mockResolvedValue({
++          accessToken: 'new-refreshed-token',
++          tokenType: 'Bearer',
++          expiresIn: 3600,
++          refreshToken: 'new-refresh-token',
++        }),
++      };
++
++      const result = await mockProvider.refreshToken('valid-refresh-token');
++      expect(result.accessToken).toBe('new-refreshed-token');
++    });
++  });
++});
++
++describe('TokenStore Contract', () => {
++  // CDD: Contract tests for storage adapters
++
++  describe('save and retrieve', () => {
++    it('CDD: Given a token, When saved to store, Then it can be retrieved', async () => {
++      const memoryStore = new Map<string, { token: any; expiry: number }>();
++
++      const store: TokenStore = {
++        save: async (key, token, ttl) => {
++          memoryStore.set(key, {
++            token,
++            expiry: Date.now() + ttl * 1000,
++          });
++        },
++        get: async (key) => {
++          const entry = memoryStore.get(key);
++          if (!entry) return null;
++          if (Date.now() > entry.expiry) {
++            memoryStore.delete(key);
++            return null;
++          }
++          return entry.token;
++        },
++        delete: async (key) => memoryStore.delete(key),
++      };
++
++      const testToken = { accessToken: 'test', tokenType: 'Bearer' };
++      await store.save('user:123', testToken, 3600);
++      const retrieved = await store.get('user:123');
++
++      expect(retrieved).toEqual(testToken);
++    });
++
++    it('CDD: Given expired token, When retrieved, Then null is returned', async () => {
++      const memoryStore = new Map<string, { token: any; expiry: number }>();
++
++      const store: TokenStore = {
++        save: async (key, token, ttl) => {
++          memoryStore.set(key, { token, expiry: ttl < 0 ? 0 : Date.now() + ttl * 1000 });
++        },
++        get: async (key) => {
++          const entry = memoryStore.get(key);
++          if (!entry) return null;
++          if (Date.now() > entry.expiry) {
++            memoryStore.delete(key);
++            return null;
++          }
++          return entry.token;
++        },
++        delete: async (key) => memoryStore.delete(key),
++      };
++
++      // Save with negative TTL to make it immediately expired
++      await store.save('expired', { accessToken: 'test' }, -1);
++      const result = await store.get('expired');
++
++      expect(result).toBeNull();
++    });
++  });
++});
++
++describe('TokenVerifier Contract', () => {
++  // TDD: Test-first verification logic
++
++  describe('verify', () => {
++    it('TDD: Given valid JWT, When verified, Then claims are returned', async () => {
++      const mockVerifier: TokenVerifier = {
++        verify: vi.fn().mockResolvedValue({
++          sub: 'user-123',
++          iss: 'https://auth.example.com',
++          aud: 'test-client',
++          exp: Math.floor(Date.now() / 1000) + 3600,
++          iat: Math.floor(Date.now() / 1000),
++        }),
++      };
++
++      const claims = await mockVerifier.verify('valid-jwt-token');
++      expect(claims.sub).toBe('user-123');
++    });
++
++    it('TDD: Given expired token, When verified, Then error is thrown', async () => {
++      const mockVerifier: TokenVerifier = {
++        verify: vi.fn().mockRejectedValue(new Error('Token expired')),
++      };
++
++      await expect(mockVerifier.verify('expired-token')).rejects.toThrow(
++        'Token expired'
++      );
++    });
++  });
++
++  describe('validateClaims', () => {
++    it('TDD: Given valid claims, When validated, Then true is returned', async () => {
++      const mockVerifier: TokenVerifier = {
++        verify: vi.fn(),
++        validateClaims: vi.fn().mockResolvedValue(true),
++      };
++
++      const result = await mockVerifier.validateClaims(
++        { sub: 'user-123', iss: 'valid-issuer', aud: 'valid-audience' },
++        {
++          requiredClaims: ['sub', 'iss', 'aud'],
++          expectedIssuer: 'valid-issuer',
++          expectedAudience: 'valid-audience',
++        }
++      );
++
++      expect(result).toBe(true);
++    });
++
++    it('TDD: Given missing claim, When validated, Then error is thrown', async () => {
++      const mockVerifier: TokenVerifier = {
++        verify: vi.fn(),
++        validateClaims: vi.fn().mockRejectedValue(
++          new Error('Missing required claim: sub')
++        ),
++      };
++
++      await expect(
++        mockVerifier.validateClaims(
++          { iss: 'issuer' },
++          { requiredClaims: ['sub', 'iss'] }
++        )
++      ).rejects.toThrow('Missing required claim: sub');
++    });
++  });
++});
++
++// ============================================================================
++// Property-Based Tests (Conceptual)
++// ============================================================================
++
++describe('Token Claims Property Tests', () => {
++  // Property-based: Invariants that should always hold
++
++  it('Property: exp must be greater than iat for all valid tokens', () => {
++    const now = Math.floor(Date.now() / 1000);
++
++    // Given valid claims
++    const claims = {
++      sub: 'user-123',
++      iss: 'https://auth.example.com',
++      aud: 'test-client',
++      iat: now,
++      exp: now + 3600, // exp > iat
++    };
++
++    // Then the invariant holds
++    expect(claims.exp).toBeGreaterThan(claims.iat);
++  });
++
++  it('Property: Token type must be Bearer or MAC', () => {
++    const validTypes = ['Bearer', 'MAC'];
++
++    const token = {
++      accessToken: 'test-token',
++      tokenType: 'Bearer',
++      expiresIn: 3600,
++    };
++
++    expect(validTypes).toContain(token.tokenType);
++  });
++});
++
++// ============================================================================
++// BDD Scenario Tests
++// ============================================================================
++
++describe('Authentication Flow', () => {
++  // Full BDD scenario testing authentication flow
++
++  it('BDD: Complete OAuth2 client_credentials flow', async () => {
++    // Given a client with valid credentials
++    const client = {
++      id: 'test-client-id',
++      secret: 'test-client-secret',
++    };
++
++    // And a token provider that accepts these credentials
++    const provider: TokenProvider = {
++      requestToken: vi.fn().mockResolvedValue({
++        accessToken: 'issued-access-token',
++        tokenType: 'Bearer',
++        expiresIn: 3600,
++        scope: 'read write',
++      }),
++      refreshToken: vi.fn(),
++    };
++
++    // When the client requests a token
++    const tokenRequest = await provider.requestToken({
++      grantType: 'client_credentials',
++      clientId: client.id,
++      clientSecret: client.secret,
++    });
++
++    // Then the token is issued with correct properties
++    expect(tokenRequest.accessToken).toBe('issued-access-token');
++    expect(tokenRequest.tokenType).toBe('Bearer');
++    expect(tokenRequest.expiresIn).toBe(3600);
++  });
++});
+diff --git a/typescript/packages/auth-ts/tools/Export-Brand.ps1 b/typescript/packages/auth-ts/tools/Export-Brand.ps1
+new file mode 100644
+index 0000000..0477c6a
+--- /dev/null
++++ b/typescript/packages/auth-ts/tools/Export-Brand.ps1
+@@ -0,0 +1,99 @@
++<#
++.SYNOPSIS
++    Export the AI-coded AgilePlus SVG brand mark to PNG/JPG/ICO raster assets.
++
++.DESCRIPTION
++    AI-CODED brand pipeline: the source of truth is a hand-authored SVG
++    (assets/brand/logo.svg). No image-generation model is involved. This
++    script rasterizes that vector base into the formats consumers need:
++      - logo-<size>.png  for 16/32/48/128/256/512
++      - logo.png         (canonical 512 copy)
++      - logo.jpg         (512, white matte)
++      - app.ico          multi-resolution Windows icon (16/32/48/256)
++                         feeds the Start-Menu / desktop shortcut.
++
++    Renderer preference (matches the Civis pure-Rust SVG convention,
++    RND-016: resvg + string-templated SVG):
++      1. resvg        (cargo install resvg) - canonical, pure Rust, deterministic
++      2. rsvg-convert (librsvg)             - fallback
++      3. magick       (ImageMagick)         - fallback
++      4. cairosvg/PIL (Python)              - fallback
++    ICO + JPG assembly uses ImageMagick when present, else Python/Pillow.
++
++.PARAMETER Svg
++    Path to the source SVG. Defaults to assets/brand/logo.svg.
++
++.PARAMETER OutDir
++    Output directory. Defaults to assets/brand.
++#>
++[CmdletBinding()]
++param(
++    [string]$Svg    = (Join-Path $PSScriptRoot '..\assets\brand\logo.svg'),
++    [string]$OutDir = (Join-Path $PSScriptRoot '..\assets\brand')
++)
++
++$ErrorActionPreference = 'Stop'
++$Svg    = (Resolve-Path $Svg).Path
++$OutDir = (Resolve-Path $OutDir).Path
++$sizes  = @(16, 32, 48, 128, 256, 512)
++
++function Find-Tool([string]$name) {
++    $c = Get-Command $name -ErrorAction SilentlyContinue
++    if ($c) { return $c.Source }
++    $cargoBin = Join-Path $HOME ".cargo\bin\$name.exe"
++    if (Test-Path $cargoBin) { return $cargoBin }
++    return $null
++}
++
++$resvg = Find-Tool 'resvg'
++$rsvg  = Find-Tool 'rsvg-convert'
++$magick= Find-Tool 'magick'
++$python= Find-Tool 'python'
++
++function Convert-SvgToPng([string]$src, [string]$dst, [int]$w, [int]$h) {
++    if ($resvg)  { & $resvg  -w $w -h $h $src $dst; return }
++    if ($rsvg)   { & $rsvg   -w $w -h $h $src -o $dst; return }
++    if ($magick) { & $magick -background none -density 384 $src -resize "${w}x${h}" $dst; return }
++    if ($python) {
++        & $python -c "import cairosvg; cairosvg.svg2png(url=r'$src', write_to=r'$dst', output_width=$w, output_height=$h)"
++        return
++    }
++    throw "No SVG renderer found (resvg / rsvg-convert / magick / python+cairosvg)."
++}
++
++$activeRenderer = @($resvg, $rsvg, $magick) | Where-Object { $_ } | Select-Object -First 1
++Write-Host "Renderer: $activeRenderer"
++Write-Host "Source  : $Svg"
++
++# 1) PNGs at every size
++$pngBySize = @{}
++foreach ($s in $sizes) {
++    $dst = Join-Path $OutDir "logo-$s.png"
++    Convert-SvgToPng $Svg $dst $s $s
++    $pngBySize[$s] = $dst
++    Write-Host "  PNG  $s`tx$s -> $(Split-Path $dst -Leaf)"
++}
++Copy-Item $pngBySize[512] (Join-Path $OutDir 'logo.png') -Force
++
++# 2) JPG (white matte, 512)
++$jpg = Join-Path $OutDir 'logo.jpg'
++if ($magick) {
++    & $magick $pngBySize[512] -background white -flatten -quality 92 $jpg
++} elseif ($python) {
++    & $python -c "from PIL import Image; im=Image.open(r'$($pngBySize[512])').convert('RGBA'); bg=Image.new('RGB',im.size,(255,255,255)); bg.paste(im,mask=im.split()[3]); bg.save(r'$jpg',quality=92)"
++} else { throw 'No tool to build JPG (need magick or python+PIL).' }
++Write-Host "  JPG  -> logo.jpg"
++
++# 3) Multi-resolution ICO (16/32/48/256) for Windows shortcuts
++$ico = Join-Path $OutDir 'app.ico'
++$icoSizes = @(16, 32, 48, 256)
++if ($magick) {
++    $inputs = $icoSizes | ForEach-Object { $pngBySize[$_] }
++    & $magick $inputs $ico
++} elseif ($python) {
++    $list = ($icoSizes | ForEach-Object { "($_,$_)" }) -join ','
++    & $python -c "from PIL import Image; Image.open(r'$($pngBySize[256])').save(r'$ico', sizes=[$list])"
++} else { throw 'No tool to build ICO (need magick or python+PIL).' }
++Write-Host "  ICO  -> app.ico ($([string]::Join('/', $icoSizes)))"
++
++Write-Host "`nDone. Assets in $OutDir"
+diff --git a/typescript/packages/auth-ts/tsconfig.json b/typescript/packages/auth-ts/tsconfig.json
+new file mode 100644
+index 0000000..e95b2d1
+--- /dev/null
++++ b/typescript/packages/auth-ts/tsconfig.json
+@@ -0,0 +1,24 @@
++{
++  "compilerOptions": {
++    "target": "ES2022",
++    "module": "ESNext",
++    "moduleResolution": "Bundler",
++    "strict": true,
++    "skipLibCheck": true,
++    "outDir": "dist",
++    "rootDir": "src",
++    "declaration": true,
++    "declarationMap": true,
++    "noEmitOnError": true,
++    "noImplicitAny": true,
++    "strictNullChecks": true,
++    "strictFunctionTypes": true
++  },
++  "include": [
++    "src/**/*.ts"
++  ],
++  "exclude": [
++    "node_modules",
++    "dist"
++  ]
++}
+diff --git a/typescript/packages/auth-ts/worklog.md b/typescript/packages/auth-ts/worklog.md
+new file mode 100644
+index 0000000..e21ac0d
+--- /dev/null
++++ b/typescript/packages/auth-ts/worklog.md
+@@ -0,0 +1,16 @@
++# Worklog
++
++## 2026-04-24 — Bootstrap worklog
++
++Category: ARCHITECTURE
++
++Recent work includes feature development and implementation.
++
++### Recent Commits
++```
++7ea90c3 chore(ci): adopt phenotype-tooling quality-gate + fr-coverage
++3e195bc docs: add real spec docs (PRD, FR, ADR) (#5)
++8de1ff9 docs: add VitePress docsite with Mermaid support (#4)
++b8fdad3 docs: add real ADR.md and PRD.md from TypeScript source analysis (#3)
++8e4be3d chore: add Taskfile.yml with standard tasks (#2)
++```
+-- 
+2.50.1 (Apple Git-155)
+

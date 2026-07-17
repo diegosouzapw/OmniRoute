@@ -1,0 +1,42 @@
+name: OpenSSF Scorecard
+
+on:
+  schedule:
+    # Weekly Sunday 02:00 UTC
+    - cron: "0 2 * * 0"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  # Scorecard requires read-all for the security-events workflow
+  contents: read
+  id-token: write
+  security-events: write
+
+jobs:
+  analysis:
+    name: Scorecard Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run OpenSSF Scorecard
+        id: scorecard
+        uses: ossf/scorecard-action@05b1f9e58bc98e5e7acc9e9c1eda5dc3a7dad7a9 # v2.4.3
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@65c4c4a301dbfc281a38b4066f460083d4cc41ad # v4
+        with:
+          name: results.sarif
+          path: results.sarif
+          if-no-files-found: ignore
+
+      - name: Publish to security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@4dd1659f10ba9b9a43d8b34c4a36a8a3d8f5d62b # v3
+        with:
+          sarif_file: results.sarif

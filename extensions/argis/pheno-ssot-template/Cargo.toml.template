@@ -1,0 +1,47 @@
+[package]
+name = "{{project_slug}}"
+version = "0.1.0"
+edition = "2021"
+rust-version = "{{rust_msrv}}"
+license = "MIT OR Apache-2.0"
+description = "{{project_name}} — a pheno-* SSOT-conformant service scaffolded from pheno-ssot-template."
+repository = "https://github.com/KooshaPari/phenotype"
+keywords = ["phenotype", "pheno-ssot-template", "{{project_slug}}"]
+categories = ["api-patterns"]
+publish = false
+
+# Empty [workspace] table — same pattern as pheno-errors / pheno-tracing.
+# This crate is a standalone package, not a member of the root
+# FocalPoint/Phenotype workspace. Consumers add it to their own
+# workspace or depend on it via a path/git dep.
+[workspace]
+
+[lib]
+path = "src/lib.rs"
+
+# ---------------------------------------------------------------------------
+# SSOT layer (the 4 non-negotiable invariants, expressed as Cargo deps)
+# ---------------------------------------------------------------------------
+#
+# These four path-deps are the entire point of pheno-ssot-template.
+# They wire the new project into the fleet's:
+#   - error taxonomy (pheno-errors → AppError, 5 variants)
+#   - structured-logging convention (pheno-tracing → init / init_json)
+#   - config-loading convention (pheno-config → load::<MyConfig>())
+#   - async runtime convention (pheno-tokio-base → block_on / runtime)
+#
+# Replace the path-deps with crates.io or git refs when publishing.
+# The path-deps are the canonical source of truth during local
+# monorepo development.
+[dependencies]
+pheno-errors = { path = "../pheno-errors" }
+pheno-tracing = { path = "../pheno-tracing" }
+pheno-config = { path = "../pheno-config" }
+pheno-tokio-base = { path = "../pheno-tokio-base" }
+
+# Supporting deps — these are the minimum set required to compile
+# the placeholder skeleton. Add your project's actual deps below
+# (or in a Cargo.toml override after rendering).
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+tracing = "0.1"

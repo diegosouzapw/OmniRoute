@@ -1,0 +1,123 @@
+# pheno-secret-scan Justfile
+# Fleet-standard task runner (DAG stage 4)
+# See FLEET_100TASK_DAG.md for context.
+set shell := ["bash", "-cu"]
+
+default:
+    @just --list
+
+# Verify YAML workflow syntax
+check-yaml:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if command -v python3 >/dev/null 2>&1; then
+        python3 -c "
+import yaml, sys, glob
+files = glob.glob('.github/workflows/*.yml')
+if not files:
+    print('::notice::No workflow files found')
+    sys.exit(0)
+for f in files:
+    try:
+        yaml.safe_load(open(f))
+        print(f'✓ {f}')
+    except yaml.YAMLError as e:
+        print(f'✗ {f}: {e}')
+        sys.exit(1)
+"
+    else
+        echo "python3 not available; skipping YAML validation"
+    fi
+
+# Verify pre-commit hooks YAML
+check-hooks:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if command -v python3 >/dev/null 2>&1 && [ -f .pre-commit-hooks.yaml ]; then
+        python3 -c "
+import yaml, sys
+try:
+    data = yaml.safe_load(open('.pre-commit-hooks.yaml'))
+    print(f'✓ .pre-commit-hooks.yaml ({len(data)} hook(s))')
+except yaml.YAMLError as e:
+    print(f'✗ .pre-commit-hooks.yaml: {e}')
+    sys.exit(1)
+"
+    fi
+
+# Run all available checks
+check: check-yaml check-hooks
+
+# Tier-0 hygiene: secret scanning (mirrors .github/workflows/secret-scan.yml)
+audit:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if command -v trufflehog >/dev/null 2>&1; then
+        trufflehog filesystem . --results=verified --no-update
+    else
+        echo "trufflehog not installed; install with: brew install trufflehog"
+        exit 1
+    fi
+
+# Tier-0 hygiene: dependency policy (forward-compatible)
+deny:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -f Cargo.toml ] && command -v cargo-deny >/dev/null 2>&1; then
+        cargo deny check
+    elif [ -f go.mod ]; then
+        go mod verify
+        if ! command -v govulncheck >/dev/null 2>&1; then
+            echo "installing govulncheck..."
+            go install golang.org/x/vuln/cmd/govulncheck@latest
+        fi
+        govulncheck ./...
+    else
+        echo "no supported dependency policy toolchain found (expected: no-op on config-only repo)"
+    fi
+
+# Tier-0 hygiene: full grade
+grade:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -x ./grade.sh ]; then
+        ./grade.sh
+    else
+        just check
+        just deny
+        just audit
+    fi
+
+# Lint workflow files with actionlint (if available)
+lint:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if command -v actionlint >/dev/null 2>&1; then
+        actionlint
+    else
+        echo "actionlint not installed; install with: brew install actionlint"
+        exit 1
+    fi
+
+# Validate allowlist format
+validate-allowlist:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -f .trufflehog-allowlist.txt ]; then
+        # Allowlist should be empty or contain only detector IDs + comments
+        while IFS= read -r line; do
+            # Skip comment lines and empty lines
+            [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
+            # Each non-comment line should be a single token
+            tokens=($line)
+            if [ ${#tokens[@]} -gt 1 ]; then
+                echo "✗ invalid allowlist entry (multiple tokens): $line"
+                exit 1
+            fi
+        done < .trufflehog-allowlist.txt
+        echo "✓ .trufflehog-allowlist.txt format OK"
+    else
+        echo "::notice::No allowlist file found"
+    fi
+
+ci: check lint validate-allowlist

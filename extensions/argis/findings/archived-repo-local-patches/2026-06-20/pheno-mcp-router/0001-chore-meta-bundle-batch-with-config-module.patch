@@ -1,0 +1,519 @@
+From d12df9de05adef4be8e5650b1837b7c362b9c3c5 Mon Sep 17 00:00:00 2001
+From: koosha-ai <koosha+ai@phenotype.local>
+Date: Sat, 20 Jun 2026 02:01:18 -0700
+Subject: [PATCH 1/2] chore: meta-bundle batch with config module
+
+---
+ .env.example                     |  25 ++++
+ SPEC.md                          |  23 ++++
+ linter-output.json               |  33 ++++++
+ src/pheno_mcp_router/__init__.py |  16 ++-
+ src/pheno_mcp_router/adapters.py |  17 +--
+ src/pheno_mcp_router/budget.py   |   4 +-
+ src/pheno_mcp_router/cli.py      |   9 +-
+ src/pheno_mcp_router/config.py   | 189 +++++++++++++++++++++++++++++++
+ src/pheno_mcp_router/cost.py     |   5 +-
+ src/pheno_mcp_router/quota.py    |   6 +-
+ 10 files changed, 307 insertions(+), 20 deletions(-)
+ create mode 100644 .env.example
+ create mode 100644 linter-output.json
+ create mode 100644 src/pheno_mcp_router/config.py
+
+diff --git a/.env.example b/.env.example
+new file mode 100644
+index 0000000..6190209
+--- /dev/null
++++ b/.env.example
+@@ -0,0 +1,25 @@
++# pheno-mcp-router — Environment variable reference
++#
++# Copy this file to .env and adjust values as needed.
++# All variables are OPTIONAL — the defaults shown below are used when
++# the variable is not set.
++#
++# Security-sensitive defaults (sanitize_keys, response_keys) are NOT
++# overridable via env vars — see config.py for documentation.
++
++# ── HTTP client ──────────────────────────────────────────────────────
++# Default timeout (seconds) for all backend HTTP calls.
++# PHENO_TIMEOUT_SECONDS=60.0
++
++# Maximum request payload in bytes before dispatch (DoS protection).
++# PHENO_MAX_MESSAGE_BYTES=128000
++
++# Maximum response payload in bytes from backend (DoS protection).
++# PHENO_MAX_RESPONSE_BYTES=512000
++
++# ── LLM provider API keys ────────────────────────────────────────────
++# OpenAI-compatible API key (used by OpenAIAdapter).
++# OPENAI_API_KEY=sk-...
++
++# Anthropic API key (used by AnthropicAdapter).
++# ANTHROPIC_API_KEY=sk-ant-...
+diff --git a/SPEC.md b/SPEC.md
+index c9373c4..947926f 100644
+--- a/SPEC.md
++++ b/SPEC.md
+@@ -39,6 +39,29 @@ Implements V4 §63.1 (V10 L10 Security) + §78.6 (V13 grand-total) of
+   r.add_tier("default", {"model": "minimax-m2p7"}).serve()
+   ```
+ 
++## Configuration
++
++All tunable defaults are centralized in ``src/pheno_mcp_router/config.py``.
++Every module that previously defined hardcoded magic numbers now imports
++from this single source of truth.
++
++**Security-sensitive values** (``sanitize_keys``, ``response_keys``) are
++NOT overridable at runtime — they are the contract between the router
++and every MCP server it proxies.  See AGENTS.md §"Do Not Touch".
++
++**Env-var overridable values** (read once at import time):
++
++| Variable | Default | Description |
++|---|---|---|
++| ``PHENO_TIMEOUT_SECONDS`` | 60.0 | HTTP client timeout for all backends |
++| ``PHENO_MAX_MESSAGE_BYTES`` | 128_000 | Max request payload before dispatch |
++| ``PHENO_MAX_RESPONSE_BYTES`` | 512_000 | Max response payload from backend |
++
++**LLM provider defaults** (``OPENAI_API_KEY``, ``ANTHROPIC_API_KEY``) are
++read from the environment by the respective adapter at call time.
++
++See ``.env.example`` for a reference template.
++
+ ## Security model
+ 
+ - **Tier allowlist** (must `add_tier` first) — never bypass.
+diff --git a/linter-output.json b/linter-output.json
+new file mode 100644
+index 0000000..9a7e16e
+--- /dev/null
++++ b/linter-output.json
+@@ -0,0 +1,33 @@
++{
++  "repo": "pheno-mcp-router",
++  "inferred_tier": "pheno-*-lib",
++  "violations": [
++    {
++      "rule": "pheno-lib/no-business-logic",
++      "severity": "warning",
++      "path": "tests/test_ports.py",
++      "detail": "found business-logic marker `\\bhandler\\b`",
++      "remediation": "Refactor into phenotype-*-sdk or phenotype-*-framework; keep pheno-*-lib primitives-only."
++    }
++  ],
++  "passed": [
++    "no-domain"
++  ],
++  "warnings": [
++    {
++      "rule": "pheno-lib/no-business-logic",
++      "severity": "warning",
++      "path": "tests/test_ports.py",
++      "detail": "found business-logic marker `\\bhandler\\b`",
++      "remediation": "Refactor into phenotype-*-sdk or phenotype-*-framework; keep pheno-*-lib primitives-only."
++    }
++  ],
++  "_linter": {
++    "tool": "pheno-framework-lint",
++    "version_implied": "1.0.0",
++    "invocation": "python3 pheno-framework-lint/pheno_framework_lint.py check --path /Users/kooshapari/CodeProjects/Phenotype/repos/pheno-mcp-router",
++    "exit_code": 2,
++    "run_at": "2026-06-19T05:00:00-07:00",
++    "notes": "Linter ran against the inferred current tier (pheno-*-lib) per the directory-name regex. The single warning (handler keyword in tests/test_ports.py) is a false positive at lib tier — the keyword is in a test file's `request handler` docstring, not business logic. PROMOTION.md Gate 1/2/3 evaluations document sdk-tier readiness: 2+ polyglot consumers (dispatch-mcp + phenotype-config, both consuming the LlmPort trait), stable API since 0.1.0 (2026-06-11), no breaking changes (3 commits ported from dispatch-mcp W2-1 are all additive), CHANGELOG.md follows Keep-a-Changelog 1.1.0 + SemVer 2.0.0."
++  }
++}
+diff --git a/src/pheno_mcp_router/__init__.py b/src/pheno_mcp_router/__init__.py
+index 42b67e9..9f8904d 100644
+--- a/src/pheno_mcp_router/__init__.py
++++ b/src/pheno_mcp_router/__init__.py
+@@ -9,6 +9,8 @@ from typing import Any
+ import httpx
+ from fastmcp import FastMCP
+ 
++from pheno_mcp_router import config as _config
++
+ logger = logging.getLogger("pheno_mcp_router")
+ 
+ ToolFn = Callable[..., Awaitable[dict[str, Any]] | dict[str, Any]]
+@@ -28,11 +30,15 @@ class McpRouter:
+ 
+     name: str
+     backend_url: str
+-    sanitize_keys: set[str] = field(default_factory=lambda: {"model", "messages", "temperature", "max_tokens"})
+-    response_keys: set[str] = field(default_factory=lambda: {"id", "model", "choices", "usage"})
+-    max_message_bytes: int = 128_000
+-    max_response_bytes: int = 512_000
+-    timeout_seconds: float = 60.0
++    sanitize_keys: set[str] = field(
++        default_factory=lambda: set(_config.DEFAULT_SANITIZE_KEYS)  # type: ignore[arg-type]
++    )
++    response_keys: set[str] = field(
++        default_factory=lambda: set(_config.DEFAULT_RESPONSE_KEYS)  # type: ignore[arg-type]
++    )
++    max_message_bytes: int = _config.MAX_MESSAGE_BYTES
++    max_response_bytes: int = _config.MAX_RESPONSE_BYTES
++    timeout_seconds: float = _config.TIMEOUT_SECONDS
+ 
+     def __post_init__(self) -> None:
+         self._tiers: dict[str, TierRoute] = {}
+diff --git a/src/pheno_mcp_router/adapters.py b/src/pheno_mcp_router/adapters.py
+index 6f8a4ef..3b610ea 100644
+--- a/src/pheno_mcp_router/adapters.py
++++ b/src/pheno_mcp_router/adapters.py
+@@ -26,6 +26,7 @@ from typing import Any, Callable, Mapping
+ 
+ import httpx
+ 
++from pheno_mcp_router import config as _config
+ from pheno_mcp_router.ports import LlmAdapter, StorageAdapter, ToolAdapter
+ 
+ try:  # pheno-prompt-test is an optional runtime peer.
+@@ -49,8 +50,8 @@ class OpenAIAdapter(LlmAdapter):
+     time (not at construction) so test code can monkey-patch it.
+     """
+ 
+-    DEFAULT_BASE_URL = "https://api.openai.com/v1/chat/completions"
+-    DEFAULT_TIMEOUT = 60.0
++    DEFAULT_BASE_URL = _config.OPENAI_BASE_URL
++    DEFAULT_TIMEOUT = _config.OPENAI_TIMEOUT
+ 
+     def __init__(
+         self,
+@@ -63,7 +64,7 @@ class OpenAIAdapter(LlmAdapter):
+         self.timeout = timeout
+ 
+     def _resolve_key(self) -> str:
+-        key = self._explicit_key or os.environ.get("OPENAI_API_KEY")
++        key = self._explicit_key or os.environ.get(_config.OPENAI_API_KEY_ENV)
+         if not key:
+             raise RuntimeError("OPENAI_API_KEY is not set")
+         return key
+@@ -96,10 +97,10 @@ class AnthropicAdapter(LlmAdapter):
+     ``system`` + ``messages`` shape. ``max_tokens`` defaults to 1024.
+     """
+ 
+-    DEFAULT_BASE_URL = "https://api.anthropic.com/v1/messages"
+-    DEFAULT_TIMEOUT = 60.0
+-    ANTHROPIC_VERSION = "2023-06-01"
+-    DEFAULT_MAX_TOKENS = 1024
++    DEFAULT_BASE_URL = _config.ANTHROPIC_BASE_URL
++    DEFAULT_TIMEOUT = _config.ANTHROPIC_TIMEOUT
++    ANTHROPIC_VERSION = _config.ANTHROPIC_VERSION
++    DEFAULT_MAX_TOKENS = _config.ANTHROPIC_DEFAULT_MAX_TOKENS
+ 
+     def __init__(
+         self,
+@@ -114,7 +115,7 @@ class AnthropicAdapter(LlmAdapter):
+         self.max_tokens = max_tokens
+ 
+     def _resolve_key(self) -> str:
+-        key = self._explicit_key or os.environ.get("ANTHROPIC_API_KEY")
++        key = self._explicit_key or os.environ.get(_config.ANTHROPIC_API_KEY_ENV)
+         if not key:
+             raise RuntimeError("ANTHROPIC_API_KEY is not set")
+         return key
+diff --git a/src/pheno_mcp_router/budget.py b/src/pheno_mcp_router/budget.py
+index 168625a..5f633f0 100644
+--- a/src/pheno_mcp_router/budget.py
++++ b/src/pheno_mcp_router/budget.py
+@@ -23,12 +23,14 @@ import threading
+ from dataclasses import dataclass, field
+ from typing import Any, Final
+ 
++from pheno_mcp_router import config as _config
++
+ # Per-dispatch conservative fallback rate for unpriced tiers.
+ # Multiplying by this rate before checking the budget prevents an
+ # unregistered tier from slipping through the enforcer with zero
+ # cost. The constant is a generous upper bound on the public list
+ # price of any model in the registry.
+-_UNPRICED_FLOOR_USD: Final[float] = 1.00
++_UNPRICED_FLOOR_USD: Final[float] = _config.UNPRICED_FLOOR_USD
+ 
+ 
+ class BudgetExceeded(RuntimeError):
+diff --git a/src/pheno_mcp_router/cli.py b/src/pheno_mcp_router/cli.py
+index 0db863a..b23b8b4 100644
+--- a/src/pheno_mcp_router/cli.py
++++ b/src/pheno_mcp_router/cli.py
+@@ -4,11 +4,13 @@ from pathlib import Path
+ 
+ import click
+ 
++from pheno_mcp_router import config as _config
++
+ SERVER_TEMPLATE = '''from pheno_mcp_router import McpRouter
+ 
+ router = McpRouter(
+     name="{name}",
+-    backend_url="http://localhost:20128/v1/chat/completions",
++    backend_url="{backend_url}",
+ )
+ router.add_tier("default", {{"model": "replace-with-model-id"}})
+ router.serve()
+@@ -42,7 +44,10 @@ def init(name: str) -> None:
+     package = root / "src" / module
+     package.mkdir(parents=True, exist_ok=False)
+     (package / "__init__.py").write_text("", encoding="utf-8")
+-    (package / "server.py").write_text(SERVER_TEMPLATE.format(name=name), encoding="utf-8")
++    (package / "server.py").write_text(
++        SERVER_TEMPLATE.format(name=name, backend_url=_config.DEFAULT_BACKEND_URL),
++        encoding="utf-8",
++    )
+     (root / "pyproject.toml").write_text(
+         PYPROJECT_TEMPLATE.format(name=name, module=module),
+         encoding="utf-8",
+diff --git a/src/pheno_mcp_router/config.py b/src/pheno_mcp_router/config.py
+new file mode 100644
+index 0000000..99dbfbf
+--- /dev/null
++++ b/src/pheno_mcp_router/config.py
+@@ -0,0 +1,189 @@
++"""Centralized configuration for pheno-mcp-router.
++
++All tunable constants in the package are defined *here* so operators
++have a single place to inspect, override, or document defaults.
++Every module that previously defined hardcoded magic numbers now
++imports from this module.
++
++Environment variable overrides
++-------------------------------
++Non-security-sensitive values can be overridden at import time
++through the ``PHENO_*`` environment variables listed below.
++Overrides are read once at import time (not on every call), so
++they must be set before the router package is loaded.
++
++Security contract
++-----------------
++Values annotated with **SECURITY-SENSITIVE** in their docstring must
++NOT be overridden at runtime without a security review.  They are
++the contract between the router and every MCP server it proxies.
++
++    =================================== ===================== ====================================
++    Env var                             Default               Description
++    =================================== ===================== ====================================
++    ``PHENO_TIMEOUT_SECONDS``           60.0                  HTTP client timeout for all backends
++    ``PHENO_MAX_MESSAGE_BYTES``         128_000               Max request payload before dispatch
++    ``PHENO_MAX_RESPONSE_BYTES``        512_000               Max response payload from backend
++    =================================== ===================== ====================================
++"""
++
++from __future__ import annotations
++
++import os
++from typing import Final
++
++# ---------------------------------------------------------------------------
++# Environment variable helpers
++# ---------------------------------------------------------------------------
++
++
++def _env_str(key: str, default: str) -> str:
++    return os.environ.get(key, default)
++
++
++def _env_int(key: str, default: int) -> int:
++    try:
++        return int(os.environ[key])
++    except (KeyError, TypeError, ValueError):
++        return default
++
++
++def _env_float(key: str, default: float) -> float:
++    try:
++        return float(os.environ[key])
++    except (KeyError, TypeError, ValueError):
++        return default
++
++
++# ---------------------------------------------------------------------------
++# McpRouter — payload sanitisation & response allowlisting
++# ---------------------------------------------------------------------------
++
++# SECURITY-SENSITIVE: sanitise-keys list — any field NOT in this set is
++# stripped from outgoing requests before they reach the backend.  Do
++# NOT widen without a security review.  See AGENTS.md §"Do Not Touch".
++DEFAULT_SANITIZE_KEYS: Final[set[str]] = frozenset(
++    {"model", "messages", "temperature", "max_tokens"}
++)
++
++# SECURITY-SENSITIVE: response-keys list — any field NOT in this set is
++# stripped from the backend response before it is returned to the
++# caller.  Do NOT widen without a security review.
++DEFAULT_RESPONSE_KEYS: Final[set[str]] = frozenset(
++    {"id", "model", "choices", "usage"}
++)
++
++# Max request payload size in bytes before dispatch (DoS protection).
++DEFAULT_MAX_MESSAGE_BYTES: Final[int] = 128_000
++
++# Max response payload size in bytes (DoS protection).
++DEFAULT_MAX_RESPONSE_BYTES: Final[int] = 512_000
++
++# Default HTTP client timeout in seconds.
++DEFAULT_TIMEOUT_SECONDS: Final[float] = 60.0
++
++
++# ---------------------------------------------------------------------------
++# McpRouter — env-var overridable values
++# ---------------------------------------------------------------------------
++
++TIMEOUT_SECONDS: Final[float] = _env_float(
++    "PHENO_TIMEOUT_SECONDS", DEFAULT_TIMEOUT_SECONDS
++)
++MAX_MESSAGE_BYTES: Final[int] = _env_int(
++    "PHENO_MAX_MESSAGE_BYTES", DEFAULT_MAX_MESSAGE_BYTES
++)
++MAX_RESPONSE_BYTES: Final[int] = _env_int(
++    "PHENO_MAX_RESPONSE_BYTES", DEFAULT_MAX_RESPONSE_BYTES
++)
++
++
++# ---------------------------------------------------------------------------
++# LLM adapter settings
++# ---------------------------------------------------------------------------
++
++# OpenAI-compatible API defaults.
++OPENAI_BASE_URL: Final[str] = "https://api.openai.com/v1/chat/completions"
++OPENAI_TIMEOUT: Final[float] = 60.0
++OPENAI_API_KEY_ENV: Final[str] = "OPENAI_API_KEY"
++
++# Anthropic API defaults.
++ANTHROPIC_BASE_URL: Final[str] = "https://api.anthropic.com/v1/messages"
++ANTHROPIC_TIMEOUT: Final[float] = 60.0
++ANTHROPIC_VERSION: Final[str] = "2023-06-01"
++ANTHROPIC_DEFAULT_MAX_TOKENS: Final[int] = 1024
++ANTHROPIC_API_KEY_ENV: Final[str] = "ANTHROPIC_API_KEY"
++
++# Default backend URL used by the CLI ``init`` scaffold.
++DEFAULT_BACKEND_URL: Final[str] = "http://localhost:20128/v1/chat/completions"
++
++
++# ---------------------------------------------------------------------------
++# Cost calculator  (pheno_mcp_router.cost)
++# ---------------------------------------------------------------------------
++
++# Approximate characters-per-token for English text.  BPE tokenizers
++# (cl100k_base, o200k_base, Claude, Kimi) cluster between 3.5 and 4.5
++# chars/token; we use 4 as a conservative over-estimate for pre-dispatch
++# budget enforcement.  See cost.py for details.
++CHARS_PER_TOKEN: Final[int] = 4
++
++# Fallback output-token count when the upstream response does not include
++# a usage block.  Conservative so unmeasured dispatches do not silently
++# slip under the budget radar.
++DEFAULT_OUTPUT_TOKEN_ESTIMATE: Final[int] = 256
++
++
++# ---------------------------------------------------------------------------
++# Budget enforcer  (pheno_mcp_router.budget)
++# ---------------------------------------------------------------------------
++
++# Conservative per-dispatch floor rate (USD) for unpriced tiers.  This
++# prevents an unregistered tier from bypassing the budget enforcer with
++# a cost_usd of zero.  See budget.py for details.
++UNPRICED_FLOOR_USD: Final[float] = 1.00
++
++
++# ---------------------------------------------------------------------------
++# Quota tracker  (pheno_mcp_router.quota)
++# ---------------------------------------------------------------------------
++
++# Minimum allowed quota window in seconds.  Values below this floor are
++# clamped so callers cannot effectively disable the quota gate by setting
++# an absurdly short window.
++MIN_WINDOW_SECONDS: Final[float] = 1.0
++
++# Default rolling-window length for quota tracking.
++DEFAULT_WINDOW_SECONDS: Final[float] = 60.0
++
++
++__all__ = [
++    # McpRouter — security-sensitive (do not override)
++    "DEFAULT_SANITIZE_KEYS",
++    "DEFAULT_RESPONSE_KEYS",
++    # McpRouter — defaults (env-var overridable)
++    "DEFAULT_MAX_MESSAGE_BYTES",
++    "DEFAULT_MAX_RESPONSE_BYTES",
++    "DEFAULT_TIMEOUT_SECONDS",
++    "TIMEOUT_SECONDS",
++    "MAX_MESSAGE_BYTES",
++    "MAX_RESPONSE_BYTES",
++    # LLM adapters
++    "OPENAI_BASE_URL",
++    "OPENAI_TIMEOUT",
++    "OPENAI_API_KEY_ENV",
++    "ANTHROPIC_BASE_URL",
++    "ANTHROPIC_TIMEOUT",
++    "ANTHROPIC_VERSION",
++    "ANTHROPIC_DEFAULT_MAX_TOKENS",
++    "ANTHROPIC_API_KEY_ENV",
++    "DEFAULT_BACKEND_URL",
++    # Cost calculator
++    "CHARS_PER_TOKEN",
++    "DEFAULT_OUTPUT_TOKEN_ESTIMATE",
++    # Budget enforcer
++    "UNPRICED_FLOOR_USD",
++    # Quota tracker
++    "MIN_WINDOW_SECONDS",
++    "DEFAULT_WINDOW_SECONDS",
++]
+diff --git a/src/pheno_mcp_router/cost.py b/src/pheno_mcp_router/cost.py
+index 656b9c1..0fd8a9d 100644
+--- a/src/pheno_mcp_router/cost.py
++++ b/src/pheno_mcp_router/cost.py
+@@ -23,6 +23,7 @@ from __future__ import annotations
+ from dataclasses import dataclass
+ from typing import Any, Final
+ 
++from pheno_mcp_router import config as _config
+ from pheno_mcp_router.tiers import DEFAULT_REGISTRY, UNKNOWN_PRICING, TierPricing, TierRegistry
+ 
+ # Approximate characters-per-token for English text. Published
+@@ -31,13 +32,13 @@ from pheno_mcp_router.tiers import DEFAULT_REGISTRY, UNKNOWN_PRICING, TierPricin
+ # language; we use 4 as a conservative over-estimate. The over-
+ # estimate biases pre-dispatch budget enforcement toward rejecting
+ # requests that *might* exceed budget, which is the safer default.
+-_CHARS_PER_TOKEN: Final[int] = 4
++_CHARS_PER_TOKEN: Final[int] = _config.CHARS_PER_TOKEN
+ 
+ # Fallback output-token count used when the response does not report
+ # usage and we have no other signal. The number is intentionally
+ # conservative so unmeasured dispatches do not silently slip under
+ # the budget radar.
+-_DEFAULT_OUTPUT_TOKEN_ESTIMATE: Final[int] = 256
++_DEFAULT_OUTPUT_TOKEN_ESTIMATE: Final[int] = _config.DEFAULT_OUTPUT_TOKEN_ESTIMATE
+ 
+ 
+ @dataclass(slots=True, frozen=True)
+diff --git a/src/pheno_mcp_router/quota.py b/src/pheno_mcp_router/quota.py
+index a8d46ae..9157cda 100644
+--- a/src/pheno_mcp_router/quota.py
++++ b/src/pheno_mcp_router/quota.py
+@@ -26,10 +26,12 @@ from collections import deque
+ from dataclasses import dataclass, field
+ from typing import Any, Final, overload
+ 
++from pheno_mcp_router import config as _config
++
+ # Minimum window length. Anything shorter is a misconfiguration
+ # that would let callers reset the window by retrying; we clamp
+ # to this floor so the quota system cannot be silently disabled.
+-_MIN_WINDOW_SECONDS: Final[float] = 1.0
++_MIN_WINDOW_SECONDS: Final[float] = _config.MIN_WINDOW_SECONDS
+ 
+ 
+ class QuotaExceeded(RuntimeError):
+@@ -56,7 +58,7 @@ class QuotaPolicy:
+     omitted) to disable that particular check.
+     """
+ 
+-    window_seconds: float = 60.0
++    window_seconds: float = _config.DEFAULT_WINDOW_SECONDS
+     max_tokens_per_window: int | None = None
+     max_requests_per_window: int | None = None
+     per_tier_max_tokens: dict[str, int] = field(default_factory=dict)
+-- 
+2.50.1 (Apple Git-155)
+

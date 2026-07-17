@@ -1,0 +1,153 @@
+version: "3"
+
+vars:
+  BUILD_ARTIFACTS: bin dist coverage.out coverage.html .coverage
+  GO_ROOT_BUILD_TARGETS: ./cmd/bifrost ./cmd/bifrost-enhanced
+  GO_BUILD_FLAGS: ./...
+  GO_TEST_FLAGS: ./...
+  GO_CLEAN_FLAGS: -testcache -fuzzcache
+  GOLANGCI_LINT_ARGS: run --timeout 5m ./...
+  PYTEST_ARGS:
+  RUFF_CHECK_ARGS: .
+  GO_MODULES:
+    sh: find . -name go.mod -not -path "./.git/*" -exec dirname {} \; | sort | tr "\n" " "
+  PYTHON_PROJECTS:
+    sh: find . -name pyproject.toml -not -path "./.git/*" -exec dirname {} \; | sort | tr "\n" " "
+
+tasks:
+  default:
+    desc: Build all detected projects
+    cmds:
+      - task: build
+
+  detect:
+    desc: Print detected project languages and roots
+    cmds:
+      - |
+        set -e
+        detected=false
+        if [ -n "{{.GO_MODULES}}" ]; then
+          detected=true
+          echo "go modules: {{.GO_MODULES}}"
+        fi
+        if [ -n "{{.PYTHON_PROJECTS}}" ]; then
+          detected=true
+          echo "python projects: {{.PYTHON_PROJECTS}}"
+        fi
+        if [ "${detected}" = false ]; then
+          echo "language: unknown"
+        fi
+
+  build:
+    desc: Build all detected projects
+    cmds:
+      - |
+        set -e
+        for module in {{.GO_MODULES}}; do
+          echo "Building ${module}"
+          if [ "${module}" = "." ]; then
+            mkdir -p bin
+            for target in {{.GO_ROOT_BUILD_TARGETS}}; do
+              name="$(basename "${target}")"
+              go build -o "bin/${name}" "${target}"
+            done
+          else
+            (cd "${module}" && go build {{.GO_BUILD_FLAGS}})
+          fi
+        done
+        for project in {{.PYTHON_PROJECTS}}; do
+          echo "Building ${project}"
+          if command -v uv >/dev/null 2>&1; then
+            (cd "${project}" && uv build)
+          else
+            (cd "${project}" && python -m build)
+          fi
+        done
+
+  test:
+    desc: Run tests for all detected projects
+    cmds:
+      - |
+        set -e
+        for module in {{.GO_MODULES}}; do
+          echo "Testing ${module}"
+          (cd "${module}" && go test {{.GO_TEST_FLAGS}})
+        done
+        for project in {{.PYTHON_PROJECTS}}; do
+          echo "Testing ${project}"
+          if command -v uv >/dev/null 2>&1; then
+            (cd "${project}" && uv run pytest {{.PYTEST_ARGS}})
+          else
+            (cd "${project}" && python -m pytest {{.PYTEST_ARGS}})
+          fi
+        done
+
+  lint:
+    desc: Run lint checks for all detected projects
+    cmds:
+      - |
+        set -e
+        for module in {{.GO_MODULES}}; do
+          echo "Linting ${module}"
+          if command -v golangci-lint >/dev/null 2>&1; then
+            (cd "${module}" && golangci-lint {{.GOLANGCI_LINT_ARGS}})
+          else
+            (cd "${module}" && go vet {{.GO_TEST_FLAGS}})
+          fi
+        done
+        for project in {{.PYTHON_PROJECTS}}; do
+          echo "Linting ${project}"
+          if command -v uv >/dev/null 2>&1; then
+            (cd "${project}" && uv run ruff check {{.RUFF_CHECK_ARGS}})
+          else
+            (cd "${project}" && python -m ruff check {{.RUFF_CHECK_ARGS}})
+          fi
+        done
+
+  clean:
+    desc: Clean local build artifacts and test caches
+    cmds:
+      - |
+        set -e
+        for module in {{.GO_MODULES}}; do
+          echo "Cleaning ${module}"
+          (cd "${module}" && go clean {{.GO_CLEAN_FLAGS}})
+        done
+        for project in {{.PYTHON_PROJECTS}}; do
+          echo "Cleaning ${project}"
+          rm -rf "${project}/dist" "${project}/build" "${project}"/*.egg-info
+          find "${project}" -type d \( -name __pycache__ -o -name .pytest_cache -o -name .ruff_cache \) -prune -exec rm -rf {} +
+        done
+        rm -rf {{.BUILD_ARTIFACTS}}
+
+  grade:
+    desc: Full grade (strictest — no caching)
+    cmds:
+      - ./grade.sh
+
+  grade-fast:
+    desc: Fast grade (skips heavy checks)
+    cmds:
+      - ./grade.sh --fast
+
+  grade-json:
+    desc: Grade with JSON output
+    cmds:
+      - ./grade.sh --json
+
+  grade-html:
+    desc: Grade with HTML report
+    cmds:
+      - ./grade.sh --html
+
+  install-lefthook:
+    desc: Install lefthook git hooks
+    cmds:
+      - lefthook install
+    status:
+      - test -f .git/hooks/lefthook
+
+  coverage:
+    desc: Measure code coverage (SSOT: see grade.sh for the canonical command).
+    cmds:
+      - go test -coverprofile=coverage.out -covermode=atomic ./... && go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//' | awk '{exit($1 < 85 ? 1 : 0)}'

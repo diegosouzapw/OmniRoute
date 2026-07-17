@@ -1,0 +1,159 @@
+# Routing and policy types
+
+type RoutingHistory {
+  id: ID!
+  timestamp: Time!
+  
+  # Request info
+  sessionId: String
+  userId: String
+  projectId: String
+  
+  # Input
+  promptHash: String!  # Hashed for privacy
+  promptLength: Int!
+  capabilities: [Capability!]!
+  
+  # Decision
+  selectedModel: Model!
+  alternatives: [RoutingAlternative!]!
+  confidence: Float64!
+  reasoning: String!
+  
+  # Metadata
+  strategies: [String!]!
+  voterScores: JSON
+  taskType: String!
+  domain: String!
+  
+  # Performance
+  routingLatencyMs: Int!
+  totalLatencyMs: Int
+  success: Boolean!
+  
+  # Feedback
+  feedback: RoutingFeedback
+}
+
+type RoutingAlternative {
+  model: Model!
+  score: Float64!
+  reason: String!
+}
+
+type RoutingFeedback {
+  rating: Int          # 1-5
+  correct: Boolean
+  preferredModel: Model
+  comment: String
+  providedAt: Time!
+}
+
+type RoutingHistoryConnection {
+  nodes: [RoutingHistory!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+# Real-time routing events
+type RoutingEvent {
+  id: ID!
+  timestamp: Time!
+  sessionId: String
+  
+  type: RoutingEventType!
+  
+  # For DECISION events
+  decision: RoutingDecision
+  
+  # For FEEDBACK events
+  feedback: RoutingFeedback
+}
+
+enum RoutingEventType {
+  DECISION
+  FALLBACK
+  ERROR
+  FEEDBACK
+}
+
+type RoutingDecision {
+  model: Model!
+  confidence: Float64!
+  taskType: String!
+  strategies: [String!]!
+  latencyMs: Int!
+}
+
+# Policy types
+type Policy {
+  id: ID!
+  name: String!
+  description: String
+  type: PolicyType!
+  
+  # Status
+  active: Boolean!
+  priority: Int!  # Higher = more important
+  
+  # Conditions
+  conditions: [PolicyCondition!]!
+  
+  # Actions
+  actions: [PolicyAction!]!
+  
+  # Scope
+  scope: PolicyScope!
+  
+  # Audit
+  createdBy: String!
+  createdAt: Time!
+  updatedAt: Time!
+  appliedCount: Int!
+  lastApplied: Time
+}
+
+type PolicyCondition {
+  field: String!           # e.g., "taskType", "cost", "user"
+  operator: String!        # e.g., "equals", "gt", "contains"
+  value: JSON!
+}
+
+type PolicyAction {
+  type: String!            # e.g., "prefer_model", "exclude_provider", "set_limit"
+  parameters: JSON!
+}
+
+type PolicyScope {
+  users: [String!]
+  projects: [String!]
+  global: Boolean!
+}
+
+input PolicyInput {
+  name: String!
+  description: String
+  type: PolicyType!
+  priority: Int = 0
+  conditions: [PolicyConditionInput!]!
+  actions: [PolicyActionInput!]!
+  scope: PolicyScopeInput!
+}
+
+input PolicyConditionInput {
+  field: String!
+  operator: String!
+  value: JSON!
+}
+
+input PolicyActionInput {
+  type: String!
+  parameters: JSON!
+}
+
+input PolicyScopeInput {
+  users: [String!]
+  projects: [String!]
+  global: Boolean = false
+}
+

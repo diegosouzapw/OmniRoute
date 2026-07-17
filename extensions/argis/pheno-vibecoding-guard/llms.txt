@@ -1,0 +1,29 @@
+# `pheno-vibecoding-guard`
+
+> Static guard rails for AI-assisted coding sessions. Catches hallucinated imports, missing type annotations, and prompt-injection-shaped comments.
+
+## Docs
+
+- [README](README.md): what / when / when not
+- [SPEC](SPEC.md): rule registry + API surface + quickstart
+- [AGENTS](AGENTS.md): substrate scope + cross-references
+
+## Reference
+
+- [ADR-023 (substrate)](https://example.com/phenotype-apps/docs/adr/2026-06-15/ADR-023-agent-effort-governance.md): lib substrate placement rule
+- [ADR-040 (coverage)](https://example.com/phenotype-apps/docs/adr/2026-06-18/ADR-040-test-coverage-gates-per-tier.md): 80% lib gate
+- [Rule registry](SPEC.md#rule-registry): full rule list
+
+## Releases
+
+- [CHANGELOG](CHANGELOG.md): Keep a Changelog format
+- [WORKLOG](WORKLOG.md): v2.1 schema (Date | Task ID | Layer | Action | Files | Notes | device)
+
+## Source
+
+- [Repo](https://github.com/KooshaPari/phenotype-apps/tree/main/pheno-vibecoding-guard): governance + meta-bundle path in the monorepo
+- [src/](src/pheno_vibecoding_guard/): executable Python source
+
+## Examples
+
+- [quickstart](examples/quickstart.py): 5-line demo

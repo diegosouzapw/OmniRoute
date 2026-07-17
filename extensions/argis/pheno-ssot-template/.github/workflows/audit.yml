@@ -1,0 +1,54 @@
+name: Security audit
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # every Monday 06:00 UTC
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+# Read-only token by default; jobs that need more override per-step.
+permissions:
+  contents: read
+
+jobs:
+  cargo-deny:
+    name: cargo deny check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@29eef336baff0bc7e02a46cb6b88fa9b9b6e2375  # stable
+        with:
+          toolchain: stable
+
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@62ab3351e0ab9dab627c2961bee7ad08dcb0c914  # v2
+        with:
+          tool: cargo-deny
+
+      - name: cargo deny check
+        run: cargo deny --all-features check
+
+  trufflehog:
+    name: TruffleHog secrets scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@396faddf35a458d3ca1e8e403b5c7a2f31bc706  # v3.88
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified

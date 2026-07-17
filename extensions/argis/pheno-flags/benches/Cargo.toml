@@ -1,0 +1,17 @@
+[package]
+name = "pheno-flags-bench"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+pheno-flags = { path = ".." }
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+
+[[bench]]
+name = "flags_lookup"
+harness = false
+
+[[bench]]
+name = "flags_stress"
+harness = false

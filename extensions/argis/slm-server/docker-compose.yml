@@ -1,0 +1,40 @@
+# SLM Server with vLLM backend
+# For Homebox deployment (RTX 3090 Ti)
+version: '3.8'
+
+services:
+  # vLLM server running the local model
+  vllm:
+    image: vllm/vllm-openai:latest
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    command: >
+      --model Qwen/Qwen2.5-3B-Instruct
+      --port 8000
+      --tensor-parallel-size 1
+      --gpu-memory-utilization 0.8
+    ports:
+      - "8000:8000"
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # SLM Server (router/summarizer/validator)
+  slm-server:
+    build: .
+    ports:
+      - "8081:8081"
+    environment:
+      - BACKEND=vllm
+      - VLLM_URL=http://vllm:8000
+    command: ["-backend", "vllm", "-vllm-url", "http://vllm:8000", "-addr", ":8081"]
+    depends_on:
+      - vllm
+

@@ -1,0 +1,33 @@
+{
+  "name": "pheno-port-adapter (Rust)",
+  "image": "mcr.microsoft.com/devcontainers/rust:1.83-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/rust:1": {
+      "version": "1.83",
+      "profile": "minimal"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "serayuzgur.crates",
+        "vadimcn.vscode-lldb"
+      ],
+      "settings": {
+        "rust-analyzer.cargo.features": "all",
+        "rust-analyzer.check.command": "clippy",
+        "[rust]": {
+          "editor.formatOnSave": true,
+          "editor.defaultFormatter": "rust-lang.rust-analyzer"
+        }
+      }
+    }
+  },
+  "postCreateCommand": "cargo fetch && cargo install --locked cargo-tarpaulin cargo-audit cargo-deny",
+  "remoteUser": "vscode",
+  "containerUser": "vscode"
+}

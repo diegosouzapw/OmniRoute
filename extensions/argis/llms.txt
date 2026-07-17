@@ -1,0 +1,32 @@
+# argis-extensions
+
+> Part of the Phenotype fleet. See https://github.com/KooshaPari/phenotype-apps for fleet-wide context.
+
+## What this repo is
+
+`argis-extensions` is a repo in the KooshaPari/Phenotype fleet.
+
+## Build & run
+
+```bash
+git clone https://github.com/KooshaPari/argis-extensions.git
+cd argis-extensions
+# see SPEC.md for repo-specific instructions
+```
+
+## Code layout
+
+- Source: see language-specific source dirs
+- Tests: see test dirs
+- Specs: SPEC.md, llms.txt
+
+## Conventions
+
+- See AGENTS.md § Conventions
+- WORKLOG.md uses v2.1 schema (ADR-025)
+
+## See also
+
+- [phenotype-apps meta-repo](https://github.com/KooshaPari/phenotype-apps)
+- [phenotype-registry](https://github.com/KooshaPari/phenotype-registry)
+- 71-pillar audit: `findings/71-pillar-*.md` in the meta-repo

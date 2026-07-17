@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pheno-worklog-schema"
+version = "0.1.0"
+description = "Parse, validate, and emit WORKLOG.md files in the v2.1 schema (ADR-025)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT OR Apache-2.0"}
+authors = [
+    {name = "KooshaPari", email = "koosha@phenotype.local"},
+]
+keywords = ["worklog", "schema", "markdown", "phenotype", "substrate"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Documentation",
+]
+dependencies = [
+    "structlog>=24.1.0",  # ADR-036B: pheno-tracing mirror for Python
+    "click>=8.1.7",       # CLI
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+pheno-worklog-schema = "pheno_worklog_schema.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/KooshaPari/phenotype-apps"
+Issues = "https://github.com/KooshaPari/phenotype-apps/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pheno_worklog_schema*"]
+
+[tool.setuptools.package-data]
+pheno_worklog_schema = ["py.typed"]
+
+# === ruff (per ADR-039, replaces deny.toml for Python) ===
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = [".venv", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+# === pytest (coverage gate per ADR-040, lib tier 80%) ===
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+
+[tool.coverage.run]
+source = ["src/pheno_worklog_schema"]
+branch = true
+
+[tool.coverage.report]
+# ADR-040: 80% lib gate
+fail_under = 80
+show_missing = true
+skip_covered = false

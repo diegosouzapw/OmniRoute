@@ -1,0 +1,51 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "dockerfile",
+    "dockerfile": "services/promptadapter/Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "python -m uvicorn main:app --host 0.0.0.0 --port $PORT",
+    "restartPolicyType": "on_failure",
+    "restartPolicyMaxRetries": 5
+  },
+  "variables": {
+    "REDIS_URL": {
+      "description": "Redis connection URL",
+      "value": "redis://localhost:6379"
+    },
+    "LOG_LEVEL": {
+      "description": "Logging level",
+      "value": "INFO"
+    },
+    "PYTHONUNBUFFERED": {
+      "value": "1"
+    }
+  },
+  "services": [
+    {
+      "name": "promptadapter",
+      "image": "python:3.11-slim",
+      "buildCommand": "pip install -r services/promptadapter/requirements.txt",
+      "startCommand": "python -m uvicorn services.promptadapter.main:app --host 0.0.0.0 --port 8090",
+      "port": 8090,
+      "healthCheck": {
+        "path": "/health",
+        "interval": 30,
+        "timeout": 10
+      }
+    },
+    {
+      "name": "redis",
+      "image": "redis:7-alpine",
+      "port": 6379,
+      "volumes": [
+        {
+          "name": "redis_data",
+          "mountPath": "/data"
+        }
+      ]
+    }
+  ]
+}
+

@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (semver)"
+        required: true
+        default: "0.1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@e3f78fd1f6c2a43286e5ef3a13eea2e72ed23e1f
+        with:
+          toolchain: stable
+
+      - name: Verify tag matches Cargo.toml
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          CARGO_VERSION=$(grep '^version' Cargo.toml | head -1 | cut -d'"' -f2)
+          if [ "$VERSION" != "$CARGO_VERSION" ]; then
+            echo "::error::Tag v$VERSION != Cargo.toml $CARGO_VERSION"
+            exit 1
+          fi
+
+      - name: Build release artifacts
+        run: |
+          cargo build --release --locked --all-features
+          cargo test --release --locked --all-features
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "## What's Changed" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          git log --pretty=format:"- %s (%h)" "$(git describe --tags --abbrev=0 HEAD^)..HEAD" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@de2c0f38df66e4b5da7b7d4a9b5b7d9b9b5e6f7c # v2
+        with:
+          name: "pheno-otel ${{ github.ref_name }}"
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+          generate_release_notes: true

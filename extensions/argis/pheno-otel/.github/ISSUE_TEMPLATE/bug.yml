@@ -1,0 +1,97 @@
+name: Bug report
+description: Report a bug in pheno-otel
+title: "[bug] "
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Please fill out the template below so we can
+        reproduce the issue.
+
+  - type: input
+    id: version
+    attributes:
+      label: pheno-otel version
+      description: What version of pheno-otel are you using? (e.g., 0.1.0)
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: rust-version
+    attributes:
+      label: Rust version
+      description: Output of `rustc --version`
+      placeholder: "rustc 1.82.0 (...)"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: OS + version
+      placeholder: "Ubuntu 24.04 LTS"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Minimal code snippet that reproduces the bug
+      placeholder: |
+        ```rust
+        use pheno_otel::init;
+
+        fn main() {
+            let _guard = init("test", "http://localhost:4317");
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Include relevant logs / span dumps.
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment details
+      description: |
+        OTLP collector version, opentelemetry-rs version, any env vars
+        (redact secrets!)
+      placeholder: |
+        - OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+        - opentelemetry = "0.27.0"
+        - opentelemetry-otlp = "0.27.0"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submit checklist
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I have tested on the latest version
+          required: true
+        - label: I have redacted any secrets from logs and snippets
+          required: true

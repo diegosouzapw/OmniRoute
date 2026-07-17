@@ -1,0 +1,148 @@
+# Justfile for pheno-otel — task runner
+#
+# Conventions:
+#   - All recipes are no-arg unless documented otherwise
+#   - Recipes prefixed with `ci-` are CI-only (do not run locally)
+#   - Recipes prefixed with `dev-` are dev-only (do not run in CI)
+#
+# Usage:
+#   just              # list available recipes
+#   just check        # fmt + clippy + test (the standard pre-PR gate)
+#   just audit        # cargo-deny + cargo-audit
+#   just release VER  # cut a release (run from main, after approval)
+
+set dotenv-load := true
+set shell := ["bash", "-uc"]
+set positional-arguments := true
+
+# ─── Meta ────────────────────────────────────────────────────────────────────
+
+# Print the list of available recipes
+default:
+    @just --list
+
+# Print the Rust toolchain version
+info:
+    @echo "rustc: $(rustc --version)"
+    @echo "cargo: $(cargo --version)"
+    @echo "just:  $(just --version)"
+
+# ─── Build ───────────────────────────────────────────────────────────────────
+
+# Build the library in debug mode
+build:
+    cargo build
+
+# Build the library in release mode
+build-release:
+    cargo build --release
+
+# ─── Format & Lint ───────────────────────────────────────────────────────────
+
+# Format all code (check-only, no changes)
+fmt-check:
+    cargo fmt --all -- --check
+
+# Format all code (apply changes)
+fmt:
+    cargo fmt --all
+
+# Lint with clippy, deny warnings
+clippy:
+    cargo clippy --all-targets --all-features -- -D warnings
+
+# ─── Test ────────────────────────────────────────────────────────────────────
+
+# Run the full test suite (unit + integration)
+test:
+    cargo test --all-features
+
+# Run only unit tests
+test-unit:
+    cargo test --lib
+
+# Run only integration tests
+test-integration:
+    cargo test --tests
+
+# Run doc tests
+test-doc:
+    cargo test --doc
+
+# ─── Coverage ────────────────────────────────────────────────────────────────
+
+# Generate coverage report (requires cargo-llvm-cov)
+coverage:
+    cargo llvm-cov --html --output-dir coverage
+
+# Print coverage summary (requires cargo-llvm-cov)
+coverage-summary:
+    cargo llvm-cov --summary-only
+
+# ─── Audit ───────────────────────────────────────────────────────────────────
+
+# Run cargo-deny (advisories + bans + sources + licenses)
+deny:
+    cargo deny check
+
+# Run cargo-deny (advisories only, fastest)
+deny-advisories:
+    cargo deny check advisories
+
+# Run cargo-audit
+audit:
+    cargo audit
+
+# Run all audit checks (deny + audit)
+audit-all: deny audit
+
+# ─── Combined: pre-PR gate ───────────────────────────────────────────────────
+
+# The standard pre-PR gate: fmt + clippy + test
+check: fmt-check clippy test
+
+# The full local CI emulation: check + audit
+ci-local: check audit
+
+# ─── Worklog ─────────────────────────────────────────────────────────────────
+
+# Validate the worklog against v2.1 schema (ADR-025)
+worklog-validate:
+    @echo "Validating worklogs/*.md against v2.1 schema..."
+    @python3 -c "import pheno_worklog_schema as p; import sys, glob; \
+        files = glob.glob('worklogs/*.md'); \
+        sys.exit(0 if all(p.validate(open(f).read()) for f in files) else 1)" \
+        || (echo "pheno_worklog_schema not installed; skipping" && exit 0)
+
+# ─── Release ─────────────────────────────────────────────────────────────────
+
+# Cut a release. VER = semver tag (e.g., 0.2.0)
+release VER:
+    @echo "Cutting release {{VER}}..."
+    @./scripts/release.sh {{VER}}
+
+# ─── CI-only recipes (do not run locally) ────────────────────────────────────
+
+# CI: build matrix
+ci-build:
+    cargo build --locked --all-features
+
+# CI: test matrix (stable + 1.82 MSRV)
+ci-test:
+    cargo test --locked --all-features
+
+# CI: clippy matrix
+ci-clippy:
+    cargo clippy --locked --all-targets --all-features -- -D warnings
+
+# CI: format check
+ci-fmt:
+    cargo fmt --all -- --check
+
+# CI: deny gate
+ci-deny:
+    cargo deny check
+
+# CI: audit gate
+ci-audit:
+    cargo audit

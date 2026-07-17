@@ -1,0 +1,22 @@
+# ruff.toml — pheno-worklog-schema
+#
+# Per ADR-039 (pheno-flake refresh template), Python repos use `ruff.toml`
+# in place of the Rust fleet's `deny.toml`. This file configures ruff as
+# the single linter + formatter for the package.
+#
+# See: https://docs.astral.sh/ruff/
+
+target-version = "py310"
+line-length = 100
+extend-exclude = [".venv", "build", "dist", ".tox"]
+
+[lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+ignore = ["E501"]
+
+[lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[format]
+quote-style = "double"
+indent-style = "space"

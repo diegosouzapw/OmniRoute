@@ -1,0 +1,19 @@
+# Helm
+charts/*/charts/
+charts/*/requirements.lock
+
+# Local scripts
+scripts/local/
+scripts/*.local.*
+/worktrees/
+/*-wtrees/
+
+# Lowercase justfile is a duplicate of canonical Justfile (uppercase).
+# Both are kept on disk for `just` CLI compatibility, but only the
+# uppercase version is tracked. Added 2026-06-20 to silence
+# 'Untracked files' warnings in `git status`.
+/justfile
+!/Justfile
+
+# Router binary (spike build artifact, never committed)
+/_check

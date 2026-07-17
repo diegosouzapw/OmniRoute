@@ -1,0 +1,29 @@
+[workspace]
+
+[package]
+name = "pheno-flags"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+rust-version = "1.82"
+description = "Canonical synchronous, in-memory feature-flag set for the Phenotype monorepo. Reads boolean flags from environment variables with a configurable prefix."
+keywords = ["phenotype", "feature-flags", "config", "env", "ff-free"]
+categories = ["config", "development-tools"]
+publish = true
+
+[lib]
+name = "pheno_flags"
+path = "src/lib.rs"
+
+[dependencies]
+thiserror = "2"
+# Canonical OTLP wire-format export substrate (ADR-037).
+# `pheno-flags` uses `pheno-otel` to surface flag-set diffs
+# (resolved-vs-default) to OTLP/HTTP collectors when wired into a
+# wider observability stack (per ADR-023 Rule 3.1: every substrate
+# ships observability).
+pheno-otel = { path = "../pheno-otel" }
+
+[dev-dependencies]
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

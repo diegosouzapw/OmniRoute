@@ -1,0 +1,62 @@
+# Provider and account management
+
+type Provider {
+  id: ID!
+  name: String!
+  type: ProviderType!
+  status: ProviderStatus!
+  accounts: [ProviderAccount!]!
+  models: [Model!]!
+  metadata: Map
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type ProviderAccount {
+  id: ID!
+  providerId: ID!
+  provider: Provider!
+  name: String!
+  status: AccountStatus!
+  quotaRemaining: Float
+  quotaLimit: Float
+  models: [Model!]!
+  metadata: Map
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+enum ProviderType {
+  OPENAI
+  ANTHROPIC
+  GOOGLE
+  MISTRAL
+  COHERE
+  CUSTOM
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  QUOTA_EXCEEDED
+  INVALID_CREDENTIALS
+}
+
+extend type Query {
+  providers: [Provider!]!
+  provider(id: ID!): Provider
+  providerAccounts(providerId: ID!): [ProviderAccount!]!
+  providerAccount(id: ID!): ProviderAccount
+}
+
+extend type Subscription {
+  providerHealth(providerIds: [ID!]): ProviderHealthEvent!
+}
+
+type ProviderHealthEvent {
+  providerId: ID!
+  status: ProviderStatus!
+  latency: Float
+  errorRate: Float
+  timestamp: Time!
+}

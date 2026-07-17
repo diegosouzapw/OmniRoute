@@ -1,0 +1,109 @@
+# GoReleaser config for slm-server
+# Builds cross-platform binaries with self-update support
+version: 2
+
+project_name: slm-server
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: slm-server
+    main: .
+    binary: slm-server
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+      - -X main.Commit={{.Commit}}
+      - -X main.BuildDate={{.Date}}
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE*
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-dev"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: kooshapari
+    name: bifrost-extensions
+  prerelease: auto
+  name_template: "SLM Server v{{.Version}}"
+  header: |
+    ## SLM Server {{.Version}}
+    
+    Self-updating LLM routing server for Bifrost extensions.
+    
+    ### Installation
+    
+    **Windows (Homebox):**
+    ```powershell
+    # Download and extract
+    Invoke-WebRequest -Uri "https://github.com/kooshapari/bifrost-extensions/releases/download/v{{.Version}}/slm-server_{{.Version}}_windows_amd64.zip" -OutFile slm-server.zip
+    Expand-Archive slm-server.zip -DestinationPath .
+    
+    # Run (connects to vLLM in WSL2)
+    .\slm-server.exe -vllm-url http://localhost:8000
+    ```
+    
+    **macOS (MLX):**
+    ```bash
+    curl -LO https://github.com/kooshapari/bifrost-extensions/releases/download/v{{.Version}}/slm-server_{{.Version}}_darwin_arm64.tar.gz
+    tar xzf slm-server_{{.Version}}_darwin_arm64.tar.gz
+    ./slm-server -backend mlx
+    ```
+    
+    **Linux:**
+    ```bash
+    curl -LO https://github.com/kooshapari/bifrost-extensions/releases/download/v{{.Version}}/slm-server_{{.Version}}_linux_amd64.tar.gz
+    tar xzf slm-server_{{.Version}}_linux_amd64.tar.gz
+    ./slm-server -vllm-url http://localhost:8000
+    ```
+    
+    ### Update
+    
+    Visit `http://localhost:8081/update` or:
+    ```bash
+    curl -X POST http://localhost:8081/update/apply
+    ```
+
+# For local testing without pushing
+# goreleaser release --snapshot --clean
+

@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feature/*, bugfix/*, docs/*, release/*, hotfix/*]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ['1.21', '1.22']
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Setup Go
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Download dependencies
+        run: go mod download
+      - name: Build
+        run: go build ./...
+      - name: Run tests
+        run: go test ./... -v -race -coverprofile=coverage.out
+      - name: Upload coverage
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238
+        with:
+          files: ./coverage.out
+
+  phenotype-validate:
+    runs-on: ubuntu-latest
+    uses: KooshaPari/phenotype-ops/.github/workflows/manifest-gate.yml@main

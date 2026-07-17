@@ -1,0 +1,35 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "db/sqlc/queries/"
+    schema: "db/migrations/"
+    gen:
+      go:
+        package: "sqlc"
+        out: "db/sqlc"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_empty_slices: true
+        emit_pointers_for_null_types: true
+        overrides:
+          # pgvector support
+          - db_type: "vector"
+            go_type:
+              import: "github.com/pgvector/pgvector-go"
+              type: "Vector"
+          # UUID support
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          # JSONB support
+          - db_type: "jsonb"
+            go_type:
+              type: "json.RawMessage"
+              import: "encoding/json"
+          # Timestamp handling
+          - db_type: "pg_catalog.timestamptz"
+            go_type:
+              import: "time"
+              type: "Time"
+

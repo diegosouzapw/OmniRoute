@@ -1,0 +1,204 @@
+# pheno-ssot-template manifest.
+#
+# Machine-readable template manifest for the canonical pheno-ssot-template
+# (Phenotype fleet single-source-of-truth scaffold). Consumed by the
+# scripts/render.sh dry-instantiation script and by the V3 L3 #55 CI lint
+# job. Format: subset of the cookiecutter template.json schema (with a few
+# Phenotype-specific extensions under the pheno top-level key) re-emitted
+# in YAML so the on-disk filename matches the V3 L3 #55 spec verbatim
+# (`template.yaml`). Reference: FLEET_100TASK_DAG_V3.md -> L3 #55. See
+# also: pheno-ssot-template/README.md for the human-readable description.
+---
+name: pheno-ssot-template
+description: >-
+  Canonical single-source-of-truth (SSOT) starter template for any new
+  project in the pheno-* fleet. Satisfies the 4 SSOT invariants
+  (AppError / structured tracing / pheno-config / pheno-schemas) out of
+  the box and ships with the fleet's cargo-deny, CI, governance, lint,
+  security audit, and license baselines.
+version: 0.2.0
+owner: KooshaPari
+license: MIT
+repository: https://github.com/KooshaPari/phenotype
+homepage: https://github.com/KooshaPari/phenotype/tree/main/pheno-ssot-template
+
+variables:
+  - name: project_name
+    description: >-
+      Human-readable project name (Title Case, e.g. 'Pheno Search').
+    type: string
+    default: Pheno Service
+    regex: "^[A-Z][A-Za-z0-9 ]+$"
+  - name: project_slug
+    description: >-
+      URL-safe, kebab-case, lowercase project slug used for the Cargo
+      crate name, the binary name, and the GitHub repo path (e.g.
+      'pheno-search').
+    type: string
+    default: pheno-service
+    regex: "^[a-z][a-z0-9-]+$"
+  - name: rust_msrv
+    description: >-
+      Minimum Supported Rust Version (MSRV) for the new project. The
+      pheno-* fleet baseline is 1.75 (for Rust 2021 edition + thiserror
+      2.0 + anyhow 1.0).
+    type: string
+    default: "1.75"
+    regex: "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
+  - name: primary_language
+    description: >-
+      Primary implementation language. Drives the placeholder
+      src/lib.rs.template content, the CI matrix, and the SSOT schema
+      import path. Supported: rust, typescript, python, go.
+    type: string
+    default: rust
+    enum:
+      - rust
+      - typescript
+      - python
+      - go
+
+post_create_hooks:
+  - name: cargo-check
+    description: >-
+      Run `cargo check` to confirm the placeholder skeleton resolves the
+      5 SSOT path-deps and compiles cleanly.
+    command: cargo check
+    cwd: "{{project_slug}}"
+    timeout_seconds: 300
+    required: true
+    on_failure: abort
+  - name: cargo-test
+    description: >-
+      Run `cargo test` to confirm the placeholder unit test passes (the
+      SSOT invariants are wired correctly).
+    command: cargo test
+    cwd: "{{project_slug}}"
+    timeout_seconds: 600
+    required: true
+    on_failure: warn
+  - name: cargo-clippy
+    description: >-
+      Run `cargo clippy --all-targets -- -D warnings` to confirm the
+      placeholder is lint-clean.
+    command: cargo clippy --all-targets -- -D warnings
+    cwd: "{{project_slug}}"
+    timeout_seconds: 300
+    required: false
+    on_failure: warn
+  - name: cargo-deny-check
+    description: >-
+      Run `cargo deny check` against the template's deny.toml to confirm
+      license/advisory/banned-deps compliance.
+    command: cargo deny check
+    cwd: "{{project_slug}}"
+    timeout_seconds: 300
+    required: false
+    on_failure: warn
+  - name: ssot-invariant-1-errors
+    description: >-
+      Grep the rendered src/ for forbidden error-type patterns
+      (Box<dyn Error>, Result<_, MyError>, etc.) and confirm every
+      error path is a pheno_errors::AppError.
+    command: scripts/check-ssot-invariant-1-errors.sh {{project_slug}}
+    timeout_seconds: 30
+    required: true
+    on_failure: abort
+  - name: ssot-invariant-2-structured-logging
+    description: >-
+      Grep the rendered src/ for un-structured tracing / println!
+      patterns and confirm every log line uses structured fields.
+    command: scripts/check-ssot-invariant-2-logging.sh {{project_slug}}
+    timeout_seconds: 30
+    required: true
+    on_failure: warn
+
+files:
+  - path: Cargo.toml
+    from: Cargo.toml.template
+    substitute:
+      - project_name
+      - project_slug
+      - rust_msrv
+  - path: src/lib.rs
+    from: src/lib.rs.template
+    substitute:
+      - project_name
+      - project_slug
+  - path: .github/workflows/ci.yml
+    from: .github/workflows/ci.yml
+    substitute:
+      - project_slug
+      - rust_msrv
+  - path: deny.toml
+    from: deny.toml
+    substitute: []
+  - path: CODEOWNERS
+    from: CODEOWNERS
+    substitute: []
+  - path: LICENSE
+    from: LICENSE
+    substitute:
+      - project_name
+  - path: SECURITY.md
+    from: SECURITY.md
+    substitute:
+      - project_slug
+  - path: docs/governance/README.md
+    from: docs/governance/README.md
+    substitute: []
+  - path: justfile
+    from: justfile
+    substitute: []
+  - path: .github/workflows/audit.yml
+    from: .github/workflows/audit.yml
+    substitute: []
+  - path: .github/workflows/scorecard.yml
+    from: .github/workflows/scorecard.yml
+    substitute: []
+  - path: .github/workflows/lint.yml
+    from: .github/workflows/lint.yml
+    substitute: []
+  - path: CONTRIBUTING.md
+    from: CONTRIBUTING.md
+    substitute:
+      - project_slug
+  - path: README.md
+    from: README.md
+    substitute:
+      - project_name
+      - project_slug
+      - primary_language
+
+ssot_invariants:
+  - id: 1
+    name: every-error-is-pheno-errors-AppError
+    description: >-
+      Every fallible function returns Result<T, pheno_errors::AppError>.
+      No Box<dyn Error>, no per-repo Error enums.
+  - id: 2
+    name: every-log-line-is-structured
+    description: >-
+      Every log call uses structured fields (tracing::info!(key = value,
+      ...)). No println!, no format-string placeholders in log messages.
+  - id: 3
+    name: every-config-via-pheno-config
+    description: >-
+      Configuration is loaded exclusively via pheno_config::load::<
+      MyConfig>(). No hand-rolled YAML / env / TOML readers.
+  - id: 4
+    name: every-schema-in-pheno-zod-or-pheno-pydantic
+    description: >-
+      Cross-language domain schemas live in pheno-zod-schemas (TS) or
+      pheno-pydantic-models (Py), not redefined per-repo.
+
+pheno:
+  fleet_layer: L3
+  fleet_task_id: L3-055
+  fleet_dag: FLEET_100TASK_DAG_V3.md
+  consumed_by:
+    - L5-081 (PlayCua full integration)
+    - L5-082 (nanovms full integration)
+    - L5-083 (PhenoCompose full integration)
+    - L5-084 (BytePort full integration)
+    - L5-085 (AgilePlus full integration)

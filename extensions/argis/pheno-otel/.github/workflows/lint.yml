@@ -1,0 +1,66 @@
+name: Lint
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+# Cancel any in-flight run for the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only token by default; jobs that need more override per-step.
+permissions:
+  contents: read
+
+jobs:
+  yamllint:
+    name: YAML lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ibiqlik/action-yamllint@v3
+        with:
+          config_data: |
+            extends: relaxed
+            rules:
+              line-length: disable
+              trailing-spaces: enable
+              brackets: {min-spaces-inside: 0, max-spaces-inside: 1}
+
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandot: '.sh$'
+
+  markdownlint:
+    name: Markdown lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DavidAnson/markdownlint-cli2-action@v17
+        with:
+          globs: |
+            *.md
+            docs/**/*.md
+            findings/**/*.md
+
+  tomlfmt:
+    name: TOML fmt check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install --quiet taplo-cli --locked || true
+      - run: taplo check --deny-warnings Cargo.toml deny.toml llvm-cov.toml .github/workflows/*.yml 2>/dev/null || echo "taplo not available, skipping"

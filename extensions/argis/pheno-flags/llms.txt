@@ -1,0 +1,57 @@
+# pheno-flags
+
+> Canonical feature-flag set for the pheno-* fleet. Synchronous
+> in-memory boolean storage with env-var population.
+
+## Public API
+
+- `FlagSet` — `HashMap<String, bool>` wrapper with O(1) `is_enabled(key)`
+  and sorted `snapshot()` returning `BTreeMap<String, bool>`
+- `FlagSet::new()`, `.with(key, value)` — fluent builder
+- `FlagSet::from_env(prefix)` — scan process env for `<PREFIX>_*`,
+  parse truthy (`1|true|yes`, case-insensitive) or falsy (`0|false|no`)
+  values; any other value returns `Err(FlagError::InvalidValue)`
+- `FlagError` — `thiserror`-based error type with `UnknownKey`,
+  `InvalidValue { key, value }`, `EmptyPrefix` variants
+- `merge(base, overlay)` — overlay wins; identical keys collapse to
+  the right-hand value
+
+## Quickstart
+
+```rust
+use pheno_flags::FlagSet;
+let flags = FlagSet::new()
+    .with("dark_mode", true)
+    .with("beta_export", false);
+assert!(flags.is_enabled("dark_mode"));
+assert!(!flags.is_enabled("beta_export"));
+assert!(!flags.is_enabled("unknown_key"));  // unknown returns false
+```
+
+## Files
+
+- `Cargo.toml` — package manifest (v0.1.0)
+- `src/lib.rs` — FlagSet, FlagSet::from_env, FlagError
+- `tests/flag_test.rs` — env-var parsing, builder, merge semantics
+- `examples/quickstart.rs` — minimal example
+- `llvm-cov.toml` — 80% lib coverage gate (ADR-040)
+- `.github/workflows/ci.yml` — build + test + coverage jobs
+- `LICENSE-MIT`, `LICENSE-APACHE` — dual license
+
+## Conventions
+
+- Conventional Commits
+- rustfmt + clippy (`-D warnings`)
+- 80% lib coverage gate (ADR-040)
+- `thiserror` for error types; no `unwrap()` in public API
+- Public API surface fully documented (`#![warn(missing_docs)]`)
+- No FFI, no async, no network — intentionally minimal substrate
+- Unknown keys return `false` (never error) for `is_enabled`
+
+## See also
+
+- `pheno-config` — typed config loader (config layer below flags)
+- `pheno-context` — request context (flags are request-scoped opt-in)
+- `pheno-errors` — `thiserror`-aligned error envelope
+- `pheno-port-adapter` — flag injection for port adapters
+- ADR-022 (config consolidation), ADR-040 (coverage gates)

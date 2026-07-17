@@ -1,0 +1,70 @@
+# Pre-commit Configuration — TheGent Governance Agent
+#
+# Standards: thegent/governance/standards/code-style.md
+# File limits: AGENTS.base.md §7.1
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-json
+      - id: check-toml
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: check-merge-conflict
+      - id: check-symlinks
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.43.0
+    hooks:
+      - id: markdownlint
+        args: ["--fix"]
+        exclude: "^vendor/|^target/"
+
+  - repo: local
+    hooks:
+      - id: ruff-lint
+        name: ruff lint
+        entry: ruff check
+        language: system
+        types: [python]
+        stages: [pre-commit]
+
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format --check
+        language: system
+        types: [python]
+        stages: [pre-commit]
+
+      - id: agent-file-size-check
+        name: agent file size check
+        entry: bash -c 'find src/ -name "*.py" -exec wc -l {} + | awk '\''$1 > 500 {print "❌ File too long (" $1 " lines): " $2; exit 1}'\'''
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: governance-lint
+        name: governance lint
+        entry: bash -c '
+          echo "Checking governance standards...";
+          for f in "$@"; do
+            case "$f" in
+              *.md)
+                grep -q "^#" "$f" || echo "⚠️  $f: no heading found"
+                ;;
+            esac
+          done
+        '
+        language: system
+        stages: [pre-commit]
+
+ci:
+  autofix_commit_msg: "style(pre-commit): auto-format"
+  autoupdate_commit_msg: "chore(pre-commit): update hooks"

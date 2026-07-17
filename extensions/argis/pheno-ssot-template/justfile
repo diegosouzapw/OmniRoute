@@ -1,0 +1,60 @@
+# justfile — pheno-ssot-template maintenance tasks
+#
+# This justfile is for maintaining THIS template repo itself, not for
+# projects rendered from it. Downstream projects inherit the CI/lint
+# baseline through the rendered .github/ and scripts/ directories.
+#
+# Reference: V3 L3 #55 (pheno-ssot-template).
+# See also: deny.toml, template.yaml, README.md.
+
+# ──────────────────────────────────────────────────────────────────
+# Render & verify
+# ──────────────────────────────────────────────────────────────────
+
+# Render the template to a temp dir and run cargo check
+render-test target-dir="/tmp/pheno-ssot-render-test":
+    ./scripts/render.sh test-service {{target-dir}}
+    echo "=== cargo check ==="
+    cd {{target-dir}} && cargo check --all-targets 2>&1
+    echo "=== cargo clippy ==="
+    cd {{target-dir}} && cargo clippy --all-targets -- -D warnings 2>&1
+
+# ──────────────────────────────────────────────────────────────────
+# Lint & format
+# ──────────────────────────────────────────────────────────────────
+
+# Check shell scripts with shellcheck
+lint:
+    shellcheck scripts/*.sh
+
+# Check YAML formatting (requires yamllint)
+lint-yaml:
+    yamllint .github/workflows/*.yml template.yaml
+
+# ──────────────────────────────────────────────────────────────────
+# Security
+# ──────────────────────────────────────────────────────────────────
+
+# Check for sensitive content (requires trufflehog or git lewd)
+audit-secrets:
+    echo "Run nightly via .github/workflows/audit.yml"
+    echo "Local check: git diff --name-only HEAD~5 | xargs -r grep -nP '(?i)(password|secret|token|key|api.?.ey)' || true"
+
+# ──────────────────────────────────────────────────────────────────
+# Housekeeping
+# ──────────────────────────────────────────────────────────────────
+
+# Remove render-test leftovers
+clean:
+    rm -rf /tmp/pheno-ssot-render-test
+
+# ──────────────────────────────────────────────────────────────────
+# CI alias (runs before every PR merge)
+# ──────────────────────────────────────────────────────────────────
+
+# Run all pre-PR checks (lint + render-test)
+ci: lint lint-yaml render-test
+
+# Show available commands
+default:
+    @just --list

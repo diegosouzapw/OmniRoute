@@ -1,0 +1,23 @@
+# CODEOWNERS — auto-assignment for pheno-otel
+#
+# Per ADR-023 Rule 3.1, every change MUST be reviewed by the substrate owner.
+# GitHub uses this file to auto-assign reviewers on every PR.
+
+# Default owner: substrate canonical owner
+*               @KooshaPari
+
+# CI workflows: reviewer with CI expertise
+/.github/       @KooshaPari
+
+# Governance (AGENTS.md, ADR references, CHANGELOG, policies)
+/AGENTS.md      @KooshaPari
+/CHANGELOG.md   @KooshaPari
+/CONTRIBUTING.md @KooshaPari
+/SECURITY.md    @KooshaPari
+/CODE_OF_CONDUCT.md @KooshaPari
+/deny.toml      @KooshaPari
+
+# Source code (under FocalPoint/pheno-otel/)
+# Note: source code review happens in the FocalPoint/pheno-otel repo,
+# not here. This path is governance/meta-bundle only.
+/FocalPoint/    @KooshaPari

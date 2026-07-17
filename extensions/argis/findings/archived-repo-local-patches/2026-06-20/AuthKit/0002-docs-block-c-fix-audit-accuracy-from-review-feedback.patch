@@ -1,0 +1,111 @@
+From 544c9539454a66553af514bf5ccf2ccf2be35761 Mon Sep 17 00:00:00 2001
+From: KooshaPari <kooshapari@gmail.com>
+Date: Wed, 17 Jun 2026 21:26:49 -0700
+Subject: [PATCH 2/4] docs(block-c): fix audit accuracy from review feedback
+
+Correct workspace membership counts, add Cargo.toml evidence for broken deps, fix cross-repo links, and remove the Authvault PR placeholder.
+
+Co-authored-by: Cursor <cursoragent@cursor.com>
+---
+ docs/audit/BLOCK-C-AUDIT.md | 47 +++++++++++++++++++++++--------------
+ 1 file changed, 29 insertions(+), 18 deletions(-)
+
+diff --git a/docs/audit/BLOCK-C-AUDIT.md b/docs/audit/BLOCK-C-AUDIT.md
+index 2d0f206..d39bd75 100644
+--- a/docs/audit/BLOCK-C-AUDIT.md
++++ b/docs/audit/BLOCK-C-AUDIT.md
+@@ -2,9 +2,9 @@ # Block-C Audit — AuthKit → Authvault Fold Plan
+ 
+ **Audit date:** 2026-06-16
+ **Auditor:** Block-C consolidation (#2)
+-**Tracker:** [`phenotype-registry/docs/rationalization/block-c-consolidation.md`](../..) — row 2 of the strategic-merges table
++**Tracker:** [phenotype-registry block-c-consolidation](https://github.com/KooshaPari/phenotype-registry/blob/main/docs/rationalization/block-c-consolidation.md) — row 2 of the strategic-merges table
+ **Verdict:** **Fold. AuthKit is a true duplicate (self-admitted) of canonical Authvault. Archive after fold.**
+-**Companion PR on Authvault:** `KooshaPari/Authvault#<TBD>` (this PR is on AuthKit, the source side)
++**Companion PR on Authvault:** none required (delete-only fold; see §5)
+ 
+ ---
+ 
+@@ -48,10 +48,10 @@ ## 2. Stack comparison
+ | Concern         | AuthKit (this repo)                                                              | Authvault (canonical)                                                                |
+ |-----------------|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+ | Language        | Rust 2021, edition `rust-version = "1.75"`                                       | Rust 2021, `rust-version = "1.75"`                                                   |
+-| Layout          | Cargo *workspace* — 3 crates (README claims 5, see §4)                           | Single Cargo *package* with hexagonal `src/{domain,application,adapters,…}`         |
++| Layout          | Cargo *workspace* — 3 members in `rust/Cargo.toml`; `phenotype-bid` exists but is excluded; README claims 5 (see §4) | Single Cargo *package* with hexagonal `src/{domain,application,adapters,…}`         |
+ | Tests           | `#[cfg(test)]` inline only; **no** `tests/` integration suite                     | `tests/unit_tests.rs`, `tests/integration_tests.rs`, `benches/{auth,perf,…}`, `fuzz` |
+ | Build artifacts | No `Cargo.lock` at workspace root                                                | `Cargo.lock` committed                                                               |
+-| Other languages | `python/` (empty stubs `pheno-auth/`, `pheno-security/`), `typescript/package.json`, `go/` does not exist | None (Rust-only; TS sibling is `phenotype-auth-ts` — separate polyglot project) |
++| Other languages | `python/` (empty stubs `pheno-auth/`, `pheno-security/`), `typescript/package.json`, `go/` does not exist | None (Rust-only; TS sibling is [`KooshaPari/phenotype-auth-ts`](https://github.com/KooshaPari/phenotype-auth-ts) — separate polyglot project) |
+ | CI / quality    | `.github/workflows/{ci,cargo-deny,codeql,trufflehog,release-drafter,…}.yml`      | `.github/workflows/{ci,security,coverage,benchmarks,sast,pages-deploy,…}.yml`        |
+ | Docs            | 1,194-line aspirational `PLAN.md` + 3 ADRs + `SOTA.md` research notes            | `SPEC.md` + `FR-AUTH-001..010` + `TEST_COVERAGE_MATRIX.md` + `SECURITY_AUDIT.md` + `SESSION_MANAGEMENT_AUDIT.md` + `TOKEN_STORAGE_AUDIT.md` + `.agileplus/specs/001-authvault-core` |
+ | Requirements    | `FUNCTIONAL_REQUIREMENTS.md` describes features that don't exist in the code    | Every FR has implementation + test trace                                             |
+@@ -95,11 +95,25 @@ ## 4. Ponytail findings (delete / stdlib / native / YAGNI / shrink)
+ ### 4.1 `delete` — the fold is a delete fold
+ 
+ * **AuthKit repo itself** — delete (archive). Per `phenotype-registry/docs/rationalization/block-c-consolidation.md` row 2, "fold AuthKit into Authvault, then **archive AuthKit**."
+-* **`phenotype-time` dependency** — does not exist in the workspace, but
+-  `phenotype-bid/Cargo.toml:11` declares `phenotype-time = { path = "../phenotype-time" }`. The crate would not compile even in isolation. **Delete** the dep (irrelevant — the whole crate goes).
+-* **`phenotype_health` import** — `phenotype-security-aggregator/src/health_integration.rs:6` imports `phenotype_health::{…}`, which is not a member of the workspace (workspace members are
+-  `phenotype-content-hash`, `phenotype-contracts`, `phenotype-security-aggregator` only — per `AuthKit/rust/Cargo.toml:3-7`). The crate would not compile. **Delete** (irrelevant — whole crate goes).
+-* **README "five infrastructure crates" claim** — `AuthKit/README.md:48-57` lists five crates; the workspace only contains three (`phenotype-bid`, `phenotype-content-hash`, `phenotype-contracts`, `phenotype-security-aggregator` — the missing fifth is `phenotype-policy-engine`, which the README mentions at line 55 but does not exist). **Delete** the miscount.
++* **`phenotype-time` dependency** — `phenotype-bid/Cargo.toml:11` declares a path dep that does not exist in the tree:
++
++  ```toml
++  phenotype-time = { path = "../phenotype-time" }
++  ```
++
++  `phenotype-bid` is not a workspace member (see `rust/Cargo.toml:3-7`), and the target crate is absent, so the dep cannot resolve. **Delete** the dep (irrelevant — the whole crate goes).
++* **`phenotype_health` import** — `phenotype-security-aggregator/src/health_integration.rs:6` imports `phenotype_health::{…}`, but `phenotype_health` is not listed in workspace members:
++
++  ```toml
++  members = [
++      "phenotype-content-hash",
++      "phenotype-contracts",
++      "phenotype-security-aggregator",
++  ]
++  ```
++
++  The aggregator therefore cannot compile as committed. **Delete** (irrelevant — whole crate goes).
++* **README "five infrastructure crates" claim** — `AuthKit/README.md:48-57` lists five crates (`phenotype-bid`, `phenotype-content-hash`, `phenotype-contracts`, `phenotype-policy-engine`, `phenotype-security-aggregator`); the workspace declares three members, `phenotype-bid` is present but excluded, and `phenotype-policy-engine` is named but absent. **Delete** the miscount.
+ * **PLAN.md 24-week roadmap** — `AuthKit/PLAN.md` describes a 24-week, 3-phase rollout (P0/P1/P2) that never happened. **Delete** with the repo.
+ * **2 `python/` subdirs + 1 `typescript/package.json`** — empty placeholders. **Delete** with the repo.
+ 
+@@ -162,12 +176,8 @@ ### 4.4 `yagni` — features that exist on paper and never had a consumer
+ 
+ ### 4.5 `shrink` — overall reduction
+ 
+-The fold collapses **~2,286 lines** of AuthKit Rust (counted from file
+-totals: 208 + 246 + 195 + 781 + 314 + 542 across
+-`phenotype-bid/src/lib.rs`, `phenotype-content-hash/src/lib.rs`,
+-`phenotype-contracts/src/lib.rs`,
+-`phenotype-security-aggregator/src/{lib.rs,health_integration.rs,sources.rs}`),
+-plus:
++The fold collapses **~2,286 lines** of AuthKit Rust (aggregate `wc -l`
++across `rust/**/src/**/*.rs` at audit commit `3b7658f`), plus:
+ 
+ * `AuthKit/PLAN.md` — **1,194 lines** of aspirational 24-week roadmap with
+   no executed milestones (all `[ ]` in the success-criteria tables).
+@@ -205,7 +215,7 @@ ## 5. Fold plan
+ | Generic `Contract`/`Event`/`MetricsHook` traits (`phenotype-contracts`)  | **No**              | `phenoShared` if at all                                      | Cross-cutting contracts belong in a shared contracts crate, not in the auth domain. |
+ | `MockSecuritySource` / `GitHubSecuritySource` / `CargoAuditSource` / `OsvSource` / `SnykSource` (`phenotype-security-aggregator/src/sources.rs`) | **No** | Org-level CI tooling (consolidate with the existing `cargo-deny.yml` / `codeql.yml` / `trufflehog.yml` pipelines across the org) | Security *finding aggregation* is a CI/ops concern, not an auth-library concern. Authvault emits *security* events (audit), not consumes them. |
+ | `SecurityHealthCheck` / `security_health_score` (`phenotype-security-aggregator/src/health_integration.rs`) | **No** | Org-level health-check crate (e.g., move to a future `phenotype-health` repo if it materializes) | The `phenotype_health` import in this file is already broken (not in workspace). Health probes are infrastructure-level. |
+-| Empty Python/TS stubs (`python/pheno-auth`, `python/pheno-security`, `typescript/package.json`) | **No** | n/a — **drop** | Empty. Authvault's Python/TS sibling is `phenotype-auth-ts` (TS OIDC/OAuth2) and is out of Block-C scope (see tracker row 2: "phenotype-auth-ts stays separate"). |
++| Empty Python/TS stubs (`python/pheno-auth`, `python/pheno-security`, `typescript/package.json`) | **No** | n/a — **drop** | Empty. Authvault's Python/TS sibling is [`KooshaPari/phenotype-auth-ts`](https://github.com/KooshaPari/phenotype-auth-ts) (TS OIDC/OAuth2) and is out of Block-C scope (see tracker row 2: "phenotype-auth-ts stays separate"). |
+ | Aspirational docs (`PLAN.md`, `SOTA.md`, ADRs, `AUTH_TOOLKITS_SOTA.md`)  | **No**              | `phenotype-registry/docs/historical/authkit-aspirational.md` if any reader needs context | No code backs them. Not authvault material. |
+ | AuthKit's `AuthError` symbol mentioned in `phenotype-contracts`           | **No**              | n/a — the `phenotype-contracts` crate has no `AuthError` symbol; it is a phantom-types crate only. | Authvault's `AuthError` (`src/domain/errors.rs`) is the real one. |
+ 
+@@ -215,8 +225,9 @@ ## 5. Fold plan
+ 
+ ### Fold sequence (executed, then archived)
+ 
+-1. **Done (2026-06-16).** This audit lands on `docs/block-c-audit-2026-06-16`
+-   branch in AuthKit and is opened as a PR (this PR).
++1. **Done (2026-06-16).** This audit lands on branch
++   `docs/block-c-audit-2026-06-16` as `docs/audit/BLOCK-C-AUDIT.md` and is
++   opened as a PR (this PR).
+ 2. **Open companion issue on `phenotype-registry`** (tracker
+    `phenotype-registry#75` referenced in the PR body) to flip row 2 in
+    `block-c-consolidation.md` from `in progress` to `done` and update the
+-- 
+2.50.1 (Apple Git-155)
+

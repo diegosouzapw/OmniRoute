@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: bifrost-promptadapter
+    runtime: python
+    pythonVersion: "3.11"
+    buildCommand: "pip install -r services/promptadapter/requirements.txt"
+    startCommand: "python -m uvicorn services.promptadapter.main:app --host 0.0.0.0 --port 8090"
+    envVars:
+      - key: REDIS_URL
+        value: redis://localhost:6379
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    healthCheckPath: /health
+    healthCheckInterval: 30
+    healthCheckTimeout: 10
+    disk:
+      name: redis_data
+      mountPath: /data
+      sizeGB: 1
+
+  - type: redis
+    name: bifrost-redis
+    ipAllowList: []
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+

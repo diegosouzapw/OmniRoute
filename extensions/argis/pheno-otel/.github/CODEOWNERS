@@ -1,0 +1,33 @@
+# CODEOWNERS — auto-assignment rules
+#
+# Per ADR-023 Rule 3.1, every substrate canonical has a designated owner.
+# Owners are auto-assigned as PR reviewers when files in their owned paths
+# change.
+
+# Default owner for everything in this repo
+*                               @KooshaPari
+
+# Governance + meta-bundle
+/AGENTS.md                      @KooshaPari
+/CHANGELOG.md                   @KooshaPari
+/CONTRIBUTING.md                @KooshaPari
+/SECURITY.md                    @KooshaPari
+/CODE_OF_CONDUCT.md             @KooshaPari
+/LICENSE-MIT                    @KooshaPari
+/LICENSE-APACHE                 @KooshaPari
+/README.md                      @KooshaPari
+
+# Repo config
+/Justfile                       @KooshaPari
+/.editorconfig                  @KooshaPari
+/.gitattributes                 @KooshaPari
+/.gitignore                     @KooshaPari
+/deny.toml                      @KooshaPari
+
+# GitHub plumbing
+/.github/                       @KooshaPari
+/.github/workflows/             @KooshaPari
+/.github/ISSUE_TEMPLATE/        @KooshaPari
+/.github/PULL_REQUEST_TEMPLATE.md @KooshaPari
+/.github/CODEOWNERS             @KooshaPari
+/.github/dependabot.yml         @KooshaPari

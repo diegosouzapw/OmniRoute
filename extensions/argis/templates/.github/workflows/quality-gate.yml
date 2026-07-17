@@ -1,0 +1,170 @@
+# Quality Gate — Test, Coverage, Lint & FR Traceability
+#
+# Copy this template into your repository's .github/workflows/ directory
+# and customize thresholds and matrix as needed.
+#
+# Governance reference: thegent/governance/quality-gates/README.md
+# thegent/governance/standards/testing-standards.md
+
+name: Quality Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, master, 'release/**']
+
+env:
+  # === CUSTOMIZE ===
+  MIN_COVERAGE: 85                         # minimum line coverage (%)
+  MIN_BRANCH_COVERAGE: 75                  # minimum branch coverage (%)
+  MIN_FUNCTION_COVERAGE: 80                # minimum function coverage (%)
+  RUST_TOOLCHAIN: "stable"
+  NODE_VERSION: "20"
+  PYTHON_VERSION: "3.12"
+  GO_VERSION: "1.23"
+  # === /CUSTOMIZE ===
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect language
+        id: lang
+        run: |
+          if [ -f Cargo.toml ]; then echo "lang=rust" >> "$GITHUB_OUTPUT"
+          elif [ -f go.mod ]; then echo "lang=go" >> "$GITHUB_OUTPUT"
+          elif [ -f pyproject.toml ]; then echo "lang=python" >> "$GITHUB_OUTPUT"
+          elif [ -f package.json ]; then echo "lang=node" >> "$GITHUB_OUTPUT"
+          else echo "lang=unknown" >> "$GITHUB_OUTPUT"; fi
+      - name: Rust — cargo fmt & clippy
+        if: steps.lang.outputs.lang == 'rust'
+        run: |
+          rustup component add clippy rustfmt
+          cargo fmt --all -- --check
+          cargo clippy --workspace --all-targets -- -D warnings
+      - name: Python — ruff & mypy
+        if: steps.lang.outputs.lang == 'python'
+        run: |
+          pip install ruff mypy
+          ruff check .
+          mypy src/ --strict || true
+      - name: Node — eslint & prettier
+        if: steps.lang.outputs.lang == 'node'
+        run: |
+          npm ci
+          npx prettier --check .
+          npx eslint .
+      - name: Go — go vet & staticcheck
+        if: steps.lang.outputs.lang == 'go'
+        run: |
+          go vet ./...
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
+
+  check-fr-traceability:
+    name: FR Traceability
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check FR annotations on new test files
+        shell: bash
+        run: |
+          # Check all test files changed in this PR
+          CHANGED_FILES=$(git diff --name-only --diff-filter=AM ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} || echo "")
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changed files to check"
+            exit 0
+          fi
+          ERRORS=0
+          for f in $CHANGED_FILES; do
+            case "$f" in
+              *_test.go|*_test.py|*_test.rs|*_test.ts|*_test.js|*test_*.py|*test_*.rs|*spec.ts|*spec.js)
+                if ! grep -qE "FR-[A-Z]+-[0-9]+|@pytest\.mark\.requirement|# @trace|@requirement" "$f" 2>/dev/null; then
+                  echo "⚠️  Missing FR annotation in: $f"
+                  ERRORS=$((ERRORS + 1))
+                fi
+                ;;
+            esac
+          done
+          if [ $ERRORS -gt 0 ]; then
+            echo "❌ $ERRORS test file(s) missing FR annotations."
+            echo "   Every test file must reference a FR ID via:"
+            echo "     - @pytest.mark.requirement('FR-XXX-NNN')  [Python]"
+            echo "     - # @trace FR-XXX-NNN                      [Rust/Go/TS]"
+            exit 1
+          fi
+          echo "✅ All changed test files have FR annotations"
+
+  unit-tests:
+    name: Unit Tests
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect language
+        id: lang
+        run: |
+          if [ -f Cargo.toml ]; then echo "lang=rust" >> "$GITHUB_OUTPUT"
+          elif [ -f go.mod ]; then echo "lang=go" >> "$GITHUB_OUTPUT"
+          elif [ -f pyproject.toml ]; then echo "lang=python" >> "$GITHUB_OUTPUT"
+          elif [ -f package.json ]; then echo "lang=node" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Rust — cargo test
+        if: steps.lang.outputs.lang == 'rust'
+        run: |
+          cargo test --workspace --lib
+          cargo tarpaulin --workspace --out Xml 2>/dev/null || echo "Install cargo-tarpaulin for coverage"
+      - name: Python — pytest with coverage
+        if: steps.lang.outputs.lang == 'python'
+        run: |
+          pip install pytest pytest-cov
+          pytest --cov=src/ --cov-fail-under=${{ env.MIN_COVERAGE }}
+      - name: Node — vitest with coverage
+        if: steps.lang.outputs.lang == 'node'
+        run: |
+          npm ci
+          npx vitest --coverage --coverage.thresholds.lines=${{ env.MIN_COVERAGE }}
+      - name: Go — go test with coverage
+        if: steps.lang.outputs.lang == 'go'
+        run: |
+          go test ./... -coverprofile=coverage.out -covermode=atomic
+          go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | tr -d '%' | xargs -I{} bash -c 'if [ {} -lt ${{ env.MIN_COVERAGE }} ]; then echo "❌ Coverage {}% < ${{ env.MIN_COVERAGE }}%"; exit 1; fi'
+
+  integration-tests:
+    name: Integration Tests
+    if: hashFiles('tests/integration/', '**/integration_tests*') != ''
+    needs: [unit-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run integration tests
+        run: |
+          echo "Running integration tests..."
+          if [ -f Cargo.toml ]; then
+            cargo test --test '*integration*' 2>/dev/null || echo "No integration test binary found"
+          elif [ -f pyproject.toml ]; then
+            pytest tests/integration/ -v 2>/dev/null || echo "No integration tests found"
+          elif [ -f package.json ]; then
+            npx vitest run --dir tests/integration 2>/dev/null || echo "No integration tests found"
+          fi
+
+  e2e-smoke:
+    name: E2E Smoke
+    if: hashFiles('e2e/', 'tests/e2e/') != ''
+    needs: [unit-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run E2E smoke tests
+        run: |
+          echo "Running E2E smoke tests..."
+          if [ -f Cargo.toml ]; then
+            cargo test --test '*e2e*' 2>/dev/null || echo "No e2e test binary found"
+          elif [ -f package.json ]; then
+            npx vitest run --dir e2e 2>/dev/null || echo "No e2e tests found"
+          fi

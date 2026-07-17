@@ -1,0 +1,39 @@
+name: OpenSSF Scorecard
+
+on:
+  schedule:
+    - cron: '0 12 * * 1'  # every Monday 12:00 UTC
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+# Declare default permissions as read-only.
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      # Needed to upload SARIF results to code-scanning dashboard.
+      security-events: write
+      # Needed to publish results and get a badge.
+      id-token: write
+      # Needed to fetch the repository contents.
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: ossf/scorecard-action@v2
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif

@@ -1,0 +1,35 @@
+name: cargo-deny
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Daily 06:00 UTC (per ADR-042 monthly cadence — daily for safety)
+    - cron: "0 6 * * *"
+
+jobs:
+  deny:
+    name: cargo-deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@e3f78fd1f6c2a43286e5ef3a13eea2e72ed23e1f
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@779680da715d629b86a86f9a2e2c439d7e8a065a
+        with:
+          workspaces: |
+            .
+      - uses: EmbarkStudios/cargo-deny-action@4ecc7c8b3e226df845bc2ed1d7d8b08d412f1045 # v2
+        with:
+          arguments: --all-features check
+      - name: Summary
+        if: failure()
+        run: |
+          echo "::error::cargo-deny failed. See job log for details."
+          echo "Common fixes:"
+          echo "  - Add a temporary advisory ignore with an expiry (deny.toml)"
+          echo "  - Add a license exception for a transitive dep (deny.toml)"
+          echo "  - Pin a dependency to a safe version (Cargo.toml)"

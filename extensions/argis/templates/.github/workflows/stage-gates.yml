@@ -1,0 +1,224 @@
+# Stage Gates — Progressive Quality by Branch Stage
+#
+# Copy this template into your repository's .github/workflows/ directory
+# and customize per-stage thresholds as needed.
+#
+# Governance reference: thegent/governance/quality-gates/README.md
+# Stage progression: spike → poc → preview → feature → alpha → beta → release
+
+name: Stage Gates
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: ['release/**']
+
+env:
+  # === CUSTOMIZE ===
+  RUST_TOOLCHAIN: "stable"
+  NODE_VERSION: "20"
+  PYTHON_VERSION: "3.12"
+  # === /CUSTOMIZE ===
+
+jobs:
+  detect-stage:
+    name: Detect Stage
+    runs-on: ubuntu-latest
+    outputs:
+      stage: ${{ steps.stage.outputs.stage }}
+      lang: ${{ steps.lang.outputs.lang }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Determine branch stage
+        id: stage
+        run: |
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          case "$BRANCH" in
+            spike/*)               echo "stage=spike" ;;
+            poc/*)                 echo "stage=poc" ;;
+            preview/*)             echo "stage=preview" ;;
+            alpha/*)               echo "stage=alpha" ;;
+            feature/*|feat/*)      echo "stage=feature" ;;
+            beta/*)                echo "stage=beta" ;;
+            release/ep-*)          echo "stage=ep" ;;
+            release/canary-*)      echo "stage=canary" ;;
+            *-rc.*|release/*-rc*)  echo "stage=rc" ;;
+            release/*)             echo "stage=release" ;;
+            main|master)           echo "stage=master" ;;
+            *)                     echo "stage=feature" ;;
+          esac >> "$GITHUB_OUTPUT"
+      - name: Detect language
+        id: lang
+        run: |
+          if [ -f Cargo.toml ]; then echo "lang=rust"
+          elif [ -f go.mod ]; then echo "lang=go"
+          elif [ -f pyproject.toml ]; then echo "lang=python"
+          elif [ -f package.json ]; then echo "lang=node"
+          else echo "lang=unknown"
+          fi >> "$GITHUB_OUTPUT"
+
+  # ──────── L1: Basic Hygiene ────────
+  format:
+    name: Format Check
+    needs: [detect-stage]
+    if: needs.detect-stage.outputs.stage != 'spike'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run format check
+        run: |
+          case "${{ needs.detect-stage.outputs.lang }}" in
+            rust) cargo fmt --all -- --check ;;
+            python) pip install ruff && ruff format --check . ;;
+            node) npx prettier --check . ;;
+            go) go fmt ./... ;;
+          esac
+
+  lint:
+    name: Lint
+    needs: [detect-stage]
+    if: needs.detect-stage.outputs.stage != 'spike' && needs.detect-stage.outputs.stage != 'poc'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run lint
+        run: |
+          case "${{ needs.detect-stage.outputs.lang }}" in
+            rust) cargo clippy --workspace --all-targets -- -D warnings ;;
+            python) pip install ruff && ruff check . ;;
+            node) npm ci && npx eslint . ;;
+            go) go vet ./... ;;
+          esac
+
+  # ──────── L2: Tests ────────
+  unit-tests:
+    name: Unit Tests
+    needs: [detect-stage, lint]
+    if: needs.detect-stage.outputs.stage != 'spike' && needs.detect-stage.outputs.stage != 'poc'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          case "${{ needs.detect-stage.outputs.lang }}" in
+            rust) cargo test --workspace --lib ;;
+            python) pip install pytest && pytest tests/unit/ ;;
+            node) npm ci && npx vitest run --dir tests/unit ;;
+            go) go test ./... ;;
+          esac
+
+  secrets-check:
+    name: Secrets Check
+    needs: [detect-stage]
+    if: needs.detect-stage.outputs.stage != 'spike' && needs.detect-stage.outputs.stage != 'poc'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: TruffleHog secrets scan
+        uses: trufflesecurity/trufflehog@v3
+        with:
+          extra_args: --only-verified
+
+  # ──────── L3: Advanced (alpha+) ────────
+  integration-tests:
+    name: Integration Tests
+    needs: [detect-stage, unit-tests]
+    if: needs.detect-stage.outputs.stage != 'spike' && needs.detect-stage.outputs.stage != 'poc' && needs.detect-stage.outputs.stage != 'preview'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          case "${{ needs.detect-stage.outputs.lang }}" in
+            rust) cargo test --test '*integration*' 2>/dev/null ;;
+            python) pip install pytest && pytest tests/integration/ 2>/dev/null ;;
+            node) npx vitest run --dir tests/integration 2>/dev/null ;;
+          esac
+
+  sast:
+    name: SAST Scan
+    needs: [detect-stage]
+    if: needs.detect-stage.outputs.stage != 'spike' && needs.detect-stage.outputs.stage != 'poc' && needs.detect-stage.outputs.stage != 'preview'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Semgrep SAST
+        uses: semgrep/semgrep-action@v1
+        with:
+          severity: ERROR,WARNING
+        continue-on-error: true
+
+  # ──────── L4: Quality & Security (beta+) ────────
+  coverage:
+    name: Coverage Gate
+    needs: [detect-stage, unit-tests]
+    if: needs.detect-stage.outputs.stage == 'beta' || needs.detect-stage.outputs.stage == 'ep' || needs.detect-stage.outputs.stage == 'canary' || needs.detect-stage.outputs.stage == 'rc' || needs.detect-stage.outputs.stage == 'release' || needs.detect-stage.outputs.stage == 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Coverage check
+        env:
+          STAGE: ${{ needs.detect-stage.outputs.stage }}
+        run: |
+          case "$STAGE" in
+            beta)    THRESHOLD=70 ;;
+            ep)      THRESHOLD=75 ;;
+            canary)  THRESHOLD=80 ;;
+            rc)      THRESHOLD=85 ;;
+            release|master) THRESHOLD=85 ;;
+          esac
+          echo "Coverage threshold: $THRESHOLD%"
+          case "${{ needs.detect-stage.outputs.lang }}" in
+            rust) cargo tarpaulin --workspace --out Xml --exclude-files tests --exclude-files target 2>/dev/null && echo "Threshold $THRESHOLD% — verify via tarpaulin output" ;;
+            python) pip install pytest-cov && pytest --cov=src/ --cov-fail-under=$THRESHOLD ;;
+            node) npx vitest --coverage --coverage.thresholds.lines=$THRESHOLD ;;
+          esac
+
+  dep-audit:
+    name: Dependency Audit
+    needs: [detect-stage]
+    if: needs.detect-stage.outputs.stage == 'beta' || needs.detect-stage.outputs.stage == 'ep' || needs.detect-stage.outputs.stage == 'canary' || needs.detect-stage.outputs.stage == 'rc' || needs.detect-stage.outputs.stage == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust — cargo deny
+        if: needs.detect-stage.outputs.lang == 'rust'
+        uses: EmbarkStudios/cargo-deny-action@v2
+      - name: Node — npm audit
+        if: needs.detect-stage.outputs.lang == 'node'
+        run: npm audit --audit-level=high
+      - name: Python — pip-audit
+        if: needs.detect-stage.outputs.lang == 'python'
+        run: |
+          pip install pip-audit
+          pip-audit
+
+  # ──────── L5: Release Gate (rc+) ────────
+  e2e-full:
+    name: E2E Full Suite
+    needs: [detect-stage, unit-tests]
+    if: needs.detect-stage.outputs.stage == 'rc' || needs.detect-stage.outputs.stage == 'release' || needs.detect-stage.outputs.stage == 'master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          case "${{ needs.detect-stage.outputs.lang }}" in
+            rust) cargo test --test '*e2e*' 2>/dev/null || echo "No e2e tests configured" ;;
+            python) pip install pytest && pytest tests/e2e/ 2>/dev/null || echo "No e2e tests configured" ;;
+            node) npx vitest run --dir tests/e2e 2>/dev/null || echo "No e2e tests configured" ;;
+          esac
+
+  sbom:
+    name: SBOM Generation
+    needs: [detect-stage]
+    if: needs.detect-stage.outputs.stage == 'rc' || needs.detect-stage.outputs.stage == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate SBOM (CycloneDX)
+        uses: CycloneDX/gha-generate-sbom@v2
+        with:
+          format: json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: bom.json

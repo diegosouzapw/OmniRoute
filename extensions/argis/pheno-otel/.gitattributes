@@ -1,0 +1,60 @@
+# Git attributes — https://git-scm.com/docs/gitattributes
+#
+# Per ADR-027 Git LFS 3-tier policy:
+#   Tier 1 (always-track):    binaries > 1 MiB that need LFS for performance
+#   Tier 2 (on-demand):       large generated artifacts (build outputs, etc.)
+#   Tier 3 (never-track):     secrets, .env, large blobs we explicitly reject
+#
+# We default to Tier 3 — never LFS. Specific files can opt in to Tier 1 below.
+
+# ─── Text / line endings ────────────────────────────────────────────────────
+# Normalize line endings to LF in the index, but keep CRLF in working tree
+# on Windows for shell scripts that require it.
+
+*               text=auto eol=lf
+
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+*.ps1           text eol=crlf
+
+# Shell scripts keep LF even on Windows
+*.sh            text eol=lf
+
+# Windows batch files
+{*,.[Bb][Aa][Tt]} text eol=crlf
+
+# ─── Diff & merge ──────────────────────────────────────────────────────────
+# For Markdown, show the rendered version in diffs
+*.md            diff=markdown
+
+# Rust: use the structured Rust diff
+*.rs            diff=rust
+
+# YAML: show structure changes
+*.yml           diff=yaml
+*.yaml          diff=yaml
+
+# ─── Binary detection ───────────────────────────────────────────────────────
+# Mark binary files explicitly (helps git avoid diff attempts)
+
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.ico           binary
+*.pdf           binary
+*.zip           binary
+*.tar.gz        binary
+*.tgz           binary
+
+# ─── Git LFS (Tier 1: always-track) ────────────────────────────────────────
+# Per ADR-027, large fixtures and binary baselines should be LFS-tracked.
+# Add patterns here ONLY after a deliberate decision per-file.
+
+# *.bin          filter=lfs diff=lfs merge=lfs -text
+# *.pcap         filter=lfs diff=lfs merge=lfs -text
+# *.parquet      filter=lfs diff=lfs merge=lfs -text
+
+# ─── Export-subst ──────────────────────────────────────────────────────────
+# For files that contain $Format:$ placeholders, expand on archive
+.gitignore      export-subst

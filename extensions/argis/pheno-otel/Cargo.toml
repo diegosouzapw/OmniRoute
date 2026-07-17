@@ -1,0 +1,31 @@
+[package]
+name = "pheno-otel"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "MIT OR Apache-2.0"
+description = "OpenTelemetry OTLP exporter substrate for the pheno-* fleet (ADR-037). Provides OtlpPort + Stdout/HttpExporter adapters; consumers depend on this for OTLP wire-format export of traces, metrics, and logs."
+repository = "https://github.com/KooshaPari/pheno-otel"
+documentation = "https://docs.rs/pheno-otel"
+keywords = ["phenotype", "opentelemetry", "otlp", "otel", "observability", "substrate", "tracing"]
+categories = ["development-tools", "api-bindings", "asynchronous"]
+readme = "README.md"
+publish = true
+
+# Empty [workspace] table declares this crate as a standalone package,
+# intentionally NOT a member of the root monorepo workspace (which contains
+# 100+ sub-crates). Consumers add it to their own workspace or depend on
+# it via a path/git dep.
+[workspace]
+
+[lib]
+name = "pheno_otel"
+path = "src/lib.rs"
+
+[dependencies]
+thiserror = "2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+# Reserved for OTLP smoke test fixtures.

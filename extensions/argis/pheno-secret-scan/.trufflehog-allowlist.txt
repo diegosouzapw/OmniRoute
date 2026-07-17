@@ -1,0 +1,28 @@
+# pheno-secret-scan — TruffleHog verification-overrides allowlist
+#
+# One TruffleHog detector ID per line (e.g. `aws-access-token`,
+# `github-pat`). Any *verified* finding whose `DetectorName` matches
+# an entry below is suppressed and the workflow will not fail on it.
+#
+# Empty by default: no detector is allowlisted, so any verified secret
+# is treated as a hard failure. This is the safe default for a fresh
+# repository.
+#
+# Why a baseline allowlist:
+#   * When a credential rotates, the old token may still appear in
+#     history until BFG / git-filter-repo rewrites it. Listing the
+#     detector here lets CI pass on already-known-and-mitigated
+#     findings while still scanning for *new* exposures.
+#   * When a test fixture embeds a deliberately-real-looking string
+#     (e.g. a doc example for a token format), listing its detector
+#     keeps the test reproducible without weakening the overall scan.
+#
+# Adding an entry: append the detector ID on its own line with a
+# short justification comment (the comment must start with `#`,
+# and the line itself must be a single non-comment token). The
+# `--allow-verification-overrides` flag in the workflow reads this
+# file verbatim and trusts it; do not commit entries lightly.
+#
+# Format example (do NOT uncomment — these are illustrative):
+#   aws-access-token          # rotated 2026-05-01, history rewrite pending
+#   github-pat                # test fixture in docs/examples/

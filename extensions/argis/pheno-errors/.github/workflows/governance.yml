@@ -1,0 +1,60 @@
+name: Governance
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  required-files:
+    name: Required governance files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Verify required files
+        run: |
+          set -e
+          required=(
+            "SECURITY.md"
+            ".github/dependabot.yml"
+            ".github/workflows/scorecard.yml"
+            ".editorconfig"
+            "cliff.toml"
+            ".github/CODEOWNERS"
+          )
+          missing=0
+          for f in "${required[@]}"; do
+            if [ ! -e "$f" ]; then
+              echo "::warning file=$f::Missing required governance file: $f"
+              missing=1
+            else
+              echo "OK: $f"
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "::notice::One or more optional governance files are missing."
+          fi
+
+  branch-policy:
+    name: Branch policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify default branch naming
+        run: |
+          default=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null || echo "main")
+          case "$default" in
+            main|master) echo "OK: default branch '$default' is governance-approved" ;;
+            *) echo "::error::Default branch '$default' is not in the approved set (main, master)"; exit 1 ;;
+          esac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

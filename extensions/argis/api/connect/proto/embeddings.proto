@@ -1,0 +1,171 @@
+syntax = "proto3";
+
+package bifrost.embeddings.v1;
+
+option go_package = "github.com/kooshapari/bifrost-extensions/api/connect/gen/embeddings/v1;embeddingsv1";
+
+// EmbeddingService provides text embedding generation
+service EmbeddingService {
+  // Embed generates embeddings for a single text
+  rpc Embed(EmbedRequest) returns (EmbedResponse);
+  
+  // EmbedBatch generates embeddings for multiple texts efficiently
+  rpc EmbedBatch(EmbedBatchRequest) returns (EmbedBatchResponse);
+  
+  // EmbedStream generates embeddings in a streaming fashion for large batches
+  rpc EmbedStream(stream EmbedRequest) returns (stream EmbedResponse);
+  
+  // Similarity computes similarity between two texts
+  rpc Similarity(SimilarityRequest) returns (SimilarityResponse);
+  
+  // Search finds similar items in a vector store
+  rpc Search(SearchRequest) returns (SearchResponse);
+}
+
+// EmbedRequest contains the text to embed
+message EmbedRequest {
+  // Text to embed
+  string text = 1;
+  
+  // Model to use (e.g., "voyage-3", "text-embedding-3-small")
+  string model = 2;
+  
+  // Input type hint for models that support it
+  InputType input_type = 3;
+  
+  // Dimensions for models that support dimension reduction
+  int32 dimensions = 4;
+  
+  // Request ID for tracking
+  string request_id = 5;
+}
+
+enum InputType {
+  INPUT_TYPE_UNSPECIFIED = 0;
+  INPUT_TYPE_QUERY = 1;      // For search queries
+  INPUT_TYPE_DOCUMENT = 2;   // For documents to be indexed
+  INPUT_TYPE_CODE = 3;       // For code snippets
+}
+
+// EmbedResponse contains the generated embedding
+message EmbedResponse {
+  // The embedding vector
+  repeated float embedding = 1;
+  
+  // Model used
+  string model = 2;
+  
+  // Token count
+  int32 token_count = 3;
+  
+  // Request ID for tracking
+  string request_id = 4;
+  
+  // Processing time in milliseconds
+  int32 latency_ms = 5;
+}
+
+// Batch embedding
+message EmbedBatchRequest {
+  repeated EmbedRequest requests = 1;
+}
+
+message EmbedBatchResponse {
+  repeated EmbedResponse responses = 1;
+  
+  // Total tokens processed
+  int32 total_tokens = 2;
+  
+  // Total processing time
+  int32 total_latency_ms = 3;
+}
+
+// Similarity computation
+message SimilarityRequest {
+  string text_a = 1;
+  string text_b = 2;
+  string model = 3;
+}
+
+message SimilarityResponse {
+  float similarity = 1;      // Cosine similarity (-1 to 1)
+  float distance = 2;        // Euclidean distance
+  int32 latency_ms = 3;
+}
+
+// Vector search
+message SearchRequest {
+  // Query text or embedding
+  oneof query {
+    string text = 1;
+    EmbeddingVector vector = 2;
+  }
+  
+  // Collection/index to search
+  string collection = 3;
+  
+  // Number of results to return
+  int32 top_k = 4;
+  
+  // Minimum similarity threshold
+  float min_similarity = 5;
+  
+  // Optional filters
+  map<string, string> filters = 6;
+  
+  // Include embeddings in results
+  bool include_embeddings = 7;
+  
+  // Model for query embedding (if text query)
+  string model = 8;
+}
+
+message EmbeddingVector {
+  repeated float values = 1;
+}
+
+message SearchResponse {
+  repeated SearchResult results = 1;
+  int32 latency_ms = 2;
+}
+
+message SearchResult {
+  string id = 1;
+  float score = 2;
+  map<string, string> metadata = 3;
+  string content = 4;
+  EmbeddingVector embedding = 5;
+}
+
+// RerankerService provides reranking capabilities
+service RerankerService {
+  // Rerank reorders documents by relevance to a query
+  rpc Rerank(RerankRequest) returns (RerankResponse);
+}
+
+message RerankRequest {
+  string query = 1;
+  repeated Document documents = 2;
+  string model = 3;  // e.g., "rerank-2"
+  int32 top_k = 4;
+  bool return_documents = 5;
+}
+
+message Document {
+  string id = 1;
+  string content = 2;
+  map<string, string> metadata = 3;
+}
+
+message RerankResponse {
+  repeated RerankResult results = 1;
+  int32 latency_ms = 2;
+}
+
+message RerankResult {
+  int32 index = 1;
+  string id = 2;
+  float relevance_score = 3;
+  Document document = 4;
+}
+

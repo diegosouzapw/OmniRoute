@@ -1,0 +1,53 @@
+# GraphQL code generation configuration for gqlgen
+# See: https://gqlgen.com/config/
+
+schema:
+  - schema/*.graphql
+
+exec:
+  filename: gen/generated.go
+  package: gen
+
+model:
+  filename: model/models_gen.go
+  package: model
+
+autobind:
+  - "github.com/kooshapari/bifrost-extensions/api/graphql/model"
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/99designs/gqlgen/graphql.IntID
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+  Time:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
+  Date:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
+  DateTime:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
+  JSON:
+    model:
+      - github.com/99designs/gqlgen/graphql.Map
+  Float64:
+    model:
+      - github.com/99designs/gqlgen/graphql.Float
+  Map:
+    model:
+      - github.com/99designs/gqlgen/graphql.Map
+  Any:
+    model:
+      - github.com/99designs/gqlgen/graphql.Map
+
+# Omit getters for performance
+omit_getters: true
+
+# Struct tag for JSON
+struct_tag: json

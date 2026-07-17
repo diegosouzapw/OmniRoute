@@ -1,0 +1,24 @@
+# Git attributes — pheno-port-adapter
+# Normalize line endings to LF
+* text=auto eol=lf
+
+# Rust sources
+*.rs text diff=rust
+*.toml text
+*.lock text
+
+# Documentation
+*.md text
+*.txt text
+
+# License
+LICENSE-MIT text
+
+# Binary / generated artifacts
+*.png binary
+*.jpg binary
+*.ico binary
+*.lock -diff
+
+# GitHub linguistics
+*.rs linguist-language=Rust

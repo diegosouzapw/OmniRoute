@@ -1,0 +1,14 @@
+version: 1
+roots:
+  - path: .
+    scan_depth: 4
+    exclude_paths:
+      - "*.lock"
+      - "**/node_modules/**"
+      - "**/__pycache__/**"
+      - "**/.venv/**"
+      - "**/target/**"
+      - "**/.git/**"
+    detectors:
+      - allowlist: false
+

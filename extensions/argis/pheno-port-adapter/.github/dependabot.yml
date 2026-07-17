@@ -1,0 +1,26 @@
+# dependabot.yml — pheno-port-adapter dependency updates
+#
+# Keeps Rust dependencies up-to-date daily.
+# Reference: ADR-023, ADR-042.
+
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: daily
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels:
+      - ci
+    commit-message:
+      prefix: "chore(ci)"
+    open-pull-requests-limit: 5

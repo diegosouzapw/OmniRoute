@@ -1,0 +1,73 @@
+# .gitattributes — line-ending and diff normalization
+# Normalize all text to LF on commit; CRLF on Windows hosts is converted by autocrlf.
+
+# Default: detect text, force LF on commit
+*               text=auto eol=lf
+
+# Shell and scripts must always be LF (Windows CRLF breaks shebangs)
+*.sh            text eol=lf
+
+# Go source
+*.go            text eol=lf
+
+# Rust source (future)
+*.rs            text eol=lf
+
+# Protobuf / generated
+*.proto         text eol=lf
+*.pb.go         text eol=lf
+*.pb.rs         text eol=lf
+
+# Config formats
+*.yml           text eol=lf
+*.yaml          text eol=lf
+*.toml          text eol=lf
+*.json          text eol=lf
+*.ini           text eol=lf
+*.cfg           text eol=lf
+*.editorconfig  text eol=lf
+
+# Markdown / docs
+*.md            text eol=lf
+*.txt           text eol=lf
+*.adoc          text eol=lf
+
+# Git's export-subst marker
+export-subst    text eol=lf
+
+# Per-language syntax-aware diffing
+*.go            diff=go
+*.rs            diff=rust
+*.py            diff=python
+*.ts            diff=typescript
+*.tsx           diff=tsx
+*.js            diff=javascript
+*.jsx           diff=jsx
+*.proto         diff=protobuf
+
+# Binary files — never touch
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.ico           binary
+*.webp          binary
+*.pdf           binary
+*.zip           binary
+*.gz            binary
+*.tgz           binary
+*.tar           binary
+*.bz2           binary
+*.xz            binary
+*.woff          binary
+*.woff2         binary
+*.ttf           binary
+*.otf           binary
+*.eot           binary
+*.wasm          binary
+*.exe           binary
+*.dll           binary
+*.so            binary
+*.dylib         binary
+*.o             binary
+*.a             binary

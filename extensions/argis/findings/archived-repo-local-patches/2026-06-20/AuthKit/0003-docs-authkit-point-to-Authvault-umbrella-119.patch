@@ -1,0 +1,25 @@
+From 3c335413c248fffb6b559e7f302718a74d4b9097 Mon Sep 17 00:00:00 2001
+From: KooshaPari <42529354+KooshaPari@users.noreply.github.com>
+Date: Wed, 17 Jun 2026 23:23:34 -0700
+Subject: [PATCH 3/4] docs(authkit): point to Authvault umbrella (#119)
+
+---
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index 6b0eedd..7cb6247 100644
+--- a/README.md
++++ b/README.md
+@@ -37,7 +37,7 @@ # AuthKit
+ [![License](https://img.shields.io/github/license/KooshaPari/AuthKit)](LICENSE)
+ [![Phenotype](https://img.shields.io/badge/Phenotype-org-blueviolet)](https://github.com/KooshaPari)
+ 
+-> **Status:** Pre-extraction staging repo. Not a published SDK.
++> **Status:** Pre-extraction staging repo. Not a published SDK. Canonical auth umbrella: `Authvault`.
+ 
+ AuthKit (formerly AuthVault) is a pre-extraction staging repository for shared infrastructure crates that will eventually move to **phenoShared**. Despite the name, this repository does **not** currently contain authentication SDK code — that work is planned but not started. The crates currently checked in here are general-purpose Phenotype-org infrastructure being staged for extraction.
+ 
+-- 
+2.50.1 (Apple Git-155)
+

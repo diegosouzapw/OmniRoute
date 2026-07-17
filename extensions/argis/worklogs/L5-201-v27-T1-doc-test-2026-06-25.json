@@ -1,0 +1,84 @@
+{
+  "version": "2.1",
+  "id": "L5-201",
+  "session": "2026-06-25-v27-T1-doc-test",
+  "device": "macbook",
+  "epoch": "2026-06-25T23:59:00Z",
+  "date": "2026-06-25",
+  "type": "feat(ci)",
+  "plan_ref": "plans/2026-06-24-v27-71-pillar-cycle-17-p0.md (Track T1)",
+  "pillar_ref": "L28 (doc-test coverage)",
+  "pillar_score_before": 0,
+  "pillar_score_after": 3,
+  "branch": "feat/v27-T1-doc-test-runner-2026-06-25",
+  "branch_tip": "432b46f",
+  "merge_commit": null,
+  "merged_at": null,
+  "pr_url": "https://github.com/KooshaPari/argis-extensions/pull/147",
+  "pr_number": 147,
+  "pr_state": "OPEN",
+  "repository": "KooshaPari/argis-extensions",
+  "base_branch": "main",
+  "head_branch": "feat/v27-T1-doc-test-runner-2026-06-25",
+  "summary": "Implements v27 plan Track T1: adds a .github/workflows/docs.yml workflow that runs cargo test --doc for each Rust crate (pheno-errors, pheno-otel, pheno-port-adapter) on ubuntu-latest, triggered by push, PR, and daily cron at 06:00 UTC. Fixes crate-level doc omissions to enable baseline doc-test pass: pheno-port-adapter gets /// doc comments on 8 items (4 AdapterError variants, 4 PortAdapter methods), pheno-errors gets serde_json dev-dependency for rfc7807.rs doc-test.",
+  "files_changed": [
+    ".github/workflows/docs.yml (NEW, +38)",
+    "pheno-port-adapter/src/lib.rs (+13, doc comments)",
+    "pheno-errors/Cargo.toml (+1, dev-dep)"
+  ],
+  "files_changed_count": 3,
+  "insertions": 52,
+  "deletions": 0,
+  "commit_message": "feat(v27-T1): add doc-test CI job across workspace crates",
+  "actions": [
+    {
+      "id": "T1-S1",
+      "type": "ci(workflow)",
+      "surface": ".github/workflows/docs.yml",
+      "rationale": "New workflow with 38 lines: matrix across 3 Rust crates, uses dtolnay/rust-toolchain for stable Rust + cargo test --doc --jobs 4 (overrides .cargo/config.toml jobs=0). Triggered by push, PR, and daily cron at 06:00 UTC."
+    },
+    {
+      "id": "T1-S2",
+      "type": "fix(docs)",
+      "surface": "pheno-port-adapter/src/lib.rs",
+      "rationale": "Added /// doc comments to 4 AdapterError variants and 4 PortAdapter trait methods. Required because the crate uses #![deny(missing_docs)] at line 1, which would block doc-test compilation for any undocumented public item."
+    },
+    {
+      "id": "T1-S3",
+      "type": "fix(deps)",
+      "surface": "pheno-errors/Cargo.toml",
+      "rationale": "Added serde_json = \"1\" to [dev-dependencies]. The doc-test code block in rfc7807.rs (line 30) uses serde_json::to_string(), which requires serde_json as a direct dev-dependency for doc-test compilation."
+    }
+  ],
+  "observations": {
+    "scope_reality_vs_plan": "Plan called for 'all workspace members.' After git ls-tree on origin/main, 3 Rust crates with Cargo.toml exist: pheno-errors, pheno-otel, pheno-port-adapter. pheno-flags exists locally but not on origin/main. The remaining pheno-* directories (pheno-llms-txt, pheno-scaffold-kit, pheno-secret-scan, pheno-ssot-template, pheno-vibecoding-guard, pheno-worklog-schema) are Python or template projects without Cargo.toml.",
+    "doc_test_blockers": {
+      "pheno_errors_rfc7807_serde_json": "Doc-test in rfc7807.rs uses serde_json::to_string but serde_json was not in [dev-dependencies]. Fixed: added serde_json = \"1\".",
+      "pheno_port_adapter_missing_docs": "Crate uses #![deny(missing_docs)]; 8 undocumented public items blocked compilation. Fixed: added /// comments to all variants and methods.",
+      "cargo_config_jobs_0": ".cargo/config.toml has jobs=0 which causes cargo to fail. Fixed: overridden with --jobs 4 in workflow."
+    },
+    "crate_inventory_on_origin_main": {
+      "with_cargo_toml": ["pheno-errors", "pheno-otel", "pheno-port-adapter"],
+      "pheno_dirs_without_cargo_toml": ["pheno-config", "pheno-flags", "pheno-llms-txt", "pheno-scaffold-kit", "pheno-secret-scan", "pheno-ssot-template", "pheno-vibecoding-guard", "pheno-worklog-schema"]
+    },
+    "git_workflow": {
+      "worktree_path": "/private/tmp/v27-T1-doc-test-001",
+      "branch_created_from": "origin/main",
+      "push": "OK (origin set upstream)",
+      "pr_open": "OK via gh CLI — PR #147"
+    }
+  },
+  "next_wave_hooks": {
+    "v27_T2_track": "L52 mTLS fleet — no overlap",
+    "v27_T3_track": "L60 LFS audit policy — no overlap",
+    "v27_T4_track": "L19 fleet-wide perf gates — no overlap",
+    "blockers": "None — all 3 doc-test compilations pass locally. Full CI validation pending PR merge."
+  },
+  "artifacts": {
+    "worklog_this": "worklogs/L5-201-v27-T1-doc-test-2026-06-25.json",
+    "worklog_repo_copy": "argis-extensions/worklogs/L5-201-v27-T1-doc-test-2026-06-25.json",
+    "pr": "https://github.com/KooshaPari/argis-extensions/pull/147",
+    "branch_tip_sha": "432b46f"
+  },
+  "status": "complete"
+}

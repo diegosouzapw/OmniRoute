@@ -1,0 +1,30 @@
+# `pheno-scaffold-kit`
+
+> Python scaffolding template for `pheno-*` repos. Renders a Cookiecutter template with the ADR-023 Rule 3.1 meta-bundle pre-applied at scaffold time.
+
+## Docs
+
+- [README](README.md): what / when / when not
+- [SPEC](SPEC.md): format spec + API surface + quickstart
+- [AGENTS](AGENTS.md): substrate scope + cross-references
+
+## Reference
+
+- [ADR-023 (substrate)](https://example.com/phenotype-apps/docs/adr/2026-06-15/ADR-023-agent-effort-governance.md): framework substrate placement rule
+- [ADR-039 (flake)](https://example.com/phenotype-apps/docs/adr/2026-06-18/ADR-039-pheno-flake-refresh-template.md): ruff.toml for Python
+- [ADR-040 (coverage)](https://example.com/phenotype-apps/docs/adr/2026-06-18/ADR-040-test-coverage-gates-per-tier.md): 70% framework gate
+
+## Releases
+
+- [CHANGELOG](CHANGELOG.md): Keep a Changelog format
+- [WORKLOG](WORKLOG.md): v2.1 schema (Date | Task ID | Layer | Action | Files | Notes | device)
+
+## Source
+
+- [Repo](https://github.com/KooshaPari/phenotype-apps/tree/main/pheno-scaffold-kit): governance + meta-bundle path in the monorepo
+- [src/](src/pheno_scaffold_kit/): executable Python source
+- [templates/](templates/cookiecutter/): Cookiecutter template
+
+## Examples
+
+- [quickstart](examples/quickstart.py): 5-line demo

@@ -1,0 +1,42 @@
+# Phenotype-org standard justfile
+# Run `just` to list available recipes.
+
+default:
+    @just --list
+
+# Build workspace
+build:
+    cargo build --workspace
+
+# Run tests
+test:
+    cargo test --workspace
+
+# Lint (clippy + fmt --check)
+lint:
+    cargo clippy --workspace -- -D warnings
+    cargo fmt --check
+
+# Format code
+fmt:
+    cargo fmt
+
+# Security audits (cargo-deny + cargo-audit)
+audit:
+    cargo deny check
+    cargo audit
+
+# Find unused dependencies
+unused:
+    cargo machete
+
+# Full local CI sweep
+ci: lint test audit unused
+
+# Generate docs
+docs:
+    cargo doc --no-deps --workspace
+
+# Clean build artifacts
+clean:
+    cargo clean

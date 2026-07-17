@@ -1,0 +1,28 @@
+[project]
+name = "researchintel"
+version = "1.0.0"
+description = "Research Intelligence Platform - Deep research, chat analysis, and proposal generation"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0",
+    "pydantic>=2.5.0",
+    "dspy-ai>=2.5.0",
+    "httpx>=0.26.0",
+    "beautifulsoup4>=4.12.0",
+    "numpy>=1.26.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+

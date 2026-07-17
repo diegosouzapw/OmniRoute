@@ -1,0 +1,32 @@
+name: Dependency Policy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deny-policy:
+    name: deny.toml policy (forward-compatible)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-deny
+        run: cargo install --locked cargo-deny
+      - name: Run cargo-deny check
+        run: cargo deny check
+        # No Cargo.toml today — this is a no-op until a Rust/Go workspace is
+        # introduced. Kept as a forward-compatible guard so the policy file
+        # is validated on every push.

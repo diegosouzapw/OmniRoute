@@ -1,0 +1,5 @@
+# CODEOWNERS — default reviewers for this repository.
+# Order matters: later rules override earlier ones.
+
+# Default owner
+* @KooshaPari

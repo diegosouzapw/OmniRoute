@@ -1,0 +1,83 @@
+# Policy Gate — Branch & Namespace Policy Enforcement
+#
+# Copy this template into your repository's .github/workflows/ directory
+# and customize the namespace / branch-pattern variables as needed.
+#
+# Governance reference: thegent/governance/quality-gates/README.md
+# AGENTS.base.md §8 — Branch Discipline
+
+name: Policy Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+
+env:
+  # === CUSTOMIZE ===
+  ALLOWED_NAMESPACE: "KooshaPari"       # Org or user namespace
+  ALLOWED_BOTS: "dependabot[bot],github-actions[bot]"
+  MAIN_BRANCHES: "main,master"
+  # === /CUSTOMIZE ===
+
+jobs:
+  check-namespace-ownership:
+    name: Namespace Ownership
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR author namespace
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          ALLOWED_BOTS="${{ env.ALLOWED_BOTS }},${{ env.ALLOWED_NAMESPACE }}"
+          IFS=',' read -ra ALLOWED <<< "$ALLOWED_BOTS"
+          MATCH=1
+          for ns in "${ALLOWED[@]}"; do
+            ns_trimmed=$(echo "$ns" | xargs)
+            if [[ "$PR_AUTHOR" == "$ns_trimmed" || "$PR_AUTHOR" == "$ns_trimmed"/* ]]; then
+              MATCH=0
+              break
+            fi
+          done
+          if [[ $MATCH -ne 0 ]]; then
+            echo "❌ PR author '$PR_AUTHOR' is not in allowed namespace(s): ${{ env.ALLOWED_BOTS }}"
+            exit 1
+          fi
+          echo "✅ PR author '$PR_AUTHOR' is authorized"
+
+  check-layered-fix-policy:
+    name: Layered Fix PR Policy
+    if: startsWith(github.head_ref, 'fix/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate fix/ branch target
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          IFS=',' read -ra MAIN <<< "${{ env.MAIN_BRANCHES }}"
+          for mb in "${MAIN[@]}"; do
+            mb_trimmed=$(echo "$mb" | xargs)
+            if [[ "$BASE_BRANCH" == "$mb_trimmed" ]]; then
+              echo "❌ fix/ branches cannot target '$mb_trimmed' directly."
+              echo "   Use a stack/*, layer/*, or release/* branch as target."
+              exit 1
+            fi
+          done
+          echo "✅ fix/ branch '$HEAD_BRANCH' -> '$BASE_BRANCH' is valid"
+
+  prevent-merge-commits:
+    name: Prevent Merge Commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for merge commit messages
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if echo "$PR_TITLE" | grep -qiE "^Merge branch|^Merge commit|^Merge pull request"; then
+            echo "❌ Merge commits are not allowed in PR titles."
+            echo "   Use rebase or squash merge instead."
+            exit 1
+          fi
+          echo "✅ PR title does not indicate a merge commit"

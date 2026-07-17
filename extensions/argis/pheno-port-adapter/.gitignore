@@ -1,0 +1,35 @@
+# Rust build artifacts
+target/
+**/*.rs.bk
+
+# IDE / editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Coverage output
+lcov.info
+*.profraw
+
+# Temporary / generated files
+*.tmp
+*.log
+
+# Artifacts from orchestration passes
+.claude/
+findings/
+worklogs/
+.local/
+.serena/
+*.patch

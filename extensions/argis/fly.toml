@@ -1,0 +1,45 @@
+app = "bifrost-promptadapter"
+primary_region = "iad"
+
+[build]
+  image = "registry.fly.io/bifrost-promptadapter:latest"
+
+[http_service]
+  internal_port = 8090
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[env]
+  REDIS_URL = "redis://localhost:6379"
+  LOG_LEVEL = "INFO"
+  PYTHONUNBUFFERED = "1"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 6379
+  processes = ["redis"]
+
+  [[services.ports]]
+    port = 6379
+    handlers = ["http"]
+
+[processes]
+  redis = "redis-server --appendonly yes"
+  app = "python -m uvicorn main:app --host 0.0.0.0 --port 8090"
+
+[mounts]
+  source = "redis_data"
+  destination = "/data"
+  initial_size = "1gb"
+
+[[statics]]
+  guest_path = "/app/static"
+  url_prefix = "/static"
+

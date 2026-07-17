@@ -1,0 +1,152 @@
+#!/bin/bash
+# Pre-push hook for Phenotype projects
+# Runs full test suite and verifies changelog generation
+
+set -e
+
+echo "🚀 Running pre-push checks..."
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+COVERAGE_THRESHOLD=85
+ERRORS=0
+
+# Get current branch
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Skip checks for specific branches if needed
+if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+    echo -e "${YELLOW}⚠️  Pushing to $BRANCH branch - ensure all CI checks pass${NC}"
+fi
+
+# Test 1: Run full test suite
+echo -e "${BLUE}🧪 Running full test suite...${NC}"
+
+if [ -f "Cargo.toml" ]; then
+    echo "  Running Rust tests..."
+    if command -v cargo >/dev/null 2>&1; then
+        if ! cargo test --all-features 2>&1; then
+            echo -e "${RED}❌ Rust tests failed${NC}"
+            ERRORS=$((ERRORS + 1))
+        else
+            echo -e "${GREEN}✅ Rust tests passed${NC}"
+        fi
+
+        # Coverage check (if tarpaulin available)
+        if command -v cargo-tarpaulin >/dev/null 2>&1 || cargo install --list | grep -q cargo-tarpaulin; then
+            echo "  Checking code coverage..."
+            COVERAGE_OUTPUT=$(cargo tarpaulin --lib --all-features --out Stdout 2>/dev/null || true)
+            if [ -n "$COVERAGE_OUTPUT" ]; then
+                COVERAGE=$(echo "$COVERAGE_OUTPUT" | grep -oP '\d+\.?\d*%' | head -1 | tr -d '%')
+                if [ -n "$COVERAGE" ]; then
+                    if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l 2>/dev/null || echo "0") )); then
+                        echo -e "${RED}❌ Code coverage ${COVERAGE}% is below threshold ${COVERAGE_THRESHOLD}%${NC}"
+                        ERRORS=$((ERRORS + 1))
+                    else
+                        echo -e "${GREEN}✅ Code coverage: ${COVERAGE}%${NC}"
+                    fi
+                fi
+            fi
+        fi
+    fi
+elif [ -f "package.json" ]; then
+    echo "  Running Node.js tests..."
+    if command -v npm >/dev/null 2>&1; then
+        if [ -f "package-lock.json" ]; then
+            npm ci 2>/dev/null || npm install
+        else
+            npm install 2>/dev/null
+        fi
+
+        if npm run test --if-present 2>&1; then
+            echo -e "${GREEN}✅ Node.js tests passed${NC}"
+        else
+            echo -e "${RED}❌ Node.js tests failed${NC}"
+            ERRORS=$((ERRORS + 1))
+        fi
+
+        # Coverage check
+        if npm run test:coverage --if-present 2>/dev/null; then
+            if [ -f "coverage/lcov.info" ] || [ -f "coverage/coverage-summary.json" ]; then
+                echo -e "${GREEN}✅ Coverage report generated${NC}"
+            fi
+        fi
+    fi
+elif [ -f "pyproject.toml" ] || [ -f "setup.py" ]; then
+    echo "  Running Python tests..."
+    if command -v pytest >/dev/null 2>&1; then
+        if ! pytest --cov=. --cov-report=term-missing 2>&1; then
+            echo -e "${RED}❌ Python tests failed${NC}"
+            ERRORS=$((ERRORS + 1))
+        else
+            echo -e "${GREEN}✅ Python tests passed${NC}"
+        fi
+    fi
+elif [ -f "go.mod" ]; then
+    echo "  Running Go tests..."
+    if command -v go >/dev/null 2>&1; then
+        if ! go test ./... 2>&1; then
+            echo -e "${RED}❌ Go tests failed${NC}"
+            ERRORS=$((ERRORS + 1))
+        else
+            echo -e "${GREEN}✅ Go tests passed${NC}"
+        fi
+    fi
+fi
+
+# Test 2: Verify cliff.toml can generate changelog
+echo -e "${BLUE}📝 Verifying changelog generation...${NC}"
+
+if [ -f "cliff.toml" ]; then
+    if command -v git-cliff >/dev/null 2>&1; then
+        if git-cliff --config cliff.toml --dry-run >/dev/null 2>&1; then
+            echo -e "${GREEN}✅ cliff.toml is valid${NC}"
+        else
+            echo -e "${YELLOW}⚠️  cliff.toml may have issues (non-blocking)${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠️  git-cliff not installed, skipping changelog check${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠️  No cliff.toml found${NC}"
+fi
+
+# Test 3: Check for uncommitted changes
+echo -e "${BLUE}📦 Checking for uncommitted changes...${NC}"
+
+if ! git diff-index --quiet HEAD --; then
+    echo -e "${YELLOW}⚠️  Uncommitted changes detected:${NC}"
+    git status --short
+    echo -e "${YELLOW}Consider committing these changes before pushing${NC}"
+fi
+
+# Test 4: Lint checks
+echo -e "${BLUE}🔍 Running lint checks...${NC}"
+
+if [ -f "Cargo.toml" ]; then
+    echo "  Running clippy..."
+    if ! cargo clippy --all-features -- -D warnings 2>&1; then
+        echo -e "${RED}❌ Clippy warnings found${NC}"
+        ERRORS=$((ERRORS + 1))
+    else
+        echo -e "${GREEN}✅ Clippy passed${NC}"
+    fi
+fi
+
+# Summary
+if [ $ERRORS -eq 0 ]; then
+    echo ""
+    echo -e "${GREEN}✅ All pre-push checks passed!${NC}"
+    echo "Pushing to $BRANCH..."
+    exit 0
+else
+    echo ""
+    echo -e "${RED}❌ Pre-push checks failed with $ERRORS error(s)${NC}"
+    echo "Fix the issues above or use --no-verify to skip (not recommended)"
+    exit 1
+fi

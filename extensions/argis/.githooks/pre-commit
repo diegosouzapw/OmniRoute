@@ -1,0 +1,155 @@
+#!/bin/bash
+# Pre-commit hook for Phenotype projects
+# Checks FR annotations and test file existence
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Get list of staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+# Track errors
+ERRORS=0
+
+# Check 1: FR annotations in staged test files
+echo "📋 Checking FR annotations in test files..."
+TEST_FILES=$(echo "$STAGED_FILES" | grep -E '(_test\.rs|tests?/.*\.rs|\.test\.(ts|js|py|go))$' || true)
+
+if [ -n "$TEST_FILES" ]; then
+    for file in $TEST_FILES; do
+        if [ -f "$file" ]; then
+            # Check for FR annotation (supports Rust, TypeScript, Python, Go style comments)
+            if ! grep -qE '(// FR:|// @FR|# FR:|# @FR|\* FR:|\* @FR|//fr |#fr )' "$file" 2>/dev/null; then
+                echo -e "${YELLOW}⚠️  Warning: No FR annotation found in test file: $file${NC}"
+                echo "   Add an annotation like: // FR: REQ-001 - Description"
+                # Non-blocking warning for now
+            fi
+        fi
+    done
+fi
+
+# Check 2: Test file exists for staged source files
+echo "📁 Checking test file existence..."
+
+for file in $STAGED_FILES; do
+    case "$file" in
+        *.rs)
+            if [[ ! "$file" =~ ^tests?/ ]] && [[ ! "$file" =~ _test\.rs$ ]]; then
+                # Check for corresponding test file
+                basename=$(basename "$file" .rs)
+                dir=$(dirname "$file")
+
+                # Check various test file patterns
+                if [ -f "${dir}/${basename}_test.rs" ] || \
+                   [ -f "tests/${basename}.rs" ] || \
+                   [ -f "tests/${dir}/${basename}.rs" ] || \
+                   grep -q "#\[cfg(test)\]" "$file" 2>/dev/null || \
+                   grep -q "#\[test\]" "$file" 2>/dev/null; then
+                    : # Test file exists or inline tests present
+                else
+                    echo -e "${YELLOW}⚠️  No test file found for: $file${NC}"
+                fi
+            fi
+            ;;
+        *.ts|*.js)
+            if [[ ! "$file" =~ \.test\. ]] && [[ ! "$file" =~ \.spec\. ]] && [[ ! "$file" =~ __tests__/ ]]; then
+                basename=$(basename "$file" | sed 's/\.[^.]*$//')
+                dir=$(dirname "$file")
+
+                if [ ! -f "${dir}/${basename}.test.ts" ] && \
+                   [ ! -f "${dir}/${basename}.test.js" ] && \
+                   [ ! -f "${dir}/${basename}.spec.ts" ] && \
+                   [ ! -f "${dir}/${basename}.spec.js" ] && \
+                   [ ! -f "__tests__/${basename}.ts" ] && \
+                   [ ! -f "__tests__/${basename}.js" ]; then
+                    echo -e "${YELLOW}⚠️  No test file found for: $file${NC}"
+                fi
+            fi
+            ;;
+        *.py)
+            if [[ ! "$file" =~ test_ ]] && [[ ! "$file" =~ _test\.py$ ]] && [[ ! "$file" =~ tests?/ ]]; then
+                basename=$(basename "$file" .py)
+                dir=$(dirname "$file")
+
+                if [ ! -f "${dir}/test_${basename}.py" ] && \
+                   [ ! -f "${dir}/${basename}_test.py" ] && \
+                   [ ! -f "tests/test_${basename}.py" ]; then
+                    echo -e "${YELLOW}⚠️  No test file found for: $file${NC}"
+                fi
+            fi
+            ;;
+        *.go)
+            if [[ ! "$file" =~ _test\.go$ ]]; then
+                basename=$(basename "$file" .go)
+                dir=$(dirname "$file")
+
+                if [ ! -f "${dir}/${basename}_test.go" ]; then
+                    echo -e "${YELLOW}⚠️  No test file found for: $file${NC}"
+                fi
+            fi
+            ;;
+    esac
+done
+
+# Check 3: Run linting/formatting based on project type
+echo "🎨 Running formatters..."
+
+if [ -f "Cargo.toml" ]; then
+    echo "  Running rustfmt..."
+    if command -v rustfmt >/dev/null 2>&1; then
+        for file in $STAGED_FILES; do
+            if [[ "$file" =~ \.rs$ ]]; then
+                if ! rustfmt --check "$file" 2>/dev/null; then
+                    echo -e "${RED}❌ Formatting issues in: $file${NC}"
+                    echo "   Run: cargo fmt"
+                    ERRORS=$((ERRORS + 1))
+                fi
+            fi
+        done
+    fi
+fi
+
+if [ -f "package.json" ]; then
+    echo "  Running Prettier..."
+    if command -v npx >/dev/null 2>&1 && [ -f "node_modules/.bin/prettier" ]; then
+        PRETTIER_FILES=$(echo "$STAGED_FILES" | grep -E '\.(ts|tsx|js|jsx|json|md|yml|yaml)$' || true)
+        if [ -n "$PRETTIER_FILES" ]; then
+            if ! echo "$PRETTIER_FILES" | xargs npx prettier --check 2>/dev/null; then
+                echo -e "${RED}❌ Prettier formatting issues${NC}"
+                echo "   Run: npx prettier --write <files>"
+                ERRORS=$((ERRORS + 1))
+            fi
+        fi
+    fi
+fi
+
+if [ -f "pyproject.toml" ] || [ -f "setup.py" ]; then
+    echo "  Running Ruff..."
+    if command -v ruff >/dev/null 2>&1; then
+        RUFF_FILES=$(echo "$STAGED_FILES" | grep -E '\.py$' || true)
+        if [ -n "$RUFF_FILES" ]; then
+            if ! echo "$RUFF_FILES" | xargs ruff check 2>/dev/null; then
+                echo -e "${RED}❌ Ruff linting issues${NC}"
+                echo "   Run: ruff check --fix <files>"
+                ERRORS=$((ERRORS + 1))
+            fi
+        fi
+    fi
+fi
+
+# Summary
+if [ $ERRORS -eq 0 ]; then
+    echo -e "${GREEN}✅ Pre-commit checks passed!${NC}"
+    exit 0
+else
+    echo -e "${RED}❌ Pre-commit checks failed with $ERRORS error(s)${NC}"
+    echo "Fix the issues above or use --no-verify to skip (not recommended)"
+    exit 1
+fi

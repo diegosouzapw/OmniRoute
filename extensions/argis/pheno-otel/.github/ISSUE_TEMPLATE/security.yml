@@ -1,0 +1,73 @@
+name: Security vulnerability
+description: Privately report a security vulnerability (do NOT use for general bugs)
+title: "[security] "
+labels: ["security", "private"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **STOP — this is for SECURITY VULNERABILITIES only.**
+        For bugs, use the bug report template instead.
+
+        If this is a security issue, you can also report via GitHub's
+        [private security advisory][adv] form, which keeps the report
+        confidential during triage.
+
+        [adv]: https://github.com/KooshaPari/pheno-otel/security/advisories/new
+
+        **Do not include exploit details or proof-of-concept code that could
+        be harmful if disclosed prematurely.**
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Vulnerability summary
+      description: Brief description of the vulnerability
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What is the worst-case impact? (RCE, data leak, DoS, etc.)
+    validations:
+      required: true
+
+  - type: input
+    id: affected
+    attributes:
+      label: Affected versions
+      description: Which versions are affected?
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: cvss
+    attributes:
+      label: Estimated severity
+      description: Your estimate of CVSS score or severity (Critical/High/Medium/Low)
+      placeholder: "Medium (CVSS 5.5)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: contact
+    attributes:
+      label: Contact for follow-up
+      description: How can we reach you for follow-up? (GitHub handle is fine)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Disclosure
+      options:
+        - label: I will follow coordinated disclosure and not publicly disclose until a fix is released
+          required: true
+        - label: I have not shared this issue with anyone outside of trusted security contacts
+          required: true

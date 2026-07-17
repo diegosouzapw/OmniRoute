@@ -1,0 +1,20 @@
+{
+  "id": "L5-133",
+  "date": "2026-06-20",
+  "type": "sha_reversion_recovery",
+  "summary": "Re-applied 4 SHA pin repairs that were reverted by a parallel-agent commit on chore/v12-71-pillar-p0-remediation-2026-06-20",
+  "trigger": "Validator flagged 4 broken SHAs when run on the parallel-agent branch",
+  "fix": "Re-applied the L5-131 fix using the same Python heredoc approach",
+  "validator_result": "20/20 SHAs valid after re-application",
+  "canonical_state": {
+    "phenotype_apps_main": "893a6c4c49 (L5-131 fix present)",
+    "current_branch": "chore/v12-71-pillar-p0-remediation-2026-06-20 (L5-133 fix re-applied)",
+    "phenotype_ops_main": "2e0d312"
+  },
+  "open_prs_in_my_repos": [
+    "phenotype-ops: #7, #8, #9 (Tracks A/B/C — merged in L5-132)",
+    "argis-extensions: #101, #102 (Tracks D/E — merged in L5-132)"
+  ],
+  "fleet_corruptions": 0,
+  "status": "complete"
+}
