@@ -57,7 +57,18 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   // covers dynamically-synced ids that post-date the catalog (same spirit as the gh
   // executor's /codex/i routing, 9router#102). Scoped to the openai alias so other
   // providers shipping *-pro ids keep their own endpoint semantics.
-  if (aliasOrId === "openai" && /-pro$/i.test(modelId)) return "openai-responses";
+  //
+  // gpt-5.6-* are ALSO responses-first: /v1/chat/completions returns 400 when
+  // function tools are combined with reasoning_effort ("...not supported ... use
+  // /v1/responses or set reasoning_effort to 'none'"), so route them to the native
+  // endpoint too — the same tested path as *-pro. The (?:$|[-.]) boundary matches
+  // gpt-5.6 / gpt-5.6-luna / gpt-5.6-sol / gpt-5.6-terra without catching gpt-5.60.
+  if (
+    aliasOrId === "openai" &&
+    (/-pro$/i.test(modelId) || /^gpt-5\.6(?:$|[-.])/i.test(modelId))
+  ) {
+    return "openai-responses";
+  }
   return null;
 }
 
