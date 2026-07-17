@@ -236,9 +236,7 @@ function trimLeadingDashes(value: string): string {
  * applying defaults. Centralises the providerId fallback so every hook
  * sees a consistent identifier.
  */
-export function resolveOmniRoutePluginOptions(
-  opts?: OmniRoutePluginOptions
-): Required<
+export function resolveOmniRoutePluginOptions(opts?: OmniRoutePluginOptions): Required<
   Pick<OmniRoutePluginOptions, "providerId" | "displayName" | "modelCacheTtl">
 > & {
   /**
@@ -292,7 +290,9 @@ export function resolveOmniRoutePluginOptions(
  * idempotent-prefix handling above.
  */
 function trimLeadingOpencodePrefix(rawProviderId: string): string {
-  return rawProviderId.startsWith("opencode-") ? rawProviderId.slice("opencode-".length) : rawProviderId;
+  return rawProviderId.startsWith("opencode-")
+    ? rawProviderId.slice("opencode-".length)
+    : rawProviderId;
 }
 
 /**
@@ -2692,7 +2692,7 @@ export function createOmniRouteProviderHook(
         if (usable && !isUsableRawModelId(entry.id, usable, rawEnrichment)) continue;
         const model = mapRawModelToModelV2(entry, {
           // #6859: server-facing id — NOT the OC-gate-prefixed `resolved.providerId`.
-          providerId: resolved.omnirouteProviderId,
+          providerId: resolved.providerId,
           baseURL,
           apiFormat: resolved.features?.apiFormat,
         });
@@ -2858,7 +2858,7 @@ export function createOmniRouteProviderHook(
             combo,
             memberEntries,
             // #6859: server-facing id — NOT the OC-gate-prefixed `resolved.providerId`.
-            resolved.omnirouteProviderId,
+            resolved.providerId,
             baseURL,
             features.apiFormat
           );
@@ -2981,7 +2981,7 @@ export function createOmniRouteProviderHook(
             status: "active",
             release_date: "",
             // #6859: server-facing id — NOT the OC-gate-prefixed `resolved.providerId`.
-            providerID: resolved.omnirouteProviderId,
+            providerID: resolved.providerId,
             options: {},
             headers: {},
           };
