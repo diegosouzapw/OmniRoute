@@ -280,6 +280,27 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024"],
   },
 
+  // Google AI Studio (Gemini API) Imagen family. Uses the dedicated :predict endpoint
+  // (handled by "google-imagen"), NOT generateContent — so only imagen-* models belong
+  // here; gemini flash-image / nano-banana route through /v1/chat/completions. The models
+  // are also surfaced live via ListModels; this seed makes them addressable on
+  // /v1/images/generations. Note: Imagen requires a billing-enabled Google project —
+  // free-tier keys get 403 / quota 0. The handler builds `{baseUrl}/{model}:predict`.
+  gemini: {
+    id: "gemini",
+    alias: "gemini",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/models",
+    authType: "apikey",
+    authHeader: "x-goog-api-key",
+    format: "google-imagen",
+    models: [
+      { id: "imagen-4.0-generate-001", name: "Imagen 4" },
+      { id: "imagen-4.0-ultra-generate-001", name: "Imagen 4 Ultra" },
+      { id: "imagen-4.0-fast-generate-001", name: "Imagen 4 Fast" },
+    ],
+    supportedSizes: ["1024x1024", "1792x1024", "1024x1792"],
+  },
+
   //Curruntly no models serving
   nebius: {
     id: "nebius",
