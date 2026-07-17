@@ -194,3 +194,28 @@ test("muse-spark-web: WebSocket error returns error status", async () => {
     restore();
   }
 });
+
+// ─── Test 5: GraphQL error in 200 response is detected ─────────────────────
+
+test("muse-spark-web: GraphQL error in 200 response is detected", async () => {
+  __resetMuseSparkConversationCacheForTesting();
+  MockWebSocket.instances = [];
+  const executor = new MuseSparkWebExecutor();
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ errors: [{ message: "Unknown type 'AttachmentInput'" }] }), {
+      status: 200,
+    });
+
+  const restore = __setMuseSparkWebSocketForTesting(MockWebSocket as unknown as typeof WebSocket);
+  try {
+    const result = await executor.execute(makeBaseInput({ connectionId: "conn-gql-err" }));
+    assert.equal(result.response.status, 502);
+    const body = await result.response.json();
+    assert.match(body.error.message, /AttachmentInput/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restore();
+  }
+});

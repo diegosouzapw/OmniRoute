@@ -917,7 +917,8 @@ async function graphqlPost(
   docId: string,
   variables: Record<string, unknown>,
   cookieHeader: string,
-  label: string
+  label: string,
+  signal?: AbortSignal | null
 ): Promise<GraphqlResult> {
   try {
     const response = await fetch(META_AI_GRAPHQL_API, {
@@ -930,8 +931,20 @@ async function graphqlPost(
         Origin: "https://meta.ai",
       },
       body: JSON.stringify({ doc_id: docId, variables }),
+      signal: signal ?? undefined,
     });
     if (!response.ok) return { ok: false, error: `${label} failed: HTTP ${response.status}` };
+    // GraphQL often returns errors in the body with HTTP 200 — parse them.
+    const text = await response.text();
+    try {
+      const json = JSON.parse(text);
+      if (json && Array.isArray(json.errors) && json.errors.length > 0) {
+        const msg = json.errors[0]?.message || "Unknown GraphQL error";
+        return { ok: false, error: `${label} failed: ${msg}` };
+      }
+    } catch {
+      // Response wasn't JSON or had no errors — treat as success.
+    }
     return { ok: true };
   } catch (err) {
     return {
@@ -1036,11 +1049,13 @@ async function wsChat(
     let accumulatedText = "";
     const contentDeltas: string[] = [];
     let timeout: ReturnType<typeof setTimeout> | null = null;
+    let abortHandler: (() => void) | null = null;
 
     const finish = (result: WsChatResult) => {
       if (settled) return;
       settled = true;
       if (timeout) clearTimeout(timeout);
+      if (signal && abortHandler) signal.removeEventListener("abort", abortHandler);
       try {
         ws.close();
       } catch {
@@ -1052,7 +1067,8 @@ async function wsChat(
     const fail = (error: string) => finish({ content: "", deltas: [], error });
 
     timeout = setTimeout(() => fail("Meta AI WebSocket timed out"), 30000);
-    signal?.addEventListener("abort", () => fail("Request aborted"), { once: true });
+    abortHandler = () => fail("Request aborted");
+    signal?.addEventListener("abort", abortHandler, { once: true });
 
     ws.onopen = () => {
       ws.send(buildWsIntroFrame(conversationId));
@@ -1060,7 +1076,14 @@ async function wsChat(
     };
 
     ws.onmessage = (event) => {
-      const raw = typeof event.data === "string" ? event.data : "";
+      let raw = "";
+      if (typeof event.data === "string") {
+        raw = event.data;
+      } else if (Buffer.isBuffer(event.data)) {
+        raw = event.data.toString("utf-8");
+      } else if (event.data instanceof ArrayBuffer || event.data instanceof Uint8Array) {
+        raw = new TextDecoder().decode(event.data);
+      }
       if (!raw) return;
       const events = parseWsResponseEvents(raw);
       for (const evt of events) {
@@ -1366,7 +1389,8 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       META_AI_WARMUP_DOC_ID,
       { conversationId: conversationContext.conversationId },
       cookieHeader,
-      "Warmup"
+      "Warmup",
+      signal
     );
     if (!warmupResult.ok) {
       evictContinuationIfNeeded(cached, continuationCacheKey);
@@ -1379,7 +1403,8 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       META_AI_MODE_SWITCH_DOC_ID,
       { input: { conversationId: conversationContext.conversationId, mode: modelInfo.mode } },
       cookieHeader,
-      "Mode switch"
+      "Mode switch",
+      signal
     );
     if (!modeResult.ok) {
       evictContinuationIfNeeded(cached, continuationCacheKey);
