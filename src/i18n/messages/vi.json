@@ -4685,7 +4685,9 @@
         "label": "Dự phòng & chuyên biệt",
         "description": "Các endpoint được lưu trữ cục bộ hoặc chuyên biệt được sử dụng làm phương án dự phòng."
       },
-      "configure": "Cấu hình nhà cung cấp"
+      "configure": "Cấu hình nhà cung cấp",
+      "flowCaption": "Yêu cầu sẽ đi qua hạn ngạch gói đăng ký trước, sau đó đến các nhà cung cấp giá rẻ tính theo token, rồi mới đến các nhà cung cấp miễn phí — hoàn toàn tự động, không cần cấu hình.",
+      "afterSetup": "sau khi thiết lập."
     },
     "tierFlowDiagramAlt": "Sơ đồ dự phòng 3 cấp của OmniRoute",
     "apiKeyMgmt": "Quản lý khóa API",
