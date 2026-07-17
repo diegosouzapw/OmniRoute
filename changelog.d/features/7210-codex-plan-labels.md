@@ -1,0 +1,1 @@
+- **feat(dashboard):** show the Codex subscription plan label in provider connection rows and the quota view, falling back to the plan captured at OAuth import when the live usage endpoint doesn't report one. (thanks @CarmeloCampos)

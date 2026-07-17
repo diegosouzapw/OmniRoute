@@ -525,6 +525,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "zai",
   "glmt",
   "opencode-go",
+  "ollama-cloud",
   "minimax",
   "minimax-cn",
   "crof",

@@ -2303,7 +2303,17 @@
     "copilotToolCalling": "工具调用",
     "copilotPasteInto": "粘贴到：",
     "wireApiChatCompletions": "聊天完成 (/chat/completions)",
-    "wireApiResponses": "响应 API (/responses)"
+    "wireApiResponses": "响应 API (/responses)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "组合",
@@ -3890,6 +3900,9 @@
     "apiKeyProviders": "API 密钥提供商",
     "compatibleProviders": "API 密钥兼容提供商",
     "testAll": "测试全部",
+    "reorderByAvailability": "重新排序",
+    "reorderByAvailabilityTitle": "按可用性重新排序连接",
+    "reorderByAvailabilityError": "按可用性重新排序连接失败",
     "testAllOAuth": "测试所有 OAuth 连接",
     "testAllFree": "测试所有免费连接",
     "testAllApiKey": "测试所有 API 密钥连接",
@@ -4729,7 +4742,9 @@
     "contextWindowOverrideLabel": "__MISSING__:Context Window Override",
     "contextWindowOverridePlaceholder": "__MISSING__:e.g. 131072",
     "contextWindowOverrideHint": "__MISSING__:Manually set this model's real context window (tokens) when the provider misreports it. Wins over auto-detected/catalog values and prevents combo routing from dropping the model.",
-    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens"
+    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "设置",
@@ -8685,5 +8700,14 @@
     "regenerateRunning": "正在重新生成技能…",
     "regenerateSuccess": "技能成功重生。",
     "regenerateError": "无法重新生成技能。"
+  },
+  "freeProviderRankingsPage": {
+    "typeAll": "__MISSING__:All Types",
+    "typeNoauth": "__MISSING__:No Signup",
+    "typeOauth": "__MISSING__:OAuth Login",
+    "typeApikey": "__MISSING__:API Key",
+    "sortTypeFirst": "__MISSING__:Easiest first",
+    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   }
 }

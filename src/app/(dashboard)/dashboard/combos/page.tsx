@@ -12,7 +12,9 @@ import Input from "@/shared/components/Input";
 import Modal from "@/shared/components/Modal";
 import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
+import { ComboCompressionModeSelect } from "@/shared/components/compression/ComboCompressionModeSelect";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { filterUsableConnections } from "@/shared/utils/connectionStatus";
 import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
 import { useComboProxyAssignments } from "./useComboProxyAssignments";
 import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
@@ -770,10 +772,7 @@ export default function CombosPage() {
 
       if (combosRes.ok) setCombos((combosData.combos || []).filter((c) => !c.isHidden));
       if (providersRes.ok) {
-        const active = (providersData.connections || []).filter(
-          (c) => c.testStatus === "active" || c.testStatus === "success"
-        );
-        setActiveProviders(active);
+        setActiveProviders(filterUsableConnections(providersData.connections || []));
       }
       if (metricsRes.ok) setMetrics(metricsData.metrics || {});
       setProviderNodes(nodesData.nodes || []);
@@ -1578,46 +1577,6 @@ function ComboCard({
   const tc = useTranslations("common");
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const strategyDescription = getStrategyDescription(t, strategy);
-  const hasRuntimeConfig = combo?.config && typeof combo.config === "object";
-  const initialCompressionMode =
-    typeof combo?.config?.compressionMode === "string"
-      ? combo.config.compressionMode
-      : hasRuntimeConfig
-        ? ""
-        : combo.compressionOverride || "";
-  const [compressionOverride, setCompressionOverride] = useState(initialCompressionMode);
-  const [isSavingCompression, setIsSavingCompression] = useState(false);
-
-  useEffect(() => {
-    setCompressionOverride(initialCompressionMode);
-  }, [initialCompressionMode]);
-
-  const handleCompressionOverrideChange = async (value) => {
-    setCompressionOverride(value);
-    setIsSavingCompression(true);
-    const nextConfig = { ...(combo.config || {}) };
-    if (value) {
-      nextConfig.compressionMode = value;
-    } else {
-      delete nextConfig.compressionMode;
-    }
-    try {
-      const response = await fetch(`/api/combos/${combo.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config: nextConfig }),
-      });
-      if (!response.ok) {
-        console.error("Failed to update compression override");
-        setCompressionOverride(initialCompressionMode);
-      }
-    } catch (error) {
-      console.error("Error updating compression override:", error);
-      setCompressionOverride(initialCompressionMode);
-    } finally {
-      setIsSavingCompression(false);
-    }
-  };
 
   return (
     <Card
@@ -1747,32 +1706,11 @@ function ComboCard({
           </div>
           <div className="flex items-center gap-1.5 transition-opacity">
             {compressionEnabled && (
-              <select
-                value={compressionOverride}
-                onChange={(e) => handleCompressionOverrideChange(e.target.value)}
-                disabled={isSavingCompression}
-                className="text-xs py-1 px-2 rounded border border-black/10 dark:border-white/10 bg-surface text-text-main focus:border-primary focus:outline-none transition-colors disabled:opacity-50 max-w-[130px] md:max-w-none"
+              <ComboCompressionModeSelect
+                combo={combo}
                 title={t("compressionOverride")}
-              >
-                <option value="" className="bg-surface text-text-main">
-                  Default
-                </option>
-                <option value="off" className="bg-surface text-text-main">
-                  Off
-                </option>
-                <option value="lite" className="bg-surface text-text-main">
-                  Lite
-                </option>
-                <option value="standard" className="bg-surface text-text-main">
-                  Standard
-                </option>
-                <option value="aggressive" className="bg-surface text-text-main">
-                  Aggressive
-                </option>
-                <option value="ultra" className="bg-surface text-text-main">
-                  Ultra
-                </option>
-              </select>
+                className="text-xs py-1 px-2 rounded border border-black/10 dark:border-white/10 bg-surface text-text-main focus:border-primary focus:outline-none transition-colors disabled:opacity-50 max-w-[130px] md:max-w-none"
+              />
             )}
             <Link
               href={`/dashboard/combos/${combo.id}`}

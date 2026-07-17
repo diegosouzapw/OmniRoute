@@ -2332,7 +2332,17 @@
     "copilotToolCalling": "Chamada de ferramenta",
     "copilotPasteInto": "Cole em:",
     "wireApiChatCompletions": "Conclusões de bate-papo (/chat/completions)",
-    "wireApiResponses": "API de respostas (/respostas)"
+    "wireApiResponses": "API de respostas (/respostas)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "Combos",
@@ -3917,7 +3927,9 @@
         "label": "Reserva e especialidade",
         "description": "Endpoints hospedados localmente ou especializados usados como substitutos."
       },
-      "configure": "Configurar provedores"
+      "configure": "Configurar provedores",
+      "flowCaption": "As requisições passam primeiro pelas suas cotas de assinatura, depois pelos provedores baratos por token e, por fim, pelos provedores gratuitos — automático, sem configuração.",
+      "afterSetup": "após a configuração."
     },
     "tierFlowDiagramAlt": "Diagrama de fallback de 3 camadas do OmniRoute",
     "apiKeyMgmt": "Ger. de Chaves API"
@@ -3984,6 +3996,9 @@
     "apiKeyProviders": "Provedores por Chave de API",
     "compatibleProviders": "Provedores Compatíveis por Chave de API",
     "testAll": "Testar Todos",
+    "reorderByAvailability": "Reordenar",
+    "reorderByAvailabilityTitle": "Reordenar conexões por disponibilidade",
+    "reorderByAvailabilityError": "Falha ao reordenar conexões por disponibilidade",
     "distributeProxies": "Distribuir proxies",
     "distributing": "Distribuindo...",
     "selectedCount": "{count, plural, one {# selecionada} other {# selecionadas}}",
@@ -4891,7 +4906,9 @@
     "overrideBaseUrlAdvanced": "Avançado: sobrescrever URL base",
     "overrideBaseUrlHint": "Avançado: aponta este provedor embutido para um endpoint personalizado. Deixe em branco para usar o padrão.",
     "bulkAddFormatHintCloudflare": "Uma chave por linha. Formato: nome|accountId|apiKey (ID de conta Cloudflare + token de API).",
-    "lmarenaWebCookieHint": "Abra arena.ai, faça login e depois copie o cabeçalho Cookie completo de uma requisição de rede. Inclua arena-auth-prod-v1.0 e arena-auth-prod-v1.1 (e outros fragmentos, se houver), preferencialmente com cf_clearance. Não cole apenas o cookie vazio arena-auth-prod-v1. Opcional: providerSpecificData.recaptchaV3Token se create-evaluation ainda retornar 403."
+    "lmarenaWebCookieHint": "Abra arena.ai, faça login e depois copie o cabeçalho Cookie completo de uma requisição de rede. Inclua arena-auth-prod-v1.0 e arena-auth-prod-v1.1 (e outros fragmentos, se houver), preferencialmente com cf_clearance. Não cole apenas o cookie vazio arena-auth-prod-v1. Opcional: providerSpecificData.recaptchaV3Token se create-evaluation ainda retornar 403.",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "Configurações",
@@ -5591,6 +5608,7 @@
     "webSearchRouteTitle": "__MISSING__:Web search routing",
     "webSearchRouteDesc": "__MISSING__:When a request includes a native web_search tool, route the whole request to this model instead of the default — useful for providers that don't implement Anthropic's web_search server tool. Leave blank to disable.",
     "webSearchRoutePlaceholder": "__MISSING__:e.g. openrouter,anthropic/claude-3.5-sonnet",
+    "paidModelPatternWarning": "Este padrão corresponde apenas a modelos pagos — habilite modelos pagos ou ajuste o padrão.",
     "clearLkgpCache": "Clear LKGP Cache",
     "lkgpCacheCleared": "LKGP cache cleared successfully",
     "lkgpCacheClearFailed": "Failed to clear LKGP cache",
@@ -5911,6 +5929,7 @@
     "retentionCallLogs": "Registros de chamadas (dias)",
     "retentionUsageHistory": "Histórico de uso (dias)",
     "retentionMemoryEntries": "Entradas de memória (dias)",
+    "retentionXpAuditLog": "Log de Auditoria de XP (dias)",
     "saveRetentionSettings": "__MISSING__:Save retention settings",
     "storageAutoVacuumMode": "Modo de vácuo automático",
     "storageScheduledVacuum": "Vácuo programado",
@@ -9162,7 +9181,14 @@
     "configuredOnly": "Somente configurados",
     "configuredOnlyHint": "Mostrar apenas provedores com conexões ativas",
     "noConfiguredProviders": "Nenhum provedor configurado encontrado. Adicione uma conexão de provedor primeiro.",
-    "colConfigured": "Status"
+    "colConfigured": "Status",
+    "typeAll": "__MISSING__:All Types",
+    "typeNoauth": "__MISSING__:No Signup",
+    "typeOauth": "__MISSING__:OAuth Login",
+    "typeApikey": "__MISSING__:API Key",
+    "sortTypeFirst": "__MISSING__:Easiest first",
+    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   },
   "discovery": {
     "title": "Descoberta de provedores",
