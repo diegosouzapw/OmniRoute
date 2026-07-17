@@ -12,6 +12,18 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../../src/lib/db/core.ts");
 const importRoute = await import("../../../src/app/api/providers/import/route.ts");
 
+type ImportRouteResponse = {
+  total: number;
+  success: number;
+  failed: number;
+  created: Array<{
+    apiKey?: unknown;
+    provider: string;
+    providerSpecificData?: { baseUrl?: string };
+  }>;
+  errors: Array<{ index: number; message: string }>;
+};
+
 async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -71,15 +83,15 @@ test("providers import route imports a heterogeneous list with 200 + per-row res
     ],
   });
   assert.equal(response.status, 200);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ImportRouteResponse;
   assert.equal(body.total, 2);
   assert.equal(body.success, 2);
   assert.equal(body.failed, 0);
   assert.equal(body.created.length, 2);
   // Never echo the raw apiKey back.
-  assert.ok(body.created.every((c: any) => c.apiKey === undefined));
+  assert.ok(body.created.every((c) => c.apiKey === undefined));
   assert.deepEqual(
-    body.created.map((c: any) => c.provider).sort(),
+    body.created.map((c) => c.provider).sort(),
     ["anthropic", "openai"]
   );
 });
@@ -97,7 +109,7 @@ test("providers import route: partial-failure — unresolvable compatible node f
     ],
   });
   assert.equal(response.status, 200);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ImportRouteResponse;
   assert.equal(body.total, 2);
   assert.equal(body.success, 1);
   assert.equal(body.failed, 1);
@@ -116,7 +128,7 @@ test("providers import route applies a per-entry baseUrl override for compatible
     entries: [{ provider: "openai", name: "Prod", apiKey: "sk-1", baseUrl: "https://example.com" }],
   });
   assert.equal(response.status, 200);
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ImportRouteResponse;
   assert.equal(body.success, 1);
   assert.equal(body.created[0].providerSpecificData?.baseUrl, "https://example.com");
 });
