@@ -28,6 +28,7 @@ import {
   outputStyleMeta,
 } from "../../../../../../open-sse/services/compression/outputStyles/catalog.ts";
 import { deriveDefaultPlan } from "../../../../../../open-sse/services/compression/deriveDefaultPlan.ts";
+import EngineGuidanceDetail from "./EngineGuidanceDetail";
 import {
   DEFAULT_CONTEXT_BUDGET,
   type ContextBudgetConfig,
@@ -99,6 +100,9 @@ export default function CompressionPanel() {
   const uiLang = (useLocale() || "en").split("-")[0];
   const [config, setConfig] = useState<CompressionConfig>(DEFAULT_CONFIG);
   const [mcpAccessibility, setMcpAccessibility] = useState(true);
+  // #7530 — per-engine expandable guidance (tradeoffs/lossy/cache-impact); collapsed by
+  // default so the grid stays scannable.
+  const [expandedGuidance, setExpandedGuidance] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"" | "saved" | "error">("");
@@ -163,6 +167,10 @@ export default function CompressionPanel() {
     save({ engines });
   };
 
+  const toggleGuidance = (id: string) => {
+    setExpandedGuidance((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const setOutputStyle = (id: string, patch: { enabled?: boolean; level?: CavemanIntensity }) => {
     const current = config.outputStyles ?? [];
     const existing = current.find((s) => s.id === id);
@@ -225,6 +233,18 @@ export default function CompressionPanel() {
           <div>
             <h3 className="text-lg font-semibold">{t("compressionTitle")}</h3>
             <p className="text-sm text-text-muted">{t("compressionDesc")}</p>
+            <a
+              href="https://github.com/diegosouzapw/OmniRoute/blob/main/docs/compression/COMPRESSION_GUIDE.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="compression-guide-link"
+              className="mt-0.5 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            >
+              {t("compressionGuidanceFullGuideLink")}
+              <span className="material-symbols-outlined text-[12px]" aria-hidden="true">
+                open_in_new
+              </span>
+            </a>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -290,6 +310,12 @@ export default function CompressionPanel() {
                   </Link>
                 </div>
                 <p className="mt-0.5 text-xs text-text-muted">{meta.description}</p>
+                <EngineGuidanceDetail
+                  id={id}
+                  guidance={meta.guidance}
+                  expanded={Boolean(expandedGuidance[id])}
+                  onToggle={() => toggleGuidance(id)}
+                />
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {levels && (
