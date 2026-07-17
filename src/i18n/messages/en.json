@@ -3905,6 +3905,8 @@
     "apiKeyHelp": "An API key is a password for AI services. Get one from your provider's website (e.g., platform.openai.com, console.anthropic.com).",
     "tier": {
       "subtitle": "OmniRoute organises providers into three tiers so routing prefers the most reliable, lowest-cost path first.",
+      "flowCaption": "Requests flow through your subscription quotas first, then pay-per-token cheap providers, then free-tier providers — automatic, zero-config.",
+      "afterSetup": "after setup.",
       "tier1": {
         "label": "Premium clients",
         "description": "First-class CLIs with native auth flows and reasoning models."
@@ -4326,6 +4328,8 @@
     "contextWindowOverridePlaceholder": "e.g. 131072",
     "contextWindowOverrideHint": "Manually set this model's real context window (tokens) when the provider misreports it. Wins over auto-detected/catalog values and prevents combo routing from dropping the model.",
     "contextWindowOverrideInvalid": "Context window override must be a positive whole number of tokens",
+    "visionCapableLabel": "Vision capable",
+    "visionCapableHint": "Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends).",
     "compatParamFiltersLabel": "Param Filters",
     "compatBlockedParamsHint": "Blocked params (stripped from requests)",
     "compatAllowedParamsHint": "Allowed params (re-added after deny)",

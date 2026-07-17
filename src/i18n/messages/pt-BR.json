@@ -3917,7 +3917,9 @@
         "label": "Reserva e especialidade",
         "description": "Endpoints hospedados localmente ou especializados usados como substitutos."
       },
-      "configure": "Configurar provedores"
+      "configure": "Configurar provedores",
+      "flowCaption": "As requisições passam primeiro pelas suas cotas de assinatura, depois pelos provedores baratos por token e, por fim, pelos provedores gratuitos — automático, sem configuração.",
+      "afterSetup": "após a configuração."
     },
     "tierFlowDiagramAlt": "Diagrama de fallback de 3 camadas do OmniRoute",
     "apiKeyMgmt": "Ger. de Chaves API"
@@ -4891,7 +4893,9 @@
     "overrideBaseUrlAdvanced": "Avançado: sobrescrever URL base",
     "overrideBaseUrlHint": "Avançado: aponta este provedor embutido para um endpoint personalizado. Deixe em branco para usar o padrão.",
     "bulkAddFormatHintCloudflare": "Uma chave por linha. Formato: nome|accountId|apiKey (ID de conta Cloudflare + token de API).",
-    "lmarenaWebCookieHint": "Abra arena.ai, faça login e depois copie o cabeçalho Cookie completo de uma requisição de rede. Inclua arena-auth-prod-v1.0 e arena-auth-prod-v1.1 (e outros fragmentos, se houver), preferencialmente com cf_clearance. Não cole apenas o cookie vazio arena-auth-prod-v1. Opcional: providerSpecificData.recaptchaV3Token se create-evaluation ainda retornar 403."
+    "lmarenaWebCookieHint": "Abra arena.ai, faça login e depois copie o cabeçalho Cookie completo de uma requisição de rede. Inclua arena-auth-prod-v1.0 e arena-auth-prod-v1.1 (e outros fragmentos, se houver), preferencialmente com cf_clearance. Não cole apenas o cookie vazio arena-auth-prod-v1. Opcional: providerSpecificData.recaptchaV3Token se create-evaluation ainda retornar 403.",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "Configurações",
