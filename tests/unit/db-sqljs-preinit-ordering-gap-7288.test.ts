@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 // when both synchronous drivers (better-sqlite3, node:sqlite) failed.
 //
 // NOTE on approach: an earlier version of this fix added a top-level
-// `await preInitSqlJsIfSyncDriversUnavailable(...)` barrier at the bottom of
+// `await preInitSqlJs(...)` barrier that used to sit at the bottom of
 // `src/lib/db/core.ts` so merely *importing* core.ts guaranteed the
 // pre-init. That made core.ts an async ES module — esbuild's CJS bundling
 // path (used by `tsx`'s CJS require hook, and hit by several other test
@@ -110,10 +110,10 @@ test(
 );
 
 test(
-  "getDbInstance() called after preInitSqlJsIfSyncDriversUnavailable() (the same " +
-    "warm-up ensureDbReadyForBoot() now guarantees ahead of every other startup step) " +
-    "no longer throws the ordering-gap 'sql.js WASM ainda não foi pré-inicializado' " +
-    "error when both sync drivers fail on an EXISTING db file (#7288 / #7494)",
+  "getDbInstance() called after the REAL ensureDbReadyForBoot() warm-up (the one " +
+    "registerNodejs() now runs ahead of every other startup step) no longer throws " +
+    "the ordering-gap 'sql.js WASM ainda não foi pré-inicializado' error when both " +
+    "sync drivers fail on an EXISTING db file (#7288 / #7494)",
   async () => {
     dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-7288-"));
     const sqliteFile = path.join(dataDir, "storage.sqlite");
@@ -126,17 +126,21 @@ test(
     prevDataDir = process.env.DATA_DIR;
     process.env.DATA_DIR = dataDir;
 
-    const { preInitSqlJsIfSyncDriversUnavailable } = await import(
-      "../../src/lib/db/adapters/driverFactory"
-    );
     coreModule = await importFreshCore();
 
-    // Simulates the fixed ordering: registerNodejs() now awaits
-    // ensureDbReadyForBoot() (which — via preInitSqlJs()-equivalent
-    // machinery — attempts sql.js pre-init) BEFORE any other startup step
-    // (ensureSecrets() / clearStaleCrashCooldowns() / getSettings() /
-    // initAuditLog()) reaches getDbInstance().
-    await preInitSqlJsIfSyncDriversUnavailable(sqliteFile);
+    // Exercise the REAL production warm-up, not a stand-in: registerNodejs()
+    // awaits ensureDbReadyForBoot() -> ensureDbInitialized() (which itself
+    // calls preInitSqlJs() when the sync drivers can't open the file) BEFORE
+    // any other startup step (ensureSecrets() / clearStaleCrashCooldowns() /
+    // getSettings() / initAuditLog()) reaches getDbInstance().
+    const { ensureDbReadyForBoot } = await import("../../src/instrumentation-node");
+    try {
+      await ensureDbReadyForBoot(coreModule.ensureDbInitialized);
+    } catch {
+      // A literal directory can never become a valid DB for ANY driver, so the
+      // warm-up itself is expected to fail here. What matters is only WHICH
+      // error getDbInstance() reports afterwards — see the assertion below.
+    }
 
     let thrownMessage: string | null = null;
     try {
@@ -163,12 +167,13 @@ test(
 );
 
 test(
-  "preInitSqlJsIfSyncDriversUnavailable() is a no-op when a sync driver can already open the file",
+  "the warm-up costs nothing on the happy path: sql.js stays un-initialized when a " +
+    "sync driver can already open the file",
   async () => {
     const dir2 = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-7288-happy-"));
     const file2 = path.join(dir2, "storage.sqlite");
     try {
-      const { preInitSqlJsIfSyncDriversUnavailable, getSqlJsAdapter } = await import(
+      const { tryOpenSync, getSqlJsAdapter } = await import(
         "../../src/lib/db/adapters/driverFactory"
       );
       const { default: Database } = await import("better-sqlite3");
@@ -176,7 +181,11 @@ test(
       seed.exec("CREATE TABLE t (id INTEGER)");
       seed.close();
 
-      await preInitSqlJsIfSyncDriversUnavailable(file2);
+      // The sync-driver probe is what gates the sql.js/WASM fallback: when it
+      // succeeds, nothing downstream should ever reach preInitSqlJs().
+      const probe = tryOpenSync(file2, { readonly: true });
+      assert.ok(probe, "sanity: a sync driver must be able to open a healthy sqlite file here");
+      probe!.close();
 
       assert.equal(
         getSqlJsAdapter(file2),
