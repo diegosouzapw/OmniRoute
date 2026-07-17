@@ -6,7 +6,12 @@ import {
 import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
-import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
+import {
+  providerAllowsOptionalApiKey,
+  isOpenAICompatibleProvider,
+  isAnthropicCompatibleProvider,
+} from "@/shared/constants/providers";
+import { isManagedProviderConnectionId } from "@/lib/providers/catalog";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import {
   isForbiddenUpstreamHeaderName,
@@ -147,6 +152,38 @@ export const bulkCreateProviderSchema = z
       });
     }
   });
+
+// ──── Heterogeneous Provider Import Schema (#6836) ────
+
+// #6836: unlike `bulkCreateProviderSchema` (many keys, ONE provider type per request),
+// this schema backs a file (CSV/JSON) import of a heterogeneous LIST of providers —
+// each entry carries its OWN `provider` id, validated individually here so the route
+// can return per-row partial-failure results (same contract as /api/providers/bulk).
+export const bulkImportProviderSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        provider: z
+          .string()
+          .min(1, "provider is required")
+          .max(100)
+          .refine(
+            (id) =>
+              isManagedProviderConnectionId(id) ||
+              isOpenAICompatibleProvider(id) ||
+              isAnthropicCompatibleProvider(id),
+            { message: "Unknown or unsupported provider" }
+          ),
+        name: z.string().min(1, "name is required").max(200),
+        apiKey: z.string().min(1, "apiKey is required").max(MAX_PROVIDER_CREDENTIAL_LENGTH),
+        baseUrl: z.string().trim().max(2000).optional(),
+        priority: z.number().int().min(1).max(100).optional(),
+      })
+    )
+    .min(1, "entries must contain at least 1 item")
+    .max(200, "entries must contain at most 200 items"),
+  validateKeys: z.boolean().optional(),
+});
 
 // ──── Bulk Web-Session Import Schema ────
 
