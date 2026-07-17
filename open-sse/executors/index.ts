@@ -45,6 +45,7 @@ import { HuggingChatExecutor } from "./huggingchat.ts";
 import { YuanbaoWebExecutor } from "./yuanbao-web.ts";
 import { PoeWebExecutor } from "./poe-web.ts";
 import { VeniceWebExecutor } from "./venice-web.ts";
+import { NotionWebExecutor } from "./notion-web.ts";
 import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
@@ -139,6 +140,8 @@ const executors = {
   poe: new PoeWebExecutor(), // Alias
   "venice-web": new VeniceWebExecutor(),
   ven: new VeniceWebExecutor(), // Alias
+  "notion-web": new NotionWebExecutor(),
+  nw: new NotionWebExecutor(), // Alias
   "v0-vercel-web": new V0VercelWebExecutor(),
   v0: new V0VercelWebExecutor(), // Alias
   "kimi-web": new KimiWebExecutor(),
