@@ -627,7 +627,15 @@ export async function peekCodexSseTransientError(
   response: Response
 ): Promise<CodexSseTransientErrorPeek> {
   const contentType = response.headers.get("content-type") || "";
-  if (!response.ok || !response.body || !contentType.includes("text/event-stream")) {
+  // #7536: check content-type BEFORE touching `response.body`. On the wreq-js
+  // TLS-fingerprint transport (used by Codex), the Response is backed by a native
+  // body handle and merely accessing `.body` disturbs it, so a downstream
+  // `.text()` throws "Response body is already used". The Codex non-stream
+  // upstream response has an empty content-type, so it must short-circuit here
+  // WITHOUT reading `.body` — otherwise chatCore's readNonStreamingResponseBody
+  // 502s. Only genuine SSE responses (which this peek intends to buffer) reach
+  // the `.body` access below.
+  if (!response.ok || !contentType.includes("text/event-stream") || !response.body) {
     return { matched: null, message: null, replacementBody: null };
   }
 

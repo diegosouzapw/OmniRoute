@@ -1,0 +1,1 @@
+- **fix(sse):** synthetic bypass responses for Claude-format clients no longer drop their content — `mergeChunksToResponse()` now reconstructs the message from streamed content blocks instead of returning an empty array. (thanks @KunN-21)

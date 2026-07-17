@@ -53,6 +53,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "__Secure-1PSID", "__Secure-1PSIDTS"],
   },
+  "notion-web": {
+    kind: "cookie",
+    credentialName: "token_v2 (optional: space_id, notion_browser_id)",
+    placeholder: "token_v2=...; space_id=...; notion_browser_id=...",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "token_v2", "space_id", "notion_browser_id"],
+  },
   "gemini-business": {
     kind: "cookie",
     credentialName: "__Secure-1PSID (optional: __Secure-1PSIDTS)",

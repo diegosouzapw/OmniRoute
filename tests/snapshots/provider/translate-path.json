@@ -658,6 +658,29 @@
       "stream": "https://chatgpt.com/backend-api/conversation"
     }
   },
+  "chenzk": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://chenzk.top/v1/chat/completions",
+      "stream": "https://chenzk.top/v1/chat/completions"
+    }
+  },
   "chipotle": {
     "format": "openai",
     "headers": {
@@ -1483,6 +1506,29 @@
     "url": {
       "nonStream": "https://api.featherless.ai/v1/chat/completions",
       "stream": "https://api.featherless.ai/v1/chat/completions"
+    }
+  },
+  "felo-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://felo.ai/api-proxy/main/search/threads",
+      "stream": "https://felo.ai/api-proxy/main/search/threads"
     }
   },
   "fireworks": {
@@ -2961,6 +3007,29 @@
     "url": {
       "nonStream": "https://api.nlpcloud.io/v1/chat/completions",
       "stream": "https://api.nlpcloud.io/v1/chat/completions"
+    }
+  },
+  "notion-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://www.notion.so/api/v3/runInferenceTranscript",
+      "stream": "https://www.notion.so/api/v3/runInferenceTranscript"
     }
   },
   "nous-research": {

@@ -192,6 +192,15 @@ const EMBEDDED_DEFAULTS = {
     13, 88, 13, 91, 68, 89, 65, 21, 72, 26, 21, 76, 0, 65, 93, 2, 26, 23, 28, 87, 14, 87, 8, 95, 12,
     17, 70, 6, 24, 66, 17, 1, 10, 95, 81, 28,
   ],
+  // Microsoft Edge Read Aloud (EdgeTTS) — public "trusted client token" used to
+  // derive the Sec-MS-GEC anti-abuse header. Hardcoded in every known Edge
+  // browser build and every open-source edge-tts reimplementation (e.g.
+  // rany2/edge-tts constants.py) — not a per-user secret, just an
+  // abuse-mitigation constant Microsoft ships in public client binaries.
+  edgetts_token: [
+    89, 44, 91, 40, 51, 94, 49, 64, 32, 108, 54, 51, 86, 41, 80, 37, 111, 69, 6, 42, 95, 93, 45, 68,
+    87, 65, 77, 84, 105, 70, 51, 86,
+  ],
 } as const;
 
 export type EmbeddedDefaultKey = keyof typeof EMBEDDED_DEFAULTS;
