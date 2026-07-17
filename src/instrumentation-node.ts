@@ -241,6 +241,9 @@ export async function registerNodejs(): Promise<void> {
     console.log("[STARTUP] Quota cache background refresh started");
     startProviderLimitsSyncScheduler();
     console.log("[STARTUP] Provider limits sync scheduler started");
+    const { startQuotaAutoPing } = await import("@/lib/services/quotaAutoPing");
+    startQuotaAutoPing();
+    console.log("[STARTUP] Quota auto-ping scheduler started (opt-in, no-op until enabled)");
     const cloudSyncInitialized = await ensureCloudSyncInitialized();
     console.log(
       `[STARTUP] Cloud/model sync background bootstrap ${cloudSyncInitialized ? "initialized" : "skipped"}`

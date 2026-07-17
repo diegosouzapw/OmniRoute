@@ -77,4 +77,14 @@ export const AUDIO_ONLY_PROVIDERS = {
     textIcon: "GL",
     website: "https://gladia.io",
   },
+
+  "rev-ai": {
+    id: "rev-ai",
+    alias: "revai",
+    name: "Rev AI",
+    icon: "record_voice_over",
+    color: "#FF5C35",
+    textIcon: "RV",
+    website: "https://www.rev.ai",
+  },
 };

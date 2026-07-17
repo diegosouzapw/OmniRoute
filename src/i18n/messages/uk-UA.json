@@ -2726,6 +2726,8 @@
     "range7d": "7 днів",
     "range30d": "30 днів",
     "range90d": "90 днів",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "Весь час",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",
@@ -5532,7 +5534,12 @@
     "homeQuickStart": "Швидкий старт",
     "homeQuickStartDesc": "Показувати панель швидкого старту на головній сторінці.",
     "homeProviderTopology": "Топологія провайдерів",
-    "homeProviderTopologyDesc": "Показувати топологію провайдерів на головній сторінці."
+    "homeProviderTopologyDesc": "Показувати топологію провайдерів на головній сторінці.",
+    "codexAutoPingTitle": "Codex Quota Auto-Ping",
+    "codexAutoPingDesc": "Opt-in per connection: sends a tiny request right after a Codex session window resets so it isn't cold when you need it.",
+    "codexAutoPingWarning": "Consumes a small amount of real Codex quota on every ping. Off by default — enable only for connections you actively rely on.",
+    "codexAutoPingSaveError": "Failed to update Codex Auto-Ping setting",
+    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}"
   },
   "contextRtk": {
     "title": "Двигун RTK",
