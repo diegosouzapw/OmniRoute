@@ -1,0 +1,46 @@
+[package]
+name = "omniroute-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute CLI: start, stop, status, config, db migrate, doctor, version, serve."
+
+[[bin]]
+name = "omniroute"
+path = "src/main.rs"
+
+[[bin]]
+name = "omniroute-reset-password"
+path = "src/bin/reset_password.rs"
+
+[dependencies]
+omniroute-core = { workspace = true }
+omniroute-storage = { workspace = true }
+omniroute-providers = { workspace = true }
+omniroute-router = { workspace = true }
+omniroute-compression = { workspace = true }
+omniroute-mcp = { workspace = true }
+omniroute-api = { workspace = true }
+omniroute-bifrost = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+clap = { workspace = true }
+clap_complete = { workspace = true }
+indicatif = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-appender = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+dotenvy = { workspace = true }
+config = { workspace = true }
+sysinfo = { workspace = true }
+nix = { workspace = true }
+signal-hook = { workspace = true }
+signal-hook-tokio = { workspace = true }
+url = { workspace = true }
+dialoguer = "0.11"

@@ -1,0 +1,27 @@
+[package]
+name = "omniroute-compression"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute RTK and Caveman compression engines + adaptive selector + harness."
+
+[dependencies]
+omniroute-core = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+zstd = { workspace = true }
+lz4_flex = { workspace = true }
+flate2 = { workspace = true }
+brotli = { workspace = true }
+sha2 = { workspace = true }
+blake3 = { workspace = true }
+hex = { workspace = true }
+parking_lot = { workspace = true }
+once_cell = { workspace = true }
+moka = { workspace = true }
+rand = { workspace = true }

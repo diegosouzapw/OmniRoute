@@ -1,0 +1,32 @@
+[package]
+name = "omniroute-providers"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute provider adapters and format translation."
+
+[dependencies]
+omniroute-core = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+futures-util = { workspace = true }
+async-stream = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+schemars = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+http = { workspace = true }
+bytes = { workspace = true }
+url = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+eventsource-stream = "0.2"
+tokio-stream = { workspace = true }
+pin-project-lite = { workspace = true }
+base64 = { workspace = true }
+parking_lot = { workspace = true }
+once_cell = { workspace = true }

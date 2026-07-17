@@ -1,0 +1,30 @@
+[package]
+name = "omniroute-router"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute combo routing, fallback, load balancing, scoring."
+
+[dependencies]
+omniroute-core = { workspace = true }
+omniroute-providers = { workspace = true }
+omniroute-storage = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+opentelemetry = { workspace = true }
+tracing-opentelemetry = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+parking_lot = { workspace = true }
+dashmap = { workspace = true }
+governor = { workspace = true }
+moka = { workspace = true }
+rand = { workspace = true }
+axum = { workspace = true }
+reqwest = { workspace = true, features = ["stream", "json"] }

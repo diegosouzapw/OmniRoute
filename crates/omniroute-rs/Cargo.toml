@@ -1,0 +1,154 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/omniroute-core",
+    "crates/omniroute-storage",
+    "crates/omniroute-providers",
+    "crates/omniroute-router",
+    "crates/omniroute-compression",
+    "crates/omniroute-mcp",
+    "crates/omniroute-api",
+    "crates/omniroute-cli",
+    "crates/omniroute-bifrost",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+repository = "https://github.com/KooshaPari/OmniRoute"
+authors = ["OmniRoute Authors"]
+description = "Unified AI router with 160+ providers, OpenAI-compatible API, MCP/A2A, smart routing, and RTK+Caveman compression."
+keywords = ["ai", "router", "proxy", "openai", "claude", "llm", "fallback"]
+categories = ["api-bindings", "command-line-utilities", "network-programming", "web-programming"]
+
+[workspace.dependencies]
+tokio = { version = "1.40", features = ["full"] }
+axum = { version = "0.7", features = ["macros", "http2", "ws", "json", "matched-path", "tokio", "tracing"] }
+tower = { version = "0.5", features = ["util", "load-shed", "timeout", "limit", "buffer"] }
+tower-http = { version = "0.6", features = ["trace", "cors", "compression-gzip", "compression-br", "compression-zstd", "request-id", "util", "validate-request", "set-header", "timeout"] }
+hyper = { version = "1.5", features = ["http1", "http2", "server"] }
+hyper-util = { version = "0.1", features = ["tokio", "server", "service"] }
+http = "1.1"
+http-body-util = "0.1"
+bytes = "1.8"
+http-range-header = "0.4"
+
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls", "gzip", "brotli", "zstd", "http2"] }
+rustls = "0.23"
+rustls-native-certs = "0.7"
+webpki-roots = "0.26"
+
+futures = "0.3"
+futures-util = "0.3"
+async-stream = "0.3"
+async-trait = "0.1"
+tokio-stream = { version = "0.1", features = ["sync"] }
+pin-project-lite = "0.2"
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_with = { version = "3", features = ["base64", "hex", "json"] }
+schemars = { version = "0.8", features = ["derive", "chrono", "uuid1"] }
+
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio-rustls", "sqlite", "macros", "chrono", "uuid", "json", "migrate", "any"] }
+
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.11", features = ["v4", "v7", "serde"] }
+ulid = { version = "1.1", features = ["serde"] }
+
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "registry", "fmt"] }
+tracing-appender = "0.2"
+opentelemetry = { version = "0.27", features = ["trace", "metrics"] }
+opentelemetry_sdk = { version = "0.27", features = ["trace", "metrics", "rt-tokio"] }
+opentelemetry-otlp = { version = "0.27", features = ["trace", "metrics", "grpc-tonic"] }
+tracing-opentelemetry = "0.28"
+
+config = { version = "0.14", default-features = false, features = ["toml", "yaml"] }
+dotenvy = "0.15"
+
+clap = { version = "4.5", features = ["derive", "string", "env", "wrap_help", "help", "color", "unicode"] }
+clap_complete = "4.5"
+indicatif = { version = "0.17", features = ["improved_unicode"] }
+
+thiserror = "1.0"
+anyhow = "1.0"
+
+aes-gcm = "0.10"
+argon2 = "0.5"
+sha2 = "0.10"
+blake3 = "1.5"
+hmac = "0.12"
+hkdf = "0.12"
+hex = "0.4"
+base64 = "0.22"
+rand = "0.8"
+rand_chacha = "0.3"
+zeroize = { version = "1.8", features = ["derive"] }
+subtle = "2.6"
+
+moka = { version = "0.12", features = ["future"] }
+lru = "0.12"
+governor = "0.6"
+
+zstd = "0.13"
+lz4_flex = "0.11"
+flate2 = "1.0"
+brotli = "6.0"
+
+jsonwebtoken = "9.3"
+oauth2 = "4.4"
+cookie = "0.18"
+url = { version = "2.5", features = ["serde"] }
+percent-encoding = "2.3"
+mime = "0.3"
+form_urlencoded = "1.2"
+
+parking_lot = "0.12"
+dashmap = "6.1"
+once_cell = "1.20"
+arc-swap = "1.7"
+
+tokio-util = { version = "0.7", features = ["io", "compat", "rt"] }
+walkdir = "2.5"
+glob = "0.3"
+tempfile = "3.13"
+
+mockall = "0.13"
+proptest = "1.5"
+insta = { version = "1.41", features = ["yaml", "json"] }
+wiremock = "0.6"
+axum-test = "16.1"
+httpmock = "0.7"
+pretty_assertions = "1.4"
+criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
+
+sysinfo = "0.32"
+nix = { version = "0.29", features = ["fs", "feature", "process", "signal"] }
+signal-hook = "0.3"
+signal-hook-tokio = "0.4"
+
+omniroute-core = { path = "crates/omniroute-core" }
+omniroute-storage = { path = "crates/omniroute-storage" }
+omniroute-providers = { path = "crates/omniroute-providers" }
+omniroute-router = { path = "crates/omniroute-router" }
+omniroute-compression = { path = "crates/omniroute-compression" }
+omniroute-mcp = { path = "crates/omniroute-mcp" }
+omniroute-api = { path = "crates/omniroute-api" }
+omniroute-cli = { path = "crates/omniroute-cli" }
+omniroute-bifrost = { path = "crates/omniroute-bifrost" }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
+incremental = false
+
+[profile.dev]
+opt-level = 0
+debug = 1
+incremental = true

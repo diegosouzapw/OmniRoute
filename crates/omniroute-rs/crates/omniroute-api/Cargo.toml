@@ -1,0 +1,50 @@
+[package]
+name = "omniroute-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute HTTP API: axum server, OpenAI-compatible surface, SSE streaming, auth, observability."
+
+[dependencies]
+omniroute-core = { workspace = true }
+omniroute-storage = { workspace = true }
+omniroute-providers = { workspace = true }
+omniroute-router = { workspace = true }
+omniroute-compression = { workspace = true }
+omniroute-mcp = { workspace = true }
+omniroute-bifrost = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+futures-util = { workspace = true }
+async-stream = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+http = { workspace = true }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+schemars = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+jsonwebtoken = { workspace = true }
+cookie = { workspace = true }
+oauth2 = { workspace = true }
+url = { workspace = true }
+mime = { workspace = true }
+moka = { workspace = true }
+governor = { workspace = true }
+parking_lot = { workspace = true }
+dashmap = { workspace = true }
+arc-swap = { workspace = true }
+once_cell = { workspace = true }
+rand = { workspace = true }
+base64 = { workspace = true }
+eventsource-stream = "0.2"

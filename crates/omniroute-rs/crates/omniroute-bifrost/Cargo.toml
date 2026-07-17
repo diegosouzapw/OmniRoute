@@ -1,0 +1,23 @@
+[package]
+name = "omniroute-bifrost"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute -> Bifrost (Go tier-1) interop client. ADR-031 alignment."
+
+[dependencies]
+omniroute-core = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+http = { workspace = true }
+bytes = { workspace = true }
+url = { workspace = true }
+async-stream = { workspace = true }
+parking_lot = { workspace = true }
+once_cell = { workspace = true }

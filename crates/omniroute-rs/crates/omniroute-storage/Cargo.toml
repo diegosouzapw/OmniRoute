@@ -1,0 +1,40 @@
+[package]
+name = "omniroute-storage"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute SQLite storage (sqlx + migrations)."
+
+[dependencies]
+omniroute-core = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+ulid = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+dotenvy = { workspace = true }
+url = { workspace = true }
+bytes = { workspace = true }
+moka = { workspace = true }
+parking_lot = { workspace = true }
+dashmap = { workspace = true }
+argon2 = { workspace = true }
+aes-gcm = { workspace = true }
+rand = { workspace = true }
+rand_chacha = { workspace = true }
+zeroize = { workspace = true }
+base64 = { workspace = true }
+sha2 = { workspace = true }
+hkdf = { workspace = true }
+subtle = { workspace = true }
+hex = { workspace = true }
+once_cell = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

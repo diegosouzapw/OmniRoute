@@ -1,0 +1,34 @@
+[package]
+name = "omniroute-mcp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OmniRoute MCP server: stdio + Streamable HTTP transports, JSON-RPC, tools, resources, prompts."
+
+[dependencies]
+omniroute-core = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+futures-util = { workspace = true }
+async-stream = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+hyper = { workspace = true }
+http = { workspace = true }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+schemars = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tokio-util = { workspace = true }
+parking_lot = { workspace = true }
+dashmap = { workspace = true }
+once_cell = { workspace = true }
+pin-project-lite = { workspace = true }
