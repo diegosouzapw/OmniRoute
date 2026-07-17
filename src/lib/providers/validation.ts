@@ -52,6 +52,7 @@ import {
   validateJulesProvider,
   validateDevinCloudAgentProvider,
   validateInnerAiProvider,
+  validateNotionWebProvider,
 } from "./validation/webProvidersB";
 import {
   validateHerokuProvider,
@@ -68,6 +69,7 @@ import {
 import {
   validateDeepgramProvider,
   validateAssemblyAIProvider,
+  validateRevAiProvider,
   validateElevenLabsProvider,
   validateInworldProvider,
   validateKieProvider,
@@ -478,6 +480,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     bytez: validateBytezProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
+    "rev-ai": validateRevAiProvider,
     "fal-ai": ({ apiKey, providerSpecificData }: any) =>
       validateImageProviderApiKey({ provider: "fal-ai", apiKey, providerSpecificData }),
     "stability-ai": ({ apiKey, providerSpecificData }: any) =>
@@ -530,6 +533,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "adapta-web": validateAdaptaWebProvider,
     "claude-web": validateClaudeWebProvider,
     "gemini-web": validateGeminiWebProvider,
+    "notion-web": validateNotionWebProvider,
     "copilot-m365-web": validateCopilotM365WebProvider,
     "copilot-web": validateCopilotWebProvider,
     "t3-web": validateT3WebProvider,

@@ -14,7 +14,6 @@ import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
 import { ComboCompressionModeSelect } from "@/shared/components/compression/ComboCompressionModeSelect";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
-import { filterUsableConnections } from "@/shared/utils/connectionStatus";
 import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
 import { useComboProxyAssignments } from "./useComboProxyAssignments";
 import { ResponseValidationEditor, type ResponseValidationValue } from "./ResponseValidationEditor";
@@ -35,6 +34,7 @@ import {
   getNextComboBuilderStage,
   getPreviousComboBuilderStage,
   hasExactModelStepDuplicate,
+  isEligibleActiveConnection,
   isIntelligentBuilderStrategy,
   parseQualifiedModel,
   resolveComboBuilderProviderId,
@@ -772,7 +772,8 @@ export default function CombosPage() {
 
       if (combosRes.ok) setCombos((combosData.combos || []).filter((c) => !c.isHidden));
       if (providersRes.ok) {
-        setActiveProviders(filterUsableConnections(providersData.connections || []));
+        const active = (providersData.connections || []).filter(isEligibleActiveConnection);
+        setActiveProviders(active);
       }
       if (metricsRes.ok) setMetrics(metricsData.metrics || {});
       setProviderNodes(nodesData.nodes || []);

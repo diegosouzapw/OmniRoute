@@ -160,6 +160,13 @@ export async function getSettings() {
     // (`:free` suffix, zero-price pricing, or FREE_MODEL_BUDGETS membership). Default
     // false preserves prior behaviour; opt-in only.
     hidePaidModels: false,
+    // #6977: Opt-in per-connection auto-ping that warms a Codex OAuth connection's
+    // quota window right after it resets, so the first real request doesn't land in
+    // a cold window. `connections` maps connection id -> enabled. Default empty map
+    // (nobody opted in) — the scheduler is a no-op until an operator flips a
+    // connection on, since pinging burns a small amount of real quota (Hard Rule #20
+    // spirit: never mutate/consume on the operator's behalf by default).
+    codexAutoPing: { connections: {} },
   };
   for (const row of rows) {
     const record = toRecord(row);

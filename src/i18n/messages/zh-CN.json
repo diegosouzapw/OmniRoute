@@ -2811,6 +2811,8 @@
     "range7d": "7 天",
     "range30d": "30 天",
     "range90d": "90 天",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "全部时间",
     "spend30d": "30 天支出",
     "activeModels": "活跃 Model",
@@ -5916,7 +5918,12 @@
     "responsesStateModeStrip": "剥离",
     "responsesStateModePreserve": "保留",
     "responsesStateHint": "自动模式会剥离 previous_response_id，除非连接明确启用 OpenAI 响应存储。对于无状态客户端（如 VS Code 自定义端点），剥离模式最安全；上下文取决于客户端发送完整历史记录。",
-    "responsesStateSaveError": "更新响应状态设置失败"
+    "responsesStateSaveError": "更新响应状态设置失败",
+    "codexAutoPingTitle": "Codex Quota Auto-Ping",
+    "codexAutoPingDesc": "Opt-in per connection: sends a tiny request right after a Codex session window resets so it isn't cold when you need it.",
+    "codexAutoPingWarning": "Consumes a small amount of real Codex quota on every ping. Off by default — enable only for connections you actively rely on.",
+    "codexAutoPingSaveError": "Failed to update Codex Auto-Ping setting",
+    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}"
   },
   "contextRtk": {
     "title": "RTK 引擎",

@@ -2726,6 +2726,8 @@
     "range7d": "7 Gün",
     "range30d": "30 Gün",
     "range90d": "90 Gün",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "Tüm Zamanlar",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",
@@ -5532,7 +5534,12 @@
     "homeQuickStart": "Quick Start",
     "homeQuickStartDesc": "Show the Quick Start panel on the Home page.",
     "homeProviderTopology": "Provider Topology",
-    "homeProviderTopologyDesc": "Show the Provider Topology on the Home page."
+    "homeProviderTopologyDesc": "Show the Provider Topology on the Home page.",
+    "codexAutoPingTitle": "Codex Quota Auto-Ping",
+    "codexAutoPingDesc": "Opt-in per connection: sends a tiny request right after a Codex session window resets so it isn't cold when you need it.",
+    "codexAutoPingWarning": "Consumes a small amount of real Codex quota on every ping. Off by default — enable only for connections you actively rely on.",
+    "codexAutoPingSaveError": "Failed to update Codex Auto-Ping setting",
+    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}"
   },
   "contextRtk": {
     "title": "RTK Engine",

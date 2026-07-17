@@ -21,6 +21,8 @@ import { HttpsProxyAgent } from "https-proxy-agent";
 
 const GROK_TOKEN_URL = "https://auth.x.ai/oauth2/token";
 const REQUEST_TIMEOUT_MS = 60_000;
+// xAI cli-chat-proxy hard limit on tools per request.
+const MAX_TOOLS = 200;
 
 type ProxyResolution = { source: string; proxyUrl: string | null };
 type GrokRequestDispatch = { agent?: https.Agent; family?: 4 };
@@ -308,6 +310,14 @@ export class GrokCliExecutor extends BaseExecutor {
       if (param in transformed) {
         delete transformed[param];
       }
+    }
+
+    // xAI's cli-chat-proxy enforces a maximum of 200 tools per request and
+    // 400s above that ceiling. Clients that fan a large MCP toolset through
+    // Grok Build/Composer (e.g. Claude Code with many registered tools) can
+    // exceed it — cap defensively rather than let the request fail upstream.
+    if (Array.isArray(transformed.tools) && transformed.tools.length > MAX_TOOLS) {
+      transformed.tools = transformed.tools.slice(0, MAX_TOOLS);
     }
 
     return transformed;
