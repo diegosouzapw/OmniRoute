@@ -23,7 +23,7 @@ test("speechmatics registry entry is async, apikey-bearer, batch-only", () => {
   assert.equal(provider?.authHeader, "bearer");
   assert.equal(provider?.async, true);
   assert.equal(provider?.format, "speechmatics");
-  assert.ok(provider?.models.some((m) => m.id === "universal-2"));
+  assert.ok(provider?.models.some((m) => m.id === "enhanced"));
 });
 
 test("handleAudioTranscription routes Speechmatics: submit job → poll → fetch transcript", async () => {
@@ -65,7 +65,7 @@ test("handleAudioTranscription routes Speechmatics: submit job → poll → fetc
 
   try {
     const formData = new FormData();
-    formData.append("model", "speechmatics/universal-2");
+    formData.append("model", "speechmatics/enhanced");
     formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
 
     const response = await handleAudioTranscription({
@@ -113,7 +113,7 @@ test("handleAudioTranscription returns an error when Speechmatics rejects the jo
 
   try {
     const formData = new FormData();
-    formData.append("model", "speechmatics/universal-2");
+    formData.append("model", "speechmatics/enhanced");
     formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
 
     const response = await handleAudioTranscription({
@@ -132,7 +132,7 @@ test("handleAudioTranscription returns an error when Speechmatics rejects the jo
 
 test("handleAudioTranscription requires credentials for Speechmatics", async () => {
   const formData = new FormData();
-  formData.append("model", "speechmatics/universal-2");
+  formData.append("model", "speechmatics/enhanced");
   formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
 
   const response = await handleAudioTranscription({ formData, credentials: null });

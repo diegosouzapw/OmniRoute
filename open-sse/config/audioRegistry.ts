@@ -202,7 +202,7 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "bearer",
     async: true,
     format: "speechmatics",
-    models: [{ id: "universal-2", name: "Universal-2" }],
+    models: [{ id: "enhanced", name: "Enhanced" }],
   },
 };
 

@@ -532,12 +532,13 @@ async function handleRevAiTranscription(providerConfig, file, modelId, token) {
 }
 
 /**
- * Speechmatics operating point (accuracy tier). Only "universal-2" is
- * registered today; any other model id passes straight through so the
- * registry can grow without a matching code change here.
+ * Speechmatics operating point (accuracy tier). Catalog model ids are the
+ * real Speechmatics `operating_point` values ("standard", "enhanced",
+ * "melia-1"), so this passes straight through — kept as a named seam in
+ * case a future catalog id needs remapping.
  */
 function speechmaticsOperatingPoint(modelId: string): string {
-  return modelId === "universal-2" ? "enhanced" : modelId;
+  return modelId;
 }
 
 /**
