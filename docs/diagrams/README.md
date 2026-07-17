@@ -30,6 +30,8 @@ inside GitHub's `<img>` sandbox:
 | File                                     | Used in          | Notes                                                                        |
 | ---------------------------------------- | ---------------- | ---------------------------------------------------------------------------- |
 | [tier-cascade.svg](./tier-cascade.svg)   | README.md (root) | Animated 4-tier auto-fallback cascade (16s loop, 4 acts). Edit the SVG directly — there is no `.mmd` source. |
+| [cli-terminal.svg](./cli-terminal.svg) | README.md (root) | Animated mini terminal cycling 3 CLI commands + subcommand ticker (18s loop). Edit the SVG directly — there is no `.mmd` source. |
+| [compression-pipeline.svg](./compression-pipeline.svg) | README.md (root) | Animated 10-engine compression funnel (8s loop). Edit the SVG directly — there is no `.mmd` source. |
 
 ## How to update
 

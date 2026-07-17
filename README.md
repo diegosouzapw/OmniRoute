@@ -516,7 +516,7 @@ Tokens are scoped `read` / `write` / `admin`; process-spawning routes stay loopb
 
 <div align="center">
 
-`providers` · `oauth` · `keys` · `combo` · `nodes` · `models` · `cache` · `compression` · `cost` · `usage` · `quota` · `health` · `resilience` · `telemetry` · `logs` · `audit` · `mcp` · `a2a` · `cloud` · `memory` · `skills` · `eval` · `tunnel` · `backup` · `sync` · `webhooks` · `policy` · `pricing` · `translator` · `simulate` …
+<img src="./docs/diagrams/cli-terminal.svg" width="640" alt="Animated mini terminal demoing the OmniRoute CLI — omniroute providers list, omniroute combo list, omniroute health — cycling over the 80+ command surface: providers · oauth · keys · combo · nodes · models · cache · compression · cost · usage · quota · health · resilience · telemetry · logs · audit · mcp · a2a · cloud · memory · skills · eval · tunnel · backup · sync · webhooks · policy · pricing · translator · simulate …"/>
 
 </div>
 
@@ -596,9 +596,7 @@ Code blocks, URLs and structured data are **always preserved** byte-perfect. **O
 
 ### 📖 How it works — pipeline, architecture & savings math
 
-```
-Client (10,000 tok) ──▶ OmniRoute Compression (10 engines) ──▶ Provider (~1,080 tok, up to 95% saved)
-```
+<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute compression pipeline: a client request of 10,000 tokens passes through 10 stacked engines — Session-Dedup, CCR, RTK, Headroom, Relevance, Caveman, LLMLingua-2, Lite, Aggressive, Ultra — and reaches the provider at about 1,080 tokens, up to 95% saved. Code, URLs and JSON are always preserved byte-perfect."/>
 
 Default stacked combo runs `RTK → Caveman`. When both act on the same tool/context payload, savings compound:
 
