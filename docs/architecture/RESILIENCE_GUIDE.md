@@ -89,6 +89,24 @@ These persist until credentials change or an operator resets them. Do not overwr
 
 **Lazy recovery:** when `rateLimitedUntil` is past, connection becomes eligible again. On successful use, `clearAccountError()` clears all error fields.
 
+### Session affinity (#7274)
+
+**Scope:** one client session (`X-Session-Id` / `x-codex-session-id` / `x-omniroute-session` header) pinned to one connection, for **any** provider.
+
+**Purpose:** keep a multi-turn agent (Claude Code, aider, custom agents) on the same account across requests, reducing cross-account context loss and repeated cold-start 429s on providers with per-account session state.
+
+**Implementation:**
+
+- TTL resolution: `src/sse/services/sessionAffinityPin.ts::resolveSessionAffinityTtlMs()`
+- Pin selection/creation: `src/sse/services/sessionAffinityPin.ts::selectSessionAffinityConnection()`
+- Header extraction (generic, any provider): `src/sse/services/auth.ts::extractSessionAffinityKey()`
+- Persisted pin table: `sessionAccountAffinity` (`src/lib/db/sessionAccountAffinity.ts`)
+- Setting: `sessionAffinityTtlMs` (global TTL in ms, `0` disables) — `src/lib/db/settings.ts`. Renamed from the Codex-only `codexSessionAffinityTtlMs` by migration `124_generic_session_affinity_ttl.sql`, which carries over any previously-configured Codex TTL as the new default.
+
+Before #7274, `resolveSessionAffinityTtlMs()` hard-bailed to `0` for every provider except `codex`, so the TTL setting (and the session headers) had no effect anywhere else even though the pinning mechanism and header extraction were already provider-agnostic. The fix removed that early-return; the TTL now applies uniformly to every provider once set globally above `0`.
+
+The three session-affinity headers are never forwarded upstream — executors build their own upstream headers from scratch rather than passing client headers through, so this stays an internal correlation id only.
+
 ---
 
 ## 3. Model Lockout
