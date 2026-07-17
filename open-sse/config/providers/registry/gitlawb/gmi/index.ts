@@ -15,5 +15,6 @@ export const gitlawb_gmiProvider: RegistryEntry = {
     "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
   },
   passthroughModels: true,
+  modelsUrl: "https://opengateway.gitlawb.com/v1/gmi-cloud/models",
   models: CHAT_OPENAI_COMPAT_MODELS["gitlawb-gmi"],
 };

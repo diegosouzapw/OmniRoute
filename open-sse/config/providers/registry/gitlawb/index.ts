@@ -14,5 +14,7 @@ export const gitlawbProvider: RegistryEntry = {
     "X-Title": "OpenClaude CLI",
     "HTTP-Referer": "https://github.com/Gitlawb/openclaude",
   },
+  passthroughModels: true,
+  modelsUrl: "https://opengateway.gitlawb.com/v1/xiaomi-mimo/models",
   models: CHAT_OPENAI_COMPAT_MODELS["gitlawb"],
 };
