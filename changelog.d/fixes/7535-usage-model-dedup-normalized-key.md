@@ -1,0 +1,1 @@
+- fix(api): Usage page "model usage" table no longer lists the same logical model twice when it was recorded under both a bare and a provider-prefixed spelling (e.g. `glm-5.2` and `z-ai/glm-5.2`) — the in-memory dedup key now uses the normalized model name (#7535)
