@@ -253,6 +253,107 @@ async function isComboAllowedForKey(
   return { allowed, comboName };
 }
 
+/**
+ * Validate only the model/combo authorization of a routing target.
+ *
+ * The full request policy has already run before routing. Calling it again for a
+ * policy-generated target would charge request limits twice and apply throttling
+ * twice. This narrower check proves that routing did not widen the key's access
+ * without consuming any budget, token-limit, or rate-limit state.
+ */
+export async function validateApiKeyRoutingTarget(
+  request: Request,
+  apiKey: string | null,
+  apiKeyInfo: ApiKeyMetadata | null,
+  modelStr: string | null
+): Promise<Response | null> {
+  if (!apiKey || !apiKeyInfo || !modelStr) return null;
+
+  const allowedQuotas = Array.isArray(apiKeyInfo.allowedQuotas) ? apiKeyInfo.allowedQuotas : [];
+  if (isQuotaModelName(modelStr) && allowedQuotas.length === 0) {
+    const body = buildErrorBody(
+      HTTP_STATUS.FORBIDDEN,
+      `Model "${modelStr}" requires a quota-pool allocation; this API key is not allocated to any quota pool`
+    );
+    body.error.code = "QUOTA_NOT_ALLOCATED";
+    return new Response(JSON.stringify(body), {
+      status: HTTP_STATUS.FORBIDDEN,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (allowedQuotas.length > 0) {
+    try {
+      const scope = await resolveQuotaKeyScope(allowedQuotas);
+      const parsed = isQuotaModelName(modelStr) ? parseQuotaModelName(modelStr) : null;
+      const allowed =
+        parsed !== null &&
+        scope.poolSlugs.includes(parsed.groupSlug) &&
+        scope.providers.includes(parsed.provider);
+      if (!allowed) {
+        const body = buildErrorBody(
+          HTTP_STATUS.FORBIDDEN,
+          isQuotaModelName(modelStr)
+            ? `Model "${modelStr}" is not in this key's quota pools`
+            : "This quota-exclusive API key may only use quotaShared-* models"
+        );
+        body.error.code = "QUOTA_ONLY";
+        return new Response(JSON.stringify(body), {
+          status: HTTP_STATUS.FORBIDDEN,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    } catch (error) {
+      log.error("API_POLICY", "Routing target quota check failed. Request blocked.", { error });
+      return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key quota policy unavailable");
+    }
+    return null;
+  }
+
+  let requestedComboName: string | null = null;
+  if (apiKeyInfo.allowedCombos && apiKeyInfo.allowedCombos.length > 0) {
+    try {
+      const comboAccess = await isComboAllowedForKey(apiKeyInfo.allowedCombos, modelStr);
+      requestedComboName = comboAccess.comboName;
+      if (!comboAccess.allowed) {
+        return errorResponse(
+          HTTP_STATUS.FORBIDDEN,
+          `Combo "${comboAccess.comboName || modelStr}" is not allowed for this API key`
+        );
+      }
+    } catch (error) {
+      log.error("API_POLICY", "Routing target combo check failed. Request blocked.", { error });
+      return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key combo policy unavailable");
+    }
+  }
+
+  const hasModelRestrictions =
+    (apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) ||
+    apiKeyInfo.disableNonPublicModels === true;
+  if (!requestedComboName && hasModelRestrictions) {
+    try {
+      requestedComboName = await resolveRequestedComboName(modelStr);
+    } catch {
+      requestedComboName = null;
+    }
+  }
+  if (
+    !requestedComboName &&
+    hasModelRestrictions &&
+    !(await isModelAllowedForKey(apiKey, modelStr))
+  ) {
+    return policyErrorResponse(
+      request,
+      HTTP_STATUS.FORBIDDEN,
+      `Model "${modelStr}" is not allowed for this API key`,
+      `Model "${modelStr}" is not enabled or quota is insufficient. Choose another allowed model.`,
+      "invalid_request_error",
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+  return null;
+}
+
 export interface ApiKeyPolicyResult {
   /** API key string (null if no key provided) */
   apiKey: string | null;

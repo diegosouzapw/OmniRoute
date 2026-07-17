@@ -314,6 +314,22 @@ export type { BatchItemCheckpoint, BatchRecord } from "./db/batches";
 export type { ModelComboMapping } from "./db/modelComboMappings";
 
 export {
+  getReasoningRoutingRules,
+  getReasoningRoutingRuleById,
+  createReasoningRoutingRule,
+  updateReasoningRoutingRule,
+  deleteReasoningRoutingRule,
+  invalidateReasoningRoutingRuleCache,
+} from "./db/reasoningRoutingRules";
+export type {
+  ReasoningRoutingRule,
+  ReasoningRoutingRuleInput,
+  ReasoningRuleScope,
+  ReasoningEffort,
+  ReasoningSourceEffort,
+} from "./db/reasoningRoutingRules";
+
+export {
   // Webhooks
   getWebhooks,
   getWebhook,

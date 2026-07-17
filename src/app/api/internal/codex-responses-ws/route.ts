@@ -21,6 +21,16 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { logger } from "@omniroute/open-sse/utils/logger.ts";
 import { resolveProxy } from "@omniroute/open-sse/utils/networkProxy.ts";
 import { proxyConfigToUrl } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
+import {
+  attachReasoningRuleDirective,
+  applyReasoningRuleDirective,
+  extractReasoningIntent,
+  resolveReasoningSourceModels,
+  resolveReasoningRoutingRule,
+  validateCodexWsDecision,
+} from "@/lib/reasoningRouting/policy";
+import { resolveRequestRoutingTags } from "@/domain/tagRouter";
+import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
 
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
@@ -392,9 +402,44 @@ async function prepare(body: JsonRecord) {
       ? metadata.allowedConnections
       : null;
 
+  const reasoningIntent = extractReasoningIntent(requestedModel, responseBody);
+  const reasoningSourceModels = await resolveReasoningSourceModels(reasoningIntent.model, (model) =>
+    resolveCodexWsModelInfo(model, getModelInfo)
+  );
+  reasoningIntent.model = reasoningSourceModels.normalized;
+  const routingTags = resolveRequestRoutingTags(responseBody);
+  let reasoningDecision = await resolveReasoningRoutingRule({
+    sourceModel: reasoningIntent.model,
+    sourceModelAliases: reasoningSourceModels.aliases,
+    sourceEffort: reasoningIntent.sourceEffort,
+    hasReasoningSignal: reasoningIntent.hasReasoningSignal,
+    hasThinkingBudget: reasoningIntent.hasThinkingBudget,
+    apiKeyId: metadata?.id ?? null,
+    requestTags: routingTags.tags,
+  });
+  if (reasoningDecision) {
+    const transportError = validateCodexWsDecision(reasoningDecision);
+    if (transportError) return jsonError(400, "reasoning_route_transport", transportError);
+    if (reasoningDecision.capability === "unsupported") {
+      return jsonError(
+        400,
+        "reasoning_effort_unsupported",
+        "The configured reasoning effort is not supported by the target model"
+      );
+    }
+    const targetRejection = await validateApiKeyRoutingTarget(
+      authRequest,
+      apiKey,
+      metadata,
+      reasoningDecision.targetModel
+    );
+    if (targetRejection) return targetRejection;
+  }
+
   // codex-only bridge: re-resolve bare ChatGPT model ids (the Codex CLI rejects
   // provider-prefixed ids client-side over WebSocket) as codex models.
-  const modelInfo = await resolveCodexWsModelInfo(requestedModel, getModelInfo);
+  const routedModel = reasoningDecision?.targetModel ?? requestedModel;
+  const modelInfo = await resolveCodexWsModelInfo(routedModel, getModelInfo);
   const provider = modelInfo.provider;
   const model = modelInfo.model || requestedModel;
 
@@ -426,7 +471,38 @@ async function prepare(body: JsonRecord) {
     return jsonError(401, "codex_oauth_token_missing", "Codex OAuth access token is missing");
   }
 
-  const responseBodyWithMemory = await maybeInjectResponsesWsMemory(responseBody, metadata);
+  if (!reasoningDecision) {
+    reasoningDecision = await resolveReasoningRoutingRule({
+      sourceModel: reasoningIntent.model,
+      sourceModelAliases: reasoningSourceModels.aliases,
+      sourceEffort: reasoningIntent.sourceEffort,
+      hasReasoningSignal: reasoningIntent.hasReasoningSignal,
+      hasThinkingBudget: reasoningIntent.hasThinkingBudget,
+      apiKeyId: metadata?.id ?? null,
+      connectionId: refreshedCredentials.connectionId,
+      requestTags: routingTags.tags,
+      connectionOnly: true,
+      capabilityModel: `codex/${model}`,
+    });
+    if (reasoningDecision?.capability === "unsupported") {
+      return jsonError(
+        400,
+        "reasoning_effort_unsupported",
+        "The configured reasoning effort is not supported by the selected Codex connection model"
+      );
+    }
+  }
+
+  let responseBodyWithMemory = await maybeInjectResponsesWsMemory(responseBody, metadata);
+  let reasoningRouting: JsonRecord | null = null;
+  if (reasoningDecision) {
+    const withDirective = attachReasoningRuleDirective(responseBodyWithMemory, reasoningDecision);
+    reasoningRouting = isRecord(withDirective._omnirouteReasoningRouteTrace)
+      ? withDirective._omnirouteReasoningRouteTrace
+      : null;
+    responseBodyWithMemory = applyReasoningRuleDirective(withDirective) as JsonRecord;
+    delete responseBodyWithMemory._omnirouteReasoningRouteTrace;
+  }
   const transformed = (await executor.transformRequest(
     model,
     responseBodyWithMemory,
@@ -465,6 +541,7 @@ async function prepare(body: JsonRecord) {
     model,
     headers,
     proxy,
+    reasoningRouting,
     response: transformed,
   });
 }
@@ -539,6 +616,7 @@ async function persistResponsesWsCallHistory(body: JsonRecord) {
     responseBody: responseBody ?? terminalMessage,
     error: errorMessage ? { code: errorCode, message: errorMessage } : null,
     pipelinePayloads: {
+      ...(isRecord(body.reasoningRouting) ? { routeDecision: body.reasoningRouting } : {}),
       clientRequest: requestBody,
       providerRequest: requestBody,
       providerResponse: responseBody,

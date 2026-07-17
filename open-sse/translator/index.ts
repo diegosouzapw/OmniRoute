@@ -19,6 +19,7 @@ import { getRequestTranslator, getResponseTranslator } from "./registry.ts";
 import { bootstrapTranslatorRegistry } from "./bootstrap.ts";
 import { hasThinkingConfig, normalizeThinkingConfig } from "../services/provider.ts";
 import { applyThinkingBudget } from "../services/thinkingBudget.ts";
+import { applyReasoningRuleDirective } from "@/lib/reasoningRouting/policy";
 import { getResolvedModelCapabilities, supportsReasoning } from "../services/modelCapabilities.ts";
 import { normalizeRoles } from "../services/roleNormalizer.ts";
 import {
@@ -172,6 +173,9 @@ export function translateRequest(
 
   // Phase 2: Apply thinking budget control before normalization
   result = applyThinkingBudget(result);
+  // Explicit reasoning-routing policies are final. The marker is internal and is
+  // consumed here before any provider translation can see it.
+  result = applyReasoningRuleDirective(result);
 
   // Normalize thinking config: remove if lastMessage is not user
   normalizeThinkingConfig(result);

@@ -11,6 +11,7 @@ type HeaderInput =
   | undefined;
 
 export type RequestPipelinePayloads = {
+  routeDecision?: JsonRecord;
   clientRawRequest?: JsonRecord;
   openaiRequest?: JsonRecord;
   providerRequest?: JsonRecord;
@@ -27,6 +28,7 @@ export type RequestPipelinePayloads = {
 type RequestLogger = {
   sessionPath: null;
   logClientRawRequest: (endpoint: unknown, body: unknown, headers?: HeaderInput) => void;
+  logRouteDecision: (decision: unknown) => void;
   logOpenAIRequest: (body: unknown) => void;
   logTargetRequest: (url: unknown, headers: HeaderInput, body: unknown) => void;
   logProviderResponse: (
@@ -302,9 +304,13 @@ export async function createRequestLogger(
   const chunkMethods = makeStreamChunkMethods(options, captureStreamChunks);
 
   if (options.enabled === false) {
+    let routeDecision: JsonRecord | null = null;
     return {
       sessionPath: null,
       logClientRawRequest() {},
+      logRouteDecision(decision) {
+        routeDecision = cloneBoundedForLog(decision) as JsonRecord;
+      },
       logOpenAIRequest() {},
       logTargetRequest() {},
       logProviderResponse() {},
@@ -314,7 +320,7 @@ export async function createRequestLogger(
       appendConvertedChunk: chunkMethods.appendConvertedChunk,
       logError() {},
       getPipelinePayloads() {
-        return null;
+        return routeDecision ? { routeDecision } : null;
       },
     };
   }
@@ -333,6 +339,10 @@ export async function createRequestLogger(
         headers: maskSensitiveHeaders(headers),
         body: cloneBoundedForLog(body),
       };
+    },
+
+    logRouteDecision(decision) {
+      payloads.routeDecision = cloneBoundedForLog(decision) as JsonRecord;
     },
 
     logOpenAIRequest(body) {

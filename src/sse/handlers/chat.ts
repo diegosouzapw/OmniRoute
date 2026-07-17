@@ -83,6 +83,17 @@ import {
   withCorrelationId,
 } from "./chatHelpers";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
+import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
+import {
+  attachReasoningRuleDirective,
+  extractReasoningIntent,
+  filterComboForReasoningDecision,
+  resolveReasoningSourceModels,
+  resolveReasoningRoutingRule,
+  type ExtractedReasoningIntent,
+  type ReasoningRuleDecision,
+} from "@/lib/reasoningRouting/policy";
+import { resolveRequestRoutingTags } from "@/domain/tagRouter";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
@@ -368,6 +379,9 @@ export async function handleChat(
   // resolveRoutingModel). The resolved model still passes through
   // enforceApiKeyPolicy below, so it cannot bypass per-key allowlists.
   let modelStr = resolveRoutingModel(request, body);
+  // Freeze the client-facing model and reasoning intent before automatic routers
+  // mutate the working request. Reasoning policies always match this stable input.
+  const reasoningIntent = extractReasoningIntent(modelStr, body);
 
   // Count messages (support both messages[] and input[] formats)
   const msgCount = body.messages?.length || body.input?.length || 0;
@@ -576,6 +590,66 @@ export async function handleChat(
     }
   }
 
+  // Explicit reasoning-routing policies are the final model-routing layer before
+  // combo/provider resolution. Existing behavior is untouched when no rule matches.
+  const requestedComboForReasoning = await getComboForModel(reasoningIntent.model);
+  let reasoningSourceAliases: string[] = [];
+  if (!requestedComboForReasoning) {
+    const sourceModels = await resolveReasoningSourceModels(reasoningIntent.model, getModelInfo);
+    reasoningIntent.model = sourceModels.normalized;
+    reasoningSourceAliases = sourceModels.aliases;
+  }
+  const requestRoutingTags = resolveRequestRoutingTags(body);
+  let reasoningDecision: ReasoningRuleDecision | null = null;
+  try {
+    reasoningDecision = await resolveReasoningRoutingRule({
+      sourceModel: reasoningIntent.model,
+      sourceModelAliases: reasoningSourceAliases,
+      sourceEffort: reasoningIntent.sourceEffort,
+      hasReasoningSignal: reasoningIntent.hasReasoningSignal,
+      hasThinkingBudget: reasoningIntent.hasThinkingBudget,
+      apiKeyId: apiKeyInfo?.id ?? null,
+      comboId:
+        requestedComboForReasoning && typeof requestedComboForReasoning.id === "string"
+          ? requestedComboForReasoning.id
+          : null,
+      requestTags: requestRoutingTags.tags,
+    });
+  } catch (error) {
+    log.error("REASONING_ROUTE", "Failed to resolve reasoning routing policy", { error });
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Reasoning routing policy could not be resolved");
+  }
+  if (reasoningDecision) {
+    if (reasoningDecision.capability === "unsupported" && !reasoningDecision.targetCombo) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `Reasoning effort '${reasoningDecision.targetEffort}' is not supported by the configured target`
+      );
+    }
+    const targetRejection = await validateApiKeyRoutingTarget(
+      request,
+      policy.apiKey,
+      apiKeyInfo,
+      reasoningDecision.targetModel
+    );
+    if (targetRejection) {
+      log.warn(
+        "REASONING_ROUTE",
+        `Rule ${reasoningDecision.rule.id} target rejected by API key policy`
+      );
+      return targetRejection;
+    }
+    resolvedModelStr = reasoningDecision.targetModel;
+    body = attachReasoningRuleDirective(body, reasoningDecision);
+    log.info(
+      "REASONING_ROUTE",
+      `Rule ${reasoningDecision.rule.id}: ${reasoningDecision.sourceModel}/${reasoningDecision.sourceEffort} → ${resolvedModelStr}/${reasoningDecision.targetEffort || "inherit"}`
+    );
+    for (const warning of reasoningDecision.warnings) {
+      log.warn("REASONING_ROUTE", `Rule ${reasoningDecision.rule.id}: ${warning}`);
+    }
+  }
+
   // ── Zero-Config Auto-Routing (auto and auto/ prefix) ────────────────────────
   // If the model ID is "auto" or starts with "auto/", bypass DB combo lookup
   // entirely and generate a virtual auto-combo on-the-fly from connected providers.
@@ -646,6 +720,7 @@ export async function handleChat(
   // Check if model is a combo (has multiple models with fallback)
   telemetry.startPhase("resolve");
   let combo: any = await getComboForModel(resolvedModelStr);
+  if (reasoningDecision?.targetCombo) combo = reasoningDecision.targetCombo;
 
   // "auto" prefix fuzzy matching: "auto/fast" → "auto/best-fast", etc.
   // parseModel splits "auto/fast" into provider="auto" which isn't a real provider.
@@ -685,6 +760,22 @@ export async function handleChat(
     }
   }
   if (combo) {
+    if (reasoningDecision) {
+      const filtered = filterComboForReasoningDecision(combo, reasoningDecision);
+      if (!filtered.combo) {
+        return errorResponse(
+          HTTP_STATUS.BAD_REQUEST,
+          "Reasoning routing policy leaves no compatible combo target"
+        );
+      }
+      combo = filtered.combo;
+      if (filtered.removed.length > 0) {
+        log.warn(
+          "REASONING_ROUTE",
+          `Rule ${reasoningDecision.rule.id} skipped ${filtered.removed.length} incompatible combo target(s)`
+        );
+      }
+    }
     log.info(
       "CHAT",
       `Combo "${modelStr}" [${combo.strategy || "priority"}] with ${combo.models.length} models`
@@ -836,6 +927,9 @@ export async function handleChat(
             providerId: target?.providerId ?? null,
             correlationId: reqId,
             modelPinned: (target as any)?.modelPinned ?? false,
+            reasoningDecision,
+            reasoningIntent,
+            reasoningRequestTags: requestRoutingTags.tags,
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
@@ -948,6 +1042,9 @@ export async function handleChat(
       forceLiveComboTest: isComboLiveTest,
       forcedConnectionId: requestedConnectionId,
       correlationId: reqId,
+      reasoningDecision,
+      reasoningIntent,
+      reasoningRequestTags: requestRoutingTags.tags,
     },
     null,
     false
@@ -996,6 +1093,10 @@ async function handleSingleModelChat(
     cachedSettings?: any;
     providerId?: string | null;
     correlationId?: string | null;
+    modelPinned?: boolean;
+    reasoningDecision?: ReasoningRuleDecision | null;
+    reasoningIntent?: ExtractedReasoningIntent | null;
+    reasoningRequestTags?: string[];
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -1319,6 +1420,32 @@ async function handleSingleModelChat(
         resolveBareModelToConnectionDefault(modelStr, model, credentials.defaultModel) ?? model;
       let requestBody =
         effectiveModel !== model ? { ...body, model: `${provider}/${effectiveModel}` } : body;
+      if (!runtimeOptions.reasoningDecision && runtimeOptions.reasoningIntent) {
+        const connectionDecision = await resolveReasoningRoutingRule({
+          sourceModel: runtimeOptions.reasoningIntent.model,
+          sourceEffort: runtimeOptions.reasoningIntent.sourceEffort,
+          hasReasoningSignal: runtimeOptions.reasoningIntent.hasReasoningSignal,
+          hasThinkingBudget: runtimeOptions.reasoningIntent.hasThinkingBudget,
+          apiKeyId: apiKeyInfo?.id ?? null,
+          connectionId: credentials.connectionId,
+          requestTags: runtimeOptions.reasoningRequestTags ?? [],
+          connectionOnly: true,
+          capabilityModel: `${provider}/${effectiveModel}`,
+        });
+        if (connectionDecision) {
+          if (connectionDecision.capability === "unsupported") {
+            return errorResponse(
+              HTTP_STATUS.BAD_REQUEST,
+              `Reasoning effort '${connectionDecision.targetEffort}' is not supported by the selected connection model`
+            );
+          }
+          requestBody = attachReasoningRuleDirective(requestBody, connectionDecision);
+          log.info(
+            "REASONING_ROUTE",
+            `Connection rule ${connectionDecision.rule.id} applied to ${credentials.connectionId}`
+          );
+        }
+      }
       let injectedHandoff = null;
       if (
         comboStrategy === "context-relay" &&
@@ -1330,7 +1457,7 @@ async function handleSingleModelChat(
         if (handoff && handoff.fromAccount !== credentials.connectionId) {
           // Inject only after a real account switch. The combo loop itself cannot
           // reliably detect this because account selection happens inside auth.
-          requestBody = injectHandoffIntoBody(body, handoff);
+          requestBody = injectHandoffIntoBody(requestBody, handoff);
           injectedHandoff = handoff;
           log.info(
             "CONTEXT_RELAY",

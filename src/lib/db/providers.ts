@@ -11,6 +11,7 @@ import {
   migrateLegacyEncryptedString,
 } from "./encryption";
 import { invalidateDbCache } from "./readCache";
+import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
@@ -617,8 +618,9 @@ export async function clearConnectionErrorIfUnchanged(
   }
 ): Promise<boolean> {
   const db = getDbInstance() as unknown as DbLike;
-  const result = db.prepare(
-    `
+  const result = db
+    .prepare(
+      `
     UPDATE provider_connections SET
       test_status = 'active',
       last_error = NULL,
@@ -634,13 +636,14 @@ export async function clearConnectionErrorIfUnchanged(
       AND IFNULL(last_error_at, '') = ?
       AND IFNULL(rate_limited_until, '') = ?
     `
-  ).run(
-    new Date().toISOString(),
-    id,
-    expected.testStatus ?? "",
-    expected.lastErrorAt ?? "",
-    expected.rateLimitedUntil ?? ""
-  );
+    )
+    .run(
+      new Date().toISOString(),
+      id,
+      expected.testStatus ?? "",
+      expected.lastErrorAt ?? "",
+      expected.rateLimitedUntil ?? ""
+    );
   const applied = (result.changes ?? 0) > 0;
   if (applied) {
     backupDbFile("pre-write");
@@ -666,6 +669,7 @@ export async function deleteProviderConnection(id: string) {
   _reorderConnections(db, providerId);
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
+  invalidateReasoningRoutingRuleCache();
   return true;
 }
 
@@ -684,6 +688,7 @@ export async function deleteProviderConnections(ids: string[]): Promise<number> 
 
   backupDbFile("pre-write");
   invalidateDbCache("connections");
+  invalidateReasoningRoutingRuleCache();
   return deletedCount;
 }
 
@@ -707,6 +712,8 @@ export async function deleteProviderConnectionsByProvider(providerId: string) {
 
   const result = db.prepare("DELETE FROM provider_connections WHERE provider = ?").run(providerId);
   backupDbFile("pre-write");
+  invalidateDbCache("connections");
+  invalidateReasoningRoutingRuleCache();
   return result.changes;
 }
 

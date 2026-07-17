@@ -948,6 +948,15 @@ export async function handleChatCore({
       clientRawRequest.headers
     );
   }
+  const reasoningRouteDecision =
+    body && typeof body === "object"
+      ? (body as Record<string, unknown>)._omnirouteReasoningRouteTrace
+      : null;
+  if (reasoningRouteDecision) {
+    reqLogger.logRouteDecision(reasoningRouteDecision);
+    body = { ...(body as Record<string, unknown>) };
+    delete (body as Record<string, unknown>)._omnirouteReasoningRouteTrace;
+  }
 
   log?.debug?.("FORMAT", `${sourceFormat} → ${targetFormat} | stream=${stream}`);
 
@@ -3339,7 +3348,13 @@ export async function handleChatCore({
           // otherwise degenerate into a 429 rate-limit storm). Connection stays
           // active since only the specific model is unavailable. (#6827)
           const notFoundCooldownMs = COOLDOWN_MS.notFound;
-          lockModel(provider, errorConnectionId, currentModel, "model_not_found", notFoundCooldownMs);
+          lockModel(
+            provider,
+            errorConnectionId,
+            currentModel,
+            "model_not_found",
+            notFoundCooldownMs
+          );
           console.warn(
             `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
           );
