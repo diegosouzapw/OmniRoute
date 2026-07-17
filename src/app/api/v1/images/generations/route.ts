@@ -10,6 +10,7 @@ import {
   parseImageModel,
   getImageProvider,
   getImageModelEntry,
+  modalitiesRequireImageInput,
 } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -151,7 +152,7 @@ async function postHandler(request, context) {
   const imageModelEntry = getImageModelEntry(body.model);
   const inputModalities = imageModelEntry?.inputModalities || ["text"];
   const requiresPrompt = inputModalities.includes("text");
-  const requiresImageInput = inputModalities.includes("image");
+  const requiresImageInput = modalitiesRequireImageInput(inputModalities);
   const hasPrompt = typeof body.prompt === "string" && body.prompt.trim().length > 0;
   const hasImageInput = hasImageGenerationInput(body);
 

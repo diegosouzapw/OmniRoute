@@ -620,7 +620,9 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
   // beyond this seed list.
   huggingface: {
     id: "huggingface",
-    baseUrl: "https://api-inference.huggingface.co/models",
+    // HF retired api-inference.huggingface.co; text-to-image now routes through
+    // router.huggingface.co with the hf-inference provider pinned in the path.
+    baseUrl: "https://router.huggingface.co/hf-inference/models",
     authType: "apikey",
     authHeader: "bearer",
     format: "huggingface-image",
@@ -782,4 +784,15 @@ export function getImageModelEntry(modelStr) {
     inputModalities: modelConfig.inputModalities || ["text"],
     description: modelConfig.description || undefined,
   };
+}
+
+/**
+ * An image input is only MANDATORY for edit-only models — those whose modalities
+ * are `["image"]` with no `"text"`. Models listing both `["text", "image"]` accept
+ * an image but can also run pure text-to-image, so they must NOT be gated on an
+ * image input (that gate previously blocked 41 dual-modality t2i models).
+ */
+export function modalitiesRequireImageInput(inputModalities) {
+  const list = Array.isArray(inputModalities) ? inputModalities : ["text"];
+  return list.includes("image") && !list.includes("text");
 }
