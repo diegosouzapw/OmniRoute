@@ -184,6 +184,14 @@ const EMBEDDED_DEFAULTS = {
   ],
   // Trae Cloud IDE — public oauth client id
   trae_id: [10, 3, 95, 6, 10, 22, 66, 3, 11, 90, 72, 31, 91, 2],
+  // Microsoft Designer web app — public ClientId header sent by the
+  // designer.microsoft.com frontend to designerapp.officeapps.live.com
+  // (not a secret — every browser session sends the same fixed value;
+  // reverse-engineered from the g4f MicrosoftDesigner provider reference).
+  microsoft_designer_client_id: [
+    13, 88, 13, 91, 68, 89, 65, 21, 72, 26, 21, 76, 0, 65, 93, 2, 26, 23, 28, 87, 14, 87, 8, 95, 12,
+    17, 70, 6, 24, 66, 17, 1, 10, 95, 81, 28,
+  ],
 } as const;
 
 export type EmbeddedDefaultKey = keyof typeof EMBEDDED_DEFAULTS;
