@@ -81,6 +81,7 @@ import {
   applyConfiguredUserAgent,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
+import { applyPeerTraceHeader } from "@/shared/resilience/peerRouting";
 // Header helpers extracted to a pure leaf; re-exported for external importers
 // (executors + tests) that import them from "./base.ts".
 export {
@@ -1177,6 +1178,9 @@ export class BaseExecutor {
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
+        // Enforce peer tracing after all configurable headers have been merged so
+        // operator/provider metadata cannot accidentally erase the loop guard.
+        applyPeerTraceHeader(finalHeaders, clientHeaders, url);
         const serializedBody = prl.parseBody(bodyString);
         // #4307 — Preserve the non-enumerable tool-name cloak/remap reverse map
         // (`_toolNameMap`, set on the live `transformedBody` by
