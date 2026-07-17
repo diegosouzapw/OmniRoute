@@ -187,6 +187,12 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     ],
   },
 
+  // #6976 — OpenRouter serves embeddings via a dedicated OpenAI-compatible
+  // /api/v1/embeddings endpoint (omitted from /v1/models, so this catalog is
+  // curated rather than live-discovered). Ids verified against the API
+  // reference (not the display-name collections page) at refresh time:
+  // https://openrouter.ai/docs/api/reference/embeddings and
+  // https://openrouter.ai/collections/embedding-models
   openrouter: {
     id: "openrouter",
     baseUrl: "https://openrouter.ai/api/v1/embeddings",
@@ -204,9 +210,29 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
         dimensions: 3072,
       },
       {
-        id: "openai/text-embedding-ada-002",
-        name: "Text Embedding Ada 002 (OpenRouter)",
-        dimensions: 1536,
+        id: "qwen/qwen3-embedding-8b",
+        name: "Qwen3 Embedding 8B (OpenRouter)",
+        dimensions: 4096,
+      },
+      {
+        id: "qwen/qwen3-embedding-4b",
+        name: "Qwen3 Embedding 4B (OpenRouter)",
+        dimensions: 2560,
+      },
+      {
+        id: "baai/bge-m3",
+        name: "BGE-M3 (OpenRouter)",
+        dimensions: 1024,
+      },
+      {
+        id: "mistralai/mistral-embed-2312",
+        name: "Mistral Embed (OpenRouter)",
+        dimensions: 1024,
+      },
+      {
+        id: "google/gemini-embedding-001",
+        name: "Gemini Embedding 001 (OpenRouter)",
+        dimensions: 768,
       },
     ],
   },
@@ -268,6 +294,29 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
       { id: "jina-embeddings-v4", name: "Jina Embeddings v4", dimensions: 2048 },
       { id: "jina-clip-v2", name: "Jina CLIP v2", dimensions: 1024 },
       { id: "jina-colbert-v2", name: "Jina ColBERT v2", dimensions: 128 },
+    ],
+  },
+
+  // Issue #6660: Mixedbread AI — OpenAI-compatible /v1/embeddings, free tier
+  // available (API key via signup, no card required). Model ids are the
+  // upstream-qualified "mixedbread-ai/<model>" form, mirroring how `together`/
+  // `fireworks` register fully-qualified upstream model ids above.
+  mixedbread: {
+    id: "mixedbread",
+    baseUrl: "https://api.mixedbread.com/v1/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      {
+        id: "mixedbread-ai/mxbai-embed-large-v1",
+        name: "Mixedbread Embed Large v1",
+        dimensions: 1024,
+      },
+      {
+        id: "mixedbread-ai/mxbai-embed-2d-large-v1",
+        name: "Mixedbread Embed 2D Large v1",
+        dimensions: 1024,
+      },
     ],
   },
 };

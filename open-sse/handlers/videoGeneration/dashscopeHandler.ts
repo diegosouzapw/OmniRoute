@@ -1,35 +1,12 @@
-// Alibaba (DashScope) Wan video generation: create async task → poll → MP4.
-// Targets wan2.7-t2v on the DashScope intl region. Reuses the stored alibaba
-// provider Bearer apiKey — no separate credential flow.
-//
-// Extracted out of videoGeneration.ts (frozen file-size baseline) to make
-// room for the new Segmind dispatch branch (#6656) — same pattern used for
-// the other per-provider handlers already co-located under
-// videoGeneration/providers/ and imageGeneration/providers/.
-
+import { isJsonObject } from "../../utils/kieTask.ts";
 import { saveCallLog } from "@/lib/usageDb";
-import { isJsonObject } from "../../../utils/kieTask.ts";
-import { sanitizeErrorMessage } from "../../../utils/error.ts";
+import { sanitizeErrorMessage } from "../../utils/error.ts";
 
-// Map OmniRoute size/aspect_ratio → Alibaba DashScope "WxH" (1280*720).
-// Accepts "1280*720", "1280x720", or a ratio "16:9". Returns undefined if unparseable
-// (then omitted from the payload so DashScope applies its own default).
-function normalizeDashscopeSize(size: unknown, aspectRatio: unknown): string | undefined {
-  if (typeof size === "string") {
-    if (/^\d+\*\d+$/.test(size)) return size;
-    if (/^\d+x\d+$/.test(size)) return size.replace("x", "*");
-  }
-  if (typeof aspectRatio === "string") {
-    const ratioMap: Record<string, string> = {
-      "16:9": "1280*720",
-      "9:16": "720*1280",
-      "1:1": "960*960",
-    };
-    return ratioMap[aspectRatio];
-  }
-  return undefined;
-}
-
+/**
+ * Alibaba (DashScope) Wan video generation: create async task → poll → MP4.
+ * Targets wan2.7-t2v on the DashScope intl region. Reuses the stored alibaba
+ * provider Bearer apiKey — no separate credential flow.
+ */
 export async function handleDashscopeVideoGeneration({
   model,
   provider,
@@ -175,4 +152,23 @@ export async function handleDashscopeVideoGeneration({
       error: sanitizeErrorMessage(err) || "Video provider error",
     };
   }
+}
+
+// Map OmniRoute size/aspect_ratio → Alibaba DashScope "WxH" (1280*720).
+// Accepts "1280*720", "1280x720", or a ratio "16:9". Returns undefined if unparseable
+// (then omitted from the payload so DashScope applies its own default).
+function normalizeDashscopeSize(size: unknown, aspectRatio: unknown): string | undefined {
+  if (typeof size === "string") {
+    if (/^\d+\*\d+$/.test(size)) return size;
+    if (/^\d+x\d+$/.test(size)) return size.replace("x", "*");
+  }
+  if (typeof aspectRatio === "string") {
+    const ratioMap: Record<string, string> = {
+      "16:9": "1280*720",
+      "9:16": "720*1280",
+      "1:1": "960*960",
+    };
+    return ratioMap[aspectRatio];
+  }
+  return undefined;
 }
