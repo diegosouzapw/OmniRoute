@@ -186,24 +186,7 @@
 
 <div align="center">
 
-```
-┌──────────────────────────────────────────────────────────┐
-│        Your IDE / CLI  (Claude Code, Cursor, Cline…)       │
-└─────────────────────────┬──────────────────────────────────┘
-                          │ http://localhost:20128/v1
-                          ▼
-┌──────────────────────────────────────────────────────────┐
-│                  OmniRoute — Smart Router                  │
-│  RTK + Caveman compression · 18 routing strategies         │
-│  Circuit breakers · TLS stealth · MCP · A2A · Guardrails   │
-└─────────────────────────┬──────────────────────────────────┘
-        ┌─────────────┬────┴────────┬─────────────┐
-        ▼ Tier 1      ▼ Tier 2      ▼ Tier 3       ▼ Tier 4
-   SUBSCRIPTION     API KEY        CHEAP          FREE
-   Claude Code,     DeepSeek,      GLM $0.5,      Kiro, Qoder,
-   Codex, Copilot   Groq, xAI      MiniMax $0.2   Pollinations
-   quota out? ───▶  budget hit? ─▶ budget hit? ─▶ always on
-```
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute request flow: your IDE or CLI (Claude Code, Cursor, Cline…) calls one local endpoint (http://localhost:20128/v1); the OmniRoute Smart Router (RTK + Caveman compression, 18 routing strategies, circuit breakers, TLS stealth, MCP, A2A, guardrails) auto-falls back across 4 provider tiers — Tier 1 Subscription (Claude Code, Codex, Copilot), quota out? Tier 2 API Key (DeepSeek, Groq, xAI), budget hit? Tier 3 Cheap (GLM $0.5, MiniMax $0.2), budget hit? Tier 4 Free (Kiro, Qoder, Pollinations) — always on."/>
 
 </div>
 
