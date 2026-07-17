@@ -111,9 +111,19 @@ export default function FreePoolTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setSyncErrors(data.errors ?? null);
+      const data = await res.json().catch(() => null);
+      if (data?.results) {
+        const errors: Record<string, string[]> = {};
+        for (const [source, result] of Object.entries(
+          data.results as Record<string, { errors?: string[] }>
+        )) {
+          if (Array.isArray(result?.errors) && result.errors.length > 0) {
+            errors[source] = result.errors;
+          }
+        }
+        if (Object.keys(errors).length > 0) setSyncErrors(errors);
+      } else if (!res.ok) {
+        setSyncErrors(data?.errors ?? null);
       }
       await loadData();
     } catch {}
