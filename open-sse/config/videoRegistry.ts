@@ -193,6 +193,23 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     models: RUNWAYML_SUPPORTED_VIDEO_MODELS,
   },
 
+  deepinfra: {
+    id: "deepinfra",
+    // Native DeepInfra inference endpoint — same host/auth already proven for reranking
+    // (open-sse/config/rerankRegistry.ts). Reuses the stored deepinfra provider Bearer
+    // apiKey (already registered for chat) — no separate credential flow.
+    baseUrl: "https://api.deepinfra.com/v1/inference",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "deepinfra-video",
+    models: [
+      { id: "Wan-AI/Wan2.2-T2V-A14B", name: "Wan 2.2 T2V A14B" },
+      { id: "Wan-AI/Wan2.2-TI2V-5B", name: "Wan 2.2 TI2V 5B" },
+      { id: "Wan-AI/Wan2.7-T2V", name: "Wan 2.7 T2V" },
+      { id: "Lightricks/LTX-2.3-Distilled", name: "LTX 2.3 Distilled" },
+    ],
+  },
+
   alibaba: {
     id: "alibaba",
     alias: "ali",
