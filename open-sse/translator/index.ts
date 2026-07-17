@@ -9,10 +9,14 @@ import {
   prepareClaudeRequest,
 } from "./helpers/claudeHelper.ts";
 import { filterToOpenAIFormat } from "./helpers/openaiHelper.ts";
-import { providerHonorsOpenAIFormatCacheControl } from "../utils/cacheControlPolicy.ts";
+import {
+  providerHonorsOpenAIFormatCacheControl,
+  resolveConnectionCacheOverride,
+} from "../utils/cacheControlPolicy.ts";
 import {
   coerceToolSchemas,
   injectEmptyReasoningContentForToolCalls,
+  injectOptionalEnumOmissionForTools,
   sanitizeToolDescriptions,
 } from "./helpers/schemaCoercion.ts";
 import { getRequestTranslator, getResponseTranslator } from "./registry.ts";
@@ -170,6 +174,9 @@ export function translateRequest(
   let result = body;
   const use9CharId = options?.normalizeToolCallId === true;
   const preserveDeveloperRole = options?.preserveDeveloperRole;
+  const connectionCacheOverride = resolveConnectionCacheOverride(
+    (credentials as { providerSpecificData?: unknown } | null)?.providerSpecificData
+  );
 
   // Phase 2: Apply thinking budget control before normalization
   result = applyThinkingBudget(result);
@@ -245,7 +252,7 @@ export function translateRequest(
           // stripped.
           const preserveCacheControl =
             options?.preserveCacheControl === true &&
-            providerHonorsOpenAIFormatCacheControl(provider);
+            providerHonorsOpenAIFormatCacheControl(provider, connectionCacheOverride);
           const step1Credentials =
             options?.copilotClient || hasTargetHint || preserveCacheControl
               ? {
@@ -312,7 +319,8 @@ export function translateRequest(
     // requested upstream; generic/implicit-cache OpenAI providers stay stripped.
     result = filterToOpenAIFormat(result, {
       preserveCacheControl:
-        options?.preserveCacheControl === true && providerHonorsOpenAIFormatCacheControl(provider),
+        options?.preserveCacheControl === true &&
+        providerHonorsOpenAIFormatCacheControl(provider, connectionCacheOverride),
       // #4849 regression guard: keep client reasoning_content for replay providers.
       preserveReasoningContent: isReasoner,
     });
@@ -354,6 +362,9 @@ export function translateRequest(
   if (result.tools !== undefined) {
     result.tools = coerceToolSchemas(result.tools);
     result.tools = sanitizeToolDescriptions(result.tools);
+    if (targetFormat === FORMATS.OPENAI_RESPONSES) {
+      result.tools = injectOptionalEnumOmissionForTools(result.tools);
+    }
   }
 
   if (targetFormat === FORMATS.OPENAI && result.messages && Array.isArray(result.messages)) {

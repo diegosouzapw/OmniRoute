@@ -572,7 +572,18 @@ test("provider models route prefers the remote OpenRouter /models API over stati
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
   assert.deepEqual(seenUrls, ["https://openrouter.ai/api/v1/models"]);
-  assert.deepEqual(body.models, [{ id: "openai/gpt-4.1", name: "GPT-4.1 via OpenRouter" }]);
+  // #6976 — OpenRouter's live /v1/models never lists embeddings/rerank (they live
+  // on dedicated endpoints), so the curated specialty catalog is folded into the
+  // live-discovery response additively; static IMAGE models stay excluded
+  // (hasChatRegistry is true for openrouter — see staticModels.ts).
+  const ids = body.models.map((m: { id: string }) => m.id);
+  assert.ok(ids.includes("openai/gpt-4.1"), "live-fetched chat model is preserved");
+  assert.ok(ids.includes("baai/bge-m3"), "curated embedding is merged in");
+  assert.ok(ids.includes("cohere/rerank-v3.5"), "curated rerank is merged in");
+  assert.ok(
+    !ids.some((id: string) => id.includes("gpt-5.4-image")),
+    "static image models stay excluded from the chat+specialty catalog"
+  );
 });
 
 test("provider models route returns the local catalog for embedding and rerank providers", async () => {

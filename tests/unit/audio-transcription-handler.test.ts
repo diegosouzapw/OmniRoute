@@ -359,6 +359,143 @@ test("handleAudioTranscription returns an error when AssemblyAI reports a termin
   }
 });
 
+test("handleAudioTranscription routes Rev AI uploads and polls until transcribed", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  const calls = [];
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    calls.push({ url: stringUrl, method: options?.method || "GET" });
+
+    if (stringUrl === "https://api.rev.ai/speechtotext/v1/jobs") {
+      assert.equal(options.method, "POST");
+      assert.ok(options.body instanceof Uint8Array);
+      const bodyText = new TextDecoder().decode(options.body);
+      assert.ok(bodyText.includes('name="media"'));
+      assert.ok(bodyText.includes('name="options"'));
+      assert.ok(bodyText.includes('"transcriber":"machine"'));
+      return new Response(JSON.stringify({ id: "job-1", status: "in_progress" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.rev.ai/speechtotext/v1/jobs/job-1") {
+      return new Response(JSON.stringify({ id: "job-1", status: "transcribed" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.rev.ai/speechtotext/v1/jobs/job-1/transcript") {
+      assert.equal(options.headers.Accept, "text/plain");
+      return new Response("hello from rev ai", {
+        status: 200,
+        headers: { "content-type": "text/plain" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "rev-ai/machine");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "revai-key" },
+    });
+
+    assert.deepEqual(await response.json(), { text: "hello from rev ai" });
+    assert.deepEqual(
+      calls.map((entry) => entry.url),
+      [
+        "https://api.rev.ai/speechtotext/v1/jobs",
+        "https://api.rev.ai/speechtotext/v1/jobs/job-1",
+        "https://api.rev.ai/speechtotext/v1/jobs/job-1/transcript",
+      ]
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleAudioTranscription returns an error when Rev AI reports a failed job", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url) => {
+    const stringUrl = String(url);
+
+    if (stringUrl === "https://api.rev.ai/speechtotext/v1/jobs") {
+      return new Response(JSON.stringify({ id: "job-2", status: "in_progress" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.rev.ai/speechtotext/v1/jobs/job-2") {
+      return new Response(
+        JSON.stringify({ id: "job-2", status: "failed", failure_detail: "corrupt audio" }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "rev-ai/machine");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "revai-key" },
+    });
+    const payload = (await response.json()) as { error: { message: string } };
+
+    assert.equal(response.status, 500);
+    assert.equal(payload.error.message, "corrupt audio");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleAudioTranscription surfaces Rev AI job-submission errors without polling", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: "Invalid access token" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "rev-ai/machine");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "bad-key" },
+    });
+    const payload = (await response.json()) as { error: { message: string } };
+
+    assert.equal(response.status, 401);
+    assert.equal(payload.error.message, "Invalid access token");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleAudioTranscription routes HuggingFace providers with raw audio uploads", async () => {
   const originalFetch = globalThis.fetch;
   let capturedUrl;

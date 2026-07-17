@@ -342,6 +342,25 @@ export const WEB_COOKIE_PROVIDERS = {
     riskNoticeVariant: "webCookie",
     authHint: "Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie)",
   },
+  "notion-web": {
+    id: "notion-web",
+    alias: "nw",
+    name: "Notion AI Web (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#000000",
+    textIcon: "NW",
+    website: "https://www.notion.so",
+    // #6758: Notion has no public inference API (see closed request #3272) — this
+    // reverse-engineers the same undocumented internal endpoint two independent
+    // open-source projects already use. Undocumented endpoints can change without
+    // notice; label clearly so operators understand the risk before pasting a
+    // session cookie of an account they already pay for.
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint:
+      "Paste your token_v2 cookie value from notion.so (DevTools → Application → Cookies). " +
+      "Optionally append `; space_id=...` and/or `; notion_browser_id=...` if your workspace requires them.",
+  },
 };
 
 /** Resolved public site for a web-session provider (href + display host). */

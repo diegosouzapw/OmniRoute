@@ -221,6 +221,19 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
       { id: "kling-v1.6-t2v", name: "Kling V1.6 Text-to-Video" },
     ],
   },
+
+  xai: {
+    id: "xai",
+    // xAI Grok Imagine async video-generation API. Reuses the stored xai
+    // provider Bearer apiKey (same credential the image-generation "xai"
+    // entry in imageRegistry.ts already uses) — no separate credential flow.
+    baseUrl: "https://api.x.ai/v1/videos",
+    statusUrl: "https://api.x.ai/v1/videos",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "xai-video",
+    models: [{ id: "grok-imagine-video", name: "Grok Imagine Video" }],
+  },
 };
 
 /**
