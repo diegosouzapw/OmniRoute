@@ -5,6 +5,7 @@ import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { assembleStandalone } from "./assembleStandalone.mjs";
+import { buildRebuildSpawnPlan } from "./electronRebuildPlan.mjs";
 import { removeNativeModules } from "./lib/removeNativeModules.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
