@@ -516,7 +516,7 @@ Tokens are scoped `read` / `write` / `admin`; process-spawning routes stay loopb
 
 <div align="center">
 
-<img src="./docs/diagrams/cli-terminal.svg" width="640" alt="Animated mini terminal demoing the OmniRoute CLI — omniroute providers list, omniroute combo list, omniroute health — cycling over the 80+ command surface: providers · oauth · keys · combo · nodes · models · cache · compression · cost · usage · quota · health · resilience · telemetry · logs · audit · mcp · a2a · cloud · memory · skills · eval · tunnel · backup · sync · webhooks · policy · pricing · translator · simulate …"/>
+<img src="./docs/diagrams/cli-terminal.svg" width="100%" alt="Animated terminal demoing the OmniRoute CLI — omniroute providers list, omniroute combo list, omniroute health — cycling over the 80+ command surface: providers · oauth · keys · combo · nodes · models · cache · compression · cost · usage · quota · health · resilience · telemetry · logs · audit · mcp · a2a · cloud · memory · skills · eval · tunnel · backup · sync · webhooks · policy · pricing · translator · simulate …"/>
 
 </div>
 
