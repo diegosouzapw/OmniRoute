@@ -8,6 +8,7 @@ import {
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
+import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
   getProviderConnectionById,
@@ -219,6 +220,7 @@ export async function GET(
     if (!provider) {
       return NextResponse.json({ error: "Invalid connection provider" }, { status: 400 });
     }
+    const usesCuratedModelsOnly = providerUsesCuratedModelsOnly(provider);
 
     // Resolve proxy for this provider (provider-level → global → direct)
     const proxy = await resolveProxyForProvider(provider);
@@ -269,7 +271,9 @@ export async function GET(
     const apiKey = typeof connection.apiKey === "string" ? connection.apiKey : "";
     const accessToken = typeof connection.accessToken === "string" ? connection.accessToken : "";
     const autoFetchModels = isAutoFetchModelsEnabled(connection.providerSpecificData);
-    const cachedDiscoveryModels = await getCachedDiscoveredModels(provider, connectionId);
+    const cachedDiscoveryModels = usesCuratedModelsOnly
+      ? []
+      : await getCachedDiscoveredModels(provider, connectionId);
 
     // Check for synced models from ANY connection of this provider.
     // When sync has been performed (even on a different connection),
@@ -281,7 +285,7 @@ export async function GET(
       supportedEndpoints?: string[];
     }> | null = null;
     try {
-      const allSynced = await getSyncedAvailableModels(provider);
+      const allSynced = usesCuratedModelsOnly ? [] : await getSyncedAvailableModels(provider);
       if (Array.isArray(allSynced) && allSynced.length > 0) {
         providerSyncedModels = allSynced.map((m) => ({
           id: m.id,
@@ -1410,7 +1414,7 @@ export async function GET(
         connectionId,
         models: staticModels,
         source: "local_catalog",
-        warning: "API unavailable — using local catalog",
+        ...(usesCuratedModelsOnly ? {} : { warning: "API unavailable — using local catalog" }),
       });
     }
 
@@ -1937,7 +1941,9 @@ export async function GET(
     }
 
     // Build headers
-    const headers = config.buildHeaders ? config.buildHeaders(token) : { ...config.headers };
+    const headers = config.buildHeaders
+      ? config.buildHeaders(token, connection)
+      : { ...config.headers };
     if (!config.buildHeaders && config.authHeader && !config.authQuery) {
       headers[config.authHeader] = (config.authPrefix || "") + token;
     }

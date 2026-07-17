@@ -21,6 +21,7 @@ import {
 } from "@/lib/providers/managedAvailableModels";
 import { getProviderServiceKinds } from "@/lib/providers/serviceKindIndex";
 import { providerLacksModelListing } from "@/lib/providers/modelListingCapability";
+import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { normalizeModelCatalogSource } from "@/shared/utils/modelCatalogSearch";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
@@ -63,6 +64,7 @@ export default function ProviderDetailPageClient() {
   // ── UI-only modal state (not owned by hooks) ─────────────────────────────
   const [showOAuthModal, _setShowOAuthModal] = useState(false);
   const [reauthConnection, setReauthConnection] = useState<ConnectionRowConnection | null>(null);
+  const [showKimiAuthMethodModal, setShowKimiAuthMethodModal] = useState(false);
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
   const [showSiliconFlowEndpointModal, setShowSiliconFlowEndpointModal] = useState(false);
   const [siliconFlowInitialBaseUrl, setSiliconFlowInitialBaseUrl] = useState<string | undefined>();
@@ -91,8 +93,8 @@ export default function ProviderDetailPageClient() {
     providerId,
     getProviderServiceKinds(providerId, declaredServiceKinds)
   );
+  const usesCuratedModelsOnly = providerUsesCuratedModelsOnly(providerId);
 
-  // ── Phase 1f hooks ────────────────────────────────────────────────────────
   const {
     connections,
     providerNode,
@@ -232,7 +234,7 @@ export default function ProviderDetailPageClient() {
     }));
 
     const registryIds = new Set(builtInModels.map((m) => m.id));
-    const syncedExtras = syncedAvailableModels
+    const syncedExtras = (usesCuratedModelsOnly ? [] : syncedAvailableModels)
       .filter((model: any) => model?.id && !registryIds.has(model.id))
       .map((model: any) => ({
         ...model,
@@ -241,7 +243,7 @@ export default function ProviderDetailPageClient() {
         source: "imported",
       }));
     const knownIds = new Set([...registryIds, ...syncedExtras.map((model: any) => model.id)]);
-    const customExtras = modelMeta.customModels
+    const customExtras = (usesCuratedModelsOnly ? [] : modelMeta.customModels)
       .filter((cm: any) => cm.id && !knownIds.has(cm.id))
       .map((cm: any) => ({
         id: cm.id,
@@ -254,16 +256,13 @@ export default function ProviderDetailPageClient() {
       if (m.id && !deduped.has(m.id)) deduped.set(m.id, m);
     }
     return Array.from(deduped.values());
-  }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
-  const isManagedAvailableModelsProvider = isCompatible || providerId === "openrouter";
-  // isSearchProvider declared earlier (before hooks)
+  }, [registryModels, syncedAvailableModels, modelMeta.customModels, usesCuratedModelsOnly]);
   const isUpstreamProxyProvider = providerInfo?.category === "upstream-proxy";
   const compatibleSupportsModelImport = compatibleProviderSupportsModelImport(providerId);
 
   const providerStorageAlias = isCompatible ? providerId : providerAlias;
   const providerDisplayAlias = isCompatible ? providerNode?.prefix || providerId : providerAlias;
 
-  // ── Phase 1k: model import handlers ─────────────────────────────────────
   const {
     importingModels,
     showImportModal,
@@ -313,14 +312,14 @@ export default function ProviderDetailPageClient() {
   }, [providerId]);
 
   const openPrimaryAddFlow = useCallback(() => {
+    if (providerId === "kimi-coding") return setShowKimiAuthMethodModal(true);
     if (isOAuth) {
       setShowOAuthModal(true);
       return;
     }
     openApiKeyAddFlow();
-  }, [isOAuth, openApiKeyAddFlow]);
+  }, [providerId, isOAuth, openApiKeyAddFlow]);
 
-  // ── Phase 1h: commandCode auth flow ─────────────────────────────────────
   const {
     commandCodeAuthState,
     handleCloseAddApiKeyModal,
@@ -423,8 +422,6 @@ export default function ProviderDetailPageClient() {
     selectedConnection,
     providerNode,
   });
-
-  // renderModelsSection → components/ProviderModelsSection.tsx (Phase 1m)
 
   if (loading) {
     return (
@@ -628,7 +625,6 @@ export default function ProviderDetailPageClient() {
       {!isSearchProvider && !isUpstreamProxyProvider && (
         <Card>
           <h2 className="text-lg font-semibold mb-4">{t("availableModels")}</h2>
-          {/* Phase 1m: extracted to components/ProviderModelsSection.tsx */}
           <ProviderModelsSection
             providerId={providerId}
             providerAlias={providerAlias}
@@ -638,8 +634,9 @@ export default function ProviderDetailPageClient() {
             isCcCompatible={isCcCompatible}
             isAnthropicCompatible={isAnthropicCompatible}
             isAnthropicProtocolCompatible={isAnthropicProtocolCompatible}
-            isManagedAvailableModelsProvider={isManagedAvailableModelsProvider}
+            isManagedAvailableModelsProvider={isCompatible || providerId === "openrouter"}
             compatibleSupportsModelImport={compatibleSupportsModelImport}
+            allowModelImport={!usesCuratedModelsOnly}
             models={models}
             modelMeta={modelMeta}
             modelAliases={modelAliases}
@@ -705,7 +702,6 @@ export default function ProviderDetailPageClient() {
       {/* Playground + param filters — extracted to components/ProviderExtraPanels.tsx (#6649) */}
       <ProviderExtraPanels providerId={providerId} />
 
-      {/* Modals — Phase 1t.5: extracted to components/ProviderModalsPanel.tsx */}
       <ProviderModalsPanel
         providerId={providerId}
         providerInfo={providerInfo}
@@ -719,6 +715,8 @@ export default function ProviderDetailPageClient() {
         showRiskNoticeModal={showRiskNoticeModal}
         handleConfirmRiskNotice={handleConfirmRiskNotice}
         handleCancelRiskNotice={handleCancelRiskNotice}
+        showKimiAuthMethodModal={showKimiAuthMethodModal}
+        setShowKimiAuthMethodModal={setShowKimiAuthMethodModal}
         showOAuthModal={showOAuthModal}
         reauthConnection={reauthConnection}
         handleOAuthSuccess={handleOAuthSuccess}

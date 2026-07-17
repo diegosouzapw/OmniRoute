@@ -13,6 +13,7 @@ import {
 import RiskNoticeModal from "../../components/RiskNoticeModal";
 import CodexCliGuideModal from "../../components/CodexCliGuideModal";
 import SiliconFlowEndpointModal from "./SiliconFlowEndpointModal";
+import KimiCodeAuthMethodModal from "./KimiCodeAuthMethodModal";
 import AddApiKeyModal from "./modals/AddApiKeyModal";
 import EditConnectionModal from "./modals/EditConnectionModal";
 import EditCompatibleNodeModal from "./modals/EditCompatibleNodeModal";
@@ -56,6 +57,9 @@ interface ProviderModalsPanelProps {
   showRiskNoticeModal: boolean;
   handleConfirmRiskNotice: () => void;
   handleCancelRiskNotice: () => void;
+  // Provider-specific auth method selection
+  showKimiAuthMethodModal: boolean;
+  setShowKimiAuthMethodModal: (open: boolean) => void;
   // OAuth
   showOAuthModal: boolean;
   reauthConnection: ConnectionRowConnection | null;
@@ -154,6 +158,8 @@ export default function ProviderModalsPanel({
   showRiskNoticeModal,
   handleConfirmRiskNotice,
   handleCancelRiskNotice,
+  showKimiAuthMethodModal,
+  setShowKimiAuthMethodModal,
   showOAuthModal,
   reauthConnection,
   handleOAuthSuccess,
@@ -230,6 +236,21 @@ export default function ProviderModalsPanel({
           providerName={providerInfo.name}
           onConfirm={handleConfirmRiskNotice}
           onCancel={handleCancelRiskNotice}
+        />
+      )}
+      {providerId === "kimi-coding" && (
+        <KimiCodeAuthMethodModal
+          isOpen={showKimiAuthMethodModal}
+          onSelectOAuth={() => {
+            setShowKimiAuthMethodModal(false);
+            setShowOAuthModal(true);
+          }}
+          onSelectApiKey={() => {
+            setShowKimiAuthMethodModal(false);
+            setShowAddApiKeyModal(true);
+          }}
+          onClose={() => setShowKimiAuthMethodModal(false)}
+          t={t}
         />
       )}
       {!isUpstreamProxyProvider &&

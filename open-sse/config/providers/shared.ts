@@ -194,76 +194,6 @@ export interface LegacyProvider {
   timeoutMs?: number;
 }
 
-// Kimi K2.7 Code (released 2026-06-12): coding-focused successor to K2.6 — 1T
-// MoE, 256K context, thinking-only (preserve_thinking forced) with a fixed
-// sampling regime (temperature=1.0 / top_p=0.95). Two ids: `kimi-k2.7-code` and
-// the high-speed variant `kimi-k2.7-code-highspeed`. `temperature`/`top_p` are
-// stripped on every path: the OpenAI endpoint (api.moonshot.ai) treats them as
-// non-modifiable, and the coding/Anthropic endpoint (api.kimi.com/coding) — the
-// path validated live on the test VPS — tolerates them but fixes them anyway, so
-// dropping them keeps the fixed regime and avoids an OpenAI-endpoint 400.
-export const KIMI_K27_MODELS: RegistryModel[] = [
-  {
-    id: "kimi-k2.7-code",
-    name: "Kimi K2.7 Code",
-    contextLength: 262144,
-    maxOutputTokens: 262144,
-    supportsVision: true,
-    supportsReasoning: true,
-    unsupportedParams: ["temperature", "top_p"],
-  },
-  {
-    id: "kimi-k2.7-code-highspeed",
-    name: "Kimi K2.7 Code (High Speed)",
-    contextLength: 262144,
-    maxOutputTokens: 262144,
-    supportsVision: true,
-    supportsReasoning: true,
-    unsupportedParams: ["temperature", "top_p"],
-  },
-];
-
-export const KIMI_CODING_SHARED = {
-  format: "claude",
-  executor: "default",
-  baseUrl: "https://api.kimi.com/coding/v1/messages",
-  authHeader: "x-api-key",
-  // Kimi K2.6 native context per Moonshot platform docs and cross-provider
-  // catalog (openrouter, moonshot, ali, deepinfra, etc. all advertise 262144).
-  // Without this, contextManager.ts:getTokenLimit falls back to
-  // DEFAULT_LIMITS.default = 128000 because the Kimi Code OAuth product is
-  // not synced via models.dev. The under-reported value cascades into
-  // /v1/models advertised context_length=128000 and downstream client
-  // assumptions about prompt budget (e.g. Capy computing
-  // prompt_cap = context_length - request.max_tokens).
-  defaultContextLength: 262144,
-  headers: {
-    "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-  },
-  models: [
-    {
-      id: "kimi-k2.6",
-      name: "Kimi K2.6",
-      contextLength: 262144,
-      maxOutputTokens: 262144,
-      supportsVision: true,
-    },
-    {
-      id: "kimi-k2.6-thinking",
-      name: "Kimi K2.6 Thinking",
-      contextLength: 262144,
-      maxOutputTokens: 262144,
-    },
-    ...KIMI_K27_MODELS,
-    {
-      id: "moonshotai/kimi-k2.7-code",
-      name: "Kimi K2.7 Code",
-      contextLength: 262144,
-      maxOutputTokens: 262144,
-    },
-  ] as RegistryModel[],
-} as const;
-
 export const buildModels = (ids: readonly string[]): RegistryModel[] =>
   ids.map((id) => ({ id, name: id }));
 
@@ -399,7 +329,6 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "allenai/Olmo-3-7B-Instruct",
     "utter-project/EuroLLM-22B-Instruct-2512",
   ]),
-  moonshot: [...buildModels(["kimi-k2.6", "kimi-k2.5"]), ...KIMI_K27_MODELS],
   "meta-llama": buildModels([
     "Llama-4-Maverick-17B-128E-Instruct-FP8",
     "Llama-4-Scout-17B-16E-Instruct-FP8",

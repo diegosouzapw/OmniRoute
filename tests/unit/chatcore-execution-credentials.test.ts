@@ -96,3 +96,40 @@ test("missing providerSpecificData defaults to an empty object", () => {
   }) as Record<string, unknown>;
   assert.deepEqual(out.providerSpecificData, {});
 });
+
+test("Kimi execution credentials carry the discovered protocol and thinking policy", () => {
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "kimi-coding",
+    targetFormat: "claude",
+    modelInfo: {
+      supportsThinking: true,
+      alwaysThinking: true,
+      supportedThinkingEfforts: ["low", "medium", "high"],
+      defaultThinkingEffort: "medium",
+    },
+  }) as Record<string, unknown>;
+  const psd = out.providerSpecificData as Record<string, unknown>;
+  assert.equal(psd._omnirouteKimiTargetFormat, "claude");
+  assert.deepEqual(psd._omnirouteKimiThinking, {
+    supportsThinking: true,
+    alwaysThinking: true,
+    supportedThinkingEfforts: ["low", "medium", "high"],
+    defaultThinkingEffort: "medium",
+  });
+});
+
+test("Kimi Code k3 uses the current offline max-effort policy before model import", () => {
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "kimi-coding",
+    targetFormat: "claude",
+    modelInfo: { model: "k3" },
+  }) as Record<string, unknown>;
+  const psd = out.providerSpecificData as Record<string, unknown>;
+  assert.deepEqual(psd._omnirouteKimiThinking, {
+    supportsThinking: true,
+    supportedThinkingEfforts: ["max"],
+    defaultThinkingEffort: "max",
+  });
+});

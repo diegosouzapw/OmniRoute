@@ -160,12 +160,14 @@ export const OAUTH_PROVIDERS = {
   "kimi-coding": {
     id: "kimi-coding",
     alias: "kmc",
-    name: "Kimi Coding",
+    name: "Kimi Code CLI",
     icon: "psychology",
     color: "#1E40AF",
     textIcon: "KC",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
+    authHint:
+      "Sign in with the same Kimi account used by Kimi Code CLI. OmniRoute uses the CLI OAuth flow and Kimi Coding Plan endpoints.",
   },
   kilocode: {
     id: "kilocode",

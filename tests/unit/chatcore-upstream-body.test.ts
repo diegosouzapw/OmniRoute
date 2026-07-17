@@ -135,3 +135,20 @@ test("never injects prompt_cache_key when the target format is not OpenAI", asyn
   });
   assert.equal(out.prompt_cache_key, undefined);
 });
+
+test("injects prompt_cache_key for Kimi Code's OpenAI protocol", async () => {
+  const out = await prepareUpstreamBody({
+    translatedBody: {
+      model: "kimi-for-coding",
+      messages: [
+        { role: "system", content: "coding instructions" },
+        { role: "user", content: "fix this" },
+      ],
+    },
+    modelToCall: "kimi-for-coding",
+    provider: "kimi-coding",
+    targetFormat: "openai",
+    credentials: { accessToken: "oauth-token" },
+  });
+  assert.match(String(out.prompt_cache_key), /^omni-[0-9a-f]{32}$/);
+});

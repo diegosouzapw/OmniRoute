@@ -25,6 +25,7 @@ export const ProviderSchema = z.object({
   isEmbeddedService: z.boolean().optional(),
   deprecated: z.boolean().optional(),
   deprecationReason: z.string().optional(),
+  hiddenFromDashboard: z.boolean().optional(),
   hasFree: z.boolean().optional(),
   freeNote: z.string().optional(),
   authHint: z.string().optional(),

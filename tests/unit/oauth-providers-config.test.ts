@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import * as os from "node:os";
 
 // Antigravity and Windsurf public defaults come from
 // open-sse/utils/publicCreds.ts — no env override needed in this suite.
@@ -680,9 +681,15 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
       const params = init.body;
       assert.equal(String(url), KIMI_CODING_CONFIG.deviceCodeUrl);
       assert.equal(params.get("client_id"), KIMI_CODING_CONFIG.clientId);
-      assert.equal(init.headers["X-Msh-Platform"], "kimi_cli");
+      assert.equal(init.headers["X-Msh-Platform"], "kimi_code_cli");
       assert.equal(init.headers["X-Msh-Device-Id"], "test-kimi-device-id");
-      assert.ok(init.headers["X-Msh-Os-Version"]);
+      assert.equal(init.headers["X-Msh-Os-Version"], os.release());
+      if (os.type() === "Windows_NT") {
+        assert.equal(
+          init.headers["X-Msh-Device-Model"],
+          `Windows ${os.release()} ${os.arch()}`
+        );
+      }
 
       return jsonResponse({
         device_code: "kimi-device",
@@ -699,7 +706,7 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
       assert.equal(params.get("client_id"), KIMI_CODING_CONFIG.clientId);
       assert.equal(params.get("device_code"), "kimi-device");
       assert.equal(params.get("grant_type"), "urn:ietf:params:oauth:grant-type:device_code");
-      assert.equal(init.headers["X-Msh-Platform"], "kimi_cli");
+      assert.equal(init.headers["X-Msh-Platform"], "kimi_code_cli");
       assert.equal(init.headers["X-Msh-Device-Id"], "test-kimi-device-id");
 
       return jsonResponse({

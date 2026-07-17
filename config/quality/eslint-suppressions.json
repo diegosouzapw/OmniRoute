@@ -222,11 +222,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/settings/components/AppearanceTab.tsx": {
     "@next/next/no-img-element": {
       "count": 4
@@ -1370,11 +1365,6 @@
   "tests/unit/executor-gitlab.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4
-    }
-  },
-  "tests/unit/executor-kimi-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
     }
   },
   "tests/unit/executor-nlpcloud.test.ts": {

@@ -19,7 +19,7 @@ import { applyProviderRequestDefaults } from "../services/providerRequestDefault
 import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 import {
   injectReasoningContentForThinkingModel,
-  isThinkingMessageModel,
+  shouldInjectReasoningContentPlaceholder,
 } from "../utils/reasoningContentInjector.ts";
 import {
   detectFormat,
@@ -736,19 +736,18 @@ export class DefaultExecutor extends BaseExecutor {
       this.ensureThinkingBudget(withDefaults as Record<string, unknown>, model);
     }
 
-    // 9router#1480: the native Moonshot `kimi` provider (executor "default")
-    // is a thinking-mode upstream that 400s with "reasoning_content must be
-    // passed back" when a prior assistant turn lacks it. OpencodeExecutor
+    // 9router#1480: native Moonshot providers 400 when a prior assistant turn
+    // lacks reasoning_content. OpencodeExecutor
     // already injects a placeholder for OpenCode-routed thinking models; the
-    // direct kimi connection hit neither injection path. Scope to `kimi` so
+    // direct connections hit neither injection path. Scope to Moonshot ids so
     // gateway-served models that merely match the thinking-model name pattern
     // (and may reject an extra field) are unaffected.
-    if (this.provider === "kimi") {
+    if (this.provider === "kimi" || this.provider === "moonshot") {
       const outboundModel =
         typeof (withDefaults as Record<string, unknown>)?.model === "string"
           ? ((withDefaults as Record<string, unknown>).model as string)
           : model;
-      if (isThinkingMessageModel(outboundModel)) {
+      if (shouldInjectReasoningContentPlaceholder(this.provider, outboundModel)) {
         withDefaults = injectReasoningContentForThinkingModel(withDefaults);
       }
     }
