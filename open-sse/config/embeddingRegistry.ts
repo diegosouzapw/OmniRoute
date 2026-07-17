@@ -270,6 +270,29 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
       { id: "jina-colbert-v2", name: "Jina ColBERT v2", dimensions: 128 },
     ],
   },
+
+  // Issue #6660: Mixedbread AI — OpenAI-compatible /v1/embeddings, free tier
+  // available (API key via signup, no card required). Model ids are the
+  // upstream-qualified "mixedbread-ai/<model>" form, mirroring how `together`/
+  // `fireworks` register fully-qualified upstream model ids above.
+  mixedbread: {
+    id: "mixedbread",
+    baseUrl: "https://api.mixedbread.com/v1/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      {
+        id: "mixedbread-ai/mxbai-embed-large-v1",
+        name: "Mixedbread Embed Large v1",
+        dimensions: 1024,
+      },
+      {
+        id: "mixedbread-ai/mxbai-embed-2d-large-v1",
+        name: "Mixedbread Embed 2D Large v1",
+        dimensions: 1024,
+      },
+    ],
+  },
 };
 
 const EMBEDDING_PROVIDER_ALIASES: Record<string, string> = {
