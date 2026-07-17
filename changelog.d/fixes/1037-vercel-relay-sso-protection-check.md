@@ -1,0 +1,1 @@
+- **fix(api):** Vercel Relay deploy now checks the Deployment Protection (SSO) PATCH response and surfaces `ssoProtectionWarning` when Vercel rejects it, instead of silently activating a relay that later returns an undiagnosed `403 Access denied`. (thanks @ricatix)

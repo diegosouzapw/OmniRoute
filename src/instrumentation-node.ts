@@ -153,6 +153,19 @@ export async function registerNodejs(): Promise<void> {
   await import("@omniroute/open-sse/index.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
 
+  // Guarantee the SQLite singleton — including a sql.js WASM pre-init when
+  // both synchronous drivers (better-sqlite3, node:sqlite) are unavailable —
+  // is ready before ANY other startup step reaches getDbInstance(). This
+  // MUST run before ensureSecrets, clearStaleCrashCooldowns,
+  // getSettings, initAuditLog below: those all reach getDbInstance()
+  // transitively, and used to run ahead of this call (previously at the end
+  // of this function), throwing the misleading "sql.js WASM ainda não foi
+  // pré-inicializado" error for an existing DB file when both sync drivers
+  // failed (#7288 / #7494). ensureDbInitialized() itself is idempotent and
+  // caches the singleton, so every later getDbInstance() call below is a
+  // free no-op re-read of the same connection — no double-init cost.
+  await ensureDbReadyForBoot();
+
   await ensureSecrets();
   const { enforceWebRuntimeEnv } = await import("@/lib/env/runtimeEnv");
   enforceWebRuntimeEnv();
@@ -330,8 +343,6 @@ export async function registerNodejs(): Promise<void> {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[COMPLIANCE] Could not initialize audit log:", msg);
   }
-
-  await ensureDbReadyForBoot();
 
   // Storage-configured scheduled VACUUM (#4437): registers the timer from
   // Settings > System & Storage and persists lastVacuumAt for the UI.

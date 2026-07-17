@@ -1,7 +1,7 @@
 /**
  * Tests for useResizablePanels — drag changes width, collapse to 48px, localStorage persistence
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 
 const MIN_WIDTH = 280;

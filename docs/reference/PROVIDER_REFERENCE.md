@@ -1,16 +1,16 @@
 ---
 title: "Provider Reference"
-version: 3.8.47
-lastUpdated: 2026-07-13
+version: 3.8.49
+lastUpdated: 2026-07-17
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-07-13
+> **Last generated:** 2026-07-17
 
-Total providers: **250**. See category breakdown below.
+Total providers: **251**. See category breakdown below.
 
 ## Categories
 
@@ -88,7 +88,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `zai-web` | `zw` | Z.ai Web (Free) | Web cookie | [link](https://chat.z.ai) | Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie) |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. |
 
-## API Key Providers (paid / paid-with-free-credits) (167)
+## API Key Providers (paid / paid-with-free-credits) (168)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -184,6 +184,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `minimax` | `minimax` | Minimax Coding | API key, video | [link](https://www.minimax.io) | — |
 | `minimax-cn` | `minimax-cn` | Minimax (China) | API key | [link](https://www.minimaxi.com) | — |
 | `mistral` | `mistral` | Mistral | API key | [link](https://mistral.ai) | Free Experiment tier: rate-limited access to all models, no credit card required |
+| `mixedbread` | `mxbai` | Mixedbread AI | API key | [link](https://www.mixedbread.com) | Bearer API key for the Mixedbread embeddings API. |
 | `modal` | `mdl` | Modal | API key, enterprise | [link](https://modal.com/docs) | Use the bearer token that protects your Modal deployment, if enabled. Base URL should point to your OpenAI-compatible Modal app, for example https://<workspace>--<app>.modal.run/v1. |
 | `modelscope` | `ms` | ModelScope | API key | [link](https://modelscope.cn) | Free tier via ModelScope API-Inference — Alibaba account required. |
 | `monsterapi` | `monster` | MonsterAPI | API key | [link](https://monsterapi.ai) | Get API key at monsterapi.ai |

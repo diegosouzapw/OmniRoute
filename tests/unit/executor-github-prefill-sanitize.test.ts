@@ -87,15 +87,21 @@ test("dropTrailingAssistantPrefill is null/empty safe", () => {
 
 test("GithubExecutor.transformRequest drops the trailing assistant prefill end-to-end", () => {
   const executor = new GithubExecutor();
+  // Use an unregistered claude-* id so getModelTargetFormat("gh", ...) resolves
+  // to null and this stays on the /chat/completions path this test targets.
+  // Registered claude-* ids (e.g. "claude-sonnet-4.6") now carry
+  // targetFormat:"claude" (native /v1/messages, which supports prefill — port
+  // of decolua/9router#2608, see github-copilot-claude-native-messages.test.ts)
+  // and intentionally skip this drop.
   const body = {
-    model: "claude-sonnet-4.6",
+    model: "claude-sonnet-4",
     messages: [
       { role: "user", content: "Hi" },
       { role: "assistant", content: "Here is the answer:" },
     ],
   };
 
-  const out = executor.transformRequest("claude-sonnet-4.6", body, false, {});
+  const out = executor.transformRequest("claude-sonnet-4", body, false, {});
 
   assert.equal(out.messages.length, 1);
   assert.equal(out.messages[0].role, "user");

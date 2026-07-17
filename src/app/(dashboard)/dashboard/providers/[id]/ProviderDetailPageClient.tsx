@@ -131,6 +131,8 @@ export default function ProviderDetailPageClient() {
     handleRetestConnection,
     handleRefreshToken,
     handleSwapPriority,
+    handleReorderByAvailability,
+    reorderingByAvailability,
     handleBatchSetActive,
     handleBatchDeleteOpenModal,
     handleBatchDeleteConfirm,
@@ -498,6 +500,8 @@ export default function ProviderDetailPageClient() {
             retestingId={retestingId}
             distributingProxies={distributingProxies}
             proxyConfig={proxyConfig}
+            reorderingByAvailability={reorderingByAvailability}
+            handleReorderByAvailability={handleReorderByAvailability}
             preferClaudeCodeForUnprefixedClaudeModels={preferClaudeCodeForUnprefixedClaudeModels}
             claudeRoutingSettingsLoaded={claudeRoutingSettingsLoaded}
             claudeRoutingSettingsLoadError={claudeRoutingSettingsLoadError}
