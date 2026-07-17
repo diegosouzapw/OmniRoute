@@ -3,6 +3,35 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+// Regression guard for #7288 / #7494 — a startup step reaching
+// `getDbInstance()` before `preInitSqlJs()` had run threw the misleading
+// "sql.js WASM ainda não foi pré-inicializado" error for an EXISTING DB file
+// when both synchronous drivers (better-sqlite3, node:sqlite) failed.
+//
+// NOTE on approach: an earlier version of this fix added a top-level
+// `await preInitSqlJsIfSyncDriversUnavailable(...)` barrier at the bottom of
+// `src/lib/db/core.ts` so merely *importing* core.ts guaranteed the
+// pre-init. That made core.ts an async ES module — esbuild's CJS bundling
+// path (used by `tsx`'s CJS require hook, and hit by several other test
+// files that `require("../../src/lib/db/core.ts")` for cleanup, e.g.
+// tests/unit/stmt-cache-lru.test.ts) rejects any `require()` of a module
+// whose dependency graph contains a top-level await ("This require call is
+// not allowed because the transitive dependency ... contains a top-level
+// await"), and even where esbuild didn't hard-fail, sharing that pending
+// top-level-await Promise across node:test's process broke unrelated tests'
+// event-loop bookkeeping ("Promise resolution is still pending but the
+// event loop has already resolved" — reproduced with
+// tests/unit/api/compression/compression-api.test.ts run in the same
+// process as any of the `require(".../core.ts")` cleanup helpers above).
+//
+// The fix instead closes the ordering gap at the real startup entrypoint:
+// `registerNodejs()` (src/instrumentation-node.ts) now calls
+// `ensureDbReadyForBoot()` — which pre-initializes sql.js when needed —
+// BEFORE any other startup step (ensureSecrets(), clearStaleCrashCooldowns(),
+// getSettings(), initAuditLog()) can reach `getDbInstance()`. No top-level
+// await anywhere in core.ts.
 
 async function importFreshCore() {
   const url = new URL("../../src/lib/db/core.ts", import.meta.url).href;
@@ -25,10 +54,66 @@ test.after(() => {
   if (dataDir) fs.rmSync(dataDir, { recursive: true, force: true });
 });
 
+test("src/lib/db/core.ts has no top-level await (breaks esbuild's CJS require() bundling — #7288 hotfix)", () => {
+  const corePath = fileURLToPath(new URL("../../src/lib/db/core.ts", import.meta.url));
+  const source = fs.readFileSync(corePath, "utf8");
+
+  // A bare `await <expr>;` at column 0 (module top-level scope, not inside
+  // any function) is the exact pattern that broke esbuild's CJS bundling for
+  // every transitive `require()` of this module (tsx's CJS require hook,
+  // used by tests/unit/stmt-cache-lru.test.ts and friends).
+  assert.doesNotMatch(
+    source,
+    /^await\s/m,
+    "core.ts must not contain a top-level `await` — it makes the module " +
+      "un-require()-able via esbuild's CJS bundling path and breaks other " +
+      "tests' event-loop bookkeeping when required in the same process"
+  );
+});
+
 test(
-  "getDbInstance() called ahead of ensureDbReadyForBoot()/preInitSqlJs() no longer throws " +
-    "the ordering-gap 'sql.js WASM ainda não foi pré-inicializado' error when both sync " +
-    "drivers fail on an EXISTING db file (#7288 / #7494)",
+  "registerNodejs() calls ensureDbReadyForBoot() before any startup step that " +
+    "reaches getDbInstance() (ensureSecrets/clearStaleCrashCooldowns/getSettings/" +
+    "initAuditLog) — closes the #7288/#7494 ordering gap at the real entrypoint",
+  () => {
+    const instrumentationPath = fileURLToPath(
+      new URL("../../src/instrumentation-node.ts", import.meta.url)
+    );
+    const source = fs.readFileSync(instrumentationPath, "utf8");
+
+    const registerStart = source.indexOf("export async function registerNodejs(");
+    assert.ok(registerStart >= 0, "registerNodejs() must exist in instrumentation-node.ts");
+
+    const dbReadyIndex = source.indexOf("await ensureDbReadyForBoot();", registerStart);
+    assert.ok(
+      dbReadyIndex >= 0,
+      "registerNodejs() must call `await ensureDbReadyForBoot();` — it is the only " +
+        "caller of preInitSqlJs()"
+    );
+
+    for (const laterDbTouch of [
+      "await ensureSecrets();",
+      "clearStaleCrashCooldowns()",
+      "await getSettings();",
+      "initAuditLog();",
+    ]) {
+      const touchIndex = source.indexOf(laterDbTouch, registerStart);
+      assert.ok(touchIndex >= 0, `expected to find \`${laterDbTouch}\` in registerNodejs()`);
+      assert.ok(
+        dbReadyIndex < touchIndex,
+        `\`await ensureDbReadyForBoot();\` (index ${dbReadyIndex}) must run before ` +
+          `\`${laterDbTouch}\` (index ${touchIndex}) — otherwise that step can reach ` +
+          "getDbInstance() before sql.js has had a chance to pre-initialize (#7288 / #7494)"
+      );
+    }
+  }
+);
+
+test(
+  "getDbInstance() called after preInitSqlJsIfSyncDriversUnavailable() (the same " +
+    "warm-up ensureDbReadyForBoot() now guarantees ahead of every other startup step) " +
+    "no longer throws the ordering-gap 'sql.js WASM ainda não foi pré-inicializado' " +
+    "error when both sync drivers fail on an EXISTING db file (#7288 / #7494)",
   async () => {
     dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-7288-"));
     const sqliteFile = path.join(dataDir, "storage.sqlite");
@@ -41,13 +126,18 @@ test(
     prevDataDir = process.env.DATA_DIR;
     process.env.DATA_DIR = dataDir;
 
+    const { preInitSqlJsIfSyncDriversUnavailable } = await import(
+      "../../src/lib/db/adapters/driverFactory"
+    );
     coreModule = await importFreshCore();
 
-    // Simulates a startup step (ensureSecrets() / clearStaleCrashCooldowns() /
-    // getSettings() / initAuditLog() in src/instrumentation-node.ts) reaching
-    // getDbInstance() BEFORE ensureDbReadyForBoot() -> preInitSqlJs() has had
-    // a chance to run — preInitSqlJs() is never called explicitly in this
-    // test, matching the real ordering gap.
+    // Simulates the fixed ordering: registerNodejs() now awaits
+    // ensureDbReadyForBoot() (which — via preInitSqlJs()-equivalent
+    // machinery — attempts sql.js pre-init) BEFORE any other startup step
+    // (ensureSecrets() / clearStaleCrashCooldowns() / getSettings() /
+    // initAuditLog()) reaches getDbInstance().
+    await preInitSqlJsIfSyncDriversUnavailable(sqliteFile);
+
     let thrownMessage: string | null = null;
     try {
       coreModule.getDbInstance();
@@ -65,9 +155,9 @@ test(
     // valid database (impossible for any driver).
     assert.ok(
       thrownMessage === null || !/ainda não foi pré-inicializado/.test(thrownMessage),
-      "expected the fix to make preInitSqlJs() run ahead of getDbInstance() (e.g. via a " +
-        "top-level pre-initialization barrier) instead of throwing the 'not pre-initialized " +
-        `yet' error when both sync drivers fail on an existing DB file — got: ${thrownMessage}`
+      "expected the fix to make preInitSqlJs() run ahead of getDbInstance() instead of " +
+        "throwing the 'not pre-initialized yet' error when both sync drivers fail on an " +
+        `existing DB file — got: ${thrownMessage}`
     );
   }
 );

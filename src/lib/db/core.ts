@@ -9,7 +9,6 @@ import {
   tryOpenSync,
   getSqlJsAdapter,
   preInitSqlJs,
-  preInitSqlJsIfSyncDriversUnavailable,
   getSqlJsPreInitError,
   openDatabaseAsync,
 } from "./adapters/driverFactory";
@@ -196,22 +195,6 @@ if (!isCloud && !fs.existsSync(DATA_DIR)) {
         `[DB]   DATA_DIR=/path/to/writable/dir omniroute`
     );
   }
-}
-
-// Guarantee sql.js is pre-initialized (if needed) before ANY consumer can
-// reach getDbInstance(). Closes the ordering gap where early startup steps
-// (ensureSecrets(), clearStaleCrashCooldowns(), getSettings(), ...) used to
-// call getDbInstance() before ensureDbReadyForBoot() had a chance to run
-// preInitSqlJs(), throwing "sql.js WASM ainda não foi pré-inicializado" for
-// an existing DB file when both sync drivers failed (#7288 / #7494).
-// A dynamic import() of an ES module only resolves after the module's own
-// evaluation — including this top-level await — finishes, so by the time
-// any caller obtains a reference to getDbInstance() the sql.js adapter, if
-// needed, is already cached. No cost on the happy path: when a sync driver
-// can open the file, the probe closes immediately and sql.js is never
-// touched.
-if (!isCloud && !isBuildPhase && SQLITE_FILE) {
-  await preInitSqlJsIfSyncDriversUnavailable(SQLITE_FILE);
 }
 
 // ──────────────── Schema ────────────────
