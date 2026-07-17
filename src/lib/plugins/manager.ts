@@ -388,7 +388,7 @@ class PluginManager {
     const resolvedEntry = await realpath(entryPoint).catch(() => null);
     if (
       !resolvedEntry ||
-      (!resolvedEntry.startsWith(resolvedPluginDir + "/") && resolvedEntry !== resolvedPluginDir)
+      (!resolvedEntry.startsWith(resolvedPluginDir + sep) && resolvedEntry !== resolvedPluginDir)
     ) {
       throw new Error(`Plugin '${name}' entry point escapes plugin directory`);
     }
