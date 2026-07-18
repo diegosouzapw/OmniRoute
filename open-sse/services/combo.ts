@@ -67,6 +67,7 @@ import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import {
   applySessionStickiness,
+  normalizeStickinessMessages,
   recordStickyBinding,
   clearStickyBinding,
   peekStickyConnectionId,
@@ -170,6 +171,7 @@ import {
   applyRequestTagRouting,
   scoreAutoTargets,
   expandAutoComboCandidatePool,
+  deriveSpeedTelemetry,
 } from "./combo/autoStrategy.ts";
 import {
   resolveResetWindowConfig,
@@ -479,6 +481,13 @@ export async function buildAutoCandidates(
         hasHistoricalSignal && Number.isFinite(historicalStdDev) && historicalStdDev > 0
           ? Math.max(10, historicalStdDev)
           : Math.max(10, p95LatencyMs * 0.1);
+      // #6875: surface TTFT/E2E-latency/tokens-per-second onto the candidate so the
+      // existing speed-ranking factor (#6011, speedRanking.ts/routerStrategy.ts) picks
+      // up real telemetry instead of falling back to the pool median. Additive only —
+      // no scoring weights change here.
+      const speedTelemetry = hasHistoricalSignal
+        ? deriveSpeedTelemetry(historicalModelMetric)
+        : undefined;
 
       const breakerStateRaw = getCircuitBreaker(provider)?.getStatus?.()?.state;
       const circuitBreakerState: ProviderCandidate["circuitBreakerState"] =
@@ -560,6 +569,7 @@ export async function buildAutoCandidates(
         p95LatencyMs,
         latencyStdDev,
         errorRate,
+        ...speedTelemetry,
         accountTier: "standard" as const,
         quotaResetIntervalSecs: 86400,
         contextAffinity,
@@ -1235,7 +1245,9 @@ export async function handleComboChat({
     ? ({ targets: orderedTargets, messageHash: null, stuck: false } as const)
     : await applySessionStickiness(
         orderedTargets,
-        body.messages as Array<{ role?: string; content?: unknown }>
+        // #7270: normalize both wire shapes (.messages / Responses-API .input) so the
+        // stickiness key is derivable on the /v1/responses surface, not just Chat Completions.
+        normalizeStickinessMessages(body as { messages?: unknown; input?: unknown })
       );
   orderedTargets = _sticky.targets;
   orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
@@ -2659,7 +2671,9 @@ async function handleRoundRobinCombo({
     ? ({ targets: filteredTargets, messageHash: null, stuck: false } as const)
     : await applySessionStickiness(
         filteredTargets,
-        body?.messages as Array<{ role?: string; content?: unknown }>
+        // #7270: normalize both wire shapes (.messages / Responses-API .input) so RR
+        // stickiness engages on the /v1/responses surface, not just Chat Completions.
+        normalizeStickinessMessages(body as { messages?: unknown; input?: unknown })
       );
   let rrStartIndex = startIndex;
   if (_rrSessionSticky.stuck) {

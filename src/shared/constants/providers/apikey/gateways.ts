@@ -251,6 +251,81 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     passthroughModels: true,
     authHint: "Join the FreeTheAi Discord to get your free API key.",
   },
+  "g4f-groq": {
+    id: "g4f-groq",
+    alias: "g4fgroq",
+    name: "g4f.space — Groq",
+    icon: "bolt",
+    color: "#F97316",
+    textIcon: "G4F",
+    website: "https://g4f.space",
+    hasFree: true,
+    freeNote:
+      "Free no-key reverse proxy to Groq (gpt4free project) — rate-limited to 5 req/min.",
+    passthroughModels: true,
+    authHint:
+      "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
+  },
+  "g4f-gemini": {
+    id: "g4f-gemini",
+    alias: "g4fgem",
+    name: "g4f.space — Gemini",
+    icon: "bolt",
+    color: "#F97316",
+    textIcon: "G4F",
+    website: "https://g4f.space",
+    hasFree: true,
+    freeNote:
+      "Free no-key reverse proxy to Gemini (gpt4free project) — rate-limited to 5 req/min.",
+    passthroughModels: true,
+    authHint:
+      "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
+  },
+  "g4f-pollinations": {
+    id: "g4f-pollinations",
+    alias: "g4fpol",
+    name: "g4f.space — Pollinations",
+    icon: "bolt",
+    color: "#F97316",
+    textIcon: "G4F",
+    website: "https://g4f.space",
+    hasFree: true,
+    freeNote:
+      "Free no-key reverse proxy to Pollinations (gpt4free project) — rate-limited to 5 req/min.",
+    passthroughModels: true,
+    authHint:
+      "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
+  },
+  "g4f-ollama": {
+    id: "g4f-ollama",
+    alias: "g4foll",
+    name: "g4f.space — Ollama",
+    icon: "bolt",
+    color: "#F97316",
+    textIcon: "G4F",
+    website: "https://g4f.space",
+    hasFree: true,
+    freeNote:
+      "Free no-key hosted Ollama gateway (gpt4free project) — rate-limited to 5 req/min.",
+    passthroughModels: true,
+    authHint:
+      "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
+  },
+  "g4f-nvidia": {
+    id: "g4f-nvidia",
+    alias: "g4fnv",
+    name: "g4f.space — NVIDIA",
+    icon: "bolt",
+    color: "#F97316",
+    textIcon: "G4F",
+    website: "https://g4f.space",
+    hasFree: true,
+    freeNote:
+      "Free no-key reverse proxy to NVIDIA NIM (gpt4free project) — rate-limited to 5 req/min.",
+    passthroughModels: true,
+    authHint:
+      "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
+  },
   "vercel-ai-gateway": {
     id: "vercel-ai-gateway",
     alias: "vag",

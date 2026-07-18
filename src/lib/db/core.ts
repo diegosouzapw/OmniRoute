@@ -36,6 +36,7 @@ import {
 import { migrateLegacyEncryptedString } from "./encryption";
 import { invalidateDbCache } from "./readCache";
 import { rowToCamel } from "./caseMapping";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 // Re-exported so existing call sites that pull these helpers off the core module keep working.
 export { toSnakeCase, toCamelCase, objToSnake, rowToCamel, cleanNulls } from "./caseMapping";
 import {
@@ -248,6 +249,7 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_pc_provider ON provider_connections(provider);
   CREATE INDEX IF NOT EXISTS idx_pc_active ON provider_connections(is_active);
   CREATE INDEX IF NOT EXISTS idx_pc_priority ON provider_connections(provider, priority);
+  CREATE INDEX IF NOT EXISTS idx_pc_auth_active_refresh ON provider_connections(auth_type, is_active, refresh_token);
 
   CREATE TABLE IF NOT EXISTS provider_nodes (
     id TEXT PRIMARY KEY,
@@ -808,14 +810,6 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
   }
 }
 
-function isAutomatedTestProcess(): boolean {
-  return (
-    typeof process !== "undefined" &&
-    (process.env.NODE_ENV === "test" ||
-      process.env.VITEST !== undefined ||
-      process.argv.some((arg) => arg.includes("test")))
-  );
-}
 
 function shouldRunStartupDbHealthCheck(): boolean {
   if (process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK === "1") return true;
@@ -1041,8 +1035,7 @@ export function getDbInstance(): SqliteDatabase {
         let hasData = false;
         try {
           const count = probe.prepare("SELECT COUNT(*) as c FROM provider_connections").get() as
-            | { c: number }
-            | undefined;
+            { c: number } | undefined;
           hasData = Boolean(count && count.c > 0);
         } catch {
           // Table might not exist at all — truly incompatible
@@ -1163,6 +1156,7 @@ export function getDbInstance(): SqliteDatabase {
   db.pragma("busy_timeout = 2000");
   db.pragma("synchronous = NORMAL");
   db.pragma(`cache_size = -${DEFAULT_DATABASE_SETTINGS.optimization.cacheSize}`);
+  db.pragma("temp_store = MEMORY");
   db.exec(SCHEMA_SQL);
   ensureProviderConnectionsColumns(db);
   ensureUsageHistoryColumns(db);

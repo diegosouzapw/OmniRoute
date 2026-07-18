@@ -30,6 +30,11 @@ inside GitHub's `<img>` sandbox:
 | File                                     | Used in          | Notes                                                                        |
 | ---------------------------------------- | ---------------- | ---------------------------------------------------------------------------- |
 | [tier-cascade.svg](./tier-cascade.svg)   | README.md (root) | Animated 4-tier auto-fallback cascade (16s loop, 4 acts). Edit the SVG directly — there is no `.mmd` source. |
+| [pool-fair-share.svg](./pool-fair-share.svg) | README.md (root) | Animated key-pool fair-share quota (generous → strict, 16s loop). Edit the SVG directly — there is no `.mmd` source. |
+| [combo-always-on.svg](./combo-always-on.svg) | README.md (root) | Animated priority-combo fallback (4 layers, 16s loop). Edit the SVG directly — there is no `.mmd` source. |
+| [cli-terminal.svg](./cli-terminal.svg) | README.md (root) | Animated terminal cycling 3 CLI commands (providers/combo/health) + subcommand ticker (18s loop). Edit the SVG directly — there is no `.mmd` source. |
+| [compression-pipeline.svg](./compression-pipeline.svg) | README.md (root) | Animated 10-engine compression funnel (8s loop). Edit the SVG directly — there is no `.mmd` source. |
+| [free-tier-budget.svg](./free-tier-budget.svg) | README.md (root) | Animated free-tier budget card (~1.6B/mo headline, 21-pool budget bar, per-model grid, signup credits, 10s loop). Edit the SVG directly — there is no `.mmd` source. |
 
 ## How to update
 

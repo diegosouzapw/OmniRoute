@@ -54,6 +54,14 @@ function capabilityEntry(limitContext: number | null) {
   };
 }
 
+function capabilityEntryWithLimits(limitInput: number | null, limitContext: number | null, limitOutput = 4096) {
+  return {
+    ...capabilityEntry(limitContext),
+    limit_input: limitInput,
+    limit_output: limitOutput,
+  };
+}
+
 function target(modelStr: string) {
   return {
     kind: "model" as const,
@@ -71,6 +79,16 @@ function target(modelStr: string) {
 function largeContextBody() {
   return {
     messages: [{ role: "user", content: "x".repeat(80_000) }],
+  };
+}
+
+// Build a body whose input estimates to roughly `tokens` tokens. estimateTokens
+// is `ceil(charCount / 4)` over the JSON-serialized payload, so a run of
+// `tokens * 4` characters lands the estimate near `tokens` (the wrapper is
+// negligible at this scale).
+function bigContextBody(tokens: number) {
+  return {
+    messages: [{ role: "user", content: "x".repeat(tokens * 4) }],
   };
 }
 
@@ -160,5 +178,102 @@ test("all known-too-small context targets still fall back to strategy order", ()
   assert.deepEqual(
     out.map((entry) => entry.modelStr),
     ["unit-known-context/tiny", "unit-known-context/small"]
+  );
+});
+
+test("input-only maxInputTokens is not double-counted against the output reserve (#7039)", () => {
+  // Faithful reproduction of #7039 (Codex gpt-5.5-xhigh):
+  //   maxInputTokens = 272_000, contextWindow = 400_000, maxOutputTokens = 128_000
+  // With max_tokens = 32_000 the OLD code required
+  //   maxInputTokens >= estimatedInputTokens + 32_000
+  // i.e. it allowed only ~240K of input against a real 272K input cap — the
+  // output reserve was double-counted against an already input-only cap. Here
+  // the input (~256K tokens) sits between the buggy allowance (240K) and the
+  // real cap (272K): the fix keeps the target, the bug drops it.
+  saveModelsDevCapabilities({
+    "unit-7039": {
+      "codex-like": capabilityEntryWithLimits(272_000, 400_000, 128_000),
+      huge: capabilityEntryWithLimits(1_000_000, 1_000_000, 500_000),
+    },
+  });
+
+  const out = filterTargetsByRequestCompatibility(
+    [target("unit-7039/codex-like"), target("unit-7039/huge")],
+    { ...bigContextBody(256_000), max_tokens: 32_000 },
+    noopLog
+  );
+
+  assert.deepEqual(
+    out.map((entry) => entry.modelStr),
+    ["unit-7039/codex-like", "unit-7039/huge"]
+  );
+});
+
+test("small input-only maxInputTokens keeps a target whose input fits even though output reserve would overflow the cap (#7039)", () => {
+  // A second, lightweight reproduction: with maxInputTokens = 100 the input-only
+  // cap comfortably holds the ~11-token input, but the old code compared it
+  // against input + output (~411) and rejected the target. The fix keeps it.
+  saveModelsDevCapabilities({
+    "unit-7039-small": {
+      "input-capped": capabilityEntryWithLimits(100, 1_000_000, 500),
+      huge: capabilityEntryWithLimits(1_000_000, 1_000_000, 500_000),
+    },
+  });
+
+  const out = filterTargetsByRequestCompatibility(
+    [target("unit-7039-small/input-capped"), target("unit-7039-small/huge")],
+    { messages: [{ role: "user", content: "hello" }], max_tokens: 400 },
+    noopLog
+  );
+
+  assert.deepEqual(
+    out.map((entry) => entry.modelStr),
+    ["unit-7039-small/input-capped", "unit-7039-small/huge"]
+  );
+});
+
+test("input-only maxInputTokens still rejects when the input itself exceeds the cap", () => {
+  // The fix must not let a genuinely-too-small input cap pass. `too-small` has
+  // maxInputTokens = 1, which cannot even hold the ~11-token input, so it must
+  // still be dropped while the compatible target survives.
+  saveModelsDevCapabilities({
+    "unit-7039-too-small": {
+      "too-small": capabilityEntryWithLimits(1, 1_000_000, 500),
+      huge: capabilityEntryWithLimits(1_000_000, 1_000_000, 500_000),
+    },
+  });
+
+  const out = filterTargetsByRequestCompatibility(
+    [target("unit-7039-too-small/too-small"), target("unit-7039-too-small/huge")],
+    { messages: [{ role: "user", content: "hello" }], max_tokens: 400 },
+    noopLog
+  );
+
+  assert.deepEqual(
+    out.map((entry) => entry.modelStr),
+    ["unit-7039-too-small/huge"]
+  );
+});
+
+test("maxInputTokens defaulting to contextWindow still rejects when input + output exceeds the total window (#7039 follow-up)", () => {
+  // Shared-window model where maxInputTokens equals the total window size.
+  // The input alone fits the input cap, but input + output overflows the
+  // window, so the target must be rejected instead of passing on the input cap.
+  saveModelsDevCapabilities({
+    "unit-7039-window": {
+      "shared-window": capabilityEntryWithLimits(400_000, 400_000, 200_000),
+      huge: capabilityEntryWithLimits(1_000_000, 1_000_000, 500_000),
+    },
+  });
+
+  const out = filterTargetsByRequestCompatibility(
+    [target("unit-7039-window/shared-window"), target("unit-7039-window/huge")],
+    { messages: [{ role: "user", content: "x".repeat(350_000 * 4) }], max_tokens: 100_000 },
+    noopLog
+  );
+
+  assert.deepEqual(
+    out.map((entry) => entry.modelStr),
+    ["unit-7039-window/huge"]
   );
 });

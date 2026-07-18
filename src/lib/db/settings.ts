@@ -89,6 +89,23 @@ function withFamilyDefault(value: ProxyValue): ProxyValue {
 
 // ──────────────── Settings ────────────────
 
+/**
+ * #7274: read-fallback for the codexSessionAffinityTtlMs -> sessionAffinityTtlMs
+ * rename. Migration 124 already backfills the new key from any pre-existing
+ * old-key row for the common case, but this covers callers reading settings
+ * before that migration has had a chance to run (or any drift between the
+ * two). Only applies when the generic key was never explicitly persisted —
+ * an operator-set `sessionAffinityTtlMs` (including an explicit 0) always wins.
+ * Extracted to a leaf helper so `getSettings()` stays under the max-lines-per-
+ * function ratchet.
+ */
+function applySessionAffinityLegacyFallback(settings: Record<string, unknown>): void {
+  if (settings.sessionAffinityTtlMs === undefined) {
+    settings.sessionAffinityTtlMs =
+      typeof settings.codexSessionAffinityTtlMs === "number" ? settings.codexSessionAffinityTtlMs : 0;
+  }
+}
+
 export async function getSettings() {
   const db = getDbInstance();
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'settings'").all();
@@ -132,7 +149,11 @@ export async function getSettings() {
       enabled: false,
       supportedModels: ["claude-fable-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6"],
     },
-    codexSessionAffinityTtlMs: 0,
+    // #7274: renamed from codexSessionAffinityTtlMs — session affinity now
+    // applies to any provider, not just Codex. No default here on purpose:
+    // the read-fallback below only kicks in while `sessionAffinityTtlMs` has
+    // never been explicitly persisted, so it can tell "never configured"
+    // apart from "operator explicitly set 0" on the new key.
     responsesPreviousResponseIdMode: DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE,
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,
@@ -179,6 +200,8 @@ export async function getSettings() {
       settings[key] = rawValue;
     }
   }
+
+  applySessionAffinityLegacyFallback(settings);
 
   // Auto-complete onboarding for pre-configured deployments (Docker/VM)
   // If INITIAL_PASSWORD is set via env, this is a headless deploy — skip the wizard
