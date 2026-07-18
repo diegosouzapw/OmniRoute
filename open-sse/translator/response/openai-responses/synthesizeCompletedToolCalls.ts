@@ -27,6 +27,44 @@ export function computeFinishReason(state): "tool_calls" | "stop" {
   return (state.toolCallIndex || 0) > 0 || state.currentToolCallId ? "tool_calls" : "stop";
 }
 
+/**
+ * OpenAI Chat Completions streams announce the assistant role on the FIRST delta
+ * (e.g. `{ "role": "assistant", "content": "" }` or `{ "role": "assistant",
+ * "tool_calls": [...] }`). The Responses API has no role-announcement event, so when
+ * translating Responses → Chat we must synthesize it on the first emitted chunk.
+ *
+ * Strict streaming clients — notably @langchain/openai's `_convertDeltaToMessageChunk`
+ * (used by n8n's AI Agent) — key off the first chunk's role to build an AIMessageChunk.
+ * Without it, streamed tool_call deltas are dropped and the agent returns an empty
+ * response, even though the underlying tool call is well-formed.
+ */
+// Shared by both branches of withAssistantRoleOnFirstDelta below: stamps
+// role: "assistant" onto a single delta object when eligible, returning
+// whether it did so (used to short-circuit the array branch's loop).
+function setAssistantRoleIfEligible(state, delta) {
+  if (delta && typeof delta === "object" && !Array.isArray(delta)) {
+    delta.role = "assistant";
+    state.roleEmitted = true;
+    return true;
+  }
+  return false;
+}
+
+export function withAssistantRoleOnFirstDelta(state, result) {
+  if (!result || state.roleEmitted) return result;
+
+  // Handle arrays of chunks (e.g. synthesized from response.completed output[])
+  if (Array.isArray(result)) {
+    for (const chunk of result) {
+      if (setAssistantRoleIfEligible(state, chunk?.choices?.[0]?.delta)) break;
+    }
+    return result;
+  }
+
+  setAssistantRoleIfEligible(state, result.choices?.[0]?.delta);
+  return result;
+}
+
 function baseChunk(state): Record<string, unknown> {
   return {
     id: state.chatId,
