@@ -88,6 +88,29 @@
       "stream": "https://agentrouter.org/v1/messages?beta=true"
     }
   },
+  "agnes": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://apihub.agnes-ai.com/v1/chat/completions",
+      "stream": "https://apihub.agnes-ai.com/v1/chat/completions"
+    }
+  },
   "agy": {
     "format": "antigravity",
     "headers": {

@@ -5635,6 +5635,7 @@
     "onboardingProviderDescriptions": {
       "360ai": "Obtenha a chave de API em ai.360.cn",
       "agentrouter": "Obtenha $200 em créditos gratuitos em https://agentrouter.org/register — sem necessidade de cartão de crédito.",
+      "agnes": "Obtenha a chave de API em agnes-ai.com",
       "aimlapi": "Plano gratuito pausado (2026) — A AI/ML API agora é apenas pay-as-you-go (recarga mínima de $20); sem créditos gratuitos recorrentes.",
       "ai21": "$10 em créditos de teste ao se cadastrar (válidos por 3 meses), sem necessidade de cartão de crédito",
       "alibaba": "Conecte o Alibaba com uma chave de API.",
@@ -10668,6 +10669,10 @@
       "cli-setup": {
         "name": "CLI: Setup e Configuração",
         "description": "Execute a configuração inicial, configure as definições globais da CLI, gerencie variáveis de ambiente, verifique atualizações e configure a inicialização automática por meio dos comandos de setup e configuração da CLI."
+      },
+      "cli-skill-collector": {
+        "name": "CLI: Coletor de Skills para Agentes",
+        "description": "Detecte ferramentas CLI de programação instaladas (Claude Code, Codex, Cursor, Copilot, Cline e outras), pesquise no GitHub skills de agentes correspondentes e instale-as nas ferramentas detectadas por meio das APIs integradas do OmniRoute."
       },
       "config-codex-cli": {
         "name": "Configuração: Codex CLI",
