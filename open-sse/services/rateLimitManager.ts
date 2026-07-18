@@ -459,7 +459,8 @@ function getLimiterKey(provider, connectionId, model = null) {
   }
   if ((provider === "antigravity" || provider === "agy") && model) {
     const family = getAntigravityQuotaFamily(model);
-    return `${provider}:${connectionId}:${family}`;
+    const scope = family === "other" ? model : family;
+    return `${provider}:${connectionId}:${scope}`;
   }
   // Gemini AI Studio and GitHub Copilot have per-model quotas — use model-scoped
   // limiter keys so a 429 on one model doesn't pause requests for other models.

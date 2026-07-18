@@ -81,4 +81,30 @@ test("isQuotaExhaustedForRequest isolates Claude and Gemini quota families for a
     false,
     "Gemini Flash under 'agy' should NOT be exhausted"
   );
+
+  // Test that unknown models (family 'other') preserve exact-model scoping.
+  const connectionIdOther = "conn-other-test";
+  quotaCache.setQuotaCache(connectionIdOther, "antigravity", {
+    "unknown-model-a": { remainingPercentage: 0, resetAt: null },
+    "unknown-model-b": { remainingPercentage: 100, resetAt: null },
+  });
+
+  assert.equal(
+    quotaCache.isQuotaExhaustedForRequest(
+      connectionIdOther,
+      "antigravity",
+      "antigravity/unknown-model-a"
+    ),
+    true,
+    "Unknown model A should be exhausted"
+  );
+  assert.equal(
+    quotaCache.isQuotaExhaustedForRequest(
+      connectionIdOther,
+      "antigravity",
+      "antigravity/unknown-model-b"
+    ),
+    false,
+    "Unknown model B should NOT be exhausted"
+  );
 });

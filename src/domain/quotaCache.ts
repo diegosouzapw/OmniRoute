@@ -227,7 +227,11 @@ export function isQuotaExhaustedForRequest(
     const quotaNames = Object.keys(entry.quotas || {});
     if (quotaNames.length === 0) return entry.exhausted;
     const requestedFamily = getAntigravityQuotaFamily(requestedModel);
+    const cleanRequestedModel = requestedModel.replace(/^(antigravity|agy)\//, "");
     const matchingWindows = quotaNames.filter((windowName) => {
+      if (requestedFamily === "other") {
+        return windowName.replace(/^(antigravity|agy)\//, "") === cleanRequestedModel;
+      }
       return getAntigravityQuotaFamily(windowName) === requestedFamily;
     });
     return (
