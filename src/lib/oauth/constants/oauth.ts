@@ -74,8 +74,10 @@ export const CODEX_CONFIG = {
 // Qwen OAuth Configuration (Device Code Flow with PKCE)
 export const QWEN_CONFIG = {
   clientId: resolvePublicCred("qwen_id", "QWEN_OAUTH_CLIENT_ID"),
-  deviceCodeUrl: "https://qwen.ai/api/v1/oauth2/device/code",
-  tokenUrl: "https://qwen.ai/api/v1/oauth2/token",
+  // Host is chat.qwen.ai — the bare qwen.ai host 404s on these paths (verified: the qwen-code
+  // device flow lives at chat.qwen.ai, returning a valid device_code; qwen.ai returns Not Found).
+  deviceCodeUrl: "https://chat.qwen.ai/api/v1/oauth2/device/code",
+  tokenUrl: "https://chat.qwen.ai/api/v1/oauth2/token",
   scope: "openid profile email model.completion",
   codeChallengeMethod: "S256",
 };

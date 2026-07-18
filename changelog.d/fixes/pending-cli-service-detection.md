@@ -1,0 +1,1 @@
+- **fix(cli):** CLI detection now refreshes stale cached results, reports discovered versions, and checks the Continue `cn` binary instead of assuming it is installed.

@@ -100,6 +100,7 @@
       "tests/unit/circuit-breaker-failure-kind.test.ts",
       "tests/unit/circuit-breaker-registry-cap.test.ts",
       "tests/unit/circuit-breaker-stream-controller-4602.test.ts",
+      "tests/unit/ddg-circuit-breaker-null-content-6999-7000.test.ts",
       "tests/unit/claude-code-parity.test.ts",
       "tests/unit/claude-effort-suffix-strip.test.ts",
       "tests/unit/claude-oauth-provider.test.ts",

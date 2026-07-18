@@ -93,6 +93,25 @@ test("connection-level 5xx with a connectionId poisons exhaustedConnections (#17
   assert.equal(s.exhaustedProviders.size, 0);
 });
 
+test("request-scoped failed-response 502 does not exhaust the connection", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 502, headers: null },
+    fallbackResult: {},
+    errorText: "upstream reported a failed response without usable output",
+    structuredError: {
+      code: "upstream_response_failed",
+      type: "upstream_response_error",
+    },
+    sets: s,
+  });
+
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedProviders.size, 0);
+  assert.equal(s.exhaustedConnections.size, 0);
+});
+
 test("connection-level 5xx without a connectionId poisons exhaustedProviders (#1731)", () => {
   const s = sets();
   applyComboTargetExhaustion(target({ connectionId: null }), {
