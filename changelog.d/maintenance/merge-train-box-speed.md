@@ -1,0 +1,1 @@
+- chore(release): merge-train runs the box-tuned `test:unit` (concurrency 20) instead of two sequential 4-core CI shards (~5× faster suite) and gains an owner-approved `--fast` mode (static gates + changed tests + vitest) for intra-day mega-train drains
