@@ -12,13 +12,20 @@
  *
  * Only the "mimo-auto" model is supported (1M context, 128K output).
  * Supports multiple accounts: N fingerprints → N JWTs → round-robin with cooldown.
- * On 429, account enters cooldown (exponential backoff). On 401/403, JWT is re-bootstrapped.
+ * On 429 — or a 400 carrying MiMoCode's rate-limit text — account enters cooldown
+ * (exponential backoff) and the next account is tried. On 401/403, JWT is
+ * re-bootstrapped. Any other 400 is a genuinely malformed request (#2101): it fails
+ * fast on the current account instead of being retried identically on every
+ * account, which would waste N round-trips, cooldown every account, and hide the
+ * real upstream diagnostic behind a generic "all accounts exhausted" error (#4976).
  */
 
 import * as crypto from "node:crypto";
 import * as os from "node:os";
 import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
 import { createProxyDispatcher } from "../utils/proxyDispatcher.ts";
+import { RATE_LIMIT_TEXT_PATTERNS } from "../services/accountFallback.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
 import { fetch as undiciFetch, type Dispatcher } from "undici";
 
 const BOOTSTRAP_PATH = "/api/free-ai/bootstrap";
@@ -83,6 +90,7 @@ export interface AccountProxyConfig {
     port: number;
     username?: string;
     password?: string;
+    relayAuth?: string;
   } | null;
 }
 
@@ -350,6 +358,127 @@ export class MimocodeExecutor extends BaseExecutor {
     account.consecutiveFails = 0;
   }
 
+  /**
+   * POST the request with the account's JWT; on auth failure (401/403), re-bootstrap
+   * the account's JWT and retry once. Mutates `headers`' Authorization in place.
+   */
+  private async fetchWithAuthRetry(
+    url: string,
+    headers: Record<string, string>,
+    reqBody: unknown,
+    signal: AbortSignal | null | undefined,
+    account: AccountState,
+    log: ExecuteInput["log"]
+  ): Promise<Response> {
+    const jwt = await this.getJwtForAccount(account, signal);
+    headers["Authorization"] = `Bearer ${jwt}`;
+
+    const resp = await this.fetchWithProxy(
+      url,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(reqBody),
+        signal: signal ?? undefined,
+      },
+      account.fingerprint
+    );
+    if (resp.status !== 401 && resp.status !== 403) return resp;
+
+    // On auth failure, re-bootstrap this account and retry once
+    log?.warn?.(
+      "MIMOCODE",
+      `Auth failed (${resp.status}) on account ${account.fingerprint.slice(0, 8)}…`
+    );
+    account.jwt = "";
+    account.expiresAt = 0;
+    account.consecutiveFails = 0;
+    const freshJwt = await this.getJwtForAccount(account, signal);
+    headers["Authorization"] = `Bearer ${freshJwt}`;
+    return this.fetchWithProxy(
+      url,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(reqBody),
+        signal: signal ?? undefined,
+      },
+      account.fingerprint
+    );
+  }
+
+  /**
+   * Gate 429/400 statuses before the success path: a 429 — or a 400 carrying
+   * MiMoCode's rate-limit text — puts the account on cooldown and rotates; any other
+   * 400 fails fast with the sanitized upstream error (#2101/#4976, see
+   * handleBadRequest). Returns "rotate", a fail-fast Response, or null to proceed.
+   */
+  private async gateRetryableStatus(
+    resp: Response,
+    account: AccountState,
+    log: ExecuteInput["log"]
+  ): Promise<"rotate" | Response | null> {
+    if (resp.status === 429) {
+      this.markCooldown(account);
+      log?.warn?.(
+        "MIMOCODE",
+        `Rate limited on account ${account.fingerprint.slice(0, 8)}, trying next…`
+      );
+      return "rotate";
+    }
+    if (resp.status !== 400) return null;
+    return (await this.handleBadRequest(resp, account, log)) ?? "rotate";
+  }
+
+  /**
+   * Classify a 400 response body (#2101/#4976).
+   *
+   * #4976: MiMoCode signals throttling via a non-standard 400 whose body carries
+   * rate-limit semantics (e.g. "Detected high-frequency non-compliant requests from
+   * you.") instead of a 429 — same RATE_LIMIT_TEXT_PATTERNS as accountFallback.ts's
+   * checkFallbackError(), so the two call sites never disagree on what counts as
+   * throttling. That case puts the account on cooldown and returns `null` (rotate).
+   *
+   * #2101: any other 400 is a genuinely malformed request that fails identically on
+   * every account — rotating would waste N round-trips, cooldown every account (a
+   * provider-wide outage for parallel requests), and hide the real diagnostic behind
+   * a generic exhaustion error. That case returns a fail-fast 400 Response carrying
+   * the sanitized upstream message, without touching cooldown/success state.
+   */
+  private async handleBadRequest(
+    resp: Response,
+    account: AccountState,
+    log: ExecuteInput["log"]
+  ): Promise<Response | null> {
+    const bodyText = await resp.text().catch(() => "");
+
+    if (RATE_LIMIT_TEXT_PATTERNS.some((p) => p.test(bodyText))) {
+      this.markCooldown(account);
+      log?.warn?.(
+        "MIMOCODE",
+        `Rate-limit-style 400 on account ${account.fingerprint.slice(0, 8)}, trying next…`
+      );
+      return null;
+    }
+
+    log?.warn?.(
+      "MIMOCODE",
+      `Malformed request (400) on account ${account.fingerprint.slice(0, 8)}, not retrying`
+    );
+    let upstreamMessage = bodyText;
+    try {
+      const parsed = JSON.parse(bodyText) as { error?: { message?: string } };
+      if (parsed?.error?.message) upstreamMessage = parsed.error.message;
+    } catch {
+      /* body wasn't JSON — use raw text */
+    }
+    const errorBody = buildErrorBody(400, sanitizeErrorMessage(upstreamMessage || "Bad request"));
+    return new Response(MimocodeExecutor.encoder.encode(JSON.stringify(errorBody)), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   buildUrl(
     _model: string,
     _stream: boolean,
@@ -457,51 +586,19 @@ export class MimocodeExecutor extends BaseExecutor {
     for (let attempt = 0; attempt < this.accounts.length; attempt++) {
       const account = this.pickAccount();
       try {
-        const jwt = await this.getJwtForAccount(account, signal);
         const headers = this.buildHeaders(input.credentials, stream);
-        headers["Authorization"] = `Bearer ${jwt}`;
+        const resp = await this.fetchWithAuthRetry(url, headers, reqBody, signal, account, log);
 
-        let resp = await this.fetchWithProxy(
-          url,
-          {
-            method: "POST",
-            headers,
-            body: JSON.stringify(reqBody),
-            signal: signal ?? undefined,
-          },
-          account.fingerprint
-        );
-
-        // On auth failure, re-bootstrap this account and retry once
-        if (resp.status === 401 || resp.status === 403) {
-          log?.warn?.(
-            "MIMOCODE",
-            `Auth failed (${resp.status}) on account ${account.fingerprint.slice(0, 8)}…`
-          );
-          account.jwt = "";
-          account.expiresAt = 0;
-          account.consecutiveFails = 0;
-          const freshJwt = await this.getJwtForAccount(account, signal);
-          headers["Authorization"] = `Bearer ${freshJwt}`;
-          resp = await this.fetchWithProxy(
+        // 429/400 gating (#2101/#4976): cooldown+rotate, fail fast, or proceed.
+        const gate = await this.gateRetryableStatus(resp, account, log);
+        if (gate === "rotate") continue;
+        if (gate) {
+          return {
+            response: gate,
             url,
-            {
-              method: "POST",
-              headers,
-              body: JSON.stringify(reqBody),
-              signal: signal ?? undefined,
-            },
-            account.fingerprint
-          );
-        }
-
-        if (resp.status === 429) {
-          this.markCooldown(account);
-          log?.warn?.(
-            "MIMOCODE",
-            `Rate limited on account ${account.fingerprint.slice(0, 8)}, trying next…`
-          );
-          continue;
+            headers: this.buildHeaders(input.credentials, stream),
+            transformedBody: reqBody,
+          };
         }
 
         this.markSuccess(account);

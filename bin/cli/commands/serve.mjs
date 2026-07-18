@@ -351,8 +351,32 @@ async function runWithSupervisor(
       if (up) {
         if (useTray) await maybeStartTray(dashboardPort, apiPort, supervisor);
         onReady(dashboardPort, apiPort, noOpen, startedAt);
+      } else {
+        reportReadinessTimeout(dashboardPort, supervisor);
       }
     });
+  }
+}
+
+// #6321: waitForServer resolving `false` used to fall through silently — the CLI
+// printed the banner + "⏳ Starting server..." and then produced ZERO further
+// output forever, even though the child process may well have crashed or be
+// stuck (issue reports show the server sometimes actually comes up later, or is
+// reachable directly while the CLI still looks hung). Surface a clear diagnostic
+// plus whatever stdout/stderr the child buffered instead of going silent.
+export function reportReadinessTimeout(dashboardPort, supervisor) {
+  console.error(
+    `\n\x1b[33m⚠ Server did not respond within 60s.\x1b[0m It may still be starting, or may` +
+      ` have failed silently.`
+  );
+  console.error(`  Try:  curl -I http://localhost:${dashboardPort}/api/monitoring/health`);
+  console.error(`  Or:   rerun with \x1b[36m--log\x1b[0m to see live server output.\n`);
+
+  const recentLog = supervisor?.getRecentLog?.() ?? [];
+  if (recentLog.length) {
+    console.error("--- Recent server output ---");
+    recentLog.forEach((l) => console.error(l));
+    console.error("--- End recent output ---\n");
   }
 }
 

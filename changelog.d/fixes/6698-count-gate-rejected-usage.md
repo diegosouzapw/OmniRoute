@@ -1,0 +1,1 @@
+- **fix(sse):** requests rejected before `handleChatCore` (circuit-breaker/cooldown gate or combo with all targets exhausted) are now recorded in `usage_history` too, so a key whose traffic was entirely gate-rejected no longer shows "zero requests" in the per-API-key usage counter (#6698).

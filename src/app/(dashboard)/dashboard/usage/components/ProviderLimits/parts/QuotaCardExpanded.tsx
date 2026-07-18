@@ -11,6 +11,7 @@ import {
 } from "../utils";
 import QuotaMiniBar from "../QuotaMiniBar";
 import { translateUsageOrFallback, type UsageTranslationValues } from "../i18nFallback";
+import { hasFixedQuotaOrder } from "../quotaParsing";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -31,6 +32,18 @@ export function sortQuotasByRemaining(quotas: any[]): any[] {
   );
 }
 
+/**
+ * Pure helper — resolves the display order for a provider's quotas.
+ * Providers with a deterministic fixed-window order (codex, glm family — see
+ * quotaParsing.ts's sortCodexOrder()/sortGlmOrder()) keep the order
+ * parseQuotaData() already established. Every other provider still gets the
+ * remaining-percentage sort. Fixes #6687 (bars re-sorted by % undid the fixed
+ * session/weekly order).
+ */
+export function resolveQuotaDisplayOrder(providerId: string | undefined, quotas: any[]): any[] {
+  return hasFixedQuotaOrder(providerId) ? [...quotas] : sortQuotasByRemaining(quotas);
+}
+
 /** Pure helper — slices the sorted quotas down to the visible window. */
 export function getVisibleQuotas(sortedQuotas: any[], expanded: boolean): any[] {
   return expanded ? sortedQuotas : sortedQuotas.slice(0, DEFAULT_VISIBLE_ROWS);
@@ -38,6 +51,7 @@ export function getVisibleQuotas(sortedQuotas: any[], expanded: boolean): any[] 
 
 interface Props {
   quotas: any[];
+  providerId?: string;
   loading: boolean;
   error: string | null;
   message?: string | null;
@@ -46,14 +60,23 @@ interface Props {
   onRefresh: () => void;
   onOpenCutoff: () => void;
   onOpenCost: () => void;
-  onRedeemResetCredit?: () => void;
+  onOpenResetCredits?: () => void;
   canEditCutoff: boolean;
   hasCutoffOverrides: boolean;
   canRedeemResetCredit?: boolean;
   redeemingResetCredit?: boolean;
+  loadingResetCredits?: boolean;
 }
 
-function QuotaDetailRow({ q }: { q: any }) {
+function QuotaDetailRow({
+  q,
+  onOpenResetCredits,
+  loadingResetCredits = false,
+}: {
+  q: any;
+  onOpenResetCredits?: () => void;
+  loadingResetCredits?: boolean;
+}) {
   const t = useTranslations("usage");
   if (q.isResetCredits) {
     const count = Number(q.creditCount ?? q.remaining ?? 0);
@@ -73,12 +96,25 @@ function QuotaDetailRow({ q }: { q: any }) {
             {translateUsageOrFallback(t, "resetCreditsLabel", "Reset credits")}
           </span>
         </span>
-        <span
-          className="inline-flex h-6 shrink-0 items-center text-[12px] font-bold leading-none tabular-nums"
+        <button
+          type="button"
+          disabled={!onOpenResetCredits || loadingResetCredits}
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenResetCredits?.();
+          }}
+          aria-label={translateUsageOrFallback(t, "viewResetCredits", "View reset credits")}
+          className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md px-1.5 text-[12px] font-bold leading-none tabular-nums hover:bg-black/[0.05] disabled:cursor-default dark:hover:bg-white/[0.05]"
           style={{ color: colors.text }}
         >
+          {loadingResetCredits && (
+            <span className="material-symbols-outlined animate-spin text-[12px]">
+              progress_activity
+            </span>
+          )}
           {count.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-        </span>
+          <span className="material-symbols-outlined text-[13px]">chevron_right</span>
+        </button>
       </div>
     );
   }
@@ -155,6 +191,7 @@ function QuotaDetailRow({ q }: { q: any }) {
 
 export default function QuotaCardExpanded({
   quotas,
+  providerId,
   loading,
   error,
   message,
@@ -163,18 +200,22 @@ export default function QuotaCardExpanded({
   onRefresh,
   onOpenCutoff,
   onOpenCost,
-  onRedeemResetCredit,
+  onOpenResetCredits,
   canEditCutoff,
   hasCutoffOverrides,
   canRedeemResetCredit = false,
   redeemingResetCredit = false,
+  loadingResetCredits = false,
 }: Props) {
   const t = useTranslations("usage");
   const tr = (key: string, fallback: string, values?: UsageTranslationValues) =>
     translateUsageOrFallback(t, key, fallback, values);
 
   const [expanded, setExpanded] = useState(false);
-  const sortedQuotas = useMemo(() => sortQuotasByRemaining(quotas), [quotas]);
+  const sortedQuotas = useMemo(
+    () => resolveQuotaDisplayOrder(providerId, quotas),
+    [quotas, providerId]
+  );
   const visibleQuotas = useMemo(
     () => getVisibleQuotas(sortedQuotas, expanded),
     [sortedQuotas, expanded]
@@ -213,7 +254,12 @@ export default function QuotaCardExpanded({
       ) : (
         <div className="flex flex-col divide-y divide-border/40">
           {visibleQuotas.map((q, i) => (
-            <QuotaDetailRow key={`${q.name}-${q.modelKey ?? ""}-${i}`} q={q} />
+            <QuotaDetailRow
+              key={`${q.name}-${q.modelKey ?? ""}-${i}`}
+              q={q}
+              onOpenResetCredits={q.isResetCredits ? onOpenResetCredits : undefined}
+              loadingResetCredits={loadingResetCredits}
+            />
           ))}
         </div>
       )}
@@ -255,21 +301,21 @@ export default function QuotaCardExpanded({
           {canRedeemResetCredit && (
             <button
               type="button"
-              disabled={loading || redeemingResetCredit}
+              disabled={loading || redeemingResetCredit || loadingResetCredits}
               onClick={(e) => {
                 e.stopPropagation();
-                onRedeemResetCredit?.();
+                onOpenResetCredits?.();
               }}
               className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-primary/40 text-primary bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <span
                 className={`material-symbols-outlined text-[12px] ${
-                  redeemingResetCredit ? "animate-spin" : ""
+                  redeemingResetCredit || loadingResetCredits ? "animate-spin" : ""
                 }`}
               >
-                {redeemingResetCredit ? "progress_activity" : "restart_alt"}
+                {redeemingResetCredit || loadingResetCredits ? "progress_activity" : "restart_alt"}
               </span>
-              {tr("redeemResetCredit", "Redeem reset")}
+              {tr("manageResetCredits", "View credits")}
             </button>
           )}
           <button

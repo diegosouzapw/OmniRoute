@@ -9,9 +9,8 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-telemetry-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { forwardDashboardEventToLiveWs, maybeSyncClaudeExtraUsageState } = await import(
-  "../../open-sse/handlers/chatCore/telemetryHelpers.ts"
-);
+const { forwardDashboardEventToLiveWs, maybeSyncClaudeExtraUsageState } =
+  await import("../../open-sse/handlers/chatCore/telemetryHelpers.ts");
 const core = await import("../../src/lib/db/core.ts");
 
 const originalFetch = globalThis.fetch;
@@ -48,8 +47,8 @@ test("forwardDashboardEventToLiveWs POSTs event+payload+timestamp as JSON to the
   await forwardDashboardEventToLiveWs("my-event", { foo: "bar" });
   const after = Date.now();
 
-  // Default port is 20129 when LIVE_WS_PORT is unset.
-  assert.equal(capturedUrl, "http://127.0.0.1:20129/__omniroute_event");
+  // Default port is 20132 when LIVE_WS_PORT is unset.
+  assert.equal(capturedUrl, "http://127.0.0.1:20132/__omniroute_event");
   assert.equal(capturedInit?.method, "POST");
   assert.equal(
     (capturedInit?.headers as Record<string, string>)["content-type"],

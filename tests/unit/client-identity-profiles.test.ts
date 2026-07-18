@@ -17,7 +17,8 @@ const {
   getClientIdentityProfileHeaders,
   isClientIdentityProfileId,
 } = await import("../../src/shared/constants/clientIdentityProfiles.ts");
-const { isForbiddenCustomHeaderName } = await import("../../src/shared/constants/upstreamHeaders.ts");
+const { isForbiddenCustomHeaderName } =
+  await import("../../src/shared/constants/upstreamHeaders.ts");
 const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
 const core = await import("../../src/lib/db/core.ts");
 
@@ -38,11 +39,11 @@ test("getClientIdentityProfileHeaders: unknown profile id falls back to no heade
 
 test("getClientIdentityProfileHeaders: known CLI profiles expose their preset headers", () => {
   const claudeCli = getClientIdentityProfileHeaders("claude-cli");
-  assert.equal(claudeCli["User-Agent"], "claude-cli/2.1.195 (external, cli)");
+  assert.equal(claudeCli["User-Agent"], "claude-cli/2.1.207 (external, cli)");
   assert.equal(claudeCli["X-App"], "cli");
 
   const codexCli = getClientIdentityProfileHeaders("codex-cli");
-  assert.equal(codexCli["User-Agent"], "codex_cli_rs/0.136.0");
+  assert.equal(codexCli["User-Agent"], "codex_cli_rs/0.144.1");
   assert.equal(codexCli.originator, "codex_cli_rs");
 
   const geminiCli = getClientIdentityProfileHeaders("gemini-cli");
@@ -54,7 +55,7 @@ test("getClientIdentityProfileHeaders: returns a fresh mutable copy (catalog sta
   headers["User-Agent"] = "tampered";
   assert.equal(
     CLIENT_IDENTITY_PROFILES["claude-cli"].headers["User-Agent"],
-    "claude-cli/2.1.195 (external, cli)"
+    "claude-cli/2.1.207 (external, cli)"
   );
 });
 
@@ -79,7 +80,7 @@ test("a selected profile's headers land in providerSpecificData.customHeaders", 
     customHeaders: { ...profileHeaders, "X-Operator-Set": "keep-me" },
   };
 
-  assert.equal(providerSpecificData.customHeaders["User-Agent"], "codex_cli_rs/0.136.0");
+  assert.equal(providerSpecificData.customHeaders["User-Agent"], "codex_cli_rs/0.144.1");
   assert.equal(providerSpecificData.customHeaders.originator, "codex_cli_rs");
   assert.equal(providerSpecificData.customHeaders["X-Operator-Set"], "keep-me");
 });
@@ -99,7 +100,7 @@ test("profile headers merged into customHeaders survive applyCustomHeaders sanit
     true
   ) as Record<string, string>;
 
-  assert.equal(headers["User-Agent"], "claude-cli/2.1.195 (external, cli)");
+  assert.equal(headers["User-Agent"], "claude-cli/2.1.207 (external, cli)");
   assert.equal(headers["X-App"], "cli");
   assert.equal(headers["Authorization"], "Bearer test-key");
 });

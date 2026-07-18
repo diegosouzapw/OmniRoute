@@ -55,10 +55,10 @@ test("all codex gpt-5.5 effort variants carry the distinct input cap (#6191)", (
 });
 
 test("regression: a model without maxInputTokens still falls back to its context window", () => {
-  // codex gpt-5.4 declares no maxInputTokens, so max_input_tokens must equal
-  // the context window (the historical fallback) — no under-reporting.
-  const caps = modelCapabilities.getResolvedModelCapabilities("codex/gpt-5.4");
-  assert.ok((caps.contextWindow ?? 0) > 0, "gpt-5.4 should have a context window");
+  // OpenAI GPT-5.4 declares a context window without maxInputTokens, so the
+  // historical fallback must still avoid under-reporting.
+  const caps = modelCapabilities.getResolvedModelCapabilities("openai/gpt-5.4");
+  assert.ok((caps.contextWindow ?? 0) > 0, "OpenAI GPT-5.4 should have a context window");
   assert.equal(
     caps.maxInputTokens,
     caps.contextWindow,

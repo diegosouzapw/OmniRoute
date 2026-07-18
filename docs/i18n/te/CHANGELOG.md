@@ -6,6 +6,33 @@
 
 ## [3.8.31] — 2026-06-20
 
+## [3.8.49] — TBD
+
+---
+
+## [3.8.48] — 2026-07-13
+
+> ⚠️ **Hotfix release.** The published npm package for 3.8.47 crashed on every boot ([#7065](https://github.com/diegosouzapw/OmniRoute/issues/7065)) and was deprecated — **3.8.48 is the first installable release of the v3.8.47 cycle**, so everything listed under [3.8.47] below ships here.
+
+### 🐛 Bug Fixes
+
+- **fix(build):** ship `dist/head-response-guard.cjs` in the npm tarball — the prepublish prune allowlist lacked it, so every `omniroute` boot of the published 3.8.47 crashed with `ERR_MODULE_NOT_FOUND` (3rd occurrence of this class after tls-options/3.8.41); now allowlisted, enforced by `check:pack-artifact`, and guarded by a closure test that derives every `server-ws.mjs` sibling import ([#7065](https://github.com/diegosouzapw/OmniRoute/issues/7065), [#7040](https://github.com/diegosouzapw/OmniRoute/issues/7040))
+- **fix(build):** Electron Windows packaging — the better-sqlite3 Electron-ABI rebuild now spawns `npx.cmd` through a shell (Node's CVE-2024-27980 hardening made the shell-less spawn fail with `status null` on Windows runners, breaking the v3.8.47 desktop build)
+- **fix(ci):** Sonar quality gate zeroed on new code — the coverage lcov now reaches the scanner at `coverage/lcov.info` (it read 0% on every scan), the async `isCloudEnabled()` gate in the Kiro auto-import route is awaited (cloud sync ran even when disabled), the dead `structuredClone` fallback in the reasoning-split clone is a real JSON fallback, the codex executor handles the async `reader.cancel()` rejection, deterministic `localeCompare` sorts, a path-traversal guard in `classify-pr-changes.mjs`, and the Docker better-sqlite3 rebuild uses npm's bundled node-gyp instead of `npx --yes`
+- **chore(ci):** the Sonar quality gate is informational (`sonar.qualitygate.wait=false`) while the org's SonarCloud plan cannot associate the tuned "OmniRoute way" gate (coverage ≥60 aligned with the repo floor)
+
+---
+
+## [3.8.47] — TBD
+
+_Living section — bullets land here as PRs merge into `release/v3.8.47` (parallel-cycle model; cycle opened at the v3.8.46 release freeze). Finalized at the v3.8.47 release._
+
+### 📝 Maintenance
+
+- **chore(quality):** `validate-release-green --full-ci` reproduces the full `ci.yml` static gate set locally — the pre-flight now reads `ci.yml` itself and runs every `npm run check:*` from the `lint` / `quality-gate` / `quality-extended` / `docs-sync-strict` / `pr-test-policy` jobs (`--` ratchet flags preserved, `test-masking` against `GITHUB_BASE_REF=main`), skipping only the non-local `pr-evidence`/`codeql-ratchet`. Closes the gap where 11 static base-reds leaked to the v3.8.46 release PR in ~2h of layered CI. Also wired into `nightly-release-green` so a static base-red opens a tracking issue the night it lands. Regression guard: `tests/unit/validate-release-green.test.ts` (+5 `extractCiGates` cases).
+
+---
+
 ## [3.8.46] — 2026-07-07
 
 ### ✨ New Features
@@ -144,6 +171,7 @@
 - **fix(api):** `POST /api/github-skills` now Zod-validates its request body; documented the new quality-gate env vars and pinned the merge-integrity GitHub Actions to a commit SHA.
 - **fix(skills):** generate the missing `omni-github-skills` registry entry and align the agent-skills catalog-count tests (follow-up to #6186).
 - **fix(quality):** clear the cycle's 11 net-new ESLint errors and make `validate-release-green` suppressions-aware.
+- **fix(security):** proxy-pool `random` rotation now selects via `crypto.randomInt` instead of `Math.random` — silences the post-release CodeQL `js/insecure-randomness` alerts (#698/#699) that flagged `Math.random` flowing into the selected proxy's credentials. Load-balancing selection is not a secret, but the crypto source is unbiased and clears the alert at the origin (#6365 follow-up).
 
 ### 📝 Maintenance
 

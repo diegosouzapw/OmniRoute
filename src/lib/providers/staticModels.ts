@@ -8,6 +8,7 @@ import {
 } from "@omniroute/open-sse/config/audioRegistry.ts";
 import { ANTIGRAVITY_PUBLIC_MODELS } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+import { getSearchProvider } from "@omniroute/open-sse/config/searchRegistry.ts";
 
 import { getModelsByProviderId } from "@/shared/constants/models";
 
@@ -79,6 +80,12 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     // Google Labs async coding agent — single async session, no model selection.
     { id: "jules", name: "Jules (Google Labs coding agent)" },
   ],
+  devin: () => [
+    // Cognition's Devin cloud-agent sessions don't expose per-request model
+    // selection like devin-cli's ACP models do — single non-selectable placeholder
+    // so the "Available Models" UI shows something instead of a hard failure (#6142).
+    { id: "devin", name: "Devin (Cognition cloud agent)" },
+  ],
   "linkup-search": () => [
     // Linkup web search — the "model" is the search depth (docs.linkup.so #5571).
     { id: "standard", name: "Standard (single-iteration agentic search)" },
@@ -109,10 +116,46 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
   ],
 };
 
+const SEARCH_TYPE_LABELS: Record<string, string> = {
+  web: "Web Search",
+  news: "News Search",
+};
+
+function formatSearchTypeLabel(searchType: string): string {
+  return (
+    SEARCH_TYPE_LABELS[searchType] ??
+    `${searchType.charAt(0).toUpperCase()}${searchType.slice(1)} Search`
+  );
+}
+
+/**
+ * Search providers don't have "models" — a provider IS the model (see
+ * open-sse/config/searchRegistry.ts header doc). Any search provider without a
+ * dedicated literal entry above (custom depth/engine catalog, e.g.
+ * "linkup-search") still needs a non-empty static catalog so the "Available
+ * Models" / model-import UI shows a usable list instead of a 400 "does not
+ * support models listing" (#7529). Derive it generically from the registry's
+ * own `searchTypes` so any *future* search provider is covered automatically.
+ */
+function getSearchProviderFallbackCatalog(provider: string): LocalCatalogModel[] | undefined {
+  const searchProvider = getSearchProvider(provider);
+  if (!searchProvider || searchProvider.searchTypes.length === 0) return undefined;
+
+  return searchProvider.searchTypes.map((searchType) => ({
+    id: searchType,
+    name: formatSearchTypeLabel(searchType),
+  }));
+}
+
 export function getStaticModelsForProvider(provider: string): LocalCatalogModel[] | undefined {
   const staticModelsFn = STATIC_MODEL_PROVIDERS[provider];
   if (staticModelsFn) {
     return staticModelsFn();
+  }
+
+  const searchFallback = getSearchProviderFallbackCatalog(provider);
+  if (searchFallback) {
+    return searchFallback;
   }
 
   const specialtyModels: LocalCatalogModel[] = [];
@@ -146,24 +189,43 @@ export function getStaticModelsForProvider(provider: string): LocalCatalogModel[
     });
   }
 
+  // Image / video: only fold into the provider specialty list for *media-only*
+  // providers (no chat registry models). Chat+image providers (openai, lmarena,
+  // xai, …) keep image rows exclusively in IMAGE_PROVIDERS so the provider page
+  // chat catalog is not polluted with flux-* / dalle ids.
+  const chatRegistry = getModelsByProviderId(provider);
+  const hasChatRegistry = Array.isArray(chatRegistry) && chatRegistry.length > 0;
+
   const imageProvider = getImageProvider(provider);
-  if (imageProvider) {
-    appendModels(imageProvider.models);
+  if (imageProvider && !hasChatRegistry) {
+    appendModels(imageProvider.models, {
+      apiFormat: "images",
+      supportedEndpoints: ["images"],
+    });
   }
 
   const videoProvider = getVideoProvider(provider);
-  if (videoProvider) {
-    appendModels(videoProvider.models);
+  if (videoProvider && !hasChatRegistry) {
+    appendModels(videoProvider.models, {
+      apiFormat: "video",
+      supportedEndpoints: ["videos"],
+    });
   }
 
   const speechProvider = getSpeechProvider(provider);
   if (speechProvider) {
-    appendModels(speechProvider.models);
+    appendModels(speechProvider.models, {
+      apiFormat: "audio",
+      supportedEndpoints: ["audio"],
+    });
   }
 
   const transcriptionProvider = getTranscriptionProvider(provider);
   if (transcriptionProvider) {
-    appendModels(transcriptionProvider.models);
+    appendModels(transcriptionProvider.models, {
+      apiFormat: "audio",
+      supportedEndpoints: ["audio"],
+    });
   }
 
   return specialtyModels.length > 0 ? specialtyModels : undefined;

@@ -40,12 +40,13 @@ import { useModelVisibilityHandlers } from "./hooks/useModelVisibilityHandlers";
 import { useModelCompatState } from "./hooks/useModelCompatState";
 import { useConnectionGate } from "./hooks/useConnectionGate";
 import { useProviderNodeActions } from "./hooks/useProviderNodeActions";
-import ProviderPlaygroundPanel from "./components/ProviderPlaygroundPanel";
+import ProviderExtraPanels from "./components/ProviderExtraPanels";
 import ProviderModelsSection from "./components/ProviderModelsSection";
 import CustomModelsSection from "./components/CustomModelsSection";
 import ConnectionsListPanel from "./components/ConnectionsListPanel";
 import CoolingConnectionsPanel from "./components/CoolingConnectionsPanel";
 import ConnectionsHeaderToolbar from "./components/ConnectionsHeaderToolbar";
+import ProviderAccountRoutingCard from "../../settings/components/ProviderAccountRoutingCard";
 import ZedImportCard from "./components/ZedImportCard";
 import ProviderPageHeader from "./components/ProviderPageHeader";
 import CompatibleNodeCard from "./components/CompatibleNodeCard";
@@ -83,10 +84,7 @@ export default function ProviderDetailPageClient() {
     isAnthropicCompatibleProvider(providerId) && !isClaudeCodeCompatibleProvider(providerId);
   const isCompatible = isOpenAICompatible || isAnthropicCompatible || isCcCompatible;
   const isAnthropicProtocolCompatible = isAnthropicCompatible || isCcCompatible;
-  // #5420: hide model listing for tool-only providers (web search / web fetch),
-  // not just `-search`-suffixed ids. Declared serviceKinds come from the static
-  // provider catalog (e.g. firecrawl → ["webFetch"]); compatible providers resolve
-  // to null here and fall through to the empty-kinds check (model listing stays on).
+  // #5420: hide model listing for tool-only providers, not just `-search` ids.
   const declaredServiceKinds = (
     resolveDashboardProviderInfo(providerId) as { serviceKinds?: readonly string[] } | null
   )?.serviceKinds;
@@ -123,9 +121,10 @@ export default function ProviderDetailPageClient() {
     setProviderNode,
     fetchConnections,
     fetchProxyConfig,
-    handleDelete,
+    deleteConfirm,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
+    handleToggleQuotaVisibility,
     handleToggleClaudeExtraUsage,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
@@ -134,6 +133,8 @@ export default function ProviderDetailPageClient() {
     handleRetestConnection,
     handleRefreshToken,
     handleSwapPriority,
+    handleReorderByAvailability,
+    reorderingByAvailability,
     handleBatchSetActive,
     handleBatchDeleteOpenModal,
     handleBatchDeleteConfirm,
@@ -226,8 +227,6 @@ export default function ProviderDetailPageClient() {
   // Prefer synced API-discovered models when available, then merge built-ins
   // and user-managed custom models without duplicating IDs.
   const models = useMemo(() => {
-    // Universal: merge built-in registry models with API-synced models and
-    // user-managed custom models for ALL providers (was previously Gemini-only).
     // Synced models keep their full property spread so provider-specific fields
     // (e.g. Gemini's `supportedGenerationMethods`) survive into the table.
     const builtInModels = registryModels.map((model) => ({
@@ -491,6 +490,10 @@ export default function ProviderDetailPageClient() {
       )}
       {!isUpstreamProxyProvider && !isFreeNoAuth && (
         <Card>
+          <ProviderAccountRoutingCard
+            providerKey={providerId}
+            connectionCount={connections.length}
+          />
           <ConnectionsHeaderToolbar
             providerId={providerId}
             providerInfo={providerInfo}
@@ -504,6 +507,8 @@ export default function ProviderDetailPageClient() {
             retestingId={retestingId}
             distributingProxies={distributingProxies}
             proxyConfig={proxyConfig}
+            reorderingByAvailability={reorderingByAvailability}
+            handleReorderByAvailability={handleReorderByAvailability}
             preferClaudeCodeForUnprefixedClaudeModels={preferClaudeCodeForUnprefixedClaudeModels}
             claudeRoutingSettingsLoaded={claudeRoutingSettingsLoaded}
             claudeRoutingSettingsLoadError={claudeRoutingSettingsLoadError}
@@ -584,9 +589,10 @@ export default function ProviderDetailPageClient() {
                 setSelectedIds={setSelectedIds}
                 setPage={setPage}
                 setHealthFilter={setHealthFilter}
-                handleDelete={handleDelete}
+                deleteConfirm={deleteConfirm}
                 handleUpdateConnectionStatus={handleUpdateConnectionStatus}
                 handleToggleRateLimit={handleToggleRateLimit}
+                handleToggleQuotaVisibility={handleToggleQuotaVisibility}
                 handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
                 handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
                 handleToggleCodexLimit={handleToggleCodexLimit}
@@ -699,8 +705,8 @@ export default function ProviderDetailPageClient() {
       {/* Search provider info */}
       {isSearchProvider && <SearchProviderCard providerId={providerId} t={t} />}
 
-      {/* Playground panel — rendered for providers that declare serviceKinds */}
-      <ProviderPlaygroundPanel providerId={providerId} />
+      {/* Playground + param filters — extracted to components/ProviderExtraPanels.tsx (#6649) */}
+      <ProviderExtraPanels providerId={providerId} />
 
       {/* Modals — Phase 1t.5: extracted to components/ProviderModalsPanel.tsx */}
       <ProviderModalsPanel
@@ -735,6 +741,7 @@ export default function ProviderDetailPageClient() {
         handleBatchDeleteConfirm={handleBatchDeleteConfirm}
         selectedIds={selectedIds}
         batchDeleting={batchDeleting}
+        deleteConfirm={deleteConfirm}
         applyCodexModalConnectionId={applyCodexModalConnectionId}
         setApplyCodexModalConnectionId={setApplyCodexModalConnectionId}
         applyingCodexAuthId={applyingCodexAuthId}

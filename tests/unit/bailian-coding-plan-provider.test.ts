@@ -293,13 +293,26 @@ test("getStaticModelsForProvider returns undefined for non-static providers", ()
 });
 
 test("getStaticModelsForProvider returns local image catalogs for image-only providers", () => {
-  const models = getStaticModelsForProvider("xai");
+  // nanobanana has IMAGE_PROVIDERS rows but no chat registry models — specialty
+  // must still surface them. Chat+image providers (xai/lmarena/openai) keep
+  // image models exclusively in IMAGE_PROVIDERS (not the chat specialty list).
+  const models = getStaticModelsForProvider("nanobanana");
 
-  assert.ok(models, "xAI should expose local image models");
-  assert.deepEqual(
-    models.map((model) => model.id),
-    ["grok-imagine-image-quality", "grok-imagine-image"]
-  );
+  assert.ok(models, "nanobanana should expose local image models");
+  assert.ok(models.length >= 1);
+  assert.ok(models.every((m) => m.supportedEndpoints?.includes("images")));
+});
+
+test("getStaticModelsForProvider does not dump IMAGE_PROVIDERS into chat specialty", () => {
+  for (const provider of ["lmarena", "openai", "xai"]) {
+    const models = getStaticModelsForProvider(provider) || [];
+    assert.ok(
+      !models.some((m) => m.supportedEndpoints?.includes("images")),
+      `${provider} chat specialty must not include image-only models`
+    );
+  }
+  const lmarena = getStaticModelsForProvider("lmarena") || [];
+  assert.ok(!lmarena.some((m) => String(m.id).includes("flux")));
 });
 
 test("getStaticModelsForProvider returns models for other static providers", () => {

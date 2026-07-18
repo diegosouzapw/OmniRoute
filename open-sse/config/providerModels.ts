@@ -73,6 +73,21 @@ export function getModelsByProviderId(providerId: string): RegistryModel[] {
   return PROVIDER_MODELS[alias] || [];
 }
 
+/**
+ * Model-level upstream header-response timeout override, when the registry
+ * entry for `modelId` sets one (#6354). Returns `undefined` when the model
+ * isn't found or has no override, so callers can fall through to the
+ * provider-level/global defaults unchanged.
+ */
+export function getModelTimeoutMs(aliasOrId: string, modelId: string): number | undefined {
+  // Callers (e.g. chatCore's timeout resolution) pass the raw provider id
+  // ("codex"), not the public alias ("cx") that PROVIDER_MODELS is keyed by
+  // — resolve id→alias the same way getProviderModels()/getModelsByProviderId()
+  // do, so the override actually resolves (#6354).
+  const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
+  return getProviderModel(alias, modelId)?.timeoutMs;
+}
+
 const CLAUDE_MODEL_PATTERN = /(?:^|[\/._-])claude(?:[._-]|$)/;
 const CLAUDE_MAX_EFFORT_UNSUPPORTED_FAMILY_PATTERNS = [/(?:^|[\/._-])haiku(?:[._-]|$)/] as const;
 const ANTHROPIC_COMPATIBLE_PREFIX = "anthropic-compatible-";

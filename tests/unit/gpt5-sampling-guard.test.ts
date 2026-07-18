@@ -61,8 +61,8 @@ test("model suffix -high triggers strip; -none keeps sampling", () => {
 });
 
 test("non-openai provider is untouched (codex is guarded by the executor allowlist)", () => {
-  const body = { model: "gpt-5.4", temperature: 0.7, reasoning_effort: "high" };
-  const result = stripGpt5SamplingWhenReasoning(body, "codex", "gpt-5.4");
+  const body = { model: "gpt-5.6-sol", temperature: 0.7, reasoning_effort: "high" };
+  const result = stripGpt5SamplingWhenReasoning(body, "codex", "gpt-5.6-sol");
   assert.equal(result.temperature, 0.7);
 });
 

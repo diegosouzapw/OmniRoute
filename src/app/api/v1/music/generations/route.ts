@@ -1,6 +1,9 @@
 import { handleMusicGeneration } from "@omniroute/open-sse/handlers/musicGeneration.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
-import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
+import {
+  getProviderCredentialsWithQuotaPreflight,
+  clearRecoveredProviderState,
+} from "@/sse/services/auth";
 import { parseMusicModel, getMusicProvider } from "@omniroute/open-sse/config/musicRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -40,6 +43,18 @@ export async function GET(request?: Request) {
 }
 
 /**
+ * #6928: best-effort per-connection base-URL override lookup for local no-auth
+ * media providers (ComfyUI). Returns null instead of failing when no connection
+ * exists — local providers must keep working with zero configuration.
+ */
+async function resolveLocalOverrideCredentials(provider) {
+  const localCredentials = await getProviderCredentialsWithQuotaPreflight(provider);
+  return localCredentials && !isAllRateLimitedCredentials(localCredentials)
+    ? localCredentials
+    : null;
+}
+
+/**
  * POST /v1/music/generations — generate music
  */
 async function postHandler(request, context) {
@@ -72,7 +87,7 @@ async function postHandler(request, context) {
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentials(provider);
+    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
@@ -82,6 +97,8 @@ async function postHandler(request, context) {
     if (isAllRateLimitedCredentials(credentials)) {
       return rateLimitedProviderResponse(provider, credentials);
     }
+  } else if (providerConfig?.authType === "none") {
+    credentials = await resolveLocalOverrideCredentials(provider);
   }
 
   const result = await handleMusicGeneration({ body, credentials, log });

@@ -1,17 +1,22 @@
 import { execFile } from "node:child_process";
 import { t } from "../i18n.mjs";
 
+function parsePort(value, fallback) {
+  const parsed = parseInt(String(value), 10);
+  return Number.isFinite(parsed) && parsed > 0 && parsed <= 65535 ? parsed : fallback;
+}
+
 export function registerDashboard(program) {
   program
     .command("dashboard")
     .description(t("dashboard.description"))
     .option("--url", t("dashboard.urlOnly"))
-    .option("--port <port>", "Port the server is running on", "20128")
+    .option("--port <port>", "Port the server is running on")
     .option("--tui", t("dashboard.tui") || "Open interactive TUI dashboard (terminal UI)")
     .action(async (opts, cmd) => {
       if (opts.tui) {
         const globalOpts = cmd.optsWithGlobals();
-        const port = opts.port ? parseInt(String(opts.port), 10) : 20128;
+        const port = parsePort(opts.port ?? process.env.PORT ?? "20128", 20128);
         const baseUrl = globalOpts.baseUrl ?? `http://localhost:${port}`;
         const apiKey = globalOpts.apiKey ?? null;
         const { startInteractiveTui } = await import("../tui/Dashboard.jsx");
@@ -24,7 +29,7 @@ export function registerDashboard(program) {
 }
 
 export async function runDashboardCommand(opts = {}) {
-  const port = opts.port ? parseInt(String(opts.port), 10) : 20128;
+  const port = parsePort(opts.port ?? process.env.PORT ?? "20128", 20128);
   const dashboardUrl = `http://localhost:${port}`;
 
   if (opts.url) {

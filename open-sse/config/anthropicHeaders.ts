@@ -121,7 +121,7 @@ export function normalizeAnthropicHeaderVariants(headers: Record<string, string>
   }
 }
 
-export const CLAUDE_CLI_VERSION = "2.1.195";
+export const CLAUDE_CLI_VERSION = "2.1.207";
 export const CLAUDE_CLI_USER_AGENT = `claude-cli/${CLAUDE_CLI_VERSION} (external, cli)`;
 export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = "0.94.0";
 export const CLAUDE_CLI_STAINLESS_RUNTIME_VERSION = "v24.3.0";

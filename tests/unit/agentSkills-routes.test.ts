@@ -101,15 +101,15 @@ test.after(() => {
 // GET /api/agent-skills
 // ═════════════════════════════════════════════════════════════════════════════
 
-test("GET /api/agent-skills — returns 44 skills with count and coverage", async () => {
+test("GET /api/agent-skills — returns 45 skills with count and coverage", async () => {
   const req = makeRequest("GET", "http://localhost/api/agent-skills");
   const res = await listRoute.GET(req);
 
   assert.equal(res.status, 200);
   const body = (await res.json()) as { skills: unknown[]; count: number; coverage: unknown };
-  assert.equal(body.count, 44, `Expected 44 skills but got ${body.count}`);
+  assert.equal(body.count, 45, `Expected 45 skills but got ${body.count}`);
   assert.equal(Array.isArray(body.skills), true);
-  assert.equal(body.skills.length, 44);
+  assert.equal(body.skills.length, 45);
   assert.ok(body.coverage !== undefined, "coverage should be present");
 });
 
@@ -123,13 +123,13 @@ test("GET /api/agent-skills?category=api — returns 23 api skills", async () =>
   assert.ok(body.skills.every((s) => s.category === "api"), "All skills should be api category");
 });
 
-test("GET /api/agent-skills?category=cli — returns 20 cli skills", async () => {
+test("GET /api/agent-skills?category=cli — returns 21 cli skills", async () => {
   const req = makeRequest("GET", "http://localhost/api/agent-skills?category=cli");
   const res = await listRoute.GET(req);
 
   assert.equal(res.status, 200);
   const body = (await res.json()) as { skills: Array<{ category: string }>; count: number };
-  assert.equal(body.count, 20);
+  assert.equal(body.count, 21);
   assert.ok(body.skills.every((s) => s.category === "cli"), "All skills should be cli category");
 });
 
@@ -268,7 +268,7 @@ test("GET /api/agent-skills/coverage — returns valid SkillCoverage shape", asy
   };
 
   assert.equal(body.api.total, 23, "api.total must be 23");
-  assert.equal(body.cli.total, 20, "cli.total must be 20");
+  assert.equal(body.cli.total, 21, "cli.total must be 21");
   assert.ok(typeof body.totalSkills === "number", "totalSkills must be a number");
   assert.ok(typeof body.generatedAt === "string", "generatedAt must be a string");
   // generatedAt must be a valid ISO datetime

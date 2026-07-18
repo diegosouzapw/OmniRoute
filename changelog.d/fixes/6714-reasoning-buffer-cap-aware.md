@@ -1,0 +1,1 @@
+- **fix(routing):** the reasoning-token headroom buffer clamps to the model's explicit output cap instead of inflating past it, and `getExplicitModelOutputCap` falls through to the registry/spec cap when a synced capability row exists without a numeric `limit_output` ([#6714](https://github.com/diegosouzapw/OmniRoute/pull/6714)) — thanks @xz-dev

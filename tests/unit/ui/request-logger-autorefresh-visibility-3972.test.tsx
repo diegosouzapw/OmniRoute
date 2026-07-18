@@ -36,10 +36,10 @@ vi.mock("@/store/emailPrivacyStore", () => ({
   default: () => ({ emailsVisible: true }),
 }));
 
-const RequestLoggerV2 = (await import("../../../src/shared/components/RequestLoggerV2.tsx")).default;
-const { DEFAULT_REFRESH_INTERVAL_SEC } = await import(
-  "../../../src/shared/components/requestLoggerPreferences.ts"
-);
+const RequestLoggerV2 = (await import("../../../src/shared/components/RequestLoggerV2.tsx"))
+  .default;
+const { DEFAULT_REFRESH_INTERVAL_SEC } =
+  await import("../../../src/shared/components/requestLoggerPreferences.ts");
 
 function setVisibility(state: "visible" | "hidden") {
   Object.defineProperty(document, "visibilityState", { configurable: true, get: () => state });
@@ -58,8 +58,25 @@ let callLogsRequests = 0;
 let container: HTMLElement;
 let root: Root;
 
+function deferredResponse() {
+  let resolve!: (response: Response) => void;
+  const promise = new Promise<Response>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
+
 beforeEach(() => {
   callLogsRequests = 0;
+  if (!globalThis.localStorage) {
+    const store = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => store.set(key, String(value)),
+      removeItem: (key: string) => store.delete(key),
+      clear: () => store.clear(),
+    });
+  }
   localStorage.clear();
   vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver);
   vi.stubGlobal(
@@ -86,13 +103,94 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-  await act(async () => {
-    root.unmount();
-  });
-  container.remove();
+  if (root) {
+    await act(async () => {
+      root.unmount();
+    });
+  }
+  container?.remove();
   vi.useRealTimers();
   vi.unstubAllGlobals();
   setVisibility("visible");
+});
+
+describe("RequestLoggerV2 detail modal lifecycle", () => {
+  it("does not reopen a manually closed detail modal when a stale detail fetch resolves", async () => {
+    setVisibility("visible");
+    const detail = deferredResponse();
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.startsWith("/api/usage/call-logs")) {
+        return Response.json([
+          {
+            id: "log-1",
+            status: 200,
+            method: "POST",
+            path: "/v1/chat/completions",
+            model: "gpt-test",
+            provider: "openai",
+            timestamp: new Date().toISOString(),
+            duration: 42,
+            tokens: { in: 1, out: 2 },
+          },
+        ]);
+      }
+      if (url.startsWith("/api/logs/log-1")) {
+        return detail.promise;
+      }
+      if (url.startsWith("/api/provider-nodes")) {
+        return Response.json({ nodes: [] });
+      }
+      if (url.startsWith("/api/logs/detail")) {
+        return Response.json({ enabled: false });
+      }
+      return Response.json({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await act(async () => {
+      root.render(<RequestLoggerV2 />);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    const row = Array.from(container.querySelectorAll("tr")).find((tr) =>
+      tr.textContent?.includes("gpt-test")
+    );
+    expect(row).toBeTruthy();
+
+    await act(async () => {
+      row?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(container.querySelector('[aria-label="Request log detail"]')).not.toBeNull();
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>('[aria-label="Close detail modal"]')
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(container.querySelector('[aria-label="Request log detail"]')).toBeNull();
+
+    await act(async () => {
+      detail.resolve(
+        Response.json({
+          id: "log-1",
+          status: 200,
+          method: "POST",
+          path: "/v1/chat/completions",
+          model: "gpt-test",
+          provider: "openai",
+          timestamp: new Date().toISOString(),
+          duration: 43,
+          tokens: { in: 1, out: 3 },
+        })
+      );
+      await detail.promise;
+    });
+
+    expect(container.querySelector('[aria-label="Request log detail"]')).toBeNull();
+  });
 });
 
 describe("RequestLoggerV2 auto-refresh (#3972 + #4054)", () => {

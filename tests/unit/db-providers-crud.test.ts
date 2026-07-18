@@ -81,6 +81,34 @@ test("createProviderConnection assigns provider-scoped priorities and supports f
   assert.equal(second.isActive, false);
 });
 
+test("getProviderConnections filters by authType", async () => {
+  const apiKeyConnection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "API Key Connection",
+    apiKey: "sk-apikey",
+  });
+  const oauthConnection = await providersDb.createProviderConnection({
+    provider: "claude",
+    authType: "oauth",
+    email: "oauth@example.com",
+    accessToken: "token-a",
+    refreshToken: "refresh-a",
+  });
+
+  const oauthOnly = await providersDb.getProviderConnections({ authType: "oauth" });
+  const apiKeyOnly = await providersDb.getProviderConnections({ authType: "apikey" });
+
+  assert.deepEqual(
+    oauthOnly.map((connection) => connection.id),
+    [oauthConnection.id]
+  );
+  assert.deepEqual(
+    apiKeyOnly.map((connection) => connection.id),
+    [apiKeyConnection.id]
+  );
+});
+
 test("oauth connections upsert by provider and email instead of duplicating rows", async () => {
   const original = await providersDb.createProviderConnection({
     provider: "claude",
@@ -140,6 +168,37 @@ test("codex workspace uniqueness uses workspaceId alongside email", async () => 
     "ws-a",
     "ws-b",
   ]);
+});
+
+test("codex logins without a workspaceId are not merged on bare email match", async () => {
+  const loginA = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    email: "shared@example.com",
+    accessToken: "token-account-a",
+    refreshToken: "refresh-account-a",
+    providerSpecificData: { chatgptUserId: "user-a" },
+  });
+  const loginB = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    email: "shared@example.com",
+    accessToken: "token-account-b",
+    refreshToken: "refresh-account-b",
+    providerSpecificData: { chatgptUserId: "user-b" },
+  });
+
+  const rows = await providersDb.getProviderConnections({ provider: "codex" });
+
+  // Two distinct Codex accounts sharing an email but lacking a verifiable
+  // workspaceId must NOT collapse into a single row — that would silently
+  // overwrite the first account's token pair on the second login.
+  assert.notEqual(loginB.id, loginA.id);
+  assert.equal(rows.length, 2);
+
+  const rowA = rows.find((row) => row.id === loginA.id);
+  assert.equal(rowA?.accessToken, "token-account-a");
+  assert.equal(rowA?.refreshToken, "refresh-account-a");
 });
 
 test("updateProviderConnection reorders priorities and returns decrypted payloads", async () => {
@@ -324,4 +383,99 @@ test("quota helpers zero stale windows and format countdowns", () => {
   assert.equal(providersDb.getEffectiveQuotaUsage(120, null), 120);
   assert.match(providersDb.formatResetCountdown(future), /1m \d+s/);
   assert.equal(providersDb.formatResetCountdown(past), null);
+});
+test("getProviderConnections supports authType filter and column projection", async () => {
+  const oauth = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "oauth",
+    name: "OAuth Conn",
+    email: "user@example.com",
+    refreshToken: "rt_abc123",
+    isActive: true,
+  });
+  const apiKey = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "API Key Conn",
+    apiKey: "sk-xyz",
+    isActive: true,
+  });
+
+  // authType filter
+  const oauthConns = await providersDb.getProviderConnections({ authType: "oauth" });
+  assert.equal(oauthConns.length, 1);
+  assert.equal(oauthConns[0].id, oauth.id);
+
+  const apiKeyConns = await providersDb.getProviderConnections({ authType: "apikey" });
+  assert.equal(apiKeyConns.length, 1);
+  assert.equal(apiKeyConns[0].id, apiKey.id);
+
+  // authType + isActive filter
+  const activeOAuth = await providersDb.getProviderConnections({
+    authType: "oauth",
+    isActive: true,
+  });
+  assert.equal(activeOAuth.length, 1);
+
+  // Column projection: only requested columns returned
+  const projected = await providersDb.getProviderConnections({ authType: "oauth" }, [
+    "id",
+    "provider",
+    "name",
+  ]);
+  assert.equal(projected.length, 1);
+  const keys = Object.keys(projected[0]);
+  // id, provider, name each appear in camelCase
+  assert.ok(keys.includes("id"));
+  assert.ok(keys.includes("provider"));
+  assert.ok(keys.includes("name"));
+  // decryptConnectionFields always adds undefined keys via explicit spread,
+  // so `in` checks can't distinguish "not projected" from "undefined value."
+  // Check value semantics instead.
+  assert.strictEqual(projected[0].refreshToken, undefined);
+  assert.strictEqual(projected[0].authType, undefined);
+
+  // Default (no columns param) returns all fields
+  const full = await providersDb.getProviderConnections({ authType: "oauth" });
+  const fullKeys = Object.keys(full[0]);
+  assert.ok(fullKeys.length > keys.length);
+  assert.ok("refreshToken" in full[0]);
+  assert.ok("authType" in full[0]);
+});
+
+test("getProviderConnections rejects column names outside the real provider_connections schema", async () => {
+  // The `columns` array is interpolated directly into the SQL SELECT clause,
+  // so it must be validated against an allowlist before use — otherwise it's
+  // a SQL-injection footgun for whichever future caller wires it to
+  // untrusted input. A single bogus column should reject the whole call.
+  await assert.rejects(
+    () => providersDb.getProviderConnections({}, ["not_a_real_column"]),
+    /invalid column/i
+  );
+
+  // A mix of valid + invalid columns must still reject (fail-closed, not a
+  // silent partial projection).
+  await assert.rejects(
+    () => providersDb.getProviderConnections({}, ["id", "provider; DROP TABLE provider_connections; --"]),
+    /invalid column/i
+  );
+
+  // The reserved SQL keyword "group" is a legitimate, allowlisted column and
+  // must still work (quoted internally so it doesn't collide with the SQL
+  // GROUP keyword).
+  await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "oauth",
+    name: "Group Column Conn",
+    email: "group-col@example.com",
+    refreshToken: "rt_group_col",
+    isActive: true,
+    group: "team-a",
+  });
+  const withGroup = await providersDb.getProviderConnections({ authType: "oauth" }, [
+    "id",
+    "group",
+  ]);
+  assert.equal(withGroup.length, 1);
+  assert.equal(withGroup[0].group, "team-a");
 });

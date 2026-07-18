@@ -74,7 +74,15 @@ async function lookupCustomModelMeta(
   try {
     const models = await getCustomModels(providerId);
     if (!Array.isArray(models)) return {};
-    const match = models.find((m: any) => m.id === modelId);
+    // #7364: exact match first (preserves existing behavior/perf); fall back to a
+    // case-insensitive match so a model saved as "glm-4.6v" is still found when the
+    // caller (dashboard, combo target, direct call) requests "glm-4.6V" — several
+    // reporters typed the uppercase "V" from Z.AI's own docs/marketing.
+    const match =
+      models.find((m: any) => m.id === modelId) ??
+      models.find(
+        (m: any) => typeof m.id === "string" && m.id.toLowerCase() === modelId.toLowerCase()
+      );
     if (!match) return {};
     return {
       apiFormat: match.apiFormat === "responses" ? "responses" : undefined,
@@ -83,6 +91,22 @@ async function lookupCustomModelMeta(
   } catch {
     return {};
   }
+}
+
+/**
+ * When a custom provider node is matched by its raw internal `node.id` (e.g. a combo
+ * step addressing `<connId>/...` — see #2778), `parsed.model` was never split on the
+ * node's own `prefix`, unlike the alias-addressing path where `parseModel` already
+ * strips it. If the caller naively concatenates `owned_by` (the node's prefix, as
+ * listed by /api/models) with the raw model id, the resulting model string carries a
+ * redundant leading `${node.prefix}/` segment that the upstream provider does not
+ * recognize, causing a 400. Strip it so `<connId>/<prefix>/<rawModelId>` normalizes to
+ * the same `<rawModelId>` the bare alias form resolves to (#6772).
+ */
+function stripRedundantNodePrefix(model: string, nodePrefix: unknown): string {
+  if (typeof nodePrefix !== "string" || !nodePrefix) return model;
+  const redundant = `${nodePrefix}/`;
+  return model.startsWith(redundant) ? model.slice(redundant.length) : model;
 }
 
 /**
@@ -133,13 +157,17 @@ export async function getModelInfo(modelStr) {
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
       if (matchedOpenAI) {
+        const normalizedModel = stripRedundantNodePrefix(
+          parsed.model as string,
+          matchedOpenAI.prefix
+        );
         const { apiFormat, targetFormat } = await lookupCustomModelMeta(
           matchedOpenAI.id as string,
-          parsed.model as string
+          normalizedModel
         );
         return {
           provider: matchedOpenAI.id,
-          model: parsed.model,
+          model: normalizedModel,
           extendedContext,
           ...(apiFormat && { apiFormat }),
           ...(targetFormat && { targetFormat }),
@@ -152,13 +180,17 @@ export async function getModelInfo(modelStr) {
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
       if (matchedAnthropic) {
+        const normalizedModel = stripRedundantNodePrefix(
+          parsed.model as string,
+          matchedAnthropic.prefix
+        );
         const { apiFormat, targetFormat } = await lookupCustomModelMeta(
           matchedAnthropic.id as string,
-          parsed.model as string
+          normalizedModel
         );
         return {
           provider: matchedAnthropic.id,
-          model: parsed.model,
+          model: normalizedModel,
           extendedContext,
           ...(apiFormat && { apiFormat }),
           ...(targetFormat && { targetFormat }),

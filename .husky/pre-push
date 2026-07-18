@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
-# .husky/pre-push — fast deterministic gates (<10s total)
-# Intentionally excludes test:unit (slow; covered by CI pre-push remote run).
-# Activated: 2026-06-13 (6A.12 — replaced commented-out test:unit stub)
+# .husky/pre-push — intentionally light.
+# any-budget + tracked-artifacts already run on pre-commit; re-running them on
+# every push only doubles local wall time for the same existence reason (CI still
+# enforces both). Keep this hook as a PATH/npm sanity check + reminder.
+# Intentionally excludes test:unit / typecheck (slow; covered by CI).
 
 if ! command -v npm >/dev/null 2>&1; then
   echo "⚠️  npm not found in PATH — skipping pre-push hooks"
@@ -9,4 +11,5 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 0
 fi
 
-npm run check:any-budget:t11 && npm run check:tracked-artifacts
+# No-op success: real local gates live in pre-commit; CI owns the rest.
+exit 0

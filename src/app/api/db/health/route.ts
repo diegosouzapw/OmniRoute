@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { runManagedDbHealthCheck } from "@/lib/db/core";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 export async function GET(request: Request) {
   if (!(await isAuthenticated(request))) {
@@ -12,7 +13,10 @@ export async function GET(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[API] DB health diagnosis failed:", message);
-    return NextResponse.json({ error: { message } }, { status: 500 });
+    return NextResponse.json(
+      { error: { message: sanitizeErrorMessage(message) } },
+      { status: 500 }
+    );
   }
 }
 
@@ -26,6 +30,9 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[API] DB health repair failed:", message);
-    return NextResponse.json({ error: { message } }, { status: 500 });
+    return NextResponse.json(
+      { error: { message: sanitizeErrorMessage(message) } },
+      { status: 500 }
+    );
   }
 }

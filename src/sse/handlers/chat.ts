@@ -20,14 +20,11 @@ import {
 import { getModelInfo, getComboForModel } from "../services/model";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
-import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
-import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
-import {
-  resolveRequestModePack,
-  parseRequestBudgetCap,
-} from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
+import { handleComboChat, shouldSkipConnDisable } from "@omniroute/open-sse/services/combo.ts";
+import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
 import {
@@ -36,6 +33,7 @@ import {
 } from "@omniroute/open-sse/config/constants.ts";
 import { getTargetFormat } from "@omniroute/open-sse/services/provider.ts";
 import {
+  getModelsByProviderId,
   getModelTargetFormat,
   PROVIDER_ID_TO_ALIAS,
 } from "@omniroute/open-sse/config/providerModels.ts";
@@ -54,6 +52,7 @@ import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import { updateCombo } from "@/lib/db/combos";
+import { isModelAllowedForKey } from "@/lib/db/apiKeys";
 import { promoteSuccessfulComboModel } from "@/lib/combos/autoPromote";
 import {
   deleteSessionAccountAffinity,
@@ -83,6 +82,7 @@ import {
   withCorrelationId,
 } from "./chatHelpers";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
+import { getComboFailureLogError, isRequestScopedUpstreamFailure } from "./comboFailureLogging";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
@@ -124,14 +124,17 @@ import {
 import { registerBailianCodingPlanQuotaFetcher } from "@omniroute/open-sse/services/bailianQuotaFetcher.ts";
 import { registerCrofUsageFetcher } from "@omniroute/open-sse/services/crofUsageFetcher.ts";
 import { registerDeepseekQuotaFetcher } from "@omniroute/open-sse/services/deepseekQuotaFetcher.ts";
+import { registerOpenrouterQuotaFetcher } from "@omniroute/open-sse/services/openrouterQuotaFetcher.ts";
 import { registerOpencodeQuotaFetcher } from "@omniroute/open-sse/services/opencodeQuotaFetcher.ts";
 import { registerGenericQuotaFetchers } from "@omniroute/open-sse/services/genericQuotaFetcher.ts";
+import "@omniroute/open-sse/services/quotaTrackersBatch.ts";
 import {
   getCooldownAwareRetryDecision,
   resolveCooldownAwareRetrySettings,
   waitForCooldownAwareRetry,
 } from "../services/cooldownAwareRetry";
 import { constrainConnectionsToQuota, resolveQuotaKeyScope } from "../../lib/quota/quotaKey";
+import { checkConnectionCapacity } from "../utils/backpressure";
 
 registerCodexQuotaFetcher();
 
@@ -144,10 +147,10 @@ registerBailianCodingPlanQuotaFetcher();
 // Surfaces usable_requests + credits in the monitor and only blocks (preflight
 // opt-in) when the active bucket reaches zero.
 registerCrofUsageFetcher();
-
 // Register DeepSeek balance quota fetcher.
 // Hooks into quotaPreflight + quotaMonitor so combos can switch accounts before balance is exhausted.
 registerDeepseekQuotaFetcher();
+registerOpenrouterQuotaFetcher();
 
 // Register OpenCode quota fetcher (opencode-go / opencode / opencode-zen).
 // Surfaces the $12/5h, $30/wk, $60/mo windows in the limits page and enables
@@ -222,6 +225,12 @@ export async function handleChat(
   const reqId = correlationId || generateRequestId();
   const telemetry = new RequestTelemetry(reqId);
 
+  const backpressure = checkConnectionCapacity();
+  if (backpressure.shouldReject) {
+    log.warn("BACKPRESSURE", "Rejecting request: at connection limit");
+    return backpressure.response;
+  }
+
   let body;
   try {
     telemetry.startPhase("parse");
@@ -240,18 +249,30 @@ export async function handleChat(
   // reasoning_effort / reasoning / object-shaped thinking always wins (backward compatible).
   body = normalizeReasoningRequest(body);
 
-  // Early guard: an explicitly empty `messages` array is invalid for every
-  // upstream (Anthropic/OpenAI both reject "at least one message is required").
-  // Forwarding it produced a confusing raw upstream 400/502; reject it here with
-  // a clear OmniRoute-level error before any routing or upstream call (#5110).
-  // Responses-API requests use `input` (not `messages`) so they are unaffected,
-  // and an absent `messages` field is left to downstream validation.
-  if (
-    Array.isArray((body as { messages?: unknown }).messages) &&
-    (body as { messages: unknown[] }).messages.length === 0
-  ) {
-    log.warn("CHAT", "Rejecting request with empty messages array");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+  // Early guard: an invalid `messages` field is rejected here with a clear
+  // OmniRoute-level 400 before any routing or upstream call (#5110, #6402).
+  // Without this guard, schema-invalid bodies fell through to model resolution
+  // and surfaced as a misleading 404 `model_not_found` from chatHelpers.ts (#6402).
+  // Cases covered:
+  //   - present-but-non-array (null, number, string, object) → 400 (#6402)
+  //   - empty array → 400 ("at least one message is required") (#5110)
+  //   - missing entirely, when the Responses-API `input` discriminator is also
+  //     absent → 400 (#6402). Responses-API requests use `input` (not `messages`)
+  //     and are still unaffected.
+  {
+    const b = body as { messages?: unknown; input?: unknown };
+    if ("messages" in b && !Array.isArray(b.messages)) {
+      log.warn("CHAT", "Rejecting request with non-array messages");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array");
+    }
+    if (Array.isArray(b.messages) && b.messages.length === 0) {
+      log.warn("CHAT", "Rejecting request with empty messages array");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
+    }
+    if (!("messages" in b) && !("input" in b)) {
+      log.warn("CHAT", "Rejecting request with missing messages");
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array, received undefined");
+    }
   }
 
   // Reject non-string `model` before it reaches downstream code that calls
@@ -300,11 +321,7 @@ export async function handleChat(
       }
     }
     if (b.max_tokens !== undefined) {
-      if (
-        typeof b.max_tokens !== "number" ||
-        !Number.isInteger(b.max_tokens) ||
-        b.max_tokens < 1
-      ) {
+      if (typeof b.max_tokens !== "number" || !Number.isInteger(b.max_tokens) || b.max_tokens < 1) {
         return badParam("max_tokens", "must be a positive integer");
       }
     }
@@ -387,6 +404,25 @@ export async function handleChat(
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing model");
   }
 
+  // Reject image-generation models routed to /v1/chat/completions (#6457).
+  // Image-only models live in IMAGE_PROVIDERS (open-sse/config/imageRegistry.ts)
+  // and are served by /v1/images/generations. Forwarding them to a chat upstream
+  // yielded confusing raw provider 400s (e.g. HuggingFace: "not a chat model").
+  // Models such as Codex GPT-5.5 support both chat and image generation, so an
+  // image-registry match is only image-only when the same provider/model pair is
+  // absent from the chat catalog.
+  const imageModel = getImageModelEntry(modelStr);
+  const isChatCatalogModel = imageModel
+    ? getModelsByProviderId(imageModel.provider).some((model) => model.id === imageModel.model)
+    : false;
+  if (imageModel && !isChatCatalogModel) {
+    log.warn("CHAT", `Rejecting image-generation model on chat endpoint: ${modelStr}`);
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      `Model '${modelStr}' is an image-generation model and cannot be used on /v1/chat/completions. Use POST /v1/images/generations instead.`
+    );
+  }
+
   // T04: client-provided external session header has priority over generated fingerprint.
   const externalSessionId = extractExternalSessionId(request.headers);
   const sessionId = externalSessionId || generateStableSessionId(body);
@@ -437,6 +473,23 @@ export async function handleChat(
     );
   }
   body = preCallGuardrails.payload;
+  if (body?.model && typeof body.model === "string" && body.model !== modelStr) {
+    const rerouteModel = body.model;
+    // A guardrail (e.g. Vision Bridge auto-reroute) can swap body.model AFTER
+    // enforceApiKeyPolicy already validated modelStr's allowlist/budget above.
+    // Re-check the new target against the same per-key allowlist so a
+    // policy-restricted key cannot be silently routed to an unchecked model.
+    const rerouteAllowed = await isModelAllowedForKey(apiKey, rerouteModel);
+    if (!rerouteAllowed) {
+      log.warn(
+        "POLICY",
+        `Guardrail reroute to "${rerouteModel}" rejected by API key policy (key=${apiKeyInfo?.id || "unknown"}); keeping original model "${modelStr}"`
+      );
+      body = { ...body, model: modelStr };
+    } else {
+      modelStr = rerouteModel;
+    }
+  }
   telemetry.endPhase();
 
   // T08: per-key active session limit (0 = unlimited).
@@ -721,17 +774,13 @@ export async function handleChat(
     ]);
     const relayConfig =
       combo.strategy === "context-relay" ? resolveComboConfig(combo, settings) : null;
-    // Per-request Auto-Combo controls (#6023 / #6024 / #6025): steer an `auto`
-    // combo on this single request without mutating its stored config.
-    const requestModeHeader = request.headers.get("x-omniroute-mode")?.trim() || null;
-    const requestBudgetHeader = request.headers.get("x-omniroute-budget")?.trim() || null;
-    const perRequestMode = resolveRequestModePack(requestModeHeader);
-    const perRequestBudgetCap = parseRequestBudgetCap(requestBudgetHeader);
+    // Per-request Auto-Combo controls (#6023 / #6024 / #6025 / #3470): steer an
+    // `auto` combo on this single request without mutating its stored config.
+    const perRequestAutoControls = resolveRequestAutoControls(request.headers);
     const relayOptions =
       combo.strategy === "context-relay" ||
       bypassProviderQuotaPolicy ||
-      perRequestMode.override ||
-      perRequestBudgetCap !== undefined
+      Object.keys(perRequestAutoControls).length > 0
         ? {
             ...(combo.strategy === "context-relay"
               ? {
@@ -740,8 +789,7 @@ export async function handleChat(
                 }
               : {}),
             ...(bypassProviderQuotaPolicy ? { bypassProviderQuotaPolicy: true } : {}),
-            ...(perRequestMode.override ? { mode: requestModeHeader } : {}),
-            ...(perRequestBudgetCap !== undefined ? { budgetCap: perRequestBudgetCap } : {}),
+            ...perRequestAutoControls,
           }
         : undefined;
     telemetry.endPhase();
@@ -862,27 +910,25 @@ export async function handleChat(
 
     // Record telemetry
     recordTelemetry(telemetry);
-    // Log combo failures that bypassed handleChatCore (e.g. all targets skipped by circuit breaker)
+    // Log combo failures that bypassed handleChatCore (e.g. all targets skipped by circuit breaker).
+    // Records BOTH a call_logs row (dashboard/logs) AND a usage_history row attributed to the api key
+    // (success:false) so gate/breaker-rejected traffic is counted per key — support-mesh 2026-07-08.
     if (!response.ok) {
       try {
-        const { saveCallLog } = await import("@/lib/usageDb");
-        saveCallLog({
-          id: undefined,
-          method: "POST",
-          path: clientRawRequest?.endpoint || "/v1/chat/completions",
+        const { recordRejectedRequestUsage } = await import("./rejectedRequestUsage");
+        await recordRejectedRequestUsage({
           status: response.status,
           model: body?.model || resolvedModelStr,
           requestedModel: body?.model || resolvedModelStr,
           provider: "-",
-          connectionId: undefined,
-          duration: Date.now() - (telemetry?.startTime || Date.now()),
-          tokens: {},
-          error: `[${response.status}] Combo "${combo.name}" failed — all targets exhausted`,
+          endpoint: clientRawRequest?.endpoint,
+          error: await getComboFailureLogError(response, combo.name),
           comboName: combo.name,
-          comboStepId: null,
-          comboExecutionKey: null,
+          apiKeyId: apiKeyInfo?.id ?? null,
+          apiKeyName: apiKeyInfo?.name ?? null,
           correlationId: reqId,
-        }).catch(() => {});
+          startTime: telemetry?.startTime,
+        });
       } catch {}
     }
     return withCorrelationId(withSessionHeader(response, sessionId), reqId);
@@ -1086,26 +1132,26 @@ async function handleSingleModelChat(
     ...(bypassReason ? { bypassReason } : {}),
   });
   if (gate) {
-    // Log the rejected request so it appears in /dashboard/logs
+    // Log the rejected request so it appears in /dashboard/logs AND is counted in the
+    // per-api-key usage analytics (usage_history, success:false) — otherwise a key whose
+    // traffic is entirely gate/breaker-rejected shows "zero requests" (support-mesh 2026-07-08).
     try {
-      const { saveCallLog } = await import("@/lib/usageDb");
-      saveCallLog({
-        id: undefined,
-        method: "POST",
-        path: clientRawRequest?.endpoint || "/v1/chat/completions",
+      const { recordRejectedRequestUsage } = await import("./rejectedRequestUsage");
+      await recordRejectedRequestUsage({
         status: gate.status,
         model,
         requestedModel: body?.model || modelStr,
         provider,
-        connectionId: undefined,
-        duration: Date.now() - (telemetry?.startTime || Date.now()),
-        tokens: {},
+        endpoint: clientRawRequest?.endpoint,
         error: `[${gate.status}] Pipeline gate rejected`,
         comboName: isCombo ? comboName : null,
         comboStepId: isCombo ? (runtimeOptions?.comboStepId ?? null) : null,
         comboExecutionKey: isCombo ? (runtimeOptions?.comboExecutionKey ?? null) : null,
+        apiKeyId: apiKeyInfo?.id ?? null,
+        apiKeyName: apiKeyInfo?.name ?? null,
         correlationId: runtimeOptions?.correlationId ?? null,
-      }).catch(() => {});
+        startTime: telemetry?.startTime,
+      });
     } catch {}
     return gate;
   }
@@ -1680,13 +1726,7 @@ async function handleSingleModelChat(
         ((credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? []).length >
           0 || connectionHasExtraKeys(credentials.connectionId);
       const is401 = result.status === 401;
-      // Our own timeout fired on a slow upstream; don't cool down a healthy account.
-      const skipConnectionDisable =
-        result.status === 499 ||
-        result.errorCode === "client_disconnected" ||
-        result.errorType === "client_disconnected" ||
-        (is401 && hasExtraKeys) ||
-        isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider);
+      const skipConnectionDisable = shouldSkipConnDisable(result, is401, hasExtraKeys, provider);
 
       const { shouldFallback, cooldownMs } = skipConnectionDisable
         ? { shouldFallback: false, cooldownMs: 0 }
@@ -1739,6 +1779,7 @@ async function handleSingleModelChat(
       if (
         !forceLiveComboTest &&
         !isCombo &&
+        !isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) &&
         PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
       ) {
         breaker._onFailure();

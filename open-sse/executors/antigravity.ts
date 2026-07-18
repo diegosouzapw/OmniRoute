@@ -54,6 +54,10 @@ import {
 // processAntigravitySSEPayload re-exported for external importers (tests).
 export { processAntigravitySSEPayload } from "./antigravity/sseCollect.ts";
 import {
+  handleAntigravityFallbackChainError,
+  handleAntigravityFallback400,
+} from "./antigravity/proFallbackChain.ts";
+import {
   applyAntigravityClientProfileHeaders,
   removeHeaderCaseInsensitive,
 } from "../services/antigravityClientProfile.ts";
@@ -86,6 +90,9 @@ const ANTIGRAVITY_TRANSIENT_STATUSES = new Set([
   HTTP_STATUS.BAD_GATEWAY,
   HTTP_STATUS.SERVICE_UNAVAILABLE,
   HTTP_STATUS.GATEWAY_TIMEOUT,
+]);
+const ANTIGRAVITY_UNSUPPORTED_SAFETY_CATEGORIES = new Set<string>([
+  "HARM_CATEGORY_CIVIC_INTEGRITY",
 ]);
 // The upstream API uses plain model IDs (no -high/-low suffix).
 // Tier suffixes were speculative and caused 404 for gemini-3.x models — the
@@ -440,6 +447,14 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+function getAntigravitySafetySettings(safetySettings: unknown): unknown[] {
+  const source = Array.isArray(safetySettings) ? safetySettings : DEFAULT_SAFETY_SETTINGS;
+  return source.filter((setting) => {
+    const category = asRecord(setting)?.category;
+    return typeof category !== "string" || !ANTIGRAVITY_UNSUPPORTED_SAFETY_CATEGORIES.has(category);
+  });
+}
+
 function sanitizeAntigravityGeminiRequest(
   request: Record<string, unknown>
 ): Record<string, unknown> {
@@ -460,7 +475,18 @@ function sanitizeAntigravityGeminiRequest(
   const geminiTools = buildGeminiTools(request.tools);
   if (geminiTools) {
     clean.tools = geminiTools;
-    clean.toolConfig = { functionCallingConfig: { mode: "VALIDATED" } };
+    // #6914: Preserve includeServerSideToolInvocations from the raw request's
+    // toolConfig when present (set by transformRequest when tools exist). The
+    // sanitize whitelist would otherwise rebuild toolConfig without it.
+    const rawToolConfig = asRecord(request.toolConfig);
+    const rawFnConfig = asRecord(rawToolConfig?.functionCallingConfig);
+    const includeServerSide = rawFnConfig?.includeServerSideToolInvocations === true;
+    clean.toolConfig = {
+      functionCallingConfig: {
+        mode: "VALIDATED",
+        ...(includeServerSide ? { includeServerSideToolInvocations: true } : {}),
+      },
+    };
   } else if (asRecord(request.toolConfig)) {
     clean.toolConfig = request.toolConfig;
   }
@@ -687,20 +713,20 @@ export class AntigravityExecutor extends BaseExecutor {
         credentials,
         typeof normalizedRequest?.sessionId === "string" ? normalizedRequest.sessionId : undefined
       ),
-      // #5003: default to all-OFF safety for parity with the native Gemini paths
-      // (claude-to-gemini / openai-to-gemini both default to DEFAULT_SAFETY_SETTINGS).
-      // Previously this was `undefined`, which JSON.stringify drops, so Google Cloud Code
-      // applied its server-side defaults that false-flag benign technical prompts as
-      // `prohibited_content` (HTTP 200 + blocked body → terminal combo failover).
-      safetySettings: normalizedRequest?.safetySettings ?? DEFAULT_SAFETY_SETTINGS,
+      // #5003: send explicit all-OFF safety entries that Cloud Code accepts. Omitting the
+      // field lets Cloud Code apply server-side defaults that false-flag benign technical
+      // prompts as `prohibited_content`.
+      safetySettings: getAntigravitySafetySettings(normalizedRequest?.safetySettings),
       toolConfig:
         Array.isArray(normalizedRequest?.tools) && normalizedRequest.tools.length > 0
-          ? { functionCallingConfig: { mode: "VALIDATED" } }
+          ? { functionCallingConfig: { mode: "VALIDATED", includeServerSideToolInvocations: true } }
           : normalizedRequest?.toolConfig,
     };
 
     const transformedRequest = isClaude
-      ? stripTrailingAntigravityAssistantTurn(sanitizeAntigravityGeminiRequest(rawTransformedRequest))
+      ? stripTrailingAntigravityAssistantTurn(
+          sanitizeAntigravityGeminiRequest(rawTransformedRequest)
+        )
       : rawTransformedRequest;
 
     // Obfuscate sensitive client names in user content (e.g. "OpenCode", "Cursor")
@@ -1059,7 +1085,28 @@ export class AntigravityExecutor extends BaseExecutor {
     let firstResult: Awaited<ReturnType<AntigravityExecutor["executeOnce"]>> | null = null;
     for (let i = 0; i < chain.length; i++) {
       const candidate = chain[i];
-      const result = await this.executeOnce(input, candidate);
+      let result: Awaited<ReturnType<AntigravityExecutor["executeOnce"]>>;
+      try {
+        result = await this.executeOnce(input, candidate);
+      } catch (error) {
+        const outcome = handleAntigravityFallbackChainError(
+          input,
+          error,
+          candidate,
+          i,
+          chain,
+          firstResult,
+          resolvedUpstreamId
+        );
+        switch (outcome.action) {
+          case "throw":
+            throw outcome.error;
+          case "return":
+            return outcome.result;
+          default:
+            continue;
+        }
+      }
 
       // Success (or any non-400) on a candidate → return immediately.
       if (result.response.status !== HTTP_STATUS.BAD_REQUEST) {
@@ -1067,23 +1114,18 @@ export class AntigravityExecutor extends BaseExecutor {
       }
 
       // Remember the FIRST 400 so the exhausted-chain case surfaces the original error.
-      if (i === 0) firstResult = result;
+      if (!firstResult) firstResult = result;
 
-      const isLast = i === chain.length - 1;
-      if (!isLast) {
-        input.log?.debug?.(
-          "AG_PRO_FALLBACK",
-          `400 on "${candidate}" — retrying with next Pro candidate "${chain[i + 1]}"`
-        );
-        continue;
-      }
-
-      // Chain exhausted: surface the FIRST candidate's sanitized 400.
-      input.log?.warn?.(
-        "AG_PRO_FALLBACK",
-        `Pro fallback chain exhausted (all ${chain.length} candidates 400'd) for "${resolvedUpstreamId}"`
+      const outcome400 = handleAntigravityFallback400(
+        input,
+        result,
+        firstResult,
+        candidate,
+        i,
+        chain,
+        resolvedUpstreamId
       );
-      return firstResult ?? result;
+      if (outcome400.action === "return") return outcome400.result;
     }
 
     // Unreachable (loop always returns), but keeps the type checker happy.
@@ -1576,6 +1618,34 @@ export class AntigravityExecutor extends BaseExecutor {
           }
           return {
             ...collected,
+            transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+          };
+        }
+
+        // #2461: a non-ok upstream response (e.g. 403) must never be piped through the
+        // streaming pass-through below as if it were an SSE body. Google occasionally
+        // returns non-UTF8/binary error bodies (observed: gzip-magic-byte payloads) for
+        // 403s on this endpoint; reading/forwarding those raw bytes corrupts the
+        // client-visible error message. Mirror the non-streaming branch above and build
+        // a sanitized JSON error via buildAntigravityUpstreamError (hard rule #12)
+        // instead of streaming unknown bytes straight through.
+        if (!response.ok) {
+          const rawBody = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          const errorBody = buildAntigravityUpstreamError(
+            response.status,
+            response.statusText,
+            rawBody
+          );
+          return {
+            response: new Response(JSON.stringify(errorBody), {
+              status: response.status,
+              headers: { "Content-Type": "application/json" },
+            }),
+            url,
+            headers: finalHeaders,
             transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
           };
         }

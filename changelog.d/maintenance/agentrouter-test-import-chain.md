@@ -1,0 +1,1 @@
+- chore(quality): extract pure provider input parsers to a leaf module so the agentrouter persist test no longer drags the UI import graph (@lobehub/icons ESM build crashed Node 24's CJS require in the CI unit shard)

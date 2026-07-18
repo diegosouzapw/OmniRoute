@@ -1,0 +1,1 @@
+- **fix(translator):** read PDF/video `file_data` attachments on the OpenAI→Gemini/Antigravity and OpenAI→Claude paths so multimodal documents (not just images) reach the upstream — PDFs map to `document`/`inlineData` and videos keep their `video/mp4` mime instead of being dropped (#6790 — thanks @Witroch4, with an independent report/fix from @samimozcan via #6762/#6753).

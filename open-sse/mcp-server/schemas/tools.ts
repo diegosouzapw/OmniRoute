@@ -12,6 +12,7 @@
 import { z } from "zod";
 import { toolSearchTool } from "./toolSearch.ts";
 import { pickFastestModelTool } from "./pickFastestModel.ts";
+import { CCR_MCP_TOOLS } from "./ccrTools.ts";
 import {
   AUTO_ROUTING_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
@@ -24,6 +25,7 @@ import {
 export type { AuditLevel, McpToolDefinition } from "./toolDefinition.ts";
 import type { McpToolDefinition } from "./toolDefinition.ts";
 export { pickFastestModelInput, pickFastestModelOutput } from "./pickFastestModel.ts";
+export * from "./ccrTools.ts";
 
 // ============ Phase 1: Essential Tools (8) ============
 
@@ -1093,11 +1095,11 @@ export const compressionStatusTool: McpToolDefinition<
 export const compressionConfigureInput = z.object({
   enabled: z.boolean().optional(),
   strategy: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked", "omniglyph"])
     .optional()
     .describe("Compression mode"),
   autoTriggerMode: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked", "omniglyph"])
     .optional(),
   maxTokens: z
     .number()
@@ -1462,6 +1464,7 @@ export const MCP_TOOLS = [
   setCompressionEngineTool,
   listCompressionCombosTool,
   compressionComboStatsTool,
+  ...CCR_MCP_TOOLS,
   oneproxyFetchTool,
   oneproxyRotateTool,
   oneproxyStatsTool,

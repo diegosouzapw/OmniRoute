@@ -205,7 +205,7 @@ export function resolveDestinationPath(vaultRoot, destinationHeader) {
 export function verifyBasicAuth(authHeader, expectedUsername, expectedPassword) {
   if (!authHeader || typeof authHeader !== "string") return false;
 
-  const match = /^Basic\s+(.+)$/i.exec(authHeader.trim());
+  const match = /^Basic[ \t]+(\S+)$/i.exec(authHeader.trim()); // linear-time: no overlapping \s+/.+ backtracking (CodeQL js/polynomial-redos #708)
   if (!match) return false;
 
   let decoded;

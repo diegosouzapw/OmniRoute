@@ -1,0 +1,1 @@
+- fix(providers): route AgentRouter key validation through the CC wire image so a valid key no longer 403s as "Invalid API key" (#6377)

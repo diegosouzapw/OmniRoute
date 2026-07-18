@@ -51,6 +51,9 @@ const IGNORE_FROM_CODE = new Set([
   "CI",
   "GITHUB_ACTIONS",
   "RUNNER_OS",
+  // Quality-gate harness knobs (optional cache/report paths for CI scripts — not product config).
+  "ESLINT_RESULTS_JSON",
+  "COMPLEXITY_ESLINT_REPORT",
   // Agent environment / system execution paths.
   "PROJECT_ROOT",
   "ARTIFACTS_DIR",
@@ -98,6 +101,15 @@ const IGNORE_FROM_CODE = new Set([
   // ("http://192.168.0.15:20128" / null), never OmniRoute runtime config (#5151).
   "COMBO_LIVE_BASE_URL",
   "COMBO_LIVE_API_KEY",
+  // Homologation E2E suite (npm run homolog) vars — configured via the dedicated
+  // .env.homolog file (template: .env.homolog.example), never in the runtime .env.
+  // Test/ops-only signals against the homologation VPS, same class as COMBO_LIVE_*.
+  // See docs/ops/HOMOLOGATION.md.
+  "HOMOLOG_BASE_URL",
+  "HOMOLOG_ADMIN_PASSWORD",
+  "HOMOLOG_API_KEY",
+  "HOMOLOG_CRITICAL_PROVIDERS",
+  "HOMOLOG_EXPECT_VERSION",
   // update-notifier opt-out for the CLI binary.
   "OMNIROUTE_NO_UPDATE_NOTIFIER",
   // Headless CLI execution flag for Electron.
@@ -129,6 +141,12 @@ const IGNORE_FROM_CODE = new Set([
   "QA_LOCALES",
   "QA_REPORT_SUFFIX",
   "QA_ROUTES",
+  // Post-publish verifier (scripts/release/verify-published.mjs): env passed INTO the
+  // clean Docker container script (Hard Rule #13 env-option pattern) — release tooling
+  // internals, never OmniRoute runtime config.
+  "VERIFY_DEADLINE_S",
+  "VERIFY_PORT",
+  "VERIFY_VERSION",
   // Doctor diagnostic flags (no runtime behavior yet — placeholders).
   "OMNIROUTE_DOCTOR_HOST",
   "OMNIROUTE_DOCTOR_LIVENESS_URL",
@@ -145,6 +163,9 @@ const IGNORE_FROM_CODE = new Set([
   // write-build-sha.mjs to stamp dist/BUILD_SHA — injected by the build, never
   // configured by users in .env.
   "OMNIROUTE_BUILD_SHA",
+  // Listener-owned self-fetch transport signal. The HTTP/HTTPS launchers set
+  // this before application imports; it is not user-configurable product env.
+  "OMNIROUTE_INTERNAL_SCHEME",
   // Source typo / placeholder.
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).

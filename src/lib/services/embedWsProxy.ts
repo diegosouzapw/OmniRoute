@@ -227,7 +227,7 @@ async function proxyUpgrade(req: IncomingMessage, socket: net.Socket, head: Buff
  *
  * `EMBED_WS_PROXY_HOST` takes precedence, but we fall back to `LIVE_WS_HOST`
  * so a single env var exposes BOTH WebSocket sockets (the Live dashboard server
- * on :20129 and this embed proxy on :20131) in Docker / behind a reverse proxy
+ * on :20132 and this embed proxy on :20131) in Docker / behind a reverse proxy
  * or tunnel. Without this fallback the embed proxy stayed bound to 127.0.0.1
  * even when the operator set `LIVE_WS_HOST=0.0.0.0`, so the Live view was
  * permanently "disconnected" in headless deployments (#5110). Defaults to

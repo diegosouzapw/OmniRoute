@@ -37,6 +37,7 @@ import {
   oneproxyStatsInput,
 } from "./schemas/tools.ts";
 import { startMcpHeartbeat } from "./runtimeHeartbeat.ts";
+import { countUniqueMcpTools } from "./toolCount.ts";
 import { z } from "zod";
 import { closeAuditDb, logToolCall } from "./audit.ts";
 import {
@@ -98,17 +99,19 @@ const MCP_ALLOWED_SCOPES = new Set(
     .map((s) => s.trim())
     .filter(Boolean)
 );
-const TOTAL_MCP_TOOL_COUNT =
-  MCP_TOOLS.length +
-  Object.keys(memoryTools).length +
-  Object.keys(skillTools).length +
-  Object.keys(agentSkillTools).length +
-  Object.keys(githubSkillTools).length +
-  Object.keys(poolTools).length +
-  gamificationTools.length +
-  pluginTools.length +
-  notionTools.length +
-  obsidianTools.length;
+const TOTAL_MCP_TOOL_COUNT = countUniqueMcpTools({
+  MCP_TOOLS,
+  memoryTools,
+  skillTools,
+  agentSkillTools,
+  githubSkillTools,
+  poolTools,
+  gamificationTools,
+  pluginTools,
+  notionTools,
+  obsidianTools,
+  compressionTools,
+});
 
 type JsonRecord = Record<string, unknown>;
 

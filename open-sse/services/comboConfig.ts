@@ -104,6 +104,16 @@ const DEFAULT_COMBO_CONFIG = {
     latencyWeight: 0.15,
     cacheTtlMs: 60000,
   },
+  // Context window requirements for combo target filtering/sorting (undefined by
+  // default — declared here so resolveComboSetupConfig's inferred return type
+  // includes the key; combo.ts reads config.contextRequirements).
+  contextRequirements: undefined as
+    | {
+        minContextWindow?: number;
+        preferLargeContext?: boolean;
+        contextFilterMode?: "strict" | "lenient";
+      }
+    | undefined,
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([

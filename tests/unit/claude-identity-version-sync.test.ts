@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 // Claude-Code identity version is hand-bumped in lockstep across several modules
-// (2.1.158 → .187 → .195 …). A silent partial bump makes one surface advertise a stale
+// (2.1.158 → .187 → .195 → .207 …). A silent partial bump makes one surface advertise a stale
 // `claude-cli/<version>` and can break Anthropic identity gating. This guard fails on drift.
 // (quota-share-hardening Phase 2 — gaps v3.8.42.)
 const claudeIdentity = await import("../../open-sse/executors/claudeIdentity.ts");
@@ -13,7 +13,7 @@ const glmProvider = await import("../../open-sse/config/glmProvider.ts");
 
 const CANONICAL = claudeIdentity.CLAUDE_CODE_VERSION;
 
-// "claude-cli/2.1.195 (external, sdk-cli)" → "2.1.195". String ops only — never a RegExp over
+// "claude-cli/2.1.207 (external, sdk-cli)" → "2.1.207". String ops only — never a RegExp over
 // the value, per the project's anti-ReDoS contract.
 function versionFromUserAgent(userAgent: string): string {
   const afterSlash = userAgent.split("claude-cli/")[1] ?? "";

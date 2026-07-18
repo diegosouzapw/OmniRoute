@@ -2,7 +2,7 @@ import { fetchLiveProviderLimits } from "@/lib/usage/providerLimits";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 
 // #4604 — Lazy backoff for the best-effort live-WS sidecar bridge. In single-port
-// deployments the sidecar (port 20129) is not running, so every compression event
+// deployments the sidecar (port 20132) is not running, so every compression event
 // POST failed with ECONNREFUSED; because the global fetch is proxyFetch, each
 // failure logged a "[ProxyFetch] Undici dispatcher failed" warning (272× in 42min).
 // After a few consecutive failures we stop attempting for a cooldown window (then
@@ -28,7 +28,7 @@ export async function forwardDashboardEventToLiveWs(
   // Skip while the bridge is in a cooldown window after repeated failures.
   if (liveWsDisabledUntil > now()) return;
 
-  const port = process.env.LIVE_WS_PORT || "20129";
+  const port = process.env.LIVE_WS_PORT || "20132";
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 1_500);
   try {
