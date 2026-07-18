@@ -164,7 +164,10 @@ if [ "$FAST" = "1" ]; then
   # node:test files changed by the boarded PRs (tests/unit/**/*.test.{ts,mjs};
   # tests/unit/ui/*.test.tsx belongs to the vitest-ui runner, not node:test).
   mapfile -t CHANGED < <(git -C "$WT" diff --name-only "origin/${BASE}" HEAD -- 'tests/unit' \
-    | grep -E '\.test\.(ts|mjs)$' | grep -v '^tests/unit/ui/' || true)
+    | grep -E '\.test\.(ts|mjs)$' || true)
+  # Subdirs test:unit actually runs (package.json allowlist) — anything else under
+  # tests/unit/<sub>/ belongs to another runner (e.g. autoCombo -> vitest).
+  UNIT_SUBDIRS=",api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage,"
   MAIN=()
   DASH=()
   SERIAL=()
@@ -173,6 +176,13 @@ if [ "$FAST" = "1" ]; then
     case "$f" in
       tests/unit/dashboard/*) DASH+=("$f") ;;
       tests/unit/serial/*) SERIAL+=("$f") ;;
+      *.test.mjs) MAIN+=("$f") ;; # tests/unit/**/*.test.mjs runs from any subdir
+      tests/unit/*/*)
+        sub="${f#tests/unit/}"; sub="${sub%%/*}"
+        case "$UNIT_SUBDIRS" in
+          *",${sub},"*) MAIN+=("$f") ;;
+          *) echo "[merge-train] (fast) skip ${f} — subdir '${sub}' not in test:unit (other runner)" ;;
+        esac ;;
       *) MAIN+=("$f") ;;
     esac
   done
