@@ -1087,9 +1087,14 @@ export class AntigravityExecutor extends BaseExecutor {
           firstResult,
           resolvedUpstreamId
         );
-        if (outcome.action === "throw") throw outcome.error;
-        if (outcome.action === "return") return outcome.result;
-        continue;
+        switch (outcome.action) {
+          case "throw":
+            throw outcome.error;
+          case "return":
+            return outcome.result;
+          default:
+            continue;
+        }
       }
 
       // Success (or any non-400) on a candidate → return immediately.
