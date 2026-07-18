@@ -28,6 +28,10 @@ import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import type { ConnectionRowConnection } from "../components/ConnectionRow";
 import { normalizeCodexLimitPolicy } from "../providerPageHelpers";
 import { useReorderByAvailability } from "./useReorderByAvailability";
+import {
+  useConnectionDeleteConfirm,
+  type ConnectionDeleteConfirmState,
+} from "./useConnectionDeleteConfirm";
 
 // Max connection ids accepted per bulk request — mirrors API-side cap.
 const MAX_BULK_IDS = 100;
@@ -80,7 +84,7 @@ export interface UseProviderConnectionsReturn {
   fetchProxyConfig: () => Promise<void>;
 
   // Single-connection handlers
-  handleDelete: (connectionId: string) => Promise<void>;
+  deleteConfirm: ConnectionDeleteConfirmState;
   handleUpdateConnectionStatus: (id: string, isActive: boolean) => Promise<void>;
   handleToggleRateLimit: (connectionId: string, enabled: boolean) => Promise<void>;
   handleToggleClaudeExtraUsage: (connectionId: string, enabled: boolean) => Promise<void>;
@@ -307,29 +311,7 @@ export function useProviderConnections(
   // Single-connection handlers
   // ────────────────────────────────────────────────────────────────────────
 
-  const handleDelete = useCallback(
-    async (connectionId: string) => {
-      if (!connectionId) return;
-      try {
-        const res = await fetch(`/api/providers/${connectionId}`, { method: "DELETE" });
-        if (res.ok) {
-          notify.success("Connection deleted");
-          await fetchConnections();
-        } else {
-          const data = await res.json().catch(() => ({}));
-          const message =
-            (typeof data?.error === "string" && data.error) ||
-            data?.error?.message ||
-            "Failed to delete connection";
-          notify.error(message);
-        }
-      } catch (error) {
-        console.error("Error deleting connection:", error);
-        notify.error("Failed to delete connection");
-      }
-    },
-    [fetchConnections, notify]
-  );
+  const deleteConfirm = useConnectionDeleteConfirm(fetchConnections, notify);
 
   const handleUpdateConnectionStatus = async (id: string, isActive: boolean) => {
     try {
@@ -909,7 +891,7 @@ export function useProviderConnections(
     fetchProxyConfig,
 
     // Single-connection handlers
-    handleDelete,
+    deleteConfirm,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
     handleToggleClaudeExtraUsage,

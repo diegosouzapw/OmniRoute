@@ -87,4 +87,16 @@ export const AUDIO_ONLY_PROVIDERS = {
     textIcon: "RV",
     website: "https://www.rev.ai",
   },
+
+  speechmatics: {
+    id: "speechmatics",
+    alias: "sm",
+    name: "Speechmatics",
+    icon: "record_voice_over",
+    color: "#0A2540",
+    textIcon: "SM",
+    website: "https://www.speechmatics.com",
+    hasFree: true,
+    freeNote: "Free tier — 8 hours/month, no credit card required. Batch (async) mode only.",
+  },
 };
