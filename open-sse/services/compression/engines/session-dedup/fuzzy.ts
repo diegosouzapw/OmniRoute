@@ -1,5 +1,5 @@
 // open-sse/services/compression/engines/session-dedup/fuzzy.ts
-import { storeBlock } from "../ccr/index.ts";
+import { buildCcrMarker, tryStoreBlock } from "../ccr/index.ts";
 
 type MessageLike = { role?: string; content?: unknown; [key: string]: unknown };
 
@@ -111,8 +111,9 @@ export function applyFuzzyPass(messages: MessageLike[], opts: FuzzyPassOptions):
 
     const replacements = new Map<number, string>();
     for (const nd of nearDups) {
-      const hash = storeBlock(nd.block.text, opts.principalId);
-      const marker = `[CCR retrieve hash=${hash} chars=${nd.block.text.length}]`;
+      const stored = tryStoreBlock(nd.block.text, opts.principalId, { source: "session-dedup" });
+      if (!stored.stored) continue;
+      const marker = buildCcrMarker(stored.hash, nd.block.text.length);
       if (marker.length < nd.block.text.length) replacements.set(nd.block.index, marker);
     }
     if (replacements.size === 0) return { messages, fuzzyCount: 0 };
@@ -138,9 +139,7 @@ export function runFuzzyPass(
   principalId?: string
 ): FuzzyPassResult {
   const raw = stepConfig["fuzzy"] as
-    | boolean
-    | { enabled?: boolean; minJaccard?: number; shingleSize?: number }
-    | undefined;
+    boolean | { enabled?: boolean; minJaccard?: number; shingleSize?: number } | undefined;
   const cfg = typeof raw === "boolean" ? { enabled: raw } : raw;
   if (!cfg?.enabled) return { messages, fuzzyCount: 0 };
   return applyFuzzyPass(messages, {

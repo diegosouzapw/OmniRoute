@@ -19,7 +19,7 @@ export const AGY_PUBLIC_MODELS = Object.freeze([
   {
     id: "claude-opus-4-6-thinking",
     name: "Claude Opus 4.6 (Thinking)",
-    contextLength: 200000,
+    contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
     supportsVision: true,
@@ -28,7 +28,7 @@ export const AGY_PUBLIC_MODELS = Object.freeze([
   {
     id: "claude-sonnet-4-6",
     name: "Claude Sonnet 4.6 (Thinking)",
-    contextLength: 200000,
+    contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
     supportsVision: true,

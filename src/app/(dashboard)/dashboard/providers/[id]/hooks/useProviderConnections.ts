@@ -27,6 +27,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import type { ConnectionRowConnection } from "../components/ConnectionRow";
 import { normalizeCodexLimitPolicy } from "../providerPageHelpers";
+import { useProviderQuotaVisibility } from "./useProviderQuotaVisibility";
 import { useReorderByAvailability } from "./useReorderByAvailability";
 import {
   useConnectionDeleteConfirm,
@@ -74,8 +75,7 @@ export interface UseProviderConnectionsReturn {
   setBatchTestResults: (r: BatchTestResults) => void;
   setConnections: (
     updater:
-      | ConnectionRowConnection[]
-      | ((prev: ConnectionRowConnection[]) => ConnectionRowConnection[])
+      ConnectionRowConnection[] | ((prev: ConnectionRowConnection[]) => ConnectionRowConnection[])
   ) => void;
   setProviderNode: (node: any) => void;
 
@@ -87,6 +87,7 @@ export interface UseProviderConnectionsReturn {
   deleteConfirm: ConnectionDeleteConfirmState;
   handleUpdateConnectionStatus: (id: string, isActive: boolean) => Promise<void>;
   handleToggleRateLimit: (connectionId: string, enabled: boolean) => Promise<void>;
+  handleToggleQuotaVisibility: (connectionId: string, visible: boolean) => Promise<void>;
   handleToggleClaudeExtraUsage: (connectionId: string, enabled: boolean) => Promise<void>;
   handleToggleCodexLimit: (connectionId: string, field: string, enabled: boolean) => Promise<void>;
   handleToggleCliproxyapiMode: (connectionId: string, enabled: boolean) => Promise<void>;
@@ -135,6 +136,7 @@ export function useProviderConnections(
 
   // ── core state ──────────────────────────────────────────────────────────
   const [connections, setConnections] = useState<ConnectionRowConnection[]>([]);
+  const handleToggleQuotaVisibility = useProviderQuotaVisibility(setConnections, notify, t);
   const [providerNode, setProviderNode] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -894,6 +896,7 @@ export function useProviderConnections(
     deleteConfirm,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
+    handleToggleQuotaVisibility,
     handleToggleClaudeExtraUsage,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
