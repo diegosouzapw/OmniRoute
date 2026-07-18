@@ -54,6 +54,10 @@ import {
 // processAntigravitySSEPayload re-exported for external importers (tests).
 export { processAntigravitySSEPayload } from "./antigravity/sseCollect.ts";
 import {
+  handleAntigravityFallbackChainError,
+  handleAntigravityFallback400,
+} from "./antigravity/proFallbackChain.ts";
+import {
   applyAntigravityClientProfileHeaders,
   removeHeaderCaseInsensitive,
 } from "../services/antigravityClientProfile.ts";
@@ -1074,32 +1078,18 @@ export class AntigravityExecutor extends BaseExecutor {
       try {
         result = await this.executeOnce(input, candidate);
       } catch (error) {
-        // Abort signal (user disconnect) — propagate immediately, do not retry.
-        const isAbort =
-          input.signal?.aborted ||
-          (error instanceof DOMException && error.name === "AbortError") ||
-          (error instanceof Error && error.name === "AbortError");
-        if (isAbort) {
-          throw error;
-        }
-        if (i < chain.length - 1) {
-          input.log?.debug?.(
-            "AG_PRO_FALLBACK",
-            `Exception on "${candidate}" (${error instanceof Error ? error.message : String(error)}) -- retrying with next Pro candidate "${chain[i + 1]}"`
-          );
-          continue;
-        }
-        // Last candidate also threw -- return original 400 if available, otherwise throw.
-        if (firstResult) {
-          input.log?.warn?.(
-            "AG_PRO_FALLBACK",
-            `Pro fallback chain exhausted (last candidate threw, but first candidate returned 400) for "${resolvedUpstreamId}". Returning original 400.`
-          );
-          return firstResult;
-        }
-        throw new Error(
-          `Pro fallback chain exhausted (all ${chain.length} candidates failed). Last error: ${error instanceof Error ? error.message : String(error)}`
+        const outcome = handleAntigravityFallbackChainError(
+          input,
+          error,
+          candidate,
+          i,
+          chain,
+          firstResult,
+          resolvedUpstreamId
         );
+        if (outcome.action === "throw") throw outcome.error;
+        if (outcome.action === "return") return outcome.result;
+        continue;
       }
 
       // Success (or any non-400) on a candidate → return immediately.
@@ -1110,21 +1100,17 @@ export class AntigravityExecutor extends BaseExecutor {
       // Remember the FIRST 400 so the exhausted-chain case surfaces the original error.
       if (!firstResult) firstResult = result;
 
-      const isLast = i === chain.length - 1;
-      if (!isLast) {
-        input.log?.debug?.(
-          "AG_PRO_FALLBACK",
-          `400 on "${candidate}" — retrying with next Pro candidate "${chain[i + 1]}"`
-        );
-        continue;
-      }
-
-      // Chain exhausted: surface the FIRST candidate's sanitized 400.
-      input.log?.warn?.(
-        "AG_PRO_FALLBACK",
-        `Pro fallback chain exhausted (all ${chain.length} candidates 400'd) for "${resolvedUpstreamId}"`
+      const outcome400 = handleAntigravityFallback400(
+        input,
+        result,
+        firstResult,
+        candidate,
+        i,
+        chain,
+        resolvedUpstreamId
       );
-      return firstResult ?? result;
+      if (outcome400.action === "return") return outcome400.result;
+      continue;
     }
 
     // Unreachable (loop always returns), but keeps the type checker happy.

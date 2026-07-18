@@ -29,6 +29,68 @@ export interface DnsProvisionDeps {
   logger?: DnsProvisionLogger;
 }
 
+/** Fully-resolved dependency set used by the per-step provisioning helpers below. */
+type ResolvedDnsProvisionDeps = {
+  addDefaultDns: (sudoPassword: string) => Promise<void>;
+  addHostsDns: (hosts: string[], sudoPassword: string) => Promise<void>;
+  getAgentStates: () => ReturnType<typeof getAllAgentBridgeStates>;
+  listEnabledCustomHosts: () => ReturnType<typeof listCustomHosts>;
+  logger: DnsProvisionLogger;
+};
+
+/** Antigravity default hosts — best-effort, never throws. */
+async function provisionDefaultDns(
+  sudoPassword: string,
+  deps: ResolvedDnsProvisionDeps
+): Promise<void> {
+  try {
+    await deps.addDefaultDns(sudoPassword);
+  } catch (err) {
+    deps.logger.error({ err }, "Failed to add default DNS entries (continuing)");
+  }
+}
+
+/** Hosts for agents with `dns_enabled=true` in the DB — best-effort, never throws. */
+async function provisionAgentDns(
+  sudoPassword: string,
+  deps: ResolvedDnsProvisionDeps
+): Promise<void> {
+  try {
+    const agentStates = deps.getAgentStates();
+    const agentHostsToAdd: string[] = [];
+    for (const state of agentStates) {
+      if (!state.dns_enabled) continue;
+      const target = ALL_TARGETS.find((t) => t.id === state.agent_id);
+      if (target) {
+        agentHostsToAdd.push(...target.hosts);
+      }
+    }
+    if (agentHostsToAdd.length > 0) {
+      deps.logger.info({ count: agentHostsToAdd.length }, "Adding DNS for agent host(s)...");
+      await deps.addHostsDns(agentHostsToAdd, sudoPassword);
+    }
+  } catch (err) {
+    deps.logger.error({ err }, "Failed to add agent DNS entries (continuing)");
+  }
+}
+
+/** Enabled custom hosts — best-effort, never throws. */
+async function provisionCustomHostsDns(
+  sudoPassword: string,
+  deps: ResolvedDnsProvisionDeps
+): Promise<void> {
+  try {
+    const customHosts = deps.listEnabledCustomHosts();
+    const customHostNames = customHosts.map((h) => h.host);
+    if (customHostNames.length > 0) {
+      deps.logger.info({ count: customHostNames.length }, "Adding DNS for custom host(s)...");
+      await deps.addHostsDns(customHostNames, sudoPassword);
+    }
+  } catch (err) {
+    deps.logger.error({ err }, "Failed to add custom host DNS entries (continuing)");
+  }
+}
+
 /**
  * Provision every AgentBridge DNS entry (Antigravity defaults + agents with
  * `dns_enabled=true` + enabled custom hosts). **Every step is best-effort**: a failure
@@ -48,11 +110,6 @@ export async function provisionDnsEntries(
   sudoPassword: string,
   deps: DnsProvisionDeps = {}
 ): Promise<void> {
-  const addDefaultDns = deps.addDefaultDns ?? addDNSEntry;
-  const addHostsDns = deps.addHostsDns ?? addDNSEntries;
-  const getAgentStates = deps.getAgentStates ?? getAllAgentBridgeStates;
-  const listEnabledCustomHosts =
-    deps.listEnabledCustomHosts ?? (() => listCustomHosts({ enabledOnly: true }));
   const canElevate = deps.canElevate ?? (() => isSudoAvailable() || isRoot());
   const logger = deps.logger ?? defaultLog;
 
@@ -72,41 +129,16 @@ export async function provisionDnsEntries(
     return;
   }
 
-  // Antigravity default hosts.
-  try {
-    await addDefaultDns(sudoPassword);
-  } catch (err) {
-    logger.error({ err }, "Failed to add default DNS entries (continuing)");
-  }
+  const resolvedDeps: ResolvedDnsProvisionDeps = {
+    addDefaultDns: deps.addDefaultDns ?? addDNSEntry,
+    addHostsDns: deps.addHostsDns ?? addDNSEntries,
+    getAgentStates: deps.getAgentStates ?? getAllAgentBridgeStates,
+    listEnabledCustomHosts:
+      deps.listEnabledCustomHosts ?? (() => listCustomHosts({ enabledOnly: true })),
+    logger,
+  };
 
-  // Collect hosts from agents that have dns_enabled=true in the DB.
-  try {
-    const agentStates = getAgentStates();
-    const agentHostsToAdd: string[] = [];
-    for (const state of agentStates) {
-      if (!state.dns_enabled) continue;
-      const target = ALL_TARGETS.find((t) => t.id === state.agent_id);
-      if (target) {
-        agentHostsToAdd.push(...target.hosts);
-      }
-    }
-    if (agentHostsToAdd.length > 0) {
-      logger.info({ count: agentHostsToAdd.length }, "Adding DNS for agent host(s)...");
-      await addHostsDns(agentHostsToAdd, sudoPassword);
-    }
-  } catch (err) {
-    logger.error({ err }, "Failed to add agent DNS entries (continuing)");
-  }
-
-  // Collect enabled custom hosts.
-  try {
-    const customHosts = listEnabledCustomHosts();
-    const customHostNames = customHosts.map((h) => h.host);
-    if (customHostNames.length > 0) {
-      logger.info({ count: customHostNames.length }, "Adding DNS for custom host(s)...");
-      await addHostsDns(customHostNames, sudoPassword);
-    }
-  } catch (err) {
-    logger.error({ err }, "Failed to add custom host DNS entries (continuing)");
-  }
+  await provisionDefaultDns(sudoPassword, resolvedDeps);
+  await provisionAgentDns(sudoPassword, resolvedDeps);
+  await provisionCustomHostsDns(sudoPassword, resolvedDeps);
 }
