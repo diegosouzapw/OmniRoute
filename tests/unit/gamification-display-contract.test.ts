@@ -8,7 +8,10 @@ import { BUILTIN_BADGES } from "../../src/lib/gamification/badges";
 
 const profileSource = readFileSync("src/app/(dashboard)/dashboard/profile/page.tsx", "utf8");
 const tokensSource = readFileSync("src/app/(dashboard)/dashboard/tokens/page.tsx", "utf8");
-const costsSource = readFileSync("src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx", "utf8");
+const topListSource = readFileSync(
+  "src/app/(dashboard)/dashboard/costs/components/TopListCard.tsx",
+  "utf8"
+);
 const englishBadges = en.gamification.badges as Record<string, Record<string, string>>;
 const vietnameseBadges = vi.gamification.badges as Record<string, Record<string, string>>;
 
@@ -42,10 +45,7 @@ test("token page no longer contains known raw English controls", () => {
   }
 });
 
-test("cost list component declares its own translation scope", () => {
-  const topListSource = costsSource.slice(
-    costsSource.indexOf("function TopListCard"),
-    costsSource.indexOf("interface ColumnDef")
-  );
-  assert.match(topListSource, /const t = useTranslations\("costs"\);/);
+test("cost list component receives its localized legacy-free label", () => {
+  assert.match(topListSource, /legacyFreeLabel: string;/);
+  assert.match(topListSource, /\{legacyFreeLabel\}/);
 });
