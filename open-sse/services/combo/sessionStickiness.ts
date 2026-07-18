@@ -205,7 +205,10 @@ const stickyMap = new Map<string, StickyEntry>();
  * stickiness-key derivation, covering both wire formats:
  *   - Chat Completions (`/v1/chat/completions`) → turns live in `.messages`.
  *   - OpenAI Responses API (`/v1/responses`) → turns live in `.input`, which may be a
- *     plain string OR an array of message items; `.messages` is never populated.
+ *     plain string OR an array of message items; `.messages` is never populated. Array
+ *     items may themselves be bare strings (shorthand for a user message) — the same
+ *     shape `responsesInputNormalization.ts`'s `normalizeCodexResponsesInputItem`
+ *     already special-cases — so those are mapped to `{role: "user", content: item}`.
  * Combo target ordering runs BEFORE per-target format translation, so without this
  * the Responses-API key resolved to null and stickiness silently no-oped for the
  * entire surface (round-robin/random/strict-random all re-ordered every turn).
@@ -224,7 +227,9 @@ export function normalizeStickinessMessages(
     return [{ role: "user", content: input }];
   }
   if (Array.isArray(input) && input.length > 0) {
-    return input as Array<{ role?: string; content?: unknown }>;
+    return input.map((item) =>
+      typeof item === "string" ? { role: "user", content: item } : item
+    ) as Array<{ role?: string; content?: unknown }>;
   }
   return null;
 }

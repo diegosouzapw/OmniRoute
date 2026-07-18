@@ -122,6 +122,34 @@ test("normalizeStickinessMessages: covers .messages, .input array and .input str
   assert.equal(stick.normalizeStickinessMessages(null), null);
 });
 
+test("normalizeStickinessMessages: .input array of PLAIN STRINGS maps to user messages (#7270 bare-string-array gap)", () => {
+  // The Responses API also allows `.input` to be an array of bare strings (each string
+  // is shorthand for an `input_text` user message) — the exact shape
+  // `responsesInputNormalization.ts`'s `normalizeCodexResponsesInputItem` already
+  // special-cases (`typeof itemValue === "string"`). Before this fix, the
+  // Array.isArray(input) branch cast the array straight through unmapped, so
+  // deriveMessageHash's `messages.find(m => m?.role === "user")` never matched a bare
+  // string and the key stayed null (fail-open), same bug as #7270 for this narrower shape.
+  const fromPlainStringArray = stick.normalizeStickinessMessages({
+    input: ["First turn of the conversation, plain string item"],
+  });
+  assert.deepEqual(fromPlainStringArray, [
+    { role: "user", content: "First turn of the conversation, plain string item" },
+  ]);
+
+  const key = stick.deriveMessageHash(fromPlainStringArray);
+  assert.ok(key !== null, "a bare-string .input array item must still yield a stickiness key");
+  assert.match(key!, /^[a-f0-9]{16}$/);
+
+  // Mixed arrays (bare string turn followed by a structured item) must only map the
+  // bare-string entries, leaving object items untouched.
+  const mixed = stick.normalizeStickinessMessages({
+    input: ["plain turn", { role: "user", content: [{ type: "input_text", text: "hi" }] }],
+  });
+  assert.deepEqual(mixed?.[0], { role: "user", content: "plain turn" });
+  assert.deepEqual(mixed?.[1], { role: "user", content: [{ type: "input_text", text: "hi" }] });
+});
+
 test("an .input-shaped Responses body yields a stable, non-null stickiness key", () => {
   const body = responsesBody(rrCombo("k"), "First turn of the conversation");
   // Old behavior: deriveMessageHash(body.messages) is null (bug).
@@ -148,6 +176,40 @@ test("round-robin: a sessionless Responses-API conversation re-pins across turns
   }
   // Turns 2..5 must all reuse turn 1's connection. Before the fix the RR combo rotates
   // (conn-A → conn-B → conn-C → …) because the .input key resolved to null → set size 3.
+  assert.equal(
+    new Set(conns.slice(1)).size,
+    1,
+    `turns 2..5 must stick to one connection, got: ${conns.join(", ")}`
+  );
+  assert.equal(conns[1], conns[0], "turn 2 must reuse turn 1's connection");
+});
+
+// Responses-API shape variant: `.input` is an array of PLAIN STRING items (each string
+// is shorthand for a user message), not an array of message objects. Before this fix,
+// normalizeStickinessMessages cast the array straight through unmapped, so
+// deriveMessageHash never found a `role === "user"` entry and stickiness stayed
+// fail-open for this narrower wire shape too.
+function responsesBodyPlainStringArray(combo: Record<string, unknown>, firstMessage: string) {
+  return {
+    model: combo.name,
+    input: [firstMessage],
+    stream: false,
+  };
+}
+
+test("round-robin: a sessionless Responses-API conversation with .input as a plain-string array re-pins across turns (#7270 bare-string-array gap)", async () => {
+  const combo = rrCombo("rr-resp-stick-strarr");
+  const conns: string[] = [];
+  for (let turn = 0; turn < 5; turn++) {
+    conns.push(
+      await dispatchConnection(
+        combo,
+        responsesBodyPlainStringArray(combo, "Refactor the streaming handler (string-array input).")
+      )
+    );
+  }
+  // Turns 2..5 must all reuse turn 1's connection. Before the fix, the bare-string
+  // .input array items yield a null key → the RR combo rotates (conn-A → conn-B → conn-C).
   assert.equal(
     new Set(conns.slice(1)).size,
     1,
