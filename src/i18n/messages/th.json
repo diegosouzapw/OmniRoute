@@ -2218,7 +2218,17 @@
     "copilotToolCalling": "การเรียกเครื่องมือ",
     "copilotPasteInto": "วางลงใน:",
     "wireApiChatCompletions": "เสร็จสิ้นการแชท (/แชท/เสร็จสิ้น)",
-    "wireApiResponses": "API การตอบกลับ (/การตอบกลับ)"
+    "wireApiResponses": "API การตอบกลับ (/การตอบกลับ)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "คอมโบ",
@@ -2716,6 +2726,8 @@
     "range7d": "7 วัน",
     "range30d": "30 วัน",
     "range90d": "90 วัน",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "ตลอดเวลา",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",
@@ -3652,6 +3664,9 @@
     "apiKeyProviders": "ผู้ให้บริการคีย์ API",
     "compatibleProviders": "ผู้ให้บริการที่เข้ากันได้กับคีย์ API",
     "testAll": "ทดสอบทั้งหมด",
+    "reorderByAvailability": "จัดลำดับใหม่",
+    "reorderByAvailabilityTitle": "จัดลำดับการเชื่อมต่อใหม่ตามความพร้อมใช้งาน",
+    "reorderByAvailabilityError": "จัดลำดับการเชื่อมต่อใหม่ตามความพร้อมใช้งานไม่สำเร็จ",
     "testAllOAuth": "ทดสอบการเชื่อมต่อ OAuth ทั้งหมด",
     "testAllFree": "ทดสอบการเชื่อมต่อฟรีทั้งหมด",
     "testAllApiKey": "ทดสอบการเชื่อมต่อคีย์ API ทั้งหมด",
@@ -3756,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (สำหรับการตรวจสอบเท่านั้น)",
     "providerNotFound": "ไม่พบผู้ให้บริการ",
     "deleteConnectionConfirm": "ลบการเชื่อมต่อนี้ใช่ไหม",
+    "deleteConnectionConfirmNamed": "คุณแน่ใจหรือไม่ว่าต้องการลบ {name}? การกระทำนี้ไม่สามารถย้อนกลับได้",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",
@@ -4176,6 +4192,9 @@
     "consoleApiKeyOracleHint": "Console Api Key Oracle Hint",
     "consoleApiKeyOracleLabel": "Console Api Key Oracle Label",
     "consoleApiKeyOraclePlaceholder": "Console Api Key Oracle Placeholder",
+    "newApiUserIdLabel": "รหัสผู้ใช้ New-API",
+    "newApiUserIdPlaceholder": "เช่น 12345",
+    "newApiUserIdHint": "ค่าส่วนหัว New-Api-User ของ AgentRouter ใช้ร่วมกับคีย์ API ของคอนโซลเพื่อดึงยอดคงเหลือโควตา",
     "cpaModeDisabledTitle": "Cpa Mode Disabled Title",
     "cpaModeEnabledTitle": "Cpa Mode Enabled Title",
     "customUserAgentHint": "Custom User Agent Hint",
@@ -4427,7 +4446,9 @@
     "contextWindowOverrideLabel": "__MISSING__:Context Window Override",
     "contextWindowOverridePlaceholder": "__MISSING__:e.g. 131072",
     "contextWindowOverrideHint": "__MISSING__:Manually set this model's real context window (tokens) when the provider misreports it. Wins over auto-detected/catalog values and prevents combo routing from dropping the model.",
-    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens"
+    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "การตั้งค่า",
@@ -5517,7 +5538,12 @@
     "homeQuickStart": "Quick Start",
     "homeQuickStartDesc": "Show the Quick Start panel on the Home page.",
     "homeProviderTopology": "Provider Topology",
-    "homeProviderTopologyDesc": "Show the Provider Topology on the Home page."
+    "homeProviderTopologyDesc": "Show the Provider Topology on the Home page.",
+    "codexAutoPingTitle": "Codex Quota Auto-Ping",
+    "codexAutoPingDesc": "Opt-in per connection: sends a tiny request right after a Codex session window resets so it isn't cold when you need it.",
+    "codexAutoPingWarning": "Consumes a small amount of real Codex quota on every ping. Off by default — enable only for connections you actively rely on.",
+    "codexAutoPingSaveError": "Failed to update Codex Auto-Ping setting",
+    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -7614,5 +7640,14 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "hooks": "Hooks"
+  },
+  "freeProviderRankingsPage": {
+    "typeAll": "__MISSING__:All Types",
+    "typeNoauth": "__MISSING__:No Signup",
+    "typeOauth": "__MISSING__:OAuth Login",
+    "typeApikey": "__MISSING__:API Key",
+    "sortTypeFirst": "__MISSING__:Easiest first",
+    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   }
 }

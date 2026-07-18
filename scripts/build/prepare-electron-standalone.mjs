@@ -178,6 +178,9 @@ assembleStandalone({
   projectRoot: ROOT,
   sanitizePaths: true,
   copyNatives: true,
+  // #6724/#6594: dereference Turbopack hashed-module symlinks — inside the packaged
+  // app they would point at the build machine's absolute paths and break on install.
+  materializeSymlinks: true,
 });
 
 // Electron-UNIQUE post-assembly steps

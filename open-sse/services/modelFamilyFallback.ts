@@ -13,7 +13,7 @@
 
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { parseModel } from "./model.ts";
-import { CONTEXT_OVERFLOW_REGEX } from "./errorClassifier.ts";
+import { CONTEXT_OVERFLOW_REGEX, containsModelUnavailableMessage } from "./errorClassifier.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 // ── Model Family Definitions ─────────────────────────────────────────────────
@@ -129,7 +129,8 @@ export function isModelUnavailableError(status: number, errorMessage: string): b
   if (status !== 400 && status !== 403) return false;
 
   const msg = errorMessage.toLowerCase();
-  return MODEL_UNAVAILABLE_FRAGMENTS.some((fragment) => msg.includes(fragment));
+  if (MODEL_UNAVAILABLE_FRAGMENTS.some((fragment) => msg.includes(fragment))) return true;
+  return containsModelUnavailableMessage(errorMessage);
 }
 
 export function isContextOverflowError(status: number, errorMessage: string): boolean {

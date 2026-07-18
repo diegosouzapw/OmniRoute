@@ -7,6 +7,7 @@
 
 import { parseModelFromRegistry, getAllModelsFromRegistry } from "./registryUtils.ts";
 import { RUNWAYML_SUPPORTED_VIDEO_MODELS } from "./runway.ts";
+import { SEGMIND_VIDEO_MODELS } from "./providers/registry/segmind/videoModels.ts";
 
 interface VideoModel {
   id: string;
@@ -193,6 +194,23 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     models: RUNWAYML_SUPPORTED_VIDEO_MODELS,
   },
 
+  deepinfra: {
+    id: "deepinfra",
+    // Native DeepInfra inference endpoint — same host/auth already proven for reranking
+    // (open-sse/config/rerankRegistry.ts). Reuses the stored deepinfra provider Bearer
+    // apiKey (already registered for chat) — no separate credential flow.
+    baseUrl: "https://api.deepinfra.com/v1/inference",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "deepinfra-video",
+    models: [
+      { id: "Wan-AI/Wan2.2-T2V-A14B", name: "Wan 2.2 T2V A14B" },
+      { id: "Wan-AI/Wan2.2-TI2V-5B", name: "Wan 2.2 TI2V 5B" },
+      { id: "Wan-AI/Wan2.7-T2V", name: "Wan 2.7 T2V" },
+      { id: "Lightricks/LTX-2.3-Distilled", name: "LTX 2.3 Distilled" },
+    ],
+  },
+
   alibaba: {
     id: "alibaba",
     alias: "ali",
@@ -204,6 +222,47 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     authHeader: "bearer",
     format: "dashscope-video",
     models: [{ id: "wan2.7-t2v", name: "Wan 2.7 T2V" }],
+  },
+
+  // Segmind video generation (#6656). Same `POST /v1/{model}` REST shape as
+  // the image registry entry (imageRegistry.ts) — x-api-key auth, raw video
+  // bytes response — routed through the dedicated "segmind" format handler.
+  segmind: {
+    id: "segmind",
+    baseUrl: "https://api.segmind.com/v1",
+    authType: "apikey",
+    authHeader: "x-api-key",
+    format: "segmind",
+    models: SEGMIND_VIDEO_MODELS,
+  },
+
+  novita: {
+    id: "novita",
+    // Novita's async video APIs are per-model: the model id IS the submit path
+    // segment (`/v3/async/<model>`), all sharing one task-result poll endpoint.
+    // Reuses the stored novita provider Bearer apiKey — no separate credential flow.
+    baseUrl: "https://api.novita.ai/v3/async",
+    statusUrl: "https://api.novita.ai/v3/async/task-result",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "novita-video",
+    models: [
+      { id: "wan-t2v", name: "Wan 2.1 Text-to-Video" },
+      { id: "kling-v1.6-t2v", name: "Kling V1.6 Text-to-Video" },
+    ],
+  },
+
+  xai: {
+    id: "xai",
+    // xAI Grok Imagine async video-generation API. Reuses the stored xai
+    // provider Bearer apiKey (same credential the image-generation "xai"
+    // entry in imageRegistry.ts already uses) — no separate credential flow.
+    baseUrl: "https://api.x.ai/v1/videos",
+    statusUrl: "https://api.x.ai/v1/videos",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "xai-video",
+    models: [{ id: "grok-imagine-video", name: "Grok Imagine Video" }],
   },
 };
 

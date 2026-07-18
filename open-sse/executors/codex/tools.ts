@@ -1,6 +1,8 @@
 // Codex Responses-API tool normalization (hosted-tool passthrough + free-plan gating).
 // Extracted verbatim from codex.ts. Self-contained (console.debug only).
 
+import { stripUnsupportedRegexPatterns } from "../../translator/helpers/schemaCoercion.ts";
+
 // Responses-API hosted tool types that OpenAI/Codex executes server-side.
 // These arrive shaped as `{ type, ...params }` with no `function` object and no `name` —
 // e.g. Codex CLI injects `{ type: "image_generation", output_format: "png" }` or
@@ -133,6 +135,11 @@ export function normalizeCodexTools(
           ? functionObject.strict
           : undefined;
 
+    // Codex/OpenAI Responses API rejects `pattern` fields using regex lookaround
+    // (e.g. `^(?=.*@).+$`) with a 400 "regex lookaround is not supported" error.
+    // Strip those before the schema reaches upstream (9router#1556).
+    const sanitizedParameters = stripUnsupportedRegexPatterns(parameters);
+
     // Rewrite in-place to Responses format
     for (const key of Object.keys(tool)) {
       delete tool[key];
@@ -140,7 +147,7 @@ export function normalizeCodexTools(
     tool.type = "function";
     tool.name = name.slice(0, 128);
     if (description) tool.description = description;
-    tool.parameters = parameters;
+    tool.parameters = sanitizedParameters;
     if (strict !== undefined) tool.strict = strict;
 
     validToolNames.add(name);

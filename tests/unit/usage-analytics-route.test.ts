@@ -144,7 +144,7 @@ test("GET /api/usage/analytics resolves Codex GPT-5.5 pricing through provider a
 
   assert.equal(response.status, 200);
   assertClose(body.summary.totalCost, 0.02);
-  assert.equal(body.byProvider[0].provider, "codex");
+  assert.equal(body.byProvider[0].provider, "OpenAI Codex");
   assertClose(body.byProvider[0].cost, 0.02);
   assert.equal(body.byModel[0].model, "gpt-5.5");
   assertClose(body.byModel[0].cost, 0.02);

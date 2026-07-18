@@ -8,6 +8,7 @@ import {
 } from "@omniroute/open-sse/config/audioRegistry.ts";
 import { ANTIGRAVITY_PUBLIC_MODELS } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+import { getSearchProvider } from "@omniroute/open-sse/config/searchRegistry.ts";
 
 import { getModelsByProviderId } from "@/shared/constants/models";
 
@@ -115,10 +116,46 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
   ],
 };
 
+const SEARCH_TYPE_LABELS: Record<string, string> = {
+  web: "Web Search",
+  news: "News Search",
+};
+
+function formatSearchTypeLabel(searchType: string): string {
+  return (
+    SEARCH_TYPE_LABELS[searchType] ??
+    `${searchType.charAt(0).toUpperCase()}${searchType.slice(1)} Search`
+  );
+}
+
+/**
+ * Search providers don't have "models" — a provider IS the model (see
+ * open-sse/config/searchRegistry.ts header doc). Any search provider without a
+ * dedicated literal entry above (custom depth/engine catalog, e.g.
+ * "linkup-search") still needs a non-empty static catalog so the "Available
+ * Models" / model-import UI shows a usable list instead of a 400 "does not
+ * support models listing" (#7529). Derive it generically from the registry's
+ * own `searchTypes` so any *future* search provider is covered automatically.
+ */
+function getSearchProviderFallbackCatalog(provider: string): LocalCatalogModel[] | undefined {
+  const searchProvider = getSearchProvider(provider);
+  if (!searchProvider || searchProvider.searchTypes.length === 0) return undefined;
+
+  return searchProvider.searchTypes.map((searchType) => ({
+    id: searchType,
+    name: formatSearchTypeLabel(searchType),
+  }));
+}
+
 export function getStaticModelsForProvider(provider: string): LocalCatalogModel[] | undefined {
   const staticModelsFn = STATIC_MODEL_PROVIDERS[provider];
   if (staticModelsFn) {
     return staticModelsFn();
+  }
+
+  const searchFallback = getSearchProviderFallbackCatalog(provider);
+  if (searchFallback) {
+    return searchFallback;
   }
 
   const specialtyModels: LocalCatalogModel[] = [];

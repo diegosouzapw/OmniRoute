@@ -211,9 +211,15 @@ function speedFactorsFor(
   failureRate: number
 ): SpeedFactors {
   return {
-    ttft: lowerIsBetter(positiveFinite(candidate.avgTtftMs), maxima.ttft),
+    ttft: lowerIsBetter(
+      positiveFinite(candidate.avgTtftMs) ?? positiveFinite(candidate.p95LatencyMs),
+      maxima.ttft
+    ),
     tps: higherIsBetter(positiveFinite(candidate.avgTokensPerSecond), maxima.tps),
-    e2e: lowerIsBetter(positiveFinite(candidate.avgE2ELatencyMs), maxima.e2e),
+    e2e: lowerIsBetter(
+      positiveFinite(candidate.avgE2ELatencyMs) ?? positiveFinite(candidate.p95LatencyMs),
+      maxima.e2e
+    ),
     p95: lowerIsBetter(positiveFinite(candidate.p95LatencyMs), maxima.p95),
     health: healthScoreFor(candidate.circuitBreakerState),
     reliability: clamp01(1 - failureRate),

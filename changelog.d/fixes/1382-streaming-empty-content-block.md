@@ -1,0 +1,1 @@
+- **fix(combo):** streaming Claude responses whose content block opens (`content_block_start`) and closes with no usable text/tool_use — a shape some upstreams return for tool-heavy requests on HTTP 200 — are now detected by `validateResponseQuality`'s SSE peek and trigger combo failover instead of being forwarded to the client as a silent empty completion (thanks @heishen6).

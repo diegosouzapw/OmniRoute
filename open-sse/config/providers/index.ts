@@ -9,6 +9,7 @@ import { ideogramProvider } from "./registry/ideogram/index.ts";
 import { friendliaiProvider } from "./registry/friendliai/index.ts";
 import { sunoProvider } from "./registry/suno/index.ts";
 import { adapta_webProvider } from "./registry/adapta-web/index.ts";
+import { notion_webProvider } from "./registry/notion-web/index.ts";
 import { anthropicProvider } from "./registry/anthropic/index.ts";
 import { sambanovaProvider } from "./registry/sambanova/index.ts";
 import { puterProvider } from "./registry/puter/index.ts";
@@ -64,6 +65,12 @@ import { cohereProvider } from "./registry/cohere/index.ts";
 import { cursorProvider } from "./registry/cursor/index.ts";
 import { volcengineProvider } from "./registry/volcengine/index.ts";
 import { hackclubProvider } from "./registry/hackclub/index.ts";
+import { freetheaiProvider } from "./registry/freetheai/index.ts";
+import { g4f_groqProvider } from "./registry/g4f-groq/index.ts";
+import { g4f_geminiProvider } from "./registry/g4f-gemini/index.ts";
+import { g4f_pollinationsProvider } from "./registry/g4f-pollinations/index.ts";
+import { g4f_ollamaProvider } from "./registry/g4f-ollama/index.ts";
+import { g4f_nvidiaProvider } from "./registry/g4f-nvidia/index.ts";
 import { tencentProvider } from "./registry/tencent/index.ts";
 import { cozeProvider } from "./registry/coze/index.ts";
 import { ai21Provider } from "./registry/ai21/index.ts";
@@ -121,6 +128,7 @@ import { longcatProvider } from "./registry/longcat/index.ts";
 import { vertex_partnerProvider } from "./registry/vertex/partner/index.ts";
 import { vertexProvider } from "./registry/vertex/index.ts";
 import { duckduckgo_webProvider } from "./registry/duckduckgo-web/index.ts";
+import { felo_webProvider } from "./registry/felo-web/index.ts";
 import { xaiProvider } from "./registry/xai/index.ts";
 import { morphProvider } from "./registry/morph/index.ts";
 import { siliconflowProvider } from "./registry/siliconflow/index.ts";
@@ -151,6 +159,7 @@ import { gigachatProvider } from "./registry/gigachat/index.ts";
 import { devin_cliProvider } from "./registry/devin-cli/index.ts";
 import { auggieProvider } from "./registry/auggie/index.ts";
 import { chutesProvider } from "./registry/chutes/index.ts";
+import { chenzkProvider } from "./registry/chenzk/index.ts";
 import { factoryProvider } from "./registry/factory/index.ts";
 import { databricksProvider } from "./registry/databricks/index.ts";
 import { rekaProvider } from "./registry/reka/index.ts";
@@ -195,6 +204,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   friendliai: friendliaiProvider,
   suno: sunoProvider,
   "adapta-web": adapta_webProvider,
+  "notion-web": notion_webProvider,
   anthropic: anthropicProvider,
   sambanova: sambanovaProvider,
   puter: puterProvider,
@@ -250,6 +260,12 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   cursor: cursorProvider,
   volcengine: volcengineProvider,
   hackclub: hackclubProvider,
+  freetheai: freetheaiProvider,
+  "g4f-groq": g4f_groqProvider,
+  "g4f-gemini": g4f_geminiProvider,
+  "g4f-pollinations": g4f_pollinationsProvider,
+  "g4f-ollama": g4f_ollamaProvider,
+  "g4f-nvidia": g4f_nvidiaProvider,
   tencent: tencentProvider,
   coze: cozeProvider,
   ai21: ai21Provider,
@@ -307,6 +323,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "vertex-partner": vertex_partnerProvider,
   vertex: vertexProvider,
   "duckduckgo-web": duckduckgo_webProvider,
+  "felo-web": felo_webProvider,
   xai: xaiProvider,
   morph: morphProvider,
   siliconflow: siliconflowProvider,
@@ -336,6 +353,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "devin-cli": devin_cliProvider,
   auggie: auggieProvider,
   chutes: chutesProvider,
+  chenzk: chenzkProvider,
   factory: factoryProvider,
   databricks: databricksProvider,
   reka: rekaProvider,
