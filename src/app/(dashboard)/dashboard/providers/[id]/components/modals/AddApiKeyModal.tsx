@@ -34,6 +34,7 @@ import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
 import { computeConnectionDefaultName } from "./computeConnectionDefaultName";
+import AgentrouterConsoleFields from "./AgentrouterConsoleFields";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 export interface AddApiKeyModalProps {
@@ -132,6 +133,7 @@ export default function AddApiKeyModal({
     customUserAgent: "",
     accountId: "",
     consoleApiKey: "",
+    newApiUserId: "",
     ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
@@ -864,6 +866,12 @@ export default function AddApiKeyModal({
                     type="password"
                   />
                 )}
+                <AgentrouterConsoleFields
+                  provider={provider}
+                  values={formData}
+                  onChange={(patch) => setFormData({ ...formData, ...patch })}
+                  t={t}
+                />
               </div>
             )}
             <Input

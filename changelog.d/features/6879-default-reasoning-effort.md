@@ -1,0 +1,1 @@
+- feat(sse): per-model default `reasoning_effort` (`ModelSpec.defaultReasoningEffort`, injected only when the request carries no reasoning field) and make `no-think/` express `reasoning_effort:"none"` instead of deleting the field on the OpenAI path, so thinks-by-default models actually stop thinking (#6879)

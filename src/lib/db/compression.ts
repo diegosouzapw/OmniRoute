@@ -554,6 +554,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     ultra: normalizeUltraConfig(undefined),
     contextBudget: normalizeContextBudgetConfig(undefined),
     contextEditing: { ...DEFAULT_CONTEXT_EDITING_CONFIG },
+    liveZone: { enabled: false },
     engines: {},
     activeComboId: null,
   };
@@ -660,6 +661,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "contextEditing":
         config.contextEditing = normalizeContextEditingConfig(parsed);
+        break;
+      case "liveZone":
+        config.liveZone = { enabled: toRecord(parsed).enabled === true };
         break;
       case "engines":
         storedEngines = parseStoredEnginesMap(parsed);

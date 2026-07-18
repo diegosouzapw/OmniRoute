@@ -2,7 +2,8 @@
  * GrokCliExecutor — Grok Build Provider
  *
  * Routes requests through Grok's chat proxy endpoint using OAuth authentication.
- * Uses Node.js https module directly with IPv4 forced to bypass Cloudflare blocking.
+ * Uses Node.js https module directly with IPv4 forced to bypass Cloudflare blocking
+ * (only for the no-proxy direct path — see resolveGrokRequestDispatch below).
  * Supports automatic token refresh via refresh_token.
  */
 
@@ -14,10 +15,60 @@ import {
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { resolvePublicCred } from "../utils/publicCreds.ts";
+import { resolveProxyForRequest } from "../utils/proxyFetch.ts";
 import https from "node:https";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 const GROK_TOKEN_URL = "https://auth.x.ai/oauth2/token";
 const REQUEST_TIMEOUT_MS = 60_000;
+// xAI cli-chat-proxy hard limit on tools per request.
+const MAX_TOOLS = 200;
+
+type ProxyResolution = { source: string; proxyUrl: string | null };
+type GrokRequestDispatch = { agent?: https.Agent; family?: 4 };
+
+/**
+ * Resolve how a Grok Build request to `targetUrl` should egress: through the
+ * operator's configured proxy (connection/provider/global — whatever the caller
+ * already pinned via `runWithProxyContext` upstream in chatHelpers.ts) when one
+ * is set, or direct with the existing forced-IPv4 workaround when none is.
+ *
+ * This executor talks to Grok via raw `https.request()` instead of the global
+ * patched `fetch()` (every other executor's path), so it never consulted the
+ * proxy context at all — a configured proxy was silently ignored and the
+ * request always egressed on the host's real IP. Only HTTP/HTTPS (CONNECT)
+ * proxies are supported here; an explicitly configured proxy of another kind
+ * (e.g. SOCKS5) fails closed rather than silently falling back to direct,
+ * matching the "fail closed for OAuth usage account proxies" convention (#3051).
+ *
+ * `resolveProxy` is injectable for tests; defaults to the shared
+ * `resolveProxyForRequest` used by the patched global fetch.
+ */
+export function resolveGrokRequestDispatch(
+  targetUrl: string,
+  resolveProxy: (url: string) => ProxyResolution = resolveProxyForRequest
+): GrokRequestDispatch {
+  const { proxyUrl } = resolveProxy(targetUrl);
+
+  if (!proxyUrl) {
+    return { family: 4 };
+  }
+
+  let protocol: string;
+  try {
+    protocol = new URL(proxyUrl).protocol;
+  } catch {
+    throw new Error("Grok Build: configured proxy URL could not be parsed");
+  }
+
+  if (protocol === "http:" || protocol === "https:") {
+    return { agent: new HttpsProxyAgent(proxyUrl) as unknown as https.Agent };
+  }
+
+  throw new Error(
+    "Grok Build: configured proxy protocol is not supported for this provider (HTTP/HTTPS proxies only)"
+  );
+}
 
 export class GrokCliExecutor extends BaseExecutor {
   constructor() {
@@ -100,6 +151,7 @@ export class GrokCliExecutor extends BaseExecutor {
     timeoutMs = 10_000
   ): Promise<{ status: number; body: string }> {
     const urlObj = new URL(url);
+    const dispatch = resolveGrokRequestDispatch(url);
 
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => req.destroy(new Error("Timeout")), timeoutMs);
@@ -110,7 +162,8 @@ export class GrokCliExecutor extends BaseExecutor {
           port: 443,
           path: urlObj.pathname + urlObj.search,
           method: "POST",
-          family: 4,
+          ...(dispatch.family ? { family: dispatch.family } : {}),
+          ...(dispatch.agent ? { agent: dispatch.agent } : {}),
           headers: {
             ...headers,
             "Content-Length": Buffer.byteLength(bodyStr),
@@ -145,6 +198,7 @@ export class GrokCliExecutor extends BaseExecutor {
     signal?: AbortSignal | null
   ): Promise<Response> {
     const urlObj = new URL(url);
+    const dispatch = resolveGrokRequestDispatch(url);
 
     if (signal?.aborted) {
       return Promise.reject(new Error("Aborted"));
@@ -167,7 +221,8 @@ export class GrokCliExecutor extends BaseExecutor {
           port: 443,
           path: urlObj.pathname + urlObj.search,
           method: "POST",
-          family: 4,
+          ...(dispatch.family ? { family: dispatch.family } : {}),
+          ...(dispatch.agent ? { agent: dispatch.agent } : {}),
           headers: {
             ...headers,
             "Content-Length": Buffer.byteLength(bodyStr),
@@ -255,6 +310,14 @@ export class GrokCliExecutor extends BaseExecutor {
       if (param in transformed) {
         delete transformed[param];
       }
+    }
+
+    // xAI's cli-chat-proxy enforces a maximum of 200 tools per request and
+    // 400s above that ceiling. Clients that fan a large MCP toolset through
+    // Grok Build/Composer (e.g. Claude Code with many registered tools) can
+    // exceed it — cap defensively rather than let the request fail upstream.
+    if (Array.isArray(transformed.tools) && transformed.tools.length > MAX_TOOLS) {
+      transformed.tools = transformed.tools.slice(0, MAX_TOOLS);
     }
 
     return transformed;

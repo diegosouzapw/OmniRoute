@@ -61,6 +61,20 @@ type SseHeartbeatTransformOptions = {
 
 const HEARTBEAT_ENCODER = new TextEncoder();
 
+/**
+ * Whether OmniRoute may emit SSE `:` comment lines (e.g. the `: keepalive` heartbeat).
+ * Some strict OpenAI-compatible clients parse every SSE line as JSON and crash on `:` comments.
+ * Set OMNIROUTE_SSE_COMMENTS=off to suppress comment-shaped heartbeats (they become a no-op).
+ * Defaults to enabled for backward compatibility.
+ */
+export function sseCommentsEnabled(): boolean {
+  // SSR/edge safety: `process` is not defined in Workers/Deno/edge runtimes.
+  if (typeof process === "undefined") return true;
+  const v = process.env.OMNIROUTE_SSE_COMMENTS;
+  if (v === undefined || v === "") return true;
+  return v.trim().toLowerCase() !== "off";
+}
+
 export function createSseHeartbeatTransform({
   intervalMs = DEFAULT_SSE_HEARTBEAT_INTERVAL_MS,
   signal,
@@ -69,6 +83,13 @@ export function createSseHeartbeatTransform({
   chunkModel,
 }: SseHeartbeatTransformOptions = {}): TransformStream<Uint8Array, Uint8Array> {
   if (!Number.isFinite(intervalMs) || intervalMs <= 0) {
+    return new TransformStream<Uint8Array, Uint8Array>();
+  }
+
+  // Opt-out for strict OpenAI-compatible clients that JSON.parse every SSE line and
+  // crash on `:` comment heartbeats. OMNIROUTE_SSE_COMMENTS=off disables comment-shaped
+  // heartbeats (they become a no-op); valid `data:` heartbeats are unaffected.
+  if (!sseCommentsEnabled() && shape === HEARTBEAT_SHAPES.COMMENT) {
     return new TransformStream<Uint8Array, Uint8Array>();
   }
 

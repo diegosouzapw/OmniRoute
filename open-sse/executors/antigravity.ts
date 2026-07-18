@@ -54,6 +54,10 @@ import {
 // processAntigravitySSEPayload re-exported for external importers (tests).
 export { processAntigravitySSEPayload } from "./antigravity/sseCollect.ts";
 import {
+  handleAntigravityFallbackChainError,
+  handleAntigravityFallback400,
+} from "./antigravity/proFallbackChain.ts";
+import {
   applyAntigravityClientProfileHeaders,
   removeHeaderCaseInsensitive,
 } from "../services/antigravityClientProfile.ts";
@@ -471,7 +475,18 @@ function sanitizeAntigravityGeminiRequest(
   const geminiTools = buildGeminiTools(request.tools);
   if (geminiTools) {
     clean.tools = geminiTools;
-    clean.toolConfig = { functionCallingConfig: { mode: "VALIDATED" } };
+    // #6914: Preserve includeServerSideToolInvocations from the raw request's
+    // toolConfig when present (set by transformRequest when tools exist). The
+    // sanitize whitelist would otherwise rebuild toolConfig without it.
+    const rawToolConfig = asRecord(request.toolConfig);
+    const rawFnConfig = asRecord(rawToolConfig?.functionCallingConfig);
+    const includeServerSide = rawFnConfig?.includeServerSideToolInvocations === true;
+    clean.toolConfig = {
+      functionCallingConfig: {
+        mode: "VALIDATED",
+        ...(includeServerSide ? { includeServerSideToolInvocations: true } : {}),
+      },
+    };
   } else if (asRecord(request.toolConfig)) {
     clean.toolConfig = request.toolConfig;
   }
@@ -704,7 +719,7 @@ export class AntigravityExecutor extends BaseExecutor {
       safetySettings: getAntigravitySafetySettings(normalizedRequest?.safetySettings),
       toolConfig:
         Array.isArray(normalizedRequest?.tools) && normalizedRequest.tools.length > 0
-          ? { functionCallingConfig: { mode: "VALIDATED" } }
+          ? { functionCallingConfig: { mode: "VALIDATED", includeServerSideToolInvocations: true } }
           : normalizedRequest?.toolConfig,
     };
 
@@ -1070,7 +1085,28 @@ export class AntigravityExecutor extends BaseExecutor {
     let firstResult: Awaited<ReturnType<AntigravityExecutor["executeOnce"]>> | null = null;
     for (let i = 0; i < chain.length; i++) {
       const candidate = chain[i];
-      const result = await this.executeOnce(input, candidate);
+      let result: Awaited<ReturnType<AntigravityExecutor["executeOnce"]>>;
+      try {
+        result = await this.executeOnce(input, candidate);
+      } catch (error) {
+        const outcome = handleAntigravityFallbackChainError(
+          input,
+          error,
+          candidate,
+          i,
+          chain,
+          firstResult,
+          resolvedUpstreamId
+        );
+        switch (outcome.action) {
+          case "throw":
+            throw outcome.error;
+          case "return":
+            return outcome.result;
+          default:
+            continue;
+        }
+      }
 
       // Success (or any non-400) on a candidate → return immediately.
       if (result.response.status !== HTTP_STATUS.BAD_REQUEST) {
@@ -1078,23 +1114,18 @@ export class AntigravityExecutor extends BaseExecutor {
       }
 
       // Remember the FIRST 400 so the exhausted-chain case surfaces the original error.
-      if (i === 0) firstResult = result;
+      if (!firstResult) firstResult = result;
 
-      const isLast = i === chain.length - 1;
-      if (!isLast) {
-        input.log?.debug?.(
-          "AG_PRO_FALLBACK",
-          `400 on "${candidate}" — retrying with next Pro candidate "${chain[i + 1]}"`
-        );
-        continue;
-      }
-
-      // Chain exhausted: surface the FIRST candidate's sanitized 400.
-      input.log?.warn?.(
-        "AG_PRO_FALLBACK",
-        `Pro fallback chain exhausted (all ${chain.length} candidates 400'd) for "${resolvedUpstreamId}"`
+      const outcome400 = handleAntigravityFallback400(
+        input,
+        result,
+        firstResult,
+        candidate,
+        i,
+        chain,
+        resolvedUpstreamId
       );
-      return firstResult ?? result;
+      if (outcome400.action === "return") return outcome400.result;
     }
 
     // Unreachable (loop always returns), but keeps the type checker happy.
@@ -1587,6 +1618,34 @@ export class AntigravityExecutor extends BaseExecutor {
           }
           return {
             ...collected,
+            transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+          };
+        }
+
+        // #2461: a non-ok upstream response (e.g. 403) must never be piped through the
+        // streaming pass-through below as if it were an SSE body. Google occasionally
+        // returns non-UTF8/binary error bodies (observed: gzip-magic-byte payloads) for
+        // 403s on this endpoint; reading/forwarding those raw bytes corrupts the
+        // client-visible error message. Mirror the non-streaming branch above and build
+        // a sanitized JSON error via buildAntigravityUpstreamError (hard rule #12)
+        // instead of streaming unknown bytes straight through.
+        if (!response.ok) {
+          const rawBody = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          const errorBody = buildAntigravityUpstreamError(
+            response.status,
+            response.statusText,
+            rawBody
+          );
+          return {
+            response: new Response(JSON.stringify(errorBody), {
+              status: response.status,
+              headers: { "Content-Type": "application/json" },
+            }),
+            url,
+            headers: finalHeaders,
             transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
           };
         }
