@@ -14,7 +14,7 @@
  * ──────────────────
  *  - In-memory Map (no DB) — failures are a per-process hot-path signal, the
  *    pin that gets cleared is the same in-memory + DB record managed by
- *    recordSessionModelUsage / clearSessionModelHistoryForCombo. Losing the
+ *    recordSessionModelUsage / deleteSessionModelHistory. Losing the
  *    counter on process restart is acceptable: worst case the user takes N
  *    retries before we clear the pin again.
  *  - TTL eviction (default 5 min, matching sessionManager session stickiness)
@@ -27,7 +27,7 @@
  * No barrel import — consistent with the other combo/* leaves.
  */
 
-import { clearSessionModelHistoryForCombo } from "@/lib/db/contextHandoffs";
+import { deleteSessionModelHistory } from "@/lib/db/contextHandoffs";
 
 /** Default threshold — after this many consecutive failures the pin is cleared. */
 export const COMBO_FAILURE_THRESHOLD = 3 as const;
@@ -85,7 +85,7 @@ function evict(now: number): void {
  * the stale one. Returns the new count + a flag indicating whether we just
  * auto-cleared the pin.
  *
- * Pure read with side-effect: NEVER throws — a thrown clearSessionModelHistory
+ * Pure read with side-effect: NEVER throws — a thrown deleteSessionModelHistory
  * must not propagate into the combo terminal-failure response path. Catches
  * and returns pinClearedNow=false so the caller can log the failure without
  * pretending the cleanup succeeded.
@@ -110,7 +110,10 @@ export function recordComboFailure(
     });
     if (shouldClearNow) {
       try {
-        clearSessionModelHistoryForCombo(comboName);
+        // Session-scoped: clears ONLY this session's pin on this combo. Other
+        // sessions sharing the same combo keep their own pin (see
+        // deleteSessionModelHistory's docstring in contextHandoffs.ts).
+        deleteSessionModelHistory(sessionId, comboName);
       } catch {
         // Best effort — the counter still records the streak, future clears will
         // retry on the next threshold-cross.
