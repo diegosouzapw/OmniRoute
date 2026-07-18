@@ -65,13 +65,14 @@ not** skip steps; each is timed.
    - **Roll back** to the last green deploy (`bin/rollback.sh vX.Y.Z`).
    - **Failover** to the healthy replicas (Caddy LB removes the bad
      replica automatically; verify with `curl /api/health/ping`).
-   - **Disable** a broken provider via `POST /api/providers/{id}/disable`
-     (one-line toggle; safe by default).
+   - **Disable** the broken connection(s) via `PUT /api/providers/{connectionId}`
+     with body `{ "isActive": false }` (per-connection toggle, safe by
+     default; repeat per key/account — see § 4.1).
 6. **0:15** — Post the chosen mitigation in the channel. If the page
    is still firing after 5 more minutes, escalate to the secondary.
 
-[chan]: https://phenotype.slack.com/archives/incidents
-[dash]: https://grafana.phenotype.internal/d/omniroute-slos
+[chan]: TBD — set to your team's incident-chat channel (e.g. a Discord/Slack `#inc-*` channel); not provisioned by this repo.
+[dash]: TBD — set to your Grafana/observability dashboard URL; not provisioned by this repo.
 
 ---
 
@@ -79,15 +80,22 @@ not** skip steps; each is timed.
 
 ### 4.1 Provider outage (single provider down)
 
-1. `POST /api/providers/{provider}/disable` — toggles the provider off
-   in the registry; all routes re-resolve on next request.
+1. `PUT /api/providers/{connectionId}` with body `{ "isActive": false }` —
+   deactivates that connection; combo routing and account selection skip it
+   on the next request (`src/app/api/providers/[id]/route.ts`). There is no
+   single whole-provider kill switch — if the provider has more than one
+   key/account, repeat per connection, or let the automatic provider circuit
+   breaker trip on its own (`src/shared/utils/circuitBreaker.ts`,
+   `domain_circuit_breakers` table; see `docs/architecture/RESILIENCE_GUIDE.md`).
 2. Verify p95 returns to budget within 5 min.
-3. If all providers for a model are down, **disable the model** (see
-   `src/lib/a2a/skills/providerDiscovery.ts` for the disable path).
-4. Update the [status page][status] with a banner if the outage
-   exceeds 15 min.
-
-[status]: https://status.phenotype.dev
+3. If all connections for a model are down, apply the same `isActive: false`
+   toggle to every connection offering that model — there is no separate
+   per-model disable endpoint. Combo routing's automatic Model Lockout
+   (`open-sse/services/accountFallback.ts`; see
+   `docs/architecture/RESILIENCE_GUIDE.md`) also skips a model that keeps
+   erroring, without manual action.
+4. Update the status page (if one is configured — see § 5) with a banner if
+   the outage exceeds 15 min.
 
 ### 4.2 Cluster-wide latency regression
 
@@ -100,9 +108,18 @@ not** skip steps; each is timed.
 
 1. Check the authz-inventory endpoint:
    `curl https://api.omniroute.dev/api/settings/authz-inventory | jq`.
-2. If `policies_active` is empty, restore from the last good backup
-   (`bin/restore-policies.sh <sha>`).
-3. Roll back if the cause is unclear.
+   It returns a route-tier inventory (`tiers`, `bypassEnabled`,
+   `bypassPrefixes`, `spawnCapablePrefixes`, `cors` — see
+   `src/app/api/settings/authz-inventory/route.ts`); there is no
+   `policies_active` field. A non-200 response, or a `tiers` array that
+   fails to populate, means the settings/DB layer the auth pipeline reads
+   from is down — not just a single bad key.
+2. If the endpoint itself errors or returns malformed data, restore the
+   settings store from the last good backup (`bin/restore-policies.sh <sha>`).
+3. If the endpoint is healthy but requests still 5xx for every key, verify
+   `JWT_SECRET` / `API_KEY_SECRET` are set and unchanged for this deploy,
+   and that `isValidApiKey` (`src/sse/services/auth.ts`) can reach the DB.
+4. Roll back if the cause is unclear.
 
 ### 4.4 Data-layer incident (sqlite corruption, audit log gap)
 
@@ -126,13 +143,15 @@ security on-call (`@security-team`); do not post details to
 | Audience | Channel | Cadence | Owner |
 |---|---|---|---|
 | Engineering | `#inc-YYYY-MM-DD-slug` | Real-time | Incident commander |
-| Status page | `status.phenotype.dev` | Every 30 min during SEV-1/2 | On-call |
-| Customers (email) | `announce@phenotype.dev` | At SEV-1 start + resolution | Comms lead |
+| Status page | TBD — not provisioned by this repo | Every 30 min during SEV-1/2 | On-call |
+| Customers (email) | TBD — set your announcement list/address | At SEV-1 start + resolution | Comms lead |
 | Upstream providers | Direct contact | At SEV-1 start | Vendor mgmt |
 | Postmortem | `docs/postmortem/YYYY-MM-DD-slug.md` | Within 5 business days | Incident commander |
 
-Postmortem template is at `docs/postmortem/TEMPLATE.md` (forthcoming;
-see ADR-024 for the cadence and ADR-029 for the postmortem convention).
+Postmortem template is at `docs/postmortem/TEMPLATE.md` (forthcoming; no
+dedicated ADR covers it yet — once written, register it in
+`docs/architecture/cluster-decisions.md` following this repo's 71-pillar/ADR
+numbering convention, e.g. ADR-041 there).
 
 ---
 
@@ -146,7 +165,7 @@ see ADR-024 for the cadence and ADR-029 for the postmortem convention).
 | Comms lead | @comms | — | As needed |
 
 **Handoff**: every Monday 09:00 PDT, the outgoing on-call posts a
-written handoff to the incoming in `#omnirouse-ops-handoff` covering:
+written handoff to the incoming in `#omniroute-ops-handoff` covering:
 open SEV-3/4 items, scheduled maintenance windows, and any
 in-flight mitigations.
 
@@ -171,4 +190,5 @@ in-flight mitigations.
 | Date | Reviewer | Change |
 |---|---|---|
 | 2026-06-18 | security-circle lead | Initial runbook; severity ladder + 15-min checklist + 4.1–4.5 mitigation runbooks. Closes 71-pillar audit L61 (1/3 → 2/3). |
+| 2026-07-18 | observability-circle | Corrected § 4.1/4.3 to the real provider-disable (`PUT /api/providers/{connectionId}`) and authz-inventory (`tiers`/`bypassEnabled`/`cors`, no `policies_active`) mechanisms; removed foreign branding and the nonexistent ADR-024/029 references. |
 | 2026-07-18 (planned) | observability-circle | Wire on-call rotation into PagerDuty schedule; add the postmortem template. |
