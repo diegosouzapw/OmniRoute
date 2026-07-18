@@ -5,19 +5,32 @@
  * compression_run_telemetry had no retention cleanup, causing unbounded
  * DB growth and OOM crashes on relays with heavy traffic.
  *
- * These tests call the REAL cleanup functions against the real DB adapter
- * (seeded with test data in the isolated DATA_DIR that --import isolateDataDir.ts
- * provides). If the production DELETE logic breaks, these tests WILL fail.
+ * These tests call the REAL cleanup functions against a real SQLite adapter
+ * (seeded with test data). If the production DELETE logic breaks, these
+ * tests WILL fail.
  *
- * No mocking — the setupPolyfill + isolateDataDir bootstrap already gives us a
- * fresh SQLite DB with the production schema.
+ * DATA_DIR isolation is self-contained (mkdtempSync below), not dependent on
+ * the test:unit harness's `--import ./tests/_setup/isolateDataDir.ts`. This
+ * file calls real DELETE-based cleanup functions against getDbInstance(),
+ * which resolves to the developer's real ~/.omniroute/storage.sqlite when
+ * DATA_DIR is unset — running this file directly (as documented under
+ * "Running Tests": `node --import tsx/esm --test tests/unit/<file>.test.ts`)
+ * would otherwise delete real rows from that database, not test rows. Do NOT
+ * remove the DATA_DIR override below.
  */
 
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
-// Import the real functions — they use getDbInstance() which resolves to the
-// isolated test DB created by isolateDataDir.ts + setupPolyfill.ts.
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-6848-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+// Import the real functions — they use getDbInstance(), which resolves to the
+// isolated temp DB created above (set before this import so the module's
+// first getDbInstance() call already sees the isolated DATA_DIR).
 const {
   cleanupDomainCostHistory,
   cleanupCompressionCacheStats,
@@ -25,7 +38,14 @@ const {
   cleanupCompressionRunTelemetry,
 } = await import("../../src/lib/db/cleanup.ts");
 
-const { getDbInstance } = await import("../../src/lib/db/core.ts");
+const { getDbInstance, resetDbInstance } = await import("../../src/lib/db/core.ts");
+
+// Repo test rule: DB-touching tests must close the handle in test.after(),
+// or the native test runner can hang indefinitely on a dangling connection.
+test.after(() => {
+  resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
 
 const DAY = 86_400; // seconds
 
