@@ -215,10 +215,18 @@ test("sweep processes all connections with stagger + jitter delay", async () => 
     await sweep();
     const elapsed = Date.now() - start;
 
-    // With 3 connections and ~100ms stagger + jitter between them,
-    // the total elapsed time should be at least 2× base stagger (200ms).
-    // Using a generous minimum to avoid flakiness: >= 50ms.
-    assert.ok(elapsed >= 50, `sweep took ${elapsed}ms — expected >= 50ms with stagger`);
+    // 3 connections -> 2 stagger gaps. Each gap waits
+    // HEALTHCHECK_STAGGER_MS (100ms) PLUS a jitter of
+    // [MIN_RESTART_REFRESH_JITTER_MS, MAX_RESTART_REFRESH_JITTER_MS) = [500, 5000)ms,
+    // so the true floor is 2 * (100 + 500) = 1200ms — that floor is a hard
+    // guarantee (setTimeout never fires early), not a probabilistic one.
+    // Without the jitter change, 2 gaps of a plain 100ms stagger only ever
+    // total ~200ms, so >= 1000ms cleanly fails on the pre-jitter behavior
+    // while leaving comfortable margin under the real 1200ms floor.
+    assert.ok(
+      elapsed >= 1000,
+      `sweep took ${elapsed}ms — expected >= 1000ms with stagger + jitter (floor is 1200ms)`
+    );
 
     // Verify all connections still exist (sweep didn't error out mid-loop)
     const reloaded1 = await providersDb.getProviderConnectionById(c1.id);
