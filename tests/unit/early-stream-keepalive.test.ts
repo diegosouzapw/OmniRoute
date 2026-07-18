@@ -6,6 +6,7 @@ import {
   ANTHROPIC_PING_FRAME,
   OPENAI_KEEPALIVE_FRAME,
   OPENAI_STARTUP_THINKING_FRAME,
+  RESPONSES_STARTUP_THINKING_FRAME,
 } from "../../open-sse/utils/earlyStreamKeepalive.ts";
 
 async function readAll(response: Response): Promise<string> {
@@ -175,6 +176,71 @@ test("startupFrame defaults to keepaliveFrame when omitted (no behavior change)"
     {},
     "first frame falls back to the plain keepaliveFrame when no startupFrame is configured"
   );
+});
+
+// #7360 follow-up round 2: OpenClaw calls via /v1/responses (Responses API
+// format), which only had the generic bare-comment keepalive — a live
+// incident showed it disconnecting after ~56s waiting on a slow gemma-4
+// response. RESPONSES_STARTUP_THINKING_FRAME gives Responses-API clients the
+// same real-content keepalive OpenAI chat/completions already got, as a
+// self-contained (opened AND closed within this one frame) synthetic
+// reasoning item — it never claims a response_id, so it can't collide with
+// the real response's own independent response.created lifecycle that follows.
+test("RESPONSES_STARTUP_THINKING_FRAME is a self-closed synthetic reasoning item with the expected text", () => {
+  const decoded = new TextDecoder().decode(RESPONSES_STARTUP_THINKING_FRAME);
+  const events = decoded
+    .split("\n\n")
+    .filter(Boolean)
+    .map((frame) => {
+      const [eventLine, dataLine] = frame.split("\n");
+      return {
+        event: eventLine.replace(/^event: /, ""),
+        data: JSON.parse(dataLine.replace(/^data: /, "")),
+      };
+    });
+
+  assert.deepEqual(
+    events.map((e) => e.event),
+    [
+      "response.output_item.added",
+      "response.reasoning_summary_part.added",
+      "response.reasoning_summary_text.delta",
+      "response.reasoning_summary_part.done",
+    ]
+  );
+
+  const [added, partAdded, delta, partDone] = events;
+  assert.equal(added.data.item.type, "reasoning");
+  const itemId = added.data.item.id;
+  assert.ok(itemId, "reasoning item must have an id");
+
+  assert.equal(partAdded.data.item_id, itemId);
+  assert.equal(delta.data.item_id, itemId);
+  assert.equal(delta.data.delta, "OmniRoute: got request, sending to provider");
+  assert.equal(partDone.data.item_id, itemId);
+  assert.equal(partDone.data.part.text, "OmniRoute: got request, sending to provider");
+});
+
+test("slow handler emits the Responses API startup frame before the real body", async () => {
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(
+      () => resolve(sseResponse("event: response.created\ndata: {}\n\ndata: [DONE]\n\n")),
+      120
+    );
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 25,
+    intervalMs: 20,
+    startupFrame: RESPONSES_STARTUP_THINKING_FRAME,
+  });
+
+  const body = await readAll(result);
+  assert.match(body, /event: response\.output_item\.added/);
+  assert.match(body, /OmniRoute: got request, sending to provider/);
+  assert.match(body, /event: response\.reasoning_summary_part\.done/);
+  assert.match(body, /event: response\.created/, "should forward the real upstream body");
+  assert.match(body, /data: \[DONE\]/);
 });
 
 test("slow handler emits the custom keepaliveFrame (Anthropic ping) before the body", async () => {

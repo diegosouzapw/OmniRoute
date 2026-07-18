@@ -61,6 +61,59 @@ export const OPENAI_STARTUP_THINKING_FRAME = ENCODER.encode(
 // token the comment frame lets the client abort and retry the stream. Anthropic's own
 // API emits `event: ping` for exactly this reason; the /v1/messages route mirrors it.
 export const ANTHROPIC_PING_FRAME = ENCODER.encode('event: ping\ndata: {"type":"ping"}\n\n');
+// Responses API keepalive: a self-contained, self-closed synthetic reasoning
+// item (added -> summary_part.added -> text.delta -> summary_part.done),
+// matching the abbreviated close pattern open-sse/utils/stream.ts's own
+// emitSyntheticResponsesReasoningSummary already uses for real mid-stream
+// reasoning. Closed within this one frame (not left dangling open) since the
+// real upstream response — once it arrives — starts its own independent
+// response.created lifecycle from scratch; this placeholder item never
+// carries a response_id and isn't meant to be continued.
+const RESPONSES_STARTUP_ITEM_ID = "rs_omniroute_keepalive";
+export const RESPONSES_STARTUP_THINKING_FRAME = ENCODER.encode(
+  [
+    {
+      event: "response.output_item.added",
+      data: {
+        type: "response.output_item.added",
+        output_index: 0,
+        item: { id: RESPONSES_STARTUP_ITEM_ID, type: "reasoning", summary: [] },
+      },
+    },
+    {
+      event: "response.reasoning_summary_part.added",
+      data: {
+        type: "response.reasoning_summary_part.added",
+        item_id: RESPONSES_STARTUP_ITEM_ID,
+        output_index: 0,
+        summary_index: 0,
+        part: { type: "summary_text", text: "" },
+      },
+    },
+    {
+      event: "response.reasoning_summary_text.delta",
+      data: {
+        type: "response.reasoning_summary_text.delta",
+        item_id: RESPONSES_STARTUP_ITEM_ID,
+        output_index: 0,
+        summary_index: 0,
+        delta: STARTUP_THINKING_TEXT,
+      },
+    },
+    {
+      event: "response.reasoning_summary_part.done",
+      data: {
+        type: "response.reasoning_summary_part.done",
+        item_id: RESPONSES_STARTUP_ITEM_ID,
+        output_index: 0,
+        summary_index: 0,
+        part: { type: "summary_text", text: STARTUP_THINKING_TEXT },
+      },
+    },
+  ]
+    .map((e) => `event: ${e.event}\ndata: ${JSON.stringify(e.data)}\n\n`)
+    .join("")
+);
 const ERROR_FRAME = ENCODER.encode(
   `event: error\ndata: ${JSON.stringify({
     error: { message: "Upstream stream failed before completion.", type: "stream_error" },
