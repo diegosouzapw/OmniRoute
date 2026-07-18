@@ -945,6 +945,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 - `kie/`
 - `aws-polly/`
 - `xiaomi-mimo/`
+- `edgetts/` (Microsoft Edge "Read Aloud" — free, no API key; unofficial/reverse-engineered endpoint)
 - `coqui/`, `tortoise/`
 - `qwen/`
 

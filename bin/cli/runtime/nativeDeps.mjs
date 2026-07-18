@@ -52,6 +52,31 @@ export function hasModule(name) {
   return existsSync(join(runtimeModules(), name, "package.json"));
 }
 
+/**
+ * Probe whether a native addon (.node) file can actually be dlopen'd by the Node runtime that
+ * is going to load it. Runs in a throwaway subprocess so a real ABI mismatch (which can segfault
+ * the process instead of throwing) never takes down the caller — only the probe subprocess.
+ */
+function probeNativeBinaryLoadable(binary) {
+  try {
+    const res = spawnSync(
+      process.execPath,
+      [
+        "-e",
+        "try { require(process.argv[1]); process.exit(0); } catch (e) { process.exit(1); }",
+        binary,
+      ],
+      { timeout: 10_000, stdio: "ignore" }
+    );
+    // status === 0 means require() (and therefore dlopen) succeeded. Anything else — a thrown
+    // ERR_DLOPEN_FAILED/NODE_MODULE_VERSION mismatch (status 1) or a crash (status null with a
+    // signal, e.g. SIGSEGV) — means the binary is not safe to load.
+    return res.status === 0;
+  } catch {
+    return false;
+  }
+}
+
 export function isBetterSqliteBinaryValid() {
   const binary = join(
     runtimeModules(),
@@ -68,10 +93,18 @@ export function isBetterSqliteBinaryValid() {
     closeSync(fd);
     const magic = buf.toString("hex");
     const os = platform();
-    if (os === "linux") return magic.startsWith("7f454c46"); // ELF
-    if (os === "darwin") return magic.startsWith("cffaedfe") || magic.startsWith("cefaedfe"); // Mach-O
-    if (os === "win32") return magic.startsWith("4d5a"); // PE/MZ
-    return true;
+    let formatOk;
+    if (os === "linux") formatOk = magic.startsWith("7f454c46"); // ELF
+    else if (os === "darwin")
+      formatOk = magic.startsWith("cffaedfe") || magic.startsWith("cefaedfe"); // Mach-O
+    else if (os === "win32") formatOk = magic.startsWith("4d5a"); // PE/MZ
+    else formatOk = true;
+    if (!formatOk) return false;
+    // File-format magic bytes alone do not guarantee the binary was built for the Node ABI
+    // (NODE_MODULE_VERSION) that will load it — a stale/foreign-ABI binary passes the header
+    // check and then crashes (segfault) on load instead of triggering a rebuild. Actually
+    // attempt to load it, isolated in a subprocess.
+    return probeNativeBinaryLoadable(binary);
   } catch {
     return false;
   }

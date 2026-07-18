@@ -1,0 +1,1 @@
+- **api:** bulk-add API keys no longer overwrite existing provider connections — a colliding auto- or custom-generated name now gap-fills a free suffix instead of silently replacing a saved connection's key/state. (thanks @asynx6)
