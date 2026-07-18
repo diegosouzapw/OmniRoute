@@ -97,6 +97,18 @@ export function inspectPeerRequest(
   return null;
 }
 
+/** Convenience for HTTP handlers: inspect + log + build the 508 response in one call. */
+export function rejectPeerRequest<T>(
+  headers: HeaderSource,
+  warn: (tag: string, msg: string) => void,
+  respond: (status: number, msg: string) => T
+): T | null {
+  const rejection = inspectPeerRequest(headers);
+  if (!rejection) return null;
+  warn("PEER_ROUTING", rejection.message);
+  return respond(508, rejection.message);
+}
+
 /**
  * Append this instance to the peer trace for an explicitly allowlisted OmniRoute URL.
  * Returns true when the header was applied. Other upstream providers are untouched.

@@ -51,7 +51,7 @@ import {
 import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
-import { inspectPeerRequest } from "@/shared/resilience/peerRouting";
+import { rejectPeerRequest } from "@/shared/resilience/peerRouting";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import { updateCombo } from "@/lib/db/combos";
 import { isModelAllowedForKey } from "@/lib/db/apiKeys";
@@ -220,11 +220,8 @@ export async function handleChat(
   preParsedBody: any = null,
   correlationId?: string
 ) {
-  const peerRejection = inspectPeerRequest(request?.headers);
-  if (peerRejection) {
-    log.warn("PEER_ROUTING", peerRejection.message);
-    return errorResponse(508, peerRejection.message);
-  }
+  const peerRejection = rejectPeerRequest(request?.headers, log.warn, errorResponse);
+  if (peerRejection) return peerRejection;
 
   // Pipeline: Start request telemetry
   const reqId = correlationId || generateRequestId();
