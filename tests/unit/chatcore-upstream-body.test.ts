@@ -69,6 +69,13 @@ test("strips Codex GPT-5 verbosity after routing resolves to opencode-go/GLM", a
 });
 
 test("Codex Responses routing keeps reasoning effort while dropping GPT-only verbosity", async () => {
+  // Simulates a combo/fallback reroute: the request is first translated while still
+  // addressed at Codex (an allowlisted OpenAI-param destination, #7533), which is why
+  // `text.verbosity` survives the Responses->Chat hop as top-level `verbosity`. Routing
+  // then resolves the actual upstream target to opencode-go/GLM (a fallback target),
+  // so `prepareUpstreamBody`'s final sanitizeRequestForResolvedTarget (#7050/#7533) must
+  // strip the GPT-only `verbosity` for that concrete target while keeping
+  // `reasoning_effort`, which is not gated by destination provider.
   const translated = translateRequest(
     FORMATS.OPENAI_RESPONSES,
     FORMATS.OPENAI,
@@ -80,8 +87,8 @@ test("Codex Responses routing keeps reasoning effort while dropping GPT-only ver
       text: { verbosity: "low" },
     },
     true,
-    null,
-    "opencode-go"
+    { provider: "codex" },
+    "codex"
   ) as Record<string, unknown>;
 
   assert.equal(translated.reasoning_effort, "low");
