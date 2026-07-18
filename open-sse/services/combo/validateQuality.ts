@@ -8,7 +8,9 @@
 
 import {
   createSSEDataLineNormalizer,
+  hasOpenAIFinishReason,
   isKnownNonClaudeStreamPayload,
+  isOpenAIChoicesPayload,
 } from "../../utils/streamHelpers.ts";
 import { evaluateResponseValidation, type ResponseValidationConfig } from "./responseValidation.ts";
 import { getReasoningTokens } from "../../../src/lib/usage/tokenAccounting.ts";
@@ -96,6 +98,29 @@ function contentBlockDeltaIsRealSignal(parsed: Record<string, unknown>): boolean
 /** A message_delta closes the lifecycle once it carries a stop_reason. */
 function messageDeltaEndsLifecycle(parsed: Record<string, unknown>): boolean {
   return asObject(parsed, "delta")?.stop_reason != null;
+}
+
+/**
+ * Mutable OpenAI-shape lifecycle flags (#7285) — tracked independently of
+ * {@link SseLifecycleFlags} because the truncation signal here (a stream that
+ * closes without ever carrying `finish_reason` or a `[DONE]` sentinel) is
+ * orthogonal to the Claude event switch and must fire even when
+ * `hasOpenAICompatibleStreamValue()` never sees real content (e.g. a
+ * role-only delta).
+ */
+interface OpenAiLifecycleFlags {
+  hasChoicePayload: boolean;
+  hasTerminalMarker: boolean;
+}
+
+/** Update `flags` in place from one parsed OpenAI-shape SSE `data:` payload. */
+function applyOpenAiLifecycleEvent(
+  parsed: Record<string, unknown>,
+  flags: OpenAiLifecycleFlags
+): void {
+  if (!isOpenAIChoicesPayload(parsed)) return;
+  flags.hasChoicePayload = true;
+  if (hasOpenAIFinishReason(parsed)) flags.hasTerminalMarker = true;
 }
 
 /**
@@ -228,6 +253,8 @@ export async function validateResponseQuality(
     };
     let anyContentFound = false;
     let sawAnyBytes = false;
+    // #7285: OpenAI-shape lifecycle tracking, parallel to `sse` above.
+    const openAi: OpenAiLifecycleFlags = { hasChoicePayload: false, hasTerminalMarker: false };
     const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
 
@@ -259,7 +286,13 @@ export async function validateResponseQuality(
         }
 
         const data = trimmed.slice(5).trim();
-        if (!data || data === "[DONE]") continue;
+        if (!data) continue;
+        if (data === "[DONE]") {
+          // #7285: `[DONE]` is itself a terminal marker for OpenAI-shape
+          // streams, even when no earlier chunk carried `finish_reason`.
+          openAi.hasTerminalMarker = true;
+          continue;
+        }
 
         let parsed: Record<string, unknown>;
         try {
@@ -267,6 +300,8 @@ export async function validateResponseQuality(
         } catch {
           continue;
         }
+
+        applyOpenAiLifecycleEvent(parsed, openAi);
 
         const eventType =
           (typeof parsed.type === "string" ? parsed.type : null) || pendingEventType || "";
@@ -360,6 +395,23 @@ export async function validateResponseQuality(
               "Streaming response ended with no recognized content — marking as invalid for combo failover"
             );
             return { valid: false, reason: "streaming no recognized content" };
+          }
+
+          // Issue #7285: an OpenAI-shape stream (`choices[]` chunks) that
+          // closes without ever carrying `finish_reason` or a `[DONE]`
+          // sentinel, and without producing recognized content, is a
+          // truncated response — failover to a sibling combo target rather
+          // than forwarding the incomplete stream as a success. Does not
+          // affect Claude-shape streams (`openAi.hasChoicePayload` stays
+          // false for those) and does not regress the #3399/#3685
+          // pass-through contract: a healthy stream exits the peek loop
+          // early via the `foundContent` branch above and never reaches here.
+          if (openAi.hasChoicePayload && !openAi.hasTerminalMarker && !anyContentFound) {
+            log.warn?.(
+              "COMBO",
+              "Streaming OpenAI-shape response ended with no finish_reason or [DONE] — marking as invalid for combo failover"
+            );
+            return { valid: false, reason: "streaming openai truncated without finish_reason" };
           }
 
           // Incomplete lifecycle or non-Claude stream — replay all buffered

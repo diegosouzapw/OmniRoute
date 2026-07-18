@@ -25,6 +25,7 @@ import {
   refreshCopilotToken,
 } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const TICK_MS = 60 * 1000; // sweep interval: every 60 seconds
@@ -33,21 +34,11 @@ const EXPIRED_RETRY_MAX = 3; // max retry attempts for expired connections befor
 const EXPIRED_RETRY_BACKOFF_MIN = 5; // backoff between expired retries (minutes)
 const LOG_PREFIX = "[HealthCheck]";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
-const MIN_RESTART_REFRESH_JITTER_MS = 500;
-const MAX_RESTART_REFRESH_JITTER_MS = 5000;
 
 function isBuildProcess(): boolean {
   return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
 }
 
-function isAutomatedTestProcess(): boolean {
-  return (
-    typeof process !== "undefined" &&
-    (process.env.NODE_ENV === "test" ||
-      process.env.VITEST !== undefined ||
-      process.argv.some((arg) => arg.includes("test")))
-  );
-}
 
 function getConnectionLogLabel(conn: { name?: string; email?: string; id?: string }): string {
   return pickMaskedDisplayValue([conn.name, conn.email], conn.id || "-");
@@ -279,12 +270,12 @@ export function clearHealthCheckLogCache() {
 
 declare global {
   var __omnirouteTokenHC:
-    { initialized: boolean; interval: ReturnType<typeof setInterval> | null } | undefined;
+    | { initialized: boolean; interval: ReturnType<typeof setInterval> | null; sweeping: boolean }
+    | undefined;
 }
-
 function getHCState() {
   if (!globalThis.__omnirouteTokenHC) {
-    globalThis.__omnirouteTokenHC = { initialized: false, interval: null };
+    globalThis.__omnirouteTokenHC = { initialized: false, interval: null, sweeping: false };
   }
   return globalThis.__omnirouteTokenHC;
 }
@@ -324,8 +315,12 @@ export function stopTokenHealthCheck() {
 }
 
 // ── Core sweep ───────────────────────────────────────────────────────────────
-/** @internal exported for testing only */
 export async function sweep() {
+  const state = getHCState();
+  if (state.sweeping) {
+    return log(`${LOG_PREFIX} Sweep skipped — previous sweep still in progress`);
+  }
+  state.sweeping = true;
   try {
     const connections = await getProviderConnections({ authType: "oauth" });
 
@@ -344,16 +339,14 @@ export async function sweep() {
 
       // Stagger + randomized jitter between checks to prevent bursting (Issue #1220)
       if (staggerMs > 0 && i < connections.length - 1) {
-        const jitter =
-          MIN_RESTART_REFRESH_JITTER_MS +
-          Math.random() * (MAX_RESTART_REFRESH_JITTER_MS - MIN_RESTART_REFRESH_JITTER_MS);
-        const { promise, resolve } = Promise.withResolvers<void>();
-        setTimeout(resolve, staggerMs + jitter);
-        await promise;
+        const jitter = 500 + Math.random() * 4500; // [500, 5000)ms anti-burst
+        await new Promise((resolve) => setTimeout(resolve, staggerMs + jitter));
       }
     }
   } catch (err) {
     logError(`${LOG_PREFIX} Sweep error:`, err.message);
+  } finally {
+    state.sweeping = false;
   }
 }
 
