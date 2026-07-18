@@ -1,0 +1,1 @@
+- fix(cli): Windows MITM root-CA check/uninstall keyed off the hardcoded legacy hostname `daily-cloudcode-pa.googleapis.com` instead of the actual generated CA's identity — they now derive a SHA-1 thumbprint from the real `certPath` file (same pattern `#6338` used for the DNS side of this anti-pattern) (#7275)

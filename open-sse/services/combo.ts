@@ -67,6 +67,7 @@ import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
 import {
   applySessionStickiness,
+  normalizeStickinessMessages,
   recordStickyBinding,
   clearStickyBinding,
   peekStickyConnectionId,
@@ -137,6 +138,8 @@ import {
   clampComboDepth,
   shouldSkipForPredictedTtft,
   shouldRecordProviderBreakerFailure,
+  isRequestScopedUpstreamFailure,
+  shouldSkipConnDisable,
   resolveDelayMs,
   comboModelNotFoundResponse,
   isStreamReadinessFailureErrorBody,
@@ -146,6 +149,7 @@ import {
 } from "./combo/comboPredicates.ts";
 import { applyComboTargetExhaustion } from "./combo/targetExhaustion.ts";
 import { executeRuntimeUnitCombo } from "./combo/runtimeUnits.ts";
+import { extractFusionPanelSpec, buildFusionHandleSingleModel } from "./combo/fusionPanel.ts";
 import { isRecord } from "./combo/comboData.ts";
 import {
   expandProviderWildcardsInCombo,
@@ -161,6 +165,7 @@ import {
   resolveWeightedTargets,
   resolveWeightedStepGroups,
 } from "./combo/comboStructure.ts";
+import { getKnownContextOverflow } from "./combo/knownContextOverflow.ts";
 import {
   QUOTA_SOFT_DEPRIORITIZE_FACTOR,
   setCandidateQuotaSoftPenalty,
@@ -169,6 +174,7 @@ import {
   applyRequestTagRouting,
   scoreAutoTargets,
   expandAutoComboCandidatePool,
+  deriveSpeedTelemetry,
 } from "./combo/autoStrategy.ts";
 import {
   resolveResetWindowConfig,
@@ -197,10 +203,21 @@ export { QUOTA_SOFT_DEPRIORITIZE_FACTOR, setCandidateQuotaSoftPenalty };
 export { scoreAutoTargets, expandAutoComboCandidatePool };
 export type { SingleModelTarget, ResolvedComboTarget };
 export { validateResponseQuality };
-export { clampComboDepth, shouldSkipForPredictedTtft, shouldRecordProviderBreakerFailure };
+export {
+  clampComboDepth,
+  shouldSkipForPredictedTtft,
+  shouldRecordProviderBreakerFailure,
+  isRequestScopedUpstreamFailure,
+  shouldSkipConnDisable,
+};
 export { resolveShadowTargets, scheduleShadowRouting };
 export { preScreenTargets };
-export { resolveComboRuntimeUnits, resolveComboTargets, filterTargetsByRequestCompatibility };
+export {
+  resolveComboRuntimeUnits,
+  resolveComboTargets,
+  filterTargetsByRequestCompatibility,
+  getKnownContextOverflow,
+};
 export {
   getComboFromData,
   getComboModelsFromData,
@@ -478,6 +495,13 @@ export async function buildAutoCandidates(
         hasHistoricalSignal && Number.isFinite(historicalStdDev) && historicalStdDev > 0
           ? Math.max(10, historicalStdDev)
           : Math.max(10, p95LatencyMs * 0.1);
+      // #6875: surface TTFT/E2E-latency/tokens-per-second onto the candidate so the
+      // existing speed-ranking factor (#6011, speedRanking.ts/routerStrategy.ts) picks
+      // up real telemetry instead of falling back to the pool median. Additive only —
+      // no scoring weights change here.
+      const speedTelemetry = hasHistoricalSignal
+        ? deriveSpeedTelemetry(historicalModelMetric)
+        : undefined;
 
       const breakerStateRaw = getCircuitBreaker(provider)?.getStatus?.()?.state;
       const circuitBreakerState: ProviderCandidate["circuitBreakerState"] =
@@ -559,6 +583,7 @@ export async function buildAutoCandidates(
         p95LatencyMs,
         latencyStdDev,
         errorRate,
+        ...speedTelemetry,
         accountTier: "standard" as const,
         quotaResetIntervalSecs: 86400,
         contextAffinity,
@@ -818,20 +843,47 @@ export async function handleComboChat({
     );
   }
   if (strategy === "fusion") {
-    const fusionModels = (combo.models || [])
-      .map((m) => {
-        if (typeof m === "string") return m;
-        if (m && typeof m === "object") {
-          const obj = m as Record<string, unknown>;
-          if (typeof obj.model === "string") return obj.model;
-        }
-        return null;
-      })
-      .filter((m): m is string => Boolean(m));
+    const { panel: fusionModels, comboRefUnits } = extractFusionPanelSpec(
+      combo.models || [],
+      combo.name,
+      allCombos
+    );
+    // Untyped like the existing `nestingContext` further down — `nesting` is
+    // already `ComboNestingContext | null` per HandleComboChatOptions, no new
+    // import needed.
+    const fusionNesting = nesting || {
+      depth: 0,
+      maxDepth: clampComboDepth(config.maxComboDepth),
+      visitedComboNames: [combo.name],
+      rootComboName: combo.name,
+      attemptBudget: { count: 0, limit: MAX_GLOBAL_ATTEMPTS },
+    };
+    const fusionHandleSingleModel =
+      comboRefUnits.size > 0
+        ? buildFusionHandleSingleModel({
+            handleSingleModel: handleSingleModelWithTimeout,
+            comboRefUnits,
+            allCombos,
+            nesting: fusionNesting,
+            baseOptions: {
+              body,
+              combo,
+              handleSingleModel,
+              isModelAvailable,
+              log,
+              settings,
+              allCombos,
+              relayOptions,
+              signal,
+              apiKeyAllowedConnections,
+            },
+            runCombo: handleComboChat,
+          })
+        : handleSingleModelWithTimeout;
     return handleFusionChat({
       body,
       models: fusionModels,
-      handleSingleModel: handleSingleModelWithTimeout,
+      handleSingleModel: fusionHandleSingleModel,
       log,
       comboName: combo.name,
       judgeModel,
@@ -1114,6 +1166,31 @@ export async function handleComboChat({
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
+  const knownContextOverflow = getKnownContextOverflow(orderedTargets, body);
+  if (knownContextOverflow) {
+    const { requiredContextTokens, maxKnownContextTokens } = knownContextOverflow;
+    log.warn(
+      "COMBO",
+      `Request context exceeds every known target limit (${requiredContextTokens} > ${maxKnownContextTokens} tokens)`
+    );
+    return errorResponseWithComboDiagnostics(
+      400,
+      `Request requires approximately ${requiredContextTokens} tokens, but the largest known context limit in this combo is ${maxKnownContextTokens} tokens. Reduce or compact the request context.`,
+      {
+        poolSize: orderedTargets.length,
+        attempted: 0,
+        excluded: orderedTargets.map((target) => ({
+          provider: target.provider,
+          model: target.modelStr,
+          reason: "context_window",
+        })),
+        attemptOrder: [],
+        terminalReason: "context_length_exceeded",
+      },
+      { code: "context_length_exceeded", type: "invalid_request_error" }
+    );
+  }
+
   if (strategy === "weighted") {
     log.info(
       "COMBO",
@@ -1207,7 +1284,9 @@ export async function handleComboChat({
     ? ({ targets: orderedTargets, messageHash: null, stuck: false } as const)
     : await applySessionStickiness(
         orderedTargets,
-        body.messages as Array<{ role?: string; content?: unknown }>
+        // #7270: normalize both wire shapes (.messages / Responses-API .input) so the
+        // stickiness key is derivable on the /v1/responses surface, not just Chat Completions.
+        normalizeStickinessMessages(body as { messages?: unknown; input?: unknown })
       );
   orderedTargets = _sticky.targets;
   orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
@@ -2027,6 +2106,7 @@ export async function handleComboChat({
                       : undefined,
                 }
               : undefined;
+          const requestScopedFailure = isRequestScopedUpstreamFailure(structuredError);
           const fallbackResult = checkFallbackError(
             result.status,
             errorText,
@@ -2139,6 +2219,7 @@ export async function handleComboChat({
               status: result.status,
               sameProviderNext,
               skipProviderBreaker: fallbackResult.skipProviderBreaker,
+              requestScopedFailure,
             })
           ) {
             recordProviderFailure(provider, log, targetWithConnection.connectionId, profile);
@@ -2164,7 +2245,7 @@ export async function handleComboChat({
             // once the model is cooling down, retrying it would waste an upstream
             // call and extend the cooldown via exponential backoff.
             let lockoutRecorded = false;
-            if (provider && rawModel && retry === 0) {
+            if (provider && rawModel && retry === 0 && !requestScopedFailure) {
               const mlSettings = resolveModelLockoutSettings(settings);
               if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
                 recordModelLockoutFailure(
@@ -2207,7 +2288,7 @@ export async function handleComboChat({
           if (i > 0) fallbackCount++;
           // Wire combo failures into the resilience dashboard (model-level lockout)
           // alongside the provider-level cooldown below — they govern different scopes.
-          if (provider && rawModel) {
+          if (provider && rawModel && !requestScopedFailure) {
             const mlSettings = resolveModelLockoutSettings(settings);
             if (mlSettings.enabled && mlSettings.errorCodes.includes(result.status)) {
               recordModelLockoutFailure(
@@ -2236,6 +2317,7 @@ export async function handleComboChat({
             resilienceSettings.providerCooldown.enabled &&
             provider &&
             provider !== "unknown" &&
+            !requestScopedFailure &&
             !(result.status === 500 && hasPerModelQuota(provider, rawModel))
           ) {
             recordProviderCooldown(
@@ -2508,6 +2590,25 @@ async function handleRoundRobinCombo({
   );
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
   const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
+  const knownContextOverflow = getKnownContextOverflow(evalRankedTargets, body);
+  if (knownContextOverflow) {
+    return errorResponseWithComboDiagnostics(
+      400,
+      `Request requires approximately ${knownContextOverflow.requiredContextTokens} tokens, but the largest known context limit in this combo is ${knownContextOverflow.maxKnownContextTokens} tokens. Reduce or compact the request context.`,
+      {
+        poolSize: evalRankedTargets.length,
+        attempted: 0,
+        excluded: evalRankedTargets.map((target) => ({
+          provider: target.provider,
+          model: target.modelStr,
+          reason: "context_window",
+        })),
+        attemptOrder: [],
+        terminalReason: "context_length_exceeded",
+      },
+      { code: "context_length_exceeded", type: "invalid_request_error" }
+    );
+  }
   const filteredTargets = filterTargetsByRequestCompatibility(
     evalRankedTargets,
     body,
@@ -2631,7 +2732,9 @@ async function handleRoundRobinCombo({
     ? ({ targets: filteredTargets, messageHash: null, stuck: false } as const)
     : await applySessionStickiness(
         filteredTargets,
-        body?.messages as Array<{ role?: string; content?: unknown }>
+        // #7270: normalize both wire shapes (.messages / Responses-API .input) so RR
+        // stickiness engages on the /v1/responses surface, not just Chat Completions.
+        normalizeStickinessMessages(body as { messages?: unknown; input?: unknown })
       );
   let rrStartIndex = startIndex;
   if (_rrSessionSticky.stuck) {
@@ -3002,6 +3105,7 @@ async function handleRoundRobinCombo({
                     : undefined,
               }
             : undefined;
+        const requestScopedFailure = isRequestScopedUpstreamFailure(structuredError);
         const fallbackResult = checkFallbackError(
           result.status,
           errorText,
@@ -3053,6 +3157,7 @@ async function handleRoundRobinCombo({
         if (
           !isStreamReadinessFailure &&
           !isTokenLimitBreach &&
+          !requestScopedFailure &&
           TRANSIENT_FOR_SEMAPHORE.includes(result.status) &&
           cooldownMs > 0
         ) {
@@ -3095,6 +3200,7 @@ async function handleRoundRobinCombo({
           resilienceSettings.providerCooldown.enabled &&
           provider &&
           provider !== "unknown" &&
+          !requestScopedFailure &&
           !(
             result.status === 500 &&
             hasPerModelQuota(provider, parseModel(modelStr).model || modelStr)

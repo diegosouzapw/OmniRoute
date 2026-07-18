@@ -15,12 +15,19 @@ import {
   resolvePayloadRuleProtocols,
 } from "../../services/payloadRules.ts";
 import { getEffectiveToolLimit, getKnownToolLimit } from "../../services/toolLimitDetector.ts";
-import { providerSupportsCaching } from "../../utils/cacheControlPolicy.ts";
+import {
+  providerSupportsCaching,
+  resolveConnectionCacheOverride,
+  type ConnectionCacheOverride,
+} from "../../utils/cacheControlPolicy.ts";
 import { FORMATS } from "../../translator/formats.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 type Body = Record<string, unknown>;
-type CredentialsLike = { apiKey?: unknown; accessToken?: unknown } | null | undefined;
+type CredentialsLike =
+  | { apiKey?: unknown; accessToken?: unknown; providerSpecificData?: Record<string, unknown> | null }
+  | null
+  | undefined;
 
 function buildAppliedRulesSummary(
   applied: Array<{ type: string; path: string; value?: unknown }>
@@ -100,11 +107,12 @@ function backfillQwenOAuthUser(
 async function injectPromptCacheKey(
   bodyToSend: Body,
   provider: string | null | undefined,
-  targetFormat: string
+  targetFormat: string,
+  connectionCacheOverride: ConnectionCacheOverride | null
 ): Promise<Body> {
   if (
     targetFormat === FORMATS.OPENAI &&
-    providerSupportsCaching(provider) &&
+    providerSupportsCaching(provider, undefined, connectionCacheOverride) &&
     !bodyToSend.prompt_cache_key &&
     Array.isArray(bodyToSend.messages) &&
     !["nvidia", "codex", "xai"].includes(provider)
@@ -162,7 +170,8 @@ export async function prepareUpstreamBody(opts: {
 
   bodyToSend = truncateToolList(bodyToSend, provider, bypassDefaultToolLimit ?? false, log);
   bodyToSend = backfillQwenOAuthUser(bodyToSend, provider, credentials, log);
-  bodyToSend = await injectPromptCacheKey(bodyToSend, provider, targetFormat);
+  const connectionCacheOverride = resolveConnectionCacheOverride(credentials?.providerSpecificData);
+  bodyToSend = await injectPromptCacheKey(bodyToSend, provider, targetFormat, connectionCacheOverride);
 
   return bodyToSend;
 }

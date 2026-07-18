@@ -1,7 +1,7 @@
 ---
 title: "Troubleshooting"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.49
+lastUpdated: 2026-07-15
 ---
 
 # Troubleshooting
@@ -30,7 +30,7 @@ Common problems and solutions for OmniRoute.
 | "401 Unauthorized"      | Your credentials are wrong          | Check your API key or re-authenticate with OAuth                                                  |
 | "429 Too Many Requests" | Rate limited                        | Wait 1 minute, or connect more providers                                                          |
 
-**Still stuck?** See the [detailed troubleshooting](#detailed-troubleshooting) below, or ask on [Discord](https://discord.gg/EkzRkpzKYt).
+**Still stuck?** See the [detailed troubleshooting](#detailed-troubleshooting) below, or ask on [Discord](https://discord.gg/U47eFqAXCn).
 
 ---
 
@@ -50,6 +50,44 @@ Common problems and solutions for OmniRoute.
 | Login crash / blank page                            | Check Node.js version — see [Node.js Compatibility](#nodejs-compatibility) below                                                                         |
 | `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
 | Proxy "fetch failed"                                | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below                                                                |
+| Antivirus quarantines `README.md`                   | False positive — see [Antivirus false positives](#antivirus-false-positives) below                                                                       |
+
+---
+
+## Antivirus False Positives
+
+<a name="antivirus-false-positives"></a>
+
+### Avast/AVG quarantine `README.md` with `MD:HttpRequest-inf[Susp]`
+
+**This is a false positive. Nothing is infected, and no action is required.**
+
+Avast and AVG run a heuristic that flags plain-text/Markdown files containing many
+HTTP-request-looking links. OmniRoute's `README.md` ships inside the npm package (it is
+listed in `package.json` → `files`), so it lands at `node_modules/omniroute/README.md` on
+a global install — and it contains ~15 `http://localhost:20128/...` examples (the MCP
+HTTP/SSE endpoints, the A2A `.well-known` URL, and `curl` snippets). That link density is
+enough to trip the heuristic.
+
+If this started only recently: the file did not change in kind. The README grew its
+endpoints table (MCP HTTP + SSE + A2A were added) and more `curl` examples, which pushed
+it past the threshold.
+
+The file is inert documentation with zero executable content. You can safely restore it
+from quarantine.
+
+**What to do:**
+
+1. **Stop the notifications** — exclude the install directory in your antivirus
+   (Avast: Settings → Exceptions), adding your global `node_modules` path and/or the
+   OmniRoute data dir (`~/.omniroute/`).
+2. **Report the false positive** — <https://www.avast.com/false-positive-file-form.php>,
+   attaching the quarantined `README.md`. This is the fix that helps everyone, since it is
+   the vendor's heuristic overreacting to a text file.
+
+**Why we do not "fix" this on our side:** the examples are all `http://localhost`, and
+localhost cannot be `https` without self-signed-certificate friction. Mangling the docs to
+dodge one vendor's heuristic would hurt every reader to satisfy a scanner bug.
 
 ---
 

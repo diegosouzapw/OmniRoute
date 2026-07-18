@@ -1,0 +1,1 @@
+- README: standardized all 28 tables to the same full content width — 13 tables received a calibrated invisible header spacer (`docs/screenshots/spacer.svg`), 15 already rendered full-width naturally; zero data cells changed (#7666)

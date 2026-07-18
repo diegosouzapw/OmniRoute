@@ -56,6 +56,86 @@ export function supportsMaxEffortForProvider(provider: string, model: string): b
   return isClaude || isOpencodeGoDeepSeek || isOllamaCloud;
 }
 
+// ── Effort carrier helpers (#7044) ──────────────────────────────────────────
+// OmniRoute carries the requested effort on up to three shapes:
+//   1. top-level `reasoning_effort`        — OpenAI / OmniRoute-internal
+//   2. `reasoning.effort`                  — OpenAI Responses shape
+//   3. `output_config.effort`              — Anthropic Messages native (Claude Code / Claude passthrough)
+// Carrier (3) was previously invisible to this sanitizer, so a native Claude request
+// carrying `output_config.effort: "xhigh"` reached providers that don't accept xhigh
+// (e.g. claude-sonnet-4-6, supportsXHighEffort=false) unchanged → HTTP 400 (#7044).
+interface EffortCarriers {
+  reasoning: Record<string, unknown> | null;
+  outputConfig: Record<string, unknown> | null;
+  hasTopLevelReasoningEffort: boolean;
+  hasReasoningEffort: boolean;
+  hasOutputConfigEffort: boolean;
+  effort: unknown;
+}
+
+function readEffortCarriers(b: Record<string, unknown>): EffortCarriers {
+  const reasoning =
+    b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
+      ? (b.reasoning as Record<string, unknown>)
+      : null;
+  const outputConfig =
+    b.output_config && typeof b.output_config === "object" && !Array.isArray(b.output_config)
+      ? (b.output_config as Record<string, unknown>)
+      : null;
+  const hasTopLevelReasoningEffort = Object.prototype.hasOwnProperty.call(b, "reasoning_effort");
+  const hasReasoningEffort = !!(
+    reasoning && Object.prototype.hasOwnProperty.call(reasoning, "effort")
+  );
+  const hasOutputConfigEffort = !!(
+    outputConfig && Object.prototype.hasOwnProperty.call(outputConfig, "effort")
+  );
+  const effort = b.reasoning_effort ?? reasoning?.effort ?? outputConfig?.effort;
+  return {
+    reasoning,
+    outputConfig,
+    hasTopLevelReasoningEffort,
+    hasReasoningEffort,
+    hasOutputConfigEffort,
+    effort,
+  };
+}
+
+/** Write a normalized effort value back to every carrier that was present. */
+function writeEffortValue(
+  b: Record<string, unknown>,
+  value: string,
+  c: EffortCarriers
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...b };
+  if (c.hasTopLevelReasoningEffort) next.reasoning_effort = value;
+  if (c.hasReasoningEffort && c.reasoning) next.reasoning = { ...c.reasoning, effort: value };
+  if (c.hasOutputConfigEffort && c.outputConfig)
+    next.output_config = { ...c.outputConfig, effort: value };
+  return next;
+}
+
+/** Strip the effort field from every carrier that was present. */
+function stripEffortValue(
+  b: Record<string, unknown>,
+  c: EffortCarriers
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...b };
+  if (c.hasTopLevelReasoningEffort) delete next.reasoning_effort;
+  if (c.hasReasoningEffort && c.reasoning) {
+    const r: Record<string, unknown> = { ...c.reasoning };
+    delete r.effort;
+    if (Object.keys(r).length === 0) delete next.reasoning;
+    else next.reasoning = r;
+  }
+  if (c.hasOutputConfigEffort && c.outputConfig) {
+    const oc: Record<string, unknown> = { ...c.outputConfig };
+    delete oc.effort;
+    if (Object.keys(oc).length === 0) delete next.output_config;
+    else next.output_config = oc;
+  }
+  return next;
+}
+
 export function sanitizeReasoningEffortForProvider(
   body: unknown,
   provider: string,
@@ -64,14 +144,9 @@ export function sanitizeReasoningEffortForProvider(
 ): unknown {
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
   const b = body as Record<string, unknown>;
-  const reasoning =
-    b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
-      ? (b.reasoning as Record<string, unknown>)
-      : null;
-  const hasTopLevelReasoningEffort = Object.prototype.hasOwnProperty.call(b, "reasoning_effort");
-  const effort = b.reasoning_effort ?? reasoning?.effort;
-  if (effort === undefined) return body;
-  const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
+  const c = readEffortCarriers(b);
+  if (c.effort === undefined) return body;
+  const effortStr = typeof c.effort === "string" ? c.effort.toLowerCase() : "";
   const modelStr = model || "";
 
   const githubOptIn =
@@ -84,15 +159,7 @@ export function sanitizeReasoningEffortForProvider(
       "REASONING_SANITIZE",
       `${provider}/${modelStr}: removed unsupported reasoning_effort`
     );
-    const next: Record<string, unknown> = { ...b };
-    delete next.reasoning_effort;
-    if (reasoning) {
-      const r = { ...reasoning };
-      delete r.effort;
-      if (Object.keys(r).length === 0) delete next.reasoning;
-      else next.reasoning = r;
-    }
-    return next;
+    return stripEffortValue(b, c);
   }
 
   // Native DeepSeek (api.deepseek.com) — V4 thinking mode accepts reasoning_effort
@@ -111,10 +178,7 @@ export function sanitizeReasoningEffortForProvider(
         "REASONING_SANITIZE",
         `deepseek/${modelStr}: normalized reasoning_effort ${effortStr} → ${mapped}`
       );
-      const next: Record<string, unknown> = { ...b };
-      if (hasTopLevelReasoningEffort) next.reasoning_effort = mapped;
-      if (reasoning) next.reasoning = { ...reasoning, effort: mapped };
-      return next;
+      return writeEffortValue(b, mapped, c);
     }
     return body;
   }
@@ -131,14 +195,7 @@ export function sanitizeReasoningEffortForProvider(
       "REASONING_SANITIZE",
       `${provider}/${modelStr}: normalized reasoning_effort max → xhigh`
     );
-    const next: Record<string, unknown> = { ...b };
-    if (hasTopLevelReasoningEffort) {
-      next.reasoning_effort = "xhigh";
-    }
-    if (reasoning) {
-      next.reasoning = { ...reasoning, effort: "xhigh" };
-    }
-    return next;
+    return writeEffortValue(b, "xhigh", c);
   }
 
   if (shouldDowngradeXHigh || shouldDowngradeMax) {
@@ -146,14 +203,7 @@ export function sanitizeReasoningEffortForProvider(
       "REASONING_SANITIZE",
       `${provider}/${modelStr}: downgraded reasoning_effort ${effortStr} → high`
     );
-    const next: Record<string, unknown> = { ...b };
-    if (hasTopLevelReasoningEffort) {
-      next.reasoning_effort = "high";
-    }
-    if (reasoning) {
-      next.reasoning = { ...reasoning, effort: "high" };
-    }
-    return next;
+    return writeEffortValue(b, "high", c);
   }
 
   return body;

@@ -17,14 +17,22 @@ export const opencode_goProvider: RegistryEntry = {
     // glm-5.2 is now advertised and Kimi chat traffic must route through
     // `kimi-k2.7-code` (the live API rejects the plain `kimi-k2.7` alias for
     // `/chat/completions`, even though the docs config example uses it).
-    { id: "glm-5.2", name: "GLM-5.2" },
+    // GLM-5.2 — base model + effort-tier aliases (#6922).
+    // OpencodeExecutor rewrites the alias to the canonical id and injects
+    // reasoning_effort, mirroring the deepseek-v4-pro-* pattern.
+    { id: "glm-5.2", name: "GLM-5.2", supportsReasoning: true },
+    { id: "glm-5.2-high", name: "GLM-5.2 (high effort)", supportsReasoning: true },
+    { id: "glm-5.2-max", name: "GLM-5.2 (max effort)", supportsReasoning: true },
     { id: "glm-5.1", name: "GLM-5.1" },
     { id: "glm-5", name: "GLM-5" },
     { id: "kimi-k2.7-code", name: "Kimi K2.7 Code" },
     { id: "kimi-k2.6", name: "Kimi K2.6" },
     { id: "kimi-k2.5", name: "Kimi K2.5" },
-    { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro" },
-    { id: "mimo-v2.5", name: "MiMo-V2.5" },
+    // MiMo-V2.5 — base model + effort-tier aliases (#6922).
+    { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro", supportsReasoning: true },
+    { id: "mimo-v2.5", name: "MiMo-V2.5", supportsReasoning: true },
+    { id: "mimo-v2.5-high", name: "MiMo-V2.5 (high effort)", supportsReasoning: true },
+    { id: "mimo-v2.5-max", name: "MiMo-V2.5 (max effort)", supportsReasoning: true },
     // #3110: MiniMax M3 via OpenCode Go tier
     {
       id: "minimax-m3",

@@ -193,6 +193,12 @@ export function resolvePlanValue(plan, providerSpecificData) {
     psd.organizationRateLimitTier,
     psd.rateLimitTier,
     psd.organizationType,
+    // Codex OAuth bootstrap: chatgpt_plan_type is captured at import time
+    // (src/lib/oauth/services/codexImport.ts) and is the only source of the
+    // plan when the live Codex usage endpoint omits plan_type/planType (the
+    // usage service then reports the literal string "unknown" — see
+    // open-sse/services/usage/codex.ts).
+    psd.chatgptPlanType,
   ];
 
   if (livePlan && normalizePlanTier(livePlan).key !== "free") {

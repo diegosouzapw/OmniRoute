@@ -1,0 +1,1 @@
+- fix(dashboard): connection Test surfaces a rate-limit warning on 429 chat-probe responses instead of an unqualified pass (#7284)
