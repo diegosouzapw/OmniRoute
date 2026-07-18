@@ -22,7 +22,6 @@ export default defineConfig({
       "src/lib/skills/__tests__/**/*.test.ts",
       "tests/unit/encryption.test.ts",
       "tests/unit/**/*.test.tsx",
-      "tests/unit/token-health-check-sweep.test.ts",
       "open-sse/**/__tests__/**/*.test.ts",
       "open-sse/services/**/__tests__/**/*.test.ts",
       "tests/e2e/ecosystem.test.ts",
