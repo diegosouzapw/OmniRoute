@@ -641,13 +641,14 @@ type ProtoField = {
 };
 
 function encodeVarint(value: number): Uint8Array {
+  // Use BigInt arithmetic to avoid 32-bit truncation from bitwise operators.
+  let v = BigInt(value);
   const out: number[] = [];
-  let v = value >>> 0;
-  while (v >= 0x80) {
-    out.push((v & 0x7f) | 0x80);
-    v >>>= 7;
+  while (v >= 0x80n) {
+    out.push(Number((v & 0x7fn) | 0x80n));
+    v >>= 7n;
   }
-  out.push(v & 0x7f);
+  out.push(Number(v & 0x7fn));
   return new Uint8Array(out);
 }
 
@@ -798,10 +799,10 @@ function buildWsPromptFrame(
 ): Uint8Array {
   const requestId = opts.requestId || crypto.randomUUID();
   const userMessageId = opts.userMessageId || crypto.randomUUID();
-  const submittedMs = opts.submittedMs || Date.now();
+  const submittedMs = opts.submittedMs ?? Date.now();
   const uniqueMessageId =
-    opts.uniqueMessageId ||
-    Number(`${submittedMs}${crypto.randomUUID().replace(/-/g, "").slice(0, 4)}`);
+    opts.uniqueMessageId ??
+    Number(`${submittedMs}${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`);
 
   const raw = Buffer.from(opts.templateB64, "base64");
   const protoFields = parseProtoFields(raw);
@@ -1346,6 +1347,8 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
     if (wsResult.error) {
+      evictContinuationIfNeeded(cached, continuationCacheKey);
+      log?.error?.("MUSE-SPARK-WEB", `WS error: ${wsResult.error}`);
       const lower = wsResult.error.toLowerCase();
       const status = /auth|authorization|401/.test(lower) ? 401 : 502;
       return errorResult(status, wsResult.error, "meta_ai_ws_error", headers, body);
@@ -1353,8 +1356,20 @@ export class MuseSparkWebExecutor extends BaseExecutor {
 
     const content = wsResult.content || "";
 
-    const deltas = content === "" ? [""] : wsResult.deltas.length > 0 ? wsResult.deltas : [content];
-    const id = `chatcmpl-meta-${crypto.randomUUID().slice(0, 12)}`;
+    // Empty WS response is an upstream failure, not a successful empty completion.
+    if (!content && !wsResult.deltas.length) {
+      evictContinuationIfNeeded(cached, continuationCacheKey);
+      log?.error?.("MUSE-SPARK-WEB", "WS returned empty response");
+      return errorResult(
+        502,
+        "Meta AI returned no assistant content",
+        "meta_ai_empty_response",
+        headers,
+        body
+      );
+    }
+
+    const deltas = wsResult.deltas.length > 0 ? wsResult.deltas : [content];
     const parsed = {
       content,
       deltas,
