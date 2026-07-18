@@ -163,6 +163,28 @@ test("runSingleModelTest preserves slow timeout after chatCore converts AbortErr
     testStatus: "active",
   });
   const originalFetch = globalThis.fetch;
+
+  // Warm up the chat-completions pipeline (SSE translators, compression
+  // settings, etc. all lazy-init on the very first real request in a
+  // process) with a fast, immediately-resolving mock and a generous
+  // timeout *before* asserting on the 1s abort-timing below. Without this,
+  // the first-request cold-start cost can eat the entire 1s budget below,
+  // so the AbortController fires before chatCore ever reaches the
+  // executor's fetch() call — by the time that in-flight call actually
+  // dispatches, this test's own `finally` block has already restored
+  // `globalThis.fetch`, and the assertions below race real upstream I/O
+  // instead of exercising the mock.
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ choices: [{ message: { role: "assistant", content: "OK" } }] }), {
+      headers: { "content-type": "application/json" },
+    });
+  await runSingleModelTest({
+    providerId: "openai",
+    modelId: "gpt-4o",
+    connectionId: String(connection.id),
+    timeoutMs: 10_000,
+  });
+
   let upstreamSignal: AbortSignal | null = null;
   let upstreamCalled = false;
 
