@@ -76,6 +76,60 @@ describe("useDisplayBaseUrl", () => {
     expect(isPublicDisplayBaseUrl("http://[::1]:20128")).toBe(false);
   });
 
+  it("classifies IPv4 private ranges at their exact boundaries", () => {
+    const cases: Array<[host: string, expectedPublic: boolean]> = [
+      // 0.0.0.0/8 ("this" network) vs just above it
+      ["0.0.0.1", false],
+      ["1.0.0.1", true],
+      // RFC1918 10.0.0.0/8 vs just outside
+      ["9.255.255.255", true],
+      ["10.0.0.1", false],
+      ["11.0.0.0", true],
+      // loopback 127.0.0.0/8 vs just outside
+      ["126.255.255.255", true],
+      ["127.0.0.1", false],
+      ["128.0.0.0", true],
+      // multicast/reserved 224.0.0.0+ vs just below
+      ["223.255.255.255", true],
+      ["224.0.0.1", false],
+      // CGNAT RFC6598 100.64.0.0/10 vs just outside
+      ["100.63.255.255", true],
+      ["100.64.0.0", false],
+      ["100.127.255.255", false],
+      ["100.128.0.0", true],
+      // link-local 169.254.0.0/16 vs just outside
+      ["169.253.255.255", true],
+      ["169.254.0.1", false],
+      ["169.255.0.0", true],
+      // RFC1918 172.16.0.0/12 vs just outside
+      ["172.15.255.255", true],
+      ["172.16.0.0", false],
+      ["172.31.255.255", false],
+      ["172.32.0.0", true],
+      // RFC1918 192.168.0.0/16 vs just outside
+      ["192.167.255.255", true],
+      ["192.168.0.1", false],
+      ["192.169.0.0", true],
+    ];
+
+    for (const [host, expectedPublic] of cases) {
+      expect(isPublicDisplayBaseUrl(`http://${host}:20128`)).toBe(expectedPublic);
+    }
+  });
+
+  it("classifies IPv6 special ranges while keeping the check scoped to actual IPv6 hosts", () => {
+    expect(isPublicDisplayBaseUrl("http://[::]:20128")).toBe(false);
+    expect(isPublicDisplayBaseUrl("http://[::1]:20128")).toBe(false);
+    expect(isPublicDisplayBaseUrl("http://[fc00::1]:20128")).toBe(false);
+    expect(isPublicDisplayBaseUrl("http://[fd12::1]:20128")).toBe(false);
+    expect(isPublicDisplayBaseUrl("http://[fe80::1]:20128")).toBe(false);
+    expect(isPublicDisplayBaseUrl("http://[2001:db8::1]:20128")).toBe(true);
+    // A hostname that merely STARTS WITH "fd"/"fc" must stay public — the ULA/
+    // link-local checks are IPv6-only and must not leak into hostname matching.
+    expect(isPublicDisplayBaseUrl("http://fdroid.example.com:20128")).toBe(true);
+    expect(isPublicDisplayBaseUrl("http://fcbar.example.com:20128")).toBe(true);
+  });
+
   it("keeps a configured public URL when the browser is on a local address", () => {
     expect(resolveDisplayBaseUrl("https://api.example.com/", "http://localhost:20128")).toBe(
       "https://api.example.com"

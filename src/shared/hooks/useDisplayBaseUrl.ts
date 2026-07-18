@@ -10,19 +10,80 @@ function normalizeUrl(value?: string): string | null {
   return trimmed.replace(/\/+$/, "");
 }
 
+/**
+ * One RFC1918 / special-use IPv4 range, expressed as closed intervals on the
+ * first two octets. Unbounded ends use +/-Infinity so a single numeric
+ * comparison covers them without an extra branch.
+ */
+interface Ipv4Range {
+  readonly firstMin: number;
+  readonly firstMax: number;
+  readonly secondMin: number;
+  readonly secondMax: number;
+}
+
+/** RFC1918 + special-use IPv4 ranges treated as non-public for display purposes. */
+const PRIVATE_IPV4_RANGES: readonly Ipv4Range[] = [
+  { firstMin: 0, firstMax: 0, secondMin: -Infinity, secondMax: Infinity }, // 0.0.0.0/8 ("this" network)
+  { firstMin: 10, firstMax: 10, secondMin: -Infinity, secondMax: Infinity }, // RFC1918 10.0.0.0/8
+  { firstMin: 127, firstMax: 127, secondMin: -Infinity, secondMax: Infinity }, // loopback 127.0.0.0/8
+  { firstMin: 224, firstMax: Infinity, secondMin: -Infinity, secondMax: Infinity }, // multicast/reserved/broadcast
+  { firstMin: 100, firstMax: 100, secondMin: 64, secondMax: 127 }, // CGNAT RFC6598 100.64.0.0/10
+  { firstMin: 169, firstMax: 169, secondMin: 254, secondMax: 254 }, // link-local 169.254.0.0/16
+  { firstMin: 172, firstMax: 172, secondMin: 16, secondMax: 31 }, // RFC1918 172.16.0.0/12
+  { firstMin: 192, firstMax: 192, secondMin: 168, secondMax: 168 }, // RFC1918 192.168.0.0/16
+];
+
+function isInIpv4Range(first: number, second: number, range: Ipv4Range): boolean {
+  return (
+    first >= range.firstMin &&
+    first <= range.firstMax &&
+    second >= range.secondMin &&
+    second <= range.secondMax
+  );
+}
+
 function isPrivateIpv4(hostname: string): boolean {
   const octets = hostname.split(".").map(Number);
   if (octets.length !== 4 || octets.some((octet) => !Number.isInteger(octet))) return false;
   const [first, second] = octets;
+  return PRIVATE_IPV4_RANGES.some((range) => isInIpv4Range(first, second, range));
+}
+
+function isSupportedProtocol(protocol: string): boolean {
+  return protocol === "http:" || protocol === "https:";
+}
+
+function isLoopbackHostname(hostname: string): boolean {
+  return !hostname || hostname === "localhost" || hostname.endsWith(".localhost");
+}
+
+function isMulticastDnsHostname(hostname: string): boolean {
+  return hostname.endsWith(".local");
+}
+
+function isIpv6LoopbackOrUnspecified(hostname: string): boolean {
+  return hostname === "::" || hostname === "::1";
+}
+
+function isIpv6UniqueLocal(hostname: string): boolean {
+  // RFC 4193 Unique Local Addresses: fc00::/7 (prefixes "fc" and "fd").
+  return hostname.startsWith("fc") || hostname.startsWith("fd");
+}
+
+const IPV6_LINK_LOCAL_PATTERN = /^fe[89ab]/;
+
+function isIpv6LinkLocal(hostname: string): boolean {
+  // RFC 4291 link-local: fe80::/10.
+  return IPV6_LINK_LOCAL_PATTERN.test(hostname);
+}
+
+/** Combines the IPv6-specific non-public checks the caller gates on `isIpv6`. */
+function isNonPublicIpv6(hostname: string): boolean {
   return (
-    first === 0 ||
-    first === 10 ||
-    first === 127 ||
-    first >= 224 ||
-    (first === 100 && second >= 64 && second <= 127) ||
-    (first === 169 && second === 254) ||
-    (first === 172 && second >= 16 && second <= 31) ||
-    (first === 192 && second === 168)
+    isIpv6LoopbackOrUnspecified(hostname) ||
+    isIpv6UniqueLocal(hostname) ||
+    isIpv6LinkLocal(hostname)
   );
 }
 
@@ -32,22 +93,16 @@ export function isPublicDisplayBaseUrl(value?: string): boolean {
 
   try {
     const parsed = new URL(normalized);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+    if (!isSupportedProtocol(parsed.protocol)) return false;
 
     const hostname = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
-    if (!hostname || hostname === "localhost" || hostname.endsWith(".localhost")) return false;
-    if (hostname.endsWith(".local") || isPrivateIpv4(hostname)) return false;
+    if (isLoopbackHostname(hostname)) return false;
+    if (isMulticastDnsHostname(hostname) || isPrivateIpv4(hostname)) return false;
+
+    // IPv6-only checks stay gated on isIpv6 — hostnames like "fdroid.example.com"
+    // legitimately start with "fd" and must not be misclassified as ULA addresses.
     const isIpv6 = hostname.includes(":");
-    if (
-      isIpv6 &&
-      (hostname === "::" ||
-        hostname === "::1" ||
-        hostname.startsWith("fc") ||
-        hostname.startsWith("fd") ||
-        /^fe[89ab]/.test(hostname))
-    ) {
-      return false;
-    }
+    if (isIpv6 && isNonPublicIpv6(hostname)) return false;
 
     return true;
   } catch {
