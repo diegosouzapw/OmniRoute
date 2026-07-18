@@ -1,0 +1,1 @@
+- **docs(readme):** fix stale counts — 18 routing strategies (adds the missing `pipeline` row), 94 MCP tools, 12-factor Auto-Combo scoring.

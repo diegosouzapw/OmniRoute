@@ -6,7 +6,6 @@
  * predicates are re-exported from combo.ts for backward compatibility.
  */
 
-import { isProviderFailureCode } from "../accountFallback.ts";
 import { errorResponse } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
 import type { ResolvedComboTarget } from "./types.ts";
@@ -117,12 +116,27 @@ export function shouldSkipForPredictedTtft(
 }
 
 /**
+ * Whole-provider circuit-breaker failure statuses for the combo path. Kept byte-identical
+ * to the single-model path's `PROVIDER_BREAKER_FAILURE_STATUSES` (src/sse/handlers/chat.ts:206)
+ * — the source of truth. 429 is deliberately EXCLUDED: a plain rate-limit must not open the
+ * whole-provider breaker (it's connection-cooldown / model-lockout scope). Defined locally
+ * rather than imported to avoid a cross-layer (open-sse → src/sse) import cycle.
+ */
+const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
+
+/**
  * Decide whether a failed combo target should record a whole-provider circuit-breaker
  * failure (#1731 / #2743 gap-d). This is the consumer side of `skipProviderBreaker`:
  *
  * - Stream-readiness failures (pre-flight zombie/ping probes) never count as provider
  *   failures — they are a connection-readiness signal, not an upstream outage.
- * - Only provider-level failure codes (408/429/5xx — see `isProviderFailureCode`) count.
+ * - Only whole-provider failure statuses (408/500/502/503/504) count. A plain rate-limit
+ *   429 is deliberately EXCLUDED — it belongs to connection cooldown / model lockout scope
+ *   (a genuine quota/token-limit 429 is handled there), NOT the whole-provider breaker. This
+ *   mirrors the single-model path's `PROVIDER_BREAKER_FAILURE_STATUSES` (src/sse/handlers/
+ *   chat.ts:206) — the source of truth — and the documented RESILIENCE_GUIDE policy. NOTE:
+ *   this intentionally differs from `isProviderFailureCode` (accountFallback.ts), which
+ *   INCLUDES 429 for connection-cooldown purposes and must not be changed here.
  * - When the next combo target is on the SAME provider, don't trip the provider breaker:
  *   a different model on that provider may still succeed.
  * - G-02 / #2743: when the fallback result carries `skipProviderBreaker` (an embedded
@@ -139,7 +153,7 @@ export function shouldRecordProviderBreakerFailure(args: {
 }): boolean {
   return (
     !args.isStreamReadinessFailure &&
-    isProviderFailureCode(args.status) &&
+    PROVIDER_BREAKER_FAILURE_STATUSES.has(args.status) &&
     !args.sameProviderNext &&
     !args.skipProviderBreaker
   );

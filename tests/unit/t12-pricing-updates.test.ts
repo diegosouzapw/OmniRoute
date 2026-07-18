@@ -4,11 +4,20 @@ import assert from "node:assert/strict";
 import { getDefaultPricing } from "../../src/shared/constants/pricing.ts";
 import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
 
-test("T12: pricing table includes MiniMax, GLM, Kimi and gpt-5.4 mini entries", () => {
+test("T12: pricing table includes current Codex, MiniMax, GLM and Kimi entries", () => {
   const pricing = getDefaultPricing();
 
-  assert.ok(pricing.cx["gpt-5.4"], "missing cx/gpt-5.4");
-  assert.ok(pricing.cx["gpt-5.4-mini"], "missing cx/gpt-5.4-mini");
+  assert.ok(pricing.cx["gpt-5.6-sol-ultra"], "missing cx/gpt-5.6-sol-ultra");
+  assert.ok(pricing.cx["gpt-5.6-terra-max"], "missing cx/gpt-5.6-terra-max");
+  assert.ok(pricing.cx["gpt-5.6-luna-max"], "missing cx/gpt-5.6-luna-max");
+  assert.equal(pricing.cx["gpt-5.6-sol"].input, 5);
+  assert.equal(pricing.cx["gpt-5.6-sol"].output, 30);
+  assert.equal(pricing.cx["gpt-5.6-terra"].input, 2.5);
+  assert.equal(pricing.cx["gpt-5.6-terra"].output, 15);
+  assert.equal(pricing.cx["gpt-5.6-luna"].input, 1);
+  assert.equal(pricing.cx["gpt-5.6-luna"].output, 6);
+  assert.equal(pricing.cx["gpt-5.4"], undefined);
+  assert.equal(pricing.cx["gpt-5.4-mini"], undefined);
 
   assert.ok(pricing.minimax["minimax-m2.5"], "missing minimax/minimax-m2.5");
   assert.ok(pricing.minimax["minimax-m2.7"], "missing minimax/minimax-m2.7");

@@ -34,8 +34,15 @@ export type {
 } from "./settings/types";
 
 export const DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS = (() => {
-  const parsed = Number(process.env.RATE_LIMIT_MAX_WAIT_MS || "120000");
-  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : 120000;
+  const parsed = Number(process.env.RATE_LIMIT_MAX_WAIT_MS || "15000");
+  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : 15000;
+})();
+
+// Issue #6593: opt-in admission cap on the local rate-limit queue depth.
+// Default 0 = disabled (unbounded queue, today's behavior unchanged).
+export const DEFAULT_REQUEST_QUEUE_MAX_DEPTH = (() => {
+  const parsed = Number(process.env.RATE_LIMIT_MAX_QUEUE_DEPTH || "0");
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.trunc(parsed) : 0;
 })();
 
 export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
@@ -45,6 +52,7 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     minTimeBetweenRequestsMs: DEFAULT_API_LIMITS.minTimeBetweenRequests,
     concurrentRequests: DEFAULT_API_LIMITS.concurrentRequests,
     maxWaitMs: DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS,
+    maxQueueDepth: DEFAULT_REQUEST_QUEUE_MAX_DEPTH,
   },
   connectionCooldown: {
     oauth: {
@@ -172,6 +180,7 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
         { min: 1, max: 10_000 }
       ),
       maxWaitMs: DEFAULT_RESILIENCE_SETTINGS.requestQueue.maxWaitMs,
+      maxQueueDepth: DEFAULT_RESILIENCE_SETTINGS.requestQueue.maxQueueDepth,
     },
     connectionCooldown: {
       oauth: normalizeLegacyConnectionCooldownProfile(

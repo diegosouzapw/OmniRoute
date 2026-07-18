@@ -19,6 +19,7 @@ import {
   getGlmTransport,
 } from "../config/glmProvider.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
+import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 import { CLAUDE_CLI_STAINLESS_PACKAGE_VERSION } from "../config/anthropicHeaders.ts";
 import {
@@ -282,6 +283,14 @@ export class GlmExecutor extends DefaultExecutor {
 
     const transformed = this.transformRequest(effectiveModel, body, stream, credentials);
     const record = asRecord(transformed);
+
+    // #7364: unlike DefaultExecutor.execute() (default.ts), GlmExecutor.execute()
+    // never calls the base execute() loop — it drives its own fetch via
+    // executeTransport()/transformForTransport() — so stripUnsupportedParams()
+    // (normally applied at default.ts's execute() call site) never ran for GLM
+    // requests. Without this call, a STRIP_RULES clamp entry for provider "glm"
+    // (e.g. the glm-4.6v max_tokens ceiling) would be silently dead code.
+    if (record) stripUnsupportedParams(this.provider, effectiveModel, record);
 
     // Ensure upstream receives the base model ID, not the effort-suffixed alias
     if (record && effortTier) {

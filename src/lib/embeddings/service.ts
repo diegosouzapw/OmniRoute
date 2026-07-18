@@ -17,12 +17,24 @@ import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/services/model.ts";
 import { findEmbeddingComboDimensionConflict } from "./familyGuard";
+import { isPrivateHost, isCloudMetadataHost } from "@/shared/network/outboundUrlGuard";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 type ProviderCredentialsResult = Awaited<ReturnType<typeof getProviderCredentials>>;
+
+// #6925: a private/LAN host (RFC1918 10/8, 192.168/16, 172.16/12, CGNAT 100.64/10,
+// loopback, .local/.internal, ULA/link-local IPv6) is treated as a trusted no-auth
+// local embedding provider — mirrors the outbound-URL guard's private-host
+// classification instead of the old hand-rolled localhost/127.0.0.1/172.16-31-only
+// regex, which excluded common LAN ranges (10.x, 192.168.x) and forced them through
+// the apikey/bearer fallback even when no credentials exist. Cloud-metadata hosts
+// (169.254.169.254 etc.) are never treated as no-auth local providers.
+function isNoAuthLocalEmbeddingHost(hostname: string): boolean {
+  return isPrivateHost(hostname) && !isCloudMetadataHost(hostname);
+}
 
 export interface EmbeddingHandlerOptions {
   clientRawRequest?: {
@@ -119,11 +131,7 @@ export async function createEmbeddingResponse(
         if (!validTypes.includes(n.apiType || "")) return false;
         try {
           const hostname = new URL(n.baseUrl).hostname;
-          return (
-            hostname === "localhost" ||
-            hostname === "127.0.0.1" ||
-            /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
-          );
+          return isNoAuthLocalEmbeddingHost(hostname);
         } catch {
           return false;
         }
@@ -164,11 +172,22 @@ export async function createEmbeddingResponse(
       );
       if (matchingNode) {
         const baseUrl = String(matchingNode.baseUrl).replace(/\/+$/, "");
+        // #6925: a private/LAN node reaching this fallback (e.g. a matching
+        // prefix that skipped the dynamicProviders pass above) must never be
+        // forced through bearer-auth — only a non-private host falls back to
+        // apikey/bearer credential resolution.
+        let nodeHostname = "";
+        try {
+          nodeHostname = new URL(matchingNode.baseUrl).hostname;
+        } catch {
+          nodeHostname = "";
+        }
+        const isNoAuthLocal = nodeHostname !== "" && isNoAuthLocalEmbeddingHost(nodeHostname);
         providerConfig = {
           id: matchingNode.prefix,
           baseUrl: `${baseUrl}/embeddings`,
-          authType: "apikey",
-          authHeader: "bearer",
+          authType: isNoAuthLocal ? "none" : "apikey",
+          authHeader: isNoAuthLocal ? "none" : "bearer",
           models: [],
         };
         credentialsProviderId = matchingNode.id || provider;

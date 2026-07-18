@@ -21,6 +21,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "context-lite",
   "context-aggressive",
   "context-ultra",
+  "context-omniglyph",
   "compression-studio",
   // OmniProxy > Tools
   "cli-code",
@@ -73,6 +74,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "memory",
   "skills",
   "agent-skills",
+  "chaos-config",
   "mcp",
   "a2a",
   "plugins",

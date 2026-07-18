@@ -129,6 +129,19 @@ export const WEB_COOKIE_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
+  "microsoft-designer-web": {
+    id: "microsoft-designer-web",
+    alias: "msdesigner",
+    name: "Microsoft Designer (Image Generation)",
+    icon: "auto_awesome",
+    color: "#0078D4",
+    textIcon: "MSD",
+    website: "https://designer.microsoft.com",
+    authHint:
+      "Sign in at designer.microsoft.com, then open DevTools → Network, generate an image, and find the request to DallE.ashx?action=GetDallEImagesCogSci. Copy the value of its Authorization: Bearer header (the access_token — no 'Bearer ' prefix). The token is short-lived; this is an unofficial, reverse-engineered integration.",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
   "t3-web": {
     id: "t3-web",
     alias: "t3chat",
@@ -171,18 +184,20 @@ export const WEB_COOKIE_PROVIDERS = {
       "Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies)",
   },
   lmarena: {
+    // Wire id stays `lmarena` for DB/combo/model-prefix back-compat.
+    // Product rebranded LMArena → Arena (arena.ai) in Jan 2026.
     id: "lmarena",
     alias: "lma",
-    name: "LMArena (Free)",
+    name: "Arena (Free)",
     icon: "auto_awesome",
     color: "#FF6B6B",
-    textIcon: "LMA",
-    website: "https://lmarena.ai",
+    textIcon: "AR",
+    website: "https://arena.ai",
     hasFree: true,
     freeNote:
-      "Free model comparison platform — 40+ models (GPT, Claude, Gemini, Llama). No subscription required.",
+      "Free model comparison platform (formerly LMArena) at arena.ai — Direct-chat catalog of chat models (GPT, Claude, Gemini, Llama, …). No subscription required.",
     authHint:
-      "Paste the full Cookie header from lmarena.ai (DevTools → Network → request → Cookie). The session is now split across arena-auth-prod-v1.0, .1, … — copy the whole header. Optional — works with free tier for basic comparisons.",
+      "Paste the full Cookie header from arena.ai (DevTools → Network → request → Cookie). Include arena-auth-prod-v1.0/.1… and cf_clearance/__cf_bm when present. OmniRoute uses Chrome TLS impersonation; if Arena still 403s, set providerSpecificData.recaptchaV3Token from a live browser session.",
     riskNoticeVariant: "webCookie",
   },
   "yuanbao-web": {
@@ -240,7 +255,13 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   "v0-vercel-web": {
     id: "v0-vercel-web",
-    alias: "v0",
+    // #6343: was "v0", colliding with the unrelated "v0-vercel" API-key provider's
+    // alias. Aliases resolve 1:1 to a provider id, so the dashboard's model-string
+    // routing always picked v0-vercel, silently hiding this provider's own
+    // credentials. Follows the established secondary-web-variant convention (see
+    // kimi-web / qwen-web / huggingchat in tests/unit/provider-alias-uniqueness.test.ts):
+    // the web/secondary variant uses its own id as alias instead of a short prefix.
+    alias: "v0-vercel-web",
     name: "v0 Vercel Web (Code Gen)",
     icon: "auto_awesome",
     color: "#000000",
@@ -318,6 +339,40 @@ export const WEB_COOKIE_PROVIDERS = {
       "Free tier (5 Flows/5h, 38.64 Flows/week) — DeepSeek V3.2, GLM 4.7 Flash Free and more. No subscription required.",
     authHint:
       "Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days.",
+  },
+  "zai-web": {
+    id: "zai-web",
+    alias: "zw",
+    name: "Z.ai Web (Free)",
+    icon: "auto_awesome",
+    color: "#2563EB",
+    textIcon: "ZW",
+    website: "https://chat.z.ai",
+    hasFree: true,
+    freeNote:
+      "Free consumer web session — GLM chat models via chat.z.ai. Distinct from the API-key zai/glm providers. No subscription required.",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint: "Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie)",
+  },
+  "notion-web": {
+    id: "notion-web",
+    alias: "nw",
+    name: "Notion AI Web (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#000000",
+    textIcon: "NW",
+    website: "https://www.notion.so",
+    // #6758: Notion has no public inference API (see closed request #3272) — this
+    // reverse-engineers the same undocumented internal endpoint two independent
+    // open-source projects already use. Undocumented endpoints can change without
+    // notice; label clearly so operators understand the risk before pasting a
+    // session cookie of an account they already pay for.
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint:
+      "Paste your token_v2 cookie value from notion.so (DevTools → Application → Cookies). " +
+      "Optionally append `; space_id=...` and/or `; notion_browser_id=...` if your workspace requires them.",
   },
 };
 

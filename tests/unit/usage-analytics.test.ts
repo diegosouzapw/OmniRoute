@@ -15,7 +15,8 @@ const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const usageStats = await import("../../src/lib/usage/usageStats.ts");
 const legacyUsageAnalytics = await import("../../src/lib/usageAnalytics.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
-const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
+const { calculateCost, getCodexFastCostMultiplier } =
+  await import("../../src/lib/usage/costCalculator.ts");
 
 // Use the official clearPendingRequests export instead of manual cleanup
 const clearPendingRequests = usageHistory.clearPendingRequests;
@@ -398,11 +399,11 @@ test("computeAnalytics groups renamed API key usage by stable ID", async () => {
   assert.equal(analytics.byApiKey[0].completionTokens, 15);
 });
 
-test("Codex Fast service tier applies documented GPT-5.5 and GPT-5.4 cost multipliers", async () => {
+test("Codex Fast service tier applies GPT-5.5 and GPT-5.6 credit multipliers", async () => {
   await localDb.updatePricing({
     codex: {
       "gpt-5.5": { input: 5, output: 30 },
-      "gpt-5.4": { input: 5, output: 30 },
+      "gpt-5.6-sol": { input: 5, output: 30 },
     },
   });
 
@@ -411,7 +412,12 @@ test("Codex Fast service tier applies documented GPT-5.5 and GPT-5.4 cost multip
   assert.equal(await calculateCost("codex", "gpt-5.5", tokens), 0.02);
   assert.equal(await calculateCost("codex", "gpt-5.5", tokens, { serviceTier: "priority" }), 0.05);
   assert.equal(await calculateCost("codex", "gpt-5.5", tokens, { serviceTier: "flex" }), 0.01);
-  assert.equal(await calculateCost("codex", "gpt-5.4-high", tokens, { serviceTier: "fast" }), 0.04);
+  assert.equal(
+    await calculateCost("codex", "gpt-5.6-sol-high", tokens, { serviceTier: "fast" }),
+    0.03
+  );
+  assert.equal(getCodexFastCostMultiplier("cx", "gpt-5.6-terra-ultra", "fast"), 1.5);
+  assert.equal(getCodexFastCostMultiplier("codex", "gpt-5.6-luna-max", "priority"), 1.5);
   assert.equal(await calculateCost("openai", "gpt-5.5", tokens, { serviceTier: "priority" }), 0.02);
   assert.equal(await calculateCost("openai", "gpt-5.5", tokens, { serviceTier: "flex" }), 0.02);
 });

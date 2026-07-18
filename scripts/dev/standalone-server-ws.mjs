@@ -5,21 +5,23 @@ import { createResponsesWsProxy } from "./responses-ws-proxy.mjs";
 import { ensurePeerStampToken, wrapRequestListenerWithPeerStamp } from "./peer-stamp.mjs";
 import { maybeHandleWebdav } from "./webdav-handler.mjs";
 import methodGuard from "./http-method-guard.cjs";
+import headResponseGuard from "./head-response-guard.cjs";
 import { resolveTlsOptions, createServerListener } from "./tls-options.mjs";
+import { getMainServerTimeoutConfig } from "./main-server-timeouts.mjs";
 
 const originalCreateServer = http.createServer.bind(http);
 const proxiesByPort = new Map();
 const { wrapRequestListenerWithMethodGuard } = methodGuard;
+const { wrapRequestListenerWithHeadResponseGuard } = headResponseGuard;
 
 // Opt-in native HTTPS (#5242). Resolved once at boot: when both OMNIROUTE_TLS_CERT
 // and OMNIROUTE_TLS_KEY point at readable files we terminate TLS on the same
 // listener Next binds to (so WS `upgrade` / request wrappers keep working over
 // TLS). Absent or misconfigured → null → identical plain-HTTP behavior as before.
 const tlsOptions = resolveTlsOptions(process.env);
+process.env.OMNIROUTE_INTERNAL_SCHEME = tlsOptions ? "https" : "http";
 if (tlsOptions) {
-  console.log(
-    `[omniroute][tls] HTTPS enabled — terminating TLS with cert=${tlsOptions.certPath}`
-  );
+  console.log(`[omniroute][tls] HTTPS enabled — terminating TLS with cert=${tlsOptions.certPath}`);
 }
 
 process.env.OMNIROUTE_WS_BRIDGE_SECRET ||= randomUUID();
@@ -49,8 +51,23 @@ function getProxy(server) {
   return proxy;
 }
 
+function deriveLiveWsPath() {
+  const publicUrl = process.env.NEXT_PUBLIC_LIVE_WS_PUBLIC_URL;
+  if (!publicUrl) return "/live-ws";
+  if (!publicUrl.startsWith("ws://") && !publicUrl.startsWith("wss://")) return "/live-ws";
+  try {
+    const parsed = new URL(publicUrl);
+    const pathname = parsed.pathname;
+    return pathname && pathname !== "/" ? pathname : "/live-ws";
+  } catch {
+    return "/live-ws";
+  }
+}
+
+const LIVE_WS_PATH = deriveLiveWsPath();
+
 function proxyLiveWs(req, socket, head) {
-  const targetPort = parseInt(process.env.LIVE_WS_PORT || "20129", 10);
+  const targetPort = parseInt(process.env.LIVE_WS_PORT || "20132", 10);
   const targetSocket = net.connect(targetPort, "127.0.0.1", () => {
     let rawRequest = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
     for (const [key, val] of Object.entries(req.headers)) {
@@ -74,8 +91,16 @@ function proxyLiveWs(req, socket, head) {
 function wrapUpgradeListener(server, listener) {
   return async function responsesWsAwareUpgrade(req, socket, head) {
     try {
+      // If this server IS the LiveWS server (port 20132), the ws library's
+      // own upgrade handler should process the request directly — proxying
+      // /live-ws back to 127.0.0.1:20132 would create an infinite self-loop.
+      const liveWsPort = parseInt(process.env.LIVE_WS_PORT || "20132", 10);
+      if (getPort(server) === liveWsPort) {
+        return listener.call(this, req, socket, head);
+      }
+
       const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
-      if (url.pathname === "/live-ws" || url.pathname.startsWith("/live-ws")) {
+      if (url.pathname === LIVE_WS_PATH || url.pathname.startsWith(LIVE_WS_PATH + "/")) {
         proxyLiveWs(req, socket, head);
         return;
       }
@@ -114,8 +139,12 @@ http.createServer = function createServerWithResponsesWs(...args) {
   const lastFnIdx = args.map((a) => typeof a === "function").lastIndexOf(true);
   if (lastFnIdx >= 0) {
     // Method guard runs before Next because Next 16 rejects TRACE while constructing requests.
-    args[lastFnIdx] = wrapRequestListenerWithMethodGuard(
-      wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(args[lastFnIdx]))
+    // Head-response guard wraps outermost so it sees (and can force-close) every
+    // HEAD request regardless of which inner layer ends up handling it (#6400).
+    args[lastFnIdx] = wrapRequestListenerWithHeadResponseGuard(
+      wrapRequestListenerWithMethodGuard(
+        wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(args[lastFnIdx]))
+      )
     );
   }
 
@@ -123,6 +152,19 @@ http.createServer = function createServerWithResponsesWs(...args) {
   // listener); otherwise the original http.Server. The downstream .on/.addListener
   // patches below apply identically to both (https.Server extends http.Server).
   const server = createServerListener(args, tlsOptions, { createHttp: originalCreateServer });
+  // Node's http.Server default keepAliveTimeout (5_000ms) races pooled
+  // keep-alive HTTP clients that idle longer than that between requests (e.g.
+  // the JVM java.net.http.HttpClient used by JetBrains AI Assistant), which
+  // reuse a socket the server already tore down and get 0 response bytes back
+  // (#7003). This wrapper is what `omniroute serve` / Docker / Electron actually
+  // spawn in production (run-standalone.mjs prefers server-ws.mjs over the bare
+  // Next server.js), so it needs the same fix already wired into run-next.mjs
+  // (the dev-only entry point) — otherwise real installs never got it. Raise
+  // both timeouts well above any realistic client idle-pool window, mirroring
+  // src/lib/apiBridgeServer.ts's pattern.
+  const mainServerTimeouts = getMainServerTimeoutConfig();
+  server.keepAliveTimeout = mainServerTimeouts.keepAliveTimeoutMs;
+  server.headersTimeout = mainServerTimeouts.headersTimeoutMs;
   const originalOn = server.on.bind(server);
   const originalAddListener = server.addListener.bind(server);
 
@@ -134,8 +176,10 @@ http.createServer = function createServerWithResponsesWs(...args) {
     if (eventName === "request" && typeof listener === "function") {
       return originalOn(
         eventName,
-        wrapRequestListenerWithMethodGuard(
-          wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(listener))
+        wrapRequestListenerWithHeadResponseGuard(
+          wrapRequestListenerWithMethodGuard(
+            wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(listener))
+          )
         )
       );
     }
@@ -149,8 +193,10 @@ http.createServer = function createServerWithResponsesWs(...args) {
     if (eventName === "request" && typeof listener === "function") {
       return originalAddListener(
         eventName,
-        wrapRequestListenerWithMethodGuard(
-          wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(listener))
+        wrapRequestListenerWithHeadResponseGuard(
+          wrapRequestListenerWithMethodGuard(
+            wrapRequestListenerWithWebdav(wrapRequestListenerWithPeerStamp(listener))
+          )
         )
       );
     }

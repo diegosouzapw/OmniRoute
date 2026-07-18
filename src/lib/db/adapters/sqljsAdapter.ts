@@ -31,6 +31,57 @@ function resolveSqlJsWasmPath(): string {
   return candidatePaths[0];
 }
 
+/**
+ * better-sqlite3's named-parameter convention lets callers bind with the bare
+ * property name (e.g. `{ isActive: 1 }` for a SQL placeholder written as
+ * `@isActive`, `:isActive`, or `$isActive` — better-sqlite3 strips the sigil
+ * internally). sql.js's own named-bind path (`sqlite3_bind_parameter_index`)
+ * requires the FULL name INCLUDING the sigil, and silently no-ops (does not
+ * throw) for a key it can't resolve. Expand each bare key to all three
+ * sigil-prefixed variants so sql.js matches whichever sigil the SQL actually
+ * used, while passing through any key the caller already prefixed unchanged.
+ */
+function withNamedParamPrefixes(obj: Record<string, unknown>): Record<string, unknown> {
+  const expanded: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (/^[:@$]/.test(key)) {
+      expanded[key] = value;
+      continue;
+    }
+    expanded[`@${key}`] = value;
+    expanded[`:${key}`] = value;
+    expanded[`$${key}`] = value;
+  }
+  return expanded;
+}
+
+/**
+ * sql.js's own `stmt.bind()` dispatches on shape: an Array means positional
+ * bind (each element -> bind index N), a plain object means named-parameter
+ * bind. Callers here always pass their rest-args as an array, so a caller
+ * doing `.all({ isActive: 1 })` for a named placeholder (mirrors
+ * better-sqlite3's spread-args named-bind convention, see
+ * betterSqliteAdapter.ts) ends up handing sql.js `[{isActive:1}]` — an ARRAY
+ * containing the object — which sql.js treats as a single positional value
+ * and rejects with "Wrong API use : tried to bind a value of an unknown
+ * type (...)." (#6802). Unwrap a lone plain-object param back to the object
+ * itself (sigil-expanded) so sql.js takes its named-bind path instead.
+ */
+function toBindValue(params: unknown[]): unknown[] | Record<string, unknown> | undefined {
+  if (!params.length) return undefined;
+  const [first] = params;
+  const isLoneNamedParamsObject =
+    params.length === 1 &&
+    first !== null &&
+    typeof first === "object" &&
+    !Array.isArray(first) &&
+    !Buffer.isBuffer(first) &&
+    !(first instanceof Uint8Array);
+  return isLoneNamedParamsObject
+    ? withNamedParamPrefixes(first as Record<string, unknown>)
+    : params;
+}
+
 async function loadSqlJs(): Promise<typeof _sqlJsLib> {
   if (_sqlJsLib) return _sqlJsLib;
   const initSqlJs = ((await import("sql.js")) as { default: (typeof import("sql.js"))["default"] })
@@ -103,7 +154,8 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
       run(...params: unknown[]): RunResult {
         const stmt = db.prepare(sql);
         try {
-          if (params.length) stmt.bind(params as unknown[]);
+          const bindValue = toBindValue(params);
+          if (bindValue !== undefined) stmt.bind(bindValue);
           stmt.step();
           const changes = db.getRowsModified();
           const lastRows = db.exec("SELECT last_insert_rowid() as id");
@@ -117,7 +169,8 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
       get(...params: unknown[]): unknown {
         const stmt = db.prepare(sql);
         try {
-          if (params.length) stmt.bind(params as unknown[]);
+          const bindValue = toBindValue(params);
+          if (bindValue !== undefined) stmt.bind(bindValue);
           if (stmt.step()) return stmt.getAsObject();
           return undefined;
         } finally {
@@ -127,7 +180,8 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
       all(...params: unknown[]): unknown[] {
         const stmt = db.prepare(sql);
         try {
-          if (params.length) stmt.bind(params as unknown[]);
+          const bindValue = toBindValue(params);
+          if (bindValue !== undefined) stmt.bind(bindValue);
           const rows: unknown[] = [];
           while (stmt.step()) rows.push(stmt.getAsObject());
           return rows;

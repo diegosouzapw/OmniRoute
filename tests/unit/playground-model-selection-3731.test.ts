@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   pickDefaultModel,
   resolveModelFilterKey,
+  filterModelsByQuery,
 } from "../../src/app/(dashboard)/dashboard/playground/components/modelSelection.ts";
 
 // Regression guards for #3731 (dup #3009): the Playground model selector was unusable
@@ -47,4 +48,27 @@ test("pickDefaultModel: a current model not in the list is replaced by the first
 
 test("pickDefaultModel: a valid current model is kept (no redundant update)", () => {
   assert.equal(pickDefaultModel("b", ["a", "b"]), null);
+});
+
+// Regression guards for #4086: search/filter on the raw Playground model <select>.
+
+test("filterModelsByQuery: empty query returns the full list unchanged", () => {
+  const models = ["openai/gpt-4o", "anthropic/claude-3"];
+  assert.deepEqual(filterModelsByQuery(models, ""), models);
+  assert.deepEqual(filterModelsByQuery(models, "   "), models);
+});
+
+test("filterModelsByQuery: matches case-insensitively on substring", () => {
+  const models = ["openai/gpt-4o", "anthropic/claude-3", "openrouter/mistral-large"];
+  assert.deepEqual(filterModelsByQuery(models, "GPT"), ["openai/gpt-4o"]);
+  assert.deepEqual(filterModelsByQuery(models, "claude"), ["anthropic/claude-3"]);
+});
+
+test("filterModelsByQuery: matches provider/namespace prefix", () => {
+  const models = ["openai/gpt-4o", "anthropic/claude-3", "openrouter/mistral-large"];
+  assert.deepEqual(filterModelsByQuery(models, "openrouter"), ["openrouter/mistral-large"]);
+});
+
+test("filterModelsByQuery: no matches returns an empty list", () => {
+  assert.deepEqual(filterModelsByQuery(["a", "b"], "zzz"), []);
 });

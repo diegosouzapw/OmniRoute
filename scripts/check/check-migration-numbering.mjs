@@ -47,7 +47,7 @@ export const KNOWN_DUPLICATE_VERSIONS = new Set([
 // números via RENAMED_MIGRATION_COMPATIBILITY em migrationRunner.ts). Congelados
 // para que o gate bloqueie apenas NOVOS buracos inexplicados na sequência.
 // ---------------------------------------------------------------------------
-export const KNOWN_GAPS = new Set(["026", "055"]);
+export const KNOWN_GAPS = new Set(["026", "055", "121"]); // 121: número queimado no ciclo v3.8.47 — 122 (#6909) mergeou antes e 121 nunca aterrissou (validação e2e 2026-07-12)
 
 function pad3(n) {
   return String(n).padStart(3, "0");

@@ -3,24 +3,22 @@
 
 export const MODEL_MAP: Record<string, string> = {
   // ChatGPT backend slugs are also accepted directly for power users / tests.
+  "gpt-5-6-pro": "gpt-5-6-pro",
+  "gpt-5-6-thinking": "gpt-5-6-thinking",
   "gpt-5-5-pro": "gpt-5-5-pro",
   "gpt-5-5-pro-extended": "gpt-5-5-pro",
   "gpt-5-5-thinking": "gpt-5-5-thinking",
   "gpt-5-5": "gpt-5-5",
-  "gpt-5-4-pro": "gpt-5-4-pro",
-  "gpt-5-4-thinking": "gpt-5-4-thinking",
-  "gpt-5-4-t-mini": "gpt-5-4-t-mini",
   "gpt-5-3": "gpt-5-3",
   "gpt-5-3-mini": "gpt-5-3-mini",
 
   // Public OmniRoute dot-form ids exposed by the provider catalog.
+  "gpt-5.6-pro": "gpt-5-6-pro",
+  "gpt-5.6-thinking": "gpt-5-6-thinking",
   "gpt-5.5-pro": "gpt-5-5-pro",
   "gpt-5.5-pro-extended": "gpt-5-5-pro",
   "gpt-5.5-thinking": "gpt-5-5-thinking",
   "gpt-5.5": "gpt-5-5",
-  "gpt-5.4-pro": "gpt-5-4-pro",
-  "gpt-5.4-thinking": "gpt-5-4-thinking",
-  "gpt-5.4-thinking-mini": "gpt-5-4-t-mini",
   "gpt-5.3-instant": "gpt-5-3-instant",
   "gpt-5.3": "gpt-5-3",
   "gpt-5.3-mini": "gpt-5-3-mini",
@@ -28,6 +26,8 @@ export const MODEL_MAP: Record<string, string> = {
 };
 
 export const MODEL_FORCED_EFFORT: Record<string, "standard" | "extended"> = {
+  "gpt-5-6-pro": "standard",
+  "gpt-5.6-pro": "standard",
   "gpt-5-5-pro": "standard",
   "gpt-5-5-pro-extended": "extended",
   "gpt-5.5-pro": "standard",
@@ -36,9 +36,7 @@ export const MODEL_FORCED_EFFORT: Record<string, "standard" | "extended"> = {
 
 /** Set of chatgpt.com slugs that the user_last_used_model_config endpoint
  * accepts a `thinking_effort` value for, derived from MODEL_MAP so adding a
- * new thinking entry there automatically extends this set. Includes the
- * abbreviated slug `gpt-5-4-t-mini` (no literal "thinking" substring) — the
- * reason this set exists at all rather than a substring match.
+ * new thinking entry there automatically extends this set.
  *
  * Derived from MODEL_MAP keys (always dot-form) that contain "thinking" or
  * are the `o3` reasoning model; the values are the chatgpt.com-side slugs. */
@@ -52,18 +50,8 @@ export const THINKING_CAPABLE_SLUGS: ReadonlySet<string> = new Set(
  * models and the o-series. PATCHing for a non-thinking surface is a no-op
  * (the server accepts it but the routing-time read picks the wrong knob).
  *
- * Three branches because the input can arrive in three shapes:
- *   1. OmniRoute dot-form id (`gpt-5.4-thinking-mini`) — every thinking
- *      variant carries the literal "thinking" substring here.
- *   2. Resolved chatgpt.com slug containing "thinking" (`gpt-5-5-thinking`).
- *   3. Resolved chatgpt.com slug that drops the substring under abbreviation
- *      (`gpt-5-4-t-mini`). Looked up via THINKING_CAPABLE_SLUGS, which is
- *      derived from MODEL_MAP itself so adding a new abbreviated thinking
- *      mapping automatically extends the check.
- *
- * Branch 3 also catches the case where a caller passes the chatgpt.com slug
- * directly as the `model` field (no MODEL_MAP translation needed), which
- * would otherwise silently bypass the PATCH. */
+ * The lookup also catches callers that pass a chatgpt.com slug directly as
+ * the `model` field without MODEL_MAP translation. */
 export function isThinkingCapableModel(modelId: string, slug: string): boolean {
   return (
     modelId.includes("thinking") ||
@@ -128,6 +116,6 @@ export function resolveChatGptModel(
   const slug = MODEL_MAP[model] ?? model;
   const forcedEffort = MODEL_FORCED_EFFORT[model] ?? null;
   const effort = forcedEffort ?? resolveThinkingEffort(body, providerSpecificData);
-  const isPro = slug === "gpt-5-5-pro";
+  const isPro = slug === "gpt-5-6-pro" || slug === "gpt-5-5-pro";
   return { slug, effort, isPro };
 }

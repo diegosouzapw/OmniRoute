@@ -17,6 +17,20 @@ export const APIKEY_PROVIDERS_INFERENCE = {
       apiKeyUrl: "https://api.together.ai/settings/api-keys",
     },
   },
+  // OpenVecta — OpenAI-compatible AI inference gateway (https://openvecta.com/).
+  // Catalog seeded from the live /v1/models list (LLMs + embeddings); free credits
+  // advertised on signup. Bearer-token auth via Authorization: Bearer ov_sk_…
+  openvecta: {
+    id: "openvecta",
+    alias: "openvecta",
+    name: "OpenVecta",
+    icon: "vector_polygon",
+    color: "#7C3AED",
+    textIcon: "OV",
+    website: "https://openvecta.com",
+    hasFree: true,
+    freeNote: "Free credits on signup for OpenAI-compatible inference across LLMs, embeddings, and reasoning models",
+  },
   fireworks: {
     id: "fireworks",
     alias: "fireworks",

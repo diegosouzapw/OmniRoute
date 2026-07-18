@@ -1,0 +1,1 @@
+- fix(providers): honor a provider-level proxy assigned to no-auth providers like MiMoCode Free (#6272)

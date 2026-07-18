@@ -22,9 +22,43 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+// #6967 — every top-level `await` and every `test.after()` registration MUST
+// happen BEFORE the first `test()` call in this file. Node's test runner
+// starts executing already-registered top-level tests as soon as module
+// evaluation yields on an `await` — it does not wait for the rest of the
+// module to finish registering subtests first. When the DB setup (dynamic
+// imports + `test.after()`) previously sat *between* the two SPECS loops
+// below, the runner would already be mid-flight on the first DB-touching
+// subtest by the time `test.after()` ran, so it bound the cleanup hook to
+// that in-progress test's own lifecycle instead of the file root. The hook
+// then fired while `modelsRoute.GET()` was still executing inside that
+// subtest — closing the shared DB singleton and rm -rf'ing TEST_DATA_DIR out
+// from under it — surfaced nondeterministically as "Nenhum driver SQLite
+// disponível" / "Cannot open database because the directory does not exist"
+// 500s (#6967). Doing every await + `test.after()` up front, before any
+// `test()` call, guarantees the runner has no subtest running yet when the
+// hook is registered, so it binds to the file root as intended.
 const { APIKEY_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
 const { PROVIDER_ENDPOINTS } = await import("../../src/shared/constants/config.ts");
 const { REGISTRY: providerRegistry } = await import("../../open-sse/config/providerRegistry.ts");
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-providers-batch-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const core = await import("../../src/lib/db/core.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
+const modelsRoute = await import("../../src/app/api/providers/[id]/models/route.ts");
+
+function resetStorage() {
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+}
+
+test.after(() => {
+  core.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
 
 interface ProviderSpec {
   id: string;
@@ -104,24 +138,6 @@ for (const spec of SPECS) {
 }
 
 // ── Live /models discovery + fallback (the NAMED_OPENAI_STYLE_PROVIDERS branch) ──
-
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-providers-batch-"));
-process.env.DATA_DIR = TEST_DATA_DIR;
-
-const core = await import("../../src/lib/db/core.ts");
-const providersDb = await import("../../src/lib/db/providers.ts");
-const modelsRoute = await import("../../src/app/api/providers/[id]/models/route.ts");
-
-function resetStorage() {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-}
-
-test.after(() => {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-});
 
 interface ModelsBody {
   provider: string;

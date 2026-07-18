@@ -11,6 +11,7 @@ import { upsertAgentBridgeState } from "@/lib/db/agentBridgeState";
 import { getCachedPassword } from "@/mitm/manager";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
+import { ALL_TARGETS } from "@/mitm/targets/index";
 
 type Params = { params: { id: string } };
 
@@ -33,6 +34,12 @@ export async function POST(request: Request, { params }: Params): Promise<Respon
     });
   }
 
+  // Validate the agent ID maps to a known target.
+  const target = ALL_TARGETS.find((t) => t.id === id);
+  if (!target) {
+    return createErrorResponse({ status: 404, message: `Unknown agent: ${id}` });
+  }
+
   const { enabled } = parsed.data;
   const raw = body as Record<string, unknown>;
   const sudoPassword =
@@ -40,9 +47,9 @@ export async function POST(request: Request, { params }: Params): Promise<Respon
 
   try {
     if (enabled) {
-      await addDNSEntry(sudoPassword);
+      await addDNSEntry(sudoPassword, id);
     } else {
-      await removeDNSEntry(sudoPassword);
+      await removeDNSEntry(sudoPassword, id);
     }
 
     upsertAgentBridgeState({ agent_id: id, dns_enabled: enabled });
