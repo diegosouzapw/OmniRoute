@@ -552,14 +552,18 @@ test("sanitizeReasoningEffortForProvider: #7044 output_config.effort (Claude nat
     messages: [{ role: "user", content: "hi" }],
   };
   const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", log);
+  const sanitized = result as {
+    output_config: { effort: string };
+    reasoning_effort?: unknown;
+  };
   assert.notEqual(result, body, "must return a new object when mutating");
   assert.equal(
-    (result as any).output_config.effort,
+    sanitized.output_config.effort,
     "high",
     "xhigh downgraded to high on the output_config carrier"
   );
   assert.ok(
-    !("reasoning_effort" in (result as any)),
+    !("reasoning_effort" in sanitized),
     "no spurious reasoning_effort injected when only output_config was present"
   );
   assert.ok(
@@ -576,5 +580,5 @@ test("sanitizeReasoningEffortForProvider: #7044 output_config.effort high passes
   };
   const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", null);
   assert.equal(result, body, "high is supported — body returned unchanged");
-  assert.equal((result as any).output_config.effort, "high");
+  assert.equal((result as { output_config: { effort: string } }).output_config.effort, "high");
 });

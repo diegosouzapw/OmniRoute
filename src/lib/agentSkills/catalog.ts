@@ -1,5 +1,5 @@
 /**
- * catalog.ts — single source of truth for the 43-entry Agent Skills catalog.
+ * catalog.ts — single source of truth for the 45-entry Agent Skills catalog.
  *
  * Consumers: REST routes (/api/agent-skills/*), MCP tools, A2A skill, Generator.
  * Do NOT import this from UI components directly — use the REST API instead.
@@ -16,7 +16,7 @@ import {
 
 // ── Canonical ID lists (D28) ────────────────────────────────────────────────
 
-/** 22 canonical API skill IDs, in spec order. */
+/** 23 canonical API skill IDs, in spec order. */
 export const API_SKILL_IDS: readonly string[] = [
   "omni-auth",
   "omni-providers",
@@ -46,7 +46,7 @@ export const API_SKILL_IDS: readonly string[] = [
 /** Config skill IDs. */
 export const CONFIG_SKILL_IDS: readonly string[] = ["config-codex-cli"] as const;
 
-/** 20 canonical CLI skill IDs, in spec order. */
+/** 21 canonical CLI skill IDs, in spec order. */
 export const CLI_SKILL_IDS: readonly string[] = [
   "cli-serve",
   "cli-health",
@@ -94,7 +94,7 @@ function deriveCatalog(): AgentSkill[] {
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Returns the full catalog (43 entries). Cached in module scope after first call.
+ * Returns the full catalog (45 entries). Cached in module scope after first call.
  * Safe to call multiple times — re-derives only after `refreshCatalog()`.
  */
 export function getCatalog(): AgentSkill[] {
@@ -122,7 +122,7 @@ export function filterCatalog(opts: { category?: "api" | "cli"; area?: string })
 }
 
 /**
- * Computes coverage stats: filesystem has SKILL.md vs catalog declares 42.
+ * Computes coverage stats: filesystem has SKILL.md vs catalog declares 45.
  * Reads `skills/` relative to the project root (CWD).
  */
 export function computeCoverage(): SkillCoverage {

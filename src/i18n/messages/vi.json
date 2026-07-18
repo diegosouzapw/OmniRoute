@@ -5694,6 +5694,7 @@
     "onboardingProviderDescriptions": {
       "360ai": "Lấy khóa API tại ai.360.cn",
       "agentrouter": "Nhận 200 USD tín dụng miễn phí tại https://agentrouter.org/register — không cần thẻ tín dụng.",
+      "agnes": "Lấy khóa API tại agnes-ai.com",
       "aimlapi": "Gói miễn phí đã tạm dừng (2026) — AI/ML API hiện chỉ tính phí theo mức sử dụng (nạp tối thiểu 20 USD); không còn tín dụng miễn phí định kỳ.",
       "ai21": "10 USD tín dụng dùng thử khi đăng ký (có hiệu lực 3 tháng), không cần thẻ tín dụng",
       "alibaba": "Kết nối Alibaba bằng khóa API.",
@@ -11176,6 +11177,10 @@
         "name": "CLI: Thiết lập & cấu hình",
         "description": "Chạy thiết lập ban đầu, cấu hình CLI toàn cục, quản lý biến môi trường, kiểm tra cập nhật và cấu hình tự khởi động bằng các lệnh setup/config."
       },
+      "cli-skill-collector": {
+        "name": "CLI: Trình thu thập skill cho agent",
+        "description": "Phát hiện các công cụ CLI lập trình đã cài (Claude Code, Codex, Cursor, Copilot, Cline và nhiều công cụ khác), tìm skill agent phù hợp trên GitHub và cài chúng vào các công cụ đã phát hiện qua API tích hợp của OmniRoute."
+      },
       "config-codex-cli": {
         "name": "Cấu hình: Codex CLI",
         "description": "Quy trình từng bước để agent cấu hình OpenAI Codex CLI trên Linux, macOS hoặc Windows dùng OmniRoute làm backend tương thích OpenAI. Tự phát hiện hệ điều hành/shell, ghi config.toml cùng 7 hồ sơ, đặt biến môi trường và xác minh."
@@ -11186,7 +11191,7 @@
       }
     },
     "pageTitle": "Kỹ năng tác nhân",
-    "pageSubtitle": "Dạy tác nhân của bạn cách vận hành OmniRoute — 22 mảng API + 20 nhóm CLI",
+    "pageSubtitle": "Dạy tác nhân của bạn cách vận hành OmniRoute — 23 mảng API + 21 nhóm CLI",
     "conceptCard": {
       "agent": {
         "title": "Kỹ năng tác nhân — Gửi đi",

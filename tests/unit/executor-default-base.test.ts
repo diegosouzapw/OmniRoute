@@ -683,7 +683,7 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
     calls[1].headers["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
     true
   );
-  assert.equal(calls[2].headers["anthropic-beta"], undefined);
+  assert.equal(calls[2].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
 });
 
 test("DefaultExecutor.execute reports the exact serialized provider request before fetch", async () => {

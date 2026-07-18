@@ -28,11 +28,11 @@ test("API_SKILL_IDS has exactly 23 entries", () => {
   assert.equal(API_SKILL_IDS.length, 23);
 });
 
-test("CLI_SKILL_IDS has exactly 20 entries", () => {
+test("CLI_SKILL_IDS has exactly 21 entries", () => {
   assert.equal(CLI_SKILL_IDS.length, 21);
 });
 
-test("getCatalog() contains exactly 22 api skills", () => {
+test("getCatalog() contains exactly 23 api skills", () => {
   const apiSkills = getCatalog().filter((s) => s.category === "api");
   assert.equal(apiSkills.length, 23);
 });

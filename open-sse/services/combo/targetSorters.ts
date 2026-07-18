@@ -115,8 +115,22 @@ export function sortTargetsByUsage(targets: ResolvedComboTarget[], comboName: st
   // model), so all accounts collapsed into one bucket and the first account
   // always won — exhausting it while the others stayed idle (#7015). Per-target
   // usage lives in byTarget[executionKey]; unknown targets rank as 0.
+  // Metrics recorded before structured target metadata was available only have
+  // a byModel counter (and a legacy byTarget entry keyed by modelStr). Keep
+  // those counters useful without collapsing newer per-account metrics back
+  // into a shared model bucket.
+  const modelsWithStructuredMetrics = new Set(
+    Object.values(metrics.byTarget || {})
+      .filter((metric) => metric.executionKey !== metric.model)
+      .map((metric) => metric.model)
+  );
   const withUsage = targets.map((target) => {
-    const requests = metrics.byTarget?.[target.executionKey]?.requests ?? 0;
+    const exactRequests = metrics.byTarget?.[target.executionKey]?.requests;
+    const requests =
+      exactRequests ??
+      (modelsWithStructuredMetrics.has(target.modelStr)
+        ? 0
+        : (metrics.byModel?.[target.modelStr]?.requests ?? 0));
     return { target, requests };
   });
   withUsage.sort((a, b) => a.requests - b.requests);

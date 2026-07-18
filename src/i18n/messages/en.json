@@ -5698,6 +5698,7 @@
     "onboardingProviderDescriptions": {
       "360ai": "Get API key at ai.360.cn",
       "agentrouter": "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
+      "agnes": "Get API key at agnes-ai.com",
       "aimlapi": "Free tier paused (2026) — AI/ML API is now pay-as-you-go only (min $20 top-up); no recurring free credits.",
       "ai21": "$10 trial credits on signup (valid 3 months), no credit card required",
       "alibaba": "Connect Alibaba with an API key.",
@@ -11149,6 +11150,10 @@
         "name": "CLI: Setup & Config",
         "description": "Run initial setup, configure global CLI settings, manage environment variables, check for updates, and configure autostart via the CLI setup and config commands."
       },
+      "cli-skill-collector": {
+        "name": "CLI: Agent Skill Collector",
+        "description": "Detect installed CLI coding tools (Claude Code, Codex, Cursor, Copilot, Cline and more), search GitHub for matching agent skills, and install them to the detected tools via OmniRoute's built-in APIs."
+      },
       "config-codex-cli": {
         "name": "Config: Codex CLI",
         "description": "Step-by-step agent workflow to configure the OpenAI Codex CLI on any machine (Linux, macOS, Windows) to use OmniRoute as an OpenAI-compatible backend. Detects OS and shell, writes config.toml and 7 named profiles, sets environment variables, and verifies the setup."
@@ -11159,7 +11164,7 @@
       }
     },
     "pageTitle": "Agent Skills",
-    "pageSubtitle": "Teach your agent to operate OmniRoute — 22 API areas + 20 CLI families",
+    "pageSubtitle": "Teach your agent to operate OmniRoute — 23 API areas + 21 CLI families",
     "conceptCard": {
       "agent": {
         "title": "Agent Skills — Outbound",

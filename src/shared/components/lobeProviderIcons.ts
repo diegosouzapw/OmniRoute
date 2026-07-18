@@ -140,7 +140,6 @@ import SenseNovaColorIcon from "@lobehub/icons/es/SenseNova/components/Color";
 import SenseNovaMonoIcon from "@lobehub/icons/es/SenseNova/components/Mono";
 import StabilityColorIcon from "@lobehub/icons/es/Stability/components/Color";
 import StabilityMonoIcon from "@lobehub/icons/es/Stability/components/Mono";
-import StepfunColorIcon from "@lobehub/icons/es/Stepfun/components/Color";
 import StepfunMonoIcon from "@lobehub/icons/es/Stepfun/components/Mono";
 import SunoMonoIcon from "@lobehub/icons/es/Suno/components/Mono";
 import TavilyColorIcon from "@lobehub/icons/es/Tavily/components/Color";
@@ -281,7 +280,7 @@ const LOBE_ICON_COMPONENTS = {
   SenseNova: { mono: SenseNovaMonoIcon, color: SenseNovaColorIcon },
   Snowflake: { mono: SnowflakeMonoIcon, color: SnowflakeColorIcon },
   Stability: { mono: StabilityMonoIcon, color: StabilityColorIcon },
-  Stepfun: { mono: StepfunMonoIcon, color: StepfunColorIcon },
+  Stepfun: { mono: StepfunMonoIcon },
   Suno: { mono: SunoMonoIcon },
   Tavily: { mono: TavilyMonoIcon, color: TavilyColorIcon },
   Tencent: { mono: TencentMonoIcon, color: TencentColorIcon },
