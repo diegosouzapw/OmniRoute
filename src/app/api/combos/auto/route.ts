@@ -54,11 +54,47 @@ export async function GET(request: Request) {
       }
     }
 
+    // #6453 Phase C: enumerate template variants (auto/best-coding, auto/pro-*,
+    // auto/claude-*, auto/best-free, etc.) that the backend already supports
+    // via builtinCatalog.ts but were not exposed by this endpoint.
+    // Run BEFORE suffix variants so template resolution wins for overlapping
+    // ids (auto/reasoning, auto/vision), matching catalog.ts behavior.
+    for (const modelStr of Object.keys(AUTO_TEMPLATE_VARIANTS)) {
+      if (seenIds.has(modelStr)) continue;
+      try {
+        const variant = AUTO_TEMPLATE_VARIANTS[modelStr];
+        const spec =
+          modelStr === "auto/best-free" ? ({ tier: "free" as const } as const) : undefined;
+        const virtual = await createVirtualAutoCombo(variant, spec);
+
+        const displayName = variant
+          ? `Auto ${variant.charAt(0).toUpperCase() + variant.slice(1)}`
+          : "Auto Chat";
+
+        combos.push({
+          id: modelStr,
+          name: displayName,
+          variant: null,
+          type: "auto",
+          isHidden: false,
+          candidatePool: virtual.candidatePool ?? [],
+          candidateCount: virtual.candidatePool?.length ?? 0,
+          context_length: virtual.advertisedContextLength ?? null,
+          max_output_tokens: virtual.advertisedMaxOutputTokens ?? null,
+          config: virtual.config ?? {},
+        });
+        seenIds.add(modelStr);
+      } catch {
+        // Individual variant failure — skip, don't break the whole list
+      }
+    }
+
     // #4235 Phase B: enumerate tiered `auto/<category>[:<tier>]` variants
     // (e.g. auto/coding:free, auto/reasoning:pro) that the backend already
     // supports via suffixComposition.ts + virtualFactory.ts but were not
     // exposed by this endpoint.
     for (const modelStr of AUTO_SUFFIX_VARIANTS) {
+      if (seenIds.has(modelStr)) continue;
       try {
         const suffix = modelStr.slice("auto/".length);
         const parsed = parseAutoSuffix(suffix);
@@ -81,39 +117,6 @@ export async function GET(request: Request) {
         combos.push({
           id: modelStr,
           name: `Auto ${displayName}`,
-          variant: null,
-          type: "auto",
-          isHidden: false,
-          candidatePool: virtual.candidatePool ?? [],
-          candidateCount: virtual.candidatePool?.length ?? 0,
-          context_length: virtual.advertisedContextLength ?? null,
-          max_output_tokens: virtual.advertisedMaxOutputTokens ?? null,
-          config: virtual.config ?? {},
-        });
-        seenIds.add(modelStr);
-      } catch {
-        // Individual variant failure — skip, don't break the whole list
-      }
-    }
-
-    // #6453 Phase C: enumerate template variants (auto/best-coding, auto/pro-*,
-    // auto/claude-*, auto/best-free, etc.) that the backend already supports
-    // via builtinCatalog.ts but were not exposed by this endpoint.
-    for (const modelStr of Object.keys(AUTO_TEMPLATE_VARIANTS)) {
-      if (seenIds.has(modelStr)) continue;
-      try {
-        const variant = AUTO_TEMPLATE_VARIANTS[modelStr];
-        const spec =
-          modelStr === "auto/best-free" ? ({ tier: "free" as const } as const) : undefined;
-        const virtual = await createVirtualAutoCombo(variant, spec);
-
-        const displayName = variant
-          ? `Auto ${variant.charAt(0).toUpperCase() + variant.slice(1)}`
-          : "Auto Chat";
-
-        combos.push({
-          id: modelStr,
-          name: displayName,
           variant: null,
           type: "auto",
           isHidden: false,
