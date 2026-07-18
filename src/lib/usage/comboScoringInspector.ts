@@ -96,22 +96,43 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+/**
+ * Resolves the auto-strategy config object a combo's weights should be read from,
+ * honoring the same precedence the runtime auto-combo strategy uses: a dedicated
+ * `autoConfig`, then a nested `config.auto`, then the raw `config`, then an empty
+ * fallback so callers can probe optional fields without further null-checks.
+ */
+function resolveInspectorAutoConfig(combo: ComboRecord | undefined): Record<string, unknown> {
+  if (isRecord(combo?.autoConfig)) return combo.autoConfig;
+  if (isRecord(combo?.config)) {
+    if (isRecord(combo.config.auto)) return combo.config.auto;
+    return combo.config;
+  }
+  return {};
+}
+
+/** Extracts the mode-pack name referenced by the config, if any. */
+function resolveModePackName(config: Record<string, unknown>): string | null {
+  return typeof config.modePack === "string" ? config.modePack : null;
+}
+
+/** Resolves an explicit, validated `weights` object from the config, if present. */
+function resolveExplicitWeights(config: Record<string, unknown>): ScoringWeights | undefined {
+  const explicitWeights = isRecord(config.weights) ? (config.weights as ScoringWeights) : undefined;
+  return explicitWeights && validateWeights(explicitWeights) ? explicitWeights : undefined;
+}
+
 function resolveInspectorWeights(combo: ComboRecord | undefined): InspectorWeights {
-  const config = isRecord(combo?.autoConfig)
-    ? combo.autoConfig
-    : isRecord(combo?.config) && isRecord(combo.config.auto)
-      ? combo.config.auto
-      : isRecord(combo?.config)
-        ? combo.config
-        : {};
-  const modePack = typeof config.modePack === "string" ? config.modePack : null;
+  const config = resolveInspectorAutoConfig(combo);
+
+  const modePack = resolveModePackName(config);
   const resolvedModePack = modePack ? getModePack(modePack) : undefined;
   if (resolvedModePack) {
     return { weights: resolvedModePack, source: "mode_pack", modePack };
   }
 
-  const explicitWeights = isRecord(config.weights) ? (config.weights as ScoringWeights) : undefined;
-  if (explicitWeights && validateWeights(explicitWeights)) {
+  const explicitWeights = resolveExplicitWeights(config);
+  if (explicitWeights) {
     return { weights: explicitWeights, source: "explicit", modePack: null };
   }
 
@@ -120,7 +141,7 @@ function resolveInspectorWeights(combo: ComboRecord | undefined): InspectorWeigh
     source: "default",
     modePack: null,
     warning:
-      modePack || explicitWeights
+      modePack || isRecord(config.weights)
         ? "Configured auto weights are invalid or unavailable; default weights were used."
         : undefined,
   };
