@@ -272,6 +272,91 @@ export function updateAntigravityRemainingCredits(accountId: string, balance: nu
   } catch {}
 }
 
+/**
+ * Create a pass-through TransformStream that extracts `remainingCredits`
+ * from SSE data without consuming the stream.  The downstream client
+ * receives the unmodified bytes.
+ *
+ * @param accountId  Provider account ID for credit-balance persistence.
+ * @param bufferSize  Optional sliding-window buffer cap in bytes.
+ *                   Pass 0 or omit for unlimited (non-streaming callers
+ *                   where the full body is already buffered upstream).
+ *                   The streaming path uses 16384 (16 KB) to prevent OOM
+ *                   on long-lived SSE connections.  Credit-balance data
+ *                   appears near the end of the SSE stream (after
+ *                   content), so the sliding window captures it even at
+ *                   16 KB -- only truly massive responses (>16 KB of
+ *                   consecutive non-newline content) would lose credits.
+ * @internal Exported for unit testing only.
+ */
+export function createCreditsExtractionTransform(
+  accountId: string,
+  bufferSize = 0
+): TransformStream<Uint8Array, Uint8Array> {
+  let buffer = "";
+  const decoder = new TextDecoder();
+
+  return new TransformStream(
+    {
+      transform(chunk, controller) {
+        controller.enqueue(chunk);
+        try {
+          buffer += decoder.decode(chunk, { stream: true });
+          // Sliding-window cap: truncate after the last complete newline
+          // in the discard region so SSE lines are never split mid-payload.
+          if (bufferSize > 0 && buffer.length > bufferSize) {
+            const lastNewline = buffer.lastIndexOf("\n", buffer.length - bufferSize);
+            if (lastNewline !== -1) {
+              buffer = buffer.slice(lastNewline + 1);
+            } else {
+              // No newline in the discard region -- incomplete line, discard entirely.
+              buffer = "";
+            }
+          }
+        } catch {
+          /* decoding best-effort */
+        }
+      },
+      flush() {
+        try {
+          buffer += decoder.decode();
+        } catch {
+          /* decoding best-effort */
+        }
+        try {
+          const lines = buffer.split("\n");
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const payload = trimmed.slice(5).trim();
+            if (!payload || payload === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(payload);
+              if (Array.isArray(parsed?.remainingCredits)) {
+                const googleCredit = parsed.remainingCredits.find((c: unknown) => {
+                  const credit = asRecord(c);
+                  return credit?.creditType === "GOOGLE_ONE_AI";
+                }) as AntigravityCreditEntry | undefined;
+                if (googleCredit) {
+                  const balance = parseInt(String(googleCredit.creditAmount ?? ""), 10);
+                  if (!isNaN(balance)) updateAntigravityRemainingCredits(accountId, balance);
+                }
+              }
+            } catch {
+              /* skip malformed lines */
+            }
+          }
+        } catch {
+          /* credits extraction is best-effort */
+        }
+        buffer = "";
+      },
+    },
+    { highWaterMark: 16384 },
+    { highWaterMark: 16384 }
+  );
+}
+
 function isCreditsExhausted(accountId: string): boolean {
   const until = creditsExhaustedUntil.get(accountId);
   if (!until) return false;
@@ -931,6 +1016,10 @@ export class AntigravityExecutor extends BaseExecutor {
    * Collect an SSE streaming response into a single non-streaming JSON response.
    * Parses Gemini-format SSE chunks and assembles text content + usage into one
    * OpenAI-format chat.completion payload.
+   *
+   * @deprecated Use the non-streaming SSE path in chatCore instead, which calls
+   * parseSSEToGeminiResponse() from sseParser.ts.  This method is retained only
+   * for backward compatibility and may be removed in a future release.
    */
   collectStreamToResponse(
     response: Response,
@@ -1375,33 +1464,40 @@ export class AntigravityExecutor extends BaseExecutor {
                   });
                   if (creditsResp.ok || creditsResp.status !== HTTP_STATUS.RATE_LIMITED) {
                     log?.info?.("AG_CREDITS", `Credits retry succeeded: ${creditsResp.status}`);
-                    if (!stream) {
-                      const collected = await this.collectStreamToResponse(
-                        creditsResp,
-                        model,
-                        url,
-                        finalCreditsHeaders,
-                        creditsBody,
-                        log,
-                        signal
+                    if (!stream && creditsResp.body) {
+                      // Client already disconnected — skip pipe
+                      if (signal?.aborted) {
+                        creditsResp.body.cancel().catch(() => {});
+                        return {
+                          response: new Response(null, { status: 499 }),
+                          url,
+                          headers: finalCreditsHeaders,
+                          transformedBody: null,
+                        };
+                      }
+                      // Return raw SSE with credits extraction
+                      const crTransform = createCreditsExtractionTransform(
+                        accountId,
+                        16 * 1024 // 16KB cap
                       );
-                      // Parse _remainingCredits from the synthetic response and cache
-                      try {
-                        const syntheticJson = await collected.response.clone().json();
-                        const rc = syntheticJson?._remainingCredits;
-                        if (Array.isArray(rc)) {
-                          const googleCredit = rc.find((c) => c.creditType === "GOOGLE_ONE_AI");
-                          if (googleCredit) {
-                            const balance = parseInt(googleCredit.creditAmount, 10);
-                            if (!isNaN(balance))
-                              updateAntigravityRemainingCredits(accountId, balance);
-                          }
-                        }
-                      } catch {
-                        /**/
+                      const crTappedBody = creditsResp.body.pipeThrough(crTransform);
+                      if (signal) {
+                        signal.addEventListener(
+                          "abort",
+                          () => {
+                            creditsResp.body.cancel().catch(() => {});
+                          },
+                          { once: true }
+                        );
                       }
                       return {
-                        ...collected,
+                        response: new Response(crTappedBody, {
+                          status: creditsResp.status,
+                          statusText: creditsResp.statusText,
+                          headers: creditsResp.headers,
+                        }),
+                        url,
+                        headers: finalCreditsHeaders,
                         transformedBody: attachToolNameMap(creditsBody, requestToolNameMap),
                       };
                     }
@@ -1537,12 +1633,16 @@ export class AntigravityExecutor extends BaseExecutor {
           }
         }
 
-        // For non-streaming clients, collect the SSE stream and return a synthetic
-        // non-streaming Response so chatCore doesn't need to handle SSE conversion.
+        // For non-streaming clients, return the raw SSE stream with a
+        // credits-extraction TransformStream.  chatCore's non-streaming path
+        // (readNonStreamingResponseBody + parseNonStreamingSSEPayload with
+        // Gemini format support) handles draining and conversion to JSON.
+        // This replaces the previous collectStreamToResponse() approach which
+        // had an artificial timeout (now the standard FETCH_BODY_TIMEOUT_MS
+        // of 10 min applies).
         if (!stream) {
           // #3229: surface a real upstream error instead of masking a 4xx/5xx as an
-          // empty `chat.completion` envelope (collectStreamToResponse synthesizes a
-          // success-shaped body when the upstream returned no SSE data).
+          // empty `chat.completion` envelope.
           if (!response.ok) {
             const rawBody = await response
               .clone()
@@ -1563,35 +1663,53 @@ export class AntigravityExecutor extends BaseExecutor {
               transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
             };
           }
-          const collected = await this.collectStreamToResponse(
-            response,
-            model,
-            url,
-            finalHeaders,
-            transformedBody,
-            log,
-            signal
-          );
-          // When credits were injected (credits-first or credits-retry), the
-          // synthetic body contains _remainingCredits — mirror it into the
-          // balance cache so the dashboard stays fresh.
-          try {
-            const syntheticJson = await collected.response.clone().json();
-            const rc = syntheticJson?._remainingCredits;
-            if (Array.isArray(rc)) {
-              const googleCredit = rc.find(
-                (c: { creditType?: string }) => c?.creditType === "GOOGLE_ONE_AI"
-              );
-              if (googleCredit) {
-                const balance = parseInt(googleCredit.creditAmount, 10);
-                if (!isNaN(balance)) updateAntigravityRemainingCredits(accountId, balance);
-              }
+
+          if (response.body) {
+            // Client already disconnected — skip pipe
+            if (signal?.aborted) {
+              response.body.cancel().catch(() => {});
+              return {
+                response: new Response(null, { status: 499 }),
+                url,
+                headers: finalHeaders,
+                transformedBody: null,
+              };
             }
-          } catch {
-            /* balance cache is best-effort */
+            // Cancel upstream body on client disconnect
+            if (signal) {
+              signal.addEventListener(
+                "abort",
+                () => {
+                  response.body?.cancel().catch(() => {});
+                },
+                { once: true }
+              );
+            }
+
+            // Tap the stream to extract remainingCredits while passing
+            // data through unmodified.  chatCore drains the full body.
+            const nsPassThrough = createCreditsExtractionTransform(
+              accountId,
+              16 * 1024 // 16KB sliding-window cap to prevent OOM
+            );
+            const tappedBody = response.body.pipeThrough(nsPassThrough);
+            return {
+              response: new Response(tappedBody, {
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+              }),
+              url,
+              headers: finalHeaders,
+              transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+            };
           }
+
+          // No body -- return as-is
           return {
-            ...collected,
+            response,
+            url,
+            headers: finalHeaders,
             transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
           };
         }
@@ -1615,81 +1733,9 @@ export class AntigravityExecutor extends BaseExecutor {
             }
           }
 
-          let sseBuffer = "";
-          const decoder = new TextDecoder(); // Singleton for correct streaming decode
-          const MAX_BUFFER_SIZE = 16 * 1024; // Limit to prevent OOM on large streams
-
-          const passThrough = new TransformStream(
-            {
-              transform(chunk, controller) {
-                controller.enqueue(chunk);
-                // Accumulate text to scan for remainingCredits
-                try {
-                  const text = decoder.decode(chunk, { stream: true });
-                  sseBuffer += text;
-                  // Limit buffer size to prevent unbounded growth
-                  // Truncate only after a complete newline to avoid splitting SSE lines mid-payload
-                  if (sseBuffer.length > MAX_BUFFER_SIZE) {
-                    const lastNewline = sseBuffer.lastIndexOf(
-                      "\n",
-                      sseBuffer.length - MAX_BUFFER_SIZE
-                    );
-                    if (lastNewline !== -1) {
-                      sseBuffer = sseBuffer.slice(lastNewline + 1);
-                    } else {
-                      // No newline found in discard region — buffer contains an incomplete SSE line.
-                      // Discard it entirely to avoid returning malformed data; the remainingCredits
-                      // parser won't find valid data in a truncated line anyway.
-                      sseBuffer = "";
-                    }
-                  }
-                } catch {
-                  /* decoding best-effort */
-                }
-              },
-              flush() {
-                // Final decode for any remaining bytes
-                try {
-                  const text = decoder.decode(); // Flush pending bytes
-                  sseBuffer += text;
-                } catch {
-                  /* decoding best-effort */
-                }
-
-                // Parse the accumulated SSE data for remainingCredits
-                try {
-                  const lines = sseBuffer.split("\n");
-                  for (const line of lines) {
-                    const trimmed = line.trim();
-                    if (!trimmed.startsWith("data:")) continue;
-                    const payload = trimmed.slice(5).trim();
-                    if (!payload || payload === "[DONE]") continue;
-                    try {
-                      const parsed = JSON.parse(payload);
-                      if (Array.isArray(parsed?.remainingCredits)) {
-                        const googleCredit = parsed.remainingCredits.find((c: unknown) => {
-                          const credit = asRecord(c);
-                          return credit?.creditType === "GOOGLE_ONE_AI";
-                        }) as AntigravityCreditEntry | undefined;
-                        if (googleCredit) {
-                          const balance = parseInt(String(googleCredit.creditAmount ?? ""), 10);
-                          if (!isNaN(balance)) {
-                            updateAntigravityRemainingCredits(accountId, balance);
-                          }
-                        }
-                      }
-                    } catch {
-                      /* skip malformed lines */
-                    }
-                  }
-                } catch {
-                  /* credits extraction is best-effort */
-                }
-                sseBuffer = "";
-              },
-            },
-            { highWaterMark: 16384 },
-            { highWaterMark: 16384 }
+          const passThrough = createCreditsExtractionTransform(
+            accountId,
+            16 * 1024 // 16KB sliding-window cap to prevent OOM
           );
           const tappedBody = response.body.pipeThrough(passThrough);
           const tappedResponse = new Response(tappedBody, {

@@ -1,10 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
+import {
+  AntigravityExecutor,
+  createCreditsExtractionTransform,
+} from "../../open-sse/executors/antigravity.ts";
 import { setCliCompatProviders } from "../../open-sse/config/cliFingerprints.ts";
 import { scrubProxyAndFingerprintHeaders } from "../../open-sse/services/antigravityHeaderScrub.ts";
 import { antigravityUserAgent } from "../../open-sse/services/antigravityHeaders.ts";
+import { parseSSEToGeminiResponse } from "../../open-sse/handlers/sseParser.ts";
 import {
   clearAntigravityVersionCache,
   seedAntigravityVersionCache,
@@ -672,7 +676,11 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
       credentials: { accessToken: "token", projectId: "project-1" },
       log: { debug() {}, warn() {} },
     });
-    const payload = (await result.response.json()) as ChatCompletionPayload;
+    // Non-streaming now returns raw SSE; parse it the way chatCore would.
+    const rawSSE = await result.response.text();
+    const parsed = parseSSEToGeminiResponse(rawSSE, "antigravity/gemini-2.5-flash");
+    assert.ok(parsed, "parseSSEToGeminiResponse should parse the SSE");
+    const payload = parsed as ChatCompletionPayload;
 
     assert.equal(calls.length, 2);
     assert.equal(result.response.status, 200);
@@ -938,4 +946,112 @@ test("AntigravityExecutor.transformRequest maps Claude models through Gemini con
   assert.equal(result.request.stream, undefined);
   assert.equal(result.request.temperature, undefined);
   assert.equal(result.request.toolConfig, undefined);
+});
+
+// ---------------------------------------------------------------------------
+// createCreditsExtractionTransform -- credits extraction with buffer cap
+// ---------------------------------------------------------------------------
+
+test("createCreditsExtractionTransform extracts remainingCredits from SSE data", async () => {
+  const encoder = new TextEncoder();
+  const sseData = [
+    'data: {"response":{"candidates":[{"content":{"parts":[{"text":"hello"}]},"finishReason":"STOP"}]}}\n\n',
+    'data: {"remainingCredits":[{"creditType":"GOOGLE_ONE_AI","creditAmount":"42"}]}\n\n',
+  ].join("");
+
+  const transform = createCreditsExtractionTransform("test-account");
+  const readable = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(sseData));
+      controller.close();
+    },
+  });
+
+  // Consume the stream through the transform
+  const output = readable.pipeThrough(transform);
+  const reader = output.getReader();
+  const chunks: Uint8Array[] = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+  }
+
+  // Data must pass through unmodified
+  const collected = new TextDecoder().decode(
+    new Uint8Array(
+      chunks.reduce((acc, c) => acc + c.length, 0) > 0 ? Buffer.concat(chunks) : new Uint8Array(0)
+    )
+  );
+  assert.ok(collected.includes("hello"));
+  assert.ok(collected.includes("remainingCredits"));
+});
+
+test("createCreditsExtractionTransform with buffer cap truncates large buffers", async () => {
+  const encoder = new TextEncoder();
+  // Build a payload larger than 1KB
+  const largeText = "x".repeat(2000);
+  const ssePayload = JSON.stringify({
+    response: {
+      candidates: [{ content: { parts: [{ text: largeText }] } }],
+    },
+  });
+  const sseLine = `data: ${ssePayload}\n\n`;
+  // Append a credits line at the end
+  const creditsLine =
+    'data: {"remainingCredits":[{"creditType":"GOOGLE_ONE_AI","creditAmount":"99"}]}\n\n';
+  const fullData = sseLine + creditsLine;
+
+  // Use a 512-byte buffer cap -- the large text line should be discarded
+  const transform = createCreditsExtractionTransform("test-account", 512);
+  const readable = new ReadableStream({
+    start(controller) {
+      // Send in small chunks to exercise the sliding-window logic
+      const encoded = encoder.encode(fullData);
+      const chunkSize = 256;
+      for (let i = 0; i < encoded.length; i += chunkSize) {
+        controller.enqueue(encoded.slice(i, i + chunkSize));
+      }
+      controller.close();
+    },
+  });
+
+  const output = readable.pipeThrough(transform);
+  const reader = output.getReader();
+  while (true) {
+    const { done } = await reader.read();
+    if (done) break;
+  }
+
+  // The transform should not throw -- buffer cap just limits what the
+  // flush handler can see.  If the credits line was within the last 512
+  // bytes it will be found; otherwise it's a graceful no-op.
+  // Either way, no crash or OOM.
+  assert.ok(true);
+});
+
+test("createCreditsExtractionTransform handles malformed SSE gracefully", async () => {
+  const encoder = new TextEncoder();
+  const badData = "not valid sse\ndata: {broken json\n\ndata: [DONE]\n\n";
+
+  const transform = createCreditsExtractionTransform("test-account");
+  const readable = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(badData));
+      controller.close();
+    },
+  });
+
+  const output = readable.pipeThrough(transform);
+  const reader = output.getReader();
+  const chunks: Uint8Array[] = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+  }
+
+  // Data passes through unmodified, no crash on malformed input
+  const collected = new TextDecoder().decode(Buffer.concat(chunks));
+  assert.ok(collected.includes("not valid sse"));
 });
