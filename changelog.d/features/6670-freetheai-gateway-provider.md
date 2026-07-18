@@ -1,0 +1,1 @@
+- feat(providers): add FreeTheAi as an OpenAI-compatible gateway provider with a free Discord-signup tier (#6670)

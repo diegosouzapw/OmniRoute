@@ -52,6 +52,7 @@ import {
   stripResponsesLifecycleEcho,
 } from "./responsesStreamHelpers.ts";
 import { processBufferedPassthroughLine } from "./passthroughTailProcessor.ts";
+import { getVisibleResponsesReasoningSummaryText } from "../translator/response/openai-responses/pureHelpers.ts";
 import {
   getAnyReasoningValue,
   getReadableReasoningValue,
@@ -1006,49 +1007,6 @@ export function createSSEStream(options: StreamOptions = {}) {
     return responseId !== null && outputIndex !== null ? `${responseId}:${outputIndex}` : null;
   };
 
-  const getResponsesReasoningSummaryText = (item: Record<string, unknown>): string => {
-    return Array.isArray(item.summary)
-      ? item.summary
-          .map((part) => {
-            if (!part || typeof part !== "object" || Array.isArray(part)) {
-              return "";
-            }
-            return typeof (part as Record<string, unknown>).text === "string"
-              ? ((part as Record<string, unknown>).text as string)
-              : "";
-          })
-          .join("")
-      : "";
-  };
-
-  const ensureVisibleResponsesReasoningSummary = (payload: Record<string, unknown>): boolean => {
-    const item =
-      payload.item && typeof payload.item === "object" && !Array.isArray(payload.item)
-        ? (payload.item as Record<string, unknown>)
-        : null;
-    if (!item || item.type !== "reasoning") {
-      return false;
-    }
-
-    if (getResponsesReasoningSummaryText(item)) {
-      return false;
-    }
-
-    const hasEncryptedReasoning =
-      typeof item.encrypted_content === "string" && item.encrypted_content.length > 0;
-    if (!hasEncryptedReasoning) {
-      return false;
-    }
-
-    item.summary = [
-      {
-        type: "summary_text",
-        text: "Codex is reasoning, but the upstream Responses API exposed this reasoning block only as encrypted state. OmniRoute cannot recover the private reasoning text.",
-      },
-    ];
-    return true;
-  };
-
   const emitSyntheticResponsesReasoningSummary = (
     controller: TransformStreamDefaultController,
     payload: Record<string, unknown>
@@ -1061,8 +1019,10 @@ export function createSSEStream(options: StreamOptions = {}) {
       return;
     }
 
-    ensureVisibleResponsesReasoningSummary(payload);
-    const visibleSummary = getResponsesReasoningSummaryText(item);
+    // #7095/#7176 reconciliation: compute the visible placeholder WITHOUT
+    // mutating `item` — the encrypted reasoning item (and its `encrypted_content`,
+    // required by Codex for subsequent requests) is forwarded to the client intact.
+    const visibleSummary = getVisibleResponsesReasoningSummaryText(item);
 
     if (!visibleSummary) {
       return;
@@ -1485,13 +1445,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // response.completed snapshot can be backfilled when upstream
                   // returns an empty `output` (happens with store: false).
                   if (parsed.type === "response.output_item.done" && parsed.item) {
-                    const reasoningSummaryInjected = ensureVisibleResponsesReasoningSummary(parsed);
                     emitSyntheticResponsesReasoningSummary(controller, parsed);
                     pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [parsed.item]);
-                    if (reasoningSummaryInjected) {
-                      output = `data: ${JSON.stringify(parsed)}\n\n`;
-                      injectedUsage = true;
-                    }
                     if (parsed.item?.type === "function_call") {
                       const pendingKey =
                         typeof parsed.item.id === "string"
@@ -1710,7 +1665,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     const reasoningChunk =
                       typeof structuredClone === "function"
                         ? structuredClone(parsed)
-                        : JSON.parse(JSON.stringify(parsed));
+                        : structuredClone(parsed);
                     const rDelta = reasoningChunk.choices[0].delta;
                     delete rDelta.content;
                     reasoningChunk.choices[0].finish_reason = null;
@@ -2181,7 +2136,6 @@ export function createSSEStream(options: StreamOptions = {}) {
               markResponsesReasoningSummarySeen: (key: string) => {
                 passthroughResponsesReasoningSummarySeen.add(key);
               },
-              ensureVisibleResponsesReasoningSummary,
               emitSyntheticResponsesReasoningSummary: (payload: Record<string, unknown>) =>
                 emitSyntheticResponsesReasoningSummary(controller, payload),
               passthroughResponsesOutputItems,

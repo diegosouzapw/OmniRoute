@@ -4,13 +4,19 @@ import {
   getProviderAuditTarget,
   summarizeProviderConnectionForAudit,
 } from "@/lib/compliance/providerAudit";
-import { createProviderConnection, getProviderNodeById, isCloudEnabled } from "@/models";
+import {
+  createProviderConnection,
+  getProviderConnections,
+  getProviderNodeById,
+  isCloudEnabled,
+} from "@/models";
 import {
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
   supportsBulkApiKey,
 } from "@/shared/constants/providers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { resolveBulkNameCollisions } from "@/shared/utils/bulkApiKeyParser";
 import { syncToCloud } from "@/lib/cloudSync";
 import { bulkCreateProviderSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -103,11 +109,23 @@ export async function POST(request: Request) {
       null
     : null;
 
+  // #2587 — createProviderConnection upserts apikey connections BY NAME, so a
+  // bulk-add name that collides with an already-saved connection (or with
+  // another entry in the same batch) would silently REPLACE that connection's
+  // apiKey/priority/testStatus instead of inserting a new one. Resolve every
+  // collision up front by gap-filling a free "<name> <n>" suffix so each entry
+  // reaches createProviderConnection as a genuine insert.
+  const existingConnections = await getProviderConnections({ provider, authType: "apikey" });
+  const existingNames = existingConnections
+    .map((c) => (typeof c.name === "string" ? c.name : null))
+    .filter((n): n is string => !!n);
+  const resolvedEntries = resolveBulkNameCollisions(entries, existingNames);
+
   const created: Array<Record<string, unknown>> = [];
   const errors: Array<{ index: number; name: string; message: string }> = [];
 
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
+  for (let i = 0; i < resolvedEntries.length; i++) {
+    const entry = resolvedEntries[i];
     try {
       // Per-entry copy so each connection gets its own providerSpecificData. Cloudflare
       // Workers AI carries a per-key accountId (name|accountId|apiKey) that must NOT bleed

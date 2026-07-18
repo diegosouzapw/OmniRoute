@@ -1,0 +1,1 @@
+- **chore(security):** scrub hardcoded live-instance credentials (API key + auth cookie + host URL) from the `tests/boundary/*.live.test.ts` files landed via #6786 — they now read `OMNIROUTE_TEST_BASE` / `OMNIROUTE_TEST_BEARER` / `OMNIROUTE_TEST_COOKIE` from the environment and stay gated behind `RUN_BOUNDARY_LIVE=1`.

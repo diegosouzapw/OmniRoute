@@ -6,6 +6,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    setupFiles: ["./tests/_setup/vitestUiPolyfills.ts"],
     pool: "threads",
     maxWorkers: 20,
     fileParallelism: true,

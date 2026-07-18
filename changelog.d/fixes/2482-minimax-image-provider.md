@@ -1,0 +1,1 @@
+- **fix(providers):** MiniMax Text-to-Image now works — a `minimax` image-generation provider (`minimax-image` format, `image-01`/`image-01-live` models) was registered, since MiniMax previously had entries in the music/audio/video registries but none in the image registry, so any MiniMax image-model request fell through to a 404/unmatched-format response. (thanks @felipeleite)

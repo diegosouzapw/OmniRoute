@@ -1,0 +1,1 @@
+- fix(sse): make Codex Responses tool-arg normalization schema-aware — drop values equal to the tool's declared JSON Schema `default`, generalize empty-optional stripping to any tool (not just `Read`/`Subagent`) via `schema.required`, and thread each tool's schema from the request's `tools[]` into the streaming response translator (#6951)

@@ -52,6 +52,7 @@ import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { assignEditApiKeyProviderSpecificData } from "./connectionProviderSpecificData";
 import { isM365TierCapableProvider, normalizeM365TierValue, type M365TierValue } from "./m365Tier";
+import AgentrouterConsoleFields from "./AgentrouterConsoleFields";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 
@@ -123,6 +124,7 @@ export default function EditConnectionModal({
     codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
+    newApiUserId: "",
     ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
@@ -257,6 +259,7 @@ export default function EditConnectionModal({
         connection.providerSpecificData
       );
       const existingConsoleApiKey = stringField(connection.providerSpecificData?.consoleApiKey);
+      const existingNewApiUserId = stringField(connection.providerSpecificData?.newApiUserId);
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -303,6 +306,7 @@ export default function EditConnectionModal({
         codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
+        newApiUserId: existingNewApiUserId,
         glmOrganizationId: existingGlmOrganizationId,
         glmProjectId: existingGlmProjectId,
         opencodeGoWorkspaceId: existingOpenCodeGoWorkspaceId,
@@ -928,6 +932,12 @@ export default function EditConnectionModal({
                     type="password"
                   />
                 )}
+                <AgentrouterConsoleFields
+                  provider={provider}
+                  values={formData}
+                  onChange={(patch) => setFormData({ ...formData, ...patch })}
+                  t={t}
+                />
                 <div className="border-t border-border/30 pt-3 mt-1">
                   <p className="text-xs font-medium text-text-muted mb-2">
                     {t("rateLimitOverridesSection")}
