@@ -4,6 +4,10 @@
 
 ---
 
+## [3.8.49] — TBD
+
+---
+
 ## [3.8.48] — 2026-07-13
 
 > ⚠️ **Hotfix release.** The published npm package for 3.8.47 crashed on every boot ([#7065](https://github.com/diegosouzapw/OmniRoute/issues/7065)) and was deprecated — **3.8.48 is the first installable release of the v3.8.47 cycle**, so everything listed under [3.8.47] below ships here.

@@ -22,6 +22,14 @@ on:
           - latest
           - next
           - historic
+      publish_mode:
+        description: "staged = npm stage publish (owner approves with 2FA after the staged boot-verify); direct = legacy immediate publish (emergency fallback only)"
+        required: false
+        default: "staged"
+        type: choice
+        options:
+          - staged
+          - direct
   workflow_call:
     inputs:
       version:
@@ -63,7 +71,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
           registry-url: https://registry.npmjs.org
@@ -166,8 +174,34 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: gh release upload "$TAG" sbom-npm.cdx.json --clobber
 
-      - name: Publish to npm
+      # WS1.2/WS1.3 (#7065 class): the artifact that is about to be published must
+      # BOOT. build:cli already assembled dist/ above; this packs+installs+boots the
+      # real tarball and fails the publish before anything reaches the registry.
+      - name: Boot-smoke the tarball before ANY publish
         if: steps.resolve.outputs.skip != 'true'
+        run: npm run check:pack-boot
+
+      # WS1.3 (D2, v3.8.49 plan): STAGED publishing by default — `npm stage publish`
+      # parks the exact bytes on the registry WITHOUT making them installable; the
+      # owner then verifies and approves with 2FA (`npm stage approve`), moving the
+      # human gate to AFTER the proof instead of before it. Requires npm >= 11.15
+      # (staged publishing GA 2026-05-22). publish_mode=direct is the emergency
+      # fallback (legacy immediate publish) via workflow_dispatch.
+      - name: Ensure npm supports staged publishing
+        if: steps.resolve.outputs.skip != 'true' && (github.event_name != 'workflow_dispatch' || inputs.publish_mode != 'direct')
+        run: |
+          set -euo pipefail
+          CUR=$(npm --version)
+          if ! node -e "const [a,b]='$(npm --version)'.split('.').map(Number); process.exit(a>11||(a===11&&b>=15)?0:1)"; then
+            # Pinned exact version (supply-chain: never float @latest in the publish
+            # job); bump deliberately when a newer npm is required.
+            echo "npm $CUR < 11.15 — installing pinned npm 11.15.0 for staged publishing"
+            npm install -g --ignore-scripts npm@11.15.0
+          fi
+          npm --version
+
+      - name: Publish to npm (staged — owner approves with 2FA)
+        if: steps.resolve.outputs.skip != 'true' && (github.event_name != 'workflow_dispatch' || inputs.publish_mode != 'direct')
         env:
           VERSION: ${{ steps.resolve.outputs.version }}
           TAG: ${{ steps.resolve.outputs.tag }}
@@ -175,10 +209,32 @@ jobs:
         run: |
           set -euo pipefail
           # Always pass --tag explicitly. Defense in depth: even if VERSION is
-          # accidentally an older release, `npm publish --tag historic` will
-          # NOT promote it to `@latest`.
+          # accidentally an older release, the historic tag will NOT claim `@latest`.
+          npm stage publish --provenance --access public --tag "$TAG"
+          {
+            echo "## 📦 omniroute@$VERSION STAGED (not yet installable)"
+            echo ""
+            echo "The exact bytes are parked on the registry. To release them:"
+            echo '```'
+            echo "npm stage list omniroute            # find the stage id"
+            echo "npm stage approve <id>              # owner 2FA — THE publish"
+            echo '```'
+            echo "To verify the staged bytes first: npm stage download <id> → run"
+            echo "scripts/check/check-pack-boot.mjs against them (see RELEASE_CHECKLIST)."
+            echo "To discard: npm stage reject <id>."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "✅ Staged omniroute@$VERSION (dist-tag=$TAG) — awaiting owner 'npm stage approve'"
+
+      - name: Publish to npm (DIRECT — emergency fallback)
+        if: steps.resolve.outputs.skip != 'true' && github.event_name == 'workflow_dispatch' && inputs.publish_mode == 'direct'
+        env:
+          VERSION: ${{ steps.resolve.outputs.version }}
+          TAG: ${{ steps.resolve.outputs.tag }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
           npm publish --provenance --access public --tag "$TAG"
-          echo "✅ Published omniroute@$VERSION (dist-tag=$TAG)"
+          echo "✅ Published omniroute@$VERSION (dist-tag=$TAG) [DIRECT mode]"
 
       - name: Publish to GitHub Packages
         if: steps.resolve.outputs.skip != 'true'
@@ -209,7 +265,7 @@ jobs:
           # Full history needed for auto-bump: git diff against previous release tag
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
           registry-url: https://registry.npmjs.org

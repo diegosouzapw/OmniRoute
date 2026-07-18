@@ -1,0 +1,1 @@
+- **fix(sse):** route the public OpenAI GPT-5.6 family (`gpt-5.6`, `-sol`, `-terra`, `-luna`) through the Responses API — Chat Completions rejects GPT-5.6 requests that combine function tools with an active `reasoning_effort`. (thanks @Jordannst)

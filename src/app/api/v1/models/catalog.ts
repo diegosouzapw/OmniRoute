@@ -70,6 +70,8 @@ import {
   intersectStringArrays,
   minKnownNumber,
   maybeOmitCatalogModelName,
+  getThinkingCapabilityFields,
+  mergeComboCapabilities,
 } from "./catalogHelpers";
 import {
   qualifyOpenRouterModelId,
@@ -530,32 +532,25 @@ async function buildUnifiedModelsResponseCore(
             ? ["text"]
             : undefined;
 
-      const capabilities: Record<string, boolean> = {};
-      if (typeof synced?.tool_call === "boolean") {
-        capabilities.tool_calling = synced.tool_call;
-      } else if (typeof registryModel?.toolCalling === "boolean") {
-        capabilities.tool_calling = registryModel.toolCalling;
-      } else if (typeof spec?.supportsTools === "boolean") {
-        capabilities.tool_calling = spec.supportsTools;
+      const capabilities: Record<string, boolean | string[]> = {};
+      capabilities.tool_calling = canonical.capabilities.toolCalling;
+      capabilities.reasoning = canonical.capabilities.reasoning;
+      if (typeof canonical.capabilities.vision === "boolean") {
+        capabilities.vision = canonical.capabilities.vision;
       }
-      if (typeof synced?.reasoning === "boolean") {
-        capabilities.reasoning = synced.reasoning;
-      } else if (typeof registryModel?.supportsReasoning === "boolean") {
-        capabilities.reasoning = registryModel.supportsReasoning;
-      } else if (typeof spec?.supportsThinking === "boolean") {
-        capabilities.reasoning = spec.supportsThinking;
+      if (typeof canonical.capabilities.attachment === "boolean") {
+        capabilities.attachment = canonical.capabilities.attachment;
       }
-      if (typeof knownVision === "boolean") capabilities.vision = knownVision;
-      if (typeof synced?.attachment === "boolean") capabilities.attachment = synced.attachment;
-      if (typeof synced?.structured_output === "boolean") {
-        capabilities.structured_output = synced.structured_output;
+      if (typeof canonical.capabilities.structuredOutput === "boolean") {
+        capabilities.structured_output = canonical.capabilities.structuredOutput;
       }
-      if (typeof synced?.temperature === "boolean") capabilities.temperature = synced.temperature;
-      if (typeof synced?.reasoning === "boolean") {
-        capabilities.thinking = synced.reasoning;
-      } else if (typeof spec?.supportsThinking === "boolean") {
-        capabilities.thinking = spec.supportsThinking;
+      if (typeof canonical.capabilities.temperature === "boolean") {
+        capabilities.temperature = canonical.capabilities.temperature;
       }
+      Object.assign(
+        capabilities,
+        getThinkingCapabilityFields(providerId, modelId, canonical.capabilities.supportsThinking)
+      );
 
       return {
         ...(contextLength ? { contextLength } : {}),
@@ -607,22 +602,7 @@ async function buildUnifiedModelsResponseCore(
         ? intersectStringArrays(knownMetadata.map((metadata) => metadata.outputModalities || []))
         : [];
 
-      const capabilities: Record<string, boolean> = {};
-      for (const key of [
-        "tool_calling",
-        "reasoning",
-        "vision",
-        "attachment",
-        "structured_output",
-        "temperature",
-        "thinking",
-      ]) {
-        const values = knownMetadata.map((metadata) => metadata.capabilities[key]);
-        if (values.every((value): value is boolean => typeof value === "boolean")) {
-          const [first] = values;
-          if (values.every((value) => value === first)) capabilities[key] = first;
-        }
-      }
+      const capabilities = mergeComboCapabilities(knownMetadata);
 
       return {
         ...baseMetadata,
@@ -861,12 +841,17 @@ async function buildUnifiedModelsResponseCore(
           // #6457: some upstream discovery catalogs (e.g. HuggingFace's live
           // `/v1/models`) return image/diffusion models with no modality info,
           // so `endpoints` below would default to ["chat"] and misrepresent
-          // them as chat-capable. Skip any synced model that is already a
-          // registered image model for this provider — getAllImageModels()
-          // below adds the correctly-typed `type: "image"` entry instead.
+          // them as chat-capable. Skip a registered image model only when its
+          // synced metadata does not explicitly advertise a chat endpoint.
+          // Multi-capability models may intentionally share an id between the
+          // chat and image catalogs; getAllImageModels() adds the image entry.
+          const explicitlySupportsChat = sm.supportedEndpoints?.some(
+            (endpoint) => endpoint === "chat" || endpoint === "responses"
+          );
           if (
-            isRegisteredImageModel(canonicalProviderId, sm.id) ||
-            isRegisteredImageModel(providerId, sm.id)
+            !explicitlySupportsChat &&
+            (isRegisteredImageModel(canonicalProviderId, sm.id) ||
+              isRegisteredImageModel(providerId, sm.id))
           ) {
             continue;
           }

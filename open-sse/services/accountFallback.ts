@@ -41,8 +41,11 @@ import {
   isSubscriptionQuotaText,
   buildSubscriptionQuotaFallback,
   buildWeeklyQuotaFallback,
+  buildSessionQuotaFallback,
 } from "./quotaTextCooldowns.ts";
 import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
+import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
+export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
@@ -68,7 +71,7 @@ export type ProviderProfile = {
 };
 type JsonRecord = Record<string, unknown>;
 type RateLimitReasonValue = (typeof RateLimitReason)[keyof typeof RateLimitReason];
-type ModelLockoutEntry = {
+export type ModelLockoutEntry = {
   reason: string;
   until: number;
   lockedAt: number;
@@ -76,7 +79,7 @@ type ModelLockoutEntry = {
   lastFailureAt: number;
   resetAfterMs: number;
 };
-type ModelFailureState = {
+export type ModelFailureState = {
   failureCount: number;
   lastFailureAt: number;
   resetAfterMs: number;
@@ -466,6 +469,7 @@ function ensureCleanupTimer() {
       const now = Date.now();
       for (const key of modelLockouts.keys()) cleanupModelLockKey(key, now);
       for (const key of modelFailureState.keys()) cleanupModelLockKey(key, now);
+      evictModelLockoutOverflow();
     }, 15_000);
     if (typeof _cleanupTimer === "object" && "unref" in _cleanupTimer) {
       (_cleanupTimer as { unref?: () => void }).unref?.(); // Don't prevent process exit (Node.js only)
@@ -473,6 +477,14 @@ function ensureCleanupTimer() {
   } catch {
     // Cloudflare Workers may not support setInterval outside handlers — skip cleanup timer
   }
+}
+
+/** @internal exported for testing only (both accessors below). */
+export function evictModelLockoutOverflow(): void {
+  evictLockoutOverflow(modelLockouts, modelFailureState);
+}
+export function getModelLockoutSize(): number {
+  return modelLockouts.size;
 }
 
 /**
@@ -1454,6 +1466,12 @@ export function checkFallbackError(
     }
     const weeklyResult = buildWeeklyQuotaFallback(errorStr);
     if (weeklyResult) return weeklyResult;
+    // Issue #7071 (session usage cap) is the same sibling gap as #3709 above —
+    // runs UNCONDITIONALLY for the same reason: apikey-category providers
+    // like ollama-cloud are excluded from the oauth-only shouldUseQuotaSignal
+    // gate.
+    const sessionResult = buildSessionQuotaFallback(errorStr);
+    if (sessionResult) return sessionResult;
 
     const quotaResetHintMs = parseRetryFromErrorText(errorStr);
     if (
@@ -1547,13 +1565,21 @@ export function checkFallbackError(
       }
       return fallback;
     }
-    const cooldownMs = configuredRule.cooldownMs ?? 0;
+    // #6842: non-backoff configured rules (e.g. status_402) previously never
+    // consulted providerRuleRegistry, so a provider-specific rule (like
+    // OpenRouter's credit-exhausted 402 lock) could never override the
+    // generic zero-cooldown default. Mirror the backoff branch above so
+    // provider rules win on cooldown/reason regardless of `backoff`.
+    const providerMatch = provider
+      ? getProviderErrorRuleMatch(provider, status, headers, structuredError ?? null)
+      : null;
+    const cooldownMs = providerMatch?.cooldownMs ?? configuredRule.cooldownMs ?? 0;
     return {
       shouldFallback: true,
       cooldownMs,
       baseCooldownMs: cooldownMs,
       configuredCooldownMs: cooldownMs,
-      reason: configuredRule.reason ?? RateLimitReason.UNKNOWN,
+      reason: providerMatch?.reason ?? configuredRule.reason ?? RateLimitReason.UNKNOWN,
     };
   }
 

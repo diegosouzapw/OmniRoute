@@ -627,7 +627,15 @@ export async function peekCodexSseTransientError(
   response: Response
 ): Promise<CodexSseTransientErrorPeek> {
   const contentType = response.headers.get("content-type") || "";
-  if (!response.ok || !response.body || !contentType.includes("text/event-stream")) {
+  // #7536: check content-type BEFORE touching `response.body`. On the wreq-js
+  // TLS-fingerprint transport (used by Codex), the Response is backed by a native
+  // body handle and merely accessing `.body` disturbs it, so a downstream
+  // `.text()` throws "Response body is already used". The Codex non-stream
+  // upstream response has an empty content-type, so it must short-circuit here
+  // WITHOUT reading `.body` — otherwise chatCore's readNonStreamingResponseBody
+  // 502s. Only genuine SSE responses (which this peek intends to buffer) reach
+  // the `.body` access below.
+  if (!response.ok || !contentType.includes("text/event-stream") || !response.body) {
     return { matched: null, message: null, replacementBody: null };
   }
 
@@ -675,11 +683,13 @@ export async function peekCodexSseTransientError(
     return { matched, message: extractCodexSseErrorMessage(text, matched), replacementBody: null };
   }
 
-  reader.releaseLock();
-
   // Re-assemble the stream: peeked prefix chunks, then continue draining the
-  // same underlying body so bytes downstream of the peek window are untouched.
-  const upstreamReader = response.body.getReader();
+  // SAME reader we already hold. The previous code called reader.releaseLock()
+  // and then response.body.getReader() a second time — but re-acquiring a reader
+  // on an already-disturbed body throws "Response body is already used" on
+  // undici (every non-stream Codex request 502'd, then got mis-classified as a
+  // 60s rate limit). Keep the original reader; never touch response.body again.
+  const upstreamReader = reader;
   const replacementBody = new ReadableStream<Uint8Array>({
     start(controller) {
       for (const chunk of chunks) controller.enqueue(chunk);

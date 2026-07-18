@@ -18,6 +18,7 @@ import "./response/openai-to-claude.ts";
 import "./response/gemini-to-openai.ts";
 import "./response/gemini-to-claude.ts";
 import "./response/openai-to-antigravity.ts";
+import "./response/openai-to-gemini.ts";
 import "./response/openai-responses.ts";
 import "./response/kiro-to-openai.ts";
 import "./response/cursor-to-openai.ts";

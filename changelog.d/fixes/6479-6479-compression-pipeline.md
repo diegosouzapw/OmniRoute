@@ -1,0 +1,1 @@
+- fix(compression): surface silently-dropped stacked-pipeline steps (session-dedup, ccr) and stop the aggregate inflation guard from misfiring on a genuine no-op (#6479, #6480, #6491)

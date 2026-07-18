@@ -1,0 +1,1 @@
+- **feat(cursor):** register the Opus 4.8, Fable 5, and Sonnet 5 model families for the Cursor Agent provider so the latest Claude/Fable model ids route correctly (#6779 — thanks @andrewmunsell).

@@ -54,6 +54,41 @@ function normalizeStderrPrefix(line: string): string {
   return line.replace(/^\s*(?:stderr|err)\s*(?:\||:)\s*/i, "");
 }
 
+function applyRtkTomlLineLimits(
+  lines: string[],
+  filter: RtkFilterDefinition,
+  appliedRules: string[]
+): string[] {
+  const head = filter.rtkTomlHeadLines;
+  const tail = filter.rtkTomlTailLines;
+  const total = lines.length;
+
+  if (head !== undefined && tail !== undefined) {
+    if (total > head + tail) {
+      lines = [
+        ...lines.slice(0, head),
+        `... (${total - head - tail} lines omitted)`,
+        ...(tail > 0 ? lines.slice(-tail) : []),
+      ];
+      appliedRules.push(`${filter.id}:rtk-head-tail`);
+    }
+  } else if (head !== undefined && total > head) {
+    lines = [...lines.slice(0, head), `... (${total - head} lines omitted)`];
+    appliedRules.push(`${filter.id}:rtk-head`);
+  } else if (tail !== undefined && total > tail) {
+    lines = [`... (${total - tail} lines omitted)`, ...(tail > 0 ? lines.slice(-tail) : [])];
+    appliedRules.push(`${filter.id}:rtk-tail`);
+  }
+
+  const maxLines = filter.rtkTomlMaxLines;
+  if (maxLines !== undefined && lines.length > maxLines) {
+    const dropped = lines.length - maxLines;
+    lines = [...lines.slice(0, maxLines), `... (${dropped} lines truncated)`];
+    appliedRules.push(`${filter.id}:rtk-max-lines`);
+  }
+  return lines;
+}
+
 function truncateUnicodeSafe(line: string, maxChars: number): string {
   if (maxChars <= 0) return line;
   const chars = Array.from(line);
@@ -70,6 +105,7 @@ export function applyLineFilter(text: string, filter: RtkFilterDefinition): Line
   const appliedRules: string[] = [];
 
   let lines = text.split(/\r?\n/);
+  if (filter.sourceFormat === "rtk-toml-v1" && lines.at(-1) === "") lines.pop();
   const originalLineCount = lines.length;
 
   if (filter.stripAnsi) {
@@ -157,6 +193,18 @@ export function applyLineFilter(text: string, filter: RtkFilterDefinition): Line
       lines = deduped.text.split(/\r?\n/);
       appliedRules.push(`${filter.id}:deduplicate`);
     }
+  }
+
+  if (filter.sourceFormat === "rtk-toml-v1") {
+    lines = applyRtkTomlLineLimits(lines, filter, appliedRules);
+    const output = lines.join("\n");
+    const finalOutput = output.trim().length === 0 && filter.onEmpty ? filter.onEmpty : output;
+    return {
+      text: finalOutput,
+      strippedLines: Math.max(0, originalLineCount - finalOutput.split(/\r?\n/).length),
+      keptByRule: keepPatterns.length > 0,
+      appliedRules,
+    };
   }
 
   const truncated = smartTruncate(lines.join("\n"), {
