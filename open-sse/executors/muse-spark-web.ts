@@ -1145,48 +1145,6 @@ function evictContinuationIfNeeded(
   }
 }
 
-function buildHttpErrorResult(
-  upstreamResponse: Response,
-  headers: Record<string, string>,
-  transformedBody: unknown,
-  cached: CachedConversation | null,
-  cacheKey: string | null
-): MuseSparkExecuteResult {
-  evictContinuationIfNeeded(cached, cacheKey);
-
-  let message = `Meta AI returned HTTP ${upstreamResponse.status}`;
-  if (upstreamResponse.status === 401 || upstreamResponse.status === 403) {
-    message = "Meta AI auth failed — your meta.ai ecto_1_sess cookie may be missing or expired.";
-  } else if (upstreamResponse.status === 429) {
-    message = "Meta AI rate limited the session. Wait a moment and retry.";
-  }
-
-  return errorResult(
-    upstreamResponse.status,
-    message,
-    `HTTP_${upstreamResponse.status}`,
-    headers,
-    transformedBody
-  );
-}
-
-function buildParsedErrorResult(
-  parsed: ParsedMetaAiResponse,
-  headers: Record<string, string>,
-  transformedBody: unknown,
-  cached: CachedConversation | null,
-  cacheKey: string | null
-): MuseSparkExecuteResult {
-  evictContinuationIfNeeded(cached, cacheKey);
-  return errorResult(
-    parsed.status,
-    parsed.errorMessage || "Meta AI returned an unknown error",
-    parsed.errorCode || "meta_ai_unknown_error",
-    headers,
-    transformedBody
-  );
-}
-
 function rememberAssistantTurn(
   parsed: ParsedMetaAiResponse,
   credentials: ExecuteInput["credentials"],
