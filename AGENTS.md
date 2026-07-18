@@ -44,7 +44,7 @@ codebase. Run it locally before pushing docs; it runs in CI via `npm run check:d
 
 ## Stack
 
-- **Runtime**: Next.js 16 (App Router), Node.js `>=22.0.0 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
+- **Runtime**: Next.js 16 (App Router), Node.js `>=22.22.2 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
 - **Language**: TypeScript 6.0 (`src/`) + JavaScript (`open-sse/`, `electron/`)
 - **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
 - **Streaming**: SSE via `open-sse` internal workspace package

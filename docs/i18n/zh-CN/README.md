@@ -827,7 +827,7 @@ podman compose --profile base up -d
 | OAuth Token 过期 | 自动刷新；若卡住，在 Providers 页面删除后重新认证 |
 | `unsupported_country_region_territory` | 在设置 → 代理中配置代理 |
 | Docker SQLite 锁定 | 使用 `--stop-timeout 40` 确保干净的 WAL 检查点 |
-| Node 运行时错误 | 使用 Node `>=22.0.0 <23` 或 `>=24.0.0 <27` |
+| Node 运行时错误 | 使用 Node `>=22.22.2 <23` 或 `>=24.0.0 <27` |
 
 🐛 **报告 Bug？** 运行 `npm run system-info` 并附上生成的 `system-info.txt`。📖 [`docs/guides/TROUBLESHOOTING.md`](../../guides/TROUBLESHOOTING.md)
 
@@ -871,7 +871,7 @@ podman compose --profile base up -d
 
 </div>
 
-- **运行时**：Node.js 22.x 或 24.x LTS（推荐 24 LTS）— `>=22.0.0 <23 || >=24.0.0 <27`
+- **运行时**：Node.js 22.x 或 24.x LTS（推荐 24 LTS）— `>=22.22.2 <23 || >=24.0.0 <27`
 - **语言**：TypeScript 6.0 — 跨 `src/` 和 `open-sse/` **100% TypeScript**（核心模块自 v2.0 起零 `any`）
 - **框架**：Next.js 16 + React 19 + Tailwind CSS 4
 - **数据库**：better-sqlite3 (SQLite) + LowDB（JSON 兼容）— 域状态、代理日志、MCP 审计、路由决策、记忆、技能

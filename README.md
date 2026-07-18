@@ -892,7 +892,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 | OAuth token expired                       | Auto-refreshed; if stuck, delete + re-auth in Providers                            |
 | `unsupported_country_region_territory`    | Configure proxy in Settings → Proxy                                                |
 | Docker SQLite locks                       | Use `--stop-timeout 40` for clean WAL checkpoint                                   |
-| Node runtime errors                       | Use Node `>=22.0.0 <23` or `>=24.0.0 <27`                                          |
+| Node runtime errors                       | Use Node `>=22.22.2 <23` or `>=24.0.0 <27`                                         |
 
 🐛 **Reporting a bug?** Run `npm run system-info` and attach `system-info.txt`. 📖 [`docs/guides/TROUBLESHOOTING.md`](docs/guides/TROUBLESHOOTING.md)
 
@@ -936,7 +936,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 </div>
 
-- **Runtime**: Node.js 22.x or 24.x LTS (24 LTS recommended) — `>=22.0.0 <23 || >=24.0.0 <27`
+- **Runtime**: Node.js 22.x or 24.x LTS (24 LTS recommended) — `>=22.22.2 <23 || >=24.0.0 <27`
 - **Language**: TypeScript 6.0 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **Database**: better-sqlite3 (SQLite) + LowDB (JSON legacy) — domain state, proxy logs, MCP audit, routing decisions, memory, skills
