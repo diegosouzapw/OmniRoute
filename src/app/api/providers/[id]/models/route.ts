@@ -108,6 +108,56 @@ import {
   fetchCodexGithubCatalogModels,
 } from "./discovery/codex";
 
+function toLiveModel(item: Record<string, unknown>): { id: string; name: string } | null {
+  const itemId = typeof item.id === "string" ? item.id.trim() : "";
+  if (!itemId) return null;
+  const itemName =
+    typeof item.display_name === "string"
+      ? item.display_name
+      : typeof item.name === "string"
+        ? item.name
+        : itemId;
+  return { id: itemId, name: itemName };
+}
+
+async function fetchLiveNoAuthModels(
+  modelsUrl: string,
+  providerId: string,
+  connectionId: string,
+  excludeHidden: boolean
+): Promise<NextResponse | null> {
+  try {
+    const liveResponse = await safeOutboundFetch(modelsUrl, {
+      ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+      guard: getProviderOutboundGuard(),
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!liveResponse.ok) return null;
+
+    const data = await liveResponse.json();
+    const liveModels: Array<{ id: string; name: string }> = (
+      (data.data || data.models || []) as Array<Record<string, unknown>>
+    )
+      .map(toLiveModel)
+      .filter((model): model is { id: string; name: string } => model !== null);
+    if (liveModels.length === 0) return null;
+
+    const visible = excludeHidden
+      ? liveModels.filter((model) => !getModelIsHidden(providerId, model.id))
+      : liveModels;
+    return NextResponse.json({
+      provider: providerId,
+      connectionId,
+      models: visible,
+      source: "upstream",
+    });
+  } catch {
+    // Live fetch failed — fall back to the bundled catalog.
+    return null;
+  }
+}
+
 async function buildNoAuthModelsResponse(
   providerId: string,
   connectionId: string,
@@ -124,47 +174,8 @@ async function buildNoAuthModelsResponse(
       : null;
 
   if (modelsUrl) {
-    try {
-      const liveResponse = await safeOutboundFetch(modelsUrl, {
-        ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-        guard: getProviderOutboundGuard(),
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (liveResponse.ok) {
-        const data = await liveResponse.json();
-        const liveModels: Array<{ id: string; name: string }> = (
-          (data.data || data.models || []) as Array<Record<string, unknown>>
-        )
-          .map((item) => {
-            const itemId = typeof item.id === "string" ? item.id.trim() : "";
-            if (!itemId) return null;
-            const itemName =
-              typeof item.display_name === "string"
-                ? item.display_name
-                : typeof item.name === "string"
-                  ? item.name
-                  : itemId;
-            return { id: itemId, name: itemName };
-          })
-          .filter((model): model is { id: string; name: string } => model !== null);
-
-        if (liveModels.length > 0) {
-          const visible = excludeHidden
-            ? liveModels.filter((model) => !getModelIsHidden(providerId, model.id))
-            : liveModels;
-          return NextResponse.json({
-            provider: providerId,
-            connectionId,
-            models: visible,
-            source: "upstream",
-          });
-        }
-      }
-    } catch {
-      // Live fetch failed — fall through to the bundled catalog.
-    }
+    const live = await fetchLiveNoAuthModels(modelsUrl, providerId, connectionId, excludeHidden);
+    if (live) return live;
   }
 
   const catalog = mergeLocalCatalogModels(
