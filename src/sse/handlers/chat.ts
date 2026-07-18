@@ -1675,7 +1675,11 @@ async function handleSingleModelChat(
       // Check if it's a daily quota exhausted error (e.g., ModelScope/Kimi "today's quota for model")
       // Daily quota lockout overrides subsequent rate_limited lockout, ensuring lockout until tomorrow 0:00
       let dailyQuotaExhausted = false;
-      const errorStr = String(result.error || "");
+      // #7360: prefer the full un-sanitized upstream text over result.error
+      // (truncated to its first line for the client response body) — Gemini's
+      // TPM/RPD metric name and retry hint live on lines 2-3, after the
+      // generic "quota exceeded" preamble on line 1.
+      const errorStr = String(result.rawMessage ?? result.error ?? "");
       const failureKind =
         result.status === 429
           ? classify429FromError({ status: result.status, message: errorStr })
@@ -1741,7 +1745,7 @@ async function handleSingleModelChat(
         : await markAccountUnavailable(
             credentials.connectionId,
             result.status,
-            result.error,
+            errorStr,
             provider,
             model,
             providerProfile,

@@ -1048,7 +1048,17 @@ export async function sendAndValidate(
         } else {
           assert.fail(`expected stop/length finish, got ${finishReason} | cid: ${correlationId}`);
         }
-      } else if ((response.status === 503 || response.status === 429) && attempt < MAX_RETRIES) {
+      } else if (response.status === 503) {
+        // #7360: a 503 from a combo means "all targets exhausted" — exactly
+        // the failure mode the cooldown-aware wait/retry is supposed to
+        // prevent. Silently retrying past it here would mask a regression
+        // instead of catching it, so this is a hard, immediate failure —
+        // never retried.
+        const errorBody = await response.text().catch(() => "unknown");
+        assert.fail(
+          `${ts()} ${tcName.padEnd(45)} HTTP 503 (combo exhausted, not retried): ${errorBody} | cid: ${correlationId}`
+        );
+      } else if (response.status === 429 && attempt < MAX_RETRIES) {
         console.log(
           `${ts()} ${tcName.padEnd(45)} RETRY ${attempt}/${MAX_RETRIES} after ${response.status} (waiting ${RETRY_DELAY_MS / 1000}s)`
         );
@@ -1069,7 +1079,12 @@ export async function sendAndValidate(
     } catch (err) {
       clearTimeout(timeout);
       const errorMessage = err instanceof Error ? err.message : String(err);
-      if ((errorMessage.includes("503") || errorMessage.includes("429")) && attempt < MAX_RETRIES) {
+      if (errorMessage.includes("503")) {
+        // #7360: never retry past a 503 (combo exhausted) — see the non-throw
+        // branch above for why.
+        throw err;
+      }
+      if (errorMessage.includes("429") && attempt < MAX_RETRIES) {
         console.log(
           `${ts()} ${tcName.padEnd(45)} RETRY ${attempt}/${MAX_RETRIES} after error (waiting ${RETRY_DELAY_MS / 1000}s)`
         );

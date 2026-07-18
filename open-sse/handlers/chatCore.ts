@@ -341,7 +341,12 @@ import {
   getModelScopeRetryDelayMs,
   isModelScopeProvider,
 } from "../services/modelscopePolicy.ts";
-import { incrementRequestCount } from "../services/geminiRateLimitTracker.ts";
+import {
+  incrementRequestCount,
+  incrementTokenUsage,
+  isTpmExhausted,
+  isRpmExhausted,
+} from "../services/geminiRateLimitTracker.ts";
 
 // ── Global memory pressure guard ────────────────────────────────────────
 // Prevents OOM by rejecting new requests when V8 heap exceeds threshold.
@@ -3079,6 +3084,25 @@ export async function handleChatCore({
     }
   }
 
+  // ── Gemini pre-dispatch TPM / RPM guard ──────────────────────────────────
+  // Avoids guaranteed upstream 429 by checking local sliding-window counters
+  // before dispatch. Fail-open: counter errors → allow through.
+  if (provider === "gemini") {
+    try {
+      if (isTpmExhausted(effectiveModel)) {
+        trackPendingRequest(model, provider, connectionId, false);
+        return createErrorResult(
+          HTTP_STATUS.RATE_LIMITED,
+          `Gemini TPM rate limit reached for ${effectiveModel}. Please try again later.`,
+          null,
+          "GEMINI_TPM_EXHAUSTED"
+        );
+      }
+    } catch (err) {
+      log?.warn?.("GEMINI_RATE_LIMIT", "Pre-dispatch TPM check failed; allowing request", { err });
+    }
+  }
+
   // Execute request using executor (handles URL building, headers, fallback, transform)
   let providerResponse;
   let providerUrl;
@@ -4058,6 +4082,14 @@ export async function handleChatCore({
     const usage = extractUsageFromResponse(responseBody, provider);
     if (usage && typeof usage === "object") {
       attachCompressionUsageReceiptAfterAnalytics(usage as Record<string, unknown>, "provider");
+      // Track Gemini token consumption for TPM rate-limit pre-check
+      if (provider === "gemini") {
+        const promptTokens =
+          typeof (usage as Record<string, unknown>).prompt_tokens === "number"
+            ? ((usage as Record<string, unknown>).prompt_tokens as number)
+            : 0;
+        if (promptTokens > 0) incrementTokenUsage(model, promptTokens);
+      }
     }
 
     // Context Editing telemetry: when the delegated server-side clear actually ran,
@@ -4581,6 +4613,14 @@ export async function handleChatCore({
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {
       attachCompressionUsageReceiptAfterAnalytics(streamUsage as Record<string, unknown>, "stream");
+      // Track Gemini token consumption for TPM rate-limit pre-check
+      if (provider === "gemini") {
+        const promptTokens =
+          typeof (streamUsage as Record<string, unknown>).prompt_tokens === "number"
+            ? ((streamUsage as Record<string, unknown>).prompt_tokens as number)
+            : 0;
+        if (promptTokens > 0) incrementTokenUsage(model, promptTokens);
+      }
     }
     recordStreamingUsageStats(streamUsage, {
       provider,

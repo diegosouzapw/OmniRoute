@@ -352,6 +352,48 @@ test("createErrorResult — exposes error code/type on the result object", async
   assert.equal(result.errorType, "timeout");
 });
 
+// ── createErrorResult.rawMessage (#7360) ──────────────────────────────────────
+//
+// `error` is sanitized to its first line (sanitizeErrorMessage) for the
+// client-facing response body — correct per Hard Rule #12. But internal
+// classification (checkFallbackError / Gemini TPM-vs-RPD metric detection)
+// needs the FULL multi-line upstream text, since Google's metric name and
+// retry hint live on lines 2-3. `rawMessage` carries the untruncated text on
+// the returned object only — it must never leak into the HTTP response body.
+
+test("createErrorResult — rawMessage preserves the full multi-line message untruncated", async () => {
+  const { createErrorResult } = await import("../../open-sse/utils/error.ts");
+  const fullMessage =
+    "You exceeded your current quota, please check your plan and billing details.\n" +
+    "* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 16000, model: gemma-4-31b\n" +
+    "Please retry in 8.093498133s.";
+  const result = createErrorResult(429, fullMessage);
+
+  assert.equal(result.rawMessage, fullMessage, "rawMessage must be the complete, untruncated text");
+  assert.ok(
+    result.error.length < fullMessage.length,
+    "error (client-facing) must still be truncated to the first line"
+  );
+  assert.ok(
+    !result.error.includes("generativelanguage.googleapis.com"),
+    "sanitized error must not include the metric name (line 2)"
+  );
+});
+
+test("createErrorResult — rawMessage never appears in the serialized response body", async () => {
+  const { createErrorResult } = await import("../../open-sse/utils/error.ts");
+  const fullMessage =
+    "You exceeded your current quota, please check your plan and billing details.\n" +
+    "* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 16000, model: gemma-4-31b";
+  const result = createErrorResult(429, fullMessage);
+  const bodyText = await result.response.clone().text();
+
+  assert.ok(
+    !bodyText.includes("generativelanguage.googleapis.com"),
+    "the raw multi-line metric text must never reach the HTTP response body"
+  );
+});
+
 test("buildModelCooldownBody returns the public cooldown error payload shape", async () => {
   const { buildModelCooldownBody } = await import("../../open-sse/utils/error.ts");
   const body = buildModelCooldownBody({ model: "gpt-4o", retryAfterSec: 1.2 });

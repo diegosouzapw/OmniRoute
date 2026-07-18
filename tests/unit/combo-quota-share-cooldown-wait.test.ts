@@ -76,6 +76,13 @@ function rateLimitResponse(status: number) {
   });
 }
 
+function rateLimitResponseWithRetryAfter(status: number, retryAfterMs: number) {
+  return jsonResponse(status, {
+    error: { message: `rate limited (${status})` },
+    retryAfter: new Date(Date.now() + retryAfterMs).toISOString(),
+  });
+}
+
 function comboOf(strategy: string) {
   return {
     name: `qtSd/${strategy}-${Math.random().toString(16).slice(2, 8)}`,
@@ -190,4 +197,70 @@ test("quota-share with comboCooldownWait disabled → 429 propagated, NO wait", 
 
   assert.equal(res.status, 429, "disabled feature must propagate the 429 unchanged");
   assert.equal(calls, 1, "disabled feature must NOT wait+redispatch");
+});
+
+// #7360: the "default" combo (strategy=auto, two gemma-4 models) was crystallizing
+// a 503 "all targets exhausted" ~6s after both targets hit a real Gemini TPM/RPM
+// 429 (retry-after ~58s), instead of holding the request and retrying once the
+// lower-cooldown target recovered. Mirrors the quota-share scenario above but with
+// TWO distinct model targets and two DIFFERENT retry-after hints, to prove the
+// combo (a) extends the wait to the "auto" strategy and (b) picks the target with
+// the SMALLER remaining cooldown to retry, not just the first one in the list.
+test("auto strategy (2 models, both rate-limited) → waits for the SHORTER cooldown, then succeeds", async () => {
+  const SHORT_RETRY_AFTER_MS = 200;
+  const LONG_RETRY_AFTER_MS = 3000;
+  const MODEL_A = "gemini/gemma-4-31b-it";
+  const MODEL_B = "gemini/gemma-4-26b-a4b-it";
+  const calls: string[] = [];
+
+  const handleSingleModel = async (_body: unknown, modelStr: string) => {
+    calls.push(modelStr);
+    const timesSeen = calls.filter((m) => m === modelStr).length;
+    if (modelStr === MODEL_A && timesSeen === 1)
+      return rateLimitResponseWithRetryAfter(429, SHORT_RETRY_AFTER_MS);
+    if (modelStr === MODEL_B) return rateLimitResponseWithRetryAfter(429, LONG_RETRY_AFTER_MS);
+    // 2nd time MODEL_A is dispatched (after the wait), its short cooldown has cleared.
+    return okResponse();
+  };
+
+  const startedAt = Date.now();
+  const res = await handleComboChat({
+    body: { model: "default" },
+    combo: {
+      name: `default-${Math.random().toString(16).slice(2, 8)}`,
+      strategy: "auto",
+      models: [MODEL_A, MODEL_B],
+      config: {
+        auto: { explorationRate: 0 },
+        maxRetries: 0,
+        retryDelayMs: 0,
+        fallbackDelayMs: 0,
+        maxSetRetries: 0,
+      },
+    },
+    handleSingleModel,
+    isModelAvailable: async () => true,
+    log: createLog() as never,
+    settings: shortModelLockoutSettings(),
+    allCombos: null,
+  });
+  const elapsed = Date.now() - startedAt;
+
+  assert.equal(res.status, 200, "expected the combo to wait out the shorter cooldown and succeed");
+  assert.equal(calls.length, 3, `expected A, B, A again — got ${JSON.stringify(calls)}`);
+  assert.equal(calls[0], MODEL_A, "first target tried should be MODEL_A");
+  assert.equal(calls[1], MODEL_B, "second target tried should be MODEL_B");
+  assert.equal(
+    calls[2],
+    MODEL_A,
+    "should retry the LOWER-cooldown model (A), not wait for B's longer cooldown"
+  );
+  assert.ok(
+    elapsed >= SHORT_RETRY_AFTER_MS,
+    `expected to have waited out the shorter cooldown, only ${elapsed}ms elapsed`
+  );
+  assert.ok(
+    elapsed < LONG_RETRY_AFTER_MS,
+    `should NOT wait for the longer cooldown (waited ${elapsed}ms, B's cooldown was ${LONG_RETRY_AFTER_MS}ms)`
+  );
 });

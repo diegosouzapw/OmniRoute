@@ -37,6 +37,7 @@ import {
   resolveComboConfig,
   getDefaultComboConfig,
   resolveComboQueueDepth,
+  isComboCooldownWaitEligible,
 } from "./comboConfig.ts";
 import {
   maybeGenerateHandoff,
@@ -1448,12 +1449,15 @@ export async function handleComboChat({
 
   let globalAttempts = 0;
 
-  // Quota-share cooldown-aware retry (Variante A). Only quota-share (qtSd/)
-  // combos opt in: when the set loop would crystallize a 429 model_cooldown
-  // because the target hit a SHORT transient cooldown, we wait it out and
-  // re-run the whole set loop instead of propagating the 429. `globalAttempts`
-  // persists across these waits so MAX_GLOBAL_ATTEMPTS still bounds total work.
-  // The wait happens at the crystallization point. The only semaphore slot the
+  // Cooldown-aware retry (Variante A). Originally quota-share (qtSd/) only;
+  // extended to "auto" combos too (#7360 — a 2-model "default" auto combo
+  // hitting Gemini TPM/RPM on both targets was crystallizing a 503 "all
+  // targets exhausted" after ~6s instead of waiting out the ~60s TPM window):
+  // when the set loop would crystallize a 429 model_cooldown because the
+  // target hit a SHORT transient cooldown, we wait it out and re-run the
+  // whole set loop instead of propagating the 429. `globalAttempts` persists
+  // across these waits so MAX_GLOBAL_ATTEMPTS still bounds total work. The
+  // wait happens at the crystallization point. The only semaphore slot the
   // quota-share path may hold is the FASE 2.1 per-connection concurrency slot
   // (acquired once around dispatchWithCooldownRetry below); it is intentionally
   // kept across the wait so the account stays "busy", and is released by the
@@ -1465,7 +1469,10 @@ export async function handleComboChat({
   // re-runs ONLY the set loop (selection / shadow routing / setup above stay
   // untouched), preserving the pre-existing `continue`-to-top-of-set-loop
   // semantics exactly.
-  const comboCooldownWaitEnabled = resilienceSettings.comboCooldownWait.enabled;
+  const comboCooldownWaitEnabled = isComboCooldownWaitEligible(
+    strategy,
+    resilienceSettings.comboCooldownWait
+  );
   let comboCooldownAttempt = 0;
   let comboCooldownBudgetLeftMs = resilienceSettings.comboCooldownWait.budgetMs;
 
@@ -2424,15 +2431,18 @@ export async function handleComboChat({
           log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
           // #5976: per-model-quota providers (Gemini, GitHub, etc.) multiplex models
-          // behind one connection. A model-level 500 must NOT cool down the entire
-          // provider — sibling models may still succeed. Skip cooldown recording for
-          // these providers on 500 errors so the next target can try.
+          // behind one connection. A model-level 500 or 429 (RPM) must NOT cool down
+          // the entire provider — sibling models may still succeed. Skip cooldown
+          // recording for these providers on 500/429 errors so the next target can try.
           if (
             resilienceSettings.providerCooldown.enabled &&
             provider &&
             provider !== "unknown" &&
             !requestScopedFailure &&
-            !(result.status === 500 && hasPerModelQuota(provider, rawModel))
+            !(
+              (result.status === 500 || result.status === 429) &&
+              hasPerModelQuota(provider, rawModel)
+            )
           ) {
             recordProviderCooldown(
               provider,
@@ -3434,7 +3444,7 @@ async function handleRoundRobinCombo({
           provider !== "unknown" &&
           !requestScopedFailure &&
           !(
-            result.status === 500 &&
+            (result.status === 500 || result.status === 429) &&
             hasPerModelQuota(provider, parseModel(modelStr).model || modelStr)
           )
         ) {

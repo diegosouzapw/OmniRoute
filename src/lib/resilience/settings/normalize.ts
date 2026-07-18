@@ -311,10 +311,11 @@ export function normalizeComboCooldownWaitSettings(
   fallback: ComboCooldownWaitSettings
 ): ComboCooldownWaitSettings {
   const record = asRecord(next);
-  // Hard ceiling of 30s on a single wait — this layer only ever exists for
-  // SHORT transient cooldowns; anything longer should fall through to the
+  // Hard ceiling of 90s on a single wait — this layer exists for SHORT
+  // transient cooldowns (including Gemini-class TPM/RPM windows, which report
+  // ~60s retry-after live); anything longer should fall through to the
   // existing 429 crystallization (and the cross-request cooldown layers).
-  const maxWaitMs = toInteger(record.maxWaitMs, fallback.maxWaitMs, { min: 0, max: 30000 });
+  const maxWaitMs = toInteger(record.maxWaitMs, fallback.maxWaitMs, { min: 0, max: 90000 });
   const maxAttempts = toInteger(record.maxAttempts, fallback.maxAttempts, { min: 0, max: 10 });
   // Budget can never be smaller than a single wait, otherwise no wait could
   // ever fire; floor it at maxWaitMs.
