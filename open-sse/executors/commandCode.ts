@@ -61,7 +61,7 @@ function normalizeContentText(content: unknown): string {
  * capability per the official CC model registry, but are NOT caught
  * by the shared {@link isVisionModelId} heuristic. Kept as a local
  * set because these are CC-specific model IDs (vendor-prefix shapes
- * like "moonshotai/Kimi-K2.6" or CC aliases like "gpt-5.4-mini").
+ * like "moonshotai/Kimi-K2.6" or CC aliases like "gpt-5.6-luna").
  *
  * Source: Command Code /alpha/generate model registry (docs).
  */
@@ -73,7 +73,7 @@ const CC_VISION_MODEL_PATTERNS: readonly RegExp[] = [
   // Anthropic
   /claude-fable/i, // claude-fable-5 (not covered by claude-opus/sonnet/haiku-4)
   // OpenAI
-  /gpt-5/i, // gpt-5.5, gpt-5.4, gpt-5.3-codex, gpt-5.4-mini
+  /gpt-5/i, // gpt-5.6, gpt-5.5, gpt-5.3-codex
   // Sakana
   /fugu/i, // sakana/fugu-ultra
 ];

@@ -46,10 +46,7 @@ test("T40: OpenCode config path resolves per-platform", () => {
     { APPDATA: "C:\\Users\\dev\\AppData\\Roaming" },
     "C:\\Users\\dev"
   );
-  assert.equal(
-    windowsPath,
-    path.join("C:\\Users\\dev", ".config", "opencode", "opencode.json")
-  );
+  assert.equal(windowsPath, path.join("C:\\Users\\dev", ".config", "opencode", "opencode.json"));
 
   // Windows still honors XDG_CONFIG_HOME when set.
   const windowsXdg = resolveOpencodeConfigPath(
@@ -149,8 +146,8 @@ test("T40: OpenCode merge preserves unrelated config and updates only provider.o
     {
       baseUrl: "http://localhost:20128/v1",
       apiKey: "sk_test_opencode",
-      models: ["cx/gpt-5.4"],
-      modelLabels: { "cx/gpt-5.4": "GPT-5.4" },
+      models: ["cx/gpt-5.6-sol"],
+      modelLabels: { "cx/gpt-5.6-sol": "GPT-5.6 Sol" },
     }
   );
 
@@ -159,7 +156,7 @@ test("T40: OpenCode merge preserves unrelated config and updates only provider.o
     github: { command: "npx", args: ["-y", "@modelcontextprotocol/server-github"] },
   });
   assert.deepEqual(mergedConfig.provider.omniroute.models, {
-    "cx/gpt-5.4": { name: "GPT-5.4" },
+    "cx/gpt-5.6-sol": { name: "GPT-5.6 Sol" },
   });
 });
 

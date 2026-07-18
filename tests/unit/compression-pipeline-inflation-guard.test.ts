@@ -7,6 +7,7 @@ import {
   setEngineEnabled,
 } from "../../open-sse/services/compression/engines/registry.ts";
 import type { CompressionEngine } from "../../open-sse/services/compression/engines/types.ts";
+import type { CompressionPipelineStep } from "../../open-sse/services/compression/types.ts";
 
 // --- Pure guard logic ---
 
@@ -23,7 +24,10 @@ test("guardPipelineInflation reverts to the original when the stacked output did
   assert.equal(r.body, original);
 });
 
-test("guardPipelineInflation reverts on a net-zero (equal-token) result", () => {
+test("guardPipelineInflation treats a net-zero (equal-token) no-op as NOT inflated", () => {
+  // A structural engine (ccr / session-dedup) that finds nothing returns the body unchanged, so
+  // compressedTokens === originalTokens. That is a no-op (zero savings), not inflation — the guard
+  // must keep the compressed body and never emit the "did not shrink; reverted" warning.
   const original = { a: 1 };
   const compressed = { b: 2 };
   const r = guardPipelineInflation({
@@ -32,8 +36,8 @@ test("guardPipelineInflation reverts on a net-zero (equal-token) result", () => 
     originalTokens: 50,
     compressedTokens: 50,
   });
-  assert.equal(r.inflated, true);
-  assert.equal(r.body, original);
+  assert.equal(r.inflated, false);
+  assert.equal(r.body, compressed);
 });
 
 test("guardPipelineInflation keeps the compressed body when it actually shrank", () => {
@@ -113,7 +117,11 @@ test("applyStackedCompression reverts to the original body when the pipeline inf
   const body = {
     messages: [{ role: "user", content: "hello world this is a short message" }],
   };
-  const result = applyStackedCompression(body, [INFLATE_ID]);
+  // Pass a step object, not a bare string: `normalizePipelineStep()` only recognizes a fixed
+  // set of built-in bare-string aliases ("standard"/"rtk"/"lite"/"aggressive"/"ultra") and
+  // silently falls back to `{ engine: "caveman" }` for any other string — a bare custom-engine
+  // id here would silently run caveman instead of the registered `inflatingEngine`.
+  const result = applyStackedCompression(body, [{ engine: INFLATE_ID } as CompressionPipelineStep]);
 
   // The inflating engine produced a bigger body, so the aggregate guard discarded it.
   assert.equal(result.compressed, false);

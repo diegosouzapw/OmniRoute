@@ -188,6 +188,14 @@ Combo: "free-forever"
 This lets you use stacked compression on free/coding providers while keeping lite mode on paid
 subscriptions.
 
+This "Per-Combo Override" assignment is a different control from the **routing-combo compression
+mode** override (Default/Off/Lite/Standard/Aggressive/Ultra) — that override does not pick a named
+compression-combo pipeline; it just sets the `compressionMode` field consulted by
+`resolveCompressionPlan`. It can be set either on the combo card (`Dashboard → Combos`) or, since
+#6760, per routing combo in the "Assign to routing" list on
+`Dashboard → Context & Cache → Compression Combos`, right next to the pipeline-assignment checkbox
+documented above. Both surfaces persist through the same `PUT /api/combos/{id}` endpoint.
+
 ### Per-request override
 
 Send the `x-omniroute-compression` request header to override the compression plan for a single
@@ -278,7 +286,8 @@ Every compressed request includes stats in the server logs:
 | Phase 1 | Off, Lite                                                            | ✅ Shipped |
 | Phase 2 | Standard, Aggressive, Ultra                                          | ✅ Shipped |
 | Phase 3 | RTK, Stacked, Compression Combos                                     | ✅ Shipped |
-| Phase 4 | Output Styles, SLM-tier Ultra, adaptive context-budget, eval harness | ✅ Shipped |
+| Phase 4 | Output Styles, SLM-tier Ultra, eval harness | ✅ Shipped |
+| Phase 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) | ✅ Shipped (API-configurable; dashboard controls not yet built, #7005) |
 
 ---
 

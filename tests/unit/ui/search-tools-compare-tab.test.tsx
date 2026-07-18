@@ -270,12 +270,13 @@ describe("CompareTab", () => {
       await new Promise((r) => setTimeout(r, 150));
     });
 
-    // Check that the table exists and contains overlap info
-    const table = el.querySelector("table");
-    if (table) {
+    // The results panel renders as a div-based side-by-side layout (not a <table>) —
+    // the overlap summary footer lives inside [data-testid='compare-results'].
+    const resultsPanel = el.querySelector("[data-testid='compare-results']");
+    if (resultsPanel) {
       // URL overlap row should contain a fraction like "1/2"
-      const tableText = table.textContent ?? "";
-      expect(tableText).toMatch(/URL overlap|\d+\/\d+/);
+      const panelText = resultsPanel.textContent ?? "";
+      expect(panelText).toMatch(/in common|\d+\/\d+/);
     } else {
       // Loading state is still active — acceptable
       expect(el.querySelector("[data-testid='compare-loading']")).toBeTruthy();

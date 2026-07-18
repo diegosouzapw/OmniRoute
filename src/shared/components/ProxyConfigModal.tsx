@@ -463,6 +463,7 @@ export default function ProxyConfigModal({
         username?: string;
         password?: string;
       } | null = null;
+      let testProxyId: string | null = null;
 
       if (mode === "saved") {
         if (!selectedProxyId) {
@@ -481,6 +482,7 @@ export default function ProxyConfigModal({
           host: found.host || "",
           port: String(found.port || 8080),
         };
+        testProxyId = selectedProxyId;
       } else {
         if (!String(host || "").trim()) {
           setTesting(false);
@@ -498,7 +500,7 @@ export default function ProxyConfigModal({
       const res = await fetch("/api/settings/proxy/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ proxy }),
+        body: JSON.stringify(testProxyId ? { proxy, proxyId: testProxyId } : { proxy }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

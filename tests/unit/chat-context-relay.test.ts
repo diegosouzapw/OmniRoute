@@ -9,7 +9,7 @@ const { BaseExecutor, buildRequest, combosDb, handleChat, resetStorage, waitFor,
 const providersDb = await import("../../src/lib/db/providers.ts");
 const handoffDb = await import("../../src/lib/db/contextHandoffs.ts");
 
-function buildResponsesResponse(text = "ok", model = "gpt-5.4") {
+function buildResponsesResponse(text = "ok", model = "gpt-5.6-sol") {
   return new Response(
     JSON.stringify({
       id: "resp_context_relay",
@@ -112,7 +112,7 @@ test("handleChat generates and injects context-relay handoffs across Codex accou
       handoffThreshold: 0.85,
       maxMessagesForSummary: 12,
     },
-    models: ["codex/gpt-5.4"],
+    models: ["codex/gpt-5.6-sol"],
   });
 
   const upstreamBodies = [];
@@ -142,12 +142,12 @@ test("handleChat generates and injects context-relay handoffs across Codex accou
           taskProgress: "Runtime and UI are wired; tests are next",
           activeEntities: ["open-sse/services/combo.ts", "src/sse/handlers/chat.ts"],
         }),
-        "gpt-5.4"
+        "gpt-5.6-sol"
       );
     }
 
     upstreamBodies.push({ body, serializedBody });
-    return buildResponsesResponse("relay-success", "gpt-5.4");
+    return buildResponsesResponse("relay-success", "gpt-5.6-sol");
   };
 
   const firstResponse = await handleChat(
@@ -226,7 +226,7 @@ test("handleChat injects context-relay handoffs during live failover for Respons
       handoffThreshold: 0.85,
       maxMessagesForSummary: 12,
     },
-    models: ["codex/gpt-5.4"],
+    models: ["codex/gpt-5.6-sol"],
   });
 
   const upstreamBodies = [];
@@ -255,7 +255,7 @@ test("handleChat injects context-relay handoffs during live failover for Respons
           taskProgress: "Continue after the first account is exhausted",
           activeEntities: ["src/sse/handlers/chat.ts", "open-sse/services/contextHandoff.ts"],
         }),
-        "gpt-5.4"
+        "gpt-5.6-sol"
       );
     }
 
@@ -271,7 +271,7 @@ test("handleChat injects context-relay handoffs during live failover for Respons
       }
     }
 
-    return buildResponsesResponse("relay-success", "gpt-5.4");
+    return buildResponsesResponse("relay-success", "gpt-5.6-sol");
   };
 
   const firstResponse = await handleChat(
@@ -331,9 +331,7 @@ test("handleChat injects context-relay handoffs during live failover for Respons
   assert.equal(secondResponse.status, 200);
 
   const relayedSecondaryCall = upstreamBodies.find(
-    (call) =>
-      call.authHeader === "Bearer token-b" &&
-      typeof call.body.instructions === "string"
+    (call) => call.authHeader === "Bearer token-b" && typeof call.body.instructions === "string"
   );
 
   assert.ok(relayedSecondaryCall, "secondary account should receive a request after primary 429");

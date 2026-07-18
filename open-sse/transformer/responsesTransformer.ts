@@ -108,6 +108,10 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
     completedSent: false,
     usage: null,
     keepaliveTimer: null,
+    // #6906: true once a finish_reason chunk closed all output items but deferred
+    // response.completed — a trailing usage-only chunk (choices: [], usage: {...}) may
+    // still arrive for stream_options.include_usage=true upstreams.
+    awaitingTrailingUsage: false,
   };
 
   const encoder = new TextEncoder();
@@ -403,6 +407,11 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
             if (parsed.usage) {
               state.usage = parsed.usage;
             }
+            // #6906: trailing usage-only chunk after finish_reason already deferred
+            // completion — send it now with the usage just captured above.
+            if (state.awaitingTrailingUsage && !state.completedSent) {
+              sendCompleted(controller);
+            }
             continue;
           }
 
@@ -630,7 +639,18 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
             for (const i in state.msgItemAdded) closeMessage(controller, i);
             closeReasoning(controller);
             for (const i in state.funcCallIds) closeToolCall(controller, i);
-            sendCompleted(controller);
+            if (state.usage) {
+              // Usage already captured — either it arrived in this same chunk, or an
+              // earlier usage-bearing chunk already populated state.usage. Either way
+              // there is nothing left to wait for, so complete right away.
+              sendCompleted(controller);
+            } else {
+              // #6906: defer response.completed — a trailing usage-only chunk may
+              // still arrive (stream_options.include_usage=true). The empty-choices
+              // branch above (or flush() at stream end, as a fallback) actually
+              // calls sendCompleted().
+              state.awaitingTrailingUsage = true;
+            }
           }
         }
       },

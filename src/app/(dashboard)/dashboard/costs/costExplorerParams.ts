@@ -1,8 +1,8 @@
 import { type CostExplorerGroupBy } from "./costExplorerUtils";
 
-export type CostRange = "7d" | "30d" | "90d" | "all";
+export type CostRange = "7d" | "30d" | "90d" | "180d" | "365d" | "all";
 
-const COST_RANGE_VALUES = new Set<CostRange>(["7d", "30d", "90d", "all"]);
+const COST_RANGE_VALUES = new Set<CostRange>(["7d", "30d", "90d", "180d", "365d", "all"]);
 const EXPLORER_GROUP_VALUES = new Set<CostExplorerGroupBy>([
   "provider",
   "model",

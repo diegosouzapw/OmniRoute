@@ -23,7 +23,7 @@ The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth
 - 🆕 **Z.AI provider** — new free-tier provider with quota labels
 - 🎬 **KIE media expansion** — extended catalog including video generation models
 - 🔐 **Windsurf + Devin CLI OAuth flows** (#2168) — end-to-end browser-based login
-- 🆓 **9 new free providers** — LLM7, Lepton, Kluster, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🆓 **8 new free providers** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
 - 🎯 **Manifest-aware tier routing W1–W4** — provider manifests drive weighted tier selection
 - 🎨 **Cursor full OpenAI parity** — tool calls, streaming, session management end-to-end
 - 📊 **Cursor Pro plan usage** — quota & cycle data surfaced in the provider-limits dashboard

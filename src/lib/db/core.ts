@@ -9,6 +9,7 @@ import {
   tryOpenSync,
   getSqlJsAdapter,
   preInitSqlJs,
+  getSqlJsPreInitError,
   openDatabaseAsync,
 } from "./adapters/driverFactory";
 import path from "path";
@@ -161,6 +162,18 @@ function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown
 
   const sqlJs = getSqlJsAdapter(sqliteFile);
   if (sqlJs) return sqlJs;
+
+  // sql.js pre-init was genuinely attempted (e.g. by the top-level eager
+  // barrier below) and failed — surface the real cause instead of the
+  // generic/misleading "not pre-initialized yet" message (#7288).
+  const preInitError = getSqlJsPreInitError(sqliteFile);
+  if (preInitError) {
+    throw new Error(
+      `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
+        "Drivers testados: better-sqlite3 (falhou), node:sqlite (indisponível), " +
+        `sql.js (falhou: ${preInitError}).`
+    );
+  }
 
   throw new Error(
     `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
@@ -462,6 +475,18 @@ const SCHEMA_SQL = `
 
 declare global {
   var __omnirouteDb: SqliteAdapter | undefined;
+  // Cycle-breaker counter for the probe-failed/restore cascade. Survives
+  // Next.js HMR re-evaluations so concurrent subsystems all see the same
+  // count and we abort with a clear error instead of looping forever.
+  var __omnirouteDbProbeRestoreCount: number | undefined;
+  // Cycle-breaker counter for the OOM-during-probe path (#6835). Unlike the
+  // generic corruption path above, an OOM probe failure never renames the
+  // file away (intentional — the DB may be perfectly fine, just too large
+  // for the current heap), so the restore-count cap above is structurally
+  // unreachable here. Without an independent cap, every background poller
+  // (BATCH, HealthCheck, ProviderLimitsSync, ModelSync) re-throws the same
+  // OOM error forever with no terminal diagnostic.
+  var __omnirouteDbOomFailureCount: number | undefined;
 }
 
 function getDb(): SqliteDatabase | null {
@@ -952,6 +977,26 @@ export function getDbInstance(): SqliteDatabase {
   const jsonDbFile = JSON_DB_FILE;
   const probeFailureBackups = listProbeFailureBackups(sqliteFile);
   if (!fs.existsSync(sqliteFile) && probeFailureBackups.length > 0) {
+    // Cycle-breaker: a previous probe failure renamed the DB to
+    // `storage.sqlite.probe-failed-<ts>` and the next caller auto-restored it.
+    // When the same DB continues to fail the probe (typically an OOM on a
+    // large sql.js WASM load), the rename/restore cascade loops forever
+    // because every subsystem (BATCH, HealthCheck, ProviderLimitsSync, ...)
+    // hits the same code path during boot. Track restoration attempts on
+    // globalThis; abort with a clear recovery message after 3 attempts so
+    // the user gets a real error instead of a hung "Starting server...".
+    if (
+      (globalThis.__omnirouteDbProbeRestoreCount =
+        (globalThis.__omnirouteDbProbeRestoreCount || 0) + 1) > 3
+    ) {
+      throw new Error(
+        `[DB] Aborting startup: probe-failed/restore loop detected after 3 attempts. ` +
+          `The preserved database at ${path.dirname(sqliteFile)} is unloadable under this runtime. ` +
+          `Remove the probe-failed backups (storage.sqlite.probe-failed-*) from ${path.dirname(
+            sqliteFile
+          )} and restart, or restore the database from a known-good backup.`
+      );
+    }
     const latestBackup = probeFailureBackups[0];
     try {
       fs.renameSync(latestBackup, sqliteFile);
@@ -1046,6 +1091,35 @@ export function getDbInstance(): SqliteDatabase {
         message.includes("could not be found")
       ) {
         throw e;
+      }
+      // OOM during probe = the DB is too large to load under the current
+      // V8 heap (sql.js loads the whole file into WASM memory). Throwing
+      // immediately gives the user a clear "increase --max-old-space-size"
+      // signal instead of silently renaming a perfectly good DB.
+      if (/out of memory|allocation failure|Array buffer allocation failed|allocation failed/i.test(message)) {
+        // Cycle-breaker (#6835): the OOM path never renames the file away,
+        // so it never trips the generic probe-failed/restore cap above. Cap
+        // it independently after 3 consecutive OOM failures (same threshold
+        // as the generic path) so repeated polling doesn't hang forever with
+        // no actionable terminal diagnostic.
+        if (
+          (globalThis.__omnirouteDbOomFailureCount =
+            (globalThis.__omnirouteDbOomFailureCount || 0) + 1) > 3
+        ) {
+          throw new Error(
+            `[DB] Aborting startup: persistent out-of-memory probing ${sqliteFile} after 3 attempts. ` +
+              `Increase the V8 heap with NODE_OPTIONS=--max-old-space-size=4096 (or higher) — the ` +
+              `current heap is insufficient for this database — and restart, or shrink/restore the ` +
+              `database from a backup. Original error: ${message}`
+          );
+        }
+        throw new Error(
+          `[DB] Out of memory while probing ${sqliteFile}. ` +
+            `The bundled sql.js driver loads the entire file into WASM memory; ` +
+            `increase the V8 heap with NODE_OPTIONS=--max-old-space-size=4096 (or higher) ` +
+            `and restart, or restore the database from a backup. ` +
+            `Original error: ${message}`
+        );
       }
       preservedCriticalState = captureCriticalDbState(sqliteFile);
 

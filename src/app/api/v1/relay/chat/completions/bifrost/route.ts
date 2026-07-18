@@ -176,7 +176,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const rateCheck = checkRateLimit(token.id);
+    const rateCheck = checkRateLimit(token.id, token);
     if (!rateCheck.allowed) {
       recordRelayUsage(token.id, {
         requestId: request.headers.get("x-request-id") || undefined,
@@ -260,6 +260,8 @@ export async function POST(request: Request) {
       "x-relay-client-ip": clientIp,
       ...getProviderPluginManifestHeader(new URL(request.url).origin),
     };
+    const requestId = request.headers.get("x-request-id");
+    if (requestId) upstreamHeaders["x-request-id"] = requestId;
     if (BIFROST_API_KEY) {
       upstreamHeaders["Authorization"] = `Bearer ${BIFROST_API_KEY}`;
     }

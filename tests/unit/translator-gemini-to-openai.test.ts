@@ -93,6 +93,55 @@ test("Gemini -> OpenAI converts model parts into assistant text and tool calls",
   assert.match(result.messages[0].tool_calls[0].id, /^call_/);
 });
 
+test("Gemini -> OpenAI maps a thought:true part to reasoning_content instead of leaking it into visible text", () => {
+  const result = geminiToOpenAIRequest(
+    "gpt-4o",
+    {
+      contents: [
+        {
+          role: "model",
+          parts: [
+            { thought: true, text: "internal reasoning" },
+            { text: "final answer" },
+          ],
+        },
+      ],
+    },
+    false
+  );
+
+  assert.equal(result.messages.length, 1);
+  const assistant = result.messages[0];
+  assert.equal(assistant.role, "assistant");
+  assert.equal(assistant.reasoning_content, "internal reasoning");
+  // The visible content must not contain the thought text.
+  const visibleText =
+    typeof assistant.content === "string"
+      ? assistant.content
+      : JSON.stringify(assistant.content);
+  assert.doesNotMatch(visibleText, /internal reasoning/);
+  assert.match(visibleText, /final answer/);
+});
+
+test("Gemini -> OpenAI: a thought-only content still produces a message carrying reasoning_content", () => {
+  const result = geminiToOpenAIRequest(
+    "gpt-4o",
+    {
+      contents: [
+        {
+          role: "model",
+          parts: [{ thought: true, text: "only reasoning, no visible answer yet" }],
+        },
+      ],
+    },
+    false
+  );
+
+  assert.equal(result.messages.length, 1);
+  assert.equal(result.messages[0].role, "assistant");
+  assert.equal(result.messages[0].reasoning_content, "only reasoning, no visible answer yet");
+});
+
 test("Gemini -> OpenAI converts function responses into tool messages", () => {
   const result = geminiToOpenAIRequest(
     "gpt-4o",

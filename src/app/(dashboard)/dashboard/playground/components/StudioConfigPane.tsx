@@ -2,7 +2,8 @@
 
 // src/app/(dashboard)/dashboard/playground/components/StudioConfigPane.tsx
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import ParamSliders, { type PlaygroundParams } from "./ParamSliders";
 import type { PlaygroundEndpoint } from "@/lib/playground/codeExport";
 import { endpointToPath } from "@/lib/playground/codeExport";
@@ -15,12 +16,12 @@ import {
   CLAUDE_CODE_COMPATIBLE_PREFIX,
   OPENAI_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
-import { pickDefaultModel, resolveModelFilterKey } from "./modelSelection";
+import { filterModelsByQuery, pickDefaultModel, resolveModelFilterKey } from "./modelSelection";
 import ReasoningControls from "./ReasoningControls";
 import {
   resolveReasoningControls,
   type ReasoningControlSpec,
-} from "./reasoningControls";
+} from "./reasoningControlUtils";
 
 export interface ConfigState {
   endpoint: PlaygroundEndpoint;
@@ -63,7 +64,11 @@ const ENDPOINT_OPTIONS: Array<{ value: PlaygroundEndpoint; label: string }> = [
  *   - SLOT_IMPROVE: ImprovePromptButton will be injected here
  */
 export default function StudioConfigPane({ configState, setConfigState }: StudioConfigPaneProps) {
+  const t = useTranslations("common");
   const [collapsed, setCollapsed] = useState(false);
+  // #4086: search/filter query for the Model dropdown — flat provider catalogs (e.g.
+  // 50+ OpenRouter models) made the plain <select> unusable without scrolling.
+  const [modelQuery, setModelQuery] = useState("");
   const {
     provider,
     setProvider,
@@ -90,6 +95,17 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
   );
   const { availableModels, modelCapabilities, loading: loadingModels } =
     useAvailableModels(modelFilterKey);
+
+  // #4086: filter the dropdown by the search query, but always keep the currently selected
+  // model in the list even when it doesn't match — otherwise typing a query would silently
+  // change the active selection out from under the user.
+  const filteredModels = useMemo(() => {
+    const filtered = filterModelsByQuery(availableModels, modelQuery);
+    if (configState.model && !filtered.includes(configState.model)) {
+      return [configState.model, ...filtered];
+    }
+    return filtered;
+  }, [availableModels, modelQuery, configState.model]);
 
   // #6241: resolve the reasoning controls for the currently selected model from the capability
   // flags the /models catalog exposes (supportsThinking / effort_tiers).
@@ -207,18 +223,30 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
             Model
           </label>
           {availableModels.length > 0 ? (
-            <select
-              value={configState.model}
-              onChange={(e) => update("model", e.target.value)}
-              disabled={loadingModels}
-              className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
-            >
-              {availableModels.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+            <>
+              {availableModels.length > 1 && (
+                <input
+                  type="text"
+                  value={modelQuery}
+                  onChange={(e) => setModelQuery(e.target.value)}
+                  placeholder={t("search")}
+                  aria-label={t("search")}
+                  className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
+                />
+              )}
+              <select
+                value={configState.model}
+                onChange={(e) => update("model", e.target.value)}
+                disabled={loadingModels}
+                className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
+              >
+                {filteredModels.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </>
           ) : (
             <input
               type="text"

@@ -1,7 +1,10 @@
 // Allow large audio/video file uploads — 5min for processing large files (up to 2GB)
 export const maxDuration = 300;
 import { handleAudioTranscription } from "@omniroute/open-sse/handlers/audioTranscription.ts";
-import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
+import {
+  getProviderCredentialsWithQuotaPreflight,
+  clearRecoveredProviderState,
+} from "@/sse/services/auth";
 import {
   parseTranscriptionModel,
   getTranscriptionProvider,
@@ -96,7 +99,7 @@ export async function POST(request) {
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentials(provider);
+    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
     if (!credentials) {
       return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${provider}`);
     }

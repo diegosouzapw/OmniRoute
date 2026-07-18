@@ -32,7 +32,13 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "catalog-test-secret"
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
+
+type CatalogResponse = {
+  data?: Array<{ id: string }>;
+};
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -56,7 +62,8 @@ test("codex client (originator: codex_exec) receives a top-level `models` array 
     new Request("http://localhost/v1/models?client_version=0.137.0", {
       headers: {
         originator: "codex_exec",
-        "user-agent": "codex_exec/0.137.0 (Ubuntu 24.4.0; x86_64) vscode/3.7.19 (codex_exec; 0.137.0)",
+        "user-agent":
+          "codex_exec/0.137.0 (Ubuntu 24.4.0; x86_64) vscode/3.7.19 (codex_exec; 0.137.0)",
       },
     })
   );
@@ -102,4 +109,49 @@ test("non-codex OpenAI client keeps the unchanged {object,data} shape (no `model
     !("models" in body),
     "non-codex clients must NOT receive a `models` key (response stays byte-identical)"
   );
+});
+
+test("v1 models catalog exposes remote-only Codex IDs from the discovery cache", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    name: "codex-curated-catalog",
+    accessToken: "codex-access-token",
+    isActive: true,
+    testStatus: "active",
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("codex", connection.id, [
+    {
+      id: "codex-auto-review",
+      name: "Codex Auto Review Remote",
+      source: "imported",
+      supportedEndpoints: ["responses"],
+    },
+    {
+      id: "future-codex-model",
+      name: "Future Codex Model",
+      source: "imported",
+      supportedEndpoints: ["responses"],
+    },
+    {
+      id: "gpt-5.4-mini",
+      name: "Retired GPT-5.4 Mini",
+      source: "imported",
+      supportedEndpoints: ["responses"],
+    },
+  ]);
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as CatalogResponse;
+  const ids = new Set((body.data || []).map((item) => item.id));
+
+  assert.equal(response.status, 200);
+  assert.equal(ids.has("cx/codex-auto-review"), true);
+  assert.equal(ids.has("cx/future-codex-model"), true);
+  assert.equal(ids.has("codex/future-codex-model"), true);
+  assert.equal(ids.has("cx/gpt-5.4-mini"), false);
+  assert.equal(ids.has("codex/gpt-5.4-mini"), false);
 });

@@ -48,7 +48,11 @@ export async function runHealthCommand(opts = {}) {
   }
 
   try {
-    const res = await apiFetch("/api/health", { retry: false, timeout: 5000, acceptNotOk: true });
+    const res = await apiFetch("/api/monitoring/health", {
+      retry: false,
+      timeout: 5000,
+      acceptNotOk: true,
+    });
     if (!res.ok) {
       console.error(t("common.error", { message: `HTTP ${res.status}` }));
       return 1;
@@ -66,29 +70,22 @@ export async function runHealthCommand(opts = {}) {
     if (health.uptime) console.log(t("health.uptime", { uptime: health.uptime }));
     if (health.version) console.log(`  Version: ${health.version}`);
 
-    if (health.requests !== undefined) {
-      console.log(t("health.requests", { count: health.requests }));
+    if (health.activeConnections !== undefined) {
+      console.log(t("health.requests", { count: health.activeConnections }));
     }
 
-    if (health.breakers && opts.verbose) {
+    if (health.circuitBreakers && opts.verbose) {
       console.log("\n  \x1b[1mCircuit Breakers\x1b[0m");
-      for (const [name, status] of Object.entries(health.breakers)) {
-        const state =
-          status.state === "closed" ? "\x1b[32m● closed\x1b[0m" : "\x1b[33m○ open\x1b[0m";
-        console.log(`    ${name.padEnd(20)} ${state}`);
-      }
+      const { open = 0, halfOpen = 0, closed = 0 } = health.circuitBreakers;
+      console.log(`    \x1b[32m● closed\x1b[0m     ${closed}`);
+      console.log(`    \x1b[33m○ half-open\x1b[0m  ${halfOpen}`);
+      console.log(`    \x1b[31m○ open\x1b[0m       ${open}`);
     }
 
-    if (health.cache && opts.verbose) {
-      console.log("\n  \x1b[1mCache\x1b[0m");
-      console.log(`    Semantic hits:   ${health.cache.semanticHits || 0}`);
-      console.log(`    Signature hits:  ${health.cache.signatureHits || 0}`);
-    }
-
-    if (opts.verbose && health.memory) {
+    if (opts.verbose && health.memoryUsage) {
       console.log("\n  \x1b[1mMemory\x1b[0m");
-      console.log(`    RSS:        ${health.memory.rss || "N/A"}`);
-      console.log(`    Heap used:  ${health.memory.heapUsed || "N/A"}`);
+      console.log(`    RSS:        ${health.memoryUsage.rss || "N/A"}`);
+      console.log(`    Heap used:  ${health.memoryUsage.heapUsed || "N/A"}`);
     }
 
     return 0;
@@ -100,13 +97,17 @@ export async function runHealthCommand(opts = {}) {
 
 export async function runHealthComponentsCommand(opts = {}) {
   try {
-    const res = await apiFetch("/api/health", { retry: false, timeout: 5000, acceptNotOk: true });
+    const res = await apiFetch("/api/monitoring/health", {
+      retry: false,
+      timeout: 5000,
+      acceptNotOk: true,
+    });
     if (!res.ok) {
       console.error(`HTTP ${res.status}`);
       return 1;
     }
     const health = await res.json();
-    const components = health.components || health.breakers || {};
+    const components = health.components || health.circuitBreakers || {};
     for (const [name, info] of Object.entries(components)) {
       const status =
         typeof info === "object" ? info.state || info.status || "unknown" : String(info);

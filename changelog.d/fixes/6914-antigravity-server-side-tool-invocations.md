@@ -1,0 +1,1 @@
+- fix(sse): set includeServerSideToolInvocations on Antigravity tool cloak decoys (#6914)

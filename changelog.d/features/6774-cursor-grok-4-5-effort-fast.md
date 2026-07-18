@@ -1,0 +1,1 @@
+- **chore(cursor): add Grok 4.5 effort/fast model IDs** (#6774 — thanks @andrewmunsell).

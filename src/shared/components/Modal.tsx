@@ -4,6 +4,14 @@ import { useEffect, useRef, useId } from "react";
 import { cn } from "@/shared/utils/cn";
 import Button from "./Button";
 
+// #6265 — preset for content-heavy modals: caps height on the OUTERMOST dialog
+// wrapper only (single scroll owner) and keeps the inner body plain (no
+// independent max-h/overflow), avoiding a double height cap that clips content.
+export const TALL_MODAL_PROPS = {
+  className: "max-h-[90vh] overflow-y-auto",
+  bodyClassName: "p-6",
+};
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;

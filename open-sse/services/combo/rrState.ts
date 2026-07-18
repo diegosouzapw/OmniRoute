@@ -96,3 +96,22 @@ export function recordStickyWeightedSuccess(
 
   weightedStickyTargets.set(comboName, { executionKey, successCount });
 }
+
+/**
+ * Sticky batch size for round-robin combo targets (9router parity).
+ * Per-combo config → comboStickyRoundRobinLimit → stickyRoundRobinLimit.
+ * Uses clampStickyRoundRobinTargetLimit defined above in this module.
+ */
+export function resolveComboStickyRoundRobinLimit(
+  perComboLimit: unknown,
+  settings: Record<string, unknown> | null | undefined
+): number {
+  if (perComboLimit !== undefined && perComboLimit !== null) {
+    return clampStickyRoundRobinTargetLimit(perComboLimit);
+  }
+  const comboSticky = settings?.comboStickyRoundRobinLimit;
+  if (comboSticky !== undefined && comboSticky !== null) {
+    return clampStickyRoundRobinTargetLimit(comboSticky);
+  }
+  return clampStickyRoundRobinTargetLimit(settings?.stickyRoundRobinLimit);
+}

@@ -7,7 +7,7 @@
 // (fallback to the canonical vocabulary), resolved by `resolveReasoningControls`.
 
 import type { PlaygroundParams } from "./ParamSliders";
-import type { ReasoningControlSpec } from "./reasoningControls";
+import type { ReasoningControlSpec } from "./reasoningControlUtils";
 
 interface ReasoningControlsProps {
   spec: ReasoningControlSpec;

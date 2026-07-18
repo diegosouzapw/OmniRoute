@@ -7,9 +7,9 @@
  *   node scripts/start-ws-server.mjs
  *
  * Environment variables:
- *   LIVE_WS_PORT       — WebSocket server port (default: 20129)
+ *   LIVE_WS_PORT       — WebSocket server port (default: 20132)
  *   LIVE_WS_HOST       — WebSocket server host (default: 127.0.0.1)
- *   OMNIROUTE_DISABLE_LIVE_WS — Set to "1" or "true" to disable
+ *   OMNIROUTE_ENABLE_LIVE_WS — Set to "0" or "false" to disable
  */
 
 import { spawnSync } from "node:child_process";
@@ -59,11 +59,16 @@ export function buildSidecarSpawn(scriptUrl, env = process.env) {
 }
 
 async function main() {
+  // The operator disable gate only applies to the OUTER invocation: the bootstrapped
+  // child is re-spawned with OMNIROUTE_ENABLE_LIVE_WS="0" purely to stop liveServer.ts
+  // auto-starting on import (this script owns startup), so honoring the gate there
+  // made the standalone script exit 0 without ever listening (#6072 regression).
   if (
-    process.env.OMNIROUTE_DISABLE_LIVE_WS === "1" ||
-    process.env.OMNIROUTE_DISABLE_LIVE_WS === "true"
+    process.env[BOOTSTRAPPED_ENV] !== "1" &&
+    (process.env.OMNIROUTE_ENABLE_LIVE_WS === "0" ||
+      process.env.OMNIROUTE_ENABLE_LIVE_WS?.toLowerCase() === "false")
   ) {
-    console.log("[LiveWS] Disabled via OMNIROUTE_DISABLE_LIVE_WS");
+    console.log("[LiveWS] Disabled via OMNIROUTE_ENABLE_LIVE_WS");
     process.exit(0);
   }
 
@@ -80,7 +85,7 @@ async function main() {
 
   const { startLiveDashboardServer } = await import("../src/server/ws/liveServer.ts");
 
-  const port = parseInt(process.env.LIVE_WS_PORT || "20129", 10);
+  const port = parseInt(process.env.LIVE_WS_PORT || "20132", 10);
   const host = process.env.LIVE_WS_HOST || "127.0.0.1";
 
   console.log(`[LiveWS] Starting dashboard WebSocket server on ${host}:${port}...`);

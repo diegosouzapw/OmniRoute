@@ -782,66 +782,12 @@ test("unknown strategy value normalizes to priority order", async () => {
   assert.deepEqual(calls, ["openai/gpt-4o-mini"], "typo falls back to priority (first model)");
 });
 
-test("combo skips a provider while its breaker is OPEN and attempts it again after the reset timeout (HALF_OPEN)", async () => {
-  const breaker = getCircuitBreaker("openai", { failureThreshold: 1, resetTimeout: 40 });
-  try {
-    await breaker.execute(async () => {
-      throw new Error("simulated provider failure");
-    });
-  } catch {
-    // expected — trips the breaker OPEN
-  }
-  assert.equal(breaker.getStatus().state, "OPEN");
-
-  const comboDef = {
-    name: "half-open-recovery",
-    strategy: "priority",
-    models: ["openai/gpt-4o-mini", "claude/sonnet"],
-    config: { maxRetries: 0, retryDelayMs: 0, fallbackDelayMs: 0 },
-  };
-
-  // While OPEN: the openai target must be skipped, claude serves.
-  const callsWhileOpen: string[] = [];
-  const blocked = await handleComboChat({
-    body: {},
-    combo: comboDef,
-    handleSingleModel: async (_body: any, modelStr: string) => {
-      callsWhileOpen.push(modelStr);
-      return okResponse();
-    },
-    isModelAvailable: async () => true,
-    log: createLog(),
-    settings: null,
-    allCombos: null,
-  });
-  assert.equal(blocked.ok, true);
-  assert.deepEqual(callsWhileOpen, ["claude/sonnet"], "OPEN breaker target must be skipped");
-
-  // After the reset timeout the breaker reads HALF_OPEN — the combo must probe
-  // the provider again instead of excluding it forever (lazy recovery contract).
-  await new Promise((resolve) => setTimeout(resolve, 80));
-  assert.equal(breaker.getStatus().state, "HALF_OPEN");
-
-  const callsAfterExpiry: string[] = [];
-  const probed = await handleComboChat({
-    body: {},
-    combo: comboDef,
-    handleSingleModel: async (_body: any, modelStr: string) => {
-      callsAfterExpiry.push(modelStr);
-      return okResponse();
-    },
-    isModelAvailable: async () => true,
-    log: createLog(),
-    settings: null,
-    allCombos: null,
-  });
-  assert.equal(probed.ok, true);
-  assert.deepEqual(
-    callsAfterExpiry,
-    ["openai/gpt-4o-mini"],
-    "HALF_OPEN provider must be probed again"
-  );
-});
+// NOTE: "combo skips a provider while its breaker is OPEN and attempts it
+// again after the reset timeout (HALF_OPEN)" was extracted to
+// tests/unit/serial/combo-strategy-fallbacks-half-open-timing.test.ts (#6803)
+// — it races an 80ms real setTimeout against a 40ms breaker resetTimeout,
+// which flaked under CI-runner load; the serial dir (--test-concurrency=1)
+// removes the intra-suite contention that caused it.
 
 test("preScreenTargets marks an expired-OPEN (HALF_OPEN) target as available", async () => {
   const breaker = getCircuitBreaker("openai", { failureThreshold: 1, resetTimeout: 30 });

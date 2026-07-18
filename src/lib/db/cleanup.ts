@@ -305,8 +305,7 @@ export async function cleanupCompressionCacheStats(): Promise<CleanupResult> {
 }
 
 /**
- * Clean up old xp_audit_log based on retention settings. (#6848)
- * Uses `created_at` column (TEXT datetime).
+ * Clean up old xp_audit_log based on retention settings.
  */
 export async function cleanupXpAuditLog(): Promise<CleanupResult> {
   const db = getDbInstance();
