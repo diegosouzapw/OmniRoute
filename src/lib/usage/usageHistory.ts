@@ -10,14 +10,17 @@
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
 import {
+  accumulateLatencySample,
   asRecord,
+  buildLatencyStatsEntry,
+  createLatencyBucket,
   normalizeServiceTier,
-  percentile,
-  stdDev,
+  resolvePositiveOption,
   toNumber,
   toStringOrNull,
   truncatePendingPreview,
 } from "./usageHistory/helpers";
+import type { ModelLatencyStatsEntry } from "./usageHistory/helpers";
 import {
   clearCompletedDetails,
   maybeEnrichCompletedDetail,
@@ -772,24 +775,13 @@ export async function getUsageHistory(filter: UsageHistoryFilter = {}) {
   });
 }
 
-export interface ModelLatencyStatsEntry {
-  provider: string;
-  model: string;
-  key: string;
-  totalRequests: number;
-  successfulRequests: number;
-  successRate: number; // 0..1
-  avgLatencyMs: number;
-  p50LatencyMs: number;
-  p95LatencyMs: number;
-  p99LatencyMs: number;
-  latencyStdDev: number;
-  windowHours: number;
-}
+export type { ModelLatencyStatsEntry } from "./usageHistory/helpers";
 
 /**
  * Aggregate rolling latency stats per provider/model from usage_history.
  * Used by auto-combo routing to incorporate real-world latency and reliability.
+ * Also computes avgTtftMs/avgE2ELatencyMs/avgTokensPerSecond (#6875) via the
+ * accumulateLatencySample/buildLatencyStatsEntry helpers.
  */
 export async function getModelLatencyStats(
   options: {
@@ -800,18 +792,9 @@ export async function getModelLatencyStats(
     model?: string;
   } = {}
 ): Promise<Record<string, ModelLatencyStatsEntry>> {
-  const windowHours =
-    Number.isFinite(Number(options.windowHours)) && Number(options.windowHours) > 0
-      ? Number(options.windowHours)
-      : 24;
-  const minSamples =
-    Number.isFinite(Number(options.minSamples)) && Number(options.minSamples) > 0
-      ? Number(options.minSamples)
-      : 1;
-  const maxRows =
-    Number.isFinite(Number(options.maxRows)) && Number(options.maxRows) > 0
-      ? Number(options.maxRows)
-      : 10000;
+  const windowHours = resolvePositiveOption(options.windowHours, 24);
+  const minSamples = resolvePositiveOption(options.minSamples, 1);
+  const maxRows = resolvePositiveOption(options.maxRows, 10000);
 
   const db = getDbInstance();
   const sinceIso = new Date(Date.now() - windowHours * 60 * 60 * 1000).toISOString();
@@ -821,6 +804,8 @@ export async function getModelLatencyStats(
     model: string | null;
     success: number | null;
     latency_ms: number | null;
+    ttft_ms: number | null;
+    tokens_output: number | null;
   };
 
   const conditions = ["timestamp >= @sinceIso", "provider IS NOT NULL", "model IS NOT NULL"];
@@ -837,7 +822,7 @@ export async function getModelLatencyStats(
   const rows = db
     .prepare(
       `
-      SELECT provider, model, success, latency_ms
+      SELECT provider, model, success, latency_ms, ttft_ms, tokens_output
       FROM usage_history
       WHERE ${conditions.join(" AND ")}
       ORDER BY timestamp DESC
@@ -846,17 +831,7 @@ export async function getModelLatencyStats(
     )
     .all(queryParams) as LatencyRow[];
 
-  const grouped = new Map<
-    string,
-    {
-      provider: string;
-      model: string;
-      totalRequests: number;
-      successfulRequests: number;
-      successfulLatencies: number[];
-      allLatencies: number[];
-    }
-  >();
+  const grouped = new Map<string, ReturnType<typeof createLatencyBucket>>();
 
   for (const row of rows) {
     const provider = toStringOrNull(row.provider);
@@ -864,17 +839,7 @@ export async function getModelLatencyStats(
     if (!provider || !model) continue;
 
     const key = `${provider}/${model}`;
-    if (!grouped.has(key)) {
-      grouped.set(key, {
-        provider,
-        model,
-        totalRequests: 0,
-        successfulRequests: 0,
-        successfulLatencies: [],
-        allLatencies: [],
-      });
-    }
-
+    if (!grouped.has(key)) grouped.set(key, createLatencyBucket(provider, model));
     const bucket = grouped.get(key);
     if (!bucket) continue;
 
@@ -882,41 +847,19 @@ export async function getModelLatencyStats(
     const isSuccess = toNumber(row.success) !== 0;
     if (isSuccess) bucket.successfulRequests += 1;
 
-    const latency = toNumber(row.latency_ms);
-    if (latency > 0) {
-      bucket.allLatencies.push(latency);
-      if (isSuccess) bucket.successfulLatencies.push(latency);
-    }
+    accumulateLatencySample(
+      bucket,
+      toNumber(row.latency_ms),
+      toNumber(row.ttft_ms),
+      toNumber(row.tokens_output),
+      isSuccess
+    );
   }
 
   const stats: Record<string, ModelLatencyStatsEntry> = {};
   for (const [key, bucket] of grouped.entries()) {
-    const baseLatencies =
-      bucket.successfulLatencies.length >= minSamples
-        ? bucket.successfulLatencies
-        : bucket.allLatencies;
-
-    if (baseLatencies.length < minSamples) continue;
-
-    const sorted = [...baseLatencies].sort((a, b) => a - b);
-    const avg = sorted.reduce((acc, n) => acc + n, 0) / sorted.length;
-    const successRate =
-      bucket.totalRequests > 0 ? bucket.successfulRequests / bucket.totalRequests : 0;
-
-    stats[key] = {
-      provider: bucket.provider,
-      model: bucket.model,
-      key,
-      totalRequests: bucket.totalRequests,
-      successfulRequests: bucket.successfulRequests,
-      successRate,
-      avgLatencyMs: Math.round(avg),
-      p50LatencyMs: Math.round(percentile(sorted, 0.5)),
-      p95LatencyMs: Math.round(percentile(sorted, 0.95)),
-      p99LatencyMs: Math.round(percentile(sorted, 0.99)),
-      latencyStdDev: Math.round(stdDev(sorted, avg)),
-      windowHours,
-    };
+    const entry = buildLatencyStatsEntry(key, bucket, minSamples, windowHours);
+    if (entry) stats[key] = entry;
   }
 
   return stats;
