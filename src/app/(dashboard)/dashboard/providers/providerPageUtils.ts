@@ -212,13 +212,35 @@ export function buildCompatibleProviderGroups(
   return { openai, anthropic, claudeCode };
 }
 
+export type LiveModelsByProviderId = Record<string, Array<{ id: string; name?: string }>>;
+
+/**
+ * Models to match against for the model-name filter: the static curated
+ * registry PLUS any live/synced catalog for that provider connection (#7250).
+ * Aggregator providers (openrouter, kilocode, theoldllm...) declare a
+ * single-entry static placeholder — matching only that entry means a search
+ * for any real upstream model name can never match, silently hiding the
+ * provider. When the live catalog is empty/unavailable we fall back to the
+ * static-only list so already-correct static providers are unaffected.
+ */
+function getFilterableModelsForEntry(
+  providerId: string,
+  liveModelsByProviderId?: LiveModelsByProviderId
+): Array<{ id: string; name?: string }> {
+  const staticModels = getModelsByProviderId(providerId);
+  const liveModels = liveModelsByProviderId?.[providerId];
+  if (!liveModels || liveModels.length === 0) return staticModels;
+  return [...staticModels, ...liveModels];
+}
+
 export function filterConfiguredProviderEntries<TProvider>(
   entries: ProviderEntry<TProvider>[],
   showConfiguredOnly: boolean,
   searchQuery?: string,
   showFreeOnly?: boolean,
   modelSearchQuery?: string,
-  serviceKindFilter?: string | null
+  serviceKindFilter?: string | null,
+  liveModelsByProviderId?: LiveModelsByProviderId
 ): ProviderEntry<TProvider>[] {
   let filtered = entries;
 
@@ -261,8 +283,8 @@ export function filterConfiguredProviderEntries<TProvider>(
   if (modelSearchQuery && modelSearchQuery.trim()) {
     const q = modelSearchQuery.trim();
     filtered = filtered.filter((entry) => {
-      const models = getModelsByProviderId(entry.providerId);
-      return models.some((m) => matchesSearch(m.id, q) || matchesSearch(m.name, q));
+      const models = getFilterableModelsForEntry(entry.providerId, liveModelsByProviderId);
+      return models.some((m) => matchesSearch(m.id, q) || matchesSearch(m.name || "", q));
     });
   }
 

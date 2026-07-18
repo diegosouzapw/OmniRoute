@@ -177,7 +177,20 @@ export const updateSettingsSchema = z.object({
       supportedModels: z.array(z.string().max(200)).max(200).optional(),
     })
     .optional(),
+  // #7274: renamed from codexSessionAffinityTtlMs — applies to any provider now.
+  // The old key is still accepted (read-only legacy alias) so pre-migration
+  // clients / cached UI bundles that still PATCH the old field name don't 400;
+  // `resolveSessionAffinityTtlMs` prefers the new key when both are present.
+  sessionAffinityTtlMs: z.number().int().min(0).max(86_400_000).optional(),
   codexSessionAffinityTtlMs: z.number().int().min(0).max(86_400_000).optional(),
+  // #6977: opt-in per-connection Codex quota auto-ping. `connections` maps a
+  // provider_connections id -> enabled; default is an empty map (off for everyone)
+  // until the operator flips a specific OAuth connection on from the settings UI.
+  codexAutoPing: z
+    .object({
+      connections: z.record(z.string().max(100), z.boolean()).optional(),
+    })
+    .optional(),
   responsesPreviousResponseIdMode: z.enum(RESPONSES_PREVIOUS_RESPONSE_ID_MODES).optional(),
   // Routing settings (#134)
   fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
@@ -379,6 +392,7 @@ export const databaseSettingsSchema = z
       callLogs: z.number().int().min(1).max(3650),
       usageHistory: z.number().int().min(1).max(3650),
       memoryEntries: z.number().int().min(1).max(3650),
+      xpAuditLog: z.number().int().min(1).max(365),
       autoCleanupEnabled: z.boolean(),
     }),
 

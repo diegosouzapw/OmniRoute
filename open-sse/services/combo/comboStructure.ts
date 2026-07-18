@@ -18,11 +18,7 @@ import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
 import { parseModel } from "../model.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
 import { getTargetProvider, MAX_COMBO_DEPTH } from "./comboPredicates.ts";
-import {
-  getKnownContextLimit,
-  getLegacyKnownContextLimit,
-  hasEstimableContent,
-} from "./knownContextOverflow.ts";
+import { hasEstimableContent } from "./knownContextOverflow.ts";
 import {
   normalizeModelEntry,
   orderTargetsForWeightedFallback,
@@ -491,14 +487,57 @@ function exceedsKnownOutputLimit(
   return maxOutputTokens < requestedOutputTokens;
 }
 
+/**
+ * Decide whether a target's known context limit accommodates the request.
+ *
+ * `maxInputTokens` is an **input-only** cap — the requested output reserve is
+ * already enforced separately against `maxOutputTokens` (see
+ * `exceedsKnownOutputLimit`), so it must NOT be re-counted here. Comparing
+ * `maxInputTokens` against `estimatedInputTokens + requestedOutputTokens`
+ * double-counted the output reserve and shrank the effective input allowance
+ * (#7039).
+ *
+ * `contextWindow` is the total window, so input + output must both fit.
+ *
+ * Returns `true` when the known limit accommodates the request, `false` when
+ * it is known to be too small, and `null` when no limit metadata is known.
+ */
+function evaluateContextLimit(
+  capabilities: { maxInputTokens?: number | null; contextWindow?: number | null },
+  requirements: { estimatedInputTokens: number; requiredContextTokens: number }
+): boolean | null {
+  const hasMaxInput = capabilities.maxInputTokens != null;
+  const hasContextWindow = capabilities.contextWindow != null;
+
+  // Neither limit is known — cannot judge.
+  if (!hasMaxInput && !hasContextWindow) return null;
+
+  // The input-only cap must accommodate the estimated input.
+  const inputFits = hasMaxInput
+    ? capabilities.maxInputTokens! >= requirements.estimatedInputTokens
+    : true;
+
+  // The total window must accommodate input + requested output. The output
+  // reserve is enforced separately via `maxOutputTokens`, but when a model
+  // exposes both `maxInputTokens` and `contextWindow` the two must not be
+  // checked in isolation: a request whose input fits `maxInputTokens` but whose
+  // input + output exceeds `contextWindow` must still be rejected (#7039
+  // follow-up — shared-window models where `maxInputTokens` defaults to the
+  // total window size).
+  const totalFits = hasContextWindow
+    ? capabilities.contextWindow! >= requirements.requiredContextTokens
+    : true;
+
+  return inputFits && totalFits;
+}
+
 function hasKnownCompatibleContextLimit(
   target: ResolvedComboTarget,
-  requiredContextTokens: number
+  requirements: RequestCompatibilityRequirements
 ): boolean {
-  if (requiredContextTokens <= 0) return false;
+  if (requirements.requiredContextTokens <= 0) return false;
   const capabilities = getResolvedModelCapabilities(target.modelStr);
-  const contextLimit = getLegacyKnownContextLimit(capabilities);
-  return contextLimit !== null && contextLimit >= requiredContextTokens;
+  return evaluateContextLimit(capabilities, requirements) === true;
 }
 
 function hasOnlyContextWindowFailures(reasons: string[]): boolean {
@@ -537,12 +576,8 @@ function getTargetCompatibilityFailures(
     failures.push("output_tokens");
   }
 
-  const contextLimit = getKnownContextLimit(capabilities, requirements.requestedOutputTokens);
-  if (
-    requirements.requiredContextTokens > 0 &&
-    contextLimit !== null &&
-    contextLimit < requirements.requiredContextTokens
-  ) {
+  const contextVerdict = evaluateContextLimit(capabilities, requirements);
+  if (requirements.requiredContextTokens > 0 && contextVerdict === false) {
     failures.push("context_window");
   }
 
@@ -582,7 +617,7 @@ export function filterTargetsByRequestCompatibility(
   );
   if (requirements.requiredContextTokens > 0 && rejectedForContextWindow) {
     const knownContextCompatible = compatible.filter((target) =>
-      hasKnownCompatibleContextLimit(target, requirements.requiredContextTokens)
+      hasKnownCompatibleContextLimit(target, requirements)
     );
 
     if (knownContextCompatible.length > 0 && knownContextCompatible.length < compatible.length) {

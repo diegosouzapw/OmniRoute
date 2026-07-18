@@ -658,6 +658,29 @@
       "stream": "https://chatgpt.com/backend-api/conversation"
     }
   },
+  "chenzk": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://chenzk.top/v1/chat/completions",
+      "stream": "https://chenzk.top/v1/chat/completions"
+    }
+  },
   "chipotle": {
     "format": "openai",
     "headers": {
@@ -1485,6 +1508,29 @@
       "stream": "https://api.featherless.ai/v1/chat/completions"
     }
   },
+  "felo-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://felo.ai/api-proxy/main/search/threads",
+      "stream": "https://felo.ai/api-proxy/main/search/threads"
+    }
+  },
   "fireworks": {
     "format": "openai",
     "headers": {
@@ -1554,6 +1600,29 @@
       "stream": "https://api.freemodel.dev/v1/chat/completions"
     }
   },
+  "freetheai": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.freetheai.xyz/v1/chat/completions",
+      "stream": "https://api.freetheai.xyz/v1/chat/completions"
+    }
+  },
   "friendliai": {
     "format": "openai",
     "headers": {
@@ -1575,6 +1644,121 @@
     "url": {
       "nonStream": "https://api.friendli.ai/serverless/v1/chat/completions",
       "stream": "https://api.friendli.ai/serverless/v1/chat/completions"
+    }
+  },
+  "g4f-gemini": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://g4f.space/api/gemini/v1/chat/completions",
+      "stream": "https://g4f.space/api/gemini/v1/chat/completions"
+    }
+  },
+  "g4f-groq": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://g4f.space/api/groq/v1/chat/completions",
+      "stream": "https://g4f.space/api/groq/v1/chat/completions"
+    }
+  },
+  "g4f-nvidia": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://g4f.space/api/nvidia/v1/chat/completions",
+      "stream": "https://g4f.space/api/nvidia/v1/chat/completions"
+    }
+  },
+  "g4f-ollama": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://g4f.space/api/ollama/v1/chat/completions",
+      "stream": "https://g4f.space/api/ollama/v1/chat/completions"
+    }
+  },
+  "g4f-pollinations": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://g4f.space/api/pollinations/v1/chat/completions",
+      "stream": "https://g4f.space/api/pollinations/v1/chat/completions"
     }
   },
   "galadriel": {
@@ -2961,6 +3145,29 @@
     "url": {
       "nonStream": "https://api.nlpcloud.io/v1/chat/completions",
       "stream": "https://api.nlpcloud.io/v1/chat/completions"
+    }
+  },
+  "notion-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://www.notion.so/api/v3/runInferenceTranscript",
+      "stream": "https://www.notion.so/api/v3/runInferenceTranscript"
     }
   },
   "nous-research": {

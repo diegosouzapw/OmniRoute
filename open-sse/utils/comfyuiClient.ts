@@ -124,3 +124,26 @@ export function extractComfyOutputFiles(
 
   return files;
 }
+
+/**
+ * Resolve the ComfyUI base URL to use for a request.
+ *
+ * Prefers a per-connection override (`credentials.providerSpecificData.baseUrl`,
+ * the same storage convention self-hosted chat providers use — see
+ * `providerPageHelpers.ts`'s `CONFIGURABLE_BASE_URL_PROVIDERS`) over the registry
+ * default, so operators running ComfyUI on a Docker-network hostname (e.g.
+ * `http://comfyui:8188`) aren't stuck on `localhost:8188` (#6928). Falls back to
+ * `fallback` when no connection exists or no override is set — zero-config
+ * localhost users see no behavior change.
+ */
+export function resolveComfyUiBaseUrl(
+  credentials: { providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined,
+  fallback: string
+): string {
+  const psd = credentials?.providerSpecificData;
+  const override =
+    psd && typeof psd === "object" && typeof psd.baseUrl === "string" && psd.baseUrl.trim()
+      ? psd.baseUrl.trim()
+      : null;
+  return override || fallback;
+}

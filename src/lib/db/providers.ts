@@ -39,11 +39,75 @@ interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
 }
 
+// Real column set for provider_connections (must match the CREATE TABLE in
+// core.ts's SCHEMA_SQL). getProviderConnections()'s optional `columns`
+// projection is interpolated directly into the SELECT clause, so every
+// requested name must be validated against this allowlist before use —
+// there is no current caller that passes untrusted input, but the
+// projection API itself must never accept an arbitrary string.
+const PROVIDER_CONNECTIONS_COLUMNS = new Set([
+  "id",
+  "provider",
+  "auth_type",
+  "name",
+  "email",
+  "priority",
+  "is_active",
+  "access_token",
+  "refresh_token",
+  "expires_at",
+  "token_expires_at",
+  "scope",
+  "project_id",
+  "test_status",
+  "error_code",
+  "last_error",
+  "last_error_at",
+  "last_error_type",
+  "last_error_source",
+  "backoff_level",
+  "rate_limited_until",
+  "health_check_interval",
+  "last_health_check_at",
+  "last_tested",
+  "api_key",
+  "id_token",
+  "provider_specific_data",
+  "expires_in",
+  "display_name",
+  "global_priority",
+  "default_model",
+  "token_type",
+  "consecutive_use_count",
+  "rate_limit_protection",
+  "last_used_at",
+  "group",
+  "max_concurrent",
+  "proxy_enabled",
+  "per_key_proxy_enabled",
+  "quota_window_thresholds_json",
+  "rate_limit_overrides_json",
+  "created_at",
+  "updated_at",
+]);
+
 // ──────────────── Provider Connections ────────────────
 
-export async function getProviderConnections(filter: JsonRecord = {}) {
+export async function getProviderConnections(filter: JsonRecord = {}, columns?: string[]) {
   const db = getDbInstance() as unknown as DbLike;
-  let sql = "SELECT * FROM provider_connections";
+  let selectCols = "*";
+  if (columns?.length) {
+    const invalidColumns = columns.filter((col) => !PROVIDER_CONNECTIONS_COLUMNS.has(col));
+    if (invalidColumns.length > 0) {
+      throw new Error(
+        `getProviderConnections: invalid column(s) requested: ${invalidColumns.join(", ")}`
+      );
+    }
+    // "group" is a reserved SQL keyword — the schema declares it quoted, so
+    // it must be re-quoted here too or the generated SELECT is a syntax error.
+    selectCols = columns.map((col) => (col === "group" ? `"group"` : col)).join(", ");
+  }
+  let sql = `SELECT ${selectCols} FROM provider_connections`;
   const conditions: string[] = [];
   const params: Record<string, unknown> = {};
 
@@ -495,6 +559,8 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       proxy_enabled = @proxyEnabled,
       per_key_proxy_enabled = @perKeyProxyEnabled,
       rate_limit_overrides_json = @rateLimitOverridesJson,
+      last_ping_at = @lastPingAt,
+      last_pinged_reset_key = @lastPingedResetKey,
       updated_at = @updatedAt
     WHERE id = @id
   `
@@ -543,6 +609,8 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true) ? 1 : 0,
     perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
     rateLimitOverridesJson: serializeJsonField(data.rateLimitOverrides),
+    lastPingAt: data.lastPingAt || null,
+    lastPingedResetKey: data.lastPingedResetKey || null,
     updatedAt: now,
   });
 }
@@ -617,8 +685,9 @@ export async function clearConnectionErrorIfUnchanged(
   }
 ): Promise<boolean> {
   const db = getDbInstance() as unknown as DbLike;
-  const result = db.prepare(
-    `
+  const result = db
+    .prepare(
+      `
     UPDATE provider_connections SET
       test_status = 'active',
       last_error = NULL,
@@ -634,13 +703,14 @@ export async function clearConnectionErrorIfUnchanged(
       AND IFNULL(last_error_at, '') = ?
       AND IFNULL(rate_limited_until, '') = ?
     `
-  ).run(
-    new Date().toISOString(),
-    id,
-    expected.testStatus ?? "",
-    expected.lastErrorAt ?? "",
-    expected.rateLimitedUntil ?? ""
-  );
+    )
+    .run(
+      new Date().toISOString(),
+      id,
+      expected.testStatus ?? "",
+      expected.lastErrorAt ?? "",
+      expected.rateLimitedUntil ?? ""
+    );
   const applied = (result.changes ?? 0) > 0;
   if (applied) {
     backupDbFile("pre-write");

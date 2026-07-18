@@ -8,12 +8,12 @@
  * retries/cooldowns on a request that could never succeed. This lets the
  * combo dispatcher reject it up front, before exhausting providers.
  *
- * getKnownContextLimit/getLegacyKnownContextLimit/hasEstimableContent also
+ * getKnownContextLimit/hasEstimableContent also
  * live here (moved from comboStructure.ts, same file-size-cap motivation):
  * they are the "how big is a target's known context window" primitives, so
  * they belong next to the overflow check that is their main consumer.
- * comboStructure.ts's own compatibility filter still needs them too, so it
- * imports them back rather than duplicating the logic.
+ * comboStructure.ts's own compatibility filter now decides fit via its
+ * evaluateContextLimit (#7052); only hasEstimableContent is imported back.
  */
 
 import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
@@ -61,16 +61,6 @@ export function getKnownContextLimit(
   return limits.length > 0 ? Math.min(...limits) : null;
 }
 
-// Pre-#7177 behavior (no requestedOutputTokens accounting): kept only for
-// comboStructure.ts's hasKnownCompatibleContextLimit, a narrower "does ANY
-// target fit" pre-check that hasn't been migrated to the boundary-correct
-// calculation above.
-export function getLegacyKnownContextLimit(capabilities: {
-  maxInputTokens?: number | null;
-  contextWindow?: number | null;
-}): number | null {
-  return capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
-}
 
 /**
  * Return a hard context-overflow decision only when every target has a known
