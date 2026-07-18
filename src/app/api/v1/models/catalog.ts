@@ -56,7 +56,6 @@ import {
   isNoAuthRawProviderPrefix,
   normalizeBlockedProviderSet,
 } from "@/shared/utils/noAuthProviders";
-import { parseModel } from "@omniroute/open-sse/services/model";
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import { extractApiKey } from "@/sse/services/auth";
 import type { ComboModelStep } from "@/lib/combos/steps";
@@ -78,7 +77,13 @@ import {
   getOpenRouterDisplayName,
 } from "./catalogOpenrouter";
 import { getVisionCapabilityFields, getCustomVisionCapabilityFields } from "./catalogVision";
-import { FALLBACK_ALIAS_TO_PROVIDER, buildAliasMaps } from "./catalogProviderMaps";
+import {
+  buildAliasMaps,
+  prefixRoutesToProvider,
+  resolveCanonicalProviderId as resolveCanonicalProviderIdFromMaps,
+  getProviderPrefixes as getProviderPrefixesFromMaps,
+  getComboTargetModelId as getComboTargetModelIdFromMaps,
+} from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCodexModelCatalogClient } from "./catalogRequest";
 import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
@@ -290,11 +295,8 @@ async function buildUnifiedModelsResponseCore(
     const includeAlias = prefixMode !== "canonical";
     const includeCanonical = prefixMode !== "alias";
     const resolveCanonicalProviderId = (aliasOrProviderId: string, fallbackProviderId?: string) =>
-      aliasToProviderId[aliasOrProviderId] ||
-      (fallbackProviderId ? aliasToProviderId[fallbackProviderId] : undefined) ||
-      FALLBACK_ALIAS_TO_PROVIDER[aliasOrProviderId] ||
-      fallbackProviderId ||
-      aliasOrProviderId;
+      resolveCanonicalProviderIdFromMaps(aliasToProviderId, aliasOrProviderId, fallbackProviderId);
+    const aliasMaps = { aliasToProviderId, providerIdToAlias };
     // Issue #96: Allow blocking specific providers from the models list
     const blockedProviders = normalizeBlockedProviderSet(settings.blockedProviders);
     // #6316: Opt-in filter — hide paid-only models via `isFreeModel()`. Only applied to
@@ -412,42 +414,14 @@ async function buildUnifiedModelsResponseCore(
       return providerModels.find((model) => model?.id === modelId) || null;
     };
 
-    const prefixRoutesToProvider = (prefix: string, providerId: string) => {
-      const parsed = parseModel(`${prefix}/__omniroute_probe__`);
-      return parsed.provider === providerId;
-    };
+    // prefixRoutesToProvider is imported directly from catalogProviderMaps.ts (no
+    // map dependency — pure parseModel() probe), used both here and at the two
+    // includeCanonical prefix-collision checks below.
+    const getProviderPrefixes = (providerId: string, rawProvider: string) =>
+      getProviderPrefixesFromMaps(aliasMaps, providerId, rawProvider);
 
-    const getProviderPrefixes = (providerId: string, rawProvider: string) => {
-      const prefixes = new Set<string>([providerId, rawProvider, providerIdToAlias[providerId]]);
-      for (const [alias, mappedProviderId] of Object.entries(aliasToProviderId)) {
-        if (mappedProviderId === providerId) prefixes.add(alias);
-      }
-      return [...prefixes].filter(
-        (prefix): prefix is string =>
-          typeof prefix === "string" &&
-          prefix.length > 0 &&
-          prefixRoutesToProvider(prefix, providerId)
-      );
-    };
-
-    const getComboTargetModelId = (target: ComboCatalogTarget) => {
-      const rawProvider = typeof target.provider === "string" ? target.provider.trim() : "";
-      const modelStr = typeof target.modelStr === "string" ? target.modelStr.trim() : "";
-      if (!rawProvider || rawProvider === "unknown" || !modelStr) return null;
-
-      const providerId = resolveCanonicalProviderId(rawProvider);
-      if (!providerId || providerId === "unknown") return null;
-
-      for (const prefix of getProviderPrefixes(providerId, rawProvider)) {
-        const prefixWithSlash = `${prefix}/`;
-        if (modelStr.startsWith(prefixWithSlash)) {
-          const modelId = modelStr.slice(prefixWithSlash.length).trim();
-          return modelId ? { providerId, modelId } : null;
-        }
-      }
-
-      return { providerId, modelId: modelStr };
-    };
+    const getComboTargetModelId = (target: ComboCatalogTarget) =>
+      getComboTargetModelIdFromMaps(aliasMaps, target);
 
     const getComboTargetCatalogMetadata = (
       target: ComboCatalogTarget

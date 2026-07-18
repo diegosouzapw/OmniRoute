@@ -16,6 +16,7 @@ import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
+import { buildAliasMaps, getComboTargetModelId } from "@/app/api/v1/models/catalogProviderMaps";
 
 /* ─── helpers ───────────────────────────────────────────────── */
 
@@ -77,19 +78,28 @@ export function computeComboContextLength(
   // 3. Per-target context resolution — same logic as the catalog's
   //    `getComboTargetCatalogMetadata`.
   const contextValues: number[] = [];
+  const aliasMaps = buildAliasMaps();
 
   for (const target of targets) {
-    const rawProvider = typeof target.provider === "string" ? target.provider.trim() : "";
-    const modelStr = typeof target.modelStr === "string" ? target.modelStr.trim() : "";
-    if (!rawProvider || rawProvider === "unknown" || !modelStr) continue;
+    // 3a. Strip the provider/alias prefix off `modelStr` BEFORE the canonical
+    //     lookup. resolveNestedComboTargets() returns modelStr in "provider/model"
+    //     form (e.g. "glm/glm-5.2"), but getCanonicalModelMetadata()'s alias
+    //     lookup is keyed by the BARE registry id — passing the qualified string
+    //     straight through only matched the ~47 models with a curated
+    //     "provider/model" MODEL_SPECS alias, silently excluding the other
+    //     ~1,650 registry-only models from the min() calc below. Reusing the
+    //     catalog's own getComboTargetModelId() (catalogProviderMaps.ts) keeps
+    //     this resolution in lockstep with getComboTargetCatalogMetadata().
+    const resolvedTarget = getComboTargetModelId(aliasMaps, target);
+    if (!resolvedTarget) continue;
 
-    // 3a. Source check — only count models that exist in at least one
+    // 3b. Source check — only count models that exist in at least one
     //     known data source (provider registry, static spec, synced capability).
     //     This matches the catalog's filter that excludes unregistered models
     //     from combo calculations.
     const canonicalMeta = getCanonicalModelMetadata({
-      provider: rawProvider,
-      model: modelStr,
+      provider: resolvedTarget.providerId,
+      model: resolvedTarget.modelId,
     });
     if (!canonicalMeta) continue;
 
@@ -98,10 +108,10 @@ export function computeComboContextLength(
       continue;
     }
 
-    const providerId = canonicalMeta.provider || rawProvider;
-    const modelId = canonicalMeta.model || modelStr;
+    const providerId = canonicalMeta.provider || resolvedTarget.providerId;
+    const modelId = canonicalMeta.model || resolvedTarget.modelId;
 
-    // 3b. Resolve window: synced → registry → spec → getTokenLimit
+    // 3c. Resolve window: synced → registry → spec → getTokenLimit
     const synced = getSyncedCapability(providerId, modelId);
     const spec = getModelSpec(modelId);
     const registryModel = getRegistryModel(providerId, modelId);
