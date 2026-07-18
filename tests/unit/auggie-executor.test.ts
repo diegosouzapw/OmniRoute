@@ -260,6 +260,39 @@ test("resolveAuggieModel accepts a known registry model id verbatim", () => {
   assert.deepEqual(result, { ok: true, model: "haiku4.5" });
 });
 
+// ─── resolveAuggieModel: pre-v0.32.0 alias back-compat (#7032) ────────────
+// The v0.32.0 registry rename dropped ~10 old model IDs outright. Saved combos
+// created before the rename still reference those old IDs, so resolveAuggieModel
+// must transparently map each one to its v0.32.0 replacement instead of erroring
+// with "Unknown Auggie model".
+
+test("resolveAuggieModel resolves a pre-v0.32.0 saved model id via the alias map (#7032)", () => {
+  const result = resolveAuggieModel("claude-sonnet-4.6");
+  assert.deepEqual(result, { ok: true, model: "sonnet4.6" });
+});
+
+test("resolveAuggieModel resolves every pre-v0.32.0 alias to an allowlisted v0.32.0 id (#7032)", () => {
+  const OLD_TO_NEW: Record<string, string> = {
+    "claude-sonnet-4.6": "sonnet4.6",
+    "claude-sonnet-4.6-thinking": "sonnet4.6",
+    "claude-opus-4.6": "opus4.6",
+    "claude-haiku-4.5": "haiku4.5",
+    "gemini-3.1-pro": "gemini-3.1-pro-preview",
+    "gemini-3.0-flash": "gemini-3.1-pro-preview",
+    "gpt-5.5-high": "gpt5.5",
+    "gpt-5.5-medium": "gpt5.5",
+    "gpt-5.4-high": "gpt5.4",
+    "gpt-5.4-medium": "gpt5.4",
+  };
+  for (const [oldId, newId] of Object.entries(OLD_TO_NEW)) {
+    assert.deepEqual(
+      resolveAuggieModel(oldId),
+      { ok: true, model: newId },
+      `${oldId} should resolve to ${newId}`
+    );
+  }
+});
+
 // ─── execute(): model allowlist (argument-injection defense) ──────────────
 
 test("execute() rejects a model not in the registry allowlist and never spawns", async () => {
@@ -389,9 +422,8 @@ test("buildUrl/buildHeaders/transformRequest match the CLI-passthrough shape", (
 // ─── initAuggieModels / resolveAuggieModel auto-fetch ────────────────────
 
 test("initAuggieModels discovers models from `auggie model list` output", async () => {
-  const { initAuggieModels, resolveAuggieModel, __resetAuggieModels } = await import(
-    "@omniroute/open-sse/executors/auggie"
-  );
+  const { initAuggieModels, resolveAuggieModel, __resetAuggieModels } =
+    await import("@omniroute/open-sse/executors/auggie");
   __resetAuggieModels(); // wipe stale cache from previous tests
   const bin = writeFakeBin(
     "fake-auggie-list.sh",
@@ -411,9 +443,7 @@ test("initAuggieModels discovers models from `auggie model list` output", async 
 });
 
 test("execute() spawns a model discovered via auto-fetch", async () => {
-  const { __resetAuggieModels } = await import(
-    "@omniroute/open-sse/executors/auggie"
-  );
+  const { __resetAuggieModels } = await import("@omniroute/open-sse/executors/auggie");
   __resetAuggieModels();
   const bin = writeFakeBin(
     "fake-auggie-autofetch.sh",
@@ -450,9 +480,7 @@ test("execute() spawns a model discovered via auto-fetch", async () => {
 });
 
 test("initAuggieModels failure does not block execute() for a known model", async () => {
-  const { __resetAuggieModels } = await import(
-    "@omniroute/open-sse/executors/auggie"
-  );
+  const { __resetAuggieModels } = await import("@omniroute/open-sse/executors/auggie");
   __resetAuggieModels();
   const bin = writeFakeBin(
     "fake-auggie-crash.sh",
@@ -472,7 +500,7 @@ test("initAuggieModels failure does not block execute() for a known model", asyn
   try {
     const executor = new AuggieExecutor();
     const { response } = await executor.execute({
-      model: "haiku4.5",  // static-registry model, should work regardless
+      model: "haiku4.5", // static-registry model, should work regardless
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: false,
       credentials: {} as never,
@@ -486,4 +514,3 @@ test("initAuggieModels failure does not block execute() for a known model", asyn
     __resetAuggieModels();
   }
 });
-

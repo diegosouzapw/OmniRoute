@@ -80,7 +80,10 @@ let liveModelSet: Set<string> | null = null;
  * calls are a no-op (including after a failed fetch — `liveModelSet` is set to
  * an empty set so we don't retry every request).
  */
-export async function initAuggieModels(signal?: AbortSignal | null, timeoutMs = 8000): Promise<void> {
+export async function initAuggieModels(
+  signal?: AbortSignal | null,
+  timeoutMs = 8000
+): Promise<void> {
   if (liveModelSet !== null) return;
   let bin: string;
   try {
@@ -165,7 +168,7 @@ export function resolveAuggieModel(model: unknown): AuggieModelResolution {
   }
   // Backward-compat alias: resolve old model IDs → v0.32.0 equivalents.
   // This lets saved combos referencing the old names keep working.
-  const requestedAlias = AUGGIE_MODEL_ALIASES[requested];
+  const requestedAlias = AUGGIE_MODEL_ALIASES.get(requested);
   if (requestedAlias) return { ok: true, model: requestedAlias };
   // Static registry — always authoritative for the shipped set.
   if (AUGGIE_MODEL_ALLOWLIST.has(requested)) return { ok: true, model: requested };
