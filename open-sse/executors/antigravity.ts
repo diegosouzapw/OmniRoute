@@ -1110,7 +1110,6 @@ export class AntigravityExecutor extends BaseExecutor {
         resolvedUpstreamId
       );
       if (outcome400.action === "return") return outcome400.result;
-      continue;
     }
 
     // Unreachable (loop always returns), but keeps the type checker happy.
