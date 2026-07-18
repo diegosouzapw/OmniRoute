@@ -142,6 +142,7 @@
   "_rebaseline_2026_06_20_1449_1444_test_route": "Re-baseline providers test route.ts 842->887: combined growth of sibling fixes #1449 (bound OAuth connection-test probe with a timeout) + #1444 (label a deactivated account distinctly from a revoked token), both at the same connection-test chokepoint. Cohesive route handler; not extractable without hiding the test flow.",
   "_rebaseline_2026_06_20_1409_1294_models": "Re-baseline src/lib/db/models.ts 1184->1221: combined growth of sibling fixes #1409 (cascade-delete orphaned model aliases when a provider is removed) + #1294 (persist max_input_tokens/max_output_tokens on custom models), both adding CRUD at the existing models domain module. Cohesive db module; not extractable.",
   "_rebaseline_2026_06_20_4389_thinking_toolchoice": "Re-baseline base.ts 1387->1399 (#4389): tool_choice-forced thinking guard at the existing Claude wire-image injection chokepoint (effThinking gate avoids the Anthropic 400 when tool_choice forces a tool). Cohesive guard; structural shrink tracked in #3501.",
+  "_rebaseline_2026_07_18_6979_codex_test": "PR #6979 own growth: executor-codex.test.ts 1340->1347 (+7 = generalized ensureThinkingBudget assertion added to the existing codex thinking-budget cases). antigravity-test bump 942->977 REVERTED here: #7408's test split dropped that file to 888, so this PR's +35 fits under the original 942 frozen cap.",
   "cap": 800,
   "frozen": {
     "_rebaseline_2026_07_02_5816_qoder": "PR #5816 (@AgentKiller45, qoder PAT via qodercli): qoderCli.ts 666->989, new-above-cap frozen (owner-approved baseline freeze). The growth is the legitimate PAT job-token exchange + quota parsing CLI transport (the pure-JS Cosy path 500'd on every PAT request); extracting the spawn/parse helpers now would just add indirection to a contributor PR mid-merge. Test frozen also raised for this PR's coverage growth: providers-page-utils.test.ts 1052->1092. Additionally clears an inherited base-red from the already-merged #5933 (codex json_schema->text.format): translator-openai-responses-req.test.ts 1097->1172 (+75 regression tests, no offending branch left). All remain frozen (cannot grow further); release captain's rebaseline-at-release supersedes.",
@@ -313,8 +314,7 @@
     "tests/unit/db-migration-runner.test.ts": 1491,
     "tests/unit/db-settings-crud.test.ts": 941,
     "tests/unit/deepseek-web.test.ts": 1092,
-    "tests/unit/executor-antigravity.test.ts": 977,
-    "_rebaseline_2026_07_12_6914_antigravity_test": "#6914: executor-antigravity.test.ts 942->977 (+35 = server-side tool invocation test: build raw request with tools, assert includeServerSideToolInvocations survives both non-Claude and Claude sanitize paths, negative test without tools).",
+    "tests/unit/executor-antigravity.test.ts": 942,
     "tests/unit/executor-codex.test.ts": 1347,
     "tests/unit/executor-default-base.test.ts": 1523,
     "tests/unit/grok-web.test.ts": 2437,
