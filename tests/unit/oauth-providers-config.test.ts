@@ -147,24 +147,10 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
-  "xai-oauth": [
-    "authorizeUrl",
-    "tokenUrl",
-    "scope",
-    "codeChallengeMethod",
-    "clientId",
-    "loopbackPort",
-    "callbackPath",
-    "callbackHost",
-  ],
-  "zed-hosted": [
-    "webBaseUrl",
-    "cloudBaseUrl",
-    "llmBaseUrl",
-    "userInfoUrl",
-    "llmTokenUrl",
-    "modelsUrl",
-  ],
+  // prettier-ignore
+  "xai-oauth": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
+  // prettier-ignore
+  "zed-hosted": ["webBaseUrl", "cloudBaseUrl", "llmBaseUrl", "userInfoUrl", "llmTokenUrl", "modelsUrl"],
 };
 
 function getByPath(object, path) {
