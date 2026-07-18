@@ -531,32 +531,6 @@ function buildErrorResponse(status: number, message: string, code?: string | nul
   );
 }
 
-async function readTextResponse(
-  body: ReadableStream<Uint8Array>,
-  signal?: AbortSignal | null
-): Promise<string> {
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-  let text = "";
-
-  try {
-    while (true) {
-      if (signal?.aborted) {
-        throw signal.reason ?? new DOMException("Aborted", "AbortError");
-      }
-
-      const { value, done } = await reader.read();
-      if (done) break;
-      text += decoder.decode(value, { stream: true });
-    }
-
-    text += decoder.decode();
-    return text;
-  } finally {
-    reader.releaseLock();
-  }
-}
-
 export function normalizeMetaAiCookieHeader(apiKey: string): string {
   return normalizeSessionCookieHeader(apiKey, META_AI_DEFAULT_COOKIE);
 }
