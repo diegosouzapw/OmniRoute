@@ -127,19 +127,43 @@ export function extractSpaceIdFromCookie(cookie: string): string {
 
 /**
  * Build a Notion `runInferenceTranscript` transcript array from OpenAI-style
- * chat messages. Each entry uses Notion's rich-text tuple value shape
- * (`[[text]]`) and a role tag Notion's own web client sends.
+ * chat messages. When `notionModel` is set (and not the synthetic `notion-ai`
+ * default), a leading `config` entry carries `value.model` so Notion routes the
+ * request to the selected codename from getAvailableModels.
  */
 export function buildNotionTranscript(
-  messages: NotionMessage[]
+  messages: NotionMessage[],
+  notionModel?: string
 ): Array<Record<string, unknown>> {
-  return messages
-    .filter((m) => typeof m?.content === "string" && m.content.length > 0)
-    .map((m) => ({
+  const entries: Array<Record<string, unknown>> = [];
+  const model =
+    typeof notionModel === "string" &&
+    notionModel.trim() &&
+    notionModel.trim() !== "notion-ai"
+      ? notionModel.trim()
+      : "";
+  if (model) {
+    entries.push({
+      id: randomUUID(),
+      type: "config",
+      value: {
+        type: "workflow",
+        model,
+        modelFromUser: true,
+        useWebSearch: false,
+        searchScopes: [{ type: "everything" }],
+      },
+    });
+  }
+  for (const m of messages) {
+    if (typeof m?.content !== "string" || m.content.length === 0) continue;
+    entries.push({
       id: randomUUID(),
       type: m.role === "assistant" ? "ai" : m.role === "system" ? "context" : "human",
       value: [[m.content]],
-    }));
+    });
+  }
+  return entries;
 }
 
 /** Extract plain text from Notion's rich-text tuple value: `[[text, marks?]]`. */
@@ -250,8 +274,11 @@ export class NotionWebExecutor extends BaseExecutor {
     const modelId = model || "notion-ai";
     const reqBody: Record<string, unknown> = {
       traceId: randomUUID(),
-      transcript: buildNotionTranscript(messages),
+      transcript: buildNotionTranscript(messages, modelId),
       createThread: false,
+      asPatchResponse: true,
+      threadType: "workflow",
+      createdSource: "ai_module",
     };
     if (spaceId) reqBody.spaceId = spaceId;
 
