@@ -88,7 +88,7 @@ export const CREDENTIAL_PATTERNS: CredentialPattern[] = [
   {
     name: "auth_header",
     regex:
-      /((?:["\x27]?(?:Authorization|x-api-key|api-key|apikey)["\x27]?\s*:\s*["\x27]?)(?:Bearer\s+)?)[A-Za-z0-9._-]{20,}/gi,
+      /((?:["\x27]?(?:Authorization|x-api-key|api-key|apikey)["\x27]?\s*[:=]\s*["\x27]?)(?:(?:Bearer|Basic|Token)\s+)?)[A-Za-z0-9._~+/=-]{10,}/gi,
     replacement: "$1[REDACTED:auth_header]",
   },
 ];
@@ -121,8 +121,8 @@ function isSensitiveHeaderKey(key: string): boolean {
 }
 
 function redactHeaderValue(value: string): string {
-  const bearerPrefix = value.match(/^(\s*Bearer\s+)/i)?.[1] || "";
-  return bearerPrefix + "[REDACTED:auth_header]";
+  const schemePrefix = value.match(/^(\s*(?:(?:Bearer|Basic|Token)\s+)?)/i)?.[1] || "";
+  return schemePrefix + "[REDACTED:auth_header]";
 }
 
 /** Redact values without cloning unchanged branches or non-plain objects. */
@@ -158,10 +158,11 @@ function walkValue(
     for (let index = 0; index < entries.length; index++) {
       const [key, entryValue] = entries[index];
       const structuredHeader = isSensitiveHeaderKey(key) && typeof entryValue === "string";
+      const redactedHeader = structuredHeader ? redactHeaderValue(entryValue) : null;
       const r = structuredHeader
-        ? { modified: true, value: redactHeaderValue(entryValue) }
+        ? { modified: redactedHeader !== entryValue, value: redactedHeader }
         : walkValue(entryValue, detections, seen);
-      if (structuredHeader) detections.push({ type: "auth_header", count: 1 });
+      if (structuredHeader && r.modified) detections.push({ type: "auth_header", count: 1 });
       if (r.modified && !next) {
         next = Object.create(prototype) as JsonRecord;
         for (let previous = 0; previous < index; previous++) {

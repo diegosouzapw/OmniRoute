@@ -30,6 +30,14 @@ test("redacts JSON-style authorization text while preserving its structure", () 
   assert.match(result.text, /"Authorization": "Bearer \[REDACTED:auth_header\]"/);
 });
 
+test("redacts Basic and Token header schemes with base64 token characters", () => {
+  const basic = redactCredentials("Authorization=Basic " + "ab+/=".repeat(4));
+  const token = redactCredentials("x-api-key: Token " + "ab+/=".repeat(4));
+
+  assert.match(basic.text, /Authorization=Basic \[REDACTED:auth_header\]/);
+  assert.match(token.text, /x-api-key: Token \[REDACTED:auth_header\]/);
+});
+
 test("redacts structured authorization values in nested request payloads", async () => {
   await withCredentialRedactionEnabled(async () => {
     const guardrail = new CredentialMaskerGuardrail();
@@ -70,5 +78,16 @@ test("preserves unchanged cyclic provider responses without JSON serialization",
     assert.equal(result?.modifiedResponse, undefined);
     assert.equal(response.value, undefined);
     assert.equal(response.self, response);
+  });
+});
+
+test("does not re-redact an already-redacted structured header", async () => {
+  await withCredentialRedactionEnabled(async () => {
+    const guardrail = new CredentialMaskerGuardrail();
+    const response = { headers: { Authorization: "Bearer [REDACTED:auth_header]" } };
+    const result = await guardrail.postCall(response);
+
+    assert.equal(result?.modifiedResponse, undefined);
+    assert.equal(response.headers.Authorization, "Bearer [REDACTED:auth_header]");
   });
 });
