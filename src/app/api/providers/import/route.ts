@@ -11,6 +11,7 @@ import {
   isCloudEnabled,
 } from "@/models";
 import { isAnthropicCompatibleProvider, isOpenAICompatibleProvider } from "@/shared/constants/providers";
+import { isManagedProviderConnectionId } from "@/lib/providers/catalog";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { resolveBulkNameCollisions } from "@/shared/utils/bulkApiKeyParser";
 import { syncToCloud } from "@/lib/cloudSync";
@@ -65,6 +66,17 @@ async function importOneEntry(
   entry: ImportEntry,
   validateKeys: boolean
 ): Promise<{ created: Record<string, unknown> } | { error: string }> {
+  // Provider-existence check (moved here from the Zod schema so the client-reachable
+  // schema stays free of the server-only provider catalog — #6836). Rejects unknown
+  // providers per-row, preserving the partial-failure contract of /api/providers/bulk.
+  if (
+    !isManagedProviderConnectionId(entry.provider) &&
+    !isOpenAICompatibleProvider(entry.provider) &&
+    !isAnthropicCompatibleProvider(entry.provider)
+  ) {
+    return { error: "Unknown or unsupported provider" };
+  }
+
   const providerSpecificData = await resolveProviderSpecificData(entry);
   if (
     (isOpenAICompatibleProvider(entry.provider) || isAnthropicCompatibleProvider(entry.provider)) &&

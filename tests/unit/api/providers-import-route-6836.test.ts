@@ -58,12 +58,22 @@ test("providers import route returns 400 for empty entries", async () => {
   assert.equal(response.status, 400);
 });
 
-test("providers import route rejects an unknown provider id at the schema layer", async () => {
+test("providers import route rejects an unknown provider id per-row (not at the schema layer)", async () => {
+  // Provider-existence is validated server-side per-row (the check cannot live in the
+  // client-reachable Zod schema — it would drag the server-only provider catalog into
+  // the browser/CLI bundle, #6836). An unknown provider is therefore a per-row failure
+  // in a 200 response, not a whole-request 400.
   await resetStorage();
   const response = await postImport({
     entries: [{ provider: "totally-not-a-real-provider", name: "x", apiKey: "sk-1" }],
   });
-  assert.equal(response.status, 400);
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as ImportRouteResponse;
+  assert.equal(body.total, 1);
+  assert.equal(body.success, 0);
+  assert.equal(body.failed, 1);
+  assert.equal(body.created.length, 0);
+  assert.match(body.errors?.[0]?.message ?? "", /Unknown or unsupported provider/);
 });
 
 test("providers import route requires name and apiKey per entry", async () => {
