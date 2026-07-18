@@ -330,33 +330,35 @@ All **18** strategies — mix & match per combo step:
 <div align="center">
 <table>
   <tr>
-    <td align="center" width="76"><a href="https://github.com/anthropics/claude-code"><img src="./public/providers/claude.svg" width="40" alt="Claude Code"/><br/><sub><b>Claude Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></a></td>
-    <td align="center" width="76"><a href="https://github.com/openai/codex"><img src="./public/providers/codex.svg" width="40" alt="Codex CLI"/><br/><sub><b>Codex CLI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></a></td>
-    <td align="center" width="76"><img src="./public/providers/cline.svg" width="40" alt="Cline"/><br/><sub><b>Cline</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><a href="https://github.com/Kilo-Org/kilocode"><img src="./public/providers/kilocode.svg" width="40" alt="Kilo Code"/><br/><sub><b>Kilo Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></a></td>
-    <td align="center" width="76"><img src="./public/providers/roocode.svg" width="40" alt="Roo Code"/><br/><sub><b>Roo Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/continue.svg" width="40" alt="Continue"/><br/><sub><b>Continue</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/qwen.svg" width="40" alt="Qwen Code"/><br/><sub><b>Qwen Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Aider"/><br/><sub><b>Aider</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="ForgeCode"/><br/><sub><b>ForgeCode</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="jcode"/><br/><sub><b>jcode</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/deepseek.svg" width="40" alt="DeepSeek TUI"/><br/><sub><b>DeepSeek TUI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="CodeWhale"/><br/><sub><b>CodeWhale</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><a href="https://github.com/anomalyco/opencode"><img src="./public/providers/opencode.svg" width="40" alt="OpenCode"/><br/><sub><b>OpenCode</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></a></td>
+    <td align="center" width="76"><a href="https://github.com/anthropics/claude-code"><img src="./public/providers/claude.svg" width="40" alt="Claude Code"/><br/><sub><b>Claude Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></a></td>
+    <td align="center" width="76"><a href="https://github.com/openai/codex"><img src="./public/providers/codex.svg" width="40" alt="Codex CLI"/><br/><sub><b>Codex CLI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></a></td>
+    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/cline.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cline.svg" width="40" alt="Cline"/></picture><br/><sub><b>Cline</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><a href="https://github.com/Kilo-Org/kilocode"><img src="./public/providers/kilocode.svg" width="40" alt="Kilo Code"/><br/><sub><b>Kilo Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></a></td>
+    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/roocode.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/roocode.svg" width="40" alt="Roo Code"/></picture><br/><sub><b>Roo Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/continue.png" width="40" alt="Continue"/><br/><sub><b>Continue</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/qwen.svg" width="40" alt="Qwen Code"/><br/><sub><b>Qwen Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Aider"/><br/><sub><b>Aider</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="ForgeCode"/><br/><sub><b>ForgeCode</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
   </tr>
   <tr>
-    <td align="center" width="76"><img src="./public/providers/droid.svg" width="40" alt="Factory Droid"/><br/><sub><b>Factory Droid</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/copilot.svg" width="40" alt="GitHub Copilot CLI"/><br/><sub><b>Copilot CLI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cursor.svg" width="40" alt="Cursor CLI"/><br/><sub><b>Cursor CLI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Smelt"/><br/><sub><b>Smelt</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Pi (pi-coding-agent)"/><br/><sub><b>Pi</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/grok.svg" width="40" alt="Grok Build (xAI)"/><br/><sub><b>Grok Build</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/nousresearch.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/nousresearch.svg" width="40" alt="Hermes Agent (Nous Research)"/></picture><br/><sub><b>Hermes Agent</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/openclaw.svg" width="40" alt="OpenClaw"/><br/><sub><b>OpenClaw</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/goose.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/goose.svg" width="40" alt="Goose"/></picture><br/><sub><b>Goose</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Open Interpreter"/><br/><sub><b>Open Interpreter</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Warp AI"/><br/><sub><b>Warp AI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Agent Deck"/><br/><sub><b>Agent Deck</b></sub><br/><img src="docs/screenshots/spacer.svg" width="68" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="jcode"/><br/><sub><b>jcode</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/deepseek.svg" width="40" alt="DeepSeek TUI"/><br/><sub><b>DeepSeek TUI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="CodeWhale"/><br/><sub><b>CodeWhale</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><a href="https://github.com/anomalyco/opencode"><img src="./public/providers/opencode.svg" width="40" alt="OpenCode"/><br/><sub><b>OpenCode</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></a></td>
+    <td align="center" width="76"><img src="./public/providers/droid.svg" width="40" alt="Factory Droid"/><br/><sub><b>Factory Droid</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/copilot.svg" width="40" alt="GitHub Copilot CLI"/><br/><sub><b>Copilot CLI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/cursor.svg" width="40" alt="Cursor CLI"/><br/><sub><b>Cursor CLI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Smelt"/><br/><sub><b>Smelt</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+  </tr>
+  <tr>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Pi (pi-coding-agent)"/><br/><sub><b>Pi</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/grok.svg" width="40" alt="Grok Build (xAI)"/><br/><sub><b>Grok Build</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/nousresearch.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/nousresearch.svg" width="40" alt="Hermes Agent (Nous Research)"/></picture><br/><sub><b>Hermes Agent</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/openclaw.svg" width="40" alt="OpenClaw"/><br/><sub><b>OpenClaw</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/goose.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/goose.svg" width="40" alt="Goose"/></picture><br/><sub><b>Goose</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Open Interpreter"/><br/><sub><b>Open Interpreter</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Warp AI"/><br/><sub><b>Warp AI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Agent Deck"/><br/><sub><b>Agent Deck</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
   </tr>
 </table>
 </div>
@@ -373,7 +375,7 @@ All **18** strategies — mix & match per combo step:
 
 <div align="center">
 
-# 🌐 251 AI Providers — 90+ Free
+# 🌐 259 AI Providers — 90+ Free
 
 </div>
 
