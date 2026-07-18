@@ -527,9 +527,7 @@ function evaluateContextLimit(
     ? capabilities.contextWindow! >= requirements.requiredContextTokens
     : true;
 
-  if (hasMaxInput && hasContextWindow) return inputFits && totalFits;
-  if (hasMaxInput) return inputFits;
-  return totalFits;
+  return inputFits && totalFits;
 }
 
 function hasKnownCompatibleContextLimit(
