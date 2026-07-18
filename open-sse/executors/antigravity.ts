@@ -55,6 +55,10 @@ import {
 // processAntigravitySSEPayload re-exported for external importers (tests).
 export { processAntigravitySSEPayload } from "./antigravity/sseCollect.ts";
 import {
+  createCreditsExtractionTransform as createCreditsExtractionTransformImpl,
+  buildSsePassthroughResult,
+} from "./antigravity/streamingPassthrough.ts";
+import {
   applyAntigravityClientProfileHeaders,
   removeHeaderCaseInsensitive,
 } from "../services/antigravityClientProfile.ts";
@@ -118,11 +122,6 @@ type AntigravityChunkContent = Record<string, unknown> & {
       thoughtSignature?: unknown;
     }
   >;
-};
-
-type AntigravityCreditEntry = {
-  creditType?: string;
-  creditAmount?: string;
 };
 
 function getChunkedOrFixedBody(bodyStr: string, stream: boolean): BodyInit {
@@ -273,87 +272,22 @@ export function updateAntigravityRemainingCredits(accountId: string, balance: nu
 }
 
 /**
- * Create a pass-through TransformStream that extracts `remainingCredits`
- * from SSE data without consuming the stream.  The downstream client
- * receives the unmodified bytes.
- *
- * @param accountId  Provider account ID for credit-balance persistence.
- * @param bufferSize  Optional sliding-window buffer cap in bytes.
- *                   Pass 0 or omit for unlimited (non-streaming callers
- *                   where the full body is already buffered upstream).
- *                   The streaming path uses 16384 (16 KB) to prevent OOM
- *                   on long-lived SSE connections.  Credit-balance data
- *                   appears near the end of the SSE stream (after
- *                   content), so the sliding window captures it even at
- *                   16 KB -- only truly massive responses (>16 KB of
- *                   consecutive non-newline content) would lose credits.
+ * Pass-through TransformStream that extracts `remainingCredits` from SSE
+ * data without consuming the stream (the downstream client receives the
+ * unmodified bytes). Thin wrapper around the pure implementation in
+ * streamingPassthrough.ts, injecting this executor's credit-balance cache
+ * writer so the two modules don't import each other. See that module's
+ * doc comment for the full parameter behavior.
  * @internal Exported for unit testing only.
  */
 export function createCreditsExtractionTransform(
   accountId: string,
   bufferSize = 0
 ): TransformStream<Uint8Array, Uint8Array> {
-  let buffer = "";
-  const decoder = new TextDecoder();
-
-  return new TransformStream(
-    {
-      transform(chunk, controller) {
-        controller.enqueue(chunk);
-        try {
-          buffer += decoder.decode(chunk, { stream: true });
-          // Sliding-window cap: truncate after the last complete newline
-          // in the discard region so SSE lines are never split mid-payload.
-          if (bufferSize > 0 && buffer.length > bufferSize) {
-            const lastNewline = buffer.lastIndexOf("\n", buffer.length - bufferSize);
-            if (lastNewline !== -1) {
-              buffer = buffer.slice(lastNewline + 1);
-            } else {
-              // No newline in the discard region -- incomplete line, discard entirely.
-              buffer = "";
-            }
-          }
-        } catch {
-          /* decoding best-effort */
-        }
-      },
-      flush() {
-        try {
-          buffer += decoder.decode();
-        } catch {
-          /* decoding best-effort */
-        }
-        try {
-          const lines = buffer.split("\n");
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith("data:")) continue;
-            const payload = trimmed.slice(5).trim();
-            if (!payload || payload === "[DONE]") continue;
-            try {
-              const parsed = JSON.parse(payload);
-              if (Array.isArray(parsed?.remainingCredits)) {
-                const googleCredit = parsed.remainingCredits.find((c: unknown) => {
-                  const credit = asRecord(c);
-                  return credit?.creditType === "GOOGLE_ONE_AI";
-                }) as AntigravityCreditEntry | undefined;
-                if (googleCredit) {
-                  const balance = parseInt(String(googleCredit.creditAmount ?? ""), 10);
-                  if (!isNaN(balance)) updateAntigravityRemainingCredits(accountId, balance);
-                }
-              }
-            } catch {
-              /* skip malformed lines */
-            }
-          }
-        } catch {
-          /* credits extraction is best-effort */
-        }
-        buffer = "";
-      },
-    },
-    { highWaterMark: 16384 },
-    { highWaterMark: 16384 }
+  return createCreditsExtractionTransformImpl(
+    accountId,
+    updateAntigravityRemainingCredits,
+    bufferSize
   );
 }
 
@@ -1465,41 +1399,19 @@ export class AntigravityExecutor extends BaseExecutor {
                   if (creditsResp.ok || creditsResp.status !== HTTP_STATUS.RATE_LIMITED) {
                     log?.info?.("AG_CREDITS", `Credits retry succeeded: ${creditsResp.status}`);
                     if (!stream && creditsResp.body) {
-                      // Client already disconnected — skip pipe
-                      if (signal?.aborted) {
-                        creditsResp.body.cancel().catch(() => {});
-                        return {
-                          response: new Response(null, { status: 499 }),
-                          url,
-                          headers: finalCreditsHeaders,
-                          transformedBody: null,
-                        };
-                      }
-                      // Return raw SSE with credits extraction
-                      const crTransform = createCreditsExtractionTransform(
+                      // Raw SSE pass-through + credits extraction (see
+                      // streamingPassthrough.ts); 499s early if the client
+                      // already disconnected instead of piping a cancelled body.
+                      return buildSsePassthroughResult(
+                        creditsResp.body,
+                        creditsResp,
                         accountId,
-                        16 * 1024 // 16KB cap
-                      );
-                      const crTappedBody = creditsResp.body.pipeThrough(crTransform);
-                      if (signal) {
-                        signal.addEventListener(
-                          "abort",
-                          () => {
-                            creditsResp.body.cancel().catch(() => {});
-                          },
-                          { once: true }
-                        );
-                      }
-                      return {
-                        response: new Response(crTappedBody, {
-                          status: creditsResp.status,
-                          statusText: creditsResp.statusText,
-                          headers: creditsResp.headers,
-                        }),
+                        updateAntigravityRemainingCredits,
                         url,
-                        headers: finalCreditsHeaders,
-                        transformedBody: attachToolNameMap(creditsBody, requestToolNameMap),
-                      };
+                        finalCreditsHeaders,
+                        attachToolNameMap(creditsBody, requestToolNameMap),
+                        signal
+                      );
                     }
                     return {
                       response: creditsResp,
@@ -1665,44 +1577,19 @@ export class AntigravityExecutor extends BaseExecutor {
           }
 
           if (response.body) {
-            // Client already disconnected — skip pipe
-            if (signal?.aborted) {
-              response.body.cancel().catch(() => {});
-              return {
-                response: new Response(null, { status: 499 }),
-                url,
-                headers: finalHeaders,
-                transformedBody: null,
-              };
-            }
-            // Cancel upstream body on client disconnect
-            if (signal) {
-              signal.addEventListener(
-                "abort",
-                () => {
-                  response.body?.cancel().catch(() => {});
-                },
-                { once: true }
-              );
-            }
-
-            // Tap the stream to extract remainingCredits while passing
-            // data through unmodified.  chatCore drains the full body.
-            const nsPassThrough = createCreditsExtractionTransform(
+            // Raw SSE pass-through + credits extraction (see
+            // streamingPassthrough.ts); 499s early if the client already
+            // disconnected instead of piping a cancelled body.
+            return buildSsePassthroughResult(
+              response.body,
+              response,
               accountId,
-              16 * 1024 // 16KB sliding-window cap to prevent OOM
-            );
-            const tappedBody = response.body.pipeThrough(nsPassThrough);
-            return {
-              response: new Response(tappedBody, {
-                status: response.status,
-                statusText: response.statusText,
-                headers: response.headers,
-              }),
+              updateAntigravityRemainingCredits,
               url,
-              headers: finalHeaders,
-              transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
-            };
+              finalHeaders,
+              attachToolNameMap(transformedBody, requestToolNameMap),
+              signal
+            );
           }
 
           // No body -- return as-is
