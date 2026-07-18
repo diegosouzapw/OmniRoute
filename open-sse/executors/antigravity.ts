@@ -1258,7 +1258,57 @@ export class AntigravityExecutor extends BaseExecutor {
     );
     if (embedded) return { action: "return", result: embedded };
 
-    const result = await buildFinalAntigravityResult(
+    const result = await this.buildAntigravityAttemptResult(
+      model,
+      stream,
+      response,
+      url,
+      finalHeaders,
+      transformedBody,
+      requestToolNameMap,
+      accountId,
+      signal,
+      log
+    );
+    return { action: "return", result };
+  }
+
+  /**
+   * #3786 — Non-streaming callers (stream: false) keep the buffered
+   * collect-to-JSON contract: `execute()` (including the Pro-family
+   * fallback-chain retry loop) inspects `result.response` directly and
+   * expects a synthesized `chat.completion` JSON body, not a raw SSE
+   * pass-through. Passthrough is reserved for actual streaming clients
+   * (buildFinalAntigravityResult's stream:true branch), where the client
+   * itself drains the SSE bytes — collectStreamToResponse already uses
+   * FETCH_TIMEOUT_MS (no hardcoded 120s ceiling), so long-thinking models
+   * are not penalized by buffering here.
+   */
+  private async buildAntigravityAttemptResult(
+    model: string,
+    stream: boolean,
+    response: Response,
+    url: string,
+    finalHeaders: Record<string, string>,
+    transformedBody: Record<string, unknown>,
+    requestToolNameMap: Map<string, string> | null,
+    accountId: string,
+    signal: AbortSignal | null | undefined,
+    log: SafeAntigravityLog
+  ): Promise<SsePassthroughResult> {
+    if (!stream && response.ok && response.body) {
+      return this.collectStreamToResponse(
+        response,
+        model,
+        url,
+        finalHeaders,
+        transformedBody,
+        log,
+        signal
+      );
+    }
+
+    return buildFinalAntigravityResult(
       stream,
       response,
       url,
@@ -1269,7 +1319,6 @@ export class AntigravityExecutor extends BaseExecutor {
       signal,
       updateAntigravityRemainingCredits
     );
-    return { action: "return", result };
   }
 
   /**
