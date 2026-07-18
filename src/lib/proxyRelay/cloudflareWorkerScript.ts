@@ -80,9 +80,7 @@ function isPrivateHostname(h) {
   const host = h.trim().toLowerCase().replace(/^\\[|\\]$/g, "");
   if (
     host === "localhost" ||
-    host === "0.0.0.0" ||
-    host === "127.0.0.1" ||
-    host === "::1" ||
+    host === "0.0.0.0" || host === "127.0.0.1" || host === "::1" ||
     host.endsWith(".localhost") ||
     host.endsWith(".local") ||
     host.endsWith(".internal") ||
