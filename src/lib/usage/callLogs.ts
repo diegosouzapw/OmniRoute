@@ -761,8 +761,7 @@ export async function getCallLogs(filter: any = {}) {
   const db = getDbInstance();
   let sql = `
     SELECT cl.*,
-      pn.name AS provider_node_name,
-      pn.prefix AS provider_node_prefix,
+      pn.name AS provider_node_name, pn.prefix AS provider_node_prefix,
       ${RESOLVED_ACCOUNT_SQL} AS resolved_account
     FROM call_logs cl
     LEFT JOIN provider_nodes pn ON pn.id = cl.provider
