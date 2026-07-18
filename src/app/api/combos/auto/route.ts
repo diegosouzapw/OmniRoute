@@ -54,7 +54,7 @@ export async function GET(request: Request) {
       }
     }
 
-    // #6453 Phase C: enumerate template variants (auto/best-coding, auto/pro-*,
+    // Phase B: enumerate template variants (auto/best-coding, auto/pro-*,
     // auto/claude-*, auto/best-free, etc.) that the backend already supports
     // via builtinCatalog.ts but were not exposed by this endpoint.
     // Run BEFORE suffix variants so template resolution wins for overlapping
@@ -63,8 +63,7 @@ export async function GET(request: Request) {
       if (seenIds.has(modelStr)) continue;
       try {
         const variant = AUTO_TEMPLATE_VARIANTS[modelStr];
-        const spec =
-          modelStr === "auto/best-free" ? ({ tier: "free" as const } as const) : undefined;
+        const spec = modelStr === "auto/best-free" ? { tier: "free" as const } : undefined;
         const virtual = await createVirtualAutoCombo(variant, spec);
 
         const displayName = variant
@@ -89,7 +88,7 @@ export async function GET(request: Request) {
       }
     }
 
-    // #4235 Phase B: enumerate tiered `auto/<category>[:<tier>]` variants
+    // Phase C: enumerate tiered `auto/<category>[:<tier>]` variants
     // (e.g. auto/coding:free, auto/reasoning:pro) that the backend already
     // supports via suffixComposition.ts + virtualFactory.ts but were not
     // exposed by this endpoint.
@@ -132,7 +131,7 @@ export async function GET(request: Request) {
       }
     }
 
-    // #6453 Phase D: enumerate family variants (auto/glm, auto/llama,
+    // Phase D: enumerate family variants (auto/glm, auto/llama,
     // auto/gemini, etc.) that the backend already supports via modelFamily.ts
     // but were not exposed by this endpoint.
     for (const modelStr of AUTO_FAMILY_IDS) {
