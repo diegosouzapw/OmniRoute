@@ -62,18 +62,24 @@ async function resolveProviderSpecificData(
   return normalizeProviderSpecificData(entry.provider, base) || base;
 }
 
+// Provider-existence check (moved out of the Zod schema so the client-reachable schema
+// stays free of the server-only provider catalog — #6836; isManagedProviderConnectionId
+// drags the server runtime into the browser/CLI bundle). Extracted as a helper so the
+// per-row check adds no branches to importOneEntry's own complexity.
+function isKnownImportProvider(provider: string): boolean {
+  return (
+    isManagedProviderConnectionId(provider) ||
+    isOpenAICompatibleProvider(provider) ||
+    isAnthropicCompatibleProvider(provider)
+  );
+}
+
 async function importOneEntry(
   entry: ImportEntry,
   validateKeys: boolean
 ): Promise<{ created: Record<string, unknown> } | { error: string }> {
-  // Provider-existence check (moved here from the Zod schema so the client-reachable
-  // schema stays free of the server-only provider catalog — #6836). Rejects unknown
-  // providers per-row, preserving the partial-failure contract of /api/providers/bulk.
-  if (
-    !isManagedProviderConnectionId(entry.provider) &&
-    !isOpenAICompatibleProvider(entry.provider) &&
-    !isAnthropicCompatibleProvider(entry.provider)
-  ) {
+  // Reject unknown providers per-row, preserving the partial-failure contract of /bulk.
+  if (!isKnownImportProvider(entry.provider)) {
     return { error: "Unknown or unsupported provider" };
   }
 
