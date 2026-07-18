@@ -730,10 +730,8 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
-    // Reasoning models burn all of max_tokens on the thinking phase
-    // when the budget is too small, leaving content empty (finish_reason:
-    // "length"). Bump max_tokens to a safe floor when reasoning is enabled and
-    // the budget is undersized. Applies to all providers (#6912).
+    // Reasoning models burn all of max_tokens on the thinking phase when the budget is too
+    // small, leaving content empty (finish_reason: "length"); applies to all providers (#6912).
     if (typeof withDefaults === "object" && withDefaults !== null) {
       this.ensureThinkingBudget(withDefaults as Record<string, unknown>, model);
     }
@@ -758,9 +756,8 @@ export class DefaultExecutor extends BaseExecutor {
     return withDefaults;
   }
 
-  // Reasoning models (ClinePass, OpenRouter, etc.) leave content empty when the
-  // reasoning budget consumes all of max_tokens. Bump max_tokens to a safe
-  // minimum when reasoning is enabled and the budget is undersized.
+  // Reasoning models (ClinePass, OpenRouter, etc.) leave content empty when the reasoning
+  // budget consumes all of max_tokens; bump max_tokens to a safe minimum when undersized.
   ensureThinkingBudget(body: Record<string, unknown>, model: string): Record<string, unknown> {
     if (!body) return body;
 
@@ -786,10 +783,8 @@ export class DefaultExecutor extends BaseExecutor {
     const target = Math.min(MIN_TOKENS, maxOutput);
     const current = body.max_tokens ?? body.max_completion_tokens;
 
-    // #6912: Respect the max_tokens -> max_completion_tokens mapping done in
-    // transformRequest for recent OpenAI models (o1/o3/o4/gpt-5). Writing
-    // body.max_tokens here would re-introduce it alongside max_completion_tokens,
-    // causing API validation errors.
+    // #6912: keep whichever token key transformRequest already set (o1/o3/o4/gpt-5 use
+    // max_completion_tokens) instead of re-introducing max_tokens alongside it.
     const tokenKey =
       body.max_completion_tokens !== undefined ? "max_completion_tokens" : "max_tokens";
 
