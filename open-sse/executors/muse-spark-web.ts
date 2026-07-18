@@ -1145,36 +1145,6 @@ function evictContinuationIfNeeded(
   }
 }
 
-async function postMetaAiRequest(
-  headers: Record<string, string>,
-  transformedBody: unknown,
-  signal: AbortSignal,
-  log: ExecuteInput["log"]
-): Promise<{ ok: true; response: Response } | { ok: false; result: MuseSparkExecuteResult }> {
-  try {
-    const response = await fetch(META_AI_GRAPHQL_API, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(transformedBody),
-      signal,
-    });
-    return { ok: true, response };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    log?.error?.("MUSE-SPARK-WEB", `Fetch failed: ${message}`);
-    return {
-      ok: false,
-      result: errorResult(
-        502,
-        `Meta AI connection failed: ${message}`,
-        "meta_ai_fetch_failed",
-        headers,
-        transformedBody
-      ),
-    };
-  }
-}
-
 function buildHttpErrorResult(
   upstreamResponse: Response,
   headers: Record<string, string>,
