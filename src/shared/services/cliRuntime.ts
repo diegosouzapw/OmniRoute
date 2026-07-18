@@ -6,6 +6,7 @@ import { spawn, execFileSync } from "child_process";
 import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
 import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 import { withSettingsFallback } from "./cliInstallFallback";
+import { GROK_BUILD_RUNTIME_ENTRY, AMP_RUNTIME_ENTRY } from "./cliRuntimeGrokBuild";
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
 
@@ -155,13 +156,7 @@ const CLI_TOOLS: Record<string, any> = {
       config: "config.yaml",
     },
   },
-  amp: {
-    defaultCommand: "amp",
-    envBinKey: "CLI_AMP_BIN",
-    requiresBinary: true,
-    healthcheckTimeoutMs: 12000,
-    paths: {},
-  },
+  amp: AMP_RUNTIME_ENTRY,
   qoder: {
     defaultCommand: "qodercli",
     envBinKey: "CLI_QODER_BIN",
@@ -201,6 +196,7 @@ const CLI_TOOLS: Record<string, any> = {
       config: ".jcode/config.json",
     },
   },
+  "grok-build": GROK_BUILD_RUNTIME_ENTRY,
   "deepseek-tui": {
     defaultCommand: "deepseek-tui",
     envBinKey: "CLI_DEEPSEEK_TUI_BIN",
@@ -742,7 +738,7 @@ const checkExplicitPath = async (commandPath: string) => {
   }
 };
 
-const locateCommand = async (command: string, env: Record<string, string | undefined>) => {
+export const locateCommand = async (command: string, env: Record<string, string | undefined>) => {
   if (!command) {
     return { installed: false, commandPath: null, reason: "missing_command" };
   }

@@ -14,6 +14,7 @@ import {
   DATA_DIR,
 } from "./core";
 import { resetAllDbModuleState } from "./stateReset";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 type CountRow = { cnt?: number };
 
@@ -308,12 +309,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function isSqliteAutoBackupDisabled() {
-  const isTest =
-    typeof process !== "undefined" &&
-    (process.env.NODE_ENV === "test" ||
-      process.env.VITEST !== undefined ||
-      process.argv.some((a) => a.includes("test")));
-  if (isTest) return true;
+  if (isAutomatedTestProcess()) return true;
 
   const value = process.env.DISABLE_SQLITE_AUTO_BACKUP;
   if (!value) return false;

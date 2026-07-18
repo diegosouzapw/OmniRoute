@@ -17,6 +17,12 @@ import {
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
+import {
+  recordFreeWindowAttempt,
+  correctFromRateLimitHeaders,
+  resolveAccountKey,
+  isFreeVariantModel,
+} from "../services/openrouterFreeWindow.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
@@ -117,6 +123,7 @@ export type ProviderConfig = {
   baseUrl?: string;
   baseUrls?: string[];
   responsesBaseUrl?: string;
+  messagesUrl?: string;
   chatPath?: string;
   clientVersion?: string;
   clientId?: string;
@@ -1213,7 +1220,25 @@ export class BaseExecutor {
           body: bodyString,
         };
 
+        // OpenRouter `:free`-variant local window (#6842): record every real
+        // dispatch attempt (failed attempts still consume a request slot per
+        // OpenRouter's own accounting) and self-correct the local counters
+        // from the upstream `X-RateLimit-*` headers on the response. Scoped
+        // to `:free` models only — no-op (and no extra work) for every other
+        // OpenRouter request or provider.
+        const openrouterFreeWindowAccountKey =
+          this.provider === "openrouter" && isFreeVariantModel(model) && activeCredentials.connectionId
+            ? resolveAccountKey(activeCredentials.connectionId, activeCredentials)
+            : null;
+        if (openrouterFreeWindowAccountKey) {
+          recordFreeWindowAttempt(openrouterFreeWindowAccountKey);
+        }
+
         let response = await fetchWithStartTimeout(url, fetchOptions);
+
+        if (openrouterFreeWindowAccountKey) {
+          correctFromRateLimitHeaders(openrouterFreeWindowAccountKey, response.headers);
+        }
 
         // Context Editing 400-fallback for Claude-compatible relays.
         if (

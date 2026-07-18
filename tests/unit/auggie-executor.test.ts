@@ -14,9 +14,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const { AuggieExecutor, buildAuggiePrompt, resolveAuggieBin, resolveAuggieModel } = await import(
-  "@omniroute/open-sse/executors/auggie"
-);
+const { AuggieExecutor, buildAuggiePrompt, resolveAuggieBin, resolveAuggieModel } =
+  await import("@omniroute/open-sse/executors/auggie");
 
 const TMP_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-auggie-test-"));
 
@@ -26,7 +25,6 @@ function writeFakeBin(name: string, script: string): string {
   fs.writeFileSync(p, `#!/bin/sh\n${script}\n`, { mode: 0o755 });
   return p;
 }
-
 
 async function readSseEvents(response: Response): Promise<Record<string, unknown>[]> {
   const text = await response.text();
@@ -61,7 +59,13 @@ test("buildAuggiePrompt flattens system/user/assistant turns with role tags", ()
 
 test("buildAuggiePrompt flattens array-shaped content blocks and skips empty turns", () => {
   const prompt = buildAuggiePrompt([
-    { role: "user", content: [{ type: "text", text: "part1 " }, { type: "text", text: "part2" }] },
+    {
+      role: "user",
+      content: [
+        { type: "text", text: "part1 " },
+        { type: "text", text: "part2" },
+      ],
+    },
     { role: "user", content: "" },
     { role: "user", content: [] },
   ]);
@@ -93,7 +97,7 @@ test("execute() surfaces a sanitized 'CLI not found' error on ENOENT (streaming)
   try {
     const executor = new AuggieExecutor();
     const { response } = await executor.execute({
-      model: "claude-sonnet-4.6",
+      model: "sonnet4.6",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: true,
       credentials: {} as never,
@@ -120,7 +124,7 @@ test("execute() surfaces a sanitized 'CLI not found' error on ENOENT (non-stream
   try {
     const executor = new AuggieExecutor();
     const { response } = await executor.execute({
-      model: "claude-sonnet-4.6",
+      model: "sonnet4.6",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: false,
       credentials: {} as never,
@@ -138,13 +142,16 @@ test("execute() surfaces a sanitized 'CLI not found' error on ENOENT (non-stream
 // ─── execute(): non-zero exit → sanitized error ────────────────────────────
 
 test("execute() surfaces a sanitized error when the CLI exits non-zero (streaming)", async () => {
-  const bin = writeFakeBin("fake-auggie-fail.sh", 'echo "boom at /home/attacker/secret.ts:42" 1>&2\nexit 3');
+  const bin = writeFakeBin(
+    "fake-auggie-fail.sh",
+    'echo "boom at /home/attacker/secret.ts:42" 1>&2\nexit 3'
+  );
   const prevBin = process.env.AUGGIE_BIN;
   process.env.AUGGIE_BIN = bin;
   try {
     const executor = new AuggieExecutor();
     const { response } = await executor.execute({
-      model: "claude-sonnet-4.6",
+      model: "sonnet4.6",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: true,
       credentials: {} as never,
@@ -168,7 +175,7 @@ test("execute() surfaces a sanitized error when the CLI exits non-zero (non-stre
   try {
     const executor = new AuggieExecutor();
     const { response } = await executor.execute({
-      model: "claude-sonnet-4.6",
+      model: "sonnet4.6",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: false,
       credentials: {} as never,
@@ -191,7 +198,7 @@ test("execute() with stream=true returns SSE deltas + [DONE]", async () => {
   try {
     const executor = new AuggieExecutor();
     const { response } = await executor.execute({
-      model: "claude-sonnet-4.6",
+      model: "sonnet4.6",
       body: { messages: [{ role: "user", content: "say hi" }] },
       stream: true,
       credentials: {} as never,
@@ -221,7 +228,7 @@ test("execute() with stream=false returns a single chat.completion JSON body", a
   try {
     const executor = new AuggieExecutor();
     const { response } = await executor.execute({
-      model: "claude-sonnet-4.6",
+      model: "sonnet4.6",
       body: { messages: [{ role: "user", content: "say hi" }] },
       stream: false,
       credentials: {} as never,
@@ -249,8 +256,41 @@ test("resolveAuggieModel defaults to a real allowlisted model when unset", () =>
 });
 
 test("resolveAuggieModel accepts a known registry model id verbatim", () => {
-  const result = resolveAuggieModel("claude-haiku-4.5");
-  assert.deepEqual(result, { ok: true, model: "claude-haiku-4.5" });
+  const result = resolveAuggieModel("haiku4.5");
+  assert.deepEqual(result, { ok: true, model: "haiku4.5" });
+});
+
+// ─── resolveAuggieModel: pre-v0.32.0 alias back-compat (#7032) ────────────
+// The v0.32.0 registry rename dropped ~10 old model IDs outright. Saved combos
+// created before the rename still reference those old IDs, so resolveAuggieModel
+// must transparently map each one to its v0.32.0 replacement instead of erroring
+// with "Unknown Auggie model".
+
+test("resolveAuggieModel resolves a pre-v0.32.0 saved model id via the alias map (#7032)", () => {
+  const result = resolveAuggieModel("claude-sonnet-4.6");
+  assert.deepEqual(result, { ok: true, model: "sonnet4.6" });
+});
+
+test("resolveAuggieModel resolves every pre-v0.32.0 alias to an allowlisted v0.32.0 id (#7032)", () => {
+  const OLD_TO_NEW: Record<string, string> = {
+    "claude-sonnet-4.6": "sonnet4.6",
+    "claude-sonnet-4.6-thinking": "sonnet4.6",
+    "claude-opus-4.6": "opus4.6",
+    "claude-haiku-4.5": "haiku4.5",
+    "gemini-3.1-pro": "gemini-3.1-pro-preview",
+    "gemini-3.0-flash": "gemini-3.1-pro-preview",
+    "gpt-5.5-high": "gpt5.5",
+    "gpt-5.5-medium": "gpt5.5",
+    "gpt-5.4-high": "gpt5.4",
+    "gpt-5.4-medium": "gpt5.4",
+  };
+  for (const [oldId, newId] of Object.entries(OLD_TO_NEW)) {
+    assert.deepEqual(
+      resolveAuggieModel(oldId),
+      { ok: true, model: newId },
+      `${oldId} should resolve to ${newId}`
+    );
+  }
 });
 
 // ─── execute(): model allowlist (argument-injection defense) ──────────────
@@ -314,7 +354,7 @@ test("execute() spawns with a valid allowlisted model, no shell, and a '--' argv
   try {
     const executor = new AuggieExecutor();
     const { response } = await executor.execute({
-      model: "claude-opus-4.6",
+      model: "opus4.6",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: false,
       credentials: {} as never,
@@ -323,7 +363,7 @@ test("execute() spawns with a valid allowlisted model, no shell, and a '--' argv
     const body = await response.json();
     assert.equal(body.choices[0].message.content, "ok");
     const argv = fs.readFileSync(argvFile, "utf8").trim().split("\n");
-    assert.deepEqual(argv, ["--print", "--quiet", "--model", "claude-opus-4.6", "--"]);
+    assert.deepEqual(argv, ["--print", "--quiet", "--model", "opus4.6", "--"]);
   } finally {
     if (prevBin === undefined) delete process.env.AUGGIE_BIN;
     else process.env.AUGGIE_BIN = prevBin;
@@ -342,7 +382,7 @@ test("execute() aborts a long-running CLI process instead of hanging (streaming)
     const executor = new AuggieExecutor();
     const controller = new AbortController();
     const { response } = await executor.execute({
-      model: "claude-sonnet-4.6",
+      model: "sonnet4.6",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: true,
       credentials: {} as never,
@@ -377,4 +417,100 @@ test("buildUrl/buildHeaders/transformRequest match the CLI-passthrough shape", (
   assert.equal(executor.buildUrl(), "auggie://cli/stdio");
   assert.deepEqual(executor.buildHeaders(), {});
   assert.equal(executor.transformRequest(), null);
+});
+
+// ─── initAuggieModels / resolveAuggieModel auto-fetch ────────────────────
+
+test("initAuggieModels discovers models from `auggie model list` output", async () => {
+  const { initAuggieModels, resolveAuggieModel, __resetAuggieModels } =
+    await import("@omniroute/open-sse/executors/auggie");
+  __resetAuggieModels(); // wipe stale cache from previous tests
+  const bin = writeFakeBin(
+    "fake-auggie-list.sh",
+    `printf '[new-model-alpha]\\nignored\\n[new-model-beta]'`
+  );
+  const prevBin = process.env.AUGGIE_BIN;
+  process.env.AUGGIE_BIN = bin;
+  try {
+    await initAuggieModels();
+    const r = resolveAuggieModel("new-model-alpha");
+    assert.deepEqual(r, { ok: true, model: "new-model-alpha" });
+  } finally {
+    if (prevBin === undefined) delete process.env.AUGGIE_BIN;
+    else process.env.AUGGIE_BIN = prevBin;
+    __resetAuggieModels(); // restore for subsequent tests
+  }
+});
+
+test("execute() spawns a model discovered via auto-fetch", async () => {
+  const { __resetAuggieModels } = await import("@omniroute/open-sse/executors/auggie");
+  __resetAuggieModels();
+  const bin = writeFakeBin(
+    "fake-auggie-autofetch.sh",
+    [
+      `case "$*" in`,
+      `  *model\\ list*)`,
+      `    printf '[auto-discovered-model]'`,
+      `    exit 0`,
+      `    ;;`,
+      `  *)`,
+      `    printf 'auto-ok'`,
+      `    ;;`,
+      `esac`,
+    ].join("\n")
+  );
+  const prevBin = process.env.AUGGIE_BIN;
+  process.env.AUGGIE_BIN = bin;
+  try {
+    const executor = new AuggieExecutor();
+    const { response } = await executor.execute({
+      model: "auto-discovered-model",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {} as never,
+    });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.choices[0].message.content, "auto-ok");
+  } finally {
+    if (prevBin === undefined) delete process.env.AUGGIE_BIN;
+    else process.env.AUGGIE_BIN = prevBin;
+    __resetAuggieModels();
+  }
+});
+
+test("initAuggieModels failure does not block execute() for a known model", async () => {
+  const { __resetAuggieModels } = await import("@omniroute/open-sse/executors/auggie");
+  __resetAuggieModels();
+  const bin = writeFakeBin(
+    "fake-auggie-crash.sh",
+    [
+      `case "$*" in`,
+      `  *model\\ list*)`,
+      `    exit 1  # crash on model list so init fails`,
+      `    ;;`,
+      `  *)`,
+      `    printf 'known-model-ok'`,
+      `    ;;`,
+      `esac`,
+    ].join("\n")
+  );
+  const prevBin = process.env.AUGGIE_BIN;
+  process.env.AUGGIE_BIN = bin;
+  try {
+    const executor = new AuggieExecutor();
+    const { response } = await executor.execute({
+      model: "haiku4.5", // static-registry model, should work regardless
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {} as never,
+    });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.choices[0].message.content, "known-model-ok");
+  } finally {
+    if (prevBin === undefined) delete process.env.AUGGIE_BIN;
+    else process.env.AUGGIE_BIN = prevBin;
+    __resetAuggieModels();
+  }
 });

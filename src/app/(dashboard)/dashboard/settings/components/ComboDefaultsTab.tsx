@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Button, Input, Toggle } from "@/shared/components";
+import { Card, Button, Input, ModelSelectField, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
 import { matchesSearch } from "@/shared/utils/turkishText";
 import FusionDefaultsFields from "./FusionDefaultsFields";
@@ -103,7 +103,7 @@ export default function ComboDefaultsTab() {
     resetAwareQuotaCacheMaxStaleMs: 0,
     zeroLatencyOptimizationsEnabled: false,
   });
-  const [codexSessionAffinityTtlMs, setCodexSessionAffinityTtlMs] = useState(0);
+  const [sessionAffinityTtlMs, setSessionAffinityTtlMs] = useState(0);
   const [providerOverrides, setProviderOverrides] = useState<any>({});
   const [availableProviders, setAvailableProviders] = useState<{ id: string; provider: string }[]>(
     []
@@ -178,9 +178,9 @@ export default function ComboDefaultsTab() {
         if (comboData.providerOverrides) {
           setProviderOverrides(sanitizeProviderOverrides(comboData.providerOverrides));
         }
-        setCodexSessionAffinityTtlMs(
-          Number.isFinite(Number(settingsData.codexSessionAffinityTtlMs))
-            ? Number(settingsData.codexSessionAffinityTtlMs)
+        setSessionAffinityTtlMs(
+          Number.isFinite(Number(settingsData.sessionAffinityTtlMs))
+            ? Number(settingsData.sessionAffinityTtlMs)
             : 0
         );
       })
@@ -224,7 +224,7 @@ export default function ComboDefaultsTab() {
         comboDefaults;
       const settingsPatch = {
         ...toGlobalRoutingPatch(comboDefaults.strategy, stickyRoundRobinLimit),
-        codexSessionAffinityTtlMs,
+        sessionAffinityTtlMs,
         // #6168: global session-stickiness opt-out — persisted top-level on settings
         // (mirrors stickyRoundRobinLimit) so combo.ts resolution reads settings.disableSessionStickiness.
         disableSessionStickiness: disableSessionStickiness === true,
@@ -480,24 +480,24 @@ export default function ComboDefaultsTab() {
         <div className="grid grid-cols-1 gap-3 pt-3 border-t border-border/50">
           <div>
             <p className="font-medium text-sm">
-              {translateOrFallback(t, "codexSessionAffinityTitle", "Codex session affinity")}
+              {translateOrFallback(t, "sessionAffinityTitle", "Session affinity")}
             </p>
             <p className="text-xs text-text-muted">
               {translateOrFallback(
                 t,
-                "codexSessionAffinityDesc",
-                "Keeps one Codex conversation on the same account for this many seconds. 0 disables it."
+                "sessionAffinityDesc",
+                "Keeps one conversation on the same account for this many seconds, for any provider. 0 disables it."
               )}
             </p>
           </div>
           <Input
-            label={translateOrFallback(t, "codexSessionAffinityTtl", "Affinity TTL (seconds)")}
+            label={translateOrFallback(t, "sessionAffinityTtl", "Affinity TTL (seconds)")}
             type="number"
             min={0}
             max={86400}
             step={60}
-            value={msToSeconds(codexSessionAffinityTtlMs)}
-            onChange={(e) => setCodexSessionAffinityTtlMs(secondsInputToMs(e.target.value, 86400))}
+            value={msToSeconds(sessionAffinityTtlMs)}
+            onChange={(e) => setSessionAffinityTtlMs(secondsInputToMs(e.target.value, 86400))}
             className="text-sm"
           />
         </div>
@@ -632,15 +632,14 @@ export default function ComboDefaultsTab() {
               }
               className="text-sm"
             />
-            <Input
+            <ModelSelectField
               label={translateOrFallback(t, "contextRelaySummaryModel", "Summary Model")}
-              type="text"
               value={comboDefaults.handoffModel ?? ""}
               placeholder="codex/gpt-5.6-sol"
-              onChange={(e) =>
+              onChange={(v) =>
                 setComboDefaults((prev) => ({
                   ...prev,
-                  handoffModel: e.target.value,
+                  handoffModel: v,
                 }))
               }
               className="text-sm"

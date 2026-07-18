@@ -17,6 +17,7 @@ import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
+import { useSyncedModelsByProvider } from "./hooks/useSyncedModelsByProvider";
 import {
   buildStaticProviderEntries,
   buildCompatibleProviderGroups,
@@ -41,6 +42,7 @@ import {
 } from "@/lib/providers/codexFastTier";
 import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal";
 import { CategoryDot } from "./components/CategoryDot";
+import { ImportProvidersFromFileModal } from "./components/ImportProvidersFromFileModal";
 import NoAuthProvidersSection from "./components/NoAuthProvidersSection";
 import ProviderCard from "./components/ProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
@@ -180,6 +182,7 @@ export default function ProvidersPage() {
   const [showAddCompatibleModal, setShowAddCompatibleModal] = useState(false);
   const [showAddAnthropicCompatibleModal, setShowAddAnthropicCompatibleModal] = useState(false);
   const [showAddCcCompatibleModal, setShowAddCcCompatibleModal] = useState(false);
+  const [showImportFromFileModal, setShowImportFromFileModal] = useState(false);
   const [testingMode, setTestingMode] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<any>(null);
   const [providerDisplayMode, setProviderDisplayMode] = useState<ProviderDisplayMode>("all");
@@ -191,6 +194,7 @@ export default function ProvidersPage() {
   const [repairingEnv, setRepairingEnv] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [modelSearchQuery, setModelSearchQuery] = useState("");
+  const liveModelsByProviderId = useSyncedModelsByProvider();
   const [showFreeOnly, setShowFreeOnly] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   // #4240: media-category (serviceKind) filter — composes with activeCategory,
@@ -497,7 +501,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const rawNoAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
@@ -514,7 +519,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const apiKeyProviderEntriesAll = buildStaticProviderEntries("apikey", getProviderStats);
@@ -532,7 +538,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
   const aggregatorProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
     AGGREGATOR_PROVIDER_IDS.has(entry.providerId)
@@ -543,7 +550,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
   const imageProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
     IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId)
@@ -554,7 +562,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
   const enterpriseProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
     ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId)
@@ -565,7 +574,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
   const videoProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
     VIDEO_PROVIDER_IDS.has(entry.providerId)
@@ -576,7 +586,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
   const embeddingRerankProviderEntriesAll = apiKeyProviderEntriesAll.filter((entry) =>
     EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)
@@ -587,7 +598,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const webCookieProviderEntriesAll = buildStaticProviderEntries("web-cookie", getProviderStats);
@@ -597,7 +609,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const localProviderEntriesAll = buildStaticProviderEntries("local", getProviderStats);
@@ -607,7 +620,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const searchProviderEntriesAll = buildStaticProviderEntries("search", getProviderStats);
@@ -617,7 +631,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const audioProviderEntriesAll = buildStaticProviderEntries("audio", getProviderStats);
@@ -627,7 +642,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const cloudAgentProviderEntriesAll = buildStaticProviderEntries("cloud-agent", getProviderStats);
@@ -637,7 +653,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const upstreamProxyEntriesAll = buildStaticProviderEntries("upstream-proxy", getProviderStats);
@@ -647,7 +664,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const compatibleProviderEntriesAll = [
@@ -679,7 +697,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const staticProviderEntriesAll = dedupeProviderEntries([
@@ -704,7 +723,8 @@ export default function ProvidersPage() {
     searchQuery,
     undefined,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   // IDE providers: subset of oauth/apikey providers that are editors/IDEs with
@@ -719,7 +739,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const oauthOnlyEntriesAll = oauthProviderEntriesAll
@@ -739,7 +760,8 @@ export default function ProvidersPage() {
     searchQuery,
     showFreeOnly,
     modelSearchQuery,
-    activeServiceKind
+    activeServiceKind,
+    liveModelsByProviderId
   );
 
   const compactProviderEntries = buildCompactProviderEntriesForPage({
@@ -840,6 +862,7 @@ export default function ProvidersPage() {
         }}
         onDisplayModeChange={setProviderDisplayMode}
         onNewProvider={() => router.push("/dashboard/providers/new")}
+        onImportFromFile={() => setShowImportFromFileModal(true)}
         searchQuery={searchQuery}
         setModelSearchQuery={setModelSearchQuery}
         setSearchQuery={setSearchQuery}
@@ -1762,6 +1785,11 @@ export default function ProvidersPage() {
           }}
         />
       )}
+      <ImportProvidersFromFileModal
+        isOpen={showImportFromFileModal}
+        onClose={() => setShowImportFromFileModal(false)}
+        onImported={async () => setConnections((await loadProviderPageData()).connections)}
+      />
       {/* Test Results Modal */}
       {testResults && (
         <div

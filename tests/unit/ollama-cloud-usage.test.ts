@@ -11,6 +11,28 @@ test("USAGE_SUPPORTED_PROVIDERS includes ollama-cloud", () => {
   );
 });
 
+test("USAGE_FETCHER_PROVIDERS includes ollama-cloud (#7026)", () => {
+  // getUsageForProvider's switch handles `case "ollama-cloud"`, and the array's doc comment
+  // requires it to stay in sync with that switch. If it drifts, registerGenericQuotaFetchers
+  // never registers a preflight quota fetcher for ollama-cloud even though the scraper exists.
+  assert.ok(
+    (usage.USAGE_FETCHER_PROVIDERS as readonly string[]).includes("ollama-cloud"),
+    "ollama-cloud is handled by getUsageForProvider's switch and must be listed in USAGE_FETCHER_PROVIDERS"
+  );
+});
+
+test("registerGenericQuotaFetchers wires a preflight quota fetcher for ollama-cloud (#7026)", async () => {
+  const { registerGenericQuotaFetchers } = await import(
+    "../../open-sse/services/genericQuotaFetcher.ts"
+  );
+  const { getQuotaFetcher } = await import("../../open-sse/services/quotaPreflight.ts");
+  registerGenericQuotaFetchers();
+  assert.ok(
+    getQuotaFetcher("ollama-cloud"),
+    "a generic quota fetcher must be registered for ollama-cloud after registerGenericQuotaFetchers()"
+  );
+});
+
 test("getUsageForProvider returns helpful message when Ollama Cloud has no usage cookie", async () => {
   const originalCookie = process.env.OLLAMA_USAGE_COOKIE;
   const originalOmniCookie = process.env.OMNIROUTE_OLLAMA_USAGE_COOKIE;

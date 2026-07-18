@@ -1,0 +1,1 @@
+- **feat(api):** new **GET /api/usage/model-latency-stats** management endpoint exposes the existing rolling per-provider/model latency aggregate (avg/p50/p95/p99, success rate) already used internally by auto-combo routing — supports `windowHours`/`minSamples`/`maxRows`/`provider`/`model` filters (#6873).
