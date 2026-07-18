@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (chỉ để xác nhận)",
     "providerNotFound": "Không tìm thấy nhà cung cấp",
     "deleteConnectionConfirm": "Xóa kết nối này?",
+    "deleteConnectionConfirmNamed": "Bạn có chắc chắn muốn xóa {name} không? Hành động này không thể hoàn tác.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

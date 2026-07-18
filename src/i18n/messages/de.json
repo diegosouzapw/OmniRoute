@@ -3776,6 +3776,7 @@
     "testKeyPlaceholder": "sk-... (nur zur Validierung)",
     "providerNotFound": "Anbieter nicht gefunden",
     "deleteConnectionConfirm": "Diese Verbindung löschen?",
+    "deleteConnectionConfirmNamed": "Möchten Sie {name} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

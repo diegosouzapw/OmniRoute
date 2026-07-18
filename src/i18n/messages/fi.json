@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (vain vahvistusta varten)",
     "providerNotFound": "Palveluntarjoajaa ei löydy",
     "deleteConnectionConfirm": "Poistetaanko tämä yhteys?",
+    "deleteConnectionConfirmNamed": "Haluatko varmasti poistaa kohteen {name}? Tätä toimintoa ei voi kumota.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

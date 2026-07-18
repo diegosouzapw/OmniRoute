@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (pouze pro ověření)",
     "providerNotFound": "Poskytovatel nenalezen",
     "deleteConnectionConfirm": "Smazat toto připojení?",
+    "deleteConnectionConfirmNamed": "Opravdu chcete smazat {name}? Tuto akci nelze vrátit zpět.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (للتحقق فقط)",
     "providerNotFound": "لم يتم العثور على الموفر",
     "deleteConnectionConfirm": "هل تريد حذف هذا الاتصال؟",
+    "deleteConnectionConfirmNamed": "هل أنت متأكد أنك تريد حذف {name}؟ لا يمكن التراجع عن هذا الإجراء.",
     "batchDeleteSelected": "حذف المحدد ({count})",
     "batchDeleteConfirm": "هل تريد حذف {count} اتصال(ات)؟ لا يمكن التراجع عن هذا الإجراء.",
     "batchDeleteSuccess": "تم حذف {count} اتصال(ات)",

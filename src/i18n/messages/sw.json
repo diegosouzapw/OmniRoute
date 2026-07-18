@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (for validation only)",
     "providerNotFound": "Provider not found",
     "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirmNamed": "Una uhakika unataka kufuta {name}? Kitendo hiki hakiwezi kutenduliwa.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (for validation only)",
     "providerNotFound": "Provider not found",
     "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirmNamed": "શું તમે ખરેખર {name} કાઢી નાખવા માંગો છો? આ ક્રિયા પૂર્વવત્ કરી શકાશે નહીં.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

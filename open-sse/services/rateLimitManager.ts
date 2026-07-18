@@ -24,6 +24,7 @@ import {
   parseResetTime,
   toPlainHeaders,
 } from "./rateLimitManager/headers";
+import { checkQueueAdmission } from "./rateLimitManager/admission";
 
 interface LearnedLimitEntry {
   provider: string;
@@ -546,6 +547,21 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
   const limiter = getLimiter(provider, connectionId, model);
   const maxWaitMs = currentRequestQueueSettings.maxWaitMs;
   const scheduleOpts = maxWaitMs && maxWaitMs > 0 ? { expiration: maxWaitMs } : {};
+
+  // Issue #6593: opt-in admission cap — fast-reject before Bottleneck's
+  // schedule() (and before any downstream compression/prompt work runs) when
+  // the queue is already at/over maxQueueDepth. Default 0 = disabled.
+  const admissionErr = checkQueueAdmission(
+    limiter.counts().QUEUED,
+    currentRequestQueueSettings.maxQueueDepth,
+    model ? `${provider}/${model}` : provider
+  );
+  if (admissionErr) {
+    logRateLimit(
+      `🚧 [RATE-LIMIT] ${getLimiterKey(provider, connectionId, model)} — queue full, rejecting fast (maxQueueDepth=${currentRequestQueueSettings.maxQueueDepth})`
+    );
+    throw admissionErr;
+  }
 
   try {
     if (signal) {

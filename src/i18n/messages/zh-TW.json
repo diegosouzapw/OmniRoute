@@ -4124,6 +4124,7 @@
     "testKeyPlaceholder": "sk-...（僅用於驗證）",
     "providerNotFound": "未找到提供商",
     "deleteConnectionConfirm": "刪除這個連線嗎？",
+    "deleteConnectionConfirmNamed": "確定要刪除{name}嗎？此操作無法復原。",
     "batchDeleteSelected": "刪除選中（{count}）",
     "batchDeleteConfirm": "刪除 {count} 個連線？此操作無法撤銷。",
     "batchDeleteSuccess": "已刪除 {count} 個連線",

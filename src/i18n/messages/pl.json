@@ -4092,6 +4092,7 @@
     "testKeyPlaceholder": "sk-... (tylko do sprawdzenia)",
     "providerNotFound": "Nie znaleziono dostawcy",
     "deleteConnectionConfirm": "Usunąć to połączenie?",
+    "deleteConnectionConfirmNamed": "Czy na pewno chcesz usunąć {name}? Tej czynności nie można cofnąć.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

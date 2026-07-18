@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (yalnızca doğrulama için)",
     "providerNotFound": "Sağlayıcı bulunamadı",
     "deleteConnectionConfirm": "Bu bağlantı silinsin mi?",
+    "deleteConnectionConfirmNamed": "{name} öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

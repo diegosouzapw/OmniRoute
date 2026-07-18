@@ -4009,6 +4009,7 @@
     "testKeyPlaceholder": "sk-...（仅用于验证）",
     "providerNotFound": "未找到提供商",
     "deleteConnectionConfirm": "删除这个连接吗？",
+    "deleteConnectionConfirmNamed": "确定要删除{name}吗？此操作无法撤销。",
     "batchDeleteSelected": "删除选中（{count}）",
     "batchDeleteConfirm": "删除 {count} 个连接？此操作无法撤销。",
     "batchDeleteSuccess": "已删除 {count} 个连接",

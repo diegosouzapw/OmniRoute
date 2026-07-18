@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (csak érvényesítés céljából)",
     "providerNotFound": "Szolgáltató nem található",
     "deleteConnectionConfirm": "Törli ezt a kapcsolatot?",
+    "deleteConnectionConfirmNamed": "Biztosan törli a következőt: {name}? Ez a művelet nem vonható vissza.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",
