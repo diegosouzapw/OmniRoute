@@ -22,6 +22,7 @@ import {
   pollComfyResult,
   fetchComfyOutput,
   extractComfyOutputFiles,
+  resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { getKieCallbackUrl, isJsonObject, parseKieResultJson } from "../utils/kieTask.ts";
@@ -119,7 +120,16 @@ export async function handleMusicGeneration({ body, credentials, log }) {
   }
 
   if (providerConfig.format === "comfyui") {
-    return handleComfyUIMusicGeneration({ model, provider, providerConfig, body, log });
+    return handleComfyUIMusicGeneration({
+      model,
+      provider,
+      providerConfig: {
+        ...providerConfig,
+        baseUrl: resolveComfyUiBaseUrl(credentials, providerConfig.baseUrl),
+      },
+      body,
+      log,
+    });
   }
 
   if (providerConfig.format === "kie-music") {

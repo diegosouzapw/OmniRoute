@@ -317,6 +317,22 @@ function hasGeminiCandidateStreamValue(parsed: Record<string, unknown>): boolean
   });
 }
 
+// Issue #7285: an OpenAI-shape SSE stream that closes without ever emitting a
+// chunk carrying `finish_reason` (and without a `data: [DONE]` sentinel) is a
+// truncated response — combo failover needs to detect that shape independently
+// of `hasOpenAICompatibleStreamValue()` (which only looks for *content*, not
+// the terminal marker). Kept alongside the other shape-detection helpers so
+// callers can distinguish "OpenAI-shape chunk seen" from "OpenAI-shape stream
+// reached its terminal marker".
+export function isOpenAIChoicesPayload(parsed: Record<string, unknown>): boolean {
+  return Array.isArray(parsed.choices);
+}
+
+export function hasOpenAIFinishReason(parsed: Record<string, unknown>): boolean {
+  if (!Array.isArray(parsed.choices)) return false;
+  return parsed.choices.some((choice) => isRecord(choice) && choice.finish_reason != null);
+}
+
 export function isKnownNonClaudeStreamPayload(
   parsed: Record<string, unknown>,
   eventType = ""

@@ -1,0 +1,1 @@
+- fix(build): align `engines.node` supported range (>=22.22.2 <23 || >=24.0.0 <27) across package.json, lockfile, README engine references and the node-runtime support test, so install-time engine checks match the actually-tested runtimes (#7446)

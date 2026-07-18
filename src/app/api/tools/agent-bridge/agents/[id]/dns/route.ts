@@ -13,10 +13,10 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { ALL_TARGETS } from "@/mitm/targets/index";
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 export async function POST(request: Request, { params }: Params): Promise<Response> {
-  const { id } = params;
+  const { id } = await params;
 
   let body: unknown;
   try {

@@ -23,6 +23,7 @@ export const PROVIDER_ENDPOINTS = {
   sumopod: "https://ai.sumopod.com/v1/chat/completions",
   x5lab: "https://api.x5lab.dev/v1/chat/completions",
   kenari: "https://kenari.id/v1/chat/completions",
+  chenzk: "https://chenzk.top/v1/chat/completions",
   openai: "https://api.openai.com/v1/chat/completions",
   anthropic: "https://api.anthropic.com/v1/messages",
   gemini: "https://generativelanguage.googleapis.com/v1beta/models",

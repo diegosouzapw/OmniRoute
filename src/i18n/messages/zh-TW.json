@@ -2326,7 +2326,17 @@
     "copilotToolCalling": "工具呼叫",
     "copilotPasteInto": "貼上到：",
     "wireApiChatCompletions": "聊天完成 (/chat/completions)",
-    "wireApiResponses": "響應 API (/responses)"
+    "wireApiResponses": "響應 API (/responses)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "組合",
@@ -2847,6 +2857,8 @@
     "range7d": "7 天",
     "range30d": "30 天",
     "range90d": "90 天",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "全部時間",
     "spend30d": "30 天支出",
     "activeModels": "活躍 Model",
@@ -3978,6 +3990,9 @@
     "apiKeyProviders": "API 金鑰提供商",
     "compatibleProviders": "API 金鑰相容提供商",
     "testAll": "測試全部",
+    "reorderByAvailability": "重新排序",
+    "reorderByAvailabilityTitle": "依可用性重新排序連線",
+    "reorderByAvailabilityError": "依可用性重新排序連線失敗",
     "distributeProxies": "分配代理",
     "distributing": "分配中...",
     "selectedCount": "已選 {count} 個",
@@ -4109,6 +4124,7 @@
     "testKeyPlaceholder": "sk-...（僅用於驗證）",
     "providerNotFound": "未找到提供商",
     "deleteConnectionConfirm": "刪除這個連線嗎？",
+    "deleteConnectionConfirmNamed": "確定要刪除{name}嗎？此操作無法復原。",
     "batchDeleteSelected": "刪除選中（{count}）",
     "batchDeleteConfirm": "刪除 {count} 個連線？此操作無法撤銷。",
     "batchDeleteSuccess": "已刪除 {count} 個連線",
@@ -4586,6 +4602,9 @@
     "consoleApiKeyOracleHint": "用於從 Console 獲取或驗證 API key 的輔助配置。",
     "consoleApiKeyOracleLabel": "Console API key Oracle",
     "consoleApiKeyOraclePlaceholder": "Console API key Oracle 佔位符",
+    "newApiUserIdLabel": "New-API 使用者 ID",
+    "newApiUserIdPlaceholder": "例如 12345",
+    "newApiUserIdHint": "AgentRouter 的 New-Api-User 標頭值，與控制台 API key 一起用於取得配額餘額。",
     "cpaModeDisabledTitle": "CLIProxyAPI 相容模式已關閉",
     "cpaModeEnabledTitle": "CLIProxyAPI 相容模式已開啟",
     "customUserAgentHint": "傳送給上游 Provider 的自定義 User-Agent。",
@@ -4855,7 +4874,9 @@
     "doubaoWebDesc": "通過 dola.com 訪問字節跳動 AI 聊天",
     "overrideBaseUrlAdvanced": "__MISSING__:Advanced: override base URL",
     "overrideBaseUrlHint": "__MISSING__:Advanced: point this built-in provider at a custom endpoint. Leave blank to use the default.",
-    "bulkAddFormatHintCloudflare": "__MISSING__:One key per line. Format: name|accountId|apiKey (Cloudflare account ID + API token)."
+    "bulkAddFormatHintCloudflare": "__MISSING__:One key per line. Format: name|accountId|apiKey (Cloudflare account ID + API token).",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "設定",
@@ -6158,7 +6179,12 @@
     "modelLockoutMaxBackoffSteps": "__MISSING__:Max Backoff Steps",
     "modelLockoutMaxBackoffStepsDescription": "__MISSING__:Maximum number of backoff steps before the cooldown stops growing. The Max Cooldown cap is reached first in most configurations, making this a safety ceiling for when Max Cooldown is raised.",
     "disableSessionStickiness": "__MISSING__:Disable session stickiness",
-    "disableSessionStickinessDesc": "__MISSING__:Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence."
+    "disableSessionStickinessDesc": "__MISSING__:Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence.",
+    "codexAutoPingTitle": "Codex Quota Auto-Ping",
+    "codexAutoPingDesc": "Opt-in per connection: sends a tiny request right after a Codex session window resets so it isn't cold when you need it.",
+    "codexAutoPingWarning": "Consumes a small amount of real Codex quota on every ping. Off by default — enable only for connections you actively rely on.",
+    "codexAutoPingSaveError": "Failed to update Codex Auto-Ping setting",
+    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}"
   },
   "contextRtk": {
     "title": "RTK 引擎",
@@ -9047,7 +9073,14 @@
     "configuredOnly": "__MISSING__:Configured Only",
     "configuredOnlyHint": "__MISSING__:Show only providers with active connections",
     "noConfiguredProviders": "__MISSING__:No configured providers found. Add a provider connection first.",
-    "colConfigured": "__MISSING__:Status"
+    "colConfigured": "__MISSING__:Status",
+    "typeAll": "__MISSING__:All Types",
+    "typeNoauth": "__MISSING__:No Signup",
+    "typeOauth": "__MISSING__:OAuth Login",
+    "typeApikey": "__MISSING__:API Key",
+    "sortTypeFirst": "__MISSING__:Easiest first",
+    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   },
   "discovery": {
     "title": "__MISSING__:Provider Discovery",
