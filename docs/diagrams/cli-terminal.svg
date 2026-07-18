@@ -1,0 +1,120 @@
+<svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated terminal demoing the OmniRoute CLI: omniroute providers list, omniroute combo list and omniroute health, cycling over the 80+ command surface: providers, oauth, keys, combo, nodes, models, cache, compression, cost, usage, quota, health, resilience, telemetry, logs, audit, mcp, a2a, cloud, memory, skills, eval, tunnel, backup, sync, webhooks, policy, pricing, translator, simulate and more.">
+  <defs>
+    <clipPath id="tickerClipM"><rect x="16" y="648" width="1168" height="40"/></clipPath>
+    <clipPath id="twMA"><rect x="72" y="104" height="32" width="0">
+      <animate attributeName="width" calcMode="discrete" values="0;36;72;108;144;180;216;252;288;288" keyTimes="0;0.014;0.021;0.028;0.035;0.042;0.049;0.056;0.063;1" dur="18s" repeatCount="indefinite"/>
+    </rect></clipPath>
+    <clipPath id="twMB"><rect x="72" y="104" height="32" width="0">
+      <animate attributeName="width" calcMode="discrete" values="0;36;72;108;144;180;216;240;240" keyTimes="0;0.348;0.355;0.362;0.369;0.376;0.383;0.390;1" dur="18s" repeatCount="indefinite"/>
+    </rect></clipPath>
+    <clipPath id="twMC"><rect x="72" y="104" height="32" width="0">
+      <animate attributeName="width" calcMode="discrete" values="0;36;72;108;144;180;192;192" keyTimes="0;0.654;0.661;0.668;0.675;0.682;0.689;1" dur="18s" repeatCount="indefinite"/>
+    </rect></clipPath>
+  </defs>
+
+  <!-- ═══ Window ═══ -->
+  <rect x="8" y="8" width="1184" height="684" rx="16" fill="#0d1117" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
+  <path d="M 24 8 h 1152 a 16 16 0 0 1 16 16 v 32 h -1184 v -32 a 16 16 0 0 1 16 -16 z" fill="#161b22"/>
+  <path d="M 8 56 L 1192 56" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <circle cx="46" cy="32" r="8" fill="#ff5f56"/>
+  <circle cx="76" cy="32" r="8" fill="#ffbd2e"/>
+  <circle cx="106" cy="32" r="8" fill="#27c93f"/>
+  <text x="600" y="38" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="15" fill="#71717a">omniroute &#8212; 80+ commands</text>
+
+  <!-- ═══ Screen A · omniroute providers list ═══ -->
+  <g>
+    <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.315;0.33;1" dur="18s" repeatCount="indefinite"/>
+    <text x="40" y="128" font-family="Consolas, 'Courier New', monospace" font-size="20" fill="#22c55e">$</text>
+    <g clip-path="url(#twMA)">
+      <text x="72" y="128" font-family="Consolas, 'Courier New', monospace" font-size="20" fill="#F7F6FC">omniroute providers list</text>
+    </g>
+    <rect y="108" width="10" height="26" fill="#a1a1aa">
+      <animate attributeName="x" calcMode="discrete" values="72;108;144;180;216;252;288;324;360;360" keyTimes="0;0.014;0.021;0.028;0.035;0.042;0.049;0.056;0.063;1" dur="18s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.15;1;0.15;1;0.15;1;0.15;1;0;0" keyTimes="0;0.011;0.022;0.033;0.044;0.055;0.066;0.077;0.085;0.09;1" dur="18s" repeatCount="indefinite"/>
+    </rect>
+    <g font-family="Consolas, 'Courier New', monospace" font-size="20">
+      <text x="40" y="192" font-weight="700" fill="#38bdf8" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.075" dur="18s" repeatCount="indefinite"/>OmniRoute Providers</text>
+      <text x="40" y="234" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.083" dur="18s" repeatCount="indefinite"/>1f3a9c2e&#160;&#160;anthropic&#160;&#160;&#160;Claude Max 20x&#160;&#160;&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+      <text x="40" y="276" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.090" dur="18s" repeatCount="indefinite"/>8c2d5b1a&#160;&#160;codex&#160;&#160;&#160;&#160;&#160;&#160;&#160;Codex Pro (team)&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+      <text x="40" y="318" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.097" dur="18s" repeatCount="indefinite"/>f4e0a97b&#160;&#160;glm&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;GLM Coding Plan&#160;&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+      <text x="40" y="360" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.104" dur="18s" repeatCount="indefinite"/>03bd6e5f&#160;&#160;kimi&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Kimi K2 free&#160;&#160;&#160;&#160;&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+      <text x="40" y="402" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.111" dur="18s" repeatCount="indefinite"/>9d4e1a08&#160;&#160;gemini-cli&#160;&#160;Gemini 2.5 Pro&#160;&#160;&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+      <text x="40" y="444" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.118" dur="18s" repeatCount="indefinite"/>b7c3f26d&#160;&#160;copilot&#160;&#160;&#160;&#160;&#160;GPT-5 (Copilot)&#160;&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+      <text x="40" y="486" fill="#71717a" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.125" dur="18s" repeatCount="indefinite"/>&#8230; 253 more connections</text>
+    </g>
+  </g>
+
+  <!-- ═══ Screen B · omniroute combo list ═══ -->
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.333;0.345;0.62;0.635;1" dur="18s" repeatCount="indefinite"/>
+    <text x="40" y="128" font-family="Consolas, 'Courier New', monospace" font-size="20" fill="#22c55e">$</text>
+    <g clip-path="url(#twMB)">
+      <text x="72" y="128" font-family="Consolas, 'Courier New', monospace" font-size="20" fill="#F7F6FC">omniroute combo list</text>
+    </g>
+    <rect y="108" width="10" height="26" fill="#a1a1aa">
+      <animate attributeName="x" calcMode="discrete" values="72;108;144;180;216;252;288;312;312" keyTimes="0;0.348;0.355;0.362;0.369;0.376;0.383;0.390;1" dur="18s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;0;1;0.15;1;0.15;1;0.15;1;0;0" keyTimes="0;0.345;0.352;0.362;0.372;0.382;0.392;0.402;0.41;0.42;1" dur="18s" repeatCount="indefinite"/>
+    </rect>
+    <g font-family="Consolas, 'Courier New', monospace" font-size="20">
+      <text x="40" y="192" font-weight="700" fill="#38bdf8" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.402;0.404" dur="18s" repeatCount="indefinite"/>OmniRoute Combos</text>
+      <text x="40" y="234" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.412;0.414" dur="18s" repeatCount="indefinite"/>&#160;&#160;<tspan fill="#22c55e">&#9679;</tspan> always-on&#160;&#160;&#160;&#160;&#160;[priority&#160;&#160;&#160;&#160;&#160;&#160;] <tspan fill="#22c55e">enabled</tspan></text>
+      <text x="40" y="276" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.419;0.421" dur="18s" repeatCount="indefinite"/>&#160;&#160;<tspan fill="#71717a">&#9675;</tspan> cost-saver&#160;&#160;&#160;&#160;[cost-optimized] <tspan fill="#22c55e">enabled</tspan></text>
+      <text x="40" y="318" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.426;0.428" dur="18s" repeatCount="indefinite"/>&#160;&#160;<tspan fill="#71717a">&#9675;</tspan> fusion-panel&#160;&#160;[fusion&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;] <tspan fill="#22c55e">enabled</tspan></text>
+      <text x="40" y="360" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.433;0.435" dur="18s" repeatCount="indefinite"/>&#160;&#160;<tspan fill="#71717a">&#9675;</tspan> context-relay&#160;[context-relay&#160;] <tspan fill="#22c55e">enabled</tspan></text>
+    </g>
+  </g>
+
+  <!-- ═══ Screen C · omniroute health ═══ -->
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.639;0.651;0.93;0.945;1" dur="18s" repeatCount="indefinite"/>
+    <text x="40" y="128" font-family="Consolas, 'Courier New', monospace" font-size="20" fill="#22c55e">$</text>
+    <g clip-path="url(#twMC)">
+      <text x="72" y="128" font-family="Consolas, 'Courier New', monospace" font-size="20" fill="#F7F6FC">omniroute health</text>
+    </g>
+    <rect y="108" width="10" height="26" fill="#a1a1aa">
+      <animate attributeName="x" calcMode="discrete" values="72;108;144;180;216;252;264;264" keyTimes="0;0.654;0.661;0.668;0.675;0.682;0.689;1" dur="18s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;0;1;0.15;1;0.15;1;0;0" keyTimes="0;0.651;0.658;0.668;0.678;0.688;0.694;0.70;1" dur="18s" repeatCount="indefinite"/>
+    </rect>
+    <g font-family="Consolas, 'Courier New', monospace" font-size="20">
+      <text x="40" y="192" font-weight="700" fill="#38bdf8" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.694;0.696" dur="18s" repeatCount="indefinite"/>OmniRoute Health</text>
+      <text x="40" y="234" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.702;0.704" dur="18s" repeatCount="indefinite"/>&#160;&#160;Status: <tspan fill="#22c55e">healthy</tspan></text>
+      <text x="40" y="276" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.709;0.711" dur="18s" repeatCount="indefinite"/>&#160;&#160;Uptime: 4d 12h 33m</text>
+      <text x="40" y="318" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.716;0.718" dur="18s" repeatCount="indefinite"/>&#160;&#160;Requests (24h): 18,412</text>
+      <text x="40" y="378" font-weight="700" fill="#F7F6FC" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.728;0.730" dur="18s" repeatCount="indefinite"/>&#160;&#160;Circuit Breakers</text>
+      <text x="40" y="420" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.735;0.737" dur="18s" repeatCount="indefinite"/>&#160;&#160;&#160;&#160;<tspan fill="#22c55e">&#9679; closed</tspan>&#160;&#160;&#160;&#160;&#160;24</text>
+      <text x="40" y="462" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.742;0.744" dur="18s" repeatCount="indefinite"/>&#160;&#160;&#160;&#160;<tspan fill="#f59e0b">&#9675; half-open</tspan>&#160;&#160;1</text>
+      <text x="40" y="504" fill="#a1a1aa" opacity="0">
+        <animate attributeName="opacity" calcMode="discrete" values="0;0;1" keyTimes="0;0.749;0.751" dur="18s" repeatCount="indefinite"/>&#160;&#160;&#160;&#160;<tspan fill="#ef4444">&#9675; open</tspan>&#160;&#160;&#160;&#160;&#160;&#160;&#160;0</text>
+    </g>
+  </g>
+
+  <!-- ═══ Command ticker (the 30 subcommands, scrolling) ═══ -->
+  <path d="M 8 636 L 1192 636" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <g clip-path="url(#tickerClipM)">
+    <g font-family="Consolas, 'Courier New', monospace" font-size="15" fill="#71717a">
+      <animateTransform attributeName="transform" type="translate" from="0 0" to="-2570 0" dur="60s" repeatCount="indefinite"/>
+      <text x="24" y="674"><tspan fill="#8b5cf6">providers</tspan> &#183; oauth &#183; keys &#183; <tspan fill="#8b5cf6">combo</tspan> &#183; nodes &#183; models &#183; cache &#183; <tspan fill="#8b5cf6">compression</tspan> &#183; cost &#183; usage &#183; quota &#183; <tspan fill="#8b5cf6">health</tspan> &#183; resilience &#183; telemetry &#183; logs &#183; audit &#183; <tspan fill="#8b5cf6">mcp</tspan> &#183; a2a &#183; cloud &#183; <tspan fill="#8b5cf6">memory</tspan> &#183; skills &#183; eval &#183; tunnel &#183; backup &#183; sync &#183; webhooks &#183; policy &#183; pricing &#183; translator &#183; simulate &#8230;</text>
+      <text x="2594" y="674"><tspan fill="#8b5cf6">providers</tspan> &#183; oauth &#183; keys &#183; <tspan fill="#8b5cf6">combo</tspan> &#183; nodes &#183; models &#183; cache &#183; <tspan fill="#8b5cf6">compression</tspan> &#183; cost &#183; usage &#183; quota &#183; <tspan fill="#8b5cf6">health</tspan> &#183; resilience &#183; telemetry &#183; logs &#183; audit &#183; <tspan fill="#8b5cf6">mcp</tspan> &#183; a2a &#183; cloud &#183; <tspan fill="#8b5cf6">memory</tspan> &#183; skills &#183; eval &#183; tunnel &#183; backup &#183; sync &#183; webhooks &#183; policy &#183; pricing &#183; translator &#183; simulate &#8230;</text>
+    </g>
+  </g>
+</svg>

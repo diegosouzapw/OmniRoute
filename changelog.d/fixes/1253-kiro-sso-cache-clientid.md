@@ -1,0 +1,1 @@
+- **fix(oauth):** resolve Kiro AWS SSO cache client credentials by matching the token's own `clientId` (including tokens with a direct `clientId` field instead of `clientIdHash`) instead of a region/latest-expiry guess, fixing spurious "Bad credentials" on refresh when multiple stale SSO client registrations are cached (thanks @XCrag).
