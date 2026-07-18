@@ -3,8 +3,8 @@ import {
   parseSSEToResponsesOutput,
   parseSSEToClaudeResponse,
   parseSSEToOpenAIResponse,
-  parseSSEToGeminiResponse,
 } from "../sseParser.ts";
+import { parseSSEToGeminiResponse } from "../sseParser/geminiResponse.ts";
 import { getHeaderValueCaseInsensitive } from "./headers.ts";
 
 export function parseNonStreamingSSEPayload(

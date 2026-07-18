@@ -952,8 +952,8 @@ export class AntigravityExecutor extends BaseExecutor {
    * OpenAI-format chat.completion payload.
    *
    * @deprecated Use the non-streaming SSE path in chatCore instead, which calls
-   * parseSSEToGeminiResponse() from sseParser.ts.  This method is retained only
-   * for backward compatibility and may be removed in a future release.
+   * parseSSEToGeminiResponse() from sseParser/geminiResponse.ts.  This method is
+   * retained only for backward compatibility and may be removed in a future release.
    */
   collectStreamToResponse(
     response: Response,

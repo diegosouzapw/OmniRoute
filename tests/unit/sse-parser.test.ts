@@ -1,12 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const {
-  parseSSEToOpenAIResponse,
-  parseSSEToClaudeResponse,
-  parseSSEToResponsesOutput,
-  parseSSEToGeminiResponse,
-} = await import("../../open-sse/handlers/sseParser.ts");
+const { parseSSEToOpenAIResponse, parseSSEToClaudeResponse, parseSSEToResponsesOutput } =
+  await import("../../open-sse/handlers/sseParser.ts");
+const { parseSSEToGeminiResponse } =
+  await import("../../open-sse/handlers/sseParser/geminiResponse.ts");
 
 test("parseSSEToOpenAIResponse parses a single SSE event with a done marker", () => {
   const rawSSE = [
