@@ -149,7 +149,7 @@ test("AntigravityExecutor.transformRequest normalizes model, project and content
   assert.equal(generationConfig.topK, 40);
   assert.equal(generationConfig.topP, 1.0);
   assert.deepEqual(result.request.toolConfig, {
-    functionCallingConfig: { mode: "VALIDATED" },
+    functionCallingConfig: { mode: "VALIDATED", includeServerSideToolInvocations: true },
   });
   assert.deepEqual(result.request.contents[0].parts, [{ text: "keep me" }]);
   assert.equal(result.request.contents[1].role, "user");

@@ -48,6 +48,12 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       );
       console.log("[DB] Added provider_connections.per_key_proxy_enabled column");
     }
+    if (!columnNames.has("quota_visible")) {
+      db.exec(
+        "ALTER TABLE provider_connections ADD COLUMN quota_visible INTEGER NOT NULL DEFAULT 1"
+      );
+      console.log("[DB] Added provider_connections.quota_visible column");
+    }
     if (!columnNames.has("quota_window_thresholds_json")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN quota_window_thresholds_json TEXT");
       console.log("[DB] Added provider_connections.quota_window_thresholds_json column");

@@ -340,29 +340,10 @@ export function isGlmProvider(providerId?: string | null) {
 // Routing-tags / excluded-models parse + format
 // ---------------------------------------------------------------------------
 
-export function parseRoutingTagsInput(value: string): string[] | undefined {
-  const tags = Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((tag) => tag.trim().toLowerCase())
-        .filter(Boolean)
-    )
-  );
-  return tags.length > 0 ? tags : undefined;
-}
 
-export function parseExcludedModelsInput(value: string): string[] | undefined {
-  const patterns = Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((pattern) => pattern.trim())
-        .filter(Boolean)
-    )
-  );
-  return patterns.length > 0 ? patterns : undefined;
-}
+// parseRoutingTagsInput / parseExcludedModelsInput moved to the pure leaf
+// providerInputParsers.ts (kept re-exported here for existing UI importers).
+export { parseExcludedModelsInput, parseRoutingTagsInput } from "./providerInputParsers";
 
 export function formatRoutingTagsInput(value: unknown): string {
   if (!Array.isArray(value)) return "";

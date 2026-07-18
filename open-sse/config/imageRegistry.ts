@@ -9,11 +9,16 @@ import { LMARENA_DIRECT_IMAGE_MODELS } from "./providers/registry/lmarena/direct
 import { SEGMIND_IMAGE_PROVIDER } from "./providers/registry/segmind/imageModels.ts";
 import { KIE_IMAGE_MODELS } from "./providers/registry/kie/imageModels.ts";
 import { FREEPIK_IMAGE_PROVIDER } from "./providers/registry/freepik/index.ts";
+import { STABILITY_AI_IMAGE_MODELS } from "./providers/registry/stability-ai/imageModels.ts";
+import { GEMINI_IMAGEN_PROVIDER } from "./providers/registry/gemini/imageModels.ts";
 
 interface ImageModelEntry {
   id: string;
   name: string;
   inputModalities?: string[];
+  // See STABILITY_AI_IMAGE_MODELS for why this exists: some models accept "text"
+  // but mechanically require an image regardless.
+  imageRequired?: boolean;
   description?: string;
   isMarket?: boolean;
 }
@@ -38,6 +43,7 @@ interface ImageModelAliasEntry {
   name: string;
   listInCatalog: boolean;
   inputModalities?: string[];
+  imageRequired?: boolean;
   description?: string;
 }
 
@@ -124,6 +130,13 @@ function findImageModelConfig(providerId, modelId) {
   const provider = IMAGE_PROVIDERS[providerId];
   if (!provider) return null;
   return provider.models.find((model) => model.id === modelId) || null;
+}
+
+// Kept out of getImageModelEntry() (which sits at the complexity-ratchet cap) — an
+// alias can override imageRequired directly, else it falls back to its target
+// model's own flag. Consumers coerce the result with Boolean(), so no `?? false`.
+function resolveAliasImageRequired(alias, modelConfig) {
+  return alias.imageRequired ?? modelConfig?.imageRequired;
 }
 
 export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
@@ -279,6 +292,10 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     models: [{ id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" }],
     supportedSizes: ["1024x1024"],
   },
+
+  // Google AI Studio Imagen family — dedicated :predict endpoint, not generateContent.
+  // See providers/registry/gemini/imageModels.ts for the full rationale.
+  gemini: GEMINI_IMAGEN_PROVIDER,
 
   //Curruntly no models serving
   nebius: {
@@ -472,32 +489,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "stability-ai",
-    models: [
-      { id: "stable-image-ultra", name: "Stable Image Ultra" },
-      { id: "stable-image-core", name: "Stable Image Core" },
-      { id: "sd3.5-large-turbo", name: "sd3.5-large-turbo" },
-      { id: "sd3.5-large", name: "sd3.5-large" },
-      { id: "sd3.5-medium", name: "sd3.5-medium" },
-      { id: "sd3.5-flash", name: "sd3.5-flash" },
-      { id: "erase", name: "Erase", inputModalities: ["image"] },
-      { id: "inpaint", name: "Inpaint", inputModalities: ["text", "image"] },
-      { id: "outpaint", name: "Outpaint", inputModalities: ["text", "image"] },
-      { id: "remove-background", name: "Remove Background", inputModalities: ["image"] },
-      { id: "search-and-replace", name: "Search and Replace", inputModalities: ["text", "image"] },
-      { id: "search-and-recolor", name: "Search and Recolor", inputModalities: ["text", "image"] },
-      {
-        id: "replace-background-and-relight",
-        name: "Replace Background and Relight",
-        inputModalities: ["text", "image"],
-      },
-      { id: "creative", name: "Creative Upscale", inputModalities: ["text", "image"] },
-      { id: "fast", name: "Fast Upscale", inputModalities: ["image"] },
-      { id: "conservative", name: "Conservative Upscale", inputModalities: ["image"] },
-      { id: "sketch", name: "Sketch Control", inputModalities: ["text", "image"] },
-      { id: "structure", name: "Structure Control", inputModalities: ["text", "image"] },
-      { id: "style", name: "Style Control", inputModalities: ["text", "image"] },
-      { id: "style-transfer", name: "Style Transfer", inputModalities: ["text", "image"] },
-    ],
+    models: STABILITY_AI_IMAGE_MODELS,
     supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
   },
 
@@ -620,7 +612,9 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
   // beyond this seed list.
   huggingface: {
     id: "huggingface",
-    baseUrl: "https://api-inference.huggingface.co/models",
+    // HF retired api-inference.huggingface.co; text-to-image now routes through
+    // router.huggingface.co with the hf-inference provider pinned in the path.
+    baseUrl: "https://router.huggingface.co/hf-inference/models",
     authType: "apikey",
     authHeader: "bearer",
     format: "huggingface-image",
@@ -766,6 +760,7 @@ export function getImageModelEntry(modelStr) {
       provider: alias.provider,
       model: alias.model,
       inputModalities: alias.inputModalities || modelConfig?.inputModalities || ["text"],
+      imageRequired: resolveAliasImageRequired(alias, modelConfig),
       description: alias.description || modelConfig?.description || undefined,
     };
   }
@@ -780,6 +775,18 @@ export function getImageModelEntry(modelStr) {
     provider,
     model,
     inputModalities: modelConfig.inputModalities || ["text"],
+    imageRequired: modelConfig.imageRequired,
     description: modelConfig.description || undefined,
   };
+}
+
+/**
+ * An image input is only MANDATORY for edit-only models — those whose modalities
+ * are `["image"]` with no `"text"`. Models listing both `["text", "image"]` accept
+ * an image but can also run pure text-to-image, so they must NOT be gated on an
+ * image input (that gate previously blocked 41 dual-modality t2i models).
+ */
+export function modalitiesRequireImageInput(inputModalities) {
+  const list = Array.isArray(inputModalities) ? inputModalities : ["text"];
+  return list.includes("image") && !list.includes("text");
 }

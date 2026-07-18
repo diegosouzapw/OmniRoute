@@ -144,6 +144,59 @@ async function ensureSecrets(): Promise<void> {
   }
 }
 
+/**
+ * Warm the model catalog's durable, apiKey-independent sub-caches at startup
+ * so real /v1/models traffic (any client, any API key) avoids paying their
+ * cold-build cost on first use. Fire-and-forget from the caller, non-fatal.
+ *
+ * getUnifiedModelsResponse()'s own top-level Response cache (`catalogCache`
+ * in catalog.ts) is keyed by prefix/isCodex/apiKey AND has only a 1.5s TTL
+ * (CATALOG_CACHE_TTL_MS — a burst-dedup window added for #6408 to coalesce
+ * concurrent SDK/dashboard requests, not a startup-warm cache). Warming that
+ * cache with an unauthenticated dummy request has essentially no lasting
+ * effect: real traffic almost never arrives within 1.5s of this warmup
+ * completing, regardless of whether its cache key happens to match a real
+ * client's apiKey. The one genuinely durable, apiKey-independent cost in the
+ * catalog build is getOpenRouterCatalog()'s 24h disk-cached network fetch
+ * (src/lib/catalog/openrouterCatalog.ts) — buildUnifiedModelsResponseCore()
+ * calls it unconditionally whenever an OpenRouter connection is configured,
+ * decoupled from the per-key Response cache entirely, so warming it directly
+ * here benefits every subsequent /v1/models request regardless of that
+ * request's own apiKey. Only fetched when an OpenRouter connection actually
+ * exists, so deployments that never use OpenRouter don't pay an unconditional
+ * third-party network call at every boot.
+ *
+ * Exported (rather than left inline in registerNodejs()) so it can be unit
+ * tested directly without exercising the rest of the startup sequence.
+ */
+export async function warmModelCatalogCache(): Promise<void> {
+  try {
+    const { getUnifiedModelsResponse } = await import("@/app/api/v1/models/catalog");
+    await getUnifiedModelsResponse(new Request("http://127.0.0.1/v1/models"));
+    console.log("[STARTUP] Model catalog cache warmed");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Model catalog warmup failed (non-fatal):", msg);
+  }
+  try {
+    const [{ getProviderConnections }, { getOpenRouterCatalog }] = await Promise.all([
+      import("@/lib/db/providers"),
+      import("@/lib/catalog/openrouterCatalog"),
+    ]);
+    const openrouterConnections = await getProviderConnections({
+      provider: "openrouter",
+      isActive: true,
+    });
+    if (openrouterConnections.length > 0) {
+      await getOpenRouterCatalog();
+      console.log("[STARTUP] OpenRouter model catalog cache warmed");
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] OpenRouter catalog warmup failed (non-fatal):", msg);
+  }
+}
+
 export async function registerNodejs(): Promise<void> {
   // Rename the process title so OmniRoute is identifiable in ps/htop instead
   // of the generic "next-server" standalone server name.
@@ -357,6 +410,11 @@ export async function registerNodejs(): Promise<void> {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[STARTUP] Could not initialize vacuum scheduler (non-fatal):", msg);
   }
+
+  // Warm the model catalog's durable, apiKey-independent sub-caches at
+  // startup — see warmModelCatalogCache() for why the top-level Response
+  // cache alone doesn't deliver this. Fire-and-forget, non-fatal.
+  void warmModelCatalogCache();
 
   if (!isBackgroundServicesDisabled()) {
     try {

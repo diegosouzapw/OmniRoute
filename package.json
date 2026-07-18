@@ -49,7 +49,7 @@
     "open-sse"
   ],
   "engines": {
-    "node": ">=22.0.0 <23 || >=24.0.0 <27"
+    "node": ">=22.22.2 <23 || >=24.0.0 <27"
   },
   "keywords": [
     "ai",
@@ -79,6 +79,11 @@
     "gen:provider-reference": "bun scripts/docs/gen-provider-reference.ts",
     "bench:compression": "bun scripts/compression/benchmark.ts",
     "eval:compression": "node --import tsx scripts/compression-eval/index.ts",
+    "eval:router": "node --import tsx scripts/router-eval/index.ts",
+    "eval:router:compare": "node --import tsx scripts/router-eval/compare.ts",
+    "eval:router:patch-compare": "node --import tsx scripts/router-eval/patch-compare.ts",
+    "eval:router:search": "node --import tsx scripts/router-eval/search.ts",
+    "eval:router:trends": "node --import tsx scripts/router-eval/trends.ts",
     "release:sync-changelog-i18n": "node scripts/release/sync-changelog-i18n.mjs",
     "build": "node scripts/build/build-next-isolated.mjs",
     "build:secure": "OMNIROUTE_BUILD_PROFILE=minimal node scripts/build/build-next-isolated.mjs",
@@ -118,6 +123,7 @@
     "check:docs-counts": "node scripts/check/check-docs-counts-sync.mjs",
     "check:deprecated-versions": "node scripts/check/check-deprecated-versions.mjs",
     "check:compression-budget": "bun scripts/check/check-compression-budget.ts",
+    "check:router-eval": "node --import tsx scripts/check/check-router-eval-regression.ts",
     "check:doc-links": "node scripts/check/check-doc-links.mjs",
     "check:fabricated-docs": "node scripts/check/check-fabricated-docs.mjs --strict",
     "check:docs-all": "npm run check:docs-sync && npm run check:docs-counts && npm run check:env-doc-sync && npm run check:deprecated-versions && npm run check:doc-links && npm run check:fabricated-docs",
@@ -137,6 +143,7 @@
     "check:openapi-security-tiers": "node scripts/check/check-openapi-security-tiers.mjs",
     "check:provider-consistency": "bun scripts/check/check-provider-consistency.ts",
     "check:provider-assets": "node scripts/check/check-provider-assets.mjs",
+    "check:nvidia-catalog-drift": "node --import tsx/esm scripts/check/check-nvidia-catalog-drift.ts",
     "check:fetch-targets": "node scripts/check/check-fetch-targets.mjs",
     "check:openapi-routes": "node scripts/check/check-openapi-routes.mjs",
     "check:api-docs-refs": "node scripts/check/check-api-docs-refs.mjs",
@@ -285,6 +292,7 @@
     "recharts": "^3.8.1",
     "safe-regex": "^2.1.1",
     "selfsigned": "^5.5.0",
+    "smol-toml": "1.6.1",
     "socks": "^2.8.7",
     "sql.js": "^1.14.1",
     "sqlite-vec": "^0.1.9",
