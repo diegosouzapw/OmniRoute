@@ -15,6 +15,10 @@ import {
   getVisibleResponsesReasoningSummaryText,
 } from "./openai-responses/pureHelpers.ts";
 import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
+import {
+  synthesizeCompletedToolCalls,
+  computeFinishReason,
+} from "./openai-responses/synthesizeCompletedToolCalls.ts";
 
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
@@ -620,43 +624,31 @@ function flushEvents(state) {
  * Without it, streamed tool_call deltas are dropped and the agent returns an empty
  * response, even though the underlying tool call is well-formed.
  */
+// Shared by both branches of withAssistantRoleOnFirstDelta below: stamps
+// role: "assistant" onto a single delta object when eligible, returning
+// whether it did so (used to short-circuit the array branch's loop).
+function setAssistantRoleIfEligible(state, delta) {
+  if (delta && typeof delta === "object" && !Array.isArray(delta)) {
+    delta.role = "assistant";
+    state.roleEmitted = true;
+    return true;
+  }
+  return false;
+}
+
 function withAssistantRoleOnFirstDelta(state, result) {
   if (!result || state.roleEmitted) return result;
 
   // Handle arrays of chunks (e.g. synthesized from response.completed output[])
   if (Array.isArray(result)) {
     for (const chunk of result) {
-      const delta = chunk?.choices?.[0]?.delta;
-      if (delta && typeof delta === "object" && !Array.isArray(delta)) {
-        delta.role = "assistant";
-        state.roleEmitted = true;
-        break;
-      }
+      if (setAssistantRoleIfEligible(state, chunk?.choices?.[0]?.delta)) break;
     }
     return result;
   }
 
-  const delta = result.choices?.[0]?.delta;
-  if (delta && typeof delta === "object" && !Array.isArray(delta)) {
-    delta.role = "assistant";
-    state.roleEmitted = true;
-  }
+  setAssistantRoleIfEligible(state, result.choices?.[0]?.delta);
   return result;
-}
-
-/**
- * Resolve the terminal finish_reason for a Responses→Chat stream.
- *
- * `currentToolCallId` is intentionally sticky for the current turn: it is set when a
- * function_call item is announced (`response.output_item.added`) and is only cleared once
- * the matching `response.output_item.done` advances `toolCallIndex`. If the stream ends
- * (flush or `response.completed`) after a tool call was emitted but BEFORE its
- * `output_item.done` arrived, `toolCallIndex` is still 0 while `currentToolCallId` is set.
- * Guarding on it as well lets us still finalize as `tool_calls` instead of `stop`, so
- * OpenAI-compatible clients continue tool-result processing instead of stopping prematurely.
- */
-function computeFinishReason(state): "tool_calls" | "stop" {
-  return (state.toolCallIndex || 0) > 0 || state.currentToolCallId ? "tool_calls" : "stop";
 }
 
 // #5786 — remember that a reasoning delta was streamed for a given reasoning item, so
@@ -1001,134 +993,14 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
       }
     }
 
-    // ---------------------------------------------------------------------------
-    // #fix: Synthesize tool call chunks from response.completed output[] when the
-    // upstream provider sent a batched completed event WITHOUT first emitting the
-    // individual response.output_item.added / .delta / .done events. Without this,
-    // state.toolCallIndex stays 0 and state.currentToolCallId stays null, so
-    // computeFinishReason returns "stop" instead of "tool_calls", breaking the
-    // agent loop for downstream Chat Completions clients.
-    // ---------------------------------------------------------------------------
-    const outputItems = Array.isArray(data.response?.output) ? data.response.output : [];
-    // Filter out function_call items whose call_ids were already tracked via
-    // incremental events (output_item.added → .done). This prevents double-emission
-    // when the provider streams incrementally AND response.completed echoes the same
-    // function_call items in its output[] snapshot.
-    const functionCallItems = outputItems.filter(
-      (item) => item?.type === "function_call" && !state.toolCallIdsSeen?.has(item.call_id)
-    );
-
-    if (functionCallItems.length > 0 && !state.finishReasonSent) {
-      const synthesizedChunks: Record<string, unknown>[] = [];
-
-      for (const fcItem of functionCallItems) {
-        const callId = fcItem.call_id || fallbackToolCallId(state.toolCallIndex);
-        const toolName = normalizeToolName(fcItem.name);
-        const toolSchema = state.toolSchemas?.get(toolName);
-
-        // Set state as output_item.added would
-        state.currentToolCallId = callId;
-        state.currentToolCallArgsBuffer = "";
-        state.currentToolCallDeferred = false;
-
-        // Emit the tool call header chunk (id, type, function.name)
-        const currentIndex = state.toolCallIndex;
-        synthesizedChunks.push({
-          id: state.chatId,
-          object: "chat.completion.chunk",
-          created: state.created,
-          model: state.model || "gpt-4",
-          choices: [
-            {
-              index: 0,
-              delta: {
-                tool_calls: [
-                  {
-                    index: currentIndex,
-                    id: callId,
-                    type: "function",
-                    function: {
-                      name: toolName || "",
-                      arguments: "",
-                    },
-                  },
-                ],
-              },
-              finish_reason: null,
-            },
-          ],
-        });
-
-        // Process arguments — may be string or object
-        const rawArgs = fcItem.arguments;
-        const argsToEmit = stripEmptyOptionalToolArgs(rawArgs, toolName, toolSchema);
-        const argsStr =
-          argsToEmit != null
-            ? typeof argsToEmit === "string"
-              ? argsToEmit
-              : JSON.stringify(argsToEmit)
-            : rawArgs != null
-              ? typeof rawArgs === "string"
-                ? rawArgs
-                : JSON.stringify(rawArgs)
-              : "";
-
-        if (argsStr) {
-          state.currentToolCallArgsBuffer = argsStr;
-          synthesizedChunks.push({
-            id: state.chatId,
-            object: "chat.completion.chunk",
-            created: state.created,
-            model: state.model || "gpt-4",
-            choices: [
-              {
-                index: 0,
-                delta: {
-                  tool_calls: [
-                    {
-                      index: currentIndex,
-                      function: { arguments: argsStr },
-                    },
-                  ],
-                },
-                finish_reason: null,
-              },
-            ],
-          });
-        }
-
-        // Advance state as output_item.done would
-        state.toolCallIndex++;
-        state.currentToolCallArgsBuffer = "";
-        state.currentToolCallId = null;
-      }
-
-      // Now emit the final chunk with finish_reason: "tool_calls" and usage
-      state.finishReasonSent = true;
-      const reason = computeFinishReason(state);
-      state.finishReason = reason;
-
-      const finalChunk: Record<string, unknown> = {
-        id: state.chatId,
-        object: "chat.completion.chunk",
-        created: state.created,
-        model: state.model || "gpt-4",
-        choices: [
-          {
-            index: 0,
-            delta: {},
-            finish_reason: reason,
-          },
-        ],
-      };
-
-      if (state.usage && typeof state.usage === "object") {
-        finalChunk.usage = state.usage;
-      }
-
-      synthesizedChunks.push(finalChunk);
-      return synthesizedChunks;
-    }
+    // #fix: synthesize tool call chunks from response.completed output[] for
+    // providers that batch everything into response.completed without prior
+    // incremental output_item.* events — including the dedup guard against
+    // providers that DO stream incrementally and also echo the same
+    // function_call items here. See synthesizeCompletedToolCalls's own
+    // doc-comment for the full rationale.
+    const synthesized = synthesizeCompletedToolCalls(state, data.response?.output);
+    if (synthesized) return synthesized;
 
     if (!state.finishReasonSent) {
       state.finishReasonSent = true;
