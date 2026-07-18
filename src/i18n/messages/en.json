@@ -6285,7 +6285,11 @@
     "modelLockoutMaxBackoffSteps": "Max Backoff Steps",
     "modelLockoutMaxBackoffStepsDescription": "Maximum number of backoff steps before the cooldown stops growing. The Max Cooldown cap is reached first in most configurations, making this a safety ceiling for when Max Cooldown is raised.",
     "disableSessionStickiness": "Disable session stickiness",
-    "disableSessionStickinessDesc": "Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence."
+    "disableSessionStickinessDesc": "Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence.",
+    "credentialRedaction": "Credential Redaction",
+    "credentialRedactionDesc": "Redact API keys, tokens, and secrets from context sent to providers and from responses.",
+    "enableCredentialRedaction": "Enable credential redaction",
+    "enableCredentialRedactionDesc": "Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses."
   },
   "contextRtk": {
     "title": "RTK Engine",
