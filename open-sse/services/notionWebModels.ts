@@ -65,7 +65,14 @@ export function readCookieValue(cookie: string, name: string): string {
   if (!cookie || !name) return "";
   const re = new RegExp(`(?:^|;\\s*)${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`, "i");
   const m = cookie.match(re);
-  return m ? decodeURIComponent(m[1].trim()) : "";
+  if (!m) return "";
+  const raw = m[1].trim();
+  // Malformed % sequences in cookie values must not throw (Gemini review).
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
 }
 
 export function extractSpaceIdFromNotionCookie(cookie: string): string {
@@ -253,9 +260,12 @@ export async function discoverNotionWebModels(opts: {
     );
   }
 
-  const headers = buildNotionModelsDiscoveryHeaders(
-    cookie.includes("space_id=") ? cookie : `${cookie}; space_id=${spaceId}`
-  );
+  // Prefer the canonical space id extractor (case-insensitive) so we do not
+  // append a second space_id= when the cookie used spaceId= or mixed case.
+  const cookieForHeaders = extractSpaceIdFromNotionCookie(cookie)
+    ? cookie
+    : `${cookie}; space_id=${spaceId}`;
+  const headers = buildNotionModelsDiscoveryHeaders(cookieForHeaders);
   headers["x-notion-space-id"] = spaceId;
 
   const res = await fetchImpl(NOTION_MODELS_URL, {

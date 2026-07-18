@@ -79,6 +79,13 @@ test("cookie helpers extract space_id and user id", () => {
     "28bd872b-594c-81cb-9638-0002a411fd83"
   );
   assert.equal(notionModels.normalizeNotionWebCookie("baretoken"), "token_v2=baretoken");
+  // CamelCase spaceId= must still resolve (case-insensitive name match).
+  assert.equal(
+    notionModels.extractSpaceIdFromNotionCookie("token_v2=x; spaceId=space-camel"),
+    "space-camel"
+  );
+  // Malformed % sequences must not throw.
+  assert.equal(notionModels.readCookieValue("token_v2=%E0%A4%A", "token_v2"), "%E0%A4%A");
 });
 
 test("pickFirstSpaceId reads nested getSpaces shape", () => {

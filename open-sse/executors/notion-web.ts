@@ -136,12 +136,8 @@ export function buildNotionTranscript(
   notionModel?: string
 ): Array<Record<string, unknown>> {
   const entries: Array<Record<string, unknown>> = [];
-  const model =
-    typeof notionModel === "string" &&
-    notionModel.trim() &&
-    notionModel.trim() !== "notion-ai"
-      ? notionModel.trim()
-      : "";
+  const trimmedModel = typeof notionModel === "string" ? notionModel.trim() : "";
+  const model = trimmedModel && trimmedModel !== "notion-ai" ? trimmedModel : "";
   if (model) {
     entries.push({
       id: randomUUID(),
