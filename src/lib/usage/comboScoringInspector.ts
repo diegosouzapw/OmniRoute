@@ -129,14 +129,22 @@ function resolveInspectorWeights(combo: ComboRecord | undefined): InspectorWeigh
 async function resolveConfiguredCombos(
   options: ComboScoringInspectorOptions
 ): Promise<ComboRecord[]> {
-  if (
+  // #7087: `options.combos`, when supplied, must always win — regardless of the
+  // health/forecast/autopilot short-circuit below. The dashboard integration
+  // (comboHealthDashboard.ts::buildComboHealthDashboardResponse) always calls this
+  // with `combos` AND `healthResponse`/`forecastResponse`/`autopilotReport` set
+  // together (it already fetched everything once upstream to avoid redundant work),
+  // which used to hit the short-circuit FIRST and silently discard the caller's
+  // `combos` — so `combosById`/`combosByName` (used by resolveInspectorWeights() to
+  // report the combo's real configured modePack/weights) came back empty and every
+  // combo's weightSource fell back to "default" through that call path.
+  if (options.combos) return options.combos;
+  const alreadyHaveHealthSignals =
     options.healthResponse &&
     options.forecastResponse &&
-    (options.skipAutopilot || options.autopilotReport)
-  ) {
-    return [];
-  }
-  return options.combos ?? ((await getCombos()) as ComboRecord[]);
+    (options.skipAutopilot || options.autopilotReport);
+  if (alreadyHaveHealthSignals) return [];
+  return (await getCombos()) as ComboRecord[];
 }
 
 function buildEmptyAutopilotReport(options: ComboScoringInspectorOptions): ComboAutopilotReport {
