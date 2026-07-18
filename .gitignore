@@ -72,6 +72,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!.env.homolog.example
 # Provider API keys (never commit)
 *.api-key
 .nvidia-api-key
@@ -242,3 +243,9 @@ _artifacts/
 
 # CI/local quality artifacts (eslint-results.json, etc.)
 .artifacts/
+
+# Homologation E2E suite (npm run homolog) — real-environment credentials + report output
+.env.homolog
+tests/homolog/.auth/
+tests/homolog/ui/.auth/
+homolog-report/

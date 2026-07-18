@@ -1,0 +1,1 @@
+- **feat(providers):** add Speechmatics as an STT provider — async batch transcription (Enhanced operating point), 8 hours/month free tier, no credit card required. Streaming (real-time) mode is out of scope for v1. (#6659)

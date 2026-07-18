@@ -1,0 +1,1 @@
+- **feat(fusion):** the fusion judge may now draw on its own knowledge and override the panel when every panel answer is wrong or incomplete, instead of being restricted to synthesizing only from panel output (#6804 — thanks @chirag127).

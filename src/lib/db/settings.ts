@@ -89,6 +89,23 @@ function withFamilyDefault(value: ProxyValue): ProxyValue {
 
 // ──────────────── Settings ────────────────
 
+/**
+ * #7274: read-fallback for the codexSessionAffinityTtlMs -> sessionAffinityTtlMs
+ * rename. Migration 124 already backfills the new key from any pre-existing
+ * old-key row for the common case, but this covers callers reading settings
+ * before that migration has had a chance to run (or any drift between the
+ * two). Only applies when the generic key was never explicitly persisted —
+ * an operator-set `sessionAffinityTtlMs` (including an explicit 0) always wins.
+ * Extracted to a leaf helper so `getSettings()` stays under the max-lines-per-
+ * function ratchet.
+ */
+function applySessionAffinityLegacyFallback(settings: Record<string, unknown>): void {
+  if (settings.sessionAffinityTtlMs === undefined) {
+    settings.sessionAffinityTtlMs =
+      typeof settings.codexSessionAffinityTtlMs === "number" ? settings.codexSessionAffinityTtlMs : 0;
+  }
+}
+
 export async function getSettings() {
   const db = getDbInstance();
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'settings'").all();
@@ -132,7 +149,11 @@ export async function getSettings() {
       enabled: false,
       supportedModels: ["claude-fable-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6"],
     },
-    codexSessionAffinityTtlMs: 0,
+    // #7274: renamed from codexSessionAffinityTtlMs — session affinity now
+    // applies to any provider, not just Codex. No default here on purpose:
+    // the read-fallback below only kicks in while `sessionAffinityTtlMs` has
+    // never been explicitly persisted, so it can tell "never configured"
+    // apart from "operator explicitly set 0" on the new key.
     responsesPreviousResponseIdMode: DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE,
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,
@@ -160,6 +181,13 @@ export async function getSettings() {
     // (`:free` suffix, zero-price pricing, or FREE_MODEL_BUDGETS membership). Default
     // false preserves prior behaviour; opt-in only.
     hidePaidModels: false,
+    // #6977: Opt-in per-connection auto-ping that warms a Codex OAuth connection's
+    // quota window right after it resets, so the first real request doesn't land in
+    // a cold window. `connections` maps connection id -> enabled. Default empty map
+    // (nobody opted in) — the scheduler is a no-op until an operator flips a
+    // connection on, since pinging burns a small amount of real quota (Hard Rule #20
+    // spirit: never mutate/consume on the operator's behalf by default).
+    codexAutoPing: { connections: {} },
   };
   for (const row of rows) {
     const record = toRecord(row);
@@ -172,6 +200,8 @@ export async function getSettings() {
       settings[key] = rawValue;
     }
   }
+
+  applySessionAffinityLegacyFallback(settings);
 
   // Auto-complete onboarding for pre-configured deployments (Docker/VM)
   // If INITIAL_PASSWORD is set via env, this is a headless deploy — skip the wizard
@@ -541,33 +571,46 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
       }
     }
 
-    // Step 7: Legacy combo-level (only if proxy_enabled)
-    if (connectionProxyEnabled && config.combos && Object.keys(config.combos).length > 0) {
+    // Step 7: Combo-level (only if proxy_enabled). For every combo whose model
+    // list references this connection's provider, check the modern registry
+    // (proxy_assignments, scope='combo') first — this is the assignment the
+    // dashboard's Combo "Set Proxy" modal actually writes to (#7149, where the
+    // registry write path and this read path had diverged, leaving combo-level
+    // proxy assignment completely inert). Fall back to the legacy in-memory
+    // combos map for any pre-existing legacy data.
+    if (connectionProvider && connectionProxyEnabled) {
       const combos = db.prepare("SELECT id, data FROM combos").all();
       for (const comboRow of combos) {
         const comboRecord = toRecord(comboRow);
         const comboId = typeof comboRecord.id === "string" ? comboRecord.id : null;
-        if (comboId && config.combos[comboId]) {
-          try {
-            const comboRaw = typeof comboRecord.data === "string" ? comboRecord.data : null;
-            if (!comboRaw) continue;
-            const combo = toRecord(JSON.parse(comboRaw));
-            const comboModels = Array.isArray(combo.models) ? combo.models : [];
-            const usesProvider = comboModels.some(
-              (entry) => getComboModelProvider(entry) === connectionProvider
-            );
-            if (usesProvider) {
-              const result = {
-                proxy: withFamilyDefault(config.combos[comboId]),
-                level: "combo",
-                levelId: comboId,
-              };
-              cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
-              return result;
-            }
-          } catch {
-            // Ignore malformed combo records during proxy resolution.
+        if (!comboId) continue;
+        try {
+          const comboRaw = typeof comboRecord.data === "string" ? comboRecord.data : null;
+          if (!comboRaw) continue;
+          const combo = toRecord(JSON.parse(comboRaw));
+          const comboModels = Array.isArray(combo.models) ? combo.models : [];
+          const usesProvider = comboModels.some(
+            (entry) => getComboModelProvider(entry) === connectionProvider
+          );
+          if (!usesProvider) continue;
+
+          const registryCombo = await resolveProxyForScopeFromRegistry("combo", comboId);
+          if (registryCombo?.proxy) {
+            cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, registryCombo);
+            return registryCombo;
           }
+
+          if (config.combos?.[comboId]) {
+            const result = {
+              proxy: withFamilyDefault(config.combos[comboId]),
+              level: "combo",
+              levelId: comboId,
+            };
+            cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, result);
+            return result;
+          }
+        } catch {
+          // Ignore malformed combo records during proxy resolution.
         }
       }
     }

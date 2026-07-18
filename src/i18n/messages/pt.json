@@ -2320,7 +2320,17 @@
     "copilotToolCalling": "Chamada de ferramenta",
     "copilotPasteInto": "Cole em:",
     "wireApiChatCompletions": "Conclusões de bate-papo (/chat/completions)",
-    "wireApiResponses": "API de respostas (/respostas)"
+    "wireApiResponses": "API de respostas (/respostas)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "Combos",
@@ -2822,6 +2832,8 @@
     "range7d": "7 dias",
     "range30d": "30 dias",
     "range90d": "90 dias",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "Todos os tempos",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",
@@ -3948,6 +3960,9 @@
     "apiKeyProviders": "Provedores de chaves de API",
     "compatibleProviders": "Provedores compatíveis com chave de API",
     "testAll": "Teste tudo",
+    "reorderByAvailability": "Reordenar",
+    "reorderByAvailabilityTitle": "Reordenar ligações por disponibilidade",
+    "reorderByAvailabilityError": "Falha ao reordenar ligações por disponibilidade",
     "distributeProxies": "__MISSING__:Distribute Proxies",
     "distributing": "__MISSING__:Distributing...",
     "selectedCount": "__MISSING__:{count, plural, one {# selected} other {# selected}}",
@@ -4077,6 +4092,7 @@
     "testKeyPlaceholder": "sk-... (apenas para validação)",
     "providerNotFound": "Provedor não encontrado",
     "deleteConnectionConfirm": "Excluir esta conexão?",
+    "deleteConnectionConfirmNamed": "Tem a certeza de que pretende eliminar {name}? Esta ação não pode ser anulada.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",
@@ -4554,6 +4570,9 @@
     "consoleApiKeyOracleHint": "Console Api Key Oracle Hint",
     "consoleApiKeyOracleLabel": "Console Api Key Oracle Label",
     "consoleApiKeyOraclePlaceholder": "Console Api Key Oracle Placeholder",
+    "newApiUserIdLabel": "ID de Utilizador New-API",
+    "newApiUserIdPlaceholder": "ex.: 12345",
+    "newApiUserIdHint": "Valor do cabeçalho New-Api-User do AgentRouter, utilizado junto com a chave de API da consola para consultar o saldo de quota.",
     "cpaModeDisabledTitle": "Cpa Mode Disabled Title",
     "cpaModeEnabledTitle": "Cpa Mode Enabled Title",
     "customUserAgentHint": "Custom User Agent Hint",
@@ -4820,7 +4839,9 @@
     "kimiWebLabel": "__MISSING__:Kimi Web",
     "kimiWebDesc": "__MISSING__:Moonshot AI consumer chat via www.kimi.com (international, Connect-RPC API)",
     "doubaoWebLabel": "__MISSING__:Doubao Web",
-    "doubaoWebDesc": "__MISSING__:ByteDance AI chat via doubao.com"
+    "doubaoWebDesc": "__MISSING__:ByteDance AI chat via doubao.com",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "Configurações",
@@ -5810,6 +5831,7 @@
     "retentionCallLogs": "Registros de chamadas (dias)",
     "retentionUsageHistory": "Histórico de uso (dias)",
     "retentionMemoryEntries": "Entradas de memória (dias)",
+    "retentionXpAuditLog": "Log de Auditoria de XP (dias)",
     "saveRetentionSettings": "__MISSING__:Save retention settings",
     "storageAutoVacuumMode": "Modo de vácuo automático",
     "storageScheduledVacuum": "Vácuo programado",
@@ -6066,7 +6088,12 @@
     "modelLockoutExponentialBackoff": "__MISSING__:Exponential Backoff",
     "modelLockoutExponentialBackoffDescription": "__MISSING__:When enabled, each consecutive failure increases the cooldown duration exponentially.",
     "modelLockoutMaxBackoffSteps": "__MISSING__:Max Backoff Steps",
-    "modelLockoutMaxBackoffStepsDescription": "__MISSING__:Maximum number of backoff steps before the cooldown stops growing. The Max Cooldown cap is reached first in most configurations, making this a safety ceiling for when Max Cooldown is raised."
+    "modelLockoutMaxBackoffStepsDescription": "__MISSING__:Maximum number of backoff steps before the cooldown stops growing. The Max Cooldown cap is reached first in most configurations, making this a safety ceiling for when Max Cooldown is raised.",
+    "codexAutoPingTitle": "Codex Quota Auto-Ping",
+    "codexAutoPingDesc": "Opt-in per connection: sends a tiny request right after a Codex session window resets so it isn't cold when you need it.",
+    "codexAutoPingWarning": "Consumes a small amount of real Codex quota on every ping. Off by default — enable only for connections you actively rely on.",
+    "codexAutoPingSaveError": "Failed to update Codex Auto-Ping setting",
+    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -8938,6 +8965,13 @@
     "colScore": "__MISSING__:Score",
     "colAvgScore": "__MISSING__:Avg Score",
     "colModels": "__MISSING__:Models",
-    "colType": "__MISSING__:Type"
+    "colType": "__MISSING__:Type",
+    "typeAll": "__MISSING__:All Types",
+    "typeNoauth": "__MISSING__:No Signup",
+    "typeOauth": "__MISSING__:OAuth Login",
+    "typeApikey": "__MISSING__:API Key",
+    "sortTypeFirst": "__MISSING__:Easiest first",
+    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   }
 }

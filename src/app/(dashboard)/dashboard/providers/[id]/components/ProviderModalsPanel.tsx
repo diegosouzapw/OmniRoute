@@ -25,8 +25,9 @@ import { ImportClaudeAuthModal, ApplyClaudeAuthModal } from "./modals/ImportClau
 import ImportGrokCliAuthModal from "./modals/ImportGrokCliAuthModal";
 import { type ConnectionRowConnection } from "./ConnectionRow";
 import { type BatchTestResults } from "../hooks/useProviderConnections";
+import { type ConnectionDeleteConfirmState } from "../hooks/useConnectionDeleteConfirm";
 import { type ImportProgress } from "../hooks/useModelImportHandlers";
-import type { ProviderMessageTranslator } from "../providerPageHelpers";
+import { providerText, type ProviderMessageTranslator } from "../providerPageHelpers";
 
 interface ProviderInfo {
   name: string;
@@ -78,6 +79,8 @@ interface ProviderModalsPanelProps {
   handleBatchDeleteConfirm: () => void;
   selectedIds: Set<string>;
   batchDeleting: boolean;
+  // Single-connection delete confirm
+  deleteConfirm: ConnectionDeleteConfirmState;
   // Codex auth
   applyCodexModalConnectionId: string | null;
   setApplyCodexModalConnectionId: (id: string | null) => void;
@@ -171,6 +174,7 @@ export default function ProviderModalsPanel({
   handleBatchDeleteConfirm,
   selectedIds,
   batchDeleting,
+  deleteConfirm,
   applyCodexModalConnectionId,
   setApplyCodexModalConnectionId,
   applyingCodexAuthId,
@@ -302,6 +306,21 @@ export default function ProviderModalsPanel({
         confirmText={t("batchDeleteConfirmButton", "Delete")}
         cancelText={t("cancel", "Cancel")}
         loading={batchDeleting}
+      />
+      <ConfirmModal
+        isOpen={!!deleteConfirm.connection}
+        onClose={deleteConfirm.cancel}
+        onConfirm={deleteConfirm.confirm}
+        title={providerText(t, "deleteConnectionConfirm", "Delete this connection?")}
+        message={providerText(
+          t,
+          "deleteConnectionConfirmNamed",
+          "Are you sure you want to delete {name}? This action cannot be undone.",
+          { name: deleteConfirm.connection?.name ?? "" }
+        )}
+        confirmText={providerText(t, "batchDeleteConfirmButton", "Delete")}
+        cancelText={providerText(t, "cancel", "Cancel")}
+        loading={deleteConfirm.deleting}
       />
       {providerId === "codex" && applyCodexModalConnectionId && (
         <ApplyCodexAuthModal
