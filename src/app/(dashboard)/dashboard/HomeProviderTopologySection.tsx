@@ -13,6 +13,8 @@ type TopologyProvider = {
   id: string;
   provider: string;
   name?: string;
+  /** Connection-health base state, so the topology can colour a node at rest. */
+  status?: "active" | "error" | "idle";
 };
 
 export function HomeProviderTopologySection({
@@ -42,7 +44,7 @@ export function HomeProviderTopologySection({
         </div>
         <div className="flex items-center gap-3 text-[11px] text-text-muted">
           <span className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-green-500" /> Active
+            <span className="size-2 rounded-full bg-green-500" /> Connected
           </span>
           <span className="flex items-center gap-1.5">
             <span className="size-2 rounded-full bg-amber-500" /> Recent

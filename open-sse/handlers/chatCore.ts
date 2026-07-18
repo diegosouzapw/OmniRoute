@@ -814,6 +814,7 @@ export async function handleChatCore({
   // once so the 16 call sites keep passing only the per-attempt args (byte-identical).
   const persistAttemptLogs = (args: PersistAttemptLogsArgs) =>
     persistAttemptLogsFor(args, {
+      traceId,
       provider,
       connectionId,
       model,

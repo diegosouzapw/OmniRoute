@@ -468,8 +468,26 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   }, [selectedProvider, models]);
 
   const topologyProviders = useMemo(() => {
-    const byProvider = new Map<string, { id: string; provider: string; name?: string }>();
+    type ProviderHealth = "active" | "error" | "idle";
+    const byProvider = new Map<
+      string,
+      { id: string; provider: string; name?: string; status: ProviderHealth }
+    >();
     const providerConfig = AI_PROVIDERS as Record<string, { name?: string }>;
+
+    // Connection-health per provider, so the topology node reflects "what is connected"
+    // at rest (green healthy / red error) instead of going blank between requests. A
+    // provider with ≥1 healthy connection is "active"; if none are healthy but some are
+    // errored it is "error"; otherwise "idle". Live/recent traffic still overrides this.
+    const healthByProvider = new Map<string, ProviderHealth>();
+    for (const stat of providerStats) {
+      const canonical = normalizeProviderId(stat.id);
+      if (!canonical) continue;
+      healthByProvider.set(
+        canonical,
+        stat.connected > 0 ? "active" : stat.errors > 0 ? "error" : "idle"
+      );
+    }
 
     const addProvider = (providerId?: string | null, name?: string) => {
       const rawProviderId = typeof providerId === "string" ? providerId.trim() : "";
@@ -488,6 +506,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         id: canonicalProviderId,
         provider: canonicalProviderId,
         name: resolvedName,
+        status: healthByProvider.get(canonicalProviderId) ?? "idle",
       });
     };
 

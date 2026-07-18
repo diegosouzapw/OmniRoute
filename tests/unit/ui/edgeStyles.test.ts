@@ -43,8 +43,29 @@ describe("flow edgeStyles (U0 — extracted from ProviderTopology)", () => {
     });
   });
 
-  it("applies precedence error > active > last", () => {
+  it("styles a healthy (connected, no in-flight traffic) edge as static dim green", () => {
+    assert.deepEqual(edgeStyle(false, false, false, true), {
+      stroke: "#22c55e",
+      strokeWidth: 1.5,
+      opacity: 0.4,
+    });
+  });
+
+  it("defaults healthy to false so 3-arg callers stay idle", () => {
+    assert.deepEqual(edgeStyle(false, false, false), {
+      stroke: "var(--color-border)",
+      strokeWidth: 1,
+      opacity: 0.2,
+    });
+  });
+
+  it("applies precedence error > active > last > healthy", () => {
     assert.equal(edgeStyle(true, true, true).stroke, "#ef4444"); // error wins
     assert.equal(edgeStyle(true, true, false).stroke, "#22c55e"); // active beats last
+    assert.equal(edgeStyle(false, false, true, true).stroke, "#ef4444"); // error beats healthy
+    assert.equal(edgeStyle(false, true, false, true).stroke, "#f59e0b"); // last beats healthy
+    // healthy green is dimmer/thinner than the active pulse green
+    assert.equal(edgeStyle(false, false, false, true).opacity, 0.4);
+    assert.equal(edgeStyle(true, false, false, true).opacity, 1); // active still wins
   });
 });
