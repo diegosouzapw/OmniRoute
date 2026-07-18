@@ -1188,9 +1188,14 @@ async function handleSingleModelChat(
         maxRetries: 0,
         maxRetryWaitSec: 0,
         maxRetryWaitMs: 0,
+        budgetMs: 0,
       }
     : baseRetrySettings;
   const requestSignal = request?.signal ?? null;
+  // Cumulative cap across all waits for this request (#7360 follow-up) — mirrors
+  // combo.ts's comboCooldownBudgetLeftMs. Declared outside requestAttemptLoop so
+  // it persists (and only decreases) across `continue requestAttemptLoop` retries.
+  let requestRetryBudgetLeftMs = retrySettings.budgetMs;
 
   if (Array.isArray(effectiveAllowedConnections) && effectiveAllowedConnections.length === 0) {
     log.debug("AUTH", `${provider}/${model} filtered out by connection-level routing constraints`);
@@ -1254,6 +1259,7 @@ async function handleSingleModelChat(
             retryAfter: credentials.retryAfter,
             settings: retrySettings,
             attempt: requestRetryAttempt,
+            budgetLeftMs: requestRetryBudgetLeftMs,
           });
 
           if (retryDecision.shouldRetry) {
@@ -1273,6 +1279,7 @@ async function handleSingleModelChat(
             }
 
             requestRetryAttempt += 1;
+            requestRetryBudgetLeftMs = Math.max(0, requestRetryBudgetLeftMs - retryDecision.waitMs);
             log.info(
               "COOLDOWN_RETRY",
               `${provider}/${model} cooldown elapsed — restarting request attempt ${requestRetryAttempt}/${retrySettings.maxRetries}`

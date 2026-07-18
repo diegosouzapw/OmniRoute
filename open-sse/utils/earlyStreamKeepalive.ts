@@ -34,6 +34,27 @@ const KEEPALIVE_FRAME = ENCODER.encode(": omniroute-keepalive\n\n");
 export const OPENAI_KEEPALIVE_FRAME = ENCODER.encode(
   'data: {"id":"omniroute-keepalive","object":"chat.completion.chunk","created":0,"model":"omniroute","choices":[{"index":0,"delta":{},"finish_reason":null}]}\n\n'
 );
+// #7360 follow-up: the FIRST frame of the slow path carries visible content
+// instead of an empty delta, framed as a reasoning/thinking chunk (the same
+// shape OmniRoute already emits for real upstream reasoning — see
+// open-sse/translator/response/claude-to-openai.ts's createChunk) so
+// reasoning-aware clients render it instead of silently ignoring it. This is
+// what lets OmniRoute safely wait out a longer Gemini rate-limit cooldown
+// (see comboCooldownWait/waitForCooldown budgetMs) without the client's own
+// first-event/idle-read timeout firing — the client sees a real byte
+// immediately, it just says we're still working on it.
+const STARTUP_THINKING_TEXT = "OmniRoute: got request, sending to provider";
+export const OPENAI_STARTUP_THINKING_FRAME = ENCODER.encode(
+  `data: ${JSON.stringify({
+    id: "omniroute-keepalive",
+    object: "chat.completion.chunk",
+    created: 0,
+    model: "omniroute",
+    choices: [
+      { index: 0, delta: { reasoning_content: STARTUP_THINKING_TEXT }, finish_reason: null },
+    ],
+  })}\n\n`
+);
 // Anthropic Messages-format keepalive: a REAL `ping` SSE event, not a comment.
 // Anthropic clients (Claude Code, the Anthropic SDK) reset their stream/first-token
 // watchdog on real SSE events but ignore SSE comments (`: ...`), so on a slow first
@@ -60,6 +81,14 @@ export type EarlyStreamKeepaliveOptions = {
    * for their stream watchdog and only a real `event: ping` keeps them from aborting.
    */
   keepaliveFrame?: Uint8Array;
+  /**
+   * Frame emitted ONCE, immediately, as the very first byte of the slow path —
+   * before the recurring `keepaliveFrame` ticks start. Defaults to
+   * `keepaliveFrame` when omitted (today's behavior, unchanged). Pass a
+   * content-bearing frame (e.g. `OPENAI_STARTUP_THINKING_FRAME`) so the client
+   * sees visible progress instead of an empty/no-op keepalive on the first byte.
+   */
+  startupFrame?: Uint8Array;
   /** Extra headers to include in the keepalive response (e.g. X-Correlation-Id). */
   extraHeaders?: Record<string, string>;
 };
@@ -74,6 +103,7 @@ export async function withEarlyStreamKeepalive(
   const intervalMs = Math.max(250, options.intervalMs ?? 2_500);
   const signal = options.signal ?? null;
   const keepaliveFrame = options.keepaliveFrame ?? KEEPALIVE_FRAME;
+  const startupFrame = options.startupFrame ?? keepaliveFrame;
   const extraHeaders = options.extraHeaders ?? {};
 
   // Settle into a tagged result so neither race branch leaves an unhandled
@@ -120,12 +150,12 @@ export async function withEarlyStreamKeepalive(
       if (interval && typeof interval === "object" && "unref" in interval) {
         interval.unref?.();
       }
-      // First keepalive immediately on commit so the client sees a byte right away.
-      // Use the configured frame (e.g. ANTHROPIC_PING_FRAME) — an SSE comment here
-      // would be ignored by Anthropic clients' watchdog on a sub-interval gap,
-      // defeating the keepalive for exactly the case it targets.
+      // First frame immediately on commit so the client sees a byte right away.
+      // Use `startupFrame` (e.g. OPENAI_STARTUP_THINKING_FRAME / ANTHROPIC_PING_FRAME)
+      // — an SSE comment here would be ignored by Anthropic clients' watchdog on a
+      // sub-interval gap, defeating the keepalive for exactly the case it targets.
       try {
-        controller.enqueue(keepaliveFrame);
+        controller.enqueue(startupFrame);
       } catch {
         /* consumer already gone */
       }

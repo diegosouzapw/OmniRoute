@@ -5,6 +5,7 @@ import {
   withEarlyStreamKeepalive,
   ANTHROPIC_PING_FRAME,
   OPENAI_KEEPALIVE_FRAME,
+  OPENAI_STARTUP_THINKING_FRAME,
 } from "../../open-sse/utils/earlyStreamKeepalive.ts";
 
 async function readAll(response: Response): Promise<string> {
@@ -95,6 +96,85 @@ test("slow handler emits the custom OpenAI keepalive chunk before the body", asy
   const firstFrame = body.split("\n\n")[0];
   assert.doesNotThrow(() => JSON.parse(firstFrame.slice("data: ".length)));
   assert.match(body, /data: \[DONE\]/);
+});
+
+// #7360 follow-up: many clients time out waiting for the first SSE byte, and
+// during a long Gemini rate-limit cooldown wait there's nothing real to send
+// yet — OPENAI_STARTUP_THINKING_FRAME gives them a real, visible "we're still
+// working on it" reasoning delta instead of an empty/no-op keepalive.
+test("OPENAI_STARTUP_THINKING_FRAME is a reasoning_content delta chunk with the expected text", () => {
+  const decoded = new TextDecoder().decode(OPENAI_STARTUP_THINKING_FRAME);
+  assert.match(decoded, /^data: /);
+  assert.doesNotMatch(decoded, /^:/, "must not be an SSE comment");
+
+  const payload = JSON.parse(decoded.slice("data: ".length).trim());
+  assert.equal(payload.object, "chat.completion.chunk");
+  assert.deepEqual(payload.choices, [
+    {
+      index: 0,
+      delta: { reasoning_content: "OmniRoute: got request, sending to provider" },
+      finish_reason: null,
+    },
+  ]);
+});
+
+test("slow handler emits startupFrame once, then falls back to keepaliveFrame on later ticks", async () => {
+  // intervalMs is floored at 250ms (see withEarlyStreamKeepalive), so the handler
+  // must resolve well past one full tick to reliably observe an interval keepalive
+  // before the real body arrives.
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 650);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 20,
+    intervalMs: 250,
+    keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
+    startupFrame: OPENAI_STARTUP_THINKING_FRAME,
+  });
+
+  const body = await readAll(result);
+  const frames = body.split("\n\n").filter(Boolean);
+  const firstPayload = JSON.parse(frames[0].slice("data: ".length));
+  assert.equal(
+    firstPayload.choices[0].delta.reasoning_content,
+    "OmniRoute: got request, sending to provider",
+    "the very first frame must carry the startup thinking text"
+  );
+
+  // At least one subsequent keepalive tick should have fired before the real
+  // body arrived (interval 30ms, handler resolves at 150ms) — those ticks use
+  // the lightweight keepaliveFrame, not a repeat of the startup text.
+  const laterKeepalives = frames
+    .slice(1, -1) // drop the startup frame and the final real "[DONE]" frame
+    .map((f) => JSON.parse(f.slice("data: ".length)));
+  assert.ok(laterKeepalives.length > 0, "expected at least one interval keepalive tick");
+  for (const tick of laterKeepalives) {
+    assert.deepEqual(tick.choices[0].delta, {}, "interval ticks stay the lightweight empty delta");
+  }
+  assert.match(body, /data: \[DONE\]/);
+});
+
+test("startupFrame defaults to keepaliveFrame when omitted (no behavior change)", async () => {
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 120);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 25,
+    intervalMs: 20,
+    keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
+    // no startupFrame passed
+  });
+
+  const body = await readAll(result);
+  const firstFrame = body.split("\n\n")[0];
+  const firstPayload = JSON.parse(firstFrame.slice("data: ".length));
+  assert.deepEqual(
+    firstPayload.choices[0].delta,
+    {},
+    "first frame falls back to the plain keepaliveFrame when no startupFrame is configured"
+  );
 });
 
 test("slow handler emits the custom keepaliveFrame (Anthropic ping) before the body", async () => {
