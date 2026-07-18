@@ -199,14 +199,14 @@
 
 No combo to create. Set your model to `auto` (or a variant) and OmniRoute builds a virtual combo from your connected providers, scored live:
 
-| Model ID       | What it optimizes for                                                                                                                                                                |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `auto`         | 🎯 Balanced default (LKGP — sticks to your last good provider)                                                                                                                       |
-| `auto/coding`  | 🧑‍💻 Quality-first weights for code generation                                                                                                                                         |
-| `auto/fast`    | ⚡ Lowest latency first                                                                                                                                                              |
-| `auto/cheap`   | 💰 Cheapest per token first                                                                                                                                                          |
-| `auto/offline` | 🔋 Most quota / rate-limit headroom first                                                                                                                                            |
-| `auto/smart`   | 🔭 Quality-first + 10% exploration to discover better models                                                                                                                         |
+| Model ID       | What it optimizes for                                                                                                                                                                  |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto`         | 🎯 Balanced default (LKGP — sticks to your last good provider)                                                                                                                         |
+| `auto/coding`  | 🧑‍💻 Quality-first weights for code generation                                                                                                                                           |
+| `auto/fast`    | ⚡ Lowest latency first                                                                                                                                                                |
+| `auto/cheap`   | 💰 Cheapest per token first                                                                                                                                                            |
+| `auto/offline` | 🔋 Most quota / rate-limit headroom first                                                                                                                                              |
+| `auto/smart`   | 🔭 Quality-first + 10% exploration to discover better models                                                                                                                           |
 
 ##
 
@@ -214,26 +214,26 @@ No combo to create. Set your model to `auto` (or a variant) and OmniRoute builds
 
 All **18** strategies — mix & match per combo step:
 
-| #   | Strategy            | What it does                                                                                                                                            |
-| --- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `priority`          | First-target ordered list — drain each before the next 🥇                                                                                               |
-| 2   | `fill-first`        | Fill each target's quota fully before moving on                                                                                                         |
-| 3   | `weighted`          | Weighted random by per-target weight                                                                                                                    |
-| 4   | `round-robin`       | Cycle through targets in order                                                                                                                          |
-| 5   | `p2c`               | Power-of-two-choices random load balancing                                                                                                              |
-| 6   | `least-used`        | Pick the target with the lowest current load                                                                                                            |
-| 7   | `random`            | Uniform random pick (deduplicated)                                                                                                                      |
-| 8   | `strict-random`     | Random without de-duplicating repeats 🎲                                                                                                                |
-| 9   | `cost-optimized`    | Minimize $ per request from live catalog pricing 💸                                                                                                     |
-| 10  | `headroom`          | Pick the target with the most remaining quota                                                                                                           |
-| 11  | `reset-window`      | Prefer the target whose quota window resets soonest                                                                                                     |
-| 12  | `reset-aware`       | Rank by quota reset time — short windows first 📊                                                                                                       |
-| 13  | `context-relay`     | Hand off context across targets for long conversations 🧠                                                                                               |
-| 14  | `context-optimized` | Pick the best fit for the current context size                                                                                                          |
-| 15  | `lkgp`              | Last-Known-Good Path — sticky to the last successful target                                                                                             |
-| 16  | `auto`              | 12-factor live scoring across every connection 🤖                                                                                                       |
-| 17  | `fusion`            | Fan out to a panel of models + a judge synthesizes one answer 🧬                                                                                        |
-| 18  | `pipeline`          | Chain steps — each target's output feeds the next one 🔗                                                                                                |
+| #   | Strategy            | What it does                                                                                                                                                             |
+| --- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `priority`          | First-target ordered list — drain each before the next 🥇                                                                                                                |
+| 2   | `fill-first`        | Fill each target's quota fully before moving on                                                                                                                          |
+| 3   | `weighted`          | Weighted random by per-target weight                                                                                                                                     |
+| 4   | `round-robin`       | Cycle through targets in order                                                                                                                                           |
+| 5   | `p2c`               | Power-of-two-choices random load balancing                                                                                                                               |
+| 6   | `least-used`        | Pick the target with the lowest current load                                                                                                                             |
+| 7   | `random`            | Uniform random pick (deduplicated)                                                                                                                                       |
+| 8   | `strict-random`     | Random without de-duplicating repeats 🎲                                                                                                                                 |
+| 9   | `cost-optimized`    | Minimize $ per request from live catalog pricing 💸                                                                                                                      |
+| 10  | `headroom`          | Pick the target with the most remaining quota                                                                                                                            |
+| 11  | `reset-window`      | Prefer the target whose quota window resets soonest                                                                                                                      |
+| 12  | `reset-aware`       | Rank by quota reset time — short windows first 📊                                                                                                                        |
+| 13  | `context-relay`     | Hand off context across targets for long conversations 🧠                                                                                                                |
+| 14  | `context-optimized` | Pick the best fit for the current context size                                                                                                                           |
+| 15  | `lkgp`              | Last-Known-Good Path — sticky to the last successful target                                                                                                              |
+| 16  | `auto`              | 12-factor live scoring across every connection 🤖                                                                                                                        |
+| 17  | `fusion`            | Fan out to a panel of models + a judge synthesizes one answer 🧬                                                                                                         |
+| 18  | `pipeline`          | Chain steps — each target's output feeds the next one 🔗                                                                                                                 |
 
 <sub>The Auto-Combo engine scores every candidate on **12 factors** (health, quota, cost, latency, success rate, freshness…) — see [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
 
@@ -243,12 +243,12 @@ All **18** strategies — mix & match per combo step:
 
 > Running several keys against the **same upstream account** (one Codex Pro plan, one Kimi key, one GLM Coding seat)? A burst on one key can burn the whole 5-hour / hourly quota and lock everyone else out. **Quota-Share** distributes a provider's time-based quota **fairly** across the keys in a pool — and it's _work-conserving_, so an idle member's slice is lent out instead of wasted.
 
-| Knob                     | What it controls                                                                                                                                                     |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ⚖️ **Allocation weight** | each key's slice of the pool — e.g. `50 / 30 / 20`                                                                                                                   |
-| 📐 **Dimensions**        | track `%` · requests · tokens · `$`, per **5h / 7d / per-model** window                                                                                              |
-| 🚦 **Policy**            | `hard` (block over share) · `soft` (deprioritize) · `burst` (use idle headroom)                                                                                      |
-| 🧱 **Cap**               | absolute ceiling per key, independent of mode                                                                                                                        |
+| Knob                     | What it controls                                                                                                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ⚖️ **Allocation weight** | each key's slice of the pool — e.g. `50 / 30 / 20`                                                                                                                            |
+| 📐 **Dimensions**        | track `%` · requests · tokens · `$`, per **5h / 7d / per-model** window                                                                                                       |
+| 🚦 **Policy**            | `hard` (block over share) · `soft` (deprioritize) · `burst` (use idle headroom)                                                                                               |
+| 🧱 **Cap**               | absolute ceiling per key, independent of mode                                                                                                                                 |
 
 <img src="./docs/diagrams/pool-fair-share.svg" width="100%" alt="OmniRoute key pool 'team-codex': one Codex Pro account shared by 3 keys over a 5-hour window. alice weight 50 (up to 50% of the shared 5h quota), bob weight 30, ci-bot weight 20. In generous mode (under 50% pool used) idle shares are lent out; once the pool crosses 50% strict mode holds each key to its fair share."/>
 
@@ -560,14 +560,14 @@ Engines run in pipeline order; each is independently toggleable and configurable
 
 Code blocks, URLs and structured data are **always preserved** byte-perfect. **One-click presets** combine the engines:
 
-| Mode                           | Savings    | Best for                                                                                                                       |
-| ------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| 🪶 **Lite**                    | ~15%       | Always-on safe default                                                                                                         |
-| 🪨 **Standard (Caveman)**      | ~30%       | Daily coding                                                                                                                   |
-| ⚡ **Aggressive**              | ~50%       | Long tool-heavy sessions                                                                                                       |
-| 🔥 **Ultra**                   | ~75%       | Maximum savings                                                                                                                |
-| 🧰 **RTK**                     | 60–90%     | Shell/test/build/git output                                                                                                    |
-| 🔗 **Stacked (RTK → Caveman)** | **78–95%** | Mixed prompts + tool logs                                                                                                      |
+| Mode                           | Savings    | Best for                                                                                                                                        |
+| ------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🪶 **Lite**                    | ~15%       | Always-on safe default                                                                                                                          |
+| 🪨 **Standard (Caveman)**      | ~30%       | Daily coding                                                                                                                                    |
+| ⚡ **Aggressive**              | ~50%       | Long tool-heavy sessions                                                                                                                        |
+| 🔥 **Ultra**                   | ~75%       | Maximum savings                                                                                                                                 |
+| 🧰 **RTK**                     | 60–90%     | Shell/test/build/git output                                                                                                                     |
+| 🔗 **Stacked (RTK → Caveman)** | **78–95%** | Mixed prompts + tool logs                                                                                                                       |
 
 **Real example — Standard mode:**
 
@@ -840,66 +840,66 @@ same process on one port, so there is no separate CLI-only package today.
 
 ### 📘 Getting Started
 
-| Document                                                       | Description                                                                                                                                                       |
-| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [User Guide](docs/guides/USER_GUIDE.md)                        | Providers, combos, CLI integration, deployment                                                                                                                    |
-| [Setup Guide](docs/guides/SETUP_GUIDE.md)                      | Full install methods, CLI tool configs, protocol setup, timeout tuning                                                                                            |
-| [CLI Tools Guide](docs/reference/CLI-TOOLS.md)                 | Per-tool setup for Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot                                                                                     |
-| [Remote Mode](docs/guides/REMOTE-MODE.md)                      | Drive a remote OmniRoute (VPS) from your laptop CLI via scoped access tokens                                                                                      |
-| [Claude Code Config](docs/guides/CLAUDE-CODE-CONFIGURATION.md) | Point Claude Code at OmniRoute (local/remote) with `launch` + per-model profiles                                                                                  |
-| [Quick Start](README.md#-quick-start)                          | 3-step install → connect → configure                                                                                                                              |
+| Document                                                       | Description                                                                                                                                                                          |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [User Guide](docs/guides/USER_GUIDE.md)                        | Providers, combos, CLI integration, deployment                                                                                                                                       |
+| [Setup Guide](docs/guides/SETUP_GUIDE.md)                      | Full install methods, CLI tool configs, protocol setup, timeout tuning                                                                                                               |
+| [CLI Tools Guide](docs/reference/CLI-TOOLS.md)                 | Per-tool setup for Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot                                                                                                        |
+| [Remote Mode](docs/guides/REMOTE-MODE.md)                      | Drive a remote OmniRoute (VPS) from your laptop CLI via scoped access tokens                                                                                                         |
+| [Claude Code Config](docs/guides/CLAUDE-CODE-CONFIGURATION.md) | Point Claude Code at OmniRoute (local/remote) with `launch` + per-model profiles                                                                                                     |
+| [Quick Start](README.md#-quick-start)                          | 3-step install → connect → configure                                                                                                                                                 |
 
 ### 🔧 Operations & Deployment
 
-| Document                                                 | Description                                                                                                                                                       |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Docker Guide](docs/guides/DOCKER_GUIDE.md)              | Docker run, Compose profiles, Caddy HTTPS, tunnels, image tags                                                                                                    |
-| [Podman Guide](contrib/podman/README.md)                 | Quadlet systemd integration, podman-compose, SELinux                                                                                                              |
-| [VM Deployment](docs/ops/VM_DEPLOYMENT_GUIDE.md)         | Complete guide: VM + nginx + Cloudflare setup                                                                                                                     |
-| [Fly.io Deployment](docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) | Deploy to Fly.io with persistent storage                                                                                                                          |
-| [Termux Guide](docs/guides/TERMUX_GUIDE.md)              | Run OmniRoute on Android via Termux                                                                                                                               |
-| [PWA Guide](docs/guides/PWA_GUIDE.md)                    | Progressive Web App install, caching, architecture                                                                                                                |
-| [Uninstall Guide](docs/guides/UNINSTALL.md)              | Clean removal for all install methods                                                                                                                             |
-| [Environment Config](docs/reference/ENVIRONMENT.md)      | Complete `.env` variables and references                                                                                                                          |
+| Document                                                 | Description                                                                                                                                                                         |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Docker Guide](docs/guides/DOCKER_GUIDE.md)              | Docker run, Compose profiles, Caddy HTTPS, tunnels, image tags                                                                                                                      |
+| [Podman Guide](contrib/podman/README.md)                 | Quadlet systemd integration, podman-compose, SELinux                                                                                                                                |
+| [VM Deployment](docs/ops/VM_DEPLOYMENT_GUIDE.md)         | Complete guide: VM + nginx + Cloudflare setup                                                                                                                                       |
+| [Fly.io Deployment](docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) | Deploy to Fly.io with persistent storage                                                                                                                                            |
+| [Termux Guide](docs/guides/TERMUX_GUIDE.md)              | Run OmniRoute on Android via Termux                                                                                                                                                 |
+| [PWA Guide](docs/guides/PWA_GUIDE.md)                    | Progressive Web App install, caching, architecture                                                                                                                                  |
+| [Uninstall Guide](docs/guides/UNINSTALL.md)              | Clean removal for all install methods                                                                                                                                               |
+| [Environment Config](docs/reference/ENVIRONMENT.md)      | Complete `.env` variables and references                                                                                                                                            |
 
 ### 🧠 Features & Architecture
 
-| Document                                                                     | Description                                                                                                                                         |
-| ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Architecture](docs/architecture/ARCHITECTURE.md)                            | System architecture, data flow, and internals                                                                                                       |
-| [Compression Guide](docs/compression/COMPRESSION_GUIDE.md)                   | 7-option pipeline: off / lite / standard / aggressive / ultra / RTK / stacked                                                                       |
-| [RTK Compression](docs/compression/RTK_COMPRESSION.md)                       | Command-output compression, filters, trust, verify, raw-output recovery                                                                             |
-| [Compression Engines](docs/compression/COMPRESSION_ENGINES.md)               | Caveman, RTK, stacked pipelines, dashboard/API/MCP surfaces                                                                                         |
-| [Compression Rules Format](docs/compression/COMPRESSION_RULES_FORMAT.md)     | JSON rule-pack schemas for Caveman and RTK filters                                                                                                  |
-| [Compression Language Packs](docs/compression/COMPRESSION_LANGUAGE_PACKS.md) | Language detection and Caveman rule-pack authoring                                                                                                  |
-| [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)                    | Circuit breakers, cooldowns, queue, anti-thundering herd, TLS spoofing                                                                              |
-| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                              | 12-factor scoring, mode packs, self-healing                                                                                                         |
-| [Proxy Guide](docs/ops/PROXY_GUIDE.md)                                       | 3-level proxy system, 1proxy marketplace, registry CRUD                                                                                             |
-| [Free Tiers](docs/reference/FREE_TIERS.md)                                   | 25+ free API providers consolidated directory                                                                                                       |
-| [Features Gallery](docs/guides/FEATURES.md)                                  | Visual dashboard tour with screenshots                                                                                                              |
-| [Codebase Documentation](docs/architecture/CODEBASE_DOCUMENTATION.md)        | Beginner-friendly codebase walkthrough                                                                                                              |
+| Document                                                                     | Description                                                                                                                                                        |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [Architecture](docs/architecture/ARCHITECTURE.md)                            | System architecture, data flow, and internals                                                                                                                      |
+| [Compression Guide](docs/compression/COMPRESSION_GUIDE.md)                   | 7-option pipeline: off / lite / standard / aggressive / ultra / RTK / stacked                                                                                      |
+| [RTK Compression](docs/compression/RTK_COMPRESSION.md)                       | Command-output compression, filters, trust, verify, raw-output recovery                                                                                            |
+| [Compression Engines](docs/compression/COMPRESSION_ENGINES.md)               | Caveman, RTK, stacked pipelines, dashboard/API/MCP surfaces                                                                                                        |
+| [Compression Rules Format](docs/compression/COMPRESSION_RULES_FORMAT.md)     | JSON rule-pack schemas for Caveman and RTK filters                                                                                                                 |
+| [Compression Language Packs](docs/compression/COMPRESSION_LANGUAGE_PACKS.md) | Language detection and Caveman rule-pack authoring                                                                                                                 |
+| [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)                    | Circuit breakers, cooldowns, queue, anti-thundering herd, TLS spoofing                                                                                             |
+| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                              | 12-factor scoring, mode packs, self-healing                                                                                                                        |
+| [Proxy Guide](docs/ops/PROXY_GUIDE.md)                                       | 3-level proxy system, 1proxy marketplace, registry CRUD                                                                                                            |
+| [Free Tiers](docs/reference/FREE_TIERS.md)                                   | 25+ free API providers consolidated directory                                                                                                                      |
+| [Features Gallery](docs/guides/FEATURES.md)                                  | Visual dashboard tour with screenshots                                                                                                                             |
+| [Codebase Documentation](docs/architecture/CODEBASE_DOCUMENTATION.md)        | Beginner-friendly codebase walkthrough                                                                                                                             |
 
 ### 🤖 Protocols & APIs
 
-| Document                                          | Description                                                                                                                                                            |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [API Reference](docs/reference/API_REFERENCE.md)  | All endpoints with examples                                                                                                                                            |
-| [OpenAPI Spec](docs/openapi.yaml)                 | OpenAPI 3.0 specification                                                                                                                                              |
-| [MCP Server](open-sse/mcp-server/README.md)       | 95 MCP tools, IDE configs, Python/TS/Go clients                                                                                                                        |
-| [MCP Server Guide](docs/frameworks/MCP-SERVER.md) | MCP installation, transports, and tool reference                                                                                                                       |
-| [A2A Server](src/lib/a2a/README.md)               | JSON-RPC 2.0 protocol, skills, streaming, task mgmt                                                                                                                    |
-| [A2A Server Guide](docs/frameworks/A2A-SERVER.md) | A2A agent card, tasks, skills, and streaming                                                                                                                           |
+| Document                                          | Description                                                                                                                                                                             |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [API Reference](docs/reference/API_REFERENCE.md)  | All endpoints with examples                                                                                                                                                             |
+| [OpenAPI Spec](docs/openapi.yaml)                 | OpenAPI 3.0 specification                                                                                                                                                               |
+| [MCP Server](open-sse/mcp-server/README.md)       | 95 MCP tools, IDE configs, Python/TS/Go clients                                                                                                                                         |
+| [MCP Server Guide](docs/frameworks/MCP-SERVER.md) | MCP installation, transports, and tool reference                                                                                                                                        |
+| [A2A Server](src/lib/a2a/README.md)               | JSON-RPC 2.0 protocol, skills, streaming, task mgmt                                                                                                                                     |
+| [A2A Server Guide](docs/frameworks/A2A-SERVER.md) | A2A agent card, tasks, skills, and streaming                                                                                                                                            |
 
 ### 📋 Project & Quality
 
-| Document                                           | Description                                                                                                                                                         |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Contributing](CONTRIBUTING.md)                    | Development setup and guidelines                                                                                                                                    |
-| [Changelog](CHANGELOG.md)                          | Full per-version release history                                                                                                                                    |
-| [Security Policy](SECURITY.md)                     | Vulnerability reporting and security practices                                                                                                                      |
-| [i18n Guide](docs/guides/I18N.md)                  | 40+ language support, translation workflow, RTL                                                                                                                     |
-| [Release Checklist](docs/ops/RELEASE_CHECKLIST.md) | Pre-release validation steps                                                                                                                                        |
-| [Coverage Plan](docs/ops/COVERAGE_PLAN.md)         | Test coverage strategy and 21,000+ test suite                                                                                                                       |
+| Document                                           | Description                                                                                                                                                                              |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Contributing](CONTRIBUTING.md)                    | Development setup and guidelines                                                                                                                                                         |
+| [Changelog](CHANGELOG.md)                          | Full per-version release history                                                                                                                                                         |
+| [Security Policy](SECURITY.md)                     | Vulnerability reporting and security practices                                                                                                                                           |
+| [i18n Guide](docs/guides/I18N.md)                  | 40+ language support, translation workflow, RTL                                                                                                                                          |
+| [Release Checklist](docs/ops/RELEASE_CHECKLIST.md) | Pre-release validation steps                                                                                                                                                             |
+| [Coverage Plan](docs/ops/COVERAGE_PLAN.md)         | Test coverage strategy and 21,000+ test suite                                                                                                                                            |
 
 <br/>
 
