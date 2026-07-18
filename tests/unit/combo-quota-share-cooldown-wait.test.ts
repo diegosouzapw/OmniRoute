@@ -264,3 +264,64 @@ test("auto strategy (2 models, both rate-limited) → waits for the SHORTER cool
     `should NOT wait for the longer cooldown (waited ${elapsed}ms, B's cooldown was ${LONG_RETRY_AFTER_MS}ms)`
   );
 });
+
+// #7360 follow-up (live incident, log id 1784416706646-51): the test above uses
+// maxSetRetries: 0, so it never exercises more than one setTry iteration — it
+// missed a real bug where lastError/earliestRetryAfter/lastStatus were declared
+// INSIDE the setTry loop body, resetting to null every retry. The real "default"
+// combo config has maxSetRetries: 3 (see liveGeminiShared.ts's DEFAULT_COMBO_CONFIG
+// and the live DB row), so when BOTH targets lock out on setTry 0, every
+// subsequent setTry (1,2,3) pre-skips both via isModelLocked with no real
+// dispatch — meaning lastStatus stayed null on the FINAL iteration, and the
+// combo crystallized a bogus "all accounts inactive" 503 in ~6s instead of ever
+// reaching the cooldown-aware wait, despite a real 429 with a clean ~150ms
+// retry-after having been observed on setTry 0.
+test("auto strategy with maxSetRetries > 0: both targets lock out on the FIRST setTry → still waits and succeeds, not a bogus 503", async () => {
+  const SHORT_RETRY_AFTER_MS = 150;
+  const MODEL_A = "gemini/gemma-4-31b-it";
+  const MODEL_B = "gemini/gemma-4-26b-a4b-it";
+  const calls: string[] = [];
+
+  const handleSingleModel = async (_body: unknown, modelStr: string) => {
+    calls.push(modelStr);
+    const timesSeen = calls.filter((m) => m === modelStr).length;
+    if (timesSeen === 1) return rateLimitResponseWithRetryAfter(429, SHORT_RETRY_AFTER_MS);
+    return okResponse();
+  };
+
+  const res = await handleComboChat({
+    body: { model: "default" },
+    combo: {
+      name: `default-${Math.random().toString(16).slice(2, 8)}`,
+      strategy: "auto",
+      models: [MODEL_A, MODEL_B],
+      config: {
+        auto: { explorationRate: 0 },
+        maxRetries: 0,
+        retryDelayMs: 0,
+        fallbackDelayMs: 0,
+        // Real value from the "default" combo's stored config — this is the
+        // field whose non-zero value exposed the bug (multiple setTry passes
+        // needed for both targets to still be locked on the LAST pass).
+        maxSetRetries: 3,
+        setRetryDelayMs: 5,
+      },
+    },
+    handleSingleModel,
+    isModelAvailable: async () => true,
+    log: createLog() as never,
+    settings: shortModelLockoutSettings(),
+    allCombos: null,
+  });
+
+  assert.equal(
+    res.status,
+    200,
+    `expected the combo to wait out the shared cooldown and succeed, got ${res.status} (${await res.clone().text()})`
+  );
+  // Both targets got a real dispatch on setTry 0 (locking them out), then every
+  // pre-skipped setTry (1-3) should have led straight to the cooldown wait
+  // rather than crystallizing early — so exactly one of A/B gets a genuine
+  // 2nd dispatch after the wait, once its lock has cleared.
+  assert.ok(calls.length >= 3, `expected at least 3 dispatch calls, got ${JSON.stringify(calls)}`);
+});

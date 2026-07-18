@@ -1496,6 +1496,21 @@ export async function handleComboChat({
     strategy === "quota-share" && resilienceSettings.quotaShareConcurrencyLimit.enabled;
 
   const dispatchWithCooldownRetry = async (): Promise<Response> => {
+    // #7360: hoisted OUTSIDE the setTry loop (not reset each iteration) so they
+    // persist across set retries. Without this, a combo whose targets all get
+    // locked out on setTry 0 would have every SUBSEQUENT setTry pre-skip both
+    // targets via the isModelLocked check (no real dispatch, so these are never
+    // touched) — and the wait/crystallize decision below only runs on the FINAL
+    // setTry, which would see lastStatus/earliestRetryAfter reset to null and
+    // wrongly fall into the generic "all accounts inactive" 503 instead of ever
+    // reaching the cooldown-aware wait, even though a real 429 with a known
+    // retry-after WAS observed earlier in the same dispatch (live incident,
+    // #7360 follow-up: log id 1784416706646-51 — 6.9s to a 503 despite both
+    // targets reporting a clean 40s rate_limit lockout on the first attempt).
+    let lastError: string | null = null;
+    let earliestRetryAfter: ComboRetryAfter | null = null;
+    let lastStatus: number | null = null;
+
     for (let setTry = 0; setTry <= maxSetRetries; setTry++) {
       // #1731: Per-set-iteration set of providers whose quota is fully exhausted.
       // Reset each retry so providers excluded in a previous attempt get another chance.
@@ -1521,9 +1536,6 @@ export async function handleComboChat({
         }
       }
 
-      let lastError: string | null = null;
-      let earliestRetryAfter: ComboRetryAfter | null = null;
-      let lastStatus: number | null = null;
       const startTime = Date.now();
       let fallbackCount = 0;
       let recordedAttempts = 0;
