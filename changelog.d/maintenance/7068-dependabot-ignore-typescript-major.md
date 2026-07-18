@@ -1,0 +1,1 @@
+- **chore(ci):** stop dependabot from proposing `typescript` majors — `typescript-eslint` pins a hard peer upper bound (`>=4.8.4 <6.1.0`), so a TS 7 bump violates the peer and takes the whole toolchain red at once. #7068 grouped it with 6 harmless dev bumps and blocked all of them. TS majors now migrate intentionally, in their own PR.

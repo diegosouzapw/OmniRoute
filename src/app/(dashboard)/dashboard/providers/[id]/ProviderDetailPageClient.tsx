@@ -120,9 +120,10 @@ export default function ProviderDetailPageClient() {
     setProviderNode,
     fetchConnections,
     fetchProxyConfig,
-    handleDelete,
+    deleteConfirm,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
+    handleToggleQuotaVisibility,
     handleToggleClaudeExtraUsage,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
@@ -131,6 +132,8 @@ export default function ProviderDetailPageClient() {
     handleRetestConnection,
     handleRefreshToken,
     handleSwapPriority,
+    handleReorderByAvailability,
+    reorderingByAvailability,
     handleBatchSetActive,
     handleBatchDeleteOpenModal,
     handleBatchDeleteConfirm,
@@ -484,7 +487,10 @@ export default function ProviderDetailPageClient() {
       )}
       {!isUpstreamProxyProvider && !isFreeNoAuth && (
         <Card>
-          <ProviderAccountRoutingCard providerKey={providerId} connectionCount={connections.length} />
+          <ProviderAccountRoutingCard
+            providerKey={providerId}
+            connectionCount={connections.length}
+          />
           <ConnectionsHeaderToolbar
             providerId={providerId}
             providerInfo={providerInfo}
@@ -498,6 +504,8 @@ export default function ProviderDetailPageClient() {
             retestingId={retestingId}
             distributingProxies={distributingProxies}
             proxyConfig={proxyConfig}
+            reorderingByAvailability={reorderingByAvailability}
+            handleReorderByAvailability={handleReorderByAvailability}
             preferClaudeCodeForUnprefixedClaudeModels={preferClaudeCodeForUnprefixedClaudeModels}
             claudeRoutingSettingsLoaded={claudeRoutingSettingsLoaded}
             claudeRoutingSettingsLoadError={claudeRoutingSettingsLoadError}
@@ -578,9 +586,10 @@ export default function ProviderDetailPageClient() {
                 setSelectedIds={setSelectedIds}
                 setPage={setPage}
                 setHealthFilter={setHealthFilter}
-                handleDelete={handleDelete}
+                deleteConfirm={deleteConfirm}
                 handleUpdateConnectionStatus={handleUpdateConnectionStatus}
                 handleToggleRateLimit={handleToggleRateLimit}
+                handleToggleQuotaVisibility={handleToggleQuotaVisibility}
                 handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
                 handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
                 handleToggleCodexLimit={handleToggleCodexLimit}
@@ -729,6 +738,7 @@ export default function ProviderDetailPageClient() {
         handleBatchDeleteConfirm={handleBatchDeleteConfirm}
         selectedIds={selectedIds}
         batchDeleting={batchDeleting}
+        deleteConfirm={deleteConfirm}
         applyCodexModalConnectionId={applyCodexModalConnectionId}
         setApplyCodexModalConnectionId={setApplyCodexModalConnectionId}
         applyingCodexAuthId={applyingCodexAuthId}

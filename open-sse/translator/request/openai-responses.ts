@@ -79,11 +79,28 @@ export function openaiResponsesToOpenAIRequest(
 
   const result: JsonRecord = { ...root };
 
+  // #7533: `verbosity` and `prompt_cache_key` are GPT-5/OpenAI-only Chat Completions
+  // parameters. A strict-protocol non-OpenAI upstream (NVIDIA confirmed by the reporter;
+  // likely also GLM/Kimi/Deepseek direct endpoints) 400s on unrecognized top-level
+  // parameters, so they must only survive the downgrade when the destination really is
+  // an OpenAI-operated endpoint.
+  //
+  // Allowlist, NOT a denylist: over-stripping costs a cache hit, over-preserving costs a
+  // hard 400. `codex` is in the list because it IS an OpenAI upstream
+  // (chatgpt.com/backend-api/codex) and is precisely the destination #517 needed
+  // `prompt_cache_key` preserved for — /v1/responses runs every request through this
+  // downgrade (handleResponsesCore -> convertResponsesApiFormat) regardless of provider,
+  // so gating on "openai" alone silently re-broke Codex prompt caching. Other
+  // OpenAI-compatible passthroughs (e.g. Azure OpenAI) are deliberately NOT assumed in —
+  // add them only with evidence that the endpoint accepts these fields.
+  const OPENAI_PARAM_DESTINATIONS = new Set(["openai", "codex"]);
+  const isOpenAIDestination = OPENAI_PARAM_DESTINATIONS.has(toString(credentialRecord.provider));
+
   // GPT-5 verbosity: Responses `text.verbosity` → Chat Completions top-level `verbosity`.
   // Chat has no `text` wrapper, so carry the level across and drop the Responses-only
   // `text` object (a strict Chat endpoint 400s on unknown fields).
   const responsesVerbosity = normalizeVerbosity(toRecord(result.text).verbosity);
-  if (responsesVerbosity) result.verbosity = responsesVerbosity;
+  if (responsesVerbosity && isOpenAIDestination) result.verbosity = responsesVerbosity;
   delete result.text;
 
   // background: true requests a deferred Responses API run (the upstream
@@ -331,11 +348,12 @@ export function openaiResponsesToOpenAIRequest(
       .filter((toolValue) => {
         const tool = toRecord(toolValue);
         const toolType = toString(tool.type);
-        // tool_search (#2766) and image_generation (#2950) are Responses API built-ins
-        // with no Chat Completions equivalent; drop them silently.
-        return (
-          !TOOL_SEARCH_TOOL_TYPES.test(toolType) && !IMAGE_GENERATION_TOOL_TYPES.test(toolType)
-        );
+        // image_generation (#2950) is a Responses API server-side hosted tool with no
+        // Chat Completions equivalent; drop it silently. tool_search (#2766) used to be
+        // dropped here too, but it is a CLIENT-executed tool (Codex sends it with
+        // `execution: "client"`) — see the flatMap branch below (#7532) for why it is
+        // now mapped onto a Chat function tool instead of discarded.
+        return !IMAGE_GENERATION_TOOL_TYPES.test(toolType);
       })
       .flatMap((toolValue) => {
         const tool = toRecord(toolValue);
@@ -364,6 +382,33 @@ export function openaiResponsesToOpenAIRequest(
                   },
               },
             }));
+        }
+        // tool_search (#2766) is a Responses API built-in Codex sends with
+        // `execution: "client"` — the CLIENT (Codex CLI) resolves the call locally,
+        // regardless of whether the wire format is Responses `{type:"tool_search"}` or
+        // Chat `{type:"function"}`. Dropping it silently (as before) hid the tool from
+        // the model entirely and broke Codex's lazy/deferred tool-loading protocol for
+        // any provider downgraded to Chat Completions (#7532). Map it onto a normal
+        // Chat function tool instead, mirroring the local_shell -> shell pattern below.
+        if (TOOL_SEARCH_TOOL_TYPES.test(toolType)) {
+          return {
+            type: "function",
+            function: {
+              name: toString(tool.name) || "tool_search",
+              description:
+                toString(tool.description) || "Search for additional deferred tools by query.",
+              parameters: tool.parameters ?? {
+                type: "object",
+                properties: {
+                  query: {
+                    type: "string",
+                    description: "Natural-language or keyword query over available tools.",
+                  },
+                },
+                required: ["query"],
+              },
+            },
+          };
         }
         // Pass web_search server tools through with their original type (versioned or plain).
         // These have no Chat Completions equivalent; preserve as-is so upstreams that understand
@@ -483,8 +528,12 @@ export function openaiResponsesToOpenAIRequest(
   }
 
   // Cleanup Responses API specific fields
-  // Note: prompt_cache_key is intentionally preserved — it is used by Codex and other
-  // providers as a cache-affinity signal. Stripping it breaks prompt caching (#517).
+  // Note: prompt_cache_key is intentionally preserved for OpenAI destinations — it is
+  // used by Codex as a cache-affinity signal and stripping it unconditionally broke
+  // prompt caching (#517). But #517's fix never added a provider gate, so it leaked to
+  // every destination, OpenAI or not — a strict non-OpenAI upstream (NVIDIA) 400s on the
+  // unrecognized field (#7533). Strip it for any non-OpenAI destination.
+  if (!isOpenAIDestination) delete result.prompt_cache_key;
   delete result.input;
   delete result.instructions;
   delete result.include;

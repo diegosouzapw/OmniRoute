@@ -146,6 +146,22 @@ function clampDiagStr(v: unknown, max = 128): string {
 }
 
 /**
+ * HTTP header values must be Latin1/ByteString (undici throws a TypeError
+ * otherwise — see #6612). Replace any codepoint outside the Latin1 range
+ * (0-255) with "?" so header construction never throws. Only used for the
+ * literal header value; the JSON body keeps the original, unsanitized
+ * readable text via `sanitizeComboDiagnostics`.
+ */
+function toHeaderSafeAscii(v: string): string {
+  let out = "";
+  for (let i = 0; i < v.length; i++) {
+    const code = v.charCodeAt(i);
+    out += code > 255 ? "?" : v[i];
+  }
+  return out;
+}
+
+/**
  * Whitelist projection — guarantees only id/reason string primitives + integer
  * counts can escape, regardless of what the caller assembled. This is the secret
  * containment boundary for the diagnostic trace.
@@ -186,10 +202,12 @@ export function errorResponseWithComboDiagnostics(
   if (opts.code) body.error.code = opts.code;
   if (opts.type) body.error.type = opts.type;
   body.diagnostics = safe;
-  const excludedHeader = safe.excluded
-    .map((e) => `${e.provider}${e.model ? `/${e.model}` : ""}:${e.reason}`)
-    .join(",")
-    .slice(0, 900);
+  const excludedHeader = toHeaderSafeAscii(
+    safe.excluded
+      .map((e) => `${e.provider}${e.model ? `/${e.model}` : ""}:${e.reason}`)
+      .join(",")
+      .slice(0, 900)
+  );
   return new Response(JSON.stringify(body), {
     status: statusCode,
     headers: {
@@ -197,7 +215,7 @@ export function errorResponseWithComboDiagnostics(
       "x-omniroute-combo-pool-size": String(safe.poolSize),
       "x-omniroute-combo-attempted": String(safe.attempted),
       "x-omniroute-combo-excluded": excludedHeader,
-      "x-omniroute-combo-terminal-reason": safe.terminalReason.slice(0, 200),
+      "x-omniroute-combo-terminal-reason": toHeaderSafeAscii(safe.terminalReason.slice(0, 200)),
     },
   });
 }

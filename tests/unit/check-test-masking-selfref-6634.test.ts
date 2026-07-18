@@ -14,10 +14,15 @@
  * (`if (file.endsWith("check-test-masking.test.ts")) continue;` in
  * scripts/check/check-test-masking.mjs) for precisely this reason — this test
  * asserts evaluateMasking() now applies the same exclusion for its diff-based
- * tautology counters without depending on a remote Git ref being available.
+ * tautology counters, against the REAL current source of
+ * tests/unit/check-test-masking.test.ts.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import {
   countTautologies,
   countExtendedTautologies,
@@ -25,27 +30,27 @@ import {
 } from "../../scripts/check/check-test-masking.mjs";
 
 const FILE = "tests/unit/check-test-masking.test.ts";
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 test("#6634: check-test-masking.test.ts's own tautology fixtures must not self-flag as weakening", () => {
-  const baseSrc = "assert.equal(actual, expected);";
-  const headSrc = `${baseSrc}\nconst fixture = "assert.ok(true); expect(true).toBe(true);";`;
-  const baseTaut = countTautologies(baseSrc);
-  const headTaut = countTautologies(headSrc);
-  const baseExtTaut = countExtendedTautologies(baseSrc);
-  const headExtTaut = countExtendedTautologies(headSrc);
-
-  assert.ok(headTaut > baseTaut, "fixture must exercise the assert.ok(true) exclusion");
-  assert.ok(headExtTaut > baseExtTaut, "fixture must exercise the extended exclusion");
+  // Read the REAL current source from disk rather than a git ref: the Unit Tests
+  // job checks out a shallow/single-ref tree with no origin/main, so `git show
+  // origin/main:<file>` failed the shard before it ever exercised the masking
+  // behavior under test. An empty base models the file's pre-#6404 state (no
+  // fixtures), which maximizes headTaut - baseTaut — the strictest input for the
+  // exclusion this test asserts.
+  const baseSrc = "";
+  const headSrc = fs.readFileSync(path.join(REPO_ROOT, FILE), "utf8");
 
   const perFile = [
     {
       file: FILE,
       baseAsserts: 0, // irrelevant to this assertion — only tautology counters matter
       headAsserts: 0,
-      baseTaut,
-      headTaut,
-      baseExtTaut,
-      headExtTaut,
+      baseTaut: countTautologies(baseSrc),
+      headTaut: countTautologies(headSrc),
+      baseExtTaut: countExtendedTautologies(baseSrc),
+      headExtTaut: countExtendedTautologies(headSrc),
     },
   ];
 
