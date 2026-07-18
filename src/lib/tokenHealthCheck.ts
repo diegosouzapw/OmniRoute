@@ -339,8 +339,12 @@ export async function sweep() {
 
       // Stagger + randomized jitter between checks to prevent bursting (Issue #1220)
       if (staggerMs > 0 && i < connections.length - 1) {
-        const jitter = 500 + Math.random() * 4500; // [500, 5000)ms anti-burst
-        await new Promise((resolve) => setTimeout(resolve, staggerMs + jitter));
+        const jitterMin = parseInt(process.env.HEALTHCHECK_JITTER_MIN_MS || "500", 10);
+        const jitterMax = parseInt(process.env.HEALTHCHECK_JITTER_MAX_MS || "5000", 10);
+        const jitter = jitterMin + Math.random() * Math.max(0, jitterMax - jitterMin);
+        const { promise, resolve } = Promise.withResolvers<void>();
+        setTimeout(resolve, staggerMs + jitter);
+        await promise;
       }
     }
   } catch (err) {
