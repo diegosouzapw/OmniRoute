@@ -482,16 +482,24 @@ function ensureCleanupTimer() {
 
 /** @internal exported for testing only */
 export function evictModelLockoutOverflow(): void {
-  // Evict oldest entries (insertion order) when cap exceeded.
-  // Keeps in-flight failures for active models — only culls excess.
+  // Evict oldest (insertion-order) entries when cap exceeded — but NEVER a
+  // still-active (until > now) lockout: cleanupModelLockKey() already ran on
+  // every key this tick, so anything active left here is a real, in-progress
+  // cooldown, and dropping it would wrongly let routing resume to it. If the
+  // map is still over cap purely from active entries, the cap is a soft
+  // bound in that rare case rather than a correctness trade-off.
   if (modelLockouts.size > MODEL_LOCKOUT_EVICTION_CAP) {
     const overflow = modelLockouts.size - MODEL_LOCKOUT_EVICTION_CAP;
-    let evicted = 0;
-    for (const key of modelLockouts.keys()) {
-      if (evicted >= overflow) break;
+    const now = Date.now();
+    // Only expired entries are eviction candidates (oldest-first, up to the
+    // overflow count) — active ones never appear in this list at all.
+    const evictableKeys = [...modelLockouts.entries()]
+      .filter(([, entry]) => entry.until <= now)
+      .slice(0, overflow)
+      .map(([key]) => key);
+    for (const key of evictableKeys) {
       modelLockouts.delete(key);
       modelFailureState.delete(key);
-      evicted++;
     }
   }
   if (modelFailureState.size > MODEL_LOCKOUT_EVICTION_CAP) {
