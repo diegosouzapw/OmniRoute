@@ -73,6 +73,24 @@ function makeBaseInput(overrides?: Partial<ExecuteParams>): ExecuteParams {
   } as ExecuteParams;
 }
 
+function withConnection(connectionId: string, overrides?: Partial<ExecuteParams>): ExecuteParams {
+  return makeBaseInput({
+    credentials: {
+      apiKey: "ecto_1_sess=test123",
+      connectionId,
+      providerSpecificData: { authorization: "ecto1:test-auth-token" },
+    },
+    ...overrides,
+  } as Partial<ExecuteParams>);
+}
+
+test("makeBaseInput nests connectionId override into credentials", () => {
+  const input = makeBaseInput({
+    credentials: { connectionId: "conn-distinct" },
+  } as Partial<ExecuteParams>);
+  assert.equal((input.credentials as { connectionId?: string }).connectionId, "conn-distinct");
+});
+
 // ─── Test 1: New conversation sends via WebSocket ────────────────────────────
 
 test("muse-spark-web: new conversation sends via WebSocket", async () => {
@@ -120,11 +138,10 @@ test("muse-spark-web: follow-up turn reuses conversation via WebSocket", async (
   const restore = __setMuseSparkWebSocketForTesting(MockWebSocket as unknown as typeof WebSocket);
   try {
     // Turn 1
-    await executor.execute(makeBaseInput({ connectionId: "conn-cont" }));
+    await executor.execute(withConnection("conn-cont"));
     // Turn 2 — caller sends history including prior assistant
     await executor.execute(
-      makeBaseInput({
-        connectionId: "conn-cont",
+      withConnection("conn-cont", {
         body: {
           messages: [
             { role: "user", content: "ping" },
@@ -184,7 +201,7 @@ test("muse-spark-web: WebSocket error returns error status", async () => {
 
   const restore = __setMuseSparkWebSocketForTesting(ErrorWs as unknown as typeof WebSocket);
   try {
-    const result = await executor.execute(makeBaseInput({ connectionId: "conn-err" }));
+    const result = await executor.execute(withConnection("conn-err"));
     assert.ok(
       result.response.status === 502 || result.response.status === 401,
       `Got error status: ${result.response.status}`
@@ -210,7 +227,7 @@ test("muse-spark-web: GraphQL error in 200 response is detected", async () => {
 
   const restore = __setMuseSparkWebSocketForTesting(MockWebSocket as unknown as typeof WebSocket);
   try {
-    const result = await executor.execute(makeBaseInput({ connectionId: "conn-gql-err" }));
+    const result = await executor.execute(withConnection("conn-gql-err"));
     assert.equal(result.response.status, 502);
     const body = await result.response.json();
     assert.match(body.error.message, /AttachmentInput/);
