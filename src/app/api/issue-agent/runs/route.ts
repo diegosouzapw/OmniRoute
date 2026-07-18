@@ -9,6 +9,7 @@ import { normalizeGitHubIssueExport } from "@/lib/issueAgent/githubExport";
 import { createRecordedTriageRun } from "@/lib/issueAgent/recordedTriage";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const issueAgentRunRequestSchema = z.object({
   mode: z.string().optional(),
@@ -26,6 +27,24 @@ const ENABLED_VALUES = new Set(["1", "true", "yes", "on"]);
 
 function isIssueAgentEnabled(): boolean {
   return ENABLED_VALUES.has((process.env.OMNIROUTE_ISSUE_AGENT_ENABLED ?? "").toLowerCase());
+}
+
+/**
+ * Node's own fs/system errors (ENOENT, EACCES, EEXIST, ...) always set `.code`
+ * to an uppercase errno identifier and embed the absolute path in `.message`
+ * (e.g. `appendIssueAgentAuditRecord`'s mkdir/appendFile on DATA_DIR). Hand-thrown
+ * validation errors in this module (createRecordedTriageRun,
+ * normalizeGitHubIssueExport) are plain `new Error("...")` with a curated,
+ * path-free message and never set `.code` — so this check safely distinguishes
+ * "safe to show the client" validation failures from opaque internal/system
+ * errors that could otherwise leak the server's filesystem layout.
+ */
+function isNodeSystemError(error: unknown): error is NodeJS.ErrnoException {
+  return (
+    error instanceof Error &&
+    typeof (error as NodeJS.ErrnoException).code === "string" &&
+    /^[A-Z]/.test((error as NodeJS.ErrnoException).code as string)
+  );
 }
 
 export async function GET() {
@@ -103,11 +122,20 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof RecordedTriageTimeoutError) {
       return NextResponse.json(
-        { error: error.message, code: "ISSUE_AGENT_TIMEOUT" },
+        { error: sanitizeErrorMessage(error.message), code: "ISSUE_AGENT_TIMEOUT" },
         { status: 504 }
       );
     }
-    const message = error instanceof Error ? error.message : "Invalid issue-agent request";
+    // Hard Rule #12: never put a raw err.message in a response. Validation
+    // failures thrown by this module (bad issue URL, malformed GitHub export)
+    // are safe, curated messages meant for the client — sanitizeErrorMessage()
+    // is a no-op for them. An opaque Node system/fs error (e.g. audit.ts
+    // failing to mkdir/appendFile under DATA_DIR) is replaced with a generic
+    // message instead, since its raw text would otherwise embed the server's
+    // absolute filesystem path.
+    const message = isNodeSystemError(error)
+      ? "Issue Agent request failed due to an internal error"
+      : sanitizeErrorMessage(error instanceof Error ? error.message : "Invalid issue-agent request");
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

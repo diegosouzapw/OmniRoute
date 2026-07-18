@@ -99,6 +99,15 @@ test("issue-agent preserves the normal chat route provider failure response", as
       method: "POST",
       body: JSON.stringify({
         mode: "recorded-triage",
+        // #7315: dryRun must be explicit false — createRecordedTriageRun()
+        // (src/lib/issueAgent/recordedTriage.ts) computes `dryRun: input.dryRun
+        // !== false`, so an OMITTED dryRun defaults to true (dry-run mode) and
+        // the route returns the deterministic dry-run summary WITHOUT ever
+        // calling executeRecordedTriageChatCompletion() — meaning the mocked
+        // 429 fetch below is never invoked and this test always observed the
+        // 200 dry-run response instead. Not a semantic-cache collision: the
+        // sibling test above passes dryRun:false explicitly, this one didn't.
+        dryRun: false,
         issueUrl: "https://github.com/KooshaPari/OmniRoute/issues/5980",
         recordedContext: { body: "Preserve upstream errors for triage." },
         provider: "openai",
@@ -108,8 +117,19 @@ test("issue-agent preserves the normal chat route provider failure response", as
   );
   const body = (await response.json()) as Record<string, unknown>;
 
+  // The normal chat-completions route enriches the raw upstream error (adds a
+  // "[provider/model] [status]:" prefix and a connection-cooldown hint) rather
+  // than passing the mocked JSON through byte-for-byte — that enrichment is the
+  // normal route's own, deliberate behavior (see RESILIENCE_GUIDE.md connection
+  // cooldown). This test's job is to prove the issue-agent execution wrapper
+  // preserves and surfaces THAT real response (status + original message text)
+  // rather than swallowing it or substituting its own error — so assert on the
+  // stable, observable parts instead of the exact enrichment wording/timing.
   assert.equal(response.status, 429);
-  assert.deepEqual(body.completion, {
-    error: { message: "provider rate limited", type: "rate_limit_error" },
-  });
+  const completion = body.completion as { error?: { message?: string } };
+  assert.match(
+    completion.error?.message ?? "",
+    /provider rate limited/,
+    "the original upstream error message must survive through the issue-agent execution wrapper"
+  );
 });

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -230,6 +230,52 @@ test("issue-agent run accepts recorded GitHub export payloads", async () => {
     assert.equal(context.issueTitle, "Fix GitHub export importer");
     assert.equal(context.intent, "bugfix");
     assert.equal(body.auditPath, join(process.env.DATA_DIR, "issue-agent", "audit.jsonl"));
+  } finally {
+    if (previous === undefined) delete process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
+    else process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = previous;
+    if (previousDataDir === undefined) delete process.env.DATA_DIR;
+    else process.env.DATA_DIR = previousDataDir;
+  }
+});
+
+test("issue-agent run sanitizes a forced audit-write failure instead of leaking its absolute path", async () => {
+  const previous = process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
+  const previousDataDir = process.env.DATA_DIR;
+  process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = "true";
+  const auditBlockerDir = mkdtempSync(join(tmpdir(), "issue-agent-audit-blocker-"));
+  // appendIssueAgentAuditRecord() (src/lib/issueAgent/audit.ts) does
+  // `mkdir(join(DATA_DIR, "issue-agent"), { recursive: true })`. Pre-creating a
+  // FILE at that exact path forces a real Node fs error (EEXIST) whose raw
+  // `.message` embeds this directory's absolute path -- the same leak shape a
+  // permission-denied or disk-full failure would produce (Hard Rule #12).
+  writeFileSync(join(auditBlockerDir, "issue-agent"), "blocking file, not a directory");
+  process.env.DATA_DIR = auditBlockerDir;
+
+  try {
+    const response = await POST(
+      new Request("http://localhost/api/issue-agent/runs", {
+        method: "POST",
+        body: JSON.stringify({
+          mode: "recorded-triage",
+          issueUrl: "https://github.com/KooshaPari/OmniRoute/issues/1",
+        }),
+      })
+    );
+    const body = await json(response);
+
+    assert.equal(response.status, 400);
+    assert.equal(typeof body.error, "string");
+    const errorMessage = String(body.error);
+    assert.doesNotMatch(errorMessage, /EEXIST|ENOENT|EACCES/, "must not leak the raw errno code");
+    assert.ok(
+      !errorMessage.includes(auditBlockerDir),
+      "must not leak the DATA_DIR absolute path"
+    );
+    assert.ok(
+      !errorMessage.includes("/issue-agent/"),
+      "must not leak the audit subdirectory path"
+    );
+    assert.equal(errorMessage, "Issue Agent request failed due to an internal error");
   } finally {
     if (previous === undefined) delete process.env.OMNIROUTE_ISSUE_AGENT_ENABLED;
     else process.env.OMNIROUTE_ISSUE_AGENT_ENABLED = previous;
