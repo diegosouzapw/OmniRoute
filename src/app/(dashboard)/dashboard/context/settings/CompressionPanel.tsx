@@ -120,6 +120,26 @@ function LiveZoneToggle({
   );
 }
 
+function AdaptiveTargetPreview({ contextBudget }: { contextBudget?: ContextBudgetConfig }) {
+  const t = useTranslations("settings");
+  const target = getAdaptiveTargetSummary(contextBudget ?? DEFAULT_CONTEXT_BUDGET, 200000);
+  return (
+    <div
+      data-testid="adaptive-target-preview"
+      className="mb-4 rounded-md border border-border/60 bg-bg-subtle px-3 py-2 text-xs text-text-muted"
+    >
+      {target.enabled
+        ? t("compressionAdaptiveTarget", {
+            mode: target.mode,
+            policy: target.policy,
+            target: target.target,
+            contextLimit: target.contextLimit,
+          })
+        : t("compressionAdaptiveOff")}
+    </div>
+  );
+}
+
 export default function CompressionPanel() {
   const t = useTranslations("settings");
   // D-A6/§7: locale-gated styles (e.g. terse-cjk → zh) are only OFFERED under their locale.
@@ -240,11 +260,6 @@ export default function CompressionPanel() {
             pipeline: derived.stackedPipeline.map((s) => s.engine).join(" → "),
           })
         : t("compressionDerivedMode", { mode: derived.mode });
-  const adaptiveTarget = getAdaptiveTargetSummary(
-    config.contextBudget ?? DEFAULT_CONTEXT_BUDGET,
-    200000
-  );
-
   if (loading) {
     return (
       <Card className="p-6">
@@ -312,19 +327,7 @@ export default function CompressionPanel() {
       </div>
 
       {/* Adaptive context-budget — read-only computed target (Phase 4C, D-C1 transparency) */}
-      <div
-        data-testid="adaptive-target-preview"
-        className="mb-4 rounded-md border border-border/60 bg-bg-subtle px-3 py-2 text-xs text-text-muted"
-      >
-        {adaptiveTarget.enabled
-          ? t("compressionAdaptiveTarget", {
-              mode: adaptiveTarget.mode,
-              policy: adaptiveTarget.policy,
-              target: adaptiveTarget.target,
-              contextLimit: adaptiveTarget.contextLimit,
-            })
-          : t("compressionAdaptiveOff")}
-      </div>
+      <AdaptiveTargetPreview contextBudget={config.contextBudget} />
 
       {/* Engine grid */}
       <div className={`divide-y divide-border ${config.enabled ? "" : "opacity-60"}`}>

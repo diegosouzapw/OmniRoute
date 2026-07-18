@@ -133,6 +133,45 @@ function VerifyControls({
   );
 }
 
+function ComparisonTable({
+  rows,
+  verdicts,
+}: {
+  rows: Row[];
+  verdicts: Record<string, VerifyResult>;
+}) {
+  const t = useTranslations("compressionStudio");
+  return (
+    <table className="w-full text-xs">
+      <thead>
+        <tr className="text-left opacity-60">
+          <th>{t("engine")}</th>
+          <th>{t("savings")}</th>
+          <th>{t("retention")}</th>
+          <th>{t("outputTokensShort")}</th>
+          <th>{t("fidelity")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => {
+          const verdict = verdicts[row.engine];
+          return (
+            <tr key={row.engine} data-testid="compare-row" className="border-b">
+              <td className="font-semibold">{row.engine}</td>
+              <td>−{row.meanSavingsPercent.toFixed(0)}%</td>
+              <td>{Math.round(row.meanRetention * 100)}%</td>
+              <td>{row.totalCompressedTokens}</td>
+              <td data-testid="verify-verdict">
+                {verdict ? (verdict.skippedCapped ? "—(cap)" : (verdict.verdict ?? "?")) : ""}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
 export function CompareView({ text }: CompareViewProps) {
   const t = useTranslations("compressionStudio");
   const [rows, setRows] = useState<Row[]>([]);
@@ -203,33 +242,7 @@ export function CompareView({ text }: CompareViewProps) {
           />
         )}
       </div>
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="text-left opacity-60">
-            <th>{t("engine")}</th>
-            <th>{t("savings")}</th>
-            <th>{t("retention")}</th>
-            <th>{t("outputTokensShort")}</th>
-            <th>{t("fidelity")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => {
-            const v = verdicts[r.engine];
-            return (
-              <tr key={r.engine} data-testid="compare-row" className="border-b">
-                <td className="font-semibold">{r.engine}</td>
-                <td>−{r.meanSavingsPercent.toFixed(0)}%</td>
-                <td>{Math.round(r.meanRetention * 100)}%</td>
-                <td>{r.totalCompressedTokens}</td>
-                <td data-testid="verify-verdict">
-                  {v ? (v.skippedCapped ? "—(cap)" : (v.verdict ?? "?")) : ""}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <ComparisonTable rows={rows} verdicts={verdicts} />
     </div>
   );
 }

@@ -162,6 +162,67 @@ function actionLabel(action: AutopilotAction, t: ReturnType<typeof useTranslatio
   return keys[action.type] ? t(keys[action.type]) : action.label;
 }
 
+function ProviderIssues({
+  issues,
+  busyAction,
+  onApply,
+}: {
+  issues: AutopilotIssue[];
+  busyAction: string | null;
+  onApply: (issue: AutopilotIssue, action: AutopilotAction) => Promise<void>;
+}) {
+  const t = useTranslations("providerHealthAutopilot");
+  const orderedIssues = [...issues]
+    .sort((left, right) => SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity])
+    .slice(0, 4);
+  return (
+    <div className="mt-3 space-y-2">
+      {orderedIssues.map((issue) => {
+        const evidence = formatConnectionEvidence(issue, t);
+        return (
+          <div key={issue.id} className="rounded-lg border border-border bg-surface p-3">
+            <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${SEVERITY_STYLES[issue.severity]}`}
+                  >
+                    {t(`severity.${issue.severity}`)}
+                  </span>
+                  <p className="text-sm font-medium text-text-main">
+                    {issueText(issue, "title", t)}
+                  </p>
+                </div>
+                <p className="mt-1 text-xs text-text-muted">
+                  {issueText(issue, "recommendation", t)}
+                </p>
+                {evidence && <p className="mt-1 text-xs text-text-muted">{evidence}</p>}
+              </div>
+              {issue.actions.length > 0 && (
+                <div className="flex flex-wrap gap-2 lg:justify-end">
+                  {issue.actions.map((action) => {
+                    const busy = busyAction === `${issue.id}:${action.type}`;
+                    return (
+                      <button
+                        key={`${issue.id}:${action.type}`}
+                        onClick={() => void onApply(issue, action)}
+                        disabled={busy || Boolean(busyAction)}
+                        className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+                      >
+                        {busy ? t("applying") : actionLabel(action, t)}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ProviderHealthAutopilotCard() {
   const t = useTranslations("providerHealthAutopilot");
   const nodeMap = useProviderNodeMap();
@@ -335,56 +396,11 @@ export default function ProviderHealthAutopilotCard() {
                 </span>
               </div>
 
-              <div className="mt-3 space-y-2">
-                {[...provider.issues]
-                  .sort(
-                    (left, right) => SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity]
-                  )
-                  .slice(0, 4)
-                  .map((issue) => (
-                    <div key={issue.id} className="rounded-lg border border-border bg-surface p-3">
-                      <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span
-                              className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${SEVERITY_STYLES[issue.severity]}`}
-                            >
-                              {t(`severity.${issue.severity}`)}
-                            </span>
-                            <p className="text-sm font-medium text-text-main">
-                              {issueText(issue, "title", t)}
-                            </p>
-                          </div>
-                          <p className="mt-1 text-xs text-text-muted">
-                            {issueText(issue, "recommendation", t)}
-                          </p>
-                          {formatConnectionEvidence(issue, t) && (
-                            <p className="mt-1 text-xs text-text-muted">
-                              {formatConnectionEvidence(issue, t)}
-                            </p>
-                          )}
-                        </div>
-                        {issue.actions.length > 0 && (
-                          <div className="flex flex-wrap gap-2 lg:justify-end">
-                            {issue.actions.map((action) => {
-                              const busy = busyAction === `${issue.id}:${action.type}`;
-                              return (
-                                <button
-                                  key={`${issue.id}:${action.type}`}
-                                  onClick={() => void applyAction(issue, action)}
-                                  disabled={busy || Boolean(busyAction)}
-                                  className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
-                                >
-                                  {busy ? t("applying") : actionLabel(action, t)}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-              </div>
+              <ProviderIssues
+                issues={provider.issues}
+                busyAction={busyAction}
+                onApply={applyAction}
+              />
             </div>
           ))}
         </div>
