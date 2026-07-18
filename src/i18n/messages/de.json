@@ -2223,7 +2223,17 @@
     "copilotToolCalling": "Werkzeugaufruf",
     "copilotPasteInto": "Einfügen in:",
     "wireApiChatCompletions": "Chat-Abschlüsse (/chat/completions)",
-    "wireApiResponses": "Antwort-API (/responses)"
+    "wireApiResponses": "Antwort-API (/responses)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "Kombinationen",
@@ -2721,6 +2731,8 @@
     "range7d": "7 Tage",
     "range30d": "30 Tage",
     "range90d": "90 Tage",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "Alle Zeit",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",
@@ -3657,6 +3669,9 @@
     "apiKeyProviders": "API-Schlüsselanbieter",
     "compatibleProviders": "Mit API-Schlüsseln kompatible Anbieter",
     "testAll": "Alle testen",
+    "reorderByAvailability": "Neu ordnen",
+    "reorderByAvailabilityTitle": "Verbindungen nach Verfügbarkeit neu ordnen",
+    "reorderByAvailabilityError": "Verbindungen konnten nicht nach Verfügbarkeit neu geordnet werden",
     "testAllOAuth": "Testen Sie alle OAuth-Verbindungen",
     "testAllFree": "Testen Sie alle kostenlosen Verbindungen",
     "testAllApiKey": "Testen Sie alle API-Schlüsselverbindungen",
@@ -3761,6 +3776,7 @@
     "testKeyPlaceholder": "sk-... (nur zur Validierung)",
     "providerNotFound": "Anbieter nicht gefunden",
     "deleteConnectionConfirm": "Diese Verbindung löschen?",
+    "deleteConnectionConfirmNamed": "Möchten Sie {name} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",
@@ -4181,6 +4197,9 @@
     "consoleApiKeyOracleHint": "Console Api Key Oracle Hint",
     "consoleApiKeyOracleLabel": "Console Api Key Oracle Label",
     "consoleApiKeyOraclePlaceholder": "Console Api Key Oracle Placeholder",
+    "newApiUserIdLabel": "New-API-Benutzer-ID",
+    "newApiUserIdPlaceholder": "z. B. 12345",
+    "newApiUserIdHint": "Wert des New-Api-User-Headers von AgentRouter, zusammen mit dem Konsolen-API-Schlüssel verwendet, um das Kontingentguthaben abzurufen.",
     "cpaModeDisabledTitle": "Cpa Mode Disabled Title",
     "cpaModeEnabledTitle": "Cpa Mode Enabled Title",
     "customUserAgentHint": "Custom User Agent Hint",
@@ -4432,7 +4451,9 @@
     "contextWindowOverrideLabel": "__MISSING__:Context Window Override",
     "contextWindowOverridePlaceholder": "__MISSING__:e.g. 131072",
     "contextWindowOverrideHint": "__MISSING__:Manually set this model's real context window (tokens) when the provider misreports it. Wins over auto-detected/catalog values and prevents combo routing from dropping the model.",
-    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens"
+    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "Einstellungen",
@@ -5530,7 +5551,12 @@
     "homeQuickStart": "Quick Start",
     "homeQuickStartDesc": "Show the Quick Start panel on the Home page.",
     "homeProviderTopology": "Provider Topology",
-    "homeProviderTopologyDesc": "Show the Provider Topology on the Home page."
+    "homeProviderTopologyDesc": "Show the Provider Topology on the Home page.",
+    "codexAutoPingTitle": "Codex Quota Auto-Ping",
+    "codexAutoPingDesc": "Opt-in per connection: sends a tiny request right after a Codex session window resets so it isn't cold when you need it.",
+    "codexAutoPingWarning": "Consumes a small amount of real Codex quota on every ping. Off by default — enable only for connections you actively rely on.",
+    "codexAutoPingSaveError": "Failed to update Codex Auto-Ping setting",
+    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -7632,5 +7658,14 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "hooks": "Hooks"
+  },
+  "freeProviderRankingsPage": {
+    "typeAll": "__MISSING__:All Types",
+    "typeNoauth": "__MISSING__:No Signup",
+    "typeOauth": "__MISSING__:OAuth Login",
+    "typeApikey": "__MISSING__:API Key",
+    "sortTypeFirst": "__MISSING__:Easiest first",
+    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   }
 }

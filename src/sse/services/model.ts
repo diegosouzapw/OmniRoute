@@ -74,7 +74,15 @@ async function lookupCustomModelMeta(
   try {
     const models = await getCustomModels(providerId);
     if (!Array.isArray(models)) return {};
-    const match = models.find((m: any) => m.id === modelId);
+    // #7364: exact match first (preserves existing behavior/perf); fall back to a
+    // case-insensitive match so a model saved as "glm-4.6v" is still found when the
+    // caller (dashboard, combo target, direct call) requests "glm-4.6V" — several
+    // reporters typed the uppercase "V" from Z.AI's own docs/marketing.
+    const match =
+      models.find((m: any) => m.id === modelId) ??
+      models.find(
+        (m: any) => typeof m.id === "string" && m.id.toLowerCase() === modelId.toLowerCase()
+      );
     if (!match) return {};
     return {
       apiFormat: match.apiFormat === "responses" ? "responses" : undefined,

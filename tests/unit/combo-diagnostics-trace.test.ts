@@ -79,3 +79,41 @@ test("combo diagnostics: secret containment — non-whitelisted fields never sur
   assert.ok(!serialized.includes("accessToken"), "no accessToken KEY survives");
   assert.ok(!serialized.includes("token"), "no token KEY survives");
 });
+
+test("combo diagnostics: terminalReason with a non-Latin1 char (em dash) must not crash Response construction (#6612)", () => {
+  const terminalReason = "reasoning consumed 5/5 tokens — no content output";
+  assert.doesNotThrow(() => {
+    const res = errorResponseWithComboDiagnostics(
+      502,
+      `Upstream response failed quality validation: ${terminalReason}`,
+      {
+        poolSize: 4,
+        attempted: 1,
+        excluded: [{ provider: "deepseek", model: "deepseek-v4-flash-free", reason: "quality — bad" }],
+        attemptOrder: [{ provider: "deepseek", model: "deepseek-v4-flash-free" }],
+        terminalReason,
+      }
+    );
+    assert.equal(res.status, 502);
+  });
+});
+
+test("combo diagnostics: JSON body keeps the original non-Latin1 text even though headers are ASCII-sanitized (#6612)", async () => {
+  const terminalReason = "reasoning consumed 5/5 tokens — no content output";
+  const res = errorResponseWithComboDiagnostics(
+    502,
+    `Upstream response failed quality validation: ${terminalReason}`,
+    {
+      poolSize: 1,
+      attempted: 1,
+      excluded: [],
+      attemptOrder: [{ provider: "deepseek", model: "deepseek-v4-flash-free" }],
+      terminalReason,
+    }
+  );
+  // Header value must be a valid Latin1 ByteString — em dash (U+2014) replaced.
+  assert.equal(res.headers.get("x-omniroute-combo-terminal-reason"), terminalReason.replace("—", "?"));
+  const body = await res.json();
+  // JSON body keeps the original, readable (unsanitized) em dash.
+  assert.equal(body.diagnostics.terminalReason, terminalReason);
+});

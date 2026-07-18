@@ -49,6 +49,7 @@ const LEGACY_FLAT_KEYS: {
     callLogs: ["callLogs"],
     usageHistory: ["usageHistory"],
     memoryEntries: ["memoryEntries"],
+    xpAuditLog: ["xpAuditLog"],
     autoCleanupEnabled: ["autoCleanupEnabled"],
   },
   aggregation: {

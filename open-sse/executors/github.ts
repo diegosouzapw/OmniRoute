@@ -41,6 +41,16 @@ export class GithubExecutor extends BaseExecutor {
 
   buildUrl(model: string, _stream: boolean, _urlIndex = 0) {
     const targetFormat = getModelTargetFormat("gh", model);
+    // Claude models: route to Copilot's Anthropic-native /v1/messages shim — the
+    // only Copilot endpoint that surfaces prompt-cache token counts for Claude and
+    // avoids a lossy round-trip of tool_use/tool_result/thinking content blocks
+    // through the OpenAI shape. Driven by the registry's per-model targetFormat
+    // (see registry/github/index.ts), which chatCore.ts also uses to translate the
+    // request to Claude shape before the executor ever sees it.
+    // Port of decolua/9router#2608 (author: yidecode).
+    if (targetFormat === "claude" && this.config.messagesUrl) {
+      return this.config.messagesUrl;
+    }
     // 9router#102: Copilot Codex models advertise supported_endpoints: ["/responses"]
     // and 400 on /chat/completions. Route any *-codex id to /responses even when it
     // isn't in the curated registry, so newly-shipped Codex models work out of the box.
@@ -93,6 +103,15 @@ export class GithubExecutor extends BaseExecutor {
     const sourceBody = body && typeof body === "object" ? body : {};
     const modifiedBody = { ...sourceBody };
 
+    // Claude models arrive here already translated to Anthropic-native shape by
+    // chatCore.ts (registry targetFormat: "claude" — see registry/github/index.ts)
+    // and are dispatched at /v1/messages (buildUrl above), which behaves like the
+    // real Anthropic API. None of the /chat/completions-only quirks below apply —
+    // content-part flattening would destroy native tool_use/tool_result/thinking
+    // blocks, and the native endpoint (unlike Copilot's /chat/completions) honors
+    // assistant-message prefill. Port of decolua/9router#2608 (author: yidecode).
+    const isClaudeNative = getModelTargetFormat("gh", model) === "claude";
+
     if (Array.isArray(sourceBody.input)) {
       modifiedBody.input = sanitizeResponsesInputItems(sourceBody.input, false);
     }
@@ -108,14 +127,6 @@ export class GithubExecutor extends BaseExecutor {
         delete next.reasoning_content;
         return next;
       });
-    }
-
-    if (modifiedBody.response_format && model.toLowerCase().includes("claude")) {
-      modifiedBody.messages = this.injectResponseFormat(
-        Array.isArray(modifiedBody.messages) ? modifiedBody.messages : [],
-        modifiedBody.response_format
-      );
-      delete modifiedBody.response_format;
     }
 
     if (Array.isArray(modifiedBody.tools) && modifiedBody.tools.length > 128) {
@@ -136,29 +147,13 @@ export class GithubExecutor extends BaseExecutor {
       delete modifiedBody.temperature;
     }
 
-    // GitHub Copilot /chat/completions only accepts {type:'text'} or {type:'image_url'}
-    // content parts. Clients like Cursor IDE pass through Anthropic-shape parts
-    // (tool_use, tool_result, thinking) untouched when using Claude models, which makes
-    // the endpoint return: "type has to be either 'image_url' or 'text'" (HTTP 400).
-    // Serialize unknown part types as text, drop empty parts, and collapse to null when
-    // every part is stripped (assistant messages whose only content was tool_calls).
-    // Port from 9router#220 (fixes 9router#219).
-    if (Array.isArray(modifiedBody.messages)) {
-      modifiedBody.messages = modifiedBody.messages.map((msg: any) =>
-        this.sanitizeChatCompletionsMessage(msg)
-      );
-    }
-
-    // GitHub Copilot's /chat/completions endpoint rejects a conversation that ends
-    // with an assistant message: "This model does not support assistant message
-    // prefill. The conversation must end with a user message." (HTTP 400). Anthropic
-    // clients such as newest Claude Desktop send a trailing assistant turn as a
-    // prefill seed — the Anthropic API honors it, but Copilot does not. Drop it here,
-    // scoped to the GitHub executor only (the shared translator/contextManager and
-    // other providers that DO honor prefill are untouched).
-    // Port of 9router#2143 (author: Manuel <baslr@users.noreply.github.com>).
-    if (Array.isArray(modifiedBody.messages)) {
-      modifiedBody.messages = this.dropTrailingAssistantPrefill(modifiedBody.messages);
+    // The quirks below (response_format-as-system-prompt, content-part flattening,
+    // trailing-assistant-prefill drop) are all workarounds for /chat/completions-only
+    // limitations. They either don't apply to Claude-shape bodies or actively corrupt
+    // them, so they are skipped entirely for the native /v1/messages path. Port of
+    // decolua/9router#2608 (author: yidecode) — see class doc comment above.
+    if (!isClaudeNative) {
+      this.applyChatCompletionsOnlyQuirks(model, modifiedBody);
     }
 
     // Config-driven strip of params unsupported by the target provider/model.
@@ -169,6 +164,46 @@ export class GithubExecutor extends BaseExecutor {
     stripUnsupportedParams("github", model, modifiedBody);
 
     return modifiedBody;
+  }
+
+  // GitHub Copilot's /chat/completions endpoint has several quirks that the native
+  // /v1/messages shim doesn't share — extracted from transformRequest so the native
+  // path (the common case for Claude models going forward) doesn't pay their branch
+  // cost. Mutates modifiedBody in place.
+  private applyChatCompletionsOnlyQuirks(model: string, modifiedBody): void {
+    // Claude models on /chat/completions don't support response_format — inject the
+    // instruction as a system message instead. Port from 9router (see
+    // injectResponseFormat above).
+    if (modifiedBody.response_format && model.toLowerCase().includes("claude")) {
+      modifiedBody.messages = this.injectResponseFormat(
+        Array.isArray(modifiedBody.messages) ? modifiedBody.messages : [],
+        modifiedBody.response_format
+      );
+      delete modifiedBody.response_format;
+    }
+
+    if (!Array.isArray(modifiedBody.messages)) return;
+
+    // GitHub Copilot /chat/completions only accepts {type:'text'} or {type:'image_url'}
+    // content parts. Clients like Cursor IDE pass through Anthropic-shape parts
+    // (tool_use, tool_result, thinking) untouched when using Claude models, which makes
+    // the endpoint return: "type has to be either 'image_url' or 'text'" (HTTP 400).
+    // Serialize unknown part types as text, drop empty parts, and collapse to null when
+    // every part is stripped (assistant messages whose only content was tool_calls).
+    // Port from 9router#220 (fixes 9router#219).
+    modifiedBody.messages = modifiedBody.messages.map((msg: any) =>
+      this.sanitizeChatCompletionsMessage(msg)
+    );
+
+    // GitHub Copilot's /chat/completions endpoint rejects a conversation that ends
+    // with an assistant message: "This model does not support assistant message
+    // prefill. The conversation must end with a user message." (HTTP 400). Anthropic
+    // clients such as newest Claude Desktop send a trailing assistant turn as a
+    // prefill seed — the Anthropic API honors it, but Copilot does not. Drop it here,
+    // scoped to the GitHub executor only (the shared translator/contextManager and
+    // other providers that DO honor prefill are untouched).
+    // Port of 9router#2143 (author: Manuel <baslr@users.noreply.github.com>).
+    modifiedBody.messages = this.dropTrailingAssistantPrefill(modifiedBody.messages);
   }
 
   private sanitizeChatCompletionsMessage(msg: any): any {
@@ -235,17 +270,38 @@ export class GithubExecutor extends BaseExecutor {
   buildHeaders(
     credentials: ProviderCredentials,
     stream = true,
-    clientHeaders?: Record<string, string> | null
+    clientHeaders?: Record<string, string> | null,
+    model?: string
   ): Record<string, string> {
     const token = this.getCopilotToken(credentials) || credentials.accessToken;
+    const initiator = this.resolveInitiatorHeader(clientHeaders);
 
-    // Forward the client's x-initiator header when present. OpenCode and other
-    // Copilot-aware clients use this to distinguish user-initiated turns
-    // (x-initiator: user) from autonomous tool-call continuations
-    // (x-initiator: agent). GitHub Copilot's billing treats "agent" turns as
-    // free, so forwarding the value avoids burning a premium request on every
-    // tool-call round-trip.  Fall back to "user" when the header is absent to
-    // preserve the existing default behaviour.
+    const headers: Record<string, string> = {
+      ...getGitHubCopilotChatHeaders(stream ? "text/event-stream" : "application/json", initiator),
+      Authorization: `Bearer ${token}`,
+      "x-request-id":
+        crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    };
+
+    // Claude models routed to the Anthropic-native /v1/messages shim require the
+    // anthropic-version header (harmless no-op on /chat/completions and /responses,
+    // but /v1/messages rejects the request without it). Port of decolua/9router#2608.
+    if (model && getModelTargetFormat("gh", model) === "claude") {
+      headers["anthropic-version"] = "2023-06-01";
+    }
+
+    return headers;
+  }
+
+  // Forward the client's x-initiator header when present. OpenCode and other
+  // Copilot-aware clients use this to distinguish user-initiated turns
+  // (x-initiator: user) from autonomous tool-call continuations
+  // (x-initiator: agent). GitHub Copilot's billing treats "agent" turns as
+  // free, so forwarding the value avoids burning a premium request on every
+  // tool-call round-trip. Falls back to "user" when the header is absent to
+  // preserve the existing default behaviour. Extracted from buildHeaders so
+  // header assembly stays the one place that reads it.
+  private resolveInitiatorHeader(clientHeaders?: Record<string, string> | null): string {
     let clientInitiator = clientHeaders?.["x-initiator"] || clientHeaders?.["X-Initiator"];
     if (!clientInitiator && clientHeaders) {
       for (const key in clientHeaders) {
@@ -255,15 +311,7 @@ export class GithubExecutor extends BaseExecutor {
         }
       }
     }
-    const initiator =
-      clientInitiator === "agent" || clientInitiator === "user" ? clientInitiator : "user";
-
-    return {
-      ...getGitHubCopilotChatHeaders(stream ? "text/event-stream" : "application/json", initiator),
-      Authorization: `Bearer ${token}`,
-      "x-request-id":
-        crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    };
+    return clientInitiator === "agent" || clientInitiator === "user" ? clientInitiator : "user";
   }
 
   async refreshCopilotToken(githubAccessToken, log) {

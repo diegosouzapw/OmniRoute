@@ -11,10 +11,10 @@
 // `type: "image"` by the imageRegistry loop — and catalogDedupe.ts keys on
 // (id, type, subtype), so the two distinct-`type` entries both survived.
 //
-// Fix: skip a synced model in the chat-catalog loop when it is already a registered
-// image model for that exact provider (open-sse/config/imageRegistry.ts
-// isRegisteredImageModel()) — the imageRegistry loop still adds the correctly-typed
-// `type: "image"` entry.
+// Fix: skip an exact-provider registered image model from the chat-catalog loop only
+// when synced metadata does not explicitly advertise `chat` or `responses`. The image
+// registry loop still adds the correctly typed image entry, while multi-capability
+// models keep both entries.
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -38,6 +38,7 @@ async function resetStorage() {
 }
 
 test.beforeEach(async () => {
+  v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
   await resetStorage();
 });
 
@@ -46,19 +47,19 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-async function seedHuggingFaceConnection() {
+async function seedProviderConnection(provider: string) {
   return providersDb.createProviderConnection({
-    provider: "huggingface",
+    provider,
     authType: "apikey",
-    name: `huggingface-${Math.random().toString(16).slice(2, 8)}`,
-    apiKey: "hf-key",
+    name: `${provider}-${Math.random().toString(16).slice(2, 8)}`,
+    apiKey: `${provider}-key`,
     isActive: true,
     testStatus: "active",
   });
 }
 
 test("#6457 image/diffusion model discovered via live sync is NOT listed as a chat model", async () => {
-  const connection = await seedHuggingFaceConnection();
+  const connection = await seedProviderConnection("huggingface");
 
   // Simulate what HuggingFace's live `/v1/models` discovery persists for an
   // image/diffusion model: no supportedEndpoints/modality info at all — the exact
@@ -99,4 +100,37 @@ test("#6457 image/diffusion model discovered via live sync is NOT listed as a ch
   for (const entry of chatModelEntries) {
     assert.equal(entry.type, undefined, "the real chat model must not carry a non-chat type");
   }
+});
+
+test("registered image model with explicit chat endpoints keeps both catalog entries", async () => {
+  const connection = await seedProviderConnection("codex");
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("codex", connection.id, [
+    {
+      id: "gpt-5.6-sol",
+      name: "GPT 5.6 Sol",
+      supportedEndpoints: ["responses"],
+    },
+  ]);
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models?prefix=alias")
+  );
+  assert.equal(response.status, 200);
+
+  const body = (await response.json()) as {
+    data: Array<{ id: string; type?: string; supported_endpoints?: string[] }>;
+  };
+  const entries = body.data.filter((model) => model.id.endsWith("/gpt-5.6-sol"));
+
+  assert.ok(
+    entries.some(
+      (model) => model.type !== "image" && model.supported_endpoints?.includes("responses")
+    ),
+    "explicit responses support must keep the synced chat entry"
+  );
+  assert.ok(
+    entries.some((model) => model.type === "image"),
+    "the registered image entry must remain available under the same model id"
+  );
 });

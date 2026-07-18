@@ -96,7 +96,7 @@
       "tightenSlack": 10
     },
     "openapiCoverage.pct": {
-      "value": 38.0,
+      "value": 38,
       "direction": "up",
       "eps": 0.5,
       "_tighten_2026_07_04_v3844_release": "36.9 -> 39.3 (aperto exigido pelo --require-tighten no PR de release #5925). A cobertura OpenAPI melhorou no ciclo (9 rotas documentadas em 8fb020676 + as rotas novas de #5939/#5817/#6034/#5998 documentadas junto das features). 39.3 = valor medido pelo CI Quality Ratchet no run 28708141003 (tip 00c55afcb).",
@@ -158,12 +158,14 @@
       "dedicatedGate": true
     },
     "secretFindings": {
-      "value": 3,
+      "_note": "Zeroed 2026-07-13 (WS6/D3): the 3 frozen generic-api-key FPs are allowlisted with justification in .gitleaks.toml — any NEW finding regresses the ratchet.",
+      "value": 0,
       "direction": "down",
       "dedicatedGate": true
     },
     "zizmorFindings": {
-      "value": 169,
+      "value": 175,
+      "_rebaseline_2026_07_17_v3849_release": "169 -> 175 (+6). Cycle workflow drift (v3.8.48/v3.8.49): npm-publish.yml (new, WS1.3 #7092), electron-release.yml, nightly-compat.yml, nightly-release-green.yml, CI restructures (#7501 full-history base fetch, #7355 main-green, #7202 merge-queue gates, Trunk/Codecov). Breakdown vs v3.8.47: +3 unpinned-uses (@vN convention, deliberate per _scanner_harden_workflows_2026_06_16), +2 cache-poisoning (artifact upload/cache in the OWN electron-release/npm-publish RELEASE workflows -- operator-controlled, not fork-PR exploitable), +1 excessive-permissions (nightly-compat.yml permissions:issues). No new template-injection/artipacked/dangerous-triggers. Measured with zizmor 1.25.2 via `node scripts/check/check-workflows.mjs --ratchet` = 175 on da3a0be69.",
       "direction": "down",
       "dedicatedGate": true,
       "_rebaseline_2026_06_23_fastpath_gates": "155 -> 159 (+4). Two new jobs added to .github/workflows/quality.yml (fast-vitest, fast-unit) to run vitest + the full unit suite on the PR->release fast-path (release-acceleration plan, _tasks/release-bench/v3.8.35/PLANO-IMPLEMENTACAO.md). The +4 are unpinned-uses: actions/checkout@v7 + actions/setup-node@v6 in each of the 2 jobs — the SAME deliberate @vN convention as every other workflow (see _scanner_harden_workflows_2026_06_16). SHA-pinning only these would violate the convention. No new template-injection/artipacked/cache-poisoning. Measured locally via `npm run check:workflows -- --ratchet` = 159.",
@@ -186,12 +188,6 @@
       "direction": "down",
       "dedicatedGate": true,
       "_note": "oasdiff breaking-change gate (Fase 9 Onda 0). Blocks any breaking change vs base spec."
-    },
-    "semgrepFindings": {
-      "value": 0,
-      "direction": "down",
-      "dedicatedGate": true,
-      "_note": "semgrep owasp/secrets findings. ADVISORY until first CI value is frozen, then flip blocking (Fase 9)."
     },
     "mutationScore.src/sse/services/auth.ts": {
       "value": 52.57,

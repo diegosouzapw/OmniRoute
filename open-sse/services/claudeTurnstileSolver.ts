@@ -10,7 +10,7 @@
  * 6. Returns fresh cookie for tls-client-node
  */
 
-import { chromium, type Browser, type Page } from "playwright";
+import type { Browser, Page } from "playwright";
 
 const CLAUDE_WEB_URL = "https://claude.ai";
 const CHALLENGE_TIMEOUT = 60000; // 60s to solve challenge
@@ -80,7 +80,9 @@ export async function solveTurnstile(options?: {
   let page: Page | null = null;
 
   try {
-    // Launch headless browser
+    // Launch headless browser (lazy import — avoids crashing platforms
+    // playwright-core doesn't support, e.g. Termux/Android, on module load)
+    const { chromium } = await import("playwright");
     browser = await chromium.launch({ headless });
     const context = await browser.newContext({
       userAgent:

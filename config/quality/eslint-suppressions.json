@@ -169,11 +169,6 @@
       "count": 2
     }
   },
-  "open-sse/translator/helpers/claudeHelper.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "open-sse/utils/setupPolyfill.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5

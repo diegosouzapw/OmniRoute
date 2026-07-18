@@ -2328,7 +2328,17 @@
     "copilotToolCalling": "Chiamata dello strumento",
     "copilotPasteInto": "Incolla in:",
     "wireApiChatCompletions": "Completamenti chat (/chat/completamenti)",
-    "wireApiResponses": "API delle risposte (/responses)"
+    "wireApiResponses": "API delle risposte (/responses)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "Combinazioni",
@@ -2845,6 +2855,8 @@
     "range7d": "7 giorni",
     "range30d": "30 giorni",
     "range90d": "90 giorni",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "Tutto il tempo",
     "spend30d": "Spend30D",
     "activeModels": "Active Models",
@@ -3976,6 +3988,9 @@
     "apiKeyProviders": "Fornitori di chiavi API",
     "compatibleProviders": "Fornitori compatibili con chiave API",
     "testAll": "Prova tutto",
+    "reorderByAvailability": "Riordina",
+    "reorderByAvailabilityTitle": "Riordina le connessioni in base alla disponibilità",
+    "reorderByAvailabilityError": "Impossibile riordinare le connessioni in base alla disponibilità",
     "distributeProxies": "__MISSING__:Distribute Proxies",
     "distributing": "__MISSING__:Distributing...",
     "selectedCount": "__MISSING__:{count, plural, one {# selected} other {# selected}}",
@@ -4105,6 +4120,7 @@
     "testKeyPlaceholder": "sk-... (solo per la convalida)",
     "providerNotFound": "Fornitore non trovato",
     "deleteConnectionConfirm": "Eliminare questa connessione?",
+    "deleteConnectionConfirmNamed": "Sei sicuro di voler eliminare {name}? Questa azione non può essere annullata.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",
@@ -4582,6 +4598,9 @@
     "consoleApiKeyOracleHint": "Console Api Key Oracle Hint",
     "consoleApiKeyOracleLabel": "Console Api Key Oracle Label",
     "consoleApiKeyOraclePlaceholder": "Console Api Key Oracle Placeholder",
+    "newApiUserIdLabel": "ID utente New-API",
+    "newApiUserIdPlaceholder": "es. 12345",
+    "newApiUserIdHint": "Valore dell'header New-Api-User di AgentRouter, usato insieme alla chiave API della console per recuperare il saldo della quota.",
     "cpaModeDisabledTitle": "Cpa Mode Disabled Title",
     "cpaModeEnabledTitle": "Cpa Mode Enabled Title",
     "customUserAgentHint": "Custom User Agent Hint",
@@ -4854,7 +4873,9 @@
     "compatibleDefaultModelHint": "Inserisci l'ID modello esattamente come lo aspetta il tuo endpoint compatibile. Questo modello verrà salvato come default della connessione.",
     "compatibleDefaultModelLabel": "Modello Predefinito",
     "iconUrlHint": "Opzionale. URL dell'immagine mostrata come icona di questo provider.",
-    "iconUrlLabel": "URL Icona"
+    "iconUrlLabel": "URL Icona",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "Impostazioni",
@@ -6155,7 +6176,12 @@
     "searchProviderAria": "Provider di ricerca",
     "searchProviderPlaceholder": "Cerca provider...",
     "selectProviderPlaceholder": "Seleziona provider...",
-    "update": "Aggiorna"
+    "update": "Aggiorna",
+    "codexAutoPingTitle": "Codex Quota Auto-Ping",
+    "codexAutoPingDesc": "Opt-in per connection: sends a tiny request right after a Codex session window resets so it isn't cold when you need it.",
+    "codexAutoPingWarning": "Consumes a small amount of real Codex quota on every ping. Off by default — enable only for connections you actively rely on.",
+    "codexAutoPingSaveError": "Failed to update Codex Auto-Ping setting",
+    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9036,7 +9062,14 @@
     "colScore": "__MISSING__:Score",
     "colAvgScore": "__MISSING__:Avg Score",
     "colModels": "__MISSING__:Models",
-    "colType": "__MISSING__:Type"
+    "colType": "__MISSING__:Type",
+    "typeAll": "__MISSING__:All Types",
+    "typeNoauth": "__MISSING__:No Signup",
+    "typeOauth": "__MISSING__:OAuth Login",
+    "typeApikey": "__MISSING__:API Key",
+    "sortTypeFirst": "__MISSING__:Easiest first",
+    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   },
   "disabled": "Disabilitato",
   "discovery": {

@@ -53,6 +53,14 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /individual quota reached/i,
   /enable overages/i,
   /INSUFFICIENT_G1_CREDITS_BALANCE/i,
+
+  // Cloudflare Workers AI daily neuron exhaustion (Issue #6980).
+  // Body: "you have used up your daily free allocation of 10,000 neurons,
+  //        please upgrade to Cloudflare's Workers Paid plan..."
+  // No existing pattern matches "daily free allocation" — without this,
+  // the 429 is misclassified as transient rate_limit and retried every
+  // ~60s against a budget that only resets at UTC midnight.
+  /daily free allocation/i,
 ];
 
 /**
