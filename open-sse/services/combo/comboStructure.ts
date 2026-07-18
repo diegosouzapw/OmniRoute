@@ -19,6 +19,11 @@ import { parseModel } from "../model.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
 import { getTargetProvider, MAX_COMBO_DEPTH } from "./comboPredicates.ts";
 import {
+  getKnownContextLimit,
+  getLegacyKnownContextLimit,
+  hasEstimableContent,
+} from "./knownContextOverflow.ts";
+import {
   normalizeModelEntry,
   orderTargetsForWeightedFallback,
   selectWeightedTarget,
@@ -435,18 +440,6 @@ function requestRequiresStructuredOutput(body: Record<string, unknown>): boolean
   return type === "json_object" || type === "json_schema";
 }
 
-// #7177: an empty array/object (e.g. a default `messages: []` some combo entrypoints inject
-// when the caller sent none) has no real content — counting it would charge a few phantom
-// "structural" tokens (JSON.stringify braces/brackets) toward the estimate, which is enough
-// to falsely trip the exact-boundary known-context-overflow check for a request that has no
-// actual input at all.
-function hasEstimableContent(value: unknown): boolean {
-  if (value === undefined || value === null) return false;
-  if (Array.isArray(value)) return value.length > 0;
-  if (typeof value === "object") return Object.keys(value).length > 0;
-  return true;
-}
-
 function estimateRequestInputTokens(body: Record<string, unknown>): number {
   const estimatePayload: Record<string, unknown> = {};
   for (const key of ["messages", "input", "tools", "functions", "response_format"]) {
@@ -496,30 +489,6 @@ function exceedsKnownOutputLimit(
 ): boolean {
   if (requestedOutputTokens <= 0 || maxOutputTokens === null) return false;
   return maxOutputTokens < requestedOutputTokens;
-}
-
-export function getKnownContextLimit(
-  capabilities: {
-    maxInputTokens?: number | null;
-    contextWindow?: number | null;
-  },
-  requestedOutputTokens = 0
-): number | null {
-  const limits: number[] = [];
-  if (capabilities.maxInputTokens != null) {
-    limits.push(capabilities.maxInputTokens + requestedOutputTokens);
-  }
-  if (capabilities.contextWindow != null) {
-    limits.push(capabilities.contextWindow);
-  }
-  return limits.length > 0 ? Math.min(...limits) : null;
-}
-
-function getLegacyKnownContextLimit(capabilities: {
-  maxInputTokens?: number | null;
-  contextWindow?: number | null;
-}): number | null {
-  return capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
 }
 
 function hasKnownCompatibleContextLimit(

@@ -7,13 +7,17 @@
  * discovered only after every target was tried and failed upstream — burning
  * retries/cooldowns on a request that could never succeed. This lets the
  * combo dispatcher reject it up front, before exhausting providers.
+ *
+ * getKnownContextLimit/getLegacyKnownContextLimit/hasEstimableContent also
+ * live here (moved from comboStructure.ts, same file-size-cap motivation):
+ * they are the "how big is a target's known context window" primitives, so
+ * they belong next to the overflow check that is their main consumer.
+ * comboStructure.ts's own compatibility filter still needs them too, so it
+ * imports them back rather than duplicating the logic.
  */
 
 import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
-import {
-  deriveRequestCompatibilityRequirements,
-  getKnownContextLimit,
-} from "./comboStructure.ts";
+import { deriveRequestCompatibilityRequirements } from "./comboStructure.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 
 export type KnownContextOverflow = {
@@ -23,6 +27,50 @@ export type KnownContextOverflow = {
   maxKnownContextTokens: number;
   targetCount: number;
 };
+
+// #7177: an empty array/object (e.g. a default `messages: []` some combo entrypoints inject
+// when the caller sent none) has no real content — counting it would charge a few phantom
+// "structural" tokens (JSON.stringify braces/brackets) toward the estimate, which is enough
+// to falsely trip the exact-boundary known-context-overflow check for a request that has no
+// actual input at all.
+export function hasEstimableContent(value: unknown): boolean {
+  if (value === undefined || value === null) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object") return Object.keys(value).length > 0;
+  return true;
+}
+
+// #7177: known context limit that accounts for the request's own requested
+// output tokens — a target whose input+output would together exceed
+// maxInputTokens is exactly as incompatible as one whose contextWindow is too
+// small, so both bounds go through the same min() so far the tightest wins.
+export function getKnownContextLimit(
+  capabilities: {
+    maxInputTokens?: number | null;
+    contextWindow?: number | null;
+  },
+  requestedOutputTokens = 0
+): number | null {
+  const limits: number[] = [];
+  if (capabilities.maxInputTokens != null) {
+    limits.push(capabilities.maxInputTokens + requestedOutputTokens);
+  }
+  if (capabilities.contextWindow != null) {
+    limits.push(capabilities.contextWindow);
+  }
+  return limits.length > 0 ? Math.min(...limits) : null;
+}
+
+// Pre-#7177 behavior (no requestedOutputTokens accounting): kept only for
+// comboStructure.ts's hasKnownCompatibleContextLimit, a narrower "does ANY
+// target fit" pre-check that hasn't been migrated to the boundary-correct
+// calculation above.
+export function getLegacyKnownContextLimit(capabilities: {
+  maxInputTokens?: number | null;
+  contextWindow?: number | null;
+}): number | null {
+  return capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
+}
 
 /**
  * Return a hard context-overflow decision only when every target has a known
