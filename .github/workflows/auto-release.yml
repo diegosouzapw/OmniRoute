@@ -263,13 +263,18 @@ jobs:
   publish-npm:
     name: Publish npm (${{ needs.resolve.outputs.resolved }})
     needs: [trigger, resolve]
-    # Only publish to npm for canary and above. Nightly's dist-tag churn
-    # pollutes the registry and never gets pulled (users opt into the
-    # channel via `npm install omniroute@canary`, not `@nightly`). RC/stable
-    # are the actually-consumed tags. To force a nightly npm publish, set
-    # the repository variable NPM_FORCE_NIGHTLY=true (Settings → Secrets and
-    # variables → Variables) — used for one-off internal smoke tests.
-    if: ${{ needs.resolve.outputs.resolved != '' && (needs.resolve.outputs.resolved != 'nightly' || vars.NPM_FORCE_NIGHTLY == 'true') }}
+    # Default behavior: publish to npm for every resolved channel, INCLUDING
+    # nightly. Nightly is the project's "primitive / unstable" tracking channel
+    # — its existence is meaningful only if it publishes. If you want to skip
+    # nightly publishes (for example, to reduce registry churn), set the
+    # repository variable NPM_FORCE_NIGHTLY=false (Settings → Secrets and
+    # variables → Variables → Actions → New repository variable).
+    #
+    # Convention: variable absence == defaults to TRUE for this project.
+    # We use `!= 'false'` rather than `== 'true'` so that unconfigured repos
+    # still publish nightly. To explicitly disable, the var must be set to
+    # the literal string "false".
+    if: ${{ needs.resolve.outputs.resolved != '' && (needs.resolve.outputs.resolved != 'nightly' || vars.NPM_FORCE_NIGHTLY != 'false') }}
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout

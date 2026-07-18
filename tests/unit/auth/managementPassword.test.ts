@@ -4,7 +4,7 @@ import {
   hashManagementPassword,
   verifyManagementPassword,
   isBcryptHash,
-  isArgon2Hash,
+  isArgon2idHash,
 } from "../../../src/lib/auth/managementPassword";
 
 const STRONG_PASSWORD = "Correct-Horse-Battery-Staple-2026!";
@@ -13,7 +13,7 @@ const WRONG_PASSWORD = "wrong-password";
 describe("managementPassword", () => {
   it("hashes with argon2id by default", async () => {
     const hash = await hashManagementPassword(STRONG_PASSWORD);
-    expect(isArgon2Hash(hash)).toBe(true);
+    expect(isArgon2idHash(hash)).toBe(true);
     expect(isBcryptHash(hash)).toBe(false);
   });
 
@@ -24,9 +24,9 @@ describe("managementPassword", () => {
   });
 
   it("detects argon2 hashes by prefix", () => {
-    expect(isArgon2Hash("$argon2id$v=19$m=19456,t=2,p=1$abcd")).toBe(true);
-    expect(isArgon2Hash("$argon2i$v=19$m=19456,t=2,p=1$abcd")).toBe(true);
-    expect(isArgon2Hash("$2b$10$abcdefghijklmnopqrstuvwxyz1234567890")).toBe(false);
+    expect(isArgon2idHash("$argon2id$v=19$m=19456,t=2,p=1$abcd")).toBe(true);
+    expect(isArgon2idHash("$argon2i$v=19$m=19456,t=2,p=1$abcd")).toBe(true);
+    expect(isArgon2idHash("$2b$10$abcdefghijklmnopqrstuvwxyz1234567890")).toBe(false);
   });
 
   it("detects bcrypt hashes by prefix", () => {

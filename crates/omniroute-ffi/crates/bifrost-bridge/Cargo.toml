@@ -1,0 +1,21 @@
+[package]
+name = "bifrost-bridge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+
+[dev-dependencies]
+# Bifrost Go SDK integration is gated on maximhq/bifrost v1.0 GA (2027 Q1).
+# In the meantime, this crate ships a standalone C ABI surface that mirrors
+# the future contract; when v1.0 ships, only bridge.go needs rewriting.

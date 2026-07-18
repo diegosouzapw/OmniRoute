@@ -2,14 +2,24 @@ import bcrypt from "bcryptjs";
 import argon2 from "@node-rs/argon2";
 import { getSettings, updateSettings } from "@/lib/db/settings";
 
-const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
-const ARGON2ID_HASH_PATTERN = /^\$argon2id\$/;
+// OWASP Argon2id parameters (RFC 9106 high-memory profile).
 const ARGON2_PARAMS = {
   algorithm: argon2.Algorithm.Argon2id,
-  memoryCost: 19456,
+  memoryCost: 19456, // 19 MiB — above OWASP minimum, friendlier on small VPS hosts.
   timeCost: 2,
   parallelism: 1,
 } as const;
+
+// Matches any bcrypt variant: $2a$, $2b$, $2y$, $2x$. The trailing base64 salt+hash is intentionally
+// not length-pinned here — `bcrypt.compare()` validates the full structure at verify time, and we
+// only need a prefix match to route the verify path.
+const BCRYPT_HASH_PATTERN = /^\$2[abxy]\$\d{2}\$/;
+
+// Matches any argon2 hash (id, i, or d variant).
+const ARGON2_HASH_PATTERN = /^\$argon2(id|i|d)\$v=\d+\$/;
+
+// Matches argon2id + argon2i (modern recommendations). Excludes argon2d (legacy data-independent).
+const ARGON2ID_HASH_PATTERN = /^\$argon2(id|i)\$v=\d+\$/;
 
 // Well-known placeholder shipped in `.env.example` (INITIAL_PASSWORD=CHANGEME). Bootstrapping
 // with it leaves the dashboard open to anyone, so we warn loudly on boot (Seg2 hardening).
@@ -48,16 +58,27 @@ export function hasManagementPasswordConfigured(settings: JsonRecord | null | un
   );
 }
 
+export function isArgon2Hash(value: unknown): value is string {
+  return typeof value === "string" && ARGON2_HASH_PATTERN.test(value);
+}
+
 export function isBcryptHash(value: unknown): value is string {
   return typeof value === "string" && BCRYPT_HASH_PATTERN.test(value);
 }
 
-export async function hashManagementPassword(password: string): Promise<string> {
-  return argon2.hash(password, ARGON2_PARAMS);
+export function isArgon2idHash(value: unknown): value is string {
+  return typeof value === "string" && ARGON2ID_HASH_PATTERN.test(value);
 }
 
-export function isArgon2idHash(hash: string): boolean {
-  return ARGON2ID_HASH_PATTERN.test(hash);
+function validatePassword(password: unknown): asserts password is string {
+  if (typeof password !== "string" || password.length === 0) {
+    throw new TypeError("hashManagementPassword requires a non-empty string");
+  }
+}
+
+export async function hashManagementPassword(password: string): Promise<string> {
+  validatePassword(password);
+  return argon2.hash(password, ARGON2_PARAMS);
 }
 
 export async function verifyManagementPassword(
@@ -94,8 +115,9 @@ export async function verifyManagementPassword(
   }
   return false;
 }
+
 export async function ensurePersistentManagementPasswordHash(
-  options: EnsureManagementPasswordOptions = {}
+  options: EnsureManagementPasswordOptions = {},
 ): Promise<EnsuredManagementPassword> {
   const settings = options.settings ?? ((await getSettings()) as JsonRecord);
   const storedPassword = getStoredManagementPassword(settings);
@@ -118,7 +140,7 @@ export async function ensurePersistentManagementPasswordHash(
     warn(
       '[AUTH][SECURITY] Management password is set to the well-known default "CHANGEME" ' +
         "(INITIAL_PASSWORD in .env.example). Anyone can sign in to the dashboard with it — " +
-        "change it immediately via the dashboard or a strong INITIAL_PASSWORD."
+        "change it immediately via the dashboard or a strong INITIAL_PASSWORD.",
     );
   }
 

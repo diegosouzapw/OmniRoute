@@ -218,3 +218,12 @@ export function deactivateKillSwitchDegradation(): void {
 export function __setKillSwitchActiveForTests(active: boolean): void {
   forcedTToT1 = active;
 }
+
+/**
+ * Public read-only accessor for the global kill-switch degradation flag.
+ * Returns true while a Bifrost provider is in the tripped state and every
+ * edge must degrade to T1 (HTTP fallback).
+ */
+export function isKillSwitchDegradationActive(): boolean {
+  return forcedTToT1;
+}

@@ -1,0 +1,24 @@
+[package]
+name = "sse-chunking"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+bytes = { workspace = true }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+
+[[bench]]
+name = "chunking"
+harness = false
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }

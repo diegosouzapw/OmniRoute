@@ -1,0 +1,27 @@
+[package]
+name = "combo-scorer"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+
+[[bench]]
+name = "scoring"
+harness = false
+required-features = []
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[features]
+default = []
