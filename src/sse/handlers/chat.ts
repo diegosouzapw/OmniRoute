@@ -38,6 +38,7 @@ import {
   getModelTargetFormat,
   PROVIDER_ID_TO_ALIAS,
 } from "@omniroute/open-sse/config/providerModels.ts";
+import { FORMATS } from "@omniroute/open-sse/translator/formats.ts";
 import type { AutoVariant } from "@omniroute/open-sse/services/autoCombo/autoPrefix.ts";
 import {
   AUTO_TEMPLATE_VARIANTS,
@@ -210,6 +211,13 @@ function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): st
 const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
 
+function resolveChatSourceFormatForPath(pathname: string): string | null {
+  if (/\/antigravity(?=\/|:|$)/i.test(pathname) || /^antigravity(?=\/|:|$)/i.test(pathname)) {
+    return FORMATS.ANTIGRAVITY;
+  }
+  return null;
+}
+
 /**
  * Handle chat completion request
  * Supports: OpenAI, Claude, Gemini, OpenAI Responses API formats
@@ -249,6 +257,9 @@ export async function handleChat(
   // reasoning_effort / reasoning / object-shaped thinking always wins (backward compatible).
   body = normalizeReasoningRequest(body);
 
+  const requestPath = new URL(request.url).pathname;
+  const sourceFormat = resolveChatSourceFormatForPath(requestPath);
+
   // Early guard: an invalid `messages` field is rejected here with a clear
   // OmniRoute-level 400 before any routing or upstream call (#5110, #6402).
   // Without this guard, schema-invalid bodies fell through to model resolution
@@ -257,8 +268,8 @@ export async function handleChat(
   //   - present-but-non-array (null, number, string, object) → 400 (#6402)
   //   - empty array → 400 ("at least one message is required") (#5110)
   //   - missing entirely, when the Responses-API `input` discriminator is also
-  //     absent → 400 (#6402). Responses-API requests use `input` (not `messages`)
-  //     and are still unaffected.
+  //     absent → 400 (#6402). Responses-API requests use `input` (not `messages`),
+  //     and Antigravity requests use a cloudcode `request` envelope.
   {
     const b = body as { messages?: unknown; input?: unknown };
     if ("messages" in b && !Array.isArray(b.messages)) {
@@ -269,7 +280,7 @@ export async function handleChat(
       log.warn("CHAT", "Rejecting request with empty messages array");
       return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: at least one message is required");
     }
-    if (!("messages" in b) && !("input" in b)) {
+    if (!("messages" in b) && !("input" in b) && sourceFormat !== FORMATS.ANTIGRAVITY) {
       log.warn("CHAT", "Rejecting request with missing messages");
       return errorResponse(HTTP_STATUS.BAD_REQUEST, "messages: Expected array, received undefined");
     }
