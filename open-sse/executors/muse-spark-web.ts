@@ -718,6 +718,11 @@ function serializeProtoFields(fields: ProtoField[]): Uint8Array {
       parts.push(encodeVarint(Number(f.value)));
     } else if (f.wireType === 1) {
       const buf = new Uint8Array(8);
+      if (f.value instanceof Uint8Array) {
+        throw new Error(
+          `serializeProtoFields: wire type 1 field ${f.number} has non-numeric value`
+        );
+      }
       new DataView(buf.buffer).setBigUint64(0, BigInt(f.value), true);
       parts.push(buf);
     } else if (f.wireType === 2) {
