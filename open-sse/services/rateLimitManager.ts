@@ -10,6 +10,7 @@
 
 import Bottleneck from "bottleneck";
 import { parseRetryAfterFromBody } from "./accountFallback.ts";
+import { getAntigravityQuotaFamily } from "./antigravityQuotaFamily.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 import { getCodexRateLimitKey } from "../executors/codex.ts";
 import { awaitProviderDefaultSlot } from "./providerDefaultRateLimit.ts";
@@ -455,6 +456,10 @@ export function refreshConnectionRateLimits(connectionId, overrides) {
 function getLimiterKey(provider, connectionId, model = null) {
   if (provider === "codex" && model) {
     return `${provider}:${getCodexRateLimitKey(connectionId, model)}`;
+  }
+  if ((provider === "antigravity" || provider === "agy") && model) {
+    const family = getAntigravityQuotaFamily(model);
+    return `${provider}:${connectionId}:${family}`;
   }
   // Gemini AI Studio and GitHub Copilot have per-model quotas — use model-scoped
   // limiter keys so a 429 on one model doesn't pause requests for other models.

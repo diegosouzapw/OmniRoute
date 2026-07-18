@@ -24,6 +24,7 @@ import {
 } from "@/lib/db/quotaSnapshots";
 import { recordProviderQuotaResetEventIfChanged } from "@/lib/db/quotaResetEvents";
 import { getCodexQuotaWindowFilterForModel } from "@omniroute/open-sse/config/codexQuotaScopes.ts";
+import { getAntigravityQuotaFamily } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -210,19 +211,53 @@ export function isQuotaExhaustedForRequest(
   provider: string,
   requestedModel: string | null = null
 ): boolean {
-  if (!isAccountQuotaExhausted(connectionId)) return false;
-  if (provider !== "codex" || !requestedModel) return true;
-  const entry = getQuotaCache(connectionId);
-  const quotaNames = Object.keys(entry?.quotas || {});
-  if (quotaNames.length === 0) return true;
-  const filterWindow = getCodexQuotaWindowFilterForModel(requestedModel);
-  const scopedWindowNames = quotaNames.filter((windowName) => filterWindow?.(windowName));
-  return (
-    scopedWindowNames.length > 0 &&
-    scopedWindowNames.every(
-      (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
-    )
-  );
+  const entry = cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
+  if (!entry) return false;
+
+  const now = Date.now();
+  const advanced = advancedWindowResetAt(entry, now);
+  if (advanced) {
+    entry.exhausted = false;
+    return false;
+  }
+
+  // Handle antigravity/agy providers
+  if (provider === "antigravity" || provider === "agy") {
+    if (!requestedModel) return entry.exhausted;
+    const quotaNames = Object.keys(entry.quotas || {});
+    if (quotaNames.length === 0) return entry.exhausted;
+    const requestedFamily = getAntigravityQuotaFamily(requestedModel);
+    const matchingWindows = quotaNames.filter((windowName) => {
+      return getAntigravityQuotaFamily(windowName) === requestedFamily;
+    });
+    return (
+      matchingWindows.length > 0 &&
+      matchingWindows.every(
+        (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+      )
+    );
+  }
+
+  // Handle codex provider
+  if (provider === "codex") {
+    if (!requestedModel) return entry.exhausted;
+    const quotaNames = Object.keys(entry.quotas || {});
+    if (quotaNames.length === 0) return entry.exhausted;
+    const filterWindow = getCodexQuotaWindowFilterForModel(requestedModel);
+    const scopedWindowNames = quotaNames.filter((windowName) => filterWindow?.(windowName));
+    return (
+      scopedWindowNames.length > 0 &&
+      scopedWindowNames.every(
+        (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+      )
+    );
+  }
+
+  // Standard (non-per-model-quota) providers: check connection-wide aggregate
+  if (!entry.exhausted) return false;
+  const age = now - entry.fetchedAt;
+  if (!entry.nextResetAt && age > EXHAUSTED_TTL_MS) return false;
+  return true;
 }
 
 /**
