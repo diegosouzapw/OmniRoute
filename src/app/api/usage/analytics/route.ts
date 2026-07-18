@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getApiKeys } from "@/lib/db/apiKeys";
-import { getProviderNodes } from "@/models";
 import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
 import {
   buildUnifiedSource,
@@ -22,6 +21,7 @@ import {
   getPresetCostModelRows,
 } from "@/lib/db/usageAnalytics";
 import { getFallbackStats } from "@/lib/db/callLogStats";
+import { buildByProviderRows } from "@/lib/usage/providerDisplayNames";
 
 function getRangeStartIso(range: string): string | null {
   const end = new Date();
@@ -77,33 +77,6 @@ function toNumber(value: unknown): number {
 
 function toStringValue(value: unknown, fallback = ""): string {
   return typeof value === "string" && value.trim().length > 0 ? value : fallback;
-}
-
-function getProviderDisplayName(
-  provider: unknown,
-  providerDisplayNames: Map<string, string>
-): string {
-  const rawProvider = toStringValue(provider, "unknown");
-  return providerDisplayNames.get(rawProvider) || rawProvider;
-}
-
-async function getProviderDisplayNames(): Promise<Map<string, string>> {
-  const displayNames = new Map<string, string>();
-  const providerNodes = (await getProviderNodes()) as Array<{
-    id?: unknown;
-    name?: unknown;
-    prefix?: unknown;
-  }>;
-
-  for (const node of providerNodes) {
-    const id = toStringValue(node.id);
-    if (!id) continue;
-
-    const displayName = toStringValue(node.name) || toStringValue(node.prefix) || id;
-    displayNames.set(id, displayName);
-  }
-
-  return displayNames;
 }
 
 function roundCost(value: number): number {
@@ -689,20 +662,7 @@ export async function GET(request: Request) {
       providerCostByProvider.set(provider, (providerCostByProvider.get(provider) || 0) + cost);
     }
 
-    const providerDisplayNames = await getProviderDisplayNames();
-    const byProvider = providerRows.map((row) => ({
-      provider: getProviderDisplayName(row.provider, providerDisplayNames),
-      requests: Number(row.requests),
-      promptTokens: Number(row.promptTokens),
-      completionTokens: Number(row.completionTokens),
-      totalTokens: Number(row.totalTokens),
-      avgLatencyMs: Math.round(Number(row.avgLatencyMs)),
-      successRatePct:
-        Number(row.requests) > 0
-          ? Number((Number(row.successfulRequests) / Number(row.requests)) * 100).toFixed(2)
-          : 0,
-      cost: roundCost(providerCostByProvider.get(toStringValue(row.provider)) || 0),
-    }));
+    const byProvider = await buildByProviderRows(providerRows, providerCostByProvider);
 
     const accountCostByAccount = new Map<string, number>();
     for (const row of accountCostRows) {
