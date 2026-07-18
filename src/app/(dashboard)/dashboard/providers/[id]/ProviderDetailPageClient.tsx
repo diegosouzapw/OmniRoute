@@ -120,7 +120,7 @@ export default function ProviderDetailPageClient() {
     setProviderNode,
     fetchConnections,
     fetchProxyConfig,
-    handleDelete,
+    deleteConfirm,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
     handleToggleClaudeExtraUsage,
@@ -582,7 +582,7 @@ export default function ProviderDetailPageClient() {
                 setSelectedIds={setSelectedIds}
                 setPage={setPage}
                 setHealthFilter={setHealthFilter}
-                handleDelete={handleDelete}
+                deleteConfirm={deleteConfirm}
                 handleUpdateConnectionStatus={handleUpdateConnectionStatus}
                 handleToggleRateLimit={handleToggleRateLimit}
                 handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
@@ -733,6 +733,7 @@ export default function ProviderDetailPageClient() {
         handleBatchDeleteConfirm={handleBatchDeleteConfirm}
         selectedIds={selectedIds}
         batchDeleting={batchDeleting}
+        deleteConfirm={deleteConfirm}
         applyCodexModalConnectionId={applyCodexModalConnectionId}
         setApplyCodexModalConnectionId={setApplyCodexModalConnectionId}
         applyingCodexAuthId={applyingCodexAuthId}

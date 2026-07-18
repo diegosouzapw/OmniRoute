@@ -217,6 +217,47 @@ Bounded by `comboCooldownWait` (`enabled`, `maxWaitMs` 5s, `maxAttempts` 2,
 
 ---
 
+## 5. Request Queue Admission Control (v3.8.49 · issue #6593)
+
+**Scope**: the local per-provider+connection rate-limit queue (`open-sse/services/rateLimitManager.ts`,
+backed by Bottleneck), one layer below the three mechanisms above.
+
+**`maxWaitMs` default lowered 120s → 15s.** `resilienceSettings.requestQueue.maxWaitMs`
+bounds how long a request may wait in the local queue before it is dropped
+(`code: "RATE_LIMIT_QUEUE_TIMEOUT"`, #4165). The factory default fell from 120000ms to
+15000ms so a saturated queue fails fast instead of holding a caller for two
+minutes; override via `RATE_LIMIT_MAX_WAIT_MS` (env) or the dashboard
+(**Settings → Resilience**, 1–30000ms UI ceiling).
+
+**`maxQueueDepth` — opt-in admission cap (new).** `resilienceSettings.requestQueue.maxQueueDepth`
+bounds how many requests may sit queued (not yet dispatched) for one
+provider+connection at once. When the queue already holds `maxQueueDepth`
+requests, a new request is fast-rejected with a typed
+`code: "RATE_LIMIT_QUEUE_FULL"` error **before** it ever reaches `limiter.schedule()`
+— so the rejection is cheap and happens ahead of any downstream
+prompt-compression / translation work for that request. Default `0` =
+disabled, preserving the existing unbounded-queue behavior; bounded 0–100000.
+Override via `RATE_LIMIT_MAX_QUEUE_DEPTH` (env) or
+`resilienceSettings.requestQueue.maxQueueDepth` (dashboard/API patch).
+
+The admission check itself is a pure function
+(`open-sse/services/rateLimitManager/admission.ts::checkQueueAdmission`) so
+it is unit-testable without a real Bottleneck limiter.
+
+> The RFC that opened #6593 also proposed a `bypassCompressionOnRateLimit`
+> flag. This repo's `open-sse/services/compression/` pipeline is
+> prompt/context compression on the outbound LLM request (`chatCore.ts`,
+> around the `resolveCompressionSettings`/`selectCompressionStrategy` block),
+> not HTTP response compression on synthesized 429 bodies — there is no
+> matching code path for a literal bypass flag. That prompt-compression step
+> also currently runs *before* `withRateLimit()` in the request pipeline, so
+> reordering to skip it on a queue-full rejection is a separate, larger
+> change than this issue's scope; it was intentionally **not** implemented
+> here and is left as a follow-up if the CPU-saving win is worth the
+> reordering risk.
+
+---
+
 ## Other Resilience Features
 
 - **18 routing strategies** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, fusion, pipeline) — see [AUTO-COMBO.md](../routing/AUTO-COMBO.md).
