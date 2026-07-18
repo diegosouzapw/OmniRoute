@@ -8,6 +8,7 @@ import { readBooleanToggle, providerCountText } from "../providerPageHelpers";
 import { compareTr } from "@/shared/utils/turkishText";
 import type { CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
 import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
+import type { ConnectionDeleteConfirmState } from "../hooks/useConnectionDeleteConfirm";
 
 type ConnectionsListPanelProps = {
   connections: ConnectionRowConnection[];
@@ -38,7 +39,7 @@ type ConnectionsListPanelProps = {
   setPage: React.Dispatch<React.SetStateAction<number>>;
   setHealthFilter: (v: string) => void;
   // Callbacks from useProviderConnections
-  handleDelete: (id: string) => void;
+  deleteConfirm: ConnectionDeleteConfirmState;
   handleUpdateConnectionStatus: (id: string, isActive: boolean) => void;
   handleToggleRateLimit: (id: string, enabled: boolean) => void;
   handleToggleQuotaVisibility: (id: string, visible: boolean) => void;
@@ -104,7 +105,7 @@ export default function ConnectionsListPanel({
   setSelectedIds,
   setPage,
   setHealthFilter,
-  handleDelete,
+  deleteConfirm,
   handleUpdateConnectionStatus,
   handleToggleRateLimit,
   handleToggleQuotaVisibility,
@@ -362,7 +363,12 @@ export default function ConnectionsListPanel({
                 onRetest={() => handleRetestConnection(conn.id)}
                 isRetesting={retestingId === conn.id}
                 onEdit={() => onOpenEditModal(conn)}
-                onDelete={() => handleDelete(conn.id)}
+                onDelete={() =>
+                  deleteConfirm.request(
+                    conn.id,
+                    pickDisplayValue([conn.name, conn.email], emailsVisible, conn.id)
+                  )
+                }
                 onReauth={
                   conn.authType === "oauth"
                     ? () => gateConnectionFlow(() => onOpenOAuth(conn))
@@ -536,7 +542,12 @@ export default function ConnectionsListPanel({
                     onRetest={() => handleRetestConnection(conn.id)}
                     isRetesting={retestingId === conn.id}
                     onEdit={() => onOpenEditModal(conn)}
-                    onDelete={() => handleDelete(conn.id)}
+                    onDelete={() =>
+                      deleteConfirm.request(
+                        conn.id,
+                        pickDisplayValue([conn.name, conn.email], emailsVisible, conn.id)
+                      )
+                    }
                     onReauth={
                       conn.authType === "oauth"
                         ? () => gateConnectionFlow(() => onOpenOAuth(conn))

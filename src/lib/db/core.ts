@@ -9,6 +9,7 @@ import {
   tryOpenSync,
   getSqlJsAdapter,
   preInitSqlJs,
+  getSqlJsPreInitError,
   openDatabaseAsync,
 } from "./adapters/driverFactory";
 import path from "path";
@@ -161,6 +162,18 @@ function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown
 
   const sqlJs = getSqlJsAdapter(sqliteFile);
   if (sqlJs) return sqlJs;
+
+  // sql.js pre-init was genuinely attempted (e.g. by the top-level eager
+  // barrier below) and failed — surface the real cause instead of the
+  // generic/misleading "not pre-initialized yet" message (#7288).
+  const preInitError = getSqlJsPreInitError(sqliteFile);
+  if (preInitError) {
+    throw new Error(
+      `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
+        "Drivers testados: better-sqlite3 (falhou), node:sqlite (indisponível), " +
+        `sql.js (falhou: ${preInitError}).`
+    );
+  }
 
   throw new Error(
     `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +

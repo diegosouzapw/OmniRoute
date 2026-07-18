@@ -245,6 +245,36 @@ export async function cleanupMemoryEntries(): Promise<CleanupResult> {
 }
 
 /**
+ * Clean up old xp_audit_log based on retention settings.
+ */
+export async function cleanupXpAuditLog(): Promise<CleanupResult> {
+  const db = getDbInstance();
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.xpAuditLog;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  const cutoffISO = cutoffDate.toISOString();
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    const stmt = db.prepare("DELETE FROM xp_audit_log WHERE created_at < ?");
+    const runResult = stmt.run(cutoffISO);
+    result.deleted = runResult.changes;
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} xp_audit_log older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning xp_audit_log:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
  * Run all cleanup functions if auto-cleanup is enabled.
  */
 export async function runAutoCleanup(): Promise<{
@@ -270,6 +300,7 @@ export async function runAutoCleanup(): Promise<{
     mcpAudit: await cleanupMcpAudit(),
     a2aEvents: await cleanupA2aEvents(),
     memoryEntries: await cleanupMemoryEntries(),
+    xpAuditLog: await cleanupXpAuditLog(),
     proxyLogs: await cleanupProxyLogs(),
   };
 

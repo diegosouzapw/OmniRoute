@@ -130,6 +130,52 @@ function buildMinimaxRules(): ProviderErrorRule[] {
   ];
 }
 
+// ─── Cloudflare Workers AI ─────────────────────────────────────────────────────
+// Free tier = 10,000 Neurons/day, shared across the WHOLE account
+// (docs/reference/FREE_TIERS.md; official: developers.cloudflare.com/
+// workers-ai/platform/errors/). The exhaustion body doesn't match any
+// QUOTA_PATTERNS keyword so it falls through to rate_limit and gets
+// retried every ~60s against a budget that only resets at UTC midnight.
+// Issue #6980.
+function buildCloudflareAiRules(): ProviderErrorRule[] {
+  return [
+    {
+      id: "cloudflare-ai-daily-neuron-allocation",
+      match: ({ status, body }) => {
+        if (status !== 429) return null;
+        const text = JSON.stringify(body ?? "").toLowerCase();
+        // Body: "you have used up your daily free allocation of 10,000 neurons,
+        //        please upgrade to Cloudflare's Workers Paid plan..."
+        if (!text.includes("daily free allocation")) return null;
+        // No cooldownMs: recordModelLockoutFailure already sets
+        // quota_exhausted without one to "next UTC midnight".
+        return { reason: "quota_exhausted", scope: "connection" };
+      },
+    },
+  ];
+}
+
+// ─── OpenRouter ─────────────────────────────────────────────────────────────
+// #6842: OpenRouter returns 402 for both a negative account balance and a
+// depleted per-key credit cap. The global `status_402` rule already maps this
+// to `quota_exhausted` with a zero cooldown (immediate fallback to the next
+// connection), but leaves the scope ambiguous and doesn't stop the SAME
+// connection from being reselected instantly (credits genuinely need a
+// top-up, not a timed wait). This explicit rule locks the whole connection
+// (scope: "connection" — credits are account-wide, not per-model) for a real
+// cooldown so combo routing skips it instead of hot-looping back onto it.
+function buildOpenrouterRules(): ProviderErrorRule[] {
+  return [
+    {
+      id: "openrouter-credit-exhausted-402",
+      match: ({ status }) => {
+        if (status !== 402) return null;
+        return { reason: "quota_exhausted", scope: "connection", cooldownMs: 2 * 60 * 1000 };
+      },
+    },
+  ];
+}
+
 /**
  * Global registry. Provider name → ordered list of rules (first match wins).
  * Add new providers here; the matcher in classifyError will pick them up
@@ -141,6 +187,8 @@ export const providerRuleRegistry = new Map<string, ProviderErrorRule[]>([
   ["opencode-cli", buildOpencodeRules()],
   ["minimax", buildMinimaxRules()],
   ["minimax-passthrough", buildMinimaxRules()],
+  ["cloudflare-ai", buildCloudflareAiRules()],
+  ["openrouter", buildOpenrouterRules()],
 ]);
 
 /**
@@ -194,7 +242,9 @@ export function getProviderErrorRuleMatch(
  */
 export function parseResetCountdownMs(text: string): number | null {
   if (typeof text !== "string" || text.length === 0) return null;
-  const match = text.match(/resets?\s+in\s+(\d+)\s+(day|days|hour|hours|minute|minutes|second|seconds)\b/);
+  const match = text.match(
+    /resets?\s+in\s+(\d+)\s+(day|days|hour|hours|minute|minutes|second|seconds)\b/
+  );
   if (!match) return null;
   const n = Number(match[1]);
   if (!Number.isFinite(n) || n <= 0) return null;

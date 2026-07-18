@@ -16,19 +16,31 @@ import {
   type CodexServiceTier,
 } from "@/lib/providers/requestDefaults";
 import { type CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
-import { type WebSessionCredentialRequirement } from "./webSessionCredentials";
 import { CC_COMPATIBLE_DEFAULT_CHAT_PATH } from "./providerDetailConstants";
+import {
+  type ProviderMessageTranslator,
+  providerText,
+  getWebSessionCredentialLabel,
+  getWebSessionCredentialHint,
+  getWebSessionCredentialCheckLabel,
+  getAddCredentialModalTitle,
+} from "./providerCredentialText";
+
+// Re-exported for backward compatibility — these used to be defined here
+// (Issue #3501 strangler-fig home), but were extracted to providerCredentialText.ts
+// once this leaf hit its frozen file-size cap (#1904 own growth).
+export {
+  type ProviderMessageTranslator,
+  providerText,
+  getWebSessionCredentialLabel,
+  getWebSessionCredentialHint,
+  getWebSessionCredentialCheckLabel,
+  getAddCredentialModalTitle,
+};
 
 // ---------------------------------------------------------------------------
 // Types shared between page + modals
 // ---------------------------------------------------------------------------
-
-export type ProviderMessageTranslator = ((
-  key: string,
-  values?: Record<string, unknown>
-) => string) & {
-  has?: (key: string) => boolean;
-};
 
 export type LocalProviderMetadata = {
   name?: string;
@@ -76,6 +88,9 @@ export type CompatModelRow = {
   compatByProtocol?: CompatByProtocolMap;
   /** #2905: per-model upstream wire-format override. */ targetFormat?: string;
   /** #4125: manual context-window override (tokens), when set. */ contextWindowOverride?: number;
+  /** #1904: manual vision-capability override for custom models whose upstream
+   * discovery metadata doesn't self-report an image input modality. */
+  supportsVision?: boolean;
 };
 
 export type CompatModelMap = Map<string, CompatModelRow>;
@@ -96,28 +111,6 @@ const TARGET_FORMAT_BADGE_I18N_KEYS: Record<string, string> = {
 
 export function targetFormatBadgeI18nKey(value: string): string | null {
   return TARGET_FORMAT_BADGE_I18N_KEYS[value] ?? null;
-}
-
-// ---------------------------------------------------------------------------
-// Utility — message translation with fallback
-// ---------------------------------------------------------------------------
-
-export function providerText(
-  t: ProviderMessageTranslator,
-  key: string,
-  fallback: string,
-  values?: Record<string, unknown>
-): string {
-  if (typeof t.has === "function" && t.has(key)) {
-    return t(key, values);
-  }
-  if (values) {
-    return Object.entries(values).reduce(
-      (acc, [name, value]) => acc.replaceAll(`{${name}}`, String(value)),
-      fallback
-    );
-  }
-  return fallback;
 }
 
 /** #5442 — badge for add-credential validation; unsupported → neutral N/A (not red Invalid). */
@@ -229,6 +222,7 @@ export const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "snowflake",
   "searxng-search",
   "petals",
+  "comfyui",
 ]);
 
 export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
@@ -239,6 +233,7 @@ export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   siliconflow: "https://api.siliconflow.com/v1",
   "searxng-search": "http://localhost:8888/search",
   petals: "https://chat.petals.dev/api/v1/generate",
+  comfyui: "http://localhost:8188",
 };
 
 export function getLocalProviderMetadata(providerId?: string | null) {
@@ -320,6 +315,7 @@ export function getProviderBaseUrlPlaceholder(providerId?: string | null) {
       return "https://my-resource.openai.azure.com";
     case "bailian-coding-plan":
     case "xiaomi-mimo":
+    case "comfyui":
       return getProviderBaseUrlDefault(providerId);
     case "siliconflow":
       return "https://api.siliconflow.cn/v1";
@@ -344,29 +340,10 @@ export function isGlmProvider(providerId?: string | null) {
 // Routing-tags / excluded-models parse + format
 // ---------------------------------------------------------------------------
 
-export function parseRoutingTagsInput(value: string): string[] | undefined {
-  const tags = Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((tag) => tag.trim().toLowerCase())
-        .filter(Boolean)
-    )
-  );
-  return tags.length > 0 ? tags : undefined;
-}
 
-export function parseExcludedModelsInput(value: string): string[] | undefined {
-  const patterns = Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((pattern) => pattern.trim())
-        .filter(Boolean)
-    )
-  );
-  return patterns.length > 0 ? patterns : undefined;
-}
+// parseRoutingTagsInput / parseExcludedModelsInput moved to the pure leaf
+// providerInputParsers.ts (kept re-exported here for existing UI importers).
+export { parseExcludedModelsInput, parseRoutingTagsInput } from "./providerInputParsers";
 
 export function formatRoutingTagsInput(value: unknown): string {
   if (!Array.isArray(value)) return "";
@@ -385,107 +362,9 @@ export function formatExcludedModelsInput(value: unknown): string {
 }
 
 // ---------------------------------------------------------------------------
-// Web-session credential label / hint helpers (Phase 2b)
+// Web-session credential label / hint helpers (Phase 2b) — moved to
+// providerCredentialText.ts (#1904 own growth); re-exported above.
 // ---------------------------------------------------------------------------
-
-export function getWebSessionCredentialLabel(
-  t: ProviderMessageTranslator,
-  requirement: WebSessionCredentialRequirement,
-  optional: boolean
-): string {
-  if (requirement.kind === "none") {
-    return providerText(t, "webNoAuthCredentialLabel", "No credential required");
-  }
-  const baseLabel =
-    requirement.kind === "token"
-      ? providerText(t, "webTokenCredentialLabel", "Web session token")
-      : t("sessionCookieLabel");
-  return optional ? `${baseLabel} (${t("optional").toLowerCase()})` : baseLabel;
-}
-
-export function getWebSessionCredentialHint(
-  t: ProviderMessageTranslator,
-  requirement: WebSessionCredentialRequirement,
-  providerName: string,
-  editing: boolean
-): string | undefined {
-  if (requirement.kind === "none") return undefined;
-
-  const values = { provider: providerName, credential: requirement.credentialName };
-  if (editing) {
-    return requirement.kind === "token"
-      ? providerText(
-          t,
-          "webTokenEditHint",
-          "Leave blank to keep the current web session token. Credential: {credential}.",
-          values
-        )
-      : providerText(
-          t,
-          "webCookieEditHint",
-          "Leave blank to keep the current session cookie. Required cookie: {credential}.",
-          values
-        );
-  }
-
-  // #5465 — a provider-specific hint (e.g. t3.chat's step-by-step DevTools copy)
-  // replaces the generic one-line cookie/token template when that template is
-  // unclear for the provider (t3.chat needs a localStorage value AND the Cookie
-  // header, so "Required cookie: convex-session-id + Cookie header…" reads
-  // circular). The override key ships translated in every locale.
-  if (requirement.hintKey) {
-    return providerText(
-      t,
-      requirement.hintKey,
-      requirement.hintFallback ??
-        "Open the provider's web session in DevTools, copy the required credential(s), and paste them in the fields below.",
-      values
-    );
-  }
-
-  return requirement.kind === "token"
-    ? providerText(
-        t,
-        "webTokenCredentialHint",
-        "Credential: {credential}. Paste the token value from your own signed-in {provider} web session, or a DevTools HAR export if the provider supports it.",
-        values
-      )
-    : providerText(
-        t,
-        "webCookieCredentialHint",
-        "Required cookie: {credential}. Paste the Cookie header value from your own signed-in {provider} web session. Do not include the Cookie: prefix.",
-        values
-      );
-}
-
-export function getWebSessionCredentialCheckLabel(
-  t: ProviderMessageTranslator,
-  requirement: WebSessionCredentialRequirement
-): string {
-  if (requirement.kind === "token") return providerText(t, "checkWebToken", "Check token");
-  return providerText(t, "checkCookie", "Check cookie");
-}
-
-export function getAddCredentialModalTitle(
-  t: ProviderMessageTranslator,
-  providerName: string,
-  requirement: WebSessionCredentialRequirement | null
-): string {
-  if (!requirement) return t("addProviderApiKeyTitle", { provider: providerName });
-  if (requirement.kind === "none") {
-    return providerText(t, "addProviderConnectionTitle", "Add {provider} connection", {
-      provider: providerName,
-    });
-  }
-  if (requirement.kind === "token") {
-    return providerText(t, "addProviderWebTokenTitle", "Add {provider} web token", {
-      provider: providerName,
-    });
-  }
-  return providerText(t, "addProviderSessionCookieTitle", "Add {provider} session cookie", {
-    provider: providerName,
-  });
-}
 
 // ---------------------------------------------------------------------------
 // Upstream-headers helpers (Phase 2b)

@@ -499,6 +499,8 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       per_key_proxy_enabled = @perKeyProxyEnabled,
       quota_visible = @quotaVisible,
       rate_limit_overrides_json = @rateLimitOverridesJson,
+      last_ping_at = @lastPingAt,
+      last_pinged_reset_key = @lastPingedResetKey,
       updated_at = @updatedAt
     WHERE id = @id
   `
@@ -548,6 +550,8 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
     quotaVisible: normalizeBooleanColumn(data.quotaVisible, true) ? 1 : 0,
     rateLimitOverridesJson: serializeJsonField(data.rateLimitOverrides),
+    lastPingAt: data.lastPingAt || null,
+    lastPingedResetKey: data.lastPingedResetKey || null,
     updatedAt: now,
   });
 }

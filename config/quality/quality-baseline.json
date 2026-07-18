@@ -164,7 +164,8 @@
       "dedicatedGate": true
     },
     "zizmorFindings": {
-      "value": 169,
+      "value": 175,
+      "_rebaseline_2026_07_17_v3849_release": "169 -> 175 (+6). Cycle workflow drift (v3.8.48/v3.8.49): npm-publish.yml (new, WS1.3 #7092), electron-release.yml, nightly-compat.yml, nightly-release-green.yml, CI restructures (#7501 full-history base fetch, #7355 main-green, #7202 merge-queue gates, Trunk/Codecov). Breakdown vs v3.8.47: +3 unpinned-uses (@vN convention, deliberate per _scanner_harden_workflows_2026_06_16), +2 cache-poisoning (artifact upload/cache in the OWN electron-release/npm-publish RELEASE workflows -- operator-controlled, not fork-PR exploitable), +1 excessive-permissions (nightly-compat.yml permissions:issues). No new template-injection/artipacked/dangerous-triggers. Measured with zizmor 1.25.2 via `node scripts/check/check-workflows.mjs --ratchet` = 175 on da3a0be69.",
       "direction": "down",
       "dedicatedGate": true,
       "_rebaseline_2026_06_23_fastpath_gates": "155 -> 159 (+4). Two new jobs added to .github/workflows/quality.yml (fast-vitest, fast-unit) to run vitest + the full unit suite on the PR->release fast-path (release-acceleration plan, _tasks/release-bench/v3.8.35/PLANO-IMPLEMENTACAO.md). The +4 are unpinned-uses: actions/checkout@v7 + actions/setup-node@v6 in each of the 2 jobs — the SAME deliberate @vN convention as every other workflow (see _scanner_harden_workflows_2026_06_16). SHA-pinning only these would violate the convention. No new template-injection/artipacked/cache-poisoning. Measured locally via `npm run check:workflows -- --ratchet` = 159.",
