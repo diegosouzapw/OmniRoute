@@ -11,6 +11,7 @@
  * @module lib/usage/providerDisplayNames
  */
 import { getProviderNodes } from "@/models";
+import { getProviderById } from "@/shared/constants/providers";
 
 function toStringValue(value: unknown, fallback = ""): string {
   return typeof value === "string" && value.trim().length > 0 ? value : fallback;
@@ -25,7 +26,11 @@ function getProviderDisplayName(
   providerDisplayNames: Map<string, string>
 ): string {
   const rawProvider = toStringValue(provider, "unknown");
-  return providerDisplayNames.get(rawProvider) || rawProvider;
+  // Configured node name wins; static catalog covers built-ins (e.g. codex →
+  // "OpenAI Codex") the nodes table doesn't know about; raw id is the last resort.
+  return (
+    providerDisplayNames.get(rawProvider) || getProviderById(rawProvider)?.name || rawProvider
+  );
 }
 
 async function getProviderDisplayNames(): Promise<Map<string, string>> {
