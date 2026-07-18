@@ -94,7 +94,6 @@ export default function ProviderDetailPageClient() {
     getProviderServiceKinds(providerId, declaredServiceKinds)
   );
   const usesCuratedModelsOnly = providerUsesCuratedModelsOnly(providerId);
-
   const {
     connections,
     providerNode,
