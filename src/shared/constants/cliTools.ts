@@ -1,6 +1,7 @@
 // CLI Tools configuration
 import { getClaudeCodeDefaultModels } from "@omniroute/open-sse/config/providerRegistry";
 import type { CliCatalogEntry } from "@/shared/schemas/cliCatalog";
+import { GROK_BUILD_CLI_TOOL } from "@/shared/constants/cliToolsGrokBuild";
 
 const _cc = getClaudeCodeDefaultModels();
 
@@ -540,7 +541,6 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     acpSpawnable: false,
     baseUrlSupport: "full",
   },
-
   // ── Code entries — aider ──────────────────────────────────────────────────
   aider: {
     id: "aider",
@@ -567,7 +567,6 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
 aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     },
   },
-
   // ── Code entries — forge ──────────────────────────────────────────────────
   forge: {
     id: "forge",
@@ -584,6 +583,7 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     defaultCommand: "forge",
   },
 
+  "grok-build": GROK_BUILD_CLI_TOOL,
   // ── Code entries — cursor-cli ─────────────────────────────────────────────
   "cursor-cli": {
     id: "cursor-cli",
@@ -794,6 +794,59 @@ OPENAI_API_KEY: "{{apiKey}}"`,
       language: "bash",
       code: `interpreter --api_base "{{baseUrl}}" --api_key "{{apiKey}}" --model "{{model}}"`,
     },
+  },
+
+  omp: {
+    id: "omp",
+    name: "Oh My Pi",
+    image: "/providers/omp.png",
+    color: "#111111",
+    docsUrl: "https://github.com/can1357/oh-my-pi",
+    description: "Oh My Pi terminal coding agent via OmniRoute",
+    configType: "custom",
+    category: "agent",
+    vendor: "OSS",
+    acpSpawnable: true,
+    baseUrlSupport: "full",
+    defaultCommand: "omp",
+    notes: [
+      {
+        type: "info",
+        text: "Oh My Pi reads custom OpenAI-compatible providers from ~/.omp/agent/models.yml. OmniRoute adds itself as a provider with auto-discovery — models appear automatically in omp's /model menu.",
+      },
+      {
+        type: "warning",
+        text: "Config path: Linux/macOS ~/.omp/agent/models.yml • Windows %USERPROFILE%\\.omp\\.omp\\agent\\models.yml",
+      },
+    ],
+  },
+
+  letta: {
+    id: "letta",
+    name: "Letta CLI",
+    image: "/providers/letta.png",
+    color: "#FF6B35",
+    description: "Letta CLI — AI agent with persistent memory and tool use",
+    configType: "custom",
+    category: "agent",
+    vendor: "Letta",
+    acpSpawnable: false,
+    baseUrlSupport: "full",
+    docsUrl: "https://docs.letta.com",
+    notes: [
+      {
+        type: "info",
+        text: "Letta CLI uses pi-ai which sends OpenAI-compatible requests. OmniRoute configures it as an OpenAI provider with custom base URL.",
+      },
+      {
+        type: "info",
+        text: "CLI (Local Mode): OmniRoute auto-configures ~/.letta/lc-local-backend/providers/auth.json. Use 'letta --info' to check if local mode is enabled.",
+      },
+      {
+        type: "warning",
+        text: "Local mode config path: ~/.letta/lc-local-backend/providers/auth.json (CLI only)",
+      },
+    ],
   },
 
   /** ★ Added by plan 14 (CLI Pages Redesign) — 2026-05-27 */

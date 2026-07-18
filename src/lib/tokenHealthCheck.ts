@@ -532,7 +532,9 @@ export async function checkConnection(conn) {
     "gitlab-duo",
     "claude",
   ]);
-  const isRotatingProvider = ROTATING_REFRESH_PROVIDERS.has(conn.provider);
+  const isRotatingProvider = ROTATING_REFRESH_PROVIDERS.has(
+    String(conn.provider || "").toLowerCase()
+  );
   const shouldRefreshByInterval =
     !hasKnownExpiry && !isRotatingProvider && Date.now() - lastCheck >= intervalMs;
 
@@ -755,7 +757,7 @@ export async function checkConnection(conn) {
     // GitHub OAuth token. The health check must also refresh this sub-token before
     // it expires mid-session. The Copilot token expiry is stored in
     // providerSpecificData.copilotTokenExpiresAt (Unix seconds).
-    if (conn.provider === "github") {
+    if (String(conn.provider || "").toLowerCase() === "github") {
       // Re-read the latest connection after the OAuth refresh (onPersist may have updated it).
       const latestConn = (await getProviderConnectionById(conn.id).catch(() => null)) || conn;
       const accessTokenForCopilot = result.accessToken || latestConn.accessToken;

@@ -1,0 +1,1 @@
+- fix(providers): wire the Devin cloud-agent provider into the generic provider-page validator and static model catalog, matching the existing `jules` cloud-agent pattern (#6142)

@@ -27,6 +27,7 @@ import type { RegistryModel } from "../../open-sse/config/providerRegistry.ts";
 
 const CHAT_URL = "https://api.githubcopilot.com/chat/completions";
 const RESPONSES_URL = "https://api.githubcopilot.com/responses";
+const MESSAGES_URL = "https://api.githubcopilot.com/v1/messages";
 
 function getGithubModel(modelId: string): RegistryModel {
   const model = PROVIDER_MODELS["gh"]?.find((entry) => entry.id === modelId);
@@ -35,7 +36,7 @@ function getGithubModel(modelId: string): RegistryModel {
 }
 
 describe("GithubExecutor — Gemini/Claude must never hit /responses (port 9router#1536)", () => {
-  it("routes registered Claude/Gemini Copilot models to chat/completions", () => {
+  it("routes registered Claude Copilot models to the native /v1/messages shim (port decolua/9router#2608)", () => {
     const exec = new GithubExecutor();
     for (const id of [
       "claude-haiku-4.5",
@@ -43,14 +44,18 @@ describe("GithubExecutor — Gemini/Claude must never hit /responses (port 9rout
       "claude-sonnet-4.6",
       "claude-sonnet-5",
       "claude-fable-5",
-      "claude-opus-4.6",
       "claude-opus-4.7",
       "claude-opus-4.8",
       "claude-opus-4.8-fast",
       "claude-opus-4.5",
-      "gemini-3.1-pro-preview",
-      "gemini-3.5-flash",
     ]) {
+      assert.equal(exec.buildUrl(id, false), MESSAGES_URL, `${id} must route to /v1/messages`);
+    }
+  });
+
+  it("routes registered Gemini Copilot models to chat/completions", () => {
+    const exec = new GithubExecutor();
+    for (const id of ["gemini-3.1-pro-preview", "gemini-3.5-flash"]) {
       assert.equal(exec.buildUrl(id, false), CHAT_URL, `${id} must route to chat/completions`);
     }
   });

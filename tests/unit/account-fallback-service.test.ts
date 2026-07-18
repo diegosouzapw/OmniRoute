@@ -202,11 +202,11 @@ test("checkFallbackError preserves OAuth 429 exhausted-credit semantics", () => 
   assert.equal(result.cooldownMs, COOLDOWN_MS.paymentRequired ?? 3600 * 1000);
 });
 
-test("checkFallbackError keeps API-key 429 quota text on the status-based resilience path", () => {
+test("#6638: checkFallbackError classifies API-key 429 explicit quota text as quota_exhausted", () => {
   const result = checkFallbackError(429, "quota exceeded", 0, null, "openai", null, makeProfile());
 
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
   assert.equal(result.cooldownMs, 125);
 });
 
@@ -844,7 +844,7 @@ test("checkFallbackError routes API-key 429 'try again tomorrow' through resilie
   assert.equal(result.cooldownMs, 125);
 });
 
-test("checkFallbackError routes API-key 429 'daily quota' text through resilience cooldown", () => {
+test("#6638: checkFallbackError routes API-key 429 'daily quota' text as quota_exhausted", () => {
   const result = checkFallbackError(
     429,
     "You have exceeded your daily quota",
@@ -855,8 +855,8 @@ test("checkFallbackError routes API-key 429 'daily quota' text through resilienc
     makeProfile()
   );
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.dailyQuotaExhausted, undefined);
-  assert.equal(result.cooldownMs, 125);
+  assert.equal(result.dailyQuotaExhausted, true);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
 });
 
 test("checkFallbackError preserves OAuth 429 daily quota semantics", () => {

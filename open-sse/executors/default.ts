@@ -44,7 +44,7 @@ import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { buildClineHeaders } from "@/shared/utils/clineAuth";
+import { buildClineHeaders, buildClinepassHeaders } from "@/shared/utils/clineAuth";
 import {
   normalizeHerokuChatUrl,
   normalizeDatabricksChatUrl,
@@ -52,6 +52,7 @@ import {
   normalizeGigachatChatUrl,
 } from "@/lib/providers/validation/urlHelpers";
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
+import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -242,10 +243,9 @@ export class DefaultExecutor extends BaseExecutor {
         return normalizeOpenAIChatUrl(baseUrl);
       }
       case "zai":
-      case "glm-coding-apikey": {
-        const zaiBaseUrl = this.resolveBaseUrl(credentials);
-        return `${zaiBaseUrl}?beta=true`;
-      }
+      case "glm-coding-apikey":
+        // #7364: format override extracted to zaiFormatOverride.ts (file-size ratchet).
+        return resolveZaiUrl(credentials, (fallback) => this.resolveBaseUrl(credentials, fallback));
       case "claude":
       case "glm":
       case "glmt":
@@ -368,6 +368,9 @@ export class DefaultExecutor extends BaseExecutor {
       case "zai":
       case "glm-coding-apikey":
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
+        break;
+      case "clinepass": // dual-auth (OAuth or BYOK) — see buildClinepassHeaders()
+        Object.assign(headers, buildClinepassHeaders(credentials, effectiveKey));
         break;
       case "cline":
         // Cline's API requires the bearer token prefixed with `workos:` plus a

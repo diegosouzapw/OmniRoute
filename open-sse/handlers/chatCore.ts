@@ -26,6 +26,7 @@ import {
   isStripReasoningRequested,
 } from "./chatCore/headers.ts";
 import { markCodexScopeRateLimited } from "./chatCore/codexFailover.ts";
+import { isCodexOriginatedHeaders } from "../config/codexIdentity.ts";
 import { trackDevice, extractIpFromHeaders } from "../services/deviceTracker.ts";
 import { getCombosCached } from "./chatCore/comboContextCache.ts";
 export { clearCombosCache, clearUpstreamProxyConfigCache } from "./chatCore/comboContextCache.ts";
@@ -108,10 +109,14 @@ import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
 import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
+import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
-import { stripGpt5SamplingWhenReasoning } from "../services/gpt5SamplingGuard.ts";
+import {
+  stripGpt5SamplingWhenReasoning,
+  stripGpt5ReasoningWhenTools,
+} from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
-import { supportsMaxTokens } from "@/lib/modelCapabilities.ts";
+import { supportsMaxTokens, getResolvedModelCapabilities } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
   buildErrorBody,
@@ -231,7 +236,10 @@ import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/service
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
 import { guardrailRegistry } from "@/lib/guardrails";
-import { shouldPreserveCacheControl } from "../utils/cacheControlPolicy.ts";
+import {
+  shouldPreserveCacheControl,
+  resolveConnectionCacheOverride,
+} from "../utils/cacheControlPolicy.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { applyCodexGlobalFastServiceTier } from "@/lib/providers/codexFastTier";
 import { buildUpstreamHeadersForExecute as buildUpstreamHeadersForExecuteFor } from "./chatCore/upstreamExecuteHeaders.ts";
@@ -295,6 +303,7 @@ import {
 import { resolveBackgroundTaskRedirect } from "./chatCore/backgroundRedirect.ts";
 import type { CompressionConfig, CompressionPipelineStep } from "../services/compression/types.ts";
 import { prepareWebSearchFallbackBody } from "../services/webSearchFallback.ts";
+import { resolveInterceptSearch } from "@/lib/db/interceptionRules";
 import {
   resolveExplicitStreamAlias,
   resolveStreamFlag,
@@ -562,6 +571,10 @@ export async function handleChatCore({
     clientRawRequest,
     provider,
     model,
+    // NEXA fusion-idempotency fix: body.messages feeds the key digest so combo-internal
+    // sub-requests (fusion panel + judge re-enter chatCore sharing the client's headers)
+    // can never collide on the raw Idempotency-Key/x-request-id header key.
+    body,
     effectiveServiceTier,
     startTime,
     log,
@@ -726,12 +739,17 @@ export async function handleChatCore({
   // Initialize rate limit settings from persisted DB (once, lazy)
   await initializeRateLimits();
 
+  // #3384: per-model interception rule (src/lib/db/interceptionRules.ts) overrides the
+  // native-bypass defaults below when the operator explicitly configured it for this
+  // provider/model pair; undefined falls through to the existing bypass logic.
+  const interceptSearchOverride = resolveInterceptSearch(provider, effectiveModel);
   const { body: bodyWithWebSearchFallback, fallback: webSearchFallbackPlan } =
     prepareWebSearchFallbackBody(body as Record<string, unknown>, {
       provider,
       sourceFormat,
       targetFormat,
       nativeCodexPassthrough,
+      interceptSearchOverride,
     });
   if (webSearchFallbackPlan.enabled) {
     body = bodyWithWebSearchFallback as typeof body;
@@ -752,8 +770,18 @@ export async function handleChatCore({
   // #1311 (opt-in): echo the client-requested alias/combo name in the response `model`
   // field instead of the upstream model, so strict clients (Claude Desktop) that validate
   // response.model === request.model stop rejecting alias/combo requests with a 401.
+  // #3697: always echo it for Codex CLI clients on the Responses API — regardless of the
+  // opt-in setting — since the Codex CLI status line/model button reads `response.model`
+  // to display the active model + reasoning effort (e.g. `gpt-5.5-xhigh`). Detection is by
+  // request headers (originator/User-Agent), not by the routed provider, so it still fires
+  // when `codex/gpt-5.5-xhigh` is routed through a combo to a non-codex upstream.
+  const isCodexResponsesEcho =
+    (isResponsesEndpoint || sourceFormat === FORMATS.OPENAI_RESPONSES) &&
+    isCodexOriginatedHeaders(clientRawRequest?.headers);
   const echoModel =
-    settings.echoRequestedModelName === true && typeof requestedModel === "string" && requestedModel
+    (settings.echoRequestedModelName === true || isCodexResponsesEcho) &&
+    typeof requestedModel === "string" &&
+    requestedModel
       ? requestedModel
       : null;
   const detailedLoggingEnabled =
@@ -1158,12 +1186,15 @@ export async function handleChatCore({
       if (compressionHeader) {
         log?.debug?.("COMPRESSION", `x-omniroute-compression header: ${compressionHeader}`);
       }
+      const connectionCacheOverride = resolveConnectionCacheOverride(
+        credentials?.providerSpecificData
+      );
       const modeBeforeOutputTransform = selectCompressionStrategy(
         config,
         compressionComboKey,
         estimatedTokens,
         body as Record<string, unknown>,
-        { provider, targetFormat, model: effectiveModel },
+        { provider, targetFormat, model: effectiveModel, connectionCacheOverride },
         namedCombos,
         compressionHeader
       );
@@ -1204,7 +1235,7 @@ export async function handleChatCore({
       // Phase 4A: unified output styles (supersedes cavemanOutputMode via the back-compat shim).
       let outputStyleResult:
         import("../services/compression/outputStyles/apply.ts").OutputStylesResult | null = null;
-      if (config.enabled) {
+      if (config.enabled && compressionHeader?.trim().toLowerCase() !== "off") {
         try {
           const { resolveOutputStyleSelection } =
             await import("../services/compression/outputStyles/backCompat.ts");
@@ -1262,7 +1293,7 @@ export async function handleChatCore({
         compressionComboKey,
         estimatedTokens,
         compressionInputBody,
-        { provider, targetFormat, model: effectiveModel },
+        { provider, targetFormat, model: effectiveModel, connectionCacheOverride },
         namedCombos,
         compressionHeader,
         {
@@ -1301,10 +1332,23 @@ export async function handleChatCore({
         // #3890: in a caching context, never compress the system prompt (cacheable prefix)
         // even if the operator disabled preserveSystemPrompt — honors the cache-aware flag
         // that selectCompressionStrategy can only partially apply via the mode string.
-        const cacheCtx = { provider, targetFormat, model: effectiveModel };
+        const cacheCtx = { provider, targetFormat, model: effectiveModel, connectionCacheOverride };
         const compressionConfig = resolveCacheAwareConfig(config, compressionInputBody, cacheCtx);
         const result = await applyCompressionAsync(compressionInputBody, mode, {
           model: effectiveModel,
+          // #7237: feed the AUTHORITATIVE capability (model spec / models.dev sync / DB
+          // override, with the conservative model-id fragment heuristic only as its
+          // last-resort fallback) instead of calling the heuristic directly here. The
+          // heuristic alone wrongly returned false for e.g. gpt-5.5 (registered
+          // supportsVision:true in modelSpecs but absent from the deliberately-conservative
+          // fragment list), and lite.ts's gate (`supportsVision !== false`) treated that
+          // false as "strip every image_url block". Resolves to `null` for genuinely unknown
+          // models, which is intentionally NOT `false` so the gate still preserves images.
+          supportsVision: getResolvedModelCapabilities({ provider, model: effectiveModel })
+            .supportsVision,
+          // Rota direta oficial ('anthropic') vs agregadores: o engine omniglyph
+          // exige 'direct' — agregadores redimensionam imagens (medido 2026-07-06).
+          providerTransport: provider === "anthropic" ? "direct" : "aggregator",
           config: compressionConfig,
           cachingContext: cacheCtx,
           principalId: apiKeyInfo?.id ? String(apiKeyInfo.id) : undefined,
@@ -1429,6 +1473,7 @@ export async function handleChatCore({
               effectiveModel,
               mode,
               stats: result.stats,
+              connectionCacheOverride,
               log,
             });
             log?.info?.(
@@ -1624,6 +1669,7 @@ export async function handleChatCore({
   // Determine if we should preserve client-side cache_control headers
   // Fetch settings from DB to get user preference
   const cacheControlMode = await getCacheControlSettings().catch(() => "auto" as const);
+  const connectionCacheOverride = resolveConnectionCacheOverride(credentials?.providerSpecificData);
   const preserveCacheControl = shouldPreserveCacheControl({
     userAgent,
     isCombo,
@@ -1631,6 +1677,7 @@ export async function handleChatCore({
     targetProvider: provider,
     targetFormat,
     settings: { alwaysPreserveClientCache: cacheControlMode },
+    connectionCacheOverride,
   });
 
   if (preserveCacheControl) {
@@ -1998,6 +2045,14 @@ export async function handleChatCore({
     // model substitution. Mirrors upstream 9router 401d93bd5. See
     // services/claudeHaikuConstraints.ts.
     translatedBody = normalizeClaudeHaikuConstraints(translatedBody, finalModelToUpstream);
+    // #6879: per-model default reasoning_effort, injected only when the request
+    // carries no reasoning field of any shape — an explicit client/combo-leg value
+    // always wins. Scoped to the OpenAI Chat Completions dispatch shape (the shape
+    // `reasoning_effort` is native to); unset ModelSpec.defaultReasoningEffort is a
+    // no-op. See open-sse/services/defaultReasoningEffort.ts.
+    if (targetFormat === FORMATS.OPENAI) {
+      translatedBody = applyDefaultReasoningEffort(translatedBody, finalModelToUpstream);
+    }
   }
 
   // Xiaomi MiMo controls reasoning ONLY via `thinking:{type:"enabled"|"disabled"}` and
@@ -2064,6 +2119,22 @@ export async function handleChatCore({
     log
   );
 
+  // GPT-5.x reasoning models on the raw openai Chat Completions surface reject function
+  // `tools` combined with an active `reasoning_effort`: HTTP 400 "Function tools with
+  // reasoning_effort are not supported ... Please use /v1/responses instead." This used to
+  // be true for every GPT-5.x model on the plain `openai` provider, but #7242 (targetFormat
+  // "openai-responses" on GPT_5_6_API_CAPABILITIES) now routes the GPT-5.6 family to
+  // /v1/responses instead, which accepts tools + reasoning natively — so the strip must not
+  // fire there. Pass the already-resolved `targetFormat` so the guard gates on the actual
+  // upstream surface for this request instead of a model-name list. Port of 9router#2540.
+  translatedBody = stripGpt5ReasoningWhenTools(
+    translatedBody,
+    provider,
+    finalModelToUpstream,
+    targetFormat,
+    log
+  );
+
   // Rename max_tokens to max_completion_tokens if not supported (#1961)
   if (!supportsMaxTokens({ provider, model })) {
     if (translatedBody.max_tokens !== undefined) {
@@ -2073,6 +2144,16 @@ export async function handleChatCore({
       delete translatedBody.max_tokens;
       log?.debug?.("PARAMS", `Renamed max_tokens to max_completion_tokens for ${model}`);
     }
+  } else if (translatedBody.max_completion_tokens !== undefined) {
+    // Symmetric case (#6912): some providers/models (e.g. Volcengine Ark /
+    // DeepSeek) only document the legacy `max_tokens` field and silently
+    // ignore an unrecognized `max_completion_tokens`, so a client sending the
+    // newer field alone would have it dropped upstream with no cap applied.
+    if (translatedBody.max_tokens === undefined) {
+      translatedBody.max_tokens = translatedBody.max_completion_tokens;
+    }
+    delete translatedBody.max_completion_tokens;
+    log?.debug?.("PARAMS", `Renamed max_completion_tokens to max_tokens for ${model}`);
   }
 
   // OpenAI's `store` parameter is not supported by most compatible providers and breaks them
@@ -3296,6 +3377,16 @@ export async function handleChatCore({
           });
           console.warn(
             `[provider] Node ${errorConnectionId} project routing error (${statusCode}) — not banning`
+          );
+        } else if (errorType === PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND) {
+          // 404 — model/endpoint does not exist upstream. Lock the model so the
+          // retry/backoff loop stops hammering the dead endpoint (which would
+          // otherwise degenerate into a 429 rate-limit storm). Connection stays
+          // active since only the specific model is unavailable. (#6827)
+          const notFoundCooldownMs = COOLDOWN_MS.notFound;
+          lockModel(provider, errorConnectionId, currentModel, "model_not_found", notFoundCooldownMs);
+          console.warn(
+            `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
           );
         }
       } catch {

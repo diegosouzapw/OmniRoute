@@ -1,6 +1,9 @@
 import path from "node:path";
 import { ensureCliConfigWriteAllowed, getCliConfigPaths } from "../../shared/services/cliRuntime";
-import { getModelSyncInternalBaseUrl } from "../../shared/services/modelSyncScheduler";
+import {
+  fetchModelSyncInternal,
+  getModelSyncInternalBaseUrl,
+} from "../../shared/services/modelSyncScheduler";
 import { isFeatureFlagEnabled } from "../../shared/utils/featureFlags";
 
 type SyncResult =
@@ -47,8 +50,9 @@ export async function autoSyncCodexProfilesFromLiveCatalog(
   }
 
   const baseUrl = getModelSyncInternalBaseUrl().replace(/\/$/, "");
-  const res = await fetch(`${baseUrl}/v1/models`, {
+  const res = await fetchModelSyncInternal(`${baseUrl}/v1/models`, {
     headers: forwardAuthHeaders(request),
+    redirect: "error",
     signal: AbortSignal.timeout(10_000),
   });
 

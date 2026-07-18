@@ -44,6 +44,12 @@ export function parseAutoConfig(combo: ComboLike, eligibleTargets: ResolvedCombo
   const budgetCap = Number.isFinite(Number(autoConfigSource.budgetCap))
     ? Number(autoConfigSource.budgetCap)
     : undefined;
+  // #3470: persisted fallback policy for when EVERY candidate exceeds budgetCap.
+  // Any other value (including absent) falls through to the engine's "cheapest" default.
+  const budgetFallback: "strict" | "cheapest" | undefined =
+    autoConfigSource.budgetFallback === "strict" || autoConfigSource.budgetFallback === "cheapest"
+      ? (autoConfigSource.budgetFallback as "strict" | "cheapest")
+      : undefined;
   const modePack =
     typeof autoConfigSource.modePack === "string" ? autoConfigSource.modePack : undefined;
   const resetWindowConfig = resolveResetWindowConfig(autoConfigSource);
@@ -55,6 +61,7 @@ export function parseAutoConfig(combo: ComboLike, eligibleTargets: ResolvedCombo
     weights,
     explorationRate,
     budgetCap,
+    budgetFallback,
     modePack,
     resetWindowConfig,
     slaPolicy,

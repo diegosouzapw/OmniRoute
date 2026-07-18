@@ -127,7 +127,6 @@ describe("useProviderConnections — initial state", () => {
     const expected = [
       "fetchConnections",
       "fetchProxyConfig",
-      "handleDelete",
       "handleUpdateConnectionStatus",
       "handleToggleRateLimit",
       "handleToggleClaudeExtraUsage",

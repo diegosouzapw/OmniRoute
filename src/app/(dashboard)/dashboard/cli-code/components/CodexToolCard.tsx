@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { normalizeCodexBaseUrl } from "@/shared/utils/codexBaseUrl";
 import { isApplyDisabled, isResetDisabled } from "./codexButtonState";
+import { CODEX_DEFAULT_MODELS } from "./codexToolOptions";
 
 export default function CodexToolCard({
   tool,
@@ -28,14 +29,7 @@ export default function CodexToolCard({
   const [message, setMessage] = useState(null);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [selectedApiKey, setSelectedApiKey] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gpt-5.5");
-  const CODEX_DEFAULT_MODELS = [
-    "gpt-5.5",
-    "gpt-5.3-codex",
-    "gpt-5.4",
-    "gpt-5.1-codex-max",
-    "gpt-5.1-codex-mini",
-  ];
+  const [selectedModel, setSelectedModel] = useState("gpt-5.6-sol");
   const [modelMappings, setModelMappings] = useState<Record<string, string>>({});
   const [reasoningEffort, setReasoningEffort] = useState("xhigh");
   const [wireApi, setWireApi] = useState("chat");
@@ -595,7 +589,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                     type="text"
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
-                    placeholder="gpt-5.5"
+                    placeholder="gpt-5.6-sol"
                     className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
                   />
                   {selectedModel && (
@@ -627,6 +621,8 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
                     <option value="xhigh">XHigh</option>
+                    <option value="max">Max</option>
+                    <option value="ultra">Ultra</option>
                   </select>
                 </div>
 

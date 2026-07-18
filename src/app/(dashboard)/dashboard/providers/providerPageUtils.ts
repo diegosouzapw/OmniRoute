@@ -71,6 +71,8 @@ export function shouldShowFirstProviderHint(
 
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
 
+const OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS = new Set(["kiro", "amazon-q"]);
+
 /**
  * Whether a provider connection should be counted on a provider card rendered in
  * the given section. Dual-auth providers (qoder, opencode, codebuddy-cn, …) are
@@ -85,8 +87,11 @@ export function connectionMatchesProviderCard(
 ): boolean {
   if (!conn || conn.provider !== providerId) return false;
   if (cardAuthType === "free") return true;
-  if (supportsApiKeyOnFreeProvider(providerId)) {
-    return conn.authType === "oauth" || conn.authType === "apikey";
+  if (
+    supportsApiKeyOnFreeProvider(providerId) ||
+    OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS.has(providerId)
+  ) {
+    return conn.authType === "oauth" || conn.authType === "apikey" || conn.authType === "api_key";
   }
   return conn.authType === cardAuthType;
 }
@@ -207,13 +212,35 @@ export function buildCompatibleProviderGroups(
   return { openai, anthropic, claudeCode };
 }
 
+export type LiveModelsByProviderId = Record<string, Array<{ id: string; name?: string }>>;
+
+/**
+ * Models to match against for the model-name filter: the static curated
+ * registry PLUS any live/synced catalog for that provider connection (#7250).
+ * Aggregator providers (openrouter, kilocode, theoldllm...) declare a
+ * single-entry static placeholder — matching only that entry means a search
+ * for any real upstream model name can never match, silently hiding the
+ * provider. When the live catalog is empty/unavailable we fall back to the
+ * static-only list so already-correct static providers are unaffected.
+ */
+function getFilterableModelsForEntry(
+  providerId: string,
+  liveModelsByProviderId?: LiveModelsByProviderId
+): Array<{ id: string; name?: string }> {
+  const staticModels = getModelsByProviderId(providerId);
+  const liveModels = liveModelsByProviderId?.[providerId];
+  if (!liveModels || liveModels.length === 0) return staticModels;
+  return [...staticModels, ...liveModels];
+}
+
 export function filterConfiguredProviderEntries<TProvider>(
   entries: ProviderEntry<TProvider>[],
   showConfiguredOnly: boolean,
   searchQuery?: string,
   showFreeOnly?: boolean,
   modelSearchQuery?: string,
-  serviceKindFilter?: string | null
+  serviceKindFilter?: string | null,
+  liveModelsByProviderId?: LiveModelsByProviderId
 ): ProviderEntry<TProvider>[] {
   let filtered = entries;
 
@@ -256,8 +283,8 @@ export function filterConfiguredProviderEntries<TProvider>(
   if (modelSearchQuery && modelSearchQuery.trim()) {
     const q = modelSearchQuery.trim();
     filtered = filtered.filter((entry) => {
-      const models = getModelsByProviderId(entry.providerId);
-      return models.some((m) => matchesSearch(m.id, q) || matchesSearch(m.name, q));
+      const models = getFilterableModelsForEntry(entry.providerId, liveModelsByProviderId);
+      return models.some((m) => matchesSearch(m.id, q) || matchesSearch(m.name || "", q));
     });
   }
 
@@ -364,7 +391,7 @@ const PROVIDER_PAGE_FETCH_TIMEOUT_MS = 20_000;
  * page paints from whatever data arrived (matching the fast `/api/providers`).
  */
 export async function loadProviderPageData(
-  fetchImpl: typeof fetch = (globalThis.fetch as typeof fetch),
+  fetchImpl: typeof fetch = globalThis.fetch as typeof fetch,
   timeoutMs: number = PROVIDER_PAGE_FETCH_TIMEOUT_MS
 ): Promise<ProviderPageData> {
   const safeJson = async (url: string, init?: RequestInit): Promise<any | null> => {

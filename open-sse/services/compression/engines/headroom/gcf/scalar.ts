@@ -1,6 +1,7 @@
 /**
  * Common scalar grammar for GCF (Graph Compact Format).
- * Vendored from gcf-typescript — generic profile only.
+ * Vendored from gcf-typescript — generic profile only. Current with GCF spec v3.2
+ * (nested object flattening) and the [N]: inline-array quoting fix.
  * https://github.com/blackwell-systems/gcf-typescript
  *
  * SPDX-License-Identifier: MIT
@@ -8,10 +9,7 @@
 
 const JSON_NUMBER_RE = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
 const NUMERIC_LIKE_RE = /^[+-]\.?\d|^\.\d|^0\d/;
-// SPEC §2.4: a bracket pair immediately followed by `:` (e.g. `ERR[404]: Not Found`,
-// `[Speaker 1]: Hello`). Bare, on a line-level key=value RHS, the decoder re-parses
-// this as an inline-array header → count_mismatch / wrong value (B-GCF-QUOTE).
-const INLINE_ARRAY_RE = /\[[^\]]*\]:/;
+const INLINE_ARRAY_RE = /\[[^\]]*\]\s*:/;
 
 /** Check if a string value must be quoted per Section 2.4. */
 export function needsQuote(s: string): boolean {
@@ -110,13 +108,18 @@ export function formatNumber(f: number): string {
   if (f === 0) return "0";
   const abs = Math.abs(f);
   if (abs >= 1e-6 && abs < 1e21) {
-    return String(f);
+    return toPreciseDecimal(f);
   }
   // Exponent notation.
   let s = f.toExponential();
   // Normalize: lowercase e, no leading zeros in exponent.
   s = s.replace(/[eE]\+?0*(\d)/, "e+$1").replace(/[eE]-0*(\d)/, "e-$1");
   return s;
+}
+
+function toPreciseDecimal(f: number): string {
+  // String(f) produces the shortest representation that round-trips through parseFloat.
+  return String(f);
 }
 
 const BARE_KEY_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;

@@ -79,7 +79,6 @@ test("fusion: fans out to the panel then routes a synthesis turn to the judge", 
     body: {
       messages: [{ role: "user", content: "Q" }],
       stream: true,
-      tools: [{ name: "x" }],
     },
     combo: fusionCombo(["p/a", "p/b", "p/c"], { judgeModel: "p/judge" }),
     handleSingleModel,
@@ -168,7 +167,7 @@ test("fusion: proceeds on quorum without waiting for a straggler (grace window)"
   assert.ok(!/slow/.test(judgeText), "straggler answer should not appear in the judge prompt");
 });
 
-test("fusion: returns the lone survivor directly when only one panel model succeeds", async () => {
+test("fusion: returns the lone survivor directly when only one panel model succeeds and no judgeModel is configured", async () => {
   const seen: string[] = [];
   const handleSingleModel = async (_b: Body, m: string) => {
     seen.push(m);
@@ -176,6 +175,37 @@ test("fusion: returns the lone survivor directly when only one panel model succe
     return errResponse(500);
   };
   await handleComboChat({
+    body: { messages: [{ role: "user", content: "Q" }] },
+    combo: fusionCombo(["p/ok", "p/bad"], {
+      // No judgeModel configured: the implicit "judge" is just panel[0], so
+      // synthesizing a single source through itself is redundant.
+      fusionTuning: { minPanel: 2, stragglerGraceMs: 50, panelHardTimeoutMs: 5000 },
+    }),
+    handleSingleModel,
+    log,
+    settings: {},
+    allCombos: [],
+  });
+  // No judge call — single answer + no explicit judge means there is nothing to fuse.
+  assert.ok(
+    !seen.includes("p/judge"),
+    "judge should not be invoked when only one panel model survives and no judgeModel is set"
+  );
+});
+
+// #6455: when an explicit judgeModel IS configured, the lone-survivor degrade
+// path used to silently return the raw panel answer, never invoking the
+// configured judge. See tests/unit/fusion-judge-model-6455.test.ts for the
+// full regression guard.
+test("fusion: honors an explicit judgeModel even with a single surviving panel answer", async () => {
+  const seen: string[] = [];
+  const handleSingleModel = async (_b: Body, m: string) => {
+    seen.push(m);
+    if (m === "p/ok") return okResponse("lone");
+    if (m === "p/judge") return okResponse("JUDGED");
+    return errResponse(500);
+  };
+  const res = await handleComboChat({
     body: { messages: [{ role: "user", content: "Q" }] },
     combo: fusionCombo(["p/ok", "p/bad"], {
       judgeModel: "p/judge",
@@ -186,11 +216,12 @@ test("fusion: returns the lone survivor directly when only one panel model succe
     settings: {},
     allCombos: [],
   });
-  // No judge call — single answer means there is nothing to fuse.
   assert.ok(
-    !seen.includes("p/judge"),
-    "judge should not be invoked when only one panel model survives"
+    seen.includes("p/judge"),
+    "explicit judgeModel should still be invoked to synthesize a single panel answer"
   );
+  assert.equal(seen[seen.length - 1], "p/judge");
+  assert.equal(res.status, 200);
 });
 
 test("fusion: returns 503 when the whole panel fails", async () => {

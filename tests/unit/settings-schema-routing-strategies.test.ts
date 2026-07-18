@@ -91,7 +91,7 @@ test("settings schemas accept global Codex fast tier setting", () => {
     codexServiceTier: {
       enabled: true,
       tier: "flex",
-      supportedModels: ["gpt-5.5", "gpt-5.4"],
+      supportedModels: ["gpt-5.6-sol", "gpt-5.6-terra"],
     },
   };
   const routeParsed = settingsRouteSchema.parse(payload);

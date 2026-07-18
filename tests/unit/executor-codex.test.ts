@@ -86,16 +86,15 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
   assert.equal(getCodexModelScope("gpt-5.5-xhigh"), "codex");
   assert.equal(getCodexUpstreamModel("gpt-5.5-xhigh"), "gpt-5.5");
   assert.equal(getCodexUpstreamModel("gpt-5.5-medium"), "gpt-5.5");
+  assert.equal(getCodexUpstreamModel("gpt-5.1-codex-max"), "gpt-5.1-codex-max");
   // With mock WS transport + codexTransport=websocket, gpt-5.5 models require WS
-  __setCodexWebSocketTransportForTesting(
-    async (): Promise<MockCodexWebSocket> => ({
-      send() {},
-      close() {},
-      onmessage: null,
-      onerror: null,
-      onclose: null,
-    })
-  );
+  __setCodexWebSocketTransportForTesting(async (): Promise<MockCodexWebSocket> => ({
+    send() {},
+    close() {},
+    onmessage: null,
+    onerror: null,
+    onclose: null,
+  }));
   assert.equal(
     isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {
       providerSpecificData: { codexTransport: "websocket" },
@@ -185,10 +184,10 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(standardHeaders.Version, "0.142.0");
+  assert.equal(standardHeaders.Version, "0.144.1");
   assert.equal(standardHeaders["Openai-Beta"], "responses=experimental");
   assert.equal(standardHeaders["X-Codex-Beta-Features"], "responses_websockets");
-  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.142.0 (Windows 10.0.26200; x64)");
+  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.144.1 (Windows 10.0.26200; x64)");
   assert.equal(compactHeaders.Accept, "application/json");
 });
 
@@ -197,13 +196,13 @@ test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-
 
   await withEnv(
     {
-      CODEX_CLIENT_VERSION: "0.142.0",
+      CODEX_CLIENT_VERSION: "0.144.0",
       CODEX_USER_AGENT: undefined,
     },
     () => {
       const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
-      assert.equal(headers.Version, "0.142.0");
-      assert.equal(headers["User-Agent"], "codex-cli/0.142.0 (Windows 10.0.26200; x64)");
+      assert.equal(headers.Version, "0.144.0");
+      assert.equal(headers["User-Agent"], "codex-cli/0.144.0 (Windows 10.0.26200; x64)");
     }
   );
 
@@ -214,7 +213,7 @@ test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-
     },
     () => {
       const headers = executor.buildHeaders({ accessToken: "codex-token" }, true);
-      assert.equal(headers.Version, "0.142.0");
+      assert.equal(headers.Version, "0.144.1");
       assert.equal(headers["User-Agent"], "custom-codex/9.9.9");
     }
   );
@@ -799,12 +798,12 @@ test("CodexExecutor.transformRequest keeps GPT 5.3 Codex reasoning in Responses 
   assert.equal(sanitized.reasoning_effort, undefined);
 });
 
-test("CodexExecutor.transformRequest passes GPT 5.4 Mini xhigh reasoning through unchanged in Responses shape (#3756)", () => {
+test("CodexExecutor.transformRequest passes GPT 5.6 Luna xhigh reasoning through unchanged", () => {
   const executor = new CodexExecutor();
   const transformed = executor.transformRequest(
-    "gpt-5.4-mini",
+    "gpt-5.6-luna",
     {
-      model: "gpt-5.4-mini",
+      model: "gpt-5.6-luna",
       input: [],
       reasoning: { effort: "xhigh", summary: "detailed" },
       include: ["code_interpreter_call.outputs"],
@@ -817,12 +816,12 @@ test("CodexExecutor.transformRequest passes GPT 5.4 Mini xhigh reasoning through
   const sanitized = sanitizeReasoningEffortForProvider(
     transformed,
     "codex",
-    "gpt-5.4-mini",
+    "gpt-5.6-luna",
     null
   ) as Record<string, unknown>;
   const reasoning = getRecord(sanitized.reasoning);
 
-  assert.equal(sanitized.model, "gpt-5.4-mini");
+  assert.equal(sanitized.model, "gpt-5.6-luna");
   assert.deepEqual(reasoning, { effort: "xhigh", summary: "detailed" });
   assert.deepEqual(sanitized.include, [
     "code_interpreter_call.outputs",
@@ -1058,9 +1057,9 @@ test("CodexExecutor.execute skips identity headers for unsafe session ids", asyn
 test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted tool types", () => {
   const executor = new CodexExecutor();
   const result = executor.transformRequest(
-    "gpt-5.4",
+    "gpt-5.6-sol",
     {
-      model: "gpt-5.4",
+      model: "gpt-5.6-sol",
       input: [],
       tools: [
         { type: "function", name: "exec_command", parameters: { type: "object" } },

@@ -120,3 +120,22 @@ test("classifyProviderError: OAuth provider 429 with daily quota signal => QUOTA
   );
   assert.equal(result, PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED);
 });
+
+// #6827 — 404 must be classified as MODEL_NOT_FOUND, not fall through to null.
+// Without this, no cooldown/lockout is applied and the retry loop keeps hitting
+// the dead endpoint until the upstream rate-limits it (404 + 429 storm).
+test("classifyProviderError: 404 => MODEL_NOT_FOUND", () => {
+  const result = classifyProviderError(404, {
+    error: { message: "model v0-1.5-md not found" },
+  });
+  assert.equal(result, PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND);
+});
+
+test("classifyProviderError: 404 with provider => MODEL_NOT_FOUND", () => {
+  const result = classifyProviderError(
+    404,
+    { error: { message: "Not Found" } },
+    "v0-vercel"
+  );
+  assert.equal(result, PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND);
+});

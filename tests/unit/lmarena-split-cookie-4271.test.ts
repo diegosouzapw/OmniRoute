@@ -17,10 +17,7 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import {
-  LMArenaExecutor,
-  reconstructLMArenaCookie,
-} from "../../open-sse/executors/lmarena.ts";
+import { LMArenaExecutor, reconstructLMArenaCookie } from "../../open-sse/executors/lmarena.ts";
 import { getWebSessionCredentialRequirement } from "../../src/shared/providers/webSessionCredentials.ts";
 
 function cookieHeaderFor(credentials: unknown): string | undefined {
@@ -83,6 +80,28 @@ describe("LMArena split Supabase SSR cookie (#4271)", () => {
     );
     assert.ok(reconstructed.includes("cf_clearance=abc"), "should keep cf_clearance");
     assert.ok(reconstructed.includes("sidebar=open"), "should keep sidebar");
+  });
+
+  it("reconstructs from separately stored providerSpecificData chunk keys", () => {
+    const header = cookieHeaderFor({
+      providerSpecificData: {
+        "arena-auth-prod-v1.0": "base64-eyJABC",
+        "arena-auth-prod-v1.1": "DEF.ghi",
+      },
+    });
+
+    assert.ok(header, "should set a Cookie header");
+    assert.equal(header, "arena-auth-prod-v1=base64-eyJABCDEF.ghi");
+  });
+
+  it("reconstructs from separately stored top-level chunk keys", () => {
+    const header = cookieHeaderFor({
+      "arena-auth-prod-v1.0": "base64-eyJABC",
+      "arena-auth-prod-v1.1": "DEF.ghi",
+    });
+
+    assert.ok(header, "should set a Cookie header");
+    assert.equal(header, "arena-auth-prod-v1=base64-eyJABCDEF.ghi");
   });
 
   it("treats an empty base with no chunks as no usable session (returned as-is)", () => {

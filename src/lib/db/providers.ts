@@ -55,6 +55,10 @@ export async function getProviderConnections(filter: JsonRecord = {}) {
     conditions.push("is_active = @isActive");
     params.isActive = filter.isActive ? 1 : 0;
   }
+  if (filter.authType) {
+    conditions.push("auth_type = @authType");
+    params.authType = filter.authType;
+  }
 
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");
@@ -169,6 +173,25 @@ export async function createProviderConnection(data: JsonRecord) {
       }
       // For Codex with workspaceId, don't fall back to email-only check
       // This allows creating new connections for different workspaces
+    } else if (data.provider === "codex") {
+      // Codex without a workspaceId — do NOT fall through to the generic
+      // bare-email dedup below. Codex never sets providerSpecificData.username,
+      // so that path's disambiguation is a no-op and two distinct Codex logins
+      // sharing an email (but missing a verifiable workspace/account id) would
+      // silently collapse into one row, overwriting the first login's token
+      // pair. Require a matching chatgptUserId (a stable per-account id from
+      // the JWT) before merging; otherwise treat this as a new connection.
+      const chatgptUserId = toStringOrNull(providerSpecificData.chatgptUserId);
+      if (chatgptUserId) {
+        existing =
+          (db
+            .prepare(
+              "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.chatgptUserId') = ? AND email = ?"
+            )
+            .get(data.provider, chatgptUserId, data.email) as JsonRecord | undefined) || null;
+      }
+      // No chatgptUserId on the incoming row (or no existing match) — leave
+      // `existing` null so a new connection row is inserted.
     } else {
       // For other providers (or Codex without workspaceId), match on email —
       // disambiguated by providerSpecificData.username when present on both
@@ -472,6 +495,8 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       proxy_enabled = @proxyEnabled,
       per_key_proxy_enabled = @perKeyProxyEnabled,
       rate_limit_overrides_json = @rateLimitOverridesJson,
+      last_ping_at = @lastPingAt,
+      last_pinged_reset_key = @lastPingedResetKey,
       updated_at = @updatedAt
     WHERE id = @id
   `
@@ -520,6 +545,8 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     proxyEnabled: normalizeBooleanColumn(data.proxyEnabled, true) ? 1 : 0,
     perKeyProxyEnabled: normalizeBooleanColumn(data.perKeyProxyEnabled, false) ? 1 : 0,
     rateLimitOverridesJson: serializeJsonField(data.rateLimitOverrides),
+    lastPingAt: data.lastPingAt || null,
+    lastPingedResetKey: data.lastPingedResetKey || null,
     updatedAt: now,
   });
 }

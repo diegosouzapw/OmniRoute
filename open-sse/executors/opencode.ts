@@ -21,6 +21,7 @@ export interface OpencodeAccountProxyConfig {
     port: number;
     username?: string;
     password?: string;
+    relayAuth?: string;
   } | null;
 }
 

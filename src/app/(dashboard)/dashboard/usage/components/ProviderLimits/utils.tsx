@@ -34,6 +34,8 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   tokens: "Tokens",
   time_limit: "Time Limit",
   banked_reset_credits: "Banked Reset Credits",
+  gemini_weekly: "Gemini Weekly",
+  claude_gpt_weekly: "Claude & GPT Weekly",
 };
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -191,6 +193,12 @@ export function resolvePlanValue(plan, providerSpecificData) {
     psd.organizationRateLimitTier,
     psd.rateLimitTier,
     psd.organizationType,
+    // Codex OAuth bootstrap: chatgpt_plan_type is captured at import time
+    // (src/lib/oauth/services/codexImport.ts) and is the only source of the
+    // plan when the live Codex usage endpoint omits plan_type/planType (the
+    // usage service then reports the literal string "unknown" — see
+    // open-sse/services/usage/codex.ts).
+    psd.chatgptPlanType,
   ];
 
   if (livePlan && normalizePlanTier(livePlan).key !== "free") {
