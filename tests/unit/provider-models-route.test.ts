@@ -120,23 +120,6 @@ test("provider models route falls back to the local AI/ML API catalog when the l
   assert.ok(body.models.length > 0);
 });
 
-test("cablyai is flagged deprecated (domain NXDOMAIN) and no longer 500s on model import (#5568)", async () => {
-  const { APIKEY_PROVIDERS_GATEWAYS } =
-    await import("../../src/shared/constants/providers/apikey/gateways.ts");
-  const cablyai = (APIKEY_PROVIDERS_GATEWAYS as Record<string, any>).cablyai;
-  assert.equal(cablyai?.deprecated, true, "cablyai must be marked deprecated (domain is NXDOMAIN)");
-  assert.ok(
-    typeof cablyai?.deprecationReason === "string" && cablyai.deprecationReason.length > 0,
-    "cablyai must carry a deprecationReason"
-  );
-
-  // Removed from PROVIDER_MODELS_CONFIG → no live fetch to the dead domain → a
-  // controlled 400 instead of an unhandled 500 crash.
-  const connection = await seedConnection("cablyai", { apiKey: "dead-key" });
-  const response = await callRoute(connection.id);
-  assert.notEqual(response.status, 500, "cablyai must not 500-crash on a dead domain");
-});
-
 test("provider models route returns 404 for unknown connections", async () => {
   const response = await callRoute("missing-connection");
 
@@ -171,8 +154,12 @@ test("provider models route rejects OpenAI-compatible providers without a base U
   });
 });
 
-test("provider models route blocks private OpenAI-compatible base URLs", async () => {
+// #6939: model-list discovery must match the test-connection guard tier (local-first ON by
+// default allows LAN/loopback hosts) — see provider-models-route-lan-guard.test.ts for the
+// disabled-default (still-blocked) counterpart.
+test("provider models route allows private/LAN OpenAI-compatible base URLs under the local-first default (#6939)", async () => {
   delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
+  delete process.env.OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS;
 
   const connection = await seedConnection("openai-compatible-private", {
     apiKey: "sk-openai-compatible",
@@ -189,11 +176,8 @@ test("provider models route blocks private OpenAI-compatible base URLs", async (
 
   const response = await callRoute(connection.id);
 
-  assert.equal(response.status, 400);
-  assert.deepEqual(await response.json(), {
-    error: "Blocked private or local provider URL",
-  });
-  assert.equal(called, false);
+  assert.equal(response.status, 200);
+  assert.equal(called, true);
 });
 
 test("provider models route returns auth failures from OpenAI-compatible upstreams", async () => {
@@ -557,7 +541,14 @@ test("provider models route returns the local catalog for built-in image provide
   assert.equal(response.status, 200);
   assert.equal(body.provider, "topaz");
   assert.ok(Array.isArray(body.models));
-  assert.deepEqual(body.models, [{ id: "topaz-enhance", name: "topaz-enhance" }]);
+  assert.deepEqual(body.models, [
+    {
+      id: "topaz-enhance",
+      name: "topaz-enhance",
+      apiFormat: "images",
+      supportedEndpoints: ["images"],
+    },
+  ]);
 });
 
 test("provider models route prefers the remote OpenRouter /models API over static image models", async () => {
@@ -581,7 +572,18 @@ test("provider models route prefers the remote OpenRouter /models API over stati
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
   assert.deepEqual(seenUrls, ["https://openrouter.ai/api/v1/models"]);
-  assert.deepEqual(body.models, [{ id: "openai/gpt-4.1", name: "GPT-4.1 via OpenRouter" }]);
+  // #6976 — OpenRouter's live /v1/models never lists embeddings/rerank (they live
+  // on dedicated endpoints), so the curated specialty catalog is folded into the
+  // live-discovery response additively; static IMAGE models stay excluded
+  // (hasChatRegistry is true for openrouter — see staticModels.ts).
+  const ids = body.models.map((m: { id: string }) => m.id);
+  assert.ok(ids.includes("openai/gpt-4.1"), "live-fetched chat model is preserved");
+  assert.ok(ids.includes("baai/bge-m3"), "curated embedding is merged in");
+  assert.ok(ids.includes("cohere/rerank-v3.5"), "curated rerank is merged in");
+  assert.ok(
+    !ids.some((id: string) => id.includes("gpt-5.4-image")),
+    "static image models stay excluded from the chat+specialty catalog"
+  );
 });
 
 test("provider models route returns the local catalog for embedding and rerank providers", async () => {
@@ -700,27 +702,6 @@ test("provider models route returns the updated local catalog for GitHub Copilot
   );
 });
 
-test("provider models route returns codex gpt-5.4 effort variants in the local catalog", async () => {
-  const connection = await seedConnection("codex", {
-    authType: "oauth",
-    apiKey: null,
-    accessToken: "codex-access",
-  });
-
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
-  const modelIds = new Set((body.models || []).map((model: any) => model.id));
-
-  assert.equal(response.status, 200);
-  assert.equal(body.provider, "codex");
-  assert.equal(body.source, "local_catalog");
-  assert.ok(modelIds.has("gpt-5.4"));
-  assert.ok(modelIds.has("gpt-5.4-low"));
-  assert.ok(modelIds.has("gpt-5.4-medium"));
-  assert.ok(modelIds.has("gpt-5.4-high"));
-  assert.ok(modelIds.has("gpt-5.4-xhigh"));
-});
-
 test("provider models route returns the expanded local catalog for Kiro", async () => {
   const connection = await seedConnection("kiro", {
     authType: "oauth",
@@ -735,7 +716,11 @@ test("provider models route returns the expanded local catalog for Kiro", async 
   assert.equal(body.provider, "kiro");
   assert.equal(body.source, "local_catalog");
   const kiroIds = new Set(body.models.map((model) => model.id)); // #6170: real upstream lineup
-  assert.ok(kiroIds.has("claude-sonnet-5") && kiroIds.has("claude-sonnet-4.5") && kiroIds.has("claude-haiku-4.5"));
+  assert.ok(
+    kiroIds.has("claude-sonnet-5") &&
+      kiroIds.has("claude-sonnet-4.5") &&
+      kiroIds.has("claude-haiku-4.5")
+  );
   assert.equal(kiroIds.has("claude-opus-4.7") || kiroIds.has("claude-sonnet-4.6"), false); // fabricated ids removed
 });
 

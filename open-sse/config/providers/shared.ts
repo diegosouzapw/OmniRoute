@@ -46,6 +46,7 @@ import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "@/lib/oa
 export interface RegistryModel {
   id: string;
   name: string;
+  aliases?: readonly string[];
   toolCalling?: boolean;
   supportsReasoning?: boolean;
   supportsVision?: boolean;
@@ -70,6 +71,9 @@ export interface RegistryModel {
    * reasoning_content instead of failing with a DeepSeek 400 (#2900).
    */
   interleavedField?: string;
+  /** Per-model upstream header-response timeout override — precedes
+   *  `RegistryEntry.timeoutMs` and the global `FETCH_TIMEOUT_MS` (#6354). */
+  timeoutMs?: number;
 }
 
 // Reasoning models reject temperature, top_p, penalties, logprobs, n.
@@ -106,6 +110,10 @@ export interface RegistryEntry {
   /** Override base URL used only for API key validation (e.g., opencode-go validates on zen/v1) */
   testKeyBaseUrl?: string;
   responsesBaseUrl?: string;
+  /** Anthropic-native /v1/messages endpoint (e.g. GitHub Copilot's shim) used
+   *  for models tagged `targetFormat: "claude"` on an otherwise openai-format
+   *  provider — see registry/github/index.ts. */
+  messagesUrl?: string;
   urlSuffix?: string;
   urlBuilder?: (base: string, model: string, stream: boolean) => string;
   authType: string;
@@ -173,6 +181,7 @@ export interface LegacyProvider {
   baseUrl?: string;
   baseUrls?: string[];
   responsesBaseUrl?: string;
+  messagesUrl?: string;
   headers?: Record<string, string>;
   requestDefaults?: ProviderRequestDefaults;
   clientId?: string;
@@ -283,13 +292,36 @@ export const GPT_5_5_CODEX_CAPABILITIES = {
   contextLength: GPT_5_5_CONTEXT_LENGTH,
 } as const;
 
-export const GPT_5_4_CODEX_CAPABILITIES = {
+// Public OpenAI API limits. These differ from the Codex OAuth catalog limits below.
+// Upstream port (decolua/9router#2547, closes #2540): OpenAI's Chat Completions
+// endpoint rejects GPT-5.6 requests that combine function tools with an active
+// reasoning_effort ("Function tools with reasoning_effort are not supported for
+// <model> in /v1/chat/completions. Please use /v1/responses instead."). Tag the
+// whole public GPT-5.6 family with the existing generic targetFormat override
+// (the same mechanism already routes gpt-5.5-pro / gpt-5.4-pro, #5842) so both
+// the outbound URL (DefaultExecutor.buildUrl) and the body translation
+// (chatCore's resolveChatCoreTargetFormat) go through api.openai.com/v1/responses.
+export const GPT_5_6_API_CAPABILITIES = {
   targetFormat: "openai-responses",
   toolCalling: true,
   supportsReasoning: true,
   supportsVision: true,
   supportsXHighEffort: true,
-  contextLength: 200000,
+  contextLength: 1050000,
+  maxInputTokens: 922000,
+  maxOutputTokens: 128000,
+} as const;
+
+// Codex's live catalog reports a 372K usable input budget for GPT-5.6.
+// Keep the reserved 128K output budget explicit, matching the GPT-5.5 catalog contract.
+export const GPT_5_6_CODEX_CAPABILITIES = {
+  targetFormat: "openai-responses",
+  toolCalling: true,
+  supportsReasoning: true,
+  supportsVision: true,
+  supportsXHighEffort: true,
+  contextLength: 500000,
+  maxInputTokens: 372000,
   maxOutputTokens: 128000,
 } as const;
 

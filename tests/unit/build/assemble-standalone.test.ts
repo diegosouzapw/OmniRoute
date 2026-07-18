@@ -159,3 +159,28 @@ test("the TPROXY addon source is skipped gracefully when it was not built (non-L
   );
   fs.rmSync(tmp, { recursive: true, force: true });
 });
+
+// Regression guard (#deploy 2026-07-11): server-ws.mjs gained an import of
+// head-response-guard.cjs without a matching EXTRA_MODULE_ENTRIES entry, so every
+// build:release bundle crashed at boot with ERR_MODULE_NOT_FOUND. This test derives
+// the requirement from the source itself: EVERY relative import in
+// standalone-server-ws.mjs must be shipped into the bundle by the extra-module sync.
+test("every relative import of standalone-server-ws.mjs is shipped into the bundle", async () => {
+  const repoRoot = path.resolve(new URL(".", import.meta.url).pathname, "../../..");
+  const serverWsSrc = fs.readFileSync(
+    path.join(repoRoot, "scripts/dev/standalone-server-ws.mjs"),
+    "utf8"
+  );
+  const relImports = [...serverWsSrc.matchAll(/from\s+"\.\/([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(relImports.length > 0, "server-ws.mjs has relative imports to check");
+
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "assemble-serverws-"));
+  await syncStandaloneExtraModules(repoRoot, fs.promises, { log() {} }, tmp);
+  for (const imp of relImports) {
+    assert.ok(
+      fs.existsSync(path.join(tmp, imp)),
+      `server-ws.mjs imports ./${imp} but EXTRA_MODULE_ENTRIES does not ship it — the bundle would crash at boot (ERR_MODULE_NOT_FOUND)`
+    );
+  }
+  fs.rmSync(tmp, { recursive: true, force: true });
+});

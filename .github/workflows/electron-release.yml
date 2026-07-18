@@ -88,7 +88,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -201,6 +201,12 @@ jobs:
               [ -f "$file" ] && cp "$file" "../../release-assets/OmniRoute.exe" && break
             done
           fi
+          # electron-updater manifests (latest.yml / latest-mac.yml / latest-linux.yml)
+          # must be published alongside the installers, or autoUpdater fails with
+          # "Cannot find latest.yml in the latest release artifacts" (#6766).
+          for file in latest*.yml; do
+            [ -f "$file" ] && cp "$file" ../../release-assets/
+          done
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
@@ -263,6 +269,7 @@ jobs:
             release-assets/*.AppImage
             release-assets/*.deb
             release-assets/*.blockmap
+            release-assets/*.yml
             release-assets/*.source.tar.gz
             release-assets/*.source.zip
         env:

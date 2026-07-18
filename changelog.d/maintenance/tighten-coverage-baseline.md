@@ -1,0 +1,1 @@
+- **chore(quality):** tighten the coverage ratchet to the CI's real numbers (branches 73→78.1, statements/lines 76.5→80.8, functions 82→86.44, plus 7 per-module floors). The gate had been asking for this in plain text; the values come from the merged-coverage run on `main`, not a local run (local measures ~68% vs CI's ~80% — the baseline's own note warns about that gap).

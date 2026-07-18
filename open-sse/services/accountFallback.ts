@@ -11,8 +11,10 @@ import {
   findMatchingErrorRule,
   matchErrorRuleByText,
   matchErrorRuleByStatus,
+  serviceSupervisorCooldown,
 } from "../config/errorConfig.ts";
 import { getProviderErrorRuleMatch } from "../config/providerErrorRules.ts";
+import * as rot from "./rotationConfig.ts";
 import { getPassthroughProviders, getProviderCategory } from "../config/providerRegistry.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
@@ -35,6 +37,15 @@ import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
 import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 import { setConnectionRateLimitUntil } from "@/lib/db/providers";
 import { parseRetryHintFromJsonBody } from "./retryAfterJson.ts";
+import {
+  isSubscriptionQuotaText,
+  buildSubscriptionQuotaFallback,
+  buildWeeklyQuotaFallback,
+  buildSessionQuotaFallback,
+} from "./quotaTextCooldowns.ts";
+import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
+import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
+export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
@@ -60,7 +71,7 @@ export type ProviderProfile = {
 };
 type JsonRecord = Record<string, unknown>;
 type RateLimitReasonValue = (typeof RateLimitReason)[keyof typeof RateLimitReason];
-type ModelLockoutEntry = {
+export type ModelLockoutEntry = {
   reason: string;
   until: number;
   lockedAt: number;
@@ -68,7 +79,7 @@ type ModelLockoutEntry = {
   lastFailureAt: number;
   resetAfterMs: number;
 };
-type ModelFailureState = {
+export type ModelFailureState = {
   failureCount: number;
   lastFailureAt: number;
   resetAfterMs: number;
@@ -181,7 +192,10 @@ export const OAUTH_INVALID_TOKEN_SIGNALS = [
 // Context overflow patterns — the prompt exceeds the model's maximum context length.
 // Different providers phrase this differently. Used to decide whether a 400 error
 // should trigger combo fallback (a different model may have a larger context window).
-const CONTEXT_OVERFLOW_PATTERNS = [
+// Exported so combo.ts's isContextOverflow400() guard (open-sse/services/combo.ts)
+// can reuse this single source of truth instead of maintaining its own,
+// independently-drifting pattern list (see issue #6637).
+export const CONTEXT_OVERFLOW_PATTERNS = [
   /\binput is too long\b/i,
   /\binput too long\b/i,
   /\bcontext.*(too long|exceeded|overflow|limit)/i,
@@ -364,11 +378,6 @@ export function getProviderProfile(provider: string): ProviderProfile {
   return buildProviderProfile(category);
 }
 
-function shouldPreserveQuotaSignalsFor429(provider: string | null | undefined): boolean {
-  if (!provider) return true;
-  return getProviderCategory(provider) === "oauth";
-}
-
 export async function getRuntimeProviderProfile(provider: string | null | undefined) {
   try {
     const { getCachedSettings } = await import("@/lib/db/readCache");
@@ -460,6 +469,7 @@ function ensureCleanupTimer() {
       const now = Date.now();
       for (const key of modelLockouts.keys()) cleanupModelLockKey(key, now);
       for (const key of modelFailureState.keys()) cleanupModelLockKey(key, now);
+      evictModelLockoutOverflow();
     }, 15_000);
     if (typeof _cleanupTimer === "object" && "unref" in _cleanupTimer) {
       (_cleanupTimer as { unref?: () => void }).unref?.(); // Don't prevent process exit (Node.js only)
@@ -467,6 +477,14 @@ function ensureCleanupTimer() {
   } catch {
     // Cloudflare Workers may not support setInterval outside handlers — skip cleanup timer
   }
+}
+
+/** @internal exported for testing only (both accessors below). */
+export function evictModelLockoutOverflow(): void {
+  evictLockoutOverflow(modelLockouts, modelFailureState);
+}
+export function getModelLockoutSize(): number {
+  return modelLockouts.size;
 }
 
 /**
@@ -676,7 +694,7 @@ export function shouldMarkAccountExhaustedFrom429(
   // without making this one look quota-depleted for 5 minutes.
   if (failureKind === "rate_limit" || failureKind === "transient") return false;
   return (
-    shouldPreserveQuotaSignalsFor429(provider) &&
+    shouldPreserveQuotaSignals(provider) &&
     !hasPerModelQuota(provider, model, connectionPassthroughModels)
   );
 }
@@ -1071,7 +1089,7 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
     return computeDurationMs(resetsInMatch);
   }
 
-  return null;
+  return parseDayGranularityResetMs(msg, MAX_PROVIDER_COOLDOWN_MS);
 }
 
 /**
@@ -1086,16 +1104,6 @@ function computeDurationMs(match: RegExpMatchArray): number | null {
   if (match[2]) totalMs += Number.parseInt(match[2], 10) * 60 * 1000; // minutes
   if (match[3]) totalMs += Number.parseInt(match[3], 10) * 1000; // seconds
   return totalMs > 0 ? Math.min(totalMs, MAX_PROVIDER_COOLDOWN_MS) : null;
-}
-
-function isSubscriptionQuotaText(lower: string): boolean {
-  return (
-    lower.includes("usage limit reached") ||
-    lower.includes("usage limit has been") ||
-    lower.includes("claude pro usage limit") ||
-    lower.includes("you've reached your usage limit") ||
-    lower.includes("you have reached your usage limit")
-  );
 }
 
 // ─── Error Classification ───────────────────────────────────────────────────
@@ -1276,7 +1284,8 @@ export function checkFallbackError(
   provider: string | null = null,
   headers: Headers | Record<string, string> | null = null,
   profileOverride: ProviderProfile | null = null,
-  structuredError?: { code?: string | null; type?: string | null } | null
+  structuredError?: { code?: string | null; type?: string | null } | null,
+  rotation?: { account?: unknown } | null
 ): {
   shouldFallback: boolean;
   cooldownMs: number;
@@ -1296,27 +1305,10 @@ export function checkFallbackError(
    * caller can persist an explicit reset window instead of the engine's scaled cooldown. */
   configuredCooldownMs?: number;
 } {
-  // G-02: detect embedded service supervisor failures (X-Omni-Fallback-Hint: connection_cooldown).
-  // These are NOT upstream AI provider failures — they are local supervisor state changes.
-  // Apply a short 5s connection cooldown without tripping the provider circuit breaker.
-  if (status === 503 && headers) {
-    const hintValue =
-      typeof (headers as Headers).get === "function"
-        ? (headers as Headers).get("x-omni-fallback-hint")
-        : (headers as Record<string, string>)["x-omni-fallback-hint"] ||
-          (headers as Record<string, string>)["X-Omni-Fallback-Hint"];
-    if (typeof hintValue === "string" && hintValue.toLowerCase() === "connection_cooldown") {
-      return {
-        shouldFallback: true,
-        cooldownMs: 5_000,
-        baseCooldownMs: 5_000,
-        newBackoffLevel: 0,
-        reason: "service_not_running",
-        skipProviderBreaker: true,
-      };
-    }
-  }
-
+  const svc = serviceSupervisorCooldown(status, headers);
+  if (svc) return svc;
+  const rg = rot.gateFor(status, rotation?.account);
+  if (rg) return rg;
   const errorStr = (errorText || "").toString();
   const profile = profileOverride ?? (provider ? getProviderProfile(provider) : null);
   const maxBackoffSteps = profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel;
@@ -1405,6 +1397,8 @@ export function checkFallbackError(
       };
     }
 
+    const ro = rot.overrideFor(reason, rotation?.account);
+    if (ro) return ro;
     const scaled = getScaledBaseCooldown(reason, backoffLevel);
     return {
       shouldFallback: true,
@@ -1417,7 +1411,7 @@ export function checkFallbackError(
   }
 
   const isRateLimitStatus = status === HTTP_STATUS.RATE_LIMITED;
-  const preserveQuota429 = shouldPreserveQuotaSignalsFor429(provider);
+  const preserveQuota429 = shouldPreserveQuotaSignals(provider, errorText);
   const shouldUseQuotaSignal = !isRateLimitStatus || preserveQuota429;
 
   // Check error message FIRST - specific patterns take priority over status codes
@@ -1455,37 +1449,29 @@ export function checkFallbackError(
       };
     }
 
-    // Issue #2321: Anthropic OAuth (Claude Pro/Team) returns 429 with
-    // "Usage Limit Reached" for the 5-hour subscription quota. The
-    // pattern-based classifier now flags these as QUOTA_EXHAUSTED, but
-    // without a dedicated branch the request would still fall through to
-    // the generic 429 retry path (~5s base cooldown). Honor upstream
-    // Retry-After / reset hints only when the profile enables them;
-    // otherwise apply a local 1h cooldown so all Pro accounts on the same
-    // subscription tier stop cycling through tight retries without letting
-    // upstream-provided windows bypass the operator setting. (We
-    // deliberately do not use COOLDOWN_MS.paymentRequired here — that
-    // constant is 2 minutes, which is shorter than the recovery time of a
-    // subscription quota.)
-    if (
-      shouldUseQuotaSignal &&
-      !isCreditsExhausted(errorStr) &&
-      !isDailyQuotaExhausted(errorStr) &&
-      isSubscriptionQuotaText(errorStr.toLowerCase())
-    ) {
-      // getUpstreamRetryHintMs() gates both headers and body reset text on
-      // profile.useUpstreamRetryHints.
-      const hintMs = getUpstreamRetryHintMs();
-      const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
-      const bodyHint = parseRetryFromErrorText(errorStr);
-      return {
-        shouldFallback: true,
-        cooldownMs: hintMs ?? SUBSCRIPTION_QUOTA_COOLDOWN_MS,
-        reason: RateLimitReason.QUOTA_EXHAUSTED,
-        usedUpstreamRetryHint: Boolean(hintMs),
-        quotaResetHintMs: bodyHint ?? undefined,
-      };
+    // Issue #2321 (5h subscription quota) + Issue #3709 (ollama-cloud weekly
+    // cap): both classifiers live in quotaTextCooldowns.ts (this file is
+    // frozen at its file-size-baseline cap). The weekly check runs
+    // UNCONDITIONALLY (not gated by shouldUseQuotaSignal) because it targets
+    // apikey-category providers like ollama-cloud, which the oauth-only
+    // shouldUseQuotaSignal gate deliberately excludes from the subscription
+    // check above.
+    if (shouldUseQuotaSignal && !isCreditsExhausted(errorStr) && !isDailyQuotaExhausted(errorStr)) {
+      const subResult = buildSubscriptionQuotaFallback(
+        errorStr,
+        getUpstreamRetryHintMs,
+        parseRetryFromErrorText
+      );
+      if (subResult) return subResult;
     }
+    const weeklyResult = buildWeeklyQuotaFallback(errorStr);
+    if (weeklyResult) return weeklyResult;
+    // Issue #7071 (session usage cap) is the same sibling gap as #3709 above —
+    // runs UNCONDITIONALLY for the same reason: apikey-category providers
+    // like ollama-cloud are excluded from the oauth-only shouldUseQuotaSignal
+    // gate.
+    const sessionResult = buildSessionQuotaFallback(errorStr);
+    if (sessionResult) return sessionResult;
 
     const quotaResetHintMs = parseRetryFromErrorText(errorStr);
     if (
@@ -1579,13 +1565,21 @@ export function checkFallbackError(
       }
       return fallback;
     }
-    const cooldownMs = configuredRule.cooldownMs ?? 0;
+    // #6842: non-backoff configured rules (e.g. status_402) previously never
+    // consulted providerRuleRegistry, so a provider-specific rule (like
+    // OpenRouter's credit-exhausted 402 lock) could never override the
+    // generic zero-cooldown default. Mirror the backoff branch above so
+    // provider rules win on cooldown/reason regardless of `backoff`.
+    const providerMatch = provider
+      ? getProviderErrorRuleMatch(provider, status, headers, structuredError ?? null)
+      : null;
+    const cooldownMs = providerMatch?.cooldownMs ?? configuredRule.cooldownMs ?? 0;
     return {
       shouldFallback: true,
       cooldownMs,
       baseCooldownMs: cooldownMs,
       configuredCooldownMs: cooldownMs,
-      reason: configuredRule.reason ?? RateLimitReason.UNKNOWN,
+      reason: providerMatch?.reason ?? configuredRule.reason ?? RateLimitReason.UNKNOWN,
     };
   }
 
@@ -1784,13 +1778,15 @@ export function resetAccountState<T extends AccountState | null | undefined>(
 export function applyErrorState<T extends AccountState | null | undefined>(
   account: T,
   status: number,
-  errorText: string | null,
-  provider: string | null = null
+  errText: string | null,
+  prov: string | null = null
 ): T | AccountState {
   if (!account) return account;
 
-  const backoffLevel = account.backoffLevel || 0;
-  const fallbackDecision = checkFallbackError(status, errorText, backoffLevel, null, provider);
+  const lvl = account.backoffLevel || 0;
+  const fallbackDecision = checkFallbackError(status, errText, lvl, null, prov, null, null, null, {
+    account,
+  });
   const { cooldownMs, reason } = fallbackDecision;
   const newBackoffLevel =
     "newBackoffLevel" in fallbackDecision ? fallbackDecision.newBackoffLevel : undefined;
@@ -1812,8 +1808,8 @@ export function applyErrorState<T extends AccountState | null | undefined>(
   const nextState: T | AccountState = {
     ...account,
     rateLimitedUntil: effectiveCooldownMs > 0 ? getUnavailableUntil(effectiveCooldownMs) : null,
-    backoffLevel: newBackoffLevel ?? backoffLevel,
-    lastError: { status, message: errorText, timestamp: new Date().toISOString(), reason },
+    backoffLevel: newBackoffLevel ?? lvl,
+    lastError: { status, message: errText, timestamp: new Date().toISOString(), reason },
     status: "error",
   };
 

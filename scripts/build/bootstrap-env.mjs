@@ -173,7 +173,14 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   const preferredEnvFiltered = Object.fromEntries(
     Object.entries(preferredEnv).filter(([, v]) => typeof v === "string" && v.length > 0)
   );
-  const merged = { ...persisted, ...preferredEnvFiltered, ...process.env };
+  // Filter empty strings from process.env so that Docker `-e KEY=` (which sets an
+  // empty string) does not override real values persisted in server.env or set
+  // in .env. Only shell/Docker vars that the operator actually set should win.
+  // Mirrors the filtering already applied to preferredEnv above. (fixes #6824)
+  const processEnvFiltered = Object.fromEntries(
+    Object.entries(process.env).filter(([, v]) => typeof v === "string" && v.length > 0)
+  );
+  const merged = { ...persisted, ...preferredEnvFiltered, ...processEnvFiltered };
 
   // ── Auto-generate required secrets ────────────────────────────────────────
   let needsPersist = false;

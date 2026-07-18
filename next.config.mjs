@@ -9,8 +9,8 @@ const distDir = process.env.NEXT_DIST_DIR || ".build/next";
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 const scriptSrc =
   process.env.NODE_ENV === "development"
-    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:"
-    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:";
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://static.cloudflareinsights.com"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://static.cloudflareinsights.com";
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -116,6 +116,38 @@ const nextConfig = {
       ...mitmManagerAliasFor(process.env),
       ...minimalBuildAliases,
     },
+    // src/lib/agentSkills/generator.ts builds its fs base path from a runtime
+    // `outputDir` parameter (`path.join(process.cwd(), outputDir)`), which is
+    // NOT a compile-time literal, so Turbopack's build-time file-tracing
+    // analyzer can't statically narrow the several dynamic readdirSync/rmSync/
+    // readFileSync/writeFileSync call sites a few lines below and falls back
+    // to an "Overly broad patterns... matches N files" warning — once per
+    // Next.js entry point that imports the module (/api/agent-skills/generate,
+    // /api/cli-tools/pi-settings). The fs access is legitimate and bounded
+    // (skills/<id>/SKILL.md, ~48 known IDs), so this is a known-benign,
+    // expected diagnostic — suppress it here rather than fight the analyzer,
+    // mirroring the isNextIntlExtractorDynamicImportWarning precedent below
+    // for the webpack path. (#6582)
+    // open-sse/services/compression/ruleLoader.ts and
+    // .../engines/rtk/filterLoader.ts both define an identical
+    // getModuleDir() helper that walks up directories via
+    // path.resolve(anchor) + fs.existsSync(...) in a loop with a
+    // non-literal argument — the same dynamic-path fs access pattern as
+    // the agentSkills case above, but not covered by that narrower
+    // allowlist glob, so the "Overly broad patterns..." warning kept
+    // firing (610 times, once per entry point transitively importing the
+    // compression module). Same known-benign, bounded fs access;
+    // suppressed here rather than fought. (#7051, follow-up to #6582)
+    ignoreIssue: [
+      {
+        path: "**/src/lib/agentSkills/**",
+        description: /Overly broad patterns can lead to build performance issues/,
+      },
+      {
+        path: "**/open-sse/services/compression/**",
+        description: /Overly broad patterns can lead to build performance issues/,
+      },
+    ],
   },
   output: "standalone",
   compress: true,

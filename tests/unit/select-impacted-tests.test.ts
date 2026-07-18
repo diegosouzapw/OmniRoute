@@ -60,3 +60,65 @@ test("changed unit test in a curated subdir → run itself", () => {
   const sel = selectImpacted({ changed: ["tests/unit/db/migration.test.ts"], map: MAP });
   assert.deepEqual(sel, ["tests/unit/db/migration.test.ts"]);
 });
+
+// Parity with package.json test:unit braces — memory/usage/combo/serial were missing
+// from UNIT_SUBDIRS and silently failed to self-select.
+test("changed unit test under memory/ → run itself", () => {
+  const sel = selectImpacted({
+    changed: ["tests/unit/memory/store.test.ts"],
+    map: MAP,
+  });
+  assert.deepEqual(sel, ["tests/unit/memory/store.test.ts"]);
+});
+
+test("changed unit test under usage/ → run itself", () => {
+  const sel = selectImpacted({
+    changed: ["tests/unit/usage/quota.test.ts"],
+    map: MAP,
+  });
+  assert.deepEqual(sel, ["tests/unit/usage/quota.test.ts"]);
+});
+
+test("changed unit test under combo/ → run itself", () => {
+  const sel = selectImpacted({
+    changed: ["tests/unit/combo/routing.test.ts"],
+    map: MAP,
+  });
+  assert.deepEqual(sel, ["tests/unit/combo/routing.test.ts"]);
+});
+
+test("changed unit test under serial/ → run itself", () => {
+  const sel = selectImpacted({
+    changed: ["tests/unit/serial/flaky-once.test.ts"],
+    map: MAP,
+  });
+  assert.deepEqual(sel, ["tests/unit/serial/flaky-once.test.ts"]);
+});
+
+test("changed unit .test.mjs → run itself", () => {
+  const sel = selectImpacted({
+    changed: ["tests/unit/example.test.mjs"],
+    map: MAP,
+  });
+  assert.deepEqual(sel, ["tests/unit/example.test.mjs"]);
+});
+
+// package.json: tests/unit/**/*.test.mjs (any depth, not only UNIT_SUBDIRS).
+test("nested .test.mjs outside UNIT_SUBDIRS → run itself", () => {
+  const sel = selectImpacted({
+    changed: ["tests/unit/misc/nested/deep.test.mjs"],
+    map: MAP,
+  });
+  assert.deepEqual(sel, ["tests/unit/misc/nested/deep.test.mjs"]);
+});
+
+// electron/bin are outside the import-graph map roots — must NOT force __RUN_ALL__.
+test("changed electron/ file alone → empty (not unit fail-safe)", () => {
+  const sel = selectImpacted({ changed: ["electron/main.js"], map: MAP });
+  assert.deepEqual(sel, []);
+});
+
+test("changed bin/ file alone → empty (not unit fail-safe)", () => {
+  const sel = selectImpacted({ changed: ["bin/omniroute.js"], map: MAP });
+  assert.deepEqual(sel, []);
+});

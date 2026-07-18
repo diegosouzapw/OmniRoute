@@ -42,12 +42,15 @@ test("Chat -> Responses ignores an invalid verbosity value", () => {
 });
 
 test("Responses -> Chat maps text.verbosity to top-level verbosity and drops text", () => {
+  // #7533: verbosity is a GPT-5/OpenAI-only Chat Completions parameter and is only
+  // carried across for an OpenAI-destined request — pass `provider: "openai"` so this
+  // pins the real OpenAI-routed contract instead of the pre-#7533 unconditional one.
   const out = asRecord(
     openaiResponsesToOpenAIRequest(
       "gpt-5.5",
       { model: "gpt-5.5", input: [{ role: "user", content: "hi" }], text: { verbosity: "high" } },
       false,
-      {}
+      { provider: "openai" }
     )
   );
   assert.equal(out.verbosity, "high");

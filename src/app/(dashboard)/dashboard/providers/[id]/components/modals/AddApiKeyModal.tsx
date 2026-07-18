@@ -34,6 +34,7 @@ import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
 import { computeConnectionDefaultName } from "./computeConnectionDefaultName";
+import AgentrouterConsoleFields from "./AgentrouterConsoleFields";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
 export interface AddApiKeyModalProps {
@@ -132,6 +133,7 @@ export default function AddApiKeyModal({
     customUserAgent: "",
     accountId: "",
     consoleApiKey: "",
+    newApiUserId: "",
     ...EMPTY_GLM_TEAM_QUOTA_FIELDS,
     ...EMPTY_QUOTA_SCRAPING_FIELDS,
     ccCompatibleContext1m: false,
@@ -215,27 +217,26 @@ export default function AddApiKeyModal({
         "Session credential validation failed. Sign in again, copy a fresh credential, and try again."
       )
     : t("apiKeyValidationFailed");
-
-  // Normalize the raw credential field(s) into the single value stored as `apiKey`.
-  // command-code providers extract a key from a pasted blob (#5088); Modal joins its
-  // Token ID + Token Secret into `id:secret` (#5446); everyone else uses the field verbatim.
-  const resolveCredentialInput = () => {
-    if (isCommandCode) return extractCommandCodeCredentialInput(formData.apiKey);
-    if (isModal) return combineModalCredential(formData.apiKey, formData.tokenSecret);
-    return formData.apiKey;
-  };
+  const validationBadge = validationResult ? validationBadgeProps(validationResult) : null;
+  // Normalize raw credential field(s) into the single value stored as `apiKey`
+  // (#5088 command-code extract; #5446 Modal id:secret join; else verbatim).
+  const resolveCredentialInput = () =>
+    isCommandCode
+      ? extractCommandCodeCredentialInput(formData.apiKey)
+      : isModal
+        ? combineModalCredential(formData.apiKey, formData.tokenSecret)
+        : formData.apiKey;
 
   const handleValidate = async () => {
     setValidating(true);
     setSaveError(null);
     try {
-      const credentialInput = resolveCredentialInput();
       const res = await fetch("/api/providers/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider,
-          apiKey: credentialInput,
+          apiKey: resolveCredentialInput(),
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
@@ -245,11 +246,10 @@ export default function AddApiKeyModal({
       });
       const data = await res.json();
       const ok = !!data.valid;
-      setValidationResult(ok ? "success" : data.unsupported ? "unsupported" : "failed");
-      // #5088: surface the detailed reason the backend returns (e.g. a TLS/EACCES
-      // environment error for claude-web/chatgpt-web) instead of only a bare
-      // "invalid" badge — otherwise the real cause is hidden and users are stuck.
-      if (!ok && typeof data.error === "string" && data.error) {
+      const unsupported = !!data.unsupported;
+      setValidationResult(ok ? "success" : unsupported ? "unsupported" : "failed");
+      // #5088: surface backend reason (e.g. TLS/EACCES) instead of bare "invalid".
+      if (!ok && !unsupported && typeof data.error === "string" && data.error) {
         setSaveError(data.error);
       }
     } catch {
@@ -759,9 +759,9 @@ export default function AddApiKeyModal({
                 hint={t("searchEngineIdHint")}
               />
             )}
-            {validationResult && (
-              <Badge variant={validationBadgeProps(validationResult).variant}>
-                {t(validationBadgeProps(validationResult).labelKey)}
+            {validationBadge && (
+              <Badge variant={validationBadge.variant}>
+                {providerText(t, validationBadge.labelKey, validationBadge.fallback)}
               </Badge>
             )}
             {saveError && (
@@ -866,6 +866,12 @@ export default function AddApiKeyModal({
                     type="password"
                   />
                 )}
+                <AgentrouterConsoleFields
+                  provider={provider}
+                  values={formData}
+                  onChange={(patch) => setFormData({ ...formData, ...patch })}
+                  t={t}
+                />
               </div>
             )}
             <Input

@@ -27,12 +27,20 @@ export const FUSION_DEFAULTS = {
   minPanel: 2, // answers needed before stragglers get a grace window
   stragglerGraceMs: 8000, // wait this long for laggards once quorum is reached
   panelHardTimeoutMs: 90000, // absolute cap so one hung model can't stall forever
+  // Hard cap on panel size (issue #1905). Every panel member is fanned out in
+  // parallel and its full response text buffered in memory simultaneously —
+  // with the runtime heap capped (Dockerfile OMNIROUTE_MEMORY_MB, default
+  // 1024MB), a large panel (reported: ~73 models) with sizable concurrent
+  // responses can exceed the heap ceiling and OOM-crash the whole process.
+  // Reject oversized panels up front with a clean 400 instead.
+  maxPanel: 40,
 } as const;
 
 export type FusionTuning = {
   minPanel?: number;
   stragglerGraceMs?: number;
   panelHardTimeoutMs?: number;
+  maxPanel?: number;
 };
 
 type Body = Record<string, unknown>;
@@ -122,7 +130,11 @@ export function buildJudgePrompt(answers: Array<{ text: string }>): string {
     "",
     "Do NOT mention that multiple models were used, and do NOT refer to the sources. Produce ONE authoritative final answer addressed directly to the user.",
     "",
-    "First, internally analyze the panel along these dimensions: consensus (points most sources agree on — treat as higher-confidence), contradictions (where they disagree — resolve with your own judgment), partial coverage, unique insights only one source surfaced, and blind spots every source missed. Then write the best possible final answer grounded in that analysis — more complete and correct than any single response, with no filler.",
+    "First, internally analyze the panel along these dimensions: consensus (points most sources agree on — usually higher-confidence, but NOT automatically correct), contradictions (where they disagree — resolve with your own judgment), partial coverage, unique insights only one source surfaced, and blind spots every source missed.",
+    "",
+    "You are not a vote-counter, and the panel is not a ceiling — treat it as strong evidence, not as the limit of what you may say. Apply your OWN reasoning and knowledge as a full participant: if the consensus is wrong, incomplete, or outdated, override it and state what is correct; if every source missed something you know, add it; if a lone source is right against the majority, side with it. Do not water down a correct answer to match panel agreement. The only hard limit is honesty — do not assert facts you are not confident about.",
+    "",
+    "Then write the best possible final answer — more complete and correct than any single response, and than the panel as a whole — with no filler.",
     "",
     "=== PANEL RESPONSES ===",
     panel,
@@ -130,6 +142,18 @@ export function buildJudgePrompt(answers: Array<{ text: string }>): string {
     "",
     "Now write the final answer to the user's original request.",
   ].join("\n");
+}
+
+/**
+ * A request is "tool-bearing" when the client supplied tools AND did not
+ * explicitly opt out of tool use this turn (tool_choice: "none" is a valid
+ * way to declare available tools while opting out — that must NOT trigger
+ * the bypass, see issue #6771).
+ */
+export function isToolBearingRequest(body: Body): boolean {
+  const hasTools = Array.isArray(body.tools) && body.tools.length > 0;
+  if (!hasTools) return false;
+  return body.tool_choice !== "none";
 }
 
 type Sentinel = { __timeout?: true; __error?: unknown };
@@ -218,6 +242,12 @@ export type HandleFusionChatOptions = {
  * complete prose to synthesize). The judge call keeps the client's original
  * stream flag + tools, so streaming and downstream tool use still work.
  *
+ * Tool-bearing requests (non-empty `tools` with `tool_choice` not "none")
+ * skip panel synthesis entirely and route straight to a single model (the
+ * configured judge, or panel[0]) with tools/tool_choice intact — panel
+ * members have no tool access and the judge's synthesis directive steers
+ * even a tools-capable judge away from emitting a tool call (#6771).
+ *
  * Speed: quorum-grace collection caps the straggler penalty. Quality: the judge
  * runs the consensus/contradiction/blind-spot analysis before writing.
  *
@@ -242,6 +272,21 @@ export async function handleFusionChat({
     return handleSingleModel(body, panel[0]);
   }
 
+  // Reject an oversized panel BEFORE fan-out (issue #1905): fanning out N
+  // parallel calls and buffering N full response bodies at once is what
+  // drives the process into an OOM crash, not any one call in isolation.
+  const maxPanel = tuning?.maxPanel ?? FUSION_DEFAULTS.maxPanel;
+  if (panel.length > maxPanel) {
+    log.warn(
+      "FUSION",
+      `Combo "${comboName ?? ""}" panel=${panel.length} exceeds maxPanel=${maxPanel} — rejecting before fan-out (#1905)`
+    );
+    return errorResponse(
+      400,
+      `Fusion panel too large (${panel.length} models, max ${maxPanel}) — reduce the combo's target count or raise fusionTuning.maxPanel`
+    );
+  }
+
   const cfg = {
     minPanel: tuning?.minPanel ?? FUSION_DEFAULTS.minPanel,
     stragglerGraceMs: tuning?.stragglerGraceMs ?? FUSION_DEFAULTS.stragglerGraceMs,
@@ -256,6 +301,20 @@ export async function handleFusionChat({
     "FUSION",
     `Combo "${comboName ?? ""}" | panel=${panel.length} [${panel.join(", ")}] | judge=${judge} | quorum=${minPanel}`
   );
+
+  // Tool-bearing requests get no value from panel synthesis — panel members
+  // would answer with no tool access (degraded prose), and the judge's
+  // synthesis directive steers it away from emitting a tool call even though
+  // it technically still receives `tools`. Skip straight to a single model
+  // with the full, unmodified body (tools/tool_choice intact) so agentic
+  // clients get a real tool-call decision (#6771).
+  if (isToolBearingRequest(body)) {
+    log.info(
+      "FUSION",
+      `Combo "${comboName ?? ""}" received a tool-bearing request — bypassing panel synthesis, routing directly to ${judge} with tools intact`
+    );
+    return handleSingleModel(body, judge);
+  }
 
   // 1. Fan out to the panel in parallel: non-streaming, tools stripped (we want prose).
   const { tools: _tools, tool_choice: _tc, ...rest } = body;
@@ -350,14 +409,31 @@ export async function handleFusionChat({
     // surviving panel answer, rather than silently substituting the panel
     // member for the configured judge (issue #6455). The judge still adds
     // value reviewing/polishing a lone source per its documented contract.
+  }
+
+  // Resolve the judge that ACTUALLY runs synthesis. An explicit judgeModel is
+  // honored as configured (operator intent — kept even if it was down during
+  // fan-out; that's the operator's choice). With NO explicit judge the judge
+  // defaulted to panel[0] — but panel[0] may have FAILED fan-out (timeout /
+  // rate-limit / dropped straggler → it lands in `failures`, not `answers`).
+  // Handing synthesis to a dead panel[0] sinks the whole request despite a
+  // healthy quorum — exactly the case fusion exists to tolerate. So pick a
+  // SURVIVOR: prefer panel[0] when it survived, otherwise the first survivor.
+  const effectiveJudge = hasExplicitJudge
+    ? judge
+    : answers.some((a) => a.model === panel[0])
+      ? panel[0]
+      : answers[0].model;
+
+  if (answers.length === 1) {
     log.info(
       "FUSION",
-      `Only ${answers[0].model} succeeded — judging single answer with ${judge}`
+      `Only ${answers[0].model} succeeded — judging single answer with ${effectiveJudge}`
     );
   }
 
   // 4. Judge analyzes + writes one final answer (streams to client if requested).
   const judgeBody = appendUserTurn(body, buildJudgePrompt(answers));
-  log.info("FUSION", `Judging ${answers.length} answers with ${judge}`);
-  return handleSingleModel(judgeBody, judge);
+  log.info("FUSION", `Judging ${answers.length} answers with ${effectiveJudge}`);
+  return handleSingleModel(judgeBody, effectiveJudge);
 }

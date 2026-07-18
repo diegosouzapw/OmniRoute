@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.47
+  version: 3.8.49
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -2200,6 +2200,36 @@ paths:
       responses:
         "200":
           description: RTK filter catalog and diagnostics
+
+  /api/context/rtk/import:
+    post:
+      tags: [Compression]
+      summary: Validate or install an RTK TOML schema v1 filter file
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, content]
+              additionalProperties: false
+              properties:
+                action:
+                  type: string
+                  enum: [validate, install]
+                content:
+                  type: string
+                  maxLength: 1048576
+                overwrite:
+                  type: boolean
+                  description: Replace an existing global file and create a backup
+      responses:
+        "200":
+          description: Filter metadata, inline-test outcomes, warnings, and installation status
+        "400":
+          description: Invalid TOML, schema, regular expression, inline test, or install request
 
   /api/context/rtk/test:
     post:

@@ -136,6 +136,7 @@ function sanitizeErrorMessage(message) {
 const bypassShim = require("./_internal/bypass.cjs");
 const ingestShim = require("./_internal/ingest.cjs");
 const forwardShim = require("./_internal/forwardTarget.cjs");
+const aliasConfigShim = require("./_internal/aliasConfig.cjs");
 
 // Inspector capture (D4 fallback). The standalone proxy intercepts AgentBridge
 // traffic inline (no MitmHandlerBase / agentBridgeHook), so it posts captured
@@ -337,7 +338,13 @@ function getSqliteDb() {
   return null;
 }
 
-function getMappedModel(model) {
+/**
+ * Resolve the stored alias override for a source model: `{ model?, reasoningEffort? }`.
+ * `normalizeAliasMappings` upgrades legacy plain-string mappings (every existing install)
+ * into the structured shape, so both old and new saves resolve consistently. Returns
+ * `null` when there is no override at all for this model (passthrough).
+ */
+function getMappedOverride(model) {
   if (!model) return null;
 
   // Primary: read from SQLite key_value table
@@ -350,7 +357,7 @@ function getMappedModel(model) {
         )
         .get();
       if (row) {
-        const mappings = JSON.parse(row.value);
+        const mappings = aliasConfigShim.normalizeAliasMappings(JSON.parse(row.value));
         return mappings[model] || null;
       }
     }
@@ -362,7 +369,8 @@ function getMappedModel(model) {
   try {
     if (fs.existsSync(DB_FILE)) {
       const db = JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
-      return db.mitmAlias?.antigravity?.[model] || null;
+      const mappings = aliasConfigShim.normalizeAliasMappings(db.mitmAlias?.antigravity);
+      return mappings[model] || null;
     }
   } catch {
     // Ignore
@@ -451,7 +459,7 @@ function captureToInspector(o) {
   }
 }
 
-async function intercept(req, res, bodyBuffer, mappedModel, sourceModel) {
+async function intercept(req, res, bodyBuffer, override, sourceModel) {
   // C2 — Inject AgentBridge correlation headers per master plan §3.5.
   // The OmniRoute router uses these to distinguish AgentBridge traffic from
   // other inbound clients and to record the originating IDE agent id.
@@ -468,8 +476,15 @@ async function intercept(req, res, bodyBuffer, mappedModel, sourceModel) {
   let captureError;
 
   try {
-    const body = JSON.parse(bodyBuffer.toString());
-    body.model = mappedModel;
+    // `override` is a normalized `{ model?, reasoningEffort? }` alias entry (never null —
+    // the caller already gated on that). `applyAntigravityOverride` swaps `model` when
+    // present and, for a reasoning-effort override, sets `reasoningEffortOverride` at the
+    // same top-level envelope depth so the antigravity→openai translator can read it
+    // ahead of its thinkingConfig-derived guess (ported from upstream #2584).
+    const body = aliasConfigShim.applyAntigravityOverride(
+      JSON.parse(bodyBuffer.toString()),
+      override
+    );
 
     // Gap B — the Antigravity IDE speaks cloudcode (the Gemini payload wrapped
     // under `request`) and expects a cloudcode reply. Forward such envelopes to
@@ -545,7 +560,7 @@ async function intercept(req, res, bodyBuffer, mappedModel, sourceModel) {
       bodyBuffer,
       agentId,
       sourceModel,
-      mappedModel,
+      mappedModel: (override && override.model) || sourceModel,
       status: captureStatus,
       respHeaders,
       respBody,
@@ -587,9 +602,9 @@ const server = https.createServer(sslOptions, async (req, res) => {
     return passthrough(req, res, bodyBuffer);
   }
 
-  const mappedModel = getMappedModel(model);
+  const mappedOverride = getMappedOverride(model);
 
-  if (!mappedModel) {
+  if (!mappedOverride) {
     vlog(1, `[MITM] → PASSTHROUGH (model "${model}" has no MITM alias mapping)`);
     return passthrough(req, res, bodyBuffer);
   }
@@ -598,8 +613,12 @@ const server = https.createServer(sslOptions, async (req, res) => {
   stats.lastInterceptAt = new Date().toISOString();
   writeStats();
 
-  vlog(1, `[MITM] INTERCEPTED ${model} → ${mappedModel}`);
-  return intercept(req, res, bodyBuffer, mappedModel, model);
+  vlog(
+    1,
+    `[MITM] INTERCEPTED ${model} → ${mappedOverride.model || model}` +
+      (mappedOverride.reasoningEffort ? ` (reasoningEffort=${mappedOverride.reasoningEffort})` : "")
+  );
+  return intercept(req, res, bodyBuffer, mappedOverride, model);
 });
 
 // =========================================================================

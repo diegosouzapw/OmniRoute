@@ -67,10 +67,13 @@ export class V0VercelWebExecutor extends BaseExecutor {
 
     if (!wantStream) {
       const data = (await upstream.json()) as Record<string, unknown>;
-      const content =
-        (data?.choices as Array<{ message?: { content?: string } }>)?.[0]?.message?.content ||
-        (data?.content as string) ||
-        "";
+      const message = (data?.choices as Array<{ message?: Record<string, unknown> }>)?.[0]
+        ?.message;
+      const content = (message?.content as string) || (data?.content as string) || "";
+      const reasoningContent =
+        (message?.reasoning_content as string) || (data?.reasoning_content as string) || "";
+      const responseMessage: Record<string, unknown> = { role: "assistant", content };
+      if (reasoningContent) responseMessage.reasoning_content = reasoningContent;
       return {
         response: new Response(
           JSON.stringify({
@@ -81,7 +84,7 @@ export class V0VercelWebExecutor extends BaseExecutor {
             choices: [
               {
                 index: 0,
-                message: { role: "assistant", content },
+                message: responseMessage,
                 finish_reason: "stop",
               },
             ],
@@ -123,14 +126,19 @@ export class V0VercelWebExecutor extends BaseExecutor {
               }
               try {
                 const parsed = JSON.parse(data);
-                const text = parsed.choices?.[0]?.delta?.content || "";
-                if (text) {
+                const delta = parsed.choices?.[0]?.delta || {};
+                const text = delta.content || "";
+                const reasoningText = delta.reasoning_content || "";
+                if (text || reasoningText) {
+                  const outDelta: Record<string, string> = {};
+                  if (reasoningText) outDelta.reasoning_content = reasoningText;
+                  if (text) outDelta.content = text;
                   const chunk = {
                     id: `chatcmpl-v0-${Date.now()}`,
                     object: "chat.completion.chunk",
                     created: Math.floor(Date.now() / 1000),
                     model: modelId,
-                    choices: [{ index: 0, delta: { content: text }, finish_reason: null }],
+                    choices: [{ index: 0, delta: outDelta, finish_reason: null }],
                   };
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
                 }

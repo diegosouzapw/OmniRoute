@@ -114,6 +114,7 @@ Tools that support custom base URL and appear in `/dashboard/cli-code`:
 | cursor-cli | Cursor CLI | Anysphere | partial | guide | true |
 | smelt | Smelt | leonardcser (OSS) | full | custom | false |
 | pi | Pi (pi-coding-agent) | M. Zechner (OSS) | full | custom | false |
+| grok-build | Grok Build | xAI | full | custom | false |
 | custom | Custom CLI | — | full | custom-builder | false |
 
 Tools with `baseUrlSupport: "partial"` show a badge "⚠ Base URL parcial" in the dashboard card.
@@ -203,6 +204,7 @@ New tools with `configType: "custom"` have dedicated settings API routes:
 | `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, primary + legacy `~/.deepseek` sync) |
 | `POST /api/cli-tools/smelt-settings`        | Smelt                          |
 | `POST /api/cli-tools/pi-settings`           | Pi coding agent                |
+| `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`) |
 
 All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 

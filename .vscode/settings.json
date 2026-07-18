@@ -48,11 +48,19 @@
       "**/.build",
       "**/dist",
       "**/coverage",
-      "**/.worktrees"
+      "**/.worktrees",
+      "**/.claude/worktrees",
+      "**/electron",
+      "**/_references",
+      "**/_mono_repo",
+      "**/_tasks"
     ]
   },
 
   // Para esconder os diretórios gerados da árvore do Explorer, descomente:
+  // (MANTIDO comentado — o dono precisa ver _references/_mono_repo/_tasks na árvore.
+  //  A performance é resolvida por watcherExclude + search.exclude + tsserver, sem
+  //  precisar escondê-los do Explorer.)
   // "files.exclude": {
   //   "**/.worktrees": true,
   //   "**/coverage": true,

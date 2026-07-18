@@ -26,6 +26,25 @@ type CodexConnectionLike = JsonRecord & {
 
 export type CodexResetCreditOutcome = "reset" | "alreadyRedeemed";
 
+export interface CodexResetCredit {
+  id: string;
+  resetType?: string;
+  status?: string;
+  grantedAt?: string;
+  expiresAt?: string | null;
+  title?: string;
+  description?: string;
+}
+
+export type PublicCodexResetCredit = Omit<CodexResetCredit, "id"> & {
+  selectionToken: string;
+};
+
+export interface CodexResetCreditList {
+  credits: PublicCodexResetCredit[];
+  availableCount: number;
+}
+
 export class CodexResetCreditError extends Error {
   status: number;
   code: string;
@@ -116,16 +135,56 @@ function isUnavailableResetCredit(record: JsonRecord): boolean {
   const status = normalizeOutcome(
     record.status ?? record.state ?? record.outcome ?? record.result ?? record.code
   );
-  if (status && ["consumed", "redeemed", "used", "expired", "unavailable"].includes(status)) {
+  if (
+    status &&
+    ["consumed", "redeeming", "redeemed", "used", "expired", "unavailable"].includes(status)
+  ) {
     return true;
   }
   return record.consumed === true || record.redeemed === true || record.available === false;
 }
 
-function extractCreditIdFromRecord(value: unknown): string | null {
+function parseOptionalTimestamp(record: JsonRecord, keys: string[]): string | null | undefined {
+  for (const key of keys) {
+    const value = record[key];
+    if (value === null) return null;
+    if (typeof value === "string" && value.trim().length > 0) return value.trim();
+  }
+  return undefined;
+}
+
+function parseResetCredit(value: unknown): CodexResetCredit | null {
   const record = toRecord(value);
   if (!record || Object.keys(record).length === 0 || isUnavailableResetCredit(record)) return null;
-  return extractStringField(record, ["credit_id", "creditId", "id"]);
+  const id = extractStringField(record, ["credit_id", "creditId", "id"]);
+  if (!id) return null;
+
+  const expiresAt = parseOptionalTimestamp(record, [
+    "expires_at",
+    "expiresAt",
+    "expiration_at",
+    "expirationAt",
+  ]);
+  if (expiresAt) {
+    const expiresAtMs = Date.parse(expiresAt);
+    if (Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now()) return null;
+  }
+
+  const resetType = extractStringField(record, ["reset_type", "resetType"]);
+  const status = extractStringField(record, ["status", "state"]);
+  const grantedAt = parseOptionalTimestamp(record, ["granted_at", "grantedAt"]);
+  const title = extractStringField(record, ["title"]);
+  const description = extractStringField(record, ["description"]);
+
+  return {
+    id,
+    ...(resetType ? { resetType } : {}),
+    ...(status ? { status } : {}),
+    ...(grantedAt !== undefined ? { grantedAt } : {}),
+    ...(expiresAt !== undefined ? { expiresAt } : {}),
+    ...(title ? { title } : {}),
+    ...(description ? { description } : {}),
+  };
 }
 
 function getResetCreditCandidates(payload: unknown): unknown[] {
@@ -148,11 +207,54 @@ function getResetCreditCandidates(payload: unknown): unknown[] {
   return [];
 }
 
-function parseAvailableResetCreditId(payload: unknown): string {
-  for (const candidate of getResetCreditCandidates(payload)) {
-    const creditId = extractCreditIdFromRecord(candidate);
-    if (creditId) return creditId;
+function getExpirySortValue(credit: CodexResetCredit): number {
+  if (!credit.expiresAt) return Number.POSITIVE_INFINITY;
+  const expiresAtMs = Date.parse(credit.expiresAt);
+  return Number.isFinite(expiresAtMs) ? expiresAtMs : Number.POSITIVE_INFINITY;
+}
+
+function parseAvailableResetCredits(payload: unknown): {
+  credits: CodexResetCredit[];
+  availableCount: number;
+} {
+  const credits = getResetCreditCandidates(payload)
+    .map(parseResetCredit)
+    .filter((credit): credit is CodexResetCredit => credit !== null)
+    .map((credit, index) => ({ credit, index }))
+    .sort(
+      (a, b) => getExpirySortValue(a.credit) - getExpirySortValue(b.credit) || a.index - b.index
+    )
+    .map(({ credit }) => credit);
+
+  const payloadRecord = toRecord(payload);
+  const reportedCount = Number(payloadRecord.available_count ?? payloadRecord.availableCount);
+
+  return {
+    credits,
+    availableCount: Number.isFinite(reportedCount)
+      ? Math.max(0, Math.trunc(reportedCount))
+      : credits.length,
+  };
+}
+
+function toPublicResetCredit(credit: CodexResetCredit): PublicCodexResetCredit {
+  const { id, ...metadata } = credit;
+  return { ...metadata, selectionToken: id };
+}
+
+function selectResetCredit(payload: unknown, requestedCreditId?: string): CodexResetCredit {
+  const { credits } = parseAvailableResetCredits(payload);
+  if (requestedCreditId) {
+    const selected = credits.find((credit) => credit.id === requestedCreditId);
+    if (selected) return selected;
+    throw new CodexResetCreditError(
+      409,
+      "selected_credit_unavailable",
+      "The selected Codex reset credit is no longer available."
+    );
   }
+
+  if (credits[0]) return credits[0];
 
   throw new CodexResetCreditError(409, "no_credit", "No Codex reset credits are available.");
 }
@@ -266,7 +368,8 @@ async function fetchResetCredits(connection: CodexConnectionLike): Promise<Respo
 
 async function consumeWithAuthRetry(
   connection: CodexConnectionLike,
-  idempotencyKey: string
+  idempotencyKey: string,
+  requestedCreditId?: string
 ): Promise<{ connection: CodexConnectionLike; response: Response }> {
   let refreshedConnection = await refreshCodexConnectionIfNeeded(connection);
   let creditsResponse = await fetchResetCredits(refreshedConnection);
@@ -286,8 +389,8 @@ async function consumeWithAuthRetry(
     );
   }
 
-  const creditId = parseAvailableResetCreditId(creditsPayload);
-  let response = await postConsumeResetCredit(refreshedConnection, idempotencyKey, creditId);
+  const credit = selectResetCredit(creditsPayload, requestedCreditId);
+  let response = await postConsumeResetCredit(refreshedConnection, idempotencyKey, credit.id);
 
   if (response.status === 401 || response.status === 403) {
     refreshedConnection = await refreshCodexConnectionIfNeeded(refreshedConnection, true);
@@ -301,16 +404,61 @@ async function consumeWithAuthRetry(
         `Codex reset-credit API returned HTTP ${refreshedCreditsResponse.status}.`
       );
     }
-    const refreshedCreditId = parseAvailableResetCreditId(refreshedCreditsPayload);
-    response = await postConsumeResetCredit(refreshedConnection, idempotencyKey, refreshedCreditId);
+    const refreshedCredit = selectResetCredit(refreshedCreditsPayload, requestedCreditId);
+    response = await postConsumeResetCredit(
+      refreshedConnection,
+      idempotencyKey,
+      refreshedCredit.id
+    );
   }
 
   return { connection: refreshedConnection, response };
 }
 
+export async function listCodexResetCredits(connectionId: string): Promise<CodexResetCreditList> {
+  if (!connectionId || typeof connectionId !== "string") {
+    throw new CodexResetCreditError(400, "connection_id_required", "connectionId is required.");
+  }
+
+  try {
+    let connection = await loadCodexConnection(connectionId);
+    connection = await refreshCodexConnectionIfNeeded(connection);
+    let response = await fetchResetCredits(connection);
+
+    if (response.status === 401 || response.status === 403) {
+      connection = await refreshCodexConnectionIfNeeded(connection, true);
+      response = await fetchResetCredits(connection);
+    }
+
+    const payload = await readResponsePayload(response);
+    if (!response.ok) {
+      throwKnownConsumeError(payload);
+      throw new CodexResetCreditError(
+        response.status,
+        "codex_reset_credit_upstream_error",
+        `Codex reset-credit API returned HTTP ${response.status}.`
+      );
+    }
+
+    const result = parseAvailableResetCredits(payload);
+    return {
+      availableCount: result.availableCount,
+      credits: result.credits.map(toPublicResetCredit),
+    };
+  } catch (error) {
+    if (error instanceof CodexResetCreditError) throw error;
+    throw new CodexResetCreditError(
+      500,
+      "codex_reset_credit_list_failed",
+      sanitizeErrorMessage(error) || "Failed to load Codex reset credits."
+    );
+  }
+}
+
 export async function consumeCodexResetCredit(
   connectionId: string,
-  idempotencyKey: string
+  idempotencyKey: string,
+  creditId?: string
 ): Promise<{
   outcome: CodexResetCreditOutcome;
   usage: JsonRecord;
@@ -324,7 +472,13 @@ export async function consumeCodexResetCredit(
 
   try {
     const connection = await loadCodexConnection(connectionId);
-    const { response } = await consumeWithAuthRetry(connection, idempotencyKey.trim());
+    const normalizedCreditId =
+      typeof creditId === "string" && creditId.trim().length > 0 ? creditId.trim() : undefined;
+    const { response } = await consumeWithAuthRetry(
+      connection,
+      idempotencyKey.trim(),
+      normalizedCreditId
+    );
     const payload = await readResponsePayload(response);
 
     if (!response.ok) {

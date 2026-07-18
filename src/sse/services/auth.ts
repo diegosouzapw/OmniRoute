@@ -1,4 +1,5 @@
 import { randomUUID, createHash } from "crypto";
+import { extractGoogApiKeyHeader } from "./googApiKeyAuth.ts";
 import {
   getProviderConnections,
   getProviderNodes,
@@ -201,7 +202,7 @@ function toBooleanOrDefault(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
 }
 
-function readHeaderValue(
+export function readHeaderValue(
   headers:
     | Headers
     | { get?: (name: string) => string | null }
@@ -1477,7 +1478,12 @@ export async function getProviderCredentials(
 
     const orderedConnections = withQuota;
 
-    const strategy = settings.fallbackStrategy || "fill-first";
+    const providerStrategyOverrides = (settings.providerStrategies || {}) as Record<
+      string,
+      { fallbackStrategy?: string; stickyRoundRobinLimit?: number }
+    >;
+    const providerOverride = providerStrategyOverrides[resolvedId] || {};
+    const strategy = providerOverride.fallbackStrategy || settings.fallbackStrategy || "fill-first";
 
     let connection;
     const affinityConnection = await selectSessionAffinityConnection(
@@ -1498,7 +1504,11 @@ export async function getProviderCredentials(
     if (connection) {
       // Session affinity selected a connection before global sticky routing.
     } else if (strategy === "round-robin") {
-      const stickyLimit = toNumber((settings as Record<string, unknown>).stickyRoundRobinLimit, 3);
+      const stickyLimit = toNumber(
+        providerOverride.stickyRoundRobinLimit ??
+          (settings as Record<string, unknown>).stickyRoundRobinLimit,
+        3
+      );
 
       // If excluding account(s) (fallback scenario), skip sticky logic and go straight to LRU.
       // This prevents same-model retries from getting stuck on a failed account.
@@ -1823,8 +1833,10 @@ export async function getProviderCredentialsWithQuotaPreflight(
       }
       return defaultThresholdPercent;
     };
+    // #6842: openrouter also needs requestedModel, for the :free-window check.
+    const modelAwarePreflight = provider === "codex" || provider === "openrouter";
     const preflightCredentials =
-      requestedModel && provider === "codex" ? { ...credentials, requestedModel } : credentials;
+      requestedModel && modelAwarePreflight ? { ...credentials, requestedModel } : credentials;
     const preflight = await preflightQuota(provider, connectionId, preflightCredentials, {
       resolveMinRemainingPercent,
       resolveWarnRemainingPercent: () => warnThresholdPercent,
@@ -2381,7 +2393,7 @@ function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
  * path-scoped URL token:
  * - `Authorization: Bearer <key>` (OpenAI / OmniRoute / Codex CLI / Bearer clients)
  * - `x-api-key: <key>` (Anthropic Messages API contract — Claude Code,
- *   `@anthropic-ai/sdk`, any SDK that sets `anthropic-version`)
+ *   `@anthropic-ai/sdk`, any SDK that sets `anthropic-version`) / `x-goog-api-key` (#7034)
  * - `/vscode/<key>/...` (path-scoped tokenized aliases — only when `allowUrl`)
  *
  * When multiple inputs are present, explicit auth headers win.
@@ -2426,6 +2438,8 @@ export function extractApiKey(request: AuthRequestLike, opts?: { allowUrl?: bool
     }
   }
 
+  const xGoogApiKey = extractGoogApiKeyHeader(request?.headers); // Issue #7034
+  if (xGoogApiKey) return xGoogApiKey;
   if (opts?.allowUrl === false) return null;
   return readNonEmptyUrlToken(request);
 }

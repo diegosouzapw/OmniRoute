@@ -64,8 +64,14 @@ export async function POST(request: Request) {
     //    with `Content-Type: text/plain;charset=UTF-8`, which Cloudflare
     //    rejects with "Content-Type must be one of: application/javascript,
     //    text/javascript, multipart/form-data" — the same class of bug fixed
-    //    for image edits in #3273. Service Worker semantics come from `body_part`
-    //    in the metadata below, not the script part's Content-Type.
+    //    for image edits in #3273.
+    //
+    //    The script part itself must stay `application/javascript` (Cloudflare
+    //    rejects `application/javascript+module`, #5128), but with that MIME the
+    //    uploaded body is parsed as a Service Worker, not an ES module. So the
+    //    metadata must point at the script via `body_part`, not `main_module` —
+    //    otherwise Cloudflare rejects the body with `Unexpected token 'export'`
+    //    when it sees module syntax in a non-module upload (#6496 / #6416).
     const workerScriptUrl = `${CLOUDFLARE_API_BASE}/accounts/${accountId}/workers/scripts/${projectName}`;
     const { headers: uploadHeaders, body: uploadBody } = buildCloudflareWorkerUploadRequest(
       workerScript,

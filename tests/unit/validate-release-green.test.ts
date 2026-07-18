@@ -42,6 +42,20 @@ test("parseCognitiveCount reads the gate's count (en + pt)", () => {
   assert.equal(parseCognitiveCount("no number"), null);
 });
 
+test("parseCognitiveCount ignores the cyclomatic count in the combined ratchets output (#7009)", () => {
+  // `check:complexity-ratchets` runs ONE shared ESLint walk and prints BOTH ratchets.
+  // The cyclomatic "N violações" summary is emitted FIRST, so a bare `\\d+ violações`
+  // regex captured 2056 (cyclomatic) instead of 890 (cognitive) — a phantom drift in
+  // every pre-flight report. Prefer the unambiguous machine-readable `cognitiveComplexity=N`.
+  const combined = [
+    "complexity=2056",
+    "cognitiveComplexity=890",
+    "[complexity] OK — 2056 violações (baseline 2056)",
+    "[cognitive-complexity] OK — 890 violações (baseline 890)",
+  ].join("\n");
+  assert.equal(parseCognitiveCount(combined), 890);
+});
+
 test("isDrift flags only growth past the committed baseline (down-direction ratchets)", () => {
   assert.equal(isDrift(3900, 3867), true); // grew → drift
   assert.equal(isDrift(3867, 3867), false); // equal → ok
@@ -275,7 +289,8 @@ test("extractCiGates: the REAL ci.yml yields the base-reds that leaked in v3.8.4
   // never ran them — --full-ci now reproduces every one.
   for (const g of [
     "check:route-validation:t06",
-    "check:docs-symbols",
+    // openapi-routes + docs-symbols collapsed into one FS walk (#6716).
+    "check:api-docs-refs",
     "check:bundle-size",
     "check:test-masking",
     "check:file-size",

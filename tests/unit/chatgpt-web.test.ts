@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
+import type { TlsFetchOptions } from "../../open-sse/services/chatgptTlsClient.ts";
 
 const { ChatGptWebExecutor, __derivePublicBaseUrlForTesting, __resetChatGptWebCachesForTesting } =
   await import("../../open-sse/executors/chatgpt-web.ts");
@@ -63,6 +64,49 @@ async function withEnv(overrides, fn) {
   }
 }
 
+type MockTlsConfig = {
+  status: number;
+  body?: unknown;
+  setCookie?: string;
+  error?: unknown;
+  events?: unknown[];
+};
+
+type MockFetchOptions = {
+  session?: MockTlsConfig;
+  sentinel?: MockTlsConfig;
+  conv?: MockTlsConfig;
+  dpl?: MockTlsConfig;
+  fileDownload?: MockTlsConfig;
+  attachmentDownload?: MockTlsConfig;
+  conversationDetail?: MockTlsConfig | MockTlsConfig[];
+  signedDownload?: MockTlsConfig;
+  userConfig?: MockTlsConfig;
+  onSession?: (opts: TlsFetchOptions) => void;
+  onSentinel?: (opts: TlsFetchOptions) => void;
+  onConv?: (opts: TlsFetchOptions) => void;
+  onFileDownload?: (opts: TlsFetchOptions, fileId: string) => void;
+  onAttachmentDownload?: (opts: TlsFetchOptions, fileId: string) => void;
+  onUserConfig?: (opts: TlsFetchOptions, url: string) => void;
+};
+
+type MockFetchCalls = {
+  session: number;
+  dpl: number;
+  sentinel: number;
+  conv: number;
+  fileDownload: number;
+  attachmentDownload: number;
+  conversationDetail: number;
+  signedDownload: number;
+  userConfig: number;
+  userConfigUrls: string[];
+  userConfigMethods: string[];
+  urls: string[];
+  headers: Array<Record<string, string> | undefined>;
+  bodies: Array<string | undefined>;
+};
+
 /** Dispatch the TLS-impersonating fetch by URL pathname.
  *  Default: session 200 with accessToken, sentinel 200 no PoW, conv 200 empty stream. */
 function installMockFetch({
@@ -81,8 +125,8 @@ function installMockFetch({
   onFileDownload,
   onAttachmentDownload,
   onUserConfig,
-}: any = {}) {
-  const calls = {
+}: MockFetchOptions = {}) {
+  const calls: MockFetchCalls = {
     session: 0,
     dpl: 0,
     sentinel: 0,
@@ -791,76 +835,6 @@ test("Streaming: cumulative parts are diffed into non-overlapping deltas", async
   }
 });
 
-test("GPT-5.5 Pro non-streaming: stream_handoff polls conversation detail for final answer", async () => {
-  reset();
-  const m = installMockFetch({
-    conv: {
-      status: 200,
-      events: [
-        {
-          conversation_id: "conv-pro",
-          message: {
-            id: "progress-1",
-            author: { role: "assistant" },
-            content: { content_type: "text", parts: ["Working on it…"] },
-            status: "in_progress",
-          },
-        },
-        { __event: "stream_handoff", conversation_id: "conv-pro" },
-      ],
-    },
-    conversationDetail: {
-      status: 200,
-      body: {
-        mapping: {
-          thought: {
-            message: {
-              id: "thought",
-              author: { role: "assistant" },
-              content: { content_type: "thoughts", parts: ["hidden thinking"] },
-              status: "finished_successfully",
-              end_turn: true,
-              create_time: 1,
-              update_time: 1,
-            },
-          },
-          final: {
-            message: {
-              id: "final",
-              author: { role: "assistant" },
-              content: { content_type: "text", parts: ["👉 Final full Pro answer."] },
-              status: "finished_successfully",
-              end_turn: true,
-              create_time: 2,
-              update_time: 2,
-            },
-          },
-        },
-      },
-    },
-  });
-  try {
-    const executor = new ChatGptWebExecutor();
-    const result = await executor.execute({
-      model: "gpt-5.5-pro-extended",
-      body: { messages: [{ role: "user", content: "hard problem" }] },
-      stream: false,
-      credentials: { apiKey: "cookie-pro-poll" },
-      signal: AbortSignal.timeout(10_000),
-      log: null,
-    });
-
-    const json = await result.response.json();
-    assert.equal(json.choices[0].message.content, "👉 Final full Pro answer.");
-    assert.equal(m.calls.conversationDetail, 1);
-    const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
-    const sentBody = JSON.parse(m.calls.bodies[convIdx]);
-    assert.equal(sentBody.history_and_training_disabled, true);
-  } finally {
-    m.restore();
-  }
-});
-
 test("GPT-5.5 Pro streaming: preserves interim reasoning and appends final polled answer", async () => {
   reset();
   const m = installMockFetch({
@@ -1271,21 +1245,26 @@ test("Provider registry: chatgpt-web exposes the current ChatGPT Web model catal
   assert.equal(entry.authHeader, "cookie");
 
   const ids = (entry.models || []).map((m) => m.id);
-  // Public OmniRoute ids stay in historical dot form even though ChatGPT's
-  // backend routes use dash-form slugs. Retired GPT-5/GPT-5.1 entries should
-  // stay out of this list.
+  // Retired GPT-5.4 and older entries stay out of the advertised catalog.
   assert.deepEqual(ids, [
-    "gpt-5.5-pro",
+    "gpt-5.6-pro",
+    "gpt-5.6-thinking",
     "gpt-5.5-pro-extended",
+    "gpt-5.5-pro",
     "gpt-5.5-thinking",
     "gpt-5.5",
-    "gpt-5.4-pro",
-    "gpt-5.4-thinking",
-    "gpt-5.4-thinking-mini",
-    "gpt-5.3",
-    "gpt-5.3-mini",
     "o3",
   ]);
+  assert.equal(
+    ids.some((id) => id.startsWith("gpt-5.4")),
+    false
+  );
+
+  const { MODEL_MAP } = await import("../../open-sse/executors/chatgpt-web/models.ts");
+  assert.equal(
+    Object.keys(MODEL_MAP).some((id) => id.startsWith("gpt-5.4") || id.startsWith("gpt-5-4")),
+    false
+  );
 });
 
 test("Executor MODEL_MAP: OmniRoute IDs translate to ChatGPT backend slugs", async () => {
@@ -1294,18 +1273,17 @@ test("Executor MODEL_MAP: OmniRoute IDs translate to ChatGPT backend slugs", asy
   try {
     const cases: Array<[string, string]> = [
       // Public catalog ids.
-      ["gpt-5.3", "gpt-5-3"],
+      ["gpt-5.6-pro", "gpt-5-6-pro"],
+      ["gpt-5.6-thinking", "gpt-5-6-thinking"],
       ["gpt-5.5-thinking", "gpt-5-5-thinking"],
-      ["gpt-5.4-thinking-mini", "gpt-5-4-t-mini"],
       ["gpt-5.5", "gpt-5-5"],
       ["gpt-5.5-pro", "gpt-5-5-pro"],
       ["gpt-5.5-pro-extended", "gpt-5-5-pro"],
-      ["gpt-5.4-pro", "gpt-5-4-pro"],
       ["o3", "o3"],
       // Backend dash-form slugs are still accepted for direct provider/model callers.
       ["gpt-5-3", "gpt-5-3"],
       ["gpt-5-5-thinking", "gpt-5-5-thinking"],
-      ["gpt-5-4-t-mini", "gpt-5-4-t-mini"],
+      ["gpt-5-6-pro", "gpt-5-6-pro"],
       ["gpt-5-5-pro", "gpt-5-5-pro"],
       ["gpt-5-5-pro-extended", "gpt-5-5-pro"],
     ];
@@ -1335,15 +1313,12 @@ test("MODEL_MAP drift guard: every advertised catalog id reaches ChatGPT as a ba
   const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
   const ids = (getRegistryEntry("chatgpt-web")?.models || []).map((m) => m.id);
   const expectedSlugById: Record<string, string> = {
-    "gpt-5.5-pro": "gpt-5-5-pro",
+    "gpt-5.6-pro": "gpt-5-6-pro",
+    "gpt-5.6-thinking": "gpt-5-6-thinking",
     "gpt-5.5-pro-extended": "gpt-5-5-pro",
+    "gpt-5.5-pro": "gpt-5-5-pro",
     "gpt-5.5-thinking": "gpt-5-5-thinking",
     "gpt-5.5": "gpt-5-5",
-    "gpt-5.4-pro": "gpt-5-4-pro",
-    "gpt-5.4-thinking": "gpt-5-4-thinking",
-    "gpt-5.4-thinking-mini": "gpt-5-4-t-mini",
-    "gpt-5.3": "gpt-5-3",
-    "gpt-5.3-mini": "gpt-5-3-mini",
     o3: "o3",
   };
   const m = installMockFetch();
@@ -1492,7 +1467,7 @@ test("thinking_effort: low/medium → PATCH with standard", async () => {
     try {
       const executor = new ChatGptWebExecutor();
       await executor.execute({
-        model: "gpt-5.4-thinking",
+        model: "gpt-5.6-thinking",
         body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: effort },
         stream: false,
         credentials: { apiKey: `cookie-${effort}` },
@@ -1501,7 +1476,7 @@ test("thinking_effort: low/medium → PATCH with standard", async () => {
       });
       assert.equal(m.calls.userConfig, 1, `effort=${effort} should issue exactly one PATCH`);
       assert.match(m.calls.userConfigUrls[0], /thinking_effort=standard/, `${effort} → standard`);
-      assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-4-thinking/);
+      assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-6-thinking/);
     } finally {
       m.restore();
     }
@@ -1527,12 +1502,8 @@ test("thinking_effort: instant model never triggers PATCH even with reasoning_ef
   }
 });
 
-test("thinking_effort: bare chatgpt.com slug (e.g. gpt-5-4-t-mini) passed as model still PATCHes", async () => {
-  // Regression: the abbreviated dash-form slug "gpt-5-4-t-mini" doesn't
-  // carry the literal "thinking" substring, and isn't a key in MODEL_MAP
-  // (only its dot-form alias is), so a substring-only check would silently
-  // skip the PATCH for callers that send the chatgpt.com slug directly.
-  for (const bareSlug of ["gpt-5-4-t-mini", "gpt-5-5-thinking", "o3"]) {
+test("thinking_effort: bare chatgpt.com thinking slugs still PATCH", async () => {
+  for (const bareSlug of ["gpt-5-6-thinking", "gpt-5-5-thinking", "o3"]) {
     reset();
     const m = installMockFetch();
     try {
@@ -1585,7 +1556,7 @@ test("thinking_effort: providerSpecificData.thinkingEffort=extended overrides bo
   try {
     const executor = new ChatGptWebExecutor();
     await executor.execute({
-      model: "gpt-5.4-thinking-mini",
+      model: "gpt-5.6-thinking",
       body: {
         messages: [{ role: "user", content: "hi" }],
         reasoning_effort: "low", // would normally map to standard
@@ -1599,7 +1570,7 @@ test("thinking_effort: providerSpecificData.thinkingEffort=extended overrides bo
       log: null,
     });
     assert.equal(m.calls.userConfig, 1);
-    assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-4-t-mini/);
+    assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-6-thinking/);
     assert.match(m.calls.userConfigUrls[0], /thinking_effort=extended/);
   } finally {
     m.restore();
@@ -1702,12 +1673,12 @@ test("thinking_effort: PATCH failure is non-fatal — conversation request still
   }
 });
 
-test("Image registry: cgpt-web/gpt-5.3-instant routes to ChatGPT Web image handler", async () => {
+test("Image registry: cgpt-web/gpt-5.5 routes to ChatGPT Web image handler", async () => {
   const { parseImageModel, getImageProvider } =
     await import("../../open-sse/config/imageRegistry.ts");
-  const parsed = parseImageModel("cgpt-web/gpt-5.3-instant");
+  const parsed = parseImageModel("cgpt-web/gpt-5.5");
   assert.equal(parsed.provider, "chatgpt-web");
-  assert.equal(parsed.model, "gpt-5.3-instant");
+  assert.equal(parsed.model, "gpt-5.5");
   const provider = getImageProvider(parsed.provider);
   assert.equal(provider.format, "chatgpt-web");
   assert.equal(provider.authHeader, "cookie");
@@ -3050,7 +3021,11 @@ test("Image edit handler: bytes-hash match drives executor with cached conversat
       credentials: { apiKey: "test" },
       log: null,
     });
-    assert.equal(result.success, true, `expected success, got error: ${(result as any).error}`);
+    assert.equal(
+      result.success,
+      true,
+      `expected success, got error: ${(result as { error?: unknown }).error}`
+    );
     const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
     assert.ok(convIdx >= 0, "conversation request was sent");
     const sentBody = JSON.parse(m.calls.bodies[convIdx]);
@@ -3085,8 +3060,11 @@ test("Image edit handler: no cached match returns 400 (does not silently generat
       log: null,
     });
     assert.equal(result.success, false);
-    assert.equal((result as any).status, 400);
-    assert.match(String((result as any).error), /generated through this OmniRoute instance/);
+    assert.equal((result as { status?: unknown }).status, 400);
+    assert.match(
+      String((result as { error?: unknown }).error),
+      /generated through this OmniRoute instance/
+    );
     assert.equal(m.calls.session, 0, "no upstream calls were attempted");
     assert.equal(m.calls.conv, 0, "no chat-completion was attempted");
   } finally {
@@ -3109,8 +3087,8 @@ test("Image gen handler: n>4 is rejected before any upstream call", async () => 
       log: null,
     });
     assert.equal(result.success, false);
-    assert.equal((result as any).status, 400);
-    assert.match(String((result as any).error), /n=1\.\.4/);
+    assert.equal((result as { status?: unknown }).status, 400);
+    assert.match(String((result as { error?: unknown }).error), /n=1\.\.4/);
     assert.equal(m.calls.session, 0, "no session exchange was attempted");
     assert.equal(m.calls.conv, 0, "no conversation request was attempted");
   } finally {

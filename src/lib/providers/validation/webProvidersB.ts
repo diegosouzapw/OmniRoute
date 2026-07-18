@@ -1,6 +1,7 @@
 // Web-cookie provider key validators (part B): muse-spark-web, adapta-web, claude-web, gemini-web,
-// copilot-web, t3-web, jules, inner-ai. Extracted from validation.ts (god-file decomposition) —
-// top-level functions with no dispatcher-state captures; behavior is byte-identical to the inline defs.
+// copilot-web, t3-web, jules, devin (cloud-agent), inner-ai. Extracted from validation.ts (god-file
+// decomposition) — top-level functions with no dispatcher-state captures; behavior is byte-identical
+// to the inline defs.
 import { applyCustomUserAgent } from "./headers";
 import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
@@ -291,7 +292,7 @@ export async function validateCopilotWebProvider({ apiKey, providerSpecificData 
   }
 }
 
-function extractM365CredentialParts(raw: string, providerSpecificData: Record<string, unknown>) {
+export function extractM365CredentialParts(raw: string, providerSpecificData: Record<string, unknown>) {
   const text = raw.trim();
   const parts: Record<string, string> = {};
 
@@ -303,13 +304,22 @@ function extractM365CredentialParts(raw: string, providerSpecificData: Record<st
     if (key && value) parts[key] = value;
   }
 
-  if (/^wss:\/\/substrate\.office\.com\/m365Copilot\/Chathub\//i.test(text)) {
+  // Accept the current M365 web endpoint (m365.cloud.microsoft, including
+  // regional subdomains) plus the two legacy hosts (substrate.office.com,
+  // copilot.microsoft.com). The path still carries /m365Copilot/Chathub/<tenant>,
+  // so extraction is unchanged. (OmniRoute issue #7078)
+  if (/^wss:\/\//i.test(text)) {
     try {
       const url = new URL(text);
-      parts.access_token ||= url.searchParams.get("access_token") || "";
-      parts.chathubPath ||= decodeURIComponent(
-        url.pathname.split("/m365Copilot/Chathub/")[1] || ""
+      const hostOk = /^(?:[\w-]+\.)*(?:m365\.cloud\.microsoft|copilot\.microsoft\.com|substrate\.office\.com)$/i.test(
+        url.hostname
       );
+      if (hostOk && url.pathname.startsWith("/m365Copilot/Chathub/")) {
+        parts.access_token ||= url.searchParams.get("access_token") || "";
+        parts.chathubPath ||= decodeURIComponent(
+          url.pathname.split("/m365Copilot/Chathub/")[1] || ""
+        );
+      }
     } catch {
       // Fall through to the structured key/value parser result.
     }
@@ -449,6 +459,89 @@ export async function validateJulesProvider({ apiKey }: { apiKey: string }) {
       error: errorText.trim() || `Jules API returned ${response.status}`,
     };
   } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
+/**
+ * Devin cloud-agent (Cognition) — GET /v1/sessions with Bearer auth
+ * (see docs.devin.ai/api-reference/sessions/list-sessions). Distinct from the
+ * "devin-cli" LLM provider (ACP), which is already wired via providerRegistry.
+ */
+export async function validateDevinCloudAgentProvider({ apiKey }: { apiKey: string }) {
+  try {
+    const response = await validationWrite("https://api.devin.ai/v1/sessions?limit=1", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    const errorText = await response.text().catch(() => "");
+    return {
+      valid: false,
+      error: errorText.trim() || `Devin API returned ${response.status}`,
+    };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
+// ── Notion AI Web (Unofficial/Experimental) cookie validator ──
+// #6758: no public Notion inference API exists; validate by probing a stable,
+// low-privilege authenticated Notion endpoint (getSpaces) with the session
+// cookie rather than the experimental runInferenceTranscript endpoint itself
+// (a live inference call is expensive and unnecessary just to confirm the
+// session is valid).
+export async function validateNotionWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const raw = String(apiKey || "").trim();
+    if (!raw) {
+      return { valid: false, error: "Paste your token_v2 cookie value from notion.so" };
+    }
+
+    const cookieHeader = raw.includes("=") ? raw : `token_v2=${raw}`;
+
+    const response = await validationWrite("https://www.notion.so/api/v3/getSpaces", {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Cookie: cookieHeader,
+          Origin: "https://www.notion.so",
+          Referer: "https://www.notion.so/",
+        },
+        providerSpecificData
+      ),
+      body: "{}",
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid or expired token_v2 cookie — re-paste from notion.so DevTools → Cookies",
+      };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Notion unavailable (${response.status})` };
+    }
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Notion validation failed (${response.status})` };
+  } catch (error: any) {
     return toValidationErrorResult(error);
   }
 }

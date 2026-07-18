@@ -34,6 +34,7 @@ import { isManagedProviderConnectionId } from "@/lib/providers/catalog";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
 import {
   buildModelSyncInternalHeaders,
+  fetchModelSyncInternal,
   getModelSyncInternalBaseUrl,
 } from "@/shared/services/modelSyncScheduler";
 
@@ -194,7 +195,11 @@ export async function POST(request: Request) {
       };
       const syncUrl = `${internalOrigin}/api/providers/${encodeURIComponent(newConnection.id)}/sync-models?mode=import`;
       // Intentionally not awaited: this is async/non-blocking work.
-      void fetch(syncUrl, { method: "POST", headers: syncHeaders })
+      void fetchModelSyncInternal(syncUrl, {
+        method: "POST",
+        headers: syncHeaders,
+        redirect: "error",
+      })
         .then((syncRes) => {
           if (!syncRes.ok) {
             console.log(`[providers] Auto-sync failed for ${newConnection.id}: ${syncRes.status}`);

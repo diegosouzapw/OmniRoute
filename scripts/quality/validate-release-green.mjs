@@ -96,7 +96,9 @@ export function firstFailureLine(out) {
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
-  const hit = lines.find((l) => /✖|not ok|AssertionError|error TS|FAIL|Error:|REGRESS/i.test(l));
+  const hit = lines.find((l) =>
+    /✖|✗|not ok|AssertionError|error TS|FAIL|Error:|REGRESS/i.test(l)
+  );
   return (hit || lines[lines.length - 1] || "failed").slice(0, 200);
 }
 
@@ -124,7 +126,14 @@ export function parseEslintJson(out) {
 
 /** Pull the cognitive-complexity violation count from the gate's output. */
 export function parseCognitiveCount(out) {
-  const m = String(out || "").match(/(\d+)\s+(?:function\(s\) exceed|violações|violations)/i);
+  const s = String(out || "");
+  // `check:complexity-ratchets` runs ONE shared ESLint walk and prints BOTH ratchets, with the
+  // cyclomatic "N violações" summary emitted FIRST — so a bare `\d+ violações` regex would grab
+  // the cyclomatic count. Prefer the unambiguous machine-readable `cognitiveComplexity=N` line
+  // (mirrors the cyclomatic `complexity=N` parse used for cycCurrent below).
+  const machine = s.match(/(?:^|\n)cognitiveComplexity=(\d+)/);
+  if (machine) return Number(machine[1]);
+  const m = s.match(/(\d+)\s+(?:function\(s\) exceed|violações|violations)/i);
   return m ? Number(m[1]) : null;
 }
 
@@ -399,23 +408,44 @@ async function main() {
   hardCmd("db-rules", "DB rules", npmCmd, ["run", "check:db-rules"]);
   hardCmd("public-creds", "Public creds", npmCmd, ["run", "check:public-creds"]);
 
-  // Cognitive-complexity (drift)
+  // Complexity + cognitive (one ESLint walk; both still recorded as drift)
   {
-    announce("Cognitive complexity (ratchet)");
-    const { out } = run(npmCmd, ["run", "check:cognitive-complexity"]);
-    saveGateLog("cognitive", out);
-    const current = parseCognitiveCount(out);
-    const base = baselineValue("cognitiveComplexity");
-    const over = isDrift(current, base);
+    announce("Complexity + cognitive ratchets (shared ESLint walk)");
+    const { out } = run(npmCmd, ["run", "check:complexity-ratchets"]);
+    saveGateLog("complexity-ratchets", out);
+    const cogCurrent = parseCognitiveCount(out);
+    const cogBase = baselineValue("cognitiveComplexity");
+    const cogOver = isDrift(cogCurrent, cogBase);
+    const cycMatch = /(?:^|\n)complexity=(\d+)/.exec(out);
+    const cycOkMatch = /\[complexity\] OK — (\d+)/.exec(out);
+    const cycRegMatch = /\[complexity\] REGRESSÃO — (\d+)/.exec(out);
+    const cycCurrent = cycMatch
+      ? Number(cycMatch[1])
+      : cycOkMatch
+        ? Number(cycOkMatch[1])
+        : cycRegMatch
+          ? Number(cycRegMatch[1])
+          : null;
+    const cycRegressed = /\[complexity\] REGRESSÃO/.test(out);
     record({
       id: "cognitive-complexity",
       label: "Cognitive complexity (ratchet)",
       kind: "drift",
-      ok: !over,
+      ok: !cogOver,
       detail:
-        current == null
+        cogCurrent == null
           ? "could not parse count"
-          : `${current} vs baseline ${base}${over ? ` (+${current - base} drift → rebaseline at release)` : ""}`,
+          : `${cogCurrent} vs baseline ${cogBase}${cogOver ? ` (+${cogCurrent - cogBase} drift → rebaseline at release)` : ""}`,
+    });
+    record({
+      id: "complexity",
+      label: "Cyclomatic complexity (ratchet)",
+      kind: "drift",
+      ok: !cycRegressed,
+      detail:
+        cycCurrent == null
+          ? firstFailureLine(out) || "measured via check:complexity-ratchets"
+          : `complexity=${cycCurrent} (shared walk with cognitive)${cycRegressed ? " REGRESSED" : ""}`,
     });
   }
 
@@ -457,7 +487,7 @@ async function main() {
   // fast-gates skip and that historically surfaced — one at a time, because the
   // CI Quality Ratchet job is fail-fast — only on the release PR. Running them all
   // here (drift, never blocking) means a single rebaseline pass at release.
-  driftCmd("complexity", "Cyclomatic complexity (ratchet)", npmCmd, ["run", "check:complexity"]);
+  // complexity recorded above with cognitive (check:complexity-ratchets)
   driftCmd("dead-code", "Dead-code (ratchet)", npmCmd, ["run", "check:dead-code"]);
   driftCmd("type-coverage", "Type coverage (ratchet)", npmCmd, ["run", "check:type-coverage"]);
   driftCmd("compression-budget", "Compression budget (ratchet)", npmCmd, [
@@ -519,6 +549,14 @@ async function main() {
         label: "Package artifact (npm pack policy)",
         args: ["run", "check:pack-artifact"],
         timeout: 20 * 60 * 1000,
+      });
+      // WS1.2 (#7065 class): boot the REAL packed tarball from a clean install —
+      // the runtime gate structure checks cannot provide. Reuses the same dist/ build.
+      slow.push({
+        id: "pack-boot",
+        label: "Tarball boot-smoke (installed CLI serves /health)",
+        args: ["run", "check:pack-boot"],
+        timeout: 15 * 60 * 1000,
       });
     }
     slow.forEach((g) => announce(`${g.label} [parallel]`));

@@ -472,6 +472,12 @@ export function createProxyDispatcher(proxyUrl: string): Dispatcher {
     // valid; the cast suppresses the spurious missing-`port` error.
     dispatcher = new ProxyAgent({
       uri: cleanUri,
+      // undici 8.6+ forwards plain-HTTP requests through the proxy as an origin
+      // request (GET http://host/…) instead of a CONNECT tunnel; upstream proxies
+      // that only speak CONNECT then reject it (501). OmniRoute tunnels ALL proxied
+      // traffic (HTTP + HTTPS) via CONNECT, so force tunneling. Unknown option on
+      // undici <8.6 → silently ignored (that version already tunneled by default).
+      proxyTunnel: true,
       ...proxyDispatcherOptions,
       ...(family !== null
         ? { proxyTls: { family, autoSelectFamily: false } as ProxyAgent.Options["proxyTls"] }
