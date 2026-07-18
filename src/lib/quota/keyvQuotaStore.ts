@@ -1,146 +1,176 @@
-import Keyv from "keyv";
-import KeyvSqlite from "@keyv/sqlite";
+/**
+ * KeyvQuotaStore — fully-embedded alternative to SqliteQuotaStore.
+ *
+ * Uses Keyv (https://keyv.js.org) as the storage backend. Default backing
+ * is an in-memory Map; pass a URI string (e.g. `keyv://sqlite:/tmp/quota.db`
+ * or `redis://...`) at construction time for cross-process / persistent use.
+ *
+ * Implements the `QuotaStore` interface from `./types` so it can be dropped
+ * into `storeFactory.ts` as a third option alongside `sqlite` and `redis`.
+ */
+import { Keyv } from "keyv";
+import type { ProviderPlan, QuotaPool } from "./dimensions";
+import type { DimensionKey } from "./dimensions";
+import { dimensionKeyToString, WINDOW_MS } from "./dimensions";
 import type {
-  ConsumeResult,
-  PoolUsageSnapshot,
   QuotaStore,
+  PoolUsage,
+  PoolUsageWithDimensions,
+  PlanPoolUsage,
 } from "./types";
 
-/**
- * KeyvQuotaStore — embedded quota storage backed by keyv.
- *
- * Replaces the Redis-side `RedisQuotaStore` (which required a separate
- * sidecar process) with a keyv-fronted store that defaults to an in-memory
- * Map. For cross-process distribution, pass a URI such as `redis://...`
- * or `sqlite://./quota.db` to `KeyvQuotaStore.fromUri()`.
- *
- * Implements the `QuotaStore` interface from `./types`. The shape per
- * `QuotaStore.consume` is a single object: `{ storeId, pool, ownerKey,
- * dimensions, amount }` — see `types.ts` for the full signature.
- *
- * Semantics:
- *   - `consume({ storeId, pool, ownerKey, dimensions, amount })` increments
- *     each per-(storeId, dimension) bucket and returns the post-increment
- *     totals per dimension (the dimension that exceeded its limit, if any).
- *   - `peek({ storeId, dimensions })` returns current counters without
- *     mutation.
- *   - `clear({ storeId, dimensions })` resets the named buckets.
- *   - `poolConsumedTotal({ pool, dimensions })` sums across all
- *     `(storeId, dimension)` pairs for a pool — single-process correct.
- *   - `poolUsage({ pool })` returns a minimal `PoolUsageSnapshot`.
- *
- * Atomicity: relies on the underlying keyv store's get/set/delete. For
- * embedded SQLite / Map backends this is single-process correct. For Redis
- * (via `redis://...` URI) keyv uses the standard atomic SET semantics.
- */
+export interface KeyvQuotaStoreOptions {
+  /** Keyv URI: `memory://`, `keyv://sqlite:/path.db`, `redis://host:port`, etc. */
+  uri?: string;
+  /** Optional Keyv namespace to partition keys from other Keyv instances. */
+  namespace?: string;
+}
+
+function poolKey(poolId: string): string {
+  return `pool:${poolId}`;
+}
+function dimKey(apiKeyId: string, dim: DimensionKey): string {
+  return `consumed:${apiKeyId}:${dimensionKeyToString(dim)}`;
+}
+function poolDimKey(poolId: string, dim: DimensionKey): string {
+  return `pool:${poolId}:${dimensionKeyToString(dim)}`;
+}
+function planKey(connectionId: string, provider: string): string {
+  return `plan:${connectionId}:${provider}`;
+}
+
 export class KeyvQuotaStore implements QuotaStore {
-  constructor(private readonly kv: Keyv = new Keyv()) {}
+  private readonly kv: Keyv;
+  private readonly buckets = new Map<string, { value: number; expiresAt: number }>();
+  private readonly cleanupTimer: NodeJS.Timeout;
 
-  static fromUri(uri: string): KeyvQuotaStore {
-    if (!uri) return new KeyvQuotaStore();
-    // SQLite URI: `sqlite://./path/to/quota.db` or `keyv-sqlite:./path.db`
-    if (uri.startsWith("sqlite:") || uri.startsWith("keyv-sqlite:")) {
-      const stripped = uri.replace(/^sqlite:\/\/|^sqlite:|^keyv-sqlite:/, "");
-      return new KeyvQuotaStore(
-        new Keyv({ store: new KeyvSqlite({ uri: stripped }) }),
-      );
-    }
-    return new KeyvQuotaStore(new Keyv(uri));
-  }
+  constructor(options: KeyvQuotaStoreOptions = {}) {
+    const uri = options.uri ?? "memory://";
+    const ns = options.namespace ? { namespace: options.namespace } : undefined;
+    this.kv = ns ? new Keyv(uri, ns) : new Keyv(uri);
 
-  /** Compose a flat key for the per-(storeId, dimension) bucket counter. */
-  private bucketKey(storeId: string, dim: string): string {
-    return `bucket:${storeId}:${dim}`;
-  }
-
-  async consume(args: {
-    storeId: string;
-    pool: string;
-    ownerKey?: string;
-    dimensions: Record<string, number>;
-    amount?: number;
-  }): Promise<ConsumeResult> {
-    const amount = args.amount ?? 1;
-    const updated: Record<string, number> = {};
-    for (const [dim, cost] of Object.entries(args.dimensions)) {
-      const key = this.bucketKey(args.storeId, dim);
-      const prev = Number((await this.kv.get(key)) ?? 0);
-      const next = prev + cost * amount;
-      await this.kv.set(key, next);
-      updated[dim] = next;
-    }
-    return { allowed: true, totals: updated };
-  }
-
-  async peek(args: {
-    storeId: string;
-    dimensions: Record<string, number>;
-  }): Promise<Record<string, number>> {
-    const result: Record<string, number> = {};
-    for (const dim of Object.keys(args.dimensions)) {
-      const key = this.bucketKey(args.storeId, dim);
-      result[dim] = Number((await this.kv.get(key)) ?? 0);
-    }
-    return result;
-  }
-
-  async clear(args: {
-    storeId: string;
-    dimensions?: string[];
-  }): Promise<void> {
-    const dims = args.dimensions ?? Object.keys(await this.peek({
-      storeId: args.storeId,
-      dimensions: {},
-    }));
-    for (const dim of dims) {
-      await this.kv.delete(this.bucketKey(args.storeId, dim));
-    }
-  }
-
-  async poolConsumedTotal(args: {
-    pool: string;
-    dimensions: string[];
-  }): Promise<Record<string, number>> {
-    const result: Record<string, number> = {};
-    for (const dim of args.dimensions) {
-      const prefix = `bucket:`;
-      let total = 0;
-      const it = (this.kv as Keyv & { iterator?: () => AsyncIterableIterator<[string, unknown]> })
-        .iterator;
-      if (typeof it === "function") {
-        for await (const [k, v] of it.call(this.kv)) {
-          if (k.startsWith(prefix)) {
-            total += Number(v) || 0;
-          }
-        }
+    // Lightweight sweep for any TTL-keyed values the backend honors.
+    this.cleanupTimer = setInterval(() => {
+      const now = Date.now();
+      for (const [k, b] of this.buckets) {
+        if (b.expiresAt <= now) this.buckets.delete(k);
       }
-      result[dim] = total;
+    }, 30_000);
+    if (typeof this.cleanupTimer.unref === "function") this.cleanupTimer.unref();
+  }
+
+  async consume(apiKeyId: string, dim: DimensionKey, cost: number): Promise<number> {
+    const k = dimKey(apiKeyId, dim);
+    const ttlMs = WINDOW_MS[dim.window];
+    const now = Date.now();
+    const current = this.buckets.get(k);
+    const next = (current && current.expiresAt > now ? current.value : 0) + cost;
+    this.buckets.set(k, { value: next, expiresAt: now + ttlMs });
+    await this.kv.set(k, next, ttlMs);
+    // Mirror to pool bucket (used for `poolUsage` aggregates).
+    const pk = poolDimKey(dim.poolId, dim);
+    const pCurrent = this.buckets.get(pk);
+    const pNext = (pCurrent && pCurrent.expiresAt > now ? pCurrent.value : 0) + cost;
+    this.buckets.set(pk, { value: pNext, expiresAt: now + ttlMs });
+    await this.kv.set(pk, pNext, ttlMs);
+    return next;
+  }
+
+  async peek(apiKeyId: string, dim: DimensionKey): Promise<number> {
+    const k = dimKey(apiKeyId, dim);
+    const current = this.buckets.get(k);
+    if (current && current.expiresAt > Date.now()) return current.value;
+    const fromKv = (await this.kv.get<number>(k)) ?? 0;
+    return fromKv;
+  }
+
+  async clear(apiKeyId: string, dim: DimensionKey): Promise<void> {
+    const k = dimKey(apiKeyId, dim);
+    this.buckets.delete(k);
+    await this.kv.delete(k);
+  }
+
+  async poolConsumedTotal(poolId: string, dim: DimensionKey): Promise<number> {
+    const pk = poolDimKey(poolId, dim);
+    const current = this.buckets.get(pk);
+    if (current && current.expiresAt > Date.now()) return current.value;
+    return (await this.kv.get<number>(pk)) ?? 0;
+  }
+
+  async poolUsage(poolId: string): Promise<PoolUsage> {
+    const pool = await this.kv.get<QuotaPool>(poolKey(poolId));
+    const usage: PoolUsage = {};
+    if (!pool) return usage;
+    for (const alloc of pool.allocations) {
+      const dim: DimensionKey = { poolId, unit: "tokens", window: "hourly" };
+      const consumed = await this.poolConsumedTotal(poolId, dim);
+      usage[alloc.apiKeyId] = consumed;
     }
-    return result;
+    return usage;
   }
 
-  async poolUsage(args: { pool: string }): Promise<PoolUsageSnapshot> {
-    const totals = await this.poolConsumedTotal({
-      pool: args.pool,
-      dimensions: ["requests", "tokens"],
-    });
-    return {
-      poolId: args.pool,
-      consumed: totals,
-      limits: {},
-      window: "rolling",
+  async poolUsageWithDimensions(
+    poolId: string,
+    planDimensions: Array<{ unit: import("./dimensions").QuotaUnit; window: import("./dimensions").QuotaWindow }>,
+  ): Promise<PoolUsageWithDimensions> {
+    const usage: PoolUsageWithDimensions = {};
+    for (const planDim of planDimensions) {
+      const dim: DimensionKey = { poolId, unit: planDim.unit, window: planDim.window };
+      usage[`${planDim.unit}:${planDim.window}`] = await this.poolConsumedTotal(poolId, dim);
+    }
+    return usage;
+  }
+
+  async recordPlanUsage(
+    connectionId: string,
+    provider: string,
+    poolId: string,
+    _dimensions: Array<{ unit: import("./dimensions").QuotaUnit; window: import("./dimensions").QuotaWindow }>,
+    consumed: number,
+  ): Promise<PlanPoolUsage> {
+    const k = planKey(connectionId, provider);
+    const ttlMs = 7 * 24 * 60 * 60 * 1000;
+    const existing = ((await this.kv.get<PlanPoolUsage>(k)) ?? {}) as PlanPoolUsage;
+    const rollup: PlanPoolUsage = {
+      ...existing,
+      totalConsumed: (existing.totalConsumed ?? 0) + consumed,
+      lastUpdatedAt: Date.now(),
     };
+    await this.kv.set(k, rollup, ttlMs);
+    void poolId;
+    return rollup;
   }
 
-  /** Disconnect the underlying keyv (e.g. close the sqlite DB). */
-  async disconnect(): Promise<void> {
-    const disc = (this.kv as Keyv & { disconnect?: () => Promise<void> })
-      .disconnect;
-    if (typeof disc === "function") await disc.call(this.kv);
+  async upsertProviderPlan(plan: ProviderPlan): Promise<void> {
+    const k = planKey(plan.connectionId ?? "", plan.provider);
+    await this.kv.set(k, plan);
+  }
+
+  async listProviderPlans(): Promise<ProviderPlan[]> {
+    return [];
+  }
+
+  async setPools(pools: QuotaPool[]): Promise<void> {
+    for (const pool of pools) await this.kv.set(poolKey(pool.id), pool);
+  }
+
+  async getPool(poolId: string): Promise<QuotaPool | undefined> {
+    return await this.kv.get<QuotaPool>(poolKey(poolId));
+  }
+
+  async dispose(): Promise<void> {
+    clearInterval(this.cleanupTimer);
+    await this.kv.disconnect();
   }
 }
 
-export function getKeyvQuotaStore(): KeyvQuotaStore {
-  // Default: in-memory Map; production passes `fromUri(...)` from config.
-  return new KeyvQuotaStore();
+let defaultStore: KeyvQuotaStore | null = null;
+
+export function getKeyvQuotaStore(opts?: KeyvQuotaStoreOptions): KeyvQuotaStore {
+  if (!defaultStore) defaultStore = new KeyvQuotaStore(opts);
+  return defaultStore;
+}
+
+export function __resetKeyvQuotaStoreForTests(): void {
+  defaultStore = null;
 }
