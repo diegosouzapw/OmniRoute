@@ -473,38 +473,11 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
   });
 }
 
-function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
-  const now = data.updatedAt || new Date().toISOString();
-  db.prepare(
-    `
-    UPDATE provider_connections SET
-      provider = @provider, auth_type = @authType, name = @name, email = @email,
-      priority = @priority, is_active = @isActive, access_token = @accessToken,
-      refresh_token = @refreshToken, expires_at = @expiresAt, token_expires_at = @tokenExpiresAt,
-      scope = @scope, project_id = @projectId, test_status = @testStatus, error_code = @errorCode,
-      last_error = @lastError, last_error_at = @lastErrorAt, last_error_type = @lastErrorType,
-      last_error_source = @lastErrorSource, backoff_level = @backoffLevel,
-      rate_limited_until = @rateLimitedUntil, health_check_interval = @healthCheckInterval,
-      last_health_check_at = @lastHealthCheckAt, last_tested = @lastTested, api_key = @apiKey,
-      id_token = @idToken, provider_specific_data = @providerSpecificData,
-      expires_in = @expiresIn, display_name = @displayName, global_priority = @globalPriority,
-      default_model = @defaultModel, token_type = @tokenType,
-      consecutive_use_count = @consecutiveUseCount,
-      rate_limit_protection = @rateLimitProtection,
-      last_used_at = @lastUsedAt,
-      "group" = @group,
-      max_concurrent = @maxConcurrent,
-      quota_window_thresholds_json = @quotaWindowThresholdsJson,
-      proxy_enabled = @proxyEnabled,
-      per_key_proxy_enabled = @perKeyProxyEnabled,
-      quota_visible = @quotaVisible,
-      rate_limit_overrides_json = @rateLimitOverridesJson,
-      last_ping_at = @lastPingAt,
-      last_pinged_reset_key = @lastPingedResetKey,
-      updated_at = @updatedAt
-    WHERE id = @id
-  `
-  ).run({
+// Assembles the `.run()` params for _updateConnectionRow's UPDATE statement.
+// Split out purely to keep _updateConnectionRow under the max-lines-per-function
+// gate — same field mapping/normalization as before, just relocated.
+function _buildUpdateConnectionRowParams(id: string, data: JsonRecord, now: unknown) {
+  return {
     id,
     provider: data.provider,
     authType: data.authType || null,
@@ -553,7 +526,41 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     lastPingAt: data.lastPingAt || null,
     lastPingedResetKey: data.lastPingedResetKey || null,
     updatedAt: now,
-  });
+  };
+}
+
+function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
+  const now = data.updatedAt || new Date().toISOString();
+  db.prepare(
+    `
+    UPDATE provider_connections SET
+      provider = @provider, auth_type = @authType, name = @name, email = @email,
+      priority = @priority, is_active = @isActive, access_token = @accessToken,
+      refresh_token = @refreshToken, expires_at = @expiresAt, token_expires_at = @tokenExpiresAt,
+      scope = @scope, project_id = @projectId, test_status = @testStatus, error_code = @errorCode,
+      last_error = @lastError, last_error_at = @lastErrorAt, last_error_type = @lastErrorType,
+      last_error_source = @lastErrorSource, backoff_level = @backoffLevel,
+      rate_limited_until = @rateLimitedUntil, health_check_interval = @healthCheckInterval,
+      last_health_check_at = @lastHealthCheckAt, last_tested = @lastTested, api_key = @apiKey,
+      id_token = @idToken, provider_specific_data = @providerSpecificData,
+      expires_in = @expiresIn, display_name = @displayName, global_priority = @globalPriority,
+      default_model = @defaultModel, token_type = @tokenType,
+      consecutive_use_count = @consecutiveUseCount,
+      rate_limit_protection = @rateLimitProtection,
+      last_used_at = @lastUsedAt,
+      "group" = @group,
+      max_concurrent = @maxConcurrent,
+      quota_window_thresholds_json = @quotaWindowThresholdsJson,
+      proxy_enabled = @proxyEnabled,
+      per_key_proxy_enabled = @perKeyProxyEnabled,
+      quota_visible = @quotaVisible,
+      rate_limit_overrides_json = @rateLimitOverridesJson,
+      last_ping_at = @lastPingAt,
+      last_pinged_reset_key = @lastPingedResetKey,
+      updated_at = @updatedAt
+    WHERE id = @id
+  `
+  ).run(_buildUpdateConnectionRowParams(id, data, now));
 }
 
 export async function updateProviderConnection(id: string, data: JsonRecord) {
