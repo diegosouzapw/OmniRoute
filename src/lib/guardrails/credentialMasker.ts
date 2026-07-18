@@ -1,4 +1,5 @@
 import { BaseGuardrail, type GuardrailContext, type GuardrailResult } from "./base";
+import { getSettings } from "@/lib/db/settings";
 
 /**
  * CredentialMaskerGuardrail — redacts well-known API-key / secret-token patterns
@@ -142,7 +143,8 @@ export class CredentialMaskerGuardrail extends BaseGuardrail {
   }
 
   async preCall(payload: unknown, _context: GuardrailContext): Promise<GuardrailResult<unknown> | void> {
-    if (!this.enabled) return { block: false };
+    const _s = await getSettings();
+    if (!(_s.credentialRedactionEnabled === true || process.env.CREDENTIAL_REDACTION_ENABLED === "true")) return { block: false };
     const detections: Array<{ type: string; count: number }> = [];
     const { modified, payload: next } = redactPayload(payload, detections);
     if (!modified) return { block: false };
@@ -154,7 +156,8 @@ export class CredentialMaskerGuardrail extends BaseGuardrail {
   }
 
   async postCall(response: unknown, _context: GuardrailContext): Promise<GuardrailResult<unknown> | void> {
-    if (!this.enabled) return { block: false };
+    const _s = await getSettings();
+    if (!(_s.credentialRedactionEnabled === true || process.env.CREDENTIAL_REDACTION_ENABLED === "true")) return { block: false };
     const detections: Array<{ type: string; count: number }> = [];
     const { modified, response: next } = redactResponse(response, detections);
     if (!modified) return { block: false };
