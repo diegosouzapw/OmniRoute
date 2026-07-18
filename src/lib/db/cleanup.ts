@@ -7,85 +7,19 @@
 import { getDbInstance } from "./core";
 import { getUserDatabaseSettings } from "./databaseSettings";
 import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
+import { purgeCallLogArtifactDirectory } from "@/lib/usage/callLogArtifacts";
 import {
-  cleanupEmptyCallLogDirs,
-  deleteCallArtifact,
-  purgeCallLogArtifactDirectory,
-} from "@/lib/usage/callLogArtifacts";
+  collectCallLogArtifactsBefore,
+  deleteAllFromTable,
+  deleteCallLogArtifacts,
+  deleteFromTableBefore,
+  type DeleteByPeriodTarget,
+} from "./cleanup/usagePurge";
 
 interface CleanupResult {
   deleted: number;
   deletedArtifacts?: number;
   errors: number;
-}
-
-type DeleteByPeriodTarget = {
-  table: string;
-  column: string;
-  cutoff: "iso" | "date" | "dateHour" | "epochMs" | "epochSeconds";
-};
-
-function tableExists(table: string): boolean {
-  const row = getDbInstance()
-    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-    .get(table) as { name?: string } | undefined;
-  return Boolean(row?.name);
-}
-
-function deleteAllFromTable(table: string): number {
-  if (!tableExists(table)) return 0;
-  return getDbInstance().prepare(`DELETE FROM ${table}`).run().changes;
-}
-
-function deleteFromTableBefore(target: DeleteByPeriodTarget, cutoffIso: string): number {
-  if (!tableExists(target.table)) return 0;
-
-  const cutoff = (() => {
-    switch (target.cutoff) {
-      case "date":
-        return cutoffIso.slice(0, 10);
-      case "dateHour":
-        return `${cutoffIso.slice(0, 10)} ${cutoffIso.slice(11, 13)}:00:00`;
-      case "epochMs":
-        return new Date(cutoffIso).getTime();
-      case "epochSeconds":
-        return Math.floor(new Date(cutoffIso).getTime() / 1000);
-      case "iso":
-      default:
-        return cutoffIso;
-    }
-  })();
-
-  return getDbInstance()
-    .prepare(`DELETE FROM ${target.table} WHERE ${target.column} < ?`)
-    .run(cutoff).changes;
-}
-
-function collectCallLogArtifactsBefore(cutoffIso: string): string[] {
-  if (!tableExists("call_logs")) return [];
-
-  const rows = getDbInstance()
-    .prepare(
-      "SELECT artifact_relpath FROM call_logs WHERE timestamp < ? AND artifact_relpath IS NOT NULL"
-    )
-    .all(cutoffIso) as Array<{ artifact_relpath?: string | null }>;
-
-  return rows
-    .map((row) => row.artifact_relpath)
-    .filter((relPath): relPath is string => typeof relPath === "string" && relPath.length > 0);
-}
-
-function deleteCallLogArtifacts(relativePaths: string[]): { deletedArtifacts: number; errors: number } {
-  const result = { deletedArtifacts: 0, errors: 0 };
-
-  for (const relPath of new Set(relativePaths)) {
-    if (deleteCallArtifact(relPath)) {
-      result.deletedArtifacts++;
-    }
-  }
-
-  cleanupEmptyCallLogDirs();
-  return result;
 }
 
 function getRetentionSettings() {
