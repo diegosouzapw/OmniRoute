@@ -422,6 +422,21 @@ function isResetUsageHistoryPeriod(period: string): period is ResetUsageHistoryP
  *   every row in all three tables; any other value deletes rows strictly
  *   older than `now - period`. Throws on an invalid period.
  */
+const RESET_TARGETS: Array<DeleteByPeriodTarget & { resultKey: keyof ResetUsageHistoryResult }> = [
+  { table: "usage_history", column: "timestamp", cutoff: "iso", resultKey: "deletedUsageHistory" },
+  { table: "daily_usage_summary", column: "date", cutoff: "date", resultKey: "deletedDailySummary" },
+  { table: "hourly_usage_summary", column: "date_hour", cutoff: "dateHour", resultKey: "deletedHourlySummary" },
+  { table: "call_logs", column: "timestamp", cutoff: "iso", resultKey: "deletedCallLogs" },
+  { table: "request_detail_logs", column: "timestamp", cutoff: "iso", resultKey: "deletedRequestDetailLogs" },
+  { table: "proxy_logs", column: "timestamp", cutoff: "iso", resultKey: "deletedProxyLogs" },
+  { table: "relay_logs", column: "created_at", cutoff: "epochSeconds", resultKey: "deletedRelayLogs" },
+  { table: "compression_analytics", column: "timestamp", cutoff: "iso", resultKey: "deletedCompressionAnalytics" },
+  { table: "compression_run_telemetry", column: "timestamp", cutoff: "epochMs", resultKey: "deletedCompressionRunTelemetry" },
+  { table: "routing_decisions", column: "created_at", cutoff: "iso", resultKey: "deletedRoutingDecisions" },
+  { table: "quota_consumption", column: "updated_at", cutoff: "epochMs", resultKey: "deletedQuotaConsumption" },
+  { table: "token_ledger", column: "created_at", cutoff: "iso", resultKey: "deletedTokenLedger" },
+];
+
 export async function resetUsageHistory(period: string): Promise<ResetUsageHistoryResult> {
   if (!isResetUsageHistoryPeriod(period)) {
     throw new Error(`Invalid reset period: ${period}`);
@@ -451,23 +466,8 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
     let artifactsToDelete: string[] = [];
 
     const runReset = db.transaction(() => {
-      const resetTargets: Array<DeleteByPeriodTarget & { resultKey: keyof ResetUsageHistoryResult }> = [
-        { table: "usage_history", column: "timestamp", cutoff: "iso", resultKey: "deletedUsageHistory" },
-        { table: "daily_usage_summary", column: "date", cutoff: "date", resultKey: "deletedDailySummary" },
-        { table: "hourly_usage_summary", column: "date_hour", cutoff: "dateHour", resultKey: "deletedHourlySummary" },
-        { table: "call_logs", column: "timestamp", cutoff: "iso", resultKey: "deletedCallLogs" },
-        { table: "request_detail_logs", column: "timestamp", cutoff: "iso", resultKey: "deletedRequestDetailLogs" },
-        { table: "proxy_logs", column: "timestamp", cutoff: "iso", resultKey: "deletedProxyLogs" },
-        { table: "relay_logs", column: "created_at", cutoff: "epochSeconds", resultKey: "deletedRelayLogs" },
-        { table: "compression_analytics", column: "timestamp", cutoff: "iso", resultKey: "deletedCompressionAnalytics" },
-        { table: "compression_run_telemetry", column: "timestamp", cutoff: "epochMs", resultKey: "deletedCompressionRunTelemetry" },
-        { table: "routing_decisions", column: "created_at", cutoff: "iso", resultKey: "deletedRoutingDecisions" },
-        { table: "quota_consumption", column: "updated_at", cutoff: "epochMs", resultKey: "deletedQuotaConsumption" },
-        { table: "token_ledger", column: "created_at", cutoff: "iso", resultKey: "deletedTokenLedger" },
-      ];
-
       if (period === "all") {
-        for (const target of resetTargets) {
+        for (const target of RESET_TARGETS) {
           (result[target.resultKey] as number) = deleteAllFromTable(target.table);
         }
         return;
@@ -475,7 +475,7 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
 
       const cutoffIso = new Date(Date.now() - RESET_USAGE_HISTORY_PERIOD_MS[period]).toISOString();
       artifactsToDelete = collectCallLogArtifactsBefore(cutoffIso);
-      for (const target of resetTargets) {
+      for (const target of RESET_TARGETS) {
         (result[target.resultKey] as number) = deleteFromTableBefore(target, cutoffIso);
       }
     });
@@ -492,19 +492,7 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
     result.deletedArtifacts = artifactResult.deletedArtifacts;
     result.errors += artifactResult.errors;
 
-    result.deleted =
-      result.deletedUsageHistory +
-      result.deletedDailySummary +
-      result.deletedHourlySummary +
-      result.deletedCallLogs +
-      result.deletedRequestDetailLogs +
-      result.deletedProxyLogs +
-      result.deletedRelayLogs +
-      result.deletedCompressionAnalytics +
-      result.deletedCompressionRunTelemetry +
-      result.deletedRoutingDecisions +
-      result.deletedQuotaConsumption +
-      result.deletedTokenLedger;
+    result.deleted = RESET_TARGETS.reduce((sum, t) => sum + (result[t.resultKey] as number), 0);
 
     console.log(
       `[Cleanup] Reset usage/log data (period=${period}): ${result.deleted} row(s), ` +
