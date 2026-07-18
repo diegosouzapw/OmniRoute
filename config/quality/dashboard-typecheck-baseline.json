@@ -1,0 +1,259 @@
+{
+  "open-sse/services/payloadRules.ts": {
+    "TS2677": 1
+  },
+  "src/app/(dashboard)/dashboard/HomePageClient.tsx": {
+    "TS2339": 16
+  },
+  "src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient.tsx": {
+    "TS2503": 3
+  },
+  "src/app/(dashboard)/dashboard/agent-skills/components/CoverageBar.tsx": {
+    "TS2503": 1
+  },
+  "src/app/(dashboard)/dashboard/agent-skills/components/McpA2aLinksBar.tsx": {
+    "TS2503": 2
+  },
+  "src/app/(dashboard)/dashboard/agent-skills/components/SkillCard.tsx": {
+    "TS2503": 1
+  },
+  "src/app/(dashboard)/dashboard/agent-skills/components/SkillPreviewPane.tsx": {
+    "TS2503": 2
+  },
+  "src/app/(dashboard)/dashboard/cache/__tests__/CachePage.test.tsx": {
+    "TS2305": 3,
+    "TS1117": 1
+  },
+  "src/app/(dashboard)/dashboard/cache/__tests__/CachePerformance.test.tsx": {
+    "TS2305": 1,
+    "TS2322": 2
+  },
+  "src/app/(dashboard)/dashboard/cache/__tests__/CacheTrends.test.tsx": {
+    "TS2305": 1,
+    "TS2322": 6
+  },
+  "src/app/(dashboard)/dashboard/cache/__tests__/IdempotencyLayer.test.tsx": {
+    "TS2305": 1
+  },
+  "src/app/(dashboard)/dashboard/cache/__tests__/MemoryCards.test.tsx": {
+    "TS2305": 1,
+    "TS2322": 1
+  },
+  "src/app/(dashboard)/dashboard/cache/components/CachePerformance.tsx": {
+    "TS2339": 1
+  },
+  "src/app/(dashboard)/dashboard/cli-code/components/ClaudeToolCard.tsx": {
+    "TS2339": 2
+  },
+  "src/app/(dashboard)/dashboard/cli-code/components/CodexToolCard.tsx": {
+    "TS2345": 3
+  },
+  "src/app/(dashboard)/dashboard/cli-code/components/CustomCliCard.tsx": {
+    "TS2345": 1
+  },
+  "src/app/(dashboard)/dashboard/cli-code/components/DroidToolCard.tsx": {
+    "TS2554": 2
+  },
+  "src/app/(dashboard)/dashboard/combos/page.tsx": {
+    "TS2339": 4,
+    "TS2345": 5,
+    "TS2698": 1,
+    "TS2322": 13
+  },
+  "src/app/(dashboard)/dashboard/compression/studio/EncoderComparisonTable.tsx": {
+    "TS2322": 1
+  },
+  "src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx": {
+    "TS2304": 1
+  },
+  "src/app/(dashboard)/dashboard/costs/quota-share/QuotaSharePageClient.tsx": {
+    "TS2551": 7,
+    "TS2322": 2,
+    "TS2719": 2,
+    "TS2739": 1
+  },
+  "src/app/(dashboard)/dashboard/costs/quota-share/components/StackedAllocationBar.tsx": {
+    "TS2503": 1
+  },
+  "src/app/(dashboard)/dashboard/costs/quota-share/components/UsageLogCard.tsx": {
+    "TS2869": 2
+  },
+  "src/app/(dashboard)/dashboard/discovery/__tests__/DiscoveryPageClient.test.tsx": {
+    "TS2305": 2
+  },
+  "src/app/(dashboard)/dashboard/endpoint/EndpointPageClient.tsx": {
+    "TS2322": 18
+  },
+  "src/app/(dashboard)/dashboard/memory/components/tabs/MemoriesTab.tsx": {
+    "TS2322": 1
+  },
+  "src/app/(dashboard)/dashboard/omni-skills/OmniSkillsPageClient.tsx": {
+    "TS2503": 1
+  },
+  "src/app/(dashboard)/dashboard/omni-skills/components/OmniExecutionsTab.tsx": {
+    "TS2503": 1
+  },
+  "src/app/(dashboard)/dashboard/omni-skills/components/OmniMarketplaceTab.tsx": {
+    "TS2503": 1
+  },
+  "src/app/(dashboard)/dashboard/omni-skills/components/OmniSandboxTab.tsx": {
+    "TS2503": 1
+  },
+  "src/app/(dashboard)/dashboard/omni-skills/components/OmniSkillCard.tsx": {
+    "TS2503": 1
+  },
+  "src/app/(dashboard)/dashboard/omni-skills/components/OmniSkillsList.tsx": {
+    "TS2503": 1
+  },
+  "src/app/(dashboard)/dashboard/omni-skills/components/SkillInspectorPane.tsx": {
+    "TS2503": 1
+  },
+  "src/app/(dashboard)/dashboard/playground/components/PresetPicker.tsx": {
+    "TS2352": 1
+  },
+  "src/app/(dashboard)/dashboard/playground/components/ToolsBuilder.tsx": {
+    "TS2339": 1
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx": {
+    "TS2322": 4
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/__tests__/phase1e.test.tsx": {
+    "TS2741": 2
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/components/CompatibleModelsSection.tsx": {
+    "TS2741": 1
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/components/ConnectionRow.tsx": {
+    "TS2345": 3,
+    "TS2322": 1
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/components/ConnectionsListPanel.tsx": {
+    "TS2322": 2
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/components/CustomModelsSection.tsx": {
+    "TS2739": 1
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/components/ModelCompatPopover.tsx": {
+    "TS2304": 5
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/components/ProviderModalsPanel.tsx": {
+    "TS2322": 3,
+    "TS2739": 1,
+    "TS2345": 3
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/components/ProviderModelsSection.tsx": {
+    "TS2322": 1
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/components/ProviderParamFilterSection.tsx": {
+    "TS2339": 6
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/components/ProviderPlaygroundPanel.tsx": {
+    "TS2503": 1
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/components/__tests__/phase1d.test.tsx": {
+    "TS2739": 2
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/components/modals/EditConnectionModal.tsx": {
+    "TS2322": 1
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/hooks/useModelImportHandlers.ts": {
+    "TS2339": 1
+  },
+  "src/app/(dashboard)/dashboard/providers/[id]/hooks/useModelVisibilityHandlers.ts": {
+    "TS2339": 15
+  },
+  "src/app/(dashboard)/dashboard/providers/components/onboarding/providerOnboardingCatalog.ts": {
+    "TS2339": 4,
+    "TS2345": 2
+  },
+  "src/app/(dashboard)/dashboard/providers/providerPageUtils.ts": {
+    "TS2345": 1
+  },
+  "src/app/(dashboard)/dashboard/providers/services/components/CliproxyModelMappingEditor.tsx": {
+    "TS2339": 1
+  },
+  "src/app/(dashboard)/dashboard/quota/page.tsx": {
+    "TS2339": 4
+  },
+  "src/app/(dashboard)/dashboard/runtime/RuntimePageClient.tsx": {
+    "TS2304": 1
+  },
+  "src/app/(dashboard)/dashboard/settings/components/AppearanceTab.tsx": {
+    "TS2339": 4
+  },
+  "src/app/(dashboard)/dashboard/settings/components/RedisLauncherPanel.tsx": {
+    "TS2345": 11
+  },
+  "src/app/(dashboard)/dashboard/settings/components/SidebarTab.tsx": {
+    "TS2322": 1
+  },
+  "src/app/(dashboard)/dashboard/settings/components/proxy/FreePoolTab.tsx": {
+    "TS2304": 1
+  },
+  "src/app/(dashboard)/dashboard/tools/traffic-inspector/components/CustomHostsManager.tsx": {
+    "TS2339": 1
+  },
+  "src/app/(dashboard)/dashboard/tools/traffic-inspector/components/tabs/ResponseBodyTab.tsx": {
+    "TS2339": 5
+  },
+  "src/app/(dashboard)/dashboard/translator/components/MonitorTab.tsx": {
+    "TS2345": 1
+  },
+  "src/app/(dashboard)/dashboard/translator/components/advanced/CompressionPreviewAccordion.tsx": {
+    "TS4104": 1
+  },
+  "src/app/(dashboard)/dashboard/translator/components/advanced/StreamTransformerAccordion.tsx": {
+    "TS2345": 1
+  },
+  "src/app/(dashboard)/dashboard/usage/components/ProviderLimits/index.tsx": {
+    "TS2339": 2
+  },
+  "src/app/(dashboard)/dashboard/usage/components/ProviderLimits/parts/QuotaEnvGroup.tsx": {
+    "TS2739": 1
+  },
+  "src/lib/combos/builderDraft.ts": {
+    "TS2741": 1
+  },
+  "src/lib/providers/codexFastTier.ts": {
+    "TS2367": 1
+  },
+  "src/lib/services/htmlRewriter.ts": {
+    "TS2322": 2,
+    "TS2345": 2
+  },
+  "src/mitm/inspector/sseMerger.ts": {
+    "TS2352": 1
+  },
+  "src/shared/components/Header.tsx": {
+    "TS2353": 1
+  },
+  "src/shared/components/MonacoEditor.tsx": {
+    "TS2307": 1
+  },
+  "src/shared/components/OAuthModal.tsx": {
+    "TS2769": 4,
+    "TS2345": 4
+  },
+  "src/shared/components/SkillsConceptCard.tsx": {
+    "TS2503": 1
+  },
+  "src/shared/components/analytics/charts.tsx": {
+    "TS2345": 1
+  },
+  "src/shared/components/analytics/rechartsDonuts.tsx": {
+    "TS2739": 2
+  },
+  "src/shared/hooks/useElectron.ts": {
+    "TS2339": 19
+  },
+  "src/shared/providers/webSessionCredentials.ts": {
+    "TS2353": 1,
+    "TS2322": 1
+  },
+  "src/shared/schemas/cliCatalog.ts": {
+    "TS2554": 2
+  },
+  "src/shared/services/opencodeConfig.ts": {
+    "TS2345": 1
+  }
+}

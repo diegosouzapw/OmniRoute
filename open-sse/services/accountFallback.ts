@@ -41,6 +41,7 @@ import {
   isSubscriptionQuotaText,
   buildSubscriptionQuotaFallback,
   buildWeeklyQuotaFallback,
+  buildSessionQuotaFallback,
 } from "./quotaTextCooldowns.ts";
 import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
 
@@ -1454,6 +1455,12 @@ export function checkFallbackError(
     }
     const weeklyResult = buildWeeklyQuotaFallback(errorStr);
     if (weeklyResult) return weeklyResult;
+    // Issue #7071 (session usage cap) is the same sibling gap as #3709 above —
+    // runs UNCONDITIONALLY for the same reason: apikey-category providers
+    // like ollama-cloud are excluded from the oauth-only shouldUseQuotaSignal
+    // gate.
+    const sessionResult = buildSessionQuotaFallback(errorStr);
+    if (sessionResult) return sessionResult;
 
     const quotaResetHintMs = parseRetryFromErrorText(errorStr);
     if (
@@ -1547,13 +1554,21 @@ export function checkFallbackError(
       }
       return fallback;
     }
-    const cooldownMs = configuredRule.cooldownMs ?? 0;
+    // #6842: non-backoff configured rules (e.g. status_402) previously never
+    // consulted providerRuleRegistry, so a provider-specific rule (like
+    // OpenRouter's credit-exhausted 402 lock) could never override the
+    // generic zero-cooldown default. Mirror the backoff branch above so
+    // provider rules win on cooldown/reason regardless of `backoff`.
+    const providerMatch = provider
+      ? getProviderErrorRuleMatch(provider, status, headers, structuredError ?? null)
+      : null;
+    const cooldownMs = providerMatch?.cooldownMs ?? configuredRule.cooldownMs ?? 0;
     return {
       shouldFallback: true,
       cooldownMs,
       baseCooldownMs: cooldownMs,
       configuredCooldownMs: cooldownMs,
-      reason: configuredRule.reason ?? RateLimitReason.UNKNOWN,
+      reason: providerMatch?.reason ?? configuredRule.reason ?? RateLimitReason.UNKNOWN,
     };
   }
 

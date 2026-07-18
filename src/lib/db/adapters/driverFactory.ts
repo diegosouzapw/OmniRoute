@@ -8,9 +8,22 @@ import type { SqliteAdapter } from "./types";
 
 const _require = createRequire(import.meta.url);
 
+/**
+ * Logs the underlying cause of a swallowed sync-driver failure (#7288
+ * secondary finding). tryOpenSync() used to swallow both driver errors in
+ * empty catch {} blocks, so an ABI mismatch or permission error never
+ * reached the logs — only the generic "(falhou)"/"(indisponível)" strings
+ * in core.ts's thrown message survived, making the failure undiagnosable.
+ */
+function logSwallowedDriverError(driver: string, err: unknown): void {
+  const message = err instanceof Error ? err.message : String(err);
+  console.debug(`[DB] Sync driver '${driver}' failed to open, will try next driver: ${message}`);
+}
+
 declare global {
   var __omnirouteSqlJsAdapters: Map<string, SqliteAdapter> | undefined;
   var __omnirouteSqlJsInitPromises: Map<string, Promise<SqliteAdapter>> | undefined;
+  var __omnirouteSqlJsPreInitErrors: Map<string, string> | undefined;
 }
 
 function getSqlJsCache(): Map<string, SqliteAdapter> {
@@ -18,6 +31,24 @@ function getSqlJsCache(): Map<string, SqliteAdapter> {
     globalThis.__omnirouteSqlJsAdapters = new Map();
   }
   return globalThis.__omnirouteSqlJsAdapters;
+}
+
+function getSqlJsPreInitErrorCache(): Map<string, string> {
+  if (!globalThis.__omnirouteSqlJsPreInitErrors) {
+    globalThis.__omnirouteSqlJsPreInitErrors = new Map();
+  }
+  return globalThis.__omnirouteSqlJsPreInitErrors;
+}
+
+/**
+ * Real cause of the most recent failed preInitSqlJs() attempt for a
+ * filePath, if any (#7288). Lets callers replace the generic/misleading
+ * "sql.js WASM ainda não foi pré-inicializado" message with the actual
+ * reason sql.js itself couldn't open the file, once pre-init was genuinely
+ * attempted (as opposed to never having run at all).
+ */
+export function getSqlJsPreInitError(filePath: string): string | undefined {
+  return getSqlJsPreInitErrorCache().get(filePath);
 }
 
 /**
@@ -47,8 +78,9 @@ export function tryOpenSync(
       };
       const db = new BetterSqlite(filePath, options);
       return createBetterSqliteAdapter(db);
-    } catch {
+    } catch (err) {
       // continua para próximo driver
+      logSwallowedDriverError("better-sqlite3", err);
     }
   }
 
@@ -62,8 +94,9 @@ export function tryOpenSync(
         };
         const db = new DatabaseSync(filePath);
         return createNodeSqliteAdapterFromDatabase(db, filePath);
-      } catch {
+      } catch (err) {
         // continua
+        logSwallowedDriverError("node:sqlite", err);
       }
     }
   }
@@ -102,11 +135,16 @@ export async function preInitSqlJs(filePath: string): Promise<SqliteAdapter> {
     const { createSqlJsAdapter } = await import("./sqljsAdapter");
     const adapter = await createSqlJsAdapter(filePath);
     cache.set(filePath, adapter);
+    getSqlJsPreInitErrorCache().delete(filePath);
     return adapter;
   })();
   pending.set(filePath, initPromise);
   try {
     return await initPromise;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    getSqlJsPreInitErrorCache().set(filePath, message);
+    throw err;
   } finally {
     pending.delete(filePath);
   }

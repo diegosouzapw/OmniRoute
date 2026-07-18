@@ -55,6 +55,16 @@ export function resolveExecutionCredentials(opts: {
     providerSpecificData._omnirouteForceResponsesUpstream = true;
   }
 
+  // #7364: "zai"/"glm-coding-apikey" default to the Anthropic Messages wire format
+  // (registry format:"claude"), but a per-model targetFormat override (custom-model
+  // dropdown, #2905) can resolve targetFormat to "openai" — e.g. for a vision model
+  // like glm-4.6v that the operator wants routed through the OpenAI-compatible
+  // endpoint. DefaultExecutor.buildUrl()'s "zai" branch has no other way to see that
+  // override, so surface it on providerSpecificData for buildUrl to read.
+  if (targetFormat === FORMATS.OPENAI && (provider === "zai" || provider === "glm-coding-apikey")) {
+    providerSpecificData.targetFormat = targetFormat;
+  }
+
   const withApiType = {
     ...nextCredentials,
     providerSpecificData,

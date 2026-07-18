@@ -10,16 +10,16 @@ import assert from "node:assert/strict";
 // serviceKinds, so every media page was empty. The fix derives media membership from
 // the registries (single source of truth) and unions it with declared serviceKinds.
 //
-// MiniMax was the flagged case: its international endpoint serves TTS/video/music, the
-// China variant (minimax-cn) has no media registry entries.
+// MiniMax was the flagged case: its international endpoint serves TTS/video/music/image,
+// the China variant (minimax-cn) has no media registry entries.
 
 const { getRegistryMediaKinds, resolveProviderServiceKinds, REGISTRY_MEDIA_KINDS } =
   await import("../../open-sse/config/mediaServiceKinds.ts");
 const { AI_PROVIDERS } = await import("../../src/shared/constants/providers.ts");
 
-test("minimax (international) derives tts/video/music from the registries", () => {
+test("minimax (international) derives image/tts/video/music from the registries", () => {
   const kinds = getRegistryMediaKinds("minimax").sort();
-  assert.deepEqual(kinds, ["music", "tts", "video"]);
+  assert.deepEqual(kinds, ["image", "music", "tts", "video"]);
 });
 
 test("minimax-cn derives no media kinds (China endpoint has no media registry entries)", () => {
