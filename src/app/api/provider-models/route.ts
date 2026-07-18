@@ -129,6 +129,8 @@ export async function POST(request) {
       // #1294: persist the per-model token limits set in the add-model form.
       max_input_tokens: maxInputTokens,
       max_output_tokens: maxOutputTokens,
+      // #1904: manual vision-capability override set in the add-model form.
+      supportsVision,
     } = validation.data;
 
     const model = await addCustomModel(
@@ -142,7 +144,8 @@ export async function POST(request) {
       {
         ...(maxInputTokens != null ? { inputTokenLimit: maxInputTokens } : {}),
         ...(maxOutputTokens != null ? { outputTokenLimit: maxOutputTokens } : {}),
-      }
+      },
+      typeof supportsVision === "boolean" ? supportsVision : undefined
     );
     return Response.json({ model });
   } catch (error) {
@@ -194,6 +197,7 @@ export async function PUT(request) {
       upstreamHeaders,
       compatByProtocol,
       contextWindowOverride,
+      supportsVision,
     } = validation.data;
 
     const raw = rawBody as Record<string, unknown>;
@@ -206,6 +210,8 @@ export async function PUT(request) {
     if ("preserveOpenAIDeveloperRole" in raw)
       updates.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
     if ("upstreamHeaders" in raw) updates.upstreamHeaders = upstreamHeaders;
+    // #1904: manual vision-capability override — null clears back to heuristic.
+    if ("supportsVision" in raw) updates.supportsVision = supportsVision;
     if ("compatByProtocol" in raw && compatByProtocol !== undefined) {
       updates.compatByProtocol = compatByProtocol;
     }

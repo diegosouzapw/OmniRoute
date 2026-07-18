@@ -47,7 +47,7 @@ export function geminiToOpenAIRequest(model, body, stream) {
   // Convert contents to messages
   if (body.contents && Array.isArray(body.contents)) {
     for (const content of splitCoLocatedFunctionResponses(body.contents)) {
-      const converted = convertGeminiContent(content);
+      const converted = convertGeminiContentWithReasoning(content);
       if (converted) {
         result.messages.push(converted);
       }
@@ -178,6 +178,50 @@ function convertGeminiContent(content) {
   }
 
   return null;
+}
+
+// Gemini marks thinking-mode output with `part.thought === true` on the model's own
+// `parts` array (no separate field on the content itself). Left alone,
+// convertGeminiContent() treats a thought part exactly like a visible text part —
+// merging the model's internal reasoning into the message's regular `content`, which
+// both leaks the private reasoning to whatever the OpenAI pivot forwards to next and
+// prevents Reasoning Replay Cache (docs/routing/REASONING_REPLAY.md) from ever seeing
+// it as `reasoning_content`. Split thought parts out first and re-attach the joined
+// text as `reasoning_content` on the resulting message instead.
+function convertGeminiContentWithReasoning(content) {
+  if (!content || !Array.isArray(content.parts)) {
+    return convertGeminiContent(content);
+  }
+
+  let reasoningContent = "";
+  const visibleParts = [];
+  for (const part of content.parts) {
+    if (part && part.thought === true) {
+      if (typeof part.text === "string") reasoningContent += part.text;
+    } else {
+      visibleParts.push(part);
+    }
+  }
+
+  if (!reasoningContent) {
+    return convertGeminiContent(content);
+  }
+
+  const converted = convertGeminiContent({ ...content, parts: visibleParts });
+
+  if (converted && converted.role !== "tool") {
+    return { ...converted, reasoning_content: reasoningContent };
+  }
+
+  if (!converted) {
+    const role = content.role === "user" ? "user" : "assistant";
+    return { role, reasoning_content: reasoningContent };
+  }
+
+  // A `tool` message (functionResponse) can't carry reasoning_content — fall back to
+  // returning it unchanged rather than fabricating a field the tool-message schema
+  // doesn't expect.
+  return converted;
 }
 
 // Extract text from Gemini content

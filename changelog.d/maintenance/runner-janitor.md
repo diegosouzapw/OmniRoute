@@ -1,0 +1,1 @@
+- **Ops**: `scripts/ops/runner-janitor.sh` + `docs/ops/RUNNER_BOX.md` codify the self-hosted runner box hygiene that was manual discipline — 30min cron sweeping stale runner temp dirs, alerting at ≥85% disk, and enforcing the proven 4-runner ceiling on the 16 GB box (8-wide OOM-killed jobs twice on the v3.8.47 release day)

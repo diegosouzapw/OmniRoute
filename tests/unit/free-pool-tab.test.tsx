@@ -91,13 +91,13 @@ afterEach(() => {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("FreePoolTab source toggles", () => {
-  it("renders a toggle group with exactly 3 buttons", async () => {
+  it("renders a toggle group with exactly 4 buttons", async () => {
     const el = renderTab();
     await waitForCondition(() => el.querySelector("[role='group']") !== null);
     const bar = el.querySelector("[role='group']")!;
     expect(bar).toBeTruthy();
     const buttons = bar.querySelectorAll("button");
-    expect(buttons.length).toBe(3);
+    expect(buttons.length).toBe(4);
   });
 
   it("all toggles start enabled (aria-pressed=true)", async () => {
@@ -160,7 +160,7 @@ describe("FreePoolTab source toggles", () => {
     expect(stored).toContain("1proxy");
   });
 
-  it("button labels are 1proxy, Proxifly, IPLocate", async () => {
+  it("button labels are 1proxy, Proxifly, IPLocate, Webshare", async () => {
     const el = renderTab();
     await waitForCondition(() => el.querySelector("[role='group']") !== null);
     const texts = Array.from(el.querySelector("[role='group']")!.querySelectorAll("button")).map(
@@ -169,6 +169,7 @@ describe("FreePoolTab source toggles", () => {
     expect(texts).toContain("1proxy");
     expect(texts).toContain("Proxifly");
     expect(texts).toContain("IPLocate");
+    expect(texts).toContain("Webshare");
   });
 });
 

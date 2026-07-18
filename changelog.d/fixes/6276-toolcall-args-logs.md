@@ -1,0 +1,1 @@
+- fix(api): merge tool_call continuation deltas that carry only `id` (no `index`) so tool-call arguments are no longer split/lost in request/response logs (#6276)

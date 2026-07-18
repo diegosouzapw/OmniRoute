@@ -1,0 +1,1 @@
+- **fix(i18n): translate hardcoded Portuguese dashboard strings to English (#6761, #6768)** (#6769 — thanks @chirag127).

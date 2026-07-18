@@ -36,8 +36,10 @@ import { AdaptaWebExecutor } from "./adapta-web.ts";
 import { ClaudeWebWithAutoRefresh } from "./claude-web-with-auto-refresh.ts";
 import { CopilotWebExecutor } from "./copilot-web.ts";
 import { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
+import { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
 import { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 import { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
+import { FeloWebExecutor } from "./felo-web.ts";
 import { T3ChatWebExecutor } from "./t3-chat-web.ts";
 import { ClaudeWebExecutor } from "./claude-web.ts";
 import { InnerAiExecutor } from "./inner-ai.ts";
@@ -45,6 +47,7 @@ import { HuggingChatExecutor } from "./huggingchat.ts";
 import { YuanbaoWebExecutor } from "./yuanbao-web.ts";
 import { PoeWebExecutor } from "./poe-web.ts";
 import { VeniceWebExecutor } from "./venice-web.ts";
+import { NotionWebExecutor } from "./notion-web.ts";
 import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
@@ -123,10 +126,14 @@ const executors = {
   "copilot-web": new CopilotWebExecutor(),
   "copilot-m365-web": new CopilotM365WebExecutor(),
   copilot: new CopilotWebExecutor(), // Alias
+  "microsoft-designer-web": new MicrosoftDesignerWebExecutor(),
+  msdesigner: new MicrosoftDesignerWebExecutor(), // Alias
   "veoaifree-web": new VeoAIFreeWebExecutor(),
   "veo-free": new VeoAIFreeWebExecutor(), // Alias
   "duckduckgo-web": new DuckDuckGoWebExecutor(),
   ddgw: new DuckDuckGoWebExecutor(), // Alias
+  "felo-web": new FeloWebExecutor(),
+  felo: new FeloWebExecutor(), // Alias
   "t3-web": new T3ChatWebExecutor(),
   t3chat: new T3ChatWebExecutor(), // Alias
   "inner-ai": new InnerAiExecutor(),
@@ -139,6 +146,8 @@ const executors = {
   poe: new PoeWebExecutor(), // Alias
   "venice-web": new VeniceWebExecutor(),
   ven: new VeniceWebExecutor(), // Alias
+  "notion-web": new NotionWebExecutor(),
+  nw: new NotionWebExecutor(), // Alias
   "v0-vercel-web": new V0VercelWebExecutor(),
   v0: new V0VercelWebExecutor(), // Alias
   "kimi-web": new KimiWebExecutor(),
@@ -170,8 +179,26 @@ const executors = {
 
 const defaultCache = new Map();
 
+// #6699 — providers that exist ONLY as Cloud Agent task-API entries
+// (CLOUD_AGENT_PROVIDERS / staticModels "Available Models" catalog) and have no
+// chat-completions REGISTRY entry anywhere in open-sse/. Without this guard,
+// getExecutor() silently falls through to DefaultExecutor's
+// `PROVIDERS[provider] || PROVIDERS.openai` fallback, sending the user's real
+// provider key to OpenAI's endpoint (mislabeled as coming from the provider the
+// user actually selected). Starting with just "jules" (the reported case);
+// "devin" and "codex-cloud" share the same structural gap and are left for a
+// follow-up once their own chat-routing behavior is confirmed.
+const CHAT_UNSUPPORTED_CLOUD_AGENT_PROVIDERS = new Set(["jules"]);
+
 export function getExecutor(provider) {
   if (executors[provider]) return executors[provider];
+  if (CHAT_UNSUPPORTED_CLOUD_AGENT_PROVIDERS.has(provider)) {
+    const err = new Error(
+      `Provider "${provider}" is a cloud-agent provider and does not support direct chat completions; use the Cloud Agents task API instead.`
+    );
+    (err as Error & { status?: number }).status = 400;
+    throw err;
+  }
   if (!defaultCache.has(provider)) defaultCache.set(provider, new DefaultExecutor(provider));
   return defaultCache.get(provider);
 }
@@ -215,8 +242,10 @@ export { DevinCliExecutor } from "./devin-cli.ts";
 export { AuggieExecutor } from "./auggie.ts";
 export { CopilotWebExecutor } from "./copilot-web.ts";
 export { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
+export { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
 export { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 export { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
+export { FeloWebExecutor } from "./felo-web.ts";
 export { ClaudeWebExecutor } from "./claude-web.ts";
 export { DeepSeekWebExecutor } from "./deepseek-web.ts";
 export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";

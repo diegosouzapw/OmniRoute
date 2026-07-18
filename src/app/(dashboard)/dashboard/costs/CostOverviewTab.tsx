@@ -40,6 +40,7 @@ import {
 } from "./costExplorerParams";
 import { ApiKeyUsageLimitCard } from "./components/ApiKeyUsageLimitCard";
 import { MetricCard } from "./components/MetricCard";
+import { TopListCard } from "./components/TopListCard";
 import { useApiKeyUsageLimits } from "./useApiKeyUsageLimits";
 
 interface UsageAnalyticsSummary {
@@ -127,6 +128,8 @@ const RANGE_OPTIONS: Array<{ value: CostRange; labelKey: string }> = [
   { value: "7d", labelKey: "range7d" },
   { value: "30d", labelKey: "range30d" },
   { value: "90d", labelKey: "range90d" },
+  { value: "180d", labelKey: "range180d" },
+  { value: "365d", labelKey: "range365d" },
   { value: "all", labelKey: "rangeAll" },
 ];
 
@@ -152,7 +155,7 @@ const CHART_COLORS = [
   "#ec4899",
 ];
 
-function createCurrencyFormatter(locale: string) {
+export function createCurrencyFormatter(locale: string) {
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "USD",
@@ -810,6 +813,7 @@ export default function CostOverviewTab() {
               rows={providersByCost}
               locale={locale}
               hasCostData={hasCostData}
+              legacyFreeLabel={t("legacyFreeLabel")}
             />
             <TopListCard
               title={t("topModels")}
@@ -820,6 +824,7 @@ export default function CostOverviewTab() {
               rows={modelsByCost}
               locale={locale}
               hasCostData={hasCostData}
+              legacyFreeLabel={t("legacyFreeLabel")}
             />
           </div>
 
@@ -1350,63 +1355,6 @@ function ActivityHeatmap({
           <div className="w-2.5 h-2.5 rounded-xs bg-emerald-400" />
         </div>
         <span>{moreLabel}</span>
-      </div>
-    </Card>
-  );
-}
-
-function TopListCard({
-  title,
-  rows,
-  nameKey,
-  valueKey,
-  secondaryKey,
-  secondaryLabel,
-  locale,
-  hasCostData,
-}: {
-  title: string;
-  rows: Array<Record<string, any>>;
-  nameKey: string;
-  valueKey: string;
-  secondaryKey?: string;
-  secondaryLabel?: string;
-  locale: string;
-  hasCostData?: boolean;
-}) {
-  const currencyFormatter = createCurrencyFormatter(locale);
-
-  return (
-    <Card className="p-5">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
-        {title}
-      </h3>
-      <div className="space-y-2">
-        {rows.slice(0, 6).map((row) => (
-          <div
-            key={String(row[nameKey])}
-            className="flex items-center justify-between gap-3 rounded-lg border border-border/20 bg-surface/20 px-4 py-3"
-          >
-            <span className="text-sm text-text-main truncate">{String(row[nameKey])}</span>
-            <div className="flex items-center gap-3 shrink-0">
-              {secondaryKey ? (
-                <span className="text-xs text-text-muted">
-                  {new Intl.NumberFormat(locale, { notation: "compact" }).format(
-                    Number(row[secondaryKey] || 0)
-                  )}{" "}
-                  {secondaryLabel}
-                </span>
-              ) : null}
-              <span className="text-sm font-mono text-text-muted">
-                {hasCostData || Number(row[valueKey] || 0) > 0 ? (
-                  currencyFormatter.format(Number(row[valueKey] || 0))
-                ) : (
-                  <span className="text-xs italic opacity-70">{t("legacyFreeLabel")}</span>
-                )}
-              </span>
-            </div>
-          </div>
-        ))}
       </div>
     </Card>
   );

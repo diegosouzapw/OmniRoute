@@ -146,6 +146,7 @@ import {
 } from "./combo/comboPredicates.ts";
 import { applyComboTargetExhaustion } from "./combo/targetExhaustion.ts";
 import { executeRuntimeUnitCombo } from "./combo/runtimeUnits.ts";
+import { extractFusionPanelSpec, buildFusionHandleSingleModel } from "./combo/fusionPanel.ts";
 import { isRecord } from "./combo/comboData.ts";
 import {
   expandProviderWildcardsInCombo,
@@ -169,6 +170,7 @@ import {
   applyRequestTagRouting,
   scoreAutoTargets,
   expandAutoComboCandidatePool,
+  deriveSpeedTelemetry,
 } from "./combo/autoStrategy.ts";
 import {
   resolveResetWindowConfig,
@@ -478,6 +480,13 @@ export async function buildAutoCandidates(
         hasHistoricalSignal && Number.isFinite(historicalStdDev) && historicalStdDev > 0
           ? Math.max(10, historicalStdDev)
           : Math.max(10, p95LatencyMs * 0.1);
+      // #6875: surface TTFT/E2E-latency/tokens-per-second onto the candidate so the
+      // existing speed-ranking factor (#6011, speedRanking.ts/routerStrategy.ts) picks
+      // up real telemetry instead of falling back to the pool median. Additive only —
+      // no scoring weights change here.
+      const speedTelemetry = hasHistoricalSignal
+        ? deriveSpeedTelemetry(historicalModelMetric)
+        : undefined;
 
       const breakerStateRaw = getCircuitBreaker(provider)?.getStatus?.()?.state;
       const circuitBreakerState: ProviderCandidate["circuitBreakerState"] =
@@ -559,6 +568,7 @@ export async function buildAutoCandidates(
         p95LatencyMs,
         latencyStdDev,
         errorRate,
+        ...speedTelemetry,
         accountTier: "standard" as const,
         quotaResetIntervalSecs: 86400,
         contextAffinity,
@@ -818,20 +828,47 @@ export async function handleComboChat({
     );
   }
   if (strategy === "fusion") {
-    const fusionModels = (combo.models || [])
-      .map((m) => {
-        if (typeof m === "string") return m;
-        if (m && typeof m === "object") {
-          const obj = m as Record<string, unknown>;
-          if (typeof obj.model === "string") return obj.model;
-        }
-        return null;
-      })
-      .filter((m): m is string => Boolean(m));
+    const { panel: fusionModels, comboRefUnits } = extractFusionPanelSpec(
+      combo.models || [],
+      combo.name,
+      allCombos
+    );
+    // Untyped like the existing `nestingContext` further down — `nesting` is
+    // already `ComboNestingContext | null` per HandleComboChatOptions, no new
+    // import needed.
+    const fusionNesting = nesting || {
+      depth: 0,
+      maxDepth: clampComboDepth(config.maxComboDepth),
+      visitedComboNames: [combo.name],
+      rootComboName: combo.name,
+      attemptBudget: { count: 0, limit: MAX_GLOBAL_ATTEMPTS },
+    };
+    const fusionHandleSingleModel =
+      comboRefUnits.size > 0
+        ? buildFusionHandleSingleModel({
+            handleSingleModel: handleSingleModelWithTimeout,
+            comboRefUnits,
+            allCombos,
+            nesting: fusionNesting,
+            baseOptions: {
+              body,
+              combo,
+              handleSingleModel,
+              isModelAvailable,
+              log,
+              settings,
+              allCombos,
+              relayOptions,
+              signal,
+              apiKeyAllowedConnections,
+            },
+            runCombo: handleComboChat,
+          })
+        : handleSingleModelWithTimeout;
     return handleFusionChat({
       body,
       models: fusionModels,
-      handleSingleModel: handleSingleModelWithTimeout,
+      handleSingleModel: fusionHandleSingleModel,
       log,
       comboName: combo.name,
       judgeModel,
