@@ -155,6 +155,27 @@ function buildCloudflareAiRules(): ProviderErrorRule[] {
   ];
 }
 
+// ─── OpenRouter ─────────────────────────────────────────────────────────────
+// #6842: OpenRouter returns 402 for both a negative account balance and a
+// depleted per-key credit cap. The global `status_402` rule already maps this
+// to `quota_exhausted` with a zero cooldown (immediate fallback to the next
+// connection), but leaves the scope ambiguous and doesn't stop the SAME
+// connection from being reselected instantly (credits genuinely need a
+// top-up, not a timed wait). This explicit rule locks the whole connection
+// (scope: "connection" — credits are account-wide, not per-model) for a real
+// cooldown so combo routing skips it instead of hot-looping back onto it.
+function buildOpenrouterRules(): ProviderErrorRule[] {
+  return [
+    {
+      id: "openrouter-credit-exhausted-402",
+      match: ({ status }) => {
+        if (status !== 402) return null;
+        return { reason: "quota_exhausted", scope: "connection", cooldownMs: 2 * 60 * 1000 };
+      },
+    },
+  ];
+}
+
 /**
  * Global registry. Provider name → ordered list of rules (first match wins).
  * Add new providers here; the matcher in classifyError will pick them up
@@ -167,6 +188,7 @@ export const providerRuleRegistry = new Map<string, ProviderErrorRule[]>([
   ["minimax", buildMinimaxRules()],
   ["minimax-passthrough", buildMinimaxRules()],
   ["cloudflare-ai", buildCloudflareAiRules()],
+  ["openrouter", buildOpenrouterRules()],
 ]);
 
 /**

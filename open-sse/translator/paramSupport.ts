@@ -59,6 +59,17 @@ const STRIP_RULES: StripRule[] = [
   // OmniRoute's actual volcengine Kimi id (not a broad /kimi/i regex) so it
   // never clamps an unrelated future Kimi listing whose Ark cap may differ.
   { provider: "volcengine", match: /^kimi-k2-5-260127$/, maxOutputCap: 32768, clampToModelMaxOutput: true },
+  // #7364: Z.AI's glm-4.6v vision endpoint enforces a 32768 max_tokens ceiling
+  // server-side and 400s when a client sends a larger explicit max_tokens (e.g. a
+  // client defaulting to 65536). Scoped to both wire paths that can reach this
+  // model: "zai" (DefaultExecutor, Claude format by default — glm-4.6v is only
+  // reachable there as a custom model attached to the connection, so it is NOT in
+  // PROVIDER_MODELS["zai"] and clampToModelMaxOutput would find no catalog ceiling
+  // to clamp against, hence the fixed maxOutputCap) and "glm" (GlmExecutor, OpenAI
+  // format — glm-4.6v IS in the registry catalog there, `GLM_SHARED_MODELS` in
+  // glmProvider.ts, maxOutputTokens: 32768, so clampToModelMaxOutput suffices).
+  { provider: "zai", match: /^glm-4\.6v$/i, maxOutputCap: 32768 },
+  { provider: "glm", match: /^glm-4\.6v$/i, clampToModelMaxOutput: true },
 ];
 
 function matches(rule: StripRule, model: string): boolean {

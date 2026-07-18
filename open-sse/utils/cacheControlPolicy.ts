@@ -124,13 +124,53 @@ const OPENAI_FORMAT_CACHE_CONTROL_PROVIDERS = new Set([
 ]);
 
 /**
+ * Per-connection override for cache behavior, resolved from the connection's
+ * `provider_specific_data.cache` JSON sub-object (see `resolveConnectionCacheOverride`).
+ * Lets an operator opt a custom/openai-compatible connection into prompt-cache
+ * behavior that the hardcoded provider-name sets above can never match (#6880).
+ */
+export interface ConnectionCacheOverride {
+  supportsPromptCaching?: boolean;
+  cacheControlPassthrough?: "strip" | "openai-format" | "claude-format";
+}
+
+/**
+ * Extract and validate a `ConnectionCacheOverride` from a connection's
+ * `providerSpecificData` bag. Returns `null` when absent/malformed so every
+ * call site can safely pass the result straight through.
+ */
+export function resolveConnectionCacheOverride(
+  providerSpecificData: unknown
+): ConnectionCacheOverride | null {
+  if (!providerSpecificData || typeof providerSpecificData !== "object") return null;
+  const cache = (providerSpecificData as Record<string, unknown>).cache;
+  if (!cache || typeof cache !== "object" || Array.isArray(cache)) return null;
+  const record = cache as Record<string, unknown>;
+  const result: ConnectionCacheOverride = {};
+  if (typeof record.supportsPromptCaching === "boolean") {
+    result.supportsPromptCaching = record.supportsPromptCaching;
+  }
+  if (
+    record.cacheControlPassthrough === "strip" ||
+    record.cacheControlPassthrough === "openai-format" ||
+    record.cacheControlPassthrough === "claude-format"
+  ) {
+    result.cacheControlPassthrough = record.cacheControlPassthrough;
+  }
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+/**
  * Whether `cache_control` markers should be PASSED THROUGH the OpenAI-format
  * translation for this provider (vs. stripped). Used to gate the request-side
  * passthrough so generic / implicit-cache OpenAI providers keep getting cleaned.
  */
 export function providerHonorsOpenAIFormatCacheControl(
-  provider: string | null | undefined
+  provider: string | null | undefined,
+  connectionCacheOverride?: ConnectionCacheOverride | null
 ): boolean {
+  if (connectionCacheOverride?.cacheControlPassthrough === "openai-format") return true;
+  if (connectionCacheOverride?.cacheControlPassthrough === "strip") return false;
   if (!provider) return false;
   return OPENAI_FORMAT_CACHE_CONTROL_PROVIDERS.has(provider.toLowerCase());
 }
@@ -159,8 +199,12 @@ export function isClaudeCodeClient(userAgent: string | null | undefined): boolea
  */
 export function providerSupportsCaching(
   provider: string | null | undefined,
-  targetFormat?: string | null
+  targetFormat?: string | null,
+  connectionCacheOverride?: ConnectionCacheOverride | null
 ): boolean {
+  if (typeof connectionCacheOverride?.supportsPromptCaching === "boolean") {
+    return connectionCacheOverride.supportsPromptCaching;
+  }
   if (!provider) return false;
   if (CACHING_PROVIDERS.has(provider.toLowerCase())) return true;
   // All Claude-protocol providers support prompt caching
@@ -195,6 +239,7 @@ export function shouldPreserveCacheControl({
   targetProvider,
   targetFormat,
   settings,
+  connectionCacheOverride,
 }: {
   userAgent: string | null | undefined;
   isCombo: boolean;
@@ -202,6 +247,7 @@ export function shouldPreserveCacheControl({
   targetProvider: string | null | undefined;
   targetFormat?: string | null;
   settings?: CacheControlSettings;
+  connectionCacheOverride?: ConnectionCacheOverride | null;
 }): boolean {
   // User override takes precedence
   if (settings?.alwaysPreserveClientCache === "always") {
@@ -218,7 +264,7 @@ export function shouldPreserveCacheControl({
   }
 
   // Target provider must support caching
-  if (!providerSupportsCaching(targetProvider, targetFormat)) {
+  if (!providerSupportsCaching(targetProvider, targetFormat, connectionCacheOverride)) {
     return false;
   }
 

@@ -1,0 +1,1 @@
+- feat(db): include `xp_audit_log` in the automatic retention/prune cycle, with a configurable `retention.xpAuditLog` setting (#6801)

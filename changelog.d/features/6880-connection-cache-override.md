@@ -1,0 +1,1 @@
+- **feat(providers):** let a custom/openai-compatible connection opt into prompt-cache behavior via a per-connection `cache` capability override, unblocking `prompt_cache_key` injection, the compression cache-aware guard, and `cache_control` passthrough for `openai-compatible-chat-<uuid>`-style connections. (thanks @andrea-kingautomation)

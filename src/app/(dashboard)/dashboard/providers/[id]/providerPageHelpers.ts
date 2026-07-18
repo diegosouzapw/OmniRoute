@@ -222,6 +222,7 @@ export const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "snowflake",
   "searxng-search",
   "petals",
+  "comfyui",
 ]);
 
 export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
@@ -232,6 +233,7 @@ export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   siliconflow: "https://api.siliconflow.com/v1",
   "searxng-search": "http://localhost:8888/search",
   petals: "https://chat.petals.dev/api/v1/generate",
+  comfyui: "http://localhost:8188",
 };
 
 export function getLocalProviderMetadata(providerId?: string | null) {
@@ -313,6 +315,7 @@ export function getProviderBaseUrlPlaceholder(providerId?: string | null) {
       return "https://my-resource.openai.azure.com";
     case "bailian-coding-plan":
     case "xiaomi-mimo":
+    case "comfyui":
       return getProviderBaseUrlDefault(providerId);
     case "siliconflow":
       return "https://api.siliconflow.cn/v1";
@@ -337,29 +340,10 @@ export function isGlmProvider(providerId?: string | null) {
 // Routing-tags / excluded-models parse + format
 // ---------------------------------------------------------------------------
 
-export function parseRoutingTagsInput(value: string): string[] | undefined {
-  const tags = Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((tag) => tag.trim().toLowerCase())
-        .filter(Boolean)
-    )
-  );
-  return tags.length > 0 ? tags : undefined;
-}
 
-export function parseExcludedModelsInput(value: string): string[] | undefined {
-  const patterns = Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((pattern) => pattern.trim())
-        .filter(Boolean)
-    )
-  );
-  return patterns.length > 0 ? patterns : undefined;
-}
+// parseRoutingTagsInput / parseExcludedModelsInput moved to the pure leaf
+// providerInputParsers.ts (kept re-exported here for existing UI importers).
+export { parseExcludedModelsInput, parseRoutingTagsInput } from "./providerInputParsers";
 
 export function formatRoutingTagsInput(value: unknown): string {
   if (!Array.isArray(value)) return "";

@@ -419,10 +419,27 @@ export function prepareClaudeRequest(
         // for the latest assistant (if it already has non-empty thinking text);
         // field cleanup (signature strip, type normalization) still runs.
         const isLatestAssistant = i === latestAssistantIndex;
-        const latestHasExistingThinking =
-          isLatestAssistant &&
-          content.some((b: any) => b.type === "thinking" || b.type === "redacted_thinking");
-        if (latestHasExistingThinking && supportsRedactedThinking) {
+        const latestThinkingBlocks: ClaudeContentBlock[] = isLatestAssistant
+          ? content.filter(
+              (b: ClaudeContentBlock) => b.type === "thinking" || b.type === "redacted_thinking"
+            )
+          : [];
+        const latestHasExistingThinking = latestThinkingBlocks.length > 0;
+        // #6953: a synthetic thinking block with an EMPTY signature/data (fabricated by a
+        // non-Anthropic provider leg, e.g. codex reasoning_content) is NOT a genuine Claude
+        // replay signature. Forwarding it verbatim to a real Anthropic-native upstream always
+        // 400s ("Invalid signature in thinking block"), permanently poisoning the combo onto
+        // the non-Anthropic leg. Only skip the verbatim-preserve path when every thinking-ish
+        // block on the latest assistant message carries a non-empty signature/data — older
+        // turns are already sanitized below (redacted_thinking + DEFAULT_THINKING_CLAUDE_SIGNATURE);
+        // the latest turn must go through the same sanitization when its signature is empty.
+        const latestHasGenuineThinkingSignature = latestThinkingBlocks.every(
+          (b: ClaudeContentBlock) =>
+            b.type === "redacted_thinking"
+              ? typeof b.data === "string" && (b.data as string).length > 0
+              : typeof b.signature === "string" && b.signature.length > 0
+        );
+        if (latestHasExistingThinking && supportsRedactedThinking && latestHasGenuineThinkingSignature) {
           // Anthropic: skip all thinking-block rewrites entirely — the
           // blocks must remain verbatim (type, thinking, signature, data).
           continue;
