@@ -14,7 +14,7 @@
  *
  * Source: operator-supplied subscription feature (Karing-style proxy).
  */
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 
 export type DirectProxyType = "http" | "https" | "socks5";
 export type RawProxyProtocol =

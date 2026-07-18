@@ -101,8 +101,12 @@ test("rule subscription binds only the selected provider scope", async () => {
 
   await sub.applySubscription("s2");
 
-  db.prepare("INSERT INTO provider_connections (id, provider) VALUES (?,?)").run("connA", "provA");
-  db.prepare("INSERT INTO provider_connections (id, provider) VALUES (?,?)").run("connB", "provB");
+  db.prepare(
+    "INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?,?,?,?)"
+  ).run("connA", "provA", nowIso(), nowIso());
+  db.prepare(
+    "INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?,?,?,?)"
+  ).run("connB", "provB", nowIso(), nowIso());
 
   const rA = await proxies.resolveProxyForConnectionFromRegistry("connA");
   assert.ok(rA, "provider A should resolve the rule proxy");
@@ -218,7 +222,9 @@ test("global→rule switch re-evaluates binding: drops global, binds the selecte
   assert.equal(afterGlobal, null, "global binding should be dropped after switching to rule mode");
 
   // The provider-scope binding must now resolve the node.
-  db.prepare("INSERT INTO provider_connections (id, provider) VALUES (?,?)").run("connA", "provA");
+  db.prepare(
+    "INSERT INTO provider_connections (id, provider, created_at, updated_at) VALUES (?,?,?,?)"
+  ).run("connA", "provA", nowIso(), nowIso());
   const afterRule = await proxies.resolveProxyForConnectionFromRegistry("connA");
   assert.ok(afterRule, "rule mode should bind the node to provider provA");
   assert.equal(afterRule?.proxy.host, "10.0.0.5");

@@ -21,8 +21,10 @@
  */
 import { randomUUID } from "crypto";
 import { getDbInstance } from "../db/core";
+import { backupDbFile } from "../db/backup";
 import {
   addProxiesToScopePool,
+  bumpProxyRegistryGeneration,
   deleteProxyById,
   upsertProxy,
 } from "../db/proxies";
@@ -628,10 +630,22 @@ async function hasNonSubscriptionGlobalProxy(): Promise<boolean> {
 
 async function recomputeProxyEnabled(): Promise<void> {
   const db = getDbInstance();
-  const enabledSubs = db
-    .prepare("SELECT 1 FROM proxy_subscriptions WHERE enabled = 1 LIMIT 1")
+  // Must check for an ACTUALLY BOUND subscription proxy, not just an enabled
+  // subscription row: unapplySubscription() detaches proxy_assignments without
+  // touching `enabled`, so a bare `enabled = 1` check would leave the flag
+  // permanently stuck on `true` after an unapply/disable cycle even though
+  // nothing is bound anymore (resolveProxyForConnectionFromRegistry correctly
+  // returns null, but the operator-facing proxyEnabled flag would lie).
+  const enabledSubWithBoundProxy = db
+    .prepare(
+      `SELECT 1 FROM proxy_subscriptions s
+       JOIN proxy_registry p ON p.subscription_id = s.id
+       JOIN proxy_assignments a ON a.proxy_id = p.id
+       WHERE s.enabled = 1
+       LIMIT 1`
+    )
     .get();
-  const shouldEnable = !!enabledSubs || (await hasNonSubscriptionGlobalProxy());
+  const shouldEnable = !!enabledSubWithBoundProxy || (await hasNonSubscriptionGlobalProxy());
   await setProxyEnabledFlag(shouldEnable);
 }
 

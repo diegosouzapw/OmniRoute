@@ -35,7 +35,7 @@ export { extractRelayAuth, redactProxySecrets } from "./proxies/mappers";
 
 let proxyRegistryGeneration = 0;
 
-function bumpProxyRegistryGeneration() {
+export function bumpProxyRegistryGeneration() {
   proxyRegistryGeneration++;
 }
 
