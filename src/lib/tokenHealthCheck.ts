@@ -325,8 +325,7 @@ export function stopTokenHealthCheck() {
 export async function sweep() {
   const state = getHCState();
   if (state.sweeping) {
-    log(`${LOG_PREFIX} Sweep skipped — previous sweep still in progress`);
-    return;
+    return log(`${LOG_PREFIX} Sweep skipped — previous sweep still in progress`);
   }
   state.sweeping = true;
   try {
@@ -347,9 +346,7 @@ export async function sweep() {
 
       // Stagger delay between checks to prevent bursting (Issue #1220)
       if (staggerMs > 0 && i < connections.length - 1) {
-        const { promise, resolve } = Promise.withResolvers<void>();
-        setTimeout(resolve, staggerMs);
-        await promise;
+        await new Promise((resolve) => setTimeout(resolve, staggerMs));
       }
     }
   } catch (err) {
