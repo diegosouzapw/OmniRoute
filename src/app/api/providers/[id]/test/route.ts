@@ -54,7 +54,12 @@ const OAUTH_TEST_CONFIG = {
       "User-Agent": "codex-cli/1.0.18 (macOS; arm64)",
     },
     // Minimal invalid body — triggers a fast 400 without consuming quota.
-    body: JSON.stringify({ model: "gpt-5.3-codex", input: [], stream: false, store: false }),
+    // #7521: probe with a ChatGPT-account-supported model. "gpt-5.3-codex" is a
+    // codex-only id that ChatGPT accounts reject with a 400 for the WRONG reason
+    // (unsupported model, not "auth ok, body invalid") — collapsing the auth signal
+    // so a bad token looks the same as a good one. "gpt-5.5" is served for
+    // ChatGPT sessions; `input: []` still yields the intended 400.
+    body: JSON.stringify({ model: "gpt-5.5", input: [], stream: false, store: false }),
     // 400 = bad request, but auth was accepted; only 401/403 means the token is bad.
     acceptStatuses: [400],
     refreshable: true,

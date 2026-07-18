@@ -7,7 +7,7 @@ import { maybeHandleWebdav } from "./webdav-handler.mjs";
 import methodGuard from "./http-method-guard.cjs";
 import headResponseGuard from "./head-response-guard.cjs";
 import { resolveTlsOptions, createServerListener } from "./tls-options.mjs";
-import { getMainServerTimeoutConfig } from "../../src/shared/utils/runtimeTimeouts.ts";
+import { getMainServerTimeoutConfig } from "./main-server-timeouts.mjs";
 
 const originalCreateServer = http.createServer.bind(http);
 const proxiesByPort = new Map();

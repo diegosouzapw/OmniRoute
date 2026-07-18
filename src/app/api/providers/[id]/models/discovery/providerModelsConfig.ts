@@ -4,6 +4,7 @@ import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
 import { filterClinepassModels } from "@omniroute/open-sse/services/clinepassModels.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
 import { extractKimiJwt } from "@/lib/providers/webCookieAuth";
+import { buildClaudeCodeCompatibleHeaders } from "@omniroute/open-sse/services/claudeCodeCompatible.ts";
 
 export type ProviderModelsConfigEntry = {
   url: string;
@@ -132,6 +133,29 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     body: {},
     parseResponse: (data) => data.models || [],
+  },
+  // #7016: AgentRouter rejects /v1/models unless the request carries the same
+  // Claude Code wire image the chat path uses (it adopts the dynamic CC wire
+  // image while keeping its own x-api-key auth — see #6056). Without these
+  // headers the gateway WAF 4xx's the request and model import silently falls
+  // back to the local catalog ("API unavailable — using local catalog").
+  agentrouter: {
+    url: "https://agentrouter.org/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    buildHeaders: (token: string) => {
+      const wire = buildClaudeCodeCompatibleHeaders(token, false, undefined, {});
+      const out: Record<string, string> = { ...wire };
+      // Keep AgentRouter's own x-api-key auth scheme (#6056); the CC helper
+      // adds a Bearer Authorization we must not send.
+      for (const key of Object.keys(out)) {
+        if (key.toLowerCase() === "authorization") delete out[key];
+      }
+      if (token) out["x-api-key"] = token;
+      return out;
+    },
+    parseResponse: (data: any) =>
+      Array.isArray(data) ? data : (data?.data || data?.models || []),
   },
   openai: {
     url: "https://api.openai.com/v1/models",

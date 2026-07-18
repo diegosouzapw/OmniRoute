@@ -14,7 +14,7 @@ import headResponseGuard from "./head-response-guard.cjs";
 import { ensureNativeSqlite } from "./ensure-native-sqlite.mjs";
 import { isTurbopackCacheCorruption, purgeAllTurbopackCaches } from "./turbopackCacheHeal.mjs";
 import { randomUUID } from "node:crypto";
-import { getMainServerTimeoutConfig } from "../../src/shared/utils/runtimeTimeouts.ts";
+import { getMainServerTimeoutConfig } from "./main-server-timeouts.mjs";
 
 const { maybeHandleDisallowedMethod } = methodGuard;
 const { wrapRequestListenerWithHeadResponseGuard } = headResponseGuard;

@@ -556,6 +556,20 @@ export function translateNonStreamingResponse(
     return convertOpenAINonStreamingToClaude(toRecord(intermediateOpenAI));
   }
 
+  // Gemini-family clients (Gemini, Antigravity): the streaming SSE path already
+  // projects OpenAI chunks into the `{ response: { candidates: [...] } }` envelope
+  // via the registered FORMATS.OPENAI -> FORMATS.ANTIGRAVITY translator
+  // (translator/response/openai-to-antigravity.ts), but this non-streaming path had
+  // no equivalent back-conversion step — it silently returned the raw OpenAI
+  // chat.completion shape (leaking `choices[]`/`tool_calls` instead of
+  // `candidates[]`/`functionCall`) to any non-streaming Gemini/Antigravity client.
+  if (
+    (sourceFormat === FORMATS.GEMINI || sourceFormat === FORMATS.ANTIGRAVITY) &&
+    sourceFormat !== targetFormat
+  ) {
+    return convertOpenAINonStreamingToGeminiFamily(toRecord(intermediateOpenAI));
+  }
+
   // Return intermediateOpenAI (which is either the raw response if unknown targetFormat, or an OpenAI compatible payload)
   return intermediateOpenAI;
 }
@@ -663,4 +677,93 @@ function convertOpenAINonStreamingToClaude(openaiResponse: JsonRecord): JsonReco
   };
 
   return claudeResponse;
+}
+
+const OPENAI_TO_GEMINI_FINISH_REASON: Record<string, string> = {
+  stop: "STOP",
+  length: "MAX_TOKENS",
+  tool_calls: "STOP",
+  content_filter: "SAFETY",
+};
+
+/**
+ * Parse an OpenAI tool-call `arguments` payload into a Gemini `functionCall.args`
+ * object. Never throws: a provider emitting malformed/truncated JSON must not take
+ * down the whole non-streaming response path, so an unparseable payload degrades to
+ * `{}` (matching the streaming Gemini translator's behaviour).
+ */
+function parseFunctionCallArgs(args: unknown): Record<string, unknown> {
+  if (typeof args !== "string") return toRecord(args);
+  try {
+    return toRecord(JSON.parse(args || "{}"));
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Helper to convert an OpenAI chat.completion JSON object into the Gemini/Antigravity
+ * `{ response: { candidates: [...] } }` envelope for non-streaming clients. Mirrors the
+ * shape already produced for streaming by the registered
+ * FORMATS.OPENAI -> FORMATS.ANTIGRAVITY translator
+ * (translator/response/openai-to-antigravity.ts) so both paths agree.
+ */
+function convertOpenAINonStreamingToGeminiFamily(openaiResponse: JsonRecord): JsonRecord {
+  const choices = openaiResponse.choices as unknown[] | undefined;
+  const isChoicesArray = Array.isArray(choices);
+  if (!isChoicesArray && openaiResponse.object !== "chat.completion") {
+    return openaiResponse; // If it doesn't look like OpenAI, return as-is
+  }
+
+  const choice = isChoicesArray ? toRecord(choices[0]) : {};
+  const messageObj = toRecord(choice.message);
+
+  const parts: JsonRecord[] = [];
+  const reasoningText = resolveReasoningText(messageObj);
+  if (reasoningText) {
+    parts.push({ text: reasoningText, thought: true });
+  }
+  if (typeof messageObj.content === "string" && messageObj.content.length > 0) {
+    parts.push({ text: messageObj.content });
+  }
+  const toolCalls = Array.isArray(messageObj.tool_calls) ? messageObj.tool_calls : [];
+  for (const toolCall of toolCalls) {
+    const toolObj = toRecord(toolCall);
+    const fn = toRecord(toolObj.function);
+    parts.push({
+      functionCall: {
+        name: toString(fn.name),
+        args: parseFunctionCallArgs(fn.arguments),
+      },
+    });
+  }
+  if (parts.length === 0) parts.push({ text: "" });
+
+  const finishReason =
+    OPENAI_TO_GEMINI_FINISH_REASON[toString(choice.finish_reason, "stop")] ?? "STOP";
+
+  const usageSrc = toRecord(openaiResponse.usage);
+  const promptTokens = toNumber(usageSrc.prompt_tokens, 0);
+  const completionTokens = toNumber(usageSrc.completion_tokens, 0);
+
+  const geminiResponse: JsonRecord = {
+    response: {
+      candidates: [
+        {
+          content: { role: "model", parts },
+          finishReason,
+          index: 0,
+        },
+      ],
+      usageMetadata: {
+        promptTokenCount: promptTokens,
+        candidatesTokenCount: completionTokens,
+        totalTokenCount: toNumber(usageSrc.total_tokens, promptTokens + completionTokens),
+      },
+      modelVersion: toString(openaiResponse.model, "unknown"),
+      responseId: toString(openaiResponse.id, `resp_${Date.now()}`),
+    },
+  };
+
+  return geminiResponse;
 }

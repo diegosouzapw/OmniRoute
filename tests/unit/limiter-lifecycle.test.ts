@@ -227,6 +227,7 @@ test("request queue refresh treats zero limits as unbounded for existing limiter
     requestsPerMinute: 0,
     concurrentRequests: 0,
     minTimeBetweenRequestsMs: 0,
+    maxQueueDepth: 0,
   });
 
   assert.equal(

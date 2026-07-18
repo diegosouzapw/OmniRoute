@@ -1,5 +1,6 @@
 /**
- * Thinking-mode upstreams (DeepSeek V4 Flash, Kimi, MiniMax, ...) require
+ * Thinking-mode upstreams (DeepSeek V4 Flash, Kimi, MiniMax, xiaomi-tokenplan
+ * mimo, ...) require
  * `reasoning_content` to be echoed back on every assistant message in the
  * conversation history. Standard OpenAI clients do not preserve that field
  * across turns, so we inject a non-empty placeholder before forwarding.
@@ -26,6 +27,7 @@ const THINKING_MODEL_PATTERNS: RegExp[] = [
   /\bkimi\b/i,
   /\bk2\b/i, // moonshot kimi k2 family alias
   /\bminimax\b/i,
+  /\bmimo\b/i, // xiaomi-tokenplan mimo family (e.g. xiaomi-tokenplan/mimo-v2.5-pro)
 ];
 
 export function isThinkingMessageModel(model: string | undefined | null): boolean {
