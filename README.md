@@ -199,14 +199,14 @@
 
 No combo to create. Set your model to `auto` (or a variant) and OmniRoute builds a virtual combo from your connected providers, scored live:
 
-| Model ID       | What it optimizes for<br><img src="docs/screenshots/spacer.svg" width="820" height="1" alt=""> |
-| -------------- | ---------------------------------------------------------------------------------------------- |
-| `auto`         | 🎯 Balanced default (LKGP — sticks to your last good provider)                                 |
-| `auto/coding`  | 🧑‍💻 Quality-first weights for code generation                                                   |
-| `auto/fast`    | ⚡ Lowest latency first                                                                        |
-| `auto/cheap`   | 💰 Cheapest per token first                                                                    |
-| `auto/offline` | 🔋 Most quota / rate-limit headroom first                                                      |
-| `auto/smart`   | 🔭 Quality-first + 10% exploration to discover better models                                   |
+| Model ID       | What it optimizes for                                                                                                                                                                |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `auto`         | 🎯 Balanced default (LKGP — sticks to your last good provider)                                                                                                                       |
+| `auto/coding`  | 🧑‍💻 Quality-first weights for code generation                                                                                                                                         |
+| `auto/fast`    | ⚡ Lowest latency first                                                                                                                                                              |
+| `auto/cheap`   | 💰 Cheapest per token first                                                                                                                                                          |
+| `auto/offline` | 🔋 Most quota / rate-limit headroom first                                                                                                                                            |
+| `auto/smart`   | 🔭 Quality-first + 10% exploration to discover better models                                                                                                                         |
 
 ##
 
@@ -214,26 +214,26 @@ No combo to create. Set your model to `auto` (or a variant) and OmniRoute builds
 
 All **18** strategies — mix & match per combo step:
 
-| #   | Strategy            | What it does<br><img src="docs/screenshots/spacer.svg" width="730" height="1" alt=""> |
-| --- | ------------------- | ------------------------------------------------------------------------------------- |
-| 1   | `priority`          | First-target ordered list — drain each before the next 🥇                             |
-| 2   | `fill-first`        | Fill each target's quota fully before moving on                                       |
-| 3   | `weighted`          | Weighted random by per-target weight                                                  |
-| 4   | `round-robin`       | Cycle through targets in order                                                        |
-| 5   | `p2c`               | Power-of-two-choices random load balancing                                            |
-| 6   | `least-used`        | Pick the target with the lowest current load                                          |
-| 7   | `random`            | Uniform random pick (deduplicated)                                                    |
-| 8   | `strict-random`     | Random without de-duplicating repeats 🎲                                              |
-| 9   | `cost-optimized`    | Minimize $ per request from live catalog pricing 💸                                   |
-| 10  | `headroom`          | Pick the target with the most remaining quota                                         |
-| 11  | `reset-window`      | Prefer the target whose quota window resets soonest                                   |
-| 12  | `reset-aware`       | Rank by quota reset time — short windows first 📊                                     |
-| 13  | `context-relay`     | Hand off context across targets for long conversations 🧠                             |
-| 14  | `context-optimized` | Pick the best fit for the current context size                                        |
-| 15  | `lkgp`              | Last-Known-Good Path — sticky to the last successful target                           |
-| 16  | `auto`              | 12-factor live scoring across every connection 🤖                                     |
-| 17  | `fusion`            | Fan out to a panel of models + a judge synthesizes one answer 🧬                      |
-| 18  | `pipeline`          | Chain steps — each target's output feeds the next one 🔗                              |
+| #   | Strategy            | What it does                                                                                                                                            |
+| --- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `priority`          | First-target ordered list — drain each before the next 🥇                                                                                               |
+| 2   | `fill-first`        | Fill each target's quota fully before moving on                                                                                                         |
+| 3   | `weighted`          | Weighted random by per-target weight                                                                                                                    |
+| 4   | `round-robin`       | Cycle through targets in order                                                                                                                          |
+| 5   | `p2c`               | Power-of-two-choices random load balancing                                                                                                              |
+| 6   | `least-used`        | Pick the target with the lowest current load                                                                                                            |
+| 7   | `random`            | Uniform random pick (deduplicated)                                                                                                                      |
+| 8   | `strict-random`     | Random without de-duplicating repeats 🎲                                                                                                                |
+| 9   | `cost-optimized`    | Minimize $ per request from live catalog pricing 💸                                                                                                     |
+| 10  | `headroom`          | Pick the target with the most remaining quota                                                                                                           |
+| 11  | `reset-window`      | Prefer the target whose quota window resets soonest                                                                                                     |
+| 12  | `reset-aware`       | Rank by quota reset time — short windows first 📊                                                                                                       |
+| 13  | `context-relay`     | Hand off context across targets for long conversations 🧠                                                                                               |
+| 14  | `context-optimized` | Pick the best fit for the current context size                                                                                                          |
+| 15  | `lkgp`              | Last-Known-Good Path — sticky to the last successful target                                                                                             |
+| 16  | `auto`              | 12-factor live scoring across every connection 🤖                                                                                                       |
+| 17  | `fusion`            | Fan out to a panel of models + a judge synthesizes one answer 🧬                                                                                        |
+| 18  | `pipeline`          | Chain steps — each target's output feeds the next one 🔗                                                                                                |
 
 <sub>The Auto-Combo engine scores every candidate on **12 factors** (health, quota, cost, latency, success rate, freshness…) — see [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
 
@@ -243,12 +243,12 @@ All **18** strategies — mix & match per combo step:
 
 > Running several keys against the **same upstream account** (one Codex Pro plan, one Kimi key, one GLM Coding seat)? A burst on one key can burn the whole 5-hour / hourly quota and lock everyone else out. **Quota-Share** distributes a provider's time-based quota **fairly** across the keys in a pool — and it's _work-conserving_, so an idle member's slice is lent out instead of wasted.
 
-| Knob                     | What it controls<br><img src="docs/screenshots/spacer.svg" width="770" height="1" alt=""> |
-| ------------------------ | ----------------------------------------------------------------------------------------- |
-| ⚖️ **Allocation weight** | each key's slice of the pool — e.g. `50 / 30 / 20`                                        |
-| 📐 **Dimensions**        | track `%` · requests · tokens · `$`, per **5h / 7d / per-model** window                   |
-| 🚦 **Policy**            | `hard` (block over share) · `soft` (deprioritize) · `burst` (use idle headroom)           |
-| 🧱 **Cap**               | absolute ceiling per key, independent of mode                                             |
+| Knob                     | What it controls                                                                                                                                                     |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ⚖️ **Allocation weight** | each key's slice of the pool — e.g. `50 / 30 / 20`                                                                                                                   |
+| 📐 **Dimensions**        | track `%` · requests · tokens · `$`, per **5h / 7d / per-model** window                                                                                              |
+| 🚦 **Policy**            | `hard` (block over share) · `soft` (deprioritize) · `burst` (use idle headroom)                                                                                      |
+| 🧱 **Cap**               | absolute ceiling per key, independent of mode                                                                                                                        |
 
 <img src="./docs/diagrams/pool-fair-share.svg" width="100%" alt="OmniRoute key pool 'team-codex': one Codex Pro account shared by 3 keys over a 5-hour window. alice weight 50 (up to 50% of the shared 5h quota), bob weight 30, ci-bot weight 20. In generous mode (under 50% pool used) idle shares are lent out; once the pool crosses 50% strict mode holds each key to its fair share."/>
 
@@ -330,35 +330,35 @@ All **18** strategies — mix & match per combo step:
 <div align="center">
 <table>
   <tr>
-    <td align="center" width="76"><a href="https://github.com/anthropics/claude-code"><img src="./public/providers/claude.svg" width="40" alt="Claude Code"/><br/><sub><b>Claude Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></a></td>
-    <td align="center" width="76"><a href="https://github.com/openai/codex"><img src="./public/providers/codex.svg" width="40" alt="Codex CLI"/><br/><sub><b>Codex CLI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></a></td>
-    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/cline.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cline.svg" width="40" alt="Cline"/></picture><br/><sub><b>Cline</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><a href="https://github.com/Kilo-Org/kilocode"><img src="./public/providers/kilocode.svg" width="40" alt="Kilo Code"/><br/><sub><b>Kilo Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></a></td>
-    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/roocode.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/roocode.svg" width="40" alt="Roo Code"/></picture><br/><sub><b>Roo Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/continue.png" width="40" alt="Continue"/><br/><sub><b>Continue</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/qwen.svg" width="40" alt="Qwen Code"/><br/><sub><b>Qwen Code</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Aider"/><br/><sub><b>Aider</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="ForgeCode"/><br/><sub><b>ForgeCode</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><a href="https://github.com/anthropics/claude-code"><img src="./public/providers/claude.svg" width="40" alt="Claude Code"/><br/><sub><b>Claude Code</b></sub><br/><sub>                     </sub></a></td>
+    <td align="center" width="76"><a href="https://github.com/openai/codex"><img src="./public/providers/codex.svg" width="40" alt="Codex CLI"/><br/><sub><b>Codex CLI</b></sub><br/><sub>                     </sub></a></td>
+    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/cline.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cline.svg" width="40" alt="Cline"/></picture><br/><sub><b>Cline</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><a href="https://github.com/Kilo-Org/kilocode"><img src="./public/providers/kilocode.svg" width="40" alt="Kilo Code"/><br/><sub><b>Kilo Code</b></sub><br/><sub>                     </sub></a></td>
+    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/roocode.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/roocode.svg" width="40" alt="Roo Code"/></picture><br/><sub><b>Roo Code</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/continue.svg" width="40" alt="Continue"/><br/><sub><b>Continue</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/qwen.svg" width="40" alt="Qwen Code"/><br/><sub><b>Qwen Code</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Aider"/><br/><sub><b>Aider</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="ForgeCode"/><br/><sub><b>ForgeCode</b></sub><br/><sub>                     </sub></td>
   </tr>
   <tr>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="jcode"/><br/><sub><b>jcode</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/deepseek.svg" width="40" alt="DeepSeek TUI"/><br/><sub><b>DeepSeek TUI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="CodeWhale"/><br/><sub><b>CodeWhale</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><a href="https://github.com/anomalyco/opencode"><img src="./public/providers/opencode.svg" width="40" alt="OpenCode"/><br/><sub><b>OpenCode</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></a></td>
-    <td align="center" width="76"><img src="./public/providers/droid.svg" width="40" alt="Factory Droid"/><br/><sub><b>Factory Droid</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/copilot.svg" width="40" alt="GitHub Copilot CLI"/><br/><sub><b>Copilot CLI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cursor.svg" width="40" alt="Cursor CLI"/><br/><sub><b>Cursor CLI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Smelt"/><br/><sub><b>Smelt</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="jcode"/><br/><sub><b>jcode</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/deepseek.svg" width="40" alt="DeepSeek TUI"/><br/><sub><b>DeepSeek TUI</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="CodeWhale"/><br/><sub><b>CodeWhale</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><a href="https://github.com/anomalyco/opencode"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/opencode.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/opencode.svg" width="40" alt="OpenCode"/></picture><br/><sub><b>OpenCode</b></sub><br/><sub>                     </sub></a></td>
+    <td align="center" width="76"><img src="./public/providers/droid.svg" width="40" alt="Factory Droid"/><br/><sub><b>Factory Droid</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/copilot.svg" width="40" alt="GitHub Copilot CLI"/><br/><sub><b>Copilot CLI</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/cursor.svg" width="40" alt="Cursor CLI"/><br/><sub><b>Cursor CLI</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Smelt"/><br/><sub><b>Smelt</b></sub><br/><sub>                     </sub></td>
   </tr>
   <tr>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Pi (pi-coding-agent)"/><br/><sub><b>Pi</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/grok.svg" width="40" alt="Grok Build (xAI)"/><br/><sub><b>Grok Build</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/nousresearch.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/nousresearch.svg" width="40" alt="Hermes Agent (Nous Research)"/></picture><br/><sub><b>Hermes Agent</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/openclaw.svg" width="40" alt="OpenClaw"/><br/><sub><b>OpenClaw</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/goose.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/goose.svg" width="40" alt="Goose"/></picture><br/><sub><b>Goose</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Open Interpreter"/><br/><sub><b>Open Interpreter</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Warp AI"/><br/><sub><b>Warp AI</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
-    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Agent Deck"/><br/><sub><b>Agent Deck</b></sub><br/><img src="docs/screenshots/spacer.svg" width="92" height="1" alt=""/></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Pi (pi-coding-agent)"/><br/><sub><b>Pi</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/grok.svg" width="40" alt="Grok Build (xAI)"/><br/><sub><b>Grok Build</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/nousresearch.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/nousresearch.svg" width="40" alt="Hermes Agent (Nous Research)"/></picture><br/><sub><b>Hermes Agent</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/openclaw.svg" width="40" alt="OpenClaw"/><br/><sub><b>OpenClaw</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/goose.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/goose.svg" width="40" alt="Goose"/></picture><br/><sub><b>Goose</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Open Interpreter"/><br/><sub><b>Open Interpreter</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Warp AI"/><br/><sub><b>Warp AI</b></sub><br/><sub>                     </sub></td>
+    <td align="center" width="76"><img src="./public/providers/cli-generic.svg" width="40" alt="Agent Deck"/><br/><sub><b>Agent Deck</b></sub><br/><sub>                     </sub></td>
   </tr>
 </table>
 </div>
@@ -387,26 +387,26 @@ All **18** strategies — mix & match per combo step:
 
 <table>
   <tr>
-    <td align="center" width="98"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/openai.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/openai.svg" width="40" alt="OpenAI"/></picture><br/><sub>OpenAI</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/claude-color.svg" width="40" alt="Anthropic"/><br/><sub>Anthropic</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/gemini-color.svg" width="40" alt="Gemini"/><br/><sub>Gemini</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/grok.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/grok.svg" width="40" alt="xAI Grok"/></picture><br/><sub>xAI Grok</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/deepseek-color.svg" width="40" alt="DeepSeek"/><br/><sub>DeepSeek</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/mistral-color.svg" width="40" alt="Mistral"/><br/><sub>Mistral</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qwen-color.svg" width="40" alt="Qwen"/><br/><sub>Qwen</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/meta-color.svg" width="40" alt="Meta Llama"/><br/><sub>Meta Llama</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/groq.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/groq.svg" width="40" alt="Groq"/></picture><br/><sub>Groq</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
+    <td align="center" width="98"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/openai.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/openai.svg" width="40" alt="OpenAI"/></picture><br/><sub>OpenAI</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/claude-color.svg" width="40" alt="Anthropic"/><br/><sub>Anthropic</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/gemini-color.svg" width="40" alt="Gemini"/><br/><sub>Gemini</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/grok.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/grok.svg" width="40" alt="xAI Grok"/></picture><br/><sub>xAI Grok</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/deepseek-color.svg" width="40" alt="DeepSeek"/><br/><sub>DeepSeek</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/mistral-color.svg" width="40" alt="Mistral"/><br/><sub>Mistral</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qwen-color.svg" width="40" alt="Qwen"/><br/><sub>Qwen</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/meta-color.svg" width="40" alt="Meta Llama"/><br/><sub>Meta Llama</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/groq.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/groq.svg" width="40" alt="Groq"/></picture><br/><sub>Groq</sub><br/><sub>                     </sub></td>
   </tr>
   <tr>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/nvidia-color.svg" width="40" alt="NVIDIA"/><br/><sub>NVIDIA</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/minimax-color.svg" width="40" alt="MiniMax"/><br/><sub>MiniMax</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cohere-color.svg" width="40" alt="Cohere"/><br/><sub>Cohere</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/perplexity-color.svg" width="40" alt="Perplexity"/><br/><sub>Perplexity</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/huggingface-color.svg" width="40" alt="Hugging Face"/><br/><sub>HuggingFace</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/together-color.svg" width="40" alt="Together"/><br/><sub>Together</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/fireworks-color.svg" width="40" alt="Fireworks"/><br/><sub>Fireworks</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cloudflare-color.svg" width="40" alt="Cloudflare"/><br/><sub>Cloudflare</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
-    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/baidu-color.svg" width="40" alt="Baidu"/><br/><sub>Baidu</sub><br/><img src="docs/screenshots/spacer.svg" width="96" height="1" alt=""/></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/nvidia-color.svg" width="40" alt="NVIDIA"/><br/><sub>NVIDIA</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/minimax-color.svg" width="40" alt="MiniMax"/><br/><sub>MiniMax</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cohere-color.svg" width="40" alt="Cohere"/><br/><sub>Cohere</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/perplexity-color.svg" width="40" alt="Perplexity"/><br/><sub>Perplexity</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/huggingface-color.svg" width="40" alt="Hugging Face"/><br/><sub>HuggingFace</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/together-color.svg" width="40" alt="Together"/><br/><sub>Together</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/fireworks-color.svg" width="40" alt="Fireworks"/><br/><sub>Fireworks</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cloudflare-color.svg" width="40" alt="Cloudflare"/><br/><sub>Cloudflare</sub><br/><sub>                     </sub></td>
+    <td align="center" width="98"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/baidu-color.svg" width="40" alt="Baidu"/><br/><sub>Baidu</sub><br/><sub>                     </sub></td>
   </tr>
 </table>
 
@@ -418,13 +418,13 @@ All **18** strategies — mix & match per combo step:
 
 <table>
   <tr>
-    <td align="center" width="127"><img src="./public/providers/agentrouter.png" width="44" alt="AgentRouter"/><br/><b>AgentRouter</b><br/><sub>GPT-5, Claude, Gemini<br/>$100 free credits</sub><br/><img src="docs/screenshots/spacer.svg" width="128" height="1" alt=""/></td>
-    <td align="center" width="127"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="44" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Kimi-K2, DeepSeek-R1<br/>Unlimited FREE</sub><br/><img src="docs/screenshots/spacer.svg" width="128" height="1" alt=""/></td>
-    <td align="center" width="127"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/pollinations.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/pollinations.svg" width="44" alt="Pollinations"/></picture><br/><b>Pollinations</b><br/><sub>GPT-5, Claude, Llama 4<br/>No key needed</sub><br/><img src="docs/screenshots/spacer.svg" width="128" height="1" alt=""/></td>
-    <td align="center" width="127"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/longcat-color.svg" width="44" alt="LongCat"/><br/><b>LongCat</b><br/><sub>LongCat-2.0<br/>10M tokens one-time (KYC) 🔑</sub><br/><img src="docs/screenshots/spacer.svg" width="128" height="1" alt=""/></td>
-    <td align="center" width="127"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cloudflare-color.svg" width="44" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ models<br/>10K neurons/day</sub><br/><img src="docs/screenshots/spacer.svg" width="128" height="1" alt=""/></td>
-    <td align="center" width="127"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/nvidia-color.svg" width="44" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>129 models<br/>~40 RPM free</sub><br/><img src="docs/screenshots/spacer.svg" width="128" height="1" alt=""/></td>
-    <td align="center" width="127"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cerebras-color.svg" width="44" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>Qwen3 235B<br/>1M tokens/day</sub><br/><img src="docs/screenshots/spacer.svg" width="128" height="1" alt=""/></td>
+    <td align="center" width="127"><img src="./public/providers/agentrouter.png" width="44" alt="AgentRouter"/><br/><b>AgentRouter</b><br/><sub>GPT-5, Claude, Gemini<br/>$100 free credits</sub><br/><sub>                              </sub></td>
+    <td align="center" width="127"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="44" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Kimi-K2, DeepSeek-R1<br/>Unlimited FREE</sub><br/><sub>                              </sub></td>
+    <td align="center" width="127"><picture><source media="(prefers-color-scheme:dark)" srcset="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@1.91.0/dark/pollinations.png"/><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/pollinations.svg" width="44" alt="Pollinations"/></picture><br/><b>Pollinations</b><br/><sub>GPT-5, Claude, Llama 4<br/>No key needed</sub><br/><sub>                              </sub></td>
+    <td align="center" width="127"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/longcat-color.svg" width="44" alt="LongCat"/><br/><b>LongCat</b><br/><sub>LongCat-2.0<br/>10M tokens one-time (KYC) 🔑</sub><br/><sub>                              </sub></td>
+    <td align="center" width="127"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cloudflare-color.svg" width="44" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ models<br/>10K neurons/day</sub><br/><sub>                              </sub></td>
+    <td align="center" width="127"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/nvidia-color.svg" width="44" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>129 models<br/>~40 RPM free</sub><br/><sub>                              </sub></td>
+    <td align="center" width="127"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/cerebras-color.svg" width="44" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>Qwen3 235B<br/>1M tokens/day</sub><br/><sub>                              </sub></td>
   </tr>
 </table>
 
@@ -560,14 +560,14 @@ Engines run in pipeline order; each is independently toggleable and configurable
 
 Code blocks, URLs and structured data are **always preserved** byte-perfect. **One-click presets** combine the engines:
 
-| Mode                           | Savings    | Best for<br><img src="docs/screenshots/spacer.svg" width="640" height="1" alt=""> |
-| ------------------------------ | ---------- | --------------------------------------------------------------------------------- |
-| 🪶 **Lite**                    | ~15%       | Always-on safe default                                                            |
-| 🪨 **Standard (Caveman)**      | ~30%       | Daily coding                                                                      |
-| ⚡ **Aggressive**              | ~50%       | Long tool-heavy sessions                                                          |
-| 🔥 **Ultra**                   | ~75%       | Maximum savings                                                                   |
-| 🧰 **RTK**                     | 60–90%     | Shell/test/build/git output                                                       |
-| 🔗 **Stacked (RTK → Caveman)** | **78–95%** | Mixed prompts + tool logs                                                         |
+| Mode                           | Savings    | Best for                                                                                                                       |
+| ------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 🪶 **Lite**                    | ~15%       | Always-on safe default                                                                                                         |
+| 🪨 **Standard (Caveman)**      | ~30%       | Daily coding                                                                                                                   |
+| ⚡ **Aggressive**              | ~50%       | Long tool-heavy sessions                                                                                                       |
+| 🔥 **Ultra**                   | ~75%       | Maximum savings                                                                                                                |
+| 🧰 **RTK**                     | 60–90%     | Shell/test/build/git output                                                                                                    |
+| 🔗 **Stacked (RTK → Caveman)** | **78–95%** | Mixed prompts + tool logs                                                                                                      |
 
 **Real example — Standard mode:**
 
@@ -840,66 +840,66 @@ same process on one port, so there is no separate CLI-only package today.
 
 ### 📘 Getting Started
 
-| Document                                                       | Description<br><img src="docs/screenshots/spacer.svg" width="780" height="1" alt=""> |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| [User Guide](docs/guides/USER_GUIDE.md)                        | Providers, combos, CLI integration, deployment                                       |
-| [Setup Guide](docs/guides/SETUP_GUIDE.md)                      | Full install methods, CLI tool configs, protocol setup, timeout tuning               |
-| [CLI Tools Guide](docs/reference/CLI-TOOLS.md)                 | Per-tool setup for Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot        |
-| [Remote Mode](docs/guides/REMOTE-MODE.md)                      | Drive a remote OmniRoute (VPS) from your laptop CLI via scoped access tokens         |
-| [Claude Code Config](docs/guides/CLAUDE-CODE-CONFIGURATION.md) | Point Claude Code at OmniRoute (local/remote) with `launch` + per-model profiles     |
-| [Quick Start](README.md#-quick-start)                          | 3-step install → connect → configure                                                 |
+| Document                                                       | Description                                                                                                                                                       |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [User Guide](docs/guides/USER_GUIDE.md)                        | Providers, combos, CLI integration, deployment                                                                                                                    |
+| [Setup Guide](docs/guides/SETUP_GUIDE.md)                      | Full install methods, CLI tool configs, protocol setup, timeout tuning                                                                                            |
+| [CLI Tools Guide](docs/reference/CLI-TOOLS.md)                 | Per-tool setup for Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot                                                                                     |
+| [Remote Mode](docs/guides/REMOTE-MODE.md)                      | Drive a remote OmniRoute (VPS) from your laptop CLI via scoped access tokens                                                                                      |
+| [Claude Code Config](docs/guides/CLAUDE-CODE-CONFIGURATION.md) | Point Claude Code at OmniRoute (local/remote) with `launch` + per-model profiles                                                                                  |
+| [Quick Start](README.md#-quick-start)                          | 3-step install → connect → configure                                                                                                                              |
 
 ### 🔧 Operations & Deployment
 
-| Document                                                 | Description<br><img src="docs/screenshots/spacer.svg" width="780" height="1" alt=""> |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| [Docker Guide](docs/guides/DOCKER_GUIDE.md)              | Docker run, Compose profiles, Caddy HTTPS, tunnels, image tags                       |
-| [Podman Guide](contrib/podman/README.md)                 | Quadlet systemd integration, podman-compose, SELinux                                 |
-| [VM Deployment](docs/ops/VM_DEPLOYMENT_GUIDE.md)         | Complete guide: VM + nginx + Cloudflare setup                                        |
-| [Fly.io Deployment](docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) | Deploy to Fly.io with persistent storage                                             |
-| [Termux Guide](docs/guides/TERMUX_GUIDE.md)              | Run OmniRoute on Android via Termux                                                  |
-| [PWA Guide](docs/guides/PWA_GUIDE.md)                    | Progressive Web App install, caching, architecture                                   |
-| [Uninstall Guide](docs/guides/UNINSTALL.md)              | Clean removal for all install methods                                                |
-| [Environment Config](docs/reference/ENVIRONMENT.md)      | Complete `.env` variables and references                                             |
+| Document                                                 | Description                                                                                                                                                       |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Docker Guide](docs/guides/DOCKER_GUIDE.md)              | Docker run, Compose profiles, Caddy HTTPS, tunnels, image tags                                                                                                    |
+| [Podman Guide](contrib/podman/README.md)                 | Quadlet systemd integration, podman-compose, SELinux                                                                                                              |
+| [VM Deployment](docs/ops/VM_DEPLOYMENT_GUIDE.md)         | Complete guide: VM + nginx + Cloudflare setup                                                                                                                     |
+| [Fly.io Deployment](docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) | Deploy to Fly.io with persistent storage                                                                                                                          |
+| [Termux Guide](docs/guides/TERMUX_GUIDE.md)              | Run OmniRoute on Android via Termux                                                                                                                               |
+| [PWA Guide](docs/guides/PWA_GUIDE.md)                    | Progressive Web App install, caching, architecture                                                                                                                |
+| [Uninstall Guide](docs/guides/UNINSTALL.md)              | Clean removal for all install methods                                                                                                                             |
+| [Environment Config](docs/reference/ENVIRONMENT.md)      | Complete `.env` variables and references                                                                                                                          |
 
 ### 🧠 Features & Architecture
 
-| Document                                                                     | Description<br><img src="docs/screenshots/spacer.svg" width="720" height="1" alt=""> |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| [Architecture](docs/architecture/ARCHITECTURE.md)                            | System architecture, data flow, and internals                                        |
-| [Compression Guide](docs/compression/COMPRESSION_GUIDE.md)                   | 7-option pipeline: off / lite / standard / aggressive / ultra / RTK / stacked        |
-| [RTK Compression](docs/compression/RTK_COMPRESSION.md)                       | Command-output compression, filters, trust, verify, raw-output recovery              |
-| [Compression Engines](docs/compression/COMPRESSION_ENGINES.md)               | Caveman, RTK, stacked pipelines, dashboard/API/MCP surfaces                          |
-| [Compression Rules Format](docs/compression/COMPRESSION_RULES_FORMAT.md)     | JSON rule-pack schemas for Caveman and RTK filters                                   |
-| [Compression Language Packs](docs/compression/COMPRESSION_LANGUAGE_PACKS.md) | Language detection and Caveman rule-pack authoring                                   |
-| [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)                    | Circuit breakers, cooldowns, queue, anti-thundering herd, TLS spoofing               |
-| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                              | 12-factor scoring, mode packs, self-healing                                          |
-| [Proxy Guide](docs/ops/PROXY_GUIDE.md)                                       | 3-level proxy system, 1proxy marketplace, registry CRUD                              |
-| [Free Tiers](docs/reference/FREE_TIERS.md)                                   | 25+ free API providers consolidated directory                                        |
-| [Features Gallery](docs/guides/FEATURES.md)                                  | Visual dashboard tour with screenshots                                               |
-| [Codebase Documentation](docs/architecture/CODEBASE_DOCUMENTATION.md)        | Beginner-friendly codebase walkthrough                                               |
+| Document                                                                     | Description                                                                                                                                         |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Architecture](docs/architecture/ARCHITECTURE.md)                            | System architecture, data flow, and internals                                                                                                       |
+| [Compression Guide](docs/compression/COMPRESSION_GUIDE.md)                   | 7-option pipeline: off / lite / standard / aggressive / ultra / RTK / stacked                                                                       |
+| [RTK Compression](docs/compression/RTK_COMPRESSION.md)                       | Command-output compression, filters, trust, verify, raw-output recovery                                                                             |
+| [Compression Engines](docs/compression/COMPRESSION_ENGINES.md)               | Caveman, RTK, stacked pipelines, dashboard/API/MCP surfaces                                                                                         |
+| [Compression Rules Format](docs/compression/COMPRESSION_RULES_FORMAT.md)     | JSON rule-pack schemas for Caveman and RTK filters                                                                                                  |
+| [Compression Language Packs](docs/compression/COMPRESSION_LANGUAGE_PACKS.md) | Language detection and Caveman rule-pack authoring                                                                                                  |
+| [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)                    | Circuit breakers, cooldowns, queue, anti-thundering herd, TLS spoofing                                                                              |
+| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                              | 12-factor scoring, mode packs, self-healing                                                                                                         |
+| [Proxy Guide](docs/ops/PROXY_GUIDE.md)                                       | 3-level proxy system, 1proxy marketplace, registry CRUD                                                                                             |
+| [Free Tiers](docs/reference/FREE_TIERS.md)                                   | 25+ free API providers consolidated directory                                                                                                       |
+| [Features Gallery](docs/guides/FEATURES.md)                                  | Visual dashboard tour with screenshots                                                                                                              |
+| [Codebase Documentation](docs/architecture/CODEBASE_DOCUMENTATION.md)        | Beginner-friendly codebase walkthrough                                                                                                              |
 
 ### 🤖 Protocols & APIs
 
-| Document                                          | Description<br><img src="docs/screenshots/spacer.svg" width="800" height="1" alt=""> |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| [API Reference](docs/reference/API_REFERENCE.md)  | All endpoints with examples                                                          |
-| [OpenAPI Spec](docs/openapi.yaml)                 | OpenAPI 3.0 specification                                                            |
-| [MCP Server](open-sse/mcp-server/README.md)       | 95 MCP tools, IDE configs, Python/TS/Go clients                                      |
-| [MCP Server Guide](docs/frameworks/MCP-SERVER.md) | MCP installation, transports, and tool reference                                     |
-| [A2A Server](src/lib/a2a/README.md)               | JSON-RPC 2.0 protocol, skills, streaming, task mgmt                                  |
-| [A2A Server Guide](docs/frameworks/A2A-SERVER.md) | A2A agent card, tasks, skills, and streaming                                         |
+| Document                                          | Description                                                                                                                                                            |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [API Reference](docs/reference/API_REFERENCE.md)  | All endpoints with examples                                                                                                                                            |
+| [OpenAPI Spec](docs/openapi.yaml)                 | OpenAPI 3.0 specification                                                                                                                                              |
+| [MCP Server](open-sse/mcp-server/README.md)       | 95 MCP tools, IDE configs, Python/TS/Go clients                                                                                                                        |
+| [MCP Server Guide](docs/frameworks/MCP-SERVER.md) | MCP installation, transports, and tool reference                                                                                                                       |
+| [A2A Server](src/lib/a2a/README.md)               | JSON-RPC 2.0 protocol, skills, streaming, task mgmt                                                                                                                    |
+| [A2A Server Guide](docs/frameworks/A2A-SERVER.md) | A2A agent card, tasks, skills, and streaming                                                                                                                           |
 
 ### 📋 Project & Quality
 
-| Document                                           | Description<br><img src="docs/screenshots/spacer.svg" width="790" height="1" alt=""> |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| [Contributing](CONTRIBUTING.md)                    | Development setup and guidelines                                                     |
-| [Changelog](CHANGELOG.md)                          | Full per-version release history                                                     |
-| [Security Policy](SECURITY.md)                     | Vulnerability reporting and security practices                                       |
-| [i18n Guide](docs/guides/I18N.md)                  | 40+ language support, translation workflow, RTL                                      |
-| [Release Checklist](docs/ops/RELEASE_CHECKLIST.md) | Pre-release validation steps                                                         |
-| [Coverage Plan](docs/ops/COVERAGE_PLAN.md)         | Test coverage strategy and 21,000+ test suite                                        |
+| Document                                           | Description                                                                                                                                                         |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Contributing](CONTRIBUTING.md)                    | Development setup and guidelines                                                                                                                                    |
+| [Changelog](CHANGELOG.md)                          | Full per-version release history                                                                                                                                    |
+| [Security Policy](SECURITY.md)                     | Vulnerability reporting and security practices                                                                                                                      |
+| [i18n Guide](docs/guides/I18N.md)                  | 40+ language support, translation workflow, RTL                                                                                                                     |
+| [Release Checklist](docs/ops/RELEASE_CHECKLIST.md) | Pre-release validation steps                                                                                                                                        |
+| [Coverage Plan](docs/ops/COVERAGE_PLAN.md)         | Test coverage strategy and 21,000+ test suite                                                                                                                       |
 
 <br/>
 
