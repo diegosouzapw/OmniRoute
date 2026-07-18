@@ -17,12 +17,12 @@ those through this runbook.
 
 ## 1. Severity ladder
 
-| Sev | Definition | Examples | Page on | Resolve by |
-|---|---|---|---|---|
-| **SEV-1** | User-visible outage; > 50 % of requests failing or > 2x SLO breach for 5 min. | Cluster down; auth layer broken; 5xx flood. | On-call P0 (immediate) | 4 h |
-| **SEV-2** | Significant degradation; 1.5–2x SLO breach for 15 min, or single-tenant impact. | Single provider down; p95 > 1.5x budget; rate-limit runaway. | On-call P1 (15 min) | 24 h |
-| **SEV-3** | Latent bug or near-miss; no current user impact but error budget at risk. | Memory leak trending up; circuit breaker tripping on one provider. | Slack `#omniroute-ops` (next standup) | 7 d |
-| **SEV-4** | Cosmetic / informational. | Log line noise; non-binding UI glitch. | Next weekly review | Next refactor cycle |
+| Sev       | Definition                                                                      | Examples                                                           | Page on                               | Resolve by          |
+| --------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------- | ------------------- |
+| **SEV-1** | User-visible outage; > 50 % of requests failing or > 2x SLO breach for 5 min.   | Cluster down; auth layer broken; 5xx flood.                        | On-call P0 (immediate)                | 4 h                 |
+| **SEV-2** | Significant degradation; 1.5–2x SLO breach for 15 min, or single-tenant impact. | Single provider down; p95 > 1.5x budget; rate-limit runaway.       | On-call P1 (15 min)                   | 24 h                |
+| **SEV-3** | Latent bug or near-miss; no current user impact but error budget at risk.       | Memory leak trending up; circuit breaker tripping on one provider. | Slack `#omniroute-ops` (next standup) | 7 d                 |
+| **SEV-4** | Cosmetic / informational.                                                       | Log line noise; non-binding UI glitch.                             | Next weekly review                    | Next refactor cycle |
 
 **Burn-rate escalation** (per `docs/PERF_BUDGETS.md` § 1): 6x for 5 min
 is SEV-1; 2x for 1 h is SEV-2; sustained < 1x for 7 d demotes to SEV-3.
@@ -31,14 +31,14 @@ is SEV-1; 2x for 1 h is SEV-2; sustained < 1x for 7 d demotes to SEV-3.
 
 ## 2. Detection sources
 
-| Source | Signal | Routing |
-|---|---|---|
-| Prometheus (`/metrics`) | Counter deltas (5xx, latency) | Alertmanager → PagerDuty |
-| Grafana SLO dashboards | SLO burn-rate panels | Slack `#omniroute-ops` |
-| Uptime probe (`/api/health/ping`) | 3 consecutive failures from 3 regions | Alertmanager → PagerDuty |
-| Dependabot | New CVE in dependency | GitHub issue + Slack `#security` |
-| User report (support@) | Manual triage | Slack `#omniroute-triage` |
-| Error budget burn alert | `slo_burn_rate > threshold` | Alertmanager |
+| Source                            | Signal                                | Routing                          |
+| --------------------------------- | ------------------------------------- | -------------------------------- |
+| Prometheus (`/metrics`)           | Counter deltas (5xx, latency)         | Alertmanager → PagerDuty         |
+| Grafana SLO dashboards            | SLO burn-rate panels                  | Slack `#omniroute-ops`           |
+| Uptime probe (`/api/health/ping`) | 3 consecutive failures from 3 regions | Alertmanager → PagerDuty         |
+| Dependabot                        | New CVE in dependency                 | GitHub issue + Slack `#security` |
+| User report (support@)            | Manual triage                         | Slack `#omniroute-triage`        |
+| Error budget burn alert           | `slo_burn_rate > threshold`           | Alertmanager                     |
 
 Prometheus and Alertmanager are configured in the deploy repo (see
 `docs/operations/DEPLOY.md` once published; currently inline in
@@ -99,7 +99,8 @@ not** skip steps; each is timed.
 
 ### 4.2 Cluster-wide latency regression
 
-1. Check the most recent deploy (`/api/version` returns the SHA).
+1. Check the current application version through the authenticated
+   `GET /api/system/version` endpoint, then confirm the exact SHA in the deployment record.
 2. If p95 doubled vs the 7-day baseline, **roll back** to the prior
    SHA via `bin/rollback.sh`.
 3. If the regression is provider-side, see § 4.1.
@@ -124,7 +125,7 @@ not** skip steps; each is timed.
 ### 4.4 Data-layer incident (sqlite corruption, audit log gap)
 
 1. **Stop the cluster** (`docker compose -f docker-compose.prod.yml
-   stop`) — preventing further writes is more important than uptime.
+stop`) — preventing further writes is more important than uptime.
 2. Snapshot the data volume (`bin/snapshot-data.sh`).
 3. Open a SEV-1; this is data-loss territory. Page the data-team.
 4. Restore from the last verified backup (see `docs/BACKUP.md` once
@@ -140,13 +141,13 @@ security on-call (`@security-team`); do not post details to
 
 ## 5. Communication
 
-| Audience | Channel | Cadence | Owner |
-|---|---|---|---|
-| Engineering | `#inc-YYYY-MM-DD-slug` | Real-time | Incident commander |
-| Status page | TBD — not provisioned by this repo | Every 30 min during SEV-1/2 | On-call |
-| Customers (email) | TBD — set your announcement list/address | At SEV-1 start + resolution | Comms lead |
-| Upstream providers | Direct contact | At SEV-1 start | Vendor mgmt |
-| Postmortem | `docs/postmortem/YYYY-MM-DD-slug.md` | Within 5 business days | Incident commander |
+| Audience           | Channel                                  | Cadence                     | Owner              |
+| ------------------ | ---------------------------------------- | --------------------------- | ------------------ |
+| Engineering        | `#inc-YYYY-MM-DD-slug`                   | Real-time                   | Incident commander |
+| Status page        | TBD — not provisioned by this repo       | Every 30 min during SEV-1/2 | On-call            |
+| Customers (email)  | TBD — set your announcement list/address | At SEV-1 start + resolution | Comms lead         |
+| Upstream providers | Direct contact                           | At SEV-1 start              | Vendor mgmt        |
+| Postmortem         | `docs/postmortem/YYYY-MM-DD-slug.md`     | Within 5 business days      | Incident commander |
 
 Postmortem template is at `docs/postmortem/TEMPLATE.md` (forthcoming; no
 dedicated ADR covers it yet — once written, register it in
@@ -157,12 +158,12 @@ numbering convention, e.g. ADR-041 there).
 
 ## 6. On-call rotation
 
-| Role | Primary | Secondary | Rotation |
-|---|---|---|---|
+| Role                | Primary              | Secondary | Rotation              |
+| ------------------- | -------------------- | --------- | --------------------- |
 | Engineering on-call | security-circle lead | @open-sse | Weekly, Mon 09:00 PDT |
-| Security on-call | @security-team | — | Weekly |
-| Data on-call | @db-team | — | Weekly |
-| Comms lead | @comms | — | As needed |
+| Security on-call    | @security-team       | —         | Weekly                |
+| Data on-call        | @db-team             | —         | Weekly                |
+| Comms lead          | @comms               | —         | As needed             |
 
 **Handoff**: every Monday 09:00 PDT, the outgoing on-call posts a
 written handoff to the incoming in `#omniroute-ops-handoff` covering:
@@ -180,15 +181,15 @@ in-flight mitigations.
 - **Action items** must be assigned, dated, and tracked in
   `docs/TECH_DEBT.md` (P0 < 30 d, P1 < 90 d per that doc's SLA).
 - **Mandatory attendees**: incident commander, on-call, any engineer
-  who touched the mitigation, and one person who was *not* involved
+  who touched the mitigation, and one person who was _not_ involved
   (fresh-eyes review).
 
 ---
 
 ## 8. Review log
 
-| Date | Reviewer | Change |
-|---|---|---|
-| 2026-06-18 | security-circle lead | Initial runbook; severity ladder + 15-min checklist + 4.1–4.5 mitigation runbooks. Closes 71-pillar audit L61 (1/3 → 2/3). |
-| 2026-07-18 | observability-circle | Corrected § 4.1/4.3 to the real provider-disable (`PUT /api/providers/{connectionId}`) and authz-inventory (`tiers`/`bypassEnabled`/`cors`, no `policies_active`) mechanisms; removed foreign branding and the nonexistent ADR-024/029 references. |
-| 2026-07-18 (planned) | observability-circle | Wire on-call rotation into PagerDuty schedule; add the postmortem template. |
+| Date                 | Reviewer             | Change                                                                                                                                                                                                                                             |
+| -------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-06-18           | security-circle lead | Initial runbook; severity ladder + 15-min checklist + 4.1–4.5 mitigation runbooks. Closes 71-pillar audit L61 (1/3 → 2/3).                                                                                                                         |
+| 2026-07-18           | observability-circle | Corrected § 4.1/4.3 to the real provider-disable (`PUT /api/providers/{connectionId}`) and authz-inventory (`tiers`/`bypassEnabled`/`cors`, no `policies_active`) mechanisms; removed foreign branding and the nonexistent ADR-024/029 references. |
+| 2026-07-18 (planned) | observability-circle | Wire on-call rotation into PagerDuty schedule; add the postmortem template.                                                                                                                                                                        |
