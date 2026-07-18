@@ -35,6 +35,15 @@
  *   the same dynamic-import-with-injectable-override seam (fail-open on lookup
  *   errors, mirroring resolveSaturation) and gates the pin alongside headroom.
  *   For tests the fetcher is injected via __setStickinessConnectionFetcherForTests.
+ * • Quota-exhaustion gate (#7387): testStatus/rateLimitedUntil alone still
+ *   miss a connection whose 5h/weekly quota window is depleted but that
+ *   hasn't (yet) received a hard failure severe enough to flip either field —
+ *   exactly what a quota-preflight/dashboard-detected depletion looks like
+ *   before any upstream 429 lands for this run. isAccountQuotaExhausted()
+ *   (src/domain/quotaCache.ts) is the authoritative per-window signal the rest
+ *   of the credential-selection pipeline already gates on (auth.ts,
+ *   sessionAffinityPin.ts); it now also releases the combo-level sticky pin.
+ *   For tests the checker is injected via __setStickinessQuotaCheckerForTests.
  *
  * No barrel import — consistent with the other combo/* helpers.
  *
@@ -162,6 +171,51 @@ export function isStickyConnectionTerminallyUnhealthy(
   if (TERMINAL_STICKY_STATUSES.has(status)) return true;
   const rl = conn.rateLimitedUntil ? new Date(String(conn.rateLimitedUntil)).getTime() : 0;
   return Number.isFinite(rl) && rl > now;
+}
+
+// ─── Per-window quota-exhaustion gate (#7387) ────────────────────────────────
+
+/**
+ * Injectable quota-exhaustion checker seam (for unit tests that don't want to
+ * hydrate the real in-memory quota cache).
+ */
+export type QuotaExhaustionChecker = (connectionId: string) => boolean;
+
+let _quotaExhaustionOverride: QuotaExhaustionChecker | null = null;
+
+/** Test-only: inject the quota-exhaustion checker; pass null to restore default. */
+export function __setStickinessQuotaCheckerForTests(
+  checker: QuotaExhaustionChecker | null
+): void {
+  _quotaExhaustionOverride = checker;
+}
+
+/**
+ * Is the sticky-bound connection's per-window (5h/weekly) quota exhausted?
+ *
+ * `isStickyConnectionTerminallyUnhealthy` above only looks at testStatus/
+ * rateLimitedUntil (#6692) — it misses a connection whose quota window is
+ * fully depleted (per src/domain/quotaCache.ts::isAccountQuotaExhausted, the
+ * same authoritative per-window signal src/sse/services/auth.ts and
+ * sessionAffinityPin.ts already gate on) but that hasn't yet received a hard
+ * failure severe enough to flip testStatus or set rateLimitedUntil. Without
+ * this check the combo-level sticky pin re-promotes the depleted account on
+ * every request, defeating whatever strategy picked a healthy one. (#7387)
+ *
+ * Dynamic import (mirroring resolveConnectionHealth/resolveSaturation above)
+ * so this open-sse/ leaf keeps no static edge into src/domain/. Fail-open
+ * (false) on any lookup error — an unresolved check must never drop a
+ * healthy pin.
+ */
+async function isStickyConnectionQuotaExhausted(connectionId: string): Promise<boolean> {
+  if (_quotaExhaustionOverride) return _quotaExhaustionOverride(connectionId);
+
+  try {
+    const mod = await import("../../../src/domain/quotaCache");
+    return Boolean(mod.isAccountQuotaExhausted(connectionId));
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -374,15 +428,17 @@ export async function applySessionStickiness(
     // accounts report healthy 5h/weekly utilization, so headroom alone never
     // catches them).
     const stickyTarget = orderedTargets[stickyIdx];
-    const [sat, connHealth] = await Promise.all([
+    const [sat, connHealth, quotaExhausted] = await Promise.all([
       resolveSaturation(connectionId, stickyTarget.provider),
       resolveConnectionHealth(connectionId, stickyTarget.provider),
+      isStickyConnectionQuotaExhausted(connectionId),
     ]);
     const headroom = computeHeadroom(sat);
 
     if (
       headroom <= STICKINESS_HEADROOM_THRESHOLD ||
-      isStickyConnectionTerminallyUnhealthy(connHealth, Date.now())
+      isStickyConnectionTerminallyUnhealthy(connHealth, Date.now()) ||
+      quotaExhausted
     ) {
       // Connection saturated or durably unhealthy — rebind on next success
       clearStickyBinding(messageHash);

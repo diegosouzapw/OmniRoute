@@ -6,6 +6,9 @@
  */
 
 import { LMARENA_DIRECT_IMAGE_MODELS } from "./providers/registry/lmarena/directModels.ts";
+import { SEGMIND_IMAGE_PROVIDER } from "./providers/registry/segmind/imageModels.ts";
+import { KIE_IMAGE_MODELS } from "./providers/registry/kie/imageModels.ts";
+import { FREEPIK_IMAGE_PROVIDER } from "./providers/registry/freepik/index.ts";
 
 interface ImageModelEntry {
   id: string;
@@ -168,6 +171,17 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "1024x1536", "1536x1024"],
   },
 
+  "microsoft-designer-web": {
+    id: "microsoft-designer-web",
+    alias: "msdesigner",
+    baseUrl: "https://designerapp.officeapps.live.com/designerapp/DallE.ashx?action=GetDallEImagesCogSci",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "designer-web",
+    models: [{ id: "dall-e-3", name: "DALL-E 3 (Microsoft Designer Web)" }],
+    supportedSizes: ["1024x1024", "1792x1024", "1024x1792"],
+  },
+
   xai: {
     id: "xai",
     baseUrl: "https://api.x.ai/v1/images/generations",
@@ -311,44 +325,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "kie-image",
-    models: [
-      { id: "gpt4o-image", name: "KIE 4o Image" },
-      { id: "seedream/4.5-text-to-image", name: "Seedream 4.5", isMarket: true },
-      { id: "seedream/4.5-edit", name: "Seedream 4.5 Edit", isMarket: true },
-      { id: "seedream/5.0-lite-text-to-image", name: "Seedream 5.0 Lite", isMarket: true },
-      { id: "seedream/5.0-lite-image-to-image", name: "Seedream 5.0 Lite I2I", isMarket: true },
-      { id: "z-image/4.0-text-to-image", name: "Z-Image v4.0", isMarket: true },
-      { id: "z-image/4.5-text-to-image", name: "Z-Image v4.5", isMarket: true },
-      { id: "google-imagen/imagen4-fast", name: "Imagen 4 Fast", isMarket: true },
-      { id: "google-imagen/imagen4-ultra", name: "Imagen 4 Ultra", isMarket: true },
-      { id: "google-imagen/imagen4", name: "Imagen 4", isMarket: true },
-      { id: "google-imagen/nano-banana-2", name: "Nano Banana 2", isMarket: true },
-      { id: "google-imagen/nano-banana", name: "Nano Banana", isMarket: true },
-      { id: "google-imagen/nano-banana-pro", name: "Nano Banana Pro", isMarket: true },
-      { id: "google-imagen/nano-banana-edit", name: "Nano Banana Edit", isMarket: true },
-      { id: "flux/2-pro-image-to-image", name: "Flux 2 Pro I2I", isMarket: true },
-      { id: "flux/2-pro-text-to-image", name: "Flux 2 Pro T2I", isMarket: true },
-      { id: "flux/2-image-to-image", name: "Flux 2 I2I", isMarket: true },
-      { id: "flux/2-text-to-image", name: "Flux 2 T2I", isMarket: true },
-      { id: "flux/kontext", name: "Flux Kontext", isMarket: true },
-      { id: "grok-imagine/text-to-image", name: "Grok Imagine T2I", isMarket: true },
-      { id: "grok-imagine/image-to-image", name: "Grok Imagine I2I", isMarket: true },
-      { id: "gpt/gpt-image-1.5-text-to-image", name: "GPT Image 1.5 T2I", isMarket: true },
-      { id: "gpt/gpt-image-1.5-image-to-image", name: "GPT Image 1.5 I2I", isMarket: true },
-      { id: "gpt/gpt-image-2-text-to-image", name: "GPT Image 2 T2I", isMarket: true },
-      { id: "gpt/gpt-image-2-image-to-image", name: "GPT Image 2 I2I", isMarket: true },
-      { id: "ideogram/v3-text-to-image", name: "Ideogram v3", isMarket: true },
-      { id: "ideogram/v3-edit", name: "Ideogram v3 Edit", isMarket: true },
-      { id: "ideogram/v3-remix", name: "Ideogram v3 Remix", isMarket: true },
-      { id: "ideogram/v3-reframe", name: "Ideogram v3 Reframe", isMarket: true },
-      { id: "qwen/text-to-image", name: "Qwen T2I", isMarket: true },
-      { id: "qwen/image-to-image", name: "Qwen I2I", isMarket: true },
-      { id: "qwen/image-edit", name: "Qwen Edit", isMarket: true },
-      { id: "qwen2/image-edit", name: "Qwen2 Edit", isMarket: true },
-      { id: "qwen2/text-to-image", name: "Qwen2 T2I", isMarket: true },
-      { id: "wan/2.7-image", name: "Wan 2.7 Image", isMarket: true },
-      { id: "wan/2.7-image-pro", name: "Wan 2.7 Image Pro", isMarket: true },
-    ],
+    models: KIE_IMAGE_MODELS,
     supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4"],
   },
 
@@ -361,6 +338,21 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     format: "haiper-image",
     models: [{ id: "gen2", name: "Gen 2 Image" }],
     supportedSizes: ["16:9", "9:16", "1:1", "4:3", "3:4"],
+  },
+  // #2482: MiniMax already has entries in musicRegistry/audioRegistry/videoRegistry,
+  // but was missing an image provider entirely, so MiniMax image-model requests
+  // fell through the format dispatch below to a 400/unmatched-format response.
+  minimax: {
+    id: "minimax",
+    baseUrl: "https://api.minimax.io/v1/image_generation",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "minimax-image",
+    models: [
+      { id: "image-01", name: "MiniMax Image-01" },
+      { id: "image-01-live", name: "MiniMax Image-01 Live" },
+    ],
+    supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "1024x1024"],
   },
   leonardo: {
     id: "leonardo",
@@ -386,6 +378,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     ],
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
   },
+  freepik: FREEPIK_IMAGE_PROVIDER,
   sdwebui: {
     id: "sdwebui",
     baseUrl: "http://localhost:7860/sdapi/v1/txt2img",
@@ -554,6 +547,9 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     models: [{ id: "topaz-enhance", name: "topaz-enhance", inputModalities: ["image"] }],
     supportedSizes: ["1024x1024"],
   },
+
+  // Segmind (#6656): 200+ models, `POST /v1/{model}`, x-api-key, raw image bytes.
+  segmind: SEGMIND_IMAGE_PROVIDER,
   nanogpt: {
     id: "nanogpt",
     baseUrl: "https://nano-gpt.com/api/v1/images/generations",
