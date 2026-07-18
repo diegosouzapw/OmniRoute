@@ -442,3 +442,40 @@ test("getProviderConnections supports authType filter and column projection", as
   assert.ok("refreshToken" in full[0]);
   assert.ok("authType" in full[0]);
 });
+
+test("getProviderConnections rejects column names outside the real provider_connections schema", async () => {
+  // The `columns` array is interpolated directly into the SQL SELECT clause,
+  // so it must be validated against an allowlist before use — otherwise it's
+  // a SQL-injection footgun for whichever future caller wires it to
+  // untrusted input. A single bogus column should reject the whole call.
+  await assert.rejects(
+    () => providersDb.getProviderConnections({}, ["not_a_real_column"]),
+    /invalid column/i
+  );
+
+  // A mix of valid + invalid columns must still reject (fail-closed, not a
+  // silent partial projection).
+  await assert.rejects(
+    () => providersDb.getProviderConnections({}, ["id", "provider; DROP TABLE provider_connections; --"]),
+    /invalid column/i
+  );
+
+  // The reserved SQL keyword "group" is a legitimate, allowlisted column and
+  // must still work (quoted internally so it doesn't collide with the SQL
+  // GROUP keyword).
+  await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "oauth",
+    name: "Group Column Conn",
+    email: "group-col@example.com",
+    refreshToken: "rt_group_col",
+    isActive: true,
+    group: "team-a",
+  });
+  const withGroup = await providersDb.getProviderConnections({ authType: "oauth" }, [
+    "id",
+    "group",
+  ]);
+  assert.equal(withGroup.length, 1);
+  assert.equal(withGroup[0].group, "team-a");
+});
