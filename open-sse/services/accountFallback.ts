@@ -44,6 +44,8 @@ import {
   buildSessionQuotaFallback,
 } from "./quotaTextCooldowns.ts";
 import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
+import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
+export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
@@ -69,7 +71,7 @@ export type ProviderProfile = {
 };
 type JsonRecord = Record<string, unknown>;
 type RateLimitReasonValue = (typeof RateLimitReason)[keyof typeof RateLimitReason];
-type ModelLockoutEntry = {
+export type ModelLockoutEntry = {
   reason: string;
   until: number;
   lockedAt: number;
@@ -77,7 +79,7 @@ type ModelLockoutEntry = {
   lastFailureAt: number;
   resetAfterMs: number;
 };
-type ModelFailureState = {
+export type ModelFailureState = {
   failureCount: number;
   lastFailureAt: number;
   resetAfterMs: number;
@@ -467,6 +469,7 @@ function ensureCleanupTimer() {
       const now = Date.now();
       for (const key of modelLockouts.keys()) cleanupModelLockKey(key, now);
       for (const key of modelFailureState.keys()) cleanupModelLockKey(key, now);
+      evictModelLockoutOverflow();
     }, 15_000);
     if (typeof _cleanupTimer === "object" && "unref" in _cleanupTimer) {
       (_cleanupTimer as { unref?: () => void }).unref?.(); // Don't prevent process exit (Node.js only)
@@ -474,6 +477,14 @@ function ensureCleanupTimer() {
   } catch {
     // Cloudflare Workers may not support setInterval outside handlers — skip cleanup timer
   }
+}
+
+/** @internal exported for testing only (both accessors below). */
+export function evictModelLockoutOverflow(): void {
+  evictLockoutOverflow(modelLockouts, modelFailureState);
+}
+export function getModelLockoutSize(): number {
+  return modelLockouts.size;
 }
 
 /**
