@@ -72,6 +72,17 @@ function nextUtcMidnightIso(now: number): string {
 }
 
 /**
+ * Whether a model id is an OpenRouter `:free`-variant (e.g.
+ * `x-ai/grok-4-fast:free`). Shared by the dispatch-time record/correct hooks
+ * (`open-sse/executors/base.ts`) and the quota-preflight enforcement hook
+ * (`open-sse/services/openrouterQuotaFetcher.ts`) so both sides agree on the
+ * same definition of "free variant."
+ */
+export function isFreeVariantModel(model: string | null | undefined): boolean {
+  return typeof model === "string" && model.endsWith(":free");
+}
+
+/**
  * Resolve the shared account bucket key for a connection. Operators group
  * multiple keys under one OpenRouter account via `providerSpecificData.
  * openrouterAccountKey`; without it, each connection is its own bucket.

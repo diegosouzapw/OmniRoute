@@ -31,6 +31,12 @@
 import { registerQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
 import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
+import {
+  getFreeWindowStatus,
+  isFreeVariantModel,
+  resolveAccountKey,
+  type FreeWindowStatus,
+} from "./openrouterFreeWindow.ts";
 
 const OPENROUTER_CONFIG = {
   baseUrl: "https://openrouter.ai/api/v1",
@@ -198,6 +204,44 @@ function buildQuotaFromParts(
   };
 }
 
+// ─── Free-Window Preflight (#6842) ───────────────────────────────────────────
+
+/**
+ * Build a `limitReached` QuotaInfo from the local `:free`-window daily
+ * counter — no upstream I/O, so this is safe to call on every preflight
+ * without adding latency or spending a request.
+ */
+function buildFreeWindowExhaustedQuota(status: FreeWindowStatus): QuotaInfo {
+  const percentUsed = status.dailyLimit > 0 ? status.dailyUsed / status.dailyLimit : 1;
+  return {
+    used: status.dailyUsed,
+    total: status.dailyLimit,
+    percentUsed: Math.min(1, Math.max(0, percentUsed)),
+    resetAt: status.dailyResetAt,
+    limitReached: true,
+  };
+}
+
+/**
+ * When the requested model is a `:free` variant and the locally-tracked
+ * daily window is already exhausted, short-circuit before any network call:
+ * the upstream `/key` + `/credits` fetch below only reports USD spend, never
+ * the `:free` request count, so it cannot see this exhaustion on its own —
+ * and dispatching the chat request itself would just spend a guaranteed 429.
+ */
+function checkFreeWindowExhausted(
+  connectionId: string,
+  connection: Record<string, unknown> | undefined,
+  requestedModel: unknown
+): QuotaInfo | null {
+  if (!isFreeVariantModel(typeof requestedModel === "string" ? requestedModel : null)) {
+    return null;
+  }
+  const accountKey = resolveAccountKey(connectionId, connection);
+  const status = getFreeWindowStatus(accountKey);
+  return status.dailyRemaining <= 0 ? buildFreeWindowExhaustedQuota(status) : null;
+}
+
 // ─── Core Fetcher ────────────────────────────────────────────────────────────
 
 async function fetchJson(
@@ -282,6 +326,25 @@ export function invalidateOpenrouterQuotaCache(connectionId: string): void {
   quotaCache.delete(connectionId);
 }
 
+/**
+ * The fetcher actually wired into quotaPreflight.ts / quotaMonitor.ts (#6842
+ * follow-up). Kept as a thin wrapper — rather than inlined into
+ * fetchOpenrouterQuota() above — so the /key + /credits fetcher itself stays
+ * a plain, independently-testable function and the free-window short-circuit
+ * doesn't add branching to its already-tight complexity budget.
+ */
+export async function fetchOpenrouterQuotaWithFreeWindowPreflight(
+  connectionId: string,
+  connection?: Record<string, unknown>
+): Promise<QuotaInfo | null> {
+  const freeWindowExhausted = checkFreeWindowExhausted(
+    connectionId,
+    connection,
+    connection?.requestedModel
+  );
+  return freeWindowExhausted ?? fetchOpenrouterQuota(connectionId, connection);
+}
+
 // ─── Registration ─────────────────────────────────────────────────────────────
 
 /**
@@ -289,6 +352,6 @@ export function invalidateOpenrouterQuotaCache(connectionId: string): void {
  * Call this once at server startup (in chat.ts or app entry point).
  */
 export function registerOpenrouterQuotaFetcher(): void {
-  registerQuotaFetcher("openrouter", fetchOpenrouterQuota);
-  registerMonitorFetcher("openrouter", fetchOpenrouterQuota);
+  registerQuotaFetcher("openrouter", fetchOpenrouterQuotaWithFreeWindowPreflight);
+  registerMonitorFetcher("openrouter", fetchOpenrouterQuotaWithFreeWindowPreflight);
 }
