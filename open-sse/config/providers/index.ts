@@ -66,6 +66,11 @@ import { cursorProvider } from "./registry/cursor/index.ts";
 import { volcengineProvider } from "./registry/volcengine/index.ts";
 import { hackclubProvider } from "./registry/hackclub/index.ts";
 import { freetheaiProvider } from "./registry/freetheai/index.ts";
+import { g4f_groqProvider } from "./registry/g4f-groq/index.ts";
+import { g4f_geminiProvider } from "./registry/g4f-gemini/index.ts";
+import { g4f_pollinationsProvider } from "./registry/g4f-pollinations/index.ts";
+import { g4f_ollamaProvider } from "./registry/g4f-ollama/index.ts";
+import { g4f_nvidiaProvider } from "./registry/g4f-nvidia/index.ts";
 import { tencentProvider } from "./registry/tencent/index.ts";
 import { cozeProvider } from "./registry/coze/index.ts";
 import { ai21Provider } from "./registry/ai21/index.ts";
@@ -256,6 +261,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   volcengine: volcengineProvider,
   hackclub: hackclubProvider,
   freetheai: freetheaiProvider,
+  "g4f-groq": g4f_groqProvider,
+  "g4f-gemini": g4f_geminiProvider,
+  "g4f-pollinations": g4f_pollinationsProvider,
+  "g4f-ollama": g4f_ollamaProvider,
+  "g4f-nvidia": g4f_nvidiaProvider,
   tencent: tencentProvider,
   coze: cozeProvider,
   ai21: ai21Provider,

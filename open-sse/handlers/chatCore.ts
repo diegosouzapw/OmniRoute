@@ -109,6 +109,7 @@ import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
 import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
+import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
 import { echoModelInObject } from "../services/responseModelEcho.ts";
 import {
   stripGpt5SamplingWhenReasoning,
@@ -2044,6 +2045,14 @@ export async function handleChatCore({
     // model substitution. Mirrors upstream 9router 401d93bd5. See
     // services/claudeHaikuConstraints.ts.
     translatedBody = normalizeClaudeHaikuConstraints(translatedBody, finalModelToUpstream);
+    // #6879: per-model default reasoning_effort, injected only when the request
+    // carries no reasoning field of any shape — an explicit client/combo-leg value
+    // always wins. Scoped to the OpenAI Chat Completions dispatch shape (the shape
+    // `reasoning_effort` is native to); unset ModelSpec.defaultReasoningEffort is a
+    // no-op. See open-sse/services/defaultReasoningEffort.ts.
+    if (targetFormat === FORMATS.OPENAI) {
+      translatedBody = applyDefaultReasoningEffort(translatedBody, finalModelToUpstream);
+    }
   }
 
   // Xiaomi MiMo controls reasoning ONLY via `thinking:{type:"enabled"|"disabled"}` and

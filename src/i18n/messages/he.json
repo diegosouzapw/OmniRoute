@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (לאימות בלבד)",
     "providerNotFound": "הספק לא נמצא",
     "deleteConnectionConfirm": "למחוק את החיבור הזה?",
+    "deleteConnectionConfirmNamed": "האם אתה בטוח שברצונך למחוק את {name}? לא ניתן לבטל פעולה זו.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

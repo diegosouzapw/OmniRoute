@@ -71,6 +71,9 @@ export interface RegistryModel {
    * reasoning_content instead of failing with a DeepSeek 400 (#2900).
    */
   interleavedField?: string;
+  /** Per-model upstream header-response timeout override — precedes
+   *  `RegistryEntry.timeoutMs` and the global `FETCH_TIMEOUT_MS` (#6354). */
+  timeoutMs?: number;
 }
 
 // Reasoning models reject temperature, top_p, penalties, logprobs, n.

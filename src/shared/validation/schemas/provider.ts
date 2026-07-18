@@ -148,6 +148,32 @@ export const bulkCreateProviderSchema = z
     }
   });
 
+// ──── Heterogeneous Provider Import Schema (#6836) ────
+
+// #6836: unlike `bulkCreateProviderSchema` (many keys, ONE provider type per request),
+// this schema backs a file (CSV/JSON) import of a heterogeneous LIST of providers —
+// each entry carries its OWN `provider` id, validated individually here so the route
+// can return per-row partial-failure results (same contract as /api/providers/bulk).
+export const bulkImportProviderSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        // Provider-existence is validated server-side per-row in the import route's
+        // importOneEntry (isManagedProviderConnectionId lives in the server-only
+        // provider catalog, which must NOT be value-imported into a client-reachable
+        // validation schema — it drags the server runtime into the browser/CLI bundle).
+        provider: z.string().min(1, "provider is required").max(100),
+        name: z.string().min(1, "name is required").max(200),
+        apiKey: z.string().min(1, "apiKey is required").max(MAX_PROVIDER_CREDENTIAL_LENGTH),
+        baseUrl: z.string().trim().max(2000).optional(),
+        priority: z.number().int().min(1).max(100).optional(),
+      })
+    )
+    .min(1, "entries must contain at least 1 item")
+    .max(200, "entries must contain at most 200 items"),
+  validateKeys: z.boolean().optional(),
+});
+
 // ──── Bulk Web-Session Import Schema ────
 
 export const bulkWebSessionImportSchema = z.object({

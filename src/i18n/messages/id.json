@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (untuk validasi saja)",
     "providerNotFound": "Penyedia tidak ditemukan",
     "deleteConnectionConfirm": "Hapus koneksi ini?",
+    "deleteConnectionConfirmNamed": "Apakah Anda yakin ingin menghapus {name}? Tindakan ini tidak dapat dibatalkan.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

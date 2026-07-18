@@ -1,0 +1,1 @@
+- chore(quality): register microsoft-designer-web-6672 test in stryker tap.testFiles (unblocks Fast Quality Gates base-red)
