@@ -13,12 +13,12 @@ import { useServiceStatus } from "../hooks/useServiceStatus";
 
 const NAME = "9router";
 
-function PrefixCode({ children }: { children: ReactNode }) {
-  return <code className="font-mono bg-bg-subtle px-1 rounded">{children}</code>;
+function renderPrefix(chunks: ReactNode) {
+  return <code className="font-mono bg-bg-subtle px-1 rounded">{chunks}</code>;
 }
 
-function SmallPrefixCode({ children }: { children: ReactNode }) {
-  return <code className="font-mono bg-bg-subtle px-1 rounded text-xs">{children}</code>;
+function renderSmallPrefix(chunks: ReactNode) {
+  return <code className="font-mono bg-bg-subtle px-1 rounded text-xs">{chunks}</code>;
 }
 
 export function NinerouterProviderExposureCard() {
@@ -64,7 +64,7 @@ export function NinerouterProviderExposureCard() {
           <h3 className="font-medium text-sm">{t("providerExposure")}</h3>
           <p className="text-xs text-text-muted">
             {t.rich("providerExposureDescription", {
-              prefix: PrefixCode,
+              prefix: renderPrefix,
             })}
           </p>
         </div>
@@ -89,7 +89,7 @@ export function NinerouterProviderExposureCard() {
         <div>
           <p className="text-sm">
             {t.rich("providerExposureLabel", {
-              prefix: SmallPrefixCode,
+              prefix: renderSmallPrefix,
             })}
           </p>
           <p className="text-xs text-text-muted mt-0.5">{t("providerExposureHint")}</p>

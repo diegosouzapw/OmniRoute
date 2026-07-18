@@ -201,7 +201,7 @@ export default function ComboPlaygroundClient() {
 
               {/* Visual Cascade */}
               <div className="space-y-0">
-                {result.targets.map((t, i) => (
+                {result.targets.map((target, i) => (
                   <div key={i}>
                     {/* Arrow between targets */}
                     {i > 0 && (
@@ -225,7 +225,7 @@ export default function ComboPlaygroundClient() {
                           )}
                           {result.strategy === "weighted" && (
                             <span className="text-[10px]">
-                              {t("playgroundWeight", { value: t.rank })}
+                              {t("playgroundWeight", { value: target.rank })}
                             </span>
                           )}
                         </div>
@@ -235,11 +235,11 @@ export default function ComboPlaygroundClient() {
                     {/* Target Card */}
                     <div
                       className={`border rounded-lg p-3 ${
-                        t.status === "available"
+                        target.status === "available"
                           ? "border-green-500/30 bg-green-500/5"
-                          : t.status === "error"
+                          : target.status === "error"
                             ? "border-red-500/30 bg-red-500/5"
-                            : t.status === "unknown"
+                            : target.status === "unknown"
                               ? "border-yellow-500/30 bg-yellow-500/5"
                               : "border-border bg-surface/50"
                       }`}
@@ -247,22 +247,24 @@ export default function ComboPlaygroundClient() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                            {t.rank}
+                            {target.rank}
                           </div>
                           <div>
-                            <div className="font-medium text-sm">{t.provider}</div>
-                            <div className="text-xs text-text-muted font-mono">{t.model}</div>
+                            <div className="font-medium text-sm">{target.provider}</div>
+                            <div className="text-xs text-text-muted font-mono">{target.model}</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <StatusTag status={t.status} />
+                          <StatusTag status={target.status} />
                           <span className="text-xs text-text-muted">
-                            ${t.estimatedCost.toFixed(6)}
+                            ${target.estimatedCost.toFixed(6)}
                           </span>
-                          <span className="text-xs text-text-muted">{t.estimatedLatencyMs}ms</span>
-                          {t.contextWindow && (
+                          <span className="text-xs text-text-muted">
+                            {target.estimatedLatencyMs}ms
+                          </span>
+                          {target.contextWindow && (
                             <span className="text-xs text-text-muted">
-                              {(t.contextWindow / 1000).toFixed(0)}K ctx
+                              {(target.contextWindow / 1000).toFixed(0)}K ctx
                             </span>
                           )}
                         </div>

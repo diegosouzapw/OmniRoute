@@ -3,7 +3,7 @@
 import { useEffect, useRef, useId } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
-import Button from "./Button";
+import Button, { type ButtonVariant } from "./Button";
 
 // #6265 — preset for content-heavy modals: caps height on the OUTERMOST dialog
 // wrapper only (single scroll owner) and keeps the inner body plain (no
@@ -26,6 +26,18 @@ interface ModalProps {
   bodyClassName?: string;
   compactHeader?: boolean;
   maxWidth?: string;
+}
+
+interface ConfirmModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void | Promise<void>;
+  title?: React.ReactNode;
+  message: React.ReactNode;
+  confirmText?: React.ReactNode;
+  cancelText?: React.ReactNode;
+  variant?: ButtonVariant;
+  loading?: boolean;
 }
 
 export default function Modal({
@@ -226,7 +238,7 @@ export function ConfirmModal({
   cancelText,
   variant = "danger",
   loading = false,
-}) {
+}: ConfirmModalProps) {
   const t = useTranslations("common");
   const resolvedTitle = title ?? t("confirmTitle");
   const resolvedConfirmText = confirmText ?? t("confirmAction");
@@ -243,7 +255,7 @@ export function ConfirmModal({
           <Button variant="ghost" onClick={onClose} disabled={loading}>
             {resolvedCancelText}
           </Button>
-          <Button variant={variant as any} onClick={onConfirm} loading={loading}>
+          <Button variant={variant} onClick={onConfirm} loading={loading}>
             {resolvedConfirmText}
           </Button>
         </>

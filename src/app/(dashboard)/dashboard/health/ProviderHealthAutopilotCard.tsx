@@ -25,6 +25,7 @@ type AutopilotIssue = {
   severity: "info" | "warning" | "critical";
   title: string;
   recommendation: string;
+  target: AutopilotAction["target"];
   evidence?: Record<string, unknown>;
   actions: AutopilotAction[];
 };

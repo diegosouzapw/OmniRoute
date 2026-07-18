@@ -66,6 +66,14 @@ function formatMapping(value: Record<string, string> | null): string {
   return JSON.stringify(value, null, 2);
 }
 
+function getMappingValidationMessage(
+  result: MappingParseResult,
+  t: ReturnType<typeof useTranslations>
+): string | null {
+  if ("messageKey" in result) return t(result.messageKey, result.messageValues);
+  return null;
+}
+
 export function CliproxyModelMappingEditor() {
   const t = useTranslations("embeddedServices");
   const [rawText, setRawText] = useState<string>(EMPTY_MAPPING);
@@ -106,6 +114,7 @@ export function CliproxyModelMappingEditor() {
 
   const parseResult = parseMappingJson(rawText);
   const isValid = parseResult.ok;
+  const validationMessage = getMappingValidationMessage(parseResult, t);
   const isDirty = rawText !== savedText;
   const canSave = isValid && isDirty && !saving;
 
@@ -184,10 +193,10 @@ export function CliproxyModelMappingEditor() {
         aria-label={t("modelMappingEditor")}
       />
 
-      {!isValid && rawText !== EMPTY_MAPPING && (
+      {validationMessage && rawText !== EMPTY_MAPPING && (
         <p className="mt-1.5 text-xs text-red-600 dark:text-red-400 flex items-start gap-1">
           <span className="material-symbols-outlined text-[12px] mt-0.5 shrink-0">error</span>
-          {t(parseResult.messageKey, parseResult.messageValues)}
+          {validationMessage}
         </p>
       )}
 
