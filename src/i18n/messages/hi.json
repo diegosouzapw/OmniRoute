@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "एसके-... (केवल सत्यापन के लिए)",
     "providerNotFound": "प्रदाता नहीं मिला",
     "deleteConnectionConfirm": "यह कनेक्शन हटाएं?",
+    "deleteConnectionConfirmNamed": "क्या आप वाकई {name} को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

@@ -30,6 +30,16 @@ export interface ModelSpec {
   // Claude-family thinking-capable models that honor `disabled`. Set `true` to force the
   // variant on for any other model, or `false` to suppress it. See open-sse/utils/noThinkingAlias.ts.
   noThinkingAlias?: boolean;
+  // Per-model default reasoning effort (#6879). When the incoming request carries no
+  // `reasoning_effort` / `reasoning` / `thinking` field of any shape, the resolved
+  // upstream model's `defaultReasoningEffort` is injected as `reasoning_effort` on the
+  // OpenAI-format dispatch path before the request leaves the gateway. An explicit
+  // client value — including one forwarded verbatim through a combo leg — always wins;
+  // this is a no-op for it. Unset preserves current behavior (no injection). Lets an
+  // operator strip-by-default a thinks-by-default model (measured: gemini-flash-lite
+  // burns ~277 reasoning tokens on a plain request; `reasoning_effort:"none"` → 0)
+  // without patching every client. See open-sse/services/defaultReasoningEffort.ts.
+  defaultReasoningEffort?: "none" | "low" | "medium" | "high";
 }
 
 const BEDROCK_CLAUDE_ALIASES = (...modelIds: string[]) => [

@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (лише для перевірки)",
     "providerNotFound": "Постачальник не знайдено",
     "deleteConnectionConfirm": "Видалити це підключення?",
+    "deleteConnectionConfirmNamed": "Ви впевнені, що хочете видалити {name}? Цю дію не можна скасувати.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

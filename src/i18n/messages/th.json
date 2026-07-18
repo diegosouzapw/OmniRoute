@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (สำหรับการตรวจสอบเท่านั้น)",
     "providerNotFound": "ไม่พบผู้ให้บริการ",
     "deleteConnectionConfirm": "ลบการเชื่อมต่อนี้ใช่ไหม",
+    "deleteConnectionConfirmNamed": "คุณแน่ใจหรือไม่ว่าต้องการลบ {name}? การกระทำนี้ไม่สามารถย้อนกลับได้",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (pour validation uniquement)",
     "providerNotFound": "Fournisseur introuvable",
     "deleteConnectionConfirm": "Supprimer cette connexion ?",
+    "deleteConnectionConfirmNamed": "Êtes-vous sûr de vouloir supprimer {name} ? Cette action est irréversible.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

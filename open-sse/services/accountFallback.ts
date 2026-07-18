@@ -1554,13 +1554,21 @@ export function checkFallbackError(
       }
       return fallback;
     }
-    const cooldownMs = configuredRule.cooldownMs ?? 0;
+    // #6842: non-backoff configured rules (e.g. status_402) previously never
+    // consulted providerRuleRegistry, so a provider-specific rule (like
+    // OpenRouter's credit-exhausted 402 lock) could never override the
+    // generic zero-cooldown default. Mirror the backoff branch above so
+    // provider rules win on cooldown/reason regardless of `backoff`.
+    const providerMatch = provider
+      ? getProviderErrorRuleMatch(provider, status, headers, structuredError ?? null)
+      : null;
+    const cooldownMs = providerMatch?.cooldownMs ?? configuredRule.cooldownMs ?? 0;
     return {
       shouldFallback: true,
       cooldownMs,
       baseCooldownMs: cooldownMs,
       configuredCooldownMs: cooldownMs,
-      reason: configuredRule.reason ?? RateLimitReason.UNKNOWN,
+      reason: providerMatch?.reason ?? configuredRule.reason ?? RateLimitReason.UNKNOWN,
     };
   }
 

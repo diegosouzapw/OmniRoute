@@ -3771,6 +3771,7 @@
     "testKeyPlaceholder": "sk-... (kun til validering)",
     "providerNotFound": "Udbyder blev ikke fundet",
     "deleteConnectionConfirm": "Vil du slette denne forbindelse?",
+    "deleteConnectionConfirmNamed": "Er du sikker på, at du vil slette {name}? Denne handling kan ikke fortrydes.",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",
