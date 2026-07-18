@@ -5,9 +5,11 @@ references for the `Perf > 2.00` gate.
 **Methodology**: per-endpoint p50/p95/p99 latency budgets, plus a
 top-level availability SLO. Budgets are derived from the 3-replica
 Caddy + Redis topology (commit `038439fa7`); adjust on infra change.
-**Enforcement**: `benches/perf-gate.k6.js` (k6 reference script) —
-**not** yet wired into CI; `bench/` already exists in the repo
-and the script can be added there in a follow-up PR.
+**Enforcement**: none yet. § 6 sketches a `benches/perf-gate.k6.js` k6
+script that would assert the SLOs below, but it is a design reference,
+not a committed file — no `bench/` or `benches/` directory exists in
+this repo today. This doc is a target-setting reference only until a
+CI gate is built as follow-up work.
 **Re-evaluation cadence**: quarterly, or on any major infra change.
 
 ---
@@ -169,15 +171,17 @@ Next.js App Router cold-start on a fresh container:
 | First request TTFB (warm) | ≤ 200 ms |
 | Translator registry bootstrap | ≤ 500 ms (one-time, first /v1/responses) |
 
-**Measurement script**: `bin/cold-start-bench.sh` (not yet committed;
-`bin/` is the canonical scripts dir).
+**Measurement script**: `bin/cold-start-bench.sh` (already in the repo
+since v3.8.36; `bin/` is the canonical scripts dir).
 
 ---
 
-## 6. Regression gate (k6 reference)
+## 6. Regression gate (k6 reference, not yet implemented)
 
-The `benches/perf-gate.k6.js` script asserts the SLOs above. Not yet
-wired into CI; the JSON output is the contract for the next infra PR.
+The sketch below shows how a future `benches/perf-gate.k6.js` script
+would assert the SLOs above. Nothing in this section is committed or
+wired into CI today — it is a design reference for follow-up work, not
+a running gate.
 
 ```javascript
 // benches/perf-gate.k6.js — pseudo-code; not yet committed
@@ -218,5 +222,6 @@ export default function () {
 | Date | Reviewer | Change |
 |---|---|---|
 | 2026-06-18 | security-circle lead | Initial per-endpoint budgets derived from 3-replica Caddy + Redis topology |
+| 2026-07-18 | observability-circle | Clarified this doc ships zero enforcement today (no `bench/`/`benches/` dir, no CI gate) and fixed the stale "not yet committed" claim about `bin/cold-start-bench.sh` (present since v3.8.36). |
 | 2026-07-18 (planned) | observability-circle | Wire `benches/perf-gate.k6.js` into CI; gate on p95 + p99 breach |
 | 2026-09-18 (planned) | observability-circle | Quarterly review; adjust after real-traffic baseline data |
