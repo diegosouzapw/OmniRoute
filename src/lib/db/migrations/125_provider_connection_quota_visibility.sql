@@ -1,4 +1,4 @@
--- 121_provider_connection_quota_visibility.sql
+-- 125_provider_connection_quota_visibility.sql
 -- Controls whether a provider connection is shown in quota-focused dashboard views.
 -- This is presentation-only and does not affect routing or provider-limit collection.
 
