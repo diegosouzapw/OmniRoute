@@ -566,8 +566,30 @@ export async function validateResponseQuality(
   const reasoningContent = message.reasoning_content ?? message.reasoning;
   const hasReasoningContent =
     typeof reasoningContent === "string" && reasoningContent.trim().length > 0;
-  const hasContent =
-    (content !== null && content !== undefined && content !== "") || hasReasoningContent;
+  // Issue #7000: content can be a string, an array of content parts
+  // (multimodal), or null. An empty array [] or an array of empty parts
+  // must NOT count as valid content — only arrays with at least one
+  // non-empty text/image part do.
+  let hasContent: boolean;
+  if (Array.isArray(content)) {
+    hasContent = content.some(
+      (part) =>
+        !!part &&
+        typeof part === "object" &&
+        ((typeof (part as Record<string, unknown>).text === "string" &&
+          ((part as Record<string, string>).text as string).trim().length > 0) ||
+          (part as Record<string, unknown>).type === "image_url" ||
+          (part as Record<string, unknown>).type === "input_audio" ||
+          (part as Record<string, unknown>).type === "file")
+    );
+  } else {
+    hasContent =
+      (content !== null &&
+        content !== undefined &&
+        content !== "" &&
+        (typeof content !== "string" || content.trim().length > 0)) ||
+      hasReasoningContent;
+  }
   const hasToolCalls = Array.isArray(toolCalls) && toolCalls.length > 0;
 
   if (!hasContent && !hasToolCalls) {

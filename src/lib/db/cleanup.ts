@@ -245,6 +245,66 @@ export async function cleanupMemoryEntries(): Promise<CleanupResult> {
 }
 
 /**
+ * Clean up old domain_cost_history based on retention settings. (#6848)
+ * Uses unix-epoch `timestamp` column (INTEGER).
+ */
+export async function cleanupDomainCostHistory(): Promise<CleanupResult> {
+  const db = getDbInstance();
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.domainCostHistory;
+  const cutoffEpoch = Math.floor(Date.now() / 1000) - retentionDays * 86_400;
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    const stmt = db.prepare("DELETE FROM domain_cost_history WHERE timestamp < ?");
+    const runResult = stmt.run(cutoffEpoch);
+    result.deleted = runResult.changes;
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} domain_cost_history older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning domain_cost_history:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
+ * Clean up old compression_cache_stats based on retention settings. (#6848)
+ * Uses `created_at` column (DATETIME string).
+ */
+export async function cleanupCompressionCacheStats(): Promise<CleanupResult> {
+  const db = getDbInstance();
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.compressionCacheStats;
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+  const cutoffISO = cutoffDate.toISOString();
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    const stmt = db.prepare("DELETE FROM compression_cache_stats WHERE created_at < ?");
+    const runResult = stmt.run(cutoffISO);
+    result.deleted = runResult.changes;
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} compression_cache_stats older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning compression_cache_stats:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
  * Clean up old xp_audit_log based on retention settings.
  */
 export async function cleanupXpAuditLog(): Promise<CleanupResult> {
@@ -268,6 +328,35 @@ export async function cleanupXpAuditLog(): Promise<CleanupResult> {
     );
   } catch (err: unknown) {
     console.error("[Cleanup] Error cleaning xp_audit_log:", err);
+    result.errors++;
+  }
+
+  return result;
+}
+
+/**
+ * Clean up old compression_run_telemetry based on retention settings. (#6848)
+ * Uses unix-epoch `timestamp` column (INTEGER).
+ */
+export async function cleanupCompressionRunTelemetry(): Promise<CleanupResult> {
+  const db = getDbInstance();
+  const retention = getRetentionSettings();
+
+  const retentionDays = retention.compressionRunTelemetry;
+  const cutoffEpoch = Math.floor(Date.now() / 1000) - retentionDays * 86_400;
+
+  const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    const stmt = db.prepare("DELETE FROM compression_run_telemetry WHERE timestamp < ?");
+    const runResult = stmt.run(cutoffEpoch);
+    result.deleted = runResult.changes;
+
+    console.log(
+      `[Cleanup] Deleted ${result.deleted} compression_run_telemetry older than ${retentionDays} days`
+    );
+  } catch (err: unknown) {
+    console.error("[Cleanup] Error cleaning compression_run_telemetry:", err);
     result.errors++;
   }
 
@@ -300,7 +389,10 @@ export async function runAutoCleanup(): Promise<{
     mcpAudit: await cleanupMcpAudit(),
     a2aEvents: await cleanupA2aEvents(),
     memoryEntries: await cleanupMemoryEntries(),
+    domainCostHistory: await cleanupDomainCostHistory(),
+    compressionCacheStats: await cleanupCompressionCacheStats(),
     xpAuditLog: await cleanupXpAuditLog(),
+    compressionRunTelemetry: await cleanupCompressionRunTelemetry(),
     proxyLogs: await cleanupProxyLogs(),
   };
 
@@ -523,9 +615,7 @@ export async function cleanupProxyLogs(): Promise<CleanupResult> {
     const runResult = stmt.run(cutoffISO);
     result.deleted = runResult.changes;
 
-    console.log(
-      `[Cleanup] Deleted ${result.deleted} proxy_logs older than ${retentionDays} days`
-    );
+    console.log(`[Cleanup] Deleted ${result.deleted} proxy_logs older than ${retentionDays} days`);
   } catch (err: unknown) {
     console.error("[Cleanup] Error cleaning proxy_logs:", err);
     result.errors++;
@@ -557,9 +647,7 @@ export function startCleanupScheduler(): void {
       const proxyResult = await cleanupProxyLogs();
       const totalDeleted = result.totalDeleted + proxyResult.deleted;
       if (totalDeleted > 0) {
-        console.log(
-          `[Cleanup] Startup cleanup freed ${totalDeleted} rows. Running VACUUM...`
-        );
+        console.log(`[Cleanup] Startup cleanup freed ${totalDeleted} rows. Running VACUUM...`);
         try {
           const db = getDbInstance();
           db.exec("VACUUM");
@@ -580,9 +668,7 @@ export function startCleanupScheduler(): void {
       const proxyResult = await cleanupProxyLogs();
       const totalDeleted = result.totalDeleted + proxyResult.deleted;
       if (totalDeleted > 0) {
-        console.log(
-          `[Cleanup] Periodic cleanup freed ${totalDeleted} rows. Running VACUUM...`
-        );
+        console.log(`[Cleanup] Periodic cleanup freed ${totalDeleted} rows. Running VACUUM...`);
         try {
           const db = getDbInstance();
           db.exec("VACUUM");

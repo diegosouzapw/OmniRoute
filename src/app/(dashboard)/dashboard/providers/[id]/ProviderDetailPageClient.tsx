@@ -123,6 +123,7 @@ export default function ProviderDetailPageClient() {
     deleteConfirm,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
+    handleToggleQuotaVisibility,
     handleToggleClaudeExtraUsage,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
@@ -589,6 +590,7 @@ export default function ProviderDetailPageClient() {
                 deleteConfirm={deleteConfirm}
                 handleUpdateConnectionStatus={handleUpdateConnectionStatus}
                 handleToggleRateLimit={handleToggleRateLimit}
+                handleToggleQuotaVisibility={handleToggleQuotaVisibility}
                 handleToggleClaudeExtraUsage={handleToggleClaudeExtraUsage}
                 handleToggleCliproxyapiMode={handleToggleCliproxyapiMode}
                 handleToggleCodexLimit={handleToggleCodexLimit}
