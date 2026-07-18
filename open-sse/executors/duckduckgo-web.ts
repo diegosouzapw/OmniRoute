@@ -14,8 +14,8 @@ import { sanitizeErrorMessage } from "../utils/error.ts";
 // fast-fails with 503 instead of hammering the upstream. A single success
 // resets the failure counter. Half-open probing happens naturally: once the
 // cooldown expires the breaker closes and the next request is a real probe.
-const CB_THRESHOLD = 5;
-const CB_COOLDOWN_MS = 30_000;
+export const CB_THRESHOLD = 5;
+export const CB_COOLDOWN_MS = 30_000;
 
 interface CircuitBreakerState {
   failures: number;
@@ -24,7 +24,7 @@ interface CircuitBreakerState {
 
 const circuitBreaker: CircuitBreakerState = { failures: 0, openedAt: 0 };
 
-function cbIsOpen(): boolean {
+export function cbIsOpen(): boolean {
   if (circuitBreaker.openedAt === 0) return false;
   if (Date.now() - circuitBreaker.openedAt >= CB_COOLDOWN_MS) {
     // Cooldown elapsed — half-open: allow the next request through.
@@ -34,7 +34,7 @@ function cbIsOpen(): boolean {
   return true;
 }
 
-function cbRecordFailure(): void {
+export function cbRecordFailure(): void {
   circuitBreaker.failures++;
   if (circuitBreaker.failures >= CB_THRESHOLD && circuitBreaker.openedAt === 0) {
     circuitBreaker.openedAt = Date.now();
@@ -44,10 +44,22 @@ function cbRecordFailure(): void {
   }
 }
 
-function cbRecordSuccess(): void {
+export function cbRecordSuccess(): void {
   if (circuitBreaker.failures > 0) {
     circuitBreaker.failures = 0;
   }
+}
+
+// Test-only: direct read/write access to the module-level breaker singleton
+// so tests can exercise open/half-open/closed transitions without waiting
+// CB_COOLDOWN_MS in real time. Not used by production code.
+export function __setDdgCircuitBreakerStateForTests(failures: number, openedAt: number): void {
+  circuitBreaker.failures = failures;
+  circuitBreaker.openedAt = openedAt;
+}
+
+export function __getDdgCircuitBreakerStateForTests(): CircuitBreakerState {
+  return { ...circuitBreaker };
 }
 
 export const DUCKDUCKGO_BASE = "https://duckduckgo.com";
