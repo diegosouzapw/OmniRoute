@@ -31,6 +31,7 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/runtime/",
   "/api/cli-tools/omp-settings", // spawns `which omp` to detect the CLI install (Hard Rules #15 + #17, #6318)
   "/api/cli-tools/letta-settings", // spawns `which letta` to detect the CLI install (Hard Rules #15 + #17, #6318)
+  "/api/cli-tools/grok-build-settings", // GET calls getCliRuntimeStatus("grok-build"), which spawns a child process to locate + healthcheck the `grok` binary — same transitive-spawn surface that classified /api/skills/collect/ (Hard Rules #15 + #17). Writing ~/.grok/config.toml is inherently a local-machine operation, so loopback-only costs no real capability.
   "/api/services/", // T-10: embedded service lifecycle (spawn child processes)
   "/dashboard/providers/services/", // T-07: reverse proxy to embedded service UIs
   "/api/copilot/", // unauthenticated LLM driver — CLI-only by default; admins can opt-in to remote access via manage-scope bypass

@@ -274,7 +274,10 @@ test("chat completions route emits early keepalive while waiting for stream read
   assert.match(response.headers.get("content-type") || "", /text\/event-stream/);
 
   const body = await readAll(response);
-  assert.match(body, /: omniroute-keepalive/);
+  assert.match(
+    body,
+    /data: \{"id":"omniroute-keepalive","object":"chat\.completion\.chunk"/
+  );
   assert.match(body, /OK/);
   assert.match(body, /\[DONE\]/);
 });

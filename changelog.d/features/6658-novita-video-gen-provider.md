@@ -1,0 +1,1 @@
+- feat(video): add Novita AI as a video-generation provider (Wan/Kling async submit-poll) (#6658)

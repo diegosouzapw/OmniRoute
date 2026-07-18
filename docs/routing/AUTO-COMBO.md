@@ -212,8 +212,15 @@ a single final answer from all panel responses. Ported from upstream `decolua/9r
 
 How it works:
 
-1. **Fan-out** — the prompt is sent to every panel model at once, forced non-streaming
-   with tools stripped (the judge needs complete prose to synthesize).
+0. **Tool-bearing bypass** — a request that carries a non-empty `tools` array with
+   `tool_choice` not explicitly `"none"` skips the panel entirely: it routes directly to
+   a single model (the configured judge, or `panel[0]`) with `tools`/`tool_choice`
+   passed through unmodified. Panel members have no tool access and the judge's
+   synthesis directive discourages tool-call emission, so agentic/tool-calling clients
+   get a real tool-call decision instead of synthesized prose (#6771).
+1. **Fan-out** (non-tool-bearing requests only) — the prompt is sent to every panel
+   model at once, forced non-streaming with tools stripped (the judge needs complete
+   prose to synthesize).
 2. **Quorum-grace collection** — as soon as `minPanel` answers arrive, a short grace
    timer starts for the stragglers, then fusion proceeds with whatever was collected.
    This caps the slowest model's penalty on wall time, bounded by a hard timeout.
@@ -224,6 +231,11 @@ How it works:
    `stream` flag + tools, so streaming and downstream tool use still work.
 4. **Graceful degradation** — 0 panel answers → `503`; exactly 1 survivor → that answer
    is returned directly (nothing to fuse); a single-model panel answers directly.
+
+A panel member may also be a `combo-ref` step (`{kind: "combo-ref", comboName: "..."}`) referencing
+another combo — it resolves as **one black-box panel voice** (a full recursive dispatch into the
+referenced combo, not a fan-out of that combo's own targets), with the same depth/cycle protection
+every other combo-ref-consuming strategy already uses (#6764).
 
 ### Configuration
 

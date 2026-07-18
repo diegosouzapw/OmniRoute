@@ -2303,7 +2303,17 @@
     "copilotToolCalling": "工具调用",
     "copilotPasteInto": "粘贴到：",
     "wireApiChatCompletions": "聊天完成 (/chat/completions)",
-    "wireApiResponses": "响应 API (/responses)"
+    "wireApiResponses": "响应 API (/responses)",
+    "reasoningEffort": "__MISSING__:Reasoning effort for {model}",
+    "reasoningEffortDefault": "__MISSING__:Default",
+    "reasoningEffortHint": "__MISSING__:Default preserves the reasoning effort sent by the agent",
+    "reasoningEffortTier": {
+      "none": "__MISSING__:None",
+      "low": "__MISSING__:Low",
+      "medium": "__MISSING__:Medium",
+      "high": "__MISSING__:High",
+      "xhigh": "__MISSING__:XHigh"
+    }
   },
   "combos": {
     "title": "组合",
@@ -2801,6 +2811,8 @@
     "range7d": "7 天",
     "range30d": "30 天",
     "range90d": "90 天",
+    "range180d": "180 Days",
+    "range365d": "365 Days",
     "rangeAll": "全部时间",
     "spend30d": "30 天支出",
     "activeModels": "活跃 Model",
@@ -3890,6 +3902,9 @@
     "apiKeyProviders": "API 密钥提供商",
     "compatibleProviders": "API 密钥兼容提供商",
     "testAll": "测试全部",
+    "reorderByAvailability": "重新排序",
+    "reorderByAvailabilityTitle": "按可用性重新排序连接",
+    "reorderByAvailabilityError": "按可用性重新排序连接失败",
     "testAllOAuth": "测试所有 OAuth 连接",
     "testAllFree": "测试所有免费连接",
     "testAllApiKey": "测试所有 API 密钥连接",
@@ -3994,6 +4009,7 @@
     "testKeyPlaceholder": "sk-...（仅用于验证）",
     "providerNotFound": "未找到提供商",
     "deleteConnectionConfirm": "删除这个连接吗？",
+    "deleteConnectionConfirmNamed": "确定要删除{name}吗？此操作无法撤销。",
     "batchDeleteSelected": "删除选中（{count}）",
     "batchDeleteConfirm": "删除 {count} 个连接？此操作无法撤销。",
     "batchDeleteSuccess": "已删除 {count} 个连接",
@@ -4418,6 +4434,9 @@
     "consoleApiKeyOracleHint": "用于从 Console 获取或验证 API key 的辅助配置。",
     "consoleApiKeyOracleLabel": "Console API key Oracle",
     "consoleApiKeyOraclePlaceholder": "Console API key Oracle 占位符",
+    "newApiUserIdLabel": "New-API 用户 ID",
+    "newApiUserIdPlaceholder": "例如 12345",
+    "newApiUserIdHint": "AgentRouter 的 New-Api-User 请求头值，与控制台 API key 一起用于获取配额余额。",
     "cpaModeDisabledTitle": "CLIProxyAPI 兼容模式已关闭",
     "cpaModeEnabledTitle": "CLIProxyAPI 兼容模式已开启",
     "customUserAgentHint": "发送给上游 Provider 的自定义 User-Agent。",
@@ -4729,7 +4748,9 @@
     "contextWindowOverrideLabel": "__MISSING__:Context Window Override",
     "contextWindowOverridePlaceholder": "__MISSING__:e.g. 131072",
     "contextWindowOverrideHint": "__MISSING__:Manually set this model's real context window (tokens) when the provider misreports it. Wins over auto-detected/catalog values and prevents combo routing from dropping the model.",
-    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens"
+    "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens",
+    "visionCapableLabel": "__MISSING__:Vision capable",
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
   },
   "settings": {
     "title": "设置",
@@ -5901,7 +5922,12 @@
     "responsesStateModeStrip": "剥离",
     "responsesStateModePreserve": "保留",
     "responsesStateHint": "自动模式会剥离 previous_response_id，除非连接明确启用 OpenAI 响应存储。对于无状态客户端（如 VS Code 自定义端点），剥离模式最安全；上下文取决于客户端发送完整历史记录。",
-    "responsesStateSaveError": "更新响应状态设置失败"
+    "responsesStateSaveError": "更新响应状态设置失败",
+    "codexAutoPingTitle": "Codex Quota Auto-Ping",
+    "codexAutoPingDesc": "Opt-in per connection: sends a tiny request right after a Codex session window resets so it isn't cold when you need it.",
+    "codexAutoPingWarning": "Consumes a small amount of real Codex quota on every ping. Off by default — enable only for connections you actively rely on.",
+    "codexAutoPingSaveError": "Failed to update Codex Auto-Ping setting",
+    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}"
   },
   "contextRtk": {
     "title": "RTK 引擎",
@@ -8685,5 +8711,14 @@
     "regenerateRunning": "正在重新生成技能…",
     "regenerateSuccess": "技能成功重生。",
     "regenerateError": "无法重新生成技能。"
+  },
+  "freeProviderRankingsPage": {
+    "typeAll": "__MISSING__:All Types",
+    "typeNoauth": "__MISSING__:No Signup",
+    "typeOauth": "__MISSING__:OAuth Login",
+    "typeApikey": "__MISSING__:API Key",
+    "sortTypeFirst": "__MISSING__:Easiest first",
+    "sortTypeFirstHelp": "__MISSING__:Group by signup effort (No Signup → OAuth Login → API Key), keeping quality order within each group",
+    "typeLegend": "__MISSING__:No Signup = zero setup · OAuth Login = sign in with your own account · API Key = bring your own key or that provider's free tier"
   }
 }

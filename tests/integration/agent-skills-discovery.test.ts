@@ -69,8 +69,8 @@ test("every CLI skill ID has skills/<id>/SKILL.md on disk", () => {
   assert.deepEqual(missing, [], `Missing CLI SKILL.md files: ${missing.join(", ")}`);
 });
 
-test("total skill count is exactly 43 (23 API + 20 CLI)", () => {
-  assert.equal(API_SKILL_IDS.length + CLI_SKILL_IDS.length, 43);
+test("total skill count is exactly 44 (23 API + 21 CLI)", () => {
+  assert.equal(API_SKILL_IDS.length + CLI_SKILL_IDS.length, 44);
 });
 
 // ── §2: Frontmatter validation ────────────────────────────────────────────────
@@ -120,11 +120,11 @@ test("each SKILL.md body is at least 100 chars", () => {
 
 // ── §3: MCP tool omniroute_agent_skills_list ─────────────────────────────────
 
-test("MCP omniroute_agent_skills_list handler returns count 44 (43 + config)", async () => {
+test("MCP omniroute_agent_skills_list handler returns count 45 (44 + config)", async () => {
   const result = await agentSkillTools.omniroute_agent_skills_list.handler({});
-  assert.equal(result.count, 44, `Expected 44 but got ${result.count}`);
+  assert.equal(result.count, 45, `Expected 45 but got ${result.count}`);
   assert.ok(Array.isArray(result.skills));
-  assert.equal(result.skills.length, 44);
+  assert.equal(result.skills.length, 45);
 });
 
 test("MCP omniroute_agent_skills_list result has all 42 IDs", async () => {
@@ -157,9 +157,9 @@ test("A2A list-capabilities artifact content contains 42 skill IDs as table rows
   assert.ok(rows.length >= 42, `Expected at least 42 data rows but got ${rows.length}`);
 });
 
-test("A2A list-capabilities metadata.totalSkills === 44 (43 + config)", async () => {
+test("A2A list-capabilities metadata.totalSkills === 45 (44 + config)", async () => {
   const result = await executeListCapabilities(stubTask);
-  assert.equal(result.metadata.totalSkills, 44);
+  assert.equal(result.metadata.totalSkills, 45);
 });
 
 test("A2A list-capabilities artifact contains all 42 skill IDs", async () => {

@@ -33,11 +33,15 @@ const source = fs.readFileSync(
 );
 
 test("standalone-server-ws.mjs imports getMainServerTimeoutConfig", () => {
+  // The wrapper must import the SIBLING ./main-server-timeouts.mjs — a
+  // ../../src/... import escapes the package after the dist-root copy and
+  // crashed every packed boot (2026-07-15, #7065 class). Parity with the
+  // canonical runtimeTimeouts.ts is guarded by main-server-timeouts-parity.test.ts.
   assert.match(
     source,
-    /import\s*\{\s*getMainServerTimeoutConfig\s*\}\s*from\s*["'][^"']*runtimeTimeouts(?:\.ts)?["']/,
-    "expected the production server wrapper to import getMainServerTimeoutConfig, " +
-      "the same helper run-next.mjs uses"
+    /import\s*\{\s*getMainServerTimeoutConfig\s*\}\s*from\s*["']\.\/main-server-timeouts\.mjs["']/,
+    "expected the production server wrapper to import getMainServerTimeoutConfig " +
+      "from its shipped sibling module (./main-server-timeouts.mjs)"
   );
 });
 

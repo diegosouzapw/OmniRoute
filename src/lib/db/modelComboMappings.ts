@@ -9,6 +9,7 @@
 
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance } from "./core";
+import { globToRegex } from "@/shared/utils/globPattern";
 
 // ──────────────────────────────────────────────────────────
 // Types
@@ -36,23 +37,6 @@ interface MappingRow {
   description: string;
   created_at: string;
   updated_at: string;
-}
-
-// ──────────────────────────────────────────────────────────
-// Glob → RegExp conversion
-// ──────────────────────────────────────────────────────────
-
-/**
- * Convert a simple glob pattern to a RegExp.
- * Supports `*` (any characters) and `?` (single character).
- * Case-insensitive matching.
- */
-function globToRegex(pattern: string): RegExp {
-  const escaped = pattern
-    .replace(/[.+^${}()|[\]\\]/g, "\\$&") // escape regex specials
-    .replace(/\*/g, ".*") // * → .*
-    .replace(/\?/g, "."); // ? → .
-  return new RegExp(`^${escaped}$`, "i");
 }
 
 // ──────────────────────────────────────────────────────────

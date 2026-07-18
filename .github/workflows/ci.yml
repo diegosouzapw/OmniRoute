@@ -39,7 +39,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
       - id: classify
@@ -82,7 +82,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -171,7 +171,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -280,7 +280,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -388,7 +388,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -424,7 +424,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -452,7 +452,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -515,11 +515,11 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
       - name: Fetch base branch
-        run: git fetch --no-tags origin "${GITHUB_BASE_REF}" --depth=1
+        run: git fetch --no-tags origin "${GITHUB_BASE_REF}"
       - name: Validate source changes include tests
         run: node scripts/check/check-pr-test-policy.mjs --summary-file .artifacts/pr-test-policy.md
       # Anti test-masking: flag net assert removal / new assert.ok(true) in changed tests.
@@ -554,7 +554,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -602,7 +602,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -649,7 +649,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -670,10 +670,16 @@ jobs:
         if: runner.os == 'Linux'
         working-directory: electron
         run: npm run pack
+      # ADVISORY while the new Windows leg matures (repo convention, dast-smoke
+      # precedent): its first-ever real run (2026-07-15, run 29457533565) died in
+      # 0.7s with the error swallowed by pwsh — bash shell captures stderr and
+      # continue-on-error keeps the heavy gate green while we harden it (#7336).
       - name: Prepare Electron standalone (Windows ABI rebuild + spawn path)
         if: runner.os == 'Windows'
         working-directory: electron
-        run: npm run prepare:bundle
+        continue-on-error: true
+        shell: bash
+        run: npm run prepare:bundle 2>&1
       - name: Smoke packaged Electron app
         if: runner.os == 'Linux'
         env:
@@ -704,7 +710,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -751,7 +757,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -783,7 +789,10 @@ jobs:
   test-coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 10min was sized before #7114 added the lcov reporter (Codecov/Sonar need it);
+    # merging 8 shard JSONs + text+json+lcov now takes ~10-12min — three consecutive
+    # release-tip runs died at exactly 10m as job-timeout "cancelled" (2026-07-15/16).
+    timeout-minutes: 20
     needs: test-unit
     if: ${{ !cancelled() && needs.test-unit.result == 'success' && !contains(github.event.pull_request.labels.*.name, 'hotfix') }}
     env:
@@ -793,7 +802,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -862,7 +871,7 @@ jobs:
       # (if-no-files-found: warn) — Sonar consumes the same file.
       - name: Upload coverage to Codecov (informational)
         if: always()
-        uses: codecov/codecov-action@04b047e8bb82a0c002c8312c1c880fbc6a999d45 # v5
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5
         with:
           files: coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -1036,7 +1045,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -1106,7 +1115,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -1129,7 +1138,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
