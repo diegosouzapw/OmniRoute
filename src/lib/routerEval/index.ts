@@ -160,43 +160,57 @@ function aggregateValues(values: number[]) {
   };
 }
 
+function resolveObservationSampleId(value: RouterObservationInput): string {
+  return asString(value.sampleId ?? value.id, "").trim();
+}
+
+function resolveObservationModelFields(value: RouterObservationInput): {
+  selectedModel: string | null;
+  expectedModel: string | null;
+} {
+  const selectedModel = asString(value.selectedModel ?? value.model);
+  const expectedModel = asString(value.expectedModel ?? value.requestedModel, null);
+  return { selectedModel: selectedModel || null, expectedModel };
+}
+
+function resolveObservationLatencyMs(value: RouterObservationInput): number {
+  return asNumber(value.latencyMs ?? value.latency ?? value.durationMs ?? value.duration, 0);
+}
+
+function resolveObservationCostUsd(value: RouterObservationInput): number {
+  const explicitCost = asNumber(value.costUsd ?? value.cost, NaN);
+  if (!Number.isNaN(explicitCost)) return explicitCost;
+
+  const promptTokens = asNumber(value.tokens?.input);
+  const completionTokens = asNumber(value.tokens?.output);
+  return Number(((promptTokens + completionTokens) * 0.000001).toFixed(6));
+}
+
+function resolveObservationSuccess(value: RouterObservationInput): boolean {
+  const status = asNumber(value.status, 500);
+  const statusIndicatesSuccess = status >= 200 && status < 400;
+  return asBoolean(value.success, statusIndicatesSuccess && !value.error);
+}
+
 export function toRouterObservation(input: unknown): RouterObservation | null {
   if (!input || typeof input !== "object" || Array.isArray(input)) return null;
 
   const value = input as RouterObservationInput;
-  const sampleId = asString(value.sampleId ?? value.id, "").trim();
+  const sampleId = resolveObservationSampleId(value);
   if (!sampleId) return null;
 
-  const configId = asString(value.configId, "default");
-  const selectedModel = asString(value.selectedModel ?? value.model);
-  const expectedModel = asString(value.expectedModel ?? value.requestedModel, null);
-  const latencyMs = asNumber(
-    value.latencyMs ?? value.latency ?? value.durationMs ?? value.duration,
-    0
-  );
-  const promptTokens = asNumber(value.tokens?.input);
-  const completionTokens = asNumber(value.tokens?.output);
-  const explicitCost = asNumber(value.costUsd ?? value.cost, NaN);
-  const costUsd = Number.isNaN(explicitCost)
-    ? Number(((promptTokens + completionTokens) * 0.000001).toFixed(6))
-    : explicitCost;
-  const success = asBoolean(
-    value.success,
-    asNumber(value.status, 500) >= 200 && asNumber(value.status, 500) < 400 && !value.error
-  );
-  const timestamp = asString(value.timestamp, new Date(0).toISOString());
-  const routeInput = asRecord(value.routeInput, {});
+  const { selectedModel, expectedModel } = resolveObservationModelFields(value);
 
   return {
     sampleId,
-    routeInput,
-    configId,
-    selectedModel: selectedModel || null,
+    routeInput: asRecord(value.routeInput, {}),
+    configId: asString(value.configId, "default"),
+    selectedModel,
     expectedModel,
-    latencyMs,
-    costUsd,
-    success,
-    timestamp,
+    latencyMs: resolveObservationLatencyMs(value),
+    costUsd: resolveObservationCostUsd(value),
+    success: resolveObservationSuccess(value),
+    timestamp: asString(value.timestamp, new Date(0).toISOString()),
     metadata: asRecord(value.metadata),
   };
 }
