@@ -4,7 +4,11 @@ import {
   VALID_VARIANTS,
   type AutoVariant,
 } from "@omniroute/open-sse/services/autoCombo/autoPrefix";
-import { AUTO_SUFFIX_VARIANTS } from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
+import {
+  AUTO_SUFFIX_VARIANTS,
+  AUTO_TEMPLATE_VARIANTS,
+  AUTO_FAMILY_IDS,
+} from "@omniroute/open-sse/services/autoCombo/builtinCatalog";
 import { parseAutoSuffix } from "@omniroute/open-sse/services/autoCombo/suffixComposition";
 
 const ALL_VARIANTS: Array<{ variant: AutoVariant | undefined; name: string }> = [
@@ -25,11 +29,14 @@ export async function GET(request: Request) {
       await import("@omniroute/open-sse/services/autoCombo/virtualFactory");
 
     const combos = [];
+    const seenIds = new Set<string>();
     for (const { variant, name } of ALL_VARIANTS) {
       try {
         const virtual = await createVirtualAutoCombo(variant);
+        const id = variant ? `auto/${variant}` : "auto";
+        seenIds.add(id);
         combos.push({
-          id: variant ? `auto/${variant}` : "auto",
+          id,
           name,
           variant: variant ?? null,
           type: "auto",
@@ -83,6 +90,69 @@ export async function GET(request: Request) {
           max_output_tokens: virtual.advertisedMaxOutputTokens ?? null,
           config: virtual.config ?? {},
         });
+        seenIds.add(modelStr);
+      } catch {
+        // Individual variant failure — skip, don't break the whole list
+      }
+    }
+
+    // #6453 Phase C: enumerate template variants (auto/best-coding, auto/pro-*,
+    // auto/claude-*, auto/best-free, etc.) that the backend already supports
+    // via builtinCatalog.ts but were not exposed by this endpoint.
+    for (const modelStr of Object.keys(AUTO_TEMPLATE_VARIANTS)) {
+      if (seenIds.has(modelStr)) continue;
+      try {
+        const variant = AUTO_TEMPLATE_VARIANTS[modelStr];
+        const spec =
+          modelStr === "auto/best-free" ? ({ tier: "free" as const } as const) : undefined;
+        const virtual = await createVirtualAutoCombo(variant, spec);
+
+        const displayName = variant
+          ? `Auto ${variant.charAt(0).toUpperCase() + variant.slice(1)}`
+          : "Auto Chat";
+
+        combos.push({
+          id: modelStr,
+          name: displayName,
+          variant: null,
+          type: "auto",
+          isHidden: false,
+          candidatePool: virtual.candidatePool ?? [],
+          candidateCount: virtual.candidatePool?.length ?? 0,
+          context_length: virtual.advertisedContextLength ?? null,
+          max_output_tokens: virtual.advertisedMaxOutputTokens ?? null,
+          config: virtual.config ?? {},
+        });
+        seenIds.add(modelStr);
+      } catch {
+        // Individual variant failure — skip, don't break the whole list
+      }
+    }
+
+    // #6453 Phase D: enumerate family variants (auto/glm, auto/llama,
+    // auto/gemini, etc.) that the backend already supports via modelFamily.ts
+    // but were not exposed by this endpoint.
+    for (const modelStr of AUTO_FAMILY_IDS) {
+      if (seenIds.has(modelStr)) continue;
+      try {
+        const suffix = modelStr.slice("auto/".length);
+        const virtual = await createVirtualAutoCombo(undefined, { family: suffix });
+
+        const displayName = `Auto ${suffix.charAt(0).toUpperCase() + suffix.slice(1)}`;
+
+        combos.push({
+          id: modelStr,
+          name: displayName,
+          variant: null,
+          type: "auto",
+          isHidden: false,
+          candidatePool: virtual.candidatePool ?? [],
+          candidateCount: virtual.candidatePool?.length ?? 0,
+          context_length: virtual.advertisedContextLength ?? null,
+          max_output_tokens: virtual.advertisedMaxOutputTokens ?? null,
+          config: virtual.config ?? {},
+        });
+        seenIds.add(modelStr);
       } catch {
         // Individual variant failure — skip, don't break the whole list
       }
