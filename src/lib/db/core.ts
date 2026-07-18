@@ -39,6 +39,7 @@ import { rowToCamel } from "./caseMapping";
 export { toSnakeCase, toCamelCase, objToSnake, rowToCamel, cleanNulls } from "./caseMapping";
 import {
   ensureProviderConnectionsColumns,
+  ensureUsageHistoryAccountIndex,
   ensureUsageHistoryColumns,
   ensureCallLogsColumns,
   hasTable,
@@ -287,6 +288,9 @@ const SCHEMA_SQL = `
     provider TEXT,
     model TEXT,
     connection_id TEXT,
+    account_key TEXT,
+    account_label TEXT,
+    account_label_priority INTEGER DEFAULT 0,
     api_key_id TEXT,
     api_key_name TEXT,
     tokens_input INTEGER DEFAULT 0,
@@ -951,6 +955,7 @@ export function getDbInstance(): SqliteDatabase {
     memoryDb.pragma("journal_mode = WAL");
     memoryDb.exec(SCHEMA_SQL);
     ensureUsageHistoryColumns(memoryDb);
+    ensureUsageHistoryAccountIndex(memoryDb);
     ensureCallLogsColumns(memoryDb);
     ensureProviderConnectionsColumns(memoryDb);
     setDb(memoryDb);
@@ -1028,8 +1033,7 @@ export function getDbInstance(): SqliteDatabase {
         let hasData = false;
         try {
           const count = probe.prepare("SELECT COUNT(*) as c FROM provider_connections").get() as
-            | { c: number }
-            | undefined;
+            { c: number } | undefined;
           hasData = Boolean(count && count.c > 0);
         } catch {
           // Table might not exist at all — truly incompatible
@@ -1083,7 +1087,11 @@ export function getDbInstance(): SqliteDatabase {
       // V8 heap (sql.js loads the whole file into WASM memory). Throwing
       // immediately gives the user a clear "increase --max-old-space-size"
       // signal instead of silently renaming a perfectly good DB.
-      if (/out of memory|allocation failure|Array buffer allocation failed|allocation failed/i.test(message)) {
+      if (
+        /out of memory|allocation failure|Array buffer allocation failed|allocation failed/i.test(
+          message
+        )
+      ) {
         // Cycle-breaker (#6835): the OOM path never renames the file away,
         // so it never trips the generic probe-failed/restore cap above. Cap
         // it independently after 3 consecutive OOM failures (same threshold

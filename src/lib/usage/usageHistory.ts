@@ -10,6 +10,10 @@
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
 import {
+  resolveOrphanedUsageAccountIdentity,
+  resolveUsageAccountIdentity,
+} from "./accountIdentity";
+import {
   asRecord,
   normalizeServiceTier,
   percentile,
@@ -614,6 +618,13 @@ export async function saveRequestUsage(entry: UsageEntry) {
 
     const tokensInput = getLoggedInputTokens(entry.tokens);
     const tokensOutput = getLoggedOutputTokens(entry.tokens);
+    const connection = entry.connectionId
+      ? (db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(entry.connectionId) as
+          Record<string, unknown> | undefined)
+      : undefined;
+    const accountIdentity = connection
+      ? resolveUsageAccountIdentity(connection)
+      : resolveOrphanedUsageAccountIdentity(entry.provider, entry.connectionId);
 
     // Dedup guard: skip INSERT when an identical row already exists in the same
     // second. This prevents double-counting when onRequestSuccess fires more
@@ -660,15 +671,19 @@ export async function saveRequestUsage(entry: UsageEntry) {
 
       db.prepare(
         `
-        INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
-          tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-          service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, endpoint, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO usage_history (provider, model, connection_id, account_key, account_label,
+          account_label_priority, api_key_id, api_key_name, tokens_input, tokens_output,
+          tokens_cache_read, tokens_cache_creation, tokens_reasoning, service_tier, status, success,
+          latency_ms, ttft_ms, error_code, combo_strategy, endpoint, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
       ).run(
         entry.provider || null,
         entry.model || null,
         entry.connectionId || null,
+        accountIdentity.accountKey,
+        accountIdentity.accountLabel,
+        accountIdentity.accountLabelPriority,
         entry.apiKeyId || null,
         entry.apiKeyName || null,
         tokensInput,

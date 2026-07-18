@@ -18,6 +18,39 @@ test.after(() => {
   else process.env.DATA_DIR = ORIGINAL_DATA_DIR;
 });
 
+test("runJsonMigration preserves exported account snapshots after a connection was deleted", () => {
+  const db = core.getDbInstance();
+
+  runJsonMigration(db, {
+    usageHistory: [
+      {
+        id: 1,
+        provider: "codex",
+        model: "gpt-5.5",
+        connection_id: "deleted-codex-uuid",
+        account_key: '["oauth","codex","user","user-a","email","member@example.com"]',
+        account_label: "Production Codex",
+        account_label_priority: 4,
+        tokens_input: 10,
+        tokens_output: 5,
+        timestamp: "2026-01-01T00:00:00.000Z",
+      },
+    ],
+  });
+
+  const row = db
+    .prepare(
+      "SELECT account_key, account_label, account_label_priority FROM usage_history WHERE id = 1"
+    )
+    .get();
+
+  assert.deepEqual(row, {
+    account_key: '["oauth","codex","user","user-a","email","member@example.com"]',
+    account_label: "Production Codex",
+    account_label_priority: 4,
+  });
+});
+
 test("runJsonMigration normalizes legacy combo strategy names at the import boundary", () => {
   const db = core.getDbInstance();
 
