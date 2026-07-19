@@ -1,0 +1,1 @@
+- **fix(db):** bulk proxy imports now update an existing proxy when only its password changes instead of creating a duplicate.
