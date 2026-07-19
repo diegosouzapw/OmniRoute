@@ -11,7 +11,11 @@ export const spawnSync = realCp.spawnSync;
 /** All spawn calls recorded as [command, args, options]. */
 export const spawnCalls: Array<{ command: string; args: string[] }> = [];
 
-export function spawn(command: string, args?: string[], options?: any) {
+export function spawn(
+  command: string,
+  args?: string[],
+  options?: import("node:child_process").SpawnOptions
+) {
   spawnCalls.push({ command, args: args ?? [], options });
   return {
     stdin: { write: () => true, end: () => {} },

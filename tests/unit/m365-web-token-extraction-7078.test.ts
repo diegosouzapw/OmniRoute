@@ -4,9 +4,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const B = await import("../../src/lib/providers/validation/webProvidersB.ts");
-const extract = (raw: string) =>
-  (B as Record<string, any>).extractM365CredentialParts(raw, {});
+const B: typeof import("../../src/lib/providers/validation/webProvidersB.ts") = await import(
+  "../../src/lib/providers/validation/webProvidersB.ts"
+);
+const extract = (raw: string) => B.extractM365CredentialParts(raw, {});
 
 test("#7078 m365.cloud.microsoft wss URL extracts access_token + chathubPath", () => {
   const raw =
