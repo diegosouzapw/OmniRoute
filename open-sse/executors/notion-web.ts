@@ -103,6 +103,12 @@ export function resolveNotionWebCookie(credentials: ExecuteInput["credentials"])
 
   const tokenV2 = readProviderSpecificString(providerSpecificData, ["token_v2", "tokenV2"]);
   const spaceId = readProviderSpecificString(providerSpecificData, ["space_id", "spaceId"]);
+  const userId = readProviderSpecificString(providerSpecificData, [
+    "notion_user_id",
+    "notionUserId",
+    "user_id",
+    "userId",
+  ]);
   const browserId = readProviderSpecificString(providerSpecificData, [
     "notion_browser_id",
     "notionBrowserId",
@@ -110,6 +116,7 @@ export function resolveNotionWebCookie(credentials: ExecuteInput["credentials"])
   return [
     tokenV2 ? normalizeNotionCookieInput(tokenV2) : "",
     spaceId ? `space_id=${spaceId}` : "",
+    userId ? `notion_user_id=${userId}` : "",
     browserId ? `notion_browser_id=${browserId}` : "",
   ]
     .filter(Boolean)

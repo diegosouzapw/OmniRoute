@@ -191,9 +191,54 @@ test("discoverNotionWebModels falls back to getSpaces when space_id missing", as
     fetchImpl,
   });
 
-  assert.deepEqual(calls, [notionModels.NOTION_SPACES_URL, notionModels.NOTION_MODELS_URL]);
+  assert.equal(calls[0], notionModels.NOTION_SPACES_URL);
+  assert.ok(calls.some((u) => u === notionModels.NOTION_MODELS_URL));
   assert.equal(result.spaceId, "resolved-space");
   assert.ok(result.models.length >= 2);
+  assert.equal(result.spaceIdFromGetSpaces, true);
+});
+
+test("parseNotionGetSpaces extracts userId and all space ids", () => {
+  const data = {
+    "user-aaa": {
+      space: {
+        "space-1": { name: "Work" },
+        "space-2": { name: "Personal" },
+      },
+    },
+  };
+  const parsed = notionModels.parseNotionGetSpaces(data);
+  assert.equal(parsed.userId, "user-aaa");
+  assert.deepEqual(parsed.spaceIds, ["space-1", "space-2"]);
+});
+
+test("selectBestNotionSpaceId prefers the workspace with more enabled models", async () => {
+  const fetchImpl = (async (url: string | URL, init?: RequestInit) => {
+    if (String(url).includes("getAvailableModels")) {
+      const body = JSON.parse(String(init?.body || "{}"));
+      if (body.spaceId === "rich-space") return Response.json(SAMPLE_RESPONSE);
+      return Response.json({
+        models: [
+          {
+            model: "only-one",
+            modelMessage: "Tiny",
+            modelFamily: "openai",
+            isDisabled: false,
+          },
+        ],
+      });
+    }
+    return new Response("nope", { status: 500 });
+  }) as typeof fetch;
+
+  const best = await notionModels.selectBestNotionSpaceId({
+    cookie: "token_v2=abc",
+    spaceIds: ["poor-space", "rich-space"],
+    fetchImpl,
+  });
+  assert.ok(best);
+  assert.equal(best!.spaceId, "rich-space");
+  assert.ok(best!.models.some((m) => m.id === "gpt-5.6-sol"));
 });
 
 test("notion-web models route returns live getAvailableModels catalog", async () => {

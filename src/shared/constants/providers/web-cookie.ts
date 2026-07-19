@@ -371,9 +371,8 @@ export const WEB_COOKIE_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
     authHint:
-      "Paste your token_v2 cookie value from notion.so (DevTools → Application → Cookies). " +
-      "Include `; space_id=<workspace-uuid>` so live model discovery (getAvailableModels) can list GPT/Claude/Gemini/etc. " +
-      "Optionally also `; notion_browser_id=...` / `; notion_user_id=...`.",
+      "Paste only the token_v2 cookie VALUE from app.notion.com (DevTools → Application → Cookies → token_v2). " +
+      "Do not paste token_v2= or the full Cookie header. Workspace is auto-detected; space_id / notion_user_id are optional.",
   },
 };
 

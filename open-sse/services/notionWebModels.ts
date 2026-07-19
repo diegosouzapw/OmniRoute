@@ -17,7 +17,9 @@ const NOTION_SPACES_URL = `${NOTION_APP_ORIGIN}/api/v3/getSpaces`;
 const NOTION_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
 /** Recent Notion web client version — accepted loosely but required by some paths. */
-const NOTION_CLIENT_VERSION = "23.13.20260719.0708";
+const NOTION_CLIENT_VERSION = "23.13.20260719.1125";
+/** Cap how many workspaces we probe for AI models when space_id is omitted. */
+const NOTION_MAX_SPACE_PROBE = 8;
 
 export type NotionDiscoveredModel = {
   /**
@@ -320,48 +322,47 @@ export function getNotionModelsDiscoveryUrl(): string {
   return NOTION_MODELS_URL;
 }
 
+/** Workspace candidates extracted from getSpaces (user id + space ids). */
+export type NotionWorkspaceCandidates = {
+  userId: string;
+  spaceIds: string[];
+};
+
 /**
- * Try to resolve a workspace spaceId from getSpaces when the cookie has none.
- * Returns "" on any failure (caller falls back to local catalog).
+ * Parse getSpaces JSON into a stable userId (top-level map key) and all space ids.
+ * Shape: `{ [userId]: { space: { [spaceId]: {...} } } }`.
  */
-export async function resolveNotionSpaceIdFromGetSpaces(
-  cookie: string,
-  fetchImpl: typeof fetch = fetch
-): Promise<string> {
-  const normalized = normalizeNotionWebCookie(cookie);
-  if (!normalized) return "";
-  try {
-    const res = await fetchImpl(NOTION_SPACES_URL, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        accept: "application/json",
-        cookie: normalized,
-        origin: NOTION_APP_ORIGIN,
-        referer: `${NOTION_APP_ORIGIN}/`,
-        "user-agent": NOTION_USER_AGENT,
-      },
-      body: "{}",
-    });
-    if (!res.ok) return "";
-    const data = (await res.json()) as unknown;
-    return pickFirstSpaceId(data);
-  } catch {
-    return "";
+export function parseNotionGetSpaces(data: unknown): NotionWorkspaceCandidates {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return { userId: "", spaceIds: [] };
   }
+  const root = data as Record<string, unknown>;
+  const spaceIds: string[] = [];
+  let userId = "";
+
+  for (const [key, value] of Object.entries(root)) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+    const spaceMap = (value as Record<string, unknown>).space;
+    if (!spaceMap || typeof spaceMap !== "object" || Array.isArray(spaceMap)) continue;
+    if (!userId && key && !key.includes(" ")) userId = key;
+    for (const id of Object.keys(spaceMap as Record<string, unknown>)) {
+      if (id && !spaceIds.includes(id)) spaceIds.push(id);
+    }
+  }
+
+  if (spaceIds.length === 0) {
+    const fromArray = pickSpaceIdFromSpacesArray(root.spaces);
+    if (fromArray) spaceIds.push(fromArray);
+    const fromIds = pickSpaceIdFromSpaceIdsArray(root.spaceIds);
+    if (fromIds && !spaceIds.includes(fromIds)) spaceIds.push(fromIds);
+  }
+
+  return { userId, spaceIds };
 }
 
 /** Common shape: { [userId]: { space_view: { ... }, space: { [spaceId]: ... } } } */
 function pickSpaceIdFromUserMap(root: Record<string, unknown>): string {
-  for (const value of Object.values(root)) {
-    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
-    const spaceMap = (value as Record<string, unknown>).space;
-    if (spaceMap && typeof spaceMap === "object" && !Array.isArray(spaceMap)) {
-      const ids = Object.keys(spaceMap as Record<string, unknown>);
-      if (ids.length > 0) return ids[0];
-    }
-  }
-  return "";
+  return parseNotionGetSpaces(root).spaceIds[0] || "";
 }
 
 /** Flat shape: { spaces: [{ id }] } */
@@ -382,14 +383,112 @@ function pickSpaceIdFromSpaceIdsArray(spaceIds: unknown): string {
 
 /** Best-effort spaceId extraction from getSpaces response shapes. */
 export function pickFirstSpaceId(data: unknown): string {
-  if (!data || typeof data !== "object") return "";
-  const root = data as Record<string, unknown>;
+  return parseNotionGetSpaces(data).spaceIds[0] || "";
+}
 
-  return (
-    pickSpaceIdFromUserMap(root) ||
-    pickSpaceIdFromSpacesArray(root.spaces) ||
-    pickSpaceIdFromSpaceIdsArray(root.spaceIds)
-  );
+function buildNotionBrowserHeaders(cookie: string, userId?: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    accept: "*/*",
+    "content-type": "application/json",
+    "user-agent": NOTION_USER_AGENT,
+    origin: NOTION_APP_ORIGIN,
+    referer: `${NOTION_APP_ORIGIN}/ai`,
+    "notion-client-version": NOTION_CLIENT_VERSION,
+    "notion-audit-log-platform": "web",
+    cookie,
+  };
+  if (userId) headers["x-notion-active-user-header"] = userId;
+  return headers;
+}
+
+/**
+ * Load workspace candidates from getSpaces using browser-like headers.
+ * Does not require space_id in the cookie — only token_v2.
+ */
+export async function fetchNotionWorkspaceCandidates(
+  cookie: string,
+  fetchImpl: typeof fetch = fetch
+): Promise<NotionWorkspaceCandidates> {
+  const normalized = normalizeNotionWebCookie(cookie);
+  if (!normalized) return { userId: "", spaceIds: [] };
+  const userFromCookie = extractNotionUserIdFromCookie(normalized);
+  try {
+    const res = await fetchImpl(NOTION_SPACES_URL, {
+      method: "POST",
+      headers: buildNotionBrowserHeaders(normalized, userFromCookie || undefined),
+      body: "{}",
+    });
+    if (!res.ok) return { userId: userFromCookie, spaceIds: [] };
+    const data = (await res.json()) as unknown;
+    const parsed = parseNotionGetSpaces(data);
+    return {
+      userId: userFromCookie || parsed.userId,
+      spaceIds: parsed.spaceIds,
+    };
+  } catch {
+    return { userId: userFromCookie, spaceIds: [] };
+  }
+}
+
+/**
+ * Try to resolve a workspace spaceId from getSpaces when the cookie has none.
+ * Returns "" on any failure (caller falls back to local catalog).
+ */
+export async function resolveNotionSpaceIdFromGetSpaces(
+  cookie: string,
+  fetchImpl: typeof fetch = fetch
+): Promise<string> {
+  const { spaceIds } = await fetchNotionWorkspaceCandidates(cookie, fetchImpl);
+  return spaceIds[0] || "";
+}
+
+/**
+ * Probe getAvailableModels for each candidate space and pick the richest catalog.
+ * This is how we discover models without the operator pasting space_id.
+ */
+export async function selectBestNotionSpaceId(opts: {
+  cookie: string;
+  spaceIds: string[];
+  userId?: string;
+  fetchImpl?: typeof fetch;
+  signal?: AbortSignal | null;
+}): Promise<{ spaceId: string; models: NotionDiscoveredModel[]; raw: unknown } | null> {
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  const cookie = normalizeNotionWebCookie(opts.cookie);
+  if (!cookie || opts.spaceIds.length === 0) return null;
+
+  let best: { spaceId: string; models: NotionDiscoveredModel[]; raw: unknown; score: number } | null =
+    null;
+
+  for (const spaceId of opts.spaceIds.slice(0, NOTION_MAX_SPACE_PROBE)) {
+    if (!spaceId) continue;
+    try {
+      const headers = buildNotionBrowserHeaders(cookie, opts.userId || undefined);
+      headers["x-notion-space-id"] = spaceId;
+      const res = await fetchImpl(NOTION_MODELS_URL, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ spaceId }),
+        signal: opts.signal ?? undefined,
+      });
+      if (!res.ok) continue;
+      const raw = await res.json();
+      const models = parseNotionAvailableModels(raw);
+      // Score: enabled models (excluding synthetic default) — prefer AI-capable workspaces.
+      const score = models.filter((m) => m.id !== "notion-ai").length;
+      if (!best || score > best.score) {
+        best = { spaceId, models, raw, score };
+      }
+      // Early exit when we already found a healthy multi-model workspace.
+      if (score >= 8) break;
+    } catch {
+      // try next space
+    }
+  }
+
+  return best
+    ? { spaceId: best.spaceId, models: best.models, raw: best.raw }
+    : null;
 }
 
 /**
@@ -418,38 +517,60 @@ export async function discoverNotionWebModels(opts: {
 
   let spaceId = extractSpaceIdFromNotionCookie(cookie);
   let spaceIdFromGetSpaces = false;
-  if (!spaceId) {
-    spaceId = await resolveNotionSpaceIdFromGetSpaces(cookie, fetchImpl);
-    spaceIdFromGetSpaces = !!spaceId;
+  let data: unknown;
+  let models: NotionDiscoveredModel[] = [];
+  let userId = extractNotionUserIdFromCookie(cookie);
+
+  if (spaceId) {
+    // Explicit space_id from cookie — single targeted discovery.
+    const cookieForHeaders = cookie;
+    const headers = buildNotionModelsDiscoveryHeaders(cookieForHeaders);
+    headers["x-notion-space-id"] = spaceId;
+    if (userId) headers["x-notion-active-user-header"] = userId;
+
+    const res = await fetchImpl(NOTION_MODELS_URL, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ spaceId }),
+      signal: opts.signal ?? undefined,
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`getAvailableModels failed (${res.status}): ${text.slice(0, 200)}`);
+    }
+    data = await res.json();
+    models = parseNotionAvailableModels(data);
+  } else {
+    // No space_id pasted — resolve via getSpaces, then probe workspaces for the
+    // richest AI model list (so operators only need the raw token_v2 value).
+    const candidates = await fetchNotionWorkspaceCandidates(cookie, fetchImpl);
+    userId = userId || candidates.userId;
+    if (candidates.spaceIds.length === 0) {
+      throw new Error(
+        "Could not resolve a Notion workspace from token_v2 alone. " +
+          "Re-copy a fresh token_v2 from app.notion.com (Application → Cookies), " +
+          "or optionally paste space_id from Network → getAvailableModels → x-notion-space-id."
+      );
+    }
+
+    const best = await selectBestNotionSpaceId({
+      cookie,
+      spaceIds: candidates.spaceIds,
+      userId: userId || undefined,
+      fetchImpl,
+      signal: opts.signal,
+    });
+    if (!best || best.models.length === 0) {
+      throw new Error(
+        "getAvailableModels returned no enabled models for any workspace visible to this token"
+      );
+    }
+    spaceId = best.spaceId;
+    models = best.models;
+    data = best.raw;
+    spaceIdFromGetSpaces = true;
   }
-  if (!spaceId) {
-    throw new Error(
-      "Missing Notion spaceId — include space_id=… in the cookie header or re-login so getSpaces can resolve a workspace"
-    );
-  }
 
-  // Prefer the canonical space id extractor (case-insensitive) so we do not
-  // append a second space_id= when the cookie used spaceId= or mixed case.
-  const cookieForHeaders = extractSpaceIdFromNotionCookie(cookie)
-    ? cookie
-    : `${cookie}; space_id=${spaceId}`;
-  const headers = buildNotionModelsDiscoveryHeaders(cookieForHeaders);
-  headers["x-notion-space-id"] = spaceId;
-
-  const res = await fetchImpl(NOTION_MODELS_URL, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ spaceId }),
-    signal: opts.signal ?? undefined,
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`getAvailableModels failed (${res.status}): ${text.slice(0, 200)}`);
-  }
-
-  const data = await res.json();
-  const models = parseNotionAvailableModels(data);
   if (models.length === 0) {
     throw new Error("getAvailableModels returned no enabled models");
   }
@@ -458,13 +579,7 @@ export async function discoverNotionWebModels(opts: {
   const warnings: string[] = [];
   const disabledWarning = formatNotionDisabledModelsWarning(disabledModels);
   if (disabledWarning) warnings.push(disabledWarning);
-  if (spaceIdFromGetSpaces) {
-    warnings.push(
-      "No space_id in cookie — used first workspace from getSpaces. " +
-        "If the list differs from app.notion.com/ai, paste space_id from " +
-        "getAvailableModels → request header x-notion-space-id."
-    );
-  }
+  // Auto space selection is silent when it works — no scary "paste space_id" nags.
 
   return {
     models,
