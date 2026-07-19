@@ -34,6 +34,8 @@ export const NOAUTH_PROVIDERS = {
     serviceKinds: ["llm"],
     freeNote: "Free — anonymous access to multiple AI models via DuckDuckGo.",
     authHint: "No credentials required — DuckDuckGo AI Chat is anonymous and free.",
+    // #7286: tools[] is prompt-emulated via webTools.ts (parseToolCallsFromText).
+    toolCalling: "emulated",
   },
   "felo-web": {
     id: "felo-web",

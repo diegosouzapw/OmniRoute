@@ -14,6 +14,7 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint: "Paste your __Secure-next-auth.session-token cookie value from chatgpt.com",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
+    toolCalling: "emulated",
   },
   "grok-web": {
     id: "grok-web",
@@ -40,6 +41,8 @@ export const WEB_COOKIE_PROVIDERS = {
       "Paste your __Secure-1PSID cookie value from gemini.google.com. Optionally add __Secure-1PSIDTS separated by semicolon.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
+    // #7286 Level 2: tools[] is prompt-emulated via webTools.ts (parseToolCallsFromText).
+    toolCalling: "emulated",
   },
   "perplexity-web": {
     id: "perplexity-web",
@@ -52,6 +55,7 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint: "Paste your __Secure-next-auth.session-token cookie value from perplexity.ai",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
+    toolCalling: "emulated",
   },
   "blackbox-web": {
     id: "blackbox-web",
@@ -65,6 +69,7 @@ export const WEB_COOKIE_PROVIDERS = {
       "Paste your __Secure-authjs.session-token value or full cookie header from app.blackbox.ai",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
+    toolCalling: "emulated",
   },
   "muse-spark-web": {
     id: "muse-spark-web",
@@ -77,6 +82,7 @@ export const WEB_COOKIE_PROVIDERS = {
     hasFree: true,
     freeNote: "Free with login — Meta AI platform with Llama models.",
     authHint: "Paste your ecto_1_sess value or full cookie header from meta.ai",
+    toolCalling: "emulated",
   },
   "claude-web": {
     id: "claude-web",
@@ -89,6 +95,9 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint: "Paste your session cookie from claude.ai",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
+    // #7286 Level 3 (deferred): still silently drops tools[] — getDefaultTools()
+    // is a fixed Claude.ai backend contract; needs an emulate-vs-native decision.
+    toolCalling: "none",
   },
   "deepseek-web": {
     id: "deepseek-web",
@@ -102,6 +111,7 @@ export const WEB_COOKIE_PROVIDERS = {
       "Paste your userToken from chat.deepseek.com — DevTools → Application → Local Storage → userToken",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
+    toolCalling: "emulated",
   },
   "copilot-web": {
     id: "copilot-web",
@@ -156,6 +166,7 @@ export const WEB_COOKIE_PROVIDERS = {
       "Open t3.chat in your browser, log in, then open DevTools → Application → Local Storage → https://t3.chat. " +
       "Copy the value of 'convex-session-id'. Also open DevTools → Network, copy the Cookie header from any request. " +
       "Paste both values here. See provider setup docs for a step-by-step guide.",
+    toolCalling: "emulated",
   },
   "inner-ai": {
     id: "inner-ai",
@@ -169,6 +180,7 @@ export const WEB_COOKIE_PROVIDERS = {
     riskNoticeVariant: "webCookie",
     authHint:
       "Paste your token cookie and email separated by a space: open DevTools → Application → Cookies → .innerai.com, copy the token value, then append a space and your Inner.ai login email. Example: eyJhbG... user@example.com",
+    toolCalling: "emulated",
   },
   "adapta-web": {
     id: "adapta-web",
@@ -182,6 +194,7 @@ export const WEB_COOKIE_PROVIDERS = {
     riskNoticeVariant: "webCookie",
     authHint:
       "Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies)",
+    toolCalling: "emulated",
   },
   lmarena: {
     // Wire id stays `lmarena` for DB/combo/model-prefix back-compat.
@@ -311,6 +324,7 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Open chat.qwen.ai, log in, then open DevTools → Application → Local Storage → " +
       'copy the "token" value (or use tongyi_sso_ticket cookie as Bearer token).',
+    toolCalling: "emulated",
   },
   "gemini-business": {
     id: "gemini-business",
