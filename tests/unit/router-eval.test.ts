@@ -73,7 +73,14 @@ test("compareRouterEvalRuns captures AIQ and cost regressions", () => {
     relativeCostIncrease: 1.2,
   });
 
-  assert.equal(comparison.regressions.length > 0, true);
+  assert.ok(
+    comparison.regressions.some((reason) => reason.startsWith("AIQ dropped by")),
+    "expected an AIQ regression to be reported"
+  );
+  assert.ok(
+    comparison.regressions.some((reason) => reason.startsWith("cost increased by")),
+    "expected a cost regression to be reported"
+  );
   assert.equal(comparison.delta.aiq <= 0, true);
   assert.equal(comparison.delta.costUsd > 0, true);
 });
