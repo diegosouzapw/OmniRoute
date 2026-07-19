@@ -956,7 +956,7 @@ same process on one port, so there is no separate CLI-only package today.
 
 <div align="center">
 
-## 👥 360+ Contributors
+## 👥 350+ Contributors
 
 </div>
 
