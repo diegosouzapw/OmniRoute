@@ -235,10 +235,41 @@ function writeStats() {
   }
 }
 
-const sslOptions = {
-  key: fs.readFileSync(path.join(certDir, "server.key")),
-  cert: fs.readFileSync(path.join(certDir, "server.crt")),
-};
+// #6684: root-CA + per-host leaf certs, gated by MITM_CERT_MODE (set by
+// manager.ts from its own migration-gate decision, `cert/migration.ts`) so
+// server.cjs never drifts from what manager.ts installed/trusted. Default
+// (unset/"legacy") reproduces the exact prior behavior — a single static
+// self-signed leaf read synchronously at module scope — so existing installs
+// are never silently upgraded to the new trust model.
+const CERT_MODE = process.env.MITM_CERT_MODE === "root-ca" ? "root-ca" : "legacy";
+
+function loadLegacySslOptions() {
+  return {
+    key: fs.readFileSync(path.join(certDir, "server.key")),
+    cert: fs.readFileSync(path.join(certDir, "server.crt")),
+  };
+}
+
+// The root-CA path needs an SNICallback fed by the per-host leaf issuer in
+// `_internal/rootCaShim.cjs` (a CJS twin of `cert/rootCa.ts` +
+// `tproxy/dynamicCert.ts` — see that file's header for why it's duplicated
+// rather than imported). Resolved once during async bootstrap below.
+async function loadRootCaSslOptions() {
+  const { loadOrCreateMitmCa, issueLeafCert, DynamicCertStore } = require("./_internal/rootCaShim.cjs");
+  const ca = await loadOrCreateMitmCa(certDir);
+  const certStore = new DynamicCertStore({ key: ca.key, cert: ca.cert });
+  const defaultHost = [...TARGET_HOSTS][0];
+  // Node's TLS server needs a default key/cert even with SNICallback (used
+  // only when a client sends no SNI at all) — warm the cache for the default
+  // host at the same time so the very first request for it is instant.
+  const defaultLeaf = await issueLeafCert(defaultHost, { key: ca.key, cert: ca.cert });
+  await certStore.getSecureContext(defaultHost);
+  return {
+    key: defaultLeaf.key,
+    cert: defaultLeaf.cert,
+    SNICallback: certStore.createSNICallback(),
+  };
+}
 
 // Log directory for request/response dumps
 const LOG_DIR = path.join(__dirname, "../../logs/mitm");
@@ -552,235 +583,253 @@ async function intercept(req, res, bodyBuffer, override, sourceModel) {
   }
 }
 
-const server = https.createServer(sslOptions, async (req, res) => {
-  stats.totalRequests++;
-  stats.lastRequestAt = new Date().toISOString();
-  writeStats();
+// #6684: server creation (and everything below that closes over `server`) is
+// wrapped in an async bootstrap because the root-CA path (`loadRootCaSslOptions`)
+// needs to load/generate CA material before the TLS server can be created.
+// server.cjs is spawned as a standalone child process (not `require()`d), so
+// nothing needs its top-level exports to resolve synchronously — deferring
+// server creation into this async function is safe. In "legacy" mode
+// (default) `loadLegacySslOptions()` resolves synchronously, so startup
+// timing for existing installs is unchanged.
+async function startMitmServer() {
+  const sslOptions =
+    CERT_MODE === "root-ca" ? await loadRootCaSslOptions() : loadLegacySslOptions();
 
-  const bodyBuffer = await collectBodyRaw(req);
-  const host = String(req.headers.host || "")
-    .split(":")[0]
-    .toLowerCase();
-  const model = bodyBuffer.length > 0 ? extractModel(bodyBuffer) : null;
-
-  vlog(
-    1,
-    `[MITM] ${req.method} ${host}${req.url} | body: ${bodyBuffer.length}B | model: ${model || "N/A"}`
-  );
-
-  if (bodyBuffer.length > 0) saveRequestLog(req.url, bodyBuffer);
-
-  if (req.headers["x-omniroute-source"] === "omniroute") {
-    vlog(1, `[MITM] → PASSTHROUGH (OmniRoute source loop)`);
-    return passthrough(req, res, bodyBuffer);
-  }
-
-  if (!TARGET_HOSTS.has(host)) {
-    vlog(1, `[MITM] → PASSTHROUGH (host ${host} not in target list)`);
-    return passthrough(req, res, bodyBuffer);
-  }
-
-  const agentId = TARGET_HOST_AGENT.get(host) || "antigravity";
-  const routeConfig = standaloneRoutingShim.getAgentRouteConfig(agentId);
-  const isChatRequest = routeConfig.chatUrlPatterns.some((p) => req.url.includes(p));
-
-  if (!isChatRequest) {
-    vlog(1, `[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
-    return passthrough(req, res, bodyBuffer);
-  }
-
-  const mappedOverride = getMappedOverride(model, agentId);
-
-  if (!mappedOverride) {
-    vlog(1, `[MITM] → PASSTHROUGH (model "${model}" has no MITM alias mapping)`);
-    return passthrough(req, res, bodyBuffer);
-  }
-
-  stats.interceptedRequests++;
-  stats.lastInterceptAt = new Date().toISOString();
-  writeStats();
-
-  vlog(
-    1,
-    `[MITM] INTERCEPTED ${agentId} ${model} → ${mappedOverride.model || model}` +
-      (mappedOverride.reasoningEffort ? ` (reasoningEffort=${mappedOverride.reasoningEffort})` : "")
-  );
-  return intercept(req, res, bodyBuffer, mappedOverride, model);
-});
-
-// =========================================================================
-// C1 — CONNECT handler: bypass + passthrough TCP support (plan 11 §4.6).
-//
-// Clients (browsers, IDE agents acting as HTTP proxy clients) send a
-// CONNECT request before opening a TLS tunnel. The original `https.Server`
-// has no built-in CONNECT handler because it expects connections to come
-// pre-routed (typically via /etc/hosts DNS spoofing). For AgentBridge we
-// also accept clients configured with HTTPS_PROXY/HTTP_PROXY, where every
-// HTTPS request arrives as CONNECT. For those:
-//
-//   - bypass hostname → raw TCP pipe upstream, NO TLS decrypt, NO log of
-//     body or headers. Privacy contract: bypass = "never see content".
-//   - passthrough (host not in TARGET_HOSTS, no bypass match) → raw TCP
-//     pipe upstream so the user's system never loses internet for hosts
-//     outside our scope. Acceptance criterion §12 #16.
-//   - target hostname → write 200 Connection Established and pipe the
-//     client socket into the local TLS-terminating port so the existing
-//     https.createServer can decrypt and route via the normal flow.
-//
-// Note: in the DNS-spoof mode (IDE points at 127.0.0.1 via /etc/hosts),
-// IDEs reach the server directly without CONNECT; the existing
-// `https.createServer` request handler still applies for those. The
-// CONNECT handler only fires for clients that explicitly speak proxy.
-// =========================================================================
-
-function parseConnectAuthority(authority) {
-  // CONNECT host[:port]
-  const idx = authority.lastIndexOf(":");
-  if (idx === -1) return { host: authority.toLowerCase(), port: 443 };
-  const host = authority.slice(0, idx).toLowerCase();
-  const port = Number.parseInt(authority.slice(idx + 1), 10);
-  return {
-    host,
-    port: Number.isInteger(port) && port > 0 && port <= 65535 ? port : 443,
-  };
-}
-
-function rawTcpForward(clientSocket, head, host, port, label) {
-  const targetSocket = net.connect(port, host, () => {
-    clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
-    if (head && head.length > 0) targetSocket.write(head);
-    targetSocket.pipe(clientSocket);
-    clientSocket.pipe(targetSocket);
-    // Reap a half-open/hung tunnel after the idle timeout so neither side leaks
-    // an fd when the upstream never sends FIN/RST (Gap 10).
-    const destroyBoth = () => {
-      clientSocket.destroy();
-      targetSocket.destroy();
-    };
-    clientSocket.setTimeout(MITM_IDLE_TIMEOUT_MS, destroyBoth);
-    targetSocket.setTimeout(MITM_IDLE_TIMEOUT_MS, destroyBoth);
-  });
-
-  // Best-effort cleanup; never crash the proxy on tunnel errors.
-  const onErr = (label2) => (err) => {
-    console.error(`[MITM] ${label} TCP forward ${label2} error: ${err.message}`);
-    try {
-      clientSocket.destroy();
-    } catch {
-      // ignore
-    }
-    try {
-      targetSocket.destroy();
-    } catch {
-      // ignore
-    }
-  };
-  targetSocket.on("error", onErr("upstream"));
-  clientSocket.on("error", onErr("client"));
-  clientSocket.on("close", () => {
-    try {
-      targetSocket.destroy();
-    } catch {
-      // ignore
-    }
-  });
-  targetSocket.on("close", () => {
-    try {
-      clientSocket.destroy();
-    } catch {
-      // ignore
-    }
-  });
-}
-
-// CONNECT handler — scope note (plan 11 §4.6):
-//
-// This fires ONLY when a client uses this server as an explicit HTTPS proxy and
-// sends a `CONNECT host:port` line *inside* an already-established TLS session
-// (HTTPS-proxy-tunneled-in-TLS). The primary "no config required" AgentBridge
-// flow does NOT use it: there the IDE is pointed at 127.0.0.1 via /etc/hosts DNS
-// spoofing and opens TLS DIRECTLY, so requests are routed by the decrypted Host
-// header in the request handler above (target → intercept, otherwise passthrough).
-// Likewise, bypass/passthrough for *unmapped* hosts in the DNS-spoof model is
-// handled by DNS scoping (only spoofed hosts ever resolve to 127.0.0.1), and the
-// System-wide proxy mode (plan 12 §2.5.4) routes through httpProxyServer.ts (:8080),
-// which has its own CONNECT handling. This handler is retained for the explicit-
-// proxy edge case and to honor the routeBypass precedence (bypass > target >
-// passthrough); true on-wire bypass-without-decrypt at :443 under direct TLS would
-// require SNI sniffing on the raw 'connection' event, which is intentionally out
-// of scope for this release.
-server.on("connect", (req, clientSocket, head) => {
-  const authority = String(req.url || "");
-  const { host: connectHost, port: connectPort } = parseConnectAuthority(authority);
-
-  const decision = routeBypass(connectHost);
-
-  if (decision === "bypass") {
-    // Privacy: bypass hosts are never logged with body/headers and never
-    // TLS-decrypted. Only the hostname appears in console output.
-    vlog(1, `[MITM] CONNECT ${connectHost}:${connectPort} → BYPASS (TCP tunnel)`);
-    rawTcpForward(clientSocket, head, connectHost, connectPort, "bypass");
-    return;
-  }
-
-  if (decision === "target") {
-    // Hand the tunnel off to the local TLS-terminating server so the existing
-    // https.createServer request handler can decrypt and route. We write the
-    // 200 response ourselves and then `emit("connection")` so the TLS layer
-    // picks the socket up.
-    vlog(1, `[MITM] CONNECT ${connectHost}:${connectPort} → TARGET (TLS terminate locally)`);
-    clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
-    if (head && head.length > 0) clientSocket.unshift(head);
-    server.emit("connection", clientSocket);
-    return;
-  }
-
-  // decision === "passthrough"
-  vlog(1, `[MITM] CONNECT ${connectHost}:${connectPort} → PASSTHROUGH (TCP tunnel)`);
-  rawTcpForward(clientSocket, head, connectHost, connectPort, "passthrough");
-});
-
-// Bound full-request / header / keep-alive lifetimes so a slow or hung client
-// cannot pin a connection indefinitely (Gap 10).
-server.requestTimeout = MITM_IDLE_TIMEOUT_MS * 5; // hard cap on a full request
-server.headersTimeout = MITM_IDLE_TIMEOUT_MS; // time allowed to send headers
-server.keepAliveTimeout = MITM_IDLE_TIMEOUT_MS; // idle keep-alive window
-
-server.listen(LOCAL_PORT, () => {
-  stats.startedAt = new Date().toISOString();
-  writeStats();
-  console.log(`🚀 MITM ready on :${LOCAL_PORT} → ${ROUTER_URL}`);
-});
-
-server.on("connection", (socket) => {
-  // Guard against double-counting: a CONNECT "target" tunnel re-emits an
-  // already-counted socket into the TLS layer via emit("connection") above.
-  if (socket.__mitmCounted) return;
-  socket.__mitmCounted = true;
-  // Reap idle sockets so hung connections cannot exhaust fds (Gap 10).
-  socket.setTimeout(MITM_IDLE_TIMEOUT_MS, () => socket.destroy());
-  stats.activeConnections++;
-  writeStats();
-  socket.on("close", () => {
-    stats.activeConnections = Math.max(0, stats.activeConnections - 1);
+  const server = https.createServer(sslOptions, async (req, res) => {
+    stats.totalRequests++;
+    stats.lastRequestAt = new Date().toISOString();
     writeStats();
+
+    const bodyBuffer = await collectBodyRaw(req);
+    const host = String(req.headers.host || "")
+      .split(":")[0]
+      .toLowerCase();
+    const model = bodyBuffer.length > 0 ? extractModel(bodyBuffer) : null;
+
+    vlog(
+      1,
+      `[MITM] ${req.method} ${host}${req.url} | body: ${bodyBuffer.length}B | model: ${model || "N/A"}`
+    );
+
+    if (bodyBuffer.length > 0) saveRequestLog(req.url, bodyBuffer);
+
+    if (req.headers["x-omniroute-source"] === "omniroute") {
+      vlog(1, `[MITM] → PASSTHROUGH (OmniRoute source loop)`);
+      return passthrough(req, res, bodyBuffer);
+    }
+
+    if (!TARGET_HOSTS.has(host)) {
+      vlog(1, `[MITM] → PASSTHROUGH (host ${host} not in target list)`);
+      return passthrough(req, res, bodyBuffer);
+    }
+
+    const agentId = TARGET_HOST_AGENT.get(host) || "antigravity";
+    const routeConfig = standaloneRoutingShim.getAgentRouteConfig(agentId);
+    const isChatRequest = routeConfig.chatUrlPatterns.some((p) => req.url.includes(p));
+
+    if (!isChatRequest) {
+      vlog(1, `[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
+      return passthrough(req, res, bodyBuffer);
+    }
+
+    const mappedOverride = getMappedOverride(model, agentId);
+
+    if (!mappedOverride) {
+      vlog(1, `[MITM] → PASSTHROUGH (model "${model}" has no MITM alias mapping)`);
+      return passthrough(req, res, bodyBuffer);
+    }
+
+    stats.interceptedRequests++;
+    stats.lastInterceptAt = new Date().toISOString();
+    writeStats();
+
+    vlog(
+      1,
+      `[MITM] INTERCEPTED ${agentId} ${model} → ${mappedOverride.model || model}` +
+        (mappedOverride.reasoningEffort ? ` (reasoningEffort=${mappedOverride.reasoningEffort})` : "")
+    );
+    return intercept(req, res, bodyBuffer, mappedOverride, model);
   });
-});
 
-server.on("error", (error) => {
-  if (error.code === "EADDRINUSE") {
-    console.error(`❌ Port ${LOCAL_PORT} already in use`);
-  } else if (error.code === "EACCES") {
-    console.error(`❌ Permission denied for port ${LOCAL_PORT}`);
-  } else {
-    console.error(`❌ ${error.message}`);
+  // =========================================================================
+  // C1 — CONNECT handler: bypass + passthrough TCP support (plan 11 §4.6).
+  //
+  // Clients (browsers, IDE agents acting as HTTP proxy clients) send a
+  // CONNECT request before opening a TLS tunnel. The original `https.Server`
+  // has no built-in CONNECT handler because it expects connections to come
+  // pre-routed (typically via /etc/hosts DNS spoofing). For AgentBridge we
+  // also accept clients configured with HTTPS_PROXY/HTTP_PROXY, where every
+  // HTTPS request arrives as CONNECT. For those:
+  //
+  //   - bypass hostname → raw TCP pipe upstream, NO TLS decrypt, NO log of
+  //     body or headers. Privacy contract: bypass = "never see content".
+  //   - passthrough (host not in TARGET_HOSTS, no bypass match) → raw TCP
+  //     pipe upstream so the user's system never loses internet for hosts
+  //     outside our scope. Acceptance criterion §12 #16.
+  //   - target hostname → write 200 Connection Established and pipe the
+  //     client socket into the local TLS-terminating port so the existing
+  //     https.createServer can decrypt and route via the normal flow.
+  //
+  // Note: in the DNS-spoof mode (IDE points at 127.0.0.1 via /etc/hosts),
+  // IDEs reach the server directly without CONNECT; the existing
+  // `https.createServer` request handler still applies for those. The
+  // CONNECT handler only fires for clients that explicitly speak proxy.
+  // =========================================================================
+
+  function parseConnectAuthority(authority) {
+    // CONNECT host[:port]
+    const idx = authority.lastIndexOf(":");
+    if (idx === -1) return { host: authority.toLowerCase(), port: 443 };
+    const host = authority.slice(0, idx).toLowerCase();
+    const port = Number.parseInt(authority.slice(idx + 1), 10);
+    return {
+      host,
+      port: Number.isInteger(port) && port > 0 && port <= 65535 ? port : 443,
+    };
   }
-  process.exit(1);
-});
 
-process.on("SIGTERM", () => {
-  server.close(() => process.exit(0));
-});
-process.on("SIGINT", () => {
-  server.close(() => process.exit(0));
+  function rawTcpForward(clientSocket, head, host, port, label) {
+    const targetSocket = net.connect(port, host, () => {
+      clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
+      if (head && head.length > 0) targetSocket.write(head);
+      targetSocket.pipe(clientSocket);
+      clientSocket.pipe(targetSocket);
+      // Reap a half-open/hung tunnel after the idle timeout so neither side leaks
+      // an fd when the upstream never sends FIN/RST (Gap 10).
+      const destroyBoth = () => {
+        clientSocket.destroy();
+        targetSocket.destroy();
+      };
+      clientSocket.setTimeout(MITM_IDLE_TIMEOUT_MS, destroyBoth);
+      targetSocket.setTimeout(MITM_IDLE_TIMEOUT_MS, destroyBoth);
+    });
+
+    // Best-effort cleanup; never crash the proxy on tunnel errors.
+    const onErr = (label2) => (err) => {
+      console.error(`[MITM] ${label} TCP forward ${label2} error: ${err.message}`);
+      try {
+        clientSocket.destroy();
+      } catch {
+        // ignore
+      }
+      try {
+        targetSocket.destroy();
+      } catch {
+        // ignore
+      }
+    };
+    targetSocket.on("error", onErr("upstream"));
+    clientSocket.on("error", onErr("client"));
+    clientSocket.on("close", () => {
+      try {
+        targetSocket.destroy();
+      } catch {
+        // ignore
+      }
+    });
+    targetSocket.on("close", () => {
+      try {
+        clientSocket.destroy();
+      } catch {
+        // ignore
+      }
+    });
+  }
+
+  // CONNECT handler — scope note (plan 11 §4.6):
+  //
+  // This fires ONLY when a client uses this server as an explicit HTTPS proxy and
+  // sends a `CONNECT host:port` line *inside* an already-established TLS session
+  // (HTTPS-proxy-tunneled-in-TLS). The primary "no config required" AgentBridge
+  // flow does NOT use it: there the IDE is pointed at 127.0.0.1 via /etc/hosts DNS
+  // spoofing and opens TLS DIRECTLY, so requests are routed by the decrypted Host
+  // header in the request handler above (target → intercept, otherwise passthrough).
+  // Likewise, bypass/passthrough for *unmapped* hosts in the DNS-spoof model is
+  // handled by DNS scoping (only spoofed hosts ever resolve to 127.0.0.1), and the
+  // System-wide proxy mode (plan 12 §2.5.4) routes through httpProxyServer.ts (:8080),
+  // which has its own CONNECT handling. This handler is retained for the explicit-
+  // proxy edge case and to honor the routeBypass precedence (bypass > target >
+  // passthrough); true on-wire bypass-without-decrypt at :443 under direct TLS would
+  // require SNI sniffing on the raw 'connection' event, which is intentionally out
+  // of scope for this release.
+  server.on("connect", (req, clientSocket, head) => {
+    const authority = String(req.url || "");
+    const { host: connectHost, port: connectPort } = parseConnectAuthority(authority);
+
+    const decision = routeBypass(connectHost);
+
+    if (decision === "bypass") {
+      // Privacy: bypass hosts are never logged with body/headers and never
+      // TLS-decrypted. Only the hostname appears in console output.
+      vlog(1, `[MITM] CONNECT ${connectHost}:${connectPort} → BYPASS (TCP tunnel)`);
+      rawTcpForward(clientSocket, head, connectHost, connectPort, "bypass");
+      return;
+    }
+
+    if (decision === "target") {
+      // Hand the tunnel off to the local TLS-terminating server so the existing
+      // https.createServer request handler can decrypt and route. We write the
+      // 200 response ourselves and then `emit("connection")` so the TLS layer
+      // picks the socket up.
+      vlog(1, `[MITM] CONNECT ${connectHost}:${connectPort} → TARGET (TLS terminate locally)`);
+      clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
+      if (head && head.length > 0) clientSocket.unshift(head);
+      server.emit("connection", clientSocket);
+      return;
+    }
+
+    // decision === "passthrough"
+    vlog(1, `[MITM] CONNECT ${connectHost}:${connectPort} → PASSTHROUGH (TCP tunnel)`);
+    rawTcpForward(clientSocket, head, connectHost, connectPort, "passthrough");
+  });
+
+  // Bound full-request / header / keep-alive lifetimes so a slow or hung client
+  // cannot pin a connection indefinitely (Gap 10).
+  server.requestTimeout = MITM_IDLE_TIMEOUT_MS * 5; // hard cap on a full request
+  server.headersTimeout = MITM_IDLE_TIMEOUT_MS; // time allowed to send headers
+  server.keepAliveTimeout = MITM_IDLE_TIMEOUT_MS; // idle keep-alive window
+
+  server.listen(LOCAL_PORT, () => {
+    stats.startedAt = new Date().toISOString();
+    writeStats();
+    console.log(`🚀 MITM ready on :${LOCAL_PORT} → ${ROUTER_URL}`);
+  });
+
+  server.on("connection", (socket) => {
+    // Guard against double-counting: a CONNECT "target" tunnel re-emits an
+    // already-counted socket into the TLS layer via emit("connection") above.
+    if (socket.__mitmCounted) return;
+    socket.__mitmCounted = true;
+    // Reap idle sockets so hung connections cannot exhaust fds (Gap 10).
+    socket.setTimeout(MITM_IDLE_TIMEOUT_MS, () => socket.destroy());
+    stats.activeConnections++;
+    writeStats();
+    socket.on("close", () => {
+      stats.activeConnections = Math.max(0, stats.activeConnections - 1);
+      writeStats();
+    });
+  });
+
+  server.on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`❌ Port ${LOCAL_PORT} already in use`);
+    } else if (error.code === "EACCES") {
+      console.error(`❌ Permission denied for port ${LOCAL_PORT}`);
+    } else {
+      console.error(`❌ ${error.message}`);
+    }
+    process.exit(1);
+  });
+
+  process.on("SIGTERM", () => {
+    server.close(() => process.exit(0));
+  });
+  process.on("SIGINT", () => {
+    server.close(() => process.exit(0));
+  });
+}
+
+startMitmServer().catch((err) => {
+  console.error(`❌ ${sanitizeErrorMessage(err && err.message)}`);
+  process.exit(1);
 });
