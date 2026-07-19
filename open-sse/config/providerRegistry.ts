@@ -12,7 +12,6 @@ import {
   RegistryOAuth,
   RegistryEntry,
   LegacyProvider,
-  KIMI_CODING_SHARED,
   buildModels,
   ALIBABA_DASHSCOPE_MODELS,
   GPT_5_5_CONTEXT_LENGTH,
@@ -38,6 +37,9 @@ export function generateLegacyProviders(): Record<string, LegacyProvider> {
     }
     if (entry.responsesBaseUrl) {
       p.responsesBaseUrl = entry.responsesBaseUrl;
+    }
+    if (entry.messagesUrl) {
+      p.messagesUrl = entry.messagesUrl;
     }
     if (entry.requestDefaults) {
       p.requestDefaults = entry.requestDefaults;

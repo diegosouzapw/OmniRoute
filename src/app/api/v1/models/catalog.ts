@@ -11,6 +11,7 @@ import {
 } from "@/lib/localDb";
 import { extractAliasBackedModels } from "./aliasBackedModels";
 import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
+import { appendClaudeEffortVariants } from "@omniroute/open-sse/utils/claudeEffortVariants";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
 import {
   getAllImageModels,
@@ -34,6 +35,7 @@ import {
 import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
 import { getModelCatalogCacheVersion } from "@/lib/db/readCache";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
+import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import {
@@ -68,6 +70,8 @@ import {
   intersectStringArrays,
   minKnownNumber,
   maybeOmitCatalogModelName,
+  getThinkingCapabilityFields,
+  mergeComboCapabilities,
 } from "./catalogHelpers";
 import {
   qualifyOpenRouterModelId,
@@ -503,32 +507,25 @@ async function buildUnifiedModelsResponseCore(
             ? ["text"]
             : undefined;
 
-      const capabilities: Record<string, boolean> = {};
-      if (typeof synced?.tool_call === "boolean") {
-        capabilities.tool_calling = synced.tool_call;
-      } else if (typeof registryModel?.toolCalling === "boolean") {
-        capabilities.tool_calling = registryModel.toolCalling;
-      } else if (typeof spec?.supportsTools === "boolean") {
-        capabilities.tool_calling = spec.supportsTools;
+      const capabilities: Record<string, boolean | string[]> = {};
+      capabilities.tool_calling = canonical.capabilities.toolCalling;
+      capabilities.reasoning = canonical.capabilities.reasoning;
+      if (typeof canonical.capabilities.vision === "boolean") {
+        capabilities.vision = canonical.capabilities.vision;
       }
-      if (typeof synced?.reasoning === "boolean") {
-        capabilities.reasoning = synced.reasoning;
-      } else if (typeof registryModel?.supportsReasoning === "boolean") {
-        capabilities.reasoning = registryModel.supportsReasoning;
-      } else if (typeof spec?.supportsThinking === "boolean") {
-        capabilities.reasoning = spec.supportsThinking;
+      if (typeof canonical.capabilities.attachment === "boolean") {
+        capabilities.attachment = canonical.capabilities.attachment;
       }
-      if (typeof knownVision === "boolean") capabilities.vision = knownVision;
-      if (typeof synced?.attachment === "boolean") capabilities.attachment = synced.attachment;
-      if (typeof synced?.structured_output === "boolean") {
-        capabilities.structured_output = synced.structured_output;
+      if (typeof canonical.capabilities.structuredOutput === "boolean") {
+        capabilities.structured_output = canonical.capabilities.structuredOutput;
       }
-      if (typeof synced?.temperature === "boolean") capabilities.temperature = synced.temperature;
-      if (typeof synced?.reasoning === "boolean") {
-        capabilities.thinking = synced.reasoning;
-      } else if (typeof spec?.supportsThinking === "boolean") {
-        capabilities.thinking = spec.supportsThinking;
+      if (typeof canonical.capabilities.temperature === "boolean") {
+        capabilities.temperature = canonical.capabilities.temperature;
       }
+      Object.assign(
+        capabilities,
+        getThinkingCapabilityFields(providerId, modelId, canonical.capabilities.supportsThinking)
+      );
 
       return {
         ...(contextLength ? { contextLength } : {}),
@@ -580,22 +577,7 @@ async function buildUnifiedModelsResponseCore(
         ? intersectStringArrays(knownMetadata.map((metadata) => metadata.outputModalities || []))
         : [];
 
-      const capabilities: Record<string, boolean> = {};
-      for (const key of [
-        "tool_calling",
-        "reasoning",
-        "vision",
-        "attachment",
-        "structured_output",
-        "temperature",
-        "thinking",
-      ]) {
-        const values = knownMetadata.map((metadata) => metadata.capabilities[key]);
-        if (values.every((value): value is boolean => typeof value === "boolean")) {
-          const [first] = values;
-          if (values.every((value) => value === first)) capabilities[key] = first;
-        }
-      }
+      const capabilities = mergeComboCapabilities(knownMetadata);
 
       return {
         ...baseMetadata,
@@ -710,6 +692,7 @@ async function buildUnifiedModelsResponseCore(
     }
     const providersWithSyncedModels = new Set(
       Object.keys(syncedModelsByProvider).filter((pid) => {
+        if (providerUsesCuratedModelsOnly(pid)) return false;
         const models = syncedModelsByProvider[pid];
         return Array.isArray(models) && models.length > 0;
       })
@@ -807,6 +790,7 @@ async function buildUnifiedModelsResponseCore(
 
     try {
       for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
+        if (providerUsesCuratedModelsOnly(providerId)) continue;
         if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
         if (blockedProviders.has(providerId)) continue;
         if (providerId === "reka") continue;
@@ -1182,6 +1166,7 @@ async function buildUnifiedModelsResponseCore(
     try {
       const customModelsMap = (await getAllCustomModels()) as Record<string, unknown>;
       for (const [providerId, rawProviderCustomModels] of Object.entries(customModelsMap)) {
+        if (providerUsesCuratedModelsOnly(providerId)) continue;
         // Skip Gemini — handled by syncedAvailableModels above
         if (providerId === "gemini") continue;
         if (providerId === "reka") continue;
@@ -1486,6 +1471,16 @@ async function buildUnifiedModelsResponseCore(
         finalModels = filtered;
       }
     }
+
+    // Advertise Claude reasoning-effort variants (claude/<model>-{low,medium,high[,xhigh]}).
+    // Derived from the already key-filtered list so a variant only appears when its real
+    // model is permitted. Runs before the no-thinking pass: the gateway already routes these
+    // suffixed ids (claudeEffortVariant.ts), this just makes them selectable in catalog-only
+    // clients (OpenCode) that can't set a reasoning_effort config the way VS Code does.
+    finalModels = appendClaudeEffortVariants(
+      finalModels,
+      prefixMode === "canonical" ? aliasToProviderId : undefined
+    );
 
     // Advertise no-thinking gateway variants (Fase 8.1). Derived from the already
     // key-filtered list, so a variant only appears when its real model is permitted.

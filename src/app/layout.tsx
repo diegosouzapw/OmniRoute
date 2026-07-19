@@ -60,6 +60,38 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning>
       <head>
+        {/* Pre-hydration cleanup: browser extensions (Bitdefender's
+            bis_skin_checked, Grammarly's data-gr-ext-installed, LanguageTool's
+            data-lt-installed, etc.) inject attributes into the DOM after SSR
+            but before React hydrates, causing hydration mismatch warnings in
+            dev. Strip them synchronously and observe for late injections; the
+            observer auto-disconnects after 5s (well past typical hydration). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                var ATTRS = ["bis_skin_checked", "data-google-query-id", "data-new-gr-c-s-check-loaded", "data-gr-ext-installed", "data-lt-installed", "data-lt-tmp-id"];
+                function strip(el) {
+                  for (var i = 0; i < ATTRS.length; i++) {
+                    if (el.hasAttribute(ATTRS[i])) el.removeAttribute(ATTRS[i]);
+                  }
+                }
+                strip(document.documentElement);
+                if (typeof MutationObserver === "undefined") return;
+                var obs = new MutationObserver(function (muts) {
+                  for (var i = 0; i < muts.length; i++) {
+                    var m = muts[i];
+                    if (m.type === "attributes" && ATTRS.indexOf(m.attributeName) !== -1) {
+                      m.target.removeAttribute(m.attributeName);
+                    }
+                  }
+                });
+                obs.observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ATTRS });
+                setTimeout(function () { obs.disconnect(); }, 5000);
+              })();
+            `,
+          }}
+        />
         {/* Material Symbols icon font is self-hosted via globals.css
             (@import "material-symbols/outlined.css") so icons render even when
             the Google Fonts CDN is unreachable (#3695). */}

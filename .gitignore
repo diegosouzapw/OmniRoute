@@ -233,7 +233,7 @@ omniroute.md
 
 # mise configuration
 mise.toml
-_artifacts/
+_artifacts/          # release-green artifacts
 .claude-flow/
 
 # ESLint file cache (npm run lint --cache / complexity ratchets)
@@ -241,7 +241,7 @@ _artifacts/
 .eslintcache-complexity
 
 
-# CI/local quality artifacts (eslint-results.json, etc.)
+# CI/local quality artifacts (eslint-results.json, quality-ratchet.md, etc.)
 .artifacts/
 
 # Homologation E2E suite (npm run homolog) — real-environment credentials + report output
@@ -249,3 +249,4 @@ _artifacts/
 tests/homolog/.auth/
 tests/homolog/ui/.auth/
 homolog-report/
+docker-compose.yml.bak

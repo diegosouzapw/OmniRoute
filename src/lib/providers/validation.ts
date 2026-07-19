@@ -31,7 +31,12 @@ import {
   resolveBaseUrl,
 } from "./validation/urlHelpers";
 import { STANDARD_USER_AGENT, directHttpsRequest, buildBearerHeaders } from "./validation/headers";
-import { validationRead, validationWrite, toValidationErrorResult } from "./validation/transport";
+import {
+  validationRead,
+  validationWrite,
+  toValidationErrorResult,
+  toWebCookieValidationErrorResult,
+} from "./validation/transport";
 import {
   validateDeepSeekWebProvider,
   validateQwenWebProvider,
@@ -52,6 +57,7 @@ import {
   validateJulesProvider,
   validateDevinCloudAgentProvider,
   validateInnerAiProvider,
+  validateNotionWebProvider,
 } from "./validation/webProvidersB";
 import {
   validateHerokuProvider,
@@ -68,6 +74,7 @@ import {
 import {
   validateDeepgramProvider,
   validateAssemblyAIProvider,
+  validateRevAiProvider,
   validateElevenLabsProvider,
   validateInworldProvider,
   validateKieProvider,
@@ -135,7 +142,7 @@ export async function validateWebCookieProvider({
 
     if (!entry) {
       // Providers listed in WEB_COOKIE_PROVIDERS without a providerRegistry entry (e.g.
-      // lmarena, gemini-business, poe-web, venice-web, v0-vercel-web) only expose a
+      // gemini-business, poe-web, venice-web, v0-vercel-web) only expose a
       // marketing website URL, not a real API host. Probing `${website}/models`
       // does not reliably signal session validity for these —
       // live verification showed most return redirects or SPA 200s regardless of
@@ -181,7 +188,7 @@ export async function validateWebCookieProvider({
     // for web-cookie auth, so a non-auth status is treated as a valid session.
     return { valid: true, error: null, unsupported: false };
   } catch (error: unknown) {
-    return toValidationErrorResult(error);
+    return toWebCookieValidationErrorResult(provider, error);
   }
 }
 
@@ -478,6 +485,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     bytez: validateBytezProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
+    "rev-ai": validateRevAiProvider,
     "fal-ai": ({ apiKey, providerSpecificData }: any) =>
       validateImageProviderApiKey({ provider: "fal-ai", apiKey, providerSpecificData }),
     "stability-ai": ({ apiKey, providerSpecificData }: any) =>
@@ -530,6 +538,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "adapta-web": validateAdaptaWebProvider,
     "claude-web": validateClaudeWebProvider,
     "gemini-web": validateGeminiWebProvider,
+    "notion-web": validateNotionWebProvider,
     "copilot-m365-web": validateCopilotM365WebProvider,
     "copilot-web": validateCopilotWebProvider,
     "t3-web": validateT3WebProvider,

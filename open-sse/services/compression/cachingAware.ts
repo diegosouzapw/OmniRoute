@@ -6,7 +6,10 @@
  * @exports CachingContext, CacheAwareStrategy, detectCachingContext, getCacheAwareStrategy
  */
 
-import { providerSupportsCaching } from "../../utils/cacheControlPolicy.ts";
+import {
+  providerSupportsCaching,
+  type ConnectionCacheOverride,
+} from "../../utils/cacheControlPolicy.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -14,6 +17,7 @@ export interface CachingDetectionContext {
   provider?: string | null;
   targetFormat?: string | null;
   model?: string | null;
+  connectionCacheOverride?: ConnectionCacheOverride | null;
 }
 
 export interface CachingContext {
@@ -94,7 +98,7 @@ export function detectCachingContext(
     hasCacheControl: hasCacheControl(body),
     provider,
     targetFormat,
-    isCachingProvider: providerSupportsCaching(provider, targetFormat),
+    isCachingProvider: providerSupportsCaching(provider, targetFormat, context.connectionCacheOverride),
   };
 }
 

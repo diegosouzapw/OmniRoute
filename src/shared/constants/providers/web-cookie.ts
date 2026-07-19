@@ -129,6 +129,19 @@ export const WEB_COOKIE_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
+  "microsoft-designer-web": {
+    id: "microsoft-designer-web",
+    alias: "msdesigner",
+    name: "Microsoft Designer (Image Generation)",
+    icon: "auto_awesome",
+    color: "#0078D4",
+    textIcon: "MSD",
+    website: "https://designer.microsoft.com",
+    authHint:
+      "Sign in at designer.microsoft.com, then open DevTools → Network, generate an image, and find the request to DallE.ashx?action=GetDallEImagesCogSci. Copy the value of its Authorization: Bearer header (the access_token — no 'Bearer ' prefix). The token is short-lived; this is an unofficial, reverse-engineered integration.",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
   "t3-web": {
     id: "t3-web",
     alias: "t3chat",
@@ -259,15 +272,15 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   "kimi-web": {
     id: "kimi-web",
-    // Primary "kimi" provider keeps the short alias; web variant uses its own id.
+    // Legacy "kimi" API provider keeps the short alias; web variant uses its own id.
     alias: "kimi-web",
-    name: "Kimi Web (Moonshot AI)",
+    name: "Kimi Web",
     icon: "auto_awesome",
     color: "#2563EB",
     textIcon: "KW",
     website: "https://www.kimi.com",
     authHint:
-      "Paste your Cookie header from www.kimi.com (must contain kimi-auth=...). Find it via DevTools → Network → request → Cookie.",
+      "Paste access_token from www.kimi.com DevTools → Application → Local Storage. A legacy kimi-auth cookie is also accepted.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
@@ -341,6 +354,25 @@ export const WEB_COOKIE_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
     authHint: "Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie)",
+  },
+  "notion-web": {
+    id: "notion-web",
+    alias: "nw",
+    name: "Notion AI Web (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#000000",
+    textIcon: "NW",
+    website: "https://www.notion.so",
+    // #6758: Notion has no public inference API (see closed request #3272) — this
+    // reverse-engineers the same undocumented internal endpoint two independent
+    // open-source projects already use. Undocumented endpoints can change without
+    // notice; label clearly so operators understand the risk before pasting a
+    // session cookie of an account they already pay for.
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint:
+      "Paste your token_v2 cookie value from notion.so (DevTools → Application → Cookies). " +
+      "Optionally append `; space_id=...` and/or `; notion_browser_id=...` if your workspace requires them.",
   },
 };
 

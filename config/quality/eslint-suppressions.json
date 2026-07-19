@@ -169,11 +169,6 @@
       "count": 2
     }
   },
-  "open-sse/translator/helpers/claudeHelper.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "open-sse/utils/setupPolyfill.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
@@ -223,11 +218,6 @@
     }
   },
   "src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
     }
@@ -335,11 +325,6 @@
   "tests/e2e/system-failover.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    }
-  },
-  "tests/integration/_chatPipelineHarness.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 8
     }
   },
   "tests/integration/_comboRoutingHarness.ts": {
@@ -1377,11 +1362,6 @@
       "count": 4
     }
   },
-  "tests/unit/executor-kimi-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "tests/unit/executor-nlpcloud.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
@@ -2050,11 +2030,6 @@
   "tests/unit/sse-auth.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 13
-    }
-  },
-  "tests/unit/sse-parser.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 15
     }
   },
   "tests/unit/startup-stale-cooldown-recovery.test.ts": {
