@@ -1,12 +1,9 @@
 import type { RegistryEntry } from "../../shared.ts";
+import { NOTION_WEB_FALLBACK_MODELS } from "../../../../services/notionWebModels.ts";
 
-// Notion AI Web (Unofficial/Experimental) — see open-sse/executors/notion-web.ts
-// for the reverse-engineering rationale (issue #6758, closed native-provider
-// request #3272). Notion AI does not expose a documented, selectable model
-// catalog through its internal endpoint — the assistant response is server-side
-// routed. `passthroughModels: true` lets an operator pass any model id the
-// endpoint may honor in the future without a registry change; the single
-// `notion-ai` entry is the default/safe fallback shown in the picker.
+// Notion AI Web (Unofficial/Experimental) — see open-sse/executors/notion-web.ts.
+// Live catalog comes from cookie-auth POST /api/v3/getAvailableModels (models route).
+// The registry seed below is the offline fallback when discovery fails.
 export const notion_webProvider: RegistryEntry = {
   id: "notion-web",
   alias: "nw",
@@ -16,5 +13,5 @@ export const notion_webProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "cookie",
   passthroughModels: true,
-  models: [{ id: "notion-ai", name: "Notion AI (Unofficial/Experimental)" }],
+  models: NOTION_WEB_FALLBACK_MODELS.map((m) => ({ id: m.id, name: m.name })),
 };
