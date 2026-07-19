@@ -19,7 +19,9 @@ jobs:
         with: { node-version: "24", cache: npm }
       - run: npm ci
       - name: Build CLI bundle
-        env: { JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation }
+        env:
+          JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+          OMNIROUTE_BUILD_BACKEND_ONLY: "1"
         run: npm run build:cli
       - name: Start OmniRoute (block mode)
         env:
@@ -72,7 +74,9 @@ jobs:
         if: steps.gate.outputs.run == 'true'
       - name: Build CLI bundle
         if: steps.gate.outputs.run == 'true'
-        env: { JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation }
+        env:
+          JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+          OMNIROUTE_BUILD_BACKEND_ONLY: "1"
         run: npm run build:cli
       - name: Start OmniRoute
         if: steps.gate.outputs.run == 'true'
