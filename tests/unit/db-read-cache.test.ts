@@ -110,7 +110,7 @@ test("getCachedPricing caches results and refreshes after invalidation", async (
 });
 
 test("getCachedProviderConnections caches only the unfiltered query", async () => {
-  const readCache = await importFresh("src/lib/db/readCache.ts");
+  const readCache = await import("../../src/lib/db/readCache.ts");
   const db = core.getDbInstance();
   const now = new Date().toISOString();
 

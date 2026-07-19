@@ -10,7 +10,11 @@ import {
   getSettings,
   getCachedSettings,
 } from "@/lib/localDb";
-import { decrypt } from "@/lib/db/encryption";
+import {
+  createLazyConnectionView,
+  toProviderConnection,
+  type ProviderConnectionView,
+} from "@/lib/db/providers/lazyConnectionView";
 import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
@@ -72,37 +76,6 @@ import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
 type JsonRecord = Record<string, unknown>;
-
-interface ProviderConnectionView {
-  id: string;
-  provider: string;
-  email: string | null;
-  isActive: boolean;
-  rateLimitedUntil: string | null;
-  testStatus: string | null;
-  apiKey: string | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  tokenExpiresAt: string | null;
-  expiresAt: string | null;
-  projectId: string | null;
-  defaultModel: string | null;
-  providerSpecificData: JsonRecord;
-  lastUsedAt: string | null;
-  consecutiveUseCount: number;
-  priority: number;
-  lastError: string | null;
-  lastErrorType: string | null;
-  lastErrorSource: string | null;
-  errorCode: string | number | null;
-  backoffLevel: number;
-  maxConcurrent: number | null;
-  // Per-window quota cutoff overrides — null means "no overrides, inherit
-  // resilience-settings defaults." Read by getProviderCredentialsWithQuotaPreflight
-  // to decide whether to invoke the upstream usage fetcher.
-  quotaWindowThresholds: Record<string, number> | null;
-}
-
 interface RecoverableConnectionState {
   connectionId: string;
   testStatus?: string | null;
@@ -145,43 +118,6 @@ function asRecord(value: unknown): JsonRecord {
 function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
-/**
- * Creates a lazy-decrypting ProviderConnectionView from a raw (ciphertext)
- * DB row. First calls toProviderConnection for full type coercion (isActive
- * boolean, providerSpecificData object, etc.), then proxies credential
- * fields (apiKey, accessToken, refreshToken) to decrypt-only-on-first-access.
- *
- * Non-credential reads hit the already-coerced view directly at zero cost.
- */
-function createLazyConnectionView(row: Record<string, unknown>): ProviderConnectionView {
-  const base = toProviderConnection(row);
-  let decrypted: Record<string, null | string> | undefined;
-
-  const ensureDecrypted = () => {
-    if (!decrypted) {
-      decrypted = {
-        apiKey: toStringOrNull(decrypt(base.apiKey)),
-        accessToken: toStringOrNull(decrypt(base.accessToken)),
-        refreshToken: toStringOrNull(decrypt(base.refreshToken)),
-      };
-    }
-    return decrypted;
-  };
-
-  return new Proxy(base, {
-    get: (_target, prop: string | symbol) => {
-      if (prop === "apiKey" || prop === "accessToken" || prop === "refreshToken") {
-        return ensureDecrypted()[prop];
-      }
-      return Reflect.get(_target, prop);
-    },
-  });
-}
-
-/**
- * Converts a raw DB row into a fully resolved ProviderConnectionView.
- * Credential fields have already been decrypted by the DB layer.
- */
 
 function toNumber(value: unknown, fallback = 0): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -198,44 +134,6 @@ function toNullableNumber(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function toProviderConnection(value: unknown): ProviderConnectionView {
-  const row = asRecord(value);
-  // Only accept the per-window override map when it's a plain object —
-  // anything else collapses to null so the preflight gate treats it as "no
-  // overrides set."
-  const rawThresholds = row.quotaWindowThresholds;
-  const quotaWindowThresholds: Record<string, number> | null =
-    rawThresholds && typeof rawThresholds === "object" && !Array.isArray(rawThresholds)
-      ? (rawThresholds as Record<string, number>)
-      : null;
-  return {
-    id: toStringOrNull(row.id) || "",
-    provider: toStringOrNull(row.provider) || "",
-    email: toStringOrNull(row.email),
-    isActive: row.isActive === true,
-    rateLimitedUntil: toStringOrNull(row.rateLimitedUntil),
-    testStatus: toStringOrNull(row.testStatus),
-    apiKey: toStringOrNull(row.apiKey),
-    accessToken: toStringOrNull(row.accessToken),
-    refreshToken: toStringOrNull(row.refreshToken),
-    tokenExpiresAt: toStringOrNull(row.tokenExpiresAt),
-    expiresAt: toStringOrNull(row.expiresAt),
-    projectId: toStringOrNull(row.projectId),
-    defaultModel: toStringOrNull(row.defaultModel),
-    providerSpecificData: asRecord(row.providerSpecificData),
-    lastUsedAt: toStringOrNull(row.lastUsedAt),
-    consecutiveUseCount: toNumber(row.consecutiveUseCount, 0),
-    priority: toNumber(row.priority, 999),
-    lastError: toStringOrNull(row.lastError),
-    lastErrorType: toStringOrNull(row.lastErrorType),
-    lastErrorSource: toStringOrNull(row.lastErrorSource),
-    errorCode:
-      typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
-    backoffLevel: toNumber(row.backoffLevel, 0),
-    maxConcurrent: toNullableNumber(row.maxConcurrent),
-    quotaWindowThresholds,
-  };
-}
 
 function toBooleanOrDefault(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;

@@ -1,7 +1,7 @@
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import {
-  getProviderConnections,
+  getCachedRawProviderConnections,
   getCombos,
   getAllCustomModels,
   getSettings,
@@ -9,6 +9,7 @@ import {
   getModelIsHidden,
   getModelAliases,
 } from "@/lib/localDb";
+import { createLazyConnectionView } from "@/lib/db/providers/lazyConnectionView";
 import { extractAliasBackedModels } from "./aliasBackedModels";
 import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
@@ -315,7 +316,7 @@ async function buildUnifiedModelsResponseCore(
     let connections = [];
     let totalConnectionCount = 0; // Track if DB has ANY connections (even disabled)
     try {
-      connections = await getProviderConnections();
+      connections = (await getCachedRawProviderConnections()).map(createLazyConnectionView);
       totalConnectionCount = connections.length;
       // Filter to only active connections
       connections = connections.filter((c) => c.isActive !== false);

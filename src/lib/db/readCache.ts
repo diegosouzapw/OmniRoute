@@ -20,9 +20,11 @@ type CacheEntry<T> = {
 class TTLCache<T> {
   private cache = new Map<string, CacheEntry<T>>();
   private readonly ttlMs: number;
+  private readonly maxSize: number;
 
-  constructor(ttlMs: number) {
+  constructor(ttlMs: number, maxSize?: number) {
     this.ttlMs = ttlMs;
+    this.maxSize = maxSize ?? 0;
   }
 
   get(key: string): T | undefined {
@@ -32,10 +34,18 @@ class TTLCache<T> {
       this.cache.delete(key);
       return undefined;
     }
+    // LRU: move to end (most recently used)
+    this.cache.delete(key);
+    this.cache.set(key, entry);
     return entry.value;
   }
 
   set(key: string, value: T): void {
+    // Evict LRU (first key in insertion order) when at capacity
+    if (this.maxSize > 0 && this.cache.size >= this.maxSize && !this.cache.has(key)) {
+      const oldest = this.cache.keys().next().value;
+      if (oldest !== undefined) this.cache.delete(oldest);
+    }
     this.cache.set(key, { value, expiresAt: Date.now() + this.ttlMs });
   }
 
@@ -53,10 +63,8 @@ class TTLCache<T> {
 const SETTINGS_TTL_MS = 5_000;
 const PRICING_TTL_MS = 30_000;
 const CONNECTIONS_TTL_MS = 5_000;
-
 const settingsCache = new TTLCache<Record<string, unknown>>(SETTINGS_TTL_MS);
 const pricingCache = new TTLCache<Record<string, unknown>>(PRICING_TTL_MS);
-const connectionsCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS);
 
 /**
  * Cached wrapper for getSettings.
@@ -93,17 +101,11 @@ export async function getCachedPricing(): Promise<Record<string, unknown>> {
 export async function getCachedProviderConnections(
   filter?: Record<string, unknown>
 ): Promise<unknown[]> {
-  const cacheKey = filter && Object.keys(filter).length > 0 ? JSON.stringify(filter) : "all";
-  const cached = connectionsCache.get(cacheKey);
-  if (cached) return cached;
-
   const { getProviderConnections } = await import("@/lib/db/providers");
-  const value = await getProviderConnections(filter || {});
-  connectionsCache.set(cacheKey, value);
-  return value;
+  return getProviderConnections(filter || {});
 }
 
-const rawConnectionsCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS);
+const rawConnectionsCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS, 500);
 
 /**
  * Cached wrapper for getRawProviderConnections.
@@ -124,7 +126,7 @@ export async function getCachedRawProviderConnections(
   return rows;
 }
 
-const connectionByIdCache = new TTLCache<Record<string, unknown> | null>(CONNECTIONS_TTL_MS);
+const connectionByIdCache = new TTLCache<Record<string, unknown> | null>(CONNECTIONS_TTL_MS, 10_000);
 const nodesCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS);
 
 /**
@@ -241,17 +243,27 @@ export function getModelCatalogCacheVersion(): number {
 }
 
 /**
- * Invalidate all caches (call after writes to any of: settings, pricing,
+ * Invalidate caches (call after writes to any of: settings, pricing,
  * connections, combos, nodes).
+ *
+ * When scope is `"connections"` and an `id` is provided, only that
+ * connection's by-ID cache entry is invalidated (the filter-keyed raw
+ * cache must still be fully cleared since overlapping filter results
+ * cannot be selectively invalidated).
  */
 export function invalidateDbCache(
-  scope?: "settings" | "pricing" | "connections" | "combos" | "nodes"
+  scope?: "settings" | "pricing" | "connections" | "combos" | "nodes",
+  id?: string
 ): void {
   if (!scope || scope === "settings") settingsCache.invalidate();
   if (!scope || scope === "pricing") pricingCache.invalidate();
   if (!scope || scope === "connections") {
-    connectionsCache.invalidate();
-    connectionByIdCache.invalidate();
+    rawConnectionsCache.invalidate();
+    if (id) {
+      connectionByIdCache.invalidate(id);
+    } else {
+      connectionByIdCache.invalidate();
+    }
   }
   if (!scope || scope === "nodes") nodesCache.invalidate();
   if (!scope || scope === "combos") combosCacheVersion++;

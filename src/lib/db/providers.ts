@@ -10,7 +10,8 @@ import {
   decryptConnectionFields,
   migrateLegacyEncryptedString,
 } from "./encryption";
-import { invalidateDbCache } from "./readCache";
+import { createLazyRowProxy } from "./providers/lazyConnectionView";
+import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
@@ -42,42 +43,8 @@ interface DbLike {
 // ──────────────── Provider Connections ────────────────
 
 export async function getProviderConnections(filter: JsonRecord = {}) {
-  const db = getDbInstance() as unknown as DbLike;
-  let sql = "SELECT * FROM provider_connections";
-  const conditions: string[] = [];
-  const params: Record<string, unknown> = {};
-
-  if (filter.provider) {
-    conditions.push("provider = @provider");
-    params.provider = filter.provider;
-  }
-  if (filter.isActive !== undefined) {
-    conditions.push("is_active = @isActive");
-    params.isActive = filter.isActive ? 1 : 0;
-  }
-  if (filter.authType) {
-    conditions.push("auth_type = @authType");
-    params.authType = filter.authType;
-  }
-
-  if (conditions.length > 0) {
-    sql += " WHERE " + conditions.join(" AND ");
-  }
-  sql += " ORDER BY priority ASC, updated_at DESC";
-
-  const rows = db.prepare(sql).all(params);
-  return rows.map((r) => {
-    const camelRow = rowToCamel(r);
-    return decryptConnectionFields(
-      withNullableRateLimitOverrides(
-        withNullableQuotaWindowThresholds(
-          withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
-          camelRow
-        ),
-        camelRow
-      )
-    );
-  });
+  const raw = await getCachedRawProviderConnections(filter);
+  return raw.map(createLazyRowProxy);
 }
 
 /**
@@ -89,6 +56,10 @@ export async function getProviderConnections(filter: JsonRecord = {}) {
  * Used by the lazy-decryption path in auth selection (auth.ts) where
  * 10k+ connections are filtered in JS but only 1 needs its apiKey
  * decrypted.
+ *
+ * @param filter.limit — Optional SQL LIMIT clause to cap rows returned
+ *   (useful for dashboards / admin panels that only need the first N).
+ *   Not a column filter — extracted before building WHERE conditions.
  */
 export async function getRawProviderConnections(filter: JsonRecord = {}) {
   const db = getDbInstance() as unknown as DbLike;
@@ -109,10 +80,16 @@ export async function getRawProviderConnections(filter: JsonRecord = {}) {
     params.authType = filter.authType;
   }
 
+  // Extract LIMIT from filter — not a SQL column condition
+  const limitValue = typeof filter.limit === "number" ? filter.limit : undefined;
+
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");
   }
   sql += " ORDER BY priority ASC, updated_at DESC";
+  if (limitValue !== undefined) {
+    sql += " LIMIT " + limitValue;
+  }
 
   const rows = db.prepare(sql).all(params);
   return rows.map((r) => {
@@ -781,6 +758,7 @@ export async function deleteProviderConnectionsByProvider(providerId: string) {
 
   const result = db.prepare("DELETE FROM provider_connections WHERE provider = ?").run(providerId);
   backupDbFile("pre-write");
+  invalidateDbCache("connections");
   return result.changes;
 }
 
@@ -895,4 +873,6 @@ export {
   getEffectiveQuotaUsage,
   clearStaleCrashCooldowns,
   formatResetCountdown,
+  isConnectionRateLimited,
+  getRateLimitedConnections,
 } from "./providers/rateLimit";
