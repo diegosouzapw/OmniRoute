@@ -379,6 +379,22 @@ export async function registerNodejs(): Promise<void> {
     console.warn("[STARTUP] Could not restore runtime settings:", msg);
   }
 
+  // Proactively start the credential-health sweep at boot so stale web-session
+  // connections (cookies that expired overnight) get re-probed and recovered on
+  // startup — instead of staying red until the first real request lazily imports
+  // the on-demand credentialGate. Idempotent; self-disables via
+  // OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK and its cadence is tunable via
+  // CREDENTIAL_HEALTH_CHECK_INTERVAL. NOTE: this MUST live here (the real Next.js
+  // instrumentation startup), NOT in the unused src/server-init.ts.
+  try {
+    const { initCredentialHealthCheck } = await import("@/lib/credentialHealth/scheduler");
+    initCredentialHealthCheck();
+    console.log("[STARTUP] Credential health scheduler started");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not start credential health scheduler:", msg);
+  }
+
   try {
     const { initAuditLog, cleanupExpiredLogs } = await import("@/lib/compliance/index");
     initAuditLog();

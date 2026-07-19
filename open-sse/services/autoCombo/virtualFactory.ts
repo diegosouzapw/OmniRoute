@@ -140,7 +140,8 @@ function getNoAuthCandidates(
   excludedProviders: Set<string>,
   blockedProviders: Set<string>,
   disabledNoAuthProviders: Set<string>,
-  noAuthProviderSpecificData: Map<string, Record<string, unknown> | null | undefined>
+  noAuthProviderSpecificData: Map<string, Record<string, unknown> | null | undefined>,
+  hiddenModelsMap: Map<string, Set<string>>
 ): VirtualAutoComboCandidate[] {
   const registry = getProviderRegistry();
   const candidates: VirtualAutoComboCandidate[] = [];
@@ -190,10 +191,19 @@ function getNoAuthCandidates(
         ? noAuthProviderSpecificData.get(providerDef.alias)
         : undefined);
 
+    // #7620: honor the eye-icon "hidden" flag (isHidden, from the
+    // modelCompatOverrides/customModels key_value namespaces) the same way the
+    // credentialed-connection loop below does, so a hidden no-auth model never
+    // enters the auto-combo/fusion candidate pool either.
+    const hiddenModels =
+      hiddenModelsMap.get(providerId) ??
+      (typeof providerDef.alias === "string" ? hiddenModelsMap.get(providerDef.alias) : undefined);
+
     for (const model of registryModels) {
       const modelId = typeof model?.id === "string" && model.id.trim().length > 0 ? model.id : null;
       if (!modelId) continue;
       if (isModelExcludedByConnection(modelId, providerSpecificData)) continue;
+      if (hiddenModels?.has(modelId)) continue;
       candidates.push({
         provider: providerId,
         connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
@@ -323,7 +333,8 @@ export async function createVirtualAutoCombo(
       new Set(validConnections.map((conn) => conn.provider)),
       blockedProviders,
       disabledNoAuthProviders,
-      noAuthProviderSpecificData
+      noAuthProviderSpecificData,
+      hiddenModelsMap
     )
   );
 
