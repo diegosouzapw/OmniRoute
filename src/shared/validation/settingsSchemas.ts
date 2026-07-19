@@ -177,6 +177,11 @@ export const updateSettingsSchema = z.object({
       supportedModels: z.array(z.string().max(200)).max(200).optional(),
     })
     .optional(),
+  // #7274: renamed from codexSessionAffinityTtlMs — applies to any provider now.
+  // The old key is still accepted (read-only legacy alias) so pre-migration
+  // clients / cached UI bundles that still PATCH the old field name don't 400;
+  // `resolveSessionAffinityTtlMs` prefers the new key when both are present.
+  sessionAffinityTtlMs: z.number().int().min(0).max(86_400_000).optional(),
   codexSessionAffinityTtlMs: z.number().int().min(0).max(86_400_000).optional(),
   // #6977: opt-in per-connection Codex quota auto-ping. `connections` maps a
   // provider_connections id -> enabled; default is an empty map (off for everyone)
@@ -317,6 +322,11 @@ export const updateSettingsSchema = z.object({
   cliproxyapi_fallback_enabled: z.boolean().optional(),
   cliproxyapi_url: z.string().url().max(500).optional(),
   cliproxyapi_fallback_codes: z.string().max(200).optional(),
+  // #7645: dedicated CLIProxyAPI credential. CLIProxyAPI requires its own
+  // separately-configured `api-keys:` credential and rejects any other token
+  // with 401 — without this field, the fallback/passthrough legs had no way
+  // to authenticate except by reusing the (incompatible) native provider key.
+  cliproxyapi_api_key: z.string().max(500).optional(),
   // CLIProxyAPI model mapping (Record<string, string>)
   cliproxyapi_model_mapping: z.record(z.string(), z.string()).optional(),
   // Model lockout settings

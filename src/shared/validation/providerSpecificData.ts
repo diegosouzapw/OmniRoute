@@ -219,6 +219,22 @@ export function validateProviderSpecificData(
     });
   }
 
+  const newApiUserId = data.newApiUserId;
+  if (newApiUserId !== undefined && newApiUserId !== null && typeof newApiUserId !== "string") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.newApiUserId must be a string",
+      path: ["newApiUserId"],
+    });
+  }
+  if (typeof newApiUserId === "string" && newApiUserId.length > 256) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.newApiUserId must be at most 256 characters",
+      path: ["newApiUserId"],
+    });
+  }
+
   for (const key of ["openCodeGoWorkspaceId", "opencodeGoWorkspaceId", "workspaceId"] as const) {
     const value = data[key];
     if (value !== undefined && value !== null && typeof value !== "string") {

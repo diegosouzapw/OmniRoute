@@ -1,0 +1,1 @@
+- docs: correct three stale references caught by the fabricated-docs gate (`/api/version` → `/api/monitoring/health`, migration `125_` → `126_reasoning_routing_rules.sql`)

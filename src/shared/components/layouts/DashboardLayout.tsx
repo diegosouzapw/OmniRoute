@@ -21,14 +21,15 @@ export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const isElectron = useIsElectron();
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof globalThis.window === "undefined") return false;
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
     try {
-      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
-    } catch {
-      return false;
-    }
-  });
+      if (localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true") {
+        setTimeout(() => setCollapsed(true), 0);
+      }
+    } catch {}
+  }, []);
 
   const isMacElectron =
     isElectron &&

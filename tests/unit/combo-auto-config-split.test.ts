@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { parseAutoConfig } from "@omniroute/open-sse/services/combo/autoConfig.ts";
 import { DEFAULT_WEIGHTS } from "@omniroute/open-sse/services/autoCombo/scoring.ts";
+import { MODE_PACKS } from "@omniroute/open-sse/services/autoCombo/modePacks.ts";
 
 // Split guard for Block J Task 2: parseAutoConfig was extracted verbatim from
 // handleComboChat's inline auto-strategy config block. These assertions pin the
@@ -60,6 +61,22 @@ test("explicit candidatePool, weights, exploration and budget are honored", () =
   assert.equal(cfg.explorationRate, 0.3);
   assert.equal(cfg.budgetCap, 5);
   assert.equal(cfg.modePack, "coding");
+});
+
+test("valid modePack overrides configured weights for fallback scoring", () => {
+  const cfg = parseAutoConfig(
+    {
+      name: "c",
+      autoConfig: {
+        weights: { ...DEFAULT_WEIGHTS, latencyInv: 0 },
+        modePack: "ship-fast",
+      },
+    } as never,
+    []
+  );
+
+  assert.equal(cfg.modePack, "ship-fast");
+  assert.equal(cfg.weights, MODE_PACKS["ship-fast"]);
 });
 
 test("config.auto is preferred over top-level config", () => {

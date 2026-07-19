@@ -1,14 +1,17 @@
 // @ts-nocheck
 import { AsyncLocalStorage } from "node:async_hooks";
-import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
-import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";
+import { hostname, release } from "node:os";
+import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
+import {
+  buildKimiCodeIdentityHeaders,
+  normalizeKimiDeviceId,
+} from "../config/providers/registry/kimi/coding/runtime.ts";
+import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
+import { getKimiDeviceModel } from "../utils/kimiDevice.ts";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
 import { serializeRefresh, wasRefreshTokenRotated } from "./refreshSerializer.ts";
-import {
-  buildExternalIdpRefreshParams,
-  isExternalIdpAuthMethod,
-} from "./kiroExternalIdp.ts";
+import { buildExternalIdpRefreshParams, isExternalIdpAuthMethod } from "./kiroExternalIdp.ts";
 import { WINDSURF_CONFIG } from "@/lib/oauth/constants/oauth";
 import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oauth/gitlab";
 
@@ -705,17 +708,17 @@ export async function refreshKimiCodingToken(
   // deterministic hash of the refresh token so it is at least consistent
   // across refreshes for the same session.
   const stableDeviceId =
-    (providerSpecificData?.deviceId as string) ||
-    pbkdf2Sync(refreshToken, "kimi-device-id", 1000, 16, "sha256").toString("hex");
+    normalizeKimiDeviceId(providerSpecificData?.deviceId) ||
+    normalizeKimiDeviceId(
+      pbkdf2Sync(refreshToken, "kimi-device-id", 1000, 16, "sha256").toString("hex")
+    );
 
-  const platform = "kimi_cli";
-  const version = process.env.KIMI_CLI_VERSION || "1.36.0";
-
-  // Build device model string matching the format from providers/kimi-coding.ts.
-  // open-sse is a portable workspace — use process.platform/arch (always available in Node).
-  const osTypeStr = typeof process !== "undefined" ? process.platform : "unknown";
-  const archStr = typeof process !== "undefined" ? process.arch : "unknown";
-  const deviceModel = [osTypeStr, archStr].filter(Boolean).join(" ");
+  const osRelease = release();
+  const persistedDeviceModel =
+    typeof providerSpecificData?.deviceModel === "string"
+      ? providerSpecificData.deviceModel.trim()
+      : "";
+  const deviceModel = persistedDeviceModel || getKimiDeviceModel();
 
   try {
     const params = new URLSearchParams({
@@ -730,15 +733,12 @@ export async function refreshKimiCodingToken(
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
-          "X-Msh-Platform": platform,
-          "X-Msh-Version": version,
-          "X-Msh-Device-Model": (providerSpecificData?.deviceModel as string) || deviceModel,
-          "X-Msh-Device-Id": stableDeviceId,
-          // These headers match getKimiOAuthHeaders() in providers/kimi-coding.ts.
-          // They're derived at runtime from os module calls; use safe fallbacks here
-          // since open-sse is a portable workspace without direct fs/os access.
-          "X-Msh-Device-Name": (providerSpecificData?.deviceName as string) || osTypeStr,
-          "X-Msh-Os-Version": (providerSpecificData?.osVersion as string) || osTypeStr,
+          ...buildKimiCodeIdentityHeaders({
+            deviceId: stableDeviceId,
+            deviceName: providerSpecificData?.deviceName || hostname(),
+            deviceModel,
+            osVersion: providerSpecificData?.osVersion || osRelease,
+          }),
         },
         body: params,
       })

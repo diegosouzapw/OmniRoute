@@ -93,6 +93,8 @@ RTK mode is optimized for verbose tool outputs that appear in coding-agent sessi
   TypeScript/Vite/Webpack builds, ESLint/Biome/Prettier, npm audit/installs, Docker logs, infra
   output, and generic shell output
 - Applies JSON filter packs from `open-sse/services/compression/engines/rtk/filters/`
+- Imports RTK TOML schema v1 filters from project or global `filters.toml` files, with inline-test
+  validation and trust-gating for project files
 - Ships 49 built-in filters with inline verify samples
 - Removes ANSI control sequences, progress bars, repeated lines, and non-actionable noise
 - Preserves failures, errors, warnings, changed files, summaries, and the tail of long output

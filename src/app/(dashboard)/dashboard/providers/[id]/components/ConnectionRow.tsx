@@ -21,6 +21,7 @@ import {
   ERROR_TYPE_LABELS,
 } from "../providerPageHelpers";
 import { getCodexPlanLabel } from "../codexPlanLabel";
+import ProviderQuotaVisibilityToggle from "./ProviderQuotaVisibilityToggle";
 
 // ---------------------------------------------------------------------------
 // Types (exported so the client can reference them without re-importing)
@@ -28,6 +29,7 @@ import { getCodexPlanLabel } from "../codexPlanLabel";
 
 export interface ConnectionRowConnection {
   id?: string;
+  provider?: string;
   name?: string;
   email?: string;
   displayName?: string;
@@ -48,6 +50,7 @@ export interface ConnectionRowConnection {
   authType?: string;
   proxyEnabled?: boolean;
   perKeyProxyEnabled?: boolean;
+  quotaVisible?: boolean;
 }
 
 export interface ConnectionRowProps {
@@ -64,6 +67,7 @@ export interface ConnectionRowProps {
   onMoveDown: () => void;
   onToggleActive: (isActive?: boolean) => void | Promise<void>;
   onToggleRateLimit: (enabled?: boolean) => void;
+  onToggleQuotaVisibility?: (visible: boolean) => void;
   onToggleClaudeExtraUsage?: (enabled?: boolean) => void;
   onToggleCodex5h?: (enabled?: boolean) => void;
   onToggleCodexWeekly?: (enabled?: boolean) => void;
@@ -79,6 +83,7 @@ export interface ConnectionRowProps {
   hasProxy?: boolean;
   proxySource?: string;
   proxyHost?: string;
+  proxyName?: string | null;
   proxyEnabled?: boolean;
   perKeyProxyEnabled?: boolean;
   onToggleProxyEnabled?: (enabled: boolean) => void;
@@ -347,6 +352,7 @@ export default function ConnectionRow({
   onMoveDown,
   onToggleActive,
   onToggleRateLimit,
+  onToggleQuotaVisibility,
   onToggleClaudeExtraUsage,
   onToggleCodex5h,
   onToggleCodexWeekly,
@@ -360,6 +366,7 @@ export default function ConnectionRow({
   hasProxy,
   proxySource,
   proxyHost,
+  proxyName,
   onRefreshToken,
   isRefreshing,
   onApplyCodexAuthLocal,
@@ -447,6 +454,7 @@ export default function ConnectionRow({
 
   const statusPresentation = getStatusPresentation(connection, effectiveStatus, isCooldown, t);
   const rateLimitEnabled = !!connection.rateLimitProtection;
+  const quotaVisible = connection.quotaVisible !== false;
   const codexPolicy =
     connection.providerSpecificData &&
     typeof connection.providerSpecificData === "object" &&
@@ -623,6 +631,12 @@ export default function ConnectionRow({
               <span className="material-symbols-outlined text-[13px]">shield</span>
               {rateLimitEnabled ? t("rateLimitProtected") : t("rateLimitUnprotected")}
             </button>
+            {onToggleQuotaVisibility && (
+              <ProviderQuotaVisibilityToggle
+                visible={quotaVisible}
+                onToggle={onToggleQuotaVisibility}
+              />
+            )}
             {isClaude && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
@@ -771,7 +785,7 @@ export default function ConnectionRow({
                       })}
                     >
                       <span className="material-symbols-outlined text-[13px]">vpn_lock</span>
-                      {proxyHost || t("proxy")}
+                      {proxyName || proxyHost || t("proxy")}
                     </span>
                   </>
                 );

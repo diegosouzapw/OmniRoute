@@ -31,6 +31,11 @@ import {
   coerceProxyPayload,
   redactProxySecrets,
 } from "./proxies/mappers";
+import { isGlobalProxyEnabled, PROXY_ALIVE_PREDICATE } from "./proxies/guards";
+export {
+  hasBlockingProxyAssignment,
+  hasBlockingProxyAssignmentForProvider,
+} from "./proxies/guards";
 export { extractRelayAuth, redactProxySecrets } from "./proxies/mappers";
 
 let proxyRegistryGeneration = 0;
@@ -291,9 +296,17 @@ export async function createProxy(payload: ProxyPayload) {
 }
 
 /**
- * Upsert a proxy by host+port.
- * If a proxy with the same host and port already exists, update it.
+ * Upsert a proxy by its identity tuple (host+port+username).
+ * If a proxy with the same host, port, and username already exists, update it.
  * Otherwise, create a new one. Used by the bulk import feature.
+ *
+ * #7594: host+port alone is NOT a stable identity. Rotating residential/gateway
+ * proxies route every credential through one shared host:port, so keying only on
+ * host+port collapsed distinct-credential imports onto the first existing row
+ * (the same entry got "updated" N times instead of N entries being created).
+ *
+ * #7703: password is mutable and must not be part of the identity key. Including
+ * it caused password-only credential rotations to create duplicate entries.
  */
 export async function upsertProxy(payload: ProxyPayload): Promise<{
   proxy: ProxyRegistryRecord | null;
@@ -302,10 +315,11 @@ export async function upsertProxy(payload: ProxyPayload): Promise<{
   const db = getDbInstance();
   const host = (payload.host || "").trim();
   const port = Number(payload.port);
+  const username = (payload.username || "").trim();
 
   const existing = db
-    .prepare("SELECT id FROM proxy_registry WHERE host = ? AND port = ? LIMIT 1")
-    .get(host, port) as { id?: string } | undefined;
+    .prepare("SELECT id FROM proxy_registry WHERE host = ? AND port = ? AND username = ? LIMIT 1")
+    .get(host, port, username) as { id?: string } | undefined;
 
   if (existing?.id) {
     const updated = await updateProxy(existing.id, payload);
@@ -687,13 +701,23 @@ function getOrCreateRotationRow(
   db: ReturnType<typeof getDbInstance>,
   normalizedScope: string,
   rotationScopeId: string
-): { strategy: ProxyRotationStrategy; cursor: number; stickyWindowMinutes: number; rotatedAt: string | null } {
+): {
+  strategy: ProxyRotationStrategy;
+  cursor: number;
+  stickyWindowMinutes: number;
+  rotatedAt: string | null;
+} {
   const row = db
     .prepare(
       "SELECT strategy, cursor, sticky_window_minutes, rotated_at FROM proxy_scope_rotation WHERE scope = ? AND scope_id IS ?"
     )
     .get(normalizedScope, rotationScopeId) as
-    | { strategy?: string; cursor?: number; sticky_window_minutes?: number; rotated_at?: string | null }
+    | {
+        strategy?: string;
+        cursor?: number;
+        sticky_window_minutes?: number;
+        rotated_at?: string | null;
+      }
     | undefined;
 
   if (row) {
@@ -752,7 +776,13 @@ function pickFromCandidates<T>(
       cursor = state.cursor + 1;
       db.prepare(
         "UPDATE proxy_scope_rotation SET cursor = ?, rotated_at = ?, updated_at = ? WHERE scope = ? AND scope_id IS ?"
-      ).run(cursor, new Date().toISOString(), new Date().toISOString(), normalizedScope, rotationScopeId);
+      ).run(
+        cursor,
+        new Date().toISOString(),
+        new Date().toISOString(),
+        normalizedScope,
+        rotationScopeId
+      );
     }
     const idx = ((cursor % candidates.length) + candidates.length) % candidates.length;
     return candidates[idx];
@@ -822,9 +852,6 @@ export async function deleteProxyById(id: string, options?: { force?: boolean })
 // usable so a working proxy is never stranded; only known-dead states are
 // excluded so a dead proxy stops being handed out (every request would
 // otherwise pay the timeout or leak out the host IP).
-const PROXY_ALIVE_PREDICATE =
-  "(p.status IS NULL OR LOWER(p.status) NOT IN ('inactive','error','disabled','dead','down'))";
-
 // Resolve one scope's alive pool to a single proxy via its rotation strategy.
 // Returns the standard registry resolution shape, or null when the pool is empty
 // or every member is dead (preserving the #6246 fail-closed contract — a dead
@@ -905,59 +932,6 @@ export async function resolveProxyForScopeFromRegistry(scope: string, scopeId?: 
     const msg = error instanceof Error ? error.message : String(error);
     if (msg.includes("no such table")) return null;
     throw error;
-  }
-}
-
-/**
- * #6246 fail-closed guard. Returns true when a connection would egress DIRECTLY
- * ONLY because its ASSIGNED proxy (account/provider/global scope) is dead/inactive
- * — i.e. the request must be BLOCKED, not silently sent on the real IP.
- *
- * Callers use this after `resolveProxyForConnection` returns a direct result: if
- * the operator assigned a proxy but every assigned proxy is dead, leaking the IP
- * is worse than failing the request. An explicit "proxy off" (global or per
- * connection) is a deliberate direct choice and is NOT treated as a leak. Read-only
- * and best-effort: any DB error fails OPEN (returns false) so a guard never breaks
- * the request path.
- */
-export function hasBlockingProxyAssignment(connectionId: string): boolean {
-  try {
-    const db = getDbInstance();
-
-    // Explicit global "proxy off" → direct is intended, never a leak.
-    const globalRow = db
-      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'proxyEnabled'")
-      .get() as { value?: string } | undefined;
-    if (globalRow?.value) {
-      try {
-        if (JSON.parse(globalRow.value) === false) return false;
-      } catch {
-        /* malformed → treat as enabled */
-      }
-    }
-
-    // Explicit per-connection "proxy off" → direct is intended.
-    const conn = db
-      .prepare("SELECT provider, proxy_enabled FROM provider_connections WHERE id = ?")
-      .get(connectionId) as { provider?: string | null; proxy_enabled?: number } | undefined;
-    if (conn && conn.proxy_enabled === 0) return false;
-    const provider = conn?.provider ?? null;
-
-    // A proxy is assigned to this connection at some scope, but every assigned
-    // proxy is dead (the alive filter would have resolved a live one already).
-    const dead = db
-      .prepare(
-        `SELECT 1 FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id
-           WHERE ((a.scope = 'account' AND a.scope_id = ?)
-               OR (a.scope = 'provider' AND a.scope_id = ?)
-               OR (a.scope = 'global'))
-             AND NOT ${PROXY_ALIVE_PREDICATE}
-           LIMIT 1`
-      )
-      .get(connectionId, provider);
-    return !!dead;
-  } catch {
-    return false;
   }
 }
 
@@ -1127,6 +1101,9 @@ export async function bulkAssignProxyToScope(
  */
 export async function resolveProxyForProvider(providerId: string) {
   try {
+    const db = getDbInstance();
+    if (!isGlobalProxyEnabled(db)) return null;
+
     // Resolve by specificity across both storage backends. The GUI Custom tab
     // still writes provider/global proxies to the legacy config, while Saved
     // Proxy uses the registry. A registry-global fallback must not shadow a

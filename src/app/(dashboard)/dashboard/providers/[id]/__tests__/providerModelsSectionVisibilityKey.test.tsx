@@ -83,6 +83,7 @@ function buildProps(overrides: Partial<ProviderModelsSectionProps>): ProviderMod
     isAnthropicProtocolCompatible: false,
     isManagedAvailableModelsProvider: false,
     compatibleSupportsModelImport: false,
+    allowModelImport: true,
     models: [{ id: MODEL_ID }],
     modelMeta: { customModels: [], modelCompatOverrides: [] },
     modelAliases: {},

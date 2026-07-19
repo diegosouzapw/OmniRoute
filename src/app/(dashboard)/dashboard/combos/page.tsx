@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -1549,7 +1549,7 @@ function ComboReadinessPanel({ checks, blockers, showDescription = true }) {
   );
 }
 
-function ComboCard({
+function ComboCardInner({
   combo,
   metrics,
   compressionEnabled,
@@ -1767,6 +1767,7 @@ function ComboCard({
     </Card>
   );
 }
+const ComboCard = memo(ComboCardInner);
 
 function TestResultsView({ results }) {
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
