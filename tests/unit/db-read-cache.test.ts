@@ -184,6 +184,25 @@ test("staleness regression: getProviderConnections returns fresh data after conn
   assert.equal(after.filter((c) => c.name === "Staleness Test").length, 0);
 });
 
+test("staleness regression: getProviderConnections returns fresh data after deleteProviderConnectionsByProvider", async () => {
+  const readCache = await importFresh("src/lib/db/readCache.ts");
+
+  await providersDb.createProviderConnection({
+    provider: "test-stale-batch",
+    authType: "apikey",
+    name: "Batch Stale Conn",
+    apiKey: "sk-batch-stale",
+  });
+
+  const before = await providersDb.getProviderConnections();
+  assert.ok(before.some((c) => c.provider === "test-stale-batch"));
+
+  await providersDb.deleteProviderConnectionsByProvider("test-stale-batch");
+
+  const after = await providersDb.getProviderConnections();
+  assert.equal(after.filter((c) => c.provider === "test-stale-batch").length, 0);
+});
+
 test("getCachedProviderConnectionById caches result and invalidates on connections write", async () => {
   const readCache = await importFresh("src/lib/db/readCache.ts");
   const db = core.getDbInstance();
