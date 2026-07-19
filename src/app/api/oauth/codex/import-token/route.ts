@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { extractCodexAccountInfo } from "@/lib/oauth/services/codexImport";
+import { parseCodexSessionJson } from "@/lib/oauth/utils/codexSessionImport";
 import { createProviderConnection } from "@/models";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
@@ -18,15 +19,79 @@ import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/
  * expiry (forcing re-auth) instead of attempting a refresh-token exchange —
  * see open-sse/executors/codex.ts.
  *
- * Body: `{ accessToken: string, name?: string }`
+ * Body: `{ accessToken: string, name?: string }` OR, defense-in-depth for
+ * non-UI/API callers (#6636), the full session JSON object copied from
+ * `chatgpt.com/api/auth/session` under `{ session: {...} }`.
  *
  * Inspired-by: https://github.com/decolua/9router/pull/1290
  */
 
-const bodySchema = z.object({
-  accessToken: z.string().trim().min(1, "accessToken is required"),
-  name: z.string().trim().min(1).optional(),
-});
+const bodySchema = z.union([
+  z.object({
+    accessToken: z.string().trim().min(1, "accessToken is required"),
+    name: z.string().trim().min(1).optional(),
+  }),
+  z.object({
+    session: z.record(z.string(), z.unknown()),
+    name: z.string().trim().min(1).optional(),
+  }),
+]);
+
+type ResolvedBody = { accessToken: string; name?: string };
+
+/** Resolve either request-body shape to a flat `{ accessToken, name }` pair. */
+function resolveAccessToken(
+  parsed: z.infer<typeof bodySchema>
+): { ok: true; resolved: ResolvedBody } | { ok: false; error: string } {
+  if ("accessToken" in parsed) {
+    return { ok: true, resolved: { accessToken: parsed.accessToken, name: parsed.name } };
+  }
+  const result = parseCodexSessionJson(parsed.session);
+  if (!result.ok) return { ok: false, error: result.error };
+  return { ok: true, resolved: { accessToken: result.session.accessToken, name: parsed.name } };
+}
+
+/**
+ * Parse + validate the request body (JSON parse, Zod schema, then the
+ * accessToken/session-JSON union resolution). Returns either the resolved
+ * `{ accessToken, name }` pair or a ready-to-return 400 error response —
+ * keeps POST's own branch count flat as the accepted body shapes grow (#6636).
+ */
+async function parseRequestBody(
+  request: Request
+): Promise<{ ok: true; resolved: ResolvedBody } | { ok: false; response: NextResponse }> {
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return {
+      ok: false,
+      response: NextResponse.json(buildErrorBody(400, "Invalid or empty JSON body"), {
+        status: 400,
+      }),
+    };
+  }
+
+  const parsed = bodySchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        buildErrorBody(400, parsed.error.issues[0]?.message ?? "Invalid request body"),
+        { status: 400 }
+      ),
+    };
+  }
+
+  const resolved = resolveAccessToken(parsed.data);
+  if (!resolved.ok) {
+    return {
+      ok: false,
+      response: NextResponse.json(buildErrorBody(400, resolved.error), { status: 400 }),
+    };
+  }
+  return { ok: true, resolved: resolved.resolved };
+}
 
 async function requireAuth(request: Request): Promise<NextResponse | null> {
   if (!(await isAuthRequired(request))) return null;
@@ -38,22 +103,10 @@ export async function POST(request: Request) {
   const authResponse = await requireAuth(request);
   if (authResponse) return authResponse;
 
-  let rawBody: unknown;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return NextResponse.json(buildErrorBody(400, "Invalid or empty JSON body"), { status: 400 });
-  }
+  const body = await parseRequestBody(request);
+  if (!body.ok) return body.response;
 
-  const parsed = bodySchema.safeParse(rawBody);
-  if (!parsed.success) {
-    return NextResponse.json(
-      buildErrorBody(400, parsed.error.issues[0]?.message ?? "Invalid request body"),
-      { status: 400 }
-    );
-  }
-
-  const { accessToken, name } = parsed.data;
+  const { accessToken, name } = body.resolved;
   const info = extractCodexAccountInfo(accessToken);
 
   if (!info.email && !info.chatgptAccountId && !name) {
