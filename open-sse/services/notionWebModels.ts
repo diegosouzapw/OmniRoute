@@ -92,6 +92,51 @@ export function extractNotionUserIdFromCookie(cookie: string): string {
   );
 }
 
+/** Trim to a non-empty string, or fall back to `fallback`. */
+function trimmedOrFallback(value: unknown, fallback: string): string {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+/** True when the row's `modelConfiguration.supportedReasoningEfforts` is a non-empty array. */
+function rowSupportsReasoning(row: Record<string, unknown>): boolean {
+  const efforts = (row.modelConfiguration as { supportedReasoningEfforts?: unknown } | undefined)
+    ?.supportedReasoningEfforts;
+  return Array.isArray(efforts) && efforts.length > 0;
+}
+
+/**
+ * Parse one getAvailableModels list entry into a model, or `null` when the entry
+ * should be skipped (disabled, malformed, or a duplicate id already in `seen`).
+ */
+function parseNotionModelEntry(
+  entry: unknown,
+  seen: Set<string>
+): NotionDiscoveredModel | null {
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
+  const row = entry as Record<string, unknown>;
+  if (row.isDisabled === true) return null;
+
+  const id = typeof row.model === "string" ? row.model.trim() : "";
+  if (!id || seen.has(id)) return null;
+
+  seen.add(id);
+  return {
+    id,
+    name: trimmedOrFallback(row.modelMessage, id),
+    owned_by: trimmedOrFallback(row.modelFamily, "notion"),
+    ...(rowSupportsReasoning(row) ? { supportsReasoning: true } : {}),
+  };
+}
+
+/** Ensure a stable default id always exists for clients that still request notion-ai. */
+function withDefaultNotionModel(
+  out: NotionDiscoveredModel[],
+  seen: Set<string>
+): NotionDiscoveredModel[] {
+  if (out.length === 0 || seen.has("notion-ai")) return out;
+  return [{ id: "notion-ai", name: "Notion AI (default)", owned_by: "notion" }, ...out];
+}
+
 /**
  * Parse getAvailableModels JSON into OpenAI-style model entries.
  * Skips disabled models; prefers display `modelMessage` as name and internal
@@ -102,47 +147,14 @@ export function parseNotionAvailableModels(data: unknown): NotionDiscoveredModel
   const list = (data as { models?: unknown }).models;
   if (!Array.isArray(list)) return [];
 
-  const out: NotionDiscoveredModel[] = [];
   const seen = new Set<string>();
-
+  const out: NotionDiscoveredModel[] = [];
   for (const entry of list) {
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
-    const row = entry as Record<string, unknown>;
-    if (row.isDisabled === true) continue;
-    const id = typeof row.model === "string" ? row.model.trim() : "";
-    if (!id || seen.has(id)) continue;
-    const name =
-      typeof row.modelMessage === "string" && row.modelMessage.trim()
-        ? row.modelMessage.trim()
-        : id;
-    const family =
-      typeof row.modelFamily === "string" && row.modelFamily.trim()
-        ? row.modelFamily.trim()
-        : "notion";
-    const efforts = (
-      row.modelConfiguration as { supportedReasoningEfforts?: unknown } | undefined
-    )?.supportedReasoningEfforts;
-    const supportsReasoning = Array.isArray(efforts) && efforts.length > 0;
-
-    seen.add(id);
-    out.push({
-      id,
-      name,
-      owned_by: family,
-      ...(supportsReasoning ? { supportsReasoning: true } : {}),
-    });
+    const model = parseNotionModelEntry(entry, seen);
+    if (model) out.push(model);
   }
 
-  // Ensure a stable default id always exists for clients that still request notion-ai.
-  if (out.length > 0 && !seen.has("notion-ai")) {
-    out.unshift({
-      id: "notion-ai",
-      name: "Notion AI (default)",
-      owned_by: "notion",
-    });
-  }
-
-  return out;
+  return withDefaultNotionModel(out, seen);
 }
 
 export function buildNotionModelsDiscoveryHeaders(token: string): Record<string, string> {
@@ -205,12 +217,8 @@ export async function resolveNotionSpaceIdFromGetSpaces(
   }
 }
 
-/** Best-effort spaceId extraction from getSpaces response shapes. */
-export function pickFirstSpaceId(data: unknown): string {
-  if (!data || typeof data !== "object") return "";
-  const root = data as Record<string, unknown>;
-
-  // Common shape: { [userId]: { space_view: { ... }, space: { [spaceId]: ... } } }
+/** Common shape: { [userId]: { space_view: { ... }, space: { [spaceId]: ... } } } */
+function pickSpaceIdFromUserMap(root: Record<string, unknown>): string {
   for (const value of Object.values(root)) {
     if (!value || typeof value !== "object" || Array.isArray(value)) continue;
     const spaceMap = (value as Record<string, unknown>).space;
@@ -219,20 +227,35 @@ export function pickFirstSpaceId(data: unknown): string {
       if (ids.length > 0) return ids[0];
     }
   }
+  return "";
+}
 
-  // Flat: { spaces: [{ id }] } / { spaceIds: [] }
-  const spaces = root.spaces;
-  if (Array.isArray(spaces)) {
-    for (const s of spaces) {
-      if (s && typeof s === "object" && typeof (s as { id?: string }).id === "string") {
-        return (s as { id: string }).id;
-      }
+/** Flat shape: { spaces: [{ id }] } */
+function pickSpaceIdFromSpacesArray(spaces: unknown): string {
+  if (!Array.isArray(spaces)) return "";
+  for (const s of spaces) {
+    if (s && typeof s === "object" && typeof (s as { id?: string }).id === "string") {
+      return (s as { id: string }).id;
     }
   }
-  if (Array.isArray(root.spaceIds) && typeof root.spaceIds[0] === "string") {
-    return root.spaceIds[0];
-  }
   return "";
+}
+
+/** Flat shape: { spaceIds: [] } */
+function pickSpaceIdFromSpaceIdsArray(spaceIds: unknown): string {
+  return Array.isArray(spaceIds) && typeof spaceIds[0] === "string" ? spaceIds[0] : "";
+}
+
+/** Best-effort spaceId extraction from getSpaces response shapes. */
+export function pickFirstSpaceId(data: unknown): string {
+  if (!data || typeof data !== "object") return "";
+  const root = data as Record<string, unknown>;
+
+  return (
+    pickSpaceIdFromUserMap(root) ||
+    pickSpaceIdFromSpacesArray(root.spaces) ||
+    pickSpaceIdFromSpaceIdsArray(root.spaceIds)
+  );
 }
 
 /**
