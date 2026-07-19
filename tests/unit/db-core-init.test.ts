@@ -504,39 +504,35 @@ test("build phase uses an in-memory database without creating sqlite files", ser
   }
 });
 
-test(
-  "invalid DATA_DIR (a file where a dir is expected) surfaces as a startup failure",
-  serial,
-  async () => {
-    const sandboxDir = makeTempDir("omniroute-db-bad-path-");
-    const fileAsDir = path.join(sandboxDir, "not-a-directory");
-    fs.writeFileSync(fileAsDir, "blocked");
+test("invalid DATA_DIR (a file where a dir is expected) surfaces as a startup failure", serial, async () => {
+  const sandboxDir = makeTempDir("omniroute-db-bad-path-");
+  const fileAsDir = path.join(sandboxDir, "not-a-directory");
+  fs.writeFileSync(fileAsDir, "blocked");
 
-    try {
-      // Since #4767, db/core.ts resolves a writable data dir at module load via
-      // resolveWritableDataDir() → mkdirSync(recursive). Pointing DATA_DIR at a
-      // regular file is a non-permission misconfiguration (EEXIST/ENOTDIR), which
-      // resolveWritableDataDir rethrows by design (only EACCES/EPERM fall back), so
-      // the failure now surfaces at import time, not lazily from getDbInstance().
-      let caught: unknown;
-      await withEnv({ DATA_DIR: fileAsDir }, () => importFresh("src/lib/db/core.ts")).then(
-        () => {
-          throw new Error("expected importing db/core with an invalid DATA_DIR to reject");
-        },
-        (err) => {
-          caught = err;
-        }
-      );
-      assert.ok(caught instanceof Error, "an invalid DATA_DIR must surface as a thrown Error");
-      assert.match(
-        String((caught as Error).message),
-        /unable to open database file|ENOTDIR|EEXIST|not a directory|file already exists/i
-      );
-    } finally {
-      removePath(sandboxDir);
-    }
+  try {
+    // Since #4767, db/core.ts resolves a writable data dir at module load via
+    // resolveWritableDataDir() → mkdirSync(recursive). Pointing DATA_DIR at a
+    // regular file is a non-permission misconfiguration (EEXIST/ENOTDIR), which
+    // resolveWritableDataDir rethrows by design (only EACCES/EPERM fall back), so
+    // the failure now surfaces at import time, not lazily from getDbInstance().
+    let caught: unknown;
+    await withEnv({ DATA_DIR: fileAsDir }, () => importFresh("src/lib/db/core.ts")).then(
+      () => {
+        throw new Error("expected importing db/core with an invalid DATA_DIR to reject");
+      },
+      (err) => {
+        caught = err;
+      }
+    );
+    assert.ok(caught instanceof Error, "an invalid DATA_DIR must surface as a thrown Error");
+    assert.match(
+      String((caught as Error).message),
+      /unable to open database file|ENOTDIR|EEXIST|not a directory|file already exists/i
+    );
+  } finally {
+    removePath(sandboxDir);
   }
-);
+});
 
 test(
   "legacy empty schema databases are renamed before a fresh sqlite database is created",
@@ -633,7 +629,6 @@ test(
         name TEXT,
         priority INTEGER DEFAULT 0,
         is_active INTEGER DEFAULT 1,
-        refresh_token TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );
