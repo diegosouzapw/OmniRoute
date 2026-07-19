@@ -2,43 +2,42 @@
  * NotionWebExecutor — Notion AI Web Session Provider (Unofficial/Experimental)
  *
  * Notion AI has no public, documented inference API (see issue #3272, closed
- * by the owner for that reason). This executor instead reverse-engineers the
- * same cookie-authenticated internal endpoint two independent open-source
- * projects already ship (`notion2api`, `Notion-AI-to-OpenAI-Compatible`, both
- * cited in issue #6758): a `token_v2` session cookie posted to
- * `POST /api/v3/runInferenceTranscript`, whose response is a newline-delimited
- * JSON (NDJSON) stream of transcript-patch records. Each record's `value`
- * field carries Notion's standard rich-text tuple shape (`[[text, marks?]]`,
- * the same shape used by Notion's public page-property API) holding the
- * *current* (cumulative, not delta) assistant text — mirroring the snapshot
- * semantics `gemini-web.ts` already handles, so only the last non-empty frame
- * is kept rather than concatenating every frame (see #7163 for why
- * concatenating cumulative snapshots duplicates text).
+ * by the owner for that reason). This executor reverse-engineers the same
+ * cookie-authenticated internal endpoint used by open-source bridges
+ * (notion2api / Notion2API-go, cited in issue #6758): a `token_v2` session
+ * cookie posted to `POST /api/v3/runInferenceTranscript`.
  *
- * Because the endpoint is undocumented and can change without notice
- * (acknowledged risk in issue #6758), streaming here is pseudo-streaming —
- * the full response is read, parsed, then sent as a single SSE chunk. This is
- * the same conservative tradeoff `gemini-web.ts` makes and is safer than
- * assuming unverified incremental-delta semantics on a live, undocumented API.
+ * Live capture (2026-07-19) against a Business workspace confirmed the
+ * contract that actually works:
+ *   - createThread: true + a fresh threadId (createThread:false → ValidationError 400)
+ *   - transcript starts with config + context, then user/assistant steps
+ *   - x-notion-space-id + x-notion-active-user-header required
+ *   - response is NDJSON patch-start / patch / record-map (not legacy rich-text
+ *     tuples alone). Text is extracted from agent-inference / markdown-chat.
  *
- * Auth: Cookie-based (token_v2 [+ optional space_id, notion_browser_id])
+ * Streaming is still pseudo-streaming: read full body, parse, emit one SSE
+ * chunk — safer than assuming unverified incremental-delta semantics.
+ *
+ * Auth: Cookie-based (token_v2 [+ optional space_id, notion_browser_id, user_id])
  * Method: Direct fetch — no browser automation required.
  */
 import { randomUUID } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
 import {
+  extractNotionUserIdFromCookie,
   resolveNotionCodename,
   resolveNotionRuntimeWorkspace,
 } from "../services/notionWebModels.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-// Match the live browser host (app.notion.com) used by the AI picker.
+// Both app.notion.com and www.notion.so work; prefer the AI surface host.
 const BASE_URL = "https://app.notion.com";
 const NOTION_URL = `${BASE_URL}/api/v3/runInferenceTranscript`;
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
+const NOTION_CLIENT_VERSION = "23.13.20260719.1125";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -126,11 +125,7 @@ export function resolveNotionWebCookie(credentials: ExecuteInput["credentials"])
     .join("; ");
 }
 
-/** Pull `space_id` out of an assembled cookie header, if present. Notion's
- * transcript endpoint accepts an explicit `spaceId` field in the body; when
- * the operator supplied it via cookie we forward it rather than relying on
- * Notion to infer it from the session alone. Case-insensitive name; also
- * accepts `spaceId=` (camelCase) as some cookie exporters use that spelling. */
+/** Pull `space_id` out of an assembled cookie header, if present. */
 export function extractSpaceIdFromCookie(cookie: string): string {
   const match = cookie.match(/(?:^|;\s*)space_id=([^;]+)/i);
   if (match) return match[1].trim();
@@ -138,43 +133,117 @@ export function extractSpaceIdFromCookie(cookie: string): string {
   return camel ? camel[1].trim() : "";
 }
 
+function extractUserIdFromCookie(cookie: string): string {
+  return extractNotionUserIdFromCookie(cookie);
+}
+
+function isoNow(): string {
+  // Millisecond precision matches the browser client.
+  return new Date().toISOString().replace(/\.\d{3}Z$/, (m) => m); // keep ms + Z
+}
+
 // ─── Helpers — request/response translation ────────────────────────────────
 
 /**
  * Build a Notion `runInferenceTranscript` transcript array from OpenAI-style
- * chat messages. When `notionModel` is set (and not the synthetic `notion-ai`
- * default), a leading `config` entry carries `value.model` so Notion routes the
- * request to the selected codename from getAvailableModels.
+ * chat messages.
+ *
+ * Live contract (verified 2026-07-19):
+ * - Leading `config` (workflow + optional model food-codename)
+ * - Leading `context` (spaceId / userId / surface / timezone)
+ * - User turns as `type: "user"` (legacy `human` also works with createThread,
+ *   but `user` matches the current web client)
+ * - Assistant turns as `agent-inference` text parts
  */
 export function buildNotionTranscript(
   messages: NotionMessage[],
-  notionModel?: string
+  opts: {
+    notionModel?: string;
+    spaceId?: string;
+    userId?: string;
+  } = {}
 ): Array<Record<string, unknown>> {
   const entries: Array<Record<string, unknown>> = [];
-  const trimmedModel = typeof notionModel === "string" ? notionModel.trim() : "";
+  const trimmedModel = typeof opts.notionModel === "string" ? opts.notionModel.trim() : "";
   const model = trimmedModel && trimmedModel !== "notion-ai" ? trimmedModel : "";
-  if (model) {
-    entries.push({
-      id: randomUUID(),
-      type: "config",
-      value: {
-        type: "workflow",
-        model,
-        modelFromUser: true,
-        useWebSearch: false,
-        searchScopes: [{ type: "everything" }],
-      },
-    });
+  const now = isoNow();
+
+  const configValue: Record<string, unknown> = {
+    type: "workflow",
+    useWebSearch: false,
+    searchScopes: [{ type: "everything" }],
+    modelFromUser: Boolean(model),
+    enableAgentAutomations: false,
+    enableAgentIntegrations: false,
+    enableCustomAgents: false,
+    enableDatabaseAgents: false,
+    enableUserSessionContext: false,
+    isCustomAgent: false,
+  };
+  if (model) configValue.model = model;
+
+  entries.push({
+    id: randomUUID(),
+    type: "config",
+    value: configValue,
+  });
+
+  const contextValue: Record<string, unknown> = {
+    timezone: "UTC",
+    surface: "ai_module",
+    currentDatetime: now,
+  };
+  if (opts.spaceId) contextValue.spaceId = opts.spaceId;
+  if (opts.userId) {
+    contextValue.userId = opts.userId;
   }
+
+  entries.push({
+    id: randomUUID(),
+    type: "context",
+    value: contextValue,
+  });
+
   for (const m of messages) {
     if (typeof m?.content !== "string" || m.content.length === 0) continue;
-    entries.push({
+    const role = (m.role || "").toLowerCase();
+    if (role === "system") {
+      // Fold system prompts into context instructions rather than a separate step.
+      const existing = typeof contextValue.instructions === "string" ? contextValue.instructions : "";
+      contextValue.instructions = existing ? `${existing}\n${m.content}` : m.content;
+      continue;
+    }
+    if (role === "assistant") {
+      entries.push({
+        id: randomUUID(),
+        type: "agent-inference",
+        value: [{ type: "text", content: m.content }],
+      });
+      continue;
+    }
+    // user (and anything else treated as user)
+    const userStep: Record<string, unknown> = {
       id: randomUUID(),
-      type: m.role === "assistant" ? "ai" : m.role === "system" ? "context" : "human",
+      type: "user",
       value: [[m.content]],
-    });
+      createdAt: now,
+    };
+    if (opts.userId) userStep.userId = opts.userId;
+    entries.push(userStep);
   }
   return entries;
+}
+
+/** Strip Notion's `<lang primary="…"/>` prefix and similar noise from answers. */
+export function sanitizeNotionAssistantText(text: string): string {
+  if (!text) return "";
+  let clean = text.replace(/^\uFEFF/, "").trim();
+  // Self-closing or paired lang tags at the start (and anywhere).
+  clean = clean.replace(/<\/?lang\b[^>]*\/?>/gi, "");
+  clean = clean.replace(/<\/lang>/gi, "");
+  // Incomplete leading <lang… without close
+  if (/^<lang\b/i.test(clean) && !clean.includes(">")) return "";
+  return clean.trim();
 }
 
 /** Extract plain text from Notion's rich-text tuple value: `[[text, marks?]]`. */
@@ -185,34 +254,182 @@ function extractRichText(value: unknown): string {
     .join("");
 }
 
+function extractAgentInferenceText(value: unknown): string {
+  if (!Array.isArray(value)) return "";
+  const parts: string[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const part = item as Record<string, unknown>;
+    const t = typeof part.type === "string" ? part.type.toLowerCase() : "";
+    if (t === "text" && typeof part.content === "string" && part.content) {
+      parts.push(part.content);
+    }
+  }
+  return parts.join("");
+}
+
+function extractFromRecordMap(recordMap: unknown): string {
+  if (!recordMap || typeof recordMap !== "object" || Array.isArray(recordMap)) return "";
+  const tm = (recordMap as Record<string, unknown>).thread_message;
+  if (!tm || typeof tm !== "object" || Array.isArray(tm)) return "";
+  let best = "";
+  for (const msg of Object.values(tm as Record<string, unknown>)) {
+    if (!msg || typeof msg !== "object") continue;
+    const valueWrapper = (msg as Record<string, unknown>).value;
+    if (!valueWrapper || typeof valueWrapper !== "object") continue;
+    const inner = (valueWrapper as Record<string, unknown>).value;
+    if (!inner || typeof inner !== "object") continue;
+    const step = (inner as Record<string, unknown>).step;
+    if (!step || typeof step !== "object") continue;
+    const stepObj = step as Record<string, unknown>;
+    const stepType = typeof stepObj.type === "string" ? stepObj.type : "";
+    if (stepType === "agent-inference") {
+      const text = extractAgentInferenceText(stepObj.value);
+      if (text && text.length >= best.length) best = text;
+    } else if (stepType === "markdown-chat" && typeof stepObj.value === "string") {
+      if (stepObj.value.length >= best.length) best = stepObj.value;
+    }
+  }
+  return best;
+}
+
 /**
- * Parse Notion's NDJSON `runInferenceTranscript` response body. Each line is
- * an independent JSON record; the assistant text lives under a `value` field
- * using the rich-text tuple shape. Frames are cumulative snapshots (mirroring
- * `gemini-web.ts`'s `parseStreamResponse`), so only the last non-empty frame
- * is kept — never concatenated.
+ * Parse Notion's NDJSON `runInferenceTranscript` response body.
+ * Supports:
+ * 1. Legacy rich-text tuples on `value` (cumulative snapshots)
+ * 2. Modern patch-start / patch streams (text / markdown-chat ops)
+ * 3. Terminal record-map with agent-inference steps (authoritative final)
  */
 export function parseNotionInferenceStream(raw: string): string {
   if (!raw) return "";
   const lines = raw.split("\n");
-  let lastText = "";
+  let lastLegacy = "";
+  let lastPatchFinal = "";
+  let lastIncremental = "";
+  let lastRecordMap = "";
+
   for (const rawLine of lines) {
     const line = rawLine.trim();
-    if (!line) continue;
+    if (!line || line === "[DONE]") continue;
+    // Strip optional SSE "data:" prefix if a proxy rewrote it.
+    const payloadLine = line.startsWith("data:") ? line.slice(5).trim() : line;
+    if (!payloadLine) continue;
+
     let record: unknown;
     try {
-      record = JSON.parse(line);
+      record = JSON.parse(payloadLine);
     } catch {
-      continue; // Skip unparseable lines (keep-alive pings, partial frames)
+      continue;
     }
     if (!record || typeof record !== "object" || Array.isArray(record)) continue;
-    const text = extractRichText((record as Record<string, unknown>).value);
-    if (text) lastText = text;
+    const rec = record as Record<string, unknown>;
+    const type = typeof rec.type === "string" ? rec.type : "";
+
+    // 1) Direct markdown-chat event
+    if (type === "markdown-chat" && typeof rec.value === "string" && rec.value) {
+      lastPatchFinal = rec.value;
+      continue;
+    }
+
+    // 2) Direct agent-inference event
+    if (type === "agent-inference") {
+      const text = extractAgentInferenceText(rec.value);
+      if (text) lastPatchFinal = text;
+      continue;
+    }
+
+    // 3) Patch stream
+    if (type === "patch" && Array.isArray(rec.v)) {
+      for (const rawOp of rec.v) {
+        if (!rawOp || typeof rawOp !== "object") continue;
+        const op = rawOp as Record<string, unknown>;
+        const o = typeof op.o === "string" ? op.o : "";
+        const p = typeof op.p === "string" ? op.p : "";
+        const v = op.v;
+
+        // Full agent-inference text part append
+        if (o === "a" && p.endsWith("/value/-") && v && typeof v === "object" && !Array.isArray(v)) {
+          const part = v as Record<string, unknown>;
+          if (part.type === "text" && typeof part.content === "string" && part.content) {
+            lastPatchFinal = part.content;
+          }
+          if (part.type === "markdown-chat" && typeof part.value === "string" && part.value) {
+            lastPatchFinal = part.value;
+          }
+        }
+
+        // Step append with markdown-chat
+        if (o === "a" && p.endsWith("/s/-") && v && typeof v === "object" && !Array.isArray(v)) {
+          const step = v as Record<string, unknown>;
+          if (step.type === "markdown-chat" && typeof step.value === "string" && step.value) {
+            lastPatchFinal = step.value;
+          }
+          if (step.type === "agent-inference") {
+            const text = extractAgentInferenceText(step.value);
+            if (text) lastPatchFinal = text;
+          }
+        }
+
+        // Incremental string patches
+        if ((o === "x" || o === "p") && p.includes("/value") && typeof v === "string" && v) {
+          lastIncremental += v;
+        }
+      }
+      continue;
+    }
+
+    // 4) record-map terminal
+    if (type === "record-map" || rec.recordMap) {
+      const text = extractFromRecordMap(rec.recordMap || rec);
+      if (text) lastRecordMap = text;
+      continue;
+    }
+
+    // 5) Legacy rich-text value (cumulative)
+    const rich = extractRichText(rec.value);
+    if (rich) lastLegacy = rich;
   }
-  return lastText;
+
+  const candidates = [lastRecordMap, lastPatchFinal, lastIncremental, lastLegacy]
+    .map(sanitizeNotionAssistantText)
+    .filter(Boolean);
+  // Prefer the longest non-empty candidate; record-map usually wins.
+  return candidates.sort((a, b) => b.length - a.length)[0] || "";
 }
 
-function chatCompletionResponse(content: string, model: string) {
+/**
+ * Notion's undocumented inference API does not return token usage.
+ * Emit a cheap char-based estimate so clients don't see a constant
+ * `USAGE_TOKEN_BUFFER` (default 2000) from buffering an all-zero stub.
+ * chatCore may still add the safety buffer on top of real estimates.
+ */
+export function estimateNotionUsage(
+  messages: NotionMessage[] | undefined,
+  content: string
+): { prompt_tokens: number; completion_tokens: number; total_tokens: number; estimated: true } {
+  const promptText = (messages || [])
+    .map((m) => (typeof m?.content === "string" ? m.content : ""))
+    .join("\n");
+  // ~4 chars/token (English-ish); at least 1 when there is any text.
+  const prompt_tokens = promptText
+    ? Math.max(1, Math.ceil(promptText.length / 4))
+    : 0;
+  const completion_tokens = content
+    ? Math.max(1, Math.ceil(content.length / 4))
+    : 0;
+  return {
+    prompt_tokens,
+    completion_tokens,
+    total_tokens: prompt_tokens + completion_tokens,
+    estimated: true,
+  };
+}
+
+function chatCompletionResponse(
+  content: string,
+  model: string,
+  messages?: NotionMessage[]
+) {
   return new Response(
     JSON.stringify({
       id: `chatcmpl-notion-${Date.now()}`,
@@ -222,7 +439,7 @@ function chatCompletionResponse(content: string, model: string) {
       choices: [
         { index: 0, message: { role: "assistant", content }, finish_reason: "stop" },
       ],
-      usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+      usage: estimateNotionUsage(messages, content),
     }),
     { status: 200, headers: { "Content-Type": "application/json" } }
   );
@@ -255,6 +472,16 @@ function pseudoStreamResponse(content: string, model: string) {
   });
 }
 
+function clientFacingModelId(model: unknown): string {
+  let clientFacingModel = typeof model === "string" ? model.trim() : "";
+  if (clientFacingModel.startsWith("notion-web/")) {
+    clientFacingModel = clientFacingModel.slice("notion-web/".length);
+  } else if (clientFacingModel.startsWith("nw/")) {
+    clientFacingModel = clientFacingModel.slice(3);
+  }
+  return clientFacingModel;
+}
+
 // ─── Executor ───────────────────────────────────────────────────────────────
 
 export class NotionWebExecutor extends BaseExecutor {
@@ -281,37 +508,66 @@ export class NotionWebExecutor extends BaseExecutor {
       return makeErrorResult(400, "No user message found", body, NOTION_URL);
     }
 
-    // Prefer explicit space_id from cookie; otherwise reuse the auto-selected
-    // AI/Business workspace from model discovery (cached).
+    // Resolve workspace + user (cached). Required for createThread payloads.
     let spaceId = extractSpaceIdFromCookie(cookie);
-    if (!spaceId) {
-      try {
-        const resolved = await resolveNotionRuntimeWorkspace({ cookie, signal });
-        spaceId = resolved.spaceId;
-      } catch {
-        spaceId = "";
-      }
+    let userId = extractUserIdFromCookie(cookie);
+    try {
+      const resolved = await resolveNotionRuntimeWorkspace({ cookie, signal });
+      if (!spaceId) spaceId = resolved.spaceId;
+      if (!userId) userId = resolved.userId;
+    } catch {
+      // keep cookie-derived values
     }
+
+    if (!spaceId) {
+      return makeErrorResult(
+        400,
+        "Could not resolve Notion spaceId — paste space_id from cookies or ensure token_v2 can call getSpaces",
+        body,
+        NOTION_URL
+      );
+    }
+
     // Client may send notion-web/fable-5, nw/fable-5, fable-5, "Fable 5", or the
     // legacy food codename (acai-budino-high). Notion only accepts the food codename
     // on the wire; we echo the client-facing id in the OpenAI response.
     const notionCodename = resolveNotionCodename(model);
-    let clientFacingModel = typeof model === "string" ? model.trim() : "";
-    if (clientFacingModel.startsWith("notion-web/")) {
-      clientFacingModel = clientFacingModel.slice("notion-web/".length);
-    } else if (clientFacingModel.startsWith("nw/")) {
-      clientFacingModel = clientFacingModel.slice(3);
-    }
-    const modelId = clientFacingModel || notionCodename || "notion-ai";
+    const clientFacing = clientFacingModelId(model);
+    const modelId = clientFacing || notionCodename || "notion-ai";
+
+    const threadId = randomUUID();
+    const transcript = buildNotionTranscript(messages, {
+      notionModel: notionCodename || undefined,
+      spaceId,
+      userId: userId || undefined,
+    });
+
+    // Live-verified working shape (createThread:false without threadId → 400 ValidationError).
     const reqBody: Record<string, unknown> = {
       traceId: randomUUID(),
-      transcript: buildNotionTranscript(messages, notionCodename || undefined),
-      createThread: false,
+      spaceId,
+      threadId,
+      createThread: true,
+      generateTitle: true,
       asPatchResponse: true,
-      threadType: "workflow",
+      isPartialTranscript: false,
+      saveAllThreadOperations: true,
+      setUnreadState: true,
       createdSource: "ai_module",
+      threadType: "workflow",
+      transcript,
+      threadParentPointer: {
+        table: "space",
+        id: spaceId,
+        spaceId,
+      },
+      debugOverrides: {
+        annotationInferences: {},
+        cachedInferences: {},
+        emitAgentSearchExtractedResults: true,
+        emitInferences: false,
+      },
     };
-    if (spaceId) reqBody.spaceId = spaceId;
 
     const reqHeaders: Record<string, string> = {
       "Content-Type": "application/json",
@@ -320,10 +576,12 @@ export class NotionWebExecutor extends BaseExecutor {
       Cookie: cookie,
       Origin: BASE_URL,
       Referer: `${BASE_URL}/ai`,
-      "notion-client-version": "23.13.20260719.0708",
+      "notion-client-version": NOTION_CLIENT_VERSION,
       "notion-audit-log-platform": "web",
+      "x-notion-space-id": spaceId,
+      "Accept-Language": "en-US,en;q=0.9",
     };
-    if (spaceId) reqHeaders["x-notion-space-id"] = spaceId;
+    if (userId) reqHeaders["x-notion-active-user-header"] = userId;
 
     let upstream: Response;
     try {
@@ -364,7 +622,7 @@ export class NotionWebExecutor extends BaseExecutor {
 
     const response = wantStream
       ? pseudoStreamResponse(finalText, modelId)
-      : chatCompletionResponse(finalText, modelId);
+      : chatCompletionResponse(finalText, modelId, messages);
 
     return { response, url: NOTION_URL, headers: reqHeaders, transformedBody: reqBody };
   }
