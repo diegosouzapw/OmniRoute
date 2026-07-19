@@ -35,16 +35,41 @@ function getReservedProviderPrefixes(): Set<string> {
 }
 
 /**
- * Build a combined model alias map that merges both alias stores:
+ * Fold `settings.wildcardAliases` ({pattern,target}[]) — the store the Settings
+ * UI's "Wildcard Pattern" mode writes to (ModelAliasesUnified.tsx::addWildcardAlias
+ * -> PATCH /api/settings) — into `pattern -> target` map entries so the T13
+ * wildcard step in getModelInfoCore() (which treats every key of the merged alias
+ * map as a candidate glob pattern) can see them (#7693). Without this the
+ * feature persists but is never consulted at request time.
+ */
+function buildWildcardAliasMap(settings: Record<string, unknown>): Record<string, unknown> {
+  const wildcardEntries = Array.isArray(settings.wildcardAliases)
+    ? (settings.wildcardAliases as Array<{ pattern?: unknown; target?: unknown }>)
+    : [];
+  const wildcardMap: Record<string, unknown> = {};
+  for (const entry of wildcardEntries) {
+    if (entry && typeof entry.pattern === "string" && typeof entry.target === "string") {
+      wildcardMap[entry.pattern] = entry.target;
+    }
+  }
+  return wildcardMap;
+}
+
+/**
+ * Build a combined model alias map that merges all alias stores:
  * 1. DB-namespace aliases (key_value WHERE namespace='modelAliases') — set via
  *    /api/models/alias/ and seeded at startup.
- * 2. Settings-based aliases (settings.modelAliases) — set via the Settings UI and
+ * 2. Settings-based exact aliases (settings.modelAliases) — set via the Settings UI and
  *    /api/settings/model-aliases/ (stored as a JSON blob in namespace='settings').
+ * 3. Settings-based wildcard aliases (settings.wildcardAliases) — set via the Settings
+ *    UI's "Wildcard Pattern" mode, PATCH /api/settings (#7693).
  *
- * Settings-based aliases take priority so that UI configuration always wins.
- * Without this merge, aliases configured via the Settings UI were never consulted
- * during provider routing, causing provider inference (e.g. /^gpt-/ → openai) to
- * silently override them (issue #2618 / #2208).
+ * Settings-based exact aliases take priority over DB-namespace aliases so that UI
+ * configuration always wins. Without this merge, aliases configured via the Settings
+ * UI were never consulted during provider routing, causing provider inference (e.g.
+ * /^gpt-/ → openai) to silently override them (issue #2618 / #2208). Wildcard entries
+ * are folded in last: they are keyed by pattern string (containing `*`/`?`), which
+ * cannot collide with a real model id, so ordering never affects exact-alias lookups.
  */
 async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
   const [dbAliases, settings] = await Promise.all([
@@ -59,8 +84,9 @@ async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
       ? (settings.modelAliases as Record<string, unknown>)
       : {};
 
-  // Settings-based aliases win over DB-namespace aliases on key collision
-  return { ...dbAliases, ...settingsAliases };
+  const wildcardMap = buildWildcardAliasMap(settings);
+
+  return { ...dbAliases, ...settingsAliases, ...wildcardMap };
 }
 
 /**
