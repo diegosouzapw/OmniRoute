@@ -1233,6 +1233,19 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[CodeWebChat](https://github.com/robertpiosik/CodeWebChat)** · robertpiosik | Editor-side companion — VS Code + browser extension that autofills 15+ chatbot web UIs with editor context. Owns the free-web-UI rail alongside OmniRoute's API rail; can point its API mode at OmniRoute. |
 
+## 🤝 Official Supporters
+
+<table>
+  <tr>
+    <td align="center" width="120">
+      <a href="https://www.kimi.com"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/kimi-color.svg" width="48" alt="Kimi (Moonshot AI)"/></a>
+    </td>
+    <td>
+      <b>Kimi (Moonshot AI)</b> — official supporter of OmniRoute. Kimi API credits power our AI-validated release pipeline, including the <b>merge validation powered by Kimi K3</b> stage. OmniRoute ships first-class Kimi support on both rails: the direct <a href="https://platform.kimi.ai">Moonshot API</a> (<code>kimi-k3</code>, 1M context) and the <a href="https://www.kimi.com">Kimi Code coding plan</a> (OAuth and API key).
+    </td>
+  </tr>
+</table>
+
 ## ❤️ Support
 
 OmniRoute is free and open source, built and maintained in the open. If it saves you time or money, consider supporting development:
