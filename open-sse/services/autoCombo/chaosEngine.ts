@@ -41,6 +41,9 @@ export type ChaosTuning = {
 
 type Body = Record<string, unknown>;
 
+/** Minimal shape of the downstream single-model dispatch target (carries an abort signal). */
+type ChaosTarget = { modelAbortSignal?: AbortSignal };
+
 export type ChaosPart = {
   model: string;
   index: number;
@@ -465,3 +468,5 @@ export function dispatchChaosFromCombo(args: {
     primaryModel: chaosCfg.judgeModel,
   });
 }
+
+/**

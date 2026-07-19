@@ -894,7 +894,7 @@ export async function handleComboChat({
   });
   if (chaosDispatch) return chaosDispatch;
 
-  // Pipeline strategy: sequential chain — each step's output feeds the next step's
+  // Pipeline strategy: sequential chain
   // input, only the final step's response is returned. Handled in a separate module
   // because it neither iterates targets as fallbacks nor needs the failover/retry
   // machinery below — it runs targets in order, threading output → input. The step
