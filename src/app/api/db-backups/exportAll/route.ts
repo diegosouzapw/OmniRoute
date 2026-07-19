@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
 
     const db = getDbInstance();
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-    const tempDir = path.join(os.tmpdir(), `omniroute-export-${timestamp}`);
-    const zipPath = path.join(os.tmpdir(), `omniroute-full-backup-${timestamp}.zip`);
+    const tempDir = path.join(os.tmpdir(), `omniroute-export-${timestamp}`),
+      zipPath = path.join(os.tmpdir(), `omniroute-full-backup-${timestamp}.zip`);
 
     try {
       // Create temp directory
