@@ -10,6 +10,13 @@
 /** Service kinds that, on their own, mean the provider lists no models. */
 const TOOL_ONLY_SERVICE_KINDS = new Set<string>(["webSearch", "webFetch"]);
 
+/** Providers whose registry catalog is the complete, intentional model list. */
+const CURATED_MODEL_ONLY_PROVIDERS = new Set<string>(["kimi-web"]);
+
+export function providerUsesCuratedModelsOnly(providerId: string): boolean {
+  return CURATED_MODEL_ONLY_PROVIDERS.has(providerId.trim().toLowerCase());
+}
+
 /**
  * True when the provider is tool-only and therefore has no model listing:
  *  - its id ends in `-search` (legacy search providers), OR

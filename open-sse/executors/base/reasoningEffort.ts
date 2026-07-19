@@ -53,7 +53,9 @@ export function supportsMaxEffortForProvider(provider: string, model: string): b
   const isOpencodeGoDeepSeek =
     provider === "opencode-go" && model.toLowerCase().includes("deepseek");
   const isOllamaCloud = provider === "ollama-cloud";
-  return isClaude || isOpencodeGoDeepSeek || isOllamaCloud;
+  const isMoonshotK3 =
+    (provider === "moonshot" || provider === "kimi") && /^kimi-k3(?:$|-)/i.test(model);
+  return isClaude || isOpencodeGoDeepSeek || isOllamaCloud || isMoonshotK3;
 }
 
 // ── Effort carrier helpers (#7044) ──────────────────────────────────────────

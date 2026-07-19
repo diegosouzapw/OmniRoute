@@ -1,0 +1,1 @@
+- **fix(translator):** synthesize tool call chunks from `response.completed` batched output when upstream omits individual `output_item.added`/`done` events, fixing `finish_reason: "stop"` instead of `"tool_calls"` for agentic clients ([#180](https://github.com/diegosouzapw/OmniRoute/issues/180), [#3980](https://github.com/diegosouzapw/OmniRoute/issues/3980))

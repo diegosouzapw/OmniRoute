@@ -20,7 +20,7 @@ export function shouldSkipCloudSyncInitialization(
     return true;
   }
 
-  return isAutomatedTestProcess(env, argv) && env.OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS !== "1";
+  return isAutomatedTestProcess(argv, env) && env.OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS !== "1";
 }
 
 export async function ensureCloudSyncInitialized() {

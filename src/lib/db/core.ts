@@ -241,6 +241,7 @@ const SCHEMA_SQL = `
     max_concurrent INTEGER,
     proxy_enabled INTEGER NOT NULL DEFAULT 1,
     per_key_proxy_enabled INTEGER NOT NULL DEFAULT 0,
+    quota_visible INTEGER NOT NULL DEFAULT 1,
     quota_window_thresholds_json TEXT,
     rate_limit_overrides_json TEXT,
     created_at TEXT NOT NULL,
@@ -249,7 +250,6 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_pc_provider ON provider_connections(provider);
   CREATE INDEX IF NOT EXISTS idx_pc_active ON provider_connections(is_active);
   CREATE INDEX IF NOT EXISTS idx_pc_priority ON provider_connections(provider, priority);
-  CREATE INDEX IF NOT EXISTS idx_pc_auth_active_refresh ON provider_connections(auth_type, is_active, refresh_token);
 
   CREATE TABLE IF NOT EXISTS provider_nodes (
     id TEXT PRIMARY KEY,
@@ -1089,7 +1089,11 @@ export function getDbInstance(): SqliteDatabase {
       // V8 heap (sql.js loads the whole file into WASM memory). Throwing
       // immediately gives the user a clear "increase --max-old-space-size"
       // signal instead of silently renaming a perfectly good DB.
-      if (/out of memory|allocation failure|Array buffer allocation failed|allocation failed/i.test(message)) {
+      if (
+        /out of memory|allocation failure|Array buffer allocation failed|allocation failed/i.test(
+          message
+        )
+      ) {
         // Cycle-breaker (#6835): the OOM path never renames the file away,
         // so it never trips the generic probe-failed/restore cap above. Cap
         // it independently after 3 consecutive OOM failures (same threshold

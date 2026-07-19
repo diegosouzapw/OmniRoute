@@ -35,6 +35,11 @@ export function isAutomatedTestProcess(
 ): boolean {
   if (env.NODE_ENV === "test") return true;
   if (env.VITEST !== undefined) return true;
+  // Defensive: tolerate a non-array argv (e.g. a caller passing arguments out
+  // of order) instead of throwing `argv.some is not a function` — this check
+  // gates production behavior (auto-backup, migrations, cloud sync…), so it
+  // must never crash the process it's protecting.
+  if (!Array.isArray(argv)) return false;
   return argv.some((arg) => typeof arg === "string" && (TEST_TOKEN_RE.test(arg) || TEST_RUNNER_RE.test(arg)));
 }
 
