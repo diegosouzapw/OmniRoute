@@ -1,0 +1,1 @@
+- **fix(rerank):** rerank handler now honors per-connection proxy via `runWithProxyContext` (was making direct `fetch` calls, bypassing SOCKS5 proxy pinning) and maps `top_n`→`top_k` for Voyage AI with a Cohere-compatible response transformer ([#7420](https://github.com/diegosouzapw/OmniRoute/pull/7420)) — thanks @kamenkadmitry

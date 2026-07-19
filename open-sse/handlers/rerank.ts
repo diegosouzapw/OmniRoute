@@ -14,6 +14,7 @@ import { generateRequestId } from "@/shared/utils/requestId";
 import { saveCallLog } from "@/lib/usageDb";
 import { resolveProxyForConnection } from "@/lib/db/settings";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import * as log from "@/sse/utils/logger";
 
 /**
  * Build authorization header for a rerank provider
@@ -194,7 +195,9 @@ export async function handleRerank({
   if (connectionId) {
     try {
       proxyInfo = await resolveProxyForConnection(connectionId);
-    } catch {}
+    } catch (err) {
+      log.error("RERANK", `Proxy resolution failed for connection ${connectionId}: ${err}`);
+    }
   }
 
   const doFetch = () =>
