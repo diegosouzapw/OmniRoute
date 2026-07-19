@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import Card from "./Card";
 import Button from "./Button";
@@ -11,12 +11,14 @@ interface NoAuthAccountCardProps {
   providerId: string;
   providerName: string;
   generateAccountId: () => string;
+  generateApiKey?: () => Promise<string>;
   dataKey?: string;
   description?: string;
   addLabel?: string;
   enabled?: boolean;
   savingEnabled?: boolean;
   onEnabledChange?: (enabled: boolean) => void;
+  providerProxyControl?: ReactNode;
 }
 
 interface Connection {
@@ -89,12 +91,14 @@ export default function NoAuthAccountCard({
   providerId,
   providerName,
   generateAccountId,
+  generateApiKey,
   dataKey = "fingerprints",
   description,
   addLabel,
   enabled = true,
   savingEnabled = false,
   onEnabledChange,
+  providerProxyControl,
 }: NoAuthAccountCardProps) {
   const t = useTranslations("noAuthProvider");
   const resolvedDescription = description || t("accountDescription");
@@ -173,6 +177,7 @@ export default function NoAuthAccountCard({
     setAdding(true);
     try {
       const accountId = generateAccountId();
+      const apiKey = generateApiKey ? await generateApiKey() : undefined;
       if (connections.length === 0) {
         const res = await fetch("/api/providers", {
           method: "POST",
@@ -180,10 +185,14 @@ export default function NoAuthAccountCard({
           body: JSON.stringify({
             provider: providerId,
             name: t("accountName", { provider: providerName, number: 1 }),
+            ...(apiKey ? { apiKey } : {}),
             providerSpecificData: { [dataKey]: [accountId] },
           }),
         });
-        if (!res.ok) throw new Error(t("createConnectionFailed"));
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error || t("createConnectionFailed"));
+        }
       } else {
         const updated = [...allAccountIds, accountId];
         const res = await fetch(`/api/providers/${conn.id}`, {
@@ -339,12 +348,15 @@ export default function NoAuthAccountCard({
             <p className="text-xs text-text-muted">{resolvedDescription}</p>
           </div>
         </div>
-        <NoAuthProviderToggle
-          className="w-full justify-end sm:w-auto"
-          enabled={enabled}
-          saving={savingEnabled}
-          onEnabledChange={onEnabledChange}
-        />
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
+          {providerProxyControl}
+          <NoAuthProviderToggle
+            className="w-full justify-end sm:w-auto"
+            enabled={enabled}
+            saving={savingEnabled}
+            onEnabledChange={onEnabledChange}
+          />
+        </div>
       </div>
 
       <div className="border-t border-border pt-3 mt-3">

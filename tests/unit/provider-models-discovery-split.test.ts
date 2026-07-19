@@ -304,7 +304,7 @@ test("codex.enrichCodexModelsFromGithubCatalog keeps live entitlement list autho
   assert.equal(enriched[0]?.supportsVision, true);
 });
 
-test("codex.mergeCodexLiveModelsWithLocalCatalog auto-includes remote-only models", () => {
+test("codex.mergeCodexLiveModelsWithLocalCatalog merges capacity limits conservatively (smaller wins)", () => {
   const merged = mergeCodexLiveModelsWithLocalCatalog(
     [
       {
@@ -320,19 +320,25 @@ test("codex.mergeCodexLiveModelsWithLocalCatalog auto-includes remote-only model
         owned_by: "codex",
         apiFormat: "responses",
         supportedEndpoints: ["responses"],
-        inputTokenLimit: 999999,
+        inputTokenLimit: 272000,
         supportsVision: true,
+      },
+      {
+        id: "gpt-5.5",
+        name: "Live GPT 5.5",
+        inputTokenLimit: 300000,
       },
     ],
     [
       {
         id: "gpt-5.6-sol",
         name: "GPT 5.6 Sol",
-        contextLength: 500000,
+        contextLength: 372000,
         maxInputTokens: 372000,
         maxOutputTokens: 128000,
       },
-      { id: "gpt-5.6-sol-low", name: "GPT 5.6 Sol (Low)", contextLength: 500000 },
+      { id: "gpt-5.6-sol-low", name: "GPT 5.6 Sol (Low)", contextLength: 372000 },
+      { id: "gpt-5.5", name: "GPT 5.5", maxInputTokens: 272000 },
     ]
   );
 
@@ -341,10 +347,19 @@ test("codex.mergeCodexLiveModelsWithLocalCatalog auto-includes remote-only model
   assert.ok(ids.includes("gpt-5.6-sol"));
   assert.ok(ids.includes("gpt-5.6-sol-low"));
   const sol = merged.find((model) => model.id === "gpt-5.6-sol");
-  // Local catalog enriches known IDs; live fields win on overlap via merge order.
-  assert.equal(sol?.inputTokenLimit, 999999);
+  assert.equal(sol?.name, "Live Sol");
+  // Live (272000) is SMALLER than the pinned contract (372000) here — the
+  // smaller value wins so OmniRoute never promises more context than the
+  // live account can actually serve (#7012).
+  assert.equal(sol?.inputTokenLimit, 272000);
   assert.equal(sol?.supportsVision, true);
+  // Output limit is pinned-only (live has none) — passes through unchanged.
   assert.equal(sol?.outputTokenLimit, 128000);
+  assert.equal(
+    merged.find((model) => model.id === "gpt-5.5")?.inputTokenLimit,
+    272000,
+    "capacity limits merge conservatively for all Codex models, not only the pinned GPT-5.6 ids — the smaller of live (300000) vs. pinned (272000) wins"
+  );
 });
 
 test("codex discovery filters drop the GPT-5.4 family but keep other remote models", () => {

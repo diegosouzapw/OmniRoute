@@ -31,6 +31,7 @@ export async function GET(): Promise<Response> {
       latestVersion,
       updateAvailable: !!installedVersion && !!latestVersion && installedVersion !== latestVersion,
       autoStart: row?.autoStart ?? false,
+      providerExpose: row?.providerExpose ?? false,
     });
   } catch (err) {
     const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));

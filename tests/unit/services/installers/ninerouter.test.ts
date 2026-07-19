@@ -7,6 +7,7 @@ import { execSync } from "node:child_process";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-installer-"));
 const FAKE_BIN_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-fake-bin-"));
+const MOCK_NINEROUTER_VERSION = "0.5.30";
 
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.NODE_ENV = "test";
@@ -34,12 +35,12 @@ if [ "$CMD" = "install" ]; then
   if [ -z "$PREFIX" ]; then PREFIX="$npm_config_prefix"; fi
   PKG_DIR="$PREFIX/node_modules/9router"
   mkdir -p "$PKG_DIR/app"
-  echo '{"name":"9router","version":"0.4.59"}' > "$PKG_DIR/package.json"
+  echo '{"name":"9router","version":"${MOCK_NINEROUTER_VERSION}"}' > "$PKG_DIR/package.json"
   touch "$PKG_DIR/app/server.js"
   exit 0
 fi
 if [ "$CMD" = "view" ]; then
-  echo "0.4.59"
+  echo "${MOCK_NINEROUTER_VERSION}"
   exit 0
 fi
 exit 0
@@ -76,7 +77,7 @@ test.after(() => {
 });
 
 test("install creates package.json structure", async () => {
-  const result = await install("0.4.59");
+  const result = await install(MOCK_NINEROUTER_VERSION);
 
   // Host package.json must exist
   const hostPkg = path.join(NINEROUTER_INSTALL_DIR, "package.json");
@@ -88,19 +89,19 @@ test("install creates package.json structure", async () => {
   assert.equal(parsedHost.name, "omniroute-9router-host");
   assert.ok(parsedHost.private);
 
-  assert.equal(result.installedVersion, "0.4.59");
+  assert.equal(result.installedVersion, MOCK_NINEROUTER_VERSION);
   assert.equal(result.installPath, NINEROUTER_INSTALL_DIR);
   assert.ok(result.durationMs >= 0);
 });
 
 test("install captures real version from node_modules/9router/package.json", async () => {
   const ver = await getInstalledVersion();
-  assert.equal(ver, "0.4.59", "should read version from installed package");
+  assert.equal(ver, MOCK_NINEROUTER_VERSION, "should read version from installed package");
 });
 
 test("update calls npm install with latest (idempotent)", async () => {
   const result = await update();
-  assert.equal(result.installedVersion, "0.4.59");
+  assert.equal(result.installedVersion, MOCK_NINEROUTER_VERSION);
 });
 
 test("uninstall removes node_modules and marks not_installed in DB", async () => {
@@ -127,7 +128,7 @@ test("uninstall removes node_modules and marks not_installed in DB", async () =>
 
 test("getLatestVersion returns version string from npm view", async () => {
   const ver = await getLatestVersion();
-  assert.equal(ver, "0.4.59");
+  assert.equal(ver, MOCK_NINEROUTER_VERSION);
 });
 
 test("resolveSpawnArgs returns expected env and command", () => {

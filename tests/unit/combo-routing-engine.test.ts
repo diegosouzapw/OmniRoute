@@ -667,31 +667,48 @@ test("handleComboChat p2c selects the better of two random choices by metrics", 
 });
 
 test("handleComboChat least-used strategy prefers the model with fewer recorded requests", async () => {
-  recordComboRequest("least-used-combo", "model-a", {
-    success: true,
-    latencyMs: 100,
+  // Least-used sorts by the per-target executionKey (combo-name + step-id),
+  // not by the bare model string (#7015/#7059 — sortTargetsByUsage keys
+  // byTarget[executionKey] so accounts sharing a modelStr don't collapse into
+  // one shared bucket). Calling recordComboRequest() directly without a
+  // `target` falls back to keying by modelStr, which never matches the real
+  // executionKey computed at combo-resolution time. Drive usage through real
+  // handleComboChat calls instead, so recordComboRequest is invoked with the
+  // actual resolved target (matching production behavior).
+  const comboDef = {
+    name: "least-used-combo",
     strategy: "least-used",
-  });
-  recordComboRequest("least-used-combo", "model-a", {
-    success: true,
-    latencyMs: 100,
-    strategy: "least-used",
-  });
-  recordComboRequest("least-used-combo", "model-b", {
-    success: true,
-    latencyMs: 100,
-    strategy: "least-used",
-  });
+    models: ["model-a", "model-b", "model-c"],
+  };
+  const primingCalls: any[] = [];
+  const runPrimingCall = () =>
+    handleComboChat({
+      body: {},
+      combo: comboDef,
+      handleSingleModel: async (_body: any, modelStr: any) => {
+        primingCalls.push(modelStr);
+        return okResponse();
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: null,
+      relayOptions: null as any,
+      allCombos: null,
+    });
+
+  // Tied at 0 usage, order is preserved: 1st priming call picks model-a,
+  // 2nd priming call (model-a now at 1) picks model-b (tied with model-c at
+  // 0, but model-b sorts first). That leaves model-a and model-b each used
+  // once, model-c untouched.
+  await runPrimingCall();
+  await runPrimingCall();
+  assert.deepEqual(primingCalls, ["model-a", "model-b"]);
 
   const calls: any[] = [];
 
   await handleComboChat({
     body: {},
-    combo: {
-      name: "least-used-combo",
-      strategy: "least-used",
-      models: ["model-a", "model-b", "model-c"],
-    },
+    combo: comboDef,
     handleSingleModel: async (_body: any, modelStr: any) => {
       calls.push(modelStr);
       return okResponse();
@@ -2022,20 +2039,37 @@ test("handleComboChat eval-driven routing can match bare model eval target ids",
 });
 
 test("handleComboChat normalizes legacy strategy names at runtime", async () => {
-  const usageCalls: any[] = [];
-  recordComboRequest("legacy-usage-combo", "model-a", {
-    success: true,
-    latencyMs: 100,
-    strategy: "least-used",
+  // See the least-used test above: recordComboRequest() must be driven
+  // through a real handleComboChat call so it records against the actual
+  // resolved executionKey, not a bare modelStr fallback that never matches
+  // sortTargetsByUsage's lookup (#7015/#7059).
+  const comboDef = {
+    name: "legacy-usage-combo",
+    strategy: "usage",
+    models: ["model-a", "model-b"],
+  };
+  const primingCalls: any[] = [];
+  await handleComboChat({
+    body: {},
+    combo: comboDef,
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      primingCalls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
   });
+  // Tied at 0 usage, order preserved: model-a (first in the list) wins.
+  assert.deepEqual(primingCalls, ["model-a"]);
+
+  const usageCalls: any[] = [];
 
   await handleComboChat({
     body: {},
-    combo: {
-      name: "legacy-usage-combo",
-      strategy: "usage",
-      models: ["model-a", "model-b"],
-    },
+    combo: comboDef,
     handleSingleModel: async (_body: any, modelStr: any) => {
       usageCalls.push(modelStr);
       return okResponse();

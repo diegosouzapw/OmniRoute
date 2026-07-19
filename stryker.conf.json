@@ -244,6 +244,7 @@
       "tests/unit/serial/combo-quota-share-cooldown-wait-timing.test.ts",
       "tests/unit/serial/combo-strategy-fallbacks-half-open-timing.test.ts",
       "tests/unit/serial/provider-health-autopilot.test.ts",
+      "tests/unit/session-affinity-generic-7274.test.ts",
       "tests/unit/service-combo-metrics.test.ts",
       "tests/unit/services-branch-hardening.test.ts",
       "tests/unit/services/bifrost-route-guard.test.ts",

@@ -27,6 +27,7 @@ import { hasProviderQuotaBypassScope } from "@/shared/constants/apiKeyPolicyScop
 import { UsageLimitSettings } from "./components/UsageLimitSettings";
 import { ChaosModeAccessToggle } from "./components/ChaosModeAccessToggle";
 import { BypassProviderQuotaToggle } from "./components/BypassProviderQuotaToggle";
+import ReasoningRoutingRules from "@/shared/components/ReasoningRoutingRules";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -2042,6 +2043,8 @@ const PermissionsModal = memo(function PermissionsModal({
             <p className="text-sm text-red-700 dark:text-red-300 flex-1">{saveError}</p>
           </div>
         )}
+
+        {apiKey?.id && <ReasoningRoutingRules apiKeyId={apiKey.id} />}
 
         {/* Access Mode Toggle */}
         <div className="flex gap-2 p-1 bg-surface rounded-lg">

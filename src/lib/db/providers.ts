@@ -11,6 +11,7 @@ import {
   migrateLegacyEncryptedString,
 } from "./encryption";
 import { invalidateDbCache } from "./readCache";
+import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
@@ -748,6 +749,7 @@ export async function deleteProviderConnection(id: string) {
   _reorderConnections(db, providerId);
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
+  invalidateReasoningRoutingRuleCache();
   return true;
 }
 
@@ -766,6 +768,7 @@ export async function deleteProviderConnections(ids: string[]): Promise<number> 
 
   backupDbFile("pre-write");
   invalidateDbCache("connections");
+  invalidateReasoningRoutingRuleCache();
   return deletedCount;
 }
 
@@ -789,6 +792,8 @@ export async function deleteProviderConnectionsByProvider(providerId: string) {
 
   const result = db.prepare("DELETE FROM provider_connections WHERE provider = ?").run(providerId);
   backupDbFile("pre-write");
+  invalidateDbCache("connections");
+  invalidateReasoningRoutingRuleCache();
   return result.changes;
 }
 

@@ -8,6 +8,13 @@ import { getDbInstance } from "./core";
 import { getUserDatabaseSettings } from "./databaseSettings";
 import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
 import { purgeCallLogArtifactDirectory } from "@/lib/usage/callLogArtifacts";
+import {
+  collectCallLogArtifactsBefore,
+  deleteAllFromTable,
+  deleteCallLogArtifacts,
+  deleteFromTableBefore,
+  type DeleteByPeriodTarget,
+} from "./cleanup/usagePurge";
 
 interface CleanupResult {
   deleted: number;
@@ -509,6 +516,16 @@ export interface ResetUsageHistoryResult extends CleanupResult {
   deletedUsageHistory: number;
   deletedDailySummary: number;
   deletedHourlySummary: number;
+  deletedCallLogs: number;
+  deletedCallLogArtifacts: number;
+  deletedRequestDetailLogs: number;
+  deletedProxyLogs: number;
+  deletedRelayLogs: number;
+  deletedCompressionAnalytics: number;
+  deletedCompressionRunTelemetry: number;
+  deletedRoutingDecisions: number;
+  deletedQuotaConsumption: number;
+  deletedTokenLedger: number;
 }
 
 function isResetUsageHistoryPeriod(period: string): period is ResetUsageHistoryPeriod {
@@ -528,6 +545,21 @@ function isResetUsageHistoryPeriod(period: string): period is ResetUsageHistoryP
  *   every row in all three tables; any other value deletes rows strictly
  *   older than `now - period`. Throws on an invalid period.
  */
+const RESET_TARGETS: Array<DeleteByPeriodTarget & { resultKey: keyof ResetUsageHistoryResult }> = [
+  { table: "usage_history", column: "timestamp", cutoff: "iso", resultKey: "deletedUsageHistory" },
+  { table: "daily_usage_summary", column: "date", cutoff: "date", resultKey: "deletedDailySummary" },
+  { table: "hourly_usage_summary", column: "date_hour", cutoff: "dateHour", resultKey: "deletedHourlySummary" },
+  { table: "call_logs", column: "timestamp", cutoff: "iso", resultKey: "deletedCallLogs" },
+  { table: "request_detail_logs", column: "timestamp", cutoff: "iso", resultKey: "deletedRequestDetailLogs" },
+  { table: "proxy_logs", column: "timestamp", cutoff: "iso", resultKey: "deletedProxyLogs" },
+  { table: "relay_logs", column: "created_at", cutoff: "epochSeconds", resultKey: "deletedRelayLogs" },
+  { table: "compression_analytics", column: "timestamp", cutoff: "iso", resultKey: "deletedCompressionAnalytics" },
+  { table: "compression_run_telemetry", column: "timestamp", cutoff: "epochMs", resultKey: "deletedCompressionRunTelemetry" },
+  { table: "routing_decisions", column: "created_at", cutoff: "iso", resultKey: "deletedRoutingDecisions" },
+  { table: "quota_consumption", column: "updated_at", cutoff: "epochMs", resultKey: "deletedQuotaConsumption" },
+  { table: "token_ledger", column: "created_at", cutoff: "iso", resultKey: "deletedTokenLedger" },
+];
+
 export async function resetUsageHistory(period: string): Promise<ResetUsageHistoryResult> {
   if (!isResetUsageHistoryPeriod(period)) {
     throw new Error(`Invalid reset period: ${period}`);
@@ -539,53 +571,55 @@ export async function resetUsageHistory(period: string): Promise<ResetUsageHisto
     deletedUsageHistory: 0,
     deletedDailySummary: 0,
     deletedHourlySummary: 0,
+    deletedCallLogs: 0,
+    deletedCallLogArtifacts: 0,
+    deletedRequestDetailLogs: 0,
+    deletedProxyLogs: 0,
+    deletedRelayLogs: 0,
+    deletedCompressionAnalytics: 0,
+    deletedCompressionRunTelemetry: 0,
+    deletedRoutingDecisions: 0,
+    deletedQuotaConsumption: 0,
+    deletedTokenLedger: 0,
+    deletedArtifacts: 0,
     errors: 0,
   };
 
   try {
+    let artifactsToDelete: string[] = [];
+
     const runReset = db.transaction(() => {
       if (period === "all") {
-        const usageHistory = db.prepare("DELETE FROM usage_history").run();
-        const dailySummary = db.prepare("DELETE FROM daily_usage_summary").run();
-        const hourlySummary = db.prepare("DELETE FROM hourly_usage_summary").run();
-        result.deletedUsageHistory = usageHistory.changes;
-        result.deletedDailySummary = dailySummary.changes;
-        result.deletedHourlySummary = hourlySummary.changes;
+        for (const target of RESET_TARGETS) {
+          (result[target.resultKey] as number) = deleteAllFromTable(target.table);
+        }
         return;
       }
 
-      const cutoffMs = Date.now() - RESET_USAGE_HISTORY_PERIOD_MS[period];
-      const cutoffIso = new Date(cutoffMs).toISOString();
-      // usage_history.timestamp is a full ISO string; daily_usage_summary.date is
-      // "YYYY-MM-DD"; hourly_usage_summary.date_hour is "YYYY-MM-DD HH:00:00" (see
-      // src/lib/usage/aggregateHistory.ts, which derives both with SQLite's UTC-based
-      // DATE()/strftime()). Slicing the UTC ISO cutoff keeps all three comparisons
-      // consistent without re-deriving timezone-sensitive date math by hand.
-      const cutoffDate = cutoffIso.slice(0, 10);
-      const cutoffDateHour = `${cutoffIso.slice(0, 10)} ${cutoffIso.slice(11, 13)}:00:00`;
-
-      const usageHistory = db
-        .prepare("DELETE FROM usage_history WHERE timestamp < ?")
-        .run(cutoffIso);
-      const dailySummary = db
-        .prepare("DELETE FROM daily_usage_summary WHERE date < ?")
-        .run(cutoffDate);
-      const hourlySummary = db
-        .prepare("DELETE FROM hourly_usage_summary WHERE date_hour < ?")
-        .run(cutoffDateHour);
-
-      result.deletedUsageHistory = usageHistory.changes;
-      result.deletedDailySummary = dailySummary.changes;
-      result.deletedHourlySummary = hourlySummary.changes;
+      const cutoffIso = new Date(Date.now() - RESET_USAGE_HISTORY_PERIOD_MS[period]).toISOString();
+      artifactsToDelete = collectCallLogArtifactsBefore(cutoffIso);
+      for (const target of RESET_TARGETS) {
+        (result[target.resultKey] as number) = deleteFromTableBefore(target, cutoffIso);
+      }
     });
 
     runReset();
-    result.deleted =
-      result.deletedUsageHistory + result.deletedDailySummary + result.deletedHourlySummary;
+
+    let artifactResult: { deletedArtifacts: number; errors: number };
+    if (period === "all") {
+      artifactResult = purgeCallLogArtifactDirectory();
+    } else {
+      artifactResult = deleteCallLogArtifacts(artifactsToDelete);
+    }
+    result.deletedCallLogArtifacts = artifactResult.deletedArtifacts;
+    result.deletedArtifacts = artifactResult.deletedArtifacts;
+    result.errors += artifactResult.errors;
+
+    result.deleted = RESET_TARGETS.reduce((sum, t) => sum + (result[t.resultKey] as number), 0);
 
     console.log(
-      `[Cleanup] Reset usage data (period=${period}): ${result.deletedUsageHistory} usage_history, ` +
-        `${result.deletedDailySummary} daily_usage_summary, ${result.deletedHourlySummary} hourly_usage_summary`
+      `[Cleanup] Reset usage/log data (period=${period}): ${result.deleted} row(s), ` +
+        `${result.deletedCallLogArtifacts} call log artifact(s)`
     );
   } catch (err: unknown) {
     console.error("[Cleanup] Error resetting usage history:", err);

@@ -683,6 +683,10 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
     calls[1].headers["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
     true
   );
+  // claude-sonnet-4-6 GA'd 1M context (2026-02-17) and was added to CONTEXT_1M_SUPPORTED_MODELS
+  // by #7129; a non-CC anthropic-compatible target with extendedContext:true now legitimately
+  // gets the context-1m beta header (shouldForwardExtendedContext in base.ts), same as any other
+  // 1M-capable model.
   assert.equal(calls[2].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
 });
 

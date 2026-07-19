@@ -371,7 +371,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs}": [
       "prettier --write",
-      "eslint --fix --no-error-on-unmatched-pattern --suppressions-location config/quality/eslint-suppressions.json"
+      "eslint --fix --no-error-on-unmatched-pattern --no-warn-ignored --suppressions-location config/quality/eslint-suppressions.json"
     ],
     "*.{json,md,yml,yaml,css}": [
       "prettier --write"

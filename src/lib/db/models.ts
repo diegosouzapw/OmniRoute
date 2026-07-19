@@ -279,11 +279,18 @@ export interface SyncedAvailableModel {
   name: string;
   source: "imported";
   apiFormat?: string;
+  targetFormat?: string;
+  upstreamProtocol?: string;
   supportedEndpoints?: string[];
+  supportedThinkingEfforts?: string[];
+  defaultThinkingEffort?: string;
   inputTokenLimit?: number;
   outputTokenLimit?: number;
   description?: string;
   supportsThinking?: boolean;
+  alwaysThinking?: boolean;
+  supportsTools?: boolean;
+  supportsVideo?: boolean;
   // #4264: image-input capability captured at sync time (e.g. OpenRouter
   // `architecture.input_modalities`/`modality`) so the catalog can surface vision.
   supportsVision?: boolean;
@@ -321,7 +328,23 @@ function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | n
     ...(toNonEmptyString(record.apiFormat)
       ? { apiFormat: toNonEmptyString(record.apiFormat)! }
       : {}),
+    ...(toNonEmptyString(record.targetFormat)
+      ? { targetFormat: toNonEmptyString(record.targetFormat)! }
+      : {}),
+    ...(toNonEmptyString(record.upstreamProtocol)
+      ? { upstreamProtocol: toNonEmptyString(record.upstreamProtocol)! }
+      : {}),
     ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
+    ...(Array.isArray(record.supportedThinkingEfforts)
+      ? {
+          supportedThinkingEfforts: record.supportedThinkingEfforts.filter(
+            (effort): effort is string => typeof effort === "string" && effort.length > 0
+          ),
+        }
+      : {}),
+    ...(toNonEmptyString(record.defaultThinkingEffort)
+      ? { defaultThinkingEffort: toNonEmptyString(record.defaultThinkingEffort)! }
+      : {}),
     ...(typeof record.inputTokenLimit === "number"
       ? { inputTokenLimit: record.inputTokenLimit }
       : {}),
@@ -329,7 +352,16 @@ function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | n
       ? { outputTokenLimit: record.outputTokenLimit }
       : {}),
     ...(typeof record.description === "string" ? { description: record.description } : {}),
-    ...(record.supportsThinking === true ? { supportsThinking: true } : {}),
+    ...(typeof record.supportsThinking === "boolean"
+      ? { supportsThinking: record.supportsThinking }
+      : {}),
+    ...(record.alwaysThinking === true ? { alwaysThinking: true } : {}),
+    ...(typeof record.supportsTools === "boolean"
+      ? { supportsTools: record.supportsTools }
+      : {}),
+    ...(typeof record.supportsVideo === "boolean"
+      ? { supportsVideo: record.supportsVideo }
+      : {}),
     ...(record.supportsVision === true ? { supportsVision: true } : {}),
   };
 }
@@ -445,6 +477,39 @@ export async function getAllSyncedAvailableModels(): Promise<
     result[providerId] = Array.from(map.values());
   }
   return result;
+}
+
+/**
+ * Find active providers whose synchronized catalog contains an exact model ID.
+ *
+ * This keeps request-time inference aligned with the same connection-scoped
+ * syncedAvailableModels data used by /v1/models without loading every model list
+ * into application memory for each request.
+ */
+export async function getActiveProvidersWithSyncedModel(modelId: string): Promise<string[]> {
+  if (!modelId) return [];
+
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT DISTINCT pc.provider AS provider
+       FROM provider_connections pc
+       JOIN key_value kv
+         ON kv.namespace = 'syncedAvailableModels'
+        AND kv.key = pc.provider || ':' || pc.id
+       JOIN json_each(CASE WHEN json_valid(kv.value) THEN kv.value ELSE '[]' END) synced_model
+       WHERE pc.is_active = 1
+         AND COALESCE(
+           json_extract(synced_model.value, '$.id'),
+           json_extract(synced_model.value, '$.name'),
+           json_extract(synced_model.value, '$.model')
+         ) = ?`
+    )
+    .all(modelId) as Array<{ provider?: unknown }>;
+
+  return rows
+    .map((row) => row.provider)
+    .filter((provider): provider is string => typeof provider === "string" && provider.length > 0);
 }
 
 /**

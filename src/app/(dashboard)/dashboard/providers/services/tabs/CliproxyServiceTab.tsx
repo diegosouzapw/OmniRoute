@@ -6,6 +6,7 @@ import { ServiceLogsPanel } from "../components/ServiceLogsPanel";
 import { CliproxyModelMappingEditor } from "../components/CliproxyModelMappingEditor";
 import { AutoStartToggle } from "../components/AutoStartToggle";
 import { CliproxyConnectionPanel } from "../components/CliproxyConnectionPanel";
+import { CliproxyProviderExposureCard } from "../components/CliproxyProviderExposureCard";
 
 const NAME = "cliproxy";
 
@@ -16,6 +17,7 @@ export function CliproxyServiceTab() {
       <ServiceLifecycleButtons name={NAME} />
       <AutoStartToggle name={NAME} />
       <CliproxyConnectionPanel />
+      <CliproxyProviderExposureCard />
       <CliproxyModelMappingEditor />
       <ServiceLogsPanel name={NAME} />
     </div>

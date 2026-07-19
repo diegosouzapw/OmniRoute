@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import * as os from "node:os";
 
 // Antigravity and Windsurf public defaults come from
 // open-sse/utils/publicCreds.ts — no env override needed in this suite.
@@ -42,6 +43,7 @@ const {
   QWEN_CONFIG,
   TRAE_CONFIG,
   WINDSURF_CONFIG,
+  XAI_OAUTH_CONFIG,
   ZED_HOSTED_CONFIG,
 } = oauthModule;
 const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
@@ -68,6 +70,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "windsurf",
   "devin-cli",
   "grok-cli",
+  "xai-oauth",
   "codebuddy-cn",
   "zed",
   "zed-hosted",
@@ -100,6 +103,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   "devin-cli": WINDSURF_CONFIG,
   trae: TRAE_CONFIG,
   "grok-cli": GROK_CLI_CONFIG,
+  "xai-oauth": XAI_OAUTH_CONFIG,
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
   zed: ZED_CONFIG,
   "zed-hosted": ZED_HOSTED_CONFIG,
@@ -144,14 +148,10 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
-  "zed-hosted": [
-    "webBaseUrl",
-    "cloudBaseUrl",
-    "llmBaseUrl",
-    "userInfoUrl",
-    "llmTokenUrl",
-    "modelsUrl",
-  ],
+  // prettier-ignore
+  "xai-oauth": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
+  // prettier-ignore
+  "zed-hosted": ["webBaseUrl", "cloudBaseUrl", "llmBaseUrl", "userInfoUrl", "llmTokenUrl", "modelsUrl"],
 };
 
 function getByPath(object, path) {
@@ -310,13 +310,16 @@ test("all provider endpoint URLs use HTTPS when a URL is configured", () => {
   }
 });
 
-test("Qwen OAuth uses chat.qwen.ai for the verified device-code endpoints (#7517)", () => {
-  // The bare qwen.ai host returns 404 for these paths. The Qwen Code device flow
-  // was verified against chat.qwen.ai in #7517 and has its own live regression test.
+test("Qwen OAuth uses chat.qwen.ai (not bare qwen.ai) for device/token URLs — #7517 supersedes #683/#572", () => {
+  // Upstream PR #683 / decolua issue #572 originally pointed these at the bare `qwen.ai` host.
+  // #7517 (2026-07-18) live-verified that host 404s on both paths ("ошибка сервера OmniRoute" in
+  // the companion extension) and that the working qwen-code device flow lives at `chat.qwen.ai`
+  // (verified: 200 + a valid device_code/user_code). See tests/unit/oauth-device-code-endpoints.test.ts
+  // for the companion regression guard.
   const deviceUrl = new URL(QWEN_CONFIG.deviceCodeUrl);
   const tokenUrl = new URL(QWEN_CONFIG.tokenUrl);
-  assert.equal(deviceUrl.hostname, "chat.qwen.ai");
-  assert.equal(tokenUrl.hostname, "chat.qwen.ai");
+  assert.equal(deviceUrl.hostname, "chat.qwen.ai", "deviceCodeUrl must use chat.qwen.ai");
+  assert.equal(tokenUrl.hostname, "chat.qwen.ai", "tokenUrl must use chat.qwen.ai");
   assert.equal(deviceUrl.pathname, "/api/v1/oauth2/device/code");
   assert.equal(tokenUrl.pathname, "/api/v1/oauth2/token");
 });
@@ -689,9 +692,15 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
       const params = init.body;
       assert.equal(String(url), KIMI_CODING_CONFIG.deviceCodeUrl);
       assert.equal(params.get("client_id"), KIMI_CODING_CONFIG.clientId);
-      assert.equal(init.headers["X-Msh-Platform"], "kimi_cli");
+      assert.equal(init.headers["X-Msh-Platform"], "kimi_code_cli");
       assert.equal(init.headers["X-Msh-Device-Id"], "test-kimi-device-id");
-      assert.ok(init.headers["X-Msh-Os-Version"]);
+      assert.equal(init.headers["X-Msh-Os-Version"], os.release());
+      if (os.type() === "Windows_NT") {
+        assert.equal(
+          init.headers["X-Msh-Device-Model"],
+          `Windows ${os.release()} ${os.arch()}`
+        );
+      }
 
       return jsonResponse({
         device_code: "kimi-device",
@@ -708,7 +717,7 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
       assert.equal(params.get("client_id"), KIMI_CODING_CONFIG.clientId);
       assert.equal(params.get("device_code"), "kimi-device");
       assert.equal(params.get("grant_type"), "urn:ietf:params:oauth:grant-type:device_code");
-      assert.equal(init.headers["X-Msh-Platform"], "kimi_cli");
+      assert.equal(init.headers["X-Msh-Platform"], "kimi_code_cli");
       assert.equal(init.headers["X-Msh-Device-Id"], "test-kimi-device-id");
 
       return jsonResponse({

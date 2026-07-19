@@ -623,6 +623,12 @@ class ResponsesWsSession {
         provider: toStringOrNull(prepared.json?.provider) || "codex",
         model: toStringOrNull(prepared.json?.model) || toStringOrNull(responseBody.model),
         requestedModel: toStringOrNull(responseBody.model),
+        reasoningRouting:
+          prepared.json?.reasoningRouting &&
+          typeof prepared.json.reasoningRouting === "object" &&
+          !Array.isArray(prepared.json.reasoningRouting)
+            ? prepared.json.reasoningRouting
+            : null,
         serviceTier:
           toStringOrNull(responseBody.service_tier) || toStringOrNull(responseBody.serviceTier),
       };

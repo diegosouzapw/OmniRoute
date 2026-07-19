@@ -29,6 +29,7 @@ import ProviderQuotaVisibilityToggle from "./ProviderQuotaVisibilityToggle";
 
 export interface ConnectionRowConnection {
   id?: string;
+  provider?: string;
   name?: string;
   email?: string;
   displayName?: string;
