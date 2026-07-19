@@ -163,3 +163,69 @@ test("cached LKGP values refresh only after the specific key is invalidated", as
 
   assert.deepEqual(await readCache.getCachedLKGP(comboName, modelId), { provider: "gemini" });
 });
+
+test("getCachedProviderConnectionById caches result and invalidates on connections write", async () => {
+  const readCache = await importFresh("src/lib/db/readCache.ts");
+  const db = core.getDbInstance();
+
+  await providersDb.createProviderConnection({
+    provider: "anthropic",
+    authType: "apikey",
+    name: "Cached",
+    apiKey: "sk-anthropic-cached",
+  });
+
+  const allConns = await providersDb.getProviderConnections();
+  const id = allConns[allConns.length - 1].id;
+
+  const firstRead = await readCache.getCachedProviderConnectionById(id);
+  assert.ok(firstRead);
+  assert.equal(firstRead.name, "Cached");
+
+  db.prepare("UPDATE provider_connections SET name = ? WHERE id = ?").run("Stale", id);
+
+  const cachedRead = await readCache.getCachedProviderConnectionById(id);
+  assert.equal(cachedRead.name, "Cached");
+
+  readCache.invalidateDbCache("connections");
+
+  const freshRead = await readCache.getCachedProviderConnectionById(id);
+  assert.ok(freshRead);
+  assert.equal(freshRead.name, "Stale");
+});
+
+test("getCachedProviderNodes caches results and invalidates on nodes write", async () => {
+  const readCache = await importFresh("src/lib/db/readCache.ts");
+  const nodesDb = await importFresh("src/lib/db/providers/nodes.ts");
+  const db = core.getDbInstance();
+  const now = new Date().toISOString();
+
+  await nodesDb.createProviderNode({
+    id: "node-cached-1",
+    type: "openai",
+    name: "Cached Node",
+    baseUrl: "https://cached.example.com",
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  const firstRead = await readCache.getCachedProviderNodes();
+  const matching = firstRead.filter((n) => n.id === "node-cached-1");
+  assert.equal(matching.length, 1);
+  assert.equal(matching[0].name, "Cached Node");
+
+  db.prepare(
+    "INSERT INTO provider_nodes (id, type, name, base_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run("node-cached-direct", "openai", "Direct Insert", "https://direct.example.com", now, now);
+
+  const cachedNodes = await readCache.getCachedProviderNodes();
+  const matchingCached = cachedNodes.filter((n) => n.id === "node-cached-direct");
+  assert.equal(matchingCached.length, 0);
+
+  readCache.invalidateDbCache("nodes");
+
+  const freshNodes = await readCache.getCachedProviderNodes();
+  const matchingFresh = freshNodes.filter((n) => n.id === "node-cached-direct");
+  assert.equal(matchingFresh.length, 1);
+  assert.equal(matchingFresh[0].name, "Direct Insert");
+});
