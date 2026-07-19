@@ -13,6 +13,7 @@ import {
   looksLikeCodexSessionJson,
   parseCodexSessionJson,
 } from "@/lib/oauth/utils/codexSessionImport";
+import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
 
 const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
 
@@ -842,33 +843,13 @@ export default function OAuthModal({
           <>
             {/* GHE Copilot: collect the GitHub Enterprise base URL before starting */}
             {provider === "ghe-copilot" && step === "ghe-config" && (
-              <div className="flex flex-col gap-3">
-                <p className="text-sm text-text-muted">
-                  Enter the base URL of your GitHub Enterprise instance (e.g.{" "}
-                  <code className="font-mono">https://ghe.yourcompany.com</code>).
-                </p>
-                <Input
-                  value={gheUrl}
-                  onChange={(e) => setGheUrl(e.target.value)}
-                  placeholder="https://ghe.yourcompany.com"
-                  label="GitHub Enterprise URL"
-                  type="url"
-                />
-                <Button
-                  onClick={() => {
-                    if (!gheUrl.trim()) {
-                      setError("GitHub Enterprise URL is required");
-                      return;
-                    }
-                    startOAuthFlow();
-                  }}
-                  fullWidth
-                  disabled={!gheUrl.trim()}
-                >
-                  Connect
-                </Button>
-                {error && <p className="text-sm text-red-500">{error}</p>}
-              </div>
+              <GheConfigStep
+                gheUrl={gheUrl}
+                setGheUrl={setGheUrl}
+                error={error}
+                setError={setError}
+                startOAuthFlow={startOAuthFlow}
+              />
             )}
 
             {/* Waiting Step (Localhost - popup mode) */}
