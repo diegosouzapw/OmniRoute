@@ -212,6 +212,14 @@ type StreamingPeekOutcome = "content" | "error" | null;
  * 1. Body is valid JSON
  * 2. Has at least one choice with non-empty content or tool_calls
  */
+function parseJsonRecord(data: string): Record<string, unknown> | null {
+  try {
+    return JSON.parse(data) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 export async function validateResponseQuality(
   response: Response,
   isStreaming: boolean,
@@ -338,11 +346,7 @@ export async function validateResponseQuality(
         return null;
       }
 
-      try {
-        return JSON.parse(data) as Record<string, unknown>;
-      } catch {
-        return null;
-      }
+      return parseJsonRecord(data);
     }
 
     function parseAccumulatedSse(): StreamingPeekOutcome {
