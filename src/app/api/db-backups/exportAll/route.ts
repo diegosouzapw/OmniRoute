@@ -15,9 +15,8 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
  * Security: Requires admin authentication.
  */
 export async function GET(request: NextRequest) {
-  if (!(await isAuthenticated(request))) {
+  if (!(await isAuthenticated(request)))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
   try {
     if (!SQLITE_FILE) {
@@ -29,8 +28,8 @@ export async function GET(request: NextRequest) {
 
     const db = getDbInstance();
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-    const tempDir = path.join(os.tmpdir(), `omniroute-export-${timestamp}`),
-      zipPath = path.join(os.tmpdir(), `omniroute-full-backup-${timestamp}.zip`);
+    const tempDir = path.join(os.tmpdir(), `omniroute-export-${timestamp}`);
+    const zipPath = path.join(os.tmpdir(), `omniroute-full-backup-${timestamp}.zip`);
 
     try {
       // Create temp directory
