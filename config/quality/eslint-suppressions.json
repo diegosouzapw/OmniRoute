@@ -2047,11 +2047,6 @@
       "count": 13
     }
   },
-  "tests/unit/sse-parser.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 15
-    }
-  },
   "tests/unit/startup-stale-cooldown-recovery.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1

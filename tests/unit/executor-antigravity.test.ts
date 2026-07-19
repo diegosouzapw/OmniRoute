@@ -631,62 +631,9 @@ test("AntigravityExecutor.refreshCredentials refreshes Google OAuth tokens", asy
   }
 });
 
-test("AntigravityExecutor.execute auto-retries short 429 responses and collects SSE for non-stream clients", async () => {
-  const executor = new AntigravityExecutor();
-  const originalFetch = globalThis.fetch;
-  const originalSetTimeout = globalThis.setTimeout;
-  const calls = [];
-  seedAntigravityVersionCache("2026.04.17-test");
-
-  globalThis.fetch = async (url) => {
-    calls.push(String(url));
-
-    if (calls.length === 1) {
-      return new Response(JSON.stringify({ error: { message: "rate limited" } }), {
-        status: 429,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(
-      [
-        'data: {"response":{"candidates":[{"content":{"parts":[{"text":"Hello "}]},"finishReason":"STOP"}]}}\n\n',
-        'data: {"response":{"candidates":[{"content":{"parts":[{"text":"again"}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":2,"candidatesTokenCount":3,"totalTokenCount":5}}}\n\n',
-      ].join(""),
-      {
-        status: 200,
-        headers: { "Content-Type": "text/event-stream" },
-      }
-    );
-  };
-  globalThis.setTimeout = ((callback) => {
-    (callback as () => void)();
-    return 0;
-  }) as typeof setTimeout;
-
-  try {
-    const result = await executor.execute({
-      model: "antigravity/gemini-2.5-flash",
-      body: { request: { contents: [] } },
-      stream: false,
-      credentials: { accessToken: "token", projectId: "project-1" },
-      log: { debug() {}, warn() {} },
-    });
-    const payload = (await result.response.json()) as ChatCompletionPayload;
-
-    assert.equal(calls.length, 2);
-    assert.equal(result.response.status, 200);
-    assert.equal(payload.choices[0].message.content, "Hello again");
-    assert.deepEqual(payload.usage, {
-      prompt_tokens: 2,
-      completion_tokens: 3,
-      total_tokens: 5,
-    });
-  } finally {
-    globalThis.fetch = originalFetch;
-    globalThis.setTimeout = originalSetTimeout;
-  }
-});
+// The non-streaming passthrough drain test ("auto-retries short 429 responses and
+// collects SSE for non-stream clients") lives in
+// tests/unit/antigravity-streaming-passthrough.test.ts with the other passthrough tests.
 
 test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for a long wait", async () => {
   const executor = new AntigravityExecutor();
