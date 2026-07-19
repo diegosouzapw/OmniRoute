@@ -348,6 +348,22 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 - Executors: [`open-sse/executors/`](../../open-sse/executors/) (31 files)
 - Translators: [`open-sse/translator/`](../../open-sse/translator/)
 
+## Provider-specific quota tracking notes
+
+- **`nvidia` (NVIDIA NIM)** — NVIDIA does not publish a usage/quota API and sends
+  no rate-limit response headers (confirmed via NVIDIA staff forum posts and an
+  open, unresolved NVIDIA feature request for a usage API — see #6846). OmniRoute
+  ships **Phase 1 client-side quota tracking** for this provider: a static local
+  RPM budget (default 40/min, matching the documented "~40 RPM" free-tier note),
+  per-model 429 lockout (a throttled model does not cool down the whole
+  connection — already covered by #6773's `passthroughModels` flag), and a
+  per-connection concurrency cap (default 6) so parallel bursts queue instead of
+  429-storming. All three are operator-overridable via
+  `ResilienceSettings.providerQuotaOverrides.nvidia` (`{ rpm, concurrency }`).
+  These numbers are **estimated locally** — NVIDIA does not confirm or expose the
+  real per-model ceiling. Adaptive per-model ceiling learning (AIMD) and a
+  dashboard quota card are deferred to Phase 2/3 follow-up issues.
+
 ## See Also
 
 - [FREE_TIERS.md](./FREE_TIERS.md) — curated free-tier guide

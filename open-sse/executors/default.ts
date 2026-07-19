@@ -53,6 +53,7 @@ import {
 } from "@/lib/providers/validation/urlHelpers";
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
+import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -830,6 +831,20 @@ export class DefaultExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
+    // #6846 Phase 1: per-connection concurrency cap for nvidia — no-op for every
+    // other provider (returns null immediately, no semaphore key allocated).
+    const releaseNvidiaSlot = await acquireNvidiaConcurrencySlot(
+      this.provider,
+      input.credentials?.connectionId
+    );
+    try {
+      return await this.executeWithSessionPool(input);
+    } finally {
+      releaseNvidiaSlot?.();
+    }
+  }
+
+  private async executeWithSessionPool(input: ExecuteInput) {
     const pool = this.getPool();
     if (!pool) return super.execute(input);
 
