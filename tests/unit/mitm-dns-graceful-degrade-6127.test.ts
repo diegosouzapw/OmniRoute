@@ -80,7 +80,7 @@ test("provisionDnsEntries: a failing agent/custom step does not stop the others 
     },
     addHostsDns: async (hosts: string[]) => {
       // Custom-hosts call must still happen even after default + agent errors.
-      if (hosts.includes("custom.example.com")) customCalled = true;
+      if (hosts.some((h) => h === "custom.example.com")) customCalled = true;
     },
     getAgentStates: () => [{ dns_enabled: true, agent_id: "__nonexistent_agent__" }] as never,
     listEnabledCustomHosts: () => [{ host: "custom.example.com" }] as never,
@@ -205,8 +205,8 @@ test("provisionDnsEntries: canElevate() returning true proceeds with DNS provisi
     },
     addHostsDns: async (hosts: string[], sudoPassword: string) => {
       capturedPasswords.push(sudoPassword);
-      if (hosts.some((h) => h.includes("googleapis.com"))) agentCalled = true;
-      if (hosts.includes("custom.example.com")) customCalled = true;
+      if (hosts.some((h) => h.endsWith(".googleapis.com"))) agentCalled = true;
+      if (hosts.some((h) => h === "custom.example.com")) customCalled = true;
     },
     canElevate: () => true,
     getAgentStates: () => [{ dns_enabled: true, agent_id: "antigravity" }] as never,
