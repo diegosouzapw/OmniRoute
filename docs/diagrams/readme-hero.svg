@@ -1,0 +1,154 @@
+<svg viewBox="0 0 1200 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute hero: Never stop coding. Connect every AI tool to 268 providers — 90+ free — through one endpoint. Plug Claude Code, Codex, Cursor, Cline, Copilot and Antigravity into free Claude, GPT and Gemini with auto-fallback. About 1.6 billion documented free tokens per month — up to about 2.1 billion in your first month with signup credits — plus a long tail of permanently-free no-cap providers. RTK + Caveman stacked compression saves 15 to 95 percent of tokens so you never hit limits. Stats: 268 AI providers, 90+ free tiers, about 1.6B free tokens per month, 15 to 95 percent token savings, 18 routing strategies, zero dollars to start. Star the repo if OmniRoute helped you save money and make your work easier.">
+  <desc>Animated hero card: the tagline, provider stats, free-token headline and stat chips fade in in sequence; a compression bar repeatedly shrinks a prompt by up to 95 percent, a pulse travels the divider and the star gently twinkles.</desc>
+  <defs>
+    <pattern id="gridPaperH" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="bgGlowH" cx="24%" cy="20%" r="55%">
+      <stop offset="0%" stop-color="#e54d5e" stop-opacity="0.14"/>
+      <stop offset="55%" stop-color="#8b5cf6" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gradBrandH" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e54d5e"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="gradTokenH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7ee787"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+    <radialGradient id="statGlowH" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+    </radialGradient>
+    <path id="dividerPathH" d="M 48,252 L 1152,252"/>
+  </defs>
+
+  <rect width="1200" height="640" fill="#0b0e14"/>
+  <rect width="1200" height="640" fill="url(#gridPaperH)"/>
+  <rect width="1200" height="640" fill="url(#bgGlowH)"/>
+  <rect x="1.5" y="1.5" width="1197" height="637" rx="18" fill="none" stroke="#232b38" stroke-width="3"/>
+  <rect x="0" y="0" width="1200" height="6" fill="url(#gradBrandH)"/>
+
+  <!-- kicker -->
+  <g opacity="0">
+    <animate attributeName="opacity" from="0" to="1" begin="0.1s" dur="0.5s" fill="freeze"/>
+    <text x="48" y="66" font-family="Consolas, 'Courier New', monospace" font-size="13" letter-spacing="2.5" fill="#a78bfa">OMNIROUTE — THE FREE AI GATEWAY</text>
+    <text x="1152" y="66" text-anchor="end" font-family="Consolas, 'Courier New', monospace" font-size="12" letter-spacing="1.5" fill="#71717a">ONE ENDPOINT · /v1</text>
+  </g>
+
+  <!-- tagline -->
+  <g opacity="0" transform="translate(0,14)">
+    <animate attributeName="opacity" from="0" to="1" begin="0.25s" dur="0.6s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <animateTransform attributeName="transform" type="translate" from="0 14" to="0 0" begin="0.25s" dur="0.6s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <text x="48" y="138" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="60" font-weight="800" fill="#e9edf3">Never stop coding<tspan fill="#a855f7">.</tspan></text>
+  </g>
+
+  <!-- subheadline -->
+  <g opacity="0" transform="translate(0,12)">
+    <animate attributeName="opacity" from="0" to="1" begin="0.5s" dur="0.6s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <animateTransform attributeName="transform" type="translate" from="0 12" to="0 0" begin="0.5s" dur="0.6s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <text x="48" y="184" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="25" font-weight="600" fill="#c9d1d9">Every AI tool → <tspan fill="#a78bfa" font-weight="800">268 providers</tspan> — <tspan fill="#7ee787" font-weight="800">90+ free</tspan> — through one endpoint.</text>
+  </g>
+
+  <!-- plug line -->
+  <g opacity="0" transform="translate(0,10)">
+    <animate attributeName="opacity" from="0" to="1" begin="0.7s" dur="0.6s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <animateTransform attributeName="transform" type="translate" from="0 10" to="0 0" begin="0.7s" dur="0.6s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <text x="48" y="222" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16.5" fill="#a1a1aa">Claude Code · Codex · Cursor · Cline · Copilot · Antigravity&#160;&#160;→&#160;&#160;<tspan fill="#7ee787" font-weight="700">FREE</tspan> Claude / GPT / Gemini · auto-fallback</text>
+  </g>
+
+  <!-- divider + traveling pulse -->
+  <line x1="48" y1="252" x2="1152" y2="252" stroke="#232b38" stroke-width="1.5"/>
+  <circle r="4" fill="url(#gradBrandH)" opacity="0">
+    <animateMotion dur="6s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
+      <mpath href="#dividerPathH"/>
+    </animateMotion>
+    <animate attributeName="opacity" values="0;0.9;0.9;0" keyTimes="0;0.08;0.6;0.75" dur="6s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- 1.6B stat block -->
+  <g opacity="0">
+    <animate attributeName="opacity" from="0" to="1" begin="1.0s" dur="0.7s" fill="freeze"/>
+    <ellipse cx="200" cy="360" rx="230" ry="110" fill="url(#statGlowH)"/>
+    <text x="48" y="392" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="84" font-weight="800" fill="url(#gradTokenH)">~1.6B</text>
+    <text x="340" y="336" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="20" font-weight="700" fill="#e9edf3">documented free tokens / month</text>
+    <text x="340" y="364" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="15" fill="#a1a1aa">up to <tspan fill="#7ee787" font-weight="700">~2.1B in your first month</tspan> with signup credits</text>
+    <text x="340" y="387" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13" fill="#71717a">+ a long tail of permanently-free, no-cap providers</text>
+    <text x="340" y="407" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13" fill="#71717a">honest, pool-deduped math — each shared pool counted once</text>
+  </g>
+
+  <!-- compression panel -->
+  <g opacity="0" transform="translate(0,10)">
+    <animate attributeName="opacity" from="0" to="1" begin="1.25s" dur="0.6s" fill="freeze"/>
+    <animateTransform attributeName="transform" type="translate" from="0 10" to="0 0" begin="1.25s" dur="0.6s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <rect x="756" y="284" width="396" height="140" rx="14" fill="#1c2230" stroke="#232b38" stroke-width="1.5"/>
+    <text x="780" y="314" font-family="Consolas, 'Courier New', monospace" font-size="11" letter-spacing="2" fill="#e17055">RTK + CAVEMAN · STACKED COMPRESSION</text>
+    <text x="780" y="344" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="22" font-weight="800" fill="#e9edf3">Save 15–95% tokens</text>
+    <!-- live bar demo -->
+    <rect x="780" y="362" width="348" height="12" rx="6" fill="#0b0e14" stroke="#232b38" stroke-width="1"/>
+    <rect x="780" y="362" width="348" height="12" rx="6" fill="#e17055">
+      <animate attributeName="width" values="348;348;38;38;348" keyTimes="0;0.12;0.5;0.88;1" dur="8s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1"/>
+    </rect>
+    <text x="780" y="404" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13" fill="#a1a1aa">your prompt
+      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.12;0.35;0.88;1" dur="8s" repeatCount="indefinite" calcMode="discrete"/>
+    </text>
+    <text x="780" y="404" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13" font-weight="700" fill="#e17055" opacity="0">−89% avg on tool-heavy sessions
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.35;0.36;0.88;1" dur="8s" repeatCount="indefinite" calcMode="discrete"/>
+    </text>
+    <text x="1128" y="404" text-anchor="end" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13" fill="#71717a">never hit limits</text>
+  </g>
+
+  <!-- stat chips -->
+  <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" text-anchor="middle">
+    <g opacity="0">
+      <animate attributeName="opacity" from="0" to="1" begin="1.5s" dur="0.45s" fill="freeze"/>
+      <rect x="48" y="462" width="172" height="52" rx="12" fill="#1c2230" stroke="#6c5ce7" stroke-opacity="0.55" stroke-width="1.5"/>
+      <text x="134" y="485" font-size="17" font-weight="800" fill="#a78bfa">268</text>
+      <text x="134" y="504" font-size="11" fill="#a1a1aa">AI PROVIDERS</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" from="0" to="1" begin="1.62s" dur="0.45s" fill="freeze"/>
+      <rect x="234" y="462" width="172" height="52" rx="12" fill="#1c2230" stroke="#22c55e" stroke-opacity="0.55" stroke-width="1.5"/>
+      <text x="320" y="485" font-size="17" font-weight="800" fill="#7ee787">90+</text>
+      <text x="320" y="504" font-size="11" fill="#a1a1aa">FREE TIERS</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" from="0" to="1" begin="1.74s" dur="0.45s" fill="freeze"/>
+      <rect x="420" y="462" width="172" height="52" rx="12" fill="#1c2230" stroke="#22c55e" stroke-opacity="0.55" stroke-width="1.5"/>
+      <text x="506" y="485" font-size="17" font-weight="800" fill="#7ee787">~1.6B</text>
+      <text x="506" y="504" font-size="11" fill="#a1a1aa">FREE TOKENS / MO</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" from="0" to="1" begin="1.86s" dur="0.45s" fill="freeze"/>
+      <rect x="606" y="462" width="172" height="52" rx="12" fill="#1c2230" stroke="#e17055" stroke-opacity="0.55" stroke-width="1.5"/>
+      <text x="692" y="485" font-size="17" font-weight="800" fill="#e17055">15–95%</text>
+      <text x="692" y="504" font-size="11" fill="#a1a1aa">TOKEN SAVINGS</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" from="0" to="1" begin="1.98s" dur="0.45s" fill="freeze"/>
+      <rect x="792" y="462" width="172" height="52" rx="12" fill="#1c2230" stroke="#0984e3" stroke-opacity="0.55" stroke-width="1.5"/>
+      <text x="878" y="485" font-size="17" font-weight="800" fill="#74b9ff">18</text>
+      <text x="878" y="504" font-size="11" fill="#a1a1aa">ROUTING STRATEGIES</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" from="0" to="1" begin="2.1s" dur="0.45s" fill="freeze"/>
+      <rect x="978" y="462" width="174" height="52" rx="12" fill="#1c2230" stroke="#fdcb6e" stroke-opacity="0.55" stroke-width="1.5"/>
+      <text x="1065" y="485" font-size="17" font-weight="800" fill="#fdcb6e">$0</text>
+      <text x="1065" y="504" font-size="11" fill="#a1a1aa">TO START</text>
+    </g>
+  </g>
+
+  <!-- star CTA -->
+  <g opacity="0">
+    <animate attributeName="opacity" from="0" to="1" begin="2.4s" dur="0.6s" fill="freeze"/>
+    <g transform="translate(58,570)">
+      <path d="M 0,-11 L 3.1,-3.6 L 11,-3.2 L 4.9,1.9 L 6.9,9.6 L 0,5.2 L -6.9,9.6 L -4.9,1.9 L -11,-3.2 L -3.1,-3.6 Z" fill="#fdcb6e">
+        <animateTransform attributeName="transform" type="scale" values="1;1.22;1" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1;0.4 0 0.2 1"/>
+        <animate attributeName="opacity" values="0.85;1;0.85" dur="4s" repeatCount="indefinite"/>
+      </path>
+    </g>
+    <text x="82" y="576" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="15.5" fill="#c9d1d9"><tspan font-weight="700" fill="#e9edf3">Star the repo</tspan> if OmniRoute helped you save money and make your work easier.</text>
+    <text x="1152" y="576" text-anchor="end" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">$ npm i -g omniroute</text>
+  </g>
+</svg>
