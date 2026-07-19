@@ -991,7 +991,9 @@ test("Non-streaming: recovers answer from COMPLETED FINAL text step-blob", async
     });
 
     assert.equal(result.response.status, 200);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as {
+      choices: Array<{ message: { content: string } }>;
+    };
     assert.equal(
       json.choices[0].message.content,
       "Hi Bilal — nice to meet you! How can I help today?"
@@ -1085,7 +1087,9 @@ test("Schematized API: dual ask_text tracks do not double-count", async () => {
     });
 
     assert.equal(result.response.status, 200);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as {
+      choices: Array<{ message: { content: string } }>;
+    };
     assert.equal(json.choices[0].message.content, "Hi Bilal — nice to meet you!");
   } finally {
     restore();
