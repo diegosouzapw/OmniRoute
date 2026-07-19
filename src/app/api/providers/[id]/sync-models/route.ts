@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProviderConnectionById } from "@/models";
+import { getCachedProviderConnectionById } from "@/lib/localDb";
 import { getSyncedAvailableModelsForConnection } from "@/lib/db/models";
 import { selectModelsForImport } from "@/shared/utils/freeModels";
 import {
@@ -385,7 +385,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       );
     }
 
-    const connection = await getProviderConnectionById(id);
+    const connection = await getCachedProviderConnectionById(id);
     if (!connection) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }

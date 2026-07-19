@@ -5,7 +5,7 @@ import {
   getCombos,
   getAllCustomModels,
   getSettings,
-  getProviderNodes,
+  getCachedProviderNodes,
   getModelIsHidden,
   getModelAliases,
 } from "@/lib/localDb";
@@ -327,7 +327,7 @@ async function buildUnifiedModelsResponseCore(
     // Get provider nodes (for compatible providers with custom prefixes)
     let providerNodes = [];
     try {
-      providerNodes = await getProviderNodes();
+      providerNodes = await getCachedProviderNodes();
     } catch (e) {
       console.log("Could not fetch provider nodes");
     }

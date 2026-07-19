@@ -13,7 +13,7 @@
 
 import {
   getProviderConnections,
-  getProviderConnectionById,
+  getCachedProviderConnectionById,
   updateProviderConnection,
   getSettings,
   resolveProxyForConnection,
@@ -355,7 +355,7 @@ async function sweep() {
 export async function checkConnection(conn) {
   if (!conn?.id) return;
 
-  const latestConnection = (await getProviderConnectionById(conn.id)) || conn;
+  const latestConnection = (await getCachedProviderConnectionById(conn.id)) || conn;
   conn = latestConnection;
 
   // Per-provider opt-out of proactive refresh (e.g. Codex/OpenAI cascade
@@ -644,7 +644,7 @@ export async function checkConnection(conn) {
   // Once used, the old token is permanently invalidated.
   // Retrying will never succeed → deactivate and stop the loop.
   if (isUnrecoverableRefreshError(result)) {
-    const currentConnection = await getProviderConnectionById(conn.id);
+    const currentConnection = await getCachedProviderConnectionById(conn.id);
     const credentialsChangedSinceSweep =
       !!currentConnection &&
       (currentConnection.refreshToken !== attemptedRefreshToken ||
@@ -759,7 +759,7 @@ export async function checkConnection(conn) {
     // providerSpecificData.copilotTokenExpiresAt (Unix seconds).
     if (String(conn.provider || "").toLowerCase() === "github") {
       // Re-read the latest connection after the OAuth refresh (onPersist may have updated it).
-      const latestConn = (await getProviderConnectionById(conn.id).catch(() => null)) || conn;
+      const latestConn = (await getCachedProviderConnectionById(conn.id).catch(() => null)) || conn;
       const accessTokenForCopilot = result.accessToken || latestConn.accessToken;
 
       if (accessTokenForCopilot) {

@@ -5,11 +5,11 @@ import {
   summarizeProviderConnectionForAudit,
 } from "@/lib/compliance/providerAudit";
 import {
-  getProviderConnectionById,
+  getCachedProviderConnectionById,
   updateProviderConnection,
   deleteProviderConnection,
   isCloudEnabled,
-} from "@/models";
+} from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { updateProviderConnectionSchema } from "@/shared/validation/schemas";
@@ -57,7 +57,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     const { id } = await params;
-    const connection = await getProviderConnectionById(id);
+    const connection = await getCachedProviderConnectionById(id);
 
     if (!connection) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
@@ -140,7 +140,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       rateLimitOverrides,
     } = body;
 
-    const existing = (await getProviderConnectionById(id)) as Record<string, any> | null;
+    const existing = (await getCachedProviderConnectionById(id)) as Record<string, any> | null;
     if (!existing) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
@@ -342,7 +342,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { id } = await params;
 
     // Fetch connection before deleting to check provider type
-    const connection = (await getProviderConnectionById(id)) as Record<string, any> | null;
+    const connection = (await getCachedProviderConnectionById(id)) as Record<string, any> | null;
     if (!connection) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }

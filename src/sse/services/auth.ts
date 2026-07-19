@@ -1,7 +1,7 @@
 import { randomUUID, createHash } from "crypto";
 import {
   getProviderConnections,
-  getProviderNodes,
+  getCachedProviderNodes,
   validateApiKey,
   updateProviderConnection,
   clearConnectionErrorIfUnchanged,
@@ -984,7 +984,7 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
   // (for example "78code/gpt-5.4"), but live credentials are stored under
   // internal provider ids like openai-compatible-responses-<uuid>.
   try {
-    const providerNodes = await getProviderNodes();
+    const providerNodes = await getCachedProviderNodes();
     for (const node of Array.isArray(providerNodes) ? providerNodes : []) {
       const nodeRecord = asRecord(node);
       const nodePrefix = typeof nodeRecord.prefix === "string" ? nodeRecord.prefix.trim() : "";

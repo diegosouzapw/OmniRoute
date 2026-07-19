@@ -4,7 +4,7 @@ import {
   getCombos,
   getModelAliases,
   getProviderConnections,
-  getProviderNodes,
+  getCachedProviderNodes,
   getSettings,
 } from "@/lib/localDb";
 
@@ -159,7 +159,7 @@ export async function buildConfigSyncBundle(): Promise<ConfigSyncBundle> {
     await Promise.all([
       getSettings(),
       getProviderConnections(),
-      getProviderNodes(),
+      getCachedProviderNodes(),
       getModelAliases(),
       getCombos(),
       getApiKeys(),

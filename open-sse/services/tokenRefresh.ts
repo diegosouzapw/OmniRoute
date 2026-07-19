@@ -1914,8 +1914,8 @@ async function _getAccessTokenWithStalenessCheck(provider, credentials, log, pro
   // We MUST check if the DB has a newer token before proceeding with a network refresh.
   if (credentials.connectionId) {
     try {
-      const { getProviderConnectionById } = await import("../../src/lib/db/providers");
-      const dbConnection = await getProviderConnectionById(credentials.connectionId);
+      const { getCachedProviderConnectionById } = await import("@/lib/localDb");
+      const dbConnection = await getCachedProviderConnectionById(credentials.connectionId);
       if (dbConnection && dbConnection.refreshToken) {
         const now = Date.now();
         const dbExpiresAt = dbConnection.expiresAt ? new Date(dbConnection.expiresAt).getTime() : 0;
