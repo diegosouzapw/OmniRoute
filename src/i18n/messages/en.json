@@ -4620,6 +4620,7 @@
     "blackboxWebCookiePlaceholder": "Blackbox Web Cookie Placeholder",
     "t3ChatWebCookieHint": "Open t3.chat → DevTools → Application → Local Storage → https://t3.chat, copy 'convex-session-id'. Then open DevTools → Network, copy the full Cookie header from any chat request. Paste both values in the fields below.",
     "t3ChatWebCookiePlaceholder": "convex-session-id=abc123...",
+    "grokWebCookieHint": "grok.com's cf_clearance cookie is pinned to the IP, User-Agent, and TLS fingerprint of the browser where you copied it — pasting it from a different machine/IP causes a 403. Paste sso and sso-rw here, then open Advanced Settings and fill Custom User-Agent with the EXACT User-Agent string of that same browser, and use the same IP/proxy for this connection.",
     "blockClaudeExtraUsageDescription": "Hide extra Claude usage rows reported by some providers when they duplicate primary token accounting.",
     "blockClaudeExtraUsageLabel": "Block duplicate Claude usage rows",
     "disableCoolingDescription": "Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",

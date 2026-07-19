@@ -4618,6 +4618,7 @@
     "blackboxWebCookiePlaceholder": "Cole o valor de __Secure-authjs.session-token",
     "t3ChatWebCookieHint": "Abra t3.chat → DevTools → Aplicativo → Armazenamento local → https://t3.chat, copie 'convex-session-id'. Em seguida, abra DevTools → Rede, copie o cabeçalho completo do cookie de qualquer solicitação de chat. Cole os dois valores nos campos abaixo.",
     "t3ChatWebCookiePlaceholder": "id-de-sessão-convexa=abc123...",
+    "grokWebCookieHint": "O cookie cf_clearance do grok.com é vinculado ao IP, ao User-Agent e à impressão digital TLS do navegador de onde você o copiou — colá-lo de outra máquina/IP causa um erro 403. Cole sso e sso-rw aqui e depois abra Configurações Avançadas e preencha o Custom User-Agent com o valor EXATO do User-Agent desse mesmo navegador, usando o mesmo IP/proxy para esta conexão.",
     "blockClaudeExtraUsageDescription": "Quando habilitado, o OmniRoute marca esta conta do Claude Code como indisponível assim que a API de usage reporta `extra_usage.queued`, para que o fallback troque para outra conta antes de continuar com cobranças extras pay-as-you-go.",
     "blockClaudeExtraUsageLabel": "Bloquear Claude Extra Usage",
     "disableCoolingDescription": "__MISSING__:Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",
