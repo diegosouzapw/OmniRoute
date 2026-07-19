@@ -37,6 +37,7 @@ import { registerProviders } from "./providers.mjs";
 import { registerProvider } from "./provider-cmd.mjs";
 import { registerConfig } from "./config.mjs";
 import { registerKeys } from "./keys.mjs";
+import { registerAuthExport } from "./auth-export.mjs";
 import { registerModels } from "./models.mjs";
 import { registerCombo } from "./combo.mjs";
 import { registerStatus } from "./status.mjs";
@@ -118,6 +119,7 @@ export function registerCommands(program) {
   registerProvider(program);
   registerConfig(program);
   registerKeys(program);
+  registerAuthExport(program);
   registerModels(program);
   registerCombo(program);
   registerStatus(program);

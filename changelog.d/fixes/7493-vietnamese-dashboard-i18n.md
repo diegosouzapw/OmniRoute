@@ -1,0 +1,1 @@
+- **fix(i18n):** complete Vietnamese dashboard localization ([#7493](https://github.com/diegosouzapw/OmniRoute/pull/7493)) — thanks @nguyenha935

@@ -15,6 +15,8 @@
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { prepareToolMessages } from "../translator/webTools.ts";
+import { buildToolModeResponse } from "./chatgptWebTools.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -69,6 +71,52 @@ function formatStreamChunk(content: string, model: string, finishReason: string 
     model,
     choices: [{ index: 0, delta: content ? { content } : {}, finish_reason: finishReason }],
   };
+}
+
+/**
+ * Build the plain-text prompt typed into the Gemini web UI when a tool
+ * contract is active — the synthetic system message injected by
+ * `prepareToolMessages()` prepended to the last user message. gemini-web
+ * only ever sends a single flat string (no native message array), so the
+ * tool contract and the user's ask are concatenated (#7286).
+ */
+export function buildGeminiToolPrompt(
+  effectiveMessages: Array<{ role: string; content: unknown }>
+): string {
+  const toolSystemMsg = effectiveMessages.find((m) => m.role === "system");
+  const lastUserMsg = [...effectiveMessages].reverse().find((m) => m.role === "user");
+  const userText = typeof lastUserMsg?.content === "string" ? lastUserMsg.content : "";
+  const toolPrompt = typeof toolSystemMsg?.content === "string" ? toolSystemMsg.content : "";
+  return toolPrompt ? `${toolPrompt}\n\n${userText}` : userText;
+}
+
+/**
+ * Tool mode: wrap the buffered Gemini response text in the standard OpenAI
+ * completion shape, then delegate to the shared `buildToolModeResponse()`
+ * (`chatgptWebTools.ts`) — parses `<tool>{...}</tool>` blocks out of the
+ * text into `tool_calls` (malformed JSON degrades to ordinary `content`,
+ * never throws) and replays either buffered JSON or a terminal SSE chunk
+ * depending on `stream` (#7286). Exported standalone so the branching logic
+ * is testable without a full Playwright mock.
+ */
+export async function buildGeminiToolResponse(
+  responseText: string,
+  requestedTools: unknown,
+  stream: boolean,
+  model: string,
+  cid: string,
+  created: number
+): Promise<Response> {
+  const bufferedJson = new Response(JSON.stringify(formatChatCompletion(responseText, model)), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+  return buildToolModeResponse(bufferedJson, requestedTools, stream, {
+    cid,
+    created,
+    model,
+    idSeed: "gwe",
+  });
 }
 
 /**
@@ -284,8 +332,16 @@ export class GeminiWebExecutor extends BaseExecutor {
     }
 
     const messages = requestBody.messages || [];
-    const lastUserMsg = messages.filter((m) => m.role === "user").pop();
-    const prompt = lastUserMsg?.content || "";
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
+      body as Record<string, unknown>,
+      messages
+    );
+
+    // hasTools === false: byte-for-byte the original prompt derivation
+    // (regression guard — #7286 must not touch the no-tools path).
+    const prompt = hasTools
+      ? buildGeminiToolPrompt(effectiveMessages)
+      : messages.filter((m) => m.role === "user").pop()?.content || "";
 
     if (!prompt) {
       return {
@@ -381,6 +437,20 @@ export class GeminiWebExecutor extends BaseExecutor {
       await this.persistRotatedCookies(context, cookie, credentials, onCredentialsRefreshed, log);
 
       const modelId = model || "gemini-2.5-pro";
+
+      if (hasTools) {
+        const cid = `chatcmpl-gwe-${crypto.randomUUID().slice(0, 12)}`;
+        const created = Math.floor(Date.now() / 1000);
+        const toolResponse = await buildGeminiToolResponse(
+          responseText,
+          requestedTools,
+          Boolean(stream),
+          modelId,
+          cid,
+          created
+        );
+        return { response: toolResponse, url: GEMINI_URL, headers: {}, transformedBody: body };
+      }
 
       if (stream) {
         // Pseudo-streaming: send complete response as single SSE chunk

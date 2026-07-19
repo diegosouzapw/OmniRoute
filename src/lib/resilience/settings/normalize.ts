@@ -20,6 +20,7 @@ import type {
   ProviderCooldownSettings,
   QuotaPreflightSettings,
   StreamRecoverySettings,
+  ProviderQuotaOverrideSettings,
 } from "./types";
 
 export function asRecord(value: unknown): JsonRecord {
@@ -361,4 +362,39 @@ export function normalizeStreamRecoverySettings(
     enabled: toBoolean(record.enabled, fallback.enabled),
     continueMidStream: toBoolean(record.continueMidStream, fallback.continueMidStream),
   };
+}
+
+// #6846 Phase 1: parse a single provider's { rpm?, concurrency? } override entry,
+// dropping non-positive/non-finite fields so a malformed value falls back to that
+// provider's static default rather than disabling its budget outright (0 would
+// mean "no cap" for rpm, mirroring the resolveRpm/resolveMaxConcurrent convention
+// elsewhere in this file).
+function normalizeProviderQuotaOverrideEntry(raw: unknown): ProviderQuotaOverrideSettings | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const record = raw as Record<string, unknown>;
+  const out: ProviderQuotaOverrideSettings = {};
+  const rpm = typeof record.rpm === "number" ? record.rpm : Number(record.rpm);
+  if (Number.isFinite(rpm) && rpm > 0) out.rpm = Math.trunc(rpm);
+  const concurrency = typeof record.concurrency === "number" ? record.concurrency : Number(record.concurrency);
+  if (Number.isFinite(concurrency) && concurrency > 0) out.concurrency = Math.trunc(concurrency);
+  return Object.keys(out).length > 0 ? out : null;
+}
+
+/**
+ * #6846 Phase 1: per-provider RPM/concurrency override map (currently only
+ * consumed for `nvidia`). Accepts an explicit object or falls back; drops
+ * providers whose value isn't a valid override object.
+ */
+export function normalizeProviderQuotaOverrides(
+  next: unknown,
+  fallback: Record<string, ProviderQuotaOverrideSettings>
+): Record<string, ProviderQuotaOverrideSettings> {
+  const rawProviders = asRecord(next ?? fallback);
+  const out: Record<string, ProviderQuotaOverrideSettings> = {};
+  for (const [provider, entry] of Object.entries(rawProviders)) {
+    if (!provider) continue;
+    const normalized = normalizeProviderQuotaOverrideEntry(entry);
+    if (normalized) out[provider] = normalized;
+  }
+  return out;
 }

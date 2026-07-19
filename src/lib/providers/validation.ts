@@ -833,7 +833,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         headers: entry.headers || {},
         providerSpecificData,
         modelId,
-        modelsUrl: entry.modelsUrl,
+        modelsUrl: entry.testKeyModelsUrl || entry.modelsUrl,
         isLocal,
       });
     }
