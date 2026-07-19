@@ -21,15 +21,17 @@ describe("Antigravity account quota-family cooldown", () => {
   it("maps Gemini variants to Gemini family and Claude/Cloud variants to Claude family", () => {
     expect(getAntigravityQuotaFamily("gemini-3.5-flash-medium")).toBe("gemini");
     expect(getAntigravityQuotaFamily("google/gemini-3.5-flash-low")).toBe("gemini");
+    expect(getAntigravityQuotaFamily("agy/gemini-3.5-flash-medium")).toBe("gemini");
     expect(getAntigravityQuotaFamily("claude-sonnet-4")).toBe("claude");
     expect(getAntigravityQuotaFamily("cloud/claude-opus-4")).toBe("claude");
     expect(getAntigravityQuotaFamily("some-new-model")).toBe("other");
   });
 
   it("uses family-scoped lock key for Antigravity but preserves exact-model scope elsewhere", () => {
-    expect(getQuotaScopedModelForProvider(provider, "gemini-3.5-flash-medium")).toBe(
+    expect(getQuotaScopedModelForProvider("antigravity", "gemini-3.5-flash-medium")).toBe(
       "family:gemini"
     );
+    expect(getQuotaScopedModelForProvider("agy", "gemini-3.5-flash-medium")).toBe("family:gemini");
     expect(getQuotaScopedModelForProvider(provider, "gemini-3.5-flash-low")).toBe("family:gemini");
     expect(getQuotaScopedModelForProvider(provider, "claude-sonnet-4")).toBe("family:claude");
     expect(getQuotaScopedModelForProvider(provider, "unknown-model")).toBe("unknown-model");

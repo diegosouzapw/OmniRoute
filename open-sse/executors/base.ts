@@ -169,6 +169,11 @@ export type ExecuteInput = {
   upstreamExtraHeaders?: Record<string, string> | null;
   /** Original client request headers (read-only). Executors may forward select headers upstream. */
   clientHeaders?: Record<string, string> | null;
+  /** Response format the end client expects (e.g. "openai-responses"). Executors
+   * that do their own Claude→OpenAI stream translation (GLM, zed-hosted) use
+   * this to apply client-format-aware policies such as `</think>` close-marker
+   * suppression. */
+  clientResponseFormat?: string | null;
   /** Callback to persist tokens that are proactively refreshed during execution.
    * Accepts a partial credentials patch (e.g. `{ accessToken, refreshToken }` or
    * `{ testStatus: "expired", isActive: false }`); the caller merges into the

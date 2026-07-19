@@ -15,6 +15,7 @@ import {
   normalizeProviderCooldownSettings,
   normalizeQuotaPreflightSettings,
   normalizeStreamRecoverySettings,
+  normalizeProviderQuotaOverrides,
 } from "./settings/normalize";
 
 // Re-export the settings shape (moved to ./settings/types) so this module's
@@ -29,6 +30,7 @@ export type {
   ProviderCooldownSettings,
   QuotaPreflightSettings,
   StreamRecoverySettings,
+  ProviderQuotaOverrideSettings,
   ResilienceSettings,
   ResilienceSettingsPatch,
 } from "./settings/types";
@@ -140,6 +142,10 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
       (process.env.STREAM_RECOVERY_MIDSTREAM_ENABLED || "").trim().toLowerCase()
     ),
   },
+  // #6846 Phase 1: empty by default — nvidia (and any future header-less
+  // provider registered in providerDefaultRateLimit.ts) uses its static
+  // default until an operator adds an override here.
+  providerQuotaOverrides: {},
 };
 
 function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
@@ -233,6 +239,7 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
     providerCooldown: DEFAULT_RESILIENCE_SETTINGS.providerCooldown,
     quotaPreflight: DEFAULT_RESILIENCE_SETTINGS.quotaPreflight,
     streamRecovery: streamRecoveryDefaults,
+    providerQuotaOverrides: DEFAULT_RESILIENCE_SETTINGS.providerQuotaOverrides,
   };
 }
 
@@ -312,6 +319,10 @@ export function resolveResilienceSettings(
       current.streamRecovery,
       fallback.streamRecovery
     ),
+    providerQuotaOverrides: normalizeProviderQuotaOverrides(
+      current.providerQuotaOverrides,
+      fallback.providerQuotaOverrides
+    ),
   };
 }
 
@@ -359,6 +370,10 @@ export function mergeResilienceSettings(
     ),
     quotaPreflight: normalizeQuotaPreflightSettings(updates.quotaPreflight, current.quotaPreflight),
     streamRecovery: normalizeStreamRecoverySettings(updates.streamRecovery, current.streamRecovery),
+    providerQuotaOverrides: normalizeProviderQuotaOverrides(
+      updates.providerQuotaOverrides,
+      current.providerQuotaOverrides
+    ),
   };
 }
 

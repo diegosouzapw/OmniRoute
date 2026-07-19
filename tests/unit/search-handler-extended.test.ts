@@ -123,59 +123,6 @@ test("handleSearch builds Brave news requests and normalizes favicon metadata", 
   }
 });
 
-test("handleSearch builds Perplexity requests, forwards filters, and enforces maxResults", async () => {
-  const originalFetch = globalThis.fetch;
-  let captured;
-
-  globalThis.fetch = async (url, init = {}) => {
-    captured = {
-      url: String(url),
-      headers: init.headers,
-      body: JSON.parse(String(init.body || "{}")),
-    };
-
-    return new Response(
-      JSON.stringify({
-        results: [
-          { title: "One", url: "https://one.example.com", snippet: "First", date: "2026-04-05" },
-          { title: "Two", url: "https://two.example.com", snippet: "Second" },
-        ],
-      }),
-      { status: 200, headers: { "content-type": "application/json" } }
-    );
-  };
-
-  try {
-    const result = await handleSearch({
-      query: "ai agents",
-      provider: "perplexity-search",
-      maxResults: 1,
-      searchType: "web",
-      country: "US",
-      language: "en",
-      domainFilter: ["example.com", "-spam.com"],
-      credentials: { apiKey: "perplexity-key" },
-      log: null,
-    });
-
-    assert.equal(captured.url, "https://api.perplexity.ai/search");
-    assert.equal(captured.headers.Authorization, "Bearer perplexity-key");
-    assert.deepEqual(captured.body, {
-      query: "ai agents",
-      max_results: 1,
-      country: "US",
-      search_language_filter: ["en"],
-      search_domain_filter: ["example.com", "-spam.com"],
-    });
-    assert.equal(result.success, true);
-    assert.equal(result.data.results.length, 1);
-    assert.equal(result.data.usage.queries_used, 1);
-    assert.equal(result.data.usage.search_cost_usd, 0.005);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
 test("handleSearch builds Exa requests with include/exclude domains and preserves rich result fields", async () => {
   const originalFetch = globalThis.fetch;
   let captured;

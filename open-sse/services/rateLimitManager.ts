@@ -10,9 +10,10 @@
 
 import Bottleneck from "bottleneck";
 import { parseRetryAfterFromBody } from "./accountFallback.ts";
+import { getAntigravityQuotaFamily } from "./antigravityQuotaFamily.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 import { getCodexRateLimitKey } from "../executors/codex.ts";
-import { awaitProviderDefaultSlot } from "./providerDefaultRateLimit.ts";
+import { awaitProviderDefaultSlot, setProviderQuotaOverrides } from "./providerDefaultRateLimit.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
@@ -345,6 +346,10 @@ export async function initializeRateLimits() {
     const [connections, settings] = await Promise.all([getCachedProviderConnections(), getSettings()]);
     const resilience = resolveResilienceSettings(settings);
     currentRequestQueueSettings = { ...resilience.requestQueue };
+    // #6846 Phase 1: operator overrides for header-less providers' static RPM
+    // budget + concurrency cap (nvidia today). No-op for every provider without
+    // an entry in either providerQuotaOverrides or PROVIDER_DEFAULT_RATE_LIMITS.
+    setProviderQuotaOverrides(resilience.providerQuotaOverrides);
     const { explicitCount, autoCount } = reconcileEnabledConnections(
       connections as unknown[],
       currentRequestQueueSettings
@@ -454,6 +459,11 @@ export function refreshConnectionRateLimits(connectionId, overrides) {
 function getLimiterKey(provider, connectionId, model = null) {
   if (provider === "codex" && model) {
     return `${provider}:${getCodexRateLimitKey(connectionId, model)}`;
+  }
+  if ((provider === "antigravity" || provider === "agy") && model) {
+    const family = getAntigravityQuotaFamily(model);
+    const scope = family === "other" ? model : family;
+    return `${provider}:${connectionId}:${scope}`;
   }
   // Gemini AI Studio and GitHub Copilot have per-model quotas — use model-scoped
   // limiter keys so a 429 on one model doesn't pause requests for other models.
