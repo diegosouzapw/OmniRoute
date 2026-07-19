@@ -65,7 +65,7 @@ test("migration 123 backfills account snapshots and creates its index", async ()
   const runner = await importFresh("src/lib/db/migrationRunner.ts");
   const db = createDb();
   const migrationSql = fs.readFileSync(
-    "src/lib/db/migrations/123_usage_history_account_identity.sql",
+    "src/lib/db/migrations/127_usage_history_account_identity.sql",
     "utf8"
   );
 
@@ -97,7 +97,7 @@ test("migration 123 backfills account snapshots and creates its index", async ()
     `);
 
     const count = withMockedMigrationFs(
-      { "123_usage_history_account_identity.sql": migrationSql },
+      { "127_usage_history_account_identity.sql": migrationSql },
       () => runner.runMigrations(db)
     );
     const rows = db
@@ -130,7 +130,7 @@ test("migration 123 preserves exact dedup identity and ignores non-string JSON s
   const runner = await importFresh("src/lib/db/migrationRunner.ts");
   const db = createDb();
   const sql = fs.readFileSync(
-    "src/lib/db/migrations/123_usage_history_account_identity.sql",
+    "src/lib/db/migrations/127_usage_history_account_identity.sql",
     "utf8"
   );
 
@@ -172,7 +172,7 @@ test("migration 123 preserves exact dedup identity and ignores non-string JSON s
         ('', '');
     `);
 
-    const count = withMockedMigrationFs({ "123_usage_history_account_identity.sql": sql }, () =>
+    const count = withMockedMigrationFs({ "127_usage_history_account_identity.sql": sql }, () =>
       runner.runMigrations(db)
     );
     const rows = db

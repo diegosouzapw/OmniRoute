@@ -1,4 +1,4 @@
--- Migration 123: Snapshot stable account identity on usage events.
+-- Migration 127: Snapshot stable account identity on usage events.
 -- Startup schema ensure adds the columns first so an interrupted pre-marker
 -- upgrade can rerun this atomic backfill and index creation.
 
