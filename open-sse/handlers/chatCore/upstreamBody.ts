@@ -21,6 +21,7 @@ import {
   type ConnectionCacheOverride,
 } from "../../utils/cacheControlPolicy.ts";
 import { FORMATS } from "../../translator/formats.ts";
+import { sanitizeRequestForResolvedTarget } from "../../services/targetRequestSanitizer.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 type Body = Record<string, unknown>;
@@ -168,6 +169,11 @@ export async function prepareUpstreamBody(opts: {
     );
   }
 
+  bodyToSend = sanitizeRequestForResolvedTarget(bodyToSend, {
+    provider,
+    model: payloadRuleModel,
+    log,
+  });
   bodyToSend = truncateToolList(bodyToSend, provider, bypassDefaultToolLimit ?? false, log);
   bodyToSend = backfillQwenOAuthUser(bodyToSend, provider, credentials, log);
   const connectionCacheOverride = resolveConnectionCacheOverride(credentials?.providerSpecificData);

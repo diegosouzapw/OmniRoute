@@ -88,6 +88,29 @@
       "stream": "https://agentrouter.org/v1/messages?beta=true"
     }
   },
+  "agnes": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://apihub.agnes-ai.com/v1/chat/completions",
+      "stream": "https://apihub.agnes-ai.com/v1/chat/completions"
+    }
+  },
   "agy": {
     "format": "antigravity",
     "headers": {
@@ -723,8 +746,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.chutesai.com/v1/chat/completions",
-      "stream": "https://api.chutesai.com/v1/chat/completions"
+      "nonStream": "https://llm.chutes.ai/v1/chat/completions",
+      "stream": "https://llm.chutes.ai/v1/chat/completions"
     }
   },
   "claude": {
@@ -1184,6 +1207,29 @@
     "url": {
       "nonStream": "https://api2.cursor.sh",
       "stream": "https://api2.cursor.sh"
+    }
+  },
+  "dahl": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://inference.dahl.global/v1/chat/completions",
+      "stream": "https://inference.dahl.global/v1/chat/completions"
     }
   },
   "databricks": {
@@ -2575,8 +2621,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.kimi.com/coding/v1/messages",
-      "stream": "https://api.kimi.com/coding/v1/messages"
+      "nonStream": "https://api.kimi.com/coding/v1/messages?beta=true",
+      "stream": "https://api.kimi.com/coding/v1/messages?beta=true"
     }
   },
   "kimi-web": {
@@ -4588,6 +4634,29 @@
     }
   },
   "xai": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.x.ai/v1/chat/completions",
+      "stream": "https://api.x.ai/v1/chat/completions"
+    }
+  },
+  "xai-oauth": {
     "format": "openai",
     "headers": {
       "apiKey": {

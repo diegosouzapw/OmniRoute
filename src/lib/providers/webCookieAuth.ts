@@ -106,36 +106,27 @@ export function extractQwenToken(rawValue: string): string {
   return match ? match[1] : "";
 }
 
-/**
- * Pull the `kimi-auth` JWT out of whatever the user pasted for the
- * international Kimi consumer chat (www.kimi.com).
- *
- * Accepts (all return the same JWT string):
- *   - bare JWT                       `eyJhbGci...sig`
- *   - full Cookie header             `_ga=...; kimi-auth=eyJ...; theme=dark`
- *   - `Cookie:` / `Authorization: Bearer` prefixed forms
- *   - stray `Bearer eyJ...` without a header label
- *
- * Returns "" if no JWT can be located.
- */
-export function extractKimiJwt(rawValue: string): string {
-  const trimmed = stripCookieInputPrefix(rawValue);
-  if (!trimmed) return "";
+/** Extract Kimi Web's current localStorage access token, with legacy cookie compatibility. */
+export function extractKimiAccessToken(rawValue: string): string {
+  const raw = String(rawValue ?? "").trim();
+  if (!raw) return "";
 
-  // Bare JWT — three base64url segments separated by dots.
-  if (/^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(trimmed)) {
-    return trimmed;
-  }
-
-  // Cookie-style pair: pull `kimi-auth=<value>` out of the blob.
-  const match = trimmed.match(/(?:^|[\s;])kimi-auth=([^;\s]+)/);
-  if (match) return match[1];
-
-  // Last resort: a `Bearer <jwt>` pasted without the header label.
-  const bearer = trimmed.match(/bearer\s+(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/i);
+  const bearer = raw.match(/^(?:authorization:\s*)?bearer\s+([^;\s]+)/i);
   if (bearer) return bearer[1];
 
-  return "";
+  const trimmed = stripCookieInputPrefix(raw);
+  for (const key of ["access_token", "kimi-auth"]) {
+    const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = trimmed.match(new RegExp(`(?:^|[\\s;])${escaped}=([^;\\s]+)`));
+    if (match) return match[1];
+  }
+
+  return !trimmed.includes("=") && !trimmed.includes(";") ? trimmed : "";
+}
+
+/** @deprecated Use extractKimiAccessToken; retained for existing imports. */
+export function extractKimiJwt(rawValue: string): string {
+  return extractKimiAccessToken(rawValue);
 }
 
 export function normalizeSessionCookieHeaders(

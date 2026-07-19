@@ -22,6 +22,7 @@ import {
   getPresetCostModelRows,
 } from "@/lib/db/usageAnalytics";
 import { getFallbackStats } from "@/lib/db/callLogStats";
+import { buildByProviderRows } from "@/lib/usage/providerDisplayNames";
 
 function getRangeStartIso(range: string): string | null {
   const end = new Date();
@@ -668,19 +669,7 @@ export async function GET(request: Request) {
       providerCostByProvider.set(provider, (providerCostByProvider.get(provider) || 0) + cost);
     }
 
-    const byProvider = providerRows.map((row) => ({
-      provider: getProviderById(toStringValue(row.provider))?.name ?? toStringValue(row.provider),
-      requests: Number(row.requests),
-      promptTokens: Number(row.promptTokens),
-      completionTokens: Number(row.completionTokens),
-      totalTokens: Number(row.totalTokens),
-      avgLatencyMs: Math.round(Number(row.avgLatencyMs)),
-      successRatePct:
-        Number(row.requests) > 0
-          ? Number((Number(row.successfulRequests) / Number(row.requests)) * 100).toFixed(2)
-          : 0,
-      cost: roundCost(providerCostByProvider.get(toStringValue(row.provider)) || 0),
-    }));
+    const byProvider = await buildByProviderRows(providerRows, providerCostByProvider);
 
     const accountCostByAccount = new Map<string, number>();
     for (const row of accountCostRows) {

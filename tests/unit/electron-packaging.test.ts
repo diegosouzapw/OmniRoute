@@ -24,3 +24,16 @@ test("electron build copies standalone runtime dependencies into resources/app/n
     }
   );
 });
+
+test("electron standalone assembly normalizes Turbopack hashed external imports", () => {
+  const prepareScript = readFileSync(
+    join(ROOT, "scripts", "build", "prepare-electron-standalone.mjs"),
+    "utf8"
+  );
+
+  assert.match(
+    prepareScript,
+    /assembleStandalone\(\{[\s\S]*?patchTurbopackChunks:\s*true,[\s\S]*?\}\);/,
+    "Electron packages must strip Turbopack's hashed external package names before bundling"
+  );
+});

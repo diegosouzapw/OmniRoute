@@ -18,6 +18,7 @@ import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
 import { parseModel } from "../model.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
 import { getTargetProvider, MAX_COMBO_DEPTH } from "./comboPredicates.ts";
+import { hasEstimableContent } from "./knownContextOverflow.ts";
 import {
   normalizeModelEntry,
   orderTargetsForWeightedFallback,
@@ -409,7 +410,7 @@ export function getModelContextLimitForModelString(modelStr: string) {
   return getModelContextLimit(provider, model);
 }
 
-type RequestCompatibilityRequirements = {
+export type RequestCompatibilityRequirements = {
   requiresTools: boolean;
   requiresVision: boolean;
   requiresStructuredOutput: boolean;
@@ -438,7 +439,7 @@ function requestRequiresStructuredOutput(body: Record<string, unknown>): boolean
 function estimateRequestInputTokens(body: Record<string, unknown>): number {
   const estimatePayload: Record<string, unknown> = {};
   for (const key of ["messages", "input", "tools", "functions", "response_format"]) {
-    if (body[key] !== undefined) estimatePayload[key] = body[key];
+    if (hasEstimableContent(body[key])) estimatePayload[key] = body[key];
   }
   return Object.keys(estimatePayload).length > 0 ? estimateTokens(estimatePayload) : 0;
 }
@@ -460,7 +461,7 @@ function valueContainsImagePart(value: unknown, depth = 0): boolean {
   return Object.values(value).some((entry) => valueContainsImagePart(entry, depth + 1));
 }
 
-function deriveRequestCompatibilityRequirements(
+export function deriveRequestCompatibilityRequirements(
   body: Record<string, unknown>
 ): RequestCompatibilityRequirements {
   const estimatedInputTokens = estimateRequestInputTokens(body);

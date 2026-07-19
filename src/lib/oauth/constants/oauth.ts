@@ -128,6 +128,21 @@ export const GROK_CLI_CONFIG = {
   tokenUrl: "https://auth.x.ai/oauth2/token",
 };
 
+// xAI API OAuth Configuration (Authorization Code Flow with PKCE)
+// This intentionally uses a separate provider from Grok Build: both use the
+// public Grok CLI OAuth client, but their inference endpoints and model
+// entitlements differ (`api.x.ai` vs `cli-chat-proxy.grok.com`).
+export const XAI_OAUTH_CONFIG = {
+  clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
+  authorizeUrl: "https://auth.x.ai/oauth2/authorize",
+  tokenUrl: "https://auth.x.ai/oauth2/token",
+  scope: "openid profile email offline_access grok-cli:access api:access",
+  codeChallengeMethod: "S256",
+  loopbackPort: 56121,
+  callbackPath: "/callback",
+  callbackHost: "127.0.0.1",
+};
+
 // Kimi Coding OAuth Configuration (Device Code Flow)
 export const KIMI_CODING_CONFIG = {
   clientId: resolvePublicCred("kimi_id", "KIMI_CODING_OAUTH_CLIENT_ID"),
@@ -492,6 +507,7 @@ export const PROVIDERS = {
   TRAE: "trae",
   CODEBUDDY_CN: "codebuddy-cn",
   GROK_CLI: "grok-cli",
+  XAI_OAUTH: "xai-oauth",
   ZED: "zed",
   ZED_HOSTED: "zed-hosted",
 };

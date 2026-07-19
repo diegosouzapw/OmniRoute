@@ -350,14 +350,23 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: ["claude-haiku-4.5"],
   },
 
-  // ── Kimi K2.6 (Moonshot Kimi Code OAuth — 262K native) ──────────
+  // ── Kimi K3 (Moonshot API — 1M context/output, native vision) ────
+  "kimi-k3": {
+    maxOutputTokens: 1048576,
+    contextWindow: 1048576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+
+  // ── Kimi K2.6 (Moonshot API — 262K native) ──────────────────────
   "kimi-k2.6": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["kimi-k2.6-thinking", "kimi-for-coding"],
+    aliases: ["kimi-k2.6-thinking"],
   },
 
   // ── Kimi K2.7 Code (Moonshot — 262K native, parity with K2.6) ───
@@ -369,7 +378,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["kimi-k2.7", "kimi-k2.7-code-thinking"],
+    aliases: ["kimi-k2.7", "kimi-k2.7-code-thinking", "kimi-k2.7-code-highspeed"],
   },
 
   // ── Kimi K2.5 (Moonshot — 262K native, parity with K2.6) ────────
