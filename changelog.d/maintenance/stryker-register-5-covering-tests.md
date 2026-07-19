@@ -1,0 +1,1 @@
+- Register 5 covering unit tests (account-fallback lockout eviction, cliproxyapi dedicated credential #7645, combo least-used account, combo recovery-hint, route-guard forge/jcode local-only) in `stryker.conf.json` `tap.testFiles` to clear the release base-red.

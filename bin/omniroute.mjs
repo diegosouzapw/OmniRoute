@@ -14,7 +14,7 @@
  * All other commands are routed through Commander (bin/cli/program.mjs).
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import updateNotifier from "update-notifier";
@@ -59,6 +59,28 @@ if (process.argv.includes("--mcp")) {
   console.warn = stderrConsole.warn.bind(stderrConsole);
 }
 
+// Electron persists secrets (JWT_SECRET, API_KEY_SECRET, STORAGE_ENCRYPTION_KEY) to
+// `<DATA_DIR>/server.env` (electron/main.js), never `.env`. Migrating an existing
+// install (storage.sqlite + server.env) to the CLI left those secrets undiscoverable —
+// the CLI only ever looked for `.env`, so the STORAGE_ENCRYPTION_KEY needed to decrypt
+// the migrated database was silently dropped (#7302). One-time, one-directory migration:
+// if `<dataDir>/.env` is absent but `<dataDir>/server.env` is present, copy it to `.env`
+// so it flows through the normal env-loading path below. Never overwrites an existing
+// `.env` — an explicit `.env` always wins over a legacy `server.env`.
+function migrateElectronServerEnv(dataDir) {
+  try {
+    const envPath = join(dataDir, ".env");
+    const serverEnvPath = join(dataDir, "server.env");
+    if (existsSync(envPath) || !existsSync(serverEnvPath)) return;
+    writeFileSync(envPath, readFileSync(serverEnvPath, "utf-8"), "utf-8");
+    console.log(
+      `  \x1b[2m♻ Migrated Electron secrets from ${serverEnvPath} to ${envPath}\x1b[0m`
+    );
+  } catch {
+    // Ignore errors migrating server.env — fall back to normal env loading below.
+  }
+}
+
 function loadEnvFile() {
   const envPaths = [];
   const loadedEnvPaths = [];
@@ -68,6 +90,8 @@ function loadEnvFile() {
     seenEnvPaths.add(envPath);
     envPaths.push(envPath);
   };
+
+  migrateElectronServerEnv(process.env.DATA_DIR || getDefaultDataDir());
 
   if (process.env.DATA_DIR) {
     addEnvPath(join(process.env.DATA_DIR, ".env"));
