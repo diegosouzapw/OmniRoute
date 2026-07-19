@@ -136,26 +136,36 @@ export interface AffinityPinOptions {
   sessionAffinityTtlMs?: number | null;
 }
 
-/** Settings subset needed to resolve the codex session-affinity TTL. */
+/**
+ * Settings subset needed to resolve the session-affinity TTL. `sessionAffinityTtlMs`
+ * is the generic (#7274) key; `codexSessionAffinityTtlMs` is kept as a read-only
+ * legacy fallback for the (unlikely) case a caller hands in raw pre-migration
+ * settings that were never round-tripped through `getSettings()` (which already
+ * carries the value over — see migration 124_generic_session_affinity_ttl.sql).
+ */
 export interface AffinityPinSettings {
+  sessionAffinityTtlMs?: number | null;
   codexSessionAffinityTtlMs?: number | null;
 }
 
 /**
- * Resolve the effective session-affinity TTL. Only codex opts in today: an
- * explicit per-request override wins, else the persisted codex setting, else 0
- * (disabled). Kept here so auth.ts can reuse it at both the pin-override site
- * and the downstream `selectSessionAffinityConnection` site with one call.
+ * Resolve the effective session-affinity TTL for any provider (#7274 — previously
+ * hardcoded to codex only): an explicit per-request override wins, else the
+ * persisted generic setting (falling back to the legacy codex-only key for
+ * pre-migration callers), else 0 (disabled). Kept here so auth.ts can reuse it at
+ * both the pin-override site and the downstream `selectSessionAffinityConnection`
+ * site with one call.
  */
 export function resolveSessionAffinityTtlMs(
-  provider: string,
+  _provider: string,
   options: AffinityPinOptions,
   settings: AffinityPinSettings
 ): number {
-  if (provider !== "codex") return 0;
   const override = Number(options.sessionAffinityTtlMs);
   if (Number.isFinite(override) && override > 0) return override;
-  const configured = Number(settings.codexSessionAffinityTtlMs);
+  const configured = Number(
+    settings.sessionAffinityTtlMs ?? settings.codexSessionAffinityTtlMs
+  );
   if (Number.isFinite(configured) && configured > 0) return configured;
   return 0;
 }

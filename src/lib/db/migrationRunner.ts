@@ -19,6 +19,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import type { SqliteAdapter } from "./adapters/types";
 import { DEFAULT_DATABASE_SETTINGS } from "@/types/databaseSettings";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 import {
   RENAMED_MIGRATION_COMPATIBILITY,
   LEGACY_VERSION_SLOT_MIGRATIONS,
@@ -883,10 +884,7 @@ export function runMigrations(db: SqliteAdapter, options?: { isNewDb?: boolean }
 
   // ── Safety Check 2: Mass-migration detection (abort if existing DB + many migrations) ──
   // Skip in test environments where fresh DBs legitimately have many pending migrations.
-  const isTestEnvironment =
-    process.env.NODE_ENV === "test" ||
-    process.env.VITEST !== undefined ||
-    (typeof process.argv !== "undefined" && process.argv.some((arg) => arg.includes("test")));
+  const isTestEnvironment = isAutomatedTestProcess();
 
   // #3416: resolve the threshold at call time so OMNIROUTE_MAX_PENDING_MIGRATIONS
   // can override the default (0 disables the check). The abort message below

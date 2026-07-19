@@ -13,6 +13,7 @@ const testModelSchema = z.object({
 });
 
 const SINGLE_TEST_TIMEOUT_MS = 20_000;
+const NVIDIA_SINGLE_TEST_TIMEOUT_MS = 180_000;
 
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -67,7 +68,11 @@ export async function POST(request: Request) {
       providerId,
       modelId,
       ...(connectionId ? { connectionId } : {}),
-      timeoutMs: SINGLE_TEST_TIMEOUT_MS,
+      timeoutMs:
+        providerId.trim().toLowerCase() === "nvidia"
+          ? NVIDIA_SINGLE_TEST_TIMEOUT_MS
+          : SINGLE_TEST_TIMEOUT_MS,
+      streamChat: true,
     });
 
     if (result.status === "ok") {

@@ -1,0 +1,1 @@
+- **feat(auth):** accept the `x-goog-api-key` header for client-facing auth so `gemini-cli` and other `@google/genai`-based clients can use OmniRoute as a native `/v1beta` gateway (#7034 — thanks @QRcode1337).

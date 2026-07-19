@@ -83,3 +83,69 @@ test("releaseQualityClone does not throw when there is no clonedResponse", () =>
   const original = new Response("body");
   assert.doesNotThrow(() => releaseQualityClone({} as Response, original, {}));
 });
+
+// ── Combo fallback silent-stop regression (#3399/#3685 + user log 1784230812441) ──
+//
+// Bug: combo streamed an upstream SSE response that carried bytes but never sent
+// `data: [DONE]`, `message_stop`, or any `content_block_*`. The validator saw
+// `sawAnyBytes === true` and passed the response through; OpenCode then hung
+// waiting for the next event. Reported via local dashboard log
+// `1784230812441-bf3789` (no public GitHub issue).
+//
+// Fix: the streaming validator now passes through only when it actually saw a
+// recognised SSE terminator ([DONE], `message_stop`/`message_delta` with
+// `stop_reason`, OpenAI `finish_reason`, terminal `usage`) OR structured SSE
+// activity (parsed `data:` / `event:` frames) — tracked alongside (not instead
+// of) the existing #7285/#1382 lifecycle machinery. Raw bytes that never
+// produced a parseable event now correctly mark invalid.
+
+function makeSseResponse(body: string): Response {
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(body));
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    status: 200,
+    headers: { "content-type": "text/event-stream" },
+  });
+}
+
+test("streaming incomplete lifecycle: bytes with no terminator and no structured SSE → invalid", async () => {
+  // Garbage bytes that look like SSE prefix but never produce a complete
+  // `data:` line, no `event:`, no [DONE], no message_stop. This is the
+  // exact failure mode from log 1784230812441-bf3789.
+  const res = makeSseResponse(": keepalive\n\npartial da");
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, false);
+  assert.match(verdict.reason ?? "", /streaming/);
+});
+
+test("streaming [DONE] only (no content) → still valid (regression guard for #3685)", async () => {
+  const res = makeSseResponse("data: [DONE]\n\n");
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, true);
+});
+
+test("streaming event: ping only (no content, no terminator) → still valid (regression guard for #3399)", async () => {
+  // Some upstream providers emit periodic SSE pings for keepalive. The
+  // validator must continue to pass them through so the downstream SSE
+  // parser receives them rather than dropping the connection mid-stream.
+  const res = makeSseResponse(": ping - 2026-07-17\n\nevent: ping\ndata: {}\n\n");
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, true);
+});
+
+test("streaming OpenAI finish_reason-only chunk (no content delta) → valid (recognised terminator)", async () => {
+  // Some reasoning models emit a final `finish_reason: "stop"` chunk with
+  // no content and no follow-up `data: [DONE]`. That's a legitimate empty
+  // completion, not a truncation. Sending the `finish_reason` chunk
+  // WITHOUT a trailing `[DONE]` isolates the new finish_reason check —
+  // removing it would flip this test to invalid.
+  const res = makeSseResponse(
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+  );
+  const verdict = await validateResponseQuality(res, true, {});
+  assert.strictEqual(verdict.valid, true);
+});

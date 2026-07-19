@@ -48,22 +48,24 @@ export const PPLX_USER_AGENT =
 export const MODEL_MAP: Record<string, [string, string]> = {
   "pplx-auto": ["search", "pplx_pro"],
   "pplx-sonar": ["search", "experimental"],
-  "pplx-gpt-5.4": ["search", "gpt54"],
-  "pplx-gpt": ["search", "gpt55"],
+  "pplx-gpt-5.6-terra": ["search", "gpt56_terra"],
+  "pplx-gpt-5.6-sol": ["search", "gpt56_sol"],
   "pplx-gemini": ["search", "gemini31pro_high"],
   "pplx-sonnet": ["search", "claude50sonnet"],
   "pplx-opus": ["search", "claude48opus"],
   "pplx-glm": ["search", "glm_5_2"],
   "pplx-kimi": ["search", "kimik26instant"],
+  "pplx-grok-4.5": ["search", "grok45low"],
   "pplx-nemotron": ["search", "nv_nemotron_3_ultra"],
 };
 
 export const THINKING_MAP: Record<string, string> = {
-  "pplx-gpt-5.4": "gpt54_thinking",
-  "pplx-gpt": "gpt55_thinking",
+  "pplx-gpt-5.6-terra": "gpt56_terra_thinking",
+  "pplx-gpt-5.6-sol": "gpt56_sol_thinking",
   "pplx-sonnet": "claude50sonnetthinking",
   "pplx-opus": "claude48opusthinking",
   "pplx-kimi": "kimik26thinking",
+  "pplx-grok-4.5": "grok45medium",
 };
 
 export const CITATION_RE = /\[\d+\]/g;

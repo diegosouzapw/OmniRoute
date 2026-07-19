@@ -640,6 +640,24 @@ export function createSSEStream(options: StreamOptions = {}) {
     dropResponsesCommentary,
   } = options;
   const signatureNamespace = connectionId;
+  // Request-body-size metric (for monitoring payload size distribution & correlation with TTFT).
+  // The size is JSON-serialised byte count; stored as a performance mark detail so monitoring
+  // tools can query performance.getEntriesByType("mark") filtered by name.
+  let bodySize = 0;
+  try {
+    bodySize = body ? Buffer.byteLength(JSON.stringify(body), "utf8") : 0;
+  } catch {
+    /* body may not be JSON-serialisable (e.g. FormData, Blob) — metric stays 0 */
+  }
+  if (bodySize > 0) {
+    // Cleared immediately: this is a fixed-name mark created on every stream, so
+    // leaving it in the global performance timeline would accumulate without bound
+    // over a long-running server's lifetime. A wired PerformanceObserver still
+    // receives the entry (delivery is queued independently of the buffer) even though
+    // clearMarks() removes it from getEntriesByName()/getEntriesByType() right after.
+    performance.mark("omni-request-body-size", { detail: bodySize });
+    performance.clearMarks("omni-request-body-size");
+  }
 
   // Drop internal commentary-phase Responses output before forwarding (#6199).
   // Explicit option wins; otherwise read the feature flag (default on). Resolved

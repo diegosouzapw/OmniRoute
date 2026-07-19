@@ -24,7 +24,10 @@ import {
 } from "@/lib/providers/claudeExtraUsage";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
-import { refreshConnectionRateLimits, enableRateLimitProtection } from "@/../open-sse/services/rateLimitManager";
+import {
+  refreshConnectionRateLimits,
+  enableRateLimitProtection,
+} from "@/../open-sse/services/rateLimitManager";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -135,6 +138,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       quotaWindowThresholds: incomingWindowThresholds,
       proxyEnabled,
       perKeyProxyEnabled,
+      quotaVisible,
       projectId,
       providerSpecificData: incomingPsd,
       rateLimitOverrides,
@@ -191,6 +195,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (rateLimitOverrides !== undefined) updateData.rateLimitOverrides = rateLimitOverrides;
     if (proxyEnabled !== undefined) updateData.proxyEnabled = proxyEnabled;
     if (perKeyProxyEnabled !== undefined) updateData.perKeyProxyEnabled = perKeyProxyEnabled;
+    if (quotaVisible !== undefined) updateData.quotaVisible = quotaVisible;
 
     // Merge providerSpecificData (partial update — preserve existing keys not sent by caller)
     if (incomingPsd !== undefined && incomingPsd !== null && typeof incomingPsd === "object") {

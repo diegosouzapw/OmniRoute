@@ -1,0 +1,1 @@
+- **docs:** Add `docs/INCIDENT_RESPONSE.md` — a non-security incident-response runbook (severity ladder, first-15-minutes checklist, and per-failure-mode mitigation steps for provider outages, latency regressions, and auth/data-layer incidents) ([#7334](https://github.com/diegosouzapw/OmniRoute/pull/7334)) — thanks @KooshaPari

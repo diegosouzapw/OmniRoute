@@ -2,8 +2,14 @@ import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/an
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
 import { filterClinepassModels } from "@omniroute/open-sse/services/clinepassModels.ts";
+import { buildClaudeCodeCompatibleHeaders } from "@omniroute/open-sse/services/claudeCodeCompatible.ts";
+import {
+  buildKimiCodeIdentityHeaders,
+  getKimiCodeCliUserAgent,
+  KIMI_CODING_MODELS_URL,
+} from "@omniroute/open-sse/config/providers/registry/kimi/coding/runtime.ts";
+import { extractZaiToken } from "@omniroute/open-sse/executors/zai-web.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
-import { extractKimiJwt } from "@/lib/providers/webCookieAuth";
 
 export type ProviderModelsConfigEntry = {
   url: string;
@@ -13,16 +19,97 @@ export type ProviderModelsConfigEntry = {
   authPrefix?: string;
   authQuery?: string;
   body?: unknown;
-  buildHeaders?: (token: string) => Record<string, string>;
+  buildHeaders?: (token: string, connection?: any) => Record<string, string>;
   parseResponse: (data: any) => any;
 };
 
+function getKimiThinkingType(model: any): "only" | "both" | "no" | undefined {
+  return model.supports_thinking_type === "only" ||
+    model.supports_thinking_type === "both" ||
+    model.supports_thinking_type === "no"
+    ? model.supports_thinking_type
+    : undefined;
+}
+
+function getKimiThinkingEfforts(model: any): {
+  supportedThinkingEfforts?: string[];
+  defaultThinkingEffort?: string;
+} {
+  const efforts = model.think_efforts;
+  const supportedThinkingEfforts =
+    efforts?.support === true && Array.isArray(efforts.valid_efforts)
+      ? efforts.valid_efforts.filter(
+          (effort: unknown): effort is string => typeof effort === "string" && effort.length > 0
+        )
+      : undefined;
+  const defaultThinkingEffort =
+    efforts?.support === true && typeof efforts.default_effort === "string"
+      ? efforts.default_effort
+      : undefined;
+  return { supportedThinkingEfforts, defaultThinkingEffort };
+}
+
+function normalizeKimiCodingModel(model: any): any {
+  const thinkingType = getKimiThinkingType(model);
+  const supportsThinking = thinkingType ? thinkingType !== "no" : model.supports_reasoning === true;
+  const { supportedThinkingEfforts, defaultThinkingEffort } = getKimiThinkingEfforts(model);
+  const isAnthropic = model.protocol === "anthropic";
+  const normalized: any = {
+    id: model.id,
+    name:
+      typeof model.display_name === "string" && model.display_name.length > 0
+        ? model.display_name
+        : model.id,
+    owned_by: "kimi-code",
+    targetFormat: isAnthropic ? "claude" : "openai",
+    upstreamProtocol: isAnthropic ? "anthropic" : "kimi",
+    supportsThinking,
+    supportsVision: model.supports_image_in === true,
+    supportsVideo: model.supports_video_in === true,
+    supportsTools: model.supports_tool_use !== false,
+  };
+
+  if (typeof model.context_length === "number") normalized.context_length = model.context_length;
+  if (thinkingType === "only") normalized.alwaysThinking = true;
+  if (supportedThinkingEfforts?.length) {
+    normalized.supportedThinkingEfforts = supportedThinkingEfforts;
+  }
+  if (defaultThinkingEffort) normalized.defaultThinkingEffort = defaultThinkingEffort;
+  return normalized;
+}
+
+export function parseKimiCodingModels(data: any): any[] {
+  const models = Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray(data?.models)
+      ? data.models
+      : [];
+
+  return models
+    .filter((model: any) => typeof model?.id === "string" && model.id.length > 0)
+    .map(normalizeKimiCodingModel);
+}
+
 const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
-  url: "https://api.kimi.com/coding/v1/models",
+  url: KIMI_CODING_MODELS_URL,
   method: "GET",
-  headers: { "Content-Type": "application/json" },
-  authHeader: "x-api-key",
-  parseResponse: (data) => data.data || data.models || [],
+  headers: { Accept: "application/json" },
+  buildHeaders: (token, connection) => {
+    if (connection?.authType === "apikey" || connection?.authType === "api_key") {
+      return {
+        Accept: "application/json",
+        "x-api-key": token,
+      };
+    }
+
+    return {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      "User-Agent": getKimiCodeCliUserAgent(),
+      ...buildKimiCodeIdentityHeaders(connection?.providerSpecificData || {}),
+    };
+  },
+  parseResponse: parseKimiCodingModels,
 };
 
 // Provider models endpoints configuration
@@ -79,49 +166,35 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
         .filter((m: any) => m.id);
     },
   },
-  // #5858 follow-up: kimi-web (cookie provider) on the international domain.
-  // `GetAvailableModels` returns the model list as a plain JSON envelope.
-  // Auth mirrors the web app: Bearer JWT plus `Cookie: kimi-auth=<JWT>`.
-  // Agent variants
-  // (`k2d6-agent*`) need a different scenario + agent fields this executor
-  // doesn't shape, so they're filtered out.
-  "kimi-web": {
-    url: "https://www.kimi.com/apiv2/kimi.gateway.config.v1.ConfigService/GetAvailableModels",
-    method: "POST",
-    headers: { accept: "*/*", "Content-Type": "application/json" },
-    body: {},
-    buildHeaders: (token) => {
-      const jwt = extractKimiJwt(token);
-      return {
-        accept: "*/*",
-        "Content-Type": "application/json",
-        "connect-protocol-version": "1",
-        Origin: "https://www.kimi.com",
-        Referer: "https://www.kimi.com/",
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-        ...(jwt
-          ? {
-              Authorization: `Bearer ${jwt}`,
-              Cookie: `kimi-auth=${jwt}`,
-            }
-          : {}),
-      };
-    },
+  // #7678: zai-web (chat.z.ai) had no PROVIDER_MODELS_CONFIG entry so its
+  // hardcoded 3-model registry catalog (glm-4.6/glm-4.5/glm-4.5v — one or more
+  // now 404 upstream) was the only source; wire live discovery against the
+  // undocumented chat.z.ai/api/models endpoint. Same category + shape as
+  // qwen-web above: undocumented consumer web-chat endpoint,
+  // { data: { data: [...] } } envelope with a flatter { data: [...] } fallback.
+  // Bearer token reuses the executor's own extractZaiToken() so discovery and
+  // chat parse the stored cookie identically.
+  // UNVERIFIED (per /triage-features): no live z.ai session available during
+  // research — the exact response shape and whether bare Bearer auth (vs the
+  // full Cookie header chat-completions requires) is accepted must be
+  // confirmed against a real account before merge (see plan-file Step 4).
+  "zai-web": {
+    url: "https://chat.z.ai/api/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    buildHeaders: (token) => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${extractZaiToken(token)}`,
+    }),
     parseResponse: (data) => {
-      const list = (data?.availableModels || []) as Array<{
-        key?: string;
-        displayName?: string;
-        thinking?: boolean;
-      }>;
-      return list
-        .filter((m) => typeof m.key === "string" && !m.key?.includes("agent"))
-        .map((m) => ({
-          id: m.key as string,
-          name: m.displayName || (m.key as string),
-          supportsReasoning: !!m.thinking,
-          owned_by: "kimi",
-        }));
+      const innerData = data?.data?.data || data?.data || [];
+      return (Array.isArray(innerData) ? innerData : [])
+        .map((item: any) => ({
+          id: item.id || item.name,
+          name: item.name || item.id,
+          owned_by: item.owned_by || "zai-web",
+        }))
+        .filter((m: any) => m.id);
     },
   },
   antigravity: {
@@ -132,6 +205,29 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     body: {},
     parseResponse: (data) => data.models || [],
+  },
+  // #7016: AgentRouter rejects /v1/models unless the request carries the same
+  // Claude Code wire image the chat path uses (it adopts the dynamic CC wire
+  // image while keeping its own x-api-key auth — see #6056). Without these
+  // headers the gateway WAF 4xx's the request and model import silently falls
+  // back to the local catalog ("API unavailable — using local catalog").
+  agentrouter: {
+    url: "https://agentrouter.org/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    buildHeaders: (token: string) => {
+      const wire = buildClaudeCodeCompatibleHeaders(token, false, undefined, {});
+      const out: Record<string, string> = { ...wire };
+      // Keep AgentRouter's own x-api-key auth scheme (#6056); the CC helper
+      // adds a Bearer Authorization we must not send.
+      for (const key of Object.keys(out)) {
+        if (key.toLowerCase() === "authorization") delete out[key];
+      }
+      if (token) out["x-api-key"] = token;
+      return out;
+    },
+    parseResponse: (data: any) =>
+      Array.isArray(data) ? data : (data?.data || data?.models || []),
   },
   openai: {
     url: "https://api.openai.com/v1/models",
@@ -210,6 +306,10 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
   },
   "kimi-coding-apikey": {
     ...KIMI_CODING_MODELS_CONFIG,
+    buildHeaders: (token) => ({
+      Accept: "application/json",
+      "x-api-key": token,
+    }),
   },
   anthropic: {
     url: "https://api.anthropic.com/v1/models",

@@ -45,6 +45,14 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "sso=...; sso-rw=...",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "sso", "sso-rw"],
+    // #7567 — grok.com's cf_clearance cookie is pinned to IP + User-Agent + TLS
+    // fingerprint of the browser that earned it, so pasting it from a different
+    // machine/IP causes a 403 that is actually correct Cloudflare behavior. Point
+    // users at the Custom User-Agent field under Advanced Settings + same IP/proxy,
+    // instead of the generic (and here misleading) single-cookie hint.
+    hintKey: "grokWebCookieHint",
+    hintFallback:
+      "grok.com's cf_clearance cookie is pinned to the IP, User-Agent, and TLS fingerprint of the browser where you copied it — pasting it from a different machine/IP causes a 403. Paste sso and sso-rw here, then open Advanced Settings and fill Custom User-Agent with the EXACT User-Agent string of that same browser, and use the same IP/proxy for this connection.",
   },
   "gemini-web": {
     kind: "cookie",
@@ -52,6 +60,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "__Secure-1PSID=...; __Secure-1PSIDTS=...",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "__Secure-1PSID", "__Secure-1PSIDTS"],
+  },
+  "notion-web": {
+    kind: "cookie",
+    credentialName: "token_v2 (optional: space_id, notion_browser_id)",
+    placeholder: "token_v2=...; space_id=...; notion_browser_id=...",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "token_v2", "space_id", "notion_browser_id"],
   },
   "gemini-business": {
     kind: "cookie",
@@ -99,6 +114,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     kind: "token",
     credentialName: "access_token",
     placeholder: "access_token=... or a DevTools HAR export",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "access_token", "accessToken"],
+  },
+  "microsoft-designer-web": {
+    kind: "token",
+    credentialName: "access_token",
+    placeholder: "access_token=... (Authorization: Bearer header from the DallE.ashx request)",
     acceptsFullCookieHeader: false,
     storageKeys: ["token", "access_token", "accessToken"],
   },
@@ -171,11 +193,11 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     storageKeys: ["cookie", "__vercel_session"],
   },
   "kimi-web": {
-    kind: "cookie",
-    credentialName: "kimi-auth",
-    placeholder: "kimi-auth=eyJ... (full Cookie header from www.kimi.com)",
+    kind: "token",
+    credentialName: "access_token",
+    placeholder: "access_token from www.kimi.com localStorage",
     acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "kimi-auth", "session"],
+    storageKeys: ["token", "access_token", "accessToken", "cookie", "kimi-auth"],
   },
   "doubao-web": {
     kind: "cookie",
