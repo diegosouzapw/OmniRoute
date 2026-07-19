@@ -288,10 +288,7 @@ export async function createVirtualAutoCombo(
   // `providerSpecificData.excludedModels` regardless of its isActive state (the
   // dispatch-time enforcement in auth.ts does not gate on isActive either), so
   // gather it from BOTH the active and disabled connection lists.
-  const noAuthProviderSpecificData = new Map<
-    string,
-    Record<string, unknown> | null | undefined
-  >();
+  const noAuthProviderSpecificData = new Map<string, Record<string, unknown> | null | undefined>();
   for (const conn of [...connections, ...disabledNoAuthConnections]) {
     if (conn.provider in NOAUTH_PROVIDERS) {
       noAuthProviderSpecificData.set(conn.provider, conn.providerSpecificData);
@@ -343,7 +340,10 @@ export async function createVirtualAutoCombo(
   // `/v1/models` listing — so auto-routing never picks a model that will 402/403.
   // If this empties the pool the existing graceful empty-pool path below handles it
   // (consistent with the opt-in intent). Default OFF → pool unchanged.
-  const paidFilteredPool = filterPaidOnlyCandidates(candidatePool, settings.hidePaidModels === true);
+  const paidFilteredPool = filterPaidOnlyCandidates(
+    candidatePool,
+    settings.hidePaidModels === true
+  );
   if (paidFilteredPool !== candidatePool) {
     candidatePool.length = 0;
     candidatePool.push(...paidFilteredPool);
@@ -449,6 +449,12 @@ export async function createVirtualAutoCombo(
       // LKGP is default for all auto variants, this variant just explicitly names it.
       // Use default weights.
       break;
+    case "chaos":
+      // Chaos mode: select top-N most stable models and fan them out in parallel
+      // (strategy "fusion"). Prioritize health + stability via the chaos-mode pack.
+      weights = { ...MODE_PACKS["chaos-mode"] };
+      explorationRate = 0; // no exploration — only the proven-stable set
+      break;
     case undefined: // Default auto
       // Use default weights
       break;
@@ -489,20 +495,39 @@ export async function createVirtualAutoCombo(
     routerStrategy,
   };
 
+  // Chaos mode fans out to the top-N most stable models in parallel. We cap the
+  // panel size so a single IDE request doesn't fan out to dozens of providers.
+  const isChaos = variant === "chaos";
+  const CHAOS_MAX_PANEL = 5;
+  const chaosModels = isChaos ? models.slice(0, CHAOS_MAX_PANEL) : models;
+
   const advertisedLimits = computeAdvertisedLimits(effectivePool);
 
   return {
     id: `virtual-auto-${variant || "default"}`,
     name: `Auto ${variant || "Default"}`,
     type: "auto",
-    strategy: "auto",
-    models,
+    strategy: isChaos ? "fusion" : "auto",
+    models: chaosModels,
     candidatePool: providerPool,
     weights,
     explorationRate,
     routerStrategy,
     autoConfig,
-    config: { auto: autoConfig },
+    // For chaos, stash the panel size + a flag so downstream handlers can detect
+    // the broadcast mode and stream each panel model back to IDEs that opt in.
+    config: {
+      auto: autoConfig,
+      ...(isChaos
+        ? {
+            chaos: {
+              enabled: true,
+              panelSize: chaosModels.length,
+              judgeModel: chaosModels[0]?.model,
+            },
+          }
+        : {}),
+    },
     advertisedContextLength: advertisedLimits.contextLength,
     advertisedMaxOutputTokens: advertisedLimits.maxOutputTokens,
   };
