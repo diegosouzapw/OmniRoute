@@ -26,13 +26,9 @@ import {
 } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 
-// ── Constants ────────────────────────────────────────────────────────────────
-const TICK_MS = 60 * 1000; // sweep interval: every 60 seconds
-const DEFAULT_HEALTH_CHECK_INTERVAL_MIN = 60; // default per-connection interval
-const EXPIRED_RETRY_MAX = 3; // max retry attempts for expired connections before giving up
-const EXPIRED_RETRY_BACKOFF_MIN = 5; // backoff between expired retries (minutes)
 const LOG_PREFIX = "[HealthCheck]";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
+const BATCH_SIZE = 20;
 
 function isBuildProcess(): boolean {
   return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
@@ -321,27 +317,52 @@ export function stopTokenHealthCheck() {
   state.initialized = false;
 }
 
-// ── Core sweep ───────────────────────────────────────────────────────────────
-async function sweep() {
+// ── Core sweep (batch concurrent) ──────────────────────────────────────────
+export async function sweep() {
+  const state = getHCState();
+  if (state.sweeping) {
+    return log(`${LOG_PREFIX} Sweep skipped — previous sweep still in progress`);
+  }
+  state.sweeping = true;
   try {
     const connections = await getProviderConnections({ authType: "oauth" });
 
     if (!connections || connections.length === 0) return;
 
     const staggerMs = parseInt(process.env.HEALTHCHECK_STAGGER_MS || "3000", 10);
+    const total = connections.length;
 
-    for (let i = 0; i < connections.length; i++) {
-      const conn = connections[i];
-      try {
-        await checkConnection(conn);
-      } catch (err) {
-        // Per-connection isolation: one failure never blocks others
-        logError(`${LOG_PREFIX} Error checking ${conn.name || conn.id}:`, err.message);
+    // Process connections in concurrent batches. Within a single batch
+    // connections are checked concurrently (same-epoch start) so the array
+    // is drained faster and the event loop can service requests between
+    // batches. The inter-batch stagger preserves the original burst-
+    // prevention intent (Issue #1220) while reducing total sweep time from
+    // O(total × staggerMs) to O(total ÷ batchSize × staggerMs).
+    const batchSize = Math.min(BATCH_SIZE, total);
+    for (let offset = 0; offset < total; offset += batchSize) {
+      const batchEnd = Math.min(offset + batchSize, total);
+      const batch: Array<Promise<void>> = [];
+
+      for (let i = offset; i < batchEnd; i++) {
+        const conn = connections[i];
+        batch.push(
+          checkConnection(conn).catch((err: Error) => {
+            logError(`${LOG_PREFIX} Error checking ${conn.name || conn.id}:`, err.message);
+          })
+        );
       }
 
-      // Stagger delay between checks to prevent bursting (Issue #1220)
-      if (staggerMs > 0 && i < connections.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, staggerMs));
+      await Promise.all(batch);
+
+      // Stagger between batches (not between individual connections) to
+      // prevent sustained bursting while reducing total sweep duration.
+      if (batchEnd < total) {
+        if (staggerMs > 0) {
+          await new Promise((resolve) => setTimeout(resolve, staggerMs));
+        }
+        // Yield a microtask so the event loop can service pending I/O
+        // (DB contention, network responses) before the next batch starts.
+        await new Promise((resolve) => setTimeout(resolve, 0));
       }
     }
   } catch (err) {

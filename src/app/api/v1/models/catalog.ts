@@ -1,7 +1,7 @@
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import {
-  getProviderConnections,
+  getCachedProviderConnections,
   getCombos,
   getAllCustomModels,
   getSettings,
@@ -315,7 +315,7 @@ async function buildUnifiedModelsResponseCore(
     let connections = [];
     let totalConnectionCount = 0; // Track if DB has ANY connections (even disabled)
     try {
-      connections = await getProviderConnections();
+      connections = (await getCachedProviderConnections()) as Array<Record<string, unknown>>;
       totalConnectionCount = connections.length;
       // Filter to only active connections
       connections = connections.filter((c) => c.isActive !== false);

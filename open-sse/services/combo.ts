@@ -77,7 +77,7 @@ import { makeConnectionConcurrencyResolver, lookupPositiveCap } from "./combo/co
 import { acquireQuotaShareConcurrencySlot } from "./combo/quotaShareConcurrency.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
 import type { CompressionMode } from "./compression/types.ts";
-import { getProviderConnections } from "../../src/lib/db/providers";
+import { getCachedProviderConnections } from "../../src/lib/db/readCache";
 import {
   isProviderInCooldown,
   recordProviderCooldown,
@@ -359,7 +359,7 @@ export async function buildAutoCandidates(
   await Promise.all(
     uniqueProviders.map(async (provider) => {
       try {
-        const connections = await getProviderConnections({ provider, isActive: true });
+        const connections = (await getCachedProviderConnections({ provider, isActive: true })) as Array<Record<string, unknown>>;
         const active = Array.isArray(connections) ? connections : [];
         connectionPoolCounts.set(provider, active.length);
         connectionsByProvider.set(provider, active);
@@ -632,7 +632,7 @@ async function isPinnedModelDurablyUnhealthy(pinnedModel: string): Promise<boole
     const provider = parseModel(pinnedModel).provider;
     if (!provider) return false;
     const circuitState = getCircuitBreaker(provider)?.getStatus?.()?.state;
-    const connections = (await getProviderConnections({
+    const connections = (await getCachedProviderConnections({
       provider,
       isActive: true,
     })) as Array<{

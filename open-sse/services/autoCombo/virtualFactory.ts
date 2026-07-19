@@ -1,8 +1,7 @@
 import { AutoComboConfig } from "./engine";
 import { MODE_PACKS } from "./modePacks";
 import { DEFAULT_WEIGHTS, ScoringWeights } from "./scoring";
-import { AutoVariant } from "./autoPrefix";
-import { getProviderConnections } from "@/lib/db/providers";
+import { getCachedProviderConnections } from "@/lib/db/readCache";
 import { getSettings } from "@/lib/db/settings";
 import { getProviderRegistry } from "./providerRegistryAccessor";
 import type { ConnectionFields } from "@/lib/db/encryption";
@@ -243,13 +242,12 @@ export async function createVirtualAutoCombo(
   spec?: AutoComboSpec
 ): Promise<VirtualAutoCombo> {
   const [connections, disabledNoAuthConnections, settings] = await Promise.all([
-    getProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
+    getCachedProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
     // #6557: no-auth providers (opencode/mimocode/etc.) don't get an isActive
     // filter applied above since their credential is synthetic, but a real
     // provider_connections row CAN exist for them (created via "Add Account")
     // and its own isActive=false must gate the auto-combo pool too — not just
-    // the separate settings.blockedProviders list.
-    getProviderConnections({ isActive: false }) as Promise<VirtualFactoryConn[]>,
+    getCachedProviderConnections({ isActive: false }) as Promise<VirtualFactoryConn[]>,
     getSettings().catch(() => ({}) as Record<string, unknown>),
   ]);
   const blockedProviders = new Set(
