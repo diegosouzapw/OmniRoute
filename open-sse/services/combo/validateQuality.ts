@@ -296,43 +296,63 @@ export async function validateResponseQuality(
      * is detected, or "error" when the upstream reports a failure before content.
      * Otherwise peeking continues.
      */
+    // Some providers send a terminal `usage`-only chunk (no `choices`) as the
+    // final SSE frame instead of a `[DONE]`/`finish_reason` marker. Excludes
+    // Responses API `response.*` events, which have their own dedicated
+    // handling via `isKnownNonClaudeStreamPayload`.
+    function isTerminalUsageOnlyChunk(parsed: Record<string, unknown>, eventType: string): boolean {
+      return Boolean(
+        parsed.usage &&
+          typeof parsed.usage === "object" &&
+          !Array.isArray(parsed.choices) &&
+          !eventType.startsWith("response.")
+      );
+    }
+
+    // Consume one normalized SSE line: track `event:` framing / keepalives /
+    // `[DONE]` terminators in the enclosing state, and return the JSON-parsed
+    // `data:` payload when (and only when) the line carries one.
+    function consumeSseLine(line: string): Record<string, unknown> | null {
+      const trimmed = line.trim();
+
+      if (trimmed.startsWith("event:")) {
+        pendingEventType = trimmed.slice(6).trim();
+        // An `event:` line is structured SSE framing on its own, even
+        // before any `data:` payload arrives (e.g. a bare keepalive ping).
+        sawStructuredSSE = true;
+        return null;
+      }
+
+      if (!trimmed.startsWith("data:")) {
+        if (!trimmed) pendingEventType = "";
+        return null;
+      }
+
+      const data = trimmed.slice(5).trim();
+      if (!data) return null;
+      if (data === "[DONE]") {
+        // #7285: `[DONE]` is itself a terminal marker for OpenAI-shape
+        // streams, even when no earlier chunk carried `finish_reason`.
+        openAi.hasTerminalMarker = true;
+        sawTerminator = true;
+        return null;
+      }
+
+      try {
+        return JSON.parse(data) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    }
+
     function parseAccumulatedSse(): StreamingPeekOutcome {
       const lines = decodedSoFar.split(/\r?\n/);
       // Retain the potentially-incomplete trailing fragment.
       decodedSoFar = lines[lines.length - 1];
 
       for (const line of sseLineNormalizer.normalize(lines.slice(0, -1))) {
-        const trimmed = line.trim();
-
-        if (trimmed.startsWith("event:")) {
-          pendingEventType = trimmed.slice(6).trim();
-          // An `event:` line is structured SSE framing on its own, even
-          // before any `data:` payload arrives (e.g. a bare keepalive ping).
-          sawStructuredSSE = true;
-          continue;
-        }
-
-        if (!trimmed.startsWith("data:")) {
-          if (!trimmed) pendingEventType = "";
-          continue;
-        }
-
-        const data = trimmed.slice(5).trim();
-        if (!data) continue;
-        if (data === "[DONE]") {
-          // #7285: `[DONE]` is itself a terminal marker for OpenAI-shape
-          // streams, even when no earlier chunk carried `finish_reason`.
-          openAi.hasTerminalMarker = true;
-          sawTerminator = true;
-          continue;
-        }
-
-        let parsed: Record<string, unknown>;
-        try {
-          parsed = JSON.parse(data);
-        } catch {
-          continue;
-        }
+        const parsed = consumeSseLine(line);
+        if (!parsed) continue;
 
         // A successfully parsed `data:` payload is structured SSE activity
         // regardless of shape or content — tracked only for the generic
@@ -350,18 +370,7 @@ export async function validateResponseQuality(
           return "error";
         }
 
-        // Some providers send a terminal `usage`-only chunk (no `choices`)
-        // as the final SSE frame instead of a `[DONE]`/`finish_reason`
-        // marker. Excludes Responses API `response.*` events, which have
-        // their own dedicated handling via `isKnownNonClaudeStreamPayload`.
-        if (
-          parsed.usage &&
-          typeof parsed.usage === "object" &&
-          !Array.isArray(parsed.choices) &&
-          !eventType.startsWith("response.")
-        ) {
-          sawTerminator = true;
-        }
+        if (isTerminalUsageOnlyChunk(parsed, eventType)) sawTerminator = true;
 
         if (isKnownNonClaudeStreamPayload(parsed, eventType)) {
           return "content";
