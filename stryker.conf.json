@@ -43,6 +43,7 @@
   "tap": {
     "testFiles": [
       "tests/unit/account-fallback-anthropic-quota.test.ts",
+      "tests/unit/account-fallback-lockout-eviction.test.ts",
       "tests/unit/account-fallback-retry-after-json.test.ts",
       "tests/unit/account-fallback-route-restriction-403.test.ts",
       "tests/unit/account-fallback-service.test.ts",
@@ -100,6 +101,9 @@
       "tests/unit/circuit-breaker-failure-kind.test.ts",
       "tests/unit/circuit-breaker-registry-cap.test.ts",
       "tests/unit/circuit-breaker-stream-controller-4602.test.ts",
+      "tests/unit/cliproxyapi-dedicated-credential-7645.test.ts",
+      "tests/unit/combo-least-used-account.test.ts",
+      "tests/unit/combo/recovery-hint.test.ts",
       "tests/unit/ddg-circuit-breaker-null-content-6999-7000.test.ts",
       "tests/unit/claude-code-parity.test.ts",
       "tests/unit/claude-effort-suffix-strip.test.ts",
@@ -231,6 +235,7 @@
       "tests/unit/responses-handler.test.ts",
       "tests/unit/rotation-config-omniroute.test.ts",
       "tests/unit/route-explainability.test.ts",
+      "tests/unit/route-guard-forge-jcode-settings-local-only.test.ts",
       "tests/unit/route-guard-grok-build-settings-local-only.test.ts",
       "tests/unit/route-guard-middleware-local-only.test.ts",
       "tests/unit/route-guard-plugins-local-only.test.ts",
