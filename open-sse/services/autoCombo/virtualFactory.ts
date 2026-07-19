@@ -20,6 +20,7 @@ import {
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
 import { filterPaidOnlyCandidates } from "./paidModelFilter";
+import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -137,7 +138,10 @@ function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): b
 
 function getNoAuthCandidates(
   excludedProviders: Set<string>,
-  blockedProviders: Set<string>
+  blockedProviders: Set<string>,
+  disabledNoAuthProviders: Set<string>,
+  noAuthProviderSpecificData: Map<string, Record<string, unknown> | null | undefined>,
+  hiddenModelsMap: Map<string, Set<string>>
 ): VirtualAutoComboCandidate[] {
   const registry = getProviderRegistry();
   const candidates: VirtualAutoComboCandidate[] = [];
@@ -150,6 +154,15 @@ function getNoAuthCandidates(
     if (
       blockedProviders.has(providerId) ||
       (typeof providerDef.alias === "string" && blockedProviders.has(providerDef.alias))
+    )
+      continue;
+    // #6557: a no-auth provider with its OWN provider_connections row explicitly
+    // disabled (isActive=false, the toggle on the main Providers grid card once an
+    // Account/fingerprint exists) must not be routed to, even though it has no
+    // entry in the separate `settings.blockedProviders` list.
+    if (
+      disabledNoAuthProviders.has(providerId) ||
+      (typeof providerDef.alias === "string" && disabledNoAuthProviders.has(providerDef.alias))
     )
       continue;
 
@@ -168,9 +181,29 @@ function getNoAuthCandidates(
         : null;
     const routingPrefix = providerDef.alias || registryAlias || providerId;
 
+    // #7622: honor the "Excluded Models" field (`providerSpecificData.excludedModels`)
+    // already enforced at dispatch time (src/sse/services/auth.ts) for no-auth
+    // providers' own provider_connections row (#6557), so an excluded model never
+    // enters the auto-combo/fusion candidate pool in the first place.
+    const providerSpecificData =
+      noAuthProviderSpecificData.get(providerId) ??
+      (typeof providerDef.alias === "string"
+        ? noAuthProviderSpecificData.get(providerDef.alias)
+        : undefined);
+
+    // #7620: honor the eye-icon "hidden" flag (isHidden, from the
+    // modelCompatOverrides/customModels key_value namespaces) the same way the
+    // credentialed-connection loop below does, so a hidden no-auth model never
+    // enters the auto-combo/fusion candidate pool either.
+    const hiddenModels =
+      hiddenModelsMap.get(providerId) ??
+      (typeof providerDef.alias === "string" ? hiddenModelsMap.get(providerDef.alias) : undefined);
+
     for (const model of registryModels) {
       const modelId = typeof model?.id === "string" && model.id.trim().length > 0 ? model.id : null;
       if (!modelId) continue;
+      if (isModelExcludedByConnection(modelId, providerSpecificData)) continue;
+      if (hiddenModels?.has(modelId)) continue;
       candidates.push({
         provider: providerId,
         connectionId: SYNTHETIC_NOAUTH_CONNECTION_ID,
@@ -232,14 +265,38 @@ export async function createVirtualAutoCombo(
   variant: AutoVariant | undefined,
   spec?: AutoComboSpec
 ): Promise<VirtualAutoCombo> {
-  const [connections, settings] = await Promise.all([
+  const [connections, disabledNoAuthConnections, settings] = await Promise.all([
     getProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
+    // #6557: no-auth providers (opencode/mimocode/etc.) don't get an isActive
+    // filter applied above since their credential is synthetic, but a real
+    // provider_connections row CAN exist for them (created via "Add Account")
+    // and its own isActive=false must gate the auto-combo pool too — not just
+    // the separate settings.blockedProviders list.
+    getProviderConnections({ isActive: false }) as Promise<VirtualFactoryConn[]>,
     getSettings().catch(() => ({}) as Record<string, unknown>),
   ]);
   const blockedProviders = new Set(
     Array.isArray(settings.blockedProviders) ? (settings.blockedProviders as string[]) : []
   );
+  const disabledNoAuthProviders = new Set(
+    disabledNoAuthConnections
+      .filter((conn) => conn.provider in NOAUTH_PROVIDERS)
+      .map((conn) => conn.provider)
+  );
   const hiddenModelsMap = getHiddenModelsByProvider();
+  // #7622: a no-auth provider's own provider_connections row (#6557) can carry
+  // `providerSpecificData.excludedModels` regardless of its isActive state (the
+  // dispatch-time enforcement in auth.ts does not gate on isActive either), so
+  // gather it from BOTH the active and disabled connection lists.
+  const noAuthProviderSpecificData = new Map<
+    string,
+    Record<string, unknown> | null | undefined
+  >();
+  for (const conn of [...connections, ...disabledNoAuthConnections]) {
+    if (conn.provider in NOAUTH_PROVIDERS) {
+      noAuthProviderSpecificData.set(conn.provider, conn.providerSpecificData);
+    }
+  }
 
   const validConnections = connections.filter(hasUsableConnectionCredential);
 
@@ -272,7 +329,13 @@ export async function createVirtualAutoCombo(
   }
 
   candidatePool.push(
-    ...getNoAuthCandidates(new Set(validConnections.map((conn) => conn.provider)), blockedProviders)
+    ...getNoAuthCandidates(
+      new Set(validConnections.map((conn) => conn.provider)),
+      blockedProviders,
+      disabledNoAuthProviders,
+      noAuthProviderSpecificData,
+      hiddenModelsMap
+    )
   );
 
   // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,

@@ -12,6 +12,11 @@ import {
   type ModelCompatPatch,
 } from "@/lib/localDb";
 import {
+  getModelContextOverrideRecord,
+  setModelContextOverride,
+  removeModelContextOverride,
+} from "@/lib/db/modelContextOverrides";
+import {
   deleteManagedAvailableModelAliases,
   deleteManagedAvailableModelAliasesForProvider,
   syncManagedAvailableModelAliases,
@@ -59,8 +64,24 @@ export async function GET(request) {
 
     const models = provider ? await getCustomModels(provider) : await getAllCustomModels();
     const modelCompatOverrides = provider ? getModelCompatOverrides(provider) : [];
+    // #4125: surface the manual/auto context-window override (Feature 5004 table) on
+    // each custom-model row so the UI can show/edit it without a second round trip.
+    const modelsWithContextOverride =
+      provider && Array.isArray(models)
+        ? models.map((model: Record<string, unknown>) => {
+            const modelId = typeof model?.id === "string" ? model.id : null;
+            const record = modelId ? getModelContextOverrideRecord(provider, modelId) : null;
+            return record
+              ? {
+                  ...model,
+                  contextWindowOverride: record.realContext,
+                  contextWindowOverrideSource: record.source,
+                }
+              : model;
+          })
+        : models;
 
-    return Response.json({ models, modelCompatOverrides });
+    return Response.json({ models: modelsWithContextOverride, modelCompatOverrides });
   } catch {
     return Response.json(
       { error: { message: "Failed to fetch provider models", type: "server_error" } },
@@ -108,6 +129,8 @@ export async function POST(request) {
       // #1294: persist the per-model token limits set in the add-model form.
       max_input_tokens: maxInputTokens,
       max_output_tokens: maxOutputTokens,
+      // #1904: manual vision-capability override set in the add-model form.
+      supportsVision,
     } = validation.data;
 
     const model = await addCustomModel(
@@ -121,7 +144,8 @@ export async function POST(request) {
       {
         ...(maxInputTokens != null ? { inputTokenLimit: maxInputTokens } : {}),
         ...(maxOutputTokens != null ? { outputTokenLimit: maxOutputTokens } : {}),
-      }
+      },
+      typeof supportsVision === "boolean" ? supportsVision : undefined
     );
     return Response.json({ model });
   } catch (error) {
@@ -172,6 +196,8 @@ export async function PUT(request) {
       preserveOpenAIDeveloperRole,
       upstreamHeaders,
       compatByProtocol,
+      contextWindowOverride,
+      supportsVision,
     } = validation.data;
 
     const raw = rawBody as Record<string, unknown>;
@@ -184,8 +210,24 @@ export async function PUT(request) {
     if ("preserveOpenAIDeveloperRole" in raw)
       updates.preserveOpenAIDeveloperRole = preserveOpenAIDeveloperRole;
     if ("upstreamHeaders" in raw) updates.upstreamHeaders = upstreamHeaders;
+    // #1904: manual vision-capability override — null clears back to heuristic.
+    if ("supportsVision" in raw) updates.supportsVision = supportsVision;
     if ("compatByProtocol" in raw && compatByProtocol !== undefined) {
       updates.compatByProtocol = compatByProtocol;
+    }
+
+    // #4125: manual context-window override — persisted in the Feature-5004
+    // `model_context_overrides` table (source="manual"), independent of the
+    // customModels JSON row, so it applies whether or not other fields changed.
+    let contextWindowOverrideResult: number | null | undefined;
+    if ("contextWindowOverride" in raw) {
+      if (contextWindowOverride == null) {
+        removeModelContextOverride(provider, modelId);
+        contextWindowOverrideResult = null;
+      } else {
+        setModelContextOverride(provider, modelId, contextWindowOverride, "manual");
+        contextWindowOverrideResult = contextWindowOverride;
+      }
     }
 
     const model = await updateCustomModel(provider, modelId, updates);
@@ -202,12 +244,14 @@ export async function PUT(request) {
             "preserveOpenAIDeveloperRole",
             "upstreamHeaders",
             "compatByProtocol",
+            "contextWindowOverride",
           ].includes(k)
         ) &&
         ("normalizeToolCallId" in raw ||
           "preserveOpenAIDeveloperRole" in raw ||
           "upstreamHeaders" in raw ||
-          "compatByProtocol" in raw);
+          "compatByProtocol" in raw ||
+          "contextWindowOverride" in raw);
       if (compatOnly) {
         const knownProvider =
           !!provider &&
@@ -248,6 +292,9 @@ export async function PUT(request) {
         return Response.json({
           ok: true,
           modelCompatOverrides: getModelCompatOverrides(provider),
+          ...(contextWindowOverrideResult !== undefined
+            ? { contextWindowOverride: contextWindowOverrideResult }
+            : {}),
         });
       }
       return Response.json(
@@ -256,7 +303,12 @@ export async function PUT(request) {
       );
     }
 
-    return Response.json({ model });
+    return Response.json({
+      model,
+      ...(contextWindowOverrideResult !== undefined
+        ? { contextWindowOverride: contextWindowOverrideResult }
+        : {}),
+    });
   } catch (error) {
     console.error("Error updating provider model:", error);
     return Response.json(

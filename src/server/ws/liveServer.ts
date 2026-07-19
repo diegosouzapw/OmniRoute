@@ -1,7 +1,7 @@
 /**
  * Live Dashboard WebSocket Server
  *
- * Separate process (runs alongside Next.js on port 20129).
+ * Separate process (runs alongside Next.js on port 20132).
  * Forwards EventBus events to subscribed dashboard clients.
  *
  * Protocol:
@@ -27,6 +27,7 @@ import { emit, on, onAny, getEventHistory, type HistoryEntry } from "@/lib/event
 import type { DashboardEventName, DashboardEventMap, DashboardChannel } from "@/lib/events/types";
 
 import { CHANNEL_EVENTS, getChannelForEvent } from "@/lib/events/types";
+import { isAutomatedTestProcess, isBuildProcess } from "@/shared/utils/testProcess";
 
 import {
   buildAllowedOrigins,
@@ -36,7 +37,7 @@ import {
 
 // ── Config ────────────────────────────────────────────────────────────────
 
-const DEFAULT_PORT = 20129;
+const DEFAULT_PORT = 20132;
 // Loopback by default. Opt-in to LAN exposure via LIVE_WS_HOST=0.0.0.0 — the
 // caller is then responsible for fronting it with a TLS terminator + origin
 // allow-list. Mirrors the route guard "local-only by default" posture.
@@ -608,10 +609,7 @@ export async function startLiveDashboardServer(
 
 function isBuildOrTest(): boolean {
   return (
-    process.env.NEXT_PHASE === "phase-production-build" ||
-    process.env.NODE_ENV === "test" ||
-    process.env.VITEST !== undefined ||
-    process.argv.some((arg) => arg.includes("test"))
+    isBuildProcess() || isAutomatedTestProcess()
   );
 }
 

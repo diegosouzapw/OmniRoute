@@ -8,7 +8,7 @@ import {
   buildGrokCookieHeader,
   buildQwenCookieHeader,
   extractCookieValue,
-  extractKimiJwt,
+  extractKimiAccessToken,
   extractQwenToken,
   normalizeSessionCookieHeader,
 } from "@/lib/providers/webCookieAuth";
@@ -17,29 +17,22 @@ import {
 // `kimi.moonshot.cn` domain now 307-redirects every non-CN visitor, and even
 // if you bypass the redirect the old `/api/chat` REST endpoint is gone. The
 // SPA exposes a profile probe at `GET /api/user` that returns the user object
-// at the top level when the `Authorization: Bearer <JWT>` header is valid.
-//
-// Auth source: the `kimi-auth` cookie set after login. The user pastes the
-// full Cookie header; we extract `kimi-auth` and send it as both the Bearer
-// token and a `Cookie: kimi-auth=<jwt>` replay (the latter is what the SPA
-// does, though the upstream only consults the Authorization header in
-// practice — verified by stripping one of the two at a time).
+// at the top level when the `Authorization: Bearer <access_token>` header is valid.
 export async function validateKimiWebProvider({ apiKey }: any) {
   const rawCred = String(apiKey ?? "").trim();
   if (!rawCred) {
     return {
       valid: false,
-      error:
-        "Missing Kimi session — paste the full Cookie header from www.kimi.com (must contain kimi-auth=<JWT>)",
+      error: "Missing Kimi access_token from www.kimi.com localStorage",
     };
   }
 
-  const jwt = extractKimiJwt(rawCred);
-  if (!jwt) {
+  const accessToken = extractKimiAccessToken(rawCred);
+  if (!accessToken) {
     return {
       valid: false,
       error:
-        "Could not find a kimi-auth JWT in the pasted value. Re-login at https://www.kimi.com and copy the full Cookie header.",
+        "Could not find a Kimi access_token. Re-login at https://www.kimi.com and copy it from localStorage.",
     };
   }
 
@@ -47,8 +40,7 @@ export async function validateKimiWebProvider({ apiKey }: any) {
     const resp = await fetch("https://www.kimi.com/api/user", {
       headers: {
         Accept: "application/json, text/plain, */*",
-        Authorization: `Bearer ${jwt}`,
-        Cookie: `kimi-auth=${jwt}`,
+        Authorization: `Bearer ${accessToken}`,
         Origin: "https://www.kimi.com",
         Referer: "https://www.kimi.com/",
         "User-Agent":
@@ -60,7 +52,7 @@ export async function validateKimiWebProvider({ apiKey }: any) {
       return {
         valid: false,
         error:
-          "Kimi session is invalid or expired — re-login at https://www.kimi.com and paste a fresh Cookie header",
+          "Kimi session is invalid or expired — re-login at https://www.kimi.com and paste a fresh access_token",
       };
     }
     if (!resp.ok) {
@@ -74,7 +66,7 @@ export async function validateKimiWebProvider({ apiKey }: any) {
         return {
           valid: false,
           error:
-            "Kimi session token is invalid or expired — re-login at https://www.kimi.com and paste a fresh Cookie header",
+            "Kimi session token is invalid or expired — re-login at https://www.kimi.com and paste a fresh access_token",
         };
       }
     } catch {
@@ -144,7 +136,7 @@ export async function validateDeepSeekWebProvider({ apiKey }: any) {
 }
 
 // qwen-web has no `modelsUrl` in its registry entry, so the generic OpenAI-compatible
-// validator used to derive a probe URL of `https://chat.qwen.ai/api/v2/models` (via
+// validator used to derive a probe URL of `https://chat.qwen.ai/api/v2/models/` (via
 // addModelsSuffix) — a non-existent path that answers with a 307 redirect, which the
 // outbound guard blocked and the route then mislabeled as an SSRF block (#3288/#3758).
 //

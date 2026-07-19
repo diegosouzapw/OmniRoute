@@ -1,7 +1,8 @@
 /**
  * Vision Bridge Guardrail.
- * Intercepts image-bearing requests to non-vision models,
- * extracts descriptions via vision model, and replaces images with text.
+ * Intercepts image-bearing requests to non-vision models.
+ * For individual non-vision models: reroutes to the fastest available vision-capable model.
+ * For combos with non-vision targets: extracts descriptions via vision model and replaces images with text.
  */
 
 import { BaseGuardrail, type GuardrailContext, type GuardrailResult } from "./base";
@@ -17,6 +18,7 @@ import {
   getVisionBridgeConfig,
   isVisionBridgeForcedModel,
 } from "@/shared/constants/visionBridgeDefaults";
+import { getBestVisionModel } from "./visionBridgeRouter";
 
 type ComboVisionBridgeDecision = "process" | "skip" | "not-combo";
 
@@ -90,6 +92,79 @@ export interface VisionBridgeDependencies {
   ) => Promise<string>;
   /** Override combo-target vision check — return true to force processing, false to skip. */
   checkModelHasComboMapping?: (model: string) => Promise<boolean>;
+  /**
+   * Whether a model string has a usable active credential (true/false).
+   * Return `null` when indeterminate (no DB / error) so callers can fail-open.
+   */
+  hasUsableCredentials?: (model: string) => Promise<boolean | null>;
+}
+
+/**
+ * True when a provider connection can actually authenticate upstream.
+ * `noauth` with no real API key is NOT usable (opencode-zen free tier often
+ * surfaces as noauth and then 401 "Missing API key").
+ */
+type ProviderConnectionLike = {
+  authType?: string | null;
+  apiKey?: string | null;
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  idToken?: string | null;
+  testStatus?: string | null;
+};
+
+const TERMINAL_CONNECTION_STATUSES = new Set(["disabled", "banned", "expired"]);
+// Free/noauth only counts when a real key is still present; apikey/cookie need the same.
+const KEY_ONLY_AUTH_TYPES = new Set(["noauth", "none", "", "apikey", "cookie"]);
+const TOKEN_AUTH_TYPES = new Set(["oauth", "access_token", "external_idp"]);
+
+function hasNonEmptyString(value: unknown): boolean {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function hasOAuthCredential(connection: ProviderConnectionLike): boolean {
+  return (
+    hasNonEmptyString(connection.refreshToken) ||
+    hasNonEmptyString(connection.accessToken) ||
+    hasNonEmptyString(connection.idToken)
+  );
+}
+
+export function isProviderConnectionUsable(connection: ProviderConnectionLike): boolean {
+  const status = String(connection.testStatus || "").toLowerCase();
+  if (TERMINAL_CONNECTION_STATUSES.has(status)) {
+    return false;
+  }
+
+  const auth = String(connection.authType || "").toLowerCase();
+  const hasKey = hasNonEmptyString(connection.apiKey);
+
+  if (KEY_ONLY_AUTH_TYPES.has(auth)) {
+    return hasKey;
+  }
+  if (TOKEN_AUTH_TYPES.has(auth)) {
+    return hasOAuthCredential(connection) || hasKey;
+  }
+  return hasKey;
+}
+
+/**
+ * Resolve whether `provider/model` has at least one usable active connection.
+ * Returns `null` when the credential store is unavailable (unit tests / early boot).
+ */
+export async function hasUsableCredentialsForModel(model: string): Promise<boolean | null> {
+  const provider = typeof model === "string" ? model.split("/")[0]?.trim() : "";
+  if (!provider) return null;
+  try {
+    const { getProviderConnections } = await import("@/lib/db/providers");
+    const connections = await getProviderConnections({ provider, isActive: true });
+    if (!Array.isArray(connections)) return null;
+    // Empty active set is a definitive "no" only when the table is readable.
+    if (connections.length === 0) return false;
+    return connections.some((c: any) => isProviderConnectionUsable(c));
+  } catch {
+    return null;
+  }
 }
 
 export class VisionBridgeGuardrail extends BaseGuardrail {
@@ -118,6 +193,11 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
     const model =
       context.model || ((payload as Record<string, unknown>)?.model as string | undefined);
     if (!model) {
+      return { block: false };
+    }
+
+    // 3b. Auto/ prefix → skip guardrail (auto-combo resolver handles vision-capable model selection)
+    if (model === "auto" || model.startsWith("auto/")) {
       return { block: false };
     }
 
@@ -176,7 +256,69 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       return { block: false };
     }
 
-    // 9. Get configuration
+    // 9. Individual non-combo model with images → optionally REROUTE to best vision-capable model
+    // instead of describing images through an intermediate vision call.
+    //
+    // CRITICAL (VibeProxy combo / explicit provider models):
+    // When the original model already has usable credentials (e.g. combo target
+    // zai/glm-5.2), NEVER whole-request-reroute to another provider. Auto-select
+    // prefers opencode-* (priority 0) even when only a broken noauth connection
+    // exists, which produced: HTTP log zai → Guardrail reroute → opencode-zen 401
+    // "Missing API key" while the combo UI still showed body=zai. Fall through to
+    // the image-describe path so the user's chosen model still answers.
+    if (comboVisionBridgeDecision === "not-combo" && !forceVisionBridge) {
+      const checkCreds =
+        this.deps.hasUsableCredentials ?? hasUsableCredentialsForModel;
+      const originalUsable = await checkCreds(model);
+
+      if (originalUsable === true) {
+        // Keep the credentialed model; describe images below if needed.
+        context.log?.debug?.(
+          "VISION_BRIDGE",
+          `Skipping whole-request vision reroute; keeping credentialed model ${model}`
+        );
+      } else {
+        // Honor an explicit operator override from the Vision Bridge settings tab
+        // (settings.visionBridgeModel) as the fixed reroute target, for consistency
+        // with the combo/describe path below (step 10) which always honors it via
+        // getVisionBridgeConfig. When unset, auto-select the fastest available
+        // vision-capable model from available providers.
+        const configuredModel =
+          typeof settings.visionBridgeModel === "string" && settings.visionBridgeModel.trim()
+            ? settings.visionBridgeModel.trim()
+            : undefined;
+        const bestModel = getBestVisionModel({ fixedModel: configuredModel });
+        if (bestModel && bestModel !== model) {
+          const bestUsable = await checkCreds(bestModel);
+          // Only block the reroute when we KNOW the target is unusable (false).
+          // `null` (no DB / tests) fails open so existing unit tests keep working.
+          if (bestUsable === false) {
+            context.log?.warn?.(
+              "VISION_BRIDGE",
+              `Vision reroute target ${bestModel} has no usable credentials; describing images instead of hijacking ${model}`
+            );
+          } else {
+            const modifiedBody = {
+              ...(body as Record<string, unknown>),
+              model: bestModel,
+            };
+            return {
+              block: false,
+              modifiedPayload: modifiedBody as unknown,
+              meta: {
+                rerouted: true,
+                fromModel: model,
+                toModel: bestModel,
+                imagesKept: imageParts.length,
+              },
+            };
+          }
+        }
+      }
+      // Fall through: describe images as text (or no-op if describe path can't run)
+    }
+
+    // 10. Get configuration
     const config = getVisionBridgeConfig({
       visionBridgeEnabled: settings.visionBridgeEnabled as boolean | undefined,
       visionBridgeModel: settings.visionBridgeModel as string | undefined,
@@ -185,10 +327,10 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       visionBridgeMaxImages: settings.visionBridgeMaxImages as number | undefined,
     });
 
-    // 10. Limit images
+    // 11. Limit images
     const limitedParts = imageParts.slice(0, config.maxImages);
 
-    // 11. Call vision model for each image in parallel (injectable for testing)
+    // 12. Call vision model for each image in parallel (injectable for testing)
     const callVision = this.deps.callVisionModel ?? defaultCallVisionModel;
     const logger = context.log;
     const startTime = Date.now();
@@ -215,7 +357,7 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       return null;
     });
 
-    // 12. Replace image parts with text descriptions (null → keep original image)
+    // 13. Replace image parts with text descriptions (null → keep original image)
     const modifiedBody = replaceImageParts(
       body as Parameters<typeof replaceImageParts>[0],
       descriptions

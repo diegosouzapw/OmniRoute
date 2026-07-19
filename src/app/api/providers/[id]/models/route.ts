@@ -8,6 +8,7 @@ import {
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
+import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
   getProviderConnectionById,
@@ -21,7 +22,10 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import {
+  getProviderOutboundGuard,
+  getProviderValidationGuard,
+} from "@/shared/network/outboundUrlGuardPolicy";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
@@ -37,6 +41,10 @@ import {
   discoverBedrockNativeModels,
   isBedrockNativeApiError,
 } from "@omniroute/open-sse/services/bedrock.ts";
+import {
+  discoverNotionWebModels,
+  NOTION_WEB_FALLBACK_MODELS,
+} from "@omniroute/open-sse/services/notionWebModels.ts";
 import {
   AZURE_AI_DEFAULT_BASE_URL,
   buildAzureAiModelsUrl,
@@ -82,6 +90,7 @@ import {
   getAzureOpenAIApiVersion,
   isLocalOpenAIStyleProvider,
   mergeLocalCatalogModels,
+  mergeSpecialtyCatalogIntoLiveModels,
   buildOptionalBearerHeaders,
   buildNamedOpenAiStyleHeaders,
 } from "./discovery/helpers";
@@ -97,6 +106,97 @@ import {
   type ProviderModelsConfigEntry,
   PROVIDER_MODELS_CONFIG,
 } from "./discovery/providerModelsConfig";
+import {
+  buildCodexDiscoveryCatalog,
+  enrichCodexModelsFromGithubCatalog,
+  fetchCodexDiscoveryModels,
+  fetchCodexGithubCatalogModels,
+} from "./discovery/codex";
+
+function toLiveModel(item: Record<string, unknown>): { id: string; name: string } | null {
+  const itemId = typeof item.id === "string" ? item.id.trim() : "";
+  if (!itemId) return null;
+  const itemName =
+    typeof item.display_name === "string"
+      ? item.display_name
+      : typeof item.name === "string"
+        ? item.name
+        : itemId;
+  return { id: itemId, name: itemName };
+}
+
+async function fetchLiveNoAuthModels(
+  modelsUrl: string,
+  providerId: string,
+  connectionId: string,
+  excludeHidden: boolean
+): Promise<NextResponse | null> {
+  try {
+    const liveResponse = await safeOutboundFetch(modelsUrl, {
+      ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+      guard: getProviderOutboundGuard(),
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!liveResponse.ok) return null;
+
+    const data = await liveResponse.json();
+    const liveModels: Array<{ id: string; name: string }> = (
+      (data.data || data.models || []) as Array<Record<string, unknown>>
+    )
+      .map(toLiveModel)
+      .filter((model): model is { id: string; name: string } => model !== null);
+    if (liveModels.length === 0) return null;
+
+    const visible = excludeHidden
+      ? liveModels.filter((model) => !getModelIsHidden(providerId, model.id))
+      : liveModels;
+    return NextResponse.json({
+      provider: providerId,
+      connectionId,
+      models: visible,
+      source: "upstream",
+    });
+  } catch {
+    // Live fetch failed — fall back to the bundled catalog.
+    return null;
+  }
+}
+
+async function buildNoAuthModelsResponse(
+  providerId: string,
+  connectionId: string,
+  excludeHidden: boolean
+) {
+  if (isProviderBlockedByIdOrAlias(providerId, (await getSettings()).blockedProviders)) {
+    return NextResponse.json({ error: "Provider is disabled" }, { status: 403 });
+  }
+
+  const registryEntry = getRegistryEntry(providerId);
+  const modelsUrl =
+    typeof registryEntry?.modelsUrl === "string" && registryEntry.modelsUrl.length > 0
+      ? registryEntry.modelsUrl
+      : null;
+
+  if (modelsUrl) {
+    const live = await fetchLiveNoAuthModels(modelsUrl, providerId, connectionId, excludeHidden);
+    if (live) return live;
+  }
+
+  const catalog = mergeLocalCatalogModels(
+    getModelsByProviderId(providerId) || [],
+    getStaticModelsForProvider(providerId) || []
+  ).map((model) => ({ id: model.id, name: model.name || model.id }));
+  const visible = excludeHidden
+    ? catalog.filter((model) => !getModelIsHidden(providerId, model.id))
+    : catalog;
+  return NextResponse.json({
+    provider: providerId,
+    connectionId,
+    models: visible,
+    source: "local_catalog",
+  });
+}
 
 /**
  * GET /api/providers/[id]/models - Get models list from provider
@@ -112,85 +212,35 @@ export async function GET(
     // Check if we should exclude hidden models (used by MCP tools to prevent hidden model leaks)
     const { searchParams } = new URL(request.url);
     const excludeHidden = searchParams.get("excludeHidden") === "true";
+    const excludeCustom = searchParams.get("excludeCustom") === "true";
     const refresh = searchParams.get("refresh") === "true";
 
     const connection = await getProviderConnectionById(id);
+    const connectionProvider =
+      typeof connection?.provider === "string" && connection.provider.trim().length > 0
+        ? connection.provider
+        : null;
+    const noAuthProviderId =
+      (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean }>)[id]?.noAuth === true
+        ? id
+        : connectionProvider &&
+            (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean }>)[connectionProvider]
+              ?.noAuth === true
+          ? connectionProvider
+          : null;
+
+    // No-auth providers may persist a connection row solely for fingerprints
+    // and account-proxy metadata. That row must not turn public model discovery
+    // into an API-key flow that expects a token.
+    if (noAuthProviderId) {
+      return buildNoAuthModelsResponse(
+        noAuthProviderId,
+        typeof connection?.id === "string" ? connection.id : id,
+        excludeHidden
+      );
+    }
 
     if (!connection) {
-      // #3047 — no-auth providers have no connection rows; serve their catalog by provider id.
-      const isNoAuthProvider =
-        (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean }>)[id]?.noAuth === true;
-      if (isNoAuthProvider) {
-        if (isProviderBlockedByIdOrAlias(id, (await getSettings()).blockedProviders)) {
-          return NextResponse.json({ error: "Provider is disabled" }, { status: 403 });
-        }
-
-        // #3611 — prefer the live public modelsUrl when present; fall back to local_catalog.
-        const noAuthRegistryEntry = getRegistryEntry(id);
-        const noAuthModelsUrl =
-          typeof noAuthRegistryEntry?.modelsUrl === "string" &&
-          noAuthRegistryEntry.modelsUrl.length > 0
-            ? noAuthRegistryEntry.modelsUrl
-            : null;
-
-        if (noAuthModelsUrl) {
-          try {
-            const liveResponse = await safeOutboundFetch(noAuthModelsUrl, {
-              ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-              guard: getProviderOutboundGuard(),
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            });
-
-            if (liveResponse.ok) {
-              const data = await liveResponse.json();
-              const liveModels: Array<{ id: string; name: string }> = (
-                (data.data || data.models || []) as Array<Record<string, unknown>>
-              )
-                .map((item) => {
-                  const itemId = typeof item.id === "string" ? item.id.trim() : "";
-                  if (!itemId) return null;
-                  const itemName =
-                    typeof item.display_name === "string"
-                      ? item.display_name
-                      : typeof item.name === "string"
-                        ? item.name
-                        : itemId;
-                  return { id: itemId, name: itemName };
-                })
-                .filter((m): m is { id: string; name: string } => m !== null);
-
-              if (liveModels.length > 0) {
-                const visible = excludeHidden
-                  ? liveModels.filter((m) => !getModelIsHidden(id, m.id))
-                  : liveModels;
-                return NextResponse.json({
-                  provider: id,
-                  connectionId: id,
-                  models: visible,
-                  source: "upstream",
-                });
-              }
-            }
-          } catch {
-            // Live fetch failed — fall through to local_catalog below.
-          }
-        }
-
-        const catalog = mergeLocalCatalogModels(
-          getModelsByProviderId(id) || [],
-          getStaticModelsForProvider(id) || []
-        ).map((model) => ({ id: model.id, name: model.name || model.id }));
-        const visible = excludeHidden
-          ? catalog.filter((m) => !getModelIsHidden(id, m.id))
-          : catalog;
-        return NextResponse.json({
-          provider: id,
-          connectionId: id,
-          models: visible,
-          source: "local_catalog",
-        });
-      }
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
@@ -201,13 +251,11 @@ export async function GET(
     const staleEncryptionResponse = buildStaleEncryptionKeyResponse(connection);
     if (staleEncryptionResponse) return staleEncryptionResponse;
 
-    const provider =
-      typeof connection.provider === "string" && connection.provider.trim().length > 0
-        ? connection.provider
-        : null;
+    const provider = connectionProvider;
     if (!provider) {
       return NextResponse.json({ error: "Invalid connection provider" }, { status: 400 });
     }
+    const usesCuratedModelsOnly = providerUsesCuratedModelsOnly(provider);
 
     // Resolve proxy for this provider (provider-level → global → direct)
     const proxy = await resolveProxyForProvider(provider);
@@ -217,15 +265,19 @@ export async function GET(
     // per-connection route (used by MCP list_models_catalog + the dashboard
     // import view) never did, so custom models were dropped on both the
     // discovery-success and local_catalog paths. Read them once here and fold
-    // them into every models response via buildResponse below (dedup by id).
+    // them into every user-facing models response via buildResponse below
+    // (dedup by id). Internal model-sync discovery opts out because these rows
+    // are a response projection, not provider-discovered models.
     let customModelsForProvider: Array<{ id: string; name?: string }> = [];
-    try {
-      const custom = await getCustomModels(provider);
-      if (Array.isArray(custom)) {
-        customModelsForProvider = custom as Array<{ id: string; name?: string }>;
+    if (!excludeCustom) {
+      try {
+        const custom = await getCustomModels(provider);
+        if (Array.isArray(custom)) {
+          customModelsForProvider = custom as Array<{ id: string; name?: string }>;
+        }
+      } catch {
+        // DB unavailable — proceed without custom models.
       }
-    } catch {
-      // DB unavailable — proceed without custom models.
     }
 
     const mergeCustomModels = (models: any[]) => {
@@ -254,7 +306,9 @@ export async function GET(
     const apiKey = typeof connection.apiKey === "string" ? connection.apiKey : "";
     const accessToken = typeof connection.accessToken === "string" ? connection.accessToken : "";
     const autoFetchModels = isAutoFetchModelsEnabled(connection.providerSpecificData);
-    const cachedDiscoveryModels = await getCachedDiscoveredModels(provider, connectionId);
+    const cachedDiscoveryModels = usesCuratedModelsOnly
+      ? []
+      : await getCachedDiscoveredModels(provider, connectionId);
 
     // Check for synced models from ANY connection of this provider.
     // When sync has been performed (even on a different connection),
@@ -266,7 +320,7 @@ export async function GET(
       supportedEndpoints?: string[];
     }> | null = null;
     try {
-      const allSynced = await getSyncedAvailableModels(provider);
+      const allSynced = usesCuratedModelsOnly ? [] : await getSyncedAvailableModels(provider);
       if (Array.isArray(allSynced) && allSynced.length > 0) {
         providerSyncedModels = allSynced.map((m) => ({
           id: m.id,
@@ -330,14 +384,16 @@ export async function GET(
     const buildDiscoveryFallbackResponse = ({
       cacheWarning = "API unavailable — using cached catalog",
       localWarning = "API unavailable — using local catalog",
+      localIntentional = false,
     }: {
       cacheWarning?: string;
       localWarning?: string;
+      localIntentional?: boolean;
     } = {}) => {
       if (cachedDiscoveryModels.length > 0) {
         return buildCachedDiscoveryResponse(cacheWarning);
       }
-      return buildLocalCatalogResponse(localWarning);
+      return buildLocalCatalogResponse(localWarning, localIntentional);
     };
 
     const buildDiscoveryErrorFallbackResponse = (
@@ -385,15 +441,25 @@ export async function GET(
       });
     };
 
-    const buildApiDiscoveryResponse = async (models: any[], warning?: string) => {
+    const buildApiDiscoveryResponse = async (
+      models: any[],
+      warning?: string,
+      extraPayload: Record<string, unknown> = {}
+    ) => {
       const discoveredModels = await persistDiscoveredModels(provider, connectionId, models);
       if (discoveredModels.length > 0) {
+        // #6976 — merge curated embedding/rerank specialty entries (e.g.
+        // OpenRouter's embeddingRegistry catalog) into the live-discovery
+        // response; the live /v1/models endpoint only lists chat models, and
+        // the specialty catalog otherwise only reached local_catalog fallback.
+        const mergedModels = mergeSpecialtyCatalogIntoLiveModels(models, provider);
         return buildResponse({
           provider,
           connectionId,
-          models,
+          models: mergedModels,
           source: "api",
           ...(warning ? { warning } : {}),
+          ...extraPayload,
         });
       }
 
@@ -456,6 +522,72 @@ export async function GET(
       // intended source, not a degraded fallback (#5460).
       const localCatalog = buildLocalCatalogResponse(undefined, true);
       if (localCatalog) return localCatalog;
+    }
+
+    if (provider === "lmarena") {
+      // Direct-chat allowlist is the intended source — no arena.ai HTML scrape
+      // (avoids CF bot burn and thrashy initialModels rows).
+      const localCatalog = buildLocalCatalogResponse(undefined, true);
+      if (localCatalog) return localCatalog;
+    }
+
+    // #7600 follow-up: notion-web live catalog via cookie-auth getAvailableModels.
+    // Needs spaceId (from cookie or getSpaces); falls back to seeded local catalog.
+    if (provider === "notion-web") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = apiKey || accessToken;
+      if (!token) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "No token configured — using cached catalog",
+          localWarning: "No token configured — using local catalog",
+        });
+        if (fallback) return fallback;
+        return buildResponse({
+          provider,
+          connectionId,
+          models: NOTION_WEB_FALLBACK_MODELS,
+          source: "local_catalog",
+          intentional: true,
+          warning: "No token_v2 cookie — using seed Notion AI model list",
+        });
+      }
+
+      try {
+        const discovery = await discoverNotionWebModels({
+          token,
+          fetchImpl: (url, init) =>
+            safeOutboundFetch(url, {
+              ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+              guard: getProviderOutboundGuard(),
+              proxyConfig: proxy,
+              ...init,
+            }),
+        });
+        // Pass through plan-lock warnings (e.g. Fable 5 requires Business/Enterprise).
+        return buildApiDiscoveryResponse(discovery.models, discovery.warning);
+      } catch (error) {
+        console.log("Error fetching models from notion-web", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "Notion getAvailableModels failed — using cached catalog",
+          localWarning: "Notion getAvailableModels failed — using seed catalog",
+        });
+        if (fallback) return fallback;
+        return buildResponse({
+          provider,
+          connectionId,
+          models: NOTION_WEB_FALLBACK_MODELS,
+          source: "local_catalog",
+          intentional: true,
+          warning: "API unavailable — using seed Notion AI model list",
+        });
+      }
     }
 
     if (provider === "bedrock") {
@@ -610,7 +742,11 @@ export async function GET(
         try {
           const response = await safeOutboundFetch(modelsUrl, {
             ...SAFE_OUTBOUND_FETCH_PRESETS.modelsProbe,
-            guard: getProviderOutboundGuard(),
+            // #6939: model-list discovery for local/OpenAI-compatible providers (e.g. LM
+            // Studio on a LAN host) must use the same guard tier as the test-connection path
+            // (getProviderValidationGuard — respects the local-first default) rather than the
+            // stricter outbound guard, which never allows LAN hosts by default.
+            guard: getProviderValidationGuard(),
             proxyConfig: proxy,
             method: "GET",
             headers: isNamedOpenAIStyleProvider(provider)
@@ -1372,7 +1508,7 @@ export async function GET(
         connectionId,
         models: staticModels,
         source: "local_catalog",
-        warning: "API unavailable — using local catalog",
+        ...(usesCuratedModelsOnly ? {} : { warning: "API unavailable — using local catalog" }),
       });
     }
 
@@ -1705,6 +1841,99 @@ export async function GET(
       });
     }
 
+    if (provider === "codex") {
+      // Auto-merge live/GitHub/local (future-proof discovery), then apply explicit
+      // denylist filters (e.g. drop GPT-5.4 family). Do not gate remote-only IDs.
+      const staticCodexCatalog = mergeLocalCatalogModels(
+        getModelsByProviderId("codex") || [],
+        getStaticModelsForProvider("codex") || []
+      );
+      const finalizeCodexCatalog = (remoteModels: typeof cachedDiscoveryModels) =>
+        buildCodexDiscoveryCatalog(remoteModels, staticCodexCatalog);
+      const cachedCatalogModels = finalizeCodexCatalog(cachedDiscoveryModels);
+      const cachedIdsMatchFinalCatalog =
+        cachedDiscoveryModels.length === cachedCatalogModels.length &&
+        cachedDiscoveryModels.every((model, index) => model.id === cachedCatalogModels[index]?.id);
+      const persistFilteredCacheIfNeeded = async () => {
+        if (cachedIdsMatchFinalCatalog) return;
+        await persistDiscoveredModels(provider, connectionId, cachedCatalogModels);
+      };
+
+      if (!refresh && cachedDiscoveryModels.length > 0) {
+        await persistFilteredCacheIfNeeded();
+        return buildResponse({
+          provider,
+          connectionId,
+          models: cachedCatalogModels,
+          source: "cache",
+        });
+      }
+
+      if (!refresh && !autoFetchModels) {
+        return buildResponse({
+          provider,
+          connectionId,
+          models: finalizeCodexCatalog([]),
+          source: "local_catalog",
+          warning: "Auto-fetch disabled — using local catalog",
+        });
+      }
+
+      const liveModels = await fetchCodexDiscoveryModels({
+        accessToken: accessToken || null,
+        providerSpecificData: connection.providerSpecificData,
+        fetchImpl: (url, init) =>
+          safeOutboundFetch(url, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            ...init,
+          }),
+      });
+      const githubCatalogModels = await fetchCodexGithubCatalogModels({
+        fetchImpl: (url, init) =>
+          safeOutboundFetch(url, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: "public-only",
+            proxyConfig: proxy,
+            ...init,
+          }),
+      });
+      if (liveModels && liveModels.length > 0) {
+        const enrichedLiveModels =
+          githubCatalogModels && githubCatalogModels.length > 0
+            ? enrichCodexModelsFromGithubCatalog(liveModels, githubCatalogModels)
+            : liveModels;
+        return buildApiDiscoveryResponse(finalizeCodexCatalog(enrichedLiveModels));
+      }
+
+      if (githubCatalogModels && githubCatalogModels.length > 0) {
+        return buildApiDiscoveryResponse(
+          finalizeCodexCatalog(githubCatalogModels),
+          "Codex live catalog unavailable — using GitHub model catalog"
+        );
+      }
+
+      if (cachedDiscoveryModels.length > 0) {
+        await persistFilteredCacheIfNeeded();
+        return buildResponse({
+          provider,
+          connectionId,
+          models: cachedCatalogModels,
+          source: "cache",
+          warning: "Codex live catalog unavailable — using cached catalog",
+        });
+      }
+      return buildResponse({
+        provider,
+        connectionId,
+        models: finalizeCodexCatalog([]),
+        source: "local_catalog",
+        intentional: true,
+        warning: "Codex live and GitHub catalogs unavailable — using local catalog",
+      });
+    }
+
     const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
     if (!config && localCatalog.length > 0) {
       return buildResponse({
@@ -1806,8 +2035,10 @@ export async function GET(
     }
 
     // Build headers
-    const headers = { ...config.headers };
-    if (config.authHeader && !config.authQuery) {
+    const headers = config.buildHeaders
+      ? config.buildHeaders(token, connection)
+      : { ...config.headers };
+    if (!config.buildHeaders && config.authHeader && !config.authQuery) {
       headers[config.authHeader] = (config.authPrefix || "") + token;
     }
 

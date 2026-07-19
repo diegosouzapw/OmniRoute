@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   assembleStandalone,
+  patchTurbopackChunks,
   syncStandaloneNativeAssets,
   syncStandaloneExtraModules,
 } from "../../../scripts/build/assembleStandalone.mjs";
@@ -94,6 +95,26 @@ test("assembleStandalone copies standalone + static + public + sidecars into out
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
+test("patchTurbopackChunks restores canonical external package names in a custom distDir", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "assemble-hash-strip-"));
+  const chunkDir = path.join(tmp, ".build", "next", "server", "chunks");
+  const chunkPath = path.join(chunkDir, "instrumentation.js");
+  fs.mkdirSync(chunkDir, { recursive: true });
+  fs.writeFileSync(
+    chunkPath,
+    'require("ws-a972e7ffa40ff725"); require("@ngrok/ngrok-0f98e1294a0b09d5");'
+  );
+
+  const result = patchTurbopackChunks(tmp, ".build/next");
+  const patched = fs.readFileSync(chunkPath, "utf8");
+
+  assert.deepEqual(result, { patchedFiles: 1, patchedMatches: 2 });
+  assert.match(patched, /require\("ws"\)/);
+  assert.match(patched, /require\("@ngrok\/ngrok"\)/);
+  assert.doesNotMatch(patched, /-[0-9a-f]{16}/);
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
 // Drift guard: the async path (syncStandaloneNativeAssets / syncStandaloneExtraModules,
 // used by build-next-isolated) and the sync path (assembleStandalone copyNatives, used by
 // prepublish/electron) must copy the SAME sidecar tree. After the single-source refactor
@@ -157,5 +178,30 @@ test("the TPROXY addon source is skipped gracefully when it was not built (non-L
     !fs.existsSync(path.join(out, "src/mitm/tproxy/native/build/Release/transparent.node")),
     "absent addon is simply not copied (graceful skip)"
   );
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+// Regression guard (#deploy 2026-07-11): server-ws.mjs gained an import of
+// head-response-guard.cjs without a matching EXTRA_MODULE_ENTRIES entry, so every
+// build:release bundle crashed at boot with ERR_MODULE_NOT_FOUND. This test derives
+// the requirement from the source itself: EVERY relative import in
+// standalone-server-ws.mjs must be shipped into the bundle by the extra-module sync.
+test("every relative import of standalone-server-ws.mjs is shipped into the bundle", async () => {
+  const repoRoot = path.resolve(new URL(".", import.meta.url).pathname, "../../..");
+  const serverWsSrc = fs.readFileSync(
+    path.join(repoRoot, "scripts/dev/standalone-server-ws.mjs"),
+    "utf8"
+  );
+  const relImports = [...serverWsSrc.matchAll(/from\s+"\.\/([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(relImports.length > 0, "server-ws.mjs has relative imports to check");
+
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "assemble-serverws-"));
+  await syncStandaloneExtraModules(repoRoot, fs.promises, { log() {} }, tmp);
+  for (const imp of relImports) {
+    assert.ok(
+      fs.existsSync(path.join(tmp, imp)),
+      `server-ws.mjs imports ./${imp} but EXTRA_MODULE_ENTRIES does not ship it — the bundle would crash at boot (ERR_MODULE_NOT_FOUND)`
+    );
+  }
   fs.rmSync(tmp, { recursive: true, force: true });
 });

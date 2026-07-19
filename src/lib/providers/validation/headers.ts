@@ -2,6 +2,7 @@
 // from validation.ts (god-file decomposition). Pure header construction except directHttpsRequest,
 // which delegates to safeOutboundFetch with bypassProxyPatch. Behavior is byte-identical.
 import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
+import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
 
 // Standardized desktop Chrome UA for web-cookie/no-auth session probes (minimizes anti-bot detection).
 export const STANDARD_USER_AGENT =
@@ -40,6 +41,17 @@ export function withCustomUserAgent(init: RequestInit, providerSpecificData: any
  * Direct HTTPS request utility that bypasses the global patched fetch.
  * Used for provider validation where the patched fetch has compatibility issues.
  * Uses safeOutboundFetch with bypassProxyPatch to use native Node.js fetch directly.
+ *
+ * SSRF hardening: provider validation hits a caller-controllable `baseUrl`
+ * (e.g. the web-cookie `${baseUrl}/models` probe), so it MUST NOT be an open
+ * relay to cloud-metadata endpoints. We apply `getProviderValidationGuard()`
+ * (local-first default = "block-metadata": allow LAN/localhost providers but
+ * reject 169.254.169.254 / link-local IMDS; power users can opt fully out via
+ * `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`). `applyUrlGuard` only checks the
+ * INITIAL url, so `allowRedirect: false` is required too — otherwise a provider
+ * could 3xx-redirect the probe to metadata past the guard. Validation targets
+ * are concrete API endpoints (/models, /chat/completions, /v1/messages) that
+ * return direct JSON, so blocking redirects loses no legitimate provider.
  */
 export function directHttpsRequest(
   url: string,
@@ -52,8 +64,8 @@ export function directHttpsRequest(
     body: options.body,
     timeoutMs,
     bypassProxyPatch: true,
-    allowRedirect: true,
-    guard: "none",
+    allowRedirect: false,
+    guard: getProviderValidationGuard(),
     retry: false,
   }).then(async (response) => ({
     status: response.status,

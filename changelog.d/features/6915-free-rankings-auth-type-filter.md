@@ -1,0 +1,1 @@
+- **feat(dashboard):** add a Type filter (No Signup / OAuth Login / API Key) and an "Easiest first" sort toggle to Free Provider Rankings, so zero-setup NOAUTH providers can be surfaced without eyeballing the Type column. (#6915)

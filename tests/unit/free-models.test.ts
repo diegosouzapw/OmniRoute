@@ -57,6 +57,10 @@ test("isFreeModel: a model id listed in the free catalog for that provider is fr
   assert.equal(isFreeModel(sample.provider, { id: sample.modelId }), true);
 });
 
+test("isFreeModel: NVIDIA GLM 5.2 is included in the reviewed trial catalog", () => {
+  assert.equal(isFreeModel("nvidia", { id: "z-ai/glm-5.2" }), true);
+});
+
 test("selectModelsForImport: passthrough when importFreeOnly is false", () => {
   const models = [
     { id: "a:free" },

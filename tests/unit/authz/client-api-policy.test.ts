@@ -51,12 +51,30 @@ async function loadPolicy() {
 }
 
 function ctx(headers: Headers, method = "POST", normalizedPath = "/api/v1/chat/completions") {
+  const pathOnly = normalizedPath.split("?")[0];
   return {
     request: { method, headers, url: `http://localhost${normalizedPath}` },
     classification: {
       routeClass: "CLIENT_API" as const,
       reason: "client_api_v1" as const,
-      normalizedPath,
+      normalizedPath: pathOnly,
+    },
+    requestId: "req_test",
+  };
+}
+
+function relativeUrlCtx(
+  headers: Headers,
+  method = "POST",
+  normalizedPath = "/api/v1/chat/completions"
+) {
+  const pathOnly = normalizedPath.split("?")[0];
+  return {
+    request: { method, headers, url: normalizedPath },
+    classification: {
+      routeClass: "CLIENT_API" as const,
+      reason: "client_api_v1" as const,
+      normalizedPath: pathOnly,
     },
     requestId: "req_test",
   };
@@ -79,6 +97,28 @@ test("clientApiPolicy: missing bearer is rejected with 401", async () => {
   if (!out.allow) {
     assert.equal(out.status, 401);
     assert.equal(out.code, "AUTH_002");
+  }
+});
+
+test("clientApiPolicy: websocket descriptor handshake can reach the route handler", async () => {
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(ctx(new Headers(), "GET", "/api/v1/ws?handshake=1"));
+
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.kind, "anonymous");
+    assert.equal(out.subject.id, "ws-handshake");
+  }
+});
+
+test("clientApiPolicy: websocket descriptor handshake accepts relative request URLs", async () => {
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(relativeUrlCtx(new Headers(), "GET", "/api/v1/ws?handshake=1"));
+
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.kind, "anonymous");
+    assert.equal(out.subject.id, "ws-handshake");
   }
 });
 
@@ -194,6 +234,65 @@ test("clientApiPolicy: x-api-key header is accepted as client_api_key subject", 
   if (out.allow) {
     assert.equal(out.subject.kind, "client_api_key");
     assert.match(out.subject.id, /^key_/);
+  }
+});
+
+test("clientApiPolicy: x-goog-api-key header is accepted as client_api_key subject (#7034)", async () => {
+  const created = await apiKeysDb.createApiKey("policy-test-googkey", "machine-googkey-1234");
+  assert.ok(created?.key, "createApiKey must return a key");
+
+  const policy = await loadPolicy();
+  const headers = new Headers({ "x-goog-api-key": created.key });
+  const out = await policy.evaluate(ctx(headers));
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.kind, "client_api_key");
+    assert.match(out.subject.id, /^key_/);
+  }
+});
+
+test("clientApiPolicy: Authorization Bearer wins over x-goog-api-key when both present (#7034)", async () => {
+  const created = await apiKeysDb.createApiKey("policy-test-goog-precedence", "machine-goog-2345");
+  assert.ok(created?.key, "createApiKey must return a key");
+
+  const policy = await loadPolicy();
+  const headers = new Headers({
+    authorization: `Bearer ${created.key}`,
+    "x-goog-api-key": "sk-goog-should-lose",
+  });
+  const out = await policy.evaluate(ctx(headers));
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.kind, "client_api_key");
+    assert.match(out.subject.id, /^key_/);
+  }
+});
+
+test("clientApiPolicy: existing x-api-key still wins over x-goog-api-key when both present (#7034)", async () => {
+  const created = await apiKeysDb.createApiKey("policy-test-xkey-precedence", "machine-xkey-2345");
+  assert.ok(created?.key, "createApiKey must return a key");
+
+  const policy = await loadPolicy();
+  const headers = new Headers({
+    "x-api-key": created.key,
+    "x-goog-api-key": "sk-goog-should-lose",
+  });
+  const out = await policy.evaluate(ctx(headers));
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.kind, "client_api_key");
+    assert.match(out.subject.id, /^key_/);
+  }
+});
+
+test("clientApiPolicy: invalid x-goog-api-key is rejected with 401 AUTH_002 (#7034)", async () => {
+  const policy = await loadPolicy();
+  const headers = new Headers({ "x-goog-api-key": "sk-invalid-goog-key" });
+  const out = await policy.evaluate(ctx(headers));
+  assert.equal(out.allow, false);
+  if (!out.allow) {
+    assert.equal(out.status, 401);
+    assert.equal(out.code, "AUTH_002");
   }
 });
 

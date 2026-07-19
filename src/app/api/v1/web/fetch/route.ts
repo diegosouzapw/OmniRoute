@@ -12,7 +12,11 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { handleWebFetch } from "@omniroute/open-sse/handlers/webFetch.ts";
 import * as log from "@/sse/utils/logger";
-import { extractApiKey, isValidApiKey, getProviderCredentials } from "@/sse/services/auth";
+import {
+  extractApiKey,
+  isValidApiKey,
+  getProviderCredentialsWithQuotaPreflight,
+} from "@/sse/services/auth";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 import { v1WebFetchSchema } from "@/shared/validation/schemas";
@@ -38,7 +42,7 @@ async function resolveCredentials(
   providerId: WebFetchProviderId
 ): Promise<{ apiKey?: string } | null> {
   try {
-    const creds = await getProviderCredentials(providerId);
+    const creds = await getProviderCredentialsWithQuotaPreflight(providerId);
     return creds ?? null;
   } catch {
     return null;

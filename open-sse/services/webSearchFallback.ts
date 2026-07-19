@@ -142,12 +142,20 @@ export function supportsNativeWebSearchFallbackBypass({
   sourceFormat,
   targetFormat,
   nativeCodexPassthrough,
+  interceptSearchOverride,
 }: {
   provider?: string | null;
   sourceFormat?: string | null;
   targetFormat: string | null | undefined;
   nativeCodexPassthrough: boolean;
+  // Per-model rule (#3384) — resolveInterceptSearch() in src/lib/db/interceptionRules.ts.
+  // true = force interception (never bypass); false = force native bypass; undefined =
+  // fall through to the native-bypass defaults below.
+  interceptSearchOverride?: boolean;
 }): boolean {
+  if (typeof interceptSearchOverride === "boolean") {
+    return !interceptSearchOverride;
+  }
   // Native Codex (OpenAI Responses) passthrough: the upstream runs web search itself.
   if (nativeCodexPassthrough) return true;
   // Gemini target: the Gemini translator maps built-in web search to googleSearch natively.
@@ -171,6 +179,7 @@ export function prepareWebSearchFallbackBody<T extends JsonRecord>(
     sourceFormat?: string | null;
     targetFormat?: string | null;
     nativeCodexPassthrough: boolean;
+    interceptSearchOverride?: boolean;
   }
 ): { body: T; fallback: WebSearchFallbackPlan } {
   const tools = Array.isArray(body.tools) ? body.tools : null;

@@ -3,6 +3,8 @@ import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { runSingleModelTest } from "@/lib/api/modelTestRunner";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+import { getSettings } from "@/lib/db/settings";
+import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 
 const testModelSchema = z.object({
   providerId: z.string().min(1),
@@ -11,6 +13,7 @@ const testModelSchema = z.object({
 });
 
 const SINGLE_TEST_TIMEOUT_MS = 20_000;
+const NVIDIA_SINGLE_TEST_TIMEOUT_MS = 180_000;
 
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -40,11 +43,36 @@ export async function POST(request: Request) {
     }
     const { providerId, modelId, connectionId } = validation.data;
 
+    // #6328 (follow-up to #6495): REMOVE — not just hide — paid Test dispatches
+    // when hidePaidModels is on. 403 (distinct from validation-400) so callers
+    // can tell policy-blocked apart from bad-request. Fail open on settings read.
+    let hidePaid = false;
+    try {
+      const settings = await getSettings();
+      hidePaid = settings?.hidePaidModels === true;
+    } catch {}
+    if (
+      hidePaid &&
+      !(providerHasFreeModels(providerId) && isFreeModel(providerId, { id: modelId }))
+    ) {
+      return NextResponse.json(
+        {
+          status: "error",
+          error: "Paid model blocked while hidePaidModels is enabled",
+        },
+        { status: 403 }
+      );
+    }
+
     const result = await runSingleModelTest({
       providerId,
       modelId,
       ...(connectionId ? { connectionId } : {}),
-      timeoutMs: SINGLE_TEST_TIMEOUT_MS,
+      timeoutMs:
+        providerId.trim().toLowerCase() === "nvidia"
+          ? NVIDIA_SINGLE_TEST_TIMEOUT_MS
+          : SINGLE_TEST_TIMEOUT_MS,
+      streamChat: true,
     });
 
     if (result.status === "ok") {

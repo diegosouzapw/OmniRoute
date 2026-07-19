@@ -14,6 +14,7 @@ export type WebSessionCredentialRequirement =
        * AND the Cookie header, so the one-line cookie hint reads circular).
        */
       hintKey?: string;
+      hintFallback?: string;
     }
   | {
       kind: "none";
@@ -44,6 +45,14 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "sso=...; sso-rw=...",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "sso", "sso-rw"],
+    // #7567 — grok.com's cf_clearance cookie is pinned to IP + User-Agent + TLS
+    // fingerprint of the browser that earned it, so pasting it from a different
+    // machine/IP causes a 403 that is actually correct Cloudflare behavior. Point
+    // users at the Custom User-Agent field under Advanced Settings + same IP/proxy,
+    // instead of the generic (and here misleading) single-cookie hint.
+    hintKey: "grokWebCookieHint",
+    hintFallback:
+      "grok.com's cf_clearance cookie is pinned to the IP, User-Agent, and TLS fingerprint of the browser where you copied it — pasting it from a different machine/IP causes a 403. Paste sso and sso-rw here, then open Advanced Settings and fill Custom User-Agent with the EXACT User-Agent string of that same browser, and use the same IP/proxy for this connection.",
   },
   "gemini-web": {
     kind: "cookie",
@@ -51,6 +60,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "__Secure-1PSID=...; __Secure-1PSIDTS=...",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "__Secure-1PSID", "__Secure-1PSIDTS"],
+  },
+  "notion-web": {
+    kind: "cookie",
+    credentialName: "token_v2 (optional: space_id, notion_browser_id)",
+    placeholder: "token_v2=...; space_id=...; notion_browser_id=...",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "token_v2", "space_id", "notion_browser_id"],
   },
   "gemini-business": {
     kind: "cookie",
@@ -98,6 +114,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     kind: "token",
     credentialName: "access_token",
     placeholder: "access_token=... or a DevTools HAR export",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "access_token", "accessToken"],
+  },
+  "microsoft-designer-web": {
+    kind: "token",
+    credentialName: "access_token",
+    placeholder: "access_token=... (Authorization: Bearer header from the DallE.ashx request)",
     acceptsFullCookieHeader: false,
     storageKeys: ["token", "access_token", "accessToken"],
   },
@@ -170,11 +193,11 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     storageKeys: ["cookie", "__vercel_session"],
   },
   "kimi-web": {
-    kind: "cookie",
-    credentialName: "kimi-auth",
-    placeholder: "kimi-auth=eyJ... (full Cookie header from www.kimi.com)",
+    kind: "token",
+    credentialName: "access_token",
+    placeholder: "access_token from www.kimi.com localStorage",
     acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "kimi-auth", "session"],
+    storageKeys: ["token", "access_token", "accessToken", "cookie", "kimi-auth"],
   },
   "doubao-web": {
     kind: "cookie",
@@ -227,18 +250,25 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "manus_session"],
   },
+  "zai-web": {
+    kind: "cookie",
+    credentialName: "token",
+    placeholder: "token=... or full Cookie header from chat.z.ai",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "token"],
+  },
   lmarena: {
     kind: "cookie",
-    // lmarena.ai's auth cookie is `arena-auth-prod-v1` (the legacy hint said `session`,
+    // arena.ai's auth cookie is `arena-auth-prod-v1` (the legacy hint said `session`,
     // which never matched the real cookie name and confused users). #3810
     //
     // #4271: LMArena migrated to Supabase SSR chunked cookies — the single
     // `arena-auth-prod-v1` cookie is now empty and the session is split across
     // `arena-auth-prod-v1.0`, `arena-auth-prod-v1.1`, … Users must paste the FULL
     // Cookie header so the executor can reconstruct the single cookie from chunks.
-    credentialName: "arena-auth-prod-v1",
+    credentialName: "full Cookie header (arena-auth-prod-v1.0 + arena-auth-prod-v1.1)",
     placeholder:
-      "Paste the full Cookie header from lmarena.ai (the session is now split across arena-auth-prod-v1.0, .1, …)",
+      "arena-auth-prod-v1.0=...; arena-auth-prod-v1.1=...; other=value (full Cookie header from arena.ai)",
     acceptsFullCookieHeader: true,
     storageKeys: [
       "cookie",
@@ -247,6 +277,9 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
       "arena-auth-prod-v1.1",
       "session",
     ],
+    hintKey: "lmarenaWebCookieHint",
+    hintFallback:
+      "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403.",
   },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 

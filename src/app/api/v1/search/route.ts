@@ -1,5 +1,9 @@
 import { handleSearch } from "@omniroute/open-sse/handlers/search.ts";
-import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import {
+  getProviderCredentialsWithQuotaPreflight,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
 import {
   getAllSearchProviders,
   getSearchProvider,
@@ -64,13 +68,15 @@ type SearchCredentials = Record<string, any>;
 type SearchCredentialLookup = SearchCredentials | RateLimitedCredentials | null;
 
 async function resolveSearchCredentials(providerId: string): Promise<SearchCredentialLookup> {
-  const credentials = await getProviderCredentials(providerId).catch(() => null);
+  const credentials = await getProviderCredentialsWithQuotaPreflight(providerId).catch(() => null);
   if (credentials && !isAllRateLimitedCredentials(credentials)) return credentials;
 
   const fallbackId = SEARCH_CREDENTIAL_FALLBACKS[providerId];
   if (!fallbackId) return credentials;
 
-  const fallbackCredentials = await getProviderCredentials(fallbackId).catch(() => null);
+  const fallbackCredentials = await getProviderCredentialsWithQuotaPreflight(fallbackId).catch(
+    () => null
+  );
   if (fallbackCredentials && !isAllRateLimitedCredentials(fallbackCredentials)) {
     return fallbackCredentials;
   }
@@ -180,7 +186,9 @@ async function postHandler(request: Request, context: unknown) {
       // Sort by cost to find cheapest with credentials (fallback-only providers
       // are reached via the last-resort step below, never the primary pick).
       const sortedIds = Object.values(SEARCH_PROVIDERS)
-        .filter((provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type))
+        .filter(
+          (provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type)
+        )
         .sort((a, b) => a.costPerQuery - b.costPerQuery)
         .map((p) => p.id);
 
@@ -216,7 +224,9 @@ async function postHandler(request: Request, context: unknown) {
     // Find alternate for failover — must bind credentials to the matched provider.
     // Exclude fallback-only providers; they are only used by the last-resort step.
     const otherIds = Object.values(SEARCH_PROVIDERS)
-      .filter((provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type))
+      .filter(
+        (provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type)
+      )
       .sort((a, b) => a.costPerQuery - b.costPerQuery)
       .map((p) => p.id)
       .filter((id) => id !== providerConfig.id);
@@ -260,7 +270,13 @@ async function postHandler(request: Request, context: unknown) {
     clampedMaxResults,
     body.country,
     body.language,
-    { filters: body.filters, offset: body.offset, time_range: body.time_range }
+    {
+      filters: body.filters,
+      offset: body.offset,
+      time_range: body.time_range,
+      content: body.content,
+      provider_options: body.provider_options,
+    }
   );
 
   const ttl = providerConfig.cacheTTLMs ?? SEARCH_CACHE_DEFAULT_TTL_MS;

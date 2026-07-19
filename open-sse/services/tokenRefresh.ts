@@ -1,10 +1,17 @@
 // @ts-nocheck
 import { AsyncLocalStorage } from "node:async_hooks";
-import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
-import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";
+import { hostname, release } from "node:os";
+import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
+import {
+  buildKimiCodeIdentityHeaders,
+  normalizeKimiDeviceId,
+} from "../config/providers/registry/kimi/coding/runtime.ts";
+import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
+import { getKimiDeviceModel } from "../utils/kimiDevice.ts";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
 import { serializeRefresh, wasRefreshTokenRotated } from "./refreshSerializer.ts";
+import { buildExternalIdpRefreshParams, isExternalIdpAuthMethod } from "./kiroExternalIdp.ts";
 import { WINDSURF_CONFIG } from "@/lib/oauth/constants/oauth";
 import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oauth/gitlab";
 
@@ -701,17 +708,17 @@ export async function refreshKimiCodingToken(
   // deterministic hash of the refresh token so it is at least consistent
   // across refreshes for the same session.
   const stableDeviceId =
-    (providerSpecificData?.deviceId as string) ||
-    pbkdf2Sync(refreshToken, "kimi-device-id", 1000, 16, "sha256").toString("hex");
+    normalizeKimiDeviceId(providerSpecificData?.deviceId) ||
+    normalizeKimiDeviceId(
+      pbkdf2Sync(refreshToken, "kimi-device-id", 1000, 16, "sha256").toString("hex")
+    );
 
-  const platform = "kimi_cli";
-  const version = process.env.KIMI_CLI_VERSION || "1.36.0";
-
-  // Build device model string matching the format from providers/kimi-coding.ts.
-  // open-sse is a portable workspace — use process.platform/arch (always available in Node).
-  const osTypeStr = typeof process !== "undefined" ? process.platform : "unknown";
-  const archStr = typeof process !== "undefined" ? process.arch : "unknown";
-  const deviceModel = [osTypeStr, archStr].filter(Boolean).join(" ");
+  const osRelease = release();
+  const persistedDeviceModel =
+    typeof providerSpecificData?.deviceModel === "string"
+      ? providerSpecificData.deviceModel.trim()
+      : "";
+  const deviceModel = persistedDeviceModel || getKimiDeviceModel();
 
   try {
     const params = new URLSearchParams({
@@ -726,15 +733,12 @@ export async function refreshKimiCodingToken(
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
-          "X-Msh-Platform": platform,
-          "X-Msh-Version": version,
-          "X-Msh-Device-Model": (providerSpecificData?.deviceModel as string) || deviceModel,
-          "X-Msh-Device-Id": stableDeviceId,
-          // These headers match getKimiOAuthHeaders() in providers/kimi-coding.ts.
-          // They're derived at runtime from os module calls; use safe fallbacks here
-          // since open-sse is a portable workspace without direct fs/os access.
-          "X-Msh-Device-Name": (providerSpecificData?.deviceName as string) || osTypeStr,
-          "X-Msh-Os-Version": (providerSpecificData?.osVersion as string) || osTypeStr,
+          ...buildKimiCodeIdentityHeaders({
+            deviceId: stableDeviceId,
+            deviceName: providerSpecificData?.deviceName || hostname(),
+            deviceModel,
+            osVersion: providerSpecificData?.osVersion || osRelease,
+          }),
         },
         body: params,
       })
@@ -1209,6 +1213,69 @@ export async function refreshKiroToken(
     const clientSecret = providerSpecificData?.clientSecret;
     const region = providerSpecificData?.region;
 
+    // Enterprise / Microsoft Entra "Your organization" (external_idp) logins refresh with a
+    // standard PUBLIC-client OAuth2 refresh_token grant against the org IdP's own tokenEndpoint
+    // (form-encoded client_id + refresh_token + scope, no client_secret) — NOT the AWS SSO OIDC
+    // or Kiro social endpoints. The rotated refresh_token is persisted by the caller.
+    if (isExternalIdpAuthMethod(authMethod)) {
+      let refreshRequest;
+      try {
+        refreshRequest = buildExternalIdpRefreshParams(refreshToken, providerSpecificData);
+      } catch (cfgErr) {
+        log?.error?.(
+          "TOKEN_REFRESH",
+          `Invalid Kiro external_idp refresh config: ${cfgErr instanceof Error ? cfgErr.message : String(cfgErr)}`
+        );
+        return null;
+      }
+
+      const response = await runWithProxyContext(proxyConfig, () =>
+        fetch(refreshRequest.tokenEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Accept: "application/json",
+          },
+          body: refreshRequest.body,
+        })
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let oauthErr: string | undefined;
+        try {
+          oauthErr = JSON.parse(errorText)?.error;
+        } catch {
+          /* not JSON */
+        }
+        if (oauthErr === "invalid_grant" || oauthErr === "invalid_client") {
+          log?.error?.(
+            "TOKEN_REFRESH",
+            "Kiro external_idp refresh token expired/invalid. Re-authentication required.",
+            { oauthErr }
+          );
+          return { error: "unrecoverable_refresh_error", code: oauthErr };
+        }
+        log?.error?.("TOKEN_REFRESH", "Failed to refresh Kiro external_idp token", {
+          status: response.status,
+          error: errorText.slice(0, 200),
+        });
+        return null;
+      }
+
+      const tokens = await response.json();
+      log?.info?.("TOKEN_REFRESH", "Successfully refreshed Kiro external_idp token", {
+        hasNewAccessToken: !!tokens.access_token,
+        hasNewRefreshToken: !!tokens.refresh_token,
+        expiresIn: tokens.expires_in,
+      });
+      return {
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token || refreshToken,
+        expiresIn: tokens.expires_in || 3600,
+      };
+    }
+
     // AWS SSO OIDC (Builder ID or IDC)
     // If clientId and clientSecret exist, assume AWS SSO OIDC (default to builder-id if authMethod not specified).
     // Exception: imported social tokens (authMethod === "imported") carry a freshly-registered
@@ -1602,6 +1669,7 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
       );
 
     case "cline":
+    case "clinepass": // reuses the Cline WorkOS refresh flow (clinepass: cline)
       return await refreshClineToken(credentials.refreshToken, log, proxyConfig);
 
     case "kimi-coding":

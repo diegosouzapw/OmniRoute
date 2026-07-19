@@ -58,10 +58,7 @@ function decodeJwtPayload(jwt: unknown): Record<string, unknown> | null {
     const missingPadding =
       (BASE64_BLOCK_SIZE - (base64.length % BASE64_BLOCK_SIZE)) % BASE64_BLOCK_SIZE;
     const padded = base64 + "=".repeat(missingPadding);
-    return JSON.parse(Buffer.from(padded, "base64").toString("utf8")) as Record<
-      string,
-      unknown
-    >;
+    return JSON.parse(Buffer.from(padded, "base64").toString("utf8")) as Record<string, unknown>;
   } catch {
     return null;
   }
@@ -82,19 +79,29 @@ export function extractCodexAccountInfo(idToken: string): {
 } {
   const payload = decodeJwtPayload(idToken);
   if (!payload) return {};
-  const chatgpt =
-    (payload["https://api.openai.com/auth"] as Record<string, unknown>) || {};
+  const chatgpt = (payload["https://api.openai.com/auth"] as Record<string, unknown>) || {};
   return {
     email: typeof payload.email === "string" ? payload.email : undefined,
     chatgptAccountId:
-      typeof chatgpt.chatgpt_account_id === "string"
-        ? chatgpt.chatgpt_account_id
-        : undefined,
+      typeof chatgpt.chatgpt_account_id === "string" ? chatgpt.chatgpt_account_id : undefined,
     chatgptPlanType:
-      typeof chatgpt.chatgpt_plan_type === "string"
-        ? chatgpt.chatgpt_plan_type
-        : undefined,
+      typeof chatgpt.chatgpt_plan_type === "string" ? chatgpt.chatgpt_plan_type : undefined,
   };
+}
+
+/**
+ * Decode a JWT's `exp` claim (seconds since epoch, per RFC 7519) without
+ * verifying the signature. Returns `null` when the token isn't a decodable
+ * JWT or carries no numeric `exp`.
+ *
+ * Exported so sibling Codex import paths (e.g. the session-JSON normalizer
+ * at `codexSessionImport.ts`, #6636) can check expiry without duplicating a
+ * 3rd inline JWT decoder.
+ */
+export function decodeJwtExp(jwt: unknown): number | null {
+  const payload = decodeJwtPayload(jwt);
+  const exp = payload && typeof payload.exp === "number" ? payload.exp : null;
+  return exp !== null && Number.isFinite(exp) ? exp : null;
 }
 
 function pickString(...candidates: (string | undefined)[]): string | undefined {
@@ -138,6 +145,34 @@ function unwrapCodexAuthJson(rec: Record<string, unknown>): Record<string, unkno
   return { ...rec, ...tokens };
 }
 
+/**
+ * Map the camelCase field names used by 9router's Codex account export
+ * (`accessToken`, `refreshToken`, `idToken`, `expiresAt`, and a nested
+ * `providerSpecificData` block) onto the snake_case keys the rest of the
+ * normalizer already understands (#6665). A snake_case key is only filled from
+ * its camelCase alias when it is absent, so a snake_case or mixed export keeps
+ * working unchanged.
+ */
+function applyCamelCaseAliases(rec: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...rec };
+  const fillFrom = (snake: string, value: unknown) => {
+    if (out[snake] === undefined && typeof value === "string" && value) {
+      out[snake] = value;
+    }
+  };
+  fillFrom("access_token", rec.accessToken);
+  fillFrom("refresh_token", rec.refreshToken);
+  fillFrom("id_token", rec.idToken);
+  fillFrom("expired", rec.expiresAt);
+  const psd = rec.providerSpecificData;
+  if (psd && typeof psd === "object" && !Array.isArray(psd)) {
+    const block = psd as Record<string, unknown>;
+    fillFrom("account_id", block.chatgptAccountId);
+    fillFrom("chatgpt_plan_type", block.chatgptPlanType);
+  }
+  return out;
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /**
@@ -151,7 +186,7 @@ export function normalizeCodexImportRecord(input: unknown): NormalizeResult {
     return { ok: false, error: "Record is not an object" };
   }
 
-  const rec = unwrapCodexAuthJson(input as Record<string, unknown>);
+  const rec = applyCamelCaseAliases(unwrapCodexAuthJson(input as Record<string, unknown>));
 
   // Allow type field to be missing or "codex"; reject anything else explicitly so
   // users don't accidentally import claude/gemini exports through this path.
@@ -179,12 +214,14 @@ export function normalizeCodexImportRecord(input: unknown): NormalizeResult {
 
   const chatgptAccountId = pickString(
     fromJwt.chatgptAccountId,
-    rec.account_id as string | undefined,
+    rec.account_id as string | undefined
   );
-  const chatgptPlanType = pickString(fromJwt.chatgptPlanType);
+  const chatgptPlanType = pickString(
+    fromJwt.chatgptPlanType,
+    rec.chatgpt_plan_type as string | undefined
+  );
 
-  const expiresAt =
-    parseExpiry(rec.expired) ?? parseAccessTokenExp(accessToken);
+  const expiresAt = parseExpiry(rec.expired) ?? parseAccessTokenExp(accessToken);
 
   const providerSpecificData: CodexImportPayload["providerSpecificData"] = {};
   if (chatgptAccountId) providerSpecificData.chatgptAccountId = chatgptAccountId;

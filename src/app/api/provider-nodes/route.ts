@@ -19,6 +19,34 @@ const ANTHROPIC_COMPATIBLE_DEFAULTS = {
   baseUrl: "https://api.anthropic.com/v1",
 };
 
+// #6874: VibeProxy (github.com/automazeio/vibeproxy) — local OpenAI-compatible
+// gateway. baseUrl has no default (operator-specific host/port); name/prefix/
+// apiType are filled in when the caller omits them.
+const VIBEPROXY_OPENAI_DEFAULTS = {
+  name: "VibeProxy",
+  prefix: "vibeproxy",
+  apiType: "chat" as const,
+};
+
+/**
+ * Normalize a caller-supplied VibeProxy base URL down to its `/v1` root,
+ * mirroring `sanitizeAnthropicBaseUrl`/`sanitizeClaudeCodeCompatibleBaseUrl`:
+ * strip trailing slash + known OpenAI-compatible suffixes, then ensure the
+ * result ends at `/v1` (append if absent, guard against double `/v1/v1`).
+ */
+function sanitizeVibeProxyBaseUrl(baseUrl: string) {
+  let base = (baseUrl || "")
+    .trim()
+    .replace(/\/$/, "")
+    .replace(/\/chat\/completions$/i, "")
+    .replace(/\/completions$/i, "");
+  // Guard against a literal "scheme://v1" authority so we never strip the host itself.
+  if (base.endsWith("/v1") && !base.endsWith("://v1")) {
+    return base;
+  }
+  return `${base}/v1`;
+}
+
 function sanitizeAnthropicBaseUrl(baseUrl: string) {
   return (baseUrl || "")
     .trim()
@@ -76,16 +104,40 @@ export async function POST(request) {
       baseUrl,
       type,
       compatMode,
+      preset,
       chatPath,
       modelsPath,
       customHeaders,
       iconUrl,
     } = validation.data;
 
+    if (preset === "vibeproxy-openai") {
+      // Schema guarantees baseUrl is non-empty for this preset.
+      const sanitizedBaseUrl = sanitizeVibeProxyBaseUrl(baseUrl as string);
+      const baseUrlError = validateProviderNodeBaseUrl(sanitizedBaseUrl);
+      if (baseUrlError) return baseUrlError;
+
+      const node = await createProviderNode({
+        id: `${OPENAI_COMPATIBLE_PREFIX}${VIBEPROXY_OPENAI_DEFAULTS.apiType}-${generateId()}`,
+        type: "openai-compatible",
+        prefix: (prefix?.trim() || VIBEPROXY_OPENAI_DEFAULTS.prefix).trim(),
+        apiType: apiType || VIBEPROXY_OPENAI_DEFAULTS.apiType,
+        baseUrl: sanitizedBaseUrl,
+        name: (name?.trim() || VIBEPROXY_OPENAI_DEFAULTS.name).trim(),
+        chatPath: chatPath || null,
+        modelsPath: modelsPath || null,
+        iconUrl: iconUrl?.trim() || null,
+        customHeaders: customHeaders || null,
+      });
+      return NextResponse.json({ node }, { status: 201 });
+    }
+
     // Determine type
     const nodeType = type || "openai-compatible";
 
     if (nodeType === "openai-compatible") {
+      const resolvedName = (name || "").trim();
+      const resolvedPrefix = (prefix || "").trim();
       const resolvedBaseUrl = (baseUrl || OPENAI_COMPATIBLE_DEFAULTS.baseUrl).trim();
       const baseUrlError = validateProviderNodeBaseUrl(resolvedBaseUrl);
       if (baseUrlError) return baseUrlError;
@@ -93,10 +145,10 @@ export async function POST(request) {
       const node = await createProviderNode({
         id: `${OPENAI_COMPATIBLE_PREFIX}${apiType}-${generateId()}`,
         type: "openai-compatible",
-        prefix: prefix.trim(),
+        prefix: resolvedPrefix,
         apiType,
         baseUrl: resolvedBaseUrl,
-        name: name.trim(),
+        name: resolvedName,
         chatPath: chatPath || null,
         modelsPath: modelsPath || null,
         iconUrl: iconUrl?.trim() || null,
@@ -124,9 +176,9 @@ export async function POST(request) {
             ? `${CLAUDE_CODE_COMPATIBLE_PREFIX}${generateId()}`
             : `${ANTHROPIC_COMPATIBLE_PREFIX}${generateId()}`,
         type: "anthropic-compatible",
-        prefix: prefix.trim(),
+        prefix: (prefix || "").trim(),
         baseUrl: sanitizedBaseUrl,
-        name: name.trim(),
+        name: (name || "").trim(),
         chatPath: chatPath || null,
         modelsPath: compatMode === "cc" ? null : modelsPath || null,
         iconUrl: iconUrl?.trim() || null,

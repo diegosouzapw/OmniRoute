@@ -14,6 +14,7 @@ import { extractRelayAuth } from "@/lib/db/proxies";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { buildRelayTestResult } from "./relayTestResult";
+import { recordRelayProbe } from "@/lib/db/relayProbeStats";
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
 
@@ -128,7 +129,16 @@ export async function POST(request: Request) {
           latencyMs: Date.now() - start,
           relayUrl,
           relayAuthPresent: relayAuth.length > 0,
+          relayResponseHeaders: {
+            get: (name: string) => {
+              const value = res.headers[name.toLowerCase()];
+              return value === undefined ? null : String(value);
+            },
+          },
         });
+        // #5890: track relay probe outcomes so the dashboard can surface a
+        // relayTested / relayAlive pulse and flag an unhealthy sidecar backend.
+        recordRelayProbe(relayResult.success);
         // #5716: a relay that *responds* non-200 (e.g. 401 auth mismatch) used to
         // return `success:false` with no reason and no log — a silent failure.
         if (!relayResult.success) {

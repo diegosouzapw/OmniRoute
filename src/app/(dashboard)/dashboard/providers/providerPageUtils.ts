@@ -16,6 +16,7 @@ import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 import { fetchWithTimeout } from "@/shared/utils/fetchTimeout";
 import type { ProviderDisplayMode } from "./providerPageStorage";
+import { isFeaturedProviderId } from "./featuredProviders";
 
 export interface ProviderStatsSnapshot {
   total?: number;
@@ -69,7 +70,36 @@ export function shouldShowFirstProviderHint(
   return connectionCount === 0 && !searchQuery?.trim();
 }
 
+export function shouldShowProviderSection(
+  category: string,
+  activeCategory: string | null,
+  showFreeOnly: boolean
+): boolean {
+  if (showFreeOnly) return category === "free";
+  if (activeCategory) return activeCategory === category;
+
+  // Free and Web Fetch are cross-cutting views assembled from providers that
+  // already belong to a primary section. Rendering them in the default view
+  // duplicates cards; they remain available through their summary filters.
+  return category !== "free" && category !== "webfetch";
+}
+
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
+
+const OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS = new Set(["kiro", "amazon-q", "kimi-coding"]);
+
+const PROVIDER_CONNECTION_ALIASES: Record<string, readonly string[]> = {
+  "kimi-coding": ["kimi-coding-apikey"],
+};
+
+export function connectionBelongsToProviderPage(
+  connectionProvider: string | null | undefined,
+  providerId: string
+): boolean {
+  if (!connectionProvider) return false;
+  if (connectionProvider === providerId) return true;
+  return PROVIDER_CONNECTION_ALIASES[providerId]?.includes(connectionProvider) === true;
+}
 
 /**
  * Whether a provider connection should be counted on a provider card rendered in
@@ -83,10 +113,13 @@ export function connectionMatchesProviderCard(
   providerId: string,
   cardAuthType: "oauth" | "free" | "apikey"
 ): boolean {
-  if (!conn || conn.provider !== providerId) return false;
+  if (!conn || !connectionBelongsToProviderPage(conn.provider, providerId)) return false;
   if (cardAuthType === "free") return true;
-  if (supportsApiKeyOnFreeProvider(providerId)) {
-    return conn.authType === "oauth" || conn.authType === "apikey";
+  if (
+    supportsApiKeyOnFreeProvider(providerId) ||
+    OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS.has(providerId)
+  ) {
+    return conn.authType === "oauth" || conn.authType === "apikey" || conn.authType === "api_key";
   }
   return conn.authType === cardAuthType;
 }
@@ -112,19 +145,41 @@ export function sortProviderEntriesByName<TProvider>(
   });
 }
 
+/**
+ * Sort provider entries alphabetically (via `sortProviderEntriesByName`), then
+ * stable-pin any `FEATURED_PROVIDER_IDS` member first — featured entries keep
+ * their alphabetical order among themselves, followed by the rest in
+ * alphabetical order. Presentation-only (see `featuredProviders.ts`): this must
+ * never influence routing/fallback order, only how the dashboard's provider
+ * category grids are sorted.
+ */
+export function sortProviderEntriesFeaturedFirst<TProvider>(
+  entries: ProviderEntry<TProvider>[]
+): ProviderEntry<TProvider>[] {
+  const sorted = sortProviderEntriesByName(entries);
+  const featured: ProviderEntry<TProvider>[] = [];
+  const rest: ProviderEntry<TProvider>[] = [];
+  for (const entry of sorted) {
+    (isFeaturedProviderId(entry.providerId) ? featured : rest).push(entry);
+  }
+  return [...featured, ...rest];
+}
+
 export function buildProviderEntries<TProvider = Record<string, unknown>>(
   providers: ProviderRecord<TProvider>,
   displayAuthType: ProviderEntry["displayAuthType"],
   toggleAuthType: ProviderEntry["toggleAuthType"],
   getProviderStats: GetProviderStats
 ): ProviderEntry<TProvider>[] {
-  return Object.entries(providers).map(([providerId, provider]) => ({
-    providerId,
-    provider,
-    stats: getProviderStats(providerId, toggleAuthType),
-    displayAuthType,
-    toggleAuthType,
-  }));
+  return Object.entries(providers)
+    .filter(([, provider]) => !(provider as Record<string, unknown>).hiddenFromDashboard)
+    .map(([providerId, provider]) => ({
+      providerId,
+      provider,
+      stats: getProviderStats(providerId, toggleAuthType),
+      displayAuthType,
+      toggleAuthType,
+    }));
 }
 
 export function buildMergedOAuthProviderEntries<TProvider = Record<string, unknown>>(
@@ -207,13 +262,35 @@ export function buildCompatibleProviderGroups(
   return { openai, anthropic, claudeCode };
 }
 
+export type LiveModelsByProviderId = Record<string, Array<{ id: string; name?: string }>>;
+
+/**
+ * Models to match against for the model-name filter: the static curated
+ * registry PLUS any live/synced catalog for that provider connection (#7250).
+ * Aggregator providers (openrouter, kilocode, theoldllm...) declare a
+ * single-entry static placeholder — matching only that entry means a search
+ * for any real upstream model name can never match, silently hiding the
+ * provider. When the live catalog is empty/unavailable we fall back to the
+ * static-only list so already-correct static providers are unaffected.
+ */
+function getFilterableModelsForEntry(
+  providerId: string,
+  liveModelsByProviderId?: LiveModelsByProviderId
+): Array<{ id: string; name?: string }> {
+  const staticModels = getModelsByProviderId(providerId);
+  const liveModels = liveModelsByProviderId?.[providerId];
+  if (!liveModels || liveModels.length === 0) return staticModels;
+  return [...staticModels, ...liveModels];
+}
+
 export function filterConfiguredProviderEntries<TProvider>(
   entries: ProviderEntry<TProvider>[],
   showConfiguredOnly: boolean,
   searchQuery?: string,
   showFreeOnly?: boolean,
   modelSearchQuery?: string,
-  serviceKindFilter?: string | null
+  serviceKindFilter?: string | null,
+  liveModelsByProviderId?: LiveModelsByProviderId
 ): ProviderEntry<TProvider>[] {
   let filtered = entries;
 
@@ -256,12 +333,12 @@ export function filterConfiguredProviderEntries<TProvider>(
   if (modelSearchQuery && modelSearchQuery.trim()) {
     const q = modelSearchQuery.trim();
     filtered = filtered.filter((entry) => {
-      const models = getModelsByProviderId(entry.providerId);
-      return models.some((m) => matchesSearch(m.id, q) || matchesSearch(m.name, q));
+      const models = getFilterableModelsForEntry(entry.providerId, liveModelsByProviderId);
+      return models.some((m) => matchesSearch(m.id, q) || matchesSearch(m.name || "", q));
     });
   }
 
-  return sortProviderEntriesByName(filtered);
+  return sortProviderEntriesFeaturedFirst(filtered);
 }
 
 function pushUniqueProviderEntry<TProvider>(
@@ -364,7 +441,7 @@ const PROVIDER_PAGE_FETCH_TIMEOUT_MS = 20_000;
  * page paints from whatever data arrived (matching the fast `/api/providers`).
  */
 export async function loadProviderPageData(
-  fetchImpl: typeof fetch = (globalThis.fetch as typeof fetch),
+  fetchImpl: typeof fetch = globalThis.fetch as typeof fetch,
   timeoutMs: number = PROVIDER_PAGE_FETCH_TIMEOUT_MS
 ): Promise<ProviderPageData> {
   const safeJson = async (url: string, init?: RequestInit): Promise<any | null> => {

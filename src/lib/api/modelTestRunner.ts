@@ -2,7 +2,11 @@ import { randomUUID } from "node:crypto";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/route";
 import { POST as postRerank } from "@/app/api/v1/rerank/route";
-import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
+import {
+  buildComboTestRequestBody,
+  extractComboTestResponseText,
+  extractComboTestStreamResult,
+} from "@/lib/combos/testHealth";
 import { getCustomModels } from "@/lib/localDb";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
@@ -12,6 +16,7 @@ const DEFAULT_TEST_TIMEOUT_MS = 10_000;
 const DOLA_PRO_TEST_TIMEOUT_MS = 90_000;
 const DOUBAO_WEB_PROVIDER_ID = "doubao-web";
 const SLOW_WEB_TEST_MODELS = new Set(["dola-pro"]);
+const STREAMING_CHAT_TEST_MAX_TOKENS = 64;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -113,7 +118,7 @@ async function findCustomModelMetadata(providerId: string, modelId: string) {
   }
 }
 
-function buildInternalChatRequest(testBody: Record<string, unknown>, signal: AbortSignal) {
+export function buildInternalChatRequest(testBody: Record<string, unknown>, signal: AbortSignal) {
   return new Request(`${INTERNAL_ORIGIN}/v1/chat/completions`, {
     method: "POST",
     headers: {
@@ -121,6 +126,9 @@ function buildInternalChatRequest(testBody: Record<string, unknown>, signal: Abo
       // Reuse the existing strict-mode internal bypass for live health checks.
       "X-Internal-Test": "combo-health-check",
       "X-OmniRoute-No-Cache": "true",
+      // #6240: a connection test must be clean — never let the operator's globally-enabled
+      // Output Styles (e.g. "Ultra terse") leak a system prompt into a test-model call.
+      "X-OmniRoute-Compression": "off",
       "X-Request-Id": `model-test-${randomUUID()}`,
     },
     body: JSON.stringify(testBody),
@@ -128,13 +136,14 @@ function buildInternalChatRequest(testBody: Record<string, unknown>, signal: Abo
   });
 }
 
-function buildInternalRerankRequest(testBody: Record<string, unknown>, signal: AbortSignal) {
+export function buildInternalRerankRequest(testBody: Record<string, unknown>, signal: AbortSignal) {
   return new Request(`${INTERNAL_ORIGIN}/v1/rerank`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-Internal-Test": "combo-health-check",
       "X-OmniRoute-No-Cache": "true",
+      "X-OmniRoute-Compression": "off",
       "X-Request-Id": `model-test-${randomUUID()}`,
     },
     body: JSON.stringify(testBody),
@@ -191,19 +200,45 @@ export interface RunSingleModelTestOptions {
   modelId: string;
   connectionId?: string;
   timeoutMs?: number;
+  streamChat?: boolean;
 }
 
 export interface SingleModelTestResult {
   modelId: string;
-  status: "ok" | "error" | "rate_limited";
+  status: "ok" | "error" | "rate_limited" | "slow";
   latencyMs: number;
   responseText?: string;
   statusCode?: number;
   httpStatus: number;
   error?: string;
   rateLimited?: boolean;
+  isTransient?: boolean;
   isTimeout?: boolean;
   retryAfter?: number;
+}
+
+export type ModelTestResponseText = {
+  text: string;
+  error?: { message: string; statusCode?: number };
+};
+
+export async function extractModelTestResponseText(
+  response: Response,
+  streamChat: boolean
+): Promise<ModelTestResponseText> {
+  const contentType = (response.headers.get("content-type") || "").toLowerCase();
+  if (streamChat && !contentType.includes("application/json")) {
+    return extractComboTestStreamResult(await response.text());
+  }
+  return { text: extractComboTestResponseText(await response.json()) };
+}
+
+function isRateLimitMessage(message: string): boolean {
+  return /rate[ -]?limit|too many requests|quota exceeded/i.test(message);
+}
+
+function isBotBlockMessage(message: string): boolean {
+  return /cloudflare|bot management|recaptcha|cf-chl|just a moment/i.test(message);
 }
 
 /**
@@ -215,7 +250,13 @@ export interface SingleModelTestResult {
 export async function runSingleModelTest(
   options: RunSingleModelTestOptions
 ): Promise<SingleModelTestResult> {
-  const { providerId, modelId, connectionId, timeoutMs = DEFAULT_TEST_TIMEOUT_MS } = options;
+  const {
+    providerId,
+    modelId,
+    connectionId,
+    timeoutMs = DEFAULT_TEST_TIMEOUT_MS,
+    streamChat = true,
+  } = options;
 
   let fullModelStr = modelId;
   if (!fullModelStr.includes("/")) {
@@ -238,7 +279,10 @@ export async function runSingleModelTest(
         top_n: 1,
         return_documents: false,
       }
-    : buildComboTestRequestBody(fullModelStr, isEmbedding);
+    : buildComboTestRequestBody(fullModelStr, isEmbedding, {
+        stream: !isEmbedding && streamChat,
+        maxTokens: !isEmbedding && streamChat ? STREAMING_CHAT_TEST_MAX_TOKENS : undefined,
+      });
 
   // Per-model AbortController. We track whether the timeout fired so we can
   // distinguish "rate-limit queue aborted" (withRateLimit threw AbortError
@@ -283,10 +327,10 @@ export async function runSingleModelTest(
       if (timedOut) {
         return {
           modelId: fullModelStr,
-          status: "error",
+          status: "slow",
           latencyMs,
-          httpStatus: 500,
-          error: `Timeout (${Math.round(effectiveTimeoutMs / 1000)}s)`,
+          httpStatus: 504,
+          error: `No model output within ${Math.round(effectiveTimeoutMs / 1000)}s`,
           isTimeout: true,
         };
       }
@@ -309,9 +353,19 @@ export async function runSingleModelTest(
       error: getErrorMessage(error),
     };
   }
-  clearTimeout(timeoutHandle);
+  let latencyMs = Date.now() - startTime;
 
-  const latencyMs = Date.now() - startTime;
+  if (timedOut) {
+    clearTimeout(timeoutHandle);
+    return {
+      modelId: fullModelStr,
+      status: "slow",
+      latencyMs,
+      httpStatus: 504,
+      error: `No model output within ${Math.round(effectiveTimeoutMs / 1000)}s`,
+      isTimeout: true,
+    };
+  }
 
   if (res.status === 429) {
     const retryAfter = parseRetryAfterHeader(res.headers.get("retry-after"));
@@ -323,7 +377,7 @@ export async function runSingleModelTest(
     } catch {
       errorMsg = res.statusText || errorMsg;
     }
-    return {
+    const result: SingleModelTestResult = {
       modelId: fullModelStr,
       status: "rate_limited",
       latencyMs,
@@ -333,17 +387,51 @@ export async function runSingleModelTest(
       rateLimited: true,
       ...(retryAfter !== undefined ? { retryAfter } : {}),
     };
+    clearTimeout(timeoutHandle);
+    return result;
   }
 
   if (res.ok) {
-    let responseBody = null;
+    let responseText = "";
+    let streamError: ModelTestResponseText["error"];
     try {
-      responseBody = await res.json();
+      const parsedResponse = await extractModelTestResponseText(
+        res,
+        !isEmbedding && !isRerank && streamChat
+      );
+      responseText = parsedResponse.text;
+      streamError = parsedResponse.error;
     } catch {
-      responseBody = null;
+      responseText = "";
+    } finally {
+      clearTimeout(timeoutHandle);
     }
-
-    const responseText = extractComboTestResponseText(responseBody);
+    latencyMs = Date.now() - startTime;
+    if (streamError) {
+      const error = sanitizeErrorMessage(streamError.message) || "Upstream stream failed";
+      const rateLimited = streamError.statusCode === 429 || isRateLimitMessage(error);
+      const isBotBlock = streamError.statusCode === 403 || isBotBlockMessage(error);
+      return {
+        modelId: fullModelStr,
+        status: rateLimited ? "rate_limited" : "error",
+        latencyMs,
+        ...(streamError.statusCode !== undefined ? { statusCode: streamError.statusCode } : {}),
+        httpStatus: streamError.statusCode ?? 502,
+        error,
+        ...(rateLimited ? { rateLimited: true } : {}),
+        ...(rateLimited || isBotBlock ? { isTransient: true } : {}),
+      };
+    }
+    if (timedOut && !responseText) {
+      return {
+        modelId: fullModelStr,
+        status: "slow",
+        latencyMs,
+        httpStatus: 504,
+        error: `No model output within ${Math.round(effectiveTimeoutMs / 1000)}s`,
+        isTimeout: true,
+      };
+    }
     if (isRerank) {
       return {
         modelId: fullModelStr,
@@ -378,6 +466,8 @@ export async function runSingleModelTest(
     errorMsg = extractProviderErrorMessage(errBody, res.statusText);
   } catch {
     errorMsg = res.statusText;
+  } finally {
+    clearTimeout(timeoutHandle);
   }
   return {
     modelId: fullModelStr,

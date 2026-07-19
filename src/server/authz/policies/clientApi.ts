@@ -1,12 +1,27 @@
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth.ts";
 import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 import { extractApiKey } from "@/sse/services/auth.ts";
+import { extractGoogApiKeyHeader } from "@/sse/services/googApiKeyAuth.ts";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
+
+const HANDSHAKE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+function isWsHandshake(ctx: PolicyContext): boolean {
+  if (ctx.classification.normalizedPath !== "/api/v1/ws") return false;
+  if (!HANDSHAKE_METHODS.has(ctx.request.method.toUpperCase())) return false;
+
+  try {
+    return new URL(ctx.request.url, "http://localhost").searchParams.get("handshake") === "1";
+  } catch {
+    return false;
+  }
+}
 
 function extractBearer(request: Request): string | null {
   const raw = request.headers.get("authorization") ?? request.headers.get("Authorization");
   const xApiKey = request.headers.get("x-api-key") ?? request.headers.get("X-Api-Key");
+  const xGoogApiKey = extractGoogApiKeyHeader(request.headers);
   if (raw) {
     const trimmed = raw.trim();
     if (trimmed.toLowerCase().startsWith("bearer ")) {
@@ -24,6 +39,13 @@ function extractBearer(request: Request): string | null {
     return xApiKey.trim() || null;
   }
 
+  // Issue #7034: gemini-cli (and any @google/genai-based client) sends its
+  // key via x-goog-api-key exclusively — accept it unconditionally, same
+  // shape as the x-api-key fallback above.
+  if (xGoogApiKey) {
+    return xGoogApiKey;
+  }
+
   return extractApiKey(request);
 }
 
@@ -37,6 +59,13 @@ export const clientApiPolicy: RoutePolicy = {
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
     const bearer = extractBearer(ctx.request as Request);
     if (!bearer) {
+      // The WS descriptor handshake is a metadata read; the route handler
+      // performs the actual wsAuth/dashboard/API-key decision and returns the
+      // protocol details the browser needs before opening the socket.
+      if (isWsHandshake(ctx)) {
+        return allow({ kind: "anonymous", id: "ws-handshake" });
+      }
+
       if (await isDashboardSessionAuthenticated(ctx.request)) {
         return allow({ kind: "dashboard_session", id: "dashboard" });
       }

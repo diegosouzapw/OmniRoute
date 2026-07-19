@@ -1,2 +1,5 @@
 # Long reference tables are manually aligned; formatting the whole file causes noisy diffs.
 docs/reference/ENVIRONMENT.md
+
+# Dense auto-generated free-tier budget rows (one object per line) — prettier multi-line expand blows past file-size cap 800.
+open-sse/config/freeModelCatalog.data.ts

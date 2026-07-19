@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Token Usage Tracking - Extract, normalize, estimate and log token usage
  */
@@ -120,6 +119,13 @@ function getTimeString() {
  */
 export function addBufferToUsage(usage) {
   if (!usage || typeof usage !== "object") return usage;
+
+  // Heuristic estimates (web/cookie providers with no upstream metering) should
+  // not get the safety buffer — otherwise a 6-token "hi"/"PONG" becomes a flat
+  // ~2000 for every request and looks like fake metering.
+  if ((usage as { estimated?: unknown }).estimated === true) {
+    return usage;
+  }
 
   const buffer = getBufferTokens();
   if (buffer === 0) return usage;
@@ -254,7 +260,7 @@ export function filterUsageForFormat(usage, targetFormat) {
 export function normalizeUsage(usage) {
   if (!usage || typeof usage !== "object" || Array.isArray(usage)) return null;
 
-  const normalized = {};
+  const normalized: Record<string, number> = {};
   const assignNumber = (key, value) => {
     if (value === undefined || value === null) return;
     const numeric = Number(value);
@@ -270,6 +276,16 @@ export function normalizeUsage(usage) {
   assignNumber("cache_creation_input_tokens", usage?.cache_creation_input_tokens);
   assignNumber("cached_tokens", usage?.cached_tokens);
   assignNumber("reasoning_tokens", usage?.reasoning_tokens);
+  // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A —
+  // @ryanngit). Ticks → USD conversion happens in costCalculator.ts, not here.
+  const exactCostTicks = usage?.cost_in_usd_ticks;
+  if (
+    typeof exactCostTicks === "number" &&
+    Number.isFinite(exactCostTicks) &&
+    exactCostTicks >= 0
+  ) {
+    normalized.cost_in_usd_ticks = exactCostTicks;
+  }
 
   if (Object.keys(normalized).length === 0) return null;
   return normalized;
@@ -388,6 +404,8 @@ export function extractUsage(chunk) {
         chunk.usage.completion_tokens_details?.reasoning_tokens ??
         chunk.usage.output_tokens_details?.reasoning_tokens ??
         chunk.usage.reasoning_tokens,
+      // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A).
+      cost_in_usd_ticks: chunk.usage.cost_in_usd_ticks,
     });
   }
 

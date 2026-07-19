@@ -12,12 +12,10 @@ import {
   RegistryOAuth,
   RegistryEntry,
   LegacyProvider,
-  KIMI_CODING_SHARED,
   buildModels,
   ALIBABA_DASHSCOPE_MODELS,
   GPT_5_5_CONTEXT_LENGTH,
   GPT_5_5_CODEX_CAPABILITIES,
-  GPT_5_4_CODEX_CAPABILITIES,
   CHAT_OPENAI_COMPAT_MODELS,
   mapStainlessOs,
   mapStainlessArch,
@@ -39,6 +37,9 @@ export function generateLegacyProviders(): Record<string, LegacyProvider> {
     }
     if (entry.responsesBaseUrl) {
       p.responsesBaseUrl = entry.responsesBaseUrl;
+    }
+    if (entry.messagesUrl) {
+      p.messagesUrl = entry.messagesUrl;
     }
     if (entry.requestDefaults) {
       p.requestDefaults = entry.requestDefaults;

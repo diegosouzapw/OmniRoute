@@ -41,6 +41,7 @@ export interface ProviderCatalogMetadata {
   riskNoticeVariant?: RiskNoticeVariant;
   apiType?: string;
   baseUrl?: string;
+  hiddenFromDashboard?: boolean;
   /** Optional operator-supplied remote icon URL (#2166) for compatible provider nodes. */
   iconUrl?: string;
   [key: string]: unknown;
@@ -195,8 +196,22 @@ export function resolveStaticProviderCatalogEntry(
   return null;
 }
 
+/**
+ * OAuth-primary providers that ALSO accept a direct BYOK API key (dual-auth),
+ * admitted through the managed-connection API-key gate independent of the OAuth
+ * catalog. These are deliberately kept OUT of `FREE_APIKEY_PROVIDER_IDS`: that
+ * set flips `providerSupportsPat` true, which turns `isOAuth` false and would
+ * make the dashboard's primary "Connect" button route to the API-key modal
+ * instead of the OAuth flow. Admitting them here lets POST /api/providers
+ * persist an `apikey` connection (the reliable BYOK path) while the provider
+ * stays OAuth-primary (isOAuth=true). clinepass is the dual-auth case: sign in
+ * with a Cline account OR paste a ClinePass API key.
+ */
+const DUAL_AUTH_APIKEY_PROVIDER_IDS = new Set<string>(["clinepass"]);
+
 export function isManagedProviderConnectionId(providerId: string): boolean {
   if (supportsApiKeyOnFreeProvider(providerId)) return true;
+  if (DUAL_AUTH_APIKEY_PROVIDER_IDS.has(providerId)) return true;
 
   const entry = resolveStaticProviderCatalogEntry(providerId);
   return !!(entry && MANAGED_PROVIDER_CONNECTION_CATEGORIES.has(entry.category));

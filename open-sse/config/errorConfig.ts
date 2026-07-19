@@ -199,3 +199,41 @@ export function matchErrorRuleByStatus(statusCode: number): ErrorRule | null {
 export function findMatchingErrorRule(statusCode: number, message: unknown): ErrorRule | null {
   return matchErrorRuleByText(message) || matchErrorRuleByStatus(statusCode);
 }
+
+export interface ServiceSupervisorCooldown {
+  shouldFallback: true;
+  cooldownMs: number;
+  baseCooldownMs: number;
+  newBackoffLevel: 0;
+  reason: string;
+  skipProviderBreaker: true;
+}
+
+/**
+ * G-02: detect embedded service supervisor failures (X-Omni-Fallback-Hint: connection_cooldown).
+ * These are NOT upstream AI provider failures — they are local supervisor state changes. Returns
+ * a short 5s connection-cooldown decision (no provider circuit-breaker trip), or null when the
+ * status/header don't match.
+ */
+export function serviceSupervisorCooldown(
+  status: number,
+  headers: Headers | Record<string, string> | null
+): ServiceSupervisorCooldown | null {
+  if (status !== 503 || !headers) return null;
+  const hintValue =
+    typeof (headers as Headers).get === "function"
+      ? (headers as Headers).get("x-omni-fallback-hint")
+      : (headers as Record<string, string>)["x-omni-fallback-hint"] ||
+        (headers as Record<string, string>)["X-Omni-Fallback-Hint"];
+  if (typeof hintValue !== "string" || hintValue.toLowerCase() !== "connection_cooldown") {
+    return null;
+  }
+  return {
+    shouldFallback: true,
+    cooldownMs: 5_000,
+    baseCooldownMs: 5_000,
+    newBackoffLevel: 0,
+    reason: "service_not_running",
+    skipProviderBreaker: true,
+  };
+}

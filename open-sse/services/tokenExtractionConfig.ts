@@ -191,8 +191,11 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     "Kimi (Moonshot)",
     "https://www.kimi.com/",
     "https://www.kimi.com",
-    [{ type: "cookie", name: "kimi-auth", domain: ".kimi.com" }],
-    "Log in to Kimi at www.kimi.com (international). The kimi-auth JWT cookie will be extracted.",
+    [
+      { type: "localStorage", key: "access_token" },
+      { type: "cookie", name: "kimi-auth", domain: ".kimi.com" },
+    ],
+    "Log in to Kimi at www.kimi.com. The current access_token will be extracted from localStorage; kimi-auth remains a legacy fallback.",
     { cookieDomain: ".kimi.com" }
   ),
 
@@ -373,6 +376,17 @@ const RAW_CONFIGS: TokenExtractionConfig[] = [
     ],
     "Log in to Manus at manus.im. The session cookie will be extracted.",
     { cookieDomain: ".manus.im" }
+  ),
+
+  // ── Z.ai Web (#4056) ────────────────────────────────────────
+  config(
+    "zai-web",
+    "Z.ai Web (Free)",
+    "https://chat.z.ai/",
+    "https://chat.z.ai",
+    [{ type: "cookie", name: "token", domain: ".z.ai" }],
+    "Log in to Z.ai at chat.z.ai. The session token will be extracted.",
+    { cookieDomain: ".z.ai" }
   ),
 ];
 

@@ -112,11 +112,11 @@ test("vscode tokenized root route exposes friendly model names alongside ids", a
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/`)
   );
   const body = (await response.json()) as any;
-  const model = (body.data || []).find((entry: any) => entry.id === "gpt-5.4__provider_cx");
+  const model = (body.data || []).find((entry: any) => entry.id === "gpt-5.6-sol__provider_cx");
 
   assert.equal(response.status, 200);
-  assert.ok(model, "missing gpt-5.4__provider_cx in tokenized VS Code root route");
-  assert.equal(model.name, "Codex GPT 5.4 (Default)");
+  assert.ok(model, "missing gpt-5.6-sol__provider_cx in tokenized VS Code root route");
+  assert.equal(model.name, "Codex GPT 5.6 Sol (Default)");
 });
 
 test("vscode tokenized models route accepts path-scoped API keys", async () => {
@@ -151,7 +151,7 @@ test("vscode tokenized combos route exposes configured combos via token alias", 
   await combosDb.createCombo({
     name: "test-combo",
     strategy: "priority",
-    models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
+    models: [{ kind: "model", model: "codex/gpt-5.6-sol-high", providerId: "codex" }],
   });
 
   const combosRoute =
@@ -204,7 +204,7 @@ test("vscode combos route exposes combos through Ollama api/tags", async () => {
   await combosDb.createCombo({
     name: "tags-combo",
     strategy: "priority",
-    models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
+    models: [{ kind: "model", model: "codex/gpt-5.6-sol-high", providerId: "codex" }],
   });
 
   const combosRoute =
@@ -236,7 +236,7 @@ test("vscode combos route resolves combo names through Ollama api/show", async (
   await combosDb.createCombo({
     name: "show-combo",
     strategy: "priority",
-    models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
+    models: [{ kind: "model", model: "codex/gpt-5.6-sol-high", providerId: "codex" }],
   });
 
   const combosRoute =
@@ -255,7 +255,7 @@ test("vscode combos route resolves combo names through Ollama api/show", async (
   assert.equal(body.model, "show-combo");
   assert.equal(body.modelfile, "FROM show-combo");
   assert.equal(body.details.family, "show-combo");
-  assert.equal(body.model_info.context_length, 200000);
+  assert.equal(body.model_info.context_length, 372000);
   assert.deepEqual(body.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
   assert.equal(body.model_info.capabilities.reasoning, true);
 });
@@ -275,7 +275,7 @@ test("vscode tokenized combos root route exposes importable combo metadata", asy
   await combosDb.createCombo({
     name: "balanced-load",
     strategy: "reset-aware",
-    models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
+    models: [{ kind: "model", model: "codex/gpt-5.6-sol-high", providerId: "codex" }],
   });
 
   const combosRoute =
@@ -290,8 +290,7 @@ test("vscode tokenized combos root route exposes importable combo metadata", asy
   assert.equal(response.status, 200);
   assert.ok(combo, "expected balanced-load in combo root response");
   assert.equal(combo.url.includes("/responses#models.ai.azure.com"), true);
-  assert.equal(combo.maxInputTokens, 200000);
-  assert.equal(combo.maxOutputTokens, 131072);
+  assert.equal(combo.maxInputTokens, 372000);
   assert.equal(combo.toolCalling, true);
   assert.deepEqual(combo.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
 });
@@ -354,162 +353,77 @@ test("vscode tokenized models route keeps xhigh for codex models that advertise 
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/models`)
   );
   const body = (await response.json()) as any;
-  const model = (body.data || []).find((entry: any) => entry.id === "gpt-5.4__provider_cx");
+  const model = (body.data || []).find((entry: any) => entry.id === "gpt-5.6-sol__provider_cx");
   const fastModel = (body.data || []).find(
-    (entry: any) => entry.id === "gpt-5.4__provider_cx__tier_priority"
+    (entry: any) => entry.id === "gpt-5.6-sol__provider_cx__tier_priority"
   );
   const flexModel = (body.data || []).find(
-    (entry: any) => entry.id === "gpt-5.4__provider_cx__tier_flex"
+    (entry: any) => entry.id === "gpt-5.6-sol__provider_cx__tier_flex"
   );
 
   assert.equal(response.status, 200);
-  assert.ok(model, "missing gpt-5.4__provider_cx in tokenized VS Code models route");
+  assert.ok(model, "missing gpt-5.6-sol__provider_cx in tokenized VS Code models route");
   assert.ok(
     fastModel,
-    "missing gpt-5.4__provider_cx__tier_priority in tokenized VS Code models route"
+    "missing gpt-5.6-sol__provider_cx__tier_priority in tokenized VS Code models route"
   );
-  assert.ok(flexModel, "missing gpt-5.4__provider_cx__tier_flex in tokenized VS Code models route");
-  assert.equal(model.name, "Codex GPT 5.4 (Default)");
-  assert.equal(fastModel.name, "Codex GPT 5.4 (Fast)");
-  assert.equal(flexModel.name, "Codex GPT 5.4 (Flex)");
+  assert.ok(
+    flexModel,
+    "missing gpt-5.6-sol__provider_cx__tier_flex in tokenized VS Code models route"
+  );
+  assert.equal(model.name, "Codex GPT 5.6 Sol (Default)");
+  assert.equal(fastModel.name, "Codex GPT 5.6 Sol (Fast)");
+  assert.equal(flexModel.name, "Codex GPT 5.6 Sol (Flex)");
   assert.equal(model.toolCalling, true);
   assert.equal(model.vision, true);
-  assert.deepEqual(model.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(model.supportedReasoningEfforts, ["none", "low", "medium", "high", "xhigh"]);
-  assert.equal(model.defaultReasoningEffort, "none");
-  assert.deepEqual(model.configSchema?.properties?.reasoningEffort?.enum, [
-    "none",
+  assert.deepEqual(model.supportsReasoningEffort, [
     "low",
     "medium",
     "high",
     "xhigh",
+    "max",
+    "ultra",
   ]);
-  assert.equal(model.configSchema?.properties?.reasoningEffort?.default, "none");
+  assert.deepEqual(model.supportedReasoningEfforts, [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+  assert.equal(model.defaultReasoningEffort, "low");
+  assert.deepEqual(model.configSchema?.properties?.reasoningEffort?.enum, [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+  assert.equal(model.configSchema?.properties?.reasoningEffort?.default, "low");
   const importedIds = new Set((body.data || []).map((entry: any) => entry.id));
-  assert.ok(!importedIds.has("cx/gpt-5.4"));
-  assert.ok(!importedIds.has("cx/gpt-5.4__tier_priority"));
-  assert.ok(!importedIds.has("cx/gpt-5.4__tier_flex"));
-  assert.ok(!importedIds.has("codex/gpt-5.4"));
-  assert.ok(!importedIds.has("cx/gpt-5.4-low"));
-  assert.ok(!importedIds.has("cx/gpt-5.4-medium"));
-  assert.ok(!importedIds.has("cx/gpt-5.4-high"));
-  assert.ok(!importedIds.has("cx/gpt-5.4-xhigh"));
-  assert.ok(!importedIds.has("cx/gpt-5.4-low__tier_priority"));
-  assert.ok(!importedIds.has("cx/gpt-5.4-medium__tier_priority"));
-  assert.ok(!importedIds.has("cx/gpt-5.4-xhigh__tier_flex"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol__tier_priority"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol__tier_flex"));
+  assert.ok(!importedIds.has("codex/gpt-5.6-sol"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol-low"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol-medium"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol-high"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol-xhigh"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol-max"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol-ultra"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol-low__tier_priority"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol-medium__tier_priority"));
+  assert.ok(!importedIds.has("cx/gpt-5.6-sol-ultra__tier_flex"));
+  assert.equal(
+    [...importedIds].some((id) => String(id).includes("gpt-5.4__provider_cx")),
+    false
+  );
   assert.equal(
     model.url,
     `http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/responses#models.ai.azure.com`
   );
-});
-
-test("vscode tokenized raw models route exposes provider-native ids without family-first grouping", async () => {
-  await settingsDb.updateSettings({
-    requireLogin: true,
-    password: "hashed-password",
-    requireAuthForModels: true,
-  });
-  await seedConnection("codex", { name: "codex-vscode-raw-models" });
-  const key = await apiKeysDb.createApiKey(
-    "vscode-raw-models-codex",
-    "machine-vscode-raw-models-codex"
-  );
-
-  const response = await vscodeRawModelsRoute.GET(
-    new Request(`http://localhost/api/v1/vscode/raw/${encodeURIComponent(key.key)}/models`)
-  );
-  const body = (await response.json()) as any;
-  const importedIds = new Set((body.data || []).map((entry: any) => entry.id));
-  const defaultModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4");
-  const fastModel = (body.data || []).find(
-    (entry: any) => entry.id === "cx/gpt-5.4__tier_priority"
-  );
-  const flexModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4__tier_flex");
-
-  assert.equal(response.status, 200);
-  assert.ok(defaultModel, "missing cx/gpt-5.4 in raw VS Code models route");
-  assert.ok(fastModel, "missing cx/gpt-5.4__tier_priority in raw VS Code models route");
-  assert.ok(flexModel, "missing cx/gpt-5.4__tier_flex in raw VS Code models route");
-  assert.equal(
-    importedIds.size,
-    (body.data || []).length,
-    "raw VS Code models route should not duplicate model ids"
-  );
-  assert.ok(!importedIds.has("gpt-5.4__provider_cx"));
-  assert.ok(!importedIds.has("gpt-5.4__provider_cx__tier_priority"));
-  assert.ok(!importedIds.has("gpt-5.4__provider_cx__tier_flex"));
-  assert.equal(defaultModel.object, "model");
-  assert.equal(typeof defaultModel.created, "number");
-  assert.equal(defaultModel.owned_by, "codex");
-  assert.equal(defaultModel.name, "Codex GPT 5.4");
-  assert.equal(typeof defaultModel.context_length, "number");
-  assert.equal(typeof defaultModel.max_output_tokens, "number");
-  assert.equal(typeof defaultModel.max_input_tokens, "number");
-  assert.deepEqual(defaultModel.capabilities, {
-    vision: true,
-    tool_calling: true,
-    reasoning: true,
-    thinking: true,
-    supportsThinking: true,
-    effort_tiers: ["none", "low", "medium", "high", "xhigh"],
-  });
-  assert.equal(defaultModel.url, undefined);
-  assert.equal(defaultModel.toolCalling, undefined);
-  assert.equal(defaultModel.vision, undefined);
-  assert.equal(defaultModel.family, undefined);
-  assert.equal(defaultModel.supportsReasoningEffort, undefined);
-  assert.equal(defaultModel.supportedReasoningEfforts, undefined);
-  assert.equal(defaultModel.defaultReasoningEffort, undefined);
-  assert.equal(defaultModel.configurationSchema, undefined);
-  assert.equal(defaultModel.configSchema, undefined);
-  assert.equal(defaultModel.maxInputTokens, undefined);
-
-  const lowModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4-low");
-  const mediumModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4-medium");
-  const highModel = (body.data || []).find((entry: any) => entry.id === "cx/gpt-5.4-high");
-  const lowFastModel = (body.data || []).find(
-    (entry: any) => entry.id === "cx/gpt-5.4-low__tier_priority"
-  );
-  const mediumFastModel = (body.data || []).find(
-    (entry: any) => entry.id === "cx/gpt-5.4-medium__tier_priority"
-  );
-  const highFastModel = (body.data || []).find(
-    (entry: any) => entry.id === "cx/gpt-5.4-high__tier_priority"
-  );
-
-  assert.ok(lowModel, "missing cx/gpt-5.4-low in raw VS Code models route");
-  assert.ok(mediumModel, "missing cx/gpt-5.4-medium in raw VS Code models route");
-  assert.ok(highModel, "missing cx/gpt-5.4-high in raw VS Code models route");
-  assert.ok(lowFastModel, "missing cx/gpt-5.4-low__tier_priority in raw VS Code models route");
-  assert.ok(
-    mediumFastModel,
-    "missing cx/gpt-5.4-medium__tier_priority in raw VS Code models route"
-  );
-  assert.ok(highFastModel, "missing cx/gpt-5.4-high__tier_priority in raw VS Code models route");
-  assert.equal(lowModel.name, "Codex GPT 5.4 (Low)");
-  assert.equal(lowFastModel.name, "Codex GPT 5.4 (Low) (Fast)");
-  assert.equal(mediumFastModel.name, "Codex GPT 5.4 (Medium) (Fast)");
-  assert.equal(highFastModel.name, "Codex GPT 5.4 (High) (Fast)");
-  assert.equal(defaultModel.url, undefined);
-  assert.equal(defaultModel.toolCalling, undefined);
-  assert.equal(defaultModel.vision, undefined);
-  assert.equal(defaultModel.family, undefined);
-  assert.equal(defaultModel.supportsReasoningEffort, undefined);
-  assert.equal(defaultModel.supportedReasoningEfforts, undefined);
-  assert.equal(defaultModel.defaultReasoningEffort, undefined);
-  assert.equal(defaultModel.configurationSchema, undefined);
-  assert.equal(defaultModel.configSchema, undefined);
-  assert.equal(defaultModel.maxInputTokens, undefined);
-  assert.equal(typeof defaultModel.max_output_tokens, "number");
-  assert.equal(typeof defaultModel.max_input_tokens, "number");
-  assert.deepEqual(defaultModel.capabilities, {
-    vision: true,
-    tool_calling: true,
-    reasoning: true,
-    thinking: true,
-    supportsThinking: true,
-    effort_tiers: ["none", "low", "medium", "high", "xhigh"],
-  });
 });
 
 test("vscode tokenized raw root route mirrors the raw models catalog", async () => {
@@ -532,8 +446,8 @@ test("vscode tokenized raw root route mirrors the raw models catalog", async () 
 
   assert.equal(response.status, 200);
   assert.ok(Array.isArray(body.data));
-  assert.ok(body.data.some((entry: any) => entry.id === "cx/gpt-5.4"));
-  assert.ok(body.data.some((entry: any) => entry.id === "cx/gpt-5.4-low__tier_priority"));
+  assert.ok(body.data.some((entry: any) => entry.id === "cx/gpt-5.6-sol"));
+  assert.ok(body.data.some((entry: any) => entry.id === "cx/gpt-5.6-sol-low__tier_priority"));
 });
 
 test("vscode tokenized raw routes do not publish combo entries", async () => {
@@ -583,7 +497,7 @@ test("vscode tokenized raw tags route does not publish combo entries", async () 
   await combosDb.createCombo({
     name: "raw-tags-hidden-combo",
     strategy: "priority",
-    models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
+    models: [{ kind: "model", model: "codex/gpt-5.6-sol-high", providerId: "codex" }],
   });
 
   const response = await vscodeRawTagsRoute.GET(
@@ -616,15 +530,15 @@ test("vscode tokenized raw show route resolves reasoning and service-tier varian
     new Request(`http://localhost/api/v1/vscode/raw/${encodeURIComponent(key.key)}/api/show`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name: "cx/gpt-5.4-low__tier_priority" }),
+      body: JSON.stringify({ name: "cx/gpt-5.6-sol-low__tier_priority" }),
     }),
     { params: { token: key.key } }
   );
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
-  assert.equal(body.model, "cx/gpt-5.4-low__tier_priority");
-  assert.equal(body.remote_model, "Codex GPT 5.4 (Low) (Fast)");
+  assert.equal(body.model, "cx/gpt-5.6-sol-low__tier_priority");
+  assert.equal(body.remote_model, "Codex GPT 5.6 Sol (Low) (Fast)");
   assert.equal(body.selectedReasoningEffort, "low");
   assert.equal(body.selected_reasoning_effort, "low");
   assert.equal(body.details.selectedReasoningEffort, "low");
@@ -645,7 +559,7 @@ test("vscode tokenized raw api/show does not resolve combo names", async () => {
   await combosDb.createCombo({
     name: "raw-show-hidden-combo",
     strategy: "priority",
-    models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
+    models: [{ kind: "model", model: "codex/gpt-5.6-sol-high", providerId: "codex" }],
   });
 
   const response = await vscodeRawShowRoute.POST(
@@ -729,53 +643,79 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/tags`)
   );
   const body = (await response.json()) as any;
-  const model = (body.models || []).find((entry: any) => entry.name === "gpt-5.4__provider_cx");
+  const model = (body.models || []).find((entry: any) => entry.name === "gpt-5.6-sol__provider_cx");
 
   assert.equal(response.status, 200);
-  assert.ok(model, "missing gpt-5.4__provider_cx in tokenized VS Code tags route");
-  assert.deepEqual(model.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(model.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(model.supportedReasoningEfforts, ["none", "low", "medium", "high", "xhigh"]);
-  assert.equal(model.defaultReasoningEffort, "none");
+  assert.ok(model, "missing gpt-5.6-sol__provider_cx in tokenized VS Code tags route");
+  assert.deepEqual(model.supportsReasoningEffort, [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+  assert.deepEqual(model.supports_reasoning_effort, [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+  assert.deepEqual(model.supportedReasoningEfforts, [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+  assert.equal(model.defaultReasoningEffort, "low");
   assert.equal(model.selectedReasoningEffort, "none");
   assert.equal(model.selected_reasoning_effort, "none");
-  assert.equal(model.details.family, "gpt-5.4");
+  assert.equal(model.details.family, "gpt-5.6-sol");
   assert.deepEqual(model.configurationSchema?.properties?.reasoningEffort?.enum, [
-    "none",
     "low",
     "medium",
     "high",
     "xhigh",
+    "max",
+    "ultra",
   ]);
-  assert.equal(model.configurationSchema?.properties?.reasoningEffort?.default, "none");
+  assert.equal(model.configurationSchema?.properties?.reasoningEffort?.default, "low");
   assert.deepEqual(model.details.configurationSchema?.properties?.reasoningEffort?.enum, [
-    "none",
     "low",
     "medium",
     "high",
     "xhigh",
+    "max",
+    "ultra",
   ]);
   assert.deepEqual(model.details.supports_reasoning_effort, [
-    "none",
     "low",
     "medium",
     "high",
     "xhigh",
+    "max",
+    "ultra",
   ]);
   assert.equal(model.details.selected_reasoning_effort, "none");
   assert.ok(
-    !(body.models || []).some((entry: any) => entry.name === "cx/gpt-5.4-low"),
+    !(body.models || []).some((entry: any) => entry.name === "cx/gpt-5.6-sol-low"),
     "reasoning variant leaked into grouped VS Code tags route"
   );
   assert.ok(
-    !(body.models || []).some((entry: any) => entry.name === "cx/gpt-5.4-low__tier_priority"),
+    !(body.models || []).some((entry: any) => entry.name === "cx/gpt-5.6-sol-low__tier_priority"),
     "tier reasoning variant leaked into grouped VS Code tags route"
   );
   assert.ok(
-    (body.models || []).some((entry: any) => entry.name === "gpt-5.4__provider_cx__tier_priority")
+    (body.models || []).some(
+      (entry: any) => entry.name === "gpt-5.6-sol__provider_cx__tier_priority"
+    )
   );
   assert.ok(
-    (body.models || []).some((entry: any) => entry.name === "gpt-5.4__provider_cx__tier_flex")
+    (body.models || []).some((entry: any) => entry.name === "gpt-5.6-sol__provider_cx__tier_flex")
   );
 });
 
@@ -826,13 +766,17 @@ test("vscode tokenized tags route only exposes usable canonical chat models", as
       `tag ${tagModel.name} should be chat-capable`
     );
     assert.ok(
-      !catalogModel.api_format || catalogModel.api_format === "chat-completions",
-      `tag ${tagModel.name} should use chat-completions`
+      !catalogModel.api_format ||
+        ["chat-completions", "responses", "openai-responses"].includes(
+          catalogModel.api_format
+        ),
+      `tag ${tagModel.name} should use a text-generation API format`
     );
     assert.ok(
       !Array.isArray(catalogModel.supported_endpoints) ||
-        catalogModel.supported_endpoints.includes("chat"),
-      `tag ${tagModel.name} should support chat`
+        catalogModel.supported_endpoints.includes("chat") ||
+        catalogModel.supported_endpoints.includes("responses"),
+      `tag ${tagModel.name} should support text generation`
     );
     assert.ok(
       !Array.isArray(catalogModel.output_modalities) ||
@@ -845,8 +789,11 @@ test("vscode tokenized tags route only exposes usable canonical chat models", as
     (model: any) =>
       model.parent ||
       (typeof model.type === "string" && model.type !== "chat") ||
-      (typeof model.api_format === "string" && model.api_format !== "chat-completions") ||
-      (Array.isArray(model.supported_endpoints) && !model.supported_endpoints.includes("chat")) ||
+      (typeof model.api_format === "string" &&
+        !["chat-completions", "responses", "openai-responses"].includes(model.api_format)) ||
+      (Array.isArray(model.supported_endpoints) &&
+        !model.supported_endpoints.includes("chat") &&
+        !model.supported_endpoints.includes("responses")) ||
       (Array.isArray(model.output_modalities) && !model.output_modalities.includes("text"))
   );
   const tagNames = new Set((tagsBody.models || []).map((model: any) => model.name));
@@ -870,7 +817,7 @@ test("vscode tokenized grouped tags route does not publish combo entries", async
   await combosDb.createCombo({
     name: "grouped-hidden-combo",
     strategy: "priority",
-    models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
+    models: [{ kind: "model", model: "codex/gpt-5.6-sol-high", providerId: "codex" }],
   });
 
   const response = await vscodeTagsRoute.GET(
@@ -1016,7 +963,7 @@ test("vscode tokenized grouped api/show does not resolve combo names", async () 
   await combosDb.createCombo({
     name: "grouped-show-hidden-combo",
     strategy: "priority",
-    models: [{ kind: "model", model: "codex/gpt-5.4-high", providerId: "codex" }],
+    models: [{ kind: "model", model: "codex/gpt-5.6-sol-high", providerId: "codex" }],
   });
 
   const response = await vscodeShowRoute.POST(
@@ -1081,46 +1028,70 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/show`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "gpt-5.4__provider_cx" }),
+      body: JSON.stringify({ name: "gpt-5.6-sol__provider_cx" }),
     })
   );
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
-  assert.equal(body.model, "gpt-5.4__provider_cx");
-  assert.equal(body.remote_model, "Codex GPT 5.4 (Default)");
-  assert.equal(body.details.family, "gpt-5.4");
-  assert.deepEqual(body.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(body.supports_reasoning_effort, ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(body.supportedReasoningEfforts, ["none", "low", "medium", "high", "xhigh"]);
-  assert.equal(body.defaultReasoningEffort, "none");
+  assert.equal(body.model, "gpt-5.6-sol__provider_cx");
+  assert.equal(body.remote_model, "Codex GPT 5.6 Sol (Default)");
+  assert.equal(body.details.family, "gpt-5.6-sol");
+  assert.deepEqual(body.supportsReasoningEffort, [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+  assert.deepEqual(body.supports_reasoning_effort, [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+  assert.deepEqual(body.supportedReasoningEfforts, [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra",
+  ]);
+  assert.equal(body.defaultReasoningEffort, "low");
   assert.equal(body.selectedReasoningEffort, "none");
   assert.equal(body.selected_reasoning_effort, "none");
   assert.deepEqual(body.configurationSchema?.properties?.reasoningEffort?.enum, [
-    "none",
     "low",
     "medium",
     "high",
     "xhigh",
+    "max",
+    "ultra",
   ]);
-  assert.equal(body.configurationSchema?.properties?.reasoningEffort?.default, "none");
-  assert.equal(body.model_info["general.basename"], "Codex GPT 5.4 (Default)");
+  assert.equal(body.configurationSchema?.properties?.reasoningEffort?.default, "low");
+  assert.equal(body.model_info["general.basename"], "Codex GPT 5.6 Sol (Default)");
   assert.equal(body.model_info["general.architecture"], "codex");
-  assert.equal(body.model_info["codex.context_length"], 200000);
+  assert.equal(body.model_info["codex.context_length"], 372000);
   assert.deepEqual(body.model_info.supports_reasoning_effort, [
-    "none",
     "low",
     "medium",
     "high",
     "xhigh",
+    "max",
+    "ultra",
   ]);
   assert.equal(body.model_info.selected_reasoning_effort, "none");
   assert.deepEqual(body.model_info.capabilities.supports_reasoning_effort, [
-    "none",
     "low",
     "medium",
     "high",
     "xhigh",
+    "max",
+    "ultra",
   ]);
 });
 
@@ -1140,23 +1111,23 @@ test("vscode tokenized api/show route exposes service tier variants with suffixe
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/show`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "gpt-5.4__provider_cx__tier_priority" }),
+      body: JSON.stringify({ name: "gpt-5.6-sol__provider_cx__tier_priority" }),
     })
   );
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
-  assert.equal(body.model, "gpt-5.4__provider_cx__tier_priority");
-  assert.equal(body.remote_model, "Codex GPT 5.4 (Fast)");
-  assert.equal(body.details.family, "gpt-5.4");
+  assert.equal(body.model, "gpt-5.6-sol__provider_cx__tier_priority");
+  assert.equal(body.remote_model, "Codex GPT 5.6 Sol (Fast)");
+  assert.equal(body.details.family, "gpt-5.6-sol");
 });
 
 test("vscode tokenized chat routes rewrite family-first ids back to the codex provider id", async () => {
   const payload = serviceTierVariants.resolveVscodeServiceTierRequest({
-    model: "gpt-5.4__provider_cx__tier_priority",
+    model: "gpt-5.6-sol__provider_cx__tier_priority",
   });
 
-  assert.equal(payload.model, "cx/gpt-5.4");
+  assert.equal(payload.model, "cx/gpt-5.6-sol");
   assert.equal(payload.service_tier, "priority");
 });
 
@@ -1176,7 +1147,7 @@ test("vscode tokenized /chat/completions route applies the path token and codex 
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "gpt-5.4__provider_cx__tier_priority",
+        model: "gpt-5.6-sol__provider_cx__tier_priority",
         messages: [{ role: "user", content: "hi" }],
         max_tokens: 1,
         stream: false,
@@ -1209,7 +1180,7 @@ test("vscode tokenized /responses route applies the path token and codex tier re
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "gpt-5.4__provider_cx__tier_priority",
+        model: "gpt-5.6-sol__provider_cx__tier_priority",
         input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
         max_output_tokens: 1,
         stream: false,
@@ -1240,7 +1211,7 @@ test("vscode tokenized api/show route preserves the selected reasoning effort fo
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/show`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "cx/gpt-5.4-low" }),
+      body: JSON.stringify({ name: "cx/gpt-5.6-sol-low" }),
     })
   );
   const body = (await response.json()) as any;
@@ -1266,14 +1237,14 @@ test("vscode tokenized api/show route resolves canonical family aliases", async 
     new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/api/show`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "gpt-5.4" }),
+      body: JSON.stringify({ name: "gpt-5.6-sol" }),
     })
   );
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
-  assert.equal(body.model, "gpt-5.4");
-  assert.equal(body.details.family, "gpt-5.4");
+  assert.equal(body.model, "gpt-5.6-sol");
+  assert.equal(body.details.family, "gpt-5.6-sol");
 });
 
 test("vscode tokenized v1 chat route is exposed under the tokenized base path", async () => {

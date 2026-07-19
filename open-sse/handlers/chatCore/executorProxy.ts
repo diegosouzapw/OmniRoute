@@ -13,6 +13,11 @@ import { getExecutor } from "../../executors/index.ts";
 import { isCliproxyapiDeepModeEnabled } from "../../executors/cliproxyapi.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { getUpstreamProxyConfigCached } from "./comboContextCache.ts";
+import { wrapExecutorWithCliproxyapiModelMapping } from "./cliproxyModelMapping.ts";
+import {
+  resolveDedicatedCliproxyapiApiKey,
+  wrapExecutorWithCliproxyapiCredentials,
+} from "./cliproxyapiCredentials.ts";
 
 type LoggerLike =
   | {
@@ -22,6 +27,40 @@ type LoggerLike =
     }
   | null
   | undefined;
+
+const DEFAULT_FALLBACK_CODES = [429, 500, 502, 503, 504];
+
+function parseFallbackCodes(raw: unknown): number[] | null {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const parsed = raw
+    .split(",")
+    .map((s) => Number.parseInt(s.trim(), 10))
+    .filter((n) => !Number.isNaN(n));
+  return parsed.length > 0 ? parsed : null;
+}
+
+/**
+ * Reads the CLIProxyAPI-related settings shared by both the direct
+ * `mode: "cliproxyapi"` passthrough leg and the `mode: "fallback"` retry leg:
+ * the custom fallback status codes and the dedicated credential (#7645).
+ * Falls back to defaults / no dedicated key on any read failure.
+ */
+async function loadCliproxyapiSettings(): Promise<{
+  fallbackCodes: number[];
+  dedicatedApiKey: string | null;
+}> {
+  try {
+    const allSettings = await getCachedSettings();
+    return {
+      fallbackCodes: parseFallbackCodes(allSettings.cliproxyapi_fallback_codes) ?? [
+        ...DEFAULT_FALLBACK_CODES,
+      ],
+      dedicatedApiKey: resolveDedicatedCliproxyapiApiKey(allSettings),
+    };
+  } catch {
+    return { fallbackCodes: [...DEFAULT_FALLBACK_CODES], dedicatedApiKey: null };
+  }
+}
 
 export async function resolveExecutorWithProxy(
   prov: string,
@@ -47,30 +86,24 @@ export async function resolveExecutorWithProxy(
 
   if (cfg.mode === "cliproxyapi") {
     log?.info?.("UPSTREAM_PROXY", `${prov} routed through CLIProxyAPI (passthrough)`);
-    return getExecutor("cliproxyapi");
+    const { dedicatedApiKey } = await loadCliproxyapiSettings();
+    return wrapExecutorWithCliproxyapiCredentials(
+      wrapExecutorWithCliproxyapiModelMapping(getExecutor("cliproxyapi"), cfg.cliproxyapiModelMapping),
+      dedicatedApiKey
+    );
   }
 
-  // mode === "fallback": try native first, retry via CLIProxyAPI on specific failures
+  // mode === "fallback": try native first, retry via CLIProxyAPI on specific failures.
+  // The model mapping applies only to the CLIProxyAPI retry leg (proxyExec) — the
+  // native leg must keep seeing the original, unmapped model.
   const nativeExec = getExecutor(prov);
-  const proxyExec = getExecutor("cliproxyapi");
-
-  // Read custom fallback codes from settings. Default: 5xx + 429 + network errors.
-  let fallbackCodes: number[] = [429, 500, 502, 503, 504];
-  try {
-    const allSettings = await getCachedSettings();
-    if (
-      typeof allSettings.cliproxyapi_fallback_codes === "string" &&
-      allSettings.cliproxyapi_fallback_codes.trim()
-    ) {
-      const parsed = allSettings.cliproxyapi_fallback_codes
-        .split(",")
-        .map((s: string) => Number.parseInt(s.trim(), 10))
-        .filter((n: number) => !Number.isNaN(n));
-      if (parsed.length > 0) fallbackCodes = parsed;
-    }
-  } catch {
-    /* use defaults */
-  }
+  const { fallbackCodes, dedicatedApiKey } = await loadCliproxyapiSettings();
+  // #7645: the CLIProxyAPI retry leg must authenticate with the dedicated
+  // key, never the native provider's own (already-failed) credential.
+  const proxyExec = wrapExecutorWithCliproxyapiCredentials(
+    wrapExecutorWithCliproxyapiModelMapping(getExecutor("cliproxyapi"), cfg.cliproxyapiModelMapping),
+    dedicatedApiKey
+  );
   const isRetryableStatus = (s: number) => fallbackCodes.includes(s) || s === 0;
 
   const wrapper = Object.create(nativeExec);

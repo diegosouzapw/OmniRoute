@@ -155,11 +155,6 @@ function toStringArray(value: unknown): string[] | undefined {
   return normalized.length > 0 ? normalized : undefined;
 }
 
-function isChatCapable(supportedEndpoints: string[] | undefined): boolean {
-  if (!supportedEndpoints || supportedEndpoints.length === 0) return true;
-  return supportedEndpoints.includes("chat");
-}
-
 function getSourcePriority(source: BuilderModelSource): number {
   switch (source) {
     case "imported":
@@ -305,7 +300,6 @@ function addModelOption(
   const modelId = toStringOrNull(input.id);
   if (!modelId) return;
   if (getModelIsHidden(providerId, modelId)) return;
-  if (!isChatCapable(input.supportedEndpoints)) return;
 
   const nextSourcePriority = getSourcePriority(input.source);
   const existing = modelMap.get(modelId);
@@ -449,7 +443,34 @@ function buildModelOptions(
     }
   }
 
+  disambiguateCollidingModelNames(modelMap);
   return modelMap;
+}
+
+/**
+ * #6957: some providers' own catalogs assign the identical display `name` to
+ * several distinct model ids (e.g. Mistral's "codestral-latest" alias renders
+ * under the same upstream name as its base "codestral-2508" model). Since the
+ * builder picker renders `model.name` as the visible option text, two colliding
+ * names make genuinely different models look like duplicates and hide aliases.
+ * Run this after all merge loops have populated `modelMap`: for any name shared
+ * by 2+ distinct ids, fall back every entry in that group to its own `id` as the
+ * display name (display-only — `id`/`qualifiedModel` used for routing untouched).
+ */
+function disambiguateCollidingModelNames(modelMap: Map<string, ComboBuilderModelOption>): void {
+  const idsByName = new Map<string, string[]>();
+  for (const option of modelMap.values()) {
+    const bucket = idsByName.get(option.name) || [];
+    bucket.push(option.id);
+    idsByName.set(option.name, bucket);
+  }
+  for (const [name, ids] of idsByName) {
+    if (ids.length < 2) continue;
+    for (const id of ids) {
+      const option = modelMap.get(id);
+      if (option && option.name === name) option.name = option.id;
+    }
+  }
 }
 
 function compareConnections(

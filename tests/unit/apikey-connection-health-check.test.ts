@@ -171,3 +171,77 @@ test("connection with both apiKey and refreshToken: refresh path is tried", asyn
     "dual-auth connection with stale refresh token should be expired (refresh path takes precedence)"
   );
 });
+
+test("sweep processes all connections with stagger + jitter delay", async () => {
+  await resetStorage();
+
+  // Create multiple connections; set isActive=false so checkConnection
+  // returns immediately at the !conn.isActive guard without OAuth calls.
+  const c1 = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "oauth",
+    name: "Stagger Test 1",
+    email: "t1@example.com",
+    refreshToken: "test-rt",
+    isActive: false,
+  });
+  const c2 = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "oauth",
+    name: "Stagger Test 2",
+    email: "t2@example.com",
+    refreshToken: "test-rt",
+    isActive: false,
+  });
+  const c3 = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "oauth",
+    name: "Stagger Test 3",
+    email: "t3@example.com",
+    refreshToken: "test-rt",
+    isActive: false,
+  });
+
+  // Clear any health-check skip config
+  const origSetting = process.env.HEALTHCHECK_SKIP_PROVIDERS;
+  const origJitterMin = process.env.HEALTHCHECK_JITTER_MIN_MS;
+  const origJitterMax = process.env.HEALTHCHECK_JITTER_MAX_MS;
+  delete process.env.HEALTHCHECK_SKIP_PROVIDERS;
+  process.env.HEALTHCHECK_STAGGER_MS = "1";
+  process.env.HEALTHCHECK_JITTER_MIN_MS = "100";
+  process.env.HEALTHCHECK_JITTER_MAX_MS = "100"; // fixed jitter = deterministic
+
+  try {
+    // Import sweep — exported for testing from tokenHealthCheck
+    const { sweep } = await import("../../src/lib/tokenHealthCheck.ts");
+
+    const start = Date.now();
+    await sweep();
+    const elapsed = Date.now() - start;
+
+    // 3 connections -> 2 gaps. Each gap waits
+    // HEALTHCHECK_STAGGER_MS (1ms) + HEALTHCHECK_JITTER_MIN_MS (100ms) = 101ms.
+    // Without jitter: 2 * 1ms = ~2ms. With jitter: 2 * 101ms = ~202ms.
+    // The assert proves the jitter is actually applied.
+    assert.ok(
+      elapsed >= 190,
+      `sweep took ${elapsed}ms — expected >= 190ms with jitter applied (jitter-free baseline would be ~2ms)`
+    );
+
+    // Verify all connections still exist (sweep didn't error out mid-loop)
+    const reloaded1 = await providersDb.getProviderConnectionById(c1.id);
+    const reloaded2 = await providersDb.getProviderConnectionById(c2.id);
+    const reloaded3 = await providersDb.getProviderConnectionById(c3.id);
+    assert.ok(reloaded1, "connection 1 should still exist");
+    assert.ok(reloaded2, "connection 2 should still exist");
+    assert.ok(reloaded3, "connection 3 should still exist");
+  } finally {
+    if (origSetting !== undefined) process.env.HEALTHCHECK_SKIP_PROVIDERS = origSetting;
+    else delete process.env.HEALTHCHECK_SKIP_PROVIDERS;
+    if (origJitterMin !== undefined) process.env.HEALTHCHECK_JITTER_MIN_MS = origJitterMin;
+    else delete process.env.HEALTHCHECK_JITTER_MIN_MS;
+    if (origJitterMax !== undefined) process.env.HEALTHCHECK_JITTER_MAX_MS = origJitterMax;
+    else delete process.env.HEALTHCHECK_JITTER_MAX_MS;
+    delete process.env.HEALTHCHECK_STAGGER_MS;
+  }
+});

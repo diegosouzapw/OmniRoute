@@ -26,6 +26,13 @@ interface ExecCall {
 }
 const execCalls: ExecCall[] = [];
 let execShouldFail = false;
+const fakeCommands = {
+  execFileWithPassword: async (command: string, args: string[], _password: string, stdin = "") => {
+    execCalls.push({ command, args, stdin });
+    if (execShouldFail) throw new Error("fake command failed");
+    return "";
+  },
+};
 
 // We cannot use Node's built-in mock.module in ESM without experimental flags,
 // so we write the hosts file to a temp file and point HOSTS_FILE at it via a
@@ -68,7 +75,15 @@ const tmpHostsFile = path.join(tmpDir, "hosts");
 
 // Import the module under test AFTER all setup.
 const dnsModule = await import("../../src/mitm/dns/dnsConfig.ts");
-const { addDNSEntries, removeDNSEntries, addDNSEntry, removeDNSEntry, checkDNSEntry } = dnsModule;
+const {
+  addDNSEntries,
+  removeDNSEntries,
+  addDNSEntry,
+  removeDNSEntry,
+  checkDNSEntry,
+  resolveHostsForAgent,
+} = dnsModule;
+const { ALL_TARGETS } = await import("../../src/mitm/targets/index.ts");
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -95,8 +110,79 @@ test("addDNSEntry (legacy) is a function that delegates for Antigravity hosts", 
   assert.equal(typeof addDNSEntry, "function");
 });
 
+test("addDNSEntry with agentId resolves agent-specific hosts from ALL_TARGETS", async () => {
+  // Cursor target has hosts: ["api2.cursor.sh"]
+  // Verify that calling addDNSEntry with agentId="cursor" passes the right hosts.
+  // We call with [] to skip actual exec — just verifying the function signature accepts agentId.
+  await assert.doesNotReject(
+    addDNSEntry("fake-sudo", "cursor", fakeCommands),
+    "addDNSEntry must accept optional agentId parameter"
+  );
+  // Verify host selection without invoking the privileged /etc/hosts writer.
+  assert.deepEqual(
+    resolveHostsForAgent("cursor"),
+    ["api2.cursor.sh"],
+    "addDNSEntry must resolve hosts for the optional agentId"
+  );
+});
+
+test("addDNSEntry without agentId falls back to Antigravity hosts (backward compat)", async () => {
+  await assert.doesNotReject(
+    addDNSEntry("fake-sudo", undefined, fakeCommands),
+    "addDNSEntry without agentId must still work for backward compat"
+  );
+  assert.deepEqual(
+    resolveHostsForAgent(),
+    [
+      "daily-cloudcode-pa.googleapis.com",
+      "cloudcode-pa.googleapis.com",
+      "daily-cloudcode-pa.sandbox.googleapis.com",
+      "autopush-cloudcode-pa.sandbox.googleapis.com",
+    ],
+    "addDNSEntry without agentId must preserve backward-compatible hosts"
+  );
+});
+
+test("addDNSEntry with unknown agentId falls back to Antigravity hosts", async () => {
+  await assert.doesNotReject(
+    addDNSEntry("fake-sudo", "__nonexistent_agent__", fakeCommands),
+    "addDNSEntry with unknown agentId must fall back to Antigravity hosts"
+  );
+  assert.deepEqual(
+    resolveHostsForAgent("__nonexistent_agent__"),
+    resolveHostsForAgent(),
+    "unknown agentId must fall back to Antigravity hosts"
+  );
+});
+
 test("removeDNSEntry (legacy) is a function that delegates for Antigravity hosts", () => {
   assert.equal(typeof removeDNSEntry, "function");
+});
+
+test("removeDNSEntry with agentId resolves agent-specific hosts from ALL_TARGETS", async () => {
+  await assert.doesNotReject(
+    removeDNSEntry("fake-sudo", "copilot"),
+    "removeDNSEntry must accept optional agentId parameter"
+  );
+});
+
+test("resolveHostsForAgent returns Antigravity hosts when agentId is undefined", () => {
+  // Verify ALL_TARGETS exists and cursor target has expected hosts
+  const cursorTarget = ALL_TARGETS.find((t) => t.id === "cursor");
+  assert.ok(cursorTarget, "cursor target must exist in ALL_TARGETS");
+  assert.ok(
+    cursorTarget.hosts.includes("api2.cursor.sh"),
+    "cursor target must include api2.cursor.sh"
+  );
+  // Codex target
+  const codexTarget = ALL_TARGETS.find((t) => t.id === "codex");
+  assert.ok(codexTarget, "codex target must exist in ALL_TARGETS");
+  assert.ok(codexTarget.hosts.includes("chatgpt.com"), "codex target must include chatgpt.com");
+});
+
+test("addDNSEntries batches missing entries with no-op on empty list", async () => {
+  // Empty list must resolve immediately (no exec, no error)
+  await assert.doesNotReject(addDNSEntries([], "fake-sudo"));
 });
 
 test("addDNSEntries: skips hosts already in /etc/hosts (idempotency)", async () => {
@@ -157,11 +243,19 @@ test("addDNSEntries: entry passed as stdin data, not shell-interpolated", () => 
   const srcPath = new URL("../../src/mitm/dns/dnsConfig.ts", import.meta.url).pathname;
   const src = fs.readFileSync(srcPath, "utf8");
 
-  // The stdin data `${entry}\n` is the body text sent to tee via pipe — not
-  // part of the command array. Verify the pattern appears in the source.
+  // The stdin `data` is built from the batched entries and sent to tee via pipe —
+  // not part of the command array. Verify the pattern appears in the source and
+  // that it's passed as the 4th positional arg to execFileWithPassword (stdin),
+  // not interpolated into the argv array.
   assert.ok(
-    src.includes("`${entry}\\n`"),
-    "entry content must be passed as stdin to tee, not interpolated in args"
+    src.includes('missingEntries.map((e) => `${e}\\n`).join("")'),
+    "entry content must be built from missingEntries for stdin, not interpolated in args"
+  );
+  assert.ok(
+    src.includes(
+      'commands.execFileWithPassword(\n      "sudo",\n      ["-S", "tee", "-a", HOSTS_FILE],\n      sudoPassword,\n      data\n    )'
+    ),
+    "entry data must be passed as stdin to tee, not interpolated in args"
   );
 });
 

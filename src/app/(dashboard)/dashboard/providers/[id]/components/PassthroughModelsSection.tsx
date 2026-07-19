@@ -48,6 +48,7 @@ export type ModelCompatSavePatchPassthrough = {
 export interface PassthroughModelsSectionProps {
   providerAlias: string;
   modelAliases: Record<string, string>;
+  catalogModels?: CompatModelRow[];
   availableModels?: CompatModelRow[];
   customModels?: CompatModelRow[];
   description: string;
@@ -80,6 +81,11 @@ export interface PassthroughModelsSectionProps {
   onAutoHideFailedChange?: (v: boolean) => void;
 }
 
+function getDefaultModelAlias(model: CompatModelRow): string | null {
+  const [firstAlias] = model.aliases || [];
+  return typeof firstAlias === "string" && firstAlias.trim() ? firstAlias.trim() : null;
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -87,6 +93,7 @@ export interface PassthroughModelsSectionProps {
 export default function PassthroughModelsSection({
   providerAlias,
   modelAliases,
+  catalogModels = [],
   availableModels = [],
   customModels = [],
   description,
@@ -152,7 +159,7 @@ export default function PassthroughModelsSection({
           results?: Record<
             string,
             {
-              status?: "ok" | "error";
+              status?: "ok" | "error" | "slow";
               rateLimited?: boolean;
               isTimeout?: boolean;
               error?: string;
@@ -237,11 +244,13 @@ export default function PassthroughModelsSection({
 
     const addModel = (model: CompatModelRow, source: string) => {
       if (!model?.id || seenModelIds.has(model.id)) return;
-      const fullModel = fullModelByModelId.get(model.id) || `${providerAlias}/${model.id}`;
+      const defaultAlias = getDefaultModelAlias(model);
+      const fullModel =
+        fullModelByModelId.get(model.id) || `${providerAlias}/${defaultAlias || model.id}`;
       rows.push({
         modelId: model.id,
         fullModel,
-        alias: aliasByModelId.get(model.id) || null,
+        alias: aliasByModelId.get(model.id) || defaultAlias,
         displayName: model.name || model.id,
         source,
         isFree:
@@ -256,6 +265,10 @@ export default function PassthroughModelsSection({
 
     for (const model of availableModels) {
       addModel(model, "imported");
+    }
+
+    for (const model of catalogModels) {
+      addModel(model, "system");
     }
 
     for (const model of customModels) {
@@ -291,6 +304,7 @@ export default function PassthroughModelsSection({
     return rows;
   }, [
     availableModels,
+    catalogModels,
     customModelMap,
     customModels,
     isModelHidden,
@@ -413,6 +427,7 @@ export default function PassthroughModelsSection({
                 key={fullModel as string}
                 modelId={modelId}
                 fullModel={fullModel}
+                provider={providerId}
                 alias={alias}
                 source={source}
                 isFree={isFree}
