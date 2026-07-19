@@ -1,0 +1,1 @@
+- **fix(dashboard):** the combos builder now hides provider connections the user has explicitly disabled, instead of relying only on stale test-status (#6984 — thanks @attid).

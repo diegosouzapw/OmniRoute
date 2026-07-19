@@ -1,0 +1,1 @@
+- fix(sse): wire settings.wildcardAliases into model resolution so wildcard model aliases created in Settings actually take effect (#7693)

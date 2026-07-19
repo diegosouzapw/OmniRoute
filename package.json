@@ -1,6 +1,6 @@
 {
   "name": "omniroute",
-  "version": "3.8.46",
+  "version": "3.8.49",
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
@@ -49,7 +49,7 @@
     "open-sse"
   ],
   "engines": {
-    "node": ">=22.0.0 <23 || >=24.0.0 <27"
+    "node": ">=22.22.2 <23 || >=24.0.0 <27"
   },
   "keywords": [
     "ai",
@@ -79,6 +79,11 @@
     "gen:provider-reference": "bun scripts/docs/gen-provider-reference.ts",
     "bench:compression": "bun scripts/compression/benchmark.ts",
     "eval:compression": "node --import tsx scripts/compression-eval/index.ts",
+    "eval:router": "node --import tsx scripts/router-eval/index.ts",
+    "eval:router:compare": "node --import tsx scripts/router-eval/compare.ts",
+    "eval:router:patch-compare": "node --import tsx scripts/router-eval/patch-compare.ts",
+    "eval:router:search": "node --import tsx scripts/router-eval/search.ts",
+    "eval:router:trends": "node --import tsx scripts/router-eval/trends.ts",
     "release:sync-changelog-i18n": "node scripts/release/sync-changelog-i18n.mjs",
     "build": "node scripts/build/build-next-isolated.mjs",
     "build:secure": "OMNIROUTE_BUILD_PROFILE=minimal node scripts/build/build-next-isolated.mjs",
@@ -87,7 +92,9 @@
     "build:release": "rm -rf .build dist && OMNIROUTE_BUILD_SHA=$(git rev-parse --short HEAD) npm run build && npm run build:cli && node scripts/build/write-build-sha.mjs",
     "build:native:tproxy": "cd src/mitm/tproxy/native && npx --yes node-gyp rebuild",
     "start": "node scripts/dev/run-next.mjs start",
-    "lint": "eslint . --suppressions-location config/quality/eslint-suppressions.json",
+    "homolog": "node scripts/homolog/run.mjs",
+    "lint": "eslint . --cache --cache-location .eslintcache --suppressions-location config/quality/eslint-suppressions.json",
+    "lint:json": "node scripts/quality/run-eslint-json.mjs",
     "lint:md": "npx --yes markdownlint-cli2 \"docs/**/*.md\" \"*.md\" \"!docs/i18n\" \"!docs/research\"",
     "lint:prose": "vale docs",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:20128 && cd electron && npm run dev\"",
@@ -116,6 +123,7 @@
     "check:docs-counts": "node scripts/check/check-docs-counts-sync.mjs",
     "check:deprecated-versions": "node scripts/check/check-deprecated-versions.mjs",
     "check:compression-budget": "bun scripts/check/check-compression-budget.ts",
+    "check:router-eval": "node --import tsx scripts/check/check-router-eval-regression.ts",
     "check:doc-links": "node scripts/check/check-doc-links.mjs",
     "check:fabricated-docs": "node scripts/check/check-fabricated-docs.mjs --strict",
     "check:docs-all": "npm run check:docs-sync && npm run check:docs-counts && npm run check:env-doc-sync && npm run check:deprecated-versions && npm run check:doc-links && npm run check:fabricated-docs",
@@ -128,14 +136,17 @@
     "i18n:check-ui-coverage": "node scripts/i18n/check-ui-keys-coverage.mjs",
     "check:node-runtime": "node --import tsx scripts/check/check-supported-node-runtime.ts",
     "check:pack-artifact": "node --import tsx scripts/build/validate-pack-artifact.ts",
+    "check:pack-boot": "node scripts/check/check-pack-boot.mjs",
     "check:pack-policy": "node --import tsx scripts/build/validate-pack-artifact.ts --policy-only",
     "check:cli-i18n": "node scripts/check/check-cli-i18n.mjs",
     "check:openapi-coverage": "node scripts/check/check-openapi-coverage.mjs",
     "check:openapi-security-tiers": "node scripts/check/check-openapi-security-tiers.mjs",
     "check:provider-consistency": "bun scripts/check/check-provider-consistency.ts",
     "check:provider-assets": "node scripts/check/check-provider-assets.mjs",
+    "check:nvidia-catalog-drift": "node --import tsx/esm scripts/check/check-nvidia-catalog-drift.ts",
     "check:fetch-targets": "node scripts/check/check-fetch-targets.mjs",
     "check:openapi-routes": "node scripts/check/check-openapi-routes.mjs",
+    "check:api-docs-refs": "node scripts/check/check-api-docs-refs.mjs",
     "check:openapi-breaking": "node scripts/check/check-openapi-breaking.mjs",
     "check:deps": "node scripts/check/check-deps.mjs",
     "check:file-size": "node scripts/check/check-file-size.mjs",
@@ -144,6 +155,7 @@
     "check:test-masking": "node scripts/check/check-test-masking.mjs",
     "check:test-runner-api": "node scripts/check/check-test-runner-api.mjs",
     "check:changelog-integrity": "node scripts/check/check-changelog-integrity.mjs",
+    "changelog:aggregate": "node scripts/release/aggregate-changelog.mjs",
     "check:agent-skills-sync": "node --import tsx/esm scripts/skills/generate-agent-skills.mjs",
     "check:build-scope": "node scripts/check/check-build-scope.mjs",
     "check:error-helper": "node scripts/check/check-error-helper.mjs",
@@ -158,6 +170,7 @@
     "check:complexity": "node scripts/check/check-complexity.mjs",
     "check:dead-code": "node scripts/check/check-dead-code.mjs",
     "check:cognitive-complexity": "node scripts/check/check-cognitive-complexity.mjs",
+    "check:complexity-ratchets": "node scripts/check/check-complexity-ratchets.mjs",
     "check:release-green": "node scripts/quality/validate-release-green.mjs",
     "check:type-coverage": "node scripts/check/check-type-coverage.mjs",
     "check:lockfile": "node scripts/check/check-lockfile.mjs",
@@ -179,6 +192,7 @@
     "audit:electron": "npm --prefix electron audit --audit-level=critical && (npm --prefix electron audit --audit-level=high || echo '::warning::electron high-severity advisories present (non-blocking)')",
     "typecheck:core": "tsc --pretty false -p tsconfig.typecheck-core.json",
     "typecheck:noimplicit:core": "tsc --pretty false -p tsconfig.typecheck-noimplicit-core.json",
+    "check:dashboard-typecheck": "node scripts/check/check-dashboard-typecheck.mjs",
     "backfill-aggregation": "node --import tsx src/scripts/backfillAggregation.ts",
     "env:sync": "node scripts/dev/sync-env.mjs",
     "test:integration": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 tests/integration/*.test.ts \"tests/integration/combo-matrix/*.test.ts\"",
@@ -186,6 +200,7 @@
     "test:combo:live": "cross-env RUN_COMBO_LIVE=1 DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/integration/combo-live/*.live.test.ts\"",
     "test:combo:live:vps": "node scripts/test/combo-live-vps.mjs",
     "test:combo:live:vps:failover": "node scripts/test/combo-live-vps.mjs --failover",
+    "test:boundary:live": "cross-env RUN_BOUNDARY_LIVE=1 DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/boundary/*.live.test.ts\"",
     "test:heap": "node --expose-gc --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit tests/integration/heap-growth.test.ts",
     "test:chaos": "cross-env RUN_CHAOS_INT=1 node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 tests/integration/resilience-chaos.test.ts",
     "test:e2e": "node scripts/dev/run-playwright-tests.mjs test tests/e2e/*.spec.ts",
@@ -239,7 +254,6 @@
     "fetch-socks": "^1.3.3",
     "fflate": "^0.8.3",
     "fumadocs-core": "^16.10.5",
-    "fumadocs-mdx": "^15.0.7",
     "fumadocs-ui": "^16.10.5",
     "http-proxy-middleware": "^4.0.0",
     "https-proxy-agent": "^9.0.0",
@@ -261,6 +275,7 @@
     "next-intl": "^4.12.0",
     "next-themes": "^0.4.6",
     "node-machine-id": "^1.1.12",
+    "omniglyph": "^1.0.2",
     "open": "^11.0.0",
     "ora": "^9.4.1",
     "parse5": "^8.0.1",
@@ -276,6 +291,7 @@
     "recharts": "^3.8.1",
     "safe-regex": "^2.1.1",
     "selfsigned": "^5.5.0",
+    "smol-toml": "1.6.1",
     "socks": "^2.8.7",
     "sql.js": "^1.14.1",
     "sqlite-vec": "^0.1.9",
@@ -322,21 +338,27 @@
     "c8": "^11.0.0",
     "concurrently": "^10.0.3",
     "cross-env": "^10.1.0",
+    "ctrf": "^0.2.1",
     "dpdm": "^4.2.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.10",
     "eslint-plugin-sonarjs": "^4.1.0",
     "fast-check": "^4.8.0",
+    "fumadocs-mdx": "^15.0.7",
     "glob": "^13.0.6",
+    "httpyac": "^6.16.7",
     "husky": "^9.1.7",
     "jscpd": "^4.2.5",
     "jsdom": "^29.1.1",
+    "junit-to-ctrf": "^0.0.14",
     "knip": "^6.18.0",
     "license-checker-rseidelsohn": "^5.0.1",
     "lint-staged": "^17.0.8",
     "lockfile-lint": "^5.0.0",
     "node-loader": "^2.1.0",
+    "playwright-ctrf-json-reporter": "^0.0.29",
     "prettier": "^3.8.3",
+    "promptfoo": "^0.121.18",
     "size-limit": "^12.1.0",
     "tailwindcss": "^4.3.0",
     "type-coverage": "^2.29.7",
@@ -349,7 +371,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs}": [
       "prettier --write",
-      "eslint --fix --no-error-on-unmatched-pattern --suppressions-location config/quality/eslint-suppressions.json"
+      "eslint --fix --no-error-on-unmatched-pattern --no-warn-ignored --suppressions-location config/quality/eslint-suppressions.json"
     ],
     "*.{json,md,yml,yaml,css}": [
       "prettier --write"
@@ -384,6 +406,7 @@
     },
     "node-gyp": {
       "undici": "^6.27.0"
-    }
+    },
+    "adm-zip": "^0.6.0"
   }
 }

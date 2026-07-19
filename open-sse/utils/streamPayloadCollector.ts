@@ -129,13 +129,29 @@ function buildOpenAISummary(events: StructuredSSEEvent[], fallbackModel?: string
     function: { name: string; arguments: string };
   };
   const toolCalls = new Map<string, ToolCall>();
+  // Aliases every `idx:N` key we've seen to the `id:X` it was first observed with (and
+  // vice versa), so a later delta chunk that only carries one of the two dimensions
+  // (e.g. a continuation chunk with `id` but no `index` — a known quirk of some
+  // OpenAI-compatible proxies) still resolves to the SAME accumulator entry instead of
+  // splitting one logical tool call into two (#6276).
+  const keyAliases = new Map<string, string>();
   let unknownToolCallSeq = 0;
   let finishReason = "stop";
   let usage: JsonRecord | null = null;
 
   const getToolCallKey = (toolCall: JsonRecord) => {
-    if (Number.isInteger(toolCall.index)) return `idx:${toolCall.index}`;
-    if (toolCall.id) return `id:${toolCall.id}`;
+    const idKey = typeof toolCall.id === "string" && toolCall.id ? `id:${toolCall.id}` : null;
+    const idxKey = Number.isInteger(toolCall.index) ? `idx:${toolCall.index}` : null;
+
+    const resolvedKey = (idKey && keyAliases.get(idKey)) || (idxKey && keyAliases.get(idxKey));
+    const key = resolvedKey || idKey || idxKey;
+
+    if (key) {
+      if (idKey) keyAliases.set(idKey, key);
+      if (idxKey) keyAliases.set(idxKey, key);
+      return key;
+    }
+
     unknownToolCallSeq += 1;
     return `seq:${unknownToolCallSeq}`;
   };

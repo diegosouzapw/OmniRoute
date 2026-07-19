@@ -1,5 +1,6 @@
-import { BaseExecutor, type ProviderCredentials } from "./base.ts";
+import { BaseExecutor, type ExecutorLog, type ProviderCredentials } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -47,8 +48,72 @@ function asRecord(value: unknown): JsonRecord | null {
  *   3. Leaves unclassified models and bodies untouched otherwise.
  */
 export class XaiExecutor extends BaseExecutor {
-  constructor() {
-    super("xai", PROVIDERS.xai);
+  constructor(provider = "xai") {
+    super(provider, PROVIDERS[provider]);
+  }
+
+  /**
+   * Port of decolua/9router#2439 (author: @ryanngit): xAI ships a native
+   * `/v1/responses` endpoint alongside `/v1/chat/completions`. Models tagged
+   * `targetFormat: "openai-responses"` in the registry (currently
+   * grok-4.20-multi-agent-0309, per upstream) resolve to that endpoint instead
+   * of the default chat-completions bridge. The per-model registry tag is the
+   * single source of truth — it also drives chatCore's body translation — so
+   * the URL stays in lockstep with the translated body, mirroring the gh
+   * executor's targetFormat-driven routing (9router#102) and the "openai"
+   * -pro heuristic in open-sse/executors/default.ts.
+   */
+  buildUrl(model: string, _stream: boolean, _urlIndex = 0) {
+    if (getModelTargetFormat(this.provider, model) === "openai-responses") {
+      return this.config.responsesBaseUrl || this.config.baseUrl;
+    }
+    return this.config.baseUrl;
+  }
+
+  async refreshCredentials(
+    credentials: ProviderCredentials,
+    log?: ExecutorLog | null
+  ): Promise<Partial<ProviderCredentials> | null> {
+    if (this.provider !== "xai-oauth" || !credentials.refreshToken) return null;
+
+    try {
+      const response = await fetch(this.config.tokenUrl || "https://auth.x.ai/oauth2/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          client_id: this.config.clientId || "",
+          refresh_token: credentials.refreshToken,
+        }),
+      });
+
+      if (!response.ok) {
+        log?.warn?.("TOKEN_REFRESH", `xAI OAuth refresh failed with status ${response.status}`);
+        return null;
+      }
+
+      const data = await response.json();
+      if (!data.access_token) {
+        log?.warn?.("TOKEN_REFRESH", "xAI OAuth refresh response omitted access_token");
+        return null;
+      }
+
+      const expiresIn = Number(data.expires_in) || 21600;
+      return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token || credentials.refreshToken,
+        expiresAt: new Date(Date.now() + expiresIn * 1000).toISOString(),
+      };
+    } catch (error) {
+      log?.warn?.(
+        "TOKEN_REFRESH",
+        `xAI OAuth refresh error: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return null;
+    }
   }
 
   transformRequest(

@@ -4,7 +4,7 @@ import {
   isDailyQuotaExhausted,
   isOAuthInvalidToken,
 } from "./accountFallback.ts";
-import { getProviderCategory } from "../config/providerRegistry.ts";
+import { getProviderCategory, getRegistryEntry } from "../config/providerRegistry.ts";
 
 // Terminal stop signals where an empty content payload is still a legitimate,
 // successful completion (truncated at the token limit, or a tool-call turn) —
@@ -76,6 +76,7 @@ export const PROVIDER_ERROR_TYPES = {
   CONTEXT_OVERFLOW: "context_overflow",
   OAUTH_INVALID_TOKEN: "oauth_invalid_token",
   EMPTY_CONTENT: "empty_content",
+  MODEL_NOT_FOUND: "model_not_found",
 };
 
 export const CONTEXT_OVERFLOW_SIGNALS = [
@@ -96,6 +97,19 @@ export const CONTEXT_OVERFLOW_REGEX = new RegExp(CONTEXT_OVERFLOW_SIGNALS.join("
 
 export function isContextOverflow(errorText: string): boolean {
   return CONTEXT_OVERFLOW_REGEX.test(String(errorText || ""));
+}
+
+// Matches phrasing like `Model minimax-m3-free is not supported` or
+// `model "gpt-9" is not supported` — free-tier/aggregator providers name the
+// specific model in the sentence instead of using a fixed fragment like
+// "model not supported". Shared by modelFamilyFallback.ts's
+// isModelUnavailableError() (400/403/404) and this module's 401 branch below,
+// so the same phrasing locks the model out on either status. Bounded
+// quantifier ({0,80}) keeps it ReDoS-safe. (#7268)
+const MODEL_NAMED_UNSUPPORTED_REGEX = /\bmodel\b[^\n]{0,80}\bis not supported\b/i;
+
+export function containsModelUnavailableMessage(errorMessage: string): boolean {
+  return MODEL_NAMED_UNSUPPORTED_REGEX.test(String(errorMessage || "").toLowerCase());
 }
 
 function responseBodyToString(responseBody: unknown): string {
@@ -144,9 +158,28 @@ export function classifyProviderError(
     return PROVIDER_ERROR_TYPES.RATE_LIMITED;
   }
 
+  // 404 — model or endpoint not found. Without classification the error
+  // falls through to `return null`, so no cooldown/lockout is applied and the
+  // retry/backoff loop keeps hammering the dead endpoint until the upstream
+  // rate-limits it (404 + 429 storm). Classify as MODEL_NOT_FOUND so the model
+  // gets locked via the cooldown layer and retries stop. (#6827)
+  if (statusCode === 404) {
+    return PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND;
+  }
+
   if (statusCode === 401) {
     if (oauthInvalid) {
       return PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN;
+    }
+    // Some free-tier/aggregator providers return 401 (instead of 404) for a
+    // model the account isn't entitled to, with a body like "Model X is not
+    // supported". Without this check the error falls through to a generic
+    // UNAUTHORIZED classification, which never triggers lockModel() in
+    // chatCore.ts — auto-combo keeps re-selecting the same broken model on
+    // every request. Detect the phrasing here, same as the 404 branch above
+    // always does regardless of body content. (#7268)
+    if (containsModelUnavailableMessage(bodyStr)) {
+      return PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND;
     }
     return accountDeactivated
       ? PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED
@@ -184,6 +217,15 @@ export function classifyProviderError(
       return PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
     }
     if (provider && getProviderCategory(provider) === "apikey") {
+      return null;
+    }
+    // No-credential ("authType: none") providers — free, stateless per-request
+    // token proxies like mimocode/theoldllm — have no real account/credential
+    // to revoke. An unrecognized 403 from these is a transient upstream
+    // rate-limit/blocklist signal, not an account ban: keep it recoverable so
+    // the connection cooldown/retry layer handles it instead of a permanent
+    // "banned" state on the first unmatched 403. (#6315, #6345)
+    if (provider && getRegistryEntry(provider)?.authType === "none") {
       return null;
     }
     return PROVIDER_ERROR_TYPES.FORBIDDEN;

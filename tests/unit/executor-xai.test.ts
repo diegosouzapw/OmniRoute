@@ -20,6 +20,12 @@ test("XaiExecutor is registered under the 'xai' key and set as the registry exec
   assert.equal(xaiProvider.executor, "xai");
 });
 
+test("XaiExecutor can target the separate xAI OAuth provider config", () => {
+  const executor = new XaiExecutor("xai-oauth");
+  assert.equal(executor.getProvider(), "xai-oauth");
+  assert.equal(executor.buildUrl("grok-4.5", false), "https://api.x.ai/v1/chat/completions");
+});
+
 test("strips a -{level} suffix from an allow-listed model and sets reasoning_effort", () => {
   const executor = new XaiExecutor();
 
@@ -91,4 +97,22 @@ test("leaves a plain, unlisted model id and body unchanged (no suffix, not allow
   assert.equal(out.model, "grok-4.20-multi-agent-0309");
   assert.equal(out.reasoning_effort, undefined);
   assert.deepEqual(out.messages, body.messages);
+});
+
+// Port of decolua/9router#2439 (author: @ryanngit): xAI ships a native
+// `/v1/responses` endpoint. grok-4.20-multi-agent-0309 is tagged
+// targetFormat: "openai-responses" in the registry (upstream's own tag) — it
+// must resolve to xAI's native Responses URL, not the chat-completions
+// bridge, mirroring the gh executor's targetFormat-driven routing (9router#102)
+// and the "openai" -pro heuristic in open-sse/executors/default.ts.
+test("XaiExecutor.buildUrl routes the Responses-tagged model (grok-4.20-multi-agent-0309) to xAI's native /v1/responses endpoint", () => {
+  const executor = new XaiExecutor();
+  const url = executor.buildUrl("grok-4.20-multi-agent-0309", true);
+  assert.equal(url, "https://api.x.ai/v1/responses");
+});
+
+test("XaiExecutor.buildUrl keeps a plain chat model (grok-4.3) on /v1/chat/completions", () => {
+  const executor = new XaiExecutor();
+  const url = executor.buildUrl("grok-4.3", true);
+  assert.equal(url, "https://api.x.ai/v1/chat/completions");
 });

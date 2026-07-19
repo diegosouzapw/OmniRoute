@@ -35,6 +35,67 @@ export function renameProcessTitle(currentTitle: string): string {
   return `omniroute${currentTitle.slice("next-server".length)}`;
 }
 
+/**
+ * Normalize any thrown/rejected value into a real `Error` instance.
+ *
+ * Next.js's own `registerInstrumentation()` wrapper (see
+ * `node_modules/next/dist/server/lib/router-utils/instrumentation-globals.external.js`)
+ * unconditionally does `err.message = \`...${err.message}\`` on whatever our
+ * `register()` export rejects with, assuming it is always an `Error`. If a raw
+ * non-Error primitive bubbles up instead (e.g. sql.js's WASM adapter throws the
+ * bare string `"Database closed"` — see `./lib/db/adapters/sqljsAdapter.ts`),
+ * that assignment throws `TypeError: Cannot create property 'message' on
+ * string '...'` in strict mode, masking the original error and crashing the
+ * whole server on every boot (#6560). Normalizing before it leaves our code
+ * guarantees Next always receives something `.message`-assignable.
+ */
+export function normalizeBootError(err: unknown): Error {
+  return err instanceof Error ? err : new Error(String(err));
+}
+
+// Matches sql.js's raw `throw "Database closed"` (and similarly-worded
+// variants) thrown when a query runs against an already-closed WASM handle —
+// typically a stale globalThis-cached adapter left over by a prior
+// close/reload racing with this boot (#6560).
+const TRANSIENT_DB_CLOSED_RE = /database\s*(connection\s*)?(is\s*)?closed/i;
+
+/**
+ * Initialize the SQLite singleton for boot, tolerating one transient
+ * "database closed" failure (#6560) by retrying once — the driverFactory
+ * cache-eviction fix (`preInitSqlJs`) makes the retry create a fresh adapter
+ * instead of reusing the dead one. Any other failure (or a second consecutive
+ * "database closed") is re-thrown as a real `Error` via `normalizeBootError`
+ * so it can never crash instrumentation with a masking TypeError — the caller
+ * (`registerNodejs`) still surfaces it as a real boot failure.
+ *
+ * `ensureDbInitializedFn` is only for tests to inject a fake without
+ * module-mocking (`node:test` does not support `mock.module` reliably here).
+ */
+export async function ensureDbReadyForBoot(
+  ensureDbInitializedFn?: () => Promise<void>
+): Promise<void> {
+  const ensureDbInitialized =
+    ensureDbInitializedFn ?? (await import("@/lib/db/core")).ensureDbInitialized;
+
+  try {
+    await ensureDbInitialized();
+  } catch (err: unknown) {
+    const normalized = normalizeBootError(err);
+    if (!TRANSIENT_DB_CLOSED_RE.test(normalized.message)) {
+      throw normalized;
+    }
+    console.warn(
+      "[STARTUP] Database was closed by a prior reload/shutdown — retrying with a fresh connection (#6560):",
+      normalized.message
+    );
+    try {
+      await ensureDbInitialized();
+    } catch (retryErr: unknown) {
+      throw normalizeBootError(retryErr);
+    }
+  }
+}
+
 function isBackgroundServicesDisabled(): boolean {
   const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
   if (!raw) return false;
@@ -83,6 +144,59 @@ async function ensureSecrets(): Promise<void> {
   }
 }
 
+/**
+ * Warm the model catalog's durable, apiKey-independent sub-caches at startup
+ * so real /v1/models traffic (any client, any API key) avoids paying their
+ * cold-build cost on first use. Fire-and-forget from the caller, non-fatal.
+ *
+ * getUnifiedModelsResponse()'s own top-level Response cache (`catalogCache`
+ * in catalog.ts) is keyed by prefix/isCodex/apiKey AND has only a 1.5s TTL
+ * (CATALOG_CACHE_TTL_MS — a burst-dedup window added for #6408 to coalesce
+ * concurrent SDK/dashboard requests, not a startup-warm cache). Warming that
+ * cache with an unauthenticated dummy request has essentially no lasting
+ * effect: real traffic almost never arrives within 1.5s of this warmup
+ * completing, regardless of whether its cache key happens to match a real
+ * client's apiKey. The one genuinely durable, apiKey-independent cost in the
+ * catalog build is getOpenRouterCatalog()'s 24h disk-cached network fetch
+ * (src/lib/catalog/openrouterCatalog.ts) — buildUnifiedModelsResponseCore()
+ * calls it unconditionally whenever an OpenRouter connection is configured,
+ * decoupled from the per-key Response cache entirely, so warming it directly
+ * here benefits every subsequent /v1/models request regardless of that
+ * request's own apiKey. Only fetched when an OpenRouter connection actually
+ * exists, so deployments that never use OpenRouter don't pay an unconditional
+ * third-party network call at every boot.
+ *
+ * Exported (rather than left inline in registerNodejs()) so it can be unit
+ * tested directly without exercising the rest of the startup sequence.
+ */
+export async function warmModelCatalogCache(): Promise<void> {
+  try {
+    const { getUnifiedModelsResponse } = await import("@/app/api/v1/models/catalog");
+    await getUnifiedModelsResponse(new Request("http://127.0.0.1/v1/models"));
+    console.log("[STARTUP] Model catalog cache warmed");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Model catalog warmup failed (non-fatal):", msg);
+  }
+  try {
+    const [{ getProviderConnections }, { getOpenRouterCatalog }] = await Promise.all([
+      import("@/lib/db/providers"),
+      import("@/lib/catalog/openrouterCatalog"),
+    ]);
+    const openrouterConnections = await getProviderConnections({
+      provider: "openrouter",
+      isActive: true,
+    });
+    if (openrouterConnections.length > 0) {
+      await getOpenRouterCatalog();
+      console.log("[STARTUP] OpenRouter model catalog cache warmed");
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] OpenRouter catalog warmup failed (non-fatal):", msg);
+  }
+}
+
 export async function registerNodejs(): Promise<void> {
   // Rename the process title so OmniRoute is identifiable in ps/htop instead
   // of the generic "next-server" standalone server name.
@@ -91,6 +205,19 @@ export async function registerNodejs(): Promise<void> {
   // Initialize proxy fetch patch FIRST (before any HTTP requests)
   await import("@omniroute/open-sse/index.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
+
+  // Guarantee the SQLite singleton — including a sql.js WASM pre-init when
+  // both synchronous drivers (better-sqlite3, node:sqlite) are unavailable —
+  // is ready before ANY other startup step reaches getDbInstance(). This
+  // MUST run before ensureSecrets, clearStaleCrashCooldowns,
+  // getSettings, initAuditLog below: those all reach getDbInstance()
+  // transitively, and used to run ahead of this call (previously at the end
+  // of this function), throwing the misleading "sql.js WASM ainda não foi
+  // pré-inicializado" error for an existing DB file when both sync drivers
+  // failed (#7288 / #7494). ensureDbInitialized() itself is idempotent and
+  // caches the singleton, so every later getDbInstance() call below is a
+  // free no-op re-read of the same connection — no double-init cost.
+  await ensureDbReadyForBoot();
 
   await ensureSecrets();
   const { enforceWebRuntimeEnv } = await import("@/lib/env/runtimeEnv");
@@ -167,6 +294,9 @@ export async function registerNodejs(): Promise<void> {
     console.log("[STARTUP] Quota cache background refresh started");
     startProviderLimitsSyncScheduler();
     console.log("[STARTUP] Provider limits sync scheduler started");
+    const { startQuotaAutoPing } = await import("@/lib/services/quotaAutoPing");
+    startQuotaAutoPing();
+    console.log("[STARTUP] Quota auto-ping scheduler started (opt-in, no-op until enabled)");
     const cloudSyncInitialized = await ensureCloudSyncInitialized();
     console.log(
       `[STARTUP] Cloud/model sync background bootstrap ${cloudSyncInitialized ? "initialized" : "skipped"}`
@@ -215,9 +345,8 @@ export async function registerNodejs(): Promise<void> {
     // without this the dashboard mode (auto/custom/adaptive) silently reverts to
     // the passthrough default on every restart. Previously this was only wired into
     // the unused `server-init.ts`, so it never ran in production.
-    const { hydrateThinkingBudgetConfig } = await import(
-      "@omniroute/open-sse/services/thinkingBudget.ts"
-    );
+    const { hydrateThinkingBudgetConfig } =
+      await import("@omniroute/open-sse/services/thinkingBudget.ts");
     if (hydrateThinkingBudgetConfig(settings)) {
       console.log("[STARTUP] Thinking-Budget config restored from settings");
     }
@@ -250,6 +379,22 @@ export async function registerNodejs(): Promise<void> {
     console.warn("[STARTUP] Could not restore runtime settings:", msg);
   }
 
+  // Proactively start the credential-health sweep at boot so stale web-session
+  // connections (cookies that expired overnight) get re-probed and recovered on
+  // startup — instead of staying red until the first real request lazily imports
+  // the on-demand credentialGate. Idempotent; self-disables via
+  // OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK and its cadence is tunable via
+  // CREDENTIAL_HEALTH_CHECK_INTERVAL. NOTE: this MUST live here (the real Next.js
+  // instrumentation startup), NOT in the unused src/server-init.ts.
+  try {
+    const { initCredentialHealthCheck } = await import("@/lib/credentialHealth/scheduler");
+    initCredentialHealthCheck();
+    console.log("[STARTUP] Credential health scheduler started");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not start credential health scheduler:", msg);
+  }
+
   try {
     const { initAuditLog, cleanupExpiredLogs } = await import("@/lib/compliance/index");
     initAuditLog();
@@ -271,8 +416,6 @@ export async function registerNodejs(): Promise<void> {
     console.warn("[COMPLIANCE] Could not initialize audit log:", msg);
   }
 
-  await import("@/lib/db/core").then(({ ensureDbInitialized }) => ensureDbInitialized());
-
   // Storage-configured scheduled VACUUM (#4437): registers the timer from
   // Settings > System & Storage and persists lastVacuumAt for the UI.
   try {
@@ -283,6 +426,11 @@ export async function registerNodejs(): Promise<void> {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[STARTUP] Could not initialize vacuum scheduler (non-fatal):", msg);
   }
+
+  // Warm the model catalog's durable, apiKey-independent sub-caches at
+  // startup — see warmModelCatalogCache() for why the top-level Response
+  // cache alone doesn't deliver this. Fire-and-forget, non-fatal.
+  void warmModelCatalogCache();
 
   if (!isBackgroundServicesDisabled()) {
     try {
@@ -380,7 +528,7 @@ export async function registerNodejs(): Promise<void> {
       console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
     }
 
-    // Real-time dashboard WebSocket daemon (port 20129): powers Combo Studio Live,
+    // Real-time dashboard WebSocket daemon (port 20132): powers Combo Studio Live,
     // the Home live-pulse, and Live Compression. liveServer.ts auto-starts the
     // daemon on import (gated by OMNIROUTE_ENABLE_LIVE_WS, default ON) — but NOTHING
     // imported it in the packaged standalone/PM2 runtime. Only the unused

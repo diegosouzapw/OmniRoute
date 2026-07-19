@@ -641,6 +641,36 @@ Notes:
 - OpenRouter and OpenAI/Anthropic-compatible providers are managed from **Available Models** only. Manual add, import, and auto-sync all land in the same available-model list, so there is no separate Custom Models section for those providers.
 - The **Custom Models** section is intended for providers that do not expose managed available-model imports.
 
+### Chaining OmniRoute Peers
+
+Another OmniRoute gateway can be added as a **Custom OpenAI-compatible** provider. Use the
+peer's `/v1` base URL and a dedicated, least-privilege API key issued by that peer.
+
+For reciprocal or multi-hop chains, enable the opt-in loop guard on every gateway:
+
+```bash
+# gateway-a
+OMNIROUTE_INSTANCE_ID=gateway-a
+OMNIROUTE_PEER_URLS=http://gateway-b:20128/v1
+OMNIROUTE_PEER_MAX_HOPS=4
+```
+
+```bash
+# gateway-b
+OMNIROUTE_INSTANCE_ID=gateway-b
+OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
+OMNIROUTE_PEER_MAX_HOPS=4
+```
+
+Only requests sent to an explicitly allowlisted peer URL receive the
+`X-OmniRoute-Peer-Trace` header. A gateway rejects a repeated instance ID or exhausted hop
+budget with HTTP `508 Loop Detected`; ordinary upstream providers receive no peer metadata.
+
+Peer chaining is not database replication or host failover. Each gateway keeps independent
+SQLite state, caches, rate counters, and sessions. Use a health-checked reverse proxy or client
+failover for active/passive or active/active availability, and never mount one SQLite database
+into multiple running OmniRoute instances.
+
 ### Dedicated Provider Routes
 
 Route requests directly to a specific provider with model validation:
@@ -945,6 +975,7 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 - `kie/`
 - `aws-polly/`
 - `xiaomi-mimo/`
+- `edgetts/` (Microsoft Edge "Read Aloud" — free, no API key; unofficial/reverse-engineered endpoint)
 - `coqui/`, `tortoise/`
 - `qwen/`
 

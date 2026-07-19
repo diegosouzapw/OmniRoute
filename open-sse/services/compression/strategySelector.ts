@@ -13,7 +13,7 @@ import { cavemanCompress } from "./caveman.ts";
 import { compressAggressive } from "./aggressive.ts";
 import { ultraCompress, ultraCompressHeuristic } from "./ultra.ts";
 import { createCompressionStats } from "./stats.ts";
-import { guardPipelineInflation } from "./pipelineGuards.ts";
+import { applyStackedInflationGuard } from "./pipelineGuards.ts";
 import {
   resolvePipelineBreakerConfig,
   canRunEngine,
@@ -30,6 +30,7 @@ import {
 } from "./stackedStepCore.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
+import { applyOmniglyphSingleMode } from "./engines/omniglyphSingleMode.ts";
 import { applyRtkCompression } from "./engines/rtk/index.ts";
 import { adaptBodyForCompression } from "./bodyAdapter.ts";
 import {
@@ -321,6 +322,10 @@ function runCompression(
       config: { ...(options?.config?.rtkConfig ?? {}), enabled: true },
     });
   }
+  if (mode === "omniglyph") {
+    // omniglyph is async-only — use applyCompressionAsync. Safe no-op here.
+    return { body, compressed: false, stats: null };
+  }
   const adapter = adaptBodyForCompression(body);
   const compressionBody = adapter.body;
   if (mode === "lite") {
@@ -440,6 +445,8 @@ export async function applyCompressionAsync(
   options?: {
     model?: string;
     supportsVision?: boolean | null;
+    /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+    providerTransport?: "direct" | "aggregator";
     config?: CompressionConfig;
     principalId?: string;
     onEngineStep?: (step: StackedCompressionStep) => void;
@@ -457,6 +464,8 @@ async function runCompressionAsync(
   options?: {
     model?: string;
     supportsVision?: boolean | null;
+    /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+    providerTransport?: "direct" | "aggregator";
     config?: CompressionConfig;
     principalId?: string;
     onEngineStep?: (step: StackedCompressionStep) => void;
@@ -489,6 +498,8 @@ async function runCompressionAsync(
     memoStore(key, result);
     return memoLookup(key)!;
   }
+  // Single-mode omniglyph (async-only) — resolution lives in engines/omniglyphSingleMode.ts.
+  if (mode === "omniglyph") return applyOmniglyphSingleMode(body, options);
   if (mode === "stacked") {
     const adapter = adaptBodyForCompression(body);
     const result = await applyStackedCompressionAsync(
@@ -631,6 +642,8 @@ export interface StackedCompressionStep {
 interface StackOptions {
   model?: string;
   supportsVision?: boolean | null;
+  /** Direct-to-provider vs. aggregator transport (gates transport-sensitive engines like omniglyph). */
+  providerTransport?: "direct" | "aggregator";
   config?: CompressionConfig;
   compressionComboId?: string | null;
   /** TV1 bail-out discipline (opt-in, default disabled). */
@@ -669,15 +682,32 @@ function reportEngineStep(
   });
 }
 
+/**
+ * #6463: When callers dispatch mode="stacked" WITHOUT pre-deriving the pipeline from the
+ * per-engine toggle map (e.g. /api/compression/preview, external routes that only forward
+ * the persisted config), the stacked loop must not silently fall back to the built-in
+ * [rtk, caveman] default while ignoring the operator's toggled engines. This resolver
+ * honors the explicit pipeline first, then the engines-derived pipeline, and only
+ * falls back to the historical default when neither source produced steps.
+ */
 function resolveStackSteps(
-  pipeline?: Array<CompressionPipelineStep | string>
+  pipeline?: Array<CompressionPipelineStep | string>,
+  config?: CompressionConfig
 ): CompressionPipelineStep[] {
-  return pipeline && pipeline.length > 0
-    ? pipeline.map(normalizePipelineStep)
-    : [
-        { engine: "rtk", intensity: "standard" },
-        { engine: "caveman", intensity: "full" },
-      ];
+  if (pipeline && pipeline.length > 0) return pipeline.map(normalizePipelineStep);
+
+  const engines = config?.engines;
+  if (engines && Object.values(engines).some((e) => e?.enabled === true)) {
+    const derived = deriveDefaultPlan(engines, true);
+    if (derived.mode === "stacked" && derived.stackedPipeline.length > 0) {
+      return derived.stackedPipeline as CompressionPipelineStep[];
+    }
+  }
+
+  return [
+    { engine: "rtk", intensity: "standard" },
+    { engine: "caveman", intensity: "full" },
+  ];
 }
 
 function buildStepOptions(
@@ -732,30 +762,10 @@ function finalizeStackedResult(
     });
   }
 
-  // T02 / H1: honest aggregate inflation guard. If the fully-stacked body did not actually shrink
-  // (its token count is >= the original), discard it and return the verbatim original — safe by
-  // construction, since the original request body is always a valid payload.
-  const inflation = guardPipelineInflation({
-    originalBody,
-    compressedBody: currentBody,
-    originalTokens: stats.originalTokens,
-    compressedTokens: stats.compressedTokens,
-  });
-  if (inflation.inflated) {
-    const inflatedTokens = stats.compressedTokens;
-    const warnings = new Set(stats.validationWarnings ?? []);
-    warnings.add(
-      `pipeline-inflation-guard: stacked output (${inflatedTokens} tok) did not shrink input ` +
-        `(${stats.originalTokens} tok); reverted to original`
-    );
-    stats.validationWarnings = Array.from(warnings);
-    stats.fallbackApplied = true;
-    stats.compressedTokens = stats.originalTokens;
-    stats.savingsPercent = 0;
-    return { body: inflation.body, compressed: false, stats };
-  }
-
-  return { body: currentBody, compressed, stats };
+  // T02 / H1 / #6480: honest aggregate inflation guard, gated on the loop-level `compressed`
+  // flag so a pipeline where nothing ever advanced isn't mislabeled as a reverted fallback.
+  // See `applyStackedInflationGuard` in `pipelineGuards.ts` for the full rationale.
+  return applyStackedInflationGuard(originalBody, currentBody, compressed, stats);
 }
 
 // ── Shared per-step helpers (used by the sync + async stacked loops; keep them in lockstep) ──
@@ -819,7 +829,7 @@ function runStackedCompression(
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
 ): CompressionResult {
-  const steps = resolveStackSteps(pipeline);
+  const steps = resolveStackSteps(pipeline, options?.config);
   registerBuiltinCompressionEngines();
 
   let currentBody = body;
@@ -845,7 +855,10 @@ function runStackedCompression(
     }
     // Respect the registry enabled flag: a step naming a disabled engine is skipped, so an
     // operator can turn an engine off (setEngineEnabled) without editing every pipeline.
-    if (getEngineEntry(step.engine)?.enabled === false) continue;
+    if (getEngineEntry(step.engine)?.enabled === false) {
+      acc.validationWarnings.add(`${step.engine}: skipped (engine disabled in registry)`);
+      continue;
+    }
     // T02: when the per-engine breaker is OPEN, skip this step (verbatim body kept — fail-open).
     if (breakerOn && !canRunEngine(step.engine, breaker)) {
       acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);
@@ -922,7 +935,7 @@ async function runStackedCompressionAsync(
   pipeline?: Array<CompressionPipelineStep | string>,
   options?: StackOptions
 ): Promise<CompressionResult> {
-  const steps = resolveStackSteps(pipeline);
+  const steps = resolveStackSteps(pipeline, options?.config);
   registerBuiltinCompressionEngines();
 
   let currentBody = body;
@@ -947,7 +960,10 @@ async function runStackedCompressionAsync(
       continue;
     }
     // Respect the registry enabled flag (same as the sync loop) — keep both in lockstep.
-    if (getEngineEntry(step.engine)?.enabled === false) continue;
+    if (getEngineEntry(step.engine)?.enabled === false) {
+      acc.validationWarnings.add(`${step.engine}: skipped (engine disabled in registry)`);
+      continue;
+    }
     // T02: skip an engine whose breaker is OPEN (verbatim body kept — fail-open). Lockstep w/ sync.
     if (breakerOn && !canRunEngine(step.engine, breaker)) {
       acc.validationWarnings.add(`${step.engine}: skipped (pipeline circuit-breaker open)`);

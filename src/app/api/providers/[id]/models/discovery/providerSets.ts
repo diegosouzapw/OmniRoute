@@ -64,6 +64,12 @@ export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // it proxies many upstream models (DeepSeek, Claude, Kimi...) behind one key, so the
   // full catalog is discovered live from https://api.qnaigc.com/v1/models.
   "qiniu",
+  // OpenVecta (https://openvecta.com/) is an OpenAI-compatible AI inference gateway
+  // hosting LLMs (GLM, Claude, DeepSeek, GPT OSS, Llama, Kimi, Nemotron…) plus
+  // text-embedding-* models behind a single Bearer key. The full catalog is
+  // discovered live from https://api.openvecta.com/v1/models; the registry seed
+  // (registry/openvecta) covers the most-used LLMs as the offline fallback.
+  "openvecta",
 ]);
 
 export function isNamedOpenAIStyleProvider(provider: string): boolean {

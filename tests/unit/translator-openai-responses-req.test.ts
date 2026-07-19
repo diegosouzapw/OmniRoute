@@ -599,9 +599,32 @@ test("Chat -> Responses maps reasoning_effort into Responses reasoning", () => {
     null
   );
 
-  assert.deepEqual((result as any).reasoning, { effort: "low" });
+  // Effort-only chat requests now default `summary: "auto"` + the encrypted
+  // reasoning include so Responses-API upstreams stream thinking back to the
+  // chat client (previously the summary was empty and no think was visible).
+  assert.deepEqual((result as any).reasoning, { effort: "low", summary: "auto" });
+  assert.deepEqual((result as Record<string, unknown>).include, ["reasoning.encrypted_content"]);
   assert.equal((result as any).reasoning_effort, undefined);
   assert.equal((result as any).store, false);
+});
+
+test("Chat -> Responses does not default a reasoning summary for reasoning_effort none", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.3-codex-spark",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      reasoning_effort: "none",
+    },
+    false,
+    null
+  );
+
+  const record = result as Record<string, unknown>;
+  const reasoning = record.reasoning as Record<string, unknown> | undefined;
+  if (reasoning !== undefined) {
+    assert.equal(reasoning.summary, undefined);
+  }
+  assert.equal(record.include, undefined);
 });
 
 test("Chat -> Responses normalizes reasoning_effort max to xhigh", () => {
@@ -615,7 +638,7 @@ test("Chat -> Responses normalizes reasoning_effort max to xhigh", () => {
     null
   );
 
-  assert.deepEqual((result as any).reasoning, { effort: "xhigh" });
+  assert.deepEqual((result as any).reasoning, { effort: "xhigh", summary: "auto" });
   assert.equal((result as any).reasoning_effort, undefined);
 });
 
@@ -887,21 +910,17 @@ test("Responses -> Chat: tool_search does not throw (issue #2766)", () => {
   );
 });
 
-test("Responses -> Chat: tool_search is stripped from output tools array (issue #2766)", () => {
-  // Codex clients send tool_search alongside function tools. tool_search has no
-  // Chat Completions equivalent and must be dropped; function tools must remain.
+test("Responses -> Chat: tool_search is mapped to a Chat function tool, not dropped (#7532)", () => {
+  // tool_search (execution: "client") is client-resolved, same as local_shell -> shell;
+  // dropping it (#2766) hid the tool and broke Codex's deferred tool-discovery on
+  // downgrade (#7532) — it is now mapped to a Chat function tool instead.
   const result = openaiResponsesToOpenAIRequest(
     "gpt-4o",
     {
       input: [{ role: "user", content: [{ type: "input_text", text: "hello" }] }],
       tools: [
         { type: "tool_search", name: "search" },
-        {
-          type: "function",
-          name: "foo",
-          description: "A function",
-          parameters: { type: "object" },
-        },
+        { type: "function", name: "foo", description: "A function", parameters: { type: "object" } },
       ],
     },
     false,
@@ -910,14 +929,12 @@ test("Responses -> Chat: tool_search is stripped from output tools array (issue 
 
   const tools = result.tools as any[];
   assert.ok(Array.isArray(tools), "tools array must be present");
-  assert.equal(
-    tools.some((t) => t.type === "tool_search"),
-    false,
-    "tool_search must be stripped from output"
-  );
-  assert.equal(tools.length, 1, "only the function tool must remain");
-  assert.equal(tools[0].type, "function");
-  assert.equal(tools[0].function.name, "foo");
+  assert.equal(tools.some((t) => t.type === "tool_search"), false, "raw tool_search type must not survive");
+  assert.equal(tools.length, 2, "mapped tool_search function + the function tool must remain");
+  const toolSearch = tools.find((t) => t.function?.name === "search");
+  assert.ok(toolSearch, "tool_search must be mapped to a Chat function tool named after it");
+  assert.equal(toolSearch.type, "function");
+  assert.equal(tools.find((t) => t.function?.name === "foo")?.type, "function");
 });
 
 // --- Issue #2950: image_generation built-in should be silently dropped ---

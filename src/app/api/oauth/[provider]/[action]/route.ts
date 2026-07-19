@@ -36,18 +36,15 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { keychainImportOnlyGuard } from "./keychainImportOnly";
+import { buildRemoteOAuthHint } from "./remoteOAuthHint";
 
-// Use globalThis to persist callback server state across Next.js HMR reloads
-if (!globalThis.__codexCallbackState) {
-  globalThis.__codexCallbackState = null;
-}
-// Windsurf / Devin CLI PKCE callback server state (separate from Codex)
-if (!globalThis.__windsurfCallbackState) {
-  globalThis.__windsurfCallbackState = null;
+// Persist one callback server per provider across Next.js HMR reloads.
+if (!globalThis.__pkceCallbackStates) {
+  globalThis.__pkceCallbackStates = {};
 }
 
 /** Providers that use the PKCE browser callback flow (like Codex). */
-const PKCE_CALLBACK_PROVIDERS = new Set(["codex"]);
+const PKCE_CALLBACK_PROVIDERS = new Set(["codex", "xai-oauth"]);
 
 /**
  * Providers whose device flow runs in the user's browser (auth.openai.com blocks
@@ -242,7 +239,7 @@ export async function GET(
     }
 
     if (action === "start-callback-server") {
-      return await handleStartCallbackServer(provider, searchParams);
+      return await handleStartCallbackServer(provider, searchParams, request);
     }
 
     if (action === "public-link-status") {
@@ -259,16 +256,24 @@ export async function GET(
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
     console.error("OAuth GET error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    // Surface the SANITIZED upstream reason instead of a generic 500 that hides WHY the flow failed.
+    // device-code providers (qwen → qwen.ai, codebuddy-cn → copilot.tencent.com) throw a descriptive
+    // message ("Device code request failed: …", "CodeBuddy state request failed (403)") that was being
+    // swallowed, so a geo-block / upstream outage looked identical to a real server bug in the UI.
+    const detail = sanitizeErrorMessage(error instanceof Error ? error.message : String(error));
+    return NextResponse.json({ error: detail || "Internal server error" }, { status: 500 });
   }
 }
 
 /**
- * Start PKCE callback server for Codex, Windsurf, or Devin CLI.
- * Codex uses fixed port 1455; Windsurf/Devin CLI use a random free port (port 0).
+ * Start a provider-configured PKCE callback server.
  * Returns the auth URL and stores codeVerifier for later exchange.
  */
-async function handleStartCallbackServer(provider: string, searchParams: URLSearchParams) {
+async function handleStartCallbackServer(
+  provider: string,
+  searchParams: URLSearchParams,
+  request?: Request
+) {
   if (!PKCE_CALLBACK_PROVIDERS.has(provider)) {
     return NextResponse.json(
       { error: `Callback server not supported for provider: ${provider}` },
@@ -276,58 +281,72 @@ async function handleStartCallbackServer(provider: string, searchParams: URLSear
     );
   }
 
-  const isWindsurf = provider === "windsurf" || provider === "devin-cli";
-  const stateKey = isWindsurf ? "__windsurfCallbackState" : "__codexCallbackState";
+  const callbackStates = globalThis.__pkceCallbackStates;
 
   // Clean up existing server if any
-  if (globalThis[stateKey]?.close) {
+  if (callbackStates[provider]?.close) {
     try {
-      globalThis[stateKey].close();
+      callbackStates[provider].close();
     } catch (e) {
       /* ignore */
     }
   }
-  globalThis[stateKey] = null;
+  delete callbackStates[provider];
 
   try {
-    // Codex: fixed port 1455. Windsurf/Devin CLI: OS-assigned random port (0)
-    const serverPort = isWindsurf ? 0 : 1455;
+    const providerData = getProvider(provider);
+    const serverPort = providerData.fixedPort || 0;
+    const callbackPath = providerData.callbackPath || "/callback";
+    const callbackHost = providerData.callbackHost || "localhost";
     const { port, close } = await startLocalServer((params) => {
-      if (globalThis[stateKey]) {
-        globalThis[stateKey].callbackParams = params;
+      if (callbackStates[provider]) {
+        callbackStates[provider].callbackParams = params;
       }
     }, serverPort);
 
-    const redirectUri = `http://localhost:${port}/auth/callback`;
+    const redirectUri = `http://${callbackHost}:${port}${callbackPath}`;
     const authData = generateAuthData(provider, redirectUri);
 
-    globalThis[stateKey] = {
+    callbackStates[provider] = {
       callbackParams: null,
       close,
       port,
       redirectUri,
       codeVerifier: authData.codeVerifier,
+      state: authData.state,
       startedAt: Date.now(),
     };
 
     // Auto-cleanup after 5 minutes
     const startedAt = Date.now();
     setTimeout(() => {
-      if (globalThis[stateKey]?.startedAt === startedAt) {
+      if (callbackStates[provider]?.startedAt === startedAt) {
         try {
           close();
         } catch (e) {
           /* ignore */
         }
-        globalThis[stateKey] = null;
+        delete callbackStates[provider];
       }
     }, 300000);
+
+    // #7523: the PKCE callback server listens on the SERVER's loopback
+    // (localhost:PORT). When the operator drives the OAuth flow from a
+    // *different* machine (OmniRoute running on a remote host/VPS), the
+    // provider redirects the browser to the operator's own localhost:PORT,
+    // not the server's — so the final confirmation screen hangs forever.
+    // Detect a non-loopback Host and surface the reverse-tunnel instruction
+    // (or steer to the paste/import flow) instead of a silent hang.
+    const hostHeader =
+      request?.headers.get("x-forwarded-host") || request?.headers.get("host") || null;
+    const remoteHint = buildRemoteOAuthHint(hostHeader, port);
 
     return NextResponse.json({
       authUrl: authData.authUrl,
       codeVerifier: authData.codeVerifier,
       redirectUri,
       serverPort: port,
+      ...remoteHint,
     });
   } catch (error) {
     console.error("OAuth start-callback-server error:", error);
@@ -638,10 +657,9 @@ export async function POST(
         );
       }
 
-      // Windsurf and Devin CLI share __windsurfCallbackState; Codex uses its own slot
-      const stateKey = provider === "codex" ? "__codexCallbackState" : "__windsurfCallbackState";
+      const callbackStates = globalThis.__pkceCallbackStates;
 
-      if (!globalThis[stateKey]) {
+      if (!callbackStates[provider]) {
         return NextResponse.json({
           success: false,
           error: "no_server",
@@ -649,13 +667,13 @@ export async function POST(
         });
       }
 
-      if (!globalThis[stateKey].callbackParams) {
+      if (!callbackStates[provider].callbackParams) {
         return NextResponse.json({ success: false, pending: true });
       }
 
       // Callback received! Extract code and exchange for tokens
-      const params = globalThis[stateKey].callbackParams;
-      const { redirectUri, codeVerifier, close } = globalThis[stateKey];
+      const params = callbackStates[provider].callbackParams;
+      const { redirectUri, codeVerifier, state, close } = callbackStates[provider];
 
       // Clean up server
       try {
@@ -663,7 +681,7 @@ export async function POST(
       } catch (e) {
         /* ignore */
       }
-      globalThis[stateKey] = null;
+      delete callbackStates[provider];
 
       if (params.error) {
         return NextResponse.json({
@@ -678,6 +696,14 @@ export async function POST(
           success: false,
           error: "no_code",
           errorDescription: "No authorization code received",
+        });
+      }
+
+      if (!safeEqual(params.state, state)) {
+        return NextResponse.json({
+          success: false,
+          error: "invalid_state",
+          errorDescription: "OAuth state mismatch",
         });
       }
 

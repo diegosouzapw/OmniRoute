@@ -11,6 +11,11 @@ export const KNOWN_OFFENDING_FIELDS: readonly string[] = [
   "chat_template",
   "reasoning_content",
   "context_management",
+  // GPT-5's Chat Completions-only output control. It can be present when a
+  // routing rule substitutes a non-GPT OpenAI-compatible target (for example
+  // Codex → GLM or Ollama Cloud), whose strict endpoint rejects it as an extra
+  // field. Retrying without it is safe because it only changes output style.
+  "verbosity",
 ];
 
 /** Return the first known-offending field literally named in a 400 body, or null. */
@@ -20,6 +25,26 @@ export function findOffendingField(bodyText: string): string | null {
     if (bodyText.includes(field)) return field;
   }
   return null;
+}
+
+/**
+ * Regex to extract an unsupported parameter name from upstream 400 error text.
+ * Matches:
+ *   - "Unsupported parameter(s): thinking"
+ *   - "Unsupported parameter: max_tokens"
+ *   - "Unsupported parameter 'reasoning_budget'"
+ */
+export const UNSUPPORTED_PARAM_RE =
+  /unsupported\s+parameter\w*(?:\s*\(s\))?[:\s]+["'`]?(\w+)["'`]?/i;
+
+/**
+ * Extract a single unsupported parameter name from a 400 error body,
+ * or null if the error does not match the known pattern.
+ */
+export function detectUnsupportedParam(bodyText: string): string | null {
+  if (typeof bodyText !== "string" || !bodyText) return null;
+  const match = UNSUPPORTED_PARAM_RE.exec(bodyText);
+  return match?.[1] ?? null;
 }
 
 /** Immutably drop request fields Groq rejects with a 400. */

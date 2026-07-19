@@ -3,6 +3,7 @@ import { getMcpAccessibilityConfig, setMcpAccessibilityConfig } from "@/lib/db/c
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { mcpAccessibilityConfigSchema } from "@/shared/validation/compressionConfigSchemas";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 // Read/update the mcpAccessibility engine config (compression/mcpAccessibility DB key) that the
 // MCP server consumes on every tool call to trim oversized tool outputs. Kept as a dedicated
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     const config = await getMcpAccessibilityConfig();
     return NextResponse.json(config);
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -47,6 +48,6 @@ export async function PUT(request: NextRequest) {
     const config = await getMcpAccessibilityConfig();
     return NextResponse.json(config);
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }

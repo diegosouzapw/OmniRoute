@@ -19,7 +19,7 @@ function TierCard({ number, colorClass, label, description, examples }: TierCard
         <span className="text-2xl font-bold">{number}</span>
         <span className="font-semibold text-sm">{label}</span>
       </div>
-      <p className="text-xs text-text-muted mb-3">{description}</p>
+      <p className="min-h-16 text-xs text-text-muted mb-3">{description}</p>
       <ul className="text-xs space-y-0.5 text-text-muted">
         {examples.map((e) => (
           <li key={e}>· {e}</li>
@@ -34,10 +34,6 @@ export function TierTour() {
 
   return (
     <div className="space-y-5">
-      <div className="text-center">
-        <p className="text-sm text-text-muted">{t("subtitle")}</p>
-      </div>
-
       <TierFlowDiagram />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -68,7 +64,7 @@ export function TierTour() {
         <Link href="/dashboard/providers/new" className="underline hover:text-text-muted">
           {t("configure")}
         </Link>{" "}
-        after setup.
+        {t("afterSetup")}
       </p>
     </div>
   );

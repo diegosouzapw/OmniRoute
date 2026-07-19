@@ -1,7 +1,10 @@
 import { handleVideoGeneration } from "@omniroute/open-sse/handlers/videoGeneration.ts";
 import { resolveVideoCredentialProvider } from "@omniroute/open-sse/handlers/videoGeneration/googleFlow.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
-import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
+import {
+  getProviderCredentialsWithQuotaPreflight,
+  clearRecoveredProviderState,
+} from "@/sse/services/auth";
 import { parseVideoModel, getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -41,6 +44,18 @@ export async function GET(request?: Request) {
 }
 
 /**
+ * #6928: best-effort per-connection base-URL override lookup for local no-auth
+ * media providers (ComfyUI). Returns null instead of failing when no connection
+ * exists — local providers must keep working with zero configuration.
+ */
+async function resolveLocalOverrideCredentials(provider) {
+  const localCredentials = await getProviderCredentialsWithQuotaPreflight(provider);
+  return localCredentials && !isAllRateLimitedCredentials(localCredentials)
+    ? localCredentials
+    : null;
+}
+
+/**
  * POST /v1/videos/generations — generate videos
  */
 async function postHandler(request, context) {
@@ -75,7 +90,9 @@ async function postHandler(request, context) {
   // OAuth credential (resolveVideoCredentialProvider maps googleflow → antigravity).
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentials(resolveVideoCredentialProvider(provider));
+    credentials = await getProviderCredentialsWithQuotaPreflight(
+      resolveVideoCredentialProvider(provider)
+    );
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
@@ -85,6 +102,8 @@ async function postHandler(request, context) {
     if (isAllRateLimitedCredentials(credentials)) {
       return rateLimitedProviderResponse(provider, credentials);
     }
+  } else if (providerConfig?.authType === "none") {
+    credentials = await resolveLocalOverrideCredentials(provider);
   }
 
   const result = await handleVideoGeneration({ body, credentials, log });

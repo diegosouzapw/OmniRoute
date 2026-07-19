@@ -23,8 +23,8 @@ const { default: ProviderIcon } = await import("@/shared/components/ProviderIcon
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 // Deliberately not registered in @lobehub/icons aliases or the KNOWN_PNGS/KNOWN_SVGS
-// static-asset sets, so tests exercise only the `src` override + generic-icon fallback
-// paths, never the @lobehub/static resolution chain.
+// static-asset sets, so tests exercise only the `src` override + fallback chain
+// (thesvg.org → generic icon). Never reaches the local SVG or @lobehub tiers.
 const UNKNOWN_PROVIDER_ID = "openai-compatible-test-node-xyz";
 
 const containers: HTMLElement[] = [];
@@ -50,8 +50,9 @@ function fireImgError(container: HTMLElement) {
 }
 
 beforeEach(() => {
-  (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-    true;
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
 });
 
 afterEach(() => {
@@ -71,18 +72,31 @@ describe("ProviderIcon — custom remote icon URL (#2166)", () => {
     expect(img?.getAttribute("src")).toBe("https://example.com/logo.png");
   });
 
-  it("falls back to the generic icon when `src` is unset", () => {
+  it("falls back to thesvg.org CDN when `src` is unset (Tier 3 for unknown providers)", () => {
     const container = renderIcon({});
-    expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelector("svg")).not.toBeNull();
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute("src")).toBe(
+      "https://thesvg.org/icons/openai-compatible-test-node-xyz/default.svg"
+    );
   });
 
-  it("falls back to the generic (lobehub/static) icon chain when `src` load fails and no fallbackText is given", () => {
+  it("falls back through thesvg.org CDN then generic icon when `src` load fails and no fallbackText is given", () => {
     const container = renderIcon({ src: "https://example.com/broken.png" });
     expect(container.querySelector("img")).not.toBeNull();
 
     fireImgError(container);
 
+    // Falls back to thesvg.org
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute("src")).toBe(
+      "https://thesvg.org/icons/openai-compatible-test-node-xyz/default.svg"
+    );
+
+    fireImgError(container);
+
+    // thesvg.org fails → generic SVG icon
     expect(container.querySelector("img")).toBeNull();
     expect(container.querySelector("svg")).not.toBeNull();
   });
@@ -102,9 +116,12 @@ describe("ProviderIcon — custom remote icon URL (#2166)", () => {
     expect(container.textContent).toBe("OC");
   });
 
-  it("ignores a whitespace-only src and falls back to the generic icon", () => {
+  it("ignores a whitespace-only src and falls back to thesvg.org CDN", () => {
     const container = renderIcon({ src: "   " });
-    expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelector("svg")).not.toBeNull();
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute("src")).toBe(
+      "https://thesvg.org/icons/openai-compatible-test-node-xyz/default.svg"
+    );
   });
 });

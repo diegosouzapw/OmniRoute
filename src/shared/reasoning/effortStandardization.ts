@@ -11,15 +11,37 @@ import { z } from "zod";
  * provider-agnostic pair of request fields and folds them onto the fields the existing
  * mappers already read.
  *
- * Canonical effort vocabulary — the SAME five values used everywhere else in the codebase
- * (`providerSpecificData.ts` CODEX_REASONING_EFFORT_VALUES, `vscode/reasoningMetadata.ts`
- * KNOWN_REASONING_EFFORTS, `modelSpecs.ts`). We deliberately REUSE this set instead of
- * inventing a parallel Low/Medium/High/Extra/Max enum that would diverge from the rest of
- * the codebase.
+ * The provider-agnostic vocabulary remains five values. Provider-native additions such as
+ * Codex GPT-5.6 Max and Ultra are exposed separately without widening this request contract.
  */
 export const CANONICAL_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh"] as const;
 
 export type CanonicalEffort = (typeof CANONICAL_EFFORT_VALUES)[number];
+
+/** Use provider-native GPT-5.6 effort levels without widening the global request vocabulary. */
+export function extendCodexGpt56EffortValues(
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  baseValues: readonly string[]
+): string[] {
+  const values = [...baseValues];
+  const normalizedProvider = provider?.trim().toLowerCase();
+  const normalizedModel = model
+    ?.trim()
+    .toLowerCase()
+    .replace(/^(?:codex|cx)\//, "");
+  if (!normalizedModel || (normalizedProvider !== "codex" && normalizedProvider !== "cx")) {
+    return values;
+  }
+
+  const match = normalizedModel.match(
+    /^gpt-5\.6-(sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/
+  );
+  if (!match) return values;
+
+  const nativeValues = ["low", "medium", "high", "xhigh", "max"];
+  return match[1] === "luna" ? nativeValues : [...nativeValues, "ultra"];
+}
 
 /**
  * UI-facing tier synonyms mapped onto the canonical set. The issue (#6241) requested a
@@ -95,18 +117,13 @@ export function normalizeReasoningRequest<T>(body: T): T {
 
   const reasoning = body.reasoning;
   const clientSetReasoningEffort = body.reasoning_effort !== undefined;
-  const clientSetReasoningObjEffort =
-    isPlainObject(reasoning) && reasoning.effort !== undefined;
+  const clientSetReasoningObjEffort = isPlainObject(reasoning) && reasoning.effort !== undefined;
 
   const next: Record<string, unknown> = { ...body };
 
   // Canonical effort → the fields the mappers read. Skip entirely if the client already
   // expressed a reasoning effort (either shape) so client intent is preserved.
-  if (
-    canonicalEffort !== undefined &&
-    !clientSetReasoningEffort &&
-    !clientSetReasoningObjEffort
-  ) {
+  if (canonicalEffort !== undefined && !clientSetReasoningEffort && !clientSetReasoningObjEffort) {
     next.reasoning_effort = canonicalEffort;
     next.reasoning = {
       ...(isPlainObject(reasoning) ? reasoning : {}),

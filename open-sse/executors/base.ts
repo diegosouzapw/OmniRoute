@@ -4,10 +4,25 @@ import {
   normalizeAnthropicHeaderVariants,
 } from "../config/anthropicHeaders.ts";
 import { applyContextEditingToBody } from "../config/contextEditing.ts";
-import { findOffendingField, stripGroqUnsupportedFields } from "../config/providerFieldStrips.ts";
+import {
+  findOffendingField,
+  detectUnsupportedParam,
+  stripGroqUnsupportedFields,
+} from "../config/providerFieldStrips.ts";
+import {
+  getParamFilterConfig,
+  addParamToBlocklist,
+  isAutoLearnGloballyEnabled,
+} from "@/lib/db/paramFilters";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
+import {
+  recordFreeWindowAttempt,
+  correctFromRateLimitHeaders,
+  resolveAccountKey,
+  isFreeVariantModel,
+} from "../services/openrouterFreeWindow.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
@@ -72,6 +87,7 @@ import {
   applyConfiguredUserAgent,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
+import { applyPeerTraceHeader } from "@/shared/resilience/peerRouting";
 // Header helpers extracted to a pure leaf; re-exported for external importers
 // (executors + tests) that import them from "./base.ts".
 export {
@@ -108,6 +124,7 @@ export type ProviderConfig = {
   baseUrl?: string;
   baseUrls?: string[];
   responsesBaseUrl?: string;
+  messagesUrl?: string;
   chatPath?: string;
   clientVersion?: string;
   clientId?: string;
@@ -1168,6 +1185,9 @@ export class BaseExecutor {
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
+        // Enforce peer tracing after all configurable headers have been merged so
+        // operator/provider metadata cannot accidentally erase the loop guard.
+        applyPeerTraceHeader(finalHeaders, clientHeaders, url);
         const serializedBody = prl.parseBody(bodyString);
         // #4307 — Preserve the non-enumerable tool-name cloak/remap reverse map
         // (`_toolNameMap`, set on the live `transformedBody` by
@@ -1204,7 +1224,25 @@ export class BaseExecutor {
           body: bodyString,
         };
 
+        // OpenRouter `:free`-variant local window (#6842): record every real
+        // dispatch attempt (failed attempts still consume a request slot per
+        // OpenRouter's own accounting) and self-correct the local counters
+        // from the upstream `X-RateLimit-*` headers on the response. Scoped
+        // to `:free` models only — no-op (and no extra work) for every other
+        // OpenRouter request or provider.
+        const openrouterFreeWindowAccountKey =
+          this.provider === "openrouter" && isFreeVariantModel(model) && activeCredentials.connectionId
+            ? resolveAccountKey(activeCredentials.connectionId, activeCredentials)
+            : null;
+        if (openrouterFreeWindowAccountKey) {
+          recordFreeWindowAttempt(openrouterFreeWindowAccountKey);
+        }
+
         let response = await fetchWithStartTimeout(url, fetchOptions);
+
+        if (openrouterFreeWindowAccountKey) {
+          correctFromRateLimitHeaders(openrouterFreeWindowAccountKey, response.headers);
+        }
 
         // Context Editing 400-fallback for Claude-compatible relays.
         if (
@@ -1261,6 +1299,39 @@ export class BaseExecutor {
               `Upstream 400 rejected ${offending} on ${url} — retrying without it`
             );
             response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
+          } else {
+            // Auto-learn: detect "Unsupported parameter" errors and persist to DB
+            // when the provider config has autoLearn enabled (#6625).
+            const autoLearned = detectUnsupportedParam(errText);
+            if (
+              autoLearned &&
+              !strippedFields.has(autoLearned) &&
+              (transformedBody as Record<string, unknown>)[autoLearned] !== undefined
+            ) {
+              try {
+                const config = getParamFilterConfig(this.provider);
+                const shouldAutoLearn = isAutoLearnGloballyEnabled() || config?.autoLearn === true;
+                if (shouldAutoLearn) {
+                  strippedFields.add(autoLearned);
+                  addParamToBlocklist(this.provider, autoLearned, model);
+                  delete (transformedBody as Record<string, unknown>)[autoLearned];
+                  let retryBody = JSON.stringify(transformedBody);
+                  if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+                    retryBody = await signRequestBody(retryBody);
+                  }
+                  log?.info?.(
+                    "AUTO_LEARN",
+                    `Auto-learned "${autoLearned}" for provider ${this.provider} (model: ${model}) from 400 on ${url} — retrying`
+                  );
+                  response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
+                }
+              } catch (learnError) {
+                log?.warn?.(
+                  "AUTO_LEARN",
+                  `Failed to persist auto-learned param "${autoLearned}" for ${this.provider}: ${String(learnError)}`
+                );
+              }
+            }
           }
         }
 

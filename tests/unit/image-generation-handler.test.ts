@@ -1814,7 +1814,7 @@ test("handleImageGeneration routes codex image requests through /responses with 
   try {
     const result = await handleImageGeneration({
       body: {
-        model: "codex/gpt-5.4",
+        model: "codex/gpt-5.6-sol",
         prompt: "Draw a happy red kitten",
         response_format: "b64_json",
       },
@@ -1829,7 +1829,7 @@ test("handleImageGeneration routes codex image requests through /responses with 
     assert.equal(captured.url, "https://chatgpt.com/backend-api/codex/responses");
     assert.equal(captured.headers.Authorization, "Bearer codex-token");
     assert.equal(captured.headers["chatgpt-account-id"], "acct-123");
-    assert.equal(captured.body.model, "gpt-5.4");
+    assert.equal(captured.body.model, "gpt-5.6-sol");
     assert.equal(captured.body.stream, true);
     assert.equal(captured.body.store, false);
     assert.deepEqual(captured.body.tools, [{ type: "image_generation", output_format: "png" }]);
@@ -1853,7 +1853,7 @@ test("handleImageGeneration (codex) returns a data URL when response_format is n
 
   try {
     const result = await handleImageGeneration({
-      body: { model: "cx/gpt-5.4", prompt: "kitten" },
+      body: { model: "cx/gpt-5.6-sol", prompt: "kitten" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });
@@ -1895,7 +1895,7 @@ test("handleImageGeneration (codex) fans out n>1 requests in parallel", async ()
   try {
     pending = handleImageGeneration({
       body: {
-        model: "codex/gpt-5.4",
+        model: "codex/gpt-5.6-sol",
         prompt: "kitten",
         n: 2,
         response_format: "b64_json",
@@ -1937,7 +1937,7 @@ test("handleImageGeneration (codex) surfaces an error when no image_generation_c
 
   try {
     const result = await handleImageGeneration({
-      body: { model: "codex/gpt-5.4", prompt: "kitten" },
+      body: { model: "codex/gpt-5.6-sol", prompt: "kitten" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });
@@ -1956,7 +1956,7 @@ test("handleImageGeneration (codex) propagates upstream HTTP errors", async () =
 
   try {
     const result = await handleImageGeneration({
-      body: { model: "codex/gpt-5.4", prompt: "kitten" },
+      body: { model: "codex/gpt-5.6-sol", prompt: "kitten" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });
@@ -1982,7 +1982,7 @@ test("handleImageGeneration (codex) forwards size and maps GPT-Image quality to 
   try {
     await handleImageGeneration({
       body: {
-        model: "codex/gpt-5.4",
+        model: "codex/gpt-5.6-sol",
         prompt: "kitten",
         size: "1024x1792",
         quality: "hd",
@@ -2000,14 +2000,14 @@ test("handleImageGeneration (codex) forwards size and maps GPT-Image quality to 
     ]);
 
     await handleImageGeneration({
-      body: { model: "codex/gpt-5.4", prompt: "kitten", quality: "standard" },
+      body: { model: "codex/gpt-5.6-sol", prompt: "kitten", quality: "standard" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });
     assert.equal(captured.tools[0].quality, "medium");
 
     await handleImageGeneration({
-      body: { model: "codex/gpt-5.4", prompt: "kitten" },
+      body: { model: "codex/gpt-5.6-sol", prompt: "kitten" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });

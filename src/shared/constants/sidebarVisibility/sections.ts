@@ -171,6 +171,14 @@ export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       icon: "bolt",
     },
     {
+      id: "context-omniglyph",
+      href: "/dashboard/context/omniglyph",
+      i18nKey: "contextOmniglyph",
+      labelFallback: "OmniGlyph",
+      subtitleFallback: "Context-as-image",
+      icon: "grain",
+    },
+    {
       id: "compression-studio",
       href: "/dashboard/compression/studio",
       i18nKey: "compressionStudio",
@@ -508,6 +516,14 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     icon: "share",
   },
   {
+    id: "chaos-config",
+    href: "/dashboard/chaos",
+    i18nKey: "chaosConfig",
+    labelFallback: "Chaos Mode",
+    subtitleFallback: "Multi-model parallel execution",
+    icon: "blender",
+  },
+  {
     id: "skills",
     href: "/dashboard/omni-skills",
     i18nKey: "omniSkills",
@@ -715,7 +731,6 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
       INTEGRATIONS_GROUP,
       PROXY_ITEM,
     ],
-    defaultPinned: true,
   },
   {
     id: "analytics",

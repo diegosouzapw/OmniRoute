@@ -8,7 +8,7 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuard";
+import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import { isCcCompatibleProviderEnabled } from "@/shared/utils/featureFlags";
 import { providerNodeValidateSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";

@@ -30,7 +30,7 @@ test(`CLI_TOOLS has exactly ${EXPECTED_AGENT_COUNT} agent entries`, () => {
   );
 });
 
-test("CLI_TOOLS total code entries (including none) equals 24 (20 visible + 4 none)", () => {
+test("CLI_TOOLS total code entries (including none) equals 25 (21 visible + 4 none)", () => {
   // code-none entries: antigravity, kiro, cursor (app), hermes (simple guide)
   const codeNone = codeAll.filter((t) => t.baseUrlSupport === "none");
   assert.equal(
@@ -38,11 +38,11 @@ test("CLI_TOOLS total code entries (including none) equals 24 (20 visible + 4 no
     4,
     `Expected 4 code entries with baseUrlSupport='none', got ${codeNone.length}: ${codeNone.map((t) => t.id).join(", ")}`
   );
-  assert.equal(codeAll.length, 24, `Expected 24 total code entries, got ${codeAll.length}`);
+  assert.equal(codeAll.length, 25, `Expected 25 total code entries, got ${codeAll.length}`);
 });
 
-test("CLI_TOOLS total (code + agent) = 30", () => {
-  assert.equal(all.length, 30, `Expected 30 total entries, got ${all.length}`);
+test("CLI_TOOLS total (code + agent) = 33", () => {
+  assert.equal(all.length, 33, `Expected 33 total entries, got ${all.length}`);
 });
 
 test("All code-none entries have configType mitm OR are legacy excluded entries", () => {
@@ -66,7 +66,7 @@ test("All agent entries have baseUrlSupport 'full' or 'partial' (no agent is 'no
   }
 });
 
-test("The 20 visible code entries match D15 list exactly (+ crush + codewhale)", () => {
+test("The 21 visible code entries match D15 list exactly (+ crush + codewhale + grok-build)", () => {
   const d15List = new Set([
     "claude",
     "codex",
@@ -88,6 +88,7 @@ test("The 20 visible code entries match D15 list exactly (+ crush + codewhale)",
     "pi",
     "custom",
     "crush",
+    "grok-build",
   ]);
   const visibleIds = new Set(codeVisible.map((t) => t.id));
   for (const id of d15List) {
@@ -98,7 +99,7 @@ test("The 20 visible code entries match D15 list exactly (+ crush + codewhale)",
   }
 });
 
-test("The 6 agent entries match D15 list exactly", () => {
+test("The 8 agent entries match D15 list exactly (+ omp + letta, #6318)", () => {
   const d15Agents = new Set([
     "hermes-agent",
     "openclaw",
@@ -106,6 +107,8 @@ test("The 6 agent entries match D15 list exactly", () => {
     "interpreter",
     "warp",
     "agent-deck",
+    "omp",
+    "letta",
   ]);
   const agentIds = new Set(agentAll.map((t) => t.id));
   for (const id of d15Agents) {

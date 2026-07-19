@@ -22,6 +22,7 @@
  * scripts/dev/standalone-server-ws.mjs -> outDir/server-ws    Y               Y           -    SHARED (extra module)
  * scripts/dev/peer-stamp.mjs -> outDir/peer-stamp.mjs         Y               Y           -    SHARED (extra module)
  * scripts/dev/responses-ws-proxy.mjs -> outDir/responses-ws-  Y               Y           -    SHARED (extra module)
+ * scripts/dev/head-response-guard.cjs -> outDir/head-respons  Y               Y           -    SHARED (extra module)
  * scripts/build/runtime-env.mjs -> outDir/build/runtime-env   Y               -           -    SHARED (extra module)
  * scripts/build/bootstrap-env.mjs -> outDir/build/bootstrap-  Y               -           -    SHARED (extra module)
  * scripts/dev/healthcheck.mjs -> outDir/healthcheck.mjs       Y               -           -    SHARED (extra module)
@@ -38,7 +39,8 @@
  * prune + validate (pack-artifact-policy)                      -               Y           -    UNIQUE (prepublish)
  * data/ dir creation                                           -               Y           -    UNIQUE (prepublish)
  * --- electron-UNIQUE ---
- * better-sqlite3 + keytar native strip (ABI rebuild)           -               -           Y    UNIQUE (electron)
+ * better-sqlite3 native strip + Electron-ABI rebuild            -               -           Y    UNIQUE (electron)
+ * Turbopack hashed-module symlink materialize (node_modules)   -               -           Y    SHARED (opt-in: materializeSymlinks)
  * symlink guard (assertBundleIsPackagable)                     -               -           Y    UNIQUE (electron)
  * removeGeneratedElectronArtifacts                             -               -           Y    UNIQUE (electron)
  */
@@ -135,9 +137,19 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["peer-stamp.mjs"],
   },
   {
+    label: "main-server timeouts (server-ws.mjs dependency, #7003/#7065-class)",
+    src: ["scripts", "dev", "main-server-timeouts.mjs"],
+    dest: ["main-server-timeouts.mjs"],
+  },
+  {
     label: "HTTP method guard (server-ws.mjs dependency)",
     src: ["scripts", "dev", "http-method-guard.cjs"],
     dest: ["http-method-guard.cjs"],
+  },
+  {
+    label: "HEAD response guard (server-ws.mjs dependency)",
+    src: ["scripts", "dev", "head-response-guard.cjs"],
+    dest: ["head-response-guard.cjs"],
   },
   {
     label: "responses-ws-proxy (server-ws.mjs dependency)",
@@ -175,6 +187,17 @@ const EXTRA_MODULE_ENTRIES = [
     label: "playwright-core (dynamic import by gemini-web executor)",
     src: ["node_modules", "playwright-core"],
     dest: ["node_modules", "playwright-core"],
+  },
+  {
+    // esbuild's `--packages=external` leaves `undici` as a static top-level ESM
+    // import in the compiled MCP server bundle (dist/open-sse/mcp-server/server.js),
+    // resolved at module-link time. Next.js's standalone output-file tracer (nft)
+    // sometimes emits a hollow dist/node_modules/undici/ (package.json only), which
+    // SHADOWS the fully-populated sibling node_modules/undici and crashes
+    // `omniroute --mcp` at startup. See #7701.
+    label: "undici (MCP server static import — #7701)",
+    src: ["node_modules", "undici"],
+    dest: ["node_modules", "undici"],
   },
   {
     label: "sqlite-vec wrapper (vector memory - loaded at runtime via createRequire)",
@@ -459,6 +482,140 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
 }
 
 /**
+ * Materialize Turbopack "hashed external module" symlinks inside a bundled
+ * node_modules dir into real, self-contained directories.
+ *
+ * Next.js/Turbopack standalone output emits entries like
+ *   better-sqlite3-90e2652d1716b047 -> <buildMachineAbsPath>/node_modules/better-sqlite3
+ * as ABSOLUTE symlinks into the build machine's tree. cpSync preserves symlinks and
+ * electron-builder preserves extraResources symlinks verbatim, so the packaged app
+ * ships dangling links pointing at e.g. /Users/runner/work/... On the end-user machine
+ * those targets don't exist → the instrumentation hook throws
+ * ERR_MODULE_NOT_FOUND: Cannot find package 'ws-<hash>' → server boot fails.
+ * (issues #6724, #6594). Windows is doubly broken because it can't follow POSIX
+ * symlinks at all.
+ *
+ * The fix: for every symlink under the given node_modules (top level + one level of
+ * scoped @scope/ dirs), replace it with a REAL directory copy of its dereferenced
+ * target — a dereference is the only option that is correct on every OS (Windows
+ * included) and survives the machine that built it. If the link is already dangling
+ * (target absent), fall back to copying a sibling real package whose name is the
+ * hashed name with its trailing `-<hex>` suffix stripped; if none exists, drop the
+ * dangling link so it cannot poison module resolution.
+ *
+ * @param {string} nodeModulesDir - absolute path to a bundled node_modules directory
+ * @returns {{ materialized: number, relinked: number, removed: number }}
+ */
+export function materializeBundledSymlinks(nodeModulesDir) {
+  const summary = { materialized: 0, relinked: 0, removed: 0 };
+  if (!fsSync.existsSync(nodeModulesDir)) return summary;
+
+  const entries = [];
+  for (const name of fsSync.readdirSync(nodeModulesDir)) {
+    const entryPath = path.join(nodeModulesDir, name);
+    if (name.startsWith("@") && fsSync.lstatSync(entryPath).isDirectory()) {
+      // Scoped packages live one level deeper (@scope/pkg).
+      for (const scoped of fsSync.readdirSync(entryPath)) {
+        entries.push(path.join(entryPath, scoped));
+      }
+      continue;
+    }
+    entries.push(entryPath);
+  }
+
+  for (const entryPath of entries) {
+    let stat;
+    try {
+      stat = fsSync.lstatSync(entryPath);
+    } catch {
+      continue;
+    }
+    if (!stat.isSymbolicLink()) continue;
+
+    let realTarget = null;
+    try {
+      realTarget = fsSync.realpathSync(entryPath);
+    } catch {
+      realTarget = null;
+    }
+
+    if (realTarget && fsSync.existsSync(realTarget)) {
+      // Dereference: copy the resolved real files in place of the link.
+      fsSync.rmSync(entryPath, { recursive: true, force: true });
+      fsSync.cpSync(realTarget, entryPath, { recursive: true, dereference: true });
+      summary.materialized += 1;
+      continue;
+    }
+
+    // Dangling link (e.g. absolute path into the build machine that no longer
+    // exists). Try a sibling real package named without the trailing -<hex> hash.
+    const baseName = path.basename(entryPath).replace(/-[0-9a-f]{8,}$/i, "");
+    const sibling = path.join(path.dirname(entryPath), baseName);
+    if (baseName !== path.basename(entryPath) && fsSync.existsSync(sibling)) {
+      let siblingStat = null;
+      try {
+        siblingStat = fsSync.lstatSync(sibling);
+      } catch {
+        siblingStat = null;
+      }
+      if (siblingStat && siblingStat.isDirectory()) {
+        fsSync.rmSync(entryPath, { recursive: true, force: true });
+        fsSync.cpSync(sibling, entryPath, { recursive: true, dereference: true });
+        summary.relinked += 1;
+        continue;
+      }
+    }
+
+    // Nothing to resolve to — drop the dangling link so it cannot shadow resolution.
+    console.warn(
+      `[assembleStandalone] Dropping dangling module symlink (target missing): ${entryPath}`
+    );
+    fsSync.rmSync(entryPath, { recursive: true, force: true });
+    summary.removed += 1;
+  }
+
+  return summary;
+}
+
+/**
+ * Sync an Electron-ABI-rebuilt native module into any hashed/plain copies of
+ * that module already materialized inside a nested node_modules dir.
+ *
+ * materializeBundledSymlinks() turns Turbopack hashed-module symlinks (e.g.
+ * `better-sqlite3-90e2652d1716b047`) into real directory copies of the
+ * Node-ABI build. A later step in prepare-electron-standalone.mjs rebuilds
+ * better-sqlite3 against the Electron ABI at the bundle root — but the
+ * hashed copy under the nested node_modules still holds the stale Node-ABI
+ * build, and the server's hashed `require("better-sqlite3-<hash>")` resolves
+ * to it, not the rebuilt root module. Previously that hashed copy was simply
+ * deleted, which caused MODULE_NOT_FOUND and a silent fallback to the sql.js
+ * WASM driver in the packaged app (issue #6794 follow-up). Overwriting each
+ * matching entry with the rebuilt root module keeps the hashed require
+ * resolving to a working, ABI-correct native driver instead.
+ *
+ * @param {string} rootModuleDir - absolute path to the already-rebuilt module (e.g. <standalone>/node_modules/better-sqlite3)
+ * @param {string} nodeModulesDir - absolute path to the nested node_modules dir to scan
+ * @returns {{ synced: number }}
+ */
+export function syncRebuiltNativeModuleIntoHashedEntries(rootModuleDir, nodeModulesDir) {
+  const summary = { synced: 0 };
+  if (!fsSync.existsSync(rootModuleDir) || !fsSync.existsSync(nodeModulesDir)) return summary;
+
+  const baseName = path.basename(rootModuleDir);
+  const pattern = new RegExp(`^${baseName}(-[0-9a-f]{8,})?$`, "i");
+
+  for (const name of fsSync.readdirSync(nodeModulesDir)) {
+    if (!pattern.test(name)) continue;
+    const entryPath = path.join(nodeModulesDir, name);
+    fsSync.rmSync(entryPath, { recursive: true, force: true });
+    fsSync.cpSync(rootModuleDir, entryPath, { recursive: true, dereference: true });
+    summary.synced += 1;
+  }
+
+  return summary;
+}
+
+/**
  * Assemble the Next.js standalone bundle into outDir.
  *
  * Copies <distDir>/standalone -> outDir, then <distDir>/static -> outDir/.next/static,
@@ -474,6 +631,7 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
  * @param {boolean} [opts.sanitizePaths]         - replace build-machine abs paths with "." (default false)
  * @param {boolean} [opts.patchTurbopackChunks]  - strip hashed externals from .next/server js files (default false)
  * @param {boolean} [opts.copyNatives]           - copy native assets + extra modules (default true)
+ * @param {boolean} [opts.materializeSymlinks]   - dereference Turbopack hashed-module symlinks in node_modules (default false)
  * @returns {void}
  */
 export function assembleStandalone({
@@ -483,6 +641,7 @@ export function assembleStandalone({
   sanitizePaths = false,
   patchTurbopackChunks: doPatchChunks = false,
   copyNatives = true,
+  materializeSymlinks = false,
 }) {
   if (!distDir) throw new Error("[assembleStandalone] distDir is required");
   if (!outDir) throw new Error("[assembleStandalone] outDir is required");
@@ -538,5 +697,24 @@ export function assembleStandalone({
   // 6. Optionally copy native assets + extra modules (synchronous)
   if (copyNatives) {
     copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir);
+  }
+
+  // 7. Optionally dereference Turbopack hashed-module symlinks so the bundle is
+  //    self-contained (no absolute links into the build machine). Runs AFTER the
+  //    native/extra-module copy so the sibling-package relink fallback can find
+  //    real packages. See materializeBundledSymlinks + issues #6724, #6594.
+  if (materializeSymlinks) {
+    for (const nmDir of [
+      path.join(resolvedOutDir, "node_modules"),
+      path.join(resolvedOutDir, relDistDir, "node_modules"),
+    ]) {
+      const s = materializeBundledSymlinks(nmDir);
+      if (s.materialized || s.relinked || s.removed) {
+        console.log(
+          `[assembleStandalone] Materialized module symlinks in ${path.relative(resolvedOutDir, nmDir) || "."}: ` +
+            `${s.materialized} dereferenced, ${s.relinked} relinked, ${s.removed} dropped`
+        );
+      }
+    }
   }
 }

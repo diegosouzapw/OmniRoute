@@ -3,6 +3,19 @@
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
 export const OAUTH_PROVIDERS = {
+  "xai-oauth": {
+    id: "xai-oauth",
+    alias: "xao",
+    name: "xAI OAuth (Grok)",
+    icon: "auto_awesome",
+    color: "#1DA1F2",
+    textIcon: "XA",
+    website: "https://x.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Sign in with xAI to use api.x.ai models such as Grok 4.5. This is separate from Grok Build JWT sessions, which use cli-chat-proxy.grok.com and grok-build model aliases.",
+  },
   "grok-cli": {
     id: "grok-cli",
     alias: "gc",
@@ -160,12 +173,14 @@ export const OAUTH_PROVIDERS = {
   "kimi-coding": {
     id: "kimi-coding",
     alias: "kmc",
-    name: "Kimi Coding",
+    name: "Kimi Code CLI",
     icon: "psychology",
     color: "#1E40AF",
     textIcon: "KC",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
+    authHint:
+      "Sign in with the same Kimi account used by Kimi Code CLI. OmniRoute uses the CLI OAuth flow and Kimi Coding Plan endpoints.",
   },
   kilocode: {
     id: "kilocode",
@@ -190,6 +205,19 @@ export const OAUTH_PROVIDERS = {
     textIcon: "CL",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
+  },
+  clinepass: {
+    id: "clinepass",
+    alias: "cp",
+    name: "ClinePass",
+    icon: "smart_toy",
+    color: "#9D4EDD",
+    textIcon: "CP",
+    website: "https://cline.bot/clinepass",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "ClinePass is Cline's $9.99/mo subscription bundling 10 open coding models. Sign in with your Cline account (same login as the Cline CLI/IDE), or paste a direct ClinePass API key (app.cline.bot → Settings → API Keys). A ClinePass subscription unlocks the cline-pass/* models. Reuses the Cline WorkOS OAuth flow.",
   },
   windsurf: {
     id: "windsurf",

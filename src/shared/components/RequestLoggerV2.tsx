@@ -179,23 +179,15 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
     const [refreshIntervalSec, setRefreshIntervalSec] = useState(DEFAULT_REFRESH_INTERVAL_SEC);
     const intervalRef = useRef(null);
     const refreshIntervalSecRef = useRef(DEFAULT_REFRESH_INTERVAL_SEC);
+    const detailRequestRef = useRef("");
     const hasLoadedRef = useRef(false);
     const logsSignatureRef = useRef("");
     const scrollContainerRef = useRef(null);
     const loadMoreSentinelRef = useRef(null);
-    // #4269: gates the infinite-scroll observer so a "ghost" loadMore can't fire on
-    // mount (sentinel visible when the first page doesn't fill the viewport), which
-    // grew the window past PAGE_SIZE and permanently paused auto-refresh.
     const hasScrolledRef = useRef(false);
     const [providerNodes, setProviderNodes] = useState([]);
-    // #4054: fail-open. The auto-refresh pause is event-driven — we start assuming
-    // the tab is visible (poll) and only flip to paused on a real `visibilitychange`
-    // → hidden transition. Seeding from a static `document.visibilityState` read froze
-    // polling forever in embedded/proxied hosts that report a permanent non-"visible"
-    // state without ever dispatching the event (Docker dashboard wrappers, webviews).
     const visibleRef = useRef(true);
 
-    // Column visibility with localStorage persistence
     const [visibleColumns, setVisibleColumns] = useState(() => {
       const defaultVisible = Object.fromEntries(columns.map((c) => [c.key, true]));
       if (globalThis.window === undefined) return defaultVisible;
@@ -543,6 +535,10 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         return;
       }
 
+      const requestToken = `${logEntry.id}:${Date.now()}:${Math.random()}`;
+      detailRequestRef.current = requestToken;
+      const isCurrentDetailRequest = () => detailRequestRef.current === requestToken;
+
       setSelectedLog(logEntry);
       try {
         const url = new URL(globalThis.location.href);
@@ -557,6 +553,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         const res = await fetch(`/api/logs/${logEntry.id}`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
+          if (!isCurrentDetailRequest()) return;
           const dataHasPipeline =
             data?.pipelinePayloads && Object.keys(data.pipelinePayloads || {}).length > 0;
           setDetailData((prev: { pipelinePayloads: any }) => ({
@@ -576,6 +573,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
           // A deep-linked id can legitimately 404 while the request is still
           // finalizing. Keep the modal open and poll /api/logs/[id] instead of
           // falling back to an in-memory active-request endpoint.
+          if (!isCurrentDetailRequest()) return;
           if (res.status === 404) {
             if (logEntry.pendingLookup || logEntry.active) {
               setSelectedLog((prev: { method: any; path: any }) => ({
@@ -599,17 +597,19 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
           // other errors: show a minimal error indicator by setting detailData to an error object
           try {
             const body = await res.text().catch(() => null);
+            if (!isCurrentDetailRequest()) return;
             setDetailData({ error: `Failed to fetch log (status ${res.status})`, body });
           } catch {}
         }
       } catch (error) {
         console.error("Failed to fetch log detail:", error);
       } finally {
-        setDetailLoading(false);
+        if (isCurrentDetailRequest()) setDetailLoading(false);
       }
     };
 
     const closeDetail = () => {
+      detailRequestRef.current = "";
       setSelectedLog(null);
       setDetailData(null);
       try {
@@ -1256,7 +1256,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                       text: "#fff",
                       label: compatLabel || (log.provider || "-").toUpperCase(),
                     };
-                    const providerLabel = compatLabel || providerColor.label;
+                    const providerLabel = log.providerDisplay || compatLabel || providerColor.label;
                     const isError = !isActive && log.status >= 400;
                     const cacheSourceMeta = getCacheSourceMeta(log.cacheSource);
                     const isSemanticCache = cacheSourceMeta?.key === "semantic";

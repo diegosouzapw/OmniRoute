@@ -92,6 +92,9 @@ export const COLLECTORS = [
   { glob: "tests/integration/combo-matrix/*.test.ts", sources: ["package.json"] },
   // Node native runner — test:combo:live (gated real-upstream smoke; RUN_COMBO_LIVE=1 + VPS creds)
   { glob: "tests/integration/combo-live/*.live.test.ts", sources: ["package.json"] },
+  // Node native runner — test:boundary:live (gated real-upstream smoke; RUN_BOUNDARY_LIVE=1,
+  // hits omniroute.vhost2.harre.dynv6.net — never runs unopted in CI)
+  { glob: "tests/boundary/*.live.test.ts", sources: ["package.json"] },
   // Node native runner — test:system
   { glob: "tests/e2e/system-failover.test.ts", sources: ["package.json"] },
   // vitest.mcp.config.ts — test:vitest
@@ -123,6 +126,13 @@ export const COLLECTORS = [
   {
     glob: "tests/e2e/protocol-clients.test.ts",
     sources: ["scripts/dev/run-protocol-clients-tests.mjs"],
+  },
+  // Playwright — suíte de homologação real (npm run homolog, L4 UI): run.mjs invoca
+  // `playwright test -c tests/homolog/ui/playwright.config.ts` (testMatch **/*.spec.ts).
+  {
+    glob: "tests/homolog/ui/*.spec.ts",
+    sources: ["scripts/homolog/run.mjs"],
+    anchors: { "scripts/homolog/run.mjs": "tests/homolog/ui/playwright.config.ts" },
   },
 ];
 

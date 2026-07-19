@@ -21,9 +21,73 @@ env:
   CI_NODE_VERSION: "24"
 
 jobs:
+  # Same classifier as ci.yml (scripts/quality/classify-pr-changes.mjs) so PR→release
+  # path filters share existence reasons: code / docs / i18n / workflow.
+  changes:
+    name: Change Classification
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.classify.outputs.code }}
+      docs: ${{ steps.classify.outputs.docs }}
+      i18n: ${{ steps.classify.outputs.i18n }}
+      workflow: ${{ steps.classify.outputs.workflow }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+      - id: classify
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            {
+              echo "code=true"
+              echo "docs=true"
+              echo "i18n=true"
+              echo "workflow=true"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed-files.txt
+          node scripts/quality/classify-pr-changes.mjs changed-files.txt >> "$GITHUB_OUTPUT"
+
+  # Docs/OpenAPI contract gates only — existence reason is doc accuracy + route refs.
+  # Split out of fast-gates so pure-docs PRs skip typecheck/unit while still validating docs.
+  docs-gates:
+    name: Docs Gates (fast-path)
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && (needs.changes.outputs.docs == 'true' || needs.changes.outputs.code == 'true')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # One walk of src/app/api for openapi-routes + docs-symbols (both still fail independently).
+      - run: npm run check:api-docs-refs
+      - name: Docs accuracy (fabricated-docs + i18n mirrors, strict)
+        run: npm run check:docs-all
+
   fast-gates:
     name: Fast Quality Gates
-    runs-on: ubuntu-latest
+    needs: changes
+    # Code surface only — pure docs/i18n PRs skip this bag (docs-gates covers docs).
+    if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
+    # Dynamic runner (same rule as ci.yml): use the self-hosted VPS pool only when the
+    # release captain has USE_VPS_RUNNER=true AND this is not a fork PR (own-origin
+    # branches only — a fork PR must never execute on the LAN runner). Var unset/false
+    # or a fork PR falls back to ubuntu-latest, so this is inert until the flag flips.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     # tsx gates (known-symbols, route-guard-membership) import modules that open
     # SQLite on load; provide DB env so a fresh CI DB initializes cleanly.
     env:
@@ -35,17 +99,23 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - name: Restore ESLint file cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            .eslintcache
+            .eslintcache-complexity
+          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
+          restore-keys: |
+            eslint-${{ runner.os }}-
       - run: npm run check:provider-consistency
       - run: npm run check:fetch-targets
-      - run: npm run check:openapi-routes
-      - run: npm run check:docs-symbols
-      - name: Docs accuracy (fabricated-docs + i18n mirrors, strict)
-        run: npm run check:docs-all
+      # docs-all / openapi-routes / docs-symbols live in docs-gates (path-filtered).
       - run: npm run check:deps
       - run: npm run check:file-size
       - run: npm run check:error-helper
@@ -68,25 +138,39 @@ jobs:
       # leaking into the npm tarball (v3.8.36: 6 ops bin/*.sh) per-PR instead of only on
       # the release PR's heavy Package Artifact job.
       - run: npm run check:pack-policy
-      # Complexity + cognitive-complexity ratchets on the fast-path (PR→release) so
-      # cycle drift is rebaselined PER-PR instead of cascading onto the release PR's
-      # Quality Ratchet (v3.8.36: +30 complexity / +15 cognitive surfaced only post-merge).
-      - run: npm run check:complexity
-      - run: npm run check:cognitive-complexity
+      # Complexity + cognitive-complexity: ONE ESLint walk (both baselines still
+      # enforced separately by ruleId). Avoids two cold tree walks on fast-path.
+      - run: npm run check:complexity-ratchets
       - name: Typecheck (core)
         run: npm run typecheck:core
+      # #7033: dashboard-scoped typecheck gate — src/app/(dashboard) TSX is not
+      # covered by typecheck:core's curated allowlist. See check-dashboard-typecheck.mjs.
+      - name: Typecheck (dashboard)
+        run: npm run check:dashboard-typecheck
+      # WS4.2 (v3.8.49 plan): TypeScript 7 native-compiler SHADOW — advisory only.
+      # TS7 went GA 2026-07-08 with 8-12x type-check speedups; its Compiler API only
+      # arrives in 7.1, so typescript-eslint / type-coverage / Stryker stay on 6.x
+      # (the hybrid is the officially documented pattern). Isolated npx on purpose:
+      # installing an alias package could collide node_modules/.bin/tsc with 6.x.
+      # Promote to the blocking gate after ~1 week of parity with the step above.
+      - name: Typecheck (core) — TS7 native shadow (advisory)
+        continue-on-error: true
+        run: |
+          RC=0
+          START=$(date +%s)
+          npx -y -p typescript@7 tsc --pretty false -p tsconfig.typecheck-core.json || RC=$?
+          echo "[ts7-shadow] exit=$RC elapsed=$(( $(date +%s) - START ))s — the 6.x step above stays authoritative"
+          exit $RC
       # TIA: build the impact map at runtime (gitignored, ~21MB) and run only the
-      # unit tests impacted by this PR's changed files. Fail-safe runs the FULL
-      # unit suite on hub/unmapped changes — TIA accelerates, never replaces, the net.
+      # unit tests impacted by this PR's changed files. On hub/unmapped changes the
+      # selector returns __RUN_ALL__ — full-suite authority is the parallel
+      # `fast-unit` 4-shard job (test:unit:ci:shard; was 2-shard, #6781), NOT an
+      # unsharded re-run here. Stacking unsharded test:unit:ci on top of fast-unit
+      # doubled wall time (~16 min extra on ubuntu-latest) without extra coverage.
       #
-      # BLOCKING (flipped 2026-06-17). The pre-existing release unit test-debt that kept
-      # this advisory was cleared: #4030 (16 Zod/registry reds, lossless restore) and
-      # #4063 (the last red — the LiveWS boot test — root-caused as a real event-loop
-      # stall in the WS sidecar, fixed + relocated to the integration suite). A full
-      # ci.yml run on release/v3.8.28 then showed all 8 unit shards green, so PR->release
-      # now blocks on unit-test regressions in the impacted set (typecheck:core already
-      # blocked above). Fail-safe still runs the FULL unit suite on hub/unmapped changes.
-      - name: Impacted unit tests (TIA, fail-safe full; blocking)
+      # BLOCKING for the *impacted subset* (flipped 2026-06-17). Fail-safe full
+      # coverage remains required via `Unit Tests fast-path` (fast-unit).
+      - name: Impacted unit tests (TIA subset; blocking)
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
         run: |
@@ -100,15 +184,39 @@ jobs:
           # which must not happen on a blocking gate. DATA_DIR isolation keeps the parallel
           # run race-free regardless of concurrency.
           if echo "$SEL" | grep -q "__RUN_ALL__"; then
-            echo "Fail-safe: running FULL unit suite (CI concurrency)"; npm run test:unit:ci; exit $?
+            echo "Fail-safe: __RUN_ALL__ — deferring FULL unit suite to fast-unit (4-shard)."
+            echo "Not re-running unsharded test:unit:ci here (duplicate of fast-unit coverage)."
+            exit 0
           fi
           echo "Running impacted tests:"; echo "$SEL"
           mapfile -t FILES <<< "$SEL"
-          node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${FILES[@]}"
+          # Loader parity with test:unit:ci:shard (#6787): tests/unit/dashboard/** runs
+          # under `--import tsx` (CJS transform — required for ESM-only deep imports like
+          # @lobehub/icons/es/* reached via lobeProviderIcons.ts); everything else under
+          # `--import tsx/esm`. A single tsx/esm invocation false-reds every dashboard
+          # module-shape test the impact map selects ("Unexpected token 'export'").
+          DASH=(); REST=()
+          for f in "${FILES[@]}"; do
+            case "$f" in
+              tests/unit/dashboard/*) DASH+=("$f") ;;
+              *) REST+=("$f") ;;
+            esac
+          done
+          RC=0
+          if [ ${#REST[@]} -gt 0 ]; then
+            node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${REST[@]}" || RC=$?
+          fi
+          if [ ${#DASH[@]} -gt 0 ]; then
+            node --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${DASH[@]}" || RC=$?
+          fi
+          exit $RC
 
   fast-vitest:
     name: Vitest (fast-path)
-    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
+    # Dynamic runner — see fast-gates (own-origin + flag; fork/unset → ubuntu-latest).
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     env:
       JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-lint-api-key-secret-long
@@ -117,20 +225,38 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - run: npm run test:vitest
+      # WS5.2/5.3: JUnit feeds Trunk Flaky Tests — the fast-path runs on EVERY PR,
+      # which is where flaky-detection volume actually comes from (ci.yml's heavy
+      # jobs only run on the release PR). Advisory upload, own-origin only.
+      - run: npm run test:vitest -- --reporter=default --reporter=junit --outputFile.junit=trunk-junit/vitest-fastpath.xml
+      - name: Upload test results to Trunk (advisory)
+        if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        continue-on-error: true
+        uses: trunk-io/analytics-uploader@385f1ccdf345b4532dc4b6c665dd432b702b8e28 # v2.1.2
+        with:
+          junit-paths: trunk-junit/**/*.xml
+          org-slug: omniroute
+          token: ${{ secrets.TRUNK_TOKEN }}
 
   fast-unit:
-    name: Unit Tests fast-path (${{ matrix.shard }}/2)
-    runs-on: ubuntu-latest
+    name: Unit Tests fast-path (${{ matrix.shard }}/4)
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
+    # Dynamic runner — see fast-gates (own-origin + flag; fork/unset → ubuntu-latest).
+    # This is the heaviest fast-path job; 4-way sharding (was 2, #6781) halves the
+    # critical path again (~8.5min → ~4.5min on ubuntu-latest; ~2min on the 8-slot
+    # runner box). Node's native --test-shard=N/total takes any denominator — only
+    # this matrix and the TEST_SHARD env below encode the shard count.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-release"]') || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3, 4]
     env:
       JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-lint-api-key-secret-long
@@ -139,7 +265,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
@@ -149,7 +275,7 @@ jobs:
       # silenciosamente não rodavam no fast path) e o setupPolyfill não era importado.
       - run: npm run test:unit:ci:shard
         env:
-          TEST_SHARD: ${{ matrix.shard }}/2
+          TEST_SHARD: ${{ matrix.shard }}/4
 
   # ── Pacote 4 (plano mestre testes+CI, aprovado 2026-07-04) ─────────────────────────
   # No-new-warnings por PR via ESLint bulk suppressions nativo (>=9.24). O baseline
@@ -165,19 +291,31 @@ jobs:
   # contribuidor NUNCA é bloqueado nem cobrado).
   lint-guard:
     name: No new ESLint warnings
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || ((github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) && needs.changes.outputs.code == 'true') }}
     runs-on: ubuntu-latest
     continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
+      - name: Restore ESLint file cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            .eslintcache
+            .eslintcache-complexity
+          key: eslint-${{ runner.os }}-${{ hashFiles('eslint.config.mjs', 'eslint.complexity-ratchets.config.mjs', 'config/quality/eslint-suppressions.json', 'package-lock.json') }}
+          restore-keys: |
+            eslint-${{ runner.os }}-
       - name: ESLint (baseline congelado — warning novo = vermelho)
-        run: npx eslint . --suppressions-location config/quality/eslint-suppressions.json --max-warnings 0
+        # lint:json writes the report; --max-warnings 0 keeps no-new-warnings policy.
+        run: npm run lint:json -- --max-warnings 0
 
   # Merge-integrity: pega no PR os dois vazamentos crônicos de merge que hoje só
   # explodem na release-PR. (1) CHANGELOG-eat — o auto-resolve do merge come
@@ -192,6 +330,8 @@ jobs:
   # nunca é bloqueado.
   merge-integrity:
     name: Merge integrity (changelog + generated skills)
+    # Always on non-draft PRs — CHANGELOG/skills can break on docs-only merges too.
+    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.draft == false || startsWith(github.head_ref, 'mergify/merge-queue/')) }}
     runs-on: ubuntu-latest
     continue-on-error: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
     env:
@@ -203,7 +343,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm

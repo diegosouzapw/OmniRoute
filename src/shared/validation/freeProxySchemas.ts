@@ -15,6 +15,8 @@ export const freeProxyListSchema = z.object({
     .optional()
     .transform((v) => v?.toUpperCase()),
   minQuality: z.coerce.number().int().min(0).max(100).optional(),
+  search: z.string().trim().min(1).max(128).optional(),
+  sortBy: z.enum(["quality", "latency", "recent"]).optional(),
   limit: z.coerce.number().int().min(1).max(1000).optional(),
   offset: z.coerce.number().int().min(0).optional(),
   onlyNotInPool: z
@@ -87,10 +89,7 @@ export const cloudflareDeploySchema = z.object({
     .string()
     .min(8, "Cloudflare Account ID looks too short")
     .max(64)
-    .regex(
-      /^[a-f0-9]+$/,
-      "Cloudflare Account ID must be lowercase hex"
-    ),
+    .regex(/^[a-f0-9]+$/, "Cloudflare Account ID must be lowercase hex"),
   // Cloudflare API tokens are opaque alphanumeric (40+ chars) — same alphabet
   // we accept for Vercel tokens; constrain length to catch paste accidents.
   apiToken: z
@@ -108,4 +107,3 @@ export const cloudflareDeploySchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Worker name must be lowercase alphanumeric with hyphens")
     .default("omniroute-relay"),
 });
-

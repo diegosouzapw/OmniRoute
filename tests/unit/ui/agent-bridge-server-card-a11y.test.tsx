@@ -2,7 +2,7 @@
  * a11y tests for AgentBridgeServerCard — each action button must have aria-label.
  * Uses source-text inspection (no JSDOM render needed) for the structural assertion.
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
