@@ -27,7 +27,10 @@ type ConnectionsListPanelProps = {
   healthFilter: string;
   page: number;
   PAGE_SIZE: number;
-  connProxyMap: Record<string, { proxy?: { host?: string }; level?: string } | undefined>;
+  connProxyMap: Record<
+    string,
+    { proxy?: { host?: string; name?: string }; level?: string } | undefined
+  >;
   proxyConfig: any;
   applyingCodexAuthId: string | null;
   exportingCodexAuthId: string | null;
@@ -76,6 +79,16 @@ function quotaVisibilityHandler(
   toggle: (id: string, visible: boolean) => void
 ) {
   return supported ? (visible: boolean) => toggle(connectionId, visible) : undefined;
+}
+
+// #7643 — extracted so the two ConnectionRow render call sites (already
+// oversized map callbacks) don't each pick up a new `||` decision point.
+function resolveConnProxyField(
+  connProxyMap: ConnectionsListPanelProps["connProxyMap"],
+  connId: string,
+  field: "host" | "name"
+): string | null {
+  return connProxyMap[connId]?.proxy?.[field] || null;
 }
 
 export default function ConnectionsListPanel({
@@ -403,7 +416,8 @@ export default function ConnectionsListPanel({
                 }
                 hasProxy={!!connProxyMap[conn.id]?.proxy}
                 proxySource={connProxyMap[conn.id]?.level || null}
-                proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                proxyHost={resolveConnProxyField(connProxyMap, conn.id, "host")}
+                proxyName={resolveConnProxyField(connProxyMap, conn.id, "name")}
                 proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
                 onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
                 perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}
@@ -582,7 +596,8 @@ export default function ConnectionsListPanel({
                     }
                     hasProxy={!!connProxyMap[conn.id]?.proxy}
                     proxySource={connProxyMap[conn.id]?.level || null}
-                    proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                    proxyHost={resolveConnProxyField(connProxyMap, conn.id, "host")}
+                    proxyName={resolveConnProxyField(connProxyMap, conn.id, "name")}
                     proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
                     onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
                     perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}

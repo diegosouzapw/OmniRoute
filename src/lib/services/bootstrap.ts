@@ -15,8 +15,21 @@ import {
 import { getOrCreateApiKey } from "./apiKey";
 import { scheduleServiceModelSync, stopServiceModelSync } from "./modelSync";
 import type { ServiceStatus } from "./types";
+import { getServiceProviderPlugin } from "./providerPlugins/registry";
 
-const NINEROUTER_PORT = parseInt(process.env.NINEROUTER_PORT ?? "20130", 10);
+// 9router's port/health/lifecycle config is sourced from the plugin registry (#7333
+// Phase 1) rather than an inline literal — the plugin object below must resolve to the
+// exact same values the pre-migration literal expressed here.
+const NINEROUTER_PLUGIN = getServiceProviderPlugin("9router");
+if (!NINEROUTER_PLUGIN) {
+  // Must never silently vanish from bootstrap — a missing plugin here means the
+  // registry (src/lib/services/providerPlugins/registry.ts) regressed.
+  throw new Error("[Services] Missing ServiceProviderPlugin registration for '9router'");
+}
+const NINEROUTER_PORT = parseInt(
+  process.env[NINEROUTER_PLUGIN.port.envVar] ?? String(NINEROUTER_PLUGIN.port.default),
+  10
+);
 const CLIPROXY_PORT = parseInt(process.env.CLIPROXYAPI_PORT ?? String(CLIPROXY_DEFAULT_PORT), 10);
 const MUX_PORT = parseInt(process.env.MUX_SERVICE_PORT ?? String(MUX_DEFAULT_PORT), 10);
 const BIFROST_PORT = parseInt(process.env.BIFROST_PORT ?? String(BIFROST_DEFAULT_PORT), 10);
@@ -33,13 +46,13 @@ type ServiceEntry = {
 
 const SERVICES: ServiceEntry[] = [
   {
-    tool: "9router",
+    tool: NINEROUTER_PLUGIN.tool,
     port: NINEROUTER_PORT,
-    healthPath: "/api/health",
-    healthIntervalMs: 2_000,
-    stopTimeoutMs: 15_000,
-    logsBufferBytes: 5_242_880,
-    needsApiKey: true,
+    healthPath: NINEROUTER_PLUGIN.healthPath,
+    healthIntervalMs: NINEROUTER_PLUGIN.healthIntervalMs,
+    stopTimeoutMs: NINEROUTER_PLUGIN.stopTimeoutMs,
+    logsBufferBytes: NINEROUTER_PLUGIN.logsBufferBytes,
+    needsApiKey: NINEROUTER_PLUGIN.needsApiKey,
   },
   {
     tool: "cliproxy",

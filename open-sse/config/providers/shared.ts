@@ -109,6 +109,8 @@ export interface RegistryEntry {
   baseUrls?: string[];
   /** Override base URL used only for API key validation (e.g., opencode-go validates on zen/v1) */
   testKeyBaseUrl?: string;
+  /** Override models URL used only for API key validation, not catalog discovery. */
+  testKeyModelsUrl?: string;
   responsesBaseUrl?: string;
   /** Anthropic-native /v1/messages endpoint (e.g. GitHub Copilot's shim) used
    *  for models tagged `targetFormat: "claude"` on an otherwise openai-format
