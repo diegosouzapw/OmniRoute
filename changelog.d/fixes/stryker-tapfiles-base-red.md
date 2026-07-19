@@ -1,0 +1,1 @@
+- **fix(quality):** registered 4 covering unit tests in `stryker.conf.json` `tap.testFiles` (`account-fallback-lockout-eviction`, `combo/recovery-hint`, `combo-least-used-account`, `cliproxyapi-dedicated-credential-7645`) so their mutant kills count, clearing the `check:mutation-test-coverage --strict` base-red that was failing every open PR.

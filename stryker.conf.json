@@ -265,7 +265,11 @@
       "tests/unit/upstream-retry-hints-toggle.test.ts",
       "tests/unit/upstream-timeout-model-override.test.ts",
       "tests/unit/usage-service-hardening.test.ts",
-      "tests/unit/validate-response-quality.test.ts"
+      "tests/unit/validate-response-quality.test.ts",
+      "tests/unit/account-fallback-lockout-eviction.test.ts",
+      "tests/unit/combo/recovery-hint.test.ts",
+      "tests/unit/combo-least-used-account.test.ts",
+      "tests/unit/cliproxyapi-dedicated-credential-7645.test.ts"
     ],
     "nodeArgs": [
       "--import",
