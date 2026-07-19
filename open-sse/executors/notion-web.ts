@@ -27,7 +27,10 @@
 import { randomUUID } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
-import { resolveNotionCodename } from "../services/notionWebModels.ts";
+import {
+  resolveNotionCodename,
+  resolveNotionRuntimeWorkspace,
+} from "../services/notionWebModels.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -278,7 +281,17 @@ export class NotionWebExecutor extends BaseExecutor {
       return makeErrorResult(400, "No user message found", body, NOTION_URL);
     }
 
-    const spaceId = extractSpaceIdFromCookie(cookie);
+    // Prefer explicit space_id from cookie; otherwise reuse the auto-selected
+    // AI/Business workspace from model discovery (cached).
+    let spaceId = extractSpaceIdFromCookie(cookie);
+    if (!spaceId) {
+      try {
+        const resolved = await resolveNotionRuntimeWorkspace({ cookie, signal });
+        spaceId = resolved.spaceId;
+      } catch {
+        spaceId = "";
+      }
+    }
     // Client may send notion-web/fable-5, nw/fable-5, fable-5, "Fable 5", or the
     // legacy food codename (acai-budino-high). Notion only accepts the food codename
     // on the wire; we echo the client-facing id in the OpenAI response.

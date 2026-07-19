@@ -241,6 +241,58 @@ test("selectBestNotionSpaceId prefers the workspace with more enabled models", a
   assert.ok(best!.models.some((m) => m.id === "gpt-5.6-sol"));
 });
 
+test("selectBestNotionSpaceId prefers workspace where Fable is enabled over locked", async () => {
+  const locked = {
+    models: [
+      {
+        model: "orange-mousse",
+        modelMessage: "GPT-5.6 Sol",
+        modelFamily: "openai",
+        isDisabled: false,
+      },
+      {
+        model: "acai-budino-high",
+        modelMessage: "Fable 5",
+        modelFamily: "anthropic",
+        isDisabled: true,
+        disabledReason: "business_or_enterprise_plan_required",
+      },
+    ],
+  };
+  const unlocked = {
+    models: [
+      {
+        model: "orange-mousse",
+        modelMessage: "GPT-5.6 Sol",
+        modelFamily: "openai",
+        isDisabled: false,
+      },
+      {
+        model: "acai-budino-high",
+        modelMessage: "Fable 5",
+        modelFamily: "anthropic",
+        isDisabled: false,
+      },
+    ],
+  };
+  const fetchImpl = (async (_url: string | URL, init?: RequestInit) => {
+    const body = JSON.parse(String(init?.body || "{}"));
+    // First space looks rich enough that a buggy early-exit would pick it.
+    if (body.spaceId === "personal-locked") return Response.json(locked);
+    if (body.spaceId === "business-unlocked") return Response.json(unlocked);
+    return new Response("nope", { status: 500 });
+  }) as typeof fetch;
+
+  const best = await notionModels.selectBestNotionSpaceId({
+    cookie: "token_v2=abc",
+    spaceIds: ["personal-locked", "business-unlocked"],
+    fetchImpl,
+  });
+  assert.ok(best);
+  assert.equal(best!.spaceId, "business-unlocked");
+  assert.ok(best!.models.some((m) => m.id === "fable-5"));
+});
+
 test("notion-web models route returns live getAvailableModels catalog", async () => {
   await resetStorage();
   const connection = await providersDb.createProviderConnection({

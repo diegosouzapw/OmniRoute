@@ -20,6 +20,14 @@ const NOTION_USER_AGENT =
 const NOTION_CLIENT_VERSION = "23.13.20260719.1125";
 /** Cap how many workspaces we probe for AI models when space_id is omitted. */
 const NOTION_MAX_SPACE_PROBE = 8;
+/** Cache auto-selected workspace per token so chat/inference reuses discovery. */
+const NOTION_SPACE_CACHE = new Map<string, { spaceId: string; userId: string; expiresAt: number }>();
+const NOTION_SPACE_CACHE_TTL_MS = 30 * 60 * 1000;
+
+function notionTokenCacheKey(cookie: string): string {
+  // Prefer the token_v2 value only — ignore optional space/user parts.
+  return readCookieValue(cookie, "token_v2") || normalizeNotionWebCookie(cookie);
+}
 
 export type NotionDiscoveredModel = {
   /**
@@ -443,8 +451,11 @@ export async function resolveNotionSpaceIdFromGetSpaces(
 }
 
 /**
- * Probe getAvailableModels for each candidate space and pick the richest catalog.
- * This is how we discover models without the operator pasting space_id.
+ * Probe getAvailableModels for each candidate space and pick the best catalog.
+ *
+ * IMPORTANT: do NOT early-exit on the first "good enough" workspace. Real accounts
+ * often have a personal space (many models, Fable plan-locked) and a Business/
+ * AI space (Fable enabled). Exiting early permanently hides Fable 5.
  */
 export async function selectBestNotionSpaceId(opts: {
   cookie: string;
@@ -474,13 +485,23 @@ export async function selectBestNotionSpaceId(opts: {
       if (!res.ok) continue;
       const raw = await res.json();
       const models = parseNotionAvailableModels(raw);
-      // Score: enabled models (excluding synthetic default) — prefer AI-capable workspaces.
-      const score = models.filter((m) => m.id !== "notion-ai").length;
+      const enabled = models.filter((m) => m.id !== "notion-ai").length;
+      // Prefer workspaces where plan-locked models (e.g. Fable 5) are actually enabled.
+      const disabled = listNotionDisabledModels(raw);
+      const fableLocked = disabled.some(
+        (d) => d.id === "fable-5" || d.notionCodename === "acai-budino-high"
+      );
+      const fableEnabled = models.some(
+        (m) => m.id === "fable-5" || m.notionCodename === "acai-budino-high"
+      );
+      // Score: enabled models, plus a large bonus for unlocked Fable (or no Fable lock).
+      let score = enabled * 10;
+      if (fableEnabled) score += 1000;
+      else if (fableLocked) score -= 50;
+
       if (!best || score > best.score) {
         best = { spaceId, models, raw, score };
       }
-      // Early exit when we already found a healthy multi-model workspace.
-      if (score >= 8) break;
     } catch {
       // try next space
     }
@@ -489,6 +510,50 @@ export async function selectBestNotionSpaceId(opts: {
   return best
     ? { spaceId: best.spaceId, models: best.models, raw: best.raw }
     : null;
+}
+
+/**
+ * Resolve the best workspace for a cookie that has no space_id.
+ * Cached so inference and model discovery share the same selection.
+ */
+export async function resolveNotionRuntimeWorkspace(opts: {
+  cookie: string;
+  fetchImpl?: typeof fetch;
+  signal?: AbortSignal | null;
+}): Promise<{ spaceId: string; userId: string; fromCache: boolean }> {
+  const cookie = normalizeNotionWebCookie(opts.cookie);
+  const explicit = extractSpaceIdFromNotionCookie(cookie);
+  const userId = extractNotionUserIdFromCookie(cookie);
+  if (explicit) {
+    return { spaceId: explicit, userId, fromCache: false };
+  }
+
+  const key = notionTokenCacheKey(cookie);
+  const cached = NOTION_SPACE_CACHE.get(key);
+  if (cached && cached.expiresAt > Date.now()) {
+    return { spaceId: cached.spaceId, userId: cached.userId || userId, fromCache: true };
+  }
+
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  const candidates = await fetchNotionWorkspaceCandidates(cookie, fetchImpl);
+  const best = await selectBestNotionSpaceId({
+    cookie,
+    spaceIds: candidates.spaceIds,
+    userId: userId || candidates.userId || undefined,
+    fetchImpl,
+    signal: opts.signal,
+  });
+  if (!best?.spaceId) {
+    return { spaceId: candidates.spaceIds[0] || "", userId: userId || candidates.userId, fromCache: false };
+  }
+
+  const resolvedUser = userId || candidates.userId;
+  NOTION_SPACE_CACHE.set(key, {
+    spaceId: best.spaceId,
+    userId: resolvedUser,
+    expiresAt: Date.now() + NOTION_SPACE_CACHE_TTL_MS,
+  });
+  return { spaceId: best.spaceId, userId: resolvedUser, fromCache: false };
 }
 
 /**
@@ -543,6 +608,8 @@ export async function discoverNotionWebModels(opts: {
   } else {
     // No space_id pasted — resolve via getSpaces, then probe workspaces for the
     // richest AI model list (so operators only need the raw token_v2 value).
+    // Prefer the Business/AI workspace where Fable is unlocked over a personal
+    // space where Fable is plan-locked (same model count otherwise).
     const candidates = await fetchNotionWorkspaceCandidates(cookie, fetchImpl);
     userId = userId || candidates.userId;
     if (candidates.spaceIds.length === 0) {
@@ -569,6 +636,14 @@ export async function discoverNotionWebModels(opts: {
     models = best.models;
     data = best.raw;
     spaceIdFromGetSpaces = true;
+
+    // Cache for inference so chat uses the same workspace as /models.
+    const key = notionTokenCacheKey(cookie);
+    NOTION_SPACE_CACHE.set(key, {
+      spaceId,
+      userId: userId || "",
+      expiresAt: Date.now() + NOTION_SPACE_CACHE_TTL_MS,
+    });
   }
 
   if (models.length === 0) {
