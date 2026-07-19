@@ -287,7 +287,7 @@ export async function getModelInfo(modelStr) {
 export async function getCombo(modelStr) {
   // Try exact match first (supports combos actually named "combo/ANY")
   let combo = await getComboByName(modelStr);
-  if (combo && combo.models && combo.models.length > 0) {
+  if (combo && Array.isArray(combo.models) && combo.models.length > 0) {
     return combo;
   }
 
@@ -295,7 +295,7 @@ export async function getCombo(modelStr) {
   if (modelStr.startsWith("combo/")) {
     const nameToSearch = modelStr.substring(6);
     combo = await getComboByName(nameToSearch);
-    if (combo && combo.models && combo.models.length > 0) {
+    if (combo && Array.isArray(combo.models) && combo.models.length > 0) {
       return combo;
     }
   }
@@ -307,12 +307,12 @@ export async function getCombo(modelStr) {
   // a combo named "MASTER-LIGHT"). These two fallbacks only run after the exact
   // match fails, so they never re-route a combo that already resolves today.
   combo = await getComboById(modelStr);
-  if (combo && combo.models && combo.models.length > 0) {
+  if (combo && Array.isArray(combo.models) && combo.models.length > 0) {
     return combo;
   }
 
   combo = await getComboByNameInsensitive(modelStr);
-  if (combo && combo.models && combo.models.length > 0) {
+  if (combo && Array.isArray(combo.models) && combo.models.length > 0) {
     return combo;
   }
 

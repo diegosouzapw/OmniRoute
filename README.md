@@ -763,7 +763,7 @@ same process on one port, so there is no separate CLI-only package today.
 </div>
 
 - **Runtime**: Node.js 22.x or 24.x LTS (24 LTS recommended) — `>=22.22.2 <23 || >=24.0.0 <27`
-- **Language**: TypeScript 6.0 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
+- **Language**: TypeScript 7.0 native CLI + TypeScript 6 compatibility API — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **Database**: better-sqlite3 (SQLite) + LowDB (JSON legacy) — domain state, proxy logs, MCP audit, routing decisions, memory, skills
 - **Schemas**: Zod (MCP tool I/O validation, API contracts)

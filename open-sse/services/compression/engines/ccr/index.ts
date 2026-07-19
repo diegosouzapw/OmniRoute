@@ -329,7 +329,7 @@ export function storeBlock(
   options: StoreCcrBlockOptions = {}
 ): string {
   const result = tryStoreBlock(text, principalId, options);
-  if (!result.stored) throw new RangeError(`CCR store rejected block: ${result.reason}`);
+  if (result.stored === false) throw new RangeError(`CCR store rejected block: ${result.reason}`);
   return result.hash;
 }
 

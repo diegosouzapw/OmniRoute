@@ -14,8 +14,7 @@ type MediaModelListEntry = {
 };
 
 type MediaGenerationResult =
-  | { success: true; data: unknown }
-  | { success: false; error: unknown; status: number };
+  { success: true; data: unknown } | { success: false; error: unknown; status: number };
 
 type MediaGenerationBody = {
   model: string;
@@ -24,8 +23,7 @@ type MediaGenerationBody = {
 } & Record<string, unknown>;
 
 type ValidatedMediaGenerationBody =
-  | { ok: true; body: MediaGenerationBody }
-  | { ok: false; response: Response };
+  { ok: true; body: MediaGenerationBody } | { ok: false; response: Response };
 
 export function mediaGenerationOptionsResponse() {
   return new Response(null, {
@@ -122,7 +120,7 @@ export async function successfulMediaGenerationResponse({
 }
 
 export function failedMediaGenerationResponse(
-  result: MediaGenerationResult,
+  result: { error: unknown; status: number },
   fallbackMessage: string
 ) {
   const errorPayload = toJsonErrorPayload(result.error, fallbackMessage);

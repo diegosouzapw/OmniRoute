@@ -15,7 +15,7 @@
  */
 
 import { getMusicProvider, parseMusicModel } from "../config/musicRegistry.ts";
-import { kieExecutor } from "../executors/kie.ts";
+import { getKieTaskId, kieExecutor } from "../executors/kie.ts";
 import { vertexGenerateMusic } from "../executors/vertexMedia.ts";
 import {
   submitComfyWorkflow,
@@ -341,7 +341,7 @@ async function handleKieMusicGeneration({
   try {
     const endpoint = new URL(url).pathname;
     const createData = await kieExecutor.createTask({ baseUrl, token, payload, endpoint });
-    const taskId = createData?.data?.taskId || createData?.taskId;
+    const taskId = getKieTaskId(createData);
     if (!taskId) {
       const errorMessage =
         createData?.msg ||

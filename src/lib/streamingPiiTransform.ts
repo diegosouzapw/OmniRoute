@@ -18,7 +18,7 @@ export function createPiiSseTransform(options?: PiiTransformOptions): TransformS
         toolArgs: "",
         partialJson: "",
       };
-      choiceBuffers.set(index, buf);
+      choiceBuffers.set(key, buf);
     }
     return buf;
   };

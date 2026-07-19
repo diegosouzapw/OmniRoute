@@ -5,8 +5,8 @@
  * Extracted from handleChatCore's non-streaming success path: add a buffer to the response usage
  * and filter it for the client format (to prevent CLI context errors); if the provider returned no
  * usage block, fall back to estimating from the serialized content length. Mutates
- * `translatedResponse.usage` in place — byte-identical to the previous inline block, including the
- * `?.usage` guard, the `JSON.stringify(... || "")` content-length, and the `> 0` estimate gate.
+ * `translatedResponse.usage` in place. Invalid response values are ignored; valid response objects
+ * retain the previous `JSON.stringify(... || "")` content-length and `> 0` estimate behavior.
  */
 import {
   addBufferToUsage as defaultAddBuffer,
@@ -17,7 +17,7 @@ import {
 type ResponseLike = {
   usage?: unknown;
   choices?: Array<{ message?: { content?: unknown } }>;
-} | null | undefined;
+};
 
 export interface ClientUsageBufferDeps {
   addBufferToUsage: typeof defaultAddBuffer;
@@ -32,23 +32,29 @@ const DEFAULT_DEPS: ClientUsageBufferDeps = {
 };
 
 export function applyClientUsageBuffer(
-  translatedResponse: ResponseLike,
+  translatedResponse: unknown,
   body: unknown,
-  clientResponseFormat: unknown,
+  clientResponseFormat: string,
   deps: ClientUsageBufferDeps = DEFAULT_DEPS
 ): void {
+  const response =
+    translatedResponse &&
+    typeof translatedResponse === "object" &&
+    !Array.isArray(translatedResponse)
+      ? (translatedResponse as ResponseLike)
+      : null;
+  if (!response) return;
+
   // Add buffer and filter usage for client (to prevent CLI context errors)
-  if (translatedResponse?.usage) {
-    const buffered = deps.addBufferToUsage(translatedResponse.usage);
-    translatedResponse.usage = deps.filterUsageForFormat(buffered, clientResponseFormat);
+  if (response.usage) {
+    const buffered = deps.addBufferToUsage(response.usage);
+    response.usage = deps.filterUsageForFormat(buffered, clientResponseFormat);
   } else {
     // Fallback: estimate usage when provider returned no usage block
-    const contentLength = JSON.stringify(
-      translatedResponse?.choices?.[0]?.message?.content || ""
-    ).length;
+    const contentLength = JSON.stringify(response.choices?.[0]?.message?.content || "").length;
     if (contentLength > 0) {
       const estimated = deps.estimateUsage(body, contentLength, clientResponseFormat);
-      translatedResponse.usage = deps.filterUsageForFormat(estimated, clientResponseFormat);
+      response.usage = deps.filterUsageForFormat(estimated, clientResponseFormat);
     }
   }
 }

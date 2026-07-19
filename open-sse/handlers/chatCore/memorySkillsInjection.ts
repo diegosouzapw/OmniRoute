@@ -1,11 +1,19 @@
 import { retrieveMemories } from "@/lib/memory/retrieval";
-import { getMemorySettings, DEFAULT_MEMORY_SETTINGS, toMemoryRetrievalConfig } from "@/lib/memory/settings";
+import {
+  getMemorySettings,
+  DEFAULT_MEMORY_SETTINGS,
+  toMemoryRetrievalConfig,
+} from "@/lib/memory/settings";
 import { injectMemory, shouldInjectMemory } from "@/lib/memory/injection";
 import { injectSkills } from "@/lib/skills/injection";
 import { FORMATS } from "../../translator/formats.ts";
 import { detectCachingContext } from "../../services/compression/cachingAware.ts";
 
-export function getSkillsProviderForFormat(format: string): "openai" | "anthropic" | "google" | "other" {
+type DebugLogger = { debug?: (tag: string, message: string) => void } | null | undefined;
+
+export function getSkillsProviderForFormat(
+  format: string
+): "openai" | "anthropic" | "google" | "other" {
   switch (format) {
     case FORMATS.CLAUDE:
       return "anthropic";
@@ -33,7 +41,7 @@ export async function injectMemoryAndSkills({
   sourceFormat: string;
   targetFormat: string;
   backgroundReason: string | null;
-  log: unknown;
+  log: DebugLogger;
 }) {
   const memorySettings = memoryOwnerId
     ? await getMemorySettings().catch(() => DEFAULT_MEMORY_SETTINGS)
@@ -97,7 +105,7 @@ export async function injectMemoryAndSkills({
           }
           return "";
         }
-        
+
         if (Array.isArray(body.messages)) {
           const r = pickFrom(body.messages);
           if (r) return r;

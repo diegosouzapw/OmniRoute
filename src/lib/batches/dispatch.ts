@@ -1,6 +1,6 @@
 import type { SupportedBatchEndpoint } from "@/shared/constants/batchEndpoints";
 
-type BatchRouteHandler = (request: Request) => Promise<Response> | Response;
+type BatchRouteHandler = (request: Request, context: unknown) => Promise<Response> | Response;
 
 const handlerLoaders: Record<SupportedBatchEndpoint, () => Promise<BatchRouteHandler>> = {
   "/v1/responses": async () => (await import("@/app/api/v1/responses/route")).POST,
@@ -45,7 +45,7 @@ async function dispatchBatchApiRequest({
     headers,
     body: JSON.stringify(body),
   });
-  return await handler(request);
+  return await handler(request, {});
 }
 
 export const dispatch = {

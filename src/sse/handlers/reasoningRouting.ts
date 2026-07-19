@@ -1,7 +1,11 @@
 import { getComboForModel, getModelInfo } from "../services/model";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
-import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
+import {
+  validateApiKeyRoutingTarget,
+  type ApiKeyMetadata,
+  type ApiKeyPolicyResult,
+} from "@/shared/utils/apiKeyPolicy";
 import { resolveRequestRoutingTags } from "@/domain/tagRouter";
 import * as log from "../utils/logger";
 import {
@@ -14,16 +18,8 @@ import {
   type ReasoningRuleDecision,
 } from "@/lib/reasoningRouting/policy";
 
-type ApiKeyInfo = {
-  id?: string | null;
-  scopes?: string[];
-  [key: string]: unknown;
-};
-
-type RoutingPolicy = {
-  apiKey?: string | null;
-  apiKeyInfo?: ApiKeyInfo | null;
-};
+type RoutingPolicy = Pick<ApiKeyPolicyResult, "apiKey" | "apiKeyInfo">;
+type JsonRecord = Record<string, unknown>;
 
 type ReasoningRoutingResult = {
   body: any;
@@ -34,12 +30,18 @@ type ReasoningRoutingResult = {
   response: Response | null;
 };
 
-async function resolveDecision(input: Parameters<typeof resolveReasoningRoutingRule>[0]) {
+type DecisionResolution =
+  { decision: ReasoningRuleDecision | null; error: null } | { decision: null; error: Response };
+
+async function resolveDecision(
+  input: Parameters<typeof resolveReasoningRoutingRule>[0]
+): Promise<DecisionResolution> {
   try {
-    return await resolveReasoningRoutingRule(input);
+    return { decision: await resolveReasoningRoutingRule(input), error: null };
   } catch (error) {
     log.error("REASONING_ROUTE", "Failed to resolve reasoning routing policy", { error });
     return {
+      decision: null,
       error: errorResponse(
         HTTP_STATUS.BAD_REQUEST,
         "Reasoning routing policy could not be resolved"
@@ -48,13 +50,16 @@ async function resolveDecision(input: Parameters<typeof resolveReasoningRoutingR
   }
 }
 
-function applyDecision(
+type AppliedDecisionResult =
+  { body: JsonRecord; modelStr: string; response: null } | { response: Response };
+
+async function applyDecision(
   request: Request,
-  body: any,
+  body: JsonRecord,
   policy: RoutingPolicy,
-  apiKeyInfo: ApiKeyInfo | null,
+  apiKeyInfo: ApiKeyMetadata | null,
   decision: ReasoningRuleDecision
-) {
+): Promise<AppliedDecisionResult> {
   if (decision.capability === "unsupported" && !decision.targetCombo) {
     return {
       response: errorResponse(
@@ -64,27 +69,29 @@ function applyDecision(
     };
   }
 
-  return validateApiKeyRoutingTarget(request, policy.apiKey, apiKeyInfo, decision.targetModel).then(
-    (rejection) => {
-      if (rejection) {
-        log.warn("REASONING_ROUTE", `Rule ${decision.rule.id} target rejected by API key policy`);
-        return { response: rejection };
-      }
-
-      log.info(
-        "REASONING_ROUTE",
-        `Rule ${decision.rule.id}: ${decision.sourceModel}/${decision.sourceEffort} → ${decision.targetModel}/${decision.targetEffort || "inherit"}`
-      );
-      for (const warning of decision.warnings) {
-        log.warn("REASONING_ROUTE", `Rule ${decision.rule.id}: ${warning}`);
-      }
-      return {
-        body: attachReasoningRuleDirective(body, decision),
-        modelStr: decision.targetModel,
-        response: null,
-      };
-    }
+  const rejection = await validateApiKeyRoutingTarget(
+    request,
+    policy.apiKey,
+    apiKeyInfo,
+    decision.targetModel
   );
+  if (rejection) {
+    log.warn("REASONING_ROUTE", `Rule ${decision.rule.id} target rejected by API key policy`);
+    return { response: rejection };
+  }
+
+  log.info(
+    "REASONING_ROUTE",
+    `Rule ${decision.rule.id}: ${decision.sourceModel}/${decision.sourceEffort} → ${decision.targetModel}/${decision.targetEffort || "inherit"}`
+  );
+  for (const warning of decision.warnings) {
+    log.warn("REASONING_ROUTE", `Rule ${decision.rule.id}: ${warning}`);
+  }
+  return {
+    body: attachReasoningRuleDirective(body, decision),
+    modelStr: decision.targetModel,
+    response: null,
+  };
 }
 
 export async function applyReasoningRouting({
@@ -96,10 +103,10 @@ export async function applyReasoningRouting({
   reasoningIntent,
 }: {
   request: Request;
-  body: any;
+  body: JsonRecord;
   modelStr: string;
   policy: RoutingPolicy;
-  apiKeyInfo: ApiKeyInfo | null;
+  apiKeyInfo: ApiKeyMetadata | null;
   reasoningIntent?: ExtractedReasoningIntent | null;
 }): Promise<ReasoningRoutingResult> {
   const stableReasoningIntent = reasoningIntent || extractReasoningIntent(modelStr, body);
@@ -115,7 +122,7 @@ export async function applyReasoningRouting({
   }
 
   const requestRoutingTags = resolveRequestRoutingTags(body);
-  const decision = await resolveDecision({
+  const decisionResolution = await resolveDecision({
     sourceModel: stableReasoningIntent.model,
     sourceModelAliases: sourceAliases,
     sourceEffort: stableReasoningIntent.sourceEffort,
@@ -125,16 +132,17 @@ export async function applyReasoningRouting({
     comboId: typeof requestedCombo?.id === "string" ? requestedCombo.id : null,
     requestTags: requestRoutingTags.tags,
   });
-  if (decision && "error" in decision) {
+  if (decisionResolution.error) {
     return {
       body,
       modelStr,
       reasoningIntent: stableReasoningIntent,
       reasoningDecision: null,
       requestRoutingTags,
-      response: decision.error,
+      response: decisionResolution.error,
     };
   }
+  const decision = decisionResolution.decision;
   if (!decision) {
     return {
       body,
@@ -147,7 +155,7 @@ export async function applyReasoningRouting({
   }
 
   const applied = await applyDecision(request, body, policy, apiKeyInfo, decision);
-  if (applied.response) {
+  if (!("body" in applied)) {
     return {
       body,
       modelStr,
@@ -198,7 +206,7 @@ export async function applyConnectionReasoningRule({
   provider: string;
   effectiveModel: string;
   credentials: any;
-  apiKeyInfo: ApiKeyInfo | null;
+  apiKeyInfo: ApiKeyMetadata | null;
   reasoningIntent?: ExtractedReasoningIntent | null;
   reasoningDecision?: ReasoningRuleDecision | null;
   requestRoutingTags?: string[];

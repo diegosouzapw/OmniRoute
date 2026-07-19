@@ -15,16 +15,10 @@
  * handed — see `buildHeaders()`).
  */
 
-import type { ProviderCredentials } from "../../executors/base.ts";
-
-type ExecutorInput = {
-  credentials: ProviderCredentials;
-  [key: string]: unknown;
-};
+import type { ExecuteInput, ExecutorResult, ProviderCredentials } from "../../executors/base.ts";
 
 type ExecutorLike = {
-  execute: (input: ExecutorInput) => Promise<unknown>;
-  [key: string]: unknown;
+  execute: (input: ExecuteInput) => Promise<ExecutorResult>;
 };
 
 /**
@@ -67,7 +61,7 @@ export function wrapExecutorWithCliproxyapiCredentials<T extends ExecutorLike>(
 ): T {
   if (!dedicatedApiKey) return executor;
   const wrapped = Object.create(executor) as T;
-  wrapped.execute = (input: ExecutorInput) =>
+  wrapped.execute = (input: ExecuteInput) =>
     executor.execute({
       ...input,
       credentials: resolveCliproxyapiCredentials(input.credentials, dedicatedApiKey),

@@ -10,6 +10,8 @@
  * @module utils/progressTracker
  */
 
+import { withTransformerCancellation } from "./cancelableTransformer.ts";
+
 const DEFAULT_INTERVAL_MS = 2000;
 
 /**
@@ -33,7 +35,7 @@ export function createProgressTransform({
   const encoder = new TextEncoder();
 
   return new TransformStream(
-    {
+    withTransformerCancellation<string | Uint8Array, string | Uint8Array>({
       start(controller) {
         writer = controller;
         startTime = Date.now();
@@ -94,7 +96,7 @@ export function createProgressTransform({
       cancel() {
         clearInterval(intervalId);
       },
-    },
+    }),
     { highWaterMark: 16384 },
     { highWaterMark: 16384 }
   );

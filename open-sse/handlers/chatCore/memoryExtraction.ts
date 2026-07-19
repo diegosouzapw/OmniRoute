@@ -1,9 +1,8 @@
 import { capMemoryExtractionText, MEMORY_EXTRACTION_TEXT_LIMIT } from "./logTruncation.ts";
 
-export function extractMemoryTextFromResponse(
-  response: Record<string, unknown> | null | undefined
-): string {
-  if (!response || typeof response !== "object") return "";
+export function extractMemoryTextFromResponse(value: unknown): string {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "";
+  const response = value as Record<string, unknown>;
 
   const openAIText = response?.choices?.[0]?.message?.content;
   if (typeof openAIText === "string") {

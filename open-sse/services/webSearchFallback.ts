@@ -146,7 +146,7 @@ export function supportsNativeWebSearchFallbackBypass({
 }: {
   provider?: string | null;
   sourceFormat?: string | null;
-  targetFormat: string | null | undefined;
+  targetFormat?: string | null;
   nativeCodexPassthrough: boolean;
   // Per-model rule (#3384) — resolveInterceptSearch() in src/lib/db/interceptionRules.ts.
   // true = force interception (never bypass); false = force native bypass; undefined =
@@ -172,7 +172,9 @@ export function supportsNativeWebSearchFallbackBypass({
   return false;
 }
 
-export function prepareWebSearchFallbackBody<T extends JsonRecord>(
+export function prepareWebSearchFallbackBody<
+  T extends JsonRecord & { tools?: unknown[]; tool_choice?: unknown },
+>(
   body: T,
   options: {
     provider?: string | null;

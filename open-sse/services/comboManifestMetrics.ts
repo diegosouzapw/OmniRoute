@@ -1,4 +1,6 @@
-import { getLogger } from "log-wrapper";
+import { logger } from "../utils/logger.ts";
+
+const log = logger("COMBO_MANIFEST");
 
 export function recordComboIntentWithSpecificity(
   comboName: string,
@@ -6,8 +8,10 @@ export function recordComboIntentWithSpecificity(
   specificityLevel: string,
   strategyModifier: string
 ): void {
-  getLogger().info(
-    { comboName, specificityScore, specificityLevel, strategyModifier },
-    "combo manifest routing applied"
-  );
+  log.info("combo manifest routing applied", {
+    comboName,
+    specificityScore,
+    specificityLevel,
+    strategyModifier,
+  });
 }

@@ -27,7 +27,11 @@ export class AzureOpenAIExecutor extends DefaultExecutor {
     void urlIndex;
 
     const providerSpecificData = credentials?.providerSpecificData || {};
-    const baseUrl = normalizeAzureBaseUrl(providerSpecificData.baseUrl || this.config.baseUrl);
+    const configuredBaseUrl =
+      typeof providerSpecificData.baseUrl === "string"
+        ? providerSpecificData.baseUrl
+        : this.config.baseUrl;
+    const baseUrl = normalizeAzureBaseUrl(configuredBaseUrl);
     const apiVersion =
       typeof providerSpecificData.apiVersion === "string" && providerSpecificData.apiVersion.trim()
         ? providerSpecificData.apiVersion.trim()

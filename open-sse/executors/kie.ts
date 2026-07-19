@@ -29,6 +29,14 @@ export type KieTaskRecord = {
   state: KieTaskState;
 };
 
+export function getKieTaskId(data: unknown): string | null {
+  if (!isJsonObject(data)) return null;
+
+  const nested = isJsonObject(data.data) ? data.data : {};
+  const taskId = nested.taskId ?? data.taskId;
+  return typeof taskId === "string" || typeof taskId === "number" ? String(taskId) : null;
+}
+
 function normalizeBaseUrl(baseUrl: string): string {
   return baseUrl.replace(/\/$/, "");
 }

@@ -75,9 +75,9 @@ export async function buildMultipartBody(
   file: Blob & { name?: unknown },
   fields: Record<string, string>,
   fileFieldName = "file"
-): Promise<{ body: Uint8Array; contentType: string }> {
+): Promise<{ body: Uint8Array<ArrayBuffer>; contentType: string }> {
   const boundary = "----OmniRouteAudioBoundary" + Date.now().toString(36);
-  const parts: Uint8Array[] = [];
+  const parts: Uint8Array<ArrayBuffer>[] = [];
   const encoder = new TextEncoder();
 
   for (const [name, value] of Object.entries(fields)) {
@@ -450,11 +450,15 @@ async function pollKieTranscriptionResult(baseUrl, modelId, taskId, token) {
     });
 
     if (state === "success") {
+      const payload = data as {
+        data?: { response?: { text?: unknown }; resultText?: unknown; text?: unknown };
+        text?: unknown;
+      };
       const text =
-        data?.data?.response?.text ||
-        data?.data?.resultText ||
-        data?.data?.text ||
-        data?.text ||
+        payload.data?.response?.text ||
+        payload.data?.resultText ||
+        payload.data?.text ||
+        payload.text ||
         "";
       return Response.json({ text }, { headers: { ...CORS_HEADERS } });
     }

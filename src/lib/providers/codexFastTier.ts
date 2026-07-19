@@ -96,7 +96,7 @@ export function getCodexEffectiveServiceTier(
   // Dashboard global modes are explicit overrides; use "none" to preserve the
   // per-connection requestDefaults.serviceTier value.
   if (globalServiceMode === true) return "priority";
-  if (globalServiceMode && globalServiceMode !== false && globalServiceMode !== "none") {
+  if (globalServiceMode && globalServiceMode !== "none") {
     return globalServiceMode;
   }
   return getCodexConnectionServiceTier(providerSpecificData);

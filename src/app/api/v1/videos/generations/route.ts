@@ -60,7 +60,7 @@ async function resolveLocalOverrideCredentials(provider) {
  */
 async function postHandler(request, context) {
   const parsed = await readMediaGenerationBody(request, log, "VIDEO");
-  if (!parsed.ok) {
+  if (parsed.ok === false) {
     return parsed.response;
   }
   const body = parsed.body;
@@ -108,10 +108,10 @@ async function postHandler(request, context) {
 
   const result = await handleVideoGeneration({ body, credentials, log });
 
-  if (result.success) {
+  if ("data" in result) {
     await clearRecoveredProviderState(credentials);
     return successfulMediaGenerationResponse({
-      result,
+      result: { data: result.data },
       billingMode: "video",
       provider,
       model: body.model,
@@ -120,7 +120,10 @@ async function postHandler(request, context) {
     });
   }
 
-  return failedMediaGenerationResponse(result, "Video generation provider error");
+  if ("error" in result && "status" in result) {
+    return failedMediaGenerationResponse(result, "Video generation provider error");
+  }
+  return errorResponse(HTTP_STATUS.SERVER_ERROR, "Video generation provider error");
 }
 
 export const POST = withInjectionGuard(postHandler);

@@ -25,7 +25,7 @@ export type RequestPipelinePayloads = {
   };
 };
 
-type RequestLogger = {
+export type RequestLogger = {
   sessionPath: null;
   logClientRawRequest: (endpoint: unknown, body: unknown, headers?: HeaderInput) => void;
   logRouteDecision: (decision: unknown) => void;

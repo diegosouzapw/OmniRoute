@@ -40,7 +40,7 @@ async function getComboVisionBridgeDecision(model: string): Promise<ComboVisionB
       const mapping = await resolveComboForModel(model);
       if (!mapping) return "not-combo";
       const comboName = mapping.comboName ?? mapping.name ?? null;
-      if (!comboName) return "not-combo";
+      if (typeof comboName !== "string" || !comboName) return "not-combo";
       combo = await getComboByName(comboName);
     }
 

@@ -168,7 +168,7 @@ function encodeVarint(value: number): Uint8Array {
   return new Uint8Array(bytes);
 }
 
-function concatBytes(arrays: Uint8Array[]): Uint8Array {
+function concatBytes(arrays: Uint8Array<ArrayBufferLike>[]): Uint8Array<ArrayBuffer> {
   const total = arrays.reduce((n, a) => n + a.length, 0);
   const out = new Uint8Array(total);
   let off = 0;
@@ -510,7 +510,7 @@ export class WindsurfExecutor extends BaseExecutor {
     const upstream = await fetch(url, {
       method: "POST",
       headers,
-      body: framedPayload,
+      body: new Uint8Array(framedPayload),
       signal: signal ?? undefined,
     });
 
@@ -618,7 +618,8 @@ export class WindsurfExecutor extends BaseExecutor {
                 const { done, value } = await reader.read();
                 if (done) break;
                 if (!value) continue;
-                pending = pending.length === 0 ? value : concatBytes([pending, value]);
+                pending =
+                  pending.length === 0 ? new Uint8Array(value) : concatBytes([pending, value]);
                 drainFrames();
               }
             } finally {

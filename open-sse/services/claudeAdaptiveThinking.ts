@@ -48,5 +48,5 @@ export function normalizeClaudeAdaptiveThinking<T extends Record<string, unknown
   delete nextThinking.budget_tokens;
   delete nextThinking.max_tokens;
 
-  return { ...record, thinking: nextThinking } as T;
+  return { ...record, thinking: nextThinking } as unknown as T;
 }

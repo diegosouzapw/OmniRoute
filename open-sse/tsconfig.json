@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2025",
     "module": "esnext",
     "moduleResolution": "bundler",
     "allowJs": true,
@@ -13,12 +13,10 @@
     "strict": false,
     "jsx": "react-jsx",
     "lib": ["dom", "esnext"],
-    "ignoreDeprecations": "5.0",
-    "baseUrl": "..",
     "paths": {
-      "@/*": ["./src/*"],
-      "@omniroute/open-sse": ["./open-sse"],
-      "@omniroute/open-sse/*": ["./open-sse/*"]
+      "@/*": ["../src/*"],
+      "@omniroute/open-sse": ["."],
+      "@omniroute/open-sse/*": ["./*"]
     }
   },
   "include": ["**/*.ts", "**/*.js"]

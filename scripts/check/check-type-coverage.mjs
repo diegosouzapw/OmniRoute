@@ -11,8 +11,8 @@
 //   - Rationale: the only tsconfig that covers the full open-sse workspace
 //     (src+open-sse together). `tsconfig.json` excludes open-sse; the
 //     `tsconfig.typecheck-core.json` only lists 26 explicit files (partial).
-//     open-sse/tsconfig.json sets `baseUrl: ".."` and path aliases so it
-//     resolves both workspaces correctly and yields a representative global %.
+//     open-sse/tsconfig.json uses paths relative to its own directory so it resolves
+//     both workspaces correctly and yields a representative global %.
 //
 // Direction: up (% can only improve; ratchet blocks drops once wired into INT).
 // Eps: 0.05 (float noise tolerance — type-coverage may vary by ~0.01% between runs).

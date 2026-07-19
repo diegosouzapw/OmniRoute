@@ -61,12 +61,12 @@ const DEFAULT_DEPS: StreamingPipelineDeps = {
 
 export function assembleStreamingPipeline(
   args: {
-    providerResponse: unknown;
-    transformStream: unknown;
-    streamController: { signal: AbortSignal };
-    createPiiTransform: unknown;
+    providerResponse: Response;
+    transformStream: TransformStream<Uint8Array, Uint8Array>;
+    streamController: Parameters<typeof defaultPipeWithDisconnect>[2];
+    createPiiTransform: (() => TransformStream<Uint8Array, Uint8Array>) | null | undefined;
     clientRawRequestHeaders: HeadersLike;
-    clientResponseFormat: unknown;
+    clientResponseFormat: string;
     echoModel: string | null | undefined;
     responseHeaders: Record<string, string>;
   },
@@ -85,8 +85,8 @@ export function assembleStreamingPipeline(
     args.transformStream,
     args.streamController
   );
-  if (typeof args.createPiiTransform === "function") {
-    piiStream = piiStream.pipeThrough((args.createPiiTransform as () => TransformStream)());
+  if (args.createPiiTransform) {
+    piiStream = piiStream.pipeThrough(args.createPiiTransform());
   } else if (deps.isFeatureFlagEnabled("PII_RESPONSE_SANITIZATION")) {
     piiStream = piiStream.pipeThrough(deps.createPiiSseTransform());
   }

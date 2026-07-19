@@ -134,8 +134,9 @@ jobs:
       - run: npm run check:licenses
       # check:docs-sync is run by the docs-sync-strict job (via check:docs-all) and the
       # husky pre-commit hook; the standalone copy here was redundant (ROI dedup).
-      - run: npm run typecheck:core
-      # #7033: typecheck:core's curated file allowlist does not cover
+      - run: npm run typecheck:dual
+      # #7033: the core configs in typecheck:dual use a curated file allowlist
+      # and do not cover
       # src/app/(dashboard) TSX (and next.config.mjs sets ignoreBuildErrors:
       # true, so `next build` never type-checks it either) — orphaned
       # identifiers there (see #6625/#6909) were invisible to CI. This gate

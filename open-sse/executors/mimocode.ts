@@ -100,6 +100,7 @@ interface AccountState {
   expiresAt: number;
   cooldownUntil: number;
   consecutiveFails: number;
+  proxy: AccountProxyConfig["proxy"];
 }
 
 function parseJwtExp(jwt: string): number {

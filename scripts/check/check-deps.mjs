@@ -86,6 +86,44 @@ export function findUnapprovedDeps(depNames, allowlist) {
   return out;
 }
 
+/**
+ * Returns the registry package behind a manifest dependency.
+ *
+ * npm aliases use the local dependency key as an install name, while the value
+ * identifies the package that is actually fetched. The anti-slopsquatting gate
+ * must validate that registry identity, not the arbitrary local alias.
+ */
+export function resolveRegistryPackageName(depName, depSpec) {
+  if (typeof depSpec !== "string" || !depSpec.startsWith("npm:")) return depName;
+
+  const target = depSpec.slice("npm:".length);
+  if (!target) return depName;
+
+  if (target.startsWith("@")) {
+    const scopeSeparator = target.indexOf("/");
+    if (scopeSeparator < 2) return depName;
+    const versionSeparator = target.indexOf("@", scopeSeparator + 1);
+    return versionSeparator === -1 ? target : target.slice(0, versionSeparator);
+  }
+
+  const versionSeparator = target.indexOf("@");
+  return versionSeparator === -1 ? target : target.slice(0, versionSeparator);
+}
+
+/** Registry package names declared by all dependency sections in a manifest. */
+export function registryDepNamesFromManifest(pkg) {
+  const sections = [
+    pkg.dependencies,
+    pkg.devDependencies,
+    pkg.optionalDependencies,
+    pkg.peerDependencies,
+  ];
+
+  return sections.flatMap((section) =>
+    Object.entries(section || {}).map(([name, spec]) => resolveRegistryPackageName(name, spec))
+  );
+}
+
 function depNamesFromManifest(root, rel) {
   const full = path.join(root, rel);
   if (!fs.existsSync(full)) return [];
@@ -95,12 +133,7 @@ function depNamesFromManifest(root, rel) {
   } catch {
     return []; // skip malformed manifests (e.g. reference code)
   }
-  return [
-    ...Object.keys(pkg.dependencies || {}),
-    ...Object.keys(pkg.devDependencies || {}),
-    ...Object.keys(pkg.optionalDependencies || {}),
-    ...Object.keys(pkg.peerDependencies || {}),
-  ];
+  return registryDepNamesFromManifest(pkg);
 }
 
 function collectDepNames(root) {

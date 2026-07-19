@@ -94,7 +94,7 @@ export async function withEarlyStreamKeepalive(
 
   if (raced.kind === "settled") {
     // Fast path — return verbatim, or rethrow so the route's normal error handling runs.
-    if (raced.result.ok) return raced.result.response;
+    if (raced.result.ok === true) return raced.result.response;
     throw raced.result.error;
   }
 

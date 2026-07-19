@@ -11,7 +11,7 @@ with **MCP Server** (94 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 > **Live counts (v3.8.49)**: providers 268 · MCP tools 104 · MCP scopes 30 · A2A skills 6 ·
 > open-sse services 134 · routing strategies 17 · auto-combo scoring factors 12 ·
 > DB modules 95 · DB migrations 110 · base tables 17 · search providers 11 ·
-> i18n locales 42. **Refresh with `npm run check:docs-all`.**
+> i18n locales 43. **Refresh with `npm run check:docs-all`.**
 
 ## Doc Accuracy Discipline (read before writing any doc)
 
@@ -45,11 +45,11 @@ codebase. Run it locally before pushing docs; it runs in CI via `npm run check:d
 ## Stack
 
 - **Runtime**: Next.js 16 (App Router), Node.js `>=22.0.0 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
-- **Language**: TypeScript 6.0 (`src/`) + JavaScript (`open-sse/`, `electron/`)
+- **Language**: TypeScript 7.0 native CLI + TypeScript 6 compatibility API (`src/`, `open-sse/`) + JavaScript (`open-sse/`, `electron/`)
 - **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
 - **Streaming**: SSE via `open-sse` internal workspace package
 - **Styling**: Tailwind CSS v4
-- **i18n**: next-intl with 42 locales (`src/i18n/messages/`) — refresh with `ls src/i18n/messages/*.json | wc -l`
+- **i18n**: next-intl with 43 locales (`src/i18n/messages/`) — refresh with `ls src/i18n/messages/*.json | wc -l`
 - **Desktop**: Electron (cross-platform: Windows, macOS, Linux)
 - **Schemas**: Zod v4 for all API / MCP input validation
 
@@ -65,7 +65,8 @@ codebase. Run it locally before pushing docs; it runs in CI via `npm run check:d
 | `npm run start`                     | Run production build                                               |
 | `npm run build:cli`                 | Build CLI package                                                  |
 | `npm run lint`                      | ESLint on all source files                                         |
-| `npm run typecheck:core`            | TypeScript core type checking                                      |
+| `npm run typecheck:core`            | TypeScript 7 native core type checking                             |
+| `npm run typecheck:dual`            | TypeScript 7 + TypeScript 6 compatibility type checking            |
 | `npm run typecheck:noimplicit:core` | Strict checking (no implicit any)                                  |
 | `npm run check`                     | Run lint + test                                                    |
 | `npm run check:cycles`              | Check for circular dependencies                                    |

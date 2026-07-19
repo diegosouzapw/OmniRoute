@@ -250,7 +250,7 @@ export class GithubExecutor extends BaseExecutor {
 
   async execute(input: ExecuteInput) {
     const result = await super.execute(input);
-    if (!result || !result.response) return result;
+    if (result instanceof Response) return result;
 
     if (!input.stream) {
       // wreq-js clone/text semantics consume the original response body. Materialize

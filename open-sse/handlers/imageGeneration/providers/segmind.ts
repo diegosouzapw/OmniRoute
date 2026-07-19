@@ -29,7 +29,12 @@ function buildSegmindImageBody(body: Record<string, unknown>, prompt: string) {
   return upstreamBody;
 }
 
-function formatSegmindImage(buffer: Buffer, contentType: string, prompt: string, wantsB64: boolean) {
+function formatSegmindImage(
+  buffer: Buffer,
+  contentType: string,
+  prompt: string,
+  wantsB64: boolean
+) {
   const base64 = buffer.toString("base64");
   if (wantsB64) return { b64_json: base64, revised_prompt: prompt };
   const mimeType = contentType.startsWith("image/") ? contentType : "image/jpeg";
@@ -63,7 +68,7 @@ export async function handleSegmindImageGeneration({
     log,
   });
 
-  if (!result.ok) {
+  if (result.ok === false) {
     return { success: false, status: result.status, error: result.error };
   }
 

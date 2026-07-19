@@ -10,6 +10,7 @@
  */
 
 import { getExecutor } from "../../executors/index.ts";
+import type { ExecuteInput } from "../../executors/base.ts";
 import { isCliproxyapiDeepModeEnabled } from "../../executors/cliproxyapi.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { getUpstreamProxyConfigCached } from "./comboContextCache.ts";
@@ -107,15 +108,7 @@ export async function resolveExecutorWithProxy(
   const isRetryableStatus = (s: number) => fallbackCodes.includes(s) || s === 0;
 
   const wrapper = Object.create(nativeExec);
-  wrapper.execute = async (input: {
-    model: string;
-    body: unknown;
-    stream: boolean;
-    credentials: unknown;
-    signal?: AbortSignal | null;
-    log?: unknown;
-    upstreamExtraHeaders?: Record<string, string> | null;
-  }) => {
+  wrapper.execute = async (input: ExecuteInput) => {
     let result;
     try {
       result = await nativeExec.execute(input);
@@ -131,12 +124,13 @@ export async function resolveExecutorWithProxy(
       }
     }
 
-    if (!isRetryableStatus(result.response.status)) {
+    const nativeStatus = result instanceof Response ? result.status : result.response.status;
+    if (!isRetryableStatus(nativeStatus)) {
       return result;
     }
     log?.info?.(
       "UPSTREAM_PROXY",
-      `${prov} native failed (${result.response.status}), retrying via CLIProxyAPI`
+      `${prov} native failed (${nativeStatus}), retrying via CLIProxyAPI`
     );
     try {
       return await proxyExec.execute(input);

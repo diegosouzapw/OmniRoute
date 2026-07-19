@@ -2,9 +2,9 @@
 // scripts/check/check-dashboard-typecheck.mjs
 // Dashboard-scoped typecheck gate (#7033).
 //
-// `typecheck:core` (the only blocking CI typecheck gate) runs against a curated
-// 27-file `"files"` allowlist in tsconfig.typecheck-core.json — none of it lives
-// under `src/app/(dashboard)`, and `next.config.mjs` sets
+// `typecheck:dual` runs TS7 and TS6 against a curated 27-file `"files"` allowlist
+// in tsconfig.typecheck-core.json plus the open-sse workspace — none of the core
+// allowlist lives under `src/app/(dashboard)`, and `next.config.mjs` sets
 // `typescript.ignoreBuildErrors: true`, so `next build` never type-checks either.
 // Net effect: orphaned-identifier regressions in dashboard TSX (deleted `useState`
 // decls with live usages left behind) are invisible to both CI type-check paths
@@ -147,7 +147,9 @@ function main() {
       `[dashboard-typecheck] ${improvements.length} baselined error(s) no longer present ` +
         `— run 'node scripts/check/check-dashboard-typecheck.mjs --update' to ratchet the baseline down:\n` +
         improvements
-          .map((i) => `  - ${i.file} ${i.code} (baseline ${i.baselineCount} -> live ${i.liveCount})`)
+          .map(
+            (i) => `  - ${i.file} ${i.code} (baseline ${i.baselineCount} -> live ${i.liveCount})`
+          )
           .join("\n")
     );
   }

@@ -269,7 +269,7 @@ function extractLastUserText(body: Record<string, unknown>): string {
  * receives standard OpenAI-format streaming chunks.
  */
 async function buildClaudeStreamingResponse(
-  upstreamResp: Response,
+  upstreamResp: { body: ReadableStream<Uint8Array> | null },
   model: string,
   log:
     | { warn?: (tag: string, msg: string) => void; error?: (tag: string, msg: string) => void }
@@ -604,7 +604,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
         if (result.status > 0) {
           // Wrap captured SSE body as a Response so the existing
           // stream parser (transformFromClaude) can be reused.
-          const upstreamResp = new Response(result.body, {
+          const upstreamResp = new Response(new Uint8Array(result.body), {
             status: result.status,
             headers: {
               "Content-Type": result.contentType || "text/event-stream",

@@ -697,9 +697,9 @@ export function decodeKvServerEvent(payload: Buffer): KvServerEvent | null {
     if (top.fieldNumber !== ASM_KV_SERVER_MESSAGE || top.wireType !== 2) continue;
 
     let kvId = 0;
-    let getBlobArgs: Buffer | null = null;
-    let setBlobArgs: Buffer | null = null;
-    let requestMetadata: Buffer | null = null;
+    let getBlobArgs: Buffer<ArrayBufferLike> | null = null;
+    let setBlobArgs: Buffer<ArrayBufferLike> | null = null;
+    let requestMetadata: Buffer<ArrayBufferLike> | null = null;
 
     for (const f of decodeFields(top.bytes)) {
       if (f.fieldNumber === KSM_ID && f.wireType === 0) {
@@ -715,7 +715,7 @@ export function decodeKvServerEvent(payload: Buffer): KvServerEvent | null {
 
     if (getBlobArgs) {
       // GetBlobArgs { blob_id (1): bytes }
-      let blobId = Buffer.alloc(0);
+      let blobId: Buffer<ArrayBufferLike> = Buffer.alloc(0);
       for (const f of decodeFields(getBlobArgs)) {
         if (f.fieldNumber === GBA_BLOB_ID && f.wireType === 2) {
           blobId = f.bytes;
@@ -725,8 +725,8 @@ export function decodeKvServerEvent(payload: Buffer): KvServerEvent | null {
     }
     if (setBlobArgs) {
       // SetBlobArgs { blob_id (1): bytes, blob_data (2): bytes }
-      let blobId = Buffer.alloc(0);
-      let blobData = Buffer.alloc(0);
+      let blobId: Buffer<ArrayBufferLike> = Buffer.alloc(0);
+      let blobData: Buffer<ArrayBufferLike> = Buffer.alloc(0);
       for (const f of decodeFields(setBlobArgs)) {
         if (f.fieldNumber === SBA_BLOB_ID && f.wireType === 2) {
           blobId = f.bytes;

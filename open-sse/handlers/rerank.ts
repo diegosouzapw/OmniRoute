@@ -54,7 +54,17 @@ function buildAuthHeader(providerConfig, token) {
 /**
  * Transform response from provider-specific formats back to Cohere format
  */
-/* @testonly */ export function transformResponseFromProvider(providerConfig, data, options = {}) {
+type RerankResponseOptions = {
+  documents?: Array<string | { text?: string }>;
+  return_documents?: boolean;
+  top_n?: number;
+};
+
+/* @testonly */ export function transformResponseFromProvider(
+  providerConfig,
+  data,
+  options: RerankResponseOptions = {}
+) {
   if (providerConfig.format === "nvidia") {
     return {
       id: data.id != null ? String(data.id) : `rerank-${Date.now()}`,

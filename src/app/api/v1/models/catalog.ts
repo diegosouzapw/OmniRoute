@@ -110,9 +110,10 @@ type CachedCatalog = {
   status: number;
   expiresAt: number;
 };
+type CatalogPayload = Omit<CachedCatalog, "expiresAt">;
 const CATALOG_CACHE_TTL_MS = 1500; // ~one request-latency window; safe vs SDK bursts
 const catalogCache = new Map<string, CachedCatalog>();
-const catalogInFlight = new Map<string, Promise<CachedCatalog>>();
+const catalogInFlight = new Map<string, Promise<CatalogPayload>>();
 
 // Test hook — increments each time the full catalog builder runs. Used by
 // tests/unit/v1-models-concurrent-6408.test.ts to prove concurrent requests

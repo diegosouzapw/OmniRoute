@@ -244,7 +244,21 @@ export class GlmExecutor extends DefaultExecutor {
     stream = true,
     _clientHeaders?: Record<string, string> | null,
     _model?: string,
-    transport: GlmTransport = getGlmTransport(credentials.providerSpecificData)
+    transportOrHealth?: GlmTransport | Record<string, unknown>
+  ): Record<string, string> {
+    return this.buildTransportHeaders(
+      credentials,
+      stream,
+      typeof transportOrHealth === "string"
+        ? transportOrHealth
+        : getGlmTransport(credentials.providerSpecificData)
+    );
+  }
+
+  private buildTransportHeaders(
+    credentials: ProviderCredentials,
+    stream: boolean,
+    transport: GlmTransport
   ): Record<string, string> {
     if (transport === "openai") {
       return buildGlmCodingHeaders(getEffectiveKey(credentials), stream);
@@ -364,13 +378,7 @@ export class GlmExecutor extends DefaultExecutor {
   ): Promise<GlmExecuteResult> {
     const credentials = input.credentials;
     const url = buildGlmChatUrl(credentials?.providerSpecificData, transport, this.config.baseUrl);
-    const headers = this.buildHeaders(
-      credentials,
-      input.stream,
-      input.clientHeaders,
-      input.model,
-      transport
-    );
+    const headers = this.buildTransportHeaders(credentials, input.stream, transport);
     applyConfiguredUserAgent(headers, credentials.providerSpecificData);
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
 

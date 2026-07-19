@@ -6,7 +6,11 @@ import { isVisionModelId } from "@/shared/constants/visionModels";
 // Re-exported (here and from ./catalog.ts) for callers/tests that imported it from there.
 export { isVisionModelId };
 
-export function getVisionCapabilityFields(modelId: string) {
+export function getVisionCapabilityFields(modelId: string): {
+  capabilities: { vision: true };
+  input_modalities: string[];
+  output_modalities: string[];
+} | null {
   if (!isVisionModelId(modelId)) return null;
   return {
     capabilities: { vision: true },

@@ -42,7 +42,8 @@ function getConfiguredKieCallbackUrl(): string {
   );
 }
 
-export function getKieCallbackUrl(body: KieCallbackBody = {}): string {
+export function getKieCallbackUrl(value: KieCallbackBody | JsonObject = {}): string {
+  const body = isJsonObject(value) ? value : {};
   const callbackUrl = body.callBackUrl ?? body.callback_url ?? body.callbackUrl;
   return typeof callbackUrl === "string" && callbackUrl.trim().length > 0
     ? callbackUrl

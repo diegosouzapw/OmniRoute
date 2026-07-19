@@ -124,6 +124,7 @@
     "tsup",
     "tsx",
     "type-coverage",
+    "@typescript/typescript6",
     "typescript",
     "typescript-eslint",
     "undici",

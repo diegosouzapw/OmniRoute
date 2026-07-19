@@ -1,5 +1,6 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
+import { withTransformerCancellation } from "../utils/cancelableTransformer.ts";
 import * as fs from "fs";
 import * as path from "path";
 /**
@@ -358,7 +359,7 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
   };
 
   return new TransformStream(
-    {
+    withTransformerCancellation<Uint8Array, Uint8Array>({
       start(controller) {
         // Periodic keepalive heartbeat to prevent client timeouts (Codex CLI #2544)
         state.keepaliveTimer = setInterval(() => {
@@ -671,16 +672,15 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
         logger?.flush();
       },
 
-      // flush() only runs when the writable side closes NORMALLY. When the client
-      // disconnects mid-stream the writable side is aborted and flush() never runs, so
-      // the keepalive timer must also be cleared here to avoid leaking it on cancellation.
+      // flush() only runs when the writable side closes normally. Cancellation
+      // must also clear the keepalive interval when the client disconnects.
       cancel() {
         if (state.keepaliveTimer) {
           clearInterval(state.keepaliveTimer);
           state.keepaliveTimer = null;
         }
       },
-    },
+    }),
     { highWaterMark: 16384 },
     { highWaterMark: 16384 }
   );

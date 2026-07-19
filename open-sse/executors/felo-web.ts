@@ -82,7 +82,11 @@ export function extractFeloLastUserPrompt(messages: Array<Record<string, unknown
   if (!Array.isArray(content)) return "";
   return content
     .map((part) => {
-      if (part && typeof part === "object" && typeof (part as Record<string, unknown>).text === "string") {
+      if (
+        part &&
+        typeof part === "object" &&
+        typeof (part as Record<string, unknown>).text === "string"
+      ) {
         return (part as Record<string, unknown>).text as string;
       }
       return "";
@@ -261,8 +265,12 @@ export class FeloWebExecutor extends BaseExecutor {
       clearTimeout(timeout);
 
       if (!streamResponse.ok || !streamResponse.body) {
-        const status = !streamResponse.ok && streamResponse.status >= 500 ? 502 : streamResponse.status || 502;
-        return feloErrorResponse(status, `Felo stream request failed with HTTP ${streamResponse.status}`);
+        const status =
+          !streamResponse.ok && streamResponse.status >= 500 ? 502 : streamResponse.status || 502;
+        return feloErrorResponse(
+          status,
+          `Felo stream request failed with HTTP ${streamResponse.status}`
+        );
       }
 
       return await processFeloResponse(streamResponse, isStreaming);
@@ -290,7 +298,10 @@ export class FeloWebExecutor extends BaseExecutor {
 
     if (!threadResponse.ok) {
       const status = threadResponse.status >= 500 ? 502 : threadResponse.status;
-      return feloErrorResponse(status, `Felo thread creation failed with HTTP ${threadResponse.status}`);
+      return feloErrorResponse(
+        status,
+        `Felo thread creation failed with HTTP ${threadResponse.status}`
+      );
     }
 
     const threadJson = await threadResponse.json().catch(() => null);

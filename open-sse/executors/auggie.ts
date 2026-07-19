@@ -384,7 +384,7 @@ export class AuggieExecutor extends BaseExecutor {
     await initAuggieModels(signal);
     // Argument-injection defense: never forward an unvalidated model into the argv.
     const modelResolution = resolveAuggieModel(model);
-    if (!modelResolution.ok) {
+    if (modelResolution.ok === false) {
       const response = wantsStream
         ? buildAuggieSseError(modelResolution.error)
         : errorResponse(400, modelResolution.error);

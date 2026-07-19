@@ -8,7 +8,9 @@ import {
   logUsage,
   addBufferToUsage,
   filterUsageForFormat,
+  normalizeUsage,
 } from "./usageTracking.ts";
+import { withTransformerCancellation } from "./cancelableTransformer.ts";
 import {
   parseSSELine,
   parseSSEDataPayload,
@@ -439,7 +441,7 @@ function getClaudeEventType(payload: unknown): string | null {
   return typeof type === "string" ? type : null;
 }
 
-function isClaudeEventPayload(payload: unknown): payload is JsonRecord {
+function isClaudeEventPayload(payload: unknown): boolean {
   return getClaudeEventType(payload) !== null;
 }
 
@@ -987,7 +989,9 @@ export function createSSEStream(options: StreamOptions = {}) {
     controller: TransformStreamDefaultController,
     finalUsage: UsageTokenRecord | Record<string, unknown> | null | undefined
   ) => {
-    const costUsd = finalUsage ? await calculateCost(provider, model, finalUsage) : 0;
+    const costUsd = finalUsage
+      ? await calculateCost(provider, model, normalizeUsage(finalUsage))
+      : 0;
     const comment = buildOmniRouteSseMetadataComment({
       provider,
       model,
@@ -1090,7 +1094,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   };
 
   return new TransformStream(
-    {
+    withTransformerCancellation<Uint8Array, Uint8Array>({
       start(controller) {
         // Start idle watchdog — checks every 10s if provider has stopped sending
         if (STREAM_IDLE_TIMEOUT_MS > 0) {
@@ -1358,7 +1362,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                           const responseToolCallEvents =
                             buildResponsesFunctionCallEvents(collectedToolCall);
                           output = formatSSEDataEvents(responseToolCallEvents);
-                          clientPayloadCollector.push(...responseToolCallEvents);
+                          for (const event of responseToolCallEvents) {
+                            clientPayloadCollector.push(event);
+                          }
                           reqLogger?.appendConvertedChunk?.(output);
                           controller.enqueue(encoder.encode(output));
                           injectedUsage = true;
@@ -1920,6 +1926,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (parsed && parsed.done) {
             continue;
           }
+          const parsedDelta = asRecord(parsed.delta);
 
           if (parsed.choices?.[0]?.delta?.tool_calls) {
             lastToolCallChunkTime = Date.now();
@@ -1935,14 +1942,14 @@ export function createSSEStream(options: StreamOptions = {}) {
           // Do this before translation so we capture content regardless of translator output shape
 
           // Claude format
-          if (parsed.delta?.text) {
-            const t = parsed.delta.text;
+          if (typeof parsedDelta.text === "string" && parsedDelta.text) {
+            const t = parsedDelta.text;
             totalContentLength += t.length;
             if (state?.accumulatedContent !== undefined && typeof t === "string")
               state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
           }
-          if (parsed.delta?.thinking) {
-            const t = parsed.delta.thinking;
+          if (typeof parsedDelta.thinking === "string" && parsedDelta.thinking) {
+            const t = parsedDelta.thinking;
             totalContentLength += t.length;
             if (state?.accumulatedContent !== undefined && typeof t === "string")
               state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
@@ -2028,7 +2035,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           }
 
           const translateHasContent =
-            typeof parsed.delta?.text === "string" ||
+            typeof parsedDelta.text === "string" ||
             typeof parsed.choices?.[0]?.delta?.content === "string" ||
             Boolean(getAnyReasoningValue(parsed.choices?.[0]?.delta));
           if (translateHasContent && !contentAfterToolSeen) {
@@ -2203,41 +2210,39 @@ export function createSSEStream(options: StreamOptions = {}) {
                 clientPayloadCollector.push(bufferedPayload);
 
                 // Normalize numeric IDs for final buffered data: chunk (same as transform path)
-                if (typeof bufferedPayload === "object" && !Array.isArray(bufferedPayload)) {
-                  const flushedParsed = bufferedPayload as JsonRecord;
-                  const flushedType =
-                    typeof flushedParsed.type === "string" ? flushedParsed.type : "";
-                  const isResponses = flushedType.startsWith("response.");
-                  const isClaude = isClaudeEventPayload(flushedParsed);
-                  if (isResponses) {
-                    if (normalizeResponsesSseIds(flushedParsed)) {
-                      output = `data: ${JSON.stringify(flushedParsed)}\n\n`;
-                    }
-                  } else if (!isClaude) {
-                    let flushChanged = false;
-                    const flushedHadNonStringTopLevelId =
-                      flushedParsed?.id != null && typeof flushedParsed.id !== "string";
-                    if (flushedHadNonStringTopLevelId) {
-                      flushedParsed.id = String(flushedParsed.id);
-                      flushChanged = true;
-                    }
-                    if (Array.isArray(flushedParsed.choices)) {
-                      for (const choice of flushedParsed.choices as JsonRecord[]) {
-                        const tcs = (choice as JsonRecord | undefined)?.delta as
-                          JsonRecord | undefined;
-                        if (Array.isArray(tcs?.tool_calls)) {
-                          for (const tc of tcs.tool_calls as JsonRecord[]) {
-                            if (tc?.id != null && typeof tc.id !== "string") {
-                              tc.id = String(tc.id);
-                              flushChanged = true;
-                            }
+                const flushedParsed: JsonRecord = bufferedPayload;
+                const flushedType =
+                  typeof flushedParsed.type === "string" ? flushedParsed.type : "";
+                const isResponses = flushedType.startsWith("response.");
+                const isClaude = isClaudeEventPayload(flushedParsed);
+                if (isResponses) {
+                  if (normalizeResponsesSseIds(flushedParsed)) {
+                    output = `data: ${JSON.stringify(flushedParsed)}\n\n`;
+                  }
+                } else if (!isClaude) {
+                  let flushChanged = false;
+                  const flushedHadNonStringTopLevelId =
+                    flushedParsed?.id != null && typeof flushedParsed.id !== "string";
+                  if (flushedHadNonStringTopLevelId) {
+                    flushedParsed.id = String(flushedParsed.id);
+                    flushChanged = true;
+                  }
+                  if (Array.isArray(flushedParsed.choices)) {
+                    for (const choice of flushedParsed.choices as JsonRecord[]) {
+                      const tcs = (choice as JsonRecord | undefined)?.delta as
+                        JsonRecord | undefined;
+                      if (Array.isArray(tcs?.tool_calls)) {
+                        for (const tc of tcs.tool_calls as JsonRecord[]) {
+                          if (tc?.id != null && typeof tc.id !== "string") {
+                            tc.id = String(tc.id);
+                            flushChanged = true;
                           }
                         }
                       }
                     }
-                    if (flushChanged) {
-                      output = `data: ${JSON.stringify(flushedParsed)}\n\n`;
-                    }
+                  }
+                  if (flushChanged) {
+                    output = `data: ${JSON.stringify(flushedParsed)}\n\n`;
                   }
                 }
               }
@@ -2692,10 +2697,11 @@ export function createSSEStream(options: StreamOptions = {}) {
           console.log(`[STREAM] Error in flush (${model || "unknown"}):`, error.message || error);
         }
       },
-      cancel(reason) {
+
+      cancel() {
         clearIdleTimer();
       },
-    },
+    }),
     { highWaterMark: 16384 },
     { highWaterMark: 16384 }
   );
@@ -2715,7 +2721,7 @@ export function createSSETransformStreamWithLogger(
   body: unknown = null,
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
   apiKeyInfo: unknown = null,
-  onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
+  onFailure: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null = null,
   copilotCompatibleReasoning = false,
   suppressThinkClose = false
 ) {
@@ -2746,7 +2752,7 @@ export function createPassthroughStreamWithLogger(
   body: unknown = null,
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
   apiKeyInfo: unknown = null,
-  onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
+  onFailure: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null = null,
   clientResponseFormat: string | null = null
 ) {
   return createSSEStream({

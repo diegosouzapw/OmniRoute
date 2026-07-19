@@ -52,9 +52,10 @@ function sanitizeReadArgs(args: Record<string, unknown>): void {
     args.offset = Number(args.offset);
   }
 
-  if (typeof args.limit === "number") {
-    if (args.limit > READ_MAX_LIMIT) args.limit = READ_MAX_LIMIT;
-    if (args.limit < 1) delete args.limit;
+  const limit = args.limit;
+  if (typeof limit === "number") {
+    if (limit < 1) delete args.limit;
+    else if (limit > READ_MAX_LIMIT) args.limit = READ_MAX_LIMIT;
   }
   if (typeof args.offset === "number" && args.offset < 0) args.offset = 0;
 

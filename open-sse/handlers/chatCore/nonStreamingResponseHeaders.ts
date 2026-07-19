@@ -16,9 +16,9 @@ export function buildNonStreamingResponseHeaders(
     provider: string | null | undefined;
     model: string | null | undefined;
     startTime: number;
-    responseUsage: unknown;
+    responseUsage: Record<string, unknown> | null | undefined;
     estimatedCost: number;
-    requestId: unknown;
+    requestId: string | null | undefined;
     compressionResponseMeta?: string | null | undefined;
   },
   deps: { attachOmniRouteMetaHeaders: typeof defaultAttachMeta; now: () => number } = {

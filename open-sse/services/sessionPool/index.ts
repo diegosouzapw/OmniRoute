@@ -20,9 +20,11 @@ export type {
   PoolConfig,
   PoolStats,
   PoolSessionDetail,
+} from "./types.ts";
+export type {
   WebExecutorFn,
   WebExecutorRequest,
   WebExecutorResponse,
-} from "./types.ts";
+} from "./webExecutorWrapper.ts";
 
 export { DEFAULT_POOL_CONFIG } from "./types.ts";

@@ -73,7 +73,7 @@ function toLowerText(value: unknown): string {
 }
 
 function extractTokens(value: string): Set<string> {
-  const matches = value.toLowerCase().match(/[a-z0-9]+/g) || [];
+  const matches: string[] = value.toLowerCase().match(/[a-z0-9]+/g) ?? [];
   return new Set(matches.filter((t) => t.length >= TOKEN_MIN_LEN));
 }
 

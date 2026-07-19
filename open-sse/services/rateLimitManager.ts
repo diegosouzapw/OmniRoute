@@ -532,7 +532,13 @@ function getLimiter(provider, connectionId, model = null) {
  * @param {AbortSignal} signal - Optional abort signal to cancel waiting
  * @returns {Promise<unknown>} Result of fn()
  */
-export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
+export async function withRateLimit<T>(
+  provider: string,
+  connectionId: string | null | undefined,
+  model: string | null | undefined,
+  fn: () => Promise<T>,
+  signal: AbortSignal | null = null
+): Promise<T> {
   if (!enabledConnections.has(connectionId)) {
     return fn();
   }

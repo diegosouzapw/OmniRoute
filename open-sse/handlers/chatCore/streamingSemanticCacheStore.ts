@@ -25,6 +25,10 @@ type CacheBody = {
   top_p?: unknown;
 };
 
+function optionalNumber(value: unknown): number | undefined {
+  return typeof value === "number" ? value : undefined;
+}
+
 export interface StreamingSemanticCacheStoreDeps {
   isCacheableForWrite: typeof defaultIsCacheableForWrite;
   isSmallEnoughForSemanticCache: typeof defaultIsSmallEnough;
@@ -46,7 +50,7 @@ interface StreamingCacheArgs {
   body: CacheBody;
   headers: unknown;
   model: string;
-  apiKeyId?: string | number;
+  apiKeyId?: string;
   streamUsage?: Record<string, unknown> | null;
   log?: LoggerLike;
 }
@@ -67,13 +71,16 @@ function writeStreamingCacheEntry(
     const sig = deps.generateSignature(
       args.model,
       args.body.messages ?? args.body.input,
-      args.body.temperature,
-      args.body.top_p,
+      optionalNumber(args.body.temperature),
+      optionalNumber(args.body.top_p),
       args.apiKeyId ?? undefined
     );
     const tokensSaved = streamTokensSaved(args.streamUsage);
     deps.setCachedResponse(sig, args.model, cleanBody, tokensSaved);
-    args.log?.debug?.("CACHE", `Stored streaming response for ${args.model} (${tokensSaved} tokens)`);
+    args.log?.debug?.(
+      "CACHE",
+      `Stored streaming response for ${args.model} (${tokensSaved} tokens)`
+    );
   } catch {
     // Cache write failed — non-critical
   }

@@ -1,5 +1,6 @@
 import { FETCH_TIMEOUT_MS } from "../../config/constants.ts";
 import { getModelTimeoutMs } from "../../config/providerModels.ts";
+import type { ExecutorResult } from "../../executors/base.ts";
 import {
   getLoggedInputTokens,
   getLoggedOutputTokens,
@@ -98,16 +99,12 @@ export function getExecutorTimeoutMs(executor: unknown, provider?: string, model
   return resolveProviderTimeoutMs(executor);
 }
 
-export function normalizeExecutorResult(
-  result:
-    | Response
-    | {
-        response: Response;
-        url?: string;
-        headers?: Record<string, string>;
-        transformedBody?: unknown;
-      }
-): { response: Response; url: string; headers: Record<string, string>; transformedBody: unknown } {
+export function normalizeExecutorResult(result: ExecutorResult): {
+  response: Response;
+  url: string;
+  headers: Record<string, string>;
+  transformedBody: unknown;
+} {
   if (result instanceof Response) {
     return { response: result, url: "", headers: {}, transformedBody: null };
   }

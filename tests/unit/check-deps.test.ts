@@ -9,6 +9,8 @@ import {
   discoverManifests,
   evaluateDepAge,
   auditNewDepsRegistry,
+  registryDepNamesFromManifest,
+  resolveRegistryPackageName,
 } from "../../scripts/check/check-deps.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -25,6 +27,31 @@ test("flags a dependency not on the allowlist (potential slopsquat)", () => {
 
 test("flags multiple new deps, preserves order, de-dupes", () => {
   assert.deepEqual(findUnapprovedDeps(["a", "b", "a", "c"], new Set(["a"])), ["b", "c"]);
+});
+
+test("npm aliases are checked by their registry package instead of their local install name", () => {
+  assert.equal(
+    resolveRegistryPackageName("@typescript/native", "npm:typescript@^7.0.2"),
+    "typescript"
+  );
+  assert.equal(
+    resolveRegistryPackageName("typescript", "npm:@typescript/typescript6@^6.0.2"),
+    "@typescript/typescript6"
+  );
+  assert.equal(resolveRegistryPackageName("react", "^19.0.0"), "react");
+});
+
+test("npm aliases cannot hide an unapproved registry package behind an approved local name", () => {
+  const deps = registryDepNamesFromManifest({
+    devDependencies: {
+      typescript: "npm:unapproved-typescript-fork@^7.0.0",
+      "@typescript/native": "npm:typescript@^7.0.2",
+    },
+  });
+
+  assert.deepEqual(findUnapprovedDeps(deps, new Set(["typescript"])), [
+    "unapproved-typescript-fork",
+  ]);
 });
 
 // --- 6A.8: automatic workspace discovery ---
@@ -68,12 +95,7 @@ test("6A.8: all workspace package deps are in the allowlist (gate exits 0 with e
     const abs = path.join(repoRoot, rel);
     if (!fs.existsSync(abs)) continue;
     const pkg = JSON.parse(fs.readFileSync(abs, "utf8"));
-    allDeps.push(
-      ...Object.keys(pkg.dependencies || {}),
-      ...Object.keys(pkg.devDependencies || {}),
-      ...Object.keys(pkg.optionalDependencies || {}),
-      ...Object.keys(pkg.peerDependencies || {})
-    );
+    allDeps.push(...registryDepNamesFromManifest(pkg));
   }
   const unapproved = findUnapprovedDeps(allDeps, allowlist);
   assert.deepEqual(

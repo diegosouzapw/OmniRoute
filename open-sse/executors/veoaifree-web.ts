@@ -66,7 +66,7 @@ async function fetchWithTimeout(
 function waitForPoll(signal?: AbortSignal): Promise<void> {
   throwIfAborted(signal);
   let abort: (() => void) | undefined;
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const timeout = setTimeout(resolve, POLL_INTERVAL_MS);
     abort = () => {
       clearTimeout(timeout);

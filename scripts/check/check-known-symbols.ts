@@ -122,14 +122,15 @@ export function diffComboStrategies(
 // ───────────────────────────────────────────────────────────────────────────
 
 /**
- * Extrai as chaves (aliases) do objeto literal `const executors = { ... }` da fonte
+ * Extrai as chaves (aliases) do objeto literal `const executors[: Type] = { ... }` da fonte
  * de open-sse/executors/index.ts. O mapa não é exportado, então enumeramos pela fonte
  * (determinístico — é um literal simples). Cada chave é validada em runtime via
  * getExecutor() na função main().
  */
 export function extractExecutorAliases(indexSource: string): string[] {
-  const start = indexSource.indexOf("const executors = {");
-  if (start < 0) throw new Error("could not find `const executors = {` in executors/index.ts");
+  const declaration = /\bconst\s+executors(?:\s*:\s*[^=]+)?\s*=\s*\{/.exec(indexSource);
+  if (!declaration) throw new Error("could not find executors map in executors/index.ts");
+  const start = declaration.index;
   const end = indexSource.indexOf("\n};", start);
   if (end < 0) throw new Error("could not find end of executors map (`\\n};`)");
   const block = indexSource.slice(start, end);

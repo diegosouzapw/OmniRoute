@@ -8,9 +8,11 @@
  * Behaviour is byte-identical to the previous inline literal, including the `method: "POST"` /
  * `stream: false` constants and the headers/endpoint null-coalescing.
  */
-import { resolveDisabledGuardrails as defaultResolveDisabled } from "@/lib/guardrails";
+import {
+  resolveDisabledGuardrails as defaultResolveDisabled,
+  type GuardrailContext,
+} from "@/lib/guardrails";
 
-type LoggerLike = unknown;
 type HeadersLike = Headers | Record<string, unknown> | null;
 
 export function buildPostCallGuardrailContext(
@@ -18,23 +20,29 @@ export function buildPostCallGuardrailContext(
     apiKeyInfo: unknown;
     body: unknown;
     clientRawRequest: { headers?: unknown; endpoint?: unknown } | null | undefined;
-    log?: LoggerLike;
+    log?: GuardrailContext["log"];
     model: string | null | undefined;
     provider: string | null | undefined;
-    responsePayloadFormat: unknown;
-    clientResponseFormat: unknown;
+    responsePayloadFormat: string | null | undefined;
+    clientResponseFormat: string | null | undefined;
   },
   resolveDisabledGuardrails: typeof defaultResolveDisabled = defaultResolveDisabled
-) {
+): GuardrailContext {
   const headers = (args.clientRawRequest?.headers as HeadersLike) ?? null;
+  const apiKeyInfo =
+    args.apiKeyInfo && typeof args.apiKeyInfo === "object" && !Array.isArray(args.apiKeyInfo)
+      ? (args.apiKeyInfo as Record<string, unknown>)
+      : null;
+  const endpoint =
+    typeof args.clientRawRequest?.endpoint === "string" ? args.clientRawRequest.endpoint : null;
   return {
-    apiKeyInfo: args.apiKeyInfo,
+    apiKeyInfo,
     disabledGuardrails: resolveDisabledGuardrails({
-      apiKeyInfo: (args.apiKeyInfo as Record<string, unknown> | null) ?? null,
+      apiKeyInfo,
       body: args.body,
       headers,
     }),
-    endpoint: args.clientRawRequest?.endpoint || null,
+    endpoint,
     headers,
     log: args.log,
     method: "POST",
@@ -43,5 +51,5 @@ export function buildPostCallGuardrailContext(
     sourceFormat: args.responsePayloadFormat,
     stream: false,
     targetFormat: args.clientResponseFormat,
-  } as const;
+  };
 }

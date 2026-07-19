@@ -1,4 +1,9 @@
-import { BaseGuardrail, type GuardrailContext, type GuardrailExecutionResult } from "./base";
+import {
+  BaseGuardrail,
+  type GuardrailContext,
+  type GuardrailExecutionResult,
+  type GuardrailResult,
+} from "./base";
 import { PIIMaskerGuardrail } from "./piiMasker";
 import { PromptInjectionGuardrail } from "./promptInjection";
 import { VisionBridgeGuardrail } from "./visionBridge";
@@ -127,18 +132,19 @@ export class GuardrailRegistry {
       }
 
       try {
-        const result = await guardrail.preCall(currentPayload, context);
-        const modified = result?.modifiedPayload !== undefined;
-        const meta = result?.meta || null;
+        const guardrailResult = await guardrail.preCall(currentPayload, context);
+        const result = (guardrailResult || {}) as GuardrailResult<unknown>;
+        const modified = result.modifiedPayload !== undefined;
+        const meta = result.meta || null;
 
         if (modified) {
-          currentPayload = result?.modifiedPayload as TPayload;
+          currentPayload = result.modifiedPayload as TPayload;
         }
 
         const execution: GuardrailExecutionResult = {
-          blocked: result?.block === true,
+          blocked: result.block === true,
           guardrail: guardrail.name,
-          message: result?.message,
+          message: result.message,
           meta,
           modified,
           skipped: false,
@@ -156,7 +162,7 @@ export class GuardrailRegistry {
           return {
             blocked: true,
             guardrail: guardrail.name,
-            message: result?.message,
+            message: result.message,
             payload: currentPayload,
             results,
           };
@@ -200,18 +206,19 @@ export class GuardrailRegistry {
       }
 
       try {
-        const result = await guardrail.postCall(currentResponse, context);
-        const modified = result?.modifiedResponse !== undefined;
-        const meta = result?.meta || null;
+        const guardrailResult = await guardrail.postCall(currentResponse, context);
+        const result = (guardrailResult || {}) as GuardrailResult<unknown>;
+        const modified = result.modifiedResponse !== undefined;
+        const meta = result.meta || null;
 
         if (modified) {
-          currentResponse = result?.modifiedResponse as TResponse;
+          currentResponse = result.modifiedResponse as TResponse;
         }
 
         const execution: GuardrailExecutionResult = {
-          blocked: result?.block === true,
+          blocked: result.block === true,
           guardrail: guardrail.name,
-          message: result?.message,
+          message: result.message,
           meta,
           modified,
           skipped: false,
@@ -229,7 +236,7 @@ export class GuardrailRegistry {
           return {
             blocked: true,
             guardrail: guardrail.name,
-            message: result?.message,
+            message: result.message,
             response: currentResponse,
             results,
           };

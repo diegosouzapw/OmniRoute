@@ -11,14 +11,7 @@
 
 import { getKimiCodeStaticThinkingPolicy } from "../../config/providers/registry/kimi/coding/runtime.ts";
 import { FORMATS } from "../../translator/formats.ts";
-
-type CredentialsLike =
-  | {
-      providerSpecificData?: Record<string, unknown> | null;
-      [key: string]: unknown;
-    }
-  | null
-  | undefined;
+import type { ProviderCredentials } from "../../executors/base.ts";
 
 function buildKimiThinkingMetadata(
   modelInfo: Record<string, unknown> | null | undefined,
@@ -72,14 +65,14 @@ function applyKimiExecutionMetadata(
 }
 
 export function resolveExecutionCredentials(opts: {
-  credentials: CredentialsLike;
+  credentials: ProviderCredentials | null | undefined;
   nativeCodexPassthrough: boolean;
   endpointPath: string;
   targetFormat: string;
   provider: string | null | undefined;
   ccSessionId: string | null;
   modelInfo?: Record<string, unknown> | null;
-}) {
+}): ProviderCredentials {
   const {
     credentials,
     nativeCodexPassthrough,

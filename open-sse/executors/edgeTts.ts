@@ -189,9 +189,7 @@ export function isTurnEndMessage(message: string): boolean {
  * ASCII headers, then the remaining bytes are audio data. Returns `null`
  * for a frame too short to contain a valid header-length prefix.
  */
-export function demuxAudioChunk(
-  frame: Buffer
-): { headers: string; audio: Buffer } | null {
+export function demuxAudioChunk(frame: Buffer): { headers: string; audio: Buffer } | null {
   if (!Buffer.isBuffer(frame) || frame.length < 2) return null;
   const headerLength = frame.readUInt16BE(0);
   if (2 + headerLength > frame.length) return null;
@@ -341,7 +339,7 @@ export async function handleEdgeTtsSpeech(
       },
       WebSocketCtor
     );
-    return new Response(audio, {
+    return new Response(new Uint8Array(audio), {
       status: 200,
       headers: { "Content-Type": contentType },
     });

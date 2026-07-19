@@ -528,7 +528,7 @@ export function messagesToPrompt(
       if (text) conversation.push({ role: m.role, text });
       if (m.role === "user") lastUserContent = text;
       const calls = Array.isArray((m as { tool_calls?: unknown }).tool_calls)
-        ? (m as { tool_calls: Array<{ id?: string; function?: { name?: string } }> }).tool_calls
+        ? (m as unknown as { tool_calls: OpenAIToolCall[] }).tool_calls
         : [];
       for (const c of calls) {
         if (c?.id && typeof c.function?.name === "string") callNameById.set(c.id, c.function.name);

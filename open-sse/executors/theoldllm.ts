@@ -114,7 +114,24 @@ type TheOldLlmProxy = {
   port: number;
   username?: string | null;
   password?: string | null;
+  family?: string;
+  relayAuth?: string;
 } | null;
+
+function normalizeResolvedProxy(value: unknown): TheOldLlmProxy {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  if (typeof record.host !== "string" || typeof record.port !== "number") return null;
+  return {
+    type: typeof record.type === "string" ? record.type : undefined,
+    host: record.host,
+    port: record.port,
+    username: typeof record.username === "string" ? record.username : null,
+    password: typeof record.password === "string" ? record.password : null,
+    family: typeof record.family === "string" ? record.family : undefined,
+    relayAuth: typeof record.relayAuth === "string" ? record.relayAuth : undefined,
+  };
+}
 
 interface TheOldLlmFetchDependencies {
   resolveProxy: () => Promise<TheOldLlmProxy>;
@@ -156,7 +173,7 @@ export async function fetchTheOldLlmWithProviderProxy(
       { runWithProxyContext },
     ] = await Promise.all([import("../../src/lib/db/proxies"), import("../utils/proxyFetch.ts")]);
     deps = {
-      resolveProxy: () => resolveProxyForProvider("theoldllm"),
+      resolveProxy: async () => normalizeResolvedProxy(await resolveProxyForProvider("theoldllm")),
       runWithProxy: runWithProxyContext,
       fetch: globalThis.fetch,
       hasBlockingProxyAssignment: () => hasBlockingProxyAssignmentForProvider("theoldllm"),

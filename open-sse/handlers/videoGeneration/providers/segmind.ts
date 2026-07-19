@@ -43,7 +43,7 @@ export async function handleSegmindVideoGeneration({
     log,
   });
 
-  if (!result.ok) {
+  if (result.ok === false) {
     return { success: false, status: result.status, error: result.error };
   }
 

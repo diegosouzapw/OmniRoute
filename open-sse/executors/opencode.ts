@@ -326,16 +326,11 @@ export class OpencodeExecutor extends BaseExecutor {
     ) {
       delete (modifiedBody as Record<string, unknown>).client_metadata;
     }
-    if (
-      modifiedBody &&
-      typeof modifiedBody === "object" &&
-      Array.isArray(modifiedBody.tools) &&
-      modifiedBody.tools.length > 128
-    ) {
-      modifiedBody.tools = modifiedBody.tools.slice(0, 128);
-    }
     if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;
+      if (Array.isArray(mb.tools) && mb.tools.length > 128) {
+        mb.tools = mb.tools.slice(0, 128);
+      }
       const parsed = parseEffortLevel(model);
       if (parsed) {
         mb.model = parsed.baseModel;

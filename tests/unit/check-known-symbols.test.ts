@@ -104,6 +104,16 @@ test("extractExecutorAliases parses quoted and bare keys from the executors lite
   assert.deepEqual(extractExecutorAliases(src), ["antigravity", "agy", "amazon-q"]);
 });
 
+test("extractExecutorAliases accepts an explicit TypeScript type on the executors map", () => {
+  const src = [
+    "const executors: Record<string, BaseExecutor> = {",
+    "  codex: new CodexExecutor(),",
+    '  "github-copilot": new GithubExecutor(),',
+    "};",
+  ].join("\n");
+  assert.deepEqual(extractExecutorAliases(src), ["codex", "github-copilot"]);
+});
+
 test("extractExecutorAliases throws when the executors map cannot be located", () => {
   assert.throws(() => extractExecutorAliases("const other = { a: 1 };"), /could not find/);
 });

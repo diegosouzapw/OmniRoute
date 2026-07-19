@@ -6,9 +6,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { applyClientUsageBuffer } = await import(
-  "../../open-sse/handlers/chatCore/clientUsageBuffer.ts"
-);
+const { applyClientUsageBuffer } =
+  await import("../../open-sse/handlers/chatCore/clientUsageBuffer.ts");
 
 function makeDeps(overrides: Record<string, unknown> = {}) {
   const calls = { buffer: [] as unknown[], estimate: [] as unknown[], filter: [] as unknown[] };
@@ -75,4 +74,16 @@ test("content length is computed from choices[0].message.content", () => {
   // JSON.stringify("abc") = '"abc"' → length 5
   const args = calls.estimate[0] as unknown[];
   assert.equal(args[1], 5);
+});
+
+test("invalid response values return without estimating usage", () => {
+  const { deps, calls } = makeDeps();
+
+  for (const value of [null, undefined, "invalid", 0, false, []]) {
+    applyClientUsageBuffer(value, {}, "openai", deps);
+  }
+
+  assert.equal(calls.buffer.length, 0);
+  assert.equal(calls.estimate.length, 0);
+  assert.equal(calls.filter.length, 0);
 });

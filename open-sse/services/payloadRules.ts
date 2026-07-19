@@ -85,7 +85,7 @@ function clonePayloadRulesConfig(config: PayloadRulesConfig): PayloadRulesConfig
 
 function normalizeModelSpecs(value: unknown): PayloadRuleModelSpec[] {
   return toArray<JsonRecord>(value)
-    .map((item) => {
+    .map<PayloadRuleModelSpec | null>((item) => {
       const name = typeof item?.name === "string" ? item.name.trim() : "";
       const protocol = typeof item?.protocol === "string" ? item.protocol.trim() : "";
       if (!name) return null;

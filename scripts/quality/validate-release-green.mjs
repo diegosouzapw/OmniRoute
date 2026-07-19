@@ -96,9 +96,7 @@ export function firstFailureLine(out) {
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
-  const hit = lines.find((l) =>
-    /✖|✗|not ok|AssertionError|error TS|FAIL|Error:|REGRESS/i.test(l)
-  );
+  const hit = lines.find((l) => /✖|✗|not ok|AssertionError|error TS|FAIL|Error:|REGRESS/i.test(l));
   return (hit || lines[lines.length - 1] || "failed").slice(0, 200);
 }
 
@@ -350,7 +348,10 @@ async function main() {
 
   process.stderr.write("🔎 Release-green validation (current working tree)\n\n");
 
-  hardCmd("typecheck", "Typecheck (core)", npmCmd, ["run", "typecheck:core"]);
+  hardCmd("typecheck", "Typecheck (TS7 native + TS6 compatibility)", npmCmd, [
+    "run",
+    "typecheck:dual",
+  ]);
 
   // ESLint: ONE pass → errors (hard) + warnings (drift)
   {

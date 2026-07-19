@@ -24,6 +24,7 @@ import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts"
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat, shouldSkipConnDisable } from "@omniroute/open-sse/services/combo.ts";
+import type { SingleModelTarget } from "@omniroute/open-sse/services/combo/types.ts";
 import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
@@ -528,7 +529,7 @@ export async function handleChat(
     >,
     model: modelStr,
     combo: undefined,
-    apiKeyInfo: apiKeyInfo as Record<string, unknown> | undefined,
+    apiKeyInfo: apiKeyInfo ? { ...apiKeyInfo } : undefined,
     log,
   });
 
@@ -984,20 +985,19 @@ async function handleSingleModelChat(
     return handleComboChat({
       body,
       combo: redirectCombo,
-      handleSingleModel: (
-        b: any,
-        m: string,
-        target?: {
-          connectionId?: string | null;
-          executionKey?: string | null;
-          stepId?: string | null;
-          failoverBeforeRetry?: boolean;
-          allowRateLimitedConnection?: boolean;
-          providerId?: string | null;
-          effectiveComboStrategy?: string | null;
-        }
-      ) =>
-        handleSingleModelChat(
+      handleSingleModel: (b: Record<string, unknown>, m: string, target?: SingleModelTarget) => {
+        const routedTarget = target as
+          | (SingleModelTarget & {
+              connectionId?: string | null;
+              executionKey?: string | null;
+              stepId?: string | null;
+              failoverBeforeRetry?: boolean;
+              allowRateLimitedConnection?: boolean;
+              providerId?: string | null;
+              effectiveComboStrategy?: string | null;
+            })
+          | undefined;
+        return handleSingleModelChat(
           b,
           m,
           clientRawRequest,
@@ -1012,21 +1012,21 @@ async function handleSingleModelChat(
             allowedConnectionIds: null,
             comboStepId: null,
             comboExecutionKey: null,
-            skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
-            allowRateLimitedConnection: target?.allowRateLimitedConnection === true,
-            providerId: target?.providerId ?? null,
+            skipUpstreamRetry: routedTarget?.failoverBeforeRetry ?? false,
+            allowRateLimitedConnection: routedTarget?.allowRateLimitedConnection === true,
+            providerId: routedTarget?.providerId ?? null,
             correlationId: runtimeOptions?.correlationId ?? null,
           },
-          target?.effectiveComboStrategy ?? redirectCombo.strategy ?? "priority",
+          routedTarget?.effectiveComboStrategy ?? redirectCombo.strategy ?? "priority",
           false
-        ),
+        );
+      },
       isModelAvailable: async () => true,
       log,
       settings: {},
       allCombos: [],
       relayOptions: undefined,
       signal: request?.signal ?? null,
-      correlationId: runtimeOptions?.correlationId ?? null,
     });
   }
 

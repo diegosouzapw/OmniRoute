@@ -23,18 +23,18 @@ without inventing new modules.
 
 ## 1. Tech Stack
 
-| Concern       | Choice                                                                                                                   |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Web framework | **Next.js 16** (App Router, standalone output, no global middleware)                                                     |
-| Language      | **TypeScript 6.0+** — target `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                    |
-| Runtime       | **Node.js** `>=22.22.2 <23` or `>=24.0.0 <27` (enforced via `engines` + `SUPPORTED_NODE_RANGE`)                          |
-| Database      | **SQLite** via `better-sqlite3` (singleton, WAL journaling)                                                              |
-| Desktop       | **Electron 41** + `electron-builder` 26.10 (separate workspace at `electron/`)                                           |
-| Tests         | **Node native test runner** (unit/integration), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
-| Build         | Next.js standalone via `scripts/build/build-next-isolated.mjs`                                                           |
-| Lint/format   | ESLint flat config + Prettier (`lint-staged` via Husky pre-commit)                                                       |
-| Module system | ESM everywhere (`"type": "module"`)                                                                                      |
-| Workspaces    | npm workspace — `open-sse` is the only sub-workspace                                                                     |
+| Concern       | Choice                                                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Web framework | **Next.js 16** (App Router, standalone output, no global middleware)                                                                             |
+| Language      | **TypeScript 7.0 native CLI + TypeScript 6 compatibility API** — target `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false` |
+| Runtime       | **Node.js** `>=22.22.2 <23` or `>=24.0.0 <27` (enforced via `engines` + `SUPPORTED_NODE_RANGE`)                                                  |
+| Database      | **SQLite** via `better-sqlite3` (singleton, WAL journaling)                                                                                      |
+| Desktop       | **Electron 41** + `electron-builder` 26.10 (separate workspace at `electron/`)                                                                   |
+| Tests         | **Node native test runner** (unit/integration), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e)                         |
+| Build         | Next.js standalone via `scripts/build/build-next-isolated.mjs`                                                                                   |
+| Lint/format   | ESLint flat config + Prettier (`lint-staged` via Husky pre-commit)                                                                               |
+| Module system | ESM everywhere (`"type": "module"`)                                                                                                              |
+| Workspaces    | npm workspace — `open-sse` is the only sub-workspace                                                                                             |
 
 Path aliases (`tsconfig.json`):
 

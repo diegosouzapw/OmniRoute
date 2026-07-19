@@ -597,11 +597,6 @@
       "count": 21
     }
   },
-  "tests/unit/base-executor-sanitize-effort.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 48
-    }
-  },
   "tests/unit/batch_api.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7

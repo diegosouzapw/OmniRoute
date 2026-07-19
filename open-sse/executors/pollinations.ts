@@ -11,9 +11,7 @@ export class PollinationsExecutor extends BaseExecutor {
 
   buildUrl(_model: string, _stream: boolean, urlIndex = 0, _credentials = null): string {
     const baseUrls = this.getBaseUrls();
-    return (
-      baseUrls[urlIndex] || baseUrls[0] || "https://gen.pollinations.ai/v1/chat/completions"
-    );
+    return baseUrls[urlIndex] || baseUrls[0] || "https://gen.pollinations.ai/v1/chat/completions";
   }
 
   buildHeaders(credentials: any, stream = true): Record<string, string> {
@@ -79,7 +77,7 @@ export class PollinationsExecutor extends BaseExecutor {
       const result = await super.execute(input);
 
       if (session && pool) {
-        const status = result.response.status;
+        const status = result instanceof Response ? result.status : result.response.status;
         if (status === 429) {
           pool.reportCooldown(session);
         } else if (status >= 500) {
@@ -96,13 +94,21 @@ export class PollinationsExecutor extends BaseExecutor {
       }
       // Enhance 401 errors with actionable guidance
       if (err?.status === 401 || err?.statusCode === 401) {
-        const premiumModels = ["claude", "claude-fast", "claude-large", "gemini", "gemini-fast", "midijourney", "midijourney-large"];
+        const premiumModels = [
+          "claude",
+          "claude-fast",
+          "claude-large",
+          "gemini",
+          "gemini-fast",
+          "midijourney",
+          "midijourney-large",
+        ];
         const model = input.model || "";
         if (premiumModels.includes(model)) {
           const enhanced = new Error(
             `Pollinations model "${model}" requires an API key. ` +
-            `Free keyless models: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning. ` +
-            `Get a Pollinations API key at https://enter.pollinations.ai and add it in Settings → API Keys.`
+              `Free keyless models: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning. ` +
+              `Get a Pollinations API key at https://enter.pollinations.ai and add it in Settings → API Keys.`
           );
           (enhanced as any).status = 401;
           (enhanced as any).type = "authentication_error";

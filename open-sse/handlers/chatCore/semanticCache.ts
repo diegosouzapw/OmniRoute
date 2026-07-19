@@ -1,14 +1,18 @@
-import {
-  generateSignature,
-  getCachedResponse,
-  isCacheableForRead,
-} from "@/lib/semanticCache";
+import { generateSignature, getCachedResponse, isCacheableForRead } from "@/lib/semanticCache";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { trackPendingRequest } from "@/lib/usageDb";
 import { synthesizeOpenAiSseFromJson } from "../../utils/jsonToSse.ts";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { extractUsageFromResponse } from "../usageExtractor.ts";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
+import type { RequestLogger } from "../../utils/requestLogger.ts";
+
+type DebugLogger = { debug?: (tag: string, message: string) => void } | null | undefined;
+type RawRequest = { headers?: Headers | Record<string, unknown> | null } | null | undefined;
+
+function optionalNumber(value: unknown): number | undefined {
+  return typeof value === "number" ? value : undefined;
+}
 
 export async function checkSemanticCache({
   semanticCacheEnabled,
@@ -27,15 +31,15 @@ export async function checkSemanticCache({
 }: {
   semanticCacheEnabled: boolean;
   body: Record<string, unknown>;
-  clientRawRequest: unknown;
+  clientRawRequest: RawRequest;
   model: string;
   provider: string;
   stream: boolean;
-  reqLogger: unknown;
-  effectiveServiceTier: unknown;
+  reqLogger: RequestLogger;
+  effectiveServiceTier: string;
   connectionId: string | null;
   startTime: number;
-  log: unknown;
+  log: DebugLogger;
   persistAttemptLogs: (args: unknown) => void;
   apiKeyId?: string | null;
 }) {
@@ -43,8 +47,8 @@ export async function checkSemanticCache({
     const signature = generateSignature(
       model,
       body.messages ?? body.input,
-      body.temperature,
-      body.top_p,
+      optionalNumber(body.temperature),
+      optionalNumber(body.top_p),
       apiKeyId ?? undefined
     );
     const cached = getCachedResponse(signature);

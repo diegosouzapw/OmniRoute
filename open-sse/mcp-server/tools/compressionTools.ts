@@ -298,7 +298,7 @@ export async function handleCcrStoreTool(
     ttlSeconds: args.ttlSeconds,
   });
   const auditInput = buildCcrStoreAuditInput(args);
-  if (!result.stored) {
+  if (result.stored === false) {
     const output = { stored: false as const, reason: result.reason };
     await logToolCall(
       "omniroute_ccr_store",

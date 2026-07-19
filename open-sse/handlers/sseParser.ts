@@ -244,10 +244,8 @@ export function parseSSEToOpenAIResponse(rawSSE, fallbackModel) {
             existing.index = tc.index;
           }
           if (tc?.function?.name && !existing.function?.name) {
-            existing.function = existing.function || {};
             existing.function.name = tc.function.name;
           }
-          existing.function = existing.function || {};
           existing.function.arguments = appendToolCallArgumentDelta(
             existing.function.arguments,
             deltaArgs

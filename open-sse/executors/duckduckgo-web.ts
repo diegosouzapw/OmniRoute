@@ -1,7 +1,7 @@
 import { generateKeyPairSync, randomUUID } from "node:crypto";
 import vm from "node:vm";
 import { solveDuckDuckGoChallenge, makeDuckDuckGoFeSignals } from "./duckduckgo-web/challenge.ts";
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput, type ExecutorResult } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 import type { Session } from "../services/sessionPool/session.ts";
@@ -135,11 +135,6 @@ interface DuckDuckGoAuthHeaders {
 interface DuckDuckGoModelCapabilities {
   reasoningEffort: string | null;
 }
-
-type DuckDuckGoChallengeResult = {
-  client_hashes?: unknown;
-  [key: string]: unknown;
-};
 
 let durablePublicKey: JsonWebKey | null = null;
 
@@ -410,23 +405,21 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
     }
   }
 
-  async execute(input: ExecuteInput): Promise<{
-    response: Response;
-    url: string;
-    headers: Record<string, string>;
-    transformedBody: unknown;
-  }> {
+  async execute(input: ExecuteInput): Promise<ExecutorResult> {
     const { model, body, stream, signal, upstreamExtraHeaders } = input;
     const upstreamModel = normalizeDuckDuckGoModel(model);
     const bodyObj = (body || {}) as Record<string, unknown>;
     const rawMessages = Array.isArray((body as { messages?: unknown[] } | null)?.messages)
-      ? ((body as { messages: unknown[] }).messages as Array<Record<string, unknown>>)
+      ? ((body as { messages: unknown[] }).messages as Array<{
+          role: string;
+          content: unknown;
+        }>)
       : [];
     const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
       bodyObj,
       rawMessages
     );
-    const messages = effectiveMessages as Array<Record<string, unknown>>;
+    const messages = effectiveMessages;
     const isStreaming = stream !== false;
     const upstreamHeaders = upstreamExtraHeaders || {};
 
@@ -474,7 +467,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         // Wrap the captured body as a Response so processResponse
         // (already a streaming/non-streaming transformer) can be
         // reused unchanged.
-        const upstreamResp = new Response(result.body, {
+        const upstreamResp = new Response(new Uint8Array(result.body), {
           status: result.status,
           headers: {
             "Content-Type": result.contentType || "text/event-stream",

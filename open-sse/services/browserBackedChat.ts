@@ -90,7 +90,7 @@ export function __resetHttpBackedChatOverrideForTesting(): void {
 
 // Helper to make Playwright waitForTimeout abortable via AbortSignal
 function waitWithSignal(ms: number, signal?: AbortSignal | null): Promise<void> {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     if (signal?.aborted) return reject(new DOMException("Aborted", "AbortError"));
     const onAbort = () => {
       clearTimeout(timer);
@@ -101,7 +101,7 @@ function waitWithSignal(ms: number, signal?: AbortSignal | null): Promise<void> 
       resolve();
     }, ms);
     signal?.addEventListener("abort", onAbort, { once: true });
-  }).catch((err) => {
+  }).catch((err): void => {
     if (err instanceof DOMException && err.name === "AbortError") throw err;
   });
 }
@@ -288,13 +288,13 @@ export async function browserBackedChat(
       waitUntil: "domcontentloaded",
       timeout: 60000,
       signal: signal ?? undefined,
-    });
+    } as Parameters<typeof page.goto>[1] & { signal?: AbortSignal });
     await waitWithSignal(2500, signal);
     const navigateMs = Date.now() - tNavStart;
 
-    const inputLocator = page.locator(inputSelector).first();
-    await inputLocator.waitFor({ state: "visible", timeout: 10000, signal: signal ?? undefined });
-    await inputLocator.fill(userMessage);
+    const field = page.locator(inputSelector).first();
+    await field.waitFor({ state: "visible", timeout: 1e4, ...(signal ? { signal } : {}) });
+    await field.fill(userMessage);
     await waitWithSignal(800, signal);
 
     const tSubmitStart = Date.now();
@@ -346,7 +346,7 @@ export async function browserBackedChat(
 
     let status = 0;
     let contentType: string | null = null;
-    let body = Buffer.alloc(0);
+    let body: Buffer<ArrayBufferLike> = Buffer.alloc(0);
     if (response) {
       const captured = await readPageResponseBody(response);
       // OOM guard: reject responses larger than MAX_RESPONSE_BYTES
@@ -615,7 +615,7 @@ async function doCookieRefreshOnContext(
       waitUntil: "domcontentloaded",
       timeout: 60000,
       signal: signal ?? undefined,
-    });
+    } as Parameters<typeof page.goto>[1] & { signal?: AbortSignal });
     return await waitForCookiesWithPolling(pooled.context, cookieDomain, signal);
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") throw err;

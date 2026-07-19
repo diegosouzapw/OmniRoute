@@ -16,16 +16,14 @@ test("#7078 m365.cloud.microsoft wss URL extracts access_token + chathubPath", (
 });
 
 test("#7078 regional subdomain m365.cloud.microsoft also accepted", () => {
-  const raw =
-    "wss://eu.m365.cloud.microsoft/m365Copilot/Chathub/user@tenant?access_token=TOKEN456";
+  const raw = "wss://eu.m365.cloud.microsoft/m365Copilot/Chathub/user@tenant?access_token=TOKEN456";
   const parts = extract(raw);
   assert.equal(parts.accessToken, "TOKEN456");
   assert.equal(parts.chathubPath, "user@tenant");
 });
 
 test("#7078 legacy substrate.office.com still works (no regression)", () => {
-  const raw =
-    "wss://substrate.office.com/m365Copilot/Chathub/user@tenant?access_token=LEGACY";
+  const raw = "wss://substrate.office.com/m365Copilot/Chathub/user@tenant?access_token=LEGACY";
   const parts = extract(raw);
   assert.equal(parts.accessToken, "LEGACY");
   assert.equal(parts.chathubPath, "user@tenant");

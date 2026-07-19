@@ -13,6 +13,7 @@ export interface SqliteAdapter {
   readonly driver: "better-sqlite3" | "node:sqlite" | "sql.js";
   readonly open: boolean;
   readonly name: string;
+  readonly inTransaction?: boolean;
 
   prepare(sql: string): PreparedStatement;
   exec(sql: string): void;

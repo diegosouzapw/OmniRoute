@@ -1,7 +1,4 @@
 {
-  "open-sse/services/payloadRules.ts": {
-    "TS2677": 1
-  },
   "src/app/(dashboard)/dashboard/HomePageClient.tsx": {
     "TS2339": 16
   },
@@ -62,9 +59,6 @@
   },
   "src/app/(dashboard)/dashboard/compression/studio/EncoderComparisonTable.tsx": {
     "TS2322": 1
-  },
-  "src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx": {
-    "TS2304": 1
   },
   "src/app/(dashboard)/dashboard/costs/quota-share/QuotaSharePageClient.tsx": {
     "TS2551": 7,
@@ -184,12 +178,6 @@
   "src/app/(dashboard)/dashboard/settings/components/RedisLauncherPanel.tsx": {
     "TS2345": 11
   },
-  "src/app/(dashboard)/dashboard/settings/components/SidebarTab.tsx": {
-    "TS2322": 1
-  },
-  "src/app/(dashboard)/dashboard/settings/components/proxy/FreePoolTab.tsx": {
-    "TS2304": 1
-  },
   "src/app/(dashboard)/dashboard/tools/traffic-inspector/components/CustomHostsManager.tsx": {
     "TS2339": 1
   },
@@ -213,9 +201,6 @@
   },
   "src/lib/combos/builderDraft.ts": {
     "TS2741": 1
-  },
-  "src/lib/providers/codexFastTier.ts": {
-    "TS2367": 1
   },
   "src/lib/services/htmlRewriter.ts": {
     "TS2322": 2,
@@ -245,10 +230,6 @@
   },
   "src/shared/hooks/useElectron.ts": {
     "TS2339": 19
-  },
-  "src/shared/providers/webSessionCredentials.ts": {
-    "TS2353": 1,
-    "TS2322": 1
   },
   "src/shared/schemas/cliCatalog.ts": {
     "TS2554": 2

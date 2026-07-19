@@ -294,14 +294,18 @@ export class CopilotWebExecutor extends BaseExecutor {
             // credential exposure in server logs.
             let WS = globalThis.WebSocket;
             if (!WS) {
-              // @ts-ignore — ws module has no type declarations in this project
-              WS = (await import("ws")).default as unknown as typeof WebSocket;
+              type WebSocketWithHeadersConstructor = new (
+                url: string,
+                options?: { headers?: Record<string, string> }
+              ) => WebSocket;
+              const WsWithHeaders = (await import("ws"))
+                .default as unknown as WebSocketWithHeadersConstructor;
               if (accessToken) {
-                // @ts-ignore — ws module supports headers option in second arg
-                ws = new WS(wsUrl, {
+                ws = new WsWithHeaders(wsUrl, {
                   headers: { Authorization: `Bearer ${accessToken}` },
-                }) as WebSocket;
+                });
               }
+              WS = WsWithHeaders as unknown as typeof WebSocket;
             }
             if (!ws) {
               ws = new WS(wsUrl) as WebSocket;

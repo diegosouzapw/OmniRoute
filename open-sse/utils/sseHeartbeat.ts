@@ -1,3 +1,5 @@
+import { withTransformerCancellation } from "./cancelableTransformer.ts";
+
 export const DEFAULT_SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 
 export const HEARTBEAT_SHAPES = {
@@ -101,40 +103,42 @@ export function createSseHeartbeatTransform({
     intervalId = undefined;
   };
 
-  return new TransformStream<Uint8Array, Uint8Array>({
-    start(controller) {
-      intervalId = globalThis.setInterval(() => {
-        if (signal?.aborted) {
-          stop();
-          return;
+  return new TransformStream<Uint8Array, Uint8Array>(
+    withTransformerCancellation({
+      start(controller) {
+        intervalId = globalThis.setInterval(() => {
+          if (signal?.aborted) {
+            stop();
+            return;
+          }
+
+          try {
+            controller.enqueue(
+              HEARTBEAT_ENCODER.encode(buildHeartbeatPayload(shape, { chunkId, chunkModel }))
+            );
+          } catch {
+            stop();
+          }
+        }, intervalMs);
+
+        if (intervalId && typeof intervalId === "object" && "unref" in intervalId) {
+          intervalId.unref?.();
         }
 
-        try {
-          controller.enqueue(
-            HEARTBEAT_ENCODER.encode(buildHeartbeatPayload(shape, { chunkId, chunkModel }))
-          );
-        } catch {
-          stop();
-        }
-      }, intervalMs);
+        signal?.addEventListener("abort", stop, { once: true });
+      },
 
-      if (intervalId && typeof intervalId === "object" && "unref" in intervalId) {
-        intervalId.unref?.();
-      }
+      transform(chunk, controller) {
+        controller.enqueue(chunk);
+      },
 
-      signal?.addEventListener("abort", stop, { once: true });
-    },
+      flush() {
+        stop();
+      },
 
-    transform(chunk, controller) {
-      controller.enqueue(chunk);
-    },
-
-    flush() {
-      stop();
-    },
-
-    cancel() {
-      stop();
-    },
-  });
+      cancel() {
+        stop();
+      },
+    })
+  );
 }

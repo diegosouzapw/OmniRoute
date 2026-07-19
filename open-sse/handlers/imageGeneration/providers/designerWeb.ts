@@ -155,6 +155,7 @@ type DesignerWebStepResult =
   | { done: false; waitMs: number }
   | { done: true; success: true; imageUrls: string[] }
   | { done: true; success: false; status: number; error: string };
+type DesignerWebTerminalResult = Extract<DesignerWebStepResult, { done: true }>;
 
 /** Runs one submit/poll fetch cycle and classifies the outcome. */
 async function stepDesignerWebPoll(
@@ -167,7 +168,12 @@ async function stepDesignerWebPoll(
   const resp = await fetchImpl(baseUrl, { method: "POST", headers, body: formBody });
 
   if (!resp.ok) {
-    return { done: true, success: false, status: resp.status, error: sanitizeErrorMessage(await resp.text()) };
+    return {
+      done: true,
+      success: false,
+      status: resp.status,
+      error: sanitizeErrorMessage(await resp.text()),
+    };
   }
 
   const parsed = parseDesignerWebResponse(await resp.json());
@@ -192,7 +198,7 @@ async function runDesignerWebPollLoop(
   config: DesignerWebRequestConfig,
   fetchImpl: typeof fetch,
   log?: { info?: (...args: unknown[]) => void }
-): Promise<DesignerWebStepResult | { done: true; success: false; status: 504; error: string }> {
+): Promise<DesignerWebTerminalResult> {
   const deadline = Date.now() + config.timeoutMs;
   let attempt = 0;
 
@@ -205,7 +211,7 @@ async function runDesignerWebPollLoop(
       config.pollIntervalMs,
       fetchImpl
     );
-    if (step.done) return step;
+    if (step.done === true) return step;
     log?.info?.("IMAGE", `designer-web pending, poll #${attempt} in ${step.waitMs}ms`);
     await new Promise((resolve) => setTimeout(resolve, step.waitMs));
   }
@@ -237,13 +243,24 @@ export async function handleDesignerWebImageGeneration({
 }) {
   const startTime = Date.now();
   const resolved = resolveDesignerWebRequest(body, credentials);
-  if (!resolved.ok) {
-    return saveImageErrorResult({ provider, model, status: resolved.status, startTime, error: resolved.error });
+  if (resolved.ok === false) {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: resolved.status,
+      startTime,
+      error: resolved.error,
+    });
   }
 
   try {
-    const outcome = await runDesignerWebPollLoop(providerConfig.baseUrl, resolved.config, fetchImpl, log);
-    if (outcome.success) {
+    const outcome = await runDesignerWebPollLoop(
+      providerConfig.baseUrl,
+      resolved.config,
+      fetchImpl,
+      log
+    );
+    if (outcome.success === true) {
       return saveImageSuccessResult({
         provider,
         model,
@@ -254,7 +271,13 @@ export async function handleDesignerWebImageGeneration({
     if (log?.error) {
       log.error("IMAGE", `${provider} designer-web error ${outcome.status}: ${outcome.error}`);
     }
-    return saveImageErrorResult({ provider, model, status: outcome.status, startTime, error: outcome.error });
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: outcome.status,
+      startTime,
+      error: outcome.error,
+    });
   } catch (err) {
     const errorText = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
     if (log?.error) {

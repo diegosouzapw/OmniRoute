@@ -8,7 +8,7 @@
  * Helpers: open-sse/executors/lmarena/{cookie,models,stream,response}.ts
  */
 import { v7 as uuidv7 } from "uuid";
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
 import { tlsFetchLMArena, TlsClientUnavailableError } from "../services/lmarenaTlsClient.ts";
 import { readLMArenaCookie, reconstructLMArenaCookie } from "./lmarena/cookie.ts";
 import {
@@ -73,15 +73,24 @@ export class LMArenaExecutor extends BaseExecutor {
     super("lmarena", { format: "openai", ...providerConfig });
   }
 
-  protected buildUrl(_model: string, _credentials: unknown): string {
+  buildUrl(
+    _model: string,
+    _streamOrCredentials: unknown,
+    _urlIndex = 0,
+    _credentials: ProviderCredentials | null = null
+  ): string {
     return LMARENA_STREAM_URL;
   }
 
-  protected buildHeaders(
-    _model: string,
-    credentials: unknown,
-    _body: unknown
+  buildHeaders(
+    credentialsOrModel: ProviderCredentials | string,
+    streamOrCredentials: unknown = true,
+    _clientHeadersOrBody?: unknown,
+    _model?: string,
+    _health?: Record<string, unknown>
   ): Record<string, string> {
+    const credentials =
+      typeof credentialsOrModel === "string" ? streamOrCredentials : credentialsOrModel;
     const cookie = readLMArenaCookie(credentials);
     const headers = buildLmarenaBrowserHeaders({
       "Content-Type": "application/json",
@@ -91,7 +100,16 @@ export class LMArenaExecutor extends BaseExecutor {
     return headers;
   }
 
-  protected transformRequest(body: unknown, model: string, credentials?: unknown): unknown {
+  transformRequest(
+    modelOrBody: unknown,
+    bodyOrModel: unknown,
+    streamOrCredentials?: unknown,
+    credentials?: ProviderCredentials
+  ): unknown {
+    const calledFromBase = typeof streamOrCredentials === "boolean" || credentials !== undefined;
+    const model = calledFromBase ? String(modelOrBody) : String(bodyOrModel);
+    const body = calledFromBase ? bodyOrModel : modelOrBody;
+    const effectiveCredentials = calledFromBase ? credentials : streamOrCredentials;
     const openaiBody = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
     const messages = Array.isArray(openaiBody.messages)
       ? (openaiBody.messages as OpenAIMessage[])
@@ -108,25 +126,31 @@ export class LMArenaExecutor extends BaseExecutor {
         metadata: {},
       },
       modality: "chat",
-      recaptchaV3Token: readRecaptchaToken(credentials, body),
+      recaptchaV3Token: readRecaptchaToken(effectiveCredentials, body),
     };
   }
 
   async execute(input: ExecuteInput) {
     const { model, body, stream, credentials, signal, log } = input;
-    const url = this.buildUrl(model, credentials);
-    const headers = this.buildHeaders(model, credentials, body);
+    const url = this.buildUrl(model, stream, 0, credentials);
+    const headers = this.buildHeaders(credentials, stream);
     const cookie = readLMArenaCookie(credentials);
 
     if (!cookie) {
-      return missingCookieResult(url, headers, this.transformRequest(body, model, credentials));
+      return missingCookieResult(
+        url,
+        headers,
+        this.transformRequest(model, body, stream, credentials)
+      );
     }
 
     const arenaModelId = await resolveLMArenaModelId(model, log);
-    const transformedBody = this.transformRequest(body, arenaModelId, credentials) as Record<
-      string,
-      unknown
-    >;
+    const transformedBody = this.transformRequest(
+      arenaModelId,
+      body,
+      stream,
+      credentials
+    ) as Record<string, unknown>;
 
     log?.info?.(
       "LMArenaExecutor",

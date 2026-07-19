@@ -663,7 +663,7 @@ async function handleMinimaxSpeech(providerConfig, body, modelId, token) {
     return errorResponse(502, `MiniMax TTS: ${msg}`);
   }
 
-  return new Response(bytes, {
+  return new Response(new Uint8Array(bytes), {
     status: 200,
     headers: {
       ...CORS_HEADERS,
@@ -737,7 +737,7 @@ async function handleGttsSpeech(body) {
       text: body.input,
       lang: normalizeGttsLang(body.voice),
     });
-    return new Response(audio, {
+    return new Response(new Uint8Array(audio), {
       status: 200,
       headers: { ...CORS_HEADERS, "Content-Type": "audio/mpeg" },
     });
@@ -803,7 +803,7 @@ export async function handleAudioSpeech({
         input: body.input,
         voice: body.voice,
       });
-      return new Response(audio, {
+      return new Response(new Uint8Array(audio), {
         status: 200,
         headers: { ...CORS_HEADERS, "Content-Type": contentType },
       });

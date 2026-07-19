@@ -142,7 +142,15 @@ export interface RegistryEntry {
   /** Default context window for all models in this provider (can be overridden per-model) */
   defaultContextLength?: number;
   /** Optional session pool config for rate limit management */
-  poolConfig?: Record<string, unknown>;
+  poolConfig?: {
+    minSessions: number;
+    maxSessions: number;
+    cooldownBase: number;
+    cooldownMax: number;
+    cooldownJitter: number;
+    requestTimeout: number;
+    requestJitter: number;
+  };
   /**
    * When true, the provider rejects non-streaming requests (HTTP 400).
    * resolveStreamFlag will keep streaming even when the client requests JSON;

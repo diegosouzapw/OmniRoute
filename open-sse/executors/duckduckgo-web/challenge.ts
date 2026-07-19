@@ -5,6 +5,11 @@ import { createHash } from "node:crypto";
 import vm from "node:vm";
 import { parseFragment, serialize } from "parse5";
 
+type DuckDuckGoChallengeResult = {
+  client_hashes?: unknown;
+  [key: string]: unknown;
+};
+
 export const CHALLENGE_STUBS = String.raw`
 var __ua = __DDG_REAL_UA__;
 var __HTML_LOOKUP = __DDG_HTML_LOOKUP__;

@@ -26,6 +26,10 @@ type CacheBody = {
 
 type UsageLike = { prompt_tokens?: number; completion_tokens?: number } | null | undefined;
 
+function optionalNumber(value: unknown): number | undefined {
+  return typeof value === "number" ? value : undefined;
+}
+
 export interface SemanticCacheStoreDeps {
   isCacheableForWrite: typeof defaultIsCacheableForWrite;
   isSmallEnoughForSemanticCache: typeof defaultIsSmallEnough;
@@ -47,7 +51,7 @@ export function storeSemanticCacheResponse(
     headers: unknown;
     translatedResponse: unknown;
     model: string;
-    apiKeyId?: string | number;
+    apiKeyId?: string;
     usage?: UsageLike;
     log?: LoggerLike;
   },
@@ -63,8 +67,8 @@ export function storeSemanticCacheResponse(
   const signature = deps.generateSignature(
     args.model,
     args.body.messages ?? args.body.input,
-    args.body.temperature,
-    args.body.top_p,
+    optionalNumber(args.body.temperature),
+    optionalNumber(args.body.top_p),
     args.apiKeyId ?? undefined
   );
   const tokensSaved = args.usage?.prompt_tokens + args.usage?.completion_tokens || 0;

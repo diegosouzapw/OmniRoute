@@ -156,7 +156,9 @@ export class GeminiBusinessExecutor extends BaseExecutor {
         method: "POST",
         headers,
         body: formBody.toString(),
-        signal: combineAbortSignals(signal, AbortSignal.timeout(GEMINI_BUSINESS_FETCH_TIMEOUT_MS)),
+        signal: signal
+          ? mergeAbortSignals(signal, AbortSignal.timeout(GEMINI_BUSINESS_FETCH_TIMEOUT_MS))
+          : AbortSignal.timeout(GEMINI_BUSINESS_FETCH_TIMEOUT_MS),
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "fetch failed";

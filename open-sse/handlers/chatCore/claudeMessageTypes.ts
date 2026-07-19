@@ -10,6 +10,6 @@
 export type ClaudeContentBlock = Record<string, unknown>;
 
 export type ClaudeMessage = {
-  role?: unknown;
-  content?: unknown;
+  role?: string;
+  content?: string | ClaudeContentBlock[];
 };

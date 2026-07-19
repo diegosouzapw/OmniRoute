@@ -3,6 +3,9 @@ import { getIdempotencyKey, checkIdempotency } from "@/lib/idempotencyLayer";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 
+type DebugLogger = { debug?: (tag: string, message: string) => void } | null | undefined;
+type RawRequest = { headers?: Headers | Record<string, unknown> | null } | null | undefined;
+
 /**
  * NEXA fusion-idempotency fix: compose the effective idempotency key from the raw
  * header key + target provider/model + a digest of the request messages.
@@ -55,13 +58,13 @@ export async function checkIdempotencyCache({
   startTime,
   log,
 }: {
-  clientRawRequest: unknown;
+  clientRawRequest: RawRequest;
   provider: string;
   model: string;
   body?: unknown;
-  effectiveServiceTier: unknown;
+  effectiveServiceTier: string;
   startTime: number;
-  log: unknown;
+  log: DebugLogger;
 }): Promise<{ hit: { success: true; response: Response } | null; idempotencyKey: string | null }> {
   // NEXA fusion-idempotency fix: namespace the raw header key (see composeIdempotencyKey).
   const rawIdempotencyKey = getIdempotencyKey(clientRawRequest?.headers);

@@ -11,15 +11,10 @@
  * leg of `fallback` mode) and never the native leg of `fallback` mode.
  */
 
-type ExecutorInput = {
-  model: string;
-  body: unknown;
-  [key: string]: unknown;
-};
+import type { ExecuteInput, ExecutorResult } from "../../executors/base.ts";
 
 type ExecutorLike = {
-  execute: (input: ExecutorInput) => Promise<unknown>;
-  [key: string]: unknown;
+  execute: (input: ExecuteInput) => Promise<ExecutorResult>;
 };
 
 export type CliproxyapiModelMapping = Record<string, unknown> | null | undefined;
@@ -36,9 +31,9 @@ function resolveMappedModel(model: string, mapping: CliproxyapiModelMapping): st
  * Returns the original input unchanged when no mapping applies.
  */
 export function applyCliproxyapiModelMapping(
-  input: ExecutorInput,
+  input: ExecuteInput,
   mapping: CliproxyapiModelMapping
-): ExecutorInput {
+): ExecuteInput {
   const mappedModel = resolveMappedModel(input.model, mapping);
   if (!mappedModel) return input;
 
@@ -63,7 +58,7 @@ export function wrapExecutorWithCliproxyapiModelMapping<T extends ExecutorLike>(
     return executor;
   }
   const wrapped = Object.create(executor) as T;
-  wrapped.execute = (input: ExecutorInput) =>
+  wrapped.execute = (input: ExecuteInput) =>
     executor.execute(applyCliproxyapiModelMapping(input, mapping));
   return wrapped;
 }

@@ -104,7 +104,7 @@ export class DefaultExecutor extends BaseExecutor {
     super(provider, PROVIDERS[provider] || PROVIDERS.openai);
     const registryEntry = getRegistryEntry(provider);
     if (registryEntry?.poolConfig) {
-      this.poolConfig = registryEntry.poolConfig as PoolConfig;
+      this.poolConfig = registryEntry.poolConfig;
     }
   }
 
