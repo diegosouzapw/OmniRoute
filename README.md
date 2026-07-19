@@ -6,7 +6,7 @@
 
 # 🚀 OmniRoute — The Free AI Gateway
 
-### Never stop coding. Connect every AI tool to **265 providers** — **90+ free** — through one endpoint.
+### Never stop coding. Connect every AI tool to **268 providers** — **90+ free** — through one endpoint.
 
 **Plug Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini. Auto-fallback.**
 <br/>
@@ -31,8 +31,8 @@
 
 </br>
 
-[![251 AI Providers](https://img.shields.io/badge/251-AI_Providers-6C5CE7?style=for-the-badge)](#-251-ai-providers--90-free)
-[![90+ Free](https://img.shields.io/badge/90%2B-Free_Tiers-00B894?style=for-the-badge)](#-251-ai-providers--90-free)
+[![268 AI Providers](https://img.shields.io/badge/268-AI_Providers-6C5CE7?style=for-the-badge)](#-268-ai-providers--90-free)
+[![90+ Free](https://img.shields.io/badge/90%2B-Free_Tiers-00B894?style=for-the-badge)](#-268-ai-providers--90-free)
 [![1.6B Free Tokens/mo](https://img.shields.io/badge/1.6B-Free_Tokens%2Fmo-00B894?style=for-the-badge)](docs/reference/FREE_TIERS.md)
 [![Token Savings](https://img.shields.io/badge/up_to_95%25-Token_Savings-E17055?style=for-the-badge)](#%EF%B8%8F-save-1595-tokens--automatically)
 [![18 Strategies](https://img.shields.io/badge/18-Routing_Strategies-0984E3?style=for-the-badge)](#-combos--the-flagship)
@@ -61,14 +61,14 @@
 ![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
 ![Electron Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
-[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-251-ai-providers--90-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online)
+[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-268-ai-providers--90-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online)
 
-[💥 The Promise](#-the-promise) • [🤔 Why](#-why-omniroute) • [🏆 What Sets Apart](#-what-sets-omniroute-apart) • [🤖 Compatible CLIs](#-compatible-clis--coding-agents) • [🖥️ Where It Runs](#%EF%B8%8F-where-omniroute-runs--anywhere) • [🔒 Private](#-private--local-first) • [🎬 In Action](#-omniroute-in-action) • [📚 Explore More](#-explore-more) • [📧 Support](#-support--community)
+[💥 The Promise](#-the-promise) • [🤔 Why](#-why-omniroute) • [🏆 What Sets Apart](#-what-sets-omniroute-apart) • [🤖 Compatible CLIs](#-compatible-clis--coding-agents) • [🖥️ Where It Runs](#%EF%B8%8F-where-omniroute-runs--anywhere) • [🔒 Private](#-private--local-first) • [🎬 In Action](#-omniroute-in-action) • [📸 Screenshots](#-dashboard-screenshots) • [📧 Support](#-support--community)
 
 </div>
 
 <div align="center">
- <b>🌐 In 42+ languages</b>
+ <b>🌐 In 43 languages</b>
  <table>
   <tr>
     <td align="center"><a href="README.md">🇺🇸</a></td>
@@ -144,18 +144,18 @@
 
 </div>
 
-> One endpoint. **265 providers.** Never stop building — and let OmniRoute pick the cheapest one that works.
+> One endpoint. **268 providers.** Never stop building — and let OmniRoute pick the cheapest one that works.
 
 <table>
   <tr>
-    <td width="33%" valign="top"><b>🚫 Never hit limits</b><br/><sub>Auto-fallback across 265 providers in milliseconds. Quota out? Next provider takes over — zero downtime.</sub></td>
+    <td width="33%" valign="top"><b>🚫 Never hit limits</b><br/><sub>Auto-fallback across 268 providers in milliseconds. Quota out? Next provider takes over — zero downtime.</sub></td>
     <td width="33%" valign="top"><b>💸 Save up to 95% tokens</b><br/><sub>RTK + Caveman stacked compression cuts 15–95% of eligible tokens (~89% avg on tool-heavy sessions).</sub></td>
-    <td width="33%" valign="top"><b>🆓 $0 to start</b><br/><sub>90+ providers with a free tier, 11 free <i>forever</i> (Kiro, Qoder, Pollinations, LongCat…). No card needed.</sub></td>
+    <td width="33%" valign="top"><b>🆓 $0 to start</b><br/><sub>90+ providers with a free tier, 40+ free <i>forever</i> (Qoder, Pollinations, Cloudflare, SiliconFlow…). No card needed.</sub></td>
   </tr>
   <tr>
-    <td width="33%" valign="top"><b>🔌 Every tool works</b><br/><sub>24+ coding agents — Claude Code, Codex, Cursor, Cline, Copilot, Antigravity — through one config.</sub></td>
+    <td width="33%" valign="top"><b>🔌 Every tool works</b><br/><sub>26 coding agents — Claude Code, Codex, Cursor, Cline, Copilot, Antigravity — through one config.</sub></td>
     <td width="33%" valign="top"><b>🧩 One endpoint</b><br/><sub>OpenAI ↔ Claude ↔ Gemini ↔ Responses API translation. Point any tool at <code>/v1</code> and it just works.</sub></td>
-    <td width="33%" valign="top"><b>🛡️ Production-grade</b><br/><sub>Circuit breakers, TLS stealth, MCP (94 tools), A2A, memory, guardrails, evals. 21,000+ tests.</sub></td>
+    <td width="33%" valign="top"><b>🛡️ Production-grade</b><br/><sub>Circuit breakers, TLS stealth, MCP (104 tools), A2A, memory, guardrails, evals. 25,000+ tests.</sub></td>
   </tr>
 </table>
 
@@ -278,18 +278,18 @@ All **18** strategies — mix & match per combo step:
 
 | Feature                                | OmniRoute                                                           | Other routers |
 | -------------------------------------- | ------------------------------------------------------------------- | ------------- |
-| 🌐 Providers                           | **251**                                                             | 20–100        |
-| 🆓 Free providers                      | **90+ (11 free forever)**                                           | 1–5           |
+| 🌐 Providers                           | **268**                                                             | 20–100        |
+| 🆓 Free providers                      | **90+ (40+ free forever)**                                           | 1–5           |
 | 🔀 Routing strategies                  | **18** (priority, weighted, cost-optimized, context-relay, fusion…) | 1–3           |
 | 🗜️ Token compression                   | **RTK + Caveman stacked (15–95%)**                                  | None / 20–40% |
-| 🧰 Built-in MCP server                 | **94 tools, 3 transports, 30 scopes**                               | Rare          |
+| 🧰 Built-in MCP server                 | **104 tools, 3 transports, 30 scopes**                               | Rare          |
 | 🤝 A2A agent protocol                  | **6 skills, JSON-RPC 2.0**                                          | None          |
 | 🧠 Memory (FTS5 + vector)              | **Yes**                                                             | Rare          |
 | 🛡️ Guardrails (PII, injection, vision) | **Yes**                                                             | Rare          |
 | ☁️ Cloud agents                        | **Codex, Cursor, Devin, Jules**                                     | None          |
 | 🥷 TLS fingerprint stealth             | **JA3/JA4 via wreq-js**                                             | None          |
 | 🖥️ Multi-platform                      | **Web · Desktop · Termux · PWA**                                    | Web only      |
-| 🌍 i18n                                | **42 locales**                                                      | 0–4           |
+| 🌍 i18n                                | **43 locales**                                                      | 0–4           |
 
 <sub>📊 Detailed comparison vs LiteLLM, OpenRouter & Portkey → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
@@ -301,7 +301,7 @@ All **18** strategies — mix & match per combo step:
 
 </div>
 
-> Recent highlights from **v3.8.20 → v3.8.47**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
+> Recent highlights from **v3.8.20 → v3.8.49**. Full history in [`CHANGELOG.md`](CHANGELOG.md).
 
 - **🗜️ Compression hardening** — default-on inflation guard, Caveman packs for DE / FR / JA + Chinese (wényán), RTK filters for Gradle & .NET. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
 - **💸 Honest flat-rate cost** — subscription / coding-plan providers read **$0** in cost analytics; budget, quota & routing keep estimating. → [API Reference](docs/reference/API_REFERENCE.md)
@@ -375,11 +375,11 @@ All **18** strategies — mix & match per combo step:
 
 <div align="center">
 
-# 🌐 259 AI Providers — 90+ Free
+# 🌐 268 AI Providers — 90+ Free
 
 </div>
 
-> The most complete catalog of any open-source router: **265 providers**, **90+ with a free tier**, **11 free forever**.
+> The most complete catalog of any open-source router: **268 providers**, **90+ with a free tier**, **40+ free forever**.
 
 <div align="center">
 
@@ -520,7 +520,7 @@ Expose OmniRoute over **MCP** or **A2A** and any capable agent gets the keys to 
 | Protocol           | Endpoint                                        | Use it for                                             |
 | ------------------ | ----------------------------------------------- | ------------------------------------------------------ |
 | 🧰 **MCP (stdio)** | `omniroute --mcp`                               | Plug into Claude Desktop, Cursor, any MCP client       |
-| 🌊 **MCP (HTTP)**  | `http://localhost:20128/api/mcp/stream`         | Remote MCP — **94 tools**, 30 scopes, full audit trail |
+| 🌊 **MCP (HTTP)**  | `http://localhost:20128/api/mcp/stream`         | Remote MCP — **104 tools**, 30 scopes, full audit trail |
 | 📡 **MCP (SSE)**   | `http://localhost:20128/api/mcp/sse`            | Streaming MCP transport                                |
 | 🤝 **A2A**         | `http://localhost:20128/.well-known/agent.json` | Agent-to-agent, **JSON-RPC 2.0** + SSE, 6 skills       |
 
@@ -822,7 +822,7 @@ same process on one port, so there is no separate CLI-only package today.
 - **Protocols**: MCP (stdio/HTTP) + A2A v0.3 (JSON-RPC 2.0 + SSE)
 - **Streaming**: Server-Sent Events (SSE) + WebSocket bridge (`/v1/ws`)
 - **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys + MCP Scoped Authorization
-- **Testing**: Node.js test runner + Vitest (**21,000+ test cases** across 2,586 files — unit, integration, E2E, security, ecosystem)
+- **Testing**: Node.js test runner + Vitest (**25,000+ test cases** across 3,300+ files — unit, integration, E2E, security, ecosystem)
 - **Platforms**: Desktop (Electron), Android (Termux), PWA (any browser)
 - **CI/CD**: GitHub Actions (auto npm publish + Docker Hub on release)
 - **Website**: [omniroute.online](https://omniroute.online)
@@ -885,7 +885,7 @@ same process on one port, so there is no separate CLI-only package today.
 | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [API Reference](docs/reference/API_REFERENCE.md)  | All endpoints with examples                                                                                                                                                             |
 | [OpenAPI Spec](docs/openapi.yaml)                 | OpenAPI 3.0 specification                                                                                                                                                               |
-| [MCP Server](open-sse/mcp-server/README.md)       | 95 MCP tools, IDE configs, Python/TS/Go clients                                                                                                                                         |
+| [MCP Server](open-sse/mcp-server/README.md)       | 104 MCP tools, IDE configs, Python/TS/Go clients                                                                                                                                         |
 | [MCP Server Guide](docs/frameworks/MCP-SERVER.md) | MCP installation, transports, and tool reference                                                                                                                                        |
 | [A2A Server](src/lib/a2a/README.md)               | JSON-RPC 2.0 protocol, skills, streaming, task mgmt                                                                                                                                     |
 | [A2A Server Guide](docs/frameworks/A2A-SERVER.md) | A2A agent card, tasks, skills, and streaming                                                                                                                                            |
@@ -899,7 +899,7 @@ same process on one port, so there is no separate CLI-only package today.
 | [Security Policy](SECURITY.md)                     | Vulnerability reporting and security practices                                                                                                                                           |
 | [i18n Guide](docs/guides/I18N.md)                  | 40+ language support, translation workflow, RTL                                                                                                                                          |
 | [Release Checklist](docs/ops/RELEASE_CHECKLIST.md) | Pre-release validation steps                                                                                                                                                             |
-| [Coverage Plan](docs/ops/COVERAGE_PLAN.md)         | Test coverage strategy and 21,000+ test suite                                                                                                                                            |
+| [Coverage Plan](docs/ops/COVERAGE_PLAN.md)         | Test coverage strategy and 25,000+ test suite                                                                                                                                            |
 
 <br/>
 
@@ -1129,7 +1129,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 **[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
 
-<sub>OmniRoute v3.8.43 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.49 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->
