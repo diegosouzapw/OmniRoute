@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import * as os from "node:os";
 
 // Antigravity and Windsurf public defaults come from
 // open-sse/utils/publicCreds.ts — no env override needed in this suite.
@@ -42,6 +43,7 @@ const {
   QWEN_CONFIG,
   TRAE_CONFIG,
   WINDSURF_CONFIG,
+  XAI_OAUTH_CONFIG,
   ZED_HOSTED_CONFIG,
 } = oauthModule;
 const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
@@ -68,6 +70,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "windsurf",
   "devin-cli",
   "grok-cli",
+  "xai-oauth",
   "codebuddy-cn",
   "zed",
   "zed-hosted",
@@ -100,6 +103,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   "devin-cli": WINDSURF_CONFIG,
   trae: TRAE_CONFIG,
   "grok-cli": GROK_CLI_CONFIG,
+  "xai-oauth": XAI_OAUTH_CONFIG,
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
   zed: ZED_CONFIG,
   "zed-hosted": ZED_HOSTED_CONFIG,
@@ -144,6 +148,9 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
+  // prettier-ignore
+  "xai-oauth": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
+  // prettier-ignore
   "zed-hosted": ["webBaseUrl", "cloudBaseUrl", "llmBaseUrl", "userInfoUrl", "llmTokenUrl", "modelsUrl"],
 };
 
@@ -351,7 +358,10 @@ test("zed-hosted buildAuthUrl returns {authUrl, codeVerifier, redirectUri} carry
 
 test("generateAuthData honors an object-returning buildAuthUrl (zed-hosted) without breaking string-returning providers", async () => {
   const oauthHelpers = await import("../../src/lib/oauth/providers.ts");
-  const zedAuthData = oauthHelpers.generateAuthData("zed-hosted", "http://localhost:20128/callback");
+  const zedAuthData = oauthHelpers.generateAuthData(
+    "zed-hosted",
+    "http://localhost:20128/callback"
+  );
   assert.equal(zedAuthData.flowType, "authorization_code");
   assert.ok(zedAuthData.authUrl.startsWith("https://zed.dev/native_app_signin?"));
   assert.ok(zedAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
@@ -680,9 +690,15 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
       const params = init.body;
       assert.equal(String(url), KIMI_CODING_CONFIG.deviceCodeUrl);
       assert.equal(params.get("client_id"), KIMI_CODING_CONFIG.clientId);
-      assert.equal(init.headers["X-Msh-Platform"], "kimi_cli");
+      assert.equal(init.headers["X-Msh-Platform"], "kimi_code_cli");
       assert.equal(init.headers["X-Msh-Device-Id"], "test-kimi-device-id");
-      assert.ok(init.headers["X-Msh-Os-Version"]);
+      assert.equal(init.headers["X-Msh-Os-Version"], os.release());
+      if (os.type() === "Windows_NT") {
+        assert.equal(
+          init.headers["X-Msh-Device-Model"],
+          `Windows ${os.release()} ${os.arch()}`
+        );
+      }
 
       return jsonResponse({
         device_code: "kimi-device",
@@ -699,7 +715,7 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
       assert.equal(params.get("client_id"), KIMI_CODING_CONFIG.clientId);
       assert.equal(params.get("device_code"), "kimi-device");
       assert.equal(params.get("grant_type"), "urn:ietf:params:oauth:grant-type:device_code");
-      assert.equal(init.headers["X-Msh-Platform"], "kimi_cli");
+      assert.equal(init.headers["X-Msh-Platform"], "kimi_code_cli");
       assert.equal(init.headers["X-Msh-Device-Id"], "test-kimi-device-id");
 
       return jsonResponse({

@@ -39,7 +39,6 @@ function isBuildProcess(): boolean {
   return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
 }
 
-
 function getConnectionLogLabel(conn: { name?: string; email?: string; id?: string }): string {
   return pickMaskedDisplayValue([conn.name, conn.email], conn.id || "-");
 }
@@ -178,13 +177,10 @@ function isHealthCheckDisabled(): boolean {
 }
 
 /**
- * Providers excluded from the PROACTIVE refresh sweep, comma-separated and
- * case-insensitive (e.g. "codex,openai"). A targeted alternative to the blunt
- * OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK switch: it lets an operator keep the
- * rotating-token cascade providers (Codex/OpenAI share one Auth0 family) off the
- * proactive sweep — leaving their refresh to the reactive, serialized 401 path —
- * WITHOUT also starving short-TTL providers like Kimi-coding, whose tokens expire
- * while idle when the whole sweep is disabled.
+ * Providers excluded from the PROACTIVE sweep, comma-separated, case-insensitive
+ * (e.g. "codex,openai"). Targeted alternative to OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK:
+ * keeps rotating-token cascade providers (Codex/OpenAI share one Auth0 family) on the
+ * reactive 401 path WITHOUT starving short-TTL providers (Kimi-coding) sweep-wide.
  */
 function getHealthCheckSkipProviders(): Set<string> {
   const raw = process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS || "";
@@ -337,9 +333,12 @@ export async function sweep() {
         logError(`${LOG_PREFIX} Error checking ${conn.name || conn.id}:`, err.message);
       }
 
-      // Stagger delay between checks to prevent bursting (Issue #1220)
+      // Stagger + randomized jitter between checks to prevent bursting (Issue #1220)
       if (staggerMs > 0 && i < connections.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, staggerMs));
+        const jitterMin = parseInt(process.env.HEALTHCHECK_JITTER_MIN_MS || "500", 10);
+        const jitterMax = parseInt(process.env.HEALTHCHECK_JITTER_MAX_MS || "5000", 10);
+        const jitter = jitterMin + Math.random() * Math.max(0, jitterMax - jitterMin);
+        await new Promise((resolve) => setTimeout(resolve, staggerMs + jitter));
       }
     }
   } catch (err) {

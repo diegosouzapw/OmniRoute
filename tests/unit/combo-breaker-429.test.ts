@@ -67,3 +67,14 @@ test("skipProviderBreaker:true suppresses recording regardless of status", () =>
     );
   }
 });
+
+test("request-scoped synthetic 502 does NOT record a whole-provider breaker failure", () => {
+  assert.equal(
+    shouldRecordProviderBreakerFailure({
+      ...OTHER_ARGS,
+      status: 502,
+      requestScopedFailure: true,
+    }),
+    false
+  );
+});

@@ -13,6 +13,7 @@ import {
   providerHonorsOpenAIFormatCacheControl,
   resolveConnectionCacheOverride,
 } from "../utils/cacheControlPolicy.ts";
+import { requiresAuthenticReasoningContent } from "../utils/reasoningContentInjector.ts";
 import {
   coerceToolSchemas,
   injectEmptyReasoningContentForToolCalls,
@@ -157,7 +158,8 @@ function isReasoningOnlyReplayTarget(provider: unknown, model: unknown): boolean
     normalizedProvider === "deepseek" ||
     /(^|\/)deepseek/i.test(normalizedModel) ||
     normalizedProvider === "xiaomi-mimo" ||
-    /(^|\/)mimo/i.test(normalizedModel)
+    /(^|\/)mimo/i.test(normalizedModel) ||
+    requiresAuthenticReasoningContent(normalizedProvider, normalizedModel)
   );
 }
 
@@ -241,11 +243,7 @@ export function translateRequest(
   // execute — so a client-injected mid-array system message (OpenCode/Kilo Code style
   // clients) is still normalized before reaching the upstream. No-op for non-strict
   // providers and for already-compliant requests (prompt-cache prefix stability).
-  if (
-    targetFormat === FORMATS.OPENAI &&
-    result.messages &&
-    Array.isArray(result.messages)
-  ) {
+  if (targetFormat === FORMATS.OPENAI && result.messages && Array.isArray(result.messages)) {
     result.messages = hoistLeadingSystemMessage(result.messages, provider);
   }
 
@@ -327,6 +325,12 @@ export function translateRequest(
   // replay providers) and the cache re-injection further down.
   const normalizedProvider = String(provider ?? "");
   const normalizedModel = String(model ?? "");
+  const isKimiCoding =
+    normalizedProvider === "kimi-coding" || normalizedProvider === "kimi-coding-apikey";
+  const requiresAuthenticReasoning = requiresAuthenticReasoningContent(
+    normalizedProvider,
+    normalizedModel
+  );
   const resolvedCapabilities = getResolvedModelCapabilities({
     provider: normalizedProvider,
     model: normalizedModel,
@@ -351,6 +355,8 @@ export function translateRequest(
         providerHonorsOpenAIFormatCacheControl(provider, connectionCacheOverride),
       // #4849 regression guard: keep client reasoning_content for replay providers.
       preserveReasoningContent: isReasoner,
+      // Moonshot's Chat API accepts its own OpenAI-compatible `video_url` block.
+      preserveVideoUrl: normalizedProvider === "moonshot" || normalizedProvider === "kimi",
     });
   }
 
@@ -395,7 +401,12 @@ export function translateRequest(
     }
   }
 
-  if (targetFormat === FORMATS.OPENAI && result.messages && Array.isArray(result.messages)) {
+  if (
+    targetFormat === FORMATS.OPENAI &&
+    !requiresAuthenticReasoning &&
+    result.messages &&
+    Array.isArray(result.messages)
+  ) {
     result.messages = injectEmptyReasoningContentForToolCalls(result.messages, provider, model);
   }
 
@@ -417,11 +428,17 @@ export function translateRequest(
   // isReasoner / normalizedProvider / normalizedModel / resolvedCapabilities were
   // resolved up-front (before the OpenAI-format filter) so the #4849 reasoning strip
   // could honor reasoning-replay providers.
-  if (isReasoner && result.messages && Array.isArray(result.messages)) {
+  if (isReasoner && !isKimiCoding && result.messages && Array.isArray(result.messages)) {
     const canReplayReasoningOnly = isReasoningOnlyReplayTarget(normalizedProvider, normalizedModel);
 
     for (const [messageIndex, msg] of result.messages.entries()) {
       if (msg.role !== "assistant") continue;
+      // Moonshot `partial` messages are output prefixes, not completed prior
+      // assistant turns. Never attach replayed or placeholder reasoning to them.
+      if (msg.partial === true) {
+        if (msg.reasoning_content === "") delete msg.reasoning_content;
+        continue;
+      }
 
       // Detect tool calls in either format
       const hasToolCalls = Array.isArray(msg.tool_calls) && msg.tool_calls.length > 0;
@@ -480,6 +497,7 @@ export function translateRequest(
             continue;
           }
         }
+        if (requiresAuthenticReasoning) continue;
         // Fallback: inject placeholder (must be non-empty for kimi-coding)
         msg.content.splice(firstToolUseIdx, 0, {
           type: "thinking",
@@ -504,6 +522,14 @@ export function translateRequest(
           recordReplay();
           continue;
         }
+      }
+
+      // Native Moonshot K3/K2.7 accepts only the real prior reasoning. If it
+      // was not supplied and the cache missed, leave it absent so upstream can
+      // enforce its contract instead of corrupting history with a placeholder.
+      if (requiresAuthenticReasoning) {
+        if (msg.reasoning_content === "") delete msg.reasoning_content;
+        continue;
       }
 
       // Cache miss fallback — use a non-empty placeholder.

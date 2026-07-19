@@ -16,7 +16,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
   await import("../../src/lib/modelsDevSync.ts");
-const { filterTargetsByRequestCompatibility } = await import("../../open-sse/services/combo.ts");
+const { filterTargetsByRequestCompatibility, getKnownContextOverflow, handleComboChat } =
+  await import("../../open-sse/services/combo.ts");
 
 test.after(() => {
   core.resetDbInstance();
@@ -179,6 +180,92 @@ test("all known-too-small context targets still fall back to strategy order", ()
     out.map((entry) => entry.modelStr),
     ["unit-known-context/tiny", "unit-known-context/small"]
   );
+});
+
+test("known context overflow reports the largest target limit", () => {
+  saveModelsDevCapabilities({
+    "unit-known-context": {
+      tiny: capabilityEntry(8_000),
+      small: capabilityEntry(16_000),
+    },
+  });
+
+  const overflow = getKnownContextOverflow(
+    [target("unit-known-context/tiny"), target("unit-known-context/small")],
+    largeContextBody()
+  );
+
+  assert.ok(overflow);
+  assert.ok(overflow.requiredContextTokens > overflow.maxKnownContextTokens);
+  assert.equal(overflow.maxKnownContextTokens, 16_000);
+  assert.equal(overflow.targetCount, 2);
+});
+
+test("#7177 an empty messages array is not counted as real content at an exact-boundary limit", () => {
+  // Regression: some combo entrypoints default a caller-omitted `messages` to `[]`. The
+  // estimator used to JSON.stringify whatever keys were merely *present* on the body,
+  // so an empty array still contributed a few phantom "structural" tokens (JSON braces/
+  // brackets), which was enough to trip a false-positive overflow when max_tokens exactly
+  // equals the target's context window (a common config where limit_input === limit_output
+  // === limit_context) even though there is no real input to account for.
+  saveModelsDevCapabilities({
+    "unit-known-context": {
+      exact: capabilityEntry(4_096),
+    },
+  });
+
+  const overflow = getKnownContextOverflow([target("unit-known-context/exact")], {
+    messages: [],
+    max_tokens: 4_096,
+  });
+
+  assert.equal(overflow, null);
+});
+
+test("unknown context metadata keeps overflow detection fail-open", () => {
+  saveModelsDevCapabilities({
+    "unit-known-context": {
+      tiny: capabilityEntry(8_000),
+    },
+  });
+
+  const overflow = getKnownContextOverflow(
+    [target("unit-known-context/tiny"), target("unit-unknown-context/mystery")],
+    largeContextBody()
+  );
+
+  assert.equal(overflow, null);
+});
+
+test("combo rejects a known oversized request before upstream dispatch", async () => {
+  saveModelsDevCapabilities({
+    "unit-known-context": {
+      tiny: capabilityEntry(8_000),
+      small: capabilityEntry(16_000),
+    },
+  });
+  let dispatches = 0;
+
+  const response = await handleComboChat({
+    body: largeContextBody(),
+    combo: {
+      name: "known-context-overflow",
+      strategy: "priority",
+      models: ["unit-known-context/tiny", "unit-known-context/small"],
+    },
+    handleSingleModel: async () => {
+      dispatches += 1;
+      return new Response("unexpected", { status: 200 });
+    },
+    log: noopLog,
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(dispatches, 0);
+  const body = await response.json();
+  assert.equal(body.error.code, "context_length_exceeded");
+  assert.equal(body.diagnostics.terminalReason, "context_length_exceeded");
+  assert.equal(body.diagnostics.attempted, 0);
 });
 
 test("input-only maxInputTokens is not double-counted against the output reserve (#7039)", () => {

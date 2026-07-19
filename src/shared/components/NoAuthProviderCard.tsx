@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Card from "./Card";
 import NoAuthProviderToggle from "./NoAuthProviderToggle";
 
@@ -7,12 +8,14 @@ interface NoAuthProviderCardProps {
   enabled?: boolean;
   saving?: boolean;
   onEnabledChange?: (enabled: boolean) => void;
+  providerProxyControl?: ReactNode;
 }
 
 export default function NoAuthProviderCard({
   enabled = true,
   saving = false,
   onEnabledChange,
+  providerProxyControl,
 }: NoAuthProviderCardProps) {
   return (
     <Card>
@@ -28,12 +31,15 @@ export default function NoAuthProviderCard({
             </p>
           </div>
         </div>
-        <NoAuthProviderToggle
-          className="w-full justify-end sm:w-auto"
-          enabled={enabled}
-          saving={saving}
-          onEnabledChange={onEnabledChange}
-        />
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
+          {providerProxyControl}
+          <NoAuthProviderToggle
+            className="w-full justify-end sm:w-auto"
+            enabled={enabled}
+            saving={saving}
+            onEnabledChange={onEnabledChange}
+          />
+        </div>
       </div>
     </Card>
   );
