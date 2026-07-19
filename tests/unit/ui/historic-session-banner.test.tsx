@@ -1,7 +1,7 @@
 /**
  * Tests for HistoricSessionBanner — render with sessionName/null + backToLive callback
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 
 // Pure logic tests — no DOM needed (no next-intl in node:test runner)
@@ -30,7 +30,9 @@ describe("HistoricSessionBanner logic", () => {
 
   it("onBackToLive callback is invoked on click", () => {
     let called = false;
-    const onBackToLive = () => { called = true; };
+    const onBackToLive = () => {
+      called = true;
+    };
     // Simulate button click
     onBackToLive();
     assert.equal(called, true);
@@ -51,7 +53,9 @@ describe("HistoricSessionBanner logic", () => {
 
   it("backToLive sets sessionId to undefined", () => {
     let sessionId: string | undefined = "session-abc";
-    const backToLive = () => { sessionId = undefined; };
+    const backToLive = () => {
+      sessionId = undefined;
+    };
     backToLive();
     assert.equal(sessionId, undefined);
   });

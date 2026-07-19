@@ -14,9 +14,10 @@ import path from "node:path";
 
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omni-wh-meta-3269-"));
 
-const { parseAndValidateWebhookUrl, isCloudMetadataHost, OutboundUrlGuardError } = await import(
-  "../../src/shared/network/outboundUrlGuard.ts"
-);
+const { isCloudMetadataHost, OutboundUrlGuardError } =
+  await import("../../src/shared/network/outboundUrlGuard.ts");
+const { parseAndValidateWebhookUrl } =
+  await import("../../src/shared/network/outboundUrlGuardPolicy.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 const FLAG = "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS";

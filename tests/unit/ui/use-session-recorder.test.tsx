@@ -4,7 +4,7 @@
  * Verifies that during recording, new traffic WS events trigger
  * POST to /api/tools/traffic-inspector/sessions/{id}/requests.
  */
-import { describe, it, before, after } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -28,18 +28,9 @@ describe("useSessionRecorder R5-5 source assertions", () => {
   });
 
   it("POSTs to /sessions/{id}/requests on new WS event", () => {
-    assert.ok(
-      HOOK_SRC.includes("/requests"),
-      "should POST to sessions/{id}/requests endpoint"
-    );
-    assert.ok(
-      HOOK_SRC.includes(`method: "POST"`),
-      "should use POST method"
-    );
-    assert.ok(
-      HOOK_SRC.includes("payload"),
-      "should send payload in body"
-    );
+    assert.ok(HOOK_SRC.includes("/requests"), "should POST to sessions/{id}/requests endpoint");
+    assert.ok(HOOK_SRC.includes(`method: "POST"`), "should use POST method");
+    assert.ok(HOOK_SRC.includes("payload"), "should send payload in body");
   });
 
   it("buffers events and flushes in batches", () => {
@@ -51,10 +42,7 @@ describe("useSessionRecorder R5-5 source assertions", () => {
       HOOK_SRC.includes("SNAPSHOT_FLUSH_MS"),
       "should define SNAPSHOT_FLUSH_MS constant for debounce"
     );
-    assert.ok(
-      HOOK_SRC.includes("pendingSnapshotsRef"),
-      "should use a pendingSnapshotsRef buffer"
-    );
+    assert.ok(HOOK_SRC.includes("pendingSnapshotsRef"), "should use a pendingSnapshotsRef buffer");
   });
 
   it("stops WS and flushes on stop()", () => {
@@ -78,10 +66,7 @@ describe("useSessionRecorder R5-5 source assertions", () => {
   });
 
   it("only pushes 'new' event type to snapshots", () => {
-    assert.ok(
-      HOOK_SRC.includes(`event.type !== "new"`),
-      "should early-return for non-new events"
-    );
+    assert.ok(HOOK_SRC.includes(`event.type !== "new"`), "should early-return for non-new events");
   });
 });
 
@@ -93,8 +78,12 @@ describe("useSessionRecorder snapshot flush logic (unit)", () => {
     let immediateFlushCalled = false;
     let scheduleFlushCalled = false;
 
-    const flushSnapshots = () => { immediateFlushCalled = true; };
-    const scheduleFlush = () => { scheduleFlushCalled = true; };
+    const flushSnapshots = () => {
+      immediateFlushCalled = true;
+    };
+    const scheduleFlush = () => {
+      scheduleFlushCalled = true;
+    };
 
     // Below threshold
     pendingSnapshots.push(JSON.stringify({ id: "req-1" }));

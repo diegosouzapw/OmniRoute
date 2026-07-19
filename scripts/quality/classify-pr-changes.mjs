@@ -17,19 +17,28 @@ import { fileURLToPath } from "node:url";
 
 /**
  * @param {string[]} files relative paths from git diff
- * @returns {{ code: boolean, docs: boolean, i18n: boolean, workflow: boolean }}
+ * @returns {{ code: boolean, docs: boolean, i18n: boolean, workflow: boolean, testsOnly: boolean }}
  */
 export function classifyPaths(files) {
   let code = false;
   let docs = false;
   let i18n = false;
   let workflow = false;
+  // testsOnly (WS3.1 fast lane): every file lives under tests/ AND none is an e2e
+  // spec — such a diff cannot change the served app, so the E2E matrix may skip.
+  // Changing tests/e2e/** REQUIRES running e2e, so it is excluded from the shortcut.
+  let sawAnyFile = false;
+  let sawNonTest = false;
+  let sawE2eTest = false;
 
   for (const raw of files) {
     const f = String(raw || "")
       .trim()
       .replace(/\\/g, "/");
     if (!f) continue;
+    sawAnyFile = true;
+    if (f.startsWith("tests/e2e/")) sawE2eTest = true;
+    else if (!f.startsWith("tests/")) sawNonTest = true;
 
     if (f.startsWith(".github/workflows/") || f === ".zizmor.yml") {
       workflow = true;
@@ -45,11 +54,7 @@ export function classifyPaths(files) {
     }
 
     // i18n tooling / non-message i18n source → also code (scripts, config, loaders).
-    if (
-      f.startsWith("scripts/i18n/") ||
-      f === "config/i18n.json" ||
-      f.startsWith("src/i18n/")
-    ) {
+    if (f.startsWith("scripts/i18n/") || f === "config/i18n.json" || f.startsWith("src/i18n/")) {
       i18n = true;
       code = true;
       continue;
@@ -84,7 +89,7 @@ export function classifyPaths(files) {
     code = true;
   }
 
-  return { code, docs, i18n, workflow };
+  return { code, docs, i18n, workflow, testsOnly: sawAnyFile && !sawNonTest && !sawE2eTest };
 }
 
 function main() {
@@ -115,13 +120,12 @@ function main() {
   const c = classifyPaths(files);
   // GitHub Actions output format (also human-readable key=value).
   process.stdout.write(
-    `code=${c.code}\ndocs=${c.docs}\ni18n=${c.i18n}\nworkflow=${c.workflow}\n`
+    `code=${c.code}\ndocs=${c.docs}\ni18n=${c.i18n}\nworkflow=${c.workflow}\ntestsOnly=${c.testsOnly}\n`
   );
 }
 
 const isMain =
-  process.argv[1] &&
-  path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
+  process.argv[1] && path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
 
 if (isMain) {
   main();

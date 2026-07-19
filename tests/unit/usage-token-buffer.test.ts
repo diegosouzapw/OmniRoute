@@ -86,6 +86,28 @@ test("addBufferToUsage — returns usage unchanged when buffer is 0 via env", ()
   resetEnv(saved);
 });
 
+test("addBufferToUsage — skips safety buffer for estimated usage (web/heuristic)", () => {
+  const saved = process.env.USAGE_TOKEN_BUFFER;
+  delete process.env.USAGE_TOKEN_BUFFER;
+  invalidateBufferTokensCache();
+
+  const result = addBufferToUsage({
+    prompt_tokens: 6,
+    completion_tokens: 1,
+    total_tokens: 7,
+    estimated: true,
+  });
+
+  // Must NOT inflate heuristics to DEFAULT 2000 — that made every Notion
+  // request report a flat 2000 tokens.
+  assert.equal(result.prompt_tokens, 6);
+  assert.equal(result.completion_tokens, 1);
+  assert.equal(result.total_tokens, 7);
+  assert.equal(result.estimated, true);
+
+  resetEnv(saved);
+});
+
 // ─── setBufferTokensCache — the fix for the race condition ────────────────
 //
 // The race: invalidateBufferTokensCache() sets _cachedBuffer=null; the next
@@ -153,7 +175,11 @@ test("invalidateBufferTokensCache — still resets to null (returns DEFAULT on n
 
   // Then invalidate — next sync call reverts to DEFAULT (2000) while async reload happens
   invalidateBufferTokensCache();
-  const afterInvalidate = addBufferToUsage({ prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 });
+  const afterInvalidate = addBufferToUsage({
+    prompt_tokens: 10,
+    completion_tokens: 5,
+    total_tokens: 15,
+  });
   assert.equal(afterInvalidate.prompt_tokens, 2010); // DEFAULT=2000 applied (race window)
 
   resetEnv(saved);

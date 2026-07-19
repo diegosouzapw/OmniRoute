@@ -17,6 +17,12 @@ import {
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
+import {
+  recordFreeWindowAttempt,
+  correctFromRateLimitHeaders,
+  resolveAccountKey,
+  isFreeVariantModel,
+} from "../services/openrouterFreeWindow.ts";
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 import type { Session } from "../services/sessionPool/session.ts";
 import { SessionPool } from "../services/sessionPool/sessionPool.ts";
@@ -81,6 +87,7 @@ import {
   applyConfiguredUserAgent,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
+import { applyPeerTraceHeader } from "@/shared/resilience/peerRouting";
 // Header helpers extracted to a pure leaf; re-exported for external importers
 // (executors + tests) that import them from "./base.ts".
 export {
@@ -117,6 +124,7 @@ export type ProviderConfig = {
   baseUrl?: string;
   baseUrls?: string[];
   responsesBaseUrl?: string;
+  messagesUrl?: string;
   chatPath?: string;
   clientVersion?: string;
   clientId?: string;
@@ -161,6 +169,11 @@ export type ExecuteInput = {
   upstreamExtraHeaders?: Record<string, string> | null;
   /** Original client request headers (read-only). Executors may forward select headers upstream. */
   clientHeaders?: Record<string, string> | null;
+  /** Response format the end client expects (e.g. "openai-responses"). Executors
+   * that do their own Claude→OpenAI stream translation (GLM, zed-hosted) use
+   * this to apply client-format-aware policies such as `</think>` close-marker
+   * suppression. */
+  clientResponseFormat?: string | null;
   /** Callback to persist tokens that are proactively refreshed during execution.
    * Accepts a partial credentials patch (e.g. `{ accessToken, refreshToken }` or
    * `{ testStatus: "expired", isActive: false }`); the caller merges into the
@@ -1177,6 +1190,9 @@ export class BaseExecutor {
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
+        // Enforce peer tracing after all configurable headers have been merged so
+        // operator/provider metadata cannot accidentally erase the loop guard.
+        applyPeerTraceHeader(finalHeaders, clientHeaders, url);
         const serializedBody = prl.parseBody(bodyString);
         // #4307 — Preserve the non-enumerable tool-name cloak/remap reverse map
         // (`_toolNameMap`, set on the live `transformedBody` by
@@ -1213,7 +1229,27 @@ export class BaseExecutor {
           body: bodyString,
         };
 
+        // OpenRouter `:free`-variant local window (#6842): record every real
+        // dispatch attempt (failed attempts still consume a request slot per
+        // OpenRouter's own accounting) and self-correct the local counters
+        // from the upstream `X-RateLimit-*` headers on the response. Scoped
+        // to `:free` models only — no-op (and no extra work) for every other
+        // OpenRouter request or provider.
+        const openrouterFreeWindowAccountKey =
+          this.provider === "openrouter" &&
+          isFreeVariantModel(model) &&
+          activeCredentials.connectionId
+            ? resolveAccountKey(activeCredentials.connectionId, activeCredentials)
+            : null;
+        if (openrouterFreeWindowAccountKey) {
+          recordFreeWindowAttempt(openrouterFreeWindowAccountKey);
+        }
+
         let response = await fetchWithStartTimeout(url, fetchOptions);
+
+        if (openrouterFreeWindowAccountKey) {
+          correctFromRateLimitHeaders(openrouterFreeWindowAccountKey, response.headers);
+        }
 
         // Context Editing 400-fallback for Claude-compatible relays.
         if (

@@ -6,9 +6,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { applyClientUsageBuffer } = await import(
-  "../../open-sse/handlers/chatCore/clientUsageBuffer.ts"
-);
+const { applyClientUsageBuffer } =
+  await import("../../open-sse/handlers/chatCore/clientUsageBuffer.ts");
 
 function makeDeps(overrides: Record<string, unknown> = {}) {
   const calls = { buffer: [] as unknown[], estimate: [] as unknown[], filter: [] as unknown[] };
@@ -38,6 +37,18 @@ test("usage present → buffer then filter, mutates in place", () => {
   assert.equal(calls.estimate.length, 0);
   assert.equal((resp.usage as Record<string, unknown>)._buffered, true);
   assert.equal((resp.usage as Record<string, unknown>)._filtered, true);
+});
+
+test("all-zero usage stub → estimate (not constant buffer-only 2000)", () => {
+  const { deps, calls } = makeDeps();
+  const resp: Record<string, unknown> = {
+    usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+    choices: [{ message: { content: "PONG" } }],
+  };
+  applyClientUsageBuffer(resp, { messages: [{ role: "user", content: "hi" }] }, "openai", deps);
+  assert.equal(calls.buffer.length, 0, "must not buffer zeros into USAGE_TOKEN_BUFFER");
+  assert.equal(calls.estimate.length, 1);
+  assert.equal((resp.usage as Record<string, unknown>)._estimated, true);
 });
 
 test("no usage but content present → estimate then filter", () => {

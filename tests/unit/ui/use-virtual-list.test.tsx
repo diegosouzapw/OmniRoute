@@ -1,7 +1,7 @@
 /**
  * Tests for useVirtualList — virtualizes 1000+ items without rendering all
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 
 const ESTIMATED_ROW_HEIGHT = 48;
@@ -73,7 +73,10 @@ describe("useVirtualList logic", () => {
       virtualItems.length <= expectedVisible + OVERSCAN + 2,
       `Expected ~${expectedVisible} visible items, got ${virtualItems.length}`
     );
-    assert.ok(virtualItems.length < 100, `Should not render all 1000 items, got ${virtualItems.length}`);
+    assert.ok(
+      virtualItems.length < 100,
+      `Should not render all 1000 items, got ${virtualItems.length}`
+    );
   });
 
   it("renders items starting from correct offset when scrolled", () => {
@@ -91,12 +94,19 @@ describe("useVirtualList logic", () => {
       firstIndex >= Math.max(0, expectedFirstVisible),
       `Expected first index >= ${Math.max(0, expectedFirstVisible)}, got ${firstIndex}`
     );
-    assert.ok(firstIndex < 30, `Expected first index < 30 (scrolled to row ~20), got ${firstIndex}`);
+    assert.ok(
+      firstIndex < 30,
+      `Expected first index < 30 (scrolled to row ~20), got ${firstIndex}`
+    );
   });
 
   it("uses custom heights when provided", () => {
     const items = Array.from({ length: 10 }, (_, i) => `req-${i}`);
-    const heights = new Map<number, number>([[0, 100], [1, 100], [2, 100]]);
+    const heights = new Map<number, number>([
+      [0, 100],
+      [1, 100],
+      [2, 100],
+    ]);
     const scrollTop = 0;
     const containerHeight = 150;
 

@@ -21,7 +21,15 @@
  * which suppresses the marker regardless of User-Agent. `on` forces it kept
  * (overriding the UA allowlist). The default (header absent) is byte-identical
  * to the UA-only policy, so #4633 / #5123 are never regressed.
+ *
+ * Responses API clients (`openai-responses`) are always suppressed: the
+ * Responses transformer maps `reasoning_content` to structured reasoning items
+ * natively, so no consumer on that path scans content for the marker — it can
+ * only leak verbatim into `response.output_text.delta` (observed with
+ * kimi-coding: a stray `</think>` at the start of the assistant text).
  */
+
+import { FORMATS } from "../translator/formats.ts";
 
 /** Header clients send to explicitly opt in/out of the `</think>` close marker. */
 export const THINKING_MARKER_HEADER = "x-omniroute-thinking-marker";
@@ -50,9 +58,7 @@ export function shouldSuppressThinkCloseMarker(userAgent: string | null | undefi
  * Returns `true` (suppress the marker), `false` (force-keep the marker), or
  * `null` when the header is absent/unrecognized (defer to the UA policy).
  */
-export function thinkingMarkerHeaderSignal(
-  headerValue: string | null | undefined
-): boolean | null {
+export function thinkingMarkerHeaderSignal(headerValue: string | null | undefined): boolean | null {
   if (typeof headerValue !== "string") return null;
   const value = headerValue.trim().toLowerCase();
   if (value === "off" || value === "false" || value === "0" || value === "suppress") return true;
@@ -70,7 +76,13 @@ export function thinkingMarkerHeaderSignal(
 export function resolveSuppressThinkClose(opts: {
   userAgent?: string | null;
   thinkingMarkerHeader?: string | null;
+  clientResponseFormat?: string | null;
 }): boolean {
+  // The marker only exists for Chat Completions clients that scan content for
+  // it; Responses API clients receive reasoning as structured items instead.
+  // This wins over the UA allowlist AND the explicit header: there is no
+  // legitimate marker consumer in the Responses format.
+  if (opts.clientResponseFormat === FORMATS.OPENAI_RESPONSES) return true;
   const headerSignal = thinkingMarkerHeaderSignal(opts.thinkingMarkerHeader);
   if (headerSignal !== null) return headerSignal;
   return shouldSuppressThinkCloseMarker(opts.userAgent);

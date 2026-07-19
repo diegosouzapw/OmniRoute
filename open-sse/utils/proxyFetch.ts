@@ -107,7 +107,6 @@ export function describeFetchCause(err: unknown): string {
   return parts.join(" | ") || String(err);
 }
 
-
 function isStreamLikeBody(body: unknown): boolean {
   return (
     body !== null &&
@@ -294,6 +293,19 @@ export function resolveProxyForRequest(targetUrl) {
   }
 
   return { source: "direct", proxyUrl: null };
+}
+
+/**
+ * A caller-initiated abort/timeout is not a proxy transport failure — it must
+ * not be misreported as one. Prefer `signal.aborted` because
+ * `AbortController.abort(reason)` may surface a custom Error rather than a
+ * standard AbortError/TimeoutError name.
+ * Ported from decolua/9router#2589 (`isCallerAbort`).
+ */
+function isCallerAbort(error: unknown, signal: AbortSignal | null | undefined): boolean {
+  if (signal?.aborted === true) return true;
+  const name = (error as { name?: unknown } | null)?.name;
+  return name === "AbortError" || name === "TimeoutError";
 }
 
 function getTargetUrl(input) {
@@ -614,8 +626,12 @@ async function patchedFetch(
       dispatcher,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`[ProxyFetch] Proxy request failed (${source}, fail-closed): ${message}`);
+    // A caller abort/timeout must propagate unchanged and without a noisy
+    // "Proxy request failed" log — it's not a proxy transport failure.
+    if (!isCallerAbort(error, options?.signal)) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`[ProxyFetch] Proxy request failed (${source}, fail-closed): ${message}`);
+    }
     throw error;
   }
 }

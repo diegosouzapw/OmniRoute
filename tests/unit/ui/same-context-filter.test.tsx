@@ -6,7 +6,7 @@
  *  - RequestRow exports an onSameContext prop
  *  - useTrafficFilters.setSameContext is referenced from TrafficInspectorPageClient
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -17,21 +17,35 @@ const ROOT = path.resolve(
   __dirname,
   "../../../src/app/(dashboard)/dashboard/tools/traffic-inspector"
 );
+const SRC_ROOT = path.resolve(__dirname, "../../../src");
 
 function read(rel: string): string {
   return fs.readFileSync(path.join(ROOT, rel), "utf8");
 }
 
+function readSrc(rel: string): string {
+  return fs.readFileSync(path.join(SRC_ROOT, rel), "utf8");
+}
+
 describe("R5-4 same-context filter end-to-end", () => {
   it("useTrafficStream.applyFilter has sameContextKey branch", () => {
-    const src = read("hooks/useTrafficStream.ts");
+    // The comparison itself now lives in the extracted, independently-testable
+    // matchesTrafficFilter() helper (src/lib/inspector/matchesTrafficFilter.ts) —
+    // useTrafficStream.applyFilter just delegates to it.
+    const hookSrc = read("hooks/useTrafficStream.ts");
     assert.ok(
-      src.includes("sameContextKey") && src.includes("contextKey"),
-      "applyFilter should branch on sameContextKey / contextKey"
+      hookSrc.includes("matchesTrafficFilter"),
+      "applyFilter should delegate to matchesTrafficFilter"
+    );
+
+    const matcherSrc = readSrc("lib/inspector/matchesTrafficFilter.ts");
+    assert.ok(
+      matcherSrc.includes("sameContextKey") && matcherSrc.includes("contextKey"),
+      "matchesTrafficFilter should branch on sameContextKey / contextKey"
     );
     // Must actually exclude requests where contextKey differs
     assert.ok(
-      src.includes("req.contextKey !== f.sameContextKey"),
+      matcherSrc.includes("req.contextKey !== f.sameContextKey"),
       "should exclude when contextKey !== sameContextKey"
     );
   });
@@ -42,10 +56,7 @@ describe("R5-4 same-context filter end-to-end", () => {
       src.includes("onSameContext"),
       "RequestRow interface should declare onSameContext prop"
     );
-    assert.ok(
-      src.includes("onSameContext?.("),
-      "RequestRow should call onSameContext on click"
-    );
+    assert.ok(src.includes("onSameContext?.("), "RequestRow should call onSameContext on click");
   });
 
   it("RequestRow ctx chip is a button element", () => {
@@ -93,24 +104,77 @@ describe("R5-4 same-context filter end-to-end", () => {
 
   it("useTrafficFilters exports setSameContext", () => {
     const src = read("hooks/useTrafficFilters.ts");
-    assert.ok(
-      src.includes("setSameContext"),
-      "useTrafficFilters should export setSameContext"
-    );
+    assert.ok(src.includes("setSameContext"), "useTrafficFilters should export setSameContext");
   });
 
   describe("applyFilter sameContextKey logic (unit)", () => {
     it("returns false when contextKey does not match filter", () => {
-      type Req = { contextKey?: string; detectedKind: string; source: string; host: string; agent?: string; sessionId?: string; status: number };
+      type Req = {
+        contextKey?: string;
+        detectedKind: string;
+        source: string;
+        host: string;
+        agent?: string;
+        sessionId?: string;
+        status: number;
+      };
       const applyFilter = (req: Req, sameContextKey?: string): boolean => {
         if (sameContextKey && req.contextKey !== sameContextKey) return false;
         return true;
       };
 
-      assert.equal(applyFilter({ contextKey: "abc123", detectedKind: "llm", source: "agent", host: "api.openai.com", status: 200 }, "abc123"), true);
-      assert.equal(applyFilter({ contextKey: "xyz456", detectedKind: "llm", source: "agent", host: "api.openai.com", status: 200 }, "abc123"), false);
-      assert.equal(applyFilter({ contextKey: undefined, detectedKind: "llm", source: "agent", host: "api.openai.com", status: 200 }, "abc123"), false);
-      assert.equal(applyFilter({ contextKey: "abc123", detectedKind: "llm", source: "agent", host: "api.openai.com", status: 200 }, undefined), true);
+      assert.equal(
+        applyFilter(
+          {
+            contextKey: "abc123",
+            detectedKind: "llm",
+            source: "agent",
+            host: "api.openai.com",
+            status: 200,
+          },
+          "abc123"
+        ),
+        true
+      );
+      assert.equal(
+        applyFilter(
+          {
+            contextKey: "xyz456",
+            detectedKind: "llm",
+            source: "agent",
+            host: "api.openai.com",
+            status: 200,
+          },
+          "abc123"
+        ),
+        false
+      );
+      assert.equal(
+        applyFilter(
+          {
+            contextKey: undefined,
+            detectedKind: "llm",
+            source: "agent",
+            host: "api.openai.com",
+            status: 200,
+          },
+          "abc123"
+        ),
+        false
+      );
+      assert.equal(
+        applyFilter(
+          {
+            contextKey: "abc123",
+            detectedKind: "llm",
+            source: "agent",
+            host: "api.openai.com",
+            status: 200,
+          },
+          undefined
+        ),
+        true
+      );
     });
   });
 });

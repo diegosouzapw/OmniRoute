@@ -103,7 +103,20 @@ export function extractSection(changelog, version) {
 function git(args, opts = {}) {
   // maxBuffer: the default 1 MiB overflows on `git show origin/main:CHANGELOG.md`
   // (the CHANGELOG alone is >1 MiB) — ENOBUFS found live in the v3.8.45 run (2026-07-06).
-  return execFileSync("git", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, ...opts }).trim();
+  return execFileSync("git", args, {
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+    ...opts,
+  }).trim();
+}
+
+// The sync-back is the ONE write path to the release branch with no CI gate — a red
+// merged tree pushed here turns the whole PR queue red (G1, v3.8.49 quality plan WS0.3).
+// Returns the validate-release-green invocation to run before the push, or null when
+// the operator passed --skip-green-gate (emergency hatch: tip reds verified pre-existing).
+export function greenGateArgs(argv) {
+  if (argv.includes("--skip-green-gate")) return null;
+  return ["scripts/quality/validate-release-green.mjs", "--quick"];
 }
 
 function main() {
@@ -153,7 +166,9 @@ function main() {
   const merged = insertNextSection(mainChangelog + "\n", nextSection, NEXT);
   // Assertions: main's latest section intact + next section present.
   if (!merged.includes(`## [${prevVersion}]`)) {
-    console.error(`[sync-next-cycle] ABORT: main's ## [${prevVersion}] section missing after re-insertion`);
+    console.error(
+      `[sync-next-cycle] ABORT: main's ## [${prevVersion}] section missing after re-insertion`
+    );
     process.exit(1);
   }
   if (!merged.includes(`## [${NEXT}]`)) {
@@ -208,11 +223,45 @@ function main() {
     process.exit(1);
   }
 
-  git(["commit", "-m", `chore(release): sync main (v${prevVersion} close) into ${BRANCH} — parallel-cycle sync-back`], { cwd: WT });
+  git(
+    [
+      "commit",
+      "-m",
+      `chore(release): sync main (v${prevVersion} close) into ${BRANCH} — parallel-cycle sync-back`,
+    ],
+    { cwd: WT }
+  );
+
+  // WS0.3 green gate: validate the MERGED tree before it reaches origin. The commit
+  // stays local on failure so the captain can inspect/fix in the sync worktree.
+  const gate = greenGateArgs(process.argv);
+  if (gate) {
+    const nm = path.join(WT, "node_modules");
+    if (!fs.existsSync(nm)) fs.symlinkSync(path.join(ROOT, "node_modules"), nm, "dir");
+    console.log("[sync-next-cycle] release-green --quick on the merged tree (pre-push gate)…");
+    try {
+      execFileSync("node", gate, { cwd: WT, stdio: "inherit", maxBuffer: 64 * 1024 * 1024 });
+    } catch {
+      console.error(
+        `[sync-next-cycle] ABORT: release-green --quick found HARD failures in the merged tree.` +
+          `\n  The sync commit is LOCAL-ONLY in ${WT} — fix the reds there, then re-run this script.` +
+          `\n  Use --skip-green-gate ONLY after verifying the reds pre-exist on origin/${BRANCH}.`
+      );
+      process.exit(1);
+    }
+    fs.rmSync(nm, { force: true });
+  } else {
+    console.warn(
+      "[sync-next-cycle] ⚠ --skip-green-gate: pushing WITHOUT release-green validation."
+    );
+  }
+
   git(["push", "origin", BRANCH], { cwd: WT });
 
   const left = git(["rev-list", "--count", `${BRANCH}..origin/main`], { cwd: WT });
-  console.log(`[sync-next-cycle] pushed. origin/main commits not in ${BRANCH}: ${left} (expected 0)`);
+  console.log(
+    `[sync-next-cycle] pushed. origin/main commits not in ${BRANCH}: ${left} (expected 0)`
+  );
 
   git(["worktree", "remove", "--force", WT], { cwd: ROOT });
   console.log("[sync-next-cycle] done — worktree removed.");

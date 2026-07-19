@@ -1,5 +1,6 @@
 import { getUnifiedModelsResponse } from "@/app/api/v1/models/catalog";
 import { getServiceModels } from "@/lib/db/serviceModels";
+import { isServiceBackendPluginId } from "@/lib/services/serviceBackends";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 /**
@@ -20,7 +21,7 @@ export async function OPTIONS() {
  */
 export async function GET(request: Request, { params }: { params: Promise<{ provider: string }> }) {
   const { provider: rawProvider } = await params;
-  if (rawProvider === "cliproxyapi" || rawProvider === "9router") {
+  if (isServiceBackendPluginId(rawProvider)) {
     const models = getServiceModels(rawProvider).filter((model) => model.available !== false);
     return Response.json({
       object: "list",
@@ -43,7 +44,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
     providerAlias = providerEntry.alias || providerId;
   } else {
     // Allow fetching models by connection ID for compatible providers
-    const isCompatibleConnectionId = /^(openai|anthropic)-compatible-chat-[a-f0-9-]+$/.test(rawProvider);
+    const isCompatibleConnectionId = /^(openai|anthropic)-compatible-chat-[a-f0-9-]+$/.test(
+      rawProvider
+    );
     if (!isCompatibleConnectionId) {
       return Response.json(
         {

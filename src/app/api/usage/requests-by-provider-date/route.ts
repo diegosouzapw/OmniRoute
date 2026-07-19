@@ -33,6 +33,12 @@ function getRangeStartIso(range: string): string | null {
     case "90d":
       start.setDate(start.getDate() - 90);
       break;
+    case "180d":
+      start.setDate(start.getDate() - 180);
+      break;
+    case "365d":
+      start.setDate(start.getDate() - 365);
+      break;
     case "ytd":
       start.setMonth(0, 1);
       start.setHours(0, 0, 0, 0);
@@ -81,9 +87,12 @@ function errorResponse(error: unknown): Promise<Response> {
   console.error("Error computing requests-by-provider-date:", error);
   const message = error instanceof Error ? error.message : String(error);
   return import("@omniroute/open-sse/utils/error").then(({ buildErrorBody }) =>
-    NextResponse.json(buildErrorBody(500, message || "Failed to compute requests-by-provider-date"), {
-      status: 500,
-    })
+    NextResponse.json(
+      buildErrorBody(500, message || "Failed to compute requests-by-provider-date"),
+      {
+        status: 500,
+      }
+    )
   );
 }
 

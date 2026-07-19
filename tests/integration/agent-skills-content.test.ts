@@ -2,9 +2,9 @@
  * Integration tests for Agent Skills content integrity.
  *
  * Verifies:
- *  1. All 43 skill IDs from catalog have skills/{id}/ folder with SKILL.md.
+ *  1. All 44 skill IDs from catalog have skills/{id}/ folder with SKILL.md.
  *  2. Zero omniroute-* folders remain (post-prune: old omniroute-* skill dirs were removed).
- *  3. 10 specific IDs have <!-- skill:custom-start --> ... <!-- skill:custom-end --> blocks:
+ *  3. 12 specific IDs have <!-- skill:custom-start --> ... <!-- skill:custom-end --> blocks:
  *     omni-mcp, omni-compression, cli-providers, cli-eval, omni-agents-a2a,
  *     omni-combos-routing, omni-auth, omni-resilience, omni-inference, cli-serve.
  *
@@ -15,13 +15,15 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
-const { API_SKILL_IDS, CLI_SKILL_IDS, CONFIG_SKILL_IDS } = await import("../../src/lib/agentSkills/catalog.ts");
+const { API_SKILL_IDS, CLI_SKILL_IDS, CONFIG_SKILL_IDS } =
+  await import("../../src/lib/agentSkills/catalog.ts");
 
 const SKILLS_DIR = path.resolve(process.cwd(), "skills");
 const ALL_IDS = [...API_SKILL_IDS, ...CLI_SKILL_IDS, ...CONFIG_SKILL_IDS] as string[];
 
 // IDs that must have a custom block
 const CUSTOM_BLOCK_IDS = [
+  "cli-skill-collector",
   "omni-mcp",
   "omni-compression",
   "cli-providers",
@@ -37,7 +39,7 @@ const CUSTOM_BLOCK_IDS = [
 
 // ── §1: All 42 catalog IDs have skills/{id}/SKILL.md ─────────────────────────
 
-test("all 43 catalog IDs have a skills/{id}/ directory", () => {
+test("all 44 catalog IDs have a skills/{id}/ directory", () => {
   const missing: string[] = [];
   for (const id of ALL_IDS) {
     const dirPath = path.join(SKILLS_DIR, id);
@@ -48,7 +50,7 @@ test("all 43 catalog IDs have a skills/{id}/ directory", () => {
   assert.deepEqual(missing, [], `Missing skill directories: ${missing.join(", ")}`);
 });
 
-test("all 43 catalog IDs have a skills/{id}/SKILL.md file", () => {
+test("all 44 catalog IDs have a skills/{id}/SKILL.md file", () => {
   const missing: string[] = [];
   for (const id of ALL_IDS) {
     const skillPath = path.join(SKILLS_DIR, id, "SKILL.md");
@@ -73,7 +75,7 @@ test("skills/ has zero omniroute-* directories (all pruned)", () => {
   assert.deepEqual(
     omniRouteDirs,
     [],
-    `Found omniroute-* directories that should have been pruned: ${omniRouteDirs.join(", ")}`,
+    `Found omniroute-* directories that should have been pruned: ${omniRouteDirs.join(", ")}`
   );
 });
 
@@ -83,11 +85,7 @@ test("skills/ directory only contains expected catalog IDs plus README", () => {
   const dirs = entries.filter((e) => e.isDirectory()).map((e) => e.name);
   const expectedSet = new Set(ALL_IDS);
   const unexpected = dirs.filter((d) => !expectedSet.has(d));
-  assert.deepEqual(
-    unexpected,
-    [],
-    `Unexpected directories in skills/: ${unexpected.join(", ")}`,
-  );
+  assert.deepEqual(unexpected, [], `Unexpected directories in skills/: ${unexpected.join(", ")}`);
 });
 
 // ── §3: 10 specific IDs have custom blocks ───────────────────────────────────
@@ -95,25 +93,22 @@ test("skills/ directory only contains expected catalog IDs plus README", () => {
 for (const id of CUSTOM_BLOCK_IDS) {
   test(`skills/${id}/SKILL.md has <!-- skill:custom-start --> block`, () => {
     const skillPath = path.join(SKILLS_DIR, id, "SKILL.md");
-    assert.ok(
-      fs.existsSync(skillPath),
-      `skills/${id}/SKILL.md does not exist`,
-    );
+    assert.ok(fs.existsSync(skillPath), `skills/${id}/SKILL.md does not exist`);
     const content = fs.readFileSync(skillPath, "utf-8");
     assert.ok(
       content.includes("<!-- skill:custom-start -->"),
-      `skills/${id}/SKILL.md missing <!-- skill:custom-start --> block`,
+      `skills/${id}/SKILL.md missing <!-- skill:custom-start --> block`
     );
     assert.ok(
       content.includes("<!-- skill:custom-end -->"),
-      `skills/${id}/SKILL.md missing <!-- skill:custom-end --> block`,
+      `skills/${id}/SKILL.md missing <!-- skill:custom-end --> block`
     );
   });
 }
 
 // ── Additional integrity checks ───────────────────────────────────────────────
 
-test("exactly 11 skills have custom blocks", () => {
+test("exactly 12 skills have custom blocks", () => {
   const withCustomBlocks: string[] = [];
   for (const id of ALL_IDS) {
     const skillPath = path.join(SKILLS_DIR, id, "SKILL.md");
@@ -128,7 +123,7 @@ test("exactly 11 skills have custom blocks", () => {
   assert.deepEqual(
     withCustomBlocks.sort(),
     expectedIds,
-    `Expected exactly these 11 custom-block IDs: ${expectedIds.join(", ")}\nActual: ${withCustomBlocks.join(", ")}`,
+    `Expected exactly these 12 custom-block IDs: ${expectedIds.join(", ")}\nActual: ${withCustomBlocks.join(", ")}`
   );
 });
 

@@ -111,8 +111,7 @@ async function tryKiroCliSqlite(): Promise<{
         for (const table of ["auth_kv", "ItemTable", "storage"]) {
           try {
             const row = db.prepare(`SELECT value FROM ${table} WHERE key = ?`).get(key) as
-              | { value: string }
-              | undefined;
+              { value: string } | undefined;
             if (row?.value) {
               try {
                 tokenData = JSON.parse(row.value);
@@ -139,8 +138,7 @@ async function tryKiroCliSqlite(): Promise<{
         for (const table of ["auth_kv", "ItemTable", "storage"]) {
           try {
             const row = db.prepare(`SELECT value FROM ${table} WHERE key = ?`).get(key) as
-              | { value: string }
-              | undefined;
+              { value: string } | undefined;
             if (row?.value) {
               try {
                 regData = JSON.parse(row.value);
@@ -340,6 +338,34 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
             }
           } catch {
             // Client registration file not found — continue without it
+          }
+        }
+
+        // Newer kiro-auth-token.json files omit `clientIdHash` and instead carry
+        // the OIDC `clientId` directly on the token object (#1253). In that case
+        // find the client-registration file whose own `clientId` matches the
+        // token's `clientId`, rather than leaving clientId/clientSecret unset.
+        // Matching by exact clientId (not region/latest-expiry) avoids picking
+        // an unrelated stale registration on hosts with multiple cached SSO
+        // client registrations.
+        if (!clientId && data.clientId) {
+          for (const candidateFile of files) {
+            if (candidateFile === file || !candidateFile.endsWith(".json")) continue;
+            try {
+              const candidateContent = await readFile(join(cachePath, candidateFile), "utf-8");
+              const candidateData = JSON.parse(candidateContent);
+              if (
+                candidateData.clientId === data.clientId &&
+                typeof candidateData.clientSecret === "string" &&
+                candidateData.clientSecret
+              ) {
+                clientId = candidateData.clientId;
+                clientSecret = candidateData.clientSecret;
+                break;
+              }
+            } catch {
+              // Skip unreadable/malformed candidate files.
+            }
           }
         }
 

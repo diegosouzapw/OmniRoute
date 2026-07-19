@@ -124,27 +124,23 @@ function rebuildBetterSqlite3ForElectron(standaloneNodeModules) {
 
   console.log(`[electron] rebuilding better-sqlite3 against electron ${electronVersion} ABI…`);
   const plan = buildRebuildSpawnPlan(process.platform);
-  const result = spawnSync(
-    plan.command,
-    plan.args,
-    {
-      cwd: destMod,
-      stdio: "inherit",
-      // .cmd shims must go through a shell on Windows (CVE-2024-27980 hardening
-      // makes a shell-less spawn fail with status null); args are fixed literals.
-      shell: plan.shell,
-      // Compile against the Electron headers (not Node's) so the .node lands in
-      // build/Release with the Electron NODE_MODULE_VERSION. No shell interpolation.
-      env: {
-        ...process.env,
-        npm_config_runtime: "electron",
-        npm_config_target: electronVersion,
-        npm_config_disturl: "https://electronjs.org/headers",
-        npm_config_arch: process.arch,
-        npm_config_build_from_source: "true",
-      },
-    }
-  );
+  const result = spawnSync(plan.command, plan.args, {
+    cwd: destMod,
+    stdio: "inherit",
+    // .cmd shims must go through a shell on Windows (CVE-2024-27980 hardening
+    // makes a shell-less spawn fail with status null); args are fixed literals.
+    shell: plan.shell,
+    // Compile against the Electron headers (not Node's) so the .node lands in
+    // build/Release with the Electron NODE_MODULE_VERSION. No shell interpolation.
+    env: {
+      ...process.env,
+      npm_config_runtime: "electron",
+      npm_config_target: electronVersion,
+      npm_config_disturl: "https://electronjs.org/headers",
+      npm_config_arch: process.arch,
+      npm_config_build_from_source: "true",
+    },
+  });
   if (result.status !== 0) {
     throw new Error(
       `[electron] better-sqlite3 rebuild against electron ${electronVersion} failed (exit ${result.status}).`
@@ -177,7 +173,14 @@ assembleStandalone({
   outDir: ELECTRON_STANDALONE_DIR,
   projectRoot: ROOT,
   sanitizePaths: true,
+  // Next can emit hashed external package names in instrumentation chunks.
+  // The standalone dependency tree contains the canonical package names, so
+  // normalize those imports before electron-builder copies the bundle.
+  patchTurbopackChunks: true,
   copyNatives: true,
+  // #6724/#6594: dereference Turbopack hashed-module symlinks — inside the packaged
+  // app they would point at the build machine's absolute paths and break on install.
+  materializeSymlinks: true,
 });
 
 // Electron-UNIQUE post-assembly steps

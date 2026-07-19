@@ -39,9 +39,14 @@ import {
   pollComfyResult,
   fetchComfyOutput,
   extractComfyOutputFiles,
+  resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
-import { FetchTimeoutError, fetchWithTimeout, getConfiguredTimeout } from "@/shared/utils/fetchTimeout";
+import {
+  FetchTimeoutError,
+  fetchWithTimeout,
+  getConfiguredTimeout,
+} from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
 
 // --- Per-provider handlers (extracted to co-located files in PR-#4582-batch) ---
@@ -53,16 +58,20 @@ import { handleHyperbolicImageGeneration } from "./imageGeneration/providers/hyp
 import { handleHuggingFaceImageGeneration } from "./imageGeneration/providers/huggingface.ts";
 import { handleComfyUIImageGeneration } from "./imageGeneration/providers/comfyUI.ts";
 import { handleImagen3ImageGeneration } from "./imageGeneration/providers/imagen3.ts";
+import { handleGoogleImagenGeneration } from "./imageGeneration/providers/googleImagen.ts";
 import { handleIdeogramImageGeneration } from "./imageGeneration/providers/ideogram.ts";
 import { handleHaiperImageGeneration } from "./imageGeneration/providers/haiper.ts";
 import { handleLeonardoImageGeneration } from "./imageGeneration/providers/leonardo.ts";
+import { handleFreepikImageGeneration } from "./imageGeneration/providers/freepik.ts";
 import {
   handleChatGptWebImageGeneration,
   extractMarkdownImageUrls,
   CHATGPT_WEB_IMAGE_ID_RE,
 } from "./imageGeneration/providers/chatgptWeb.ts";
 import { handleNvidiaNimImageGeneration } from "./imageGeneration/providers/nvidiaNim.ts";
-
+import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmind.ts";
+import { handleDesignerWebImageGeneration } from "./imageGeneration/providers/designerWeb.ts";
+import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
 
 interface KieImageOptions {
   model: string;
@@ -128,9 +137,7 @@ const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
  */
 export function resolveImageBaseUrl(
   credentials:
-    | { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null }
-    | null
-    | undefined,
+    { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined,
   fallback: string,
   endpoint: "generations" | "edits" = "generations"
 ): string {
@@ -370,6 +377,17 @@ export async function handleImageGeneration({
     });
   }
 
+  if (providerConfig.format === "google-imagen") {
+    return handleGoogleImagenGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
   if (providerConfig.format === "hyperbolic") {
     return handleHyperbolicImageGeneration({
       model,
@@ -447,6 +465,17 @@ export async function handleImageGeneration({
     });
   }
 
+  if (providerConfig.format === "segmind") {
+    return handleSegmindImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
   if (providerConfig.format === "chatgpt-web") {
     return handleChatGptWebImageGeneration({
       model,
@@ -456,6 +485,17 @@ export async function handleImageGeneration({
       log,
       signal,
       clientHeaders,
+    });
+  }
+
+  if (providerConfig.format === "designer-web") {
+    return handleDesignerWebImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
     });
   }
 
@@ -486,7 +526,16 @@ export async function handleImageGeneration({
   }
 
   if (providerConfig.format === "comfyui") {
-    return handleComfyUIImageGeneration({ model, provider, providerConfig, body, log });
+    return handleComfyUIImageGeneration({
+      model,
+      provider,
+      providerConfig: {
+        ...providerConfig,
+        baseUrl: resolveComfyUiBaseUrl(credentials, providerConfig.baseUrl),
+      },
+      body,
+      log,
+    });
   }
 
   if (providerConfig.format === "codex-responses") {
@@ -523,9 +572,30 @@ export async function handleImageGeneration({
       log,
     });
   }
+  if (providerConfig.format === "freepik-image") {
+    return handleFreepikImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
 
   if (providerConfig.format === "nvidia-nim") {
     return handleNvidiaNimImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "minimax-image") {
+    return handleMinimaxImageGeneration({
       model,
       provider,
       providerConfig,
@@ -1107,7 +1177,10 @@ export async function handleOpenAIImageEdit({
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   if (log) {
-    log.info("IMAGE", `${provider}/${model} (edit) | prompt: "${prompt.slice(0, 60)}..." -> ${url}`);
+    log.info(
+      "IMAGE",
+      `${provider}/${model} (edit) | prompt: "${prompt.slice(0, 60)}..." -> ${url}`
+    );
   }
 
   const result = await fetchImageEndpoint(
@@ -2425,7 +2498,14 @@ export function saveImageSuccessResult({
   };
 }
 
-export function saveImageErrorResult({ provider, model, status, startTime, error, requestBody = null }) {
+export function saveImageErrorResult({
+  provider,
+  model,
+  status,
+  startTime,
+  error,
+  requestBody = null,
+}) {
   saveCallLog({
     method: "POST",
     path: "/v1/images/generations",

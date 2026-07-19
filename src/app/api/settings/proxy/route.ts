@@ -68,9 +68,7 @@ function getRegistryScopeForLevel(
     return undefined;
   }
 
-  return PROXY_LEVEL_TO_REGISTRY_SCOPE[
-    level as keyof typeof PROXY_LEVEL_TO_REGISTRY_SCOPE
-  ];
+  return PROXY_LEVEL_TO_REGISTRY_SCOPE[level as keyof typeof PROXY_LEVEL_TO_REGISTRY_SCOPE];
 }
 
 async function getRegistryProxyForLevel(level: string, id: string | null) {
@@ -93,6 +91,7 @@ function toProxyConfig(proxyData: NonNullable<Awaited<ReturnType<typeof getProxy
     port: proxyData.port,
     username: proxyData.username,
     password: proxyData.password,
+    name: proxyData.name,
   };
 }
 

@@ -14,16 +14,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-vision-bridge-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-vision-bridge-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 // Prevent vision bridge from routing through a real API
 process.env.VISION_BRIDGE_ENABLED = "false";
 
-const { callVisionModel } = await import(
-  "../../../src/lib/guardrails/visionBridgeHelpers.ts"
-);
+const { callVisionModel } = await import("../../../src/lib/guardrails/visionBridgeHelpers.ts");
 
 const originalFetch = globalThis.fetch;
 
@@ -37,13 +33,18 @@ test.afterEach(() => {
 });
 
 // Helper: build a minimal OpenAI-compat image data URI
-const TINY_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+const TINY_PNG =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
 test("callVisionModel falls through to next model when primary fails", async () => {
   let fetchCallCount = 0;
-  const FALLBACK_RESPONSE = JSON.stringify({
-    choices: [{ message: { content: "fallback model description" } }],
-  });
+  // The fallback candidate can legitimately resolve to either an OpenAI-compatible
+  // model (POST .../chat/completions, { choices: [{ message: { content } }] }) or an
+  // Anthropic model (POST .../v1/messages, { content: [{ type: "text", text }] }) —
+  // vision-bridge router priority (#7204) now ranks credentialed providers (openai/
+  // anthropic) ahead of opencode-*, so the mock must match whichever shape the
+  // fallback attempt actually requests instead of assuming OpenAI's shape.
+  const FALLBACK_TEXT = "fallback model description";
 
   globalThis.fetch = async (url: RequestInfo | URL, _init?: RequestInit) => {
     fetchCallCount++;
@@ -51,8 +52,14 @@ test("callVisionModel falls through to next model when primary fails", async () 
       // First call (primary model) — simulate API error
       throw new Error("mock: primary model unavailable");
     }
-    // Second call (fallback model) — return valid response
-    return new Response(FALLBACK_RESPONSE, {
+    // Second call (fallback model) — return a valid response shaped for whichever
+    // API the fallback model actually calls.
+    const urlStr = typeof url === "string" ? url : url.toString();
+    const isAnthropicCall = urlStr.includes("/v1/messages");
+    const body = isAnthropicCall
+      ? JSON.stringify({ content: [{ type: "text", text: FALLBACK_TEXT }] })
+      : JSON.stringify({ choices: [{ message: { content: FALLBACK_TEXT } }] });
+    return new Response(body, {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -65,16 +72,8 @@ test("callVisionModel falls through to next model when primary fails", async () 
     { fixedModel: "openai/gpt-4o-mini", maxFallbackAttempts: 2 }
   );
 
-  assert.equal(
-    fetchCallCount,
-    2,
-    "must have attempted exactly 2 models (primary + 1 fallback)"
-  );
-  assert.equal(
-    result,
-    "fallback model description",
-    "must return the fallback model's response"
-  );
+  assert.equal(fetchCallCount, 2, "must have attempted exactly 2 models (primary + 1 fallback)");
+  assert.equal(result, FALLBACK_TEXT, "must return the fallback model's response");
 });
 
 test("callVisionModel throws when ALL models fail", async () => {

@@ -81,7 +81,7 @@ export const claudeProvider: RegistryEntry = {
       id: "claude-sonnet-4-6",
       name: "Claude 4.6 Sonnet",
       supportsXHighEffort: false,
-      contextLength: 200000,
+      contextLength: 1000000,
       maxOutputTokens: 64000,
     },
     {

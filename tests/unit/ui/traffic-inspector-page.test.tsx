@@ -1,7 +1,7 @@
 /**
  * Smoke tests for Traffic Inspector page structure and constants
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 
 describe("Traffic Inspector page smoke tests", () => {
@@ -27,15 +27,7 @@ describe("Traffic Inspector page smoke tests", () => {
   });
 
   it("has 7 tabs defined", () => {
-    const tabs = [
-      "conversation",
-      "headers",
-      "request",
-      "response",
-      "timing",
-      "llm",
-      "stats",
-    ];
+    const tabs = ["conversation", "headers", "request", "response", "timing", "llm", "stats"];
     assert.equal(tabs.length, 7);
   });
 

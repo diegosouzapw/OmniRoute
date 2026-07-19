@@ -1,8 +1,5 @@
 import { errorResponse, unavailableResponse } from "../../utils/error.ts";
-import {
-  BudgetExceededError,
-  selectProvider as selectAutoProvider,
-} from "../autoCombo/engine.ts";
+import { BudgetExceededError, selectProvider as selectAutoProvider } from "../autoCombo/engine.ts";
 import {
   resolveRequestModePack,
   parseRequestBudgetCap,
@@ -10,6 +7,7 @@ import {
 } from "../autoCombo/requestControls.ts";
 import { selectWithStrategy } from "../autoCombo/routerStrategy.ts";
 import { buildComplexityRoutingHint } from "../autoCombo/complexityRouter";
+import { getModePack } from "../autoCombo/modePacks.ts";
 import { recordComboIntent } from "../comboMetrics.ts";
 import { estimateTokens } from "../contextManager.ts";
 import { classifyWithConfig } from "../intentClassifier.ts";
@@ -160,7 +158,7 @@ export async function resolveAutoStrategyOrder(
   const {
     routingStrategy,
     candidatePool,
-    weights,
+    weights: configWeights,
     explorationRate,
     budgetCap: configBudgetCap,
     budgetFallback: configBudgetFallback,
@@ -180,7 +178,22 @@ export async function resolveAutoStrategyOrder(
   const budgetFallback = requestBudgetFallback ?? configBudgetFallback;
   const requestModePack = resolveRequestModePack(relayOptions?.mode);
   const modePack = requestModePack.override ? requestModePack.modePack : configModePack;
-  if (requestModePack.override || requestBudgetCap !== undefined || requestBudgetFallback !== undefined) {
+  // #7008: `weights` must track the *effective* (post-override) modePack, not just
+  // the combo's stored one. `selectAutoProvider()` (engine.ts) already re-derives
+  // weights internally from the `modePack` it's given, so it correctly reacts to a
+  // per-request X-OmniRoute-Mode override — but `scoreAutoTargets()` (the fallback
+  // ranking below) has no such re-derivation and only ever sees whatever `weights`
+  // it's handed. Without this recompute, a request overriding e.g. `quality-first`
+  // to `ship-fast` would select its primary target under ship-fast weights but rank
+  // every fallback under the stale quality-first weights — the same
+  // select-under-one-policy/rank-under-another bug this module's original fix
+  // (parseAutoConfig honoring the combo's own stored modePack) set out to close.
+  const weights = modePack ? getModePack(modePack) || configWeights : configWeights;
+  if (
+    requestModePack.override ||
+    requestBudgetCap !== undefined ||
+    requestBudgetFallback !== undefined
+  ) {
     log.debug?.(
       "COMBO",
       `Auto strategy: per-request controls applied (mode=${

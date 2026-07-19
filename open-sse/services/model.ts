@@ -121,23 +121,6 @@ for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
   }
 }
 const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
-// #2877(B): include the effort-suffixed variants so a bare `gpt-5.5-xhigh`
-// (and -high/-medium/-low) infers the codex provider instead of falling through
-// the `/^gpt-/` → openai fallback (which 500s for codex-only credentials).
-const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set([
-  "gpt-5.5",
-  "gpt-5.5-xhigh",
-  "gpt-5.5-high",
-  "gpt-5.5-medium",
-  "gpt-5.5-low",
-]);
-// Intentionally empty: an unprefixed codex-preferred model keeps its BARE id when
-// inferred to codex. #2877 established that baking a `-medium` effort suffix silently
-// overrides a client `reasoning.effort` (the Codex executor reads the suffix as an
-// explicit modelEffort). This map was dormant while bare `gpt-5.5` hit the OpenAI
-// short-circuit; #5887 makes the codex block reachable for bare `gpt-5.5`, so the
-// `gpt-5.5 → gpt-5.5-medium` entry is removed to preserve #2877's bare-id contract.
-const CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES = new Map<string, string>([]);
 export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set(["codex-auto-review"]);
 
 interface ProviderConnectionLike {
@@ -261,35 +244,12 @@ function hasKnownProviderModel(providerOrAlias: string | null | undefined, model
   return true;
 }
 
-function hasCodexPreferredUnprefixedModel(modelId: string) {
-  const canonicalModel = CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES.get(modelId);
-  if (!canonicalModel) return false;
-
-  const providerAlias = PROVIDER_ID_TO_ALIAS.codex || "codex";
-  const models = PROVIDER_MODELS[providerAlias] || PROVIDER_MODELS.codex || [];
-  return models.some((entry) => entry?.id === canonicalModel);
-}
-
 function resolveInferredProviderModel(provider: string, modelId: string) {
-  const codexPreferredModel = CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES.get(modelId);
-  if (provider === "codex" && codexPreferredModel) {
-    return codexPreferredModel;
-  }
   return resolveProviderModelAlias(provider, modelId);
 }
 
-function getInferredProvidersForModel(modelId: string) {
-  const providers = [...(MODEL_TO_PROVIDERS.get(modelId) || [])];
-
-  if (
-    CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId) &&
-    hasCodexPreferredUnprefixedModel(modelId) &&
-    !providers.includes("codex")
-  ) {
-    providers.push("codex");
-  }
-
-  return providers;
+function getInferredProvidersForModel(modelId: string, dynamicProviders: string[] = []) {
+  return Array.from(new Set([...(MODEL_TO_PROVIDERS.get(modelId) || []), ...dynamicProviders]));
 }
 
 function isProviderConnectionActive(connection: ProviderConnectionLike) {
@@ -320,6 +280,18 @@ async function getActiveProviderSet() {
     return new Set(providers);
   } catch {
     return null;
+  }
+}
+
+async function getActiveSyncedProvidersForModel(modelId: string) {
+  try {
+    const { getActiveProvidersWithSyncedModel } = await import("@/lib/localDb");
+    const providers = await getActiveProvidersWithSyncedModel(modelId);
+    return providers
+      .map(resolveProviderAlias)
+      .filter((provider): provider is string => typeof provider === "string");
+  } catch {
+    return [];
   }
 }
 
@@ -521,10 +493,6 @@ function parseAliasTarget(target: string): ResolvedModelTarget | null {
 }
 
 async function resolveModelByProviderInference(modelId: string, extendedContext: boolean) {
-  const providers = getInferredProvidersForModel(modelId);
-
-  const nonOpenAIProviders = providers.filter((p) => p !== "openai");
-
   if (CODEX_NATIVE_UNPREFIXED_MODELS.has(modelId)) {
     return {
       provider: "codex",
@@ -533,21 +501,24 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     };
   }
 
-  const [activeProviders, preferClaudeCodeForUnprefixedClaudeModels] = await Promise.all([
-    getActiveProviderSet(),
-    getPreferClaudeCodeForUnprefixedClaudeModels(),
-  ]);
+  const [activeProviders, activeSyncedProviders, preferClaudeCodeForUnprefixedClaudeModels] =
+    await Promise.all([
+      getActiveProviderSet(),
+      getActiveSyncedProvidersForModel(modelId),
+      getPreferClaudeCodeForUnprefixedClaudeModels(),
+    ]);
+  const providers = getInferredProvidersForModel(modelId, activeSyncedProviders);
+  const nonOpenAIProviders = providers.filter((p) => p !== "openai");
 
-  // Codex-only setups must keep auto-routing codex-preferred unprefixed models
-  // (e.g. `gpt-5.5`) to codex even after those ids were added to the OpenAI
-  // static catalog (#5887). This block is guarded by `!activeProviders.has("openai")`,
-  // so it must run BEFORE the OpenAI short-circuit below; users WITH an active
-  // OpenAI connection still fall through to the OpenAI default.
+  // Bare model IDs from Codex CLI do not preserve OmniRoute's `cx/` prefix.
+  // Route overlapping models through Codex only for Codex-only installations;
+  // when OpenAI is also active, preserve the historical OpenAI default below.
+  // Models advertised only by an active synced Codex catalog still reach the
+  // single-candidate path, covering future models without version-specific sets.
   if (
     activeProviders?.has("codex") &&
     !activeProviders.has("openai") &&
-    providers.includes("codex") &&
-    CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)
+    providers.includes("codex")
   ) {
     return {
       provider: "codex",
@@ -556,9 +527,9 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     };
   }
 
-  // Preserve historical behavior: OpenAI stays default when model exists there.
-  // Connection availability must not make unprefixed OpenAI models resolve to a
-  // different provider; callers can still force Codex with an explicit prefix.
+  // Outside the Codex subscription preference above, preserve the historical
+  // OpenAI default whenever its catalog contains the bare model ID. Callers can
+  // always make either route authoritative with an explicit provider prefix.
   if (providers.includes("openai")) {
     return {
       provider: "openai",

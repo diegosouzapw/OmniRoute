@@ -22,24 +22,40 @@ const extract = extractCiGates as (
 ) => { id: string; job: string; args: string[]; env?: Record<string, string> }[];
 
 test("eslintCounts sums errors + warnings across files", () => {
-  const parsed = [
-    { errorCount: 2, warningCount: 5 },
-    { errorCount: 0, warningCount: 3 },
-    {},
-  ];
+  const parsed = [{ errorCount: 2, warningCount: 5 }, { errorCount: 0, warningCount: 3 }, {}];
   assert.deepEqual(eslintCounts(parsed), { errors: 2, warnings: 8 });
 });
 
 test("parseEslintJson tolerates a leading non-JSON banner", () => {
-  const out = "npm warn something\n[{\"errorCount\":0,\"warningCount\":1}]";
+  const out = 'npm warn something\n[{"errorCount":0,"warningCount":1}]';
   assert.deepEqual(parseEslintJson(out), [{ errorCount: 0, warningCount: 1 }]);
   assert.equal(parseEslintJson("no json here"), null);
 });
 
 test("parseCognitiveCount reads the gate's count (en + pt)", () => {
-  assert.equal(parseCognitiveCount("[cognitive-complexity] 797 function(s) exceed the threshold (15)."), 797);
-  assert.equal(parseCognitiveCount("[cognitive-complexity] REGRESSÃO — 801 violações > baseline 797"), 801);
+  assert.equal(
+    parseCognitiveCount("[cognitive-complexity] 797 function(s) exceed the threshold (15)."),
+    797
+  );
+  assert.equal(
+    parseCognitiveCount("[cognitive-complexity] REGRESSÃO — 801 violações > baseline 797"),
+    801
+  );
   assert.equal(parseCognitiveCount("no number"), null);
+});
+
+test("parseCognitiveCount ignores the cyclomatic count in the combined ratchets output (#7009)", () => {
+  // `check:complexity-ratchets` runs ONE shared ESLint walk and prints BOTH ratchets.
+  // The cyclomatic "N violações" summary is emitted FIRST, so a bare `\\d+ violações`
+  // regex captured 2056 (cyclomatic) instead of 890 (cognitive) — a phantom drift in
+  // every pre-flight report. Prefer the unambiguous machine-readable `cognitiveComplexity=N`.
+  const combined = [
+    "complexity=2056",
+    "cognitiveComplexity=890",
+    "[complexity] OK — 2056 violações (baseline 2056)",
+    "[cognitive-complexity] OK — 890 violações (baseline 890)",
+  ].join("\n");
+  assert.equal(parseCognitiveCount(combined), 890);
 });
 
 test("isDrift flags only growth past the committed baseline (down-direction ratchets)", () => {
@@ -146,8 +162,16 @@ test("pre-flight wires the test-masking PR-context gate against origin/main (v3.
   );
   // run() must honor a per-gate env override so GITHUB_BASE_REF actually reaches the child
   // (routed through buildGateEnv since the --hermetic scrub was added).
-  assert.match(src, /env:\s*buildGateEnv\(opts\.env\)/, "run() must merge opts.env into the child env");
-  assert.match(src, /\.\.\.\(extra \|\| \{\}\)/, "buildGateEnv must spread the per-gate env override");
+  assert.match(
+    src,
+    /env:\s*buildGateEnv\(opts\.env\)/,
+    "run() must merge opts.env into the child env"
+  );
+  assert.match(
+    src,
+    /\.\.\.\(extra \|\| \{\}\)/,
+    "buildGateEnv must spread the per-gate env override"
+  );
 });
 
 test("pre-flight --hermetic scrubs the live-test trigger vars (2026-07-05 false-positive fix)", async () => {
@@ -230,7 +254,11 @@ test("extractCiGates: pulls npm-run gate steps from the ci.yml gate jobs only", 
   assert.ok(ids.includes("check:docs-all") && ids.includes("check:docs-symbols"), "multi-line run");
   // …and NON-gate steps + jobs outside the gate set are ignored.
   assert.ok(!ids.includes("build") && !ids.some((i) => i.startsWith("test:")), "no build/test-run");
-  assert.equal(gates.find((g) => g.job === "test-unit"), undefined, "test-unit job is not scanned");
+  assert.equal(
+    gates.find((g) => g.job === "test-unit"),
+    undefined,
+    "test-unit job is not scanned"
+  );
 });
 
 test("extractCiGates: preserves `-- <args>` so ratchet flags reach the script", () => {
@@ -243,7 +271,10 @@ test("extractCiGates: preserves `-- <args>` so ratchet flags reach the script", 
 test("extractCiGates: skips the non-local gates (pr-evidence, codeql-ratchet)", () => {
   const ids = extract(CI_FIXTURE).map((g) => g.id);
   assert.ok(!ids.includes("check:pr-evidence"), "pr-evidence needs a PR body — skipped");
-  assert.ok(!ids.includes("check:codeql-ratchet"), "codeql-ratchet is a remote-main check — skipped");
+  assert.ok(
+    !ids.includes("check:codeql-ratchet"),
+    "codeql-ratchet is a remote-main check — skipped"
+  );
   assert.ok(FULL_CI_SKIP.has("check:pr-evidence") && FULL_CI_SKIP.has("check:codeql-ratchet"));
 });
 
@@ -266,10 +297,7 @@ test("extractCiGates: attaches GITHUB_BASE_REF=main env to test-masking + de-dup
 
 test("extractCiGates: the REAL ci.yml yields the base-reds that leaked in v3.8.46", async () => {
   const fs = await import("node:fs");
-  const yaml = fs.readFileSync(
-    new URL("../../.github/workflows/ci.yml", import.meta.url),
-    "utf8"
-  );
+  const yaml = fs.readFileSync(new URL("../../.github/workflows/ci.yml", import.meta.url), "utf8");
   const ids = new Set(extract(yaml).map((g) => g.id));
   // The exact gates that leaked to the v3.8.46 release PR because the pre-flight
   // never ran them — --full-ci now reproduces every one.

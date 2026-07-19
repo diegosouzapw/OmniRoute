@@ -41,12 +41,13 @@ const testAllSchema = z.object({
 });
 
 export interface BatchTestResultEntry {
-  status: "ok" | "error";
+  status: "ok" | "error" | "slow";
   latencyMs: number;
   responseText?: string;
   error?: string;
   statusCode?: number;
   rateLimited?: boolean;
+  isTransient?: boolean;
   hidden?: boolean;
   isTimeout?: boolean;
 }
@@ -55,13 +56,14 @@ function toBatchEntry(
   result: Awaited<ReturnType<typeof runSingleModelTest>>
 ): BatchTestResultEntry {
   const entry: BatchTestResultEntry = {
-    status: result.status === "ok" ? "ok" : "error",
+    status: result.status === "ok" ? "ok" : result.status === "slow" ? "slow" : "error",
     latencyMs: result.latencyMs,
   };
   if (result.responseText !== undefined) entry.responseText = result.responseText;
   if (result.error !== undefined) entry.error = result.error;
   if (result.statusCode !== undefined) entry.statusCode = result.statusCode;
   if (result.rateLimited === true) entry.rateLimited = true;
+  if (result.isTransient === true) entry.isTransient = true;
   if (result.isTimeout === true) entry.isTimeout = true;
   return entry;
 }
@@ -152,6 +154,7 @@ export async function POST(request: Request) {
         modelId,
         ...(effectiveConnectionId ? { connectionId: effectiveConnectionId } : {}),
         timeoutMs: PER_MODEL_TIMEOUT_MS,
+        streamChat: true,
       });
       entry = toBatchEntry(result);
       testedUpstream += 1;
@@ -184,7 +187,13 @@ export async function POST(request: Request) {
       consecutiveBotBlocks = 0;
     }
 
-    if (autoHideFailed && entry.status === "error" && !entry.rateLimited && !entry.isTimeout) {
+    if (
+      autoHideFailed &&
+      entry.status === "error" &&
+      !entry.rateLimited &&
+      !entry.isTimeout &&
+      !entry.isTransient
+    ) {
       try {
         await setModelIsHidden(providerId, modelId, true);
         entry.hidden = true;

@@ -2,11 +2,11 @@ import { isIP } from "node:net";
 import dns from "node:dns";
 import {
   type OutboundUrlGuardMode,
-  getProviderOutboundGuard,
   isPrivateHost,
   parseAndValidatePublicUrl,
   parseOutboundUrl,
 } from "@/shared/network/outboundUrlGuard";
+import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
 
 const DEFAULT_MAX_REMOTE_IMAGE_BYTES = 20 * 1024 * 1024;
 const DEFAULT_MAX_REDIRECTS = 3;
@@ -45,8 +45,7 @@ function validateRemoteImageUrl(input: string | URL, guard: OutboundUrlGuardMode
   return guard === "public-only" ? parseAndValidatePublicUrl(input) : parseOutboundUrl(input);
 }
 
-const defaultLookup: RemoteImageLookup = (hostname) =>
-  dns.promises.lookup(hostname, { all: true });
+const defaultLookup: RemoteImageLookup = (hostname) => dns.promises.lookup(hostname, { all: true });
 
 /**
  * Defence against DNS-rebinding SSRF (GHSA-cmhj-wh2f-9cgx). The

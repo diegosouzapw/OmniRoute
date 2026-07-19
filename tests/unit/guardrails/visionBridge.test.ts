@@ -38,6 +38,9 @@ function createGuardrail(options?: Parameters<typeof VisionBridgeGuardrail>[0]) 
         }
         return mockVisionResponse;
       },
+      // Fail-open (null) so classic VB-S01/S07/S10 reroute tests keep working without a
+      // live credential DB. Credential-aware cases inject an explicit mock.
+      hasUsableCredentials: async () => null,
       ...(options?.deps ?? {}),
     },
   });
@@ -694,4 +697,87 @@ test("VB-S11b: passthroughs when vision-capable model has NO combo mapping", asy
   assert.strictEqual(result.block, false);
   assert.strictEqual(result.modifiedPayload, undefined);
   assert.strictEqual(visionCallCount, 0);
+});
+
+// ── Credential-aware whole-request reroute (combo zai hijack fix) ───────────
+
+test("VB-CRED-01: does NOT whole-request-reroute when original model has usable credentials", async () => {
+  // Repro: OpenCode 94-msg body with images + combo target zai/glm-5.2 was
+  // hijacked to opencode-zen/gpt-5.4 (priority 0, noauth) → 401 Missing API key.
+  const guardrail = createGuardrail({
+    deps: {
+      hasUsableCredentials: async (m: string) =>
+        m.startsWith("zai/") ? true : m.startsWith("opencode-") ? false : null,
+    },
+  });
+
+  const payload = createPayload({
+    model: "zai/glm-5.2",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is in this screenshot?" },
+          {
+            type: "image_url",
+            image_url: { url: "https://example.com/shot.png" },
+          },
+        ],
+      },
+    ],
+  });
+
+  const result = await guardrail.preCall(payload, createContext({ model: "zai/glm-5.2" }));
+  assert.strictEqual(result.block, false);
+  // Must NOT swap model to opencode-zen / openai vision target
+  if (result.modifiedPayload) {
+    const modified = result.modifiedPayload as { model?: string };
+    assert.strictEqual(
+      modified.model,
+      "zai/glm-5.2",
+      "credentialed original model must not be whole-request-rerouted"
+    );
+  }
+  const meta = result.meta as Record<string, unknown> | undefined;
+  assert.notStrictEqual(meta?.rerouted, true, "must not set rerouted meta for credentialed model");
+});
+
+test("VB-CRED-02: does NOT reroute to a vision model known to lack credentials", async () => {
+  mockSettings.visionBridgeModel = "opencode-zen/gpt-5.4";
+  const guardrail = createGuardrail({
+    deps: {
+      // Original unusable, best vision model also unusable
+      hasUsableCredentials: async () => false,
+    },
+  });
+
+  const payload = createPayload({
+    model: "minimax/minimax-01",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Describe" },
+          { type: "image_url", image_url: { url: "https://example.com/a.png" } },
+        ],
+      },
+    ],
+  });
+
+  const result = await guardrail.preCall(payload, createContext({ model: "minimax/minimax-01" }));
+  assert.strictEqual(result.block, false);
+  const meta = result.meta as Record<string, unknown> | undefined;
+  assert.notStrictEqual(meta?.rerouted, true, "must not reroute to unusable vision model");
+});
+
+test("isProviderConnectionUsable rejects noauth without api key", async () => {
+  const { isProviderConnectionUsable } =
+    await import("../../../src/lib/guardrails/visionBridge.ts");
+  assert.strictEqual(isProviderConnectionUsable({ authType: "noauth", apiKey: null }), false);
+  assert.strictEqual(isProviderConnectionUsable({ authType: "apikey", apiKey: "sk-real" }), true);
+  assert.strictEqual(isProviderConnectionUsable({ authType: "oauth", refreshToken: "rt" }), true);
+  assert.strictEqual(
+    isProviderConnectionUsable({ authType: "apikey", apiKey: "x", testStatus: "banned" }),
+    false
+  );
 });

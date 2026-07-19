@@ -108,37 +108,43 @@ export default function AgentBridgePageClient({
 
   // ── Upstream CA ───────────────────────────────────────────────────────────
 
-  const handleUpstreamCaSave = useCallback(async (path: string) => {
-    setActionError(null);
-    try {
-      const res = await fetch("/api/tools/agent-bridge/upstream-ca", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      await refresh();
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unknown error");
-    }
-  }, [refresh]);
+  const handleUpstreamCaSave = useCallback(
+    async (path: string) => {
+      setActionError(null);
+      try {
+        const res = await fetch("/api/tools/agent-bridge/upstream-ca", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await refresh();
+      } catch (err) {
+        setActionError(err instanceof Error ? err.message : "Unknown error");
+      }
+    },
+    [refresh]
+  );
 
   // ── Bypass list ───────────────────────────────────────────────────────────
 
-  const handleBypassSave = useCallback(async (patterns: string[]) => {
-    setActionError(null);
-    try {
-      const res = await fetch("/api/tools/agent-bridge/bypass", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patterns }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      await refresh();
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unknown error");
-    }
-  }, [refresh]);
+  const handleBypassSave = useCallback(
+    async (patterns: string[]) => {
+      setActionError(null);
+      try {
+        const res = await fetch("/api/tools/agent-bridge/bypass", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ patterns }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await refresh();
+      } catch (err) {
+        setActionError(err instanceof Error ? err.message : "Unknown error");
+      }
+    },
+    [refresh]
+  );
 
   // ── DNS toggle ────────────────────────────────────────────────────────────
 
@@ -147,7 +153,7 @@ export default function AgentBridgePageClient({
       setActionError(null);
       try {
         const res = await fetch(`/api/tools/agent-bridge/agents/${agentId}/dns`, {
-          method: "PUT",
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ enabled }),
         });

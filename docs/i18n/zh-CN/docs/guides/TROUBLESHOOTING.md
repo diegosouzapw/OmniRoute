@@ -18,19 +18,19 @@ OmniRoute 常见问题及解决方案。
 
 **刚接触 OmniRoute？** 从这里开始 —— 以下内容可解决 90% 的问题：
 
-| 你看到的提示            | 含义                     | 解决方法                                                                                          |
-| ----------------------- | ------------------------ | ------------------------------------------------------------------------------------------------- |
-| "Can't connect"         | OmniRoute 未运行          | 运行 `omniroute` 或 `docker restart omniroute`                                                     |
-| "Invalid API key"       | API 密钥错误或已过期      | 从服务商网站重新复制密钥                                                                          |
-| "Rate limit exceeded"   | 请求频率过高              | 等待 1 分钟，或使用 `model: "auto"` 自动容灾                                                     |
-| "Quota exceeded"        | 免费/付费配额已用尽       | 接入更多服务商，或使用免费服务商（Kiro、Pollinations）                                              |
-| "Slow responses"        | 服务商繁忙或距离较远      | 使用 `model: "auto/fast"` 或接入速度更快的服务商（Groq、Cerebras）                                 |
-| "Wrong provider used"   | `auto` 选择了其他服务商    | 这是正常现象！`auto` 会选取最优服务商。如需指定，使用 `model: "openai/gpt-4o"`                       |
-| "502 Bad Gateway"       | 服务商宕机                | 等待重试，或使用 `model: "auto"` 切换服务商                                                        |
-| "401 Unauthorized"      | 凭据有误                  | 检查 API 密钥或通过 OAuth 重新认证                                                                |
-| "429 Too Many Requests" | 触发速率限制              | 等待 1 分钟，或接入更多服务商                                                                     |
+| 你看到的提示            | 含义                    | 解决方法                                                                       |
+| ----------------------- | ----------------------- | ------------------------------------------------------------------------------ |
+| "Can't connect"         | OmniRoute 未运行        | 运行 `omniroute` 或 `docker restart omniroute`                                 |
+| "Invalid API key"       | API 密钥错误或已过期    | 从服务商网站重新复制密钥                                                       |
+| "Rate limit exceeded"   | 请求频率过高            | 等待 1 分钟，或使用 `model: "auto"` 自动容灾                                   |
+| "Quota exceeded"        | 免费/付费配额已用尽     | 接入更多服务商，或使用免费服务商（Kiro、Pollinations）                         |
+| "Slow responses"        | 服务商繁忙或距离较远    | 使用 `model: "auto/fast"` 或接入速度更快的服务商（Groq、Cerebras）             |
+| "Wrong provider used"   | `auto` 选择了其他服务商 | 这是正常现象！`auto` 会选取最优服务商。如需指定，使用 `model: "openai/gpt-4o"` |
+| "502 Bad Gateway"       | 服务商宕机              | 等待重试，或使用 `model: "auto"` 切换服务商                                    |
+| "401 Unauthorized"      | 凭据有误                | 检查 API 密钥或通过 OAuth 重新认证                                             |
+| "429 Too Many Requests" | 触发速率限制            | 等待 1 分钟，或接入更多服务商                                                  |
 
-**还是不行？** 请参阅下方的[详细故障排除](#详细故障排除)，或前往 [Discord](https://discord.gg/EkzRkpzKYt) 提问。
+**还是不行？** 请参阅下方的[详细故障排除](#详细故障排除)，或前往 [Discord](https://discord.gg/U47eFqAXCn) 提问。
 
 ---
 
@@ -40,16 +40,16 @@ OmniRoute 常见问题及解决方案。
 
 ## 快速修复
 
-| 问题                                                | 解决方案                                                                                                                                              |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 首次登录无法使用                                    | 在 `.env` 中设置 `INITIAL_PASSWORD`（无硬编码默认值）                                                                                                  |
-| 仪表盘打开的端口不对                                | 设置 `PORT=20128` 和 `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                    |
-| 没有日志写入磁盘                                    | 设置 `APP_LOG_TO_FILE=true` 并确认已启用调用日志捕获                                                                                                  |
-| EACCES: permission denied                           | 设置 `DATA_DIR=/path/to/writable/dir` 覆盖 `~/.omniroute`                                                                                             |
-| 路由策略无法保存                                    | 更新至最新 v3.x 版本（早期版本中已修复 settings 持久化的 Zod Schema 问题）                                                                            |
-| 登录崩溃 / 空白页面                                 | 检查 Node.js 版本 —— 参见下方的 [Node.js 兼容性](#nodejs-兼容性)                                                                                      |
-| `dlopen` / `slice is not valid mach-o file` (macOS) | 运行 `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` —— 参见下方的 [macOS 原生模块重新编译](#macos-原生模块重新编译)         |
-| 代理 "fetch failed"                                 | 请确认代理配置已设置在正确的层级 —— 参见下方的[代理问题](#代理问题)                                                                                  |
+| 问题                                                | 解决方案                                                                                                                                          |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 首次登录无法使用                                    | 在 `.env` 中设置 `INITIAL_PASSWORD`（无硬编码默认值）                                                                                             |
+| 仪表盘打开的端口不对                                | 设置 `PORT=20128` 和 `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                |
+| 没有日志写入磁盘                                    | 设置 `APP_LOG_TO_FILE=true` 并确认已启用调用日志捕获                                                                                              |
+| EACCES: permission denied                           | 设置 `DATA_DIR=/path/to/writable/dir` 覆盖 `~/.omniroute`                                                                                         |
+| 路由策略无法保存                                    | 更新至最新 v3.x 版本（早期版本中已修复 settings 持久化的 Zod Schema 问题）                                                                        |
+| 登录崩溃 / 空白页面                                 | 检查 Node.js 版本 —— 参见下方的 [Node.js 兼容性](#nodejs-兼容性)                                                                                  |
+| `dlopen` / `slice is not valid mach-o file` (macOS) | 运行 `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` —— 参见下方的 [macOS 原生模块重新编译](#macos-原生模块重新编译) |
+| 代理 "fetch failed"                                 | 请确认代理配置已设置在正确的层级 —— 参见下方的[代理问题](#代理问题)                                                                               |
 
 ---
 
@@ -302,12 +302,12 @@ curl http://localhost:20128/api/monitoring/health
 
 使用 **仪表盘 → Translator** 来调试格式转换问题：
 
-| 模式             | 使用场景                                                                  |
-| ---------------- | ------------------------------------------------------------------------- |
-| **Playground**   | 并排对比输入/输出格式 —— 粘贴一个失败的请求，查看其转换结果               |
-| **Chat Tester**  | 发送实时消息并检查完整的请求/响应载荷，包括 headers                       |
-| **Test Bench**   | 跨格式组合运行批量测试，找出哪些转换存在问题                              |
-| **Live Monitor** | 实时观察请求流，捕获间歇性的转换问题                                      |
+| 模式             | 使用场景                                                    |
+| ---------------- | ----------------------------------------------------------- |
+| **Playground**   | 并排对比输入/输出格式 —— 粘贴一个失败的请求，查看其转换结果 |
+| **Chat Tester**  | 发送实时消息并检查完整的请求/响应载荷，包括 headers         |
+| **Test Bench**   | 跨格式组合运行批量测试，找出哪些转换存在问题                |
+| **Live Monitor** | 实时观察请求流，捕获间歇性的转换问题                        |
 
 ### 常见格式问题
 

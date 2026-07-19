@@ -8,11 +8,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import {
-  rankBySpeed,
-  pickFastest,
-  DEFAULT_SPEED_WEIGHTS,
-} from "../speedRanking";
+import { rankBySpeed, pickFastest, DEFAULT_SPEED_WEIGHTS } from "../speedRanking";
 import type { SpeedCandidate } from "../speedRanking";
 
 function candidate(overrides: Partial<SpeedCandidate> = {}): SpeedCandidate {
@@ -134,8 +130,18 @@ describe("rankBySpeed — metric weighting", () => {
       avgE2ELatencyMs: 1500,
       p95LatencyMs: 1600,
     };
-    const lowTps: SpeedCandidate = candidate({ provider: "low", model: "m", ...base, avgTokensPerSecond: 20 });
-    const highTps: SpeedCandidate = candidate({ provider: "high", model: "m", ...base, avgTokensPerSecond: 200 });
+    const lowTps: SpeedCandidate = candidate({
+      provider: "low",
+      model: "m",
+      ...base,
+      avgTokensPerSecond: 20,
+    });
+    const highTps: SpeedCandidate = candidate({
+      provider: "high",
+      model: "m",
+      ...base,
+      avgTokensPerSecond: 200,
+    });
     const ranked = rankBySpeed([lowTps, highTps]);
     expect(ranked[0].provider).toBe("high");
   });
@@ -165,13 +171,32 @@ describe("rankBySpeed — factor breakdown", () => {
   });
 
   it("falls back to 0.5 per missing metric so new providers are not crushed", () => {
-    const ranked = rankBySpeed([candidate({ provider: "fresh", model: "m" })]);
+    const ranked = rankBySpeed([
+      candidate({
+        provider: "fresh",
+        model: "m",
+        p95LatencyMs: undefined,
+        latencyStdDev: undefined,
+      }),
+    ]);
     expect(ranked).toHaveLength(1);
     // No telemetry at all → weighted sum lands near 0.5 with reliability multiplier 1
     expect(ranked[0].factors.reliability).toBe(1);
     expect(ranked[0].factors.health).toBe(1);
     expect(ranked[0].factors.ttft).toBe(0.5);
     expect(ranked[0].factors.tps).toBe(0.5);
+  });
+
+  it("uses p95 latency when TTFT and E2E telemetry are unavailable", () => {
+    const ranked = rankBySpeed([
+      candidate({ provider: "slow-tail", model: "m", p95LatencyMs: 4000 }),
+      candidate({ provider: "fast-tail", model: "m", p95LatencyMs: 1000 }),
+    ]);
+    const fast = ranked.find((entry) => entry.provider === "fast-tail");
+    const slow = ranked.find((entry) => entry.provider === "slow-tail");
+
+    expect(fast?.factors.ttft).toBeGreaterThan(slow?.factors.ttft ?? 1);
+    expect(fast?.factors.e2e).toBeGreaterThan(slow?.factors.e2e ?? 1);
   });
 });
 

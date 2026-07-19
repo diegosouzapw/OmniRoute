@@ -2,6 +2,7 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { fixToolPairs } from "../../services/contextManager.ts";
+import { normalizeEffort } from "@/shared/reasoning/effortStandardization";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -21,6 +22,16 @@ export function antigravityToOpenAIRequest(model, body, stream) {
     stream: stream,
   };
 
+  // Explicit per-alias reasoning-effort override (Antigravity MITM layer only —
+  // `src/mitm/aliasConfig.ts` / `src/mitm/_internal/aliasConfig.cjs`). Set at the same
+  // envelope level as `model` (top-level `body`, sibling of `.request`), so it survives
+  // regardless of which cloudcode envelope shape the caller used. When present it takes
+  // priority over the thinkingConfig-derived value below: an explicit "none" suppresses
+  // reasoning_effort entirely even if Antigravity's own thinkingConfig requested thinking;
+  // any other explicit tier is emitted verbatim instead of the coarse budget-based guess.
+  // Ported from upstream decolua/9router#2584 ("add Antigravity reasoning effort overrides").
+  const effortOverride = normalizeEffort((body as JsonRecord).reasoningEffortOverride);
+
   // Generation config
   if (req.generationConfig) {
     const config = req.generationConfig;
@@ -38,8 +49,8 @@ export function antigravityToOpenAIRequest(model, body, stream) {
       result.top_k = config.topK;
     }
 
-    // Thinking config → reasoning_effort
-    if (config.thinkingConfig) {
+    // Thinking config → reasoning_effort (skipped when an explicit override is present).
+    if (effortOverride === undefined && config.thinkingConfig) {
       const budget = config.thinkingConfig.thinkingBudget || 0;
       if (budget > 0) {
         if (budget <= 2048) {
@@ -51,6 +62,12 @@ export function antigravityToOpenAIRequest(model, body, stream) {
         }
       }
     }
+  }
+
+  if (effortOverride !== undefined && effortOverride !== "none") {
+    result.reasoning_effort = effortOverride;
+  } else if (effortOverride === "none") {
+    delete result.reasoning_effort;
   }
 
   // System instruction
@@ -203,12 +220,15 @@ function preserveRequired(obj: unknown): void {
     return;
   }
   const record = obj as JsonRecord;
-  if (Array.isArray(record.required) && record.properties && typeof record.properties === "object") {
+  if (
+    Array.isArray(record.required) &&
+    record.properties &&
+    typeof record.properties === "object"
+  ) {
     const properties = record.properties as JsonRecord;
     const valid = (record.required as unknown[]).filter(
       (field) =>
-        typeof field === "string" &&
-        Object.prototype.hasOwnProperty.call(properties, field)
+        typeof field === "string" && Object.prototype.hasOwnProperty.call(properties, field)
     );
     if (valid.length === 0) {
       delete record.required;
@@ -299,9 +319,7 @@ function convertContent(content) {
       const assistantMsg: JsonRecord = { role: "assistant" };
       if (textParts.length > 0) {
         assistantMsg.content =
-          textParts.length === 1 && textParts[0].type === "text"
-            ? textParts[0].text
-            : textParts;
+          textParts.length === 1 && textParts[0].type === "text" ? textParts[0].text : textParts;
       }
       if (reasoningContent) {
         assistantMsg.reasoning_content = reasoningContent;

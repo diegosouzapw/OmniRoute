@@ -3,7 +3,10 @@
 // while staying visible for LLM and media providers that DO list models.
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { providerLacksModelListing } from "@/lib/providers/modelListingCapability";
+import {
+  providerLacksModelListing,
+  providerUsesCuratedModelsOnly,
+} from "@/lib/providers/modelListingCapability";
 
 describe("providerLacksModelListing (#5420)", () => {
   it("hides model listing for -search suffixed providers regardless of kinds", () => {
@@ -24,5 +27,11 @@ describe("providerLacksModelListing (#5420)", () => {
     assert.equal(providerLacksModelListing("falai", ["image"]), false);
     assert.equal(providerLacksModelListing("x", ["webSearch", "llm"]), false);
     assert.equal(providerLacksModelListing("z", ["embedding"]), false);
+  });
+
+  it("keeps Kimi Web visible while marking its model catalog as curated-only", () => {
+    assert.equal(providerLacksModelListing("kimi-web", ["llm"]), false);
+    assert.equal(providerUsesCuratedModelsOnly("kimi-web"), true);
+    assert.equal(providerUsesCuratedModelsOnly("kimi-coding"), false);
   });
 });

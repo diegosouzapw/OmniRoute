@@ -1,0 +1,1 @@
+- feat(providers): add Rev AI speech-to-text provider with async job upload/poll/transcript flow (#6655)

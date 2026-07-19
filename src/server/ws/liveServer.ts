@@ -27,6 +27,7 @@ import { emit, on, onAny, getEventHistory, type HistoryEntry } from "@/lib/event
 import type { DashboardEventName, DashboardEventMap, DashboardChannel } from "@/lib/events/types";
 
 import { CHANNEL_EVENTS, getChannelForEvent } from "@/lib/events/types";
+import { isAutomatedTestProcess, isBuildProcess } from "@/shared/utils/testProcess";
 
 import {
   buildAllowedOrigins,
@@ -607,12 +608,7 @@ export async function startLiveDashboardServer(
 // Build/test environments never auto-start regardless of the flag.
 
 function isBuildOrTest(): boolean {
-  return (
-    process.env.NEXT_PHASE === "phase-production-build" ||
-    process.env.NODE_ENV === "test" ||
-    process.env.VITEST !== undefined ||
-    process.argv.some((arg) => arg.includes("test"))
-  );
+  return isBuildProcess() || isAutomatedTestProcess();
 }
 
 export function isLiveWsEnabled(): boolean {

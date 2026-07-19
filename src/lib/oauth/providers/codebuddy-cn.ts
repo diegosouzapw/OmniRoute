@@ -38,7 +38,10 @@ export const codebuddyCn = {
   flowType: "device_code" as const,
 
   requestDeviceCode: async (config: CodeBuddyConfig): Promise<CodeBuddyDeviceCodeResponse> => {
-    const response = await fetch(config.stateUrl, {
+    // CodeBuddy reads `platform` from the QUERY string, not the JSON body — sending it only in the
+    // body returns 400 "platform is empty" (verified). Pass it as a query param; body kept as-is.
+    const stateUrl = `${config.stateUrl}?platform=${encodeURIComponent(config.platform)}`;
+    const response = await fetch(stateUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -78,23 +81,20 @@ export const codebuddyCn = {
   pollToken: async (config: CodeBuddyConfig, deviceCode: string): Promise<CodeBuddyPollResult> => {
     // GET with state as a query param (not POST/body) — matches the official CLI's
     // /v2/plugin/auth/token?state=... endpoint shape.
-    const response = await fetch(
-      `${config.tokenUrl}?state=${encodeURIComponent(deviceCode)}`,
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "User-Agent": config.userAgent,
-          "X-Requested-With": "XMLHttpRequest",
-          "X-Domain": "copilot.tencent.com",
-          "X-No-Authorization": "true",
-          "X-No-User-Id": "true",
-          "X-No-Enterprise-Id": "true",
-          "X-No-Department-Info": "true",
-          "X-Product": "SaaS",
-        },
-      }
-    );
+    const response = await fetch(`${config.tokenUrl}?state=${encodeURIComponent(deviceCode)}`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "User-Agent": config.userAgent,
+        "X-Requested-With": "XMLHttpRequest",
+        "X-Domain": "copilot.tencent.com",
+        "X-No-Authorization": "true",
+        "X-No-User-Id": "true",
+        "X-No-Enterprise-Id": "true",
+        "X-No-Department-Info": "true",
+        "X-Product": "SaaS",
+      },
+    });
     if (!response.ok) return { ok: false, data: { error: "request_failed" } };
     const data = (await response.json()) as { code?: number; data?: any; msg?: string };
     // code 11217 = pending (RetryFetchToken), code 0 = success

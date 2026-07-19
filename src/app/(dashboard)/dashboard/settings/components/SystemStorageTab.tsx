@@ -910,6 +910,7 @@ export default function SystemStorageTab() {
       ["callLogs", t("retentionCallLogs"), 30],
       ["usageHistory", t("retentionUsageHistory"), 30],
       ["memoryEntries", t("retentionMemoryEntries"), 30],
+      ["xpAuditLog", t("retentionXpAuditLog"), 30],
     ];
 
     return (
@@ -1540,7 +1541,7 @@ export default function SystemStorageTab() {
           <div className="space-y-3">
             <p className="text-text-muted">
               {t("resetUsageDataDesc") ||
-                "Select how far back you want to delete usage data. This action cannot be undone."}
+                "Select how far back you want to delete usage, request logs, and analytics data. Provider configuration, connections, API keys, combos, and settings are preserved. This action cannot be undone."}
             </p>
             <select
               value={resetUsagePeriod}
@@ -1555,9 +1556,7 @@ export default function SystemStorageTab() {
             </select>
           </div>
         }
-        confirmText={
-          resetUsageLoading ? t("resetting") || "Resetting..." : t("reset") || "Reset"
-        }
+        confirmText={resetUsageLoading ? t("resetting") || "Resetting..." : t("reset") || "Reset"}
         variant="danger"
         loading={resetUsageLoading}
       />

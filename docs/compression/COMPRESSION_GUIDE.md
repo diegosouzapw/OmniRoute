@@ -93,6 +93,8 @@ RTK mode is optimized for verbose tool outputs that appear in coding-agent sessi
   TypeScript/Vite/Webpack builds, ESLint/Biome/Prettier, npm audit/installs, Docker logs, infra
   output, and generic shell output
 - Applies JSON filter packs from `open-sse/services/compression/engines/rtk/filters/`
+- Imports RTK TOML schema v1 filters from project or global `filters.toml` files, with inline-test
+  validation and trust-gating for project files
 - Ships 49 built-in filters with inline verify samples
 - Removes ANSI control sequences, progress bars, repeated lines, and non-actionable noise
 - Preserves failures, errors, warnings, changed files, summaries, and the tail of long output
@@ -188,6 +190,14 @@ Combo: "free-forever"
 This lets you use stacked compression on free/coding providers while keeping lite mode on paid
 subscriptions.
 
+This "Per-Combo Override" assignment is a different control from the **routing-combo compression
+mode** override (Default/Off/Lite/Standard/Aggressive/Ultra) — that override does not pick a named
+compression-combo pipeline; it just sets the `compressionMode` field consulted by
+`resolveCompressionPlan`. It can be set either on the combo card (`Dashboard → Combos`) or, since
+#6760, per routing combo in the "Assign to routing" list on
+`Dashboard → Context & Cache → Compression Combos`, right next to the pipeline-assignment checkbox
+documented above. Both surfaces persist through the same `PUT /api/combos/{id}` endpoint.
+
 ### Per-request override
 
 Send the `x-omniroute-compression` request header to override the compression plan for a single
@@ -273,12 +283,13 @@ Every compressed request includes stats in the server logs:
 
 ## Phase Roadmap
 
-| Phase   | Modes                                                                | Status     |
-| ------- | -------------------------------------------------------------------- | ---------- |
-| Phase 1 | Off, Lite                                                            | ✅ Shipped |
-| Phase 2 | Standard, Aggressive, Ultra                                          | ✅ Shipped |
-| Phase 3 | RTK, Stacked, Compression Combos                                     | ✅ Shipped |
-| Phase 4 | Output Styles, SLM-tier Ultra, adaptive context-budget, eval harness | ✅ Shipped |
+| Phase    | Modes                                                                                                        | Status                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Phase 1  | Off, Lite                                                                                                    | ✅ Shipped                                                             |
+| Phase 2  | Standard, Aggressive, Ultra                                                                                  | ✅ Shipped                                                             |
+| Phase 3  | RTK, Stacked, Compression Combos                                                                             | ✅ Shipped                                                             |
+| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                  | ✅ Shipped                                                             |
+| Phase 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) | ✅ Shipped (API-configurable; dashboard controls not yet built, #7005) |
 
 ---
 

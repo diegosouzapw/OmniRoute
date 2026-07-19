@@ -41,6 +41,7 @@ export interface ProviderCatalogMetadata {
   riskNoticeVariant?: RiskNoticeVariant;
   apiType?: string;
   baseUrl?: string;
+  hiddenFromDashboard?: boolean;
   /** Optional operator-supplied remote icon URL (#2166) for compatible provider nodes. */
   iconUrl?: string;
   [key: string]: unknown;
@@ -87,8 +88,7 @@ export interface ResolvedCompatibleProviderCatalogEntry extends ProviderCatalogM
 }
 
 export type ResolvedProviderCatalogEntry =
-  | ResolvedStaticProviderCatalogEntry
-  | ResolvedCompatibleProviderCatalogEntry;
+  ResolvedStaticProviderCatalogEntry | ResolvedCompatibleProviderCatalogEntry;
 
 export const STATIC_PROVIDER_CATALOG_GROUPS: Record<
   StaticProviderCatalogCategory,

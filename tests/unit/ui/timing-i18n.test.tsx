@@ -5,7 +5,7 @@
  * Round-3 F-I18N translated ConversationTab/StatsTab/StatsCharts but missed
  * TimingTab (5 labels) and TimingWaterfall (2 labels). Round-4 closed the gap.
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -15,11 +15,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const TIMING_TAB = path.resolve(
   __dirname,
-  "../../../src/app/(dashboard)/dashboard/tools/traffic-inspector/components/tabs/TimingTab.tsx",
+  "../../../src/app/(dashboard)/dashboard/tools/traffic-inspector/components/tabs/TimingTab.tsx"
 );
 const TIMING_WATERFALL = path.resolve(
   __dirname,
-  "../../../src/app/(dashboard)/dashboard/tools/traffic-inspector/components/shared/TimingWaterfall.tsx",
+  "../../../src/app/(dashboard)/dashboard/tools/traffic-inspector/components/shared/TimingWaterfall.tsx"
 );
 const EN = path.resolve(__dirname, "../../../src/i18n/messages/en.json");
 const PT = path.resolve(__dirname, "../../../src/i18n/messages/pt-BR.json");
@@ -35,10 +35,16 @@ describe("Timing i18n (R4 fix #3)", () => {
     for (const lit of ["Timestamp", "Method", "Status", "Request size", "Response size"]) {
       assert.ok(
         !new RegExp(`<span[^>]*>${lit}</span>`).test(tabSrc),
-        `TimingTab must not render hardcoded "${lit}" — use t() instead`,
+        `TimingTab must not render hardcoded "${lit}" — use t() instead`
       );
     }
-    for (const key of ["timingTimestamp", "timingMethod", "timingStatus", "timingRequestSize", "timingResponseSize"]) {
+    for (const key of [
+      "timingTimestamp",
+      "timingMethod",
+      "timingStatus",
+      "timingRequestSize",
+      "timingResponseSize",
+    ]) {
       assert.ok(tabSrc.includes(`t("${key}")`), `TimingTab must call t("${key}")`);
     }
   });

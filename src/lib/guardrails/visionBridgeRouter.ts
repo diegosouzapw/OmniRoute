@@ -110,12 +110,17 @@ function getVisionCapableModels(): VisionModelCandidate[] {
       const caps = getResolvedModelCapabilities(fullModelId);
 
       if (caps.supportsVision === true) {
-        // Determine priority based on provider type
+        // Determine priority based on provider type (lower = better).
+        // Do NOT prefer opencode-* first: those catalog entries often resolve to a
+        // noauth connection and 401 "Missing API key", hijacking working providers
+        // (e.g. zai/glm-5.2 combo targets) when Vision Bridge auto-reroutes.
         let priority = 100;
-        if (providerAlias.startsWith("opencode-")) {
-          priority = 0; // Local/free models first
-        } else if (providerAlias === "openai" || providerAlias === "anthropic") {
-          priority = 50; // Major providers
+        if (providerAlias === "openai" || providerAlias === "anthropic") {
+          priority = 50; // Major providers with real API keys
+        } else if (providerAlias === "vertex" || providerAlias === "gemini") {
+          priority = 55;
+        } else if (providerAlias.startsWith("opencode-")) {
+          priority = 95; // Free/catalog — only if nothing credentialed is available
         } else {
           priority = 75; // Other providers
         }
@@ -172,9 +177,7 @@ function selectBestModel(
  * Get the best vision model for image description.
  * Respects fixed model override if configured.
  */
-export function getBestVisionModel(
-  config: Partial<VisionBridgeRouterConfig> = {}
-): string {
+export function getBestVisionModel(config: Partial<VisionBridgeRouterConfig> = {}): string {
   const fullConfig = { ...DEFAULT_ROUTER_CONFIG, ...config };
 
   // If fixed model is configured, use it
@@ -184,9 +187,10 @@ export function getBestVisionModel(
 
   // Check selection cache — key includes excluded models to prevent cache pollution
   // across different configurations
-  const cacheKey = fullConfig.excludedModels.length > 0
-    ? `excl:${[...fullConfig.excludedModels].sort().join(",")}`
-    : "default";
+  const cacheKey =
+    fullConfig.excludedModels.length > 0
+      ? `excl:${[...fullConfig.excludedModels].sort().join(",")}`
+      : "default";
   const cached = selectionCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.modelId;
@@ -250,7 +254,10 @@ export function clearSelectionCache(): void {
 /**
  * Get latency statistics for debugging.
  */
-export function getLatencyStats(): Record<string, { avg: number; samples: number; successRate: number }> {
+export function getLatencyStats(): Record<
+  string,
+  { avg: number; samples: number; successRate: number }
+> {
   const stats: Record<string, { avg: number; samples: number; successRate: number }> = {};
 
   for (const [modelId, records] of latencyStore.entries()) {
