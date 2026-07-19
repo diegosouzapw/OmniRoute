@@ -2,6 +2,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+// ─── Response JSON shapes (real types derived from OpenAI-compatible bodies) ─
+
+interface PplxChatCompletionJson {
+  id: string;
+  object: string;
+  choices: Array<{
+    message: { role: string; content: string };
+    finish_reason: string;
+  }>;
+  usage: { total_tokens: number };
+}
+
+interface PplxErrorJson {
+  error: { message: string };
+}
+
 // ─── Import the executor and its dependencies ──────────────────────────────
 
 const { PerplexityWebExecutor } = await import("../../open-sse/executors/perplexity-web.ts");
@@ -13,7 +29,7 @@ const { __setTlsFetchOverrideForTesting, TlsClientUnavailableError } =
 // global fetch. Install one persistent bridge so the tests below can keep stubbing
 // globalThis.fetch (returning a Response) and have it surface as a TlsFetchResult.
 __setTlsFetchOverrideForTesting(async (url, opts) => {
-  const res = await (globalThis.fetch as any)(url, opts);
+  const res = await (globalThis.fetch as typeof fetch)(url, opts);
   return {
     status: res.status,
     headers: res.headers,
@@ -128,7 +144,7 @@ test("Non-streaming: simple text response", async () => {
     });
 
     assert.equal(result.response.status, 200);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxChatCompletionJson;
     assert.equal(json.object, "chat.completion");
     assert.equal(json.choices[0].message.role, "assistant");
     assert.equal(json.choices[0].message.content, "Hello, world!");
@@ -168,7 +184,7 @@ test("Non-streaming: strips citations from response", async () => {
       log: null,
     });
 
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxChatCompletionJson;
     assert.ok(!json.choices[0].message.content.includes("[1]"));
     assert.ok(!json.choices[0].message.content.includes("[2]"));
     assert.ok(!json.choices[0].message.content.includes("[3]"));
@@ -474,7 +490,7 @@ test("Error: 401 returns auth error message", async () => {
     });
 
     assert.equal(result.response.status, 401);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.ok(json.error.message.includes("auth failed"));
     assert.ok(json.error.message.includes("session-token"));
   } finally {
@@ -496,7 +512,7 @@ test("Error: 429 returns rate limit message", async () => {
     });
 
     assert.equal(result.response.status, 429);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.ok(json.error.message.includes("rate limited"));
   } finally {
     restore();
@@ -517,7 +533,7 @@ test("Error: fetch failure returns 502", async () => {
     });
 
     assert.equal(result.response.status, 502);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.ok(json.error.message.includes("ECONNREFUSED"));
   } finally {
     restore();
@@ -536,7 +552,7 @@ test("Error: empty messages returns 400", async () => {
   });
 
   assert.equal(result.response.status, 400);
-  const json = (await result.response.json()) as any;
+  const json = (await result.response.json()) as PplxErrorJson;
   assert.ok(json.error.message.includes("Missing or empty messages"));
 });
 
@@ -572,7 +588,7 @@ test("Non-streaming: Perplexity stream error returns 502", async () => {
     });
 
     assert.equal(result.response.status, 502);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.ok(json.error.message.includes("Too many requests"));
   } finally {
     restore();
@@ -913,7 +929,7 @@ test("Non-streaming: falls back to text field when no blocks", async () => {
       log: null,
     });
 
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxChatCompletionJson;
     assert.ok(json.choices[0].message.content.includes("Fallback answer text"));
   } finally {
     restore();
@@ -1146,7 +1162,7 @@ test("Error: Cloudflare 403 challenge returns a distinct (non-cookie) error", as
     });
 
     assert.equal(result.response.status, 403);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.match(json.error.message, /Cloudflare/i);
     assert.ok(!/session-token/i.test(json.error.message), "must not blame the cookie");
   } finally {
@@ -1168,7 +1184,7 @@ test("Error: TlsClientUnavailableError returns 502 with install hint", async () 
     });
 
     assert.equal(result.response.status, 502);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.match(json.error.message, /TLS client unavailable/i);
   } finally {
     restore();
