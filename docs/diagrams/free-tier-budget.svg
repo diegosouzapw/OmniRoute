@@ -22,7 +22,7 @@
     <clipPath id="barShapeF"><rect x="60" y="372" width="1080" height="18" rx="9"/></clipPath>
     <clipPath id="barRevF">
       <rect x="60" y="372" width="0" height="18">
-        <animate attributeName="width" values="0;1080;1080" keyTimes="0;0.22;1" dur="10s" repeatCount="indefinite"/>
+        <animate attributeName="width" values="1080;0;1080;1080" keyTimes="0;0.02;0.24;1" dur="10s" repeatCount="indefinite"/>
       </rect>
     </clipPath>
   </defs>
@@ -70,7 +70,7 @@
   <text x="704" y="116" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">THE HONEST MATH</text>
   <text x="704" y="172" font-family="Consolas, 'Courier New', monospace" font-size="34" font-weight="800" fill="#71717a">~10B</text>
   <line x1="698" y1="161" x2="810" y2="161" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-dasharray="112" stroke-dashoffset="112">
-    <animate attributeName="stroke-dashoffset" values="112;112;0;0" keyTimes="0;0.10;0.18;1" dur="10s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-dashoffset" values="0;112;0;0" keyTimes="0;0.10;0.18;1" dur="10s" repeatCount="indefinite"/>
   </line>
   <text x="836" y="156" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">every rate limit &#183; 24/7</text>
   <text x="836" y="176" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#ef4444" opacity="0.85">we don't publish that</text>
@@ -108,8 +108,8 @@
     </g>
   </g>
   <circle r="3.2" fill="#F7F6FC">
-    <animateMotion path="M 60,381 L 1140,381" keyPoints="0;1;1" keyTimes="0;0.22;1" calcMode="linear" dur="10s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.21;0.24;1" dur="10s" repeatCount="indefinite"/>
+    <animateMotion path="M 60,381 L 1140,381" keyPoints="0;0;1;1" keyTimes="0;0.02;0.24;1" calcMode="linear" dur="10s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.02;0.23;0.26;1" dur="10s" repeatCount="indefinite"/>
   </circle>
   <text x="60" y="416" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#71717a">each segment = one free pool &#183; widths floored so every provider shows &#183; honest numbers below</text>
 
