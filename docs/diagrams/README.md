@@ -38,6 +38,7 @@ inside GitHub's `<img>` sandbox:
 | [readme-hero.svg](./readme-hero.svg)                   | README.md (root) | Animated hero card (tagline, 268-provider/90+ free headline, full-width compression bar demo, 6 stat chips). Edit the SVG directly — there is no `.mmd` source.      |
 | [promise-pillars.svg](./promise-pillars.svg)           | README.md (root) | Animated "The Promise" 6-pillar card (12s border-highlight sweep). Edit the SVG directly — there is no `.mmd` source.                                                |
 | [why-pain-fix.svg](./why-pain-fix.svg)                 | README.md (root) | Animated "Why OmniRoute" 10-row pain-vs-fix ledger (15s green row sweep). Edit the SVG directly — there is no `.mmd` source.                                         |
+| [strategies-grid.svg](./strategies-grid.svg)           | README.md (root) | Animated 6×3 grid of all 18 routing-strategy flows (one micro-stage per strategy, staggered dot loops). Edit the SVG directly — there is no `.mmd` source.           |
 
 ## How to update
 
