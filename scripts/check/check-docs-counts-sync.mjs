@@ -24,6 +24,7 @@
 
 import fs from "node:fs";
 import { spawnSync } from "node:child_process";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -126,27 +127,54 @@ export function tallyDrift(checks, getContent) {
   return { strict, soft, lines };
 }
 
-// Reads the free-tier headline from the LIVE catalog (computeFreeModelTotals), never a
-// hardcoded copy — this is the number the dashboard and /api/free-tier/summary serve.
+// Reads every code-derived fact in ONE tsx subprocess — the same functions the app
+// serves at runtime, never a hardcoded copy. DATA_DIR is redirected to a throwaway dir
+// so importing the MCP tool modules cannot touch the operator's real SQLite file.
 // Returns null when tsx is unavailable so the gate degrades to a skip, not a false red.
-function readFreeTierTotals() {
-  const r = spawnSync(
-    process.execPath,
-    [
-      "--import",
-      "tsx/esm",
-      "-e",
-      'import {computeFreeModelTotals as f} from "./open-sse/config/freeModelCatalog.ts";' +
-        "const t=f();console.log(JSON.stringify({s:t.steadyRecurringTokens,m:t.firstMonthRealisticTokens,p:t.poolCount}));",
-    ],
-    { cwd: ROOT, encoding: "utf8", timeout: 120000 }
-  );
-  if (r.status !== 0 || !r.stdout) return null;
-  const line = r.stdout.trim().split("\n").pop();
+function readCodeFacts() {
+  const script = [
+    'import {computeFreeModelTotals} from "./open-sse/config/freeModelCatalog.ts";',
+    'import {ENGINE_IDS} from "./open-sse/services/compression/engineCatalog.ts";',
+    'import {CLI_TOOLS} from "./src/shared/constants/cliTools.ts";',
+    'import {countUniqueMcpTools} from "./open-sse/mcp-server/toolCount.ts";',
+    'import {MCP_TOOLS} from "./open-sse/mcp-server/schemas/tools.ts";',
+    'import {memoryTools} from "./open-sse/mcp-server/tools/memoryTools.ts";',
+    'import {skillTools} from "./open-sse/mcp-server/tools/skillTools.ts";',
+    'import {agentSkillTools} from "./open-sse/mcp-server/tools/agentSkillTools.ts";',
+    'import {githubSkillTools} from "./open-sse/mcp-server/tools/githubSkillTools.ts";',
+    'import {poolTools} from "./open-sse/mcp-server/tools/poolTools.ts";',
+    'import {gamificationTools} from "./open-sse/mcp-server/tools/gamificationTools.ts";',
+    'import {pluginTools} from "./open-sse/mcp-server/tools/pluginTools.ts";',
+    'import {notionTools} from "./open-sse/mcp-server/tools/notionTools.ts";',
+    'import {obsidianTools} from "./open-sse/mcp-server/tools/obsidianTools.ts";',
+    'import {compressionTools} from "./open-sse/mcp-server/tools/compressionTools.ts";',
+    "const cols={MCP_TOOLS,memoryTools,skillTools,agentSkillTools,githubSkillTools,poolTools,",
+    "gamificationTools,pluginTools,notionTools,obsidianTools,compressionTools};",
+    "const sc=new Set();",
+    "for(const col of Object.values(cols))for(const t of Object.values(col))",
+    "for(const x of (t?.scopes||[]))sc.add(x);",
+    "const t=computeFreeModelTotals();const cli=Object.values(CLI_TOOLS);",
+    "const by=(c)=>cli.filter(x=>x.category===c).length;",
+    'console.log("@@"+JSON.stringify({freeSteady:t.steadyRecurringTokens,',
+    "freeFirst:t.firstMonthRealisticTokens,freePools:t.poolCount,engines:ENGINE_IDS.length,",
+    "cliTotal:cli.length,cliCode:by('code'),cliAgent:by('agent'),",
+    "mcpTools:countUniqueMcpTools(cols),mcpScopes:sc.size}));",
+  ].join("");
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "docs-counts-"));
   try {
-    return JSON.parse(line);
+    const r = spawnSync(process.execPath, ["--import", "tsx/esm", "-e", script], {
+      cwd: ROOT,
+      encoding: "utf8",
+      timeout: 180000,
+      env: { ...process.env, DATA_DIR: tmp, APP_LOG_LEVEL: "silent" },
+    });
+    if (r.status !== 0 || !r.stdout) return null;
+    const line = r.stdout.split("\n").find((l) => l.startsWith("@@"));
+    return line ? JSON.parse(line.slice(2)) : null;
   } catch {
     return null;
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
   }
 }
 
@@ -191,6 +219,39 @@ export function checkFreeTierHeadline(content, totals) {
   };
 }
 
+// --- Generic numeric-claim gate ---------------------------------------------
+// Same principle as the free-tier headline: docs legitimately carry numbers that are
+// NOT the aggregate being gated (per-module tool counts like "Memory tool definitions
+// (3 tools)", the CLI catalog's "33 tools (25 CLI Code's ...)" next to the MCP total).
+// So every check declares what to skip rather than assuming any "N tools" is the claim.
+export function extractNumberClaims(content, { pattern, skipBefore, skipAfter }) {
+  const claims = [];
+  for (const m of content.matchAll(pattern)) {
+    const before = content.slice(Math.max(0, m.index - 40), m.index);
+    const after = content.slice(m.index + m[0].length, m.index + m[0].length + 40);
+    if (skipBefore && skipBefore.test(before)) continue;
+    if (skipAfter && skipAfter.test(after)) continue;
+    claims.push({ value: Number(m[1]), text: m[0].trim() });
+  }
+  return claims;
+}
+
+export function makeNumberClaimValidator(expected, opts) {
+  return (content) => {
+    const claims = extractNumberClaims(content, opts);
+    if (!claims.length) return { ok: true, detail: `no ${opts.what} claim in this file` };
+    const stale = claims.filter((c) => c.value !== expected);
+    if (!stale.length)
+      return { ok: true, detail: `${claims.length} ${opts.what} claim(s) match the code` };
+    return {
+      ok: false,
+      detail:
+        `stale ${opts.what}: ${[...new Set(stale.map((c) => `"${c.text}"`))].join(", ")} — ` +
+        `code has ${expected}`,
+    };
+  };
+}
+
 export function buildChecks() {
   return [
     {
@@ -207,16 +268,69 @@ export function buildChecks() {
       strict: true,
       files: ["docs/README.md", "docs/guides/I18N.md", "AGENTS.md"],
     },
-    (() => {
-      const totals = readFreeTierTotals();
-      return {
-        label: "Free-tier headline (live catalog)",
-        actual: totals ? `~${(totals.s / 1e9).toFixed(2)}B steady / ${totals.p} pools` : 0,
-        docKey: "free-tier headline",
+    ...(() => {
+      const f = readCodeFacts();
+      if (!f)
+        return [
+          {
+            label: "Code-derived counts",
+            actual: 0,
+            docKey: "code facts",
+            strict: false,
+            files: [],
+          },
+        ];
+      const claim = (expected, what, opts, files) => ({
+        label: `${what} (live code)`,
+        actual: expected,
+        docKey: what,
         strict: true,
-        files: ["README.md", "docs/reference/FREE_TIERS.md"],
-        validate: totals ? (content) => checkFreeTierHeadline(content, totals) : undefined,
-      };
+        files,
+        validate: makeNumberClaimValidator(expected, { what, ...opts }),
+      });
+      return [
+        {
+          label: "Free-tier headline (live catalog)",
+          actual: `~${(f.freeSteady / 1e9).toFixed(2)}B steady / ${f.freePools} pools`,
+          docKey: "free-tier headline",
+          strict: true,
+          files: ["README.md", "docs/reference/FREE_TIERS.md"],
+          validate: (content) =>
+            checkFreeTierHeadline(content, { s: f.freeSteady, m: f.freeFirst }),
+        },
+        claim(
+          f.engines,
+          "compression engines",
+          { pattern: /(\d+)[-\s](?:engine stack|composable engines|stacked engines)/gi },
+          ["README.md"]
+        ),
+        claim(
+          f.mcpTools,
+          "MCP tools",
+          {
+            pattern: /(\d+) tools/gi,
+            // per-module rows ("Memory tool definitions (3 tools)") and the CLI catalog
+            // total ("33 tools (25 CLI Code's …)") are not the MCP aggregate
+            // per-module rows read "… tool definitions (N tools" / "… management tools
+            // (N tools" — the word tool(s)/definitions sits right before the paren. The
+            // aggregate ("MCP Server (104 tools", "all 104 tools") never does.
+            skipBefore: /(tools?|definitions?)\s*\(\s*$/i,
+            skipAfter: /^\s*\(\d+ CLI/,
+          },
+          ["README.md", "CLAUDE.md", "AGENTS.md", "docs/frameworks/MCP-SERVER.md"]
+        ),
+        claim(f.mcpScopes, "MCP scopes", { pattern: /(\d+) scopes/gi }, [
+          "README.md",
+          "CLAUDE.md",
+          "AGENTS.md",
+        ]),
+        claim(
+          f.cliTotal,
+          "CLI tools",
+          { pattern: /(\d+) tools(?=\s*\(\d+ CLI)/gi },
+          ["README.md"]
+        ),
+      ];
     })(),
     {
       label: "Executors count",

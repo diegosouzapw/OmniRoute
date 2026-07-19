@@ -145,3 +145,54 @@ test("free-tier gate ignores non-headline figures", () => {
 test("free-tier gate passes when a file carries no headline at all", () => {
   assert.equal(checkHeadline("no figures here", TOTALS).ok, true);
 });
+
+// --- Generic numeric-claim gate (engines / MCP tools / scopes / CLI) --------
+// Extends the same drift guard to the counts that silently drifted in v3.8.49:
+// 10→11 engines, 94→104 MCP tools, 30→31 scopes, 26→33 CLI tools.
+import { makeNumberClaimValidator } from "../../scripts/check/check-docs-counts-sync.mjs";
+
+const makeValidator = makeNumberClaimValidator as (
+  expected: number,
+  opts: { what: string; pattern: RegExp; skipBefore?: RegExp; skipAfter?: RegExp }
+) => (content: string) => { ok: boolean; detail: string };
+
+test("MCP-tools gate accepts the aggregate and rejects a stale one", () => {
+  const v = makeValidator(104, {
+    what: "MCP tools",
+    pattern: /(\d+) tools/gi,
+    skipBefore: /(tools?|definitions?)\s*\(\s*$/i,
+    skipAfter: /^\s*\(\d+ CLI/,
+  });
+  assert.equal(v("MCP Server (104 tools)").ok, true);
+  assert.equal(v("with 104 tools total").ok, true);
+  assert.equal(v("MCP Server (94 tools)").ok, false);
+});
+
+test("MCP-tools gate ignores per-module counts and the CLI catalog total", () => {
+  const v = makeValidator(104, {
+    what: "MCP tools",
+    pattern: /(\d+) tools/gi,
+    skipBefore: /(tools?|definitions?)\s*\(\s*$/i,
+    skipAfter: /^\s*\(\d+ CLI/,
+  });
+  // "Memory tool definitions (3 tools)" and "33 tools (25 CLI Code's)" are not the MCP total
+  assert.equal(v("Memory tool definitions (3 tools)").ok, true);
+  assert.equal(v("management tools (8 tools)").ok, true);
+  assert.equal(v("all 33 tools (25 CLI Code's + 8 CLI Agents)").ok, true);
+});
+
+test("compression-engines and CLI-tools gates catch their v3.8.49 drift", () => {
+  const eng = makeValidator(11, {
+    what: "compression engines",
+    pattern: /(\d+)[-\s](?:engine stack|composable engines|stacked engines)/gi,
+  });
+  assert.equal(eng("11-engine stack").ok, true);
+  assert.equal(eng("10-engine stack").ok, false);
+
+  const cli = makeValidator(33, {
+    what: "CLI tools",
+    pattern: /(\d+) tools(?=\s*\(\d+ CLI)/gi,
+  });
+  assert.equal(cli("all 33 tools (25 CLI Code's)").ok, true);
+  assert.equal(cli("all 26 tools (25 CLI Code's)").ok, false);
+});
