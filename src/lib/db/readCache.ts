@@ -102,6 +102,28 @@ export async function getCachedProviderConnections(
   connectionsCache.set(cacheKey, value);
   return value;
 }
+
+const rawConnectionsCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS);
+
+/**
+ * Cached wrapper for getRawProviderConnections.
+ * Same 5s TTL as the encrypted variant but preserves ciphertext fields
+ * for lazy decryption — used by the auth selection hot path where 10k+
+ * connections are filtered to find the winner but only 1 row needs
+ * credential decryption.
+ */
+export async function getCachedRawProviderConnections(
+  filter?: Record<string, unknown>
+): Promise<unknown[]> {
+  const key = JSON.stringify(filter ?? {});
+  const cached = rawConnectionsCache.get(key);
+  if (cached !== undefined) return cached;
+  const { getRawProviderConnections } = await import("./providers");
+  const rows = await getRawProviderConnections(filter);
+  rawConnectionsCache.set(key, rows);
+  return rows;
+}
+
 const connectionByIdCache = new TTLCache<Record<string, unknown> | null>(CONNECTIONS_TTL_MS);
 const nodesCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS);
 

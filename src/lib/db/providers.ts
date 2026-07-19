@@ -80,6 +80,53 @@ export async function getProviderConnections(filter: JsonRecord = {}) {
   });
 }
 
+/**
+ * Same as getProviderConnections but WITHOUT decryptConnectionFields.
+ * Returns raw rows with encrypted credential fields intact — callers
+ * that only need metadata (id, priority, backoffLevel, etc.) avoid
+ * the O(n) AES-GCM decrypt cost on every cache fill.
+ *
+ * Used by the lazy-decryption path in auth selection (auth.ts) where
+ * 10k+ connections are filtered in JS but only 1 needs its apiKey
+ * decrypted.
+ */
+export async function getRawProviderConnections(filter: JsonRecord = {}) {
+  const db = getDbInstance() as unknown as DbLike;
+  let sql = "SELECT * FROM provider_connections";
+  const conditions: string[] = [];
+  const params: Record<string, unknown> = {};
+
+  if (filter.provider) {
+    conditions.push("provider = @provider");
+    params.provider = filter.provider;
+  }
+  if (filter.isActive !== undefined) {
+    conditions.push("is_active = @isActive");
+    params.isActive = filter.isActive ? 1 : 0;
+  }
+  if (filter.authType) {
+    conditions.push("auth_type = @authType");
+    params.authType = filter.authType;
+  }
+
+  if (conditions.length > 0) {
+    sql += " WHERE " + conditions.join(" AND ");
+  }
+  sql += " ORDER BY priority ASC, updated_at DESC";
+
+  const rows = db.prepare(sql).all(params);
+  return rows.map((r) => {
+    const camelRow = rowToCamel(r);
+    return withNullableRateLimitOverrides(
+      withNullableQuotaWindowThresholds(
+        withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
+        camelRow
+      ),
+      camelRow
+    );
+  });
+ }
+
 export async function getProviderConnectionById(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const row = db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(id);
