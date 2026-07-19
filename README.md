@@ -194,6 +194,7 @@ All **18** strategies — mix & match per combo step:
 | 18  | `pipeline`          | Chain steps — each target's output feeds the next one 🔗                                                                                                                 |
 
 <img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="All 18 combo routing strategies animated, one tile per strategy showing the flow it executes: priority (drain the 1st, then the next), fill-first (fill a target's quota, then move on), weighted (weighted random), round-robin (cycle in order), p2c (pick 2, take the lighter), least-used (lowest load wins), random (uniform, deduped), strict-random (repeats allowed), cost-optimized (cheapest $ per request), headroom (most remaining quota), reset-window (resets soonest → use it), reset-aware (rank by reset, short first), context-relay (hand off long context), context-optimized (fit the context size), lkgp (sticky to last success), auto (live 12-factor scoring), fusion (panel + judge → one answer), pipeline (each output feeds the next)."/>
+
 <sub>The Auto-Combo engine scores every candidate on **12 factors** (health, quota, cost, latency, success rate, freshness…) — see [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
 
 ##
