@@ -2296,6 +2296,29 @@
       "stream": "https://ai.hackclub.com/proxy/v1/chat/completions"
     }
   },
+  "hailuo-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://www.hailuo.ai",
+      "stream": "https://www.hailuo.ai"
+    }
+  },
   "haiper": {
     "format": "openai",
     "headers": {
