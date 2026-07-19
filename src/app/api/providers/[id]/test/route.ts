@@ -24,6 +24,7 @@ import {
 } from "@/lib/oauth/gitlab";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { removeConnectionHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
+import { classifyAmbiguousOrAuthError, type ClassifyFailureArgs } from "./mistralAmbiguousAuth";
 
 // Bound the OAuth probe so a hung upstream can't block the connection-test queue
 // forever (#1449). Mirrors the 30s timeout the API-key path uses via validateProviderApiKey.
@@ -188,12 +189,8 @@ export function classifyFailure({
   statusCode = null,
   refreshFailed = false,
   unsupported = false,
-}: {
-  error: string;
-  statusCode?: number | null;
-  refreshFailed?: boolean;
-  unsupported?: boolean;
-}) {
+  provider,
+}: ClassifyFailureArgs) {
   const message = toSafeMessage(error, "Connection test failed");
   const normalized = message.toLowerCase();
   const numericStatus = Number.isFinite(statusCode) ? Number(statusCode) : null;
@@ -214,7 +211,7 @@ export function classifyFailure({
   }
 
   if (numericStatus === 401 || numericStatus === 403) {
-    return makeDiagnosis("upstream_auth_error", "upstream", message, String(numericStatus));
+    return classifyAmbiguousOrAuthError(provider, normalized, message, numericStatus);
   }
 
   if (numericStatus === 429) {
@@ -722,14 +719,14 @@ async function testApiKeyConnection(connection: any) {
     return {
       valid: false,
       error,
-      diagnosis: classifyFailure({ error, unsupported: true }),
+      diagnosis: classifyFailure({ error, unsupported: true, provider: connection.provider }),
     };
   }
 
   const error = result.valid ? null : result.error || "Invalid API key";
   const diagnosis = result.valid
     ? makeDiagnosis("ok", "upstream", null, null)
-    : classifyFailure({ error });
+    : classifyFailure({ error, statusCode: result.statusCode, provider: connection.provider });
 
   return {
     valid: !!result.valid,
@@ -813,7 +810,7 @@ export async function testSingleConnection(connectionId: string, validationModel
     result.diagnosis ||
     (result.valid
       ? makeDiagnosis("ok", "local", null, null)
-      : classifyFailure({ error: result.error, statusCode: result.statusCode }));
+      : classifyFailure({ error: result.error, statusCode: result.statusCode, provider }));
 
   const updateData: Record<string, any> = {
     testStatus: result.valid ? "active" : "error",
