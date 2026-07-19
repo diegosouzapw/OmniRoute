@@ -81,7 +81,7 @@ test("provisionDnsEntries: a failing agent/custom step does not stop the others 
     },
     addHostsDns: async (hosts: string[]) => {
       // Custom-hosts call must still happen even after default + agent errors.
-      if (hosts.includes("custom.example.com")) customCalled = true;
+      if (hosts.some((h) => h === "custom.example.com")) customCalled = true;
     },
     getAgentStates: () =>
       [{ dns_enabled: true, agent_id: "__nonexistent_agent__" }] as never,
