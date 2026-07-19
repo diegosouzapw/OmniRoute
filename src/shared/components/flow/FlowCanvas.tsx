@@ -121,6 +121,7 @@ export function FlowCanvas({
     <div ref={containerRef} className={className}>
       <ReactFlow
         key={fitKey}
+        className="omniroute-flow"
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}

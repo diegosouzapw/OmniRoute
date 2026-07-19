@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
 import { normalizeReasoningRequest } from "@/shared/reasoning/effortStandardization";
-import { resolveRoutingModel } from "./resolveRoutingModel";
+import { resolveRoutingModel, RoutingModelOps } from "./resolveRoutingModel";
 import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
@@ -22,9 +22,8 @@ import { resolveBareModelToConnectionDefault } from "@omniroute/open-sse/service
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
-import { isSelfInflictedUpstreamTimeout } from "@omniroute/open-sse/handlers/chatCore/cooldownClassification.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
-import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
+import { handleComboChat, shouldSkipConnDisable } from "@omniroute/open-sse/services/combo.ts";
 import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
@@ -51,6 +50,7 @@ import {
 import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
 import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
+import { rejectPeerRequest } from "@/shared/resilience/peerRouting";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import { updateCombo } from "@/lib/db/combos";
 import { isModelAllowedForKey } from "@/lib/db/apiKeys";
@@ -83,6 +83,7 @@ import {
   withCorrelationId,
 } from "./chatHelpers";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
+import { getComboFailureLogError, isRequestScopedUpstreamFailure } from "./comboFailureLogging";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
@@ -221,6 +222,9 @@ export async function handleChat(
   preParsedBody: any = null,
   correlationId?: string
 ) {
+  const peerRejection = rejectPeerRequest(request?.headers, log.warn, errorResponse);
+  if (peerRejection) return peerRejection;
+
   // Pipeline: Start request telemetry
   const reqId = correlationId || generateRequestId();
   const telemetry = new RequestTelemetry(reqId);
@@ -370,6 +374,8 @@ export async function handleChat(
   // resolveRoutingModel). The resolved model still passes through
   // enforceApiKeyPolicy below, so it cannot bypass per-key allowlists.
   let modelStr = resolveRoutingModel(request, body);
+  // Align body.model with the routing model immediately (see applyRoutingModelAlignment).
+  body = RoutingModelOps.align(body, modelStr, log);
 
   // Count messages (support both messages[] and input[] formats)
   const msgCount = body.messages?.length || body.input?.length || 0;
@@ -472,24 +478,19 @@ export async function handleChat(
       preCallGuardrails.message || "Request rejected: suspicious content detected"
     );
   }
+  // Snapshot model BEFORE the guardrail payload (see reconcileGuardrailReroute).
+  const modelBeforeGuardrails =
+    typeof body?.model === "string" && body.model.length > 0 ? body.model : modelStr;
   body = preCallGuardrails.payload;
-  if (body?.model && typeof body.model === "string" && body.model !== modelStr) {
-    const rerouteModel = body.model;
-    // A guardrail (e.g. Vision Bridge auto-reroute) can swap body.model AFTER
-    // enforceApiKeyPolicy already validated modelStr's allowlist/budget above.
-    // Re-check the new target against the same per-key allowlist so a
-    // policy-restricted key cannot be silently routed to an unchecked model.
-    const rerouteAllowed = await isModelAllowedForKey(apiKey, rerouteModel);
-    if (!rerouteAllowed) {
-      log.warn(
-        "POLICY",
-        `Guardrail reroute to "${rerouteModel}" rejected by API key policy (key=${apiKeyInfo?.id || "unknown"}); keeping original model "${modelStr}"`
-      );
-      body = { ...body, model: modelStr };
-    } else {
-      modelStr = rerouteModel;
-    }
-  }
+  ({ body, modelStr } = await RoutingModelOps.reconcileGuardrailReroute({
+    body,
+    modelBeforeGuardrails,
+    modelStr,
+    apiKey,
+    apiKeyId: apiKeyInfo?.id,
+    isModelAllowedForKey,
+    log,
+  }));
   telemetry.endPhase();
 
   // T08: per-key active session limit (0 = unlimited).
@@ -530,9 +531,13 @@ export async function handleChat(
 
   // Apply hook mutations
   body = hookCtx.body as any;
-  if (hookCtx.model && hookCtx.model !== modelStr) {
-    modelStr = hookCtx.model;
-  }
+  ({ body, modelStr } = RoutingModelOps.reconcileModelOverride({
+    body,
+    modelStr,
+    overrideModel: hookCtx.model,
+    logTag: "Hook model override",
+    log,
+  }));
 
   // Short-circuit if a hook returned a direct response
   if (hookResponse) {
@@ -922,7 +927,7 @@ export async function handleChat(
           requestedModel: body?.model || resolvedModelStr,
           provider: "-",
           endpoint: clientRawRequest?.endpoint,
-          error: `[${response.status}] Combo "${combo.name}" failed — all targets exhausted`,
+          error: await getComboFailureLogError(response, combo.name),
           comboName: combo.name,
           apiKeyId: apiKeyInfo?.id ?? null,
           apiKeyName: apiKeyInfo?.name ?? null,
@@ -1373,7 +1378,7 @@ async function handleSingleModelChat(
           refreshedCredentials
         );
       }
-      const proxyInfo = await safeResolveProxy(credentials.connectionId, apiKeyInfo?.id);
+      const proxyInfo = await safeResolveProxy(credentials.connectionId, apiKeyInfo?.id, provider);
       // #5217: sink for the proxy the executor pins internally (e.g. OpencodeExecutor
       // rotation) so the egress log below reflects the real egress, not "direct".
       const appliedProxySink: { proxy: unknown } = { proxy: null };
@@ -1726,13 +1731,7 @@ async function handleSingleModelChat(
         ((credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? []).length >
           0 || connectionHasExtraKeys(credentials.connectionId);
       const is401 = result.status === 401;
-      // Our own timeout fired on a slow upstream; don't cool down a healthy account.
-      const skipConnectionDisable =
-        result.status === 499 ||
-        result.errorCode === "client_disconnected" ||
-        result.errorType === "client_disconnected" ||
-        (is401 && hasExtraKeys) ||
-        isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider);
+      const skipConnectionDisable = shouldSkipConnDisable(result, is401, hasExtraKeys, provider);
 
       const { shouldFallback, cooldownMs } = skipConnectionDisable
         ? { shouldFallback: false, cooldownMs: 0 }
@@ -1785,6 +1784,7 @@ async function handleSingleModelChat(
       if (
         !forceLiveComboTest &&
         !isCombo &&
+        !isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) &&
         PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
       ) {
         breaker._onFailure();

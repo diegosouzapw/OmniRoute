@@ -2575,8 +2575,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.kimi.com/coding/v1/messages",
-      "stream": "https://api.kimi.com/coding/v1/messages"
+      "nonStream": "https://api.kimi.com/coding/v1/messages?beta=true",
+      "stream": "https://api.kimi.com/coding/v1/messages?beta=true"
     }
   },
   "kimi-web": {

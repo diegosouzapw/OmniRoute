@@ -52,27 +52,58 @@ class is not enough.
 
 RTK loads filters in this order:
 
-1. Project filters from `.rtk/filters.json`, only when trusted.
-2. Global filters from `DATA_DIR/rtk/filters.json`.
+1. Project filters from `.rtk/filters.toml` and `.rtk/filters.json`, only when trusted.
+2. Global filters from `DATA_DIR/rtk/filters.toml` and `DATA_DIR/rtk/filters.json`.
 3. Built-in filters from `open-sse/services/compression/engines/rtk/filters/`.
+
+Within the same scope, RTK TOML schema v1 filters take precedence over OmniRoute JSON filters. TOML
+`match_command` expressions are checked before command-type matching so an imported command-specific
+filter can override a broader filter in that scope. Project scope still takes precedence over global
+scope, regardless of file format.
 
 Project filters are intentionally trust-gated because regex filters can change how tool output is
 shown to agents. A project filter file is accepted when one of these is true:
 
 - `rtkConfig.trustProjectFilters` is `true`.
 - `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS=1` is set.
-- `.rtk/trust.json` contains the SHA-256 hash of `.rtk/filters.json`.
+- `.rtk/trust.json` contains the matching SHA-256 hash for the project filter file.
 
 Trust file example:
 
 ```json
 {
-  "filtersSha256": "0123456789abcdef..."
+  "filtersSha256": "0123456789abcdef...",
+  "filtersTomlSha256": "fedcba9876543210..."
 }
 ```
 
+The hashes are separate: `filtersSha256` trusts `.rtk/filters.json`, while `filtersTomlSha256`
+trusts `.rtk/filters.toml`. Editing either file invalidates only its own trust entry. Global files
+are administrator-installed and use the existing global-filter trust behavior.
+
 Custom filters can be one filter object or an array of filter objects. Invalid custom filters are
 skipped and reported by `/api/context/rtk/filters` diagnostics. Invalid built-in filters fail fast.
+
+## RTK TOML schema v1 compatibility
+
+OmniRoute can parse, validate, test, and install declarative filter files using RTK TOML schema v1.
+The supported fields are `description`, `match_command`, `strip_ansi`, `filter_stderr`,
+`strip_lines_matching`, `keep_lines_matching`, `replace`, `match_output`, `truncate_lines_at`,
+`head_lines`, `tail_lines`, `max_lines`, `on_empty`, and `[[tests.<filter>]]` inline tests.
+Unknown fields, invalid or unsafe regular expressions, simultaneous strip/keep rules, files over
+1 MiB, and references to unknown filters are rejected. A file whose inline tests fail can be
+validated for inspection but cannot be installed or loaded. Custom-file load failures remain
+fail-open: the invalid file is skipped and the remaining filters continue to work.
+
+OmniRoute receives tool output after the client has already captured it, so `filter_stderr = true`
+cannot change process capture. The field is accepted as a no-op and validation returns a warning.
+This is intentionally described as **RTK TOML schema v1 compatibility**, not full compatibility
+with the RTK executable, shell hooks, Rust command implementations, or its trust-store layout.
+
+The dashboard's advanced RTK view accepts pasted or uploaded TOML. Validation is read-only.
+Installation writes `DATA_DIR/rtk/filters.toml` atomically with restrictive permissions and refreshes
+the live filter catalog without a restart. Replacing an existing file requires explicit `overwrite`
+confirmation and creates `DATA_DIR/rtk/filters.toml.bak` first.
 
 ## Filter DSL
 
@@ -216,6 +247,7 @@ round-trips through the same store and survives a restart.
 | `/api/context/rtk/config`          | GET    | Read RTK config                              |
 | `/api/context/rtk/config`          | PUT    | Update RTK config                            |
 | `/api/context/rtk/filters`         | GET    | List filter catalog and load diagnostics     |
+| `/api/context/rtk/import`          | POST   | Validate or install RTK TOML schema v1 files |
 | `/api/context/rtk/test`            | POST   | Preview RTK compression for one text payload |
 | `/api/context/rtk/raw-output/[id]` | GET    | Read retained redacted raw output            |
 | `/api/compression/preview`         | POST   | Preview any compression mode                 |
@@ -252,6 +284,18 @@ Compression preview payload:
 ```
 
 Management routes require dashboard management auth or the matching API-key policy.
+
+RTK TOML validation payload:
+
+```json
+{
+  "action": "validate",
+  "content": "schema_version = 1\n\n[filters.my-tool]\nmatch_command = \"^my-tool\\\\b\"\nmax_lines = 20\n"
+}
+```
+
+Use `"action": "install"` to install the validated file globally. Add `"overwrite": true` only
+after reviewing and confirming replacement of an existing global file.
 
 ## Raw Output Recovery
 

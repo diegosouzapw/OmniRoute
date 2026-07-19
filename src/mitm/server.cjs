@@ -47,6 +47,7 @@ const ROUTER_BASE_URL = (
   .trim()
   .replace(/\/+$/, "");
 const ROUTER_URL = `${ROUTER_BASE_URL}/v1/chat/completions`;
+const ROUTER_MESSAGES_URL = `${ROUTER_BASE_URL}/v1/messages`;
 const API_KEY = process.env.ROUTER_API_KEY;
 const DATA_DIR = getDataDir();
 const DB_FILE = path.join(DATA_DIR, "db.json");
@@ -138,7 +139,7 @@ const bypassShim = require("./_internal/bypass.cjs");
 const ingestShim = require("./_internal/ingest.cjs");
 const forwardShim = require("./_internal/forwardTarget.cjs");
 const aliasConfigShim = require("./_internal/aliasConfig.cjs");
-const routeAliasShim = require("./_internal/routeAlias.cjs");
+const standaloneRoutingShim = require("./_internal/standaloneRouting.cjs");
 
 // Inspector capture (D4 fallback). The standalone proxy intercepts AgentBridge
 // traffic inline (no MitmHandlerBase / agentBridgeHook), so it posts captured
@@ -238,9 +239,6 @@ const sslOptions = {
   key: fs.readFileSync(path.join(certDir, "server.key")),
   cert: fs.readFileSync(path.join(certDir, "server.crt")),
 };
-
-// Chat endpoints that should be intercepted
-const CHAT_URL_PATTERNS = [":generateContent", ":streamGenerateContent"];
 
 // Log directory for request/response dumps
 const LOG_DIR = path.join(__dirname, "../../logs/mitm");
@@ -344,8 +342,8 @@ function getSqliteDb() {
  * shape. The route-only namespace is reserved for client-facing OmniRoute model ids;
  * fall back to `mitmAlias` until a route-alias writer is available.
  */
-function getMappedOverride(model) {
-  return routeAliasShim.resolveMappedOverride(model, {
+function getMappedOverride(model, agentId = "antigravity") {
+  return standaloneRoutingShim.resolveMappedOverride(model, agentId, {
     fs,
     dbFile: DB_FILE,
     getSqliteDb,
@@ -468,7 +466,13 @@ async function intercept(req, res, bodyBuffer, override, sourceModel) {
     // the IDE gets its own format back; plain OpenAI bodies still go to
     // chat/completions. Without this, cloudcode hits chat/completions and 400s
     // on the missing `messages` field.
-    const forward = forwardShim.resolveForwardTarget(ROUTER_BASE_URL, body);
+    const forward = standaloneRoutingShim.resolveForwardTargetForAgent({
+      routerBaseUrl: ROUTER_BASE_URL,
+      routerMessagesUrl: ROUTER_MESSAGES_URL,
+      body,
+      agentId,
+      fallbackResolver: forwardShim.resolveForwardTarget,
+    });
     vlog(1, `[MITM] → forward ${forward.format} ${forward.url}`);
 
     upstreamStartedAt = Date.now();
@@ -576,14 +580,16 @@ const server = https.createServer(sslOptions, async (req, res) => {
     return passthrough(req, res, bodyBuffer);
   }
 
-  const isChatRequest = CHAT_URL_PATTERNS.some((p) => req.url.includes(p));
+  const agentId = TARGET_HOST_AGENT.get(host) || "antigravity";
+  const routeConfig = standaloneRoutingShim.getAgentRouteConfig(agentId);
+  const isChatRequest = routeConfig.chatUrlPatterns.some((p) => req.url.includes(p));
 
   if (!isChatRequest) {
     vlog(1, `[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
     return passthrough(req, res, bodyBuffer);
   }
 
-  const mappedOverride = getMappedOverride(model);
+  const mappedOverride = getMappedOverride(model, agentId);
 
   if (!mappedOverride) {
     vlog(1, `[MITM] → PASSTHROUGH (model "${model}" has no MITM alias mapping)`);
@@ -596,7 +602,7 @@ const server = https.createServer(sslOptions, async (req, res) => {
 
   vlog(
     1,
-    `[MITM] INTERCEPTED ${model} → ${mappedOverride.model || model}` +
+    `[MITM] INTERCEPTED ${agentId} ${model} → ${mappedOverride.model || model}` +
       (mappedOverride.reasoningEffort ? ` (reasoningEffort=${mappedOverride.reasoningEffort})` : "")
   );
   return intercept(req, res, bodyBuffer, mappedOverride, model);

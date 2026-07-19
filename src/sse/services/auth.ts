@@ -958,6 +958,10 @@ const markMutexes = new Map<string, Promise<void>>();
 // Re-export for backwards compat with existing test imports.
 export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 
+const PROVIDER_SEARCH_PAIRS: string[][] = [
+  ["nvidia", "nvidia_nim"],
+  ["kimi-coding", "kimi-coding-apikey"],
+];
 /**
  * Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup
  */
@@ -965,12 +969,8 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
   const canonicalProvider = resolveProviderId(provider);
   const canonicalAlias = getProviderAlias(canonicalProvider);
 
-  if (provider === "nvidia") {
-    return ["nvidia", "nvidia_nim"];
-  }
-  if (provider === "nvidia_nim") {
-    return ["nvidia_nim", "nvidia"];
-  }
+  const pair = PROVIDER_SEARCH_PAIRS.find((aliases) => aliases.includes(provider));
+  if (pair) return pair[0] === provider ? pair : [pair[1], pair[0]];
 
   const searchPool = new Set([provider, canonicalProvider, canonicalAlias].filter(Boolean));
 
