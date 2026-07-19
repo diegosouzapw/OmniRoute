@@ -107,6 +107,43 @@ export async function getCachedProviderConnections(
   connectionsCache.set("all", value);
   return value;
 }
+const connectionByIdCache = new TTLCache<Record<string, unknown> | null>(CONNECTIONS_TTL_MS);
+const nodesCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS);
+
+/**
+ * Cached wrapper for getProviderConnectionById.
+ * Keyed by connection ID, shared 5s TTL.
+ * Invalidated on every provider_connections write.
+ */
+export async function getCachedProviderConnectionById(
+  id: string
+): Promise<Record<string, unknown> | null> {
+  const cached = connectionByIdCache.get(id);
+  if (cached !== undefined) return cached;
+
+  const { getProviderConnectionById } = await import("@/lib/db/providers");
+  const value = await getProviderConnectionById(id);
+  connectionByIdCache.set(id, value);
+  return value;
+}
+
+/**
+ * Cached wrapper for getProviderNodes.
+ * Keyed by JSON-serialized filter, shared 5s TTL.
+ * Invalidated on every provider_nodes write.
+ */
+export async function getCachedProviderNodes(
+  filter?: Record<string, unknown>
+): Promise<unknown[]> {
+  const cacheKey = filter ? JSON.stringify(filter) : "all";
+  const cached = nodesCache.get(cacheKey);
+  if (cached) return cached;
+
+  const { getProviderNodes } = await import("@/lib/db/providers");
+  const value = await getProviderNodes(filter);
+  nodesCache.set(cacheKey, value);
+  return value;
+}
 
 // ──────────────── LKGP Cache Wrappers ────────────────
 
@@ -188,12 +225,18 @@ export function getModelCatalogCacheVersion(): number {
 
 /**
  * Invalidate all caches (call after writes to any of: settings, pricing,
- * connections, combos).
+ * connections, combos, nodes).
  */
-export function invalidateDbCache(scope?: "settings" | "pricing" | "connections" | "combos"): void {
+export function invalidateDbCache(
+  scope?: "settings" | "pricing" | "connections" | "combos" | "nodes"
+): void {
   if (!scope || scope === "settings") settingsCache.invalidate();
   if (!scope || scope === "pricing") pricingCache.invalidate();
-  if (!scope || scope === "connections") connectionsCache.invalidate();
+  if (!scope || scope === "connections") {
+    connectionsCache.invalidate();
+    connectionByIdCache.invalidate();
+  }
+  if (!scope || scope === "nodes") nodesCache.invalidate();
   if (!scope || scope === "combos") combosCacheVersion++;
   // Settings/connections/combos all feed the unified model catalog builder
   // (blockedProviders + hidePaidModels, provider connections + excludedModels,

@@ -14,7 +14,7 @@
  */
 
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
-import { getProviderConnectionById, resolveProxyForConnection } from "@/lib/localDb";
+import { getCachedProviderConnectionById, resolveProxyForConnection } from "@/lib/localDb";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { safePercentage } from "@/shared/utils/formatting";
 import {
@@ -453,7 +453,7 @@ async function refreshEntry(entry: QuotaCacheEntry) {
   refreshingSet.add(entry.connectionId);
 
   try {
-    const connection = await getProviderConnectionById(entry.connectionId);
+    const connection = await getCachedProviderConnectionById(entry.connectionId);
     if (!connection || connection.authType !== "oauth" || !connection.isActive) {
       cache.delete(entry.connectionId);
       return;
