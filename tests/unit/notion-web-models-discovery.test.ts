@@ -82,6 +82,40 @@ test("resolveNotionCodename maps prefixes, slugs, and display names to food code
   assert.equal(notionModels.resolveNotionCodename(""), "");
 });
 
+test("listNotionDisabledModels surfaces plan-locked Fable 5 without listing it as enabled", () => {
+  const payload = {
+    models: [
+      {
+        model: "acai-budino-high",
+        modelMessage: "Fable 5",
+        modelFamily: "anthropic",
+        isDisabled: true,
+        disabledReason: "business_or_enterprise_plan_required",
+      },
+      {
+        model: "orange-mousse",
+        modelMessage: "GPT-5.6 Sol",
+        modelFamily: "openai",
+        isDisabled: false,
+      },
+    ],
+  };
+  const disabled = notionModels.listNotionDisabledModels(payload);
+  assert.equal(disabled.length, 1);
+  assert.equal(disabled[0].id, "fable-5");
+  assert.equal(disabled[0].name, "Fable 5");
+  assert.equal(disabled[0].notionCodename, "acai-budino-high");
+  assert.equal(disabled[0].reason, "business_or_enterprise_plan_required");
+
+  const enabled = notionModels.parseNotionAvailableModels(payload);
+  assert.equal(enabled.some((m) => m.id === "fable-5" || m.id === "acai-budino-high"), false);
+  assert.ok(enabled.some((m) => m.id === "gpt-5.6-sol"));
+
+  const warning = notionModels.formatNotionDisabledModelsWarning(disabled);
+  assert.match(warning, /Fable 5/i);
+  assert.match(warning, /business or enterprise/i);
+});
+
 test("parseNotionAvailableModels returns empty for invalid payloads", () => {
   assert.deepEqual(notionModels.parseNotionAvailableModels(null), []);
   assert.deepEqual(notionModels.parseNotionAvailableModels({}), []);

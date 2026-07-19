@@ -149,12 +149,72 @@ export function catalogIdForNotionModel(codename: string, displayName: string): 
   return codename;
 }
 
+/** Disabled / plan-locked row from getAvailableModels (e.g. Fable 5). */
+export type NotionDisabledModelSummary = {
+  id: string;
+  name: string;
+  notionCodename: string;
+  reason: string;
+};
+
+/**
+ * Collect models Notion returned with `isDisabled: true` (not listed in the
+ * OpenAI catalog). Used for warnings — e.g. Fable 5 with
+ * `disabledReason: business_or_enterprise_plan_required`.
+ */
+export function listNotionDisabledModels(data: unknown): NotionDisabledModelSummary[] {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return [];
+  const list = (data as { models?: unknown }).models;
+  if (!Array.isArray(list)) return [];
+
+  const out: NotionDisabledModelSummary[] = [];
+  const seen = new Set<string>();
+  for (const entry of list) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const row = entry as Record<string, unknown>;
+    if (row.isDisabled !== true) continue;
+    const codename = typeof row.model === "string" ? row.model.trim() : "";
+    if (!codename || seen.has(codename)) continue;
+    seen.add(codename);
+    const name = trimmedOrFallback(row.modelMessage, codename);
+    const reason =
+      typeof row.disabledReason === "string" && row.disabledReason.trim()
+        ? row.disabledReason.trim()
+        : "disabled";
+    out.push({
+      id: catalogIdForNotionModel(codename, name),
+      name,
+      notionCodename: codename,
+      reason,
+    });
+  }
+  return out;
+}
+
+/** Human-readable warning for disabled/plan-locked models (empty when none). */
+export function formatNotionDisabledModelsWarning(
+  disabled: readonly NotionDisabledModelSummary[]
+): string {
+  if (!disabled.length) return "";
+  const parts = disabled.map((d) => {
+    const reason = d.reason.replace(/_/g, " ");
+    return `${d.name} (${reason})`;
+  });
+  return (
+    `Notion hid ${disabled.length} model(s) as unavailable for this account/workspace: ` +
+    `${parts.join("; ")}. ` +
+    `They appear in the web picker only when your plan unlocks them ` +
+    `(e.g. Fable 5 requires a Notion Business or Enterprise plan).`
+  );
+}
+
 /**
  * Parse one getAvailableModels list entry into a model, or `null` when the entry
  * should be skipped (disabled, malformed, or a duplicate already in `seen`).
  *
- * Restricted-access models (e.g. Fable 5 / acai-budino-high) are kept when
- * `isDisabled !== true` — the web picker lists them the same way.
+ * Plan-locked models (e.g. Fable 5 with `isDisabled: true` +
+ * `disabledReason: business_or_enterprise_plan_required`) are skipped — they
+ * cannot be used for inference. See `listNotionDisabledModels` for diagnostics.
  *
  * Catalog `id` is the real picker label slug; `notionCodename` is what
  * runInferenceTranscript requires.
@@ -165,6 +225,8 @@ function parseNotionModelEntry(
 ): NotionDiscoveredModel | null {
   if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
   const row = entry as Record<string, unknown>;
+  // Notion still returns plan-locked models (Fable 5) with isDisabled=true.
+  // Listing them in /v1/models would invite failed chat requests.
   if (row.isDisabled === true) return null;
 
   const codename = typeof row.model === "string" ? row.model.trim() : "";
@@ -338,7 +400,16 @@ export async function discoverNotionWebModels(opts: {
   token: string;
   fetchImpl?: typeof fetch;
   signal?: AbortSignal | null;
-}): Promise<{ models: NotionDiscoveredModel[]; spaceId: string; source: "api" }> {
+}): Promise<{
+  models: NotionDiscoveredModel[];
+  spaceId: string;
+  source: "api";
+  /** Populated when Notion returned plan-locked / disabled models (e.g. Fable 5). */
+  warning?: string;
+  disabledModels?: NotionDisabledModelSummary[];
+  /** True when spaceId came from getSpaces because cookie lacked space_id. */
+  spaceIdFromGetSpaces?: boolean;
+}> {
   const fetchImpl = opts.fetchImpl ?? fetch;
   const cookie = normalizeNotionWebCookie(opts.token);
   if (!cookie) {
@@ -346,8 +417,10 @@ export async function discoverNotionWebModels(opts: {
   }
 
   let spaceId = extractSpaceIdFromNotionCookie(cookie);
+  let spaceIdFromGetSpaces = false;
   if (!spaceId) {
     spaceId = await resolveNotionSpaceIdFromGetSpaces(cookie, fetchImpl);
+    spaceIdFromGetSpaces = !!spaceId;
   }
   if (!spaceId) {
     throw new Error(
@@ -380,7 +453,27 @@ export async function discoverNotionWebModels(opts: {
   if (models.length === 0) {
     throw new Error("getAvailableModels returned no enabled models");
   }
-  return { models, spaceId, source: "api" };
+
+  const disabledModels = listNotionDisabledModels(data);
+  const warnings: string[] = [];
+  const disabledWarning = formatNotionDisabledModelsWarning(disabledModels);
+  if (disabledWarning) warnings.push(disabledWarning);
+  if (spaceIdFromGetSpaces) {
+    warnings.push(
+      "No space_id in cookie — used first workspace from getSpaces. " +
+        "If the list differs from app.notion.com/ai, paste space_id from " +
+        "getAvailableModels → request header x-notion-space-id."
+    );
+  }
+
+  return {
+    models,
+    spaceId,
+    source: "api",
+    disabledModels,
+    spaceIdFromGetSpaces,
+    ...(warnings.length ? { warning: warnings.join(" ") } : {}),
+  };
 }
 
 /** Effective food codename for a catalog model entry. */
