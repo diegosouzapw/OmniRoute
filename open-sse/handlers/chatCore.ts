@@ -314,7 +314,8 @@ import type {
 } from "../services/compression/types.ts";
 import { generateSessionId } from "../services/sessionManager.ts";
 import { prepareWebSearchFallbackBody } from "../services/webSearchFallback.ts";
-import { resolveInterceptSearch } from "@/lib/db/interceptionRules";
+import { prepareWebFetchFallbackBody } from "../services/webFetchInterception.ts";
+import { resolveInterceptSearch, resolveInterceptFetch } from "@/lib/db/interceptionRules";
 import {
   resolveExplicitStreamAlias,
   resolveStreamFlag,
@@ -767,6 +768,24 @@ export async function handleChatCore({
     log?.info?.(
       "TOOLS",
       `Converted ${webSearchFallbackPlan.convertedToolCount} web_search tool(s) to OmniRoute fallback for ${provider}`
+    );
+  }
+  // #7339: interceptFetch (Phase 3-4 of #3384) — same per-model rule + native-bypass
+  // pattern as interceptSearch directly above.
+  const interceptFetchOverride = resolveInterceptFetch(provider, effectiveModel);
+  const { body: bodyWithWebFetchFallback, fallback: webFetchFallbackPlan } =
+    prepareWebFetchFallbackBody(body as Record<string, unknown>, {
+      provider,
+      sourceFormat,
+      targetFormat,
+      nativeCodexPassthrough,
+      interceptFetchOverride,
+    });
+  if (webFetchFallbackPlan.enabled) {
+    body = bodyWithWebFetchFallback as typeof body;
+    log?.info?.(
+      "TOOLS",
+      `Converted ${webFetchFallbackPlan.convertedToolCount} web_fetch tool(s) to OmniRoute fallback for ${provider}`
     );
   }
   const noLogEnabled = apiKeyInfo?.noLog === true;
@@ -4088,7 +4107,9 @@ export async function handleChatCore({
 
     const customSkillExecutionEnabled =
       Boolean(memoryOwnerId) && memorySettings?.skillsEnabled === true;
-    const builtinToolNames = webSearchFallbackPlan.toolName ? [webSearchFallbackPlan.toolName] : [];
+    const builtinToolNames = [webSearchFallbackPlan.toolName, webFetchFallbackPlan.toolName].filter(
+      (name): name is string => Boolean(name)
+    );
     if (customSkillExecutionEnabled || builtinToolNames.length > 0) {
       const skillSessionId = pipelineSessionId;
 
@@ -4101,6 +4122,8 @@ export async function handleChatCore({
           requestId: skillRequestId,
           builtinToolNames,
           customSkillExecutionEnabled,
+          provider,
+          model: effectiveModel,
         }
       );
     }
