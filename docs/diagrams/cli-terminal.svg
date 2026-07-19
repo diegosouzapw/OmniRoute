@@ -1,5 +1,14 @@
 <svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated terminal demoing the OmniRoute CLI: omniroute providers list, omniroute combo list and omniroute health, cycling over the 80+ command surface: providers, oauth, keys, combo, nodes, models, cache, compression, cost, usage, quota, health, resilience, telemetry, logs, audit, mcp, a2a, cloud, memory, skills, eval, tunnel, backup, sync, webhooks, policy, pricing, translator, simulate and more.">
+  <desc>Animated terminal cycling three OmniRoute CLI commands with typewriter effect and a subcommand ticker; the first frame shows the completed providers-list screen.</desc>
   <defs>
+    <pattern id="gridPaperM" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="bgGlowM" cx="24%" cy="18%" r="55%">
+      <stop offset="0%" stop-color="#e54d5e" stop-opacity="0.10"/>
+      <stop offset="55%" stop-color="#8b5cf6" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
     <clipPath id="tickerClipM"><rect x="16" y="648" width="1168" height="40"/></clipPath>
     <clipPath id="twMA"><rect x="72" y="104" height="32" width="0">
       <animate attributeName="width" calcMode="discrete" values="0;36;72;108;144;180;216;252;288;288" keyTimes="0;0.014;0.021;0.028;0.035;0.042;0.049;0.056;0.063;1" dur="18s" repeatCount="indefinite"/>
@@ -13,14 +22,30 @@
   </defs>
 
   <!-- ═══ Window ═══ -->
-  <rect x="8" y="8" width="1184" height="684" rx="16" fill="#0d1117" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
-  <path d="M 24 8 h 1152 a 16 16 0 0 1 16 16 v 32 h -1184 v -32 a 16 16 0 0 1 16 -16 z" fill="#161b22"/>
-  <path d="M 8 56 L 1192 56" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <rect width="1200" height="700" fill="#0b0e14"/>
+  <rect width="1200" height="700" fill="url(#gridPaperM)"/>
+  <rect width="1200" height="700" fill="url(#bgGlowM)"/>
+  <rect x="0" y="0" width="1200" height="56" fill="#161b22"/>
+  <path d="M 0 56 L 1200 56" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
   <circle cx="46" cy="32" r="8" fill="#ff5f56"/>
   <circle cx="76" cy="32" r="8" fill="#ffbd2e"/>
   <circle cx="106" cy="32" r="8" fill="#27c93f"/>
   <text x="600" y="38" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="15" fill="#71717a">omniroute &#8212; 80+ commands</text>
 
+
+  <!-- t0 poster: completed Screen A (visible when the image timeline is frozen at 0) -->
+  <g font-family="Consolas, 'Courier New', monospace" font-size="20">
+    <animate attributeName="opacity" values="1;0;0" keyTimes="0;0.006;1" dur="18s" repeatCount="indefinite"/>
+    <text x="72" y="128" fill="#F7F6FC">omniroute providers list</text>
+    <text x="40" y="192" font-weight="700" fill="#38bdf8">OmniRoute Providers</text>
+    <text x="40" y="234" fill="#a1a1aa">1f3a9c2e&#160;&#160;anthropic&#160;&#160;&#160;Claude Max 20x&#160;&#160;&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+    <text x="40" y="276" fill="#a1a1aa">8c2d5b1a&#160;&#160;codex&#160;&#160;&#160;&#160;&#160;&#160;&#160;Codex Pro (team)&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+    <text x="40" y="318" fill="#a1a1aa">f4e0a97b&#160;&#160;glm&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;GLM Coding Plan&#160;&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+    <text x="40" y="360" fill="#a1a1aa">03bd6e5f&#160;&#160;kimi&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;Kimi K2 free&#160;&#160;&#160;&#160;&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+    <text x="40" y="402" fill="#a1a1aa">9d4e1a08&#160;&#160;gemini-cli&#160;&#160;Gemini 2.5 Pro&#160;&#160;&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+    <text x="40" y="444" fill="#a1a1aa">b7c3f26d&#160;&#160;copilot&#160;&#160;&#160;&#160;&#160;GPT-5 (Copilot)&#160;&#160;&#160;<tspan fill="#22c55e">active</tspan></text>
+    <text x="40" y="486" fill="#71717a">&#8230; 253 more connections</text>
+  </g>
   <!-- ═══ Screen A · omniroute providers list ═══ -->
   <g>
     <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.315;0.33;1" dur="18s" repeatCount="indefinite"/>

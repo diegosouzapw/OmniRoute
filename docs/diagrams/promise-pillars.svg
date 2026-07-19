@@ -9,17 +9,11 @@
       <stop offset="55%" stop-color="#8b5cf6" stop-opacity="0.06"/>
       <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="gradBrandP" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#e54d5e"/>
-      <stop offset="100%" stop-color="#a855f7"/>
-    </linearGradient>
   </defs>
 
   <rect width="1200" height="540" fill="#0b0e14"/>
   <rect width="1200" height="540" fill="url(#gridPaperP)"/>
   <rect width="1200" height="540" fill="url(#bgGlowP)"/>
-  <rect x="1.5" y="1.5" width="1197" height="537" rx="18" fill="none" stroke="#232b38" stroke-width="3"/>
-  <rect x="0" y="0" width="1200" height="6" fill="url(#gradBrandP)"/>
 
   <!-- header -->
   <g>
@@ -34,7 +28,7 @@
 
     <!-- cell 1: never hit limits (blue) -->
     <g>
-      <rect x="40" y="130" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
+      <rect x="40" y="130" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
       <rect x="40" y="130" width="360" height="164" rx="14" fill="none" stroke="#74b9ff" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0.9;0;0" keyTimes="0;0.055;0.12;1" dur="12s" begin="3s" repeatCount="indefinite"/>
       </rect>
@@ -51,7 +45,7 @@
 
     <!-- cell 2: save tokens (orange) -->
     <g>
-      <rect x="420" y="130" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
+      <rect x="420" y="130" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
       <rect x="420" y="130" width="360" height="164" rx="14" fill="none" stroke="#e17055" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.167;0.222;0.287;1" dur="12s" begin="3s" repeatCount="indefinite"/>
       </rect>
@@ -69,7 +63,7 @@
 
     <!-- cell 3: $0 to start (gold) -->
     <g>
-      <rect x="800" y="130" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
+      <rect x="800" y="130" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
       <rect x="800" y="130" width="360" height="164" rx="14" fill="none" stroke="#fdcb6e" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.334;0.389;0.454;1" dur="12s" begin="3s" repeatCount="indefinite"/>
       </rect>
@@ -86,7 +80,7 @@
 
     <!-- cell 4: every tool works (violet) -->
     <g>
-      <rect x="40" y="314" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
+      <rect x="40" y="314" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
       <rect x="40" y="314" width="360" height="164" rx="14" fill="none" stroke="#a78bfa" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.5;0.555;0.62;1" dur="12s" begin="3s" repeatCount="indefinite"/>
       </rect>
@@ -104,7 +98,7 @@
 
     <!-- cell 5: one endpoint (cyan) -->
     <g>
-      <rect x="420" y="314" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
+      <rect x="420" y="314" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
       <rect x="420" y="314" width="360" height="164" rx="14" fill="none" stroke="#00cec9" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.667;0.722;0.787;1" dur="12s" begin="3s" repeatCount="indefinite"/>
       </rect>
@@ -121,7 +115,7 @@
 
     <!-- cell 6: production-grade (green) -->
     <g>
-      <rect x="800" y="314" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
+      <rect x="800" y="314" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
       <rect x="800" y="314" width="360" height="164" rx="14" fill="none" stroke="#7ee787" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.834;0.889;0.954;1" dur="12s" begin="3s" repeatCount="indefinite"/>
       </rect>
