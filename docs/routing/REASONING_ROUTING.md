@@ -64,7 +64,7 @@ executed there. The rule decision is stored in the existing route trace without 
 
 ## Persistence
 
-The migration `src/lib/db/migrations/125_reasoning_routing_rules.sql` creates the
+The migration `src/lib/db/migrations/126_reasoning_routing_rules.sql` creates the
 `reasoning_routing_rules` table. Rules reference stored API keys, combos, and provider connections.
 Deletes clean up related rules. The database access layer in
 `src/lib/db/reasoningRoutingRules.ts` maintains an invalidatable cache for the request path.
