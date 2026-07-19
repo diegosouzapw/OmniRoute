@@ -25,6 +25,8 @@ describe("NotionWebExecutor — registry consistency", () => {
     const models = getModelsByProviderId("notion-web");
     assert.ok(models.length >= 1);
     assert.ok(models.some((m) => m.id === "notion-ai"));
+    // Seed catalog includes real Notion codenames (live discovery still preferred).
+    assert.ok(models.some((m) => m.id === "ambrosia-tart-high" || m.id === "orange-mousse"));
   });
 });
 
@@ -93,6 +95,7 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       assert.equal(capturedUrl, "https://www.notion.so/api/v3/runInferenceTranscript");
       assert.equal(capturedHeaders.Cookie, "token_v2=abc123");
       assert.ok(capturedBody);
+      // notion-ai default does not inject a config entry (server-side default model).
       assert.equal(capturedBody.transcript[0].type, "human");
       assert.deepEqual(capturedBody.transcript[0].value, [["hi"]]);
 
@@ -105,6 +108,34 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       // Cumulative NDJSON frames: only the LAST non-empty frame is kept, never
       // concatenated (mirrors gemini-web.ts's snapshot handling, #7163).
       assert.equal(json.choices[0].message.content, "Hello there!");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("injects a config transcript entry with the selected Notion model codename", async () => {
+    const executor = new mod.NotionWebExecutor();
+    let capturedBody: { transcript: Array<{ type: string; value?: { model?: string } }> } | null =
+      null;
+    const originalFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
+        capturedBody = JSON.parse(String(opts.body));
+        return new Response(JSON.stringify({ value: [["ok"]] }), { status: 200 });
+      }) as typeof fetch;
+
+      await executor.execute({
+        model: "orange-mousse",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: "token_v2=xyz; space_id=space-1" },
+        signal: null,
+      } as never);
+
+      assert.ok(capturedBody);
+      assert.equal(capturedBody.transcript[0].type, "config");
+      assert.equal(capturedBody.transcript[0].value?.model, "orange-mousse");
+      assert.equal(capturedBody.transcript[1].type, "human");
     } finally {
       globalThis.fetch = originalFetch;
     }
