@@ -25,7 +25,7 @@ import {
 import {
   getProviderOutboundGuard,
   getProviderValidationGuard,
-} from "@/shared/network/outboundUrlGuard";
+} from "@/shared/network/outboundUrlGuardPolicy";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
