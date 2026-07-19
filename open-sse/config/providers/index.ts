@@ -124,6 +124,7 @@ import { gitlawbProvider } from "./registry/gitlawb/index.ts";
 import { liquidProvider } from "./registry/liquid/index.ts";
 import { deepinfraProvider } from "./registry/deepinfra/index.ts";
 import { agyProvider } from "./registry/agy/index.ts";
+import { agnesProvider } from "./registry/agnes/index.ts";
 import { udioProvider } from "./registry/udio/index.ts";
 import { longcatProvider } from "./registry/longcat/index.ts";
 import { vertex_partnerProvider } from "./registry/vertex/partner/index.ts";
@@ -131,6 +132,7 @@ import { vertexProvider } from "./registry/vertex/index.ts";
 import { duckduckgo_webProvider } from "./registry/duckduckgo-web/index.ts";
 import { felo_webProvider } from "./registry/felo-web/index.ts";
 import { xaiProvider } from "./registry/xai/index.ts";
+import { xai_oauthProvider } from "./registry/xai-oauth/index.ts";
 import { morphProvider } from "./registry/morph/index.ts";
 import { siliconflowProvider } from "./registry/siliconflow/index.ts";
 import { gitlab_duoProvider } from "./registry/gitlab-duo/index.ts";
@@ -169,6 +171,7 @@ import { v0_vercelProvider } from "./registry/v0-vercel/index.ts";
 import { opencode_zenProvider } from "./registry/opencode/zen/index.ts";
 import { opencode_goProvider } from "./registry/opencode/go/index.ts";
 import { opencodeProvider } from "./registry/opencode/index.ts";
+import { dahlProvider } from "./registry/dahl/index.ts";
 import { maritalkProvider } from "./registry/maritalk/index.ts";
 import { basetenProvider } from "./registry/baseten/index.ts";
 import { geminiProvider } from "./registry/gemini/index.ts";
@@ -320,6 +323,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   liquid: liquidProvider,
   deepinfra: deepinfraProvider,
   agy: agyProvider,
+  agnes: agnesProvider,
   udio: udioProvider,
   longcat: longcatProvider,
   "vertex-partner": vertex_partnerProvider,
@@ -327,6 +331,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "duckduckgo-web": duckduckgo_webProvider,
   "felo-web": felo_webProvider,
   xai: xaiProvider,
+  "xai-oauth": xai_oauthProvider,
   morph: morphProvider,
   siliconflow: siliconflowProvider,
   "gitlab-duo": gitlab_duoProvider,
@@ -364,6 +369,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "opencode-zen": opencode_zenProvider,
   "opencode-go": opencode_goProvider,
   opencode: opencodeProvider,
+  dahl: dahlProvider,
   maritalk: maritalkProvider,
   baseten: basetenProvider,
   gemini: geminiProvider,

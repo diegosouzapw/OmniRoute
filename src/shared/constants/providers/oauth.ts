@@ -14,6 +14,19 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "Enter your GHE instance URL (e.g., https://ghe.company.com) in provider settings, then authenticate via device flow.",
   },
+  "xai-oauth": {
+    id: "xai-oauth",
+    alias: "xao",
+    name: "xAI OAuth (Grok)",
+    icon: "auto_awesome",
+    color: "#1DA1F2",
+    textIcon: "XA",
+    website: "https://x.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Sign in with xAI to use api.x.ai models such as Grok 4.5. This is separate from Grok Build JWT sessions, which use cli-chat-proxy.grok.com and grok-build model aliases.",
+  },
   "grok-cli": {
     id: "grok-cli",
     alias: "gc",
@@ -171,12 +184,14 @@ export const OAUTH_PROVIDERS = {
   "kimi-coding": {
     id: "kimi-coding",
     alias: "kmc",
-    name: "Kimi Coding",
+    name: "Kimi Code CLI",
     icon: "psychology",
     color: "#1E40AF",
     textIcon: "KC",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
+    authHint:
+      "Sign in with the same Kimi account used by Kimi Code CLI. OmniRoute uses the CLI OAuth flow and Kimi Coding Plan endpoints.",
   },
   kilocode: {
     id: "kilocode",

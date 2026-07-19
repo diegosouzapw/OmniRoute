@@ -36,8 +36,17 @@ export interface CodeGraphNode {
 // ---------------------------------------------------------------------------
 
 let _db: unknown = null;
+let dbPathOverride: string | null | undefined;
+
+/** Override the index path for deterministic tests and embedded callers. */
+export function setCodeGraphPathForTest(path: string | null | undefined): void {
+  dbPathOverride = path;
+  _db = null;
+}
 
 function getDbPath(): string | null {
+  if (dbPathOverride !== undefined) return dbPathOverride;
+
   // Try project root first (dev), then cwd, then DATA_DIR
   const candidates = [
     join(process.cwd(), ".codegraph", "codegraph.db"),

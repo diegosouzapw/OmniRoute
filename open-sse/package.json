@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@toon-format/toon": "^2.3.0",
-    "safe-regex": "^2.1.1"
+    "safe-regex": "^2.1.1",
+    "smol-toml": "1.6.1"
   }
 }

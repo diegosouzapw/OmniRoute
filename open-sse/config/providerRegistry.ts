@@ -12,7 +12,6 @@ import {
   RegistryOAuth,
   RegistryEntry,
   LegacyProvider,
-  KIMI_CODING_SHARED,
   buildModels,
   ALIBABA_DASHSCOPE_MODELS,
   GPT_5_5_CONTEXT_LENGTH,

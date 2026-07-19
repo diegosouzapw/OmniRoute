@@ -55,6 +55,7 @@ import { DoubaoWebExecutor } from "./doubao-web.ts";
 import { QwenWebExecutor } from "./qwen-web.ts";
 import { ZaiWebExecutor } from "./zai-web.ts";
 import { KimiExecutor } from "./kimi.ts";
+import { MoonshotExecutor } from "./moonshot.ts";
 import { TheOldLlmExecutor } from "./theoldllm.ts";
 import { ChipotleExecutor } from "./chipotle.ts";
 import { LMArenaExecutor } from "./lmarena.ts";
@@ -153,8 +154,10 @@ const executors = {
   "v0-vercel-web": new V0VercelWebExecutor(),
   v0: new V0VercelWebExecutor(), // Alias
   "kimi-web": new KimiWebExecutor(),
-  "kimi-coding-apikey": new KimiExecutor(), // Alias
+  "kimi-coding-apikey": new KimiExecutor("kimi-coding-apikey"), // Legacy alias
   "kimi-coding": new KimiExecutor(), // Alias
+  moonshot: new MoonshotExecutor(),
+  kimi: new MoonshotExecutor("kimi"), // Hidden legacy Moonshot provider id
   "doubao-web": new DoubaoWebExecutor(),
   db: new DoubaoWebExecutor(), // Alias
   "qwen-web": new QwenWebExecutor(),
@@ -177,6 +180,8 @@ const executors = {
   zmf: new ZenmuxFreeExecutor(), // Alias for zenmux-free
   auggie: new AuggieExecutor(),
   xai: new XaiExecutor(),
+  "xai-oauth": new XaiExecutor("xai-oauth"),
+  xao: new XaiExecutor("xai-oauth"),
 };
 
 const defaultCache = new Map();
@@ -264,3 +269,4 @@ export { GrokCliExecutor } from "./grok-cli.ts";
 export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 export { ZenmuxFreeExecutor } from "./zenmux-free.ts";
 export { XaiExecutor } from "./xai.ts";
+export { MoonshotExecutor } from "./moonshot.ts";

@@ -255,6 +255,40 @@ const stickyMap = new Map<string, StickyEntry>();
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
+ * #7270: Normalize a request body's user turns into a `{role, content}[]` view for
+ * stickiness-key derivation, covering both wire formats:
+ *   - Chat Completions (`/v1/chat/completions`) → turns live in `.messages`.
+ *   - OpenAI Responses API (`/v1/responses`) → turns live in `.input`, which may be a
+ *     plain string OR an array of message items; `.messages` is never populated. Array
+ *     items may themselves be bare strings (shorthand for a user message) — the same
+ *     shape `responsesInputNormalization.ts`'s `normalizeCodexResponsesInputItem`
+ *     already special-cases — so those are mapped to `{role: "user", content: item}`.
+ * Combo target ordering runs BEFORE per-target format translation, so without this
+ * the Responses-API key resolved to null and stickiness silently no-oped for the
+ * entire surface (round-robin/random/strict-random all re-ordered every turn).
+ * `.messages` takes precedence when present (Chat Completions), then `.input`.
+ * Returns null when neither carrier yields turns (fail-open, same as deriveMessageHash).
+ */
+export function normalizeStickinessMessages(
+  body: { messages?: unknown; input?: unknown } | null | undefined
+): Array<{ role?: string; content?: unknown }> | null {
+  if (!body || typeof body !== "object") return null;
+  const { messages, input } = body as { messages?: unknown; input?: unknown };
+  if (Array.isArray(messages) && messages.length > 0) {
+    return messages as Array<{ role?: string; content?: unknown }>;
+  }
+  if (typeof input === "string" && input.length > 0) {
+    return [{ role: "user", content: input }];
+  }
+  if (Array.isArray(input) && input.length > 0) {
+    return input.map((item) =>
+      typeof item === "string" ? { role: "user", content: item } : item
+    ) as Array<{ role?: string; content?: unknown }>;
+  }
+  return null;
+}
+
+/**
  * Derive a stable 16-hex-char session key from the first user message content.
  * Returns null when the message cannot be extracted (fail-open).
  */

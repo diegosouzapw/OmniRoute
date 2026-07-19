@@ -13,7 +13,7 @@ import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oaut
 const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
 
 /** Providers that use a local callback server on a random port (PKCE browser flow). */
-const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex"]);
+const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "xai-oauth"]);
 
 /**
  * Phase 1 hotfix (2026-05-29): windsurf & devin-cli only support import-token.
@@ -420,6 +420,11 @@ export default function OAuthModal({
       let redirectUri: string;
       if (provider === "codex" || provider === "openai") {
         redirectUri = "http://localhost:1455/auth/callback";
+      } else if (provider === "xai-oauth") {
+        // xAI registers a fixed native-app loopback callback. On remote installs
+        // the browser cannot reach OmniRoute there, so the user pastes the
+        // resulting callback URL into the existing manual-flow input.
+        redirectUri = "http://127.0.0.1:56121/callback";
       } else if (provider === "windsurf" || provider === "devin-cli") {
         // Remote fallback: use OmniRoute's port with the /auth/callback path Windsurf expects.
         // On true localhost this code is never reached (callback server handles the flow above).
