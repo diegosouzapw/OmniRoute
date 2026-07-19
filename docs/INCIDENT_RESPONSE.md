@@ -99,7 +99,7 @@ not** skip steps; each is timed.
 
 ### 4.2 Cluster-wide latency regression
 
-1. Check the most recent deploy (`/api/version` returns the SHA).
+1. Check the most recent deploy (`/api/system/version` returns the SHA).
 2. If p95 doubled vs the 7-day baseline, **roll back** to the prior
    SHA via `bin/rollback.sh`.
 3. If the regression is provider-side, see § 4.1.
