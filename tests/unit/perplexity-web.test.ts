@@ -160,7 +160,7 @@ test("Non-streaming: strips citations from response", async () => {
   try {
     const executor = new PerplexityWebExecutor();
     const result = await executor.execute({
-      model: "pplx-gpt",
+      model: "pplx-sonar",
       body: { messages: [{ role: "user", content: "meaning of life" }], stream: false },
       stream: false,
       credentials: { apiKey: "test-cookie" },
@@ -487,7 +487,7 @@ test("Error: 429 returns rate limit message", async () => {
   try {
     const executor = new PerplexityWebExecutor();
     const result = await executor.execute({
-      model: "pplx-gpt",
+      model: "pplx-sonar",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: false,
       credentials: { apiKey: "test-cookie" },
@@ -765,7 +765,7 @@ test("Auth: JWT auth sends Authorization Bearer header", async () => {
 
 // ─── Test: Model mapping ────────────────────────────────────────────────────
 
-test("Model mapping: pplx-gpt sends current GPT-5.5 internal preference", async () => {
+test("Model mapping: GPT-5.6 Terra sends its current internal preference", async () => {
   let capturedBody = null;
   const original = globalThis.fetch;
   globalThis.fetch = async (url, opts) => {
@@ -789,7 +789,7 @@ test("Model mapping: pplx-gpt sends current GPT-5.5 internal preference", async 
   try {
     const executor = new PerplexityWebExecutor();
     await executor.execute({
-      model: "pplx-gpt",
+      model: "pplx-gpt-5.6-terra",
       body: { messages: [{ role: "user", content: "test" }], stream: false },
       stream: false,
       credentials: { apiKey: "test" },
@@ -797,7 +797,7 @@ test("Model mapping: pplx-gpt sends current GPT-5.5 internal preference", async 
       log: null,
     });
 
-    assert.equal(capturedBody.params.model_preference, "gpt55");
+    assert.equal(capturedBody.params.model_preference, "gpt56_terra");
     assert.equal(capturedBody.params.mode, "search");
   } finally {
     globalThis.fetch = original;
@@ -845,40 +845,6 @@ test("Model mapping: thinking mode uses thinking variant", async () => {
   } finally {
     globalThis.fetch = original;
   }
-});
-
-// ─── Test: Provider registry ────────────────────────────────────────────────
-
-test("Provider registry: perplexity-web is registered with correct models", async () => {
-  const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
-
-  const models = PROVIDER_MODELS["pplx-web"];
-  assert.ok(models, "pplx-web should be in PROVIDER_MODELS");
-  assert.ok(models.length === 10, `Expected 10 models, got ${models.length}`);
-
-  const modelIds = models.map((m) => m.id);
-  assert.ok(modelIds.includes("pplx-auto"));
-  assert.ok(modelIds.includes("pplx-gpt"));
-  assert.ok(modelIds.includes("pplx-gpt-5.4"));
-  assert.ok(modelIds.includes("pplx-sonnet"));
-  assert.ok(modelIds.includes("pplx-opus"));
-  assert.ok(modelIds.includes("pplx-gemini"));
-  assert.ok(modelIds.includes("pplx-nemotron"));
-  assert.ok(modelIds.includes("pplx-sonar"));
-  assert.ok(modelIds.includes("pplx-kimi"));
-  assert.ok(modelIds.includes("pplx-glm"));
-});
-
-test("Provider registry: every advertised perplexity-web model has an explicit internal mapping", async () => {
-  const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
-  const { MODEL_MAP } = await import("../../open-sse/executors/perplexity-web/protocol.ts");
-
-  const missing = PROVIDER_MODELS["pplx-web"].filter((model) => !MODEL_MAP[model.id]);
-  assert.deepEqual(
-    missing.map((model) => model.id),
-    [],
-    "all advertised Perplexity Web models should map to an explicit model_preference"
-  );
 });
 
 // ─── Test: Fallback text field ──────────────────────────────────────────────

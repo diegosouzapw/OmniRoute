@@ -7,6 +7,7 @@ import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import { readBooleanToggle, providerCountText } from "../providerPageHelpers";
 import { compareTr } from "@/shared/utils/turkishText";
 import type { CodexGlobalServiceMode } from "@/lib/providers/codexFastTier";
+import { supportsProviderQuota } from "@/shared/utils/providerQuotaVisibility";
 import type { ConnectionDeleteConfirmState } from "../hooks/useConnectionDeleteConfirm";
 
 type ConnectionsListPanelProps = {
@@ -26,7 +27,10 @@ type ConnectionsListPanelProps = {
   healthFilter: string;
   page: number;
   PAGE_SIZE: number;
-  connProxyMap: Record<string, { proxy?: { host?: string }; level?: string } | undefined>;
+  connProxyMap: Record<
+    string,
+    { proxy?: { host?: string; name?: string }; level?: string } | undefined
+  >;
   proxyConfig: any;
   applyingCodexAuthId: string | null;
   exportingCodexAuthId: string | null;
@@ -41,6 +45,7 @@ type ConnectionsListPanelProps = {
   deleteConfirm: ConnectionDeleteConfirmState;
   handleUpdateConnectionStatus: (id: string, isActive: boolean) => void;
   handleToggleRateLimit: (id: string, enabled: boolean) => void;
+  handleToggleQuotaVisibility: (id: string, visible: boolean) => void;
   handleToggleClaudeExtraUsage: (id: string, enabled: boolean) => void;
   handleToggleCliproxyapiMode: (id: string, enabled: boolean) => void;
   handleToggleCodexLimit: (id: string, type: "use5h" | "useWeekly", enabled: boolean) => void;
@@ -67,6 +72,24 @@ type ConnectionsListPanelProps = {
   gateConnectionFlow: (callback: () => void) => void;
   t: any; // ProviderMessageTranslator
 };
+
+function quotaVisibilityHandler(
+  supported: boolean,
+  connectionId: string,
+  toggle: (id: string, visible: boolean) => void
+) {
+  return supported ? (visible: boolean) => toggle(connectionId, visible) : undefined;
+}
+
+// #7643 — extracted so the two ConnectionRow render call sites (already
+// oversized map callbacks) don't each pick up a new `||` decision point.
+function resolveConnProxyField(
+  connProxyMap: ConnectionsListPanelProps["connProxyMap"],
+  connId: string,
+  field: "host" | "name"
+): string | null {
+  return connProxyMap[connId]?.proxy?.[field] || null;
+}
 
 export default function ConnectionsListPanel({
   connections,
@@ -98,6 +121,7 @@ export default function ConnectionsListPanel({
   deleteConfirm,
   handleUpdateConnectionStatus,
   handleToggleRateLimit,
+  handleToggleQuotaVisibility,
   handleToggleClaudeExtraUsage,
   handleToggleCliproxyapiMode,
   handleToggleCodexLimit,
@@ -124,6 +148,7 @@ export default function ConnectionsListPanel({
   t,
 }: ConnectionsListPanelProps) {
   const sorted = [...connections].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+  const quotaSupported = supportsProviderQuota(providerId);
   const hasAnyTag = sorted.some((c) => c.providerSpecificData?.tag as string | undefined);
   const allSelected = selectedIds.size === connections.length && connections.length > 0;
   const someSelected = selectedIds.size > 0 && selectedIds.size < connections.length;
@@ -332,6 +357,11 @@ export default function ConnectionsListPanel({
                 onMoveDown={() => handleSwapPriority(conn, sorted[index + 1])}
                 onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
                 onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                onToggleQuotaVisibility={quotaVisibilityHandler(
+                  quotaSupported,
+                  conn.id,
+                  handleToggleQuotaVisibility
+                )}
                 onToggleClaudeExtraUsage={(enabled) =>
                   handleToggleClaudeExtraUsage(conn.id, enabled)
                 }
@@ -386,7 +416,8 @@ export default function ConnectionsListPanel({
                 }
                 hasProxy={!!connProxyMap[conn.id]?.proxy}
                 proxySource={connProxyMap[conn.id]?.level || null}
-                proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                proxyHost={resolveConnProxyField(connProxyMap, conn.id, "host")}
+                proxyName={resolveConnProxyField(connProxyMap, conn.id, "name")}
                 proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
                 onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
                 perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}
@@ -504,6 +535,11 @@ export default function ConnectionsListPanel({
                     onMoveDown={() => handleSwapPriority(conn, sorted[sorted.indexOf(conn) + 1])}
                     onToggleActive={(isActive) => handleUpdateConnectionStatus(conn.id, isActive)}
                     onToggleRateLimit={(enabled) => handleToggleRateLimit(conn.id, enabled)}
+                    onToggleQuotaVisibility={quotaVisibilityHandler(
+                      quotaSupported,
+                      conn.id,
+                      handleToggleQuotaVisibility
+                    )}
                     onToggleClaudeExtraUsage={(enabled) =>
                       handleToggleClaudeExtraUsage(conn.id, enabled)
                     }
@@ -560,7 +596,8 @@ export default function ConnectionsListPanel({
                     }
                     hasProxy={!!connProxyMap[conn.id]?.proxy}
                     proxySource={connProxyMap[conn.id]?.level || null}
-                    proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                    proxyHost={resolveConnProxyField(connProxyMap, conn.id, "host")}
+                    proxyName={resolveConnProxyField(connProxyMap, conn.id, "name")}
                     proxyEnabled={readBooleanToggle(conn.proxyEnabled, true)}
                     onToggleProxyEnabled={(enabled) => handleToggleProxyEnabled(conn.id, enabled)}
                     perKeyProxyEnabled={readBooleanToggle(conn.perKeyProxyEnabled, false)}

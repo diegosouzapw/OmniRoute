@@ -433,6 +433,7 @@ export const updateProviderConnectionSchema = z
       .optional(),
     proxyEnabled: z.boolean().optional(),
     perKeyProxyEnabled: z.boolean().optional(),
+    quotaVisible: z.boolean().optional(),
     // Partial patch of per-connection provider-specific settings (e.g. quota toggles)
     providerSpecificData: z
       .record(z.string(), z.unknown())
@@ -514,6 +515,25 @@ export const updateParamFilterConfigSchema = z.object({
   allow: paramFilterListSchema.optional(),
   models: z.record(z.string().trim().min(1).max(200), modelParamFilterSchema).optional(),
   autoLearn: z.boolean().optional(),
+});
+
+// PUT /api/providers/[id]/interception-rules — upsert provider/model web
+// search/fetch interception rules (#3384/#7339)
+const fetchInterceptionBackendSchema = z.enum(["firecrawl", "jina", "tavily"]);
+
+const modelInterceptionRuleSchema = z.object({
+  interceptSearch: z.boolean().optional(),
+  interceptFetch: z.boolean().optional(),
+  fetchBackend: fetchInterceptionBackendSchema.optional(),
+  fetchProxyUrl: z.string().trim().url().max(2000).optional(),
+});
+
+export const updateInterceptionRulesSchema = z.object({
+  interceptSearch: z.boolean().optional(),
+  interceptFetch: z.boolean().optional(),
+  fetchBackend: fetchInterceptionBackendSchema.optional(),
+  fetchProxyUrl: z.string().trim().url().max(2000).optional(),
+  models: z.record(z.string().trim().min(1).max(200), modelInterceptionRuleSchema).optional(),
 });
 
 export const validateProviderApiKeySchema = z

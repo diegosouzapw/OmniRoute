@@ -655,6 +655,23 @@ omniroute reset-encrypted-columns       # Show warning + dry-run for encrypted c
 omniroute reset-encrypted-columns --force  # Actually null out encrypted credentials in SQLite
 ```
 
+### Credential Export (⚠ handle with care)
+
+```bash
+omniroute auth export                                 # Show warning + confirmation gate — no DB access
+omniroute auth export --force                          # Export ALL connections' DECRYPTED credentials to stdout as JSON
+omniroute auth export --force --id <id>                 # Export only the matching connection
+omniroute auth export --force --format env               # Emit OMNIROUTE_<PROVIDER>_<FIELD>=<value> lines
+omniroute auth export --force --out creds.json           # Write to a file (created with 0600 permissions)
+```
+
+`auth export` is **local-only** (direct SQLite read, no HTTP route) and intentionally prints/writes
+**plaintext** `apiKey`/`accessToken`/`refreshToken`/`idToken` values — that is the feature, not a
+bug. Nothing is read from the database, and nothing is decrypted, without `--force`. A stderr
+warning banner always prints before any plaintext is emitted. Requires `STORAGE_ENCRYPTION_KEY` to
+be set. A field that fails to decrypt (stale key, corrupt ciphertext) is reported as
+`<field>DecryptFailed: true` instead of aborting the whole export or leaking the underlying error.
+
 ### Other subcommands
 
 These assume a running OmniRoute server, unless noted otherwise:

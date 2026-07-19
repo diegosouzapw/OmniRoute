@@ -12,7 +12,7 @@ import Bottleneck from "bottleneck";
 import { parseRetryAfterFromBody } from "./accountFallback.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 import { getCodexRateLimitKey } from "../executors/codex.ts";
-import { awaitProviderDefaultSlot } from "./providerDefaultRateLimit.ts";
+import { awaitProviderDefaultSlot, setProviderQuotaOverrides } from "./providerDefaultRateLimit.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
@@ -345,6 +345,10 @@ export async function initializeRateLimits() {
     const [connections, settings] = await Promise.all([getProviderConnections(), getSettings()]);
     const resilience = resolveResilienceSettings(settings);
     currentRequestQueueSettings = { ...resilience.requestQueue };
+    // #6846 Phase 1: operator overrides for header-less providers' static RPM
+    // budget + concurrency cap (nvidia today). No-op for every provider without
+    // an entry in either providerQuotaOverrides or PROVIDER_DEFAULT_RATE_LIMITS.
+    setProviderQuotaOverrides(resilience.providerQuotaOverrides);
     const { explicitCount, autoCount } = reconcileEnabledConnections(
       connections as unknown[],
       currentRequestQueueSettings
@@ -569,11 +573,25 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
       const abortPromise = new Promise<never>((_, reject) => {
         const onAbort = () => {
           const reason = signal.reason;
-          const err =
+          // Build a fresh Error rather than mutating `reason` in place: the
+          // default abort reason (when `controller.abort()` is called with no
+          // argument, e.g. modelTestRunner's timeout path) is a native
+          // DOMException, whose `name` is a read-only getter — assigning
+          // `err.name = "AbortError"` on it throws `TypeError: Cannot set
+          // property name of [object DOMException] which has only a getter`,
+          // which then surfaces as an unhandled rejection instead of the
+          // intended "slow"/timeout result.
+          const message =
             reason instanceof Error
-              ? reason
-              : new Error(typeof reason === "string" ? reason : "The operation was aborted");
+              ? reason.message
+              : typeof reason === "string"
+                ? reason
+                : "The operation was aborted";
+          const err = new Error(message);
           err.name = "AbortError";
+          if (reason !== undefined) {
+            (err as Error & { cause?: unknown }).cause = reason;
+          }
           reject(err);
         };
         if (signal.aborted) {

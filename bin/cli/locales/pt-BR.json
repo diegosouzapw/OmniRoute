@@ -132,6 +132,20 @@
       "listTitle": "Chaves que expiram nos próximos {days} dias:"
     }
   },
+  "authExport": {
+    "description": "Exportar credenciais DESCRIPTOGRAFADAS de provedores (somente local, saída em texto puro)",
+    "idOpt": "Exportar apenas a conexão correspondente a este id/nome/provedor",
+    "formatOpt": "Formato de saída: json ou env",
+    "outOpt": "Gravar a saída em um arquivo em vez do stdout (gravado com permissão 0600)",
+    "forceOpt": "Confirma que você entende que isso imprime/grava segredos em texto puro",
+    "warning": "⚠ Isso imprime/grava chaves de API e tokens OAuth DESCRIPTOGRAFADOS em texto puro. Garanta que sua tela, o histórico do shell e qualquer arquivo de saída permaneçam privados.",
+    "confirmHeading": "⚠ AVISO: isso exporta credenciais de provedores DESCRIPTOGRAFADAS em texto puro",
+    "confirmBody": "Este comando descriptografa e imprime/grava apiKey, accessToken, refreshToken e\nidToken da(s) conexão(ões) selecionada(s). Trate a saída como um segredo.",
+    "confirmFooter": "Para confirmar, execute:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY é obrigatório para exportar credenciais.",
+    "notFound": "Conexão não encontrada: {id}",
+    "invalidFormat": "Formato inválido: {format}. Use json ou env."
+  },
   "stream": {
     "description": "Transmitir resposta de chat com modos de inspeção SSE",
     "file": "Ler prompt de arquivo",

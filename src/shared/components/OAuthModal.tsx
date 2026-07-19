@@ -9,11 +9,15 @@ import LinkifiedText from "./LinkifiedText";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
 import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
+import {
+  looksLikeCodexSessionJson,
+  parseCodexSessionJson,
+} from "@/lib/oauth/utils/codexSessionImport";
 
 const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
 
 /** Providers that use a local callback server on a random port (PKCE browser flow). */
-const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex"]);
+const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "xai-oauth"]);
 
 /**
  * Phase 1 hotfix (2026-05-29): windsurf & devin-cli only support import-token.
@@ -22,6 +26,27 @@ const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex"]);
  * Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
  */
 const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
+
+// POST a bare Codex access token to the access-token-only import endpoint
+// (#1290); shared by the bare-JWT and session-JSON paste branches (#6636).
+async function submitCodexAccessToken(
+  accessToken: string,
+  name: string | undefined,
+  setStep: (s: string) => void,
+  onSuccess?: () => void
+): Promise<void> {
+  const res = await fetch("/api/oauth/codex/import-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken, name }),
+  });
+  const data = (await parseResponseBody(res)) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
+  }
+  setStep("success");
+  onSuccess?.();
+}
 
 type OAuthModalProps = {
   isOpen: boolean;
@@ -407,6 +432,11 @@ export default function OAuthModal({
       let redirectUri: string;
       if (provider === "codex" || provider === "openai") {
         redirectUri = "http://localhost:1455/auth/callback";
+      } else if (provider === "xai-oauth") {
+        // xAI registers a fixed native-app loopback callback. On remote installs
+        // the browser cannot reach OmniRoute there, so the user pastes the
+        // resulting callback URL into the existing manual-flow input.
+        redirectUri = "http://127.0.0.1:56121/callback";
       } else if (provider === "windsurf" || provider === "devin-cli") {
         // Remote fallback: use OmniRoute's port with the /auth/callback path Windsurf expects.
         // On true localhost this code is never reached (callback server handles the flow above).
@@ -667,17 +697,24 @@ export default function OAuthModal({
       // raw-token paste pattern. Routed through the access-token-only import
       // endpoint (#1290) instead of the authorization-code exchange below.
       if (provider === "codex" && /^eyJ/.test(callbackUrl.trim())) {
-        const res = await fetch("/api/oauth/codex/import-token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken: callbackUrl.trim() }),
-        });
-        const data = (await parseResponseBody(res)) as Record<string, unknown>;
-        if (!res.ok) {
-          throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
+        await submitCodexAccessToken(callbackUrl.trim(), undefined, setStep, onSuccess);
+        return;
+      }
+
+      // Codex: full session JSON from chatgpt.com/api/auth/session
+      // (`{user, accessToken, expires}`), not just the bare token (#6636).
+      if (provider === "codex" && looksLikeCodexSessionJson(callbackUrl)) {
+        const result = parseCodexSessionJson(JSON.parse(callbackUrl.trim()));
+        if (!result.ok) {
+          setError(result.error);
+          return;
         }
-        setStep("success");
-        onSuccess?.();
+        await submitCodexAccessToken(
+          result.session.accessToken,
+          result.session.email,
+          setStep,
+          onSuccess
+        );
         return;
       }
 

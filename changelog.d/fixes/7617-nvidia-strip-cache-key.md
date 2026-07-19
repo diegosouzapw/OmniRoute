@@ -1,0 +1,1 @@
+- fix(routing): strip `prompt_cache_key` for NVIDIA NIM — Codex CLI injects it, NIM's OpenAI-compatible wrapper 400s on it (#7617)

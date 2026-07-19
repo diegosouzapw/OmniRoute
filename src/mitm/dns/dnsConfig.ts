@@ -18,7 +18,7 @@ const ANTIGRAVITY_HOSTS = [
   "autopush-cloudcode-pa.sandbox.googleapis.com",
 ];
 
-function resolveHostsForAgent(agentId?: string): string[] {
+export function resolveHostsForAgent(agentId?: string): string[] {
   if (!agentId) return ANTIGRAVITY_HOSTS;
   const target = ALL_TARGETS.find((t) => t.id === agentId);
   return target?.hosts ?? ANTIGRAVITY_HOSTS;
@@ -28,6 +28,18 @@ const IS_WIN = process.platform === "win32";
 const HOSTS_FILE = IS_WIN
   ? path.join(process.env.SystemRoot || "C:\\Windows", "System32", "drivers", "etc", "hosts")
   : "/etc/hosts";
+
+export interface DnsCommandDependencies {
+  execFileWithPassword?: typeof execFileWithPassword;
+  runElevatedPowerShell?: typeof runElevatedPowerShell;
+}
+
+function resolveCommandDependencies(deps?: DnsCommandDependencies) {
+  return {
+    execFileWithPassword: deps?.execFileWithPassword ?? execFileWithPassword,
+    runElevatedPowerShell: deps?.runElevatedPowerShell ?? runElevatedPowerShell,
+  };
+}
 
 /**
  * Return true if `sudo` is available on PATH. Windows always reports `true`
@@ -119,7 +131,13 @@ function hasHostEntry(hostsContent: string, hostname: string): boolean {
  * On Windows, all missing entries are batched into a single elevated PowerShell
  * invocation so the user gets one UAC prompt instead of one per line.
  */
-export async function addDNSEntries(hosts: string[], sudoPassword: string): Promise<void> {
+export async function addDNSEntries(
+  hosts: string[],
+  sudoPassword: string,
+  deps?: DnsCommandDependencies
+): Promise<void> {
+  if (process.env.OMNIROUTE_SKIP_DNS_WRITE === "1") return;
+  const commands = resolveCommandDependencies(deps);
   const hostsContent = readHostsFile();
   const missingEntries: string[] = [];
 
@@ -142,13 +160,18 @@ export async function addDNSEntries(hosts: string[], sudoPassword: string): Prom
     const psHostsFile = quotePowerShell(HOSTS_FILE);
     const psEntries = missingEntries.map((e) => quotePowerShell(e)).join(", ");
     const script = "Add-Content -LiteralPath " + psHostsFile + " -Value " + psEntries;
-    await runElevatedPowerShell(script);
+    await commands.runElevatedPowerShell(script);
     for (const entry of missingEntries) {
       console.log(`[DNS] Added entry: ${entry}`);
     }
   } else {
     const data = missingEntries.map((e) => `${e}\n`).join("");
-    await execFileWithPassword("sudo", ["-S", "tee", "-a", HOSTS_FILE], sudoPassword, data);
+    await commands.execFileWithPassword(
+      "sudo",
+      ["-S", "tee", "-a", HOSTS_FILE],
+      sudoPassword,
+      data
+    );
     for (const entry of missingEntries) {
       console.log(`[DNS] Added entry: ${entry}`);
     }
@@ -177,7 +200,13 @@ fs.writeFileSync(filePath, filtered.join("\\n").replace(/\\n*$/, "\\n"));
  * On Windows, all hostnames are filtered in a single elevated PowerShell
  * invocation so the user gets one UAC prompt instead of one per host.
  */
-export async function removeDNSEntries(hosts: string[], sudoPassword: string): Promise<void> {
+export async function removeDNSEntries(
+  hosts: string[],
+  sudoPassword: string,
+  deps?: DnsCommandDependencies
+): Promise<void> {
+  if (process.env.OMNIROUTE_SKIP_DNS_WRITE === "1") return;
+  const commands = resolveCommandDependencies(deps);
   const hostsContent = readHostsFile();
   const presentHosts = hosts.filter((h) => hasHostEntry(hostsContent, h));
 
@@ -198,13 +227,13 @@ export async function removeDNSEntries(hosts: string[], sudoPassword: string): P
       "            -not ($part.Length -ge 2 -and ($targetHosts -contains $part[1]))\n" +
       "          };\n" +
       "          Set-Content -LiteralPath $hostsFile -Value $filtered;\n        ";
-    await runElevatedPowerShell(script);
+    await commands.runElevatedPowerShell(script);
     for (const hostname of presentHosts) {
       console.log(`[DNS] Removed entries for ${hostname}`);
     }
   } else {
     for (const hostname of presentHosts) {
-      await execFileWithPassword(
+      await commands.execFileWithPassword(
         "sudo",
         ["-S", process.execPath, "-e", REMOVE_HOSTS_ENTRY_SCRIPT, HOSTS_FILE, hostname],
         sudoPassword
@@ -232,8 +261,12 @@ export function checkDNSEntry(): boolean {
  * when `agentId` is provided.
  * Delegates to `addDNSEntries` — backward compat wrapper.
  */
-export async function addDNSEntry(sudoPassword: string, agentId?: string): Promise<void> {
-  await addDNSEntries(resolveHostsForAgent(agentId), sudoPassword);
+export async function addDNSEntry(
+  sudoPassword: string,
+  agentId?: string,
+  deps?: DnsCommandDependencies
+): Promise<void> {
+  await addDNSEntries(resolveHostsForAgent(agentId), sudoPassword, deps);
 }
 
 /**
@@ -241,6 +274,10 @@ export async function addDNSEntry(sudoPassword: string, agentId?: string): Promi
  * when `agentId` is provided.
  * Delegates to `removeDNSEntries` — backward compat wrapper.
  */
-export async function removeDNSEntry(sudoPassword: string, agentId?: string): Promise<void> {
-  await removeDNSEntries(resolveHostsForAgent(agentId), sudoPassword);
+export async function removeDNSEntry(
+  sudoPassword: string,
+  agentId?: string,
+  deps?: DnsCommandDependencies
+): Promise<void> {
+  await removeDNSEntries(resolveHostsForAgent(agentId), sudoPassword, deps);
 }
