@@ -98,3 +98,50 @@ test("the gate exits 0 against the current (synced) repo state", () => {
   // Throws if exit code is non-zero; current docs are synced so this must pass.
   assert.doesNotThrow(() => execFileSync("node", [GATE], { encoding: "utf8", stdio: "pipe" }));
 });
+
+// --- Free-tier headline gate ------------------------------------------------
+// Regression guard for the drift found in the v3.8.49 README audit: the README
+// headlined ~1.6B for seven releases after the catalog had already been corrected
+// down to 1.37B, because no gate watched that number.
+import {
+  checkFreeTierHeadline,
+  extractHeadlineClaims,
+} from "../../scripts/check/check-docs-counts-sync.mjs";
+
+const checkHeadline = checkFreeTierHeadline as (
+  content: string,
+  totals: { s: number; m: number; p: number }
+) => { ok: boolean; detail: string };
+const extractClaims = extractHeadlineClaims as (
+  content: string
+) => { value: number; text: string }[];
+
+const TOTALS = { s: 1_371_725_000, m: 1_998_225_000, p: 39 };
+
+test("free-tier gate accepts a headline that rounds to the live catalog", () => {
+  assert.equal(checkHeadline("~1.4B free tokens per month", TOTALS).ok, true);
+  assert.equal(checkHeadline("up to ~2.0B in the first month", TOTALS).ok, true);
+});
+
+test("free-tier gate rejects the stale headlines this audit found", () => {
+  for (const stale of ["~1.6B free tokens/mo", "~1.54B free tokens per month"]) {
+    const r = checkHeadline(stale, TOTALS);
+    assert.equal(r.ok, false, `expected ${stale} to be rejected`);
+    assert.match(r.detail, /live catalog computes/);
+  }
+  assert.equal(checkHeadline("up to ~2.1B in the first month", TOTALS).ok, false);
+});
+
+test("free-tier gate ignores non-headline figures", () => {
+  // The theoretical ceiling, the historical value and per-model rows are legitimate
+  // and must never trip the gate — that is why the extractor is a whitelist.
+  const noise =
+    "counting every rate limit 24/7 would read ~10B; not published. " +
+    "Why this dropped from the previous ~1.94B. | `mistral` | recurring | ~1.00B |";
+  assert.deepEqual(extractClaims(noise), []);
+  assert.equal(checkHeadline(noise, TOTALS).ok, true);
+});
+
+test("free-tier gate passes when a file carries no headline at all", () => {
+  assert.equal(checkHeadline("no figures here", TOTALS).ok, true);
+});
