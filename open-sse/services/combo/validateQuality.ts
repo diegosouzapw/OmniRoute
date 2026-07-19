@@ -186,6 +186,21 @@ function responsesApiOutputHasContent(output: unknown): boolean {
   );
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function isStreamingUpstreamError(parsed: unknown, eventType: string): boolean {
+  if (eventType === "response.failed" || eventType === "error") return true;
+  if (!isRecord(parsed)) return false;
+  if (parsed.error != null) return true;
+
+  const nestedResponse = isRecord(parsed.response) ? parsed.response : null;
+  return nestedResponse?.status === "failed" && nestedResponse.error != null;
+}
+
+type StreamingPeekOutcome = "content" | "error" | null;
+
 /**
  * Validate that a successful (HTTP 200) non-streaming response actually contains
  * meaningful content. Returns { valid: true } or { valid: false, reason }.
@@ -277,11 +292,11 @@ export async function validateResponseQuality(
      * flags in the closure. The last (potentially incomplete) line is kept in
      * `decodedSoFar` for the next iteration.
      *
-     * Returns true once REAL content (not just an empty content_block_start)
-     * is detected — the caller should stop peeking and treat the stream as
-     * non-empty.
+     * Returns "content" once REAL content (not just an empty content_block_start)
+     * is detected, or "error" when the upstream reports a failure before content.
+     * Otherwise peeking continues.
      */
-    function parseAccumulatedSse(): boolean {
+    function parseAccumulatedSse(): StreamingPeekOutcome {
       const lines = decodedSoFar.split(/\r?\n/);
       // Retain the potentially-incomplete trailing fragment.
       decodedSoFar = lines[lines.length - 1];
@@ -331,6 +346,10 @@ export async function validateResponseQuality(
           (typeof parsed.type === "string" ? parsed.type : null) || pendingEventType || "";
         pendingEventType = "";
 
+        if (isStreamingUpstreamError(parsed, eventType)) {
+          return "error";
+        }
+
         // Some providers send a terminal `usage`-only chunk (no `choices`)
         // as the final SSE frame instead of a `[DONE]`/`finish_reason`
         // marker. Excludes Responses API `response.*` events, which have
@@ -345,15 +364,15 @@ export async function validateResponseQuality(
         }
 
         if (isKnownNonClaudeStreamPayload(parsed, eventType)) {
-          return true;
+          return "content";
         }
 
         if (applySseLifecycleEvent(eventType, parsed, sse)) {
-          return true;
+          return "content";
         }
         if (sse.hasLifecycleEnd) sawTerminator = true;
       }
-      return false;
+      return null;
     }
 
     /**
@@ -404,7 +423,15 @@ export async function validateResponseQuality(
           const tail = decoder.decode(undefined, { stream: false });
           if (tail) decodedSoFar += tail;
           if (decodedSoFar.trim()) decodedSoFar += "\n\n";
-          parseAccumulatedSse();
+          const terminalOutcome = parseAccumulatedSse();
+
+          if (terminalOutcome === "error") {
+            log.warn?.(
+              "COMBO",
+              "Streaming response reported an upstream error before content — marking as invalid for combo failover"
+            );
+            return { valid: false, reason: "streaming upstream error" };
+          }
 
           if (sse.hasMessageStart && sse.hasLifecycleEnd && !sse.hasRealContent) {
             // Complete Claude lifecycle with zero content blocks, or with
@@ -472,9 +499,20 @@ export async function validateResponseQuality(
 
         // Decode incrementally (stream:true keeps multi-byte char state).
         decodedSoFar += decoder.decode(value, { stream: true });
-        const foundContent = parseAccumulatedSse();
+        const outcome = parseAccumulatedSse();
 
-        if (foundContent) {
+        if (outcome === "error") {
+          // Do not await cancellation of a Response.clone() tee branch: the
+          // promise may remain pending until the client-facing branch drains.
+          reader.cancel().catch(() => {});
+          log.warn?.(
+            "COMBO",
+            "Streaming response reported an upstream error before content — marking as invalid for combo failover"
+          );
+          return { valid: false, reason: "streaming upstream error" };
+        }
+
+        if (outcome === "content") {
           anyContentFound = true;
           // A content_block_* event was found — stop peeking. Return a
           // clonedResponse that replays all buffered bytes (the current chunk
@@ -557,7 +595,9 @@ export async function validateResponseQuality(
   if (errorIsMeaningful) {
     const envelopeText = extractEnvelopeErrorText(json);
     const errMsg =
-      rawError && typeof rawError === "object" && typeof (rawError as Record<string, unknown>).message === "string"
+      rawError &&
+      typeof rawError === "object" &&
+      typeof (rawError as Record<string, unknown>).message === "string"
         ? ((rawError as Record<string, unknown>).message as string)
         : envelopeText || JSON.stringify(rawError).substring(0, 200);
     return { valid: false, reason: `upstream error in 200 body: ${errMsg}` };
@@ -565,8 +605,7 @@ export async function validateResponseQuality(
   {
     const envelopeText = extractEnvelopeErrorText(json);
     if (envelopeText && EXHAUSTION_MARKER_PATTERN.test(envelopeText)) {
-      const snippet =
-        envelopeText.length > 80 ? `${envelopeText.slice(0, 80)}…` : envelopeText;
+      const snippet = envelopeText.length > 80 ? `${envelopeText.slice(0, 80)}…` : envelopeText;
       return { valid: false, reason: `upstream exhaustion marker in 200 body: ${snippet}` };
     }
   }
@@ -611,8 +650,30 @@ export async function validateResponseQuality(
   const reasoningContent = message.reasoning_content ?? message.reasoning;
   const hasReasoningContent =
     typeof reasoningContent === "string" && reasoningContent.trim().length > 0;
-  const hasContent =
-    (content !== null && content !== undefined && content !== "") || hasReasoningContent;
+  // Issue #7000: content can be a string, an array of content parts
+  // (multimodal), or null. An empty array [] or an array of empty parts
+  // must NOT count as valid content — only arrays with at least one
+  // non-empty text/image part do.
+  let hasContent: boolean;
+  if (Array.isArray(content)) {
+    hasContent = content.some(
+      (part) =>
+        !!part &&
+        typeof part === "object" &&
+        ((typeof (part as Record<string, unknown>).text === "string" &&
+          ((part as Record<string, string>).text as string).trim().length > 0) ||
+          (part as Record<string, unknown>).type === "image_url" ||
+          (part as Record<string, unknown>).type === "input_audio" ||
+          (part as Record<string, unknown>).type === "file")
+    );
+  } else {
+    hasContent =
+      (content !== null &&
+        content !== undefined &&
+        content !== "" &&
+        (typeof content !== "string" || content.trim().length > 0)) ||
+      hasReasoningContent;
+  }
   const hasToolCalls = Array.isArray(toolCalls) && toolCalls.length > 0;
 
   if (!hasContent && !hasToolCalls) {
@@ -673,4 +734,20 @@ export function releaseQualityClone(
 ): void {
   if (clone === original) return;
   void quality.clonedResponse?.body?.cancel().catch(() => {});
+}
+
+/**
+ * Cancel every response branch after a failed quality check when the caller is
+ * discarding the upstream response and falling back to another target.
+ *
+ * Streaming validation cancels its reader, but a reader on a `Response.clone()`
+ * tee cannot cancel the shared source until the untouched original branch is
+ * cancelled too. Best-effort cancellation of both branches also releases an
+ * unread quality clone for non-streaming failures.
+ */
+export function releaseRejectedQualityResponse(clone: Response, original: Response): void {
+  if (clone !== original) {
+    void clone.body?.cancel().catch(() => {});
+  }
+  void original.body?.cancel().catch(() => {});
 }

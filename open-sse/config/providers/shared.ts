@@ -194,76 +194,6 @@ export interface LegacyProvider {
   timeoutMs?: number;
 }
 
-// Kimi K2.7 Code (released 2026-06-12): coding-focused successor to K2.6 — 1T
-// MoE, 256K context, thinking-only (preserve_thinking forced) with a fixed
-// sampling regime (temperature=1.0 / top_p=0.95). Two ids: `kimi-k2.7-code` and
-// the high-speed variant `kimi-k2.7-code-highspeed`. `temperature`/`top_p` are
-// stripped on every path: the OpenAI endpoint (api.moonshot.ai) treats them as
-// non-modifiable, and the coding/Anthropic endpoint (api.kimi.com/coding) — the
-// path validated live on the test VPS — tolerates them but fixes them anyway, so
-// dropping them keeps the fixed regime and avoids an OpenAI-endpoint 400.
-export const KIMI_K27_MODELS: RegistryModel[] = [
-  {
-    id: "kimi-k2.7-code",
-    name: "Kimi K2.7 Code",
-    contextLength: 262144,
-    maxOutputTokens: 262144,
-    supportsVision: true,
-    supportsReasoning: true,
-    unsupportedParams: ["temperature", "top_p"],
-  },
-  {
-    id: "kimi-k2.7-code-highspeed",
-    name: "Kimi K2.7 Code (High Speed)",
-    contextLength: 262144,
-    maxOutputTokens: 262144,
-    supportsVision: true,
-    supportsReasoning: true,
-    unsupportedParams: ["temperature", "top_p"],
-  },
-];
-
-export const KIMI_CODING_SHARED = {
-  format: "claude",
-  executor: "default",
-  baseUrl: "https://api.kimi.com/coding/v1/messages",
-  authHeader: "x-api-key",
-  // Kimi K2.6 native context per Moonshot platform docs and cross-provider
-  // catalog (openrouter, moonshot, ali, deepinfra, etc. all advertise 262144).
-  // Without this, contextManager.ts:getTokenLimit falls back to
-  // DEFAULT_LIMITS.default = 128000 because the Kimi Code OAuth product is
-  // not synced via models.dev. The under-reported value cascades into
-  // /v1/models advertised context_length=128000 and downstream client
-  // assumptions about prompt budget (e.g. Capy computing
-  // prompt_cap = context_length - request.max_tokens).
-  defaultContextLength: 262144,
-  headers: {
-    "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-  },
-  models: [
-    {
-      id: "kimi-k2.6",
-      name: "Kimi K2.6",
-      contextLength: 262144,
-      maxOutputTokens: 262144,
-      supportsVision: true,
-    },
-    {
-      id: "kimi-k2.6-thinking",
-      name: "Kimi K2.6 Thinking",
-      contextLength: 262144,
-      maxOutputTokens: 262144,
-    },
-    ...KIMI_K27_MODELS,
-    {
-      id: "moonshotai/kimi-k2.7-code",
-      name: "Kimi K2.7 Code",
-      contextLength: 262144,
-      maxOutputTokens: 262144,
-    },
-  ] as RegistryModel[],
-} as const;
-
 export const buildModels = (ids: readonly string[]): RegistryModel[] =>
   ids.map((id) => ({ id, name: id }));
 
@@ -312,15 +242,15 @@ export const GPT_5_6_API_CAPABILITIES = {
   maxOutputTokens: 128000,
 } as const;
 
-// Codex's live catalog reports a 372K usable input budget for GPT-5.6.
-// Keep the reserved 128K output budget explicit, matching the GPT-5.5 catalog contract.
+// Codex's live catalog reports a 372K context window for GPT-5.6.
+// Keep the input and output limits explicit for catalog consumers that expose them separately.
 export const GPT_5_6_CODEX_CAPABILITIES = {
   targetFormat: "openai-responses",
   toolCalling: true,
   supportsReasoning: true,
   supportsVision: true,
   supportsXHighEffort: true,
-  contextLength: 500000,
+  contextLength: 372000,
   maxInputTokens: 372000,
   maxOutputTokens: 128000,
 } as const;
@@ -399,7 +329,6 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "allenai/Olmo-3-7B-Instruct",
     "utter-project/EuroLLM-22B-Instruct-2512",
   ]),
-  moonshot: [...buildModels(["kimi-k2.6", "kimi-k2.5"]), ...KIMI_K27_MODELS],
   "meta-llama": buildModels([
     "Llama-4-Maverick-17B-128E-Instruct-FP8",
     "Llama-4-Scout-17B-16E-Instruct-FP8",
@@ -409,9 +338,10 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   "v0-vercel": buildModels(["v0-1.0-md", "v0-1.5-lg", "v0-1.5-md"]),
   morph: [
     ...buildModels(["morph-v3-large", "morph-v3-fast"]),
+    { id: "morph-glm52-744b", name: "GLM-5.2 744B (Morph)", contextLength: 1048576 },
     { id: "morph-qwen35-397b", name: "Qwen 3.5 397B (Morph)", contextLength: 262144 },
-    { id: "morph-minimax27-230b", name: "MiniMax M2.7 (Morph)", contextLength: 200704 },
     { id: "morph-qwen36-27b", name: "Qwen 3.6 27B (Morph)", contextLength: 131072 },
+    { id: "morph-minimax3-428b", name: "MiniMax M3 (Morph)", contextLength: 262144 },
     { id: "morph-dsv4flash", name: "DeepSeek V4 Flash (Morph)", contextLength: 1048576 },
   ],
   "featherless-ai": buildModels(["featherless-ai/Qwerky-72B", "featherless-ai/Qwerky-QwQ-32B"]),

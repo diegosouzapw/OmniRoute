@@ -68,7 +68,14 @@ const tmpHostsFile = path.join(tmpDir, "hosts");
 
 // Import the module under test AFTER all setup.
 const dnsModule = await import("../../src/mitm/dns/dnsConfig.ts");
-const { addDNSEntries, removeDNSEntries, addDNSEntry, removeDNSEntry, checkDNSEntry } = dnsModule;
+const {
+  addDNSEntries,
+  removeDNSEntries,
+  addDNSEntry,
+  removeDNSEntry,
+  checkDNSEntry,
+  resolveHostsForAgent,
+} = dnsModule;
 const { ALL_TARGETS } = await import("../../src/mitm/targets/index.ts");
 
 // ---------------------------------------------------------------------------
@@ -98,25 +105,32 @@ test("addDNSEntry (legacy) is a function that delegates for Antigravity hosts", 
 
 test("addDNSEntry with agentId resolves agent-specific hosts from ALL_TARGETS", async () => {
   // Cursor target has hosts: ["api2.cursor.sh"]
-  // Verify that calling addDNSEntry with agentId="cursor" passes the right hosts.
-  // We call with [] to skip actual exec — just verifying the function signature accepts agentId.
-  await assert.doesNotReject(
-    addDNSEntry("fake-sudo", "cursor"),
-    "addDNSEntry must accept optional agentId parameter"
+  // Verify host selection without invoking the privileged /etc/hosts writer.
+  assert.deepEqual(
+    resolveHostsForAgent("cursor"),
+    ["api2.cursor.sh"],
+    "addDNSEntry must resolve hosts for the optional agentId"
   );
 });
 
 test("addDNSEntry without agentId falls back to Antigravity hosts (backward compat)", async () => {
-  await assert.doesNotReject(
-    addDNSEntry("fake-sudo"),
-    "addDNSEntry without agentId must still work for backward compat"
+  assert.deepEqual(
+    resolveHostsForAgent(),
+    [
+      "daily-cloudcode-pa.googleapis.com",
+      "cloudcode-pa.googleapis.com",
+      "daily-cloudcode-pa.sandbox.googleapis.com",
+      "autopush-cloudcode-pa.sandbox.googleapis.com",
+    ],
+    "addDNSEntry without agentId must preserve backward-compatible hosts"
   );
 });
 
 test("addDNSEntry with unknown agentId falls back to Antigravity hosts", async () => {
-  await assert.doesNotReject(
-    addDNSEntry("fake-sudo", "__nonexistent_agent__"),
-    "addDNSEntry with unknown agentId must fall back to Antigravity hosts"
+  assert.deepEqual(
+    resolveHostsForAgent("__nonexistent_agent__"),
+    resolveHostsForAgent(),
+    "unknown agentId must fall back to Antigravity hosts"
   );
 });
 
@@ -217,7 +231,9 @@ test("addDNSEntries: entry passed as stdin data, not shell-interpolated", () => 
     "entry content must be built from missingEntries for stdin, not interpolated in args"
   );
   assert.ok(
-    src.includes('execFileWithPassword("sudo", ["-S", "tee", "-a", HOSTS_FILE], sudoPassword, data)'),
+    src.includes(
+      'execFileWithPassword("sudo", ["-S", "tee", "-a", HOSTS_FILE], sudoPassword, data)'
+    ),
     "entry data must be passed as stdin to tee, not interpolated in args"
   );
 });

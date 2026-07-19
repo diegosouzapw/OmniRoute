@@ -3,8 +3,8 @@ import crypto from "crypto";
 /**
  * Generate PKCE code verifier (43-128 characters)
  */
-export function generateCodeVerifier() {
-  return crypto.randomBytes(32).toString("base64url");
+export function generateCodeVerifier(bytes = 32) {
+  return crypto.randomBytes(bytes).toString("base64url");
 }
 
 /**
@@ -24,8 +24,8 @@ export function generateState() {
 /**
  * Generate complete PKCE pair
  */
-export function generatePKCE() {
-  const codeVerifier = generateCodeVerifier();
+export function generatePKCE(verifierBytes = 32) {
+  const codeVerifier = generateCodeVerifier(verifierBytes);
   const codeChallenge = generateCodeChallenge(codeVerifier);
   const state = generateState();
 

@@ -69,9 +69,36 @@ export function shouldShowFirstProviderHint(
   return connectionCount === 0 && !searchQuery?.trim();
 }
 
+export function shouldShowProviderSection(
+  category: string,
+  activeCategory: string | null,
+  showFreeOnly: boolean
+): boolean {
+  if (showFreeOnly) return category === "free";
+  if (activeCategory) return activeCategory === category;
+
+  // Free and Web Fetch are cross-cutting views assembled from providers that
+  // already belong to a primary section. Rendering them in the default view
+  // duplicates cards; they remain available through their summary filters.
+  return category !== "free" && category !== "webfetch";
+}
+
 type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvider>;
 
-const OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS = new Set(["kiro", "amazon-q"]);
+const OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS = new Set(["kiro", "amazon-q", "kimi-coding"]);
+
+const PROVIDER_CONNECTION_ALIASES: Record<string, readonly string[]> = {
+  "kimi-coding": ["kimi-coding-apikey"],
+};
+
+export function connectionBelongsToProviderPage(
+  connectionProvider: string | null | undefined,
+  providerId: string
+): boolean {
+  if (!connectionProvider) return false;
+  if (connectionProvider === providerId) return true;
+  return PROVIDER_CONNECTION_ALIASES[providerId]?.includes(connectionProvider) === true;
+}
 
 /**
  * Whether a provider connection should be counted on a provider card rendered in
@@ -85,7 +112,7 @@ export function connectionMatchesProviderCard(
   providerId: string,
   cardAuthType: "oauth" | "free" | "apikey"
 ): boolean {
-  if (!conn || conn.provider !== providerId) return false;
+  if (!conn || !connectionBelongsToProviderPage(conn.provider, providerId)) return false;
   if (cardAuthType === "free") return true;
   if (
     supportsApiKeyOnFreeProvider(providerId) ||
@@ -123,13 +150,15 @@ export function buildProviderEntries<TProvider = Record<string, unknown>>(
   toggleAuthType: ProviderEntry["toggleAuthType"],
   getProviderStats: GetProviderStats
 ): ProviderEntry<TProvider>[] {
-  return Object.entries(providers).map(([providerId, provider]) => ({
-    providerId,
-    provider,
-    stats: getProviderStats(providerId, toggleAuthType),
-    displayAuthType,
-    toggleAuthType,
-  }));
+  return Object.entries(providers)
+    .filter(([, provider]) => !(provider as Record<string, unknown>).hiddenFromDashboard)
+    .map(([providerId, provider]) => ({
+      providerId,
+      provider,
+      stats: getProviderStats(providerId, toggleAuthType),
+      displayAuthType,
+      toggleAuthType,
+    }));
 }
 
 export function buildMergedOAuthProviderEntries<TProvider = Record<string, unknown>>(
