@@ -2,12 +2,8 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { freeProxySyncSchema } from "@/shared/validation/freeProxySchemas";
-import { getEnabledProviders, getProvider } from "@/lib/freeProxyProviders";
-import {
-  recordFreeProxySync,
-  clearFreeProxySyncErrors,
-  recordFreeProxySyncErrors,
-} from "@/lib/localDb";
+import { getProvider } from "@/lib/freeProxyProviders";
+import { runFreeProxySyncCycle } from "@/lib/freeProxyProviders/syncCycle";
 import type { FreeProxyProvider, FreeProxySourceId } from "@/lib/freeProxyProviders/types";
 
 let _providersOverrideForTests: FreeProxyProvider[] | null = null;
@@ -43,38 +39,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const providers =
+    const providers: FreeProxyProvider[] | undefined =
       _providersOverrideForTests ??
       (validation.data.sources && validation.data.sources.length > 0
         ? validation.data.sources
             .map((id) => getProvider(id as FreeProxySourceId))
             .filter((p): p is NonNullable<typeof p> => p != null)
-        : getEnabledProviders());
+        : undefined);
 
-    const results: Record<string, unknown> = {};
-    for (const provider of providers) {
-      try {
-        results[provider.id] = await provider.sync();
-        await clearFreeProxySyncErrors(provider.id);
-      } catch (error) {
-        // #5595: isolate per-source failures so one provider throwing doesn't
-        // abort the whole sync — the other sources still populate the pool and
-        // the failure is surfaced in `results` instead of a blanket 500.
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        results[provider.id] = {
-          fetched: 0,
-          added: 0,
-          updated: 0,
-          errors: [errorMessage],
-        };
-        await recordFreeProxySyncErrors(provider.id, [errorMessage]);
-      }
-    }
-
-    // #4878: persist the sync timestamp so the UI's "last sync" advances even
-    // when a sync returns zero new/updated proxies (otherwise it stayed frozen
-    // at MAX(last_validated)).
-    const lastSyncAt = await recordFreeProxySync();
+    const { results, lastSyncAt } = await runFreeProxySyncCycle(providers);
 
     return Response.json({ success: true, results, lastSyncAt });
   } catch (error) {
