@@ -315,7 +315,6 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
   const quotas: Record<string, QuotaInfo> = {};
   let provider = "";
   let fetchedAt = 0;
-  let exhausted = false;
   let windowDurationMs: number | null = null;
 
   for (const snapshot of snapshots) {
@@ -336,7 +335,6 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
       ),
       resetAt: camelSnapshot.nextResetAt ?? snapshot.next_reset_at ?? null,
     };
-    exhausted = exhausted || (camelSnapshot.isExhausted ?? snapshot.is_exhausted) === 1;
     const snapshotWindowDurationMs =
       camelSnapshot.windowDurationMs ?? snapshot.window_duration_ms ?? null;
     if (snapshotWindowDurationMs && snapshotWindowDurationMs > 0) {
@@ -348,6 +346,7 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
   }
 
   if (Object.keys(quotas).length === 0) return null;
+  const exhausted = isExhausted(quotas);
 
   const entry: QuotaCacheEntry = {
     connectionId,

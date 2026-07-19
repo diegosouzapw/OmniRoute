@@ -48,6 +48,7 @@ const REASONING_REPLAY_MODEL_PATTERNS = [
   /deepseek[-/]v4[-.](flash|pro)(-free)?/i,
   /zen\/deepseek-v4/i,
   /kimi-k2/i,
+  /kimi-k3/i,
   /qwq/i,
   /qwen.*think/i,
   /glm.*think/i,

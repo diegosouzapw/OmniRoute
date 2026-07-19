@@ -64,10 +64,10 @@ export {
   getModelIsHidden,
   setModelIsHidden,
   getHiddenModelsByProvider,
-
   // Synced Available Models
   getSyncedAvailableModels,
   getAllSyncedAvailableModels,
+  getActiveProvidersWithSyncedModel,
   replaceSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForProvider,
@@ -311,7 +311,7 @@ export type { FileRecord } from "./db/files";
 export type { BatchItemCheckpoint, BatchRecord } from "./db/batches";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
-
+export * from "./db/reasoningRoutingRules";
 export {
   // Webhooks
   getWebhooks,

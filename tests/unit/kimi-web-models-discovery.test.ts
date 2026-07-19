@@ -22,28 +22,24 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("kimi-web model discovery sends Kimi auth as bearer and cookie", async () => {
+test("kimi-web uses the curated registry catalog without remote discovery", async () => {
   await resetStorage();
-  const jwt = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ1c2VyIn0.signature";
   const connection = await providersDb.createProviderConnection({
     provider: "kimi-web",
     authType: "apikey",
-    name: "kimi-web-discovery",
-    apiKey: `_ga=ignored; theme=dark; kimi-auth=${jwt}; __cf_bm=ignored`,
+    name: "kimi-web-curated",
+    apiKey: "opaque-current-kimi-token",
   });
+  const modelsDb = await import("../../src/lib/db/models.ts");
+  await modelsDb.replaceSyncedAvailableModelsForConnection("kimi-web", connection.id, [
+    { id: "unexpected-live-model", name: "Unexpected live model", source: "imported" },
+  ]);
 
-  let captured: { url: string; init?: RequestInit } | null = null;
+  let fetchCalls = 0;
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
-    captured = { url: String(url), init };
-    return Response.json({
-      availableModels: [
-        { key: "k2d6", displayName: "K2.6 Instant" },
-        { key: "k2d6-thinking", displayName: "K2.6 Thinking", thinking: true },
-        { key: "k2d6-agent", displayName: "K2.6 Agent" },
-        { key: "k2d6-agent-ultra", displayName: "K2.6 Agent Swarm" },
-      ],
-    });
+  globalThis.fetch = (async () => {
+    fetchCalls += 1;
+    throw new Error("kimi-web curated catalog must not perform remote discovery");
   }) as typeof globalThis.fetch;
 
   try {
@@ -53,21 +49,12 @@ test("kimi-web model discovery sends Kimi auth as bearer and cookie", async () =
     );
     assert.equal(response.status, 200);
     const body = await response.json();
-    assert.equal(body.source, "api");
+    assert.equal(body.source, "local_catalog");
     assert.deepEqual(
       body.models.map((model: { id: string }) => model.id),
-      ["k2d6", "k2d6-thinking"]
+      ["k3", "k2d6"]
     );
-    assert.equal(
-      captured?.url,
-      "https://www.kimi.com/apiv2/kimi.gateway.config.v1.ConfigService/GetAvailableModels"
-    );
-    assert.equal(captured?.init?.method, "POST");
-    assert.equal(captured?.init?.body, "{}");
-    const headers = captured?.init?.headers as Record<string, string>;
-    assert.equal(headers.Authorization, `Bearer ${jwt}`);
-    assert.equal(headers.Cookie, `kimi-auth=${jwt}`);
-    assert.equal(headers["connect-protocol-version"], "1");
+    assert.equal(fetchCalls, 0);
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -1,0 +1,1 @@
+- fix(sse): combo session stickiness now releases a connection whose per-window quota is exhausted, matching the provider-level session-affinity pin (#7387)

@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { useApiKey } from "../../providers/hooks/useApiKey";
 import { useProviderModels } from "../../providers/hooks/useProviderModels";
+import { getProviderAlias } from "@/shared/constants/providers";
 
 const ENDPOINT = "/api/v1/chat/completions";
 
@@ -35,22 +36,23 @@ function resolvePlaygroundKeyId(
 }
 
 /**
- * Qualify a provider-scoped playground model with its `providerId/` prefix so
+ * Qualify a provider-scoped playground model with its routing prefix so
  * OmniRoute can resolve it unambiguously. The previous heuristic only prefixed
  * models without a `/`, which skipped vendor-namespaced ids like
  * `moonshotai/kimi-k2.6` or `nvidia/zyphra/zamba2-7b-instruct` — those already
  * contain a slash, so they were sent bare and rejected with
  * "Ambiguous model ... Use provider/model prefix" when the same id exists under
- * several providers (#3050). Always prefix unless the id is already qualified
- * with this provider.
+ * several providers (#3050). The routing prefix is normally the provider alias,
+ * which can intentionally differ from the provider id (for example `oc` routes
+ * OpenCode Free while `opencode` is reserved by the Zen executor).
  */
 export function qualifyPlaygroundModel(
   model: string | null | undefined,
-  providerId: string | null | undefined
+  routingPrefix: string | null | undefined
 ): string {
   const m = (model ?? "").trim();
-  if (!m || !providerId) return m;
-  return m === providerId || m.startsWith(`${providerId}/`) ? m : `${providerId}/${m}`;
+  if (!m || !routingPrefix) return m;
+  return m === routingPrefix || m.startsWith(`${routingPrefix}/`) ? m : `${routingPrefix}/${m}`;
 }
 
 interface Message {
@@ -163,11 +165,12 @@ export function LlmChatCard({
 
   const firstModel = models[0]?.id ?? "";
   const effectiveModel = model || firstModel || initialModel || "";
-  // Auto-prefix model with providerId to avoid OmniRoute "Ambiguous model"
+  const routingPrefix = getProviderAlias(providerId);
+  // Auto-prefix model with the provider's routing alias to avoid OmniRoute "Ambiguous model"
   // rejection when the same id is registered under multiple providers. This
   // also covers vendor-namespaced ids (e.g. `moonshotai/kimi-k2.6`) that already
   // contain a slash but still need the provider prefix (#3050).
-  const qualifiedModel = qualifyPlaygroundModel(effectiveModel, providerId);
+  const qualifiedModel = qualifyPlaygroundModel(effectiveModel, routingPrefix);
 
   // Autofocus textarea in embedded mode
   useEffect(() => {
