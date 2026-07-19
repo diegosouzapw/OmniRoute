@@ -29,8 +29,8 @@ FROM base AS builder
 
 # Build tools for native module compilation
 # apt-get update needed here because base's rm -rf clears the shared cache
-RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=shared \
-  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=shared \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=shared \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=shared \
   apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ \
   && rm -rf /var/lib/apt/lists/*
@@ -99,7 +99,7 @@ ARG OMNIROUTE_BUILD_MEMORY_MB=4096
 ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_BUILD_MEMORY_MB}"
 
 COPY . ./
-RUN --mount=type=cache,id=next-cache,target=/app/.build/next/cache \
+RUN --mount=type=cache,target=/app/.build/next/cache \
   mkdir -p /app/data && npm run build
 
 # ── Runner base ────────────────────────────────────────────────────────────
@@ -201,8 +201,8 @@ COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
 # browsers land under /home/node which persists across image layers and is
 # accessible to the non-root runtime user.
 ENV PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
-RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=locked \
-  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
   && node node_modules/playwright/cli.js install chromium --with-deps \
   && chown -R node:node /home/node/.cache \
@@ -218,15 +218,15 @@ FROM runner-base AS runner-cli
 USER root
 
 # Install system dependencies required by openclaw (git+ssh references).
-RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=locked \
-  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
   && apt-get install -y --no-install-recommends git ca-certificates docker.io docker-compose \
   && rm -rf /var/lib/apt/lists/* \
   && git config --system url."https://github.com/".insteadOf "ssh://git@github.com/"
 
 # Install CLI tools globally. Separate layer from apt for better cache reuse.
-RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
+RUN --mount=type=cache,target=/root/.npm \
   npm install -g --no-audit --no-fund @openai/codex @anthropic-ai/claude-code droid openclaw@latest
 
 USER node
