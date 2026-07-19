@@ -1,7 +1,6 @@
-// Antigravity streaming-passthrough behavior (#7408): the non-streaming drain
-// path (raw SSE + chatCore-side parse) and the credits-extraction pass-through
-// TransformStream. Moved verbatim from tests/unit/executor-antigravity.test.ts
-// (frozen file-size cap) — same tests, same asserts.
+// Antigravity streaming-passthrough behavior (#7408): the buffered non-streaming
+// response path and the credits-extraction pass-through TransformStream. Kept
+// separate from executor-antigravity.test.ts to respect its frozen file-size cap.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
