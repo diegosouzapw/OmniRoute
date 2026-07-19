@@ -141,3 +141,42 @@ test("import-token: error responses never leak a stack trace", async () => {
   assert.ok(!JSON.stringify(body).includes("at /"), "must not leak a stack trace");
   assert.ok(!JSON.stringify(body).includes(".ts:"), "must not leak a source location");
 });
+
+// #6636 — defense-in-depth: the route also accepts the full session JSON
+// object copied from chatgpt.com/api/auth/session under `{ session: {...} }`.
+test("import-token: accepts a full session-JSON body and creates a connection identical to the bare-accessToken path", async () => {
+  const accessToken = makeJwt({
+    email: "session-json@example.com",
+    "https://api.openai.com/auth": { chatgpt_account_id: "acct-session" },
+  });
+
+  const { status, body } = await postImportToken({
+    session: {
+      user: { email: "session-json@example.com" },
+      accessToken,
+      expires: new Date(Date.now() + 60_000).toISOString(),
+    },
+  });
+
+  assert.equal(status, 200);
+  assert.equal(body.success, true);
+  assert.equal(body.connection.provider, "codex");
+  assert.equal(body.connection.email, "session-json@example.com");
+
+  const rows = await providersDb.getProviderConnections({ provider: "codex" });
+  const created = rows.find((r) => r.id === body.connection.id);
+  assert.equal(created?.authType, "access_token");
+  assert.equal(created?.accessToken, accessToken);
+});
+
+test("import-token: session-JSON body with an expired session is rejected with an actionable 400", async () => {
+  const accessToken = makeJwt({ email: "expired@example.com" });
+  const { status, body } = await postImportToken({
+    session: {
+      accessToken,
+      expires: new Date(Date.now() - 60_000).toISOString(),
+    },
+  });
+  assert.equal(status, 400);
+  assert.match(body.error.message, /expired/i);
+});
