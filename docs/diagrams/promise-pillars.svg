@@ -22,23 +22,23 @@
   <rect x="0" y="0" width="1200" height="6" fill="url(#gradBrandP)"/>
 
   <!-- header -->
-  <g opacity="0">
-    <animate attributeName="opacity" from="0" to="1" begin="0.1s" dur="0.5s" fill="freeze"/>
+  <g>
+    <animate attributeName="opacity" values="0;0;1" keyTimes="0;0.167;1" begin="0s" dur="0.6s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
     <text x="40" y="58" font-family="Consolas, 'Courier New', monospace" font-size="13" letter-spacing="2.5" fill="#a78bfa">THE PROMISE</text>
     <line x1="150" y1="53" x2="1160" y2="53" stroke="#232b38" stroke-width="1.5"/>
   </g>
-  <g opacity="0" transform="translate(0,10)">
-    <animate attributeName="opacity" from="0" to="1" begin="0.3s" dur="0.6s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
-    <animateTransform attributeName="transform" type="translate" from="0 10" to="0 0" begin="0.3s" dur="0.6s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+  <g>
+    <animate attributeName="opacity" values="0;0;1" keyTimes="0;0.333;1" begin="0s" dur="0.8999999999999999s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
+    <animateTransform attributeName="transform" type="translate" values="0 10;0 10;0 0" keyTimes="0;0.333;1" begin="0s" dur="0.8999999999999999s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
     <text x="40" y="100" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="23" font-weight="600" fill="#c9d1d9">One endpoint. <tspan fill="#a78bfa" font-weight="800">268 providers.</tspan> Never stop building — OmniRoute picks <tspan fill="#7ee787" font-weight="700">the cheapest one that works</tspan>.</text>
   </g>
 
   <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif">
 
     <!-- cell 1: never hit limits (blue) -->
-    <g opacity="0" transform="translate(0,12)">
-      <animate attributeName="opacity" from="0" to="1" begin="0.55s" dur="0.5s" fill="freeze"/>
-      <animateTransform attributeName="transform" type="translate" from="0 12" to="0 0" begin="0.55s" dur="0.5s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <g>
+      <animate attributeName="opacity" values="0;0;1" keyTimes="0;0.524;1" begin="0s" dur="1.05s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
+      <animateTransform attributeName="transform" type="translate" values="0 12;0 12;0 0" keyTimes="0;0.524;1" begin="0s" dur="1.05s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
       <rect x="40" y="130" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
       <rect x="40" y="130" width="360" height="164" rx="14" fill="none" stroke="#74b9ff" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0.9;0;0" keyTimes="0;0.055;0.12;1" dur="12s" begin="3s" repeatCount="indefinite"/>
@@ -55,9 +55,9 @@
     </g>
 
     <!-- cell 2: save tokens (orange) -->
-    <g opacity="0" transform="translate(0,12)">
-      <animate attributeName="opacity" from="0" to="1" begin="0.67s" dur="0.5s" fill="freeze"/>
-      <animateTransform attributeName="transform" type="translate" from="0 12" to="0 0" begin="0.67s" dur="0.5s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <g>
+      <animate attributeName="opacity" values="0;0;1" keyTimes="0;0.573;1" begin="0s" dur="1.17s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
+      <animateTransform attributeName="transform" type="translate" values="0 12;0 12;0 0" keyTimes="0;0.573;1" begin="0s" dur="1.17s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
       <rect x="420" y="130" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
       <rect x="420" y="130" width="360" height="164" rx="14" fill="none" stroke="#e17055" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.167;0.222;0.287;1" dur="12s" begin="3s" repeatCount="indefinite"/>
@@ -75,9 +75,9 @@
     </g>
 
     <!-- cell 3: $0 to start (gold) -->
-    <g opacity="0" transform="translate(0,12)">
-      <animate attributeName="opacity" from="0" to="1" begin="0.79s" dur="0.5s" fill="freeze"/>
-      <animateTransform attributeName="transform" type="translate" from="0 12" to="0 0" begin="0.79s" dur="0.5s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <g>
+      <animate attributeName="opacity" values="0;0;1" keyTimes="0;0.612;1" begin="0s" dur="1.29s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
+      <animateTransform attributeName="transform" type="translate" values="0 12;0 12;0 0" keyTimes="0;0.612;1" begin="0s" dur="1.29s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
       <rect x="800" y="130" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
       <rect x="800" y="130" width="360" height="164" rx="14" fill="none" stroke="#fdcb6e" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.334;0.389;0.454;1" dur="12s" begin="3s" repeatCount="indefinite"/>
@@ -94,9 +94,9 @@
     </g>
 
     <!-- cell 4: every tool works (violet) -->
-    <g opacity="0" transform="translate(0,12)">
-      <animate attributeName="opacity" from="0" to="1" begin="0.91s" dur="0.5s" fill="freeze"/>
-      <animateTransform attributeName="transform" type="translate" from="0 12" to="0 0" begin="0.91s" dur="0.5s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <g>
+      <animate attributeName="opacity" values="0;0;1" keyTimes="0;0.645;1" begin="0s" dur="1.4100000000000001s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
+      <animateTransform attributeName="transform" type="translate" values="0 12;0 12;0 0" keyTimes="0;0.645;1" begin="0s" dur="1.4100000000000001s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
       <rect x="40" y="314" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
       <rect x="40" y="314" width="360" height="164" rx="14" fill="none" stroke="#a78bfa" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.5;0.555;0.62;1" dur="12s" begin="3s" repeatCount="indefinite"/>
@@ -114,9 +114,9 @@
     </g>
 
     <!-- cell 5: one endpoint (cyan) -->
-    <g opacity="0" transform="translate(0,12)">
-      <animate attributeName="opacity" from="0" to="1" begin="1.03s" dur="0.5s" fill="freeze"/>
-      <animateTransform attributeName="transform" type="translate" from="0 12" to="0 0" begin="1.03s" dur="0.5s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <g>
+      <animate attributeName="opacity" values="0;0;1" keyTimes="0;0.673;1" begin="0s" dur="1.53s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
+      <animateTransform attributeName="transform" type="translate" values="0 12;0 12;0 0" keyTimes="0;0.673;1" begin="0s" dur="1.53s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
       <rect x="420" y="314" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
       <rect x="420" y="314" width="360" height="164" rx="14" fill="none" stroke="#00cec9" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.667;0.722;0.787;1" dur="12s" begin="3s" repeatCount="indefinite"/>
@@ -133,9 +133,9 @@
     </g>
 
     <!-- cell 6: production-grade (green) -->
-    <g opacity="0" transform="translate(0,12)">
-      <animate attributeName="opacity" from="0" to="1" begin="1.15s" dur="0.5s" fill="freeze"/>
-      <animateTransform attributeName="transform" type="translate" from="0 12" to="0 0" begin="1.15s" dur="0.5s" calcMode="spline" keyTimes="0;1" keySplines="0.16 1 0.3 1" fill="freeze"/>
+    <g>
+      <animate attributeName="opacity" values="0;0;1" keyTimes="0;0.697;1" begin="0s" dur="1.65s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
+      <animateTransform attributeName="transform" type="translate" values="0 12;0 12;0 0" keyTimes="0;0.697;1" begin="0s" dur="1.65s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
       <rect x="800" y="314" width="360" height="164" rx="14" fill="#161c28" stroke="#232b38" stroke-width="1.5"/>
       <rect x="800" y="314" width="360" height="164" rx="14" fill="none" stroke="#7ee787" stroke-width="1.5" opacity="0">
         <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.834;0.889;0.954;1" dur="12s" begin="3s" repeatCount="indefinite"/>
@@ -153,8 +153,8 @@
   </g>
 
   <!-- footer -->
-  <g opacity="0">
-    <animate attributeName="opacity" from="0" to="1" begin="1.5s" dur="0.6s" fill="freeze"/>
+  <g>
+    <animate attributeName="opacity" values="0;0;1" keyTimes="0;0.714;1" begin="0s" dur="2.1s" calcMode="spline" keySplines="0 0 1 1;0.16 1 0.3 1" fill="freeze"/>
     <text x="40" y="516" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">$ npm i -g omniroute&#160;&#160;·&#160;&#160;point your tool at http://localhost:20128/v1&#160;&#160;·&#160;&#160;$0</text>
     <text x="1160" y="516" text-anchor="end" font-family="Consolas, 'Courier New', monospace" font-size="12" letter-spacing="1.5" fill="#71717a">MIT · OPEN SOURCE</text>
   </g>
