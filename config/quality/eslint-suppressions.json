@@ -566,7 +566,7 @@
   },
   "tests/unit/base-executor-sanitize-effort.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 45
+      "count": 48
     }
   },
   "tests/unit/batch_api.test.ts": {
@@ -991,7 +991,7 @@
   },
   "tests/unit/combo-routing-engine.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 261
+      "count": 269
     }
   },
   "tests/unit/combo-same-provider-cascade.test.ts": {

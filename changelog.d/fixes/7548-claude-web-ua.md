@@ -1,0 +1,1 @@
+- fix(claude-web): unify Turnstile solver, executor and httpBackedChat fast-path User-Agents behind one shared fingerprint module so `cf_clearance` is never solved under a different UA than the one that replays it (#7548)

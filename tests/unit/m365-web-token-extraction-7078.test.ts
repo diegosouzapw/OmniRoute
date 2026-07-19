@@ -5,13 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const B = await import("../../src/lib/providers/validation/webProvidersB.ts");
-const { extractM365CredentialParts } = B as unknown as {
-  extractM365CredentialParts: (
-    raw: string,
-    options: Record<string, unknown>
-  ) => { accessToken?: string; chathubPath?: string };
-};
-const extract = (raw: string) => extractM365CredentialParts(raw, {});
+const extract = (raw: string) => B.extractM365CredentialParts(raw, {});
 
 test("#7078 m365.cloud.microsoft wss URL extracts access_token + chathubPath", () => {
   const raw =
@@ -22,14 +16,16 @@ test("#7078 m365.cloud.microsoft wss URL extracts access_token + chathubPath", (
 });
 
 test("#7078 regional subdomain m365.cloud.microsoft also accepted", () => {
-  const raw = "wss://eu.m365.cloud.microsoft/m365Copilot/Chathub/user@tenant?access_token=TOKEN456";
+  const raw =
+    "wss://eu.m365.cloud.microsoft/m365Copilot/Chathub/user@tenant?access_token=TOKEN456";
   const parts = extract(raw);
   assert.equal(parts.accessToken, "TOKEN456");
   assert.equal(parts.chathubPath, "user@tenant");
 });
 
 test("#7078 legacy substrate.office.com still works (no regression)", () => {
-  const raw = "wss://substrate.office.com/m365Copilot/Chathub/user@tenant?access_token=LEGACY";
+  const raw =
+    "wss://substrate.office.com/m365Copilot/Chathub/user@tenant?access_token=LEGACY";
   const parts = extract(raw);
   assert.equal(parts.accessToken, "LEGACY");
   assert.equal(parts.chathubPath, "user@tenant");
