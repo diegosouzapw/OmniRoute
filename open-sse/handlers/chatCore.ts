@@ -314,7 +314,8 @@ import type {
 } from "../services/compression/types.ts";
 import { generateSessionId } from "../services/sessionManager.ts";
 import { prepareWebSearchFallbackBody } from "../services/webSearchFallback.ts";
-import { resolveInterceptSearch } from "@/lib/db/interceptionRules";
+import { prepareWebFetchFallbackBody } from "../services/webFetchInterception.ts";
+import { resolveInterceptSearch, resolveInterceptFetch } from "@/lib/db/interceptionRules";
 import {
   resolveExplicitStreamAlias,
   resolveStreamFlag,
@@ -767,6 +768,24 @@ export async function handleChatCore({
     log?.info?.(
       "TOOLS",
       `Converted ${webSearchFallbackPlan.convertedToolCount} web_search tool(s) to OmniRoute fallback for ${provider}`
+    );
+  }
+  // #7339: interceptFetch (Phase 3-4 of #3384) — same per-model rule + native-bypass
+  // pattern as interceptSearch directly above.
+  const interceptFetchOverride = resolveInterceptFetch(provider, effectiveModel);
+  const { body: bodyWithWebFetchFallback, fallback: webFetchFallbackPlan } =
+    prepareWebFetchFallbackBody(body as Record<string, unknown>, {
+      provider,
+      sourceFormat,
+      targetFormat,
+      nativeCodexPassthrough,
+      interceptFetchOverride,
+    });
+  if (webFetchFallbackPlan.enabled) {
+    body = bodyWithWebFetchFallback as typeof body;
+    log?.info?.(
+      "TOOLS",
+      `Converted ${webFetchFallbackPlan.convertedToolCount} web_fetch tool(s) to OmniRoute fallback for ${provider}`
     );
   }
   const noLogEnabled = apiKeyInfo?.noLog === true;
@@ -2547,6 +2566,7 @@ export async function handleChatCore({
                             clientRawRequest?.headers,
                             userAgent
                           ),
+                          clientResponseFormat,
                           onCredentialsRefreshed,
                           skipUpstreamRetry,
                           contextEditing: { enabled: contextEditingEnabled },
@@ -2793,6 +2813,7 @@ export async function handleChatCore({
                                 clientRawRequest?.headers,
                                 userAgent
                               ),
+                              clientResponseFormat,
                               onCredentialsRefreshed,
                               skipUpstreamRetry,
                               contextEditing: { enabled: contextEditingEnabled },
@@ -3288,6 +3309,7 @@ export async function handleChatCore({
             extendedContext,
             upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
             clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
+            clientResponseFormat,
             onCredentialsRefreshed,
             skipUpstreamRetry: isCombo,
             contextEditing: { enabled: contextEditingEnabled },
@@ -4088,7 +4110,9 @@ export async function handleChatCore({
 
     const customSkillExecutionEnabled =
       Boolean(memoryOwnerId) && memorySettings?.skillsEnabled === true;
-    const builtinToolNames = webSearchFallbackPlan.toolName ? [webSearchFallbackPlan.toolName] : [];
+    const builtinToolNames = [webSearchFallbackPlan.toolName, webFetchFallbackPlan.toolName].filter(
+      (name): name is string => Boolean(name)
+    );
     if (customSkillExecutionEnabled || builtinToolNames.length > 0) {
       const skillSessionId = pipelineSessionId;
 
@@ -4101,6 +4125,8 @@ export async function handleChatCore({
           requestId: skillRequestId,
           builtinToolNames,
           customSkillExecutionEnabled,
+          provider,
+          model: effectiveModel,
         }
       );
     }
@@ -4626,10 +4652,13 @@ export async function handleChatCore({
       // Suppress the `</think>` close marker for clients that render it verbatim
       // (e.g. OpenCode by UA; any client via `x-omniroute-thinking-marker: off`);
       // preserved for Claude Code / Cursor and unknown clients by default (#5245 /
-      // #5312). The header wins over the UA allowlist.
+      // #5312). Responses API clients always suppress it (structured reasoning
+      // items make the marker meaningless); otherwise the header wins over the
+      // UA allowlist.
       resolveSuppressThinkClose({
         userAgent: streamUserAgent,
         thinkingMarkerHeader,
+        clientResponseFormat,
       })
     );
   } else {

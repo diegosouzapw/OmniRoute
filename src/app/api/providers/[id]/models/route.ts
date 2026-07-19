@@ -25,7 +25,7 @@ import {
 import {
   getProviderOutboundGuard,
   getProviderValidationGuard,
-} from "@/shared/network/outboundUrlGuard";
+} from "@/shared/network/outboundUrlGuardPolicy";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
@@ -571,7 +571,8 @@ export async function GET(
               ...init,
             }),
         });
-        return buildApiDiscoveryResponse(discovery.models);
+        // Pass through plan-lock warnings (e.g. Fable 5 requires Business/Enterprise).
+        return buildApiDiscoveryResponse(discovery.models, discovery.warning);
       } catch (error) {
         console.log("Error fetching models from notion-web", {
           error: error instanceof Error ? error.message : String(error),

@@ -11,7 +11,7 @@ import {
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
 import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
@@ -833,7 +833,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         headers: entry.headers || {},
         providerSpecificData,
         modelId,
-        modelsUrl: entry.modelsUrl,
+        modelsUrl: entry.testKeyModelsUrl || entry.modelsUrl,
         isLocal,
       });
     }
