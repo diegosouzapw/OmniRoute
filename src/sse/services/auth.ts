@@ -1,9 +1,11 @@
 import { randomUUID, createHash } from "crypto";
 import {
   getProviderConnections,
+  getCachedProviderConnections,
   getCachedProviderNodes,
   validateApiKey,
   updateProviderConnection,
+  touchConnectionLastUsed,
   clearConnectionErrorIfUnchanged,
   getSettings,
   getCachedSettings,
@@ -1066,7 +1068,7 @@ export async function getProviderCredentials(
     // Fix #922: Check for aliases (nvidia/nvidia_nim) to ensure credentials are found
     const providersToSearch = await getProviderSearchPool(provider);
     const connectionResults = await Promise.all(
-      providersToSearch.map((p) => getProviderConnections({ provider: p, isActive: true }))
+      providersToSearch.map((p) => getCachedProviderConnections({ provider: p, isActive: true }))
     );
     const connectionsRaw = connectionResults.filter(Array.isArray).flat();
 
@@ -1534,10 +1536,10 @@ export async function getProviderCredentials(
             `${provider} round-robin: staying with ${current.id?.slice(0, 8)}... (count=${currentCount}/${stickyLimit})`
           );
           // Update lastUsedAt and increment count (await to ensure persistence)
-          await updateProviderConnection(connection.id, {
-            lastUsedAt: new Date().toISOString(),
-            consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
-          });
+          await touchConnectionLastUsed(
+            connection.id,
+            (connection.consecutiveUseCount || 0) + 1
+          );
         } else {
           // Pick the least recently used (excluding current if possible)
           // Also penalize accounts with high backoffLevel (previously rate-limited)
@@ -1560,10 +1562,7 @@ export async function getProviderCredentials(
           );
 
           // Update lastUsedAt and reset count to 1 (await to ensure persistence)
-          await updateProviderConnection(connection.id, {
-            lastUsedAt: new Date().toISOString(),
-            consecutiveUseCount: 1,
-          });
+          await touchConnectionLastUsed(connection.id, 1);
         }
       } else {
         // Fallback scenario: excluded an account due to failure
@@ -1586,10 +1585,7 @@ export async function getProviderCredentials(
         );
 
         // Update lastUsedAt and reset count to 1 (await to ensure persistence)
-        await updateProviderConnection(connection.id, {
-          lastUsedAt: new Date().toISOString(),
-          consecutiveUseCount: 1,
-        });
+        await touchConnectionLastUsed(connection.id, 1);
       }
     } else if (strategy === "p2c") {
       const candidatePool = withQuota.length > 0 ? withQuota : orderedConnections;

@@ -13,6 +13,7 @@ export {
   createProviderConnection,
   updateProviderConnection,
   clearConnectionErrorIfUnchanged,
+  touchConnectionLastUsed,
   deleteProviderConnection,
   deleteProviderConnections,
   deleteProviderConnectionsByProvider,

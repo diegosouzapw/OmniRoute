@@ -650,6 +650,33 @@ export async function clearConnectionErrorIfUnchanged(
   return applied;
 }
 
+/**
+ * Lightweight stat bump — updates lastUsedAt and consecutiveUseCount without
+ * SELECT, re-encrypt, cache invalidation, or file backup.
+ * Safe for the hot getProviderCredentials path where only usage stats change.
+ * Fixes the cache-thrashing bug where every credential selection invalidated
+ * the 5s TTL cache and paid 3000-row decryption cost on the next request.
+ */
+export async function touchConnectionLastUsed(
+  id: string,
+  consecutiveUseCount: number
+): Promise<void> {
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      last_used_at = @lastUsedAt,
+      consecutive_use_count = @consecutiveUseCount,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    lastUsedAt: now,
+    consecutiveUseCount,
+    updatedAt: now,
+    id,
+  });
+}
+
 export async function deleteProviderConnection(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const existing = db.prepare("SELECT provider FROM provider_connections WHERE id = ?").get(id);
@@ -818,8 +845,6 @@ export {
   setConnectionRateLimitUntil,
   markConnectionRateLimitedUntil,
   clearConnectionRateLimit,
-  isConnectionRateLimited,
-  getRateLimitedConnections,
   getEffectiveQuotaUsage,
   clearStaleCrashCooldowns,
   formatResetCountdown,

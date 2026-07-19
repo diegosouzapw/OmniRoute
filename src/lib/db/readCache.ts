@@ -93,18 +93,13 @@ export async function getCachedPricing(): Promise<Record<string, unknown>> {
 export async function getCachedProviderConnections(
   filter?: Record<string, unknown>
 ): Promise<unknown[]> {
-  // Only cache the unfiltered "all connections" query (most common)
-  if (filter && Object.keys(filter).length > 0) {
-    const { getProviderConnections } = await import("@/lib/db/providers");
-    return getProviderConnections(filter);
-  }
-
-  const cached = connectionsCache.get("all");
+  const cacheKey = filter && Object.keys(filter).length > 0 ? JSON.stringify(filter) : "all";
+  const cached = connectionsCache.get(cacheKey);
   if (cached) return cached;
 
   const { getProviderConnections } = await import("@/lib/db/providers");
-  const value = await getProviderConnections();
-  connectionsCache.set("all", value);
+  const value = await getProviderConnections(filter || {});
+  connectionsCache.set(cacheKey, value);
   return value;
 }
 const connectionByIdCache = new TTLCache<Record<string, unknown> | null>(CONNECTIONS_TTL_MS);
