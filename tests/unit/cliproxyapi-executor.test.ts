@@ -8,6 +8,11 @@ afterEach(() => {
   globalThis.fetch = originalFetch;
   process.env.CLIPROXYAPI_HOST = originalEnv.CLIPROXYAPI_HOST;
   process.env.CLIPROXYAPI_PORT = originalEnv.CLIPROXYAPI_PORT;
+  if (originalEnv.CLIPROXYAPI_API_KEY === undefined) {
+    delete process.env.CLIPROXYAPI_API_KEY;
+  } else {
+    process.env.CLIPROXYAPI_API_KEY = originalEnv.CLIPROXYAPI_API_KEY;
+  }
 });
 
 describe("CliproxyapiExecutor", () => {
@@ -16,6 +21,7 @@ describe("CliproxyapiExecutor", () => {
   beforeEach(async () => {
     process.env.CLIPROXYAPI_HOST = "";
     process.env.CLIPROXYAPI_PORT = "";
+    delete process.env.CLIPROXYAPI_API_KEY;
     const mod = await import("../../open-sse/executors/cliproxyapi.ts");
     CliproxyapiExecutor = mod.CliproxyapiExecutor;
   });
@@ -87,6 +93,20 @@ describe("CliproxyapiExecutor", () => {
       const exec = new CliproxyapiExecutor();
       const headers = exec.buildHeaders({ apiKey: "key", accessToken: "token" });
       assert.equal(headers["Authorization"], "Bearer key");
+    });
+
+    it("should prefer the dedicated CLIProxyAPI key over provider credentials", () => {
+      process.env.CLIPROXYAPI_API_KEY = "cliproxy-key";
+      const exec = new CliproxyapiExecutor();
+      const headers = exec.buildHeaders({ apiKey: "provider-key", accessToken: "provider-token" });
+      assert.equal(headers["Authorization"], "Bearer cliproxy-key");
+    });
+
+    it("should ignore a blank dedicated CLIProxyAPI key", () => {
+      process.env.CLIPROXYAPI_API_KEY = "   ";
+      const exec = new CliproxyapiExecutor();
+      const headers = exec.buildHeaders({ apiKey: "provider-key" });
+      assert.equal(headers["Authorization"], "Bearer provider-key");
     });
 
     it("should add Accept header for streaming", () => {
@@ -300,10 +320,13 @@ describe("CliproxyapiExecutor", () => {
     it("probes /v1/models instead of /health", async () => {
       process.env.CLIPROXYAPI_HOST = "127.0.0.1";
       process.env.CLIPROXYAPI_PORT = "8317";
+      process.env.CLIPROXYAPI_API_KEY = "health-check-key";
 
       let capturedUrl;
-      globalThis.fetch = async (url) => {
+      let capturedOptions;
+      globalThis.fetch = async (url, options) => {
         capturedUrl = String(url);
+        capturedOptions = options;
         return new Response(JSON.stringify({ data: [] }), { status: 200 });
       };
 
@@ -311,6 +334,7 @@ describe("CliproxyapiExecutor", () => {
       const result = await exec.healthCheck();
 
       assert.equal(capturedUrl, "http://127.0.0.1:8317/v1/models");
+      assert.equal(capturedOptions.headers.Authorization, "Bearer health-check-key");
       assert.equal(result.ok, true);
       assert.equal(result.error, undefined);
       assert.ok(result.latencyMs >= 0);

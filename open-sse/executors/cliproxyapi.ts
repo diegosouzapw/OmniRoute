@@ -262,7 +262,12 @@ export class CliproxyapiExecutor extends BaseExecutor {
   }
 
   buildHeaders(credentials: ProviderCredentials | null, stream = true): Record<string, string> {
-    const key = credentials?.apiKey || credentials?.accessToken;
+    // CLIProxyAPI authenticates the proxy hop with its own inbound key. Provider
+    // credentials belong to the downstream upstream and are usually rejected by
+    // CLIProxyAPI. Keep the legacy credential fallback for deployments where both
+    // services intentionally share a key, but prefer the dedicated secret when set.
+    const dedicatedKey = process.env.CLIPROXYAPI_API_KEY?.trim();
+    const key = dedicatedKey || credentials?.apiKey || credentials?.accessToken;
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -446,6 +451,7 @@ export class CliproxyapiExecutor extends BaseExecutor {
     try {
       const baseUrl = await resolveCliproxyapiBaseUrl();
       const res = await fetch(`${baseUrl}/v1/models`, {
+        headers: this.buildHeaders(null, false),
         signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),
       });
       return {
