@@ -4291,6 +4291,7 @@ export async function handleChatCore({
       estimatedCost,
       requestId: skillRequestId,
       compressionResponseMeta,
+      comboStrategy,
     });
     // #6426: align response body `model` with the `X-OmniRoute-Model` header
     // (both must be the resolved backend model). Some upstreams (notably legacy
@@ -4387,6 +4388,7 @@ export async function handleChatCore({
     model,
     pendingRequestId,
     compressionResponseMeta,
+    comboStrategy,
   });
 
   // Create transform stream with logger for streaming response
