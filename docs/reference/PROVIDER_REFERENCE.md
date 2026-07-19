@@ -27,6 +27,8 @@ Total providers: **268**. See category breakdown below.
 
 Additional tags: `image`, `video`, `aggregator`, `enterprise`, `embed/rerank`, `self-hosted`.
 
+`Tool calling` (where shown): `native` — real function-calling API; `emulated` — the `tools` array is prompt-emulated via `webTools.ts` (regex-parsed `<tool>{...}</tool>` blocks); `none` — `tools` is currently silently dropped. See #7286.
+
 Use the dashboard at `/dashboard/providers` to enable, configure, and test each provider.
 
 ---
@@ -61,35 +63,35 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 ## Web Cookie Providers (27)
 
-| ID | Alias | Name | Tags | Website | Notes |
-|----|-------|------|------|---------|-------|
-| `adapta-web` | `adp-web` | Adapta.org (Adapta One Web) | Web cookie | [link](https://agent.adapta.one) | Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies) |
-| `blackbox-web` | `bb-web` | Blackbox Web (Subscription) | Web cookie | [link](https://app.blackbox.ai) | Paste your __Secure-authjs.session-token value or full cookie header from app.blackbox.ai |
-| `chatgpt-web` | `cgpt-web` | ChatGPT Web (Plus/Pro) | Web cookie | [link](https://chatgpt.com) | Paste your __Secure-next-auth.session-token cookie value from chatgpt.com |
-| `claude-web` | `cw` | Claude Web | Web cookie | [link](https://claude.ai) | Paste your session cookie from claude.ai |
-| `copilot-m365-web` | `m365copilot` | Microsoft 365 Copilot (BizChat) | Web cookie | [link](https://m365.cloud.microsoft/chat) | Sign in at m365.cloud.microsoft/chat, then open DevTools → Network → filter 'WS' → click the Chathub WebSocket connection. Copy both the access_token query parameter AND the account-specific Chathub path segment from its request URL (wss://…/Chathub/<path>?…&access_token=…). It is NOT an Authorization: Bearer header on an XHR/Fetch request. The token is short-lived; this is an unofficial integration. |
-| `copilot-web` | `copilot` | Microsoft Copilot Web | Web cookie | [link](https://copilot.microsoft.com) | Paste your access_token from copilot.microsoft.com (or export a .har file from DevTools while logged in) |
-| `deepseek-web` | `ds-web` | DeepSeek Web | Web cookie | [link](https://chat.deepseek.com) | Paste your userToken from chat.deepseek.com — DevTools → Application → Local Storage → userToken |
-| `doubao-web` | `db` | Dola Web (ByteDance) | Web cookie | [link](https://www.dola.com) | Paste the full Cookie header from www.dola.com. It should include sessionid, ttwid, and s_v_web_id. If s_v_web_id is unavailable, fp=verify_... from a chat/completion request URL can be used as a fallback. |
-| `gemini-business` | `gembiz` | Gemini Business (Enterprise) | Web cookie | [link](https://business.gemini.google) | From your enterprise account: open business.gemini.google/home/cid/{your-cid}, then copy __Secure-1PSID and __Secure-1PSIDTS cookies from DevTools → Application → Cookies. Paste as a cookie header below. |
-| `gemini-web` | `gweb` | Gemini Web (Free) | Web cookie | [link](https://gemini.google.com) | Paste your __Secure-1PSID cookie value from gemini.google.com. Optionally add __Secure-1PSIDTS separated by semicolon. |
-| `grok-web` | `gw` | Grok Web (Subscription) | Web cookie | [link](https://grok.com) | Paste the full grok.com cookie line from DevTools → Application → Cookies. Include both `sso` and `sso-rw` (e.g. `sso=...; sso-rw=...`) — Grok's anti-bot rejects `sso` on its own. |
-| `huggingchat` | `huggingchat` | HuggingChat (Free) | Web cookie | [link](https://huggingface.co/chat) | Paste the full Cookie header from huggingface.co/chat (DevTools → Network → /chat/conversation → Request Headers → Cookie). It should include hf-chat and may also include token / aws-waf-token. |
-| `inner-ai` | `in-ai` | Inner.ai (Subscription) | Web cookie | [link](https://app.innerai.com) | Paste your token cookie and email separated by a space: open DevTools → Application → Cookies → .innerai.com, copy the token value, then append a space and your Inner.ai login email. Example: eyJhbG... user@example.com |
-| `kimi-web` | `kimi-web` | Kimi Web | Web cookie | [link](https://www.kimi.com) | Paste access_token from www.kimi.com DevTools → Application → Local Storage. A legacy kimi-auth cookie is also accepted. |
-| `lmarena` | `lma` | Arena (Free) | Web cookie | [link](https://arena.ai) | Paste the full Cookie header from arena.ai (DevTools → Network → request → Cookie). Include arena-auth-prod-v1.0/.1… and cf_clearance/__cf_bm when present. OmniRoute uses Chrome TLS impersonation; if Arena still 403s, set providerSpecificData.recaptchaV3Token from a live browser session. |
-| `microsoft-designer-web` | `msdesigner` | Microsoft Designer (Image Generation) | Web cookie | [link](https://designer.microsoft.com) | Sign in at designer.microsoft.com, then open DevTools → Network, generate an image, and find the request to DallE.ashx?action=GetDallEImagesCogSci. Copy the value of its Authorization: Bearer header (the access_token — no 'Bearer ' prefix). The token is short-lived; this is an unofficial, reverse-engineered integration. |
-| `muse-spark-web` | `ms-web` | Muse Spark Web (Meta AI) | Web cookie | [link](https://www.meta.ai) | Paste your ecto_1_sess value or full cookie header from meta.ai |
-| `notion-web` | `nw` | Notion AI Web (Unofficial/Experimental) | Web cookie | [link](https://www.notion.so) | Paste your token_v2 cookie value from notion.so (DevTools → Application → Cookies). Optionally append `; space_id=...` and/or `; notion_browser_id=...` if your workspace requires them. |
-| `perplexity-web` | `pplx-web` | Perplexity Web (Pro/Max) | Web cookie | [link](https://www.perplexity.ai) | Paste your __Secure-next-auth.session-token cookie value from perplexity.ai |
-| `poe-web` | `poe` | Poe Web (Subscription) | Web cookie | [link](https://poe.com) | Paste your p-b cookie value from poe.com (DevTools → Application → Cookies → p-b) |
-| `qwen-web` | `qwen-web` | Qwen Web (Free) | Web cookie | [link](https://chat.qwen.ai) | Open chat.qwen.ai, log in, then open DevTools → Application → Local Storage → copy the "token" value (or use tongyi_sso_ticket cookie as Bearer token). |
-| `t3-web` | `t3chat` | t3.chat (Pro/Free) | Web cookie | [link](https://t3.chat) | Open t3.chat in your browser, log in, then open DevTools → Application → Local Storage → https://t3.chat. Copy the value of 'convex-session-id'. Also open DevTools → Network, copy the Cookie header from any request. Paste both values here. See provider setup docs for a step-by-step guide. |
-| `v0-vercel-web` | `v0-vercel-web` | v0 Vercel Web (Code Gen) | Web cookie | [link](https://v0.dev) | Paste your session cookie from v0.dev (DevTools → Application → Cookies) |
-| `venice-web` | `ven` | Venice Web (Privacy) | Web cookie | [link](https://venice.ai) | Paste your session cookie from venice.ai (DevTools → Application → Cookies) |
-| `yuanbao-web` | `ybw` | Tencent Yuanbao (Free) | Web cookie | [link](https://yuanbao.tencent.com) | Log in to yuanbao.tencent.com, then paste the full Cookie header (DevTools → Network → any /api request → Request Headers → Cookie). It must contain hy_user and hy_token. |
-| `zai-web` | `zw` | Z.ai Web (Free) | Web cookie | [link](https://chat.z.ai) | Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie) |
-| `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. |
+| ID | Alias | Name | Tags | Website | Notes | Tool calling |
+|----|-------|------|------|---------|-------|--------------|
+| `adapta-web` | `adp-web` | Adapta.org (Adapta One Web) | Web cookie | [link](https://agent.adapta.one) | Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies) | emulated |
+| `blackbox-web` | `bb-web` | Blackbox Web (Subscription) | Web cookie | [link](https://app.blackbox.ai) | Paste your __Secure-authjs.session-token value or full cookie header from app.blackbox.ai | emulated |
+| `chatgpt-web` | `cgpt-web` | ChatGPT Web (Plus/Pro) | Web cookie | [link](https://chatgpt.com) | Paste your __Secure-next-auth.session-token cookie value from chatgpt.com | emulated |
+| `claude-web` | `cw` | Claude Web | Web cookie | [link](https://claude.ai) | Paste your session cookie from claude.ai | none |
+| `copilot-m365-web` | `m365copilot` | Microsoft 365 Copilot (BizChat) | Web cookie | [link](https://m365.cloud.microsoft/chat) | Sign in at m365.cloud.microsoft/chat, then open DevTools → Network → filter 'WS' → click the Chathub WebSocket connection. Copy both the access_token query parameter AND the account-specific Chathub path segment from its request URL (wss://…/Chathub/<path>?…&access_token=…). It is NOT an Authorization: Bearer header on an XHR/Fetch request. The token is short-lived; this is an unofficial integration. | — |
+| `copilot-web` | `copilot` | Microsoft Copilot Web | Web cookie | [link](https://copilot.microsoft.com) | Paste your access_token from copilot.microsoft.com (or export a .har file from DevTools while logged in) | — |
+| `deepseek-web` | `ds-web` | DeepSeek Web | Web cookie | [link](https://chat.deepseek.com) | Paste your userToken from chat.deepseek.com — DevTools → Application → Local Storage → userToken | emulated |
+| `doubao-web` | `db` | Dola Web (ByteDance) | Web cookie | [link](https://www.dola.com) | Paste the full Cookie header from www.dola.com. It should include sessionid, ttwid, and s_v_web_id. If s_v_web_id is unavailable, fp=verify_... from a chat/completion request URL can be used as a fallback. | — |
+| `gemini-business` | `gembiz` | Gemini Business (Enterprise) | Web cookie | [link](https://business.gemini.google) | From your enterprise account: open business.gemini.google/home/cid/{your-cid}, then copy __Secure-1PSID and __Secure-1PSIDTS cookies from DevTools → Application → Cookies. Paste as a cookie header below. | — |
+| `gemini-web` | `gweb` | Gemini Web (Free) | Web cookie | [link](https://gemini.google.com) | Paste your __Secure-1PSID cookie value from gemini.google.com. Optionally add __Secure-1PSIDTS separated by semicolon. | emulated |
+| `grok-web` | `gw` | Grok Web (Subscription) | Web cookie | [link](https://grok.com) | Paste the full grok.com cookie line from DevTools → Application → Cookies. Include both `sso` and `sso-rw` (e.g. `sso=...; sso-rw=...`) — Grok's anti-bot rejects `sso` on its own. | — |
+| `huggingchat` | `huggingchat` | HuggingChat (Free) | Web cookie | [link](https://huggingface.co/chat) | Paste the full Cookie header from huggingface.co/chat (DevTools → Network → /chat/conversation → Request Headers → Cookie). It should include hf-chat and may also include token / aws-waf-token. | — |
+| `inner-ai` | `in-ai` | Inner.ai (Subscription) | Web cookie | [link](https://app.innerai.com) | Paste your token cookie and email separated by a space: open DevTools → Application → Cookies → .innerai.com, copy the token value, then append a space and your Inner.ai login email. Example: eyJhbG... user@example.com | emulated |
+| `kimi-web` | `kimi-web` | Kimi Web | Web cookie | [link](https://www.kimi.com) | Paste access_token from www.kimi.com DevTools → Application → Local Storage. A legacy kimi-auth cookie is also accepted. | — |
+| `lmarena` | `lma` | Arena (Free) | Web cookie | [link](https://arena.ai) | Paste the full Cookie header from arena.ai (DevTools → Network → request → Cookie). Include arena-auth-prod-v1.0/.1… and cf_clearance/__cf_bm when present. OmniRoute uses Chrome TLS impersonation; if Arena still 403s, set providerSpecificData.recaptchaV3Token from a live browser session. | — |
+| `microsoft-designer-web` | `msdesigner` | Microsoft Designer (Image Generation) | Web cookie | [link](https://designer.microsoft.com) | Sign in at designer.microsoft.com, then open DevTools → Network, generate an image, and find the request to DallE.ashx?action=GetDallEImagesCogSci. Copy the value of its Authorization: Bearer header (the access_token — no 'Bearer ' prefix). The token is short-lived; this is an unofficial, reverse-engineered integration. | — |
+| `muse-spark-web` | `ms-web` | Muse Spark Web (Meta AI) | Web cookie | [link](https://www.meta.ai) | Paste your ecto_1_sess value or full cookie header from meta.ai | emulated |
+| `notion-web` | `nw` | Notion AI Web (Unofficial/Experimental) | Web cookie | [link](https://www.notion.so) | Paste your token_v2 cookie value from notion.so (DevTools → Application → Cookies). Include `; space_id=<workspace-uuid>` so live model discovery (getAvailableModels) can list GPT/Claude/Gemini/etc. Optionally also `; notion_browser_id=...` / `; notion_user_id=...`. | — |
+| `perplexity-web` | `pplx-web` | Perplexity Web (Pro/Max) | Web cookie | [link](https://www.perplexity.ai) | Paste your __Secure-next-auth.session-token cookie value from perplexity.ai | emulated |
+| `poe-web` | `poe` | Poe Web (Subscription) | Web cookie | [link](https://poe.com) | Paste your p-b cookie value from poe.com (DevTools → Application → Cookies → p-b) | — |
+| `qwen-web` | `qwen-web` | Qwen Web (Free) | Web cookie | [link](https://chat.qwen.ai) | Open chat.qwen.ai, log in, then open DevTools → Application → Local Storage → copy the "token" value (or use tongyi_sso_ticket cookie as Bearer token). | emulated |
+| `t3-web` | `t3chat` | t3.chat (Pro/Free) | Web cookie | [link](https://t3.chat) | Open t3.chat in your browser, log in, then open DevTools → Application → Local Storage → https://t3.chat. Copy the value of 'convex-session-id'. Also open DevTools → Network, copy the Cookie header from any request. Paste both values here. See provider setup docs for a step-by-step guide. | emulated |
+| `v0-vercel-web` | `v0-vercel-web` | v0 Vercel Web (Code Gen) | Web cookie | [link](https://v0.dev) | Paste your session cookie from v0.dev (DevTools → Application → Cookies) | — |
+| `venice-web` | `ven` | Venice Web (Privacy) | Web cookie | [link](https://venice.ai) | Paste your session cookie from venice.ai (DevTools → Application → Cookies) | — |
+| `yuanbao-web` | `ybw` | Tencent Yuanbao (Free) | Web cookie | [link](https://yuanbao.tencent.com) | Log in to yuanbao.tencent.com, then paste the full Cookie header (DevTools → Network → any /api request → Request Headers → Cookie). It must contain hy_user and hy_token. | — |
+| `zai-web` | `zw` | Z.ai Web (Free) | Web cookie | [link](https://chat.z.ai) | Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie) | — |
+| `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. | — |
 
 ## API Key Providers (paid / paid-with-free-credits) (179)
 
@@ -350,22 +352,6 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 - Registry (per-model details): [`open-sse/config/providerRegistry.ts`](../../open-sse/config/providerRegistry.ts)
 - Executors: [`open-sse/executors/`](../../open-sse/executors/) (31 files)
 - Translators: [`open-sse/translator/`](../../open-sse/translator/)
-
-## Provider-specific quota tracking notes
-
-- **`nvidia` (NVIDIA NIM)** — NVIDIA does not publish a usage/quota API and sends
-  no rate-limit response headers (confirmed via NVIDIA staff forum posts and an
-  open, unresolved NVIDIA feature request for a usage API — see #6846). OmniRoute
-  ships **Phase 1 client-side quota tracking** for this provider: a static local
-  RPM budget (default 40/min, matching the documented "~40 RPM" free-tier note),
-  per-model 429 lockout (a throttled model does not cool down the whole
-  connection — already covered by #6773's `passthroughModels` flag), and a
-  per-connection concurrency cap (default 6) so parallel bursts queue instead of
-  429-storming. All three are operator-overridable via
-  `ResilienceSettings.providerQuotaOverrides.nvidia` (`{ rpm, concurrency }`).
-  These numbers are **estimated locally** — NVIDIA does not confirm or expose the
-  real per-model ceiling. Adaptive per-model ceiling learning (AIMD) and a
-  dashboard quota card are deferred to Phase 2/3 follow-up issues.
 
 ## See Also
 

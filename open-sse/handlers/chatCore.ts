@@ -2566,6 +2566,7 @@ export async function handleChatCore({
                             clientRawRequest?.headers,
                             userAgent
                           ),
+                          clientResponseFormat,
                           onCredentialsRefreshed,
                           skipUpstreamRetry,
                           contextEditing: { enabled: contextEditingEnabled },
@@ -2812,6 +2813,7 @@ export async function handleChatCore({
                                 clientRawRequest?.headers,
                                 userAgent
                               ),
+                              clientResponseFormat,
                               onCredentialsRefreshed,
                               skipUpstreamRetry,
                               contextEditing: { enabled: contextEditingEnabled },
@@ -3307,6 +3309,7 @@ export async function handleChatCore({
             extendedContext,
             upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
             clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
+            clientResponseFormat,
             onCredentialsRefreshed,
             skipUpstreamRetry: isCombo,
             contextEditing: { enabled: contextEditingEnabled },
@@ -4649,10 +4652,13 @@ export async function handleChatCore({
       // Suppress the `</think>` close marker for clients that render it verbatim
       // (e.g. OpenCode by UA; any client via `x-omniroute-thinking-marker: off`);
       // preserved for Claude Code / Cursor and unknown clients by default (#5245 /
-      // #5312). The header wins over the UA allowlist.
+      // #5312). Responses API clients always suppress it (structured reasoning
+      // items make the marker meaningless); otherwise the header wins over the
+      // UA allowlist.
       resolveSuppressThinkClose({
         userAgent: streamUserAgent,
         thinkingMarkerHeader,
+        clientResponseFormat,
       })
     );
   } else {
