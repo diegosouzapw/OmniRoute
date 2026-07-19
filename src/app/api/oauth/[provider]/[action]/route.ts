@@ -38,17 +38,13 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { keychainImportOnlyGuard } from "./keychainImportOnly";
 import { buildRemoteOAuthHint } from "./remoteOAuthHint";
 
-// Use globalThis to persist callback server state across Next.js HMR reloads
-if (!globalThis.__codexCallbackState) {
-  globalThis.__codexCallbackState = null;
-}
-// Windsurf / Devin CLI PKCE callback server state (separate from Codex)
-if (!globalThis.__windsurfCallbackState) {
-  globalThis.__windsurfCallbackState = null;
+// Persist one callback server per provider across Next.js HMR reloads.
+if (!globalThis.__pkceCallbackStates) {
+  globalThis.__pkceCallbackStates = {};
 }
 
 /** Providers that use the PKCE browser callback flow (like Codex). */
-const PKCE_CALLBACK_PROVIDERS = new Set(["codex"]);
+const PKCE_CALLBACK_PROVIDERS = new Set(["codex", "xai-oauth"]);
 
 /**
  * Providers whose device flow runs in the user's browser (auth.openai.com blocks
@@ -270,8 +266,7 @@ export async function GET(
 }
 
 /**
- * Start PKCE callback server for Codex, Windsurf, or Devin CLI.
- * Codex uses fixed port 1455; Windsurf/Devin CLI use a random free port (port 0).
+ * Start a provider-configured PKCE callback server.
  * Returns the auth URL and stores codeVerifier for later exchange.
  */
 async function handleStartCallbackServer(
@@ -286,50 +281,52 @@ async function handleStartCallbackServer(
     );
   }
 
-  const isWindsurf = provider === "windsurf" || provider === "devin-cli";
-  const stateKey = isWindsurf ? "__windsurfCallbackState" : "__codexCallbackState";
+  const callbackStates = globalThis.__pkceCallbackStates;
 
   // Clean up existing server if any
-  if (globalThis[stateKey]?.close) {
+  if (callbackStates[provider]?.close) {
     try {
-      globalThis[stateKey].close();
+      callbackStates[provider].close();
     } catch (e) {
       /* ignore */
     }
   }
-  globalThis[stateKey] = null;
+  delete callbackStates[provider];
 
   try {
-    // Codex: fixed port 1455. Windsurf/Devin CLI: OS-assigned random port (0)
-    const serverPort = isWindsurf ? 0 : 1455;
+    const providerData = getProvider(provider);
+    const serverPort = providerData.fixedPort || 0;
+    const callbackPath = providerData.callbackPath || "/callback";
+    const callbackHost = providerData.callbackHost || "localhost";
     const { port, close } = await startLocalServer((params) => {
-      if (globalThis[stateKey]) {
-        globalThis[stateKey].callbackParams = params;
+      if (callbackStates[provider]) {
+        callbackStates[provider].callbackParams = params;
       }
     }, serverPort);
 
-    const redirectUri = `http://localhost:${port}/auth/callback`;
+    const redirectUri = `http://${callbackHost}:${port}${callbackPath}`;
     const authData = generateAuthData(provider, redirectUri);
 
-    globalThis[stateKey] = {
+    callbackStates[provider] = {
       callbackParams: null,
       close,
       port,
       redirectUri,
       codeVerifier: authData.codeVerifier,
+      state: authData.state,
       startedAt: Date.now(),
     };
 
     // Auto-cleanup after 5 minutes
     const startedAt = Date.now();
     setTimeout(() => {
-      if (globalThis[stateKey]?.startedAt === startedAt) {
+      if (callbackStates[provider]?.startedAt === startedAt) {
         try {
           close();
         } catch (e) {
           /* ignore */
         }
-        globalThis[stateKey] = null;
+        delete callbackStates[provider];
       }
     }, 300000);
 
@@ -660,10 +657,9 @@ export async function POST(
         );
       }
 
-      // Windsurf and Devin CLI share __windsurfCallbackState; Codex uses its own slot
-      const stateKey = provider === "codex" ? "__codexCallbackState" : "__windsurfCallbackState";
+      const callbackStates = globalThis.__pkceCallbackStates;
 
-      if (!globalThis[stateKey]) {
+      if (!callbackStates[provider]) {
         return NextResponse.json({
           success: false,
           error: "no_server",
@@ -671,13 +667,13 @@ export async function POST(
         });
       }
 
-      if (!globalThis[stateKey].callbackParams) {
+      if (!callbackStates[provider].callbackParams) {
         return NextResponse.json({ success: false, pending: true });
       }
 
       // Callback received! Extract code and exchange for tokens
-      const params = globalThis[stateKey].callbackParams;
-      const { redirectUri, codeVerifier, close } = globalThis[stateKey];
+      const params = callbackStates[provider].callbackParams;
+      const { redirectUri, codeVerifier, state, close } = callbackStates[provider];
 
       // Clean up server
       try {
@@ -685,7 +681,7 @@ export async function POST(
       } catch (e) {
         /* ignore */
       }
-      globalThis[stateKey] = null;
+      delete callbackStates[provider];
 
       if (params.error) {
         return NextResponse.json({
@@ -700,6 +696,14 @@ export async function POST(
           success: false,
           error: "no_code",
           errorDescription: "No authorization code received",
+        });
+      }
+
+      if (!safeEqual(params.state, state)) {
+        return NextResponse.json({
+          success: false,
+          error: "invalid_state",
+          errorDescription: "OAuth state mismatch",
         });
       }
 

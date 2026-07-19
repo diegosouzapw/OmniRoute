@@ -18,7 +18,7 @@ const ANTIGRAVITY_HOSTS = [
   "autopush-cloudcode-pa.sandbox.googleapis.com",
 ];
 
-function resolveHostsForAgent(agentId?: string): string[] {
+export function resolveHostsForAgent(agentId?: string): string[] {
   if (!agentId) return ANTIGRAVITY_HOSTS;
   const target = ALL_TARGETS.find((t) => t.id === agentId);
   return target?.hosts ?? ANTIGRAVITY_HOSTS;
@@ -136,6 +136,7 @@ export async function addDNSEntries(
   sudoPassword: string,
   deps?: DnsCommandDependencies
 ): Promise<void> {
+  if (process.env.OMNIROUTE_SKIP_DNS_WRITE === "1") return;
   const commands = resolveCommandDependencies(deps);
   const hostsContent = readHostsFile();
   const missingEntries: string[] = [];
@@ -204,6 +205,7 @@ export async function removeDNSEntries(
   sudoPassword: string,
   deps?: DnsCommandDependencies
 ): Promise<void> {
+  if (process.env.OMNIROUTE_SKIP_DNS_WRITE === "1") return;
   const commands = resolveCommandDependencies(deps);
   const hostsContent = readHostsFile();
   const presentHosts = hosts.filter((h) => hasHostEntry(hostsContent, h));

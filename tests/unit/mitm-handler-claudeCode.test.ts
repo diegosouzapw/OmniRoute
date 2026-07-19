@@ -15,3 +15,37 @@ test("claude-code handler — happy path forwards to /v1/messages", async () => 
   const sent = JSON.parse(r.fetchBody);
   assert.equal(sent.model, "claude-opus-4.5");
 });
+
+test("claude-code handler — strips ALL consecutive trailing assistant turns, not just one", async () => {
+  const r = await runHandler(
+    new ClaudeCodeHandler(),
+    {
+      model: "claude-3.5-sonnet",
+      messages: [
+        { role: "user", content: "hi" },
+        { role: "assistant", content: "partial reply 1" },
+        { role: "assistant", content: "partial reply 2" },
+      ],
+    },
+    "claude-opus-4.5"
+  );
+  assert.ok(r.fetchCalled);
+  const sent = JSON.parse(r.fetchBody);
+  assert.equal(sent.messages.length, 1);
+  assert.equal(sent.messages[0].role, "user");
+});
+
+test("claude-code handler — never collapses messages to empty when the ENTIRE history is trailing assistant turns", async () => {
+  const r = await runHandler(
+    new ClaudeCodeHandler(),
+    {
+      model: "claude-3.5-sonnet",
+      messages: [{ role: "assistant", content: "lone assistant turn" }],
+    },
+    "claude-opus-4.5"
+  );
+  assert.ok(r.fetchCalled);
+  const sent = JSON.parse(r.fetchBody);
+  assert.equal(sent.messages.length, 1);
+  assert.equal(sent.messages[0].content, "lone assistant turn");
+});

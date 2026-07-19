@@ -380,7 +380,7 @@ export function openaiToOpenAIResponsesRequest(
   if (root.reasoning !== undefined) {
     result.reasoning = root.reasoning;
   } else if (root.reasoning_effort !== undefined) {
-    const effort = normalizeResponsesReasoningEffort(root.reasoning_effort);
+    const effort = normalizeResponsesReasoningEffort(root.reasoning_effort, model ?? root.model);
     if (effort && effort !== "none") {
       // Effort-only chat request: default a reasoning summary so the upstream
       // streams thinking back (see the constant's note above).
