@@ -1,4 +1,4 @@
-import { parseExcludedModelsInput, parseRoutingTagsInput } from "../../providerPageHelpers";
+import { parseExcludedModelsInput, parseRoutingTagsInput } from "../../providerInputParsers";
 import {
   assignCcCompatibleRequestDefaults,
   mergeCcCompatibleRequestDefaults,

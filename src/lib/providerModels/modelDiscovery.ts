@@ -121,11 +121,36 @@ export function normalizeDiscoveredModels(models: unknown): SyncedAvailableModel
       ...(toNonEmptyString(record.apiFormat)
         ? { apiFormat: toNonEmptyString(record.apiFormat)! }
         : {}),
+      ...(toNonEmptyString(record.targetFormat)
+        ? { targetFormat: toNonEmptyString(record.targetFormat)! }
+        : {}),
+      ...(toNonEmptyString(record.upstreamProtocol)
+        ? { upstreamProtocol: toNonEmptyString(record.upstreamProtocol)! }
+        : {}),
       ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
+      ...(Array.isArray(record.supportedThinkingEfforts)
+        ? {
+            supportedThinkingEfforts: record.supportedThinkingEfforts.filter(
+              (effort): effort is string => typeof effort === "string" && effort.length > 0
+            ),
+          }
+        : {}),
+      ...(toNonEmptyString(record.defaultThinkingEffort)
+        ? { defaultThinkingEffort: toNonEmptyString(record.defaultThinkingEffort)! }
+        : {}),
       ...(typeof inputTokenLimit === "number" ? { inputTokenLimit } : {}),
       ...(typeof outputTokenLimit === "number" ? { outputTokenLimit } : {}),
       ...(typeof record.description === "string" ? { description: record.description } : {}),
-      ...(record.supportsThinking === true ? { supportsThinking: true } : {}),
+      ...(typeof record.supportsThinking === "boolean"
+        ? { supportsThinking: record.supportsThinking }
+        : {}),
+      ...(record.alwaysThinking === true ? { alwaysThinking: true } : {}),
+      ...(typeof record.supportsTools === "boolean"
+        ? { supportsTools: record.supportsTools }
+        : {}),
+      ...(typeof record.supportsVideo === "boolean"
+        ? { supportsVideo: record.supportsVideo }
+        : {}),
       ...(supportsVision ? { supportsVision: true } : {}),
     });
   }

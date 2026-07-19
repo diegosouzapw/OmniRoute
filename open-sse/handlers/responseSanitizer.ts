@@ -27,6 +27,7 @@ const ALLOWED_USAGE_FIELDS = new Set([
   "prompt_tokens",
   "completion_tokens",
   "total_tokens",
+  "cached_tokens",
   "prompt_tokens_details",
   "completion_tokens_details",
 ]);
@@ -514,11 +515,12 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
   }
 
   const inputDetails = toRecord(normalized.input_tokens_details) || {};
+  const cachedTokens = normalized.cached_tokens ?? normalized.cache_read_input_tokens;
   if (
-    normalized.cache_read_input_tokens !== undefined &&
+    cachedTokens !== undefined &&
     inputDetails.cached_tokens === undefined
   ) {
-    inputDetails.cached_tokens = normalized.cache_read_input_tokens;
+    inputDetails.cached_tokens = cachedTokens;
   }
   if (
     normalized.cache_creation_input_tokens !== undefined &&

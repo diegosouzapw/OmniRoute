@@ -322,6 +322,11 @@ export const updateSettingsSchema = z.object({
   cliproxyapi_fallback_enabled: z.boolean().optional(),
   cliproxyapi_url: z.string().url().max(500).optional(),
   cliproxyapi_fallback_codes: z.string().max(200).optional(),
+  // #7645: dedicated CLIProxyAPI credential. CLIProxyAPI requires its own
+  // separately-configured `api-keys:` credential and rejects any other token
+  // with 401 — without this field, the fallback/passthrough legs had no way
+  // to authenticate except by reusing the (incompatible) native provider key.
+  cliproxyapi_api_key: z.string().max(500).optional(),
   // CLIProxyAPI model mapping (Record<string, string>)
   cliproxyapi_model_mapping: z.record(z.string(), z.string()).optional(),
   // Model lockout settings

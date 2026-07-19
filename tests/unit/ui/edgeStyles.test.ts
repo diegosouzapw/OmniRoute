@@ -8,7 +8,7 @@ describe("flow edgeStyles (U0 — extracted from ProviderTopology)", () => {
     assert.equal(FLOW_EDGE_COLORS.active, "#22c55e");
     assert.equal(FLOW_EDGE_COLORS.error, "#ef4444");
     assert.equal(FLOW_EDGE_COLORS.last, "#f59e0b");
-    assert.equal(FLOW_EDGE_COLORS.idle, "var(--color-border)");
+    assert.equal(FLOW_EDGE_COLORS.idle, "var(--color-text-muted)");
   });
 
   it("styles an error edge", () => {
@@ -37,9 +37,9 @@ describe("flow edgeStyles (U0 — extracted from ProviderTopology)", () => {
 
   it("styles an idle edge", () => {
     assert.deepEqual(edgeStyle(false, false, false), {
-      stroke: "var(--color-border)",
+      stroke: "var(--color-text-muted)",
       strokeWidth: 1,
-      opacity: 0.2,
+      opacity: 0.3,
     });
   });
 
@@ -53,9 +53,9 @@ describe("flow edgeStyles (U0 — extracted from ProviderTopology)", () => {
 
   it("defaults healthy to false so 3-arg callers stay idle", () => {
     assert.deepEqual(edgeStyle(false, false, false), {
-      stroke: "var(--color-border)",
+      stroke: "var(--color-text-muted)",
       strokeWidth: 1,
-      opacity: 0.2,
+      opacity: 0.3,
     });
   });
 

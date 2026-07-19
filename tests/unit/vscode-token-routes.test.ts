@@ -255,7 +255,7 @@ test("vscode combos route resolves combo names through Ollama api/show", async (
   assert.equal(body.model, "show-combo");
   assert.equal(body.modelfile, "FROM show-combo");
   assert.equal(body.details.family, "show-combo");
-  assert.equal(body.model_info.context_length, 500000);
+  assert.equal(body.model_info.context_length, 372000);
   assert.deepEqual(body.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
   assert.equal(body.model_info.capabilities.reasoning, true);
 });
@@ -377,7 +377,6 @@ test("vscode tokenized models route keeps xhigh for codex models that advertise 
   assert.equal(model.toolCalling, true);
   assert.equal(model.vision, true);
   assert.deepEqual(model.supportsReasoningEffort, [
-    "none",
     "low",
     "medium",
     "high",
@@ -386,7 +385,6 @@ test("vscode tokenized models route keeps xhigh for codex models that advertise 
     "ultra",
   ]);
   assert.deepEqual(model.supportedReasoningEfforts, [
-    "none",
     "low",
     "medium",
     "high",
@@ -394,9 +392,8 @@ test("vscode tokenized models route keeps xhigh for codex models that advertise 
     "max",
     "ultra",
   ]);
-  assert.equal(model.defaultReasoningEffort, "none");
+  assert.equal(model.defaultReasoningEffort, "low");
   assert.deepEqual(model.configSchema?.properties?.reasoningEffort?.enum, [
-    "none",
     "low",
     "medium",
     "high",
@@ -404,7 +401,7 @@ test("vscode tokenized models route keeps xhigh for codex models that advertise 
     "max",
     "ultra",
   ]);
-  assert.equal(model.configSchema?.properties?.reasoningEffort?.default, "none");
+  assert.equal(model.configSchema?.properties?.reasoningEffort?.default, "low");
   const importedIds = new Set((body.data || []).map((entry: any) => entry.id));
   assert.ok(!importedIds.has("cx/gpt-5.6-sol"));
   assert.ok(!importedIds.has("cx/gpt-5.6-sol__tier_priority"));
@@ -651,7 +648,6 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
   assert.equal(response.status, 200);
   assert.ok(model, "missing gpt-5.6-sol__provider_cx in tokenized VS Code tags route");
   assert.deepEqual(model.supportsReasoningEffort, [
-    "none",
     "low",
     "medium",
     "high",
@@ -660,7 +656,6 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
     "ultra",
   ]);
   assert.deepEqual(model.supports_reasoning_effort, [
-    "none",
     "low",
     "medium",
     "high",
@@ -669,7 +664,6 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
     "ultra",
   ]);
   assert.deepEqual(model.supportedReasoningEfforts, [
-    "none",
     "low",
     "medium",
     "high",
@@ -677,12 +671,11 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
     "max",
     "ultra",
   ]);
-  assert.equal(model.defaultReasoningEffort, "none");
+  assert.equal(model.defaultReasoningEffort, "low");
   assert.equal(model.selectedReasoningEffort, "none");
   assert.equal(model.selected_reasoning_effort, "none");
   assert.equal(model.details.family, "gpt-5.6-sol");
   assert.deepEqual(model.configurationSchema?.properties?.reasoningEffort?.enum, [
-    "none",
     "low",
     "medium",
     "high",
@@ -690,9 +683,8 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
     "max",
     "ultra",
   ]);
-  assert.equal(model.configurationSchema?.properties?.reasoningEffort?.default, "none");
+  assert.equal(model.configurationSchema?.properties?.reasoningEffort?.default, "low");
   assert.deepEqual(model.details.configurationSchema?.properties?.reasoningEffort?.enum, [
-    "none",
     "low",
     "medium",
     "high",
@@ -701,7 +693,6 @@ test("vscode tokenized tags route exposes reasoning metadata for codex models", 
     "ultra",
   ]);
   assert.deepEqual(model.details.supports_reasoning_effort, [
-    "none",
     "low",
     "medium",
     "high",
@@ -775,13 +766,17 @@ test("vscode tokenized tags route only exposes usable canonical chat models", as
       `tag ${tagModel.name} should be chat-capable`
     );
     assert.ok(
-      !catalogModel.api_format || catalogModel.api_format === "chat-completions",
-      `tag ${tagModel.name} should use chat-completions`
+      !catalogModel.api_format ||
+        ["chat-completions", "responses", "openai-responses"].includes(
+          catalogModel.api_format
+        ),
+      `tag ${tagModel.name} should use a text-generation API format`
     );
     assert.ok(
       !Array.isArray(catalogModel.supported_endpoints) ||
-        catalogModel.supported_endpoints.includes("chat"),
-      `tag ${tagModel.name} should support chat`
+        catalogModel.supported_endpoints.includes("chat") ||
+        catalogModel.supported_endpoints.includes("responses"),
+      `tag ${tagModel.name} should support text generation`
     );
     assert.ok(
       !Array.isArray(catalogModel.output_modalities) ||
@@ -794,8 +789,11 @@ test("vscode tokenized tags route only exposes usable canonical chat models", as
     (model: any) =>
       model.parent ||
       (typeof model.type === "string" && model.type !== "chat") ||
-      (typeof model.api_format === "string" && model.api_format !== "chat-completions") ||
-      (Array.isArray(model.supported_endpoints) && !model.supported_endpoints.includes("chat")) ||
+      (typeof model.api_format === "string" &&
+        !["chat-completions", "responses", "openai-responses"].includes(model.api_format)) ||
+      (Array.isArray(model.supported_endpoints) &&
+        !model.supported_endpoints.includes("chat") &&
+        !model.supported_endpoints.includes("responses")) ||
       (Array.isArray(model.output_modalities) && !model.output_modalities.includes("text"))
   );
   const tagNames = new Set((tagsBody.models || []).map((model: any) => model.name));
@@ -1040,7 +1038,6 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
   assert.equal(body.remote_model, "Codex GPT 5.6 Sol (Default)");
   assert.equal(body.details.family, "gpt-5.6-sol");
   assert.deepEqual(body.supportsReasoningEffort, [
-    "none",
     "low",
     "medium",
     "high",
@@ -1049,7 +1046,6 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
     "ultra",
   ]);
   assert.deepEqual(body.supports_reasoning_effort, [
-    "none",
     "low",
     "medium",
     "high",
@@ -1058,7 +1054,6 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
     "ultra",
   ]);
   assert.deepEqual(body.supportedReasoningEfforts, [
-    "none",
     "low",
     "medium",
     "high",
@@ -1066,11 +1061,10 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
     "max",
     "ultra",
   ]);
-  assert.equal(body.defaultReasoningEffort, "none");
+  assert.equal(body.defaultReasoningEffort, "low");
   assert.equal(body.selectedReasoningEffort, "none");
   assert.equal(body.selected_reasoning_effort, "none");
   assert.deepEqual(body.configurationSchema?.properties?.reasoningEffort?.enum, [
-    "none",
     "low",
     "medium",
     "high",
@@ -1078,12 +1072,11 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
     "max",
     "ultra",
   ]);
-  assert.equal(body.configurationSchema?.properties?.reasoningEffort?.default, "none");
+  assert.equal(body.configurationSchema?.properties?.reasoningEffort?.default, "low");
   assert.equal(body.model_info["general.basename"], "Codex GPT 5.6 Sol (Default)");
   assert.equal(body.model_info["general.architecture"], "codex");
-  assert.equal(body.model_info["codex.context_length"], 500000);
+  assert.equal(body.model_info["codex.context_length"], 372000);
   assert.deepEqual(body.model_info.supports_reasoning_effort, [
-    "none",
     "low",
     "medium",
     "high",
@@ -1093,7 +1086,6 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
   ]);
   assert.equal(body.model_info.selected_reasoning_effort, "none");
   assert.deepEqual(body.model_info.capabilities.supports_reasoning_effort, [
-    "none",
     "low",
     "medium",
     "high",

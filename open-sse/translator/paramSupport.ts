@@ -50,6 +50,11 @@ const STRIP_RULES: StripRule[] = [
   // (format:"openai") does not accept the Claude-style `thinking` body field
   // and returns 400 "Unsupported parameter(s): thinking". Upstream #2268.
   { provider: "nvidia", match: /minimax-m2\.7/i, drop: ["thinking"] },
+  // NVIDIA NIM: OpenAI-compatible wrapper 400s on `prompt_cache_key` (Codex CLI
+  // injects it natively for its own prompt caching). NIM has no documented
+  // support for this field (providerSupportsCaching already treats nvidia as
+  // non-cache-capable) — safe to drop provider-wide, not model-specific. #7617.
+  { provider: "nvidia", match: /.*/, drop: ["prompt_cache_key"] },
   // VolcEngine Ark caps the Kimi coding-plan endpoint at max_tokens <= 32768
   // server-side ("integer above maximum value, expected a value <= 32768"),
   // independent of the model's own catalog ceiling. Confirmed against two
