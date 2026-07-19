@@ -1,17 +1,33 @@
 /**
- * Grok Build OAuth Provider — Device Code Flow with Import Token Fallback
+ * Grok Build OAuth Provider — Browser PKCE Flow + Import Token Flow
  *
- * User pastes the entire auth.json from ~/.grok/auth.json
- * or just the JWT access token string.
- * Supports automatic token refresh using the refresh_token.
+ * Two ways to connect, merged under one provider entry (#7013):
+ *   - Browser login: PKCE authorization-code flow against auth.x.ai, reusing
+ *     the same public client id as the sibling xai-oauth provider (see
+ *     grok-cli-oauth.ts / GROK_BUILD_OAUTH_CONFIG). Recommended, one click.
+ *   - Import token: user pastes the entire auth.json from ~/.grok/auth.json
+ *     or just the JWT access token string. Kept as a fallback for headless /
+ *     remote installs where a loopback callback can't be reached.
+ * Both paths converge on mapTokens() below and support automatic refresh
+ * using the refresh_token (open-sse token-refresh reads config.tokenUrl
+ * generically, independent of which flow acquired the tokens).
+ *
+ * Note: the device-code flow introduced by #7358 ("align with official Grok
+ * Build client") is intentionally NOT wired into this provider's flowType —
+ * DEVICE_CODE_PROVIDERS/PKCE dispatch (OAuthModal.tsx, route.ts) route
+ * grok-cli through the browser/import paths below instead. GROK_CLI_CONFIG
+ * (device-code endpoints) is kept only for the preferredScope key lookup in
+ * extractTokenAndRefresh() when parsing a pasted auth.json.
  */
 
+import { GROK_BUILD_OAUTH_ISSUER } from "@omniroute/open-sse/config/grokBuild.ts";
+import { GROK_CLI_CONFIG, GROK_BUILD_OAUTH_CONFIG } from "../constants/oauth";
 import {
-  getGrokBuildOAuthHeaders,
-  GROK_BUILD_OAUTH_ISSUER,
-  GROK_BUILD_OAUTH_REFERRER,
-} from "@omniroute/open-sse/config/grokBuild.ts";
-import { GROK_CLI_CONFIG } from "../constants/oauth";
+  buildGrokBuildAuthUrl,
+  exchangeGrokBuildToken,
+  isGrokBuildBrowserTokens,
+  mapGrokBuildBrowserTokens,
+} from "./grok-cli-oauth";
 
 interface GrokCliAuthInfo {
   user_id: string;
@@ -29,103 +45,6 @@ const EMPTY_STANDARD_TOKEN_FIELDS = {
   scope: null,
   oauthExpiresIn: null,
 } as const;
-
-async function parseOAuthResponse(response: Response): Promise<Record<string, unknown>> {
-  try {
-    const value = await response.json();
-    return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-  } catch {
-    return {
-      error: "invalid_response",
-      error_description: "xAI returned a non-JSON OAuth response",
-    };
-  }
-}
-
-function validateVerificationUri(value: string): void {
-  if (
-    [...value].some((character) => {
-      const codePoint = character.codePointAt(0) ?? 0;
-      return codePoint <= 0x1f || codePoint === 0x7f;
-    })
-  ) {
-    throw new Error("Grok returned an invalid verification URL");
-  }
-
-  let url: URL;
-  try {
-    url = new URL(value);
-  } catch {
-    throw new Error("Grok returned an invalid verification URL");
-  }
-
-  const isLocalHttp =
-    url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1");
-  if (url.protocol !== "https:" && !isLocalHttp) {
-    throw new Error("Grok returned an unsupported verification URL");
-  }
-}
-
-async function requestDeviceCode(config: typeof GROK_CLI_CONFIG) {
-  const response = await fetch(config.deviceCodeUrl, {
-    method: "POST",
-    headers: getGrokBuildOAuthHeaders("ui"),
-    body: new URLSearchParams({
-      client_id: config.clientId,
-      scope: config.scope,
-      referrer: GROK_BUILD_OAUTH_REFERRER,
-    }),
-  });
-  const data = await parseOAuthResponse(response);
-
-  if (!response.ok) {
-    throw new Error(
-      typeof data.error_description === "string"
-        ? data.error_description
-        : "Grok device authorization failed"
-    );
-  }
-  if (
-    typeof data.device_code !== "string" ||
-    typeof data.user_code !== "string" ||
-    typeof data.verification_uri !== "string"
-  ) {
-    throw new Error("Grok device authorization response is incomplete");
-  }
-  if (!/^[A-Za-z0-9-]+$/.test(data.user_code)) {
-    throw new Error("Grok returned an invalid device code");
-  }
-  validateVerificationUri(data.verification_uri);
-  if (typeof data.verification_uri_complete === "string") {
-    validateVerificationUri(data.verification_uri_complete);
-  }
-
-  return {
-    device_code: data.device_code,
-    user_code: data.user_code,
-    verification_uri: data.verification_uri,
-    verification_uri_complete:
-      typeof data.verification_uri_complete === "string"
-        ? data.verification_uri_complete
-        : data.verification_uri,
-    expires_in: typeof data.expires_in === "number" ? data.expires_in : 1800,
-    interval: typeof data.interval === "number" ? data.interval : 5,
-  };
-}
-
-async function pollToken(config: typeof GROK_CLI_CONFIG, deviceCode: string) {
-  const response = await fetch(config.tokenUrl, {
-    method: "POST",
-    headers: getGrokBuildOAuthHeaders("ui"),
-    body: new URLSearchParams({
-      client_id: config.clientId,
-      device_code: deviceCode,
-      grant_type: "urn:ietf:params:oauth:grant-type:device_code",
-    }),
-  });
-
-  return { ok: response.ok, data: await parseOAuthResponse(response) };
-}
 
 type ParsedGrokJwt = {
   email: string | null;
@@ -343,36 +262,61 @@ function resolveGrokExpiresIn(extracted: ExtractedGrokToken, accessClaims: Parse
   return Math.max(1, expiresIn);
 }
 
-export const grokCli = {
-  config: GROK_CLI_CONFIG,
-  flowType: "device_code",
-  requestDeviceCode,
-  pollToken,
-  mapTokens: (token: unknown, _extra?: unknown) => {
-    const extracted = extractTokenAndRefresh(token);
-    const accessClaims = parseJwtPayload(extracted.accessToken);
-    const idClaims = extracted.idToken ? parseJwtPayload(extracted.idToken) : emptyGrokJwt();
-    const identity = resolveGrokIdentity(accessClaims, idClaims);
-    const expiresIn = resolveGrokExpiresIn(extracted, accessClaims);
+/**
+ * The pre-existing paste-token mapping (auth.json / raw JWT import), generalized by
+ * #7358 to also resolve identity off an accompanying id_token when present (team/org
+ * principal handling via resolveGrokIdentity/resolveGrokExpiresIn) — #5775 clamp
+ * included. Used for the import-token fallback path; the browser PKCE exchange uses
+ * mapGrokBuildBrowserTokens (grok-cli-oauth.ts) instead, since auth.x.ai's OIDC
+ * id_token carries standard claims (name/email) rather than Grok Build's own
+ * principal_type/team_id/tier custom claims.
+ */
+function mapImportedToken(token: unknown) {
+  const extracted = extractTokenAndRefresh(token);
+  const accessClaims = parseJwtPayload(extracted.accessToken);
+  const idClaims = extracted.idToken ? parseJwtPayload(extracted.idToken) : emptyGrokJwt();
+  const identity = resolveGrokIdentity(accessClaims, idClaims);
+  const expiresIn = resolveGrokExpiresIn(extracted, accessClaims);
 
-    return {
-      accessToken: extracted.accessToken,
-      refreshToken: extracted.refreshToken,
-      idToken: extracted.idToken,
-      expiresIn,
-      tokenType: extracted.tokenType,
-      scope: extracted.scope,
+  return {
+    accessToken: extracted.accessToken,
+    refreshToken: extracted.refreshToken,
+    idToken: extracted.idToken,
+    expiresIn,
+    tokenType: extracted.tokenType,
+    scope: extracted.scope,
+    email: identity.email,
+    providerSpecificData: {
+      userId: identity.userId,
       email: identity.email,
-      providerSpecificData: {
-        userId: identity.userId,
-        email: identity.email,
-        teamId: identity.teamId,
-        tier: accessClaims.authInfo?.tier || idClaims.authInfo?.tier || 1,
-        principalType: identity.principalType,
-        principalId: identity.principalId,
-        organizationId: identity.organizationId,
-        rawAuthJson: extracted.rawAuthJson || undefined,
-      },
-    };
-  },
+      teamId: identity.teamId,
+      tier: accessClaims.authInfo?.tier || idClaims.authInfo?.tier || 1,
+      principalType: identity.principalType,
+      principalId: identity.principalId,
+      organizationId: identity.organizationId,
+      rawAuthJson: extracted.rawAuthJson || undefined,
+    },
+  };
+}
+
+export const grokCli = {
+  config: GROK_BUILD_OAUTH_CONFIG,
+  flowType: "authorization_code_pkce" as const,
+  fixedPort: GROK_BUILD_OAUTH_CONFIG.loopbackPort,
+  callbackPath: GROK_BUILD_OAUTH_CONFIG.callbackPath,
+  callbackHost: GROK_BUILD_OAUTH_CONFIG.callbackHost,
+  // The xAI flow uses a 96-byte random verifier (128 base64url chars), same as xai-oauth.
+  pkceVerifierBytes: 96,
+  buildAuthUrl: buildGrokBuildAuthUrl,
+  exchangeToken: exchangeGrokBuildToken,
+  /**
+   * Unified token mapper serving BOTH flows under this single provider entry:
+   * the browser PKCE exchange (tokens shaped like the OAuth token-endpoint
+   * response — `access_token`/`refresh_token`/`id_token`/`expires_in`) and
+   * the paste-token import (`{ accessToken: <JWT string or auth.json blob> }`,
+   * see extractTokenAndRefresh above). Both converge on the same persisted
+   * connection shape, so refresh keeps working unmodified either way.
+   */
+  mapTokens: (token: unknown) =>
+    isGrokBuildBrowserTokens(token) ? mapGrokBuildBrowserTokens(token) : mapImportedToken(token),
 };
