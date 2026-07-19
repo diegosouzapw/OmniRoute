@@ -412,8 +412,16 @@ export async function deleteProxyForLevel(level: string, id: string | null) {
   return setProxyForLevel(level, id, null);
 }
 
-export async function resolveProxyForConnection(connectionId: string, apiKeyId?: string) {
-  const cacheKey = apiKeyId ? `${connectionId}:${apiKeyId}` : connectionId;
+export async function resolveProxyForConnection(
+  connectionId: string,
+  apiKeyId?: string,
+  providerId?: string
+) {
+  const cacheKey = providerId
+    ? `${connectionId}:${apiKeyId || ""}:${providerId}`
+    : apiKeyId
+      ? `${connectionId}:${apiKeyId}`
+      : connectionId;
   const startGeneration = proxyConfigGeneration;
   const startRegistryGeneration = getProxyRegistryGeneration();
   const cached = proxyResolutionCache.get(cacheKey);
@@ -634,7 +642,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
   // them — a provider-level proxy assigned to a no-auth provider was silently
   // ignored. Best-effort fallback: scan the known no-auth provider ids directly.
   if (!connectionRecord) {
-    const noAuthFallback = await resolveNoAuthSharedProviderProxy(config.providers);
+    const noAuthFallback = await resolveNoAuthSharedProviderProxy(config.providers, providerId);
     if (noAuthFallback) {
       cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, noAuthFallback);
       return noAuthFallback;

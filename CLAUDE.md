@@ -35,7 +35,7 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 264 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 265 LLM providers, auto-fallback.
 
 | Layer         | Location                | Purpose                                                                                                                                                |
 | ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |

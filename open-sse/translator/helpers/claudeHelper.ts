@@ -55,6 +55,30 @@ type ClaudeRequestBody = {
   [key: string]: unknown;
 };
 
+type KimiThinkingInput = {
+  reasoning_effort?: unknown;
+  thinking?: { effort?: unknown; type?: unknown } | null;
+};
+
+export function applyKimiCodingThinking(
+  result: Record<string, unknown>,
+  body: KimiThinkingInput
+): void {
+  if (!body.thinking && !body.reasoning_effort) return;
+  const requestedEffort = String(
+    body.reasoning_effort ?? body.thinking?.effort ?? "on"
+  ).toLowerCase();
+  const disabled = body.thinking?.type === "disabled" || ["off", "none"].includes(requestedEffort);
+  result.thinking = { type: disabled ? "disabled" : "enabled" };
+  if (!disabled && !["on", "auto"].includes(requestedEffort)) {
+    const outputConfig =
+      result.output_config && typeof result.output_config === "object"
+        ? (result.output_config as Record<string, unknown>)
+        : {};
+    result.output_config = { ...outputConfig, effort: requestedEffort };
+  }
+}
+
 // Check if message has valid non-empty content
 export function hasValidContent(msg: ClaudeMessage): boolean {
   if (typeof msg.content === "string" && msg.content.trim()) return true;
@@ -235,6 +259,7 @@ export function prepareClaudeRequest(
   // In passthrough mode, preserve existing cache_control markers
   const supportsPromptCaching =
     provider === "claude" || provider?.startsWith?.("anthropic-compatible-");
+  const isKimiCoding = provider === "kimi-coding" || provider === "kimi-coding-apikey";
 
   // Non-Anthropic Claude-shape providers (kimi-coding, glmt, zai, …) cannot
   // validate the synthetic redacted_thinking.data blob — they're not Anthropic
@@ -251,7 +276,7 @@ export function prepareClaudeRequest(
   // endpoint that validates signatures — so it needs redacted_thinking too.
   const modelTargetsClaude =
     !!provider && !!model && getModelTargetFormat(provider, model) === "claude";
-  const supportsRedactedThinking = supportsPromptCaching || modelTargetsClaude;
+  const supportsRedactedThinking = !isKimiCoding && (supportsPromptCaching || modelTargetsClaude);
 
   const systemBlocks = body.system;
   if (systemBlocks && Array.isArray(systemBlocks) && !preserveCacheControl) {
@@ -486,7 +511,14 @@ export function prepareClaudeRequest(
         let thinkingBlockIdx = 0;
         for (const block of content) {
           if (block.type === "thinking" || block.type === "redacted_thinking") {
-            if (supportsRedactedThinking) {
+            if (isKimiCoding) {
+              if (block.type === "redacted_thinking") {
+                block.type = "thinking";
+                block.thinking = typeof block.thinking === "string" ? block.thinking : "";
+              }
+              delete block.data;
+              delete block.signature;
+            } else if (supportsRedactedThinking) {
               block.type = "redacted_thinking";
               block.data = DEFAULT_THINKING_CLAUDE_SIGNATURE;
               delete block.thinking;
@@ -537,6 +569,11 @@ export function prepareClaudeRequest(
             content.unshift({
               type: "redacted_thinking",
               data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
+            });
+          } else if (isKimiCoding) {
+            content.unshift({
+              type: "thinking",
+              thinking: "",
             });
           } else {
             let text = "";

@@ -297,6 +297,18 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     ],
   },
 
+  // LM Studio — local OpenAI-compatible server. No auth required.
+  // Models are passthrough (LM Studio exposes its own model list), so the
+  // models array is empty. The baseUrl is the default LM Studio endpoint;
+  // users with a configured provider_node will use that URL instead.
+  lmstudio: {
+    id: "lmstudio",
+    baseUrl: "http://localhost:1234/v1/embeddings",
+    authType: "none",
+    authHeader: "none",
+    models: [],
+  },
+
   // Issue #6660: Mixedbread AI — OpenAI-compatible /v1/embeddings, free tier
   // available (API key via signup, no card required). Model ids are the
   // upstream-qualified "mixedbread-ai/<model>" form, mirroring how `together`/

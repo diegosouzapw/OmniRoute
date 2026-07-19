@@ -92,6 +92,35 @@ export function isSecurityBlockError(error: unknown): boolean {
   return false;
 }
 
+// #7542 — web-cookie providers whose registry `baseUrl` is a POST-only streaming/completion
+// endpoint (no real `/models` listing API), so the generic `/models` probe in
+// validateWebCookieProvider() gets a redirect instead of a definitive 200/401/403. A blocked
+// redirect there is not a session-expiry signal — the endpoint just isn't shaped for the probe
+// — so it should degrade to "unsupported" the same way the discovery path already does for
+// REDIRECT_BLOCKED (#6267's buildDiscoveryErrorFallbackResponse).
+//
+// Scoped to `lmarena` only (root-caused and regression-tested for #7542): the other web-cookie
+// providers sharing a POST-only baseUrl shape (doubao-web, huggingchat, yuanbao-web,
+// zenmux-free, zai-web) have not been individually verified to actually redirect on this probe
+// rather than 404/405 — do not add them here without a proven repro per provider (see
+// #7542 plan-file, "Risks").
+const WEB_COOKIE_PROVIDERS_WITH_UNRELIABLE_MODELS_PROBE = new Set(["lmarena"]);
+
+export function toWebCookieValidationErrorResult(provider: string, error: unknown) {
+  if (
+    error instanceof SafeOutboundFetchError &&
+    error.code === "REDIRECT_BLOCKED" &&
+    WEB_COOKIE_PROVIDERS_WITH_UNRELIABLE_MODELS_PROBE.has(provider)
+  ) {
+    return {
+      valid: false,
+      error: "Provider validation not supported",
+      unsupported: true as const,
+    };
+  }
+  return toValidationErrorResult(error);
+}
+
 export function toValidationErrorResult(error: unknown) {
   const message = error instanceof Error ? error.message : String(error || "Validation failed");
   const statusCode = getSafeOutboundFetchErrorStatus(error);

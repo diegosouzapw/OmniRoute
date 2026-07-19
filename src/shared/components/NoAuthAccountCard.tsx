@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import Card from "./Card";
 import Button from "./Button";
 import DistributeProxiesButton from "./DistributeProxiesButton";
@@ -10,12 +10,14 @@ interface NoAuthAccountCardProps {
   providerId: string;
   providerName: string;
   generateAccountId: () => string;
+  generateApiKey?: () => Promise<string>;
   dataKey?: string;
   description?: string;
   addLabel?: string;
   enabled?: boolean;
   savingEnabled?: boolean;
   onEnabledChange?: (enabled: boolean) => void;
+  providerProxyControl?: ReactNode;
 }
 
 interface Connection {
@@ -88,12 +90,14 @@ export default function NoAuthAccountCard({
   providerId,
   providerName,
   generateAccountId,
+  generateApiKey,
   dataKey = "fingerprints",
   description = "Ready to use — no signup needed. Add accounts for rate-limit rotation.",
   addLabel = "Add Account",
   enabled = true,
   savingEnabled = false,
   onEnabledChange,
+  providerProxyControl,
 }: NoAuthAccountCardProps) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,6 +169,7 @@ export default function NoAuthAccountCard({
     setAdding(true);
     try {
       const accountId = generateAccountId();
+      const apiKey = generateApiKey ? await generateApiKey() : undefined;
       if (connections.length === 0) {
         const res = await fetch("/api/providers", {
           method: "POST",
@@ -172,10 +177,14 @@ export default function NoAuthAccountCard({
           body: JSON.stringify({
             provider: providerId,
             name: `${providerName} Account 1`,
+            ...(apiKey ? { apiKey } : {}),
             providerSpecificData: { [dataKey]: [accountId] },
           }),
         });
-        if (!res.ok) throw new Error("Failed to create connection");
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error || `Failed to create connection (${res.status})`);
+        }
       } else {
         const updated = [...allAccountIds, accountId];
         const res = await fetch(`/api/providers/${conn.id}`, {
@@ -331,12 +340,15 @@ export default function NoAuthAccountCard({
             <p className="text-xs text-text-muted">{description}</p>
           </div>
         </div>
-        <NoAuthProviderToggle
-          className="w-full justify-end sm:w-auto"
-          enabled={enabled}
-          saving={savingEnabled}
-          onEnabledChange={onEnabledChange}
-        />
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
+          {providerProxyControl}
+          <NoAuthProviderToggle
+            className="w-full justify-end sm:w-auto"
+            enabled={enabled}
+            saving={savingEnabled}
+            onEnabledChange={onEnabledChange}
+          />
+        </div>
       </div>
 
       <div className="border-t border-border pt-3 mt-3">
@@ -370,7 +382,10 @@ export default function NoAuthAccountCard({
             className="grid max-h-72 grid-cols-1 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3"
           >
             {allAccountIds.map((id, i) => {
-              const proxy = getDisplayProxy(getEntryForFingerprint(accountProxies, id), savedProxies);
+              const proxy = getDisplayProxy(
+                getEntryForFingerprint(accountProxies, id),
+                savedProxies
+              );
               return (
                 <div
                   key={id}

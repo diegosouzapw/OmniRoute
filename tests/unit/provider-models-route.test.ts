@@ -1723,7 +1723,7 @@ test("provider models route uses provider-specific auth headers for Kimi Coding"
     assert.equal(init.headers.Authorization, undefined);
 
     return Response.json({
-      data: [{ id: "kimi-k2.5", name: "Kimi K2.5" }],
+      data: [{ id: "kimi-k2.5", display_name: "Kimi K2.5" }],
     });
   };
 
@@ -1732,5 +1732,8 @@ test("provider models route uses provider-specific auth headers for Kimi Coding"
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "kimi-coding");
-  assert.deepEqual(body.models, [{ id: "kimi-k2.5", name: "Kimi K2.5" }]);
+  assert.deepEqual(
+    body.models.map(({ id, name }) => ({ id, name })),
+    [{ id: "kimi-k2.5", name: "Kimi K2.5" }]
+  );
 });
