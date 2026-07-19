@@ -1,0 +1,1 @@
+- **feat(providers):** add **Segmind** as an image + video generation provider — `x-api-key` auth against `POST https://api.segmind.com/v1/{model}`, with a curated starter model list (Flux, Stable Diffusion XL/3.5, Kandinsky for image; Wan, Hunyuan, LTX, Kling for video) (#6656).

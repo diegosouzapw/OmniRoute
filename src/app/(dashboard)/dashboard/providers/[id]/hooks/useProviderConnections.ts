@@ -26,7 +26,14 @@ import { useTranslations } from "next-intl";
 import { useNotificationStore } from "@/store/notificationStore";
 import { isClaudeCodeCompatibleProvider } from "@/shared/constants/providers";
 import type { ConnectionRowConnection } from "../components/ConnectionRow";
+import { connectionBelongsToProviderPage } from "../../providerPageUtils";
 import { normalizeCodexLimitPolicy } from "../providerPageHelpers";
+import { useProviderQuotaVisibility } from "./useProviderQuotaVisibility";
+import { useReorderByAvailability } from "./useReorderByAvailability";
+import {
+  useConnectionDeleteConfirm,
+  type ConnectionDeleteConfirmState,
+} from "./useConnectionDeleteConfirm";
 
 // Max connection ids accepted per bulk request — mirrors API-side cap.
 const MAX_BULK_IDS = 100;
@@ -69,8 +76,7 @@ export interface UseProviderConnectionsReturn {
   setBatchTestResults: (r: BatchTestResults) => void;
   setConnections: (
     updater:
-      | ConnectionRowConnection[]
-      | ((prev: ConnectionRowConnection[]) => ConnectionRowConnection[])
+      ConnectionRowConnection[] | ((prev: ConnectionRowConnection[]) => ConnectionRowConnection[])
   ) => void;
   setProviderNode: (node: any) => void;
 
@@ -79,9 +85,10 @@ export interface UseProviderConnectionsReturn {
   fetchProxyConfig: () => Promise<void>;
 
   // Single-connection handlers
-  handleDelete: (connectionId: string) => Promise<void>;
+  deleteConfirm: ConnectionDeleteConfirmState;
   handleUpdateConnectionStatus: (id: string, isActive: boolean) => Promise<void>;
   handleToggleRateLimit: (connectionId: string, enabled: boolean) => Promise<void>;
+  handleToggleQuotaVisibility: (connectionId: string, visible: boolean) => Promise<void>;
   handleToggleClaudeExtraUsage: (connectionId: string, enabled: boolean) => Promise<void>;
   handleToggleCodexLimit: (connectionId: string, field: string, enabled: boolean) => Promise<void>;
   handleToggleCliproxyapiMode: (connectionId: string, enabled: boolean) => Promise<void>;
@@ -93,6 +100,8 @@ export interface UseProviderConnectionsReturn {
   handleRetestConnection: (connectionId: string) => Promise<void>;
   handleRefreshToken: (connectionId: string) => Promise<void>;
   handleSwapPriority: (conn1: any, conn2: any) => Promise<void>;
+  handleReorderByAvailability: () => Promise<void>;
+  reorderingByAvailability: boolean;
 
   // Batch handlers
   handleBatchSetActive: (isActive: boolean) => Promise<void>;
@@ -128,6 +137,7 @@ export function useProviderConnections(
 
   // ── core state ──────────────────────────────────────────────────────────
   const [connections, setConnections] = useState<ConnectionRowConnection[]>([]);
+  const handleToggleQuotaVisibility = useProviderQuotaVisibility(setConnections, notify, t);
   const [providerNode, setProviderNode] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -186,8 +196,8 @@ export function useProviderConnections(
       const connectionsData = await connectionsRes.json();
       const nodesData = await nodesRes.json();
       if (connectionsRes.ok) {
-        const filtered = (connectionsData.connections || []).filter(
-          (c: any) => c.provider === providerId
+        const filtered = (connectionsData.connections || []).filter((c: any) =>
+          connectionBelongsToProviderPage(c.provider, providerId)
         );
         setConnections(filtered);
       }
@@ -304,29 +314,7 @@ export function useProviderConnections(
   // Single-connection handlers
   // ────────────────────────────────────────────────────────────────────────
 
-  const handleDelete = useCallback(
-    async (connectionId: string) => {
-      if (!connectionId) return;
-      try {
-        const res = await fetch(`/api/providers/${connectionId}`, { method: "DELETE" });
-        if (res.ok) {
-          notify.success("Connection deleted");
-          await fetchConnections();
-        } else {
-          const data = await res.json().catch(() => ({}));
-          const message =
-            (typeof data?.error === "string" && data.error) ||
-            data?.error?.message ||
-            "Failed to delete connection";
-          notify.error(message);
-        }
-      } catch (error) {
-        console.error("Error deleting connection:", error);
-        notify.error("Failed to delete connection");
-      }
-    },
-    [fetchConnections, notify]
-  );
+  const deleteConfirm = useConnectionDeleteConfirm(fetchConnections, notify);
 
   const handleUpdateConnectionStatus = async (id: string, isActive: boolean) => {
     try {
@@ -607,6 +595,16 @@ export function useProviderConnections(
     }
   };
 
+  // Reorder-by-availability toolbar action — extracted to its own hook
+  // (see useReorderByAvailability.ts) to keep this file under the file-size cap.
+  const { reorderingByAvailability, handleReorderByAvailability } = useReorderByAvailability({
+    connections,
+    setConnections,
+    fetchConnections,
+    notify,
+    t,
+  });
+
   // ────────────────────────────────────────────────────────────────────────
   // Selection handlers
   // ────────────────────────────────────────────────────────────────────────
@@ -880,6 +878,7 @@ export function useProviderConnections(
     connProxyMap,
     cpaProviderEnabled,
     refreshingId,
+    reorderingByAvailability,
 
     // Setters
     setPage,
@@ -895,9 +894,10 @@ export function useProviderConnections(
     fetchProxyConfig,
 
     // Single-connection handlers
-    handleDelete,
+    deleteConfirm,
     handleUpdateConnectionStatus,
     handleToggleRateLimit,
+    handleToggleQuotaVisibility,
     handleToggleClaudeExtraUsage,
     handleToggleCodexLimit,
     handleToggleCliproxyapiMode,
@@ -906,6 +906,7 @@ export function useProviderConnections(
     handleRetestConnection,
     handleRefreshToken,
     handleSwapPriority,
+    handleReorderByAvailability,
 
     // Batch handlers
     handleBatchSetActive,

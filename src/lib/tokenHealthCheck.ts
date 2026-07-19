@@ -25,22 +25,15 @@ import {
   refreshCopilotToken,
 } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 const LOG_PREFIX = "[HealthCheck]";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 const BATCH_SIZE = 20;
+const DEFAULT_HEALTH_CHECK_INTERVAL_MIN = 60; // default per-connection interval
 
 function isBuildProcess(): boolean {
   return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
-}
-
-function isAutomatedTestProcess(): boolean {
-  return (
-    typeof process !== "undefined" &&
-    (process.env.NODE_ENV === "test" ||
-      process.env.VITEST !== undefined ||
-      process.argv.some((arg) => arg.includes("test")))
-  );
 }
 
 function getConnectionLogLabel(conn: { name?: string; email?: string; id?: string }): string {
@@ -181,13 +174,10 @@ function isHealthCheckDisabled(): boolean {
 }
 
 /**
- * Providers excluded from the PROACTIVE refresh sweep, comma-separated and
- * case-insensitive (e.g. "codex,openai"). A targeted alternative to the blunt
- * OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK switch: it lets an operator keep the
- * rotating-token cascade providers (Codex/OpenAI share one Auth0 family) off the
- * proactive sweep — leaving their refresh to the reactive, serialized 401 path —
- * WITHOUT also starving short-TTL providers like Kimi-coding, whose tokens expire
- * while idle when the whole sweep is disabled.
+ * Providers excluded from the PROACTIVE sweep, comma-separated, case-insensitive
+ * (e.g. "codex,openai"). Targeted alternative to OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK:
+ * keeps rotating-token cascade providers (Codex/OpenAI share one Auth0 family) on the
+ * reactive 401 path WITHOUT starving short-TTL providers (Kimi-coding) sweep-wide.
  */
 function getHealthCheckSkipProviders(): Set<string> {
   const raw = process.env.OMNIROUTE_HEALTHCHECK_SKIP_PROVIDERS || "";
@@ -273,12 +263,12 @@ export function clearHealthCheckLogCache() {
 
 declare global {
   var __omnirouteTokenHC:
-    { initialized: boolean; interval: ReturnType<typeof setInterval> | null } | undefined;
+    | { initialized: boolean; interval: ReturnType<typeof setInterval> | null; sweeping: boolean }
+    | undefined;
 }
-
 function getHCState() {
   if (!globalThis.__omnirouteTokenHC) {
-    globalThis.__omnirouteTokenHC = { initialized: false, interval: null };
+    globalThis.__omnirouteTokenHC = { initialized: false, interval: null, sweeping: false };
   }
   return globalThis.__omnirouteTokenHC;
 }
@@ -367,6 +357,8 @@ export async function sweep() {
     }
   } catch (err) {
     logError(`${LOG_PREFIX} Sweep error:`, err.message);
+  } finally {
+    state.sweeping = false;
   }
 }
 
