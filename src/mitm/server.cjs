@@ -47,6 +47,7 @@ const ROUTER_BASE_URL = (
   .trim()
   .replace(/\/+$/, "");
 const ROUTER_URL = `${ROUTER_BASE_URL}/v1/chat/completions`;
+const ROUTER_MESSAGES_URL = `${ROUTER_BASE_URL}/v1/messages`;
 const API_KEY = process.env.ROUTER_API_KEY;
 const DATA_DIR = getDataDir();
 const DB_FILE = path.join(DATA_DIR, "db.json");
@@ -101,17 +102,18 @@ const SANITIZE_SOURCE_EXT = ["ts", "tsx", "js", "jsx", "mjs", "cjs"];
 function looksLikeAbsolutePath(tok) {
   if (tok.length < 4 || tok.length > 2048) return false;
   const isPosix = tok.charCodeAt(0) === 0x2f;
-  const isWindows =
-    tok.length > 2 && tok.charCodeAt(1) === 0x3a && /[A-Za-z]/.test(tok[0]);
+  const isWindows = tok.length > 2 && tok.charCodeAt(1) === 0x3a && /[A-Za-z]/.test(tok[0]);
   if (!isPosix && !isWindows) return false;
   const dot = tok.lastIndexOf(".");
   if (dot <= 0 || dot === tok.length - 1) return false;
-  const ext = tok.slice(dot + 1).split(":", 1)[0].toLowerCase();
+  const ext = tok
+    .slice(dot + 1)
+    .split(":", 1)[0]
+    .toLowerCase();
   return SANITIZE_SOURCE_EXT.includes(ext);
 }
 function sanitizeErrorMessage(message) {
-  let str =
-    typeof message === "string" ? message : String(message == null ? "" : message);
+  let str = typeof message === "string" ? message : String(message == null ? "" : message);
   if (str.length > SANITIZE_MAX_LEN) str = str.slice(0, SANITIZE_MAX_LEN);
   const nl = str.indexOf("\n");
   const firstLine = nl >= 0 ? str.slice(0, nl) : str;
@@ -136,6 +138,8 @@ function sanitizeErrorMessage(message) {
 const bypassShim = require("./_internal/bypass.cjs");
 const ingestShim = require("./_internal/ingest.cjs");
 const forwardShim = require("./_internal/forwardTarget.cjs");
+const aliasConfigShim = require("./_internal/aliasConfig.cjs");
+const standaloneRoutingShim = require("./_internal/standaloneRouting.cjs");
 
 // Inspector capture (D4 fallback). The standalone proxy intercepts AgentBridge
 // traffic inline (no MitmHandlerBase / agentBridgeHook), so it posts captured
@@ -198,9 +202,7 @@ function routeBypass(hostname) {
 
 const _bypassLoaded = loadUserBypassPatterns();
 if (_bypassLoaded > 0) {
-  console.log(
-    `[MITM] Loaded ${_bypassLoaded} user bypass pattern(s) from bypass.json`
-  );
+  console.log(`[MITM] Loaded ${_bypassLoaded} user bypass pattern(s) from bypass.json`);
 }
 
 let _sqliteDb = null;
@@ -237,9 +239,6 @@ const sslOptions = {
   key: fs.readFileSync(path.join(certDir, "server.key")),
   cert: fs.readFileSync(path.join(certDir, "server.crt")),
 };
-
-// Chat endpoints that should be intercepted
-const CHAT_URL_PATTERNS = [":generateContent", ":streamGenerateContent"];
 
 // Log directory for request/response dumps
 const LOG_DIR = path.join(__dirname, "../../logs/mitm");
@@ -337,38 +336,19 @@ function getSqliteDb() {
   return null;
 }
 
-function getMappedModel(model) {
-  if (!model) return null;
-
-  // Primary: read from SQLite key_value table
-  try {
-    const db = getSqliteDb();
-    if (db) {
-      const row = db
-        .prepare(
-          "SELECT value FROM key_value WHERE namespace = 'mitmAlias' AND key = 'antigravity'"
-        )
-        .get();
-      if (row) {
-        const mappings = JSON.parse(row.value);
-        return mappings[model] || null;
-      }
-    }
-  } catch {
-    // Fall through to JSON fallback
-  }
-
-  // Fallback: read from db.json (legacy installs not yet migrated)
-  try {
-    if (fs.existsSync(DB_FILE)) {
-      const db = JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
-      return db.mitmAlias?.antigravity?.[model] || null;
-    }
-  } catch {
-    // Ignore
-  }
-
-  return null;
+/**
+ * Resolve the stored alias override for a source model: `{ model?, reasoningEffort? }`.
+ * `normalizeAliasMappings` upgrades legacy plain-string mappings into the structured
+ * shape. The route-only namespace is reserved for client-facing OmniRoute model ids;
+ * fall back to `mitmAlias` until a route-alias writer is available.
+ */
+function getMappedOverride(model, agentId = "antigravity") {
+  return standaloneRoutingShim.resolveMappedOverride(model, agentId, {
+    fs,
+    dbFile: DB_FILE,
+    getSqliteDb,
+    aliasConfigShim,
+  });
 }
 
 async function passthrough(req, res, bodyBuffer) {
@@ -451,13 +431,15 @@ function captureToInspector(o) {
   }
 }
 
-async function intercept(req, res, bodyBuffer, mappedModel, sourceModel) {
+async function intercept(req, res, bodyBuffer, override, sourceModel) {
   // C2 — Inject AgentBridge correlation headers per master plan §3.5.
   // The OmniRoute router uses these to distinguish AgentBridge traffic from
   // other inbound clients and to record the originating IDE agent id.
   // Resolve agent id from the Host header against the target map; defensive
   // fallback to "unknown" when the host is somehow not in the map.
-  const reqHost = String(req.headers.host || "").split(":")[0].toLowerCase();
+  const reqHost = String(req.headers.host || "")
+    .split(":")[0]
+    .toLowerCase();
   const agentId = TARGET_HOST_AGENT.get(reqHost) || "unknown";
   const startedAt = Date.now();
   let upstreamStartedAt = startedAt;
@@ -468,8 +450,15 @@ async function intercept(req, res, bodyBuffer, mappedModel, sourceModel) {
   let captureError;
 
   try {
-    const body = JSON.parse(bodyBuffer.toString());
-    body.model = mappedModel;
+    // `override` is a normalized `{ model?, reasoningEffort? }` alias entry (never null —
+    // the caller already gated on that). `applyAntigravityOverride` swaps `model` when
+    // present and, for a reasoning-effort override, sets `reasoningEffortOverride` at the
+    // same top-level envelope depth so the antigravity→openai translator can read it
+    // ahead of its thinkingConfig-derived guess (ported from upstream #2584).
+    const body = aliasConfigShim.applyAntigravityOverride(
+      JSON.parse(bodyBuffer.toString()),
+      override
+    );
 
     // Gap B — the Antigravity IDE speaks cloudcode (the Gemini payload wrapped
     // under `request`) and expects a cloudcode reply. Forward such envelopes to
@@ -477,7 +466,13 @@ async function intercept(req, res, bodyBuffer, mappedModel, sourceModel) {
     // the IDE gets its own format back; plain OpenAI bodies still go to
     // chat/completions. Without this, cloudcode hits chat/completions and 400s
     // on the missing `messages` field.
-    const forward = forwardShim.resolveForwardTarget(ROUTER_BASE_URL, body);
+    const forward = standaloneRoutingShim.resolveForwardTargetForAgent({
+      routerBaseUrl: ROUTER_BASE_URL,
+      routerMessagesUrl: ROUTER_MESSAGES_URL,
+      body,
+      agentId,
+      fallbackResolver: forwardShim.resolveForwardTarget,
+    });
     vlog(1, `[MITM] → forward ${forward.format} ${forward.url}`);
 
     upstreamStartedAt = Date.now();
@@ -545,7 +540,7 @@ async function intercept(req, res, bodyBuffer, mappedModel, sourceModel) {
       bodyBuffer,
       agentId,
       sourceModel,
-      mappedModel,
+      mappedModel: (override && override.model) || sourceModel,
       status: captureStatus,
       respHeaders,
       respBody,
@@ -563,10 +558,15 @@ const server = https.createServer(sslOptions, async (req, res) => {
   writeStats();
 
   const bodyBuffer = await collectBodyRaw(req);
-  const host = String(req.headers.host || "").split(":")[0].toLowerCase();
+  const host = String(req.headers.host || "")
+    .split(":")[0]
+    .toLowerCase();
   const model = bodyBuffer.length > 0 ? extractModel(bodyBuffer) : null;
 
-  vlog(1, `[MITM] ${req.method} ${host}${req.url} | body: ${bodyBuffer.length}B | model: ${model || "N/A"}`);
+  vlog(
+    1,
+    `[MITM] ${req.method} ${host}${req.url} | body: ${bodyBuffer.length}B | model: ${model || "N/A"}`
+  );
 
   if (bodyBuffer.length > 0) saveRequestLog(req.url, bodyBuffer);
 
@@ -580,16 +580,18 @@ const server = https.createServer(sslOptions, async (req, res) => {
     return passthrough(req, res, bodyBuffer);
   }
 
-  const isChatRequest = CHAT_URL_PATTERNS.some((p) => req.url.includes(p));
+  const agentId = TARGET_HOST_AGENT.get(host) || "antigravity";
+  const routeConfig = standaloneRoutingShim.getAgentRouteConfig(agentId);
+  const isChatRequest = routeConfig.chatUrlPatterns.some((p) => req.url.includes(p));
 
   if (!isChatRequest) {
     vlog(1, `[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
     return passthrough(req, res, bodyBuffer);
   }
 
-  const mappedModel = getMappedModel(model);
+  const mappedOverride = getMappedOverride(model, agentId);
 
-  if (!mappedModel) {
+  if (!mappedOverride) {
     vlog(1, `[MITM] → PASSTHROUGH (model "${model}" has no MITM alias mapping)`);
     return passthrough(req, res, bodyBuffer);
   }
@@ -598,8 +600,12 @@ const server = https.createServer(sslOptions, async (req, res) => {
   stats.lastInterceptAt = new Date().toISOString();
   writeStats();
 
-  vlog(1, `[MITM] INTERCEPTED ${model} → ${mappedModel}`);
-  return intercept(req, res, bodyBuffer, mappedModel, model);
+  vlog(
+    1,
+    `[MITM] INTERCEPTED ${agentId} ${model} → ${mappedOverride.model || model}` +
+      (mappedOverride.reasoningEffort ? ` (reasoningEffort=${mappedOverride.reasoningEffort})` : "")
+  );
+  return intercept(req, res, bodyBuffer, mappedOverride, model);
 });
 
 // =========================================================================
@@ -722,10 +728,7 @@ server.on("connect", (req, clientSocket, head) => {
     // https.createServer request handler can decrypt and route. We write the
     // 200 response ourselves and then `emit("connection")` so the TLS layer
     // picks the socket up.
-    vlog(
-      1,
-      `[MITM] CONNECT ${connectHost}:${connectPort} → TARGET (TLS terminate locally)`
-    );
+    vlog(1, `[MITM] CONNECT ${connectHost}:${connectPort} → TARGET (TLS terminate locally)`);
     clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
     if (head && head.length > 0) clientSocket.unshift(head);
     server.emit("connection", clientSocket);
@@ -733,10 +736,7 @@ server.on("connect", (req, clientSocket, head) => {
   }
 
   // decision === "passthrough"
-  vlog(
-    1,
-    `[MITM] CONNECT ${connectHost}:${connectPort} → PASSTHROUGH (TCP tunnel)`
-  );
+  vlog(1, `[MITM] CONNECT ${connectHost}:${connectPort} → PASSTHROUGH (TCP tunnel)`);
   rawTcpForward(clientSocket, head, connectHost, connectPort, "passthrough");
 });
 

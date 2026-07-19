@@ -159,6 +159,51 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
       { id: "elevenlabs/audio-isolation", name: "ElevenLabs Audio Isolation" },
     ],
   },
+
+  gladia: {
+    id: "gladia",
+    // POST https://api.gladia.io/v2/pre-recorded — async workflow: upload → submit → poll
+    // Auth: x-gladia-key: <API_KEY> (custom header, not a standard Bearer/Token scheme)
+    // Free tier: 10 hours/month, no credit card required
+    baseUrl: "https://api.gladia.io/v2/pre-recorded",
+    authType: "apikey",
+    authHeader: "x-gladia-key",
+    async: true,
+    format: "gladia",
+    models: [
+      { id: "solaria-1", name: "Solaria 1" },
+      { id: "solaria-mini", name: "Solaria Mini" },
+    ],
+  },
+
+  "rev-ai": {
+    id: "rev-ai",
+    baseUrl: "https://api.rev.ai/speechtotext/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    async: true,
+    format: "rev-ai",
+    models: [
+      { id: "machine", name: "Reverb ASR" },
+      { id: "low_cost", name: "Low-Cost ASR" },
+      { id: "fusion", name: "Fusion ASR" },
+    ],
+  },
+
+  speechmatics: {
+    id: "speechmatics",
+    // POST https://asr.api.speechmatics.com/v2/jobs — async batch workflow:
+    // submit multipart job (audio + JSON config) → poll → fetch transcript.
+    // Auth: Authorization: Bearer <api-key>
+    // Free tier: 8 hours/month, no credit card required.
+    // Streaming (WebSocket real-time) mode is out of scope for v1 — batch only.
+    baseUrl: "https://asr.api.speechmatics.com/v2/jobs",
+    authType: "apikey",
+    authHeader: "bearer",
+    async: true,
+    format: "speechmatics",
+    models: [{ id: "enhanced", name: "Enhanced" }],
+  },
 };
 
 /**
@@ -403,6 +448,45 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "hexgrad/Kokoro-82M", name: "Kokoro 82M" },
       { id: "canopylabs/orpheus-3b-0.1-ft", name: "Orpheus 3B" },
     ],
+  },
+
+  edgetts: {
+    id: "edgetts",
+    // Microsoft Edge "Read Aloud" — reverse-engineered, no API key required.
+    // WebSocket transport (unlike every other entry here) — handled by
+    // open-sse/executors/edgeTts.ts, dispatched via the "edgetts" format.
+    baseUrl: "wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1",
+    authType: "none",
+    authHeader: "none",
+    format: "edgetts",
+    supportedFormats: ["mp3"],
+    models: [
+      { id: "en-US-AriaNeural", name: "Aria (EN-US, Female)" },
+      { id: "en-US-GuyNeural", name: "Guy (EN-US, Male)" },
+      { id: "en-GB-SoniaNeural", name: "Sonia (EN-GB, Female)" },
+      { id: "en-GB-RyanNeural", name: "Ryan (EN-GB, Male)" },
+      { id: "es-ES-ElviraNeural", name: "Elvira (ES-ES, Female)" },
+      { id: "pt-BR-FranciscaNeural", name: "Francisca (PT-BR, Female)" },
+      { id: "pt-BR-AntonioNeural", name: "Antonio (PT-BR, Male)" },
+      { id: "fr-FR-DeniseNeural", name: "Denise (FR-FR, Female)" },
+      { id: "de-DE-KatjaNeural", name: "Katja (DE-DE, Female)" },
+      { id: "ja-JP-NanamiNeural", name: "Nanami (JA-JP, Female)" },
+      { id: "zh-CN-XiaoxiaoNeural", name: "Xiaoxiao (ZH-CN, Female)" },
+    ],
+  },
+
+  gtts: {
+    id: "gtts",
+    // Google Translate TTS — reverse-engineered, no API key required.
+    // POST batchexecute RPC (unlike the deprecated GET /translate_tts) —
+    // handled by open-sse/executors/gtts.ts, dispatched via the "gtts" format.
+    // No official SLA; per-IP rate-limited by Google without notice.
+    baseUrl: "https://translate.google.com/_/TranslateWebserverUi/data/batchexecute",
+    authType: "none",
+    authHeader: "none",
+    format: "gtts",
+    supportedFormats: ["mp3"],
+    models: [{ id: "default", name: "Google Translate TTS (Free)" }],
   },
 
   "xiaomi-mimo": {

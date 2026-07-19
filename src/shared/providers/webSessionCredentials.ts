@@ -53,6 +53,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "__Secure-1PSID", "__Secure-1PSIDTS"],
   },
+  "notion-web": {
+    kind: "cookie",
+    credentialName: "token_v2 (optional: space_id, notion_browser_id)",
+    placeholder: "token_v2=...; space_id=...; notion_browser_id=...",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "token_v2", "space_id", "notion_browser_id"],
+  },
   "gemini-business": {
     kind: "cookie",
     credentialName: "__Secure-1PSID (optional: __Secure-1PSIDTS)",
@@ -99,6 +106,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     kind: "token",
     credentialName: "access_token",
     placeholder: "access_token=... or a DevTools HAR export",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "access_token", "accessToken"],
+  },
+  "microsoft-designer-web": {
+    kind: "token",
+    credentialName: "access_token",
+    placeholder: "access_token=... (Authorization: Bearer header from the DallE.ashx request)",
     acceptsFullCookieHeader: false,
     storageKeys: ["token", "access_token", "accessToken"],
   },
@@ -171,11 +185,11 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     storageKeys: ["cookie", "__vercel_session"],
   },
   "kimi-web": {
-    kind: "cookie",
-    credentialName: "kimi-auth",
-    placeholder: "kimi-auth=eyJ... (full Cookie header from www.kimi.com)",
+    kind: "token",
+    credentialName: "access_token",
+    placeholder: "access_token from www.kimi.com localStorage",
     acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "kimi-auth", "session"],
+    storageKeys: ["token", "access_token", "accessToken", "cookie", "kimi-auth"],
   },
   "doubao-web": {
     kind: "cookie",

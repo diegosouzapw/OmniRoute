@@ -6,7 +6,7 @@
  * This matches how use-traffic-stream.test.tsx tests hook logic (pure logic,
  * no React renderer needed).
  */
-import { describe, it, beforeEach } from "node:test";
+import { describe, it, beforeEach } from "vitest";
 import assert from "node:assert/strict";
 
 // ---------------------------------------------------------------------------

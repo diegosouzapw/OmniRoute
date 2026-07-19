@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   withEarlyStreamKeepalive,
   ANTHROPIC_PING_FRAME,
+  OPENAI_KEEPALIVE_FRAME,
 } from "../../open-sse/utils/earlyStreamKeepalive.ts";
 
 async function readAll(response: Response): Promise<string> {
@@ -68,9 +69,40 @@ test("ANTHROPIC_PING_FRAME is a real Anthropic ping event (not a comment)", () =
   assert.doesNotMatch(decoded, /^:/, "must not be an SSE comment");
 });
 
+test("OPENAI_KEEPALIVE_FRAME is a JSON-parseable OpenAI streaming chunk", () => {
+  const decoded = new TextDecoder().decode(OPENAI_KEEPALIVE_FRAME);
+  assert.match(decoded, /^data: /);
+  assert.doesNotMatch(decoded, /^:/, "must not be an SSE comment");
+
+  const payload = JSON.parse(decoded.slice("data: ".length).trim());
+  assert.equal(payload.object, "chat.completion.chunk");
+  assert.deepEqual(payload.choices, [{ index: 0, delta: {}, finish_reason: null }]);
+});
+
+test("slow handler emits the custom OpenAI keepalive chunk before the body", async () => {
+  const slow = new Promise<Response>((resolve) => {
+    setTimeout(() => resolve(sseResponse("data: [DONE]\n\n")), 120);
+  });
+
+  const result = await withEarlyStreamKeepalive(slow, {
+    thresholdMs: 25,
+    intervalMs: 20,
+    keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
+  });
+
+  const body = await readAll(result);
+  assert.doesNotMatch(body, /: omniroute-keepalive/);
+  const firstFrame = body.split("\n\n")[0];
+  assert.doesNotThrow(() => JSON.parse(firstFrame.slice("data: ".length)));
+  assert.match(body, /data: \[DONE\]/);
+});
+
 test("slow handler emits the custom keepaliveFrame (Anthropic ping) before the body", async () => {
   const slow = new Promise<Response>((resolve) => {
-    setTimeout(() => resolve(sseResponse("event: message_start\ndata: {}\n\ndata: [DONE]\n\n")), 120);
+    setTimeout(
+      () => resolve(sseResponse("event: message_start\ndata: {}\n\ndata: [DONE]\n\n")),
+      120
+    );
   });
 
   const result = await withEarlyStreamKeepalive(slow, {

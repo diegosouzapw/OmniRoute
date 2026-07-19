@@ -17,6 +17,13 @@ export interface RequestQueueSettings {
   minTimeBetweenRequestsMs: number;
   concurrentRequests: number;
   maxWaitMs: number;
+  /**
+   * Issue #6593: opt-in admission cap on the local rate-limit queue. When the
+   * queue already holds `maxQueueDepth` requests, a new request is
+   * fast-rejected (429 `queue_full`) instead of joining the queue. Default 0
+   * = disabled, preserving the unbounded-queue behavior. Bounded 0-100000.
+   */
+  maxQueueDepth: number;
 }
 
 export interface ConnectionCooldownProfileSettings {

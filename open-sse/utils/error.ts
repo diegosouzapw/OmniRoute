@@ -133,16 +133,94 @@ export interface ComboExclusion {
   model?: string;
   reason: string;
 }
+/**
+ * Next-step suggestion surfaced when a combo cascade fails. Lets the client (e.g.
+ * the OpenCode plugin) auto-render an actionable hint in the TUI instead of an
+ * opaque "model stopped producing output" error — fixes the silent-stop pattern
+ * where the user has no way to recover a session without guessing. Whitelisted to
+ * a small set so the projection remains bounded.
+ */
+export type ComboRecoveryAction =
+  /** Cascade failed because every candidate is exhausted — try a different combo or `auto`. */
+  | "try-auto"
+  /** Upstream asks to retry after a cooldown window — wait, then retry the same combo. */
+  | "wait"
+  /** Transient failure (network, 5xx) — retry the same combo immediately. */
+  | "retry"
+  /** Cascade used every account of every provider — switch to a different combo entirely. */
+  | "switch-combo";
+
+export interface ComboRecoveryHint {
+  /** Machine-readable action verb — consumed by clients to render a UI hint. */
+  action: ComboRecoveryAction;
+  /** Seconds the client should wait before retrying. Only meaningful when action="wait". */
+  retry_after_seconds?: number;
+  /** Human-readable next step — included verbatim in the error body for non-MCP clients. */
+  next_step: string;
+}
+
+export interface ComboExclusion {
+  provider: string;
+  model?: string;
+  reason: string;
+}
 export interface ComboDiagnostics {
   poolSize: number;
   attempted: number;
   excluded: ComboExclusion[];
   attemptOrder: Array<{ provider: string; model: string }>;
   terminalReason: string;
+  /** Optional next-step hint — populated when the dispatcher can recommend a recovery action. */
+  recovery?: ComboRecoveryHint;
 }
 
 function clampDiagStr(v: unknown, max = 128): string {
   return typeof v === "string" ? v.slice(0, max).replace(/[\r\n]+/g, " ") : "";
+}
+
+/**
+ * HTTP header values must be Latin1/ByteString (undici throws a TypeError
+ * otherwise — see #6612). Replace any codepoint outside the Latin1 range
+ * (0-255) with "?" so header construction never throws. Only used for the
+ * literal header value; the JSON body keeps the original, unsanitized
+ * readable text via `sanitizeComboDiagnostics`.
+ */
+function toHeaderSafeAscii(v: string): string {
+  let out = "";
+  for (let i = 0; i < v.length; i++) {
+    const code = v.charCodeAt(i);
+    out += code > 255 ? "?" : v[i];
+  }
+  return out;
+}
+
+/**
+ * Whitelist sanitizer for the recovery hint. The `action` enum is a closed set;
+ * `retry_after_seconds` is clamped to a non-negative integer ≤ 3600; `next_step` is
+ * capped and stripped of CR/LF (would break header parsing). Returns undefined when
+ * no usable input was supplied so downstream code can branch cleanly on absence.
+ */
+const RECOVERY_ACTIONS = new Set<ComboRecoveryAction>([
+  "try-auto",
+  "wait",
+  "retry",
+  "switch-combo",
+]);
+export function sanitizeRecoveryHint(
+  r: ComboRecoveryHint | null | undefined
+): ComboRecoveryHint | undefined {
+  if (!r || typeof r !== "object") return undefined;
+  const action = typeof r.action === "string" ? (r.action as ComboRecoveryAction) : null;
+  if (!action || !RECOVERY_ACTIONS.has(action)) return undefined;
+  // Reject empty OR whitespace-only next_step — the value must render usefully as a
+  // header and as a body field. A whitespace-only string would print as a blank hint.
+  const next_step = clampDiagStr(r.next_step, 200).trim();
+  if (!next_step) return undefined;
+  const hint: ComboRecoveryHint = { action, next_step };
+  if (typeof r.retry_after_seconds === "number" && Number.isFinite(r.retry_after_seconds)) {
+    hint.retry_after_seconds = Math.max(0, Math.min(3600, Math.floor(r.retry_after_seconds)));
+  }
+  return hint;
 }
 
 /**
@@ -151,7 +229,8 @@ function clampDiagStr(v: unknown, max = 128): string {
  * containment boundary for the diagnostic trace.
  */
 export function sanitizeComboDiagnostics(d: ComboDiagnostics): ComboDiagnostics {
-  return {
+  const recovery = sanitizeRecoveryHint(d?.recovery);
+  const out: ComboDiagnostics = {
     poolSize: Number.isFinite(d?.poolSize) ? d.poolSize : 0,
     attempted: Number.isFinite(d?.attempted) ? d.attempted : 0,
     excluded: (d?.excluded ?? []).slice(0, 64).map((e) => ({
@@ -164,6 +243,8 @@ export function sanitizeComboDiagnostics(d: ComboDiagnostics): ComboDiagnostics 
       .map((a) => ({ provider: clampDiagStr(a?.provider, 64), model: clampDiagStr(a?.model, 96) })),
     terminalReason: clampDiagStr(d?.terminalReason, 200),
   };
+  if (recovery) out.recovery = recovery;
+  return out;
 }
 
 /**
@@ -171,7 +252,11 @@ export function sanitizeComboDiagnostics(d: ComboDiagnostics): ComboDiagnostics 
  * `x-omniroute-combo-*` headers and a `diagnostics` field in the OpenAI-shaped
  * error body (extra field — backward-compatible with standard error parsers).
  * `opts.code`/`opts.type` override the status-derived defaults (e.g. to preserve
- * the `ALL_ACCOUNTS_INACTIVE` code on the 503 terminal path).
+ * the `ALL_ACCOUNTS_INACTIVE` code on the 503 terminal path). When the diagnostic
+ * carries a `recovery` hint it is mirrored as `x-omniroute-recovery-action` /
+ * `x-omniroute-recovery-next-step` / `x-omniroute-retry-after-seconds` headers and as a
+ * top-level `recovery_hint` field on the body so non-header-aware clients (curl,
+ * MCP tools, log scrapers) can also pick it up.
  */
 export function errorResponseWithComboDiagnostics(
   statusCode: number,
@@ -182,23 +267,45 @@ export function errorResponseWithComboDiagnostics(
   const safe = sanitizeComboDiagnostics(diagnostics);
   const body = buildErrorBody(statusCode, message) as ErrorResponseBody & {
     diagnostics?: ComboDiagnostics;
+    recovery_hint?: ComboRecoveryHint;
   };
   if (opts.code) body.error.code = opts.code;
   if (opts.type) body.error.type = opts.type;
   body.diagnostics = safe;
-  const excludedHeader = safe.excluded
-    .map((e) => `${e.provider}${e.model ? `/${e.model}` : ""}:${e.reason}`)
-    .join(",")
-    .slice(0, 900);
+  if (safe.recovery) body.recovery_hint = safe.recovery;
+  const excludedHeader = toHeaderSafeAscii(
+    safe.excluded
+      .map((e) => `${e.provider}${e.model ? `/${e.model}` : ""}:${e.reason}`)
+      .join(",")
+      .slice(0, 900)
+  );
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "x-omniroute-combo-pool-size": String(safe.poolSize),
+    "x-omniroute-combo-attempted": String(safe.attempted),
+    "x-omniroute-combo-excluded": excludedHeader,
+    "x-omniroute-combo-terminal-reason": toHeaderSafeAscii(safe.terminalReason.slice(0, 200)),
+  };
+
+  if (safe.recovery) {
+    headers["x-omniroute-recovery-action"] = safe.recovery.action;
+    // Header limit of 128 chars — keep next_step compact for fast parsing.
+    // The body field carries the full 200-char value for richer display.
+    headers["x-omniroute-recovery-next-step"] = toHeaderSafeAscii(safe.recovery.next_step).slice(
+      0,
+      128
+    );
+    if (
+      typeof safe.recovery.retry_after_seconds === "number" &&
+      safe.recovery.retry_after_seconds > 0
+    ) {
+      headers["x-omniroute-retry-after-seconds"] = String(safe.recovery.retry_after_seconds);
+    }
+  }
+
   return new Response(JSON.stringify(body), {
     status: statusCode,
-    headers: {
-      "Content-Type": "application/json",
-      "x-omniroute-combo-pool-size": String(safe.poolSize),
-      "x-omniroute-combo-attempted": String(safe.attempted),
-      "x-omniroute-combo-excluded": excludedHeader,
-      "x-omniroute-combo-terminal-reason": safe.terminalReason.slice(0, 200),
-    },
+    headers,
   });
 }
 

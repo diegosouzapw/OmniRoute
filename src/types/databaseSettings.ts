@@ -46,6 +46,10 @@ export interface DatabaseSettings {
     callLogs: number;
     usageHistory: number;
     memoryEntries: number;
+    domainCostHistory: number;
+    compressionCacheStats: number;
+    xpAuditLog: number;
+    compressionRunTelemetry: number;
     autoCleanupEnabled: boolean;
   };
 
@@ -106,6 +110,10 @@ export const DEFAULT_DATABASE_SETTINGS: Omit<DatabaseSettings, "location" | "sta
     callLogs: 30,
     usageHistory: 30,
     memoryEntries: 30,
+    domainCostHistory: 30,
+    compressionCacheStats: 30,
+    xpAuditLog: 30,
+    compressionRunTelemetry: 30,
     autoCleanupEnabled: true,
   },
   aggregation: {

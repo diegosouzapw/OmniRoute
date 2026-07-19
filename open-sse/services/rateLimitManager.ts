@@ -24,6 +24,7 @@ import {
   parseResetTime,
   toPlainHeaders,
 } from "./rateLimitManager/headers";
+import { checkQueueAdmission } from "./rateLimitManager/admission";
 
 interface LearnedLimitEntry {
   provider: string;
@@ -547,17 +548,46 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
   const maxWaitMs = currentRequestQueueSettings.maxWaitMs;
   const scheduleOpts = maxWaitMs && maxWaitMs > 0 ? { expiration: maxWaitMs } : {};
 
+  // Issue #6593: opt-in admission cap — fast-reject before Bottleneck's
+  // schedule() (and before any downstream compression/prompt work runs) when
+  // the queue is already at/over maxQueueDepth. Default 0 = disabled.
+  const admissionErr = checkQueueAdmission(
+    limiter.counts().QUEUED,
+    currentRequestQueueSettings.maxQueueDepth,
+    model ? `${provider}/${model}` : provider
+  );
+  if (admissionErr) {
+    logRateLimit(
+      `🚧 [RATE-LIMIT] ${getLimiterKey(provider, connectionId, model)} — queue full, rejecting fast (maxQueueDepth=${currentRequestQueueSettings.maxQueueDepth})`
+    );
+    throw admissionErr;
+  }
+
   try {
     if (signal) {
       let abortListener: (() => void) | undefined;
       const abortPromise = new Promise<never>((_, reject) => {
         const onAbort = () => {
           const reason = signal.reason;
-          const err =
+          // Build a fresh Error rather than mutating `reason` in place: the
+          // default abort reason (when `controller.abort()` is called with no
+          // argument, e.g. modelTestRunner's timeout path) is a native
+          // DOMException, whose `name` is a read-only getter — assigning
+          // `err.name = "AbortError"` on it throws `TypeError: Cannot set
+          // property name of [object DOMException] which has only a getter`,
+          // which then surfaces as an unhandled rejection instead of the
+          // intended "slow"/timeout result.
+          const message =
             reason instanceof Error
-              ? reason
-              : new Error(typeof reason === "string" ? reason : "The operation was aborted");
+              ? reason.message
+              : typeof reason === "string"
+                ? reason
+                : "The operation was aborted";
+          const err = new Error(message);
           err.name = "AbortError";
+          if (reason !== undefined) {
+            (err as Error & { cause?: unknown }).cause = reason;
+          }
           reject(err);
         };
         if (signal.aborted) {

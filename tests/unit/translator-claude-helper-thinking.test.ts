@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { prepareClaudeRequest, NON_ANTHROPIC_THINKING_PLACEHOLDER: PLACEHOLDER } = await import("../../open-sse/translator/helpers/claudeHelper.ts");
+const { prepareClaudeRequest } = await import("../../open-sse/translator/helpers/claudeHelper.ts");
 const { DEFAULT_THINKING_CLAUDE_SIGNATURE } =
   await import("../../open-sse/config/defaultThinkingSignature.ts");
 const reasoningCache = await import("../../open-sse/services/reasoningCache.ts");
@@ -114,20 +114,20 @@ test("anthropic-compatible-* provider — same as claude (redacted_thinking)", (
 
 // ──────────────── Non-Anthropic Claude-shape (kimi-coding, glmt, zai, …) ────────────────
 
-test("kimi-coding provider — empty content, injects plain thinking{text} with placeholder (cache miss)", () => {
+test("kimi-coding provider — empty content injects an empty thinking marker", () => {
   reasoningCache.clearReasoningCacheAll();
   const body = multiTurnBodyWithoutThinkingBlock();
   const result = prepareClaudeRequest(body as any, "kimi-coding");
   const content = (result as any).messages[1].content;
   assert.equal(content.length, 2);
   assert.equal(content[0].type, "thinking");
-  assert.equal(content[0].thinking, PLACEHOLDER);
+  assert.equal(content[0].thinking, "");
   assert.equal(content[0].data, undefined, "no data field on plain thinking");
   assert.equal(content[0].signature, undefined, "no signature field on cross-provider replay");
   assert.equal(content[1].type, "tool_use");
 });
 
-test("kimi-coding provider — empty content + cache hit on tool_use.id, injects real reasoning text", () => {
+test("kimi-coding provider — cache hits do not replace the empty thinking marker", () => {
   reasoningCache.clearReasoningCacheAll();
   reasoningCache.cacheReasoning(
     "call_x",
@@ -139,7 +139,7 @@ test("kimi-coding provider — empty content + cache hit on tool_use.id, injects
   const result = prepareClaudeRequest(body as any, "kimi-coding");
   const content = (result as any).messages[1].content;
   assert.equal(content[0].type, "thinking");
-  assert.equal(content[0].thinking, "the model actually thought this");
+  assert.equal(content[0].thinking, "");
 });
 
 test("kimi-coding provider — existing thinking block: client text preserved, signature stripped, data NOT added", () => {
@@ -158,7 +158,7 @@ test("kimi-coding provider — existing thinking block: client text preserved, s
   );
 });
 
-test("kimi-coding provider — existing redacted_thinking block (no text), cache hit injects real text", () => {
+test("kimi-coding provider — redacted thinking becomes an empty marker even on cache hit", () => {
   reasoningCache.clearReasoningCacheAll();
   reasoningCache.cacheReasoning("call_z", "kimi-coding", "kimi-k2.6", "cached reasoning v2");
   const body = {
@@ -181,11 +181,11 @@ test("kimi-coding provider — existing redacted_thinking block (no text), cache
   const result = prepareClaudeRequest(body as any, "kimi-coding");
   const content = (result as any).messages[1].content;
   assert.equal(content[0].type, "thinking");
-  assert.equal(content[0].thinking, "cached reasoning v2", "cache substitutes redacted data");
+  assert.equal(content[0].thinking, "");
   assert.equal(content[0].data, undefined);
 });
 
-test("kimi-coding provider — existing redacted_thinking block (no text), cache miss → placeholder", () => {
+test("kimi-coding provider — redacted thinking becomes an empty marker on cache miss", () => {
   reasoningCache.clearReasoningCacheAll();
   const body = {
     thinking: { type: "enabled", budget_tokens: 4096 },
@@ -207,7 +207,7 @@ test("kimi-coding provider — existing redacted_thinking block (no text), cache
   const result = prepareClaudeRequest(body as any, "kimi-coding");
   const content = (result as any).messages[1].content;
   assert.equal(content[0].type, "thinking");
-  assert.equal(content[0].thinking, PLACEHOLDER);
+  assert.equal(content[0].thinking, "");
 });
 
 // ──────────────── Disabled / no-op paths ────────────────
@@ -289,7 +289,7 @@ test("preserves verbatim thinking on the LATEST assistant message; rewrites only
   assert.equal(latestAssistant.content[0].data, undefined);
 });
 
-test("non-Anthropic upstream: preserves latest assistant thinking text verbatim, only fills older from cache/placeholder", () => {
+test("Kimi upstream preserves latest thinking and keeps older empty markers", () => {
   reasoningCache.clearReasoningCacheAll();
   const body: any = {
     thinking: { type: "enabled", budget_tokens: 4096 },
@@ -320,10 +320,7 @@ test("non-Anthropic upstream: preserves latest assistant thinking text verbatim,
   assert.equal(body.messages[2].content[0].type, "thinking");
   assert.equal(body.messages[2].content[0].thinking, "latest reasoning text");
 
-  // Older assistant: empty text -> placeholder (cache miss path)
+  // Older assistant: the empty marker stays empty rather than replaying cached reasoning.
   assert.equal(body.messages[0].content[0].type, "thinking");
-  assert.ok(
-    typeof body.messages[0].content[0].thinking === "string" &&
-      body.messages[0].content[0].thinking.length > 0
-  );
+  assert.equal(body.messages[0].content[0].thinking, "");
 });

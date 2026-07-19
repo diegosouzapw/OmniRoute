@@ -67,10 +67,10 @@ export {
   getModelIsHidden,
   setModelIsHidden,
   getHiddenModelsByProvider,
-
   // Synced Available Models
   getSyncedAvailableModels,
   getAllSyncedAvailableModels,
+  getActiveProvidersWithSyncedModel,
   replaceSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForProvider,
@@ -90,9 +90,9 @@ export {
   reorderCombos,
   deleteCombo,
 } from "./db/combos";
-
 export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
+export * from "./db/compressionContextBudget";
 export * from "./db/compressionRunTelemetry";
 export * from "./db/modelContextOverrides";
 
@@ -312,7 +312,7 @@ export type { FileRecord } from "./db/files";
 export type { BatchItemCheckpoint, BatchRecord } from "./db/batches";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
-
+export * from "./db/reasoningRoutingRules";
 export {
   // Webhooks
   getWebhooks,

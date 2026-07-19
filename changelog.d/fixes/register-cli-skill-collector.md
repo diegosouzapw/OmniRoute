@@ -1,0 +1,1 @@
+- **Skills**: register `cli-skill-collector` in the agent-skills catalog (types union, curated entry, CLI id list) — #6294 shipped the `skills/cli-skill-collector/` directory without the catalog registration, so it was unreachable via the API and Integration CI failed on the catalog-integrity test; counts aligned (44 API+CLI, 45 with config)

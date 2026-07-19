@@ -20,6 +20,33 @@ export function isIntelligentBuilderStrategy(strategy: unknown): boolean {
   return strategy === "auto" || strategy === "lkgp";
 }
 
+export type ComboEligibleConnectionLike = {
+  isActive?: boolean | null;
+  testStatus?: string | null;
+};
+
+/**
+ * Whether a provider connection should be treated as eligible for the combo
+ * builder's "active providers" list (used to decide which providers get their
+ * models fetched/shown when creating or editing a combo).
+ *
+ * Newly-created connections default `testStatus` to `null` until someone
+ * explicitly runs a connection test (`src/lib/db/providers.ts`). Excluding
+ * those from the combo builder meant a freshly-added custom provider's models
+ * never populated the combo model picker until an operator manually tested
+ * the connection — matching the reported symptom (#2057). "Never tested" is
+ * therefore treated the same as "known good", consistent with
+ * `deriveConnectionStatus` in `src/lib/combos/builderOptions.ts`, which only
+ * flags a connection as an error when `testStatus` explicitly matches
+ * `/error|fail/i`.
+ */
+export function isEligibleActiveConnection(connection: ComboEligibleConnectionLike): boolean {
+  if (connection.isActive === false) return false;
+  const testStatus = connection.testStatus;
+  if (!testStatus) return true;
+  return testStatus === "active" || testStatus === "success" || testStatus === "unknown";
+}
+
 export function getComboBuilderStages(options: ComboBuilderStageOptions = {}): ComboBuilderStage[] {
   if (isIntelligentBuilderStrategy(options.strategy)) {
     return [...COMBO_BUILDER_STAGES];

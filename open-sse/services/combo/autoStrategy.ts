@@ -21,7 +21,12 @@
  */
 
 import { isRecord } from "./comboData.ts";
-import type { AutoProviderCandidate, ComboLike, ResolvedComboTarget } from "./types.ts";
+import type {
+  AutoProviderCandidate,
+  ComboLike,
+  HistoricalLatencyStatsEntry,
+  ResolvedComboTarget,
+} from "./types.ts";
 import { extractSessionAffinityKey } from "@/sse/services/auth";
 import { DEFAULT_INTENT_CONFIG, type IntentClassifierConfig } from "../intentClassifier.ts";
 import { getTaskFitness } from "../autoCombo/taskFitness.ts";
@@ -472,4 +477,24 @@ export function deriveComboSessionKey(body: Record<string, unknown>): string | n
   } catch {
     return null;
   }
+}
+
+/**
+ * Surface TTFT/E2E-latency/tokens-per-second from a historical latency-stats
+ * entry onto an AutoProviderCandidate's speed-telemetry fields (#6875). Pure
+ * projection — only positive, finite numbers pass through; anything else is
+ * omitted so the existing speed-ranking factor (speedRanking.ts, #6011) falls
+ * back to its own pool-median default instead of scoring on a bad 0/NaN.
+ */
+export function deriveSpeedTelemetry(
+  metric: HistoricalLatencyStatsEntry | null
+): Pick<AutoProviderCandidate, "avgTtftMs" | "avgE2ELatencyMs" | "avgTokensPerSecond"> {
+  const positive = (value: unknown): number | undefined =>
+    typeof value === "number" && Number.isFinite(value) && value > 0 ? value : undefined;
+
+  return {
+    avgTtftMs: positive(metric?.avgTtftMs),
+    avgE2ELatencyMs: positive(metric?.avgE2ELatencyMs),
+    avgTokensPerSecond: positive(metric?.avgTokensPerSecond),
+  };
 }

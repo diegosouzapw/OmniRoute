@@ -124,6 +124,52 @@ const GPT_5_6_MAX_ALIAS_MODELS = new Set(["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5
 const GPT_5_6_ULTRA_ALIAS_MODELS = new Set(["gpt-5.6-sol", "gpt-5.6-terra"]);
 const CODEX_FAST_WIRE_VALUE = "priority";
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
+const CODEX_RESPONSES_LITE_HEADER = "x-openai-internal-codex-responses-lite";
+const CODEX_RESPONSES_LITE_WS_METADATA_KEY =
+  "ws_request_header_x_openai_internal_codex_responses_lite";
+
+// The official Codex client marks Responses Lite over an HTTP header or, for WebSocket
+// requests, mirrors the same signal into client_metadata. Lite rejects parallel tool calls.
+function isEnabledResponsesLiteFlag(value: unknown): boolean {
+  return value === true || (typeof value === "string" && value.trim().toLowerCase() === "true");
+}
+
+function isCodexResponsesLiteRequest(
+  bodyInput: unknown,
+  clientHeaders?: Record<string, string> | null
+): boolean {
+  const hasLiteHeader = Object.entries(clientHeaders ?? {}).some(
+    ([key, value]) =>
+      key.toLowerCase() === CODEX_RESPONSES_LITE_HEADER && isEnabledResponsesLiteFlag(value)
+  );
+  if (hasLiteHeader) return true;
+
+  if (!bodyInput || typeof bodyInput !== "object" || Array.isArray(bodyInput)) return false;
+  const metadata = (bodyInput as Record<string, unknown>).client_metadata;
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return false;
+
+  return isEnabledResponsesLiteFlag(
+    (metadata as Record<string, unknown>)[CODEX_RESPONSES_LITE_WS_METADATA_KEY]
+  );
+}
+
+function enforceCodexResponsesLiteParallelToolCalls(
+  bodyInput: unknown,
+  clientHeaders?: Record<string, string> | null
+): unknown {
+  if (
+    !isCodexResponsesLiteRequest(bodyInput, clientHeaders) ||
+    !bodyInput ||
+    typeof bodyInput !== "object" ||
+    Array.isArray(bodyInput)
+  ) {
+    return bodyInput;
+  }
+
+  const body = bodyInput as Record<string, unknown>;
+  if (body.parallel_tool_calls === false) return bodyInput;
+  return { ...body, parallel_tool_calls: false };
+}
 
 function splitCodexReasoningSuffix(model: unknown): {
   baseModel: string;
@@ -627,7 +673,15 @@ export async function peekCodexSseTransientError(
   response: Response
 ): Promise<CodexSseTransientErrorPeek> {
   const contentType = response.headers.get("content-type") || "";
-  if (!response.ok || !response.body || !contentType.includes("text/event-stream")) {
+  // #7536: check content-type BEFORE touching `response.body`. On the wreq-js
+  // TLS-fingerprint transport (used by Codex), the Response is backed by a native
+  // body handle and merely accessing `.body` disturbs it, so a downstream
+  // `.text()` throws "Response body is already used". The Codex non-stream
+  // upstream response has an empty content-type, so it must short-circuit here
+  // WITHOUT reading `.body` — otherwise chatCore's readNonStreamingResponseBody
+  // 502s. Only genuine SSE responses (which this peek intends to buffer) reach
+  // the `.body` access below.
+  if (!response.ok || !contentType.includes("text/event-stream") || !response.body) {
     return { matched: null, message: null, replacementBody: null };
   }
 
@@ -675,11 +729,13 @@ export async function peekCodexSseTransientError(
     return { matched, message: extractCodexSseErrorMessage(text, matched), replacementBody: null };
   }
 
-  reader.releaseLock();
-
   // Re-assemble the stream: peeked prefix chunks, then continue draining the
-  // same underlying body so bytes downstream of the peek window are untouched.
-  const upstreamReader = response.body.getReader();
+  // SAME reader we already hold. The previous code called reader.releaseLock()
+  // and then response.body.getReader() a second time — but re-acquiring a reader
+  // on an already-disturbed body throws "Response body is already used" on
+  // undici (every non-stream Codex request 502'd, then got mis-classified as a
+  // 60s rate limit). Keep the original reader; never touch response.body again.
+  const upstreamReader = reader;
   const replacementBody = new ReadableStream<Uint8Array>({
     start(controller) {
       for (const chunk of chunks) controller.enqueue(chunk);
@@ -694,7 +750,7 @@ export async function peekCodexSseTransientError(
     },
     cancel(reason) {
       try {
-        upstreamReader.cancel(reason);
+        upstreamReader.cancel(reason).catch(() => {});
       } catch {
         // noop — upstream socket may already be closing.
       }
@@ -791,24 +847,26 @@ export class CodexExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
+    const requestBody = enforceCodexResponsesLiteParallelToolCalls(input.body, input.clientHeaders);
+    const requestInput = requestBody === input.body ? input : { ...input, body: requestBody };
     const sessionId = this.getPromptCacheSessionId(
-      input.credentials,
-      input.body as Record<string, unknown> | null
+      requestInput.credentials,
+      requestInput.body as Record<string, unknown> | null
     );
     const identity = createCodexClientIdentity(
       sessionId,
-      input.credentials?.providerSpecificData ?? null
+      requestInput.credentials?.providerSpecificData ?? null
     );
     const credentials = identity
       ? {
-          ...input.credentials,
+          ...requestInput.credentials,
           providerSpecificData: {
-            ...(input.credentials?.providerSpecificData || {}),
+            ...(requestInput.credentials?.providerSpecificData || {}),
             codexClientIdentity: identity,
           },
         }
-      : input.credentials;
-    const nextInput = { ...input, credentials };
+      : requestInput.credentials;
+    const nextInput = { ...requestInput, credentials };
 
     if (!isCodexResponsesWebSocketRequired(nextInput.model, nextInput.credentials)) {
       const httpResult = await super.execute(nextInput);

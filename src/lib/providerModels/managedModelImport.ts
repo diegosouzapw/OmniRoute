@@ -31,11 +31,18 @@ export type ManagedImportedModel = {
   name: string;
   source: "imported";
   apiFormat: string;
+  targetFormat?: string;
+  upstreamProtocol?: string;
   supportedEndpoints?: string[];
+  supportedThinkingEfforts?: string[];
+  defaultThinkingEffort?: string;
   inputTokenLimit?: number;
   outputTokenLimit?: number;
   description?: string;
   supportsThinking?: boolean;
+  alwaysThinking?: boolean;
+  supportsTools?: boolean;
+  supportsVideo?: boolean;
 };
 
 function toNonEmptyString(value: unknown): string | null {
@@ -50,26 +57,47 @@ function normalizeManagedSource(source: unknown): string {
   return normalized || "manual";
 }
 
-function normalizeImportedModels(fetchedModels: unknown): ManagedImportedModel[] {
-  const discovered = normalizeDiscoveredModels(fetchedModels);
+function copyImportedModelMetadata(target: ManagedImportedModel, model: JsonRecord): void {
+  if (toNonEmptyString(model.targetFormat)) target.targetFormat = model.targetFormat as string;
+  if (toNonEmptyString(model.upstreamProtocol)) {
+    target.upstreamProtocol = model.upstreamProtocol as string;
+  }
+  if (Array.isArray(model.supportedEndpoints) && model.supportedEndpoints.length > 0) {
+    target.supportedEndpoints = model.supportedEndpoints as string[];
+  }
+  if (Array.isArray(model.supportedThinkingEfforts) && model.supportedThinkingEfforts.length > 0) {
+    target.supportedThinkingEfforts = model.supportedThinkingEfforts as string[];
+  }
+  if (toNonEmptyString(model.defaultThinkingEffort)) {
+    target.defaultThinkingEffort = model.defaultThinkingEffort as string;
+  }
+  if (typeof model.inputTokenLimit === "number") target.inputTokenLimit = model.inputTokenLimit;
+  if (typeof model.outputTokenLimit === "number") {
+    target.outputTokenLimit = model.outputTokenLimit;
+  }
+  if (typeof model.description === "string") target.description = model.description;
+  if (typeof model.supportsThinking === "boolean") {
+    target.supportsThinking = model.supportsThinking;
+  }
+  if (model.alwaysThinking === true) target.alwaysThinking = true;
+  if (typeof model.supportsTools === "boolean") target.supportsTools = model.supportsTools;
+  if (typeof model.supportsVideo === "boolean") target.supportsVideo = model.supportsVideo;
+}
 
-  return discovered.map((model) => ({
-    id: model.id,
-    name: model.name || model.id,
+function normalizeImportedModel(model: JsonRecord): ManagedImportedModel {
+  const normalized: ManagedImportedModel = {
+    id: model.id as string,
+    name: (model.name as string) || (model.id as string),
     source: "imported",
     apiFormat: toNonEmptyString(model.apiFormat) || "chat-completions",
-    ...(Array.isArray(model.supportedEndpoints) && model.supportedEndpoints.length > 0
-      ? { supportedEndpoints: model.supportedEndpoints }
-      : {}),
-    ...(typeof model.inputTokenLimit === "number"
-      ? { inputTokenLimit: model.inputTokenLimit }
-      : {}),
-    ...(typeof model.outputTokenLimit === "number"
-      ? { outputTokenLimit: model.outputTokenLimit }
-      : {}),
-    ...(typeof model.description === "string" ? { description: model.description } : {}),
-    ...(model.supportsThinking === true ? { supportsThinking: true } : {}),
-  }));
+  };
+  copyImportedModelMetadata(normalized, model);
+  return normalized;
+}
+
+function normalizeImportedModels(fetchedModels: unknown): ManagedImportedModel[] {
+  const discovered = normalizeDiscoveredModels(fetchedModels);
+  return discovered.map((model) => normalizeImportedModel(model as JsonRecord));
 }
 
 function isImportedSource(source: unknown): boolean {
@@ -78,6 +106,51 @@ function isImportedSource(source: unknown): boolean {
 
 function getModelId(model: JsonRecord): string | null {
   return toNonEmptyString(model.id);
+}
+
+function copyComparableModelMetadata(target: JsonRecord, model: JsonRecord): void {
+  if (toNonEmptyString(model.targetFormat)) target.targetFormat = model.targetFormat;
+  if (toNonEmptyString(model.upstreamProtocol)) target.upstreamProtocol = model.upstreamProtocol;
+  if (Array.isArray(model.supportedThinkingEfforts)) {
+    target.supportedThinkingEfforts = model.supportedThinkingEfforts;
+  }
+  if (toNonEmptyString(model.defaultThinkingEffort)) {
+    target.defaultThinkingEffort = model.defaultThinkingEffort;
+  }
+  if (typeof model.inputTokenLimit === "number") target.inputTokenLimit = model.inputTokenLimit;
+  if (typeof model.outputTokenLimit === "number") {
+    target.outputTokenLimit = model.outputTokenLimit;
+  }
+  if (typeof model.description === "string") target.description = model.description;
+  if (typeof model.supportsThinking === "boolean") {
+    target.supportsThinking = model.supportsThinking;
+  }
+  if (model.alwaysThinking === true) target.alwaysThinking = true;
+  if (typeof model.supportsTools === "boolean") target.supportsTools = model.supportsTools;
+  if (typeof model.supportsVideo === "boolean") target.supportsVideo = model.supportsVideo;
+}
+
+function toComparableManagedModel(model: JsonRecord | undefined): JsonRecord | null {
+  if (!model) return null;
+  const id = toNonEmptyString(model.id) || "";
+  const supportedEndpoints = Array.isArray(model.supportedEndpoints)
+    ? Array.from(
+        new Set(
+          model.supportedEndpoints
+            .map((endpoint) => toNonEmptyString(endpoint))
+            .filter((endpoint): endpoint is string => Boolean(endpoint))
+        )
+      ).sort()
+    : ["chat"];
+  const comparable: JsonRecord = {
+    id,
+    name: toNonEmptyString(model.name) || id,
+    source: normalizeManagedSource(model.source),
+    apiFormat: toNonEmptyString(model.apiFormat) || "chat-completions",
+    supportedEndpoints,
+  };
+  copyComparableModelMetadata(comparable, model);
+  return comparable;
 }
 
 function summarizeImportedChanges(
@@ -92,35 +165,6 @@ function summarizeImportedChanges(
   const previousMap = new Map(previousModels.map((model) => [String(model.id), model]));
   const nextMap = new Map(nextModels.map((model) => [String(model.id), model]));
 
-  const toComparable = (model: JsonRecord | undefined) => {
-    if (!model) return null;
-    const id = toNonEmptyString(model.id) || "";
-    const supportedEndpoints = Array.isArray(model.supportedEndpoints)
-      ? Array.from(
-          new Set(
-            model.supportedEndpoints
-              .map((endpoint) => toNonEmptyString(endpoint))
-              .filter((endpoint): endpoint is string => Boolean(endpoint))
-          )
-        ).sort()
-      : ["chat"];
-    return {
-      id,
-      name: toNonEmptyString(model.name) || id,
-      source: normalizeManagedSource(model.source),
-      apiFormat: toNonEmptyString(model.apiFormat) || "chat-completions",
-      supportedEndpoints,
-      ...(typeof model.inputTokenLimit === "number"
-        ? { inputTokenLimit: model.inputTokenLimit }
-        : {}),
-      ...(typeof model.outputTokenLimit === "number"
-        ? { outputTokenLimit: model.outputTokenLimit }
-        : {}),
-      ...(typeof model.description === "string" ? { description: model.description } : {}),
-      ...(model.supportsThinking === true ? { supportsThinking: true } : {}),
-    };
-  };
-
   for (const id of importedIds) {
     const previous = previousMap.get(id);
     const next = nextMap.get(id);
@@ -129,7 +173,10 @@ function summarizeImportedChanges(
       added += 1;
       continue;
     }
-    if (JSON.stringify(toComparable(previous)) === JSON.stringify(toComparable(next))) {
+    if (
+      JSON.stringify(toComparableManagedModel(previous)) ===
+      JSON.stringify(toComparableManagedModel(next))
+    ) {
       unchanged += 1;
       continue;
     }
@@ -228,11 +275,18 @@ export async function importManagedModels({
       name?: string;
       source?: string;
       apiFormat?: string;
+      targetFormat?: string;
+      upstreamProtocol?: string;
       supportedEndpoints?: string[];
+      supportedThinkingEfforts?: string[];
+      defaultThinkingEffort?: string;
       inputTokenLimit?: number;
       outputTokenLimit?: number;
       description?: string;
       supportsThinking?: boolean;
+      alwaysThinking?: boolean;
+      supportsTools?: boolean;
+      supportsVideo?: boolean;
     }>,
     { allowEmpty: true }
   )) as JsonRecord[];
