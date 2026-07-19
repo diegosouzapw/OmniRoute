@@ -1,7 +1,7 @@
 import { randomUUID, createHash } from "crypto";
 import {
+  getCachedRawProviderConnections,
   getProviderConnections,
-  getCachedProviderConnections,
   getCachedProviderNodes,
   validateApiKey,
   updateProviderConnection,
@@ -10,6 +10,7 @@ import {
   getSettings,
   getCachedSettings,
 } from "@/lib/localDb";
+import { decrypt } from "@/lib/db/encryption";
 import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
@@ -144,6 +145,43 @@ function asRecord(value: unknown): JsonRecord {
 function toStringOrNull(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
+/**
+ * Creates a lazy-decrypting ProviderConnectionView from a raw (ciphertext)
+ * DB row. First calls toProviderConnection for full type coercion (isActive
+ * boolean, providerSpecificData object, etc.), then proxies credential
+ * fields (apiKey, accessToken, refreshToken) to decrypt-only-on-first-access.
+ *
+ * Non-credential reads hit the already-coerced view directly at zero cost.
+ */
+function createLazyConnectionView(row: Record<string, unknown>): ProviderConnectionView {
+  const base = toProviderConnection(row);
+  let decrypted: Record<string, null | string> | undefined;
+
+  const ensureDecrypted = () => {
+    if (!decrypted) {
+      decrypted = {
+        apiKey: toStringOrNull(decrypt(base.apiKey)),
+        accessToken: toStringOrNull(decrypt(base.accessToken)),
+        refreshToken: toStringOrNull(decrypt(base.refreshToken)),
+      };
+    }
+    return decrypted;
+  };
+
+  return new Proxy(base, {
+    get: (_target, prop: string | symbol) => {
+      if (prop === "apiKey" || prop === "accessToken" || prop === "refreshToken") {
+        return ensureDecrypted()[prop];
+      }
+      return Reflect.get(_target, prop);
+    },
+  });
+}
+
+/**
+ * Converts a raw DB row into a fully resolved ProviderConnectionView.
+ * Credential fields have already been decrypted by the DB layer.
+ */
 
 function toNumber(value: unknown, fallback = 0): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -1068,12 +1106,12 @@ export async function getProviderCredentials(
     // Fix #922: Check for aliases (nvidia/nvidia_nim) to ensure credentials are found
     const providersToSearch = await getProviderSearchPool(provider);
     const connectionResults = await Promise.all(
-      providersToSearch.map((p) => getCachedProviderConnections({ provider: p, isActive: true }))
+      providersToSearch.map((p) => getCachedRawProviderConnections({ provider: p, isActive: true }))
     );
     const connectionsRaw = connectionResults.filter(Array.isArray).flat();
 
     let connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
-      .map(toProviderConnection)
+      .map(createLazyConnectionView)
       .filter((conn) => conn.id.length > 0);
     // allowedConnections: restrict to specific connection IDs (from API key policy, #363)
     if (allowedConnections && allowedConnections.length > 0) {

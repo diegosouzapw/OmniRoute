@@ -235,6 +235,7 @@ export {
   getCachedSettings,
   getCachedPricing,
   getCachedProviderConnections,
+  getCachedRawProviderConnections,
   getCachedProviderConnectionById,
   getCachedProviderNodes,
   getCachedLKGP,
