@@ -376,6 +376,7 @@ export async function handleChatCore({
   comboName,
   comboStrategy = null,
   isCombo = false,
+  routingComboId = null,
   comboStepId = null,
   comboExecutionKey = null,
   cachedSettings = null,
@@ -1105,11 +1106,11 @@ export async function handleChatCore({
         compressionComboApplied = true;
         return true;
       };
-      if (isCombo && comboName) {
+      if ((isCombo && comboName) || routingComboId) {
         try {
           const { getComboByName } = await import("../../src/lib/localDb");
           let comboConfig = await getComboByName(comboName);
-          if (!comboConfig && comboName.startsWith("combo/")) {
+          if (!comboConfig && comboName?.startsWith("combo/")) {
             comboConfig = await getComboByName(comboName.substring(6));
           }
           const comboRuntimeConfig =
@@ -1144,7 +1145,8 @@ export async function handleChatCore({
           const routingComboIds = [
             comboConfig?.id,
             comboName,
-            comboName.startsWith("combo/") ? comboName.substring(6) : null,
+            routingComboId,
+            comboName?.startsWith("combo/") ? comboName.substring(6) : null,
           ].filter((id): id is string => typeof id === "string" && id.length > 0);
           if (routingComboIds.length > 0) {
             const { getCompressionComboForRoutingCombo } =
@@ -3375,7 +3377,13 @@ export async function handleChatCore({
           // otherwise degenerate into a 429 rate-limit storm). Connection stays
           // active since only the specific model is unavailable. (#6827)
           const notFoundCooldownMs = COOLDOWN_MS.notFound;
-          lockModel(provider, errorConnectionId, currentModel, "model_not_found", notFoundCooldownMs);
+          lockModel(
+            provider,
+            errorConnectionId,
+            currentModel,
+            "model_not_found",
+            notFoundCooldownMs
+          );
           console.warn(
             `[provider] Node ${errorConnectionId} model not found (${statusCode}) for ${currentModel} - locking model for ${Math.ceil(notFoundCooldownMs / 1000)}s (connection stays active)`
           );

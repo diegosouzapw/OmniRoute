@@ -934,6 +934,20 @@ export async function handleChat(
   telemetry.endPhase();
 
   // Single model request
+  // Try to resolve routing combo from model prefix for compression combo lookup
+  let routingComboId: string | null = null;
+  if (!combo) {
+    const providerPrefix = resolvedModelStr.split("/")[0];
+    if (providerPrefix) {
+      try {
+        const { getComboByName } = await import("@/lib/localDb");
+        const routingCombo = await getComboByName(providerPrefix);
+        if (routingCombo?.id) {
+          routingComboId = routingCombo.id;
+        }
+      } catch {}
+    }
+  }
   const response = await handleSingleModelChat(
     body,
     resolvedModelStr,
@@ -948,6 +962,7 @@ export async function handleChat(
       forceLiveComboTest: isComboLiveTest,
       forcedConnectionId: requestedConnectionId,
       correlationId: reqId,
+      routingComboId,
     },
     null,
     false
@@ -996,6 +1011,7 @@ async function handleSingleModelChat(
     cachedSettings?: any;
     providerId?: string | null;
     correlationId?: string | null;
+    routingComboId?: string | null;
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -1405,6 +1421,7 @@ async function handleSingleModelChat(
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
         correlationId: runtimeOptions?.correlationId ?? null,
         modelPinned: runtimeOptions?.modelPinned ?? false,
+        routingComboId: runtimeOptions?.routingComboId ?? null,
       });
       if (telemetry) telemetry.endPhase();
 
