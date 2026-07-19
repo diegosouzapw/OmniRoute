@@ -12,6 +12,8 @@ import {
 import { extractAliasBackedModels } from "./aliasBackedModels";
 import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
 import { appendClaudeEffortVariants } from "@omniroute/open-sse/utils/claudeEffortVariants";
+import { appendSyncedEffortVariants } from "@omniroute/open-sse/utils/syncedEffortVariants";
+import { buildSyncedCapabilities, mergeSyncedCapabilities } from "./syncedCapabilities";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
 import {
   getAllImageModels,
@@ -891,22 +893,14 @@ async function buildUnifiedModelsResponseCore(
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
-            // #4264: surface the vision flag captured at sync time so imported
-            // image-capable models (e.g. OpenRouter) aren't shown as text-only.
-            ...(sm.supportsVision ? { capabilities: { vision: true } } : {}),
+            // #4264/#7694: vision + reasoning-effort-tier flags captured at sync time,
+            // merged into a single capabilities object (see ./syncedCapabilities.ts).
+            ...(buildSyncedCapabilities(sm) ? { capabilities: buildSyncedCapabilities(sm) } : {}),
           };
 
           const existingAliasModel = models.find((model) => model.id === aliasId);
           if (existingAliasModel) {
-            // Merge (not clobber) capabilities so syncing a vision flag onto a
-            // registry/combo model that already declares other capabilities keeps both.
-            const mergedCapabilities =
-              sm.supportsVision || existingAliasModel.capabilities
-                ? {
-                    ...(existingAliasModel.capabilities || {}),
-                    ...(sm.supportsVision ? { vision: true } : {}),
-                  }
-                : undefined;
+            const mergedCapabilities = mergeSyncedCapabilities(existingAliasModel.capabilities, sm);
             Object.assign(existingAliasModel, syncedFields);
             if (mergedCapabilities) existingAliasModel.capabilities = mergedCapabilities;
             continue;
@@ -1514,6 +1508,11 @@ async function buildUnifiedModelsResponseCore(
       finalModels,
       prefixMode === "canonical" ? aliasToProviderId : undefined
     );
+
+    // #7694: advertise `<provider>/<model>-<tier>` variants for synced models that
+    // captured `reasoning.supported_efforts` at sync time (capabilities.effort_tiers).
+    // Derived from the already key-filtered list; skips codex/kimi (own suffix mechanism).
+    finalModels = appendSyncedEffortVariants(finalModels);
 
     // #4424 follow-up — drop exact-duplicate ids that slip through the per-source push
     // guards (e.g. `codex/gpt-5.5`, `veo-free/seedance` listed twice). Keyed by listing

@@ -2169,9 +2169,16 @@ export async function handleChatCore({
     // carries no reasoning field of any shape — an explicit client/combo-leg value
     // always wins. Scoped to the OpenAI Chat Completions dispatch shape (the shape
     // `reasoning_effort` is native to); unset ModelSpec.defaultReasoningEffort is a
-    // no-op. See open-sse/services/defaultReasoningEffort.ts.
+    // no-op. #7694: `modelInfo.resolvedThinkingEffort` — set when the request's model
+    // id carried a `<prefix>/<model>-{effort}` synced-model alias suffix
+    // (`src/sse/services/model.ts`) — takes priority over the static per-model default.
+    // See open-sse/services/defaultReasoningEffort.ts.
     if (targetFormat === FORMATS.OPENAI) {
-      translatedBody = applyDefaultReasoningEffort(translatedBody, finalModelToUpstream);
+      translatedBody = applyDefaultReasoningEffort(
+        translatedBody,
+        finalModelToUpstream,
+        (modelInfo as { resolvedThinkingEffort?: string })?.resolvedThinkingEffort
+      );
     }
   }
 
