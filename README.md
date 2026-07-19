@@ -1093,15 +1093,21 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[CodeWebChat](https://github.com/robertpiosik/CodeWebChat)** · robertpiosik | Editor-side companion — VS Code + browser extension that autofills 15+ chatbot web UIs with editor context. Owns the free-web-UI rail alongside OmniRoute's API rail; can point its API mode at OmniRoute. |
 
-## 🤝 Official Supporters
+## 💖 Sponsors
+
+> **Want to appear here?** OmniRoute puts sponsors in front of one of GitHub's fastest-growing AI-gateway communities — and we say publicly where every sponsored token goes. Reach out: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
-    <td align="center" width="120">
-      <a href="https://www.kimi.com"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/kimi-color.svg" width="48" alt="Kimi (Moonshot AI)"/></a>
+    <td align="center" width="150">
+      <a href="https://www.kimi.com"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/kimi-color.svg" width="64" alt="Kimi (Moonshot AI)"/></a>
+      <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
+      <img src="https://img.shields.io/badge/Official_Supporter-1783FF?style=flat-square" alt="Official Supporter"/>
     </td>
     <td>
-      <b>Kimi (Moonshot AI)</b> — official supporter of OmniRoute. Kimi API credits power our AI-validated release pipeline, including the <b>merge validation powered by Kimi K3</b> stage. OmniRoute ships first-class Kimi support on both rails: the direct <a href="https://platform.kimi.ai">Moonshot API</a> (<code>kimi-k3</code>, 1M context) and the <a href="https://www.kimi.com">Kimi Code coding plan</a> (OAuth and API key).
+      Thanks to <b>Kimi (Moonshot AI)</b> for sponsoring this project! Kimi is the AI lab behind the open-weight K2 and K3 model families — <b>Kimi K3</b> delivers a 1M-token context window, native vision and frontier-level coding at a fraction of closed-model prices, and works out of the box with Claude Code, Codex and every coding tool OmniRoute serves.
+      <br/><br/>
+      <b>Where the sponsorship goes:</b> Kimi's API credits power OmniRoute's AI-validated release pipeline — the <i>merge validation powered by Kimi K3</i> stage that reviews every pull request before it ships — plus day-to-day feature development. First-class Kimi support ships on both rails: the direct <a href="https://platform.kimi.ai">Moonshot API</a> (<code>kimi-k3</code>) and the <a href="https://www.kimi.com">Kimi Code coding plan</a> (OAuth and API key). <a href="https://platform.kimi.ai"><b>Get a Moonshot API key →</b></a>
     </td>
   </tr>
 </table>
