@@ -155,19 +155,7 @@ function isoNow(): string {
  *   but `user` matches the current web client)
  * - Assistant turns as `agent-inference` text parts
  */
-export function buildNotionTranscript(
-  messages: NotionMessage[],
-  opts: {
-    notionModel?: string;
-    spaceId?: string;
-    userId?: string;
-  } = {}
-): Array<Record<string, unknown>> {
-  const entries: Array<Record<string, unknown>> = [];
-  const trimmedModel = typeof opts.notionModel === "string" ? opts.notionModel.trim() : "";
-  const model = trimmedModel && trimmedModel !== "notion-ai" ? trimmedModel : "";
-  const now = isoNow();
-
+function buildNotionConfigStep(model: string): Record<string, unknown> {
   const configValue: Record<string, unknown> = {
     type: "workflow",
     useWebSearch: false,
@@ -181,55 +169,81 @@ export function buildNotionTranscript(
     isCustomAgent: false,
   };
   if (model) configValue.model = model;
+  return { id: randomUUID(), type: "config", value: configValue };
+}
 
-  entries.push({
-    id: randomUUID(),
-    type: "config",
-    value: configValue,
-  });
-
+function buildNotionContextValue(opts: {
+  spaceId?: string;
+  userId?: string;
+  now: string;
+}): Record<string, unknown> {
   const contextValue: Record<string, unknown> = {
     timezone: "UTC",
     surface: "ai_module",
-    currentDatetime: now,
+    currentDatetime: opts.now,
   };
   if (opts.spaceId) contextValue.spaceId = opts.spaceId;
-  if (opts.userId) {
-    contextValue.userId = opts.userId;
+  if (opts.userId) contextValue.userId = opts.userId;
+  return contextValue;
+}
+
+/** Converts one OpenAI-style message into a transcript step, or `null` when it
+ * was folded into the context (system prompts). */
+function buildNotionMessageStep(
+  m: NotionMessage,
+  contextValue: Record<string, unknown>,
+  opts: { userId?: string; now: string }
+): Record<string, unknown> | null {
+  if (typeof m?.content !== "string" || m.content.length === 0) return null;
+  const role = (m.role || "").toLowerCase();
+
+  if (role === "system") {
+    // Fold system prompts into context instructions rather than a separate step.
+    const existing = typeof contextValue.instructions === "string" ? contextValue.instructions : "";
+    contextValue.instructions = existing ? `${existing}\n${m.content}` : m.content;
+    return null;
   }
 
-  entries.push({
+  if (role === "assistant") {
+    return {
+      id: randomUUID(),
+      type: "agent-inference",
+      value: [{ type: "text", content: m.content }],
+    };
+  }
+
+  // user (and anything else treated as user)
+  const userStep: Record<string, unknown> = {
     id: randomUUID(),
-    type: "context",
-    value: contextValue,
-  });
+    type: "user",
+    value: [[m.content]],
+    createdAt: opts.now,
+  };
+  if (opts.userId) userStep.userId = opts.userId;
+  return userStep;
+}
+
+export function buildNotionTranscript(
+  messages: NotionMessage[],
+  opts: {
+    notionModel?: string;
+    spaceId?: string;
+    userId?: string;
+  } = {}
+): Array<Record<string, unknown>> {
+  const trimmedModel = typeof opts.notionModel === "string" ? opts.notionModel.trim() : "";
+  const model = trimmedModel && trimmedModel !== "notion-ai" ? trimmedModel : "";
+  const now = isoNow();
+
+  const contextValue = buildNotionContextValue({ spaceId: opts.spaceId, userId: opts.userId, now });
+  const entries: Array<Record<string, unknown>> = [
+    buildNotionConfigStep(model),
+    { id: randomUUID(), type: "context", value: contextValue },
+  ];
 
   for (const m of messages) {
-    if (typeof m?.content !== "string" || m.content.length === 0) continue;
-    const role = (m.role || "").toLowerCase();
-    if (role === "system") {
-      // Fold system prompts into context instructions rather than a separate step.
-      const existing = typeof contextValue.instructions === "string" ? contextValue.instructions : "";
-      contextValue.instructions = existing ? `${existing}\n${m.content}` : m.content;
-      continue;
-    }
-    if (role === "assistant") {
-      entries.push({
-        id: randomUUID(),
-        type: "agent-inference",
-        value: [{ type: "text", content: m.content }],
-      });
-      continue;
-    }
-    // user (and anything else treated as user)
-    const userStep: Record<string, unknown> = {
-      id: randomUUID(),
-      type: "user",
-      value: [[m.content]],
-      createdAt: now,
-    };
-    if (opts.userId) userStep.userId = opts.userId;
-    entries.push(userStep);
+    const step = buildNotionMessageStep(m, contextValue, { userId: opts.userId, now });
+    if (step) entries.push(step);
   }
   return entries;
 }
@@ -268,27 +282,40 @@ function extractAgentInferenceText(value: unknown): string {
   return parts.join("");
 }
 
+/** Unwraps `thread_message[key].value.value.step` from a Notion record-map entry. */
+function extractThreadMessageStep(msg: unknown): Record<string, unknown> | null {
+  if (!msg || typeof msg !== "object") return null;
+  const valueWrapper = (msg as Record<string, unknown>).value;
+  if (!valueWrapper || typeof valueWrapper !== "object") return null;
+  const inner = (valueWrapper as Record<string, unknown>).value;
+  if (!inner || typeof inner !== "object") return null;
+  const step = (inner as Record<string, unknown>).step;
+  if (!step || typeof step !== "object") return null;
+  return step as Record<string, unknown>;
+}
+
+/** Extracts the text carried by a single thread-message step, or "" if none. */
+function extractStepText(stepObj: Record<string, unknown>): string {
+  const stepType = typeof stepObj.type === "string" ? stepObj.type : "";
+  if (stepType === "agent-inference") {
+    return extractAgentInferenceText(stepObj.value);
+  }
+  if (stepType === "markdown-chat" && typeof stepObj.value === "string") {
+    return stepObj.value;
+  }
+  return "";
+}
+
 function extractFromRecordMap(recordMap: unknown): string {
   if (!recordMap || typeof recordMap !== "object" || Array.isArray(recordMap)) return "";
   const tm = (recordMap as Record<string, unknown>).thread_message;
   if (!tm || typeof tm !== "object" || Array.isArray(tm)) return "";
   let best = "";
   for (const msg of Object.values(tm as Record<string, unknown>)) {
-    if (!msg || typeof msg !== "object") continue;
-    const valueWrapper = (msg as Record<string, unknown>).value;
-    if (!valueWrapper || typeof valueWrapper !== "object") continue;
-    const inner = (valueWrapper as Record<string, unknown>).value;
-    if (!inner || typeof inner !== "object") continue;
-    const step = (inner as Record<string, unknown>).step;
-    if (!step || typeof step !== "object") continue;
-    const stepObj = step as Record<string, unknown>;
-    const stepType = typeof stepObj.type === "string" ? stepObj.type : "";
-    if (stepType === "agent-inference") {
-      const text = extractAgentInferenceText(stepObj.value);
-      if (text && text.length >= best.length) best = text;
-    } else if (stepType === "markdown-chat" && typeof stepObj.value === "string") {
-      if (stepObj.value.length >= best.length) best = stepObj.value;
-    }
+    const stepObj = extractThreadMessageStep(msg);
+    if (!stepObj) continue;
+    const text = extractStepText(stepObj);
+    if (text && text.length >= best.length) best = text;
   }
   return best;
 }
@@ -300,97 +327,131 @@ function extractFromRecordMap(recordMap: unknown): string {
  * 2. Modern patch-start / patch streams (text / markdown-chat ops)
  * 3. Terminal record-map with agent-inference steps (authoritative final)
  */
-export function parseNotionInferenceStream(raw: string): string {
-  if (!raw) return "";
-  const lines = raw.split("\n");
-  let lastLegacy = "";
-  let lastPatchFinal = "";
-  let lastIncremental = "";
-  let lastRecordMap = "";
+/** Accumulator threaded through {@link parseNotionInferenceStream}'s line parsing. */
+type NotionStreamState = {
+  lastLegacy: string;
+  lastPatchFinal: string;
+  lastIncremental: string;
+  lastRecordMap: string;
+};
 
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line || line === "[DONE]") continue;
-    // Strip optional SSE "data:" prefix if a proxy rewrote it.
-    const payloadLine = line.startsWith("data:") ? line.slice(5).trim() : line;
-    if (!payloadLine) continue;
+/** Applies one `patch` op (full text-part append / step append / incremental string) to state. */
+/** Full agent-inference text-part append: `o:"a", p:".../value/-"`. */
+function applyNotionValuePartAppend(v: unknown, state: NotionStreamState): void {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return;
+  const part = v as Record<string, unknown>;
+  if (part.type === "text" && typeof part.content === "string" && part.content) {
+    state.lastPatchFinal = part.content;
+  }
+  if (part.type === "markdown-chat" && typeof part.value === "string" && part.value) {
+    state.lastPatchFinal = part.value;
+  }
+}
 
-    let record: unknown;
-    try {
-      record = JSON.parse(payloadLine);
-    } catch {
-      continue;
-    }
-    if (!record || typeof record !== "object" || Array.isArray(record)) continue;
-    const rec = record as Record<string, unknown>;
-    const type = typeof rec.type === "string" ? rec.type : "";
+/** Step append with markdown-chat / agent-inference: `o:"a", p:".../s/-"`. */
+function applyNotionStepAppend(v: unknown, state: NotionStreamState): void {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return;
+  const step = v as Record<string, unknown>;
+  if (step.type === "markdown-chat" && typeof step.value === "string" && step.value) {
+    state.lastPatchFinal = step.value;
+  }
+  if (step.type === "agent-inference") {
+    const text = extractAgentInferenceText(step.value);
+    if (text) state.lastPatchFinal = text;
+  }
+}
 
-    // 1) Direct markdown-chat event
-    if (type === "markdown-chat" && typeof rec.value === "string" && rec.value) {
-      lastPatchFinal = rec.value;
-      continue;
-    }
+function applyNotionPatchOp(rawOp: unknown, state: NotionStreamState): void {
+  if (!rawOp || typeof rawOp !== "object") return;
+  const op = rawOp as Record<string, unknown>;
+  const o = typeof op.o === "string" ? op.o : "";
+  const p = typeof op.p === "string" ? op.p : "";
+  const v = op.v;
 
-    // 2) Direct agent-inference event
-    if (type === "agent-inference") {
-      const text = extractAgentInferenceText(rec.value);
-      if (text) lastPatchFinal = text;
-      continue;
-    }
+  if (o === "a" && p.endsWith("/value/-")) {
+    applyNotionValuePartAppend(v, state);
+  } else if (o === "a" && p.endsWith("/s/-")) {
+    applyNotionStepAppend(v, state);
+  } else if ((o === "x" || o === "p") && p.includes("/value") && typeof v === "string" && v) {
+    // Incremental string patches
+    state.lastIncremental += v;
+  }
+}
 
-    // 3) Patch stream
-    if (type === "patch" && Array.isArray(rec.v)) {
-      for (const rawOp of rec.v) {
-        if (!rawOp || typeof rawOp !== "object") continue;
-        const op = rawOp as Record<string, unknown>;
-        const o = typeof op.o === "string" ? op.o : "";
-        const p = typeof op.p === "string" ? op.p : "";
-        const v = op.v;
+/** Applies one parsed NDJSON record (markdown-chat / agent-inference / patch / record-map / legacy). */
+function applyNotionStreamRecord(rec: Record<string, unknown>, state: NotionStreamState): void {
+  const type = typeof rec.type === "string" ? rec.type : "";
 
-        // Full agent-inference text part append
-        if (o === "a" && p.endsWith("/value/-") && v && typeof v === "object" && !Array.isArray(v)) {
-          const part = v as Record<string, unknown>;
-          if (part.type === "text" && typeof part.content === "string" && part.content) {
-            lastPatchFinal = part.content;
-          }
-          if (part.type === "markdown-chat" && typeof part.value === "string" && part.value) {
-            lastPatchFinal = part.value;
-          }
-        }
-
-        // Step append with markdown-chat
-        if (o === "a" && p.endsWith("/s/-") && v && typeof v === "object" && !Array.isArray(v)) {
-          const step = v as Record<string, unknown>;
-          if (step.type === "markdown-chat" && typeof step.value === "string" && step.value) {
-            lastPatchFinal = step.value;
-          }
-          if (step.type === "agent-inference") {
-            const text = extractAgentInferenceText(step.value);
-            if (text) lastPatchFinal = text;
-          }
-        }
-
-        // Incremental string patches
-        if ((o === "x" || o === "p") && p.includes("/value") && typeof v === "string" && v) {
-          lastIncremental += v;
-        }
-      }
-      continue;
-    }
-
-    // 4) record-map terminal
-    if (type === "record-map" || rec.recordMap) {
-      const text = extractFromRecordMap(rec.recordMap || rec);
-      if (text) lastRecordMap = text;
-      continue;
-    }
-
-    // 5) Legacy rich-text value (cumulative)
-    const rich = extractRichText(rec.value);
-    if (rich) lastLegacy = rich;
+  // 1) Direct markdown-chat event
+  if (type === "markdown-chat" && typeof rec.value === "string" && rec.value) {
+    state.lastPatchFinal = rec.value;
+    return;
   }
 
-  const candidates = [lastRecordMap, lastPatchFinal, lastIncremental, lastLegacy]
+  // 2) Direct agent-inference event
+  if (type === "agent-inference") {
+    const text = extractAgentInferenceText(rec.value);
+    if (text) state.lastPatchFinal = text;
+    return;
+  }
+
+  // 3) Patch stream
+  if (type === "patch" && Array.isArray(rec.v)) {
+    for (const rawOp of rec.v) applyNotionPatchOp(rawOp, state);
+    return;
+  }
+
+  // 4) record-map terminal
+  if (type === "record-map" || rec.recordMap) {
+    const text = extractFromRecordMap(rec.recordMap || rec);
+    if (text) state.lastRecordMap = text;
+    return;
+  }
+
+  // 5) Legacy rich-text value (cumulative)
+  const rich = extractRichText(rec.value);
+  if (rich) state.lastLegacy = rich;
+}
+
+/** Parses one raw NDJSON line (trims / strips SSE `data:` prefix / JSON-parses) into state. */
+function applyNotionStreamLine(rawLine: string, state: NotionStreamState): void {
+  const line = rawLine.trim();
+  if (!line || line === "[DONE]") return;
+  // Strip optional SSE "data:" prefix if a proxy rewrote it.
+  const payloadLine = line.startsWith("data:") ? line.slice(5).trim() : line;
+  if (!payloadLine) return;
+
+  let record: unknown;
+  try {
+    record = JSON.parse(payloadLine);
+  } catch {
+    return;
+  }
+  if (!record || typeof record !== "object" || Array.isArray(record)) return;
+  applyNotionStreamRecord(record as Record<string, unknown>, state);
+}
+
+/**
+ * Parse Notion's NDJSON `runInferenceTranscript` response body.
+ * Supports:
+ * 1. Legacy rich-text tuples on `value` (cumulative snapshots)
+ * 2. Modern patch-start / patch streams (text / markdown-chat ops)
+ * 3. Terminal record-map with agent-inference steps (authoritative final)
+ */
+export function parseNotionInferenceStream(raw: string): string {
+  if (!raw) return "";
+  const state: NotionStreamState = {
+    lastLegacy: "",
+    lastPatchFinal: "",
+    lastIncremental: "",
+    lastRecordMap: "",
+  };
+
+  for (const rawLine of raw.split("\n")) {
+    applyNotionStreamLine(rawLine, state);
+  }
+
+  const candidates = [state.lastRecordMap, state.lastPatchFinal, state.lastIncremental, state.lastLegacy]
     .map(sanitizeNotionAssistantText)
     .filter(Boolean);
   // Prefer the longest non-empty candidate; record-map usually wins.
@@ -482,6 +543,129 @@ function clientFacingModelId(model: unknown): string {
   return clientFacingModel;
 }
 
+/** Resolves workspace + user (cached). Required for createThread payloads. */
+async function resolveExecuteWorkspace(
+  cookie: string,
+  signal: ExecuteInput["signal"]
+): Promise<{ spaceId: string; userId: string }> {
+  let spaceId = extractSpaceIdFromCookie(cookie);
+  let userId = extractUserIdFromCookie(cookie);
+  try {
+    const resolved = await resolveNotionRuntimeWorkspace({ cookie, signal });
+    if (!spaceId) spaceId = resolved.spaceId;
+    if (!userId) userId = resolved.userId;
+  } catch {
+    // keep cookie-derived values
+  }
+  return { spaceId, userId };
+}
+
+/** Live-verified working shape (createThread:false without threadId → 400 ValidationError). */
+function buildNotionCreateThreadRequestBody(opts: {
+  spaceId: string;
+  userId: string;
+  threadId: string;
+  transcript: unknown;
+}): Record<string, unknown> {
+  const { spaceId, threadId, transcript } = opts;
+  return {
+    traceId: randomUUID(),
+    spaceId,
+    threadId,
+    createThread: true,
+    generateTitle: true,
+    asPatchResponse: true,
+    isPartialTranscript: false,
+    saveAllThreadOperations: true,
+    setUnreadState: true,
+    createdSource: "ai_module",
+    threadType: "workflow",
+    transcript,
+    threadParentPointer: {
+      table: "space",
+      id: spaceId,
+      spaceId,
+    },
+    debugOverrides: {
+      annotationInferences: {},
+      cachedInferences: {},
+      emitAgentSearchExtractedResults: true,
+      emitInferences: false,
+    },
+  };
+}
+
+function buildNotionExecuteHeaders(opts: {
+  cookie: string;
+  spaceId: string;
+  userId: string;
+}): Record<string, string> {
+  const reqHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    "User-Agent": USER_AGENT,
+    Accept: "application/x-ndjson",
+    Cookie: opts.cookie,
+    Origin: BASE_URL,
+    Referer: `${BASE_URL}/ai`,
+    "notion-client-version": NOTION_CLIENT_VERSION,
+    "notion-audit-log-platform": "web",
+    "x-notion-space-id": opts.spaceId,
+    "Accept-Language": "en-US,en;q=0.9",
+  };
+  if (opts.userId) reqHeaders["x-notion-active-user-header"] = opts.userId;
+  return reqHeaders;
+}
+
+/**
+ * Sends the createThread request to Notion and returns either the raw
+ * inference text or an error result — callers just check `.errorResult`.
+ */
+async function sendNotionInferenceRequest(opts: {
+  reqBody: Record<string, unknown>;
+  reqHeaders: Record<string, string>;
+  signal: ExecuteInput["signal"];
+}): Promise<{ rawText?: string; errorResult?: ReturnType<typeof makeErrorResult> }> {
+  const { reqBody, reqHeaders, signal } = opts;
+  let upstream: Response;
+  try {
+    upstream = await fetch(NOTION_URL, {
+      method: "POST",
+      headers: reqHeaders,
+      body: JSON.stringify(reqBody),
+      signal: signal ?? undefined,
+    });
+  } catch (err) {
+    return {
+      errorResult: makeErrorResult(
+        502,
+        `Notion fetch failed: ${err instanceof Error ? err.message : "unknown error"}`,
+        reqBody,
+        NOTION_URL
+      ),
+    };
+  }
+
+  if (upstream.status === 401 || upstream.status === 403) {
+    return {
+      errorResult: makeErrorResult(
+        upstream.status,
+        "Notion session expired or invalid — re-paste token_v2 from notion.so",
+        reqBody,
+        NOTION_URL
+      ),
+    };
+  }
+
+  if (!upstream.ok) {
+    const errText = await upstream.text().catch(() => "");
+    return {
+      errorResult: makeErrorResult(upstream.status, `Notion error: ${errText}`, reqBody, NOTION_URL),
+    };
+  }
+
+  return { rawText: await upstream.text() };
+}
+
 // ─── Executor ───────────────────────────────────────────────────────────────
 
 export class NotionWebExecutor extends BaseExecutor {
@@ -508,16 +692,7 @@ export class NotionWebExecutor extends BaseExecutor {
       return makeErrorResult(400, "No user message found", body, NOTION_URL);
     }
 
-    // Resolve workspace + user (cached). Required for createThread payloads.
-    let spaceId = extractSpaceIdFromCookie(cookie);
-    let userId = extractUserIdFromCookie(cookie);
-    try {
-      const resolved = await resolveNotionRuntimeWorkspace({ cookie, signal });
-      if (!spaceId) spaceId = resolved.spaceId;
-      if (!userId) userId = resolved.userId;
-    } catch {
-      // keep cookie-derived values
-    }
+    const { spaceId, userId } = await resolveExecuteWorkspace(cookie, signal);
 
     if (!spaceId) {
       return makeErrorResult(
@@ -542,80 +717,13 @@ export class NotionWebExecutor extends BaseExecutor {
       userId: userId || undefined,
     });
 
-    // Live-verified working shape (createThread:false without threadId → 400 ValidationError).
-    const reqBody: Record<string, unknown> = {
-      traceId: randomUUID(),
-      spaceId,
-      threadId,
-      createThread: true,
-      generateTitle: true,
-      asPatchResponse: true,
-      isPartialTranscript: false,
-      saveAllThreadOperations: true,
-      setUnreadState: true,
-      createdSource: "ai_module",
-      threadType: "workflow",
-      transcript,
-      threadParentPointer: {
-        table: "space",
-        id: spaceId,
-        spaceId,
-      },
-      debugOverrides: {
-        annotationInferences: {},
-        cachedInferences: {},
-        emitAgentSearchExtractedResults: true,
-        emitInferences: false,
-      },
-    };
+    const reqBody = buildNotionCreateThreadRequestBody({ spaceId, userId, threadId, transcript });
+    const reqHeaders = buildNotionExecuteHeaders({ cookie, spaceId, userId });
 
-    const reqHeaders: Record<string, string> = {
-      "Content-Type": "application/json",
-      "User-Agent": USER_AGENT,
-      Accept: "application/x-ndjson",
-      Cookie: cookie,
-      Origin: BASE_URL,
-      Referer: `${BASE_URL}/ai`,
-      "notion-client-version": NOTION_CLIENT_VERSION,
-      "notion-audit-log-platform": "web",
-      "x-notion-space-id": spaceId,
-      "Accept-Language": "en-US,en;q=0.9",
-    };
-    if (userId) reqHeaders["x-notion-active-user-header"] = userId;
+    const { rawText, errorResult } = await sendNotionInferenceRequest({ reqBody, reqHeaders, signal });
+    if (errorResult) return errorResult;
 
-    let upstream: Response;
-    try {
-      upstream = await fetch(NOTION_URL, {
-        method: "POST",
-        headers: reqHeaders,
-        body: JSON.stringify(reqBody),
-        signal: signal ?? undefined,
-      });
-    } catch (err) {
-      return makeErrorResult(
-        502,
-        `Notion fetch failed: ${err instanceof Error ? err.message : "unknown error"}`,
-        reqBody,
-        NOTION_URL
-      );
-    }
-
-    if (upstream.status === 401 || upstream.status === 403) {
-      return makeErrorResult(
-        upstream.status,
-        "Notion session expired or invalid — re-paste token_v2 from notion.so",
-        reqBody,
-        NOTION_URL
-      );
-    }
-
-    if (!upstream.ok) {
-      const errText = await upstream.text().catch(() => "");
-      return makeErrorResult(upstream.status, `Notion error: ${errText}`, reqBody, NOTION_URL);
-    }
-
-    const rawText = await upstream.text();
-    const finalText = parseNotionInferenceStream(rawText);
+    const finalText = parseNotionInferenceStream(rawText || "");
     if (!finalText) {
       return makeErrorResult(502, "No response from Notion AI", reqBody, NOTION_URL);
     }
