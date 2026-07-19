@@ -1472,10 +1472,16 @@ export async function getProviderCredentials(
             `${provider} round-robin: staying with ${current.id?.slice(0, 8)}... (count=${currentCount}/${stickyLimit})`
           );
           // Update lastUsedAt and increment count (await to ensure persistence)
-          await touchConnectionLastUsed(
-            connection.id,
-            (connection.consecutiveUseCount || 0) + 1
-          );
+          const nextCount = (connection.consecutiveUseCount || 0) + 1;
+          await touchConnectionLastUsed(connection.id, nextCount);
+          // Sync raw cache row so subsequent calls within TTL see fresh stats
+          for (const r of connectionsRaw as Record<string, unknown>[]) {
+            if (r.id === connection.id) {
+              r.lastUsedAt = new Date().toISOString();
+              r.consecutiveUseCount = nextCount;
+              break;
+            }
+          }
         } else {
           // Pick the least recently used (excluding current if possible)
           // Also penalize accounts with high backoffLevel (previously rate-limited)
@@ -1499,6 +1505,14 @@ export async function getProviderCredentials(
 
           // Update lastUsedAt and reset count to 1 (await to ensure persistence)
           await touchConnectionLastUsed(connection.id, 1);
+          // Sync raw cache row so subsequent calls within TTL see fresh LRU stats
+          for (const r of connectionsRaw as Record<string, unknown>[]) {
+            if (r.id === connection.id) {
+              r.lastUsedAt = new Date().toISOString();
+              r.consecutiveUseCount = 1;
+              break;
+            }
+          }
         }
       } else {
         // Fallback scenario: excluded an account due to failure
@@ -1522,6 +1536,14 @@ export async function getProviderCredentials(
 
         // Update lastUsedAt and reset count to 1 (await to ensure persistence)
         await touchConnectionLastUsed(connection.id, 1);
+        // Sync raw cache row so subsequent calls within TTL see fresh stats
+        for (const r of connectionsRaw as Record<string, unknown>[]) {
+          if (r.id === connection.id) {
+            r.lastUsedAt = new Date().toISOString();
+            r.consecutiveUseCount = 1;
+            break;
+          }
+        }
       }
     } else if (strategy === "p2c") {
       const candidatePool = withQuota.length > 0 ? withQuota : orderedConnections;

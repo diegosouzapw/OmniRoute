@@ -137,6 +137,7 @@ const nodesCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS);
 export async function getCachedProviderConnectionById(
   id: string
 ): Promise<Record<string, unknown> | null> {
+  if (!id) return null;
   const cached = connectionByIdCache.get(id);
   if (cached !== undefined) return cached;
 
