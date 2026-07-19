@@ -267,10 +267,13 @@ export default function ProviderCard({
           padding="xs"
           className={`h-full flex flex-col hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer ${
             isKimiPartner
-              ? // Kimi (Moonshot AI) official-partnership accent — discreet brand-blue
-                // border + soft glow, kept identical in light/dark since it is a raw
-                // (non-token) brand hex. Keep in sync with KIMI_BRAND_COLOR.
-                "border-[#1783FF]/50 hover:border-[#1783FF]/80 shadow-[0_4px_14px_-4px_rgba(23,131,255,0.4)]"
+              ? // Kimi (Moonshot AI) official-partnership accent — official Kimi blue
+                // (#1783FF) border (2px, clearly legible) + a subtle whole-card tint
+                // (inset shadow — avoids clobbering Card's own bg-surface via
+                // twMerge) + soft outer glow. Kept identical in light/dark since it
+                // is a raw (non-token) brand hex, not a theme color. Keep the hex in
+                // sync with KIMI_BRAND_COLOR (featuredProviders.ts).
+                "border-2 border-[#1783FF]/70 hover:border-[#1783FF]/90 shadow-[inset_0_0_0_100px_rgba(23,131,255,0.035),0_4px_16px_-4px_rgba(23,131,255,0.45)]"
               : "hover:border-primary/40"
           } ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
         >

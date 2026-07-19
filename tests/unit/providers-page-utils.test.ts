@@ -1191,3 +1191,103 @@ test("sortProviderEntriesFeaturedFirst leaves a category with no featured provid
     ["acme", "mid", "zulu"]
   );
 });
+
+// ── Section-scoped proof against the REAL catalog (not synthetic mocks) ───────
+// page.tsx builds each dashboard section as
+// buildStaticProviderEntries(category) -> filterConfiguredProviderEntries(...).
+// These tests replicate that exact call chain per real section to prove where
+// each real Kimi/Moonshot card actually lands — the 3 sections that render a
+// Kimi-family card today: OAuth (kimi-coding), Web Cookie (kimi-web), and the
+// "LLM providers" subsection of API Key (moonshot). kimi-coding-apikey and kimi
+// are both hiddenFromDashboard and never render their own card in ANY section
+// (kimi-coding-apikey folds into the kimi-coding card's own connection flow —
+// see KimiCodeAuthMethodModal.tsx; verified below).
+
+test("real OAuth section pins kimi-coding first (page.tsx's oauthProviderEntries shape)", () => {
+  const getProviderStats = () => ({ total: 0 });
+  const oauthEntriesAll = providerPageUtils.buildStaticProviderEntries("oauth", getProviderStats);
+  const oauthEntries = providerPageUtils.filterConfiguredProviderEntries(oauthEntriesAll, false);
+
+  assert.ok(oauthEntries.length > 5, "sanity: the real OAuth section has many providers");
+  assert.equal(
+    oauthEntries[0].providerId,
+    "kimi-coding",
+    "kimi-coding (Kimi Code CLI) must be the first card in the real OAuth section"
+  );
+});
+
+test("real Web Cookie section pins kimi-web first (page.tsx's webCookieProviderEntries shape)", () => {
+  const getProviderStats = () => ({ total: 0 });
+  const webCookieEntriesAll = providerPageUtils.buildStaticProviderEntries(
+    "web-cookie",
+    getProviderStats
+  );
+  const webCookieEntries = providerPageUtils.filterConfiguredProviderEntries(
+    webCookieEntriesAll,
+    false
+  );
+
+  assert.ok(webCookieEntries.length > 5, "sanity: the real Web Cookie section has many providers");
+  assert.equal(
+    webCookieEntries[0].providerId,
+    "kimi-web",
+    "kimi-web (Kimi Web) must be the first card in the real Web Cookie section"
+  );
+});
+
+test("real API Key -> LLM subsection pins moonshot first (page.tsx's llmProviderEntries shape)", () => {
+  const getProviderStats = () => ({ total: 0 });
+  const apiKeyEntriesAll = providerPageUtils.buildStaticProviderEntries("apikey", getProviderStats);
+  // Mirrors page.tsx's llmProviderEntriesAll filter exactly (moonshot is not an
+  // image/aggregator/enterprise-cloud/video/embedding-rerank provider).
+  const llmEntriesAll = apiKeyEntriesAll.filter(
+    (entry) =>
+      !providers.IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId) &&
+      !providers.AGGREGATOR_PROVIDER_IDS.has(entry.providerId) &&
+      !providers.ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId) &&
+      !providers.VIDEO_PROVIDER_IDS.has(entry.providerId) &&
+      !providers.EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)
+  );
+  const llmEntries = providerPageUtils.filterConfiguredProviderEntries(llmEntriesAll, false);
+
+  assert.ok(llmEntries.length > 5, "sanity: the real API Key -> LLM subsection has many providers");
+  assert.equal(
+    llmEntries[0].providerId,
+    "moonshot",
+    "moonshot (Moonshot AI, where kimi-k3 lives) must be the first card in the real API Key -> LLM subsection"
+  );
+
+  // kimi-coding-apikey and kimi (both hiddenFromDashboard) never surface as
+  // their own card here or in any other section — see the dedicated test below.
+  assert.equal(llmEntries.some((e) => e.providerId === "kimi-coding-apikey"), false);
+  assert.equal(llmEntries.some((e) => e.providerId === "kimi"), false);
+});
+
+test("kimi-coding-apikey and kimi never render as their own dashboard card in ANY section (hiddenFromDashboard)", () => {
+  const getProviderStats = () => ({ total: 0 });
+  const categories = [
+    "no-auth",
+    "oauth",
+    "web-cookie",
+    "local",
+    "search",
+    "audio",
+    "upstream-proxy",
+    "apikey",
+    "cloud-agent",
+  ] as const;
+
+  for (const category of categories) {
+    const entries = providerPageUtils.buildStaticProviderEntries(category, getProviderStats);
+    assert.equal(
+      entries.some((e) => e.providerId === "kimi-coding-apikey"),
+      false,
+      `kimi-coding-apikey must not appear as its own card in the "${category}" category`
+    );
+    assert.equal(
+      entries.some((e) => e.providerId === "kimi"),
+      false,
+      `kimi (legacy alias) must not appear as its own card in the "${category}" category`
+    );
+  }
+});
