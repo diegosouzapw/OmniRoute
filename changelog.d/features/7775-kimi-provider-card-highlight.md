@@ -1,0 +1,1 @@
+- **feat(dashboard):** Kimi (Moonshot AI) official-partnership highlight on the providers dashboard — Kimi-family providers (`kimi-coding`, `kimi-web`, `moonshot`) now render first within their category/group, and their card gets a Kimi-blue (`#1783FF`) accent border/glow plus an "Official Supporter" badge; presentation-only, routing/fallback order is unaffected (#7775).

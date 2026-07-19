@@ -30,6 +30,9 @@ const ALLOWED_USAGE_FIELDS = new Set([
   "cached_tokens",
   "prompt_tokens_details",
   "completion_tokens_details",
+  // Keep through sanitize → applyClientUsageBuffer so heuristic web usage is
+  // not inflated by the default USAGE_TOKEN_BUFFER (2000).
+  "estimated",
 ]);
 const ALLOWED_RESPONSES_USAGE_FIELDS = new Set([
   "input_tokens",

@@ -29,4 +29,6 @@ export function resetSpawnCalls() {
   spawnCalls.length = 0;
 }
 
-export default { execFile, execFileSync, fork, spawn, execSync, spawnSync };
+const childProcessMock = { execFile, execFileSync, fork, spawn, execSync, spawnSync };
+
+export default childProcessMock;

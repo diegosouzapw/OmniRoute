@@ -25,8 +25,12 @@ describe("NotionWebExecutor — registry consistency", () => {
     const models = getModelsByProviderId("notion-web");
     assert.ok(models.length >= 1);
     assert.ok(models.some((m) => m.id === "notion-ai"));
-    // Seed catalog includes real Notion codenames (live discovery still preferred).
-    assert.ok(models.some((m) => m.id === "ambrosia-tart-high" || m.id === "orange-mousse"));
+    // Seed catalog uses real web-picker labels (fable-5 / gpt-5.6-sol), not food codenames.
+    assert.ok(models.some((m) => m.id === "fable-5" || m.id === "gpt-5.6-sol" || m.id === "opus-4.8"));
+    assert.equal(
+      models.some((m) => m.id === "ambrosia-tart-high" || m.id === "orange-mousse" || m.id === "acai-budino-high"),
+      false
+    );
   });
 });
 
@@ -64,22 +68,46 @@ describe("NotionWebExecutor — instantiation & auth errors", () => {
   });
 });
 
+/** Cookie with space_id so execute() does not need a live getSpaces call. */
+const COOKIE_WITH_SPACE = "token_v2=xyz; space_id=space-1; notion_user_id=user-1";
+
 describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
-  it("posts the transcript to runInferenceTranscript with the cookie header and returns a chat.completion", async () => {
+  it("posts createThread + config/context/user and returns a chat.completion", async () => {
     const executor = new mod.NotionWebExecutor();
     let capturedUrl = "";
     let capturedHeaders: Record<string, string> = {};
-    let capturedBody: { transcript: Array<{ type: string; value: unknown }> } | null = null;
+    let capturedBody: {
+      createThread?: boolean;
+      threadId?: string;
+      spaceId?: string;
+      transcript: Array<{ type: string; value: unknown }>;
+    } | null = null;
     const originalFetch = globalThis.fetch;
     try {
       globalThis.fetch = (async (url: string | URL, opts: RequestInit) => {
         capturedUrl = String(url);
         capturedHeaders = opts.headers as Record<string, string>;
         capturedBody = JSON.parse(String(opts.body));
+        // Modern record-map response (live shape 2026-07-19).
         const ndjson = [
-          JSON.stringify({ value: [["Hel"]] }),
-          JSON.stringify({ value: [["Hello"]] }),
-          JSON.stringify({ value: [["Hello there!"]] }),
+          JSON.stringify({ type: "patch-start", data: { s: [] } }),
+          JSON.stringify({
+            type: "record-map",
+            recordMap: {
+              thread_message: {
+                m1: {
+                  value: {
+                    value: {
+                      step: {
+                        type: "agent-inference",
+                        value: [{ type: "text", content: '<lang primary="en-US"/>Hello there!' }],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          }),
         ].join("\n");
         return new Response(ndjson, { status: 200 });
       }) as typeof fetch;
@@ -88,16 +116,23 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
         model: "notion-ai",
         body: { messages: [{ role: "user", content: "hi" }] },
         stream: false,
-        credentials: { apiKey: "abc123" },
+        credentials: { apiKey: COOKIE_WITH_SPACE },
         signal: null,
       } as never);
 
-      assert.equal(capturedUrl, "https://www.notion.so/api/v3/runInferenceTranscript");
-      assert.equal(capturedHeaders.Cookie, "token_v2=abc123");
+      assert.equal(capturedUrl, "https://app.notion.com/api/v3/runInferenceTranscript");
+      assert.equal(capturedHeaders.Cookie, COOKIE_WITH_SPACE);
+      assert.equal(capturedHeaders["x-notion-space-id"], "space-1");
+      assert.equal(capturedHeaders["x-notion-active-user-header"], "user-1");
       assert.ok(capturedBody);
-      // notion-ai default does not inject a config entry (server-side default model).
-      assert.equal(capturedBody.transcript[0].type, "human");
-      assert.deepEqual(capturedBody.transcript[0].value, [["hi"]]);
+      assert.equal(capturedBody.createThread, true);
+      assert.ok(typeof capturedBody.threadId === "string" && capturedBody.threadId.length > 0);
+      assert.equal(capturedBody.spaceId, "space-1");
+      // Transcript: config + context + user (system would fold into context).
+      assert.equal(capturedBody.transcript[0].type, "config");
+      assert.equal(capturedBody.transcript[1].type, "context");
+      assert.equal(capturedBody.transcript[2].type, "user");
+      assert.deepEqual(capturedBody.transcript[2].value, [["hi"]]);
 
       assert.equal(result.response.status, 200);
       const json = (await result.response.json()) as {
@@ -105,8 +140,7 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
         choices: Array<{ message: { content: string } }>;
       };
       assert.equal(json.object, "chat.completion");
-      // Cumulative NDJSON frames: only the LAST non-empty frame is kept, never
-      // concatenated (mirrors gemini-web.ts's snapshot handling, #7163).
+      // Lang tag stripped; final assistant text kept.
       assert.equal(json.choices[0].message.content, "Hello there!");
     } finally {
       globalThis.fetch = originalFetch;
@@ -115,8 +149,9 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
 
   it("injects a config transcript entry with the selected Notion model codename", async () => {
     const executor = new mod.NotionWebExecutor();
-    let capturedBody: { transcript: Array<{ type: string; value?: { model?: string } }> } | null =
-      null;
+    let capturedBody: {
+      transcript: Array<{ type: string; value?: { model?: string } }>;
+    } | null = null;
     const originalFetch = globalThis.fetch;
     try {
       globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
@@ -124,18 +159,83 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
         return new Response(JSON.stringify({ value: [["ok"]] }), { status: 200 });
       }) as typeof fetch;
 
+      // Legacy food codename still accepted for power users / cached clients.
       await executor.execute({
         model: "orange-mousse",
         body: { messages: [{ role: "user", content: "hi" }] },
         stream: false,
-        credentials: { apiKey: "token_v2=xyz; space_id=space-1" },
+        credentials: { apiKey: COOKIE_WITH_SPACE },
         signal: null,
       } as never);
 
       assert.ok(capturedBody);
       assert.equal(capturedBody.transcript[0].type, "config");
       assert.equal(capturedBody.transcript[0].value?.model, "orange-mousse");
-      assert.equal(capturedBody.transcript[1].type, "human");
+      assert.equal(capturedBody.transcript[1].type, "context");
+      assert.equal(capturedBody.transcript[2].type, "user");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("resolves friendly slug / provider-prefixed model ids to the Notion food codename", async () => {
+    const executor = new mod.NotionWebExecutor();
+    let capturedBody: {
+      transcript: Array<{ type: string; value?: { model?: string } }>;
+    } | null = null;
+    let responseModel = "";
+    const originalFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
+        capturedBody = JSON.parse(String(opts.body));
+        return new Response(JSON.stringify({ value: [["ok"]] }), { status: 200 });
+      }) as typeof fetch;
+
+      const result = await executor.execute({
+        model: "notion-web/gpt-5.6-sol",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+
+      assert.ok(capturedBody);
+      assert.equal(capturedBody.transcript[0].type, "config");
+      // Wire protocol still uses the food codename.
+      assert.equal(capturedBody.transcript[0].value?.model, "orange-mousse");
+      // Response echoes the client-facing real model name.
+      const json = (await result.response.json()) as { model?: string };
+      responseModel = json.model || "";
+      assert.equal(responseModel, "gpt-5.6-sol");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("resolves fable-5 to acai-budino-high for the transcript config entry", async () => {
+    const executor = new mod.NotionWebExecutor();
+    let capturedBody: {
+      transcript: Array<{ type: string; value?: { model?: string } }>;
+    } | null = null;
+    const originalFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
+        capturedBody = JSON.parse(String(opts.body));
+        return new Response(JSON.stringify({ value: [["ok"]] }), { status: 200 });
+      }) as typeof fetch;
+
+      const result = await executor.execute({
+        model: "fable-5",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+
+      assert.ok(capturedBody);
+      assert.equal(capturedBody.transcript[0].value?.model, "acai-budino-high");
+      const json = (await result.response.json()) as { model?: string };
+      assert.equal(json.model, "fable-5");
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -178,7 +278,7 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
         model: "notion-ai",
         body: { messages: [{ role: "user", content: "hi" }] },
         stream: true,
-        credentials: { apiKey: "token_v2=xyz" },
+        credentials: { apiKey: COOKIE_WITH_SPACE },
         signal: null,
       } as never);
 
@@ -201,7 +301,7 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
         model: "notion-ai",
         body: { messages: [{ role: "user", content: "hi" }] },
         stream: false,
-        credentials: { apiKey: "token_v2=xyz" },
+        credentials: { apiKey: COOKIE_WITH_SPACE },
         signal: null,
       } as never);
       assert.equal(result.response.status, 502);
@@ -221,7 +321,7 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
         model: "notion-ai",
         body: { messages: [{ role: "user", content: "hi" }] },
         stream: false,
-        credentials: { apiKey: "token_v2=expired" },
+        credentials: { apiKey: "token_v2=expired; space_id=s1" },
         signal: null,
       } as never);
       assert.equal(result.response.status, 403);
@@ -247,7 +347,7 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
         model: "notion-ai",
         body: { messages: [{ role: "user", content: "hi" }] },
         stream: false,
-        credentials: { apiKey: "token_v2=xyz" },
+        credentials: { apiKey: COOKIE_WITH_SPACE },
         signal: null,
       } as never);
       assert.equal(result.response.status, 502);
@@ -280,40 +380,97 @@ describe("parseNotionInferenceStream", () => {
     assert.equal(parseNotionInferenceStream(ndjson), "ok");
   });
 
-  it("ignores records with no usable rich-text value", () => {
-    const ndjson = [JSON.stringify({ recordMap: { block: {} } }), JSON.stringify({ value: [["final"]] })].join(
-      "\n"
-    );
+  it("prefers record-map agent-inference over empty patches and strips lang tags", () => {
+    const ndjson = [
+      JSON.stringify({ type: "patch-start", data: { s: [] } }),
+      JSON.stringify({
+        type: "record-map",
+        recordMap: {
+          thread_message: {
+            m1: {
+              value: {
+                value: {
+                  step: {
+                    type: "agent-inference",
+                    value: [{ type: "text", content: '<lang primary="en-US"/>final' }],
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    ].join("\n");
     assert.equal(parseNotionInferenceStream(ndjson), "final");
+  });
+
+  it("extracts text from patch value/- append ops", () => {
+    const ndjson = JSON.stringify({
+      type: "patch",
+      v: [{ o: "a", p: "/s/2/value/-", v: { type: "text", content: "from patch" } }],
+    });
+    assert.equal(parseNotionInferenceStream(ndjson), "from patch");
   });
 });
 
 describe("buildNotionTranscript", () => {
   const { buildNotionTranscript } = mod;
 
-  it("maps roles to Notion transcript entry types", () => {
-    const transcript = buildNotionTranscript([
-      { role: "system", content: "be nice" },
-      { role: "user", content: "hi" },
-      { role: "assistant", content: "hello" },
-    ]);
+  it("maps roles to Notion transcript entry types (config+context+user+agent)", () => {
+    const transcript = buildNotionTranscript(
+      [
+        { role: "system", content: "be nice" },
+        { role: "user", content: "hi" },
+        { role: "assistant", content: "hello" },
+      ],
+      { spaceId: "s1", userId: "u1" }
+    );
     assert.deepEqual(
       transcript.map((t) => t.type),
-      ["context", "human", "ai"]
+      ["config", "context", "user", "agent-inference"]
     );
-    assert.deepEqual(
-      transcript.map((t) => t.value),
-      [[["be nice"]], [["hi"]], [["hello"]]]
-    );
+    const ctx = transcript[1].value as { instructions?: string; spaceId?: string };
+    assert.equal(ctx.instructions, "be nice");
+    assert.equal(ctx.spaceId, "s1");
+    assert.deepEqual(transcript[2].value, [["hi"]]);
+    assert.deepEqual(transcript[3].value, [{ type: "text", content: "hello" }]);
     assert.ok(transcript.every((t) => typeof t.id === "string" && (t.id as string).length > 0));
   });
 
-  it("drops messages with empty/non-string content", () => {
+  it("drops messages with empty/non-string content but keeps config+context", () => {
     const transcript = buildNotionTranscript([
       { role: "user", content: "" },
       { role: "user", content: "keep me" },
     ]);
-    assert.equal(transcript.length, 1);
+    assert.equal(transcript.length, 3); // config + context + user
+    assert.equal(transcript[2].type, "user");
+  });
+
+  it("puts model food-codename on config when provided", () => {
+    const transcript = buildNotionTranscript([{ role: "user", content: "hi" }], {
+      notionModel: "acai-budino-high",
+    });
+    assert.equal((transcript[0].value as { model?: string }).model, "acai-budino-high");
+  });
+});
+
+describe("estimateNotionUsage", () => {
+  const { estimateNotionUsage } = mod;
+
+  it("scales with prompt and completion length (not a constant 2000)", () => {
+    const short = estimateNotionUsage([{ role: "user", content: "hi" }], "PONG");
+    const long = estimateNotionUsage(
+      [{ role: "user", content: "a".repeat(400) }],
+      "b".repeat(400)
+    );
+    assert.equal(short.estimated, true);
+    assert.ok(short.prompt_tokens >= 1);
+    assert.ok(short.completion_tokens >= 1);
+    assert.equal(short.total_tokens, short.prompt_tokens + short.completion_tokens);
+    assert.ok(long.prompt_tokens > short.prompt_tokens);
+    assert.ok(long.completion_tokens > short.completion_tokens);
+    // Never hardcode the USAGE_TOKEN_BUFFER default.
+    assert.notEqual(short.total_tokens, 2000);
   });
 });
 

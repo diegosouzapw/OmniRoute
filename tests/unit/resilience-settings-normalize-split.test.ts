@@ -81,6 +81,7 @@ describe("resilience/settings normalize split-guard", () => {
       "connectionCooldown",
       "providerBreaker",
       "providerCooldown",
+      "providerQuotaOverrides",
       "quotaPreflight",
       "quotaShareConcurrencyLimit",
       "requestQueue",

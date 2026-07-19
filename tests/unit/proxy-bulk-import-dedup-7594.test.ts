@@ -62,10 +62,7 @@ test("upsertProxy creates distinct entries for same host:port with different cre
 
   const listed = await proxiesDb.listProxies({ includeSecrets: true });
   assert.equal(listed.length, 3);
-  assert.deepEqual(
-    listed.map((p) => p.username).sort(),
-    ["user-1", "user-2", "user-3"]
-  );
+  assert.deepEqual(listed.map((p) => p.username).sort(), ["user-1", "user-2", "user-3"]);
 });
 
 test("upsertProxy still updates when the full credential tuple matches (#7594)", async () => {
@@ -90,8 +87,35 @@ test("upsertProxy still updates when the full credential tuple matches (#7594)",
   assert.equal(listed[0].name, "Gateway Renamed");
 });
 
+test("upsertProxy updates an existing proxy when only its password changes (#7703)", async () => {
+  const payload = {
+    name: "Rotating Gateway",
+    type: "http" as const,
+    host: "rotate.proxy.local",
+    port: 8080,
+    username: "stable-user",
+    password: "pass-a",
+  };
+
+  const created = await proxiesDb.upsertProxy(payload);
+  const rotated = await proxiesDb.upsertProxy({ ...payload, password: "pass-b" });
+
+  assert.equal(created.action, "created");
+  assert.equal(rotated.action, "updated");
+  assert.equal(rotated.proxy?.id, created.proxy?.id);
+
+  const listed = await proxiesDb.listProxies({ includeSecrets: true });
+  assert.equal(listed.length, 1);
+  assert.equal(listed[0].password, "pass-b");
+});
+
 test("upsertProxy treats auth-less proxies on same host:port as the same entry (#7594)", async () => {
-  const base = { name: "Open Gateway", type: "http" as const, host: "open.proxy.local", port: 3128 };
+  const base = {
+    name: "Open Gateway",
+    type: "http" as const,
+    host: "open.proxy.local",
+    port: 3128,
+  };
 
   const first = await proxiesDb.upsertProxy(base);
   const second = await proxiesDb.upsertProxy({ ...base, name: "Open Gateway 2" });

@@ -54,26 +54,30 @@ export const PPLX_USER_AGENT =
 // mode / model_preference pairs. Live www.perplexity.ai still posts mode:"copilot"
 // for the default turbo path; search mode is used for the curated catalog models.
 export const MODEL_MAP: Record<string, [string, string]> = {
+  // pplx-auto/pplx-sonar use "copilot" mode (was "search", which for pplx-sonar
+  // maps to "experimental" — that model no longer streams answer-text blocks
+  // for many sessions → empty content, issue #6955). The live web client uses
+  // mode:"copilot" + model_preference:"turbo" for the default turbo path.
   "pplx-auto": ["copilot", "pplx_pro"],
-  // Sonar maps to the default turbo model on the web client (was "experimental",
-  // which no longer streams answer text for many sessions → empty content).
   "pplx-sonar": ["copilot", "turbo"],
-  "pplx-gpt-5.4": ["copilot", "gpt54"],
-  "pplx-gpt": ["copilot", "gpt55"],
-  "pplx-gemini": ["copilot", "gemini31pro_high"],
-  "pplx-sonnet": ["copilot", "claude50sonnet"],
-  "pplx-opus": ["copilot", "claude48opus"],
-  "pplx-glm": ["copilot", "glm_5_2"],
-  "pplx-kimi": ["copilot", "kimik26instant"],
-  "pplx-nemotron": ["copilot", "nv_nemotron_3_ultra"],
+  "pplx-gpt-5.6-terra": ["search", "gpt56_terra"],
+  "pplx-gpt-5.6-sol": ["search", "gpt56_sol"],
+  "pplx-gemini": ["search", "gemini31pro_high"],
+  "pplx-sonnet": ["search", "claude50sonnet"],
+  "pplx-opus": ["search", "claude48opus"],
+  "pplx-glm": ["search", "glm_5_2"],
+  "pplx-kimi": ["search", "kimik26instant"],
+  "pplx-grok-4.5": ["search", "grok45low"],
+  "pplx-nemotron": ["search", "nv_nemotron_3_ultra"],
 };
 
 export const THINKING_MAP: Record<string, string> = {
-  "pplx-gpt-5.4": "gpt54_thinking",
-  "pplx-gpt": "gpt55_thinking",
+  "pplx-gpt-5.6-terra": "gpt56_terra_thinking",
+  "pplx-gpt-5.6-sol": "gpt56_sol_thinking",
   "pplx-sonnet": "claude50sonnetthinking",
   "pplx-opus": "claude48opusthinking",
   "pplx-kimi": "kimik26thinking",
+  "pplx-grok-4.5": "grok45medium",
 };
 
 export const CITATION_RE = /\[\d+\]/g;
