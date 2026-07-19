@@ -27,13 +27,15 @@
 import { randomUUID } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
+import { resolveNotionCodename } from "../services/notionWebModels.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const BASE_URL = "https://www.notion.so";
+// Match the live browser host (app.notion.com) used by the AI picker.
+const BASE_URL = "https://app.notion.com";
 const NOTION_URL = `${BASE_URL}/api/v3/runInferenceTranscript`;
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -117,10 +119,13 @@ export function resolveNotionWebCookie(credentials: ExecuteInput["credentials"])
 /** Pull `space_id` out of an assembled cookie header, if present. Notion's
  * transcript endpoint accepts an explicit `spaceId` field in the body; when
  * the operator supplied it via cookie we forward it rather than relying on
- * Notion to infer it from the session alone. */
+ * Notion to infer it from the session alone. Case-insensitive name; also
+ * accepts `spaceId=` (camelCase) as some cookie exporters use that spelling. */
 export function extractSpaceIdFromCookie(cookie: string): string {
   const match = cookie.match(/(?:^|;\s*)space_id=([^;]+)/i);
-  return match ? match[1].trim() : "";
+  if (match) return match[1].trim();
+  const camel = cookie.match(/(?:^|;\s*)spaceId=([^;]+)/);
+  return camel ? camel[1].trim() : "";
 }
 
 // ─── Helpers — request/response translation ────────────────────────────────
@@ -267,10 +272,20 @@ export class NotionWebExecutor extends BaseExecutor {
     }
 
     const spaceId = extractSpaceIdFromCookie(cookie);
-    const modelId = model || "notion-ai";
+    // Client may send notion-web/fable-5, nw/fable-5, fable-5, "Fable 5", or the
+    // legacy food codename (acai-budino-high). Notion only accepts the food codename
+    // on the wire; we echo the client-facing id in the OpenAI response.
+    const notionCodename = resolveNotionCodename(model);
+    let clientFacingModel = typeof model === "string" ? model.trim() : "";
+    if (clientFacingModel.startsWith("notion-web/")) {
+      clientFacingModel = clientFacingModel.slice("notion-web/".length);
+    } else if (clientFacingModel.startsWith("nw/")) {
+      clientFacingModel = clientFacingModel.slice(3);
+    }
+    const modelId = clientFacingModel || notionCodename || "notion-ai";
     const reqBody: Record<string, unknown> = {
       traceId: randomUUID(),
-      transcript: buildNotionTranscript(messages, modelId),
+      transcript: buildNotionTranscript(messages, notionCodename || undefined),
       createThread: false,
       asPatchResponse: true,
       threadType: "workflow",
@@ -284,8 +299,11 @@ export class NotionWebExecutor extends BaseExecutor {
       Accept: "application/x-ndjson",
       Cookie: cookie,
       Origin: BASE_URL,
-      Referer: `${BASE_URL}/`,
+      Referer: `${BASE_URL}/ai`,
+      "notion-client-version": "23.13.20260719.0708",
+      "notion-audit-log-platform": "web",
     };
+    if (spaceId) reqHeaders["x-notion-space-id"] = spaceId;
 
     let upstream: Response;
     try {

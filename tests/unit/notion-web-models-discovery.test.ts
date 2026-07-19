@@ -50,15 +50,36 @@ const SAMPLE_RESPONSE = {
 test("parseNotionAvailableModels maps enabled models and skips disabled", () => {
   const models = notionModels.parseNotionAvailableModels(SAMPLE_RESPONSE);
   assert.equal(
-    models.some((m) => m.id === "disabled-model"),
+    models.some((m) => m.id === "disabled-model" || m.id === "hidden"),
     false
   );
-  assert.ok(models.some((m) => m.id === "orange-mousse" && m.name === "GPT-5.6 Sol"));
-  assert.ok(models.some((m) => m.id === "ambrosia-tart-high" && m.name === "Opus 4.8"));
+  // Catalog ids are real web-picker labels — NOT food codenames.
+  assert.ok(models.some((m) => m.id === "gpt-5.6-sol" && m.name === "GPT-5.6 Sol"));
+  assert.ok(models.some((m) => m.id === "opus-4.8" && m.name === "Opus 4.8"));
   assert.ok(models.some((m) => m.id === "notion-ai"));
-  const sol = models.find((m) => m.id === "orange-mousse");
+  // Food codenames must not be primary catalog ids.
+  assert.equal(models.some((m) => m.id === "orange-mousse"), false);
+  assert.equal(models.some((m) => m.id === "ambrosia-tart-high"), false);
+  const sol = models.find((m) => m.id === "gpt-5.6-sol");
+  assert.equal(sol?.notionCodename, "orange-mousse");
   assert.equal(sol?.supportsReasoning, true);
   assert.equal(sol?.owned_by, "openai");
+  const opus = models.find((m) => m.id === "opus-4.8");
+  assert.equal(opus?.notionCodename, "ambrosia-tart-high");
+});
+
+test("resolveNotionCodename maps prefixes, slugs, and display names to food codenames", () => {
+  assert.equal(notionModels.resolveNotionCodename("orange-mousse"), "orange-mousse");
+  assert.equal(notionModels.resolveNotionCodename("notion-web/orange-mousse"), "orange-mousse");
+  assert.equal(notionModels.resolveNotionCodename("nw/orange-mousse"), "orange-mousse");
+  assert.equal(notionModels.resolveNotionCodename("gpt-5.6-sol"), "orange-mousse");
+  assert.equal(notionModels.resolveNotionCodename("notion-web/gpt-5.6-sol"), "orange-mousse");
+  assert.equal(notionModels.resolveNotionCodename("GPT-5.6 Sol"), "orange-mousse");
+  assert.equal(notionModels.resolveNotionCodename("fable-5"), "acai-budino-high");
+  assert.equal(notionModels.resolveNotionCodename("Fable 5"), "acai-budino-high");
+  assert.equal(notionModels.resolveNotionCodename("acai-budino-high"), "acai-budino-high");
+  assert.equal(notionModels.resolveNotionCodename("notion-ai"), "");
+  assert.equal(notionModels.resolveNotionCodename(""), "");
 });
 
 test("parseNotionAvailableModels returns empty for invalid payloads", () => {
@@ -115,7 +136,7 @@ test("discoverNotionWebModels posts getAvailableModels with spaceId from cookie"
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, notionModels.NOTION_MODELS_URL);
   assert.equal(JSON.parse(calls[0].body).spaceId, "space-from-cookie");
-  assert.ok(result.models.some((m) => m.id === "orange-mousse"));
+  assert.ok(result.models.some((m) => m.id === "gpt-5.6-sol"));
   assert.equal(result.source, "api");
 });
 
@@ -173,8 +194,11 @@ test("notion-web models route returns live getAvailableModels catalog", async ()
     const body = await response.json();
     assert.equal(body.source, "api");
     const ids = body.models.map((m: { id: string }) => m.id);
-    assert.ok(ids.includes("orange-mousse"));
-    assert.ok(ids.includes("ambrosia-tart-high"));
+    // Real picker labels, not food codenames.
+    assert.ok(ids.includes("gpt-5.6-sol"));
+    assert.ok(ids.includes("opus-4.8"));
+    assert.equal(ids.includes("orange-mousse"), false);
+    assert.equal(ids.includes("ambrosia-tart-high"), false);
     assert.equal(ids.includes("disabled-model"), false);
   } finally {
     globalThis.fetch = originalFetch;
