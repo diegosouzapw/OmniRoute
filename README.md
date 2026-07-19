@@ -218,13 +218,7 @@ All **18** strategies — mix & match per combo step:
 
 ### 🧱 Resilience is built in (3 independent layers)
 
-| Layer                      | Scope             | What it does                                                               |
-| -------------------------- | ----------------- | -------------------------------------------------------------------------- |
-| 🔌 **Circuit breaker**     | whole provider    | Stops hammering a provider that's failing upstream; auto-probes to recover |
-| 💤 **Connection cooldown** | one account / key | Skips a rate-limited key while other keys keep serving                     |
-| 🎯 **Model lockout**       | provider + model  | Quarantines just one quota-limited model, not the whole connection         |
-
-<img src="./docs/diagrams/combo-always-on.svg" width="100%" alt="OmniRoute combo 'always-on' with priority strategy: requests go to 1. cc/claude-opus-4-7 (subscription, use it fully); on failure fall through to 2. cx/gpt-5.5 (second subscription), then 3. glm/glm-5.1 (cheap backup at $0.5/1M), then 4. kr/claude-sonnet-4.5 (free, unlimited, never fails). Result: 4 layers of fallback = zero downtime."/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute resilience — 3 independent self-healing layers, the right layer for the right failure. Layer 1 provider circuit breaker (whole provider): trips only on 408/5xx, thresholds OAuth 3× / API-key 5× / local 2×, resets 60s/30s/15s into a HALF-OPEN probe, lazy recovery; while OPEN the combo reroutes to the next provider. Layer 2 connection cooldown (one key/account): base 5s OAuth / 3s API-key, exponential ×2 backoff with anti-thundering-herd guard, 429 honors Retry-After, success clears all error state; one cooling key is skipped while sibling keys keep serving. Layer 3 model lockout (one model): per-model 429, local 404 or mode denials lock just that model — never the whole connection. Terminal states (banned, expired, credits exhausted) are for the operator, not cooldowns."/>
 
 <sub>📖 [Auto-Combo Engine](docs/routing/AUTO-COMBO.md) · [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
