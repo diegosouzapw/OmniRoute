@@ -1,0 +1,1 @@
+- chore(quality): register 5 accumulated covering test files in stryker.conf.json tap.testFiles (accountFallback, routeGuard, error, targetSorters, comboContextCache) to clear the mutation-test-coverage drift
