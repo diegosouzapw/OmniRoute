@@ -1,3 +1,7 @@
+---
+title: "Reasoning Routing"
+---
+
 # Reasoning Routing
 
 Reasoning routing rules extend the existing model and combo routing. When no active rule matches,

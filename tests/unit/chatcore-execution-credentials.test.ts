@@ -119,7 +119,7 @@ test("Kimi execution credentials carry the discovered protocol and thinking poli
   });
 });
 
-test("Kimi Code k3 uses the current offline max-effort policy before model import", () => {
+test("Kimi Code k3 exposes its documented efforts from the offline policy before model import", () => {
   const out = resolveExecutionCredentials({
     ...base,
     provider: "kimi-coding",
@@ -129,7 +129,7 @@ test("Kimi Code k3 uses the current offline max-effort policy before model impor
   const psd = out.providerSpecificData as Record<string, unknown>;
   assert.deepEqual(psd._omnirouteKimiThinking, {
     supportsThinking: true,
-    supportedThinkingEfforts: ["max"],
+    supportedThinkingEfforts: ["low", "high", "max"],
     defaultThinkingEffort: "max",
   });
 });

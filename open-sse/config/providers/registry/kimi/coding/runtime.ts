@@ -18,7 +18,7 @@ export type KimiCodeThinkingPolicy = {
 const KIMI_CODE_STATIC_THINKING_POLICIES: Record<string, KimiCodeThinkingPolicy> = {
   k3: {
     supportsThinking: true,
-    supportedThinkingEfforts: ["max"],
+    supportedThinkingEfforts: ["low", "high", "max"],
     defaultThinkingEffort: "max",
   },
 };
