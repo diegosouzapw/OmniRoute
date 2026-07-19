@@ -16,6 +16,7 @@ import { providerHasServiceKind } from "@/lib/providers/serviceKindIndex";
 import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 import { fetchWithTimeout } from "@/shared/utils/fetchTimeout";
 import type { ProviderDisplayMode } from "./providerPageStorage";
+import { isFeaturedProviderId } from "./featuredProviders";
 
 export interface ProviderStatsSnapshot {
   total?: number;
@@ -142,6 +143,26 @@ export function sortProviderEntriesByName<TProvider>(
     if (nameCompare !== 0) return nameCompare;
     return a.providerId.localeCompare(b.providerId); // teknik sıralama: ASCII kasıtlı
   });
+}
+
+/**
+ * Sort provider entries alphabetically (via `sortProviderEntriesByName`), then
+ * stable-pin any `FEATURED_PROVIDER_IDS` member first — featured entries keep
+ * their alphabetical order among themselves, followed by the rest in
+ * alphabetical order. Presentation-only (see `featuredProviders.ts`): this must
+ * never influence routing/fallback order, only how the dashboard's provider
+ * category grids are sorted.
+ */
+export function sortProviderEntriesFeaturedFirst<TProvider>(
+  entries: ProviderEntry<TProvider>[]
+): ProviderEntry<TProvider>[] {
+  const sorted = sortProviderEntriesByName(entries);
+  const featured: ProviderEntry<TProvider>[] = [];
+  const rest: ProviderEntry<TProvider>[] = [];
+  for (const entry of sorted) {
+    (isFeaturedProviderId(entry.providerId) ? featured : rest).push(entry);
+  }
+  return [...featured, ...rest];
 }
 
 export function buildProviderEntries<TProvider = Record<string, unknown>>(
@@ -317,7 +338,7 @@ export function filterConfiguredProviderEntries<TProvider>(
     });
   }
 
-  return sortProviderEntriesByName(filtered);
+  return sortProviderEntriesFeaturedFirst(filtered);
 }
 
 function pushUniqueProviderEntry<TProvider>(
