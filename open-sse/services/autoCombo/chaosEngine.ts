@@ -25,6 +25,7 @@
  */
 
 import { errorResponse } from "../../utils/error.ts";
+import type { HandleSingleModel } from "../combo/types.ts";
 
 export const CHAOS_DEFAULTS = {
   /** Absolute cap on wall time for the whole panel. */
@@ -39,9 +40,6 @@ export type ChaosTuning = {
 };
 
 type Body = Record<string, unknown>;
-
-/** Minimal shape of the downstream single-model dispatch target (carries an abort signal). */
-type ChaosTarget = { modelAbortSignal?: AbortSignal };
 
 export type ChaosPart = {
   model: string;
@@ -117,7 +115,7 @@ function withTimeout<T>(
 export async function runChaosPanel(opts: {
   body: Body;
   models: string[];
-  handleSingleModel: (body: Body, model: string, target?: ChaosTarget) => Promise<Response>;
+  handleSingleModel: HandleSingleModel;
   log?: { info?: (...a: unknown[]) => void; warn?: (...a: unknown[]) => void };
   tuning?: ChaosTuning | null;
 }): Promise<{ parts: ChaosPart[]; primary: ChaosPart | null }> {
@@ -287,7 +285,7 @@ function concatSseText(sse: string): string {
 export async function handleChaosChat(opts: {
   body: Body;
   models: string[];
-  handleSingleModel: (body: Body, model: string, target?: ChaosTarget) => Promise<Response>;
+  handleSingleModel: HandleSingleModel;
   log?: { info?: (...a: unknown[]) => void; warn?: (...a: unknown[]) => void };
   comboName?: string;
   primaryModel?: string | null;
