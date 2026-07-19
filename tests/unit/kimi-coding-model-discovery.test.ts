@@ -70,7 +70,7 @@ test("Kimi Code discovery maps protocol and current thinking metadata", () => {
   ]);
 });
 
-test("Kimi Code discovery imports k3 with its current max-effort contract", () => {
+test("Kimi Code discovery imports k3 with its documented effort contract", () => {
   const discovered = parseKimiCodingModels({
     data: [
       {
@@ -81,7 +81,7 @@ test("Kimi Code discovery imports k3 with its current max-effort contract", () =
         supports_thinking_type: "both",
         think_efforts: {
           support: true,
-          valid_efforts: ["max"],
+          valid_efforts: ["low", "high", "max"],
           default_effort: "max",
         },
         supports_image_in: true,
@@ -99,7 +99,7 @@ test("Kimi Code discovery imports k3 with its current max-effort contract", () =
       upstreamProtocol: "anthropic",
       context_length: 1048576,
       supportsThinking: true,
-      supportedThinkingEfforts: ["max"],
+      supportedThinkingEfforts: ["low", "high", "max"],
       defaultThinkingEffort: "max",
       supportsVision: true,
       supportsVideo: false,

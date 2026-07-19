@@ -182,7 +182,7 @@ describe("KimiExecutor", () => {
     });
   });
 
-  it("defaults Kimi Code k3 to the currently supported max effort", () => {
+  it("defaults Kimi Code k3 to max effort", () => {
     const executor = new KimiExecutor();
     const transformed = executor.transformRequest(
       "k3",
@@ -190,7 +190,7 @@ describe("KimiExecutor", () => {
       false,
       credentials(FORMATS.CLAUDE, {
         supportsThinking: true,
-        supportedThinkingEfforts: ["max"],
+        supportedThinkingEfforts: ["low", "high", "max"],
         defaultThinkingEffort: "max",
       })
     ) as TransformedBody;

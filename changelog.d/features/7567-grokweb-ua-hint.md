@@ -1,0 +1,1 @@
+- feat(providers): grok-web's add-connection dialog now shows a proactive hint explaining that grok.com's `cf_clearance` cookie is pinned to the IP, User-Agent, and TLS fingerprint of the browser that earned it — on a 403, paste the exact browser User-Agent into the existing Custom User-Agent field under Advanced Settings and reuse the same IP/proxy (#7567)

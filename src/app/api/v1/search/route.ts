@@ -270,7 +270,13 @@ async function postHandler(request: Request, context: unknown) {
     clampedMaxResults,
     body.country,
     body.language,
-    { filters: body.filters, offset: body.offset, time_range: body.time_range }
+    {
+      filters: body.filters,
+      offset: body.offset,
+      time_range: body.time_range,
+      content: body.content,
+      provider_options: body.provider_options,
+    }
   );
 
   const ttl = providerConfig.cacheTTLMs ?? SEARCH_CACHE_DEFAULT_TTL_MS;
