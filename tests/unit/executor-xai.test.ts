@@ -20,6 +20,12 @@ test("XaiExecutor is registered under the 'xai' key and set as the registry exec
   assert.equal(xaiProvider.executor, "xai");
 });
 
+test("XaiExecutor can target the separate xAI OAuth provider config", () => {
+  const executor = new XaiExecutor("xai-oauth");
+  assert.equal(executor.getProvider(), "xai-oauth");
+  assert.equal(executor.buildUrl("grok-4.5", false), "https://api.x.ai/v1/chat/completions");
+});
+
 test("strips a -{level} suffix from an allow-listed model and sets reasoning_effort", () => {
   const executor = new XaiExecutor();
 
