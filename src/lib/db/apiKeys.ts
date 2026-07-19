@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel } from "./core";
 import { backupDbFile } from "./backup";
 import { registerDbStateResetter } from "./stateReset";
+import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
 import { API_KEY_COLUMN_FALLBACKS } from "./apiKeyColumnFallbacks";
 import {
@@ -485,10 +486,7 @@ export async function getApiKeys() {
  * inactive, or banned key, and it never widens a key's allowedModels.
  */
 export async function pickApiKeyForInternalUse(
-  purpose:
-    | "combo-health-check"
-    | "cloud-sync-verify"
-    | "internal-probe" = "internal-probe"
+  purpose: "combo-health-check" | "cloud-sync-verify" | "internal-probe" = "internal-probe"
 ): Promise<string | null> {
   try {
     const keys = (await getApiKeys()) as Array<{
@@ -506,29 +504,23 @@ export async function pickApiKeyForInternalUse(
 
     // 1. Management-scoped key (preferred for any internal probe).
     const manageKey = keys.find(
-      (k) =>
-        isUsable(k) && Array.isArray(k.scopes) && k.scopes.includes("manage"),
+      (k) => isUsable(k) && Array.isArray(k.scopes) && k.scopes.includes("manage")
     );
     if (manageKey?.key) return manageKey.key;
 
     // 2. Allow-all key (empty allowedModels means no model restrictions).
     const allowAllKey = keys.find(
-      (k) =>
-        isUsable(k) &&
-        Array.isArray(k.allowedModels) &&
-        k.allowedModels.length === 0,
+      (k) => isUsable(k) && Array.isArray(k.allowedModels) && k.allowedModels.length === 0
     );
     if (allowAllKey?.key) return allowAllKey.key;
 
     // 3. Most recently used (proxy for "the user actually wants this one
     //    working right now").
-    const byRecency = [...keys]
-      .filter(isUsable)
-      .sort((a, b) => {
-        const aT = typeof a.lastUsedAt === "number" ? a.lastUsedAt : 0;
-        const bT = typeof b.lastUsedAt === "number" ? b.lastUsedAt : 0;
-        return bT - aT;
-      });
+    const byRecency = [...keys].filter(isUsable).sort((a, b) => {
+      const aT = typeof a.lastUsedAt === "number" ? a.lastUsedAt : 0;
+      const bT = typeof b.lastUsedAt === "number" ? b.lastUsedAt : 0;
+      return bT - aT;
+    });
     if (byRecency[0]?.key) return byRecency[0].key;
 
     // 4. Legacy fallback: first active key. Keeps the function working
@@ -1061,6 +1053,7 @@ export async function deleteApiKey(id: string) {
 
   // Invalidate caches since a key was removed
   invalidateCaches();
+  invalidateReasoningRoutingRuleCache();
   await deleteRedisAuthCacheEntry(row?.key_hash);
 
   backupDbFile("pre-write");

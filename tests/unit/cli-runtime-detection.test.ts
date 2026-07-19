@@ -170,10 +170,32 @@ describe("Healthcheck — checkRunnable", () => {
       assert.ok(result.installed, `Expected installed=true, got reason=${result.reason}`);
       if (result.runnable) {
         assert.ok(result.reason === null, `Expected no reason, got ${result.reason}`);
+        assert.equal(result.version, "1.0.0");
       }
     } finally {
       if (prev !== undefined) process.env.CLI_CLINE_BIN = prev;
       else delete process.env.CLI_CLINE_BIN;
+    }
+  });
+
+  it("should detect Claude through an explicit read-only executable path", async () => {
+    const previousOverride = process.env.CLI_CLAUDE_BIN;
+    const script =
+      process.platform === "win32"
+        ? createFile(tmpDir, "claude.cmd", "@echo off\necho 2.1.211 (Claude Code)\n")
+        : createFile(tmpDir, "claude", "#!/bin/sh\necho '2.1.211 (Claude Code)'\n");
+    if (process.platform !== "win32") fs.chmodSync(script, 0o555);
+    process.env.CLI_CLAUDE_BIN = script;
+
+    try {
+      const result = await getCliRuntimeStatus("claude");
+      assert.equal(result.installed, true);
+      assert.equal(result.runnable, true);
+      assert.equal(result.commandPath, script);
+      assert.equal(result.version, "2.1.211 (Claude Code)");
+    } finally {
+      if (previousOverride === undefined) delete process.env.CLI_CLAUDE_BIN;
+      else process.env.CLI_CLAUDE_BIN = previousOverride;
     }
   });
 
@@ -208,13 +230,35 @@ describe("Unknown tool", () => {
   });
 });
 
-// ─── continue tool (requiresBinary: false) ────────────────────
+// ─── Continue CLI (`cn`) ──────────────────────────────────────
 
-describe("continue tool — no binary required", () => {
-  it("should report installed=true without checking binary", async () => {
-    const result = await getCliRuntimeStatus("continue");
-    assert.equal(result.installed, true);
-    assert.equal(result.reason, "not_required");
+describe("Continue CLI detection", () => {
+  it("should not report Continue as installed when the cn binary is absent", async () => {
+    const previousPath = process.env.PATH;
+    const previousOverride = process.env.CLI_CONTINUE_BIN;
+    process.env.PATH = "";
+    delete process.env.CLI_CONTINUE_BIN;
+
+    try {
+      const result = await getCliRuntimeStatus("continue");
+      assert.equal(result.installed, false);
+      assert.equal(result.runnable, false);
+      assert.equal(result.reason, "not_found");
+      assert.equal(result.requiresBinary, true);
+    } finally {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+      if (previousOverride === undefined) delete process.env.CLI_CONTINUE_BIN;
+      else process.env.CLI_CONTINUE_BIN = previousOverride;
+    }
+  });
+
+  it("should enumerate cn in Continue's known installation paths", () => {
+    const knownPaths = getKnownToolPaths("continue");
+    assert.ok(
+      knownPaths.some((knownPath) => /^cn(?:\.cmd)?$/i.test(path.basename(knownPath))),
+      "Continue detection should search for the cn executable"
+    );
   });
 });
 

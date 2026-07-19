@@ -114,13 +114,13 @@ const CLI_TOOLS: Record<string, any> = {
     },
   },
   continue: {
-    defaultCommand: null,
+    defaultCommand: "cn",
     envBinKey: "CLI_CONTINUE_BIN",
-    requiresBinary: false,
+    requiresBinary: true,
     // opencode and continue may take up to 15s on first run / cold start on VPS
     healthcheckTimeoutMs: 15000,
     paths: {
-      settings: ".continue/config.json",
+      settings: ".continue/config.yaml",
     },
   },
   opencode: {
@@ -571,6 +571,7 @@ export const getKnownToolPaths = (toolId: string): string[] => {
     ],
     cline: [["cline.cmd", "cline"]],
     kilo: [["kilocode.cmd", "kilocode"]],
+    continue: [["cn.cmd", "cn"]],
     opencode: [["opencode.cmd", "opencode"]],
     qoder: [
       ["qodercli.cmd", "qodercli"],
@@ -1112,6 +1113,7 @@ export const getCliRuntimeStatus = async (toolId: string) => {
   return {
     installed: true,
     runnable: healthcheck.runnable,
+    version: healthcheck.version,
     command,
     commandPath: located.commandPath,
     reason: healthcheck.reason,

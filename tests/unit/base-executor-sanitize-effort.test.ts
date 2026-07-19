@@ -543,3 +543,38 @@ test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model st
   assert.notEqual(result, body);
   assert.equal((result as any).reasoning_effort, "xhigh");
 });
+
+test("sanitizeReasoningEffortForProvider: #7044 output_config.effort (Claude native) xhigh is downgraded, not bypassed", () => {
+  const log = makeLog();
+  const body = {
+    model: "claude-opus-4-6",
+    output_config: { effort: "xhigh" },
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", log);
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal(
+    (result as any).output_config.effort,
+    "high",
+    "xhigh downgraded to high on the output_config carrier"
+  );
+  assert.ok(
+    !("reasoning_effort" in (result as any)),
+    "no spurious reasoning_effort injected when only output_config was present"
+  );
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → high/.test(m)),
+    "logs the downgrade"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: #7044 output_config.effort high passes through unchanged", () => {
+  const body = {
+    model: "claude-opus-4-6",
+    output_config: { effort: "high" },
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", null);
+  assert.equal(result, body, "high is supported — body returned unchanged");
+  assert.equal((result as any).output_config.effort, "high");
+});

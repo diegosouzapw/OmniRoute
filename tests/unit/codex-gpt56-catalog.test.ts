@@ -36,7 +36,7 @@ test("Codex catalog exposes the GPT-5.6 lineup in configured priority order", ()
   for (const modelId of expectedIds) {
     const model = models.find((entry) => entry.id === modelId);
     assert.ok(model, `codex must expose ${modelId}`);
-    assert.equal(model.contextLength, 500000);
+    assert.equal(model.contextLength, 372000);
     assert.equal(model.maxInputTokens, 372000);
     assert.equal(model.maxOutputTokens, 128000);
     assert.equal(model.targetFormat, "openai-responses");

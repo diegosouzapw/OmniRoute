@@ -188,7 +188,9 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
   // Priority: thinking.budget_tokens (Claude native) > output_config.effort (Claude Code).
   if (model.startsWith("gemma-4")) {
     // gemma-4 models returns - 400: Thinking budget is not supported for this model
-  } else if (body.thinking?.type === "enabled" && body.thinking.budget_tokens) {
+  } else if (body.thinking?.type === "enabled" && body.thinking.budget_tokens !== undefined) {
+    // #6813: a truthy check here dropped `budget_tokens: 0` (dynamic thinking).
+    // `undefined` (no budget specified) still falls through to the effort branch.
     result.generationConfig.thinkingConfig = {
       thinkingBudget: body.thinking.budget_tokens,
       includeThoughts: true,

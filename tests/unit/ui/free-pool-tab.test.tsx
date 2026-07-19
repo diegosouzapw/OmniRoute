@@ -2,11 +2,12 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import deMessages from "../../../src/i18n/messages/de.json";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => Object.assign((key: string) => key, { has: () => false }),
 }));
 
 // Stub localStorage before importing the component
@@ -32,7 +33,7 @@ Object.defineProperty(globalThis, "localStorage", {
 // ── Import component after mocks ─────────────────────────────────────────────
 
 const { default: FreePoolTab } =
-  await import("../../src/app/(dashboard)/dashboard/settings/components/proxy/FreePoolTab");
+  await import("../../../src/app/(dashboard)/dashboard/settings/components/proxy/FreePoolTab");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -91,6 +92,36 @@ afterEach(() => {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("FreePoolTab source toggles", () => {
+  it("has every render-critical German translation", () => {
+    const requiredKeys = [
+      "freePoolTab",
+      "proxyFreePoolFilterProtocol",
+      "proxyFreePoolProtocol",
+      "proxyFreePoolCountryPlaceholder",
+      "proxyFreePoolFilterCountry",
+      "proxyFreePoolMinQualityPlaceholder",
+      "proxyFreePoolMinQualityLabel",
+      "proxyFreePoolSyncAll",
+      "proxyFreePoolTotal",
+      "proxyFreePoolInPool",
+      "proxyFreePoolAvgQuality",
+      "proxyFreePoolSelected",
+      "proxyFreePoolAddSelected",
+      "proxyFreePoolAddVisible",
+      "proxyFreePoolSource",
+      "proxyFreePoolHostPort",
+      "proxyFreePoolType",
+      "proxyFreePoolCountry",
+      "proxyFreePoolQuality",
+      "proxyFreePoolLatency",
+      "proxyFreePoolEmpty",
+    ] as const;
+
+    for (const key of requiredKeys) {
+      expect(deMessages.settings[key], `missing settings.${key}`).toBeTruthy();
+    }
+  });
+
   it("renders a toggle group with exactly 4 buttons", async () => {
     const el = renderTab();
     await waitForCondition(() => el.querySelector("[role='group']") !== null);
@@ -262,7 +293,7 @@ describe("FreePoolTab sync error surfacing (#5595)", () => {
     await waitForCondition(() => el.querySelector("[role='group']") !== null);
 
     const syncBtn = Array.from(el.querySelectorAll("button")).find((b) =>
-      b.textContent?.includes("proxyFreePoolSyncAll")
+      b.textContent?.includes("Sync all")
     )!;
     expect(syncBtn).toBeTruthy();
     act(() => {

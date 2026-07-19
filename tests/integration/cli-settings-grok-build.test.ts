@@ -141,9 +141,12 @@ test("grok-build-settings POST: writes [model.omniroute] section and preserves e
       assert.ok(content.includes("http://localhost:20128/v1"), "Config should contain base URL");
       assert.ok(content.includes('default = "omniroute"'), "Default should point at our slot");
       // The pre-existing unrelated model section must survive untouched.
+      // Exact line membership (not URL substring) — stronger, and dodges CodeQL
+      // js/incomplete-url-substring-sanitization false positives (#740/#741).
+      const preservedLines = content.split("\n").map((line) => line.trim());
       assert.ok(
-        content.includes("[model.custom-thing]") &&
-          content.includes("https://example.test/v1"),
+        preservedLines.includes("[model.custom-thing]") &&
+          preservedLines.includes('base_url = "https://example.test/v1"'),
         "Pre-existing unrelated [model.*] section must be preserved"
       );
       // The previous default must be remembered for Reset to restore.
@@ -199,8 +202,11 @@ test("grok-build-settings DELETE: removes our section, preserves the rest, resto
       const configPath = path.join(tmpHome, ".grok", "config.toml");
       const content = fs.readFileSync(configPath, "utf-8");
       assert.ok(!content.includes("[model.omniroute]"), "Our section should be removed");
+      // Exact line membership (not URL substring) — see the preserve block above (#740/#741).
+      const survivingLines = content.split("\n").map((line) => line.trim());
       assert.ok(
-        content.includes("[model.custom-thing]") && content.includes("https://example.test/v1"),
+        survivingLines.includes("[model.custom-thing]") &&
+          survivingLines.includes('base_url = "https://example.test/v1"'),
         "Unrelated section must survive"
       );
       assert.ok(content.includes('default = "grok-build"'), "Previous default should be restored");
