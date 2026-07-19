@@ -3,11 +3,13 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getCallLogs } from "@/lib/usageDb";
 import { getCompletedDetails, getPendingById } from "@/lib/usage/usageHistory";
 import { getProviderConnections } from "@/lib/localDb";
+import { getProviderNodes } from "@/models";
 import { matchesSearch } from "@/shared/utils/turkishText";
 
 type CallLogListRowsInput = {
   logs: any[];
   connections: any[];
+  providerDisplayNames?: Map<string, string>;
   pendingDetails: Iterable<any>;
   completedDetails: Iterable<any>;
   now?: number;
@@ -27,6 +29,7 @@ function rowPriority(row: any): number {
 export function buildCallLogListRows({
   logs,
   connections,
+  providerDisplayNames = new Map<string, string>(),
   pendingDetails,
   completedDetails,
   now = Date.now(),
@@ -37,6 +40,10 @@ export function buildCallLogListRows({
       connection.displayName || connection.name || connection.email || connection.id,
     ])
   );
+  const getProviderDisplay = (providerId: unknown): string | null => {
+    if (typeof providerId !== "string" || providerId.length === 0) return null;
+    return providerDisplayNames.get(providerId) || null;
+  };
 
   // Include active (in-flight) requests from the pending-by-id map
   // so they appear in the logs grid alongside persisted entries.
@@ -53,6 +60,7 @@ export function buildCallLogListRows({
       model: detail.model,
       requestedModel: null,
       provider: detail.provider,
+      providerDisplay: getProviderDisplay(detail.provider),
       account: connectionNames.get(detail.connectionId || "") || detail.connectionId || "unknown",
       connectionId: detail.connectionId,
       duration: Math.max(0, now - detail.startedAt),
@@ -87,6 +95,7 @@ export function buildCallLogListRows({
       model: detail.model,
       requestedModel: null,
       provider: detail.provider,
+      providerDisplay: getProviderDisplay(detail.provider),
       account: connectionNames.get(detail.connectionId || "") || detail.connectionId || "unknown",
       connectionId: detail.connectionId,
       duration,
@@ -135,11 +144,28 @@ export async function GET(request: Request) {
     if (searchParams.get("limit")) filter.limit = parseInt(searchParams.get("limit"));
     if (searchParams.get("offset")) filter.offset = parseInt(searchParams.get("offset"));
 
-    const [logs, connections] = await Promise.all([getCallLogs(filter), getProviderConnections()]);
+    const [logs, connections, providerNodes] = await Promise.all([
+      getCallLogs(filter),
+      getProviderConnections(),
+      getProviderNodes(),
+    ]);
+    const providerDisplayNames = new Map<string, string>(
+      (Array.isArray(providerNodes) ? providerNodes : []).flatMap((node: any) => {
+        if (typeof node?.id !== "string" || node.id.length === 0) return [];
+        const label =
+          (typeof node?.name === "string" && node.name.trim().length > 0
+            ? node.name.trim()
+            : typeof node?.prefix === "string" && node.prefix.trim().length > 0
+              ? node.prefix.trim()
+              : "") || null;
+        return label ? [[node.id, label] as const] : [];
+      })
+    );
 
     const rows = buildCallLogListRows({
       logs,
       connections,
+      providerDisplayNames,
       pendingDetails: getPendingById().values(),
       completedDetails: getCompletedDetails().values(),
     });

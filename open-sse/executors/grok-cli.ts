@@ -16,6 +16,7 @@ import {
 import { PROVIDERS } from "../config/constants.ts";
 import { resolvePublicCred } from "../utils/publicCreds.ts";
 import { resolveProxyForRequest } from "../utils/proxyFetch.ts";
+import { runWithOnPersist, isUnrecoverableRefreshError } from "../services/tokenRefresh.ts";
 import https from "node:https";
 import { HttpsProxyAgent } from "https-proxy-agent";
 
@@ -76,15 +77,76 @@ export class GrokCliExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    const { model, body, stream, credentials, signal } = input;
+    const { model, body, stream, credentials, signal, log, onCredentialsRefreshed } = input;
 
-    const url = this.buildUrl(model, stream, 0, credentials);
-    const headers = this.buildHeaders(credentials, stream);
-    const transformedBody = this.transformRequest(model, body, stream, credentials);
+    // #7610: unlike BaseExecutor.execute() (which most executors inherit or
+    // delegate to via super.execute()), this executor talks upstream via raw
+    // https.request() (nativePost) instead of the shared fetch path, so it
+    // never picked up the base class's proactive refresh gate. Without it,
+    // xAI's rotating refresh_token idled until real expiry — the only refresh
+    // that fired was the reactive one on a 401/403 from upstream — matching
+    // the "unusable within minutes" report. Apply the same gate here.
+    const activeCredentials = await this.applyProactiveRefresh(
+      credentials,
+      log,
+      onCredentialsRefreshed
+    );
+
+    const url = this.buildUrl(model, stream, 0, activeCredentials);
+    const headers = this.buildHeaders(activeCredentials, stream);
+    const transformedBody = this.transformRequest(model, body, stream, activeCredentials);
     const bodyStr = JSON.stringify(transformedBody);
 
     const response = await this.nativePost(url, headers, bodyStr, signal);
     return { response, url, headers, transformedBody };
+  }
+
+  /**
+   * Proactive-refresh gate mirroring BaseExecutor.execute()'s (base.ts:599-685),
+   * scoped to grok-cli's single-URL nativePost dispatch (no fallback-URL retry
+   * loop to thread through). xAI uses rotating refresh tokens (same family as
+   * Codex/Claude) — `runWithOnPersist` keeps the [refresh + persist] atomic
+   * under the same per-connection mutex `getAccessToken` uses, and
+   * `isUnrecoverableRefreshError` keeps a reused/invalid sentinel from being
+   * spread into the outgoing credentials — see base.ts:622-673 for the full
+   * regression history this mirrors.
+   */
+  private async applyProactiveRefresh(
+    credentials: ProviderCredentials,
+    log?: ExecutorLog | null,
+    onCredentialsRefreshed?: ExecuteInput["onCredentialsRefreshed"]
+  ): Promise<ProviderCredentials> {
+    if (!this.needsRefresh(credentials)) return credentials;
+
+    try {
+      let persistRan = false;
+      const onPersist = onCredentialsRefreshed
+        ? async (refreshResult: Record<string, unknown>) => {
+            persistRan = true;
+            await onCredentialsRefreshed(refreshResult as Partial<ProviderCredentials>);
+          }
+        : null;
+
+      const refreshed = await runWithOnPersist(onPersist, () =>
+        this.refreshCredentials(credentials, log || null)
+      );
+
+      if (!refreshed || isUnrecoverableRefreshError(refreshed)) {
+        return credentials;
+      }
+
+      const merged = { ...credentials, ...refreshed };
+      if (onCredentialsRefreshed && !persistRan) {
+        await onCredentialsRefreshed(refreshed);
+      }
+      return merged;
+    } catch (error) {
+      log?.error?.(
+        "TOKEN",
+        `Credential refresh failed for ${this.provider}: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return credentials;
+    }
   }
 
   async refreshCredentials(

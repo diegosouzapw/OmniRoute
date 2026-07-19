@@ -62,8 +62,18 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN rate_limit_overrides_json TEXT");
       console.log("[DB] Added provider_connections.rate_limit_overrides_json column");
     }
+    // `refresh_token` is part of 001_initial_schema.sql, but `CREATE TABLE IF NOT EXISTS`
+    // is a no-op on a pre-existing legacy table that predates it — heal it defensively
+    // before the index below relies on it, or a very old DB fails startup entirely.
+    if (!columnNames.has("refresh_token")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN refresh_token TEXT");
+      console.log("[DB] Added provider_connections.refresh_token column");
+    }
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_pc_max_concurrent ON provider_connections(provider, max_concurrent)"
+    );
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_pc_auth_active_refresh ON provider_connections(auth_type, is_active, refresh_token)"
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

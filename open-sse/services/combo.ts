@@ -25,6 +25,12 @@ import {
   errorResponseWithComboDiagnostics,
 } from "../utils/error.ts";
 import type { ComboDiagnostics } from "../utils/error.ts";
+import {
+  COMBO_FAILURE_THRESHOLD,
+  clearComboFailureTracking,
+  recordComboFailure,
+} from "./combo/failureTracker.ts";
+import { buildNoUpstreamResponseDiagnostics, buildRecoveryHint } from "./combo/pinRecovery.ts";
 import { buildTargetTimeoutRunner } from "./combo/targetTimeoutRunner.ts";
 import { recordComboRequest, recordComboShadowRequest, getComboMetrics } from "./comboMetrics.ts";
 import {
@@ -121,6 +127,7 @@ import {
 import {
   validateResponseQuality,
   releaseQualityClone,
+  releaseRejectedQualityResponse,
   toRetryAfterDisplayValue,
 } from "./combo/validateQuality.ts";
 import { resolveComboCooldownWaitDecision } from "./combo/comboCooldownRetry.ts";
@@ -799,6 +806,7 @@ export async function handleComboChat({
           );
           releaseQualityClone(pinnedClone, pinnedResult, pinnedQuality);
           if (pinnedQuality.valid) return pinnedResult;
+          releaseRejectedQualityResponse(pinnedClone, pinnedResult);
           log.warn(
             "COMBO",
             `Pinned model ${pinnedModel} returned 200 but failed quality check: ${pinnedQuality.reason}, falling through to combo retry/fallback`
@@ -1342,6 +1350,10 @@ export async function handleComboChat({
   const comboAttemptOrder: Array<{ provider: string; model: string }> = [];
 
   if (orderedTargets.length === 0) {
+    // Surface a recovery hint + auto-clear the session pin after enough consecutive
+    // no-target failures (silent-stop fix). Threshold of 3 prevents a one-off account
+    // wipe from destroying the prompt-cache pin benefit on the next request.
+    recordComboFailure(effectiveSessionId, combo.name);
     return errorResponseWithComboDiagnostics(
       404,
       "Combo has no executable targets",
@@ -1351,6 +1363,7 @@ export async function handleComboChat({
         excluded: [],
         attemptOrder: [],
         terminalReason: "no_executable_targets",
+        recovery: buildRecoveryHint("no_executable_targets"),
       },
       { code: "model_not_found", type: "invalid_request_error" }
     );
@@ -1439,7 +1452,13 @@ export async function handleComboChat({
       // QA P0: assemble a sanitized diagnostic trace from the state already in scope
       // (pool size + this set-try's exhausted providers/connections + attempt order +
       // a terminal-reason code). Never touches keys/tokens — provider/model ids only.
-      const buildComboDiag = (terminalReason: string): ComboDiagnostics => ({
+      // Silent-stop fix: include a `recovery` hint (action verb + human next-step) so the
+      // OC plugin + non-header-aware clients can render an actionable error instead of an
+      // opaque 5xx. The optional `retryAfterSeconds` carries the upstream Retry-After hint.
+      const buildComboDiag = (
+        terminalReason: string,
+        retryAfterSeconds?: number
+      ): ComboDiagnostics => ({
         poolSize: orderedTargets.length,
         attempted: recordedAttempts,
         excluded: [
@@ -1451,6 +1470,7 @@ export async function handleComboChat({
         ],
         attemptOrder: comboAttemptOrder,
         terminalReason,
+        recovery: buildRecoveryHint(terminalReason, retryAfterSeconds),
       });
 
       let globalResolve: ((res: Response) => void) | null = null;
@@ -1593,7 +1613,13 @@ export async function handleComboChat({
             // failed the same recoverable way. If the dominant cause was reasoning
             // models exhausting a too-small max_tokens budget (no content output),
             // retrying other models can't help — tell the caller to raise max_tokens.
+            // Silent-stop fix: bump the consecutive-failure counter for this session-combo pair
+            // so the pin gets cleared on the 3rd attempt (recovery.next_step tells the client).
             const reasoningExhausted = /reasoning consumed \d+\/\d+ tokens/.test(lastError || "");
+            const failureReason = reasoningExhausted
+              ? "reasoning_budget_exhausted"
+              : "max_attempts_exceeded";
+            recordComboFailure(effectiveSessionId, combo.name);
             return {
               ok: false,
               response: errorResponseWithComboDiagnostics(
@@ -1601,13 +1627,10 @@ export async function handleComboChat({
                 reasoningExhausted
                   ? "All combo candidates exhausted their token budget on reasoning without producing content. Increase max_tokens — reasoning models need a larger budget to emit content."
                   : "Maximum combo retry limit reached",
-                buildComboDiag(
-                  reasoningExhausted ? "reasoning_budget_exhausted" : "max_attempts_exceeded"
-                )
+                buildComboDiag(failureReason)
               ),
             };
           }
-
           // Predictive TTFT Circuit Breaker (skip slow models)
           if (
             zeroLatencyOptimizationsEnabled &&
@@ -1774,6 +1797,7 @@ export async function handleComboChat({
             );
             releaseQualityClone(qualityClone, result, quality);
             if (!quality.valid) {
+              releaseRejectedQualityResponse(qualityClone, result);
               log.warn(
                 "COMBO",
                 `Model ${modelStr} returned 200 but failed quality check: ${quality.reason}`
@@ -1885,6 +1909,12 @@ export async function handleComboChat({
               fallbackCount,
             });
 
+            // Silent-stop fix: reset the consecutive-failure counter for this session-combo pair
+            // on every successful dispatch so a transient recovery doesn't get "credited" against
+            // the threshold the user already paid through to clear the stale pin.
+            if (effectiveSessionId) {
+              clearComboFailureTracking(effectiveSessionId, combo.name);
+            }
             // Context cache pinning: record model usage for session-based pinning
             // (independent of universal handoff — always fires when context_cache_protection is on)
             // #3825: write under the SAME effectiveSessionId used by the read site so a
@@ -2433,6 +2463,10 @@ export async function handleComboChat({
           latencyMs,
           fallbackCount,
         });
+        // Silent-stop fix: bump the failure counter so the session pin clears on the 3rd
+        // consecutive all-inactive cascade; buildRecoveryHint emits `switch-combo` with a
+        // next-step that points the user at /dashboard/providers.
+        recordComboFailure(effectiveSessionId, combo.name);
         return errorResponseWithComboDiagnostics(
           503,
           "Service temporarily unavailable: all upstream accounts are inactive",
@@ -2487,15 +2521,35 @@ export async function handleComboChat({
         return unavailableResponse(status, msg, earliestRetryAfter, retryHuman);
       }
 
+      // Silent-stop fix: bump the failure counter (pin clears on 3rd consecutive) and emit
+      // `try-auto` recovery action via buildRecoveryHint so the OC plugin can show "→ Try
+      // model: auto" instead of an opaque 5xx. We pass the upstream retry-after seconds to
+      // the hint so the client can render a precise "wait Ns and retry" message.
       log.warn("COMBO", `All models failed | ${msg}`);
+      const { pinClearedNow } = recordComboFailure(effectiveSessionId, combo.name);
+      if (pinClearedNow) {
+        log.info(
+          "COMBO",
+          `Auto-cleared session_model_history pin for combo "${combo.name}" after ${COMBO_FAILURE_THRESHOLD} consecutive failures to break the silent-stop loop`
+        );
+      }
+      const retryAfterSeconds = undefined;
       return errorResponseWithComboDiagnostics(
         status,
         msg,
-        buildComboDiag(lastError ?? "all_models_failed")
+        buildComboDiag(lastError ?? "all_models_failed", retryAfterSeconds)
       );
     }
 
-    return errorResponse(503, "Combo routing completed without an upstream response");
+    // Final fallback — when the dispatch returned without crystallizing a status (rare).
+    // Surface the recovery hint with a generic retry recommendation so the client at least
+    // gets a non-opaque message instead of "Combo routing completed without an upstream response".
+    recordComboFailure(effectiveSessionId, combo.name);
+    return errorResponseWithComboDiagnostics(
+      503,
+      "Combo routing completed without an upstream response",
+      buildNoUpstreamResponseDiagnostics(orderedTargets.length)
+    );
   };
 
   // FASE 2.1: acquire the per-connection concurrency slot for the selected
@@ -2906,6 +2960,7 @@ async function handleRoundRobinCombo({
           );
           releaseQualityClone(rrClone, result, quality);
           if (!quality.valid) {
+            releaseRejectedQualityResponse(rrClone, result);
             log.warn(
               "COMBO-RR",
               `${modelStr} returned 200 but failed quality check: ${quality.reason}`

@@ -272,15 +272,15 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   "kimi-web": {
     id: "kimi-web",
-    // Primary "kimi" provider keeps the short alias; web variant uses its own id.
+    // Legacy "kimi" API provider keeps the short alias; web variant uses its own id.
     alias: "kimi-web",
-    name: "Kimi Web (Moonshot AI)",
+    name: "Kimi Web",
     icon: "auto_awesome",
     color: "#2563EB",
     textIcon: "KW",
     website: "https://www.kimi.com",
     authHint:
-      "Paste your Cookie header from www.kimi.com (must contain kimi-auth=...). Find it via DevTools → Network → request → Cookie.",
+      "Paste access_token from www.kimi.com DevTools → Application → Local Storage. A legacy kimi-auth cookie is also accepted.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },

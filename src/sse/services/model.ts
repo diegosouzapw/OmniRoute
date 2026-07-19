@@ -8,6 +8,7 @@ import {
   getCustomModels,
 } from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
+import { getSyncedAvailableModels } from "@/lib/db/models";
 import { parseModel, getModelInfoCore } from "@omniroute/open-sse/services/model.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
@@ -63,31 +64,78 @@ async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
 }
 
 /**
- * Look up custom-model metadata from the DB in a single read:
+ * Look up per-model metadata from custom and API-synced catalogs:
  *  - apiFormat: "responses" when the model is configured for the Responses API.
  *  - targetFormat: the optional per-model wire format override (#2905).
  */
-async function lookupCustomModelMeta(
-  providerId: string,
-  modelId: string
-): Promise<{ apiFormat?: string; targetFormat?: string }> {
+type RuntimeModelMeta = {
+  apiFormat?: string;
+  targetFormat?: string;
+  supportsThinking?: boolean;
+  alwaysThinking?: boolean;
+  supportedThinkingEfforts?: string[];
+  defaultThinkingEffort?: string;
+};
+
+function findCustomModelMeta(models: unknown, modelId: string): any {
+  if (!Array.isArray(models)) return undefined;
+  return (
+    models.find((model: any) => model.id === modelId) ??
+    models.find(
+      (model: any) =>
+        typeof model.id === "string" && model.id.toLowerCase() === modelId.toLowerCase()
+    )
+  );
+}
+
+function findSyncedModelMeta(models: unknown, modelId: string): any {
+  return Array.isArray(models) ? models.find((model: any) => model.id === modelId) : undefined;
+}
+
+function resolveRuntimeFormats(customMatch: any, syncedMatch: any): RuntimeModelMeta {
+  const apiFormat =
+    customMatch?.apiFormat === "responses" || syncedMatch?.apiFormat === "responses"
+      ? "responses"
+      : undefined;
+  const targetFormat =
+    typeof customMatch?.targetFormat === "string"
+      ? customMatch.targetFormat
+      : typeof syncedMatch?.targetFormat === "string"
+        ? syncedMatch.targetFormat
+        : undefined;
+  return { ...(apiFormat ? { apiFormat } : {}), ...(targetFormat ? { targetFormat } : {}) };
+}
+
+function copySyncedThinkingMetadata(metadata: RuntimeModelMeta, syncedMatch: any): void {
+  if (typeof syncedMatch?.supportsThinking === "boolean") {
+    metadata.supportsThinking = syncedMatch.supportsThinking;
+  }
+  if (syncedMatch?.alwaysThinking === true) metadata.alwaysThinking = true;
+  if (Array.isArray(syncedMatch?.supportedThinkingEfforts)) {
+    metadata.supportedThinkingEfforts = syncedMatch.supportedThinkingEfforts;
+  }
+  if (typeof syncedMatch?.defaultThinkingEffort === "string") {
+    metadata.defaultThinkingEffort = syncedMatch.defaultThinkingEffort;
+  }
+}
+
+function buildRuntimeModelMeta(customMatch: any, syncedMatch: any): RuntimeModelMeta {
+  const metadata = resolveRuntimeFormats(customMatch, syncedMatch);
+  copySyncedThinkingMetadata(metadata, syncedMatch);
+  return metadata;
+}
+
+async function lookupModelMeta(providerId: string, modelId: string): Promise<RuntimeModelMeta> {
   try {
-    const models = await getCustomModels(providerId);
-    if (!Array.isArray(models)) return {};
-    // #7364: exact match first (preserves existing behavior/perf); fall back to a
-    // case-insensitive match so a model saved as "glm-4.6v" is still found when the
-    // caller (dashboard, combo target, direct call) requests "glm-4.6V" — several
-    // reporters typed the uppercase "V" from Z.AI's own docs/marketing.
-    const match =
-      models.find((m: any) => m.id === modelId) ??
-      models.find(
-        (m: any) => typeof m.id === "string" && m.id.toLowerCase() === modelId.toLowerCase()
-      );
-    if (!match) return {};
-    return {
-      apiFormat: match.apiFormat === "responses" ? "responses" : undefined,
-      targetFormat: typeof match.targetFormat === "string" ? match.targetFormat : undefined,
-    };
+    const [customModels, syncedModels] = await Promise.all([
+      getCustomModels(providerId),
+      getSyncedAvailableModels(providerId),
+    ]);
+    // #7364: exact match first; retain the case-insensitive custom-model fallback
+    // while also consulting the API-synced catalog for Kimi runtime metadata.
+    const customMatch = findCustomModelMeta(customModels, modelId);
+    const syncedMatch = findSyncedModelMeta(syncedModels, modelId);
+    return buildRuntimeModelMeta(customMatch, syncedMatch);
   } catch {
     return {};
   }
@@ -116,20 +164,10 @@ export async function getModelInfo(modelStr) {
   const parsed = parseModel(modelStr);
   const { extendedContext } = parsed;
 
-  const attachCustomApiFormat = async (info: any) => {
+  const attachRuntimeModelMeta = async (info: any) => {
     if (!info?.provider || !info?.model) return info;
-    const { apiFormat, targetFormat } = await lookupCustomModelMeta(
-      String(info.provider),
-      String(info.model)
-    );
-    if (apiFormat || targetFormat) {
-      return {
-        ...info,
-        ...(apiFormat && { apiFormat }),
-        ...(targetFormat && { targetFormat }),
-      };
-    }
-    return info;
+    const metadata = await lookupModelMeta(String(info.provider), String(info.model));
+    return Object.keys(metadata).length > 0 ? { ...info, ...metadata } : info;
   };
 
   // Check custom provider nodes first (for both alias and non-alias formats)
@@ -161,7 +199,7 @@ export async function getModelInfo(modelStr) {
           parsed.model as string,
           matchedOpenAI.prefix
         );
-        const { apiFormat, targetFormat } = await lookupCustomModelMeta(
+        const metadata = await lookupModelMeta(
           matchedOpenAI.id as string,
           normalizedModel
         );
@@ -169,8 +207,7 @@ export async function getModelInfo(modelStr) {
           provider: matchedOpenAI.id,
           model: normalizedModel,
           extendedContext,
-          ...(apiFormat && { apiFormat }),
-          ...(targetFormat && { targetFormat }),
+          ...metadata,
         };
       }
 
@@ -184,7 +221,7 @@ export async function getModelInfo(modelStr) {
           parsed.model as string,
           matchedAnthropic.prefix
         );
-        const { apiFormat, targetFormat } = await lookupCustomModelMeta(
+        const metadata = await lookupModelMeta(
           matchedAnthropic.id as string,
           normalizedModel
         );
@@ -192,8 +229,7 @@ export async function getModelInfo(modelStr) {
           provider: matchedAnthropic.id,
           model: normalizedModel,
           extendedContext,
-          ...(apiFormat && { apiFormat }),
-          ...(targetFormat && { targetFormat }),
+          ...metadata,
         };
       }
     }
@@ -212,10 +248,10 @@ export async function getModelInfo(modelStr) {
   }
 
   if (!parsed.isAlias) {
-    return await attachCustomApiFormat(await getModelInfoCore(modelStr, null));
+    return await attachRuntimeModelMeta(await getModelInfoCore(modelStr, null));
   }
 
-  return await attachCustomApiFormat(await getModelInfoCore(modelStr, getCombinedModelAliases));
+  return await attachRuntimeModelMeta(await getModelInfoCore(modelStr, getCombinedModelAliases));
 }
 
 /**

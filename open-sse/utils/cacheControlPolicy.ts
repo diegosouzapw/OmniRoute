@@ -78,6 +78,11 @@ const CACHING_PROVIDERS = new Set([
   "zai",
   "qwen",
   "deepseek",
+  // Kimi Code's OpenAI protocol requires prompt_cache_key for Coding Plan
+  // cache affinity. The OAuth card and hidden API-key compatibility ID share
+  // the same upstream API.
+  "kimi-coding",
+  "kimi-coding-apikey",
   // #3088 — Xiaomi MiMo honors OpenAI-format cache_control breakpoints. Without
   // this entry, shouldPreserveCacheControl() returns false for Claude Code
   // clients and filterToOpenAIFormat() strips cache_control, so Xiaomi never
