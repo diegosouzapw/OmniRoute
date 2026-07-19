@@ -144,7 +144,10 @@ export function appendClaudeEffortVariants<T extends CatalogModelEntry>(
     const bareName = bareModelName(qualifiedId);
     for (const level of claudeEffortLevelsFor(providerId, bareName)) {
       const variantId = `${qualifiedId}-${level}`;
-      const variant: T = { ...model, id: variantId, root: variantId };
+      // root stays UNPREFIXED (base root, or the bare model name, plus the suffix):
+      // the provider-scoped models route uses `root` verbatim as the unprefixed id.
+      const baseRoot = typeof model.root === "string" && model.root ? model.root : bareName;
+      const variant: T = { ...model, id: variantId, root: `${baseRoot}-${level}` };
       if (typeof model.name === "string" && model.name) {
         variant.name = `${model.name} (${formatClaudeEffortLabel(level)})`;
       }

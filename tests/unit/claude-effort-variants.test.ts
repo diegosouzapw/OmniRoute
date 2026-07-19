@@ -102,7 +102,8 @@ test("appends effort variant ids + names for eligible models only", () => {
   ]);
   const high = out.find((m) => m.id === "claude/claude-fable-5-high");
   assert.equal(high?.name, "claude-fable-5 (High)");
-  assert.equal(high?.root, "claude/claude-fable-5-high");
+  // root stays unprefixed — the provider-scoped models route serves it verbatim.
+  assert.equal(high?.root, "claude-fable-5-high");
 });
 
 test("normalizes the provider prefix (cc → claude) when a canonical map is given", () => {
