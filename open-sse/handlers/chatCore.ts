@@ -148,7 +148,7 @@ import {
   PROVIDER_ERROR_TYPES,
   isEmptyContentResponse,
 } from "../services/errorClassifier.ts";
-import { updateProviderConnection } from "@/lib/db/providers";
+import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 import { wasRefreshTokenRotated } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
 import { recordKeyHealthStatus as recordKeyHealthStatusFor } from "./chatCore/keyHealth.ts";
@@ -228,7 +228,7 @@ import {
   normalizeExecutorResult,
   executeWithUpstreamStartTimeout,
 } from "./chatCore/upstreamTimeouts.ts";
-import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole, getCachedProviderConnectionById } from "@/lib/localDb";
+import { getModelNormalizeToolCallId, getModelPreserveOpenAIDeveloperRole } from "@/lib/localDb";
 import { getProviderCredentials, extractSessionAffinityKey } from "@/sse/services/auth";
 import { deleteSessionAccountAffinity } from "@/lib/db/sessionAccountAffinity";
 import { getCacheControlSettings } from "@/lib/cacheControlSettings";
@@ -3074,7 +3074,7 @@ export async function handleChatCore({
       typeof credentials?.connectionId === "string" ? credentials.connectionId.trim() : "";
     const casReread = casConnectionId
       ? async () => {
-          const latest = await getCachedProviderConnectionById(casConnectionId);
+          const latest = await getProviderConnectionById(casConnectionId);
           return typeof latest?.refreshToken === "string" ? latest.refreshToken : null;
         }
       : null;
@@ -3165,7 +3165,7 @@ export async function handleChatCore({
         let alreadyRotated = false;
         if (typeof connectionId === "string" && connectionId && attemptedRefreshToken) {
           try {
-            const latest = await getCachedProviderConnectionById(connectionId);
+            const latest = await getProviderConnectionById(connectionId);
             if (wasRefreshTokenRotated(attemptedRefreshToken, latest?.refreshToken)) {
               alreadyRotated = true;
               log?.warn?.(
