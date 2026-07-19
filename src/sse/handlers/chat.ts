@@ -24,6 +24,7 @@ import { getImageModelEntry } from "@omniroute/open-sse/config/imageRegistry.ts"
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import { applyNoThinkingAlias } from "@omniroute/open-sse/utils/noThinkingAlias.ts";
 import { handleComboChat, shouldSkipConnDisable } from "@omniroute/open-sse/services/combo.ts";
+import { mergeAbortSignals } from "@omniroute/open-sse/executors/base.ts";
 import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
@@ -778,6 +779,7 @@ export async function handleChat(
           failoverBeforeRetry?: boolean;
           providerId?: string | null;
           effectiveComboStrategy?: string | null;
+          modelAbortSignal?: AbortSignal | null;
         }
       ) =>
         handleSingleModelChat(
@@ -808,6 +810,16 @@ export async function handleChat(
             reasoningDecision,
             reasoningIntent,
             reasoningRequestTags: requestRoutingTags.tags,
+            // #7360 follow-up: without this, a target dispatch abandoned by
+            // targetTimeoutRunner.ts's per-target timeout (comboTargetTimeoutMs)
+            // never learns it was abandoned — it only watches the ORIGINAL
+            // client's request.signal (see clientRawRequest below), which stays
+            // open for as long as the overall combo keeps retrying elsewhere.
+            // The abandoned dispatch then hangs forever inside withRateLimit/
+            // acquireAccountSemaphore, leaking a permanent "pending" dashboard
+            // entry (trackPendingRequest(false) never runs) — live incident,
+            // log id 1784418258231-14961a.
+            modelAbortSignal: target?.modelAbortSignal ?? null,
           },
           target?.effectiveComboStrategy ?? combo.strategy,
           true
@@ -959,6 +971,33 @@ export function buildClientRawRequest(request: Request, body: unknown) {
 }
 
 /**
+ * #7360 follow-up: chatCore.ts's createStreamController (and, downstream,
+ * withRateLimit/acquireAccountSemaphore) only ever watches
+ * clientRawRequest.signal — the ORIGINAL client's request signal, which stays
+ * open for as long as the overall combo keeps retrying elsewhere. A target
+ * abandoned by comboTargetTimeoutMs (open-sse/services/combo/targetTimeoutRunner.ts)
+ * never learns it was abandoned, and hangs forever (leaking a permanent
+ * "pending" dashboard entry — trackPendingRequest(false) never runs; live
+ * incident, log id 1784418258231-14961a). Merges the per-target
+ * modelAbortSignal (when present) into clientRawRequest.signal so an
+ * abandoned dispatch can actually observe its own abort and reach its
+ * cleanup path — returns clientRawRequest unchanged when there's no
+ * modelAbortSignal to merge in (the non-combo / non-timed-out common case).
+ */
+export function resolveDispatchClientRawRequest(
+  clientRawRequest: { signal?: AbortSignal | null } | null | undefined,
+  modelAbortSignal: AbortSignal | null | undefined
+): typeof clientRawRequest {
+  if (!modelAbortSignal) return clientRawRequest;
+  return {
+    ...clientRawRequest,
+    signal: clientRawRequest?.signal
+      ? mergeAbortSignals(clientRawRequest.signal, modelAbortSignal)
+      : modelAbortSignal,
+  };
+}
+
+/**
  * Handle single model chat request
  *
  * Refactored: model resolution, logging, pipeline gates, and chat execution
@@ -993,6 +1032,13 @@ async function handleSingleModelChat(
     reasoningDecision?: ReasoningRuleDecision | null;
     reasoningIntent?: ExtractedReasoningIntent | null;
     reasoningRequestTags?: string[];
+    /**
+     * Per-target abort signal from combo.ts's targetTimeoutRunner
+     * (comboTargetTimeoutMs) — see the #7360 follow-up comment at the
+     * handleSingleModel call site above for why this must be merged into
+     * the signal used for the actual dispatch, not left unused.
+     */
+    modelAbortSignal?: AbortSignal | null;
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -1031,6 +1077,7 @@ async function handleSingleModelChat(
           allowRateLimitedConnection?: boolean;
           providerId?: string | null;
           effectiveComboStrategy?: string | null;
+          modelAbortSignal?: AbortSignal | null;
         }
       ) =>
         handleSingleModelChat(
@@ -1052,6 +1099,8 @@ async function handleSingleModelChat(
             allowRateLimitedConnection: target?.allowRateLimitedConnection === true,
             providerId: target?.providerId ?? null,
             correlationId: runtimeOptions?.correlationId ?? null,
+            // #7360 follow-up — see the primary handleSingleModel closure above.
+            modelAbortSignal: target?.modelAbortSignal ?? null,
           },
           target?.effectiveComboStrategy ?? redirectCombo.strategy ?? "priority",
           false
@@ -1397,6 +1446,10 @@ async function handleSingleModelChat(
 
       // 4. Execute chat via core after breaker gate checks (with optional TLS tracking)
       if (telemetry) telemetry.startPhase("connect");
+      const dispatchClientRawRequest = resolveDispatchClientRawRequest(
+        clientRawRequest,
+        runtimeOptions.modelAbortSignal
+      );
       const { result, tlsFingerprintUsed } = await executeChatWithBreaker({
         bypassCircuitBreaker: forceLiveComboTest || hasForcedConnection,
         breaker,
@@ -1407,7 +1460,7 @@ async function handleSingleModelChat(
         proxyInfo,
         appliedProxySink,
         log,
-        clientRawRequest,
+        clientRawRequest: dispatchClientRawRequest,
         credentials,
         apiKeyInfo,
         userAgent,
