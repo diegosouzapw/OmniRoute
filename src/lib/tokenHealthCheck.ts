@@ -26,6 +26,7 @@ import {
 } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
+import { refreshGithubCopilotSubTokenIfNeeded } from "@/lib/tokenHealthCheckCopilot";
 
 const LOG_PREFIX = "[HealthCheck]";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
@@ -766,66 +767,19 @@ export async function checkConnection(conn) {
     log(`${LOG_PREFIX} ✓ ${conn.provider}/${getConnectionLogLabel(conn)} refreshed`);
 
     // ── GitHub Copilot sub-token refresh ──────────────────────────────────────
-    // GitHub Copilot issues a short-lived (~30 min) API token separate from the
-    // GitHub OAuth token. The health check must also refresh this sub-token before
-    // it expires mid-session. The Copilot token expiry is stored in
-    // providerSpecificData.copilotTokenExpiresAt (Unix seconds).
-    if (String(conn.provider || "").toLowerCase() === "github") {
-      // Re-read the latest connection after the OAuth refresh (onPersist may have updated it).
-      const latestConn = (await getProviderConnectionById(conn.id).catch(() => null)) || conn;
-      const accessTokenForCopilot = result.accessToken || latestConn.accessToken;
-
-      if (accessTokenForCopilot) {
-        const copilotExpiresAtRaw =
-          latestConn.providerSpecificData?.copilotTokenExpiresAt ??
-          conn.providerSpecificData?.copilotTokenExpiresAt;
-        const copilotExpiresAtMs =
-          typeof copilotExpiresAtRaw === "number" && copilotExpiresAtRaw < 1e12
-            ? copilotExpiresAtRaw * 1000 // Unix seconds → ms
-            : typeof copilotExpiresAtRaw === "string"
-              ? new Date(copilotExpiresAtRaw).getTime()
-              : typeof copilotExpiresAtRaw === "number"
-                ? copilotExpiresAtRaw
-                : 0;
-
-        const copilotAboutToExpire =
-          !copilotExpiresAtMs || copilotExpiresAtMs - Date.now() < 5 * 60 * 1000;
-
-        if (copilotAboutToExpire) {
-          log(
-            `${LOG_PREFIX} Refreshing GitHub Copilot sub-token for ${getConnectionLogLabel(conn)}`
-          );
-          try {
-            const copilotResult = await refreshCopilotToken(
-              accessTokenForCopilot,
-              healthCheckLog,
-              proxyConfig
-            );
-            if (copilotResult?.token) {
-              await updateProviderConnection(conn.id, {
-                providerSpecificData: {
-                  ...(latestConn.providerSpecificData || {}),
-                  copilotToken: copilotResult.token,
-                  copilotTokenExpiresAt: copilotResult.expiresAt,
-                },
-              });
-              log(
-                `${LOG_PREFIX} ✓ GitHub Copilot sub-token refreshed for ${getConnectionLogLabel(conn)}`
-              );
-            } else {
-              logWarn(
-                `${LOG_PREFIX} ✗ GitHub Copilot sub-token refresh failed for ${getConnectionLogLabel(conn)}`
-              );
-            }
-          } catch (copilotErr) {
-            logError(
-              `${LOG_PREFIX} Error refreshing Copilot sub-token:`,
-              copilotErr?.message || copilotErr
-            );
-          }
-        }
-      }
-    }
+    // Extracted to tokenHealthCheckCopilot.ts to keep this file under the
+    // frozen file-size budget. See that file's header comment for context.
+    await refreshGithubCopilotSubTokenIfNeeded({
+      conn,
+      result,
+      proxyConfig,
+      healthCheckLog,
+      log,
+      logWarn,
+      logError,
+      getConnectionLogLabel,
+      logPrefix: LOG_PREFIX,
+    });
   } else {
     const updateData = buildRefreshFailureUpdate(conn, now);
     await updateProviderConnection(conn.id, updateData);
