@@ -4841,7 +4841,9 @@
     "doubaoWebLabel": "Doubao Web",
     "doubaoWebDesc": "Чат AI ByteDance через doubao.com",
     "visionCapableLabel": "__MISSING__:Vision capable",
-    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends).",
+    "kimiOfficialSupporterBadge": "Official Supporter",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner"
   },
   "settings": {
     "title": "Настройки",

@@ -107,8 +107,8 @@ test("buildCallLogListRows adds providerDisplay to active and completed in-memor
     ],
   });
 
-  const pending = rows.find((row: any) => row.id === "pending-1");
-  const completed = rows.find((row: any) => row.id === "completed-1");
+  const pending = rows.find((row) => row.id === "pending-1");
+  const completed = rows.find((row) => row.id === "completed-1");
 
   assert.equal(pending?.providerDisplay, "Bynara");
   assert.equal(completed?.providerDisplay, "Bynara");

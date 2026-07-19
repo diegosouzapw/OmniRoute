@@ -45,6 +45,14 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "sso=...; sso-rw=...",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "sso", "sso-rw"],
+    // #7567 — grok.com's cf_clearance cookie is pinned to IP + User-Agent + TLS
+    // fingerprint of the browser that earned it, so pasting it from a different
+    // machine/IP causes a 403 that is actually correct Cloudflare behavior. Point
+    // users at the Custom User-Agent field under Advanced Settings + same IP/proxy,
+    // instead of the generic (and here misleading) single-cookie hint.
+    hintKey: "grokWebCookieHint",
+    hintFallback:
+      "grok.com's cf_clearance cookie is pinned to the IP, User-Agent, and TLS fingerprint of the browser where you copied it — pasting it from a different machine/IP causes a 403. Paste sso and sso-rw here, then open Advanced Settings and fill Custom User-Agent with the EXACT User-Agent string of that same browser, and use the same IP/proxy for this connection.",
   },
   "gemini-web": {
     kind: "cookie",

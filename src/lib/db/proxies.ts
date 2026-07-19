@@ -302,14 +302,17 @@ export async function createProxy(payload: ProxyPayload) {
 }
 
 /**
- * Upsert a proxy by its credential tuple (host+port+username+password).
- * If a proxy with the same host, port, username AND password already exists,
- * update it. Otherwise, create a new one. Used by the bulk import feature.
+ * Upsert a proxy by its identity tuple (host+port+username).
+ * If a proxy with the same host, port, and username already exists, update it.
+ * Otherwise, create a new one. Used by the bulk import feature.
  *
  * #7594: host+port alone is NOT a stable identity. Rotating residential/gateway
  * proxies route every credential through one shared host:port, so keying only on
  * host+port collapsed distinct-credential imports onto the first existing row
  * (the same entry got "updated" N times instead of N entries being created).
+ *
+ * #7703: password is mutable and must not be part of the identity key. Including
+ * it caused password-only credential rotations to create duplicate entries.
  */
 export async function upsertProxy(payload: ProxyPayload): Promise<{
   proxy: ProxyRegistryRecord | null;
@@ -319,13 +322,10 @@ export async function upsertProxy(payload: ProxyPayload): Promise<{
   const host = (payload.host || "").trim();
   const port = Number(payload.port);
   const username = (payload.username || "").trim();
-  const password = (payload.password || "").trim();
 
   const existing = db
-    .prepare(
-      "SELECT id FROM proxy_registry WHERE host = ? AND port = ? AND username = ? AND password = ? LIMIT 1"
-    )
-    .get(host, port, username, password) as { id?: string } | undefined;
+    .prepare("SELECT id FROM proxy_registry WHERE host = ? AND port = ? AND username = ? LIMIT 1")
+    .get(host, port, username) as { id?: string } | undefined;
 
   if (existing?.id) {
     const updated = await updateProxy(existing.id, payload);
@@ -758,13 +758,23 @@ function getOrCreateRotationRow(
   db: ReturnType<typeof getDbInstance>,
   normalizedScope: string,
   rotationScopeId: string
-): { strategy: ProxyRotationStrategy; cursor: number; stickyWindowMinutes: number; rotatedAt: string | null } {
+): {
+  strategy: ProxyRotationStrategy;
+  cursor: number;
+  stickyWindowMinutes: number;
+  rotatedAt: string | null;
+} {
   const row = db
     .prepare(
       "SELECT strategy, cursor, sticky_window_minutes, rotated_at FROM proxy_scope_rotation WHERE scope = ? AND scope_id IS ?"
     )
     .get(normalizedScope, rotationScopeId) as
-    | { strategy?: string; cursor?: number; sticky_window_minutes?: number; rotated_at?: string | null }
+    | {
+        strategy?: string;
+        cursor?: number;
+        sticky_window_minutes?: number;
+        rotated_at?: string | null;
+      }
     | undefined;
 
   if (row) {
@@ -823,7 +833,13 @@ function pickFromCandidates<T>(
       cursor = state.cursor + 1;
       db.prepare(
         "UPDATE proxy_scope_rotation SET cursor = ?, rotated_at = ?, updated_at = ? WHERE scope = ? AND scope_id IS ?"
-      ).run(cursor, new Date().toISOString(), new Date().toISOString(), normalizedScope, rotationScopeId);
+      ).run(
+        cursor,
+        new Date().toISOString(),
+        new Date().toISOString(),
+        normalizedScope,
+        rotationScopeId
+      );
     }
     const idx = ((cursor % candidates.length) + candidates.length) % candidates.length;
     return candidates[idx];
