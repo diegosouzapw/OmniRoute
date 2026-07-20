@@ -103,10 +103,15 @@ export async function registerAliasResolver(root) {
 
   try {
     const { register } = await import("node:module");
-    // The hook source is inlined via a data URL so it runs in the loader worker
-    // without needing an extra file on disk (keeps `bin/` flat and lets tests
-    // stub `module.register` without touching the filesystem).
-    const hookUrl = new URL(`data:text/javascript,${encodeURIComponent(HOOK_SOURCE)}`);
+    // #7808: load the hook from a real file on disk via pathToFileURL() instead
+    // of building a `data:text/javascript,...` URL dynamically. CodeQL's
+    // `js/incomplete-url-substring-sanitization` flagged the interpolated
+    // `new URL(...)` call; a file URL produced by pathToFileURL() is a trusted,
+    // fully-parsed URL — no sanitization ambiguity. The hook source lives in
+    // `bin/aliasResolverHook.mjs` (sibling of this file), shipped via
+    // package.json "files": ["bin/"].
+    const hookPath = join(__dirname, "aliasResolverHook.mjs");
+    const hookUrl = pathToFileURL(hookPath);
     register(hookUrl, { data: { root } });
     _registered = true;
     return true;
@@ -119,62 +124,8 @@ export async function registerAliasResolver(root) {
   }
 }
 
-/**
- * Source of the ESM loader hook. Runs in the loader worker, so it must not
- * capture variables from this module — all inputs come via `data`.
- *
- * The hook only resolves specifiers starting with `@/`. Everything else returns
- * `shortCircuit: false` so Node's default resolver (and tsx's hook, already
- * installed before this one) handles it normally.
- */
-const HOOK_SOURCE = `
-import { pathToFileURL } from "node:url";
-import { join } from "node:path";
-import { existsSync } from "node:fs";
-
-let ROOT = "";
-
-export function initialize(data) {
-  ROOT = (data && data.root) || "";
-}
-
-// When tsconfig paths are unavailable (e.g. global npm installs under
-// node_modules/), rewrite \`@/...\` specifiers to the underlying TypeScript
-// source file. The file may be imported without an extension, so probe the
-// usual candidates and return the one that exists. Falls through to the
-// default resolver when no candidate is found (lets tsx/Node error with the
-// canonical message).
-const EXTENSIONS = [".ts", ".tsx", ".js", ".mjs", ".cjs", ".json"];
-
-function tryResolveAliasFsPath(specifier) {
-  if (!ROOT || typeof specifier !== "string" || !specifier.startsWith("@/")) {
-    return null;
-  }
-  const rest = specifier.slice(2);
-  if (rest.startsWith("/") || rest.startsWith("\\\\")) return null;
-  const base = join(ROOT, "src", rest);
-  if (existsSync(base)) return base;
-  for (const ext of EXTENSIONS) {
-    const candidate = base + ext;
-    if (existsSync(candidate)) return candidate;
-  }
-  // directory import: \`@/shared/utils\` → \`.../utils/index.ts\`
-  const indexBase = join(base, "index");
-  for (const ext of EXTENSIONS) {
-    const candidate = indexBase + ext;
-    if (existsSync(candidate)) return candidate;
-  }
-  return null;
-}
-
-export function resolve(specifier, context, nextResolve) {
-  const fsPath = tryResolveAliasFsPath(specifier);
-  if (fsPath) {
-    return {
-      url: pathToFileURL(fsPath).href,
-      shortCircuit: true,
-    };
-  }
-  return nextResolve(specifier, context);
-}
-`;
+// #7808: the ESM loader hook source now lives in `bin/aliasResolverHook.mjs`,
+// loaded via `pathToFileURL()` above. The previous inline `HOOK_SOURCE` template
+// literal was removed because its `new URL(\`data:text/javascript,...\`)` wrapper
+// triggered CodeQL `js/incomplete-url-substring-sanitization`. The hook logic
+// itself is unchanged — see aliasResolverHook.mjs for the resolver behaviour.

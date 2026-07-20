@@ -178,10 +178,11 @@
       "dedicatedGate": true
     },
     "bundleSize": {
-      "value": 6534,
+      "value": 6762,
       "direction": "down",
       "dedicatedGate": true,
-      "_rebaseline_2026_07_07_v3846_release_close": "5601->6534 (+933). v3.8.46 release close: gzip of the 4 bin/*.mjs entrypoints (size-limit + @size-limit/file) grew from this cycle's feature/fix merges pulled transitively into the CLI entrypoints (new providers, combo pipeline strategy #6396, effort/thinking standardization #6241, catalog cache-invalidation #6408). Measured 6534 locally via `check:bundle-size --ratchet` (deterministic gzip, matches CI). Legitimate cycle growth; shrink is separate debt."
+      "_rebaseline_2026_07_07_v3846_release_close": "5601->6534 (+933). v3.8.46 release close: gzip of the 4 bin/*.mjs entrypoints (size-limit + @size-limit/file) grew from this cycle's feature/fix merges pulled transitively into the CLI entrypoints (new providers, combo pipeline strategy #6396, effort/thinking standardization #6241, catalog cache-invalidation #6408). Measured 6534 locally via `check:bundle-size --ratchet` (deterministic gzip, matches CI). Legitimate cycle growth; shrink is separate debt.",
+      "_rebaseline_2026_07_19_7808_codeql_alias_resolver_hook": "6534->6762 (+228). PR #7808 (CodeQL js/incomplete-url-substring-sanitization fix): the ESM loader hook source moved out of the inline `HOOK_SOURCE` template literal in bin/aliasResolver.mjs into a real file bin/aliasResolverHook.mjs, loaded via pathToFileURL() instead of a dynamically-built `data:text/javascript,...` URL. The new file is now counted by size-limit as a 5th bin/*.mjs entrypoint. Net +228 = the hook's gzip size (previously hidden inside aliasResolver.mjs because the template literal was compressed away). Security-driven; no shrink opportunity."
     },
     "openapiBreaking": {
       "value": 0,
