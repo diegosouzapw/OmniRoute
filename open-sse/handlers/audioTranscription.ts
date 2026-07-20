@@ -24,6 +24,7 @@ import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { vertexTranscribe } from "../executors/vertexMedia.ts";
 import { errorResponse } from "../utils/error.ts";
+import { handleOpenRouterTranscription } from "./openrouterTranscription.ts";
 
 type TranscriptionCredentials = {
   apiKey?: string;
@@ -33,7 +34,7 @@ type TranscriptionCredentials = {
 /**
  * Return a CORS error response from an upstream fetch failure
  */
-function upstreamErrorResponse(res, errText) {
+export function upstreamErrorResponse(res, errText) {
   // Always return JSON so the client can parse the error reliably
   let errorMessage: string;
   try {
@@ -109,73 +110,6 @@ export async function buildMultipartBody(
   }
 
   return { body, contentType: "multipart/form-data; boundary=" + boundary };
-}
-
-/**
- * Resolve the audio container format OpenRouter's dedicated STT endpoint
- * expects, from the uploaded file's extension first, then its MIME type.
- * Falls back to "wav" when neither is recognisable.
- */
-function resolveOpenRouterAudioFormat(file: Blob & { name?: unknown }): string {
-  const fileName = typeof file.name === "string" ? file.name.toLowerCase() : "";
-  const extension = fileName.includes(".") ? fileName.split(".").pop() || "" : "";
-  if (["wav", "mp3", "flac", "m4a", "ogg", "webm", "aac"].includes(extension)) {
-    return extension;
-  }
-  const mimeFormats: Record<string, string> = {
-    "audio/wav": "wav",
-    "audio/x-wav": "wav",
-    "audio/mpeg": "mp3",
-    "audio/mp3": "mp3",
-    "audio/flac": "flac",
-    "audio/x-flac": "flac",
-    "audio/mp4": "m4a",
-    "audio/ogg": "ogg",
-    "audio/webm": "webm",
-    "audio/aac": "aac",
-  };
-  return mimeFormats[(file.type || "").toLowerCase()] || "wav";
-}
-
-/**
- * Handle OpenRouter transcription via its dedicated STT endpoint.
- * Converts the multipart audio upload into OpenRouter's JSON
- * `input_audio` { data: base64, format } shape and forwards optional
- * language / temperature / response_format fields when present.
- */
-async function handleOpenRouterTranscription(
-  provider: AudioProvider,
-  file: Blob & { name?: unknown },
-  model: string | null,
-  token: string | null,
-  formData: FormData
-): Promise<Response> {
-  const body: Record<string, unknown> = {
-    model,
-    input_audio: {
-      data: Buffer.from(await file.arrayBuffer()).toString("base64"),
-      format: resolveOpenRouterAudioFormat(file),
-    },
-  };
-  for (const key of ["language", "temperature", "response_format"] as const) {
-    const value = formData.get(key);
-    if (value !== null) body[key] = value;
-  }
-  try {
-    const res = await fetch(provider.baseUrl, {
-      method: "POST",
-      headers: { ...buildAuthHeaders(provider, token), "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) return upstreamErrorResponse(res, await res.text());
-    return new Response(await res.text(), {
-      status: res.status,
-      headers: { "Content-Type": res.headers.get("content-type") || "application/json" },
-    });
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err));
-    return errorResponse(500, `Transcription request failed: ${error.message}`);
-  }
 }
 
 /**

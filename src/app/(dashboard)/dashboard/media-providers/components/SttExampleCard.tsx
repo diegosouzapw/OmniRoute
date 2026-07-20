@@ -59,6 +59,13 @@ export function SttExampleCard({ providerId }: Props) {
 
   const effectiveModel = model || firstModel;
 
+  // The transcription route resolves the provider from the leading segment of
+  // the submitted model id, so a bare id (e.g. "deepgram/nova-3" for the
+  // OpenRouter connection) would misroute. Qualify it with this connection's
+  // provider id at submit time. Single-token ids (e.g. "whisper-1") already
+  // lack a slash and pass through unchanged once prefixed.
+  const qualify = (id: string) => (id.startsWith(`${providerId}/`) ? id : `${providerId}/${id}`);
+
   // cURL is multipart — show a representative snippet
   const curlSnippet = buildCurl({
     endpoint:
@@ -68,7 +75,7 @@ export function SttExampleCard({ providerId }: Props) {
       Authorization: `Bearer ${apiKey || "<your-api-key>"}`,
     },
     body: {
-      model: effectiveModel,
+      model: qualify(effectiveModel),
       file: "<path/to/audio.mp3>",
     },
   });
@@ -95,7 +102,7 @@ export function SttExampleCard({ providerId }: Props) {
     const t0 = performance.now();
     try {
       const formData = new FormData();
-      formData.append("model", effectiveModel);
+      formData.append("model", qualify(effectiveModel));
       formData.append("file", file);
 
       const res = await fetch(ENDPOINT_PATH, {
