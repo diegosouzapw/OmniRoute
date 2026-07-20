@@ -57,14 +57,6 @@ function mergeNamespaceTools(first: unknown, second: unknown): unknown[] {
  */
 export function collectResponsesTools(rootTools: unknown, inputItems: unknown[]): unknown[] {
   const rootToolList = Array.isArray(rootTools) ? rootTools : [];
-  const rootNames = new Set(
-    rootToolList
-      .map((tool) => {
-        const record = toRecord(tool);
-        return record.type === "namespace" ? "" : toolName(tool);
-      })
-      .filter(Boolean)
-  );
   const sources: unknown[][] = [rootToolList];
 
   for (const itemValue of inputItems) {
@@ -73,6 +65,15 @@ export function collectResponsesTools(rootTools: unknown, inputItems: unknown[])
       sources.push(item.tools);
     }
   }
+  const explicitNames = new Set(
+    sources
+      .flat()
+      .map((tool) => {
+        const record = toRecord(tool);
+        return record.type === "namespace" ? "" : toolName(tool);
+      })
+      .filter(Boolean)
+  );
 
   const merged: unknown[] = [];
   const seen = new Set<string>();
@@ -84,7 +85,7 @@ export function collectResponsesTools(rootTools: unknown, inputItems: unknown[])
         const namespaceName = toolName(tool);
         const existingIndex = namespaceName ? namespaceIndexes.get(namespaceName) : undefined;
         const namespaceTools = Array.isArray(toolRecord.tools)
-          ? toolRecord.tools.filter((member) => !rootNames.has(toolName(member)))
+          ? toolRecord.tools.filter((member) => !explicitNames.has(toolName(member)))
           : toolRecord.tools;
         if (existingIndex !== undefined) {
           const existing = toRecord(merged[existingIndex]);
@@ -126,4 +127,15 @@ export function collectResponsesCustomToolNames(
   };
   visit(collectResponsesTools(rootTools, inputItems));
   return names;
+}
+
+export function collectCustomToolNamesForSourceFormat(
+  sourceFormat: string,
+  responsesFormat: string,
+  rootTools: unknown,
+  inputItems: unknown[]
+): Set<string> {
+  return sourceFormat === responsesFormat
+    ? collectResponsesCustomToolNames(rootTools, inputItems)
+    : new Set<string>();
 }

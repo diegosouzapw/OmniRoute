@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 const { openaiResponsesToOpenAIRequest } =
   await import("../../open-sse/translator/request/openai-responses.ts");
-const { collectResponsesCustomToolNames } =
+const { collectCustomToolNamesForSourceFormat, collectResponsesCustomToolNames } =
   await import("../../open-sse/translator/request/openai-responses/additionalTools.ts");
 
 interface ChatTool {
@@ -247,6 +247,83 @@ test("Responses custom metadata includes additional and namespaced custom tools"
     },
   ];
   assert.deepEqual([...collectResponsesCustomToolNames([], input)].sort(), ["apply_diff", "exec"]);
+});
+
+test("Responses source format enables custom metadata independently of model apiFormat", () => {
+  assert.deepEqual(
+    [
+      ...collectCustomToolNamesForSourceFormat(
+        "openai-responses",
+        "openai-responses",
+        [{ type: "custom", name: "exec" }],
+        []
+      ),
+    ],
+    ["exec"]
+  );
+  assert.deepEqual(
+    [
+      ...collectCustomToolNamesForSourceFormat(
+        "openai",
+        "openai-responses",
+        [{ type: "custom", name: "exec" }],
+        []
+      ),
+    ],
+    []
+  );
+});
+
+test("Responses -> Chat normalizes custom tools nested in namespaces", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "any-model",
+    {
+      input: [{ type: "message", role: "user", content: "go" }],
+      tools: [
+        {
+          type: "namespace",
+          name: "commands",
+          tools: [{ type: "custom", name: "exec", description: "Run code" }],
+        },
+      ],
+    },
+    false,
+    { provider: "another-provider" }
+  ) as ChatRequest;
+
+  assert.deepEqual(result.tools[0].function.parameters, {
+    type: "object",
+    properties: { input: { type: "string" } },
+    required: ["input"],
+    additionalProperties: false,
+  });
+});
+
+test("Responses -> Chat enforces explicit precedence within additional_tools", () => {
+  const input = [
+    {
+      type: "additional_tools",
+      tools: [
+        { type: "function", name: "exec", description: "Explicit function" },
+        {
+          type: "namespace",
+          name: "commands",
+          tools: [{ type: "custom", name: "exec", description: "Shadowed custom" }],
+        },
+      ],
+    },
+    { type: "message", role: "user", content: "go" },
+  ];
+  const result = openaiResponsesToOpenAIRequest("any-model", { input }, false, {
+    provider: "another-provider",
+  }) as ChatRequest;
+
+  assert.deepEqual(
+    result.tools.map((tool) => tool.function.name),
+    ["exec"]
+  );
+  assert.equal(result.tools[0].function.description, "Explicit function");
+  assert.deepEqual([...collectResponsesCustomToolNames([], input)], []);
 });
 
 test("Responses -> Chat validates tools supplied through additional_tools", () => {
