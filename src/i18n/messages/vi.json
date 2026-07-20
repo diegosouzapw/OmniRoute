@@ -1323,42 +1323,78 @@
     "actor": "Actor",
     "actorPlaceholder": "Filter by actor",
     "eventTypes": {
-      "apiKey.activate": "API Key Activated",
-      "apiKey.ban": "API Key Banned",
-      "apiKey.deactivate": "API Key Deactivated",
-      "apiKey.regenerate": "API Key Regenerated",
-      "apiKey.scopes.grant": "API Key Scopes Granted",
-      "apiKey.scopes.revoke": "API Key Scopes Revoked",
-      "apiKey.scopes.update": "API Key Scopes Updated",
-      "apiKey.unban": "API Key Unbanned",
-      "auth.login.error": "Login Error",
-      "auth.login.failed": "Login Failed",
-      "auth.login.locked": "Login Locked",
-      "auth.login.misconfigured": "Login Misconfigured",
-      "auth.login.setup_required": "Login Setup Required",
-      "auth.login.success": "Login Success",
-      "auth.logout.success": "Logout Success",
-      "compliance.cleanup": "Compliance Cleanup",
-      "provider.credentials.applied": "Provider Credentials Applied",
-      "provider.credentials.batch_revoked": "Provider Credentials Batch Revoked",
-      "provider.credentials.bulk_created": "Provider Credentials Bulk Created",
-      "provider.credentials.bulk_imported": "Provider Credentials Bulk Imported",
-      "provider.credentials.created": "Provider Credentials Created",
-      "provider.credentials.imported": "Provider Credentials Imported",
-      "provider.credentials.revoked": "Provider Credentials Revoked",
-      "provider.credentials.updated": "Provider Credentials Updated",
-      "provider.validation.ssrf_blocked": "Provider SSRF Blocked",
-      "quota.plan.updated": "Quota Plan Updated",
-      "quota.pool.created": "Quota Pool Created",
-      "quota.pool.deleted": "Quota Pool Deleted",
-      "quota.pool.updated": "Quota Pool Updated",
-      "quota.store.driver_changed": "Quota Store Driver Changed",
-      "server.start": "Server Start",
-      "service.reveal_api_key": "Service API Key Revealed",
-      "settings.update": "Settings Updated",
-      "settings.update_failed": "Settings Update Failed",
-      "sync.token.created": "Sync Token Created",
-      "sync.token.revoked": "Sync Token Revoked"
+      "apiKey": {
+        "activate": "API Key Activated",
+        "ban": "API Key Banned",
+        "deactivate": "API Key Deactivated",
+        "regenerate": "API Key Regenerated",
+        "scopes": {
+          "grant": "API Key Scopes Granted",
+          "revoke": "API Key Scopes Revoked",
+          "update": "API Key Scopes Updated"
+        },
+        "unban": "API Key Unbanned"
+      },
+      "auth": {
+        "login": {
+          "error": "Login Error",
+          "failed": "Login Failed",
+          "locked": "Login Locked",
+          "misconfigured": "Login Misconfigured",
+          "setup_required": "Login Setup Required",
+          "success": "Login Success"
+        },
+        "logout": {
+          "success": "Logout Success"
+        }
+      },
+      "compliance": {
+        "cleanup": "Compliance Cleanup"
+      },
+      "provider": {
+        "credentials": {
+          "applied": "Provider Credentials Applied",
+          "batch_revoked": "Provider Credentials Batch Revoked",
+          "bulk_created": "Provider Credentials Bulk Created",
+          "bulk_imported": "Provider Credentials Bulk Imported",
+          "created": "Provider Credentials Created",
+          "imported": "Provider Credentials Imported",
+          "revoked": "Provider Credentials Revoked",
+          "updated": "Provider Credentials Updated"
+        },
+        "validation": {
+          "ssrf_blocked": "Provider SSRF Blocked"
+        }
+      },
+      "quota": {
+        "plan": {
+          "updated": "Quota Plan Updated"
+        },
+        "pool": {
+          "created": "Quota Pool Created",
+          "deleted": "Quota Pool Deleted",
+          "updated": "Quota Pool Updated"
+        },
+        "store": {
+          "driver_changed": "Quota Store Driver Changed"
+        }
+      },
+      "server": {
+        "start": "Server Start"
+      },
+      "service": {
+        "reveal_api_key": "Service API Key Revealed"
+      },
+      "settings": {
+        "update": "Settings Updated",
+        "update_failed": "Settings Update Failed"
+      },
+      "sync": {
+        "token": {
+          "created": "Sync Token Created",
+          "revoked": "Sync Token Revoked"
+        }
+      }
     }
   },
   "themesPage": {
@@ -6298,7 +6334,11 @@
     "modelLockoutMaxBackoffSteps": "Max Backoff Steps",
     "modelLockoutMaxBackoffStepsDescription": "Maximum number of backoff steps before the cooldown stops growing. The Max Cooldown cap is reached first in most configurations, making this a safety ceiling for when Max Cooldown is raised.",
     "disableSessionStickiness": "Disable session stickiness",
-    "disableSessionStickinessDesc": "Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence."
+    "disableSessionStickinessDesc": "Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence.",
+    "credentialRedaction": "Credential Redaction",
+    "credentialRedactionDesc": "Redact API keys, tokens, and secrets from context sent to providers and from responses.",
+    "enableCredentialRedaction": "Enable credential redaction",
+    "enableCredentialRedactionDesc": "Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses."
   },
   "contextRtk": {
     "title": "RTK Engine",

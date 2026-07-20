@@ -6301,7 +6301,11 @@
     "modelLockoutMaxBackoffSteps": "Maksymalna liczba kroków backoff",
     "modelLockoutMaxBackoffStepsDescription": "Maksymalna liczba kroków backoff, zanim cooldown przestanie rosnąć. W większości konfiguracji limit Max Cooldown jest osiągany jako pierwszy, co stanowi próg bezpieczeństwa w przypadku podniesienia Max Cooldown.",
     "disableSessionStickiness": "Wyłącz lepkość sesji",
-    "disableSessionStickinessDesc": "combos typu round-robin i random zmieniają połączenie przy każdym żądaniu, zamiast przypinać całą konwersację do jednego połączenia na podstawie hasha pierwszej wiadomości. Pozostaw wyłączone, aby zachować trafienia prompt-cache dla wieloturowych czatów. Nadpisania per-combo mają pierwszeństwo."
+    "disableSessionStickinessDesc": "combos typu round-robin i random zmieniają połączenie przy każdym żądaniu, zamiast przypinać całą konwersację do jednego połączenia na podstawie hasha pierwszej wiadomości. Pozostaw wyłączone, aby zachować trafienia prompt-cache dla wieloturowych czatów. Nadpisania per-combo mają pierwszeństwo.",
+    "credentialRedaction": "__MISSING__:Credential Redaction",
+    "credentialRedactionDesc": "__MISSING__:Redact API keys, tokens, and secrets from context sent to providers and from responses.",
+    "enableCredentialRedaction": "__MISSING__:Enable credential redaction",
+    "enableCredentialRedactionDesc": "__MISSING__:Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses."
   },
   "contextRtk": {
     "title": "Silnik RTK",

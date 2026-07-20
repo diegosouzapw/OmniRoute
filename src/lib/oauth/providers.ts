@@ -250,7 +250,7 @@ export async function pollForToken(providerName, deviceCode, codeVerifier, extra
     if (result.data.access_token) {
       let extra = null;
       if (provider.postExchange) {
-        extra = await provider.postExchange(result.data);
+        extra = await provider.postExchange(result.data, extraData || undefined);
       }
       return { success: true, tokens: provider.mapTokens(result.data, extra) };
     } else {

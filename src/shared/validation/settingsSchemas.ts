@@ -93,6 +93,7 @@ const transformObfuscateWordsSchema = z.object({
 export const updateSettingsSchema = z.object({
   newPassword: z.string().min(1).max(200).optional(),
   currentPassword: z.string().max(200).optional(),
+  credentialRedactionEnabled: z.boolean().optional(),
   theme: z.string().max(50).optional(),
   language: z.string().max(10).optional(),
   requireLogin: z.boolean().optional(),

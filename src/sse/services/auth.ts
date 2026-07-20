@@ -1,14 +1,21 @@
 import { randomUUID, createHash } from "crypto";
 import { extractGoogApiKeyHeader } from "./googApiKeyAuth.ts";
 import {
+  getCachedRawProviderConnections,
   getProviderConnections,
-  getProviderNodes,
+  getCachedProviderNodes,
   validateApiKey,
   updateProviderConnection,
+  touchConnectionLastUsed,
   clearConnectionErrorIfUnchanged,
   getSettings,
   getCachedSettings,
 } from "@/lib/localDb";
+import {
+  createLazyConnectionView,
+  toProviderConnection,
+  type ProviderConnectionView,
+} from "@/lib/db/providers/lazyConnectionView";
 import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
@@ -70,37 +77,6 @@ import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
 type JsonRecord = Record<string, unknown>;
-
-interface ProviderConnectionView {
-  id: string;
-  provider: string;
-  email: string | null;
-  isActive: boolean;
-  rateLimitedUntil: string | null;
-  testStatus: string | null;
-  apiKey: string | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  tokenExpiresAt: string | null;
-  expiresAt: string | null;
-  projectId: string | null;
-  defaultModel: string | null;
-  providerSpecificData: JsonRecord;
-  lastUsedAt: string | null;
-  consecutiveUseCount: number;
-  priority: number;
-  lastError: string | null;
-  lastErrorType: string | null;
-  lastErrorSource: string | null;
-  errorCode: string | number | null;
-  backoffLevel: number;
-  maxConcurrent: number | null;
-  // Per-window quota cutoff overrides — null means "no overrides, inherit
-  // resilience-settings defaults." Read by getProviderCredentialsWithQuotaPreflight
-  // to decide whether to invoke the upstream usage fetcher.
-  quotaWindowThresholds: Record<string, number> | null;
-}
-
 interface RecoverableConnectionState {
   connectionId: string;
   testStatus?: string | null;
@@ -159,44 +135,6 @@ function toNullableNumber(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function toProviderConnection(value: unknown): ProviderConnectionView {
-  const row = asRecord(value);
-  // Only accept the per-window override map when it's a plain object —
-  // anything else collapses to null so the preflight gate treats it as "no
-  // overrides set."
-  const rawThresholds = row.quotaWindowThresholds;
-  const quotaWindowThresholds: Record<string, number> | null =
-    rawThresholds && typeof rawThresholds === "object" && !Array.isArray(rawThresholds)
-      ? (rawThresholds as Record<string, number>)
-      : null;
-  return {
-    id: toStringOrNull(row.id) || "",
-    provider: toStringOrNull(row.provider) || "",
-    email: toStringOrNull(row.email),
-    isActive: row.isActive === true,
-    rateLimitedUntil: toStringOrNull(row.rateLimitedUntil),
-    testStatus: toStringOrNull(row.testStatus),
-    apiKey: toStringOrNull(row.apiKey),
-    accessToken: toStringOrNull(row.accessToken),
-    refreshToken: toStringOrNull(row.refreshToken),
-    tokenExpiresAt: toStringOrNull(row.tokenExpiresAt),
-    expiresAt: toStringOrNull(row.expiresAt),
-    projectId: toStringOrNull(row.projectId),
-    defaultModel: toStringOrNull(row.defaultModel),
-    providerSpecificData: asRecord(row.providerSpecificData),
-    lastUsedAt: toStringOrNull(row.lastUsedAt),
-    consecutiveUseCount: toNumber(row.consecutiveUseCount, 0),
-    priority: toNumber(row.priority, 999),
-    lastError: toStringOrNull(row.lastError),
-    lastErrorType: toStringOrNull(row.lastErrorType),
-    lastErrorSource: toStringOrNull(row.lastErrorSource),
-    errorCode:
-      typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
-    backoffLevel: toNumber(row.backoffLevel, 0),
-    maxConcurrent: toNullableNumber(row.maxConcurrent),
-    quotaWindowThresholds,
-  };
-}
 
 function toBooleanOrDefault(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
@@ -985,7 +923,7 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
   // (for example "78code/gpt-5.4"), but live credentials are stored under
   // internal provider ids like openai-compatible-responses-<uuid>.
   try {
-    const providerNodes = await getProviderNodes();
+    const providerNodes = await getCachedProviderNodes();
     for (const node of Array.isArray(providerNodes) ? providerNodes : []) {
       const nodeRecord = asRecord(node);
       const nodePrefix = typeof nodeRecord.prefix === "string" ? nodeRecord.prefix.trim() : "";
@@ -1067,12 +1005,12 @@ export async function getProviderCredentials(
     // Fix #922: Check for aliases (nvidia/nvidia_nim) to ensure credentials are found
     const providersToSearch = await getProviderSearchPool(provider);
     const connectionResults = await Promise.all(
-      providersToSearch.map((p) => getProviderConnections({ provider: p, isActive: true }))
+      providersToSearch.map((p) => getCachedRawProviderConnections({ provider: p, isActive: true }))
     );
     const connectionsRaw = connectionResults.filter(Array.isArray).flat();
 
     let connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
-      .map(toProviderConnection)
+      .map(createLazyConnectionView)
       .filter((conn) => conn.id.length > 0);
     // allowedConnections: restrict to specific connection IDs (from API key policy, #363)
     if (allowedConnections && allowedConnections.length > 0) {
@@ -1534,10 +1472,16 @@ export async function getProviderCredentials(
             `${provider} round-robin: staying with ${current.id?.slice(0, 8)}... (count=${currentCount}/${stickyLimit})`
           );
           // Update lastUsedAt and increment count (await to ensure persistence)
-          await updateProviderConnection(connection.id, {
-            lastUsedAt: new Date().toISOString(),
-            consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
-          });
+          const nextCount = (connection.consecutiveUseCount || 0) + 1;
+          await touchConnectionLastUsed(connection.id, nextCount);
+          // Sync raw cache row so subsequent calls within TTL see fresh stats
+          for (const r of connectionsRaw as Record<string, unknown>[]) {
+            if (r.id === connection.id) {
+              r.lastUsedAt = new Date().toISOString();
+              r.consecutiveUseCount = nextCount;
+              break;
+            }
+          }
         } else {
           // Pick the least recently used (excluding current if possible)
           // Also penalize accounts with high backoffLevel (previously rate-limited)
@@ -1560,10 +1504,15 @@ export async function getProviderCredentials(
           );
 
           // Update lastUsedAt and reset count to 1 (await to ensure persistence)
-          await updateProviderConnection(connection.id, {
-            lastUsedAt: new Date().toISOString(),
-            consecutiveUseCount: 1,
-          });
+          await touchConnectionLastUsed(connection.id, 1);
+          // Sync raw cache row so subsequent calls within TTL see fresh LRU stats
+          for (const r of connectionsRaw as Record<string, unknown>[]) {
+            if (r.id === connection.id) {
+              r.lastUsedAt = new Date().toISOString();
+              r.consecutiveUseCount = 1;
+              break;
+            }
+          }
         }
       } else {
         // Fallback scenario: excluded an account due to failure
@@ -1586,10 +1535,15 @@ export async function getProviderCredentials(
         );
 
         // Update lastUsedAt and reset count to 1 (await to ensure persistence)
-        await updateProviderConnection(connection.id, {
-          lastUsedAt: new Date().toISOString(),
-          consecutiveUseCount: 1,
-        });
+        await touchConnectionLastUsed(connection.id, 1);
+        // Sync raw cache row so subsequent calls within TTL see fresh stats
+        for (const r of connectionsRaw as Record<string, unknown>[]) {
+          if (r.id === connection.id) {
+            r.lastUsedAt = new Date().toISOString();
+            r.consecutiveUseCount = 1;
+            break;
+          }
+        }
       }
     } else if (strategy === "p2c") {
       const candidatePool = withQuota.length > 0 ? withQuota : orderedConnections;
