@@ -51,6 +51,9 @@ function buildAuthHeader(providerConfig, token) {
   // strings (whitespace-only documents are accepted and ranked upstream). We
   // filter out exact empty strings and track original indices implicitly via the
   // response adapter, which reconstructs the map from options.documents (#7809).
+  // `return_documents` is always forced off upstream: Voyage echoes documents as
+  // plain strings (not Cohere's {text}), so we never rely on the echo — document
+  // text is always synthesized locally from the caller's originals (#7811).
   if (providerConfig.format === "voyage") {
     const docTexts = (body.documents || [])
       .map((doc) => (typeof doc === "string" ? doc : doc?.text || ""))
@@ -60,6 +63,7 @@ function buildAuthHeader(providerConfig, token) {
       query: body.query,
       documents: docTexts,
       top_k: body.top_n || docTexts.length,
+      return_documents: false,
     };
   }
   // Default: Cohere-compatible format (used by Together, Fireworks, Cohere, SiliconFlow)
