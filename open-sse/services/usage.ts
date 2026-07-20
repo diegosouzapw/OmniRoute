@@ -9,6 +9,7 @@ import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.t
 import { fetchOpencodeQuota, type OpencodeTripleWindowQuota } from "./opencodeQuotaFetcher.ts";
 import { getOllamaCloudUsage, getOpenCodeGoUsage } from "./opencodeOllamaUsage.ts";
 import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
+import { getPromptQlUsage } from "./usage/promptql.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
@@ -621,6 +622,9 @@ export async function getUsageForProvider(
       return await getXaiUsage(id || "");
     case "codebuddy-cn":
       return await getCodeBuddyCnUsage(accessToken, apiKey, providerSpecificData);
+    case "promptql":
+    case "pql":
+      return await getPromptQlUsage(apiKey || accessToken, providerSpecificData);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }

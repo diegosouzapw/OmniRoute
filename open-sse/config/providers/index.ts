@@ -186,6 +186,7 @@ import { kenariProvider } from "./registry/kenari/index.ts";
 import { requestyProvider } from "./registry/requesty/index.ts";
 import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
 import { hcnsecProvider } from "./registry/hcnsec/index.ts";
+import { promptqlProvider } from "./registry/promptql/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -374,4 +375,5 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   requesty: requestyProvider,
   digitalocean: digitaloceanProvider,
   hcnsec: hcnsecProvider,
+  promptql: promptqlProvider,
 };

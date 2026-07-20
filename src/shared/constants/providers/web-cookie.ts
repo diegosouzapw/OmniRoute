@@ -342,6 +342,19 @@ export const WEB_COOKIE_PROVIDERS = {
     riskNoticeVariant: "webCookie",
     authHint: "Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie)",
   },
+  "promptql": {
+    id: "promptql",
+    alias: "pql",
+    name: "PromptQL (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#5B21B6",
+    textIcon: "PQL",
+    website: "https://prompt.ql.app",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint:
+      "Paste the Bearer JWT from prompt.ql.app DevTools → Network → graphql → Authorization (token only). Optional projectId + session Cookie for refresh.",
+  },
 };
 
 /** Resolved public site for a web-session provider (href + display host). */

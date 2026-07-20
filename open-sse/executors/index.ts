@@ -59,6 +59,7 @@ import { GrokCliExecutor } from "./grok-cli.ts";
 import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
 import { XaiExecutor } from "./xai.ts";
+import { PromptQlExecutor } from "./promptql.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -166,6 +167,8 @@ const executors = {
   zmf: new ZenmuxFreeExecutor(), // Alias for zenmux-free
   auggie: new AuggieExecutor(),
   xai: new XaiExecutor(),
+  promptql: new PromptQlExecutor(),
+  pql: new PromptQlExecutor(), // Alias
 };
 
 const defaultCache = new Map();
