@@ -373,7 +373,12 @@ class PluginManager {
   async activate(name: string): Promise<void> {
     const row = getPluginByName(name);
     if (!row) throw new Error(`Plugin '${name}' not found`);
-    if (row.status === "active") return;
+    // Guard on in-memory state, not DB status. DB status survives a restart but
+    // loadedPlugins/hooks do not, so a DB-only check makes activate() a no-op for
+    // every plugin already marked active — including the loadAll() boot path, whose
+    // whole job is reloading exactly those. Hooks being fail-open, the plugin then
+    // silently enforces nothing while the UI still reports it as active.
+    if (row.status === "active" && this.loadedPlugins.has(name)) return;
 
     const manifest = JSON.parse(row.manifest) as PluginManifestWithDefaults;
 
