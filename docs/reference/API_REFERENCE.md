@@ -77,6 +77,7 @@ Content-Type: application/json
 | `X-OmniRoute-Request-Id` | Response  | Request correlation id (when known)                                                                                          |
 | `X-OmniRoute-Version`    | Response  | OmniRoute build version (always present)                                                                                     |
 | `X-OmniRoute-Cost-Saved` | Response  | USD the cache avoided on a HIT (cache hits only)                                                                             |
+| `X-OmniRoute-Decision`   | Response  | Routing trace: `strategy=<name>; provider=<alias>; latency_ms=<n>` (`<name>` is the combo strategy, or `single` for a non-combo request) — always present on completion responses |
 
 > Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
 
@@ -435,6 +436,8 @@ Response example:
 | `/api/providers/[id]/test`   | POST                  | Test provider connection                       |
 | `/api/providers/[id]/models` | GET                   | List provider models                           |
 | `/api/providers/validate`    | POST                  | Validate provider config                       |
+| `/api/providers/bulk`        | POST                  | Bulk-add API keys for ONE provider             |
+| `/api/providers/import`      | POST                  | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results |
 | `/api/provider-nodes*`       | Various               | Provider node management                       |
 | `/api/provider-models`       | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete) |
 

@@ -13,6 +13,7 @@ export {
   createProviderConnection,
   updateProviderConnection,
   clearConnectionErrorIfUnchanged,
+  touchConnectionLastUsed,
   deleteProviderConnection,
   deleteProviderConnections,
   deleteProviderConnectionsByProvider,
@@ -31,8 +32,6 @@ export {
   setConnectionRateLimitUntil,
   isConnectionRateLimited,
   getRateLimitedConnections,
-
-  // T05 startup recovery: clear stale transient cooldowns left by a prior crash
   clearStaleCrashCooldowns,
 
   // T13: Stale quota display fix (zero out usage after window resets)
@@ -67,10 +66,10 @@ export {
   getModelIsHidden,
   setModelIsHidden,
   getHiddenModelsByProvider,
-
   // Synced Available Models
   getSyncedAvailableModels,
   getAllSyncedAvailableModels,
+  getActiveProvidersWithSyncedModel,
   replaceSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForProvider,
@@ -238,6 +237,9 @@ export {
   getCachedSettings,
   getCachedPricing,
   getCachedProviderConnections,
+  getCachedRawProviderConnections,
+  getCachedProviderConnectionById,
+  getCachedProviderNodes,
   getCachedLKGP,
   setCachedLKGP,
   invalidateDbCache,
@@ -312,7 +314,7 @@ export type { FileRecord } from "./db/files";
 export type { BatchItemCheckpoint, BatchRecord } from "./db/batches";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
-
+export * from "./db/reasoningRoutingRules";
 export {
   // Webhooks
   getWebhooks,

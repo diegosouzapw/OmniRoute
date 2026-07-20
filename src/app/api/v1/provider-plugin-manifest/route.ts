@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { CORS_HEADERS } from "@/shared/utils/cors";
 import { generateProviderPluginManifest } from "@omniroute/open-sse/config/providerPluginManifestRegistry.ts";
 import { getServiceRow } from "@/lib/db/versionManager";
@@ -38,7 +40,6 @@ function createServiceManifestTemplate(providerId: string): ProviderPluginManife
 
 const SERVICE_MODEL_CACHE_HEADERS = {
   ...CORS_HEADERS,
-  "Content-Type": "application/json",
   "Cache-Control": "public, max-age=60",
 } as const;
 
@@ -153,6 +154,19 @@ export async function injectServiceModelsIntoManifest(
   };
 }
 
+function createEtag(body: string): string {
+  return `"${createHash("sha256").update(body).digest("base64url")}"`;
+}
+
+function matchesEtag(ifNoneMatch: string | null, etag: string): boolean {
+  return Boolean(
+    ifNoneMatch
+      ?.split(",")
+      .map((value) => value.trim())
+      .some((value) => value === "*" || value === etag || value === `W/${etag}`)
+  );
+}
+
 export async function OPTIONS() {
   return new Response(null, {
     headers: {
@@ -163,8 +177,23 @@ export async function OPTIONS() {
   });
 }
 
-export async function GET() {
-  return new Response(JSON.stringify(await injectServiceModelsIntoManifest(generateProviderPluginManifest())), {
-    headers: SERVICE_MODEL_CACHE_HEADERS,
+// #7744-adjacent: the manifest embeds live service-backend model state (which can
+// change while the process runs — see shouldExposeServiceModels/getServiceModels),
+// so the body itself is NOT cached across requests (unlike the module-static
+// provider registry snapshot). ETag/If-None-Match support is still computed per
+// request so unchanged responses can short-circuit to a 304.
+export async function GET(request: Request) {
+  const body = JSON.stringify(
+    await injectServiceModelsIntoManifest(generateProviderPluginManifest())
+  );
+  const etag = createEtag(body);
+  const headers = { ...SERVICE_MODEL_CACHE_HEADERS, ETag: etag };
+
+  if (matchesEtag(request.headers.get("If-None-Match"), etag)) {
+    return new Response(null, { status: 304, headers });
+  }
+
+  return new Response(body, {
+    headers: { ...headers, "Content-Type": "application/json" },
   });
 }

@@ -10,9 +10,10 @@
 
 import Bottleneck from "bottleneck";
 import { parseRetryAfterFromBody } from "./accountFallback.ts";
+import { getAntigravityQuotaFamily } from "./antigravityQuotaFamily.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
 import { getCodexRateLimitKey } from "../executors/codex.ts";
-import { awaitProviderDefaultSlot } from "./providerDefaultRateLimit.ts";
+import { awaitProviderDefaultSlot, setProviderQuotaOverrides } from "./providerDefaultRateLimit.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
@@ -24,6 +25,7 @@ import {
   parseResetTime,
   toPlainHeaders,
 } from "./rateLimitManager/headers";
+import { checkQueueAdmission } from "./rateLimitManager/admission";
 
 interface LearnedLimitEntry {
   provider: string;
@@ -340,10 +342,14 @@ export async function initializeRateLimits() {
   initialized = true;
 
   try {
-    const { getProviderConnections, getSettings } = await import("@/lib/localDb");
-    const [connections, settings] = await Promise.all([getProviderConnections(), getSettings()]);
+    const { getCachedProviderConnections, getSettings } = await import("@/lib/localDb");
+    const [connections, settings] = await Promise.all([getCachedProviderConnections(), getSettings()]);
     const resilience = resolveResilienceSettings(settings);
     currentRequestQueueSettings = { ...resilience.requestQueue };
+    // #6846 Phase 1: operator overrides for header-less providers' static RPM
+    // budget + concurrency cap (nvidia today). No-op for every provider without
+    // an entry in either providerQuotaOverrides or PROVIDER_DEFAULT_RATE_LIMITS.
+    setProviderQuotaOverrides(resilience.providerQuotaOverrides);
     const { explicitCount, autoCount } = reconcileEnabledConnections(
       connections as unknown[],
       currentRequestQueueSettings
@@ -377,9 +383,8 @@ export async function initializeRateLimits() {
 }
 
 export async function applyRequestQueueSettings(nextSettings: RequestQueueSettings) {
-  currentRequestQueueSettings = { ...nextSettings };
-  const { getProviderConnections } = await import("@/lib/localDb");
-  const connections = await getProviderConnections();
+  const { getCachedProviderConnections } = await import("@/lib/localDb");
+  const connections = await getCachedProviderConnections();
   reconcileEnabledConnections(connections as unknown[], currentRequestQueueSettings);
   updateAllLimiterSettings();
 }
@@ -454,6 +459,11 @@ export function refreshConnectionRateLimits(connectionId, overrides) {
 function getLimiterKey(provider, connectionId, model = null) {
   if (provider === "codex" && model) {
     return `${provider}:${getCodexRateLimitKey(connectionId, model)}`;
+  }
+  if ((provider === "antigravity" || provider === "agy") && model) {
+    const family = getAntigravityQuotaFamily(model);
+    const scope = family === "other" ? model : family;
+    return `${provider}:${connectionId}:${scope}`;
   }
   // Gemini AI Studio and GitHub Copilot have per-model quotas — use model-scoped
   // limiter keys so a 429 on one model doesn't pause requests for other models.
@@ -547,17 +557,46 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
   const maxWaitMs = currentRequestQueueSettings.maxWaitMs;
   const scheduleOpts = maxWaitMs && maxWaitMs > 0 ? { expiration: maxWaitMs } : {};
 
+  // Issue #6593: opt-in admission cap — fast-reject before Bottleneck's
+  // schedule() (and before any downstream compression/prompt work runs) when
+  // the queue is already at/over maxQueueDepth. Default 0 = disabled.
+  const admissionErr = checkQueueAdmission(
+    limiter.counts().QUEUED,
+    currentRequestQueueSettings.maxQueueDepth,
+    model ? `${provider}/${model}` : provider
+  );
+  if (admissionErr) {
+    logRateLimit(
+      `🚧 [RATE-LIMIT] ${getLimiterKey(provider, connectionId, model)} — queue full, rejecting fast (maxQueueDepth=${currentRequestQueueSettings.maxQueueDepth})`
+    );
+    throw admissionErr;
+  }
+
   try {
     if (signal) {
       let abortListener: (() => void) | undefined;
       const abortPromise = new Promise<never>((_, reject) => {
         const onAbort = () => {
           const reason = signal.reason;
-          const err =
+          // Build a fresh Error rather than mutating `reason` in place: the
+          // default abort reason (when `controller.abort()` is called with no
+          // argument, e.g. modelTestRunner's timeout path) is a native
+          // DOMException, whose `name` is a read-only getter — assigning
+          // `err.name = "AbortError"` on it throws `TypeError: Cannot set
+          // property name of [object DOMException] which has only a getter`,
+          // which then surfaces as an unhandled rejection instead of the
+          // intended "slow"/timeout result.
+          const message =
             reason instanceof Error
-              ? reason
-              : new Error(typeof reason === "string" ? reason : "The operation was aborted");
+              ? reason.message
+              : typeof reason === "string"
+                ? reason
+                : "The operation was aborted";
+          const err = new Error(message);
           err.name = "AbortError";
+          if (reason !== undefined) {
+            (err as Error & { cause?: unknown }).cause = reason;
+          }
           reject(err);
         };
         if (signal.aborted) {

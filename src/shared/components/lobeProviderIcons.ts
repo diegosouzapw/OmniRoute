@@ -140,7 +140,7 @@ import SenseNovaColorIcon from "@lobehub/icons/es/SenseNova/components/Color";
 import SenseNovaMonoIcon from "@lobehub/icons/es/SenseNova/components/Mono";
 import StabilityColorIcon from "@lobehub/icons/es/Stability/components/Color";
 import StabilityMonoIcon from "@lobehub/icons/es/Stability/components/Mono";
-import StepfunColorIcon from "@lobehub/icons/es/Stepfun/components/Color";
+// Stepfun has no Color component in the installed @lobehub/icons version; use Mono as fallback
 import StepfunMonoIcon from "@lobehub/icons/es/Stepfun/components/Mono";
 import SunoMonoIcon from "@lobehub/icons/es/Suno/components/Mono";
 import TavilyColorIcon from "@lobehub/icons/es/Tavily/components/Color";
@@ -281,7 +281,7 @@ const LOBE_ICON_COMPONENTS = {
   SenseNova: { mono: SenseNovaMonoIcon, color: SenseNovaColorIcon },
   Snowflake: { mono: SnowflakeMonoIcon, color: SnowflakeColorIcon },
   Stability: { mono: StabilityMonoIcon, color: StabilityColorIcon },
-  Stepfun: { mono: StepfunMonoIcon, color: StepfunColorIcon },
+  Stepfun: { mono: StepfunMonoIcon, color: StepfunMonoIcon },
   Suno: { mono: SunoMonoIcon },
   Tavily: { mono: TavilyMonoIcon, color: TavilyColorIcon },
   Tencent: { mono: TencentMonoIcon, color: TencentColorIcon },
@@ -371,6 +371,7 @@ const LOBE_PROVIDER_ALIASES = {
   github: "GithubCopilot",
   "github-models": "Github",
   "github-copilot": "GithubCopilot",
+  "ghe-copilot": "GithubCopilot",
   glm: "Zhipu",
   "glm-cn": "Zhipu",
   glmt: "Zhipu",

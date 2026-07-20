@@ -54,7 +54,7 @@ export function getUsageSummary(unifiedSource: string, params: AnalyticsParams):
         COALESCE(SUM(tokens_output), 0) as completionTokens,
         COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
         COUNT(DISTINCT model) as uniqueModels,
-        COUNT(DISTINCT connection_id) as uniqueAccounts,
+        COUNT(DISTINCT COALESCE(NULLIF(account_key, ''), NULLIF(connection_id, ''))) as uniqueAccounts,
         COUNT(DISTINCT COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''))) as uniqueApiKeys,
         COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests,
         COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
@@ -315,7 +315,7 @@ export function getProviderUsageRows(
 // ---------------------------------------------------------------------------
 
 export interface AccountCostRow {
-  account: string;
+  accountKey: string;
   provider: string;
   model: string;
   serviceTier: string;
@@ -327,8 +327,7 @@ export interface AccountCostRow {
 }
 
 /**
- * Per-account cost breakdown joined with provider_connections for display names.
- * Uses `usage_history` directly (JOIN requires real table, not a subquery alias).
+ * Per-account cost breakdown grouped by the identity snapshot stored on each usage event.
  *
  * @param whereClause - SQL WHERE clause (may be empty string); column refs already
  *                      prefixed with `usage_history.` by the caller.
@@ -339,20 +338,35 @@ export function getAccountCostRows(whereClause: string, params: AnalyticsParams)
   return db
     .prepare(
       `
+      WITH account_events AS (
+        SELECT
+          COALESCE(
+            NULLIF(usage_history.account_key, ''),
+            'connection:' || COALESCE(LOWER(usage_history.provider), 'unknown') || ':' || COALESCE(usage_history.connection_id, 'unknown')
+          ) as resolved_account_key,
+          usage_history.provider,
+          usage_history.model,
+          usage_history.service_tier,
+          usage_history.tokens_input,
+          usage_history.tokens_output,
+          usage_history.tokens_cache_read,
+          usage_history.tokens_cache_creation,
+          usage_history.tokens_reasoning
+        FROM usage_history
+        ${whereClause}
+      )
       SELECT
-        COALESCE(NULLIF(c.display_name, ''), NULLIF(c.email, ''), NULLIF(c.name, ''), usage_history.connection_id, 'unknown') as account,
-        LOWER(usage_history.provider) as provider,
-        LOWER(usage_history.model) as model,
-        COALESCE(NULLIF(usage_history.service_tier, ''), 'standard') as serviceTier,
-        COALESCE(SUM(usage_history.tokens_input), 0) as promptTokens,
-        COALESCE(SUM(usage_history.tokens_output), 0) as completionTokens,
-        COALESCE(SUM(usage_history.tokens_cache_read), 0) as cacheReadTokens,
-        COALESCE(SUM(usage_history.tokens_cache_creation), 0) as cacheCreationTokens,
-        COALESCE(SUM(usage_history.tokens_reasoning), 0) as reasoningTokens
-      FROM usage_history
-      LEFT JOIN provider_connections c ON c.id = usage_history.connection_id
-      ${whereClause}
-      GROUP BY account, LOWER(usage_history.provider), LOWER(usage_history.model), serviceTier
+        account_events.resolved_account_key as accountKey,
+        LOWER(account_events.provider) as provider,
+        LOWER(account_events.model) as model,
+        COALESCE(NULLIF(account_events.service_tier, ''), 'standard') as serviceTier,
+        COALESCE(SUM(account_events.tokens_input), 0) as promptTokens,
+        COALESCE(SUM(account_events.tokens_output), 0) as completionTokens,
+        COALESCE(SUM(account_events.tokens_cache_read), 0) as cacheReadTokens,
+        COALESCE(SUM(account_events.tokens_cache_creation), 0) as cacheCreationTokens,
+        COALESCE(SUM(account_events.tokens_reasoning), 0) as reasoningTokens
+      FROM account_events
+      GROUP BY accountKey, LOWER(account_events.provider), LOWER(account_events.model), serviceTier
     `
     )
     .all(params) as AccountCostRow[];
@@ -361,6 +375,7 @@ export function getAccountCostRows(whereClause: string, params: AnalyticsParams)
 // ---------------------------------------------------------------------------
 
 export interface AccountUsageRow {
+  accountKey: string;
   account: string;
   requests: number;
   promptTokens: number;
@@ -371,7 +386,7 @@ export interface AccountUsageRow {
 }
 
 /**
- * Per-account usage aggregates joined with provider_connections for display names.
+ * Per-account usage aggregates grouped by the identity snapshot stored on each usage event.
  *
  * @param whereClause - SQL WHERE clause (may be empty string); column refs already
  *                      prefixed with `usage_history.` by the caller.
@@ -385,18 +400,69 @@ export function getAccountUsageRows(
   return db
     .prepare(
       `
+      WITH account_events AS (
+        SELECT
+          usage_history.*,
+          COALESCE(NULLIF(usage_history.account_key, ''), 'connection:' || COALESCE(LOWER(usage_history.provider), 'unknown') || ':' || COALESCE(usage_history.connection_id, 'unknown')) as resolved_account_key
+        FROM usage_history
+        ${whereClause}
+      ),
+      stable_account_keys AS (
+        SELECT DISTINCT account_key
+        FROM account_events
+        WHERE account_key > ''
+      ),
+      stable_labels AS (
+        SELECT
+          stable_account_keys.account_key,
+          (
+            SELECT usage_history.account_label
+            FROM usage_history
+            WHERE usage_history.account_key = stable_account_keys.account_key
+              AND NULLIF(usage_history.account_label, '') IS NOT NULL
+            ORDER BY COALESCE(usage_history.account_label_priority, 0) DESC,
+                     usage_history.timestamp DESC,
+                     usage_history.id DESC
+            LIMIT 1
+          ) as account_label
+        FROM stable_account_keys
+      ),
+      legacy_labels AS (
+        SELECT account_key, account_label
+        FROM (
+          SELECT
+            account_events.resolved_account_key as account_key,
+            account_events.account_label,
+            ROW_NUMBER() OVER (
+              PARTITION BY account_events.resolved_account_key
+              ORDER BY COALESCE(account_events.account_label_priority, 0) DESC,
+                       account_events.timestamp DESC,
+                       account_events.id DESC
+            ) as label_rank
+          FROM account_events
+          WHERE (account_events.account_key IS NULL OR account_events.account_key = '')
+            AND NULLIF(account_events.account_label, '') IS NOT NULL
+        )
+        WHERE label_rank = 1
+      ),
+      selected_labels AS (
+        SELECT account_key, account_label FROM stable_labels
+        UNION ALL
+        SELECT account_key, account_label FROM legacy_labels
+      )
       SELECT
-        COALESCE(NULLIF(c.display_name, ''), NULLIF(c.email, ''), NULLIF(c.name, ''), usage_history.connection_id, 'unknown') as account,
-        COUNT(usage_history.id) as requests,
-        COALESCE(SUM(usage_history.tokens_input), 0) as promptTokens,
-        COALESCE(SUM(usage_history.tokens_output), 0) as completionTokens,
-        COALESCE(SUM(usage_history.tokens_input + usage_history.tokens_output), 0) as totalTokens,
-        COALESCE(AVG(usage_history.latency_ms), 0) as avgLatencyMs,
-        COALESCE(MAX(usage_history.timestamp), '') as lastUsed
-      FROM usage_history
-      LEFT JOIN provider_connections c ON c.id = usage_history.connection_id
-      ${whereClause}
-      GROUP BY account
+        account_events.resolved_account_key as accountKey,
+        COALESCE(selected_labels.account_label, account_events.connection_id, 'unknown') as account,
+        COUNT(account_events.id) as requests,
+        COALESCE(SUM(account_events.tokens_input), 0) as promptTokens,
+        COALESCE(SUM(account_events.tokens_output), 0) as completionTokens,
+        COALESCE(SUM(account_events.tokens_input + account_events.tokens_output), 0) as totalTokens,
+        COALESCE(AVG(account_events.latency_ms), 0) as avgLatencyMs,
+        COALESCE(MAX(account_events.timestamp), '') as lastUsed
+      FROM account_events
+      LEFT JOIN selected_labels
+        ON selected_labels.account_key = account_events.resolved_account_key
+      GROUP BY accountKey
       ORDER BY requests DESC
       LIMIT 50
     `

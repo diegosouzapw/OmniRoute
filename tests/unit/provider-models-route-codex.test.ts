@@ -176,10 +176,16 @@ test("provider models route merges live Codex models with the local catalog then
   assert.ok(modelIds.has("gpt-5.6-sol"));
   assert.ok(modelIds.has("gpt-5.6-sol-ultra"));
   assert.ok(modelIds.has("gpt-5.6-sol-max"));
-  // Live payload wins on overlapping fields; local catalog supplies local-only variants.
+  // Live payload wins on overlapping fields; local catalog supplies local-only
+  // variants. EXCEPTION: capacity limits (inputTokenLimit/outputTokenLimit)
+  // merge conservatively — the smaller of live vs. pinned wins, never the
+  // larger, so a stale/inflated live number can never make OmniRoute promise
+  // more context than the account can actually serve (#7012). Here the pinned
+  // GPT-5.6 Codex contract (372000/128000, see GPT_5_6_CODEX_CAPABILITIES) is
+  // smaller than the live payload's 999999/999999, so the pinned value wins.
   assert.equal(liveModel?.name, "GPT 5.6 Sol Live");
-  assert.equal(liveModel?.inputTokenLimit, 999999);
-  assert.equal(liveModel?.outputTokenLimit, 999999);
+  assert.equal(liveModel?.inputTokenLimit, 372000);
+  assert.equal(liveModel?.outputTokenLimit, 128000);
   assert.equal(liveModel?.apiFormat, "responses");
   assert.deepEqual(liveModel?.supportedEndpoints, ["responses"]);
   assert.equal(liveModel?.supportsThinking, true);
@@ -198,6 +204,44 @@ test("provider models route merges live Codex models with the local catalog then
   // Stale cache-only ids are replaced when a fresh discovery response is persisted.
   assert.equal(modelIds.has("stale-codex-model"), false);
   assert.equal(syncedIds.has("stale-codex-model"), false);
+});
+
+test("provider models route: live token limit wins when it is SMALLER than the pinned local catalog value", async () => {
+  const connection = await seedCodexConnection({
+    accessToken: "codex-access-token",
+    providerSpecificData: { chatgptAccountId: "account-123" },
+  });
+
+  globalThis.fetch = async (url) => {
+    const requestUrl = String(url);
+    if (requestUrl.includes("raw.githubusercontent.com/openai/codex")) {
+      return Response.json({ models: [] });
+    }
+    // Live reports a SMALLER budget than the pinned GPT-5.6 Codex contract
+    // (372000/128000, GPT_5_6_CODEX_CAPABILITIES) — e.g. a temporary
+    // account-level cap. The conservative merge must take the smaller live
+    // value here, not the larger pinned one (#7012).
+    return Response.json({
+      models: [
+        {
+          slug: "gpt-5.6-sol",
+          display_name: "GPT 5.6 Sol Live",
+          visibility: "list",
+          supported_in_api: true,
+          max_input_tokens: 100000,
+          max_output_tokens: 50000,
+        },
+      ],
+    });
+  };
+
+  const response = await callRoute(connection.id, "?refresh=true");
+  const body = (await response.json()) as RouteBody;
+  const liveModel = body.models?.find((model) => model.id === "gpt-5.6-sol");
+
+  assert.equal(response.status, 200);
+  assert.equal(liveModel?.inputTokenLimit, 100000);
+  assert.equal(liveModel?.outputTokenLimit, 50000);
 });
 
 test("provider models route uses the GitHub Codex catalog when live discovery fails", async () => {

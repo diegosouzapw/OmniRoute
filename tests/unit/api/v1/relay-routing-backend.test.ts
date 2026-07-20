@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import {
   getBifrostRoutingConfig,
   getRoutingFallbackHeader,
+  getRoutingFallbackReasonHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrost,
   shouldTryBifrostForRequest,
@@ -175,4 +176,30 @@ test("automatic relay keeps the Bifrost timeout active until an SSE stream final
   assert.match(streamBranch, /const statusCode = timedOut \? 504 : upstream\.status/);
   assert.match(streamBranch, /error && backend === "auto"/);
   assert.match(streamBranch, /recordBifrostFailure\(/);
+});
+
+test("relay routing fallback reason header strips dynamic cooldown detail to the stable code", () => {
+  assert.equal(
+    getRoutingFallbackReasonHeader("bifrost-cooldown; remaining=1500"),
+    "bifrost-cooldown"
+  );
+});
+
+test("relay routing fallback reason header passes already-stable reasons through unchanged", () => {
+  assert.equal(getRoutingFallbackReasonHeader("bifrost-error"), "bifrost-error");
+  assert.equal(getRoutingFallbackReasonHeader("bifrost-ineligible"), "bifrost-ineligible");
+  assert.equal(
+    getRoutingFallbackReasonHeader("bifrost-provider-unknown"),
+    "bifrost-provider-unknown"
+  );
+});
+
+test("relay routing fallback reason header stays unset for the bare static legacy value", () => {
+  assert.equal(getRoutingFallbackReasonHeader("bifrost"), undefined);
+});
+
+test("relay routing fallback reason header stays unset for null/undefined/unrecognized input", () => {
+  assert.equal(getRoutingFallbackReasonHeader(null), undefined);
+  assert.equal(getRoutingFallbackReasonHeader(undefined), undefined);
+  assert.equal(getRoutingFallbackReasonHeader("something-unrecognized"), undefined);
 });

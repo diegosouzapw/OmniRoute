@@ -2,7 +2,8 @@
  * GrokCliExecutor — Grok Build Provider
  *
  * Routes requests through Grok's chat proxy endpoint using OAuth authentication.
- * Uses Node.js https module directly with IPv4 forced to bypass Cloudflare blocking.
+ * Uses Node.js https module directly with IPv4 forced to bypass Cloudflare blocking
+ * (only for the no-proxy direct path — see resolveGrokRequestDispatch below).
  * Supports automatic token refresh via refresh_token.
  */
 
@@ -14,10 +15,61 @@ import {
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { resolvePublicCred } from "../utils/publicCreds.ts";
+import { resolveProxyForRequest } from "../utils/proxyFetch.ts";
+import { runWithOnPersist, isUnrecoverableRefreshError } from "../services/tokenRefresh.ts";
 import https from "node:https";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 const GROK_TOKEN_URL = "https://auth.x.ai/oauth2/token";
 const REQUEST_TIMEOUT_MS = 60_000;
+// xAI cli-chat-proxy hard limit on tools per request.
+const MAX_TOOLS = 200;
+
+type ProxyResolution = { source: string; proxyUrl: string | null };
+type GrokRequestDispatch = { agent?: https.Agent; family?: 4 };
+
+/**
+ * Resolve how a Grok Build request to `targetUrl` should egress: through the
+ * operator's configured proxy (connection/provider/global — whatever the caller
+ * already pinned via `runWithProxyContext` upstream in chatHelpers.ts) when one
+ * is set, or direct with the existing forced-IPv4 workaround when none is.
+ *
+ * This executor talks to Grok via raw `https.request()` instead of the global
+ * patched `fetch()` (every other executor's path), so it never consulted the
+ * proxy context at all — a configured proxy was silently ignored and the
+ * request always egressed on the host's real IP. Only HTTP/HTTPS (CONNECT)
+ * proxies are supported here; an explicitly configured proxy of another kind
+ * (e.g. SOCKS5) fails closed rather than silently falling back to direct,
+ * matching the "fail closed for OAuth usage account proxies" convention (#3051).
+ *
+ * `resolveProxy` is injectable for tests; defaults to the shared
+ * `resolveProxyForRequest` used by the patched global fetch.
+ */
+export function resolveGrokRequestDispatch(
+  targetUrl: string,
+  resolveProxy: (url: string) => ProxyResolution = resolveProxyForRequest
+): GrokRequestDispatch {
+  const { proxyUrl } = resolveProxy(targetUrl);
+
+  if (!proxyUrl) {
+    return { family: 4 };
+  }
+
+  let protocol: string;
+  try {
+    protocol = new URL(proxyUrl).protocol;
+  } catch {
+    throw new Error("Grok Build: configured proxy URL could not be parsed");
+  }
+
+  if (protocol === "http:" || protocol === "https:") {
+    return { agent: new HttpsProxyAgent(proxyUrl) as unknown as https.Agent };
+  }
+
+  throw new Error(
+    "Grok Build: configured proxy protocol is not supported for this provider (HTTP/HTTPS proxies only)"
+  );
+}
 
 export class GrokCliExecutor extends BaseExecutor {
   constructor() {
@@ -25,15 +77,76 @@ export class GrokCliExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    const { model, body, stream, credentials, signal } = input;
+    const { model, body, stream, credentials, signal, log, onCredentialsRefreshed } = input;
 
-    const url = this.buildUrl(model, stream, 0, credentials);
-    const headers = this.buildHeaders(credentials, stream);
-    const transformedBody = this.transformRequest(model, body, stream, credentials);
+    // #7610: unlike BaseExecutor.execute() (which most executors inherit or
+    // delegate to via super.execute()), this executor talks upstream via raw
+    // https.request() (nativePost) instead of the shared fetch path, so it
+    // never picked up the base class's proactive refresh gate. Without it,
+    // xAI's rotating refresh_token idled until real expiry — the only refresh
+    // that fired was the reactive one on a 401/403 from upstream — matching
+    // the "unusable within minutes" report. Apply the same gate here.
+    const activeCredentials = await this.applyProactiveRefresh(
+      credentials,
+      log,
+      onCredentialsRefreshed
+    );
+
+    const url = this.buildUrl(model, stream, 0, activeCredentials);
+    const headers = this.buildHeaders(activeCredentials, stream);
+    const transformedBody = this.transformRequest(model, body, stream, activeCredentials);
     const bodyStr = JSON.stringify(transformedBody);
 
     const response = await this.nativePost(url, headers, bodyStr, signal);
     return { response, url, headers, transformedBody };
+  }
+
+  /**
+   * Proactive-refresh gate mirroring BaseExecutor.execute()'s (base.ts:599-685),
+   * scoped to grok-cli's single-URL nativePost dispatch (no fallback-URL retry
+   * loop to thread through). xAI uses rotating refresh tokens (same family as
+   * Codex/Claude) — `runWithOnPersist` keeps the [refresh + persist] atomic
+   * under the same per-connection mutex `getAccessToken` uses, and
+   * `isUnrecoverableRefreshError` keeps a reused/invalid sentinel from being
+   * spread into the outgoing credentials — see base.ts:622-673 for the full
+   * regression history this mirrors.
+   */
+  private async applyProactiveRefresh(
+    credentials: ProviderCredentials,
+    log?: ExecutorLog | null,
+    onCredentialsRefreshed?: ExecuteInput["onCredentialsRefreshed"]
+  ): Promise<ProviderCredentials> {
+    if (!this.needsRefresh(credentials)) return credentials;
+
+    try {
+      let persistRan = false;
+      const onPersist = onCredentialsRefreshed
+        ? async (refreshResult: Record<string, unknown>) => {
+            persistRan = true;
+            await onCredentialsRefreshed(refreshResult as Partial<ProviderCredentials>);
+          }
+        : null;
+
+      const refreshed = await runWithOnPersist(onPersist, () =>
+        this.refreshCredentials(credentials, log || null)
+      );
+
+      if (!refreshed || isUnrecoverableRefreshError(refreshed)) {
+        return credentials;
+      }
+
+      const merged = { ...credentials, ...refreshed };
+      if (onCredentialsRefreshed && !persistRan) {
+        await onCredentialsRefreshed(refreshed);
+      }
+      return merged;
+    } catch (error) {
+      log?.error?.(
+        "TOKEN",
+        `Credential refresh failed for ${this.provider}: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return credentials;
+    }
   }
 
   async refreshCredentials(
@@ -100,6 +213,7 @@ export class GrokCliExecutor extends BaseExecutor {
     timeoutMs = 10_000
   ): Promise<{ status: number; body: string }> {
     const urlObj = new URL(url);
+    const dispatch = resolveGrokRequestDispatch(url);
 
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => req.destroy(new Error("Timeout")), timeoutMs);
@@ -110,7 +224,8 @@ export class GrokCliExecutor extends BaseExecutor {
           port: 443,
           path: urlObj.pathname + urlObj.search,
           method: "POST",
-          family: 4,
+          ...(dispatch.family ? { family: dispatch.family } : {}),
+          ...(dispatch.agent ? { agent: dispatch.agent } : {}),
           headers: {
             ...headers,
             "Content-Length": Buffer.byteLength(bodyStr),
@@ -145,6 +260,7 @@ export class GrokCliExecutor extends BaseExecutor {
     signal?: AbortSignal | null
   ): Promise<Response> {
     const urlObj = new URL(url);
+    const dispatch = resolveGrokRequestDispatch(url);
 
     if (signal?.aborted) {
       return Promise.reject(new Error("Aborted"));
@@ -167,7 +283,8 @@ export class GrokCliExecutor extends BaseExecutor {
           port: 443,
           path: urlObj.pathname + urlObj.search,
           method: "POST",
-          family: 4,
+          ...(dispatch.family ? { family: dispatch.family } : {}),
+          ...(dispatch.agent ? { agent: dispatch.agent } : {}),
           headers: {
             ...headers,
             "Content-Length": Buffer.byteLength(bodyStr),
@@ -255,6 +372,14 @@ export class GrokCliExecutor extends BaseExecutor {
       if (param in transformed) {
         delete transformed[param];
       }
+    }
+
+    // xAI's cli-chat-proxy enforces a maximum of 200 tools per request and
+    // 400s above that ceiling. Clients that fan a large MCP toolset through
+    // Grok Build/Composer (e.g. Claude Code with many registered tools) can
+    // exceed it — cap defensively rather than let the request fail upstream.
+    if (Array.isArray(transformed.tools) && transformed.tools.length > MAX_TOOLS) {
+      transformed.tools = transformed.tools.slice(0, MAX_TOOLS);
     }
 
     return transformed;
