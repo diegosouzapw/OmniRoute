@@ -7275,6 +7275,7 @@
     "restartServerWithNewPassword": "Khởi động lại máy chủ - máy chủ sẽ sử dụng mật khẩu mới",
     "backToLogin": "Quay lại Đăng nhập",
     "forgotPassword": "Quên mật khẩu?",
+    "continueWithOidc": "Tiếp tục với OIDC",
     "defaultPasswordHint": "Mật khẩu mặc định: CHANGEME (trừ khi INITIAL_PASSWORD đã được đặt)",
     "Authorization": "Authorization",
     "Content-Disposition": "Content-Disposition",

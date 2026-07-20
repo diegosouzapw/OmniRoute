@@ -19,7 +19,7 @@ interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
 }
 
-export async function getProviderNodes(filter: JsonRecord = {}) {
+export async function getProviderNodes(filter: JsonRecord = {}, limit?: number, offset?: number) {
   const db = getDbInstance() as unknown as DbLike;
   let sql = "SELECT * FROM provider_nodes";
   const params: Record<string, unknown> = {};
@@ -28,8 +28,28 @@ export async function getProviderNodes(filter: JsonRecord = {}) {
     sql += " WHERE type = @type";
     params.type = filter.type;
   }
+  sql += " ORDER BY id ASC";
+  if (limit !== undefined) {
+    sql += " LIMIT @limit OFFSET @offset";
+    params.limit = limit;
+    params.offset = offset ?? 0;
+  }
 
   return db.prepare(sql).all(params).map(rowToCamel);
+}
+
+export function getProviderNodesCount(filter: JsonRecord = {}): number {
+  const db = getDbInstance() as unknown as DbLike;
+  let sql = "SELECT count(*) as cnt FROM provider_nodes";
+  const params: Record<string, unknown> = {};
+
+  if (filter.type) {
+    sql += " WHERE type = @type";
+    params.type = filter.type;
+  }
+
+  const row = db.prepare(sql).get(params) as { cnt: number };
+  return row.cnt;
 }
 
 export async function getProviderNodeById(id: string) {

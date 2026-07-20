@@ -297,7 +297,8 @@ export async function runSingleModelTest(
   const runInner = async (signal: AbortSignal): Promise<Response> => {
     if (isEmbedding) {
       return handleValidatedEmbeddingRequestBody(
-        testBody as Record<string, unknown> & { model: string }
+        testBody as Record<string, unknown> & { model: string },
+        { connectionId: connectionId || undefined }
       );
     }
     if (isRerank) {

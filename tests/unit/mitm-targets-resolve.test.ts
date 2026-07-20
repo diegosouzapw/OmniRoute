@@ -32,13 +32,14 @@ test("resolveTarget — unknown host returns null", () => {
   assert.equal(resolveTarget(""), null);
 });
 
-test("ALL_TARGETS — registers exactly nine targets", () => {
-  assert.equal(ALL_TARGETS.length, 9);
+test("ALL_TARGETS — registers exactly ten targets", () => {
+  assert.equal(ALL_TARGETS.length, 10);
   const ids = new Set(ALL_TARGETS.map((t) => t.id));
-  assert.equal(ids.size, 9);
+  assert.equal(ids.size, 10);
   assert.ok(ids.has("antigravity"));
   assert.ok(ids.has("kiro"));
   assert.ok(ids.has("copilot"));
+  assert.ok(ids.has("ghe-copilot"));
   assert.ok(ids.has("codex"));
   assert.ok(ids.has("cursor"));
   assert.ok(ids.has("zed"));

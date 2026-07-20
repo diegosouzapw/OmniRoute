@@ -1315,6 +1315,10 @@ export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | nu
  */
 export function resetDbInstance() {
   closeDbInstance();
+  // Read caches outlive the SQLite singleton. A reset swaps the backing
+  // database, so retaining cached rows can leak the previous database's
+  // connections/settings into the newly opened instance (tests and restore).
+  invalidateDbCache();
 }
 
 // ──────────────── Runtime Driver Info ────────────────

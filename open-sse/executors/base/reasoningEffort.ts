@@ -38,6 +38,105 @@ export const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 // Order matters: the opt-in check must run BEFORE the broad Claude/haiku/oswe strip.
 export const GITHUB_REASONING_EFFORT_OPT_IN_PATTERN = /claude[-_.]?(?:opus|sonnet)[-_.]?4[-_.]6/i;
 export const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
+const NVIDIA_GLM_52_PATTERN = /z-ai\/glm-5\.2\b/i;
+
+type ReasoningSanitizeLog = {
+  info?: (tag: string, msg: string) => void;
+};
+
+function isNvidiaGlm52(provider: string, model: string | undefined): boolean {
+  return provider === "nvidia" && NVIDIA_GLM_52_PATTERN.test(model || "");
+}
+
+type NvidiaGlm52EffortInfo = {
+  reasoning: Record<string, unknown> | null;
+  effortStr: string;
+};
+
+/** Pulls a normalized (lowercased) effort string out of top-level or nested `reasoning.effort`. */
+function extractNvidiaGlm52Effort(b: Record<string, unknown>): NvidiaGlm52EffortInfo | null {
+  const reasoning =
+    b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
+      ? (b.reasoning as Record<string, unknown>)
+      : null;
+  const effort = b.reasoning_effort ?? reasoning?.effort;
+  if (effort === undefined) return null;
+
+  const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
+  if (!effortStr) return null;
+
+  return { reasoning, effortStr };
+}
+
+/** Builds `chat_template_kwargs.enable_thinking`, or null when the existing kwargs shape is unusable. */
+function buildNvidiaGlm52TemplateKwargs(
+  rawTemplateKwargs: unknown,
+  effortStr: string
+): Record<string, unknown> | null {
+  if (
+    rawTemplateKwargs !== undefined &&
+    (!rawTemplateKwargs ||
+      typeof rawTemplateKwargs !== "object" ||
+      Array.isArray(rawTemplateKwargs))
+  ) {
+    return null;
+  }
+
+  const templateKwargs = {
+    ...((rawTemplateKwargs as Record<string, unknown> | undefined) ?? {}),
+  };
+  if (!Object.prototype.hasOwnProperty.call(templateKwargs, "enable_thinking")) {
+    templateKwargs.enable_thinking = effortStr !== "none";
+  }
+  return templateKwargs;
+}
+
+/** Returns a copy of `b` with `reasoning_effort`/`reasoning.effort` replaced by `templateKwargs`. */
+function withNvidiaGlm52TemplateKwargs(
+  b: Record<string, unknown>,
+  templateKwargs: Record<string, unknown>,
+  reasoning: Record<string, unknown> | null
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...b, chat_template_kwargs: templateKwargs };
+  delete next.reasoning_effort;
+  if (reasoning) {
+    const nextReasoning = { ...reasoning };
+    delete nextReasoning.effort;
+    if (Object.keys(nextReasoning).length === 0) delete next.reasoning;
+    else next.reasoning = nextReasoning;
+  }
+  return next;
+}
+
+/**
+ * Map OmniRoute's reasoning-effort inputs onto the binary thinking switch exposed by
+ * NVIDIA's hosted GLM-5.2 chat template. This runs before DefaultExecutor's unsupported
+ * parameter stripping so a nested `reasoning.effort` is not discarded first, and is also
+ * reused by the final provider sanitizer for non-default execution paths.
+ */
+export function mapNvidiaGlm52ReasoningParams(
+  body: unknown,
+  provider: string,
+  model: string | undefined,
+  log?: ReasoningSanitizeLog | null
+): unknown {
+  if (!isNvidiaGlm52(provider, model)) return body;
+  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+
+  const b = body as Record<string, unknown>;
+  const info = extractNvidiaGlm52Effort(b);
+  if (!info) return body;
+
+  const templateKwargs = buildNvidiaGlm52TemplateKwargs(b.chat_template_kwargs, info.effortStr);
+  if (!templateKwargs) return body;
+
+  const next = withNvidiaGlm52TemplateKwargs(b, templateKwargs, info.reasoning);
+  log?.info?.(
+    "REASONING_SANITIZE",
+    `nvidia/${model || ""}: mapped reasoning effort to enable_thinking`
+  );
+  return next;
+}
 
 export function supportsMaxEffortForProvider(provider: string, model: string): boolean {
   const isClaude =
@@ -142,8 +241,12 @@ export function sanitizeReasoningEffortForProvider(
   body: unknown,
   provider: string,
   model: string | undefined,
-  log?: { info?: (tag: string, msg: string) => void } | null
+  log?: ReasoningSanitizeLog | null
 ): unknown {
+  if (isNvidiaGlm52(provider, model)) {
+    return mapNvidiaGlm52ReasoningParams(body, provider, model, log);
+  }
+
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
   const b = body as Record<string, unknown>;
   const c = readEffortCarriers(b);

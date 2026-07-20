@@ -24,11 +24,10 @@ export async function GET(request: Request) {
     if (lookupResponse) return lookupResponse;
 
     const { limit, offset } = toPagination(searchParams);
-    const items = await listProxies({ includeSecrets: false });
-    const paged = items.slice(offset, offset + limit);
+    const result = await listProxies({ includeSecrets: false, limit, offset });
     return Response.json({
-      items: paged,
-      page: { limit, offset, total: items.length },
+      items: result.items,
+      page: { limit, offset, total: result.total },
     });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to load proxies");

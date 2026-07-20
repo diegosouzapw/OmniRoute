@@ -28,7 +28,12 @@ interface TestResult {
   error?: string;
 }
 
-async function testSingleProxy(proxy: { id: string; type: string; host: string; port: number }): Promise<TestResult> {
+async function testSingleProxy(proxy: {
+  id: string;
+  type: string;
+  host: string;
+  port: number;
+}): Promise<TestResult> {
   const proxyUrl = `${proxy.type}://${proxy.host}:${proxy.port}`;
   const start = Date.now();
   const controller = new AbortController();
@@ -84,13 +89,18 @@ export async function POST(request: Request) {
 
   const validation = validateBody(autoTestSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return createErrorResponse({ status: 400, message: validation.error.message, type: "invalid_request" });
+    return createErrorResponse({
+      status: 400,
+      message: validation.error.message,
+      type: "invalid_request",
+    });
   }
 
   const { ids: specificIds, autoRemove } = validation.data;
 
   try {
-    const allProxies = await listProxies({ includeSecrets: false });
+    const result = await listProxies({ includeSecrets: false });
+    const allProxies = result.items;
     const proxiesToTest = specificIds
       ? allProxies.filter((p) => specificIds.includes(p.id))
       : allProxies;
@@ -114,7 +124,9 @@ export async function POST(request: Request) {
         if (!r.alive) {
           try {
             if (await deleteProxyById(r.proxyId, { force: true })) removed.push(r.proxyId);
-          } catch { /* skip */ }
+          } catch {
+            /* skip */
+          }
         }
       }
     }

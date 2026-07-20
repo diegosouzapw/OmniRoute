@@ -1,10 +1,22 @@
 // AUTO-GENERATED — refreshed by the 2026-06-17 per-provider free-tier research pass.
+// 2026-07-20: added the free tiers of providers we could already route but had
+// never mapped (requesty, ovhcloud, agnes, glm), plus two new providers (navy,
+// aihorde), and reconciled kilo-gateway against its live /models list.
 // Source: _tasks/features-v3.8.28/free-tier-research-2026-06-17.raw.json (50-agent web research + adversarial verification).
 // Methodology: honest pool-deduped recurring tokens. "recurring-uncapped" = permanently free but no
 // published token cap (rate/concurrency-limited) — NOT summed into the steady headline (see freeModelCatalog.ts).
 // Deposit-unlock boosts (e.g. OpenRouter $10 -> 1000 RPD) live in FREE_TIER_BOOSTS, not per-record.
 // Do not edit by hand — re-run the patch generator to refresh.
 import type { FreeModelBudget } from "./freeModelCatalog.ts";
+
+/**
+ * Date this catalog was last curated against provider documentation.
+ *
+ * Deliberately a literal instead of the data file's mtime: a standalone build
+ * rewrites file timestamps on every deploy, which would report a months-old
+ * catalog as "updated today". Bump this whenever the entries below change.
+ */
+export const FREE_CATALOG_CURATED_AT = "2026-07-20";
 
 export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "agentrouter", modelId: "claude-opus-4-6", displayName: "Claude 4.6 Opus", monthlyTokens: 0, creditTokens: 200000000, freeType: "one-time-initial", poolKey: "agentrouter", tos: "caution" },
@@ -242,13 +254,19 @@ export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "inference-net", modelId: "meta-llama/Llama-3.3-70B-Instruct", displayName: "meta-llama/Llama-3.3-70B-Instruct", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-monthly", poolKey: "inference-net", tos: "caution" },
   { provider: "inference-net", modelId: "deepseek-ai/DeepSeek-R1", displayName: "deepseek-ai/DeepSeek-R1", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-monthly", poolKey: "inference-net", tos: "caution" },
   { provider: "inference-net", modelId: "Qwen/Qwen2.5-72B-Instruct", displayName: "Qwen/Qwen2.5-72B-Instruct", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-monthly", poolKey: "inference-net", tos: "caution" },
-  { provider: "kilo-gateway", modelId: "kilo-auto/free", displayName: "Kilo Auto Free (auto-router)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution" },
-  { provider: "kilo-gateway", modelId: "stepfun/step-3.7-flash:free", displayName: "StepFun Step 3.7 Flash (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution" },
-  { provider: "kilo-gateway", modelId: "poolside/laguna-m.1:free", displayName: "Poolside Laguna M.1 (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution" },
-  { provider: "kilo-gateway", modelId: "poolside/laguna-xs.2:free", displayName: "Poolside Laguna XS.2 (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution" },
-  { provider: "kilo-gateway", modelId: "nvidia/nemotron-3-ultra-550b-a55b:free", displayName: "NVIDIA Nemotron 3 Ultra (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution" },
-  { provider: "kilo-gateway", modelId: "nvidia/nemotron-3-super-120b-a12b:free", displayName: "NVIDIA Nemotron 3 Super (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution" },
-  { provider: "kilo-gateway", modelId: "nex-agi/nex-n2-pro:free", displayName: "Nex-N2-Pro (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution" },
+  { provider: "kilo-gateway", modelId: "kilo-auto/free", displayName: "Kilo Auto Free (auto-router)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "tencent/hy3:free", displayName: "Tencent Hy3 (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "stepfun/step-3.7-flash:free", displayName: "StepFun Step 3.7 Flash (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "openrouter/auto-beta", displayName: "OpenRouter Auto Router (beta)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "openrouter/free", displayName: "OpenRouter Free Models Router", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "poolside/laguna-xs-2.1:free", displayName: "Poolside Laguna XS 2.1 (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "poolside/laguna-m.1:free", displayName: "Poolside Laguna M.1 (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "cohere/north-mini-code:free", displayName: "Cohere North Mini Code (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "nvidia/nemotron-3-ultra-550b-a55b:free", displayName: "NVIDIA Nemotron 3 Ultra (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "nvidia/nemotron-3-super-120b-a12b:free", displayName: "NVIDIA Nemotron 3 Super (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", displayName: "NVIDIA Nemotron 3 Nano Omni (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "nvidia/nemotron-3.5-content-safety:free", displayName: "NVIDIA Nemotron 3.5 Content Safety (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
+  { provider: "kilo-gateway", modelId: "kwaipilot/kat-coder-pro-v2.5:free", displayName: "Kwaipilot KAT-Coder-Pro V2.5 (free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "kilo-gateway-free", tos: "caution", trainsOnPrompts: true },
   { provider: "kiro", modelId: "claude-sonnet-4.5", displayName: "Claude Sonnet 4.5", monthlyTokens: 25000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "kiro", tos: "avoid" },
   { provider: "kiro", modelId: "claude-haiku-4.5", displayName: "Claude Haiku 4.5", monthlyTokens: 25000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "kiro", tos: "avoid" },
   { provider: "kiro", modelId: "deepseek-3.2", displayName: "DeepSeek V3.2", monthlyTokens: 25000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "kiro", tos: "avoid" },
@@ -469,4 +487,20 @@ export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "vertex", modelId: "GLM-5.1-FP8", displayName: "GLM-5.1 (Vertex Partner)", monthlyTokens: 0, creditTokens: 300000000, freeType: "one-time-initial", poolKey: "vertex", tos: "caution" },
   { provider: "vertex", modelId: "claude-opus-4-7", displayName: "Claude Opus 4.7 (Vertex)", monthlyTokens: 0, creditTokens: 300000000, freeType: "one-time-initial", poolKey: "vertex", tos: "caution" },
   { provider: "vertex", modelId: "claude-sonnet-4-6", displayName: "Claude Sonnet 4.6 (Vertex)", monthlyTokens: 0, creditTokens: 300000000, freeType: "one-time-initial", poolKey: "vertex", tos: "caution" },
+  { provider: "requesty", modelId: "openai/gpt-oss-120b", displayName: "GPT-OSS 120B (Requesty free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "requesty-free", tos: "ok" },
+  { provider: "requesty", modelId: "mistral/leanstral-1-5", displayName: "Leanstral 1.5 (Requesty free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "requesty-free", tos: "ok" },
+  { provider: "requesty", modelId: "nvidia/nemotron-3-nano-30b-a3b", displayName: "Nemotron 3 Nano 30B (Requesty free)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "requesty-free", tos: "ok" },
+  { provider: "ovhcloud", modelId: "gpt-oss-120b", displayName: "GPT-OSS 120B (OVH anonymous)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "ovhcloud-anon", tos: "ok" },
+  { provider: "ovhcloud", modelId: "gpt-oss-20b", displayName: "GPT-OSS 20B (OVH anonymous)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "ovhcloud-anon", tos: "ok" },
+  { provider: "ovhcloud", modelId: "Qwen3.6-27B", displayName: "Qwen3.6 27B (OVH anonymous)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "ovhcloud-anon", tos: "ok" },
+  { provider: "ovhcloud", modelId: "Mistral-Small-3.2-24B-Instruct-2506", displayName: "Mistral Small 3.2 24B (OVH anonymous)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "ovhcloud-anon", tos: "ok" },
+  { provider: "ovhcloud", modelId: "Qwen2.5-VL-72B-Instruct", displayName: "Qwen2.5 VL 72B (OVH anonymous)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "ovhcloud-anon", tos: "ok" },
+  { provider: "agnes", modelId: "agnes-2.0-flash", displayName: "Agnes 2.0 Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "agnes-free", tos: "ok" },
+  { provider: "agnes", modelId: "agnes-1.5-flash", displayName: "Agnes 1.5 Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "agnes-free", tos: "ok" },
+  { provider: "glm", modelId: "glm-4.7-flash", displayName: "GLM-4.7-Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "zhipu-flash-free", tos: "ok" },
+  { provider: "glm", modelId: "glm-4.5-flash", displayName: "GLM-4.5-Flash", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "zhipu-flash-free", tos: "ok" },
+  { provider: "navy", modelId: "shared-pool", displayName: "NavyAI free pool (150K tokens/day, shared)", monthlyTokens: 4500000, creditTokens: 0, freeType: "recurring-daily", poolKey: "navy-free", tos: "ok" },
+  { provider: "aihorde", modelId: "aphrodite/TheDrummer/Cydonia-24B-v4.3", displayName: "Cydonia 24B (AI Horde)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "aihorde-anon", tos: "ok" },
+  { provider: "aihorde", modelId: "aphrodite/TheDrummer/Skyfall-31B-v4.2", displayName: "Skyfall 31B (AI Horde)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "aihorde-anon", tos: "ok" },
+  { provider: "aihorde", modelId: "google/gemma-4-31b", displayName: "Gemma 4 31B (AI Horde)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "aihorde-anon", tos: "ok" },
 ];

@@ -6,7 +6,8 @@ import Input from "@/shared/components/Input";
 type GheConfigStepProps = {
   gheUrl: string;
   setGheUrl: (value: string) => void;
-  error: unknown;
+  /** Rendered inline below the form; `unknown` is not a valid ReactNode. */
+  error?: string | null;
   setError: (value: string) => void;
   startOAuthFlow: () => void;
 };

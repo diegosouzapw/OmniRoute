@@ -142,6 +142,21 @@ test("getCachedProviderConnections caches only the unfiltered query", async () =
   assert.equal((await readCache.getCachedProviderConnections()).length, 2);
 });
 
+test("resetDbInstance invalidates provider connection read caches", async () => {
+  await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Reset Cache Test",
+    apiKey: "sk-reset-cache",
+  });
+
+  assert.equal((await providersDb.getProviderConnections()).length, 1);
+
+  await resetStorage();
+
+  assert.equal((await providersDb.getProviderConnections()).length, 0);
+});
+
 test("cached LKGP values refresh only after the specific key is invalidated", async () => {
   const readCache = await importFresh("src/lib/db/readCache.ts");
   const db = core.getDbInstance();
