@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Select } from "@/shared/components";
 import type { ProviderTier } from "@omniroute/open-sse/services/tierTypes";
-import { fetchProviderTierOverride, saveProviderTierOverride } from "./providerTierField";
+import { fetchProviderTierOverride, saveProviderTierOverride } from "./providerTierFieldApi";
 
 export interface ProviderTierFieldProps {
   /** Provider connection id string — the same key `classifyTier()` matches on. */

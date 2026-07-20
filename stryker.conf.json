@@ -154,6 +154,7 @@
       "tests/unit/combo-scoring-inspector.test.ts",
       "tests/unit/combo-selected-connection-success.test.ts",
       "tests/unit/combo-sessionless-pin-3825.test.ts",
+      "tests/unit/combo-skip-conn-disable-plugin-block-7806.test.ts",
       "tests/unit/combo-speed-telemetry-6875.test.ts",
       "tests/unit/combo-strategies.test.ts",
       "tests/unit/combo-strategy-fallbacks.test.ts",
