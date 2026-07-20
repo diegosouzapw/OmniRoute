@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
@@ -20,6 +20,17 @@ interface QuotaCutoffModalProps {
   connectionName: string;
   /** Used in the modal title for context (e.g. "(codex)"). */
   provider: string;
+  /**
+   * Stable identifier for the connection this modal is editing (e.g. its DB
+   * id). Used — together with `isOpen` — to decide when to reseed `drafts`
+   * from `current`/`windows`, instead of depending on those props' object
+   * identity directly. `windows`/`current` are frequently rebuilt (e.g. a
+   * `.map()` in the parent, or a polling refresh) with new array/object
+   * references on every parent render even when nothing about this
+   * connection actually changed, which would otherwise re-run the seeding
+   * effect mid-edit and clobber whatever the operator is typing.
+   */
+  connectionId: string | number;
   /**
    * Windows this connection exposes — discovered from its live quota cache
    * so the modal works for any provider with usage data, not just providers
@@ -46,6 +57,7 @@ export default function QuotaCutoffModal({
   onClose,
   connectionName,
   provider,
+  connectionId,
   windows,
   current,
   providerDefaults,
@@ -60,17 +72,32 @@ export default function QuotaCutoffModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset drafts whenever the modal opens against a new connection.
+  // `windows`/`current` are read through refs (kept fresh below) rather than
+  // as effect dependencies: the parent frequently hands them new array/object
+  // identities on unrelated re-renders (e.g. a `.map()` rebuild or a polling
+  // refresh) even when nothing about this connection changed. Depending on
+  // them directly would re-seed `drafts` mid-edit and clobber the operator's
+  // in-progress typing. Reset instead only on the real "opened against a
+  // (possibly new) connection" signal: `isOpen`/`connectionId`.
+  const windowsRef = useRef(windows);
+  const currentRef = useRef(current);
+  useEffect(() => {
+    windowsRef.current = windows;
+    currentRef.current = current;
+  });
+
+  // Reset drafts whenever the modal opens (or is opened against a different
+  // connection), never merely because `windows`/`current` got a new identity.
   useEffect(() => {
     if (!isOpen) return;
     const initial: Record<string, string> = {};
-    for (const w of windows) {
-      const persisted = current?.[w.key];
+    for (const w of windowsRef.current) {
+      const persisted = currentRef.current?.[w.key];
       initial[w.key] = typeof persisted === "number" ? String(persisted) : "";
     }
     setDrafts(initial);
     setError(null);
-  }, [isOpen, windows, current]);
+  }, [isOpen, connectionId]);
 
   const resolveDefaultFor = (windowKey: string): number =>
     typeof providerDefaults[windowKey] === "number"

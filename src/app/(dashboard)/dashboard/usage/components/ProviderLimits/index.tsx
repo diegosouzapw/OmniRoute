@@ -1077,6 +1077,7 @@ export default function ProviderLimits({
             ) || cutoffModalConn.provider
           }
           provider={cutoffModalConn.provider}
+          connectionId={cutoffModalConn.id}
           windows={cutoffModalWindows.map((q: any) => ({
             key: q.name,
             displayName: q.displayName || formatQuotaLabel(q.name),
