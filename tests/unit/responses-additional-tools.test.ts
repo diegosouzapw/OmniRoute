@@ -201,23 +201,24 @@ test("Responses -> Chat merges members from same-named namespaces", () => {
 });
 
 test("Responses -> Chat gives top-level tools precedence over namespaced members", () => {
+  const rootTools = [
+    {
+      type: "function",
+      name: "exec",
+      description: "Explicit function tool",
+      parameters: { type: "object" },
+    },
+    {
+      type: "namespace",
+      name: "commands",
+      tools: [{ type: "custom", name: "exec", description: "Shadowed custom tool" }],
+    },
+  ];
   const result = openaiResponsesToOpenAIRequest(
     "any-model",
     {
       input: [{ type: "message", role: "user", content: [{ type: "input_text", text: "go" }] }],
-      tools: [
-        {
-          type: "function",
-          name: "exec",
-          description: "Explicit function tool",
-          parameters: { type: "object" },
-        },
-        {
-          type: "namespace",
-          name: "commands",
-          tools: [{ type: "custom", name: "exec", description: "Shadowed custom tool" }],
-        },
-      ],
+      tools: rootTools,
     },
     false,
     { provider: "another-provider" }
@@ -228,6 +229,24 @@ test("Responses -> Chat gives top-level tools precedence over namespaced members
     ["exec"]
   );
   assert.equal(result.tools[0].function.description, "Explicit function tool");
+  assert.deepEqual([...collectResponsesCustomToolNames(rootTools, [])], []);
+});
+
+test("Responses custom metadata includes additional and namespaced custom tools", () => {
+  const input = [
+    {
+      type: "additional_tools",
+      tools: [
+        { type: "custom", name: "exec" },
+        {
+          type: "namespace",
+          name: "server",
+          tools: [{ type: "custom", name: "apply_diff" }],
+        },
+      ],
+    },
+  ];
+  assert.deepEqual([...collectResponsesCustomToolNames([], input)].sort(), ["apply_diff", "exec"]);
 });
 
 test("Responses -> Chat validates tools supplied through additional_tools", () => {
