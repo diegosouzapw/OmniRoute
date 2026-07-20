@@ -22,6 +22,7 @@
     "src/types/",
     ".env.example",
     "scripts/build/postinstall.mjs",
+    "scripts/build/fixTlsClientNodeBinary.mjs",
     "bin/cli/runtime/",
     "scripts/postinstall.mjs",
     "scripts/build/postinstallSupport.mjs",
