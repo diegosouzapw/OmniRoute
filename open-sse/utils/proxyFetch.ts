@@ -18,8 +18,6 @@ import {
   isControlPlaneProxyDirectFallbackEnabled,
   isFeatureFlagEnabled,
 } from "@/shared/utils/featureFlags";
-import { findWorkingProxy } from "./proxyFallback.ts";
-
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
 }
@@ -544,6 +542,7 @@ async function patchedFetch(
               // ignore
             }
             if (targetHostname) {
+              const { findWorkingProxy } = await import("./proxyFallback.ts");
               const fallbackProxyUrl = await findWorkingProxy(targetHostname, targetUrl);
               if (fallbackProxyUrl) {
                 try {
