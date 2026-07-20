@@ -160,7 +160,7 @@
   <tr>
     <td width="33%" valign="top"><b>🔌 Every tool works</b><br/><sub>24+ coding agents — Claude Code, Codex, Cursor, Cline, Copilot, Antigravity — through one config.</sub></td>
     <td width="33%" valign="top"><b>🧩 One endpoint</b><br/><sub>OpenAI ↔ Claude ↔ Gemini ↔ Responses API translation. Point any tool at <code>/v1</code> and it just works.</sub></td>
-    <td width="33%" valign="top"><b>🛡️ Production-grade</b><br/><sub>Circuit breakers, TLS stealth, MCP (94 tools), A2A, memory, guardrails, evals. 21,000+ tests.</sub></td>
+    <td width="33%" valign="top"><b>🛡️ Production-grade</b><br/><sub>Circuit breakers, TLS stealth, MCP (99 tools), A2A, memory, guardrails, evals. 21,000+ tests.</sub></td>
   </tr>
 </table>
 
@@ -318,7 +318,7 @@ Result: 4 layers of fallback = zero downtime
 | 🆓 Free providers                      | **90+ (11 free forever)**                                           | 1–5           |
 | 🔀 Routing strategies                  | **18** (priority, weighted, cost-optimized, context-relay, fusion…) | 1–3           |
 | 🗜️ Token compression                   | **RTK + Caveman stacked (15–95%)**                                  | None / 20–40% |
-| 🧰 Built-in MCP server                 | **94 tools, 3 transports, 30 scopes**                               | Rare          |
+| 🧰 Built-in MCP server                 | **99 tools, 3 transports, 32 scopes**                               | Rare          |
 | 🤝 A2A agent protocol                  | **6 skills, JSON-RPC 2.0**                                          | None          |
 | 🧠 Memory (FTS5 + vector)              | **Yes**                                                             | Rare          |
 | 🛡️ Guardrails (PII, injection, vision) | **Yes**                                                             | Rare          |
@@ -544,7 +544,7 @@ Expose OmniRoute over **MCP** or **A2A** and any capable agent gets the keys to 
 | Protocol           | Endpoint                                        | Use it for                                             |
 | ------------------ | ----------------------------------------------- | ------------------------------------------------------ |
 | 🧰 **MCP (stdio)** | `omniroute --mcp`                               | Plug into Claude Desktop, Cursor, any MCP client       |
-| 🌊 **MCP (HTTP)**  | `http://localhost:20128/api/mcp/stream`         | Remote MCP — **94 tools**, 30 scopes, full audit trail |
+| 🌊 **MCP (HTTP)**  | `http://localhost:20128/api/mcp/stream`         | Remote MCP — **99 tools**, 32 scopes, full audit trail |
 | 📡 **MCP (SSE)**   | `http://localhost:20128/api/mcp/sse`            | Streaming MCP transport                                |
 | 🤝 **A2A**         | `http://localhost:20128/.well-known/agent.json` | Agent-to-agent, **JSON-RPC 2.0** + SSE, 6 skills       |
 
@@ -569,18 +569,18 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 Engines run in pipeline order; each is independently toggleable and configurable per combo:
 
-| #   | Engine            | What it does                                                        |
-| --- | ----------------- | ------------------------------------------------------------------- |
-| 1   | **Session-Dedup** | Drops content repeated across turns (content-addressed, cross-turn) |
-| 2   | **CCR**           | Archives large blocks behind retrieve markers, fetched on demand    |
-| 3   | **RTK**           | Smart tool-result filtering, dedup & truncation (command-aware)     |
+| #   | Engine            | What it does                                                                                                            |
+| --- | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Session-Dedup** | Drops content repeated across turns (content-addressed, cross-turn)                                                     |
+| 2   | **CCR**           | Archives large blocks behind retrieve markers, fetched on demand                                                        |
+| 3   | **RTK**           | Smart tool-result filtering, dedup & truncation (command-aware)                                                         |
 | 4   | **Headroom**      | Lossless tabular compaction of homogeneous JSON arrays, flat or nested (~30%), via a vendored **GCF** codec (spec v3.2) |
-| 5   | **Relevance**     | Extractive sentence scoring against the last user query             |
-| 6   | **Caveman**       | Rule-based prose compression (~65–75% on output)                    |
-| 7   | **LLMLingua-2**   | ML semantic pruning via MobileBERT ONNX — code-safe, async          |
-| 8   | **Lite**          | Whitespace + image-URL trimming (latency-light baseline)            |
-| 9   | **Aggressive**    | Summarization + progressive aging of old turns                      |
-| 10  | **Ultra**         | Heuristic token pruning with an optional small-model (SLM) tier     |
+| 5   | **Relevance**     | Extractive sentence scoring against the last user query                                                                 |
+| 6   | **Caveman**       | Rule-based prose compression (~65–75% on output)                                                                        |
+| 7   | **LLMLingua-2**   | ML semantic pruning via MobileBERT ONNX — code-safe, async                                                              |
+| 8   | **Lite**          | Whitespace + image-URL trimming (latency-light baseline)                                                                |
+| 9   | **Aggressive**    | Summarization + progressive aging of old turns                                                                          |
+| 10  | **Ultra**         | Heuristic token pruning with an optional small-model (SLM) tier                                                         |
 
 Code blocks, URLs and structured data are **always preserved** byte-perfect. **One-click presets** combine the engines:
 
@@ -883,7 +883,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 **Routing:** 18 strategies · task-aware smart routing · thinking budget controls · wildcard routing · system prompt injection.
 **Compatibility:** OpenAI ↔ Claude ↔ Gemini ↔ Responses API · auto OAuth refresh (PKCE, 8 providers) · multi-account round-robin · Batch + Files API · live OpenAPI 3.0.
-**Protocols:** MCP (94 tools, 3 transports, 30 scopes) · A2A (JSON-RPC 2.0, SSE, 6 skills) · ACP · cloud agents (Codex, Cursor, Devin, Jules).
+**Protocols:** MCP (99 tools, 3 transports, 32 scopes) · A2A (JSON-RPC 2.0, SSE, 6 skills) · ACP · cloud agents (Codex, Cursor, Devin, Jules).
 **Plugins:** custom plugin marketplace (system-configured registry URL with SSRF-guarded fetch) · install / enable / disable · Notion + Obsidian knowledge-base integrations (WebDAV file server, vault search, note CRUD).
 **Embedded services:** one-click install & lifecycle management of local sidecar services (CLIProxy, NineRouter).
 **Quality & Ops:** built-in **Evals** (golden-set: exact/contains/regex/custom) · guardrails (PII, injection, vision) · health dashboard · p50/p95/p99 telemetry · webhooks · compliance audit.
@@ -1028,7 +1028,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 | [Compression Rules Format](docs/compression/COMPRESSION_RULES_FORMAT.md)     | JSON rule-pack schemas for Caveman and RTK filters                            |
 | [Compression Language Packs](docs/compression/COMPRESSION_LANGUAGE_PACKS.md) | Language detection and Caveman rule-pack authoring                            |
 | [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)                    | Circuit breakers, cooldowns, queue, anti-thundering herd, TLS spoofing        |
-| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                              | 12-factor scoring, mode packs, self-healing                                    |
+| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                              | 12-factor scoring, mode packs, self-healing                                   |
 | [Proxy Guide](docs/ops/PROXY_GUIDE.md)                                       | 3-level proxy system, 1proxy marketplace, registry CRUD                       |
 | [Free Tiers](docs/reference/FREE_TIERS.md)                                   | 25+ free API providers consolidated directory                                 |
 | [Features Gallery](docs/guides/FEATURES.md)                                  | Visual dashboard tour with screenshots                                        |
@@ -1040,7 +1040,7 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 | ------------------------------------------------- | --------------------------------------------------- |
 | [API Reference](docs/reference/API_REFERENCE.md)  | All endpoints with examples                         |
 | [OpenAPI Spec](docs/openapi.yaml)                 | OpenAPI 3.0 specification                           |
-| [MCP Server](open-sse/mcp-server/README.md)       | 95 MCP tools, IDE configs, Python/TS/Go clients     |
+| [MCP Server](open-sse/mcp-server/README.md)       | 99 MCP tools, IDE configs, Python/TS/Go clients     |
 | [MCP Server Guide](docs/frameworks/MCP-SERVER.md) | MCP installation, transports, and tool reference    |
 | [A2A Server](src/lib/a2a/README.md)               | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
 | [A2A Server Guide](docs/frameworks/A2A-SERVER.md) | A2A agent card, tasks, skills, and streaming        |
@@ -1216,7 +1216,7 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 | Project                                                                                        |    ⭐ | How it inspired OmniRoute                                                                                                                                                                                      |
 | ---------------------------------------------------------------------------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[TOON](https://github.com/toon-format/toon)** · toon-format                                  | 24.7k | Token-Oriented Object Notation — its columnar, header-plus-rows model shaped our tabular compaction stage.                                                                                                     |
-| **[GCF – Graph Compact Format](https://github.com/blackwell-systems/gcf)** · Blackwell Systems |    14 | First inspired our tabular compaction stage; now its zero-dependency, lossless generic-profile encoder is **vendored directly** as the Headroom codec (MIT, SPDX-marked), current with GCF spec v3.2. |
+| **[GCF – Graph Compact Format](https://github.com/blackwell-systems/gcf)** · Blackwell Systems |    14 | First inspired our tabular compaction stage; now its zero-dependency, lossless generic-profile encoder is **vendored directly** as the Headroom codec (MIT, SPDX-marked), current with GCF spec v3.2.          |
 | **[token-optimizer-mcp](https://github.com/ooples/token-optimizer-mcp)** · ooples              |   421 | Brotli/SQLite cache + per-session context-delta — inspired our `session-dedup` engine.                                                                                                                         |
 | **[token-savior](https://github.com/Mibayy/token-savior)** · Mibayy                            |  1.0k | Bash-output compaction + MCP profiles — inspired our compression bail-out discipline and MCP tool-manifest reduction.                                                                                          |
 | **[token-saver](https://github.com/ppgranger/token-saver)** · ppgranger                        |   110 | Content-aware, per-file-type output compression with failure-aware bail-out — validated our per-type dispatch and minimum-gain skip.                                                                           |

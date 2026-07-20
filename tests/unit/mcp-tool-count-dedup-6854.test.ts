@@ -5,8 +5,8 @@ import assert from "node:assert/strict";
 // plain additive sum across all registered tool collections. Three tools
 // (omniroute_agent_skills_list/get/coverage) are intentionally defined in BOTH
 // MCP_TOOLS (open-sse/mcp-server/schemas/tools.ts) and agentSkillTools
-// (open-sse/mcp-server/tools/agentSkillTools.ts), so the additive sum reported 99
-// while only 96 distinct tool names actually exist. countUniqueMcpTools
+// (open-sse/mcp-server/tools/agentSkillTools.ts), so the additive sum reports 102
+// while only 99 distinct tool names actually exist. countUniqueMcpTools
 // (open-sse/mcp-server/toolCount.ts) fixes this by unioning tool names into a Set
 // before counting, so a tool present in multiple collections is only counted once.
 
@@ -21,6 +21,7 @@ const { gamificationTools } = await import("../../open-sse/mcp-server/tools/gami
 const { pluginTools } = await import("../../open-sse/mcp-server/tools/pluginTools.ts");
 const { notionTools } = await import("../../open-sse/mcp-server/tools/notionTools.ts");
 const { obsidianTools } = await import("../../open-sse/mcp-server/tools/obsidianTools.ts");
+const { localCorpusTools } = await import("../../open-sse/mcp-server/tools/localCorpusTools.ts");
 
 type NamedTool = { name: string };
 
@@ -53,9 +54,11 @@ test("#6854: countUniqueMcpTools de-duplicates tools registered in multiple coll
     pluginTools: pluginTools as unknown as NamedTool[],
     notionTools: notionTools as unknown as NamedTool[],
     obsidianTools: obsidianTools as unknown as NamedTool[],
+    localCorpusTools: localCorpusTools as unknown as NamedTool[],
   };
 
   const total = countUniqueMcpTools(collections);
+  assert.equal(total, 99, "the published MCP inventory must match the registered tool set");
 
   // Independently compute the "true" unique count by unioning every collection's
   // tool names into a Set — this must equal countUniqueMcpTools's own result AND

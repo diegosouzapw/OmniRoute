@@ -182,7 +182,7 @@ src/
 | `compliance/`                            | Audit log + provider audit — see `docs/security/COMPLIANCE.md`                                                                                                                                                                                                                                                          |
 | `compression/`                           | Compression engine glue (engines live in `open-sse/services/compression/`)                                                                                                                                                                                                                                              |
 | `config/`                                | Runtime config helpers                                                                                                                                                                                                                                                                                                  |
-| `db/`                                    | 95+ domain DB modules + 110+ migrations (always go through here for SQLite)                                                                                                                                                                                                                                               |
+| `db/`                                    | 95+ domain DB modules + 110+ migrations (always go through here for SQLite)                                                                                                                                                                                                                                             |
 | `quota/`                                 | Quota Sharing Engine: `dimensions.ts` (types/Zod), `types.ts` (QuotaStore interface), `sqliteQuotaStore.ts`, `redisQuotaStore.ts`, `storeFactory.ts`, `fairShare.ts`, `burnRate.ts`, `planResolver.ts`, `planRegistry.ts`, `saturationSignals.ts`, `enforce.ts`, `spendRecorder.ts` — see `docs/routing/QUOTA_SHARE.md` |
 | `display/`                               | UI formatting helpers (cost, latency, etc.)                                                                                                                                                                                                                                                                             |
 | `embeddings/`                            | Embeddings service helpers                                                                                                                                                                                                                                                                                              |
@@ -269,7 +269,7 @@ open-sse/
 ├── translator/          # Format converters (9 request, 9 response, 9 helpers)
 ├── transformer/         # Responses API ↔ Chat Completions (TransformStream)
 ├── services/            # ~80+ service modules (combo, accountFallback, autoCombo, reasoningCache, claude code/chatgpt stealth, modelDeprecation, taskAwareRouter, workflowFSM, etc.)
-├── mcp-server/          # MCP server (94 tools, 3 transports, 30 scopes)
+├── mcp-server/          # MCP server (99 tools, 3 transports, 32 scopes)
 ├── config/              # Provider/model registries, header config, model aliases
 ├── utils/               # TLS client, proxy fetch/dispatcher, network helpers
 ├── index.ts             # Workspace entry
@@ -288,7 +288,7 @@ open-sse/
 | `scopeEnforcement.ts`       | Per-tool scope validation                                                      |
 | `runtimeHeartbeat.ts`       | Health heartbeat to `DATA_DIR/runtime/mcp-heartbeat.json`                      |
 | `descriptionCompressor.ts`  | Compress tool description metadata to save context                             |
-| `schemas/tools.ts`          | 34 base tool definitions + scopes                                              |
+| `schemas/tools.ts`          | 36 base tool definitions + scopes                                              |
 | `tools/advancedTools.ts`    | Advanced tool implementations                                                  |
 | `tools/memoryTools.ts`      | 3 memory tools (search/add/clear)                                              |
 | `tools/skillTools.ts`       | 4 skill tools (list/enable/execute/executions)                                 |
@@ -405,7 +405,7 @@ open-sse/
 
 | Doc                        | Purpose                                                             |
 | -------------------------- | ------------------------------------------------------------------- |
-| `MCP-SERVER.md`            | MCP server: 94 tools, 3 transports, 30 scopes, REST endpoints       |
+| `MCP-SERVER.md`            | MCP server: 99 tools, 3 transports, 32 scopes, REST endpoints       |
 | `A2A-SERVER.md`            | A2A v0.3: JSON-RPC, 5 skills, REST helpers, agent card              |
 | `AGENT_PROTOCOLS_GUIDE.md` | Unified guide: A2A vs ACP vs Cloud Agents                           |
 | `CLOUD_AGENT.md`           | Codex Cloud / Devin / Jules orchestration                           |

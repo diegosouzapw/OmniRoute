@@ -6,13 +6,13 @@ lastUpdated: 2026-06-28
 
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 94 tools across routing, cache, compression, memory, skills, proxy, pool, and context source operations.
+> Model Context Protocol server with 99 tools across routing, cache, compression, memory, skills, proxy, pool, and context source operations.
 >
-> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (34 base) + `memoryTools.ts` (3) + `skillTools.ts` (4) + `agentSkillTools.ts` (3) + `poolTools.ts` (6) + `gamificationTools.ts` (8) + `pluginTools.ts` (8) + `notionTools.ts` (6) + `obsidianTools.ts` (22) = **94** (`TOTAL_MCP_TOOL_COUNT`). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
+> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (36 base) + `memoryTools.ts` (3) + `skillTools.ts` (4) + `agentSkillTools.ts` (3) + `githubSkillTools.ts` (3) + `poolTools.ts` (6) + `gamificationTools.ts` (8) + `pluginTools.ts` (8) + `notionTools.ts` (6) + `obsidianTools.ts` (22) + `localCorpusTools.ts` (3) = 102 definitions and **99 unique tools** (`TOTAL_MCP_TOOL_COUNT`), because the 3 agent-skill tools also appear in the base registry. Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
 
-![MCP tool inventory (94 tools by category)](../diagrams/exported/mcp-tools-94.svg)
+![MCP tool inventory (99 tools by category)](../diagrams/exported/mcp-tools-99.svg)
 
-> Source: [diagrams/mcp-tools-94.mmd](../diagrams/mcp-tools-94.mmd) (regenerate via `npm run docs:render-diagrams`).
+> Source: [diagrams/mcp-tools-99.mmd](../diagrams/mcp-tools-99.mmd) (regenerate via `npm run docs:render-diagrams`).
 
 ## Installation
 
@@ -203,6 +203,33 @@ curl -X DELETE http://localhost:20128/api/settings/notion
 | `notion_get_database`        | `read:notion`  | Get database schema by ID                                      |
 | `notion_append_blocks`       | `write:notion` | Append children blocks to a parent block (max 100 per request) |
 
+## Local Corpus Context Source (3)
+
+Defined in `open-sse/mcp-server/tools/localCorpusTools.ts`. The approved absolute root
+path is stored in the `key_value` table via `src/lib/db/localCorpus.ts`; file content
+stays in place and the bounded search index remains in memory. Configure the source
+through the authenticated settings API:
+
+```bash
+# Connect an approved directory
+curl -X POST http://localhost:20128/api/settings/local-corpus \
+  -H "Content-Type: application/json" \
+  -d '{"rootPath":"/absolute/path/to/approved-text"}'
+
+# Check status or disconnect
+curl http://localhost:20128/api/settings/local-corpus
+curl -X DELETE http://localhost:20128/api/settings/local-corpus
+```
+
+| Tool                  | Scopes              | Description                                                    |
+| :-------------------- | :------------------ | :------------------------------------------------------------- |
+| `local_corpus_status` | `read:local-corpus` | Report bounded index status without exposing the absolute root |
+| `local_corpus_search` | `read:local-corpus` | Search permitted text and return relative paths with snippets  |
+| `local_corpus_read`   | `read:local-corpus` | Read up to 400 lines from a permitted corpus-relative file     |
+
+See [LOCAL_CORPUS_CONTEXT.md](./LOCAL_CORPUS_CONTEXT.md) for file types, limits,
+containment rules, and operational behavior.
+
 ## Agent Skill Catalog Tools (3)
 
 Defined in `open-sse/mcp-server/tools/agentSkillTools.ts`. Backed by `src/lib/agentSkills/catalog`. These tools expose the 42-entry Agent Skills documentation catalog to MCP clients and external agents. Scope: `read:catalog`.
@@ -217,7 +244,7 @@ See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external a
 
 ## Related Frameworks (v3.8.0)
 
-The MCP tool inventory above (94 tools = 34 core + 3 memory + 4 skills + 3 agent-skills + 6 pool + 8 gamification + 8 plugins + 6 notion + 22 obsidian) is intentionally
+The MCP tool inventory above (99 unique tools = 102 registered definitions minus 3 agent-skill definitions duplicated in the base registry) is intentionally
 scoped to runtime routing/cache/compression/memory/skills/proxy/context-source operations. Two adjacent
 frameworks ship alongside the MCP server in v3.8.0 and are documented separately:
 
@@ -289,6 +316,7 @@ MCP tools are authenticated through API key scopes. Scope enforcement is central
 | `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                             |
 | `read:notion`         | `notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`           |
 | `write:notion`        | `notion_append_blocks`                                                                                            |
+| `read:local-corpus`   | `local_corpus_status`, `local_corpus_search`, `local_corpus_read`                                                 |
 | `read:memory`         | `memory_search`                                                                                                   |
 | `write:memory`        | `memory_add`, `memory_clear`                                                                                      |
 | `read:skills`         | `skills_list`, `skills_executions`                                                                                |
@@ -331,7 +359,7 @@ MCP tool, prompt, and resource registries can compress descriptions at registrat
 
 Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing _how many_ tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
 
-**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 94 tools are announced unchanged.
+**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 99 tools are announced unchanged.
 
 | Variable         | Mode                                                                                    |
 | :--------------- | :-------------------------------------------------------------------------------------- |
@@ -398,12 +426,13 @@ Use the dashboard or the `/api/mcp/audit` and `/api/mcp/audit/stats` REST endpoi
 | `open-sse/mcp-server/audit.ts`                                           | Tool call audit logging (`mcp_tool_audit`)                       |
 | `open-sse/mcp-server/runtimeHeartbeat.ts`                                | stdio heartbeat writer (`mcp-heartbeat.json`)                    |
 | `open-sse/mcp-server/descriptionCompressor.ts`                           | Description compression for tool / prompt / resource registries  |
-| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod schemas + tool registry (`MCP_TOOLS`, 34 entries)            |
+| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod schemas + tool registry (`MCP_TOOLS`, 36 entries)            |
 | `open-sse/mcp-server/tools/advancedTools.ts`                             | Phase 2 + cache + 1proxy tool handlers                           |
 | `open-sse/mcp-server/tools/compressionTools.ts`                          | Compression tool handlers                                        |
 | `open-sse/mcp-server/tools/memoryTools.ts`                               | Memory tool definitions (3 tools)                                |
 | `open-sse/mcp-server/tools/skillTools.ts`                                | Skill tool definitions (4 tools)                                 |
 | `open-sse/mcp-server/tools/notionTools.ts`                               | Notion context source tool definitions (6 tools)                 |
+| `open-sse/mcp-server/tools/localCorpusTools.ts`                          | Local Corpus read-only tool definitions (3 tools)                |
 | `open-sse/mcp-server/tools/gamificationTools.ts`                         | Gamification tool definitions (8 tools)                          |
 | `open-sse/mcp-server/tools/pluginTools.ts`                               | Plugin registration and management tools (8 tools)               |
 | `src/app/api/mcp/status/route.ts`                                        | `/api/mcp/status` endpoint                                       |
@@ -416,6 +445,12 @@ Use the dashboard or the `/api/mcp/audit` and `/api/mcp/audit/stats` REST endpoi
 | `src/lib/db/notion.ts`                                                   | Notion token persistence (`key_value` table)                     |
 | `src/app/api/settings/notion/route.ts`                                   | Notion settings API (GET/POST/DELETE)                            |
 | `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion token management UI                                       |
+| `src/lib/localCorpus/index.ts`                                           | Bounded incremental text index and contained reads               |
+| `src/lib/localCorpus/configured.ts`                                      | Configured Local Corpus runtime and shared index                 |
+| `src/lib/db/localCorpus.ts`                                              | Local Corpus root persistence (`key_value` table)                |
+| `src/app/api/settings/local-corpus/route.ts`                             | Local Corpus settings API (GET/POST/DELETE)                      |
+| `tests/unit/local-corpus-index.test.ts`                                  | Local Corpus indexing and containment tests                      |
+| `tests/unit/local-corpus-tools.test.ts`                                  | Local Corpus tool and scope tests                                |
 | `tests/unit/notion-api.test.ts`                                          | Notion API client tests (7)                                      |
 | `tests/unit/notion-tools.test.ts`                                        | Notion tools scope enforcement tests (10)                        |
 | `tests/unit/db/notion.test.mjs`                                          | Notion DB module tests (3)                                       |
