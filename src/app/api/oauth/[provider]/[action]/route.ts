@@ -12,6 +12,7 @@ import {
 import {
   persistOAuthConnection,
   buildOAuthConnectionCreatePayload,
+  findExistingOAuthConnectionMatch,
 } from "@/lib/oauth/connectionPersistence";
 import { createDeviceFlowTicket, getDeviceFlowTicketStatus } from "@/lib/oauth/deviceFlowTickets";
 import {
@@ -520,17 +521,9 @@ export async function POST(
       let connection: any;
       if (tokenData.email) {
         const existing = await getProviderConnections({ provider });
-        const match = existing.find((c: any) => {
-          if (c.id && safeEqual(connectionId, c.id)) return true;
-          // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-6/7)
-          if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
-          // For Codex, also check workspaceId to avoid overwriting different workspace connections
-          if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
-            const existingWorkspace = c.providerSpecificData?.workspaceId;
-            return safeEqual(existingWorkspace, tokenData.providerSpecificData.workspaceId);
-          }
-          return true;
-        });
+        // Codex accounts sharing an email require workspaceId/chatgptUserId
+        // agreement to be treated as the same account (#7737).
+        const match = findExistingOAuthConnectionMatch(existing, provider, tokenData, connectionId);
         const matchId = typeof match?.id === "string" ? match.id : null;
         if (matchId) {
           connection = await updateProviderConnection(matchId, {
@@ -618,17 +611,14 @@ export async function POST(
         let connection: any;
         if (result.tokens.email) {
           const existing = await getProviderConnections({ provider });
-          const match = existing.find((c: any) => {
-            if (c.id && safeEqual(connectionId, c.id)) return true;
-            // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-8/9)
-            if (!safeEqual(c.email, result.tokens.email) || c.authType !== "oauth") return false;
-            // For Codex, also check workspaceId to avoid overwriting different workspace connections
-            if (provider === "codex" && result.tokens.providerSpecificData?.workspaceId) {
-              const existingWorkspace = c.providerSpecificData?.workspaceId;
-              return safeEqual(existingWorkspace, result.tokens.providerSpecificData.workspaceId);
-            }
-            return true;
-          });
+          // Codex accounts sharing an email require workspaceId/chatgptUserId
+          // agreement to be treated as the same account (#7737).
+          const match = findExistingOAuthConnectionMatch(
+            existing,
+            provider,
+            result.tokens,
+            connectionId
+          );
           const matchId = typeof match?.id === "string" ? match.id : null;
           if (matchId) {
             connection = await updateProviderConnection(matchId, {
@@ -754,17 +744,9 @@ export async function POST(
         let connection: any;
         if (tokenData.email) {
           const existing = await getProviderConnections({ provider });
-          const match = existing.find((c: any) => {
-            if (c.id && safeEqual(connectionId, c.id)) return true;
-            // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-6/7)
-            if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
-            // For Codex, also check workspaceId to avoid overwriting different workspace connections
-            if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
-              const existingWorkspace = c.providerSpecificData?.workspaceId;
-              return safeEqual(existingWorkspace, tokenData.providerSpecificData.workspaceId);
-            }
-            return true;
-          });
+          // Codex accounts sharing an email require workspaceId/chatgptUserId
+          // agreement to be treated as the same account (#7737).
+          const match = findExistingOAuthConnectionMatch(existing, provider, tokenData, connectionId);
           const matchId = typeof match?.id === "string" ? match.id : null;
           if (matchId) {
             connection = await updateProviderConnection(matchId, {

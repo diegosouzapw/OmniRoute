@@ -197,7 +197,7 @@ test("listPools returns groupId on every pool", () => {
   poolsDb.createPool({ connectionId: "lp-1", name: "Pool Default" });
   poolsDb.createPool({ connectionId: "lp-2", name: "Pool G2", groupId: "g2" });
 
-  const pools = poolsDb.listPools();
+  const { items: pools } = poolsDb.listPools();
   assert.equal(pools.length, 2);
 
   const pDef = pools.find((p) => p.name === "Pool Default")!;

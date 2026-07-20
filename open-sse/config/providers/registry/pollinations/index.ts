@@ -1,5 +1,10 @@
 import type { RegistryEntry } from "../../shared.ts";
 
+/**
+ * Pollinations answers /chat/completions with no credential at all (verified
+ * live 2026-07-20: HTTP 200 with real choices). A token is still accepted and
+ * lifts the anonymous rate limit, so the key is optional rather than required.
+ */
 export const pollinationsProvider: RegistryEntry = {
   id: "pollinations",
   alias: "pol",
@@ -13,7 +18,7 @@ export const pollinationsProvider: RegistryEntry = {
   // NOTE (2026-06): Pollinations now requires API keys for premium models (claude, gemini, midijourney).
   // Free keyless models: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning.
   // Get a key at https://enter.pollinations.ai
-  authType: "apikey",
+  authType: "optional",
   authHeader: "bearer",
   models: [
     { id: "openai", name: "OpenAI (Pollinations)" },

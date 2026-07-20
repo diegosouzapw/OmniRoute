@@ -684,6 +684,8 @@ export function createSSEStream(options: StreamOptions = {}) {
   let usage: UsageTokenRecord | null = null;
   /** Passthrough (OpenAI CC shape): saw tool_calls in stream before finish_reason */
   let passthroughHasToolCalls = false;
+  /** Passthrough: whether a chunk with non-null finish_reason was seen (#7800) */
+  let passthroughSawFinishReason = false;
   /** Passthrough: accumulate tool_calls deltas for call log responseBody */
   const passthroughToolCalls = new Map<string, ToolCall>();
   let passthroughToolCallSeq = 0;
@@ -1780,6 +1782,10 @@ export function createSSEStream(options: StreamOptions = {}) {
 
                   const isFinishChunk = parsed.choices?.[0]?.finish_reason;
 
+                  if (isFinishChunk) {
+                    passthroughSawFinishReason = true;
+                  }
+
                   if (isFinishChunk && passthroughHasToolCalls) {
                     toolFinishTime = now;
                     try {
@@ -2218,6 +2224,15 @@ export function createSSEStream(options: StreamOptions = {}) {
                         }
                       }
                     }
+                    // #7800: track finish_reason in the flush path too, so a
+                    // final chunk without trailing newline still suppresses the
+                    // synthetic finish_reason synthesis.
+                    if (
+                      Array.isArray(flushedParsed.choices) &&
+                      (flushedParsed.choices[0] as JsonRecord | undefined)?.finish_reason
+                    ) {
+                      passthroughSawFinishReason = true;
+                    }
                     if (flushChanged) {
                       output = `data: ${JSON.stringify(flushedParsed)}\n\n`;
                     }
@@ -2311,6 +2326,30 @@ export function createSSEStream(options: StreamOptions = {}) {
               }).catch(() => {});
             }
             if (!doneSent) {
+              // #7800: Some providers close the SSE stream without emitting a final
+              // chunk carrying a non-null finish_reason. OpenAI spec requires the
+              // terminal chunk to include finish_reason (e.g. "stop"); strict clients
+              // (pi CLI) reject the stream with "Stream ended without finish_reason".
+              // Synthesize a terminal chunk when the upstream omitted one.
+              if (shouldEmitDoneTerminator && !passthroughSawFinishReason) {
+                const syntheticFinishChunk = {
+                  id: passthroughResponsesId || `chatcmpl-${Date.now()}`,
+                  object: "chat.completion.chunk",
+                  created: Math.floor(Date.now() / 1000),
+                  model: model || "unknown",
+                  choices: [
+                    {
+                      index: 0,
+                      delta: {},
+                      finish_reason: passthroughHasToolCalls ? "tool_calls" : "stop",
+                    },
+                  ],
+                };
+                const finishOutput = `data: ${JSON.stringify(syntheticFinishChunk)}\n\n`;
+                reqLogger?.appendConvertedChunk?.(finishOutput);
+                controller.enqueue(encoder.encode(finishOutput));
+                clientPayloadCollector.push(syntheticFinishChunk);
+              }
               await emitFinalSseMetadata(controller, usage);
               doneSent = true;
               if (shouldEmitDoneTerminator) {

@@ -1,4 +1,5 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { mapNvidiaGlm52ReasoningParams } from "./base/reasoningEffort.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 
@@ -701,14 +702,13 @@ export class DefaultExecutor extends BaseExecutor {
       );
     }
 
-    // Config-driven strip of params unsupported by the target provider/model
-    // (e.g. claude-opus-4 deprecated `temperature` → Anthropic 400). Port from
-    // 9router#7ae9fff6 (fixes upstream #1748). Rules live in
-    // ../translator/paramSupport.ts so adding one means editing one table.
+    // Strip params unsupported by the target provider/model before sending upstream.
+    // Rules live in ../translator/paramSupport.ts (9router#7ae9fff6; fixes #1748).
     if (typeof withDefaults === "object" && withDefaults !== null) {
       const bodyRecord = withDefaults as Record<string, unknown>;
       const outboundModel = typeof bodyRecord.model === "string" ? bodyRecord.model : model;
-      stripUnsupportedParams(this.provider, outboundModel, bodyRecord);
+      withDefaults = mapNvidiaGlm52ReasoningParams(bodyRecord, this.provider, outboundModel);
+      stripUnsupportedParams(this.provider, outboundModel, withDefaults as Record<string, unknown>);
     }
 
     // Apply modelIdPrefix from RegistryEntry (e.g. "accounts/fireworks/models/")

@@ -477,6 +477,12 @@ export async function handleChatCore({
     return {
       success: false,
       status: 403,
+      // Label the source: this 403 is our own policy decision, not the provider
+      // rejecting us. Unlabelled, it is indistinguishable from a real upstream 403
+      // and gets the connection banned. Matches the type already sent to the client
+      // in pluginOnRequest.ts.
+      errorType: "plugin_block",
+      errorCode: "plugin_block",
       error: "Request blocked by plugin",
       response: pluginGate.response,
     };

@@ -49,6 +49,23 @@ export function getVisibleQuotas(sortedQuotas: any[], expanded: boolean): any[] 
   return expanded ? sortedQuotas : sortedQuotas.slice(0, DEFAULT_VISIBLE_ROWS);
 }
 
+/**
+ * Pure helper — the loading placeholder replaces the entire quota section
+ * with a spinner. Swapping rows for a spinner mid-refresh collapses the card
+ * height, which rebalances the outer CSS multi-column layout (provider groups
+ * visibly jump between columns). Only the initial load (nothing to display
+ * yet) may show the placeholder; a refresh keeps the stale rows rendered
+ * while the refresh button icon spins, and the UI updates once new data
+ * arrives.
+ */
+export function shouldShowLoadingPlaceholder(
+  loading: boolean,
+  quotaCount: number,
+  message?: string | null
+): boolean {
+  return loading && quotaCount === 0 && !message;
+}
+
 interface Props {
   quotas: any[];
   providerId?: string;
@@ -233,7 +250,7 @@ export default function QuotaCardExpanded({
 
   return (
     <div className="border-t border-border bg-bg-subtle/30 px-3 py-2.5 flex flex-col gap-1.5">
-      {loading ? (
+      {shouldShowLoadingPlaceholder(loading, sortedQuotas.length, message) ? (
         <div className="text-[11px] text-text-muted flex items-center gap-1.5">
           <span className="material-symbols-outlined animate-spin text-[13px]">
             progress_activity
@@ -264,7 +281,7 @@ export default function QuotaCardExpanded({
         </div>
       )}
 
-      {!loading && !error && sortedQuotas.length > DEFAULT_VISIBLE_ROWS && (
+      {!error && sortedQuotas.length > DEFAULT_VISIBLE_ROWS && (
         <button
           type="button"
           onClick={(e) => {
