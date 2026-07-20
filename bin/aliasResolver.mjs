@@ -4,23 +4,47 @@
  * Problem (#7791): when OmniRoute is installed via `npm i -g omniroute`, the
  * package files live under `node_modules/omniroute/`. tsx's tsconfig-path
  * resolution does not apply there, so specifiers like `@/shared/utils/featureFlags`
- * (declared in tsconfig.json `paths` as `@/* → ./src/*`) fail with
- * `ERR_MODULE_NOT_FOUND`. The CLI crashes before any command can run.
+ * (declared in tsconfig.json `paths` as `@/* → ./src/*`) or
+ * `@omniroute/open-sse/services/usage` fail with `ERR_MODULE_NOT_FOUND`.
+ * The CLI crashes before any command can run.
  *
- * Fix: register a Node ESM `resolve` hook that rewrites `@/...` specifiers to
- * absolute file URLs pointing at the package's `src/` directory. The hook runs
- * after tsx so `.ts` extensions are already handled, and only intercepts `@/`
- * specifiers — everything else falls through to Node's default resolver.
+ * Fix: register a Node ESM `resolve` hook that rewrites alias specifiers to
+ * absolute file URLs. Covers all tsconfig.json `paths` entries:
+ *   - `@/*`             → `./src/*`
+ *   - `@omniroute/open-sse`    → `./open-sse/index.ts`
+ *   - `@omniroute/open-sse/*`  → `./open-sse/*`
+ * The hook runs after tsx so `.ts` extensions are already handled, and only
+ * intercepts matched prefixes — everything else falls through to Node's
+ * default resolver.
  *
  * Exposed as pure functions so the mapping logic is unit-testable without a
  * running module loader.
  */
 
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { dirname, join, relative, isAbsolute } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-/** Prefix that triggers alias rewriting. Exported for tests/consumers. */
+/**
+ * Alias mapping table — mirrors tsconfig.json `paths`.
+ * Processed top-to-bottom; first matching prefix wins.
+ *
+ * Each entry:
+ *   prefix  — specifier prefix to match (e.g. `"@/"`, `"@omniroute/open-sse/"`)
+ *   target  — directory name under the package root (e.g. `"src"`, `"open-sse"`)
+ *   exact   — if true, the prefix also matches when the specifier equals the
+ *             prefix *without* a trailing slash (e.g. `@omniroute/open-sse` →
+ *             `<root>/open-sse/index.ts`).
+ *
+ * Exported for tests/consumers.
+ */
+export const ALIAS_MAP = [
+  { prefix: "@/", target: "src", exact: false },
+  { prefix: "@omniroute/open-sse/", target: "open-sse", exact: false },
+  { prefix: "@omniroute/open-sse", target: "open-sse", exact: true },
+];
+
+/** @deprecated Use ALIAS_MAP instead. Kept for backward compat. */
 export const ALIAS_PREFIX = "@/";
 
 // This file is ESM (no CJS __dirname global) — derive it from import.meta.url
@@ -29,61 +53,104 @@ export const ALIAS_PREFIX = "@/";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
- * Resolve a `@/...` specifier to an absolute file URL under `<root>/src/`.
+ * Resolve an alias specifier to an absolute file URL.
  *
- * Rules mirror tsconfig.json `paths`:
- *   "@/*": ["./src/*"]
+ * Rules mirror tsconfig.json `paths` via `ALIAS_MAP`:
+ *   "@/..."                     → <root>/src/...
+ *   "@omniroute/open-sse/..."   → <root>/open-sse/...
+ *   "@omniroute/open-sse"       → <root>/open-sse/index.*
  *
- * - Strips the `@/` prefix and joins against `<root>/src/`.
+ * - Strips the matched alias prefix and joins the remainder against the
+ *   corresponding target directory.
  * - Probes the underlying filesystem for the actual source file: the specifier
  *   itself, then with common source extensions (`.ts`, `.tsx`, `.js`, `.mjs`,
  *   `.cjs`, `.json`), then `<dir>/index.*`. Returns the first existing match
  *   as a `file://` URL.
- * - Returns `null` for specifiers that do not start with `@/`, for malformed
- *   escapes (`@//etc/...`), for path-traversal attempts (`@/../../../etc/...`),
- *   or when no corresponding source file exists on disk. The caller (the ESM
- *   loader, or test code) treats `null` as "defer to the default resolver".
- *
- * This is the exact same logic the loader hook in HOOK_SOURCE runs, factored
- * out so it can be unit-tested without spawning a worker.
+ * - Returns `null` for specifiers that do not match any alias, for malformed
+ *   escapes, for path-traversal attempts, or when no corresponding source
+ *   file exists on disk. The caller treats `null` as "defer to the default
+ *   resolver".
  *
  * @param {string} specifier  Module specifier from an `import` statement.
- * @param {string} root       Absolute path to the package root (where `src/` lives).
+ * @param {string} root       Absolute path to the package root.
  * @returns {string|null}     Absolute `file://` URL, or `null` when unresolved.
  */
 const SOURCE_EXTENSIONS = [".ts", ".tsx", ".js", ".mjs", ".cjs", ".json"];
 
 export function resolveAlias(specifier, root) {
-  if (typeof specifier !== "string" || !specifier.startsWith(ALIAS_PREFIX)) {
+  if (typeof specifier !== "string" || !root || typeof root !== "string") {
     return null;
   }
-  if (!root || typeof root !== "string") return null;
-  const rest = specifier.slice(ALIAS_PREFIX.length);
-  // Guard against absolute-ish escapes (`@//etc/passwd`, `@/\\x00`).
+
+  // Find the first matching alias entry (top-to-bottom order).
+  let matchedEntry = null;
+  let rest = null;
+  for (const entry of ALIAS_MAP) {
+    if (specifier.startsWith(entry.prefix)) {
+      // For non-exact entries, require at least one char after the prefix
+      // to avoid matching bare "@/" as "nothing".
+      const after = specifier.slice(entry.prefix.length);
+      if (after.length === 0 && !entry.exact) continue;
+      matchedEntry = entry;
+      rest = after;
+      break;
+    }
+  }
+  if (!matchedEntry) return null;
+
+  const targetDir = join(root, matchedEntry.target);
+
+  // Exact match (e.g. `@omniroute/open-sse` with no trailing path) →
+  // resolve to `<target>/index.*`.
+  if (rest === "" || rest === undefined) {
+    return probeIndex(targetDir);
+  }
+
+  // Guard against absolute-ish escapes (`@//etc/passwd`, `@/\x00`).
   if (rest.startsWith("/") || rest.startsWith("\\")) {
     return null;
   }
-  // Guard against path-traversal escapes (`@/../../../etc/hostname`). Reject
-  // any `..` path segment outright, then double-check with path.relative()
-  // that the joined path cannot land outside <root>/src even after `join()`
-  // normalizes the segments — belt-and-suspenders against any encoding this
-  // literal segment check might miss.
-  const segments = rest.split(/[\\/]+/);
+  // Guard against path-traversal escapes (`@/../../../etc/hostname`).
+  const segments = rest.split(/[\\\/]+/);
   if (segments.includes("..")) {
     return null;
   }
-  const srcRoot = join(root, "src");
-  const base = join(srcRoot, rest);
-  if (!isWithinSrcRoot(srcRoot, base)) {
+  const base = join(targetDir, rest);
+  if (!isWithinRoot(targetDir, base)) {
     return null;
   }
-  if (existsSync(base)) return pathToFileURL(base).href;
+  return probeFile(base) ?? probeIndex(base) ?? null;
+}
+
+/**
+ * Probe a bare path and its extension variants. Returns the first existing
+ * match as a `file://` URL, or `null`.
+ */
+function probeFile(base) {
+  // Try extension variants first — a bare `base` that happens to be a directory
+  // would match existsSync() but should NOT be returned as a file URL (the
+  // caller expects a file, not a directory). Extension-probing avoids this
+  // false positive (e.g. `usage` vs `usage.ts` vs `usage/`).
   for (const ext of SOURCE_EXTENSIONS) {
     const candidate = base + ext;
     if (existsSync(candidate)) return pathToFileURL(candidate).href;
   }
-  // Directory import: `@/shared/utils` → `.../utils/index.ts`
-  const indexBase = join(base, "index");
+  // Only accept the bare path if it is NOT a directory.
+  if (existsSync(base)) {
+    try {
+      const st = statSync(base);
+      if (!st.isDirectory()) return pathToFileURL(base).href;
+    } catch {}
+  }
+  return null;
+}
+
+/**
+ * Probe a directory for an `index.*` entry. Returns the first existing
+ * match as a `file://` URL, or `null`.
+ */
+function probeIndex(dir) {
+  const indexBase = join(dir, "index");
   for (const ext of SOURCE_EXTENSIONS) {
     const candidate = indexBase + ext;
     if (existsSync(candidate)) return pathToFileURL(candidate).href;
@@ -92,16 +159,16 @@ export function resolveAlias(specifier, root) {
 }
 
 /**
- * True when `candidate` resolves to a location inside `srcRoot` (or is
- * `srcRoot` itself). Used as a second, path-normalization-aware layer of
+ * True when `candidate` resolves to a location inside `ancestor` (or is
+ * `ancestor` itself). Used as a second, path-normalization-aware layer of
  * defense against traversal beyond the literal `..` segment check above.
  *
- * @param {string} srcRoot
+ * @param {string} ancestor
  * @param {string} candidate
  * @returns {boolean}
  */
-function isWithinSrcRoot(srcRoot, candidate) {
-  const rel = relative(srcRoot, candidate);
+function isWithinRoot(ancestor, candidate) {
+  const rel = relative(ancestor, candidate);
   return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
 }
 

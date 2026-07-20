@@ -20,7 +20,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { resolveAlias, registerAliasResolver, ALIAS_PREFIX } from "../../../bin/aliasResolver.mjs";
+import {
+  resolveAlias,
+  registerAliasResolver,
+  ALIAS_PREFIX,
+  ALIAS_MAP,
+} from "../../../bin/aliasResolver.mjs";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = join(__dirname, "..", "..", "..");
@@ -119,6 +124,68 @@ describe("aliasResolver.resolveAlias (pure)", () => {
   it("returns null when no candidate file exists on disk", () => {
     // Real root, but specifier points at a non-existent path
     assert.equal(resolveAlias("@/does/not/exist", REPO_ROOT), null);
+  });
+});
+
+describe("aliasResolver.resolveAlias — @omniroute/open-sse aliases", () => {
+  it("exposes ALIAS_MAP with three entries matching tsconfig paths", () => {
+    assert.equal(ALIAS_MAP.length, 3, "must have 3 alias entries");
+    // @/
+    assert.equal(ALIAS_MAP[0].prefix, "@/");
+    assert.equal(ALIAS_MAP[0].target, "src");
+    assert.equal(ALIAS_MAP[0].exact, false);
+    // @omniroute/open-sse/ (subpath)
+    assert.equal(ALIAS_MAP[1].prefix, "@omniroute/open-sse/");
+    assert.equal(ALIAS_MAP[1].target, "open-sse");
+    assert.equal(ALIAS_MAP[1].exact, false);
+    // @omniroute/open-sse (exact package name)
+    assert.equal(ALIAS_MAP[2].prefix, "@omniroute/open-sse");
+    assert.equal(ALIAS_MAP[2].target, "open-sse");
+    assert.equal(ALIAS_MAP[2].exact, true);
+  });
+
+  it("resolves @omniroute/open-sse (bare) to open-sse/index.ts", () => {
+    const got = resolveAlias("@omniroute/open-sse", REPO_ROOT);
+    assert.ok(got, "expected non-null URL for @omniroute/open-sse");
+    assert.ok(got.startsWith("file://"), "must be a file URL");
+    const fsPath = fileURLToPath(got);
+    assert.ok(
+      fsPath.endsWith(join("open-sse", "index.ts")),
+      `expected <root>/open-sse/index.ts, got ${fsPath}`
+    );
+  });
+
+  it("resolves @omniroute/open-sse/services/usage to open-sse/services/usage.ts", () => {
+    const got = resolveAlias("@omniroute/open-sse/services/usage", REPO_ROOT);
+    assert.ok(got, "expected non-null URL");
+    const fsPath = fileURLToPath(got);
+    assert.ok(
+      fsPath.endsWith(join("open-sse", "services", "usage.ts")),
+      `expected <root>/open-sse/services/usage.ts, got ${fsPath}`
+    );
+  });
+
+  it("resolves @omniroute/open-sse/utils/proxyFetch to open-sse/utils/proxyFetch.ts", () => {
+    const got = resolveAlias("@omniroute/open-sse/utils/proxyFetch", REPO_ROOT);
+    assert.ok(got, "expected non-null URL");
+    const fsPath = fileURLToPath(got);
+    assert.ok(
+      fsPath.endsWith(join("open-sse", "utils", "proxyFetch.ts")),
+      `expected <root>/open-sse/utils/proxyFetch.ts, got ${fsPath}`
+    );
+  });
+
+  it("returns null for non-existent @omniroute/open-sse/* paths", () => {
+    assert.equal(resolveAlias("@omniroute/open-sse/does/not/exist", REPO_ROOT), null);
+  });
+
+  it("returns null for @omniroute/other (unmatched scope)", () => {
+    assert.equal(resolveAlias("@omniroute/other", REPO_ROOT), null);
+    assert.equal(resolveAlias("@omniroute/other/pkg", REPO_ROOT), null);
+  });
+
+  it("rejects path-traversal via @omniroute/open-sse/../../etc/passwd", () => {
+    assert.equal(resolveAlias("@omniroute/open-sse/../../etc/passwd", REPO_ROOT), null);
   });
 });
 

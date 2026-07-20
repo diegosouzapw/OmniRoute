@@ -1,13 +1,16 @@
 /**
- * ESM loader hook for `@/` path aliases (#7791).
+ * ESM loader hook for path-alias resolution (#7791 + #7808).
  *
  * This file runs in Node's loader worker thread after being registered via
  * `module.register(url, data)` from `bin/aliasResolver.mjs`. It MUST NOT import
  * anything from the parent module — all inputs arrive through `initialize(data)`.
  *
  * Behaviour:
- * - Rewrites `@/...` specifiers to absolute filesystem paths under `<root>/src/`,
- *   mirroring the `paths: { "@/*": ["./src/*"] }` mapping from tsconfig.json.
+ * - Rewrites alias specifiers to absolute filesystem paths, mirroring
+ *   tsconfig.json `paths`:
+ *     - `@/*`                    → <root>/src/*
+ *     - `@omniroute/open-sse`     → <root>/open-sse/index.*
+ *     - `@omniroute/open-sse/*`   → <root>/open-sse/*
  * - Probes the usual source extensions (`.ts`, `.tsx`, `.js`, `.mjs`, `.cjs`,
  *   `.json`) plus `index.*` for directory imports.
  * - Returns `shortCircuit: true` only when a candidate file exists on disk;
@@ -21,7 +24,7 @@
  */
 import { pathToFileURL } from "node:url";
 import { join, relative, isAbsolute } from "node:path";
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 
 let ROOT = "";
 
@@ -31,29 +34,70 @@ export function initialize(data) {
 
 const EXTENSIONS = [".ts", ".tsx", ".js", ".mjs", ".cjs", ".json"];
 
+/**
+ * Alias prefix table — mirrors ALIAS_MAP in aliasResolver.mjs and
+ * tsconfig.json `paths`. Processed top-to-bottom; first match wins.
+ *
+ * @type {Array<{prefix: string, target: string, exact: boolean}>}
+ */
+const ALIAS_TABLE = [
+  { prefix: "@/", target: "src", exact: false },
+  { prefix: "@omniroute/open-sse/", target: "open-sse", exact: false },
+  { prefix: "@omniroute/open-sse", target: "open-sse", exact: true },
+];
+
 function tryResolveAliasFsPath(specifier) {
-  if (!ROOT || typeof specifier !== "string" || !specifier.startsWith("@/")) {
-    return null;
+  if (!ROOT || typeof specifier !== "string") return null;
+
+  // Find the first matching alias entry.
+  let matchedEntry = null;
+  let rest = null;
+  for (const entry of ALIAS_TABLE) {
+    if (specifier.startsWith(entry.prefix)) {
+      const after = specifier.slice(entry.prefix.length);
+      if (after.length === 0 && !entry.exact) continue;
+      matchedEntry = entry;
+      rest = after;
+      break;
+    }
   }
-  const rest = specifier.slice(2);
-  // Guard against absolute-ish escapes (`@//etc/passwd`, `@/\x00`).
+  if (!matchedEntry) return null;
+
+  const targetDir = join(ROOT, matchedEntry.target);
+
+  // Exact match (e.g. `@omniroute/open-sse`) → resolve to `<target>/index.*`.
+  if (rest === "" || rest === undefined) {
+    return probeIndex(targetDir);
+  }
+
+  // Guard against absolute-ish escapes.
   if (rest.startsWith("/") || rest.startsWith("\\")) return null;
-  // Guard against path-traversal escapes (`@/../../../etc/hostname`). Reject
-  // any `..` path segment outright, then double-check with path.relative()
-  // that the joined path cannot land outside <root>/src even after `join()`
-  // normalizes the segments.
-  const segments = rest.split(/[\\/]+/);
+  // Guard against path-traversal escapes.
+  const segments = rest.split(/[\\\/]+/);
   if (segments.includes("..")) return null;
-  const srcRoot = join(ROOT, "src");
-  const base = join(srcRoot, rest);
-  if (!isWithinSrcRoot(srcRoot, base)) return null;
-  if (existsSync(base)) return base;
+
+  const base = join(targetDir, rest);
+  if (!isWithinRoot(targetDir, base)) return null;
+  return probeFile(base) ?? probeIndex(base) ?? null;
+}
+
+function probeFile(base) {
+  // Extension variants first — avoids matching a bare directory name.
   for (const ext of EXTENSIONS) {
     const candidate = base + ext;
     if (existsSync(candidate)) return candidate;
   }
-  // Directory import: `@/shared/utils` → `.../utils/index.ts`
-  const indexBase = join(base, "index");
+  if (existsSync(base)) {
+    try {
+      const st = statSync(base);
+      if (!st.isDirectory()) return base;
+    } catch {}
+  }
+  return null;
+}
+
+function probeIndex(dir) {
+  const indexBase = join(dir, "index");
   for (const ext of EXTENSIONS) {
     const candidate = indexBase + ext;
     if (existsSync(candidate)) return candidate;
@@ -62,16 +106,11 @@ function tryResolveAliasFsPath(specifier) {
 }
 
 /**
- * True when `candidate` resolves to a location inside `srcRoot` (or is
- * `srcRoot` itself). Second, path-normalization-aware layer of defense
- * against traversal beyond the literal `..` segment check above.
- *
- * @param {string} srcRoot
- * @param {string} candidate
- * @returns {boolean}
+ * True when `candidate` resolves to a location inside `ancestor` (or is
+ * `ancestor` itself). Path-normalization-aware defense against traversal.
  */
-function isWithinSrcRoot(srcRoot, candidate) {
-  const rel = relative(srcRoot, candidate);
+function isWithinRoot(ancestor, candidate) {
+  const rel = relative(ancestor, candidate);
   return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
 }
 
