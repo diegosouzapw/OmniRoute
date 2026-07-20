@@ -25,6 +25,8 @@
  * Method: Direct fetch — no browser automation required.
  */
 import { randomUUID } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
 import {
@@ -166,20 +168,48 @@ function isoNow(): string {
  *   but `user` matches the current web client)
  * - Assistant turns as `agent-inference` text parts
  */
-function buildNotionConfigStep(model: string): Record<string, unknown> {
+/** Custom Notion AI agent (workflow) options from account credential / providerSpecificData. */
+export interface NotionAgentOptions {
+  /** UUID of a custom agent workflow. Empty = default Notion AI (ai_module). */
+  workflowId?: string;
+  /** Optional context page id for custom agents. */
+  contextPageId?: string;
+}
+
+function buildNotionConfigStep(model: string, agent?: NotionAgentOptions): Record<string, unknown> {
+  const isCustom = Boolean(agent?.workflowId);
   const configValue: Record<string, unknown> = {
     type: "workflow",
-    useWebSearch: false,
+    // Match live browser defaults (2026-07-20 capture) for fewer plan/feature mismatches.
+    enableAgentAutomations: true,
+    enableAgentIntegrations: true,
+    enableCustomAgents: true,
+    enableScriptAgent: true,
+    enableAgentDiffs: true,
+    enableCsvAttachmentSupport: true,
+    enableComputer: true,
+    enableCreateAndRunThread: true,
+    enableAgentGenerateImage: !isCustom,
+    useWebSearch: true,
     searchScopes: [{ type: "everything" }],
-    modelFromUser: Boolean(model),
-    enableAgentAutomations: false,
-    enableAgentIntegrations: false,
-    enableCustomAgents: false,
-    enableDatabaseAgents: false,
+    availableConnectors: [],
     enableUserSessionContext: false,
-    isCustomAgent: false,
+    isCustomAgent: isCustom,
+    isCustomAgentBuilder: false,
+    isCustomAgentCreate: false,
+    isAgentResearchRequest: false,
+    useCustomAgentDraft: isCustom,
+    modelFromUser: !isCustom && Boolean(model),
+    databaseAgentConfigMode: false,
+    isOnboardingAgent: false,
+    isMobile: false,
   };
-  if (model) configValue.model = model;
+  if (isCustom && agent?.workflowId) {
+    configValue.workflowId = agent.workflowId;
+  }
+  // Default Notion AI: pin the food codename when the client selected a model.
+  // Custom agents usually use the agent-configured model (modelFromUser:false).
+  if (!isCustom && model) configValue.model = model;
   return { id: randomUUID(), type: "config", value: configValue };
 }
 
@@ -187,14 +217,22 @@ function buildNotionContextValue(opts: {
   spaceId?: string;
   userId?: string;
   now: string;
+  agent?: NotionAgentOptions;
 }): Record<string, unknown> {
+  const isCustom = Boolean(opts.agent?.workflowId);
   const contextValue: Record<string, unknown> = {
     timezone: "UTC",
-    surface: "ai_module",
+    surface: isCustom ? "custom_agent" : "ai_module",
     currentDatetime: opts.now,
   };
   if (opts.spaceId) contextValue.spaceId = opts.spaceId;
   if (opts.userId) contextValue.userId = opts.userId;
+  if (isCustom && opts.agent?.workflowId) {
+    contextValue.workflowId = opts.agent.workflowId;
+    if (opts.agent.contextPageId) {
+      contextValue.context_page_id = opts.agent.contextPageId;
+    }
+  }
   return contextValue;
 }
 
@@ -219,25 +257,146 @@ export function extractNotionMessageText(content: unknown): string {
   return parts.join("\n");
 }
 
-const THREAD_SESSION_MAX_AGE_MS = 3600_000;
-const THREAD_SESSION_MAX_ENTRIES = 200;
+const THREAD_SESSION_MAX_AGE_MS = 6 * 3600_000; // 6h — agent tool loops can be long
+const THREAD_SESSION_MAX_ENTRIES = 500;
+/** How long after a createThread attempt we treat the threadId as "already minted". */
+const THREAD_CREATE_GRACE_MS = 30 * 60_000;
 
 interface ThreadSessionEntry {
   threadId: string;
   ts: number;
+  /** True once we successfully completed at least one turn on this thread. */
+  confirmed?: boolean;
+  /** True once we issued createThread:true for this threadId (even if the reply failed). */
+  createAttempted?: boolean;
 }
 
-/** In-memory map: hash(spaceId + conversation prefix) → Notion threadId. */
+/** In-memory map: conversation key → Notion threadId. Backed by DATA_DIR when available. */
 const threadSessionCache = new Map<string, ThreadSessionEntry>();
+let threadStoreLoaded = false;
+let threadStoreDirty = false;
+let threadStoreTimer: ReturnType<typeof setTimeout> | null = null;
+
+function getThreadStorePath(): string | null {
+  try {
+    const dataDir =
+      process.env.DATA_DIR ||
+      process.env.OMNIROUTE_DATA_DIR ||
+      process.env.VIBEPROXY_DATA_DIR ||
+      "";
+    if (!dataDir) return null;
+    return join(dataDir, "notion-web-thread-sessions.json");
+  } catch {
+    return null;
+  }
+}
+
+function loadThreadStoreFromDisk(): void {
+  if (threadStoreLoaded) return;
+  threadStoreLoaded = true;
+  const path = getThreadStorePath();
+  if (!path || !existsSync(path)) return;
+  try {
+    const raw = readFileSync(path, "utf8");
+    const parsed = JSON.parse(raw) as Record<string, ThreadSessionEntry>;
+    const now = Date.now();
+    for (const [k, v] of Object.entries(parsed || {})) {
+      if (!v?.threadId || typeof v.ts !== "number") continue;
+      if (now - v.ts > THREAD_SESSION_MAX_AGE_MS) continue;
+      threadSessionCache.set(k, v);
+    }
+  } catch {
+    // corrupt store — start fresh
+  }
+}
+
+function scheduleThreadStoreFlush(): void {
+  threadStoreDirty = true;
+  if (threadStoreTimer) return;
+  threadStoreTimer = setTimeout(() => {
+    threadStoreTimer = null;
+    flushThreadStoreToDisk();
+  }, 250);
+  // Don't keep the process alive solely for the flush.
+  if (typeof threadStoreTimer === "object" && threadStoreTimer && "unref" in threadStoreTimer) {
+    try {
+      (threadStoreTimer as NodeJS.Timeout).unref();
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+function flushThreadStoreToDisk(): void {
+  if (!threadStoreDirty) return;
+  const path = getThreadStorePath();
+  if (!path) return;
+  try {
+    const dir = dirname(path);
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    const obj: Record<string, ThreadSessionEntry> = {};
+    for (const [k, v] of threadSessionCache) obj[k] = v;
+    writeFileSync(path, JSON.stringify(obj), "utf8");
+    threadStoreDirty = false;
+  } catch {
+    // best-effort persistence
+  }
+}
 
 /** Exported for unit tests. */
 export function __resetNotionThreadSessionsForTests(): void {
   threadSessionCache.clear();
+  threadStoreLoaded = true; // skip disk reload in tests
+  threadStoreDirty = false;
+  if (threadStoreTimer) {
+    clearTimeout(threadStoreTimer);
+    threadStoreTimer = null;
+  }
 }
 
-/** FNV-1a style hash of spaceId + exact message list (used as conversation prefix). */
+/**
+ * Normalize user/assistant text for thread-cache hashing.
+ *
+ * SkillsManager / OpenAI clients keep the *original* user text in history, while
+ * VibeProxy agentic conversion may rewrite the last user turn (UREW pin with
+ * "My current task: …"). Without normalization, turn-2 lookup never matches
+ * turn-1 store → createThread:true every request (new Notion chat each time).
+ */
+export function normalizeNotionContentForHash(content: unknown): string {
+  let text = extractNotionMessageText(content).replace(/\r\n/g, "\n").trim();
+  if (!text) return "";
+
+  // Agentic / UREW pin: keep only the stable task suffix when present.
+  const taskMarkers = ["My current task:", "my current task:"];
+  for (const marker of taskMarkers) {
+    const idx = text.lastIndexOf(marker);
+    if (idx >= 0) {
+      text = text.slice(idx + marker.length).trim();
+      break;
+    }
+  }
+
+  // Drop other common agentic preamble fingerprints if the whole pin leaked in.
+  if (text.includes("local workflow automation tool") || text.includes("clipboard parser")) {
+    const intentIdx = text.lastIndexOf("Intent:");
+    // Prefer last non-empty line after stripping long preambles
+    const lines = text
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    if (lines.length > 0) text = lines[lines.length - 1]!;
+    void intentIdx;
+  }
+
+  return text.replace(/\s+/g, " ").trim();
+}
+
+/** FNV-1a style hash of spaceId + normalized message list (conversation prefix). */
 export function hashNotionConversation(spaceId: string, msgs: NotionMessage[]): string {
-  const parts = [`space:${spaceId}`, ...msgs.map((h) => `${h.role}:${extractNotionMessageText(h.content)}`)];
+  const parts = [
+    `space:${spaceId}`,
+    ...msgs.map((h) => `${(h.role || "").toLowerCase()}:${normalizeNotionContentForHash(h.content)}`),
+  ];
   const raw = parts.join("\n");
   let hash = 0x811c9dc5;
   for (let i = 0; i < raw.length; i++) {
@@ -262,17 +421,160 @@ export function conversationPrefixBeforeLastUser(messages: NotionMessage[]): Not
   return messages.slice(0, lastUser);
 }
 
-export function notionThreadSessionLookup(spaceId: string, messages: NotionMessage[]): string | null {
-  const prefix = conversationPrefixBeforeLastUser(messages);
-  if (prefix.length === 0) return null;
-  const key = hashNotionConversation(spaceId, prefix);
+function readThreadSessionEntry(key: string): ThreadSessionEntry | null {
+  loadThreadStoreFromDisk();
   const entry = threadSessionCache.get(key);
   if (!entry) return null;
   if (Date.now() - entry.ts > THREAD_SESSION_MAX_AGE_MS) {
     threadSessionCache.delete(key);
+    scheduleThreadStoreFlush();
     return null;
   }
-  return entry.threadId;
+  return entry;
+}
+
+function readThreadSession(key: string): string | null {
+  return readThreadSessionEntry(key)?.threadId ?? null;
+}
+
+function putThreadSession(
+  key: string,
+  threadId: string,
+  flags: { confirmed?: boolean; createAttempted?: boolean } = {}
+): void {
+  loadThreadStoreFromDisk();
+  const prev = threadSessionCache.get(key);
+  threadSessionCache.set(key, {
+    threadId,
+    ts: Date.now(),
+    confirmed: flags.confirmed ?? prev?.confirmed ?? false,
+    createAttempted: flags.createAttempted ?? prev?.createAttempted ?? false,
+  });
+  // Evict oldest if over cap
+  if (threadSessionCache.size > THREAD_SESSION_MAX_ENTRIES) {
+    let oldestKey: string | null = null;
+    let oldestTs = Infinity;
+    for (const [k, v] of threadSessionCache) {
+      if (v.ts < oldestTs) {
+        oldestTs = v.ts;
+        oldestKey = k;
+      }
+    }
+    if (oldestKey) threadSessionCache.delete(oldestKey);
+  }
+  scheduleThreadStoreFlush();
+}
+
+/** Root sticky key for a conversation (space/agent + first user turn). */
+export function notionThreadRootKey(spaceKey: string, messages: NotionMessage[]): string | null {
+  const first = firstUserMessage(messages);
+  if (!first) return null;
+  return `root:${hashNotionConversation(spaceKey, [first])}`;
+}
+
+/**
+ * Resolve which Notion thread to use and whether to mint a new one.
+ * - Sticky root binding is written *before* the upstream call so errors/retries
+ *   never open a second Notion chat for the same conversation.
+ * - Any prior assistant history forces createThread:false when a sticky id exists.
+ */
+export function resolveNotionThreadBinding(
+  spaceKey: string,
+  messages: NotionMessage[],
+  clientThreadId?: string
+): { threadId: string; createThread: boolean; rootKey: string | null } {
+  loadThreadStoreFromDisk();
+  const rootKey = notionThreadRootKey(spaceKey, messages);
+  const hasHistory = conversationHasAssistant(messages);
+
+  if (clientThreadId && clientThreadId.trim()) {
+    const id = clientThreadId.trim();
+    if (rootKey) putThreadSession(rootKey, id, { createAttempted: true });
+    return { threadId: id, createThread: false, rootKey };
+  }
+
+  // Prefer sticky root (survives UREW rewrites + error retries)
+  if (rootKey) {
+    const sticky = readThreadSessionEntry(rootKey);
+    if (sticky?.threadId) {
+      // Touch TTL
+      putThreadSession(rootKey, sticky.threadId, {
+        confirmed: sticky.confirmed,
+        createAttempted: sticky.createAttempted,
+      });
+      // If we already attempted create for this root, never create again
+      // (even when the first reply failed — Notion may already have the thread).
+      const createThread = !sticky.createAttempted && !sticky.confirmed && !hasHistory;
+      return {
+        threadId: sticky.threadId,
+        createThread,
+        rootKey,
+      };
+    }
+  }
+
+  // Exact prefix match (full history before last user)
+  const prefix = conversationPrefixBeforeLastUser(messages);
+  if (prefix.length > 0) {
+    const exactId = readThreadSession(hashNotionConversation(spaceKey, prefix));
+    if (exactId) {
+      if (rootKey) putThreadSession(rootKey, exactId, { createAttempted: true, confirmed: true });
+      return { threadId: exactId, createThread: false, rootKey };
+    }
+  }
+
+  // Mint a new thread id and bind it immediately (optimistic) so concurrent /
+  // failed retries reuse the same id instead of spam-creating Notion chats.
+  const threadId = randomUUID();
+  if (rootKey) {
+    putThreadSession(rootKey, threadId, {
+      createAttempted: false,
+      confirmed: false,
+    });
+  }
+  // Multi-turn history without sticky (e.g. process restart): still create once
+  // with the full transcript so the agent can continue in a fresh Notion chat.
+  return { threadId, createThread: true, rootKey };
+}
+
+/** Mark that we sent createThread:true for this root (even if the body errored). */
+export function notionThreadMarkCreateAttempted(rootKey: string | null, threadId: string): void {
+  if (!rootKey || !threadId) return;
+  putThreadSession(rootKey, threadId, { createAttempted: true });
+}
+
+/** Mark successful inference on this thread. */
+export function notionThreadMarkConfirmed(rootKey: string | null, threadId: string): void {
+  if (!rootKey || !threadId) return;
+  putThreadSession(rootKey, threadId, { createAttempted: true, confirmed: true });
+}
+
+function firstUserMessage(messages: NotionMessage[]): NotionMessage | null {
+  for (const m of messages) {
+    const role = (m?.role || "").toLowerCase();
+    if (role === "user" || role === "human") return m;
+  }
+  return null;
+}
+
+function conversationHasAssistant(messages: NotionMessage[]): boolean {
+  return messages.some((m) => {
+    const role = (m?.role || "").toLowerCase();
+    return role === "assistant" || role === "ai" || role === "model";
+  });
+}
+
+/** Lookup-only (does not mint). Used by tests and diagnostics. */
+export function notionThreadSessionLookup(spaceId: string, messages: NotionMessage[]): string | null {
+  loadThreadStoreFromDisk();
+  const rootKey = notionThreadRootKey(spaceId, messages);
+  if (rootKey) {
+    const sticky = readThreadSession(rootKey);
+    if (sticky) return sticky;
+  }
+  const prefix = conversationPrefixBeforeLastUser(messages);
+  if (prefix.length === 0) return null;
+  return readThreadSession(hashNotionConversation(spaceId, prefix));
 }
 
 /**
@@ -288,19 +590,17 @@ export function notionThreadSessionStore(
 ): void {
   if (!threadId || !spaceId) return;
   const full: NotionMessage[] = [...messages, { role: "assistant", content: assistantText }];
-  const key = hashNotionConversation(spaceId, full);
-  threadSessionCache.set(key, { threadId, ts: Date.now() });
-  if (threadSessionCache.size > THREAD_SESSION_MAX_ENTRIES) {
-    let oldestKey: string | null = null;
-    let oldestTs = Infinity;
-    for (const [k, v] of threadSessionCache) {
-      if (v.ts < oldestTs) {
-        oldestTs = v.ts;
-        oldestKey = k;
-      }
-    }
-    if (oldestKey) threadSessionCache.delete(oldestKey);
+  putThreadSession(hashNotionConversation(spaceId, full), threadId, {
+    confirmed: true,
+    createAttempted: true,
+  });
+
+  // Root key for agent multi-turn clients that keep original user wording.
+  const rootKey = notionThreadRootKey(spaceId, messages);
+  if (rootKey) {
+    putThreadSession(rootKey, threadId, { confirmed: true, createAttempted: true });
   }
+  void assistantText;
 }
 
 function readClientThreadId(
@@ -358,25 +658,67 @@ function buildNotionMessageStep(
   return userStep;
 }
 
+/**
+ * For follow-ups, only send steps after the last assistant turn (partial transcript).
+ * Notion already has prior steps when createThread:false + sticky threadId.
+ * Re-sending the entire agent tool loop every turn triggers temporarily-unavailable.
+ */
+export function messagesForNotionTranscript(
+  messages: NotionMessage[],
+  isFollowUp: boolean
+): NotionMessage[] {
+  if (!isFollowUp || !messages.length) return messages;
+  let lastAsst = -1;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const role = (messages[i]?.role || "").toLowerCase();
+    if (role === "assistant" || role === "ai" || role === "model") {
+      lastAsst = i;
+      break;
+    }
+  }
+  if (lastAsst < 0) return messages;
+  const slice = messages.slice(lastAsst + 1);
+  // Always include at least the last user message
+  if (slice.length === 0) {
+    const lastUser = [...messages].reverse().find((m) => {
+      const r = (m.role || "").toLowerCase();
+      return r === "user" || r === "human";
+    });
+    return lastUser ? [lastUser] : messages;
+  }
+  return slice;
+}
+
 export function buildNotionTranscript(
   messages: NotionMessage[],
   opts: {
     notionModel?: string;
     spaceId?: string;
     userId?: string;
+    agent?: NotionAgentOptions;
+    /** When true, only append steps after the last assistant (partial follow-up). */
+    isFollowUp?: boolean;
   } = {}
 ): Array<Record<string, unknown>> {
   const trimmedModel = typeof opts.notionModel === "string" ? opts.notionModel.trim() : "";
   const model = trimmedModel && trimmedModel !== "notion-ai" ? trimmedModel : "";
   const now = isoNow();
+  const agent = opts.agent?.workflowId ? opts.agent : undefined;
+  const isFollowUp = Boolean(opts.isFollowUp);
 
-  const contextValue = buildNotionContextValue({ spaceId: opts.spaceId, userId: opts.userId, now });
+  const contextValue = buildNotionContextValue({
+    spaceId: opts.spaceId,
+    userId: opts.userId,
+    now,
+    agent,
+  });
   const entries: Array<Record<string, unknown>> = [
-    buildNotionConfigStep(model),
+    buildNotionConfigStep(model, agent),
     { id: randomUUID(), type: "context", value: contextValue },
   ];
 
-  for (const m of messages) {
+  const msgs = messagesForNotionTranscript(messages, isFollowUp);
+  for (const m of msgs) {
     const step = buildNotionMessageStep(m, contextValue, { userId: opts.userId, now });
     if (step) entries.push(step);
   }
@@ -599,6 +941,66 @@ export function parseNotionInferenceStream(raw: string): string {
 }
 
 /**
+ * Detect Notion in-band errors (often HTTP 200 with NDJSON/JSON error objects),
+ * e.g. `{ type:"error", subType:"temporarily-unavailable", message:"…" }`.
+ */
+export function extractNotionUpstreamError(raw: string): {
+  message: string;
+  subType?: string;
+  isRetryable: boolean;
+} | null {
+  if (!raw || !raw.trim()) return null;
+  const tryParse = (s: string): Record<string, unknown> | null => {
+    try {
+      const o = JSON.parse(s) as Record<string, unknown>;
+      return o && typeof o === "object" ? o : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const candidates: Record<string, unknown>[] = [];
+  const whole = tryParse(raw.trim());
+  if (whole) candidates.push(whole);
+  for (const line of raw.split("\n")) {
+    const t = line.trim();
+    if (!t) continue;
+    const o = tryParse(t);
+    if (o) candidates.push(o);
+  }
+
+  for (const o of candidates) {
+    const type = typeof o.type === "string" ? o.type.toLowerCase() : "";
+    const subType = typeof o.subType === "string" ? o.subType : undefined;
+    const message =
+      (typeof o.message === "string" && o.message) ||
+      (typeof o.error === "string" && o.error) ||
+      "";
+    const isError =
+      type === "error" ||
+      Boolean(subType) ||
+      (typeof o.isRetryable === "boolean" && message.toLowerCase().includes("went wrong"));
+    if (!isError && !subType) continue;
+
+    const sub = (subType || "").toLowerCase();
+    const retryable =
+      o.isRetryable === true ||
+      sub.includes("temporarily") ||
+      sub.includes("unavailable") ||
+      sub.includes("rate") ||
+      sub.includes("timeout") ||
+      sub.includes("overloaded");
+
+    return {
+      message: message || subType || "Notion upstream error",
+      subType,
+      isRetryable: retryable,
+    };
+  }
+  return null;
+}
+
+/**
  * Notion's undocumented inference API does not return token usage.
  * Emit a cheap char-based estimate so clients don't see a constant
  * `USAGE_TOKEN_BUFFER` (default 2000) from buffering an all-zero stub.
@@ -717,8 +1119,14 @@ function buildNotionInferenceRequestBody(opts: {
   threadId: string;
   transcript: unknown;
   createThread: boolean;
+  agent?: NotionAgentOptions;
 }): Record<string, unknown> {
-  const { spaceId, threadId, transcript, createThread } = opts;
+  const { spaceId, threadId, transcript, createThread, agent } = opts;
+  const isCustom = Boolean(agent?.workflowId);
+  const workflowId = agent?.workflowId || "";
+  // Follow-ups: isPartialTranscript true matches open-source Notion bridges and
+  // avoids re-validating the entire prior transcript (a source of transient errors).
+  const isFollowUp = !createThread;
   return {
     traceId: randomUUID(),
     spaceId,
@@ -727,17 +1135,20 @@ function buildNotionInferenceRequestBody(opts: {
     // Only generate a title when starting a new Notion AI chat
     generateTitle: createThread,
     asPatchResponse: true,
-    isPartialTranscript: false,
+    patchResponseVersion: 2,
+    isPartialTranscript: isFollowUp,
     saveAllThreadOperations: true,
-    setUnreadState: true,
-    createdSource: "ai_module",
+    setUnreadState: createThread,
+    createdSource: isCustom ? "custom_agent" : "ai_module",
     threadType: "workflow",
+    supportsCustomAgentNudgeTranscriptStep: true,
+    isUserInAnySalesAssistedSpace: false,
+    isSpaceSalesAssisted: false,
     transcript,
-    threadParentPointer: {
-      table: "space",
-      id: spaceId,
-      spaceId,
-    },
+    // Default AI is parented by the workspace; custom agents by the workflow id.
+    threadParentPointer: isCustom
+      ? { table: "workflow", id: workflowId, spaceId }
+      : { table: "space", id: spaceId, spaceId },
     debugOverrides: {
       annotationInferences: {},
       cachedInferences: {},
@@ -761,14 +1172,21 @@ function buildNotionExecuteHeaders(opts: {
   cookie: string;
   spaceId: string;
   userId: string;
+  agent?: NotionAgentOptions;
 }): Record<string, string> {
+  const isCustom = Boolean(opts.agent?.workflowId);
+  // Browser uses /agent/<workflowId without dashes>?wfv=chat for custom agents.
+  const agentPathId = (opts.agent?.workflowId || "").replace(/-/g, "");
+  const referer = isCustom && agentPathId
+    ? `${BASE_URL}/agent/${agentPathId}?wfv=chat`
+    : `${BASE_URL}/ai`;
   const reqHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     "User-Agent": USER_AGENT,
     Accept: "application/x-ndjson",
     Cookie: opts.cookie,
     Origin: BASE_URL,
-    Referer: `${BASE_URL}/ai`,
+    Referer: referer,
     "notion-client-version": NOTION_CLIENT_VERSION,
     "notion-audit-log-platform": "web",
     "x-notion-space-id": opts.spaceId,
@@ -777,6 +1195,81 @@ function buildNotionExecuteHeaders(opts: {
   };
   if (opts.userId) reqHeaders["x-notion-active-user-header"] = opts.userId;
   return reqHeaders;
+}
+
+/** Normalize a pasted workflow/agent id (with or without dashes). */
+export function normalizeNotionWorkflowId(raw: string | undefined | null): string {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  // URL path segment …/agent/<id>?… or bare hex
+  const fromUrl = s.match(/\/agent\/([a-f0-9-]{20,})/i);
+  let id = fromUrl ? fromUrl[1]! : s;
+  id = id.replace(/[^a-f0-9-]/gi, "");
+  // Insert dashes if 32 hex chars (no dashes)
+  const hex = id.replace(/-/g, "");
+  if (/^[a-f0-9]{32}$/i.test(hex)) {
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`.toLowerCase();
+  }
+  // Already UUID-like
+  if (/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)) {
+    return id.toLowerCase();
+  }
+  return id;
+}
+
+/**
+ * Read custom-agent workflow id + optional context page from credentials.
+ * Sources (priority): providerSpecificData → cookie pairs on apiKey
+ * (`workflow_id=…`, `notion_workflow_id=…`, `context_page_id=…`).
+ */
+export function resolveNotionAgentOptions(
+  credentials: ExecuteInput["credentials"],
+  cookie: string
+): NotionAgentOptions {
+  const ps = credentials?.providerSpecificData;
+  const workflowFromPs =
+    readProviderSpecificString(ps, [
+      "workflowId",
+      "workflow_id",
+      "notionWorkflowId",
+      "notion_workflow_id",
+      "agentId",
+      "agent_id",
+    ]) || "";
+  const pageFromPs =
+    readProviderSpecificString(ps, [
+      "contextPageId",
+      "context_page_id",
+      "notionContextPageId",
+    ]) || "";
+
+  const readCookie = (name: string): string => {
+    const m = cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`, "i"));
+    if (!m) return "";
+    const raw = m[1]!.trim();
+    try {
+      return decodeURIComponent(raw);
+    } catch {
+      return raw;
+    }
+  };
+
+  const workflowId = normalizeNotionWorkflowId(
+    workflowFromPs ||
+      readCookie("workflow_id") ||
+      readCookie("notion_workflow_id") ||
+      readCookie("agent_id")
+  );
+  const contextPageId =
+    pageFromPs ||
+    readCookie("context_page_id") ||
+    readCookie("notion_context_page_id") ||
+    "";
+
+  return {
+    workflowId: workflowId || undefined,
+    contextPageId: contextPageId ? contextPageId.trim() : undefined,
+  };
 }
 
 /**
@@ -855,6 +1348,9 @@ export class NotionWebExecutor extends BaseExecutor {
       );
     }
 
+    // Optional custom agent (workflowId). Empty → default Notion AI (not agentic-specific).
+    const agent = resolveNotionAgentOptions(credentials, cookie);
+
     const messages = requestBody.messages || [];
     if (!messages.some((m) => m.role === "user")) {
       return makeErrorResult(400, "No user message found", body, NOTION_URL);
@@ -878,55 +1374,122 @@ export class NotionWebExecutor extends BaseExecutor {
     const clientFacing = clientFacingModelId(model);
     const modelId = clientFacing || notionCodename || "notion-ai";
 
-    // Thread continuity: prefer explicit client id, else history-keyed session cache.
-    // First user turn → createThread:true + new UUID. Follow-ups with prior turns in
-    // messages[] → createThread:false + same threadId (one Notion AI chat).
-    // ExecuteInput exposes client request headers as clientHeaders (not headers).
-    // Defensive: also accept a misnamed headers bag if a future caller attaches one.
+    // Thread continuity (sticky):
+    // - Prefer X-Notion-Thread-Id / body pin from the client
+    // - Else sticky root key from first user message (UREW-normalized, durable on disk)
+    // - Bind threadId *before* the upstream call so error retries never mint a new chat
+    // - createThread:true only for brand-new roots; never again for that root
     const inboundHeaders =
       (input.clientHeaders as Record<string, string> | null | undefined) ??
       ((input as { headers?: Record<string, string> }).headers as
         | Record<string, string>
         | undefined);
     const clientThreadId = readClientThreadId(requestBody, inboundHeaders ?? undefined);
-    const cachedThreadId = notionThreadSessionLookup(spaceId, messages);
-    const isFollowUp = Boolean(clientThreadId || cachedThreadId);
-    const threadId = clientThreadId || cachedThreadId || randomUUID();
+    // Namespace thread cache by custom agent so default AI and agents never share threads.
+    const threadSpaceKey = agent.workflowId ? `${spaceId}|wf:${agent.workflowId}` : spaceId;
+    const binding = resolveNotionThreadBinding(threadSpaceKey, messages, clientThreadId);
+    let { threadId, createThread, rootKey } = binding;
 
-    const transcript = buildNotionTranscript(messages, {
-      notionModel: notionCodename || undefined,
-      spaceId,
-      userId: userId || undefined,
-    });
+    const reqHeaders = buildNotionExecuteHeaders({ cookie, spaceId, userId, agent });
 
-    const reqBody = buildNotionInferenceRequestBody({
-      spaceId,
-      userId,
-      threadId,
-      transcript,
-      createThread: !isFollowUp,
-    });
-    const reqHeaders = buildNotionExecuteHeaders({ cookie, spaceId, userId });
+    const runOnce = async (opts: {
+      createThread: boolean;
+      threadId: string;
+    }): Promise<
+      | { ok: true; finalText: string; reqBody: Record<string, unknown> }
+      | { ok: false; errorResult: ReturnType<typeof makeErrorResult>; retryable: boolean; reqBody: Record<string, unknown> }
+    > => {
+      const transcript = buildNotionTranscript(messages, {
+        notionModel: notionCodename || undefined,
+        spaceId,
+        userId: userId || undefined,
+        agent,
+        isFollowUp: !opts.createThread,
+      });
+      const reqBody = buildNotionInferenceRequestBody({
+        spaceId,
+        userId,
+        threadId: opts.threadId,
+        transcript,
+        createThread: opts.createThread,
+        agent,
+      });
 
-    const { rawText, errorResult } = await sendNotionInferenceRequest({
-      reqBody,
-      reqHeaders,
-      signal,
-    });
-    if (errorResult) return errorResult;
+      if (opts.createThread) {
+        notionThreadMarkCreateAttempted(rootKey, opts.threadId);
+      }
 
-    const finalText = parseNotionInferenceStream(rawText || "");
-    if (!finalText) {
-      return makeErrorResult(502, "No response from Notion AI", reqBody, NOTION_URL);
+      const { rawText, errorResult } = await sendNotionInferenceRequest({
+        reqBody,
+        reqHeaders,
+        signal,
+      });
+
+      if (errorResult) {
+        // HTTP-level failure — keep sticky binding so the next turn reuses threadId
+        const status = errorResult.response?.status ?? 502;
+        const retryable = status === 429 || status === 503 || status >= 500;
+        return { ok: false, errorResult, retryable, reqBody };
+      }
+
+      const raw = rawText || "";
+      const upstreamErr = extractNotionUpstreamError(raw);
+      if (upstreamErr) {
+        // In-band Notion error (often HTTP 200 NDJSON). Sticky thread stays bound.
+        const status = upstreamErr.isRetryable ? 503 : 502;
+        return {
+          ok: false,
+          retryable: upstreamErr.isRetryable,
+          reqBody,
+          errorResult: makeErrorResult(
+            status,
+            `Notion ${upstreamErr.subType || "error"}: ${upstreamErr.message}`,
+            reqBody,
+            NOTION_URL
+          ),
+        };
+      }
+
+      const finalText = parseNotionInferenceStream(raw);
+      if (!finalText) {
+        return {
+          ok: false,
+          retryable: true,
+          reqBody,
+          errorResult: makeErrorResult(502, "No response from Notion AI", reqBody, NOTION_URL),
+        };
+      }
+
+      return { ok: true, finalText, reqBody };
+    };
+
+    // First attempt
+    let attempt = await runOnce({ createThread, threadId });
+
+    // One automatic retry for transient Notion faults — same threadId, never create again
+    if (!attempt.ok && attempt.retryable) {
+      const delayMs = process.env.NODE_ENV === "test" || process.env.VITEST ? 20 : 700 + Math.floor(Math.random() * 400);
+      await new Promise((r) => setTimeout(r, delayMs));
+      attempt = await runOnce({ createThread: false, threadId });
     }
 
-    // Remember for the next OpenAI multi-turn request with this history prefix.
-    notionThreadSessionStore(spaceId, messages, finalText, threadId);
+    if (!attempt.ok) {
+      return attempt.errorResult;
+    }
+
+    // Confirm sticky binding + prefix keys for multi-turn continuity
+    notionThreadMarkConfirmed(rootKey, threadId);
+    notionThreadSessionStore(threadSpaceKey, messages, attempt.finalText, threadId);
 
     const response = wantStream
-      ? pseudoStreamResponse(finalText, modelId, threadId)
-      : chatCompletionResponse(finalText, modelId, messages, threadId);
+      ? pseudoStreamResponse(attempt.finalText, modelId, threadId)
+      : chatCompletionResponse(attempt.finalText, modelId, messages, threadId);
 
-    return { response, url: NOTION_URL, headers: reqHeaders, transformedBody: reqBody };
+    return {
+      response,
+      url: NOTION_URL,
+      headers: reqHeaders,
+      transformedBody: attempt.reqBody,
+    };
   }
 }
