@@ -54,6 +54,19 @@ function validateCacheBlock(data: Record<string, unknown>, ctx: z.RefinementCtx)
   }
 }
 
+/**
+ * gheUrl must parse and use HTTPS. Shared by the Zod refinement above and by the
+ * OAuth route's raw entry points (searchParams / device-flow extraData), so a
+ * malformed or non-HTTPS enterprise URL is rejected before any upstream fetch.
+ */
+export function isValidGheUrl(raw: string): boolean {
+  try {
+    return new URL(raw).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function validateProviderSpecificData(
   data: Record<string, unknown> | undefined,
   ctx: z.RefinementCtx

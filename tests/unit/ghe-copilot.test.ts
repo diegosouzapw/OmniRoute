@@ -114,3 +114,12 @@ test("executor extends GithubExecutor", () => {
   });
   assert.strictEqual(executor.constructor.name, "GheCopilotExecutor");
 });
+
+test("isValidGheUrl accepts https enterprise hosts and rejects malformed or non-https input", async () => {
+  const { isValidGheUrl } = await import("../../src/shared/validation/providerSpecificData.ts");
+  assert.equal(isValidGheUrl("https://github.mycorp.example"), true);
+  assert.equal(isValidGheUrl("https://10.0.0.5"), true); // on-prem GHE on private IP is the primary use case
+  assert.equal(isValidGheUrl("http://github.mycorp.example"), false);
+  assert.equal(isValidGheUrl("javascript:alert(1)"), false);
+  assert.equal(isValidGheUrl("not a url"), false);
+});

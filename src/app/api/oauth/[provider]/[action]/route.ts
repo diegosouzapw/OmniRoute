@@ -22,6 +22,7 @@ import {
   resolveProxyForProvider,
 } from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { isValidGheUrl } from "@/shared/validation/providerSpecificData";
 import { syncToCloud } from "@/lib/cloudSync";
 import { startLocalServer } from "@/lib/oauth/utils/server";
 import { runWithProxyContextOrDirect } from "@omniroute/open-sse/utils/proxyFetch.ts";
@@ -191,6 +192,9 @@ export async function GET(
       const startUrl = searchParams.get("startUrl");
       const region = searchParams.get("region") || "us-east-1";
       const gheUrl = searchParams.get("gheUrl");
+      if (gheUrl && !isValidGheUrl(gheUrl)) {
+        return NextResponse.json({ error: "gheUrl must be a valid HTTPS URL" }, { status: 400 });
+      }
 
       // Resolve proxy for this provider (provider-level → global → direct)
       const proxy = await resolveProxyForProvider(provider);
@@ -579,6 +583,9 @@ export async function POST(
         // GHE Copilot needs gheUrl threaded through poll → postExchange
         const gheUrl =
           extraData && typeof extraData === "object" ? (extraData as any).gheUrl : undefined;
+        if (typeof gheUrl === "string" && gheUrl && !isValidGheUrl(gheUrl)) {
+          return NextResponse.json({ error: "gheUrl must be a valid HTTPS URL" }, { status: 400 });
+        }
         result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode, null, gheUrl ? { gheUrl } : undefined)
         );
