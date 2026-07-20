@@ -1,0 +1,1 @@
+- **feat(mcp):** add a read-only Local Corpus context source with bounded incremental text indexing, path-containment controls, an authenticated settings API, and three scoped MCP tools.

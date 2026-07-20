@@ -77,6 +77,7 @@ import { poolTools } from "./tools/poolTools.ts";
 import { gamificationTools } from "./tools/gamificationTools.ts";
 import { notionTools } from "./tools/notionTools.ts";
 import { obsidianTools } from "./tools/obsidianTools.ts";
+import { localCorpusTools } from "./tools/localCorpusTools.ts";
 import { compressMcpRegistryMetadata } from "./descriptionCompressor.ts";
 import { reduceToolManifest, readMcpToolProfileFromEnv } from "./toolCardinality.ts";
 import { smartFilterText } from "../services/compression/engines/mcpAccessibility/index.ts";
@@ -88,6 +89,7 @@ import {
 import { getDbInstance } from "../../src/lib/db/core.ts";
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 import { getMcpModelsCatalog } from "./catalog.ts";
 export { getMcpModelsCatalog } from "./catalog.ts";
 
@@ -110,6 +112,7 @@ const TOTAL_MCP_TOOL_COUNT = countUniqueMcpTools({
   pluginTools,
   notionTools,
   obsidianTools,
+  localCorpusTools,
 });
 
 type JsonRecord = Record<string, unknown>;
@@ -680,6 +683,7 @@ export function createMcpServer(): McpServer {
     ...gamificationTools.map((t) => t.name),
     ...obsidianTools.map((t) => t.name),
     ...notionTools.map((t) => t.name),
+    ...localCorpusTools.map((t) => t.name),
   ]);
 
   server.registerTool(
@@ -1241,6 +1245,35 @@ export function createMcpServer(): McpServer {
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
             return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
+    );
+  });
+
+  // ── Local Corpus Context Source Tools ─────────
+  localCorpusTools.forEach((toolDef) => {
+    server.registerTool(
+      toolDef.name,
+      {
+        description: toolDef.description,
+        // @ts-ignore: dynamic zod access
+        inputSchema: toolDef.inputSchema,
+      },
+      withScopeEnforcement(
+        toolDef.name,
+        async (args, extra) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-ignore: handler expected specific object
+            const result = await toolDef.handler(parsedArgs, extra);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (error) {
+            return {
+              content: [{ type: "text" as const, text: `Error: ${sanitizeErrorMessage(error)}` }],
+              isError: true,
+            };
           }
         },
         toolDef.scopes

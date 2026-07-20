@@ -17,6 +17,7 @@ import { gamificationTools } from "../tools/gamificationTools.ts";
 import { pluginTools } from "../tools/pluginTools.ts";
 import { notionTools } from "../tools/notionTools.ts";
 import { obsidianTools } from "../tools/obsidianTools.ts";
+import { localCorpusTools } from "../tools/localCorpusTools.ts";
 import { compressionTools } from "../tools/compressionTools.ts";
 
 import type { ToolCatalogEntry } from "./search.ts";
@@ -76,6 +77,7 @@ export function getAllToolDefinitions(): ToolCatalogEntry[] {
     pluginTools,
     notionTools,
     obsidianTools,
+    localCorpusTools,
     // compressionTools holds omniroute_ccr_retrieve, which is NOT in MCP_TOOLS — without it
     // a `tool_search("compression")` would miss that tool. The other 5 overlap MCP_TOOLS and
     // are resolved by the dedup-by-name below (first wins).

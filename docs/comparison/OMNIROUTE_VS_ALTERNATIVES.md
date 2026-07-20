@@ -22,7 +22,7 @@ Objective feature comparison vs popular open-source AI routers.
 | **Tier 1/2/3 fallback (subscription→cheap→free)**  |                     ✅ + UI                      |     manual     |        n/a        |   manual    |
 | **Token compression**                              | 10-engine pipeline (RTK + Caveman + LLMLingua-2) |      none      |       none        |    none     |
 | **Multimodal generation (speech/music/video)**     |                        ✅                        |       ❌       |    passthrough    |     ❌      |
-| **Built-in MCP server**                            |              ✅ 95 tools, 30 scopes              |       ❌       |        ❌         |     ❌      |
+| **Built-in MCP server**                            |              ✅ 99 tools, 32 scopes              |       ❌       |        ❌         |     ❌      |
 | **A2A protocol**                                   |                   ✅ 6 skills                    |       ❌       |        ❌         |     ❌      |
 | **Memory (FTS5 + vector)**                         |                        ✅                        |       ❌       |        ❌         |     ❌      |
 | **Guardrails (PII, injection, vision)**            |                        ✅                        |    partial     |        ❌         |   ✅ paid   |
