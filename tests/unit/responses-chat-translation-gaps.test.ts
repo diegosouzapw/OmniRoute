@@ -119,3 +119,36 @@ test("Responses -> Chat rejects malformed or unavailable allowed_tools", () => {
       (error as Error & { errorType?: string }).errorType === "unsupported_feature"
   );
 });
+
+test("Responses -> Chat rejects input item types without a lossless Chat equivalent", () => {
+  for (const item of [
+    { type: "item_reference", id: "item_123" },
+    { type: "computer_call_output", call_id: "call_1", output: {} },
+    { type: "mcp_call", name: "remote", arguments: "{}" },
+    { type: "web_search_call", id: "search_1" },
+    { unexpected: true },
+  ]) {
+    assert.throws(
+      () => translate({ input: [item] }),
+      (error: unknown) =>
+        error instanceof Error &&
+        (error as Error & { errorType?: string }).errorType === "unsupported_feature" &&
+        error.message.includes("input item type")
+    );
+  }
+});
+
+test("Responses -> Chat consumes additional_tools input items without emitting messages", () => {
+  const result = translate({
+    input: [
+      { type: "message", role: "user", content: [{ type: "input_text", text: "Use it" }] },
+      {
+        type: "additional_tools",
+        tools: [{ type: "function", name: "extra", parameters: { type: "object" } }],
+      },
+    ],
+  });
+
+  assert.equal((result.messages as unknown[]).length, 1);
+  assert.equal((result.tools as Array<{ function: { name: string } }>)[0].function.name, "extra");
+});

@@ -346,6 +346,15 @@ export function openaiResponsesToOpenAIRequest(
       // Skip reasoning items - they are display-only metadata
       continue;
     }
+
+    if (itemType === "additional_tools") {
+      // Already consumed by collectResponsesTools() before message conversion.
+      continue;
+    }
+
+    throw unsupportedFeature(
+      `Unsupported Responses API feature: input item type '${itemType || "missing"}' cannot be represented in Chat Completions`
+    );
   }
 
   // Flush remainder
