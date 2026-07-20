@@ -467,6 +467,174 @@ describe("buildNotionTranscript", () => {
     });
     assert.equal((transcript[0].value as { model?: string }).model, "acai-budino-high");
   });
+
+  it("accepts OpenAI content-parts arrays for system + user", () => {
+    const transcript = buildNotionTranscript(
+      [
+        {
+          role: "system",
+          content: [{ type: "text", text: "be helpful" }] as unknown as string,
+        },
+        {
+          role: "user",
+          content: [{ type: "text", text: "hi parts" }] as unknown as string,
+        },
+      ],
+      { spaceId: "s1" }
+    );
+    assert.deepEqual(
+      transcript.map((t) => t.type),
+      ["config", "context", "user"]
+    );
+    const ctx = transcript[1].value as { instructions?: string };
+    assert.match(String(ctx.instructions), /be helpful/);
+    assert.deepEqual(transcript[2].value, [["hi parts"]]);
+  });
+});
+
+describe("Notion thread session continuity", () => {
+  const {
+    __resetNotionThreadSessionsForTests,
+    conversationPrefixBeforeLastUser,
+    hashNotionConversation,
+    notionThreadSessionLookup,
+    notionThreadSessionStore,
+  } = mod;
+
+  it("first user turn has no prior assistant history (lookup misses)", () => {
+    assert.deepEqual(
+      conversationPrefixBeforeLastUser([{ role: "user", content: "hi" }]),
+      []
+    );
+    // System-only prefix is fine — still no stored thread for a first user turn
+    const withSys = [
+      { role: "system", content: "sys" },
+      { role: "user", content: "hi" },
+    ];
+    assert.deepEqual(conversationPrefixBeforeLastUser(withSys), [
+      { role: "system", content: "sys" },
+    ]);
+    __resetNotionThreadSessionsForTests();
+    assert.equal(notionThreadSessionLookup("space-1", withSys), null);
+  });
+
+  it("prefix includes prior turns for multi-turn OpenAI history", () => {
+    const msgs = [
+      { role: "user", content: "hi" },
+      { role: "assistant", content: "hello" },
+      { role: "user", content: "next" },
+    ];
+    const prefix = conversationPrefixBeforeLastUser(msgs);
+    assert.equal(prefix.length, 2);
+    assert.equal(prefix[0].content, "hi");
+    assert.equal(prefix[1].role, "assistant");
+  });
+
+  it("stores threadId after turn 1 and reuses it on turn 2 (same space)", async () => {
+    __resetNotionThreadSessionsForTests();
+    const spaceId = "space-1";
+    const turn1 = [{ role: "user", content: "first question" }];
+    assert.equal(notionThreadSessionLookup(spaceId, turn1), null);
+
+    const threadId = "11111111-2222-3333-4444-555555555555";
+    notionThreadSessionStore(spaceId, turn1, "assistant reply one", threadId);
+
+    const turn2 = [
+      { role: "user", content: "first question" },
+      { role: "assistant", content: "assistant reply one" },
+      { role: "user", content: "follow up" },
+    ];
+    assert.equal(notionThreadSessionLookup(spaceId, turn2), threadId);
+    // Different space must not share the thread
+    assert.equal(notionThreadSessionLookup("other-space", turn2), null);
+  });
+
+  it("hash is stable for the same conversation prefix", () => {
+    const a = hashNotionConversation("s", [
+      { role: "user", content: "x" },
+      { role: "assistant", content: "y" },
+    ]);
+    const b = hashNotionConversation("s", [
+      { role: "user", content: "x" },
+      { role: "assistant", content: "y" },
+    ]);
+    assert.equal(a, b);
+    assert.notEqual(
+      a,
+      hashNotionConversation("s", [
+        { role: "user", content: "x" },
+        { role: "assistant", content: "z" },
+      ])
+    );
+  });
+
+  it("execute: first request createThread=true; second multi-turn reuses threadId + createThread=false", async () => {
+    __resetNotionThreadSessionsForTests();
+    const executor = new mod.NotionWebExecutor();
+    const captured: Array<{ createThread?: boolean; threadId?: string }> = [];
+    const originalFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
+        captured.push(JSON.parse(String(opts.body)));
+        const ndjson = [
+          JSON.stringify({ type: "patch-start", data: { s: [] } }),
+          JSON.stringify({
+            type: "record-map",
+            recordMap: {
+              thread_message: {
+                m1: {
+                  value: {
+                    value: {
+                      step: {
+                        type: "agent-inference",
+                        value: [{ type: "text", content: "ok" }],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          }),
+        ].join("\n");
+        return new Response(ndjson, { status: 200 });
+      }) as typeof fetch;
+
+      const r1 = await executor.execute({
+        model: "fable-5",
+        body: { messages: [{ role: "user", content: "hello continuity" }] },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+      assert.equal(r1.response.status, 200);
+      assert.equal(captured[0].createThread, true);
+      const t1 = captured[0].threadId;
+      assert.ok(t1 && t1.length > 10);
+
+      const json1 = (await r1.response.json()) as { notion_thread_id?: string; id?: string };
+      assert.equal(json1.notion_thread_id, t1);
+
+      const r2 = await executor.execute({
+        model: "fable-5",
+        body: {
+          messages: [
+            { role: "user", content: "hello continuity" },
+            { role: "assistant", content: "ok" },
+            { role: "user", content: "second turn" },
+          ],
+        },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+      assert.equal(r2.response.status, 200);
+      assert.equal(captured[1].createThread, false);
+      assert.equal(captured[1].threadId, t1);
+    } finally {
+      globalThis.fetch = originalFetch;
+      __resetNotionThreadSessionsForTests();
+    }
+  });
 });
 
 describe("estimateNotionUsage", () => {
