@@ -114,9 +114,41 @@ export const RESPONSES_STARTUP_THINKING_FRAME = ENCODER.encode(
     .map((e) => `event: ${e.event}\ndata: ${JSON.stringify(e.data)}\n\n`)
     .join("")
 );
+// Anthropic Messages API default — Anthropic's own spec really does use a named
+// `event: error` SSE frame, so this is correct there. It is WRONG for the OpenAI-
+// format routes below: Chat Completions and Responses streaming never use the SSE
+// `event:` field at all, only bare `data: {...}` lines — a naive line-based parser
+// (the kind most OpenAI-compatible clients use, not a full EventSource) can silently
+// drop an unrecognized `event:` line and/or desync on the `data:` line that follows,
+// so this error would never surface to the client at all (log ids
+// 1784465227489-a2cbc0 / 1784457764961-73 territory: a client that gives up with no
+// visible reason). See OPENAI_CHAT_ERROR_FRAME / OPENAI_RESPONSES_ERROR_FRAME below
+// for the per-format-correct alternatives.
 const ERROR_FRAME = ENCODER.encode(
   `event: error\ndata: ${JSON.stringify({
     error: { message: "Upstream stream failed before completion.", type: "stream_error" },
+  })}\n\n`
+);
+// Chat Completions convention: a plain `data:` line, no `event:` field. This
+// matches what the openai-node SDK's stream iterator actually checks for — it
+// inspects each parsed chunk for a top-level `error` key regardless of any SSE
+// event name (there isn't one to check, since real OpenAI chat completions
+// streams never send `event:` lines).
+export const OPENAI_CHAT_ERROR_FRAME = ENCODER.encode(
+  `data: ${JSON.stringify({
+    error: { message: "Upstream stream failed before completion.", type: "stream_error" },
+  })}\n\n`
+);
+// Responses API convention: also a plain `data:` line, but the discriminator is
+// the `type` field INSIDE the JSON payload (matching every other Responses API
+// event — response.output_text.delta, response.completed, etc.), not an SSE
+// `event:` field.
+export const OPENAI_RESPONSES_ERROR_FRAME = ENCODER.encode(
+  `data: ${JSON.stringify({
+    type: "error",
+    code: null,
+    message: "Upstream stream failed before completion.",
+    param: null,
   })}\n\n`
 );
 
@@ -144,6 +176,15 @@ export type EarlyStreamKeepaliveOptions = {
   startupFrame?: Uint8Array;
   /** Extra headers to include in the keepalive response (e.g. X-Correlation-Id). */
   extraHeaders?: Record<string, string>;
+  /**
+   * Frame emitted if the handler ultimately fails (or the upstream stream dies
+   * mid-flight with zero bytes forwarded) after the slow path has already
+   * committed to HTTP 200. Defaults to the Anthropic-style `event: error` frame
+   * (correct for /v1/messages). OpenAI-format routes (/v1/chat/completions,
+   * /v1/responses) MUST pass OPENAI_CHAT_ERROR_FRAME / OPENAI_RESPONSES_ERROR_FRAME
+   * instead — see the doc comment on the default ERROR_FRAME above for why.
+   */
+  errorFrame?: Uint8Array;
 };
 
 type SettledHandler = { ok: true; response: Response } | { ok: false; error: unknown };
@@ -158,6 +199,12 @@ export async function withEarlyStreamKeepalive(
   const keepaliveFrame = options.keepaliveFrame ?? KEEPALIVE_FRAME;
   const startupFrame = options.startupFrame ?? keepaliveFrame;
   const extraHeaders = options.extraHeaders ?? {};
+  const errorFrame = options.errorFrame ?? ERROR_FRAME;
+  // Single source of truth for whether THIS route's error framing uses a named SSE
+  // `event: error` line (Anthropic) or a plain `data:` line (OpenAI Chat Completions /
+  // Responses) — derived from errorFrame itself so the dynamic real-upstream-body case
+  // below stays consistent with the static default-message case without a second option.
+  const errorFrameUsesNamedEvent = new TextDecoder().decode(errorFrame).startsWith("event:");
 
   // Settle into a tagged result so neither race branch leaves an unhandled
   // rejection when the threshold timer wins.
@@ -248,7 +295,7 @@ export async function withEarlyStreamKeepalive(
 
         if (!result.ok) {
           // Handler rejected — emit a generic error frame (never the raw error/stack).
-          controller.enqueue(ERROR_FRAME);
+          controller.enqueue(errorFrame);
         } else {
           const response = result.response;
           const contentType = (response.headers.get("content-type") || "").toLowerCase();
@@ -274,7 +321,7 @@ export async function withEarlyStreamKeepalive(
               // the SSE stream. Silently close instead; the client will see
               // the stream end naturally.
               if (bytesForwarded === 0) {
-                controller.enqueue(ERROR_FRAME);
+                controller.enqueue(errorFrame);
               }
             }
           } else {
@@ -286,14 +333,17 @@ export async function withEarlyStreamKeepalive(
             const dataLine =
               text.trim() ||
               JSON.stringify({ error: { message: "stream_error", type: "stream_error" } });
-            controller.enqueue(ENCODER.encode(`event: error\ndata: ${dataLine}\n\n`));
+            const framed = errorFrameUsesNamedEvent
+              ? `event: error\ndata: ${dataLine}\n\n`
+              : `data: ${dataLine}\n\n`;
+            controller.enqueue(ENCODER.encode(framed));
           }
         }
       } catch {
         // Defensive: never surface a raw error/stack to the client.
         if (!aborted) {
           try {
-            controller.enqueue(ERROR_FRAME);
+            controller.enqueue(errorFrame);
           } catch {
             /* consumer gone */
           }

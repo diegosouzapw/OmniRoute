@@ -7,6 +7,8 @@ import {
   OPENAI_KEEPALIVE_FRAME,
   OPENAI_STARTUP_THINKING_FRAME,
   RESPONSES_STARTUP_THINKING_FRAME,
+  OPENAI_CHAT_ERROR_FRAME,
+  OPENAI_RESPONSES_ERROR_FRAME,
 } from "../../open-sse/utils/earlyStreamKeepalive.ts";
 
 async function readAll(response: Response): Promise<string> {
@@ -287,6 +289,68 @@ test("slow handler that errors emits an in-band error frame (#2544)", async () =
   assert.match(body, /: omniroute-keepalive/);
   assert.match(body, /event: error/);
   assert.match(body, /rate limited/);
+});
+
+// Live incident territory (log ids 1784465227489-a2cbc0 / 1784457764961-73): the
+// default ERROR_FRAME uses a named `event: error` SSE line, which is the Anthropic
+// Messages API convention — correct for /v1/messages, but real OpenAI Chat
+// Completions / Responses streams never send `event:` lines at all. A naive
+// line-based parser (what most OpenAI-compatible clients use, not a full
+// EventSource) can silently drop that line and/or desync on the following `data:`
+// line, so the error would never reach the client — it just looks stuck.
+test("OPENAI_CHAT_ERROR_FRAME is a plain data: line with no event: field", () => {
+  const decoded = new TextDecoder().decode(OPENAI_CHAT_ERROR_FRAME);
+  assert.doesNotMatch(decoded, /^event:/, "Chat Completions streams never use the event: field");
+  assert.match(decoded, /^data: /);
+
+  const payload = JSON.parse(decoded.replace(/^data: /, "").trim());
+  assert.ok(payload.error?.message, "openai-node's stream parser checks for a top-level error key");
+});
+
+test("OPENAI_RESPONSES_ERROR_FRAME is a plain data: line discriminated by type, not event:", () => {
+  const decoded = new TextDecoder().decode(OPENAI_RESPONSES_ERROR_FRAME);
+  assert.doesNotMatch(decoded, /^event:/, "Responses API streams never use the event: field");
+  assert.match(decoded, /^data: /);
+
+  const payload = JSON.parse(decoded.replace(/^data: /, "").trim());
+  assert.equal(
+    payload.type,
+    "error",
+    "Responses API events are discriminated by a `type` field inside the JSON payload"
+  );
+});
+
+test("errorFrame option overrides the default Anthropic-style event: error frame", async () => {
+  const slowFail = new Promise<Response>((resolve) => {
+    setTimeout(
+      () =>
+        resolve(
+          new Response(JSON.stringify({ error: { message: "rate limited", type: "rate_limit" } }), {
+            status: 429,
+            headers: { "Content-Type": "application/json" },
+          })
+        ),
+      80
+    );
+  });
+
+  const result = await withEarlyStreamKeepalive(slowFail, {
+    thresholdMs: 20,
+    intervalMs: 20,
+    errorFrame: OPENAI_CHAT_ERROR_FRAME,
+  });
+  assert.equal(result.status, 200);
+
+  const body = await readAll(result);
+  assert.doesNotMatch(
+    body,
+    /^event: error/m,
+    "must not fall back to the Anthropic-style event: error frame when a custom errorFrame is given"
+  );
+  // The real upstream error body ("rate limited") is forwarded verbatim, framed as a
+  // plain data: line (matching errorFrame's format) instead of the generic fallback
+  // message — this is the dynamic real-body branch, distinct from the static default.
+  assert.match(body, /"error":\{"message":"rate limited","type":"rate_limit"\}/);
 });
 
 // #2544: a fast rejection must propagate so the route's normal error handling runs —

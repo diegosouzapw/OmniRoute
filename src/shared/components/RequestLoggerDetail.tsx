@@ -66,6 +66,7 @@ function PayloadSection({ title, json, onCopy, collapsible = true, defaultOpen =
 
 function StreamSection({ title, json, onCopy }) {
   const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(true);
   const [autoscroll, setAutoscroll] = useState(() => {
     try {
       const v = localStorage.getItem("pref:stream:autoscroll");
@@ -85,7 +86,7 @@ function StreamSection({ title, json, onCopy }) {
   };
 
   useEffect(() => {
-    if (!autoscroll) return;
+    if (!autoscroll || !open) return;
     const el = ref.current;
     if (!el) return;
     // scroll on next animation frame to avoid layout thrash
@@ -94,7 +95,7 @@ function StreamSection({ title, json, onCopy }) {
         el.scrollTop = el.scrollHeight;
       } catch {}
     });
-  }, [json, autoscroll]);
+  }, [json, autoscroll, open]);
 
   const toggleAutoscroll = () => {
     const next = !autoscroll;
@@ -107,7 +108,20 @@ function StreamSection({ title, json, onCopy }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-bold">{title}</h3>
+        <div className="flex items-center gap-3">
+          <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-bold">
+            {title}
+          </h3>
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+            aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
+          >
+            <span className="material-symbols-outlined text-[16px]">
+              {open ? "expand_less" : "expand_more"}
+            </span>
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           <button
             onClick={toggleAutoscroll}
@@ -129,12 +143,14 @@ function StreamSection({ title, json, onCopy }) {
           </button>
         </div>
       </div>
-      <div
-        ref={ref}
-        className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words"
-      >
-        {json}
-      </div>
+      {open && (
+        <div
+          ref={ref}
+          className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words"
+        >
+          {json}
+        </div>
+      )}
     </div>
   );
 }

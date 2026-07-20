@@ -2153,7 +2153,26 @@ export async function handleComboChat({
                   (typeof parsedError === "string" ? parsedError : null) ||
                   errorBody?.message ||
                   errorText;
-                retryAfter = errorBody?.retryAfter || null;
+                // Live incident (log id 1784457764961-73 follow-up): the pre-dispatch
+                // "all credentials cooling down" rejection (buildModelCooldownBody /
+                // handleNoCredentials in src/sse/handlers/chatHelpers.ts) nests its
+                // retry hint as error.retry_after (ISO string) / error.reset_seconds
+                // (seconds), not the top-level `retryAfter` every other 429 shape
+                // uses. Without this fallback, lastStatus gets recorded (fixed above)
+                // but earliestRetryAfter stays null, so the final check falls through
+                // to the generic "all combo models unavailable" error instead of ever
+                // reaching the cooldown-wait decision — same class of bug, different
+                // response shape.
+                const nestedRetryAfter =
+                  typeof parsedError === "object" ? (parsedError?.retry_after ?? null) : null;
+                const nestedResetSeconds =
+                  typeof parsedError === "object" ? (parsedError?.reset_seconds ?? null) : null;
+                retryAfter =
+                  errorBody?.retryAfter ||
+                  nestedRetryAfter ||
+                  (typeof nestedResetSeconds === "number" && nestedResetSeconds > 0
+                    ? new Date(Date.now() + nestedResetSeconds * 1000).toISOString()
+                    : null);
               }
             } catch {
               /* Clone parse failed */
@@ -2366,6 +2385,16 @@ export async function handleComboChat({
               isModelLocked(provider, targetWithConnection.connectionId || "", rawModel)
             ) {
               log.info("COMBO", `Skipping retry for ${modelStr} — model lockout active`);
+              // Live incident (log id 1784457764961-73): earliestRetryAfter is already
+              // captured above from THIS dispatch's own response, but lastStatus was
+              // never recorded on this bail-out path — so once every target in the set
+              // hit an existing lockout, lastStatus stayed null and the final `if
+              // (!lastStatus)` check crystallized an immediate ALL_ACCOUNTS_INACTIVE 503
+              // instead of ever reaching the `if (earliestRetryAfter)` cooldown-wait
+              // decision below, even though a real 429 with a short (~1min) retry-after
+              // was just observed. Recording it here mirrors the "done retrying" path.
+              lastError = errorText || String(result.status);
+              if (!lastStatus) lastStatus = result.status;
               if (i > 0) fallbackCount++;
               return null;
             }
@@ -2396,6 +2425,10 @@ export async function handleComboChat({
             }
             if (lockoutRecorded) {
               log.info("COMBO", `Skipping retry for ${modelStr} — model lockout active`);
+              // Same fix as the already-locked branch above — this is the
+              // first-failure lockout path, so lastStatus needs recording here too.
+              lastError = errorText || String(result.status);
+              if (!lastStatus) lastStatus = result.status;
               if (i > 0) fallbackCount++;
               return null;
             }

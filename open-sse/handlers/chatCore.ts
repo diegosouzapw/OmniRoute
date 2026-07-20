@@ -3220,7 +3220,13 @@ export async function handleChatCore({
       status: failureStatus,
       error: failureMessage,
       providerRequest: finalBody || translatedBody,
-      clientResponse: buildErrorBody(failureStatus, failureMessage),
+      // On a client-abort (AbortError), the client already disconnected before
+      // we ever got here — this body is what we WOULD have sent, not what was
+      // actually delivered. Logging it as `clientResponse` is misleading (the
+      // dashboard reads that field as "what the client received"), so omit it
+      // for this case; `error` above already records the failure reason.
+      clientResponse:
+        error.name === "AbortError" ? undefined : buildErrorBody(failureStatus, failureMessage),
       claudeCacheMeta: claudePromptCacheLogMeta,
       cacheSource: "upstream",
     });

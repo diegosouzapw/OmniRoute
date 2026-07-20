@@ -325,3 +325,134 @@ test("auto strategy with maxSetRetries > 0: both targets lock out on the FIRST s
   // 2nd dispatch after the wait, once its lock has cleared.
   assert.ok(calls.length >= 3, `expected at least 3 dispatch calls, got ${JSON.stringify(calls)}`);
 });
+
+// Live incident (log id 1784457764961-73): with the REAL "default" combo config
+// (maxRetries: 3, not 0 — see liveGeminiShared.ts DEFAULT_COMBO_CONFIG), a plain
+// RPM-style 429 (rate_limit_exceeded, NOT a token-limit breach) on the FIRST
+// dispatch of setTry 0 enters the `retry < maxRetries` branch, immediately trips
+// model-lockout recording (modelLockout enabled for 429), and hits the
+// "lockoutRecorded" bail-out — which returned null WITHOUT ever setting
+// lastStatus/lastError, even though earliestRetryAfter had already been captured
+// from that same response a few lines earlier. When BOTH targets hit this on
+// setTry 0, lastStatus stays null through every subsequent pre-skipped setTry, so
+// the final `if (!lastStatus)` check won the race against `if (earliestRetryAfter)`
+// and crystallized a bogus ALL_ACCOUNTS_INACTIVE 503 in ~6s — even though a real
+// 429 with a clean ~1min retry-after was observed on both targets. Production
+// symptom: the client (a real agentic loop) saw repeated immediate 503s and kept
+// retrying the whole request every ~7s. maxRetries: 0 (used by every test above)
+// never enters this branch at all, which is why the existing suite missed it.
+test("auto strategy with maxRetries > 0 (matches real 'default' combo config): plain 429 on first dispatch still waits and succeeds, not a bogus 503", async () => {
+  const SHORT_RETRY_AFTER_MS = 150;
+  const MODEL_A = "gemini/gemma-4-31b-it";
+  const MODEL_B = "gemini/gemma-4-26b-a4b-it";
+  const calls: string[] = [];
+
+  const handleSingleModel = async (_body: unknown, modelStr: string) => {
+    calls.push(modelStr);
+    const timesSeen = calls.filter((m) => m === modelStr).length;
+    if (timesSeen === 1) return rateLimitResponseWithRetryAfter(429, SHORT_RETRY_AFTER_MS);
+    return okResponse();
+  };
+
+  const res = await handleComboChat({
+    body: { model: "default" },
+    combo: {
+      name: `default-${Math.random().toString(16).slice(2, 8)}`,
+      strategy: "auto",
+      models: [MODEL_A, MODEL_B],
+      config: {
+        auto: { explorationRate: 0 },
+        // Real values from the "default" combo's stored config (liveGeminiShared.ts
+        // DEFAULT_COMBO_CONFIG) — maxRetries: 3 is the field that exposes the bug:
+        // it's what lets the FIRST 429 enter the lockout-recording branch instead of
+        // falling straight through to "done retrying this model".
+        maxRetries: 3,
+        retryDelayMs: 0,
+        fallbackDelayMs: 0,
+        maxSetRetries: 3,
+        setRetryDelayMs: 5,
+      },
+    },
+    handleSingleModel,
+    isModelAvailable: async () => true,
+    log: createLog() as never,
+    settings: shortModelLockoutSettings(),
+    allCombos: null,
+  });
+
+  assert.equal(
+    res.status,
+    200,
+    `expected the combo to wait out the shared cooldown and succeed, got ${res.status} (${await res.clone().text()})`
+  );
+  assert.ok(calls.length >= 3, `expected at least 3 dispatch calls, got ${JSON.stringify(calls)}`);
+});
+
+// Live incident (log id 1784457764961-73 follow-up, same production request as the
+// test above): fixing lastStatus recording exposed a SECOND, distinct bug behind the
+// same symptom. The pre-dispatch "all credentials already cooling down" rejection
+// (buildModelCooldownBody / handleNoCredentials in src/sse/handlers/chatHelpers.ts)
+// nests its retry hint as `error.retry_after` (ISO string) / `error.reset_seconds`
+// (seconds) — NOT the top-level `retryAfter` field every other 429 response shape in
+// this codebase uses (see rateLimitResponseWithRetryAfter above). Combo.ts's error
+// extraction only ever read the top-level field, so earliestRetryAfter stayed null
+// for this specific shape even after lastStatus was correctly recorded — landing on
+// the generic "all combo models unavailable" error instead of the cooldown-wait
+// decision. Symptom was identical to the fixed bug: a leaked error instead of a wait.
+test("auto strategy: model_cooldown response shape (nested error.retry_after, not top-level) still waits and succeeds", async () => {
+  const SHORT_RETRY_AFTER_MS = 150;
+  const MODEL_A = "gemini/gemma-4-31b-it";
+  const MODEL_B = "gemini/gemma-4-26b-a4b-it";
+  const calls: string[] = [];
+
+  // Mirrors buildModelCooldownBody's actual shape (open-sse/utils/error.ts) —
+  // retry hint nested under `error`, not top-level `retryAfter`.
+  function modelCooldownShapedResponse(model: string, retryAfterMs: number) {
+    return jsonResponse(429, {
+      error: {
+        message: `All credentials for model ${model} are cooling down`,
+        type: "rate_limit_error",
+        code: "model_cooldown",
+        model,
+        reset_seconds: Math.max(Math.ceil(retryAfterMs / 1000), 1),
+        retry_after: new Date(Date.now() + retryAfterMs).toISOString(),
+      },
+    });
+  }
+
+  const handleSingleModel = async (_body: unknown, modelStr: string) => {
+    calls.push(modelStr);
+    const timesSeen = calls.filter((m) => m === modelStr).length;
+    if (timesSeen === 1) return modelCooldownShapedResponse(modelStr, SHORT_RETRY_AFTER_MS);
+    return okResponse();
+  };
+
+  const res = await handleComboChat({
+    body: { model: "default" },
+    combo: {
+      name: `default-${Math.random().toString(16).slice(2, 8)}`,
+      strategy: "auto",
+      models: [MODEL_A, MODEL_B],
+      config: {
+        auto: { explorationRate: 0 },
+        maxRetries: 3,
+        retryDelayMs: 0,
+        fallbackDelayMs: 0,
+        maxSetRetries: 3,
+        setRetryDelayMs: 5,
+      },
+    },
+    handleSingleModel,
+    isModelAvailable: async () => true,
+    log: createLog() as never,
+    settings: shortModelLockoutSettings(),
+    allCombos: null,
+  });
+
+  assert.equal(
+    res.status,
+    200,
+    `expected the combo to wait out the shared cooldown and succeed, got ${res.status} (${await res.clone().text()})`
+  );
+  assert.ok(calls.length >= 3, `expected at least 3 dispatch calls, got ${JSON.stringify(calls)}`);
+});
