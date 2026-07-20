@@ -47,14 +47,14 @@ function buildAuthHeader(providerConfig, token) {
       ),
     };
   }
-  // Voyage AI: uses `top_k` instead of `top_n`, and rejects empty-string documents.
-  // We filter out empty/whitespace-only strings (Voyage hard-rejects them) and track
-  // original indices implicitly via the response adapter, which reconstructs the map
-  // from options.documents (#7809).
+  // Voyage AI: uses `top_k` instead of `top_n`, and rejects only exact empty
+  // strings (whitespace-only documents are accepted and ranked upstream). We
+  // filter out exact empty strings and track original indices implicitly via the
+  // response adapter, which reconstructs the map from options.documents (#7809).
   if (providerConfig.format === "voyage") {
     const docTexts = (body.documents || [])
       .map((doc) => (typeof doc === "string" ? doc : doc?.text || ""))
-      .filter((text) => text.trim());
+      .filter((text) => text !== "");
     return {
       model: body.model,
       query: body.query,
@@ -115,12 +115,12 @@ function buildAuthHeader(providerConfig, token) {
   if (providerConfig.format === "voyage") {
     const documents = Array.isArray(options.documents) ? options.documents : [];
     const returnDocuments = options.return_documents !== false;
-    // Reconstruct the index map: the request adapter filtered out empty/whitespace-only
-    // documents, so we replicate that filter here to get original → filtered mapping.
+    // Reconstruct the index map: the request adapter filtered out exact empty
+    // strings, so we replicate that filter here to get original → filtered mapping.
     const indexMap = [];
     documents.forEach((doc, i) => {
       const text = typeof doc === "string" ? doc : doc?.text || "";
-      if (text.trim()) indexMap.push(i);
+      if (text !== "") indexMap.push(i);
     });
     const scored = (Array.isArray(data.data) ? data.data : []).map((entry) => {
       const filteredIdx = entry.index ?? 0;

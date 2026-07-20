@@ -31,7 +31,7 @@ test("#7809 parseRerankModel resolves voyage alias → voyage-ai", () => {
 
 // ─── Request adapter ───────────────────────────────────────────────────────
 
-test("#7809 voyage request adapter maps top_n → top_k and drops empty-string documents", () => {
+test("#7809 voyage request adapter maps top_n → top_k and drops only exact empty strings", () => {
   const cfg = getRerankProvider("voyage-ai");
   const out = transformRequestForProvider(cfg, {
     model: "rerank-2.5-lite",
@@ -42,9 +42,23 @@ test("#7809 voyage request adapter maps top_n → top_k and drops empty-string d
   });
   assert.equal(out.top_k, 3);
   assert.equal(out.top_n, undefined);
-  assert.deepEqual(out.documents, ["doc ok", "doc three"]);
+  // Whitespace-only "  " is preserved; only exact "" is dropped
+  assert.deepEqual(out.documents, ["doc ok", "  ", "doc three"]);
   assert.equal(out.model, "rerank-2.5-lite");
   assert.equal(out.query, "teste");
+});
+
+test("#7809 voyage request adapter preserves whitespace-only document (Voyage accepts them)", () => {
+  const cfg = getRerankProvider("voyage-ai");
+  const out = transformRequestForProvider(cfg, {
+    model: "rerank-2.5-lite",
+    query: "teste",
+    documents: ["doc ok", " "],
+    top_n: 2,
+  });
+  // Whitespace-only " " must be sent upstream — Voyage ranks it
+  assert.equal(out.documents.length, 2);
+  assert.deepEqual(out.documents, ["doc ok", " "]);
 });
 
 test("#7809 voyage request adapter handles {text} object documents", () => {
@@ -153,6 +167,26 @@ test("#7809 voyage response adapter remaps indices when empty-string documents w
   assert.equal(out.results[0].document.text, "doc2");
   assert.equal(out.results[1].index, 0);
   assert.equal(out.results[1].document.text, "doc0");
+});
+
+test("#7809 voyage response adapter preserves whitespace-only in index map", () => {
+  const cfg = getRerankProvider("voyage-ai");
+  // Whitespace-only doc must pass through: ["a", " "] → 2 docs sent
+  const out = transformResponseFromProvider(
+    cfg,
+    {
+      data: [
+        { relevance_score: 0.8, index: 0 },
+        { relevance_score: 0.3, index: 1 },
+      ],
+    },
+    { documents: ["a", " "], top_n: 2, return_documents: true }
+  );
+  assert.equal(out.results.length, 2);
+  assert.equal(out.results[0].index, 0);
+  assert.equal(out.results[0].document.text, "a");
+  assert.equal(out.results[1].index, 1);
+  assert.equal(out.results[1].document.text, " ");
 });
 
 test("#7809 voyage response adapter produces Cohere-shaped meta", () => {
