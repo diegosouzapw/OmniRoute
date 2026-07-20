@@ -18,6 +18,18 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       name?: string;
     }>;
     const columnNames = new Set(columns.map((column) => String(column.name ?? "")));
+    for (const [column, type] of [
+      ["auth_type", "TEXT"],
+      ["name", "TEXT"],
+      ["email", "TEXT"],
+      ["display_name", "TEXT"],
+      ["provider_specific_data", "TEXT"],
+    ]) {
+      if (!columnNames.has(column)) {
+        db.exec(`ALTER TABLE provider_connections ADD COLUMN ${column} ${type}`);
+        console.log(`[DB] Added provider_connections.${column} column`);
+      }
+    }
     if (!columnNames.has("rate_limit_protection")) {
       db.exec(
         "ALTER TABLE provider_connections ADD COLUMN rate_limit_protection INTEGER DEFAULT 0"
@@ -81,6 +93,15 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
   }
 }
 
+export function ensureUsageHistoryAccountIndex(db: SqliteDatabase) {
+  try {
+    db.exec("CREATE INDEX IF NOT EXISTS idx_uh_account_key ON usage_history(account_key)");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn("[DB] Failed to verify usage_history account index:", message);
+  }
+}
+
 export function ensureUsageHistoryColumns(db: SqliteDatabase) {
   try {
     const columns = db.prepare("PRAGMA table_info(usage_history)").all() as Array<{
@@ -114,6 +135,18 @@ export function ensureUsageHistoryColumns(db: SqliteDatabase) {
       console.log("[DB] Added usage_history.combo_strategy column");
     }
     db.exec("CREATE INDEX IF NOT EXISTS idx_uh_combo_strategy ON usage_history(combo_strategy)");
+    if (!columnNames.has("account_key")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN account_key TEXT");
+      console.log("[DB] Added usage_history.account_key column");
+    }
+    if (!columnNames.has("account_label")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN account_label TEXT");
+      console.log("[DB] Added usage_history.account_label column");
+    }
+    if (!columnNames.has("account_label_priority")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN account_label_priority INTEGER DEFAULT 0");
+      console.log("[DB] Added usage_history.account_label_priority column");
+    }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify usage_history schema:", message);

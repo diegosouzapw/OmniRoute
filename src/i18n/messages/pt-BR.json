@@ -6302,7 +6302,11 @@
     "proxyFreePoolSortLatency": "Latência",
     "proxyFreePoolSortRecent": "Mais recentes",
     "proxyFreePoolListTotal": "{count} proxies no total",
-    "proxyFreePoolLoadMore": "Carregar mais"
+    "proxyFreePoolLoadMore": "Carregar mais",
+    "credentialRedaction": "__MISSING__:Credential Redaction",
+    "credentialRedactionDesc": "__MISSING__:Redact API keys, tokens, and secrets from context sent to providers and from responses.",
+    "enableCredentialRedaction": "__MISSING__:Enable credential redaction",
+    "enableCredentialRedactionDesc": "__MISSING__:Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses."
   },
   "contextRtk": {
     "title": "Motor RTK",

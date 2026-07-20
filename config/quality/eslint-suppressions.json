@@ -1187,6 +1187,11 @@
       "count": 1
     }
   },
+  "tests/unit/db-migration-runner-account-identity.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
   "tests/unit/db-migration-runner.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 12
@@ -1670,11 +1675,6 @@
   "tests/unit/perplexity-web-streaming-tools-5927.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    }
-  },
-  "tests/unit/perplexity-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
     }
   },
   "tests/unit/persist-429-cooldown-account-fallback.test.ts": {

@@ -140,17 +140,17 @@ test("P1: ROTATING_REFRESH_PROVIDERS.has() normalizes conn.provider case before 
 });
 
 test("P1: GitHub Copilot sub-token guard normalizes conn.provider case", async () => {
-  const src = await read("src/lib/tokenHealthCheck.ts");
-  // Scope the match to the Copilot sub-token refresh block via its own comment,
-  // not an arbitrary occurrence elsewhere in the file.
-  const blockMatch = src.match(
-    /GitHub Copilot sub-token refresh[\s\S]{0,600}?if\s*\(([\s\S]{0,80}?)\)\s*\{/
+  // The post-refresh Copilot sub-token guard was extracted out of
+  // tokenHealthCheck.ts into tokenHealthCheckCopilot.ts (own-growth file-size
+  // rebalance for #7719); the structural guard now lives there.
+  const src = await read("src/lib/tokenHealthCheckCopilot.ts");
+  const guardMatch = src.match(
+    /if\s*\(\s*String\(\s*conn\.provider\s*\|\|\s*["']["']\s*\)\.toLowerCase\(\)\s*(!==|===)\s*["']github["']\s*\)/
   );
-  assert.ok(blockMatch, "Copilot sub-token refresh block not found");
-  const condition = blockMatch[1];
+  assert.ok(guardMatch, "Copilot sub-token provider guard not found");
   assert.match(
-    condition,
-    /String\(\s*conn\.provider\s*\|\|\s*["']["']\s*\)\.toLowerCase\(\)\s*===\s*["']github["']/,
+    guardMatch[0],
+    /String\(\s*conn\.provider\s*\|\|\s*["']["']\s*\)\.toLowerCase\(\)/,
     "the Copilot sub-token refresh guard must lowercase-normalize conn.provider before comparing " +
       "to 'github' (bare `conn.provider === \"github\"` fails for mixed-case values like 'Github')"
   );

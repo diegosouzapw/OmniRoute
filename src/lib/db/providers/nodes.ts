@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel } from "../core";
 import { selectProviderNodeForConnection } from "../providerNodeSelect";
 import { backupDbFile } from "../backup";
+import { invalidateDbCache } from "../readCache";
 import { toRecord, type JsonRecord } from "./columns";
 
 interface StatementLike<TRow = unknown> {
@@ -79,6 +80,7 @@ export async function createProviderNode(data: JsonRecord) {
   ).run(node);
 
   backupDbFile("pre-write");
+  invalidateDbCache("nodes");
 
   const result: JsonRecord = { ...node };
   if (customHeadersJson) {
@@ -142,6 +144,7 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
   });
 
   backupDbFile("pre-write");
+  invalidateDbCache("nodes");
 
   const result: JsonRecord = { ...merged };
   const storedJson = merged["customHeadersJson"] as string | null;
@@ -165,5 +168,6 @@ export async function deleteProviderNode(id: string) {
 
   db.prepare("DELETE FROM provider_nodes WHERE id = ?").run(id);
   backupDbFile("pre-write");
+  invalidateDbCache("nodes");
   return rowToCamel(existing);
 }

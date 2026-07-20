@@ -4,12 +4,16 @@ import {
   getComboByName,
   getComboById,
   getComboByNameInsensitive,
-  getProviderNodes,
+  getCachedProviderNodes,
   getCustomModels,
 } from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
 import { getSyncedAvailableModels } from "@/lib/db/models";
-import { parseModel, getModelInfoCore } from "@omniroute/open-sse/services/model.ts";
+import {
+  parseModel,
+  getModelInfoCore,
+  splitSyncedEffortSuffix,
+} from "@omniroute/open-sse/services/model.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 export { parseModel };
@@ -101,7 +105,55 @@ type RuntimeModelMeta = {
   alwaysThinking?: boolean;
   supportedThinkingEfforts?: string[];
   defaultThinkingEffort?: string;
+  // #7694: set when `modelId` carried a `-{effort}` suffix resolved against a synced
+  // model's own `supportedThinkingEfforts` (see `resolveSyncedModelIdAndEffort` below).
+  // Threaded through to `handleChatCore` -> `applyDefaultReasoningEffort` so the suffix
+  // becomes `reasoning_effort` only when the request itself carries no reasoning field.
+  resolvedThinkingEffort?: string;
 };
+
+// Providers that already own a native `-{effort}` suffix mechanism — never
+// double-resolve the generic synced suffix on top of theirs (#7694, mirrors the
+// catalog-side skip list in `open-sse/utils/syncedEffortVariants.ts`).
+const SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES = ["codex", "kimi"];
+
+function isSyncedEffortSkippedProvider(providerId: string): boolean {
+  return SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES.some((prefix) => providerId.startsWith(prefix));
+}
+
+/**
+ * #7694: when `modelId` has no direct synced-model match, try stripping a trailing
+ * `-{effort}` token by testing it against each candidate synced model's OWN declared
+ * `supportedThinkingEfforts` (`splitSyncedEffortSuffix`) — never a blind/global effort
+ * list, so a model id that legitimately ends in an effort-like token is left untouched
+ * unless some synced model's real tier list says otherwise. Returns the original
+ * `modelId` with `effort: null` when nothing matches or the provider already owns its
+ * own suffix mechanism.
+ */
+function resolveSyncedModelIdAndEffort(
+  providerId: string,
+  modelId: string,
+  syncedModels: unknown
+): { modelId: string; effort: string | null } {
+  if (isSyncedEffortSkippedProvider(providerId) || !Array.isArray(syncedModels)) {
+    return { modelId, effort: null };
+  }
+  if (findSyncedModelMeta(syncedModels, modelId)) return { modelId, effort: null };
+
+  for (const candidate of syncedModels as Array<{ id?: unknown; supportedThinkingEfforts?: unknown }>) {
+    if (typeof candidate?.id !== "string" || !Array.isArray(candidate.supportedThinkingEfforts)) {
+      continue;
+    }
+    const attempt = splitSyncedEffortSuffix(
+      modelId,
+      candidate.supportedThinkingEfforts as string[]
+    );
+    if (attempt.effort && attempt.baseModel === candidate.id) {
+      return { modelId: attempt.baseModel, effort: attempt.effort };
+    }
+  }
+  return { modelId, effort: null };
+}
 
 function findCustomModelMeta(models: unknown, modelId: string): any {
   if (!Array.isArray(models)) return undefined;
@@ -151,19 +203,32 @@ function buildRuntimeModelMeta(customMatch: any, syncedMatch: any): RuntimeModel
   return metadata;
 }
 
-async function lookupModelMeta(providerId: string, modelId: string): Promise<RuntimeModelMeta> {
+async function lookupModelMeta(
+  providerId: string,
+  modelId: string
+): Promise<{ modelId: string; metadata: RuntimeModelMeta }> {
   try {
     const [customModels, syncedModels] = await Promise.all([
       getCustomModels(providerId),
       getSyncedAvailableModels(providerId),
     ]);
+    // #7694: no direct match on the raw modelId? try a synced-declared `-{effort}`
+    // suffix before falling back to the literal id, so `<prefix>/<model>-<tier>`
+    // resolves to the real base model + a resolved effort.
+    const { modelId: resolvedModelId, effort } = resolveSyncedModelIdAndEffort(
+      providerId,
+      modelId,
+      syncedModels
+    );
     // #7364: exact match first; retain the case-insensitive custom-model fallback
     // while also consulting the API-synced catalog for Kimi runtime metadata.
-    const customMatch = findCustomModelMeta(customModels, modelId);
-    const syncedMatch = findSyncedModelMeta(syncedModels, modelId);
-    return buildRuntimeModelMeta(customMatch, syncedMatch);
+    const customMatch = findCustomModelMeta(customModels, resolvedModelId);
+    const syncedMatch = findSyncedModelMeta(syncedModels, resolvedModelId);
+    const metadata = buildRuntimeModelMeta(customMatch, syncedMatch);
+    if (effort) metadata.resolvedThinkingEffort = effort;
+    return { modelId: resolvedModelId, metadata };
   } catch {
-    return {};
+    return { modelId, metadata: {} };
   }
 }
 
@@ -192,8 +257,9 @@ export async function getModelInfo(modelStr) {
 
   const attachRuntimeModelMeta = async (info: any) => {
     if (!info?.provider || !info?.model) return info;
-    const metadata = await lookupModelMeta(String(info.provider), String(info.model));
-    return Object.keys(metadata).length > 0 ? { ...info, ...metadata } : info;
+    const { modelId, metadata } = await lookupModelMeta(String(info.provider), String(info.model));
+    const resolvedInfo = modelId !== info.model ? { ...info, model: modelId } : info;
+    return Object.keys(metadata).length > 0 ? { ...resolvedInfo, ...metadata } : resolvedInfo;
   };
 
   // Check custom provider nodes first (for both alias and non-alias formats)
@@ -216,7 +282,7 @@ export async function getModelInfo(modelStr) {
       // Match by node.prefix (user-defined alias) OR node.id (internal UUID id stored by
       // combo steps), so that combo targets using the internal node id still resolve
       // correctly (#2778).
-      const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
+      const openaiNodes = await getCachedProviderNodes({ type: "openai-compatible" });
       const matchedOpenAI = openaiNodes.find(
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
@@ -225,20 +291,20 @@ export async function getModelInfo(modelStr) {
           parsed.model as string,
           matchedOpenAI.prefix
         );
-        const metadata = await lookupModelMeta(
+        const { modelId, metadata } = await lookupModelMeta(
           matchedOpenAI.id as string,
           normalizedModel
         );
         return {
           provider: matchedOpenAI.id,
-          model: normalizedModel,
+          model: modelId,
           extendedContext,
           ...metadata,
         };
       }
 
       // Check Anthropic Compatible nodes
-      const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
+      const anthropicNodes = await getCachedProviderNodes({ type: "anthropic-compatible" });
       const matchedAnthropic = anthropicNodes.find(
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
@@ -247,13 +313,13 @@ export async function getModelInfo(modelStr) {
           parsed.model as string,
           matchedAnthropic.prefix
         );
-        const metadata = await lookupModelMeta(
+        const { modelId, metadata } = await lookupModelMeta(
           matchedAnthropic.id as string,
           normalizedModel
         );
         return {
           provider: matchedAnthropic.id,
-          model: normalizedModel,
+          model: modelId,
           extendedContext,
           ...metadata,
         };

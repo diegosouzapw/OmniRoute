@@ -22,6 +22,7 @@ import {
   resolveProxyForProvider,
 } from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { isValidGheUrl } from "@/shared/validation/providerSpecificData";
 import { syncToCloud } from "@/lib/cloudSync";
 import { startLocalServer } from "@/lib/oauth/utils/server";
 import { runWithProxyContextOrDirect } from "@omniroute/open-sse/utils/proxyFetch.ts";
@@ -190,6 +191,10 @@ export async function GET(
       const authData = generateAuthData(provider, null);
       const startUrl = searchParams.get("startUrl");
       const region = searchParams.get("region") || "us-east-1";
+      const gheUrl = searchParams.get("gheUrl");
+      if (gheUrl && !isValidGheUrl(gheUrl)) {
+        return NextResponse.json({ error: "gheUrl must be a valid HTTPS URL" }, { status: 400 });
+      }
 
       // Resolve proxy for this provider (provider-level → global → direct)
       const proxy = await resolveProxyForProvider(provider);
@@ -202,10 +207,20 @@ export async function GET(
         provider === "amazon-q" ||
         provider === "kimi-coding" ||
         provider === "kilocode" ||
-        provider === "codebuddy-cn"
+        provider === "codebuddy-cn" ||
+        provider === "ghe-copilot"
       ) {
-        // GitHub, Kiro/Amazon Q, Kimi Coding, and KiloCode don't use PKCE for device code
-        if ((provider === "kiro" || provider === "amazon-q") && startUrl) {
+        // GitHub, Kiro/Amazon Q, Kimi Coding, KiloCode, and GHE Copilot don't use PKCE for device code
+        if (provider === "ghe-copilot" && gheUrl) {
+          // GHE Copilot targets the enterprise host configured via gheUrl
+          const providerOverrideConfig = {
+            ...providerData.config,
+            gheUrl,
+          };
+          deviceData = await runWithProxyContextOrDirect(proxy, () =>
+            (requestDeviceCode as any)(provider, null, providerOverrideConfig)
+          );
+        } else if ((provider === "kiro" || provider === "amazon-q") && startUrl) {
           const providerOverrideConfig = {
             ...providerData.config,
             startUrl,
@@ -563,6 +578,16 @@ export async function POST(
         // For providers that don't use PKCE (GitHub, Kimi Coding, KiloCode), don't pass codeVerifier
         result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode)
+        );
+      } else if (provider === "ghe-copilot") {
+        // GHE Copilot needs gheUrl threaded through poll → postExchange
+        const gheUrl =
+          extraData && typeof extraData === "object" ? (extraData as any).gheUrl : undefined;
+        if (typeof gheUrl === "string" && gheUrl && !isValidGheUrl(gheUrl)) {
+          return NextResponse.json({ error: "gheUrl must be a valid HTTPS URL" }, { status: 400 });
+        }
+        result = await runWithProxyContextOrDirect(proxy, () =>
+          (pollForToken as any)(provider, deviceCode, null, gheUrl ? { gheUrl } : undefined)
         );
       } else if (provider === "kiro" || provider === "amazon-q") {
         // Kiro needs extraData (clientId, clientSecret) from device code response

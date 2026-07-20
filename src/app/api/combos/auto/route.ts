@@ -45,8 +45,12 @@ export async function GET(request: Request) {
           candidateCount: virtual.candidatePool?.length ?? 0,
           // MAX of candidates' windows — consumers (opencode plugin) need a
           // real value here: advertising 0 disables client auto-compaction.
-          context_length: virtual.advertisedContextLength ?? null,
-          max_output_tokens: virtual.advertisedMaxOutputTokens ?? null,
+          // #7662: mirror catalog.ts's established fallback (advertisedMaxOutputTokens
+          // has no generic default in computeAdvertisedLimits() the way context length
+          // does — an all-unregistered candidate pool, e.g. a no-auth provider's model,
+          // otherwise advertises null and disables client auto-compaction).
+          context_length: virtual.advertisedContextLength || 128000,
+          max_output_tokens: virtual.advertisedMaxOutputTokens || 8192,
           config: virtual.config ?? {},
         });
       } catch {
@@ -78,8 +82,12 @@ export async function GET(request: Request) {
           isHidden: false,
           candidatePool: virtual.candidatePool ?? [],
           candidateCount: virtual.candidatePool?.length ?? 0,
-          context_length: virtual.advertisedContextLength ?? null,
-          max_output_tokens: virtual.advertisedMaxOutputTokens ?? null,
+          // #7662: mirror catalog.ts's established fallback (advertisedMaxOutputTokens
+          // has no generic default in computeAdvertisedLimits() the way context length
+          // does — an all-unregistered candidate pool, e.g. a no-auth provider's model,
+          // otherwise advertises null and disables client auto-compaction).
+          context_length: virtual.advertisedContextLength || 128000,
+          max_output_tokens: virtual.advertisedMaxOutputTokens || 8192,
           config: virtual.config ?? {},
         });
         seenIds.add(modelStr);
@@ -121,8 +129,12 @@ export async function GET(request: Request) {
           isHidden: false,
           candidatePool: virtual.candidatePool ?? [],
           candidateCount: virtual.candidatePool?.length ?? 0,
-          context_length: virtual.advertisedContextLength ?? null,
-          max_output_tokens: virtual.advertisedMaxOutputTokens ?? null,
+          // #7662: mirror catalog.ts's established fallback (advertisedMaxOutputTokens
+          // has no generic default in computeAdvertisedLimits() the way context length
+          // does — an all-unregistered candidate pool, e.g. a no-auth provider's model,
+          // otherwise advertises null and disables client auto-compaction).
+          context_length: virtual.advertisedContextLength || 128000,
+          max_output_tokens: virtual.advertisedMaxOutputTokens || 8192,
           config: virtual.config ?? {},
         });
         seenIds.add(modelStr);
@@ -150,8 +162,12 @@ export async function GET(request: Request) {
           isHidden: false,
           candidatePool: virtual.candidatePool ?? [],
           candidateCount: virtual.candidatePool?.length ?? 0,
-          context_length: virtual.advertisedContextLength ?? null,
-          max_output_tokens: virtual.advertisedMaxOutputTokens ?? null,
+          // #7662: mirror catalog.ts's established fallback (advertisedMaxOutputTokens
+          // has no generic default in computeAdvertisedLimits() the way context length
+          // does — an all-unregistered candidate pool, e.g. a no-auth provider's model,
+          // otherwise advertises null and disables client auto-compaction).
+          context_length: virtual.advertisedContextLength || 128000,
+          max_output_tokens: virtual.advertisedMaxOutputTokens || 8192,
           config: virtual.config ?? {},
         });
         seenIds.add(modelStr);

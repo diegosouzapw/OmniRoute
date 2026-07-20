@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
+import { getCachedProviderConnectionById } from "@/lib/localDb";
+import { updateProviderConnection } from "@/lib/db/providers";
 import { getAccessToken, updateProviderCredentials } from "@/sse/services/tokenRefresh";
 import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 
@@ -21,7 +22,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   try {
     const { id } = await params;
 
-    const connection = await getProviderConnectionById(id);
+    const connection = await getCachedProviderConnectionById(id);
     if (!connection) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }

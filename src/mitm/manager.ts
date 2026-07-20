@@ -13,6 +13,7 @@ import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
 import { getUserBypassPatterns } from "@/lib/db/agentBridgeBypass.ts";
+import { getGheCopilotHosts } from "@/lib/db/providers.ts";
 import { configureUpstreamCa } from "./upstreamTrust.ts";
 import { createLogger } from "@/shared/utils/logger.ts";
 import {
@@ -162,7 +163,7 @@ export function writeTargetsJson(targets: MitmTarget[] = ALL_TARGETS): void {
     targets: targets.map((t) => ({
       id: t.id,
       name: t.name,
-      hosts: t.hosts,
+      hosts: t.id === "ghe-copilot" ? [...new Set([...t.hosts, ...getGheCopilotHosts()])] : t.hosts,
       endpointPatterns: t.endpointPatterns,
       viability: t.viability ?? "supported",
     })),
