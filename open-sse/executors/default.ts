@@ -54,6 +54,7 @@ import {
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
+import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -158,8 +159,23 @@ export class DefaultExecutor extends BaseExecutor {
         return chatUrl;
       }
       case "bailian-coding-plan": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = resolveAlibabaProviderBaseUrl(
+          this.provider,
+          credentials?.providerSpecificData,
+          this.config.baseUrl
+        );
         return normalizeBailianMessagesUrl(baseUrl);
+      }
+      case "alibaba":
+      case "alibaba-cn":
+      case "qwen-cloud":
+      case "qwen-cloud-token-plan": {
+        const baseUrl = resolveAlibabaProviderBaseUrl(
+          this.provider,
+          credentials?.providerSpecificData,
+          this.config.baseUrl
+        );
+        return normalizeOpenAIChatUrl(baseUrl);
       }
       case "heroku": {
         const baseUrl = this.resolveBaseUrl(credentials);

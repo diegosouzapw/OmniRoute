@@ -56,6 +56,7 @@ import ProviderTierField from "./ProviderTierField";
 import AgentrouterConsoleFields from "./AgentrouterConsoleFields";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
+import ProviderRegionField, { getProviderRegionConfig } from "./AlibabaProviderRegionField";
 
 export interface EditConnectionModalConnection {
   id?: string;
@@ -179,8 +180,7 @@ export default function EditConnectionModal({
   const usesBaseUrl = isConfigurableBaseUrl || (isBaseUrlOverrideEligible && showBaseUrlOverride);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
-  const isBedrock = provider === "bedrock";
-  const showsRegion = isVertex || isBedrock;
+  const { defaultRegion, showsRegion } = getProviderRegionConfig(provider);
   const isGlm = isGlmProvider(provider);
   const isCloudflare = provider === "cloudflare-ai";
   const openRouterPreset = useOpenRouterPresetControl(provider, t);
@@ -205,7 +205,6 @@ export default function EditConnectionModal({
   const isCcCompatible = isClaudeCodeCompatibleProvider(provider);
   const isCompatible =
     isOpenAICompatibleProvider(provider) || isAnthropicCompatibleProvider(provider);
-  const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
   const apiCredentialLabel = webSessionCredential
     ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
     : apiKeyOptional
@@ -1036,15 +1035,11 @@ export default function EditConnectionModal({
           />
         )}
 
-        {showsRegion && (
-          <Input
-            label={t("regionLabel")}
-            value={formData.region}
-            onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-            placeholder={defaultRegion}
-            hint={t("regionHint")}
-          />
-        )}
+        <ProviderRegionField
+          provider={provider}
+          value={formData.region}
+          onChange={(region) => setFormData({ ...formData, region })}
+        />
 
         {isCloudflare && (
           <Input

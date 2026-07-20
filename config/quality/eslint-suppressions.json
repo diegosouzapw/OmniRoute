@@ -1182,11 +1182,6 @@
       "count": 1
     }
   },
-  "tests/unit/db-migration-runner-account-identity.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
   "tests/unit/db-migration-runner.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 12

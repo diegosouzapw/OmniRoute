@@ -8,8 +8,74 @@ import {
   getKimiCodeCliUserAgent,
   KIMI_CODING_MODELS_URL,
 } from "@omniroute/open-sse/config/providers/registry/kimi/coding/runtime.ts";
+import { ALIBABA_MODEL_STUDIO_MODELS } from "@omniroute/open-sse/config/providers/registry/alibaba/index.ts";
+import { QWEN_CLOUD_TEXT_MODELS } from "@omniroute/open-sse/config/providers/registry/qwen-cloud/index.ts";
 import { extractZaiToken } from "@omniroute/open-sse/executors/zai-web.ts";
 import { normalizeOpenAiLikeModelsResponse } from "./normalizers";
+
+const DASHSCOPE_TEXT_MODEL_PREFIXES = [
+  "qwen",
+  "qwq-",
+  "deepseek-",
+  "glm-",
+  "kimi-",
+  "minimax-",
+] as const;
+
+// DashScope's OpenAI-compatible /models response contains only the standard
+// id/object/owned_by fields for Alibaba and Qwen Cloud, so there is no upstream
+// modality field to filter on. Keep known text-generation families and reject IDs
+// whose tokenized names identify media, speech, embedding, reranking, or vision-only lines.
+const DASHSCOPE_NON_TEXT_MODEL_TOKEN =
+  /(?:^|[-_.\/])(?:asr|audio|captioner|embedding|image|livetranslate|omni|ocr|realtime|rerank|s2s|speech|tts|video|vl)(?:$|[-_.\/])/i;
+const QWEN_CLOUD_TEXT_MODEL_IDS = new Set(QWEN_CLOUD_TEXT_MODELS.map((model) => model.id));
+const ALIBABA_MODEL_STUDIO_MODEL_IDS = new Set(
+  ALIBABA_MODEL_STUDIO_MODELS.map((model) => model.id)
+);
+
+export function isDashscopeTextModelId(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const modelId = value.trim().toLowerCase();
+  if (!modelId || DASHSCOPE_NON_TEXT_MODEL_TOKEN.test(modelId)) return false;
+  return DASHSCOPE_TEXT_MODEL_PREFIXES.some((prefix) => modelId.startsWith(prefix));
+}
+
+export function parseDashscopeTextModels(data: any): any[] {
+  const models = Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray(data?.models)
+      ? data.models
+      : [];
+  return models.filter((model: any) => isDashscopeTextModelId(model?.id));
+}
+
+function parseCuratedDashscopeModels(
+  data: any,
+  catalogModels: typeof ALIBABA_MODEL_STUDIO_MODELS,
+  allowedModelIds: ReadonlySet<string>
+): any[] {
+  const liveModelsById = new Map(
+    parseDashscopeTextModels(data)
+      .filter((model: any) => allowedModelIds.has(model.id))
+      .map((model: any) => [model.id, model])
+  );
+  return catalogModels.flatMap((catalogModel) => {
+    const liveModel = liveModelsById.get(catalogModel.id);
+    return liveModel ? [liveModel] : [];
+  });
+}
+
+export function parseAlibabaModelStudioModels(data: any): any[] {
+  return parseCuratedDashscopeModels(
+    data,
+    ALIBABA_MODEL_STUDIO_MODELS,
+    ALIBABA_MODEL_STUDIO_MODEL_IDS
+  );
+}
+
+export function parseQwenCloudTextModels(data: any): any[] {
+  return parseCuratedDashscopeModels(data, QWEN_CLOUD_TEXT_MODELS, QWEN_CLOUD_TEXT_MODEL_IDS);
+}
 
 export type ProviderModelsConfigEntry = {
   url: string;
@@ -21,6 +87,25 @@ export type ProviderModelsConfigEntry = {
   body?: unknown;
   buildHeaders?: (token: string, connection?: any) => Record<string, string>;
   parseResponse: (data: any) => any;
+};
+
+const DASHSCOPE_TEXT_MODELS_CONFIG: ProviderModelsConfigEntry = {
+  url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
+  method: "GET",
+  headers: { "Content-Type": "application/json" },
+  authHeader: "Authorization",
+  authPrefix: "Bearer ",
+  parseResponse: parseDashscopeTextModels,
+};
+
+const ALIBABA_MODEL_STUDIO_MODELS_CONFIG: ProviderModelsConfigEntry = {
+  ...DASHSCOPE_TEXT_MODELS_CONFIG,
+  parseResponse: parseAlibabaModelStudioModels,
+};
+
+const QWEN_CLOUD_TEXT_MODELS_CONFIG: ProviderModelsConfigEntry = {
+  ...DASHSCOPE_TEXT_MODELS_CONFIG,
+  parseResponse: parseQwenCloudTextModels,
 };
 
 function getKimiThinkingType(model: any): "only" | "both" | "no" | undefined {
@@ -114,6 +199,8 @@ const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
 
 // Provider models endpoints configuration
 export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
+  alibaba: ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
+  "alibaba-cn": ALIBABA_MODEL_STUDIO_MODELS_CONFIG,
   claude: {
     url: "https://api.anthropic.com/v1/models",
     method: "GET",
@@ -158,6 +245,7 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
         .filter((m: any) => m.id);
     },
   },
+  "qwen-cloud": QWEN_CLOUD_TEXT_MODELS_CONFIG,
   // #7678: zai-web (chat.z.ai) had no PROVIDER_MODELS_CONFIG entry so its
   // hardcoded 3-model registry catalog (glm-4.6/glm-4.5/glm-4.5v — one or more
   // now 404 upstream) was the only source; wire live discovery against the
