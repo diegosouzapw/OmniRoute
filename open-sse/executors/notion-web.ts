@@ -881,7 +881,8 @@ export class NotionWebExecutor extends BaseExecutor {
     // Thread continuity: prefer explicit client id, else history-keyed session cache.
     // First user turn → createThread:true + new UUID. Follow-ups with prior turns in
     // messages[] → createThread:false + same threadId (one Notion AI chat).
-    const clientThreadId = readClientThreadId(requestBody, input.headers as Record<string, string> | undefined);
+    // ExecuteInput exposes client request headers as clientHeaders (not headers).
+    const clientThreadId = readClientThreadId(requestBody, input.clientHeaders as Record<string, string> | undefined);
     const cachedThreadId = notionThreadSessionLookup(spaceId, messages);
     const isFollowUp = Boolean(clientThreadId || cachedThreadId);
     const threadId = clientThreadId || cachedThreadId || randomUUID();
