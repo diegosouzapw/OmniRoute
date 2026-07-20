@@ -84,7 +84,7 @@ import { makeConnectionConcurrencyResolver, lookupPositiveCap } from "./combo/co
 import { acquireQuotaShareConcurrencySlot } from "./combo/quotaShareConcurrency.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
 import type { CompressionMode } from "./compression/types.ts";
-import { getProviderConnections } from "../../src/lib/db/providers";
+import { getCachedProviderConnections } from "../../src/lib/db/readCache";
 import {
   isProviderInCooldown,
   recordProviderCooldown,
@@ -136,6 +136,7 @@ import {
   waitForCooldownAwareRetry,
 } from "../../src/sse/services/cooldownAwareRetry.ts";
 import { handleFusionChat, type FusionTuning } from "./fusion.ts";
+import { dispatchChaosFromCombo } from "./autoCombo/chaosEngine.ts";
 import { handlePipelineChat, type PipelineStep } from "./pipeline.ts";
 import {
   TRANSIENT_FOR_SEMAPHORE,
@@ -383,7 +384,7 @@ export async function buildAutoCandidates(
   await Promise.all(
     uniqueProviders.map(async (provider) => {
       try {
-        const connections = await getProviderConnections({ provider, isActive: true });
+        const connections = (await getCachedProviderConnections({ provider, isActive: true })) as Array<Record<string, unknown>>;
         const active = Array.isArray(connections) ? connections : [];
         connectionPoolCounts.set(provider, active.length);
         connectionsByProvider.set(provider, active);
@@ -664,7 +665,7 @@ async function isPinnedModelDurablyUnhealthy(pinnedModel: string): Promise<boole
     const provider = parseModel(pinnedModel).provider;
     if (!provider) return false;
     const circuitState = getCircuitBreaker(provider)?.getStatus?.()?.state;
-    const connections = (await getProviderConnections({
+    const connections = (await getCachedProviderConnections({
       provider,
       isActive: true,
     })) as Array<{
@@ -899,6 +900,18 @@ export async function handleComboChat({
     });
   }
 
+  // Chaos mode (parallel multi-model dispatch): detection + dispatch live in
+  // chaosEngine.ts (dispatchChaosFromCombo), returning null when not chaos-enabled.
+  const chaosDispatch = dispatchChaosFromCombo({
+    cfg,
+    comboModels: combo.models || [],
+    comboName: combo.name,
+    body,
+    handleSingleModel: handleSingleModelWithTimeout,
+    log,
+  });
+  if (chaosDispatch) return chaosDispatch;
+
   // Pipeline strategy: sequential chain — each step's output feeds the next step's
   // input, only the final step's response is returned. Handled in a separate module
   // because it neither iterates targets as fallbacks nor needs the failover/retry
@@ -927,6 +940,8 @@ export async function handleComboChat({
       handleSingleModel: handleSingleModelWithTimeout,
       log,
       comboName: combo.name,
+      maxRetries: config.maxRetries ?? 0,
+      retryDelayMs: resolveDelayMs(config.retryDelayMs, 1000),
     });
   }
 

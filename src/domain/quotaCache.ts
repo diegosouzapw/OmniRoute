@@ -14,7 +14,7 @@
  */
 
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
-import { getProviderConnectionById, resolveProxyForConnection } from "@/lib/localDb";
+import { getCachedProviderConnectionById, resolveProxyForConnection } from "@/lib/localDb";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { safePercentage } from "@/shared/utils/formatting";
 import {
@@ -24,6 +24,7 @@ import {
 } from "@/lib/db/quotaSnapshots";
 import { recordProviderQuotaResetEventIfChanged } from "@/lib/db/quotaResetEvents";
 import { getCodexQuotaWindowFilterForModel } from "@omniroute/open-sse/config/codexQuotaScopes.ts";
+import { getAntigravityQuotaFamily } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -205,16 +206,38 @@ export function __clearForTests() {
   cache.clear();
 }
 
-export function isQuotaExhaustedForRequest(
+function isAntigravityQuotaExhausted(
   connectionId: string,
-  provider: string,
-  requestedModel: string | null = null
+  entry: QuotaCacheEntry,
+  requestedModel: string | null
 ): boolean {
-  if (!isAccountQuotaExhausted(connectionId)) return false;
-  if (provider !== "codex" || !requestedModel) return true;
-  const entry = getQuotaCache(connectionId);
-  const quotaNames = Object.keys(entry?.quotas || {});
-  if (quotaNames.length === 0) return true;
+  if (!requestedModel) return entry.exhausted;
+  const quotaNames = Object.keys(entry.quotas || {});
+  if (quotaNames.length === 0) return entry.exhausted;
+  const requestedFamily = getAntigravityQuotaFamily(requestedModel);
+  const cleanRequestedModel = requestedModel.replace(/^(antigravity|agy)\//, "");
+  const matchingWindows = quotaNames.filter((windowName) => {
+    if (requestedFamily === "other") {
+      return windowName.replace(/^(antigravity|agy)\//, "") === cleanRequestedModel;
+    }
+    return getAntigravityQuotaFamily(windowName) === requestedFamily;
+  });
+  return (
+    matchingWindows.length > 0 &&
+    matchingWindows.every(
+      (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+    )
+  );
+}
+
+function isCodexQuotaExhausted(
+  connectionId: string,
+  entry: QuotaCacheEntry,
+  requestedModel: string | null
+): boolean {
+  if (!requestedModel) return entry.exhausted;
+  const quotaNames = Object.keys(entry.quotas || {});
+  if (quotaNames.length === 0) return entry.exhausted;
   const filterWindow = getCodexQuotaWindowFilterForModel(requestedModel);
   const scopedWindowNames = quotaNames.filter((windowName) => filterWindow?.(windowName));
   return (
@@ -223,6 +246,40 @@ export function isQuotaExhaustedForRequest(
       (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
     )
   );
+}
+
+function isStandardQuotaExhausted(entry: QuotaCacheEntry, now: number): boolean {
+  if (!entry.exhausted) return false;
+  const age = now - entry.fetchedAt;
+  if (!entry.nextResetAt && age > EXHAUSTED_TTL_MS) return false;
+  return true;
+}
+
+export function isQuotaExhaustedForRequest(
+  connectionId: string,
+  provider: string,
+  requestedModel: string | null = null
+): boolean {
+  const entry = cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
+  if (!entry) return false;
+
+  const now = Date.now();
+  const advanced = advancedWindowResetAt(entry, now);
+  if (advanced) {
+    entry.exhausted = false;
+    return false;
+  }
+
+  if (provider === "antigravity" || provider === "agy") {
+    return isAntigravityQuotaExhausted(connectionId, entry, requestedModel);
+  }
+
+  if (provider === "codex") {
+    return isCodexQuotaExhausted(connectionId, entry, requestedModel);
+  }
+
+  // Standard (non-per-model-quota) providers: check connection-wide aggregate
+  return isStandardQuotaExhausted(entry, now);
 }
 
 /**
@@ -452,7 +509,7 @@ async function refreshEntry(entry: QuotaCacheEntry) {
   refreshingSet.add(entry.connectionId);
 
   try {
-    const connection = await getProviderConnectionById(entry.connectionId);
+    const connection = await getCachedProviderConnectionById(entry.connectionId);
     if (!connection || connection.authType !== "oauth" || !connection.isActive) {
       cache.delete(entry.connectionId);
       return;

@@ -673,7 +673,7 @@ export async function GET(request: Request) {
 
     const accountCostByAccount = new Map<string, number>();
     for (const row of accountCostRows) {
-      const account = toStringValue(row.account, "unknown");
+      const accountKey = toStringValue(row.accountKey, "unknown");
       const cost = computeUsageRowCost(
         row,
         pricingByProvider,
@@ -681,7 +681,7 @@ export async function GET(request: Request) {
         normalizeModelName,
         computeCostFromPricing
       );
-      accountCostByAccount.set(account, (accountCostByAccount.get(account) || 0) + cost);
+      accountCostByAccount.set(accountKey, (accountCostByAccount.get(accountKey) || 0) + cost);
     }
 
     const byAccount = accountRows.map((row) => ({
@@ -692,7 +692,7 @@ export async function GET(request: Request) {
       totalTokens: Number(row.totalTokens),
       avgLatencyMs: Math.round(Number(row.avgLatencyMs)),
       lastUsed: row.lastUsed,
-      cost: roundCost(accountCostByAccount.get(toStringValue(row.account, "unknown")) || 0),
+      cost: roundCost(accountCostByAccount.get(toStringValue(row.accountKey, "unknown")) || 0),
     }));
 
     const apiKeyMap = new Map<

@@ -1,0 +1,1 @@
+- fix(ci): build dast-smoke and nightly API-only smoke workflows with `OMNIROUTE_BUILD_BACKEND_ONLY=1` to skip the unused dashboard UI graph and stop the multi-minute build variance/timeouts (#7226)

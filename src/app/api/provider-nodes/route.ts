@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createProviderNode, getProviderNodes } from "@/models";
+import { createProviderNode } from "@/models";
+import { getCachedProviderNodes } from "@/lib/localDb";
 import {
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
@@ -64,7 +65,7 @@ function sanitizeClaudeCodeCompatibleBaseUrl(baseUrl: string) {
 // GET /api/provider-nodes - List all provider nodes
 export async function GET() {
   try {
-    const nodes = await getProviderNodes();
+    const nodes = await getCachedProviderNodes();
     return NextResponse.json({
       nodes,
       ccCompatibleProviderEnabled: isCcCompatibleProviderEnabled(),

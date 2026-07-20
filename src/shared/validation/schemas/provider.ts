@@ -93,6 +93,21 @@ export const createProviderSchema = z
         path: ["providerSpecificData", "cx"],
       });
     }
+
+    const gheUrl =
+      data.providerSpecificData && typeof data.providerSpecificData === "object"
+        ? (data.providerSpecificData as Record<string, unknown>).gheUrl
+        : undefined;
+    if (
+      data.provider === "ghe-copilot" &&
+      (typeof gheUrl !== "string" || gheUrl.trim().length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "GitHub Enterprise URL (gheUrl) is required",
+        path: ["providerSpecificData", "gheUrl"],
+      });
+    }
   });
 
 export const bulkCreateProviderSchema = z
@@ -130,6 +145,19 @@ export const bulkCreateProviderSchema = z
           code: z.ZodIssueCode.custom,
           message: "Programmable Search Engine ID (cx) is required",
           path: ["providerSpecificData", "cx"],
+        });
+      }
+    }
+    if (data.provider === "ghe-copilot") {
+      const gheUrl =
+        data.providerSpecificData && typeof data.providerSpecificData === "object"
+          ? (data.providerSpecificData as Record<string, unknown>).gheUrl
+          : undefined;
+      if (typeof gheUrl !== "string" || gheUrl.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "GitHub Enterprise URL (gheUrl) is required",
+          path: ["providerSpecificData", "gheUrl"],
         });
       }
     }
@@ -515,6 +543,25 @@ export const updateParamFilterConfigSchema = z.object({
   allow: paramFilterListSchema.optional(),
   models: z.record(z.string().trim().min(1).max(200), modelParamFilterSchema).optional(),
   autoLearn: z.boolean().optional(),
+});
+
+// PUT /api/providers/[id]/interception-rules — upsert provider/model web
+// search/fetch interception rules (#3384/#7339)
+const fetchInterceptionBackendSchema = z.enum(["firecrawl", "jina", "tavily"]);
+
+const modelInterceptionRuleSchema = z.object({
+  interceptSearch: z.boolean().optional(),
+  interceptFetch: z.boolean().optional(),
+  fetchBackend: fetchInterceptionBackendSchema.optional(),
+  fetchProxyUrl: z.string().trim().url().max(2000).optional(),
+});
+
+export const updateInterceptionRulesSchema = z.object({
+  interceptSearch: z.boolean().optional(),
+  interceptFetch: z.boolean().optional(),
+  fetchBackend: fetchInterceptionBackendSchema.optional(),
+  fetchProxyUrl: z.string().trim().url().max(2000).optional(),
+  models: z.record(z.string().trim().min(1).max(200), modelInterceptionRuleSchema).optional(),
 });
 
 export const validateProviderApiKeySchema = z

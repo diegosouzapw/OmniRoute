@@ -673,3 +673,48 @@ test("Responses→Chat streaming: flush finalizes stop when no tool call was emi
   assert.ok(result, "flush should emit a final chunk");
   assert.equal(result.choices[0].finish_reason, "stop");
 });
+
+test("Chat→Responses streaming: reasoning and a following tool call use distinct output indexes", () => {
+  const state = initState(FORMATS.OPENAI_RESPONSES);
+
+  const reasoningEvents = openaiToOpenAIResponsesResponse(
+    {
+      id: "chatcmpl-grok",
+      choices: [{ index: 0, delta: { reasoning_content: "I should call the tool." } }],
+    },
+    state
+  );
+  const toolEvents = openaiToOpenAIResponsesResponse(
+    {
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_grok",
+                type: "function",
+                function: { name: "lookup", arguments: '{"query":"status"}' },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    state
+  );
+
+  const reasoningItem = reasoningEvents.find(
+    (event) => event.event === "response.output_item.added" && event.data.item.type === "reasoning"
+  );
+  const toolItem = toolEvents.find(
+    (event) =>
+      event.event === "response.output_item.added" && event.data.item.type === "function_call"
+  );
+
+  assert.ok(reasoningItem, "should announce the reasoning item");
+  assert.ok(toolItem, "should announce the function call item");
+  assert.equal(reasoningItem.data.output_index, 0);
+  assert.equal(toolItem.data.output_index, 1);
+});

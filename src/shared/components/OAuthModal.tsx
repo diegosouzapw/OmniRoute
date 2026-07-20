@@ -9,6 +9,11 @@ import LinkifiedText from "./LinkifiedText";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
 import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
+import {
+  looksLikeCodexSessionJson,
+  parseCodexSessionJson,
+} from "@/lib/oauth/utils/codexSessionImport";
+import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
 
 const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
 
@@ -22,6 +27,27 @@ const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "xai-oauth"]);
  * Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
  */
 const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
+
+// POST a bare Codex access token to the access-token-only import endpoint
+// (#1290); shared by the bare-JWT and session-JSON paste branches (#6636).
+async function submitCodexAccessToken(
+  accessToken: string,
+  name: string | undefined,
+  setStep: (s: string) => void,
+  onSuccess?: () => void
+): Promise<void> {
+  const res = await fetch("/api/oauth/codex/import-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken, name }),
+  });
+  const data = (await parseResponseBody(res)) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
+  }
+  setStep("success");
+  onSuccess?.();
+}
 
 type OAuthModalProps = {
   isOpen: boolean;
@@ -54,6 +80,7 @@ export default function OAuthModal({
   const [error, setError] = useState(null);
   const [isDeviceCode, setIsDeviceCode] = useState(false);
   const [deviceData, setDeviceData] = useState(null);
+  const [gheUrl, setGheUrl] = useState("");
   const [polling, setPolling] = useState(false);
   // API-key paste mode: for providers that accept a token directly (windsurf, devin-cli)
   const [showPasteToken, setShowPasteToken] = useState(
@@ -263,9 +290,10 @@ export default function OAuthModal({
     try {
       setError(null);
 
-      // Device code flow (GitHub, Qwen, Kiro, Kimi Coding, KiloCode)
+      // Device code flow (GitHub, Qwen, Kiro, Kimi Coding, KiloCode, GHE Copilot)
       if (
         provider === "github" ||
+        provider === "ghe-copilot" ||
         provider === "qwen" ||
         provider === "kiro" ||
         provider === "amazon-q" ||
@@ -275,6 +303,12 @@ export default function OAuthModal({
       ) {
         setIsDeviceCode(true);
         setStep("waiting");
+
+        // GHE Copilot needs the enterprise URL collected first (see ghe-config step)
+        if (provider === "ghe-copilot" && !gheUrl.trim()) {
+          setStep("ghe-config");
+          return;
+        }
 
         const deviceCodeUrl = new URL(`/api/oauth/${provider}/device-code`, window.location.origin);
         if (
@@ -289,6 +323,9 @@ export default function OAuthModal({
           if (typeof idc.region === "string" && idc.region.trim()) {
             deviceCodeUrl.searchParams.set("region", idc.region.trim());
           }
+        }
+        if (provider === "ghe-copilot" && gheUrl.trim()) {
+          deviceCodeUrl.searchParams.set("gheUrl", gheUrl.trim());
         }
 
         const res = await fetch(deviceCodeUrl.toString());
@@ -312,7 +349,9 @@ export default function OAuthModal({
                 _clientSecret: data._clientSecret,
                 _region: data._region,
               }
-            : null;
+            : provider === "ghe-copilot" && gheUrl.trim()
+              ? { gheUrl: gheUrl.trim() }
+              : null;
         startPolling(data.device_code, data.codeVerifier, data.interval || 5, extraData);
         return;
       }
@@ -480,6 +519,7 @@ export default function OAuthModal({
     onSuccess,
     reauthConnection,
     idcConfig,
+    gheUrl,
   ]);
 
   // Reset guard when modal closes
@@ -672,17 +712,24 @@ export default function OAuthModal({
       // raw-token paste pattern. Routed through the access-token-only import
       // endpoint (#1290) instead of the authorization-code exchange below.
       if (provider === "codex" && /^eyJ/.test(callbackUrl.trim())) {
-        const res = await fetch("/api/oauth/codex/import-token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken: callbackUrl.trim() }),
-        });
-        const data = (await parseResponseBody(res)) as Record<string, unknown>;
-        if (!res.ok) {
-          throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
+        await submitCodexAccessToken(callbackUrl.trim(), undefined, setStep, onSuccess);
+        return;
+      }
+
+      // Codex: full session JSON from chatgpt.com/api/auth/session
+      // (`{user, accessToken, expires}`), not just the bare token (#6636).
+      if (provider === "codex" && looksLikeCodexSessionJson(callbackUrl)) {
+        const result = parseCodexSessionJson(JSON.parse(callbackUrl.trim()));
+        if (result.ok === false) {
+          setError(result.error);
+          return;
         }
-        setStep("success");
-        onSuccess?.();
+        await submitCodexAccessToken(
+          result.session.accessToken,
+          result.session.email,
+          setStep,
+          onSuccess
+        );
         return;
       }
 
@@ -794,6 +841,17 @@ export default function OAuthModal({
         {/* OAuth flow steps — hidden when paste-token mode is active */}
         {(!supportsTokenPaste || !showPasteToken) && (
           <>
+            {/* GHE Copilot: collect the GitHub Enterprise base URL before starting */}
+            {provider === "ghe-copilot" && step === "ghe-config" && (
+              <GheConfigStep
+                gheUrl={gheUrl}
+                setGheUrl={setGheUrl}
+                error={error}
+                setError={setError}
+                startOAuthFlow={startOAuthFlow}
+              />
+            )}
+
             {/* Waiting Step (Localhost - popup mode) */}
             {step === "waiting" && !isDeviceCode && (
               <div className="text-center py-6">

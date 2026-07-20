@@ -4448,7 +4448,9 @@
     "contextWindowOverrideHint": "__MISSING__:Manually set this model's real context window (tokens) when the provider misreports it. Wins over auto-detected/catalog values and prevents combo routing from dropping the model.",
     "contextWindowOverrideInvalid": "__MISSING__:Context window override must be a positive whole number of tokens",
     "visionCapableLabel": "__MISSING__:Vision capable",
-    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends).",
+    "kimiOfficialSupporterBadge": "Official Supporter",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner"
   },
   "settings": {
     "title": "Asetukset",
@@ -5543,7 +5545,11 @@
     "codexAutoPingDesc": "Opt-in per connection: sends a tiny request right after a Codex session window resets so it isn't cold when you need it.",
     "codexAutoPingWarning": "Consumes a small amount of real Codex quota on every ping. Off by default — enable only for connections you actively rely on.",
     "codexAutoPingSaveError": "Failed to update Codex Auto-Ping setting",
-    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}"
+    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}",
+    "credentialRedaction": "__MISSING__:Credential Redaction",
+    "credentialRedactionDesc": "__MISSING__:Redact API keys, tokens, and secrets from context sent to providers and from responses.",
+    "enableCredentialRedaction": "__MISSING__:Enable credential redaction",
+    "enableCredentialRedactionDesc": "__MISSING__:Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses."
   },
   "contextRtk": {
     "title": "RTK Engine",

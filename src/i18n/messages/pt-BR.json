@@ -4381,6 +4381,14 @@
     "paramFiltersSaveError": "Falha ao salvar configuração de filtro de parâmetros: {error}",
     "paramFiltersResetSuccess": "Configuração de filtro de parâmetros restaurada ao padrão",
     "paramFiltersResetError": "Falha ao restaurar configuração de filtro de parâmetros: {error}",
+    "interceptionSectionTitle": "Interceptação de Ferramentas Web",
+    "interceptionSectionHint": "Roteia as chamadas nativas de web_search / web_fetch deste provedor pelos próprios endpoints de busca e fetch da OmniRoute, em vez de deixar o provedor executá-las nativamente. Desativado por padrão — o comportamento atual não muda.",
+    "interceptSearchLabel": "Interceptar web_search",
+    "interceptSearchHint": "Reescreve chamadas nativas de web_search para /v1/search da OmniRoute.",
+    "interceptFetchLabel": "Interceptar web_fetch",
+    "interceptFetchHint": "Reescreve chamadas nativas de web_fetch para /v1/web/fetch da OmniRoute.",
+    "interceptionLoadError": "Falha ao carregar configuração de interceptação: {error}",
+    "interceptionSaveError": "Falha ao salvar configuração de interceptação: {error}",
     "contextWindowOverrideLabel": "Substituição de Janela de Contexto",
     "contextWindowOverridePlaceholder": "ex.: 131072",
     "contextWindowOverrideHint": "Define manualmente a janela de contexto real (tokens) deste modelo quando o provedor a reporta incorretamente. Tem prioridade sobre os valores detectados automaticamente/do catálogo e evita que o roteamento de combo descarte o modelo.",
@@ -4618,6 +4626,7 @@
     "blackboxWebCookiePlaceholder": "Cole o valor de __Secure-authjs.session-token",
     "t3ChatWebCookieHint": "Abra t3.chat → DevTools → Aplicativo → Armazenamento local → https://t3.chat, copie 'convex-session-id'. Em seguida, abra DevTools → Rede, copie o cabeçalho completo do cookie de qualquer solicitação de chat. Cole os dois valores nos campos abaixo.",
     "t3ChatWebCookiePlaceholder": "id-de-sessão-convexa=abc123...",
+    "grokWebCookieHint": "O cookie cf_clearance do grok.com é vinculado ao IP, ao User-Agent e à impressão digital TLS do navegador de onde você o copiou — colá-lo de outra máquina/IP causa um erro 403. Cole sso e sso-rw aqui e depois abra Configurações Avançadas e preencha o Custom User-Agent com o valor EXATO do User-Agent desse mesmo navegador, usando o mesmo IP/proxy para esta conexão.",
     "blockClaudeExtraUsageDescription": "Quando habilitado, o OmniRoute marca esta conta do Claude Code como indisponível assim que a API de usage reporta `extra_usage.queued`, para que o fallback troque para outra conta antes de continuar com cobranças extras pay-as-you-go.",
     "blockClaudeExtraUsageLabel": "Bloquear Claude Extra Usage",
     "disableCoolingDescription": "__MISSING__:Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",
@@ -4936,7 +4945,9 @@
     "bulkAddFormatHintCloudflare": "Uma chave por linha. Formato: nome|accountId|apiKey (ID de conta Cloudflare + token de API).",
     "lmarenaWebCookieHint": "Abra arena.ai, faça login e depois copie o cabeçalho Cookie completo de uma requisição de rede. Inclua arena-auth-prod-v1.0 e arena-auth-prod-v1.1 (e outros fragmentos, se houver), preferencialmente com cf_clearance. Não cole apenas o cookie vazio arena-auth-prod-v1. Opcional: providerSpecificData.recaptchaV3Token se create-evaluation ainda retornar 403.",
     "visionCapableLabel": "__MISSING__:Vision capable",
-    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends)."
+    "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends).",
+    "kimiOfficialSupporterBadge": "Apoiador Oficial",
+    "kimiOfficialSupporterTooltip": "A Kimi (Moonshot AI) é parceira oficial de lançamento do OmniRoute"
   },
   "settings": {
     "title": "Configurações",
@@ -6291,7 +6302,11 @@
     "proxyFreePoolSortLatency": "Latência",
     "proxyFreePoolSortRecent": "Mais recentes",
     "proxyFreePoolListTotal": "{count} proxies no total",
-    "proxyFreePoolLoadMore": "Carregar mais"
+    "proxyFreePoolLoadMore": "Carregar mais",
+    "credentialRedaction": "__MISSING__:Credential Redaction",
+    "credentialRedactionDesc": "__MISSING__:Redact API keys, tokens, and secrets from context sent to providers and from responses.",
+    "enableCredentialRedaction": "__MISSING__:Enable credential redaction",
+    "enableCredentialRedactionDesc": "__MISSING__:Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses."
   },
   "contextRtk": {
     "title": "Motor RTK",

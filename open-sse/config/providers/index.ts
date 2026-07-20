@@ -26,6 +26,7 @@ import { lmarenaProvider } from "./registry/lmarena/index.ts";
 import { kilocodeProvider } from "./registry/kilocode/index.ts";
 import { github_modelsProvider } from "./registry/github/models/index.ts";
 import { githubProvider } from "./registry/github/index.ts";
+import { gheCopilotProvider } from "./registry/ghe-copilot/index.ts";
 import { difyProvider } from "./registry/dify/index.ts";
 import { ovhcloudProvider } from "./registry/ovhcloud/index.ts";
 import { claudeProvider } from "./registry/claude/index.ts";
@@ -224,6 +225,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   kilocode: kilocodeProvider,
   "github-models": github_modelsProvider,
   github: githubProvider,
+  "ghe-copilot": gheCopilotProvider,
   dify: difyProvider,
   ovhcloud: ovhcloudProvider,
   claude: claudeProvider,

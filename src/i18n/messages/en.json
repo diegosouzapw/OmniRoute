@@ -4387,6 +4387,14 @@
     "paramFiltersSaveError": "Failed to save param filter config: {error}",
     "paramFiltersResetSuccess": "Param filter config reset to defaults",
     "paramFiltersResetError": "Failed to reset param filter config: {error}",
+    "interceptionSectionTitle": "Web Tool Interception",
+    "interceptionSectionHint": "Route this provider's native web_search / web_fetch tool calls through OmniRoute's own search and fetch endpoints instead of letting the provider run them natively. Off by default — existing behavior is unchanged.",
+    "interceptSearchLabel": "Intercept web_search",
+    "interceptSearchHint": "Rewrite native web_search tool calls to OmniRoute's /v1/search.",
+    "interceptFetchLabel": "Intercept web_fetch",
+    "interceptFetchHint": "Rewrite native web_fetch tool calls to OmniRoute's /v1/web/fetch.",
+    "interceptionLoadError": "Failed to load interception settings: {error}",
+    "interceptionSaveError": "Failed to save interception settings: {error}",
     "compatUpstreamHeadersLabel": "Extra upstream headers",
     "compatUpstreamHeadersHint": "High-privilege setting — same trust level as editing provider API credentials; only trusted admins should use it. Merged after OmniRoute adds auth from the provider API key. If a custom header uses the same name as an existing one (e.g. Authorization), your value fully replaces the auto-generated header (including the Bearer token) — the upstream only sees what you typed, not the key from settings. Misconfiguration can cause 401 or broken upstream auth. One row per header (e.g. extra Authentication for some gateways). Hover or focus the value to preview. Saves on blur, outside click, or closing this panel.",
     "compatUpstreamHeaderName": "Header name",
@@ -4620,6 +4628,7 @@
     "blackboxWebCookiePlaceholder": "Blackbox Web Cookie Placeholder",
     "t3ChatWebCookieHint": "Open t3.chat → DevTools → Application → Local Storage → https://t3.chat, copy 'convex-session-id'. Then open DevTools → Network, copy the full Cookie header from any chat request. Paste both values in the fields below.",
     "t3ChatWebCookiePlaceholder": "convex-session-id=abc123...",
+    "grokWebCookieHint": "grok.com's cf_clearance cookie is pinned to the IP, User-Agent, and TLS fingerprint of the browser where you copied it — pasting it from a different machine/IP causes a 403. Paste sso and sso-rw here, then open Advanced Settings and fill Custom User-Agent with the EXACT User-Agent string of that same browser, and use the same IP/proxy for this connection.",
     "blockClaudeExtraUsageDescription": "Hide extra Claude usage rows reported by some providers when they duplicate primary token accounting.",
     "blockClaudeExtraUsageLabel": "Block duplicate Claude usage rows",
     "disableCoolingDescription": "Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",
@@ -4936,7 +4945,9 @@
     "overrideBaseUrlAdvanced": "Advanced: override base URL",
     "overrideBaseUrlHint": "Advanced: point this built-in provider at a custom endpoint. Leave blank to use the default.",
     "bulkAddFormatHintCloudflare": "One key per line. Format: name|accountId|apiKey (Cloudflare account ID + API token).",
-    "lmarenaWebCookieHint": "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403."
+    "lmarenaWebCookieHint": "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403.",
+    "kimiOfficialSupporterBadge": "Official Supporter",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner"
   },
   "settings": {
     "title": "Settings",
@@ -6291,7 +6302,11 @@
     "modelLockoutMaxBackoffSteps": "Max Backoff Steps",
     "modelLockoutMaxBackoffStepsDescription": "Maximum number of backoff steps before the cooldown stops growing. The Max Cooldown cap is reached first in most configurations, making this a safety ceiling for when Max Cooldown is raised.",
     "disableSessionStickiness": "Disable session stickiness",
-    "disableSessionStickinessDesc": "Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence."
+    "disableSessionStickinessDesc": "Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence.",
+    "credentialRedaction": "Credential Redaction",
+    "credentialRedactionDesc": "Redact API keys, tokens, and secrets from context sent to providers and from responses.",
+    "enableCredentialRedaction": "Enable credential redaction",
+    "enableCredentialRedactionDesc": "Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses."
   },
   "contextRtk": {
     "title": "RTK Engine",

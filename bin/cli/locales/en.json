@@ -133,6 +133,20 @@
       "listTitle": "Keys expiring within {days} days:"
     }
   },
+  "authExport": {
+    "description": "Export DECRYPTED provider credentials (local-only, plaintext output)",
+    "idOpt": "Export only the connection matching this id/name/provider",
+    "formatOpt": "Output format: json or env",
+    "outOpt": "Write output to a file instead of stdout (written with 0600 permissions)",
+    "forceOpt": "Confirm you understand this prints/writes plaintext secrets",
+    "warning": "⚠ This prints/writes DECRYPTED plaintext API keys and OAuth tokens. Make sure your screen, shell history, and any output file stay private.",
+    "confirmHeading": "⚠ WARNING: this exports DECRYPTED provider credentials in plaintext",
+    "confirmBody": "This command decrypts and prints/writes apiKey, accessToken, refreshToken, and\nidToken for the selected connection(s). Treat the output as a secret.",
+    "confirmFooter": "To confirm, run:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY is required to export credentials.",
+    "notFound": "Connection not found: {id}",
+    "invalidFormat": "Invalid format: {format}. Use json or env."
+  },
   "stream": {
     "description": "Stream a chat response with SSE inspection modes",
     "file": "Read prompt from file",
