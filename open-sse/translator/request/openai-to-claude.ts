@@ -10,6 +10,7 @@ import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingS
 import { isAdaptiveThinkingOnly } from "../../../src/shared/constants/modelSpecs.ts";
 import { fitThinkingToMaxTokens } from "./openai-to-claude/thinkingBudget.ts";
 import { enforceToolResultAdjacency } from "./openai-to-claude/toolResultAdjacency.ts";
+import { sanitizeToolResultId } from "./openai-to-claude/sanitizeToolResultId.ts";
 
 // Reasoning-effort levels Anthropic accepts on `output_config.effort`. Used to steer
 // adaptive-only Claude models (Opus 4.7+/Fable 5) without ever emitting a manual budget.
@@ -503,13 +504,15 @@ function getContentBlocksFromMessage(
   const blocks = [];
 
   if (msg.role === "tool") {
+    const sanitizedToolUseId = sanitizeToolResultId(msg.tool_call_id); // #7705
+    if (!sanitizedToolUseId) return blocks;
     // T02: Strip empty text blocks from nested tool_result content to avoid Anthropic 400
     const toolContent = Array.isArray(msg.content)
       ? stripEmptyTextBlocks(msg.content)
       : msg.content;
     blocks.push({
       type: "tool_result",
-      tool_use_id: msg.tool_call_id,
+      tool_use_id: sanitizedToolUseId,
       content: toolContent,
     });
   } else if (msg.role === "user") {
@@ -530,7 +533,7 @@ function getContentBlocksFromMessage(
             : part.content;
           blocks.push({
             type: "tool_result",
-            tool_use_id: part.tool_use_id,
+            tool_use_id: sanitizeToolId(part.tool_use_id), // #7705
             content: resultContent,
             ...(part.is_error && { is_error: part.is_error }),
           });
