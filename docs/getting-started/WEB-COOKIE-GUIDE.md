@@ -18,7 +18,7 @@ Unlike API-key providers, Web Cookie providers authenticate using the credential
 
 Many authentication issues are caused by copying cookies from the wrong place.
 
-## ❌ Do NOT copy from Cookie Storage
+##  Do NOT copy from Cookie Storage
 
 Most browsers expose stored cookies through:
 
@@ -36,7 +36,7 @@ Although these cookies look correct, they may be:
 
 Using these values may cause authentication failures even if they appear valid.
 
-## ✅ Copy from a Live Request
+##  Copy from a Live Request
 
 Instead, use the cookies from a successful request:
 
