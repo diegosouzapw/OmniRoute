@@ -234,7 +234,19 @@ function getNoAuthCandidates(
  *
  * Unknown candidates resolve through getTokenLimit()'s fallback chain, so a
  * non-empty pool always yields a positive contextLength.
+ *
+ * maxOutputTokens has no such guaranteed fallback in getResolvedModelCapabilities()
+ * — registry entries and models.dev sync data are both optional per model, so a
+ * candidate pool whose members all lack that specific field (e.g. #6453's
+ * provider-family combos, `auto/llama` and friends, over no-auth/free-tier
+ * registry entries that were never annotated with maxOutputTokens) would
+ * otherwise advertise `null`, which mirrors the `context: 0` bug this module's
+ * docstring describes for contextLength (opencode disables smart auto-compaction
+ * entirely when a limit is falsy). Fall back to a conservative generic default so
+ * a non-empty pool always yields a positive maxOutputTokens too.
  */
+const DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS = 4096;
+
 export function computeAdvertisedLimits(candidates: Array<{ provider: string; model: string }>): {
   contextLength: number | null;
   maxOutputTokens: number | null;
@@ -257,6 +269,9 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
     if (typeof output === "number" && Number.isFinite(output) && output > 0) {
       maxOutputTokens = maxOutputTokens === null ? output : Math.max(maxOutputTokens, output);
     }
+  }
+  if (maxOutputTokens === null) {
+    maxOutputTokens = DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS;
   }
   return { contextLength, maxOutputTokens };
 }
