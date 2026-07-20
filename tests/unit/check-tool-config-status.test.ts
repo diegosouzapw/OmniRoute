@@ -157,6 +157,44 @@ test("kilo: returns 'not_configured' when no OmniRoute markers present", async (
   assert.equal(result, "not_configured");
 });
 
+// ── Qwen Code ────────────────────────────────────────────────────────────────
+
+test("qwen: returns 'configured' only for an OmniRoute-managed model entry", async () => {
+  const configPath = await writeTempFile(
+    "settings.json",
+    JSON.stringify({
+      modelProviders: {
+        openai: [
+          {
+            id: "model-id",
+            envKey: "OMNIROUTE_API_KEY",
+            baseUrl: "http://localhost:20128/v1",
+          },
+        ],
+      },
+    })
+  );
+  assert.equal(await checkToolConfigStatus("qwen", configPath), "configured");
+});
+
+test("qwen: does not misclassify an unrelated custom OpenAI endpoint", async () => {
+  const configPath = await writeTempFile(
+    "settings.json",
+    JSON.stringify({
+      modelProviders: {
+        openai: [
+          {
+            id: "custom-model",
+            envKey: "CUSTOM_API_KEY",
+            baseUrl: "https://custom.example/v1",
+          },
+        ],
+      },
+    })
+  );
+  assert.equal(await checkToolConfigStatus("qwen", configPath), "not_configured");
+});
+
 // ── Edge cases ────────────────────────────────────────────────────────────────
 
 test("error path: non-existent file returns 'not_configured' (no throw)", async () => {

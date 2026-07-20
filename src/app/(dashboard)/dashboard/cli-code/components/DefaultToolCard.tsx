@@ -48,6 +48,7 @@ export default function DefaultToolCard({
   );
   const isMultiModelTool = tool.modelSelectionMode === "multiple";
   const usesOpenCodePreview = tool.previewConfigMode === "opencode";
+  const usesQwenCodePreview = tool.previewConfigMode === "qwen";
   const selectedKeyObj = apiKeys?.find((k) => k.id === selectedApiKeyId);
 
   const resolveApiKeyValue = useCallback(
@@ -187,13 +188,16 @@ export default function DefaultToolCard({
   }, [isExpanded, runtimeStatus, t, toolId]);
 
   const replaceVars = useCallback(
-    (text) => {
+    (text, modelOverride = "") => {
       const keyToUse = resolveApiKeyValue();
 
       return text
         .replace(/\{\{baseUrl\}\}/g, baseUrlWithV1)
         .replace(/\{\{apiKey\}\}/g, keyToUse)
-        .replace(/\{\{model\}\}/g, getSelectedModelLabels()[0] || t("modelPlaceholder"));
+        .replace(
+          /\{\{model\}\}/g,
+          modelOverride || getSelectedModelLabels()[0] || t("modelPlaceholder")
+        );
     },
     [baseUrlWithV1, getSelectedModelLabels, resolveApiKeyValue, t]
   );
@@ -211,6 +215,9 @@ export default function DefaultToolCard({
 
   const getRenderedCodeBlock = useCallback(() => {
     if (!tool.codeBlock?.code) return "";
+    if (usesQwenCodePreview) {
+      return replaceVars(tool.codeBlock.code, getSelectedModels()[0]);
+    }
     if (!usesOpenCodePreview) return replaceVars(tool.codeBlock.code);
 
     const keyToUse = resolveApiKeyValue();
@@ -233,6 +240,7 @@ export default function DefaultToolCard({
     resolveApiKeyValue,
     tool.codeBlock?.code,
     usesOpenCodePreview,
+    usesQwenCodePreview,
   ]);
 
   const handleSelectModel = (model) => {
@@ -265,7 +273,11 @@ export default function DefaultToolCard({
       // (#523) Prefer keyId lookup so the backend writes the real key to disk.
       const selectedKeyId = selectedApiKeyId?.trim() || null;
 
-      const res = await fetch(`/api/cli-tools/guide-settings/${toolId}`, {
+      const saveEndpoint =
+        toolId === "qwen"
+          ? "/api/cli-tools/qwen-settings"
+          : `/api/cli-tools/guide-settings/${toolId}`;
+      const res = await fetch(saveEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -296,7 +308,7 @@ export default function DefaultToolCard({
   };
 
   // Check if this tool supports direct config file write
-  const supportsDirectSave = ["continue", "opencode"].includes(toolId);
+  const supportsDirectSave = ["continue", "opencode", "qwen"].includes(toolId);
 
   const renderApiKeySelector = () => {
     return (

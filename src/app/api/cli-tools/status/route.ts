@@ -61,6 +61,7 @@ export async function GET(request: Request) {
       "cline",
       "kilo",
       "hermes",
+      "qwen",
     ];
 
     await Promise.all(

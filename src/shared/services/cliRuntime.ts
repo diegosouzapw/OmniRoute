@@ -168,6 +168,16 @@ const CLI_TOOLS: Record<string, any> = {
       auth: ".qoder/auth.json",
     },
   },
+  qwen: {
+    defaultCommand: "qwen",
+    envBinKey: "CLI_QWEN_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 12000,
+    paths: {
+      settings: ".qwen/settings.json",
+      env: ".qwen/.env",
+    },
+  },
   // ── Plan 14 — new "custom" configType tools ───────────────────────────────
   forge: {
     defaultCommand: "forge",
@@ -568,6 +578,7 @@ export const getKnownToolPaths = (toolId: string): string[] => {
       ["qodercli.cmd", "qodercli"],
       ["qodercli.exe", "qodercli"],
     ],
+    qwen: [["qwen.cmd", "qwen"]],
     devin: [
       ["devin.exe", "devin"],
       ["devin.cmd", "devin"],

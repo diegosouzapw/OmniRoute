@@ -20,6 +20,7 @@ const ACP_SPAWNABLE_IDS = [
   "interpreter",
   "cursor-cli",
   "warp",
+  "qwen",
 ];
 
 for (const id of ACP_SPAWNABLE_IDS) {

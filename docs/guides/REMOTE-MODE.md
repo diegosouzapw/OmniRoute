@@ -216,6 +216,7 @@ context, or `--remote <url> --api-key <key>`):
 | Crush | `omniroute setup-crush` | `~/.config/crush/crush.json` — `openai-compat` provider, `base_url` **with** `/v1`, key via `$OMNIROUTE_API_KEY` |
 | Goose | `omniroute setup-goose` | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER=openai` + `OPENAI_HOST` **without** `/v1` + `GOOSE_MODEL`) + env recipe |
 | Aider | `omniroute setup-aider` | `~/.aider.conf.yml` (`openai-api-base` **without** `/v1` + `model: openai/<id>`) + env recipe (`aider --message --yes`) |
+| Qwen Code | `omniroute setup-qwen` | `~/.qwen/settings.json` V4 `modelProviders.openai` entry + `OMNIROUTE_API_KEY` in `~/.qwen/.env` |
 
 ```bash
 # OpenCode (openai-compatible provider, all catalog models, remote VPS)

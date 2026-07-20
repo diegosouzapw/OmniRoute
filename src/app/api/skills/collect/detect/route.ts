@@ -31,6 +31,7 @@ const CODING_TOOL_KEYWORDS: Record<string, string[]> = {
   openclaw: ["openclaw"],
   droid: ["droid", "factory-ai"],
   continue: ["continue"],
+  qwen: ["qwen", "qwen-code"],
   antigravity: ["antigravity"],
   windsurf: ["windsurf"],
   devin: ["devin", "cognition"],

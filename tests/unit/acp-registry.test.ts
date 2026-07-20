@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const { resolveVersionProbe, shouldUseShellForVersionProbe } =
   await import("../../src/lib/acp/registry.ts");
+const { getAgentById } = await import("../../src/lib/acp/registry.ts");
 
 test("resolveVersionProbe parses quoted binary paths without shell semantics", () => {
   const probe = resolveVersionProbe(
@@ -39,4 +40,12 @@ test("shouldUseShellForVersionProbe preserves Windows npm wrapper detection", ()
   );
   assert.equal(shouldUseShellForVersionProbe("C:\\Tools\\claude.exe", "win32"), false);
   assert.equal(shouldUseShellForVersionProbe("codex", "linux"), false);
+});
+
+test("Qwen Code is registered with its upstream ACP mode", () => {
+  const qwen = getAgentById("qwen");
+  assert.ok(qwen);
+  assert.deepEqual(qwen.spawnArgs, ["--acp"]);
+  assert.equal(qwen.providerAlias, "qwen-code");
+  assert.equal(qwen.protocol, "stdio");
 });

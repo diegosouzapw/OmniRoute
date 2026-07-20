@@ -12,7 +12,7 @@ OmniRoute integrates with three categories of CLI tools spread across three dedi
 
 | Page           | Route                   | Concept                                                                   | Count        |
 | -------------- | ----------------------- | ------------------------------------------------------------------------- | ------------ |
-| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 20           |
+| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 21           |
 | **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 6            |
 | **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow)        | see registry |
 
@@ -55,7 +55,7 @@ OmniRoute (local or remote) and writes the tool's own config on your machine:
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
-omniroute setup-goose        omniroute setup-aider
+omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 ```
 
 Each accepts `--remote <url> --api-key <key>` (configure a local tool against a
@@ -90,7 +90,7 @@ Entries with `baseUrlSupport: "none"` are **not shown** in the dashboard pages �
 
 ---
 
-## 1. CLI Code's Catalog (24 tools)
+## 1. CLI Code's Catalog (25 tools)
 
 All tools that appear in `/dashboard/cli-code`. Those with `baseUrlSupport: none` are wired through MITM or a manual guide instead of a custom base URL:
 
@@ -115,6 +115,7 @@ All tools that appear in `/dashboard/cli-code`. Those with `baseUrlSupport: none
 | pi | Pi (pi-coding-agent) | M. Zechner (OSS) | full | custom | false |
 | grok-build | Grok Build | xAI | full | custom | false |
 | crush | Crush | OSS (Charm) | full | custom | false |
+| qwen | Qwen Code | Alibaba | full | guide | true |
 | cursor | Cursor | Anysphere | none | guide | false |
 | antigravity | Antigravity | Google | none | mitm | false |
 | hermes | Hermes | Nous Research | none | guide | false |
@@ -209,6 +210,7 @@ New tools with `configType: "custom"` have dedicated settings API routes:
 | `POST /api/cli-tools/smelt-settings`        | Smelt                          |
 | `POST /api/cli-tools/pi-settings`           | Pi coding agent                |
 | `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`) |
+| `POST /api/cli-tools/qwen-settings`         | Qwen Code (`~/.qwen/settings.json` + dedicated `.env` key) |
 
 All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 
@@ -298,6 +300,9 @@ npm install -g cline
 
 # KiloCode
 npm install -g kilocode
+
+# Qwen Code
+npm install -g @qwen-code/qwen-code
 
 # Aider
 pip install aider-chat

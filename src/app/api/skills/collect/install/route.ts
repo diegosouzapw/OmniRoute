@@ -43,6 +43,7 @@ const CODING_TOOL_PATHS: Record<string, string> = {
   openclaw: "~/.openclaw/skills/{category}",
   droid: "~/.droid/skills/{category}",
   continue: "~/.continue/skills/{category}",
+  qwen: "~/.qwen/skills/{category}",
 };
 
 function inferCategory(skillName: string, description: string): string {

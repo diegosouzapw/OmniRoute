@@ -399,6 +399,59 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
       { step: 4, title: "Select Model", type: "modelSelector" },
     ],
   },
+  qwen: {
+    id: "qwen",
+    name: "Qwen Code",
+    icon: "psychology",
+    color: "#10B981",
+    description: "Qwen Code CLI — current V4 OpenAI-compatible model provider via OmniRoute",
+    docsUrl: "https://qwenlm.github.io/qwen-code-docs/en/users/configuration/model-providers/",
+    configType: "guide",
+    category: "code",
+    vendor: "Alibaba",
+    acpSpawnable: true,
+    baseUrlSupport: "full",
+    defaultCommand: "qwen",
+    previewConfigMode: "qwen",
+    notes: [
+      {
+        type: "info",
+        text: "OmniRoute is registered under modelProviders.openai using Qwen Code's current bare-array V4 format.",
+      },
+      {
+        type: "info",
+        text: "The API key is stored only as OMNIROUTE_API_KEY in ~/.qwen/.env, leaving your existing provider credentials untouched.",
+      },
+    ],
+    guideSteps: [
+      { step: 1, title: "Install Qwen Code", desc: "npm install -g @qwen-code/qwen-code" },
+      { step: 2, title: "API Key", type: "apiKeySelector" },
+      { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
+      { step: 4, title: "Select Model", type: "modelSelector" },
+      {
+        step: 5,
+        title: "Save Config",
+        desc: "Write the modelProviders entry and dedicated .env key without replacing other Qwen Code settings.",
+      },
+    ],
+    codeBlock: {
+      language: "json",
+      code: `{
+  "modelProviders": {
+    "openai": [
+      {
+        "id": "{{model}}",
+        "name": "{{model}} (OmniRoute)",
+        "envKey": "OMNIROUTE_API_KEY",
+        "baseUrl": "{{baseUrl}}"
+      }
+    ]
+  },
+  "security": { "auth": { "selectedType": "openai" } },
+  "model": { "name": "{{model}}", "baseUrl": "{{baseUrl}}" }
+}`,
+    },
+  },
   custom: {
     id: "custom",
     name: "Custom CLI",

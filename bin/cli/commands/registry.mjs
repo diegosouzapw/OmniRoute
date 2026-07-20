@@ -71,6 +71,7 @@ import { registerSetupRoo } from "./setup-roo.mjs";
 import { registerSetupCrush } from "./setup-crush.mjs";
 import { registerSetupGoose } from "./setup-goose.mjs";
 import { registerSetupAider } from "./setup-aider.mjs";
+import { registerSetupQwen } from "./setup-qwen.mjs";
 import { registerConnect } from "./connect.mjs";
 import { registerContexts } from "./contexts.mjs";
 import { registerTokens } from "./tokens.mjs";
@@ -153,6 +154,7 @@ export function registerCommands(program) {
   registerSetupCrush(program);
   registerSetupGoose(program);
   registerSetupAider(program);
+  registerSetupQwen(program);
   registerConnect(program);
   registerContexts(program);
   registerTokens(program);

@@ -5,7 +5,7 @@
  * and running version commands. Used to offer ACP transport as an alternative
  * to the HTTP proxy method.
  *
- * Supports 12 built-in agents + user-defined custom agents from settings.
+ * Supports built-in agents + user-defined custom agents from settings.
  *
  * Reference: https://github.com/iOfficeAI/AionUi (auto-detects CLI agents)
  */
@@ -112,6 +112,15 @@ const AGENT_DEFINITIONS: Omit<CliAgentInfo, "version" | "installed">[] = [
     versionCommand: "cline --version",
     providerAlias: "cline",
     spawnArgs: [],
+    protocol: "stdio",
+  },
+  {
+    id: "qwen",
+    name: "Qwen Code",
+    binary: "qwen",
+    versionCommand: "qwen --version",
+    providerAlias: "qwen-code",
+    spawnArgs: ["--acp"],
     protocol: "stdio",
   },
   {

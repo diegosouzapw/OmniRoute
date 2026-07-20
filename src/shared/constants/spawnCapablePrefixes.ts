@@ -25,6 +25,7 @@
  */
 export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/runtime/",
+  "/api/cli-tools/qwen-settings", // GET probes the Qwen Code binary; the route also mutates local ~/.qwen files
   "/api/services/", // T-10: can run npm install + spawn node processes
   "/api/tools/agent-bridge/", // start/stop MITM server + DNS edits (Hard Rules #15 + #17)
   "/api/tools/traffic-inspector/", // http-proxy listener + system proxy (Hard Rules #15 + #17)
