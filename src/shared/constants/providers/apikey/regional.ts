@@ -365,4 +365,16 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     freeNote: "Permanently free API - no credit card required.",
     authHint: "Get API key at agnes-ai.com",
   },
+  sealion: {
+    id: "sealion",
+    alias: "sealion",
+    name: "SEA-LION",
+    icon: "public",
+    color: "#0D9488",
+    textIcon: "SL",
+    website: "https://sea-lion.ai",
+    hasFree: true,
+    freeNote: "Permanently free at 10 RPM — AI Singapore's Southeast-Asian models (Llama/Qwen/Gemma SEA-LION).",
+    authHint: "Sign in at sea-lion.ai with Google (no card, no region wall), create an API key, then paste it here.",
+  },
 };
