@@ -12,6 +12,10 @@ import {
 } from "./encryption";
 import { createLazyRowProxy } from "./providers/lazyConnectionView";
 import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache";
+import {
+  removeConnectionHealth,
+  removeConnectionIndex,
+} from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
@@ -833,6 +837,8 @@ export async function deleteProviderConnection(id: string) {
 
   db.prepare("DELETE FROM quota_snapshots WHERE connection_id = ?").run(id);
   db.prepare("DELETE FROM provider_connections WHERE id = ?").run(id);
+  removeConnectionHealth(id);
+  removeConnectionIndex(id);
   bumpProxyConfigGeneration();
   const existingRecord = toRecord(existing);
   const providerId =
@@ -859,6 +865,10 @@ export async function deleteProviderConnections(ids: string[]): Promise<number> 
     return result.changes ?? 0;
   })();
 
+  for (const id of ids) {
+    removeConnectionHealth(id);
+    removeConnectionIndex(id);
+  }
   backupDbFile("pre-write");
   invalidateDbCache("connections");
   invalidateReasoningRoutingRuleCache();
@@ -884,6 +894,10 @@ export async function deleteProviderConnectionsByProvider(providerId: string) {
   }
 
   const result = db.prepare("DELETE FROM provider_connections WHERE provider = ?").run(providerId);
+  for (const connectionId of connectionIds) {
+    removeConnectionHealth(connectionId);
+    removeConnectionIndex(connectionId);
+  }
   backupDbFile("pre-write");
   invalidateDbCache("connections");
   invalidateReasoningRoutingRuleCache();
