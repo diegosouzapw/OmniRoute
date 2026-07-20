@@ -107,10 +107,7 @@ test("VB-S05: passthroughs when visionBridgeEnabled is false", async () => {
         role: "user",
         content: [
           { type: "text", text: "What is in this image?" },
-          {
-            type: "image_url",
-            image_url: { url: "https://example.com/image.png" },
-          },
+          { type: "image_url", image_url: { url: "https://example.com/image.png" } },
         ],
       },
     ],
@@ -247,10 +244,7 @@ test("VB-S12: reroutes auto/ prefix model to vision model (auto/vision)", async 
         role: "user",
         content: [
           { type: "text", text: "What is in this image?" },
-          {
-            type: "image_url",
-            image_url: { url: "https://example.com/image.png" },
-          },
+          { type: "image_url", image_url: { url: "https://example.com/image.png" } },
         ],
       },
     ],
@@ -278,10 +272,7 @@ test("VB-S12b: reroutes auto prefix to best vision model when images present", a
         role: "user",
         content: [
           { type: "text", text: "What is in this image?" },
-          {
-            type: "image_url",
-            image_url: { url: "https://example.com/image.png" },
-          },
+          { type: "image_url", image_url: { url: "https://example.com/image.png" } },
         ],
       },
     ],
@@ -310,10 +301,7 @@ test("VB-S01: reroutes non-vision model with images to best vision model", async
         role: "user",
         content: [
           { type: "text", text: "What is in this image?" },
-          {
-            type: "image_url",
-            image_url: { url: "https://example.com/image.png" },
-          },
+          { type: "image_url", image_url: { url: "https://example.com/image.png" } },
         ],
       },
     ],
