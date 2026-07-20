@@ -272,8 +272,8 @@ function getProviderIdFromConnection(connection: unknown) {
 
 async function getActiveProviderSet() {
   try {
-    const { getProviderConnections } = await import("@/lib/localDb");
-    const conns = (await getProviderConnections()) as unknown[];
+    const { getCachedProviderConnections } = await import("@/lib/localDb");
+    const conns = (await getCachedProviderConnections()) as unknown[];
     const providers = conns
       .map(getProviderIdFromConnection)
       .filter((provider): provider is string => Boolean(provider));

@@ -1,8 +1,7 @@
 import { AutoComboConfig } from "./engine";
 import { MODE_PACKS } from "./modePacks";
 import { DEFAULT_WEIGHTS, ScoringWeights } from "./scoring";
-import { AutoVariant } from "./autoPrefix";
-import { getProviderConnections } from "@/lib/db/providers";
+import { getCachedProviderConnections } from "@/lib/db/readCache";
 import { getSettings } from "@/lib/db/settings";
 import { getProviderRegistry } from "./providerRegistryAccessor";
 import type { ConnectionFields } from "@/lib/db/encryption";
@@ -234,7 +233,19 @@ function getNoAuthCandidates(
  *
  * Unknown candidates resolve through getTokenLimit()'s fallback chain, so a
  * non-empty pool always yields a positive contextLength.
+ *
+ * maxOutputTokens has no such guaranteed fallback in getResolvedModelCapabilities()
+ * — registry entries and models.dev sync data are both optional per model, so a
+ * candidate pool whose members all lack that specific field (e.g. #6453's
+ * provider-family combos, `auto/llama` and friends, over no-auth/free-tier
+ * registry entries that were never annotated with maxOutputTokens) would
+ * otherwise advertise `null`, which mirrors the `context: 0` bug this module's
+ * docstring describes for contextLength (opencode disables smart auto-compaction
+ * entirely when a limit is falsy). Fall back to a conservative generic default so
+ * a non-empty pool always yields a positive maxOutputTokens too.
  */
+const DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS = 8192;
+
 export function computeAdvertisedLimits(candidates: Array<{ provider: string; model: string }>): {
   contextLength: number | null;
   maxOutputTokens: number | null;
@@ -258,6 +269,9 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
       maxOutputTokens = maxOutputTokens === null ? output : Math.max(maxOutputTokens, output);
     }
   }
+  if (maxOutputTokens === null) {
+    maxOutputTokens = DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS;
+  }
   return { contextLength, maxOutputTokens };
 }
 
@@ -266,13 +280,12 @@ export async function createVirtualAutoCombo(
   spec?: AutoComboSpec
 ): Promise<VirtualAutoCombo> {
   const [connections, disabledNoAuthConnections, settings] = await Promise.all([
-    getProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
+    getCachedProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
     // #6557: no-auth providers (opencode/mimocode/etc.) don't get an isActive
     // filter applied above since their credential is synthetic, but a real
     // provider_connections row CAN exist for them (created via "Add Account")
     // and its own isActive=false must gate the auto-combo pool too — not just
-    // the separate settings.blockedProviders list.
-    getProviderConnections({ isActive: false }) as Promise<VirtualFactoryConn[]>,
+    getCachedProviderConnections({ isActive: false }) as Promise<VirtualFactoryConn[]>,
     getSettings().catch(() => ({}) as Record<string, unknown>),
   ]);
   const blockedProviders = new Set(

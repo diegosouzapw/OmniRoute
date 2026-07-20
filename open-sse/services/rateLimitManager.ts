@@ -342,8 +342,8 @@ export async function initializeRateLimits() {
   initialized = true;
 
   try {
-    const { getProviderConnections, getSettings } = await import("@/lib/localDb");
-    const [connections, settings] = await Promise.all([getProviderConnections(), getSettings()]);
+    const { getCachedProviderConnections, getSettings } = await import("@/lib/localDb");
+    const [connections, settings] = await Promise.all([getCachedProviderConnections(), getSettings()]);
     const resilience = resolveResilienceSettings(settings);
     currentRequestQueueSettings = { ...resilience.requestQueue };
     // #6846 Phase 1: operator overrides for header-less providers' static RPM
@@ -383,9 +383,8 @@ export async function initializeRateLimits() {
 }
 
 export async function applyRequestQueueSettings(nextSettings: RequestQueueSettings) {
-  currentRequestQueueSettings = { ...nextSettings };
-  const { getProviderConnections } = await import("@/lib/localDb");
-  const connections = await getProviderConnections();
+  const { getCachedProviderConnections } = await import("@/lib/localDb");
+  const connections = await getCachedProviderConnections();
   reconcileEnabledConnections(connections as unknown[], currentRequestQueueSettings);
   updateAllLimiterSettings();
 }

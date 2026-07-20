@@ -11,7 +11,7 @@ import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
 import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
-  getProviderConnectionById,
+  getCachedProviderConnectionById,
   getSettings,
   getModelIsHidden,
   resolveProxyForProvider,
@@ -218,7 +218,7 @@ export async function GET(
     const excludeCustom = searchParams.get("excludeCustom") === "true";
     const refresh = searchParams.get("refresh") === "true";
 
-    const connection = await getProviderConnectionById(id);
+    const connection = await getCachedProviderConnectionById(id);
     const connectionProvider =
       typeof connection?.provider === "string" && connection.provider.trim().length > 0
         ? connection.provider

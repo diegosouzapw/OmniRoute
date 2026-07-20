@@ -6,6 +6,7 @@ import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
 import { invalidateDbCache } from "./readCache";
+import { encrypt, decrypt } from "./encryption";
 import { getProxyRegistryGeneration, resolveProxyForScopeFromRegistry } from "./proxies";
 import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
@@ -122,6 +123,13 @@ export async function getSettings() {
     maxRetryIntervalSec: 30,
     antigravitySignatureCacheMode: "enabled",
     requireLogin: true,
+    oidcEnabled: false,
+    oidcIssuer: "",
+    oidcClientId: "",
+    oidcClientSecret: "",
+    oidcScopes: ["openid", "profile", "email"],
+    oidcRedirectPath: "/api/auth/oidc/callback",
+    oidcAllowedSubjects: [], // optional sub or email whitelist
     mcpEnabled: false,
     a2aEnabled: false,
     hiddenSidebarItems: [],
@@ -202,6 +210,9 @@ export async function getSettings() {
     }
   }
 
+  if (typeof settings.oidcClientSecret === "string") {
+    settings.oidcClientSecret = decrypt(settings.oidcClientSecret) ?? "";
+  }
   applySessionAffinityLegacyFallback(settings);
 
   // Auto-complete onboarding for pre-configured deployments (Docker/VM)
@@ -238,7 +249,8 @@ export async function updateSettings(updates: Record<string, unknown>) {
   );
   const tx = db.transaction(() => {
     for (const [key, value] of Object.entries(updates)) {
-      insert.run(key, JSON.stringify(value));
+      const toStore = key === "oidcClientSecret" ? encrypt(value as string) : value;
+      insert.run(key, JSON.stringify(toStore));
     }
   });
   tx();
