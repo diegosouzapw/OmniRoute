@@ -674,10 +674,10 @@ test("handleAudioTranscription routes Gladia uploads and polls result_url until 
     if (stringUrl === "https://api.gladia.io/v2/upload") {
       assert.equal(options.headers["x-gladia-key"], "gladia-key");
       assert.match(options.headers["Content-Type"], /^multipart\/form-data; boundary=/);
-      return new Response(
-        JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
 
     if (stringUrl === "https://api.gladia.io/v2/pre-recorded") {
@@ -739,10 +739,10 @@ test("handleAudioTranscription returns an error when Gladia reports a terminal f
     const stringUrl = String(url);
 
     if (stringUrl === "https://api.gladia.io/v2/upload") {
-      return new Response(
-        JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
 
     if (stringUrl === "https://api.gladia.io/v2/pre-recorded") {
@@ -753,10 +753,10 @@ test("handleAudioTranscription returns an error when Gladia reports a terminal f
     }
 
     if (stringUrl === "https://api.gladia.io/v2/pre-recorded/job-2") {
-      return new Response(
-        JSON.stringify({ status: "error", error_code: "invalid_audio_format" }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ status: "error", error_code: "invalid_audio_format" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
 
     throw new Error(`Unexpected URL: ${stringUrl}`);
@@ -788,10 +788,10 @@ test("handleAudioTranscription rejects Gladia jobs missing a result_url", async 
     const stringUrl = String(url);
 
     if (stringUrl === "https://api.gladia.io/v2/upload") {
-      return new Response(
-        JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
 
     if (stringUrl === "https://api.gladia.io/v2/pre-recorded") {
@@ -817,6 +817,67 @@ test("handleAudioTranscription rejects Gladia jobs missing a result_url", async 
 
     assert.equal(response.status, 502);
     assert.equal(payload.error.message, "Gladia did not return a result_url");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+const OPENROUTER_TRANSCRIPTION_MODELS = [
+  "deepgram/nova-3",
+  "microsoft/mai-transcribe-1.5",
+  "nvidia/parakeet-tdt-0.6b-v3",
+  "mistralai/voxtral-mini-transcribe",
+  "qwen/qwen3-asr-flash-2026-02-10",
+  "google/chirp-3",
+  "openai/gpt-4o-mini-transcribe",
+  "openai/whisper-large-v3",
+  "openai/whisper-large-v3-turbo",
+  "openai/whisper-1",
+  "openai/gpt-4o-transcribe",
+];
+
+test("OpenRouter transcription registry accepts every supported nested model id", async () => {
+  const { parseTranscriptionModel } = await import("../../open-sse/config/audioRegistry.ts");
+  for (const model of OPENROUTER_TRANSCRIPTION_MODELS) {
+    assert.deepEqual(parseTranscriptionModel(`openrouter/${model}`), {
+      provider: "openrouter",
+      model,
+    });
+  }
+});
+
+test("OpenRouter transcription converts multipart audio to dedicated STT input_audio", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl = "";
+  let capturedInit;
+  globalThis.fetch = async (url, init) => {
+    capturedUrl = String(url);
+    capturedInit = init;
+    return Response.json({ text: "hello from MAI" });
+  };
+
+  try {
+    const form = new FormData();
+    form.set("file", buildFile([1, 2, 3], "sample.flac", "audio/flac"));
+    form.set("model", "openrouter/microsoft/mai-transcribe-1.5");
+    form.set("language", "pt");
+
+    const response = await handleAudioTranscription({
+      formData: form,
+      credentials: { apiKey: "or-test-key" },
+    });
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { text: "hello from MAI" });
+    assert.equal(capturedUrl, "https://openrouter.ai/api/v1/audio/transcriptions");
+    const headers = capturedInit?.headers as Record<string, string>;
+    assert.equal(headers.Authorization, "Bearer or-test-key");
+    assert.equal(headers["Content-Type"], "application/json");
+    const body = JSON.parse(String(capturedInit?.body));
+    assert.equal(body.model, "microsoft/mai-transcribe-1.5");
+    assert.equal(body.input_audio.format, "flac");
+    assert.equal(body.input_audio.data, "AQID");
+    assert.equal(body.language, "pt");
   } finally {
     globalThis.fetch = originalFetch;
   }
