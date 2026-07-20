@@ -76,12 +76,18 @@ const layoutData: FreeBudgetData = {
   boostMonthlyTokens: 24_000_000,
   uncappedProviders: ["glm-cn", "kilo-gateway", "siliconflow"],
   catalogUpdatedAt: null,
+  // Server-derived: which of these providers route with nothing configured.
+  noCredentialProviders: ["pollinations"],
   perModel: [
     { provider: "mistral", modelId: "mistral-small", displayName: "Mistral Small 4", monthlyTokens: 1_000_000_000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "mistral", tos: "caution" },
     { provider: "llm7", modelId: "llm7", displayName: "LLM7 pool", monthlyTokens: 150_000_000, creditTokens: 0, freeType: "recurring-daily", poolKey: "llm7", tos: "caution" },
     { provider: "kiro", modelId: "kiro", displayName: "Kiro Auto", monthlyTokens: 25_000, creditTokens: 0, freeType: "recurring-monthly", poolKey: "kiro", tos: "avoid" },
     { provider: "together", modelId: "together-signup", displayName: "Together credit", monthlyTokens: 0, creditTokens: 25_000_000, freeType: "one-time-initial", poolKey: "together-signup", tos: "caution" },
     { provider: "kimi", modelId: "kimi-free", displayName: "Kimi Free", monthlyTokens: 50_000_000, creditTokens: 0, freeType: "keyless", poolKey: null, tos: "ok" },
+    // Real provider that routes anonymously — the "no API key" section is
+    // derived from routing behaviour, so a made-up id would (correctly) count
+    // as credentialed and never appear there.
+    { provider: "pollinations", modelId: "openai-fast", displayName: "Pollinations Fast", monthlyTokens: 30_000_000, creditTokens: 0, freeType: "keyless", poolKey: "pollinations", tos: "caution" },
   ],
 };
 
@@ -155,9 +161,13 @@ describe("FreeBudgetView — filters", () => {
     expect(t).not.toMatch(/LLM7 pool/);
   });
 
-  it("keylessOnly restricts the table to freeType=keyless rows", () => {
+  it("keylessOnly keeps only providers that route with no credential", () => {
+    // Filters on the server-derived noCredentialProviders list, NOT on
+    // freeType: "keyless" — "Kimi Free" is catalogued keyless yet is not in
+    // that list, exactly the case that used to mislead users.
     const t = tableOf(renderToStaticMarkup(<FreeBudgetView data={layoutData} keylessOnly={true} />));
-    expect(t).toMatch(/Kimi Free/);
+    expect(t).toMatch(/Pollinations Fast/);
+    expect(t).not.toMatch(/Kimi Free/);
     expect(t).not.toMatch(/Mistral Small 4/);
     expect(t).not.toMatch(/Together credit/);
   });
@@ -173,11 +183,14 @@ describe("FreeBudgetView — keyless section and badges", () => {
     const html = renderToStaticMarkup(<FreeBudgetView data={layoutData} />);
     expect(html).toMatch(/data-testid="keyless-section"/);
     expect(html).toMatch(/No API key required/);
-    expect(html).toMatch(/kimi/);
+    expect(html).toMatch(/pollinations/);
   });
 
   it("omits the keyless section entirely when no model is keyless", () => {
-    const noKeyless: FreeBudgetData = { ...layoutData, perModel: layoutData.perModel.filter((m) => m.freeType !== "keyless") };
+    const noKeyless: FreeBudgetData = {
+      ...layoutData,
+      perModel: layoutData.perModel.filter((m) => m.provider !== "pollinations"),
+    };
     const html = renderToStaticMarkup(<FreeBudgetView data={noKeyless} />);
     expect(html).not.toMatch(/data-testid="keyless-section"/);
   });

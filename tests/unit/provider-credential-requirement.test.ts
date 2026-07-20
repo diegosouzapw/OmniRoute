@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  KEYLESS_CATALOG_DRIFT,
+  NOT_TOKEN_QUANTIFIABLE_BUT_CREDENTIALED,
   checkKeylessCatalogConsistency,
   getCredentialRequirement,
   listNoCredentialProviders,
@@ -50,7 +50,7 @@ test("free catalog's keyless label matches real routing behaviour", () => {
     report.unexpected,
     [],
     `these providers are labelled keyless but routing demands a credential: ${report.unexpected.join(", ")}. ` +
-      `Fix the registry (or the catalog entry) instead of widening KEYLESS_CATALOG_DRIFT.`
+      `Probe the endpoint and fix the registry instead of widening the recorded list.`
   );
 
   // Stale-allowlist enforcement: a frozen entry that stopped drifting must be
@@ -58,15 +58,34 @@ test("free catalog's keyless label matches real routing behaviour", () => {
   assert.deepEqual(
     report.stale,
     [],
-    `KEYLESS_CATALOG_DRIFT lists providers that no longer drift: ${report.stale.join(", ")}. Remove them.`
+    `These now work without a credential — remove them from the recorded list: ${report.stale.join(", ")}`
   );
 });
 
-test("the drift allowlist only shrinks", () => {
-  // Frozen at 10 on 2026-07-20. Lowering this is the goal; raising it means a
-  // new inconsistency was waved through instead of fixed.
+test("providers that reject anonymous calls are never advertised as key-free", () => {
+  // Probed live 2026-07-20 — each returned 401/403 with no credential. They are
+  // freeType: "keyless" in the catalog (meaning "not token-quantifiable"), so a
+  // UI section built on that field would invite users to call providers that
+  // reject them. This is the regression guard for that bug.
+  for (const id of ["blackbox", "friendliai", "iflytek", "sparkdesk", "puter", "muse-spark-web"]) {
+    assert.equal(
+      worksWithoutCredential(getCredentialRequirement(id)),
+      false,
+      `${id} answers 401/403 without a credential — it must never be listed as key-free`
+    );
+  }
+});
+
+test("pollinations is genuinely key-free", () => {
+  // Probed live 2026-07-20: HTTP 200 with real choices and no credential.
+  assert.equal(worksWithoutCredential(getCredentialRequirement("pollinations")), true);
+});
+
+test("the credentialed-but-unquantifiable list only shrinks", () => {
+  // Frozen at 9 on 2026-07-20 (pollinations left it once its registry entry was
+  // corrected). Growing this means a mismatch was waved through instead of probed.
   assert.ok(
-    KEYLESS_CATALOG_DRIFT.length <= 10,
-    `drift allowlist grew to ${KEYLESS_CATALOG_DRIFT.length} — fix the provider instead of adding to it`
+    NOT_TOKEN_QUANTIFIABLE_BUT_CREDENTIALED.length <= 9,
+    `list grew to ${NOT_TOKEN_QUANTIFIABLE_BUT_CREDENTIALED.length} — probe the endpoint and fix the registry instead`
   );
 });

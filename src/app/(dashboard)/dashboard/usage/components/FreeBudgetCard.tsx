@@ -35,6 +35,13 @@ export interface FreeBudgetData {
   headline?: string;
   /** ISO timestamp of the last catalog update. Absent/null → freshness is not shown. */
   catalogUpdatedAt?: string | null;
+  /**
+   * Providers callable with nothing configured, derived server-side from real
+   * routing behaviour (see shared/utils/providerCredentialRequirement). NOT the
+   * same as freeType: "keyless", which only means "not quantifiable in tokens"
+   * — several of those reject anonymous calls with 401/403.
+   */
+  noCredentialProviders?: string[];
 }
 
 export type FreeBudgetSort = "tokens" | "name" | "provider";
@@ -164,10 +171,20 @@ function sortRows(rows: FreeBudgetPerModel[], sort: FreeBudgetSort): FreeBudgetP
  */
 function filterRows(
   rows: FreeBudgetPerModel[],
-  { search, providerFilter, keylessOnly }: { search: string; providerFilter: string; keylessOnly: boolean }
+  {
+    search,
+    providerFilter,
+    keylessOnly,
+    noCredentialProviders,
+  }: {
+    search: string;
+    providerFilter: string;
+    keylessOnly: boolean;
+    noCredentialProviders: string[];
+  }
 ): FreeBudgetPerModel[] {
   let out = rows;
-  if (keylessOnly) out = out.filter((m) => m.freeType === "keyless");
+  if (keylessOnly) out = out.filter((m) => noCredentialProviders.includes(m.provider));
   if (providerFilter !== "all") out = out.filter((m) => m.provider === providerFilter);
   if (search.trim()) {
     out = out.filter(
@@ -247,6 +264,7 @@ export function FreeBudgetView({
     boostMonthlyTokens = 0,
     uncappedProviders = [],
     catalogUpdatedAt,
+    noCredentialProviders = [],
   } = data;
 
   const pct = steadyRecurringTokens > 0 ? Math.round((remaining / steadyRecurringTokens) * 100) : 0;
@@ -256,14 +274,19 @@ export function FreeBudgetView({
   const totalBarTokens = barSegments.reduce((s, seg) => s + seg.tokens, 0);
   const providerColor = colorForProvider(perModel);
 
-  // "No API key required" — a standalone overview, unaffected by table filters.
-  const keylessModels = perModel.filter((m) => m.freeType === "keyless");
+  // "No API key required" — derived from routing behaviour, NOT from
+  // freeType: "keyless". That field means "free access not quantifiable in
+  // tokens"; probing the endpoints showed several of those rows (blackbox,
+  // puter, iflytek, sparkdesk, friendliai, muse-spark-web) answering 401/403
+  // with no credential. Listing them here would invite users to call providers
+  // that reject them.
+  const keylessModels = perModel.filter((m) => noCredentialProviders.includes(m.provider));
   const keylessProviders = Array.from(new Set(keylessModels.map((m) => m.provider))).sort();
 
   // Table rows: only entries with real budget; hide-ToS-avoid + search + provider + keyless filters; sorted.
   let rows = perModel.filter((m) => m.monthlyTokens > 0 || m.creditTokens > 0);
   if (hideAvoid) rows = rows.filter((m) => m.tos !== "avoid");
-  rows = filterRows(rows, { search, providerFilter, keylessOnly });
+  rows = filterRows(rows, { search, providerFilter, keylessOnly, noCredentialProviders });
   rows = sortRows(rows, sort);
 
   const freshness = catalogUpdatedAt ? relativeTimeFromNow(catalogUpdatedAt) : null;

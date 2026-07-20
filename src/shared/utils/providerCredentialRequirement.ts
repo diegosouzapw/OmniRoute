@@ -1,19 +1,24 @@
 /**
- * Single answer to "does this provider need an API key?".
+ * Single answer to "does this provider need a credential?".
  *
- * The information used to live in three places that disagreed:
- *   1. `NOAUTH_PROVIDERS.noAuth` — whether the connect form hides the key field;
- *   2. `RegistryEntry.authType` / `anonymousApiKey` — what the executor actually
- *      sends upstream;
- *   3. `FreeModelBudget.freeType === "keyless"` — how the free catalog labels it.
+ * Two different questions had been collapsed into the word "keyless":
  *
- * Only three providers agreed across all three. This module derives the answer
- * from the two sources that describe real behaviour (1 and 2) so callers stop
- * reimplementing the check, and `assertKeylessCatalogConsistency()` pins the
- * catalog (3) against it.
+ *   1. **Is the free access quantifiable in tokens?** That is what
+ *      `FreeModelBudget.freeType === "keyless"` means — it sits next to `oauth`
+ *      in the docs as "not token-quantifiable", which is why those rows never
+ *      reach the headline. It says nothing about credentials.
+ *   2. **Can the user call it with nothing configured?** That is this module.
  *
- * Nothing here is a new list to maintain — it is computed from the existing
- * registries, so adding a provider in the usual place is enough.
+ * Reading (1) as (2) is not academic: probing the endpoints on 2026-07-20 showed
+ * blackbox, friendliai, iflytek, sparkdesk and puter answering 401, and
+ * muse-spark-web 403, with no credential — yet all are `freeType: "keyless"`.
+ * A UI section built on (1) would invite users to call providers that reject
+ * them. So anything user-facing about API keys must come from here.
+ *
+ * The answer is derived from the two registries that describe real behaviour —
+ * `NOAUTH_PROVIDERS` (does the connect form ask for a key?) and `RegistryEntry`
+ * (what does the executor actually send?) — so there is no new list to keep in
+ * sync: registering a provider the usual way is enough.
  */
 import { NOAUTH_PROVIDERS } from "../constants/providers/noauth.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
@@ -21,14 +26,14 @@ import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 export type CredentialRequirement =
   /** Never needs a credential — the connect form does not even ask for one. */
   | "none"
-  /** Works anonymously; a key is accepted and usually raises the limits. */
+  /** Works anonymously; a credential is accepted and usually raises the limits. */
   | "optional"
   /** No API key to paste, but the user still signs in (OAuth/device flow). */
   | "oauth"
-  /** Unusable without a credential. */
+  /** Unusable without a credential (API key, cookie or session token). */
   | "required";
 
-/** True when the user can call the provider without supplying anything. */
+/** True when the user can call the provider with nothing configured. */
 export function worksWithoutCredential(req: CredentialRequirement): boolean {
   return req === "none" || req === "optional";
 }
@@ -53,46 +58,47 @@ export function getCredentialRequirement(providerId: string): CredentialRequirem
   return "required";
 }
 
-/** Every provider usable with no credential at all, sorted for stable output. */
+/**
+ * Every provider usable with nothing configured, sorted for stable output.
+ * This — not `freeType === "keyless"` — is what a "no API key required" list
+ * must be built from.
+ */
 export function listNoCredentialProviders(): string[] {
   const ids = new Set([...Object.keys(NOAUTH_PROVIDERS), ...Object.keys(REGISTRY)]);
   return [...ids].filter((id) => worksWithoutCredential(getCredentialRequirement(id))).sort();
 }
 
 /**
- * Providers the free catalog labels `keyless` while the routing layer still
- * demands a credential. Each entry is a real inconsistency: the catalog promises
- * something the executor cannot deliver.
+ * Providers whose catalog rows are `freeType: "keyless"` while routing still
+ * needs a credential.
  *
- * These predate the derivation and are frozen so the gate can block NEW drift
- * without forcing an unrelated audit. Most are web-endpoint providers whose free
- * model is reached through a public path that never got modelled in the registry
- * — resolving each one means confirming upstream behaviour, not editing a list.
- *
- * Shrink this; never grow it.
+ * This is NOT a bug list — the two fields answer different questions (see the
+ * module header). It exists so the mismatch stays visible and measured: each of
+ * these is a provider whose free access is real but reached through a web/session
+ * path, and each was confirmed by probing the endpoint. Kept frozen so a genuine
+ * new mistake still trips the gate.
  */
-export const KEYLESS_CATALOG_DRIFT: readonly string[] = [
-  "agy", // authType oauth: free tier via OAuth login, no key pasted
-  "blackbox",
-  "friendliai",
-  "iflytek",
-  "liquid",
-  "muse-spark-web",
-  "pollinations",
-  "puter",
-  "qwen-web",
-  "sparkdesk",
+export const NOT_TOKEN_QUANTIFIABLE_BUT_CREDENTIALED: readonly string[] = [
+  "agy", // OAuth sign-in; nothing to paste, but still an account
+  "blackbox", // probed 2026-07-20 -> 401 "No api key passed in"
+  "friendliai", // probed -> 401 "no authorization info provided"
+  "iflytek", // probed -> 401 Unauthorized
+  "liquid", // probed -> 404: endpoint moved; config needs a separate audit
+  "muse-spark-web", // probed -> 403; authHeader is a session cookie, not a key
+  "puter", // probed -> 401 "Missing authentication token"
+  "qwen-web", // probed -> 200 but serves the WAF HTML page, not the API
+  "sparkdesk", // probed -> 401 Unauthorized
 ];
 
 export interface KeylessConsistencyReport {
-  /** Catalog says keyless, routing still requires a credential (not frozen). */
+  /** Catalog says keyless, routing needs a credential, and it is not recorded. */
   unexpected: string[];
-  /** Frozen entries that no longer drift — remove them from the allowlist. */
+  /** Recorded entries that now work without a credential — drop them. */
   stale: string[];
 }
 
 /**
- * Compare the free catalog's `keyless` label against real routing behaviour.
+ * Compare the catalog's `keyless` rows against real routing behaviour.
  * Pure function: callers pass the catalog so tests and gates can reuse it.
  */
 export function checkKeylessCatalogConsistency(
@@ -102,13 +108,13 @@ export function checkKeylessCatalogConsistency(
     ...new Set(catalog.filter((m) => m.freeType === "keyless").map((m) => m.provider)),
   ].sort();
 
-  const drifting = labelledKeyless.filter(
+  const credentialed = labelledKeyless.filter(
     (id) => !worksWithoutCredential(getCredentialRequirement(id))
   );
 
-  const frozen = new Set(KEYLESS_CATALOG_DRIFT);
+  const recorded = new Set(NOT_TOKEN_QUANTIFIABLE_BUT_CREDENTIALED);
   return {
-    unexpected: drifting.filter((id) => !frozen.has(id)),
-    stale: [...frozen].filter((id) => !drifting.includes(id)).sort(),
+    unexpected: credentialed.filter((id) => !recorded.has(id)),
+    stale: [...recorded].filter((id) => !credentialed.includes(id)).sort(),
   };
 }
