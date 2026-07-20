@@ -418,7 +418,7 @@ test("getProviderConnections supports authType filter and column projection", as
   assert.equal(activeOAuth.length, 1);
 
   // Column projection: only requested columns returned
-  const projected = await providersDb.getProviderConnections({ authType: "oauth" }, [
+  const projected = await providersDb.getProviderConnections({ authType: "oauth" }, undefined, undefined, [
     "id",
     "provider",
     "name",
@@ -449,14 +449,14 @@ test("getProviderConnections rejects column names outside the real provider_conn
   // a SQL-injection footgun for whichever future caller wires it to
   // untrusted input. A single bogus column should reject the whole call.
   await assert.rejects(
-    () => providersDb.getProviderConnections({}, ["not_a_real_column"]),
+    () => providersDb.getProviderConnections({}, undefined, undefined, ["not_a_real_column"]),
     /invalid column/i
   );
 
   // A mix of valid + invalid columns must still reject (fail-closed, not a
   // silent partial projection).
   await assert.rejects(
-    () => providersDb.getProviderConnections({}, ["id", "provider; DROP TABLE provider_connections; --"]),
+    () => providersDb.getProviderConnections({}, undefined, undefined, ["id", "provider; DROP TABLE provider_connections; --"]),
     /invalid column/i
   );
 
@@ -472,10 +472,57 @@ test("getProviderConnections rejects column names outside the real provider_conn
     isActive: true,
     group: "team-a",
   });
-  const withGroup = await providersDb.getProviderConnections({ authType: "oauth" }, [
+  const withGroup = await providersDb.getProviderConnections({ authType: "oauth" }, undefined, undefined, [
     "id",
     "group",
   ]);
   assert.equal(withGroup.length, 1);
   assert.equal(withGroup[0].group, "team-a");
+});
+
+test("getProviderConnections supports limit/offset pagination", async () => {
+  // Create 5 connections
+  for (let i = 5; i >= 1; i--) {
+    const conn = await providersDb.createProviderConnection({
+      provider: "openai",
+      authType: "apikey",
+      name: `Pageable conn ${i}`,
+      apiKey: `sk-paging-${i}`,
+      priority: i,
+    });
+  }
+  // createProviderConnection calls _reorderConnections after every insert,
+  // which reassigns priorities — so expectations must come from the DB.
+  const allFromDb = await providersDb.getProviderConnections({ provider: "openai" });
+  const expectedOrder = allFromDb.map((c) => c.id);
+  assert.equal(expectedOrder.length, 5, "must have 5 connections");
+
+  const all = await providersDb.getProviderConnections({ provider: "openai" });
+  assert.equal(all.length, 5);
+  assert.equal(all[0].id, expectedOrder[0]);
+
+  // limit=2, offset=0 → first 2
+  const page1 = await providersDb.getProviderConnections({ provider: "openai" }, 2, 0);
+  assert.equal(page1.length, 2);
+  assert.equal(page1[0].id, expectedOrder[0]);
+  assert.equal(page1[1].id, expectedOrder[1]);
+
+  // limit=2, offset=2 → next 2
+  const page2 = await providersDb.getProviderConnections({ provider: "openai" }, 2, 2);
+  assert.equal(page2.length, 2);
+  assert.equal(page2[0].id, expectedOrder[2]);
+  assert.equal(page2[1].id, expectedOrder[3]);
+
+  // limit=2, offset=4 → last 1
+  const page3 = await providersDb.getProviderConnections({ provider: "openai" }, 2, 4);
+  assert.equal(page3.length, 1);
+  assert.equal(page3[0].id, expectedOrder[4]);
+
+  // offset beyond total → empty
+  const empty = await providersDb.getProviderConnections({ provider: "openai" }, 10, 100);
+  assert.equal(empty.length, 0);
+
+  // limit=20 exceeds total → returns all 5
+  const oversized = await providersDb.getProviderConnections({ provider: "openai" }, 20, 0);
+  assert.equal(oversized.length, 5);
 });
