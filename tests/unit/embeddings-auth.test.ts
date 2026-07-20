@@ -54,6 +54,7 @@ test("POST /v1/embeddings authentication", async (t) => {
   const originalOmniKey = process.env.OMNIROUTE_API_KEY;
 
   await t.test("should return 401 when an invalid API key is provided", async () => {
+    process.env.REQUIRE_API_KEY = "true";
     process.env.OMNIROUTE_API_KEY = "valid-key";
     const req = new Request("http://localhost/v1/embeddings", {
       method: "POST",
@@ -63,6 +64,7 @@ test("POST /v1/embeddings authentication", async (t) => {
     const res = await POST(req);
     assert.strictEqual(res.status, 401);
     delete process.env.OMNIROUTE_API_KEY;
+    delete process.env.REQUIRE_API_KEY;
   });
 
   await t.test(
