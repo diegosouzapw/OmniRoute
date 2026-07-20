@@ -2,43 +2,71 @@ import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import {
   getSession,
+  harvestSession,
+  listSessions,
+  markViewerActive,
   startSession,
   stopSession,
-  harvestSession,
-  markViewerActive,
+  type VncSession,
 } from "@/lib/vncSession/service";
-import { getVncProvider } from "@/lib/vncSession/manifest";
+import { buildErrorBody, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
-/**
- * Per-provider VNC login session control.
- *
- *   GET    /api/vnc-session/:provider          → current session state (or null)
- *   POST   /api/vnc-session/:provider/start    → start the browser container
- *   POST   /api/vnc-session/:provider/harvest  → read cookies → provider_connections
- *   POST   /api/vnc-session/:provider/touch    → mark viewer active (defer idle stop)
- *   DELETE /api/vnc-session/:provider          → stop + remove the container
- *
- * All actions are management-scoped. Starting a session boots a containerized
- * browser exposing a noVNC web UI at the returned `vncUrl`; the operator logs in
- * there, then calls `harvest` to persist the resulting credentials.
- */
-
-function stripInternal<T extends { containerName?: string }>(s: T | undefined | null) {
-  if (!s) return null;
-  const { containerName, ...rest } = s;
-  return rest;
+function publicSession(session: VncSession | undefined | null) {
+  if (!session) return null;
+  return {
+    sessionId: session.sessionId,
+    connectionId: session.connectionId,
+    providerId: session.providerId,
+    url: session.url,
+    status: session.status,
+    startedAt: session.startedAt,
+    lastViewerAt: session.lastViewerAt,
+    lastHarvestAt: session.lastHarvestAt,
+    viewer:
+      session.vncPort > 0
+        ? {
+            localUrl: `http://127.0.0.1:${session.vncPort}/`,
+            loopbackOnly: true,
+          }
+        : null,
+  };
 }
 
+function errorResponse(status: number, error: unknown) {
+  const raw = error instanceof Error ? error.message : String(error);
+  return NextResponse.json(buildErrorBody(status, sanitizeErrorMessage(raw)), { status });
+}
+
+/**
+ * Connection-scoped browser-login control.
+ *
+ * GET    /api/vnc-session/:connectionId                 list sessions for connection
+ * GET    /api/vnc-session/:connectionId/:sessionId      session state
+ * POST   /api/vnc-session/:connectionId/start           start a browser session
+ * POST   /api/vnc-session/:connectionId/:sessionId/harvest
+ * POST   /api/vnc-session/:connectionId/:sessionId/touch
+ * DELETE /api/vnc-session/:connectionId/:sessionId      stop and remove session
+ *
+ * noVNC and CDP are published on random 127.0.0.1-only host ports. Until an
+ * authenticated same-origin websocket proxy is added, remote operators must use
+ * an SSH tunnel to the returned viewer.localUrl port.
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ params: string[] }> }) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  const { params: seg } = await params;
-  const providerId = seg?.[0];
-  if (!providerId || !getVncProvider(providerId)) {
-    return NextResponse.json({ error: `unknown vnc provider: ${providerId}` }, { status: 404 });
+  const { params: segments } = await params;
+  const connectionId = segments?.[0];
+  const sessionId = segments?.[1];
+  if (!connectionId) return errorResponse(400, "connectionId is required");
+
+  if (!sessionId) {
+    return NextResponse.json({ sessions: listSessions(connectionId).map(publicSession) });
   }
-  return NextResponse.json({ session: stripInternal(getSession(providerId)) });
+
+  const session = getSession(connectionId, sessionId);
+  if (!session) return errorResponse(404, "Browser-login session not found");
+  return NextResponse.json({ session: publicSession(session) });
 }
 
 export async function POST(
@@ -48,39 +76,49 @@ export async function POST(
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  const { params: seg } = await params;
-  const providerId = seg?.[0];
-  const action = seg?.[1] ?? "start";
-  if (!providerId || !getVncProvider(providerId)) {
-    return NextResponse.json({ error: `unknown vnc provider: ${providerId}` }, { status: 404 });
-  }
+  const { params: segments } = await params;
+  const connectionId = segments?.[0];
+  const second = segments?.[1];
+  const action = segments?.[2];
+  if (!connectionId) return errorResponse(400, "connectionId is required");
 
   try {
-    switch (action) {
-      case "start": {
-        const s = await startSession(providerId);
-        return NextResponse.json({
-          session: stripInternal(s),
-          vncUrl: `http://localhost:${s.vncPort}/`,
-          note: "Open vncUrl, log in to the provider, then POST .../harvest to persist credentials.",
-        });
-      }
-      case "harvest": {
-        const r = await harvestSession(providerId);
-        return NextResponse.json({ harvested: r.ok, credential: r.credential });
-      }
-      case "touch": {
-        markViewerActive(providerId);
-        return NextResponse.json({ ok: true });
-      }
-      default:
-        return NextResponse.json({ error: `unknown action: ${action}` }, { status: 400 });
+    if (second === "start" && !action) {
+      const session = await startSession(connectionId);
+      return NextResponse.json({
+        session: publicSession(session),
+        note:
+          "The viewer is loopback-only. Open it on the OmniRoute host or forward its port over SSH, then harvest the session.",
+      });
     }
+
+    if (!second || !action) return errorResponse(400, "sessionId and action are required");
+
+    if (action === "harvest") {
+      const result = await harvestSession(connectionId, second);
+      return NextResponse.json({
+        ...result,
+        validation: result.validation
+          ? {
+              ...result.validation,
+              error: result.validation.error
+                ? sanitizeErrorMessage(result.validation.error)
+                : null,
+            }
+          : null,
+      });
+    }
+    if (action === "touch") {
+      if (!getSession(connectionId, second)) {
+        return errorResponse(404, "Browser-login session not found");
+      }
+      markViewerActive(connectionId, second);
+      return NextResponse.json({ ok: true, sessionId: second, connectionId });
+    }
+
+    return errorResponse(400, `Unknown browser-login action: ${action}`);
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
-    );
+    return errorResponse(500, error);
   }
 }
 
@@ -91,19 +129,18 @@ export async function DELETE(
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  const { params: seg } = await params;
-  const providerId = seg?.[0];
-  if (!providerId || !getVncProvider(providerId)) {
-    return NextResponse.json({ error: `unknown vnc provider: ${providerId}` }, { status: 404 });
+  const { params: segments } = await params;
+  const connectionId = segments?.[0];
+  const sessionId = segments?.[1];
+  if (!connectionId || !sessionId) {
+    return errorResponse(400, "connectionId and sessionId are required");
   }
+
   try {
-    await stopSession(providerId);
-    return NextResponse.json({ stopped: true });
+    await stopSession(connectionId, sessionId);
+    return NextResponse.json({ stopped: true, connectionId, sessionId });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
-    );
+    return errorResponse(500, error);
   }
 }
 
