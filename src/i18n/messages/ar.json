@@ -5545,7 +5545,11 @@
     "codexAutoPingDesc": "خيار لكل اتصال: يرسل طلبًا صغيرًا مباشرةً بعد إعادة ضبط نافذة جلسة Codex كي يكون الاتصال جاهزًا عند الحاجة.",
     "codexAutoPingWarning": "يستهلك كل اختبار قدرًا صغيرًا من حصة Codex الفعلية. الخيار معطل افتراضيًا؛ فعّله فقط للاتصالات التي تعتمد عليها.",
     "codexAutoPingSaveError": "فشل تحديث إعداد Codex Auto-Ping",
-    "codexAutoPingToggleAria": "تبديل اختبار حصة Codex التلقائي للاتصال {connection}"
+    "codexAutoPingToggleAria": "تبديل اختبار حصة Codex التلقائي للاتصال {connection}",
+    "credentialRedaction": "__MISSING__:Credential Redaction",
+    "credentialRedactionDesc": "__MISSING__:Redact API keys, tokens, and secrets from context sent to providers and from responses.",
+    "enableCredentialRedaction": "__MISSING__:Enable credential redaction",
+    "enableCredentialRedactionDesc": "__MISSING__:Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses."
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",

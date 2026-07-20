@@ -1,4 +1,4 @@
-<svg viewBox="0 0 1200 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The OmniRoute promise: one endpoint, 268 providers — never stop building, OmniRoute picks the cheapest one that works. Six pillars. Never hit limits: auto-fallback across 268 providers in milliseconds, quota out means the next provider takes over with zero downtime. Save up to 95 percent of tokens: RTK plus Caveman stacked compression cuts 15 to 95 percent of eligible tokens, about 89 percent average on tool-heavy sessions. Zero dollars to start: 90+ providers with a free tier, 40+ free forever — Qoder, Pollinations, Cloudflare, SiliconFlow — no card needed. Every tool works: 26 coding agents including Claude Code, Codex, Cursor, Cline, Copilot and Antigravity through one config. One endpoint: OpenAI, Claude, Gemini and Responses API translation — point any tool at /v1 and it just works. Production-grade: circuit breakers, TLS stealth, MCP with 104 tools, A2A, memory, guardrails, evals — 25,000+ tests.">
+<svg viewBox="0 0 1200 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The OmniRoute promise: one endpoint, 268 providers — never stop building, OmniRoute picks the cheapest one that works. Six pillars. Never hit limits: auto-fallback across 268 providers in milliseconds, quota out means the next provider takes over with zero downtime. Save up to 95 percent of tokens: RTK plus Caveman stacked compression cuts 15 to 95 percent of eligible tokens, about 89 percent average on tool-heavy sessions. Zero dollars to start: 90+ providers with a free tier, 40+ free forever — Qoder, Pollinations, Cloudflare, SiliconFlow — no card needed. Every tool works: 33 coding agents including Claude Code, Codex, Cursor, Cline, Copilot and Antigravity through one config. One endpoint: OpenAI, Claude, Gemini and Responses API translation — point any tool at /v1 and it just works. Production-grade: circuit breakers, TLS stealth, MCP with 104 tools, A2A, memory, guardrails, evals — 25,000+ tests.">
   <desc>Animated promise card: six pillar tiles fade in in reading order, then a soft colored border highlight sweeps from tile to tile in a continuous cycle.</desc>
   <defs>
     <pattern id="gridPaperP" width="32" height="32" patternUnits="userSpaceOnUse">
@@ -91,7 +91,7 @@
         <path d="M 10,18 L 10,22"/>
       </g>
       <text x="102" y="354" font-size="18" font-weight="800" fill="#a78bfa">Every tool works</text>
-      <text x="66" y="388" font-size="13.5" fill="#a1a1aa">26 coding agents — Claude Code, Codex,</text>
+      <text x="66" y="388" font-size="13.5" fill="#a1a1aa">33 coding agents — Claude Code, Codex,</text>
       <text x="66" y="410" font-size="13.5" fill="#a1a1aa">Cursor, Cline, Copilot, Antigravity —</text>
       <text x="66" y="432" font-size="13.5" fill="#a1a1aa">through one config.</text>
     </g>

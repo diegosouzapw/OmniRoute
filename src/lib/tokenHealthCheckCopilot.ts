@@ -10,7 +10,7 @@
  * frozen file-size budget (see config/quality/file-size-baseline.json).
  */
 
-import { getProviderConnectionById, updateProviderConnection } from "@/lib/localDb";
+import { getCachedProviderConnectionById, updateProviderConnection } from "@/lib/localDb";
 import { refreshCopilotToken } from "@omniroute/open-sse/services/tokenRefresh.ts";
 
 type HealthCheckLogger = {
@@ -36,7 +36,7 @@ export async function refreshGithubCopilotSubTokenIfNeeded(params: {
   if (String(conn.provider || "").toLowerCase() !== "github") return;
 
   // Re-read the latest connection after the OAuth refresh (onPersist may have updated it).
-  const latestConn = (await getProviderConnectionById(conn.id).catch(() => null)) || conn;
+  const latestConn = (await getCachedProviderConnectionById(conn.id).catch(() => null)) || conn;
   const accessTokenForCopilot = result.accessToken || latestConn.accessToken;
   if (!accessTokenForCopilot) return;
 

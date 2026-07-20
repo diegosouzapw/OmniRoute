@@ -5588,7 +5588,11 @@
     "codexAutoPingDesc": "Opt-in per connection: sends a tiny request right after a Codex session window resets so it isn't cold when you need it.",
     "codexAutoPingWarning": "Consumes a small amount of real Codex quota on every ping. Off by default — enable only for connections you actively rely on.",
     "codexAutoPingSaveError": "Failed to update Codex Auto-Ping setting",
-    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}"
+    "codexAutoPingToggleAria": "Toggle Codex quota auto-ping for {connection}",
+    "credentialRedaction": "__MISSING__:Credential Redaction",
+    "credentialRedactionDesc": "__MISSING__:Redact API keys, tokens, and secrets from context sent to providers and from responses.",
+    "enableCredentialRedaction": "__MISSING__:Enable credential redaction",
+    "enableCredentialRedactionDesc": "__MISSING__:Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses."
   },
   "contextRtk": {
     "title": "RTK Engine",

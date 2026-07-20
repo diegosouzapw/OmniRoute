@@ -13,7 +13,7 @@
 
 import {
   getProviderConnections,
-  getProviderConnectionById,
+  getCachedProviderConnectionById,
   updateProviderConnection,
   getSettings,
   resolveProxyForConnection,
@@ -369,7 +369,7 @@ export async function sweep() {
 export async function checkConnection(conn) {
   if (!conn?.id) return;
 
-  const latestConnection = (await getProviderConnectionById(conn.id)) || conn;
+  const latestConnection = (await getCachedProviderConnectionById(conn.id)) || conn;
   conn = latestConnection;
 
   // Per-provider opt-out of proactive refresh (e.g. Codex/OpenAI cascade
@@ -658,7 +658,7 @@ export async function checkConnection(conn) {
   // Once used, the old token is permanently invalidated.
   // Retrying will never succeed → deactivate and stop the loop.
   if (isUnrecoverableRefreshError(result)) {
-    const currentConnection = await getProviderConnectionById(conn.id);
+    const currentConnection = await getCachedProviderConnectionById(conn.id);
     const credentialsChangedSinceSweep =
       !!currentConnection &&
       (currentConnection.refreshToken !== attemptedRefreshToken ||
