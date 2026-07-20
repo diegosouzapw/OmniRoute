@@ -48,6 +48,28 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     ],
   },
 
+  openrouter: {
+    id: "openrouter",
+    baseUrl: "https://openrouter.ai/api/v1/audio/transcriptions",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openrouter-stt",
+    supportedFormats: ["wav", "mp3", "flac", "m4a", "ogg", "webm", "aac"],
+    models: [
+      { id: "deepgram/nova-3", name: "Deepgram Nova-3" },
+      { id: "microsoft/mai-transcribe-1.5", name: "Microsoft MAI-Transcribe 1.5" },
+      { id: "nvidia/parakeet-tdt-0.6b-v3", name: "NVIDIA Parakeet TDT 0.6B v3" },
+      { id: "mistralai/voxtral-mini-transcribe", name: "Mistral Voxtral Mini Transcribe" },
+      { id: "qwen/qwen3-asr-flash-2026-02-10", name: "Qwen3 ASR Flash 2026-02-10" },
+      { id: "google/chirp-3", name: "Google Chirp 3" },
+      { id: "openai/gpt-4o-mini-transcribe", name: "OpenAI GPT-4o Mini Transcribe" },
+      { id: "openai/whisper-large-v3", name: "OpenAI Whisper Large v3" },
+      { id: "openai/whisper-large-v3-turbo", name: "OpenAI Whisper Large v3 Turbo" },
+      { id: "openai/whisper-1", name: "OpenAI Whisper 1" },
+      { id: "openai/gpt-4o-transcribe", name: "OpenAI GPT-4o Transcribe" },
+    ],
+  },
+
   cohere: {
     id: "cohere",
     baseUrl: "https://api.cohere.com/v2/audio/transcriptions",

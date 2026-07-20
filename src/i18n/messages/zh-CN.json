@@ -6686,7 +6686,11 @@
     "providerQuota": "提供商配额",
     "providerQuotaHomeHint": "已连接账户的实时状态",
     "tokenExpiresIn": "令牌在 {time} 后过期",
-    "tokenExpired": "令牌已过期"
+    "tokenExpired": "令牌已过期",
+    "hideQuotaRow": "__MISSING__:Hide this quota row",
+    "showQuotaRow": "__MISSING__:Show this quota row",
+    "hiddenQuotaRowsLabel": "__MISSING__:Hidden:",
+    "quotaVisibilityUpdateFailed": "__MISSING__:Failed to update quota visibility"
   },
   "modals": {
     "waitingAuth": "等待授权",

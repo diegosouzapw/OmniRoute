@@ -1,161 +1,245 @@
 /**
- * Heap-pressure-aware admission guard for POST /v1/chat/completions.
+ * Bounded admission for POST /v1/chat/completions.
  *
- * Root cause (homelab 3.8.40 OOM crash-loop): a forced-GC heap inspection of the live
- * pod showed a HEALTHY ~350 MB live heap — there is no baseline leak. The crash is a
- * per-request transient: a large coding-agent "compact" body (~750 KB) is cloned +
- * JSON-parsed + fanned out across a round-robin combo, allocating hundreds of MB of JS
- * objects; several concurrent compacts stack those transients past the V8 heap ceiling
- * (`FATAL ERROR: Reached heap limit … heap out of memory`), which kills EVERY in-flight
- * request and restarts the pod.
- *
- * A fixed body-size cap is the wrong tool — those large compacts are LEGITIMATE traffic.
- * Instead this guard sheds a large body with a 503 (Retry-After) ONLY when the V8 heap is
- * ALREADY under pressure, converting a process-wide OOM crash into a single graceful
- * client retry. When the heap is healthy (the normal case) large bodies pass through
- * unchanged, so it is invisible to ordinary traffic. A separate hard cap rejects only
- * pathological (multi-MB) bodies before they are cloned/parsed.
- *
- * @module shared/middleware/chatBodyAdmission
+ * Large chat bodies amplify into multiple transient representations while they are parsed,
+ * translated, compressed, and dispatched. A heap snapshot alone cannot prevent two healthy
+ * requests from entering that allocation-heavy path together. This module reserves process-
+ * local heavyweight capacity before parsing and enforces the hard limit against bytes read,
+ * not an untrusted Content-Length header.
  */
 
-import v8 from "node:v8";
 import { CORS_HEADERS } from "../utils/cors";
 
 function parsePositiveInt(value: string | undefined, fallback: number): number {
   const parsed = Number.parseInt(String(value), 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-function parseRatio(value: string | undefined, fallback: number): number {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 && parsed < 1 ? parsed : fallback;
-}
-
-/**
- * Bodies below this size cannot drive the transient amplification that causes the OOM, so
- * they are always admitted and the heap is never even sampled for them (hot-path cheap).
- * Matches the route's existing large-body log threshold (256 KB).
- */
 export const CHAT_LARGE_BODY_BYTES = parsePositiveInt(
   process.env.OMNIROUTE_CHAT_LARGE_BODY_BYTES,
   256 * 1024
 );
 
-/** Pathological bodies above this are rejected (413) before any clone/parse. Generous by
- * default so real compacts are never rejected; only absurd payloads are. */
 export const CHAT_HARD_MAX_BODY_BYTES = parsePositiveInt(
   process.env.OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES,
   50 * 1024 * 1024
 );
 
-/** Shed large bodies once heapUsed/heap_size_limit reaches this fraction. 0.75 leaves
- * headroom for the in-flight request to finish + GC. Healthy idle (~0.11) always admits. */
-export const CHAT_HEAP_SHED_RATIO = parseRatio(process.env.OMNIROUTE_CHAT_HEAP_SHED_RATIO, 0.75);
+const CHAT_MAX_HEAVY_IN_FLIGHT = parsePositiveInt(
+  process.env.OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT,
+  1
+);
 
-export type ChatAdmissionDecision =
-  | { admit: true }
-  | { admit: false; status: 413 | 503; code: string; message: string };
-
-/**
- * Pure admission decision — no I/O, fully unit-testable. The route wrapper feeds it live
- * Content-Length + heap figures.
- */
-export function evaluateChatBodyAdmission(input: {
-  contentLength: number | null;
-  heapUsedBytes: number;
-  heapLimitBytes: number;
-  largeBodyBytes?: number;
-  hardMaxBytes?: number;
-  shedRatio?: number;
-}): ChatAdmissionDecision {
-  const largeBodyBytes = input.largeBodyBytes ?? CHAT_LARGE_BODY_BYTES;
-  const hardMaxBytes = input.hardMaxBytes ?? CHAT_HARD_MAX_BODY_BYTES;
-  const shedRatio = input.shedRatio ?? CHAT_HEAP_SHED_RATIO;
-  const cl = input.contentLength;
-
-  // Unknown or small bodies: always admit (cannot cause the crash).
-  if (cl === null || !Number.isFinite(cl) || cl < largeBodyBytes) return { admit: true };
-
-  // Pathological body: reject before cloning/parsing, independent of heap state.
-  if (cl > hardMaxBytes) {
-    return {
-      admit: false,
-      status: 413,
-      code: "PAYLOAD_TOO_LARGE",
-      message: `Request body too large for chat completions (max ${Math.floor(
-        hardMaxBytes / (1024 * 1024)
-      )} MB).`,
-    };
-  }
-
-  // Large but legitimate body: shed with 503 only when the heap is already under pressure,
-  // so a burst of concurrent compacts degrades to per-request retries, not a pod-wide OOM.
-  if (input.heapLimitBytes > 0 && input.heapUsedBytes / input.heapLimitBytes >= shedRatio) {
-    return {
-      admit: false,
-      status: 503,
-      code: "heap_pressure",
-      message: "Service temporarily under memory pressure. Retry shortly.",
-    };
-  }
-
-  return { admit: true };
+export interface ChatAdmissionLease {
+  readonly released: boolean;
+  release(): void;
 }
 
-/** Resolved once at module load (mirrors heapPressure.ts) — heap_size_limit is constant. */
-const HEAP_LIMIT_BYTES = v8.getHeapStatistics().heap_size_limit;
-
 /**
- * Route-level guard. Returns a ready 413/503 Response when the request must be shed, or
- * null to proceed. Only samples the heap for large bodies, so ordinary requests pay
- * nothing. The heap figure is logged for INTERNAL telemetry only and never placed in the
- * client response (Hard Rule #12).
- *
- * @param heapOverride test-only seam to inject heap figures; production omits it and the
- *        live heap is sampled lazily (never for small bodies).
+ * Process-local heavyweight reservation. The capacity check and increment execute in one
+ * synchronous JavaScript turn, making acquisition atomic within an OmniRoute process.
+ * Queueing is intentionally separate: unavailable capacity is a retryable 503.
  */
-export function checkChatAdmission(
-  request: Request,
-  heapOverride?: { heapUsedBytes: number; heapLimitBytes: number }
-): Response | null {
-  const clHeader = request.headers.get("content-length");
-  const contentLength = clHeader ? Number.parseInt(clHeader, 10) : null;
+export class ChatAdmissionController {
+  #activeHeavy = 0;
 
-  // Fast path: small/unknown bodies skip the heap sample entirely.
-  if (
-    contentLength === null ||
-    !Number.isFinite(contentLength) ||
-    contentLength < CHAT_LARGE_BODY_BYTES
-  ) {
-    return null;
+  constructor(readonly maxHeavyInFlight = 1) {
+    if (!Number.isSafeInteger(maxHeavyInFlight) || maxHeavyInFlight < 1) {
+      throw new RangeError("maxHeavyInFlight must be a positive integer");
+    }
   }
 
-  const {
-    heapUsedBytes = process.memoryUsage().heapUsed,
-    heapLimitBytes = HEAP_LIMIT_BYTES,
-  } = heapOverride ?? {};
-  const decision = evaluateChatBodyAdmission({ contentLength, heapUsedBytes, heapLimitBytes });
+  get activeHeavy(): number {
+    return this.#activeHeavy;
+  }
 
-  if (decision.admit) return null;
+  tryAcquireHeavy(): ChatAdmissionLease | null {
+    if (this.#activeHeavy >= this.maxHeavyInFlight) return null;
+    this.#activeHeavy += 1;
+    let released = false;
+    return {
+      get released() {
+        return released;
+      },
+      release: () => {
+        if (released) return;
+        released = true;
+        this.#activeHeavy = Math.max(0, this.#activeHeavy - 1);
+      },
+    };
+  }
+}
 
+const defaultAdmissionController = new ChatAdmissionController(CHAT_MAX_HEAVY_IN_FLIGHT);
+
+export type ChatRequestAdmission =
+  | { admit: true; request: Request; lease: ChatAdmissionLease | null }
+  | { admit: false; response: Response };
+
+function rejectionResponse(status: 413 | 503, hardMaxBytes: number): Response {
+  const isPayload = status === 413;
   const headers: Record<string, string> = {
     ...CORS_HEADERS,
     "Content-Type": "application/json",
   };
-  if (decision.status === 503) {
-    headers["Retry-After"] = "2";
-    console.warn(
-      `[chat-admission] shedding large body (${contentLength}B) under heap pressure: ` +
-        `heapUsed=${Math.round(heapUsedBytes / 1048576)}MB / limit=${Math.round(
-          heapLimitBytes / 1048576
-        )}MB`
-    );
+  if (!isPayload) headers["Retry-After"] = "2";
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: isPayload
+          ? `Request body too large for chat completions (max ${Math.floor(
+              hardMaxBytes / (1024 * 1024)
+            )} MB).`
+          : "Chat admission capacity is temporarily unavailable. Retry shortly.",
+        type: isPayload ? "payload_too_large" : "server_error",
+        code: isPayload ? "PAYLOAD_TOO_LARGE" : "chat_admission_busy",
+      },
+    }),
+    { status, headers }
+  );
+}
+
+function parseContentLength(header: string | null): number | null {
+  if (header === null || !/^(0|[1-9]\d*)$/.test(header.trim())) return null;
+  const parsed = Number(header);
+  return Number.isSafeInteger(parsed) ? parsed : null;
+}
+
+function rebuildRequest(request: Request, body: Uint8Array): Request {
+  const headers = new Headers(request.headers);
+  // The inbound value may be absent or dishonest. Let the runtime derive the correct value.
+  headers.delete("content-length");
+  return new Request(request.url, {
+    method: request.method,
+    headers,
+    body,
+    signal: request.signal,
+    duplex: "half",
+  } as RequestInit & { duplex: "half" });
+}
+
+/**
+ * Reserve heavyweight capacity and ingest the body with a hard byte bound before JSON
+ * parsing. Missing/invalid Content-Length is sniffed only up to the heavyweight threshold;
+ * a lease is acquired atomically before retaining bytes at or beyond that threshold.
+ */
+export async function admitChatRequest(
+  request: Request,
+  options: {
+    controller?: ChatAdmissionController;
+    largeBodyBytes?: number;
+    hardMaxBytes?: number;
+  } = {}
+): Promise<ChatRequestAdmission> {
+  const controller = options.controller ?? defaultAdmissionController;
+  const largeBodyBytes = options.largeBodyBytes ?? CHAT_LARGE_BODY_BYTES;
+  const hardMaxBytes = options.hardMaxBytes ?? CHAT_HARD_MAX_BODY_BYTES;
+  const contentLength = parseContentLength(request.headers.get("content-length"));
+
+  if (contentLength !== null && contentLength > hardMaxBytes) {
+    return { admit: false, response: rejectionResponse(413, hardMaxBytes) };
   }
 
-  const type = decision.status === 413 ? "payload_too_large" : "server_error";
-  return new Response(
-    JSON.stringify({ error: { message: decision.message, type, code: decision.code } }),
-    { status: decision.status, headers }
-  );
+  let lease: ChatAdmissionLease | null = null;
+  const reserve = (): boolean => {
+    if (lease) return true;
+    lease = controller.tryAcquireHeavy();
+    return lease !== null;
+  };
+
+  // A known-large declaration can reserve before ingestion. Unknown lengths are boundedly
+  // sniffed below; this avoids consuming scarce heavyweight capacity for small chunked bodies.
+  if (contentLength !== null && contentLength >= largeBodyBytes && !reserve()) {
+    return { admit: false, response: rejectionResponse(503, hardMaxBytes) };
+  }
+
+  const reader = request.body?.getReader();
+  if (!reader) return { admit: true, request, lease };
+
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > hardMaxBytes) {
+        await reader.cancel("chat request exceeds hard body limit").catch(() => undefined);
+        lease?.release();
+        return { admit: false, response: rejectionResponse(413, hardMaxBytes) };
+      }
+      if (totalBytes >= largeBodyBytes && !reserve()) {
+        await reader.cancel("chat admission capacity unavailable").catch(() => undefined);
+        return { admit: false, response: rejectionResponse(503, hardMaxBytes) };
+      }
+      chunks.push(value);
+    }
+  } catch (error) {
+    lease?.release();
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
+
+  const body = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { admit: true, request: rebuildRequest(request, body), lease };
+}
+
+/** Release a lease if a handler rejects; otherwise bind it to the returned response lifecycle. */
+export async function releaseChatAdmissionAfterHandler(
+  responsePromise: Promise<Response>,
+  lease: ChatAdmissionLease | null
+): Promise<Response> {
+  try {
+    return releaseChatAdmissionWhenDone(await responsePromise, lease);
+  } catch (error) {
+    lease?.release();
+    throw error;
+  }
+}
+
+/** Hold a heavyweight lease through an SSE response without buffering the response body. */
+export function releaseChatAdmissionWhenDone(
+  response: Response,
+  lease: ChatAdmissionLease | null
+): Response {
+  if (!lease) return response;
+  const isStreaming = response.headers.get("content-type")?.includes("text/event-stream");
+  if (!isStreaming || !response.body) {
+    lease.release();
+    return response;
+  }
+
+  const reader = response.body.getReader();
+  const body = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          lease.release();
+          controller.close();
+        } else {
+          controller.enqueue(value);
+        }
+      } catch (error) {
+        lease.release();
+        controller.error(error);
+      }
+    },
+    async cancel(reason) {
+      lease.release();
+      await reader.cancel(reason).catch(() => undefined);
+    },
+  });
+
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
 }

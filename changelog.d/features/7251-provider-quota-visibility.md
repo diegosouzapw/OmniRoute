@@ -1,0 +1,1 @@
+- **feat(dashboard):** add a per-operator "hide this quota row" toggle to the usage dashboard's provider limit cards, persisted per-provider in settings. (thanks @nguyenha935)

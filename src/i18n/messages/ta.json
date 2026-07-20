@@ -6230,7 +6230,11 @@
     "updatedShort": "__MISSING__:Updated",
     "lastRefreshed": "__MISSING__:Last refreshed",
     "providerQuota": "__MISSING__:Provider Quota",
-    "providerQuotaHomeHint": "__MISSING__:Live status across connected accounts"
+    "providerQuotaHomeHint": "__MISSING__:Live status across connected accounts",
+    "hideQuotaRow": "__MISSING__:Hide this quota row",
+    "showQuotaRow": "__MISSING__:Show this quota row",
+    "hiddenQuotaRowsLabel": "__MISSING__:Hidden:",
+    "quotaVisibilityUpdateFailed": "__MISSING__:Failed to update quota visibility"
   },
   "modals": {
     "waitingAuth": "Waiting for Authorization",

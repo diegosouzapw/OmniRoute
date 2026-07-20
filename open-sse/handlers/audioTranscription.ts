@@ -24,6 +24,7 @@ import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { vertexTranscribe } from "../executors/vertexMedia.ts";
 import { errorResponse } from "../utils/error.ts";
+import { handleOpenRouterTranscription } from "./openrouterTranscription.ts";
 
 type TranscriptionCredentials = {
   apiKey?: string;
@@ -33,7 +34,7 @@ type TranscriptionCredentials = {
 /**
  * Return a CORS error response from an upstream fetch failure
  */
-function upstreamErrorResponse(res, errText) {
+export function upstreamErrorResponse(res, errText) {
   // Always return JSON so the client can parse the error reliably
   let errorMessage: string;
   try {
@@ -671,7 +672,7 @@ export async function handleAudioTranscription({
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No transcription provider found for model "${model}". Available: openai, groq, deepgram, assemblyai, nvidia, huggingface, qwen, gladia, rev-ai, speechmatics`
+      `No transcription provider found for model "${model}". Available: openai, openrouter, groq, deepgram, assemblyai, nvidia, huggingface, qwen, gladia, rev-ai, speechmatics`
     );
   }
 
@@ -739,6 +740,10 @@ export async function handleAudioTranscription({
 
   if (providerConfig.format === "speechmatics") {
     return handleSpeechmaticsTranscription(providerConfig, file, modelId, token);
+  }
+
+  if (providerConfig.format === "openrouter-stt") {
+    return handleOpenRouterTranscription(providerConfig, file, modelId, token, formData);
   }
 
   // Default: OpenAI/Groq/Qwen3-compatible multipart proxy
