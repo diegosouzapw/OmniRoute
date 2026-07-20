@@ -15,7 +15,7 @@ const NOTION_LEGACY_ORIGIN = "https://www.notion.so";
 const NOTION_MODELS_URL = `${NOTION_APP_ORIGIN}/api/v3/getAvailableModels`;
 const NOTION_SPACES_URL = `${NOTION_APP_ORIGIN}/api/v3/getSpaces`;
 const NOTION_USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 /** Recent Notion web client version — accepted loosely but required by some paths. */
 const NOTION_CLIENT_VERSION = "23.13.20260719.1125";
 /** Cap how many workspaces we probe for AI models when space_id is omitted. */

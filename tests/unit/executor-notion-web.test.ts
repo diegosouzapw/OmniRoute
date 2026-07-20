@@ -26,9 +26,14 @@ describe("NotionWebExecutor — registry consistency", () => {
     assert.ok(models.length >= 1);
     assert.ok(models.some((m) => m.id === "notion-ai"));
     // Seed catalog uses real web-picker labels (fable-5 / gpt-5.6-sol), not food codenames.
-    assert.ok(models.some((m) => m.id === "fable-5" || m.id === "gpt-5.6-sol" || m.id === "opus-4.8"));
+    assert.ok(
+      models.some((m) => m.id === "fable-5" || m.id === "gpt-5.6-sol" || m.id === "opus-4.8")
+    );
     assert.equal(
-      models.some((m) => m.id === "ambrosia-tart-high" || m.id === "orange-mousse" || m.id === "acai-budino-high"),
+      models.some(
+        (m) =>
+          m.id === "ambrosia-tart-high" || m.id === "orange-mousse" || m.id === "acai-budino-high"
+      ),
       false
     );
   });
@@ -124,6 +129,14 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       assert.equal(capturedHeaders.Cookie, COOKIE_WITH_SPACE);
       assert.equal(capturedHeaders["x-notion-space-id"], "space-1");
       assert.equal(capturedHeaders["x-notion-active-user-header"], "user-1");
+      // Browser fingerprint headers to reduce Cloudflare challenges.
+      assert.ok(capturedHeaders["sec-ch-ua"], "sec-ch-ua should be present");
+      assert.ok(capturedHeaders["sec-fetch-dest"], "sec-fetch-dest should be present");
+      assert.ok(capturedHeaders["sec-fetch-mode"], "sec-fetch-mode should be present");
+      assert.equal(capturedHeaders["sec-fetch-mode"], "cors");
+      assert.ok(capturedHeaders["sec-ch-ua-platform"], "sec-ch-ua-platform should be present");
+      assert.equal(capturedHeaders["cache-control"], "no-cache");
+      assert.equal(capturedHeaders["pragma"], "no-cache");
       assert.ok(capturedBody);
       assert.equal(capturedBody.createThread, true);
       assert.ok(typeof capturedBody.threadId === "string" && capturedBody.threadId.length > 0);
@@ -295,7 +308,8 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
     const executor = new mod.NotionWebExecutor();
     const originalFetch = globalThis.fetch;
     try {
-      globalThis.fetch = (async () => new Response("not-json\n{}", { status: 200 })) as typeof fetch;
+      globalThis.fetch = (async () =>
+        new Response("not-json\n{}", { status: 200 })) as typeof fetch;
 
       const result = await executor.execute({
         model: "notion-ai",
@@ -314,8 +328,7 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
     const executor = new mod.NotionWebExecutor();
     const originalFetch = globalThis.fetch;
     try {
-      globalThis.fetch = (async () =>
-        new Response("Forbidden", { status: 403 })) as typeof fetch;
+      globalThis.fetch = (async () => new Response("Forbidden", { status: 403 })) as typeof fetch;
 
       const result = await executor.execute({
         model: "notion-ai",
@@ -325,7 +338,9 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
         signal: null,
       } as never);
       assert.equal(result.response.status, 403);
-      const errBody = (await result.response.json()) as { error: { message: string; code: string } };
+      const errBody = (await result.response.json()) as {
+        error: { message: string; code: string };
+      };
       assert.match(errBody.error.message, /session expired|invalid/i);
       assert.equal(errBody.error.code, "HTTP_403");
       // No stack trace / file path leakage (Hard Rule #12).
@@ -459,10 +474,7 @@ describe("estimateNotionUsage", () => {
 
   it("scales with prompt and completion length (not a constant 2000)", () => {
     const short = estimateNotionUsage([{ role: "user", content: "hi" }], "PONG");
-    const long = estimateNotionUsage(
-      [{ role: "user", content: "a".repeat(400) }],
-      "b".repeat(400)
-    );
+    const long = estimateNotionUsage([{ role: "user", content: "a".repeat(400) }], "b".repeat(400));
     assert.equal(short.estimated, true);
     assert.ok(short.prompt_tokens >= 1);
     assert.ok(short.completion_tokens >= 1);
