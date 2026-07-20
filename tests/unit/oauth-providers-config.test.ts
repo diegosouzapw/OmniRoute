@@ -31,6 +31,7 @@ const {
   CODEBUDDY_CN_CONFIG,
   ZED_CONFIG,
   CURSOR_CONFIG,
+  GHE_COPILOT_CONFIG,
   GITHUB_CONFIG,
   GITLAB_DUO_CONFIG,
   GROK_CLI_CONFIG,
@@ -59,6 +60,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "qwen",
   "kimi-coding",
   "github",
+  "ghe-copilot",
   "gitlab-duo",
   "kiro",
   "amazon-q",
@@ -92,6 +94,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   qwen: QWEN_CONFIG,
   "kimi-coding": KIMI_CODING_CONFIG,
   github: GITHUB_CONFIG,
+  "ghe-copilot": GHE_COPILOT_CONFIG,
   "gitlab-duo": GITLAB_DUO_CONFIG,
   kiro: KIRO_CONFIG,
   "amazon-q": KIRO_CONFIG,
@@ -129,6 +132,8 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   qwen: ["deviceCodeUrl", "tokenUrl", "scope", "clientId"],
   "kimi-coding": ["deviceCodeUrl", "tokenUrl", "clientId"],
   github: ["deviceCodeUrl", "tokenUrl", "userInfoUrl", "copilotTokenUrl", "clientId"],
+  // GHE Copilot derives its URLs at runtime from the per-connection gheUrl — only static fields.
+  "ghe-copilot": ["clientId", "scopes", "apiVersion", "userAgent"],
   "gitlab-duo": [
     "baseUrl",
     "authorizeUrl",

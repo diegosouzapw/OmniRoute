@@ -17,6 +17,9 @@ export const MITM_TOOL_HOSTS: Record<string, string[]> = {
   ],
   kiro: ["api.anthropic.com"],
   copilot: ["api.githubcopilot.com", "copilot-proxy.githubusercontent.com"],
+  // GHE Copilot has no fixed host: the enterprise domain is per-connection (gheUrl), so the
+  // canonical target declares an empty host list and nothing is added to the hosts file.
+  "ghe-copilot": [],
   codex: ["chatgpt.com"],
   cursor: ["api2.cursor.sh"],
   zed: ["api.zed.dev"],

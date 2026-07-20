@@ -511,6 +511,7 @@ export const PROVIDERS = {
   KIMI_CODING: "kimi-coding",
   OPENAI: "openai",
   GITHUB: "github",
+  GHE_COPILOT: "ghe-copilot",
   GITLAB_DUO: "gitlab-duo",
   KIRO: "kiro",
   AMAZON_Q: "amazon-q",

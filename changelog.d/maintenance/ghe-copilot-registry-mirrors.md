@@ -1,0 +1,1 @@
+- fix(oauth): register `ghe-copilot` in the OAuth provider id map and the client-safe MITM host mirror, which #7546 left out of both — the gap turned the whole release branch red on `oauth-providers-config` and `mitm-tool-hosts`
