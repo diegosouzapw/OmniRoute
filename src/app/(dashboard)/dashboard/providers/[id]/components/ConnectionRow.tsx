@@ -883,7 +883,7 @@ export default function ConnectionRow({
           onChange={onToggleActive}
           title={(connection.isActive ?? true) ? t("disableConnection") : t("enableConnection")}
         />
-        <div className="flex gap-1 ml-1 transition-opacity">
+        <div className="flex gap-1 ms-1 transition-opacity">
           {onReauth && (
             <button
               onClick={onReauth}
