@@ -136,7 +136,7 @@ import {
   waitForCooldownAwareRetry,
 } from "../../src/sse/services/cooldownAwareRetry.ts";
 import { handleFusionChat, type FusionTuning } from "./fusion.ts";
-import { handleChaosChat } from "./autoCombo/chaosEngine.ts";
+import { dispatchChaosFromCombo } from "./autoCombo/chaosEngine.ts";
 import { handlePipelineChat, type PipelineStep } from "./pipeline.ts";
 import {
   TRANSIENT_FOR_SEMAPHORE,
@@ -900,36 +900,17 @@ export async function handleComboChat({
     });
   }
 
-  // Chaos mode: parallel multi-model dispatch with per-model broadcast to IDEs.
-  // Detected via combo.config.chaos.enabled (set by the auto/chaos virtual combo).
-  // Unlike fusion, chaos surfaces each model's raw answer (no judge synthesis) so
-  // a single-turn IDE request still receives N model outputs at once.
-  if (
-    cfg.chaos &&
-    typeof cfg.chaos === "object" &&
-    (cfg.chaos as Record<string, unknown>).enabled
-  ) {
-    const chaosCfg = cfg.chaos as { panelSize?: number; judgeModel?: string };
-    const chaosModels = (combo.models || [])
-      .map((m) => {
-        if (typeof m === "string") return m;
-        if (m && typeof m === "object") {
-          const obj = m as Record<string, unknown>;
-          if (typeof obj.model === "string") return obj.model;
-        }
-        return null;
-      })
-      .filter((m): m is string => Boolean(m));
-    log.info("CHAOS", `dispatching parallel panel of ${chaosModels.length} stable models`);
-    return handleChaosChat({
-      body,
-      models: chaosModels,
-      handleSingleModel: handleSingleModelWithTimeout,
-      log,
-      comboName: combo.name,
-      primaryModel: chaosCfg.judgeModel,
-    });
-  }
+  // Chaos mode (parallel multi-model dispatch): detection + dispatch live in
+  // chaosEngine.ts (dispatchChaosFromCombo), returning null when not chaos-enabled.
+  const chaosDispatch = dispatchChaosFromCombo({
+    cfg,
+    comboModels: combo.models || [],
+    comboName: combo.name,
+    body,
+    handleSingleModel: handleSingleModelWithTimeout,
+    log,
+  });
+  if (chaosDispatch) return chaosDispatch;
 
   // Pipeline strategy: sequential chain — each step's output feeds the next step's
   // input, only the final step's response is returned. Handled in a separate module

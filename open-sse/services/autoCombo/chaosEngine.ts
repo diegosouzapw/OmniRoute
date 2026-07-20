@@ -25,7 +25,7 @@
  */
 
 import { errorResponse } from "../../utils/error.ts";
-import type { HandleSingleModel } from "../combo/types.ts";
+import type { ComboLogger, HandleSingleModel } from "../combo/types.ts";
 
 export const CHAOS_DEFAULTS = {
   /** Absolute cap on wall time for the whole panel. */
@@ -415,5 +415,53 @@ export async function handleChaosChat(opts: {
       "X-OmniRoute-Chaos-Panel": String(panel.length),
       "X-OmniRoute-Chaos-Primary": "",
     },
+  });
+}
+
+/**
+ * Detect + dispatch chaos mode from `handleComboChat`'s combo config, mirroring
+ * the fusion-strategy short-circuit right above it. Detected via
+ * `combo.config.chaos.enabled` (set by the auto/chaos virtual combo). Unlike
+ * fusion, chaos surfaces each model's raw answer (no judge synthesis) so a
+ * single-turn IDE request still receives N model outputs at once.
+ *
+ * Returns `null` when the combo is not a chaos combo (caller falls through to
+ * its normal strategy handling); otherwise returns the chaos dispatch promise.
+ */
+export function dispatchChaosFromCombo(args: {
+  cfg: Record<string, unknown>;
+  comboModels: unknown[];
+  comboName: string;
+  body: Body;
+  handleSingleModel: HandleSingleModel;
+  log: ComboLogger;
+}): Promise<Response> | null {
+  const { cfg, comboModels, comboName, body, handleSingleModel, log } = args;
+  if (
+    !cfg.chaos ||
+    typeof cfg.chaos !== "object" ||
+    !(cfg.chaos as Record<string, unknown>).enabled
+  ) {
+    return null;
+  }
+  const chaosCfg = cfg.chaos as { panelSize?: number; judgeModel?: string };
+  const chaosModels = (comboModels || [])
+    .map((m) => {
+      if (typeof m === "string") return m;
+      if (m && typeof m === "object") {
+        const obj = m as Record<string, unknown>;
+        if (typeof obj.model === "string") return obj.model;
+      }
+      return null;
+    })
+    .filter((m): m is string => Boolean(m));
+  log.info("CHAOS", `dispatching parallel panel of ${chaosModels.length} stable models`);
+  return handleChaosChat({
+    body,
+    models: chaosModels,
+    handleSingleModel,
+    log,
+    comboName,
+    primaryModel: chaosCfg.judgeModel,
   });
 }
