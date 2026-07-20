@@ -168,16 +168,6 @@ const CLI_TOOLS: Record<string, any> = {
       auth: ".qoder/auth.json",
     },
   },
-  qwen: {
-    defaultCommand: "qwen",
-    envBinKey: "CLI_QWEN_BIN",
-    requiresBinary: true,
-    healthcheckTimeoutMs: 12000,
-    paths: {
-      settings: ".qwen/settings.json",
-      env: ".qwen/.env",
-    },
-  },
   // ── Plan 14 — new "custom" configType tools ───────────────────────────────
   forge: {
     defaultCommand: "forge",

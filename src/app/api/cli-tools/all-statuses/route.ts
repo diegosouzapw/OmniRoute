@@ -42,15 +42,6 @@ async function extractEndpointFromConfig(
         const env = config.env as Record<string, unknown> | undefined;
         return (env?.ANTHROPIC_BASE_URL as string | undefined) ?? null;
       }
-      case "qwen": {
-        const mp = config.modelProviders as Record<string, unknown>[] | undefined;
-        if (!Array.isArray(mp)) return null;
-        for (const provider of mp) {
-          const baseUrl = (provider as Record<string, unknown>).apiBase as string | undefined;
-          if (baseUrl) return baseUrl;
-        }
-        return null;
-      }
       case "cline":
         return (config.openAiBaseUrl as string | undefined) ?? null;
       case "droid":

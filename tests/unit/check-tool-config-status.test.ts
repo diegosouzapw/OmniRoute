@@ -96,25 +96,6 @@ test("codex: returns 'not_configured' when TOML does not mention OmniRoute", asy
   assert.equal(result, "not_configured");
 });
 
-// ── Qwen tests ────────────────────────────────────────────────────────────────
-
-test("qwen: returns 'configured' when modelProviders has OmniRoute URL", async () => {
-  const configPath = await writeTempFile(
-    "qwen.json",
-    JSON.stringify({
-      modelProviders: [{ apiBase: "http://localhost:20128/v1", name: "omniroute" }],
-    })
-  );
-  const result = await checkToolConfigStatus("qwen", configPath);
-  assert.equal(result, "configured");
-});
-
-test("qwen: returns 'not_configured' when modelProviders is missing", async () => {
-  const configPath = await writeTempFile("qwen.json", JSON.stringify({}));
-  const result = await checkToolConfigStatus("qwen", configPath);
-  assert.equal(result, "not_configured");
-});
-
 // ── Hermes tests ──────────────────────────────────────────────────────────────
 
 test("hermes: returns 'configured' when config contains OmniRoute", async () => {

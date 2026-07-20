@@ -195,7 +195,7 @@ export default function DefaultToolCard({
         .replace(/\{\{apiKey\}\}/g, keyToUse)
         .replace(/\{\{model\}\}/g, getSelectedModelLabels()[0] || t("modelPlaceholder"));
     },
-    [baseUrl, getSelectedModelLabels, resolveApiKeyValue, t]
+    [baseUrlWithV1, getSelectedModelLabels, resolveApiKeyValue, t]
   );
 
   const handleCopy = async (text, field) => {
@@ -226,7 +226,7 @@ export default function DefaultToolCard({
       2
     );
   }, [
-    baseUrl,
+    baseUrlWithV1,
     getSelectedModels,
     getSelectedModelLabelMap,
     replaceVars,
@@ -296,7 +296,7 @@ export default function DefaultToolCard({
   };
 
   // Check if this tool supports direct config file write
-  const supportsDirectSave = ["continue", "opencode", "qwen"].includes(toolId);
+  const supportsDirectSave = ["continue", "opencode"].includes(toolId);
 
   const renderApiKeySelector = () => {
     return (

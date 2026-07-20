@@ -60,7 +60,6 @@ export async function GET(request: Request) {
       "openclaw",
       "cline",
       "kilo",
-      "qwen",
       "hermes",
     ];
 

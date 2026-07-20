@@ -39,7 +39,6 @@ const CODING_TOOL_PATHS: Record<string, string> = {
   windsurf: "~/.windsurf/skills/{category}",
   devin: "~/.devin/skills/{category}",
   antigravity: "~/.antigravity/skills/{category}",
-  qwen: "~/.qwen/skills/{category}",
   kilocode: "~/.kilocode/skills/{category}",
   openclaw: "~/.openclaw/skills/{category}",
   droid: "~/.droid/skills/{category}",

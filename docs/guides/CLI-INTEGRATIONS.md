@@ -47,7 +47,6 @@ server and writes the config locally.
 | `omniroute setup-roo` | Roo Code | `~/.omniroute/roo-settings.json` (import doc) + sets `roo-cline.autoImportSettingsPath` if a VS Code `settings.json` exists | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--import-path` `--vscode-settings` | Both |
 | `omniroute setup-crush` | Crush | `~/.config/crush/crush.json` — `openai-compat` provider, key via `$OMNIROUTE_API_KEY` | `--remote` `--api-key` `--only` `--dry-run` `--port` `--config-path` | Both |
 | `omniroute setup-goose` | Goose | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER`/`OPENAI_HOST`/`GOOSE_MODEL`) + prints env recipe | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` | Both |
-| `omniroute setup-qwen` | Qwen Code | `~/.qwen/settings.json` — openai `modelProvider`, key via `envKey` (`OMNIROUTE_API_KEY`) | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` | Both |
 | `omniroute setup-aider` | Aider | `~/.aider.conf.yml` (`openai-api-base` + `model: openai/<id>`) + prints env recipe | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` | Both |
 | `omniroute launch` | Claude Code | Nothing — spawns `claude` with `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN` injected | `--remote` `--api-key` `--token` `--profile` `--port` | Both |
 | `omniroute launch-codex` | OpenAI Codex CLI | Nothing — spawns `codex` with the `omniroute` provider injected via `-c` flags | `--remote` `--api-key` `--profile` (`-p`) `--port` | Both |
@@ -101,7 +100,6 @@ opencode -m omniroute/glm/glm-5.2 "..."
 
 # Tools without auto-discovery need an explicit model:
 omniroute setup-aider --model glm/glm-5.2
-omniroute setup-qwen  --model kmc/kimi-k2.7
 
 # Preview without writing anything:
 omniroute setup-continue --dry-run
@@ -161,7 +159,7 @@ tool expects (verified in the command source):
 | `setup-cline` (`openAiBaseUrl`) | root | No — Cline appends `/v1/chat/completions` |
 | `setup-goose` (`OPENAI_HOST`) | root | No — Goose appends the path |
 | `setup-aider` (`OPENAI_API_BASE`) | root | No — LiteLLM appends `/v1/chat/completions` |
-| `setup-kilo`, `setup-roo`, `setup-continue`, `setup-crush`, `setup-qwen`, `setup-cursor` | with `/v1` | Yes |
+| `setup-kilo`, `setup-roo`, `setup-continue`, `setup-crush`, `setup-cursor` | with `/v1` | Yes |
 | `setup-claude` (`ANTHROPIC_BASE_URL`), `launch` | root | No — Claude Code appends `/v1/messages` |
 | `setup-codex`, `launch-codex` (`model_providers.omniroute.base_url`) | with `/v1` | Yes |
 

@@ -32,7 +32,6 @@ const CODING_TOOL_KEYWORDS: Record<string, string[]> = {
   droid: ["droid", "factory-ai"],
   continue: ["continue"],
   antigravity: ["antigravity"],
-  qwen: ["qwen", "alibaba"],
   windsurf: ["windsurf"],
   devin: ["devin", "cognition"],
 };

@@ -73,7 +73,6 @@ describe("CLI_TOOL_IDS", () => {
       "continue",
       "opencode",
       "qoder",
-      "qwen",
     ];
     for (const id of expected) {
       assert.ok(CLI_TOOL_IDS.includes(id), `Missing tool: ${id}`);

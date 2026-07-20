@@ -27,7 +27,7 @@ ACP (Agent Client Protocol) is a **"CLI-as-backend" transport** for OmniRoute. I
 
 ## Supported CLI Agents
 
-ACP supports **14 built-in CLI agents** out of the box:
+ACP supports **12 built-in CLI agents** out of the box:
 
 | Agent ID      | Display Name       | Binary        | Protocol |
 | ------------- | ------------------ | ------------- | -------- |
@@ -38,7 +38,6 @@ ACP supports **14 built-in CLI agents** out of the box:
 | `aider`       | Aider              | `aider`       | stdio    |
 | `opencode`    | OpenCode           | `opencode`    | stdio    |
 | `cline`       | Cline              | `cline`       | stdio    |
-| `qwen-code`   | Qwen Code          | `qwen`        | stdio    |
 | `forge`       | ForgeCode          | `forge`       | stdio    |
 | `amazon-q`    | Amazon Q Developer | `q`           | stdio    |
 | `interpreter` | Open Interpreter   | `interpreter` | stdio    |
@@ -198,7 +197,7 @@ const session = acpManager.spawn("claude", "claude", ["--print", "--output-forma
 // Returns: AcpSession
 ```
 
-**Allowed agent IDs**: `["claude", "codex", "gemini", "qwen"]`
+**Allowed agent IDs**: `["claude", "codex", "gemini"]`
 
 #### `acpManager.sendPrompt(sessionId, prompt, timeoutMs)`
 
@@ -407,12 +406,11 @@ Each ACP session runs in its own child process. The process is killed when the s
 
 **Problem**: `acpManager.spawn()` throws `Unknown agent: <id>`
 
-**Solution**: Only 4 agents are allowed in `spawn()`:
+**Solution**: Only 3 agents are allowed in `spawn()`:
 
 - `claude`
 - `codex`
 - `gemini`
-- `qwen`
 
 Other agents must be spawned manually or via custom agent definitions.
 

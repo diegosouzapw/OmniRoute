@@ -8,7 +8,7 @@ import { cliBackupMutationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
-const VALID_TOOLS = ["claude", "codex", "droid", "openclaw", "cline", "kilo", "qwen"];
+const VALID_TOOLS = ["claude", "codex", "droid", "openclaw", "cline", "kilo"];
 
 // GET /api/cli-tools/backups?tool=claude — list backups
 export async function GET(request) {

@@ -202,11 +202,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/cli-code/components/DefaultToolCard.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 2
-    }
-  },
   "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts": {
     "no-restricted-syntax": {
       "count": 1
@@ -1455,11 +1450,6 @@
   "tests/unit/grok-web.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 25
-    }
-  },
-  "tests/unit/guide-settings-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 4
     }
   },
   "tests/unit/i18n-nest-dotted-keys.test.ts": {

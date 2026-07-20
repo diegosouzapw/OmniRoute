@@ -34,7 +34,7 @@ test("resolveVersionProbe rejects shell metacharacters in version commands", () 
 test("shouldUseShellForVersionProbe preserves Windows npm wrapper detection", () => {
   assert.equal(shouldUseShellForVersionProbe("codex", "win32"), true);
   assert.equal(
-    shouldUseShellForVersionProbe("C:\\Users\\dev\\AppData\\Roaming\\npm\\qwen.cmd", "win32"),
+    shouldUseShellForVersionProbe("C:\\Users\\dev\\AppData\\Roaming\\npm\\codex.cmd", "win32"),
     true
   );
   assert.equal(shouldUseShellForVersionProbe("C:\\Tools\\claude.exe", "win32"), false);
