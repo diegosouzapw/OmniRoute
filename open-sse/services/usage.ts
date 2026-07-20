@@ -190,7 +190,7 @@ async function getCrofUsage(apiKey: string) {
 }
 
 /**
- * Bailian (Alibaba Coding Plan) Usage
+ * Bailian (Alibaba Token Plan) Usage
  * Fetches triple-window quota (5h, weekly, monthly) and returns worst-case.
  */
 async function getBailianCodingPlanUsage(
@@ -203,7 +203,7 @@ async function getBailianCodingPlanUsage(
     const quota = await fetchBailianQuota(connectionId, connection);
 
     if (!quota) {
-      return { message: "Bailian Coding Plan connected. Unable to fetch quota." };
+      return { message: "Alibaba Token Plan connected. Unable to fetch quota." };
     }
 
     const bailianQuota = quota as BailianTripleWindowQuota;
@@ -213,17 +213,17 @@ async function getBailianCodingPlanUsage(
     const remainingPercentage = Math.round(remaining);
 
     return {
-      plan: "Alibaba Coding Plan",
+      plan: "Alibaba Token Plan",
       used,
       total,
       remaining,
       remainingPercentage,
       resetAt: bailianQuota.resetAt,
       unlimited: false,
-      displayName: "Alibaba Coding Plan",
+      displayName: "Alibaba Token Plan",
     };
   } catch (error) {
-    return { message: `Bailian Coding Plan error: ${(error as Error).message}` };
+    return { message: `Alibaba Token Plan error: ${(error as Error).message}` };
   }
 }
 
