@@ -592,6 +592,20 @@ function processMessages(
   const result = messages.map((msg) => {
     if (msg.role === "system") return { ...msg };
 
+    // H-fix1: skip tool outputs (OpenAI `role:"tool"` and Anthropic user
+    // messages whose content is exclusively `tool_result` parts). When
+    // OmniRoute is used as a chat-completion PROVIDER, the upstream LLM has no
+    // way to call `omniroute_ccr_retrieve` and expand markers — replacing tool
+    // outputs with `[CCR retrieve hash=…]` placeholders therefore breaks the agent
+    // loop. Preserve tool outputs verbatim so the LLM can keep reasoning.
+    if (msg.role === "tool") return { ...msg };
+    if (msg.role === "user" && Array.isArray(msg.content)) {
+      const parts = msg.content as Array<Record<string, unknown>>;
+      if (parts.length > 0 && parts.every((p) => p["type"] === "tool_result")) {
+        return { ...msg };
+      }
+    }
+
     if (typeof msg.content === "string") {
       const { text, replaced } = maybeCcrReplace(msg.content, minChars, principalId, rampFactor);
       if (replaced) {
