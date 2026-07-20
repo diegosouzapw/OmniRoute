@@ -24,6 +24,17 @@ function buildAuthHeader(providerConfig, token) {
 }
 
 /**
+ * Normalize rerank documents (strings or Cohere {text} objects) to plain strings.
+ * Shared by the Voyage request/response transforms so the empty-string filter and
+ * the kept-index remap are computed from the exact same view of the documents.
+ */
+function voyageDocumentTexts(documents) {
+  return (Array.isArray(documents) ? documents : []).map((doc) =>
+    typeof doc === "string" ? doc : doc?.text || ""
+  );
+}
+
+/**
  * Transform request body for provider-specific formats (e.g. NVIDIA ranking API)
  */
 /* @testonly */ export function transformRequestForProvider(providerConfig, body) {
@@ -45,6 +56,21 @@ function buildAuthHeader(providerConfig, token) {
       documents: (body.documents || []).map((doc) =>
         typeof doc === "string" ? doc : doc.text || ""
       ),
+    };
+  }
+  // Voyage rerank API (#7809): hard-rejects `top_n` (wants `top_k`) and empty-string
+  // documents ("Input cannot contain empty strings"), so both are translated/filtered
+  // here — transformResponseFromProvider recomputes the same kept-index map to point
+  // results back at the caller's original document positions. `return_documents` is
+  // forced off upstream: Voyage echoes documents as plain strings (not Cohere's
+  // {text}), so document text is synthesized locally from the caller's originals.
+  if (providerConfig.format === "voyage") {
+    return {
+      model: body.model,
+      query: body.query,
+      documents: voyageDocumentTexts(body.documents).filter((text) => text !== ""),
+      top_k: body.top_n,
+      return_documents: false,
     };
   }
   // Default: Cohere-compatible format (used by Together, Fireworks, Cohere, SiliconFlow)
@@ -88,6 +114,33 @@ function buildAuthHeader(providerConfig, token) {
     return {
       id: `rerank-${Date.now()}`,
       results: topN ? scored.slice(0, topN) : scored,
+      meta: {
+        api_version: { version: "2" },
+        billed_units: { search_units: 1 },
+      },
+    };
+  }
+  // Voyage returns {object:"list", data:[{index, relevance_score}], model, usage}
+  // (#7809). Indices are positional over the FILTERED (empty-doc-free) list the
+  // request transform sent, so remap them back to the caller's original document
+  // positions and synthesize Cohere's {document:{text}} from the originals.
+  if (providerConfig.format === "voyage") {
+    const texts = voyageDocumentTexts(options.documents);
+    const keptIndices = texts
+      .map((text, index) => (text !== "" ? index : -1))
+      .filter((index) => index !== -1);
+    const returnDocuments = options.return_documents !== false;
+    const results = (Array.isArray(data.data) ? data.data : []).map((r) => {
+      const originalIndex = keptIndices[r.index] ?? r.index;
+      return {
+        index: originalIndex,
+        relevance_score: typeof r.relevance_score === "number" ? r.relevance_score : 0,
+        ...(returnDocuments ? { document: { text: texts[originalIndex] || "" } } : {}),
+      };
+    });
+    return {
+      id: `rerank-${Date.now()}`,
+      results,
       meta: {
         api_version: { version: "2" },
         billed_units: { search_units: 1 },

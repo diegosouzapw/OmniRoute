@@ -50,11 +50,18 @@ export const RERANK_PROVIDERS = {
     ],
   },
 
+  // Voyage rerank is NOT Cohere-shaped: it hard-rejects `top_n` with 400
+  // ("Argument 'top_n' is not supported by our API" — wants `top_k`), rejects
+  // empty-string documents, and responds {object,data:[{index,relevance_score}],
+  // model,usage} instead of {results:[…]}. The `voyage` format adapter in
+  // open-sse/handlers/rerank.ts translates both directions (#7809, confirmed
+  // live against the real API 2026-07-19).
   "voyage-ai": {
     id: "voyage-ai",
     baseUrl: "https://api.voyageai.com/v1/rerank",
     authType: "apikey",
     authHeader: "bearer",
+    format: "voyage",
     models: [
       { id: "rerank-2.5", name: "Rerank 2.5" },
       { id: "rerank-2.5-lite", name: "Rerank 2.5 Lite" },
