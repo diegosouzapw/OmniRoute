@@ -110,7 +110,7 @@ test("getCachedPricing caches results and refreshes after invalidation", async (
 });
 
 test("getCachedProviderConnections caches only the unfiltered query", async () => {
-  const readCache = await importFresh("src/lib/db/readCache.ts");
+  const readCache = await import("../../src/lib/db/readCache.ts");
   const db = core.getDbInstance();
   const now = new Date().toISOString();
 
@@ -164,6 +164,45 @@ test("cached LKGP values refresh only after the specific key is invalidated", as
   assert.deepEqual(await readCache.getCachedLKGP(comboName, modelId), { provider: "gemini" });
 });
 
+test("staleness regression: getProviderConnections returns fresh data after connection deleted", async () => {
+  const readCache = await importFresh("src/lib/db/readCache.ts");
+
+  const conn = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Staleness Test",
+    apiKey: "sk-stale-test",
+  });
+
+  const before = await providersDb.getProviderConnections();
+  assert.ok(before.length > 0);
+  assert.ok(before.some((c) => c.name === "Staleness Test"));
+
+  await providersDb.deleteProviderConnection(conn.id);
+
+  const after = await providersDb.getProviderConnections();
+  assert.equal(after.filter((c) => c.name === "Staleness Test").length, 0);
+});
+
+test("staleness regression: getProviderConnections returns fresh data after deleteProviderConnectionsByProvider", async () => {
+  const readCache = await importFresh("src/lib/db/readCache.ts");
+
+  await providersDb.createProviderConnection({
+    provider: "test-stale-batch",
+    authType: "apikey",
+    name: "Batch Stale Conn",
+    apiKey: "sk-batch-stale",
+  });
+
+  const before = await providersDb.getProviderConnections();
+  assert.ok(before.some((c) => c.provider === "test-stale-batch"));
+
+  await providersDb.deleteProviderConnectionsByProvider("test-stale-batch");
+
+  const after = await providersDb.getProviderConnections();
+  assert.equal(after.filter((c) => c.provider === "test-stale-batch").length, 0);
+});
+
 test("getCachedProviderConnectionById caches result and invalidates on connections write", async () => {
   const readCache = await importFresh("src/lib/db/readCache.ts");
   const db = core.getDbInstance();
@@ -171,8 +210,8 @@ test("getCachedProviderConnectionById caches result and invalidates on connectio
   await providersDb.createProviderConnection({
     provider: "anthropic",
     authType: "apikey",
-    name: "Cached",
-    apiKey: "sk-anthropic-cached",
+    name: "Cached Conn",
+    apiKey: "sk-cached-conn",
   });
 
   const allConns = await providersDb.getProviderConnections();
@@ -180,12 +219,12 @@ test("getCachedProviderConnectionById caches result and invalidates on connectio
 
   const firstRead = await readCache.getCachedProviderConnectionById(id);
   assert.ok(firstRead);
-  assert.equal(firstRead.name, "Cached");
+  assert.equal(firstRead.name, "Cached Conn");
 
   db.prepare("UPDATE provider_connections SET name = ? WHERE id = ?").run("Stale", id);
 
   const cachedRead = await readCache.getCachedProviderConnectionById(id);
-  assert.equal(cachedRead.name, "Cached");
+  assert.equal(cachedRead.name, "Cached Conn");
 
   readCache.invalidateDbCache("connections");
 
@@ -201,7 +240,7 @@ test("getCachedProviderNodes caches results and invalidates on nodes write", asy
   const now = new Date().toISOString();
 
   await nodesDb.createProviderNode({
-    id: "node-cached-1",
+    id: "node-cache-test",
     type: "openai",
     name: "Cached Node",
     baseUrl: "https://cached.example.com",
@@ -210,22 +249,22 @@ test("getCachedProviderNodes caches results and invalidates on nodes write", asy
   });
 
   const firstRead = await readCache.getCachedProviderNodes();
-  const matching = firstRead.filter((n) => n.id === "node-cached-1");
+  const matching = firstRead.filter((n) => n.id === "node-cache-test");
   assert.equal(matching.length, 1);
   assert.equal(matching[0].name, "Cached Node");
 
   db.prepare(
     "INSERT INTO provider_nodes (id, type, name, base_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run("node-cached-direct", "openai", "Direct Insert", "https://direct.example.com", now, now);
+  ).run("node-direct-test", "openai", "Direct Insert Node", "https://direct.example.com", now, now);
 
   const cachedNodes = await readCache.getCachedProviderNodes();
-  const matchingCached = cachedNodes.filter((n) => n.id === "node-cached-direct");
+  const matchingCached = cachedNodes.filter((n) => n.id === "node-direct-test");
   assert.equal(matchingCached.length, 0);
 
   readCache.invalidateDbCache("nodes");
 
   const freshNodes = await readCache.getCachedProviderNodes();
-  const matchingFresh = freshNodes.filter((n) => n.id === "node-cached-direct");
+  const matchingFresh = freshNodes.filter((n) => n.id === "node-direct-test");
   assert.equal(matchingFresh.length, 1);
-  assert.equal(matchingFresh[0].name, "Direct Insert");
+  assert.equal(matchingFresh[0].name, "Direct Insert Node");
 });

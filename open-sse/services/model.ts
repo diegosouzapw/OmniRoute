@@ -426,6 +426,34 @@ export function parseModel(modelStr: string | null | undefined): ParsedModel {
 }
 
 /**
+ * Generic `-{effort}` suffix split for a synced model (#7694), sibling to Codex's own
+ * `splitCodexReasoningSuffix` (`open-sse/executors/codex.ts`) but not tied to any single
+ * provider. `knownEfforts` must be the CANDIDATE base model's own declared
+ * `supportedThinkingEfforts` — the caller is responsible for only invoking this once it
+ * already has a specific synced-model candidate in hand (e.g. by trying each synced model
+ * for the provider), so a suffix is only ever stripped when it is an EXACT, known tier for
+ * THAT model — never a blind string match. This avoids colliding with a model id that
+ * legitimately ends in an effort-like token, and keeps parsing pure/synchronous (no DB
+ * access here — the DB-backed candidate lookup lives in `src/sse/services/model.ts`).
+ */
+export function splitSyncedEffortSuffix(
+  modelId: string,
+  knownEfforts: readonly string[] | null | undefined
+): { baseModel: string; effort: string | null } {
+  if (typeof modelId !== "string" || !modelId || !Array.isArray(knownEfforts)) {
+    return { baseModel: modelId, effort: null };
+  }
+  for (const effort of knownEfforts) {
+    if (typeof effort !== "string" || !effort) continue;
+    const suffix = `-${effort}`;
+    if (modelId.length > suffix.length && modelId.endsWith(suffix)) {
+      return { baseModel: modelId.slice(0, -suffix.length), effort };
+    }
+  }
+  return { baseModel: modelId, effort: null };
+}
+
+/**
  * Resolve model alias from aliases object
  * Format: { "alias": "provider/model" }
  */

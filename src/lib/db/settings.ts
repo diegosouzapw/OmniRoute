@@ -141,6 +141,7 @@ export async function getSettings() {
     // open-sse/handlers/chatCore/claudeClassifierCompat.ts for the detector + builder.
     claudeClassifierCompat: "off",
     autoRefreshProviderQuota: false,
+    credentialRedactionEnabled: false,
     autoRefreshProviderQuotaInterval: 180,
     comboConfigMode: "guided",
     comboAutoPromoteEnabled: false,

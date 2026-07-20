@@ -10,11 +10,13 @@ import {
   decryptConnectionFields,
   migrateLegacyEncryptedString,
 } from "./encryption";
-import { invalidateDbCache } from "./readCache";
+import { createLazyRowProxy } from "./providers/lazyConnectionView";
+import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache";
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
+import { resolveUsageAccountIdentity } from "@/lib/usage/accountIdentity";
 import {
   withNullableMaxConcurrent,
   withNullableQuotaWindowThresholds,
@@ -38,6 +40,7 @@ interface StatementLike<TRow = unknown> {
 
 interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
+  transaction: <T>(fn: () => T) => () => T;
 }
 
 // Real column set for provider_connections (must match the CREATE TABLE in
@@ -94,7 +97,36 @@ const PROVIDER_CONNECTIONS_COLUMNS = new Set([
 
 // ──────────────── Provider Connections ────────────────
 
+/**
+ * Returns provider connections as lazy-decrypting proxies: encrypted
+ * credential fields (apiKey, accessToken, refreshToken, idToken) are only
+ * decrypted on first property access, not eagerly for every row. Column-
+ * projected reads (`columns` passed) bypass the raw-row cache — the cache
+ * key doesn't account for projection, so a projected read could otherwise
+ * poison the cache for a subsequent full-row read of the same filter.
+ */
 export async function getProviderConnections(filter: JsonRecord = {}, columns?: string[]) {
+  const raw = columns?.length
+    ? await getRawProviderConnections(filter, columns)
+    : await getCachedRawProviderConnections(filter);
+  return raw.map(createLazyRowProxy);
+}
+
+/**
+ * Same as getProviderConnections but WITHOUT decryptConnectionFields.
+ * Returns raw rows with encrypted credential fields intact — callers
+ * that only need metadata (id, priority, backoffLevel, etc.) avoid
+ * the O(n) AES-GCM decrypt cost on every cache fill.
+ *
+ * Used by the lazy-decryption path in auth selection (auth.ts) where
+ * 10k+ connections are filtered in JS but only 1 needs its apiKey
+ * decrypted.
+ *
+ * @param filter.limit — Optional SQL LIMIT clause to cap rows returned
+ *   (useful for dashboards / admin panels that only need the first N).
+ *   Not a column filter — extracted before building WHERE conditions.
+ */
+export async function getRawProviderConnections(filter: JsonRecord = {}, columns?: string[]) {
   const db = getDbInstance() as unknown as DbLike;
   let selectCols = "*";
   if (columns?.length) {
@@ -125,25 +157,29 @@ export async function getProviderConnections(filter: JsonRecord = {}, columns?: 
     params.authType = filter.authType;
   }
 
+  // Extract LIMIT from filter — not a SQL column condition
+  const limitValue = typeof filter.limit === "number" ? filter.limit : undefined;
+
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");
   }
   sql += " ORDER BY priority ASC, updated_at DESC";
+  if (limitValue !== undefined) {
+    sql += " LIMIT " + limitValue;
+  }
 
   const rows = db.prepare(sql).all(params);
   return rows.map((r) => {
     const camelRow = rowToCamel(r);
-    return decryptConnectionFields(
-      withNullableRateLimitOverrides(
-        withNullableQuotaWindowThresholds(
-          withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
-          camelRow
-        ),
+    return withNullableRateLimitOverrides(
+      withNullableQuotaWindowThresholds(
+        withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
         camelRow
-      )
+      ),
+      camelRow
     );
   });
-}
+ }
 
 export async function getProviderConnectionById(id: string) {
   const db = getDbInstance() as unknown as DbLike;
@@ -210,6 +246,7 @@ export async function createProviderConnection(data: JsonRecord) {
   // For Codex/OpenAI, a single email can have multiple workspaces (Team + Personal)
   // We need to check for workspace uniqueness, not just email
   let existing: JsonRecord | null = null;
+  let legacyCodexWorkspaceMatch = false;
 
   if (data.authType === "oauth" && data.email) {
     // For Codex, check for existing connection with same workspace
@@ -235,6 +272,7 @@ export async function createProviderConnection(data: JsonRecord) {
               "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ? AND (email IS NULL OR email = '')"
             )
             .get(data.provider, workspaceId) as JsonRecord | undefined) || null;
+        legacyCodexWorkspaceMatch = existing !== null;
       }
       // For Codex with workspaceId, don't fall back to email-only check
       // This allows creating new connections for different workspaces
@@ -337,7 +375,34 @@ export async function createProviderConnection(data: JsonRecord) {
       toStringOrNull(merged.provider),
       merged.providerSpecificData
     );
-    _updateConnectionRow(db, existingId, merged);
+    db.transaction(() => {
+      if (legacyCodexWorkspaceMatch) {
+        const oldIdentity = resolveUsageAccountIdentity(existing);
+        const newIdentity = resolveUsageAccountIdentity(merged);
+        db.prepare(
+          `UPDATE usage_history
+           SET account_key = @newAccountKey,
+               account_label = CASE
+                 WHEN @newLabelPriority > COALESCE(account_label_priority, 0)
+                 THEN @newLabel
+                 ELSE account_label
+               END,
+               account_label_priority = MAX(
+                 COALESCE(account_label_priority, 0),
+                 @newLabelPriority
+               )
+           WHERE connection_id = @connectionId
+             AND account_key = @oldAccountKey`
+        ).run({
+          connectionId: existingId,
+          oldAccountKey: oldIdentity.accountKey,
+          newAccountKey: newIdentity.accountKey,
+          newLabel: newIdentity.accountLabel,
+          newLabelPriority: newIdentity.accountLabelPriority,
+        });
+      }
+      _updateConnectionRow(db, existingId, merged);
+    })();
     backupDbFile("pre-write");
     return withNullableRateLimitOverrides(
       withNullableQuotaWindowThresholds(
@@ -744,6 +809,7 @@ export async function touchConnectionLastUsed(
   id: string,
   consecutiveUseCount: number
 ): Promise<void> {
+  if (!id) return;
   const db = getDbInstance() as unknown as DbLike;
   const now = new Date().toISOString();
   db.prepare(
@@ -918,6 +984,42 @@ export function autoMigrateLegacyEncryptedConnections(): number {
   return migratedCount;
 }
 
+export function getGheCopilotHosts(): string[] {
+  const hosts = new Set<string>();
+  try {
+    const db = getDbInstance();
+    const rows = db
+      .prepare(
+        "SELECT provider_specific_data FROM provider_connections WHERE provider = 'ghe-copilot' AND is_active = 1"
+      )
+      .all() as { provider_specific_data: string | null }[];
+    for (const row of rows) {
+      if (!row.provider_specific_data) continue;
+      try {
+        const psd = JSON.parse(row.provider_specific_data);
+        const urls = [psd.gheUrl, psd.copilotApiUrl, psd.copilotProxyUrl];
+        for (const urlStr of urls) {
+          if (typeof urlStr === "string" && urlStr.trim()) {
+            try {
+              const url = new URL(urlStr);
+              if (url.hostname) {
+                hosts.add(url.hostname.toLowerCase());
+              }
+            } catch {
+              // Ignore invalid URLs
+            }
+          }
+        }
+      } catch {
+        // Ignore JSON parse errors
+      }
+    }
+  } catch (err) {
+    console.error("[DB] getGheCopilotHosts: failed to read GHE Copilot connections", err);
+  }
+  return [...hosts];
+}
+
 // ──────────────── Re-exports from leaf modules ────────────────
 
 export {
@@ -935,4 +1037,6 @@ export {
   getEffectiveQuotaUsage,
   clearStaleCrashCooldowns,
   formatResetCountdown,
+  isConnectionRateLimited,
+  getRateLimitedConnections,
 } from "./providers/rateLimit";

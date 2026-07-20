@@ -30,6 +30,8 @@ export {
 
   // T05: Rate-limit DB persistence (survives token refresh)
   setConnectionRateLimitUntil,
+  isConnectionRateLimited,
+  getRateLimitedConnections,
   clearStaleCrashCooldowns,
 
   // T13: Stale quota display fix (zero out usage after window resets)
@@ -235,6 +237,7 @@ export {
   getCachedSettings,
   getCachedPricing,
   getCachedProviderConnections,
+  getCachedRawProviderConnections,
   getCachedProviderConnectionById,
   getCachedProviderNodes,
   getCachedLKGP,

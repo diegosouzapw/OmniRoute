@@ -126,4 +126,19 @@ export const OAUTH_TEST_CONFIG = {
     checkExpiry: true,
     refreshable: true,
   },
+  "ghe-copilot": {
+    // GHE Copilot: probe the enterprise user-info endpoint derived from gheUrl
+    // (stored in providerSpecificData).
+    getUrl: (connection: any) => {
+      const gheUrl =
+        connection?.providerSpecificData?.gheUrl || connection?.gheUrl || "";
+      const base = gheUrl.replace(/\/+$/, "");
+      return `${base}/api/v3/user`;
+    },
+    method: "GET",
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    extraHeaders: { "User-Agent": "OmniRoute", Accept: "application/vnd.github+json" },
+    refreshable: true,
+  },
 };
