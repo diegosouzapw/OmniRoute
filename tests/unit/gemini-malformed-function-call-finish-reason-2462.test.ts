@@ -188,10 +188,16 @@ test("Gemini UNEXPECTED_TOOL_CALL also synthesizes a tool_calls entry", () => {
   assert.equal(finalChunk?.choices?.[0]?.finish_reason, "tool_calls");
 });
 
-test("a REAL tool call followed by MALFORMED_FUNCTION_CALL is not overwritten by a synthetic one", () => {
-  // If the model already completed a valid tool call earlier in the same turn and
-  // THEN aborts (e.g. attempting a second, malformed call), the real tool call must
-  // win — no synthetic entry should be added on top of it.
+// Follow-up live incident (log id 1784589106014-2a42f8): Gemini can emit a REAL,
+// valid functionCall AND finish the SAME candidate with MALFORMED_FUNCTION_CALL —
+// the model attempted multiple tool calls in one turn (here: a real "openclaw" call
+// plus a malformed "exec"+"cron" multi-call attempt), one parsed cleanly and the
+// other didn't. An earlier version of this fix skipped synthesis whenever a real
+// tool call already existed, on the assumption that meant a LATER, separate retry —
+// but that's indistinguishable from this same-turn case, and skipping silently
+// discarded the "exec"/"cron" failure entirely: the client saw "openclaw" succeed
+// and never learned the other calls were attempted and rejected.
+test("a REAL tool call alongside MALFORMED_FUNCTION_CALL in the same turn keeps BOTH — the failure is never silently dropped", () => {
   const state: Record<string, unknown> = {
     functionIndex: 0,
     toolCalls: new Map(),
@@ -218,16 +224,30 @@ test("a REAL tool call followed by MALFORMED_FUNCTION_CALL is not overwritten by
       responseId: "resp-real-then-malformed",
       modelVersion: "gemini-2.5-pro",
       candidates: [
-        { content: { parts: [{ text: "" }] }, finishReason: "MALFORMED_FUNCTION_CALL", index: 0 },
+        {
+          content: { parts: [{ text: "" }] },
+          finishReason: "MALFORMED_FUNCTION_CALL",
+          finishMessage: "Malformed function call: call:default_api:exec{command: df -h}",
+          index: 0,
+        },
       ],
     },
     state
   ) as OpenAIToolCallChunk[];
 
-  // Only the finish_reason chunk — no second tool_calls delta synthesized.
-  assert.equal(finalEvents.length, 1);
-  assert.equal(finalEvents[0].choices[0].finish_reason, "tool_calls");
-  assert.equal((state.toolCalls as Map<number, unknown>).size, 1, "still just the real tool call");
+  const synthesizedChunk = finalEvents.find((e) => e.choices?.[0]?.delta?.tool_calls);
+  assert.ok(synthesizedChunk, "expected a second, synthesized tool_calls delta");
+  const synthesizedCall = synthesizedChunk!.choices[0].delta.tool_calls![0];
+  assert.equal(synthesizedCall.function.name, "malformed_tool_call");
+  assert.match(JSON.parse(synthesizedCall.function.arguments).message, /exec/);
+
+  const finalChunk = finalEvents.at(-1)!;
+  assert.equal(finalChunk.choices[0].finish_reason, "tool_calls");
+  assert.equal(
+    (state.toolCalls as Map<number, unknown>).size,
+    2,
+    "both the real read_file call AND the synthesized malformed-call entry must be present"
+  );
 });
 
 test("Gemini clean STOP with no tool calls is unaffected (no regression)", () => {

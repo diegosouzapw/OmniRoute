@@ -35,9 +35,17 @@ const { geminiToOpenAIResponse } =
 const { createResponsesApiTransformStream } =
   await import("../../open-sse/transformer/responsesTransformer.ts");
 
-const FIXTURE_PATH = path.resolve(
+const FIXTURES_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../fixtures/translation/gemini-malformed-function-call-stream.json"
+  "../fixtures/translation"
+);
+const FIXTURE_PATH = path.join(FIXTURES_DIR, "gemini-malformed-function-call-stream.json");
+// Follow-up live incident (log id 1784589106014-2a42f8): a REAL functionCall and a
+// MALFORMED_FUNCTION_CALL finish arriving in the SAME turn — see the fixture's own
+// "description" field for the full incident writeup.
+const PARALLEL_FIXTURE_PATH = path.join(
+  FIXTURES_DIR,
+  "gemini-malformed-function-call-parallel-real-call-stream.json"
 );
 
 type GeminiChunk = Record<string, unknown>;
@@ -67,14 +75,14 @@ function asResponsesEventData(data: unknown): ResponsesEventData | null {
   return data && typeof data === "object" ? (data as ResponsesEventData) : null;
 }
 
-function loadFixtureChunks(): GeminiChunk[] {
-  const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, "utf8"));
+function loadFixtureChunks(fixturePath: string): GeminiChunk[] {
+  const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
   assert.ok(Array.isArray(fixture.chunks) && fixture.chunks.length > 0, "fixture must have chunks");
   return fixture.chunks;
 }
 
 /** Real Gemini -> OpenAI translation, exactly as the live streaming pipeline runs it. */
-function translateFixtureToOpenAIChunks(): OpenAIChunk[] {
+function translateFixtureToOpenAIChunks(fixturePath: string = FIXTURE_PATH): OpenAIChunk[] {
   const state: Record<string, unknown> = {
     functionIndex: 0,
     toolCalls: new Map(),
@@ -82,7 +90,7 @@ function translateFixtureToOpenAIChunks(): OpenAIChunk[] {
     model: "gemini-3.1-flash-lite",
   };
   const openaiChunks: OpenAIChunk[] = [];
-  for (const chunk of loadFixtureChunks()) {
+  for (const chunk of loadFixtureChunks(fixturePath)) {
     const results = geminiToOpenAIResponse(chunk, state);
     if (results) openaiChunks.push(...(results as OpenAIChunk[]));
   }
@@ -220,4 +228,55 @@ test("both surfaces agree: exactly one synthesized tool call, sourced from the s
       asResponsesEventData(e.data)?.item?.type === "function_call"
   );
   assert.equal(functionCallItems.length, 1, "expected exactly one function_call output item");
+});
+
+// ── Second fixture: a REAL tool call arriving in the SAME turn as a malformed one ──
+//
+// See tests/fixtures/translation/gemini-malformed-function-call-parallel-real-call-stream.json
+// for the full incident writeup (log id 1784589106014-2a42f8). This is the case the
+// first version of the fix got wrong: it skipped synthesizing anything whenever a real
+// tool call already existed, silently discarding the malformed attempt's information.
+// Both the real call and the synthesized failure must reach the client.
+
+test("Chat Completions: a real tool call alongside a malformed one keeps BOTH — the failure is not silently dropped", () => {
+  const openaiChunks = translateFixtureToOpenAIChunks(PARALLEL_FIXTURE_PATH);
+
+  const toolCallChunks = openaiChunks.filter((c) => c.choices?.[0]?.delta?.tool_calls);
+  assert.equal(toolCallChunks.length, 2, "expected the real call AND the synthesized failure");
+
+  const realCall = toolCallChunks[0].choices[0].delta.tool_calls![0];
+  assert.equal(realCall.function.name, "check_status");
+
+  const syntheticCall = toolCallChunks[1].choices[0].delta.tool_calls![0];
+  assert.equal(syntheticCall.function.name, "malformed_tool_call");
+  const parsedArgs = JSON.parse(syntheticCall.function.arguments);
+  assert.equal(parsedArgs.error, "MALFORMED_FUNCTION_CALL");
+  assert.match(parsedArgs.message, /exec/);
+
+  const finalChunk = openaiChunks.at(-1)!;
+  assert.equal(finalChunk.choices[0].finish_reason, "tool_calls");
+});
+
+test("Responses API: a real tool call alongside a malformed one produces TWO function_call output items", async () => {
+  const openaiChunks = translateFixtureToOpenAIChunks(PARALLEL_FIXTURE_PATH);
+  const events = await transformToResponsesEvents(openaiChunks);
+
+  const functionCallItems = events
+    .filter(
+      (e) =>
+        e.event === "response.output_item.done" &&
+        asResponsesEventData(e.data)?.item?.type === "function_call"
+    )
+    .map((e) => asResponsesEventData(e.data)!.item!);
+
+  assert.equal(
+    functionCallItems.length,
+    2,
+    "expected both the real and synthesized function_call items"
+  );
+  assert.ok(functionCallItems.some((item) => item.name === "check_status"));
+  assert.ok(functionCallItems.some((item) => item.name === "malformed_tool_call"));
+
+  const completed = events.find((e) => e.event === "response.completed");
+  assert.ok(completed, "expected a normal response.completed terminal event, not an error");
 });

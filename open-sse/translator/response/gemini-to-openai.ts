@@ -739,13 +739,23 @@ export function geminiToOpenAIResponse(chunk, state) {
     // Synthesize a tool_calls entry instead so finish_reason becomes the standard
     // "tool_calls" — that routes the failure into the ordinary "tool call arguments
     // didn't parse" path every OpenAI-compatible agent loop already handles, instead
-    // of an unrecognized enum value nothing is watching for. Skip synthesis if a real
-    // tool call was already captured this turn (state.toolCalls.size > 0) — the model
-    // can legitimately abort a LATER attempt after an earlier one already succeeded;
-    // that real tool call must win, not get a synthetic one piled on top of it (still
-    // handled below: finish_reason becomes "tool_calls" either way).
+    // of an unrecognized enum value nothing is watching for.
+    //
+    // Follow-up live incident (log id 1784589106014-2a42f8): Gemini can emit a REAL,
+    // valid functionCall (e.g. "openclaw") AND still finish the SAME candidate with
+    // MALFORMED_FUNCTION_CALL — the model attempted multiple tool calls in one turn,
+    // one parsed cleanly and another (e.g. "exec"+"cron") did not. The first version of
+    // this fix skipped synthesis whenever state.toolCalls.size > 0, on the assumption
+    // that a real call already existing meant the model was retrying a LATER, separate
+    // attempt after an earlier one already succeeded — but that's indistinguishable,
+    // from here, from a real call and a malformed one arriving in the very same turn.
+    // Skipping silently discarded the malformed attempt's failure entirely: the client
+    // saw "openclaw" succeed and never learned "exec"/"cron" were attempted and
+    // rejected. Always synthesize instead — multiple tool_calls in one response is
+    // normal, well-supported OpenAI behavior (parallel tool calls), so this adds the
+    // failure as an additional entry rather than replacing or hiding the real one.
     const isMalformedToolCall = isMalformedToolCallFinishReason(candidate.finishReason);
-    if (isMalformedToolCall && state.toolCalls.size === 0) {
+    if (isMalformedToolCall) {
       emitFunctionCallPart(
         {
           functionCall: {
@@ -772,11 +782,10 @@ export function geminiToOpenAIResponse(chunk, state) {
     // (9router#2462 sub-bug #2).
     let finishReason = normalizeOpenAICompatibleFinishReasonString(candidate.finishReason);
     if ((finishReason === "stop" || isMalformedToolCall) && state.toolCalls.size > 0) {
-      // Covers three cases: (1) a clean stop with tool calls already accumulated
-      // (pre-existing behavior, unchanged), (2) this turn's malformed call was just
-      // synthesized above (size went 0→1), and (3) a REAL tool call already existed
-      // and THIS abort is a later, malformed attempt — the real call still wins the
-      // finish_reason, not the raw "malformed_function_call" string.
+      // Covers (1) a clean stop with tool calls already accumulated (pre-existing
+      // behavior, unchanged) and (2) any malformed-tool-call abort — always true here
+      // since the synthesis above guarantees state.toolCalls.size > 0 whenever
+      // isMalformedToolCall is true.
       finishReason = "tool_calls";
     }
 
