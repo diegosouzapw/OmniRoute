@@ -116,13 +116,13 @@ export const antigravity = {
       console.log("Failed to load code assist:", e);
     }
 
+    // Fire-and-forget onboarding — it must NOT block the OAuth login response.
+    // The previous inline `await` loop (up to 10×5s, each fetch un-timed) made the
+    // `/exchange` request hang forever when an upstream was slow/unreachable, so the
+    // dashboard "just spun". Onboarding is also performed lazily at request time by
+    // antigravityProjectBootstrap.ts, so backgrounding it here is safe. Matches the
+    // 9router web flow. (#5180-followup / antigravity login hang)
     if (projectId) {
-      // Fire-and-forget onboarding — must NOT block the OAuth login response.
-      // The previous inline `await` loop (up to 10×5s, each fetch un-timed) made the
-      // `/exchange` request hang forever when an upstream was slow/unreachable, so the
-      // dashboard "just spun". Onboarding is also performed lazily at request time by
-      // antigravityProjectBootstrap.ts, so backgrounding it here is safe. Matches the
-      // 9router web flow. (#5180-followup / antigravity login hang)
       const onboardInBackground = async () => {
         for (let i = 0; i < 10; i++) {
           try {
@@ -140,33 +140,6 @@ export const antigravity = {
         }
       };
       void onboardInBackground().catch(() => {});
-    } else if (ANTIGRAVITY_CONFIG.onboardUserEndpoints.length > 0) {
-      // No projectId — the account has no pre-existing Cloud Code project.
-      // Attempt onboarding inline (bounded by timeout) so the project gets created
-      // and discovered within the same login flow. If onboarding succeeds, retry
-      // loadCodeAssist to pick up the newly created projectId.
-      // (#5193 regression of #2541 — catch-22: onboarding was never attempted)
-      try {
-        await fetchFirstOk(
-          ANTIGRAVITY_CONFIG.onboardUserEndpoints,
-          { method: "POST", headers, body: JSON.stringify({ tier_id: tierId, metadata }) },
-          POSTEXCHANGE_TIMEOUT_MS
-        );
-        // Onboarding succeeded (or at least the endpoint responded ok). Retry
-        // loadCodeAssist to discover the newly created project.
-        const retryRes = await fetchFirstOk(
-          ANTIGRAVITY_CONFIG.loadCodeAssistEndpoints,
-          { method: "POST", headers, body: JSON.stringify({ metadata }) },
-          POSTEXCHANGE_TIMEOUT_MS
-        );
-        const retryData = await retryRes.json();
-        projectId =
-          retryData.cloudaicompanionProject?.id || retryData.cloudaicompanionProject || "";
-      } catch {
-        // Onboarding or retry failed/timed out — graceful degradation.
-        // projectId stays empty. Lazy retry at request-time by
-        // antigravityProjectBootstrap.ts will handle it later.
-      }
     }
 
     return { userInfo, projectId, tierId };
