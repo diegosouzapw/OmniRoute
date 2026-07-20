@@ -16,7 +16,8 @@ const {
   getMiddlewareRouteMatcher,
 } = require("next/dist/shared/lib/router/utils/middleware-route-matcher.js");
 
-test("/healthz follows the native server lifecycle", async () => {
+test("/healthz follows the native server lifecycle without static caching", async () => {
+  assert.equal(routeModule.dynamic, "force-dynamic");
   assert.equal(getServerLifecyclePhase(), "starting");
 
   const starting = await routeModule.GET(new Request("http://localhost/healthz"));

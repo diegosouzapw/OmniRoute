@@ -1,5 +1,7 @@
 import { getServerLifecyclePhase } from "@/lib/serverLifecycle";
 
+export const dynamic = "force-dynamic";
+
 const HEALTH_BODIES = {
   ready: "ok\n",
   starting: "starting\n",
