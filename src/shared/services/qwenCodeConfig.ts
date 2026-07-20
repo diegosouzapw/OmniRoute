@@ -205,18 +205,18 @@ export const removeQwenCodeSettings = (existing: unknown): JsonRecord => {
     delete model.baseUrl;
     if (Object.keys(model).length === 0) delete next.model;
     else next.model = model;
+  }
 
-    const security = cloneRecord(next.security);
-    const auth = cloneRecord(security.auth);
-    const remainingOpenai = isRecord(next.modelProviders) ? next.modelProviders.openai : undefined;
-    const authBaseUrl = normalizeQwenCodeBaseUrl(auth.baseUrl);
-    const authMatchesRemoved = removed.some(
-      (entry) => normalizeQwenCodeBaseUrl(entry.baseUrl) === authBaseUrl
-    );
-    if (authMatchesRemoved) {
-      delete auth.apiKey;
-      delete auth.baseUrl;
-    }
+  const security = cloneRecord(next.security);
+  const auth = cloneRecord(security.auth);
+  const remainingOpenai = isRecord(next.modelProviders) ? next.modelProviders.openai : undefined;
+  const authBaseUrl = normalizeQwenCodeBaseUrl(auth.baseUrl);
+  const authMatchesRemoved = removed.some(
+    (entry) => normalizeQwenCodeBaseUrl(entry.baseUrl) === authBaseUrl
+  );
+  if (authMatchesRemoved) {
+    delete auth.apiKey;
+    delete auth.baseUrl;
     if (auth.selectedType === "openai" && !Array.isArray(remainingOpenai)) {
       delete auth.selectedType;
     }

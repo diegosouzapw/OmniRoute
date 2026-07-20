@@ -301,3 +301,33 @@ test("reset also removes matching deprecated security.auth credentials", () => {
   assert.equal(reset.model, undefined);
   assert.equal(JSON.stringify(reset).includes("sk-old-secret"), false);
 });
+
+test("reset removes matching deprecated auth when the selected model is unrelated", () => {
+  const reset = removeQwenCodeSettings({
+    security: {
+      auth: {
+        selectedType: "openai",
+        apiKey: "sk-old-secret",
+        baseUrl: "http://omni-host/v1",
+      },
+    },
+    model: { name: "some-other-model", baseUrl: "https://other.example/v1" },
+    modelProviders: {
+      openai: [
+        {
+          id: "managed",
+          name: "managed (OmniRoute)",
+          envKey: "OMNIROUTE_API_KEY",
+          baseUrl: "http://omni-host/v1",
+        },
+      ],
+    },
+  });
+
+  assert.equal(reset.security, undefined);
+  assert.deepEqual(reset.model, {
+    name: "some-other-model",
+    baseUrl: "https://other.example/v1",
+  });
+  assert.equal(JSON.stringify(reset).includes("sk-old-secret"), false);
+});
