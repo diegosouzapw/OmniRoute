@@ -927,6 +927,8 @@ export async function handleComboChat({
       handleSingleModel: handleSingleModelWithTimeout,
       log,
       comboName: combo.name,
+      maxRetries: config.maxRetries ?? 0,
+      retryDelayMs: resolveDelayMs(config.retryDelayMs, 1000),
     });
   }
 

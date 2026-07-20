@@ -448,8 +448,8 @@ export function fixInvalidId(parsed: Record<string, unknown>): boolean {
 // Remove null perf_metrics from usage (common across formats)
 function cleanPerfMetrics(data: unknown): unknown {
   if (isRecord(data) && isRecord(data.usage) && data.usage.perf_metrics === null) {
-    const { perf_metrics, ...usageWithoutPerf } = data.usage;
-    return { ...data, usage: usageWithoutPerf };
+    // Mutate in-place to avoid spread copy per chunk — data is ephemeral, used only for serialization.
+    delete data.usage.perf_metrics;
   }
   return data;
 }
@@ -473,4 +473,31 @@ export function formatSSE(data: unknown, sourceFormat: string): string {
   }
 
   return `data: ${JSON.stringify(data)}\n\n`;
+}
+
+const STREAM_SUMMARY_TEXT_LIMIT = 64 * 1024;
+
+// Bounded accumulator for streamed content/reasoning text — caps memory on long streams
+// by keeping only the tail once the limit is reached, instead of growing unbounded.
+export function appendBoundedText(current: string, next: string): string {
+  if (!next) return current;
+  // Avoid allocating `current + next` when already at/above limit — slide the window instead.
+  if (current.length >= STREAM_SUMMARY_TEXT_LIMIT) {
+    const keep = STREAM_SUMMARY_TEXT_LIMIT - next.length;
+    if (keep <= 0) return next.slice(-STREAM_SUMMARY_TEXT_LIMIT);
+    return current.slice(-keep) + next;
+  }
+  const combined = current + next;
+  if (combined.length <= STREAM_SUMMARY_TEXT_LIMIT) return combined;
+  return combined.slice(-STREAM_SUMMARY_TEXT_LIMIT);
+}
+
+/** Per-chunk recursive check for meaningful delta content. Hoisted to avoid closure re-allocation in hot-path. */
+export function hasActiveDeltaValue(value: unknown): boolean {
+  if (typeof value === "string") return value.length > 0;
+  if (Array.isArray(value)) return value.some((entry) => hasActiveDeltaValue(entry));
+  if (value && typeof value === "object") {
+    return Object.values(value).some((entry) => hasActiveDeltaValue(entry));
+  }
+  return value !== null && value !== undefined;
 }

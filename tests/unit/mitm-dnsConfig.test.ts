@@ -57,6 +57,32 @@ try {
   // /etc/hosts not readable — treat as absent.
 }
 
+/**
+ * Assert the spawn that writes /etc/hosts.
+ *
+ * `resolveSudoSpawn()` (src/mitm/systemCommands.ts) deliberately drops the
+ * `sudo -S` prefix when the process is already root, when `sudo` is not
+ * installed (slim containers) or under `OMNIROUTE_NO_SUDO` (#6122) — so the
+ * spawned command is `sudo` for an unprivileged user and the bare underlying
+ * binary otherwise. Hardcoding `sudo` made this test fail whenever the suite
+ * ran as root. Assert the *effective* invocation instead: the write always
+ * goes through `tee -a <hosts file>`, elevated or not.
+ */
+function assertHostsWriteSpawn(call: { command: string; args: string[] }): void {
+  if (process.platform === "win32") {
+    assert.equal(call.command, "powershell.exe", "should invoke powershell.exe");
+    return;
+  }
+  const argv = [call.command, ...call.args];
+  assert.ok(argv.includes("tee"), `should write hosts via tee (got: ${argv.join(" ")})`);
+  assert.ok(argv.includes("-a"), `tee should append, not truncate (got: ${argv.join(" ")})`);
+  if (call.command === "sudo") {
+    assert.ok(call.args.includes("-S"), "sudo should use -S flag for password stdin");
+  } else {
+    assert.equal(call.command, "tee", `unelevated write should invoke tee directly (got ${call.command})`);
+  }
+}
+
 function guardEnv(value: string | undefined): () => void {
   const prev = process.env.OMNIROUTE_SKIP_DNS_WRITE;
   if (value === undefined) {
@@ -98,11 +124,7 @@ test("addDNSEntries: proceeds when env var is unset", async () => {
   try {
     await addDNSEntries(["__test_add_unset__.example.com"], "fake-pw");
     assert.ok(spawnCalls.length > 0, "spawn should be called when guard is off");
-    const expectedCmd = process.platform === "win32" ? "powershell.exe" : "sudo";
-    assert.equal(spawnCalls[0].command, expectedCmd, `should invoke ${expectedCmd}`);
-    if (process.platform !== "win32") {
-      assert.ok(spawnCalls[0].args.includes("-S"), "sudo should use -S flag for password stdin");
-    }
+    assertHostsWriteSpawn(spawnCalls[0]);
   } finally {
     restore();
   }
@@ -115,8 +137,7 @@ test("addDNSEntries: proceeds when OMNIROUTE_SKIP_DNS_WRITE=0", async () => {
   try {
     await addDNSEntries(["__test_add_0__.example.com"], "fake-pw");
     assert.ok(spawnCalls.length > 0, "spawn should be called for value '0'");
-    const expectedCmd = process.platform === "win32" ? "powershell.exe" : "sudo";
-    assert.equal(spawnCalls[0].command, expectedCmd, `should invoke ${expectedCmd}`);
+    assertHostsWriteSpawn(spawnCalls[0]);
   } finally {
     restore();
   }
@@ -129,8 +150,7 @@ test("addDNSEntries: guard does NOT trigger for value 'true'", async () => {
   try {
     await addDNSEntries(["__test_add_true__.example.com"], "fake-pw");
     assert.ok(spawnCalls.length > 0, "spawn should be called for value 'true'");
-    const expectedCmd = process.platform === "win32" ? "powershell.exe" : "sudo";
-    assert.equal(spawnCalls[0].command, expectedCmd, `should invoke ${expectedCmd}`);
+    assertHostsWriteSpawn(spawnCalls[0]);
   } finally {
     restore();
   }

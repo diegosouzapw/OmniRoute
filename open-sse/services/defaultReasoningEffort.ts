@@ -24,18 +24,24 @@ function hasExplicitReasoningField(body: Record<string, unknown>): boolean {
 }
 
 /**
- * Inject the resolved model's `defaultReasoningEffort` as `reasoning_effort` when the
- * request has no reasoning field. Returns `body` unchanged (same reference) when there
- * is nothing to inject, so callers can chain it without extra guards.
+ * Inject a resolved reasoning effort as `reasoning_effort` when the request has no
+ * reasoning field. Returns `body` unchanged (same reference) when there is nothing to
+ * inject, so callers can chain it without extra guards.
+ *
+ * `suffixEffort` (#7694) is the tier a `<prefix>/<model>-{effort}` synced-model alias
+ * resolved to (`src/sse/services/model.ts`'s `resolveSyncedModelIdAndEffort`) — an
+ * explicit, request-time model selection, so it takes priority over the static
+ * `ModelSpec.defaultReasoningEffort` fleet-wide default (#6879) when both are present.
  */
 export function applyDefaultReasoningEffort<T extends Record<string, unknown>>(
   body: T,
-  modelId: string
+  modelId: string,
+  suffixEffort?: string | null
 ): T {
   if (!body || typeof body !== "object") return body;
   if (hasExplicitReasoningField(body)) return body;
 
-  const defaultEffort = getModelSpec(modelId)?.defaultReasoningEffort;
+  const defaultEffort = suffixEffort || getModelSpec(modelId)?.defaultReasoningEffort;
   if (!defaultEffort) return body;
 
   return { ...body, reasoning_effort: defaultEffort };
