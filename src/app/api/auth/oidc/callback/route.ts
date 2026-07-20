@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSettings, updateSettings } from "@/lib/localDb";
+import { getCachedSettings, updateSettings } from "@/lib/localDb";
 import { SignJWT, jwtVerify, createRemoteJWKSet } from "jose";
 import { cookies } from "next/headers";
 // Test seam (static) — allows tests to inject a cookie store and capture the minted auth_token.
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     maxAge: 0,
   });
 
-  const settings = await getSettings();
+  const settings = await getCachedSettings();
 
   const enabled = settings.oidcEnabled === true;
   const issuer =

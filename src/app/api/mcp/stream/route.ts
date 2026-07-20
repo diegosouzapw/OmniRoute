@@ -8,12 +8,12 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSettings } from "@/lib/db/settings";
+import { getCachedSettings } from "@/lib/db/settings";
 import { handleMcpStreamableHTTP } from "../../../../../open-sse/mcp-server/httpTransport";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 async function guardEnabled(): Promise<NextResponse | null> {
-  const settings = await getSettings();
+  const settings = await getCachedSettings();
   if (!settings.mcpEnabled) {
     return NextResponse.json(
       { error: "MCP server is disabled. Enable it from the Endpoints page." },

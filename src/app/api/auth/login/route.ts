@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
-import { getSettings } from "@/lib/localDb";
+import { getCachedSettings } from "@/lib/localDb";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 import {
@@ -72,7 +72,7 @@ export async function POST(request) {
     if (!password) {
       return NextResponse.json({ error: "Invalid password payload" }, { status: 400 });
     }
-    const settings = await getSettings();
+    const settings = await getCachedSettings();
     const bruteForceEnabled = settings.bruteForceProtection !== false;
     const clientIp = auditContext.ipAddress || null;
 

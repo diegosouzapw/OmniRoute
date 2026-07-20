@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSettings } from "@/lib/localDb";
+import { getCachedSettings } from "@/lib/localDb";
 
 /**
  * GET /api/auth/oidc/login
@@ -8,7 +8,7 @@ import { getSettings } from "@/lib/localDb";
  * Password login remains available as fallback.
  */
 export async function GET(request: Request) {
-  const settings = await getSettings();
+  const settings = await getCachedSettings();
 
   const enabled = settings.oidcEnabled === true;
   const issuer =

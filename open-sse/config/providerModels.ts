@@ -1,10 +1,64 @@
 import { generateModels, generateAliasMap, type RegistryModel } from "./providerRegistry.ts";
 
-// Provider models - Generated from providerRegistry.js (single source of truth)
-export const PROVIDER_MODELS = generateModels();
+// Lazy PROVIDER_MODELS: deferred until first property access to speed up startup.
+// The Proxy defers `generateModels()` from module-evaluation time to the first read.
+let _models: Record<string, RegistryModel[]> | null = null;
+function initModels(): Record<string, RegistryModel[]> {
+  if (!_models) _models = generateModels();
+  return _models;
+}
 
-// Provider ID to alias mapping - Generated from providerRegistry.js
-export const PROVIDER_ID_TO_ALIAS = generateAliasMap();
+export const PROVIDER_MODELS: Record<string, RegistryModel[]> = new Proxy(
+  {} as Record<string, RegistryModel[]>,
+  {
+    get(_, prop) {
+      if (typeof prop === 'symbol') return undefined;
+      return Reflect.get(initModels(), prop, _models);
+    },
+    has(_, prop) {
+      if (typeof prop === 'symbol') return false;
+      return Reflect.has(initModels(), prop);
+    },
+    ownKeys() {
+      return Reflect.ownKeys(initModels());
+    },
+    getOwnPropertyDescriptor(_, prop) {
+      if (typeof prop === 'symbol') return undefined;
+      return Object.getOwnPropertyDescriptor(initModels(), prop);
+    },
+    set(_, prop, value) {
+      if (typeof prop === 'symbol') return false;
+      (initModels() as Record<string, RegistryModel[]>)[prop] = value;
+      return true;
+    },
+  }
+);
+export const PROVIDER_ID_TO_ALIAS: Record<string, string> = new Proxy(
+  {} as Record<string, string>,
+  {
+    get(_, prop) {
+      if (typeof prop === 'symbol') return undefined;
+      return Reflect.get(initAliases(), prop, _aliases);
+    },
+    has(_, prop) {
+      if (typeof prop === 'symbol') return false;
+      return Reflect.has(initAliases(), prop);
+    },
+    ownKeys() {
+      return Reflect.ownKeys(initAliases());
+    },
+    getOwnPropertyDescriptor(_, prop) {
+      if (typeof prop === 'symbol') return undefined;
+      return Object.getOwnPropertyDescriptor(initAliases(), prop);
+    },
+  }
+);
+
+let _aliases: Record<string, string> | null = null;
+function initAliases(): Record<string, string> {
+  if (!_aliases) _aliases = generateAliasMap();
+  return _aliases;
+}
 
 // Helper functions
 export function getProviderModels(aliasOrId: string): RegistryModel[] {
