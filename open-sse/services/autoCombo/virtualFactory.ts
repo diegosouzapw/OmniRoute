@@ -245,7 +245,7 @@ function getNoAuthCandidates(
  * entirely when a limit is falsy). Fall back to a conservative generic default so
  * a non-empty pool always yields a positive maxOutputTokens too.
  */
-const DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS = 4096;
+const DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS = 8192;
 
 export function computeAdvertisedLimits(candidates: Array<{ provider: string; model: string }>): {
   contextLength: number | null;
