@@ -75,12 +75,6 @@ export const OAUTH_TEST_CONFIG = {
     authPrefix: "Bearer ",
     refreshable: true,
   },
-  qwen: {
-    // DashScope (previously portal.qwen.ai) /v1/models might return 404 or auth issues.
-    // Use checkExpiry instead — actual connectivity is validated via real requests.
-    checkExpiry: true,
-    refreshable: true,
-  },
   cursor: {
     checkExpiry: true,
   },
@@ -121,7 +115,7 @@ export const OAUTH_TEST_CONFIG = {
     // below. Grok Build's cli-chat-proxy endpoint doesn't expose a lightweight
     // userinfo probe, and it enforces cli-specific headers (see
     // GrokCliExecutor.buildHeaders) that this shared prober doesn't send — so
-    // mirror qwen/cline/kilocode's checkExpiry pattern instead of a live probe.
+    // mirror cline/kilocode's checkExpiry pattern instead of a live probe.
     // Real connectivity is still validated on every chat/completions request.
     checkExpiry: true,
     refreshable: true,
@@ -130,8 +124,7 @@ export const OAUTH_TEST_CONFIG = {
     // GHE Copilot: probe the enterprise user-info endpoint derived from gheUrl
     // (stored in providerSpecificData).
     getUrl: (connection: any) => {
-      const gheUrl =
-        connection?.providerSpecificData?.gheUrl || connection?.gheUrl || "";
+      const gheUrl = connection?.providerSpecificData?.gheUrl || connection?.gheUrl || "";
       const base = gheUrl.replace(/\/+$/, "");
       return `${base}/api/v3/user`;
     },

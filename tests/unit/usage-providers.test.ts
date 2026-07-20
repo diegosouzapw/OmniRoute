@@ -96,17 +96,6 @@ test("getUsageForProvider handles kimi-coding provider", async () => {
   assert.ok(result);
 });
 
-test("getUsageForProvider handles qwen provider", async () => {
-  globalThis.fetch = async () => new Response(JSON.stringify({}), { status: 200 });
-  const result = await usageModule.getUsageForProvider({
-    id: "test-qw",
-    provider: "qwen",
-    accessToken: "tok",
-    apiKey: "key",
-  });
-  assert.ok(result);
-});
-
 test("getUsageForProvider handles qoder provider", async () => {
   globalThis.fetch = async () => new Response(JSON.stringify({}), { status: 200 });
   const result = await usageModule.getUsageForProvider({

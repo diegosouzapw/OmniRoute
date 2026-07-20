@@ -7,7 +7,7 @@
  * Client-side caching (e.g., Claude Code) should be preserved when:
  * 1. Client is Claude Code or similar caching-aware client
  * 2. Request will hit a deterministic target (single model or deterministic combo strategy)
- * 3. Provider supports prompt caching (Anthropic, Alibaba Qwen, etc.)
+ * 3. Provider supports prompt caching (Anthropic, etc.)
  */
 
 import type { RoutingStrategyValue } from "../../src/shared/constants/routingStrategies";
@@ -76,7 +76,6 @@ const CACHING_PROVIDERS = new Set([
   "claude",
   "anthropic",
   "zai",
-  "qwen",
   "deepseek",
   // Kimi Code's OpenAI protocol requires prompt_cache_key for Coding Plan
   // cache affinity. The OAuth card and hidden API-key compatibility ID share

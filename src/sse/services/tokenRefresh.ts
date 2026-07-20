@@ -11,7 +11,6 @@ import {
   refreshAccessToken as _refreshAccessToken,
   refreshClaudeOAuthToken as _refreshClaudeOAuthToken,
   refreshGoogleToken as _refreshGoogleToken,
-  refreshQwenToken as _refreshQwenToken,
   refreshCodexToken as _refreshCodexToken,
   refreshQoderToken as _refreshQoderToken,
   refreshGitHubToken as _refreshGitHubToken,
@@ -66,11 +65,6 @@ export const refreshGoogleToken = async (
 ) => {
   const proxy = await resolveProxyForCredentials(provider, credentials);
   return _refreshGoogleToken(refreshToken, clientId, clientSecret, log, proxy);
-};
-
-export const refreshQwenToken = async (refreshToken: string, credentials?: any) => {
-  const proxy = await resolveProxyForCredentials("qwen", credentials);
-  return _refreshQwenToken(refreshToken, log, proxy);
 };
 
 export const refreshCodexToken = async (refreshToken: string, credentials?: any) => {

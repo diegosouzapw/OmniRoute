@@ -83,7 +83,7 @@ vs. $20 + hitting limits = frustration
 ```
 Combo: "free-forever"
   1. if/kimi-k2       (unlimited free)
-  2. qw/qwen3-coder-plus       (unlimited free)
+  2. kr/qwen3-coder-next       (free fallback)
 
 Monthly cost: $0
 Quality: Production-ready models
@@ -252,7 +252,7 @@ Use in CLI: premium-coding
 Name: free-combo
 Models:
   1. if/kimi-k2 (unlimited)
-  2. qw/coder-model (unlimited)
+  2. kr/qwen3-coder-next (free fallback)
 
 Cost: $0 forever!
 ```
@@ -575,8 +575,6 @@ For the full environment variable reference, see the [README](../README.md).
 **Kiro (`kr/`)** — FREE OAuth: `kr/auto-kiro`, `kr/claude-opus-4.7`, `kr/claude-opus-4.6`, `kr/claude-sonnet-4.6`, `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`, `kr/deepseek-3.2`, `kr/minimax-m2.5`, `kr/minimax-m2.1`, `kr/glm-5`, `kr/qwen3-coder-next`
 
 **Qoder (`if/`)** — FREE OAuth: `if/kimi-k2-0905`, `if/kimi-k2`, `if/qwen3-coder-plus`, `if/qwen3-max`, `if/qwen3-max-preview`, `if/qwen3-vl-plus`, `if/qwen3-32b`, `if/qwen3-235b-a22b-thinking-2507`, `if/qwen3-235b-a22b-instruct`, `if/qwen3-235b`, `if/deepseek-v3.2`, `if/deepseek-v3`, `if/deepseek-r1`, `if/qoder-rome-30ba3b`
-
-**Qwen (`qw/`)** — FREE OAuth (chat.qwen.ai): `qw/coder-model`, `qw/vision-model`
 
 **GLM (`glm/`, `glm-cn/`, `zai/`, `glmt/`)** — $0.2–0.6/1M: `glm/glm-5.1`, `glm/glm-5`, `glm/glm-5-turbo`, `glm/glm-4.7`, `glm/glm-4.7-flash`, `glm/glm-4.6`, `glm/glm-4.6v`, `glm/glm-4.5`, `glm/glm-4.5v`, `glm/glm-4.5-air`
 

@@ -8,6 +8,7 @@ import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
 import { FORMATS } from "../formats.ts";
 import { register } from "../registry.ts";
 import { normalizeResponsesInputForChat } from "../../utils/responsesInputNormalization.ts";
+import { collectResponsesTools } from "./openai-responses/additionalTools.ts";
 import { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
 import {
   JsonRecord,
@@ -17,7 +18,6 @@ import {
   TOOL_SEARCH_TOOL_TYPES,
   IMAGE_GENERATION_TOOL_TYPES,
   toRecord,
-  toArray,
   toString,
   normalizeVerbosity,
   normalizeResponsesReasoningEffort,
@@ -46,9 +46,12 @@ export function openaiResponsesToOpenAIRequest(
   if (root.input === undefined) return body;
   const credentialRecord = toRecord(credentials);
   const storeEnabled = isOpenAIResponsesStoreEnabled(credentialRecord.providerSpecificData);
+  const rawInputItems = normalizeResponsesInputForChat(root.input);
 
-  // Validate tool types — only function tools can be translated to Chat Completions
-  const tools = toArray(root.tools);
+  // Tools may be declared at the Responses top level or in one or more
+  // `additional_tools` input items. Normalize both forms before validation/conversion so
+  // every downgraded provider receives the same available tool set.
+  const tools = collectResponsesTools(root.tools, rawInputItems);
   if (tools.length > 0) {
     for (const toolValue of tools) {
       const tool = toRecord(toolValue);
@@ -101,6 +104,20 @@ export function openaiResponsesToOpenAIRequest(
   // `text` object (a strict Chat endpoint 400s on unknown fields).
   const responsesVerbosity = normalizeVerbosity(toRecord(result.text).verbosity);
   if (responsesVerbosity && isOpenAIDestination) result.verbosity = responsesVerbosity;
+  const responsesTextFormat = toRecord(toRecord(result.text).format);
+  if (responsesTextFormat.type === "json_schema" && responsesTextFormat.schema !== undefined) {
+    const jsonSchema: JsonRecord = {
+      name: toString(responsesTextFormat.name, "response"),
+      schema: responsesTextFormat.schema,
+    };
+    if (responsesTextFormat.description !== undefined) {
+      jsonSchema.description = responsesTextFormat.description;
+    }
+    if (responsesTextFormat.strict !== undefined) jsonSchema.strict = responsesTextFormat.strict;
+    result.response_format = { type: "json_schema", json_schema: jsonSchema };
+  } else if (responsesTextFormat.type === "json_object") {
+    result.response_format = { type: "json_object" };
+  }
   delete result.text;
 
   // background: true requests a deferred Responses API run (the upstream
@@ -138,7 +155,6 @@ export function openaiResponsesToOpenAIRequest(
   // Upstream providers reject messages:[] with "400: at least one message is required".
   // When the client sends input:[] (empty), inject a placeholder user message — mirrors
   // upstream 9router#419 (and the existing empty-string handling elsewhere in this file).
-  const rawInputItems = normalizeResponsesInputForChat(root.input);
   const inputItems: unknown[] =
     rawInputItems.length === 0
       ? [{ type: "message", role: "user", content: [{ type: "input_text", text: "..." }] }]
@@ -174,6 +190,9 @@ export function openaiResponsesToOpenAIRequest(
             }
             if (contentItem.type === "output_text") {
               return { type: "text", text: toString(contentItem.text) };
+            }
+            if (contentItem.type === "refusal") {
+              return { type: "text", text: toString(contentItem.refusal) };
             }
             if (contentItem.type === "input_image") {
               const imgResult: JsonRecord = {
@@ -330,6 +349,15 @@ export function openaiResponsesToOpenAIRequest(
       // Skip reasoning items - they are display-only metadata
       continue;
     }
+
+    if (itemType === "additional_tools") {
+      // Already consumed by collectResponsesTools() before message conversion.
+      continue;
+    }
+
+    throw unsupportedFeature(
+      `Unsupported Responses API feature: input item type '${itemType || "missing"}' cannot be represented in Chat Completions`
+    );
   }
 
   // Flush remainder
@@ -343,8 +371,8 @@ export function openaiResponsesToOpenAIRequest(
   }
 
   // Convert tools format
-  if (Array.isArray(root.tools)) {
-    result.tools = root.tools
+  if (tools.length > 0) {
+    result.tools = tools
       .filter((toolValue) => {
         const tool = toRecord(toolValue);
         const toolType = toString(tool.type);
@@ -519,7 +547,55 @@ export function openaiResponsesToOpenAIRequest(
       result.tool_choice = { type: "function", function: { name: tc.name } };
     } else if (tcType === "local_shell") {
       result.tool_choice = { type: "function", function: { name: "shell" } };
-    } else if (tcType && tcType !== "function" && tcType !== "allowed_tools") {
+    } else if (tcType === "allowed_tools") {
+      const mode = toString(tc.mode);
+      if (mode !== "auto" && mode !== "required") {
+        throw unsupportedFeature(
+          `Unsupported Responses API feature: allowed_tools mode '${mode || "missing"}' is not supported by omniroute`
+        );
+      }
+      if (!Array.isArray(tc.tools) || tc.tools.length === 0) {
+        throw unsupportedFeature(
+          "Unsupported Responses API feature: allowed_tools requires at least one function tool"
+        );
+      }
+
+      const allowedNames = new Set<string>();
+      for (const allowedValue of tc.tools) {
+        const allowed = toRecord(allowedValue);
+        const allowedType = toString(allowed.type);
+        const allowedName = toString(allowed.name).trim();
+        if (allowedType !== "function" || !allowedName) {
+          throw unsupportedFeature(
+            `Unsupported Responses API feature: allowed_tools descriptor type '${allowedType || "missing"}' cannot be represented in Chat Completions`
+          );
+        }
+        allowedNames.add(allowedName);
+      }
+
+      const chatTools = Array.isArray(result.tools) ? result.tools : [];
+      const availableNames = new Set(
+        chatTools
+          .map((toolValue) => toString(toRecord(toRecord(toolValue).function).name))
+          .filter(Boolean)
+      );
+      const missingNames = [...allowedNames].filter((name) => !availableNames.has(name));
+      if (missingNames.length > 0) {
+        throw unsupportedFeature(
+          `Unsupported Responses API feature: allowed_tools references unavailable function tool(s): ${missingNames.join(", ")}`
+        );
+      }
+
+      result.tools = chatTools.filter((toolValue) =>
+        allowedNames.has(toString(toRecord(toRecord(toolValue).function).name))
+      );
+      if (result.tools.length === 0) {
+        throw unsupportedFeature(
+          "Unsupported Responses API feature: allowed_tools resolved to zero Chat Completions function tools"
+        );
+      }
+      result.tool_choice = mode;
+    } else if (tcType && tcType !== "function") {
       // Built-in tool types (web_search_preview, file_search, etc.) have no Chat equivalent
       throw unsupportedFeature(
         `Unsupported Responses API feature: tool_choice type '${tcType}' is not supported by omniroute`
@@ -573,6 +649,12 @@ export function openaiResponsesToOpenAIRequest(
   // Completions equivalent. Strict non-OpenAI upstreams (e.g. NVIDIA NIM) reject
   // it with HTTP 400 "Unsupported parameter(s): truncation" (#2311).
   delete result.truncation;
+  // These fields configure Responses-owned state, caching, and tool execution limits.
+  // Chat Completions has no equivalent and strict compatible endpoints reject them.
+  delete result.max_tool_calls;
+  delete result.conversation;
+  delete result.prompt_cache_options;
+  delete result.prompt_cache_retention;
 
   return result;
 }

@@ -184,7 +184,7 @@ Combo: "free-forever"
   Pipeline: RTK -> Caveman
   Targets:
     1. if/kimi-k2-thinking
-    2. qw/qwen3-coder-plus
+    2. if/qwen3-coder-plus
 ```
 
 This lets you use stacked compression on free/coding providers while keeping lite mode on paid

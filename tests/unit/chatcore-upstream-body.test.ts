@@ -1,8 +1,8 @@
 // tests/unit/chatcore-upstream-body.test.ts
 // Characterization of prepareUpstreamBody — the first internal sub-slice of executeProviderRequest
 // (chatCore god-file decomposition, #3501). Uses a fresh temp DB (no payload rules / no detected
-// tool limits → defaults). Locks: target-model pinning, the Qwen OAuth user backfill (and its
-// guards), and the prompt_cache_key gating (excluded providers + non-OPENAI format never inject).
+// tool limits → defaults). Locks: target-model pinning and the prompt_cache_key gating
+// (excluded providers + non-OPENAI format never inject).
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -230,39 +230,6 @@ test("preserves the full tool list when within the grok-cli limit", async () => 
     credentials: null,
   });
   assert.equal(out.tools.length, 150);
-});
-
-test("backfills the Qwen OAuth user when missing", async () => {
-  const out = await prepareUpstreamBody({
-    translatedBody: { model: "qwen-max", messages: [] },
-    modelToCall: "qwen-max",
-    provider: "qwen",
-    targetFormat: "claude",
-    credentials: { accessToken: "tok-123" },
-  });
-  assert.equal(out.user, "omniroute-qwen-oauth");
-});
-
-test("does not backfill the Qwen user when an apiKey is present (API-key mode)", async () => {
-  const out = await prepareUpstreamBody({
-    translatedBody: { model: "qwen-max", messages: [] },
-    modelToCall: "qwen-max",
-    provider: "qwen",
-    targetFormat: "claude",
-    credentials: { apiKey: "k", accessToken: "tok-123" },
-  });
-  assert.equal(out.user, undefined);
-});
-
-test("does not backfill the Qwen user when one is already set", async () => {
-  const out = await prepareUpstreamBody({
-    translatedBody: { model: "qwen-max", messages: [], user: "real-user" },
-    modelToCall: "qwen-max",
-    provider: "qwen",
-    targetFormat: "claude",
-    credentials: { accessToken: "tok-123" },
-  });
-  assert.equal(out.user, "real-user");
 });
 
 test("never injects prompt_cache_key for an excluded provider (codex)", async () => {

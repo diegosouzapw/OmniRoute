@@ -190,7 +190,6 @@ test("Doubao Web sets correct provider", () => {
 
 test("Qwen Web executor is registered", () => {
   assert.ok(hasSpecializedExecutor("qwen-web"));
-  assert.ok(hasSpecializedExecutor("qw"));
   const executor = getExecutor("qwen-web");
   assert.ok(executor instanceof QwenWebExecutor);
 });

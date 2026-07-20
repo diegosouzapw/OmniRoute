@@ -2,8 +2,7 @@ import type { RegistryEntry } from "../../../shared.ts";
 
 export const qwen_webProvider: RegistryEntry = {
   id: "qwen-web",
-  // Distinct alias: the primary "qwen" provider keeps the short "qw" alias;
-  // this web/cookie variant is addressed by its own id.
+  // The web/cookie variant is addressed by its own id.
   alias: "qwen-web",
   format: "openai",
   executor: "qwen-web",

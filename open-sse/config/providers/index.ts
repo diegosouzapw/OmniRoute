@@ -83,7 +83,6 @@ import { snowflakeProvider } from "./registry/snowflake/index.ts";
 import { huggingfaceProvider } from "./registry/huggingface/index.ts";
 import { chipotleProvider } from "./registry/chipotle/index.ts";
 import { freeaiapikeyProvider } from "./registry/freeaiapikey/index.ts";
-import { qwenProvider } from "./registry/qwen/index.ts";
 import { qwen_webProvider } from "./registry/qwen/web/index.ts";
 import { zai_webProvider } from "./registry/zai-web/index.ts";
 import { modalProvider } from "./registry/modal/index.ts";
@@ -284,7 +283,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   huggingface: huggingfaceProvider,
   chipotle: chipotleProvider,
   freeaiapikey: freeaiapikeyProvider,
-  qwen: qwenProvider,
   "qwen-web": qwen_webProvider,
   "zai-web": zai_webProvider,
   modal: modalProvider,

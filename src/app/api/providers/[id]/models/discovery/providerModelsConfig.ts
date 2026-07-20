@@ -139,16 +139,8 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => normalizeOpenAiLikeModelsResponse(data, "huggingface"),
   },
-  qwen: {
-    url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => data.data || [],
-  },
   // #3931: qwen-web (cookie provider) was missing here, so its discovery page
-  // showed nothing (the OAuth fallback above only fires for provider==="qwen").
+  // showed nothing.
   // `chat.qwen.ai/api/v2/models/` is public (no auth header configured/sent);
   // shape `{ data: { data: [{ id, name, owned_by }] } }`, flatter `{ data: [] }` fallback.
   "qwen-web": {
@@ -226,8 +218,7 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
       if (token) out["x-api-key"] = token;
       return out;
     },
-    parseResponse: (data: any) =>
-      Array.isArray(data) ? data : (data?.data || data?.models || []),
+    parseResponse: (data: any) => (Array.isArray(data) ? data : data?.data || data?.models || []),
   },
   openai: {
     url: "https://api.openai.com/v1/models",
