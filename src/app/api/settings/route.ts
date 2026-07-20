@@ -281,7 +281,7 @@ export async function PATCH(request: Request) {
         settings,
         source: "settings.security_impacting_update",
       });
-      storedPasswordHash = getStoredManagementPassword(passwordState.settings);
+      const storedPasswordHash = getStoredManagementPassword(passwordState.settings);
       // Cold-boot exception: same condition the existing newPassword path
       // honoured before T-011 — when no password is configured yet AND login
       // is currently disabled, allow the first write to set policy (incl.
