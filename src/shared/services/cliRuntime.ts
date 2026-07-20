@@ -7,6 +7,7 @@ import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
 import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 import { withSettingsFallback } from "./cliInstallFallback";
 import { GROK_BUILD_RUNTIME_ENTRY, AMP_RUNTIME_ENTRY } from "./cliRuntimeGrokBuild";
+import { isLocationTrusted, findKnownPathMatch } from "./cliRuntimeKnownPath";
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
 
@@ -791,7 +792,7 @@ export const locateCommand = async (command: string, env: Record<string, string 
  * - Verifies file is a regular file (not directory, pipe, or device)
  * - Checks file size bounds (30B - 100MB) to detect suspicious binaries
  */
-const checkKnownPath = async (commandPath: string) => {
+export const checkKnownPath = async (commandPath: string) => {
   if (!path.isAbsolute(commandPath)) {
     return { installed: false, commandPath: null, reason: "not_absolute" };
   }
@@ -804,27 +805,21 @@ const checkKnownPath = async (commandPath: string) => {
     // Resolve symlinks to get the real path and detect symlink escapes
     const realPath = await fs.realpath(commandPath);
 
-    // Verify the resolved path is still within expected directories
-    // Use pre-computed expected parent paths (cached at module startup for performance).
-    // On macOS temp directories often resolve from /var -> /private/var, so compare both
-    // the configured parent and its canonical realpath when available.
-    let isWithinExpected = false;
-    for (const parent of EXPECTED_PARENT_PATHS) {
-      if (isPathWithin(realPath, parent)) {
-        isWithinExpected = true;
-        break;
-      }
-
-      try {
-        const resolvedParent = await fs.realpath(parent);
-        if (isPathWithin(realPath, resolvedParent)) {
-          isWithinExpected = true;
-          break;
-        }
-      } catch {
-        // Ignore missing/unresolvable parents and continue checking the remaining ones.
-      }
-    }
+    // Verify the resolved path — OR the original pre-resolution path — is within
+    // expected directories. Use pre-computed expected parent paths (cached at module
+    // startup for performance). On macOS temp directories often resolve from
+    // /var -> /private/var, so compare both the configured parent and its canonical
+    // realpath when available.
+    //
+    // #7753: also trust the pre-resolution `commandPath` itself, not just `realPath`
+    // — see isLocationTrusted() in cliRuntimeKnownPath.ts for the rationale.
+    const isWithinExpected = await isLocationTrusted(
+      commandPath,
+      realPath,
+      EXPECTED_PARENT_PATHS,
+      isPathWithin,
+      fs.realpath
+    );
 
     if (!isWithinExpected) {
       return { installed: false, commandPath: null, reason: "symlink_escape" };
@@ -862,6 +857,8 @@ const checkKnownPath = async (commandPath: string) => {
   }
 };
 
+type KnownPathResult = Awaited<ReturnType<typeof checkKnownPath>>;
+
 const locateCommandCandidate = async (
   commands: string[],
   env: Record<string, string | undefined>,
@@ -873,35 +870,22 @@ const locateCommandCandidate = async (
 
   // SECURITY: First check known installation paths for this specific tool
   // This avoids searching PATH and reduces attack surface
+  let bestKnownPathFailure: KnownPathResult | null = null;
   if (toolId) {
-    const knownPaths = getKnownToolPaths(toolId);
-    for (const knownPath of knownPaths) {
-      const result = await checkKnownPath(knownPath);
-      if (result.installed && result.reason === null) {
-        return {
-          command: commands[0],
-          installed: true,
-          commandPath: result.commandPath,
-          reason: null,
-        };
-      }
-
-      if (result.installed && result.reason === "not_executable") {
-        return {
-          command: commands[0],
-          installed: true,
-          commandPath: result.commandPath,
-          reason: "not_executable",
-        };
-      }
-
-      if (result.reason && result.reason !== "not_found") {
-        return { command: commands[0], ...result };
-      }
+    const { match, bestFailure } = await findKnownPathMatch(getKnownToolPaths(toolId), checkKnownPath);
+    if (match) {
+      return {
+        command: commands[0],
+        installed: true,
+        commandPath: match.commandPath,
+        reason: match.reason,
+      };
     }
+    bestKnownPathFailure = bestFailure;
   }
 
-  // Fallback: search PATH (user can set CLI_EXTRA_PATHS if needed)
+  // Always try PATH — a stray/broken known-path guess must never hide a genuinely
+  // PATH-resolvable binary (#7774). User can also set CLI_EXTRA_PATHS if needed.
   for (const command of commands) {
     const located = await locateCommand(command, env);
     if (located.installed || located.reason !== "not_found") {
@@ -909,6 +893,9 @@ const locateCommandCandidate = async (
     }
   }
 
+  if (bestKnownPathFailure) {
+    return { command: commands[0], ...bestKnownPathFailure };
+  }
   return { command: commands[0], installed: false, commandPath: null, reason: "not_found" };
 };
 
