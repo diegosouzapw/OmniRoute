@@ -495,14 +495,19 @@ export function createDisconnectAwareStream(transformStream, streamController) {
           const { done, value } = await reader.read();
           if (done) {
             // #7699 — upstream ended without a client-visible terminal marker.
-            // If bytes were forwarded but the stream never emitted [DONE] /
-            // response.completed / message_stop, this is a silent mid-stream
-            // drop. Emit a synthetic terminal error so Anthropic SDK / Claude
-            // Code don't see "Connection closed mid-response."
+            // Scoped to Claude (/v1/messages) specifically, which is the
+            // issue's real scope: Anthropic's SSE spec permits a mid-stream
+            // event: error and Claude clients (Claude Code, Anthropic SDK)
+            // treat a stream that ends without message_stop as an error. For
+            // every other format (plain OpenAI chat completions included —
+            // see #7699's "Suggested Fix") a done-without-recognized-marker
+            // close is NOT necessarily a silent drop (many providers/formats
+            // legitimately have no [DONE]/response.completed equivalent), so
+            // injecting a synthetic error there would be a false positive.
             if (
               bytesWereForwarded &&
               !clientTerminalSeen &&
-              streamController.clientResponseFormat
+              streamController.clientResponseFormat === FORMATS.CLAUDE
             ) {
               streamController.handleError(
                 Object.assign(new Error("Upstream stream ended without a terminal marker"), {
