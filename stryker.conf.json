@@ -48,6 +48,7 @@
       "tests/unit/account-fallback-route-restriction-403.test.ts",
       "tests/unit/account-fallback-service.test.ts",
       "tests/unit/accountfallback-ratelimit-400-4976.test.ts",
+      "tests/unit/anthropic-thinking-signature-recovery.test.ts",
       "tests/unit/antigravity-429-quota-tdd.test.ts",
       "tests/unit/api-key-rotator-health.test.ts",
       "tests/unit/appearance-widget-settings-schema.test.ts",

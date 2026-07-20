@@ -41,6 +41,7 @@ import {
   redactPassthroughThinkingSignatures,
   isClaudeCodeSemanticPassthroughRequest,
 } from "./chatCore/passthroughHelpers.ts";
+import { recoverAnthropicThinkingSignature } from "./chatCore/thinkingSignatureRecovery.ts";
 import {
   buildStreamingResponseHeaders,
   materializeDeduplicatedExecutionResult,
@@ -3391,7 +3392,7 @@ export async function handleChatCore({
   await persistCodexQuotaState(normalizeHeaders(providerResponse.headers), providerResponse.status);
 
   // Check provider response - return error info for fallback handling
-  if (!providerResponse.ok) {
+  providerFailure: if (!providerResponse.ok) {
     trackPendingRequest(model, provider, connectionId, false);
 
     let statusCode = providerResponse.status;
@@ -3413,6 +3414,45 @@ export async function handleChatCore({
       upstreamErrorCode = details.errorCode as string | undefined;
       upstreamErrorType = details.errorType as string | undefined;
     }
+
+    const signatureRecovery = await recoverAnthropicThinkingSignature({
+      provider,
+      statusCode,
+      message,
+      body: translatedBody,
+      execute: async (recoveryBody) => {
+        translatedBody = recoveryBody as typeof translatedBody;
+        return executeProviderRequest(currentModel, false);
+      },
+      parseError: (response) => parseUpstreamError(response, provider),
+    });
+    if (signatureRecovery.attempted && signatureRecovery.execution) {
+      providerResponse = signatureRecovery.execution.response;
+      if (signatureRecovery.succeeded) {
+        providerUrl = signatureRecovery.execution.url;
+        providerHeaders = signatureRecovery.execution.headers;
+        finalBody = providerRequestCapture.body(signatureRecovery.execution.transformedBody);
+        reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+        updatePendingScope(pendingScope, {
+          providerRequest: finalBody,
+          providerUrl,
+          stage: "provider_response_started",
+        });
+        log?.info?.(
+          "THINKING_SIGNATURE",
+          `Recovered ${provider}/${currentModel} after one historical-thinking retry`
+        );
+      } else if (signatureRecovery.error) {
+        statusCode = signatureRecovery.error.statusCode;
+        message = signatureRecovery.error.message;
+        retryAfterMs = signatureRecovery.error.retryAfterMs;
+        upstreamErrorBody = signatureRecovery.error.responseBody;
+        upstreamErrorCode = signatureRecovery.error.errorCode as string | undefined;
+        upstreamErrorType = signatureRecovery.error.errorType as string | undefined;
+      }
+    }
+
+    if (signatureRecovery.succeeded) break providerFailure;
 
     // T06/T10/T36: classify provider errors and persist terminal account states.
     let errorType = classifyProviderError(statusCode, message, provider);
