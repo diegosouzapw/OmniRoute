@@ -291,7 +291,8 @@
     "src/lib/providers/validation/webProvidersA.ts": 809,
     "src/lib/tokenHealthCheck.ts": 832,
     "_rebaseline_2026_07_09_6587_kiro_api_key_auth": "PR #6587 (@strangersp) own growth for Kiro long-lived API-key auth, merged onto v3.8.47 tip: openai-to-kiro.ts 890->912 (+22, auth-header selection for API-key-vs-OAuth-token connections), providerLimits.ts 998->1000 (+2, API-key auth-type branch), translator-openai-to-kiro.test.ts 1234->1257 (+23), providers-page-utils.test.ts 1109->1107 (net -2 after merging with parallel release drift; connectionMatchesProviderCard api_key coverage added), provider-validation-specialty.test.ts 2856->2980 (+124 net after merge with parallel release drift; this PR also removed the file's `@typescript-eslint/no-explicit-any` eslint-suppression entry by fixing all `any` usages, adding typed replacements). Cohesive additive feature growth, well tested; not extractable without splitting the existing chokepoints mid-merge.",
-    "src/lib/localDb.ts": 805,
+    "_rebaseline_2026_07_19_7787_ic2_localdb_reexports": "PR #7787 (IC2 raw connections cache + lazy-decrypt) own growth: localDb.ts 805->807 (gate units, +2). localDb.ts is the re-export-only layer (hard rule #2 — no logic); the PR adds 4 new db/readCache re-exports (touchConnectionLastUsed, getCachedRawProviderConnections, getCachedProviderConnectionById, getCachedProviderNodes) required by existing barrel importers. Irreducible for a re-export list; frozen so it can only shrink.",
+    "src/lib/localDb.ts": 807,
     "_rebaseline_2026_07_12_v3847_mergeprs_tail": "v3.8.47 /merge-prs tail (owner-approved): src/lib/localDb.ts NEW>800 (799->805, +6 re-exports countFreeProxies + recordFreeProxySyncErrors/clearFreeProxySyncErrors/getFreeProxySyncErrors + FreeProxySyncErrors type for #6909 free-pool relay-repair; re-export-only per Hard Rule #2, not extractable)."
   },
   "testCap": 800,
